@@ -27,20 +27,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CIterableList;
-template<class M>
-class SIteratorTemplate
+//Where an iteration over one class's unknowns is.
+struct SIteratorUnknown
 {
-public:
 	CIterableList*		pcList;
 	SFreeListIterator	sIter;
 };
 
 
-class SIteratorUnknown
+//The same, typed: StartIteration and Iterate take M from it.
+template<class M>
+struct SIteratorTemplate : public SIteratorUnknown
 {
-public:
-	CIterableList*		pcList;
-	SFreeListIterator	sIter;
 };
 
 
