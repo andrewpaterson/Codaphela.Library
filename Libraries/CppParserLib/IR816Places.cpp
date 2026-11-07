@@ -1918,8 +1918,8 @@ int32 CIR816Backend::PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate
 }
 
 
-#define IR816_X_BAD		-100000		//A use X can't serve: the temporary isn't kept in X.
-#define IR816_X_MAX_DEPTH	4			//The loops a use's weight counts (CIRLoops::Weight): 8^4 times a use's saving stays under IR816_X_BAD's veto.
+#define IR816_X_BAD		-100000		//A use X can't serve: the temporary isn't kept in X (AllocateX's abBad, not a score).
+#define IR816_X_MAX_DEPTH	4			//The loops a use's weight counts (CIRLoops::Weight).
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2083,6 +2083,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 {
 	CArrayTemplate<int32>	aiScore;		//Per temporary.
 	CArrayTemplate<uint8>	abCandidate;	//Per temporary.
+	CArrayTemplate<uint8>	abBad;			//Per temporary: a use X can't serve (a veto, whatever the score).
 	CArrayTemplate<int32>	aiClobbers;		//Positions that change X.
 	CArrayTemplate<int32>	aiOrder;
 	CArrayTemplate<int32>	aiInX;
@@ -2111,6 +2112,8 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	aiScore.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
 	abCandidate.Init(CIR816Backend::GetScratch());
 	abCandidate.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
+	abBad.Init(CIR816Backend::GetScratch());
+	abBad.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
 	aiClobbers.Init(CIR816Backend::GetScratch());
 
 	//The scores and the positions that change X, numbered as PackTemporaries numbers them.
@@ -2139,7 +2142,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 				sValue = FoldedIndex(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1]);
 				if (sValue.IsTemporary())
 				{
-					*aiScore.Get(sValue.Index()) += IR816_X_BAD;
+					*abBad.Get(sValue.Index()) = true;
 				}
 			}
 			for (iArgument = 0; iArgument < 2; iArgument++)
@@ -2152,7 +2155,14 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 					{
 						iScore = IR816_X_BAD;
 					}
-					*aiScore.Get(sValue.Index()) += (iScore == IR816_X_BAD) ? IR816_X_BAD : iScore * iWeight;
+					if (iScore == IR816_X_BAD)
+					{
+						*abBad.Get(sValue.Index()) = true;
+					}
+					else
+					{
+						*aiScore.Get(sValue.Index()) += iScore * iWeight;
+					}
 				}
 			}
 			sValue = psInstruction->sResult;
@@ -2197,7 +2207,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		iTemporary = (int32)ui;
-		if (*abCandidate.Get(ui) && !*pabParameter->Get(ui) && (*aiScore.Get(ui) > 0) && (pcRanges->Start(iTemporary) >= 0) &&
+		if (*abCandidate.Get(ui) && !*abBad.Get(ui) && !*pabParameter->Get(ui) && (*aiScore.Get(ui) > 0) && (pcRanges->Start(iTemporary) >= 0) &&
 			(Words(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) == 1))
 		{
 			aiOrder.Add(&iTemporary);
@@ -2236,6 +2246,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	aiInX.Kill();
 	aiOrder.Kill();
 	aiClobbers.Kill();
+	abBad.Kill();
 	abCandidate.Kill();
 	aiScore.Kill();
 }
