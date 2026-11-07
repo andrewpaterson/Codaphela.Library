@@ -29,6 +29,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index in the tiles of the tile at x in psRow's run, the tiles its
+// run holds, and the index in the cels of a tile's cel (a tile is its
+// cel's index plus one).
+//
+//////////////////////////////////////////////////////////////////////////
+static size RunIndex(STileLayerRow* psRow, size x) { return (size)(psRow->uiFirst + (x - psRow->uiStart)); }
+static size RunLength(STileLayerRow* psRow) { return (size)(psRow->uiEnd - psRow->uiStart); }
+static size CelIndex(uint32 uiTile) { return (size)(uiTile - 1); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition)
@@ -133,7 +145,7 @@ size CTileLayerCel::TileIndex(size x, size y)
 	{
 		return MAX_SIZE;
 	}
-	return psRow->uiFirst + (x - psRow->uiStart);
+	return RunIndex(psRow, x);
 }
 
 
@@ -243,7 +255,7 @@ void CTileLayerCel::TrimRow(size y)
 	size			uiTrailing;
 
 	psRow = masRows.Get(y);
-	uiLength = psRow->uiEnd - psRow->uiStart;
+	uiLength = RunLength(psRow);
 
 	uiLeading = 0;
 	while ((uiLeading < uiLength) && (*mauiTiles.Get(psRow->uiFirst + uiLeading) == 0))
@@ -259,14 +271,14 @@ void CTileLayerCel::TrimRow(size y)
 	}
 
 	uiTrailing = 0;
-	while (*mauiTiles.Get(psRow->uiFirst + uiLength - 1 - uiTrailing) == 0)
+	while (*mauiTiles.Get((size)(psRow->uiFirst + uiLength - 1 - uiTrailing)) == 0)
 	{
 		uiTrailing++;
 	}
 
 	if (uiTrailing > 0)
 	{
-		RemoveTiles(y, psRow->uiFirst + uiLength - uiTrailing, uiTrailing);
+		RemoveTiles(y, (size)(psRow->uiFirst + uiLength - uiTrailing), uiTrailing);
 		psRow->uiEnd -= uiTrailing;
 	}
 	if (uiLeading > 0)
@@ -316,11 +328,11 @@ bool CTileLayerCel::SetTile(size x, size y, Ptr<CImageCel> pTile)
 	}
 	else if (x >= psRow->uiEnd)
 	{
-		InsertTiles(y, psRow->uiFirst + (psRow->uiEnd - psRow->uiStart), x + 1 - psRow->uiEnd);
+		InsertTiles(y, (size)(psRow->uiFirst + RunLength(psRow)), (size)(x + 1 - psRow->uiEnd));
 		psRow->uiEnd = x + 1;
 	}
 
-	*mauiTiles.Get(psRow->uiFirst + (x - psRow->uiStart)) = AddCel(pTile);
+	*mauiTiles.Get(RunIndex(psRow, x)) = AddCel(pTile);
 	return true;
 }
 
@@ -415,7 +427,7 @@ bool CTileLayerCel::SetRowTiles(size y, size uiNumRows, uint32* auiTiles, size* 
 			}
 		}
 		FindTileRun(&auiTiles[uiOffset], (uiLength < msMapSize.x) ? uiLength : msMapSize.x, &uiStart, &uiEnd);
-		uiNumTiles += uiEnd - uiStart;
+		uiNumTiles = (size)(uiNumTiles + (uiEnd - uiStart));
 		uiOffset += uiLength;
 	}
 
@@ -423,10 +435,10 @@ bool CTileLayerCel::SetRowTiles(size y, size uiNumRows, uint32* auiTiles, size* 
 	psRows = masRows.GetData();
 	uiOldFirst = psRows[y].uiFirst;
 	psRow = &psRows[y + uiNumRows - 1];
-	uiOldEnd = psRow->uiFirst + (psRow->uiEnd - psRow->uiStart);
+	uiOldEnd = (size)(psRow->uiFirst + RunLength(psRow));
 	if (uiNumTiles > uiOldEnd - uiOldFirst)
 	{
-		mauiTiles.InsertNumAt(uiNumTiles - (uiOldEnd - uiOldFirst), uiOldEnd);
+		mauiTiles.InsertNumAt((size)(uiNumTiles - (uiOldEnd - uiOldFirst)), uiOldEnd);
 	}
 	else if (uiNumTiles < uiOldEnd - uiOldFirst)
 	{
@@ -448,14 +460,14 @@ bool CTileLayerCel::SetRowTiles(size y, size uiNumRows, uint32* auiTiles, size* 
 		{
 			memcpy(&puiTiles[uiFirst], &auiTiles[uiOffset + uiStart], (uiEnd - uiStart) * sizeof(uint32));
 		}
-		uiFirst += uiEnd - uiStart;
+		uiFirst = (size)(uiFirst + (uiEnd - uiStart));
 		uiOffset += uiLength;
 	}
 
 	//The rows after them move along (or back).
 	for (uiRow = y + uiNumRows; uiRow < msMapSize.y; uiRow++)
 	{
-		psRows[uiRow].uiFirst = psRows[uiRow].uiFirst - uiOldEnd + uiFirst;
+		psRows[uiRow].uiFirst = (size)(psRows[uiRow].uiFirst - uiOldEnd + uiFirst);
 	}
 	return bFitted;
 }
@@ -494,7 +506,7 @@ Ptr<CImageCel> CTileLayerCel::GetTile(size x, size y)
 	{
 		return NULL;
 	}
-	return maCels.Get(uiTile - 1);
+	return maCels.Get(CelIndex(uiTile));
 }
 
 
@@ -569,7 +581,7 @@ bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size ui
 		x++;
 		if (x < uiMaxX)
 		{
-			uiIndex = va_arg(vaMarker, int);  //Integer arguments smaller than int are promoted to int when passed through ...
+			uiIndex = (size)va_arg(vaMarker, int);  //Integer arguments smaller than int are promoted to int when passed through ...
 		}
 	}
 	va_end(vaMarker);
@@ -593,7 +605,7 @@ void CTileLayerCel::ClearRow(size y)
 	}
 
 	psRow = masRows.Get(y);
-	RemoveTiles(y, psRow->uiFirst, psRow->uiEnd - psRow->uiStart);
+	RemoveTiles(y, psRow->uiFirst, RunLength(psRow));
 	psRow->uiStart = 0;
 	psRow->uiEnd = 0;
 }
@@ -663,7 +675,7 @@ void CTileLayerCel::SetMapSize(SSizeVec2 sMapSize)
 				}
 				else
 				{
-					RemoveTiles(y, psRow->uiFirst + (sMapSize.x - psRow->uiStart), psRow->uiEnd - sMapSize.x);
+					RemoveTiles(y, RunIndex(psRow, sMapSize.x), (size)(psRow->uiEnd - sMapSize.x));
 					psRow->uiEnd = sMapSize.x;
 					TrimRow(y);
 				}
@@ -712,10 +724,10 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 		psRow = masRows.Get(y);
 		for (x = psRow->uiStart; x < psRow->uiEnd; x++)
 		{
-			uiTile = *mauiTiles.Get(psRow->uiFirst + (x - psRow->uiStart));
+			uiTile = *mauiTiles.Get(RunIndex(psRow, x));
 			if (uiTile != 0)
 			{
-				pBlitter = pCache->CreateImageBlitter(maCels.Get(uiTile - 1));
+				pBlitter = pCache->CreateImageBlitter(maCels.Get(CelIndex(uiTile)));
 				if (pBlitter.IsNull() || !pBlitter->Blit((int32)x * (int32)msCelSize.x, (int32)y * (int32)msCelSize.y))
 				{
 					return NULL;
@@ -850,7 +862,7 @@ Ptr<CImageBlitter> CTileLayerCel::GetBlitter(size x, size y)
 	{
 		return NULL;
 	}
-	return maBlitters.Get(uiTile - 1);
+	return maBlitters.Get(CelIndex(uiTile));
 }
 
 
@@ -878,10 +890,10 @@ bool CTileLayerCel::GetImageDestBounds(CInt32Rect* pcRect)
 			psRow = masRows.Get(y);
 			for (x = psRow->uiStart; x < psRow->uiEnd; x++)
 			{
-				uiTile = *mauiTiles.Get(psRow->uiFirst + (x - psRow->uiStart));
+				uiTile = *mauiTiles.Get(RunIndex(psRow, x));
 				if (uiTile != 0)
 				{
-					pcCel = (CImageCel*)maCels.UnsafeGetObject(uiTile - 1);
+					pcCel = (CImageCel*)maCels.UnsafeGetObject(CelIndex(uiTile));
 					pcSubImage = pcCel->GetSubImage();
 					if (bFirst)
 					{
@@ -941,8 +953,8 @@ Ptr<CImage> CTileLayerCel::CreateViewportImage(void)
 		return NULL;
 	}
 
-	uiWidth = cBoundingRect.GetWidth();
-	uiHeight = cBoundingRect.GetHeight();
+	uiWidth = (size)cBoundingRect.GetWidth();
+	uiHeight = (size)cBoundingRect.GetHeight();
 	if (uiWidth % 8 != 0)
 	{
 		uiPadding = (8 - uiWidth % 8);
@@ -998,15 +1010,15 @@ bool CTileLayerCel::EnsureBlitters(int32 xStart, int32 yStart, int32 xStop, int3
 	}
 	for (y = yStart; y < yStop; y++)
 	{
-		psRow = masRows.Get(y);
+		psRow = masRows.Get((size)y);
 		xRowStart = (xStart > (int32)psRow->uiStart) ? xStart : (int32)psRow->uiStart;
 		xRowStop = (xStop < (int32)psRow->uiEnd) ? xStop : (int32)psRow->uiEnd;
 		for (x = xRowStart; x < xRowStop; x++)
 		{
-			uiTile = *mauiTiles.Get(psRow->uiFirst + ((size)x - psRow->uiStart));
-			if ((uiTile != 0) && (maBlitters.UnsafeGetObject(uiTile - 1) == NULL))
+			uiTile = *mauiTiles.Get(RunIndex(psRow, (size)x));
+			if ((uiTile != 0) && (maBlitters.UnsafeGetObject(CelIndex(uiTile)) == NULL))
 			{
-				if (!CreateCelBlitter(uiTile - 1))
+				if (!CreateCelBlitter(CelIndex(uiTile)))
 				{
 					return false;
 				}
@@ -1094,15 +1106,15 @@ bool CTileLayerCel::BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, 
 
 	for (y = (uint32)yStart; y < (uint32)yStop; y++)
 	{
-		psRow = masRows.Get(y);
+		psRow = masRows.Get((size)y);
 		xRowStart = ((uint32)xStart > psRow->uiStart) ? (uint32)xStart : (uint32)psRow->uiStart;
 		xRowStop = ((uint32)xStop < psRow->uiEnd) ? (uint32)xStop : (uint32)psRow->uiEnd;
 		for (x = xRowStart; x < xRowStop; x++)
 		{
-			uiTile = *mauiTiles.Get(psRow->uiFirst + (x - psRow->uiStart));
+			uiTile = *mauiTiles.Get(RunIndex(psRow, (size)x));
 			if (uiTile != 0)
 			{
-				pcBlitter = (CImageBlitter*)maBlitters.UnsafeGetObject(uiTile - 1);
+				pcBlitter = (CImageBlitter*)maBlitters.UnsafeGetObject(CelIndex(uiTile));
 				if (pcBlitter != NULL)
 				{
 					bResult = pcBlitter->Blit((int32)x * iCelWidth - pcViewportRect->msTopLeft.x, (int32)y * iCelHeight - pcViewportRect->msTopLeft.y, pcBlitterClip);
