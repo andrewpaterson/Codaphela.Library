@@ -165,8 +165,8 @@ void CCPP65ListingIndex::AddListing(const char* szName, const char* szText)
 // .line, .section or .fingerprint (labels in it are kept), less blank
 // lines at its end.  Labels just before a .line are its line's, not the
 // code's before: they are where the line's code is jumped to.  Its
-// function is its section's name less "text.".  Code before a section's
-// first .line has no source line.
+// function is its section's name less "text." (and ", comdat").  Code
+// before a section's first .line has no source line.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65ListingIndex::IndexListing(size uiListing)
@@ -178,6 +178,7 @@ void CCPP65ListingIndex::IndexListing(size uiListing)
 	const char*			szEnd;
 	const char*			szTrimmed;
 	const char*			szName;
+	const char*			szNameEnd;
 	SCPP65ListingRange	sRange;
 	bool				bInRange;
 	size				uiCodeEnd;
@@ -272,7 +273,11 @@ void CCPP65ListingIndex::IndexListing(size uiListing)
 				{
 					szName += strlen(CPP65_LISTING_TEXT_SECTION);
 				}
-				sRange.uiFunction = AddFunction(szName, (size)(szEnd - szName));
+				//.section text._f, comdat: the name stops at the comma.
+				for (szNameEnd = szName; (szNameEnd < szEnd) && (*szNameEnd != ',') && (*szNameEnd != ' ') && (*szNameEnd != '\t'); szNameEnd++)
+				{
+				}
+				sRange.uiFunction = AddFunction(szName, (size)(szNameEnd - szName));
 			}
 		}
 		uiFirstLabel = MAX_SIZE;

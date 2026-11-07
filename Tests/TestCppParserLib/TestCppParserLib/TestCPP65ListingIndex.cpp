@@ -36,7 +36,7 @@ static const char* gszTestListingA =
 
 //Another unit's listing with the header's line in it, its name in forward slashes.
 static const char* gszTestListingB =
-	"\t\t.section text._h\n"									//0
+	"\t\t.section text._h, comdat\n"							//0
 	"_h:\n"														//1
 	"\t\t.line \"C:/Src/Head.h\", 10\n"							//2
 	"\t\t; Head.h(10): return x;\n"								//3
@@ -225,7 +225,7 @@ void TestCPP65ListingIndexBuild(void)
 	AssertSize(1, asPlaces.NumElements());
 	psPlace = asPlaces.Get(0);
 	AssertSize(0, psPlace->uiListing);
-	AssertTrue(strncmp(cIndex.GetFunction(psPlace->uiFunction), "_Triple", 7) == 0);
+	AssertString("_Triple__Fss", cIndex.GetFunction(psPlace->uiFunction));
 
 	asPlaces.Kill();
 	cIndex.Kill();
