@@ -68,25 +68,13 @@ void CChannels::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(lsize iSize, EPrimitiveType eType, size iFirst, ...)
 {
-	Init();
-
 	va_list		vaMarker;
-	size		iCount;
-	size		i;
 
-	iCount = 0;
-	i = iFirst;
-
+	Init();
 	BeginChange();
 	va_start(vaMarker, iFirst);
-	while (i != ARRAY_ELEMENT_NOT_FOUND)
-	{
-		AddChannel(i, eType);
-		iCount++;
-		i = VA_ARG_SIZE(vaMarker);
-	}
+	AddChannelsOfType(eType, iFirst, vaMarker);
 	va_end(vaMarker);
-
 	SetSize(iSize);
 	EndChange();
 }
@@ -98,28 +86,35 @@ void CChannels::Init(lsize iSize, EPrimitiveType eType, size iFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(lsize iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...)
 {
-	Init();
-
 	va_list		vaMarker;
-	size		iCount;
-	size		i;
 
-	iCount = 0;
-	i = iFirst;
-
+	Init();
 	BeginChange();
 	va_start(vaMarker, iFirst);
-	while (i != ARRAY_ELEMENT_NOT_FOUND)
-	{
-		AddChannel(i, eType);
-		iCount++;
-		i = VA_ARG_SIZE(vaMarker);
-	}
+	AddChannelsOfType(eType, iFirst, vaMarker);
 	va_end(vaMarker);
-
 	SetSize(iSize);
 	SetData(pvUserData);
 	EndChange();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variadic Inits' channels: iFirst, then those in vaMarker up to
+// ARRAY_ELEMENT_NOT_FOUND, all of eType.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::AddChannelsOfType(EPrimitiveType eType, size iFirst, va_list vaMarker)
+{
+	size	i;
+
+	i = iFirst;
+	while (i != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		AddChannel(i, eType);
+		i = VA_ARG_SIZE(vaMarker);
+	}
 }
 
 
@@ -276,13 +271,9 @@ void CChannels::FreeChangingDesc(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::SetSize(lsize iSize)
 {
-	if (IsChanging())
+	if (ValidateChanging("setting size"))
 	{
 		mpsChangingDesc->iSize = iSize;
-	}
-	else
-	{
-		gcUserError.Set("Call BeginChange() before setting size.");
 	}
 }
 
@@ -303,13 +294,9 @@ void CChannels::AddChannel(SChannel* psChannel)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::AddChannel(size iChannel, EPrimitiveType eType, bool bReverse)
 {
-	if (IsChanging())
+	if (ValidateChanging("adding channels"))
 	{
 		PrivateAddChannel(iChannel, eType, bReverse);
-	}
-	else
-	{
-		gcUserError.Set("Call BeginChange() before adding channels.");
 	}
 }
 
@@ -356,15 +343,8 @@ void CChannels::SetChannelDebugNames(size iChannel, const char* szShortName, con
 //////////////////////////////////////////////////////////////////////////
 void CChannels::AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse)
 {
-	if (IsChanging())
-	{
-		PrivateAddChannel(iChannel1, eType, bReverse);
-		PrivateAddChannel(iChannel2, eType, bReverse);
-	}
-	else
-	{
-		gcUserError.Set("Call BeginChange() before adding channels.");
-	}
+	AddChannel(iChannel1, eType, bReverse);
+	AddChannel(iChannel2, eType, bReverse);
 }
 
 
@@ -374,16 +354,9 @@ void CChannels::AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType,
 //////////////////////////////////////////////////////////////////////////
 void CChannels::AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse)
 {
-	if (IsChanging())
-	{
-		PrivateAddChannel(iChannel1, eType, bReverse);
-		PrivateAddChannel(iChannel2, eType, bReverse);
-		PrivateAddChannel(iChannel3, eType, bReverse);
-	}
-	else
-	{
-		gcUserError.Set("Call BeginChange() before adding channels.");
-	}
+	AddChannel(iChannel1, eType, bReverse);
+	AddChannel(iChannel2, eType, bReverse);
+	AddChannel(iChannel3, eType, bReverse);
 }
 
 
@@ -393,17 +366,10 @@ void CChannels::AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrim
 //////////////////////////////////////////////////////////////////////////
 void CChannels::AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse)
 {
-	if (IsChanging())
-	{
-		PrivateAddChannel(iChannel1, eType, bReverse);
-		PrivateAddChannel(iChannel2, eType, bReverse);
-		PrivateAddChannel(iChannel3, eType, bReverse);
-		PrivateAddChannel(iChannel4, eType, bReverse);
-	}
-	else
-	{
-		gcUserError.Set("Call BeginChange() before adding channels.");
-	}
+	AddChannel(iChannel1, eType, bReverse);
+	AddChannel(iChannel2, eType, bReverse);
+	AddChannel(iChannel3, eType, bReverse);
+	AddChannel(iChannel4, eType, bReverse);
 }
 
 
@@ -417,7 +383,7 @@ void CChannels::AddChannels(CArrayChannel* pasChannels)
 	SChannel*	psChannel;
 	size		uiChannels;
 
-	if (IsChanging())
+	if (ValidateChanging("adding channels"))
 	{
 		uiChannels = pasChannels->NumElements();
 		for (i = 0; i < uiChannels; i++)
@@ -439,7 +405,7 @@ void CChannels::AddChannels(CChannels* pcSourceChannels)
 	CChannel*	pcChannel;
 	size		uiOffsets;
 
-	if (IsChanging())
+	if (ValidateChanging("adding channels"))
 	{
 		uiOffsets = pcSourceChannels->masChannelOffsets.NumElements();
 		for (i = 0; i < uiOffsets; i++)
@@ -448,6 +414,24 @@ void CChannels::AddChannels(CChannels* pcSourceChannels)
 			PrivateAddChannel(pcChannel->iChannel, pcChannel->eType, pcChannel->bReverse);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the channels are changing (between BeginChange and EndChange),
+// which szWhat needs.  If not, that is the user's error.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChannels::ValidateChanging(const char* szWhat)
+{
+	if (IsChanging())
+	{
+		return true;
+	}
+
+	gcUserError.Set2("Call BeginChange() before ", szWhat, ".", NULL);
+	return false;
 }
 
 
@@ -474,7 +458,7 @@ bool CChannels::RemoveChannel(size iChannel)
 {
 	SChannel* psChannel;
 
-	if (IsChanging())
+	if (ValidateChanging("removing channels"))
 	{
 		if ((HasChannel(iChannel)) && (!IsChannelRemoved(iChannel)))
 		{

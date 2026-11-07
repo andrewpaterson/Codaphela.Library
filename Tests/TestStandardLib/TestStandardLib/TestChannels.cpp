@@ -4,6 +4,7 @@
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/GlobalDataTypesIO.h"
+#include "BaseLib/ErrorHandler.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/ChannelsCopier.h"
@@ -757,6 +758,98 @@ void TestChannelsBeginChangeTwice(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestChannelsVariadicInit(void)
+{
+	ObjectsInit();
+
+	CChannels	cChannels;
+	char		acData[3 * 2];
+
+	//The channels after the first are variadic: they must be passed as size.
+	cChannels.Init(3, PT_uint8, 0, (size)1, ARRAY_ELEMENT_NOT_FOUND);
+	AssertFalse(cChannels.IsChanging());
+	AssertSize(2, cChannels.GetNumChannels());
+	AssertTrue(cChannels.HasChannel(0, 1));
+	AssertLSize(3, cChannels.GetSize());
+	AssertSize(3 * 2, cChannels.GetByteSize());
+	AssertFalse(cChannels.IsUserAllocated());
+	cChannels.Kill();
+
+	cChannels.Init(3, acData, PT_uint16, 2, ARRAY_ELEMENT_NOT_FOUND);
+	AssertFalse(cChannels.IsChanging());
+	AssertSize(1, cChannels.GetNumChannels());
+	AssertTrue(cChannels.HasChannel(2));
+	AssertFalse(cChannels.HasChannel(0));
+	AssertSize(3 * 2, cChannels.GetByteSize());
+	AssertTrue(cChannels.IsUserAllocated());
+	AssertPointer(acData, cChannels.GetData());
+	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsChangeRefused(void)
+{
+	ObjectsInit();
+
+	CChannels		cChannels;
+	CChannels		cSource;
+
+	cSource.Init(2, PT_uint8, 5, ARRAY_ELEMENT_NOT_FOUND);
+	cChannels.Init(2, PT_uint8, 0, ARRAY_ELEMENT_NOT_FOUND);
+
+	//Changing the channels without BeginChange is the user's error, and changes nothing.
+	gcUserError.Init();
+	cChannels.SetSize(4);
+	AssertString("Call BeginChange() before setting size.", gcUserError.Get());
+
+	gcUserError.Init();
+	cChannels.AddChannel(1, PT_uint8);
+	AssertString("Call BeginChange() before adding channels.", gcUserError.Get());
+
+	gcUserError.Init();
+	cChannels.AddChannel(1, 2, 3, PT_uint8);
+	AssertString("Call BeginChange() before adding channels.", gcUserError.Get());
+
+	gcUserError.Init();
+	cChannels.AddChannels(&cSource);
+	AssertString("Call BeginChange() before adding channels.", gcUserError.Get());
+
+	gcUserError.Init();
+	AssertFalse(cChannels.RemoveChannel(0));
+	AssertString("Call BeginChange() before removing channels.", gcUserError.Get());
+	gcUserError.Init();
+
+	AssertSize(1, cChannels.GetNumChannels());
+	AssertTrue(cChannels.HasChannel(0));
+	AssertLSize(2, cChannels.GetSize());
+
+	//While changing they are allowed.
+	cChannels.BeginChange();
+	cChannels.AddChannels(&cSource);
+	cChannels.SetSize(4);
+	AssertTrue(cChannels.EndChange());
+	AssertNull(gcUserError.Get());
+	AssertSize(2, cChannels.GetNumChannels());
+	AssertTrue(cChannels.HasChannel(0, 5));
+	AssertLSize(4, cChannels.GetSize());
+
+	cChannels.Kill();
+	cSource.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChannels(void)
 {
 	BeginTests();
@@ -771,6 +864,8 @@ void TestChannels(void)
 	TestChannelsCopyIntoUninitialised();
 	TestChannelsAddDuplicate();
 	TestChannelsBeginChangeTwice();
+	TestChannelsVariadicInit();
+	TestChannelsChangeRefused();
 	TestChannelsLoad();
 	TestChannelsCopier16bitTo8bit();
 	TestChannelsCopier24bitTo8bit();

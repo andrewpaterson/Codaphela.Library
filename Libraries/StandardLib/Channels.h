@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CHANNELS__H__
 #define __CHANNELS__H__
+#include <stdarg.h>
 #include "BaseLib/ArraySize.h"
 #include "Unknown.h"
 #include "Object.h"
@@ -64,7 +65,6 @@ public:
 	void 					BeginChange(void);
 
 	void 					SetSize(lsize iSize);
-	void 					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
 	void 					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, const char* szShortName, const char* szLongName = NULL, bool bReverse = false);
@@ -141,6 +141,9 @@ protected:
 	bool					CanAddChannels(void);
 	void					RelayoutData(CArrayChannelOffset* pcOldChannels, size uiOldBitStride, lsize uiOldSize);
 	void					FreeChangingDesc(void);
+	bool					ValidateChanging(const char* szWhat);
+	void					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
+	void					AddChannelsOfType(EPrimitiveType eType, size iFirst, va_list vaMarker);
 
 	void					CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDebugs);
 };
