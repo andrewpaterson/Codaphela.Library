@@ -174,7 +174,7 @@ void CDockTitleBar::PlaceButtons(void)
 			iColumn++;
 		}
 	}
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

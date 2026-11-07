@@ -215,7 +215,7 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 	LaidOut();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

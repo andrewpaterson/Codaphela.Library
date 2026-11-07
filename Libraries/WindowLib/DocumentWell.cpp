@@ -128,7 +128,7 @@ void CDocumentWell::SetRoot(Ptr<CDockNode> pRoot)
 	{
 		AddComponent(mpBackground);
 	}
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

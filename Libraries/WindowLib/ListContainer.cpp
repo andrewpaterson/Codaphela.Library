@@ -849,7 +849,7 @@ void CListContainer::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = b
 bool CListContainer::IsSelectOnHover(void) { return mbSelectOnHover; }
 void CListContainer::SetDoubleClickActivates(bool bDoubleClickActivates) { mbDoubleClickActivates = bDoubleClickActivates; msDoubleClick.Forget(); }
 bool CListContainer::IsDoubleClickActivates(void) { return mbDoubleClickActivates; }
-void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; InvalidateLayout(); }  //A page when no scroll pane shows the list.
+void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; LayoutChanged(); }  //A page when no scroll pane shows the list.
 void CListContainer::SetWrapAround(bool bWrapAround) { mbWrapAround = bWrapAround; }  //Up from the first row goes to the last, and down from the last to the first.
 Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) { return mpSelectedHighlight; }
 Ptr<CCanvas> CListContainer::GetHoverHighlight(void) { return mpHoverHighlight; }

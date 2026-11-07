@@ -456,9 +456,6 @@ void CGoToDialog::FillList(void)
 	}
 	mpList->Select(uiRows > 0 ? 0 : -1);
 	mpScrollPane->SetScrollPosition(0, 0);
-
-	//What it is laid out from has changed.
-	mpList->InvalidateLayout();
 }
 
 

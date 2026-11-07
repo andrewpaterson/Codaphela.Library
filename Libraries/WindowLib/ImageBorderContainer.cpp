@@ -183,10 +183,11 @@ void CImageBorderContainer::SetImages(Ptr<CButtonImages> pImages)
 	{
 		mpImages = pImages;
 		UpdateBorder();
-	}
 
-	//What it is laid out from has changed.
-	InvalidateLayout();
+		//The border's draws changed, which their canvases can't see.  The images are the same size, so it isn't laid
+		//out again.
+		Invalidate();
+	}
 }
 
 
@@ -216,7 +217,7 @@ void CImageBorderContainer::SetPadding(int32 iHorizontal, int32 iVertical)
 	UpdateFaceSize();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

@@ -296,7 +296,7 @@ void CAutoHideTab::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 void CAutoHideTab::TitleChanged(void)
 {
 	mpText->SetText(mpPane->GetTitle());
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -505,7 +505,7 @@ Ptr<CAutoHideTab> CAutoHideStrip::AddPane(Ptr<CDockPane> pPane)
 	pTab = OMalloc<CAutoHideTab>(mpWindow, mpManager, pPane, meSide);
 	maTabs.Add(pTab);
 	AddComponent(pTab);
-	InvalidateLayout();
+	LayoutChanged();
 	return pTab;
 }
 
@@ -525,7 +525,7 @@ bool CAutoHideStrip::RemovePane(Ptr<CDockPane> pPane)
 	}
 	RemoveComponent(pTab);
 	maTabs.Remove(pTab);
-	InvalidateLayout();
+	LayoutChanged();
 	return true;
 }
 

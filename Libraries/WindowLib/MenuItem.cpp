@@ -141,7 +141,7 @@ void CMenuItem::SetText(const char* szText)
 	mpLabel->SetText(szText == NULL ? "" : szText);
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -155,7 +155,7 @@ void CMenuItem::SetIcon(Ptr<CImageCel> pIcon)
 	mpIcon->SetCel(pIcon);
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -303,7 +303,7 @@ void CMenuItem::ShowShortcut(const char* szShortcut)
 	szText.Kill();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

@@ -189,7 +189,7 @@ void CComboBox::Select(int32 iIndex)
 	mpText->SetText(iIndex == -1 ? "" : GetItemText(iIndex));
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

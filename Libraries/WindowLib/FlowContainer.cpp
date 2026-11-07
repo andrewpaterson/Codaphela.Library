@@ -408,7 +408,7 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 	meHorizontal = eA;
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -423,7 +423,7 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 	meVertical = eA;
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

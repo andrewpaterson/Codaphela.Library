@@ -234,7 +234,7 @@ void CDockGroup::AddPane(Ptr<CDockPane> pPane, size uiIndex)
 	}
 	mpTabs->Select(pTab);
 	UpdateTitle();
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -267,7 +267,7 @@ bool CDockGroup::TakePane(Ptr<CDockPane> pPane)
 		pPane->SetGroup(NULL);
 	}
 	UpdateTitle();
-	InvalidateLayout();
+	LayoutChanged();
 	return true;
 }
 

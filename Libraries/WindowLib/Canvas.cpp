@@ -968,7 +968,7 @@ CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 SInt32Vec2 CCanvas::GetNativeOrigin(void) { return msNativeOrigin; }
 SInt32Vec2 CCanvas::GetNativeSize(void) { return msNativeSize; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
-void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; Invalidate(); InvalidateLayout(); }
+void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; InvalidateLayout(); }
 bool CCanvas::IsContentDirty(void) { return mbContentDirty; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
 

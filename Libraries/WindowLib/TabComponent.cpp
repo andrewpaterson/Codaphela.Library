@@ -341,7 +341,7 @@ void CTabComponent::SetTextFont(Ptr<CFont> pFont)
 	if (mpName->GetFont() != pFont)
 	{
 		mpName->SetFont(pFont);
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
@@ -353,6 +353,6 @@ void CTabComponent::SetTextFont(Ptr<CFont> pFont)
 bool CTabComponent::IsSelected(void) { return mbSelected; }
 bool CTabComponent::IsClosable(void) { return mpClose.IsNotNull(); }
 char* CTabComponent::GetText(void) { return mpName->GetText(); }
-void CTabComponent::SetText(const char* szName) { mpName->SetText(szName); InvalidateLayout(); }
+void CTabComponent::SetText(const char* szName) { mpName->SetText(szName); LayoutChanged(); }
 Ptr<CIconComponent> CTabComponent::GetIcon(void) { return mpIcon; }
 Ptr<CIconComponent> CTabComponent::GetClose(void) { return mpClose; }

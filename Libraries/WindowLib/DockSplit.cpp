@@ -402,7 +402,7 @@ void CDockSplit::PlaceChildren(void)
 		}
 		AddComponent(maNodes.Get(i));
 	}
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -757,7 +757,7 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 	maNodes.Get(uiSash + 1)->SetDockSize(iAfter - iDelta);
 	maiSizes.SetValue(uiSash, iBefore + iDelta);
 	maiSizes.SetValue(uiSash + 1, iAfter - iDelta);
-	InvalidateLayout();
+	LayoutChanged();
 	mpManager->LayoutChanged();
 }
 

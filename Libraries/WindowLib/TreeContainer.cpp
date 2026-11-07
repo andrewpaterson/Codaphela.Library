@@ -170,7 +170,7 @@ int32 CTreeContainer::AddNode(int32 iParent, const char* szText, Ptr<CImageCel> 
 	if ((iParent == TREE_NO_NODE) || IsNodeVisible(iParent))
 	{
 		mbRowsDirty = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 	return iNode;
 }
@@ -189,7 +189,7 @@ void CTreeContainer::RemoveAllNodes(void)
 	maiTopNodes.ReInit();
 	mbRowsDirty = true;
 	UpdateRows();
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -263,7 +263,7 @@ void CTreeContainer::SetNodeFont(int32 iNode, Ptr<CFont> pFont)
 	if (IsNodeVisible(iNode))
 	{
 		mbRowsDirty = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
@@ -297,7 +297,7 @@ void CTreeContainer::SetExpanded(int32 iNode, bool bExpanded)
 		{
 			mbRowsDirty = true;
 			UpdateRows();
-			InvalidateLayout();
+			LayoutChanged();
 		}
 	}
 }
@@ -327,7 +327,7 @@ void CTreeContainer::ExpandAll(void)
 	}
 	mbRowsDirty = true;
 	UpdateRows();
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -345,7 +345,7 @@ void CTreeContainer::CollapseAll(void)
 	}
 	mbRowsDirty = true;
 	UpdateRows();
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -380,7 +380,7 @@ bool CTreeContainer::SelectNode(int32 iNode)
 	if (bOpened)
 	{
 		mbRowsDirty = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 	UpdateRows();
 	return Select(FindNodeRow(iNode));

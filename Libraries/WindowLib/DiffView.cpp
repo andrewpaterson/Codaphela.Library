@@ -257,7 +257,7 @@ void CDiffView::Update(void)
 	memset(&msScrolls, 0, sizeof(SDiffViewScrolls));
 	muiCurrentBlock = DIFF_VIEW_NO_BLOCK;
 	UpdateToolbar();
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -424,7 +424,7 @@ bool CDiffView::ScrollToBlock(lsize uiBlock)
 	msScrolls.bToBlock = true;
 	msScrolls.uiBlock = uiBlock;
 	muiCurrentBlock = uiBlock;
-	InvalidateLayout();
+	LayoutChanged();
 	return true;
 }
 

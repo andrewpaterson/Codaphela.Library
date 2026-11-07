@@ -261,6 +261,6 @@ bool CPopup::IsOwnerPressKeepsOpen(void) { return mbOwnerPressKeepsOpen; }
 void CPopup::SetOpenPosition(SInt32Vec2 sPosition)
 {
 	msOpenPosition = sPosition;
-	InvalidateLayout();
+	LayoutChanged();
 }
 

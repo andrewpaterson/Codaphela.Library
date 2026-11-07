@@ -121,7 +121,7 @@ void CContainer::SetClipsChildren(bool bClipsChildren)
 void CContainer::SetSizedByContent(bool bSizedByContent)
 {
 	mbSizedByContent = bSizedByContent;
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -136,7 +136,7 @@ void CContainer::SetInsets(SInsets* psInsets)
 	msInsets = *psInsets;
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -152,7 +152,7 @@ void CContainer::SetInsets(int32 iTop, int32 iRight, int32 iBottom, int32 iLeft)
 	msInsets.aiWidths[BEI_Left] = iLeft;
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

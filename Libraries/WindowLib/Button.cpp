@@ -165,7 +165,7 @@ void CButton::SetCaption(const char* szCaption)
 	UpdateContent();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -180,7 +180,7 @@ void CButton::SetIcon(Ptr<CImageCel> pIcon)
 	UpdateContent();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -194,7 +194,7 @@ void CButton::SetIconGap(int32 iIconGap)
 	UpdateContent();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

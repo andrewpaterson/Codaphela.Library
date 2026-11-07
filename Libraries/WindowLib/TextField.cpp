@@ -161,7 +161,7 @@ void CTextField::SetColumns(int32 iColumns)
 	UpdateFaceSize();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -364,7 +364,7 @@ size CTextField::GetRowEnd(size uiRow, bool* pbRowEnd)
 // the field is laid out (LayoutText).
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::MarksChanged(void) { InvalidateLayout(); }
+void CTextField::MarksChanged(void) { LayoutChanged(); }
 void CTextField::ShowCaret(void) {}
 void CTextField::UndoChanged(STextUndoChange* psChange) {}
 
@@ -385,7 +385,7 @@ void CTextField::TextEdited(void)
 	}
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

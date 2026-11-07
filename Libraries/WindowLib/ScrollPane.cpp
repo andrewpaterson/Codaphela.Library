@@ -148,7 +148,7 @@ void CScrollPane::SetContent(Ptr<CComponent> pContent)
 	}
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -180,7 +180,7 @@ void CScrollPane::SetPolicy(EScrollBarOrientation eOrientation, EScrollPanePolic
 	}
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

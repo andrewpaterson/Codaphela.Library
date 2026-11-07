@@ -134,7 +134,7 @@ void CCheckBox::SetGap(int32 iGap)
 	UpdateGap();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -175,7 +175,7 @@ void CCheckBox::SetCaption(const char* szCaption)
 	mpCaption->SetText(szCaption == NULL ? "" : szCaption);
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 

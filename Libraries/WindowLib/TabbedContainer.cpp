@@ -176,7 +176,7 @@ void CTabbedContainer::PlaceRows(void)
 	if (!bShowBar)
 	{
 		AddComponent(mpPage, 0, 0, 1, 1, 1, 1);
-		InvalidateLayout();
+		LayoutChanged();
 		return;
 	}
 
@@ -197,7 +197,7 @@ void CTabbedContainer::PlaceRows(void)
 	AddComponent(mpBar, 0, iBarRow, 1, 1, 1, 0);
 	AddComponent(mpSeparator, 0, iSeparatorRow, 1, 1, 1, 0);
 	AddComponent(mpPage, 0, iPageRow, 1, 1, 1, 1);
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -240,7 +240,7 @@ void CTabbedContainer::PlaceTabs(void)
 	{
 		mpBar->SetDesiredSize(-1, iHeight);
 	}
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -460,7 +460,7 @@ void CTabbedContainer::Select(size uiIndex)
 	mpSelected = pTab;
 	mpSelected->SetSelected(true);
 	mpPage->AddComponent(maPages.Get(uiIndex));
-	InvalidateLayout();
+	LayoutChanged();
 	mcSelected.Call(&pTab);
 }
 

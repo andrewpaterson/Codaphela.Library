@@ -312,6 +312,11 @@ void TestPartialRedrawDamage(void)
 		sWindow.pWindow->Paint();
 		AssertTrue(pcDamage->IsEmpty());
 
+		//A container's setter that changes nothing that is drawn, here insets it already has, draws nothing again.
+		sWindow.pGrid->SetInsets(0, 0, 0, 0);
+		sWindow.pWindow->Paint();
+		AssertTrue(pcDamage->IsEmpty());
+
 		//The window invalidated is all of it.
 		sWindow.pWindow->Invalidate();
 		sWindow.pWindow->Paint();

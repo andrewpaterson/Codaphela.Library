@@ -136,7 +136,7 @@ void CDockArea::PlaceChildren(void)
 	{
 		AddComponent(mpGuides);
 	}
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -157,7 +157,7 @@ void CDockArea::SetRoot(Ptr<CDockNode> pRoot)
 //////////////////////////////////////////////////////////////////////////
 void CDockArea::StripsChanged(void)
 {
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
