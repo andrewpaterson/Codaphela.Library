@@ -181,8 +181,8 @@ void CWindowTheme::SetComboMenuStyle(Ptr<CMenuStyle> pStyle)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Its users aren't told until Changed, so a theme can be set up a colour
-// at a time.
+// Set before the widgets that use it are made.  Nothing is told until
+// Changed, so a theme can be set up a colour at a time.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindowTheme::SetColour(EThemeColour eColour, ARGB32 sColour)
@@ -269,8 +269,9 @@ int32 CWindowTheme::GetMetric(EThemeMetric eMetric)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Tells the theme's users (its change event) that its colours, sizes or
-// images changed, so they lay out and draw again.
+// Tells whoever listens to the theme's change event that its colours,
+// sizes or images changed.  Widgets already made don't change: they read
+// the theme as they were made.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindowTheme::Changed(void)

@@ -44,13 +44,16 @@ enum EButtonLook
 
 
 //How the widgets look, shared by the widgets of any windows given it (a window doesn't own its theme).  Each widget
-//takes the theme and its own content, never images or colours of its own, and reads the theme as it lays out and
-//draws.  CJewelTheme makes IntelliJ IDEA's dark theme; a theme can be put together from other images instead, as the
-//tests do.
+//takes the theme and its own content, never images or colours of its own.  CJewelTheme makes IntelliJ IDEA's dark
+//theme; a theme can be put together from other images instead, as the tests do.
 //
 //A theme has no looks of its own: whoever makes it sets every colour, size and icon its widgets use, and reading one
 //that wasn't set is an error.  The other images and styles start NULL and only the widgets that use them need them: a
-//theme without check box images can't make check boxes.  Changed tells the theme's users that it changed.
+//theme without check box images can't make check boxes.
+//
+//A theme is set up before the widgets that use it are made: widgets read it as they are made (a menu style, say, as
+//the theme makes it), so changing a theme doesn't change widgets already made.  Changed only tells whoever listens to
+//its change event, an application remaking its widgets say.
 class CWindowTheme : public CObject
 {
 CONSTRUCTABLE(CWindowTheme);
