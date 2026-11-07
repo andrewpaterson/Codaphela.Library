@@ -93,6 +93,7 @@ protected:
 	void				RemoveMemberAt(ptr uiLocation) override;
 	void				ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember) override;
 	void				AddMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize);
+	CPointer			SkipNulls(SIndexTreeMemoryIterator* psIterator, bool bExists, CBaseObject* pcObject);
 	void				RemoveMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize);
 
 };

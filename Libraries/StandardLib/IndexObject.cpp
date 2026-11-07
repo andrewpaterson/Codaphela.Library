@@ -287,19 +287,10 @@ CPointer CIndexObject::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 CPointer CIndexObject::StartIterationPointer(SIndexTreeMemoryIterator* psIterator)
 {
 	CBaseObject*	pcObject;
-	CPointer		pObject;
 	bool			bExists;
 
 	bExists = mcIndex.StartIteration(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
-	while (bExists && (pcObject == NULL))
-	{
-		bExists = mcIndex.Iterate(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
-	}
-	if (pcObject)
-	{
-		pObject.AssignObject(pcObject);
-	}
-	return pObject;
+	return SkipNulls(psIterator, bExists, pcObject);
 }
 
 
@@ -310,15 +301,29 @@ CPointer CIndexObject::StartIterationPointer(SIndexTreeMemoryIterator* psIterato
 CPointer CIndexObject::IteratePointer(SIndexTreeMemoryIterator* psIterator)
 {
 	CBaseObject*	pcObject;
-	CPointer		pObject;
 	bool			bExists;
 
 	bExists = mcIndex.Iterate(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
+	return SkipNulls(psIterator, bExists, pcObject);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// From an iteration step that found pcObject (if bExists): steps on past
+// keys whose values are NULL, and points to the first object found, or to
+// NULL at the end.
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CIndexObject::SkipNulls(SIndexTreeMemoryIterator* psIterator, bool bExists, CBaseObject* pcObject)
+{
+	CPointer	pObject;
+
 	while (bExists && (pcObject == NULL))
 	{
 		bExists = mcIndex.Iterate(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
 	}
-	if (pcObject)
+
+	if (bExists)
 	{
 		pObject.AssignObject(pcObject);
 	}
