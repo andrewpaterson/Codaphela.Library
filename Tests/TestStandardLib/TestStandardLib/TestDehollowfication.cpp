@@ -30,6 +30,9 @@ size DistToRootTreeDepth(void);  //TestDistToRootUpdate.cpp
 void LogDistToRootSpeed(const char* szWhat, size uiDepth, float fMilliseconds);  //TestEmbedded.cpp: what validating every object logs.
 
 
+#define TEST_LONG_KEY_SIZE ((MAX_KEY_SIZE < 260) ? MAX_KEY_SIZE : 260)
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1261,7 +1264,7 @@ void TestDehollowficationLoadIndexMembers(void)
 	char			szKey[32];
 	char			szErrors[1024];
 	size			i;
-	uint8			auiLongKey[MAX_KEY_SIZE];
+	uint8			auiLongKey[TEST_LONG_KEY_SIZE];
 
 	cFileUtil.RemoveDir(szDirectory);
 	DataOrderersInit();
@@ -1285,11 +1288,12 @@ void TestDehollowficationLoadIndexMembers(void)
 		}
 		pIndex->Put("Again", pString);
 
-		//The longest key an index holds is saved and loaded.
-		memset(auiLongKey, 'L', MAX_KEY_SIZE);
+		//A long key is saved and loaded.  It is the longest an index holds on the W65C816.  CIndexTreeMemory recurses
+		//once per key byte, so a 4KB key overflows the stack in a Debug build.
+		memset(auiLongKey, 'L', TEST_LONG_KEY_SIZE);
 		pString = OMalloc<CString>();
 		pString->Set("Long");
-		AssertTrue(pIndex->Put(auiLongKey, MAX_KEY_SIZE, pString));
+		AssertTrue(pIndex->Put(auiLongKey, TEST_LONG_KEY_SIZE, pString));
 	}
 	ObjectsFlush();
 	pcDatabase->Close();
@@ -1314,8 +1318,8 @@ void TestDehollowficationLoadIndexMembers(void)
 			AssertString(szKey, pString->Text());
 		}
 		AssertPointer(pString.Object(), pIndex->Get("Again").Object());
-		memset(auiLongKey, 'L', MAX_KEY_SIZE);
-		pString = pIndex->Get<CString>(auiLongKey, MAX_KEY_SIZE);
+		memset(auiLongKey, 'L', TEST_LONG_KEY_SIZE);
+		pString = pIndex->Get<CString>(auiLongKey, TEST_LONG_KEY_SIZE);
 		AssertString("Long", pString->Text());
 		pString = NULL;
 

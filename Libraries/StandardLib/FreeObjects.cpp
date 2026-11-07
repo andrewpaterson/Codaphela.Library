@@ -21,9 +21,9 @@ void CFreeObjects::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CFreeObjects::Free(void)
 {
-	if (!mpFreeObjects->IsEmpty())
+	//A stored CFreeObjects is only leaving memory: its objects are in the database with it.
+	if (!IsStored() && !mpFreeObjects->IsEmpty())
 	{
-		//Dump the list of unfreed objects.
 		gcLogger.Error2(__METHOD__, " Could not free FreeObjects.  Every Object contained must be explicitly freed first.", NULL);
 	}
 }
