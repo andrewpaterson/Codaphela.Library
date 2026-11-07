@@ -615,9 +615,23 @@ void CWindow::SetVerifyRedraw(bool bVerifyRedraw)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Redraws partially, and verifies, as pWindow does: a dialog or tool
+// window as the window it belongs to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetRedrawLike(Ptr<CWindow> pWindow)
+{
+	SetPartialRedraw(pWindow->mbPartialRedraw);
+	SetVerifyRedraw(pWindow->mbVerifyRedraw);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::IsPartialRedraw(void) { return mbPartialRedraw; }
+bool CWindow::IsVerifyRedraw(void) { return mbVerifyRedraw; }
 size CWindow::GetRedrawMismatches(void) { return muiRedrawMismatches; }
 
 

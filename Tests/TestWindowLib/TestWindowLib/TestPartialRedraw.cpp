@@ -8,6 +8,8 @@
 #include "WindowLib/ScrollPane.h"
 #include "WindowLib/WindowTheme.h"
 #include "WindowLib/DamageArea.h"
+#include "WindowLib/Dialog.h"
+#include "WindowLib/JewelTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "WinRefLib/WinRefWindow.h"
 #include "WindowLib/RoundedBoxCanvasDraw.h"
@@ -19,6 +21,7 @@
 
 
 Ptr<CScrollBarImages> CreateScrollBarImages(void);
+Ptr<CFont> GenerateMenuFont(Ptr<CWindow> pWindow);
 Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages);
 
 
@@ -478,6 +481,57 @@ void TestPartialRedrawVerifyFindsStale(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A dialog draws partially, and is verified, as the window it belongs to.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawDialogLikeOwner(void)
+{
+	CWinRefWindowFactory	cFactory;
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+	{
+		Ptr<CWindow>		pOwner;
+		Ptr<CWindowTheme>	pTheme;
+		SDialogLook			sLook;
+		Ptr<CDialog>		pFull;
+		Ptr<CDialog>		pPartial;
+		CPointer			pNull;
+
+		pOwner = OMalloc<CWindow>("Dialog Owner", &cFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pOwner);
+		pTheme = CJewelTheme::CreateDarkTheme(pOwner, GenerateMenuFont(pOwner));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+
+		pFull = OMalloc<CDialog>(pOwner, &sLook, "Full");
+		ORoot()->Add(pFull);
+		AssertFalse(pFull->GetWindow()->IsPartialRedraw());
+
+		pOwner->SetPartialRedraw(true);
+		pOwner->SetVerifyRedraw(true);
+		pPartial = OMalloc<CDialog>(pOwner, &sLook, "Partial");
+		ORoot()->Add(pPartial);
+		AssertTrue(pPartial->GetWindow()->IsPartialRedraw());
+		AssertTrue(pPartial->GetWindow()->IsVerifyRedraw());
+
+		ORoot()->Remove(pPartial);
+		ORoot()->Remove(pFull);
+		pPartial = NULL;
+		pFull = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pOwner);
+		pOwner = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedraw(void)
@@ -488,6 +542,7 @@ void TestPartialRedraw(void)
 	TestPartialRedrawDamage();
 	TestPartialRedrawMatchesFull();
 	TestPartialRedrawVerifyFindsStale();
+	TestPartialRedrawDialogLikeOwner();
 
 	TestStatistics();
 }

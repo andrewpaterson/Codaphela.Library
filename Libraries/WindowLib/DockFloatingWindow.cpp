@@ -56,6 +56,7 @@ void CDockFloatingWindow::Init(Ptr<CDockManager> pManager, CInt32Rect* pcScreenR
 	pMain = pManager->GetWindow();
 	pMain->GetColourFormat(&cFormat);
 	mpWindow = OMalloc<CWindow>("", pMain->GetFactory(), pNoTick, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockBackground)), &cFormat);
+	mpWindow->SetRedrawLike(pMain);
 	mpWindow->GetClosedEvent()->Add(this, &CDockFloatingWindow::WindowClosed);
 
 	//A border of edges around the inside: a title bar over the area.

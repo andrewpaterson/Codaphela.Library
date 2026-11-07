@@ -114,6 +114,7 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mpTick = OMalloc<CDialogTick>();
 	pOwner->GetColourFormat(&cFormat);
 	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->pcTheme->GetColour(TC_DialogBackground)), &cFormat);
+	mpDialog->SetRedrawLike(pOwner);
 
 	pFill = OMalloc<CFillContainer>(mpDialog);
 	sInsets.Init(mpsLook->pcTheme->GetMetric(TM_DialogInset), mpsLook->pcTheme->GetMetric(TM_DialogInset));

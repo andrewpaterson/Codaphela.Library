@@ -131,6 +131,8 @@ public:
 	void						SetPartialRedraw(bool bPartialRedraw);
 	bool						IsPartialRedraw(void);
 	void						SetVerifyRedraw(bool bVerifyRedraw);
+	bool						IsVerifyRedraw(void);
+	void						SetRedrawLike(Ptr<CWindow> pWindow);
 	size						GetRedrawMismatches(void);
 	void						RequestTick(uint32 uiMilliseconds);
 	void						SetContinuous(bool bContinuous);
