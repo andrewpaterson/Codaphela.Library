@@ -204,7 +204,7 @@ CBaseObject* CIndexedObjects::IterateObject(SIndexesIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedObjects::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
-	mcIndexes.Print(pszDest, bShowFlags, bShowFlags);
+	mcIndexes.Print(pszDest, bShowFlags, bShowSize);
 }
 
 

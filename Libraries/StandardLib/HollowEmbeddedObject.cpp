@@ -161,7 +161,7 @@ void CHollowEmbeddedObject::ValidateConsistency(void)
 {
 	if (!IsEmbedded())
 	{
-		FailNotExpectedToBeEmbedded(__METHOD__);
+		FailExpectedToBeEmbedded(__METHOD__);
 	}
 }
 

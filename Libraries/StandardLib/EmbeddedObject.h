@@ -163,6 +163,7 @@ public:
 			bool				FailExpectedToNotBeInitialised(char* szMethod);
 			bool				FailCantInitFreedObject(char* szMethod);
 			bool				FailNotExpectedToBeEmbedded(char* szMethod);
+			bool				FailExpectedToBeEmbedded(char* szMethod);
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			bool				TestRemoveStackFrom(CPointer* pcPointer);
 

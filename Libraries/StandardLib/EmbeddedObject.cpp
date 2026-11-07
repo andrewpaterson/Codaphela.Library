@@ -1181,6 +1181,22 @@ bool CEmbeddedObject::FailNotExpectedToBeEmbedded(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::FailExpectedToBeEmbedded(char* szMethod)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintObject(&sz);
+	gcLogger.Error2(szMethod, " Must be called on an object embedded in another, not on {", sz.Text(), "}.", NULL);
+	sz.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::FailCantInitFreedObject(char* szMethod)
 {
 

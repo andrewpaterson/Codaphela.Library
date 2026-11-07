@@ -395,7 +395,7 @@ void CBaseObject::ValidateInternalConsistency(void)
 			{
 				pvPointer = NULL;
 			}
-			if ((pvPointer >= pvStart) && (pvPointer <= pvEnd))
+			if ((pvPointer >= pvStart) && (pvPointer < pvEnd))
 			{
 				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Ensure it is set up in Class().", NULL);
 			}
