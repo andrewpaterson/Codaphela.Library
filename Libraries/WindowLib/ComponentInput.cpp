@@ -561,6 +561,72 @@ SComponentInputChordCommand* CComponentInput::GetChordCommand(char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A key's or chord's name written as IntelliJ writes it in its menus:
+// "Control+Shift+Cursor Left" is "Ctrl+Shift+Left".
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendShortcutName(CChars* pszDest, const char* szName)
+{
+	while (*szName != '\0')
+	{
+		if (strncmp(szName, "Control", 7) == 0)
+		{
+			pszDest->Append("Ctrl");
+			szName += 7;
+		}
+		else if (strncmp(szName, "Cursor ", 7) == 0)
+		{
+			szName += 7;
+		}
+		else
+		{
+			pszDest->Append(*szName);
+			szName++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys that give eCommand, as a menu shows them ("Ctrl+Alt+Shift+N",
+// "F5", "Left"), appended to pszDest: a key that gives it on its own, else
+// the first chord that does.  They are whatever keys the window was given,
+// so a menu can't say other keys than those that work.  False, and
+// nothing appended, if no key gives it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest)
+{
+	size				i;
+	CInputSourceDesc*	pcSource;
+
+	for (i = 0; i < macDevices.NumElements(); i++)
+	{
+		if (!macDevices.Get(i)->IsMouse())
+		{
+			pcSource = macDevices.Get(i)->FindPressedSource(eCommand);
+			if (pcSource)
+			{
+				AppendShortcutName(pszDest, pcSource->GetFriendlyName());
+				return true;
+			}
+		}
+	}
+	for (i = 0; i < masChordCommands.NumElements(); i++)
+	{
+		if (masChordCommands.Get(i)->ePressed == eCommand)
+		{
+			AppendShortcutName(pszDest, masChordCommands.Get(i)->szName.Text());
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Updates the source and gives each event it queued to the window, whose
 // focus translates (see Translate) and dispatches it.
 //

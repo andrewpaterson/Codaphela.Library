@@ -311,6 +311,27 @@ bool CComponentInputDevice::IsKeyDown(EComponentInputKey eKey)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The first of the device's sources that gives eCommand when it is
+// pressed on its own, NULL if none does.
+//
+//////////////////////////////////////////////////////////////////////////
+CInputSourceDesc* CComponentInputDevice::FindPressedSource(EComponentInputCommand eCommand)
+{
+	size	i;
+
+	for (i = 0; i < masPressedCommands.NumElements(); i++)
+	{
+		if (masPressedCommands.Get(i)->meCommand == eCommand)
+		{
+			return masPressedCommands.Get(i)->mpcSource;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masPrintables, pcSource); }

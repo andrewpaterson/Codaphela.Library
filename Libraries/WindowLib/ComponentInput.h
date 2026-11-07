@@ -98,6 +98,7 @@ public:
 	bool		IsInsert(void);
 	bool		IsSourceDown(const char* szFriendlyName);
 	CWindowInputSource*	GetSource(void);
+	bool		GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
 
 protected:
 	CComponentInputDevice*		AddDevice(CInputDevice* pcDevice);

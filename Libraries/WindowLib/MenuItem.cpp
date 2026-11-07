@@ -22,6 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Objects.h"
 #include "MenuContainer.h"
 #include "MenuItem.h"
+#include "ComponentInput.h"
+#include "Window.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,6 +45,7 @@ void CMenuItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* s
 	mpMenu = NULL;
 	miTag = -1;
 	mbEnabled = true;
+	meShortcut = CIC_Ignored;
 
 	//The label is a line of the font high, the icon column is as tall as that with the padding above and below it, so
 	//every item is the same height whether or not it has an icon.
@@ -87,6 +90,7 @@ void CMenuItem::Class(void)
 	M_Pointer(mpMenu);
 	U_Int32(miTag);
 	U_Bool(mbEnabled);
+	U_Enum(meShortcut);
 	U_Data(CComponentEvent<CMenuItem>, mcClicked);
 }
 
@@ -97,6 +101,10 @@ void CMenuItem::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuItem::Free(void)
 {
+	if (mpMenu.IsNotNull())
+	{
+		mpMenu->GetOpeningEvent()->Remove(this);
+	}
 	mcClicked.Kill();
 	CGridContainer::Free();
 }
@@ -167,10 +175,80 @@ bool CMenuItem::IsEnabled(void) { return mbEnabled; }
 //
 // The keys that do what the item does, "Ctrl+Z" say, shown on its right.
 // It's only shown: the keys are the component input's.  NULL or "" shows
-// none.  A gap keeps it apart from the longest label.
+// none.  Prefer SetShortcut(eCommand), which can't show other keys than
+// the window's.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMenuItem::SetShortcut(const char* szShortcut)
+{
+	SetShortcutCommand(CIC_Ignored);
+	ShowShortcut(szShortcut);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys that give eCommand in the window are shown on the item's right
+// (CComponentInput::GetShortcutText), none if no key does.  They are
+// looked up again each time the item's menu opens: the window's keys may
+// be given after its menus are made.  CIC_Ignored shows none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::SetShortcut(EComponentInputCommand eCommand)
+{
+	SetShortcutCommand(eCommand);
+	MenuOpening();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The command whose keys are shown, and the item listens for its menu
+// opening only while there is one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::SetShortcutCommand(EComponentInputCommand eCommand)
+{
+	meShortcut = eCommand;
+	if (mpMenu.IsNotNull())
+	{
+		mpMenu->GetOpeningEvent()->Remove(this);
+		if (eCommand != CIC_Ignored)
+		{
+			mpMenu->GetOpeningEvent()->Add(this, &CMenuItem::MenuOpening);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys of the item's command shown, as the window has them now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::MenuOpening(void)
+{
+	CChars				szKeys;
+	CComponentInput*	pcInput;
+
+	szKeys.Init();
+	pcInput = mpWindow->GetComponentInput();
+	if ((meShortcut != CIC_Ignored) && (pcInput != NULL))
+	{
+		pcInput->GetShortcutText(meShortcut, &szKeys);
+	}
+	ShowShortcut(szKeys.Text());
+	szKeys.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szShortcut shown on the item's right, a gap apart from the longest
+// label; NULL or "" shows none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::ShowShortcut(const char* szShortcut)
 {
 	CChars	szText;
 

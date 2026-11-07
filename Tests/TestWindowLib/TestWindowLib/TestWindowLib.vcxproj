@@ -318,6 +318,7 @@
     <ClInclude Include="SpaceCrusade.h" />
     <ClInclude Include="TestRefWindowCanvasDraw.h" />
     <ClInclude Include="TickTestCanvas.h" />
+    <ClInclude Include="ComponentInputTestDevices.h" />
     <ClInclude Include="InputTestComponent.h" />
     <ClInclude Include="TickTestRefWindow.h" />
     <ClInclude Include="ScriptFramesTick.h" />

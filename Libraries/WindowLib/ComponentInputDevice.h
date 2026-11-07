@@ -53,6 +53,7 @@ public:
 	CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
 	CComponentInputCommand*		GetPressedCommand(CInputSourceDesc* pcSource);
 	CComponentInputCommand*		GetReleasedCommand(CInputSourceDesc* pcSource);
+	CInputSourceDesc*			FindPressedSource(EComponentInputCommand eCommand);
 	CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	CComponentInputKey*			GetKey(CInputSourceDesc* pcSource);
 	bool						IsKeyDown(EComponentInputKey eKey);

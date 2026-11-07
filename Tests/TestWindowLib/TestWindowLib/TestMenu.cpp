@@ -18,6 +18,7 @@
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
 #include "DarkForest.h"
+#include "ComponentInputTestDevices.h"
 
 
 void ValidateLabelObjects(void);
@@ -1204,6 +1205,87 @@ void TestMenuEnabledAndShortcuts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An item given a command shows the keys the window gives it by: none
+// while the window has no keys (they are given after its menus are made),
+// then those it has once the menu opens, at once when it has them already.
+// A shortcut given as text replaces the command's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuItemShortcutFromCommand(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CMenuStyle>				pStyle;
+		Ptr<CMenuContainer>			pMenu;
+		Ptr<CMenuItem>				pWordLeft;
+		Ptr<CMenuItem>				pUndo;
+		Ptr<CMenuItem>				pSelectLeft;
+		CPointer					pNull;
+		CComponentInputTestDevices	cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pWordLeft = pMenu->AddItem("Word Left");
+		pUndo = pMenu->AddItem("Undo");
+		pWordLeft->SetShortcut(CIC_WordLeft);
+		pUndo->SetShortcut(CIC_Undo);
+		AssertString("", pWordLeft->GetShortcut());
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		pTestWindow->SetComponentInput(&cComponentInput);
+		AssertString("", pWordLeft->GetShortcut());
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertString("Ctrl+Left", pWordLeft->GetShortcut());
+		AssertString("", pUndo->GetShortcut());
+		pMenu->Close();
+
+		pSelectLeft = pMenu->AddItem("Select Left");
+		pSelectLeft->SetShortcut(CIC_SelectLeft);
+		AssertString("Shift+Left", pSelectLeft->GetShortcut());
+
+		pWordLeft->SetShortcut("Ctrl+W");
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertString("Ctrl+W", pWordLeft->GetShortcut());
+		pMenu->Close();
+		pSelectLeft->SetShortcut(CIC_Ignored);
+		AssertString("", pSelectLeft->GetShortcut());
+
+		pTestWindow->SetComponentInput(NULL);
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+		pSelectLeft = NULL;
+		pUndo = NULL;
+		pWordLeft = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Disabling an item and disabling its row are the same: either way the
 // item is drawn in the dim font, reports itself disabled and its row
 // can't be selected.  Disabling the selected item clears the selection.
@@ -1388,6 +1470,7 @@ void TestMenu(void)
 	TestMenuEnabledAndShortcuts();
 	TestMenuItemAndRowEnabledAgree();
 	TestMenuItemClickEvent();
+	TestMenuItemShortcutFromCommand();
 
 	ObjectsFlush();
 	ObjectsKill();
