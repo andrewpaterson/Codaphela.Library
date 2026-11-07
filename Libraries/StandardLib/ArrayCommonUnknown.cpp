@@ -856,34 +856,22 @@ bool CArrayCommonUnknown::RemoveLast(bool bCleanNullsIfNecessary)
 bool CArrayCommonUnknown::Remove(size iIndex, bool bCleanNullsIfNecessary)
 {
 	EArrayUnsetReturn	eUnset;
+	bool				bPreserveOrder;
 
 	eUnset = Unset(iIndex);
-	if (eUnset == AUR_NoChange)
+	if (eUnset == AUR_MustRemove)
 	{
-		CleanNullsIfNecessary(bCleanNullsIfNecessary);
-		return false;
-	}
-	else if (eUnset == AUR_SetNull)
-	{
-		CleanNullsIfNecessary(bCleanNullsIfNecessary);
-		return true;
-	}
-	else if (eUnset == AUR_MustRemove)
-	{
+		//A sorted array keeps its order, so it stays sorted.
+		bPreserveOrder = FixBool(muiFlags & (ARRAY_COMMOM_PRESERVE_ORDER | ARRAY_COMMOM_IS_PTR_SORTED));
 		if (iIndex + 1 != mcArray.NumElements())
 		{
 			SlotsMoved();
 		}
-		mcArray.RemoveAt(iIndex, muiFlags & ARRAY_COMMOM_PRESERVE_ORDER);
-		CleanNullsIfNecessary(bCleanNullsIfNecessary);
-		return true;
+		mcArray.RemoveAt(iIndex, bPreserveOrder);
 	}
-	else
-	{
-		return false;
-	}
+	CleanNullsIfNecessary(bCleanNullsIfNecessary);
+	return eUnset != AUR_NoChange;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -949,43 +937,23 @@ bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 {
 	bool		bRemoved;
 	CUnknown*	pcUnknown;
-	
-	if ((mcArray.NumElements() > psIter->iIndex) && (psIter->iIndex != ARRAY_ELEMENT_NOT_FOUND))
-	{
-		bRemoved = Remove(psIter->iIndex, false);
-		if (psIter->iIndex != 0)
-		{
-			if (muiFlags & ARRAY_COMMOM_IGNORE_NULL)
-			{
-				Iterate(psIter, &pcUnknown);
-				psIter->bStepFirst = false;
-			}
-			else
-			{
-				psIter->iIndex--;
-				psIter->bStepFirst = false;
-			}
-		}
-		else
-		{
-			if (muiFlags & ARRAY_COMMOM_IGNORE_NULL)
-			{
-				Iterate(psIter, &pcUnknown);
-				psIter->bStepFirst = false;
-			}
-			else
-			{
-				psIter->bStepFirst = false;
-			}
-		}
-		return bRemoved;
-	}
-	else
+
+	if ((psIter->iIndex == ARRAY_ELEMENT_NOT_FOUND) || (psIter->iIndex >= mcArray.NumElements()))
 	{
 		return false;
 	}
-}
 
+	bRemoved = Remove(psIter->iIndex, false);
+
+	//The next Iterate gives the element now at the iterator's index: removing moved the one after (or the last) there.
+	//An array that ignores NULLs leaves a NULL there instead, so the iterator moves on to the next element now.
+	if (muiFlags & ARRAY_COMMOM_IGNORE_NULL)
+	{
+		Iterate(psIter, &pcUnknown);
+	}
+	psIter->bStepFirst = false;
+	return bRemoved;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

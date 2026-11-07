@@ -1,4 +1,5 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/PointerFunctions.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/BufferedFile.h"
@@ -424,6 +425,97 @@ void TestArrayUnknownSetKillsReplaced(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An array kept sorted that doesn't preserve order is still sorted, and
+// still finds every element, after one is removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayUnknownRemoveKeepsSorted(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CArrayCommonUnknown	cArray;
+	CTestUnknown*		apcTests[5];
+	size				i;
+
+	cArray.Init(false, true, false, false, false, &ComparePtrPtr);
+	for (i = 0; i < 5; i++)
+	{
+		apcTests[i] = UMalloc(CTestUnknown);
+		apcTests[i]->Init((int)i);
+		AssertTrue(cArray.Add(apcTests[i]));
+	}
+	AssertTrue(cArray.IsSorted());
+
+	AssertTrue(cArray.Remove(cArray.Find(apcTests[0]), true));
+	AssertSize(4, cArray.NumElements());
+	AssertTrue(cArray.CalculateIsSorted());
+	for (i = 1; i < 5; i++)
+	{
+		AssertTrue(cArray.Contains(apcTests[i]));
+	}
+
+	cArray.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removing during iteration from the middle of an array goes on to the
+// element after the one removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayUnknownRemoveDuringIterationMiddle(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CArrayUnknown	cArray;
+	CTestUnknown*	pcTest;
+	SSetIterator	sIter;
+	CUnknown*		pcUnknown;
+	bool			bExists;
+	size			i;
+
+	cArray.Init();
+	for (i = 0; i < 4; i++)
+	{
+		pcTest = cArray.Add<CTestUnknown>();
+		pcTest->Init((int)i);
+	}
+
+	bExists = cArray.StartIteration(&sIter, &pcUnknown);
+	AssertTrue(bExists);
+	AssertInt(0, ((CTestUnknown*)pcUnknown)->miCount);
+	bExists = cArray.Iterate(&sIter, &pcUnknown);
+	AssertTrue(bExists);
+	AssertInt(1, ((CTestUnknown*)pcUnknown)->miCount);
+
+	AssertTrue(cArray.RemoveDuringIteration(&sIter));
+	bExists = cArray.Iterate(&sIter, &pcUnknown);
+	AssertTrue(bExists);
+	AssertInt(2, ((CTestUnknown*)pcUnknown)->miCount);
+	bExists = cArray.Iterate(&sIter, &pcUnknown);
+	AssertTrue(bExists);
+	AssertInt(3, ((CTestUnknown*)pcUnknown)->miCount);
+	bExists = cArray.Iterate(&sIter, &pcUnknown);
+	AssertFalse(bExists);
+	AssertSize(3, cArray.NumElements());
+
+	cArray.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayUnknown(void)
@@ -436,6 +528,8 @@ void TestArrayUnknown(void)
 	TestArrayUnknownLoad();
 	TestArrayUnknownLoadNull();
 	TestArrayUnknownSetKillsReplaced();
+	TestArrayUnknownRemoveKeepsSorted();
+	TestArrayUnknownRemoveDuringIterationMiddle();
 
 	TestStatistics();
 }
