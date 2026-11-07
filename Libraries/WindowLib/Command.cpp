@@ -112,7 +112,7 @@ bool CCommand::Run(void)
 	}
 	else
 	{
-		msRun.Call(NULL);
+		msRun.Call(this);  //Only a function given the command takes it.
 	}
 	return true;
 }

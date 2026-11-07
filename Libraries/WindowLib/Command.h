@@ -30,7 +30,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //Something the application does, like Build or Step Over, that its keys, a menu item and a tool button can all ask
 //for: its name (how it is found, by scripts too), caption and icon, the keys bound to it (see
 //CComponentInput::BindKeys), what it runs and whether it can run now.  Keys reach it when nothing focused takes them
-//(see CCommandSet), so a focused component's own keys come first.  The functions' object isn't held by the command;
+//(see CCommandSet), so a focused component's own keys come first.  Several commands can run one function that is
+//given the command run (a table of an application's actions, say).  The functions' object isn't held by the command;
 //it must outlive it.
 class CCommand : public CObject
 {
@@ -44,13 +45,15 @@ protected:
 	SMemberCall				msRun;
 	SMemberCall				msEnabled;  //Not set: the command can always run.
 	EComponentInputCommand	meStandard;  //The component command it stands for (an Edit menu's copy), whose keys it shows; CIC_Ignored if none.
-	bool					mbRunAsks;  //msRun returns whether it did anything, which isn\'t needed.
+	bool					mbRunAsks;  //msRun returns whether it did anything, which isn't needed.
 
 public:
 	template<class M, class O>
 	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(void));
 	template<class M, class O>
 	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, bool(M::*fRun)(void));
+	template<class M, class O>
+	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(CCommand*));
 	void				Class(void) override;
 	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
@@ -101,6 +104,22 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 
 	sRun.Init(pcObject, fRun);
 	Init(szName, szCaption, szKeys, pIcon, &sRun, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A command whose function is given the command, so several commands can
+// share it.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CCommand::Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(CCommand*))
+{
+	SMemberCall	sRun;
+
+	sRun.Init(pcObject, fRun);
+	Init(szName, szCaption, szKeys, pIcon, &sRun, false);
 }
 
 
