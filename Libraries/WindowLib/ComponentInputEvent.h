@@ -57,6 +57,7 @@ struct SComponentInputEvent
 	uint32						uiTime;		//Milliseconds, from the input source.
 	SWindowInputEvent*			psWindowEvent;	//What was queued, NULL if nothing was.
 	bool						bPass;		//Set by an action that couldn't use the event, so it goes on to the parent.
+	bool						bLayoutKept;	//Set when it is taken: every action that took it keeps the layout (CInputAction::SetKeepsLayout).
 };
 
 

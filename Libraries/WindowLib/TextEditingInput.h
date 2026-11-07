@@ -60,6 +60,9 @@ public:
 	void	StartDragSelect(int x, int y);
 	void	ContDragSelect(int x, int y);
 	void	StopDragSelect(int x, int y);
+
+protected:
+	void	AddActions(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
 };
 
 

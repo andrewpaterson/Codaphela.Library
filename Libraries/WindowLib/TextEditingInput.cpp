@@ -33,14 +33,32 @@ static EComponentInputCommand	gaeTextEditingPointerCommands[] = { CIC_ActivateCo
 //////////////////////////////////////////////////////////////////////////
 //
 // Adds the input actions to pcComponent.  pcEditing is pcComponent's.
+// They keep the layout: the editing's view lays the component out again
+// when an edit or a move changes its size or what shows.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine)
 {
+	size	uiFirst;
+
 	mpcComponent = pcComponent;
 	mpcEditing = pcEditing;
 	mbDragging = false;
 
+	uiFirst = pcComponent->NumInputActions();
+	AddActions(pcComponent, pcEditing, bMultiLine);
+	pcComponent->SetInputActionsKeepLayout(uiFirst);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A single line text has no up and down, pages, tabs, line feeds or line
+// commands.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine)
+{
 	pcComponent->AddInputAction(CIC_ActivateComponent, this, &CTextEditingInput::ActivateComponent);
 	pcComponent->AddInputAction(CIC_ExecuteComponent, this, &CTextEditingInput::ExecuteComponent);
 	pcComponent->AddInputAction(CIC_ContextMenu, this, &CTextEditingInput::ContextMenuClick);

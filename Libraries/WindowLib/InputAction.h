@@ -76,6 +76,7 @@ protected:
 	EComponentInputCommand	meCommand;
 	SMemberCall				msCall;
 	bool					mbEnabled;  //A disabled action matches nothing, so its input goes on to the parent.
+	bool					mbKeepsLayout;  //Its function lays its component out again itself if what it changes moves anything.
 
 public:
 	template<class M, class O>
@@ -95,6 +96,8 @@ public:
 	void					Call(SComponentInputEvent* psEvent);
 	void					SetEnabled(bool bEnabled);
 	bool					IsEnabled(void);
+	void					SetKeepsLayout(bool bKeepsLayout);
+	bool					KeepsLayout(void);
 
 	EInputActionFilter		GetFilter(void);
 	EComponentInputCommand	GetCommand(void);

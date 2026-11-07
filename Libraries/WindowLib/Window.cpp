@@ -985,13 +985,14 @@ void CWindow::CheckLayoutCache(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 //Input can change anything, so the window is painted again after it.  Keys, buttons and the wheel can change what
-//the window looks like, so it is laid out again too, but not for a key typing a character: that only changes text, and
-//what shows it lays itself out again if its size changed (as a text area does).  The pointer moving, and the mouse's
-//movement (CWindow::Input's WIET_Delta), only change what it is over; a component that changes as the mouse moves, or
-//moves things as it is dragged, invalidates itself or its layout.
+//the window looks like, so it is laid out again too, but not for a key typing a character (that only changes text,
+//and what shows it lays itself out again if its size changed, as a text area does), for input taken by actions that
+//keep the layout (CInputAction::SetKeepsLayout, the text editing commands), or for a key's release nothing took.  The
+//pointer moving, and the mouse's movement (CWindow::Input's WIET_Delta), only change what it is over; a component that
+//changes as the mouse moves, or moves things as it is dragged, invalidates itself or its layout.
 void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); RequestPaint(); }
 void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); RequestPaint(); }
-void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mcFocus.Command(eCommand, bInsert); InvalidateLayout(); }
+void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { if (mcFocus.Command(eCommand, bInsert)) { RequestPaint(); } else { InvalidateLayout(); } }
 void CWindow::InputPrintable(char c, bool bInsert) { mcFocus.Printable(c, bInsert); RequestPaint(); }
 
 
@@ -1020,10 +1021,10 @@ CComponentEvent<CWindow>* CWindow::GetActivationEvent(void) { return &mcActivate
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
-	bool	bTyping;
+	bool	bLayoutKept;
 
-	bTyping = mcFocus.Input(psWindowEvent, pcComponentInput);
-	if ((psWindowEvent->eType == WIET_Delta) || bTyping)
+	bLayoutKept = mcFocus.Input(psWindowEvent, pcComponentInput);
+	if ((psWindowEvent->eType == WIET_Delta) || bLayoutKept)
 	{
 		RequestPaint();
 	}

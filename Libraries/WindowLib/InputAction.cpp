@@ -35,6 +35,7 @@ void CInputAction::Init(EInputActionFilter eFilter, const char* szName, ECompone
 	meCommand = eCommand;
 	msCall = *psCall;
 	mbEnabled = true;
+	mbKeepsLayout = false;
 
 	PostInit();
 }
@@ -51,6 +52,7 @@ void CInputAction::Class(void)
 	U_Enum(meCommand);
 	U_Unknown(SMemberCall, msCall);
 	U_Bool(mbEnabled);
+	U_Bool(mbKeepsLayout);
 }
 
 
@@ -141,5 +143,17 @@ void CInputAction::Call(SComponentInputEvent* psEvent)
 //////////////////////////////////////////////////////////////////////////
 void CInputAction::SetEnabled(bool bEnabled) { mbEnabled = bEnabled; }
 bool CInputAction::IsEnabled(void) { return mbEnabled; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An action that keeps the layout lays its component out again itself
+// (LayoutChanged) when what it does moves or resizes anything, so the
+// window isn't laid out again after the input it takes (see
+// CWindow::Input).  Actions don't, unless set.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputAction::SetKeepsLayout(bool bKeepsLayout) { mbKeepsLayout = bKeepsLayout; }
+bool CInputAction::KeepsLayout(void) { return mbKeepsLayout; }
 EInputActionFilter CInputAction::GetFilter(void) { return meFilter; }
 EComponentInputCommand CInputAction::GetCommand(void) { return meCommand; }

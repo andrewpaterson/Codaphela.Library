@@ -157,8 +157,12 @@ void CFocus::PointerMoved(int x, int y)
 		sEvent.eCommand = GetDragCommand(meDrag, FDS_Continue);
 		Deliver(mpDragComponent, &sEvent);
 
-		//A drag is a command like any other: selecting and scrolling move what is laid out.
-		mpWindow->InvalidateLayout();
+		//A drag is a command like any other: selecting and scrolling move what is laid out, unless the dragged
+		//component's action keeps the layout.
+		if (!sEvent.bLayoutKept)
+		{
+			mpWindow->InvalidateLayout();
+		}
 	}
 }
 
@@ -268,35 +272,53 @@ void CFocus::SetFocus(Ptr<CComponent> pComponent)
 //////////////////////////////////////////////////////////////////////////
 //
 // Translates a queued event (see CComponentInput::Translate) and
-// dispatches the events it means.  Returns true if it was a key typing a
-// character (CComponentInput::IsTyping).
+// dispatches the events it means.  Returns true if the window needn't be
+// laid out again after it: a key typing a character
+// (CComponentInput::IsTyping), an event taken by actions that keep the
+// layout, or a key's release nothing took.  A click that moved the focus
+// lays it out.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
 	SComponentInputEvent	asEvents[COMPONENT_INPUT_MAX_EVENTS];
+	SComponentInputEvent*	psTaken;
 	size					uiNumEvents;
+	Ptr<CComponent>			pFocussed;
 
 	if (!mbActive)
 	{
 		return false;
 	}
+	pFocussed = mpFocussedComponent;
 	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
-	DispatchEvents(asEvents, uiNumEvents);
-	return pcComponentInput->IsTyping(psWindowEvent, asEvents, uiNumEvents);
+	psTaken = DispatchEvents(asEvents, uiNumEvents);
+	if (mpFocussedComponent != pFocussed)
+	{
+		return false;
+	}
+	if (pcComponentInput->IsTyping(psWindowEvent, asEvents, uiNumEvents))
+	{
+		return true;
+	}
+	if (psTaken)
+	{
+		return psTaken->bLayoutKept;
+	}
+	return (uiNumEvents == 1) && (asEvents[0].eType == CIET_KeyUp);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Gives each event, in order, to DispatchEvent.  Once one is taken the
-// later ones aren't given, so a key taken by its key event isn't also a
-// command.  If any is a click the component under the pointer is focussed
+// Gives each event, in order, to DispatchEvent, and returns the one taken
+// (NULL for none).  Once one is taken the later ones aren't given, so a
+// key taken by its key event isn't also a command.  If any is a click the component under the pointer is focussed
 // first, so all of them go to it; a click outside the window, on its
 // title bar say, isn't for any component so none are given.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents)
+SComponentInputEvent* CFocus::DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents)
 {
 	size	i;
 
@@ -306,7 +328,7 @@ void CFocus::DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents)
 		{
 			if (!FocusClick())
 			{
-				return;
+				return NULL;
 			}
 			break;
 		}
@@ -316,9 +338,10 @@ void CFocus::DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents)
 	{
 		if (DispatchEvent(&asEvents[i]))
 		{
-			return;
+			return &asEvents[i];
 		}
 	}
+	return NULL;
 }
 
 
@@ -597,16 +620,21 @@ bool CFocus::GetWheel(EComponentInputCommand eCommand, int* piRight, int* piDown
 // A command not from the input, as a test gives one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
+bool CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 {
 	SComponentInputEvent	sEvent;
+	SComponentInputEvent*	psTaken;
+	Ptr<CComponent>			pFocussed;
 
-	if (mbActive)
+	if (!mbActive)
 	{
-		InitEvent(&sEvent, CIET_Command, bInsert);
-		sEvent.eCommand = eCommand;
-		DispatchEvents(&sEvent, 1);
+		return false;
 	}
+	pFocussed = mpFocussedComponent;
+	InitEvent(&sEvent, CIET_Command, bInsert);
+	sEvent.eCommand = eCommand;
+	psTaken = DispatchEvents(&sEvent, 1);
+	return (psTaken != NULL) && psTaken->bLayoutKept && (mpFocussedComponent == pFocussed);
 }
 
 

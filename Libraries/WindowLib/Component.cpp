@@ -136,6 +136,23 @@ size CComponent::NumInputActions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The input actions from uiFirst on (in the order they were added) keep
+// the layout (CInputAction::SetKeepsLayout).
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::SetInputActionsKeepLayout(size uiFirst)
+{
+	size	i;
+
+	for (i = uiFirst; i < maInputActions.NumElements(); i++)
+	{
+		maInputActions.Get(i)->SetKeepsLayout(true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Turns the component's actions for eCommand off or on again.  While
 // they are off the command goes on to the parent, as if they weren't
 // there; a text area that isn't selectable passes the pointer this way.
@@ -194,8 +211,10 @@ bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
 	Ptr<CInputAction>	pAction;
 	size				i;
 	bool				bTaken;
+	bool				bLayoutKept;
 
 	bTaken = false;
+	bLayoutKept = true;
 	for (i = 0; i < maInputActions.NumElements(); i++)
 	{
 		pAction = maInputActions.Get(i);
@@ -206,10 +225,15 @@ bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
 			if (!psEvent->bPass)
 			{
 				bTaken = true;
+				bLayoutKept = bLayoutKept && pAction->KeepsLayout();
 			}
 		}
 	}
 	psEvent->bPass = false;
+	if (bTaken)
+	{
+		psEvent->bLayoutKept = bLayoutKept;
+	}
 	return bTaken;
 }
 

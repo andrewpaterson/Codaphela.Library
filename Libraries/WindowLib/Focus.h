@@ -77,7 +77,7 @@ public:
 	void				Request(void);
 	void				SetFocus(Ptr<CComponent> pComponent);
 	bool				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
-	void				Command(EComponentInputCommand eCommand, bool bInsert);
+	bool				Command(EComponentInputCommand eCommand, bool bInsert);
 	void				Printable(char c, bool bInsert);
 	void				Activate(void);
 	void				Deactivate(void);
@@ -109,7 +109,7 @@ public:
 
 protected:
 	void				SetMouseOver(Ptr<CComponent> pComponent);
-	void				DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents);
+	SComponentInputEvent*	DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents);
 	bool				DispatchEvent(SComponentInputEvent* psEvent);
 	bool				Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
 	bool				Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);

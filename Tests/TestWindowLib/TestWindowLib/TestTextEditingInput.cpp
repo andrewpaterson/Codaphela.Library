@@ -261,6 +261,62 @@ void TestTextEditingInputPointer(void)
 }
 
 
+//Counts the calls of an action that doesn't keep the layout.
+struct STestEditingCounter
+{
+	int	iCalls;
+
+	void	Count(void) { iCalls++; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The editing actions keep the layout: a command one takes only paints the
+// window.  A command nothing takes lays it out, as does one also taken by
+// an action that doesn't keep the layout.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputKeepsLayout(void)
+{
+	STestEditingInput	s;
+	STestEditingCounter	sCounter;
+	size				uiFirst;
+
+	ObjectsInit();
+	s.Init("ab\ncd", true);
+	s.pCanvas->SetCanGetFocus(true);
+	s.pWindow->GetFocus()->SetFocus(s.pCanvas);
+	s.pWindow->Layout();
+	AssertFalse(s.pWindow->IsLayoutDirty());
+
+	s.pWindow->InputCommand(CIC_End, true);
+	AssertSize(2, s.Caret());
+	AssertFalse(s.pWindow->IsLayoutDirty());
+	s.pWindow->InputCommand(CIC_Down, true);
+	AssertSize(5, s.Caret());
+	AssertFalse(s.pWindow->IsLayoutDirty());
+
+	//The context menu's press goes on to the parent, which has no action for it.
+	s.pWindow->InputCommand(CIC_ContextMenu, true);
+	AssertTrue(s.pWindow->IsLayoutDirty());
+	s.pWindow->Layout();
+
+	sCounter.iCalls = 0;
+	uiFirst = s.pCanvas->NumInputActions();
+	s.pCanvas->AddInputAction(CIC_Home, &sCounter, &STestEditingCounter::Count);
+	AssertSize(uiFirst + 1, s.pCanvas->NumInputActions());
+	s.pWindow->InputCommand(CIC_Home, true);
+	AssertInt(1, sCounter.iCalls);
+	AssertSize(3, s.Caret());
+	AssertTrue(s.pWindow->IsLayoutDirty());
+
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -272,6 +328,7 @@ void TestTextEditingInput(void)
 	TestTextEditingInputSingleLine();
 	TestTextEditingInputMultiLine();
 	TestTextEditingInputPointer();
+	TestTextEditingInputKeepsLayout();
 
 	TestStatistics();
 }

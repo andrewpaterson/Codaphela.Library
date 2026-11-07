@@ -141,6 +141,7 @@ public:
 			void				AddInputActions(const EComponentInputCommand (&aeCommands)[N], O* pcObject, void(M::*fFunction)(SComponentInputEvent*));
 			bool				RemoveInputAction(Ptr<CInputAction> pAction);
 			size				NumInputActions(void);
+			void				SetInputActionsKeepLayout(size uiFirst);
 			void				SetInputActionsEnabled(EComponentInputCommand eCommand, bool bEnabled);
 			bool				CallInputActions(SComponentInputEvent* psEvent);
 

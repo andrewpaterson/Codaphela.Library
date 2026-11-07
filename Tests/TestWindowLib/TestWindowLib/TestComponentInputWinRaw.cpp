@@ -329,7 +329,8 @@ void TestComponentInputWinRawDevices(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A key typing a character, pressed and released, only paints the window
-// again; a command or a chord lays it out.
+// again, as does a key's release nothing takes; a command or a chord lays
+// it out.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputWinRawTypingLayout(void)
@@ -386,10 +387,13 @@ void TestComponentInputWinRawTypingLayout(void)
 		AssertFalse(pTestWindow->IsLayoutDirty());
 		AssertLog("A:Printable(a,Insert);");
 
-		cRaw.Tap(VK_TEST_END, true);
+		//A command lays out (A's actions don't keep the layout); the release of its key, which nothing takes, doesn't.
+		cRaw.Press(VK_TEST_END, true);
 		AssertTrue(pTestWindow->IsLayoutDirty());
 		AssertLog("A:End;");
 		pTestWindow->Paint();
+		cRaw.Release(VK_TEST_END, true);
+		AssertFalse(pTestWindow->IsLayoutDirty());
 
 		//Shift's press is held back while it could start a chord, and given with the next key: it lays out (it isn't a
 		//character), the capitals typed while it is held don't.
