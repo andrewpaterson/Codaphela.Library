@@ -275,6 +275,163 @@ void TestCPP816Forwarders(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether szListing's szLabel (a function's register entry) only moves
+// 'this' along (to a member) or loads registers, with no frame, then jumps
+// to a label starting szCallee.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestCPP816AdjustsAndJumpsTo(const char* szListing, const char* szLabel, const char* szCallee)
+{
+	static const char*	aszAllowed[] = { "\t\tlda ", "\t\tldx ", "\t\tldy ", "\t\tclc", "\t\tadc ", "\t\tinx", "\t\tbcc ", "\t\ttax", "\t\ttxa", "\t\ttay", "\t\ttya", "\t\ttxy", "\t\ttyx", NULL };
+	CChars				szFind;
+	const char*			szAt;
+	size				i;
+	bool				bAllowed;
+
+	szFind.Init("\n");
+	szFind.Append(szLabel);
+	szFind.Append(":\n");
+	szAt = strstr(szListing, szFind.Text());
+	szFind.Kill();
+	if (szAt == NULL)
+	{
+		return false;
+	}
+
+	szAt = strchr(szAt + 1, '\n') + 1;
+	for (;;)
+	{
+		bAllowed = false;
+		for (i = 0; aszAllowed[i]; i++)
+		{
+			if (strncmp(szAt, aszAllowed[i], strlen(aszAllowed[i])) == 0)
+			{
+				bAllowed = true;
+				break;
+			}
+		}
+		if (!bAllowed)
+		{
+			break;
+		}
+		szAt = strchr(szAt, '\n') + 1;
+	}
+
+	//A label inside the adjustment (bcc's target) is allowed too.
+	while ((szAt[0] == 'L') && (strchr(szAt, ':') < strchr(szAt, '\n')))
+	{
+		szAt = strchr(szAt, '\n') + 1;
+	}
+
+	szFind.Init("\t\tjml ");
+	szFind.Append(szCallee);
+	bAllowed = strncmp(szAt, szFind.Text(), szFind.Length()) == 0;
+	szFind.Kill();
+	return bAllowed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816ReadListing(CChars* pszDest, const char* szUnit)
+{
+	CTextFile	cFile;
+	CChars		szFilename;
+
+	szFilename.Init("Output" _FS_ "CPP816ArrayLayers" _FS_);
+	szFilename.Append(szUnit);
+	szFilename.Append(".lst");
+	cFile.Init();
+	AssertTrue(cFile.Read(szFilename.Text()));
+	pszDest->Init(cFile.Text() ? cFile.Text() : "");
+	cFile.Kill();
+	szFilename.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// StandardLib's array layers (CArray<M>, CArrayObject, CArrayCommonObject
+// and CArrayCommonUnknown) compile down to the work at the bottom: every
+// layer that only passes a call on costs at most a jump.  Compiled for the
+// W65C816 as StandardLib's units are, with Use.cpp calling through the top.
+//
+// CArrayObject's forwarders jump to CArrayCommonObject's (1 to 8).  A
+// typed call (CArray<M>::RemoveAt) goes straight to the work (16), and a
+// call to a forwarder jumps past it (32).  CArrayCommonObject's one-liners
+// on its mcArray move 'this' to the member and jump, without a frame (64
+// to 1024).  A virtual call through CArray<M>, which is final, calls
+// CArrayCommonObject's function directly, or what that jumps to (2048,
+// 4096).
+//
+// Each bit of the result is a layer that costs more.  CArrayObject::Init
+// isn't checked: the constants its callee takes are pushed (as
+// TestCPP816Forwarders' FwdThree).
+//
+// Expected now: 32 to 4096 (8160) aren't done yet.  A call to a forwarder
+// jumps to it, the mcArray one-liners build a frame to move 'this', and a
+// call through a final class goes through the vtable.  Clear each bit from
+// the expected value as the compiler does it, until it is 0.
+//
+//////////////////////////////////////////////////////////////////////////
+#define TEST_CPP816_ARRAY_LAYERS_NOT_DONE	(32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096)
+
+void TestCPP816ArrayLayers(void)
+{
+	static const char*	aszUnits[] = { "StandardLib/ArrayCommonUnknown.cpp", "StandardLib/ArrayCommonObject.cpp", "StandardLib/ArrayObject.cpp", "Input/CPP65/ArrayChainProject/Use.cpp", NULL };
+	CCPP65Builder		cBuilder;
+	CFileUtil			cFileUtil;
+	CChars				szObject;
+	CChars				szCommon;
+	CChars				szUse;
+	int					w;
+
+	cFileUtil.RemoveDir("Output" _FS_ "CPP816ArrayLayers");
+	cBuilder.Init();
+	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.SetListingDirectory("Output" _FS_ "CPP816ArrayLayers");
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	TestCPP65AddUnits(&cBuilder, aszUnits, false);
+	cBuilder.Compile();
+	AssertString("", cBuilder.GetErrors());
+	cBuilder.Kill();
+
+	TestCPP816ReadListing(&szObject, "ArrayObject");
+	TestCPP816ReadListing(&szCommon, "ArrayCommonObject");
+	TestCPP816ReadListing(&szUse, "Use");
+
+	w = 0;
+	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Add.ax", "_CArrayCommonObject__Add__FRC8CPointer.ax")) { w |= 1; }
+	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Insert.axy", "_CArrayCommonObject__InsertAt__FtRC8CPointer.axy")) { w |= 2; }
+	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Remove__Ft.axy", "_CArrayCommonObject__RemoveAt.axy")) { w |= 4; }
+	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Remove__FRC8CPointer.ax", "_CArrayCommonObject__Remove__FRC8CPointer.ax")) { w |= 8; }
+
+	if (!TestCPP816JumpsTo(szUse.Text(), "_UseArrayRemoveAt__FPC24CArray__T_C11CBaseObjectt.axy", "_CArrayCommonObject__RemoveAt.axy")) { w |= 16; }
+	if (!TestCPP816JumpsTo(szUse.Text(), "_UseArrayAdd__FPC12CArrayObjectRC8CPointer.ax", "_CArrayCommonObject__Add__FRC8CPointer.ax")) { w |= 32; }
+
+	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__NumElements.ax", "_CArrayCommonUnknown__NumElements.ax")) { w |= 64; }
+	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__IsEmpty.ax", "_CArrayCommonUnknown__IsEmpty.ax")) { w |= 128; }
+	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__UnsafeGetObject.axy", "_CArrayCommonUnknown__UnsafeGet.axy")) { w |= 256; }
+	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayCommonUnknown__GrowTo.axy")) { w |= 512; }
+	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__CalculateIsSorted.ax", "_CArrayCommonUnknown__CalculateIsSorted.ax")) { w |= 1024; }
+
+	if (!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayNumElements__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonObject__NumElements.ax") &&
+		!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayNumElements__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonUnknown__NumElements.ax")) { w |= 2048; }
+	if (!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayIsEmpty__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonObject__IsEmpty.ax") &&
+		!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayIsEmpty__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonUnknown__IsEmpty.ax")) { w |= 4096; }
+
+	AssertInt(TEST_CPP816_ARRAY_LAYERS_NOT_DONE, w);
+
+	szUse.Kill();
+	szCommon.Kill();
+	szObject.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Interprocedural(void)
@@ -285,6 +442,7 @@ void TestCPP816Interprocedural(void)
 	TestCPP816DeadArguments();
 	TestCPP816ListingInlinedFromUnit();
 	TestCPP816Forwarders();
+	TestCPP816ArrayLayers();
 
 	TestStatistics();
 }
