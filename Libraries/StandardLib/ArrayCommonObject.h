@@ -70,8 +70,9 @@ public:
 	CEmbeddedObject*		GetEmbeddedObject(size iIndex) override;
 
 
-	CPointer				StartIterationPointer(SSetIterator* psIter, bool* pbExists);
-	CPointer				IteratePointer(SSetIterator* psIter, bool* pbExists);
+	//*pbExists (if it isn't NULL) is false after the last element; for a set, which ignores NULLs, so is a NULL pointer.
+	CPointer				StartIteration(SSetIterator* psIter, bool* pbExists = NULL);
+	CPointer				Iterate(SSetIterator* psIter, bool* pbExists = NULL);
 
 	void					TouchAll(void) override;
 	void					KillAll(void) override;

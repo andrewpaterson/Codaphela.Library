@@ -606,7 +606,7 @@ CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CArrayCommonObject::StartIterationPointer(SSetIterator* psIter, bool* pbExists)
+CPointer CArrayCommonObject::StartIteration(SSetIterator* psIter, bool* pbExists)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
@@ -615,7 +615,7 @@ CPointer CArrayCommonObject::StartIterationPointer(SSetIterator* psIter, bool* p
 	EnsureSorted();
 
 	bExists = mcArray.StartIteration(psIter, (CUnknown**)&pcObject);
-	*pbExists = bExists;
+	SafeAssign(pbExists, bExists);
 	pObject.AssignObject(pcObject);
 	return pObject;
 }
@@ -625,14 +625,14 @@ CPointer CArrayCommonObject::StartIterationPointer(SSetIterator* psIter, bool* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CArrayCommonObject::IteratePointer(SSetIterator* psIter, bool* pbExists)
+CPointer CArrayCommonObject::Iterate(SSetIterator* psIter, bool* pbExists)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 	bool			bExists;
 
 	bExists = mcArray.Iterate(psIter, (CUnknown**)&pcObject);
-	*pbExists = bExists;
+	SafeAssign(pbExists, bExists);
 	pObject.AssignObject(pcObject);
 	return pObject;
 }
@@ -835,7 +835,7 @@ bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 	{
 		EnsureSorted();
 
-		pObject = pcArray->StartIterationPointer(&sIter, &bExists);
+		pObject = pcArray->StartIteration(&sIter, &bExists);
 		while (bExists)
 		{
 			pcPointedTo = pObject.BaseObject();
@@ -847,7 +847,7 @@ bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 					bResult &= RemoveObjectCopiesTryFree(pcPointedTo, uiRemoved, false);
 				}
 			}
-			pObject = pcArray->IteratePointer(&sIter, &bExists);
+			pObject = pcArray->Iterate(&sIter, &bExists);
 		}
 	}
 	return bResult;

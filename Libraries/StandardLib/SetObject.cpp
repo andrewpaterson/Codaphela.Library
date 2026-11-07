@@ -105,35 +105,11 @@ void CSetObject::TouchAll(void)
 	CPointer		p;
 	bool			bExists;
 
-	p = StartIterationPointer(&sIter, &bExists);
+	p = StartIteration(&sIter, &bExists);
 	while (bExists)
 	{
-		p = IteratePointer(&sIter, &bExists);
+		p = Iterate(&sIter, &bExists);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointer CSetObject::StartIteration(SSetIterator* psIter)
-{
-	bool	bExists;
-
-	return StartIterationPointer(psIter, &bExists);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointer CSetObject::Iterate(SSetIterator* psIter)
-{
-	bool	bExists;
-
-	return IteratePointer(psIter, &bExists);
 }
 
 

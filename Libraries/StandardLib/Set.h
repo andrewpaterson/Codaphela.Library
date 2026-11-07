@@ -40,8 +40,8 @@ public:
 	//Do not Add, Remove or call Contains while iterating over a sorted set.  They can remove the NULLs left by RemoveDuringIteration which moves the Objects not yet iterated.
 	void			RemoveDuringIteration(SSetIterator* psIter);
 
-	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists);
-	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists);
+	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists = NULL);
+	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists = NULL);
 };
 
 
@@ -118,7 +118,7 @@ void CSet<M>::RemoveDuringIteration(SSetIterator* psIter)
 template<class M>
 Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter, bool* pbExists)
 {
-	return StartIterationPointer(psIter, pbExists);
+	return CSetObject::StartIteration(psIter, pbExists);
 }
 
 
@@ -129,7 +129,7 @@ Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter, bool* pbExists)
 template<class M>
 Ptr<M> CSet<M>::Iterate(SSetIterator* psIter, bool* pbExists)
 {
-	return IteratePointer(psIter, pbExists);
+	return CSetObject::Iterate(psIter, pbExists);
 }
 
 

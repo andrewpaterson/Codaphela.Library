@@ -1136,12 +1136,12 @@ void TestSetObjectTypedIteration(void)
 		pSet->Add(pObject);
 
 		uiCount = 0;
-		pObject = pSet->StartIteration<CTestObject>(&sIter);
+		pObject = pSet->StartIteration(&sIter);
 		while (pObject.IsNotNull())
 		{
 			AssertInt((int32)5, pObject->mi);
 			uiCount++;
-			pObject = pSet->Iterate<CTestObject>(&sIter);
+			pObject = pSet->Iterate(&sIter);
 		}
 		AssertSize(2, uiCount);
 	}
