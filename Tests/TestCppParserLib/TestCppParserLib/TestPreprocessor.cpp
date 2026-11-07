@@ -5,6 +5,8 @@
 #include "BaseLib/TextFile.h"
 #include "CppParserLib/DirectiveMap.h"
 #include "CppParserLib/Preprocessor.h"
+#include "CppParserLib/PPLine.h"
+#include "CppParserLib/PPDirective.h"
 #include "CppParserLib/HeaderFileMap.h"
 #include "TestLib/Assert.h"
 
@@ -1533,6 +1535,34 @@ void TestPreprocessorUnreadableFile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Two directives are equal when they are the same kind with the same
+// tokens; a directive is never equal to a line.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorDirectiveEquals(void)
+{
+	CPPDirective	cDefine;
+	CPPDirective	cDefineAgain;
+	CPPDirective	cUndef;
+	CPPLine			cLine;
+
+	cDefine.Init(PPD_define, 0, 0, NULL);
+	cDefineAgain.Init(PPD_define, 3, 0, NULL);
+	cUndef.Init(PPD_undef, 0, 0, NULL);
+	cLine.Init(0, 0, NULL);
+	AssertTrue(cDefine.Equals(&cDefineAgain));
+	AssertFalse(cDefine.Equals(&cUndef));
+	AssertFalse(cDefine.Equals(&cLine));
+	AssertFalse(cLine.Equals(&cDefine));
+	cLine.Kill();
+	cUndef.Kill();
+	cDefineAgain.Kill();
+	cDefine.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A directive removed from the map is gone; the others are still there.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2135,6 +2165,7 @@ void TestPreprocessor(void)
 	TestPreprocessorPragmaPack();
 	TestPreprocessorLineContinuation();
 	TestPreprocessorDirectiveMap();
+	TestPreprocessorDirectiveEquals();
 	TestPreprocessorParentheses();
 	TestPreprocessorPredefinedMacros();
 	TestPreprocessorHasOperators();
