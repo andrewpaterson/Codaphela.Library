@@ -3,6 +3,7 @@
 #include "BaseLib/Timer.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
+#include "WindowLib/WindowInputSource.h"
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/GridContainer.h"
 #include "WindowLib/ClearCanvasDraw.h"
@@ -201,8 +202,9 @@ static void AssertUndamagedIfStill(CDamageArea* pcDamage, Ptr<CCanvas> pCanvas, 
 //
 // What a paint finds changed: nothing when nothing did; a canvas's area
 // when it is invalidated; the old and new areas of canvases that moved;
-// where a canvas was when it is taken out; a scrolled canvas's area; and
-// a popup's area when it opens and closes.  Nothing else.
+// where a canvas was when it is taken out; a scrolled canvas's area; a
+// popup's area when it opens and closes; nothing when the mouse moves.
+// Nothing else.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawDamage(void)
@@ -227,6 +229,7 @@ void TestPartialRedrawDamage(void)
 		CInt32Rect			cBounds;
 		Ptr<CCanvas>		pPopupContent;
 		CPointer			pNull;
+		SWindowInputEvent	sMovement;
 
 		CreateDamageWindow(&sWindow, &cFactory);
 
@@ -296,6 +299,18 @@ void TestPartialRedrawDamage(void)
 		sWindow.pWindow->Paint();
 		AssertTrue(pcDamage->Intersects(&cArea));
 		AssertUndamagedIfStill(pcDamage, sWindow.pFixed, &cFixed);
+
+		//The mouse moving damages nothing: the pointer is over what it was, and nothing that is drawn changed.  The
+		//focus isn't active, so the movement goes no further than the window.
+		sWindow.pWindow->Deactivate();
+		sWindow.pWindow->Paint();
+		memset(&sMovement, 0, sizeof(SWindowInputEvent));
+		sMovement.eType = WIET_Delta;
+		sMovement.fValue = 3.0f;
+		sWindow.pWindow->Input(&sMovement, NULL);
+		sWindow.pWindow->PointerMoved(2, 2);
+		sWindow.pWindow->Paint();
+		AssertTrue(pcDamage->IsEmpty());
 
 		//The window invalidated is all of it.
 		sWindow.pWindow->Invalidate();
