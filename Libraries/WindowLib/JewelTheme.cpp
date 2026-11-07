@@ -26,7 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //In EThemeMetric's order.
-static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
+static int32	gaiJewelThemeMetrics[] =
 {
 	8,		//TM_ButtonPaddingX
 	0,		//TM_ButtonPaddingY, so buttons, fields and combo boxes are 29 high, Jewel's are 28.
@@ -100,10 +100,11 @@ static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
 	3,		//TM_AutoHideLine
 	4,		//TM_AutoHideEdge
 };
+static_assert(sizeof(gaiJewelThemeMetrics) / sizeof(gaiJewelThemeMetrics[0]) == TM_NumMetrics, "gaiJewelThemeMetrics needs a row for each EThemeMetric.");
 
 
 //In EThemeColour's order.
-static ARGB32	gasJewelThemeColours[TC_NumColours] =
+static ARGB32	gasJewelThemeColours[] =
 {
 	JEWEL_TEXT,				//TC_Text
 	JEWEL_LINE_NUMBER,		//TC_DimText
@@ -160,6 +161,7 @@ static ARGB32	gasJewelThemeColours[TC_NumColours] =
 	JEWEL_BLUE,				//TC_DockPreviewBorder
 	JEWEL_SEPARATOR,		//TC_DockFrameBorder
 };
+static_assert(sizeof(gasJewelThemeColours) / sizeof(gasJewelThemeColours[0]) == TC_NumColours, "gasJewelThemeColours needs a row for each EThemeColour.");
 
 
 //////////////////////////////////////////////////////////////////////////

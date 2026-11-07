@@ -175,9 +175,9 @@ void TestWindowThemeChanged(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Jewel's theme sets every colour, size and icon there is, each with a
-// name.  A table row left out when one is added would be zero: no colour
-// is transparent black and no size is zero.  Made from white font
-// colours, its font is in its own text colour.
+// name (the tables' static_asserts make sure each has a row), no colour
+// transparent black and no size negative.  Made from white font colours,
+// its font is in its own text colour.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWindowThemeJewelComplete(void)
@@ -211,7 +211,7 @@ void TestWindowThemeJewelComplete(void)
 		for (i = 0; i < TM_NumMetrics; i++)
 		{
 			AssertTrue(pTheme->IsMetricSet((EThemeMetric)i));
-			AssertTrue(pTheme->GetMetric((EThemeMetric)i) > 0);
+			AssertTrue(pTheme->GetMetric((EThemeMetric)i) >= 0);
 			AssertTrue(!StrEmpty(CWindowTheme::GetMetricName((EThemeMetric)i)));
 		}
 		for (i = 0; i < TI_NumImages; i++)

@@ -27,7 +27,7 @@ static size	gsuiThemeUnsetReads = 0;
 
 
 //In EThemeMetric's order, for the error reading one that wasn't set.
-static const char*	gaszThemeMetricNames[TM_NumMetrics] =
+static const char*	gaszThemeMetricNames[] =
 {
 	"ButtonPaddingX", "ButtonPaddingY", "ButtonIconGap", "FieldPaddingX", "FieldPaddingY", "CheckBoxGap",
 	"ComboChevronWidth", "ComboChevronGap", "TreeChevronWidth", "TreeIconWidth", "TreeIndent", "TreeRowPadding",
@@ -40,17 +40,19 @@ static const char*	gaszThemeMetricNames[TM_NumMetrics] =
 	"GoToWidth", "GoToHeight", "GoToRowHeight", "GoToIconWidth", "GoToGap",
 	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip", "DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd", "DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth", "AutoHideStripSize", "AutoHideTabGap", "AutoHideTabSpacing", "AutoHideLine", "AutoHideEdge",
 };
+static_assert(sizeof(gaszThemeMetricNames) / sizeof(gaszThemeMetricNames[0]) == TM_NumMetrics, "gaszThemeMetricNames needs a row for each EThemeMetric.");
 
 
 //In EThemeImage's order, for the error reading one that wasn't set.
-static const char*	gaszThemeImageNames[TI_NumImages] =
+static const char*	gaszThemeImageNames[] =
 {
 	"Chevron", "DownChevron", "Pin", "Unpin", "Close", "TabClose", "TabCloseHover", "PreviousArrow", "NextArrow",
 };
+static_assert(sizeof(gaszThemeImageNames) / sizeof(gaszThemeImageNames[0]) == TI_NumImages, "gaszThemeImageNames needs a row for each EThemeImage.");
 
 
 //In EThemeColour's order, for the error reading one that wasn't set.
-static const char*	gaszThemeColourNames[TC_NumColours] =
+static const char*	gaszThemeColourNames[] =
 {
 	"Text", "DimText", "BrightText", "Icon", "Panel", "Editor", "Separator", "Border", "BorderHover", "Accent",
 	"AccentHover", "Success", "Failure",
@@ -62,6 +64,7 @@ static const char*	gaszThemeColourNames[TC_NumColours] =
 	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
 	"DockPreviewBorder", "DockFrameBorder",
 };
+static_assert(sizeof(gaszThemeColourNames) / sizeof(gaszThemeColourNames[0]) == TC_NumColours, "gaszThemeColourNames needs a row for each EThemeColour.");
 
 
 //////////////////////////////////////////////////////////////////////////
