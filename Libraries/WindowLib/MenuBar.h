@@ -41,7 +41,7 @@ protected:
 	Ptr<CMenuStyle>				mpStyle;
 	Ptr<CClearCanvasDraw>		mpBackgroundDraw;
 	Ptr<CCanvas>				mpBackground;
-	Ptr<CIconComponent>			mpFiller;  //Takes the spare width to the right of the buttons.
+	Ptr<CComponent>				mpFiller;  //Takes the spare width to the right of the buttons.
 	CArray<CMenuBarItem>		maItems;
 	Ptr<CMenuBarItem>			mpOpenItem;
 	CComponentEvent<CMenuItem>	mcItemClicked;

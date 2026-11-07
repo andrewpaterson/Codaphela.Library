@@ -61,7 +61,8 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 
 	mpBar = OMalloc<CGridContainer>(pWindow);
 	SetBarFit(false);
-	mpFiller = OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), 0, 0);
+	mpFiller = OMalloc<CComponent>(pWindow);
+	mpFiller->SetDesiredSize(0, 0);
 
 	mpSeparator = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabSeparatorColour()));
 	mpSeparator->SetDesiredSize(-1, 1);

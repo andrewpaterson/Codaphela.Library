@@ -47,7 +47,8 @@ void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpBackground->SetDesiredSize(-1, -1);
 	CGridContainer::AddComponent(mpBackground, 0, 0);
 
-	mpFiller = OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), 0, 0);
+	mpFiller = OMalloc<CComponent>(pWindow);
+	mpFiller->SetDesiredSize(0, 0);
 	CGridContainer::AddComponent(mpFiller, 0, 0, 1, 1, 1, 0);
 
 	PostInit();

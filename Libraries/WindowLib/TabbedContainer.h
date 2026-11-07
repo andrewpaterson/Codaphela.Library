@@ -67,7 +67,7 @@ DESTRUCTABLE(CTabbedContainer);
 protected:
 	Ptr<CWindowTheme>				mpTheme;
 	Ptr<CGridContainer>				mpBar;
-	Ptr<CIconComponent>				mpFiller;  //The space after the last tab.
+	Ptr<CComponent>					mpFiller;  //The space after the last tab.
 	Ptr<CCanvas>					mpBarBackground;
 	Ptr<CCanvas>					mpSeparator;
 	Ptr<CIconComponent>				mpOverflow;  //The chevron opening the list of tabs, NULL without the overflow menu.
