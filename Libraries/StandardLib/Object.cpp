@@ -29,7 +29,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CObject::CObject()
 {
-	mapPointers.Init();
 	mapEmbedded.Init();
 }
 
@@ -43,7 +42,6 @@ CObject::~CObject()
 	//Only called for an object on the stack.
 	if (!DestructOnStack(__METHOD__, false))
 	{
-		mapPointers.Kill();
 		mapEmbedded.Kill();
 	}
 }
@@ -111,7 +109,6 @@ void CObject::EmbedPointerFields(void)
 	{
 		pcPointer = ppacPointerFields[i]->GetPointer(this);
 		pcPointer->SetEmbedding(this);
-		mapPointers.AddPtr(pcPointer);
 	}
 }
 
@@ -152,6 +149,31 @@ void CObject::EmbedEmbeddedObjectFields(void)
 			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointers in this object: its class's pointer fields, in the order
+// they were registered.  None before it has a class.
+//
+//////////////////////////////////////////////////////////////////////////
+size CObject::NumPointerFields(void)
+{
+	return mpcClass ? mpcClass->GetPointerFields()->NumElements() : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer* CObject::GetPointerField(size uiIndex)
+{
+	CPointerField*	pcField;
+
+	pcField = (CPointerField*)mpcClass->GetPointerFields()->GetPtr(uiIndex);
+	return pcField->GetPointer(this);
 }
 
 
@@ -220,7 +242,6 @@ void CObject::FreePointers(void)
 	CBaseObject::FreePointers();
 
 	mapEmbedded.Kill();
-	mapPointers.Kill();
 }
 
 
@@ -274,16 +295,16 @@ size CObject::BaseNumPointerTos(void)
 {
 	size				i;
 	CEmbeddedObject*	pcPointedTo;
-	CPointer**			ppPointer;
+	CPointer*			pcPointer;
 	size				uiCount;
 	size				uiNumElements;
 
 	uiCount = 0;
-	uiNumElements = mapPointers.NumElements();
+	uiNumElements = NumPointerFields();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
+		pcPointer = GetPointerField(i);
+		pcPointedTo = pcPointer->Object();
 		if (pcPointedTo)
 		{
 			uiCount++;
@@ -388,14 +409,14 @@ void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	size					uiNumPointers;
 	size					i;
-	CPointer**			ppPointer;
+	CPointer*			pcPointer;
 	CEmbeddedObject*	pcPointedTo;
 
-	uiNumPointers = mapPointers.NumElements();
+	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
+		pcPointer = GetPointerField(i);
+		pcPointedTo = pcPointer->Object();
 		if (pcPointedTo)
 		{
 			papcTos->Add(pcPointedTo);
@@ -417,10 +438,10 @@ bool CObject::ClearPointerTos(bool bFree)
 	CPointer*			pcPointer;
 	bool				bResult;
 
-	uiNumPointers = mapPointers.NumElements();
+	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
-		pcPointer = *mapPointers.Get(i);
+		pcPointer = GetPointerField(i);
 		if (bFree)
 		{
 			pcPointer->PointToNull();
@@ -457,18 +478,18 @@ void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
 	size				uiNumPointers;
 	size				i;
-	CPointer**			ppPointer;
+	CPointer*			pcPointer;
 	CEmbeddedObject*	pcPointedTo;
 
-	uiNumPointers = mapPointers.NumElements();
+	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
+		pcPointer = GetPointerField(i);
+		pcPointedTo = pcPointer->Object();
 	
 		if (pcPointedTo == pcTo)
 		{
-			(*ppPointer)->UnsafeClearObject();	
+			pcPointer->UnsafeClearObject();	
 		}
 	}
 }
@@ -482,19 +503,19 @@ void CObject::GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* p
 {
 	size				i;
 	size				uiNumPointers;
-	CPointer**			ppPointer;
+	CPointer*			pcPointer;
 	SHeapFromPointer*	psPointer;
 
-	uiNumPointers = mapPointers.NumElements();
+	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
-		ppPointer = mapPointers.Get(i);
-		if ((*ppPointer)->Object() == pcTo)
+		pcPointer = GetPointerField(i);
+		if (pcPointer->Object() == pcTo)
 		{
 			psPointer = pacPointers->Add();
 			psPointer->pcFrom = this;
 			psPointer->pcTo = pcTo;
-			psPointer->pcPointer = *ppPointer;
+			psPointer->pcPointer = pcPointer;
 		}
 	}
 }
@@ -508,19 +529,19 @@ size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	size				uiNumPointers;
 	size				i;
-	CPointer**			ppPointer;
+	CPointer*			pcPointer;
 	CEmbeddedObject*	pcPointedTo;
 	size				uiCount;
 
 	uiCount = 0;
-	uiNumPointers = mapPointers.NumElements();
+	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (**ppPointer).Object();
+		pcPointer = GetPointerField(i);
+		pcPointedTo = pcPointer->Object();
 		if (pcPointedTo == pcOld)
 		{
-			(**ppPointer).UnsafePointTo(pcNew);
+			pcPointer->UnsafePointTo(pcNew);
 			uiCount++;
 		}
 	}
@@ -626,10 +647,10 @@ size CObject::GetFieldPointerToIndex(CPointer* pcFieldPointer)
 		if (pcContained->IsObject())
 		{
 			pcObject = (CObject*)pcContained;
-			uiNumPointers = pcObject->mapPointers.NumElements();
+			uiNumPointers = pcObject->NumPointerFields();
 			for (j = 0; j < uiNumPointers; j++)
 			{
-				if (*pcObject->mapPointers.Get(j) == pcFieldPointer)
+				if (pcObject->GetPointerField(j) == pcFieldPointer)
 				{
 					return uiIndex;
 				}
@@ -658,7 +679,7 @@ size CObject::GetNumFieldPointerTos(void)
 		pcContained = GetContained(i);
 		if (pcContained->IsObject())
 		{
-			uiCount += ((CObject*)pcContained)->mapPointers.NumElements();
+			uiCount += ((CObject*)pcContained)->NumPointerFields();
 		}
 	}
 	return uiCount;
@@ -683,10 +704,10 @@ CPointer* CObject::GetFieldPointerTo(size iIndex)
 		if (pcContained->IsObject())
 		{
 			pcObject = (CObject*)pcContained;
-			uiNumPointers = pcObject->mapPointers.NumElements();
+			uiNumPointers = pcObject->NumPointerFields();
 			if (iIndex < uiNumPointers)
 			{
-				return *pcObject->mapPointers.Get(iIndex);
+				return pcObject->GetPointerField(iIndex);
 			}
 			iIndex -= uiNumPointers;
 		}

@@ -49,8 +49,8 @@ friend class CExternalObjectDeserialiser;
 
 CONSTRUCTABLE(CObject)
 protected:
-	//Both pointers and embedded objects are now explicitly setup in the class.  Remove these fields.
-	CArrayTemplateEmbeddedPtr<CPointer, 5>		mapPointers;  //Pointers in this object.  
+	//The pointers are the class's pointer fields (NumPointerFields, GetPointerField).  The embedded objects are kept
+	//flat: GetEmbeddedObject's index (the one objects are saved by) reaches any depth in one step.
 	CArrayTemplateEmbeddedPtr<CBaseObject, 3>		mapEmbedded;  //Every object embedded in this, at any depth, in GetEmbeddedObject's order (index + 1): each followed by those embedded in it.
 
 public:
@@ -91,6 +91,8 @@ protected:
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	CBaseObject*		GetContained(size uiIndex);
+	size				NumPointerFields(void);
+	CPointer*			GetPointerField(size uiIndex);
 	CBaseObject*		IterateDirectlyEmbedded(size* puiIndex);
 	void				ValidateEmbeddedConsistency(void) override;
 	void				EmbedPointerFields(void);
