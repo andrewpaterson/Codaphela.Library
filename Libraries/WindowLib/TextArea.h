@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_AREA_H__
 #define __TEXT_AREA_H__
-#include "BaseLib/TextDocument.h"
+#include "BaseLib/TextEditing.h"
 #include "SupportLib/Font.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/FontFamily.h"
@@ -42,60 +42,27 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowTheme.h"
 
 
-//What happened to a text area's undo history (CTextArea::GetUndoEvent).
-enum ETextAreaUndo
-{
-	TAU_Kept,	//An edit was kept: the text went from state uiIdBefore to the new state uiIdAfter.
-	TAU_Merged,	//An edit was kept as part of the one before (typing a word): state uiIdBefore became uiIdAfter.
-	TAU_Undone,	//The text went back from state uiIdBefore to uiIdAfter.
-	TAU_Redone,	//The text went forward from state uiIdBefore to uiIdAfter.
-};
-
-
-struct STextAreaUndo
-{
-	ETextAreaUndo	eChange;
-	size			uiIdBefore;
-	size			uiIdAfter;
-};
-
-
 class CTextArea;
-typedef CComponentValueEvent<CTextArea, STextAreaUndo*>	CTextAreaUndoEvent;
+typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  //What happened to the undo history.
 
 
-//Where up and down move the caret: a row or a page of rows.
-enum ETextAreaMove
-{
-	TAM_RowUp,
-	TAM_RowDown,
-	TAM_PageUp,
-	TAM_PageDown,
-};
-
-
-//Lines of text drawn with a CMapsCanvasDraw.  Line feeds start
-//new lines and, with word wrap on (it is off by default), lines are also broken at spaces to fit the width the text
-//area is laid out to.  A word too wide for a line by itself is broken between glyphs.  Like a label the text area is
-//a transparent canvas with its text at the top left; text that doesn't fit is clipped.  A word wrapped text area is
-//variable sized horizontally: it takes the width its container gives it.  Without word wrap its lines can't be made
-//narrower so its required width is the width of the laid out text.  Its required height is the height of the laid
-//out lines, wrapped or not.
+//Lines of text drawn with a CMapsCanvasDraw.  Line feeds start new lines and, with word wrap on (it is off by default),
+//lines are also broken at spaces to fit the width the text area is laid out to.  A word too wide for a line by itself
+//is broken between glyphs.  Like a label the text area is a transparent canvas with its text at the top left; text that
+//doesn't fit is clipped.  A word wrapped text area is variable sized horizontally: it takes the width its container
+//gives it.  Without word wrap its lines can't be made narrower so its required width is the width of the laid out text.
+//Its required height is the height of the laid out lines, wrapped or not.
 //
 //The text is drawn in the faces, sizes and colours of a font family (see CFontFamily), and can be underlined, overlined
-//and struck through in its colour.  Text is in the text area's
-//style (regular, the family's default size, opaque white unless set) except where spans override parts of it; where
-//spans overlap each property takes the value of the last span added that sets it.  Spans are applied when the text
-//area is next laid out, drawn or asked its size.
+//and struck through in its colour.  Text is in the text area's style (regular, the family's default size, opaque white
+//unless set) except where spans override parts of it; where spans overlap each property takes the value of the last
+//span added that sets it.  Spans are applied when the text area is next laid out, drawn or asked its size.
 //
-//The text is edited with the functions of a CTextEditor, like IntelliJ's editor but for text in proportional fonts and
-//styles: positions are bytes of the UTF8 text, always at the start of a character (a ZWJ sequence is one character),
-//and the spans move and stretch with the text so new text takes the style of the character before it.  Up, down,
-//home and end work on the rows the text is laid out in, so on wrapped lines too; up and down keep the caret's x and
-//home is smart, it goes to the first character that isn't a space and then to the start of the line, and a second
-//home or end on a wrapped row goes to the ends of the line.  Tab inserts spaces to the next tab stop, or with a
-//selection over more than one line indents its lines; back tab removes a tab's worth of spaces from them.  The text
-//area is meant to be the content of a CScrollPane: the caret is kept in view and a page is the view's height.  Like
+//The text is kept in a CTextDocument and edited by a CTextEditing, like IntelliJ's editor but for text in proportional
+//fonts and styles: positions are bytes of the UTF8 text, always at the start of a character (a ZWJ sequence is one
+//character), and the spans move and stretch with the text so new text takes the style of the character before it.  The
+//text area is the editing's view: up, down, home and end work on the rows it lays the text out in, so on wrapped lines
+//too.  It is meant to be the content of a CScrollPane: the caret is kept in view and a page is the view's height.  Like
 //CTextField's, the caret is only drawn while the text area has focus; the selection is drawn under the text.  A text
 //area that isn't editable can still be navigated, selected and copied from.
 //
@@ -111,7 +78,7 @@ enum ETextAreaMove
 //ones added before it.  Line backgrounds don't cover the gaps below lines.  Ranges move with the text and grow with
 //text put strictly inside them; line backgrounds and boundaries stay with their lines as gaps do.  Setting the text
 //removes them.
-class CTextArea : public CCanvas
+class CTextArea : public CCanvas, public CTextEditingView
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
@@ -148,12 +115,7 @@ protected:
 	ARGB32					msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
 	CTextLineGaps			mcGaps;  //The empty gaps below lines (SetLineGap).
-	size					muiCaret;
-	size					muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
-	bool					mbCaretAtRowEnd;  //A caret at the start of a wrapped row is drawn at the end of the row above.
-	int32					miUpDownX;  //Where up and down try to keep the caret, -1 until they are used.
-	int32					miTabWidth;  //In spaces.
-	bool					mbEditable;
+	CTextEditing			mcEditing;  //The caret, the selection and the edits of mcDocument.
 	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	bool					mbDragging;
 
@@ -246,7 +208,7 @@ public:
 	CArrayTextLayoutGap*	GetLineGaps(void);
 	void					SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
-	//The functions of a CTextEditor.
+	//The edits and moves of the text area's CTextEditing.
 	void				Up(void);
 	void				Down(void);
 	void				Left(void);
@@ -324,6 +286,20 @@ public:
 	void				ContDragSelect(int x, int y);
 	void				StopDragSelect(int x, int y);
 
+	//The editing's view (CTextEditingView): the rows the text is laid out in.
+	bool				HasRows(void) override;
+	size				NumRows(void) override;
+	size				FindRow(size uiPosition, bool bRowEnd) override;
+	size				GetRowStart(size uiRow) override;
+	size				GetRowEnd(size uiRow, bool* pbRowEnd) override;
+	size				FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) override;
+	int32				GetPositionX(size uiPosition, bool bRowEnd) override;
+	size				ScrollPage(size uiRow, bool bDown) override;
+	void				MarksChanged(void) override;
+	void				ShowCaret(void) override;
+	void				TextEdited(void) override;
+	void				UndoChanged(STextUndoChange* psChange) override;
+
 protected:
 	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
 	void				ReadText(void);
@@ -363,46 +339,14 @@ protected:
 	STextLayoutStop*	GetLayoutStop(size uiStop);
 
 	//The rows the text is laid out in.
-	bool				HasStops(void);
 	size				FindStop(size uiPosition);
 	bool				IsRowWrapped(size uiRow);
-	size				FindRow(size uiPosition, bool bRowEnd);
-	size				GetRowStart(size uiRow);
-	size				GetRowEnd(size uiRow, bool* pbRowEnd);
 	int32				GetRowRight(size uiRow);
 	size				FindRowAt(int32 y);
-	size				FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd);
-	int32				GetPositionX(size uiPosition, bool bRowEnd);
-	int32				GetCaretX(void);
-	size				GetCaretRow(void);
 	int32				GetPageHeight(void);
 	int32				GetNewLineWidth(void);
-
-	//Moving the caret.
-	bool				IsSelected(void);
-	void				MoveCaret(size uiPosition, bool bSelect, bool bRowEnd = false, bool bKeepUpDown = false);
-	void				MoveUpDown(ETextAreaMove eMove, bool bSelect);
-	size				ScrollPage(size uiRow, bool bDown);
-	void				MoveHome(bool bSelect);
-	void				MoveEnd(bool bSelect);
 	void				ScrollBy(int32 iDown);
 
-	//Changing the text.  All changes go through InsertText and RemoveText.
-	void				InsertText(size uiPosition, const char* szText);
-	void				RemoveText(size uiStart, size uiEnd);
-	void				ReplaceSelection(const char* szText);
-	bool				DeleteSelection(void);
-	void				IndentLines(size uiStart, size uiEnd);
-	void				OutdentLines(size uiStart, size uiEnd);
-	void				TextChanged(void);
-	void				KeepEdit(void);
-	void				StartEdit(void);
-	void				BeginEdit(void);
-	bool				BeginEditIfEditable(void);
-	void				UndoChanged(ETextAreaUndo eChange, size uiIdBefore, size uiIdAfter);
-	bool				LoadUndo(size uiIndex);
-
-	void				ShowCaret(void);
 	void				UpdateMarks(void);
 };
 

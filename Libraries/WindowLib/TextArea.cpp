@@ -106,14 +106,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcDocument.AddListener(&mcSpans);
 	mcDocument.AddListener(&mcBackgrounds);
 	mcDocument.AddListener(&mcGaps);
+	mcEditing.Init(&mcDocument, this);
 	mcUndoEvent.Init();
 	mcChanged.Init();
-	muiCaret = 0;
-	muiAnchor = MAX_SIZE;
-	mbCaretAtRowEnd = false;
-	miUpDownX = -1;
-	miTabWidth = 4;
-	mbEditable = true;
 	mbSelectable = true;
 	mbDragging = false;
 
@@ -203,6 +198,7 @@ void CTextArea::Free(void)
 	mcSpans.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
+	mcEditing.Kill();
 	mcDocument.Kill();
 	CCanvas::Free();
 }
@@ -246,12 +242,7 @@ void CTextArea::Class(void)
 	U_UInt32(msCaretColour);
 	U_Unknown(CArrayTextAreaStopStart, mauiStopStarts);
 	U_Unknown(CTextLineGaps, mcGaps);
-	U_Size(muiCaret);
-	U_Size(muiAnchor);
-	U_Bool(mbCaretAtRowEnd);
-	U_Int32(miUpDownX);
-	U_Int32(miTabWidth);
-	U_Bool(mbEditable);
+	U_Unknown(CTextEditing, mcEditing);
 	U_Bool(mbSelectable);
 	U_Bool(mbDragging);
 }
@@ -290,10 +281,7 @@ void CTextArea::SetText(const char* szText)
 	mcBackgrounds.Clear();
 	mbBackgroundsDirty = true;
 	mcGaps.Clear();
-	muiCaret = 0;
-	muiAnchor = MAX_SIZE;
-	mbCaretAtRowEnd = false;
-	miUpDownX = -1;
+	mcEditing.Reset();
 	ReadText();
 	LayoutText();
 	ClearUndo();
@@ -1007,7 +995,7 @@ int32 CTextArea::GetTabPixels(void)
 	{
 		return 0;
 	}
-	return miTabWidth * pSpace->GetFullWidth();
+	return (int32)mcEditing.GetTabWidth() * pSpace->GetFullWidth();
 }
 
 
@@ -1056,9 +1044,7 @@ size CTextArea::NumSpans(void) { return mcSpans.NumSpans(); }
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetEditable(bool bEditable)
 {
-	mbEditable = bEditable;
-	mcDocument.SetUndoable(bEditable);
-	ClearUndo();
+	mcEditing.SetEditable(bEditable);
 }
 
 
@@ -1088,11 +1074,7 @@ void CTextArea::SetSelectable(bool bSelectable)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetTabWidth(int32 iTabWidth)
 {
-	if (iTabWidth < 1)
-	{
-		iTabWidth = 1;
-	}
-	miTabWidth = iTabWidth;
+	mcEditing.SetTabWidth(iTabWidth < 1 ? 1 : (size)iTabWidth);
 
 	//Tabs go to tab stops, as tiles or as sprites, so the text is laid out again.
 	if (mbTiled)
@@ -1127,11 +1109,7 @@ void CTextArea::SetMarkColours(ARGB32 sSelection, ARGB32 sCaret)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetCaretPosition(size uiPosition)
 {
-	if (uiPosition > mcDocument.Length())
-	{
-		uiPosition = mcDocument.Length();
-	}
-	MoveCaret(uiPosition, false);
+	mcEditing.SetCaretPosition(uiPosition);
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -1144,26 +1122,7 @@ void CTextArea::SetCaretPosition(size uiPosition)
 // caret.  The start is before the end.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::GetSelection(size* puiStart, size* puiEnd)
-{
-	if (!IsSelected())
-	{
-		*puiStart = muiCaret;
-		*puiEnd = muiCaret;
-		return false;
-	}
-	if (muiAnchor < muiCaret)
-	{
-		*puiStart = muiAnchor;
-		*puiEnd = muiCaret;
-	}
-	else
-	{
-		*puiStart = muiCaret;
-		*puiEnd = muiAnchor;
-	}
-	return true;
-}
+bool CTextArea::GetSelection(size* puiStart, size* puiEnd) { return mcEditing.GetSelection(puiStart, puiEnd); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1174,16 +1133,7 @@ bool CTextArea::GetSelection(size* puiStart, size* puiEnd)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Select(size uiStart, size uiEnd)
 {
-	if (uiStart > mcDocument.Length())
-	{
-		uiStart = mcDocument.Length();
-	}
-	if (uiEnd > mcDocument.Length())
-	{
-		uiEnd = mcDocument.Length();
-	}
-	muiAnchor = uiStart;
-	MoveCaret(uiEnd, true);
+	mcEditing.Select(uiStart, uiEnd);
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -1201,7 +1151,7 @@ size CTextArea::FindPositionAt(int x, int y)
 	bool	bRowEnd;
 
 	UpdateText();
-	if (!HasStops())
+	if (!HasRows())
 	{
 		return 0;
 	}
@@ -1221,14 +1171,14 @@ void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 	int32				x;
 
 	UpdateText();
-	if (!HasStops())
+	if (!HasRows())
 	{
 		pcDest->Init(0, 0, 1, msTextSize.y);
 		return;
 	}
 
-	psLine = GetLayoutLine(GetCaretRow());
-	x = GetCaretX();
+	psLine = GetLayoutLine(mcEditing.GetCaretRow());
+	x = mcEditing.GetCaretX();
 	if ((mcActualBounds.GetWidth() > 0) && (x > mcActualBounds.GetWidth() - 1))
 	{
 		x = mcActualBounds.GetWidth() - 1;
@@ -1276,7 +1226,7 @@ bool CTextArea::GetLineBounds(size uiLine, CInt32Rect* pcDest)
 	int32				iWidth;
 
 	UpdateText();
-	if ((uiLine >= NumLines()) || !HasStops())
+	if ((uiLine >= NumLines()) || !HasRows())
 	{
 		return false;
 	}
@@ -1411,7 +1361,7 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 	int32				iWidth;
 
 	UpdateText();
-	if ((GetLineGap(uiLine) <= 0) || (uiLine >= NumLines()) || !HasStops())
+	if ((GetLineGap(uiLine) <= 0) || (uiLine >= NumLines()) || !HasRows())
 	{
 		return false;
 	}
@@ -1428,41 +1378,52 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Navigation.  Moving without selecting clears the selection.
+// The moves and edits of the text area's editing (see CTextEditing).
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Up(void) { MoveUpDown(TAM_RowUp, false); }
-void CTextArea::Down(void) { MoveUpDown(TAM_RowDown, false); }
-void CTextArea::Left(void) { MoveCaret(mcDocument.GetNavigation()->PreviousPosition(muiCaret), false); }
-void CTextArea::Right(void) { MoveCaret(mcDocument.GetNavigation()->NextPosition(muiCaret), false); }
-void CTextArea::WordLeft(void) { MoveCaret(mcDocument.GetNavigation()->FindWordLeft(muiCaret), false); }
-void CTextArea::WordRight(void) { MoveCaret(mcDocument.GetNavigation()->FindWordRight(muiCaret), false); }
-void CTextArea::Home(void) { MoveHome(false); }
-void CTextArea::End(void) { MoveEnd(false); }
-void CTextArea::DocumentHome(void) { MoveCaret(0, false); }
-void CTextArea::DocumentEnd(void) { MoveCaret(mcDocument.Length(), false); }
-void CTextArea::PageUp(void) { MoveUpDown(TAM_PageUp, false); }
-void CTextArea::PageDown(void) { MoveUpDown(TAM_PageDown, false); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Selection.  The selection is from where it started to the caret.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::SelectUp(void) { MoveUpDown(TAM_RowUp, true); }
-void CTextArea::SelectDown(void) { MoveUpDown(TAM_RowDown, true); }
-void CTextArea::SelectLeft(void) { MoveCaret(mcDocument.GetNavigation()->PreviousPosition(muiCaret), true); }
-void CTextArea::SelectRight(void) { MoveCaret(mcDocument.GetNavigation()->NextPosition(muiCaret), true); }
-void CTextArea::SelectWordLeft(void) { MoveCaret(mcDocument.GetNavigation()->FindWordLeft(muiCaret), true); }
-void CTextArea::SelectWordRight(void) { MoveCaret(mcDocument.GetNavigation()->FindWordRight(muiCaret), true); }
-void CTextArea::SelectHome(void) { MoveHome(true); }
-void CTextArea::SelectEnd(void) { MoveEnd(true); }
-void CTextArea::SelectDocumentHome(void) { MoveCaret(0, true); }
-void CTextArea::SelectDocumentEnd(void) { MoveCaret(mcDocument.Length(), true); }
-void CTextArea::SelectPageUp(void) { MoveUpDown(TAM_PageUp, true); }
-void CTextArea::SelectPageDown(void) { MoveUpDown(TAM_PageDown, true); }
+void CTextArea::Up(void) { mcEditing.Up(); }
+void CTextArea::Down(void) { mcEditing.Down(); }
+void CTextArea::Left(void) { mcEditing.Left(); }
+void CTextArea::Right(void) { mcEditing.Right(); }
+void CTextArea::WordLeft(void) { mcEditing.WordLeft(); }
+void CTextArea::WordRight(void) { mcEditing.WordRight(); }
+void CTextArea::Home(void) { mcEditing.Home(); }
+void CTextArea::End(void) { mcEditing.End(); }
+void CTextArea::DocumentHome(void) { mcEditing.DocumentHome(); }
+void CTextArea::DocumentEnd(void) { mcEditing.DocumentEnd(); }
+void CTextArea::PageUp(void) { mcEditing.PageUp(); }
+void CTextArea::PageDown(void) { mcEditing.PageDown(); }
+void CTextArea::SelectUp(void) { mcEditing.SelectUp(); }
+void CTextArea::SelectDown(void) { mcEditing.SelectDown(); }
+void CTextArea::SelectLeft(void) { mcEditing.SelectLeft(); }
+void CTextArea::SelectRight(void) { mcEditing.SelectRight(); }
+void CTextArea::SelectWordLeft(void) { mcEditing.SelectWordLeft(); }
+void CTextArea::SelectWordRight(void) { mcEditing.SelectWordRight(); }
+void CTextArea::SelectHome(void) { mcEditing.SelectHome(); }
+void CTextArea::SelectEnd(void) { mcEditing.SelectEnd(); }
+void CTextArea::SelectDocumentHome(void) { mcEditing.SelectDocumentHome(); }
+void CTextArea::SelectDocumentEnd(void) { mcEditing.SelectDocumentEnd(); }
+void CTextArea::SelectPageUp(void) { mcEditing.SelectPageUp(); }
+void CTextArea::SelectPageDown(void) { mcEditing.SelectPageDown(); }
 void CTextArea::SelectAll(void) { Select(0, mcDocument.Length()); }
+void CTextArea::ClearSelection(void) { mcEditing.ClearSelection(); }
+void CTextArea::Printable(char c, bool bInsert) { mcEditing.Printable(c, bInsert); }
+void CTextArea::Tab(bool bInsert) { mcEditing.Tab(bInsert); }
+void CTextArea::BackTab(void) { mcEditing.BackTab(); }
+void CTextArea::Enter(void) { mcEditing.Enter(); }
+void CTextArea::HomeEnter(void) { mcEditing.HomeEnter(); }
+void CTextArea::EndEnter(void) { mcEditing.EndEnter(); }
+void CTextArea::Delete(void) { mcEditing.Delete(); }
+void CTextArea::Backspace(void) { mcEditing.Backspace(); }
+void CTextArea::Copy(CChars* pszDest) { mcEditing.Copy(pszDest); }
+void CTextArea::Cut(CChars* pszDest) { mcEditing.Cut(pszDest); }
+void CTextArea::CutLine(CChars* pszDest) { mcEditing.CutLine(pszDest); }
+void CTextArea::Paste(char* szSource) { mcEditing.Paste(szSource); }
+void CTextArea::Duplicate(void) { mcEditing.Duplicate(); }
+void CTextArea::DeleteWordRemainingRight(void) { mcEditing.DeleteWordRemainingRight(); }
+void CTextArea::DeleteWordRemainingLeft(void) { mcEditing.DeleteWordRemainingLeft(); }
+void CTextArea::DeleteLine(void) { mcEditing.DeleteLine(); }
+bool CTextArea::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText) { return mcEditing.ReplaceRanges(auiStarts, auiEnds, uiNumRanges, szText); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1473,500 +1434,20 @@ void CTextArea::SelectAll(void) { Select(0, mcDocument.Length()); }
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SelectWholeWord(void)
 {
-	size	uiStart;
-	size	uiEnd;
-	char*	szText;
+	mcEditing.SelectWholeWord();
 
-	szText = mcDocument.Text();
-	uiStart = muiCaret;
-	if ((muiCaret > 0) && CTextNavigation::IsWordChar(szText[mcDocument.GetNavigation()->PreviousPosition(muiCaret)]))
-	{
-		uiStart = mcDocument.GetNavigation()->FindWordLeft(muiCaret);
-	}
-	uiEnd = muiCaret;
-	if ((muiCaret < mcDocument.Length()) && CTextNavigation::IsWordChar(szText[muiCaret]))
-	{
-		uiEnd = mcDocument.GetNavigation()->FindWordRight(muiCaret);
-	}
-	Select(uiStart, uiEnd);
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A space is typed as a printable character; tab never overwrites.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::ClearSelection(void)
-{
-	muiAnchor = MAX_SIZE;
-	UpdateMarks();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// c replaces the selection.  Without one it is inserted, or with bInsert
-// false it overwrites the character after the caret unless that ends the
-// line.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Printable(char c, bool bInsert)
-{
-	char	sz[2];
-	char*	szText;
-
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	sz[0] = c;
-	sz[1] = '\0';
-	mcDocument.GetUndo()->Typed(c, IsSelected() ? MAX_SIZE : muiCaret);
-	szText = mcDocument.Text();
-	if (!IsSelected() && !bInsert && (muiCaret < mcDocument.Length()) && (szText[muiCaret] != '\n') && (szText[muiCaret] != '\r'))
-	{
-		RemoveText(muiCaret, mcDocument.GetNavigation()->NextPosition(muiCaret));
-	}
-	ReplaceSelection(sz);
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::SpaceAction(SComponentInputEvent* psEvent)
-{
-	Printable(' ', psEvent->bInsert);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::TabAction(SComponentInputEvent* psEvent)
-{
-	Tab(psEvent->bInsert);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Spaces to the next tab stop replace the selection, or are inserted.  A
-// selection over more than one line has its lines indented instead.
-// bInsert is ignored, tabs never overwrite.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Tab(bool bInsert)
-{
-	size	uiStart;
-	size	uiEnd;
-	size	uiColumns;
-	CChars	szSpaces;
-
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	GetSelection(&uiStart, &uiEnd);
-	if (mcDocument.GetNavigation()->FindLineStart(uiStart) != mcDocument.GetNavigation()->FindLineStart(uiEnd))
-	{
-		IndentLines(uiStart, uiEnd);
-	}
-	else
-	{
-		uiColumns = mcDocument.GetNavigation()->CountColumns(mcDocument.GetNavigation()->FindLineStart(uiStart), uiStart);
-		szSpaces.Init();
-		szSpaces.Append(' ', miTabWidth - (uiColumns % miTabWidth));
-		ReplaceSelection(szSpaces.Text());
-		szSpaces.Kill();
-	}
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Removes a tab's worth of spaces, or a tab, from the start of the lines
-// the selection is over, or the caret's line.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::BackTab(void)
-{
-	size	uiStart;
-	size	uiEnd;
-
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	GetSelection(&uiStart, &uiEnd);
-	OutdentLines(uiStart, uiEnd);
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A line feed replaces the selection, or is inserted.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Enter(void)
-{
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	ReplaceSelection("\n");
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starts a new line before the caret's line, and the caret goes to it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::HomeEnter(void)
-{
-	size	uiLineStart;
-
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	muiAnchor = MAX_SIZE;
-	uiLineStart = mcDocument.GetNavigation()->FindLineStart(muiCaret);
-	InsertText(uiLineStart, "\n");
-	muiCaret = uiLineStart;
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starts a new line after the caret's line, and the caret goes to it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::EndEnter(void)
-{
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	muiAnchor = MAX_SIZE;
-	muiCaret = mcDocument.GetNavigation()->FindLineEnd(muiCaret);
-	InsertText(muiCaret, "\n");
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deletes the selection, or the character after the caret.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Delete(void)
-{
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	if (!DeleteSelection())
-	{
-		RemoveText(muiCaret, mcDocument.GetNavigation()->NextPosition(muiCaret));
-	}
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deletes the selection, or the character before the caret.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Backspace(void)
-{
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	if (!DeleteSelection())
-	{
-		RemoveText(mcDocument.GetNavigation()->PreviousPosition(muiCaret), muiCaret);
-	}
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The selection is appended to pszDest.  Without one nothing is copied.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Copy(CChars* pszDest)
-{
-	size	uiStart;
-	size	uiEnd;
-
-	if (GetSelection(&uiStart, &uiEnd))
-	{
-		pszDest->AppendSubString(mcDocument.Text(), uiStart, uiEnd);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The selection is appended to pszDest and deleted.  Without one the
-// caret's line is cut.  A text area that isn't editable only copies what
-// would be cut.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Cut(CChars* pszDest)
-{
-	BeginEdit();
-	if (!IsSelected())
-	{
-		CutLine(pszDest);
-		return;
-	}
-
-	Copy(pszDest);
-	if (mbEditable)
-	{
-		DeleteSelection();
-		TextChanged();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// szSource replaces the selection, or is inserted.  Its carriage returns
-// become line feeds, or go where they come before one.  Pasting nothing
-// leaves a selection where it is.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Paste(char* szSource)
-{
-	CChars	szText;
-
-	if (!BeginEditIfEditable() || (szSource == NULL) || (szSource[0] == '\0'))
-	{
-		return;
-	}
-
-	szText.Init(szSource);
-	szText.Replace("\r\n", "\n");
-	szText.Replace('\r', '\n');
-	ReplaceSelection(szText.Text());
-	szText.Kill();
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Each of the ranges, uiStart to uiEnd (exclusive), in order and not
-// overlapping, becomes szText, as one edit: one undo puts them all back.
-// A rename's places in a file, say.  False if the text area can't be
-// edited or a range is out of order or past the end.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText)
-{
-	size	i;
-
-	if (!mbEditable || (uiNumRanges == 0))
-	{
-		return false;
-	}
-	for (i = 0; i < uiNumRanges; i++)
-	{
-		if ((auiStarts[i] > auiEnds[i]) || (auiEnds[i] > mcDocument.Length()) || ((i > 0) && (auiStarts[i] < auiEnds[i - 1])))
-		{
-			return false;
-		}
-	}
-
-	//From the last so each range's place is still where it was.
-	BeginEdit();
-	for (i = uiNumRanges; i > 0; i--)
-	{
-		RemoveText(auiStarts[i - 1], auiEnds[i - 1]);
-		InsertText(auiStarts[i - 1], szText);
-	}
-	TextChanged();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The caret's line, with its line feed, is appended to pszDest and
-// deleted.  The caret stays as far along the line that moves up into its
-// place.  With a selection only the selection is cut.  A text area that
-// isn't editable only copies what would be cut.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::CutLine(CChars* pszDest)
-{
-	size	uiLineStart;
-	size	uiEnd;
-	size	uiColumn;
-
-	BeginEdit();
-	if (IsSelected())
-	{
-		Cut(pszDest);
-		return;
-	}
-
-	uiLineStart = mcDocument.GetNavigation()->FindLineStart(muiCaret);
-	uiColumn = mcDocument.GetNavigation()->CountColumns(uiLineStart, muiCaret);
-	uiEnd = mcDocument.GetNavigation()->NextPosition(mcDocument.GetNavigation()->FindLineEnd(muiCaret));
-	pszDest->AppendSubString(mcDocument.Text(), uiLineStart, uiEnd);
-	if (!mbEditable)
-	{
-		return;
-	}
-	RemoveText(uiLineStart, uiEnd);
-	muiCaret = mcDocument.GetNavigation()->FindColumn(uiLineStart, uiColumn);
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The selection is copied in front of itself and the copy after it stays
-// selected.  Without one the caret's line is copied above itself and the
-// caret goes with the line below.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::Duplicate(void)
-{
-	size	uiStart;
-	size	uiEnd;
-	CChars	szCopy;
-
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	szCopy.Init();
-	if (GetSelection(&uiStart, &uiEnd))
-	{
-		szCopy.AppendSubString(mcDocument.Text(), uiStart, uiEnd);
-	}
-	else
-	{
-		uiStart = mcDocument.GetNavigation()->FindLineStart(muiCaret);
-		uiEnd = mcDocument.GetNavigation()->FindLineEnd(muiCaret);
-		szCopy.AppendSubString(mcDocument.Text(), uiStart, uiEnd);
-		szCopy.Append('\n');
-	}
-	InsertText(uiStart, szCopy.Text());
-	szCopy.Kill();
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deletes from the caret to the end of the word, or the spaces, it is
-// in.  A selection is deleted instead.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::DeleteWordRemainingRight(void)
-{
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	if (!DeleteSelection())
-	{
-		RemoveText(muiCaret, mcDocument.GetNavigation()->FindWordRight(muiCaret));
-	}
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deletes from the start of the word, or the spaces, the caret is in to
-// the caret.  A selection is deleted instead.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::DeleteWordRemainingLeft(void)
-{
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	if (!DeleteSelection())
-	{
-		RemoveText(mcDocument.GetNavigation()->FindWordLeft(muiCaret), muiCaret);
-	}
-	TextChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deletes the lines the selection is over, or the caret's line, with
-// their line feed.  The last line takes the line feed before it.  The
-// caret stays as far along the line it is left on.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::DeleteLine(void)
-{
-	size	uiStart;
-	size	uiEnd;
-	size	uiColumn;
-	bool	bSelected;
-
-	if (!BeginEditIfEditable())
-	{
-		return;
-	}
-
-	uiColumn = mcDocument.GetNavigation()->CountColumns(mcDocument.GetNavigation()->FindLineStart(muiCaret), muiCaret);
-	bSelected = GetSelection(&uiStart, &uiEnd);
-	uiStart = mcDocument.GetNavigation()->FindLineStart(uiStart);
-	if (bSelected && (uiEnd > uiStart) && (mcDocument.GetNavigation()->FindLineStart(uiEnd) == uiEnd))
-	{
-		//A selection that ends at the start of a line doesn't take that line.
-		uiEnd = mcDocument.GetNavigation()->PreviousPosition(uiEnd);
-	}
-	uiEnd = mcDocument.GetNavigation()->FindLineEnd(uiEnd);
-	if (uiEnd < mcDocument.Length())
-	{
-		uiEnd = mcDocument.GetNavigation()->NextPosition(uiEnd);
-	}
-	else if (uiStart > 0)
-	{
-		uiStart = mcDocument.GetNavigation()->PreviousPosition(uiStart);
-	}
-
-	muiAnchor = MAX_SIZE;
-	RemoveText(uiStart, uiEnd);
-	muiCaret = mcDocument.GetNavigation()->FindColumn(mcDocument.GetNavigation()->FindLineStart(uiStart), uiColumn);
-	TextChanged();
-}
+void CTextArea::SpaceAction(SComponentInputEvent* psEvent) { Printable(' ', psEvent->bInsert); }
+void CTextArea::TabAction(SComponentInputEvent* psEvent) { Tab(psEvent->bInsert); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2003,7 +1484,7 @@ void CTextArea::LineDown(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::WantsEnter(void)
 {
-	return mbEditable;
+	return mcEditing.IsEditable();
 }
 
 
@@ -2125,11 +1606,11 @@ void CTextArea::ActivateComponent(int x, int y)
 
 	bRowEnd = false;
 	uiPosition = 0;
-	if (HasStops())
+	if (HasRows())
 	{
 		uiPosition = FindPositionInRow(FindRowAt(y), x, &bRowEnd);
 	}
-	MoveCaret(uiPosition, false, bRowEnd);
+	mcEditing.MoveCaret(uiPosition, false, bRowEnd);
 	mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
 }
 
@@ -2153,7 +1634,7 @@ void CTextArea::ContextMenuClick(SComponentInputEvent* psEvent)
 
 	bRowEnd = false;
 	uiPosition = 0;
-	if (HasStops())
+	if (HasRows())
 	{
 		uiPosition = FindPositionInRow(FindRowAt(psEvent->y), psEvent->x, &bRowEnd);
 	}
@@ -2161,7 +1642,7 @@ void CTextArea::ContextMenuClick(SComponentInputEvent* psEvent)
 	{
 		return;
 	}
-	MoveCaret(uiPosition, false, bRowEnd);
+	mcEditing.MoveCaret(uiPosition, false, bRowEnd);
 }
 
 
@@ -2183,10 +1664,7 @@ void CTextArea::ExecuteComponent(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::StartDragSelect(int x, int y)
 {
-	if (!IsSelected())
-	{
-		muiAnchor = muiCaret;
-	}
+	mcEditing.AnchorSelection();
 	mbDragging = true;
 	ContDragSelect(x, y);
 }
@@ -2201,10 +1679,10 @@ void CTextArea::ContDragSelect(int x, int y)
 	size	uiPosition;
 	bool	bRowEnd;
 
-	if (mbDragging && HasStops())
+	if (mbDragging && HasRows())
 	{
 		uiPosition = FindPositionInRow(FindRowAt(y), x, &bRowEnd);
-		MoveCaret(uiPosition, true, bRowEnd);
+		mcEditing.MoveCaret(uiPosition, true, bRowEnd);
 	}
 }
 
@@ -2291,7 +1769,7 @@ void CTextArea::GapsChanged(void)
 // layout, and the caret and selection aren't drawn.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::HasStops(void)
+bool CTextArea::HasRows(void)
 {
 	return (mbTiled || mpText.IsNotNull()) && (NumLayoutLines() > 0) && (NumLayoutStops() == mauiStopStarts.NumElements());
 }
@@ -2511,26 +1989,6 @@ int32 CTextArea::GetPositionX(size uiPosition, bool bRowEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CTextArea::GetCaretX(void)
-{
-	return GetPositionX(muiCaret, mbCaretAtRowEnd);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::GetCaretRow(void)
-{
-	return FindRow(muiCaret, mbCaretAtRowEnd);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The height of the scroll pane's view, or of the text area if it isn't
 // in one.  At least a line.
 //
@@ -2579,105 +2037,6 @@ int32 CTextArea::GetNewLineWidth(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsSelected(void)
-{
-	return (muiAnchor != MAX_SIZE) && (muiAnchor != muiCaret);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Moving without selecting clears the selection.  Selecting starts one at
-// the caret if there isn't one.  Up and down keep the x they started at.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MoveCaret(size uiPosition, bool bSelect, bool bRowEnd, bool bKeepUpDown)
-{
-	if (bSelect)
-	{
-		if (muiAnchor == MAX_SIZE)
-		{
-			muiAnchor = muiCaret;
-		}
-	}
-	else
-	{
-		muiAnchor = MAX_SIZE;
-	}
-
-	muiCaret = uiPosition;
-	mbCaretAtRowEnd = bRowEnd;
-	if (!bKeepUpDown)
-	{
-		miUpDownX = -1;
-	}
-	UpdateMarks();
-	ShowCaret();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// To the row above or below, or a page of rows, as near the x up and
-// down started at as the row goes.  Up from the first row goes to the
-// start of the text and down from the last to its end; a page up or down
-// from them doesn't move.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MoveUpDown(ETextAreaMove eMove, bool bSelect)
-{
-	size	uiRow;
-	size	uiPosition;
-	bool	bRowEnd;
-	bool	bDown;
-	bool	bPage;
-	bool	bAtEnd;
-
-	if (!HasStops())
-	{
-		return;
-	}
-
-	bDown = (eMove == TAM_RowDown) || (eMove == TAM_PageDown);
-	bPage = (eMove == TAM_PageUp) || (eMove == TAM_PageDown);
-	if (miUpDownX < 0)
-	{
-		miUpDownX = GetCaretX();
-	}
-
-	uiRow = GetCaretRow();
-	bAtEnd = bDown ? (uiRow + 1 == NumLayoutLines()) : (uiRow == 0);
-	if (bAtEnd)
-	{
-		if (!bPage)
-		{
-			MoveCaret(bDown ? mcDocument.Length() : 0, bSelect, false, true);
-		}
-		return;
-	}
-
-	if (bPage)
-	{
-		uiRow = ScrollPage(uiRow, bDown);
-	}
-	else if (bDown)
-	{
-		uiRow++;
-	}
-	else
-	{
-		uiRow--;
-	}
-
-	uiPosition = FindPositionInRow(uiRow, miUpDownX, &bRowEnd);
-	MoveCaret(uiPosition, bSelect, bRowEnd, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The row a page of the view below or above uiRow.  The view scrolls as
 // far as that row is from uiRow, so the caret moved there stays where it
 // was in the view.
@@ -2704,57 +2063,6 @@ size CTextArea::ScrollPage(size uiRow, bool bDown)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// To the start of a wrapped row, then to the first character on the line
-// that isn't a space, then to the start of the line, and back.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MoveHome(bool bSelect)
-{
-	size	uiLineStart;
-	size	uiIndent;
-	size	uiRowStart;
-
-	uiLineStart = mcDocument.GetNavigation()->FindLineStart(muiCaret);
-	if (HasStops())
-	{
-		uiRowStart = GetRowStart(GetCaretRow());
-		if ((uiRowStart > uiLineStart) && ((uiRowStart != muiCaret) || mbCaretAtRowEnd))
-		{
-			MoveCaret(uiRowStart, bSelect);
-			return;
-		}
-	}
-
-	uiIndent = mcDocument.GetNavigation()->FindLineIndent(uiLineStart);
-	MoveCaret(muiCaret == uiIndent ? uiLineStart : uiIndent, bSelect);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// To the end of a wrapped row, then to the end of the line.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MoveEnd(bool bSelect)
-{
-	size	uiRowEnd;
-	bool	bRowEnd;
-
-	if (HasStops())
-	{
-		uiRowEnd = GetRowEnd(GetCaretRow(), &bRowEnd);
-		if (bRowEnd && !((muiCaret == uiRowEnd) && mbCaretAtRowEnd))
-		{
-			MoveCaret(uiRowEnd, bSelect, true);
-			return;
-		}
-	}
-	MoveCaret(mcDocument.GetNavigation()->FindLineEnd(muiCaret), bSelect);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Scrolls the scroll pane the text area is in by iDown pixels.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2772,359 +2080,20 @@ void CTextArea::ScrollBy(int32 iDown)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szText goes in at uiPosition.  A span it is inside or at the end of
-// grows around it, one after it moves.  So does the caret, and the
-// selection's start, at or after uiPosition.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::InsertText(size uiPosition, const char* szText)
-{
-	size	uiLength;
-
-	uiLength = StrLen(szText);
-	if (uiLength == 0)
-	{
-		return;
-	}
-	StartEdit();
-
-	mcDocument.Insert(uiPosition, szText);
-	if (muiCaret >= uiPosition)
-	{
-		muiCaret += uiLength;
-	}
-	if ((muiAnchor != MAX_SIZE) && (muiAnchor >= uiPosition))
-	{
-		muiAnchor += uiLength;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Spans shrink by what is removed from them and go if nothing is left.
-// The caret and the selection's start move with the text after.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::RemoveText(size uiStart, size uiEnd)
-{
-	size	uiLength;
-
-	if (uiEnd <= uiStart)
-	{
-		return;
-	}
-	StartEdit();
-
-	uiLength = uiEnd - uiStart;
-	mcDocument.Remove(uiStart, uiEnd);
-	if (muiCaret >= uiEnd)
-	{
-		muiCaret -= uiLength;
-	}
-	else if (muiCaret > uiStart)
-	{
-		muiCaret = uiStart;
-	}
-	if (muiAnchor != MAX_SIZE)
-	{
-		if (muiAnchor >= uiEnd)
-		{
-			muiAnchor -= uiLength;
-		}
-		else if (muiAnchor > uiStart)
-		{
-			muiAnchor = uiStart;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// szText replaces the selection, or is inserted at the caret.  The caret
-// is after it and nothing is selected.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ReplaceSelection(const char* szText)
-{
-	DeleteSelection();
-	muiAnchor = MAX_SIZE;
-	InsertText(muiCaret, szText);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Returns false if nothing was selected.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::DeleteSelection(void)
-{
-	size	uiStart;
-	size	uiEnd;
-
-	if (!GetSelection(&uiStart, &uiEnd))
-	{
-		return false;
-	}
-	muiAnchor = MAX_SIZE;
-	RemoveText(uiStart, uiEnd);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Inserts a tab's worth of spaces at the start of each line from
-// uiStart's to uiEnd's, but not uiEnd's if it is at its start.  A
-// selection that started at the start of a line still does.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::IndentLines(size uiStart, size uiEnd)
-{
-	CArrayTextAreaStopStart	auiLineStarts;
-	size					uiLine;
-	size					i;
-	CChars					szSpaces;
-	bool					bAnchorFirst;
-	bool					bAtLineStart;
-
-	auiLineStarts.Init();
-	uiLine = mcDocument.GetNavigation()->FindLineStart(uiStart);
-	bAtLineStart = (uiLine == uiStart);
-	for (;;)
-	{
-		*auiLineStarts.Add() = uiLine;
-		uiLine = mcDocument.GetNavigation()->FindLineEnd(uiLine);
-		if (uiLine >= mcDocument.Length())
-		{
-			break;
-		}
-		uiLine = mcDocument.GetNavigation()->NextPosition(uiLine);
-		if (uiLine >= uiEnd)
-		{
-			break;
-		}
-	}
-
-	szSpaces.Init();
-	szSpaces.Append(' ', miTabWidth);
-	bAnchorFirst = (muiAnchor != MAX_SIZE) && (muiAnchor < muiCaret);
-	i = auiLineStarts.NumElements();
-	while (i > 0)
-	{
-		i--;
-		InsertText(*auiLineStarts.Get(i), szSpaces.Text());
-	}
-	szSpaces.Kill();
-	auiLineStarts.Kill();
-
-	if (bAtLineStart)
-	{
-		if (bAnchorFirst)
-		{
-			muiAnchor = uiStart;
-		}
-		else if (muiAnchor != MAX_SIZE)
-		{
-			muiCaret = uiStart;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Removes a tab, or up to a tab's worth of spaces, from the start of each
-// line from uiStart's to uiEnd's, but not uiEnd's if it is at its start
-// and after uiStart.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::OutdentLines(size uiStart, size uiEnd)
-{
-	CArrayTextAreaStopStart	auiLineStarts;
-	size					uiLine;
-	size					i;
-	size					uiRemove;
-	char*					szText;
-
-	auiLineStarts.Init();
-	uiLine = mcDocument.GetNavigation()->FindLineStart(uiStart);
-	for (;;)
-	{
-		*auiLineStarts.Add() = uiLine;
-		uiLine = mcDocument.GetNavigation()->FindLineEnd(uiLine);
-		if (uiLine >= mcDocument.Length())
-		{
-			break;
-		}
-		uiLine = mcDocument.GetNavigation()->NextPosition(uiLine);
-		if (uiLine >= uiEnd)
-		{
-			break;
-		}
-	}
-
-	i = auiLineStarts.NumElements();
-	while (i > 0)
-	{
-		i--;
-		uiLine = *auiLineStarts.Get(i);
-		szText = mcDocument.Text();
-		uiRemove = 0;
-		if (szText[uiLine] == '\t')
-		{
-			uiRemove = 1;
-		}
-		else
-		{
-			while ((uiRemove < (size)miTabWidth) && (szText[uiLine + uiRemove] == ' '))
-			{
-				uiRemove++;
-			}
-		}
-		RemoveText(uiLine, uiLine + uiRemove);
-	}
-	auiLineStarts.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text is about to change: unless the edit action noted them as it
-// began (BeginEdit), the caret and selection are noted as they are.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::StartEdit(void)
-{
-	mcDocument.StartEdit(muiCaret, muiAnchor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An edit action begins (typing, deleting, pasting ...): the caret and
-// selection are noted as they are, before it moves them or changes the
-// text, for undo to put back.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::BeginEdit(void)
-{
-	mcDocument.BeginEdit(muiCaret, muiAnchor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An edit begins (BeginEdit), and true if the text area is editable;
-// false if it isn't, and the edit does nothing.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::BeginEditIfEditable(void)
-{
-	BeginEdit();
-	return mbEditable;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An edit of an editable text area is kept for undo: its text pushed onto
-// the undo stack with the caret and selection from before it and after
-// it.  Typing goes on the snapshot of the typing before it, as one edit,
-// while each character is typed where the last left the caret, without a
-// pause (SetTypingPause), up to the space after a word or a new line.  An
-// undo or redo isn't an edit.  The undo event says what was kept.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::KeepEdit(void)
-{
-	ETextUndoKeep	eKeep;
-	size			uiIdBefore;
-
-	uiIdBefore = mcDocument.GetUndo()->GetCurrentId();
-	eKeep = mcDocument.EndEdit(muiCaret, muiAnchor);
-	if (eKeep == TUK_Merged)
-	{
-		UndoChanged(TAU_Merged, uiIdBefore, mcDocument.GetUndo()->GetCurrentId());
-	}
-	else if (eKeep == TUK_Pushed)
-	{
-		UndoChanged(TAU_Kept, uiIdBefore, mcDocument.GetUndo()->GetCurrentId());
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::UndoChanged(ETextAreaUndo eChange, size uiIdBefore, size uiIdAfter)
-{
-	STextAreaUndo	sUndo;
-
-	sUndo.eChange = eChange;
-	sUndo.uiIdBefore = uiIdBefore;
-	sUndo.uiIdAfter = uiIdAfter;
-	mcUndoEvent.Call(this, &sUndo);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The text goes back to how it was before the last edit kept (Undo), or
 // forward to after the next (Redo).  Only the part that differs changes,
 // so the spans, backgrounds and gaps of the rest stay, and the caret goes
 // after it.  False if there is nothing to undo or redo.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::Undo(void)
-{
-	return LoadUndo(mcDocument.GetUndo()->FindUndo());
-}
+bool CTextArea::Undo(void) { return mcEditing.Undo(); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::Redo(void)
-{
-	return LoadUndo(mcDocument.GetUndo()->FindRedo());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text becomes the state of snapshot uiIndex, back (undo) or forward
-// (redo) from the current one.  The caret and selection are as they were
-// before the first edit undone, or after the last redone.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::LoadUndo(size uiIndex)
-{
-	size	uiIdBefore;
-	size	uiCaret;
-	size	uiAnchor;
-	bool	bUndo;
-
-	if (!mcDocument.IsUndoable() || !mcDocument.GetUndo()->CanLoad(uiIndex))
-	{
-		return false;
-	}
-	bUndo = mcDocument.GetUndo()->IsUndo(uiIndex);
-	uiIdBefore = mcDocument.GetUndo()->GetCurrentId();
-	mcDocument.Load(uiIndex, &uiCaret, &uiAnchor);
-
-	//Undone, as before the first edit undone; redone, as after the last edit redone.
-	muiCaret = uiCaret;
-	muiAnchor = uiAnchor;
-	TextChanged();
-	mcDocument.GetUndo()->Loaded(muiCaret);
-	UndoChanged(bUndo ? TAU_Undone : TAU_Redone, uiIdBefore, mcDocument.GetUndo()->GetCurrentId());
-	return true;
-}
+bool CTextArea::Redo(void) { return mcEditing.Redo(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3134,10 +2103,7 @@ bool CTextArea::LoadUndo(size uiIndex)
 // more), or the text is in it already.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::UndoTo(size uiId)
-{
-	return LoadUndo(mcDocument.GetUndo()->FindId(uiId));
-}
+bool CTextArea::UndoTo(size uiId) { return mcEditing.UndoTo(uiId); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3194,10 +2160,7 @@ size CTextArea::GetUndoId(void)
 // with the text it has.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::ClearUndo(void)
-{
-	mcDocument.ClearUndo(muiCaret, muiAnchor);
-}
+void CTextArea::ClearUndo(void) { mcEditing.ClearUndo(); }
 
 
 void CTextArea::UndoAction(void) { Undo(); }
@@ -3211,14 +2174,11 @@ void CTextArea::RedoAction(void) { Redo(); }
 // event is called.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::TextChanged(void)
+void CTextArea::TextEdited(void)
 {
 	SInt32Vec2	sTextSize;
 
-	KeepEdit();
 	sTextSize = msTextSize;
-	mbCaretAtRowEnd = false;
-	miUpDownX = -1;
 	ReadText();
 	LayoutText();
 	if (((msTextSize.x != sTextSize.x) || (msTextSize.y != sTextSize.y)) && mpWindow.IsNotNull())
@@ -3238,6 +2198,27 @@ void CTextArea::TextChanged(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The undo event says what was kept, undone or redone.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::UndoChanged(STextUndoChange* psChange)
+{
+	mcUndoEvent.Call(this, psChange);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::MarksChanged(void)
+{
+	UpdateMarks();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Asks the scroll pane the text area is in to show the caret.  Until the
 // text area is laid out it isn't anywhere to show.
 //
@@ -3247,7 +2228,7 @@ void CTextArea::ShowCaret(void)
 	CInt32Rect	cCaret;
 	SInt32Vec2	sPosition;
 
-	if ((mcActualBounds.GetWidth() <= 0) || !HasStops())
+	if ((mcActualBounds.GetWidth() <= 0) || !HasRows())
 	{
 		return;
 	}
@@ -3270,7 +2251,7 @@ bool CTextArea::GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour)
 	CInt32Rect	cCaret;
 	CInt32Rect	cClip;
 
-	if (!HasFocus() || !HasStops())
+	if (!HasFocus() || !HasRows())
 	{
 		return false;
 	}
@@ -3298,7 +2279,7 @@ void CTextArea::UpdateMarks(void)
 	size		uiEnd;
 
 	mpSelectionMap->Clear();
-	if (!HasStops())
+	if (!HasRows())
 	{
 		return;
 	}
@@ -3330,7 +2311,7 @@ void CTextArea::UpdateBackgrounds(void)
 		psBackground = mcBackgrounds.Get(i);
 		if (psBackground->eType == TAB_Range)
 		{
-			if (HasStops())
+			if (HasRows())
 			{
 				AddRangeRectangles(mpBackgroundMap, psBackground->uiStart, psBackground->uiEnd, psBackground->sColour);
 			}
@@ -3487,7 +2468,7 @@ bool CTextArea::GetLineRows(size uiLine, int32* piTop, int32* piBottom)
 	{
 		return false;
 	}
-	if (HasStops())
+	if (HasRows())
 	{
 		psFirst = GetLayoutLine(GetLayoutStop(FindStop(GetLineStart(uiLine)))->uiLine);
 		psLast = GetLayoutLine(FindLastRow(uiLine));
@@ -3519,9 +2500,9 @@ int32 CTextArea::GetFullWidth(void)
 }
 
 
-bool CTextArea::IsEditable(void) { return mbEditable; }
+bool CTextArea::IsEditable(void) { return mcEditing.IsEditable(); }
 bool CTextArea::IsSelectable(void) { return mbSelectable; }
-size CTextArea::GetCaretPosition(void) { return muiCaret; }
+size CTextArea::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3596,7 +2577,7 @@ void CTextArea::ReadTiles(void)
 	mpText = NULL;
 
 	psStyles = MakeStyles();
-	mpTiles->Read(GetFontColours(), miTabWidth, psStyles, &msTextSize);
+	mpTiles->Read(GetFontColours(), (int32)mcEditing.GetTabWidth(), psStyles, &msTextSize);
 
 	//The lines along the text are drawn over the tiles, so they can go past a cell into the ones next to it.
 	mpFontDraw->Begin();
@@ -3777,7 +2758,7 @@ void CTextArea::AppendTiles(size uiFrom)
 
 	FindStopStarts(uiFrom);
 	psStyles = MakeStyles(mcDocument.GetLineStart(mpTiles->GetAppendLine()));
-	mpTiles->Append(GetFontColours(), miTabWidth, psStyles, &msTextSize);
+	mpTiles->Append(GetFontColours(), (int32)mcEditing.GetTabWidth(), psStyles, &msTextSize);
 	SafeFree(psStyles);
 }
 
@@ -3810,6 +2791,16 @@ void CTextArea::LayoutTiles(void)
 size CTextArea::NumLayoutLines(void)
 {
 	return mbTiled ? mpTiles->NumLines() : mpLayout->NumLines();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::NumRows(void)
+{
+	return NumLayoutLines();
 }
 
 

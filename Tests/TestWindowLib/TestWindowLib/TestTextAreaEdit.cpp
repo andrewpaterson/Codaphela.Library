@@ -1568,7 +1568,7 @@ public:
 
 	void Init(void) { maiChanges.Init(); maiBefore.Init(); maiAfter.Init(); }
 	void Kill(void) { maiAfter.Kill(); maiBefore.Kill(); maiChanges.Kill(); }
-	void UndoChanged(CTextArea* pcTextArea, STextAreaUndo* psUndo)
+	void UndoChanged(CTextArea* pcTextArea, STextUndoChange* psUndo)
 	{
 		maiChanges.Add((int)psUndo->eChange);
 		maiBefore.Add((int)psUndo->uiIdBefore);
@@ -1616,14 +1616,14 @@ void TestTextAreaEditUndoEvent(void)
 		pTextArea->Undo();
 		pTextArea->Redo();
 		AssertInt(4, (int)cListener.maiChanges.NumElements());
-		AssertInt(TAU_Kept, cListener.maiChanges.GetValue(0));
+		AssertInt(TUC_Kept, cListener.maiChanges.GetValue(0));
 		AssertInt((int)uiLoaded, cListener.maiBefore.GetValue(0));
-		AssertInt(TAU_Merged, cListener.maiChanges.GetValue(1));
+		AssertInt(TUC_Merged, cListener.maiChanges.GetValue(1));
 		AssertInt(cListener.maiAfter.GetValue(0), cListener.maiBefore.GetValue(1));
-		AssertInt(TAU_Undone, cListener.maiChanges.GetValue(2));
+		AssertInt(TUC_Undone, cListener.maiChanges.GetValue(2));
 		AssertInt(cListener.maiAfter.GetValue(1), cListener.maiBefore.GetValue(2));
 		AssertInt((int)uiLoaded, cListener.maiAfter.GetValue(2));
-		AssertInt(TAU_Redone, cListener.maiChanges.GetValue(3));
+		AssertInt(TUC_Redone, cListener.maiChanges.GetValue(3));
 		AssertInt(cListener.maiAfter.GetValue(1), cListener.maiAfter.GetValue(3));
 
 		pTextArea->GetUndoEvent()->Remove(&cListener);
