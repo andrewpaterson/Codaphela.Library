@@ -248,6 +248,7 @@ protected:
 	void			AddLiving(SCPP65IRPlace* psPlace);
 	bool			LeaveScope(size uiLiving);
 	bool			DestroyLiving(size uiLiving);
+	bool			FullExpression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			DestroyTemporaries(size uiTemporaries);
 	bool			DestroyTemporaryPlaces(size uiFrom);
 	bool			DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom);

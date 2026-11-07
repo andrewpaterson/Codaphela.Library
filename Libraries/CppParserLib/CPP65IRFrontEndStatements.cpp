@@ -66,7 +66,6 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 {
 	CCPPSyntaxExpressionStatement*	pcExpression;
 	SCPP65IRValue					sValue;
-	size							uiTemporaries;
 
 	if (!pcStatement)
 	{
@@ -80,12 +79,7 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		return DeclarationStatement((CCPPSyntaxDeclarationStatement*)pcStatement);
 	case CPPS_ExpressionStatement:
 		pcExpression = (CCPPSyntaxExpressionStatement*)pcStatement;
-		uiTemporaries = masTemporaries.NumElements();
-		if (pcExpression->mpcExpression && !Expression(pcExpression->mpcExpression, &sValue))
-		{
-			return false;
-		}
-		return DestroyTemporaries(uiTemporaries);
+		return !pcExpression->mpcExpression || FullExpression(pcExpression->mpcExpression, &sValue);
 	case CPPS_IfStatement:
 		return IfStatement((CCPPSyntaxIfStatement*)pcStatement);
 	case CPPS_WhileStatement:
@@ -215,6 +209,21 @@ bool CCPP65IRFrontEnd::LeaveScope(size uiLiving)
 bool CCPP65IRFrontEnd::DestroyLiving(size uiLiving)
 {
 	return DestroyPlaces(&masLiving, uiLiving);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An expression statement's expression, a for statement's step and the
+// like: a full expression, whose temporaries are destroyed at its end.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FullExpression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
+{
+	size	uiTemporaries;
+
+	uiTemporaries = masTemporaries.NumElements();
+	return Expression(pcExpression, psValue) && DestroyTemporaries(uiTemporaries);
 }
 
 
@@ -766,7 +775,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	}
 	JumpTo(pcNext);
 	StartBlock(pcNext);
-	if (pcFor->mpcIncrement && !Expression(pcFor->mpcIncrement, &sValue))
+	if (pcFor->mpcIncrement && !FullExpression(pcFor->mpcIncrement, &sValue))
 	{
 		return false;
 	}
@@ -793,11 +802,13 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 	size			ui;
 	int64			lliValue;
 	bool			bResult;
+	size			uiTemporaries;
 
 	if (!pcSwitch->mpcCondition || (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	uiTemporaries = masTemporaries.NumElements();
 	if (!Value(pcSwitch->mpcCondition, &sValue))
 	{
 		return false;
@@ -806,7 +817,8 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!Convert(&sValue, mpcTypes->Promote(sValue.psType)))
+	//The condition is a full expression: its temporaries go before the cases are compared.
+	if (!Convert(&sValue, mpcTypes->Promote(sValue.psType)) || !DestroyTemporaries(uiTemporaries))
 	{
 		return false;
 	}

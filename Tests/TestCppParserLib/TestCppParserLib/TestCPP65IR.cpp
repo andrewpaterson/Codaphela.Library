@@ -292,6 +292,16 @@ void TestCPP65IRConstructors(void)
 	AssertInt(214445, TestCPP65IRMain(sz.Text(), 7));
 	sz.Kill();
 
+	//A for statement's step and a switch's condition are full expressions: their temporaries are destroyed there,
+	//the step's each time round.
+	sz.Init(szLog);
+	sz.Append(
+		"struct CStep { int miId; CStep(int i) { miId = i; } ~CStep() { Log(miId); } int Get() { return 1; } };\n"
+		"int main() { int t = 0; for (int i = 0; i < 2; i += CStep(1).Get()) { Log(2); }\n"
+		"switch (CStep(3).Get()) { case 1: Log(4); t = 5; break; } return LogValue() * 10 + t; }");
+	AssertInt(2121345, TestCPP65IRMain(sz.Text(), 6));
+	sz.Kill();
+
 	//new and delete through a virtual destructor; the vtable is the derived class's after construction.
 	sz.Init(szLog);
 	sz.Append(
