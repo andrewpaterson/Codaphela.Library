@@ -19,8 +19,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
-#include "JewelColours.h"
 #include "WindowTheme.h"
+
+
+//In EThemeColour's order, for the error reading one that wasn't set.
+static const char*	gaszThemeColourNames[TC_NumColours] =
+{
+	"TextSelection", "Caret", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
+	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockStrip", "DockStripTab", "DockStripTabHover",
+	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
+	"DockPreviewBorder", "DockFrameBorder",
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,32 +51,11 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	mpComboMenuStyle = NULL;
 	mpComboChevron = NULL;
 	mpScrollBarImages = NULL;
-	msTextSelection = JEWEL_SELECTION;
-	msCaret = JEWEL_ICON;
-	msListSelected = JEWEL_SELECTION;
-	msListHover = JEWEL_HOVER;
-	msTabBar = JEWEL_EDITOR;
-	msTabHover = JEWEL_HOVER;
-	msTabUnderline = JEWEL_BLUE;
-	msTabSeparator = JEWEL_SEPARATOR;
 	mpTabClose = NULL;
 	mpTabCloseHover = NULL;
-	masDockColours[DC_TitleBar] = JEWEL_PANEL;
-	masDockColours[DC_ActiveTitleBar] = JEWEL_SELECTION;
-	masDockColours[DC_Sash] = JEWEL_EDITOR;
-	masDockColours[DC_Background] = JEWEL_EDITOR;
-	masDockColours[DC_Strip] = JEWEL_BAR_BACKGROUND;
-	masDockColours[DC_StripTab] = JEWEL_PANEL;
-	masDockColours[DC_StripTabHover] = JEWEL_HOVER;
-	masDockColours[DC_StripTabLine] = JEWEL_BORDER;
-	masDockColours[DC_Guide] = JEWEL_PANEL;
-	masDockColours[DC_GuideBorder] = JEWEL_BORDER_HOVER;
-	masDockColours[DC_GuideHover] = JEWEL_SELECTION;
-	masDockColours[DC_GuideArrow] = JEWEL_BLUE;
-	masDockColours[DC_Preview] = Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0, (uint8)0x50);
-	masDockColours[DC_PreviewBorder] = JEWEL_BLUE;
-	masDockColours[DC_FrameBorder] = JEWEL_SEPARATOR;
-
+	memset(masColours, 0, sizeof(masColours));
+	memset(mabColoursSet, 0, sizeof(mabColoursSet));
+	mcChangeEvent.Init();
 	PostInit();
 }
 
@@ -88,17 +76,11 @@ void CWindowTheme::Class(void)
 	M_Pointer(mpComboMenuStyle);
 	M_Pointer(mpComboChevron);
 	M_Pointer(mpScrollBarImages);
-	U_UInt32(msTextSelection);
-	U_UInt32(msCaret);
-	U_UInt32(msListSelected);
-	U_UInt32(msListHover);
-	U_UInt32(msTabBar);
-	U_UInt32(msTabHover);
-	U_UInt32(msTabUnderline);
-	U_UInt32(msTabSeparator);
 	M_Pointer(mpTabClose);
 	M_Pointer(mpTabCloseHover);
-	U_UInt32Array(masDockColours, DC_NumColours);
+	U_UInt32Array(masColours, TC_NumColours);
+	U_BoolArray(mabColoursSet, TC_NumColours);
+	U_Data(CComponentEvent<CWindowTheme>, mcChangeEvent);
 }
 
 
@@ -108,6 +90,7 @@ void CWindowTheme::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindowTheme::Free(void)
 {
+	mcChangeEvent.Kill();
 }
 
 
@@ -159,40 +142,55 @@ void CWindowTheme::SetComboBoxLook(Ptr<CMenuStyle> pStyle, Ptr<CImageCel> pChevr
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CWindowTheme::SetTextColours(ARGB32 sSelection, ARGB32 sCaret)
-{
-	msTextSelection = sSelection;
-	msCaret = sCaret;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CWindowTheme::SetListColours(ARGB32 sSelected, ARGB32 sHover)
-{
-	msListSelected = sSelected;
-	msListHover = sHover;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A tabbed container's look.  Without close images a tab can't show its
+// A tabbed container's close crosses.  Without them a tab can't show its
 // cross so it can't be closed from its tab.
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindowTheme::SetTabLook(ARGB32 sBar, ARGB32 sHover, ARGB32 sUnderline, ARGB32 sSeparator, Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover)
+void CWindowTheme::SetTabCloseImages(Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover)
 {
-	msTabBar = sBar;
-	msTabHover = sHover;
-	msTabUnderline = sUnderline;
-	msTabSeparator = sSeparator;
 	mpTabClose = pClose;
 	mpTabCloseHover = pCloseHover;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its users aren't told until Changed, so a theme can be set up a colour
+// at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowTheme::SetColour(EThemeColour eColour, ARGB32 sColour)
+{
+	masColours[eColour] = sColour;
+	mabColoursSet[eColour] = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A colour that wasn't set is an error: the theme's maker must set every
+// colour its widgets use.  It is transparent black.
+//
+//////////////////////////////////////////////////////////////////////////
+ARGB32 CWindowTheme::GetColour(EThemeColour eColour)
+{
+	if (!mabColoursSet[eColour])
+	{
+		gcLogger.Error2(__METHOD__, " Theme colour [", gaszThemeColourNames[eColour], "] isn't set.", NULL);
+	}
+	return masColours[eColour];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tells the theme's users (its change event) that its colours, sizes or
+// images changed, so they lay out and draw again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowTheme::Changed(void)
+{
+	mcChangeEvent.Call(this);
 }
 
 
@@ -247,16 +245,8 @@ Ptr<CMenuStyle> CWindowTheme::GetMenuStyle(void) { return mpMenuStyle; }
 Ptr<CMenuStyle> CWindowTheme::GetComboMenuStyle(void) { return mpComboMenuStyle; }
 Ptr<CImageCel> CWindowTheme::GetComboChevron(void) { return mpComboChevron; }
 Ptr<CScrollBarImages> CWindowTheme::GetScrollBarImages(void) { return mpScrollBarImages; }
-ARGB32 CWindowTheme::GetTextSelectionColour(void) { return msTextSelection; }
-ARGB32 CWindowTheme::GetCaretColour(void) { return msCaret; }
-ARGB32 CWindowTheme::GetListSelectedColour(void) { return msListSelected; }
-ARGB32 CWindowTheme::GetListHoverColour(void) { return msListHover; }
-ARGB32 CWindowTheme::GetTabBarColour(void) { return msTabBar; }
-ARGB32 CWindowTheme::GetTabHoverColour(void) { return msTabHover; }
-ARGB32 CWindowTheme::GetTabUnderlineColour(void) { return msTabUnderline; }
-ARGB32 CWindowTheme::GetTabSeparatorColour(void) { return msTabSeparator; }
-void CWindowTheme::SetDockColour(EDockColour eColour, ARGB32 sColour) { masDockColours[eColour] = sColour; }
-ARGB32 CWindowTheme::GetDockColour(EDockColour eColour) { return masDockColours[eColour]; }
+bool CWindowTheme::IsColourSet(EThemeColour eColour) { return mabColoursSet[eColour]; }
+CComponentEvent<CWindowTheme>* CWindowTheme::GetChangeEvent(void) { return &mcChangeEvent; }
 Ptr<CImageCel> CWindowTheme::GetTabClose(void) { return mpTabClose; }
 Ptr<CImageCel> CWindowTheme::GetTabCloseHover(void) { return mpTabCloseHover; }
 

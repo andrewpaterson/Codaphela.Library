@@ -73,7 +73,7 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	msPressed.Init(0, 0);
 	SetCanGetFocus(true);
 
-	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour());
+	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_TabBar));
 	pBackground = OMalloc<CCanvas>(pWindow, mpBackgroundDraw);
 	pBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pBackground, 0, 0, TT_NumColumns, 4);
@@ -100,7 +100,7 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 		AddComponent(mpClose, TT_Close, 1);
 	}
 
-	mpUnderlineDraw = OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour());
+	mpUnderlineDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_TabBar));
 	pUnderline = OMalloc<CCanvas>(pWindow, mpUnderlineDraw);
 	pUnderline->SetDesiredSize(-1, TAB_UNDERLINE);
 	pUnderline->SetAlignment(CSH_Stretch, CSV_Stretch);
@@ -321,8 +321,8 @@ bool CTabComponent::IsInClose(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTabComponent::UpdateLook(void)
 {
-	mpBackgroundDraw->SetColour(IsMouseOver() ? mpTheme->GetTabHoverColour() : mpTheme->GetTabBarColour());
-	mpUnderlineDraw->SetColour(mbSelected ? mpTheme->GetTabUnderlineColour() : (IsMouseOver() ? mpTheme->GetTabHoverColour() : mpTheme->GetTabBarColour()));
+	mpBackgroundDraw->SetColour(IsMouseOver() ? mpTheme->GetColour(TC_TabHover) : mpTheme->GetColour(TC_TabBar));
+	mpUnderlineDraw->SetColour(mbSelected ? mpTheme->GetColour(TC_TabUnderline) : (IsMouseOver() ? mpTheme->GetColour(TC_TabHover) : mpTheme->GetColour(TC_TabBar)));
 	if (mpClose)
 	{
 		mpClose->SetCel(mbOverClose ? mpTheme->GetTabCloseHover() : mpTheme->GetTabClose());

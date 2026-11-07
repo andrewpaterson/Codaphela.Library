@@ -28,7 +28,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CheckBoxImages.h"
 #include "ScrollBarImages.h"
 #include "MenuStyle.h"
-#include "DockColour.h"
+#include "ThemeColour.h"
+#include "ComponentEvent.h"
 
 
 //What a button looks like: a normal (outlined) one, a small one crowded in with text, or a flat one for a toolbar.
@@ -40,12 +41,14 @@ enum EButtonLook
 };
 
 
-//How the widgets look, shared by every widget of a window (and its dialogs).  Each widget takes the theme and its own
-//content, never images or colours of its own.  CJewelTheme makes IntelliJ IDEA's dark theme; a theme can be put
-//together from other images instead, as the tests do.
+//How the widgets look, shared by the widgets of any windows given it (a window doesn't own its theme).  Each widget
+//takes the theme and its own content, never images or colours of its own, and reads the theme as it lays out and
+//draws.  CJewelTheme makes IntelliJ IDEA's dark theme; a theme can be put together from other images instead, as the
+//tests do.
 //
-//The colours start as Jewel's dark theme.  The images and styles start NULL and only the widgets that use them need
-//them: a theme without check box images can't make check boxes.
+//A theme has no looks of its own: whoever makes it sets every colour its widgets use, and reading one that wasn't set
+//is an error.  The images and styles start NULL and only the widgets that use them need them: a theme without check
+//box images can't make check boxes.  Changed tells the theme's users that it changed.
 class CWindowTheme : public CObject
 {
 CONSTRUCTABLE(CWindowTheme);
@@ -61,15 +64,9 @@ protected:
 	Ptr<CMenuStyle>			mpComboMenuStyle;  //A combo box's list.
 	Ptr<CImageCel>			mpComboChevron;
 	Ptr<CScrollBarImages>	mpScrollBarImages;
-	ARGB32					msTextSelection;
-	ARGB32					msCaret;
-	ARGB32					msListSelected;
-	ARGB32					msListHover;
-	ARGB32					msTabBar;  //Behind a tabbed container's tabs.
-	ARGB32					msTabHover;  //Behind a tab under the pointer.
-	ARGB32					msTabUnderline;  //Under the selected tab.
-	ARGB32					msTabSeparator;  //The line between the tabs and the page.
-	ARGB32					masDockColours[DC_NumColours];  //Docking's, by EDockColour.
+	ARGB32					masColours[TC_NumColours];  //By EThemeColour.
+	bool					mabColoursSet[TC_NumColours];
+	CComponentEvent<CWindowTheme>	mcChangeEvent;
 	Ptr<CImageCel>			mpTabClose;  //A tab's close cross, NULL for none.
 	Ptr<CImageCel>			mpTabCloseHover;  //The cross under the pointer.
 
@@ -89,9 +86,10 @@ public:
 	void					SetMenuStyle(Ptr<CMenuStyle> pStyle);
 	void					SetComboBoxLook(Ptr<CMenuStyle> pStyle, Ptr<CImageCel> pChevron);
 	void					SetScrollBarImages(Ptr<CScrollBarImages> pImages);
-	void					SetTextColours(ARGB32 sSelection, ARGB32 sCaret);
-	void					SetListColours(ARGB32 sSelected, ARGB32 sHover);
-	void					SetTabLook(ARGB32 sBar, ARGB32 sHover, ARGB32 sUnderline, ARGB32 sSeparator, Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover);
+	void					SetTabCloseImages(Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover);
+	void					SetColour(EThemeColour eColour, ARGB32 sColour);
+	bool					IsColourSet(EThemeColour eColour);
+	void					Changed(void);
 
 	Ptr<CFont>				GetFont(void);
 	Ptr<CButtonImages>		GetButtonImages(EButtonLook eLook);
@@ -101,16 +99,8 @@ public:
 	Ptr<CMenuStyle>			GetComboMenuStyle(void);
 	Ptr<CImageCel>			GetComboChevron(void);
 	Ptr<CScrollBarImages>	GetScrollBarImages(void);
-	ARGB32					GetTextSelectionColour(void);
-	ARGB32					GetCaretColour(void);
-	ARGB32					GetListSelectedColour(void);
-	ARGB32					GetListHoverColour(void);
-	ARGB32					GetTabBarColour(void);
-	ARGB32					GetTabHoverColour(void);
-	ARGB32					GetTabUnderlineColour(void);
-	ARGB32					GetTabSeparatorColour(void);
-	void					SetDockColour(EDockColour eColour, ARGB32 sColour);
-	ARGB32					GetDockColour(EDockColour eColour);
+	ARGB32					GetColour(EThemeColour eColour);
+	CComponentEvent<CWindowTheme>*	GetChangeEvent(void);
 	Ptr<CImageCel>			GetTabClose(void);
 	Ptr<CImageCel>			GetTabCloseHover(void);
 };

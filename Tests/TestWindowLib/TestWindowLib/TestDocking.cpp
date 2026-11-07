@@ -1131,12 +1131,12 @@ void TestDockingTitlesAndColours(void)
 		AssertString("First.cpp*", sTest.pFirstDoc->GetGroup()->GetTab(sTest.pFirstDoc)->GetText());
 
 		//The colours are the theme's, and setting them sets the theme's.
-		AssertInt(sTest.pTheme->GetDockColour(DC_ActiveTitleBar), sTest.pManager->GetColour(DC_ActiveTitleBar));
+		AssertInt(sTest.pTheme->GetColour(TC_DockActiveTitleBar), sTest.pManager->GetColour(TC_DockActiveTitleBar));
 		sColour = Set32BitColour((uint8)1, (uint8)2, (uint8)3);
-		sTest.pTheme->SetDockColour(DC_Sash, sColour);
-		AssertInt(sColour, sTest.pManager->GetColour(DC_Sash));
-		sTest.pManager->SetColour(DC_Guide, sColour);
-		AssertInt(sColour, sTest.pTheme->GetDockColour(DC_Guide));
+		sTest.pTheme->SetColour(TC_DockSash, sColour);
+		AssertInt(sColour, sTest.pManager->GetColour(TC_DockSash));
+		sTest.pManager->SetColour(TC_DockGuide, sColour);
+		AssertInt(sColour, sTest.pTheme->GetColour(TC_DockGuide));
 
 		pStrip = NULL;
 		pFloating = NULL;

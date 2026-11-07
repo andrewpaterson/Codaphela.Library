@@ -153,8 +153,8 @@ public:
 	Ptr<CWindowTheme>			GetTheme(void);
 	Ptr<CFont>					GetFont(void);
 	Ptr<CFont>					GetTurnedFont(void);
-	ARGB32						GetColour(EDockColour eColour);
-	void						SetColour(EDockColour eColour, ARGB32 sColour);
+	ARGB32						GetColour(EThemeColour eColour);
+	void						SetColour(EThemeColour eColour, ARGB32 sColour);
 	Ptr<CImageCel>				GetImage(EDockImage eImage);
 
 	//Panes.

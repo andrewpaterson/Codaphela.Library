@@ -515,9 +515,9 @@ void CDockGuides::DrawGuides(Ptr<CCanvas> pCanvas)
 	if (mbPreview)
 	{
 		pcRect = &mcPreview;
-		DrawBoxClipped(pCanvas, pcRect->GetLeft(), pcRect->GetTop(), pcRect->GetLeft() + pcRect->GetWidth(), pcRect->GetTop() + pcRect->GetHeight(), true, mpManager->GetColour(DC_Preview));
-		DrawBoxClipped(pCanvas, pcRect->GetLeft(), pcRect->GetTop(), pcRect->GetLeft() + pcRect->GetWidth(), pcRect->GetTop() + pcRect->GetHeight(), false, mpManager->GetColour(DC_PreviewBorder));
-		DrawBoxClipped(pCanvas, pcRect->GetLeft() + 1, pcRect->GetTop() + 1, pcRect->GetLeft() + pcRect->GetWidth() - 1, pcRect->GetTop() + pcRect->GetHeight() - 1, false, mpManager->GetColour(DC_PreviewBorder));
+		DrawBoxClipped(pCanvas, pcRect->GetLeft(), pcRect->GetTop(), pcRect->GetLeft() + pcRect->GetWidth(), pcRect->GetTop() + pcRect->GetHeight(), true, mpManager->GetColour(TC_DockPreview));
+		DrawBoxClipped(pCanvas, pcRect->GetLeft(), pcRect->GetTop(), pcRect->GetLeft() + pcRect->GetWidth(), pcRect->GetTop() + pcRect->GetHeight(), false, mpManager->GetColour(TC_DockPreviewBorder));
+		DrawBoxClipped(pCanvas, pcRect->GetLeft() + 1, pcRect->GetTop() + 1, pcRect->GetLeft() + pcRect->GetWidth() - 1, pcRect->GetTop() + pcRect->GetHeight() - 1, false, mpManager->GetColour(TC_DockPreviewBorder));
 	}
 
 	for (i = 0; i < masGuides.NumElements(); i++)
@@ -543,14 +543,14 @@ void CDockGuides::DrawGuide(Ptr<CCanvas> pCanvas, SDockGuide* psGuide, bool bHov
 	int			iRight;
 	int			iBottom;
 
-	sArrow = mpManager->GetColour(DC_GuideArrow);
+	sArrow = mpManager->GetColour(TC_DockGuideArrow);
 	pcRect = &psGuide->cRect;
 	iLeft = pcRect->GetLeft();
 	iTop = pcRect->GetTop();
 	iRight = iLeft + pcRect->GetWidth();
 	iBottom = iTop + pcRect->GetHeight();
-	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, true, mpManager->GetColour(bHover ? DC_GuideHover : DC_Guide));
-	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, mpManager->GetColour(DC_GuideBorder));
+	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, true, mpManager->GetColour(bHover ? TC_DockGuideHover : TC_DockGuide));
+	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, mpManager->GetColour(TC_DockGuideBorder));
 	if (psGuide->eSide == DS_Centre)
 	{
 		DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iBottom - DOCK_GUIDE_ICON_INSET, false, sArrow);

@@ -52,9 +52,9 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	msDoubleClick.Init();
 	SetCanGetFocus(true);
 
-	mpSelectedDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListSelectedColour());
+	mpSelectedDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_ListSelected));
 	mpSelectedHighlight = CreateHighlight(mpSelectedDraw);
-	mpHoverDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListHoverColour());
+	mpHoverDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_ListHover));
 	mpHoverHighlight = CreateHighlight(mpHoverDraw);
 	AddHighlights();
 	AddInputAction(CIC_ActivateComponent, this, &CListContainer::ActivateComponent);

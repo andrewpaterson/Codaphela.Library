@@ -105,7 +105,7 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 	mcRestorer.Init(this);
 	mcMover.Init(this);
 	mpArea = OMalloc<CDockArea>(pWindow, Ptr<CDockManager>(this), true);
-	mpWell = OMalloc<CDocumentWell>(pWindow, Ptr<CDockManager>(this), GetColour(DC_Background));
+	mpWell = OMalloc<CDocumentWell>(pWindow, Ptr<CDockManager>(this), GetColour(TC_DockBackground));
 	mpArea->SetRoot(mpWell);
 	WatchFocus(pWindow);
 
@@ -1109,8 +1109,8 @@ void						CDockManager::SetListener(CDockManagerListener* pcListener) { mpcListe
 Ptr<CWindowTheme>			CDockManager::GetTheme(void) { return mpTheme; }
 Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
 Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
-ARGB32						CDockManager::GetColour(EDockColour eColour) { return mpTheme->GetDockColour(eColour); }
-void						CDockManager::SetColour(EDockColour eColour, ARGB32 sColour) { mpTheme->SetDockColour(eColour, sColour); }
+ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }
+void						CDockManager::SetColour(EThemeColour eColour, ARGB32 sColour) { mpTheme->SetColour(eColour, sColour); }
 Ptr<CImageCel>				CDockManager::GetImage(EDockImage eImage) { return maImages.Get(eImage); }
 size						CDockManager::NumPanes(void) { return maPanes.Size(); }
 Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }

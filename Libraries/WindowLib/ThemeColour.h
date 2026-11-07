@@ -1,0 +1,58 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela WindowLib
+
+Codaphela WindowLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela WindowLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#ifndef __THEME_COLOUR_H__
+#define __THEME_COLOUR_H__
+
+
+//The colours a window theme keeps (CWindowTheme::GetColour), each set by whoever makes the theme (CJewelTheme).
+enum EThemeColour
+{
+	TC_TextSelection,			//Behind selected text.
+	TC_Caret,
+	TC_ListSelected,			//A list's selected row.
+	TC_ListHover,				//A list's row under the pointer.
+	TC_TabBar,					//Behind a tabbed container's tabs.
+	TC_TabHover,				//Behind a tab under the pointer.
+	TC_TabUnderline,			//Under the selected tab.
+	TC_TabSeparator,			//The line between the tabs and the page.
+
+	//Docking's (see CDockManager).
+	TC_DockTitleBar,			//A tool group's title bar.
+	TC_DockActiveTitleBar,		//The active pane's group's title bar.
+	TC_DockSash,				//Between a split's nodes.
+	TC_DockBackground,			//The empty document well, and behind the dock area.
+	TC_DockStrip,				//An auto hide strip.
+	TC_DockStripTab,			//A tab on an auto hide strip.
+	TC_DockStripTabHover,
+	TC_DockStripTabLine,		//Along the strip side of a strip's tab.
+	TC_DockGuide,				//A docking guide's face.
+	TC_DockGuideBorder,
+	TC_DockGuideHover,			//The guide under the pointer.
+	TC_DockGuideArrow,
+	TC_DockPreview,				//Where a pane would go, drawn over the window (with its opacity).
+	TC_DockPreviewBorder,
+	TC_DockFrameBorder,			//A floating window's edge.
+
+	TC_NumColours,
+};
+
+
+#endif // __THEME_COLOUR_H__

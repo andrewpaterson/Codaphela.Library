@@ -45,7 +45,7 @@ void CDockArea::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, bool bMai
 	mpFloating = NULL;
 	mcRootBounds.Init(0, 0, 0, 0);
 	SetAlignment(CSH_Stretch, CSV_Stretch);
-	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Background)));
+	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockBackground)));
 	mpBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 	if (bMain)
 	{

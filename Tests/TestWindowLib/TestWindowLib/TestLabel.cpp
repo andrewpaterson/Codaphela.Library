@@ -5,6 +5,7 @@
 #include "WindowLib/Window.h"
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/Label.h"
+#include "WindowLib/JewelTheme.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
@@ -25,6 +26,22 @@ Ptr<CFont> ReadLabelFont(void)
 {
 	gcObjects.DisableValidation();
 	return FontReader("Input" _FS_ "TrueTypeFont" _FS_ "Inter-Regular-14pt.font");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A theme with no images, coloured as Jewel's: a theme has no colours of
+// its own, so a test's theme is given every colour its widgets read.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont)
+{
+	Ptr<CWindowTheme>	pTheme;
+
+	pTheme = OMalloc<CWindowTheme>(pFont);
+	CJewelTheme::SetColours(pTheme);
+	return pTheme;
 }
 
 

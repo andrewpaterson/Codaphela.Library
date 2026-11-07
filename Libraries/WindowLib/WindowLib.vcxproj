@@ -235,7 +235,7 @@
     <ClInclude Include="AutoHide.h" />
     <ClInclude Include="AutoHideFlyout.h" />
     <ClInclude Include="DockArea.h" />
-    <ClInclude Include="DockColour.h" />
+    <ClInclude Include="ThemeColour.h" />
     <ClInclude Include="DockDrag.h" />
     <ClInclude Include="DockEdge.h" />
     <ClInclude Include="DockFloatingWindow.h" />

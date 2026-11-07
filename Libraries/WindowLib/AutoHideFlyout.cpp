@@ -47,7 +47,7 @@ void CAutoHideFlyout::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr
 	miStartSize = 0;
 	msStartPointer.Init(0, 0);
 
-	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Background)));
+	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockBackground)));
 	mpTitleBar = OMalloc<CDockTitleBar>(pWindow, pManager, pPane->GetTitle(), false, true, pPane->IsClosable());
 	mpTitleBar->SetPinned(false);
 	mpTitleBar->SetActive(true);
@@ -68,7 +68,7 @@ void CAutoHideFlyout::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr
 		uiEdge = DOCK_EDGE_TOP;
 		break;
 	}
-	mpEdge = OMalloc<CDockEdge>(pWindow, pManager, this, uiEdge, pManager->GetColour(DC_Sash));
+	mpEdge = OMalloc<CDockEdge>(pWindow, pManager, this, uiEdge, pManager->GetColour(TC_DockSash));
 
 	AddComponent(mpBackground);
 	AddComponent(mpTitleBar);

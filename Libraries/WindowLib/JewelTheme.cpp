@@ -25,6 +25,35 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "JewelTheme.h"
 
 
+//In EThemeColour's order.
+static ARGB32	gasJewelThemeColours[TC_NumColours] =
+{
+	JEWEL_SELECTION,		//TC_TextSelection
+	JEWEL_ICON,				//TC_Caret
+	JEWEL_SELECTION,		//TC_ListSelected
+	JEWEL_HOVER,			//TC_ListHover
+	JEWEL_EDITOR,			//TC_TabBar
+	JEWEL_HOVER,			//TC_TabHover
+	JEWEL_BLUE,				//TC_TabUnderline
+	JEWEL_SEPARATOR,		//TC_TabSeparator
+	JEWEL_PANEL,			//TC_DockTitleBar
+	JEWEL_SELECTION,		//TC_DockActiveTitleBar
+	JEWEL_EDITOR,			//TC_DockSash
+	JEWEL_EDITOR,			//TC_DockBackground
+	JEWEL_BAR_BACKGROUND,	//TC_DockStrip
+	JEWEL_PANEL,			//TC_DockStripTab
+	JEWEL_HOVER,			//TC_DockStripTabHover
+	JEWEL_BORDER,			//TC_DockStripTabLine
+	JEWEL_PANEL,			//TC_DockGuide
+	JEWEL_BORDER_HOVER,		//TC_DockGuideBorder
+	JEWEL_SELECTION,		//TC_DockGuideHover
+	JEWEL_BLUE,				//TC_DockGuideArrow
+	Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0, (uint8)0x50),  //TC_DockPreview, see-through blue.
+	JEWEL_BLUE,				//TC_DockPreviewBorder
+	JEWEL_SEPARATOR,		//TC_DockFrameBorder
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The images are drawn in the window's colour format.
@@ -51,11 +80,28 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 	pTheme->SetComboBoxLook(pComboStyle, CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat));
 
 	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)32), Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
-	pTheme->SetTextColours(JEWEL_SELECTION, JEWEL_ICON);
-	pTheme->SetListColours(JEWEL_SELECTION, JEWEL_HOVER);
+	SetColours(pTheme);
 
-	//IDEA's editor tabs: flat on the editor's colour, the selected one underlined in blue, a grey cross that whitens.
-	pTheme->SetTabLook(JEWEL_EDITOR, JEWEL_HOVER, JEWEL_BLUE, JEWEL_SEPARATOR, CJewelImageGenerator::CreateCross(JEWEL_BORDER_PUSHED, &cFormat), CJewelImageGenerator::CreateCross(JEWEL_TEXT, &cFormat));
+	//IDEA's editor tabs: a grey cross that whitens.
+	pTheme->SetTabCloseImages(CJewelImageGenerator::CreateCross(JEWEL_BORDER_PUSHED, &cFormat), CJewelImageGenerator::CreateCross(JEWEL_TEXT, &cFormat));
 	return pTheme;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every colour of the theme, as IntelliJ IDEA's dark theme's.  The editor
+// tabs are flat on the editor's colour, the selected one underlined in
+// blue.
+//
+//////////////////////////////////////////////////////////////////////////
+void CJewelTheme::SetColours(Ptr<CWindowTheme> pTheme)
+{
+	size	i;
+
+	for (i = 0; i < TC_NumColours; i++)
+	{
+		pTheme->SetColour((EThemeColour)i, gasJewelThemeColours[i]);
+	}
 }
 

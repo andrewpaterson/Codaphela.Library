@@ -9,6 +9,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFont> ReadLabelFont(void);
 
 
@@ -100,7 +103,7 @@ void TestTreeNodes(void)
 		pTestWindow = OMalloc<CWindow>("Tree Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
-		pTree = OMalloc<CTreeContainer>(pTestWindow, OMalloc<CWindowTheme>(ReadLabelFont()));
+		pTree = OMalloc<CTreeContainer>(pTestWindow, CreateColouredTheme(ReadLabelFont()));
 		pTree->GetSelectionEvent()->Add(&cListener, &CTestTreeListener::SelectionChanged);
 		pTree->GetActivationEvent()->Add(&cListener, &CTestTreeListener::ItemActivated);
 		pTestWindow->SetContainer(pTree);

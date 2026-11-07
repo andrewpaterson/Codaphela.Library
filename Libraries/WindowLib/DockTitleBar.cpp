@@ -61,7 +61,7 @@ void CDockTitleBar::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, const
 	SetDesiredSize(-1, DOCK_TITLE_BAR_HEIGHT);
 	SetAlignment(CSH_Stretch, CSV_Stretch);
 
-	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_TitleBar));
+	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockTitleBar));
 	pBackground = OMalloc<CCanvas>(pWindow, mpBackgroundDraw);
 	pBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pBackground, 0, 0, DTB_NumButtons + 3, 1);
@@ -241,7 +241,7 @@ void CDockTitleBar::SetPinned(bool bPinned)
 //////////////////////////////////////////////////////////////////////////
 void CDockTitleBar::UpdateLook(void)
 {
-	mpBackgroundDraw->SetColour(mpManager->GetColour(mbActive ? DC_ActiveTitleBar : DC_TitleBar));
+	mpBackgroundDraw->SetColour(mpManager->GetColour(mbActive ? TC_DockActiveTitleBar : TC_DockTitleBar));
 	mapButtons[DTB_Pin]->SetCel(mpManager->GetImage(mbPinned ? DI_Pinned : DI_Unpinned));
 	Invalidate();
 }

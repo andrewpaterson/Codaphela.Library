@@ -56,7 +56,7 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpOverflow = NULL;
 	mpOverflowMenu = NULL;
 
-	mpBarBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour()));
+	mpBarBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_TabBar)));
 	mpBarBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 
 	mpBar = OMalloc<CGridContainer>(pWindow);
@@ -64,7 +64,7 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpFiller = OMalloc<CComponent>(pWindow);
 	mpFiller->SetDesiredSize(0, 0);
 
-	mpSeparator = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabSeparatorColour()));
+	mpSeparator = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_TabSeparator)));
 	mpSeparator->SetDesiredSize(-1, 1);
 	mpSeparator->SetAlignment(CSH_Stretch, CSV_Stretch);
 
@@ -514,7 +514,7 @@ void CTabbedContainer::SetOverflowMenu(bool bOverflow)
 	if (bOverflow)
 	{
 		mpWindow->GetColourFormat(&cFormat);
-		mpOverflow = OMalloc<CIconComponent>(mpWindow, CJewelImageGenerator::CreateDownChevron(mpTheme->GetCaretColour(), &cFormat), 24, -1);
+		mpOverflow = OMalloc<CIconComponent>(mpWindow, CJewelImageGenerator::CreateDownChevron(mpTheme->GetColour(TC_Caret), &cFormat), 24, -1);
 		mpOverflow->SetCanGetFocus(true);
 		mpOverflow->AddInputAction(CIC_ActivateComponent, this, &CTabbedContainer::OverflowPressed);
 		mpOverflowMenu = OMalloc<CMenuContainer>(mpWindow, mpTheme);

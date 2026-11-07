@@ -12,6 +12,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont);
+
+
 #define AssertLog(e)	AssertString(e, szLog.Text()); szLog.Clear()
 
 
@@ -100,7 +103,7 @@ void TestListInput(void)
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 
-		pList = OMalloc<CListContainer>(pTestWindow, OMalloc<CWindowTheme>(Ptr<CFont>()));
+		pList = OMalloc<CListContainer>(pTestWindow, CreateColouredTheme(Ptr<CFont>()));
 		pList->GetSelectionEvent()->Add(&cListener, &CTestListListener::SelectionChanged);
 		pList->GetActivationEvent()->Add(&cListener, &CTestListListener::ItemActivated);
 		pTestWindow->SetContainer(pList);
@@ -372,7 +375,7 @@ void TestListDraw(void)
 		pTestWindow = OMalloc<CWindow>("List Draw Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
-		pList = OMalloc<CListContainer>(pTestWindow, OMalloc<CWindowTheme>(Ptr<CFont>()));
+		pList = OMalloc<CListContainer>(pTestWindow, CreateColouredTheme(Ptr<CFont>()));
 		pList->SetHighlightColours(Set32BitColour((uint8)0xFF, (uint8)0, (uint8)0), Set32BitColour((uint8)0, (uint8)0xFF, (uint8)0));
 		pTestWindow->SetContainer(pList);
 		for (i = 0; i < 4; i++)
@@ -453,7 +456,7 @@ void TestListKeysScroll(void)
 
 		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
 		pTestWindow->SetContainer(pScrollPane);
-		pList = OMalloc<CListContainer>(pTestWindow, OMalloc<CWindowTheme>(Ptr<CFont>()));
+		pList = OMalloc<CListContainer>(pTestWindow, CreateColouredTheme(Ptr<CFont>()));
 		pList->SetAlignment(CSH_Stretch, CSV_Top);
 		pScrollPane->SetContent(pList);
 		for (i = 0; i < 20; i++)

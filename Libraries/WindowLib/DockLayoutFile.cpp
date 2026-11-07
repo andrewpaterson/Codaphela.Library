@@ -838,7 +838,7 @@ Ptr<CDockNode> CDockLayoutReader::ReadSplit(CMarkupTag* pcTag, Ptr<CWindow> pWin
 	char*			szDirection;
 
 	szDirection = pcTag->GetStringAttribute("Direction");
-	pSplit = OMalloc<CDockSplit>(pWindow, Ptr<CDockManager>(mpcManager), StringCompare(szDirection, "Vertical") != 0, mpcManager->GetColour(DC_Sash));
+	pSplit = OMalloc<CDockSplit>(pWindow, Ptr<CDockManager>(mpcManager), StringCompare(szDirection, "Vertical") != 0, mpcManager->GetColour(TC_DockSash));
 	pcChild = pcTag->GetTag(&sIter);
 	while (pcChild)
 	{

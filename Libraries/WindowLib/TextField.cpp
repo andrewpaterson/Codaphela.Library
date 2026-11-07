@@ -52,7 +52,7 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	mcUndo.Clear(mcEditor.Text(), mcEditor.miEditPos, MAX_SIZE);
 
 
-	mpMarksDraw = OMalloc<CTextMarksCanvasDraw>(pTheme->GetTextSelectionColour(), pTheme->GetCaretColour());
+	mpMarksDraw = OMalloc<CTextMarksCanvasDraw>(pTheme->GetColour(TC_TextSelection), pTheme->GetColour(TC_Caret));
 	mpMarks = OMalloc<CCanvas>(pWindow, mpMarksDraw);
 	mpMarks->SetTransparent(true);
 	mpMarks->SetAlignment(CSH_Stretch, CSV_Stretch);

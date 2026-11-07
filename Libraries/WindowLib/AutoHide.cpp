@@ -128,9 +128,9 @@ void CAutoHideTab::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr<CD
 	SetHitAsWhole(true);
 	SetCanGetFocus(true);
 
-	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_StripTab));
+	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockStripTab));
 	mpBackground = OMalloc<CCanvas>(pWindow, mpBackgroundDraw);
-	mpLineDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_StripTabLine));
+	mpLineDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockStripTabLine));
 	mpLine = OMalloc<CCanvas>(pWindow, mpLineDraw);
 	if (IsVertical() && pManager->GetTurnedFont().IsNotNull())
 	{
@@ -322,8 +322,8 @@ void CAutoHideTab::UpdateLook(void)
 
 	pFlyout = mpManager->GetFlyout();
 	bOpen = pFlyout.IsNotNull() && (pFlyout->GetPane() == mpPane);
-	mpBackgroundDraw->SetColour(mpManager->GetColour((IsMouseOver() || bOpen) ? DC_StripTabHover : DC_StripTab));
-	mpLineDraw->SetColour(mpManager->GetColour(bOpen ? DC_ActiveTitleBar : DC_StripTabLine));
+	mpBackgroundDraw->SetColour(mpManager->GetColour((IsMouseOver() || bOpen) ? TC_DockStripTabHover : TC_DockStripTab));
+	mpLineDraw->SetColour(mpManager->GetColour(bOpen ? TC_DockActiveTitleBar : TC_DockStripTabLine));
 	Invalidate();
 }
 
@@ -407,7 +407,7 @@ void CAutoHideStrip::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, EDoc
 	mpManager = pManager;
 	meSide = eSide;
 	maTabs.Init();
-	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Strip)));
+	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockStrip)));
 	AddComponent(mpBackground);
 
 	PostInit();

@@ -282,7 +282,7 @@ Ptr<CComponent> CGoToDialog::CreateBody(void)
 
 	sInsets.Init(4, 0);
 	mpList = OMalloc<CListContainer>(pWindow, psLook->pcTheme);
-	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListSelectedColour(), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListHoverColour(), 4, &sInsets));
+	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetColour(TC_ListSelected), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetColour(TC_ListHover), 4, &sInsets));
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);
 	mpList->SetDoubleClickActivates(true);
 	mpList->SetWrapAround(true);

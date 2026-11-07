@@ -55,7 +55,7 @@ void CDockFloatingWindow::Init(Ptr<CDockManager> pManager, CInt32Rect* pcScreenR
 
 	pMain = pManager->GetWindow();
 	pMain->GetColourFormat(&cFormat);
-	mpWindow = OMalloc<CWindow>("", pMain->GetFactory(), pNoTick, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Background)), &cFormat);
+	mpWindow = OMalloc<CWindow>("", pMain->GetFactory(), pNoTick, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockBackground)), &cFormat);
 	mpWindow->GetClosedEvent()->Add(this, &CDockFloatingWindow::WindowClosed);
 
 	//A border of edges around the inside: a title bar over the area.
@@ -98,7 +98,7 @@ void CDockFloatingWindow::AddEdge(uint8 uiEdges, int iColumn, int iRow, int iWid
 {
 	Ptr<CDockEdge>	pEdge;
 
-	pEdge = OMalloc<CDockEdge>(&mpWindow, mpManager, this, uiEdges, mpManager->GetColour(DC_FrameBorder));
+	pEdge = OMalloc<CDockEdge>(&mpWindow, mpManager, this, uiEdges, mpManager->GetColour(TC_DockFrameBorder));
 	pEdge->SetDesiredSize(iWidthWeight ? -1 : DOCK_FRAME_BORDER, iHeightWeight ? -1 : DOCK_FRAME_BORDER);
 	maEdges.Add(pEdge);
 	mpFrame->AddComponent(pEdge, iColumn, iRow, 1, 1, iWidthWeight, iHeightWeight);

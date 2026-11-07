@@ -15,6 +15,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFont> ReadLabelFont(void);
 void ValidateLabelObjects(void);
 
@@ -40,7 +43,7 @@ Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages)
 {
 	Ptr<CWindowTheme>	pTheme;
 
-	pTheme = OMalloc<CWindowTheme>(Ptr<CFont>());
+	pTheme = CreateColouredTheme(Ptr<CFont>());
 	pTheme->SetScrollBarImages(pImages);
 	return pTheme;
 }

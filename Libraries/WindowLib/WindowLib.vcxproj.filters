@@ -336,7 +336,7 @@
     <ClInclude Include="DockArea.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
-    <ClInclude Include="DockColour.h">
+    <ClInclude Include="ThemeColour.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
     <ClInclude Include="DockDrag.h">
