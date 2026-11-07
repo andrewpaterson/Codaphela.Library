@@ -596,51 +596,42 @@ CObject* CPointer::Embedding(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The object, loaded if it is a hollow (the pointer then points to the
+// loaded object).  NULL for a NULL pointer, or a hollow that can't be
+// loaded: the pointer is then left pointing to the hollow, to try again.
 //
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Dereference(void)
 {
 	CEmbeddedObject*	pcLoaded;
 
-	if (mpcObject)
-	{
-		//If it can't be loaded the pointer is left pointing to the hollow, to try again.
-		pcLoaded = mpcObject->Dehollow();
-		if (pcLoaded != NULL)
-		{
-			mpcObject = pcLoaded;
-		}
-		return pcLoaded;
-	}
-	else
+	if (mpcObject == NULL)
 	{
 		return NULL;
 	}
+
+	pcLoaded = mpcObject->Dehollow();
+	if (pcLoaded != NULL)
+	{
+		mpcObject = pcLoaded;
+	}
+	return pcLoaded;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Dereference for operator->: dereferencing a NULL pointer is an error.
 //
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::DereferenceArrow(void)
 {
-	CEmbeddedObject*	pcLoaded;
-
-	if (mpcObject)
-	{
-		pcLoaded = mpcObject->Dehollow();
-		if (pcLoaded != NULL)
-		{
-			mpcObject = pcLoaded;
-		}
-		return pcLoaded;
-	}
-	else
+	if (mpcObject == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Attempted to dereference NULL Pointer.", NULL);
 		return NULL;
 	}
+	return Dereference();
 }
 
 
