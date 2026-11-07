@@ -119,7 +119,6 @@ void CRoundedBoxCanvasDraw::MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
-	CImageColourARGB	cColour;
 	float64				fLeft;
 	float64				fTop;
 	float64				fRight;
@@ -134,9 +133,7 @@ void CRoundedBoxCanvasDraw::MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize)
 	fBottom = sSize.y - msInsets.aiWidths[BEI_Bottom];
 
 	cDraw.Init(&pImage);
-	cColour.Init(Get8BitAlphaColour(msColour) / 255.0f, Get8BitRedColour(msColour) / 255.0f, Get8BitGreenColour(msColour) / 255.0f, Get8BitBlueColour(msColour) / 255.0f);
-	cDraw.SetColour(&cColour);
-	cColour.Kill();
+	cDraw.SetColour(msColour);
 	if (miRadius > 0)
 	{
 		cDraw.DrawRoundedRectangle(fLeft, fTop, fRight, fBottom, miRadius);

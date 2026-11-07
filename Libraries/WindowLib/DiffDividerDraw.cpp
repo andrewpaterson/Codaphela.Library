@@ -141,7 +141,6 @@ void CDiffDividerDraw::MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
-	CImageColourARGB	cColour;
 	CVectorPath			cPath;
 	SDiffDividerShape*	psShape;
 	size				i;
@@ -150,26 +149,20 @@ void CDiffDividerDraw::MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize)
 	pImage->Black();
 	cDraw.Init(&pImage);
 
-	cColour.Init(Get8BitAlphaColour(msBackground) / 255.0f, Get8BitRedColour(msBackground) / 255.0f, Get8BitGreenColour(msBackground) / 255.0f, Get8BitBlueColour(msBackground) / 255.0f);
-	cDraw.SetColour(&cColour);
-	cColour.Kill();
+	cDraw.SetColour(msBackground);
 	cDraw.DrawRectangle(0, 0, sSize.x, sSize.y);
 
 	for (i = 0; i < masShapes.NumElements(); i++)
 	{
 		psShape = masShapes.Get(i);
 
-		cColour.Init(Get8BitAlphaColour(psShape->sOutline) / 255.0f, Get8BitRedColour(psShape->sOutline) / 255.0f, Get8BitGreenColour(psShape->sOutline) / 255.0f, Get8BitBlueColour(psShape->sOutline) / 255.0f);
-		cDraw.SetColour(&cColour);
-		cColour.Kill();
+		cDraw.SetColour(psShape->sOutline);
 		cPath.Init();
 		MakeShapePath(&cPath, psShape, sSize.x, DIFF_DIVIDER_OUTLINE);
 		cDraw.DrawPath(&cPath);
 		cPath.Kill();
 
-		cColour.Init(Get8BitAlphaColour(psShape->sFill) / 255.0f, Get8BitRedColour(psShape->sFill) / 255.0f, Get8BitGreenColour(psShape->sFill) / 255.0f, Get8BitBlueColour(psShape->sFill) / 255.0f);
-		cDraw.SetColour(&cColour);
-		cColour.Kill();
+		cDraw.SetColour(psShape->sFill);
 		cPath.Init();
 		MakeShapePath(&cPath, psShape, sSize.x, 0);
 		cDraw.DrawPath(&cPath);

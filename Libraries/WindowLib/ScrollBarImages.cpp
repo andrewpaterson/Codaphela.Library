@@ -143,20 +143,6 @@ Ptr<CImage> CScrollBarImages::CreateImage(int32 iWidth, int32 iHeight)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CScrollBarImages::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
-{
-	CImageColourARGB	cColour;
-
-	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
-	pcDraw->SetColour(&cColour);
-	cColour.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The start of a horizontal thumb is the left half of a circle, its end
 // the right half.  A vertical thumb's are the top and bottom halves.  The
 // whole circle is drawn and the cap's image clips it so when the thumb is
@@ -175,14 +161,14 @@ Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, E
 	{
 		pImage = CreateImage(GetCapLength(), miThickness);
 		cDraw.Init(&pImage);
-		SetColour(&cDraw, sColour);
+		cDraw.SetColour(sColour);
 		cDraw.DrawSemicircle(iOffset, 0, miThickness, 0, 360, true);
 	}
 	else
 	{
 		pImage = CreateImage(miThickness, GetCapLength());
 		cDraw.Init(&pImage);
-		SetColour(&cDraw, sColour);
+		cDraw.SetColour(sColour);
 		cDraw.DrawSemicircle(0, iOffset, miThickness, 0, 360, true);
 	}
 	cDraw.Kill();
@@ -212,7 +198,7 @@ Ptr<CImageCel> CScrollBarImages::CreateMiddle(EScrollBarOrientation eOrientation
 	}
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawBox(0, 0, pImage->GetWidth() - 1, pImage->GetHeight() - 1, true);
 	cDraw.Kill();
 

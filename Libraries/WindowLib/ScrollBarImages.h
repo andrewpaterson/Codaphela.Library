@@ -87,7 +87,6 @@ protected:
 	Ptr<CImageCel>	CreateMiddle(EScrollBarOrientation eOrientation, ARGB32 sColour);
 	Ptr<CImage>		CreateImage(int32 iWidth, int32 iHeight);
 	Ptr<CImageCel>	CreateCel(Ptr<CImage> pImage);
-	void			SetColour(CImageDraw* pcDraw, ARGB32 sColour);
 };
 
 

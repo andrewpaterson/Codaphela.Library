@@ -95,7 +95,7 @@ void CJewelImageGenerator::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, 
 {
 	uint	i;
 
-	SetColour(pcDraw, sColour);
+	pcDraw->SetColour(sColour);
 
 	//The edges all have their outside along their top row.
 	for (i = 0; i < 4; i++)
@@ -307,27 +307,13 @@ Ptr<CImageCel> CJewelImageGenerator::CreateChevron(ARGB32 sColour, CColourFormat
 	pImage->Black();
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawLine(2, 1, 5, 4);
 	cDraw.DrawLine(5, 4, 2, 7);
 	cDraw.Kill();
 
 	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
 	return OMalloc<CImageCel>(pImage);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJewelImageGenerator::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
-{
-	CImageColourARGB	cColour;
-
-	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
-	pcDraw->SetColour(&cColour);
-	cColour.Kill();
 }
 
 
@@ -345,7 +331,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateDownChevron(ARGB32 sColour, CColourFo
 	pImage->Black();
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawLine(1, 2, 4, 5);
 	cDraw.DrawLine(4, 5, 7, 2);
 	cDraw.Kill();
@@ -377,7 +363,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateArrow(ARGB32 sColour, bool bUp, CColo
 	fBase = bUp ? 13.0 : 3.0;
 	fHead = bUp ? 7.5 : 8.5;
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawStroke(8, fBase, 8, fTip, 1.25);
 	cDraw.DrawStroke(8, fTip, 3.5, fHead, 1.25);
 	cDraw.DrawStroke(8, fTip, 12.5, fHead, 1.25);
@@ -403,7 +389,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateCross(ARGB32 sColour, CColourFormatHe
 	pImage->Black();
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawStroke(4.5, 4.5, 11.5, 11.5, 1.25);
 	cDraw.DrawStroke(11.5, 4.5, 4.5, 11.5, 1.25);
 	cDraw.Kill();
@@ -458,7 +444,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateKeyboard(ARGB32 sColour, CColourForma
 	AddVectorRectangle(&cPath, &sMinimum, &sMaximum);
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawPath(&cPath);
 	cDraw.Kill();
 	cPath.Kill();
@@ -544,7 +530,7 @@ Ptr<CImageCel> CJewelImageGenerator::DrawOutline(SFloat64Vec2* asPoints, size ui
 	}
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	cDraw.DrawPath(&cPath);
 	cDraw.Kill();
 	cPath.Kill();
@@ -574,27 +560,27 @@ Ptr<CImageCel> CJewelImageGenerator::DrawCheckBox(bool bTicked, bool bFocusRing,
 	cDraw.Init(&pImage);
 	if (bFocusRing)
 	{
-		SetColour(&cDraw, JEWEL_BLUE);
+		cDraw.SetColour(JEWEL_BLUE);
 		cDraw.DrawRoundedRectangle(0, 0, 20, 20, 5);
 
 		//A dark line keeps the ring apart from a ticked box.
-		SetColour(&cDraw, JEWEL_PANEL);
+		cDraw.SetColour(JEWEL_PANEL);
 		cDraw.DrawRoundedRectangle(1.5, 1.5, 18.5, 18.5, 3.5);
 	}
 
 	if (bTicked)
 	{
-		SetColour(&cDraw, bMouseOver ? JEWEL_BLUE_HOVER : JEWEL_BLUE);
+		cDraw.SetColour(bMouseOver ? JEWEL_BLUE_HOVER : JEWEL_BLUE);
 		cDraw.DrawRoundedRectangle(2, 2, 18, 18, 3);
-		SetColour(&cDraw, JEWEL_WHITE);
+		cDraw.SetColour(JEWEL_WHITE);
 		cDraw.DrawStroke(6.0, 10.0, 8.5, 12.5, 1.75);
 		cDraw.DrawStroke(8.5, 12.5, 14.0, 7.0, 1.75);
 	}
 	else
 	{
-		SetColour(&cDraw, bMouseOver ? JEWEL_BORDER_HOVER : JEWEL_BORDER);
+		cDraw.SetColour(bMouseOver ? JEWEL_BORDER_HOVER : JEWEL_BORDER);
 		cDraw.DrawRoundedRectangle(2, 2, 18, 18, 3);
-		SetColour(&cDraw, JEWEL_PANEL);
+		cDraw.SetColour(JEWEL_PANEL);
 		cDraw.DrawRoundedRectangle(3, 3, 17, 17, 2);
 	}
 	cDraw.Kill();
@@ -649,7 +635,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreatePin(ARGB32 sColour, bool bPinned, CCo
 	pImage->Black();
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw, sColour);
+	cDraw.SetColour(sColour);
 	for (i = 0; i < NUM_PIN_STROKES; i++)
 	{
 		x0 = gaafPinStrokes[i][0];

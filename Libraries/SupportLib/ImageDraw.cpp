@@ -82,6 +82,21 @@ void CImageDraw::SetColour(CImageColour* pcColour)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The colour as 8 bit alpha, red, green and blue.
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::SetColour(ARGB32 sColour)
+{
+	CImageColourARGB	cColour;
+
+	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
+	SetColour(&cColour);
+	cColour.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CImageDraw::DrawPixel(int x, int y)

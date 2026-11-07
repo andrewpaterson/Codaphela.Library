@@ -1815,6 +1815,46 @@ void TestImageDrawBlitterCacheFreedTogether(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An ARGB32 colour draws exactly what the same colour as a
+// CImageColourARGB does: 8 bit channels over 255.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestImageDrawSetColourARGB32(void)
+{
+	Ptr<CImage>			pFromARGB32;
+	Ptr<CImage>			pFromColour;
+	CImageDraw			cDraw;
+	CImageColourARGB	cColour;
+	uint8*				puiPixel;
+
+	pFromARGB32 = OMalloc<CImage>(4, 2, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pFromARGB32->Black();
+	cDraw.Init(&pFromARGB32);
+	cDraw.SetColour(Set32BitColour((uint8)0x30, (uint8)0x60, (uint8)0x90, (uint8)0xFF));
+	cDraw.DrawRectangle(1, 0, 3, 2);
+	cDraw.Kill();
+
+	pFromColour = OMalloc<CImage>(4, 2, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pFromColour->Black();
+	cDraw.Init(&pFromColour);
+	cColour.Init(0xFF / 255.0f, 0x30 / 255.0f, 0x60 / 255.0f, 0x90 / 255.0f);
+	cDraw.SetColour(&cColour);
+	cColour.Kill();
+	cDraw.DrawRectangle(1, 0, 3, 2);
+	cDraw.Kill();
+
+	AssertMemory(pFromColour->GetData(), pFromARGB32->GetData(), 4 * 2 * 4);
+	puiPixel = &((uint8*)pFromARGB32->GetData())[(1 + 1 * 4) * 4];
+	AssertInt(0x30, puiPixel[0]);
+	AssertInt(0x60, puiPixel[1]);
+	AssertInt(0x90, puiPixel[2]);
+	AssertInt(0xFF, puiPixel[3]);
+	AssertInt(0, ((uint8*)pFromARGB32->GetData())[3]);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestImageDraw(void)
@@ -1830,6 +1870,7 @@ void TestImageDraw(void)
 	TestImageDrawLineExtents();
 	TestImageDrawSemicircle();
 	TestImageDrawShapes();
+	TestImageDrawSetColourARGB32();
 	TestImageDrawCelClipping();
 	TestImageDrawCelMismatchedFormat();
 	TestImageDrawCelClippingTransparentGaps();

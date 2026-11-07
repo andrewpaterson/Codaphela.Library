@@ -4,6 +4,7 @@
 #include "Image.h"
 #include "ImageAccessor.h"
 #include "ImageColour.h"
+#include "ColourARGB32.h"
 #include "ImageBlitter.h"
 #include "ImageRowBlitterFactory.h"
 #include "VectorRasteriser.h"
@@ -27,6 +28,7 @@ public:
 	void	Kill(void);
 
 	void	SetColour(CImageColour* pcColour);
+	void	SetColour(ARGB32 sColour);
 
 	void	DrawPixel(int x, int y);
 
