@@ -1,6 +1,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ClassDefines.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/FillContainer.h"
@@ -22,6 +23,32 @@ void			Click(Ptr<CWindow> pWindow);
 
 
 #define AssertLog(e)	AssertString(e, szLog.Text()); szLog.Clear()
+
+
+//Edit commands that act on a field of the test's choosing while the keys haven't gone to one.
+class CTestEditCommands : public CEditCommands
+{
+CONSTRUCTABLE(CTestEditCommands);
+DESTRUCTABLE(CTestEditCommands);
+public:
+	Ptr<CComponent>		mpDefault;
+
+	void Init(Ptr<CWindow> pWindow, Ptr<CCommandSet> pCommands)
+	{
+		PreInit();
+		CEditCommands::Init(pWindow, pCommands);
+		mpDefault = NULL;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CEditCommands::Class();
+		M_Pointer(mpDefault);
+	}
+
+	Ptr<CComponent> GetDefaultTarget(void) override { return mpDefault; }
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -536,6 +563,7 @@ void TestTextFieldEditCommands(void)
 		Ptr<CTextField>			pField;
 		Ptr<CCommandSet>		pCommands;
 		Ptr<CEditCommands>		pEdit;
+		Ptr<CTestEditCommands>	pDefaulted;
 		Ptr<CMenuContainer>		pMenu;
 		CPointer				pNull;
 		size					uiStart;
@@ -556,6 +584,13 @@ void TestTextFieldEditCommands(void)
 		//Nothing has had the keys yet.
 		AssertTrue(pEdit->GetTarget().IsNull());
 		AssertFalse(pCommands->Find("Edit.Copy")->IsEnabled());
+
+		//Until something has had the keys, the commands act on the default target, if any.
+		pDefaulted = OMalloc<CTestEditCommands>(pTestWindow, OMalloc<CCommandSet>());
+		AssertTrue(pDefaulted->GetTarget().IsNull());
+		pDefaulted->mpDefault = pField;
+		AssertTrue(pDefaulted->GetTarget() == pField);
+		AssertTrue(pDefaulted->CanCopy());
 		MoveTo(pTestWindow, ComponentCentre(pField));
 		Click(pTestWindow);
 		AssertTrue(pEdit->GetTarget() == pField);
@@ -587,6 +622,7 @@ void TestTextFieldEditCommands(void)
 		AssertString("ab", pField->GetText());
 
 		pMenu = NULL;
+		pDefaulted = NULL;
 		pTestWindow->SetCommands(NULL);
 		pEdit = NULL;
 		pCommands = NULL;

@@ -30,8 +30,9 @@ class CFocus;
 //An Edit menu's commands (Undo, Redo, Cut, Copy, Paste and Select All, named Edit.Undo and so on) for a window's
 //command set.  They act on the component the keys last went to that can take them (a text area or field, say), not
 //on the menu holding the keys while it is open: running one gives that component the keys again and the standard
-//command (CIC_Undo ...), and each can run while it would do something there (CComponent::CanDoCommand).  Their keys
-//are the standard ones, Control+Z and so on, shown but not bound again.
+//command (CIC_Undo ...), and each can run while it would do something there (CComponent::CanDoCommand).  Once that
+//component has gone from the window, they act on GetDefaultTarget's (an IDE's active document, say).  Their keys are
+//the standard ones, Control+Z and so on, shown but not bound again.
 class CEditCommands : public CObject
 {
 CONSTRUCTABLE(CEditCommands);
@@ -47,8 +48,9 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	Ptr<CComponent>		GetTarget(void);
-	void				FocusChanged(CFocus* pcFocus);
+	Ptr<CComponent>				GetTarget(void);
+	virtual Ptr<CComponent>		GetDefaultTarget(void);
+	void						FocusChanged(CFocus* pcFocus);
 
 	void				Undo(void);
 	void				Redo(void);

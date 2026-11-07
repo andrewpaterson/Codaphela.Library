@@ -139,26 +139,38 @@ bool CEditCommands::IsTakingEdits(Ptr<CComponent> pComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The component the commands act on, NULL if there is none or it isn't in
-// the window any more (its tab closed, say), which is then let go.
+// The component the commands act on: the one the keys last went to, if
+// it is still in the window (its tab may have closed; it is then let go),
+// else GetDefaultTarget's.  NULL if none.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CComponent> CEditCommands::GetTarget(void)
 {
 	Ptr<CComponent>	pTop;
 
-	if (mpTarget.IsNull())
+	if (mpTarget.IsNotNull())
 	{
-		return NULL;
+		for (pTop = mpTarget; pTop->GetParent().IsNotNull(); pTop = pTop->GetParent())
+		{
+		}
+		if (&pTop != &mpWindow)
+		{
+			mpTarget = NULL;
+		}
 	}
-	for (pTop = mpTarget; pTop->GetParent().IsNotNull(); pTop = pTop->GetParent())
-	{
-	}
-	if (&pTop != &mpWindow)
-	{
-		mpTarget = NULL;
-	}
-	return mpTarget;
+	return mpTarget.IsNotNull() ? mpTarget : GetDefaultTarget();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the commands act on when the keys haven't gone to anything that
+// takes them, or it has gone.  None, unless overridden.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CEditCommands::GetDefaultTarget(void)
+{
+	return NULL;
 }
 
 
