@@ -2,9 +2,12 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/PointerRemapper.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/MultiFileObjectWriter.h"
+#include "StandardLib/ObjectWriter.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 #include "ObjectTestClasses.h"
@@ -92,6 +95,46 @@ void TestObjectGraphSerialiserReachability(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each object written to one stream starts with its own length.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectGraphSerialiserTwoInOneStream(void)
+{
+	Ptr<CTestSaveableObject2>	pFirst;
+	Ptr<CTestSaveableObject2>	pSecond;
+	CObjectWriter				cWriter;
+	CMemoryFile					cMemory;
+	lsize						uiSecondStart;
+	lsize						uiEnd;
+	uint32						uiLength;
+
+	pFirst = ONMalloc<CTestSaveableObject2>("First", "One");
+	pSecond = ONMalloc<CTestSaveableObject2>("Second", "Two and more");
+
+	cMemory.Init();
+	cMemory.Open(EFM_ReadWrite_Create);
+	cWriter.Init(&cMemory, NULL);
+	AssertTrue(cWriter.Write(&pFirst));
+	uiSecondStart = cMemory.GetBufferSize();
+	AssertTrue(cWriter.Write(&pSecond));
+	uiEnd = cMemory.GetBufferSize();
+
+	memcpy(&uiLength, cMemory.GetBufferPointer(), sizeof(uint32));
+	AssertLong(uiSecondStart, uiLength);
+	memcpy(&uiLength, RemapSinglePointer(cMemory.GetBufferPointer(), (ptrdiff)uiSecondStart), sizeof(uint32));
+	AssertLong(uiEnd - uiSecondStart, uiLength);
+
+	cMemory.Close();
+	cWriter.Kill();
+	cMemory.Kill();
+
+	pFirst->Kill();
+	pSecond->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectGraphSerialiser(void)
@@ -103,6 +146,7 @@ void TestObjectGraphSerialiser(void)
 	BeginTests();
 
 	TestObjectGraphSerialiserReachability();
+	TestObjectGraphSerialiserTwoInOneStream();
 
 	TestStatistics();
 	ObjectsKill();

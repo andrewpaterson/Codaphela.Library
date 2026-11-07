@@ -188,7 +188,7 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 	iStart = mcFile.GetFilePos();
 	bResult = ReadSize(&iExpectedLength);
 	
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object steam size loading object [", sz.Text(), "] 'froms'.", NULL);
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object stream size loading object [", sz.Text(), "] 'froms'.", NULL);
 
 	iMagic = OBJECT_FROM_HEAP;
 	bResult = mcFile.ReadInt32(&iMagic);
