@@ -96,31 +96,17 @@ void CFlowContainer::SetRequiredSize(void)
 	{
 		sSize = GetLineSize(maChildren.Get(i));
 
-		// Main-axis accumulation
+		//Along the line the components' sizes add up.
 		iMainTotal = ContainerStyleMainAxis(&sTotalSize, bHorizontal);
 		iMainTotal += ContainerStyleMainAxis(&sSize, bHorizontal);
-		if (bHorizontal)
-		{
-			sTotalSize.x = iMainTotal;
-		}
-		else
-		{
-			sTotalSize.y = iMainTotal;
-		}
+		ContainerStyleSetMainAxis(&sTotalSize, bHorizontal, iMainTotal);
 
-		// Cross-axis maximum
+		//Across it the thickest decides.
 		iCrossTotal = ContainerStyleCrossAxis(&sTotalSize, bHorizontal);
 		iCrossSize = ContainerStyleCrossAxis(&sSize, bHorizontal);
 		if (iCrossTotal < iCrossSize)
 		{
-			if (bHorizontal)
-			{
-				sTotalSize.y = iCrossSize;
-			}
-			else
-			{
-				sTotalSize.x = iCrossSize;
-			}
+			ContainerStyleSetCrossAxis(&sTotalSize, bHorizontal, iCrossSize);
 		}
 	}
 	AddInsets(&sTotalSize);
@@ -225,7 +211,7 @@ void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size
 		sSize = GetLineSize(pComponent);
 		iMainSize = ContainerStyleMainAxis(&sSize, bHorizontal);
 
-		// Main-axis offset (reversed or normal)
+		//A reversed flow places the components from the line's far end.
 		if (bReversed)
 		{
 			iMainOffset = ContainerStyleMainAxis(&sLineSize, bHorizontal) - iMainPos - iMainSize;
@@ -266,9 +252,8 @@ size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength
 	int					iLineThickness;
 	bool				bHorizontal;
 
-	// A line takes components until the next would make it longer than iMainLength,
-	// but always takes at least one.
-	// Returns the index of the first component on the next line.
+	//A line takes components until the next would make it longer than iMainLength, but always takes at least one.
+	//Returns the index of the first component on the next line.
 	bHorizontal = IsHorizontal();
 	iLineLength = 0;
 	iLineThickness = 0;
@@ -352,17 +337,8 @@ SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
 		iCrossPos += iLineThickness;
 	}
 
-	// Write the final results (helpers are now read-only)
-	if (bHorizontal)
-	{
-		sArea.x = iLongestLine;
-		sArea.y = iCrossPos;
-	}
-	else
-	{
-		sArea.x = iCrossPos;
-		sArea.y = iLongestLine;
-	}
+	ContainerStyleSetMainAxis(&sArea, bHorizontal, iLongestLine);
+	ContainerStyleSetCrossAxis(&sArea, bHorizontal, iCrossPos);
 
 	return sArea;
 }
@@ -388,31 +364,16 @@ void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	bHorizontal = IsHorizontal();
 
-	// CalculateWrappedArea takes the main-axis length
+	//The block of wrapped lines is placed across the area as a whole.
 	sRequiredArea = CalculateWrappedArea(ContainerStyleMainAxis(&sAreaSize, bHorizontal));
 
 	sLinePosition = sPosition;
 
-	// Align the starting cross-axis position
 	iCrossPos = ContainerStyleCrossAxis(&sLinePosition, bHorizontal) + AlignCross(ContainerStyleCrossAxis(&sRequiredArea, bHorizontal), ContainerStyleCrossAxis(&sAreaSize, bHorizontal));
-	if (bHorizontal)
-	{
-		sLinePosition.y = iCrossPos;
-	}
-	else
-	{
-		sLinePosition.x = iCrossPos;
-	}
+	ContainerStyleSetCrossAxis(&sLinePosition, bHorizontal, iCrossPos);
 
 	iMainLen = ContainerStyleMainAxis(&sAreaSize, bHorizontal);
-	if (bHorizontal)
-	{
-		sLineSize.x = iMainLen;
-	}
-	else
-	{
-		sLineSize.y = iMainLen;
-	}
+	ContainerStyleSetMainAxis(&sLineSize, bHorizontal, iMainLen);
 
 	uiSize = maChildren.Size();
 	iFirst = 0;
@@ -421,28 +382,13 @@ void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	{
 		iEnd = FindLineEnd(iFirst, ContainerStyleMainAxis(&sAreaSize, bHorizontal), &iLineLength, &iLineThickness);
 
-		// Set the line's cross-axis thickness
-		if (bHorizontal)
-		{
-			sLineSize.y = iLineThickness;
-		}
-		else
-		{
-			sLineSize.x = iLineThickness;
-		}
+		//Each line is as thick as its thickest component, and the next starts after it.
+		ContainerStyleSetCrossAxis(&sLineSize, bHorizontal, iLineThickness);
 
 		LayoutLine(sLinePosition, sLineSize, iFirst, iEnd);
 
-		// Advance the line position on the cross axis
 		iCrossPos = ContainerStyleCrossAxis(&sLinePosition, bHorizontal) + iLineThickness;
-		if (bHorizontal)
-		{
-			sLinePosition.y = iCrossPos;
-		}
-		else
-		{
-			sLinePosition.x = iCrossPos;
-		}
+		ContainerStyleSetCrossAxis(&sLinePosition, bHorizontal, iCrossPos);
 
 		iFirst = iEnd;
 	}

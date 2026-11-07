@@ -90,3 +90,30 @@ int32 ContainerStyleCrossAxis(SInt32Vec2* psVec, bool bHorizontal)
 	return bHorizontal ? psVec->y : psVec->x;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ContainerStyleSetMainAxis(SInt32Vec2* psVec, bool bHorizontal, int32 iValue)
+{
+	if (bHorizontal)
+	{
+		psVec->x = iValue;
+	}
+	else
+	{
+		psVec->y = iValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ContainerStyleSetCrossAxis(SInt32Vec2* psVec, bool bHorizontal, int32 iValue)
+{
+	ContainerStyleSetMainAxis(psVec, !bHorizontal, iValue);
+}
+

@@ -66,6 +66,8 @@ int		AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iCompone
 
 int32	ContainerStyleMainAxis(SInt32Vec2* psVec, bool bHorizontal);  //The x of sVec if bHorizontal, otherwise the y.
 int32	ContainerStyleCrossAxis(SInt32Vec2* psVec, bool bHorizontal);  //The other one.
+void	ContainerStyleSetMainAxis(SInt32Vec2* psVec, bool bHorizontal, int32 iValue);  //Sets the x of sVec if bHorizontal, otherwise the y.
+void	ContainerStyleSetCrossAxis(SInt32Vec2* psVec, bool bHorizontal, int32 iValue);  //Sets the other one.
 
 
 #endif // __CONTAINER_STYLE_H__

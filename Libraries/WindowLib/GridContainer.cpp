@@ -456,7 +456,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 	SInt32Vec2		sDesired;
 	size			uiMainAxisSpan;
 
-	// Works out every column's (or row's) required size and weight.
+	//Works out every column's (or row's) required size and weight.
 	uiNumTracks = NumTracks(bColumns);
 	for (i = 0; i < uiNumTracks; i++)
 	{
@@ -464,7 +464,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		paiWeights->Add(0);
 	}
 
-	// Components sitting in a single track first.
+	//Components sitting in a single track first.
 	uiMaxSpan = 1;
 	for (i = 0; i < maChildren.Size(); i++)
 	{
@@ -492,7 +492,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		}
 	}
 
-	// Then components spanning tracks, narrowest first, add any weight and size their tracks still lack.
+	//Then components spanning tracks, narrowest first, add any weight and size their tracks still lack.
 	for (uiSpan = 2; uiSpan <= uiMaxSpan; uiSpan++)
 	{
 		for (i = 0; i < maChildren.Size(); i++)
