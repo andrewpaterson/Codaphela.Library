@@ -387,6 +387,38 @@ void TestUnicodeConvertUTF8ToUTF16(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A character followed by something that isn't valid is still a whole
+// character: the invalid part only ends it.  On its own it is an error.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUnicodePeekBeforeInvalid(void)
+{
+	CUTF8	cUTF8;
+	CUTF16	cUTF16;
+	uint16	auiUTF16[2];
+
+	cUTF8.Init((uint8*)"\xC3\xA9\xFF", 3);
+	AssertSize(2, cUTF8.PeekUTFBytes());
+	cUTF8.Kill();
+
+	cUTF8.Init((uint8*)"\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x92\xBB\xFF", 12);
+	AssertSize(11, cUTF8.PeekUTFBytes());
+	cUTF8.Kill();
+
+	cUTF8.Init((uint8*)"\xFF\xFF", 2);
+	AssertSize(UNICODE_NON_CHARACTER, cUTF8.PeekUTFBytes());
+	cUTF8.Kill();
+
+	auiUTF16[0] = 0x00E9;
+	auiUTF16[1] = 0xDC00;
+	cUTF16.Init(auiUTF16, 2);
+	AssertSize(2, cUTF16.PeekUTFBytes());
+	cUTF16.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestUnicode(void)
@@ -395,6 +427,7 @@ void TestUnicode(void)
 
 	TestUnicodeConvertUTF16ToUTF8();
 	TestUnicodeConvertUTF8ToUTF16();
+	TestUnicodePeekBeforeInvalid();
 
 	TestStatistics();
 }

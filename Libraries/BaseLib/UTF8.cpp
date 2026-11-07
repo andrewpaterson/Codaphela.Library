@@ -332,8 +332,9 @@ size CUTF8::PeekUTFBytes(void)
 		uiLength = GetUTF8ElementLength();
 		if (uiLength == muiError)
 		{
+			//What isn't valid after a whole character only ends it.
 			muiPos = uiStartPos;
-			return muiError;
+			return bLastZWJ ? muiError : uiTotalLength;
 		}
 
 		if (uiLength == UNICODE_ZWJ)

@@ -288,8 +288,9 @@ size CUTF16::PeekUTFBytes(void)
         uiLength = GetUTF16ElementLength();
         if (uiLength == muiError)
         {
+            //What isn't valid after a whole character only ends it.
             muiPos = uiStartPos;
-            return muiError;
+            return bLastZWJ ? muiError : uiTotalLength * sizeof(uint16);
         }
 
         if (uiLength == UNICODE_ZWJ)
