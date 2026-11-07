@@ -173,7 +173,7 @@ void CSoundMixer::Mix(void)
 	lsize	uiLeadFrames;
 	lsize	uiQueuedFrames;
 
-	if ((mpcNativeMixer == NULL) || !mpcNativeMixer->IsOpen())
+	if (!IsOpen())
 	{
 		return;
 	}
@@ -197,7 +197,7 @@ void CSoundMixer::Mix(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSoundMixer::GetMixDelay(uint32* puiMilliseconds)
 {
-	if ((mpcNativeMixer == NULL) || !mpcNativeMixer->IsOpen() || (maVoices.Size() == 0))
+	if (!IsOpen() || (maVoices.Size() == 0))
 	{
 		return false;
 	}
@@ -219,7 +219,7 @@ void CSoundMixer::Mix(lsize uiFrames)
 	float64*	pfRight;
 	float64		fVolume;
 
-	if ((uiFrames == 0) || (mpcNativeMixer == NULL) || !mpcNativeMixer->IsOpen())
+	if ((uiFrames == 0) || !IsOpen())
 	{
 		return;
 	}
