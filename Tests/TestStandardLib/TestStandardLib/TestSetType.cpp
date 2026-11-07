@@ -1,4 +1,8 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/DiskFile.h"
+#include "BaseLib/BufferedFile.h"
+#include "BaseLib/ChunkFile.h"
 #include "TestLib/Assert.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/SetType.h"
@@ -156,6 +160,70 @@ void TestSetTypeAddAll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A set leaves a hole where an element was removed.  It is saved and
+// loaded as a hole.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetTypeSaveWithHole(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetType<CTestUnknown>	cSet;
+	CTestUnknown*			pcTest;
+	CTestUnknown*			pcTwo;
+	CChunkFile				cFile;
+	CFileUtil				cFileUtil;
+	SSetIterator			sIter;
+	bool					bExists;
+
+	cFileUtil.RemoveDir("Output" _FS_ "SetTypeHole");
+	cFileUtil.TouchDir("Output" _FS_ "SetTypeHole");
+
+	cSet.Init(false);
+	cSet.Add()->Init(1);
+	pcTwo = cSet.Add();
+	pcTwo->Init(2);
+	cSet.Add()->Init(3);
+	AssertTrue(cSet.Remove(pcTwo));
+	AssertSize(2, cSet.NumElements());
+
+	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "SetTypeHole" _FS_ "Set.dat")));
+	AssertTrue(cFile.WriteOpen());
+	AssertTrue(cSet.Save(&cFile));
+	AssertTrue(cFile.WriteClose());
+	cFile.Kill();
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "SetTypeHole" _FS_ "Set.dat")));
+	AssertTrue(cFile.ReadOpen());
+	AssertTrue(cSet.Load(&cFile));
+	AssertTrue(cFile.ReadClose());
+	cFile.Kill();
+
+	AssertSize(2, cSet.NumElements());
+	AssertSize(2, gcUnknowns.NumElements());
+	bExists = cSet.StartIteration(&sIter, &pcTest);
+	AssertTrue(bExists);
+	AssertInt(1, pcTest->miCount);
+	bExists = cSet.Iterate(&sIter, &pcTest);
+	AssertTrue(bExists);
+	AssertInt(3, pcTest->miCount);
+	bExists = cSet.Iterate(&sIter, &pcTest);
+	AssertFalse(bExists);
+
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+	cFileUtil.RemoveDir("Output" _FS_ "SetTypeHole");
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetType(void)
@@ -164,6 +232,7 @@ void TestSetType(void)
 
 	TestSetTypeInstantiation();
 	TestSetTypeAddAll();
+	TestSetTypeSaveWithHole();
 
 	TestStatistics();
 }

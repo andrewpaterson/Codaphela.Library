@@ -216,9 +216,30 @@ bool CUnknowns::LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown)
 	{
 		return false;
 	}
-	ReturnOnFalse(pcUnknown->Load(pcFile));
+	if (!pcUnknown->Load(pcFile))
+	{
+		pcUnknown->Kill();
+		return false;
+	}
 	*ppcUnknown = pcUnknown;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A collection whose elements are all one type saves them without their
+// headers: LoadKnownType knows what to make.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CUnknowns::SaveKnownType(CFileWriter* pcFile, CUnknown* pcUnknown)
+{
+	ReturnOnFalse(pcFile->WriteBool(pcUnknown != NULL));
+	if (pcUnknown == NULL)
+	{
+		return true;
+	}
+	return pcUnknown->Save(pcFile);
 }
 
 

@@ -62,6 +62,8 @@ public:
 						CConstructors*	GetConstructors(void);
 						bool			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
 						bool			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
+	template<class M>	bool			LoadKnownType(CFileReader* pcFile, CUnknown** ppcUnknown);
+						bool			SaveKnownType(CFileWriter* pcFile, CUnknown* pcUnknown);
 
 						//Iterable stuff.
 	template<class M>	M*				StartIteration(SIteratorTemplate<M>* psIter);
@@ -103,6 +105,34 @@ template<class M>
 M* CUnknowns::Add(void)
 {
 	return Add<M>(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CUnknowns::LoadKnownType(CFileReader* pcFile, CUnknown** ppcUnknown)
+{
+	M*		pcUnknown;
+	bool	bExists;
+
+	*ppcUnknown = NULL;
+	ReturnOnFalse(pcFile->ReadBool(&bExists));
+	if (!bExists)
+	{
+		return true;
+	}
+
+	pcUnknown = Add<M>();
+	if (!pcUnknown->Load(pcFile))
+	{
+		pcUnknown->Kill();
+		return false;
+	}
+	*ppcUnknown = pcUnknown;
+	return true;
 }
 
 

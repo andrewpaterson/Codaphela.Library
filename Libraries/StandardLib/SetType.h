@@ -45,8 +45,8 @@ public:
 	bool	Contains(M* pcUnknown);
 
 protected:
-	bool	ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	bool	WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	bool	ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown) override;
+	bool	WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown) override;
 };
 
 
@@ -168,12 +168,7 @@ bool CSetType<M>::Contains(M* pcUnknown)
 template<class M>
 bool CSetType<M>::ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
-	M*	pcUnknown;
-
-	pcUnknown = gcUnknowns.Add<M>();
-	ReturnOnFalse(pcUnknown->Load(pcFile));
-	*ppcUnknown = pcUnknown;
-	return true;
+	return gcUnknowns.LoadKnownType<M>(pcFile, ppcUnknown);
 }
 
 
@@ -184,7 +179,7 @@ bool CSetType<M>::ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 template<class M>
 bool CSetType<M>::WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
-	return pcUnknown->Save(pcFile);
+	return gcUnknowns.SaveKnownType(pcFile, pcUnknown);
 }
 
 
