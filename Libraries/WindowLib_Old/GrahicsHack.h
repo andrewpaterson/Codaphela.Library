@@ -1,5 +1,0 @@
-#include "GraphicsMaterial.h"
-#include "GraphicsTexture.h"
-#include "GraphicsState.h"
-#include "GraphicsObject.h"
-#include "GraphicsViewport.h"
