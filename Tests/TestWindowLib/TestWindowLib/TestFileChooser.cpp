@@ -43,6 +43,7 @@ public:
 	Ptr<CButton>		GetNewFolder(void) { return mpNewFolder; }
 	bool				IsNewFolderPending(void) { return mbNewFolderPending; }
 	char*				GetRowPath(int32 iRow) { return maszRows.GetText(iRow); }
+	char*				GetClicked(void) { return mpDialog->GetClicked(); }
 };
 
 
@@ -177,8 +178,17 @@ void TestFileChooserBrowse(void)
 		AssertString(szFull.Text(), pChooser->GetDirectory());
 		AssertInt(0, pChooser->GetList()->GetSelected());
 
+		//Activating a file's row chooses it, as OK does.
+		AssertString("", pChooser->GetClicked());
+		pChooser->GetList()->Select(1);
+		pChooser->SelectionChanged();
+		pChooser->ItemActivated();
+		AssertString("OK", pChooser->GetClicked());
+		AssertTrue(IsPathIn(pChooser->GetChosen(), szDirectory, "a.txt"));
+
 		//Activating a folder's row opens it.  The list is activated by a double click, not a click.
 		AssertTrue(pChooser->GetList()->IsDoubleClickActivates());
+		pChooser->GetList()->Select(0);
 		pChooser->ItemActivated();
 		AssertString(szFullSub.Text(), pChooser->GetDirectory());
 

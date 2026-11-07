@@ -701,9 +701,9 @@ void CFileChooser::ItemActivated(void)
 	{
 		Open(maszRows.GetText(iRow), NULL);
 	}
-	else if (Approve())
+	else
 	{
-		mpDialog->Close("OK");
+		mpDialog->OKClicked();
 	}
 }
 

@@ -584,15 +584,12 @@ bool CGoToDialog::Approve(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A double click on a result.
+// A double click on a result is OK.
 //
 //////////////////////////////////////////////////////////////////////////
 void CGoToDialog::ResultActivated(void)
 {
-	if (Approve())
-	{
-		mpDialog->Close("OK");
-	}
+	mpDialog->OKClicked();
 }
 
 

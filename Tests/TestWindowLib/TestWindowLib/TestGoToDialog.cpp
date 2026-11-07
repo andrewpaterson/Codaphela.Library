@@ -181,6 +181,12 @@ void TestGoToDialogSearch(void)
 		AssertFalse(pDialog->Approve());
 		AssertTrue(pDialog->GetChosen() == NULL);
 
+		//A double click on a result chooses it, as OK does.
+		pDialog->Start(0, "CListContainer");
+		pDialog->ResultActivated();
+		AssertTrue(pDialog->GetChosen() != NULL);
+		AssertString("CListContainer", pDialog->GetChosen()->szName.Text());
+
 		//Only the best are listed.
 		pDialog->Start(0, "");
 		for (i = 0; i < pDialog->NumResults(); i++)
