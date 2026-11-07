@@ -38,7 +38,7 @@ if (q) \
     p = ErrorToString(); \
     if (!p.Empty()) \
     { \
-        gcLogger.Error2(__METHOD__, " "##r##" failed [", p.Text(), "].", NULL); \
+        gcLogger.Error2(__METHOD__, " " r " failed [", p.Text(), "].", NULL); \
         p.Kill(); \
         return false; \
     } \
