@@ -137,6 +137,11 @@ bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 	default:
 		return false;
 	}
+	if (sType.IsPointer() && (iBits < 64))
+	{
+		//A pointer is as wide as its space (IRTruncate doesn't know the module's sizes).
+		*pulliResult &= (((uint64)1) << iBits) - 1;
+	}
 	return true;
 }
 

@@ -930,6 +930,22 @@ void TestIRComparisonOpcodes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer constant folded from an integer keeps only its space's width:
+// 0x10000 as a 2 byte pointer is 0, so it equals one made from 0.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserPointerConstantWidth(void)
+{
+	AssertIROptimised(
+		"space near 2\n\nfunction i1 @_Z__Fv()\n{\nentry:\n\tret i1 1\n}\n",
+		"space near 2\n\n"
+		"function i1 @_Z__Fv()\n{\nentry:\n\t%p = itoptr i32 65536 to ptr.near\n\t%q = itoptr i32 0 to ptr.near\n"
+		"\t%c = eq ptr.near %p, %q\n\tret i1 %c\n}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A constant goes to the right of a commutative operation (256 * a is a shift like a * 256); a mul of a value the
 // branches before it keep from 0 to 199 by 320 fits 16 bits (NarrowMultiplies, the W65C816's), and one that may be
 // negative or too big doesn't; a sext of a value the branches keep 0 or more is a zext.
@@ -4268,6 +4284,7 @@ void TestIR(void)
 	TestIRDominators();
 	TestIRLoops();
 	TestIRComparisonOpcodes();
+	TestIROptimiserPointerConstantWidth();
 	TestIROptimiser();
 	TestIROptimiserConstantsRight();
 	TestIROptimiserFoldedInlinedPhis();
