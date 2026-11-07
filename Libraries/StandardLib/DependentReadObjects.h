@@ -20,23 +20,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEPENDENT_READ_OBJECTS_H__
 #define __DEPENDENT_READ_OBJECTS_H__
-#include "BaseLib/Logger.h"
 #include "ObjectHeader.h"
 #include "BaseObject.h"
-#include "Pointer.h"
-#include "Objects.h"
-#include "IndexGenerator.h"
-#include "IndexNewOld.h"
-#include "DependentReadObject.h"
-#include "DependentReadPointer.h"
+#include "Objects.h"		//Not needed here, but the libraries and tests that read objects find CObjects through this.
 
 
+//What an object reader asks while it reads: the objects a read object points to (and those that point to it), and
+//where to read it into.
 class CDependentReadObjects
 {
 public:
-			void					Init(void);
-			void					Kill(void);
-
 	virtual bool					AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) =0;
 	virtual bool					AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex) =0;
 

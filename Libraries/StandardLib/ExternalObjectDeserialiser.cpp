@@ -33,7 +33,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects)
 {
-	CDependentReadObjects::Init();
 	mcIndexRemap.Init();
 	mcNewIndices.Init(true);
 	mcReadObjects.Init();
@@ -74,7 +73,6 @@ void CExternalObjectDeserialiser::Kill(void)
 	mcReadObjectPositions.Kill();
 	maoiUnread.Kill();
 
-	CDependentReadObjects::Kill();
 }
 
 

@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Null.h"
 #include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
+#include "Objects.h"
 #include "ExternalObjectDeserialiser.h"
 #include "ObjectReader.h"
 

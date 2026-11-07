@@ -34,7 +34,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CInternalObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
 {
-	CDependentReadObjects::Init();
 	mpcObjects = pcObjects;
 	mpcDataConnection = pcDataConnection;
 	mpcMemory = pcMemory;
@@ -50,7 +49,6 @@ void CInternalObjectDeserialiser::Kill(void)
 	mpcDataConnection = NULL;
 	mpcMemory = NULL;
 	mpcObjects = NULL;
-	CDependentReadObjects::Kill();
 }
 
 

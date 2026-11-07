@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CHANNELS_ACCESSOR_H__
 #define __CHANNELS_ACCESSOR_H__
+#include "BaseLib/StackMemory.h"
 #include "Unknown.h"
 #include "ChannelAccessor.h"
 #include "Channels.h"
