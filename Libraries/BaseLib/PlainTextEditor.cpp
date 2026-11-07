@@ -41,6 +41,7 @@ void CPlainTextEditor::Init(const char* szText)
 {
 	mszText.Init(szText);
 	mszText.PassifyNewlines();
+	mcNavigation.Init(&mszText);
 	mbMultiLine = true;
 	miEditPos = 0;
 	miPageLength = 25;
@@ -69,7 +70,7 @@ void CPlainTextEditor::Kill(void)
 void CPlainTextEditor::Left(void)
 {
 	ClearSelection();
-	miEditPos = FindLeft(miEditPos);
+	miEditPos = mcNavigation.PreviousPosition(miEditPos);
 	ResetUpDown();
 }
 
@@ -81,7 +82,7 @@ void CPlainTextEditor::Left(void)
 void CPlainTextEditor::Right(void)
 {
 	ClearSelection();
-	miEditPos = FindRight(miEditPos);
+	miEditPos = mcNavigation.NextPosition(miEditPos);
 	ResetUpDown();
 }
 
@@ -189,7 +190,7 @@ void CPlainTextEditor::PageDown(void)
 void CPlainTextEditor::WordLeft(void)
 {
 	ClearSelection();
-	miEditPos = FindWordLeft(miEditPos);
+	miEditPos = mcNavigation.FindWordLeft(miEditPos);
 	ResetUpDown();
 }
 
@@ -201,7 +202,7 @@ void CPlainTextEditor::WordLeft(void)
 void CPlainTextEditor::WordRight(void)
 {
 	ClearSelection();
-	miEditPos = FindWordRight(miEditPos);
+	miEditPos = mcNavigation.FindWordRight(miEditPos);
 	ResetUpDown();
 }
 
@@ -213,7 +214,7 @@ void CPlainTextEditor::WordRight(void)
 void CPlainTextEditor::SelectLeft(void)
 {
 	BeginSelection();
-	miEditPos = FindLeft(miEditPos);
+	miEditPos = mcNavigation.PreviousPosition(miEditPos);
 	EndSelection();
 	ResetUpDown();
 }
@@ -226,7 +227,7 @@ void CPlainTextEditor::SelectLeft(void)
 void CPlainTextEditor::SelectRight(void)
 {
 	BeginSelection();
-	miEditPos = FindRight(miEditPos);
+	miEditPos = mcNavigation.NextPosition(miEditPos);
 	EndSelection();
 	ResetUpDown();
 }
@@ -239,7 +240,7 @@ void CPlainTextEditor::SelectRight(void)
 void CPlainTextEditor::SelectWordLeft(void)
 {
 	BeginSelection();
-	miEditPos = FindWordLeft(miEditPos);
+	miEditPos = mcNavigation.FindWordLeft(miEditPos);
 	EndSelection();
 	ResetUpDown();
 }
@@ -252,7 +253,7 @@ void CPlainTextEditor::SelectWordLeft(void)
 void CPlainTextEditor::SelectWordRight(void)
 {
 	BeginSelection();
-	miEditPos = FindWordRight(miEditPos);
+	miEditPos = mcNavigation.FindWordRight(miEditPos);
 	EndSelection();
 	ResetUpDown();
 }
@@ -384,7 +385,7 @@ void CPlainTextEditor::Delete(void)
 	{
 		if (CanGoRight(miEditPos))
 		{
-			mszText.RemoveCharacter(miEditPos);
+			mszText.Remove(miEditPos, mcNavigation.NextPosition(miEditPos));
 			ResetUpDown();
 		}
 	}
@@ -402,12 +403,16 @@ void CPlainTextEditor::Delete(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::Backspace(void)
 {
+	size	iStart;
+
 	if (!IsSelected())
 	{
 		if (CanGoLeft(miEditPos))
 		{
-			mszText.RemoveCharacter(miEditPos - 1);
-			Left();
+			iStart = mcNavigation.PreviousPosition(miEditPos);
+			mszText.Remove(iStart, miEditPos);
+			miEditPos = iStart;
+			ResetUpDown();
 		}
 	}
 	else
@@ -585,8 +590,8 @@ void CPlainTextEditor::CutLine(CChars* pszDest)
 	if (!IsSelected())
 	{
 		iCount = GetCharCountAlongLine(miEditPos);
-		iStart = FindStartOfLine(miEditPos);
-		iEnd = FindEndOfLine(miEditPos);
+		iStart = mcNavigation.FindLineStart(miEditPos);
+		iEnd = mcNavigation.FindLineEnd(miEditPos);
 
 		if (CanGoRight(iEnd))
 		{
@@ -619,8 +624,8 @@ void CPlainTextEditor::Duplicate(void)
 
 	if (!IsSelected())
 	{
-		iStart = FindStartOfLine(miEditPos);
-		iEnd = FindEndOfLine(miEditPos);
+		iStart = mcNavigation.FindLineStart(miEditPos);
+		iEnd = mcNavigation.FindLineEnd(miEditPos);
 		bNewLine = true;
 	}
 	else
@@ -658,7 +663,7 @@ void CPlainTextEditor::DeleteWordRemainingRight(void)
 {
 	size	iEnd;
 
-	iEnd = FindWordRight(miEditPos);
+	iEnd = mcNavigation.FindWordRight(miEditPos);
 	if (miEditPos != iEnd)
 	{
 		ClearSelection();
@@ -676,7 +681,7 @@ void CPlainTextEditor::DeleteWordRemainingLeft(void)
 {
 	size	iEnd;
 
-	iEnd = FindWordLeft(miEditPos);
+	iEnd = mcNavigation.FindWordLeft(miEditPos);
 	if (miEditPos != iEnd)
 	{
 		ClearSelection();
@@ -699,8 +704,8 @@ void CPlainTextEditor::DeleteLine(void)
 	iCount = GetCharCountAlongLine(miEditPos);
 	if (!IsSelected())
 	{
-		iStart = FindStartOfLine(miEditPos);
-		iEnd = FindEndOfLine(miEditPos);
+		iStart = mcNavigation.FindLineStart(miEditPos);
+		iEnd = mcNavigation.FindLineEnd(miEditPos);
 	}
 	else
 	{
@@ -715,8 +720,8 @@ void CPlainTextEditor::DeleteLine(void)
 			iEnd = miSelectionAnchor;
 		}
 
-		iStart = FindStartOfLine(iStart);
-		iEnd = FindEndOfLine(iEnd);
+		iStart = mcNavigation.FindLineStart(iStart);
+		iEnd = mcNavigation.FindLineEnd(iEnd);
 	}
 
 	if (CanGoRight(iEnd))
@@ -819,47 +824,19 @@ void CPlainTextEditor::BackTab(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPlainTextEditor::FindLeft(size iCurrentPos)
-{
-	if (CanGoLeft(iCurrentPos))
-	{
-		iCurrentPos--;
-	}
-	return iCurrentPos;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CPlainTextEditor::FindRight(size iCurrentPos)
-{
-	if (CanGoRight(iCurrentPos))
-	{
-		iCurrentPos++;
-	}
-	return iCurrentPos;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 size CPlainTextEditor::FindUp(size iCurrentPos)
 {
 	size	iStartOfThisLine;
 	size	iStartOfPrevLine;
 
-	iStartOfThisLine = FindStartOfLine(iCurrentPos);
+	iStartOfThisLine = mcNavigation.FindLineStart(iCurrentPos);
 	if (iStartOfThisLine == 0)
 	{
 		return 0;
 	}
 	else
 	{
-		iStartOfPrevLine = FindStartOfLine(iStartOfThisLine - 1);
+		iStartOfPrevLine = mcNavigation.FindLineStart(iStartOfThisLine - 1);
 		return FindPositionAlongLine(iStartOfPrevLine, miUpDownCharCount);
 	}
 }
@@ -874,7 +851,7 @@ size CPlainTextEditor::FindDown(size iCurrentPos)
 	size	iEndOfThisLine;
 	size	iStartOfNextLine;
 
-	iEndOfThisLine = FindEndOfLine(iCurrentPos);
+	iEndOfThisLine = mcNavigation.FindLineEnd(iCurrentPos);
 	if (iEndOfThisLine == mszText.Length())
 	{
 		return iEndOfThisLine;
@@ -893,7 +870,7 @@ size CPlainTextEditor::FindDown(size iCurrentPos)
 //////////////////////////////////////////////////////////////////////////
 size CPlainTextEditor::FindHome(size iCurrentPos)
 {
-	return FindStartOfLine(iCurrentPos);
+	return mcNavigation.FindLineStart(iCurrentPos);
 }
 
 
@@ -903,7 +880,7 @@ size CPlainTextEditor::FindHome(size iCurrentPos)
 //////////////////////////////////////////////////////////////////////////
 size CPlainTextEditor::FindEnd(size iCurrentPos)
 {
-	return FindEndOfLine(iCurrentPos);
+	return mcNavigation.FindLineEnd(iCurrentPos);
 }
 
 
@@ -936,7 +913,7 @@ size CPlainTextEditor::FindPageUp(size iCurrentPos)
 	size	i;
 	size	iLineStart;
 
-	iLineStart = FindStartOfLine(iCurrentPos);
+	iLineStart = mcNavigation.FindLineStart(iCurrentPos);
 	if (iLineStart == 0)
 	{
 		return iCurrentPos;
@@ -944,7 +921,7 @@ size CPlainTextEditor::FindPageUp(size iCurrentPos)
 
 	for (i = 0; i < miPageLength; i++)
 	{
-		iLineStart = FindStartOfLine(iLineStart - 1);
+		iLineStart = mcNavigation.FindLineStart(iLineStart - 1);
 		if (iLineStart == 0)
 		{
 			break;
@@ -964,7 +941,7 @@ size CPlainTextEditor::FindPageDown(size iCurrentPos)
 	size	i;
 	size	iLineStart;
 
-	iLineEnd = FindEndOfLine(iCurrentPos);
+	iLineEnd = mcNavigation.FindLineEnd(iCurrentPos);
 	if (iLineEnd == mszText.Length())
 	{
 		return iCurrentPos;
@@ -972,74 +949,14 @@ size CPlainTextEditor::FindPageDown(size iCurrentPos)
 
 	for (i = 0; i < miPageLength; i++)
 	{
-		iLineEnd = FindEndOfLine(iLineEnd+1);
+		iLineEnd = mcNavigation.FindLineEnd(iLineEnd+1);
 		if (iLineEnd == mszText.Length())
 		{
 			break;
 		}
 	}
-	iLineStart = FindStartOfLine(iLineEnd);
+	iLineStart = mcNavigation.FindLineStart(iLineEnd);
 	return FindPositionAlongLine(iLineStart, miUpDownCharCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CPlainTextEditor::FindWordLeft(size iPos)
-{
-	char c;
-
-	if (!CanGoLeft(iPos))
-	{
-		return iPos;
-	}
-
-	iPos--;
-	c = mszText.GetChar(iPos);
-	if (IsWhitespace(c))
-	{
-		for (;;)
-		{
-			if (CanGoLeft(iPos))
-			{
-				iPos--;
-				c = mszText.GetChar(iPos);
-				if (!IsWhitespace(c))
-				{
-					return iPos+1;
-				}
-			}
-			else
-			{
-				return iPos;
-			}
-		}
-	}
-	else if (IsNormalChar(c))
-	{
-		for (;;)
-		{
-			if (CanGoLeft(iPos))
-			{
-				iPos--;
-				c = mszText.GetChar(iPos);
-				if (!IsNormalChar(c))
-				{
-					return iPos+1;
-				}
-			}
-			else
-			{
-				return iPos;
-			}
-		}
-	}
-	else
-	{
-		return iPos;
-	}
 }
 
 
@@ -1060,87 +977,6 @@ bool CPlainTextEditor::CanGoLeft(size iPos)
 bool CPlainTextEditor::CanGoRight(size iPos)
 {
 	return (iPos < mszText.Length());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CPlainTextEditor::IsWhitespace(char cCurrent)
-{
-	return ((cCurrent == ' ') || (cCurrent == '\n') || (cCurrent == '\t'));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CPlainTextEditor::IsNormalChar(char cCurrent)
-{
-	return (((cCurrent >= 'a') && (cCurrent <= 'z')) || 
-			((cCurrent >= 'A') && (cCurrent <= 'Z')) ||
-			((cCurrent >= '0') && (cCurrent <= '9')) ||
-			 (cCurrent == '_'));
-}	
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CPlainTextEditor::FindWordRight(size iPos)
-{
-	char c;
-
-	c = mszText.GetChar(iPos);
-	if (IsWhitespace(c))
-	{
-		for (;;)
-		{
-			if (CanGoRight(iPos))
-			{
-				iPos++;
-				c = mszText.GetChar(iPos);
-				if (!IsWhitespace(c))
-				{
-					return iPos;
-				}
-			}
-			else
-			{
-				return iPos;
-			}
-		}
-	}
-	else if (IsNormalChar(c))
-	{
-		for (;;)
-		{
-			if (CanGoRight(iPos))
-			{
-				iPos++;
-				c = mszText.GetChar(iPos);
-				if (!IsNormalChar(c))
-				{
-					return iPos;
-				}
-			}
-			else
-			{
-				return iPos;
-			}
-		}
-	}
-	else
-	{
-		if (CanGoRight(iPos))
-		{
-			iPos++;
-		}
-		return iPos;
-	}
 }
 
 
@@ -1177,14 +1013,14 @@ char* CPlainTextEditor::Line(CChars* pszDest, bool bFromEditPosition)
 	size	uiEndOfLineIndex;
 	size	uiStartOfLineIndex;
 	
-	uiEndOfLineIndex = FindEndOfLine(miEditPos);
+	uiEndOfLineIndex = mcNavigation.FindLineEnd(miEditPos);
 	if (bFromEditPosition)
 	{
 		pszDest->AppendSubString(&mszText, miEditPos, uiEndOfLineIndex);
 	}
 	else
 	{
-		uiStartOfLineIndex = FindStartOfLine(miEditPos);
+		uiStartOfLineIndex = mcNavigation.FindLineStart(miEditPos);
 		pszDest->AppendSubString(&mszText, uiStartOfLineIndex, uiEndOfLineIndex);
 	}
 	return pszDest->Text();
@@ -1227,67 +1063,6 @@ void CPlainTextEditor::SetPosition(size iPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPlainTextEditor::FindStartOfLine(size iPos)
-{
-	char	c;
-
-	if (iPos == 0)
-	{
-		return 0;
-	}
-
-	c = mszText.GetChar(iPos);
-	iPos--;
-	for (;;)
-	{
-		c = mszText.GetChar(iPos);
-		if (iPos == 0)
-		{
-			return iPos;
-		}
-		else if (c == '\n')
-		{
-			return iPos+1;
-		}
-		iPos--;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CPlainTextEditor::FindEndOfLine(size iPos)
-{
-	char	c;
-
-	if (iPos == mszText.Length())
-	{
-		return iPos;
-	}
-
-	c = mszText.GetChar(iPos);
-	for (;;)
-	{
-		c = mszText.GetChar(iPos);
-		if (iPos == mszText.Length())
-		{
-			return iPos;
-		}
-		else if (c == '\n')
-		{
-			return iPos;
-		}
-		iPos++;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 size CPlainTextEditor::GetCharCountAlongLine(size iPos)
 {
 	size		iStartOfLine;
@@ -1295,7 +1070,7 @@ size CPlainTextEditor::GetCharCountAlongLine(size iPos)
 	char	c;
 	size		iCount;
 
-	iStartOfLine = FindStartOfLine(iPos);
+	iStartOfLine = mcNavigation.FindLineStart(iPos);
 	if (iStartOfLine == iPos)
 	{
 		return 0;

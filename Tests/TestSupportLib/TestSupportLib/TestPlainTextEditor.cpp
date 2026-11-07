@@ -645,6 +645,50 @@ void TestPlainTextEditorLeftRightDelete(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Left, right, delete and backspace go a whole UTF8 character at a time,
+// and a character that isn't ASCII is part of a word.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPlainTextEditorUTF8(void)
+{
+	CPlainTextEditor	cEditor;
+
+	cEditor.Init("a\xC3\xA9" "b");
+	cEditor.DocumentEnd();
+	AssertSize(4, cEditor.miEditPos);
+	cEditor.Left();
+	AssertSize(3, cEditor.miEditPos);
+	cEditor.Left();
+	AssertSize(1, cEditor.miEditPos);
+	cEditor.Right();
+	AssertSize(3, cEditor.miEditPos);
+	cEditor.Backspace();
+	AssertSize(1, cEditor.miEditPos);
+	AssertString("ab", cEditor.Text());
+	cEditor.Kill();
+
+	cEditor.Init("\xC3\xA9x");
+	cEditor.Delete();
+	AssertSize(0, cEditor.miEditPos);
+	AssertString("x", cEditor.Text());
+	cEditor.Kill();
+
+	cEditor.Init("caf\xC3\xA9 x");
+	cEditor.WordRight();
+	AssertSize(5, cEditor.miEditPos);
+	cEditor.DocumentEnd();
+	cEditor.WordLeft();
+	AssertSize(6, cEditor.miEditPos);
+	cEditor.WordLeft();
+	AssertSize(5, cEditor.miEditPos);
+	cEditor.WordLeft();
+	AssertSize(0, cEditor.miEditPos);
+	cEditor.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPlainTextEditor(void)
@@ -660,6 +704,7 @@ void TestPlainTextEditor(void)
 	TestPlainTextEditorSelectionOverwrite();
 	TestPlainTextEditorDeleteLine();
 	TestPlainTextEditorLeftRightDelete();
+	TestPlainTextEditorUTF8();
 
 	TestStatistics();
 }

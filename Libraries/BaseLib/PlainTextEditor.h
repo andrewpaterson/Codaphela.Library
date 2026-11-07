@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 #include "IntVec2.h"
 #include "TextEditor.h"
+#include "TextNavigation.h"
 
 
 //Rename this to CASCIITextEditor and write a second one for UTF16 base ont CText.
@@ -35,6 +36,7 @@ public:
 	size	miTabWidth;  //In Spaces
 
 	CChars	mszText;
+	CTextNavigation	mcNavigation;  //Characters, lines and words of mszText.
 
 	size	miEditPos;
 	size	miPageLength;  //Characters to step up or down on page up or page down.
@@ -109,8 +111,6 @@ public:
 protected:
 	size	FindUp(size iPos);
 	size	FindDown(size iPos);
-	size	FindLeft(size iPos);
-	size	FindRight(size iPos);
 	size	FindHome(size iPos);
 	size	FindEnd(size iPos);
 	size	FindDocumentHome(void);
@@ -118,15 +118,9 @@ protected:
 	size	FindPageUp(size iPos);
 	size	FindPageDown(size iPos);
 
-	size	FindWordLeft(size iPos);
-	size	FindWordRight(size iPos);
 	bool 	CanGoLeft(size iPos);
 	bool 	CanGoRight(size iPos);
-	bool	IsWhitespace(char cCurrent);
-	bool	IsNormalChar(char cCurrent);
 	bool	IsSelected(void);
-	size	FindStartOfLine(size iPos);
-	size	FindEndOfLine(size iPos);
 	size	FindPositionAlongLine(size iStartOfLine, size iCharCount);
 	size	CountChar(size iCharCount, char c);
 	void	ResetUpDown(void);

@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TEXT_AREA_H__
 #define __TEXT_AREA_H__
 #include "BaseLib/TextUndo.h"
+#include "BaseLib/TextNavigation.h"
 #include "SupportLib/Font.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/FontFamily.h"
@@ -197,6 +198,7 @@ protected:
 	bool				mbEditable;
 	bool				mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	bool				mbDragging;
+	CTextNavigation	mcNavigation;  //Characters, lines and words of mszText.
 
 	//Undo, as Logicim's: the text after each edit of an editable text area, consecutive typing kept as one edit (see
 	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot.
@@ -419,18 +421,6 @@ protected:
 	STextLayoutStop*	GetLayoutStop(size uiStop);
 
 	//Characters and lines of the text.
-	size				CharacterLength(size uiPosition);
-	size				NextPosition(size uiPosition);
-	size				PreviousPosition(size uiPosition);
-	size				FindLineStart(size uiPosition);
-	size				FindLineEnd(size uiPosition);
-	size				FindLineIndent(size uiLineStart);
-	size				CountColumns(size uiLineStart, size uiPosition);
-	size				FindColumn(size uiLineStart, size uiColumn);
-	size				FindWordLeft(size uiPosition);
-	size				FindWordRight(size uiPosition);
-	bool				IsWhitespace(char c);
-	bool				IsWordChar(char c);
 
 	//The rows the text is laid out in.
 	bool				HasStops(void);

@@ -113,6 +113,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	muiNextGapId = 1;
 	FindLineStarts();
 	muiChangeCount = 0;
+	mcNavigation.Init(&mszText);
 	mcUndo.Init();
 	mcUndoEvent.Init();
 	mcChanged.Init();
@@ -238,6 +239,7 @@ void CTextArea::Class(void)
 	U_Bool(mbTextDirty);
 	U_Bool(mbSizeDirty);
 	U_Data(size, muiChangeCount);
+	U_Data(CTextNavigation, mcNavigation);
 	U_Unknown(CTextUndo, mcUndo);
 	U_Data(CTextAreaUndoEvent, mcUndoEvent);
 	U_Data(CComponentEvent<CTextArea>, mcChanged);
@@ -1647,10 +1649,10 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Up(void) { MoveUpDown(TAM_RowUp, false); }
 void CTextArea::Down(void) { MoveUpDown(TAM_RowDown, false); }
-void CTextArea::Left(void) { MoveCaret(PreviousPosition(muiCaret), false); }
-void CTextArea::Right(void) { MoveCaret(NextPosition(muiCaret), false); }
-void CTextArea::WordLeft(void) { MoveCaret(FindWordLeft(muiCaret), false); }
-void CTextArea::WordRight(void) { MoveCaret(FindWordRight(muiCaret), false); }
+void CTextArea::Left(void) { MoveCaret(mcNavigation.PreviousPosition(muiCaret), false); }
+void CTextArea::Right(void) { MoveCaret(mcNavigation.NextPosition(muiCaret), false); }
+void CTextArea::WordLeft(void) { MoveCaret(mcNavigation.FindWordLeft(muiCaret), false); }
+void CTextArea::WordRight(void) { MoveCaret(mcNavigation.FindWordRight(muiCaret), false); }
 void CTextArea::Home(void) { MoveHome(false); }
 void CTextArea::End(void) { MoveEnd(false); }
 void CTextArea::DocumentHome(void) { MoveCaret(0, false); }
@@ -1666,10 +1668,10 @@ void CTextArea::PageDown(void) { MoveUpDown(TAM_PageDown, false); }
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SelectUp(void) { MoveUpDown(TAM_RowUp, true); }
 void CTextArea::SelectDown(void) { MoveUpDown(TAM_RowDown, true); }
-void CTextArea::SelectLeft(void) { MoveCaret(PreviousPosition(muiCaret), true); }
-void CTextArea::SelectRight(void) { MoveCaret(NextPosition(muiCaret), true); }
-void CTextArea::SelectWordLeft(void) { MoveCaret(FindWordLeft(muiCaret), true); }
-void CTextArea::SelectWordRight(void) { MoveCaret(FindWordRight(muiCaret), true); }
+void CTextArea::SelectLeft(void) { MoveCaret(mcNavigation.PreviousPosition(muiCaret), true); }
+void CTextArea::SelectRight(void) { MoveCaret(mcNavigation.NextPosition(muiCaret), true); }
+void CTextArea::SelectWordLeft(void) { MoveCaret(mcNavigation.FindWordLeft(muiCaret), true); }
+void CTextArea::SelectWordRight(void) { MoveCaret(mcNavigation.FindWordRight(muiCaret), true); }
 void CTextArea::SelectHome(void) { MoveHome(true); }
 void CTextArea::SelectEnd(void) { MoveEnd(true); }
 void CTextArea::SelectDocumentHome(void) { MoveCaret(0, true); }
@@ -1693,14 +1695,14 @@ void CTextArea::SelectWholeWord(void)
 
 	szText = mszText.Text();
 	uiStart = muiCaret;
-	if ((muiCaret > 0) && IsWordChar(szText[PreviousPosition(muiCaret)]))
+	if ((muiCaret > 0) && CTextNavigation::IsWordChar(szText[mcNavigation.PreviousPosition(muiCaret)]))
 	{
-		uiStart = FindWordLeft(muiCaret);
+		uiStart = mcNavigation.FindWordLeft(muiCaret);
 	}
 	uiEnd = muiCaret;
-	if ((muiCaret < mszText.Length()) && IsWordChar(szText[muiCaret]))
+	if ((muiCaret < mszText.Length()) && CTextNavigation::IsWordChar(szText[muiCaret]))
 	{
-		uiEnd = FindWordRight(muiCaret);
+		uiEnd = mcNavigation.FindWordRight(muiCaret);
 	}
 	Select(uiStart, uiEnd);
 }
@@ -1741,7 +1743,7 @@ void CTextArea::Printable(char c, bool bInsert)
 	szText = mszText.Text();
 	if (!IsSelected() && !bInsert && (muiCaret < mszText.Length()) && (szText[muiCaret] != '\n') && (szText[muiCaret] != '\r'))
 	{
-		RemoveText(muiCaret, NextPosition(muiCaret));
+		RemoveText(muiCaret, mcNavigation.NextPosition(muiCaret));
 	}
 	ReplaceSelection(sz);
 	TextChanged();
@@ -1789,13 +1791,13 @@ void CTextArea::Tab(bool bInsert)
 	}
 
 	GetSelection(&uiStart, &uiEnd);
-	if (FindLineStart(uiStart) != FindLineStart(uiEnd))
+	if (mcNavigation.FindLineStart(uiStart) != mcNavigation.FindLineStart(uiEnd))
 	{
 		IndentLines(uiStart, uiEnd);
 	}
 	else
 	{
-		uiColumns = CountColumns(FindLineStart(uiStart), uiStart);
+		uiColumns = mcNavigation.CountColumns(mcNavigation.FindLineStart(uiStart), uiStart);
 		szSpaces.Init();
 		szSpaces.Append(' ', miTabWidth - (uiColumns % miTabWidth));
 		ReplaceSelection(szSpaces.Text());
@@ -1862,7 +1864,7 @@ void CTextArea::HomeEnter(void)
 	}
 
 	muiAnchor = MAX_SIZE;
-	uiLineStart = FindLineStart(muiCaret);
+	uiLineStart = mcNavigation.FindLineStart(muiCaret);
 	InsertText(uiLineStart, "\n");
 	muiCaret = uiLineStart;
 	TextChanged();
@@ -1883,7 +1885,7 @@ void CTextArea::EndEnter(void)
 	}
 
 	muiAnchor = MAX_SIZE;
-	muiCaret = FindLineEnd(muiCaret);
+	muiCaret = mcNavigation.FindLineEnd(muiCaret);
 	InsertText(muiCaret, "\n");
 	TextChanged();
 }
@@ -1904,7 +1906,7 @@ void CTextArea::Delete(void)
 
 	if (!DeleteSelection())
 	{
-		RemoveText(muiCaret, NextPosition(muiCaret));
+		RemoveText(muiCaret, mcNavigation.NextPosition(muiCaret));
 	}
 	TextChanged();
 }
@@ -1925,7 +1927,7 @@ void CTextArea::Backspace(void)
 
 	if (!DeleteSelection())
 	{
-		RemoveText(PreviousPosition(muiCaret), muiCaret);
+		RemoveText(mcNavigation.PreviousPosition(muiCaret), muiCaret);
 	}
 	TextChanged();
 }
@@ -2062,12 +2064,12 @@ void CTextArea::CutLine(CChars* pszDest)
 		return;
 	}
 
-	uiLineStart = FindLineStart(muiCaret);
-	uiColumn = CountColumns(uiLineStart, muiCaret);
-	uiEnd = NextPosition(FindLineEnd(muiCaret));
+	uiLineStart = mcNavigation.FindLineStart(muiCaret);
+	uiColumn = mcNavigation.CountColumns(uiLineStart, muiCaret);
+	uiEnd = mcNavigation.NextPosition(mcNavigation.FindLineEnd(muiCaret));
 	pszDest->AppendSubString(mszText, uiLineStart, uiEnd);
 	RemoveText(uiLineStart, uiEnd);
-	muiCaret = FindColumn(uiLineStart, uiColumn);
+	muiCaret = mcNavigation.FindColumn(uiLineStart, uiColumn);
 	TextChanged();
 }
 
@@ -2098,8 +2100,8 @@ void CTextArea::Duplicate(void)
 	}
 	else
 	{
-		uiStart = FindLineStart(muiCaret);
-		uiEnd = FindLineEnd(muiCaret);
+		uiStart = mcNavigation.FindLineStart(muiCaret);
+		uiEnd = mcNavigation.FindLineEnd(muiCaret);
 		szCopy.AppendSubString(mszText, uiStart, uiEnd);
 		szCopy.Append('\n');
 	}
@@ -2125,7 +2127,7 @@ void CTextArea::DeleteWordRemainingRight(void)
 
 	if (!DeleteSelection())
 	{
-		RemoveText(muiCaret, FindWordRight(muiCaret));
+		RemoveText(muiCaret, mcNavigation.FindWordRight(muiCaret));
 	}
 	TextChanged();
 }
@@ -2147,7 +2149,7 @@ void CTextArea::DeleteWordRemainingLeft(void)
 
 	if (!DeleteSelection())
 	{
-		RemoveText(FindWordLeft(muiCaret), muiCaret);
+		RemoveText(mcNavigation.FindWordLeft(muiCaret), muiCaret);
 	}
 	TextChanged();
 }
@@ -2173,27 +2175,27 @@ void CTextArea::DeleteLine(void)
 		return;
 	}
 
-	uiColumn = CountColumns(FindLineStart(muiCaret), muiCaret);
+	uiColumn = mcNavigation.CountColumns(mcNavigation.FindLineStart(muiCaret), muiCaret);
 	bSelected = GetSelection(&uiStart, &uiEnd);
-	uiStart = FindLineStart(uiStart);
-	if (bSelected && (uiEnd > uiStart) && (FindLineStart(uiEnd) == uiEnd))
+	uiStart = mcNavigation.FindLineStart(uiStart);
+	if (bSelected && (uiEnd > uiStart) && (mcNavigation.FindLineStart(uiEnd) == uiEnd))
 	{
 		//A selection that ends at the start of a line doesn't take that line.
-		uiEnd = PreviousPosition(uiEnd);
+		uiEnd = mcNavigation.PreviousPosition(uiEnd);
 	}
-	uiEnd = FindLineEnd(uiEnd);
+	uiEnd = mcNavigation.FindLineEnd(uiEnd);
 	if (uiEnd < mszText.Length())
 	{
-		uiEnd = NextPosition(uiEnd);
+		uiEnd = mcNavigation.NextPosition(uiEnd);
 	}
 	else if (uiStart > 0)
 	{
-		uiStart = PreviousPosition(uiStart);
+		uiStart = mcNavigation.PreviousPosition(uiStart);
 	}
 
 	muiAnchor = MAX_SIZE;
 	RemoveText(uiStart, uiEnd);
-	muiCaret = FindColumn(FindLineStart(uiStart), uiColumn);
+	muiCaret = mcNavigation.FindColumn(mcNavigation.FindLineStart(uiStart), uiColumn);
 	TextChanged();
 }
 
@@ -2483,7 +2485,7 @@ void CTextArea::FindStopStarts(void)
 		{
 			*mauiStopStarts.Add() = uiPosition;
 		}
-		uiPosition += CharacterLength(uiPosition);
+		uiPosition += mcNavigation.CharacterLength(uiPosition);
 	}
 	*mauiStopStarts.Add() = uiLength;
 }
@@ -2718,298 +2720,6 @@ void CTextArea::LinesRemoved(size uiStart, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bytes in the character at uiPosition: a code point, or a sequence
-// of them joined by ZWJs.  A byte that doesn't start valid UTF8 is a
-// character by itself.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::CharacterLength(size uiPosition)
-{
-	CUTF8	cUTF8;
-	size	uiRemaining;
-	size	uiCharLength;
-
-	if (uiPosition >= mszText.Length())
-	{
-		return 0;
-	}
-
-	uiRemaining = mszText.Length() - uiPosition;
-	cUTF8.Init((uint8*)mszText.Text() + uiPosition, uiRemaining);
-	uiCharLength = cUTF8.PeekUTFBytes();
-	cUTF8.Kill();
-	if ((uiCharLength == 0) || (uiCharLength > uiRemaining))
-	{
-		return 1;
-	}
-	return uiCharLength;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The start of the character after the one at uiPosition.  A carriage
-// return and line feed are one character.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::NextPosition(size uiPosition)
-{
-	char*	szText;
-
-	if (uiPosition >= mszText.Length())
-	{
-		return mszText.Length();
-	}
-
-	szText = mszText.Text();
-	if ((szText[uiPosition] == '\r') && (szText[uiPosition + 1] == '\n'))
-	{
-		return uiPosition + 2;
-	}
-	return uiPosition + CharacterLength(uiPosition);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The start of the character before uiPosition.  Characters can only be
-// found going forward, so they are from the start of the line.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::PreviousPosition(size uiPosition)
-{
-	size	uiCurrent;
-	size	uiNext;
-	char*	szText;
-
-	if (uiPosition == 0)
-	{
-		return 0;
-	}
-
-	szText = mszText.Text();
-	uiCurrent = FindLineStart(uiPosition);
-	if (uiCurrent == uiPosition)
-	{
-		if ((uiPosition >= 2) && (szText[uiPosition - 2] == '\r'))
-		{
-			return uiPosition - 2;
-		}
-		return uiPosition - 1;
-	}
-
-	for (;;)
-	{
-		uiNext = NextPosition(uiCurrent);
-		if (uiNext >= uiPosition)
-		{
-			return uiCurrent;
-		}
-		uiCurrent = uiNext;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The start of the line (ended by line feeds) uiPosition is on.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindLineStart(size uiPosition)
-{
-	char*	szText;
-
-	szText = mszText.Text();
-	while ((uiPosition > 0) && (szText[uiPosition - 1] != '\n'))
-	{
-		uiPosition--;
-	}
-	return uiPosition;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The end of the line uiPosition is on, before its carriage return and
-// line feed, or the end of the text.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindLineEnd(size uiPosition)
-{
-	char*	szText;
-	size	uiLength;
-	size	uiStart;
-
-	szText = mszText.Text();
-	uiLength = mszText.Length();
-	uiStart = uiPosition;
-	while ((uiPosition < uiLength) && (szText[uiPosition] != '\n'))
-	{
-		uiPosition++;
-	}
-	if ((uiPosition < uiLength) && (uiPosition > uiStart) && (szText[uiPosition - 1] == '\r'))
-	{
-		uiPosition--;
-	}
-	return uiPosition;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The first character of the line that isn't a space or tab, or the end
-// of the line.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindLineIndent(size uiLineStart)
-{
-	size	uiLineEnd;
-	char*	szText;
-
-	szText = mszText.Text();
-	uiLineEnd = FindLineEnd(uiLineStart);
-	while ((uiLineStart < uiLineEnd) && ((szText[uiLineStart] == ' ') || (szText[uiLineStart] == '\t')))
-	{
-		uiLineStart++;
-	}
-	return uiLineStart;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The number of characters from the start of the line to uiPosition.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::CountColumns(size uiLineStart, size uiPosition)
-{
-	size	uiColumns;
-
-	uiColumns = 0;
-	while (uiLineStart < uiPosition)
-	{
-		uiLineStart = NextPosition(uiLineStart);
-		uiColumns++;
-	}
-	return uiColumns;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The position uiColumn characters along the line, or its end if it is
-// shorter.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindColumn(size uiLineStart, size uiColumn)
-{
-	size	uiLineEnd;
-
-	uiLineEnd = FindLineEnd(uiLineStart);
-	while ((uiColumn > 0) && (uiLineStart < uiLineEnd))
-	{
-		uiLineStart = NextPosition(uiLineStart);
-		uiColumn--;
-	}
-	return uiLineStart;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The start of the word, or spaces, before uiPosition.  Punctuation is a
-// word of one character.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindWordLeft(size uiPosition)
-{
-	size	uiPrevious;
-	char*	szText;
-	bool	bWhitespace;
-
-	if (uiPosition == 0)
-	{
-		return 0;
-	}
-
-	szText = mszText.Text();
-	uiPosition = PreviousPosition(uiPosition);
-	bWhitespace = IsWhitespace(szText[uiPosition]);
-	if (!bWhitespace && !IsWordChar(szText[uiPosition]))
-	{
-		return uiPosition;
-	}
-
-	while (uiPosition > 0)
-	{
-		uiPrevious = PreviousPosition(uiPosition);
-		if (bWhitespace ? !IsWhitespace(szText[uiPrevious]) : !IsWordChar(szText[uiPrevious]))
-		{
-			break;
-		}
-		uiPosition = uiPrevious;
-	}
-	return uiPosition;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The end of the word, or spaces, after uiPosition.  Punctuation is a
-// word of one character.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindWordRight(size uiPosition)
-{
-	size	uiLength;
-	char*	szText;
-	bool	bWhitespace;
-
-	uiLength = mszText.Length();
-	if (uiPosition >= uiLength)
-	{
-		return uiLength;
-	}
-
-	szText = mszText.Text();
-	bWhitespace = IsWhitespace(szText[uiPosition]);
-	if (!bWhitespace && !IsWordChar(szText[uiPosition]))
-	{
-		return NextPosition(uiPosition);
-	}
-
-	while ((uiPosition < uiLength) && (bWhitespace ? IsWhitespace(szText[uiPosition]) : IsWordChar(szText[uiPosition])))
-	{
-		uiPosition = NextPosition(uiPosition);
-	}
-	return uiPosition;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsWhitespace(char c)
-{
-	return (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Letters, digits and underscores.  Any character that isn't ASCII is
-// treated as a letter.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsWordChar(char c)
-{
-	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_') || ((uint8)c >= 0x80);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether the layout is of the text as it is.  Without a font there is no
 // layout, and the caret and selection aren't drawn.
 //
@@ -3121,7 +2831,7 @@ size CTextArea::GetRowEnd(size uiRow, bool* pbRowEnd)
 		*pbRowEnd = true;
 		return *mauiStopStarts.Get(psLine->uiFirstStop + psLine->uiNumStops);
 	}
-	return FindLineEnd(*mauiStopStarts.Get(psLine->uiFirstStop + psLine->uiNumStops - 1));
+	return mcNavigation.FindLineEnd(*mauiStopStarts.Get(psLine->uiFirstStop + psLine->uiNumStops - 1));
 }
 
 
@@ -3437,7 +3147,7 @@ void CTextArea::MoveHome(bool bSelect)
 	size	uiIndent;
 	size	uiRowStart;
 
-	uiLineStart = FindLineStart(muiCaret);
+	uiLineStart = mcNavigation.FindLineStart(muiCaret);
 	if (HasStops())
 	{
 		uiRowStart = GetRowStart(GetCaretRow());
@@ -3448,7 +3158,7 @@ void CTextArea::MoveHome(bool bSelect)
 		}
 	}
 
-	uiIndent = FindLineIndent(uiLineStart);
+	uiIndent = mcNavigation.FindLineIndent(uiLineStart);
 	MoveCaret(muiCaret == uiIndent ? uiLineStart : uiIndent, bSelect);
 }
 
@@ -3472,7 +3182,7 @@ void CTextArea::MoveEnd(bool bSelect)
 			return;
 		}
 	}
-	MoveCaret(FindLineEnd(muiCaret), bSelect);
+	MoveCaret(mcNavigation.FindLineEnd(muiCaret), bSelect);
 }
 
 
@@ -3656,17 +3366,17 @@ void CTextArea::IndentLines(size uiStart, size uiEnd)
 	bool					bAtLineStart;
 
 	auiLineStarts.Init();
-	uiLine = FindLineStart(uiStart);
+	uiLine = mcNavigation.FindLineStart(uiStart);
 	bAtLineStart = (uiLine == uiStart);
 	for (;;)
 	{
 		*auiLineStarts.Add() = uiLine;
-		uiLine = FindLineEnd(uiLine);
+		uiLine = mcNavigation.FindLineEnd(uiLine);
 		if (uiLine >= mszText.Length())
 		{
 			break;
 		}
-		uiLine = NextPosition(uiLine);
+		uiLine = mcNavigation.NextPosition(uiLine);
 		if (uiLine >= uiEnd)
 		{
 			break;
@@ -3715,16 +3425,16 @@ void CTextArea::OutdentLines(size uiStart, size uiEnd)
 	char*					szText;
 
 	auiLineStarts.Init();
-	uiLine = FindLineStart(uiStart);
+	uiLine = mcNavigation.FindLineStart(uiStart);
 	for (;;)
 	{
 		*auiLineStarts.Add() = uiLine;
-		uiLine = FindLineEnd(uiLine);
+		uiLine = mcNavigation.FindLineEnd(uiLine);
 		if (uiLine >= mszText.Length())
 		{
 			break;
 		}
-		uiLine = NextPosition(uiLine);
+		uiLine = mcNavigation.NextPosition(uiLine);
 		if (uiLine >= uiEnd)
 		{
 			break;
@@ -4830,7 +4540,7 @@ void CTextArea::AppendStops(size uiFrom)
 		{
 			*mauiStopStarts.Add() = uiPosition;
 		}
-		uiPosition += CharacterLength(uiPosition);
+		uiPosition += mcNavigation.CharacterLength(uiPosition);
 	}
 	*mauiStopStarts.Add() = uiLength;
 }
