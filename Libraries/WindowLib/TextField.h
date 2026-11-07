@@ -41,7 +41,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //clipboard, and select all.  Pressing places the caret at the nearest gap between characters, dragging selects from
 //there and shift pressing selects from the caret.  Enter isn't wanted, so it clicks the window's default button.
 //
-//Edits can be undone (Control Z) and redone (Control Shift Z or Control Y) as a CTextArea's: the text after each edit
+//Edits can be undone (Control Z) and redone (Control Shift Z) as a CTextArea's: the text after each edit
 //is kept in a CTextUndo, consecutive typing as one edit until a pause, and the caret and selection go back to how
 //they were before the edit undone or after the edit redone.
 //
