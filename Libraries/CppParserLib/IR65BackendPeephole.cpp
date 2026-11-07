@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
+#include <string.h>
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/IntegerHelper.h"
@@ -203,6 +205,45 @@ static bool IR65BranchToNext(CArrayChars* paszLines, size uiLine)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Peephole(size uiStart)
 {
+	PeepholeCode(mpszOut, uiStart, &maiBlockLabels);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pszLine (a label) is a block's (one of paiBlockLabels, "Ln:") or
+// the function's own: the registers are 32 bits wide there.  A label in an
+// instruction's code (ShiftSigned's) may be reached with other widths.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65IsBlockLabel(CChars* pszLine, CArrayTemplate<int32>* paiBlockLabels)
+{
+	int32	iLabel;
+	size	ui;
+
+	if (!pszLine->StartsWith("L"))
+	{
+		return true;
+	}
+	iLabel = (int32)atoi(pszLine->Text() + 1);
+	for (ui = 0; ui < paiBlockLabels->NumElements(); ui++)
+	{
+		if (*paiBlockLabels->Get(ui) == iLabel)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Peephole on pszCode from uiStart, whose block labels are paiBlockLabels.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels)
+{
 	CChars			szText;
 	CArrayChars		aszLines;
 	CChars*			pszLine;
@@ -218,11 +259,11 @@ void CIR65Backend::Peephole(size uiStart)
 	uint8			uiBase;
 	int32			iOffset;
 
-	szText.Init(mpszOut->Text() + uiStart);
+	szText.Init(pszCode->Text() + uiStart);
 	aszLines.Init();
 	szText.SplitLines(&aszLines);
 	szText.Kill();
-	mpszOut->SetLength(uiStart);
+	pszCode->SetLength(uiStart);
 
 	IR65ResetWidths(aiWidths);
 	for (ui = 0; ui < aszLines.NumElements(); ui++)
@@ -230,8 +271,15 @@ void CIR65Backend::Peephole(size uiStart)
 		pszLine = aszLines.Get(ui);
 		if (!pszLine->StartsWith("\t\t"))
 		{
-			//Each block starts with all four 32 bits wide.
-			IR65ResetWidths(aiWidths);
+			//Each block starts with all four 32 bits wide; at another label they aren't known.
+			if (IR65IsBlockLabel(pszLine, paiBlockLabels))
+			{
+				IR65ResetWidths(aiWidths);
+			}
+			else
+			{
+				memset(aiWidths, 0, sizeof(aiWidths));
+			}
 		}
 		else if ((pszLine->Length() == 2) || IR65BranchToNext(&aszLines, ui))
 		{
@@ -264,11 +312,11 @@ void CIR65Backend::Peephole(size uiStart)
 			szStored.Kill();
 		}
 		IR65UpdateWidths(pszLine, aiWidths);
-		mpszOut->Append(*pszLine);
+		pszCode->Append(*pszLine);
 		if (ui + 1 < aszLines.NumElements())
 		{
 			//The last piece is what follows the last new line.
-			mpszOut->AppendNewLine();
+			pszCode->AppendNewLine();
 		}
 	}
 	aszLines.Kill();

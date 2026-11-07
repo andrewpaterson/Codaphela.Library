@@ -1273,6 +1273,32 @@ void TestIR65BackendFlags(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The back end's peephole: a store to a pseudo register read straight back
+// is a cpy when both registers are known to be 32 bits.  They are at the
+// function's label and a block's; at a label in an instruction's code (not
+// a block's) they aren't known, so the load stays.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendPeepholeWidths(void)
+{
+	CArrayTemplate<int32>	aiBlockLabels;
+	CChars					sz;
+	int32					iLabel;
+
+	aiBlockLabels.Init();
+	iLabel = 3;
+	aiBlockLabels.Add(&iLabel);
+
+	sz.Init("_F:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\nL3:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\nL7:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\n\t\tret\n");
+	CIR65Backend::PeepholeCode(&sz, 0, &aiBlockLabels);
+	AssertString("_F:\n\t\tcpy [4 + W], A\n\t\tcpy X, A\nL3:\n\t\tcpy [4 + W], A\n\t\tcpy X, A\nL7:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\n\t\tret\n", sz.Text());
+	sz.Kill();
+	aiBlockLabels.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // CIR65Peephole on szCode, as a whole function.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1624,6 +1650,7 @@ void TestIR65Backend(void)
 	TestIR65BackendAllocation();
 	TestIR65BackendWidths();
 	TestIR65BackendFlags();
+	TestIR65BackendPeepholeWidths();
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
 	TestIRSourceMarkers();

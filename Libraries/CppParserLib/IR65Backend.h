@@ -208,6 +208,7 @@ public:
 	void				Kill(void);
 
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels);
 
 protected:
 	void				AdjustComparisons(void);
