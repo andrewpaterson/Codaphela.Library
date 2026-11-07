@@ -49,6 +49,8 @@ public:
 	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 
 protected:
+	static Ptr<CImage>			CreateClearImage(int32 iWidth, int32 iHeight);
+	static Ptr<CImageCel>		FinishCel(Ptr<CImage> pImage, CColourFormatHelper* pcFormat);
 	static Ptr<CImage>			DrawStrip(bool bFocusRing, ARGB32 sFocusRing, ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
 	static Ptr<CImage>			DrawSmallStrip(ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
 	static Ptr<CImage>			DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat);

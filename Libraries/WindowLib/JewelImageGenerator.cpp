@@ -40,6 +40,33 @@ static float64 gaafPinStrokes[NUM_PIN_STROKES][4] =
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An image to draw an icon or a strip on: red, green, blue and opacity,
+// every pixel clear.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CJewelImageGenerator::CreateClearImage(int32 iWidth, int32 iHeight)
+{
+	Ptr<CImage>	pImage;
+
+	pImage = OMalloc<CImage>(iWidth, iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+	return pImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The icon drawn on pImage, in the window's colour order, as a cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::FinishCel(Ptr<CImage> pImage, CColourFormatHelper* pcFormat)
+{
+	return OMalloc<CImageCel>(CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Draws a corner tile's part of one layer of a Jewel button's border.  The
 // layer is a rounded rectangle iInset in from the tile's outside sides
 // with corners iRadius round; it runs on to the tile's inside sides.  The
@@ -124,8 +151,7 @@ Ptr<CImage> CJewelImageGenerator::DrawStrip(bool bFocusRing, ARGB32 sFocusRing, 
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
 
-	pImage = OMalloc<CImage>(8, 64, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(8, 64);
 
 	cDraw.Init(&pImage);
 	if (bFocusRing)
@@ -231,8 +257,7 @@ Ptr<CImage> CJewelImageGenerator::DrawSmallStrip(ARGB32 sBorder, ARGB32 sFace, C
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
 
-	pImage = OMalloc<CImage>(4, 32, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(4, 32);
 
 	cDraw.Init(&pImage);
 	DrawLayer(&cDraw, 4, 0, 4, sBorder);
@@ -256,8 +281,7 @@ Ptr<CImage> CJewelImageGenerator::DrawFlatStrip(bool bFilled, ARGB32 sFill, CCol
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
 
-	pImage = OMalloc<CImage>(7, 56, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(7, 56);
 
 	if (bFilled)
 	{
@@ -303,8 +327,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateChevron(ARGB32 sColour, CColourFormat
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
 
-	pImage = OMalloc<CImage>(8, 9, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(8, 9);
 
 	cDraw.Init(&pImage);
 	cDraw.SetColour(sColour);
@@ -312,8 +335,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateChevron(ARGB32 sColour, CColourFormat
 	cDraw.DrawLine(5, 4, 2, 7);
 	cDraw.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -327,8 +349,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateDownChevron(ARGB32 sColour, CColourFo
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
 
-	pImage = OMalloc<CImage>(9, 8, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(9, 8);
 
 	cDraw.Init(&pImage);
 	cDraw.SetColour(sColour);
@@ -336,8 +357,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateDownChevron(ARGB32 sColour, CColourFo
 	cDraw.DrawLine(4, 5, 7, 2);
 	cDraw.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -356,8 +376,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateArrow(ARGB32 sColour, bool bUp, CColo
 	float64				fBase;
 	float64				fHead;
 
-	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(16, 16);
 
 	fTip = bUp ? 3.0 : 13.0;
 	fBase = bUp ? 13.0 : 3.0;
@@ -369,8 +388,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateArrow(ARGB32 sColour, bool bUp, CColo
 	cDraw.DrawStroke(8, fTip, 12.5, fHead, 1.25);
 	cDraw.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -385,8 +403,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateCross(ARGB32 sColour, CColourFormatHe
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
 
-	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(16, 16);
 
 	cDraw.Init(&pImage);
 	cDraw.SetColour(sColour);
@@ -394,8 +411,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateCross(ARGB32 sColour, CColourFormatHe
 	cDraw.DrawStroke(11.5, 4.5, 4.5, 11.5, 1.25);
 	cDraw.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -415,8 +431,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateKeyboard(ARGB32 sColour, CColourForma
 	SFloat64Vec2		sMaximum;
 	uint				x;
 
-	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(16, 16);
 
 	cPath.Init();
 	cPath.BeginPart(true);
@@ -449,8 +464,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateKeyboard(ARGB32 sColour, CColourForma
 	cDraw.Kill();
 	cPath.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -513,8 +527,7 @@ Ptr<CImageCel> CJewelImageGenerator::DrawOutline(SFloat64Vec2* asPoints, size ui
 	SFloat64Vec2*		psEnd;
 	size				i;
 
-	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(16, 16);
 
 	cPath.Init();
 	cPath.BeginPart(true);
@@ -535,8 +548,7 @@ Ptr<CImageCel> CJewelImageGenerator::DrawOutline(SFloat64Vec2* asPoints, size ui
 	cDraw.Kill();
 	cPath.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -554,8 +566,7 @@ Ptr<CImageCel> CJewelImageGenerator::DrawCheckBox(bool bTicked, bool bFocusRing,
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
 
-	pImage = OMalloc<CImage>(20, 20, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(20, 20);
 
 	cDraw.Init(&pImage);
 	if (bFocusRing)
@@ -585,8 +596,7 @@ Ptr<CImageCel> CJewelImageGenerator::DrawCheckBox(bool bTicked, bool bFocusRing,
 	}
 	cDraw.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
 
@@ -631,8 +641,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreatePin(ARGB32 sColour, bool bPinned, CCo
 	float64			x1;
 	float64			y1;
 
-	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	pImage->Black();
+	pImage = CreateClearImage(16, 16);
 
 	cDraw.Init(&pImage);
 	cDraw.SetColour(sColour);
@@ -654,7 +663,6 @@ Ptr<CImageCel> CJewelImageGenerator::CreatePin(ARGB32 sColour, bool bPinned, CCo
 	}
 	cDraw.Kill();
 
-	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
-	return OMalloc<CImageCel>(pImage);
+	return FinishCel(pImage, pcFormat);
 }
 
