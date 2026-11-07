@@ -142,6 +142,9 @@ void CCPPIndex::Init(void)
 	mapcSymbols.Init();
 	mcKeys.Init();
 	mcLocations.Init(true);
+	masBaseLinks.Init();
+	masVirtuals.Init();
+	mcHierarchyKeys.Init(true);
 }
 
 
@@ -154,6 +157,9 @@ void CCPPIndex::Kill(void)
 	size				i;
 	CCPPIndexSymbol*	pcSymbol;
 
+	mcHierarchyKeys.Kill();
+	masVirtuals.Kill();
+	masBaseLinks.Kill();
 	mcLocations.Kill();
 	mcKeys.Kill();
 	for (i = 0; i < mapcSymbols.NumElements(); i++)
@@ -226,27 +232,8 @@ void CCPPIndexUnit::AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRo
 {
 	SCPPIndexEntry*	psEntry;
 	int				iFile;
-	char*			szFileName;
 
-	//Names come a file at a time: the last file's index is kept.
-	if (psSource->pcFile == mpcLastFile)
-	{
-		iFile = miLastFile;
-	}
-	else
-	{
-		szFileName = psSource->pcFile->FullName();
-		iFile = mcFiles.Get(szFileName, -1);
-		if (iFile < 0)
-		{
-			iFile = (int)maszFiles.NumElements();
-			maszFiles.Add(szFileName);
-			mcFiles.Put(szFileName, iFile);
-		}
-		mpcLastFile = psSource->pcFile;
-		miLastFile = iFile;
-	}
-
+	iFile = AddFile(psSource->pcFile);
 	psEntry = masEntries.Add();
 	psEntry->uiKey = (uint32)iKey;
 	psEntry->uiFile = (uint32)iFile;
@@ -294,24 +281,57 @@ void CCPPIndexUnit::SetContainer(const char* szKey, ECPPSymbolKind eKind)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class szClass has szBase as a base class.
+// The class szClass has szBase as a base class, as pcFile (the class's
+// definition's) says.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndexUnit::AddBase(const char* szClass, ECPPSymbolKind eClassKind, const char* szBase, ECPPSymbolKind eBaseKind)
+void CCPPIndexUnit::AddBase(const char* szClass, ECPPSymbolKind eClassKind, const char* szBase, ECPPSymbolKind eBaseKind, CSourceFile* pcFile)
 {
 	maiBaseLinks.Add(AddKey(szClass, eClassKind));
 	maiBaseLinks.Add(AddKey(szBase, eBaseKind));
+	maiBaseLinks.Add(AddFile(pcFile));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The member function szFunction is declared virtual, override or final.
+// The member function szFunction is declared virtual, override or final
+// in pcFile.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndexUnit::AddVirtual(const char* szFunction, ECPPSymbolKind eKind)
+void CCPPIndexUnit::AddVirtual(const char* szFunction, ECPPSymbolKind eKind, CSourceFile* pcFile)
 {
 	maiVirtuals.Add(AddKey(szFunction, eKind));
+	maiVirtuals.Add(AddFile(pcFile));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of pcFile in the unit's files, added if it isn't there.
+// Names come a file at a time: the last file's index is kept.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPIndexUnit::AddFile(CSourceFile* pcFile)
+{
+	int		iFile;
+	char*	szFileName;
+
+	if (pcFile == mpcLastFile)
+	{
+		return miLastFile;
+	}
+	szFileName = pcFile->FullName();
+	iFile = mcFiles.Get(szFileName, -1);
+	if (iFile < 0)
+	{
+		iFile = (int)maszFiles.NumElements();
+		maszFiles.Add(szFileName);
+		mcFiles.Put(szFileName, iFile);
+	}
+	mpcLastFile = pcFile;
+	miLastFile = iFile;
+	return iFile;
 }
 
 
@@ -376,7 +396,7 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	cKeys.Init(pcTokeniser, pcTree);
 	if (pcTree->GetRoot())
 	{
-		FindHierarchy(&cKeys, pcTree, pcTree->GetRoot(), pcDest);
+		FindHierarchy(pcTokeniser, &cKeys, pcTree, pcTree->GetRoot(), pcDest);
 	}
 	pcContainer = NULL;
 	szContainer.Init();
@@ -499,19 +519,15 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 	}
 
 	//The classes' bases and the virtual functions, for the overrides of a function (FindOverrides).
-	for (i = 0; i + 1 < pcUnit->maiBaseLinks.NumElements(); i += 2)
+	for (i = 0; i + 2 < pcUnit->maiBaseLinks.NumElements(); i += 3)
 	{
 		iClass = aiSymbols.GetValue((size)pcUnit->maiBaseLinks.GetValue(i));
 		iBase = aiSymbols.GetValue((size)pcUnit->maiBaseLinks.GetValue(i + 1));
-		if ((iClass != iBase) && (mapcSymbols.GetPtr((size)iClass)->maiBases.Find(iBase) == ARRAY_ELEMENT_NOT_FOUND))
-		{
-			mapcSymbols.GetPtr((size)iClass)->maiBases.Add(iBase);
-			mapcSymbols.GetPtr((size)iBase)->maiDerived.Add(iClass);
-		}
+		AddBaseLink(iClass, iBase, (uint32)aiFiles.GetValue((size)pcUnit->maiBaseLinks.GetValue(i + 2)));
 	}
-	for (i = 0; i < pcUnit->maiVirtuals.NumElements(); i++)
+	for (i = 0; i + 1 < pcUnit->maiVirtuals.NumElements(); i += 2)
 	{
-		mapcSymbols.GetPtr((size)aiSymbols.GetValue((size)pcUnit->maiVirtuals.GetValue(i)))->mbVirtual = true;
+		AddVirtual(aiSymbols.GetValue((size)pcUnit->maiVirtuals.GetValue(i)), (uint32)aiFiles.GetValue((size)pcUnit->maiVirtuals.GetValue(i + 1)));
 	}
 	aiFiles.Kill();
 	aiSymbols.Kill();
@@ -542,11 +558,12 @@ public:
 class CCPPIndexHierarchyChildren : public CCPPSyntaxChildVisitor
 {
 public:
+	CCPPTokeniser*	mpcTokeniser;
 	CCPPSymbolKey*	mpcKeys;
 	CCPPSyntaxTree*	mpcTree;
 	CCPPIndexUnit*	mpcDest;
 
-	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindHierarchy(mpcKeys, mpcTree, pcChild, mpcDest); }
+	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindHierarchy(mpcTokeniser, mpcKeys, mpcTree, pcChild, mpcDest); }
 };
 
 
@@ -581,14 +598,16 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 //////////////////////////////////////////////////////////////////////////
 //
 // Every place a name is in szFileName is forgotten, before the file is
-// indexed again after it has changed.  Its symbols are kept, with their
-// places in other files; one named only there is left with none.
+// indexed again after it has changed, and the base classes and virtual
+// functions it declares.  Its symbols are kept, with their places in other
+// files; one named only there is left with none.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::RemoveFile(const char* szFileName)
 {
 	int					iFile;
 	size				i;
+	bool				bHierarchy;
 	size				j;
 	CCPPIndexSymbol*	pcSymbol;
 	SCPPIndexLocation*	psLocation;
@@ -611,6 +630,138 @@ void CCPPIndex::RemoveFile(const char* szFileName)
 			}
 		}
 	}
+
+	//The file's base classes and virtual functions go; the classes' and functions' are made again from the rest.
+	bHierarchy = false;
+	for (i = masBaseLinks.NumElements(); i > 0; i--)
+	{
+		if (masBaseLinks.Get(i - 1)->uiFile == (uint32)iFile)
+		{
+			mcHierarchyKeys.Remove(GetHierarchyKey(masBaseLinks.Get(i - 1)->iClass, masBaseLinks.Get(i - 1)->iBase, (uint32)iFile));
+			masBaseLinks.RemoveAt(i - 1, true);
+			bHierarchy = true;
+		}
+	}
+	for (i = masVirtuals.NumElements(); i > 0; i--)
+	{
+		if (masVirtuals.Get(i - 1)->uiFile == (uint32)iFile)
+		{
+			mcHierarchyKeys.Remove(GetHierarchyKey(masVirtuals.Get(i - 1)->iFunction, -1, (uint32)iFile));
+			masVirtuals.RemoveAt(i - 1, true);
+			bHierarchy = true;
+		}
+	}
+	if (bHierarchy)
+	{
+		RemakeHierarchy();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The key a base class link (iFirst the class, iSecond the base) or a
+// virtual (iFirst the function, iSecond -1) is kept by, in a file.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPPIndex::GetHierarchyKey(int32 iFirst, int32 iSecond, uint32 uiFile)
+{
+	return ((int64)iFirst << 42) ^ ((int64)(iSecond + 1) << 21) ^ (int64)uiFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class iClass has iBase as a base class, as file uiFile says.  Each
+// is kept once, whichever units say so.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::AddBaseLink(int32 iClass, int32 iBase, uint32 uiFile)
+{
+	int64				lliKey;
+	int32				iOne;
+	SCPPIndexBaseLink*	psLink;
+	CCPPIndexSymbol*	pcClass;
+
+	lliKey = GetHierarchyKey(iClass, iBase, uiFile);
+	if ((iClass == iBase) || mcHierarchyKeys.Get(lliKey))
+	{
+		return;
+	}
+	iOne = 1;
+	mcHierarchyKeys.Put(lliKey, &iOne);
+	psLink = masBaseLinks.Add();
+	psLink->iClass = iClass;
+	psLink->iBase = iBase;
+	psLink->uiFile = uiFile;
+	pcClass = mapcSymbols.GetPtr((size)iClass);
+	if (pcClass->maiBases.Find(iBase) == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		pcClass->maiBases.Add(iBase);
+		mapcSymbols.GetPtr((size)iBase)->maiDerived.Add(iClass);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member function iFunction is declared virtual, override or final in
+// file uiFile.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::AddVirtual(int32 iFunction, uint32 uiFile)
+{
+	int64				lliKey;
+	int32				iOne;
+	SCPPIndexVirtual*	psVirtual;
+
+	lliKey = GetHierarchyKey(iFunction, -1, uiFile);
+	if (mcHierarchyKeys.Get(lliKey))
+	{
+		return;
+	}
+	iOne = 1;
+	mcHierarchyKeys.Put(lliKey, &iOne);
+	psVirtual = masVirtuals.Add();
+	psVirtual->iFunction = iFunction;
+	psVirtual->uiFile = uiFile;
+	mapcSymbols.GetPtr((size)iFunction)->mbVirtual = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The symbols' base classes, derived classes and virtual flags made again
+// from the links and virtuals the files say, after a file has gone.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::RemakeHierarchy(void)
+{
+	size				i;
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexBaseLink*	psLink;
+
+	for (i = 0; i < mapcSymbols.NumElements(); i++)
+	{
+		pcSymbol = mapcSymbols.GetPtr(i);
+		pcSymbol->maiBases.ReInit();
+		pcSymbol->maiDerived.ReInit();
+		pcSymbol->mbVirtual = false;
+	}
+	for (i = 0; i < masBaseLinks.NumElements(); i++)
+	{
+		psLink = masBaseLinks.Get(i);
+		pcSymbol = mapcSymbols.GetPtr((size)psLink->iClass);
+		if (pcSymbol->maiBases.Find(psLink->iBase) == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			pcSymbol->maiBases.Add(psLink->iBase);
+			mapcSymbols.GetPtr((size)psLink->iBase)->maiDerived.Add(psLink->iClass);
+		}
+	}
+	for (i = 0; i < masVirtuals.NumElements(); i++)
+	{
+		mapcSymbols.GetPtr((size)masVirtuals.Get(i)->iFunction)->mbVirtual = true;
+	}
 }
 
 
@@ -620,7 +771,7 @@ void CCPPIndex::RemoveFile(const char* szFileName)
 // functions it declares virtual, override or final.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest)
+void CCPPIndex::FindHierarchy(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest)
 {
 	CCPPSyntaxClassSpecifier*	pcClass;
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
@@ -633,12 +784,14 @@ void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 	bool						bVirtual;
 	size						i;
 	CCPPIndexHierarchyChildren	cChildren;
+	CSourceFile*				pcFile;
 
 	switch (pcNode->GetKind())
 	{
 	case CPPS_ClassSpecifier:
 		pcClass = (CCPPSyntaxClassSpecifier*)pcNode;
-		if (pcClass->mpcName && pcClass->mpcScope && (pcClass->mpcScope->mapcBases.NumElements() > 0))
+		pcFile = (pcClass->mpcName && pcClass->mpcName->GetLast()) ? GetTokenFile(pcTokeniser, pcClass->mpcName->GetLast()->miName) : NULL;
+		if (pcFile && pcClass->mpcScope && (pcClass->mpcScope->mapcBases.NumElements() > 0))
 		{
 			szClass.Init();
 			if (GetContainerKey(pcKeys, pcTree, pcNode, &szClass, &eKind))
@@ -650,7 +803,7 @@ void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 					szBase.Clear();
 					if (pcBase && pcBase->mpcOwner && pcKeys->GetKey(pcBase->mpcOwner, &szBase))
 					{
-						pcDest->AddBase(szClass.Text(), eKind, szBase.Text(), pcBase->mpcOwner->meKind);
+						pcDest->AddBase(szClass.Text(), eKind, szBase.Text(), pcBase->mpcOwner->meKind, pcFile);
 					}
 				}
 				szBase.Kill();
@@ -670,19 +823,20 @@ void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 			}
 			if (pcDeclarator && (pcDeclarator->GetKind() == CPPS_Declarator))
 			{
-				GatherVirtual(pcKeys, pcTree, (CCPPSyntaxDeclarator*)pcDeclarator, bVirtual, pcDest);
+				GatherVirtual(pcTokeniser, pcKeys, pcTree, (CCPPSyntaxDeclarator*)pcDeclarator, bVirtual, pcDest);
 			}
 		}
 		break;
 	case CPPS_FunctionDefinition:
 		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcNode;
 		bVirtual = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL);
-		GatherVirtual(pcKeys, pcTree, pcDefinition->mpcDeclarator, bVirtual, pcDest);
+		GatherVirtual(pcTokeniser, pcKeys, pcTree, pcDefinition->mpcDeclarator, bVirtual, pcDest);
 		break;
 	default:
 		break;
 	}
 
+	cChildren.mpcTokeniser = pcTokeniser;
 	cChildren.mpcKeys = pcKeys;
 	cChildren.mpcTree = pcTree;
 	cChildren.mpcDest = pcDest;
@@ -696,12 +850,13 @@ void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 // virtual specifier) or it is declared override or final.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::GatherVirtual(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest)
+void CCPPIndex::GatherVirtual(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest)
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxName*				pcName;
 	SCPPTokenSymbol*			psSymbol;
 	CChars						szKey;
+	CSourceFile*				pcFile;
 
 	if ((pcDeclarator == NULL) || !pcDeclarator->IsFunction())
 	{
@@ -722,16 +877,41 @@ void CCPPIndex::GatherVirtual(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 		return;
 	}
 	psSymbol = pcTree->GetTokenSymbol(pcName->GetLast()->miName);
-	if ((psSymbol == NULL) || (psSymbol->pcSymbol == NULL) || !pcKeys->IsFunction(psSymbol->pcSymbol))
+	pcFile = GetTokenFile(pcTokeniser, pcName->GetLast()->miName);
+	if ((psSymbol == NULL) || (psSymbol->pcSymbol == NULL) || !pcKeys->IsFunction(psSymbol->pcSymbol) || (pcFile == NULL))
 	{
 		return;
 	}
 	szKey.Init();
 	if (pcKeys->GetFunctionKey(psSymbol->pcSymbol, pcDeclarator, &szKey))
 	{
-		pcDest->AddVirtual(szKey.Text(), psSymbol->pcSymbol->meKind);
+		pcDest->AddVirtual(szKey.Text(), psSymbol->pcSymbol->meKind, pcFile);
 	}
 	szKey.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The file iToken was written in, where its macro was used if a macro
+// made it; NULL if it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+CSourceFile* CCPPIndex::GetTokenFile(CCPPTokeniser* pcTokeniser, int32 iToken)
+{
+	SPreprocessedToken*	psSource;
+	SPreprocessedToken	sMacroUse;
+
+	if ((iToken < 0) || ((size)iToken >= pcTokeniser->NumTokens()))
+	{
+		return NULL;
+	}
+	psSource = pcTokeniser->GetSource(pcTokeniser->Get((size)iToken));
+	if (psSource->iExpansion != -1)
+	{
+		return GetMacroUse(pcTokeniser, psSource, &sMacroUse) ? sMacroUse.pcFile : NULL;
+	}
+	return psSource->pcFile;
 }
 
 

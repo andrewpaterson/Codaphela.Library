@@ -646,6 +646,80 @@ int Get(void)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A file forgotten (RemoveFile) takes its classes' base classes and its
+// virtual declarations with it: indexed again without them, nothing
+// overrides.  Another file's are kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexRemoveFileHierarchy(void)
+{
+	CCPPIndex	cIndex;
+
+	cIndex.Init();
+	IndexText(&cIndex, "Base.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	virtual void	Run(int i);\n\
+};\n");
+	IndexText(&cIndex, "Derived.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	virtual void	Run(int i);\n\
+};\n\
+class CDerived : public CBase\n\
+{\n\
+public:\n\
+	void	Run(int i) override;\n\
+};\n");
+	AssertSize(2, CountCppIndexOverrides(&cIndex, "CBase::Run(int)"));
+
+	//Derived.cpp gone: CBase's other declaration, in Base.cpp, is still virtual but nothing derives from it.
+	cIndex.RemoveFile("Derived.cpp");
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CBase::Run(int)"));
+
+	//Again, but CDerived no longer derives from CBase.
+	IndexText(&cIndex, "Derived.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	virtual void	Run(int i);\n\
+};\n\
+class CDerived\n\
+{\n\
+public:\n\
+	void	Run(int i);\n\
+};\n");
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CBase::Run(int)"));
+
+	//Derived again, but nothing says virtual any more.
+	cIndex.RemoveFile("Derived.cpp");
+	cIndex.RemoveFile("Base.cpp");
+	IndexText(&cIndex, "Base.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	void	Run(int i);\n\
+};\n");
+	IndexText(&cIndex, "Derived.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	void	Run(int i);\n\
+};\n\
+class CDerived : public CBase\n\
+{\n\
+public:\n\
+	void	Run(int i);\n\
+};\n");
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CBase::Run(int)"));
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppIndex(void)
@@ -660,6 +734,7 @@ void TestCppIndex(void)
 	TestCppIndexContainers();
 	TestCppIndexOverrides();
 	TestCppIndexRemoveFile();
+	TestCppIndexRemoveFileHierarchy();
 
 	TestStatistics();
 }

@@ -106,16 +106,17 @@ public:
 	CArrayChars			maszFiles;
 	CMapStringInt		mcFiles;		//File name to index in maszFiles.
 	int32				miContainer;	//The key of the class or function the names added are in, -1 for neither.
-	CArrayInt			maiBaseLinks;	//Pairs of keys: a class, then one of its base classes.
-	CArrayInt			maiVirtuals;	//The keys of member functions declared virtual, override or final.
+	CArrayInt			maiBaseLinks;	//Triples: a class's key, one of its base classes' key and the file (in maszFiles) saying so.
+	CArrayInt			maiVirtuals;	//Pairs: the key of a member function declared virtual, override or final, and the file.
 	CMapLongTemplate<int32>	mcCachedKeys;	//A symbol's (or a function declarator's) key, by its address: -1 if it has none.
 	CSourceFile*		mpcLastFile;	//The file the last name added was in,
 	int					miLastFile;		//and its index in maszFiles.
 
 	void	Init(void);
 	void	Kill(void);
-	void	AddBase(const char* szClass, ECPPSymbolKind eClassKind, const char* szBase, ECPPSymbolKind eBaseKind);
-	void	AddVirtual(const char* szFunction, ECPPSymbolKind eKind);
+	void	AddBase(const char* szClass, ECPPSymbolKind eClassKind, const char* szBase, ECPPSymbolKind eBaseKind, CSourceFile* pcFile);
+	void	AddVirtual(const char* szFunction, ECPPSymbolKind eKind, CSourceFile* pcFile);
+	int		AddFile(CSourceFile* pcFile);
 
 	void	Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
 	void	AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
@@ -133,6 +134,27 @@ public:
 };
 
 
+//A class's base class, as a file says (its definition's file): forgotten with the file (CCPPIndex::RemoveFile).
+struct SCPPIndexBaseLink
+{
+	int32	iClass;
+	int32	iBase;
+	uint32	uiFile;
+};
+
+
+//A member function declared virtual, override or final, in a file.
+struct SCPPIndexVirtual
+{
+	int32	iFunction;
+	uint32	uiFile;
+};
+
+
+typedef CArrayTemplate<SCPPIndexBaseLink>	CArrayIndexBaseLinks;
+typedef CArrayTemplate<SCPPIndexVirtual>	CArrayIndexVirtuals;
+
+
 //A symbol of the whole solution: the same in every translation unit that declares or uses it.
 class CCPPIndexSymbol
 {
@@ -140,9 +162,9 @@ public:
 	CChars					mszKey;
 	ECPPSymbolKind			meKind;
 	CArrayIndexLocations	masLocations;
-	CArrayInt				maiBases;		//A class's base classes, by symbol index.
+	CArrayInt				maiBases;		//A class's base classes, by symbol index (from CCPPIndex::masBaseLinks).
 	CArrayInt				maiDerived;		//The classes that have it as a base, by symbol index.
-	bool					mbVirtual;		//A member function some unit declares virtual, override or final.
+	bool					mbVirtual;		//A member function a file declares virtual, override or final (masVirtuals).
 
 	void	Init(const char* szKey, ECPPSymbolKind eKind);
 	void	Kill(void);
@@ -170,6 +192,9 @@ protected:
 	CArrayIndexSymbols		mapcSymbols;
 	CMapStringInt			mcKeys;			//Key to index in mapcSymbols.
 	CMapLongTemplate<int32>	mcLocations;	//A name's place (LocationKey) to its symbol's index.
+	CArrayIndexBaseLinks	masBaseLinks;	//Each class's base classes, by the files saying so; the symbols' maiBases and
+	CArrayIndexVirtuals		masVirtuals;	//maiDerived and mbVirtual are made from these.
+	CMapLongTemplate<int32>	mcHierarchyKeys;	//Each link's and virtual's key (GetHierarchyKey): each is kept once.
 
 public:
 	void				Init(void);
@@ -197,8 +222,13 @@ protected:
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
 	static void			FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens);
-	static void			FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest);
-	static void			GatherVirtual(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest);
+	static void			FindHierarchy(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest);
+	static void			GatherVirtual(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest);
+	static CSourceFile*	GetTokenFile(CCPPTokeniser* pcTokeniser, int32 iToken);
+	static int64		GetHierarchyKey(int32 iFirst, int32 iSecond, uint32 uiFile);
+	void				AddBaseLink(int32 iClass, int32 iBase, uint32 uiFile);
+	void				AddVirtual(int32 iFunction, uint32 uiFile);
+	void				RemakeHierarchy(void);
 	static void			AddClosure(CArrayIndexSymbols* papcSymbols, int iSymbol, bool bBases, CArrayInt* paiDest);
 	static bool			GetContainerKey(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcContainer, CChars* pszDest, ECPPSymbolKind* peKind);
 	int					GetSymbolIndex(const char* szKey, ECPPSymbolKind eKind);
