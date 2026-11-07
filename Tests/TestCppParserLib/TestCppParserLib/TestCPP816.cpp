@@ -296,6 +296,7 @@ void TestCPP816Basics(void)
 	AssertInt(2, TestCPP816Run("int main(void) { return sizeof(int); }\n"));
 	AssertInt(4, TestCPP816Run("int main(void) { return sizeof(long) + sizeof(short) - 2; }\n"));
 	AssertInt(-32768, TestCPP816Run("int main(void) { int a = 32767; a = a + 1; return a; }\n"));
+	AssertInt(1 + 2, TestCPP816Run("unsigned guWrapped = 65535u + 1u;\nunsigned guAll = 0u - 1;\nint main(void) { return (guWrapped == 0) + (guAll == 65535u) * 2; }\n"));
 
 	//long is 32 bits.
 	AssertInt(1234, TestCPP816Run("int main(void) { long a = 100000; long b = a * 3 + 1234; return (int)(b - 300000); }\n", true));

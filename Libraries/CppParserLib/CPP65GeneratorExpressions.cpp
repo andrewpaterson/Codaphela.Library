@@ -774,7 +774,8 @@ bool CCPP65Generator::VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psP
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Works out an integer constant expression.  The arithmetic is 64 bit.
+// Works out an integer constant expression.  Each value is kept as its
+// type keeps it (ConstantOfType): unsigned and narrow arithmetic wraps.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
@@ -886,14 +887,23 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
+		if (pcUnary->meOperator == CT_LogicalNot)
+		{
+			*plliValue = !lliLeft;
+			return true;
+		}
+		//Otherwise the operand is promoted to the expression's type, and the result kept in it.
+		psType = ConstantTypeOf(pcExpression);
+		lliLeft = ConstantOfType(psType, lliLeft);
 		switch (pcUnary->meOperator)
 		{
-		case CT_Add:			*plliValue = lliLeft;			return true;
-		case CT_Subtract:		*plliValue = -lliLeft;			ConstantOverflow(pcExpression, *plliValue, true);	return true;
-		case CT_BitwiseNot:		*plliValue = ~lliLeft;			return true;
-		case CT_LogicalNot:		*plliValue = !lliLeft;			return true;
+		case CT_Add:			*plliValue = lliLeft;																	break;
+		case CT_Subtract:		*plliValue = (int64)(0 - (uint64)lliLeft);	ConstantOverflow(pcExpression, *plliValue, true);	break;
+		case CT_BitwiseNot:		*plliValue = ~lliLeft;																	break;
 		default:				return false;
 		}
+		*plliValue = ConstantOfType(psType, *plliValue);
+		return true;
 
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
@@ -901,28 +911,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		switch (pcBinary->meOperator)
-		{
-		case CT_Add:				*plliValue = lliLeft + lliRight;		ConstantOverflow(pcExpression, *plliValue, false);	return true;
-		case CT_Subtract:			*plliValue = lliLeft - lliRight;		ConstantOverflow(pcExpression, *plliValue, true);	return true;
-		case CT_Multiply:			*plliValue = lliLeft * lliRight;		ConstantOverflow(pcExpression, *plliValue, false);	return true;
-		case CT_Divide:				if (lliRight == 0) return false;	*plliValue = lliLeft / lliRight;	return true;
-		case CT_Modulus:			if (lliRight == 0) return false;	*plliValue = lliLeft % lliRight;	return true;
-		case CT_LeftShift:			*plliValue = lliLeft << lliRight;		ConstantOverflow(pcExpression, *plliValue, false);	return true;
-		case CT_RightShift:			*plliValue = lliLeft >> lliRight;		return true;
-		case CT_BitwiseAnd:			*plliValue = lliLeft & lliRight;		return true;
-		case CT_BitwiseOr:			*plliValue = lliLeft | lliRight;		return true;
-		case CT_BitwiseXor:			*plliValue = lliLeft ^ lliRight;		return true;
-		case CT_LogicalAnd:			*plliValue = lliLeft && lliRight;		return true;
-		case CT_LogicalOr:			*plliValue = lliLeft || lliRight;		return true;
-		case CT_EqualTo:			*plliValue = lliLeft == lliRight;		return true;
-		case CT_NotEqualTo:			*plliValue = lliLeft != lliRight;		return true;
-		case CT_LessThan:			*plliValue = lliLeft < lliRight;		return true;
-		case CT_LessThanEqualTo:	*plliValue = lliLeft <= lliRight;		return true;
-		case CT_GreaterThan:		*plliValue = lliLeft > lliRight;		return true;
-		case CT_GreaterThanEqualTo:	*plliValue = lliLeft >= lliRight;		return true;
-		default:					return false;
-		}
+		return BinaryConstant(pcBinary, lliLeft, lliRight, plliValue);
 
 	case CPPS_ConditionalExpression:
 		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
@@ -939,13 +928,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		switch (psType->iBytes)
-		{
-		case 1:		*plliValue = psType->bSigned ? (int64)(int8)lliLeft : (int64)(uint8)lliLeft;		break;
-		case 2:		*plliValue = psType->bSigned ? (int64)(int16)lliLeft : (int64)(uint16)lliLeft;	break;
-		case 8:		*plliValue = lliLeft;															break;
-		default:	*plliValue = psType->bSigned ? (int64)(int32)lliLeft : (int64)(uint32)lliLeft;	break;
-		}
+		*plliValue = ConstantOfType(psType, lliLeft);
 		return true;
 
 	case CPPS_TypeTraitExpression:
@@ -999,6 +982,150 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	default:
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type Constant works pcExpression out in, or NULL (64 bit, as a
+// constant the type checker asks for while finding a type is).  TypeOf
+// can ask for the constant whose type is being found.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ConstantTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	if (miConstantTypes > 0)
+	{
+		return NULL;
+	}
+	miConstantTypes++;
+	psType = TypeOf(pcExpression);
+	miConstantTypes--;
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// lliValue as an integer (or pointer) of psType holds it: cut to its width,
+// then sign or zero extended.  Unchanged for other types and NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPP65Generator::ConstantOfType(SCPP65Type* psType, int64 lliValue)
+{
+	if (!psType || !(psType->IsInteger() || psType->IsPointer()))
+	{
+		return lliValue;
+	}
+	switch (psType->iBytes)
+	{
+	case 1:		return psType->bSigned ? (int64)(int8)lliValue : (int64)(uint8)lliValue;
+	case 2:		return psType->bSigned ? (int64)(int16)lliValue : (int64)(uint16)lliValue;
+	case 8:		return lliValue;
+	default:	return psType->bSigned ? (int64)(int32)lliValue : (int64)(uint32)lliValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// left op right, of constants: the operands converted to their common type
+// (the left's promoted for a shift), the arithmetic on that type (unsigned
+// divides, shifts and compares as unsigned) and the result kept in the
+// expression's type.  The sum's, product's and shift's exact values are
+// checked for overflow.  False (not a constant) for a divide by 0, a shift
+// by a negative count or by the type's width or more, and the most
+// negative 64 bit value divided by -1.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue)
+{
+	SCPP65Type*	psResult;
+	SCPP65Type*	psOperands;
+	SCPP65Type*	psLeft;
+	SCPP65Type*	psRight;
+	bool		bUnsigned;
+	int			iBits;
+	uint64		a;
+	uint64		b;
+	int64		lliResult;
+
+	psResult = ConstantTypeOf(pcBinary);
+	psOperands = psResult;
+	switch (pcBinary->meOperator)
+	{
+	case CT_LogicalAnd:		*plliValue = lliLeft && lliRight;	return true;
+	case CT_LogicalOr:		*plliValue = lliLeft || lliRight;	return true;
+	case CT_EqualTo:
+	case CT_NotEqualTo:
+	case CT_LessThan:
+	case CT_LessThanEqualTo:
+	case CT_GreaterThan:
+	case CT_GreaterThanEqualTo:
+		psLeft = ConstantTypeOf(pcBinary->mpcLeft);
+		psRight = ConstantTypeOf(pcBinary->mpcRight);
+		psLeft = (psLeft && psLeft->IsReference()) ? psLeft->psBase : psLeft;
+		psRight = (psRight && psRight->IsReference()) ? psRight->psBase : psRight;
+		psOperands = (psLeft && psRight && psLeft->IsInteger() && psRight->IsInteger()) ? mcTypes.Arithmetic(psLeft, psRight) : NULL;
+		break;
+	default:
+		break;
+	}
+	bUnsigned = psOperands && psOperands->IsInteger() && !psOperands->bSigned;
+	lliLeft = ConstantOfType(psOperands, lliLeft);
+	if ((pcBinary->meOperator == CT_LeftShift) || (pcBinary->meOperator == CT_RightShift))
+	{
+		iBits = (psOperands && psOperands->IsInteger()) ? psOperands->iBytes * 8 : 64;
+		if ((lliRight < 0) || (lliRight >= iBits))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		lliRight = ConstantOfType(psOperands, lliRight);
+	}
+	a = (uint64)lliLeft;
+	b = (uint64)lliRight;
+
+	switch (pcBinary->meOperator)
+	{
+	case CT_Add:				lliResult = (int64)(a + b);		ConstantOverflow(pcBinary, lliResult, false);	break;
+	case CT_Subtract:			lliResult = (int64)(a - b);		ConstantOverflow(pcBinary, lliResult, true);	break;
+	case CT_Multiply:			lliResult = (int64)(a * b);		ConstantOverflow(pcBinary, lliResult, false);	break;
+	case CT_LeftShift:			lliResult = (int64)(a << b);	ConstantOverflow(pcBinary, lliResult, false);	break;
+	case CT_RightShift:			lliResult = bUnsigned ? (int64)(a >> b) : (lliLeft >> b);	break;
+	case CT_BitwiseAnd:			lliResult = (int64)(a & b);		break;
+	case CT_BitwiseOr:			lliResult = (int64)(a | b);		break;
+	case CT_BitwiseXor:			lliResult = (int64)(a ^ b);		break;
+	case CT_EqualTo:			*plliValue = a == b;													return true;
+	case CT_NotEqualTo:			*plliValue = a != b;													return true;
+	case CT_LessThan:			*plliValue = bUnsigned ? (a < b) : (lliLeft < lliRight);				return true;
+	case CT_LessThanEqualTo:	*plliValue = bUnsigned ? (a <= b) : (lliLeft <= lliRight);			return true;
+	case CT_GreaterThan:		*plliValue = bUnsigned ? (a > b) : (lliLeft > lliRight);				return true;
+	case CT_GreaterThanEqualTo:	*plliValue = bUnsigned ? (a >= b) : (lliLeft >= lliRight);			return true;
+	case CT_Divide:
+	case CT_Modulus:
+		if ((b == 0) || (!bUnsigned && (lliLeft == (int64)MIN_INT64) && (lliRight == -1)))
+		{
+			return false;
+		}
+		if (pcBinary->meOperator == CT_Divide)
+		{
+			lliResult = bUnsigned ? (int64)(a / b) : (lliLeft / lliRight);
+		}
+		else
+		{
+			lliResult = bUnsigned ? (int64)(a % b) : (lliLeft % lliRight);
+		}
+		break;
+	default:
+		return false;
+	}
+	*plliValue = ConstantOfType(psResult, lliResult);
+	return true;
 }
 
 

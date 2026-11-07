@@ -603,6 +603,30 @@ void TestCPP65IROverloadedFunctionPointers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Constant expressions (global initialisers, static_assert, array sizes)
+// are worked out in their types: unsigned arithmetic wraps, compares and
+// shifts as unsigned, and an int and an unsigned compare as unsigned.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstantTypes(void)
+{
+	AssertInt(1 + 2 + 4 + 8 + 16 + 32 + 64 + 128, TestCPP65IRMain(
+		"unsigned guHalf = (0u - 1) / 2;\n"
+		"int giAbove = (0u - 1) > 0;\n"
+		"int giMixed = -1 < 1u;\n"
+		"unsigned guShift = (0u - 1) >> 28;\n"
+		"int giNarrow = (unsigned char)255 + 1;\n"
+		"static_assert((0u - 1) > 0, \"Unsigned wraps\");\n"
+		"int gaiSized[(0u - 1) % 7];\n"
+		"long long glliNegative = -(1LL << 62) / -2;\n"
+		"int giNot = !256 + ~0u % 3;\n"
+		"int main() { return (guHalf == 0x7FFFFFFFu) + (giAbove == 1) * 2 + (giMixed == 0) * 4 + (guShift == 15) * 8 + (giNarrow == 256) * 16 +\n"
+		"(sizeof(gaiSized) == 3 * sizeof(int)) * 32 + (glliNegative == (1LL << 61)) * 64 + (giNot == 0) * 128; }", 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Functions that differ only by ..., and classes and enums of the same name
 // in different classes, have different labels.
 //
@@ -667,6 +691,7 @@ void TestCPP65IR(void)
 	TestCPP65IRDynamicCastUnits();
 	TestCPP65IROverloadedFunctionPointers();
 	TestCPP65IRMangledNames();
+	TestCPP65IRConstantTypes();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

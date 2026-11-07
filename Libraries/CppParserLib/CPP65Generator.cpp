@@ -287,6 +287,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	maszEmitted.Init();
 	miQuiet = 0;
 	miWarningChecks = 0;
+	miConstantTypes = 0;
 	mbWarnNarrowing = gbCPP65DefaultWarnNarrowing;
 	mbQuietFailed = false;
 	maszStrings.Init();

@@ -389,6 +389,7 @@ protected:
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
+	int						miConstantTypes;	//Above 0 while Constant works out a type (ConstantTypeOf), for the same reason.
 	bool					mbWarnNarrowing;	//Implicit conversions of non constant integers to a narrower type are warned about.
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
@@ -675,6 +676,9 @@ protected:
 	bool					VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psPlace);
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
+	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
+	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
+	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
