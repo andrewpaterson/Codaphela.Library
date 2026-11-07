@@ -27,9 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CSetObject::Init(bool bSortPointers)
 {
-	PreInit();
 	CArrayCommonObject::Init(false, true, bSortPointers, bSortPointers);
-	PostInit();
 }
 
 

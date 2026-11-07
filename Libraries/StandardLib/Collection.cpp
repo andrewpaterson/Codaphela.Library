@@ -28,12 +28,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A collection's own fields are set in PreFields: this marks the base of
+// its sub-classes' Inits.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCollection::Init(void)
 {
 	PreInit();
-	mbSubRoot = false;
 	PostInit();
 }
 

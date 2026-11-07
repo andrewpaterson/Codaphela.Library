@@ -26,8 +26,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/SetIterator.h"
 
 
-//Note: This class has no fields.
 class CObjects;
+
+
+//The base of the object collections (arrays, sets, maps, indexes): objects that point to their members themselves,
+//not through pointer fields.
 class CCollection : public CBaseObject
 {
 CONSTRUCTABLE(CCollection)
