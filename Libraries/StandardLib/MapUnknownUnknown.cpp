@@ -180,6 +180,7 @@ CUnknown* CMapUnknownUnknown::Get(CUnknown* pcKey)
 	return pcValue;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -187,6 +188,17 @@ CUnknown* CMapUnknownUnknown::Get(CUnknown* pcKey)
 SMNode* CMapUnknownUnknown::GetNode(CUnknown* pcKey)
 {
 	return mcMap.GetNode(&pcKey, sizeof(CUnknown*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True for a key whose value is NULL too.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapUnknownUnknown::Contains(CUnknown* pcKey)
+{
+	return GetNode(pcKey) != NULL;
 }
 
 

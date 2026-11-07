@@ -33,6 +33,7 @@ public:
 	N*			Get(M* pcKey);
 	CUnknown*	Get(CUnknown* pcKey);
 	SMNode*		GetNode(CUnknown* pcKey);
+	bool		Contains(CUnknown* pcKey);
 
 	void		SetKey(SMapIterator* psIter, CUnknown* pcNewKey);
 	void		SetValue(SMapIterator* psIter, CUnknown* pcNewValue);

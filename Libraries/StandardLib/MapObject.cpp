@@ -89,7 +89,7 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 
 	//An existing key keeps its one from.  The new value's from is added before the old value's is removed: they
 	//may be the same object, which removing first would free.
-	bKeyExisted = mcMap.GetNode(pcKey) != NULL;
+	bKeyExisted = mcMap.Contains(pcKey);
 	pcOldValue = NULL;
 	if (bKeyExisted)
 	{
@@ -199,19 +199,8 @@ CPointer CMapObject::Get(CPointer& pKey)
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::Contains(const CPointer& pKey)
 {
-	CBaseObject* pcValue;
-	CPointer		pValue;
-	CBaseObject* pcKey;
-
 	EnsureSorted();
-
-	pcKey = (CBaseObject*)pKey.Object();
-	pcValue = (CBaseObject*)mcMap.Get(pcKey);
-	if (pcValue)
-	{
-		return true;
-	}
-	return false;
+	return mcMap.Contains(pKey.Object());
 }
 
 

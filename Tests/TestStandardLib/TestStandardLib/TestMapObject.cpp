@@ -275,6 +275,12 @@ void TestMapObjectIterate(void)
 		AssertSize(5, pMap->NumElements());
 		AssertSize(11, gcObjects.NumMemoryIndexes());
 
+		//A key whose value is NULL is in the map; a value is not a key.
+		AssertTrue(pMap->Contains(pKey1));
+		AssertTrue(pMap->Contains(pKey2));
+		AssertTrue(pMap->Contains(pKey5));
+		AssertFalse(pMap->Contains(pValue1));
+
 		//Iteration order depends on allocation order in GeneralMemory.  Which should be stable.
 		cEntry.Init();
 #ifdef BUILD_64
