@@ -799,11 +799,13 @@ void TestChannelsChangeRefused(void)
 
 	CChannels		cChannels;
 	CChannels		cSource;
+	SLogConfig		sLogConfig;
 
 	cSource.Init(2, PT_uint8, 5, ARRAY_ELEMENT_NOT_FOUND);
 	cChannels.Init(2, PT_uint8, 0, ARRAY_ELEMENT_NOT_FOUND);
 
 	//Changing the channels without BeginChange is the user's error, and changes nothing.
+	sLogConfig = gcLogger.SetSilent();
 	gcUserError.Init();
 	cChannels.SetSize(4);
 	AssertString("Call BeginChange() before setting size.", gcUserError.Get());
@@ -824,6 +826,7 @@ void TestChannelsChangeRefused(void)
 	AssertFalse(cChannels.RemoveChannel(0));
 	AssertString("Call BeginChange() before removing channels.", gcUserError.Get());
 	gcUserError.Init();
+	gcLogger.SetConfig(&sLogConfig);
 
 	AssertSize(1, cChannels.GetNumChannels());
 	AssertTrue(cChannels.HasChannel(0));

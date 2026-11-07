@@ -481,6 +481,7 @@ void TestEmbeddedGetEmbeddedIndex(void)
 	AssertSize(5, cComplex.GetEmbeddedIndex(&cComplex.mcContainer.mcTwo));
 	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cComplex.GetEmbeddedIndex(NULL));
 
+	cComplex.Kill();  //A stack object is killed before the objects (and its class) are.
 	ObjectsKill(false);
 }
 
@@ -523,6 +524,7 @@ void TestEmbeddedGetEmbeddedObject(void)
 	pcEmbedded = cComplex.ma.GetEmbeddedObject(1);
 	AssertNull(pcEmbedded);
 
+	cComplex.Kill();  //A stack object is killed before the objects (and its class) are.
 	ObjectsKill(false);
 }
 
@@ -573,6 +575,7 @@ void TestEmbeddedObjectClass(void)
 	AssertSize(4, cComplex.GetFieldPointerToIndex(pcPtr4));
 	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cComplex.GetFieldPointerToIndex(NULL));
 
+	cComplex.Kill();  //A stack object is killed before the objects (and its class) are.
 	ObjectsKill(false);
 }
 
@@ -597,6 +600,7 @@ void TestEmbeddedOjectIsAllocatedInObjects()
 	AssertFalse(cClusterMissile.mcMissile1.IsAllocatedInObjects());
 	AssertFalse(cClusterMissile.mcMissile2.IsAllocatedInObjects());
 
+	cClusterMissile.Kill();  //A stack object is killed before the objects (and its class) are.
 	ObjectsKill(false);
 }
 

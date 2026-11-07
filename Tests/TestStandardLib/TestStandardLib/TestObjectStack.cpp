@@ -38,6 +38,8 @@ void TestObjectStackInit(void)
 
 	AssertTrue(cObject.GetFlags() & OBJECT_FLAGS_CALLED_INIT);
 
+	//A stack object is killed before the objects (and its class) are.
+	cObject.Kill();
 	ObjectsKill();
 }
 

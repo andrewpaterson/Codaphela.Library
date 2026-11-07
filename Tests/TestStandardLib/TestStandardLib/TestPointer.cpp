@@ -54,6 +54,8 @@ void TestPointerConstructor(void)
 	AssertNull(cCluster.mpTest.Object());
 	AssertPointer(&cCluster, cCluster.mpTest.Embedding());
 
+	//A stack object is killed before the objects (and its class) are.
+	cCluster.Kill();
 	ObjectsKill();
 }
 

@@ -1127,6 +1127,9 @@ void TestDistToStackNoHeapC(void)
 	AssertSize(0, pcTest1->NumStackFroms());
 	AssertSize(0, pcTest1->NumPointerTos());
 
+	//A stack object is killed before the objects (and its class) are.
+	cTest1.Kill();
+
 	ObjectsFlush();
 	ObjectsKill();
 }
