@@ -12,24 +12,23 @@ CONSTRUCTABLE(CObjectSourceChunked)
 protected:
 	CArrayChars					mcNames;
 	CChunkFile					mcChunkFile;
-	CChunkFileFileSystem				mcChunkFileFileSystem;
+	CChunkFileFileSystem		mcChunkFileFileSystem;
 	CChunkFileObjectReader*		mpcReader;
 
 public:
 	bool			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename);
-	void			Kill(void);
+	void			Kill(void) override;
 
 	bool			ReadNames(void);
-	bool			Contains(const char* szFullName);
-	CBaseObject*	Convert(const char* szFullName);
-	bool			IsChunked(void);
-	bool			IsNative(void);
-	bool			IsMultiSource(void);
+	bool			Contains(const char* szFullName) override;
+	CBaseObject*	Convert(const char* szFullName) override;
+	bool			IsNative(void) override;
+	bool			IsMultiSource(void) override;
 
 	char*			GetName(size iIndex);
 	size			NumNames(void);
 
-	CExternalObjectReader*	GetReader(void);
+	CExternalObjectReader*	GetReader(void) override;
 };
 
 

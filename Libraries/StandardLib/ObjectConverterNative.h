@@ -16,15 +16,18 @@ protected:
 
 public:
 	void			Init(void);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	const char*			GetFileExtension(void);
-	bool			IsFor(CAbstractFile* pcFile);
-	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename);
-	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName);
+	const char*		GetFileExtension(void) override;
+	bool			IsFor(CAbstractFile* pcFile) override;
+	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename) override;
+	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName) override;
 	bool			IsNative(void);
 
 	OIndex			TestGetNewIndexFromOld(OIndex oiOld);
+
+protected:
+	int32			ReadFileType(CFileBasic* pcFile);
 };
 
 

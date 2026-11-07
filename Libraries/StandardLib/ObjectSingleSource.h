@@ -31,10 +31,10 @@ protected:
 
 public:
 	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szObjectName);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	CBaseObject*	Convert(const char* szFullName);
-	bool			Contains(const char* szFullName);
+	CBaseObject*	Convert(const char* szFullName) override;
+	bool			Contains(const char* szFullName) override;
 };
 
 

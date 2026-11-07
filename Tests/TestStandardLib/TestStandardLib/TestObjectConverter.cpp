@@ -8,6 +8,7 @@
 #include "StandardLib/ObjectConverterNative.h"
 #include "StandardLib/String.h"
 #include "StandardLib/ChunkFileObjectWriter.h"
+#include "StandardLib/MultiFileObjectWriter.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "TestLib/Assert.h"
 #include "ChunkFileObjectWriterTestClasses.h"
@@ -479,6 +480,63 @@ void TestObjectConverterDragonRootDistance(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A basic object file (one object, written by CMultiFileObjectWriter) is
+// a simple source.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectConverterDragonSimple(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CTestInteger>			pInteger;
+		CMultiFileObjectWriter		cWriter;
+		CExternalObjectSerialiser	cSerialiser;
+
+		pInteger = ONMalloc<CTestInteger>("Simple", 0x12345678, (int16)0x1234, (int8)0x12);
+		cWriter.Init("Output" _FS_ "ObjectConverter", "");
+		cSerialiser.Init(&cWriter);
+		AssertTrue(cSerialiser.Write(&pInteger));
+		cSerialiser.Kill();
+		cWriter.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+
+	ObjectsInit();
+	{
+		CObjectConverterNative	cConverter;
+		CObjectSource*			pcSource;
+		Ptr<CTestInteger>		pInteger;
+
+		SetupObjectConverterConstructors();
+
+		cConverter.Init();
+		pcSource = cConverter.CreateSource(DiskFile("Output" _FS_ "ObjectConverter" _FS_ "Simple.DRG"), "Simple");
+		AssertNotNull(pcSource);
+		AssertTrue(pcSource->IsNative());
+		AssertFalse(pcSource->IsMultiSource());
+		AssertTrue(pcSource->Contains("Simple"));
+		AssertFalse(pcSource->Contains("Complex"));
+
+		pInteger = pcSource->Convert("Simple");
+		AssertTrue(pInteger.IsNotNull());
+		AssertString("CTestInteger", pInteger.ClassName());
+		AssertString("Simple", pInteger.GetName());
+		AssertInt(0x12345678, pInteger->mx);
+		AssertInt(0x1234, pInteger->my);
+		AssertInt(0x12, pInteger->mz);
+		ORoot()->Add(pInteger);
+
+		pcSource->Kill();
+		cConverter.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectConverter(void)
@@ -498,6 +556,7 @@ void TestObjectConverter(void)
 	TestObjectConverterNamesObjects();
 	TestObjectConverterDragonExistingHollows();
 	TestObjectConverterDragonRootDistance();
+	TestObjectConverterDragonSimple();
 
 	DataIOKill();
 	TypesKill();

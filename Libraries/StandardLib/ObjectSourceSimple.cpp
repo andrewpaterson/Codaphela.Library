@@ -11,6 +11,7 @@
 void CObjectSourceSimple::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSingleSource::Init(pcConverter, pcFile, szFilename);
+	mcFile.Init(pcFile);
 	mpcReader = NULL;
 }
 
@@ -21,17 +22,8 @@ void CObjectSourceSimple::Init(CObjectConverter* pcConverter, CAbstractFile* pcF
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceSimple::Kill(void)
 {
+	mcFile.Kill();
 	CObjectSingleSource::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObjectSourceSimple::IsSimple(void)
-{
-	return true;
 }
 
 
@@ -49,27 +41,23 @@ bool CObjectSourceSimple::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceSimple::Contains(const char* szFullName)
-{
-	return CObjectSingleSource::Contains(szFullName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjectSourceSimple::Convert(const char* szFullName)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
+
+	if (!Contains(szFullName))
+	{
+		return NULL;
+	}
 
 	mpcReader = UMalloc(CFileObjectReader);
-	mpcReader->Init(NULL);
+	mpcReader->Init(&mcFile);
 
-	pvObject = mpcConverter->Convert(this, szFullName);
+	pcObject = mpcConverter->Convert(this, szFullName);
 	mpcReader->Kill();
+	mpcReader = NULL;
 
-	return pvObject;
+	return pcObject;
 }
 
 
@@ -81,4 +69,3 @@ CExternalObjectReader* CObjectSourceSimple::GetReader(void)
 {
 	return mpcReader;
 }
-

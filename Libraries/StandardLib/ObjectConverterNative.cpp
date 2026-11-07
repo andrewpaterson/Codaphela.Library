@@ -35,7 +35,7 @@ void CObjectConverterNative::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CObjectConverterNative::GetFileExtension(void)
 {
-	return "DRG";
+	return OBJECT_FILE_EXTENSION;
 }
 
 
@@ -51,13 +51,40 @@ bool CObjectConverterNative::IsFor(CAbstractFile* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A chunked file starts with its type.  A basic file starts with the
+// object file extension and then its type (CMultiFileObjectWriter).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CObjectConverterNative::ReadFileType(CFileBasic* pcFile)
+{
+	char	szExtension[4];
+	int32	iFileType;
+
+	if (!pcFile->ReadData(szExtension, 4))
+	{
+		return 0;
+	}
+	if (memcmp(szExtension, OBJECT_FILE_EXTENSION, 4) != 0)
+	{
+		memcpy(&iFileType, szExtension, 4);
+		return iFileType;
+	}
+	if (!pcFile->ReadInt32(&iFileType))
+	{
+		return 0;
+	}
+	return iFileType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSourceChunked*	pcSourceChunked;
 	CObjectSourceSimple*	pcSourceSimple;
-	bool					bResult;
 	CFileBasic				cFile;
 	int32					iFileType;
 
@@ -72,12 +99,8 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, const
 	{
 		return NULL;
 	}
-	bResult = cFile.ReadInt32(&iFileType);
+	iFileType = ReadFileType(&cFile);
 	cFile.Close();
-	if (!bResult)
-	{
-		return NULL;
-	}
 
 	if (iFileType == CHUNKED_OBJECT_FILE)
 	{
