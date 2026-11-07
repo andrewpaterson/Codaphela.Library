@@ -40,6 +40,8 @@ void CTextEditing::Init(CTextDocument* pcDocument, CTextEditingView* pcView)
 	miUpDownX = -1;
 	muiTabWidth = 4;
 	mbEditable = true;
+	mbSingleLine = false;
+	mbEdited = false;
 	mpcDocument->AddListener(this);
 }
 
@@ -99,9 +101,21 @@ void CTextEditing::SetTabWidth(size uiTabWidth)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A single line text gets no line feeds (see MakeInsertable).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::SetSingleLine(bool bSingleLine)
+{
+	mbSingleLine = bSingleLine;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTextEditing::IsEditable(void) { return mbEditable; }
+bool CTextEditing::IsSingleLine(void) { return mbSingleLine; }
 size CTextEditing::GetTabWidth(void) { return muiTabWidth; }
 size CTextEditing::GetCaretPosition(void) { return muiCaret; }
 bool CTextEditing::IsCaretAtRowEnd(void) { return mbCaretAtRowEnd; }
@@ -514,12 +528,13 @@ void CTextEditing::BackTab(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A line feed replaces the selection, or is inserted.
+// A line feed replaces the selection, or is inserted.  Not in a single
+// line text, nor are the other enters.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Enter(void)
 {
-	if (!BeginEditIfEditable())
+	if (mbSingleLine || !BeginEditIfEditable())
 	{
 		return;
 	}
@@ -538,7 +553,7 @@ void CTextEditing::HomeEnter(void)
 {
 	size	uiLineStart;
 
-	if (!BeginEditIfEditable())
+	if (mbSingleLine || !BeginEditIfEditable())
 	{
 		return;
 	}
@@ -558,7 +573,7 @@ void CTextEditing::HomeEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::EndEnter(void)
 {
-	if (!BeginEditIfEditable())
+	if (mbSingleLine || !BeginEditIfEditable())
 	{
 		return;
 	}
@@ -700,7 +715,7 @@ void CTextEditing::DeleteLine(void)
 //
 // The selection is copied in front of itself and the copy after it stays
 // selected.  Without one the caret's line is copied above itself and the
-// caret goes with the line below.
+// caret goes with the line below; a single line text's isn't.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Duplicate(void)
@@ -719,6 +734,12 @@ void CTextEditing::Duplicate(void)
 	{
 		szCopy.AppendSubString(mpcDocument->Text(), uiStart, uiEnd);
 	}
+	else if (mbSingleLine)
+	{
+		szCopy.Kill();
+		EditDone();
+		return;
+	}
 	else
 	{
 		uiStart = mpcNavigation->FindLineStart(muiCaret);
@@ -735,8 +756,8 @@ void CTextEditing::Duplicate(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The selection is appended to pszDest and deleted.  Without one the
-// caret's line is cut.  A text that isn't editable only copies what would
-// be cut.
+// caret's line is cut, but nothing of a single line text: all of it would
+// go.  A text that isn't editable only copies what would be cut.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Cut(CChars* pszDest)
@@ -744,7 +765,10 @@ void CTextEditing::Cut(CChars* pszDest)
 	BeginEdit();
 	if (!IsSelected())
 	{
-		CutLine(pszDest);
+		if (!mbSingleLine)
+		{
+			CutLine(pszDest);
+		}
 		return;
 	}
 
@@ -811,9 +835,9 @@ void CTextEditing::Copy(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szSource replaces the selection, or is inserted.  Its carriage returns
-// become line feeds, or go where they come before one.  Pasting nothing
-// leaves a selection where it is.
+// szSource replaces the selection, or is inserted, its line breaks made
+// insertable (MakeInsertable).  Pasting nothing leaves a selection where
+// it is.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Paste(char* szSource)
@@ -826,8 +850,7 @@ void CTextEditing::Paste(char* szSource)
 	}
 
 	szText.Init(szSource);
-	szText.Replace("\r\n", "\n");
-	szText.Replace('\r', '\n');
+	MakeInsertable(&szText);
 	ReplaceSelection(szText.Text());
 	szText.Kill();
 	EditDone();
@@ -872,6 +895,35 @@ bool CTextEditing::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRange
 
 //////////////////////////////////////////////////////////////////////////
 //
+// All of the text becomes szText, its line breaks made insertable
+// (MakeInsertable), as one edit.  The caret goes to the end.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::ReplaceText(const char* szText)
+{
+	CChars	szNew;
+
+	if (!BeginEditIfEditable())
+	{
+		return;
+	}
+
+	szNew.Init(szText == NULL ? "" : szText);
+	MakeInsertable(&szNew);
+	if (!szNew.Equals(mpcDocument->Text()))
+	{
+		muiAnchor = MAX_SIZE;
+		RemoveText(0, mpcDocument->Length());
+		InsertText(0, szNew.Text());
+	}
+	szNew.Kill();
+	MoveCaret(mpcDocument->Length(), false);
+	EditDone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The caret, and the selection's start, at or after text put in move
 // with it.  Inside text taken out they go to where it was.
 //
@@ -880,6 +932,7 @@ void CTextEditing::DocumentChanged(STextDocumentChange* psChange)
 {
 	size	uiLength;
 
+	mbEdited = true;
 	uiLength = psChange->Length();
 	if (psChange->eChange == TDC_Inserted)
 	{
@@ -960,6 +1013,29 @@ void CTextEditing::ReplaceSelection(const char* szText)
 	DeleteSelection();
 	muiAnchor = MAX_SIZE;
 	InsertText(muiCaret, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Text put in has line feeds for line breaks: carriage returns become
+// line feeds, or go where they come before one.  A single line text has
+// spaces for them instead.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::MakeInsertable(CChars* pszText)
+{
+	if (mbSingleLine)
+	{
+		pszText->Replace("\r\n", " ");
+		pszText->Replace('\r', ' ');
+		pszText->Replace('\n', ' ');
+	}
+	else
+	{
+		pszText->Replace("\r\n", "\n");
+		pszText->Replace('\r', '\n');
+	}
 }
 
 
@@ -1105,6 +1181,7 @@ void CTextEditing::OutdentLines(size uiStart, size uiEnd)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::BeginEdit(void)
 {
+	mbEdited = false;
 	mpcDocument->BeginEdit(muiCaret, muiAnchor);
 }
 
@@ -1126,10 +1203,19 @@ bool CTextEditing::BeginEditIfEditable(void)
 //
 // An edit, or an undo or redo, has changed the text: it is kept and the
 // view told the text was edited.  Up and down start again from the caret.
+// An edit that changed nothing is dropped; only the marks may have moved.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::EditDone(void)
 {
+	if (!mbEdited)
+	{
+		mpcDocument->GetUndo()->DropEdit();
+		mpcView->MarksChanged();
+		return;
+	}
+
+	mbEdited = false;
 	KeepEdit();
 	mbCaretAtRowEnd = false;
 	miUpDownX = -1;

@@ -550,6 +550,112 @@ void TestTextEditingFollowsDocument(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An edit that changes nothing isn't kept, counted or told as an edit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingNothingChanged(void)
+{
+	STestTextEditing	s;
+
+	s.Init("ab");
+	s.cEditing.Backspace();
+	s.cEditing.DocumentEnd();
+	s.cEditing.Delete();
+	s.cEditing.DeleteWordRemainingRight();
+	s.cEditing.Paste((char*)"");
+	AssertInt(0, s.cView.miTextEdited);
+	AssertSize(0, s.cView.maiUndoChanges.NumElements());
+	AssertSize(0, s.cDocument.GetChangeCount());
+	AssertFalse(s.cDocument.CanUndo());
+
+	//The edit after it keeps the caret from its own start.
+	s.cEditing.Backspace();
+	AssertString("a", s.Text());
+	AssertInt(1, s.cView.miTextEdited);
+	AssertTrue(s.cEditing.Undo());
+	AssertString("ab", s.Text());
+	AssertSize(2, s.Caret());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A single line text gets no line feeds: enters do nothing, line breaks
+// pasted become spaces, and cut and duplicate need a selection.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingSingleLine(void)
+{
+	STestTextEditing	s;
+	CChars				sz;
+
+	sz.Init();
+	s.Init("one");
+	s.cEditing.SetSingleLine(true);
+	AssertTrue(s.cEditing.IsSingleLine());
+
+	s.cEditing.DocumentEnd();
+	s.cEditing.Enter();
+	s.cEditing.HomeEnter();
+	s.cEditing.EndEnter();
+	s.cEditing.Duplicate();
+	s.cEditing.Cut(&sz);
+	AssertString("one", s.Text());
+	AssertString("", sz.Text());
+	AssertInt(0, s.cView.miTextEdited);
+
+	s.cEditing.Paste((char*)" a\r\nb\rc\nd");
+	AssertString("one a b c d", s.Text());
+	s.cEditing.ReplaceText("x\ny");
+	AssertString("x y", s.Text());
+
+	s.cEditing.SelectAll();
+	s.cEditing.Duplicate();
+	AssertString("x yx y", s.Text());
+
+	s.Kill();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replacing all of the text is one edit with the caret at the end; the
+// same text again is no edit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingReplaceText(void)
+{
+	STestTextEditing	s;
+
+	s.Init("old\ntext");
+	s.cEditing.SetCaretPosition(2);
+	s.cEditing.ReplaceText("new\r\ntext");
+	AssertString("new\ntext", s.Text());
+	AssertSize(8, s.Caret());
+	AssertInt(1, s.cView.miTextEdited);
+
+	s.cEditing.ReplaceText("new\ntext");
+	AssertInt(1, s.cView.miTextEdited);
+	AssertSize(8, s.Caret());
+
+	AssertTrue(s.cEditing.Undo());
+	AssertString("old\ntext", s.Text());
+	AssertSize(2, s.Caret());
+	AssertFalse(s.cEditing.Undo());
+
+	s.cEditing.SetEditable(false);
+	s.cEditing.ReplaceText("x");
+	AssertString("old\ntext", s.Text());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditing(void)
@@ -565,6 +671,9 @@ void TestTextEditing(void)
 	TestTextEditingUndo();
 	TestTextEditingNotEditable();
 	TestTextEditingFollowsDocument();
+	TestTextEditingNothingChanged();
+	TestTextEditingSingleLine();
+	TestTextEditingReplaceText();
 
 	TestStatistics();
 }

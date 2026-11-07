@@ -83,11 +83,12 @@ public:
 //home is smart, it goes to the first character that isn't a space and then to the start of the line, and a second home
 //or end on a wrapped row goes to the ends of the line.  Tab inserts spaces to the next tab stop, or with a selection
 //over more than one line indents its lines; back tab removes a tab's worth of spaces from them.  A text that isn't
-//editable can still be navigated, selected and copied from.
+//editable can still be navigated, selected and copied from.  A single line text (SetSingleLine) gets no line feeds:
+//enters do nothing, line breaks pasted become spaces, and cutting with nothing selected cuts nothing.
 //
 //Each edit begins with the caret and selection as they are (BeginEdit, for undo to put back), changes the document and
 //ends (EditDone): it is kept in the document's history, the view is told what was kept (UndoChanged) and that the text
-//was edited (TextEdited).
+//was edited (TextEdited).  An edit that didn't change the text (backspace at its start) isn't kept or told.
 class CTextEditing : public CTextDocumentListener
 {
 protected:
@@ -100,6 +101,8 @@ protected:
 	int32				miUpDownX;  //Where up and down try to keep the caret, -1 until they are used.
 	size				muiTabWidth;  //In spaces.
 	bool				mbEditable;
+	bool				mbSingleLine;
+	bool				mbEdited;  //The document changed since the edit began.
 
 public:
 	void		Init(CTextDocument* pcDocument, CTextEditingView* pcView);
@@ -110,6 +113,8 @@ public:
 	bool		IsEditable(void);
 	void		SetTabWidth(size uiTabWidth);
 	size		GetTabWidth(void);
+	void		SetSingleLine(bool bSingleLine);
+	bool		IsSingleLine(void);
 
 	size		GetCaretPosition(void);
 	bool		IsCaretAtRowEnd(void);
@@ -168,6 +173,8 @@ public:
 	void		Copy(CChars* pszDest);
 	void		Paste(char* szSource);
 	bool		ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText);
+	void		ReplaceText(const char* szText);
+	void		MakeInsertable(CChars* pszText);
 
 	bool		Undo(void);
 	bool		Redo(void);
