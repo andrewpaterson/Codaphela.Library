@@ -24,9 +24,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CanvasDraw.h"
 
 
-//A canvas draw that blits onto an image: the canvas's own if it has one, else an image of its own the canvas's size and
-//colour format, copied onto the canvas when the blit is done.  A native canvas starts black, so a new image does too;
-//on a transparent canvas, as it is cleared, the image is cleared before each draw.
+//A canvas draw that blits onto an image: the canvas's own if it has one, else an image of its own the native canvas's
+//size and colour format, copied onto the canvas when the blit is done.  Either way the image's top left is the canvas's
+//native origin.  A native canvas starts black, so a new image does too; on a transparent canvas, as it is cleared, the
+//image is cleared before each draw.
 class CBlitCanvasDraw : public CCanvasDraw
 {
 CONSTRUCTABLE(CBlitCanvasDraw);

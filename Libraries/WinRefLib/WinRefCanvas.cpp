@@ -51,7 +51,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     ERGBAlphaBits           eAlphaBits;
     Ptr<CImage>             pImage;
 
-    sSize = mpcCanvas->GetActualSize();
+    sSize = mpcCanvas->GetNativeSize();
 
     eColourFormat = mpcCanvas->GetColourFormat();
     eColourOrder = mpcCanvas->GetColourOrder();

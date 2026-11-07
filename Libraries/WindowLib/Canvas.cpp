@@ -40,6 +40,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHe
 
 	mpCanvasDraw = pDraw;
 	mbTransparent = false;
+	msNativeOrigin.Zero();
+	msNativeSize.Zero();
 
 	PostInit();
 }
@@ -60,6 +62,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 
 	mpCanvasDraw = pDraw;
 	mbTransparent = false;
+	msNativeOrigin.Zero();
+	msNativeSize.Zero();
 
 	PostInit();
 }
@@ -93,6 +97,8 @@ void CCanvas::Class(void)
 	M_Pointer(mpCanvasDraw);
 	M_Pointer(mpContainer);
 	U_Bool(mbTransparent);
+	U_2Int32(msNativeOrigin);
+	U_2Int32(msNativeSize);
 }
 
 
@@ -136,6 +142,7 @@ bool CCanvas::Draw(void)
 	CInt32Rect				cClip;
 	bool					bClipped;
 
+	UpdateNativeArea();
 	if (HasNativeChanged())
 	{
 		DestroyNativeCanvas();
@@ -168,11 +175,11 @@ bool CCanvas::Draw(void)
 		bClipped = GetClip(&cClip);
 		if (!bClipped)
 		{
-			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this);
+			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this);
 		}
 		else if ((cClip.GetWidth() > 0) && (cClip.GetHeight() > 0))
 		{
-			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this, &cClip);
+			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this, &cClip);
 		}
 	}
 
@@ -231,6 +238,7 @@ void CCanvas::DestroyNativeCanvas(void)
 bool CCanvas::PrepareNativeCanvas(SInt32Vec2 sSize)
 {
 	SetActualSize(sSize);
+	UpdateNativeArea();
 	if (HasNativeChanged())
 	{
 		DestroyNativeCanvas();
@@ -256,8 +264,8 @@ bool CCanvas::HasNativeChanged(void)
 	}
 
 	sSize = mpcNativeCanvas->GetSize();
-	if ((mcActualBounds.GetWidth() != sSize.x) ||
-		(mcActualBounds.GetHeight() != sSize.y))
+	if ((msNativeSize.x != sSize.x) ||
+		(msNativeSize.y != sSize.y))
 	{
 		return true;
 	}
@@ -309,7 +317,27 @@ Ptr<CImage> CCanvas::GetImageOrNull(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::HasArea(void)
 {
-	return (mcActualBounds.GetWidth() > 0) && (mcActualBounds.GetHeight() > 0);
+	return (msNativeSize.x > 0) && (msNativeSize.y > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The part of the canvas its native canvas holds: all of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::UpdateNativeArea(void)
+{
+	msNativeOrigin.Zero();
+	msNativeSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight());
+	if (msNativeSize.x < 0)
+	{
+		msNativeSize.x = 0;
+	}
+	if (msNativeSize.y < 0)
+	{
+		msNativeSize.y = 0;
+	}
 }
 
 
@@ -332,7 +360,73 @@ void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect*
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 {
-	mpcNativeCanvas->DrawBox(pcRect, bFilled, sColour);
+	int		iLeft;
+	int		iTop;
+	int		iRight;
+	int		iBottom;
+
+	if (mpcNativeCanvas == NULL)
+	{
+		return;
+	}
+
+	//The rectangle includes its right and bottom edges.  An outline cut by the native canvas's edge is drawn as its four sides so the cut edges aren't drawn.
+	iLeft = pcRect->msTopLeft.x - msNativeOrigin.x;
+	iTop = pcRect->msTopLeft.y - msNativeOrigin.y;
+	iRight = pcRect->msBottomRight.x - msNativeOrigin.x;
+	iBottom = pcRect->msBottomRight.y - msNativeOrigin.y;
+	if (bFilled)
+	{
+		DrawFilledBoxClipped(iLeft, iTop, iRight, iBottom, sColour);
+	}
+	else if ((iLeft >= 0) && (iTop >= 0) && (iRight < msNativeSize.x) && (iBottom < msNativeSize.y))
+	{
+		CInt32Rect	cRect;
+
+		cRect.Init(iLeft, iTop, iRight, iBottom);
+		mpcNativeCanvas->DrawBox(&cRect, false, sColour);
+	}
+	else
+	{
+		DrawFilledBoxClipped(iLeft, iTop, iRight, iTop, sColour);
+		DrawFilledBoxClipped(iLeft, iBottom, iRight, iBottom, sColour);
+		DrawFilledBoxClipped(iLeft, iTop + 1, iLeft, iBottom - 1, sColour);
+		DrawFilledBoxClipped(iRight, iTop + 1, iRight, iBottom - 1, sColour);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In the native canvas's space, right and bottom included.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour)
+{
+	CInt32Rect	cRect;
+
+	if (iLeft < 0)
+	{
+		iLeft = 0;
+	}
+	if (iTop < 0)
+	{
+		iTop = 0;
+	}
+	if (iRight >= msNativeSize.x)
+	{
+		iRight = msNativeSize.x - 1;
+	}
+	if (iBottom >= msNativeSize.y)
+	{
+		iBottom = msNativeSize.y - 1;
+	}
+	if ((iLeft > iRight) || (iTop > iBottom))
+	{
+		return;
+	}
+	cRect.Init(iLeft, iTop, iRight, iBottom);
+	mpcNativeCanvas->DrawBox(&cRect, true, sColour);
 }
 
 
@@ -342,7 +436,16 @@ void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 {
-	mpcNativeCanvas->DrawPixel(iX, iY, sColour);
+	if (mpcNativeCanvas == NULL)
+	{
+		return;
+	}
+	iX -= msNativeOrigin.x;
+	iY -= msNativeOrigin.y;
+	if ((iX >= 0) && (iY >= 0) && (iX < msNativeSize.x) && (iY < msNativeSize.y))
+	{
+		mpcNativeCanvas->DrawPixel(iX, iY, sColour);
+	}
 }
 
 
@@ -352,7 +455,11 @@ void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::DrawImage(int iX, int iY, Ptr<CImage> pImage)
 {
-	mpcNativeCanvas->DrawImage(iX, iY, pImage);
+	if (mpcNativeCanvas == NULL)
+	{
+		return;
+	}
+	mpcNativeCanvas->DrawImage(iX - msNativeOrigin.x, iY - msNativeOrigin.y, pImage);
 }
 
 
@@ -514,6 +621,8 @@ EColourOrder CCanvas::GetColourOrder(void) { return mcFormat.meOrder; }
 ERGBColourBits CCanvas::GetColourBits(void) { return mcFormat.meColourBits; }
 bool CCanvas::IsTransparent(void) { return mbTransparent; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
+SInt32Vec2 CCanvas::GetNativeOrigin(void) { return msNativeOrigin; }
+SInt32Vec2 CCanvas::GetNativeSize(void) { return msNativeSize; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; InvalidateLayout(); }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }

@@ -59,7 +59,7 @@ Ptr<CImage> CBlitCanvasDraw::StartBlit(Ptr<CCanvas> pCanvas)
 	SInt32Vec2	sSize;
 	Ptr<CImage>	pImage;
 
-	sSize = pCanvas->GetActualSize();
+	sSize = pCanvas->GetNativeSize();
 	if ((sSize.x <= 0) || (sSize.y <= 0))
 	{
 		return NULL;
@@ -97,7 +97,7 @@ void CBlitCanvasDraw::FinishBlit(Ptr<CCanvas> pCanvas)
 {
 	if (mpDestImage.IsNotNull())
 	{
-		pCanvas->DrawImage(0, 0, mpDestImage);
+		pCanvas->DrawImage(pCanvas->GetNativeOrigin().x, pCanvas->GetNativeOrigin().y, mpDestImage);
 	}
 }
 

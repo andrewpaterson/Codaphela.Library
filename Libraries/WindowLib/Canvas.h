@@ -43,6 +43,8 @@ protected:
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 	Ptr<CContainer>		mpContainer;
 	bool				mbTransparent;  //What is behind the canvas shows through wherever it hasn't been drawn opaquely.
+	SInt32Vec2			msNativeOrigin;  //Where the native canvas's top left is in the canvas, see UpdateNativeArea.
+	SInt32Vec2			msNativeSize;  //The size the native canvas should be.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
@@ -70,6 +72,9 @@ public:
 	void				SetCanvasDraw(Ptr<CCanvasDraw> pDraw);
 	bool				HasNativeChanged(void);
 	bool				HasArea(void);
+	void				UpdateNativeArea(void);
+	SInt32Vec2			GetNativeOrigin(void);
+	SInt32Vec2			GetNativeSize(void);
 	bool				PrepareNativeCanvas(SInt32Vec2 sSize);
 
 	bool				SetContainer(Ptr<CContainer> pContainer);
@@ -79,10 +84,10 @@ public:
 	bool				Draw(void) override;
 
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
-	Ptr<CImage>			GetImageOrNull(void);  //The native canvas's pixels as an image, NULL if it has none (a canvas draw then blits into an image of its own).
+	Ptr<CImage>			GetImageOrNull(void);  //The native canvas's pixels as an image, NULL if it has none (a canvas draw then blits into an image of its own).  Its top left is GetNativeOrigin in the canvas.
 
-	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip = NULL);
-	void				DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour);
+	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip = NULL);  //Into the native canvas's own space.
+	void				DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour);  //These three are in the canvas's space and cut to its native canvas.
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
 	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);
 
@@ -93,6 +98,7 @@ public:
 
 protected:
 	EColourFormat		GetTransparentColourFormat(void);
+	void				DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
 };
 
 

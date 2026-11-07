@@ -1248,6 +1248,97 @@ void TestCanvasZeroAreaHasNoNativeCanvas(void)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// The canvas's own drawing is cut to its native canvas.  An outline	//
+// cut by its edge loses only the sides that are off it.					//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasDrawBoxCutToCanvas(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "CanvasDrawBoxCut";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 16, 16, szDirectory);
+	{
+		Ptr<CWindow>				pWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCanvas>				pCanvas;
+		Ptr<CImage>					pImage;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		CInt32Rect					cRect;
+		uint8*						puiData;
+		int32						x;
+		int32						y;
+		size						uiWrong;
+		bool						bRed;
+		bool						bGreen;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pWindow = OMalloc<CWindow>("Box Cut", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+
+		pFill = OMalloc<CFillContainer>(pWindow);
+		pWindow->SetContainer(pFill);
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)));
+		pCanvas->SetDesiredSize(8, 8);
+		pCanvas->SetAlignment(CSH_Left, CSV_Top);
+		pFill->AddComponent(pCanvas);
+		pWindow->Paint();
+
+		cRect.Init(-2, -2, 5, 5);
+		pCanvas->DrawBox(&cRect, false, Set32BitColour(1.0f, 0, 0));
+		cRect.Init(6, 6, 20, 20);
+		pCanvas->DrawBox(&cRect, true, Set32BitColour(0, 1.0f, 0));
+		pCanvas->DrawPixel(-1, 3, Set32BitColour(0, 0, 1.0f));
+		pCanvas->DrawPixel(8, 3, Set32BitColour(0, 0, 1.0f));
+		pCanvas->DrawPixel(3, 8, Set32BitColour(0, 0, 1.0f));
+
+		pImage = pCanvas->GetImageOrNull();
+		AssertNotNull(&pImage);
+		AssertInt(8, pImage->GetWidth());
+		AssertInt(8, pImage->GetHeight());
+		puiData = (uint8*)pImage->GetData();
+		uiWrong = 0;
+		for (y = 0; y < 8; y++)
+		{
+			for (x = 0; x < 8; x++)
+			{
+				bRed = ((x == 5) && (y <= 5)) || ((y == 5) && (x <= 5));
+				bGreen = (x >= 6) && (y >= 6);
+				if ((puiData[(x + y * 8) * 3] != (bRed ? 255 : 0)) ||
+					(puiData[(x + y * 8) * 3 + 1] != (bGreen ? 255 : 0)) ||
+					(puiData[(x + y * 8) * 3 + 2] != 0))
+				{
+					uiWrong++;
+				}
+			}
+		}
+		AssertSize(0, uiWrong);
+
+		pImage = NULL;
+		pCanvas = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
@@ -1268,6 +1359,7 @@ void TestCanvas(void)
 	TestCanvasOutlivesKilledWindow();
 	TestCanvasImageDrawFollowsTransparency();
 	TestCanvasZeroAreaHasNoNativeCanvas();
+	TestCanvasDrawBoxCutToCanvas();
 
 	TestStatistics();
 }

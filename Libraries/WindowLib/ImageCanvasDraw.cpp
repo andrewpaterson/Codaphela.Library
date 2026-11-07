@@ -83,6 +83,7 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
 	SInt32Vec2			sSize;
 	SInt32Vec2			sCelSize;
+	SInt32Vec2			sOrigin;
 	bool				bResult;
 	Ptr<CImage>			pImage;
 	Ptr<CImageBlitter>	pBlitter;
@@ -111,15 +112,17 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 		return false;
 	}
 
+	//The image holds the part of the canvas from its native origin.
 	sSize = pCanvas->GetActualSize();
+	sOrigin = pCanvas->GetNativeOrigin();
 	if (mbStretch)
 	{
-		bResult = pBlitter->Blit(0, 0, sSize.x, sSize.y);
+		bResult = pBlitter->Blit(-sOrigin.x, -sOrigin.y, sSize.x, sSize.y);
 	}
 	else
 	{
 		sCelSize = GetDesiredSize();
-		bResult = pBlitter->Blit(AlignComponentHorizontal(meHorizontal, sCelSize.x, sSize.x), AlignComponentVertical(meVertical, sCelSize.y, sSize.y));
+		bResult = pBlitter->Blit(AlignComponentHorizontal(meHorizontal, sCelSize.x, sSize.x) - sOrigin.x, AlignComponentVertical(meVertical, sCelSize.y, sSize.y) - sOrigin.y);
 	}
 
 	FinishBlit(pCanvas);

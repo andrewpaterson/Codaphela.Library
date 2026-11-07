@@ -77,6 +77,8 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
 	bool			bResult;
 	Ptr<CImage>		pImage;
+	SInt32Vec2		sViewport;
+	SInt32Vec2		sOrigin;
 
 	if (!pCanvas->IsValid())
 	{
@@ -97,7 +99,12 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	}
 	if (bResult)
 	{
+		//The image holds the part of the canvas from its native origin, so the maps are seen that much further on.
+		sViewport = mpMaps->GetViewportPosition();
+		sOrigin = pCanvas->GetNativeOrigin();
+		mpMaps->SetViewportPosition(sViewport.x + sOrigin.x, sViewport.y + sOrigin.y);
 		bResult = mpMaps->Blit(false);
+		mpMaps->SetViewportPosition(sViewport);
 	}
 
 	FinishBlit(pCanvas);

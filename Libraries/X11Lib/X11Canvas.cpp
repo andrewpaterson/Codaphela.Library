@@ -62,7 +62,7 @@ bool CX11Canvas::CreateNativeCanvas(void)
     SInt32Vec2      sSize;
     Ptr<CImage>     pImage;
 
-    sSize = mpcCanvas->GetActualSize();
+    sSize = mpcCanvas->GetNativeSize();
     if ((sSize.x <= 0) || (sSize.y <= 0))
     {
         SetSize(-1, -1);
