@@ -141,6 +141,7 @@ protected:
 	void					PrivateInit(void);
 	void					Recalculate(void);
 	bool					CanAddChannels(void);
+	void					RelayoutData(CArrayChannelOffset* pcOldChannels, size uiOldBitStride, lsize uiOldSize);
 
 	void					CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDebugs);
 };

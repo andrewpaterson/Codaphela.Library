@@ -513,23 +513,16 @@ bool CChannels::IsChanging(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannels::EndChange(void)
 {
-	size			i;
-	SChannel*		psAddedChannel;
-	SChannel*		psRemovedChannel;
-	CChannel*		pcChannel;
-	size			iSize;
-	size			iOffset;
-	lsize			uiByteSize;
-	bool			bAnyAdded;
-	size			iOldBitStride;
-	size			iAddedBitStride;
-	size			iOldByteStride;
-	bool			bResult;
-	size			uiRemoved;
-	size			uiAdded;
-
-	//I don't think this handles the case where the channels have been re-ordered...
-	//Which as there *IS* no way of re-ordering them shouldn't be a problem.
+	size					i;
+	SChannel*				psAddedChannel;
+	SChannel*				psRemovedChannel;
+	CChannel*				pcChannel;
+	bool					bResult;
+	size					uiRemoved;
+	size					uiAdded;
+	CArrayChannelOffset		cOldChannels;
+	size					uiOldBitStride;
+	lsize					uiOldSize;
 
 	bResult = true;
 	if (IsChanging())
@@ -551,30 +544,18 @@ bool CChannels::EndChange(void)
 
 		if (!IsUserAllocated())
 		{
-			//We're using mabData and have already allocated it.
-			//Remove
+			//The data is ours.  The channels change first, then the data is laid out again from the old layout.
+			cOldChannels.Init();
+			cOldChannels.Copy(&masChannelOffsets);
+			uiOldBitStride = miBitStride;
+			uiOldSize = miSize;
+
 			uiRemoved = mpsChangingDesc->asRemovedChannels.NumElements();
 			for (i = 0; i < uiRemoved; i++)
 			{
 				psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
 				pcChannel = GetChannel(psRemovedChannel->iChannel);
-
-				//Only data that has been allocated needs its bytes removed.  The channel is removed either way.
-				if ((miBitStride != 0) && (miSize != 0))
-				{
-					if (pcChannel->Is8BitAligned())
-					{
-						iOffset = pcChannel->miByteOffset;
-						iSize = pcChannel->miByteSize;
-						mabData.RemoveBatch(iOffset, iSize, miSize, miByteStride-iSize);
-					}
-					else
-					{
-						//Deal with bitty removal.
-					}
-				}
 				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(pcChannel), true);
-				Recalculate();
 
 				if (mpmicChannelDebugs)
 				{
@@ -582,8 +563,7 @@ bool CChannels::EndChange(void)
 				}
 			}
 
-			//Add.  If any channel can't be added none are.
-			bAnyAdded = false;
+			//If any channel can't be added none are.
 			if (CanAddChannels())
 			{
 				uiAdded = mpsChangingDesc->asAddedChannels.NumElements();
@@ -592,7 +572,6 @@ bool CChannels::EndChange(void)
 					psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
 					pcChannel = masChannelOffsets.Add();
 					pcChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
-					bAnyAdded = true;
 				}
 			}
 			else
@@ -600,34 +579,18 @@ bool CChannels::EndChange(void)
 				bResult = false;
 			}
 
-			if (bAnyAdded)
+			Recalculate();
+			miSize = mpsChangingDesc->iSize;
+			if ((uiRemoved == 0) && (miBitStride == uiOldBitStride))
 			{
-				iOldBitStride = miBitStride;
-				iOldByteStride = miByteStride;
-				Recalculate();
-				iAddedBitStride = miBitStride - iOldBitStride;
-				if ((iAddedBitStride != 0) && (miSize != 0))
-				{
-					if (Is8BitAligned(iOldBitStride, iAddedBitStride))
-					{
-						iOffset = iOldByteStride;
-						iSize = iAddedBitStride / 8;
-						mabData.InsertBatch(iOffset, iSize, miSize, iOldByteStride);
-					}
-					else
-					{
-						//Deal with bitty addition.
-					}
-				}
+				//Only the size changed: the elements keep their places.
+				mabData.Resize(CalculateByteSize(miBitStride, miSize));
 			}
-
-			//Change size due to size change.
-			if (mpsChangingDesc->iSize != miSize)
+			else
 			{
-				miSize = mpsChangingDesc->iSize;
-				uiByteSize = CalculateByteSize(miBitStride, miSize);
-				mabData.Resize(uiByteSize);
+				RelayoutData(&cOldChannels, uiOldBitStride, uiOldSize);
 			}
+			cOldChannels.Kill();
 		}
 		else  //Using user allocated memory.
 		{
@@ -672,6 +635,80 @@ bool CChannels::EndChange(void)
 		mpvDataCache = mabData.GetData();
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lays the data out again for the channels as they are now.  Each channel
+// that was in the old layout is moved, element by element, from its old bits
+// to its new ones; added channels start as zero.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::RelayoutData(CArrayChannelOffset* pcOldChannels, size uiOldBitStride, lsize uiOldSize)
+{
+	CArrayLargeChar		cOldData;
+	lsize				uiNumElements;
+	lsize				uiElement;
+	size				i;
+	size				uiChannels;
+	size				uiOldChannels;
+	size				j;
+	CChannel*			pcNew;
+	CChannel*			pcOld;
+	lsize				uiByteSize;
+	lsize				uiOldBitPos;
+	lsize				uiNewBitPos;
+
+	cOldData.Init();
+	if ((uiOldBitStride != 0) && (uiOldSize != 0))
+	{
+		cOldData.Resize(mabData.NumElements());
+		memcpy(cOldData.GetData(), mabData.GetData(), (size_t)mabData.NumElements());
+	}
+
+	uiByteSize = CalculateByteSize(miBitStride, miSize);
+	mabData.Resize(uiByteSize);
+	if (uiByteSize != 0)
+	{
+		memset(mabData.GetData(), 0, (size_t)uiByteSize);
+	}
+
+	uiNumElements = (cOldData.NumElements() != 0) ? ((uiOldSize < miSize) ? uiOldSize : miSize) : 0;
+	uiChannels = masChannelOffsets.NumElements();
+	uiOldChannels = pcOldChannels->NumElements();
+	for (i = 0; i < uiChannels; i++)
+	{
+		pcNew = masChannelOffsets.Get(i);
+		pcOld = NULL;
+		for (j = 0; j < uiOldChannels; j++)
+		{
+			if (pcOldChannels->Get(j)->iChannel == pcNew->iChannel)
+			{
+				pcOld = pcOldChannels->Get(j);
+				break;
+			}
+		}
+		if (pcOld == NULL)
+		{
+			continue;
+		}
+
+		for (uiElement = 0; uiElement < uiNumElements; uiElement++)
+		{
+			uiOldBitPos = uiElement * uiOldBitStride + pcOld->miBitOffset;
+			uiNewBitPos = uiElement * miBitStride + pcNew->miBitOffset;
+			if (((uiOldBitPos % 8) == 0) && ((uiNewBitPos % 8) == 0) && ((pcNew->miBitSize % 8) == 0))
+			{
+				memcpy(&mabData.GetData()[uiNewBitPos / 8], &cOldData.GetData()[uiOldBitPos / 8], pcNew->miBitSize / 8);
+			}
+			else
+			{
+				CopyBits(mabData.GetData(), uiNewBitPos, cOldData.GetData(), uiOldBitPos, pcNew->miBitSize, false);
+			}
+		}
+	}
+	cOldData.Kill();
 }
 
 
@@ -1470,19 +1507,20 @@ EPrimitiveType CChannels::GetPrimitiveType(void)
 	EPrimitiveType	eType;
 	size			uiOffsets;
 
+	//The channels' one type, or PT_Undefined if they are of different types.
 	uiOffsets = masChannelOffsets.NumElements();
+	if (uiOffsets == 0)
+	{
+		return PT_Undefined;
+	}
 
-	eType = PT_Undefined;
-	for (j = 0; j < uiOffsets; j++)
+	eType = masChannelOffsets.Get(0)->eType;
+	for (j = 1; j < uiOffsets; j++)
 	{
 		psChannel = masChannelOffsets.Get(j);
-		if (eType == PT_Undefined)
+		if (eType != psChannel->eType)
 		{
-			eType = psChannel->eType;
-		}
-		else if (eType != psChannel->eType)
-		{
-			eType = PT_Undefined;
+			return PT_Undefined;
 		}
 	}
 	return eType;

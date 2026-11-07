@@ -185,6 +185,89 @@ void TestChannelsRemoveBeforeSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+uint64 TestChannelsGet(CChannels* pcChannels, lsize iPos, size iChannel)
+{
+	uint64	ulliValue;
+
+	ulliValue = 0;
+	pcChannels->GetNative(iPos, pcChannels->GetChannel(iChannel), &ulliValue);
+	return ulliValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removing or adding a channel that isn't on a byte boundary moves the
+// other channels' data to their new places.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsChangeNotByteAligned(void)
+{
+	ObjectsInit();
+
+	CChannels	cChannels;
+	lsize		i;
+	uint64		ulliValue;
+
+	cChannels.Init();
+	cChannels.BeginChange();
+	cChannels.AddChannel(0, 1, 2, PT_nybble);
+	cChannels.SetSize(5);
+	cChannels.EndChange();
+	AssertSize(12, cChannels.GetBitStride());
+
+	for (i = 0; i < 5; i++)
+	{
+		cChannels.SetNative(i, cChannels.GetChannel(0), &(ulliValue = i + 1));
+		cChannels.SetNative(i, cChannels.GetChannel(1), &(ulliValue = 0xf));
+		cChannels.SetNative(i, cChannels.GetChannel(2), &(ulliValue = 15 - i));
+	}
+
+	cChannels.BeginChange();
+	AssertTrue(cChannels.RemoveChannel(1));
+	cChannels.EndChange();
+	AssertSize(8, cChannels.GetBitStride());
+	AssertSize(5, cChannels.GetByteSize());
+	for (i = 0; i < 5; i++)
+	{
+		AssertLong(i + 1, TestChannelsGet(&cChannels, i, 0));
+		AssertLong(15 - i, TestChannelsGet(&cChannels, i, 2));
+	}
+
+	cChannels.BeginChange();
+	cChannels.AddChannel(3, PT_tribble);
+	cChannels.AddChannel(4, PT_uint8);
+	cChannels.SetSize(6);
+	cChannels.EndChange();
+	AssertSize(19, cChannels.GetBitStride());
+	for (i = 0; i < 5; i++)
+	{
+		AssertLong(i + 1, TestChannelsGet(&cChannels, i, 0));
+		AssertLong(15 - i, TestChannelsGet(&cChannels, i, 2));
+		AssertLong(0LL, TestChannelsGet(&cChannels, i, 3));
+		AssertLong(0LL, TestChannelsGet(&cChannels, i, 4));
+	}
+	AssertLong(0LL, TestChannelsGet(&cChannels, 5, 0));
+
+	cChannels.BeginChange();
+	AssertTrue(cChannels.RemoveChannel(0));
+	cChannels.EndChange();
+	AssertSize(15, cChannels.GetBitStride());
+	for (i = 0; i < 5; i++)
+	{
+		AssertLong(15 - i, TestChannelsGet(&cChannels, i, 2));
+	}
+
+	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChannelsAddDuplicate(void)
 {
 	ObjectsInit();
@@ -642,6 +725,7 @@ void TestChannels(void)
 
 	TestChannelsStuff();
 	TestChannelsRemoveBeforeSize();
+	TestChannelsChangeNotByteAligned();
 	TestChannelsAddDuplicate();
 	TestChannelsBeginChangeTwice();
 	TestChannelsLoad();
