@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "BaseObject.h"
 #include "DependentWriteObjects.h"
 
@@ -109,15 +110,19 @@ CBaseObject* CDependentWriteObjects::GetUnwritten(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentWriteObjects::Mark(CBaseObject* pcObject)
+bool CDependentWriteObjects::Mark(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
 	size					iIndex;
 	CDependentWriteObject*	pcDependent;
 
 	cObject.Init(pcObject, true);
-	mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
+	if (!mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex))
+	{
+		return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcObject), "} written is not a dependent.", NULL);
+	}
 	pcDependent = mcObjects.Get(iIndex);
 	pcDependent->mbWritten = true;
+	return true;
 }
 

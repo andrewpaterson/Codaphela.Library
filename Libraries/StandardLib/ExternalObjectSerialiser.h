@@ -40,7 +40,7 @@ public:
 
 protected:
 	bool	WriteUnwritten(CBaseObject* pcObject);
-	void	MarkWritten(CBaseObject* pcObject);
+	bool	MarkWritten(CBaseObject* pcObject);
 };
 
 

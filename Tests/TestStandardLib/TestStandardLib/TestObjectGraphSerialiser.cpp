@@ -8,6 +8,7 @@
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/MultiFileObjectWriter.h"
 #include "StandardLib/ObjectWriter.h"
+#include "StandardLib/DependentWriteObjects.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 #include "ObjectTestClasses.h"
@@ -135,6 +136,40 @@ void TestObjectGraphSerialiserTwoInOneStream(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Marking an object written that isn't a dependent marks nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectGraphSerialiserMarkNotDependent(void)
+{
+	Ptr<CTestSaveableObject2>	pDependent;
+	Ptr<CTestSaveableObject2>	pOther;
+	CDependentWriteObjects		cDependents;
+	SLogConfig					sLogConfig;
+	bool						bResult;
+
+	pDependent = ONMalloc<CTestSaveableObject2>("Dependent", "One");
+	pOther = ONMalloc<CTestSaveableObject2>("Other", "Two");
+
+	cDependents.Init();
+	cDependents.Add(&pDependent);
+
+	sLogConfig = gcLogger.SetSilent();
+	bResult = cDependents.Mark(&pOther);
+	gcLogger.SetConfig(&sLogConfig);
+	AssertFalse(bResult);
+	AssertPointer(pDependent.Object(), cDependents.GetUnwritten());
+
+	AssertTrue(cDependents.Mark(&pDependent));
+	AssertNull(cDependents.GetUnwritten());
+	cDependents.Kill();
+
+	pDependent->Kill();
+	pOther->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectGraphSerialiser(void)
@@ -147,6 +182,7 @@ void TestObjectGraphSerialiser(void)
 
 	TestObjectGraphSerialiserReachability();
 	TestObjectGraphSerialiserTwoInOneStream();
+	TestObjectGraphSerialiserMarkNotDependent();
 
 	TestStatistics();
 	ObjectsKill();

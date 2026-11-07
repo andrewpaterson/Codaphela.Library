@@ -34,7 +34,7 @@ public:
 	void			Kill(void);
 	void			Add(CBaseObject* pcObject);
 	CBaseObject*	GetUnwritten(void);
-	void			Mark(CBaseObject* pcObject);
+	bool			Mark(CBaseObject* pcObject);
 };
 
 

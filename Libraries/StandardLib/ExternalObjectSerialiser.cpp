@@ -131,8 +131,7 @@ bool CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		return false;
 	}
 
-	MarkWritten(pcObject);
-	return true;
+	return MarkWritten(pcObject);
 }
 
 
@@ -150,8 +149,8 @@ void CExternalObjectSerialiser::AddDependent(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectSerialiser::MarkWritten(CBaseObject* pcObject)
+bool CExternalObjectSerialiser::MarkWritten(CBaseObject* pcObject)
 {
-	mcDependentObjects.Mark(pcObject);
+	return mcDependentObjects.Mark(pcObject);
 }
 
