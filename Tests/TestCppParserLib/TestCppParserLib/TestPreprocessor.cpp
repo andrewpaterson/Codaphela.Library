@@ -1159,6 +1159,16 @@ void TestPreprocessorConditionalArithmetic(void)
 
 	AssertString("good1\ngood2\ngood3\ngood4\ngood5\n", szDest.Text());
 	szDest.Kill();
+
+	//A character literal is the value it has in code: a char (signed) for one narrow character, char16_t for L and u
+	//(wchar_t is 16 bits, as on Windows), char32_t for U, and an int with the characters packed in for several.
+	szDest.Init();
+	CPreprocessor::Preprocess(
+		"#if '\\xFF' == -1 && u8'a' == 97 && L'\\xFFFF' == 65535 && u'\\x8000' > 0 && U'\\xFFFFFFFF' == 4294967295 && 'AB' == 0x4142\n"
+		"good\n"
+		"#endif\n", &szDest);
+	AssertString("good\n", szDest.Text());
+	szDest.Kill();
 }
 
 

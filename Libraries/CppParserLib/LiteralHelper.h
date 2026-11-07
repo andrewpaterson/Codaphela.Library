@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __LITERAL_HELPER_H__
 #define __LITERAL_HELPER_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "CTString.h"
 
 
 //What ParseIntegerLiteral found.
@@ -47,7 +48,29 @@ struct SIntegerLiteral
 };
 
 
+//What ParseCharacterLiteral found.
+enum ECharacterLiteralResult
+{
+	CLR_Character,
+	CLR_Empty,
+	CLR_InvalidEscape,
+	CLR_Unterminated,	//No closing quote before the end of the line.
+};
+
+
+//A character literal's encoding and value.  [lex.ccon]
+struct SCharacterLiteral
+{
+	ECTEncoding	eEncoding;
+	uint32		uiValue;	//One character's, or several packed in (as MSVC does).
+	int			iCount;		//How many characters.
+	size		uiLength;	//The literal's length, prefix and quotes included.
+};
+
+
 EIntegerLiteralResult	ParseIntegerLiteral(const char* szText, size uiLength, SIntegerLiteral* psLiteral);
+ECharacterLiteralResult	ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral);
+int64					CharacterLiteralValue(SCharacterLiteral* psLiteral);
 bool					DecodeEscape(const char** psz, const char* szEnd, uint32* puiValue);
 
 

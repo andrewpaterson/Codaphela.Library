@@ -581,88 +581,42 @@ bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szN
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
 {
-	const char*		sz;
-	const char*		szEnd;
-	uint32			uiValue;
-	uint32			uiCharacter;
-	int				iCount;
-	ECTEncoding		eEncoding;
-	CCTChar*		pcChar;
-	CCTShort*		pcShort;
-	CCTInt*			pcInt;
+	SCharacterLiteral	sLiteral;
+	CCTChar*			pcChar;
+	CCTShort*			pcShort;
+	CCTInt*				pcInt;
 
-	sz = psToken->szText;
-	szEnd = psToken->szText + psToken->uiLength - 1;  //The closing quote.
-	eEncoding = CTE_Narrow;
-	if ((sz[0] == 'u') && (sz[1] == '8'))
+	switch (ParseCharacterLiteral(psToken->szText, psToken->uiLength, &sLiteral))
 	{
-		eEncoding = CTE_UTF8;
-		sz += 2;
-	}
-	else if (sz[0] == 'L')
-	{
-		eEncoding = CTE_Wide;
-		sz++;
-	}
-	else if (sz[0] == 'u')
-	{
-		eEncoding = CTE_UTF16;
-		sz++;
-	}
-	else if (sz[0] == 'U')
-	{
-		eEncoding = CTE_UTF32;
-		sz++;
-	}
-	sz++;  //The opening quote.
-
-	uiValue = 0;
-	iCount = 0;
-	while (sz < szEnd)
-	{
-		if (*sz == '\\')
-		{
-			sz++;
-			if (!DecodeEscape(&sz, szEnd, &uiCharacter))
-			{
-				return Error(psToken, "Invalid escape sequence.");
-			}
-		}
-		else
-		{
-			uiCharacter = (unsigned char)*sz;
-			sz++;
-		}
-
-		//Multi-character literals are int with the characters packed in, as MSVC does.
-		uiValue = (iCount == 0) ? uiCharacter : ((uiValue << 8) | (uiCharacter & 0xFF));
-		iCount++;
-	}
-
-	if (iCount == 0)
-	{
+	case CLR_Character:
+		break;
+	case CLR_Empty:
 		return Error(psToken, "Empty character literal.");
+	case CLR_InvalidEscape:
+		return Error(psToken, "Invalid escape sequence.");
+	default:
+		return Error(psToken, "Unterminated character literal.");
 	}
 
-	if (((eEncoding == CTE_Narrow) || (eEncoding == CTE_UTF8)) && (iCount == 1))
+	if (((sLiteral.eEncoding == CTE_Narrow) || (sLiteral.eEncoding == CTE_UTF8)) && (sLiteral.iCount == 1))
 	{
 		pcChar = CCTChar::Construct(mcStack.Add(sizeof(CCTChar)));
-		pcChar->Init((char)uiValue);
+		pcChar->Init((char)sLiteral.uiValue);
 		AddToken(pcChar, iSource);
 	}
-	else if (((eEncoding == CTE_Wide) || (eEncoding == CTE_UTF16)) && (iCount == 1))
+	else if (((sLiteral.eEncoding == CTE_Wide) || (sLiteral.eEncoding == CTE_UTF16)) && (sLiteral.iCount == 1))
 	{
 		//wchar_t is 16 bits on Windows.
 		pcShort = CCTShort::Construct(mcStack.Add(sizeof(CCTShort)));
-		pcShort->Init((unsigned short)uiValue);
+		pcShort->Init((unsigned short)sLiteral.uiValue);
 		pcShort->mbSigned = false;
 		AddToken(pcShort, iSource);
 	}
 	else
 	{
 		pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-		pcInt->Init(uiValue);
-		pcInt->mbSigned = (eEncoding != CTE_UTF32);
+		pcInt->Init(sLiteral.uiValue);
+		pcInt->mbSigned = (sLiteral.eEncoding != CTE_UTF32);
 		AddToken(pcInt, iSource);
 	}
 	return true;

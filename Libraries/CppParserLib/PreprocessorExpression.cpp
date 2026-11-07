@@ -459,7 +459,7 @@ SPPValue CPreprocessorExpression::Primary(bool bEvaluate)
 
 	if (*mszPos == '\'')
 	{
-		return Character();
+		return Character(mszPos);
 	}
 
 	if (IsIdentifierCharacter(*mszPos))
@@ -474,7 +474,7 @@ SPPValue CPreprocessorExpression::Primary(bool bEvaluate)
 		//Character literal prefixes.
 		if ((*mszPos == '\'') && (((iLength == 1) && ((*szIdentifier == 'L') || (*szIdentifier == 'u') || (*szIdentifier == 'U'))) || ((iLength == 2) && (szIdentifier[0] == 'u') && (szIdentifier[1] == '8'))))
 		{
-			return Character();
+			return Character(szIdentifier);
 		}
 
 		//Identifiers left after macro expansion are 0, except for true and false.
@@ -551,53 +551,27 @@ SPPValue CPreprocessorExpression::Number(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPValue CPreprocessorExpression::Character(void)
+SPPValue CPreprocessorExpression::Character(const char* szStart)
 {
-	SPPValue	sValue;
-	uint64		ulliValue;
-	uint32		uiCharacter;
-	int			iCount;
-	char		c;
-	const char*	sz;
+	SPPValue			sValue;
+	SCharacterLiteral	sLiteral;
+	int64				lliValue;
 
-	mszPos++;  //Skip the opening '.
-	ulliValue = 0;
-	iCount = 0;
-	while (*mszPos != '\'')
+	//The value it has in code (ParseCharacterLiteral and CharacterLiteralValue, which the tokeniser uses too).
+	switch (ParseCharacterLiteral(szStart, StrLen(szStart), &sLiteral))
 	{
-		c = *mszPos;
-		if ((c == '\0') || (c == '\n'))
-		{
-			return Error("Unterminated character literal");
-		}
-
-		if (c != '\\')
-		{
-			uiCharacter = (unsigned char)c;
-			mszPos++;
-		}
-		else
-		{
-			sz = mszPos + 1;
-			if (!DecodeEscape(&sz, sz + StrLen(sz), &uiCharacter))
-			{
-				return Error("Unknown escape sequence");
-			}
-			mszPos = (char*)sz;
-		}
-
-		//Multi-character literals, as in 'ABCD', are int.
-		ulliValue = (ulliValue << 8) | (uiCharacter & 0xFF);
-		iCount++;
-	}
-	mszPos++;  //Skip the closing '.
-
-	if (iCount == 0)
-	{
+	case CLR_Character:
+		break;
+	case CLR_Empty:
 		return Error("Empty character literal");
+	case CLR_InvalidEscape:
+		return Error("Unknown escape sequence");
+	default:
+		return Error("Unterminated character literal");
 	}
-
-	sValue.Init(ulliValue, false);
+	mszPos = (char*)szStart + sLiteral.uiLength;
+	lliValue = CharacterLiteralValue(&sLiteral);
+	sValue.Init((uint64)lliValue, false);
 	return sValue;
 }
 

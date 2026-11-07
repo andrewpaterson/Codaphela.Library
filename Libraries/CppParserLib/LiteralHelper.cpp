@@ -218,6 +218,105 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads the character literal at szText (its prefix, if any, and quotes;
+// no more than uiLength characters): its encoding, value and length.  The
+// code and #if both read literals with it, so they agree.  [lex.ccon]
+//
+//////////////////////////////////////////////////////////////////////////
+ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral)
+{
+	const char*	sz;
+	const char*	szEnd;
+	uint32		uiCharacter;
+
+	sz = szText;
+	szEnd = szText + uiLength;
+	psLiteral->eEncoding = CTE_Narrow;
+	if ((sz[0] == 'u') && (sz[1] == '8'))
+	{
+		psLiteral->eEncoding = CTE_UTF8;
+		sz += 2;
+	}
+	else if (sz[0] == 'L')
+	{
+		psLiteral->eEncoding = CTE_Wide;
+		sz++;
+	}
+	else if (sz[0] == 'u')
+	{
+		psLiteral->eEncoding = CTE_UTF16;
+		sz++;
+	}
+	else if (sz[0] == 'U')
+	{
+		psLiteral->eEncoding = CTE_UTF32;
+		sz++;
+	}
+	sz++;  //The opening quote.
+
+	psLiteral->uiValue = 0;
+	psLiteral->iCount = 0;
+	for (;;)
+	{
+		if ((sz >= szEnd) || (*sz == '\0') || (*sz == '\n'))
+		{
+			return CLR_Unterminated;
+		}
+		if (*sz == '\'')
+		{
+			break;
+		}
+		if (*sz == '\\')
+		{
+			sz++;
+			if (!DecodeEscape(&sz, szEnd, &uiCharacter))
+			{
+				return CLR_InvalidEscape;
+			}
+		}
+		else
+		{
+			uiCharacter = (unsigned char)*sz;
+			sz++;
+		}
+		psLiteral->uiValue = (psLiteral->iCount == 0) ? uiCharacter : ((psLiteral->uiValue << 8) | (uiCharacter & 0xFF));
+		psLiteral->iCount++;
+	}
+	psLiteral->uiLength = (size)(sz + 1 - szText);
+	return (psLiteral->iCount == 0) ? CLR_Empty : CLR_Character;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A character literal's value as its type has it: one narrow (or u8)
+// character is a char (signed), L and u are 16 bits unsigned (wchar_t is
+// 16 bits, as on Windows), U is 32 bits unsigned, and several characters
+// are an int.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CharacterLiteralValue(SCharacterLiteral* psLiteral)
+{
+	if (psLiteral->iCount == 1)
+	{
+		switch (psLiteral->eEncoding)
+		{
+		case CTE_Narrow:
+		case CTE_UTF8:
+			return (int8)psLiteral->uiValue;
+		case CTE_Wide:
+		case CTE_UTF16:
+			return (uint16)psLiteral->uiValue;
+		case CTE_UTF32:
+			return (uint32)psLiteral->uiValue;
+		}
+	}
+	return (psLiteral->eEncoding == CTE_UTF32) ? (int64)psLiteral->uiValue : (int64)(int32)psLiteral->uiValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Decodes the escape sequence starting at *psz, the character after the
 // backslash, reading no further than szEnd.  On success *psz is moved past
 // it and *puiValue is its value.  Returns false for an unknown escape or

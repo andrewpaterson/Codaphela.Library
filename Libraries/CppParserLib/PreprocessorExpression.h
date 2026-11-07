@@ -58,7 +58,7 @@ protected:
 	SPPValue	Unary(bool bEvaluate);
 	SPPValue	Primary(bool bEvaluate);
 	SPPValue	Number(void);
-	SPPValue	Character(void);
+	SPPValue	Character(const char* szStart);
 	int			PeekBinaryOperator(int* piLength);
 	SPPValue	Apply(int iOperator, SPPValue sLeft, SPPValue sRight, bool bEvaluate);
 	bool		GetCharacter(char c);
