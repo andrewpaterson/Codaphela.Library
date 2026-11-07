@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "StringHelper.h"
 #include "FileBasic.h"
+#include "FileCopier.h"
 #include "ArrayChars.h"
 #include "StackMemory.h"
 #include "DiskFile.h"
@@ -375,53 +376,19 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Copy(const char* szSource, const char* szDest)
 {
-	CFileBasic	cSource;
-	CFileBasic	cDest;
-	filePos		iRemaining;
-	lsize		iChunk;
-	void*		pvData;
-	bool		bResult;
+	CFileCopier	cCopier;
 
-	cSource.Init(DiskFile(szSource));
-	if (!cSource.Open(EFM_Read))
+	if (!Exists(szSource))
 	{
-		cSource.Kill();
 		return false;
 	}
-
-	//Opening for write does not truncate so a longer destination would keep its old tail.
-	Delete(szDest);
-	cDest.Init(DiskFile(szDest));
-	if (!cDest.Open(EFM_Write_Create))
-	{
-		cDest.Kill();
-		cSource.Close();
-		cSource.Kill();
-		return false;
-	}
-
-	bResult = true;
-	pvData = malloc(FILE_BLOCK_SIZE);
-	iRemaining = cSource.GetFileLength();
-	while (bResult && (iRemaining > 0))
-	{
-		iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (lsize)iRemaining;
-		bResult = cSource.ReadData(pvData, iChunk) && cDest.WriteData(pvData, iChunk);
-		iRemaining -= iChunk;
-	}
-	SafeFree(pvData);
-
-	bResult &= cDest.Close();
-	cDest.Kill();
-	cSource.Close();
-	cSource.Kill();
-
-	if (!bResult)
+	if (!cCopier.Copy(DiskFile(szSource), DiskFile(szDest)))
 	{
 		//Do not leave a partial copy behind.
 		Delete(szDest);
+		return false;
 	}
-	return bResult;
+	return true;
 }
 
 

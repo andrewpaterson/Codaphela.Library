@@ -885,6 +885,11 @@ void TestFileUtilCopyAndCompare(void)
 	AssertLong(5, cFileUtil.Size(FILE_UTIL_TEST_DIR _FS_ "Long.txt"));
 	AssertTrue(cFileUtil.Compare(FILE_UTIL_TEST_DIR _FS_ "Short.txt", FILE_UTIL_TEST_DIR _FS_ "Long.txt"));
 
+	//An empty file copied over one empties it.
+	TestFileUtilWriteFile(FILE_UTIL_TEST_DIR _FS_ "Empty.txt", "");
+	AssertTrue(cFileUtil.Copy(FILE_UTIL_TEST_DIR _FS_ "Empty.txt", FILE_UTIL_TEST_DIR _FS_ "Long.txt"));
+	AssertLong(0, cFileUtil.Size(FILE_UTIL_TEST_DIR _FS_ "Long.txt"));
+
 	//Two missing files are the same.  One missing file is different.
 	AssertTrue(cFileUtil.Compare(FILE_UTIL_TEST_DIR _FS_ "Missing1.txt", FILE_UTIL_TEST_DIR _FS_ "Missing2.txt"));
 	AssertFalse(cFileUtil.Compare(FILE_UTIL_TEST_DIR _FS_ "Short.txt", FILE_UTIL_TEST_DIR _FS_ "Missing.txt"));

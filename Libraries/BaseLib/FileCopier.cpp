@@ -26,47 +26,38 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileCopier.h"
 
 
+#define FILE_COPIER_BLOCK_SIZE	(1 MB)		//The most read before it is written.
+
+
 //////////////////////////////////////////////////////////////////////////
 //
+// pcSource's bytes in pcDest, which is replaced (emptied first, so it ends
+// up the same length).  Both are killed (and freed if they must be).
+// False if one couldn't be opened or read or written.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 {
 	CFileBasic	cSource;
 	CFileBasic	cDest;
-	void*		pvTemp;
-	filePos		iLength;
-	lsize		iChunk;
+	void*		pvData;
 	filePos		iRemaining;
-	EFileMode	eWriteMode;
+	lsize		iChunk;
+	bool		bResult;
 
-	if ((!pcSource) || (!pcDest))
+	if (!pcSource || !pcDest)
 	{
 		return false;
 	}
-
 	cSource.Init(pcSource);
 	cDest.Init(pcDest);
-
 	if (!cSource.Open(EFM_Read))
 	{
 		cDest.Kill();
 		cSource.Kill();
 		return false;
 	}
-
-	iLength = cSource.GetFileLength();
-	if (iLength == 0)
-	{
-		cDest.Close();
-		cDest.Kill();
-		cSource.Close();
-		cSource.Kill();
-		return true;
-	}
-
-	eWriteMode = EFM_Write_Create;
-	if (!cDest.Open(eWriteMode))
+	if (!cDest.Open(EFM_Write_Replace))
 	{
 		cSource.Close();
 		cDest.Kill();
@@ -74,60 +65,25 @@ bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 		return false;
 	}
 
-	if (iLength > 10 MB)
+	bResult = true;
+	pvData = NULL;
+	iRemaining = cSource.GetFileLength();
+	if (iRemaining > 0)
 	{
-		pvTemp = malloc(10 MB);
+		pvData = malloc((iRemaining > FILE_COPIER_BLOCK_SIZE) ? FILE_COPIER_BLOCK_SIZE : (lsize)iRemaining);
 	}
-	else
+	while (bResult && (iRemaining > 0))
 	{
-		pvTemp = malloc((lsize)iLength);
-	}
-
-	iRemaining = iLength;
-	while (iRemaining != 0)
-	{
-		if (iRemaining > 10 MB)
-		{
-			iChunk = 10 MB;
-		}
-		else
-		{
-			iChunk = (lsize)iRemaining;
-		}
-		if (!cSource.ReadData(pvTemp, iChunk))
-		{
-			cSource.Close();
-			cDest.Close();
-
-			cSource.Kill();
-			cDest.Kill();
-
-			SafeFree(pvTemp);
-			return false;
-		}
-
-		if (!cDest.WriteData(pvTemp, iChunk))
-		{
-			cSource.Close();
-			cDest.Close();
-
-			cSource.Kill();
-			cDest.Kill();
-
-			SafeFree(pvTemp);
-			return false;
-		}
-
+		iChunk = (iRemaining > FILE_COPIER_BLOCK_SIZE) ? FILE_COPIER_BLOCK_SIZE : (lsize)iRemaining;
+		bResult = cSource.ReadData(pvData, iChunk) && cDest.WriteData(pvData, iChunk);
 		iRemaining -= iChunk;
 	}
+	SafeFree(pvData);
 
+	bResult &= cDest.Close();
 	cSource.Close();
-	cDest.Close();
-
-	cSource.Kill();
 	cDest.Kill();
-
-	SafeFree(pvTemp);
-	return true;
+	cSource.Kill();
+	return bResult;
 }
 
