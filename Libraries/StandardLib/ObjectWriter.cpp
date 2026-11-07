@@ -175,6 +175,10 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow
 	{
 		pcContainer = pcDependent->GetEmbeddingContainer();
 		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
+		if (iEmbeddedIndex == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcDependent), "} is not embedded in its container {", ObjectToString(pcContainer), "}.", NULL);
+		}
 		iNumEmbedded = pcContainer->NumEmbedded();
 
 		InitIdentifier(&sIdentifier, pcContainer, bFatHollow || gbForceFatHollows);

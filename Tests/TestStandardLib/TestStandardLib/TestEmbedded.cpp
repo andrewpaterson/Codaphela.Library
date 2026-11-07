@@ -479,7 +479,7 @@ void TestEmbeddedGetEmbeddedIndex(void)
 	AssertSize(3, cComplex.GetEmbeddedIndex(&cComplex.mcContainer));
 	AssertSize(4, cComplex.GetEmbeddedIndex(&cComplex.mcContainer.mcOne));
 	AssertSize(5, cComplex.GetEmbeddedIndex(&cComplex.mcContainer.mcTwo));
-	AssertSize(-1, cComplex.GetEmbeddedIndex(NULL));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cComplex.GetEmbeddedIndex(NULL));
 
 	ObjectsKill(false);
 }
@@ -571,7 +571,7 @@ void TestEmbeddedObjectClass(void)
 	AssertSize(2, cComplex.GetFieldPointerToIndex(pcPtr2));
 	AssertSize(3, cComplex.GetFieldPointerToIndex(pcPtr3));
 	AssertSize(4, cComplex.GetFieldPointerToIndex(pcPtr4));
-	AssertSize(-1, cComplex.GetFieldPointerToIndex(NULL));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cComplex.GetFieldPointerToIndex(NULL));
 
 	ObjectsKill(false);
 }

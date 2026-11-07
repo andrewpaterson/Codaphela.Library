@@ -129,7 +129,7 @@ void CSingleChannelAccessor::GetConvertTo(size iChannel, EPrimitiveType eType, v
 	iByteSize = gcTypeNames.GetByteSize(eType);
 	iBitSize = gcTypeNames.GetBitSize(eType);
 
-	CChannelAccessor::Init((iByteSize != 0) ? iByteSize : MAX_SIZE, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
+	CChannelAccessor::Init((iByteSize != 0) ? iByteSize : CHANNEL_NON_ALIGNED_BYTES, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 	if ((iByteSize != 0) && IsByteAligned())
 	{
 		CChannelAccessor::GetAs(eType, GetElement(iPos), pvDest);

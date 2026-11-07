@@ -416,7 +416,7 @@ void TestChannelsAccessorWorstCase(void)
 	cCreator.AddAccess(CHANNEL_NAME_ALICE, PT_nybble);
 	pcAccessor = cCreator.CreateAndKill();
 	AssertString("CChannelsAccessorWorstCase", pcAccessor->ClassName());
-	AssertSize(-1, pcAccessor->GetByteSize());
+	AssertSize(CHANNEL_NON_ALIGNED_BYTES, pcAccessor->GetByteSize());
 	AssertSize(37, pcAccessor->GetBitSize());
 	AssertSize(5, pcAccessor->GetBufferSize());
 	aucData[0] = 0xff;

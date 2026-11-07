@@ -467,12 +467,12 @@ void TestStringTests(void)
 		AssertSize(7, pString1->Find("in"));
 		AssertSize(7, pString1->Find(7, "in"));
 		AssertSize(17, pString1->Find(8, "in"));
-		AssertSize(-1, pString1->Find("Nope"));
+		AssertSize(ARRAY_ELEMENT_NOT_FOUND, pString1->Find("Nope"));
 
 		AssertSize(17, pString1->FindFromEnd("in"));
 		AssertSize(17, pString1->FindFromEnd(17, "in"));
 		AssertSize(7, pString1->FindFromEnd(16, "in"));
-		AssertSize(-1, pString1->FindFromEnd("Nope"));
+		AssertSize(ARRAY_ELEMENT_NOT_FOUND, pString1->FindFromEnd("Nope"));
 	}
 	ObjectsKill();
 	DataIOKill();

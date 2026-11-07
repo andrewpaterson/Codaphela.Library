@@ -199,7 +199,8 @@ size CIndexUnknown::Remove(CUnknown* pvData)
 			if (!bResult)
 			{
 				sIter.Kill();
-				return ARRAY_ELEMENT_NOT_FOUND;
+				gcLogger.Error2(__METHOD__, " Could not remove a key found holding the value.", NULL);
+				return uiCount;
 			}
 			uiCount++;
 		}

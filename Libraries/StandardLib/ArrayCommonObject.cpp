@@ -397,7 +397,7 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 
 		//Removes every copy of the Object in the array.
 		uiRemoved = RemoveCopies(pcObject);
-		if ((uiRemoved != 0) && (uiRemoved != ARRAY_ELEMENT_NOT_FOUND))
+		if (uiRemoved != 0)
 		{
 			return RemoveObjectCopiesTryFree(pcObject, uiRemoved, true);
 		}
@@ -847,7 +847,7 @@ bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 			if (pcPointedTo)
 			{
 				uiRemoved = RemoveCopies(pcPointedTo);
-				if ((uiRemoved != 0) && (uiRemoved != ARRAY_ELEMENT_NOT_FOUND))
+				if (uiRemoved != 0)
 				{
 					bResult &= RemoveObjectCopiesTryFree(pcPointedTo, uiRemoved, false);
 				}
@@ -887,7 +887,7 @@ bool CArrayCommonObject::Contains(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 //
 // Takes every copy of pcObject out of the array (the caller looks after
-// its froms).  Returns how many there were, or ARRAY_ELEMENT_NOT_FOUND.
+// its froms).  Returns how many there were: 0 if it wasn't there.
 // Where removing leaves a NULL behind the copies are found from the member
 // locations; elsewhere removing shifts the elements after it along anyway.
 //

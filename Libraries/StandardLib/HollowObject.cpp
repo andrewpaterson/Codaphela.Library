@@ -267,7 +267,7 @@ size CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 			}
 		}
 
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 }
 

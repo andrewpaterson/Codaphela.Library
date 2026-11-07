@@ -224,6 +224,40 @@ void TestSetTypeSaveWithHole(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Removing by value says how many were removed: none for NULL (a set
+// ignores NULLs) or for an element it doesn't have.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetTypeRemoveCounts(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetType<CTestUnknown>	cSet;
+	CTestUnknown*			pcIn;
+	CTestUnknown*			pcOut;
+
+	cSet.Init(false);
+	pcIn = cSet.Add();
+	pcIn->Init(1);
+	pcOut = UMalloc(CTestUnknown);
+	pcOut->Init(2);
+
+	AssertSize(0, cSet.CSetUnknown::Remove((CUnknown*)NULL));
+	AssertSize(0, cSet.CSetUnknown::Remove(pcOut));
+	AssertSize(1, cSet.CSetUnknown::Remove(pcIn));
+	AssertSize(0, cSet.NumElements());
+
+	pcOut->Kill();
+	cSet.Kill();
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetType(void)
@@ -233,6 +267,7 @@ void TestSetType(void)
 	TestSetTypeInstantiation();
 	TestSetTypeAddAll();
 	TestSetTypeSaveWithHole();
+	TestSetTypeRemoveCounts();
 
 	TestStatistics();
 }

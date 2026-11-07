@@ -547,7 +547,7 @@ size CObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 			return i + 1;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -634,7 +634,7 @@ size CObject::GetFieldPointerToIndex(CPointer* pcFieldPointer)
 			}
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 

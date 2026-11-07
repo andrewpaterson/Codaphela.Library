@@ -776,9 +776,10 @@ size CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 	bool	bResult;
 	size	uiRemoved;
 
+	//An array that ignores NULLs has none to remove.
 	if ((muiFlags & ARRAY_COMMOM_IGNORE_NULL) && (pcUnknown == NULL))
 	{
-		return ARRAY_ELEMENT_NOT_FOUND;
+		return 0;
 	}
 
 	uiRemoved = 0;
@@ -793,7 +794,8 @@ size CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 		bResult = Remove(iIndex);
 		if (!bResult)
 		{
-			return ARRAY_ELEMENT_NOT_FOUND;
+			gcLogger.Error2(__METHOD__, " Could not remove the element found at [", SizeToString(iIndex), "].", NULL);
+			return uiRemoved;
 		}
 		uiRemoved++;
 		iIndex = FindNext(pcUnknown, iIndex);

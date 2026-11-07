@@ -203,7 +203,7 @@ size CEmbeddedObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 	}
 	else
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 }
 
