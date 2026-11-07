@@ -39,7 +39,7 @@ public:
 
 	bool					Add(CPointer& pObject);
 	bool					Add(CEmbeddedObject* pcObject);
-	bool					AddAll(CArrayCommonObject* pcArray);  //Shouldn't this be Ptr<CArrayCommonObject> ?
+	bool					AddAll(CArrayCommonObject* pcArray);
 	bool					Set(size iIndex, CPointer& pObject);
 	CEmbeddedObject*		Dereference(CEmbeddedObject** ppcObject);
 

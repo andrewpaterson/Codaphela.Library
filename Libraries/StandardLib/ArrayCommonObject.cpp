@@ -258,28 +258,41 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds each of pcArray's objects.  True if every one was added: a unique
+// array refuses those it has already.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 {
-	size 			i;
-	size 			uiNumElements;
-	CBaseObject*	pcObject;
-	bool			bAdded;
+	CArrayEmbeddedObjectPtr		apcObjects;
+	CEmbeddedObject*			pcObject;
+	size 						i;
+	size 						uiNumElements;
+	bool						bIgnoreNull;
+	bool						bAllAdded;
 
-	EnsureSorted();
-
-	uiNumElements = pcArray->NumElements();
+	//Every slot is looked at: an array that ignores NULLs has them where objects were removed, and they aren't objects.
+	//They are copied first as adding can move them (a sorted array, or pcArray being this).
+	apcObjects.Init();
+	bIgnoreNull = pcArray->mcArray.IsIgnoreNull();
+	uiNumElements = pcArray->mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcObject = pcArray->UnsafeGetObject(i);
-		bAdded = Add(pcObject);
-		if (!bAdded)
+		pcObject = (CEmbeddedObject*)pcArray->mcArray.UnsafeGet(i);
+		if ((pcObject != NULL) || !bIgnoreNull)
 		{
-			return false;
+			apcObjects.Add(pcObject);
 		}
 	}
-	return true;
+
+	bAllAdded = true;
+	uiNumElements = apcObjects.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		bAllAdded &= Add(apcObjects.GetPtr(i));
+	}
+	apcObjects.Kill();
+	return bAllAdded;
 }
 
 

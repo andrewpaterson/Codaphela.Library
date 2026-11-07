@@ -1381,6 +1381,43 @@ void TestSetObjectSortedInsertMovesMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A set with a hole where an object was removed adds all of its objects
+// to another.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectAddAllWithHoles(void)
+{
+	ObjectsInit();
+
+	Ptr<CSet<CTestSaveableObject1>>	pacStuff;
+	Ptr<CSet<CTestSaveableObject1>>	pacMore;
+	Ptr<CTestSaveableObject1>		pOne;
+	Ptr<CTestSaveableObject1>		pTwo;
+	Ptr<CTestSaveableObject1>		pThree;
+
+	pacStuff = OMalloc<CSet<CTestSaveableObject1>>(false);
+	pOne = OMalloc<CTestSaveableObject1>();
+	pTwo = OMalloc<CTestSaveableObject1>();
+	pThree = OMalloc<CTestSaveableObject1>();
+	pacStuff->Add(pOne);
+	pacStuff->Add(pTwo);
+	pacStuff->Add(pThree);
+	AssertTrue(pacStuff->Remove(pTwo));
+	AssertSize(2, pacStuff->NumElements());
+
+	pacMore = OMalloc<CSet<CTestSaveableObject1>>(false);
+	pacMore->AddAll(pacStuff);
+	AssertSize(2, pacMore->NumElements());
+	AssertTrue(pacMore->Contains(pOne));
+	AssertTrue(pacMore->Contains(pThree));
+	AssertFalse(pacMore->Contains(pTwo));
+
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetObject(void)
@@ -1393,6 +1430,7 @@ void TestSetObject(void)
 	TestSetObjectAdd();
 	TestSetObjectGet();
 	TestSetObjectAddAll();
+	TestSetObjectAddAllWithHoles();
 	TestSetObjectRemove();
 	TestSetObjectRemoveSortedWithNulls();
 	TestSetObjectOnStackKillContained();
