@@ -65,6 +65,7 @@ public:
 	char	GetDriveLetter(const char* szPathName);
 	void	CollapsePath(CChars* szPathName);
 	void	CurrentDirectory(CChars* szDest);
+	bool	HomeDirectory(CChars* szDest);
 	void	SplitPath(const char* szPathName, CChars* szDestFilename, CChars* szDestDirectory);
 	void	SplitPath(const char* szPathName, CArrayChars* paszComponents);
 	void	GetFileName(CChars* szDest, char* szPathName);
@@ -75,7 +76,7 @@ public:
 	void    PrependToPath(CChars* szPathName, const char* szItem);
 	void    RemoveLastFromPath(CChars* szPathName);
 	void	RemovePath(CChars* szPathName);
-	bool	IsExtension(const char* szFilename, const char* szExtension);
+	bool	IsExtension(const char* szFilename, const char* szExtension, bool bIgnoreCase = false);
 	bool	IsRootDirectory(const char* szPathName);
 
 	//Finder methods

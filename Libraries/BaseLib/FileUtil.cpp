@@ -807,7 +807,7 @@ void CFileUtil::RemovePath(CChars* szPathName)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension)
+bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension, bool bIgnoreCase)
 {
 	size	iExtension;
 	CChars	sz1;
@@ -815,6 +815,10 @@ bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension)
 	iExtension = FindExtension(szFilename);
 	if (iExtension != ARRAY_ELEMENT_NOT_FOUND)
 	{
+		if (bIgnoreCase)
+		{
+			return StringInsensitiveCompare(&szFilename[iExtension + 1], szExtension) == 0;
+		}
 		sz1.Fake((char*)&szFilename[iExtension+1]);
 		return sz1.Equals(szExtension);
 	}

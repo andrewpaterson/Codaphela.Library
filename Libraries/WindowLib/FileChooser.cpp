@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <stdlib.h>
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/StringHelper.h"
 #include "StandardLib/Objects.h"
@@ -64,36 +63,6 @@ void NormaliseDirectory(CChars* pszDirectory)
 	{
 		pszDirectory->RemoveEnd(pszDirectory->Length() - 1);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A normalised directory with one separator, at its end, is a root.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IsRootDirectory(CChars* pszDirectory)
-{
-	return (pszDirectory->Count(FILE_SEPARATOR[0]) == 1) && pszDirectory->EndsWith(FILE_SEPARATOR[0]);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the file's extension is szExtension, ignoring case.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool HasExtension(const char* szPath, const char* szExtension)
-{
-	CFileUtil	cFileUtil;
-	size		uiExtension;
-
-	uiExtension = cFileUtil.FindExtension(szPath);
-	if (uiExtension == ARRAY_ELEMENT_NOT_FOUND)
-	{
-		return false;
-	}
-	return StringInsensitiveCompare(&szPath[uiExtension + 1], szExtension) == 0;
 }
 
 
@@ -450,7 +419,7 @@ void CFileChooser::FillLookIn(void)
 	for (;;)
 	{
 		aszUp.Add(szPath.Text());
-		if (IsRootDirectory(&szPath))
+		if (cFileUtil.IsRootDirectory(szPath.Text()))
 		{
 			break;
 		}
@@ -560,6 +529,7 @@ void CFileChooser::AddRow(const char* szPath, bool bFolder)
 //////////////////////////////////////////////////////////////////////////
 bool CFileChooser::IsShownFile(const char* szPath)
 {
+	CFileUtil	cFileUtil;
 	const char*	szExtension;
 
 	szExtension = GetTypeExtension();
@@ -567,7 +537,7 @@ bool CFileChooser::IsShownFile(const char* szPath)
 	{
 		return true;
 	}
-	return HasExtension(szPath, szExtension);
+	return cFileUtil.IsExtension(szPath, szExtension, true);
 }
 
 
@@ -641,7 +611,7 @@ bool CFileChooser::Approve(void)
 	if (mbSave)
 	{
 		szExtension = GetTypeExtension();
-		if (szExtension && !HasExtension(szPath.Text(), szExtension))
+		if (szExtension && !cFileUtil.IsExtension(szPath.Text(), szExtension, true))
 		{
 			szPath.Append('.');
 			szPath.Append(szExtension);
@@ -746,7 +716,7 @@ void CFileChooser::GoUp(void)
 	CFileUtil	cFileUtil;
 	CChars		szParent;
 
-	if (!IsRootDirectory(&mszDirectory))
+	if (!cFileUtil.IsRootDirectory(mszDirectory.Text()))
 	{
 		szParent.Init(mszDirectory);
 		cFileUtil.RemoveLastFromPath(&szParent);
@@ -804,20 +774,15 @@ void CFileChooser::DialogTick(void)
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::GoHome(void)
 {
-	const char*	szHome;
+	CFileUtil	cFileUtil;
+	CChars		szHome;
 
-#ifdef _MSC_VER
-#pragma warning(suppress : 4996)
-#endif
-#ifdef LINUX_GNU
-	szHome = getenv("HOME");
-#else
-	szHome = getenv("USERPROFILE");
-#endif
-	if (!StrEmpty(szHome))
+	szHome.Init();
+	if (cFileUtil.HomeDirectory(&szHome))
 	{
-		Open(szHome, NULL);
+		Open(szHome.Text(), NULL);
 	}
+	szHome.Kill();
 }
 
 

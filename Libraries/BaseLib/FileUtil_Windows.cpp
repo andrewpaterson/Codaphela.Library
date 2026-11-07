@@ -357,6 +357,26 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The user's home folder.  False, and nothing appended, if it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::HomeDirectory(CChars* szDest)
+{
+	char	szTemp[MAX_PATH];
+	DWORD	uiLength;
+
+	uiLength = GetEnvironmentVariableA("USERPROFILE", szTemp, MAX_PATH);
+	if ((uiLength == 0) || (uiLength >= MAX_PATH))
+	{
+		return false;
+	}
+	szDest->Append(szTemp);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInName, const char*szExtension, CArrayChars* paszFiles, bool bHidden)

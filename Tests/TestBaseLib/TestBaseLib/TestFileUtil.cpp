@@ -182,6 +182,51 @@ void TestFileUtilFindExtension(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The extension compared exactly, or ignoring case.  A file with no
+// extension has the empty one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFileUtilIsExtension(void)
+{
+	CFileUtil	cFileUtil;
+
+	AssertTrue(cFileUtil.IsExtension("Folder" _FS_ "Notes.txt", "txt"));
+	AssertFalse(cFileUtil.IsExtension("Folder" _FS_ "Notes.TXT", "txt"));
+	AssertTrue(cFileUtil.IsExtension("Folder" _FS_ "Notes.TXT", "txt", true));
+	AssertFalse(cFileUtil.IsExtension("Folder" _FS_ "Notes.text", "txt", true));
+	AssertTrue(cFileUtil.IsExtension("Notes", ""));
+	AssertFalse(cFileUtil.IsExtension("Notes", "txt", true));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The home folder, where there is a user, is a folder.  The 65C64 has
+// none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFileUtilHomeDirectory(void)
+{
+	CFileUtil	cFileUtil;
+	CChars		sz;
+	bool		bHome;
+
+	sz.Init();
+	bHome = cFileUtil.HomeDirectory(&sz);
+#ifdef __LIBC65__
+	AssertFalse(bHome);
+	AssertString("", sz.Text());
+#else
+	AssertTrue(bHome);
+	AssertTrue(cFileUtil.IsAbsolutePath(sz.Text()));
+	AssertTrue(cFileUtil.IsDirectory(sz.Text()));
+#endif // __LIBC65__
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFileUtilRemoveExtension(void)
@@ -931,6 +976,8 @@ void TestFileUtil(void)
 
 	TestFileUtilRemoveExtension();
 	TestFileUtilFindExtension();
+	TestFileUtilIsExtension();
+	TestFileUtilHomeDirectory();
 	TestFileUtilNaming();
 	TestFileUtilMisc();
 	TestFileUtilMakeNameFromDirectory();
