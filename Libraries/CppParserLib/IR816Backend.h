@@ -272,6 +272,7 @@ protected:
 	bool			RuntimeCall(SIRInstruction* psInstruction);
 	bool			RemainderLeft(SIRInstruction* psInstruction);
 	bool			InlineMultiply16(SIRInstruction* psInstruction);
+	void			InlineCrossProduct(int32 iHigh, int32 iLow);
 	void			TableProduct(void);
 	bool			WideMultiply(SIRInstruction* psInstruction);
 	bool			IsHighHalfZero(SIRReference sValue, int iDepth);

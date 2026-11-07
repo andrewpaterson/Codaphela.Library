@@ -2283,7 +2283,8 @@ void TestIR816BackendBigFrame(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // An i16 multiply in a loop is R816_Mul16 in place (InlineMultiply16)
-// with the tables, and still a call without them: 1024 products of
+// with the tables, its labels reached with m at 16 bits (no rep m and sep m
+// to bring its paths together), and still a call without them: 1024 products of
 // pseudo random values shifted right by every pair of amounts (so every
 // byte is 0 in some), hashed, against the host's.
 //
@@ -2329,6 +2330,7 @@ void TestIR816BackendInlineMultiply(void)
 	AssertLong(h, TestIR816Run(gszTestIR816InlineMultiply, false, &szAssembly));
 	AssertFalse(szAssembly.Contains("jsl R816_Mul16"));
 	AssertTrue(szAssembly.Contains("MathMult"));
+	AssertFalse(szAssembly.Contains("\t\trep m\n\t\tsep m\n"));
 	szAssembly.Kill();
 	AssertIR816(h, gszTestIR816InlineMultiply, true);
 

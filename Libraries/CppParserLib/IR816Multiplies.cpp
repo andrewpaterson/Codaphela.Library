@@ -193,6 +193,7 @@ bool CIR816Backend::InlineMultiply16(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
+	//The high bytes are tested with m at 16 bits, so both labels are reached with it (as every label is, W65C816.txt).
 	iNoHighB = NewLabel();
 	iDone = NewLabel();
 	Line("sep m");
@@ -202,36 +203,41 @@ bool CIR816Backend::InlineMultiply16(SIRInstruction* psInstruction)
 	Line("rep m");
 	TableProduct();
 	Frame("sta", IR816_SCRATCH_RESULT);
-	Line("sep m");
-	Frame("lda", IR816_SCRATCH_ARGUMENT_B + 1);
-	Branch("beq", iNoHighB);
-	Line("xba");
-	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
-	Line("rep m");
-	TableProduct();
-	Line("xba");
-	Line("and 0xFF00");
-	Line("clc");
-	Frame("adc", IR816_SCRATCH_RESULT);
-	Frame("sta", IR816_SCRATCH_RESULT);
-	Label(iNoHighB);
-	Line("rep m");
-	Line("sep m");
-	Frame("lda", IR816_SCRATCH_ARGUMENT_A + 1);
-	Branch("beq", iDone);
-	Line("xba");
 	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
-	Line("rep m");
-	TableProduct();
-	Line("xba");
 	Line("and 0xFF00");
-	Line("clc");
-	Frame("adc", IR816_SCRATCH_RESULT);
-	Frame("sta", IR816_SCRATCH_RESULT);
+	Branch("beq", iNoHighB);
+	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_B + 1, IR816_SCRATCH_ARGUMENT_A);
+	Label(iNoHighB);
+	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Line("and 0xFF00");
+	Branch("beq", iDone);
+	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_A + 1, IR816_SCRATCH_ARGUMENT_B);
 	Label(iDone);
-	Line("rep m");
 	Frame("lda", IR816_SCRATCH_RESULT);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// InlineMultiply16's cross product: the bytes at iHigh and iLow multiplied
+// (the table), shifted up 8 and added to the scratch result.  m is 16 bits
+// before and after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
+{
+	Line("sep m");
+	Frame("lda", iHigh);
+	Line("xba");
+	Frame("lda", iLow);
+	Line("rep m");
+	TableProduct();
+	Line("xba");
+	Line("and 0xFF00");
+	Line("clc");
+	Frame("adc", IR816_SCRATCH_RESULT);
+	Frame("sta", IR816_SCRATCH_RESULT);
 }
 
 
