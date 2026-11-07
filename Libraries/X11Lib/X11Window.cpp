@@ -59,7 +59,7 @@ void CX11Window::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
     miPointerY = 0;
     memset(maulCursors, 0, sizeof(maulCursors));
     mpsSharedImage = NULL;
-    mulSharedSegment = 0;
+    mpsSharedSegment = NULL;
     mbSharedFailed = false;
 }
 
@@ -217,6 +217,18 @@ void CX11Window::PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A window's shared memory.  XShmCreateImage keeps a pointer to it and
+// XShmPutImage reads the segment from it, so it must outlive the image.
+//
+//////////////////////////////////////////////////////////////////////////
+struct SX11SharedSegment
+{
+    XShmSegmentInfo     sInfo;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Set while the X server is asked to attach shared memory, see
 // PrepareSharedImage.
 //
@@ -242,7 +254,7 @@ bool CX11Window::PrepareSharedImage(int32 iWidth, int32 iHeight)
     CX11WindowFactory*  pcFactory;
     Display*            psDisplay;
     XImage*             psImage;
-    XShmSegmentInfo     sInfo;
+    XShmSegmentInfo*    psInfo;
     int                 (*fPreviousHandler)(Display*, XErrorEvent*);
     bool                bAttached;
 
@@ -254,58 +266,64 @@ bool CX11Window::PrepareSharedImage(int32 iWidth, int32 iHeight)
 
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     psDisplay = pcFactory->GetDisplay();
-    memset(&sInfo, 0, sizeof(sInfo));
-    psImage = XShmCreateImage(psDisplay, DefaultVisual(psDisplay, pcFactory->GetScreen()), DefaultDepth(psDisplay, pcFactory->GetScreen()), ZPixmap, NULL, &sInfo, iWidth, iHeight);
+    mpsSharedSegment = NewMalloc<SX11SharedSegment>();
+    psInfo = &mpsSharedSegment->sInfo;
+    memset(psInfo, 0, sizeof(XShmSegmentInfo));
+    psImage = XShmCreateImage(psDisplay, DefaultVisual(psDisplay, pcFactory->GetScreen()), DefaultDepth(psDisplay, pcFactory->GetScreen()), ZPixmap, NULL, psInfo, iWidth, iHeight);
     if (psImage == NULL)
     {
+        SafeFree(mpsSharedSegment);
         mbSharedFailed = true;
         return false;
     }
     if (psImage->bits_per_pixel != 32)
     {
         XDestroyImage(psImage);
+        SafeFree(mpsSharedSegment);
         mbSharedFailed = true;
         return false;
     }
 
-    sInfo.shmid = shmget(IPC_PRIVATE, psImage->bytes_per_line * psImage->height, IPC_CREAT | 0600);
-    if (sInfo.shmid < 0)
+    psInfo->shmid = shmget(IPC_PRIVATE, psImage->bytes_per_line * psImage->height, IPC_CREAT | 0600);
+    if (psInfo->shmid < 0)
     {
         XDestroyImage(psImage);
+        SafeFree(mpsSharedSegment);
         mbSharedFailed = true;
         return false;
     }
-    sInfo.shmaddr = (char*)shmat(sInfo.shmid, NULL, 0);
-    if (sInfo.shmaddr == (char*)-1)
+    psInfo->shmaddr = (char*)shmat(psInfo->shmid, NULL, 0);
+    if (psInfo->shmaddr == (char*)-1)
     {
-        shmctl(sInfo.shmid, IPC_RMID, NULL);
+        shmctl(psInfo->shmid, IPC_RMID, NULL);
         XDestroyImage(psImage);
+        SafeFree(mpsSharedSegment);
         mbSharedFailed = true;
         return false;
     }
-    psImage->data = sInfo.shmaddr;
-    sInfo.readOnly = False;
+    psImage->data = psInfo->shmaddr;
+    psInfo->readOnly = False;
 
     //Attaching fails asynchronously, as an X error, when the server can't reach the memory.
     gbSharedAttachFailed = false;
     fPreviousHandler = XSetErrorHandler(SharedAttachErrorHandler);
-    bAttached = XShmAttach(psDisplay, &sInfo);
+    bAttached = XShmAttach(psDisplay, psInfo);
     XSync(psDisplay, False);
     XSetErrorHandler(fPreviousHandler);
 
     //Marked for removal now, it goes when both sides have let go of it, even if the process dies.
-    shmctl(sInfo.shmid, IPC_RMID, NULL);
+    shmctl(psInfo->shmid, IPC_RMID, NULL);
     if (!bAttached || gbSharedAttachFailed)
     {
-        shmdt(sInfo.shmaddr);
+        shmdt(psInfo->shmaddr);
         psImage->data = NULL;
         XDestroyImage(psImage);
+        SafeFree(mpsSharedSegment);
         mbSharedFailed = true;
         return false;
     }
 
     mpsSharedImage = psImage;
-    mulSharedSegment = sInfo.shmseg;
     return true;
 }
 
@@ -318,7 +336,6 @@ void CX11Window::FreeSharedImage(void)
 {
     CX11WindowFactory*  pcFactory;
     Display*            psDisplay;
-    XShmSegmentInfo     sInfo;
 
     if (mpsSharedImage == NULL)
     {
@@ -327,16 +344,13 @@ void CX11Window::FreeSharedImage(void)
 
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     psDisplay = pcFactory->GetDisplay();
-    memset(&sInfo, 0, sizeof(sInfo));
-    sInfo.shmseg = mulSharedSegment;
-    sInfo.shmaddr = mpsSharedImage->data;
-    XShmDetach(psDisplay, &sInfo);
+    XShmDetach(psDisplay, &mpsSharedSegment->sInfo);
     XSync(psDisplay, False);
     shmdt(mpsSharedImage->data);
     mpsSharedImage->data = NULL;
     XDestroyImage(mpsSharedImage);
     mpsSharedImage = NULL;
-    mulSharedSegment = 0;
+    SafeFree(mpsSharedSegment);
 }
 
 

@@ -30,6 +30,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The MIT-SHM requests' major opcode, and whether one has failed: then
+// no window presents from shared memory again (see UsesSharedMemory).
+//
+//////////////////////////////////////////////////////////////////////////
+static int	giSharedMemoryOpcode = -1;
+static bool	gbSharedMemoryFailed = false;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Xlib's own handler exits the process on any error.  An error, like
 // giving focus to a dialog the window manager hasn't shown yet, is
 // logged instead.
@@ -39,6 +49,11 @@ static int X11ErrorHandler(Display* psDisplay, XErrorEvent* psError)
 {
     char    szText[256];
     CChars  sz;
+
+    if ((giSharedMemoryOpcode >= 0) && (psError->request_code == giSharedMemoryOpcode))
+    {
+        gbSharedMemoryFailed = true;
+    }
 
     szText[0] = '\0';
     XGetErrorText(psDisplay, psError->error_code, szText, sizeof(szText));
@@ -62,6 +77,9 @@ static int X11ErrorHandler(Display* psDisplay, XErrorEvent* psError)
 bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayName)
 {
     Bool    bDetectable;
+    int     iOpcode;
+    int     iEvent;
+    int     iError;
 
     CNativeWindowFactory::Init(pcMallocator);
 
@@ -84,6 +102,10 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
     XSetErrorHandler(X11ErrorHandler);
     miScreen = DefaultScreen(mpsDisplay);
     mbSharedMemoryAvailable = XShmQueryExtension(mpsDisplay);
+    if (mbSharedMemoryAvailable && XQueryExtension(mpsDisplay, "MIT-SHM", &iOpcode, &iEvent, &iError))
+    {
+        giSharedMemoryOpcode = iOpcode;
+    }
     mulDeleteWindowAtom = XInternAtom(mpsDisplay, "WM_DELETE_WINDOW", False);
     mulProtocolsAtom = XInternAtom(mpsDisplay, "WM_PROTOCOLS", False);
 
@@ -194,7 +216,7 @@ CX11Input* CX11WindowFactory::GetInput(void) { return mpcInput; }
 //
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::SetSharedMemory(bool bSharedMemory) { mbSharedMemory = bSharedMemory; }
-bool CX11WindowFactory::UsesSharedMemory(void) { return mbSharedMemory && mbSharedMemoryAvailable; }
+bool CX11WindowFactory::UsesSharedMemory(void) { return mbSharedMemory && mbSharedMemoryAvailable && !gbSharedMemoryFailed; }
 
 
 //////////////////////////////////////////////////////////////////////////
