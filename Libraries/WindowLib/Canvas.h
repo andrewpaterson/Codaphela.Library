@@ -50,6 +50,7 @@ protected:
 	CDamageArea			mcPartDamage;  //The parts of it to draw again (InvalidateArea) when it isn't all drawn again, in its space.
 	bool				mbClearBeforeDraw;  //The native canvas holds what was drawn for another part of the canvas, see PrepareArea.
 	bool				mbPaintClipped;  //While mcPaintClip of it is drawn: the window's canvas in a partial paint, any canvas drawing part of itself.
+	bool				mbDrawnEveryPaint;  //Its draw reads what changes without telling it, so it draws all of itself at every paint.
 	CInt32Rect			mcPaintClip;  //In the canvas's space, right and bottom exclusive.
 
 public:
@@ -82,6 +83,8 @@ public:
 	void				UpdateNativeArea(void);
 	void				UpdateNativeArea(bool bClipped, CInt32Rect* pcClip);
 	bool				IsContentDirty(void);
+	void				SetDrawnEveryPaint(bool bDrawnEveryPaint);
+	bool				IsDrawnEveryPaint(void);
 	SInt32Vec2			GetNativeOrigin(void);
 	SInt32Vec2			GetNativeSize(void);
 	bool				PrepareNativeCanvas(SInt32Vec2 sSize);

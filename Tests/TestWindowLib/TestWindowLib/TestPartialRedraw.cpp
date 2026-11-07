@@ -203,8 +203,8 @@ static void AssertUndamagedIfStill(CDamageArea* pcDamage, Ptr<CCanvas> pCanvas, 
 // What a paint finds changed: nothing when nothing did; a canvas's area
 // when it is invalidated; the old and new areas of canvases that moved;
 // where a canvas was when it is taken out; a scrolled canvas's area; a
-// popup's area when it opens and closes; nothing when the mouse moves.
-// Nothing else.
+// popup's area when it opens and closes; nothing when the mouse moves;
+// a canvas drawn every paint at every paint.  Nothing else.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawDamage(void)
@@ -314,6 +314,16 @@ void TestPartialRedrawDamage(void)
 
 		//A container's setter that changes nothing that is drawn, here insets it already has, draws nothing again.
 		sWindow.pGrid->SetInsets(0, 0, 0, 0);
+		sWindow.pWindow->Paint();
+		AssertTrue(pcDamage->IsEmpty());
+
+		//A canvas drawn every paint is drawn again though nothing changed, and only it.
+		sWindow.pFixed->SetDrawnEveryPaint(true);
+		AssertTrue(sWindow.pFixed->IsDrawnEveryPaint());
+		sWindow.pWindow->Paint();
+		AssertTrue(pcDamage->Intersects(&cFixed));
+		AssertUndamagedIfStill(pcDamage, sWindow.pFirst, &cFirst);
+		sWindow.pFixed->SetDrawnEveryPaint(false);
 		sWindow.pWindow->Paint();
 		AssertTrue(pcDamage->IsEmpty());
 

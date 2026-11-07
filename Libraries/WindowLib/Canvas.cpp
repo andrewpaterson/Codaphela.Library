@@ -74,6 +74,7 @@ void CCanvas::InitCanvas(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 	mbClearBeforeDraw = false;
 	mbPaintClipped = false;
 	mcPaintClip.Init(0, 0, 0, 0);
+	mbDrawnEveryPaint = false;
 }
 
 
@@ -111,6 +112,7 @@ void CCanvas::Class(void)
 	U_Bool(mbContentDirty);
 	U_Data(CDamageArea, mcPartDamage);
 	U_Bool(mbClearBeforeDraw);
+	U_Bool(mbDrawnEveryPaint);
 	U_Bool(mbPaintClipped);
 	U_Data(CInt32Rect, mcPaintClip);
 }
@@ -232,7 +234,7 @@ bool CCanvas::Draw(void)
 // becomes its native area, and where in the window that is its drawn
 // area.  A native canvas showing another part of the canvas than it did,
 // scrolled say, draws again; an opaque one first starts black, as a new
-// one would.
+// one would.  One drawn every paint draws again whatever changed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
@@ -260,6 +262,11 @@ void CCanvas::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32
 	{
 		DestroyNativeCanvas();
 		return;
+	}
+	if (mbDrawnEveryPaint)
+	{
+		mbContentDirty = true;
+		mpWindow->AddDamage(pcArea);
 	}
 	if ((sPreviousOrigin.x != msNativeOrigin.x) || (sPreviousOrigin.y != msNativeOrigin.y) || (sPreviousSize.x != msNativeSize.x) || (sPreviousSize.y != msNativeSize.y))
 	{
@@ -970,5 +977,17 @@ SInt32Vec2 CCanvas::GetNativeSize(void) { return msNativeSize; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; InvalidateLayout(); }
 bool CCanvas::IsContentDirty(void) { return mbContentDirty; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A canvas whose draw reads what changes without the canvas being told,
+// a device's state or a running simulation say, draws all of itself at
+// every paint, drawing only what changed or not.  Canvases aren't, unless
+// set.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::SetDrawnEveryPaint(bool bDrawnEveryPaint) { mbDrawnEveryPaint = bDrawnEveryPaint; }
+bool CCanvas::IsDrawnEveryPaint(void) { return mbDrawnEveryPaint; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
 
