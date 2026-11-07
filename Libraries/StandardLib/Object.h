@@ -68,9 +68,6 @@ public:
 	size				CountNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 	CBaseObject*		Dehollow(void) override;
-	size				NumHeapFroms(void) override;
-	size				NumStackFroms(void) override;
-	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	size				NumPointerTos(void) override;
 	size				BaseNumPointerTos(void) override;
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
@@ -93,6 +90,7 @@ protected:
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
+	CBaseObject*		GetContained(size uiIndex);
 	CBaseObject*		IterateDirectlyEmbedded(size* puiIndex);
 	void				ValidateEmbeddedConsistency(void) override;
 	void				EmbedPointerFields(void);

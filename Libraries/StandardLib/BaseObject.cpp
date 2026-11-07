@@ -435,13 +435,26 @@ void CBaseObject::CopyFields(CEmbeddedObject* pcOther)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether Flush would save the object: it is dirty, and attached to the
+// root or stored (a stored object's holders may only be in the database,
+// so it is saved without a path to the root).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::NeedsSaving(void)
+{
+	return IsDirty() && (IsStored() || (GetDistToRoot() != UNATTACHED_DIST_TO_ROOT));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Saves the object if it NeedsSaving.  True if it is clean afterwards;
+// false if it couldn't be saved, or is dirty with nowhere to be saved.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::Flush(void)
 {
 	bool	bResult;
-	bool	bCanFindRoot;
-	bool	bDirty;
 
 	if (IsEmbedded())
 	{
@@ -449,24 +462,18 @@ bool CBaseObject::Flush(void)
 		return false;
 	}
 
-	bCanFindRoot = GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
-	bDirty = IsDirty();
-
-	//A stored object's holders may only be in the database: it is saved without a path to the root.
-	if (bDirty)
+	if (!IsDirty())
 	{
-		if (bCanFindRoot || IsStored())
-		{
-			bResult = GetObjectsThisIn()->ForceSave(this);
-			SetDirty(false);
-			return bResult;
-		}
-		else
-		{
-			return false;
-		}
+		return true;
 	}
-	return true;
+	if (!NeedsSaving())
+	{
+		return false;
+	}
+
+	bResult = GetObjectsThisIn()->ForceSave(this);
+	SetDirty(false);
+	return bResult;
 }
 
 
@@ -1208,33 +1215,11 @@ bool CBaseObject::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveManaged(CObjectWriter* pcFile)
 {
-	bool	bResult;
-
-	bResult = SaveEmbeddedObjectsManaged(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = SavePointers(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = SavePrimitives(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = SaveUnmanaged(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = Save(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
+	ReturnOnFalse(SaveEmbeddedObjectsManaged(pcFile));
+	ReturnOnFalse(SavePointers(pcFile));
+	ReturnOnFalse(SavePrimitives(pcFile));
+	ReturnOnFalse(SaveUnmanaged(pcFile));
+	ReturnOnFalse(Save(pcFile));
 	return true;
 }
 
@@ -1272,30 +1257,43 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The objects embedded in this as fields of its class (not those
+// embedded in them), for the loops over them.
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseObject::NumEmbeddedFields(void)
+{
+	return mpcClass->GetEmbeddedObjectFields()->NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::GetEmbeddedField(size uiIndex)
+{
+	CEmbeddedObjectField*	pcField;
+
+	pcField = (CEmbeddedObjectField*)mpcClass->GetEmbeddedObjectFields()->GetPtr(uiIndex);
+	return pcField->GetEmbeddedObject(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 {
-	size					uiNumFields;
-	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CBaseObject*			pcEmbeddedObject;
-	bool					bResult;
+	size	i;
+	size	uiNumFields;
 
-	papv = mpcClass->GetEmbeddedObjectFields();
-	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	uiNumFields = papv->NumElements();
+	uiNumFields = NumEmbeddedFields();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
-		bResult = pcEmbeddedObject->SaveManaged(pcFile);
-		if (!bResult)
-		{
-			return false;
-		}
+		ReturnOnFalse(GetEmbeddedField(i)->SaveManaged(pcFile));
 	}
-
 	return true;
 }
 
@@ -1306,26 +1304,14 @@ bool CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 {
-	size					uiNumFields;
-	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CBaseObject*			pcEmbeddedObject;
-	bool					bResult;
+	size	i;
+	size	uiNumFields;
 
-	papv = mpcClass->GetEmbeddedObjectFields();
-	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	uiNumFields = papv->NumElements();
+	uiNumFields = NumEmbeddedFields();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
-		bResult = pcEmbeddedObject->SaveHeapFroms(pcFile);
-		if (!bResult)
-		{
-			return false;
-		}
+		ReturnOnFalse(GetEmbeddedField(i)->SaveHeapFroms(pcFile));
 	}
-
 	return true;
 }
 
@@ -1469,33 +1455,11 @@ bool CBaseObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadManaged(CObjectReader* pcFile)
 {
-	bool	bResult;
-
-	bResult = LoadEmbeddedObjectsManaged(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = LoadPointers(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = LoadPrimitives(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = LoadUnmanaged(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = Load(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
+	ReturnOnFalse(LoadEmbeddedObjectsManaged(pcFile));
+	ReturnOnFalse(LoadPointers(pcFile));
+	ReturnOnFalse(LoadPrimitives(pcFile));
+	ReturnOnFalse(LoadUnmanaged(pcFile));
+	ReturnOnFalse(Load(pcFile));
 	return true;
 }
 
@@ -1506,26 +1470,14 @@ bool CBaseObject::LoadManaged(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 {
-	size					uiNumFields;
-	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CBaseObject*			pcEmbeddedObject;
-	bool					bResult;
+	size	i;
+	size	uiNumFields;
 
-	papv = mpcClass->GetEmbeddedObjectFields();
-	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	uiNumFields = papv->NumElements();
+	uiNumFields = NumEmbeddedFields();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
-		bResult = pcEmbeddedObject->LoadManaged(pcFile);
-		if (!bResult)
-		{
-			return false;
-		}
+		ReturnOnFalse(GetEmbeddedField(i)->LoadManaged(pcFile));
 	}
-
 	return true;
 }
 
@@ -1690,26 +1642,14 @@ bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
 {
-	size					uiNumFields;
-	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CBaseObject*			pcEmbeddedObject;
-	bool					bResult;
+	size	i;
+	size	uiNumFields;
 
-	papv = mpcClass->GetEmbeddedObjectFields();
-	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	uiNumFields = papv->NumElements();
+	uiNumFields = NumEmbeddedFields();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
-		bResult = pcEmbeddedObject->LoadHeapFroms(pcFile);
-		if (!bResult)
-		{
-			return false;
-		}
+		ReturnOnFalse(GetEmbeddedField(i)->LoadHeapFroms(pcFile));
 	}
-
 	return true;
 }
 
@@ -1731,6 +1671,69 @@ OIndex CBaseObject::GetIndex(void)
 bool CBaseObject::IsBaseObject(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The heap froms of this and of each object embedded in it (its
+// GetEmbeddedObjects, this first): a CObject's embedded objects, a
+// CHollowObject's hollow ones, nothing else for a collection.
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseObject::NumHeapFroms(void)
+{
+	size	i;
+	size	uiNumEmbedded;
+	size	uiCount;
+
+	uiCount = 0;
+	uiNumEmbedded = NumEmbedded();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		uiCount += GetEmbeddedObject(i)->CEmbeddedObject::NumHeapFroms();
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stack froms of this and of each object embedded in it, as
+// NumHeapFroms.
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseObject::NumStackFroms(void)
+{
+	size	i;
+	size	uiNumEmbedded;
+	size	uiCount;
+
+	uiCount = 0;
+	uiNumEmbedded = NumEmbedded();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		uiCount += GetEmbeddedObject(i)->CEmbeddedObject::NumStackFroms();
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stack froms NumStackFroms counts.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
+{
+	size	i;
+	size	uiNumEmbedded;
+
+	uiNumEmbedded = NumEmbedded();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		GetEmbeddedObject(i)->CEmbeddedObject::GetStackFroms(papcFroms);
+	}
 }
 
 

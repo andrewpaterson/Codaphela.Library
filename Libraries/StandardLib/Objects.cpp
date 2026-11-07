@@ -837,7 +837,7 @@ bool CObjects::SaveDirtyInMemory(void)
 	while (oi != INVALID_O_INDEX)
 	{
 		pcBaseObject = GetFromMemory(oi);
-		if (pcBaseObject->IsDirty() && (pcBaseObject->IsStored() || (pcBaseObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT)))
+		if (pcBaseObject->NeedsSaving())
 		{
 			bResult &= pcBaseObject->Flush();
 		}

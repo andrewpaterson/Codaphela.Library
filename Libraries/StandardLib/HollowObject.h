@@ -51,9 +51,6 @@ public:
 			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded) override;
 			size				NumEmbedded(void) override;
 
-			size				NumHeapFroms(void) override;
-			size				NumStackFroms(void) override;
-			void				GetStackFroms(CArrayStackPointerE32* papcFroms) override;
 			void				ValidateConsistency(void) override;
 
 			bool				HasNes(void) override;

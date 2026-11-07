@@ -133,6 +133,7 @@ public:
 			void					Kill(void) override;
 	virtual void					Free(void) =0;
 	virtual bool					Flush(void);
+			bool					NeedsSaving(void);
 
 			bool					Save(CObjectWriter* pcFile) override;
 			bool					Load(CObjectReader* pcFile) override;
@@ -164,6 +165,9 @@ public:
 			void					Print(CChars* psz) override;
 
 			size					NumEmbedded(void) override;
+			size					NumHeapFroms(void) override;
+			size					NumStackFroms(void) override;
+			void					GetStackFroms(CArrayStackPointerE32* papcFroms) override;
 
 			void					SetDirty(bool bDirty) override;
 			void					SetStored(bool bStored);
@@ -261,6 +265,8 @@ protected:
 			void					ContainerPreInit(void);
 			void					ContainerPostInit(void);
 
+			size					NumEmbeddedFields(void);
+			CBaseObject*			GetEmbeddedField(size uiIndex);
 			bool					SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			bool					SavePointers(CObjectWriter* pcFile);
 			bool					SavePrimitives(CObjectWriter* pcFile);

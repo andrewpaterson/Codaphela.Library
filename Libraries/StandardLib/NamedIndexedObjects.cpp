@@ -326,19 +326,15 @@ bool CNamedIndexedObjects::ValidateNoDirty(void)
 	SIndexesIterator	sIter;
 	OIndex				oi;
 	CBaseObject*		pcObject;
-	bool				bDirty;
 	CChars				szIdentifier;
-	bool				bCanFindRoot;
 
 	oi = mcMemoryIndexedObjects.StartIteration(&sIter);
 	while (oi != INVALID_O_INDEX)
 	{
 		pcObject = Get(oi);
-		bDirty = pcObject->IsDirty();
-		bCanFindRoot = pcObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
 
 		//The objects Flush would save: they must be flushed (or discarded) before Objects is killed.
-		if (bDirty && (bCanFindRoot || pcObject->IsStored()))
+		if (pcObject->NeedsSaving())
 		{
 			szIdentifier.Init();
 			pcObject->PrintIdentifier(&szIdentifier);
