@@ -258,7 +258,7 @@ void CObjects::PrintGraph(CChars* psz, bool bPointerMemory)
 {
 	Ptr<CRoot>	pRoot;
 
-	psz->Init("-------------------------- Graph --------------------------- \n");
+	psz->Append("-------------------------- Graph --------------------------- \n");
 
 	pRoot = Get(ROOT_NAME);
 	if (pRoot.IsNotNull())
@@ -280,26 +280,12 @@ void CObjects::UnsetDumpFlags(void)
 {
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
-	CBaseObject*		pcEmbeddedObject;
-	CObject*			pcObject;
-	size				i;
-	size				uiNumEmbedded;
 
+	//DUMPED is a container flag: the objects embedded in these share it.
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
 		SetFlagShort(&pcBaseObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
-
-		if (pcBaseObject->IsObject())
-		{
-			pcObject = (CObject*)pcBaseObject;
-			uiNumEmbedded = pcObject->mapEmbedded.NumElements();
-			for (i = 0; i < uiNumEmbedded; i++)
-			{
-				pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
-				SetFlagShort(&pcEmbeddedObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
-			}
-		}
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
 }
@@ -341,8 +327,9 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 
 	pcBaseObject = (CBaseObject*)pcIncoming;
 
+	//DUMPED is a container flag, so an object embedded in the container being printed has it already.
 	psz->Append(' ', iLevel * 3);
-	if ((pcBaseObject->GetFlags() & OBJECT_FLAGS_DUMPED) || (pcBaseObject->GetDistToRoot() < iLevel))
+	if ((!bEmbedded && (pcBaseObject->GetFlags() & OBJECT_FLAGS_DUMPED)) || (pcBaseObject->GetDistToRoot() < iLevel))
 	{
 		psz->Append('*');
 		pcBaseObject->PrintObject(psz, bEmbedded, bPointerMemory);
@@ -357,7 +344,6 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	}
 
 	pcBaseObject->SetFlag(OBJECT_FLAGS_DUMPED, true);
-
 
 	apcTos.Init();
 	pcBaseObject->BaseGetPointerTos(&apcTos);

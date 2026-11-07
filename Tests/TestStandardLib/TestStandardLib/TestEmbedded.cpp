@@ -668,6 +668,37 @@ void TestEmbeddedStackPointerPrint(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The graph shows the objects embedded in each object, and appends to
+// the string it is given.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedPrintGraph(void)
+{
+	ObjectsInit();
+
+	{
+		Ptr<CEmbeddedContainer>		pContainer;
+		CChars						sz;
+		char*						pszEmbedded;
+
+		pContainer = OMalloc<CEmbeddedContainer>();
+		ORoot()->Add(pContainer);
+
+		sz.Init("Before\n");
+		gcObjects.PrintGraph(&sz, false);
+		AssertTrue(sz.StartsWith("Before\n-------------------------- Graph ---"));
+		pszEmbedded = strstr(sz.Text(), "]:(CEmbeddedTest(");
+		AssertNotNull(pszEmbedded);
+		AssertNotNull(strstr(pszEmbedded + 1, "]:(CEmbeddedTest("));
+		sz.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbeddedObjectKillFreesEmbedded(void)
@@ -1140,6 +1171,7 @@ void TestEmbedded(void)
 	TestEmbeddedObjectPointTo();
 	TestEmbeddedObjectKillSanity();
 	TestEmbeddedStackPointerPrint();
+	TestEmbeddedPrintGraph();
 	TestEmbeddedObjectKillFreesEmbedded();
 	TestEmbeddedObjectPointedToNoRemove();
 	TestEmbeddedNestedCollectionHeldFromStack();
