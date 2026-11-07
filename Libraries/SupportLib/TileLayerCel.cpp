@@ -56,6 +56,7 @@ void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVe
 	maCels.Init();
 	maBlitters.Init();
 	mcCelIndices.Init(&ComparePtrPtr);
+	muiCelVersion = 0;
 
 	PostInit();
 }
@@ -86,6 +87,7 @@ void CTileLayerCel::Class(void)
 	M_Embedded(maCels);
 	M_Embedded(maBlitters);
 	U_Unknown(CMapTileLayerCelIndex, mcCelIndices);
+	U_Size(muiCelVersion);
 	M_Pointer(mpCache);
 	M_Pointer(mpViewport);
 }
@@ -138,7 +140,8 @@ size CTileLayerCel::TileIndex(size x, size y)
 //////////////////////////////////////////////////////////////////////////
 //
 // The tile value of pCel: its index in maCels plus one, adding it if it
-// isn't there yet.
+// isn't there yet; 0, an empty tile, for no cel.  It is pCel's until the
+// layer is cleared (GetCelVersion).
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 CTileLayerCel::AddCel(Ptr<CImageCel> pCel)
@@ -149,6 +152,10 @@ uint32 CTileLayerCel::AddCel(Ptr<CImageCel> pCel)
 	Ptr<CImageBlitter>	pNoBlitter;
 
 	pcCel = (CImageCel*)pCel.Object();
+	if (pcCel == NULL)
+	{
+		return 0;
+	}
 	puiCel = mcCelIndices.Get(pcCel);
 	if (puiCel)
 	{
@@ -165,20 +172,34 @@ uint32 CTileLayerCel::AddCel(Ptr<CImageCel> pCel)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Changes each time the layer forgets its cels (Clear): the tile values
+// AddCel gave before are no longer theirs.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileLayerCel::GetCelVersion(void)
+{
+	return muiCelVersion;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Inserts uiCount empty tiles at uiIndex, in row y, and moves the rows
 // after it along.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTileLayerCel::InsertTiles(size y, size uiIndex, size uiCount)
 {
-	size	i;
+	size			i;
+	STileLayerRow*	psRows;
 
 	mauiTiles.InsertNumAt(uiCount, uiIndex);
 	memset(mauiTiles.Get(uiIndex), 0, uiCount * sizeof(uint32));
 
+	psRows = masRows.GetData();
 	for (i = y + 1; i < msMapSize.y; i++)
 	{
-		masRows.Get(i)->uiFirst += uiCount;
+		psRows[i].uiFirst += uiCount;
 	}
 }
 
@@ -191,7 +212,8 @@ void CTileLayerCel::InsertTiles(size y, size uiIndex, size uiCount)
 //////////////////////////////////////////////////////////////////////////
 void CTileLayerCel::RemoveTiles(size y, size uiIndex, size uiCount)
 {
-	size	i;
+	size			i;
+	STileLayerRow*	psRows;
 
 	if (uiCount == 0)
 	{
@@ -199,9 +221,10 @@ void CTileLayerCel::RemoveTiles(size y, size uiIndex, size uiCount)
 	}
 	mauiTiles.RemoveRange(uiIndex, uiIndex + uiCount);
 
+	psRows = masRows.GetData();
 	for (i = y + 1; i < msMapSize.y; i++)
 	{
-		masRows.Get(i)->uiFirst -= uiCount;
+		psRows[i].uiFirst -= uiCount;
 	}
 }
 
@@ -303,6 +326,142 @@ bool CTileLayerCel::SetTile(size x, size y, Ptr<CImageCel> pTile)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// The run of the uiLength tiles at auiTiles from their first cel to their
+// last (uiStart == uiEnd == 0 when they have none).
+//
+//////////////////////////////////////////////////////////////////////////
+static void FindTileRun(uint32* auiTiles, size uiLength, size* puiStart, size* puiEnd)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	uiStart = 0;
+	while ((uiStart < uiLength) && (auiTiles[uiStart] == 0))
+	{
+		uiStart++;
+	}
+	if (uiStart == uiLength)
+	{
+		*puiStart = 0;
+		*puiEnd = 0;
+		return;
+	}
+
+	uiEnd = uiLength;
+	while (auiTiles[uiEnd - 1] == 0)
+	{
+		uiEnd--;
+	}
+	*puiStart = uiStart;
+	*puiEnd = uiEnd;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the tiles of the uiNumRows rows from y, all at once: row
+// y + i takes the auiRowLengths[i] tile values, from column 0, that follow
+// the rows before it in auiTiles.  A value is a cel's index plus one, as
+// AddCel gives it, or 0 for an empty tile.  Tiles past the right are cut
+// off.  False if anything with a cel was cut off; false, changing nothing,
+// if the rows go past the bottom or a value isn't one of the layer's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::SetRowTiles(size y, size uiNumRows, uint32* auiTiles, size* auiRowLengths)
+{
+	size			uiRow;
+	size			uiOffset;
+	size			uiLength;
+	size			uiStart;
+	size			uiEnd;
+	size			uiNumTiles;
+	size			uiOldFirst;
+	size			uiOldEnd;
+	size			uiFirst;
+	size			uiNumCels;
+	size			i;
+	STileLayerRow*	psRows;
+	STileLayerRow*	psRow;
+	uint32*			puiTiles;
+	bool			bFitted;
+
+	if ((y > msMapSize.y) || (uiNumRows > msMapSize.y - y))
+	{
+		return false;
+	}
+	if (uiNumRows == 0)
+	{
+		return true;
+	}
+
+	//Checked before anything changes, and the tiles the runs will hold counted.
+	uiNumCels = maCels.NumElements();
+	bFitted = true;
+	uiNumTiles = 0;
+	uiOffset = 0;
+	for (uiRow = 0; uiRow < uiNumRows; uiRow++)
+	{
+		uiLength = auiRowLengths[uiRow];
+		for (i = 0; i < uiLength; i++)
+		{
+			if (auiTiles[uiOffset + i] > uiNumCels)
+			{
+				return false;
+			}
+			if ((i >= msMapSize.x) && (auiTiles[uiOffset + i] != 0))
+			{
+				bFitted = false;
+			}
+		}
+		FindTileRun(&auiTiles[uiOffset], (uiLength < msMapSize.x) ? uiLength : msMapSize.x, &uiStart, &uiEnd);
+		uiNumTiles += uiEnd - uiStart;
+		uiOffset += uiLength;
+	}
+
+	//The old runs of the rows make way for the new.
+	psRows = masRows.GetData();
+	uiOldFirst = psRows[y].uiFirst;
+	psRow = &psRows[y + uiNumRows - 1];
+	uiOldEnd = psRow->uiFirst + (psRow->uiEnd - psRow->uiStart);
+	if (uiNumTiles > uiOldEnd - uiOldFirst)
+	{
+		mauiTiles.InsertNumAt(uiNumTiles - (uiOldEnd - uiOldFirst), uiOldEnd);
+	}
+	else if (uiNumTiles < uiOldEnd - uiOldFirst)
+	{
+		mauiTiles.RemoveRange(uiOldFirst + uiNumTiles, uiOldEnd);
+	}
+
+	puiTiles = mauiTiles.GetData();
+	uiFirst = uiOldFirst;
+	uiOffset = 0;
+	for (uiRow = 0; uiRow < uiNumRows; uiRow++)
+	{
+		uiLength = auiRowLengths[uiRow];
+		FindTileRun(&auiTiles[uiOffset], (uiLength < msMapSize.x) ? uiLength : msMapSize.x, &uiStart, &uiEnd);
+		psRow = &psRows[y + uiRow];
+		psRow->uiFirst = uiFirst;
+		psRow->uiStart = uiStart;
+		psRow->uiEnd = uiEnd;
+		if (uiEnd > uiStart)
+		{
+			memcpy(&puiTiles[uiFirst], &auiTiles[uiOffset + uiStart], (uiEnd - uiStart) * sizeof(uint32));
+		}
+		uiFirst += uiEnd - uiStart;
+		uiOffset += uiLength;
+	}
+
+	//The rows after them move along (or back).
+	for (uiRow = y + uiNumRows; uiRow < msMapSize.y; uiRow++)
+	{
+		psRows[uiRow].uiFirst = psRows[uiRow].uiFirst - uiOldEnd + uiFirst;
+	}
+	return bFitted;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -390,27 +549,27 @@ size CTileLayerCel::NumCels(void)
 bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...)
 {
 	va_list			vaMarker;
-	size			iIndex;
+	size			uiIndex;
 	size			uiNumCels;
-	size				iMaxX;
+	size			uiMaxX;
 	Ptr<CImageCel>	pCel;
 	bool			bResult;
 
 	uiNumCels = paCels->NumElements();
-	iMaxX = msMapSize.x;
+	uiMaxX = msMapSize.x;
 	bResult = true;
 
 	va_start(vaMarker, uiIndices);
-	iIndex = uiIndices;
-	while ((iIndex < uiNumCels) && (x < iMaxX))
+	uiIndex = uiIndices;
+	while ((uiIndex < uiNumCels) && (x < uiMaxX))
 	{
-		pCel = paCels->Get(iIndex);
+		pCel = paCels->Get(uiIndex);
 		bResult &= pCel.IsNotNull();
 		bResult &= SetTile(x, y, pCel);
 		x++;
-		if (x < iMaxX)
+		if (x < uiMaxX)
 		{
-			iIndex = va_arg(vaMarker, int);  //Integer arguments smaller than int are promoted to int when passed through ...
+			uiIndex = va_arg(vaMarker, int);  //Integer arguments smaller than int are promoted to int when passed through ...
 		}
 	}
 	va_end(vaMarker);
@@ -454,6 +613,7 @@ void CTileLayerCel::Clear(void)
 	maCels.Clear();
 	maBlitters.Clear();
 	mcCelIndices.ReInit();
+	muiCelVersion++;
 	for (y = 0; y < msMapSize.y; y++)
 	{
 		psRow = masRows.Get(y);

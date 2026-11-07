@@ -48,6 +48,8 @@ typedef CMapPrimitiveTemplate<CImageCel*, size>		CMapTileLayerCelIndex;
 
 //A grid of cels.  A tile is plain data, the index (plus one, 0 for none) of its cel in maCels, which holds each cel
 //once however many tiles show it, so setting a tile doesn't change what points to the cel.  Each cel has one blitter.
+//The cels are kept until the layer is cleared (Clear), so a tile value (AddCel's) stays its cel's until then:
+//GetCelVersion changes when they are forgotten.
 class CImageCelBlitterCache;
 class CTileLayerCel : public CTileLayer
 {
@@ -59,6 +61,7 @@ protected:
 	CArrayImageCel				maCels;			//Each cel the tiles show, once.
 	CArrayImageBlitter			maBlitters;		//The blitter of the cel at the same index in maCels, NULL until made.
 	CMapTileLayerCelIndex		mcCelIndices;	//A cel's index in maCels.
+	size						muiCelVersion;	//Changes each time maCels is forgotten.
 	Ptr<CImageCelBlitterCache>	mpCache;
 	Ptr<CImage>					mpViewport;
 
@@ -74,6 +77,9 @@ public:
 	void						SetViewport(Ptr<CImage> pViewport) override;
 
 	bool						SetTile(size x, size y, Ptr<CImageCel> pTile);
+	bool						SetRowTiles(size y, size uiNumRows, uint32* auiTiles, size* auiRowLengths);
+	uint32						AddCel(Ptr<CImageCel> pCel);
+	size						GetCelVersion(void);
 	Ptr<CImageCel>				GetTile(size uiIndex);
 	Ptr<CImageCel>				GetTile(size x, size y);
 	size						GetRowStart(size y);
@@ -107,7 +113,6 @@ public:
 
 protected:
 	size						TileIndex(size x, size y);
-	uint32						AddCel(Ptr<CImageCel> pCel);
 	bool						CreateCelBlitter(size uiCel);
 	void						InsertTiles(size y, size uiIndex, size uiCount);
 	void						RemoveTiles(size y, size uiIndex, size uiCount);

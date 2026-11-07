@@ -566,6 +566,113 @@ void TestMapsTileLayerRows(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A cel added to a tile layer has the same tile value each time until the
+// layer is cleared.  Rows set all at once from tile values keep only the
+// runs from their first cel to their last, and the rows after them move.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerSetRowTiles(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CArrayImageCel>		pacCels;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		Ptr<CImageCel>			pNoCel;
+		uint32					auiThreeRows[] = { 0, 1, 0, 2,  3, 3 };
+		size					auiThreeLengths[] = { 4, 0, 2 };
+		uint32					auiLonger[] = { 0, 0, 2, 0, 1, 0 };
+		uint32					auiShorter[] = { 2 };
+		uint32					auiPastRight[] = { 3, 0, 0, 0, 0, 0, 0, 0, 1 };
+		uint32					auiEmptyPastRight[] = { 3, 0, 0, 0, 0, 0, 0, 0, 0 };
+		uint32					auiNotACel[] = { 1, 4 };
+		size					uiLength;
+		size					uiVersion;
+
+		ImageChannelDescriptorInit();
+
+		pacCels = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(8, 3), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+
+		//A cel's tile value is its index plus one, the same each time; no cel is an empty tile.
+		AssertLong(1, pLayer->AddCel(pacCels->Get(1)));
+		AssertLong(2, pLayer->AddCel(pacCels->Get(2)));
+		AssertLong(3, pLayer->AddCel(pacCels->Get(3)));
+		AssertLong(2, pLayer->AddCel(pacCels->Get(2)));
+		AssertLong(0, pLayer->AddCel(pNoCel));
+		AssertSize(3, pLayer->NumCels());
+
+		//Three rows at once: " 1 2", nothing and "33".
+		AssertTrue(pLayer->SetRowTiles(0, 3, auiThreeRows, auiThreeLengths));
+		AssertSize(1, pLayer->GetRowStart(0));
+		AssertSize(4, pLayer->GetRowEnd(0));
+		AssertTrue(pLayer->GetTile(1, 0) == pacCels->Get(1));
+		AssertTrue(pLayer->GetTile(2, 0).IsNull());
+		AssertTrue(pLayer->GetTile(3, 0) == pacCels->Get(2));
+		AssertSize(pLayer->GetRowStart(1), pLayer->GetRowEnd(1));
+		AssertTrue(pLayer->GetTile(1, 2) == pacCels->Get(3));
+		AssertSize(5, pLayer->NumStoredTiles());
+
+		//A longer row in the middle: the row after it moves along.
+		uiLength = 6;
+		AssertTrue(pLayer->SetRowTiles(1, 1, auiLonger, &uiLength));
+		AssertSize(2, pLayer->GetRowStart(1));
+		AssertSize(5, pLayer->GetRowEnd(1));
+		AssertTrue(pLayer->GetTile(2, 1) == pacCels->Get(2));
+		AssertTrue(pLayer->GetTile(4, 1) == pacCels->Get(1));
+		AssertTrue(pLayer->GetTile(3, 0) == pacCels->Get(2));
+		AssertTrue(pLayer->GetTile(0, 2) == pacCels->Get(3));
+		AssertTrue(pLayer->GetTile(1, 2) == pacCels->Get(3));
+		AssertSize(8, pLayer->NumStoredTiles());
+
+		//A shorter first row: the rows after it move back.
+		uiLength = 1;
+		AssertTrue(pLayer->SetRowTiles(0, 1, auiShorter, &uiLength));
+		AssertTrue(pLayer->GetTile(0, 0) == pacCels->Get(2));
+		AssertTrue(pLayer->GetTile(3, 0).IsNull());
+		AssertTrue(pLayer->GetTile(4, 1) == pacCels->Get(1));
+		AssertTrue(pLayer->GetTile(1, 2) == pacCels->Get(3));
+		AssertSize(6, pLayer->NumStoredTiles());
+
+		//A cel past the right is cut off, and false; empty tiles past it are nothing to cut.
+		uiLength = 9;
+		AssertFalse(pLayer->SetRowTiles(2, 1, auiPastRight, &uiLength));
+		AssertTrue(pLayer->GetTile(0, 2) == pacCels->Get(3));
+		AssertSize(1, pLayer->GetRowEnd(2));
+		AssertTrue(pLayer->SetRowTiles(2, 1, auiEmptyPastRight, &uiLength));
+
+		//Rows past the bottom, or a value that isn't one of the layer's cels, change nothing.
+		uiLength = 1;
+		AssertFalse(pLayer->SetRowTiles(2, 2, auiThreeRows, auiThreeLengths));
+		AssertFalse(pLayer->SetRowTiles(3, 1, auiShorter, &uiLength));
+		uiLength = 2;
+		AssertFalse(pLayer->SetRowTiles(0, 1, auiNotACel, &uiLength));
+		AssertTrue(pLayer->GetTile(0, 0) == pacCels->Get(2));
+		AssertSize(1, pLayer->GetRowEnd(0));
+		AssertSize(5, pLayer->NumStoredTiles());
+		AssertTrue(pLayer->SetRowTiles(3, 0, NULL, NULL));
+
+		//Clearing forgets the cels: the values start again.
+		uiVersion = pLayer->GetCelVersion();
+		pLayer->Clear();
+		AssertFalse(uiVersion == pLayer->GetCelVersion());
+		AssertSize(0, pLayer->NumCels());
+		AssertLong(1, pLayer->AddCel(pacCels->Get(3)));
+
+		pLayer = NULL;
+		pTileMap = NULL;
+		pacCels = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
 Ptr<CFont> CreateWhiteTrueTypeFontFrom(char* szFontName, char* szCharacters, float32 fPixelSize);
 
 
@@ -1416,6 +1523,156 @@ void TestMapsTileTextWriterCharacters(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The code points of UTF-8 characters, and the byte runs that aren't one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileTextCodePoint(void)
+{
+	AssertLong('a', TileTextCodePoint("a", 1));
+	AssertLong(0xE9, TileTextCodePoint("\xC3\xA9", 2));
+	AssertLong(0x20AC, TileTextCodePoint("\xE2\x82\xAC", 3));
+	AssertLong(0x1F600, TileTextCodePoint("\xF0\x9F\x98\x80", 4));
+	AssertLong(0x10FFFF, TileTextCodePoint("\xF4\x8F\xBF\xBF", 4));
+
+	//A byte that doesn't start a character, more bytes than needed, a surrogate and past U+10FFFF.
+	AssertLong(TILE_TEXT_NO_CODE_POINT, TileTextCodePoint("\x80", 1));
+	AssertLong(TILE_TEXT_NO_CODE_POINT, TileTextCodePoint("\xC0\xAF", 2));
+	AssertLong(TILE_TEXT_NO_CODE_POINT, TileTextCodePoint("\xE0\x80\xAF", 3));
+	AssertLong(TILE_TEXT_NO_CODE_POINT, TileTextCodePoint("\xED\xA0\x80", 3));
+	AssertLong(TILE_TEXT_NO_CODE_POINT, TileTextCodePoint("\xF4\x90\x80\x80", 4));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writing the text again keeps the cels it showed: a character in a colour
+// is looked up once and has the same tile value however often it is
+// written.  The values are forgotten when the layer is cleared, and the
+// cels too when the font changes.  Rows of a text's lines must go down.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileTextWriterKeepsCels(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CFont>				pWhite;
+		Ptr<CFont>				pBigWhite;
+		Ptr<CFontColours>		pColours;
+		Ptr<CFontColours>		pBigColours;
+		Ptr<CFont>				pText;
+		Ptr<CFont>				pRed;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		Ptr<CTileTextWriter>	pWriter;
+		CArrayTileTextSpan		asSpans;
+		STileTextSpan*			psSpan;
+		CArrayTileTextLineRows	auiLineRows;
+		ARGB32					sText;
+		ARGB32					sRed;
+		size					uiVersion;
+
+		ImageChannelDescriptorInit();
+
+		pWhite = CreateWhiteTrueTypeFontFrom("JetBrainsMonoNL-Regular.ttf", "?ABCabc\xC3\xA9\xE2\x82\xAC", 16.0f);
+		pColours = OMalloc<CFontColours>(pWhite);
+		sText = Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)255);
+		sRed = Set32BitColour((uint8)255, (uint8)0, (uint8)0, (uint8)255);
+		pText = pColours->GetFont(sText);
+		pRed = pColours->GetFont(sRed);
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Text", SSizeVec2(8, 4), SSizeVec2(pWhite->GetAverageWidth(), (size)pWhite->GetLineHeight()), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		pWriter = OMalloc<CTileTextWriter>(pLayer, pColours, sText, 4);
+
+		//"AC" then "ABC": A and C keep their cels, B is the only one added.
+		AssertTrue(pWriter->Write("AC"));
+		AssertSize(2, pLayer->NumCels());
+		AssertTrue(pWriter->Write("ABC"));
+		AssertSize(3, pLayer->NumCels());
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"A", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pText->GetGlyph((uint8*)"B", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(2, 0) == pText->GetGlyph((uint8*)"C", 1)->GetCel());
+
+		//Characters of other pages and the same character in another colour are cels of their own; written again they
+		//add nothing.
+		asSpans.Init();
+		psSpan = asSpans.Add();
+		psSpan->uiStart = 1;
+		psSpan->uiLength = 1;
+		psSpan->sColour = sRed;
+		AssertTrue(pWriter->Write("AA\n\xC3\xA9\xE2\x82\xAC", &asSpans));
+		AssertSize(6, pLayer->NumCels());
+		AssertTrue(pWriter->Write("AA\n\xC3\xA9\xE2\x82\xAC", &asSpans));
+		AssertSize(6, pLayer->NumCels());
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"A", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pRed->GetGlyph((uint8*)"A", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(0, 1) == TestMapsGlyphCel(pText, "\xC3\xA9"));
+		AssertTrue(pLayer->GetTile(1, 1) == TestMapsGlyphCel(pText, "\xE2\x82\xAC"));
+		AssertSize(4, pLayer->NumStoredTiles());
+		asSpans.Kill();
+
+		//A row written alone uses the same cels.
+		AssertTrue(pWriter->WriteRow(2, "cab", 3));
+		AssertSize(9, pLayer->NumCels());
+		AssertTrue(pWriter->WriteRow(3, "abc", 3));
+		AssertSize(9, pLayer->NumCels());
+		AssertTrue(pLayer->GetTile(1, 3) == pLayer->GetTile(2, 2));
+
+		//The layer cleared, the writer looks its cels up again.
+		pLayer->Clear();
+		AssertTrue(pWriter->WriteRow(0, "BA", 2));
+		AssertSize(2, pLayer->NumCels());
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"B", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pText->GetGlyph((uint8*)"A", 1)->GetCel());
+
+		//The same font again forgets nothing; a new font's text has only its own cels.
+		uiVersion = pLayer->GetCelVersion();
+		pWriter->SetColours(pColours, sRed);
+		AssertTrue(pWriter->Write("ABA"));
+		AssertTrue(uiVersion == pLayer->GetCelVersion());
+		AssertSize(4, pLayer->NumCels());
+		AssertTrue(pLayer->GetTile(0, 0) == pRed->GetGlyph((uint8*)"A", 1)->GetCel());
+
+		pBigWhite = CreateWhiteTrueTypeFontFrom("JetBrainsMonoNL-Regular.ttf", "?ABC", 20.0f);
+		pBigColours = OMalloc<CFontColours>(pBigWhite);
+		pWriter->SetColours(pBigColours, sText);
+		AssertTrue(pWriter->Write("AB"));
+		AssertFalse(uiVersion == pLayer->GetCelVersion());
+		AssertSize(2, pLayer->NumCels());
+		AssertTrue(pLayer->GetTile(0, 0) == pBigColours->GetFont(sText)->GetGlyph((uint8*)"A", 1)->GetCel());
+
+		//A line whose row isn't below the line before's is cut off.
+		auiLineRows.Init();
+		*auiLineRows.Add() = 1;
+		*auiLineRows.Add() = 1;
+		*auiLineRows.Add() = 3;
+		AssertFalse(pWriter->Write("A\nB\nC", NULL, &auiLineRows));
+		AssertSize(pLayer->GetRowStart(0), pLayer->GetRowEnd(0));
+		AssertTrue(pLayer->GetTile(0, 1) == pBigColours->GetFont(sText)->GetGlyph((uint8*)"A", 1)->GetCel());
+		AssertSize(pLayer->GetRowStart(2), pLayer->GetRowEnd(2));
+		AssertTrue(pLayer->GetTile(0, 3) == pBigColours->GetFont(sText)->GetGlyph((uint8*)"C", 1)->GetCel());
+		AssertSize(2, pLayer->NumStoredTiles());
+		auiLineRows.Kill();
+
+		pWriter = NULL;
+		pLayer = NULL;
+		pTileMap = NULL;
+		pRed = NULL;
+		pText = NULL;
+		pBigColours = NULL;
+		pBigWhite = NULL;
+		pColours = NULL;
+		pWhite = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bounds of a sparse layer's pixels are those of the tiles in its
 // rows' runs.
 //
@@ -1694,6 +1951,7 @@ void TestMaps(void)
 	TestMapsSpriteMapSharedCels();
 	TestMapsTileMap();
 	TestMapsTileLayerRows();
+	TestMapsTileLayerSetRowTiles();
 	TestMapsTileLayerText();
 	TestMapsTileTextWriter();
 	TestMapsTileLayerBlitAfterEdits();
@@ -1701,6 +1959,8 @@ void TestMaps(void)
 	TestMapsClippedBlit();
 	TestMapsTileTextMatchesSpriteText();
 	TestMapsTileTextWriterCharacters();
+	TestMapsTileTextCodePoint();
+	TestMapsTileTextWriterKeepsCels();
 	TestMapsTileLayerImageBounds();
 	TestMapsTileLayerResize();
 	TestMapsSpriteMap();
