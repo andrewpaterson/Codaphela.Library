@@ -212,7 +212,7 @@ void CMapStringUnknown::FreeData(void* pvData)
 	CUnknown*	pcValue;
 
 	psNode = (SMNode*)pvData;
-	if (muiFlags & MAP_COMMOM_KILL_ELEMENT)
+	if (muiFlags & MAP_COMMON_KILL_ELEMENT)
 	{
 		pcValue = *((CUnknown**)mcMap.GetValue(psNode));
 		if (pcValue)

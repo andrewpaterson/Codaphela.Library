@@ -145,7 +145,6 @@ void CDistCalculator::RemoveCompletelyDetached(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculator::CopyRootDetachedToCompletelyDetached(void)
 {
-	//Poor mans copy for now.  Should resize and memcpy rather.
 	size			i;
 	size			iNum;
 	CBaseObject*	pcBaseObject;

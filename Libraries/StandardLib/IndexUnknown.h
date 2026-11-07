@@ -32,7 +32,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CIndexUnknown : public CUnknown, public CDataFree, public CDataIO, public CIndexTreeDataSize
 {
 CONSTRUCTABLE(CIndexUnknown)
-friend class CIndexUnknownDataFree;
 private:
 	uint16					muiFlags;
 	CIndexTreeMemory		mcIndex;

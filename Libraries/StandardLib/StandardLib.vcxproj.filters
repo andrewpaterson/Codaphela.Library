@@ -969,12 +969,4 @@
       <Filter>Source\Object\Object\Remove</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="ObjectsSources.txt">
-      <Filter>Source\Object\Object\Source</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="DatabaseTodo.txt" />
-  </ItemGroup>
 </Project>

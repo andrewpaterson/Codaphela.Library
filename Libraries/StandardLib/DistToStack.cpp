@@ -64,8 +64,7 @@ size CDistCalculator::CollectDetachedFromRoot(void)
 	for (i = 0; i < NumTouched(); i++)
 	{
 		pcBaseObject = GetTouched(i);
-		//I'm not sure if this is the right way to detect that object was declared on the stack.
-		//And if on the stack it should not (ultimately) be attempted to be freed from Objects.
+		//Only objects allocated in Objects are freed by them: one on the stack is killed when it goes out of scope.
 		if (pcBaseObject->IsAllocatedInObjects())
 		{
 			uiNumWithStackPointers += CollectDetachedFromRoot(pcBaseObject, &apcFroms);

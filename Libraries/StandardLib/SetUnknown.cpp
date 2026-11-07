@@ -75,7 +75,7 @@ void CSetUnknown::Add(CUnknown* pcUnknown)
 	}
 	else
 	{
-		CArrayCommonUnknown::InsertIntoSorted(pcUnknown, FixBool(muiFlags & ARRAY_COMMOM_UNIQUE_ONLY));
+		CArrayCommonUnknown::InsertIntoSorted(pcUnknown, FixBool(muiFlags & ARRAY_COMMON_UNIQUE_ONLY));
 	}
 }
 

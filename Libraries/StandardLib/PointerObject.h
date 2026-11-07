@@ -35,7 +35,7 @@ extern bool gbLogPointer;
 #endif
 
 
-//This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
+//A pointer to an object that the object knows about: assigning one adds it to the object's froms and moving it away removes it.
 //CPointer (and friends) are a field of a CObject (declared in its Class()) or, briefly, a local variable on the stack; nowhere else.
 //The root (ORoot()) is the source of memory management: objects are held by objects reachable from it, through a CObject's pointer fields
 //and collections (CArrayObject, CSetObject, CMapObject, CIndexObject).  An object with no more natural holder (a dialog, say) is OMalloc'd

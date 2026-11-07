@@ -1,8 +1,0 @@
-ExternalObjectSerialiser should probably just be re-written
-DependentReadObjects.AddReverseDependent doesn't seem to do anything
-
--- Dirty and Write-through --
-Determine if an object is dirty.
-Is a write-through database even possible?
-Think about PointerObject and LogicalDirty.
-

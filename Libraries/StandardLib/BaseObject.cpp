@@ -361,6 +361,9 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		}
 
 		//Put back the pointers from Objects that are killed with this.  They must still be valid when those Objects are freed, as they are in FromRemoved.
+		//Only pointer fields are put back.  A collection killed with this has already lost its entry for it (an array that
+		//ignores NULLs has a NULL there), so a Free() reading that collection doesn't see it.  No Free() reads a collection
+		//yet; supporting one would need each kind of collection to record where this was and put it back.
 		uiNumPointers = acHeapFromPointers.NumElements();
 		for (i = 0; i < uiNumPointers; i++)
 		{
