@@ -467,6 +467,100 @@ void TestCPP65GeneratorOperatorTypes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A class, enum, volatile, pointer to member or function type asked for
+// again is the one made first, not a copy, and a volatile copy of it
+// isn't found in its place.  Function types differing only by volatile
+// are the same type.  The classes and enums are only keys to the types,
+// so any distinct addresses do.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorTypesFoundAgain(void)
+{
+	CCPP65Types						cTypes;
+	char							acKeys[4];
+	SCPP65Class*					psFirstClass;
+	SCPP65Class*					psSecondClass;
+	CCPPSymbol*						pcFirstEnum;
+	CCPPSymbol*						pcSecondEnum;
+	SCPP65Type*						psClass;
+	SCPP65Type*						psVolatileClass;
+	SCPP65Type*						psEnum;
+	SCPP65Type*						psMemberPointer;
+	SCPP65Type*						psFunction;
+	SCPP65Type*						psVolatileFirst;
+	CArrayTemplatePtr<SCPP65Type>	apsParameters;
+	CArrayTemplatePtr<SCPP65Type>	apsVolatileParameters;
+	CArrayTemplatePtr<SCPP65Type>	apsPointers;
+	CArrayTemplatePtr<SCPP65Type>	apsVolatilePointers;
+
+	psFirstClass = (SCPP65Class*)&acKeys[0];
+	psSecondClass = (SCPP65Class*)&acKeys[1];
+	pcFirstEnum = (CCPPSymbol*)&acKeys[2];
+	pcSecondEnum = (CCPPSymbol*)&acKeys[3];
+	cTypes.Init();
+
+	psClass = cTypes.Class(psFirstClass);
+	AssertPointer(psClass, cTypes.Class(psFirstClass));
+	AssertTrue(cTypes.Class(psSecondClass) != psClass);
+	psVolatileClass = cTypes.Volatile(psClass);
+	AssertTrue(psVolatileClass != psClass);
+	AssertTrue(psVolatileClass->bVolatile);
+	AssertPointer(psClass, psVolatileClass->psUnqualified);
+	AssertPointer(psVolatileClass, cTypes.Volatile(psClass));
+	AssertPointer(psVolatileClass, cTypes.Volatile(psVolatileClass));
+	AssertPointer(psClass, cTypes.Class(psFirstClass));
+
+	AssertNull(cTypes.FindEnum(pcFirstEnum));
+	psEnum = cTypes.Enum(pcFirstEnum, 2, false);
+	AssertPointer(psEnum, cTypes.FindEnum(pcFirstEnum));
+	AssertPointer(psEnum, cTypes.Enum(pcFirstEnum, 2, false));
+	AssertNull(cTypes.FindEnum(pcSecondEnum));
+	AssertTrue(cTypes.Volatile(psEnum) != psEnum);
+	AssertPointer(psEnum, cTypes.FindEnum(pcFirstEnum));
+	AssertTrue(psEnum != &cTypes.msUnsignedShort);
+	AssertPointer(&cTypes.msUnsignedShort, cTypes.Integer(2, false));
+
+	psMemberPointer = cTypes.MemberPointer(psFirstClass, &cTypes.msInt);
+	AssertPointer(psMemberPointer, cTypes.MemberPointer(psFirstClass, &cTypes.msInt));
+	AssertTrue(cTypes.MemberPointer(psSecondClass, &cTypes.msInt) != psMemberPointer);
+	AssertTrue(cTypes.MemberPointer(psFirstClass, &cTypes.msChar) != psMemberPointer);
+	AssertTrue(cTypes.Volatile(psMemberPointer) != psMemberPointer);
+	AssertPointer(psMemberPointer, cTypes.MemberPointer(psFirstClass, &cTypes.msInt));
+
+	//f(volatile int, char) is made first, so f(int, char) is it.
+	apsParameters.Init();
+	apsVolatileParameters.Init();
+	apsVolatileParameters.Add(cTypes.Volatile(&cTypes.msInt));
+	apsVolatileParameters.Add(&cTypes.msChar);
+	psVolatileFirst = cTypes.Function(&cTypes.msVoid, &apsVolatileParameters, false);
+	apsParameters.Add(&cTypes.msInt);
+	apsParameters.Add(&cTypes.msChar);
+	AssertPointer(psVolatileFirst, cTypes.Function(&cTypes.msVoid, &apsParameters, false));
+	AssertTrue(cTypes.Function(&cTypes.msVoid, &apsParameters, true) != psVolatileFirst);
+	AssertTrue(cTypes.Function(&cTypes.msInt, &apsParameters, false) != psVolatileFirst);
+	AssertPointer(psVolatileFirst, cTypes.Function(cTypes.Volatile(&cTypes.msVoid), &apsParameters, false));
+
+	//int* and volatile int* are different types but equal, so f(int*) and f(volatile int*) are one type.
+	apsPointers.Init();
+	apsVolatilePointers.Init();
+	apsPointers.Add(cTypes.Pointer(&cTypes.msInt));
+	apsVolatilePointers.Add(cTypes.Pointer(cTypes.Volatile(&cTypes.msInt)));
+	AssertTrue(apsPointers.GetPtr(0) != apsVolatilePointers.GetPtr(0));
+	psFunction = cTypes.Function(&cTypes.msVoid, &apsPointers, false);
+	AssertPointer(psFunction, cTypes.Function(&cTypes.msVoid, &apsVolatilePointers, false));
+	apsPointers.Add(&cTypes.msInt);
+	AssertTrue(cTypes.Function(&cTypes.msVoid, &apsPointers, false) != psFunction);
+
+	apsVolatilePointers.Kill();
+	apsPointers.Kill();
+	apsVolatileParameters.Kill();
+	apsParameters.Kill();
+	cTypes.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorOperators(void)
@@ -3284,6 +3378,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorAssembly();
 	TestCPP65GeneratorConvention();
 	TestCPP65GeneratorOperatorTypes();
+	TestCPP65GeneratorTypesFoundAgain();
 	TestCPP65GeneratorOperators();
 	TestCPP65GeneratorConversions();
 	TestCPP65GeneratorStatements();

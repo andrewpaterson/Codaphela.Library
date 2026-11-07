@@ -47,8 +47,9 @@ class CCPPSymbol;
 
 
 //The type of a value the compiler works with.  Integers are 1, 2, 4 or 8 bytes (int is 4 bytes on the 65C64 and 2
-//on the W65C816, long is 4 on both), pointers and references are 4 bytes.  A pointer to a member of psClass (psBase is the member's
-//type) is 4 bytes: a member function's address or a field's offset.  float is 4 bytes, double and long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
+//on the W65C816, long is 4 on both), pointers and references are 4 bytes.  A pointer to a member of psClass (psBase
+//is the member's type) is 4 bytes: a member function's address or a field's offset.  float is 4 bytes, double and
+//long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
 //CCPP65Types and are never freed while it lives.
 struct SCPP65Type
 {
@@ -65,6 +66,7 @@ struct SCPP65Type
 	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
 	SCPP65Type*		psUnqualified;	//The type without volatile (itself when it isn't volatile).
 	SCPP65Type*		psNextSameBase;	//The next type made of its kind and base (CCPP65Types::mcByBase), NULL if none.
+	SCPP65Type*		psNextSameSignature;	//A function type: the next made with its signature's hash (CCPP65Types::mcFunctions).
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -89,8 +91,7 @@ struct SCPP65Type
 typedef CArrayTemplatePtr<SCPP65Type>	CArrayCPP65Types;
 
 
-//Makes and owns the types.  The built in types are shared.
-//The first and last types made of a kind and base, linked by their psNextSameBase.
+//The first and last types made with one key, in the order they were made, linked by a next pointer.
 struct SCPP65TypeChain
 {
 	SCPP65Type*	psFirst;
@@ -98,12 +99,18 @@ struct SCPP65TypeChain
 };
 
 
+//Makes and owns the types.  The built in types are shared.  A type is found again without searching them all: the
+//maps give the first made of what is asked for, as a search in the order they were made would.
 class CCPP65Types
 {
 protected:
-	CArrayCPP65Types	mapsTypes;
-	CMapLongTemplate<SCPP65TypeChain>	mcByBase;	//The types made of a kind and base, in the order they were made (Add finds them).
-	int					miPointerBytes;		//The target's pointers, references and pointers to members.
+	CArrayCPP65Types					mapsTypes;
+	CMapLongTemplate<SCPP65TypeChain>	mcByBase;		//The types made of a kind and base (Add, MemberPointer).
+	CMapLongTemplate<SCPP65TypeChain>	mcFunctions;	//The function types made with a signature's hash (Function).
+	CMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its SCPP65Class.
+	CMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
+	CMapLongTemplate<SCPP65Type*>		mcVolatiles;	//A type's volatile copy, by the type.
+	int									miPointerBytes;	//The target's pointers, references and pointers to members.
 
 public:
 	SCPP65Type			msVoid;
@@ -151,6 +158,10 @@ protected:
 	SCPP65Type*			NewType(ECPP65TypeKind eKind, int iBytes);
 	void				AddType(SCPP65Type* psType);
 	static int64		GetBaseKey(ECPP65TypeKind eKind, SCPP65Type* psBase);
+	static int64		GetPointerKey(void* pv);
+	static uint64		HashStructure(SCPP65Type* psType);
+	static void			AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext);
+	static SCPP65Type*	GetMapped(CMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey);
 	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount);
 };
 

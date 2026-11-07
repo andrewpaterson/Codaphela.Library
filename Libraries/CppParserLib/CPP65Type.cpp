@@ -312,6 +312,10 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 	miPointerBytes = iPointerBytes;
 	mapsTypes.Init();
 	mcByBase.Init(true);
+	mcFunctions.Init(true);
+	mcClasses.Init(true);
+	mcEnums.Init(true);
+	mcVolatiles.Init(true);
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
 	InitBuiltin(&msChar, CPP65TK_Integer, 1, true);
@@ -337,8 +341,7 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Types::Kill(void)
 {
-	size	i;
-
+	size		i;
 	SCPP65Type*	psType;
 
 	for (i = 0; i < mapsTypes.NumElements(); i++)
@@ -352,6 +355,10 @@ void CCPP65Types::Kill(void)
 		SafeFree(psType);
 	}
 	mapsTypes.Kill();
+	mcVolatiles.Kill();
+	mcEnums.Kill();
+	mcClasses.Kill();
+	mcFunctions.Kill();
 	mcByBase.Kill();
 }
 
@@ -375,13 +382,14 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bVolatile = false;
 	psType->psUnqualified = psType;
 	psType->psNextSameBase = NULL;
+	psType->psNextSameSignature = NULL;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // A new type of eKind and iBytes (as InitBuiltin makes it: unsigned, no
-// base, class, parameters or enum).  Add or Class put it in the list.
+// base, class, parameters or enum).  AddType puts it with the others.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::NewType(ECPP65TypeKind eKind, int iBytes)
@@ -403,25 +411,95 @@ SCPP65Type* CCPP65Types::NewType(ECPP65TypeKind eKind, int iBytes)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Types::AddType(SCPP65Type* psType)
 {
+	mapsTypes.Add(psType);
+	AppendToChain(&mcByBase, GetBaseKey(psType->eKind, psType->psBase), psType, &SCPP65Type::psNextSameBase);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psType goes last on the chain of lliKey in pcChains, linked by its
+// ppsNext.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Types::AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext)
+{
 	SCPP65TypeChain*	psChain;
 	SCPP65TypeChain		sChain;
-	int64				lliKey;
 
-	mapsTypes.Add(psType);
-	psType->psNextSameBase = NULL;
-	lliKey = GetBaseKey(psType->eKind, psType->psBase);
-	psChain = mcByBase.Get(lliKey);
+	psType->*ppsNext = NULL;
+	psChain = pcChains->Get(lliKey);
 	if (psChain)
 	{
-		psChain->psLast->psNextSameBase = psType;
+		psChain->psLast->*ppsNext = psType;
 		psChain->psLast = psType;
 	}
 	else
 	{
 		sChain.psFirst = psType;
 		sChain.psLast = psType;
-		mcByBase.Put(lliKey, &sChain);
+		pcChains->Put(lliKey, &sChain);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type pcMap holds for pvKey, NULL if none.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::GetMapped(CMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey)
+{
+	SCPP65Type**	ppsType;
+
+	ppsType = pcMap->Get(GetPointerKey(pvKey));
+	return ppsType ? *ppsType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPP65Types::GetPointerKey(void* pv)
+{
+	return (int64)(size)pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hash of what SCPP65Type::Equals compares, through the base and
+// parameter types, so equal types always hash the same.  Volatile isn't
+// in it, as Equals ignores it.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CCPP65Types::HashStructure(SCPP65Type* psType)
+{
+	uint64	ulliHash;
+	size	i;
+
+	ulliHash = (uint64)psType->eKind;
+	ulliHash = ulliHash * 31 + (uint64)(int64)psType->iBytes;
+	ulliHash = ulliHash * 31 + (uint64)psType->bSigned;
+	ulliHash = ulliHash * 31 + (uint64)(int64)psType->iCount;
+	ulliHash = ulliHash * 31 + (uint64)(size)psType->psClass;
+	ulliHash = ulliHash * 31 + (uint64)psType->bLongDouble;
+	ulliHash = ulliHash * 31 + (uint64)(size)psType->pcEnum;
+	if (psType->psBase)
+	{
+		ulliHash = ulliHash * 31 + HashStructure(psType->psBase);
+	}
+	if (psType->eKind == CPP65TK_Function)
+	{
+		ulliHash = ulliHash * 31 + (uint64)psType->bVariadic;
+		ulliHash = ulliHash * 31 + (uint64)psType->papsParameters->NumElements();
+		for (i = 0; i < psType->papsParameters->NumElements(); i++)
+		{
+			ulliHash = ulliHash * 31 + HashStructure(psType->papsParameters->GetPtr(i));
+		}
+	}
+	return ulliHash;
 }
 
 
@@ -519,19 +597,15 @@ SCPP65Type* CCPP65Types::Size(void)
 SCPP65Type* CCPP65Types::Volatile(SCPP65Type* psType)
 {
 	SCPP65Type*	psVolatile;
-	size		i;
 
 	if (!psType || psType->bVolatile || psType->IsFunction() || psType->IsReference())
 	{
 		return psType;
 	}
-	for (i = 0; i < mapsTypes.NumElements(); i++)
+	psVolatile = GetMapped(&mcVolatiles, psType);
+	if (psVolatile)
 	{
-		psVolatile = mapsTypes.GetPtr(i);
-		if (psVolatile->bVolatile && (psVolatile->psUnqualified == psType))
-		{
-			return psVolatile;
-		}
+		return psVolatile;
 	}
 	psVolatile = NewType(psType->eKind, psType->iBytes);
 	*psVolatile = *psType;
@@ -539,6 +613,7 @@ SCPP65Type* CCPP65Types::Volatile(SCPP65Type* psType)
 	psVolatile->bVolatile = true;
 	psVolatile->psUnqualified = psType;
 	AddType(psVolatile);
+	mcVolatiles.Put(GetPointerKey(psType), &psVolatile);
 	return psVolatile;
 }
 
@@ -570,9 +645,11 @@ SCPP65Type* CCPP65Types::Array(SCPP65Type* psElement, int iCount)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic)
 {
-	SCPP65Type*	psType;
-	SCPP65Type*	psOther;
-	size		i;
+	SCPP65Type*			psType;
+	SCPP65Type*			psOther;
+	SCPP65TypeChain*	psChain;
+	int64				lliKey;
+	size				i;
 
 	psType = NewType(CPP65TK_Function, 0);
 	psType->psBase = psReturn;
@@ -584,11 +661,12 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 		psType->papsParameters->Add(papsParameters->GetPtr(i));
 	}
 
-	//The same function type is shared.
-	for (i = 0; i < mapsTypes.NumElements(); i++)
+	//The same function type is shared.  Equal types hash the same, so the first equal one is on its hash's chain.
+	lliKey = (int64)HashStructure(psType);
+	psChain = mcFunctions.Get(lliKey);
+	for (psOther = psChain ? psChain->psFirst : NULL; psOther; psOther = psOther->psNextSameSignature)
 	{
-		psOther = mapsTypes.GetPtr(i);
-		if ((psOther->eKind == CPP65TK_Function) && psOther->Equals(psType))
+		if (psOther->Equals(psType))
 		{
 			psType->papsParameters->Kill();
 			SafeFree(psType->papsParameters);
@@ -597,6 +675,7 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 		}
 	}
 	AddType(psType);
+	AppendToChain(&mcFunctions, lliKey, psType, &SCPP65Type::psNextSameSignature);
 	return psType;
 }
 
@@ -618,21 +697,22 @@ SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMember)
 {
-	SCPP65Type*	psType;
-	size		i;
+	SCPP65Type*			psType;
+	SCPP65TypeChain*	psChain;
 
-	for (i = 0; i < mapsTypes.NumElements(); i++)
+	psChain = mcByBase.Get(GetBaseKey(CPP65TK_MemberPointer, psMember));
+	for (psType = psChain ? psChain->psFirst : NULL; psType; psType = psType->psNextSameBase)
 	{
-		psType = mapsTypes.GetPtr(i);
-		if ((psType->eKind == CPP65TK_MemberPointer) && (psType->psBase == psMember) && (psType->psClass == psClass))
+		if (psType->psClass == psClass)
 		{
 			return psType;
 		}
 	}
-	//A count of -1 makes Add make a new type rather than find one for another class.
-	psType = Add(CPP65TK_MemberPointer, miPointerBytes, psMember, -1);
-	psType->iCount = 0;
+
+	psType = NewType(CPP65TK_MemberPointer, miPointerBytes);
+	psType->psBase = psMember;
 	psType->psClass = psClass;
+	AddType(psType);
 	return psType;
 }
 
@@ -653,11 +733,11 @@ SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned)
 		return psType;
 	}
 
-	//A count of -1 makes Add make a new type rather than find int.
-	psType = Add(CPP65TK_Integer, iBytes, NULL, -1);
-	psType->iCount = 0;
+	psType = NewType(CPP65TK_Integer, iBytes);
 	psType->bSigned = bSigned;
 	psType->pcEnum = pcEnum;
+	AddType(psType);
+	mcEnums.Put(GetPointerKey(pcEnum), &psType);
 	return psType;
 }
 
@@ -669,18 +749,7 @@ SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::FindEnum(CCPPSymbol* pcEnum)
 {
-	SCPP65Type*	psType;
-	size		i;
-
-	for (i = 0; i < mapsTypes.NumElements(); i++)
-	{
-		psType = mapsTypes.GetPtr(i);
-		if ((psType->eKind == CPP65TK_Integer) && (psType->pcEnum == pcEnum))
-		{
-			return psType;
-		}
-	}
-	return NULL;
+	return GetMapped(&mcEnums, pcEnum);
 }
 
 
@@ -714,20 +783,17 @@ SCPP65Type* CCPP65Types::LongDouble(void)
 SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 {
 	SCPP65Type*	psType;
-	size		i;
 
-	for (i = 0; i < mapsTypes.NumElements(); i++)
+	psType = GetMapped(&mcClasses, psClass);
+	if (psType)
 	{
-		psType = mapsTypes.GetPtr(i);
-		if ((psType->eKind == CPP65TK_Class) && (psType->psClass == psClass))
-		{
-			return psType;
-		}
+		return psType;
 	}
 
 	psType = NewType(CPP65TK_Class, 0);
 	psType->psClass = psClass;
 	AddType(psType);
+	mcClasses.Put(GetPointerKey(psClass), &psType);
 	return psType;
 }
 
