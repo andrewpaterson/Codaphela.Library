@@ -1411,6 +1411,62 @@ void TestArrayObjectMemberLocations(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// RemoveEnd frees the members only the array held.  Each is out of the
+// array when it is freed, and one held twice is freed once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectRemoveEndFrees(void)
+{
+	STestObjectFreedNotifier	sFreed1;
+	STestObjectFreedNotifier	sFreed2;
+	STestObjectFreedNotifier	sFreed3;
+	STestObjectFreedNotifier	sKept;
+	char						szErrors[1024];
+
+	ObjectsInit();
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CTestObject>	pObject1;
+		Ptr<CTestObject>	pObject2;
+		Ptr<CTestObject>	pKept;
+
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+
+		pKept = OMalloc<CTestObject>(&sKept);
+		pArray->Add(pKept);
+		pObject1 = OMalloc<CTestObject>(&sFreed1);
+		pArray->Add(pObject1);
+		pObject2 = OMalloc<CTestObject>(&sFreed2);
+		pArray->Add(pObject2);
+		pArray->Add(pObject1);
+		pObject1->mpTest = OMalloc<CTestObject>(&sFreed3);
+		pObject2->mpTest = pObject1;
+		pArray->Add(pObject2);
+		AssertSize(5, pArray->NumElements());
+
+		pObject1 = NULL;
+		pObject2 = NULL;
+		AssertFalse(sFreed1.bFreed);
+
+		AssertTrue(pArray->RemoveEnd(1));
+		AssertSize(1, pArray->NumElements());
+		AssertPointer(pKept.Object(), pArray->Get(0).Object());
+		AssertTrue(sFreed1.bFreed);
+		AssertTrue(sFreed2.bFreed);
+		AssertTrue(sFreed3.bFreed);
+		AssertFalse(sKept.bFreed);
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObject(void)
@@ -1447,6 +1503,7 @@ void TestArrayObject(void)
 	TestArrayObjectOrderKeptAfterRemap();
 	TestArrayObjectRemoveAllOfAnother();
 	TestArrayObjectMemberLocations();
+	TestArrayObjectRemoveEndFrees();
 
 	DataIOKill();
 	TypesKill();

@@ -778,33 +778,38 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 {
-	size				uiNumElements;
-	size				i;
-	CEmbeddedObject*	pcObject;
-	bool				bResult;
+	size						uiNumElements;
+	size						i;
+	CEmbeddedObject*			pcObject;
+	bool						bResult;
+	CArrayEmbeddedObjectPtr		apcRemoved;
 
 	EnsureSorted();
 
-	bResult = true;
 	uiNumElements = mcArray.UnsafeNumElements();
-	if (iIndexInclusive < uiNumElements)
+	if (iIndexInclusive >= uiNumElements)
 	{
-		for (i = iIndexInclusive; i < uiNumElements; i++)
-		{
-			pcObject = UnsafeGetObject(i);
-			MemberRemoved(pcObject, i);
-			bResult = RemoveObjectTryFree(pcObject, false);
-			if (!bResult)
-			{
-				break;
-			}
-		}
-		mcArray.RemoveEnd(iIndexInclusive);
+		return false;
 	}
-	else
+
+	//The members are taken out of the array before any is let go of (as RemoveAt does), so none is freed while the
+	//array still holds it.  Every one is let go of, even after one fails.
+	apcRemoved.Init();
+	for (i = iIndexInclusive; i < uiNumElements; i++)
 	{
-		bResult = false;
+		pcObject = UnsafeGetObject(i);
+		MemberRemoved(pcObject, i);
+		apcRemoved.Add(pcObject);
 	}
+	mcArray.RemoveEnd(iIndexInclusive);
+
+	bResult = true;
+	uiNumElements = apcRemoved.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		bResult &= RemoveObjectTryFree(apcRemoved.GetPtr(i), false);
+	}
+	apcRemoved.Kill();
 
 #ifdef _DEBUG
 	ValidateObjectsConsistency(true);
