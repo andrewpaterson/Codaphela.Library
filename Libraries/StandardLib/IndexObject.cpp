@@ -535,23 +535,49 @@ void CIndexObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::KillAll(void)
 {
+	//Killing an object can take other entries out of this index (the same object under another key, or objects freed
+	//with it), freeing objects not yet reached.  So the keys are copied first and each key's object is looked up again
+	//when its turn comes.
+
 	CBaseObject*				pcObject;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
-	CPointer					pObject;
-	CBaseObject*				pcObjectNext;
+	CArrayTemplate<uint8>		auiKeys;
+	CArrayTemplate<size>		auiKeyEnds;
+	size						uiKeyStart;
+	size						uiKeyEnd;
+	size						uiNumKeys;
+	size						i;
 
+	auiKeys.Init();
+	auiKeyEnds.Init();
 	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcObject);
 	while (bExists)
 	{
-		//Iterate must be called before the node is removed.
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcObjectNext);
+		if (pcObject)
+		{
+			auiKeys.InsertBlockAfterEnd(sIter.acKey.GetData(), sIter.iKeyLength);
+			uiKeyEnd = auiKeys.NumElements();
+			auiKeyEnds.Add(&uiKeyEnd);
+		}
+		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcObject);
+	}
+
+	uiKeyStart = 0;
+	uiNumKeys = auiKeyEnds.NumElements();
+	for (i = 0; i < uiNumKeys; i++)
+	{
+		uiKeyEnd = *auiKeyEnds.Get(i);
+		pcObject = (CBaseObject*)mcIndex.Get(&auiKeys.GetData()[uiKeyStart], uiKeyEnd - uiKeyStart);
 		if (pcObject)
 		{
 			pcObject->Kill();
 		}
-		pcObject = pcObjectNext;
+		uiKeyStart = uiKeyEnd;
 	}
+
+	auiKeyEnds.Kill();
+	auiKeys.Kill();
 }
 
 

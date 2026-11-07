@@ -645,6 +645,51 @@ void TestIndexObjectKillContainedHeap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object under two keys is killed once: killing it takes both keys
+// out, so the second key mustn't be visited with the freed object, and
+// the keys after it must still be reached.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexObjectKillAllSameObjectTwice(void)
+{
+	STestObjectFreedNotifier	sNotifier1;
+	STestObjectFreedNotifier	sNotifier2;
+
+	ObjectsInit();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CIndexObject>	pIndex;
+		Ptr<CTestObject>	pTest1;
+		Ptr<CTestObject>	pTest2;
+
+		pRoot = ORoot();
+		pIndex = OMalloc<CIndexObject>();
+		pRoot->Add(pIndex);
+		pTest1 = OMalloc<CTestObject>(&sNotifier1);
+		pTest2 = OMalloc<CTestObject>(&sNotifier2);
+		pIndex->Put("a1", pTest1);
+		pIndex->Put("a2", pTest1);
+		pIndex->Put("b", pTest2);
+		AssertSize(3, pIndex->NumElements());
+		pTest1 = NULL;
+		pTest2 = NULL;
+
+		pIndex->KillAll();
+		AssertTrue(sNotifier1.bFreed);
+		AssertTrue(sNotifier2.bFreed);
+		AssertSize(0, pIndex->NumElements());
+		gcObjects.ValidateObjectsConsistency();
+
+		pIndex = NULL;
+		AssertTrue(pRoot->RemoveAll());
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexObjectPutOverwrite(void)
@@ -1246,6 +1291,7 @@ void TestIndexObject(void)
 	TestIndexObjectPointerFromsStack();
 	TestIndexObjectOnStackKillContained();
 	TestIndexObjectKillContainedHeap();
+	TestIndexObjectKillAllSameObjectTwice();
 	TestIndexObjectPutOverwrite();
 	TestIndexObjectPutSameObjectAgain();
 	TestIndexObjectPutSameObjectFromItsOwnPointer();
