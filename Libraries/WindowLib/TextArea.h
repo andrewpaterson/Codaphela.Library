@@ -33,12 +33,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/GeometryMap.h"
 #include "SupportLib/MapFontDraw.h"
 #include "SupportLib/Maps.h"
-#include "SupportLib/TileMap.h"
-#include "SupportLib/TileLayerCel.h"
-#include "SupportLib/TileTextWriter.h"
 #include "Canvas.h"
 #include "TextLineGaps.h"
 #include "TextBackgrounds.h"
+#include "TextAreaTiles.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
 
@@ -77,21 +75,6 @@ struct STextAreaSpan
 typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
 
 
-typedef CArrayTemplate<size>			CArrayTextAreaStopStart;
-typedef CArrayTemplate<size>			CArrayTextAreaLineStart;
-
-
-//Where the tiles laid out so far end (CTextArea::AddTileStops).
-struct STextAreaTileCursor
-{
-	size	uiCellWidth;
-	size	uiCellHeight;
-	int32	iAscent;
-	size	uiColumn;  //Of the next stop, on its row.
-	size	uiColumns;  //The widest row so far.
-	size	uiRow;  //The row of the next stop: the line it is on, as tiles aren't wrapped.
-	size	uiTileRow;  //The row of tiles the row is on: lines' gaps are whole rows of tiles.
-};
 
 
 //Where up and down move the caret: a row or a page of rows.
@@ -168,11 +151,7 @@ protected:
 	//and stops worked out from the columns instead of by mpLayout.
 	bool					mbTiledText;  //Tiles were asked for; they are only used with a fixed width font and no word wrap.
 	bool					mbTiled;  //The text was last read as tiles.
-	Ptr<CTileMap>			mpTileMap;
-	Ptr<CTileLayerCel>		mpTileLayer;
-	Ptr<CTileTextWriter>	mpTileWriter;
-	CArrayTextLayoutLine	masTileLines;
-	CArrayTextLayoutStop	masTileStops;
+	Ptr<CTextAreaTiles>	mpTiles;  //The text laid out as tiles.
 
 	Ptr<CGeometryMap>	mpBackgroundMap;  //Under the selection.
 	CTextBackgrounds	mcBackgrounds;  //The colours under the text (AddBackground).
@@ -394,14 +373,6 @@ protected:
 	Ptr<CText>			ReadTextFrom(size uiFrom);
 	void				AppendTiles(size uiFrom);
 	void				LayoutTiles(void);
-	void				MakeTileSpans(STextStyle* psStyles, size uiFrom, CArrayTileTextSpan* pasSpans);
-	void				StartTileCursor(Ptr<CFont> pWhite, STextAreaTileCursor* psCursor);
-	void				AddTileLine(STextAreaTileCursor* psCursor, size uiFirstStop);
-	size				AddTileStops(STextAreaTileCursor* psCursor);
-	size				GetGapTileRows(size uiLine, size uiCellHeight);
-	void				DecorateTiles(STextStyle* psStyles);
-	void				DecorateTileStretch(uint8 uiDecoration, STextStyle* psStyles, size uiRow, size uiFirstStop, size uiEndStop);
-	STextStyle*			GetTileStyle(STextStyle* psStyles, size uiStop);
 
 	//The lines and stops the text is laid out in, by mpLayout or as tiles.
 	size				NumLayoutLines(void);
