@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TEXT_BACKGROUNDS_H__
 #define __TEXT_BACKGROUNDS_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/TextDocument.h"
 #include "SupportLib/ColourARGB32.h"
 
 
@@ -47,10 +48,10 @@ typedef CArrayTemplate<STextAreaBackground>	CArrayTextAreaBackground;
 
 
 //The colours drawn under a text (CTextArea::AddBackground, AddLineBackground and AddLineBoundary), in the order they
-//were added: ranges of its bytes, runs of its lines and boundaries between lines.  They follow the text as it is edited:
-//ranges move with it and grow with text put strictly inside them, and lines and boundaries stay with their lines.  The
-//changes say whether any background changed, so they are drawn again only then.
-class CTextBackgrounds
+//were added: ranges of its bytes, runs of its lines and boundaries between lines.  They follow the text as it is edited
+//(DocumentChanged): ranges move with it and grow with text put strictly inside them, and lines and boundaries stay with
+//their lines.  The changes say whether any background changed, so they are drawn again only then.
+class CTextBackgrounds : public CTextDocumentListener
 {
 protected:
 	CArrayTextAreaBackground	masBackgrounds;
@@ -64,6 +65,7 @@ public:
 	size					NumBackgrounds(void);
 	STextAreaBackground*	Get(size uiIndex);
 
+	void					DocumentChanged(STextDocumentChange* psChange) override;
 	bool					TextInserted(size uiPosition, size uiLength);
 	bool					TextRemoved(size uiStart, size uiEnd);
 	bool					LinesInserted(size uiLine, bool bLineStart, size uiNewLines);

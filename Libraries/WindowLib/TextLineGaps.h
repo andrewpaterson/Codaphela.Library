@@ -20,15 +20,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_LINE_GAPS_H__
 #define __TEXT_LINE_GAPS_H__
+#include "BaseLib/TextDocument.h"
 #include "SupportLib/TextLayout.h"
 
 
 //The empty gaps below lines of a text (lines ended by line feeds, numbered from 0), as CTextArea::SetLineGap leaves
 //them for what owns the text to draw in: sorted by line, at most one a line.  Each gap has an id, from 1, that it keeps
 //while it is there, through changes of height too, for finding its line after edits.  The gaps follow their lines as
-//the text is edited (LinesInserted, LinesRemoved).  The changes say whether anything changed, so the text is laid out
+//the text is edited (DocumentChanged).  Setting and clearing gaps say whether anything changed, so the text is laid out
 //again only then.
-class CTextLineGaps
+class CTextLineGaps : public CTextDocumentListener
 {
 protected:
 	CArrayTextLayoutGap	masGaps;
@@ -49,6 +50,7 @@ public:
 	CArrayTextLayoutGap*	GetGaps(void);
 	void					GetGapsFrom(size uiFirstLine, CArrayTextLayoutGap* pasDest);
 
+	void					DocumentChanged(STextDocumentChange* psChange) override;
 	void					LinesInserted(size uiLine, bool bLineStart, size uiNewLines);
 	void					LinesRemoved(size uiFirst, size uiLast, bool bWhole);
 

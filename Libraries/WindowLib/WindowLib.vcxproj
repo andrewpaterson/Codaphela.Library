@@ -297,6 +297,7 @@
     <ClInclude Include="ImageBorderContainer.h" />
     <ClInclude Include="TextField.h" />
     <ClInclude Include="TextBackgrounds.h" />
+    <ClInclude Include="TextSpans.h" />
     <ClInclude Include="TextAreaTiles.h" />
     <ClInclude Include="TextLineGaps.h" />
     <ClInclude Include="TextMarksCanvasDraw.h" />
@@ -409,6 +410,7 @@
     <ClCompile Include="ImageBorderContainer.cpp" />
     <ClCompile Include="TextField.cpp" />
     <ClCompile Include="TextBackgrounds.cpp" />
+    <ClCompile Include="TextSpans.cpp" />
     <ClCompile Include="TextAreaTiles.cpp" />
     <ClCompile Include="TextLineGaps.cpp" />
     <ClCompile Include="TextMarksCanvasDraw.cpp" />

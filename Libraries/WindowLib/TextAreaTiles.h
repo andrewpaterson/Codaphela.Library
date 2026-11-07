@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_AREA_TILES_H__
 #define __TEXT_AREA_TILES_H__
+#include "BaseLib/TextDocument.h"
 #include "StandardLib/Object.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/TextStyle.h"
@@ -32,7 +33,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 typedef CArrayTemplate<size>	CArrayTextAreaStopStart;
-typedef CArrayTemplate<size>	CArrayTextAreaLineStart;
 
 
 //Where the tiles laid out so far end (CTextAreaTiles::AddStops).
@@ -51,16 +51,15 @@ struct STextTileCursor
 //A text area's text laid out in a fixed width font as tiles, as CTextLayout lays text out as sprites: each character
 //written into a cell of a tile layer, in the colours of its styles, and the rows and stops worked out from the columns
 //of the characters (a tab to the next tab stop, every other character a column).  A line's gap is the fewest empty rows
-//of tiles at least as high as it.  It reads the text area's text, stop starts, line starts, gaps and style, which it
-//doesn't hold.
+//of tiles at least as high as it.  It reads the text area's document (its text and line starts), stop starts, gaps and
+//style, which it doesn't hold.
 class CTextAreaTiles : public CObject
 {
 CONSTRUCTABLE(CTextAreaTiles);
 DESTRUCTABLE(CTextAreaTiles);
 protected:
-	CChars*						mpszText;
+	CTextDocument*				mpcDocument;
 	CArrayTextAreaStopStart*	mpauiStopStarts;  //The byte each stop is before, and the end.
-	CArrayTextAreaLineStart*	mpauiLineStarts;
 	CTextLineGaps*				mpcGaps;
 	STextStyle*					mpsStyle;  //The text area's: text in it is in the font's own colour.
 	int32						miTabWidth;  //In spaces.
@@ -71,7 +70,7 @@ protected:
 	CArrayTextLayoutStop		masStops;
 
 public:
-	void				Init(CChars* pszText, CArrayTextAreaStopStart* pauiStopStarts, CArrayTextAreaLineStart* pauiLineStarts, CTextLineGaps* pcGaps, STextStyle* psStyle);
+	void				Init(CTextDocument* pcDocument, CArrayTextAreaStopStart* pauiStopStarts, CTextLineGaps* pcGaps, STextStyle* psStyle);
 	void				Class(void) override;
 	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;

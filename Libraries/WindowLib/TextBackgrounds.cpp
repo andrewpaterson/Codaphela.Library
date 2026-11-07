@@ -103,6 +103,34 @@ STextAreaBackground* CTextBackgrounds::Get(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The backgrounds follow the text through an edit of it.  Whether any
+// moved isn't needed: the text is laid out again after an edit, and the
+// backgrounds drawn again with it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextBackgrounds::DocumentChanged(STextDocumentChange* psChange)
+{
+	if (psChange->eChange == TDC_Inserted)
+	{
+		if (psChange->uiLines > 0)
+		{
+			LinesInserted(psChange->uiLine, psChange->bLineStart, psChange->uiLines);
+		}
+		TextInserted(psChange->uiStart, psChange->Length());
+	}
+	else
+	{
+		if (psChange->uiLines > 0)
+		{
+			LinesRemoved(psChange->uiLine, psChange->LastLine(), psChange->bLineStart);
+		}
+		TextRemoved(psChange->uiStart, psChange->uiEnd);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // uiLength bytes went in at uiPosition.  Ranges move with the text after
 // it and grow with text put strictly inside them.  False if none moved.
 //

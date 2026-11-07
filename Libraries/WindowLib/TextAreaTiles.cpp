@@ -28,13 +28,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // which the tiles are made from.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextAreaTiles::Init(CChars* pszText, CArrayTextAreaStopStart* pauiStopStarts, CArrayTextAreaLineStart* pauiLineStarts, CTextLineGaps* pcGaps, STextStyle* psStyle)
+void CTextAreaTiles::Init(CTextDocument* pcDocument, CArrayTextAreaStopStart* pauiStopStarts, CTextLineGaps* pcGaps, STextStyle* psStyle)
 {
 	PreInit();
 
-	mpszText = pszText;
+	mpcDocument = pcDocument;
 	mpauiStopStarts = pauiStopStarts;
-	mpauiLineStarts = pauiLineStarts;
 	mpcGaps = pcGaps;
 	mpsStyle = psStyle;
 	miTabWidth = 4;
@@ -56,9 +55,8 @@ void CTextAreaTiles::Init(CChars* pszText, CArrayTextAreaStopStart* pauiStopStar
 //////////////////////////////////////////////////////////////////////////
 void CTextAreaTiles::Class(void)
 {
-	U_Pointer(mpszText);
+	U_Pointer(mpcDocument);
 	U_Pointer(mpauiStopStarts);
-	U_Pointer(mpauiLineStarts);
 	U_Pointer(mpcGaps);
 	U_Pointer(mpsStyle);
 	U_Int32(miTabWidth);
@@ -141,7 +139,7 @@ void CTextAreaTiles::Read(Ptr<CFontColours> pColours, int32 iTabWidth, STextStyl
 	}
 	asSpans.Init();
 	MakeSpans(psStyles, 0, &asSpans);
-	mpTileWriter->Write(mpszText->Text(), &asSpans, &auiLineRows);
+	mpTileWriter->Write(mpcDocument->Text(), &asSpans, &auiLineRows);
 	asSpans.Kill();
 	auiLineRows.Kill();
 }
@@ -199,13 +197,13 @@ void CTextAreaTiles::Append(Ptr<CFontColours> pColours, int32 iTabWidth, STextSt
 
 	//Each line from the old last one written on its row, in the colours from its start.
 	asSpans.Init();
-	MakeSpans(psStyles, *mpauiLineStarts->Get(uiFirstRow), &asSpans);
-	szText = mpszText->Text();
-	uiLength = mpszText->Length();
-	for (uiRow = uiFirstRow; uiRow < mpauiLineStarts->NumElements(); uiRow++)
+	MakeSpans(psStyles, mpcDocument->GetLineStart(uiFirstRow), &asSpans);
+	szText = mpcDocument->Text();
+	uiLength = mpcDocument->Length();
+	for (uiRow = uiFirstRow; uiRow < mpcDocument->NumLines(); uiRow++)
 	{
-		uiLineStart = *mpauiLineStarts->Get(uiRow);
-		uiLineEnd = (uiRow + 1 < mpauiLineStarts->NumElements()) ? *mpauiLineStarts->Get(uiRow + 1) - 1 : uiLength;
+		uiLineStart = mpcDocument->GetLineStart(uiRow);
+		uiLineEnd = (uiRow + 1 < mpcDocument->NumLines()) ? mpcDocument->GetLineStart(uiRow + 1) - 1 : uiLength;
 		mpTileWriter->WriteRow((size)masLines.Get(uiRow)->iTop / sCursor.uiCellHeight, &szText[uiLineStart], uiLineEnd - uiLineStart, uiLineStart, &asSpans);
 	}
 	asSpans.Kill();
@@ -265,7 +263,7 @@ void CTextAreaTiles::MakeSpans(STextStyle* psStyles, size uiFrom, CArrayTileText
 		return;
 	}
 
-	uiRange = mpszText->Length() - uiFrom;
+	uiRange = mpcDocument->Length() - uiFrom;
 	uiPosition = 0;
 	while (uiPosition < uiRange)
 	{
@@ -346,8 +344,8 @@ size CTextAreaTiles::AddStops(STextTileCursor* psCursor)
 	char*				szText;
 	STextLayoutStop*	psStop;
 
-	szText = mpszText->Text();
-	uiLength = mpszText->Length();
+	szText = mpcDocument->Text();
+	uiLength = mpcDocument->Length();
 	uiNumStops = mpauiStopStarts->NumElements();
 	for (ui = masStops.NumElements(); ui < uiNumStops; ui++)
 	{
@@ -424,7 +422,7 @@ void CTextAreaTiles::Decorate(Ptr<CMapFontDraw> pFontDraw, Ptr<CFontDescription>
 	bAny = (mpsStyle->GetDecorations() != 0);
 	if (!bAny && psStyles)
 	{
-		for (uiStop = 0; (uiStop < mpszText->Length()) && !bAny; uiStop++)
+		for (uiStop = 0; (uiStop < mpcDocument->Length()) && !bAny; uiStop++)
 		{
 			bAny = (psStyles[uiStop].GetDecorations() != 0);
 		}
@@ -444,12 +442,12 @@ void CTextAreaTiles::Decorate(Ptr<CMapFontDraw> pFontDraw, Ptr<CFontDescription>
 		//The row's line feed or the end of the text, and the spaces and tabs before it, aren't decorated.
 		while (uiEnd > uiFirst)
 		{
-			if (*mpauiStopStarts->Get(uiEnd - 1) >= mpszText->Length())
+			if (*mpauiStopStarts->Get(uiEnd - 1) >= mpcDocument->Length())
 			{
 				uiEnd--;
 				continue;
 			}
-			c = mpszText->GetChar(*mpauiStopStarts->Get(uiEnd - 1));
+			c = mpcDocument->Text()[*mpauiStopStarts->Get(uiEnd - 1)];
 			if ((c == '\n') || (c == ' ') || (c == '\t'))
 			{
 				uiEnd--;

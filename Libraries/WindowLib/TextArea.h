@@ -20,8 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_AREA_H__
 #define __TEXT_AREA_H__
-#include "BaseLib/TextUndo.h"
-#include "BaseLib/TextNavigation.h"
+#include "BaseLib/TextDocument.h"
 #include "SupportLib/Font.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/FontFamily.h"
@@ -36,6 +35,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 #include "TextLineGaps.h"
 #include "TextBackgrounds.h"
+#include "TextSpans.h"
 #include "TextAreaTiles.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
@@ -62,20 +62,6 @@ struct STextAreaUndo
 
 class CTextArea;
 typedef CComponentValueEvent<CTextArea, STextAreaUndo*>	CTextAreaUndoEvent;
-
-
-//A range of the text in a style.  uiStart and uiLength are in bytes of the UTF8 text.
-struct STextAreaSpan
-{
-	size				uiStart;
-	size				uiLength;
-	STextStyleOverride	sOverride;
-};
-
-
-typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
-
-
 
 
 //Where up and down move the caret: a row or a page of rows.
@@ -130,13 +116,12 @@ class CTextArea : public CCanvas
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
 protected:
-	CChars				mszText;
+	CTextDocument		mcDocument;  //The text, its lines and its undo history.
 	Ptr<CFontFamily>	mpFamily;
 	STextStyle			msStyle;
-	CArrayTextAreaSpan	masSpans;
+	CTextSpans			mcSpans;
 	bool				mbTextDirty;  //The spans or style changed since the text was last read.
 	bool				mbSizeDirty;  //Reading the text again can change its size.
-	size				muiChangeCount;  //How many times the text has been edited (GetChangeCount).
 	Ptr<CText>			mpText;
 	bool				mbTextStale;  //Text was appended after mpText was read (AppendSprites): read it again before it is laid out whole.
 	Ptr<CTextLayout>	mpLayout;
@@ -162,7 +147,6 @@ protected:
 	ARGB32					msSelectionColour;
 	ARGB32					msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
-	CArrayTextAreaLineStart	mauiLineStarts;  //The first byte of each line, kept as the text is edited.
 	CTextLineGaps			mcGaps;  //The empty gaps below lines (SetLineGap).
 	size					muiCaret;
 	size					muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
@@ -172,11 +156,10 @@ protected:
 	bool					mbEditable;
 	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	bool					mbDragging;
-	CTextNavigation			mcNavigation;  //Characters, lines and words of mszText.
 
 	//Undo, as Logicim's: the text after each edit of an editable text area, consecutive typing kept as one edit (see
-	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot.
-	CTextUndo					mcUndo;
+	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot (see
+	//CTextDocument::Load).
 	CTextAreaUndoEvent			mcUndoEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 
@@ -352,11 +335,8 @@ protected:
 	void				UpdateSize(void);
 	int32				GetWrapWidth(void);
 	void				FindStopStarts(size uiFrom);
-	void				FindLineStarts(size uiFrom);
 	size				FindLastRow(size uiLine);
 	void				GapsChanged(void);
-	void				LinesInserted(size uiPosition, const char* szText, size uiLength);
-	void				LinesRemoved(size uiStart, size uiEnd);
 
 	//The colours under the text.
 	void				UpdateBackgrounds(void);
@@ -381,8 +361,6 @@ protected:
 	size				NumLayoutStops(void);
 	STextLayoutLine*	GetLayoutLine(size uiLine);
 	STextLayoutStop*	GetLayoutStop(size uiStop);
-
-	//Characters and lines of the text.
 
 	//The rows the text is laid out in.
 	bool				HasStops(void);

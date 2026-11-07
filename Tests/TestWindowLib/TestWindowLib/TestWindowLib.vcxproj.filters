@@ -91,6 +91,9 @@
     <ClCompile Include="TestTextBackgrounds.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestTextSpans.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestCodeEditor.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>

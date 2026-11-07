@@ -246,6 +246,28 @@ void CTextLineGaps::GetGapsFrom(size uiFirstLine, CArrayTextLayoutGap* pasDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The gaps follow their lines through an edit of the text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLineGaps::DocumentChanged(STextDocumentChange* psChange)
+{
+	if (psChange->uiLines == 0)
+	{
+		return;
+	}
+	if (psChange->eChange == TDC_Inserted)
+	{
+		LinesInserted(psChange->uiLine, psChange->bLineStart, psChange->uiLines);
+	}
+	else
+	{
+		LinesRemoved(psChange->uiLine, psChange->LastLine(), psChange->bLineStart);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // uiNewLines line feeds went in on line uiLine (at its start if
 // bLineStart): the gaps of the lines after it move down, and so does
 // uiLine's if the line was pushed down from its start.
