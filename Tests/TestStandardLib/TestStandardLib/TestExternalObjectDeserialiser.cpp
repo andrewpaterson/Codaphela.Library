@@ -95,10 +95,72 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Saves two int32s.  Load reads them both, fails, or (to read less than
+// was saved) reads only the first, as geTestBadLoad says.
+//
+//////////////////////////////////////////////////////////////////////////
+enum ETestBadLoad
+{
+	TBL_ReadsAll,
+	TBL_Fails,
+	TBL_ReadsShort,
+};
+
+ETestBadLoad	geTestBadLoad = TBL_ReadsAll;
+
+class CTestBadLoadObject : public CObject
+{
+CONSTRUCTABLE(CTestBadLoadObject)
+DESTRUCTABLE(CTestBadLoadObject)
+public:
+	int32	miFirst;
+	int32	miSecond;
+
+	void Init(int32 iFirst, int32 iSecond)
+	{
+		PreInit();
+		miFirst = iFirst;
+		miSecond = iSecond;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+	}
+
+	void Free(void) override
+	{
+	}
+
+	bool Save(CObjectWriter* pcFile) override
+	{
+		ReturnOnFalse(pcFile->WriteInt32(miFirst));
+		return pcFile->WriteInt32(miSecond);
+	}
+
+	bool Load(CObjectReader* pcFile) override
+	{
+		if (geTestBadLoad == TBL_Fails)
+		{
+			return false;
+		}
+		ReturnOnFalse(pcFile->ReadInt32(&miFirst));
+		if (geTestBadLoad == TBL_ReadsShort)
+		{
+			return true;
+		}
+		return pcFile->ReadInt32(&miSecond);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestExternalObjectDeserialiserAddConstructors(void)
 {
+	gcObjects.AddConstructor<CTestBadLoadObject>();
 	gcObjects.AddConstructor<CTestSaveableObject1>();
 	gcObjects.AddConstructor<CTestSaveableObject2>();
 	gcObjects.AddConstructor<CEmbeddedTest>();
@@ -1234,6 +1296,82 @@ void TestExternalObjectDeserialiserInternalEmbeddedIndex(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object whose Load fails, or reads less than was saved, isn't read:
+// the error names it (and the lengths, for the short read), and it is
+// read when its Load works.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserBadLoad(void)
+{
+	CCodabase*					pcDatabase;
+	CSequence*					pcSequence;
+	CExternalObjectSerialiser	cSerialiser;
+	CMultiFileObjectWriter		cWriter;
+	CTestCountingObjectReader	cReader;
+	CExternalObjectDeserialiser	cDeserialiser;
+	CMemoryFile					cLog;
+	SLogConfig					sLogConfig;
+	char						szLog[1024];
+
+	TestExternalObjectDeserialiserClean();
+	TestExternalObjectDeserialiserOpen(EXTERNAL_WRITE_DATABASE, &pcDatabase, &pcSequence);
+	{
+		Ptr<CTestBadLoadObject>	pBad;
+
+		pBad = ONMalloc<CTestBadLoadObject>("Ext/Bad", 5, 6);
+		cWriter.Init(EXTERNAL_FILES_DIRECTORY, "");
+		cSerialiser.Init(&cWriter);
+		AssertTrue(cSerialiser.Write(&pBad));
+		cSerialiser.Kill();
+		cWriter.Kill();
+		ObjectsFlush();
+	}
+	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
+
+	TestExternalObjectDeserialiserOpen(EXTERNAL_READ_DATABASE, &pcDatabase, &pcSequence);
+	{
+		Ptr<CTestBadLoadObject>	pBad;
+
+		cReader.Init(EXTERNAL_FILES_DIRECTORY);
+
+		geTestBadLoad = TBL_Fails;
+		cDeserialiser.Init(&cReader, false, &gcObjects);
+		StartCapturingLog(&cLog, &sLogConfig);
+		pBad = cDeserialiser.Read("Ext/Bad");
+		StopCapturingLog(&cLog, &sLogConfig, szLog, 1024);
+		cDeserialiser.Kill();
+		AssertTrue(pBad.IsNull());
+		AssertTrue(strstr(szLog, " Could not load serialised object [CTestBadLoadObject:1:\"Ext/Bad\"] fields.") != NULL);
+
+		geTestBadLoad = TBL_ReadsShort;
+		cDeserialiser.Init(&cReader, false, &gcObjects);
+		StartCapturingLog(&cLog, &sLogConfig);
+		pBad = cDeserialiser.Read("Ext/Bad");
+		StopCapturingLog(&cLog, &sLogConfig, szLog, 1024);
+		cDeserialiser.Kill();
+		AssertTrue(pBad.IsNull());
+		AssertTrue(strstr(szLog, " Serialised object [CTestBadLoadObject:1:\"Ext/Bad\"] should be [") != NULL);
+		AssertTrue(strstr(szLog, "] bytes long but [") != NULL);
+		AssertTrue(strstr(szLog, "] were read.") != NULL);
+
+		geTestBadLoad = TBL_ReadsAll;
+		cDeserialiser.Init(&cReader, false, &gcObjects);
+		pBad = cDeserialiser.Read("Ext/Bad");
+		cDeserialiser.Kill();
+		AssertTrue(pBad.IsNotNull());
+		AssertInt(5, pBad->miFirst);
+		AssertInt(6, pBad->miSecond);
+		cReader.Kill();
+
+		pBad = NULL;
+		ObjectsFlush();
+	}
+	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestExternalObjectDeserialiser(void)
@@ -1247,6 +1385,7 @@ void TestExternalObjectDeserialiser(void)
 
 	TestExternalObjectDeserialiserSimpleRead();
 	TestExternalObjectDeserialiserMissingObject();
+	TestExternalObjectDeserialiserBadLoad();
 	TestExternalObjectDeserialiserBeginFails();
 	TestExternalObjectDeserialiserMissingNamedDependency();
 	TestExternalObjectDeserialiserMissingUnnamedDependency();

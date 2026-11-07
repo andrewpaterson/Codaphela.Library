@@ -52,6 +52,22 @@ void CObjectReader::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Logs szBefore, the header's identifier (class, index and name) and
+// szAfter: a serialised object that couldn't be read.
+//
+//////////////////////////////////////////////////////////////////////////
+static void LogHeaderError(const char* szMethod, const char* szBefore, CObjectHeader* pcHeader, const char* szAfter)
+{
+	CChars	sz;
+
+	sz.Init();
+	gcLogger.Error2(szMethod, szBefore, pcHeader->GetIdentifier(&sz), szAfter, NULL);
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjectReader::Read(void)
@@ -63,6 +79,7 @@ CBaseObject* CObjectReader::Read(void)
 	CObjectHeader	sHeader;
 	int32			iMagic;
 	CBaseObject*	pcObject;
+	CChars			szLengths;
 
 	iStart = mcFile.GetFilePos();
 	bResult = ReadSize(&iExpectedLength);
@@ -95,22 +112,16 @@ CBaseObject* CObjectReader::Read(void)
 	pcObject = mpcDependents->AllocateForDeserialisation(&sHeader);
 	if (pcObject == NULL)
 	{
-		CChars	sz;
-		sz.Init();
-		gcLogger.Error2(__METHOD__, " Could not allocate serialised object [", sHeader.GetIdentifier(&sz), "] header.", NULL);
+		LogHeaderError(__METHOD__, " Could not allocate serialised object [", &sHeader, "] header.");
 		sHeader.Kill();
-		sz.Kill();
 		return NULL;
 	}
 
 	bResult = pcObject->LoadManaged(this);
 	if (!bResult)
 	{
-		CChars	sz;
-		sz.Init();
-		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
+		LogHeaderError(__METHOD__, " Could not load serialised object [", &sHeader, "] fields.");
 		sHeader.Kill();
-		sz.Kill();
 		pcObject->GetObjectsThisIn()->ReplaceWithHollow(pcObject);
 		return NULL;
 	}
@@ -119,11 +130,14 @@ CBaseObject* CObjectReader::Read(void)
 	bResult = (lsize)(iLength - iStart) == iExpectedLength;
 	if (!bResult)
 	{
-		CChars	sz;
-		sz.Init();
-		gcLogger.Error2(__METHOD__, " Serialised object [", sHeader.GetIdentifier(&sz), "] should be [", LongToString((uint64)iExpectedLength), "] bytes long but [", LongToString((uint64)(iLength - iStart)), "] were read.", NULL);
+		szLengths.Init("] should be [");
+		szLengths.Append((uint64)iExpectedLength);
+		szLengths.Append("] bytes long but [");
+		szLengths.Append((uint64)(iLength - iStart));
+		szLengths.Append("] were read.");
+		LogHeaderError(__METHOD__, " Serialised object [", &sHeader, szLengths.Text());
+		szLengths.Kill();
 		sHeader.Kill();
-		sz.Kill();
 		pcObject->GetObjectsThisIn()->ReplaceWithHollow(pcObject);
 		return NULL;
 	}
@@ -204,42 +218,26 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcObjectIdentifier)
 {
 	int32	iIgnored;
-	bool	bResult;
 
 	pcObjectIdentifier->Init();
-
-	bResult = ReadInt32(&pcObjectIdentifier->meType);
-	ReturnOnFalse(bResult);
-
-	bResult = ReadInt32(&iIgnored);
-	ReturnOnFalse(bResult);
+	ReturnOnFalse(ReadInt32(&pcObjectIdentifier->meType));
+	ReturnOnFalse(ReadInt32(&iIgnored));
 
 	if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
 	{
 		return true;
 	}
-	else if (pcObjectIdentifier->meType == OBJECT_POINTER_ID)
-	{
-		bResult = ReadInt64(&pcObjectIdentifier->moi);
-		ReturnOnFalse(bResult);
-
-		bResult = ReadInt16(&pcObjectIdentifier->muiSize);
-		ReturnOnFalse(bResult);
-	}
-	else if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
-	{
-		bResult = ReadInt64(&pcObjectIdentifier->moi);
-		ReturnOnFalse(bResult);
-
-		bResult = ReadInt16(&pcObjectIdentifier->muiSize);
-		ReturnOnFalse(bResult);
-
-		bResult = pcObjectIdentifier->mszObjectName.ReadChars(this);
-		ReturnOnFalse(bResult);
-	}
-	else
+	if ((pcObjectIdentifier->meType != OBJECT_POINTER_ID) && (pcObjectIdentifier->meType != OBJECT_POINTER_NAMED))
 	{
 		return false;
+	}
+
+	//An index and a size, then (named) the name.
+	ReturnOnFalse(ReadInt64(&pcObjectIdentifier->moi));
+	ReturnOnFalse(ReadInt16(&pcObjectIdentifier->muiSize));
+	if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
+	{
+		ReturnOnFalse(pcObjectIdentifier->mszObjectName.ReadChars(this));
 	}
 	return true;
 }
