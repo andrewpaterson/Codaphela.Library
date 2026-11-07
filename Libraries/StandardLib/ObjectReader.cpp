@@ -115,20 +115,19 @@ CBaseObject* CObjectReader::Read(void)
 		return NULL;
 	}
 
-	sHeader.Kill();
-
 	iLength = mcFile.GetFilePos();
 	bResult = (lsize)(iLength - iStart) == iExpectedLength;
 	if (!bResult)
 	{
 		CChars	sz;
 		sz.Init();
-		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
+		gcLogger.Error2(__METHOD__, " Serialised object [", sHeader.GetIdentifier(&sz), "] should be [", LongToString((uint64)iExpectedLength), "] bytes long but [", LongToString((uint64)(iLength - iStart)), "] were read.", NULL);
 		sHeader.Kill();
 		sz.Kill();
 		pcObject->GetObjectsThisIn()->ReplaceWithHollow(pcObject);
 		return NULL;
 	}
+	sHeader.Kill();
 
 	pcObject->SetDirty(false);
 	pcObject->Initialised();
