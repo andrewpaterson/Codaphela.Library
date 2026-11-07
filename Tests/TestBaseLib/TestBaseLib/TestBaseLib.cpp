@@ -43,6 +43,7 @@ void TestRedBlackTree(void);
 void TestUndoStack(void);
 void TestTextUndo(void);
 void TestTextDocument(void);
+void TestTextEditing(void);
 void TestTextNavigation(void);
 void TestNameMatcher(void);
 void TestLine(void);
@@ -278,6 +279,7 @@ int __cdecl main(void)
 	TestUndoStack();
 	TestTextUndo();
 	TestTextDocument();
+	TestTextEditing();
 	TestTextNavigation();
 	TestNameMatcher();
 	TestLine();

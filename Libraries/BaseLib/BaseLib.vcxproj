@@ -512,6 +512,7 @@
     <ClInclude Include="UndoLog.h" />
     <ClInclude Include="UndoStack.h" />
     <ClInclude Include="TextDocument.h" />
+    <ClInclude Include="TextEditing.h" />
     <ClInclude Include="TextNavigation.h" />
     <ClInclude Include="TextUndo.h" />
     <ClInclude Include="TypeNames.h" />
@@ -919,6 +920,7 @@
     <ClCompile Include="UndoLog.cpp" />
     <ClCompile Include="UndoStack.cpp" />
     <ClCompile Include="TextDocument.cpp" />
+    <ClCompile Include="TextEditing.cpp" />
     <ClCompile Include="TextNavigation.cpp" />
     <ClCompile Include="TextUndo.cpp" />
     <ClCompile Include="TypeNames.cpp" />
