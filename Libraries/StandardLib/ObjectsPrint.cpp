@@ -321,7 +321,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	CBaseObject*				pcEmbeddedObject;
 	CBaseObject*				pcBaseObject;
 	size						uiNumTos;
-	size						uiNumEmbedded;
+	size						uiIndex;
 
 	if (!pcIncoming->IsBaseObject())
 	{
@@ -360,11 +360,12 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	if (pcBaseObject->IsObject())
 	{
 		pcObject = (CObject*)pcBaseObject;
-		uiNumEmbedded = pcObject->mapEmbedded.NumElements();
-		for (i = 0; i < uiNumEmbedded; i++)
+		uiIndex = 0;
+		pcEmbeddedObject = pcObject->IterateDirectlyEmbedded(&uiIndex);
+		while (pcEmbeddedObject)
 		{
-			pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
 			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, true, bPointerMemory);
+			pcEmbeddedObject = pcObject->IterateDirectlyEmbedded(&uiIndex);
 		}
 	}
 

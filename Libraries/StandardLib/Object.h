@@ -51,7 +51,7 @@ CONSTRUCTABLE(CObject)
 protected:
 	//Both pointers and embedded objects are now explicitly setup in the class.  Remove these fields.
 	CArrayTemplateEmbeddedPtr<CPointer, 5>		mapPointers;  //Pointers in this object.  
-	CArrayTemplateEmbeddedPtr<CBaseObject, 3>		mapEmbedded;  //Objects embedded in this object
+	CArrayTemplateEmbeddedPtr<CBaseObject, 3>		mapEmbedded;  //Every object embedded in this, at any depth, in GetEmbeddedObject's order (index + 1): each followed by those embedded in it.
 
 public:
 						CObject();
@@ -94,10 +94,7 @@ protected:
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
-	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex);
-	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
-	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);
-	CPointer*			RecurseGetFieldPointerTo(size iIndex, size* piCount);
+	CBaseObject*		IterateDirectlyEmbedded(size* puiIndex);
 	void				ValidateEmbeddedConsistency(void);
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);

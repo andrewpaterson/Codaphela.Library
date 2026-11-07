@@ -55,17 +55,15 @@ CObject::~CObject()
 //////////////////////////////////////////////////////////////////////////
 void CObject::Allocate(CObjects* pcObjects)
 {
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-	size			i;
+	size	i;
+	size	uiNumEmbedded;
 
 	CBaseObject::Allocate(pcObjects);
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->Allocate(NULL);
+		(*mapEmbedded.Get(i))->CBaseObject::Allocate(NULL);
 	}
 }
 
@@ -128,8 +126,12 @@ void CObject::EmbedEmbeddedObjectFields(void)
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
 	size					i;
+	size					j;
 	CBaseObject*			pcEmbeddedObject;
+	CObject*				pcEmbeddedContainer;
+	size					uiNumNested;
 
+	//Each embedded object is followed by the ones embedded in it: PreClass has listed them in it already.
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
 	uiNumFields = papv->NumElements();
@@ -139,7 +141,50 @@ void CObject::EmbedEmbeddedObjectFields(void)
 		pcEmbeddedObject->EmbedIn(this);
 		pcEmbeddedObject->PreClass();
 		mapEmbedded.AddPtr(pcEmbeddedObject);
+
+		if (pcEmbeddedObject->IsObject())
+		{
+			pcEmbeddedContainer = (CObject*)pcEmbeddedObject;
+			uiNumNested = pcEmbeddedContainer->mapEmbedded.NumElements();
+			for (j = 0; j < uiNumNested; j++)
+			{
+				mapEmbedded.AddPtr(*pcEmbeddedContainer->mapEmbedded.Get(j));
+			}
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The next object embedded directly in this, from *puiIndex in
+// mapEmbedded; NULL after the last.  mapEmbedded holds every object
+// embedded in this, at any depth, each followed by those embedded in
+// it, which are stepped over.  Moves *puiIndex on before returning, so
+// the object returned may free its own list.
+//
+// No virtual call is made on the embedded objects: ~CObject runs after
+// the members embedded in a sub-class have been destroyed.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObject::IterateDirectlyEmbedded(size* puiIndex)
+{
+	CBaseObject*	pcEmbedded;
+	size			uiNumEmbedded;
+
+	uiNumEmbedded = mapEmbedded.NumElements();
+	if (*puiIndex >= uiNumEmbedded)
+	{
+		return NULL;
+	}
+
+	pcEmbedded = *mapEmbedded.Get(*puiIndex);
+	(*puiIndex)++;
+	while ((*puiIndex < uiNumEmbedded) && ((*mapEmbedded.Get(*puiIndex))->GetEmbedding() != this))
+	{
+		(*puiIndex)++;
+	}
+	return pcEmbedded;
 }
 
 
@@ -149,15 +194,15 @@ void CObject::EmbedEmbeddedObjectFields(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::FreePointers(void)
 {
-	size			uiNumEmbedded;
-	CBaseObject* pcEmbedded;
-	size			i;
+	CBaseObject*	pcEmbedded;
+	size			uiIndex;
 
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
+	uiIndex = 0;
+	pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
+	while (pcEmbedded)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
 		pcEmbedded->FreePointers();
+		pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
 	}
 	CBaseObject::FreePointers();
 
@@ -172,15 +217,15 @@ void CObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::FreeInternal(void)
 {
-	size			uiNumEmbedded;
 	CBaseObject*	pcEmbedded;
-	size			i;
+	size			uiIndex;
 
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
+	uiIndex = 0;
+	pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
+	while (pcEmbedded)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
 		pcEmbedded->FreeInternal();
+		pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
 	}
 
 	CBaseObject::FreeInternal();
@@ -193,15 +238,15 @@ void CObject::FreeInternal(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::DoneKill(bool bAllocatedInObjects)
 {
-	size			uiNumEmbedded;
 	CBaseObject*	pcEmbedded;
-	size			i;
+	size			uiIndex;
 
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
+	uiIndex = 0;
+	pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
+	while (pcEmbedded)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
 		pcEmbedded->DoneKill(bAllocatedInObjects);
+		pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
 	}
 
 	CBaseObject::DoneKill(bAllocatedInObjects);
@@ -241,20 +286,16 @@ size CObject::BaseNumPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 size CObject::NumPointerTos(void)
 {
-	size				i;
-	size				uiNumEmbedded;
-	CBaseObject*		pcEmbedded;
-	size				uiCount;
+	size	i;
+	size	uiNumEmbedded;
+	size	uiCount;
 
 	uiCount = BaseNumPointerTos();
-
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		uiCount += pcEmbedded->NumPointerTos();
+		uiCount += (*mapEmbedded.Get(i))->BaseNumPointerTos();
 	}
-
 	return uiCount;
 }
 
@@ -285,17 +326,15 @@ bool CObject::IsCollection(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::RemoveAllHeapFroms(void)
 {
-	size				i;
-	size				uiNumEmbedded;
-	CBaseObject*		pcEmbedded;
+	size	i;
+	size	uiNumEmbedded;
 
 	CBaseObject::RemoveAllHeapFroms();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveAllHeapFroms();
+		(*mapEmbedded.Get(i))->CBaseObject::RemoveAllHeapFroms();
 	}
 }
 
@@ -306,17 +345,15 @@ void CObject::RemoveAllHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::RemoveAllStackFroms(void)
 {
-	size				i;
-	size				uiNumEmbedded;
-	CBaseObject*		pcEmbedded;
+	size	i;
+	size	uiNumEmbedded;
 
 	CBaseObject::RemoveAllStackFroms();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveAllStackFroms();
+		(*mapEmbedded.Get(i))->CBaseObject::RemoveAllStackFroms();
 	}
 }
 
@@ -327,17 +364,15 @@ void CObject::RemoveAllStackFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
+	size	i;
+	size	uiNumEmbedded;
 
 	BaseGetPointerTos(papcTos);
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->GetPointerTos(papcTos);
+		(*mapEmbedded.Get(i))->BaseGetPointerTos(papcTos);
 	}
 }
 
@@ -373,7 +408,7 @@ void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 bool CObject::ClearPointerTos(bool bFree)
 {
 	size				i;
-	size				uiNumEmbedded;
+	size				uiIndex;
 	CBaseObject*		pcEmbedded;
 	size				uiNumPointers;
 	CPointer*			pcPointer;
@@ -400,11 +435,12 @@ bool CObject::ClearPointerTos(bool bFree)
 	}
 
 	bResult = true;
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
+	uiIndex = 0;
+	pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
+	while (pcEmbedded)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
 		bResult &= pcEmbedded->ClearPointerTos(bFree);
+		pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
 	}
 	return bResult;
 }
@@ -495,68 +531,23 @@ size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //////////////////////////////////////////////////////////////////////////
 size CObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 {
-	size		iIndex;
+	size	i;
+	size	uiNumEmbedded;
 
 	if (pcEmbedded == this)
 	{
 		return 0;
 	}
-	else
+
+	uiNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		iIndex = 0;
-		if (RecurseGetEmbeddedIndex(pcEmbedded, &iIndex))
+		if (*mapEmbedded.Get(i) == pcEmbedded)
 		{
-			return iIndex;
-		}
-		else
-		{
-			return -1;
+			return i + 1;
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex)
-{
-	size			i;
-	CBaseObject*	pcEmbedded;
-	CObject*		pcObject;
-	size			uiNumEmbedded;
-
-	if (pcTest == this)
-	{
-		return true;
-	}
-	else
-	{
-		uiNumEmbedded = mapEmbedded.NumElements();
-		for (i = 0; i < uiNumEmbedded; i++)	
-		{
-			pcEmbedded = *mapEmbedded.Get(i);
-			(*piIndex)++;
-
-			if (pcEmbedded->IsObject())
-			{
-				pcObject = (CObject*)pcEmbedded;
-				if (pcObject->RecurseGetEmbeddedIndex(pcTest, piIndex))
-				{
-					return true;
-				}
-			}
-			else
-			{
-				if (pcEmbedded == pcTest)
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+	return -1;
 }
 
 
@@ -587,21 +578,7 @@ size CObject::NumEmbedded(void)
 //////////////////////////////////////////////////////////////////////////
 size CObject::CountNumEmbedded(void)
 {
-	size			uiCount;
-	size			uiNumEmbedded;
-	size			i;
-	CBaseObject*	pcEmbedded;
-
-	uiCount = 1;
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-
-		uiCount += pcEmbedded->NumEmbedded();
-	}
-
-	return uiCount;
+	return 1 + mapEmbedded.NumElements();
 }
 
 
@@ -611,61 +588,16 @@ size CObject::CountNumEmbedded(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CObject::GetEmbeddedObject(size iIndex)
 {
-	size				uiCount;
-	CEmbeddedObject*	pcReturned;
-
-	uiCount = 0;
-	pcReturned = RecurseGetEmbeddedObject(iIndex, &uiCount);
-	return pcReturned;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CObject::RecurseGetEmbeddedObject(size iIndex, size* piCount)
-{
-	size				i;
-	CBaseObject*		pcEmbedded;
-	CObject*			pcObject;
-	CEmbeddedObject*	pcReturned;
-	size				uiNumEmbedded;
-
-	if (iIndex == *piCount)
+	if (iIndex == 0)
 	{
 		return this;
 	}
-	else
+	if (iIndex <= mapEmbedded.NumElements())
 	{
-		uiNumEmbedded = mapEmbedded.NumElements();
-		for (i = 0; i < uiNumEmbedded; i++)	
-		{
-			pcEmbedded = *mapEmbedded.Get(i);
-			(*piCount)++;
-
-			if (pcEmbedded->IsObject())
-			{
-				pcObject = (CObject*)pcEmbedded;
-				pcReturned = pcObject->RecurseGetEmbeddedObject(iIndex, piCount);
-				if (pcReturned)
-				{
-					return pcReturned;
-				}
-			}
-			else
-			{
-				if (iIndex == *piCount)
-				{
-					return pcEmbedded;
-				}
-			}
-		}
-		return NULL;
+		return *mapEmbedded.Get(iIndex - 1);
 	}
+	return NULL;
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -674,60 +606,35 @@ CEmbeddedObject* CObject::RecurseGetEmbeddedObject(size iIndex, size* piCount)
 //////////////////////////////////////////////////////////////////////////
 size CObject::GetFieldPointerToIndex(CPointer* pcFieldPointer)
 {
-	size	iIndex;
-
-	iIndex = 0;
-	if (RecurseGetFieldPointerToIndex(pcFieldPointer, &iIndex))
-	{
-		return iIndex;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex)
-{
+	size			uiIndex;
 	size			i;
+	size			uiNumEmbedded;
 	CBaseObject*	pcEmbedded;
 	CObject*		pcObject;
-	CPointer*		pcFieldPointer;
 	size			uiNumPointers;
-	size			uiNumEmbedded;
+	size			j;
 
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		pcFieldPointer = *mapPointers.Get(i);
-
-		if (pcFieldPointer == pcTest)
-		{
-			return true;
-		}
-		(*piIndex)++;
-	}
-
+	//This object's pointers, then those of each object embedded in it, in GetEmbeddedObject's order.
+	uiIndex = 0;
 	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
+	for (i = 0; i <= uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-
+		pcEmbedded = (i == 0) ? this : *mapEmbedded.Get(i - 1);
 		if (pcEmbedded->IsObject())
 		{
 			pcObject = (CObject*)pcEmbedded;
-			if (pcObject->RecurseGetFieldPointerToIndex(pcTest, piIndex))
+			uiNumPointers = pcObject->mapPointers.NumElements();
+			for (j = 0; j < uiNumPointers; j++)
 			{
-				return true;
+				if (*pcObject->mapPointers.Get(j) == pcFieldPointer)
+				{
+					return uiIndex;
+				}
+				uiIndex++;
 			}
 		}
 	}
-	return false;
+	return -1;
 }
 
 
@@ -738,10 +645,9 @@ bool CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex)
 size CObject::GetNumFieldPointerTos(void)
 {
 	size			i;
-	CBaseObject*	pcEmbedded;
-	CObject*		pcObject;
 	size			uiCount;
 	size			uiNumEmbedded;
+	CBaseObject*	pcEmbedded;
 
 	uiCount = mapPointers.NumElements();
 	uiNumEmbedded = mapEmbedded.NumElements();
@@ -750,11 +656,9 @@ size CObject::GetNumFieldPointerTos(void)
 		pcEmbedded = *mapEmbedded.Get(i);
 		if (pcEmbedded->IsObject())
 		{
-			pcObject = (CObject*)pcEmbedded;
-			uiCount += pcObject->GetNumFieldPointerTos();
+			uiCount += ((CObject*)pcEmbedded)->mapPointers.NumElements();
 		}
 	}
-
 	return uiCount;
 }
 
@@ -765,53 +669,25 @@ size CObject::GetNumFieldPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 CPointer* CObject::GetFieldPointerTo(size iIndex)
 {
-	size		uiCount;
-	CPointer*	pcReturned;
-
-	uiCount = 0;
-	pcReturned = RecurseGetFieldPointerTo(iIndex, &uiCount);
-	return pcReturned;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointer* CObject::RecurseGetFieldPointerTo(size iIndex, size* piCount)
-{
 	size			i;
+	size			uiNumEmbedded;
 	CBaseObject*	pcEmbedded;
 	CObject*		pcObject;
-	CPointer*		pcReturned;
-	CPointer*		pcFieldPointer;
 	size			uiNumPointers;
-	size			uiNumEmbedded;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		pcFieldPointer = *mapPointers.Get(i);
-		if (*piCount == iIndex)
-		{
-			return pcFieldPointer;
-		}
-		(*piCount)++;
-	}
 
 	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
+	for (i = 0; i <= uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-
+		pcEmbedded = (i == 0) ? this : *mapEmbedded.Get(i - 1);
 		if (pcEmbedded->IsObject())
 		{
 			pcObject = (CObject*)pcEmbedded;
-			pcReturned = pcObject->RecurseGetFieldPointerTo(iIndex, piCount);
-			if (pcReturned)
+			uiNumPointers = pcObject->mapPointers.NumElements();
+			if (iIndex < uiNumPointers)
 			{
-				return pcReturned;
+				return *pcObject->mapPointers.Get(iIndex);
 			}
+			iIndex -= uiNumPointers;
 		}
 	}
 	return NULL;
@@ -834,17 +710,15 @@ CBaseObject* CObject::Dehollow(void)
 //////////////////////////////////////////////////////////////////////////
 size CObject::NumHeapFroms(void)
 {
-	CBaseObject*	pcBaseObject;
-	size			i;
-	size			uiCount;
-	size			uiNumEmbedded;
+	size	i;
+	size	uiCount;
+	size	uiNumEmbedded;
 
 	uiCount = CEmbeddedObject::NumHeapFroms();
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcBaseObject = *mapEmbedded.Get(i);
-		uiCount += pcBaseObject->NumHeapFroms();
+		uiCount += (*mapEmbedded.Get(i))->CBaseObject::NumHeapFroms();
 	}
 	return uiCount;
 }
@@ -856,17 +730,15 @@ size CObject::NumHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 size CObject::NumStackFroms(void)
 {
-	CBaseObject*	pcBaseObject;
-	size			i;
-	size			uiCount;
-	size			uiNumEmbedded;
+	size	i;
+	size	uiCount;
+	size	uiNumEmbedded;
 
 	uiCount = CEmbeddedObject::NumStackFroms();
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcBaseObject = *mapEmbedded.Get(i);
-		uiCount += pcBaseObject->NumStackFroms();
+		uiCount += (*mapEmbedded.Get(i))->CBaseObject::NumStackFroms();
 	}
 	return uiCount;
 }
@@ -878,18 +750,15 @@ size CObject::NumStackFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 {
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
+	size	i;
+	size	uiNumEmbedded;
 
 	CBaseObject::GetStackFroms(papcFroms);
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-
-		pcEmbedded->GetStackFroms(papcFroms);
+		(*mapEmbedded.Get(i))->CBaseObject::GetStackFroms(papcFroms);
 	}
 }
 
@@ -911,17 +780,15 @@ void CObject::CopyFields(CEmbeddedObject* pcOther)
 //////////////////////////////////////////////////////////////////////////
 void CObject::ValidateEmbeddedConsistency(void)
 {
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
+	size	i;
+	size	uiNumEmbedded;
 
 	CBaseObject::ValidateEmbeddedConsistency();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ValidateEmbeddedConsistency();
+		(*mapEmbedded.Get(i))->CBaseObject::ValidateEmbeddedConsistency();
 	}
 }
 
