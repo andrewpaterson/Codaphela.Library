@@ -120,6 +120,48 @@ void TestRefWindowCanvasBorder(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Without an image path (none or empty) a reference window keeps its
+// frames to itself: nothing is written into the working directory.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRefWindowNoImagePath(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	char					szEmpty[] = "";
+	char*					aszPaths[] = { NULL, szEmpty };
+	size					i;
+
+	cFileUtil.Delete("Frame0.png");
+	ObjectsInit();
+	for (i = 0; i < 2; i++)
+	{
+		Ptr<CWindow>					pTestWindow;
+		Ptr<CTestRefWindowCanvasDraw>	pDraw;
+		Ptr<CTickTestRefWindow>			pTick;
+		SDataTestRefWindow				cData;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 32, 16, aszPaths[i]);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 2);
+		pDraw = OMalloc<CTestRefWindowCanvasDraw>(&cData);
+		pTestWindow = OMalloc<CWindow>("No Image Path Window", &cNativeFactory, pTick, pDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		AssertTrue(pTestWindow->Show());
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pDraw = NULL;
+		pTick = NULL;
+		cNativeFactory.Kill();
+
+		AssertFalse(cFileUtil.Exists("Frame0.png"));
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRefWindow(void)
@@ -128,6 +170,7 @@ void TestRefWindow(void)
 
 	TestRefWindowCreation();
 	TestRefWindowCanvasBorder();
+	TestRefWindowNoImagePath();
 
 	TestStatistics();
 }
