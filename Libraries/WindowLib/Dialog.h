@@ -36,6 +36,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //The width of a dialog's buttons, unless a caption needs more.
 #define DIALOG_BUTTON_WIDTH		72
 
+//The narrowest a dialog sized to what it holds is (CDialog::Show).
+#define DIALOG_MIN_WIDTH		360
+
 
 //What every dialog is drawn with, made once by its owner.
 struct SDialogLook
@@ -76,6 +79,8 @@ public:
 //size of its own.
 //
 //OK can have another caption, like a file chooser's Open, and an approver, but it still closes the dialog as OK.
+//Cancel can have another caption or none, and an extra button can go before OK; they close the dialog as their
+//captions.
 //
 //A dialog is an object: make it with OMalloc and keep it in the root, or in an object that is, while it's shown.  It
 //holds its window.
@@ -93,6 +98,7 @@ protected:
 	Ptr<CButton>			mpOK;
 	Ptr<CButton>			mpCancel;
 	Ptr<CButton>			mpExtra;  //Like Save Defaults, NULL if there isn't one.
+	bool					mbCancel;  //Cancel is shown (SetCancelCaption).
 	Ptr<CComponent>			mpFirstEditor;  //Has focus when the dialog opens.
 	SMemberCall				msApprover;  //Asked whether OK may close the dialog, not set if OK always closes it.
 	CChars					mszClicked;
@@ -114,8 +120,9 @@ public:
 	void				AddExtraButton(const char* szCaption);
 	void				SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor);
 	void				SetOKCaption(const char* szCaption);
-	void				SetResizable(int32 iMinimumWidth, int32 iMinimumHeight);
+	void				SetCancelCaption(const char* szCaption);
 	void				RemoveButtons(void);
+	void				SetResizable(int32 iMinimumWidth, int32 iMinimumHeight);
 	template<class M, class O>
 	void				SetApprover(O* pcObject, bool(M::*fApprove)(void));
 	void				ClearApprover(void);
@@ -123,6 +130,7 @@ public:
 	void				SetTicker(O* pcObject, void(M::*fTick)(void));
 	void				ClearTicker(void);
 
+	bool				Show(void);
 	bool				Show(int32 iWidth);
 	bool				Show(int32 iWidth, int32 iHeight);
 	void				Close(const char* szClicked);
@@ -136,6 +144,8 @@ public:
 protected:
 	void				AddRow(const char* szLabel, Ptr<CComponent> pEditor);
 	void				RemoveFromButton(Ptr<CButton> pButton);
+	void				ArrangeButtons(void);
+	void				SizeButton(Ptr<CButton> pButton);
 };
 
 

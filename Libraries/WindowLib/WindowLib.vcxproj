@@ -255,6 +255,7 @@
     <ClInclude Include="NativeCursor.h" />
     <ClInclude Include="TabbedContainer.h" />
     <ClInclude Include="Dialog.h" />
+    <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="FileChooser.h" />
     <ClInclude Include="GoToDialog.h" />
     <ClInclude Include="ComponentInputNumKey.h" />
@@ -331,6 +332,7 @@
     <ClCompile Include="DocumentWell.cpp" />
     <ClCompile Include="TabbedContainer.cpp" />
     <ClCompile Include="Dialog.cpp" />
+    <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="FileChooser.cpp" />
     <ClCompile Include="GoToDialog.cpp" />
     <ClCompile Include="ComponentInputNumKey.cpp" />

@@ -300,6 +300,9 @@
     <ClInclude Include="Dialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="MessageDialog.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="FileChooser.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
@@ -621,6 +624,9 @@
       <Filter>Source\Component\Widgets\Icon</Filter>
     </ClCompile>
     <ClCompile Include="Dialog.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageDialog.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="FileChooser.cpp">

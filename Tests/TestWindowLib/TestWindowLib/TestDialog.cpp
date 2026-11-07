@@ -9,6 +9,8 @@
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/TextField.h"
 #include "WindowLib/CheckBox.h"
+#include "WindowLib/JewelColours.h"
+#include "WindowLib/MessageDialog.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
@@ -353,6 +355,236 @@ void TestWindowPost(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A dialog's parts, to look at them without showing it.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestDialogParts : public CDialog
+{
+CONSTRUCTABLE(CTestDialogParts);
+DESTRUCTABLE(CTestDialogParts);
+public:
+	Ptr<CButton>	GetOK(void) { return mpOK; }
+	Ptr<CButton>	GetCancel(void) { return mpCancel; }
+	Ptr<CButton>	GetExtra(void) { return mpExtra; }
+	bool			IsShown(Ptr<CButton> pButton) { return pButton->GetParent() == mpButtons; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A dialog's look, in the dark Jewel theme.
+//
+//////////////////////////////////////////////////////////////////////////
+static void InitTestDialogLook(SDialogLook* psLook, Ptr<CWindowTheme> pTheme)
+{
+	psLook->pcTheme = &pTheme;
+	psLook->pcDimFont = &pTheme->GetFont();
+	psLook->sBackground = JEWEL_PANEL;
+	psLook->sDivider = JEWEL_SEPARATOR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every button is at least DIALOG_BUTTON_WIDTH wide, or as wide as its
+// caption.  The extra button goes before OK and closes the dialog as its
+// caption; without Cancel, escape clicks OK.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDialogButtons(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindowTheme>		pTheme;
+		SDialogLook				sLook;
+		Ptr<CTestDialogParts>	pDialog;
+		CPointer				pNull;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Dialog Owner", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		InitTestDialogLook(&sLook, pTheme);
+
+		pDialog = OMalloc<CTestDialogParts>(pTestWindow, &sLook, "Buttons");
+		ORoot()->Add(pDialog);
+		AssertTrue(pDialog->IsShown(pDialog->GetOK()));
+		AssertTrue(pDialog->IsShown(pDialog->GetCancel()));
+		AssertTrue(pDialog->GetExtra().IsNull());
+		AssertInt(DIALOG_BUTTON_WIDTH, pDialog->GetOK()->GetDesiredSize().x);
+		AssertTrue(pDialog->GetCancel()->GetDesiredSize().x >= DIALOG_BUTTON_WIDTH);
+
+		pDialog->SetOKCaption("Refactor Everything Now");
+		AssertTrue(pDialog->GetOK()->GetDesiredSize().x > DIALOG_BUTTON_WIDTH);
+		pDialog->SetOKCaption("Go");
+		AssertInt(DIALOG_BUTTON_WIDTH, pDialog->GetOK()->GetDesiredSize().x);
+
+		pDialog->AddExtraButton("Don't");
+		AssertTrue(pDialog->IsShown(pDialog->GetExtra()));
+		AssertInt(DIALOG_BUTTON_WIDTH, pDialog->GetExtra()->GetDesiredSize().x);
+		pDialog->GetWindow()->SetWindowSize(400, 100);
+		pDialog->GetWindow()->Layout();
+		AssertTrue(pDialog->GetExtra()->GetPosition().x < pDialog->GetOK()->GetPosition().x);
+		AssertTrue(pDialog->GetOK()->GetPosition().x < pDialog->GetCancel()->GetPosition().x);
+		pDialog->GetExtra()->Click();
+		AssertString("Don't", pDialog->GetClicked());
+
+		pDialog->SetCancelCaption("Stop");
+		AssertString("Stop", pDialog->GetCancel()->GetCaption());
+		pDialog->GetCancel()->Click();
+		AssertString("Stop", pDialog->GetClicked());
+
+		pDialog->SetCancelCaption(NULL);
+		AssertFalse(pDialog->IsShown(pDialog->GetCancel()));
+		AssertTrue(pDialog->IsShown(pDialog->GetOK()));
+		pDialog->GetWindow()->InputCommand(CIC_ClearSelection, true);
+		AssertString("OK", pDialog->GetClicked());
+
+		ORoot()->Remove(pDialog);
+		pDialog = NULL;
+		sLook.Kill();
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A message dialog's parts, to look at them.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestMessageDialogParts : public CMessageDialog
+{
+CONSTRUCTABLE(CTestMessageDialogParts);
+DESTRUCTABLE(CTestMessageDialogParts);
+public:
+	Ptr<CScrollPane>	GetItemsPane(void) { return mpItemsPane; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A message dialog shown from its owner's tick and answered from its own.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestMessageDialog
+{
+public:
+	SDialogLook						sLook;
+	Ptr<CWindowTheme>				pTheme;
+	Ptr<CTestMessageDialogParts>	pMessage;
+	const char*						szAnswer;  //What the dialog's tick closes it as.
+	SInt32Vec2						sShownSize;
+
+	void Answer(void)
+	{
+		sShownSize = pMessage->GetDialog()->GetWindow()->GetActualSize();
+		pMessage->GetDialog()->Close(szAnswer);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The owner shows a three button question about two files, then a long
+// list, and a dialog that only tells something.
+//
+//////////////////////////////////////////////////////////////////////////
+bool MessageDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
+{
+	CTestMessageDialog*	pcTest;
+	char				szItem[16];
+	int32				iRow;
+	int					i;
+
+	if (iFrame != 0)
+	{
+		return false;
+	}
+	pcTest = (CTestMessageDialog*)pvContext;
+
+	//Save, Don't Save and Cancel; the extra button's answer.
+	pcTest->pMessage = OMalloc<CTestMessageDialogParts>(pWindow, &pcTest->sLook, "Save Changes", "Save changes to the following files?");
+	pcTest->pMessage->AddItem("First.cpp");
+	pcTest->pMessage->AddItem("Second.cpp");
+	pcTest->pMessage->GetDialog()->SetOKCaption("Save");
+	pcTest->pMessage->GetDialog()->AddExtraButton("Don't Save");
+	pcTest->pMessage->GetDialog()->SetTicker(pcTest, &CTestMessageDialog::Answer);
+	pcTest->szAnswer = "Don't Save";
+	AssertFalse(pcTest->pMessage->Show());
+	AssertString("Don't Save", pcTest->pMessage->GetClicked());
+	AssertTrue(pcTest->sShownSize.x >= DIALOG_MIN_WIDTH);
+	iRow = pcTest->pMessage->GetItemsPane()->GetDesiredSize().y;
+
+	//A long list shows the most it can and scrolls.
+	pcTest->pMessage = OMalloc<CTestMessageDialogParts>(pWindow, &pcTest->sLook, "Files", "These files:\nare many.");
+	for (i = 0; i < MESSAGE_DIALOG_MAX_ITEMS + 5; i++)
+	{
+		sprintf(szItem, "File%d.cpp", i);
+		pcTest->pMessage->AddItem(szItem);
+	}
+	AssertTrue(pcTest->pMessage->GetItemsPane()->GetDesiredSize().y < iRow * (MESSAGE_DIALOG_MAX_ITEMS + 5) / 2);
+	pcTest->pMessage->GetDialog()->SetTicker(pcTest, &CTestMessageDialog::Answer);
+	pcTest->szAnswer = "OK";
+	AssertTrue(pcTest->pMessage->Show());
+
+	//Only OK, no list.
+	pcTest->pMessage = OMalloc<CTestMessageDialogParts>(pWindow, &pcTest->sLook, "Note", "Nothing to do.");
+	pcTest->pMessage->GetDialog()->SetCancelCaption(NULL);
+	AssertTrue(pcTest->pMessage->GetItemsPane().IsNull());
+	pcTest->pMessage->GetDialog()->SetTicker(pcTest, &CTestMessageDialog::Answer);
+	AssertTrue(pcTest->pMessage->Show());
+	AssertTrue(pcTest->sShownSize.x == DIALOG_MIN_WIDTH);
+	pcTest->pMessage = NULL;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMessageDialog(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CScriptFramesTick>		pTick;
+		CTestMessageDialog			cTest;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CScriptFramesTick>(MessageDialogOwnerFrames, &cTest);
+		pTestWindow = OMalloc<CWindow>("Message Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		cTest.pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		InitTestDialogLook(&cTest.sLook, cTest.pTheme);
+
+		pTestWindow->Show();
+
+		cTest.sLook.Kill();
+		cTest.pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDialog(void)
@@ -361,6 +593,8 @@ void TestDialog(void)
 	ObjectsInit();
 
 	TestDialogModal();
+	TestDialogButtons();
+	TestMessageDialog();
 	TestWindowCloseApprover();
 	TestWindowPost();
 

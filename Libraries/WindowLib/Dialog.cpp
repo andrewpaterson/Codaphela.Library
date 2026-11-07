@@ -112,6 +112,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mpOwner = pOwner;
 	msApprover.Clear();
 	mszClicked.Init();
+	mpExtra = NULL;
+	mbCancel = true;
 	miRows = 0;
 
 	mpTick = OMalloc<CDialogTick>();
@@ -134,8 +136,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 
 	mpOK = OMalloc<CButton>(mpDialog, psLook->pcTheme, "OK");
 	mpCancel = OMalloc<CButton>(mpDialog, psLook->pcTheme, "Cancel");
-	mpOK->SetDesiredSize(DIALOG_BUTTON_WIDTH, -1);
-	mpCancel->SetDesiredSize(DIALOG_BUTTON_WIDTH, -1);
+	SizeButton(mpOK);
+	SizeButton(mpCancel);
 	mpOK->GetClickEvent()->Add(this, &CDialog::OKClicked);
 	mpCancel->GetClickEvent()->Add(this, &CDialog::CloseClicked);
 	mpDialog->SetDefaultButton(mpOK);
@@ -144,8 +146,7 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mpButtons = OMalloc<CButtonBar>(mpDialog);
 	mpButtons->SetInsets(0, 0, 0, 0);
 	mpButtons->SetAlignment(CSH_Stretch, CSV_Bottom);
-	mpButtons->AddComponent(mpOK);
-	mpButtons->AddComponent(mpCancel);
+	ArrangeButtons();
 	pGrid->AddComponent(mpButtons, 0, 1, 1, 1, 1, 0);
 
 	PostInit();
@@ -171,6 +172,7 @@ void CDialog::Class(void)
 	U_Data(SMemberCall, msApprover);
 	U_String(mszClicked);
 	U_Int32(miRows);
+	U_Bool(mbCancel);
 }
 
 
@@ -362,18 +364,17 @@ void CDialog::AddDivider(const char* szTitle)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Another button before OK, like Save Defaults.  It closes the dialog
-// too.
+// Another button before OK, like Save Defaults or Don't Save.  It closes
+// the dialog too, as its caption.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDialog::AddExtraButton(const char* szCaption)
 {
+	RemoveFromButton(mpExtra);
 	mpExtra = OMalloc<CButton>(mpDialog, mpsLook->pcTheme, szCaption);
 	mpExtra->GetClickEvent()->Add(this, &CDialog::CloseClicked);
-	mpButtons->RemoveAllComponents();
-	mpButtons->AddComponent(mpExtra);
-	mpButtons->AddComponent(mpOK);
-	mpButtons->AddComponent(mpCancel);
+	SizeButton(mpExtra);
+	ArrangeButtons();
 }
 
 
@@ -395,17 +396,73 @@ void CDialog::SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// OK's caption, like Open or Refactor.  It still closes the dialog as OK.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDialog::SetOKCaption(const char* szCaption)
 {
+	mpOK->SetCaption(szCaption);
+	SizeButton(mpOK);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Cancel's caption, or with NULL no Cancel button: then escape clicks OK,
+// as in a dialog that only tells something.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::SetCancelCaption(const char* szCaption)
+{
+	if (szCaption == NULL)
+	{
+		mpDialog->SetCancelButton(mpOK);
+		mbCancel = false;
+	}
+	else
+	{
+		mpCancel->SetCaption(szCaption);
+		SizeButton(mpCancel);
+		mpDialog->SetCancelButton(mpCancel);
+		mbCancel = true;
+	}
+	ArrangeButtons();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The buttons along the bottom, on the right: the extra button, OK, then
+// Cancel.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::ArrangeButtons(void)
+{
+	mpButtons->RemoveAllComponents();
+	if (mpExtra.IsNotNull())
+	{
+		mpButtons->AddComponent(mpExtra);
+	}
+	mpButtons->AddComponent(mpOK);
+	if (mbCancel)
+	{
+		mpButtons->AddComponent(mpCancel);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As wide as a dialog's buttons are, or wider if its caption needs it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::SizeButton(Ptr<CButton> pButton)
+{
 	int32	iWidth;
 
-	//As wide as the buttons are, or wider if the caption needs it, Refactor say.
-	mpOK->SetCaption(szCaption);
-	mpOK->SetDesiredSize(-1, -1);
-	iWidth = mpOK->GetDesiredSize().x;
-	mpOK->SetDesiredSize((iWidth > DIALOG_BUTTON_WIDTH) ? iWidth : DIALOG_BUTTON_WIDTH, -1);
+	pButton->SetDesiredSize(-1, -1);
+	iWidth = pButton->GetDesiredSize().x;
+	pButton->SetDesiredSize((iWidth > DIALOG_BUTTON_WIDTH) ? iWidth : DIALOG_BUTTON_WIDTH, -1);
 }
 
 
@@ -460,6 +517,25 @@ void CDialog::ClearTicker(void)
 	{
 		mpTick->ClearTicker();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows the dialog as wide as its rows (or body) or its buttons need, but
+// no narrower than DIALOG_MIN_WIDTH, and as tall as they are.  Returns
+// true if OK closed it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDialog::Show(void)
+{
+	int32	iWidth;
+
+	mpForm->SetRequiredSize();
+	mpButtons->SetRequiredSize();
+	iWidth = (mpForm->GetRequiredSize().x > mpButtons->GetRequiredSize().x) ? mpForm->GetRequiredSize().x : mpButtons->GetRequiredSize().x;
+	iWidth += DIALOG_INSET * 2;
+	return Show((iWidth > DIALOG_MIN_WIDTH) ? iWidth : DIALOG_MIN_WIDTH);
 }
 
 
