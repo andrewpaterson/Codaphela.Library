@@ -1293,8 +1293,10 @@ void CTextArea::ClearUndo(void) { mcEditing.ClearUndo(); }
 //////////////////////////////////////////////////////////////////////////
 //
 // The text is read and laid out again, the caret is kept in view and the
-// window lays out again if the text's size changed.  Then the change
-// event is called.
+// window lays out again if the text's size changed (an edit isn't made
+// while the window lays out, so the layout is invalidated: an edit that
+// didn't come from input, which does, still lays the window out again).
+// Then the change event is called.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::TextEdited(void)
@@ -1303,9 +1305,9 @@ void CTextArea::TextEdited(void)
 
 	sTextSize = mpLayout->GetTextSize();
 	Relayout();
-	if ((sTextSize != mpLayout->GetTextSize()) && mpWindow.IsNotNull())
+	if (sTextSize != mpLayout->GetTextSize())
 	{
-		mpWindow->LayoutAgain();
+		InvalidateLayout();
 	}
 	ShowCaret();
 

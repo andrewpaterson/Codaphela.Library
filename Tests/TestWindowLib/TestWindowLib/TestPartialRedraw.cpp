@@ -595,6 +595,9 @@ void TestPartialRedrawTextArea(void)
 		pFill->AddComponent(pTextArea);
 		pWindow->SetPartialRedraw(true);
 		pWindow->SetVerifyRedraw(true);
+
+		//As a release build, the window keeps its layout between paints rather than checking it by laying out again.
+		pWindow->SetCheckLayoutCache(false);
 		pWindow->Paint();
 
 		//Above the glyphs of the first character, in the selection when it is selected.
@@ -617,9 +620,11 @@ void TestPartialRedrawTextArea(void)
 		AssertTrue(uiUnselected != GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
 		AssertSize(0, pWindow->GetRedrawMismatches());
 
+		//The edit, not from input, narrows the text: the text area is laid out to its new width.
 		pTextArea->Printable('x', true);
 		pWindow->Paint();
-		AssertInt(uiUnselected, GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
+		AssertInt(uiUnselected, GetWindowPixel(pWindow, pTextArea->GetPosition().x + 1, sPosition.y + 1));
+		AssertInt(pTextArea->GetTextSize().x, pTextArea->GetActualSize().x);
 		AssertSize(0, pWindow->GetRedrawMismatches());
 
 		pTextArea = NULL;
