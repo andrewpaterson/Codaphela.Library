@@ -118,20 +118,39 @@ size CIndexedObjects::NumIndexed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The first (bFirst) or next entry: an object's index and the object.
+// False after the last.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexedObjects::Step(SIndexesIterator* psIterator, bool bFirst, OIndex* poi, CBaseObject** ppcObject)
+{
+	bool	bResult;
+	size	uiKeyLength;
+	size	uiDataSize;
+
+	if (bFirst)
+	{
+		bResult = mcIndexes.StartIteration(psIterator, (uint8*)poi, &uiKeyLength, sizeof(OIndex), ppcObject, &uiDataSize, sizeof(CBaseObject*));
+	}
+	else
+	{
+		bResult = mcIndexes.Iterate(psIterator, (uint8*)poi, &uiKeyLength, sizeof(OIndex), ppcObject, &uiDataSize, sizeof(CBaseObject*));
+	}
+	return bResult && (uiKeyLength == sizeof(OIndex)) && (uiDataSize == sizeof(CBaseObject*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The indexes, INVALID_O_INDEX after the last.
 //
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 {
-	bool		bResult;
-	OIndex		oi;
-	size		iKeyLength;
+	OIndex			oi;
+	CBaseObject*	pcObject;
 
-	bResult = mcIndexes.StartIteration(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
-	if ((bResult) && (iKeyLength == sizeof(OIndex)))
-	{
-			return oi;
-	}
-	return INVALID_O_INDEX;
+	return Step(psIterator, true, &oi, &pcObject) ? oi : INVALID_O_INDEX;
 }
 
 
@@ -141,39 +160,25 @@ OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 {
-	bool		bResult;
-	OIndex		oi;
-	size		iKeyLength;
+	OIndex			oi;
+	CBaseObject*	pcObject;
 
-	bResult = mcIndexes.Iterate(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
-	if ((bResult) && (iKeyLength == sizeof(OIndex)))
-	{
-		return oi;
-	}
-	return INVALID_O_INDEX;
+	return Step(psIterator, false, &oi, &pcObject) ? oi : INVALID_O_INDEX;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The objects themselves, read with their indexes rather than looked up
-// again by them.
+// again by them.  NULL after the last.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CIndexedObjects::StartIterationObject(SIndexesIterator* psIterator)
 {
-	bool			bResult;
 	OIndex			oi;
-	size			iKeyLength;
 	CBaseObject*	pcObject;
-	size			uiDataSize;
 
-	bResult = mcIndexes.StartIteration(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), &pcObject, &uiDataSize, sizeof(pcObject));
-	if (bResult && (uiDataSize == sizeof(pcObject)))
-	{
-		return pcObject;
-	}
-	return NULL;
+	return Step(psIterator, true, &oi, &pcObject) ? pcObject : NULL;
 }
 
 
@@ -183,18 +188,10 @@ CBaseObject* CIndexedObjects::StartIterationObject(SIndexesIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CIndexedObjects::IterateObject(SIndexesIterator* psIterator)
 {
-	bool			bResult;
 	OIndex			oi;
-	size			iKeyLength;
 	CBaseObject*	pcObject;
-	size			uiDataSize;
 
-	bResult = mcIndexes.Iterate(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), &pcObject, &uiDataSize, sizeof(pcObject));
-	if (bResult && (uiDataSize == sizeof(pcObject)))
-	{
-		return pcObject;
-	}
-	return NULL;
+	return Step(psIterator, false, &oi, &pcObject) ? pcObject : NULL;
 }
 
 

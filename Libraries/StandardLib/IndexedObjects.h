@@ -52,6 +52,9 @@ public:
 	CBaseObject*		IterateObject(SIndexesIterator* psIterator);
 
 	CIndexTreeMemory*	GetIndexes(void);
+
+protected:
+	bool				Step(SIndexesIterator* psIterator, bool bFirst, OIndex* poi, CBaseObject** ppcObject);
 };
 
 
