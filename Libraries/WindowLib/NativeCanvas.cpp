@@ -97,6 +97,43 @@ void CNativeCanvas::Clear(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcRect (right and bottom exclusive) is made empty: black, and wholly
+// transparent where the canvas has opacity.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeCanvas::Clear(CInt32Rect* pcRect)
+{
+	Ptr<CImage>	pImage;
+	CInt32Rect	cClear;
+	uint8*		puiData;
+	size		uiWidth;
+	size		uiPixelBytes;
+	int32		y;
+
+	pImage = GetImageOrNull();
+	if (pImage.IsNull() || (pImage->GetWidth() == 0) || (pImage->GetHeight() == 0))
+	{
+		return;
+	}
+	cClear.Init(0, 0, (int32)pImage->GetWidth(), (int32)pImage->GetHeight());
+	cClear.ClipTo(pcRect);
+	if ((cClear.GetWidth() <= 0) || (cClear.GetHeight() <= 0))
+	{
+		return;
+	}
+
+	puiData = (uint8*)pImage->GetData();
+	uiWidth = pImage->GetWidth();
+	uiPixelBytes = pImage->GetByteSize() / (uiWidth * pImage->GetHeight());
+	for (y = cClear.GetTop(); y < cClear.GetBottom(); y++)
+	{
+		memset(&puiData[((size)y * uiWidth + (size)cClear.GetLeft()) * uiPixelBytes], 0, (size)cClear.GetWidth() * uiPixelBytes);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CNativeCanvas::GetSize(void)

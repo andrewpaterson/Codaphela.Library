@@ -34,18 +34,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHe
 	PreInit();
 
 	mcFormat = *pcFormat;
-
-	mpcNativeCanvas = NULL;
-	CComponent::Init(pWindow);
-
-	mpCanvasDraw = pDraw;
-	mbTransparent = false;
-	msNativeOrigin.Zero();
-	msNativeSize.Zero();
-	mbContentDirty = true;
-	mbClearBeforeDraw = false;
-	mbPaintClipped = false;
-	mcPaintClip.Init(0, 0, 0, 0);
+	InitCanvas(pWindow, pDraw);
 
 	PostInit();
 }
@@ -60,7 +49,19 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 	PreInit();
 
 	pWindow->GetColourFormat(&mcFormat);
+	InitCanvas(pWindow, pDraw);
 
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What both Inits set up, after the colour format.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::InitCanvas(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
+{
 	mpcNativeCanvas = NULL;
 	CComponent::Init(pWindow);
 
@@ -69,11 +70,10 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 	msNativeOrigin.Zero();
 	msNativeSize.Zero();
 	mbContentDirty = true;
+	mcPartDamage.Init();
 	mbClearBeforeDraw = false;
 	mbPaintClipped = false;
 	mcPaintClip.Init(0, 0, 0, 0);
-
-	PostInit();
 }
 
 
@@ -84,6 +84,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 void CCanvas::Free(void)
 {
 	DestroyNativeCanvas();
+	mcPartDamage.Kill();
 
 	mcFormat.Init(CFT_Unknown, CCO_Unknown, CRGB_Unknown, ARGB_Unknown);
 
@@ -108,6 +109,7 @@ void CCanvas::Class(void)
 	U_2Int32(msNativeOrigin);
 	U_2Int32(msNativeSize);
 	U_Bool(mbContentDirty);
+	U_Data(CDamageArea, mcPartDamage);
 	U_Bool(mbClearBeforeDraw);
 	U_Bool(mbPaintClipped);
 	U_Data(CInt32Rect, mcPaintClip);
@@ -208,20 +210,14 @@ bool CCanvas::Draw(void)
 		return CComponent::Draw();
 	}
 
-	//The native canvas keeps what the canvas last drew, so it is only drawn again when that changed.  A transparent canvas
-	//starts each draw empty so that only what is drawn this time shows over what is behind it.
+	//The native canvas keeps what the canvas last drew, so it is only drawn again where that changed.
 	if (mbContentDirty)
 	{
-		if (mbTransparent || mbClearBeforeDraw)
-		{
-			mpcNativeCanvas->Clear();
-		}
-		if (mpCanvasDraw)
-		{
-			mpCanvasDraw->Draw(this);
-		}
-		mbContentDirty = false;
-		mbClearBeforeDraw = false;
+		DrawAll();
+	}
+	else if (!mcPartDamage.IsEmpty())
+	{
+		DrawParts();
 	}
 
 	//The canvas is copied onto the window before its children so that they are drawn over it.
@@ -274,6 +270,105 @@ void CCanvas::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32
 		{
 			mbClearBeforeDraw = true;
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The canvas draws all of itself again.  A transparent canvas starts
+// empty so that only what is drawn this time shows over what is behind
+// it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::DrawAll(void)
+{
+	if (mbTransparent || mbClearBeforeDraw)
+	{
+		mpcNativeCanvas->Clear();
+	}
+	if (mpCanvasDraw)
+	{
+		mpCanvasDraw->Draw(this);
+	}
+	mbContentDirty = false;
+	mbClearBeforeDraw = false;
+	mcPartDamage.Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The canvas draws again only the parts of it that changed
+// (InvalidateArea), each cleared if it is transparent and drawn with the
+// part as its paint clip.  A draw that can't keep to a clip draws all of
+// it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::DrawParts(void)
+{
+	CInt32Rect	cNative;
+	CInt32Rect	cPart;
+	CInt32Rect	cClear;
+	size		i;
+
+	if (mpCanvasDraw.IsNull() || !mpCanvasDraw->CanDrawPart())
+	{
+		DrawAll();
+		return;
+	}
+
+	cNative.Init(msNativeOrigin.x, msNativeOrigin.y, msNativeOrigin.x + msNativeSize.x, msNativeOrigin.y + msNativeSize.y);
+	for (i = 0; i < mcPartDamage.NumRectangles(); i++)
+	{
+		cPart.Init(mcPartDamage.GetRectangle(i));
+		cPart.ClipTo(&cNative);
+		if ((cPart.GetWidth() <= 0) || (cPart.GetHeight() <= 0))
+		{
+			continue;
+		}
+		if (mbTransparent)
+		{
+			cClear.Init(cPart.GetLeft() - msNativeOrigin.x, cPart.GetTop() - msNativeOrigin.y, cPart.GetRight() - msNativeOrigin.x, cPart.GetBottom() - msNativeOrigin.y);
+			mpcNativeCanvas->Clear(&cClear);
+		}
+		SetPaintClip(&cPart);
+		mpCanvasDraw->Draw(this);
+		ClearPaintClip();
+	}
+	mcPartDamage.Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Part of the canvas, pcRect in its space (right and bottom exclusive),
+// must be drawn again: only that part is, if the canvas's draw can draw
+// part (CCanvasDraw::CanDrawPart), and only that part of the window
+// shown again.  Invalidate is all of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::InvalidateArea(CInt32Rect* pcRect)
+{
+	CInt32Rect	cWindow;
+
+	if ((pcRect->GetWidth() <= 0) || (pcRect->GetHeight() <= 0))
+	{
+		return;
+	}
+	if (!mbContentDirty)
+	{
+		mcPartDamage.Add(pcRect);
+	}
+	if (mpWindow.IsNotNull())
+	{
+		cWindow.Init(pcRect->GetLeft() + mcActualBounds.GetLeft(), pcRect->GetTop() + mcActualBounds.GetTop(), pcRect->GetRight() + mcActualBounds.GetLeft(), pcRect->GetBottom() + mcActualBounds.GetTop());
+		cWindow.ClipTo(&mcDrawnArea);
+		if ((cWindow.GetWidth() > 0) && (cWindow.GetHeight() > 0))
+		{
+			mpWindow->AddDamage(&cWindow);
+		}
+		mpWindow->RequestPaint();
 	}
 }
 

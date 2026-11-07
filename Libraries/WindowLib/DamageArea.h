@@ -26,9 +26,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define DAMAGE_AREA_MAX_RECTANGLES	8
 
 
-//The parts of a window that must be drawn again: a few rectangles in window client space, right and bottom
-//exclusive, or all of it.  A rectangle inside one already there adds nothing; one more than the most kept merges them
-//all into their bounds, so the area never misses what was added, it only grows.
+//The parts of a window, or of a canvas (CCanvas::InvalidateArea), that must be drawn again: a few rectangles in its
+//space, right and bottom exclusive, or all of it.  A rectangle inside one already there adds nothing; one more than the
+//most kept merges them all into their bounds, so the area never misses what was added, it only grows.
 class CDamageArea
 {
 protected:

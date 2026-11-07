@@ -560,6 +560,124 @@ static uint32 GetWindowPixel(Ptr<CWindow> pWindow, int32 x, int32 y)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A window with one 20 by 10 canvas at its top left, filled by pDraw,
+// drawing only what changed.  Not checked against drawing all of it: the
+// tests change the fill without invalidating all of the canvas.
+//
+//////////////////////////////////////////////////////////////////////////
+static void CreatePartCanvasWindow(SDamageWindow* psWindow, CWinRefWindowFactory* pcFactory, Ptr<CBoxFillCanvasDraw> pDraw, bool bTransparent)
+{
+	Ptr<CFillContainer>	pFill;
+
+	psWindow->pTick = OMalloc<CTickTestRefWindow>(&psWindow->cData, 1);
+	psWindow->pWindow = OMalloc<CWindow>("Part", pcFactory, psWindow->pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 1.0f)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+	ORoot()->Add(psWindow->pWindow);
+	pFill = OMalloc<CFillContainer>(psWindow->pWindow);
+	psWindow->pWindow->SetContainer(pFill);
+	psWindow->pFirst = OMalloc<CCanvas>(psWindow->pWindow, pDraw);
+	psWindow->pFirst->SetDesiredSize(20, 10);
+	psWindow->pFirst->SetAlignment(CSH_Left, CSV_Top);
+	psWindow->pFirst->SetTransparent(bTransparent);
+	pFill->AddComponent(psWindow->pFirst);
+	psWindow->pWindow->SetPartialRedraw(true);
+	psWindow->pWindow->Paint();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A canvas invalidated in part draws again, and shows again, only that
+// part, if its draw can; a draw that can't draws all of it.  A
+// transparent canvas's part is cleared before it is drawn, and
+// invalidating all of a canvas takes over from its parts.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawCanvasPart(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "PartialRedrawPart";
+	ARGB32					sRed;
+	ARGB32					sGreen;
+	ARGB32					sTranslucent;
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+	sRed = Set32BitColour(1.0f, 0, 0);
+	sGreen = Set32BitColour(0, 1.0f, 0);
+	sTranslucent = Set32BitColour(1.0f, 0, 0, 0.5f);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 40, 20, szDirectory);
+	{
+		SDamageWindow			sWindow;
+		Ptr<CBoxFillCanvasDraw>	pDraw;
+		CWinRefWindow*			pcNative;
+		CInt32Rect				cLeft;
+		CInt32Rect				cPresented;
+		uint32					uiRed;
+		uint32					uiGreen;
+		uint32					uiOverBlue;
+
+		pDraw = OMalloc<CBoxFillCanvasDraw>(sRed);
+		CreatePartCanvasWindow(&sWindow, &cFactory, pDraw, false);
+		pcNative = (CWinRefWindow*)sWindow.pWindow->GetNativeWindow();
+		uiRed = GetWindowPixel(sWindow.pWindow, 15, 5);
+
+		//The left half draws green again; the right half keeps the red it drew before.
+		pDraw->SetColour(sGreen);
+		cLeft.Init(0, 0, 10, 10);
+		pcNative->ClearPresented();
+		sWindow.pFirst->InvalidateArea(&cLeft);
+		sWindow.pWindow->Paint();
+		uiGreen = GetWindowPixel(sWindow.pWindow, 5, 5);
+		AssertTrue(uiGreen != uiRed);
+		AssertInt(uiRed, GetWindowPixel(sWindow.pWindow, 15, 5));
+		pcNative->GetPresented()->GetBounds(&cPresented);
+		AssertTrue(cPresented.Equals(&cLeft));
+
+		//A draw that can't draw part draws all of it.
+		pDraw->SetColour(sRed);
+		pDraw->SetCanDrawPart(false);
+		sWindow.pFirst->InvalidateArea(&cLeft);
+		sWindow.pWindow->Paint();
+		AssertInt(uiRed, GetWindowPixel(sWindow.pWindow, 5, 5));
+		AssertInt(uiRed, GetWindowPixel(sWindow.pWindow, 15, 5));
+
+		//All of it invalidated after part of it: all of it draws.
+		pDraw->SetCanDrawPart(true);
+		pDraw->SetColour(sGreen);
+		sWindow.pFirst->InvalidateArea(&cLeft);
+		sWindow.pFirst->Invalidate();
+		sWindow.pWindow->Paint();
+		AssertInt(uiGreen, GetWindowPixel(sWindow.pWindow, 15, 5));
+
+		pDraw = NULL;
+		KillDamageWindow(&sWindow);
+
+		//A translucent fill over the window's blue: the part drawn again is cleared first, or it would be drawn over itself.
+		pDraw = OMalloc<CBoxFillCanvasDraw>(sTranslucent);
+		CreatePartCanvasWindow(&sWindow, &cFactory, pDraw, true);
+		uiOverBlue = GetWindowPixel(sWindow.pWindow, 5, 5);
+		sWindow.pFirst->InvalidateArea(&cLeft);
+		sWindow.pWindow->Paint();
+		AssertInt(uiOverBlue, GetWindowPixel(sWindow.pWindow, 5, 5));
+		AssertInt(uiOverBlue, GetWindowPixel(sWindow.pWindow, 15, 5));
+
+		pDraw = NULL;
+		KillDamageWindow(&sWindow);
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A text area's selection moved from the keys is drawn by the next
 // partial paint (it wasn't drawn until something else was), as are its
 // edits, each as drawing all of the window would.
@@ -655,6 +773,7 @@ void TestPartialRedraw(void)
 	TestPartialRedrawMatchesFull();
 	TestPartialRedrawVerifyFindsStale();
 	TestPartialRedrawDialogLikeOwner();
+	TestPartialRedrawCanvasPart();
 	TestPartialRedrawTextArea();
 
 	TestStatistics();

@@ -27,6 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Image.h"
 #include "Component.h"
 #include "CanvasDraw.h"
+#include "DamageArea.h"
 
 
 class CNativeCanvas;
@@ -46,8 +47,9 @@ protected:
 	SInt32Vec2			msNativeOrigin;  //Where the native canvas's top left is in the canvas.  The native canvas only holds the part that shows, see UpdateNativeArea.
 	SInt32Vec2			msNativeSize;  //The size the native canvas should be.
 	bool				mbContentDirty;  //The canvas draws itself again at the next paint; until then its native canvas holds what it last drew.
+	CDamageArea			mcPartDamage;  //The parts of it to draw again (InvalidateArea) when it isn't all drawn again, in its space.
 	bool				mbClearBeforeDraw;  //The native canvas holds what was drawn for another part of the canvas, see PrepareArea.
-	bool				mbPaintClipped;  //Only the window's canvas, while a partial paint draws mcPaintClip of it.
+	bool				mbPaintClipped;  //While mcPaintClip of it is drawn: the window's canvas in a partial paint, any canvas drawing part of itself.
 	CInt32Rect			mcPaintClip;  //In the canvas's space, right and bottom exclusive.
 
 public:
@@ -89,6 +91,7 @@ public:
 	bool				ClearContainer(void);
 
 	bool				Draw(void) override;
+	void				InvalidateArea(CInt32Rect* pcRect);
 
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
 	Ptr<CImage>			GetImageOrNull(void);  //The native canvas's pixels as an image, NULL if it has none (a canvas draw then blits into an image of its own).  Its top left is GetNativeOrigin in the canvas.
@@ -96,7 +99,7 @@ public:
 	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip = NULL);  //Into the native canvas's own space.
 	void				DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour);  //These three are in the canvas's space and cut to its native canvas.
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
-	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);
+	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);  //Not cut to the paint clip.
 	void				SetPaintClip(CInt32Rect* pcClip);
 	void				ClearPaintClip(void);
 	bool				GetPaintClip(CInt32Rect* pcDest);
@@ -107,7 +110,10 @@ public:
 	void				DestroyNativeCanvas(void);
 
 protected:
+	void				InitCanvas(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw);
 	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
+	void				DrawAll(void);
+	void				DrawParts(void);
 	void				MarkContentChanged(void) override;
 	EColourFormat		GetTransparentColourFormat(void);
 	void				DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);

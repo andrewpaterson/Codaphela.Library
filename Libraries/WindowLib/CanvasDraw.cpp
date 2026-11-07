@@ -96,3 +96,18 @@ bool CCanvasDraw::GetSolidColour(ARGB32* psColour)
 {
 	return false;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the draw can draw only part of its canvas (CCanvas::InvalidateArea):
+// it draws only through the canvas's DrawBox and DrawPixel, which keep to
+// its paint clip, or keeps to the paint clip (CCanvas::GetPaintClip)
+// itself.  A draw that can't is drawn whole.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvasDraw::CanDrawPart(void)
+{
+	return false;
+}
+

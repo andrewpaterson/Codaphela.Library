@@ -47,6 +47,7 @@ protected:
 	virtual void		CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
 	virtual Ptr<CImage>	GetImageOrNull(void) =0;
 	virtual void		Clear(void);
+	virtual void		Clear(CInt32Rect* pcRect);
 
 	virtual void		DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour) =0;
 	virtual void		DrawPixel(int iX, int iY, ARGB32 sColour) =0;

@@ -47,6 +47,7 @@ public:
 	virtual bool		Draw(Ptr<CCanvas> pCanvas) =0;
 	virtual SInt32Vec2	GetDesiredSize(void);
 	virtual bool		GetSolidColour(ARGB32* psColour);
+	virtual bool		CanDrawPart(void);
 };
 
 
