@@ -165,7 +165,8 @@ void TestClassOnStackOutOfFrame(void)
 	AssertString("mpObject", pcField->GetName());
 	AssertLayoutSize(OBJECT_SIZE, pcField->GetOffset());
 	pcPointerField = (CPointerField*)pcField;
-
+	AssertString("Pointer", pcPointerField->GetClass()->GetName());
+	AssertSize(sizeof(CPointer), pcPointerField->GetSizeOf());
 
 	pTestClass3 = OMalloc<CTestClass>();
 	cTestClass.mpObject = pTestClass3;

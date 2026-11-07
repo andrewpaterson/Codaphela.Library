@@ -22,6 +22,7 @@ void CClasses::Init(CObjects* pcObjects)
 	TypesValidate();
 
 	muiCurrentClassType = 0;
+	mpcPointer = NULL;
 
 	maClasses.Init(sizeof(CClass));
 	mmcpClassesByName.Init();
@@ -66,11 +67,9 @@ void CClasses::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CClasses::AddSystemClasses(void)
 {
-	CClass*			pcClass;
-
-	pcClass = Add("Pointer", sizeof(CPointer));
-	pcClass->System();
-	pcClass->Complete();
+	mpcPointer = Add("Pointer", sizeof(CPointer));
+	mpcPointer->System();
+	mpcPointer->Complete();
 
 	AddSystemClassAndConstructor<CSetObject>();
 	AddSystemClassAndConstructor<CSet<>>();
