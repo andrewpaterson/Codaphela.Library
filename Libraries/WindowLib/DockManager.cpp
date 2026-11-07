@@ -1126,8 +1126,6 @@ void						CDockManager::SetDragNoDock(bool bNoDock) { mpDrag->SetNoDock(bNoDock)
 void						CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane) { mpDrag->BeginPane(pPane); }
 void						CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup) { mpDrag->BeginGroup(pGroup); }
 void						CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating) { mpDrag->BeginFloating(pFloating); }
-void						CDockManager::SetNextGroupID(int32 iID) { miNextGroupID = iID; }
-int32						CDockManager::GetNextGroupID(void) { return miNextGroupID; }
 
 
 //////////////////////////////////////////////////////////////////////////

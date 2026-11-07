@@ -107,7 +107,6 @@ public:
 	void							SetOverflowMenu(bool bOverflow);
 	void							OpenOverflowMenu(void);
 	Ptr<CMenuContainer>				GetOverflowMenu(void);
-	Ptr<CIconComponent>				GetOverflowButton(void);
 	size							IndexOf(Ptr<CTabComponent> pTab);
 	size							IndexOfPage(Ptr<CComponent> pPage);
 	Ptr<CTabComponent>				FindTabAt(int x, int y);

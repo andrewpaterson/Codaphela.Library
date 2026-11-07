@@ -99,10 +99,8 @@ public:
 	bool						IsShown(void);
 	Ptr<CWindow>				GetOwner(void);
 	size						NumOwned(void);
-	Ptr<CWindow>				GetOwned(size uiIndex);
 	CComponentEvent<CWindow>*	GetClosedEvent(void);
 	void						ClaimInput(void);
-	bool						HasInput(void);
 	void						SetScreenRectangle(CInt32Rect* pcRectangle);
 	void						GetScreenRectangle(CInt32Rect* pcDest);
 	void						GetPointerScreenPosition(SInt32Vec2* psDest);

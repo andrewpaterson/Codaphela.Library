@@ -601,7 +601,6 @@ void CMenuContainer::Click(Ptr<CMenuItem> pItem)
 		ItemClicked(pItem);
 	}
 }
-Ptr<CMenuContainer> CMenuContainer::GetParentMenu(void) { return mpParentMenu; }
 Ptr<CMenuBar> CMenuContainer::GetMenuBar(void) { return mpMenuBar; }
 Ptr<CMenuStyle> CMenuContainer::GetStyle(void) { return mpStyle; }
 

@@ -339,7 +339,6 @@ size CSoundMixer::NumVoices(void) { return maVoices.Size(); }
 Ptr<CSoundVoice> CSoundMixer::GetVoice(size uiIndex) { return maVoices.Get(uiIndex); }
 uint32 CSoundMixer::GetSampleRate(void) { return muiSampleRate; }
 void CSoundMixer::SetLead(uint32 uiLeadMs) { muiLeadMs = uiLeadMs; }
-uint32 CSoundMixer::GetLead(void) { return muiLeadMs; }
 void CSoundMixer::SetVolume(float64 fVolume) { mfVolume = fVolume; }
 float64 CSoundMixer::GetVolume(void) { return mfVolume; }
 uint64 CSoundMixer::NumFramesMixed(void) { return muiFramesMixed; }

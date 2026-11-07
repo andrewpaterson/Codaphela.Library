@@ -123,16 +123,6 @@ bool CDockNode::HasDocuments(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDockNode::IsEmpty(void)
-{
-	return CountPanes() == 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Every pane in the node takes the state, docked in the main area or
 // floating.
 //
@@ -251,28 +241,6 @@ Ptr<CDockManager>	CDockNode::GetManager(void) { return mpManager; }
 bool				CDockNode::IsSplit(void) { return GetKind() == DNK_Split; }
 bool				CDockNode::IsGroup(void) { return GetKind() == DNK_Group; }
 bool				CDockNode::IsDocumentWell(void) { return GetKind() == DNK_DocumentWell; }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EDockSide OppositeDockSide(EDockSide eSide)
-{
-	switch (eSide)
-	{
-	case DS_Left:
-		return DS_Right;
-	case DS_Right:
-		return DS_Left;
-	case DS_Top:
-		return DS_Bottom;
-	case DS_Bottom:
-		return DS_Top;
-	default:
-		return eSide;
-	}
-}
 
 
 //////////////////////////////////////////////////////////////////////////

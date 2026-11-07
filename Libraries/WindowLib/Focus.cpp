@@ -858,5 +858,4 @@ bool CFocus::BlinkCaret(int64 iNow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CFocus::GetCaretBlinkPeriod(void) { return miCaretBlinkPeriod; }
 bool CFocus::IsCaretOn(void) { return mbCaretOn || (miCaretBlinkPeriod == 0); }

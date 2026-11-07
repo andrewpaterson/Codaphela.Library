@@ -410,23 +410,6 @@ void CDockSplit::PlaceChildren(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockSplit::SetHorizontal(bool bHorizontal)
-{
-	size	i;
-
-	mbHorizontal = bHorizontal;
-	for (i = 0; i < maSashes.Size(); i++)
-	{
-		maSashes.Get(i)->SetHorizontal(bHorizontal);
-	}
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 size CDockSplit::IndexOf(Ptr<CDockNode> pNode)
 {
 	size	i;

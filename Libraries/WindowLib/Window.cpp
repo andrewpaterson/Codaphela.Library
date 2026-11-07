@@ -1429,10 +1429,8 @@ void CWindow::Raise(void)
 
 
 bool CWindow::IsShown(void) { return mpcNativeWindow->IsCreated() && ((mpOwner.IsNotNull()) || mbTicking); }
-bool CWindow::HasInput(void) { return (mpcComponentInput != NULL) && (mpcComponentInput->GetWindow() == this); }
 Ptr<CWindow> CWindow::GetOwner(void) { return mpOwner; }
 size CWindow::NumOwned(void) { return maOwned.Size(); }
-Ptr<CWindow> CWindow::GetOwned(size uiIndex) { return maOwned.Get(uiIndex); }
 CComponentEvent<CWindow>* CWindow::GetClosedEvent(void) { return &mcClosed; }
 
 

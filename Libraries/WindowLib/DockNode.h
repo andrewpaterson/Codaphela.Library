@@ -124,13 +124,11 @@ public:
 			bool				IsGroup(void);
 			bool				IsDocumentWell(void);
 			bool				HasDocuments(void);
-			bool				IsEmpty(void);
 			void				SetPaneStates(EDockPaneState eState);
 			void				SetPaneFloatRectangles(CInt32Rect* pcRectangle);
 };
 
 
-EDockSide	OppositeDockSide(EDockSide eSide);
 bool		IsHorizontalDockSide(EDockSide eSide);
 bool		IsAfterDockSide(EDockSide eSide);
 const char*	DockSideToString(EDockSide eSide);

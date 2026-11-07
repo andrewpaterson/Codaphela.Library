@@ -102,7 +102,6 @@ public:
 	//moves, its text is edited or the focus changes (ResetCaretBlink).  The window draws it over what it paints.
 	bool				GetCaret(CInt32Rect* pcDest, ARGB32* psColour);
 	void				SetCaretBlinkPeriod(int32 iMilliseconds);
-	int32				GetCaretBlinkPeriod(void);
 	void				ResetCaretBlink(void);
 	bool				IsCaretOn(void);
 	int64				GetCaretBlinkWait(int64 iNow);

@@ -85,7 +85,6 @@ public:
 
 	void				SetPolicy(EScrollBarOrientation eOrientation, EScrollPanePolicy ePolicy);
 	EScrollPanePolicy	GetPolicy(EScrollBarOrientation eOrientation);
-	void				SetMargin(int32 iMargin);
 	void				SetWheelStep(int32 iWheelStep);
 	int32				GetWheelStep(void);
 

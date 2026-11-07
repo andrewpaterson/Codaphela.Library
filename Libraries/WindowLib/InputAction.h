@@ -97,7 +97,6 @@ public:
 	bool					IsEnabled(void);
 
 	EInputActionFilter		GetFilter(void);
-	char*					GetActionName(void);
 	EComponentInputCommand	GetCommand(void);
 
 protected:

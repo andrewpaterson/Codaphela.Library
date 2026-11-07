@@ -88,11 +88,9 @@ public:
 	size					NumPanes(void);
 	Ptr<CDockPane>			GetPane(size uiIndex);
 	size					IndexOfPane(Ptr<CDockPane> pPane);
-	bool					MovePane(Ptr<CDockPane> pPane, size uiIndex);
 	void					PaneChanged(Ptr<CDockPane> pPane);
 	void					SetActive(bool bActive);
 	bool					IsActive(void);
-	void					SetPinned(bool bPinned);
 	int32					GetID(void);
 	void					SetID(int32 iID);
 	bool					IsDocumentGroup(void);

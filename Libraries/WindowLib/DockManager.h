@@ -204,8 +204,6 @@ public:
 	void						PlaceInGroup(Ptr<CDockGroup> pGroup, Ptr<CDockPane> pPane, size uiIndex = MAX_SIZE);
 	void						AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup = NULL);
 	bool						IsInWell(Ptr<CDockNode> pNode);
-	void						SetNextGroupID(int32 iID);
-	int32						GetNextGroupID(void);
 
 	//Called by the groups, title bars and tabs as the user acts on them.
 	void						PaneSelected(Ptr<CDockPane> pPane);

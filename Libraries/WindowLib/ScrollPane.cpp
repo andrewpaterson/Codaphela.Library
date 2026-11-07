@@ -614,7 +614,6 @@ CScrollEvent* CScrollPane::GetScrollEvent(void)
 
 
 Ptr<CComponent> CScrollPane::GetContent(void) { return mpContent; }
-void CScrollPane::SetMargin(int32 iMargin) { miMargin = iMargin; InvalidateLayout(); }
 void CScrollPane::SetWheelStep(int32 iWheelStep) { miWheelStep = iWheelStep; }
 int32 CScrollPane::GetWheelStep(void) { return miWheelStep; }
 SInt32Vec2 CScrollPane::GetContentSize(void) { return msContentSize; }

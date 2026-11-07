@@ -74,7 +74,6 @@ public:
 	bool					SetSampleRate(uint32 uiSampleRate);
 	uint32					GetSampleRate(void);
 	void					SetLead(uint32 uiLeadMs);
-	uint32					GetLead(void);
 	void					SetVolume(float64 fVolume);
 	float64					GetVolume(void);
 

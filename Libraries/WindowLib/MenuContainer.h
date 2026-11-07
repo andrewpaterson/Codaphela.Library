@@ -78,7 +78,6 @@ public:
 	void				OpenSubMenu(int32 iRow, bool bFocus);
 	void				CloseSubMenu(void);
 	Ptr<CMenuContainer>	GetOpenSubMenu(void);
-	Ptr<CMenuContainer>	GetParentMenu(void);
 	void				SetMenuBar(Ptr<CMenuBar> pMenuBar);
 	Ptr<CMenuBar>		GetMenuBar(void);
 	Ptr<CMenuStyle>		GetStyle(void);

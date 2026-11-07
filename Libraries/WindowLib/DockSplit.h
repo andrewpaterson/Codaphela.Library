@@ -94,7 +94,6 @@ public:
 	bool				IsHorizontal(void);
 	bool				IsAlong(EDockSide eSide);
 	bool				IsSameDirection(Ptr<CDockSplit> pOther);
-	void				SetHorizontal(bool bHorizontal);
 	Ptr<CDockSash>		GetSash(size uiIndex);
 	int32				GetNodeSize(size uiIndex);
 

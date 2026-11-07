@@ -83,7 +83,6 @@ public:
 	size					GetDevices(CArrayInputDevicePtr* papcDevices, char* szCategory);
 	CInputSourceDesc*		GetSource(CInputDevice* pcDevice, char* szFriendlyName);
 	char*					GetName(CInputSourceDesc* pcSource);
-	bool					IsDelta(CInputSourceDesc* pcSource);
 	CInputChord*			AddChord(char* szName);
 	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
 	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);

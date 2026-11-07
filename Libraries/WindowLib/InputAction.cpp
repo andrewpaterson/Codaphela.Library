@@ -142,5 +142,4 @@ void CInputAction::Call(SComponentInputEvent* psEvent)
 void CInputAction::SetEnabled(bool bEnabled) { mbEnabled = bEnabled; }
 bool CInputAction::IsEnabled(void) { return mbEnabled; }
 EInputActionFilter CInputAction::GetFilter(void) { return meFilter; }
-char* CInputAction::GetActionName(void) { return mszName.Text(); }
 EComponentInputCommand CInputAction::GetCommand(void) { return meCommand; }

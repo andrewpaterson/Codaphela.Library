@@ -30,13 +30,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define BEI_Left 3
 
 
-//BORDER_CORNER_INDEX
-#define BCI_TopLeft 0
-#define BCI_TopRight 1
-#define BCI_BottomRight 2
-#define BCI_BottomLeft 3
-
-
 struct SInsets
 {
 	int aiWidths[4];

@@ -36,7 +36,6 @@ friend class CWindow;
 protected:
 	CWindow*		mpcWindow;
 	CNativeWindow*	mpcOwner;  //The window a dialog is shown over, NULL for a main window.
-	CInt32Rect		mcLastRectangle;
 	SInt32Vec2		msRequestedSize;  //The client size to create the window with, -1 for the native default.
 	SInt32Vec2		msMinimumSize;  //The smallest client size a dialog can be resized to, -1 for a dialog that can't be.
 	bool			mbPainting;

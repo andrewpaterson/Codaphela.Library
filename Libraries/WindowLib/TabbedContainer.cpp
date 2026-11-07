@@ -701,7 +701,6 @@ Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiI
 ETabSide CTabbedContainer::GetTabSide(void) { return meTabSide; }
 bool CTabbedContainer::IsBarShown(void) { return mbBarShown; }
 Ptr<CMenuContainer> CTabbedContainer::GetOverflowMenu(void) { return mpOverflowMenu; }
-Ptr<CIconComponent> CTabbedContainer::GetOverflowButton(void) { return mpOverflow; }
 
 
 //////////////////////////////////////////////////////////////////////////

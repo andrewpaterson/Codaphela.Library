@@ -462,28 +462,6 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::ToChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py)
-{
-	*px = x - pChildComponent->mcActualBounds.msTopLeft.x;
-	*py = y - pChildComponent->mcActualBounds.msTopLeft.y;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComponent::FromChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py)
-{
-	*px = x + pChildComponent->mcActualBounds.msTopLeft.x;
-	*py = y + pChildComponent->mcActualBounds.msTopLeft.y;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CComponent::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 
@@ -510,26 +488,6 @@ void CComponent::LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		pComponent = maChildren.Get(i);
 		pComponent->Layout(sPosition, sAreaSize);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CComponent::GetDepth(void)
-{
-	size					iDepth;
-	Ptr<CComponent>			pComponent;
-
-	iDepth = 0;
-	pComponent = mpParent;
-	while (pComponent != NULL)
-	{
-		iDepth++;
-		pComponent = pComponent->mpParent;
-	}
-	return iDepth;
 }
 
 

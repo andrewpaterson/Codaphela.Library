@@ -34,7 +34,6 @@ void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 	mpcWindowFactory = pcWindowFactory;
 	mpcWindow = pcWindow;
 	mpcOwner = NULL;
-	mcLastRectangle.Init(-1, -1, -1, -1);
 	msRequestedSize.Init(-1, -1);
 	msMinimumSize.Init(-1, -1);
 	mbPainting = false;
