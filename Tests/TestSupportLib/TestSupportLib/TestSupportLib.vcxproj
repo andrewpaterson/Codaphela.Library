@@ -285,7 +285,6 @@
     <ClCompile Include="TestMeshShapes.cpp" />
     <ClCompile Include="TestMeshUVCoords.cpp" />
     <ClCompile Include="TestNormalGeneration.cpp" />
-    <ClCompile Include="TestPlainTextEditor.cpp" />
     <ClCompile Include="TestHalfSpace.cpp" />
     <ClCompile Include="TestPolygon.cpp" />
     <ClCompile Include="TestSphereShape.cpp" />

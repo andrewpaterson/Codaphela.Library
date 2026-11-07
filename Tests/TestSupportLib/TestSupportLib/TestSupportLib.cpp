@@ -7,7 +7,6 @@
 #include "TestLib/Assert.h"
 
 
-void TestPlainTextEditor(void);
 void TestColourBlend(void);
 void TestBumpMapper(void);
 void TestImage(void);
@@ -100,7 +99,6 @@ int __cdecl main(void)
 	TestImageRGBToGrey();
 	TestImageDivider();
 	TestBumpMapper();
-	TestPlainTextEditor();
 	TestImageCel();
 	TestRectangle();
 	TestRectangleBestPacker();

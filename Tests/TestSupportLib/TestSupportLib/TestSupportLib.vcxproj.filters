@@ -103,9 +103,6 @@
     <ClCompile Include="TestNormalGeneration.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="TestPlainTextEditor.cpp">
-      <Filter>Source Files\TextEditor</Filter>
-    </ClCompile>
     <ClCompile Include="TestHalfSpace.cpp">
       <Filter>Source Files\Shape</Filter>
     </ClCompile>

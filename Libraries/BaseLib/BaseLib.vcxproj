@@ -636,8 +636,6 @@
     <ClInclude Include="XMLEntity.h" />
     <ClInclude Include="XMLIdentifier.h" />
     <ClInclude Include="XMLParser.h" />
-    <ClInclude Include="PlainTextEditor.h" />
-    <ClInclude Include="TextEditor.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ConnectSocket.h" />
     <ClInclude Include="ListenSocket.h" />
@@ -1027,7 +1025,6 @@
     <ClCompile Include="XMLEntity.cpp" />
     <ClCompile Include="XMLIdentifier.cpp" />
     <ClCompile Include="XMLParser.cpp" />
-    <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
     <ClCompile Include="Timer_Linux.cpp" />

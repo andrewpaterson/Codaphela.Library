@@ -1257,12 +1257,6 @@
     <ClInclude Include="XMLParser.h">
       <Filter>Source\Text\XML</Filter>
     </ClInclude>
-    <ClInclude Include="PlainTextEditor.h">
-      <Filter>Source\Text\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="TextEditor.h">
-      <Filter>Source\Text\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Source\Windows</Filter>
     </ClInclude>
@@ -2461,9 +2455,6 @@
     </ClCompile>
     <ClCompile Include="XMLParser.cpp">
       <Filter>Source\Text\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="PlainTextEditor.cpp">
-      <Filter>Source\Text\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source\Windows</Filter>

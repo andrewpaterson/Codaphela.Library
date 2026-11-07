@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 
 
-//Moving through a UTF8 text by characters, lines and words, as text editors do (CTextArea, CPlainTextEditor).
+//Moving through a UTF8 text by characters, lines and words, as text editors do (CTextEditing).
 //Positions are bytes, always at the start of a character: a code point, or code points joined by ZWJs.  A carriage
 //return and line feed are one character.  Words are runs of letters, digits and underscores (any character that isn't
 //ASCII counts as a letter), or of spaces; any other character is a word by itself.

@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
-#include "BaseLib/Timer.h"
 #include "TextField.h"
 
 
@@ -29,28 +28,29 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 // The theme's font is drawn as it is, so it should already be the text's
 // colour.  The selection is drawn under the text and the caret beside it.
+// The caret starts at the end of the text, the history with the text.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szText)
 {
+	CChars	szLine;
+
 	PreInit();
 
 	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), pTheme->GetMetric(TM_FieldPaddingX), pTheme->GetMetric(TM_FieldPaddingY));
-	mcEditor.Init(szText == NULL ? "" : szText);
-	mcEditor.mbMultiLine = false;
-	mcEditor.SetPosition(mcEditor.Length());
 	mpFont = pTheme->GetFont();
 	mcChanged.Init();
 	miColumns = 20;
 	miScroll = 0;
-	muiDragAnchor = 0;
-	mbDragging = false;
 	SetCanGetFocus(true);
 
-	//The history starts with the text the field is made with.
-	mcUndo.Init();
-	mcUndo.Clear(mcEditor.Text(), mcEditor.miEditPos, MAX_SIZE);
-
+	mcDocument.Init(NULL);
+	mcEditing.Init(&mcDocument, this);
+	mcEditing.SetSingleLine(true);
+	szLine.Init(szText == NULL ? "" : szText);
+	mcEditing.MakeInsertable(&szLine);
+	mcDocument.SetText(szLine.Text());
+	szLine.Kill();
 
 	mpMarksDraw = OMalloc<CTextMarksCanvasDraw>(pTheme->GetColour(TC_TextSelection), pTheme->GetColour(TC_Caret));
 	mpMarks = OMalloc<CCanvas>(pWindow, mpMarksDraw);
@@ -58,72 +58,16 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	mpMarks->SetAlignment(CSH_Stretch, CSV_Stretch);
 	mpPadded->AddComponent(mpMarks);
 
-	mpText = OMalloc<CLabel>(pWindow, mpFont, mcEditor.Text());
+	mpText = OMalloc<CLabel>(pWindow, mpFont, mcDocument.Text());
 	mpText->SetAlignment(CSH_Left, CSV_Center);
 	mpPadded->AddComponent(mpText);
 
 	UpdateFaceSize();
-	AddInputAction(CIC_ActivateComponent, this, &CTextField::ActivateComponent);
-	AddInputAction(CIC_ExecuteComponent, this, &CTextField::ExecuteComponent);
-	AddInputAction(CIC_StartDragSelect, this, &CTextField::StartDragSelect);
-	AddInputAction(CIC_ContDragSelect, this, &CTextField::ContDragSelect);
-	AddInputAction(CIC_StopDragSelect, this, &CTextField::StopDragSelect);
-
-	//Moving the caret and selecting don't change the text, so the editor is given them.
-	AddInputAction(CIC_Left, &mcEditor, &CPlainTextEditor::Left);
-	AddInputAction(CIC_Right, &mcEditor, &CPlainTextEditor::Right);
-	AddInputAction(CIC_WordLeft, &mcEditor, &CPlainTextEditor::WordLeft);
-	AddInputAction(CIC_WordRight, &mcEditor, &CPlainTextEditor::WordRight);
-	AddInputAction(CIC_Home, &mcEditor, &CPlainTextEditor::Home);
-	AddInputAction(CIC_End, &mcEditor, &CPlainTextEditor::End);
-	AddInputAction(CIC_DocumentHome, &mcEditor, &CPlainTextEditor::DocumentHome);
-	AddInputAction(CIC_DocumentEnd, &mcEditor, &CPlainTextEditor::DocumentEnd);
-	AddInputAction(CIC_SelectLeft, &mcEditor, &CPlainTextEditor::SelectLeft);
-	AddInputAction(CIC_SelectRight, &mcEditor, &CPlainTextEditor::SelectRight);
-	AddInputAction(CIC_SelectWordLeft, &mcEditor, &CPlainTextEditor::SelectWordLeft);
-	AddInputAction(CIC_SelectWordRight, &mcEditor, &CPlainTextEditor::SelectWordRight);
-	AddInputAction(CIC_SelectHome, &mcEditor, &CPlainTextEditor::SelectHome);
-	AddInputAction(CIC_SelectEnd, &mcEditor, &CPlainTextEditor::SelectEnd);
-	AddInputAction(CIC_SelectDocumentHome, &mcEditor, &CPlainTextEditor::SelectDocumentHome);
-	AddInputAction(CIC_SelectDocumentEnd, &mcEditor, &CPlainTextEditor::SelectDocumentEnd);
-	AddInputAction(CIC_SelectWholeWord, &mcEditor, &CPlainTextEditor::SelectWholeWord);
-	AddInputAction(CIC_SelectAll, &mcEditor, &CPlainTextEditor::SelectAll);
-	AddInputAction(CIC_ClearSelection, &mcEditor, &CPlainTextEditor::ClearSelection);
-
-	AddInputAction(CIC_Space, this, &CTextField::SpaceAction);
-	AddInputAction(CIC_Delete, this, &CTextField::Delete);
-	AddInputAction(CIC_Backspace, this, &CTextField::Backspace);
-	AddInputAction(CIC_DeleteWordRemainingRight, this, &CTextField::DeleteWordRemainingRight);
-	AddInputAction(CIC_DeleteWordRemainingLeft, this, &CTextField::DeleteWordRemainingLeft);
-	AddInputAction(CIC_Cut, this, &CTextField::CutToClipboard);
-	AddInputAction(CIC_Copy, this, &CTextField::CopyToClipboard);
-	AddInputAction(CIC_Paste, this, &CTextField::PasteFromClipboard);
-	AddInputAction(CIC_Undo, this, &CTextField::UndoAction);
-	AddInputAction(CIC_Redo, this, &CTextField::RedoAction);
-	AddInputAction(IAF_Printable, NULL, this, &CTextField::PrintableAction);
+	mcInput.Init(this, &mcEditing, false);
+	mcEditing.SetCaretPosition(mcDocument.Length());
+	mcEditing.ClearUndo();
 
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The clipboard is the window's, the system's.  Cutting or copying
-// nothing leaves it as it was.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::CutToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextField::Cut); }
-void CTextField::CopyToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextField::Copy); }
-void CTextField::PasteFromClipboard(void) { mpWindow->GetClipboard()->PasteInto(this, &CTextField::Paste); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::PrintableAction(SComponentInputEvent* psEvent)
-{
-	Printable(psEvent->cPrintable, psEvent->bInsert);
 }
 
 
@@ -135,7 +79,9 @@ void CTextField::Class(void)
 {
 	CImageBorderContainer::Class();
 
-	U_Unknown(CPlainTextEditor, mcEditor);
+	U_Unknown(CTextDocument, mcDocument);
+	U_Unknown(CTextEditing, mcEditing);
+	U_Unknown(CTextEditingInput, mcInput);
 	M_Pointer(mpFont);
 	M_Pointer(mpMarksDraw);
 	M_Pointer(mpMarks);
@@ -143,9 +89,6 @@ void CTextField::Class(void)
 	U_Unknown(CComponentEvent<CTextField>, mcChanged);
 	U_Int32(miColumns);
 	U_Int32(miScroll);
-	U_Size(muiDragAnchor);
-	U_Bool(mbDragging);
-	U_Unknown(CTextUndo, mcUndo);
 }
 
 
@@ -155,9 +98,10 @@ void CTextField::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::Free(void)
 {
-	mcUndo.Kill();
 	mcChanged.Kill();
-	mcEditor.Kill();
+	mcInput.Kill();
+	mcEditing.Kill();
+	mcDocument.Kill();
 	CImageBorderContainer::Free();
 }
 
@@ -184,24 +128,14 @@ bool CTextField::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The caret goes to the end of the new text.  Line feeds become spaces,
+// The caret goes to the end of the new text.  Line breaks become spaces,
 // the field is one line.  It's an edit, so the old text can be had back
 // with undo.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextField::SetText(const char* szText)
 {
-	BeginEdit();
-	mcEditor.mszText.Kill();
-	mcEditor.mszText.Init(szText == NULL ? "" : szText);
-	mcEditor.mszText.Replace("\r\n", " ");
-	mcEditor.mszText.Replace('\n', ' ');
-	mcEditor.mszText.Replace('\r', ' ');
-	mcEditor.SetPosition(mcEditor.Length());
-	TextEdited();
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
+	mcEditing.ReplaceText(szText);
 }
 
 
@@ -242,15 +176,29 @@ int32 CTextField::GetCharacterX(size uiPosition)
 	CChars	szPrefix;
 	int32	iX;
 
-	if (uiPosition > mcEditor.Length())
+	if (uiPosition > mcDocument.Length())
 	{
-		uiPosition = mcEditor.Length();
+		uiPosition = mcDocument.Length();
 	}
 	szPrefix.Init();
-	szPrefix.AppendSubString(mcEditor.mszText, 0, uiPosition);
+	szPrefix.AppendSubString(mcDocument.Text(), 0, uiPosition);
 	iX = (int32)mpFont->CalculateWidth(szPrefix.Text());
 	szPrefix.Kill();
 	return iX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the text starts, unscrolled, relative to the field's left.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTextField::GetTextLeft(void)
+{
+	CInt32Rect	cText;
+
+	mpPadded->GetContainerBounds(&cText);
+	return cText.GetLeft() - GetPosition().x;
 }
 
 
@@ -262,21 +210,22 @@ int32 CTextField::GetCharacterX(size uiPosition)
 //////////////////////////////////////////////////////////////////////////
 size CTextField::FindPositionAt(int x)
 {
-	CInt32Rect	cText;
-	int32		iTextX;
-	size		uiPosition;
-	size		uiLength;
-	int32		iLeft;
-	int32		iRight;
+	CTextNavigation*	pcNavigation;
+	int32				iTextX;
+	size				uiPosition;
+	size				uiNext;
+	size				uiLength;
+	int32				iLeft;
+	int32				iRight;
 
-	mpPadded->GetContainerBounds(&cText);
-	iTextX = x + GetPosition().x - cText.GetLeft() + miScroll;
-
-	uiLength = mcEditor.Length();
+	pcNavigation = mcDocument.GetNavigation();
+	iTextX = x - GetTextLeft() + miScroll;
+	uiLength = mcDocument.Length();
 	iLeft = 0;
-	for (uiPosition = 0; uiPosition < uiLength; uiPosition++)
+	for (uiPosition = 0; uiPosition < uiLength; uiPosition = uiNext)
 	{
-		iRight = GetCharacterX(uiPosition + 1);
+		uiNext = pcNavigation->NextPosition(uiPosition);
+		iRight = GetCharacterX(uiNext);
 		if (iTextX < (iLeft + iRight) / 2)
 		{
 			return uiPosition;
@@ -326,8 +275,8 @@ void CTextField::LayoutText(void)
 	}
 
 	//The caret is kept in view, and no more of the text than needed is scrolled out of it on the left.
-	iCaretX = GetCharacterX(mcEditor.miEditPos);
-	iTextWidth = GetCharacterX(mcEditor.Length());
+	iCaretX = GetCharacterX(mcEditing.GetCaretPosition());
+	iTextWidth = GetCharacterX(mcDocument.Length());
 	if (iCaretX - miScroll > iWidth - 1)
 	{
 		miScroll = iCaretX - (iWidth - 1);
@@ -385,236 +334,55 @@ void CTextField::LayoutText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The label shows the editor's text.  The change event is only called if
-// it changed.
+// The field has one row: all of its text.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextField::HasRows(void) { return true; }
+size CTextField::NumRows(void) { return 1; }
+size CTextField::FindRow(size uiPosition, bool bRowEnd) { return 0; }
+size CTextField::GetRowStart(size uiRow) { return 0; }
+size CTextField::FindRowAt(int32 y) { return 0; }
+size CTextField::FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) { *pbRowEnd = false; return FindPositionAt(x); }
+int32 CTextField::GetPositionX(size uiPosition, bool bRowEnd) { return GetTextLeft() + GetCharacterX(uiPosition) - miScroll; }
+size CTextField::ScrollPage(size uiRow, bool bDown) { return uiRow; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextField::GetRowEnd(size uiRow, bool* pbRowEnd)
+{
+	*pbRowEnd = false;
+	return mcDocument.Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The marks and the scroll that keeps the caret seen are worked out when
+// the field is laid out (LayoutText).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextField::MarksChanged(void) { InvalidateLayout(); }
+void CTextField::ShowCaret(void) {}
+void CTextField::UndoChanged(STextUndoChange* psChange) {}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label shows the edited text and the change event is called.  An
+// edit shows the caret, even one that doesn't move it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextField::TextEdited(void)
 {
-	if (!mcEditor.mszText.Equals(mpText->GetText()))
+	mpText->SetText(mcDocument.Text());
+	mcChanged.Call(this);
+	if (HasFocus())
 	{
-		KeepEdit();
-		mpText->SetText(mcEditor.Text());
-		mcChanged.Call(this);
-		if (HasFocus())
-		{
-			mpWindow->GetFocus()->ResetCaretBlink();
-		}
+		mpWindow->GetFocus()->ResetCaretBlink();
 	}
-	mcUndo.DropEdit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The selection's anchor, MAX_SIZE without a selection.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextField::GetSelectionAnchor(void)
-{
-	size	uiStart;
-	size	uiEnd;
-
-	if (GetSelection(&uiStart, &uiEnd))
-	{
-		return mcEditor.miSelectionAnchor;
-	}
-	return MAX_SIZE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An edit action begins (typing, deleting, pasting ...): the caret and
-// selection are noted as they are, before it moves them or changes the
-// text, for undo to put back.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::BeginEdit(void)
-{
-	mcUndo.BeginEdit(mcEditor.miEditPos, GetSelectionAnchor());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text changed: it is kept for undo with the caret and selection
-// from before the edit and after it.  Typing is kept as one edit (see
-// CTextUndo).
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::KeepEdit(void)
-{
-	mcUndo.Keep(mcEditor.Text(), mcEditor.miEditPos, GetSelectionAnchor());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text goes back to how it was before the last edit (Undo), or
-// forward to after the next (Redo).  False if there is nothing to undo or
-// redo.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextField::Undo(void) { return LoadUndo(mcUndo.FindUndo()); }
-bool CTextField::Redo(void) { return LoadUndo(mcUndo.FindRedo()); }
-bool CTextField::CanUndo(void) { return mcUndo.FindUndo() != ARRAY_ELEMENT_NOT_FOUND; }
-bool CTextField::CanRedo(void) { return mcUndo.FindRedo() != ARRAY_ELEMENT_NOT_FOUND; }
-void CTextField::UndoAction(void) { Undo(); }
-void CTextField::RedoAction(void) { Redo(); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Typing that stops for iMilliseconds starts a new edit.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::SetTypingPause(int32 iMilliseconds)
-{
-	mcUndo.SetTypingPause(iMilliseconds);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The history is forgotten; it starts again with the text as it is.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::ClearUndo(void)
-{
-	mcUndo.Clear(mcEditor.Text(), mcEditor.miEditPos, GetSelectionAnchor());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text becomes the state of snapshot uiIndex.  The caret and
-// selection are as they were before the first edit undone, or after the
-// last redone.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextField::LoadUndo(size uiIndex)
-{
-	char*	szText;
-	size	uiCaret;
-	size	uiAnchor;
-
-	if (!mcUndo.CanLoad(uiIndex))
-	{
-		return false;
-	}
-
-	szText = mcUndo.GetLoadText(uiIndex, &uiCaret, &uiAnchor);
-	mcEditor.mszText.Kill();
-	mcEditor.mszText.Init(szText);
-	mcUndo.Loading(uiIndex);
-
-	mcEditor.SetPosition(uiCaret);
-	if (uiAnchor != MAX_SIZE)
-	{
-		mcEditor.miSelectionAnchor = uiAnchor;
-		mcEditor.miSelectionFloating = uiCaret;
-		mcEditor.miEditPos = uiCaret;
-	}
-	muiDragAnchor = uiCaret;
-
-	TextEdited();
-	mcUndo.Loaded(uiCaret);
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Returns false if nothing is selected.  The start is before the end.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextField::GetSelection(size* puiStart, size* puiEnd)
-{
-	if ((mcEditor.miSelectionAnchor == MAX_SIZE) || (mcEditor.miSelectionFloating == MAX_SIZE))
-	{
-		*puiStart = mcEditor.miEditPos;
-		*puiEnd = mcEditor.miEditPos;
-		return false;
-	}
-	if (mcEditor.miSelectionAnchor < mcEditor.miSelectionFloating)
-	{
-		*puiStart = mcEditor.miSelectionAnchor;
-		*puiEnd = mcEditor.miSelectionFloating;
-	}
-	else
-	{
-		*puiStart = mcEditor.miSelectionFloating;
-		*puiEnd = mcEditor.miSelectionAnchor;
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Selects from uiStart to uiEnd with the caret at uiEnd.  The same start
-// and end selects nothing.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::Select(size uiStart, size uiEnd)
-{
-	if (uiStart > mcEditor.Length())
-	{
-		uiStart = mcEditor.Length();
-	}
-	mcEditor.SetPosition(uiStart);
-	muiDragAnchor = uiStart;
-	SelectTo(uiEnd);
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Moves the caret to uiPosition with the selection from the drag anchor.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::SelectTo(size uiPosition)
-{
-	//The text may have been edited, shortened, since the anchor was set.
-	if (uiPosition > mcEditor.Length())
-	{
-		uiPosition = mcEditor.Length();
-	}
-	if (muiDragAnchor > mcEditor.Length())
-	{
-		muiDragAnchor = mcEditor.Length();
-	}
-	mcEditor.miEditPos = uiPosition;
-	if (uiPosition == muiDragAnchor)
-	{
-		mcEditor.ClearSelection();
-	}
-	else
-	{
-		mcEditor.miSelectionAnchor = muiDragAnchor;
-		mcEditor.miSelectionFloating = uiPosition;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::SetCaretPosition(size uiPosition)
-{
-	if (uiPosition > mcEditor.Length())
-	{
-		uiPosition = mcEditor.Length();
-	}
-	mcEditor.SetPosition(uiPosition);
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -635,6 +403,21 @@ CComponentEvent<CTextField>* CTextField::GetChangeEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text goes back to how it was before the last edit (Undo), or
+// forward to after the next (Redo).  False if there is nothing to undo or
+// redo.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextField::Undo(void) { return mcEditing.Undo(); }
+bool CTextField::Redo(void) { return mcEditing.Redo(); }
+bool CTextField::CanUndo(void) { return mcDocument.CanUndo(); }
+bool CTextField::CanRedo(void) { return mcDocument.CanRedo(); }
+void CTextField::ClearUndo(void) { mcEditing.ClearUndo(); }  //The history is forgotten; it starts again with the text as it is.
+void CTextField::SetTypingPause(int32 iMilliseconds) { mcDocument.GetUndo()->SetTypingPause(iMilliseconds); }  //Typing that stops for iMilliseconds starts a new edit.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Losing focus ends a drag.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -642,7 +425,7 @@ void CTextField::FocusOrMouseOverChanged(void)
 {
 	if (!HasFocus())
 	{
-		mbDragging = false;
+		mcInput.FocusLost();
 	}
 	UpdateLook();
 }
@@ -723,159 +506,27 @@ void CTextField::UpdateLook(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The press has already given the field focus.  The caret goes to the
-// gap nearest the pointer and dragging selects from there.
+// The moves and edits of the field's editing (see CTextEditing).  The
+// clipboard is the window's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::ActivateComponent(int x, int y)
-{
-	mcEditor.SetPosition(FindPositionAt(x));
-	mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::ExecuteComponent(int x, int y)
-{
-	mpWindow->GetFocus()->StopDrag(FD_Select);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A shift press extends the selection from where it started, or from the
-// caret.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::StartDragSelect(int x, int y)
-{
-	size	uiStart;
-	size	uiEnd;
-
-	if (GetSelection(&uiStart, &uiEnd))
-	{
-		muiDragAnchor = mcEditor.miSelectionAnchor;
-	}
-	else
-	{
-		muiDragAnchor = mcEditor.miEditPos;
-	}
-	mbDragging = true;
-	SelectTo(FindPositionAt(x));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::ContDragSelect(int x, int y)
-{
-	if (mbDragging)
-	{
-		SelectTo(FindPositionAt(x));
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::StopDragSelect(int x, int y)
-{
-	if (mbDragging)
-	{
-		SelectTo(FindPositionAt(x));
-		mbDragging = false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Editing.  The editor does the work and the label is updated after
-// anything that can change the text.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::SelectAll(void) { mcEditor.SelectAll(); }
-void CTextField::Delete(void) { BeginEdit(); mcEditor.Delete(); TextEdited(); }
-void CTextField::Backspace(void) { BeginEdit(); mcEditor.Backspace(); TextEdited(); }
-void CTextField::DeleteWordRemainingRight(void) { BeginEdit(); mcEditor.DeleteWordRemainingRight(); TextEdited(); }
-void CTextField::DeleteWordRemainingLeft(void) { BeginEdit(); mcEditor.DeleteWordRemainingLeft(); TextEdited(); }
-void CTextField::SpaceAction(SComponentInputEvent* psEvent) { Printable(' ', psEvent->bInsert); }
-void CTextField::Copy(CChars* pszDest) { mcEditor.Copy(pszDest); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A character typed: consecutive typing is kept as one edit for undo.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::Printable(char c, bool bInsert)
-{
-	BeginEdit();
-	mcUndo.Typed(c, (GetSelectionAnchor() == MAX_SIZE) ? mcEditor.miEditPos : MAX_SIZE);
-	mcEditor.Printable(c, bInsert);
-	TextEdited();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Without a selection nothing is cut.  The editor would cut the whole
-// line, all of a field's text.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::Cut(CChars* pszDest)
-{
-	size	uiStart;
-	size	uiEnd;
-
-	if (GetSelection(&uiStart, &uiEnd))
-	{
-		BeginEdit();
-		mcEditor.Cut(pszDest);
-		TextEdited();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Line feeds become spaces, the field is one line.  Pasting nothing, from
-// an empty clipboard, leaves a selection where it is.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::Paste(char* szSource)
-{
-	CChars	szLine;
-
-	if ((szSource == NULL) || (szSource[0] == '\0'))
-	{
-		return;
-	}
-
-	BeginEdit();
-	szLine.Init(szSource);
-	szLine.Replace("\r\n", " ");
-	szLine.Replace('\n', ' ');
-	szLine.Replace('\r', ' ');
-	mcEditor.Paste(szLine.Text());
-	szLine.Kill();
-	TextEdited();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CTextField::GetText(void) { return mcEditor.Text(); }
-size CTextField::GetCaretPosition(void) { return mcEditor.miEditPos; }
+char* CTextField::GetText(void) { return mcDocument.Text(); }
+size CTextField::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
+void CTextField::SetCaretPosition(size uiPosition) { mcEditing.SetCaretPosition(uiPosition); }
+bool CTextField::GetSelection(size* puiStart, size* puiEnd) { return mcEditing.GetSelection(puiStart, puiEnd); }
+void CTextField::Select(size uiStart, size uiEnd) { mcEditing.Select(uiStart, uiEnd); }
+void CTextField::SelectAll(void) { mcEditing.SelectAll(); }
+void CTextField::Printable(char c, bool bInsert) { mcEditing.Printable(c, bInsert); }
+void CTextField::Delete(void) { mcEditing.Delete(); }
+void CTextField::Backspace(void) { mcEditing.Backspace(); }
+void CTextField::Cut(CChars* pszDest) { mcEditing.Cut(pszDest); }
+void CTextField::Copy(CChars* pszDest) { mcEditing.Copy(pszDest); }
+void CTextField::Paste(char* szSource) { mcEditing.Paste(szSource); }
+void CTextField::DeleteWordRemainingRight(void) { mcEditing.DeleteWordRemainingRight(); }
+void CTextField::DeleteWordRemainingLeft(void) { mcEditing.DeleteWordRemainingLeft(); }
+void CTextField::CutToClipboard(void) { mcInput.CutToClipboard(); }
+void CTextField::CopyToClipboard(void) { mcInput.CopyToClipboard(); }
+void CTextField::PasteFromClipboard(void) { mcInput.PasteFromClipboard(); }
 int32 CTextField::GetScroll(void) { return miScroll; }
 Ptr<CLabel> CTextField::GetTextLabel(void) { return mpText; }
 Ptr<CTextMarksCanvasDraw> CTextField::GetMarksDraw(void) { return mpMarksDraw; }

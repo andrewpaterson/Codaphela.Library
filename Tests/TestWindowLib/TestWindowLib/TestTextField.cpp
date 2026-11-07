@@ -639,6 +639,72 @@ void TestTextFieldEditCommands(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A field edits as a text area does (CTextEditing): home is smart, the
+// word deletes take a selection, an edit that changes nothing isn't one,
+// and line feeds don't go in.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextFieldSharedEditing(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>	pTestWindow;
+		Ptr<CTextField>	pField;
+		CPointer		pNull;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Shared Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pField = CreateTestTextField(pTestWindow, "  ab cd");
+		pField->SetTypingPause(1000000);
+		pTestWindow->Layout();
+		MoveTo(pTestWindow, ComponentCentre(pField));
+		Click(pTestWindow);
+		AssertTrue(pField->IsFocussed());
+
+		//Home goes to the first character that isn't a space, then the start, and back.
+		pTestWindow->InputCommand(CIC_End, true);
+		pTestWindow->InputCommand(CIC_Home, true);
+		AssertSize(2, pField->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_Home, true);
+		AssertSize(0, pField->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_Home, true);
+		AssertSize(2, pField->GetCaretPosition());
+
+		//A word delete takes the selection.
+		pField->Select(3, 5);
+		pTestWindow->InputCommand(CIC_DeleteWordRemainingLeft, true);
+		AssertString("  acd", pField->GetText());
+
+		//Backspace at the start changes nothing, so undo undoes the delete.
+		pField->SetCaretPosition(0);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("  ab cd", pField->GetText());
+
+		//Enter goes on to the window, and line breaks set or pasted are spaces.
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertString("  ab cd", pField->GetText());
+		pField->SetText("x\ny");
+		AssertString("x y", pField->GetText());
+		AssertSize(3, pField->GetCaretPosition());
+		pField->Paste((char*)"\r\nz");
+		AssertString("x y z", pField->GetText());
+
+		pField = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextField(void)
@@ -649,6 +715,7 @@ void TestTextField(void)
 	TestTextFieldEditing();
 	TestTextFieldUndo();
 	TestTextFieldEditCommands();
+	TestTextFieldSharedEditing();
 	TestTextFieldPointer();
 	TestTextFieldFrames();
 
