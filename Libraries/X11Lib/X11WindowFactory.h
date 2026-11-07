@@ -52,6 +52,7 @@ protected:
 	CX11Selection	mcSelection;  //The clipboard every window shares; it must outlive any one of them.
 	bool			mbSharedMemoryAvailable;  //The X server has MIT-SHM, so windows can present from memory it shares.
 	bool			mbSharedMemory;  //Windows present from shared memory when it is available, see SetSharedMemory.
+	int				miSharedCompletionEvent;  //The event type the X server sends when it has read a window's shared pixels.
 
 public:
 	bool			Init(CMallocator* pcMallocator, const char* szDisplayName);
@@ -71,6 +72,7 @@ public:
 	CX11Input*		GetInput(void);
 	void			SetSharedMemory(bool bSharedMemory);
 	bool			UsesSharedMemory(void);
+	int				GetSharedCompletionEvent(void);
 
 	void			AddWindow(CX11Window* pcWindow);
 	void			RemoveWindow(CX11Window* pcWindow);

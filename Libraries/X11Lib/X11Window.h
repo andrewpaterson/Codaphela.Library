@@ -47,6 +47,8 @@ protected:
 	_XImage*		mpsSharedImage;  //The window's pixels in memory the X server shares (MIT-SHM), NULL if not made yet.
 	SX11SharedSegment*	mpsSharedSegment;  //mpsSharedImage's memory.  The image points at it, so it lives as long as the image.
 	bool			mbSharedFailed;  //The X server couldn't share memory with the window, so its pixels are sent instead.
+	bool			mbSharedPresenting;  //The X server hasn't said it has read mpsSharedImage's last present yet.
+	bool			mbSharedTimedOut;  //Waiting for a present to be read once timed out (it is only logged once).
 
 public:
 	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory);
@@ -81,6 +83,7 @@ protected:
 	void	PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	bool	PrepareSharedImage(int32 iWidth, int32 iHeight);
 	void	FreeSharedImage(void);
+	void	WaitForSharedPresent(void);
 	void	SetDialogHints(int iWidth, int iHeight);
 	void	SetToolHints(void);
 	void	SetMainHints(void);

@@ -90,6 +90,7 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
     miScreen = 0;
     mbSharedMemoryAvailable = false;
     mbSharedMemory = true;
+    miSharedCompletionEvent = -1;
 
     mpsDisplay = XOpenDisplay(szDisplayName);
     mcSelection.Init(mpsDisplay, mpsDisplay ? DefaultScreen(mpsDisplay) : 0);
@@ -105,6 +106,7 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
     if (mbSharedMemoryAvailable && XQueryExtension(mpsDisplay, "MIT-SHM", &iOpcode, &iEvent, &iError))
     {
         giSharedMemoryOpcode = iOpcode;
+        miSharedCompletionEvent = XShmGetEventBase(mpsDisplay) + ShmCompletion;
     }
     mulDeleteWindowAtom = XInternAtom(mpsDisplay, "WM_DELETE_WINDOW", False);
     mulProtocolsAtom = XInternAtom(mpsDisplay, "WM_PROTOCOLS", False);
@@ -217,6 +219,7 @@ CX11Input* CX11WindowFactory::GetInput(void) { return mpcInput; }
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::SetSharedMemory(bool bSharedMemory) { mbSharedMemory = bSharedMemory; }
 bool CX11WindowFactory::UsesSharedMemory(void) { return mbSharedMemory && mbSharedMemoryAvailable && !gbSharedMemoryFailed; }
+int CX11WindowFactory::GetSharedCompletionEvent(void) { return miSharedCompletionEvent; }
 
 
 //////////////////////////////////////////////////////////////////////////

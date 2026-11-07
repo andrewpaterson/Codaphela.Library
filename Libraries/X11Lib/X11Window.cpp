@@ -19,6 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "BaseLib/Timer.h"
 #include "SupportLib/Int32Rect.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/ComponentInput.h"
@@ -29,11 +30,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <poll.h>
 #include <X11/Xutil.h>
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
+
+
+#define X11_SHARED_PRESENT_TIMEOUT	250  //Milliseconds the X server has to read a window's shared pixels.
 
 
 #define X11_WINDOW_WIDTH        800
@@ -61,6 +66,8 @@ void CX11Window::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
     mpsSharedImage = NULL;
     mpsSharedSegment = NULL;
     mbSharedFailed = false;
+    mbSharedPresenting = false;
+    mbSharedTimedOut = false;
 }
 
 
@@ -186,18 +193,20 @@ void CX11Window::PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     psDisplay = pcFactory->GetDisplay();
 
-    //The pixels are copied into memory the X server shares and read from there, not sent through the connection.
+    //The pixels are copied into memory the X server shares and read from there, not sent through the connection.  The
+    //server says when it has read them; until then they mustn't be copied over, so the window waits for the last present
+    //here rather than straight after it, and draws its next frame meanwhile.  Only one present at a time also stops a
+    //window that paints every tick queueing frames faster than they can be shown.
     if (pcFactory->UsesSharedMemory() && !mbSharedFailed && PrepareSharedImage(sSize.x, sSize.y))
     {
+        WaitForSharedPresent();
         for (y = iTop; y < iBottom; y++)
         {
             memcpy(&mpsSharedImage->data[y * mpsSharedImage->bytes_per_line + iLeft * 4], &puiPixelData[(y * sSize.x + iLeft) * 4], (iRight - iLeft) * 4);
         }
-        XShmPutImage(psDisplay, mulWindow, mpsGC, mpsSharedImage, iLeft, iTop, iLeft, iTop, iRight - iLeft, iBottom - iTop, False);
-
-        //Waiting for the server means it has read the pixels before the next present copies over them, and stops a
-        //window that paints every tick queueing frames faster than they can be shown.
-        XSync(psDisplay, False);
+        XShmPutImage(psDisplay, mulWindow, mpsGC, mpsSharedImage, iLeft, iTop, iLeft, iTop, iRight - iLeft, iBottom - iTop, True);
+        XFlush(psDisplay);
+        mbSharedPresenting = true;
         return;
     }
 
@@ -330,6 +339,76 @@ bool CX11Window::PrepareSharedImage(int32 iWidth, int32 iHeight)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Picks the X server's 'read the shared pixels' event for one window out
+// of the queue, leaving every other event where it is.
+//
+//////////////////////////////////////////////////////////////////////////
+struct SSharedCompletion
+{
+    int     iEventType;
+    Window  ulWindow;
+};
+
+static Bool IsSharedCompletion(Display* psDisplay, XEvent* puEvent, XPointer pvArgument)
+{
+    SSharedCompletion*  psCompletion;
+
+    psCompletion = (SSharedCompletion*)pvArgument;
+    return (puEvent->type == psCompletion->iEventType) && (puEvent->xany.window == psCompletion->ulWindow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Waits until the X server has read the window's last shared present, so
+// its pixels can be copied over or let go of.  If the server doesn't say
+// so in X11_SHARED_PRESENT_TIMEOUT it is waited for with XSync instead.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::WaitForSharedPresent(void)
+{
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+    SSharedCompletion   sCompletion;
+    XEvent              uEvent;
+    struct pollfd       sPoll;
+    int64               iStart;
+    int64               iLeft;
+
+    if (!mbSharedPresenting)
+    {
+        return;
+    }
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    sCompletion.iEventType = pcFactory->GetSharedCompletionEvent();
+    sCompletion.ulWindow = mulWindow;
+    iStart = GetDebugTickCount();
+    while (!XCheckIfEvent(psDisplay, &uEvent, IsSharedCompletion, (XPointer)&sCompletion))
+    {
+        iLeft = X11_SHARED_PRESENT_TIMEOUT - (GetDebugTickCount() - iStart);
+        if (iLeft <= 0)
+        {
+            if (!mbSharedTimedOut)
+            {
+                gcLogger.Warning2(__METHOD__, " The X server didn't say it had read a present; waiting for it instead.", NULL);
+                mbSharedTimedOut = true;
+            }
+            XSync(psDisplay, False);
+            break;
+        }
+        sPoll.fd = ConnectionNumber(psDisplay);
+        sPoll.events = POLLIN;
+        sPoll.revents = 0;
+        poll(&sPoll, 1, (int)iLeft);
+    }
+    mbSharedPresenting = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::FreeSharedImage(void)
@@ -342,6 +421,7 @@ void CX11Window::FreeSharedImage(void)
         return;
     }
 
+    WaitForSharedPresent();
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     psDisplay = pcFactory->GetDisplay();
     XShmDetach(psDisplay, &mpsSharedSegment->sInfo);
@@ -693,6 +773,13 @@ void CX11Window::HandleEvent(XEvent* puEvent)
 
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     pcInput = pcFactory->GetInput();
+
+    //The X server has read the last shared present, but nothing was waiting for it.
+    if (puEvent->type == pcFactory->GetSharedCompletionEvent())
+    {
+        mbSharedPresenting = false;
+        return;
+    }
 
     //A key or button released over a disabled window still reaches the input, it was pressed before the dialog
     //opened, as the enter that chose the menu item that opened it was.  Otherwise it would stay down.
