@@ -187,8 +187,10 @@ bool CMapStringUnknown::StartIteration(SMapIterator* psIterator, char** ppcKey, 
 {
 	char*		szKey;
 	CUnknown**	ppcValue;
+	bool		bExists;
 
-	return MapStringUnknownEntry(mcMap.StartIteration(psIterator, (void**)&szKey, NULL, (void**)&ppcValue, NULL), szKey, ppcValue, ppcKey, ppcData);
+	bExists = mcMap.StartIteration(psIterator, (void**)&szKey, NULL, (void**)&ppcValue, NULL);
+	return MapStringUnknownEntry(bExists, szKey, ppcValue, ppcKey, ppcData);
 }
 
 
@@ -200,8 +202,10 @@ bool CMapStringUnknown::Iterate(SMapIterator* psIterator, char** ppcKey, CUnknow
 {
 	char*		szKey;
 	CUnknown**	ppcValue;
+	bool		bExists;
 
-	return MapStringUnknownEntry(mcMap.Iterate(psIterator, (void**)&szKey, NULL, (void**)&ppcValue, NULL), szKey, ppcValue, ppcKey, ppcData);
+	bExists = mcMap.Iterate(psIterator, (void**)&szKey, NULL, (void**)&ppcValue, NULL);
+	return MapStringUnknownEntry(bExists, szKey, ppcValue, ppcKey, ppcData);
 }
 
 
