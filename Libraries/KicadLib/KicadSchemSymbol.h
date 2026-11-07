@@ -26,6 +26,9 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "KicadSchemSymbolInstance.h"
 
 
+class CKicadSchemLibPin;
+
+
 //A symbol placed on the sheet: one unit of a library symbol at a position, angle and mirror.  The library symbol is
 //found in the file's lib_symbols by GetLibSymbolName: lib_name when the placed symbol has one (it was edited away
 //from the library), otherwise lib_id.
@@ -70,6 +73,7 @@ public:
 	EKicadSchemMirror			GetMirror(void);
 	int32						GetUnit(void);
 	int32						GetBodyStyle(void);
+	bool						IsUnitPin(CKicadSchemLibPin* pcPin);
 	bool						IsInBom(void);
 	bool						IsOnBoard(void);
 	bool						IsDoNotPopulate(void);

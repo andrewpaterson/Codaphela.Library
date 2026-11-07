@@ -146,7 +146,7 @@ bool CKicadSchemNetlist::AddNodes(void)
 		for (j = 0; j < pcLibSymbol->NumPins(); j++)
 		{
 			pcPin = pcLibSymbol->GetPin(j);
-			if (pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()))
+			if (pcSymbol->IsUnitPin(pcPin))
 			{
 				mpcFile->GetPinPosition(&sPosition, pcSymbol, pcPin);
 				AddNode(KSNNT_Pin, pcPin, pcSymbol, &sPosition);

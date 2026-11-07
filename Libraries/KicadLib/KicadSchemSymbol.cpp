@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "KicadSchemLibPin.h"
 #include "KicadSchemSymbol.h"
 
 
@@ -261,6 +262,18 @@ int32 CKicadSchemSymbol::GetUnit(void)
 int32 CKicadSchemSymbol::GetBodyStyle(void)
 {
 	return miBodyStyle;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the library pin is one of this symbol's: on its unit (a library
+// symbol holds the pins of all its units) and its body style.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemSymbol::IsUnitPin(CKicadSchemLibPin* pcPin)
+{
+	return pcPin->IsOn(miUnit, miBodyStyle);
 }
 
 
