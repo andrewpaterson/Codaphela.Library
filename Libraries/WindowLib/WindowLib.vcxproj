@@ -290,6 +290,7 @@
     <ClInclude Include="WindowTick.h" />
     <ClInclude Include="ImageBorderContainer.h" />
     <ClInclude Include="TextField.h" />
+    <ClInclude Include="TextLineGaps.h" />
     <ClInclude Include="TextMarksCanvasDraw.h" />
     <ClInclude Include="CheckBox.h" />
     <ClInclude Include="CheckBoxImages.h" />
@@ -392,6 +393,7 @@
     <ClCompile Include="WindowTick.cpp" />
     <ClCompile Include="ImageBorderContainer.cpp" />
     <ClCompile Include="TextField.cpp" />
+    <ClCompile Include="TextLineGaps.cpp" />
     <ClCompile Include="TextMarksCanvasDraw.cpp" />
     <ClCompile Include="CheckBox.cpp" />
     <ClCompile Include="CheckBoxImages.cpp" />

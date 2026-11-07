@@ -19,6 +19,7 @@ void TestLabel(void);
 void TestTextArea(void);
 void TestTextAreaBackgrounds(void);
 void TestTextAreaEdit(void);
+void TestTextLineGaps(void);
 void TestCodeEditor(void);
 void TestDiffView(void);
 void TestLineZones(void);
@@ -81,6 +82,7 @@ int __cdecl main(void)
 	TestTextArea();
 	TestTextAreaBackgrounds();
 	TestTextAreaEdit();
+	TestTextLineGaps();
 	TestCodeEditor();
 	TestDiffView();
 	TestLineZones();

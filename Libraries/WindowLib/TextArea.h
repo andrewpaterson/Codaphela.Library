@@ -37,6 +37,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/TileLayerCel.h"
 #include "SupportLib/TileTextWriter.h"
 #include "Canvas.h"
+#include "TextLineGaps.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
 
@@ -188,8 +189,7 @@ protected:
 	ARGB32				msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
 	CArrayTextAreaLineStart	mauiLineStarts;  //The first byte of each line, kept as the text is edited.
-	CArrayTextLayoutGap	masGaps;  //Sorted by line, at most one a line.
-	uint32				muiNextGapId;  //The id the next new gap gets, from 1.
+	CTextLineGaps		mcGaps;  //The empty gaps below lines (SetLineGap).
 	size				muiCaret;
 	size				muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
 	bool				mbCaretAtRowEnd;  //A caret at the start of a wrapped row is drawn at the end of the row above.
@@ -378,9 +378,6 @@ protected:
 	int32				GetWrapWidth(void);
 	void				FindStopStarts(void);
 	void				FindLineStarts(void);
-	size				FindGap(size uiLine);
-	STextLayoutGap*		GetGap(size uiLine);
-	bool				IsGapKept(STextLayoutGap* psGap);
 	size				FindLastRow(size uiLine);
 	void				GapsChanged(void);
 	void				LinesInserted(size uiPosition, const char* szText, size uiLength);

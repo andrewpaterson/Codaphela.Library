@@ -109,8 +109,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	msCaretColour = JEWEL_ICON;
 	mauiStopStarts.Init();
 	mauiLineStarts.Init();
-	masGaps.Init();
-	muiNextGapId = 1;
+	mcGaps.Init();
 	FindLineStarts();
 	muiChangeCount = 0;
 	mcNavigation.Init(&mszText);
@@ -211,7 +210,7 @@ void CTextArea::Free(void)
 {
 	masTileStops.Kill();
 	masTileLines.Kill();
-	masGaps.Kill();
+	mcGaps.Kill();
 	mauiLineStarts.Kill();
 	mauiStopStarts.Kill();
 	masBackgrounds.Kill();
@@ -269,8 +268,7 @@ void CTextArea::Class(void)
 	U_UInt32(msCaretColour);
 	U_Data(CArrayTextAreaStopStart, mauiStopStarts);
 	U_Data(CArrayTextAreaLineStart, mauiLineStarts);
-	U_Data(CArrayTextLayoutGap, masGaps);
-	U_UInt32(muiNextGapId);
+	U_Unknown(CTextLineGaps, mcGaps);
 	U_Size(muiCaret);
 	U_Size(muiAnchor);
 	U_Bool(mbCaretAtRowEnd);
@@ -316,7 +314,7 @@ void CTextArea::SetText(const char* szText)
 	masSpans.ReInit();
 	masBackgrounds.ReInit();
 	mbBackgroundsDirty = true;
-	masGaps.ReInit();
+	mcGaps.Clear();
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
@@ -997,7 +995,7 @@ void CTextArea::LayoutText(void)
 	}
 
 	mpLayout->SetWidth(GetWrapWidth());
-	mpLayout->SetLineGaps(&masGaps);
+	mpLayout->SetLineGaps(mcGaps.GetGaps());
 	mpLayout->SetTabWidth(GetTabPixels());
 
 	mpFontDraw->Begin();
@@ -1432,44 +1430,14 @@ bool CTextArea::GetLineBounds(size uiLine, CInt32Rect* pcDest)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::SetLineGap(size uiLine, int32 iHeight)
 {
-	size			uiGap;
-	STextLayoutGap*	psGap;
-
 	if (uiLine >= NumLines())
 	{
 		return false;
 	}
-
-	uiGap = FindGap(uiLine);
-	psGap = (uiGap < masGaps.NumElements()) ? masGaps.Get(uiGap) : NULL;
-	if (psGap && (psGap->uiLine == uiLine))
+	if (mcGaps.Set(uiLine, iHeight))
 	{
-		if (psGap->iHeight == iHeight)
-		{
-			return true;
-		}
-		if (iHeight <= 0)
-		{
-			masGaps.RemoveAt(uiGap, true);
-		}
-		else
-		{
-			psGap->iHeight = iHeight;
-		}
+		GapsChanged();
 	}
-	else
-	{
-		if (iHeight <= 0)
-		{
-			return true;
-		}
-		psGap = masGaps.InsertAt(uiGap);
-		psGap->uiLine = uiLine;
-		psGap->iHeight = iHeight;
-		psGap->uiId = muiNextGapId;
-		muiNextGapId++;
-	}
-	GapsChanged();
 	return true;
 }
 
@@ -1481,10 +1449,7 @@ bool CTextArea::SetLineGap(size uiLine, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 uint32 CTextArea::GetLineGapId(size uiLine)
 {
-	STextLayoutGap*	psGap;
-
-	psGap = GetGap(uiLine);
-	return psGap ? psGap->uiId : 0;
+	return mcGaps.GetId(uiLine);
 }
 
 
@@ -1496,18 +1461,7 @@ uint32 CTextArea::GetLineGapId(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::FindLineGap(uint32 uiId)
 {
-	size			i;
-	STextLayoutGap*	psGap;
-
-	for (i = 0; i < masGaps.NumElements(); i++)
-	{
-		psGap = masGaps.Get(i);
-		if (psGap->uiId == uiId)
-		{
-			return psGap->uiLine;
-		}
-	}
-	return MAX_SIZE;
+	return mcGaps.FindLine(uiId);
 }
 
 
@@ -1518,7 +1472,7 @@ size CTextArea::FindLineGap(uint32 uiId)
 //////////////////////////////////////////////////////////////////////////
 CArrayTextLayoutGap* CTextArea::GetLineGaps(void)
 {
-	return &masGaps;
+	return mcGaps.GetGaps();
 }
 
 
@@ -1532,44 +1486,10 @@ CArrayTextLayoutGap* CTextArea::GetLineGaps(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetLineGaps(CArrayTextLayoutGap* pasGaps)
 {
-	size			i;
-	size			uiKept;
-	STextLayoutGap*	psGap;
-	STextLayoutGap*	psOther;
-	bool			bSame;
-
-	//The same if the gaps that would be kept are the ones there are.
-	bSame = true;
-	uiKept = 0;
-	for (i = 0; bSame && (i < pasGaps->NumElements()); i++)
+	if (mcGaps.Copy(pasGaps, NumLines()))
 	{
-		psOther = pasGaps->Get(i);
-		if (IsGapKept(psOther))
-		{
-			psGap = (uiKept < masGaps.NumElements()) ? masGaps.Get(uiKept) : NULL;
-			bSame = psGap && (psGap->uiLine == psOther->uiLine) && (psGap->iHeight == psOther->iHeight);
-			uiKept++;
-		}
+		GapsChanged();
 	}
-	if (bSame && (uiKept == masGaps.NumElements()))
-	{
-		return;
-	}
-
-	masGaps.ReInit();
-	for (i = 0; i < pasGaps->NumElements(); i++)
-	{
-		psOther = pasGaps->Get(i);
-		if (IsGapKept(psOther))
-		{
-			*masGaps.Add() = *psOther;
-			if (psOther->uiId >= muiNextGapId)
-			{
-				muiNextGapId = psOther->uiId + 1;
-			}
-		}
-	}
-	GapsChanged();
 }
 
 
@@ -1580,10 +1500,7 @@ void CTextArea::SetLineGaps(CArrayTextLayoutGap* pasGaps)
 //////////////////////////////////////////////////////////////////////////
 int32 CTextArea::GetLineGap(size uiLine)
 {
-	STextLayoutGap*	psGap;
-
-	psGap = GetGap(uiLine);
-	return psGap ? psGap->iHeight : 0;
+	return mcGaps.GetHeight(uiLine);
 }
 
 
@@ -1593,7 +1510,7 @@ int32 CTextArea::GetLineGap(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::NumLineGaps(void)
 {
-	return masGaps.NumElements();
+	return mcGaps.NumGaps();
 }
 
 
@@ -1603,9 +1520,8 @@ size CTextArea::NumLineGaps(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ClearLineGaps(void)
 {
-	if (masGaps.NumElements() > 0)
+	if (mcGaps.Clear())
 	{
-		masGaps.ReInit();
 		GapsChanged();
 	}
 }
@@ -2519,67 +2435,6 @@ void CTextArea::FindLineStarts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The first gap at or below line uiLine, or the number of gaps.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindGap(size uiLine)
-{
-	size	uiLow;
-	size	uiHigh;
-	size	uiMiddle;
-
-	uiLow = 0;
-	uiHigh = masGaps.NumElements();
-	while (uiLow < uiHigh)
-	{
-		uiMiddle = (uiLow + uiHigh) / 2;
-		if (masGaps.Get(uiMiddle)->uiLine < uiLine)
-		{
-			uiLow = uiMiddle + 1;
-		}
-		else
-		{
-			uiHigh = uiMiddle;
-		}
-	}
-	return uiLow;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether SetLineGaps keeps psGap: it is below a line there is and has a
-// height.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsGapKept(STextLayoutGap* psGap)
-{
-	return (psGap->uiLine < NumLines()) && (psGap->iHeight > 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Line uiLine's gap, NULL if it has none.
-//
-//////////////////////////////////////////////////////////////////////////
-STextLayoutGap* CTextArea::GetGap(size uiLine)
-{
-	size			uiGap;
-	STextLayoutGap*	psGap;
-
-	uiGap = FindGap(uiLine);
-	if (uiGap >= masGaps.NumElements())
-	{
-		return NULL;
-	}
-	psGap = masGaps.Get(uiGap);
-	return (psGap->uiLine == uiLine) ? psGap : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The row line uiLine ends on: the row of its line feed, or the last row.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2624,7 +2479,6 @@ void CTextArea::LinesInserted(size uiPosition, const char* szText, size uiLength
 	size			uiNewLines;
 	size			i;
 	bool			bLineStart;
-	STextLayoutGap*	psGap;
 
 	uiLine = FindLine(uiPosition);
 	bLineStart = (*mauiLineStarts.Get(uiLine) == uiPosition);
@@ -2646,14 +2500,7 @@ void CTextArea::LinesInserted(size uiPosition, const char* szText, size uiLength
 	{
 		return;
 	}
-	for (i = 0; i < masGaps.NumElements(); i++)
-	{
-		psGap = masGaps.Get(i);
-		if ((psGap->uiLine > uiLine) || ((psGap->uiLine == uiLine) && bLineStart))
-		{
-			psGap->uiLine += uiNewLines;
-		}
-	}
+	mcGaps.LinesInserted(uiLine, bLineStart, uiNewLines);
 	BackgroundLinesInserted(uiLine, bLineStart, uiNewLines);
 }
 
@@ -2674,7 +2521,6 @@ void CTextArea::LinesRemoved(size uiStart, size uiEnd)
 	size			uiLength;
 	size			i;
 	bool			bWhole;
-	STextLayoutGap*	psGap;
 
 	uiFirst = FindLine(uiStart);
 	uiLast = FindLine(uiEnd);
@@ -2695,25 +2541,7 @@ void CTextArea::LinesRemoved(size uiStart, size uiEnd)
 	{
 		return;
 	}
-	i = masGaps.NumElements();
-	while (i > 0)
-	{
-		i--;
-		psGap = masGaps.Get(i);
-		if (psGap->uiLine > uiLast)
-		{
-			psGap->uiLine -= uiRemoved;
-		}
-		else if (bWhole && (psGap->uiLine == uiLast))
-		{
-			//Going back through the gaps, uiFirst's (removed next) is still to come.
-			psGap->uiLine = uiFirst;
-		}
-		else if (bWhole ? (psGap->uiLine >= uiFirst) : (psGap->uiLine > uiFirst))
-		{
-			masGaps.RemoveAt(i, true);
-		}
-	}
+	mcGaps.LinesRemoved(uiFirst, uiLast, bWhole);
 	BackgroundLinesRemoved(uiFirst, uiLast, bWhole);
 }
 
@@ -4405,12 +4233,10 @@ void CTextArea::AppendSprites(size uiFrom)
 	size				uiTailStart;
 	size				uiLayoutLine;
 	size				uiSprite;
-	size				i;
 	int32				iTop;
 	Ptr<CFont>			pFont;
 	Ptr<CText>			pText;
 	CArrayTextLayoutGap	asGaps;
-	STextLayoutGap*		psGap;
 
 	//The line the old end is on, and the row it starts.
 	uiTextLine = mauiLineStarts.NumElements() - 1;
@@ -4437,14 +4263,7 @@ void CTextArea::AppendSprites(size uiFrom)
 		mpAppendLayout = OMalloc<CTextLayout>();
 	}
 	asGaps.Init();
-	for (i = 0; i < masGaps.NumElements(); i++)
-	{
-		if (masGaps.Get(i)->uiLine >= uiTextLine)
-		{
-			psGap = asGaps.Add(masGaps.Get(i));
-			psGap->uiLine -= uiTextLine;
-		}
-	}
+	mcGaps.GetGapsFrom(uiTextLine, &asGaps);
 	mpAppendLayout->SetWidth(mpLayout->GetWidth());
 	mpAppendLayout->SetLineGaps(&asGaps);
 	mpAppendLayout->SetTabWidth(GetTabPixels());

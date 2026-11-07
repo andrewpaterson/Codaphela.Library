@@ -249,6 +249,9 @@
     <ClInclude Include="ImageBorderContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="TextLineGaps.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="TextMarksCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
@@ -559,6 +562,9 @@
     </ClCompile>
     <ClCompile Include="ImageBorderContainer.cpp">
       <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TextLineGaps.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="TextMarksCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>

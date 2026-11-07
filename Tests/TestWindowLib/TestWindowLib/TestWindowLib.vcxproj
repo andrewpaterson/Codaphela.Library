@@ -240,6 +240,7 @@
     <ClCompile Include="TestTextArea.cpp" />
     <ClCompile Include="TestTextAreaBackgrounds.cpp" />
     <ClCompile Include="TestTextAreaEdit.cpp" />
+    <ClCompile Include="TestTextLineGaps.cpp" />
     <ClCompile Include="TestCodeEditor.cpp" />
     <ClCompile Include="TestDiffView.cpp" />
     <ClCompile Include="TestLineZones.cpp" />
