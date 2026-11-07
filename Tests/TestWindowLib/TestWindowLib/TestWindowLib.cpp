@@ -6,6 +6,7 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
+#include "WindowLib/WindowTheme.h"
 #include "TestLib/Assert.h"
 
 
@@ -49,6 +50,8 @@ void TestCaretBlink(void);
 void TestSoundMixer(void);
 void TestWindowRedraw(void);
 void TestPartialRedraw(void);
+void TestWindowTheme(void);
+void TestNoUnsetThemeReads(size uiUnsetReadsBefore);
 #ifdef _WIN32
 void TestWinGDICanvas(void);
 #endif // _WIN32
@@ -126,6 +129,7 @@ int __cdecl main(void)
 	CFileUtil	cFileUtil;
 	int			iResult;
 	size		uiMismatches;
+	size		uiUnsetThemeReads;
 
 	BreakOnAllocation(0);
 	InitTotalStatistics();
@@ -138,6 +142,8 @@ int __cdecl main(void)
 	cFileUtil.RemoveDir("Output");
 	cFileUtil.MakeDir("Output");
 
+	TestWindowTheme();
+	uiUnsetThemeReads = CWindowTheme::GetTotalUnsetReads();
 	RunWindowTests();
 	TestPartialRedraw();
 
@@ -147,6 +153,7 @@ int __cdecl main(void)
 	RunWindowTests();
 	CWindow::SetDefaultRedraw(false, false);
 	TestPartialRedrawEverywhere(uiMismatches);
+	TestNoUnsetThemeReads(uiUnsetThemeReads);
 
 #ifdef _WIN32
 	TestWinGDICanvas();

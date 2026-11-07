@@ -239,6 +239,7 @@
     <ClCompile Include="TestCanvas.cpp" />
     <ClCompile Include="TestFillContainer.cpp" />
     <ClCompile Include="TestLabel.cpp" />
+    <ClCompile Include="TestWindowTheme.cpp" />
     <ClCompile Include="TestTextArea.cpp" />
     <ClCompile Include="TestTextAreaBackgrounds.cpp" />
     <ClCompile Include="TestTextAreaEdit.cpp" />

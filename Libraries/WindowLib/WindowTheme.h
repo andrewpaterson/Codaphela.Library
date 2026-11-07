@@ -110,6 +110,11 @@ public:
 	Ptr<CImageCel>					GetImage(EThemeImage eImage);
 	int32							GetMetric(EThemeMetric eMetric);
 	CComponentEvent<CWindowTheme>*	GetChangeEvent(void);
+
+	static const char*		GetColourName(EThemeColour eColour);
+	static const char*		GetMetricName(EThemeMetric eMetric);
+	static const char*		GetImageName(EThemeImage eImage);
+	static size				GetTotalUnsetReads(void);
 };
 
 

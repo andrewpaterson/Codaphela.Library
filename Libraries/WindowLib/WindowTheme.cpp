@@ -22,6 +22,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowTheme.h"
 
 
+//How many times a colour, size or icon that wasn't set has been read, by any theme (see GetTotalUnsetReads).
+static size	gsuiThemeUnsetReads = 0;
+
+
 //In EThemeMetric's order, for the error reading one that wasn't set.
 static const char*	gaszThemeMetricNames[TM_NumMetrics] =
 {
@@ -198,6 +202,7 @@ ARGB32 CWindowTheme::GetColour(EThemeColour eColour)
 {
 	if (!mabColoursSet[eColour])
 	{
+		gsuiThemeUnsetReads++;
 		gcLogger.Error2(__METHOD__, " Theme colour [", gaszThemeColourNames[eColour], "] isn't set.", NULL);
 	}
 	return masColours[eColour];
@@ -227,6 +232,7 @@ Ptr<CImageCel> CWindowTheme::GetImage(EThemeImage eImage)
 	pImage = maImages.Get(eImage);
 	if (pImage.IsNull())
 	{
+		gsuiThemeUnsetReads++;
 		gcLogger.Error2(__METHOD__, " Theme image [", gaszThemeImageNames[eImage], "] isn't set.", NULL);
 	}
 	return pImage;
@@ -254,6 +260,7 @@ int32 CWindowTheme::GetMetric(EThemeMetric eMetric)
 {
 	if (!mabMetricsSet[eMetric])
 	{
+		gsuiThemeUnsetReads++;
 		gcLogger.Error2(__METHOD__, " Theme metric [", gaszThemeMetricNames[eMetric], "] isn't set.", NULL);
 	}
 	return maiMetrics[eMetric];
@@ -329,3 +336,21 @@ bool CWindowTheme::IsImageSet(EThemeImage eImage) { return maImages.Get(eImage).
 bool CWindowTheme::IsMetricSet(EThemeMetric eMetric) { return mabMetricsSet[eMetric]; }
 CComponentEvent<CWindowTheme>* CWindowTheme::GetChangeEvent(void) { return &mcChangeEvent; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The names a colour, size or icon is reported by when it isn't set.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CWindowTheme::GetColourName(EThemeColour eColour) { return gaszThemeColourNames[eColour]; }
+const char* CWindowTheme::GetMetricName(EThemeMetric eMetric) { return gaszThemeMetricNames[eMetric]; }
+const char* CWindowTheme::GetImageName(EThemeImage eImage) { return gaszThemeImageNames[eImage]; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times any theme's colour, size or icon has been read without
+// being set: an error each time, which tests check didn't happen.
+//
+//////////////////////////////////////////////////////////////////////////
+size CWindowTheme::GetTotalUnsetReads(void) { return gsuiThemeUnsetReads; }
