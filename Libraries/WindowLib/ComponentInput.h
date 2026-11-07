@@ -105,6 +105,7 @@ public:
 	void		Update(void);
 	bool		GetEvictionDelay(uint32* puiMilliseconds);
 	size		Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest);
+	bool		IsTyping(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asEvents, size uiNumEvents);
 	void		ReleaseAll(void);
 	void		SetLocks(bool bCapsLock, bool bNumLock);
 	void		SetWindow(CWindow* pcWindow);

@@ -306,7 +306,8 @@ static bool GiveInputs(Ptr<CWindow> pWindow, size uiWait, int64 iMilliseconds, v
 //////////////////////////////////////////////////////////////////////////
 //
 // The pointer moving and movement paint the window again but keep its
-// layout; keys, buttons and commands lay it out again, as a new size does.
+// layout; keys, buttons and commands lay it out again, as a new size does
+// (a key typing a character doesn't, see TestWindowRedrawLayoutCache).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawInput(void)
@@ -428,7 +429,8 @@ void TestWindowRedrawPresentBeforePaint(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Painting keeps the layout unless something it depends on changed.
-// Layout always lays the window out.
+// Layout always lays the window out.  Input lays it out, but for a key
+// typing a character.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawLayoutCache(void)
@@ -529,6 +531,16 @@ void TestWindowRedrawLayoutCache(void)
 		pWindow->PointerMoved(16, 10);
 		pWindow->Paint();
 		AssertInt(15, pCounter->miLayouts);
+
+		//A character typed only paints: what shows it lays itself out if its size changed.  A command lays out.
+		pWindow->InputPrintable('a', true);
+		AssertFalse(pWindow->IsLayoutDirty());
+		pWindow->Paint();
+		AssertInt(15, pCounter->miLayouts);
+		pWindow->InputCommand(CIC_Backspace, true);
+		AssertTrue(pWindow->IsLayoutDirty());
+		pWindow->Paint();
+		AssertInt(16, pCounter->miLayouts);
 
 		pLabel = NULL;
 		pFont = NULL;

@@ -76,7 +76,7 @@ public:
 	void				Refresh(void);
 	void				Request(void);
 	void				SetFocus(Ptr<CComponent> pComponent);
-	void				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
+	bool				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
 	void				Command(EComponentInputCommand eCommand, bool bInsert);
 	void				Printable(char c, bool bInsert);
 	void				Activate(void);

@@ -268,19 +268,22 @@ void CFocus::SetFocus(Ptr<CComponent> pComponent)
 //////////////////////////////////////////////////////////////////////////
 //
 // Translates a queued event (see CComponentInput::Translate) and
-// dispatches the events it means.
+// dispatches the events it means.  Returns true if it was a key typing a
+// character (CComponentInput::IsTyping).
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
+bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
 	SComponentInputEvent	asEvents[COMPONENT_INPUT_MAX_EVENTS];
 	size					uiNumEvents;
 
-	if (mbActive)
+	if (!mbActive)
 	{
-		uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
-		DispatchEvents(asEvents, uiNumEvents);
+		return false;
 	}
+	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
+	DispatchEvents(asEvents, uiNumEvents);
+	return pcComponentInput->IsTyping(psWindowEvent, asEvents, uiNumEvents);
 }
 
 

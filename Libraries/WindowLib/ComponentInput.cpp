@@ -1023,6 +1023,28 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the uiNumEvents events Translate made of psWindowEvent are a key
+// typing a character: its press (the key down and the printable) or the
+// release of a key that types one.  A command, a chord or anything else
+// isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::IsTyping(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asEvents, size uiNumEvents)
+{
+	if (uiNumEvents == 2)
+	{
+		return (asEvents[0].eType == CIET_KeyDown) && (asEvents[1].eType == CIET_Printable);
+	}
+	if (uiNumEvents == 1)
+	{
+		return (asEvents[0].eType == CIET_KeyUp) && (GetPrintable(psWindowEvent->pcSource) != NULL);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A pressed source is, in order: a lock or insert, a numpad key standing
 // in for another source, then nothing if control or alt is held (it would
 // have been a chord), the lock or insert the numpad key stands in for, a

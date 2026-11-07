@@ -328,6 +328,114 @@ void TestComponentInputWinRawDevices(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A key typing a character, pressed and released, only paints the window
+// again; a command or a chord lays it out.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestComponentInputWinRawTypingLayout(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CInputTestComponent>	pA;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		CChars						szLog;
+		Ptr<CInput>					pInput;
+		CTestRawInput				cRaw;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+
+		szLog.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Typing Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow->SetCheckLayoutCache(false);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pA = OMalloc<CInputTestComponent>(pTestWindow, "A", &szLog, true);
+		AssertTrue(pGrid->AddComponent(pA, 0, 0, 1, 1, 1, 1));
+
+		pInput = OMalloc<CInput>((CNativeInput*)NULL);
+		ORoot()->Add(pInput);
+		AssertTrue(pInput->Read("../../../Libraries/WinInputLib/xml"));
+		cRaw.Init(&pInput);
+		AssertTrue(pInput->AddNativeInput(&cRaw));
+		pInputSource = OMalloc<CWindowInputSource>(pInput);
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cRaw.mpcComponentInput = &cComponentInput;
+		AssertSize(1, cComponentInput.AddKeyboards());
+		AssertSize(1, cComponentInput.AddMice());
+		pTestWindow->SetComponentInput(&cComponentInput);
+
+		pTestWindow->Paint();
+		pTestWindow->PointerMoved(10, 10);
+		cRaw.Mouse(TEST_RI_MOUSE_BUTTON_1_DOWN);
+		cRaw.Mouse(TEST_RI_MOUSE_BUTTON_1_UP);
+		pTestWindow->Paint();
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		szLog.Clear();
+
+		cRaw.Press('A');
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		cRaw.Release('A');
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		AssertLog("A:Printable(a,Insert);");
+
+		cRaw.Tap(VK_TEST_END, true);
+		AssertTrue(pTestWindow->IsLayoutDirty());
+		AssertLog("A:End;");
+		pTestWindow->Paint();
+
+		//Shift's press is held back while it could start a chord, and given with the next key: it lays out (it isn't a
+		//character), the capitals typed while it is held don't.
+		cRaw.Press(VK_TEST_SHIFT, false, MAKE_LEFT_SHIFT);
+		cRaw.Tap('A');
+		AssertTrue(pTestWindow->IsLayoutDirty());
+		pTestWindow->Paint();
+		cRaw.Tap('B');
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		cRaw.Release(VK_TEST_SHIFT, false, MAKE_LEFT_SHIFT);
+		pTestWindow->Paint();
+		AssertLog("A:Printable(A,Insert);A:Printable(B,Insert);");
+
+		cRaw.Press(VK_TEST_CONTROL);
+		pTestWindow->Paint();
+		cRaw.Press('C');
+		AssertTrue(pTestWindow->IsLayoutDirty());
+		cRaw.Release('C');
+		cRaw.Release(VK_TEST_CONTROL);
+		AssertLog("A:Copy;");
+
+		pTestWindow->SetComponentInput(NULL);
+		cComponentInput.Kill();
+		cRaw.mpcComponentInput = NULL;
+		pInputSource = NULL;
+		ORoot()->Remove(pInput);
+		pInput = NULL;
+		cRaw.Kill();
+
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pGrid = NULL;
+		pA = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputWinRaw(void)
@@ -336,6 +444,7 @@ void TestComponentInputWinRaw(void)
 	ObjectsInit();
 
 	TestComponentInputWinRawDevices();
+	TestComponentInputWinRawTypingLayout();
 
 	ObjectsFlush();
 	ObjectsKill();

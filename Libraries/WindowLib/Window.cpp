@@ -985,12 +985,13 @@ void CWindow::CheckLayoutCache(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 //Input can change anything, so the window is painted again after it.  Keys, buttons and the wheel can change what
-//the window looks like, so it is laid out again too.  The pointer moving only changes what it is over; a component
-//that moves things as it is dragged invalidates the layout itself.
+//the window looks like, so it is laid out again too, but not for a key typing a character: that only changes text, and
+//what shows it lays itself out again if its size changed (as a text area does).  The pointer moving only changes what
+//it is over; a component that moves things as it is dragged invalidates the layout itself.
 void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); RequestPaint(); }
 void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); RequestPaint(); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mcFocus.Command(eCommand, bInsert); InvalidateLayout(); }
-void CWindow::InputPrintable(char c, bool bInsert) { mcFocus.Printable(c, bInsert); InvalidateLayout(); }
+void CWindow::InputPrintable(char c, bool bInsert) { mcFocus.Printable(c, bInsert); RequestPaint(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1018,10 +1019,16 @@ CComponentEvent<CWindow>* CWindow::GetActivationEvent(void) { return &mcActivate
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
-	mcFocus.Input(psWindowEvent, pcComponentInput);
+	bool	bTyping;
+
+	bTyping = mcFocus.Input(psWindowEvent, pcComponentInput);
 	if (psWindowEvent->eType == WIET_Delta)
 	{
 		Invalidate();
+	}
+	else if (bTyping)
+	{
+		RequestPaint();
 	}
 	else
 	{
