@@ -29,7 +29,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectRemapFrom.h"
 #include "ObjectReader.h"
 #include "BaseLib/MemoryFile.h"
-#include "BaseLib/StackMemory.h"
 #include "HollowObject.h"
 #include "HollowEmbeddedObject.h"
 #include "FreeObjects.h"
@@ -462,21 +461,15 @@ bool CObjects::GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolde
 	CStoredHeapFromsCollector	cCollector;
 	CObjectReader				cReader;
 	CMemoryFile					cMemoryFile;
-	CStackMemory<2 KB>			cTemp;
+	CRecordMemory				cTemp;
 	void*						pvSerialised;
 	lsize						uiDataSize;
 	bool						bResult;
 
-	pvSerialised = cTemp.Init();
-	if (!mpcDataConnection->Get(pcObject->GetIndex(), &uiDataSize, pvSerialised, cTemp.GetStackSize()))
+	pvSerialised = CInternalObjectDeserialiser::GetRecord(mpcDataConnection, pcObject->GetIndex(), &cTemp, &uiDataSize);
+	if (pvSerialised == NULL)
 	{
-		cTemp.Kill();
 		return gcLogger.Error2(__METHOD__, " Object [", IndexToString(pcObject->GetIndex()), "] is not in the database.", NULL);
-	}
-	if (uiDataSize > cTemp.GetStackSize())
-	{
-		pvSerialised = cTemp.Init(uiDataSize);
-		mpcDataConnection->Get(pcObject->GetIndex(), pvSerialised);
 	}
 
 	cCollector.Init();

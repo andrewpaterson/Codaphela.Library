@@ -42,23 +42,48 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*	pcSerialised;
 	lsize				uiDataSize;
-	CStackMemory<2 KB>	cTemp;
+	CRecordMemory		cMemory;
 	CBaseObject*		pcBaseObject;
 
-	pcSerialised = (CSerialisedObject*)cTemp.Init();
-	if (!mpcDataConnection->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize()))
+	pcSerialised = (CSerialisedObject*)GetRecord(mpcDataConnection, oi, &cMemory, &uiDataSize);
+	if (pcSerialised == NULL)
 	{
 		return NULL;
 	}
-	if (uiDataSize > cTemp.GetStackSize())
-	{
-		pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
-		mpcDataConnection->Get(oi, pcSerialised);
-	}
 
 	pcBaseObject = ReadSerialised(pcSerialised, uiDataSize);
-	cTemp.Kill();
+	cMemory.Kill();
 	return pcBaseObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The record of oi, in pcMemory: on its stack when it fits, else in what
+// it allocates.  NULL (with pcMemory killed) if the record can't be read.
+// The caller kills pcMemory.
+//
+//////////////////////////////////////////////////////////////////////////
+void* CInternalObjectDeserialiser::GetRecord(CDataConnection* pcDataConnection, OIndex oi, CRecordMemory* pcMemory, lsize* puiDataSize)
+{
+	void*	pvRecord;
+
+	pvRecord = pcMemory->Init();
+	if (!pcDataConnection->Get(oi, puiDataSize, pvRecord, pcMemory->GetStackSize()))
+	{
+		pcMemory->Kill();
+		return NULL;
+	}
+	if (*puiDataSize > pcMemory->GetStackSize())
+	{
+		pvRecord = pcMemory->Init(*puiDataSize);
+		if (!pcDataConnection->Get(oi, pvRecord))
+		{
+			pcMemory->Kill();
+			return NULL;
+		}
+	}
+	return pvRecord;
 }
 
 

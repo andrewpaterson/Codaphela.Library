@@ -21,10 +21,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __INTERNAL_OBJECT_DESERIALISER__
 #define __INTERNAL_OBJECT_DESERIALISER__
 #include "BaseLib/DataConnection.h"
+#include "BaseLib/StackMemory.h"
 #include "DependentReadObjects.h"
 
 
-//The Interal Object Deserialiser only deserialises objects out of the CObjects database.
+//A record read from the database: most fit on the stack.
+typedef CStackMemory<2 KB>	CRecordMemory;
+
+
+//The Internal Object Deserialiser only deserialises objects out of the CObjects database.
 //  The index in the header is assumed to match the database index key.
 //  The name in the header is assumed to match the database name key.
 
@@ -42,6 +47,8 @@ public:
 
 	CBaseObject*	Read(OIndex oi);
 	CBaseObject*	Read(const char* szObjectName);
+
+	static void*	GetRecord(CDataConnection* pcDataConnection, OIndex oi, CRecordMemory* pcMemory, lsize* puiDataSize);
 
 	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader) override;
 
