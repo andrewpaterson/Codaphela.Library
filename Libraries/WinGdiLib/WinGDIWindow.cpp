@@ -550,6 +550,29 @@ void CWinGDIWindow::SignalPresent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only pcArea changed (client space, right and bottom exclusive, as a
+// RECT is).  Windows adds it to the window's update region; WM_PAINT's
+// BeginPaint clips the canvas's painting to that region, so only what
+// changed reaches the screen.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::SignalPresentArea(CInt32Rect* pcArea)
+{
+    RECT    sRect;
+
+    if (mhWnd)
+    {
+        sRect.left = pcArea->GetLeft();
+        sRect.top = pcArea->GetTop();
+        sRect.right = pcArea->GetRight();
+        sRect.bottom = pcArea->GetBottom();
+        InvalidateRect(mhWnd, &sRect, FALSE);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::GetRectangle(CInt32Rect* pcDest)

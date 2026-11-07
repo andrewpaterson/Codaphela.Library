@@ -52,6 +52,7 @@ public:
 
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
+	void	SignalPresentArea(CInt32Rect* pcArea) override;
 	void	SetEnabled(bool bEnabled) override;
 	void	DestroyNativeWindow(void) override;
 	void	SetScreenRectangle(CInt32Rect* pcRectangle) override;
