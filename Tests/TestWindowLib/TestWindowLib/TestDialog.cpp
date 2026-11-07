@@ -379,16 +379,14 @@ static void InitTestDialogLook(SDialogLook* psLook, Ptr<CWindowTheme> pTheme)
 {
 	psLook->pcTheme = &pTheme;
 	psLook->pcDimFont = &pTheme->GetFont();
-	psLook->sBackground = JEWEL_PANEL;
-	psLook->sDivider = JEWEL_SEPARATOR;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every button is at least DIALOG_BUTTON_WIDTH wide, or as wide as its
-// caption.  The extra button goes before OK and closes the dialog as its
-// caption; without Cancel, escape clicks OK.
+// Every button is at least the theme's dialog button width wide, or as
+// wide as its caption.  The extra button goes before OK and closes the
+// dialog as its caption; without Cancel, escape clicks OK.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDialogButtons(void)
@@ -413,17 +411,17 @@ void TestDialogButtons(void)
 		AssertTrue(pDialog->IsShown(pDialog->GetOK()));
 		AssertTrue(pDialog->IsShown(pDialog->GetCancel()));
 		AssertTrue(pDialog->GetExtra().IsNull());
-		AssertInt(DIALOG_BUTTON_WIDTH, pDialog->GetOK()->GetDesiredSize().x);
-		AssertTrue(pDialog->GetCancel()->GetDesiredSize().x >= DIALOG_BUTTON_WIDTH);
+		AssertInt(pTheme->GetMetric(TM_DialogButtonWidth), pDialog->GetOK()->GetDesiredSize().x);
+		AssertTrue(pDialog->GetCancel()->GetDesiredSize().x >= pTheme->GetMetric(TM_DialogButtonWidth));
 
 		pDialog->SetOKCaption("Refactor Everything Now");
-		AssertTrue(pDialog->GetOK()->GetDesiredSize().x > DIALOG_BUTTON_WIDTH);
+		AssertTrue(pDialog->GetOK()->GetDesiredSize().x > pTheme->GetMetric(TM_DialogButtonWidth));
 		pDialog->SetOKCaption("Go");
-		AssertInt(DIALOG_BUTTON_WIDTH, pDialog->GetOK()->GetDesiredSize().x);
+		AssertInt(pTheme->GetMetric(TM_DialogButtonWidth), pDialog->GetOK()->GetDesiredSize().x);
 
 		pDialog->AddExtraButton("Don't");
 		AssertTrue(pDialog->IsShown(pDialog->GetExtra()));
-		AssertInt(DIALOG_BUTTON_WIDTH, pDialog->GetExtra()->GetDesiredSize().x);
+		AssertInt(pTheme->GetMetric(TM_DialogButtonWidth), pDialog->GetExtra()->GetDesiredSize().x);
 		pDialog->GetWindow()->SetWindowSize(400, 100);
 		pDialog->GetWindow()->Layout();
 		AssertTrue(pDialog->GetExtra()->GetPosition().x < pDialog->GetOK()->GetPosition().x);
@@ -521,7 +519,7 @@ bool MessageDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContex
 	pcTest->szAnswer = "Don't Save";
 	AssertFalse(pcTest->pMessage->Show());
 	AssertString("Don't Save", pcTest->pMessage->GetClicked());
-	AssertTrue(pcTest->sShownSize.x >= DIALOG_MIN_WIDTH);
+	AssertTrue(pcTest->sShownSize.x >= pcTest->pTheme->GetMetric(TM_DialogMinWidth));
 	iRow = pcTest->pMessage->GetItemsPane()->GetDesiredSize().y;
 
 	//A long list shows the most it can and scrolls.
@@ -542,7 +540,7 @@ bool MessageDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContex
 	AssertTrue(pcTest->pMessage->GetItemsPane().IsNull());
 	pcTest->pMessage->GetDialog()->SetTicker(pcTest, &CTestMessageDialog::Answer);
 	AssertTrue(pcTest->pMessage->Show());
-	AssertTrue(pcTest->sShownSize.x == DIALOG_MIN_WIDTH);
+	AssertTrue(pcTest->sShownSize.x == pcTest->pTheme->GetMetric(TM_DialogMinWidth));
 	pcTest->pMessage = NULL;
 	return false;
 }

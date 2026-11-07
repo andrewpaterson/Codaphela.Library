@@ -55,6 +55,15 @@ enum EThemeMetric
 	TM_MenuSelectionRadius,		//Of the rounded block behind a menu's selected item.
 	TM_MenuSelectionInset,		//Between the selected item's block and the menu's sides.
 	TM_MenuSeparatorInset,		//Between a separator's line and the menu's sides.
+	TM_DialogInset,				//Between a dialog's edge and its form and buttons.
+	TM_DialogLabelGap,			//Between a dialog's label and its editor.
+	TM_DialogRowGap,			//Between a dialog's rows.
+	TM_DialogDividerGap,		//Above a dialog's divider.
+	TM_DialogButtonGap,			//Between a dialog's form and its buttons.
+	TM_DialogButtonWidth,		//A dialog's buttons, unless a caption needs more.
+	TM_DialogMinWidth,			//The narrowest a dialog sized to what it holds is.
+	TM_MessageItemsGap,			//Between a message dialog's message and its items.
+	TM_MessageItemIndent,		//Of each of a message dialog's items.
 
 	TM_NumMetrics,
 };

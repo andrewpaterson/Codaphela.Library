@@ -58,6 +58,15 @@ static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
 	4,		//TM_MenuSelectionRadius
 	6,		//TM_MenuSelectionInset
 	8,		//TM_MenuSeparatorInset
+	16,		//TM_DialogInset
+	12,		//TM_DialogLabelGap
+	4,		//TM_DialogRowGap
+	10,		//TM_DialogDividerGap
+	16,		//TM_DialogButtonGap
+	72,		//TM_DialogButtonWidth
+	360,	//TM_DialogMinWidth
+	8,		//TM_MessageItemsGap
+	16,		//TM_MessageItemIndent
 };
 
 
@@ -78,6 +87,8 @@ static ARGB32	gasJewelThemeColours[TC_NumColours] =
 	JEWEL_SELECTION,		//TC_MenuSelected
 	JEWEL_HOVER,			//TC_MenuHover
 	JEWEL_SEPARATOR,		//TC_MenuSeparator
+	JEWEL_PANEL,			//TC_DialogBackground
+	JEWEL_SEPARATOR,		//TC_DialogDivider
 	JEWEL_PANEL,			//TC_DockTitleBar
 	JEWEL_SELECTION,		//TC_DockActiveTitleBar
 	JEWEL_EDITOR,			//TC_DockSash

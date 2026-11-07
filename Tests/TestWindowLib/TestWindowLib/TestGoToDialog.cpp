@@ -111,8 +111,6 @@ void TestGoToDialogSearch(void)
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		sLook.pcTheme = &pTheme;
 		sLook.pcDimFont = &pTheme->GetFont();
-		sLook.sBackground = JEWEL_PANEL;
-		sLook.sDivider = JEWEL_SEPARATOR;
 
 		pDialog = OMalloc<CGoToDialog>(pTestWindow, &sLook, "Go to", &cSearcher, pTheme->GetFont());
 		ORoot()->Add(pDialog);

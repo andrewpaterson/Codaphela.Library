@@ -132,8 +132,6 @@ void TestFileChooserBrowse(void)
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		sLook.pcTheme = &pTheme;
 		sLook.pcDimFont = &pTheme->GetFont();
-		sLook.sBackground = JEWEL_PANEL;
-		sLook.sDivider = JEWEL_SEPARATOR;
 		pTestWindow->GetColourFormat(&cFormat);
 		pFolderIcon = CJewelImageGenerator::CreateFolder(JEWEL_ICON, &cFormat);
 		pFileIcon = CJewelImageGenerator::CreateFile(JEWEL_ICON, &cFormat);

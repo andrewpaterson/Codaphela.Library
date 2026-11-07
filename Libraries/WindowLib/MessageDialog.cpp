@@ -24,8 +24,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MessageDialog.h"
 
 
-#define MESSAGE_DIALOG_ITEMS_GAP	8  //Between the message and its items.
-#define MESSAGE_DIALOG_ITEM_INDENT	16  //Of each item, under the message.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -125,7 +123,7 @@ void CMessageDialog::AddItem(const char* szItem)
 	if (mpItems.IsNull())
 	{
 		mpItems = OMalloc<CGridContainer>(mpDialog->GetWindow());
-		mpItems->SetInsets(MESSAGE_DIALOG_ITEMS_GAP, 0, 0, MESSAGE_DIALOG_ITEM_INDENT);
+		mpItems->SetInsets(mpDialog->GetLook()->pcTheme->GetMetric(TM_MessageItemsGap), 0, 0, mpDialog->GetLook()->pcTheme->GetMetric(TM_MessageItemIndent));
 		mpItemsPane = OMalloc<CScrollPane>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme);
 		mpItemsPane->SetContent(mpItems);
 		mpItemsPane->SetAlignment(CSH_Stretch, CSV_Top);
@@ -140,7 +138,7 @@ void CMessageDialog::AddItem(const char* szItem)
 	iRowHeight = pLabel->GetRequiredSize().y;
 	uiShown = (muiItems < MESSAGE_DIALOG_MAX_ITEMS) ? muiItems : MESSAGE_DIALOG_MAX_ITEMS;
 	mpItems->SetRequiredSize();
-	mpItemsPane->SetDesiredSize(mpItems->GetRequiredSize().x, MESSAGE_DIALOG_ITEMS_GAP + iRowHeight * (int32)uiShown);
+	mpItemsPane->SetDesiredSize(mpItems->GetRequiredSize().x, mpDialog->GetLook()->pcTheme->GetMetric(TM_MessageItemsGap) + iRowHeight * (int32)uiShown);
 }
 
 

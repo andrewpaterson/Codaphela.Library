@@ -39,6 +39,8 @@ enum EThemeColour
 	TC_MenuSelected,			//Behind a menu's selected item.
 	TC_MenuHover,				//Behind a menu bar button under the pointer.
 	TC_MenuSeparator,			//A menu's separator line.
+	TC_DialogBackground,		//Behind a dialog's form.
+	TC_DialogDivider,			//A dialog's divider line.
 
 	//Docking's (see CDockManager).
 	TC_DockTitleBar,			//A tool group's title bar.

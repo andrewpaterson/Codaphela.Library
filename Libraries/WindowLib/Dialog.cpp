@@ -28,11 +28,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Dialog.h"
 
 
-#define DIALOG_INSET		16  //Between the window's edge and the form and buttons.
-#define DIALOG_LABEL_GAP	12  //Between a label and its editor.
-#define DIALOG_ROW_GAP		4  //Between rows.
-#define DIALOG_DIVIDER_GAP	10  //Above a divider.
-#define DIALOG_BUTTON_GAP	16  //Between the form and the buttons.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,10 +113,10 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 
 	mpTick = OMalloc<CDialogTick>();
 	pOwner->GetColourFormat(&cFormat);
-	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->sBackground), &cFormat);
+	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->pcTheme->GetColour(TC_DialogBackground)), &cFormat);
 
 	pFill = OMalloc<CFillContainer>(mpDialog);
-	sInsets.Init(DIALOG_INSET, DIALOG_INSET);
+	sInsets.Init(mpsLook->pcTheme->GetMetric(TM_DialogInset), mpsLook->pcTheme->GetMetric(TM_DialogInset));
 	pFill->SetInsets(&sInsets);
 	mpDialog->SetContainer(pFill);
 
@@ -238,8 +233,8 @@ void CDialog::AddRow(const char* szLabel, Ptr<CComponent> pEditor)
 
 	if (miRows > 0)
 	{
-		pGap = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->sBackground));
-		pGap->SetDesiredSize(1, DIALOG_ROW_GAP);
+		pGap = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->pcTheme->GetColour(TC_DialogBackground)));
+		pGap->SetDesiredSize(1, mpsLook->pcTheme->GetMetric(TM_DialogRowGap));
 		mpForm->AddComponent(pGap, 0, miRows);
 		miRows++;
 	}
@@ -252,7 +247,7 @@ void CDialog::AddRow(const char* szLabel, Ptr<CComponent> pEditor)
 	if (szLabel)
 	{
 		pLabel = OMalloc<CLabel>(mpDialog, mpsLook->pcTheme->GetFont(), szLabel);
-		pLabel->SetDesiredSize(pLabel->GetRequiredSize().x + DIALOG_LABEL_GAP, -1);
+		pLabel->SetDesiredSize(pLabel->GetRequiredSize().x + mpsLook->pcTheme->GetMetric(TM_DialogLabelGap), -1);
 		pLabel->SetAlignment(CSH_Left, CSV_Center);
 		mpForm->AddComponent(pLabel, 0, miRows);
 		mpForm->AddComponent(pEditor, 1, miRows, 1, 1, 1, 0);
@@ -342,8 +337,8 @@ void CDialog::AddDivider(const char* szTitle)
 	Ptr<CCanvas>		pLine;
 	Ptr<CCanvas>		pGap;
 
-	pGap = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->sBackground));
-	pGap->SetDesiredSize(1, DIALOG_DIVIDER_GAP);
+	pGap = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->pcTheme->GetColour(TC_DialogBackground)));
+	pGap->SetDesiredSize(1, mpsLook->pcTheme->GetMetric(TM_DialogDividerGap));
 	mpForm->AddComponent(pGap, 0, miRows);
 	miRows++;
 
@@ -351,7 +346,7 @@ void CDialog::AddDivider(const char* szTitle)
 	pTitle = OMalloc<CLabel>(mpDialog, mpsLook->pcDimFont, szTitle);
 	pTitle->SetDesiredSize(pTitle->GetRequiredSize().x + 8, -1);
 	pTitle->SetAlignment(CSH_Left, CSV_Center);
-	pLine = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->sDivider));
+	pLine = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->pcTheme->GetColour(TC_DialogDivider)));
 	pLine->SetDesiredSize(-1, 1);
 	pLine->SetAlignment(CSH_Stretch, CSV_Center);
 	pDivider->AddComponent(pTitle, 0, 0);
@@ -462,7 +457,7 @@ void CDialog::SizeButton(Ptr<CButton> pButton)
 
 	pButton->SetDesiredSize(-1, -1);
 	iWidth = pButton->GetDesiredSize().x;
-	pButton->SetDesiredSize((iWidth > DIALOG_BUTTON_WIDTH) ? iWidth : DIALOG_BUTTON_WIDTH, -1);
+	pButton->SetDesiredSize((iWidth > mpsLook->pcTheme->GetMetric(TM_DialogButtonWidth)) ? iWidth : mpsLook->pcTheme->GetMetric(TM_DialogButtonWidth), -1);
 }
 
 
@@ -523,7 +518,7 @@ void CDialog::ClearTicker(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Shows the dialog as wide as its rows (or body) or its buttons need, but
-// no narrower than DIALOG_MIN_WIDTH, and as tall as they are.  Returns
+// no narrower than mpsLook->pcTheme->GetMetric(TM_DialogMinWidth), and as tall as they are.  Returns
 // true if OK closed it.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -534,8 +529,8 @@ bool CDialog::Show(void)
 	mpForm->SetRequiredSize();
 	mpButtons->SetRequiredSize();
 	iWidth = (mpForm->GetRequiredSize().x > mpButtons->GetRequiredSize().x) ? mpForm->GetRequiredSize().x : mpButtons->GetRequiredSize().x;
-	iWidth += DIALOG_INSET * 2;
-	return Show((iWidth > DIALOG_MIN_WIDTH) ? iWidth : DIALOG_MIN_WIDTH);
+	iWidth += mpsLook->pcTheme->GetMetric(TM_DialogInset) * 2;
+	return Show((iWidth > mpsLook->pcTheme->GetMetric(TM_DialogMinWidth)) ? iWidth : mpsLook->pcTheme->GetMetric(TM_DialogMinWidth));
 }
 
 
@@ -548,7 +543,7 @@ bool CDialog::Show(void)
 bool CDialog::Show(int32 iWidth)
 {
 	mpForm->SetRequiredSize();
-	return Show(iWidth, DIALOG_INSET + mpForm->GetRequiredSize().y + DIALOG_BUTTON_GAP + mpOK->GetDesiredSize().y + DIALOG_INSET);
+	return Show(iWidth, mpsLook->pcTheme->GetMetric(TM_DialogInset) + mpForm->GetRequiredSize().y + mpsLook->pcTheme->GetMetric(TM_DialogButtonGap) + mpOK->GetDesiredSize().y + mpsLook->pcTheme->GetMetric(TM_DialogInset));
 }
 
 

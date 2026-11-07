@@ -30,6 +30,8 @@ static const char*	gaszThemeMetricNames[TM_NumMetrics] =
 	"TabSideGap", "TabGap", "TabTopGap", "TabBottomGap", "TabUnderline", "TabIconSize", "MenuInsetX", "MenuInsetY",
 	"MenuIconWidth", "ComboMenuIconWidth", "MenuChevronWidth", "MenuItemPadding", "MenuSeparatorHeight",
 	"MenuBarPaddingX", "MenuBarPaddingY", "MenuSelectionRadius", "MenuSelectionInset", "MenuSeparatorInset",
+	"DialogInset", "DialogLabelGap", "DialogRowGap", "DialogDividerGap", "DialogButtonGap", "DialogButtonWidth",
+	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent",
 };
 
 
@@ -44,7 +46,8 @@ static const char*	gaszThemeImageNames[TI_NumImages] =
 static const char*	gaszThemeColourNames[TC_NumColours] =
 {
 	"TextSelection", "Caret", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
-	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator",
+	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
+	"DialogDivider",
 	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockStrip", "DockStripTab", "DockStripTabHover",
 	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
 	"DockPreviewBorder", "DockFrameBorder",
