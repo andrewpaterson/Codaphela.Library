@@ -143,6 +143,7 @@ public:
 	Ptr<CFont>					GetFont(void);
 	Ptr<CFont>					GetTurnedFont(void);
 	ARGB32						GetColour(EThemeColour eColour);
+	int32						GetMetric(EThemeMetric eMetric);
 	void						SetColour(EThemeColour eColour, ARGB32 sColour);
 
 	//Panes.

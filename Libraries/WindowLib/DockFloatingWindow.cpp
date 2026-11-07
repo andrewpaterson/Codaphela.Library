@@ -99,7 +99,7 @@ void CDockFloatingWindow::AddEdge(uint8 uiEdges, int iColumn, int iRow, int iWid
 	Ptr<CDockEdge>	pEdge;
 
 	pEdge = OMalloc<CDockEdge>(&mpWindow, mpManager, this, uiEdges, mpManager->GetColour(TC_DockFrameBorder));
-	pEdge->SetDesiredSize(iWidthWeight ? -1 : DOCK_FRAME_BORDER, iHeightWeight ? -1 : DOCK_FRAME_BORDER);
+	pEdge->SetDesiredSize(iWidthWeight ? -1 : mpManager->GetMetric(TM_DockFrameBorder), iHeightWeight ? -1 : mpManager->GetMetric(TM_DockFrameBorder));
 	maEdges.Add(pEdge);
 	mpFrame->AddComponent(pEdge, iColumn, iRow, 1, 1, iWidthWeight, iHeightWeight);
 }

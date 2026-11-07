@@ -31,10 +31,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockNode.h"
 
 
-#define AUTO_HIDE_STRIP_SIZE	24	//An auto hide strip's thickness.
-#define AUTO_HIDE_TAB_GAP		10	//Before and after a strip tab's text.
-#define AUTO_HIDE_TAB_SPACING	4	//Between a strip's tabs.
-#define AUTO_HIDE_LINE			3	//A strip tab's line along the strip's outer side.
 
 
 //A label whose one line of text reads top to bottom, drawn with a font turned clockwise (FT_Clockwise): Visual Studio's

@@ -34,6 +34,7 @@ static const char*	gaszThemeMetricNames[TM_NumMetrics] =
 	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent", "FileChooserWidth", "FileChooserHeight",
 	"FileChooserMinWidth", "FileChooserMinHeight", "FileChooserRowHeight", "FileChooserIconWidth", "FileChooserGap",
 	"GoToWidth", "GoToHeight", "GoToRowHeight", "GoToIconWidth", "GoToGap",
+	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip", "DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd", "DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth", "AutoHideStripSize", "AutoHideTabGap", "AutoHideTabSpacing", "AutoHideLine", "AutoHideEdge",
 };
 
 

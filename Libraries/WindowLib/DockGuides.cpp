@@ -158,7 +158,7 @@ void CDockGuides::AddGuide(int x, int y, EDockTargetKind eKind, EDockSide eSide,
 	SDockGuide*	psGuide;
 
 	psGuide = masGuides.Add();
-	psGuide->cRect.Init(x, y, x + DOCK_GUIDE_SIZE, y + DOCK_GUIDE_SIZE);
+	psGuide->cRect.Init(x, y, x + mpManager->GetMetric(TM_DockGuideSize), y + mpManager->GetMetric(TM_DockGuideSize));
 	psGuide->eKind = eKind;
 	psGuide->eSide = eSide;
 	psGuide->pcNode = pcNode;
@@ -179,10 +179,10 @@ void CDockGuides::AddCompass(CInt32Rect* pcBounds, EDockTargetKind eSideKind, ED
 	int		iHalf;
 	int		iStep;
 
-	iHalf = DOCK_GUIDE_SIZE / 2;
+	iHalf = mpManager->GetMetric(TM_DockGuideSize) / 2;
 	cx = pcBounds->GetLeft() + pcBounds->GetWidth() / 2;
 	cy = pcBounds->GetTop() + pcBounds->GetHeight() / 2;
-	iStep = DOCK_GUIDE_STEP * iRing;
+	iStep = mpManager->GetMetric(TM_DockGuideStep) * iRing;
 	if (bCentre)
 	{
 		AddGuide(cx - iHalf, cy - iHalf, eCentreKind, DS_Centre, pcNode, false);
@@ -272,12 +272,12 @@ void CDockGuides::AddEdgeMarkers(void)
 	int			iRight;
 	int			iBottom;
 
-	iHalf = DOCK_GUIDE_SIZE / 2;
+	iHalf = mpManager->GetMetric(TM_DockGuideSize) / 2;
 	mpArea->GetRootBounds(&cRoot);
-	iLeft = cRoot.GetLeft() + DOCK_GUIDE_INSET;
-	iTop = cRoot.GetTop() + DOCK_GUIDE_INSET;
-	iRight = cRoot.GetLeft() + cRoot.GetWidth() - DOCK_GUIDE_INSET - DOCK_GUIDE_SIZE;
-	iBottom = cRoot.GetTop() + cRoot.GetHeight() - DOCK_GUIDE_INSET - DOCK_GUIDE_SIZE;
+	iLeft = cRoot.GetLeft() + mpManager->GetMetric(TM_DockGuideInset);
+	iTop = cRoot.GetTop() + mpManager->GetMetric(TM_DockGuideInset);
+	iRight = cRoot.GetLeft() + cRoot.GetWidth() - mpManager->GetMetric(TM_DockGuideInset) - mpManager->GetMetric(TM_DockGuideSize);
+	iBottom = cRoot.GetTop() + cRoot.GetHeight() - mpManager->GetMetric(TM_DockGuideInset) - mpManager->GetMetric(TM_DockGuideSize);
 	AddGuide(iLeft, cRoot.GetTop() + cRoot.GetHeight() / 2 - iHalf, DTK_AreaEdge, DS_Left, NULL, false);
 	AddGuide(iRight, cRoot.GetTop() + cRoot.GetHeight() / 2 - iHalf, DTK_AreaEdge, DS_Right, NULL, false);
 	AddGuide(cRoot.GetLeft() + cRoot.GetWidth() / 2 - iHalf, iTop, DTK_AreaEdge, DS_Top, NULL, false);
@@ -480,22 +480,22 @@ void CDockGuides::DrawArrow(Ptr<CCanvas> pCanvas, CInt32Rect* pcRect, EDockSide 
 	cx = pcRect->GetLeft() + pcRect->GetWidth() / 2;
 	cy = pcRect->GetTop() + pcRect->GetHeight() / 2;
 	//A line a pixel thick for each step back from the tip, one pixel longer each side than the last.
-	iLength = DOCK_GUIDE_ARROW_LENGTH;
+	iLength = mpManager->GetMetric(TM_DockGuideArrowLength);
 	for (i = 0; i < iLength; i++)
 	{
 		switch (eSide)
 		{
 		case DS_Left:
-			DrawBoxClipped(pCanvas, cx - DOCK_GUIDE_ARROW_TIP + i, cy - i, cx - DOCK_GUIDE_ARROW_TIP + 1 + i, cy + i + 1, true, sColour);
+			DrawBoxClipped(pCanvas, cx - mpManager->GetMetric(TM_DockGuideArrowTip) + i, cy - i, cx - mpManager->GetMetric(TM_DockGuideArrowTip) + 1 + i, cy + i + 1, true, sColour);
 			break;
 		case DS_Right:
-			DrawBoxClipped(pCanvas, cx + DOCK_GUIDE_ARROW_TIP - 1 - i, cy - i, cx + DOCK_GUIDE_ARROW_TIP - i, cy + i + 1, true, sColour);
+			DrawBoxClipped(pCanvas, cx + mpManager->GetMetric(TM_DockGuideArrowTip) - 1 - i, cy - i, cx + mpManager->GetMetric(TM_DockGuideArrowTip) - i, cy + i + 1, true, sColour);
 			break;
 		case DS_Top:
-			DrawBoxClipped(pCanvas, cx - i, cy - DOCK_GUIDE_ARROW_TIP + i, cx + i + 1, cy - DOCK_GUIDE_ARROW_TIP + 1 + i, true, sColour);
+			DrawBoxClipped(pCanvas, cx - i, cy - mpManager->GetMetric(TM_DockGuideArrowTip) + i, cx + i + 1, cy - mpManager->GetMetric(TM_DockGuideArrowTip) + 1 + i, true, sColour);
 			break;
 		default:
-			DrawBoxClipped(pCanvas, cx - i, cy + DOCK_GUIDE_ARROW_TIP - 1 - i, cx + i + 1, cy + DOCK_GUIDE_ARROW_TIP - i, true, sColour);
+			DrawBoxClipped(pCanvas, cx - i, cy + mpManager->GetMetric(TM_DockGuideArrowTip) - 1 - i, cx + i + 1, cy + mpManager->GetMetric(TM_DockGuideArrowTip) - i, true, sColour);
 			break;
 		}
 	}
@@ -553,8 +553,8 @@ void CDockGuides::DrawGuide(Ptr<CCanvas> pCanvas, SDockGuide* psGuide, bool bHov
 	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, mpManager->GetColour(TC_DockGuideBorder));
 	if (psGuide->eSide == DS_Centre)
 	{
-		DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iBottom - DOCK_GUIDE_ICON_INSET, false, sArrow);
-		DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET + DOCK_GUIDE_ICON_TITLE, true, sArrow);
+		DrawBoxClipped(pCanvas, iLeft + mpManager->GetMetric(TM_DockGuideIconInset), iTop + mpManager->GetMetric(TM_DockGuideIconInset), iRight - mpManager->GetMetric(TM_DockGuideIconInset), iBottom - mpManager->GetMetric(TM_DockGuideIconInset), false, sArrow);
+		DrawBoxClipped(pCanvas, iLeft + mpManager->GetMetric(TM_DockGuideIconInset), iTop + mpManager->GetMetric(TM_DockGuideIconInset), iRight - mpManager->GetMetric(TM_DockGuideIconInset), iTop + mpManager->GetMetric(TM_DockGuideIconInset) + mpManager->GetMetric(TM_DockGuideIconTitle), true, sArrow);
 		return;
 	}
 
@@ -563,16 +563,16 @@ void CDockGuides::DrawGuide(Ptr<CCanvas> pCanvas, SDockGuide* psGuide, bool bHov
 		switch (psGuide->eSide)
 		{
 		case DS_Left:
-			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_INSET, iTop + DOCK_GUIDE_BAR_END, iLeft + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
+			DrawBoxClipped(pCanvas, iLeft + mpManager->GetMetric(TM_DockGuideBarInset), iTop + mpManager->GetMetric(TM_DockGuideBarEnd), iLeft + mpManager->GetMetric(TM_DockGuideBarInset) + mpManager->GetMetric(TM_DockGuideBarWidth), iBottom - mpManager->GetMetric(TM_DockGuideBarEnd), true, sArrow);
 			break;
 		case DS_Right:
-			DrawBoxClipped(pCanvas, iRight - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iTop + DOCK_GUIDE_BAR_END, iRight - DOCK_GUIDE_BAR_INSET, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
+			DrawBoxClipped(pCanvas, iRight - mpManager->GetMetric(TM_DockGuideBarInset) - mpManager->GetMetric(TM_DockGuideBarWidth), iTop + mpManager->GetMetric(TM_DockGuideBarEnd), iRight - mpManager->GetMetric(TM_DockGuideBarInset), iBottom - mpManager->GetMetric(TM_DockGuideBarEnd), true, sArrow);
 			break;
 		case DS_Top:
-			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET, iRight - DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, true, sArrow);
+			DrawBoxClipped(pCanvas, iLeft + mpManager->GetMetric(TM_DockGuideBarEnd), iTop + mpManager->GetMetric(TM_DockGuideBarInset), iRight - mpManager->GetMetric(TM_DockGuideBarEnd), iTop + mpManager->GetMetric(TM_DockGuideBarInset) + mpManager->GetMetric(TM_DockGuideBarWidth), true, sArrow);
 			break;
 		default:
-			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iRight - DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET, true, sArrow);
+			DrawBoxClipped(pCanvas, iLeft + mpManager->GetMetric(TM_DockGuideBarEnd), iBottom - mpManager->GetMetric(TM_DockGuideBarInset) - mpManager->GetMetric(TM_DockGuideBarWidth), iRight - mpManager->GetMetric(TM_DockGuideBarEnd), iBottom - mpManager->GetMetric(TM_DockGuideBarInset), true, sArrow);
 			break;
 		}
 	}

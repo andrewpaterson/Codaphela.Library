@@ -26,7 +26,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockNode.h"
 
 
-#define AUTO_HIDE_EDGE			4	//A flyout's inner edge, dragged to resize it.
 
 
 class CDockPane;

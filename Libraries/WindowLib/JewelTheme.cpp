@@ -79,6 +79,26 @@ static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
 	22,		//TM_GoToRowHeight
 	22,		//TM_GoToIconWidth
 	8,		//TM_GoToGap
+	4,		//TM_DockFrameBorder
+	30,		//TM_DockGuideSize
+	32,		//TM_DockGuideStep
+	8,		//TM_DockGuideInset
+	6,		//TM_DockGuideArrowLength
+	3,		//TM_DockGuideArrowTip
+	8,		//TM_DockGuideIconInset
+	3,		//TM_DockGuideIconTitle
+	5,		//TM_DockGuideBarInset
+	2,		//TM_DockGuideBarWidth
+	7,		//TM_DockGuideBarEnd
+	4,		//TM_DockSashSize
+	26,		//TM_DockTitleBarHeight
+	8,		//TM_DockTitleGap
+	22,		//TM_DockTitleButtonWidth
+	24,		//TM_AutoHideStripSize
+	10,		//TM_AutoHideTabGap
+	4,		//TM_AutoHideTabSpacing
+	3,		//TM_AutoHideLine
+	4,		//TM_AutoHideEdge
 };
 
 

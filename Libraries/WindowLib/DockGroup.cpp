@@ -195,7 +195,7 @@ void CDockGroup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	iTitle = 0;
 	if (mpTitleBar.IsNotNull())
 	{
-		iTitle = DOCK_TITLE_BAR_HEIGHT;
+		iTitle = mpManager->GetMetric(TM_DockTitleBarHeight);
 		if (iTitle > sAreaSize.y)
 		{
 			iTitle = sAreaSize.y;

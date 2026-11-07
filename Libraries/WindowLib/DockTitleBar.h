@@ -29,7 +29,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentEvent.h"
 
 
-#define DOCK_TITLE_BAR_HEIGHT	26
 
 
 enum EDockTitleButton

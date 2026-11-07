@@ -1088,6 +1088,7 @@ Ptr<CWindowTheme>			CDockManager::GetTheme(void) { return mpTheme; }
 Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
 Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
 ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }
+int32						CDockManager::GetMetric(EThemeMetric eMetric) { return mpTheme->GetMetric(eMetric); }
 void						CDockManager::SetColour(EThemeColour eColour, ARGB32 sColour) { mpTheme->SetColour(eColour, sColour); }
 size						CDockManager::NumPanes(void) { return maPanes.Size(); }
 Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }

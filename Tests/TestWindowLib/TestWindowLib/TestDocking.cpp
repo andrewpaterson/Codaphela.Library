@@ -390,10 +390,10 @@ void TestDockingDefaults(void)
 		pOutputGroup->GetActualBounds(&cBounds);
 		AssertInt(120, cBounds.GetHeight());
 		AssertInt(600 - 120, cBounds.GetTop());
-		AssertInt(200 + DOCK_SASH_SIZE, cBounds.GetLeft());
+		AssertInt(200 + sTest.pTheme->GetMetric(TM_DockSashSize), cBounds.GetLeft());
 		sTest.pManager->GetWell()->GetActualBounds(&cBounds);
-		AssertInt(800 - 200 - 150 - 2 * DOCK_SASH_SIZE, cBounds.GetWidth());
-		AssertInt(600 - 120 - DOCK_SASH_SIZE, cBounds.GetHeight());
+		AssertInt(800 - 200 - 150 - 2 * sTest.pTheme->GetMetric(TM_DockSashSize), cBounds.GetWidth());
+		AssertInt(600 - 120 - sTest.pTheme->GetMetric(TM_DockSashSize), cBounds.GetHeight());
 
 		//A tool group has its title bar; its tabs show with two panes, along the bottom.
 		AssertTrue(pExplorerGroup->GetTitleBar().IsNotNull());
@@ -513,7 +513,7 @@ void TestDockingHideFloatAutoHide(void)
 		sTest.pProperties->GetContent()->GetActualBounds(&cBounds);
 		AssertTrue(cBounds.GetWidth() > 0);
 		sTest.pManager->GetWell()->GetActualBounds(&cBounds);
-		AssertInt(800 - 200 - DOCK_SASH_SIZE, cBounds.GetWidth());
+		AssertInt(800 - 200 - sTest.pTheme->GetMetric(TM_DockSashSize), cBounds.GetWidth());
 
 		//Docked back on the right; the window goes.
 		sTest.pManager->Dock(sTest.pProperties);
@@ -537,9 +537,9 @@ void TestDockingHideFloatAutoHide(void)
 		pStrip = sTest.pManager->GetArea()->GetStrip(DS_Bottom);
 		AssertSize(2, pStrip->NumTabs());
 		pStrip->GetActualBounds(&cBounds);
-		AssertInt(600 - AUTO_HIDE_STRIP_SIZE, cBounds.GetTop());
+		AssertInt(600 - sTest.pTheme->GetMetric(TM_AutoHideStripSize), cBounds.GetTop());
 		sTest.pManager->GetWell()->GetActualBounds(&cBounds);
-		AssertInt(600 - AUTO_HIDE_STRIP_SIZE, cBounds.GetHeight());
+		AssertInt(600 - sTest.pTheme->GetMetric(TM_AutoHideStripSize), cBounds.GetHeight());
 
 		//Pressing its tab slides it out over the well; pressing again slides it back.
 		pStrip->GetTab(0)->GetActualBounds(&cBounds);
@@ -549,7 +549,7 @@ void TestDockingHideFloatAutoHide(void)
 		AssertTrue(sTest.pOutput->GetContent()->GetParent() == sTest.pManager->GetFlyout());
 		sTest.pManager->GetFlyout()->GetActualBounds(&cBounds);
 		AssertInt(120, cBounds.GetHeight());
-		AssertInt(600 - AUTO_HIDE_STRIP_SIZE - 120, cBounds.GetTop());
+		AssertInt(600 - sTest.pTheme->GetMetric(TM_AutoHideStripSize) - 120, cBounds.GetTop());
 		AssertTrue(sTest.pManager->GetActivePane() == sTest.pOutput);
 		pStrip->GetTab(0)->GetActualBounds(&cBounds);
 		DockPress(sTest.pWindow, cBounds.GetLeft() + 3, cBounds.GetTop() + 3);
@@ -747,7 +747,7 @@ void TestDockingDrag(void)
 		AssertSize(1, sTest.pManager->NumFloating());
 		pFloating = sTest.pManager->GetFloating(0);
 		pFloating->GetRectangle(&cBounds);
-		AssertInt(20 - DOCK_FRAME_BORDER - DOCK_TITLE_BAR_HEIGHT / 2, cBounds.GetTop());
+		AssertInt(20 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2, cBounds.GetTop());
 
 		//Its title bar moves it.
 		pFloating->GetWindow()->Layout();
@@ -762,7 +762,7 @@ void TestDockingDrag(void)
 		AssertFalse(sTest.pManager->IsDragging());
 		AssertSize(1, sTest.pManager->NumFloating());
 		pFloating->GetRectangle(&cBounds);
-		AssertInt(20 - DOCK_FRAME_BORDER - DOCK_TITLE_BAR_HEIGHT / 2 + 40, cBounds.GetTop());
+		AssertInt(20 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2 + 40, cBounds.GetTop());
 
 		//Double clicking its title bar docks it back.
 		sTest.pManager->ToggleFloatGroup(sTest.pExplorer->GetGroup());
@@ -830,7 +830,7 @@ void TestDockingNarrowToolTabs(void)
 		sTest.pWindow->SetScreenRectangle(&cScreen);
 		sTest.pWindow->Layout();
 		pGroup->GetActualBounds(&cGroup);
-		AssertInt(520 - 200 - 150 - 2 * DOCK_SASH_SIZE, cGroup.GetWidth());
+		AssertInt(520 - 200 - 150 - 2 * sTest.pTheme->GetMetric(TM_DockSashSize), cGroup.GetWidth());
 		iGroupRight = cGroup.GetLeft() + cGroup.GetWidth();
 		AssertTrue(pTabs->IsBarShown());
 
@@ -1390,7 +1390,7 @@ void TestDockingBehaviour(void)
 		DockMove(sTest.pWindow, sStart.x + 10, sStart.y - 10);
 		AssertTrue(sTest.pManager->IsDragging());
 		sTest.pManager->SetDragNoDock(true);
-		DockMove(sTest.pWindow, 8 + DOCK_GUIDE_SIZE / 2, 300);
+		DockMove(sTest.pWindow, 8 + sTest.pTheme->GetMetric(TM_DockGuideSize) / 2, 300);
 		AssertFalse(sTest.pManager->GetTarget()->IsValid());
 		AssertTrue(sTest.pManager->GetArea()->GetGuides().IsNull());
 		DockRelease(sTest.pWindow);

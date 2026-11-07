@@ -235,23 +235,23 @@ void CAutoHideFlyout::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	switch (meSide)
 	{
 	case DS_Left:
-		mpEdge->Layout(SInt32Vec2(iRight - AUTO_HIDE_EDGE, iTop), SInt32Vec2(AUTO_HIDE_EDGE, sAreaSize.y));
-		iRight -= AUTO_HIDE_EDGE;
+		mpEdge->Layout(SInt32Vec2(iRight - mpManager->GetMetric(TM_AutoHideEdge), iTop), SInt32Vec2(mpManager->GetMetric(TM_AutoHideEdge), sAreaSize.y));
+		iRight -= mpManager->GetMetric(TM_AutoHideEdge);
 		break;
 	case DS_Right:
-		mpEdge->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(AUTO_HIDE_EDGE, sAreaSize.y));
-		iLeft += AUTO_HIDE_EDGE;
+		mpEdge->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(mpManager->GetMetric(TM_AutoHideEdge), sAreaSize.y));
+		iLeft += mpManager->GetMetric(TM_AutoHideEdge);
 		break;
 	case DS_Top:
-		mpEdge->Layout(SInt32Vec2(iLeft, iBottom - AUTO_HIDE_EDGE), SInt32Vec2(sAreaSize.x, AUTO_HIDE_EDGE));
-		iBottom -= AUTO_HIDE_EDGE;
+		mpEdge->Layout(SInt32Vec2(iLeft, iBottom - mpManager->GetMetric(TM_AutoHideEdge)), SInt32Vec2(sAreaSize.x, mpManager->GetMetric(TM_AutoHideEdge)));
+		iBottom -= mpManager->GetMetric(TM_AutoHideEdge);
 		break;
 	default:
-		mpEdge->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(sAreaSize.x, AUTO_HIDE_EDGE));
-		iTop += AUTO_HIDE_EDGE;
+		mpEdge->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(sAreaSize.x, mpManager->GetMetric(TM_AutoHideEdge)));
+		iTop += mpManager->GetMetric(TM_AutoHideEdge);
 		break;
 	}
-	iTitle = DOCK_TITLE_BAR_HEIGHT;
+	iTitle = mpManager->GetMetric(TM_DockTitleBarHeight);
 	if (iTitle > iBottom - iTop)
 	{
 		iTitle = iBottom - iTop;

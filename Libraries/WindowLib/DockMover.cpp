@@ -464,8 +464,8 @@ void CDockMover::FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> pP
 		pComponent->GetActualBounds(&cBounds);
 		if ((cBounds.GetWidth() > DOCK_MINIMUM_SIZE) && (cBounds.GetHeight() > DOCK_MINIMUM_SIZE))
 		{
-			iWidth = cBounds.GetWidth() + 2 * DOCK_FRAME_BORDER;
-			iHeight = cBounds.GetHeight() + 2 * DOCK_FRAME_BORDER;
+			iWidth = cBounds.GetWidth() + 2 * mpcManager->GetMetric(TM_DockFrameBorder);
+			iHeight = cBounds.GetHeight() + 2 * mpcManager->GetMetric(TM_DockFrameBorder);
 		}
 		pComponent->GetWindow()->GetScreenRectangle(&cWindow);
 		pcDest->Init(cWindow.GetLeft() + cBounds.GetLeft(), cWindow.GetTop() + cBounds.GetTop(), cWindow.GetLeft() + cBounds.GetLeft() + iWidth, cWindow.GetTop() + cBounds.GetTop() + iHeight);

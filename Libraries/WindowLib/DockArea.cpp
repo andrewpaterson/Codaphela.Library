@@ -236,7 +236,7 @@ void CDockArea::LayoutStrip(Ptr<CAutoHideStrip> pStrip, EDockSide eSide, int32* 
 		return;
 	}
 
-	iThickness = AUTO_HIDE_STRIP_SIZE;
+	iThickness = mpManager->GetMetric(TM_AutoHideStripSize);
 	switch (eSide)
 	{
 	case DS_Left:

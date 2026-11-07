@@ -215,9 +215,9 @@ int32 CAutoHideTab::GetLength(void)
 	sText = mpText->GetDesiredSize();
 	if (IsVertical())
 	{
-		return sText.y + 2 * AUTO_HIDE_TAB_GAP;
+		return sText.y + 2 * mpManager->GetMetric(TM_AutoHideTabGap);
 	}
-	return sText.x + 2 * AUTO_HIDE_TAB_GAP;
+	return sText.x + 2 * mpManager->GetMetric(TM_AutoHideTabGap);
 }
 
 
@@ -229,11 +229,11 @@ void CAutoHideTab::SetRequiredSize(void)
 {
 	if (IsVertical())
 	{
-		msRequiredSize.Init(AUTO_HIDE_STRIP_SIZE, GetLength());
+		msRequiredSize.Init(mpManager->GetMetric(TM_AutoHideStripSize), GetLength());
 	}
 	else
 	{
-		msRequiredSize.Init(GetLength(), AUTO_HIDE_STRIP_SIZE);
+		msRequiredSize.Init(GetLength(), mpManager->GetMetric(TM_AutoHideStripSize));
 	}
 }
 
@@ -258,19 +258,19 @@ void CAutoHideTab::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	{
 	case DS_Left:
 		sLinePosition = sPosition;
-		sLineSize.Init(AUTO_HIDE_LINE, sAreaSize.y);
+		sLineSize.Init(mpManager->GetMetric(TM_AutoHideLine), sAreaSize.y);
 		break;
 	case DS_Right:
-		sLinePosition.Init(sPosition.x + sAreaSize.x - AUTO_HIDE_LINE, sPosition.y);
-		sLineSize.Init(AUTO_HIDE_LINE, sAreaSize.y);
+		sLinePosition.Init(sPosition.x + sAreaSize.x - mpManager->GetMetric(TM_AutoHideLine), sPosition.y);
+		sLineSize.Init(mpManager->GetMetric(TM_AutoHideLine), sAreaSize.y);
 		break;
 	case DS_Top:
 		sLinePosition = sPosition;
-		sLineSize.Init(sAreaSize.x, AUTO_HIDE_LINE);
+		sLineSize.Init(sAreaSize.x, mpManager->GetMetric(TM_AutoHideLine));
 		break;
 	default:
-		sLinePosition.Init(sPosition.x, sPosition.y + sAreaSize.y - AUTO_HIDE_LINE);
-		sLineSize.Init(sAreaSize.x, AUTO_HIDE_LINE);
+		sLinePosition.Init(sPosition.x, sPosition.y + sAreaSize.y - mpManager->GetMetric(TM_AutoHideLine));
+		sLineSize.Init(sAreaSize.x, mpManager->GetMetric(TM_AutoHideLine));
 		break;
 	}
 	mpLine->Layout(sLinePosition, sLineSize);
@@ -455,7 +455,7 @@ bool CAutoHideStrip::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CAutoHideStrip::SetRequiredSize(void)
 {
-	msRequiredSize.Init(AUTO_HIDE_STRIP_SIZE, AUTO_HIDE_STRIP_SIZE);
+	msRequiredSize.Init(mpManager->GetMetric(TM_AutoHideStripSize), mpManager->GetMetric(TM_AutoHideStripSize));
 }
 
 
@@ -476,7 +476,7 @@ void CAutoHideStrip::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SetContainerBounds(sPosition, sAreaSize);
 	mpBackground->Layout(sPosition, sAreaSize);
 	bVertical = IsHorizontalDockSide(meSide);
-	iAlong = AUTO_HIDE_TAB_SPACING;
+	iAlong = mpManager->GetMetric(TM_AutoHideTabSpacing);
 	for (i = 0; i < maTabs.Size(); i++)
 	{
 		pTab = maTabs.Get(i);
@@ -489,7 +489,7 @@ void CAutoHideStrip::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		{
 			pTab->Layout(SInt32Vec2(sPosition.x + iAlong, sPosition.y), SInt32Vec2(iLength, sAreaSize.y));
 		}
-		iAlong += iLength + AUTO_HIDE_TAB_SPACING;
+		iAlong += iLength + mpManager->GetMetric(TM_AutoHideTabSpacing);
 	}
 }
 

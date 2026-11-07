@@ -76,6 +76,26 @@ enum EThemeMetric
 	TM_GoToRowHeight,			//A Go To dialog's result rows.
 	TM_GoToIconWidth,			//The column of a Go To dialog's icons.
 	TM_GoToGap,					//Between a Go To dialog's field and results, and after a result's name.
+	TM_DockFrameBorder,			//A floating window's edge, dragged to resize it.
+	TM_DockGuideSize,			//A docking guide's square.
+	TM_DockGuideStep,			//From one guide of a compass to the next.
+	TM_DockGuideInset,			//An edge guide from the dock area's edge.
+	TM_DockGuideArrowLength,	//A guide's arrow, from its tip to its widest.
+	TM_DockGuideArrowTip,		//From a guide's middle to its arrow's tip.
+	TM_DockGuideIconInset,		//A centre guide's window from the guide's edge.
+	TM_DockGuideIconTitle,		//That window's title bar.
+	TM_DockGuideBarInset,		//An outer guide's bar from the edge it is along.
+	TM_DockGuideBarWidth,
+	TM_DockGuideBarEnd,			//The bar's ends from the guide's other edges.
+	TM_DockSashSize,			//Between a split's children.
+	TM_DockTitleBarHeight,		//A tool group's title bar.
+	TM_DockTitleGap,			//Before a title bar's title.
+	TM_DockTitleButtonWidth,	//A title bar's buttons.
+	TM_AutoHideStripSize,		//An auto hide strip's thickness.
+	TM_AutoHideTabGap,			//Before and after a strip tab's text.
+	TM_AutoHideTabSpacing,		//Between a strip's tabs.
+	TM_AutoHideLine,			//A strip tab's line along the strip's outer side.
+	TM_AutoHideEdge,			//A flyout's inner edge, dragged to resize it.
 
 	TM_NumMetrics,
 };

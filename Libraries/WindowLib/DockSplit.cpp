@@ -448,7 +448,7 @@ void CDockSplit::SetRequiredSize(void)
 	iAlong = (int32)maNodes.Size() * DOCK_MINIMUM_SIZE;
 	if (maNodes.Size() > 1)
 	{
-		iAlong += (int32)(maNodes.Size() - 1) * DOCK_SASH_SIZE;
+		iAlong += (int32)(maNodes.Size() - 1) * mpManager->GetMetric(TM_DockSashSize);
 	}
 	if (mbHorizontal)
 	{
@@ -669,7 +669,7 @@ void CDockSplit::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	iAvailable = GetAlong(sAreaSize);
 	if (maNodes.Size() > 1)
 	{
-		iAvailable -= (int32)(maNodes.Size() - 1) * DOCK_SASH_SIZE;
+		iAvailable -= (int32)(maNodes.Size() - 1) * mpManager->GetMetric(TM_DockSashSize);
 	}
 	WorkOutSizes(iAvailable, &maiSizes);
 
@@ -678,8 +678,8 @@ void CDockSplit::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	{
 		if (i > 0)
 		{
-			LayoutAlong(maSashes.Get(i - 1), sPosition, sAreaSize, iAlong, DOCK_SASH_SIZE);
-			iAlong += DOCK_SASH_SIZE;
+			LayoutAlong(maSashes.Get(i - 1), sPosition, sAreaSize, iAlong, mpManager->GetMetric(TM_DockSashSize));
+			iAlong += mpManager->GetMetric(TM_DockSashSize);
 		}
 		iSize = maiSizes.GetValue(i);
 		LayoutAlong(maNodes.Get(i), sPosition, sAreaSize, iAlong, iSize);

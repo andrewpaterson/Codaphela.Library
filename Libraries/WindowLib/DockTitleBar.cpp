@@ -26,8 +26,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockTitleBar.h"
 
 
-#define DOCK_TITLE_GAP			8
-#define DOCK_TITLE_BUTTON_WIDTH	22
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,22 +56,22 @@ void CDockTitleBar::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, const
 	}
 	SetHitAsWhole(true);
 	SetCanGetFocus(true);
-	SetDesiredSize(-1, DOCK_TITLE_BAR_HEIGHT);
+	SetDesiredSize(-1, mpManager->GetMetric(TM_DockTitleBarHeight));
 	SetAlignment(CSH_Stretch, CSV_Stretch);
 
 	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockTitleBar));
 	pBackground = OMalloc<CCanvas>(pWindow, mpBackgroundDraw);
 	pBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pBackground, 0, 0, DTB_NumButtons + 3, 1);
-	AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), DOCK_TITLE_GAP, 1), 0, 0);
+	AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), mpManager->GetMetric(TM_DockTitleGap), 1), 0, 0);
 
 	mpTitle = OMalloc<CLabel>(pWindow, pManager->GetFont(), szTitle);
 	mpTitle->SetAlignment(CSH_Left, CSV_Center);
 	AddComponent(mpTitle, 1, 0, 1, 1, 1, 0);
 
-	mapButtons[DTB_Menu] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_DownChevron), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
-	mapButtons[DTB_Pin] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_Pin), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
-	mapButtons[DTB_Close] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_Close), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
+	mapButtons[DTB_Menu] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_DownChevron), mpManager->GetMetric(TM_DockTitleButtonWidth), mpManager->GetMetric(TM_DockTitleBarHeight));
+	mapButtons[DTB_Pin] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_Pin), mpManager->GetMetric(TM_DockTitleButtonWidth), mpManager->GetMetric(TM_DockTitleBarHeight));
+	mapButtons[DTB_Close] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_Close), mpManager->GetMetric(TM_DockTitleButtonWidth), mpManager->GetMetric(TM_DockTitleBarHeight));
 	mabShown[DTB_Menu] = bMenu;
 	mabShown[DTB_Pin] = bPin;
 	mabShown[DTB_Close] = bClose;

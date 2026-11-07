@@ -168,7 +168,7 @@ void CDockDrag::BeginPane(Ptr<CDockPane> pPane)
 	mpManager->mcMover.FloatRectangleFor(pPane->GetGroup(), NULL, &cRect);
 	iWidth = cRect.GetWidth();
 	iHeight = cRect.GetHeight();
-	sGrab.Init((iWidth > 2 * DOCK_GRAB_LEFT) ? DOCK_GRAB_LEFT : iWidth / 2, DOCK_FRAME_BORDER + DOCK_TITLE_BAR_HEIGHT / 2);
+	sGrab.Init((iWidth > 2 * DOCK_GRAB_LEFT) ? DOCK_GRAB_LEFT : iWidth / 2, mpManager->GetMetric(TM_DockFrameBorder) + mpManager->GetMetric(TM_DockTitleBarHeight) / 2);
 	cRect.Init(sPointer.x - sGrab.x, sPointer.y - sGrab.y, sPointer.x - sGrab.x + iWidth, sPointer.y - sGrab.y + iHeight);
 	mpManager->Float(pPane, &cRect);
 	Start(mpManager->FindFloating(pPane), sGrab, pSource, true);

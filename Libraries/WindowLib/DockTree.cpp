@@ -335,7 +335,7 @@ void CDockTree::SplitBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockS
 	iSize = pNode->GetDockSize();
 	pSplit = OMalloc<CDockSplit>(pTarget->GetWindow(), Ptr<CDockManager>(mpcManager), IsHorizontalDockSide(eSide), mpcManager->GetColour(TC_DockSash));
 	ReplaceInParent(pTarget, pSplit);
-	pTarget->SetDockSize((iTarget > iSize) ? iTarget - iSize - DOCK_SASH_SIZE : 0);
+	pTarget->SetDockSize((iTarget > iSize) ? iTarget - iSize - mpcManager->GetMetric(TM_DockSashSize) : 0);
 	if (IsAfterDockSide(eSide))
 	{
 		pSplit->AddNode(pTarget);

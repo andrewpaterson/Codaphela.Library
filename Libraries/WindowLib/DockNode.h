@@ -24,7 +24,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Container.h"
 
 
-#define DOCK_SASH_SIZE			4	//Between a split's children.
 #define DOCK_MINIMUM_SIZE		40	//The least a split shrinks a child to.
 #define DOCK_DEFAULT_SIZE		260	//A tool pane docked beside something, along the split.
 #define DOCK_DRAG_DISTANCE		6	//Pixels a title bar is pulled before it is dragged.

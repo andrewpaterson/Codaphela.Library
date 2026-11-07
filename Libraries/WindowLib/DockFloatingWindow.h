@@ -28,7 +28,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockNode.h"
 
 
-#define DOCK_FRAME_BORDER		4	//A floating window's edge, dragged to resize it.
 
 
 //Panes floated in a tool window of their own (CWindow::ShowOwned) over the main window.  It has no platform frame: a
