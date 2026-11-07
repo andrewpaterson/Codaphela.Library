@@ -261,18 +261,22 @@ void CMenuItem::MenuOpening(void)
 	CComponentInput*	pcInput;
 
 	szKeys.Init();
+	pcInput = mpWindow->GetComponentInput();
 	if (mpCommand.IsNotNull())
 	{
-		CComponentInput::AppendShortcutText(&szKeys, mpCommand->GetKeys());
 		SetEnabled(mpCommand->IsEnabled());
-	}
-	else
-	{
-		pcInput = mpWindow->GetComponentInput();
-		if ((meShortcut != CIC_Ignored) && (pcInput != NULL))
+		if (!StrEmpty(mpCommand->GetKeys()))
 		{
-			pcInput->GetShortcutText(meShortcut, &szKeys);
+			CComponentInput::AppendShortcutText(&szKeys, mpCommand->GetKeys());
 		}
+		else if ((mpCommand->GetStandardCommand() != CIC_Ignored) && (pcInput != NULL))
+		{
+			pcInput->GetShortcutText(mpCommand->GetStandardCommand(), &szKeys);
+		}
+	}
+	else if ((meShortcut != CIC_Ignored) && (pcInput != NULL))
+	{
+		pcInput->GetShortcutText(meShortcut, &szKeys);
 	}
 	ShowShortcut(szKeys.Text());
 	szKeys.Kill();

@@ -2079,6 +2079,29 @@ bool CTextArea::WantsEnter(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Undo and redo only with something to undo or redo; cut and paste only
+// in editable text.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::CanDoCommand(EComponentInputCommand eCommand)
+{
+	switch (eCommand)
+	{
+	case CIC_Undo:
+		return CanUndo();
+	case CIC_Redo:
+		return CanRedo();
+	case CIC_Cut:
+	case CIC_Paste:
+		return IsEditable() && CComponent::CanDoCommand(eCommand);
+	default:
+		return CComponent::CanDoCommand(eCommand);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A context menu opened from the keys opens under the caret, as Visual
 // Studio's does, kept in the part of the text that is seen.
 //

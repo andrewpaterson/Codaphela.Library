@@ -168,6 +168,9 @@
     <ClInclude Include="CommandSet.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="EditCommands.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentEvent.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
@@ -492,6 +495,9 @@
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="CommandSet.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="EditCommands.cpp">
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="ComponentInputNumKey.cpp">

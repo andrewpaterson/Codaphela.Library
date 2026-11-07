@@ -6,6 +6,8 @@
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/TextField.h"
+#include "WindowLib/EditCommands.h"
+#include "WindowLib/MenuContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
@@ -521,6 +523,86 @@ void TestTextFieldFrames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The Edit commands act on the field the keys last went to, even while a
+// menu holds the keys, and can only run while they would do something.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextFieldEditCommands(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTextField>			pField;
+		Ptr<CCommandSet>		pCommands;
+		Ptr<CEditCommands>		pEdit;
+		Ptr<CMenuContainer>		pMenu;
+		CPointer				pNull;
+		size					uiStart;
+		size					uiEnd;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Edit Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pField = CreateTestTextField(pTestWindow, "");
+		pField->SetTypingPause(1000000);
+		pCommands = OMalloc<CCommandSet>();
+		pEdit = OMalloc<CEditCommands>(pTestWindow, pCommands);
+		pTestWindow->SetCommands(pCommands);
+		AssertSize(6, pCommands->NumCommands());
+		AssertInt(CIC_Copy, pCommands->Find("Edit.Copy")->GetStandardCommand());
+		pTestWindow->Layout();
+
+		//Nothing has had the keys yet.
+		AssertTrue(pEdit->GetTarget().IsNull());
+		AssertFalse(pCommands->Find("Edit.Copy")->IsEnabled());
+		MoveTo(pTestWindow, ComponentCentre(pField));
+		Click(pTestWindow);
+		AssertTrue(pEdit->GetTarget() == pField);
+		AssertTrue(pCommands->Find("Edit.Copy")->IsEnabled());
+		AssertTrue(pCommands->Find("Edit.Paste")->IsEnabled());
+		AssertFalse(pCommands->Find("Edit.Undo")->IsEnabled());
+
+		pTestWindow->InputPrintable('a', true);
+		pTestWindow->InputPrintable('b', true);
+		AssertTrue(pCommands->Find("Edit.Undo")->IsEnabled());
+
+		//A menu taking the keys doesn't change what the commands act on, and running one gives the field the keys back.
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow)));
+		pMenu->AddItem("Item");
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertFalse(pField->IsFocussed());
+		AssertTrue(pEdit->GetTarget() == pField);
+		pMenu->Close();
+		AssertTrue(pCommands->Run("Edit.SelectAll"));
+		AssertTrue(pField->IsFocussed());
+		AssertTrue(pField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(0, uiStart);
+		AssertSize(2, uiEnd);
+		AssertTrue(pCommands->Run("Edit.Undo"));
+		AssertString("", pField->GetText());
+		AssertFalse(pCommands->Find("Edit.Undo")->IsEnabled());
+		AssertTrue(pCommands->Find("Edit.Redo")->IsEnabled());
+		AssertTrue(pCommands->Run("Edit.Redo"));
+		AssertString("ab", pField->GetText());
+
+		pMenu = NULL;
+		pTestWindow->SetCommands(NULL);
+		pEdit = NULL;
+		pCommands = NULL;
+		pField = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextField(void)
@@ -530,6 +612,7 @@ void TestTextField(void)
 
 	TestTextFieldEditing();
 	TestTextFieldUndo();
+	TestTextFieldEditCommands();
 	TestTextFieldPointer();
 	TestTextFieldFrames();
 

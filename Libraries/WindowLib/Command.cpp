@@ -41,6 +41,7 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 	mpIcon = pIcon;
 	msRun = *psRun;
 	msEnabled.Clear();
+	meStandard = CIC_Ignored;
 	PostInit();
 }
 
@@ -57,6 +58,7 @@ void CCommand::Class(void)
 	M_Pointer(mpIcon);
 	U_Data(SMemberCall, msRun);
 	U_Data(SMemberCall, msEnabled);
+	U_Enum(meStandard);
 }
 
 
@@ -107,6 +109,8 @@ bool CCommand::Run(void)
 }
 
 
+void CCommand::SetStandardCommand(EComponentInputCommand eStandard) { meStandard = eStandard; }  //A command without keys of its own shows eStandard's.
+EComponentInputCommand CCommand::GetStandardCommand(void) { return meStandard; }
 char* CCommand::GetName(void) { return mszName.Text(); }
 char* CCommand::GetCaption(void) { return mszCaption.Text(); }
 char* CCommand::GetKeys(void) { return mszKeys.Text(); }

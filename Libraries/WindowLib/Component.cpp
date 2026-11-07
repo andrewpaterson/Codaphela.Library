@@ -157,6 +157,30 @@ void CComponent::SetInputActionsEnabled(EComponentInputCommand eCommand, bool bE
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether eCommand would do something here now, as an Edit menu asks: by
+// default, whether an enabled action takes it.  A component whose command
+// sometimes can't (a text area's undo with nothing to undo) says so.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::CanDoCommand(EComponentInputCommand eCommand)
+{
+	size				i;
+	Ptr<CInputAction>	pAction;
+
+	for (i = 0; i < maInputActions.Size(); i++)
+	{
+		pAction = maInputActions.Get(i);
+		if (pAction->IsEnabled() && (pAction->GetFilter() == IAF_Command) && (pAction->GetCommand() == eCommand))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Calls every action that matches, in the order they were added.  Returns
 // true if any did, then the event goes no further, unless every one that
 // did set the event's bPass.  An action can remove actions, as taking a

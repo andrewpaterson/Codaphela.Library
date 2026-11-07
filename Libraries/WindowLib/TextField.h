@@ -97,6 +97,7 @@ public:
 
 	void						Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool						WantsEnter(void) override;
+	bool						CanDoCommand(EComponentInputCommand eCommand) override;
 	bool						GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour) override;
 
 	void						FocusOrMouseOverChanged(void) override;

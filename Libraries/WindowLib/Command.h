@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Object.h"
 #include "StandardLib/MemberCall.h"
 #include "SupportLib/ImageCel.h"
+#include "ComponentInputCommand.h"
 
 
 //Something the application does, like Build or Step Over, that its keys, a menu item and a tool button can all ask
@@ -36,12 +37,13 @@ class CCommand : public CObject
 CONSTRUCTABLE(CCommand);
 DESTRUCTABLE(CCommand);
 protected:
-	CChars				mszName;
-	CChars				mszCaption;
-	CChars				mszKeys;  //Named as CComponentInput names them, empty for none.
-	Ptr<CImageCel>		mpIcon;  //NULL for none.
-	SMemberCall			msRun;
-	SMemberCall			msEnabled;  //Not set: the command can always run.
+	CChars					mszName;
+	CChars					mszCaption;
+	CChars					mszKeys;  //Named as CComponentInput names them, empty for none.
+	Ptr<CImageCel>			mpIcon;  //NULL for none.
+	SMemberCall				msRun;
+	SMemberCall				msEnabled;  //Not set: the command can always run.
+	EComponentInputCommand	meStandard;  //The component command it stands for (an Edit menu's copy), whose keys it shows; CIC_Ignored if none.
 
 public:
 	template<class M, class O>
@@ -52,9 +54,11 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	template<class M, class O>
-	void				SetEnabledCheck(O* pcObject, bool(M::*fIsEnabled)(void));
-	bool				IsEnabled(void);
-	bool				Run(void);
+	void					SetEnabledCheck(O* pcObject, bool(M::*fIsEnabled)(void));
+	bool					IsEnabled(void);
+	bool					Run(void);
+	void					SetStandardCommand(EComponentInputCommand eStandard);
+	EComponentInputCommand	GetStandardCommand(void);
 
 	char*				GetName(void);
 	char*				GetCaption(void);
