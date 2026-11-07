@@ -126,7 +126,7 @@ size CMapStringUnknown::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
 {
-	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
+	ReturnOnFalse(pcFileWriter->WriteInt16(muiFlags));
 	return mcMap.Write(pcFileWriter);
 }
 
@@ -137,7 +137,7 @@ bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::Load(CFileReader* pcFileReader)
 {
-	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
+	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
 	return mcMap.Read(pcFileReader, this, this);
 }
 
@@ -212,7 +212,7 @@ void CMapStringUnknown::FreeData(void* pvData)
 	CUnknown*	pcValue;
 
 	psNode = (SMNode*)pvData;
-	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
+	if (muiFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
 		pcValue = *((CUnknown**)mcMap.GetValue(psNode));
 		if (pcValue)

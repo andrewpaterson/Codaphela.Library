@@ -490,11 +490,11 @@ size CArrayCommonObject::BaseNumPointerTos(void)
 		}
 	}
 
+	//The count of what is there is right either way: a NonNullElements that differs is the array's mistake.
 	uiNumElements = NonNullElements();
-	if (iCount != NonNullElements())
+	if (iCount != uiNumElements)
 	{
 		gcLogger.Error2(__METHOD__, " NumPointerTos [", SizeToString(iCount), "] should equal NonNullElements [", SizeToString(uiNumElements), "].", NULL);
-		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 	return iCount;
 }

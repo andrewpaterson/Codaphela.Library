@@ -72,7 +72,7 @@ public:
 	size				NumStackFroms(void);
 	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	size				NumPointerTos(void);
-	size				BaseNumPointerTos(void);
+	size				BaseNumPointerTos(void) override;
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 

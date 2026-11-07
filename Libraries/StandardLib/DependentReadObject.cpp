@@ -1,3 +1,4 @@
+#include "BaseLib/IntegerHelper.h"
 #include "ObjectFileGeneral.h"
 #include "DependentReadObject.h"
 
@@ -11,7 +12,7 @@ void CDependentReadObject::Init(CObjectIdentifier* pcObjectIdentifier)
 	meType = pcObjectIdentifier->meType;
 	moi = pcObjectIdentifier->moi;
 	mszObjectName.Init(pcObjectIdentifier->GetName());
-	miFlags = 0;
+	muiFlags = 0;
 }
 
 
@@ -51,7 +52,7 @@ OIndex CDependentReadObject::GetOldIndex(void)
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObject::SetRead(void)
 {
-	miFlags |= DEPENDENT_READ_OBJECT_FLAG_READ;
+	muiFlags |= DEPENDENT_READ_OBJECT_FLAG_READ;
 }
 
 
@@ -61,7 +62,7 @@ void CDependentReadObject::SetRead(void)
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObject::SetExisting(void)
 {
-	miFlags |= DEPENDENT_READ_OBJECT_FLAG_EXISTED;
+	muiFlags |= DEPENDENT_READ_OBJECT_FLAG_EXISTED;
 }
 
 
@@ -71,7 +72,7 @@ void CDependentReadObject::SetExisting(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDependentReadObject::IsRead(void)
 {
-	return miFlags & DEPENDENT_READ_OBJECT_FLAG_READ;
+	return FixBool(muiFlags & DEPENDENT_READ_OBJECT_FLAG_READ);
 }
 
 
@@ -81,6 +82,6 @@ bool CDependentReadObject::IsRead(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDependentReadObject::ExistsInObjects(void)
 {
-	return miFlags & DEPENDENT_READ_OBJECT_FLAG_EXISTED;
+	return FixBool(muiFlags & DEPENDENT_READ_OBJECT_FLAG_EXISTED);
 }
 

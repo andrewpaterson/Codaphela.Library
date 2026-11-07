@@ -116,7 +116,7 @@ void CClass::System(void)
 //////////////////////////////////////////////////////////////////////////
 bool CClass::IsComplete(void)
 {
-	return muiFlags & CLASS_FLAGS_COMPLETE;
+	return FixBool(muiFlags & CLASS_FLAGS_COMPLETE);
 }
 
 
@@ -126,7 +126,7 @@ bool CClass::IsComplete(void)
 //////////////////////////////////////////////////////////////////////////
 bool CClass::IsUnmanaged(void)
 {
-	return muiFlags & CLASS_FLAGS_UNMANAGED;
+	return FixBool(muiFlags & CLASS_FLAGS_UNMANAGED);
 }
 
 
@@ -136,7 +136,7 @@ bool CClass::IsUnmanaged(void)
 //////////////////////////////////////////////////////////////////////////
 bool CClass::IsPrimitive(void)
 {
-	return muiFlags & CLASS_FLAGS_PRIMITIVE;
+	return FixBool(muiFlags & CLASS_FLAGS_PRIMITIVE);
 }
 
 
@@ -146,7 +146,7 @@ bool CClass::IsPrimitive(void)
 //////////////////////////////////////////////////////////////////////////
 bool CClass::IsSystem(void)
 {
-	return muiFlags & CLASS_FLAGS_SYSTEM;
+	return FixBool(muiFlags & CLASS_FLAGS_SYSTEM);
 }
 
 
@@ -156,7 +156,7 @@ bool CClass::IsSystem(void)
 //////////////////////////////////////////////////////////////////////////
 bool CClass::HasNes(void)
 {
-	return muiFlags & CLASS_FLAGS_HAS_NES;
+	return FixBool(muiFlags & CLASS_FLAGS_HAS_NES);
 }
 
 

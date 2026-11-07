@@ -308,7 +308,7 @@ bool CIndexUnknown::Load(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::IsKillElements(void)
 {
-	return muiFlags & INDEX_TREE_KILL_ELEMENT;
+	return FixBool(muiFlags & INDEX_TREE_KILL_ELEMENT);
 }
 
 

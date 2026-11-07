@@ -1217,7 +1217,7 @@ bool CArrayCommonUnknown::PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnk
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::IsKillElements(void)
 {
-	return muiFlags & ARRAY_COMMOM_KILL_ELEMENT;
+	return FixBool(muiFlags & ARRAY_COMMOM_KILL_ELEMENT);
 }
 
 

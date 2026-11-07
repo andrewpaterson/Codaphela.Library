@@ -32,7 +32,7 @@ class CMapCommonUnknown : public CUnknown, public CDataIO, public CDataFree
 {
 CONSTRUCTABLE(CMapCommonUnknown)
 protected:
-	uint16						miFlags;
+	uint16						muiFlags;
 
 public:
 			void 		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.

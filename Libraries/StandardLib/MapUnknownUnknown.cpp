@@ -103,7 +103,7 @@ bool CMapUnknownUnknown::Load(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::WriteMapUnknownHeader(CFileWriter* pcFileWriter)
 {
-	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
+	ReturnOnFalse(pcFileWriter->WriteInt16(muiFlags));
 	return mcMap.WriteMapBlockHeader(pcFileWriter);
 }
 
@@ -114,7 +114,7 @@ bool CMapUnknownUnknown::WriteMapUnknownHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader)
 {
-	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
+	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
 	return mcMap.ReadMapBlockHeader(pcFileReader, &ComparePtrPtr, this, this);
 }
 
@@ -125,7 +125,7 @@ bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree)
 {
-	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
+	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
 	return mcMap.ReadMapBlockHeader(pcFileReader, &ComparePtrPtr, pcDataIO, pcDataFree);
 }
 
@@ -319,7 +319,7 @@ void CMapUnknownUnknown::FreeData(void* pvData)
 	SMNode*		psNode;
 
 	psNode = (SMNode*)pvData;
-	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
+	if (muiFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
 		pcKey = *((CUnknown**)mcMap.GetKey(psNode));
 		pcValue = *((CUnknown**)mcMap.GetValue(psNode));

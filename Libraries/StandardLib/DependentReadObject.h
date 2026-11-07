@@ -12,7 +12,7 @@ class CBaseObject;
 class CDependentReadObject : public CObjectIdentifier
 {
 protected:
-	int		miFlags;
+	uint16	muiFlags;
 
 public:
 	void	Init(CObjectIdentifier* pcObjectIdentifier);

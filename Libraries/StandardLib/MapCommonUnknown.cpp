@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMapCommonUnknown::_Init(void)
 {
-	miFlags = 0;
+	muiFlags = 0;
 }
 
 
@@ -38,9 +38,9 @@ void CMapCommonUnknown::_Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapCommonUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
-	miFlags = 0;
-	SetFlagShort(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
-	SetFlagShort(&miFlags, MAP_COMMOM_NO_OVERWRITE, !bOverwriteExisting);
+	muiFlags = 0;
+	SetFlagShort(&muiFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&muiFlags, MAP_COMMOM_NO_OVERWRITE, !bOverwriteExisting);
 }
 
 
@@ -60,7 +60,7 @@ void CMapCommonUnknown::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMapCommonUnknown::IsKillElements(void)
 {
-	return miFlags & MAP_COMMOM_KILL_ELEMENT;
+	return FixBool(muiFlags & MAP_COMMOM_KILL_ELEMENT);
 }
 
 
@@ -70,7 +70,7 @@ bool CMapCommonUnknown::IsKillElements(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMapCommonUnknown::IsOverwriteExisting(void)
 {
-	return !(miFlags & MAP_COMMOM_NO_OVERWRITE);
+	return !(muiFlags & MAP_COMMOM_NO_OVERWRITE);
 }
 
 
