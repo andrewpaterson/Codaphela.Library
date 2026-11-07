@@ -100,3 +100,35 @@ CCPPScope* CCPPSymbolTable::GetGlobalScope(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSymbolTable::NumScopes(void)
+{
+	return mapcScopes.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The scopes made since there were uiScopes are killed (a tentative
+// parse's, which nothing kept).  Scopes in an arena are freed; mcMemory
+// keeps its until Kill.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSymbolTable::RollbackScopes(size uiScopes)
+{
+	CCPPScope*	pcScope;
+
+	while (mapcScopes.NumElements() > uiScopes)
+	{
+		pcScope = mapcScopes.Pop();
+		pcScope->Kill();
+		if (mpcArena)
+		{
+			mpcArena->Free(pcScope);
+		}
+	}
+}
+

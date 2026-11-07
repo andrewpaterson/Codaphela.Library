@@ -497,7 +497,11 @@ void CCPPParser::BeginTentative(SCPPTentative* psTentative)
 	//Nothing parsed tentatively is reported, declared or resolved.  The position is marked so EndTentative can rewind
 	//to it.
 	psTentative->sPosition = Mark();
+	psTentative->pcScope = mpcScope;
 	psTentative->bSavedFailed = mbFailed;
+	psTentative->uiSyntaxes = mpcMemory->NumSyntaxes();
+	psTentative->uiScopes = mpcSymbols->NumScopes();
+	psTentative->uiLazy = muiLazyLoaded + muiLazyRead;
 	mbFailed = false;
 	miTentative++;
 	muiTentativeParses++;
@@ -518,6 +522,14 @@ bool CCPPParser::EndTentative(SCPPTentative* psTentative, bool bParsed)
 	miTentative--;
 	mbFailed = psTentative->bSavedFailed;
 	Rewind(psTentative->sPosition);
+	mpcScope = psTentative->pcScope;
+
+	//The nodes and scopes it made are taken back, unless a lookup loaded a lazy declaration (made for good) meanwhile.
+	if (muiLazyLoaded + muiLazyRead == psTentative->uiLazy)
+	{
+		mpcMemory->Rollback(psTentative->uiSyntaxes);
+		mpcSymbols->RollbackScopes(psTentative->uiScopes);
+	}
 	return bSucceeded && bParsed;
 }
 

@@ -1623,6 +1623,65 @@ void TestCppParserNestedTemplateArguments(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the nodes reachable from pcSyntax, it included, to papcFound (each
+// once).
+//
+//////////////////////////////////////////////////////////////////////////
+static void FindReachable(CCPPSyntax* pcSyntax, CArraySyntax* papcFound)
+{
+	size	ui;
+
+	if (!pcSyntax || (papcFound->Find(pcSyntax) != ARRAY_ELEMENT_NOT_FOUND))
+	{
+		return;
+	}
+	papcFound->Add(pcSyntax);
+	for (ui = 0; ui < pcSyntax->NumChildren(); ui++)
+	{
+		FindReachable(pcSyntax->GetChild(ui), papcFound);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of the nodes szSource's tree's memory holds aren't in the tree.
+//
+//////////////////////////////////////////////////////////////////////////
+static size CountUnreachable(char* szSource)
+{
+	SParsedText		sParsed;
+	CArraySyntax	apcReachable;
+	size			uiUnreachable;
+
+	AssertTrue(sParsed.Init(szSource));
+	apcReachable.Init();
+	FindReachable((CCPPSyntax*)sParsed.cTree.GetRoot(), &apcReachable);
+	uiUnreachable = sParsed.cTree.GetMemory()->NumSyntaxes() - apcReachable.NumElements();
+	apcReachable.Kill();
+	sParsed.Kill();
+	return uiUnreachable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a lookahead parses (to decide a type-id from an expression, a
+// declaration from a statement) is taken back: code full of lookaheads
+// leaves no more nodes out of its tree than a plain function does.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserTentativeMemory(void)
+{
+	AssertSize(CountUnreachable("template<class T> struct A { int m; };\nint g(int x) { return x; }\n"),
+			   CountUnreachable("template<class T> struct A { int m; };\n"
+								"A<A<A<int>>> a;\n"
+								"int g(int x) { A<int> b; int n = sizeof(A<A<int>>) + (int)x + sizeof(x); decltype(x) y = n; for (int i = 0; i < y; i++) { b.m = i; } return b.m; }\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParser(void)
@@ -1659,6 +1718,7 @@ void TestCppParser(void)
 	TestCppParserWorkspace();
 	TestCppParserTentativeClassDefinition();
 	TestCppParserNestedTemplateArguments();
+	TestCppParserTentativeMemory();
 
 	NumberKill();
 	TypeConverterKill();

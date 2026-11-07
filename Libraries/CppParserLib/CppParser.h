@@ -46,11 +46,16 @@ struct SCPPDeferredBody
 };
 
 
-//A tentative parse: where it started and whether the parse around it had already failed.
+//A tentative parse: where it started, the scope it started in, whether the parse around it had already failed, and
+//the nodes, scopes and lazy declarations loaded before it (what it makes is taken back).
 struct SCPPTentative
 {
 	SCPPParserPosition	sPosition;
+	CCPPScope*			pcScope;
 	bool				bSavedFailed;
+	size				uiSyntaxes;
+	size				uiScopes;
+	size				uiLazy;
 };
 
 

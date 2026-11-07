@@ -78,3 +78,26 @@ size CCPPSyntaxMemory::NumSyntaxes(void)
 	return mapcSyntaxes.NumElements();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The nodes made since there were uiSyntaxes are killed (a tentative
+// parse's).  Nodes in an arena are freed; the memory's own chunks keep
+// theirs until Kill.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxMemory::Rollback(size uiSyntaxes)
+{
+	CCPPSyntax*	pcSyntax;
+
+	while (mapcSyntaxes.NumElements() > uiSyntaxes)
+	{
+		pcSyntax = mapcSyntaxes.Pop();
+		pcSyntax->Kill();
+		if (mpcNodes)
+		{
+			mpcNodes->Free(pcSyntax);
+		}
+	}
+}
+
