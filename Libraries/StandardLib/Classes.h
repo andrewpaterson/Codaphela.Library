@@ -68,11 +68,11 @@ public:
 	CPrimitiveClasses*	GetPrimitiveClasses(void);
 
 	void				ValidateType(EPrimitiveType eType);
-	template<class Class>
+	template<class M>
 	void				AddConstructorAndIO(void);
-	template<class Class>
+	template<class M>
 	void				AddSystemClassAndConstructor(void);
-	template<class Class>
+	template<class M>
 	void				AddConstructor(void);
 
 protected:
@@ -82,83 +82,52 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// M's data IO and constructor, each unless it is there already.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class Class>
+template<class M>
 void CClasses::AddConstructorAndIO(void)
-{			
-	const char*		szClassName;
-	SDataIO*		psIO;
-	bool			bConstructor;
-	CStackMemory<>	cStack;
-	Class*			pcClass;
-
-	pcClass = StackConstruct<Class>(&cStack);
-	szClassName = pcClass->ClassName();
-	cStack.Kill();
-
-	psIO = gcDataTypesIO.GetIO(szClassName);
-	if (!psIO)
+{
+	if (gcDataTypesIO.GetIO(M::StaticClassName()) == NULL)
 	{
-		gcDataTypesIO.Add<Class>();
+		gcDataTypesIO.Add<M>();
 	}
-
-	bConstructor = gcConstructors.Contains(szClassName);
-	if (!bConstructor)
-	{
-		gcConstructors.Add<Class>();
-	}
+	AddConstructor<M>();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// M's class, completed and marked a system class, and its constructor.
+// The class is completed from an M constructed on the stack.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class Class>
+template<class M>
 void CClasses::AddSystemClassAndConstructor(void)
 {
-	bool			bConstructor;
-	Class*			pvM;
-	CClass*			pcClass;
+	M*				pcObject;
 	CStackMemory<>	cStack;
-	const char*		szClassName;
 
-	pvM = StackConstruct<Class>(&cStack);
-	szClassName = pvM->ClassName();
-	pcClass = pvM->CBaseObject::CompleteClass(this);
-	pcClass->System();
-
-	bConstructor = gcConstructors.Contains(szClassName);
-	if (!bConstructor)
-	{
-		gcConstructors.Add<Class>();
-	}
+	pcObject = StackConstruct<M>(&cStack);
+	pcObject->CBaseObject::CompleteClass(this)->System();
 	cStack.Kill();
+
+	AddConstructor<M>();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// M's constructor, unless it is there already.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class Class>
+template<class M>
 void CClasses::AddConstructor(void)
 {
-	bool			bConstructor;
-	Class*			pvM;
-	CStackMemory<>	cStack;
-	const char*		szClassName;
-
-	pvM = StackConstruct<Class>(&cStack);
-	szClassName = pvM->ClassName();
-
-	bConstructor = gcConstructors.Contains(szClassName);
-	if (!bConstructor)
+	if (!gcConstructors.Contains(M::StaticClassName()))
 	{
-		gcConstructors.Add<Class>();
+		gcConstructors.Add<M>();
 	}
-	cStack.Kill();
 }
 
 

@@ -32,14 +32,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class Class>
+template<class M>
 CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldType)
 {
 	CClass*	pcClass;
 
-	pcClass = AddClass<Class>(eFieldType);
+	pcClass = AddClass<M>(eFieldType);
 
-	mpcClasses->AddConstructorAndIO<Class>();
+	mpcClasses->AddConstructorAndIO<M>();
 
 	return pcClass;
 }
@@ -85,7 +85,7 @@ void CPrimitiveClasses::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size eFieldOffest) 
+CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size uiFieldOffset) 
 {
 	CUnmanagedField*	pcField;
 	CClass*				pcClass;
@@ -93,7 +93,7 @@ CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, E
 	pcClass = mpcClasses->Add(szClassName, uiClassSize);
 
 	pcField = pcClass->AddUnmanaged("mVal");
-	pcField->Init(eFieldType, eFieldOffest, pcClass, "mVal");
+	pcField->Init(eFieldType, uiFieldOffset, pcClass, "mVal");
 
 	pcClass->Primitive();
 	pcClass->System();

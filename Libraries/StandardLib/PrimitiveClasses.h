@@ -66,11 +66,11 @@ public:
 	CClass*		GetWidechar(void);
 
 protected:
-	template<class Class>
+	template<class M>
 	CClass*		AddClass(EPrimitiveType eFieldType);
-	template<class Class>
+	template<class M>
 	CClass*		AddClassWithConstructorAndIO(EPrimitiveType eFieldType);
-	CClass*		AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size eFieldOffest);
+	CClass*		AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size uiFieldOffset);
 	CClass*		AddVoid(void);
 };
 
@@ -79,17 +79,15 @@ protected:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class Class>
+template<class M>
 CClass* CPrimitiveClasses::AddClass(EPrimitiveType eFieldType)
 {
-	Class	cInstance;
+	M		cInstance;
 	size	uiOffset;
-	CClass* pcClass;
 
+	//The value's offset in the primitive object.
 	uiOffset = (char*)(&cInstance.mVal) - (char*)(&cInstance);
-	pcClass = AddClass(cInstance.ClassName(), cInstance.ClassSize(), eFieldType, uiOffset);
-
-	return pcClass;
+	return AddClass(M::StaticClassName(), sizeof(M), eFieldType, uiOffset);
 }
 
 
