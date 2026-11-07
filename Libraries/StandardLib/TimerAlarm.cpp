@@ -56,6 +56,8 @@ void CTimerAlarm::Reset(void)
 void CTimerAlarm::Kill(void)
 {
 	Stop();
+	mszName.Kill();
+	mpcAction = NULL;
 }
 
 
@@ -100,7 +102,7 @@ float CTimerAlarm::Update(void)
 		return -1.0f;
 	}
 
-	miRemainingTime -= gcTimer.miUpdateTime;;
+	miRemainingTime -= gcTimer.miUpdateTime;
 	iTimeOver = miRemainingTime;
 	if (miRemainingTime <= 0)
 	{
@@ -114,7 +116,15 @@ float CTimerAlarm::Update(void)
 		}
 	}
 
-	fOver = (((float)(-iTimeOver)) / ((float)miTime)); 
+	//How far past the time it is, as a fraction of the time.  A timer with no time is always due.
+	if (miTime > 0)
+	{
+		fOver = ((float)(-iTimeOver)) / ((float)miTime);
+	}
+	else
+	{
+		fOver = 0.0f;
+	}
 	if (fOver >= 0.0f)
 	{
 		sTimerData.szTimerName = mszName.Text();
