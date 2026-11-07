@@ -139,14 +139,19 @@ uint8* CCanvas::GetPixelData(void)
 bool CCanvas::Draw(void)
 {
 	Ptr<CCanvas>			pWindowCanvas;
-	CInt32Rect				cClip;
-	bool					bClipped;
+	SInt32Vec2				sPreviousOrigin;
 
+	sPreviousOrigin = msNativeOrigin;
 	UpdateNativeArea();
 	if (HasNativeChanged())
 	{
 		DestroyNativeCanvas();
 		CreateNativeCanvas();
+	}
+	else if ((mpcNativeCanvas != NULL) && !mbTransparent && ((sPreviousOrigin.x != msNativeOrigin.x) || (sPreviousOrigin.y != msNativeOrigin.y)))
+	{
+		//What the native canvas holds was drawn for another part of the canvas.  It starts black, as a new one would.
+		mpcNativeCanvas->Clear();
 	}
 
 	//A canvas with no area, like a label with no text, may have no native canvas.  Only its children are drawn.
@@ -168,19 +173,11 @@ bool CCanvas::Draw(void)
 		mpCanvasDraw->Draw(this);
 	}
 
-	//A canvas inside a component that clips its children, like a scroll pane, is only copied where it shows.
+	//The native canvas holds only the part of the canvas that shows, so all of it is copied.
 	pWindowCanvas = mpWindow->GetCanvas();
 	if (&pWindowCanvas != this)
 	{
-		bClipped = GetClip(&cClip);
-		if (!bClipped)
-		{
-			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this);
-		}
-		else if ((cClip.GetWidth() > 0) && (cClip.GetHeight() > 0))
-		{
-			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this, &cClip);
-		}
+		pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this);
 	}
 
 	CComponent::Draw();
@@ -323,20 +320,33 @@ bool CCanvas::HasArea(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The part of the canvas its native canvas holds: all of it.
+// The part of the canvas its native canvas holds: the part that shows
+// through the components that clip it (see GetClip), like a scroll pane.
+// A long document in a scroll pane only has a native canvas the size of
+// the view.  Nothing shows of a canvas scrolled out of sight, so it has
+// no native canvas.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::UpdateNativeArea(void)
 {
-	msNativeOrigin.Zero();
-	msNativeSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight());
-	if (msNativeSize.x < 0)
+	CInt32Rect	cVisible;
+	CInt32Rect	cClip;
+
+	cVisible.Init(&mcActualBounds);
+	if (GetClip(&cClip))
 	{
-		msNativeSize.x = 0;
+		cVisible.ClipTo(&cClip);
 	}
-	if (msNativeSize.y < 0)
+
+	msNativeSize.Init(cVisible.GetWidth(), cVisible.GetHeight());
+	if ((msNativeSize.x <= 0) || (msNativeSize.y <= 0))
 	{
-		msNativeSize.y = 0;
+		msNativeSize.Zero();
+		msNativeOrigin.Zero();
+	}
+	else
+	{
+		msNativeOrigin.Init(cVisible.GetLeft() - mcActualBounds.GetLeft(), cVisible.GetTop() - mcActualBounds.GetTop());
 	}
 }
 

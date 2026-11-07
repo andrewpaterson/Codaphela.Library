@@ -12,6 +12,12 @@
 #include "WindowLib/MapsCanvasDraw.h"
 #include "WindowLib/ImageCanvasDraw.h"
 #include "WindowLib/ClearCanvasDraw.h"
+#include "WindowLib/RoundedBoxCanvasDraw.h"
+#include "WindowLib/ProgressBarDraw.h"
+#include "WindowLib/ScrollPane.h"
+#include "WindowLib/GridContainer.h"
+#include "WindowLib/TextArea.h"
+#include "WindowLib/WindowTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertFile.h"
 #include "TestLib/AssertGeometric.h"
@@ -1339,6 +1345,321 @@ void TestCanvasDrawBoxCutToCanvas(void)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// What a canvas, made by CreateClippedContent, is drawn as in a		//
+// scroll pane.															//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFont> ReadLabelFont(void);
+Ptr<CScrollBarImages> CreateScrollBarImages(void);
+Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages);
+
+enum EClippedContent
+{
+	CC_Clear,
+	CC_Border,
+	CC_Pixels,
+	CC_Image,
+	CC_StretchedImage,
+	CC_RoundedBox,
+	CC_ProgressBar,
+	CC_TextArea,
+};
+
+#define CLIPPED_CONTENT_WIDTH	40
+#define CLIPPED_CONTENT_HEIGHT	30
+#define CLIPPED_VIEW_WIDTH		24
+#define CLIPPED_VIEW_HEIGHT		16
+
+
+Ptr<CCanvas> CreateClippedContent(Ptr<CWindow> pWindow, EClippedContent eContent, SDataTestRefWindow* pcData)
+{
+	CColourFormatHelper		cHelper;
+	SInsets					sInsets;
+	Ptr<CCanvas>			pCanvas;
+	Ptr<CTextArea>			pTextArea;
+
+	pWindow->GetColourFormat(&cHelper);
+	switch (eContent)
+	{
+	case CC_Clear:
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0.25f, 0.5f, 0.75f)));
+		break;
+	case CC_Border:
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CBorderCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		break;
+	case CC_Pixels:
+		pcData->iTick = 0;
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CTestRefWindowCanvasDraw>(pcData));
+		break;
+	case CC_Image:
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CImageCanvasDraw>(ReadDarkForestCel("Wolf.png", &cHelper)));
+		break;
+	case CC_StretchedImage:
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CImageCanvasDraw>(ReadDarkForestCel("Wolf.png", &cHelper), true));
+		break;
+	case CC_RoundedBox:
+		sInsets.Init(3, 3);
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CRoundedBoxCanvasDraw>(Set32BitColour(0, 1.0f, 0.5f), 6, &sInsets));
+		pCanvas->SetTransparent(true);
+		break;
+	case CC_ProgressBar:
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CProgressBarDraw>(Set32BitColour(0.5f, 0.5f, 0.5f), Set32BitColour(1.0f, 1.0f, 0)));
+		break;
+	case CC_TextArea:
+		pTextArea = OMalloc<CTextArea>(pWindow, ReadLabelFont(), "The quick brown\nfox jumps over\nthe lazy dog");
+		return pTextArea;
+	}
+	pCanvas->SetDesiredSize(CLIPPED_CONTENT_WIDTH, CLIPPED_CONTENT_HEIGHT);
+	return pCanvas;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// A canvas in a scroll pane has a native canvas only the size of the	//
+// view, and draws in the window just as the same canvas drawn whole	//
+// does, wherever it is scrolled to.									//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasClippedContent(EClippedContent eContent)
+{
+	CWinRefWindowFactory	cWholeFactory;
+	CWinRefWindowFactory	cScrolledFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "CanvasClipped";
+	SInt32Vec2				asScrolls[] = { { 0, 0 }, { 10, 7 }, { 16, 14 }, { 3, 12 }, { 0, 0 } };
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cWholeFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
+	cScrolledFactory.Init(&gcMemoryAllocator, CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, szDirectory);
+	{
+		Ptr<CWindow>				pWhole;
+		Ptr<CWindow>				pScrolled;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CScrollPane>			pScrollPane;
+		Ptr<CCanvas>				pWholeContent;
+		Ptr<CCanvas>				pContent;
+		Ptr<CScrollBar>				pBar;
+		Ptr<CImage>					pWholeImage;
+		Ptr<CImage>					pImage;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SInt32Vec2					sContentSize;
+		SInt32Vec2					sScroll;
+		SInt32Vec2					sVec;
+		CInt32Rect					acBars[2];
+		size						uiBars;
+		size						uiBar;
+		size						uiScroll;
+		uint8*						puiWhole;
+		uint8*						puiData;
+		int32						x;
+		int32						y;
+		size						uiWrong;
+		size						uiCompared;
+		bool						bUnderBar;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+
+		//The content drawn whole, at its top left, as the reference.  The windows are cleared before each paint as what is
+		//behind a transparent canvas shows through it.
+		pWhole = OMalloc<CWindow>("Whole", &cWholeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWhole);
+		pFill = OMalloc<CFillContainer>(pWhole);
+		pWhole->SetContainer(pFill);
+		pWholeContent = CreateClippedContent(pWhole, eContent, &cData);
+		pWholeContent->SetAlignment(CSH_Left, CSV_Top);
+		pFill->AddComponent(pWholeContent);
+		pWhole->Paint();
+		sContentSize = pWholeContent->GetActualSize();
+		AssertTrue(sContentSize.x > CLIPPED_VIEW_WIDTH);
+		AssertTrue(sContentSize.y > CLIPPED_VIEW_HEIGHT);
+		pWholeImage = pWhole->GetCanvas()->GetImageOrNull();
+		puiWhole = (uint8*)pWholeImage->GetData();
+
+		pScrolled = OMalloc<CWindow>("Scrolled", &cScrolledFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pScrolled);
+		pFill = OMalloc<CFillContainer>(pScrolled);
+		pScrolled->SetContainer(pFill);
+		pScrollPane = OMalloc<CScrollPane>(pScrolled, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pFill->AddComponent(pScrollPane);
+		pContent = CreateClippedContent(pScrolled, eContent, &cData);
+		pContent->SetAlignment(CSH_Left, CSV_Top);
+		pScrollPane->SetContent(pContent);
+
+		for (uiScroll = 0; uiScroll < sizeof(asScrolls) / sizeof(SInt32Vec2); uiScroll++)
+		{
+			pScrollPane->SetScrollPosition(asScrolls[uiScroll].x, asScrolls[uiScroll].y);
+			pScrolled->Paint();
+			sScroll = pScrollPane->GetScrollPosition();
+			AssertInt(asScrolls[uiScroll].x, sScroll.x);
+			AssertInt(asScrolls[uiScroll].y, sScroll.y);
+
+			//Only the view's worth of the content has a native canvas.
+			sVec = pContent->GetNativeOrigin();
+			AssertInt32Vec2(sScroll.x, sScroll.y, &sVec);
+			sVec = pContent->GetNativeSize();
+			AssertInt32Vec2(CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, &sVec);
+			AssertInt(CLIPPED_VIEW_WIDTH, pContent->GetImageOrNull()->GetWidth());
+			AssertInt(CLIPPED_VIEW_HEIGHT, pContent->GetImageOrNull()->GetHeight());
+
+			//The scroll bars are drawn over the content, so what is under them isn't compared.
+			uiBars = 0;
+			pBar = pScrollPane->GetScrollBar(SBO_Horizontal);
+			if (pBar->IsShown())
+			{
+				acBars[uiBars].Init(pBar->GetPosition(), SInt32Vec2(pBar->GetPosition().x + pBar->GetActualSize().x, pBar->GetPosition().y + pBar->GetActualSize().y));
+				uiBars++;
+			}
+			pBar = pScrollPane->GetScrollBar(SBO_Vertical);
+			if (pBar->IsShown())
+			{
+				acBars[uiBars].Init(pBar->GetPosition(), SInt32Vec2(pBar->GetPosition().x + pBar->GetActualSize().x, pBar->GetPosition().y + pBar->GetActualSize().y));
+				uiBars++;
+			}
+
+			pImage = pScrolled->GetCanvas()->GetImageOrNull();
+			puiData = (uint8*)pImage->GetData();
+			uiWrong = 0;
+			uiCompared = 0;
+			for (y = 0; y < CLIPPED_VIEW_HEIGHT; y++)
+			{
+				for (x = 0; x < CLIPPED_VIEW_WIDTH; x++)
+				{
+					bUnderBar = false;
+					for (uiBar = 0; uiBar < uiBars; uiBar++)
+					{
+						bUnderBar |= acBars[uiBar].ContainsPoint(x, y);
+					}
+					if (!bUnderBar)
+					{
+						uiCompared++;
+						if (memcmp(&puiData[(x + y * CLIPPED_VIEW_WIDTH) * 3], &puiWhole[((x + sScroll.x) + (y + sScroll.y) * 64) * 3], 3) != 0)
+						{
+							uiWrong++;
+						}
+					}
+				}
+			}
+			AssertTrue(uiCompared > (CLIPPED_VIEW_WIDTH * CLIPPED_VIEW_HEIGHT) / 2);
+			AssertSize(0, uiWrong);
+		}
+
+		pImage = NULL;
+		pWholeImage = NULL;
+		pBar = NULL;
+		pContent = NULL;
+		pWholeContent = NULL;
+		pScrollPane = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pScrolled);
+		pScrolled = NULL;
+		ORoot()->Remove(pWhole);
+		pWhole = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cScrolledFactory.Kill();
+	cWholeFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Of two canvases in a scroll pane, the one scrolled out of sight has	//
+// no native canvas, and gets one back when it is scrolled into sight.	//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasScrolledOutOfSight(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "CanvasOutOfSight";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, szDirectory);
+	{
+		Ptr<CWindow>				pWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CScrollPane>			pScrollPane;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CCanvas>				pTop;
+		Ptr<CCanvas>				pBottom;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		SInt32Vec2					sVec;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pWindow = OMalloc<CWindow>("Out Of Sight", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+		pFill = OMalloc<CFillContainer>(pWindow);
+		pWindow->SetContainer(pFill);
+		pScrollPane = OMalloc<CScrollPane>(pWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pFill->AddComponent(pScrollPane);
+
+		pGrid = OMalloc<CGridContainer>(pWindow);
+		pTop = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pTop->SetDesiredSize(CLIPPED_VIEW_WIDTH, 20);
+		pBottom = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0, 0, 1.0f)));
+		pBottom->SetDesiredSize(CLIPPED_VIEW_WIDTH, 20);
+		pGrid->AddComponent(pTop, 0, 0);
+		pGrid->AddComponent(pBottom, 0, 1);
+		pGrid->SetDesiredSize(CLIPPED_VIEW_WIDTH, 40);
+		pScrollPane->SetContent(pGrid);
+
+		pWindow->Paint();
+		AssertNotNull(pTop->GetNativeCanvas());
+		sVec = pTop->GetNativeSize();
+		AssertInt32Vec2(CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, &sVec);
+		AssertNull(pBottom->GetNativeCanvas());
+
+		pScrollPane->SetScrollPosition(0, 24);
+		pWindow->Paint();
+		AssertNull(pTop->GetNativeCanvas());
+		AssertNotNull(pBottom->GetNativeCanvas());
+		sVec = pBottom->GetNativeOrigin();
+		AssertInt32Vec2(0, 4, &sVec);
+		sVec = pBottom->GetNativeSize();
+		AssertInt32Vec2(CLIPPED_VIEW_WIDTH, 16, &sVec);
+
+		pScrollPane->SetScrollPosition(0, 10);
+		pWindow->Paint();
+		sVec = pTop->GetNativeSize();
+		AssertInt32Vec2(CLIPPED_VIEW_WIDTH, 10, &sVec);
+		sVec = pBottom->GetNativeSize();
+		AssertInt32Vec2(CLIPPED_VIEW_WIDTH, 6, &sVec);
+
+		pTop = NULL;
+		pBottom = NULL;
+		pGrid = NULL;
+		pScrollPane = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
@@ -1360,6 +1681,15 @@ void TestCanvas(void)
 	TestCanvasImageDrawFollowsTransparency();
 	TestCanvasZeroAreaHasNoNativeCanvas();
 	TestCanvasDrawBoxCutToCanvas();
+	TestCanvasClippedContent(CC_Clear);
+	TestCanvasClippedContent(CC_Border);
+	TestCanvasClippedContent(CC_Pixels);
+	TestCanvasClippedContent(CC_Image);
+	TestCanvasClippedContent(CC_StretchedImage);
+	TestCanvasClippedContent(CC_RoundedBox);
+	TestCanvasClippedContent(CC_ProgressBar);
+	TestCanvasClippedContent(CC_TextArea);
+	TestCanvasScrolledOutOfSight();
 
 	TestStatistics();
 }

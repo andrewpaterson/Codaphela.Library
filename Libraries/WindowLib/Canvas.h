@@ -43,7 +43,7 @@ protected:
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 	Ptr<CContainer>		mpContainer;
 	bool				mbTransparent;  //What is behind the canvas shows through wherever it hasn't been drawn opaquely.
-	SInt32Vec2			msNativeOrigin;  //Where the native canvas's top left is in the canvas, see UpdateNativeArea.
+	SInt32Vec2			msNativeOrigin;  //Where the native canvas's top left is in the canvas.  The native canvas only holds the part that shows, see UpdateNativeArea.
 	SInt32Vec2			msNativeSize;  //The size the native canvas should be.
 
 public:
