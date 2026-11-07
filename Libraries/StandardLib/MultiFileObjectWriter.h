@@ -28,10 +28,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMultiFileObjectWriter : public CExternalObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CMultiFileObjectWriter)
-protected:
-	CChars	mszObjectBaseName;
-	CChars	mszDirectory;
-
 public:
 	void	Init(const char* szDirectory, const char* szBaseName);
 	void	Kill(void) override;
@@ -39,9 +35,6 @@ public:
 	bool	Begin(void) override;
 	bool	Write(CSerialisedObject* pcSerialised) override;
 	bool	End(void) override;
-
-protected:
-	bool	ObjectStartsWithBaseName(const char* szObjectName);
 };
 
 

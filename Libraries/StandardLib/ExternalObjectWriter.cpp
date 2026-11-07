@@ -23,10 +23,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szBaseName's separators become '/', and a trailing one goes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectWriter::Init(const char* szBaseName)
+void CExternalObjectWriter::Init(const char* szDirectory, const char* szBaseName)
 {
+	mszDirectory.Init(szDirectory);
+	mszObjectBaseName.Init(szBaseName);
+	mszObjectBaseName.Replace("\\", "/");
+	if (mszObjectBaseName.EndsWith("/"))
+	{
+		mszObjectBaseName.RemoveLastCharacter();
+	}
 }
 
 
@@ -36,7 +44,38 @@ void CExternalObjectWriter::Init(const char* szBaseName)
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectWriter::Kill(void)
 {
+	mszObjectBaseName.Kill();
+	mszDirectory.Kill();
 	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CExternalObjectWriter::ObjectStartsWithBaseName(const char* szObjectName)
+{
+	CChars	szName;
+
+	szName.Fake(szObjectName);
+	return szName.StartsWith(mszObjectBaseName.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szObjectName after the base name and the '/' that follows it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CExternalObjectWriter::RemainingName(CChars* pszRemainingName, const char* szObjectName)
+{
+	pszRemainingName->Init(szObjectName);
+	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());
+	if (pszRemainingName->StartsWith("/"))
+	{
+		pszRemainingName->RemoveCharacter(0);
+	}
 }
 
 

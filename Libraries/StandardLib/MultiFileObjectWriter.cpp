@@ -32,15 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMultiFileObjectWriter::Init(const char* szDirectory, const char* szBaseName)
 {
-	CExternalObjectWriter::Init(szBaseName);
-	mszDirectory.Init(szDirectory);
-	mszObjectBaseName.Init(szBaseName);
-
-	mszObjectBaseName.Replace("\\", "/");
-	if (mszObjectBaseName.EndsWith("/"))
-	{
-		mszObjectBaseName.RemoveLastCharacter();
-	}
+	CExternalObjectWriter::Init(szDirectory, szBaseName);
 }
 
 
@@ -50,8 +42,6 @@ void CMultiFileObjectWriter::Init(const char* szDirectory, const char* szBaseNam
 //////////////////////////////////////////////////////////////////////////
 void CMultiFileObjectWriter::Kill(void)
 {
-	mszObjectBaseName.Kill();
-	mszDirectory.Kill();
 	CExternalObjectWriter::Kill();
 }
 
@@ -128,16 +118,4 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	return bResult;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMultiFileObjectWriter::ObjectStartsWithBaseName(const char* szObjectName)
-{
-	CChars	szRemainingName;
-
-	szRemainingName.Fake(szObjectName);
-	return szRemainingName.StartsWith(mszObjectBaseName.Text());
-}
 

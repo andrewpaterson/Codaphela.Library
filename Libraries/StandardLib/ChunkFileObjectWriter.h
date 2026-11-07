@@ -32,8 +32,6 @@ protected:
 	CChunkFile				mcChunkFile;
 	CChunkFileFileSystem	mcChunkFileFileSystem;
 	CChars					mszFilename;
-	CChars					mszDirectory;
-	CChars					mszObjectBaseName;
 
 public:
 	void	Init(const char* szDirectory, const char* szBaseName, const char* szChunkFilename);
@@ -44,8 +42,6 @@ public:
 	bool	End(void) override;
 
 protected:
-	bool	ObjectStartsWithBaseName(const char* szObjectName);
-	void	RemainingName(CChars* pszRemainingName, const char* szObjectName);
 };
 
 
