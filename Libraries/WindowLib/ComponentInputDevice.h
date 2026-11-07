@@ -61,15 +61,15 @@ public:
 	bool						IsMouse(void);
 	CInputDevice*				GetDevice(void);
 
-	CInputSourceDesc*			AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
-	CInputSourceDesc*			SetCommand(char* szFriendlyName, EComponentInputCommand eCommand);
-	void						AddChord(char* szName);
-	bool						HasChord(char* szName);
-	CInputSourceDesc*			AddPrintable(char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
-	CInputSourceDesc*			AddNumKeyRemap(char* szFriendlyName, char* szYesNumLockRemap, char* szNoNumLockRemap);
-	CInputSourceDesc*			AddKey(char* szFriendlyName, EComponentInputKey eKey);
+	CInputSourceDesc*			AddCommand(const char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
+	CInputSourceDesc*			SetCommand(const char* szFriendlyName, EComponentInputCommand eCommand);
+	void						AddChord(const char* szName);
+	bool						HasChord(const char* szName);
+	CInputSourceDesc*			AddPrintable(const char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
+	CInputSourceDesc*			AddNumKeyRemap(const char* szFriendlyName, const char* szYesNumLockRemap, const char* szNoNumLockRemap);
+	CInputSourceDesc*			AddKey(const char* szFriendlyName, EComponentInputKey eKey);
 
-	CInputSourceDesc*			GetSource(char* szFriendlyName);
+	CInputSourceDesc*			GetSource(const char* szFriendlyName);
 };
 
 

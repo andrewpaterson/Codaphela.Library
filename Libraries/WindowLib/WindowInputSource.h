@@ -80,20 +80,20 @@ public:
 	SWindowInputEvent*		GetEvent(size uiIndex);
 
 	bool					AddDevice(CInputDevice* pcDevice);
-	size					GetDevices(CArrayInputDevicePtr* papcDevices, char* szCategory);
-	CInputSourceDesc*		GetSource(CInputDevice* pcDevice, char* szFriendlyName);
+	size					GetDevices(CArrayInputDevicePtr* papcDevices, const char* szCategory);
+	CInputSourceDesc*		GetSource(CInputDevice* pcDevice, const char* szFriendlyName);
 	char*					GetName(CInputSourceDesc* pcSource);
-	CInputChord*			AddChord(char* szName);
-	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
-	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
-	bool					AddKeySequenceChord(char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds);
+	CInputChord*			AddChord(const char* szName);
+	bool					AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
+	bool					AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
+	bool					AddKeySequenceChord(const char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds);
 	CInputVirtualDevice*	GetVirtualDevice(void);
 
 	bool					IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
 	void					ForgetDown(void);
 
 protected:
-	void					AddDevices(char* szCategory);
+	void					AddDevices(const char* szCategory);
 	void					Queue(SInputChordsEvent* psChordsEvent);
 	void					RememberLetGo(void);
 };

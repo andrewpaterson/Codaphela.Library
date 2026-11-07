@@ -110,7 +110,7 @@ bool CWindowInputSource::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindowInputSource::AddDevices(char* szCategory)
+void CWindowInputSource::AddDevices(const char* szCategory)
 {
 	CArrayInputDevicePtr	apcDevices;
 	size					i;
@@ -221,7 +221,7 @@ void CWindowInputSource::Queue(SInputChordsEvent* psChordsEvent)
 // Returns how many devices are in the category.
 //
 //////////////////////////////////////////////////////////////////////////
-size CWindowInputSource::GetDevices(CArrayInputDevicePtr* papcDevices, char* szCategory)
+size CWindowInputSource::GetDevices(CArrayInputDevicePtr* papcDevices, const char* szCategory)
 {
 	CInputCategory*		pcCategory;
 
@@ -239,7 +239,7 @@ size CWindowInputSource::GetDevices(CArrayInputDevicePtr* papcDevices, char* szC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CWindowInputSource::GetSource(CInputDevice* pcDevice, char* szFriendlyName)
+CInputSourceDesc* CWindowInputSource::GetSource(CInputDevice* pcDevice, const char* szFriendlyName)
 {
 	return pcDevice->GetSource(szFriendlyName);
 }
@@ -252,7 +252,7 @@ CInputSourceDesc* CWindowInputSource::GetSource(CInputDevice* pcDevice, char* sz
 // the chord, if another chord could match the same inputs.
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChord* CWindowInputSource::AddChord(char* szName)
+CInputChord* CWindowInputSource::AddChord(const char* szName)
 {
 	CAction*	pcAction;
 
@@ -271,7 +271,7 @@ CInputChord* CWindowInputSource::AddChord(char* szName)
 // chord would match the same inputs.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
+bool CWindowInputSource::AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
 {
 	CInputSourceDesc*	apcModifiers[2];
 
@@ -288,7 +288,7 @@ bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevic
 // AddKeyChord.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
+bool CWindowInputSource::AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
 {
 	CInputChord*				pcChord;
 	COrderedInputChordCriteria*	pcOrdered;
@@ -331,7 +331,7 @@ bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevic
 // usual chord time).  Returns false as AddKeyChord.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindowInputSource::AddKeySequenceChord(char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds)
+bool CWindowInputSource::AddKeySequenceChord(const char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds)
 {
 	CInputChord*				pcChord;
 	COrderedInputChordCriteria*	pcOrdered;

@@ -99,8 +99,8 @@ public:
 
 	bool		AddKeyboard(CInputDevice* pcDevice);
 	bool		AddMouse(CInputDevice* pcDevice);
-	size		AddKeyboards(char* szCategory = "Keyboard");
-	size		AddMice(char* szCategory = "Mouse");
+	size		AddKeyboards(const char* szCategory = "Keyboard");
+	size		AddMice(const char* szCategory = "Mouse");
 
 	void		Update(void);
 	bool		GetEvictionDelay(uint32* puiMilliseconds);
@@ -124,17 +124,17 @@ public:
 protected:
 	CComponentInputDevice*			AddDevice(CInputDevice* pcDevice);
 	CComponentInputDevice*			GetDevice(CInputDevice* pcDevice);
-	size							AddDevices(char* szCategory, bool bKeyboard);
+	size							AddDevices(const char* szCategory, bool bKeyboard);
 	void							AddKeyboardChords(CComponentInputDevice* pcKeyboard);
 	void							AddMouseChords(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcMouse);
-	void							AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
-	void							AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, char* szFirstKey, char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
-	void							AddChordCommand(char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
-	void							SetChordCommand(char* szName, EComponentInputCommand ePressed);
+	void							AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, const char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
+	void							AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
+	void							AddChordCommand(const char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
+	void							SetChordCommand(const char* szName, EComponentInputCommand ePressed);
 	bool							ParseKeys(const char* szKeys, SComponentInputBinding* psBinding);
-	SComponentInputBinding*			GetBinding(char* szKeys);
+	SComponentInputBinding*			GetBinding(const char* szKeys);
 	void							ApplyBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
-	SComponentInputChordCommand*	GetChordCommand(char* szName);
+	SComponentInputChordCommand*	GetChordCommand(const char* szName);
 	bool							IsKeyDown(EComponentInputKey eKey);
 	void							InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent);
 	bool							Pressed(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest);

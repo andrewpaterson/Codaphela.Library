@@ -33,7 +33,7 @@ struct SComponentInputChordRow
 	bool					bControl;
 	bool					bShift;
 	bool					bAlt;
-	char*					szKey;
+	const char*				szKey;
 	EComponentInputCommand	ePressed;
 	EComponentInputCommand	eReleased;  //When the chord's key is let go, CIC_Ignored for nothing.
 };
@@ -109,8 +109,8 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 //go the second key must come within the row's milliseconds.
 struct SComponentInputSequenceRow
 {
-	char*					szFirstKey;
-	char*					szSecondKey;
+	const char*				szFirstKey;
+	const char*				szSecondKey;
 	EComponentInputCommand	eCommand;
 	uint32					uiEvictionMilliseconds;
 };
@@ -321,7 +321,7 @@ bool CComponentInput::AddMouse(CInputDevice* pcDevice)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CComponentInput::AddKeyboards(char* szCategory)
+size CComponentInput::AddKeyboards(const char* szCategory)
 {
 	return AddDevices(szCategory, true);
 }
@@ -331,7 +331,7 @@ size CComponentInput::AddKeyboards(char* szCategory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CComponentInput::AddMice(char* szCategory)
+size CComponentInput::AddMice(const char* szCategory)
 {
 	return AddDevices(szCategory, false);
 }
@@ -342,7 +342,7 @@ size CComponentInput::AddMice(char* szCategory)
 // Returns how many devices were added.
 //
 //////////////////////////////////////////////////////////////////////////
-size CComponentInput::AddDevices(char* szCategory, bool bKeyboard)
+size CComponentInput::AddDevices(const char* szCategory, bool bKeyboard)
 {
 	CArrayInputDevicePtr	apcDevices;
 	size					i;
@@ -415,7 +415,7 @@ void CComponentInput::AddMouseChords(CComponentInputDevice* pcKeyboard, CCompone
 // control chord too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
+void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, const char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
 {
 	CInputSourceDesc*	aapcModifiers[3][2];  //Left and right of each modifier the row wants.
 	CInputSourceDesc*	apcChord[3];
@@ -487,7 +487,7 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 // let go or held for the second key.  They share one name and command.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, char* szFirstKey, char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds)
+void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds)
 {
 	CInputSourceDesc*	apcControls[2];
 	CInputSourceDesc*	apcShifts[2];
@@ -540,7 +540,7 @@ void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard
 // The command of the chords named szName, unless they have one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::AddChordCommand(char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
+void CComponentInput::AddChordCommand(const char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
 {
 	SComponentInputChordCommand*	psCommand;
 
@@ -559,7 +559,7 @@ void CComponentInput::AddChordCommand(char* szName, EComponentInputCommand ePres
 // The chord gives ePressed, instead of whatever it gave before.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::SetChordCommand(char* szName, EComponentInputCommand ePressed)
+void CComponentInput::SetChordCommand(const char* szName, EComponentInputCommand ePressed)
 {
 	SComponentInputChordCommand*	psCommand;
 
@@ -716,7 +716,7 @@ bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBi
 // if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-SComponentInputBinding* CComponentInput::GetBinding(char* szKeys)
+SComponentInputBinding* CComponentInput::GetBinding(const char* szKeys)
 {
 	size	i;
 
@@ -765,7 +765,7 @@ void CComponentInput::ApplyBinding(CComponentInputDevice* pcKeyboard, SComponent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SComponentInputChordCommand* CComponentInput::GetChordCommand(char* szName)
+SComponentInputChordCommand* CComponentInput::GetChordCommand(const char* szName)
 {
 	SComponentInputChordCommand*	psCommand;
 	size							i;

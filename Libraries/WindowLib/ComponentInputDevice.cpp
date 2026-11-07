@@ -199,7 +199,7 @@ void CComponentInputDevice::InitMouse(void)
 // Returns NULL if the device doesn't have the source.
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::GetSource(char* szFriendlyName)
+CInputSourceDesc* CComponentInputDevice::GetSource(const char* szFriendlyName)
 {
 	return mpcComponentInput->GetSource()->GetSource(mpcDevice, szFriendlyName);
 }
@@ -209,7 +209,7 @@ CInputSourceDesc* CComponentInputDevice::GetSource(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed)
+CInputSourceDesc* CComponentInputDevice::AddCommand(const char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed)
 {
 	CInputSourceDesc*			pcSource;
 	CComponentInputCommand*		psCommand;
@@ -230,7 +230,7 @@ CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, ECompo
 // NULL if the keyboard has no such key.
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::SetCommand(char* szFriendlyName, EComponentInputCommand eCommand)
+CInputSourceDesc* CComponentInputDevice::SetCommand(const char* szFriendlyName, EComponentInputCommand eCommand)
 {
 	CInputSourceDesc*			pcSource;
 	CComponentInputCommand*		psCommand;
@@ -258,7 +258,7 @@ CInputSourceDesc* CComponentInputDevice::SetCommand(char* szFriendlyName, ECompo
 // (CComponentInput::AddChordCommands), so it isn't made again.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInputDevice::AddChord(char* szName)
+void CComponentInputDevice::AddChord(const char* szName)
 {
 	if (!HasChord(szName))
 	{
@@ -271,7 +271,7 @@ void CComponentInputDevice::AddChord(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInputDevice::HasChord(char* szName)
+bool CComponentInputDevice::HasChord(const char* szName)
 {
 	return maszChords.Contains(szName);
 }
@@ -281,7 +281,7 @@ bool CComponentInputDevice::HasChord(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::AddPrintable(char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps)
+CInputSourceDesc* CComponentInputDevice::AddPrintable(const char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps)
 {
 	CInputSourceDesc*			pcSource;
 	CComponentInputPrintable*	psPrintable;
@@ -302,7 +302,7 @@ CInputSourceDesc* CComponentInputDevice::AddPrintable(char* szFriendlyName, char
 // commands and printables added, the numpad key is the one pressed.
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::AddNumKeyRemap(char* szFriendlyName, char* szYesNumLockRemap, char* szNoNumLockRemap)
+CInputSourceDesc* CComponentInputDevice::AddNumKeyRemap(const char* szFriendlyName, const char* szYesNumLockRemap, const char* szNoNumLockRemap)
 {
 	CInputSourceDesc*			pcSource;
 	CComponentInputNumKey*		psNumKey;
@@ -325,7 +325,7 @@ CInputSourceDesc* CComponentInputDevice::AddNumKeyRemap(char* szFriendlyName, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::AddKey(char* szFriendlyName, EComponentInputKey eKey)
+CInputSourceDesc* CComponentInputDevice::AddKey(const char* szFriendlyName, EComponentInputKey eKey)
 {
 	CInputSourceDesc*		pcSource;
 	CComponentInputKey*		psKey;
