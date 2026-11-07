@@ -18,29 +18,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "WindowTheme.h"
 #include "DiffViewColours.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// IntelliJ IDEA's dark theme: inserted green, deleted grey, modified blue.
+// The theme's diff colours; the shapes are filled in the lines' colours
+// and outlined in the changes'.
 //
 //////////////////////////////////////////////////////////////////////////
-void SDiffViewColours::Init(void)
+void SDiffViewColours::Init(CWindowTheme* pcTheme)
 {
-	asLines[TDBT_Inserted] = Set32BitColour((uint8)0x29, (uint8)0x44, (uint8)0x36);
-	asLines[TDBT_Deleted] = Set32BitColour((uint8)0x48, (uint8)0x4A, (uint8)0x4A);
-	asLines[TDBT_Modified] = Set32BitColour((uint8)0x38, (uint8)0x55, (uint8)0x70);
-	asChanges[TDBT_Inserted] = Set32BitColour((uint8)0x44, (uint8)0x71, (uint8)0x52);
-	asChanges[TDBT_Deleted] = Set32BitColour((uint8)0x65, (uint8)0x6E, (uint8)0x76);
-	asChanges[TDBT_Modified] = Set32BitColour((uint8)0x43, (uint8)0x69, (uint8)0x8D);
+	asLines[TDBT_Inserted] = pcTheme->GetColour(TC_DiffInsertedLines);
+	asLines[TDBT_Deleted] = pcTheme->GetColour(TC_DiffDeletedLines);
+	asLines[TDBT_Modified] = pcTheme->GetColour(TC_DiffModifiedLines);
+	asChanges[TDBT_Inserted] = pcTheme->GetColour(TC_DiffInsertedChanges);
+	asChanges[TDBT_Deleted] = pcTheme->GetColour(TC_DiffDeletedChanges);
+	asChanges[TDBT_Modified] = pcTheme->GetColour(TC_DiffModifiedChanges);
 	asShapes[TDBT_Inserted] = asLines[TDBT_Inserted];
 	asShapes[TDBT_Deleted] = asLines[TDBT_Deleted];
 	asShapes[TDBT_Modified] = asLines[TDBT_Modified];
 	asOutlines[TDBT_Inserted] = asChanges[TDBT_Inserted];
 	asOutlines[TDBT_Deleted] = asChanges[TDBT_Deleted];
 	asOutlines[TDBT_Modified] = asChanges[TDBT_Modified];
-	sDivider = Set32BitColour((uint8)0x1E, (uint8)0x1F, (uint8)0x22);
+	sDivider = pcTheme->GetColour(TC_DiffDivider);
 }
 
 

@@ -847,7 +847,7 @@ void TestMenuContextMenu(void)
 		pMenu->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
 		pMore->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
 
-		pText = OMalloc<CTextArea>(pTestWindow, pStyle->GetFont(), "The quick brown fox\njumps over the lazy dog.");
+		pText = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pStyle->GetFont(), "The quick brown fox\njumps over the lazy dog.");
 		pText->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pGrid->AddComponent(pText, 0, 0, 1, 1, 1, 1);

@@ -118,7 +118,7 @@ protected:
 	CComponentEvent<CCodeEditor>	mcChanged;
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFamily> pFamily, const char* szText);
 	void				Class(void) override;
 	void				Free(void) override;
 

@@ -49,6 +49,7 @@ protected:
 	CChars				mszTitle;	//Its title from the source.
 	bool				mbOutOfDate;
 	ARGB32				msText;  //The text's colour while it's up to date.
+	ARGB32				msOutOfDate;  //Its colour once the code was edited (the theme's line number colour).
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground, ARGB32 sText);

@@ -691,7 +691,7 @@ void TestScrollPaneDraw(char* szName, int32 iWidth, int32 iHeight, const char* s
 
 		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
 		pFill->AddComponent(pScrollPane);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, szText);
 		pTextArea->SetWordWrap(bWordWrap);
 		pScrollPane->SetContent(pTextArea);
 		pScrollPane->SetScrollPosition(iScrollX, iScrollY);

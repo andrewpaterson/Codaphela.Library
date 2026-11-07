@@ -16,6 +16,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 void AssertLabelObjectsRemoved(void);
 Ptr<CFont> ReadLabelFont(void);
 Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
@@ -60,7 +63,12 @@ void TestDiffDividerShapes(void)
 	szDirectory = (char*)"Output" _FS_ "DiffDivider";
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
-	sColours.Init();
+	{
+		Ptr<CWindowTheme>	pColoursTheme;
+
+		pColoursTheme = CreateTestTheme(Ptr<CFont>());
+		sColours.Init(&pColoursTheme);
+	}
 	{
 		Ptr<CWindow>				pTestWindow;
 		Ptr<CTickTestRefWindow>		pTick;

@@ -31,7 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // The titles are in pTitleFont and the texts in pFamily.  psColours NULL
-// is IntelliJ IDEA's dark theme's (SDiffViewColours::Init).
+// is the theme's (SDiffViewColours::Init).
 //
 //////////////////////////////////////////////////////////////////////////
 void CDiffView::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pFamily, SDiffViewColours* psColours)
@@ -45,7 +45,7 @@ void CDiffView::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	}
 	else
 	{
-		msColours.Init();
+		msColours.Init(&pTheme);
 	}
 	mcDiff.Init("");
 	mcProducer.Init();
@@ -58,10 +58,10 @@ void CDiffView::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	mpRightTitle = OMalloc<CLabel>(pWindow, pTitleFont, "");
 	mpRightTitle->SetAlignment(CSH_Left, CSV_Center);
 
-	mpLeftEditor = OMalloc<CCodeEditor>(pWindow, pFamily, "");
+	mpLeftEditor = OMalloc<CCodeEditor>(pWindow, pTheme, pFamily, "");
 	mpLeftEditor->SetAlignment(CSH_Left, CSV_Top);
 	mpLeftEditor->GetTextArea()->SetEditable(false);
-	mpRightEditor = OMalloc<CCodeEditor>(pWindow, pFamily, "");
+	mpRightEditor = OMalloc<CCodeEditor>(pWindow, pTheme, pFamily, "");
 	mpRightEditor->SetAlignment(CSH_Left, CSV_Top);
 	mpRightEditor->GetTextArea()->SetEditable(false);
 

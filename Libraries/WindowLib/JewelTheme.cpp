@@ -121,6 +121,16 @@ static ARGB32	gasJewelThemeColours[TC_NumColours] =
 	JEWEL_SEPARATOR,		//TC_MenuSeparator
 	JEWEL_PANEL,			//TC_DialogBackground
 	JEWEL_SEPARATOR,		//TC_DialogDivider
+	JEWEL_LINE_NUMBER,		//TC_LineNumber
+	JEWEL_LINE_NUMBER_ACTIVE,	//TC_LineNumberActive
+	JEWEL_PANEL,			//TC_Gutter
+	Set32BitColour((uint8)0x29, (uint8)0x44, (uint8)0x36),  //TC_DiffInsertedLines
+	Set32BitColour((uint8)0x48, (uint8)0x4A, (uint8)0x4A),  //TC_DiffDeletedLines
+	Set32BitColour((uint8)0x38, (uint8)0x55, (uint8)0x70),  //TC_DiffModifiedLines
+	Set32BitColour((uint8)0x44, (uint8)0x71, (uint8)0x52),  //TC_DiffInsertedChanges
+	Set32BitColour((uint8)0x65, (uint8)0x6E, (uint8)0x76),  //TC_DiffDeletedChanges
+	Set32BitColour((uint8)0x43, (uint8)0x69, (uint8)0x8D),  //TC_DiffModifiedChanges
+	Set32BitColour((uint8)0x1E, (uint8)0x1F, (uint8)0x22),  //TC_DiffDivider
 	JEWEL_PANEL,			//TC_DockTitleBar
 	JEWEL_SELECTION,		//TC_DockActiveTitleBar
 	JEWEL_EDITOR,			//TC_DockSash

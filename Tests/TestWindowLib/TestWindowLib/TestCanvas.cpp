@@ -31,6 +31,9 @@
 #include "SpaceCrusade.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 // Fills its canvas with one colour as CClearCanvasDraw does, but doesn't	//
@@ -1449,7 +1452,7 @@ Ptr<CCanvas> CreateClippedContent(Ptr<CWindow> pWindow, EClippedContent eContent
 		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CProgressBarDraw>(Set32BitColour(0.5f, 0.5f, 0.5f), Set32BitColour(1.0f, 1.0f, 0)));
 		break;
 	case CC_TextArea:
-		pTextArea = OMalloc<CTextArea>(pWindow, ReadLabelFont(), "The quick brown\nfox jumps over\nthe lazy dog");
+		pTextArea = OMalloc<CTextArea>(pWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "The quick brown\nfox jumps over\nthe lazy dog");
 		return pTextArea;
 	}
 	pCanvas->SetDesiredSize(CLIPPED_CONTENT_WIDTH, CLIPPED_CONTENT_HEIGHT);

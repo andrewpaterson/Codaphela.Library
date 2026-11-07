@@ -13,6 +13,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFont> ReadLabelFont(void);
 Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
 void AssertTextAreaBackground(ETextAreaBackground eType, size uiStart, size uiEnd, STextAreaBackground* psBackground);
@@ -104,7 +107,7 @@ void TestCodeEditorGutter(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pTestWindow->Layout();
@@ -186,7 +189,7 @@ void TestCodeEditorLineComponents(bool bTiles)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "ab\ncd\nef");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "ab\ncd\nef");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pTextArea = pEditor->GetTextArea();
@@ -327,7 +330,7 @@ void TestCodeEditorScrollPane(void)
 			}
 			szText.Append("x");
 		}
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), szText.Text());
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), szText.Text());
 		szText.Kill();
 		pTextArea = pEditor->GetTextArea();
 		pTextArea->SetTiledText(true);
@@ -399,7 +402,7 @@ void TestCodeEditorGutterMarks(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pTextArea = pEditor->GetTextArea();
@@ -509,7 +512,7 @@ void TestCodeEditorScrolledSideways(void)
 		szText.Init("a\n");
 		szText.Append('x', 60);
 		szText.Append("\nc");
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), szText.Text());
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), szText.Text());
 		szText.Kill();
 		pScroll->SetContent(pEditor);
 		pTextArea = pEditor->GetTextArea();
@@ -596,7 +599,7 @@ void TestCodeEditorChangeBars(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne\nf");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne\nf");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pGutter = pEditor->GetGutter();
@@ -704,7 +707,7 @@ void TestCodeEditorChangeBarClicks(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pEditor->AddChangeBar(1, 2, TEST_CHANGE_MODIFIED);
@@ -801,7 +804,7 @@ void TestCodeEditorGlyphs(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pGutter = pEditor->GetGutter();
@@ -912,7 +915,7 @@ void TestCodeEditorChangeBarsDrawn(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "int a;\nint b;\nint c;\nint d;\nint e;");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "int a;\nint b;\nint c;\nint d;\nint e;");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pEditor->GetTextArea()->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
 		pEditor->AddChangeBar(0, 0, TEST_CHANGE_REMOVED);
@@ -967,7 +970,7 @@ void TestCodeEditorClickBeyondText(void)
 		ORoot()->Add(pTestWindow);
 		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
 		pTestWindow->SetContainer(pScroll);
-		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "ab\ncdef\ngh");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "ab\ncdef\ngh");
 		pEditor->SetAlignment(CSH_Left, CSV_Top);
 		pScroll->SetContent(pEditor);
 		pTextArea = pEditor->GetTextArea();

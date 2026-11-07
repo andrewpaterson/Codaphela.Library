@@ -11,6 +11,9 @@
 #include "TestLib/Assert.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFont>		GenerateMenuFont(Ptr<CWindow> pWindow);
 
 
@@ -63,7 +66,7 @@ void TestCaretBlinkTextArea(void)
 		pTestWindow = OMalloc<CWindow>("Caret Window", &cNativeFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, (uint8)0, (uint8)0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
-		pText = OMalloc<CTextArea>(pTestWindow, GenerateMenuFont(pTestWindow), "Hello");
+		pText = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), GenerateMenuFont(pTestWindow), "Hello");
 		pText->SetEditable(true);
 		pText->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);

@@ -25,7 +25,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MapsCanvasDraw.h"
 #include "Window.h"
 #include "NativeWindowFactory.h"
-#include "JewelColours.h"
 #include "TextArea.h"
 
 
@@ -40,9 +39,9 @@ static EComponentInputCommand	gaeTextAreaPointerCommands[] = { CIC_ActivateCompo
 // It is the only style and size the text area has.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText)
+void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pWhiteFont, const char* szText)
 {
-	Init(pWindow, OMalloc<CFontColours>(pWhiteFont), szText);
+	Init(pWindow, pTheme, OMalloc<CFontColours>(pWhiteFont), szText);
 }
 
 
@@ -52,9 +51,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* sz
 // only made once.  It is the only style and size the text area has.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const char* szText)
+void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontColours> pColours, const char* szText)
 {
-	Init(pWindow, OMalloc<CFontFamily>(pColours), szText);
+	Init(pWindow, pTheme, OMalloc<CFontFamily>(pColours), szText);
 }
 
 
@@ -62,10 +61,10 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const cha
 //
 // szText is UTF8.  Line feeds start new lines.  pFamily can be shared by
 // text areas.  The caret starts at the start of the text, and the text
-// area is editable.
+// area is editable.  The selection and caret are the theme's colours.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText)
+void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFamily> pFamily, const char* szText)
 {
 	Ptr<CMapsCanvasDraw>	pDraw;
 
@@ -100,8 +99,8 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpMaps->SetViewportPosition(0, 0);
 	mbWordWrap = false;
 	msTextSize.Init(0, 0);
-	msSelectionColour = JEWEL_SELECTION;
-	msCaretColour = JEWEL_ICON;
+	msSelectionColour = pTheme->GetColour(TC_TextSelection);
+	msCaretColour = pTheme->GetColour(TC_Caret);
 	mauiStopStarts.Init();
 	mauiLineStarts.Init();
 	mcGaps.Init();

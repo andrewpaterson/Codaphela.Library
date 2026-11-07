@@ -16,6 +16,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFont> ReadLabelFont(void);
 void ValidateLabelObjects(void);
 void AssertLabelObjectsRemoved(void);
@@ -208,7 +211,7 @@ void TestTextAreaWordWrap(void)
 		AssertTrue(pFont.IsNotNull());
 
 		//Word wrap is off by default.  The required size is the size of the laid out text.
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "aaa bbb\nccc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb\nccc");
 		AssertString("aaa bbb\nccc", pTextArea->GetText());
 		AssertFalse(pTextArea->IsWordWrap());
 		AssertTrue(pTextArea->IsTransparent());
@@ -359,7 +362,7 @@ void TestTextAreaFillContainer(void)
 		pFont = ReadLabelFont();
 		AssertTrue(pFont.IsNotNull());
 
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "The quick brown fox jumps over the lazy dog.\nPack my box with five dozen liquor jugs.");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "The quick brown fox jumps over the lazy dog.\nPack my box with five dozen liquor jugs.");
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pFill->AddComponent(pTextArea);
@@ -435,7 +438,7 @@ void TestTextAreaNoWordWrapFillContainer(void)
 		pFont = ReadLabelFont();
 		AssertTrue(pFont.IsNotNull());
 
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "aaa bbb\nccc ddd eee");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb\nccc ddd eee");
 		pTextArea->SetAlignment(CSH_Right, CSV_Bottom);
 		pFill->AddComponent(pTextArea);
 
@@ -497,7 +500,7 @@ void TestTextAreaSpans(void)
 		pFont = ReadLabelFont();
 		AssertTrue(pFont.IsNotNull());
 
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "aaa bbb\nccc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb\nccc");
 		AssertTrue(pTextArea->GetFont() == pFont);
 		AssertInt(FONT_COLOURS_WHITE, pTextArea->GetColour());
 		AssertInt(FONT_COLOURS_WHITE, pTextArea->GetColourAt(0));
@@ -555,7 +558,7 @@ void TestTextAreaSpans(void)
 
 		//Text areas can share colours.
 		pColours = pTextArea->GetFontColours();
-		pShared = OMalloc<CTextArea>(pTestWindow, pColours, "ccc");
+		pShared = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pColours, "ccc");
 		AssertTrue(pShared->GetFontColours() == pColours);
 		pShared->SetColour(Set32BitColour((uint8)0xFF, (uint8)0x00, (uint8)0x00));
 		pShared->Layout(sPosition, sArea);
@@ -623,7 +626,7 @@ void TestTextAreaSpansFillContainer(void)
 		pFont = ReadLabelFont();
 		AssertTrue(pFont.IsNotNull());
 
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "The quick brown fox jumps over the lazy dog.\nPack my box with five dozen liquor jugs.");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "The quick brown fox jumps over the lazy dog.\nPack my box with five dozen liquor jugs.");
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
@@ -724,7 +727,7 @@ void TestTextAreaStyles(void)
 		ORoot()->Add(pTestWindow);
 
 		pFamily = CreateTextAreaFamily(16.0f);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, "aaa bbb ccc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, "aaa bbb ccc");
 		AssertTrue(pTextArea->GetFontFamily() == pFamily);
 		pTextArea->GetStyle(&sStyle);
 		AssertFalse(sStyle.bBold);
@@ -842,7 +845,7 @@ void TestTextAreaStylesFillContainer(void)
 		gcObjects.DisableValidation();
 		pFamily = CreateTextAreaFamily(15.0f);
 		szText = "Text in bold, italic and bold italic.  BIG and small words share a baseline, and Coloured Bold wraps.";
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, szText);
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
@@ -940,7 +943,7 @@ void TestTextAreaScripts(void)
 		AssertTrue(pSuperscript->GetLineHeight() < pRegular->GetLineHeight());
 
 		//"E=mc2 H2O"
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, "E=mc2 H2O");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, "E=mc2 H2O");
 		sSize = pTextArea->GetTextSize();
 		AssertInt(pRegular->GetLineHeight(), sSize.y);
 
@@ -1037,7 +1040,7 @@ void TestTextAreaScriptsFillContainer(void)
 		gcObjects.DisableValidation();
 		pFamily = CreateTextAreaFamily(16.0f);
 		szText = "E = mc2 and H2O.  Ca2+ ions.  x2 + y2 = z2 where x2 is BIG2 and a footnote1.";
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, szText);
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
@@ -1141,7 +1144,7 @@ void TestTextAreaDecorationsFillContainer(void)
 		gcObjects.DisableValidation();
 		pFamily = CreateTextAreaFamily(16.0f);
 		szText = "Underlined, overlined and struck through words.  A coloured underline crosses BIG and small words and x2 then wraps onto the next lines.";
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, szText);
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
@@ -1292,7 +1295,7 @@ void TestTextAreaUnderlineOverlineFillContainer(void)
 				 "Red green and blue lines\n\n"
 				 "Area r2 and log2 lined\n\n"
 				 "Faded half lines";
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, szText);
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
@@ -1432,7 +1435,7 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 
 		pFamily = CreateMonoTextAreaFamily(15.0f);
 		szText = "int Sum(int* aiValues, int iCount)\n{\n    int iTotal = 0;\n    return iTotal;\n}";
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, szText);
 		pTextArea->SetTiledText(bTiles);
 		pTextArea->SetAlignment(CSH_Left, CSV_Top);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
@@ -1562,7 +1565,7 @@ void DrawAppendedTextArea(char* szDirectory, bool bAppend, bool bTiles, bool bWr
 		{
 			szWhole.Append(aszPieces[i]);
 		}
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, bAppend ? "" : szWhole.Text());
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, bAppend ? "" : szWhole.Text());
 		pTextArea->SetTiledText(bTiles);
 		pTextArea->SetWordWrap(bWrap);
 		pTextArea->SetAlignment(bWrap ? CSH_Stretch : CSH_Left, CSV_Top);

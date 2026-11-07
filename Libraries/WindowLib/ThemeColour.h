@@ -41,6 +41,16 @@ enum EThemeColour
 	TC_MenuSeparator,			//A menu's separator line.
 	TC_DialogBackground,		//Behind a dialog's form.
 	TC_DialogDivider,			//A dialog's divider line.
+	TC_LineNumber,				//A code editor's line numbers, and a listing out of date.
+	TC_LineNumberActive,		//Line numbers on a change band.
+	TC_Gutter,					//Behind a code editor's line numbers.
+	TC_DiffInsertedLines,		//Behind a diff's inserted lines.
+	TC_DiffDeletedLines,
+	TC_DiffModifiedLines,
+	TC_DiffInsertedChanges,		//Over the characters that changed in a diff's inserted block.
+	TC_DiffDeletedChanges,
+	TC_DiffModifiedChanges,
+	TC_DiffDivider,				//Behind a diff's divider shapes.
 
 	//Docking's (see CDockManager).
 	TC_DockTitleBar,			//A tool group's title bar.

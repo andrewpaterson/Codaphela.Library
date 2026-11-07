@@ -20,7 +20,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
 #include "StandardLib/ClassDefines.h"
-#include "JewelColours.h"
 #include "Window.h"
 #include "CodeEditor.h"
 
@@ -31,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // numbers are in the same font.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText)
+void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFamily> pFamily, const char* szText)
 {
 	PreInit();
 
@@ -46,25 +45,25 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mbGlyphColumn = false;
 	masGlyphs.Init();
 	mcGlyphClicked.Init();
-	msBandNumberColour = JEWEL_LINE_NUMBER_ACTIVE;
+	msBandNumberColour = pTheme->GetColour(TC_LineNumberActive);
 	mcGutterClicked.Init();
 	mcChangeBarClicked.Init();
 	mcChanged.Init();
 	CContainer::Init(pWindow);
 	SetSizedByContent(true);
 
-	mpTextArea = OMalloc<CTextArea>(pWindow, pFamily, szText);
+	mpTextArea = OMalloc<CTextArea>(pWindow, pTheme, pFamily, szText);
 	mpTextArea->SetAlignment(CSH_Left, CSV_Top);
 	mpTextArea->GetChangeEvent()->Add(this, &CCodeEditor::CodeChanged);
 
 	//The gutter is only to read: a press in it passes to the code editor.
-	mpGutter = OMalloc<CTextArea>(pWindow, pFamily, "");
+	mpGutter = OMalloc<CTextArea>(pWindow, pTheme, pFamily, "");
 	mpGutter->SetEditable(false);
 	mpGutter->SetSelectable(false);
 	mpGutter->SetCanGetFocus(false);
-	mpGutter->SetColour(JEWEL_LINE_NUMBER);
+	mpGutter->SetColour(pTheme->GetColour(TC_LineNumber));
 	mpGutter->SetAlignment(CSH_Left, CSV_Top);
-	mpGutterDraw = OMalloc<CClearCanvasDraw>(JEWEL_PANEL);
+	mpGutterDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_Gutter));
 	mpGutterBackground = OMalloc<CCanvas>(pWindow, mpGutterDraw);
 
 	//Line components are drawn over the code, and the gutter, on its background, over both: later children are

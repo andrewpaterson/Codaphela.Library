@@ -11,6 +11,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
 void AssertLabelObjectsRemoved(void);
 
@@ -58,7 +61,7 @@ void AssertTextAreaBackgroundsDrawn(char* szDirectory, const char* szText, void(
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 
-		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateMonoTextAreaFamily(15.0f), szText);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), szText);
 		pTextArea->SetTiledText(true);
 		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
 		fAddBackgrounds(pTextArea);
@@ -152,7 +155,7 @@ void TestTextAreaBackgroundsAdd(void)
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "aaa\nbbb");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "aaa\nbbb");
 		pTestWindow->SetContainer(pTextArea);
 
 		//Out of the text is refused; nothing at all is accepted and ignored.
@@ -223,7 +226,7 @@ void TestTextAreaBackgroundsEdit(void)
 		ORoot()->Add(pTestWindow);
 
 		//Lines: aaa 0-2, bbb 4-6, ccc 8-10, ddd 12-14.
-		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "aaa\nbbb\nccc\nddd");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "aaa\nbbb\nccc\nddd");
 		pTestWindow->SetContainer(pTextArea);
 		AssertTrue(pTextArea->AddBackground(5, 10, 0));
 		AssertTrue(pTextArea->AddLineBackground(1, 3, 0));

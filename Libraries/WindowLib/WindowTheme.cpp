@@ -50,7 +50,8 @@ static const char*	gaszThemeColourNames[TC_NumColours] =
 {
 	"TextSelection", "Caret", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
 	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
-	"DialogDivider",
+	"DialogDivider", "LineNumber", "LineNumberActive", "Gutter", "DiffInsertedLines", "DiffDeletedLines",
+	"DiffModifiedLines", "DiffInsertedChanges", "DiffDeletedChanges", "DiffModifiedChanges", "DiffDivider",
 	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockStrip", "DockStripTab", "DockStripTabHover",
 	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
 	"DockPreviewBorder", "DockFrameBorder",

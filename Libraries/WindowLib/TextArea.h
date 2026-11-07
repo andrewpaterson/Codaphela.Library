@@ -39,6 +39,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextAreaTiles.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
+#include "WindowTheme.h"
 
 
 //What happened to a text area's undo history (CTextArea::GetUndoEvent).
@@ -180,9 +181,9 @@ protected:
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText);
-	void				Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const char* szText);
-	void				Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pWhiteFont, const char* szText);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontColours> pColours, const char* szText);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFamily> pFamily, const char* szText);
 	void				Class(void) override;
 	void				Free(void) override;
 

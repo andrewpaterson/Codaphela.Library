@@ -22,11 +22,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __DIFF_VIEW_COLOURS_H__
 #include "StandardLib/SimpleTextDiff.h"
 #include "SupportLib/ColourARGB32.h"
+#include "StandardLib/Pointer.h"
 
 
 //The colours a diff view shows changes in, by the kind of block: a band behind a block's lines (and line numbers), a
 //stronger shade over the characters that changed in it (and as the line where an empty side's lines would be), and the
-//divider's shape joining the two sides, filled and outlined.  Init gives IntelliJ IDEA's dark theme's.
+//divider's shape joining the two sides, filled and outlined.  Init takes them from a window theme (TC_Diff*).
+class CWindowTheme;
 struct SDiffViewColours
 {
 	ARGB32	asLines[3];		//By ETextDiffBlockType: inserted, deleted, modified.
@@ -35,7 +37,7 @@ struct SDiffViewColours
 	ARGB32	asOutlines[3];
 	ARGB32	sDivider;		//Behind the shapes.
 
-	void	Init(void);
+	void	Init(CWindowTheme* pcTheme);
 	ARGB32	GetLines(ETextDiffBlockType eType);
 	ARGB32	GetChanges(ETextDiffBlockType eType);
 	ARGB32	GetShape(ETextDiffBlockType eType);

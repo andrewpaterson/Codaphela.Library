@@ -12,6 +12,9 @@
 #include "DataTestRefWindow.h"
 
 
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+
+
 Ptr<CFont> ReadLabelFont(void);
 int32 TextAreaWidth(Ptr<CFont> pFont, const char* szText);
 Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
@@ -143,7 +146,7 @@ void TestTextAreaEditNavigation(void)
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFont = ReadLabelFont();
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "  abc def\nxy");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "  abc def\nxy");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
@@ -272,7 +275,7 @@ void TestTextAreaEditWrapped(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "aaa bbb ccc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb ccc");
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
@@ -353,7 +356,7 @@ void TestTextAreaEditModification(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "abc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
@@ -583,7 +586,7 @@ void TestTextAreaEditSpans(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "abc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
@@ -674,7 +677,7 @@ void TestTextAreaEditScrollPane(void)
 			szText.Append("line ");
 			szText.Append(i);
 		}
-		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), szText.Text());
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), szText.Text());
 		szText.Kill();
 		pScroll->SetContent(pTextArea);
 		pTestWindow->Layout();
@@ -787,7 +790,7 @@ void TestTextAreaEditTiles(void)
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFamily = CreateMonoTextAreaFamily(15.0f);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, "a\tb\ncd");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, "a\tb\ncd");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
@@ -1024,7 +1027,7 @@ void TestTextAreaEditLineGaps(void)
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFont = ReadLabelFont();
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "ab\ncd\nef");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "ab\ncd\nef");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
@@ -1284,7 +1287,7 @@ void TestTextAreaEditLineGapsWrapped(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "aaa bbb ccc\nd");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb ccc\nd");
 		pTextArea->SetWordWrap(true);
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
@@ -1350,7 +1353,7 @@ void TestTextAreaEditLineGapsTiles(void)
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFamily = CreateMonoTextAreaFamily(15.0f);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, "ab\ncd");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFamily, "ab\ncd");
 		pTextArea->SetTiledText(true);
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
@@ -1425,7 +1428,7 @@ void TestTextAreaEditUndo(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "abc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
@@ -1600,7 +1603,7 @@ void TestTextAreaEditUndoEvent(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "abc");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();
 		cListener.Init();
@@ -1665,7 +1668,7 @@ void TestTextAreaEditReplaceRanges(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "int foo;\nint x = foo + foo;");
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "int foo;\nint x = foo + foo;");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Layout();

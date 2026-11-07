@@ -22,7 +22,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
-#include "JewelColours.h"
 #include "LineZone.h"
 
 
@@ -49,6 +48,7 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	mszTitle.Init();
 	mbOutOfDate = false;
 	msText = sText;
+	msOutOfDate = pTheme->GetColour(TC_LineNumber);
 
 	mpTitle = OMalloc<CLabel>(pWindow, pTitleFont, "");
 	mpTitle->SetAlignment(CSH_Left, CSV_Center);
@@ -56,7 +56,7 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	mpNext = CreateButton(pWindow, pTheme, ">");
 	mpPrevious->GetClickEvent()->Add(this, &CLineZone::StepPrevious);
 	mpNext->GetClickEvent()->Add(this, &CLineZone::StepNext);
-	mpText = OMalloc<CTextArea>(pWindow, pTextFamily, "");
+	mpText = OMalloc<CTextArea>(pWindow, pTheme, pTextFamily, "");
 	mpText->SetEditable(false);
 	mpText->SetTiledText(true);
 	mpText->SetAlignment(CSH_Left, CSV_Top);
@@ -105,6 +105,7 @@ void CLineZone::Class(void)
 	U_String(mszTitle);
 	U_Bool(mbOutOfDate);
 	U_UInt32(msText);
+	U_UInt32(msOutOfDate);
 }
 
 
@@ -197,7 +198,7 @@ void CLineZone::SetOutOfDate(bool bOutOfDate)
 	if (mbOutOfDate != bOutOfDate)
 	{
 		mbOutOfDate = bOutOfDate;
-		mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : msText);
+		mpText->SetColour(mbOutOfDate ? msOutOfDate : msText);
 		ShowTitle();
 	}
 }
@@ -230,7 +231,7 @@ void CLineZone::ShowPage(void)
 		mpcSource->GetText(muiLine, muiPage, &szText);
 	}
 	mpText->SetText(szText.Text());
-	mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : msText);
+	mpText->SetColour(mbOutOfDate ? msOutOfDate : msText);
 	szText.Kill();
 	ShowTitle();
 	ShowButtons();
