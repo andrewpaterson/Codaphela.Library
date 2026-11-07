@@ -379,24 +379,29 @@ bool CIndexUnknown::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, 
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// The value an unsafe iteration step found (if bExists; NULL if not) into
+// *ppvData, when ppvData isn't NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IndexUnknownValue(bool bExists, CUnknown** ppcValue, CUnknown** ppvData)
+{
+	SafeAssign(ppvData, bExists ? *ppcValue : NULL);
+	return bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData)
 {
 	CUnknown**	ppcValue;
-	bool		bResult;
+	bool		bExists;
 
-	bResult = mcIndex.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, (void**)&ppcValue, NULL);
-	if (bResult)
-	{
-		SafeAssign(ppvData, *ppcValue);
-	}
-	else
-	{
-		SafeAssign(ppvData, NULL);
-	}
-	return bResult;
+	bExists = mcIndex.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, (void**)&ppcValue, NULL);
+	return IndexUnknownValue(bExists, ppcValue, ppvData);
 }
 
 
@@ -407,18 +412,10 @@ bool CIndexUnknown::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, u
 bool CIndexUnknown::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData)
 {
 	CUnknown**	ppcValue;
-	bool		bResult;
+	bool		bExists;
 
-	bResult = mcIndex.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, (void**)&ppcValue, NULL);
-	if (bResult)
-	{
-		SafeAssign(ppvData, *ppcValue);
-	}
-	else
-	{
-		SafeAssign(ppvData, NULL);
-	}
-	return bResult;
+	bExists = mcIndex.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, (void**)&ppcValue, NULL);
+	return IndexUnknownValue(bExists, ppcValue, ppvData);
 }
 
 
@@ -429,18 +426,10 @@ bool CIndexUnknown::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* p
 bool CIndexUnknown::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData)
 {
 	CUnknown**	ppcValue;
-	bool		bResult;
+	bool		bExists;
 
-	bResult = mcIndex.StartIteration(psIterator, (void**)&ppcValue, NULL);
-	if (bResult)
-	{
-		SafeAssign(ppvData, *ppcValue);
-	}
-	else
-	{
-		SafeAssign(ppvData, NULL);
-	}
-	return bResult;
+	bExists = mcIndex.StartIteration(psIterator, (void**)&ppcValue, NULL);
+	return IndexUnknownValue(bExists, ppcValue, ppvData);
 }
 
 
@@ -451,18 +440,10 @@ bool CIndexUnknown::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, C
 bool CIndexUnknown::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData)
 {
 	CUnknown**	ppcValue;
-	bool		bResult;
+	bool		bExists;
 
-	bResult = mcIndex.Iterate(psIterator, (void**)&ppcValue, NULL);
-	if (bResult)
-	{
-		SafeAssign(ppvData, *ppcValue);
-	}
-	else
-	{
-		SafeAssign(ppvData, NULL);
-	}
-	return bResult;
+	bExists = mcIndex.Iterate(psIterator, (void**)&ppcValue, NULL);
+	return IndexUnknownValue(bExists, ppcValue, ppvData);
 }
 
 
