@@ -545,17 +545,35 @@ size CDockGroup::FindTab(CTabComponent* pcTab)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pane pcTab shows, NULL if it isn't one of the group's tabs.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockPane> CDockGroup::GetTabPane(CTabComponent* pcTab)
+{
+	size	uiIndex;
+
+	uiIndex = FindTab(pcTab);
+	if (uiIndex < NumPanes())
+	{
+		return GetPane(uiIndex);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::TabSelected(CTabComponent* pcTab)
 {
-	size	uiIndex;
+	Ptr<CDockPane>	pPane;
 
 	UpdateTitle();
-	uiIndex = FindTab(pcTab);
-	if (uiIndex < NumPanes())
+	pPane = GetTabPane(pcTab);
+	if (pPane.IsNotNull())
 	{
-		mpManager->PaneSelected(GetPane(uiIndex));
+		mpManager->PaneSelected(pPane);
 	}
 }
 
@@ -568,12 +586,12 @@ void CDockGroup::TabSelected(CTabComponent* pcTab)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::TabClicked(CTabComponent* pcTab)
 {
-	size	uiIndex;
+	Ptr<CDockPane>	pPane;
 
-	uiIndex = FindTab(pcTab);
-	if (uiIndex < NumPanes())
+	pPane = GetTabPane(pcTab);
+	if (pPane.IsNotNull())
 	{
-		mpManager->Activate(GetPane(uiIndex));
+		mpManager->Activate(pPane);
 	}
 }
 
@@ -585,12 +603,12 @@ void CDockGroup::TabClicked(CTabComponent* pcTab)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::TabDragged(CTabComponent* pcTab)
 {
-	size	uiIndex;
+	Ptr<CDockPane>	pPane;
 
-	uiIndex = FindTab(pcTab);
-	if (uiIndex < NumPanes())
+	pPane = GetTabPane(pcTab);
+	if (pPane.IsNotNull())
 	{
-		mpManager->BeginPaneDrag(GetPane(uiIndex));
+		mpManager->BeginPaneDrag(pPane);
 	}
 }
 
@@ -602,12 +620,12 @@ void CDockGroup::TabDragged(CTabComponent* pcTab)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::TabDoubleClicked(CTabComponent* pcTab)
 {
-	size	uiIndex;
+	Ptr<CDockPane>	pPane;
 
-	uiIndex = FindTab(pcTab);
-	if (uiIndex < NumPanes())
+	pPane = GetTabPane(pcTab);
+	if (pPane.IsNotNull())
 	{
-		mpManager->ToggleFloat(GetPane(uiIndex));
+		mpManager->ToggleFloat(pPane);
 	}
 }
 
@@ -619,12 +637,12 @@ void CDockGroup::TabDoubleClicked(CTabComponent* pcTab)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::TabCloseRequested(CTabComponent* pcTab)
 {
-	size	uiIndex;
+	Ptr<CDockPane>	pPane;
 
-	uiIndex = FindTab(pcTab);
-	if (uiIndex < NumPanes())
+	pPane = GetTabPane(pcTab);
+	if (pPane.IsNotNull())
 	{
-		mpManager->Close(GetPane(uiIndex));
+		mpManager->Close(pPane);
 	}
 }
 

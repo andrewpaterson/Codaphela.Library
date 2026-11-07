@@ -178,7 +178,7 @@ void CAutoHideFlyout::Place(CInt32Rect* pcRootBounds, SInt32Vec2* psPosition)
 	{
 		iSize = DOCK_DEFAULT_SIZE;
 	}
-	iMaximum = ((meSide == DS_Left) || (meSide == DS_Right)) ? pcRootBounds->GetWidth() : pcRootBounds->GetHeight();
+	iMaximum = IsHorizontalDockSide(meSide) ? pcRootBounds->GetWidth() : pcRootBounds->GetHeight();
 	iMaximum -= DOCK_MINIMUM_SIZE;
 	if (iSize > iMaximum)
 	{
@@ -295,7 +295,7 @@ void CAutoHideFlyout::EdgeDragStarted(CDockEdge* pcEdge, SInt32Vec2 sScreen)
 	SInt32Vec2	sSize;
 
 	sSize = GetActualSize();
-	miStartSize = ((meSide == DS_Left) || (meSide == DS_Right)) ? sSize.x : sSize.y;
+	miStartSize = IsHorizontalDockSide(meSide) ? sSize.x : sSize.y;
 	msStartPointer = sScreen;
 }
 

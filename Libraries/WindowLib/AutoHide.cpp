@@ -197,7 +197,7 @@ bool CAutoHideTab::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CAutoHideTab::IsVertical(void)
 {
-	return (meSide == DS_Left) || (meSide == DS_Right);
+	return IsHorizontalDockSide(meSide);
 }
 
 
@@ -475,7 +475,7 @@ void CAutoHideStrip::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SetActualBounds(sPosition, sAreaSize);
 	SetContainerBounds(sPosition, sAreaSize);
 	mpBackground->Layout(sPosition, sAreaSize);
-	bVertical = (meSide == DS_Left) || (meSide == DS_Right);
+	bVertical = IsHorizontalDockSide(meSide);
 	iAlong = AUTO_HIDE_TAB_SPACING;
 	for (i = 0; i < maTabs.Size(); i++)
 	{

@@ -590,7 +590,7 @@ void CDockLayoutReader::ReadPaneStates(CMarkupTag* pcPanes, CArray<CDockPane>* p
 			ReadRestore(pcPane, pPane);
 			paMentioned->Add(pPane);
 			szState = pcPane->GetStringAttribute("State");
-			if ((szState != NULL) && (StringCompare(szState, "Hidden") == 0))
+			if ((szState != NULL) && (StringCompare(szState, DockPaneStateToString(DPS_Hidden)) == 0))
 			{
 				paHidden->Add(pPane);
 			}

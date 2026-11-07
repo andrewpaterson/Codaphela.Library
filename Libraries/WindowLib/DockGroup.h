@@ -120,6 +120,7 @@ protected:
 	void					AddMenuItem(Ptr<CMenuContainer> pMenu, EDockMenuItem eItem);
 	size					SlotOf(Ptr<CDockPane> pPane);
 	size					FindTab(CTabComponent* pcTab);
+	Ptr<CDockPane>			GetTabPane(CTabComponent* pcTab);
 	void					UpdateTitle(void);
 };
 
