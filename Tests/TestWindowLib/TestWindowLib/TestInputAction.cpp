@@ -6,6 +6,7 @@
 #include "WindowLib/Component.h"
 #include "WindowLib/GridContainer.h"
 #include "WindowLib/ComponentInput.h"
+#include "WindowLib/CommandSet.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
@@ -71,6 +72,19 @@ public:
 	int		miCalls;
 
 	void Count(SComponentInputEvent* psEvent) { miCalls++; }
+};
+
+
+//An application's commands: logs those run, and Start can be turned off.
+class CActionTestCommands
+{
+public:
+	CChars*		mpszLog;
+	bool		mbCanStart;
+
+	void Start(void) { mpszLog->Append("Start;"); }
+	void StepUndo(void) { mpszLog->Append("StepUndo;"); }
+	bool CanStart(void) { return mbCanStart; }
 };
 
 
@@ -863,6 +877,126 @@ void TestInputActionBindKeys(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An application's commands run from their keys when nothing focused
+// takes them, are found by name and by keys (written in any order), don't
+// run while they can't, and run from a tool window floating over their
+// window.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputActionCommands(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CWindow>				pToolWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CActionTestComponent>	pA;
+		Ptr<CCommandSet>			pCommands;
+		CChars						szLog;
+		CActionTestDevices			cDevices;
+		CActionTestCommands			cCommands;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		CInt32Rect					cToolRect;
+		SLogConfig					sLogConfig;
+
+		szLog.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Commands Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pA = OMalloc<CActionTestComponent>(pTestWindow, &szLog);
+		AssertTrue(pGrid->AddComponent(pA, 0, 0, 1, 1, 1, 1));
+		pTestWindow->Layout();
+		pA->AddInputAction(CIC_Undo, &pA, &CActionTestComponent::Undo);
+
+		cCommands.mpszLog = &szLog;
+		cCommands.mbCanStart = true;
+		pCommands = OMalloc<CCommandSet>();
+		AssertTrue(pCommands->Add("Start", "Start Debugging", "F5", Ptr<CImageCel>(), &cCommands, &CActionTestCommands::Start).IsNotNull());
+		AssertTrue(pCommands->Add("StepUndo", "Step Undo", "Alt+Control+Z", Ptr<CImageCel>(), &cCommands, &CActionTestCommands::StepUndo).IsNotNull());
+		pCommands->Find("Start")->SetEnabledCheck(&cCommands, &CActionTestCommands::CanStart);
+		AssertString("Control+Alt+Z", pCommands->Find("StepUndo")->GetKeys());
+		AssertTrue(pCommands->FindKeys("Control+Alt+Z") == pCommands->Find("StepUndo"));
+		AssertTrue(pCommands->Find("Build").IsNull());
+		gcLogger.GetConfig(&sLogConfig);
+		gcLogger.SetBreakOnError(false);
+		AssertTrue(pCommands->Add("Start", "Again", NULL, Ptr<CImageCel>(), &cCommands, &CActionTestCommands::Start).IsNull());
+		gcLogger.SetConfig(&sLogConfig);
+		AssertSize(2, pCommands->NumCommands());
+		pTestWindow->SetCommands(pCommands);
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		AssertTrue(cComponentInput.AddMouse(cDevices.GetMouse()));
+		AssertTrue(pCommands->BindKeys(&cComponentInput));
+		pTestWindow->PointerMoved(10, 10);
+		cDevices.Click("Button 1");
+		AssertTrue(pA->IsFocussed());
+		szLog.Clear();
+
+		//The focussed component's own keys still go to it; the commands' keys run them.
+		cDevices.Press("Left Control"); cDevices.Tap("Z"); cDevices.Release("Left Control");
+		AssertLog("Undo;");
+		cDevices.Tap("F5");
+		AssertLog("Start;");
+		cDevices.Press("Left Control"); cDevices.Press("Left Alt"); cDevices.Tap("Z"); cDevices.Release("Left Alt"); cDevices.Release("Left Control");
+		AssertLog("StepUndo;");
+
+		//A command that can't run now doesn't.
+		cCommands.mbCanStart = false;
+		cDevices.Tap("F5");
+		AssertLog("");
+		AssertFalse(pCommands->Run("Start"));
+		cCommands.mbCanStart = true;
+		AssertTrue(pCommands->Run("Start"));
+		AssertLog("Start;");
+
+		//From a tool window floating over the window, which has no commands of its own.
+		pToolWindow = OMalloc<CWindow>("Tool Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pToolWindow);
+		cToolRect.Init(0, 0, 32, 16);
+		AssertTrue(pToolWindow->ShowOwned(pTestWindow, &cToolRect));
+		cComponentInput.SetWindow(&pToolWindow);
+		cDevices.Tap("F5");
+		AssertLog("Start;");
+		cComponentInput.SetWindow(&pTestWindow);
+		pToolWindow->CloseOwned();
+		ORoot()->Remove(pToolWindow);
+		pToolWindow = NULL;
+
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+
+		pTestWindow->SetCommands(NULL);
+		pCommands = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pGrid = NULL;
+		pA = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestInputAction(void)
@@ -878,6 +1012,7 @@ void TestInputAction(void)
 	TestInputActionUndoChords(true);
 	TestInputActionUndoChords(false);
 	TestInputActionBindKeys();
+	TestInputActionCommands();
 
 	ObjectsFlush();
 	ObjectsKill();

@@ -28,6 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Popup.h"
 #include "SoundMixer.h"
 #include "Clipboard.h"
+#include "CommandSet.h"
 #include "ComponentEvent.h"
 #include "StandardLib/MemberCall.h"
 
@@ -57,6 +58,7 @@ protected:
 	bool						mbTicking;
 	CFocus						mcFocus;
 	CComponentInput*			mpcComponentInput;  //Optional.  Updated every tick when set.
+	Ptr<CCommandSet>			mpCommands;  //The application's commands, NULL for none.  Dialogs and tool windows use their owner's.
 	Ptr<CButton>				mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
 	Ptr<CButton>				mpCancelButton;  //Clicked by escape when no popup is open.
 	bool						mbLayoutAgain;  //A component's required size changed while it was being laid out.
@@ -145,6 +147,8 @@ public:
 
 	void					SetComponentInput(CComponentInput* pcComponentInput);
 	CComponentInput*		GetComponentInput(void);
+	void					SetCommands(Ptr<CCommandSet> pCommands);
+	Ptr<CCommandSet>		GetCommands(void);
 
 	const char*				GetWindowTitle(void);
 	void					SetWindowTitle(const char* szTitle);

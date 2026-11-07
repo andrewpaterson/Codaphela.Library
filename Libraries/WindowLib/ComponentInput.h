@@ -120,6 +120,7 @@ public:
 	CWindowInputSource*	GetSource(void);
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
 	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand);
+	static bool			NameKeys(const char* szKeys, CChars* pszDest);
 
 protected:
 	CComponentInputDevice*			AddDevice(CInputDevice* pcDevice);
@@ -131,7 +132,7 @@ protected:
 	void							AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
 	void							AddChordCommand(const char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
 	void							SetChordCommand(const char* szName, EComponentInputCommand ePressed);
-	bool							ParseKeys(const char* szKeys, SComponentInputBinding* psBinding);
+	static bool						ParseKeys(const char* szKeys, SComponentInputBinding* psBinding);
 	SComponentInputBinding*			GetBinding(const char* szKeys);
 	void							ApplyBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
 	SComponentInputChordCommand*	GetChordCommand(const char* szName);

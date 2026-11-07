@@ -96,6 +96,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	AddComponent(mpCanvas);
 	mbTicking = false;
 	mpcComponentInput = NULL;
+	mpCommands = NULL;
 	mpDefaultButton = NULL;
 	mpCancelButton = NULL;
 	mbLayoutAgain = false;
@@ -164,6 +165,7 @@ void CWindow::Class(void)
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
 	M_Pointer(mpCaretBacking);
+	M_Pointer(mpCommands);
 	U_Unknown(SMemberCall, msCloseApprover);
 	U_Data(CInt32Rect, mcCaret);
 	U_UInt32(msCaretColour);
@@ -1052,6 +1054,8 @@ Ptr<CClipboard>			CWindow::GetClipboard(void) { return mpClipboard; }
 Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
 Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
+void					CWindow::SetCommands(Ptr<CCommandSet> pCommands) { mpCommands = pCommands; }  //Keys nothing focused takes run these; see CFocus::DispatchUnhandledCommand.
+Ptr<CCommandSet>		CWindow::GetCommands(void) { return mpCommands; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }

@@ -422,13 +422,19 @@ bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
 // A command nothing focussed took, Control+N say, goes to the window's
 // content (with nothing focussed, or from a popup, it wasn't asked), then
 // to the window a tool window floats over, so the application's commands
-// work wherever the keys are.
+// work wherever the keys are.  Keys bound to an application's command
+// (CIC_Command) run it, from the window's commands or its owner's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFocus::DispatchUnhandledCommand(SComponentInputEvent* psEvent)
 {
 	Ptr<CComponent>	pContent;
 	Ptr<CWindow>	pOwner;
+
+	if (psEvent->eCommand == CIC_Command)
+	{
+		return RunCommand(mpWindow, psEvent->szName);
+	}
 
 	pContent = mpWindow->GetContainer();
 	if (pContent.IsNotNull() && (mpFocussedComponent.IsNull() || !mpFocussedComponent->IsWithin(pContent)))
@@ -446,6 +452,30 @@ bool CFocus::DispatchUnhandledCommand(SComponentInputEvent* psEvent)
 		{
 			return pOwner->GetFocus()->Dispatch(pContent, psEvent);
 		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The command bound to szKeys in pWindow's commands, or its owner's (a
+// dialog's or tool window's), runs.  False if there is none or it can't
+// run now.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::RunCommand(Ptr<CWindow> pWindow, char* szKeys)
+{
+	Ptr<CCommandSet>	pCommands;
+
+	while (pWindow.IsNotNull())
+	{
+		pCommands = pWindow->GetCommands();
+		if (pCommands.IsNotNull() && pCommands->FindKeys(szKeys).IsNotNull())
+		{
+			return pCommands->RunKeys(szKeys);
+		}
+		pWindow = pWindow->GetOwner();
 	}
 	return false;
 }

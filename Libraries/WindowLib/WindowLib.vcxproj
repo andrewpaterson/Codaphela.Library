@@ -299,6 +299,8 @@
     <ClInclude Include="CheckBox.h" />
     <ClInclude Include="CheckBoxImages.h" />
     <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandSet.h" />
     <ClInclude Include="WindowTheme.h" />
     <ClInclude Include="JewelTheme.h" />
     <ClInclude Include="JewelColours.h" />
@@ -406,6 +408,8 @@
     <ClCompile Include="CheckBox.cpp" />
     <ClCompile Include="CheckBoxImages.cpp" />
     <ClCompile Include="ComboBox.cpp" />
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CommandSet.cpp" />
     <ClCompile Include="WindowTheme.cpp" />
     <ClCompile Include="JewelTheme.cpp" />
   </ItemGroup>

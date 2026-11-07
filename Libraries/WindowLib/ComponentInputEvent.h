@@ -42,7 +42,7 @@ struct SWindowInputEvent;
 struct SComponentInputEvent
 {
 	EComponentInputEventType	eType;
-	char*						szName;		//The key's or chord's name, NULL for the other types.
+	char*						szName;		//The key's or chord's name, for key, chord and command events; NULL for the others.
 	float						fValue;		//The key's value, 1 down and 0 up for a key or button.
 	char						cPrintable;
 	EComponentInputCommand		eCommand;

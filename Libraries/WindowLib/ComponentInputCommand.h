@@ -123,6 +123,7 @@ enum EComponentInputCommand
 	CIC_StepOut,  //Shift+F11.
 
 	//Components
+	CIC_Command,  //Keys bound to an application's command (CCommand); the event's szName is the keys.
 	CIC_ActivateComponent,
 	CIC_ExecuteComponent,
 	CIC_ContextMenu,  //The right button: a click, so the component under the pointer is focussed first.

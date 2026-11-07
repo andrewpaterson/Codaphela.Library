@@ -591,14 +591,8 @@ bool CComponentInput::BindKeys(const char* szKeys, EComponentInputCommand eComma
 	CComponentInputDevice*	pcDevice;
 	size					i;
 
-	sParsed.szKeys.Init();
-	sParsed.szKey.Init();
-	sParsed.szSecondKey.Init();
 	if (!ParseKeys(szKeys, &sParsed))
 	{
-		sParsed.szKeys.Kill();
-		sParsed.szKey.Kill();
-		sParsed.szSecondKey.Kill();
 		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or Control+Shift+F, H.", NULL);
 	}
 
@@ -634,6 +628,7 @@ bool CComponentInput::BindKeys(const char* szKeys, EComponentInputCommand eComma
 // Reads "Control+Alt+Shift+Key" (the modifiers in any order, each at most
 // once) or "Control+Shift+First, Second" into psBinding, whose szKeys is
 // then the keys' name with its modifiers in the order Control, Alt, Shift.
+// Its strings are only initialised if it returns true.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBinding)
@@ -707,6 +702,29 @@ bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBi
 		psBinding->szKeys.Append(psBinding->szSecondKey);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szKeys named as a binding of them is ("Shift+Control+B" is
+// "Control+Shift+B"), appended to pszDest.  False if they can't be read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::NameKeys(const char* szKeys, CChars* pszDest)
+{
+	SComponentInputBinding	sParsed;
+	bool					bResult;
+
+	bResult = ParseKeys(szKeys, &sParsed);
+	if (bResult)
+	{
+		pszDest->Append(sParsed.szKeys);
+		sParsed.szKeys.Kill();
+		sParsed.szKey.Kill();
+		sParsed.szSecondKey.Kill();
+	}
+	return bResult;
 }
 
 
@@ -935,6 +953,7 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 			AddPressed(psWindowEvent->pcSource, psChordCommand->eReleased);
 		}
 		InitEvent(&asDest[1], CIET_Command, psWindowEvent);
+		asDest[1].szName = psWindowEvent->szChord;
 		asDest[1].eCommand = psChordCommand->ePressed;
 		return 2;
 	}
@@ -1055,6 +1074,7 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 			return false;
 		}
 		InitEvent(psDest, CIET_Command, psWindowEvent);
+		psDest->szName = pcRemapped->GetFriendlyName();
 		psDest->eCommand = psCommand->meCommand;
 		return true;
 	}
