@@ -246,6 +246,7 @@ protected:
 			void					KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
 
 	virtual bool					ClearPointerTos(bool bFree);
+			bool					DestructOnStack(char* szMethod, bool bKill);
 
 			bool					SaveManaged(CObjectWriter* pcFile);
 			bool					LoadManaged(CObjectReader* pcFile);

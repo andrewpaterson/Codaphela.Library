@@ -773,6 +773,49 @@ void CBaseObject::StopDestructor(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The destructor of each immediate sub-class of CBaseObject (CObject,
+// CCollection's, CHollowObject) calls this: only there do the virtual
+// calls (FreePointers, Kill) reach that class's own versions.  A
+// destructor only runs for an object on the stack.
+//
+// An object only constructed to get its ClassName() (or stopped with
+// StopDestructor) has nothing to free: returns false.  Otherwise frees
+// it, killing it first if bKill (a class whose sub-classes don't declare
+// DESTRUCTABLE), and returns true.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::DestructOnStack(char* szMethod, bool bKill)
+{
+	if (muiFlags == OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	{
+		muiFlags = 0;
+		return false;
+	}
+
+	if (bKill)
+	{
+		Kill();
+	}
+
+	if ((mpcUnknownsThisIn == NULL) && !HasClass())
+	{
+		//PreInit was never called so the fields were never set up: there is nothing to free.
+		FailHasClassFlag(szMethod);
+		return true;
+	}
+
+	FreePointers();
+	ValidateInitCalled();
+	ValidateKillCalled();
+
+	//Still killed: the objects embedded in this are destroyed after it, and are killed with it.
+	muiFlags = OBJECT_FLAGS_CALLED_KILL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 lsize CBaseObject::SerialisedSize(void)

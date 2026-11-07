@@ -40,29 +40,9 @@ CObject::CObject()
 //////////////////////////////////////////////////////////////////////////
 CObject::~CObject()
 {
-	//This Destructor code will only be called if the object was allocated on the stack.
-	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	//Only called for an object on the stack.
+	if (!DestructOnStack(__METHOD__, false))
 	{
-		if (mpcUnknownsThisIn == NULL)
-		{
-			if (!HasClass())
-			{
-				FailHasClassFlag(__METHOD__);
-				return;
-			}
-		}
-		FreePointers();
-
-		ValidateInitCalled();
-		ValidateKillCalled();
-
-		//Still killed: the objects embedded in this are destroyed after it, and are killed with it.
-		muiFlags = OBJECT_FLAGS_CALLED_KILL;
-	}
-	else
-	{
-		//Skip all destruction as this object was only constructed to get its ClassName().
-		muiFlags = 0;
 		mapPointers.Kill();
 		mapEmbedded.Kill();
 	}
