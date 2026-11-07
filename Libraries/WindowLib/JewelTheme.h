@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __JEWEL_THEME_H__
 #define __JEWEL_THEME_H__
+#include "SupportLib/FontColours.h"
 #include "WindowTheme.h"
 
 
@@ -34,6 +35,7 @@ class CJewelTheme
 {
 public:
 	static Ptr<CWindowTheme>	CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> pFont);
+	static Ptr<CWindowTheme>	CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFontColours> pWhiteColours);
 	static void					SetColours(Ptr<CWindowTheme> pTheme);
 	static void					SetMetrics(Ptr<CWindowTheme> pTheme);
 	static void					SetImages(Ptr<CWindowTheme> pTheme, Ptr<CWindow> pWindow);

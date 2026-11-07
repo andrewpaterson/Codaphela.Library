@@ -105,6 +105,19 @@ static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
 //In EThemeColour's order.
 static ARGB32	gasJewelThemeColours[TC_NumColours] =
 {
+	JEWEL_TEXT,				//TC_Text
+	JEWEL_LINE_NUMBER,		//TC_DimText
+	JEWEL_WHITE,			//TC_BrightText
+	JEWEL_ICON,				//TC_Icon
+	JEWEL_PANEL,			//TC_Panel
+	JEWEL_EDITOR,			//TC_Editor
+	JEWEL_SEPARATOR,		//TC_Separator
+	JEWEL_BORDER,			//TC_Border
+	JEWEL_BORDER_HOVER,		//TC_BorderHover
+	JEWEL_BLUE,				//TC_Accent
+	JEWEL_BLUE_HOVER,		//TC_AccentHover
+	JEWEL_GREEN,			//TC_Success
+	JEWEL_RED,				//TC_Failure
 	JEWEL_SELECTION,		//TC_TextSelection
 	JEWEL_ICON,				//TC_Caret
 	JEWEL_SELECTION,		//TC_ListSelected
@@ -147,6 +160,18 @@ static ARGB32	gasJewelThemeColours[TC_NumColours] =
 	JEWEL_BLUE,				//TC_DockPreviewBorder
 	JEWEL_SEPARATOR,		//TC_DockFrameBorder
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The theme's font is pWhiteColours' in the theme's text colour, so an
+// application needn't know the colour.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFontColours> pWhiteColours)
+{
+	return CreateDarkTheme(pWindow, pWhiteColours->GetFont(gasJewelThemeColours[TC_Text]));
+}
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -25,6 +25,22 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //The colours a window theme keeps (CWindowTheme::GetColour), each set by whoever makes the theme (CJewelTheme).
 enum EThemeColour
 {
+	//An application's own widgets' (and the dialogs').
+	TC_Text,					//Text, and the theme's font.
+	TC_DimText,					//Disabled items, shortcuts and divider titles.
+	TC_BrightText,				//The brightest text and icon parts: matched characters, a tick.
+	TC_Icon,					//Icons, and status text.
+	TC_Panel,					//Panels, menus, dialogs and a window's background.
+	TC_Editor,					//Editors, and the lines between panels.
+	TC_Separator,				//Separators, and a popup's border.
+	TC_Border,					//A control's border.
+	TC_BorderHover,				//A control's border under the pointer.
+	TC_Accent,					//Focus, progress and the active choice.
+	TC_AccentHover,
+	TC_Success,					//As a build that succeeded.
+	TC_Failure,					//As a build that failed.
+
+	//The widgets'.
 	TC_TextSelection,			//Behind selected text.
 	TC_Caret,
 	TC_ListSelected,			//A list's selected row.

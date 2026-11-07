@@ -48,6 +48,8 @@ static const char*	gaszThemeImageNames[TI_NumImages] =
 //In EThemeColour's order, for the error reading one that wasn't set.
 static const char*	gaszThemeColourNames[TC_NumColours] =
 {
+	"Text", "DimText", "BrightText", "Icon", "Panel", "Editor", "Separator", "Border", "BorderHover", "Accent",
+	"AccentHover", "Success", "Failure",
 	"TextSelection", "Caret", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
 	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
 	"DialogDivider", "LineNumber", "LineNumberActive", "Gutter", "DiffInsertedLines", "DiffDeletedLines",
