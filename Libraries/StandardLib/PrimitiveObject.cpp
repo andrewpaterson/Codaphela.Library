@@ -27,71 +27,26 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //#define DEBUG_PRIMITIVE
 //////////////////////////////////////////////////////////////////////////
 //
+// With DEBUG_PRIMITIVE (and _DEBUG), logs szMethod on the primitive and
+// the object it is embedded in.  Both LOG_PRIMITIVE_ACCESS_DEBUG and
+// LOG_PRIMITIVE_ASSIGN_DEBUG come here.
 //
 //////////////////////////////////////////////////////////////////////////
-void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, const char* szMethod)
+void LogPrimitiveDebug(CPrimitiveObject* pcThis, const char* szMethod)
 {
 #ifdef DEBUG_PRIMITIVE
 #ifdef _DEBUG
-	const char* szEmbeddingClass;
-	char* szEmbeddingName;
-	char* szEmbeddingIndex;
-	char* szEmbeddingAddress;
+	CObject*	pcEmbedding;
 
-	CObject* pcEmbedding;
-
-	pcEmbedding = pvThis->Embedding();
+	pcEmbedding = pcThis->Embedding();
 	if (pcEmbedding != NULL)
 	{
-		szEmbeddingClass = pcEmbedding->ClassName();
-		szEmbeddingIndex = IndexToString(pcEmbedding->GetIndex());
-		szEmbeddingName = pcEmbedding->GetName();
-		szEmbeddingAddress = PointerToString(pcEmbedding);
-
-		gcLogger.Debug2(PointerToString(pvThis), " ", szMethod, " [Embedding ", szEmbeddingClass, ": ", szEmbeddingIndex, " ", szEmbeddingName, " (", szEmbeddingAddress, ")]", NULL);
+		gcLogger.Debug2(PointerToString(pcThis), " ", szMethod, " [Embedding ", pcEmbedding->ClassName(), ": ", IndexToString(pcEmbedding->GetIndex()), " ", pcEmbedding->GetName(), " (", PointerToString(pcEmbedding), ")]", NULL);
 	}
 	else
 	{
-		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding NULL]", NULL);
+		gcLogger.Debug2(PointerToString(pcThis), " ", szMethod, " [Embedding NULL]", NULL);
 	}
-
-
-#endif // _DEBUG
-#endif // DEBUG_PRIMITIVE
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, const char* szMethod)
-{
-#ifdef DEBUG_PRIMITIVE
-#ifdef _DEBUG
-	const char* szEmbeddingClass;
-	char* szEmbeddingName;
-	char* szEmbeddingIndex;
-	char* szEmbeddingAddress;
-
-	CObject* pcEmbedding;
-
-	pcEmbedding = pvThis->Embedding();
-	if (pcEmbedding != NULL)
-	{
-		szEmbeddingClass = pcEmbedding->ClassName();
-		szEmbeddingIndex = IndexToString(pcEmbedding->GetIndex());
-		szEmbeddingName = pcEmbedding->GetName();
-		szEmbeddingAddress = PointerToString(pcEmbedding);
-
-		gcLogger.Debug2(PointerToString(pvThis), " ", szMethod, " [Embedding ", szEmbeddingClass, ": ", szEmbeddingIndex, " ", szEmbeddingName, " (", szEmbeddingAddress, ")]", NULL);
-	}
-	else
-	{
-		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding NULL]", NULL);
-	}
-
-
 #endif // _DEBUG
 #endif // DEBUG_PRIMITIVE
 }

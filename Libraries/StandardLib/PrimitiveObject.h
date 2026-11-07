@@ -24,8 +24,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DataTypes.h"
 
 
-#define LOG_PRIMITIVE_ACCESS_DEBUG()	LogPrimitiveAccessDebug((CPrimitiveObject*)this, __ENGINE_PRETTY_FUNCTION__)
-#define LOG_PRIMITIVE_ASSIGN_DEBUG()	LogPrimitiveAssignDebug((CPrimitiveObject*)this, __ENGINE_PRETTY_FUNCTION__)
+#define LOG_PRIMITIVE_ACCESS_DEBUG()	LogPrimitiveDebug((CPrimitiveObject*)this, __ENGINE_PRETTY_FUNCTION__)
+#define LOG_PRIMITIVE_ASSIGN_DEBUG()	LogPrimitiveDebug((CPrimitiveObject*)this, __ENGINE_PRETTY_FUNCTION__)
 
 
 class CObject;
@@ -47,8 +47,7 @@ public:
 };
 
 
-void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, const char* szMethod);
-void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, const char* szMethod);
+void LogPrimitiveDebug(CPrimitiveObject* pcThis, const char* szMethod);
 
 
 #endif // __PRIMITIVE_OBJECT_H__
