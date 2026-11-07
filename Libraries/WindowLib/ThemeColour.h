@@ -33,6 +33,12 @@ enum EThemeColour
 	TC_TabHover,				//Behind a tab under the pointer.
 	TC_TabUnderline,			//Under the selected tab.
 	TC_TabSeparator,			//The line between the tabs and the page.
+	TC_MenuBar,					//Behind the menu bar.
+	TC_MenuBackground,			//Behind a menu's items.
+	TC_MenuBorder,				//A menu's edge.
+	TC_MenuSelected,			//Behind a menu's selected item.
+	TC_MenuHover,				//Behind a menu bar button under the pointer.
+	TC_MenuSeparator,			//A menu's separator line.
 
 	//Docking's (see CDockManager).
 	TC_DockTitleBar,			//A tool group's title bar.

@@ -27,7 +27,9 @@ static const char*	gaszThemeMetricNames[TM_NumMetrics] =
 {
 	"ButtonPaddingX", "ButtonPaddingY", "ButtonIconGap", "FieldPaddingX", "FieldPaddingY", "CheckBoxGap",
 	"ComboChevronWidth", "ComboChevronGap", "TreeChevronWidth", "TreeIconWidth", "TreeIndent", "TreeRowPadding",
-	"TabSideGap", "TabGap", "TabTopGap", "TabBottomGap", "TabUnderline", "TabIconSize",
+	"TabSideGap", "TabGap", "TabTopGap", "TabBottomGap", "TabUnderline", "TabIconSize", "MenuInsetX", "MenuInsetY",
+	"MenuIconWidth", "ComboMenuIconWidth", "MenuChevronWidth", "MenuItemPadding", "MenuSeparatorHeight",
+	"MenuBarPaddingX", "MenuBarPaddingY", "MenuSelectionRadius", "MenuSelectionInset", "MenuSeparatorInset",
 };
 
 
@@ -42,6 +44,7 @@ static const char*	gaszThemeImageNames[TI_NumImages] =
 static const char*	gaszThemeColourNames[TC_NumColours] =
 {
 	"TextSelection", "Caret", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
+	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator",
 	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockStrip", "DockStripTab", "DockStripTabHover",
 	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
 	"DockPreviewBorder", "DockFrameBorder",
@@ -64,6 +67,7 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	mpDefaultButtonImages = NULL;
 	mpSmallButtonImages = NULL;
 	mpToolButtonImages = NULL;
+	mpMenuBarButtonImages = NULL;
 	mpCheckBoxImages = NULL;
 	mpMenuStyle = NULL;
 	mpComboMenuStyle = NULL;
@@ -93,6 +97,7 @@ void CWindowTheme::Class(void)
 	M_Pointer(mpDefaultButtonImages);
 	M_Pointer(mpSmallButtonImages);
 	M_Pointer(mpToolButtonImages);
+	M_Pointer(mpMenuBarButtonImages);
 	M_Pointer(mpCheckBoxImages);
 	M_Pointer(mpMenuStyle);
 	M_Pointer(mpComboMenuStyle);
@@ -300,6 +305,8 @@ Ptr<CButtonImages> CWindowTheme::GetDefaultButtonImages(EButtonLook eLook)
 void CWindowTheme::SetFont(Ptr<CFont> pFont) { mpFont = pFont; }
 void CWindowTheme::SetSmallButtonImages(Ptr<CButtonImages> pImages) { mpSmallButtonImages = pImages; }
 void CWindowTheme::SetToolButtonImages(Ptr<CButtonImages> pImages) { mpToolButtonImages = pImages; }
+void CWindowTheme::SetMenuBarButtonImages(Ptr<CButtonImages> pImages) { mpMenuBarButtonImages = pImages; }
+Ptr<CButtonImages> CWindowTheme::GetMenuBarButtonImages(void) { return mpMenuBarButtonImages; }
 void CWindowTheme::SetCheckBoxImages(Ptr<CCheckBoxImages> pImages) { mpCheckBoxImages = pImages; }
 void CWindowTheme::SetMenuStyle(Ptr<CMenuStyle> pStyle) { mpMenuStyle = pStyle; }
 void CWindowTheme::SetScrollBarImages(Ptr<CScrollBarImages> pImages) { mpScrollBarImages = pImages; }

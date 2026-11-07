@@ -61,6 +61,7 @@ protected:
 	Ptr<CButtonImages>				mpDefaultButtonImages;  //Drawn instead while a button is its window's default.  Optional.
 	Ptr<CButtonImages>				mpSmallButtonImages;  //Optional, small buttons are normal without them.
 	Ptr<CButtonImages>				mpToolButtonImages;
+	Ptr<CButtonImages>				mpMenuBarButtonImages;  //Flat, for the menu bar's buttons.
 	Ptr<CCheckBoxImages>			mpCheckBoxImages;
 	Ptr<CMenuStyle>					mpMenuStyle;  //The menu bar and its menus.
 	Ptr<CMenuStyle>					mpComboMenuStyle;  //A combo box's list.
@@ -84,6 +85,7 @@ public:
 	void					SetButtonImages(Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages);
 	void					SetSmallButtonImages(Ptr<CButtonImages> pImages);
 	void					SetToolButtonImages(Ptr<CButtonImages> pImages);
+	void					SetMenuBarButtonImages(Ptr<CButtonImages> pImages);
 	void					SetCheckBoxImages(Ptr<CCheckBoxImages> pImages);
 	void					SetMenuStyle(Ptr<CMenuStyle> pStyle);
 	void					SetComboMenuStyle(Ptr<CMenuStyle> pStyle);
@@ -99,6 +101,7 @@ public:
 	Ptr<CFont>						GetFont(void);
 	Ptr<CButtonImages>				GetButtonImages(EButtonLook eLook);
 	Ptr<CButtonImages>				GetDefaultButtonImages(EButtonLook eLook);
+	Ptr<CButtonImages>				GetMenuBarButtonImages(void);
 	Ptr<CCheckBoxImages>			GetCheckBoxImages(void);
 	Ptr<CMenuStyle>					GetMenuStyle(void);
 	Ptr<CMenuStyle>					GetComboMenuStyle(void);

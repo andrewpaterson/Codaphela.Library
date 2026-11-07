@@ -20,47 +20,39 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
-#include "JewelImageGenerator.h"
-#include "Window.h"
-#include "JewelColours.h"
+#include "WindowTheme.h"
 #include "MenuStyle.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The images are made in the window's colour order.  The font is used as
-// it is, white say, for every label.
+// The theme's menu colours, sizes, chevron and bar button images, and its
+// font, used as it is (white say) for every label.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMenuStyle::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
+void CMenuStyle::Init(Ptr<CWindowTheme> pTheme)
 {
-	CColourFormatHelper	cFormat;
-	int					aiMenuInsets[4] = { 6, 1, 6, 1 };  //Top, Right, Bottom, Left.
-
 	PreInit();
 
-	pWindow->GetColourFormat(&cFormat);
-
-	mpFont = pFont;
-	mpDimFont = pFont;
-	msBarBackground = JEWEL_BAR_BACKGROUND;
-	msMenuBackground = JEWEL_PANEL;
-	msMenuBorder = JEWEL_SEPARATOR;
-	msSelected = JEWEL_SELECTION;
-	msHover = JEWEL_HOVER;
-	msSeparator = JEWEL_SEPARATOR;
-	msMenuInsets.Init(aiMenuInsets);
-	miIconWidth = 32;
-	miChevronWidth = 24;
-	miItemPadding = 5;
-	miSeparatorHeight = 9;
-	msBarPadding.Init(1, 1);
-	miSelectionRadius = 4;
-	miSelectionInset = 6;
-	miSeparatorInset = 8;
-
-	mpBarButtonImages = CJewelImageGenerator::CreateFlatButtonImages(msBarBackground, msHover, msHover, &cFormat);
-	mpChevron = CJewelImageGenerator::CreateChevron(JEWEL_ICON, &cFormat);
+	mpFont = pTheme->GetFont();
+	mpDimFont = mpFont;
+	msBarBackground = pTheme->GetColour(TC_MenuBar);
+	msMenuBackground = pTheme->GetColour(TC_MenuBackground);
+	msMenuBorder = pTheme->GetColour(TC_MenuBorder);
+	msSelected = pTheme->GetColour(TC_MenuSelected);
+	msHover = pTheme->GetColour(TC_MenuHover);
+	msSeparator = pTheme->GetColour(TC_MenuSeparator);
+	msMenuInsets.Init(pTheme->GetMetric(TM_MenuInsetY), pTheme->GetMetric(TM_MenuInsetX), pTheme->GetMetric(TM_MenuInsetY), pTheme->GetMetric(TM_MenuInsetX));
+	miIconWidth = pTheme->GetMetric(TM_MenuIconWidth);
+	miChevronWidth = pTheme->GetMetric(TM_MenuChevronWidth);
+	miItemPadding = pTheme->GetMetric(TM_MenuItemPadding);
+	miSeparatorHeight = pTheme->GetMetric(TM_MenuSeparatorHeight);
+	msBarPadding.Init(pTheme->GetMetric(TM_MenuBarPaddingX), pTheme->GetMetric(TM_MenuBarPaddingY));
+	miSelectionRadius = pTheme->GetMetric(TM_MenuSelectionRadius);
+	miSelectionInset = pTheme->GetMetric(TM_MenuSelectionInset);
+	miSeparatorInset = pTheme->GetMetric(TM_MenuSeparatorInset);
+	mpBarButtonImages = pTheme->GetMenuBarButtonImages();
+	mpChevron = pTheme->GetImage(TI_Chevron);
 
 	PostInit();
 }

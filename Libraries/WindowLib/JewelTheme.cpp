@@ -46,6 +46,18 @@ static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
 	4,		//TM_TabBottomGap
 	3,		//TM_TabUnderline
 	16,		//TM_TabIconSize
+	1,		//TM_MenuInsetX
+	6,		//TM_MenuInsetY
+	32,		//TM_MenuIconWidth
+	13,		//TM_ComboMenuIconWidth, so a combo box's items line up with its text.
+	24,		//TM_MenuChevronWidth
+	5,		//TM_MenuItemPadding
+	9,		//TM_MenuSeparatorHeight
+	1,		//TM_MenuBarPaddingX
+	1,		//TM_MenuBarPaddingY
+	4,		//TM_MenuSelectionRadius
+	6,		//TM_MenuSelectionInset
+	8,		//TM_MenuSeparatorInset
 };
 
 
@@ -60,6 +72,12 @@ static ARGB32	gasJewelThemeColours[TC_NumColours] =
 	JEWEL_HOVER,			//TC_TabHover
 	JEWEL_BLUE,				//TC_TabUnderline
 	JEWEL_SEPARATOR,		//TC_TabSeparator
+	JEWEL_BAR_BACKGROUND,	//TC_MenuBar
+	JEWEL_PANEL,			//TC_MenuBackground
+	JEWEL_SEPARATOR,		//TC_MenuBorder
+	JEWEL_SELECTION,		//TC_MenuSelected
+	JEWEL_HOVER,			//TC_MenuHover
+	JEWEL_SEPARATOR,		//TC_MenuSeparator
 	JEWEL_PANEL,			//TC_DockTitleBar
 	JEWEL_SELECTION,		//TC_DockActiveTitleBar
 	JEWEL_EDITOR,			//TC_DockSash
@@ -96,17 +114,17 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 	pTheme->SetSmallButtonImages(CJewelImageGenerator::CreateSmallButtonImages(&cFormat));
 	pTheme->SetToolButtonImages(CJewelImageGenerator::CreateFlatButtonImages(JEWEL_PANEL, JEWEL_HOVER, JEWEL_SEPARATOR, &cFormat));
 	pTheme->SetCheckBoxImages(CJewelImageGenerator::CreateCheckBoxImages(&cFormat));
-	pTheme->SetMenuStyle(OMalloc<CMenuStyle>(pWindow, pFont));
-
-	//The combo box's items have no icons, so their text lines up with the combo box's.
-	pComboStyle = OMalloc<CMenuStyle>(pWindow, pFont);
-	pComboStyle->SetIconWidth(13);
-	pTheme->SetComboMenuStyle(pComboStyle);
 
 	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)32), Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
 	SetColours(pTheme);
 	SetMetrics(pTheme);
 	SetImages(pTheme, pWindow);
+
+	//The menus read the theme.  The combo box's items have no icons, so their text lines up with the combo box's.
+	pTheme->SetMenuStyle(OMalloc<CMenuStyle>(pTheme));
+	pComboStyle = OMalloc<CMenuStyle>(pTheme);
+	pComboStyle->SetIconWidth(pTheme->GetMetric(TM_ComboMenuIconWidth));
+	pTheme->SetComboMenuStyle(pComboStyle);
 	return pTheme;
 }
 
@@ -129,7 +147,8 @@ void CJewelTheme::SetMetrics(Ptr<CWindowTheme> pTheme)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every icon of the theme, drawn in the window's colour format.  IDEA's
+// Every icon of the theme, and the menu bar's flat button images, drawn
+// in the window's colour format.  IDEA's
 // editor tabs have a grey cross that whitens under the pointer.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -147,6 +166,7 @@ void CJewelTheme::SetImages(Ptr<CWindowTheme> pTheme, Ptr<CWindow> pWindow)
 	pTheme->SetImage(TI_TabCloseHover, CJewelImageGenerator::CreateCross(JEWEL_TEXT, &cFormat));
 	pTheme->SetImage(TI_PreviousArrow, CJewelImageGenerator::CreateArrow(JEWEL_ICON, true, &cFormat));
 	pTheme->SetImage(TI_NextArrow, CJewelImageGenerator::CreateArrow(JEWEL_ICON, false, &cFormat));
+	pTheme->SetMenuBarButtonImages(CJewelImageGenerator::CreateFlatButtonImages(JEWEL_BAR_BACKGROUND, JEWEL_HOVER, JEWEL_HOVER, &cFormat));
 }
 
 

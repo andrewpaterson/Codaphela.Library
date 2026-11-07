@@ -27,12 +27,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Insets.h"
 
 
-class CWindow;
+class CWindowTheme;
 
 
-//How a menu bar and its menus look, shared by all of them.  The defaults are like the main menu of IntelliJ IDEA 2026's
-//new UI in its dark theme: flat bar buttons, rounded highlights inset from the menu's sides and separators that stop
-//short of them.  The font, Inter 13 in IntelliJ, is given.
+//How a menu bar and its menus look, shared by all of them, read from a window theme as it is made: flat bar buttons,
+//rounded highlights inset from the menu's sides and separators that stop short of them (IntelliJ IDEA's, from
+//CJewelTheme).  A theme keeps two, its menus' and a combo box's list's, which has a narrower icon column.
 //
 //A menu item is a row of four columns: the icon column, the label, the shortcut and the chevron column.  The icon and
 //chevron columns are a fixed width, whether or not an item has an icon or a chevron, so the labels line up down the
@@ -63,7 +63,7 @@ protected:
 	int32				miSeparatorInset;  //Between a separator's line and the menu's sides.
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont);
+	void				Init(Ptr<CWindowTheme> pTheme);
 	void				Class(void) override;
 	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;

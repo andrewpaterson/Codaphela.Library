@@ -43,6 +43,18 @@ enum EThemeMetric
 	TM_TabBottomGap,			//Between a tab's name and its underline.
 	TM_TabUnderline,			//The selected tab's underline.
 	TM_TabIconSize,				//A tab's icon and close cross, square.
+	TM_MenuInsetX,				//Between a menu's popup and its items, the border included, at the sides.
+	TM_MenuInsetY,				//And at the top and bottom.
+	TM_MenuIconWidth,			//A menu's icon column.
+	TM_ComboMenuIconWidth,		//A combo box's list's icon column.
+	TM_MenuChevronWidth,		//A menu's chevron column.
+	TM_MenuItemPadding,			//Above and below a menu item's label.
+	TM_MenuSeparatorHeight,
+	TM_MenuBarPaddingX,			//Around a menu bar button's caption, inside its border.
+	TM_MenuBarPaddingY,
+	TM_MenuSelectionRadius,		//Of the rounded block behind a menu's selected item.
+	TM_MenuSelectionInset,		//Between the selected item's block and the menu's sides.
+	TM_MenuSeparatorInset,		//Between a separator's line and the menu's sides.
 
 	TM_NumMetrics,
 };

@@ -27,6 +27,23 @@
 Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A test theme with Jewel's icons and menu bar buttons, and its menu
+// style (CWindowTheme::GetMenuStyle), read from it.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CWindowTheme> CreateMenuTestTheme(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
+{
+	Ptr<CWindowTheme>	pTheme;
+
+	pTheme = CreateTestTheme(pFont);
+	CJewelTheme::SetImages(pTheme, pWindow);
+	pTheme->SetMenuStyle(OMalloc<CMenuStyle>(pTheme));
+	return pTheme;
+}
+
+
 void ValidateLabelObjects(void);
 
 
@@ -147,9 +164,8 @@ void CreateTestMenus(Ptr<CWindow> pWindow, STestMenus* psMenus)
 	Ptr<CGridContainer>		pGrid;
 
 	pWindow->GetColourFormat(&cHelper);
-	psMenus->pStyle = OMalloc<CMenuStyle>(pWindow, GenerateMenuFont(pWindow));
-	psMenus->pTheme = CreateTestTheme(psMenus->pStyle->GetFont());
-	psMenus->pTheme->SetMenuStyle(psMenus->pStyle);
+	psMenus->pTheme = CreateMenuTestTheme(pWindow, GenerateMenuFont(pWindow));
+	psMenus->pStyle = psMenus->pTheme->GetMenuStyle();
 
 	psMenus->pRecent = OMalloc<CMenuContainer>(pWindow, psMenus->pTheme);
 	psMenus->pRecent->AddItem("One");
@@ -817,9 +833,8 @@ void TestMenuContextMenu(void)
 		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 
 		pMore = OMalloc<CMenuContainer>(pTestWindow, pTheme);
 		pMore->AddItem("One");
@@ -1011,9 +1026,8 @@ void TestMenuTreeContextMenu(void)
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTestWindow = OMalloc<CWindow>("Tree Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 
 		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
 		pMenu->AddItem("Set as Startup");
@@ -1155,12 +1169,11 @@ void TestMenuEnabledAndShortcuts(void)
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 		AssertTrue(pStyle->GetDimFont() == pStyle->GetFont());
 		pDim = GenerateMenuFont(pTestWindow);
 		pStyle->SetDimFont(pDim);
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
 
 		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
 		pUndo = pMenu->AddItem("Undo");
@@ -1255,9 +1268,8 @@ void TestMenuItemShortcutFromCommand(void)
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
 		pWordLeft = pMenu->AddItem("Word Left");
 		pUndo = pMenu->AddItem("Undo");
@@ -1333,11 +1345,10 @@ void TestMenuItemAndRowEnabledAgree(void)
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 		pDim = GenerateMenuFont(pTestWindow);
 		pStyle->SetDimFont(pDim);
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
 
 		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
 		pCut = pMenu->AddItem("Cut");
@@ -1509,9 +1520,8 @@ void TestMenuItemClickEvent(void)
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 
 		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
 		pSub = OMalloc<CMenuContainer>(pTestWindow, pTheme);
@@ -1594,9 +1604,8 @@ void TestMenuOpener(void)
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
-		pTheme = CreateTestTheme(pStyle->GetFont());
-		pTheme->SetMenuStyle(pStyle);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
 		pLabel = OMalloc<CLabel>(pTestWindow, pStyle->GetFont(), "Label");
