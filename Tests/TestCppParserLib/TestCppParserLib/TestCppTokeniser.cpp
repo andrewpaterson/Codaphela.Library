@@ -268,6 +268,78 @@ void TestCppTokeniserLocations(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szText is one integer literal: tokenised without errors if szError is
+// NULL, else with the one error szError (its message, then the literal).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertIntegerLiteral(const char* szText, const char* szError)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+	CChars				szSource;
+	CChars				szExpected;
+
+	szSource.Init("int x = ");
+	szSource.Append(szText);
+	szSource.Append(';');
+	if (!szError)
+	{
+		AssertTrue(TokeniseText(&cFile, &cTokeniser, szSource.Text()));
+		AssertString("", cTokeniser.GetErrors()->Text());
+	}
+	else
+	{
+		AssertFalse(TokeniseText(&cFile, &cTokeniser, szSource.Text()));
+		szExpected.Init("Tokens.cpp (1, 9): ");
+		szExpected.Append(szError);
+		szExpected.Append(" [");
+		szExpected.Append(szText);
+		szExpected.Append("]\n");
+		AssertString(szExpected.Text(), cTokeniser.GetErrors()->Text());
+		szExpected.Kill();
+	}
+	cTokeniser.Kill();
+	cFile.Kill();
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An integer literal's suffix is u and l or ll (either case, each once, in
+// either order), or Microsoft's i8, i16, i32 and i64 after an optional u.
+// 0x and 0b need a digit.  [lex.icon]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserIntegerLiterals(void)
+{
+	static const char*	aszValid[] = { "1u", "1U", "1l", "1L", "1ul", "1lu", "1ull", "1llu", "1LL", "1uLL", "1LLU", "1i64", "1ui64", "1I32", "1i16", "1i8", "0x1F", "0b101", "0", "017", NULL };
+	static const char*	aszBadSuffix[] = { "1uu", "1lul", "1lL", "1Ll", "1lll", "1i64l", "1li64", "1i64u", "1ui", NULL };
+	CChars				szLong;
+	size				i;
+
+	for (i = 0; aszValid[i]; i++)
+	{
+		AssertIntegerLiteral(aszValid[i], NULL);
+	}
+	for (i = 0; aszBadSuffix[i]; i++)
+	{
+		AssertIntegerLiteral(aszBadSuffix[i], "Invalid integer literal suffix.");
+	}
+	AssertIntegerLiteral("0x", "Integer literal has no digits.");
+	AssertIntegerLiteral("0bu", "Integer literal has no digits.");
+
+	//Longer than the 255 characters that are kept is too large, not cut short.
+	szLong.Init();
+	szLong.Append('0', 300);
+	szLong.Append('1');
+	AssertIntegerLiteral(szLong.Text(), "Integer literal is too large.");
+	szLong.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserErrors(void)
@@ -381,6 +453,7 @@ void TestCppTokeniser(void)
 	TestCppTokeniserFloatingAndCharacters();
 	TestCppTokeniserLocations();
 	TestCppTokeniserErrors();
+	TestCppTokeniserIntegerLiterals();
 	TestCppTokeniserIdentifierIndex();
 
 	NumberKill();

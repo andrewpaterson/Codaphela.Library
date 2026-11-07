@@ -23,11 +23,66 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether sz (all of it) is an integer suffix: u and l, L, ll or LL, each
+// at most once, in either order; or Microsoft's i8, i16, i32 or i64 after
+// an optional u.  Sets psLiteral's bUnsigned, iLongs and bInt64.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ParseIntegerSuffix(const char* sz, SIntegerLiteral* psLiteral)
+{
+	bool	bLongs;
+
+	psLiteral->bUnsigned = false;
+	psLiteral->iLongs = 0;
+	psLiteral->bInt64 = false;
+	bLongs = false;
+	for (;;)
+	{
+		if (((*sz == 'u') || (*sz == 'U')) && !psLiteral->bUnsigned)
+		{
+			psLiteral->bUnsigned = true;
+			sz++;
+		}
+		else if (((*sz == 'l') || (*sz == 'L')) && !bLongs)
+		{
+			//ll and LL, not lL.
+			bLongs = true;
+			psLiteral->iLongs = (sz[1] == sz[0]) ? 2 : 1;
+			sz += psLiteral->iLongs;
+		}
+		else
+		{
+			break;
+		}
+	}
+	if (*sz == '\0')
+	{
+		return true;
+	}
+	if (bLongs || ((*sz != 'i') && (*sz != 'I')))
+	{
+		return false;
+	}
+
+	//Microsoft's: [u]i8, [u]i16, [u]i32 or [u]i64, last.
+	sz++;
+	if ((sz[0] == '6') && (sz[1] == '4') && (sz[2] == '\0'))
+	{
+		psLiteral->bInt64 = true;
+		return true;
+	}
+	return ((sz[0] == '8') && (sz[1] == '\0')) || ((((sz[0] == '1') && (sz[1] == '6')) || ((sz[0] == '3') && (sz[1] == '2'))) && (sz[2] == '\0'));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Reads the integer literal szText (a whole pp-number, uiLength chars):
 // its base, value and suffix.  Digit separators are left out.  Suffixes
-// are u, l, ll in any order and Microsoft's i8, i16, i32, i64 and ui64.
-// Returns ILR_Floating, leaving the rest unset, if it is a floating
-// literal.  [lex.icon]
+// are u and l or ll (either case, each once, in either order) and
+// Microsoft's i8, i16, i32 and i64 after an optional u.  Returns
+// ILR_Floating, leaving the rest unset, if it is a floating literal; one
+// longer than szNumber holds is ILR_TooLarge.  [lex.icon]
 //
 //////////////////////////////////////////////////////////////////////////
 EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIntegerLiteral* psLiteral)
@@ -46,10 +101,14 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 
 	szNumber = psLiteral->szNumber;
 	iLength = 0;
-	for (i = 0; (i < uiLength) && (iLength < 255); i++)
+	for (i = 0; i < uiLength; i++)
 	{
 		if (szText[i] != '\'')
 		{
+			if (iLength == sizeof(psLiteral->szNumber) - 1)
+			{
+				return ILR_TooLarge;
+			}
 			szNumber[iLength] = szText[i];
 			iLength++;
 		}
@@ -112,6 +171,10 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 	{
 		return ILR_Floating;
 	}
+	if ((iBase != 10) && (szEnd == szDigits))
+	{
+		return ILR_NoDigits;
+	}
 
 	if ((iBase == 10) && (szDigits[0] == '0') && (szEnd > szDigits + 1))
 	{
@@ -149,44 +212,7 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 
 	psLiteral->ulliValue = ulliValue;
 	psLiteral->iBase = iBase;
-	psLiteral->bUnsigned = false;
-	psLiteral->iLongs = 0;
-	psLiteral->bInt64 = false;
-	for (sz = szEnd; *sz != '\0';)
-	{
-		if ((*sz == 'u') || (*sz == 'U'))
-		{
-			psLiteral->bUnsigned = true;
-			sz++;
-		}
-		else if ((*sz == 'l') || (*sz == 'L'))
-		{
-			psLiteral->iLongs++;
-			sz++;
-		}
-		else if (((*sz == 'i') || (*sz == 'I')) && (sz[1] == '6') && (sz[2] == '4'))
-		{
-			psLiteral->bInt64 = true;
-			sz += 3;
-		}
-		else if (((*sz == 'i') || (*sz == 'I')) && (((sz[1] == '3') && (sz[2] == '2')) || ((sz[1] == '1') && (sz[2] == '6'))))
-		{
-			sz += 3;
-		}
-		else if (((*sz == 'i') || (*sz == 'I')) && (sz[1] == '8'))
-		{
-			sz += 2;
-		}
-		else
-		{
-			return ILR_InvalidSuffix;
-		}
-	}
-	if (psLiteral->iLongs > 2)
-	{
-		return ILR_InvalidSuffix;
-	}
-	return ILR_Integer;
+	return ParseIntegerSuffix(szEnd, psLiteral) ? ILR_Integer : ILR_InvalidSuffix;
 }
 
 

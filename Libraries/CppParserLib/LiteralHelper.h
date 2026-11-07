@@ -31,6 +31,7 @@ enum EIntegerLiteralResult
 	ILR_InvalidDigit,
 	ILR_TooLarge,
 	ILR_InvalidSuffix,
+	ILR_NoDigits,		//0x or 0b with no digits after it.
 };
 
 

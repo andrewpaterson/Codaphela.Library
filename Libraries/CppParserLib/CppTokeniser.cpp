@@ -463,6 +463,8 @@ bool CCPPTokeniser::Number(SPreprocessedToken* psToken, int iSource)
 		return Error(psToken, "Invalid digit in integer literal.");
 	case ILR_TooLarge:
 		return Error(psToken, "Integer literal is too large.");
+	case ILR_NoDigits:
+		return Error(psToken, "Integer literal has no digits.");
 	default:
 		return Error(psToken, "Invalid integer literal suffix.");
 	}

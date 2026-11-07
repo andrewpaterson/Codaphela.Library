@@ -535,6 +535,8 @@ SPPValue CPreprocessorExpression::Number(void)
 		return Error("Invalid digit in integer");
 	case ILR_TooLarge:
 		return Error("Integer is too large");
+	case ILR_NoDigits:
+		return Error("Integer has no digits");
 	default:
 		return Error("Invalid integer suffix");
 	}
