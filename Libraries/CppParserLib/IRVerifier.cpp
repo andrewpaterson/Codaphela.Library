@@ -618,6 +618,14 @@ void CIRVerifier::CheckInstruction(CIRBlock* pcBlock, size uiIndex)
 	{
 		CheckOperand(psInstruction->asArguments[iOperand], psOpcode->auiOperands[iOperand], psInstruction->sType, pcBlock, (int32)uiIndex, iOperand == 0 ? "Operand" : "Second operand");
 	}
+	for (; iOperand < IR_INSTRUCTION_ARGUMENTS; iOperand++)
+	{
+		//The printer would write it and the parser wouldn't read it back.
+		if (!psInstruction->asArguments[iOperand].IsNone())
+		{
+			Error("Operand the opcode doesn't take.", psOpcode->szName);
+		}
+	}
 	if ((psOpcode->uiShape == IRSH_Conversion) && CheckReference(psInstruction->asArguments[0]))
 	{
 		CheckConversion(psInstruction, psOpcode);

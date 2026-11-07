@@ -617,6 +617,40 @@ void TestIRVerifierErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An operand slot the opcode doesn't use is empty: a neg left with a
+// second operand (by a pass that rewrote it) is an error, not printed and
+// then lost.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRVerifierUnusedOperand(void)
+{
+	CIRModule		cModule;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIRVerifier		cVerifier;
+	CIRFunction*	pcFunction;
+	SIRInstruction*	psNeg;
+
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse("function i32 @f(i32 %a)\n{\nb:\n\t%x = neg i32 %a\n\tret i32 %x\n}\n"));
+	cParser.Kill();
+	pcFunction = cModule.GetFunction(0);
+	psNeg = pcFunction->GetBlock(0)->masInstructions.Get(0);
+	psNeg->asArguments[1] = pcFunction->AddInteger(IRType(IRTK_I32), 3);
+
+	cVerifier.Init(&cModule, &cErrors);
+	AssertFalse(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString("@f b: Operand the opcode doesn't take. [neg]\n", cErrors.Text());
+	cErrors.Kill();
+	cModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // a -> b, c; b -> d; c -> d; d -> e, a (a loop); x is unreachable.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4320,6 +4354,7 @@ void TestIR(void)
 	TestIRDominanceFrontiers();
 	TestIRRoundTripFlags();
 	TestIRVerifierFlagErrors();
+	TestIRVerifierUnusedOperand();
 
 	TestStatistics();
 }

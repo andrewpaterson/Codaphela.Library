@@ -27,14 +27,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IROpcode.h"
 
 
-//A fixed size instruction, as QBE's Ins.  sType is the result's type, except for comparisons (the operands' type;
-//the result is i1), store and arg (the value's type).  A conversion's operand type is its operand's.  A call's
-//callee is asArguments[0]; its arguments are the arg instructions straight before it.
 //A back end's line before the code of instructions with another source than the last's: the marker then the source
 //token + 1 (CCPP65IRFrontEnd::SourceComments makes it a comment, or takes it out).
 #define IR_SOURCE_MARKER	"\t\t;@"
 
+//An instruction's operands; those its opcode doesn't take are IRNone.
+#define IR_INSTRUCTION_ARGUMENTS	2
 
+
+//A fixed size instruction, as QBE's Ins.  sType is the result's type, except for comparisons (the operands' type;
+//the result is i1), store and arg (the value's type).  A conversion's operand type is its operand's.  A call's
+//callee is asArguments[0]; its arguments are the arg instructions straight before it.
 struct SIRInstruction
 {
 	uint16			uiOpcode;
@@ -42,7 +45,7 @@ struct SIRInstruction
 	uint8			uiNamed;		//A variadic call's number of named arguments.
 	SIRType			sType;
 	SIRReference	sResult;
-	SIRReference	asArguments[2];
+	SIRReference	asArguments[IR_INSTRUCTION_ARGUMENTS];
 	uint32			uiSource;		//The source token it was written for + 1, 0 for none (CIRModule::muiSource).
 };
 
