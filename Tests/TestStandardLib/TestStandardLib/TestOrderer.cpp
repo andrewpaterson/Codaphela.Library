@@ -710,6 +710,34 @@ void TestOrdererSaveAndLoad(void)
 	SafeKill(pcDatabase);
 	ObjectsKill(false);
 
+	//The name added to a loaded holder was saved.
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.AddConstructor<CTestInteger>();
+	gcObjects.AddConstructor<COrderer>();
+	gcObjects.AddConstructor<COrdererHolder>();
+	{
+		Ptr<COrderer>			pOrderer;
+		Ptr<CTestInteger>		pA;
+		Ptr<COrdererHolder>		pHolder;
+
+		pOrderer = gcObjects.Get("Orderer");
+		AssertSize(4, pOrderer->NumObjects());
+		pA = gcObjects.Get("A");
+		pHolder = pOrderer->GetHolder(pA);
+		AssertTrue(pHolder.IsNotNull());
+		AssertSize(2, pHolder->GetFulfilments()->NumElements());
+		AssertString("A", pHolder->GetFulfilments()->GetText(0));
+		AssertString("First", pHolder->GetFulfilments()->GetText(1));
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcSequence);
+	SafeKill(pcDatabase);
+	ObjectsKill(false);
+
 	cFileUtil.RemoveDir(szDirectory);
 }
 

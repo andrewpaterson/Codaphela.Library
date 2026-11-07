@@ -136,7 +136,8 @@ bool COrdererHolder::LoadNames(CObjectReader* pcFile, CArrayChars* paszNames)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A name is only kept once.
+// A name is only kept once.  The names are unmanaged, so a new one makes
+// the holder dirty itself.
 //
 //////////////////////////////////////////////////////////////////////////
 void COrdererHolder::AddFulfilment(const char* szName)
@@ -144,13 +145,15 @@ void COrdererHolder::AddFulfilment(const char* szName)
 	if (maszFulfilments.GetIndex(szName) == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		maszFulfilments.Add(szName);
+		SetDirty(true);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A name is only kept once.
+// A name is only kept once.  The names are unmanaged, so a new one makes
+// the holder dirty itself.
 //
 //////////////////////////////////////////////////////////////////////////
 void COrdererHolder::AddRequirement(const char* szName)
@@ -158,6 +161,7 @@ void COrdererHolder::AddRequirement(const char* szName)
 	if (maszRequirements.GetIndex(szName) == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		maszRequirements.Add(szName);
+		SetDirty(true);
 	}
 }
 
