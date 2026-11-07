@@ -120,6 +120,7 @@ public:
 	CWindowInputSource*	GetSource(void);
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
 	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand);
+	bool				IsBound(const char* szKeys);
 	static bool			NameKeys(const char* szKeys, CChars* pszDest);
 	static void			AppendShortcutText(CChars* pszDest, const char* szKeys);
 

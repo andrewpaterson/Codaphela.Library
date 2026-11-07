@@ -840,6 +840,16 @@ void TestInputActionBindKeys(void)
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Release("Left Control"); cDevices.Tap("H");
 		AssertLog("Redo;");
 
+		//Bound keys work when a keyboard gives them, whatever order their modifiers are named in.
+		AssertTrue(cComponentInput.IsBound("F5"));
+		AssertTrue(cComponentInput.IsBound("Alt+Control+Z"));
+		AssertTrue(cComponentInput.IsBound("Control+Shift+Z"));
+		AssertTrue(cComponentInput.IsBound("Control+Shift+F, H"));
+		AssertFalse(cComponentInput.IsBound("Control+Q"));
+		AssertFalse(cComponentInput.IsBound("F6"));
+		AssertTrue(cComponentInput.BindKeys("F13", CIC_Copy));
+		AssertFalse(cComponentInput.IsBound("F13"));
+
 		//The shortcut a menu shows is the bound keys.
 		szShortcut.Init();
 		AssertTrue(cComponentInput.GetShortcutText(CIC_Copy, &szShortcut));

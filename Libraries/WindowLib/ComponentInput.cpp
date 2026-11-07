@@ -666,6 +666,51 @@ bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBi
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether keys bound with BindKeys work: a keyboard gives them, as their
+// command.  A binding is kept for keyboards added later, but one whose
+// key no keyboard has (F13, say) does nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::IsBound(const char* szKeys)
+{
+	CChars							szName;
+	SComponentInputBinding*			psBinding;
+	SComponentInputChordCommand*	psChord;
+	CComponentInputDevice*			pcDevice;
+	CComponentInputCommand*			psCommand;
+	CInputSourceDesc*				pcSource;
+	size							i;
+	bool							bBound;
+
+	szName.Init();
+	psBinding = NameKeys(szKeys, &szName) ? GetBinding(szName.Text()) : NULL;
+	bBound = false;
+	for (i = 0; (psBinding != NULL) && !bBound && (i < macDevices.NumElements()); i++)
+	{
+		pcDevice = macDevices.Get(i);
+		if (pcDevice->IsMouse())
+		{
+			continue;
+		}
+		if (!psBinding->bControl && !psBinding->bAlt && !psBinding->bShift)
+		{
+			pcSource = pcDevice->GetSource(psBinding->szKey.Text());
+			psCommand = pcSource ? pcDevice->GetPressedCommand(pcSource) : NULL;
+			bBound = (psCommand != NULL) && (psCommand->meCommand == psBinding->eCommand);
+		}
+		else
+		{
+			psChord = GetChordCommand(szName.Text());
+			bBound = pcDevice->HasChord(szName.Text()) && (psChord != NULL) && (psChord->ePressed == psBinding->eCommand);
+		}
+	}
+	szName.Kill();
+	return bBound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szKeys named as a binding of them is ("Shift+Control+B" is
 // "Control+Shift+B"), appended to pszDest.  False if they can't be read.
 //
