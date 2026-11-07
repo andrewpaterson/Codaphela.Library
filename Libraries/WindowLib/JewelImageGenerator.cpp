@@ -26,6 +26,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "JewelImageGenerator.h"
 
 
+//The push pin's strokes, upright (x0, y0, x1, y1) on 16x16.
+#define NUM_PIN_STROKES	5
+static float64 gaafPinStrokes[NUM_PIN_STROKES][4] =
+{
+	{ 5.0, 2.5, 11.0, 2.5 },	//The head.
+	{ 6.5, 3.0, 6.5, 9.0 },		//The body's sides.
+	{ 9.5, 3.0, 9.5, 9.0 },
+	{ 4.0, 9.5, 12.0, 9.5 },	//The base.
+	{ 8.0, 10.0, 8.0, 14.5 },	//The needle.
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Draws a corner tile's part of one layer of a Jewel button's border.  The
@@ -625,14 +637,6 @@ Ptr<CCheckBoxImages> CJewelImageGenerator::CreateCheckBoxImages(CColourFormatHel
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CJewelImageGenerator::CreatePin(ARGB32 sColour, bool bPinned, CColourFormatHelper* pcFormat)
 {
-	static float64	aafStrokes[][4] =
-	{
-		{ 5.0, 2.5, 11.0, 2.5 },	//The head.
-		{ 6.5, 3.0, 6.5, 9.0 },		//The body's sides.
-		{ 9.5, 3.0, 9.5, 9.0 },
-		{ 4.0, 9.5, 12.0, 9.5 },	//The base.
-		{ 8.0, 10.0, 8.0, 14.5 },	//The needle.
-	};
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
 	size			i;
@@ -646,12 +650,12 @@ Ptr<CImageCel> CJewelImageGenerator::CreatePin(ARGB32 sColour, bool bPinned, CCo
 
 	cDraw.Init(&pImage);
 	SetColour(&cDraw, sColour);
-	for (i = 0; i < sizeof(aafStrokes) / sizeof(aafStrokes[0]); i++)
+	for (i = 0; i < NUM_PIN_STROKES; i++)
 	{
-		x0 = aafStrokes[i][0];
-		y0 = aafStrokes[i][1];
-		x1 = aafStrokes[i][2];
-		y1 = aafStrokes[i][3];
+		x0 = gaafPinStrokes[i][0];
+		y0 = gaafPinStrokes[i][1];
+		x1 = gaafPinStrokes[i][2];
+		y1 = gaafPinStrokes[i][3];
 		if (!bPinned)
 		{
 			//Turned a quarter clockwise about the middle: down becomes left.

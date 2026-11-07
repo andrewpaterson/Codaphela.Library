@@ -35,6 +35,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockLayoutFile.h"
 
 
+//The attributes a rectangle is written as, after their prefix.
+static const char* gaszRectangleParts[4] = { "X", "Y", "Width", "Height" };
+
+
 #define DOCK_LAYOUT_VERSION		1
 
 
@@ -104,17 +108,16 @@ static void WriteRectangle(CXMLWriter* pcWriter, CInt32Rect* pcRect, const char*
 //////////////////////////////////////////////////////////////////////////
 static bool ReadRectangle(CMarkupTag* pcTag, CInt32Rect* pcRect, const char* szPrefix)
 {
-	CChars				sz;
-	int32				aiValues[4];
-	int					i;
-	bool				bResult;
-	static const char*	aszNames[4] = { "X", "Y", "Width", "Height" };
+	CChars	sz;
+	int32	aiValues[4];
+	int		i;
+	bool	bResult;
 
 	bResult = true;
 	for (i = 0; i < 4; i++)
 	{
 		sz.Init(szPrefix);
-		sz.Append(aszNames[i]);
+		sz.Append(gaszRectangleParts[i]);
 		aiValues[i] = 0;
 		bResult &= pcTag->GetInt32Attribute(sz.Text(), &aiValues[i]);
 		sz.Kill();

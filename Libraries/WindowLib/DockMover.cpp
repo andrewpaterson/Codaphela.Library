@@ -28,6 +28,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockMover.h"
 
 
+//The edges a wide group and a tall group go to, nearest first when distances tie.
+static const EDockSide gaeWideGroupEdges[4] = { DS_Bottom, DS_Top, DS_Left, DS_Right };
+static const EDockSide gaeTallGroupEdges[4] = { DS_Left, DS_Right, DS_Bottom, DS_Top };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // pcManager holds the panes, groups and windows.
@@ -380,15 +385,13 @@ void CDockMover::CloseFloating(Ptr<CDockFloatingWindow> pFloating)
 //////////////////////////////////////////////////////////////////////////
 EDockSide CDockMover::NearestEdge(Ptr<CDockGroup> pGroup)
 {
-	static const EDockSide	aeWide[4] = { DS_Bottom, DS_Top, DS_Left, DS_Right };
-	static const EDockSide	aeTall[4] = { DS_Left, DS_Right, DS_Bottom, DS_Top };
-	const EDockSide*		aeOrder;
-	CInt32Rect				cRoot;
-	CInt32Rect				cGroup;
-	EDockSide				eBest;
-	int32					iBest;
-	int32					iDistance;
-	int						i;
+	const EDockSide*	aeOrder;
+	CInt32Rect			cRoot;
+	CInt32Rect			cGroup;
+	EDockSide			eBest;
+	int32				iBest;
+	int32				iDistance;
+	int					i;
 
 	mpcManager->mpArea->GetRootBounds(&cRoot);
 	pGroup->GetActualBounds(&cGroup);
@@ -398,7 +401,7 @@ EDockSide CDockMover::NearestEdge(Ptr<CDockGroup> pGroup)
 		return mpcManager->mcTree.SideOfWell(pGroup);
 	}
 
-	aeOrder = (cGroup.GetWidth() > cGroup.GetHeight()) ? aeWide : aeTall;
+	aeOrder = (cGroup.GetWidth() > cGroup.GetHeight()) ? gaeWideGroupEdges : gaeTallGroupEdges;
 	eBest = aeOrder[0];
 	iBest = DistanceToEdge(&cGroup, &cRoot, eBest);
 	for (i = 1; i < 4; i++)
