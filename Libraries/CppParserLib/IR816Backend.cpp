@@ -867,10 +867,13 @@ void CIR816Backend::FindSingleUses(void)
 // arguments must already be where the callee wants it: the hidden result
 // pointer and each parameter in the same register or in the same place
 // among the pushed words (the pushed words the same, in the same order).
-// A constant the callee takes in a register is loaded into it.  Then
-// pszJump gets those loads and a jml to the callee: it returns to this
-// function's caller, the pushed words where its caller left them.  False,
-// with nothing in pszJump, for any other function.
+// A constant the callee takes in a register is loaded into it.  One
+// argument in A (or A and X) may be a parameter in the same registers plus
+// (or minus) a constant that leaves its high word alone (a member's address: 'this'
+// moved to it), added before the jump.  Then pszJump gets that add, those
+// loads and a jml to the callee: it returns to this function's caller, the
+// pushed words where its caller left them.  False, with nothing in pszJump,
+// for any other function.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::Forwarder(CChars* pszJump)
@@ -883,6 +886,14 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	CArrayIR816Arguments	asCallee;
 	CArrayTemplate<int>		aiSource;		//Per callee argument: -1 the hidden result pointer, -2 a constant, else the parameter's index.
 	CArrayTemplate<int>		aiPushed;		//The callee's pushed arguments' sources, in order.
+	CArrayTemplate<SIRInstruction*>	apsArguments;	//The block's args, in order.
+	SIRInstruction*			psInstruction;
+	SIRReference			sAdjusted;		//The temporary that is a parameter plus a constant, or none.
+	size					uiAdjustedFrom;	//The parameter it adds to.
+	uint64					ulliAdjust;
+	size					uiAdjustedArgument;	//The callee's argument it is, or ARRAY_ELEMENT_NOT_FOUND.
+	CChars					szAdjust;
+	int32					iLabel;
 	SIR816Argument*			psPlaced;
 	SIR816Argument*			psOwn;
 	size					ui;
@@ -926,10 +937,49 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 		return false;
 	}
 
+	//The args, and at most one parameter plus a constant ahead of the arg that passes it.
+	apsArguments.Init(CIR816Backend::GetScratch());
+	sAdjusted.uiValue = 0;
+	uiAdjustedFrom = 0;
+	ulliAdjust = 0;
+	bResult = true;
+	for (ui = 0; bResult && (ui + 1 < pcBlock->masInstructions.NumElements()); ui++)
+	{
+		psInstruction = pcBlock->masInstructions.Get(ui);
+		if (psInstruction->uiOpcode == IRO_Arg)
+		{
+			apsArguments.Add(&psInstruction);
+			continue;
+		}
+		bResult = ((psInstruction->uiOpcode == IRO_PtrAdd) || (psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub)) &&
+				  sAdjusted.IsNone() && psInstruction->sResult.IsTemporary() && psInstruction->asArguments[1].IsConstant();
+		for (uj = 0; bResult && (uj < mpcFunction->masParameters.NumElements()); uj++)
+		{
+			if (psInstruction->asArguments[0].Equals(*mpcFunction->masParameters.Get(uj)))
+			{
+				sAdjusted = psInstruction->sResult;
+				uiAdjustedFrom = uj;
+				ulliAdjust = mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
+				if (psInstruction->uiOpcode == IRO_Sub)
+				{
+					//x - c is x + -c (at the argument's width).
+					ulliAdjust = 0 - ulliAdjust;
+				}
+				break;
+			}
+		}
+		bResult = bResult && !sAdjusted.IsNone();
+	}
+	if (!bResult)
+	{
+		apsArguments.Kill();
+		return false;
+	}
+
 	//The callee's arguments as Call places them, and where each comes from.
 	asCallee.Init(CIR816Backend::GetScratch());
 	aiSource.Init(CIR816Backend::GetScratch());
-	bResult = true;
+	uiAdjustedArgument = ARRAY_ELEMENT_NOT_FOUND;
 	if (!psCall->sResult.IsNone() && IsHiddenResult(psCall->sType))
 	{
 		psPlaced = asCallee.Add();
@@ -938,14 +988,9 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 		iSource = -1;
 		aiSource.Add(&iSource);
 	}
-	for (ui = 0; bResult && (ui + 1 < pcBlock->masInstructions.NumElements()); ui++)
+	for (ui = 0; bResult && (ui < apsArguments.NumElements()); ui++)
 	{
-		psArgument = pcBlock->masInstructions.Get(ui);
-		if (psArgument->uiOpcode != IRO_Arg)
-		{
-			bResult = false;
-			break;
-		}
+		psArgument = *apsArguments.Get(ui);
 		psPlaced = asCallee.Add();
 		psPlaced->iWords = Words(psArgument->sType);
 		psPlaced->iRegister = -1;
@@ -962,6 +1007,16 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 				iSource = (int)uj;
 			}
 		}
+		if (!sAdjusted.IsNone() && psArgument->asArguments[0].Equals(sAdjusted))
+		{
+			if ((uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND) || (Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uiAdjustedFrom))) != psPlaced->iWords))
+			{
+				bResult = false;
+				break;
+			}
+			iSource = (int)uiAdjustedFrom;
+			uiAdjustedArgument = asCallee.NumElements() - 1;
+		}
 		bResult = iSource != -3;
 		aiSource.Add(&iSource);
 	}
@@ -969,13 +1024,13 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 
 	//The pushed words line up: the callee's pushed arguments are this function's pushed ones, in order.
 	uiOwnFirst = IsHiddenResult(mpcFunction->msReturnType) ? 1 : 0;
-	uiFirst = asCallee.NumElements() - (pcBlock->masInstructions.NumElements() - 1);
+	uiFirst = asCallee.NumElements() - apsArguments.NumElements();
 	aiPushed.Init(CIR816Backend::GetScratch());
 	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
 	{
 		if (asCallee.Get(ui)->iRegister < 0)
 		{
-			if (*aiSource.Get(ui) == -2)
+			if ((*aiSource.Get(ui) == -2) || (ui == uiAdjustedArgument))
 			{
 				bResult = false;
 			}
@@ -1008,7 +1063,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 		iSource = *aiSource.Get(ui);
 		if (iSource == -2)
 		{
-			ulliBits = mpcFunction->GetConstant(pcBlock->masInstructions.Get(ui - uiFirst)->asArguments[0])->ulliBits;
+			ulliBits = mpcFunction->GetConstant((*apsArguments.Get(ui - uiFirst))->asArguments[0])->ulliBits;
 			for (i = 0; i < psPlaced->iWords; i++)
 			{
 				szLoads.Append("\t\t");
@@ -1028,8 +1083,35 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 		bResult = (psOwn->iRegister == psPlaced->iRegister) && (psOwn->iWords == psPlaced->iWords);
 	}
 
+	//The adjusted argument is in A (and X): the constant, at the argument's width, added to its low word and the
+	//carry into X.  One that would change X otherwise (a pointer moved back) isn't a jump.
+	szAdjust.Init(CIR816Backend::GetScratch());
+	if (bResult && (uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND))
+	{
+		psPlaced = asCallee.Get(uiAdjustedArgument);
+		ulliAdjust &= (psPlaced->iWords == 1) ? 0xFFFFULL : 0xFFFFFFFFULL;
+		bResult = (psPlaced->iRegister == 0) && (psPlaced->iWords <= 2) && ((ulliAdjust >> 16) == 0);
+		if (bResult && ((ulliAdjust & 0xFFFF) != 0))
+		{
+			szAdjust.Append("\t\tclc\n\t\tadc ");
+			szAdjust.Append((int)(ulliAdjust & 0xFFFF));
+			szAdjust.AppendNewLine();
+			if (psPlaced->iWords == 2)
+			{
+				iLabel = NewLabel();
+				szAdjust.Append("\t\tbcc L");
+				szAdjust.Append(iLabel);
+				szAdjust.Append("\n\t\tinx\nL");
+				szAdjust.Append(iLabel);
+				szAdjust.Append(':');
+				szAdjust.AppendNewLine();
+			}
+		}
+	}
+
 	if (bResult)
 	{
+		pszJump->Append(szAdjust);
 		pszJump->Append(szLoads);
 		pszJump->Append("\t\tjml ");
 		pszJump->Append(mpcModule->GetSymbolName(sCallee.Index()));
@@ -1039,10 +1121,12 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 		}
 		pszJump->AppendNewLine();
 	}
+	szAdjust.Kill();
 	szLoads.Kill();
 	aiPushed.Kill();
 	aiSource.Kill();
 	asCallee.Kill();
+	apsArguments.Kill();
 	return bResult;
 }
 

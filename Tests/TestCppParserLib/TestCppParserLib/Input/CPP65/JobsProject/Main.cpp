@@ -1,4 +1,4 @@
-//Calls UseOuter (Middle.cpp), only exported when Middle.cpp is compiled again.
+//Calls UseOuter (Middle.cpp): everything it inlines has been exported by its turn.
 #include "Jobs.h"
 #include "Jobs.h"
 

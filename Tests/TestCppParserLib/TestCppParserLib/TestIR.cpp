@@ -2159,6 +2159,26 @@ void TestIROptimiserTimesZero(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer's constant offsets are added together: a member's member.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserPointerOffsets(void)
+{
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_F__Fp(ptr %p)\n"
+		"{\n"
+		"entry:\n"
+		"\t%b = ptradd ptr %p, 148\n"
+		"\tret ptr %b\n"
+		"}\n",
+		"space default 4\n\nfunction ptr @_F__Fp(ptr %p)\n{\nentry:\n\t%a = ptradd ptr %p, 128\n\t%b = ptradd ptr %a, 20\n\tret ptr %b\n}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A restrict symbol stays restrict when a function naming it is exported
 // to CIRImports and inlined into another unit.
 //
@@ -2211,6 +2231,168 @@ void TestIRImportsRestrict(void)
 	cCaller.Kill();
 	cImports.Kill();
 	cUnit.Kill();
+	cErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Inlines pcCaller's calls with pcImports, then prints its module.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIRImportsInlineAndPrint(CIRModule* pcCaller, CIRImports* pcImports, CChars* pszPrinted)
+{
+	CIRInliner		cInliner;
+	CArrayChars		aszMissing;
+	CIRPrinter		cPrinter;
+
+	aszMissing.Init();
+	cInliner.Init(pcCaller, 16, 16, 4);
+	cInliner.SetImports(pcImports, &aszMissing);
+	AssertTrue(cInliner.InlineCalls(pcCaller->GetFunction(0)));
+	cInliner.Kill();
+	aszMissing.Kill();
+
+	pszPrinted->Init();
+	cPrinter.Init(pcCaller, pszPrinted);
+	cPrinter.PrintModule();
+	cPrinter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function that calls another by name is exported (a forwarder: its
+// callers in other units call what it forwards to), the callee called in
+// registers there as here.  One that calls a function local to its unit
+// isn't.  When the callee is exported too, a caller inlines both.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRImportsCalls(void)
+{
+	CIRModule		cUnit;
+	CIRModule		cWorkUnit;
+	CIRModule		cCaller;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIRImports		cImports;
+	CChars			szPrinted;
+	int				iSymbol;
+	const char*		szCaller;
+
+	cErrors.Init();
+	cUnit.Init();
+	cParser.Init(&cUnit, &cErrors);
+	AssertTrue(cParser.Parse("space default 4\nregcall @_Work__Fs\n\n"
+		"function i16 @_Fwd__Fs(i16 %x)\n{\nentry:\n\t%a = add i16 %x, 1\n\t%r = call i16 @_Work__Fs(i16 %a)\n\tret i16 %r\n}\n\n"
+		"function i16 @_Helper__Fs(i16 %x), local\n{\nentry:\n\t%a = mul i16 %x, 5\n\tret i16 %a\n}\n\n"
+		"function i16 @_UsesLocal__Fs(i16 %x)\n{\nentry:\n\t%r = call i16 @_Helper__Fs(i16 %x)\n\tret i16 %r\n}\n"));
+	cParser.Kill();
+	cImports.Init(16);
+	AssertTrue(cImports.Export(&cUnit, cUnit.GetFunction(0)));
+	AssertFalse(cImports.Export(&cUnit, cUnit.GetFunction(2)));
+	AssertNull(cImports.Find("_UsesLocal__Fs"));
+	iSymbol = cImports.GetModule()->FindSymbol("_Work__Fs");
+	AssertTrue(iSymbol >= 0);
+	AssertTrue(cImports.GetModule()->IsRegisterCall((uint32)iSymbol));
+
+	//Only the forwarder is exported: the caller calls what it forwards to, in registers.
+	szCaller = "space default 4\n\nfunction i16 @_F__Fs(i16 %n)\n{\nentry:\n\t%r = call i16 @_Fwd__Fs(i16 %n)\n\tret i16 %r\n}\n";
+	cCaller.Init();
+	cParser.Init(&cCaller, &cErrors);
+	AssertTrue(cParser.Parse(szCaller));
+	cParser.Kill();
+	TestIRImportsInlineAndPrint(&cCaller, &cImports, &szPrinted);
+	AssertString("space default 4\nregcall @_Work__Fs\n\nfunction i16 @_F__Fs(i16 %n)\n{\nentry:\n\tjmp 1\n0:\n\t%r = phi i16 [1, %1]\n\tret i16 %r\n"
+		"1:\n\t%0 = add i16 %n, 1\n\t%1 = call i16 @_Work__Fs(i16 %0)\n\tjmp 0\n}\n", szPrinted.Text());
+	szPrinted.Kill();
+	cCaller.Kill();
+
+	//With the worker exported too, the copy's call of it is inlined as well.
+	cWorkUnit.Init();
+	cParser.Init(&cWorkUnit, &cErrors);
+	AssertTrue(cParser.Parse("space default 4\n\nfunction i16 @_Work__Fs(i16 %x)\n{\nentry:\n\t%a = mul i16 %x, 3\n\tret i16 %a\n}\n"));
+	cParser.Kill();
+	AssertTrue(cImports.Export(&cWorkUnit, cWorkUnit.GetFunction(0)));
+	cCaller.Init();
+	cParser.Init(&cCaller, &cErrors);
+	AssertTrue(cParser.Parse(szCaller));
+	cParser.Kill();
+	TestIRImportsInlineAndPrint(&cCaller, &cImports, &szPrinted);
+	AssertTrue(strstr(szPrinted.Text(), "= call") == NULL);
+	AssertTrue(strstr(szPrinted.Text(), "mul i16") != NULL);
+	szPrinted.Kill();
+	cCaller.Kill();
+
+	cWorkUnit.Kill();
+	cImports.Kill();
+	cUnit.Kill();
+	cErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a forwarder is a jump (SetForwardersJump), a function that only
+// passes a call on (a parameter moved, or not) takes a callee no bigger
+// than itself, and not a bigger one: that would save only the jump, and
+// copy the work.  The thunk's own call stays a call (FwdChain).  Any other caller takes either, and so does a forwarder
+// where they aren't jumps.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRInlineForwarders(void)
+{
+	static const char*	szModule =
+		"space default 4\n\n"
+		"function i16 @_Work__Fs(i16 %x)\n{\nentry:\n\t%a = mul i16 %x, 5\n\t%b = xor i16 %a, 9\n\t%c = add i16 %b, %x\n\tret i16 %c\n}\n\n"
+		"function i16 @_Thunk__Fs(i16 %x)\n{\nentry:\n\t%a = add i16 %x, 1\n\tret i16 %a\n}\n\n"
+		"function i16 @_FwdWork__Fs(i16 %x)\n{\nentry:\n\t%r = call i16 @_Work__Fs(i16 %x)\n\tret i16 %r\n}\n\n"
+		"function i16 @_FwdMoved__Fs(i16 %x)\n{\nentry:\n\t%m = add i16 %x, 4\n\t%r = call i16 @_Work__Fs(i16 %m)\n\tret i16 %r\n}\n\n"
+		"function i16 @_FwdThunk__Fs(i16 %x)\n{\nentry:\n\t%r = call i16 @_Thunk__Fs(i16 %x)\n\tret i16 %r\n}\n\n"
+		"function i16 @_Uses__Fs(i16 %x)\n{\nentry:\n\t%r = call i16 @_Work__Fs(i16 %x)\n\t%s = add i16 %r, 1\n\tret i16 %s\n}\n\n"
+		"function i16 @_ThunkToWork__Fs(i16 %x)\n{\nentry:\n\t%m = add i16 %x, 2\n\t%r = call i16 @_Work__Fs(i16 %m)\n\tret i16 %r\n}\n\n"
+		"function i16 @_FwdChain__Fs(i16 %x)\n{\nentry:\n\t%r = call i16 @_ThunkToWork__Fs(i16 %x)\n\tret i16 %r\n}\n";
+	CIRModule		cModule;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIRInliner		cInliner;
+	CIRPrinter		cPrinter;
+	CChars			szPrinted;
+
+	cErrors.Init();
+	cModule.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(szModule));
+	cParser.Kill();
+
+	AssertTrue(CIRInliner::IsForwarder(cModule.GetFunction(2)));
+	AssertTrue(CIRInliner::IsForwarder(cModule.GetFunction(3)));
+	AssertFalse(CIRInliner::IsForwarder(cModule.GetFunction(5)));
+	AssertFalse(CIRInliner::IsThunk(cModule.GetFunction(0)));
+	AssertTrue(CIRInliner::IsThunk(cModule.GetFunction(1)));
+
+	cInliner.Init(&cModule, 16, 16, 4);
+	cInliner.SetForwardersJump(true);
+	AssertFalse(cInliner.InlineCalls(cModule.GetFunction(2)));
+	AssertFalse(cInliner.InlineCalls(cModule.GetFunction(3)));
+	AssertTrue(cInliner.InlineCalls(cModule.GetFunction(4)));
+	AssertTrue(cInliner.InlineCalls(cModule.GetFunction(5)));
+
+	//A thunk's copy in a forwarder leaves it a forwarder: the thunk's call of the work stays a call.
+	AssertTrue(cInliner.InlineCalls(cModule.GetFunction(7)));
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintFunction(cModule.GetFunction(7));
+	cPrinter.Kill();
+	AssertTrue(strstr(szPrinted.Text(), "call i16 @_Work__Fs") != NULL);
+	szPrinted.Kill();
+	cInliner.Kill();
+
+	cInliner.Init(&cModule, 16, 16, 4);
+	AssertTrue(cInliner.InlineCalls(cModule.GetFunction(2)));
+	cInliner.Kill();
+
+	cModule.Kill();
 	cErrors.Kill();
 }
 
@@ -4374,6 +4556,8 @@ void TestIR(void)
 	TestIROptimiserRestrict();
 	TestIROptimiserRestrictParameters();
 	TestIRImportsRestrict();
+	TestIRImportsCalls();
+	TestIRInlineForwarders();
 	TestIRInlineRecursive();
 	TestIROptimiserLoopCounters();
 	TestIROptimiserZeroExtendedCounters();
@@ -4384,6 +4568,7 @@ void TestIR(void)
 	TestIROptimiserSinkAndHoist();
 	TestIROptimiserReduceMultiplies();
 	TestIROptimiserTimesZero();
+	TestIROptimiserPointerOffsets();
 	TestIROptimiserNarrowCounters();
 	TestIROptimiserBiasSignedIndices();
 	TestIROptimiserMergeAddressPhis();

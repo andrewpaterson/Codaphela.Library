@@ -77,9 +77,9 @@ static void TestCPP65JobsAssertSame(CCPP65Builder* pcSerial, CCPP65Builder* pcPa
 //
 // The JobsProject compiled a unit at a time and by four threads gives the
 // same program.  On the W65C816 First.cpp is compiled again (Twice, in
-// Last.cpp, was exported after it), which exports Outer, so Middle.cpp is
-// compiled again too, in its turn after First.cpp's; that exports UseOuter,
-// so Main.cpp is compiled again as well.
+// Last.cpp, was exported after it), and so is Middle.cpp: the Outer it
+// inlines (exported in First.cpp's first turn) calls Twice too.  Main.cpp,
+// after Last.cpp, finds all of them.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65JobsProject(void)
@@ -111,7 +111,7 @@ void TestCPP65JobsProject(void)
 		AssertTrue(bParallel);
 
 		TestCPP65JobsAssertSame(&cSerial, &cParallel);
-		AssertSize((eTarget == CPPT_W65C816) ? 3 : 0, cParallel.NumCompiledAgain());
+		AssertSize((eTarget == CPPT_W65C816) ? 2 : 0, cParallel.NumCompiledAgain());
 
 		//Every W65C816 unit generated again in its turn, as if it had missed a function exported while it inlined.
 		TestCPP65JobsBegin(&cForced, eTarget, &cJobs, aszUnits);
@@ -121,8 +121,8 @@ void TestCPP65JobsProject(void)
 		TestCPP65JobsAssertSame(&cSerial, &cForced);
 		if (eTarget == CPPT_W65C816)
 		{
-			//Each of the four units' turns, and the three compiled again.
-			AssertSize(4 + 3, cForced.NumImportsMissed());
+			//Each of the four units' turns, and the two compiled again.
+			AssertSize(4 + 2, cForced.NumImportsMissed());
 		}
 		else
 		{
@@ -187,7 +187,7 @@ void TestCPP65JobsBaseLib(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // With unit reports each unit is reported once as it finishes, by name,
-// and on the W65C816 the three units compiled again are reported again.
+// and on the W65C816 the two units compiled again are reported again.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65JobsUnitReports(void)
@@ -233,7 +233,7 @@ void TestCPP65JobsUnitReports(void)
 			}
 		}
 		AssertSize(4, uiFirst);
-		AssertSize((eTarget == CPPT_W65C816) ? 3 : 0, uiAgain);
+		AssertSize((eTarget == CPPT_W65C816) ? 2 : 0, uiAgain);
 		AssertTrue(aszNames.Contains("First.cpp"));
 		AssertTrue(aszNames.Contains("Middle.cpp"));
 		AssertTrue(aszNames.Contains("Last.cpp"));

@@ -49,6 +49,8 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	muiImportSource = 0;
 	mpcProfile = NULL;
 	muiHotInstructions = 0;
+	mbForwardersJump = false;
+	mbCallerForwards = false;
 }
 
 
@@ -147,6 +149,7 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 {
 	size			ui;
 	size			uiLimit;
+	size			uiCompared;
 	CIRBlock*		pcBlock;
 	bool			bReturns;
 
@@ -165,9 +168,12 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 	{
 		uiLimit = uiHotLimit;
 	}
-	if (pcCallBlock)
+	uiCompared = pcCallBlock ? NumComparedConstants(pcCallee, pcCallBlock, uiCall) : 0;
+	uiLimit += IR_INLINE_CONSTANT_BONUS * uiCompared;
+	if (mbCallerForwards && (uiHotLimit == 0) && (uiCompared == 0) && !IsThunk(pcCallee))
 	{
-		uiLimit += IR_INLINE_CONSTANT_BONUS * NumComparedConstants(pcCallee, pcCallBlock, uiCall);
+		//The caller is a jump to the callee: a copy would save only the jump, and copy the work.
+		return false;
 	}
 	if (NumInstructions(pcCallee) > uiLimit)
 	{
@@ -393,6 +399,135 @@ void CIRInliner::SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a function that only passes a call on (IsForwarder) is a jump to
+// its callee in the back end: it then inlines only callees no bigger than
+// itself (IsThunk), unless the call is hot or passes a constant the callee
+// compares.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::SetForwardersJump(bool bForwardersJump)
+{
+	mbForwardersJump = bForwardersJump;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction only passes a call on, as a back end's jump would
+// (CIR816Backend::Forwarder): one block of a named call whose arguments
+// are parameters, constants or a parameter plus or minus a constant
+// ('this' moved to a member, at most one), returning nothing or what the call returns.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::IsForwarder(CIRFunction* pcFunction)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psCall;
+	SIRReference	sAdjusted;
+	SIRReference	sValue;
+	size			ui;
+
+	if (pcFunction->NumBlocks() != 1)
+	{
+		return false;
+	}
+	pcBlock = pcFunction->GetBlock(0);
+	if (pcBlock->msJump.uiKind != IRJ_Return)
+	{
+		return false;
+	}
+	psCall = NULL;
+	sAdjusted = IRNone();
+	for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+	{
+		psInstruction = pcBlock->masInstructions.Get(ui);
+		sValue = psInstruction->asArguments[0];
+		if (psCall)
+		{
+			return false;
+		}
+		if (psInstruction->uiOpcode == IRO_Call)
+		{
+			if (!sValue.IsSymbol())
+			{
+				return false;
+			}
+			psCall = psInstruction;
+		}
+		else if (psInstruction->uiOpcode == IRO_Arg)
+		{
+			if (!sValue.IsConstant() && !IsParameter(pcFunction, sValue) && !(!sAdjusted.IsNone() && sValue.Equals(sAdjusted)))
+			{
+				return false;
+			}
+		}
+		else if (((psInstruction->uiOpcode == IRO_PtrAdd) || (psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub)) && sAdjusted.IsNone() &&
+				 IsParameter(pcFunction, sValue) && psInstruction->asArguments[1].IsConstant())
+		{
+			sAdjusted = psInstruction->sResult;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return psCall && (pcBlock->msJump.sType.IsNone() || pcBlock->msJump.sArgument.Equals(psCall->sResult));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sValue is one of pcFunction's parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::IsParameter(CIRFunction* pcFunction, SIRReference sValue)
+{
+	size	ui;
+
+	for (ui = 0; ui < pcFunction->masParameters.NumElements(); ui++)
+	{
+		if (sValue.Equals(*pcFunction->masParameters.Get(ui)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction is no bigger than a forwarder: one block, returning,
+// of at most IR_INLINE_THUNK_INSTRUCTIONS instructions besides a call's
+// arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::IsThunk(CIRFunction* pcFunction)
+{
+	CIRBlock*	pcBlock;
+	size		ui;
+	size		uiInstructions;
+
+	if (pcFunction->NumBlocks() != 1)
+	{
+		return false;
+	}
+	pcBlock = pcFunction->GetBlock(0);
+	uiInstructions = 0;
+	for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+	{
+		if (pcBlock->masInstructions.Get(ui)->uiOpcode != IRO_Arg)
+		{
+			uiInstructions++;
+		}
+	}
+	return (pcBlock->msJump.uiKind == IRJ_Return) && (uiInstructions <= IR_INLINE_THUNK_INSTRUCTIONS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Inlines the calls in pcCaller of small functions of the module (and the
 // calls the copies make).  Returns true if any were.
 //
@@ -431,6 +566,9 @@ bool CIRInliner::InlineCallsReading(CIRFunction* pcCaller)
 
 	mpcCaller = pcCaller;
 	FindLoops();
+
+	//Taken before anything is inlined: a thunk's copy leaves the caller a forwarder (once optimised), its call too.
+	mbCallerForwards = mbForwardersJump && IsForwarder(pcCaller);
 	uiInlines = 0;
 	if (mpcProfile)
 	{
@@ -458,6 +596,7 @@ bool CIRInliner::InlineCallsReading(CIRFunction* pcCaller)
 		}
 	}
 	mpcCaller = NULL;
+	mbCallerForwards = false;
 	return uiInlines > 0;
 }
 

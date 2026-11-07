@@ -134,6 +134,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
 	{
 		cInliner.Init(&mcModule, IR816_INLINE_INSTRUCTIONS, IR816_INLINE_LOOP_INSTRUCTIONS, IR816_INLINE_CALLS);
+		cInliner.SetForwardersJump(true);
 	}
 	else
 	{

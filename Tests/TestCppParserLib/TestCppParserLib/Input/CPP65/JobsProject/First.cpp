@@ -1,4 +1,4 @@
-//Outer calls Twice (Last.cpp), so it can't be exported until First.cpp is compiled again with Twice inlined.
+//Outer calls Twice (Last.cpp), so First.cpp is compiled again to inline it.
 #include "Jobs.h"
 #include "Jobs.h"
 

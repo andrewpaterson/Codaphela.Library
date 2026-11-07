@@ -172,6 +172,7 @@ void TestCPP816ListingInlinedFromUnit(void)
 	int FwdSame(int x, int y) { return FwdPair(x, y); } \
 	int FwdSwap(int x, int y) { return FwdPair(y, x); } \
 	int FwdPlus(int x, int y) { return FwdPair(x + 1, y); } \
+	int FwdMinus(int x, int y) { return FwdPair(x - 1, y); } \
 	int FwdFour(int p, int q, int r, int k) { TEST_CPP816_FORWARD_BULK(u, p + k) if (k <= 0) { return (int)(u & 7u); } return p * k + q - r + FwdFour(p, q, r, k - 1) + (int)(u & 7u); } \
 	int FwdThree(int p, int q, int r) { return FwdFour(p, q, r, 9); } \
 	unsigned long long (*volatile gpFwdMul)(unsigned long long, unsigned long long) = FwdMul; \
@@ -179,6 +180,11 @@ void TestCPP816ListingInlinedFromUnit(void)
 	unsigned long long (*volatile gpFwdSub)(unsigned long long, unsigned long long) = FwdSub; \
 	int (*volatile gpFwdSame)(int, int) = FwdSame; \
 	int (*volatile gpFwdThree)(int, int, int) = FwdThree; \
+	int gaiFwdMember[8] = { 3, 1, 4, 1, 5, 9, 2, 6 }; \
+	int FwdMemberWork(int* p, int k) { TEST_CPP816_FORWARD_BULK(u, k) if (k <= 0) { return p[0] + (int)(u & 7u); } return p[0] * k + p[1] + FwdMemberWork(p, k - 1) + (int)(u & 7u); } \
+	int FwdMember(int* p, int k) { return FwdMemberWork(p + 2, k); } \
+	int FwdMemberNear(int* p, int k) { return FwdMemberWork(p + 1, k); } \
+	int FwdMemberBack(int* p, int k) { return FwdMemberWork(p - 1, k); } \
 	unsigned long long FwdRun(void) \
 	{ \
 		unsigned long long w = 0; \
@@ -187,7 +193,8 @@ void TestCPP816ListingInlinedFromUnit(void)
 			unsigned long long a = giFwd * 1000003ULL + i; \
 			unsigned long long b = giFwd + i * 7; \
 			w = w * 7 + FwdMul(a, b) + gpFwdMul(b, a) + FwdAdd(a, b) + gpFwdAdd(a, i) + FwdSub(a, b) + gpFwdSub(b, i) + FwdWork(a, b, i) + FwdBoth(a, b, (i & 1) != 0); \
-			w += FwdSame(i, giFwd) + gpFwdSame(giFwd, i) + FwdSwap(i, giFwd) + FwdPlus(i, giFwd) + FwdThree(i, giFwd, 2) + gpFwdThree(giFwd, i, 1) + FwdFour(i, 2, giFwd, i) + FwdPair(i, i); \
+			w += FwdSame(i, giFwd) + gpFwdSame(giFwd, i) + FwdSwap(i, giFwd) + FwdPlus(i, giFwd) + FwdMinus(i, giFwd) + FwdThree(i, giFwd, 2) + gpFwdThree(giFwd, i, 1) + FwdFour(i, 2, giFwd, i) + FwdPair(i, i); \
+			w += FwdMember(gaiFwdMember + (i & 3), giFwd + i) + FwdMemberNear(gaiFwdMember, i) + FwdMemberBack(gaiFwdMember + 4, i); \
 		} \
 		return w; \
 	}
@@ -199,6 +206,9 @@ namespace TestCPP816ForwardNative
 {
 	TEST_CPP816_FORWARD_FUNCTIONS
 }
+
+
+static bool TestCPP816AdjustsAndJumpsTo(const char* szListing, const char* szLabel, const char* szCallee);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -242,9 +252,13 @@ static bool TestCPP816JumpsTo(const char* szListing, const char* szLabel, const 
 // CIR816Backend::Forwarder) jumps to it: those whose arguments are already
 // where the callee wants them, with constants the callee takes in Y loaded
 // (FwdMul's 5, FwdAdd's false, FwdSub's true), or none (FwdSame).  Not
-// when the arguments swap (FwdSwap), change (FwdPlus) or a constant must
-// be pushed (FwdThree's 9).  Each is called directly and through a pointer
-// (its stub, then the jump).  The results are as natively.
+// when the arguments swap (FwdSwap) or a constant must be pushed
+// (FwdThree's 9).  One that adds a constant to an argument in A (FwdPlus,
+// FwdMinus) or moves a pointer it is given along (FwdMember's p + 2: a
+// member's address) adds to it and jumps; not one that moves a pointer
+// back (FwdMemberBack: X would change without a carry).  Each is
+// called directly and through a pointer (its stub, then the jump).  The
+// results are as natively.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Forwarders(void)
@@ -267,7 +281,12 @@ void TestCPP816Forwarders(void)
 	AssertTrue(TestCPP816JumpsTo(szListing.Text(), "_FwdSame.ax", "_FwdPair"));
 	AssertFalse(TestCPP816JumpsTo(szListing.Text(), "_FwdSwap.ax", "_FwdPair"));
 	AssertFalse(TestCPP816JumpsTo(szListing.Text(), "_FwdPlus.ax", "_FwdPair"));
+	AssertTrue(TestCPP816AdjustsAndJumpsTo(szListing.Text(), "_FwdPlus.ax", "_FwdPair.ax"));
+	AssertTrue(TestCPP816AdjustsAndJumpsTo(szListing.Text(), "_FwdMinus.ax", "_FwdPair.ax"));
 	AssertFalse(TestCPP816JumpsTo(szListing.Text(), "_FwdThree.axy", "_FwdFour"));
+	AssertTrue(TestCPP816AdjustsAndJumpsTo(szListing.Text(), "_FwdMember.axy", "_FwdMemberWork.axy"));
+	AssertTrue(TestCPP816AdjustsAndJumpsTo(szListing.Text(), "_FwdMemberNear.axy", "_FwdMemberWork.axy"));
+	AssertFalse(TestCPP816AdjustsAndJumpsTo(szListing.Text(), "_FwdMemberBack.axy", "_FwdMemberWork.axy"));
 	szListing.Kill();
 	szSource.Kill();
 }
@@ -333,14 +352,61 @@ static bool TestCPP816AdjustsAndJumpsTo(const char* szListing, const char* szLab
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether szListing's szLabel (to the next section) calls or jumps only to
+// labels starting szCallee, at least once: the layer between them inlined.
+// With szCallee NULL, whether it calls nothing: the work (a getter) inlined.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestCPP816ReadListing(CChars* pszDest, const char* szUnit)
+static bool TestCPP816OnlyCalls(const char* szListing, const char* szLabel, const char* szCallee)
+{
+	CChars		szFind;
+	const char*	szAt;
+	const char*	szEnd;
+	bool		bCalls;
+
+	szFind.Init("\n");
+	szFind.Append(szLabel);
+	szFind.Append(":\n");
+	szAt = strstr(szListing, szFind.Text());
+	szFind.Kill();
+	if (szAt == NULL)
+	{
+		return false;
+	}
+	szEnd = strstr(szAt, "\t\t.section");
+	if (szEnd == NULL)
+	{
+		szEnd = szAt + strlen(szAt);
+	}
+
+	bCalls = false;
+	for (szAt = strchr(szAt + 1, '\n') + 1; szAt < szEnd; szAt = strchr(szAt, '\n') + 1)
+	{
+		if ((strncmp(szAt, "\t\tjsl ", 6) == 0) || (strncmp(szAt, "\t\tjml ", 6) == 0))
+		{
+			if ((szCallee == NULL) || (strncmp(szAt + 6, szCallee, strlen(szCallee)) != 0))
+			{
+				return false;
+			}
+			bCalls = true;
+		}
+	}
+	return bCalls || (szCallee == NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816ReadListing(CChars* pszDest, const char* szDirectory, const char* szUnit)
 {
 	CTextFile	cFile;
 	CChars		szFilename;
 
-	szFilename.Init("Output" _FS_ "CPP816ArrayLayers" _FS_);
+	szFilename.Init("Output" _FS_);
+	szFilename.Append(szDirectory);
+	szFilename.Append(_FS_);
 	szFilename.Append(szUnit);
 	szFilename.Append(".lst");
 	cFile.Init();
@@ -362,7 +428,9 @@ static void TestCPP816ReadListing(CChars* pszDest, const char* szUnit)
 // typed call (CArray<M>::RemoveAt) goes straight to the work (16), and a
 // call to a forwarder jumps past it (32).  CArrayCommonObject's one-liners
 // on its mcArray move 'this' to the member and jump, without a frame (64
-// to 1024).  A virtual call through CArray<M>, which is final, calls
+// to 1024), or call the work themselves where the layer under them is no
+// bigger than a forwarder (GrowTo: CArrayCommonUnknown's passes constants,
+// so it can't be a jump; inlined, it is one frame less).  A virtual call through CArray<M>, which is final, calls
 // CArrayCommonObject's function directly, or what that jumps to (2048,
 // 4096).
 //
@@ -370,13 +438,12 @@ static void TestCPP816ReadListing(CChars* pszDest, const char* szUnit)
 // isn't checked: the constants its callee takes are pushed (as
 // TestCPP816Forwarders' FwdThree).
 //
-// Expected now: 32 to 4096 (8160) aren't done yet.  A call to a forwarder
-// jumps to it, the mcArray one-liners build a frame to move 'this', and a
-// call through a final class goes through the vtable.  Clear each bit from
+// Expected now: 2048 and 4096 (6144) aren't done yet: a call through a
+// final class goes through the vtable.  Clear each bit from
 // the expected value as the compiler does it, until it is 0.
 //
 //////////////////////////////////////////////////////////////////////////
-#define TEST_CPP816_ARRAY_LAYERS_NOT_DONE	(32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096)
+#define TEST_CPP816_ARRAY_LAYERS_NOT_DONE	(2048 | 4096)
 
 void TestCPP816ArrayLayers(void)
 {
@@ -398,9 +465,9 @@ void TestCPP816ArrayLayers(void)
 	AssertString("", cBuilder.GetErrors());
 	cBuilder.Kill();
 
-	TestCPP816ReadListing(&szObject, "ArrayObject");
-	TestCPP816ReadListing(&szCommon, "ArrayCommonObject");
-	TestCPP816ReadListing(&szUse, "Use");
+	TestCPP816ReadListing(&szObject, "CPP816ArrayLayers", "ArrayObject");
+	TestCPP816ReadListing(&szCommon, "CPP816ArrayLayers", "ArrayCommonObject");
+	TestCPP816ReadListing(&szUse, "CPP816ArrayLayers", "Use");
 
 	w = 0;
 	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Add.ax", "_CArrayCommonObject__Add__FRC8CPointer.ax")) { w |= 1; }
@@ -414,7 +481,8 @@ void TestCPP816ArrayLayers(void)
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__NumElements.ax", "_CArrayCommonUnknown__NumElements.ax")) { w |= 64; }
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__IsEmpty.ax", "_CArrayCommonUnknown__IsEmpty.ax")) { w |= 128; }
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__UnsafeGetObject.axy", "_CArrayCommonUnknown__UnsafeGet.axy")) { w |= 256; }
-	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayCommonUnknown__GrowTo.axy")) { w |= 512; }
+	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayCommonUnknown__GrowTo.axy") &&
+		!TestCPP816OnlyCalls(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayBlock__GrowToAtLeastNumElements.axy")) { w |= 512; }
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__CalculateIsSorted.ax", "_CArrayCommonUnknown__CalculateIsSorted.ax")) { w |= 1024; }
 
 	if (!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayNumElements__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonObject__NumElements.ax") &&
@@ -432,6 +500,107 @@ void TestCPP816ArrayLayers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The map and set layers' NumElements (CMapObject's on its CMapUnknownUnknown,
+// that on its CMapBlock, CMapBlock's and CSetBlock's on their
+// CArrayBlockSorted) each move 'this' to the member and pass the call on:
+// compiled for the W65C816 as the units are, each adds the members' offsets
+// together and jumps to the work at the bottom (1 to 8).  GetSortedSize's
+// layers (CMapUnknownUnknown's, CMapBlock's) come down to
+// CArrayBlockSorted's, which only reads its array's size (16, 32).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816MapLayers(void)
+{
+	static const char*	aszUnits[] = { "BaseLib/ArrayBlockSorted.cpp", "BaseLib/MapBlock.cpp", "BaseLib/SetBlock.cpp", "StandardLib/MapUnknownUnknown.cpp", "StandardLib/MapObject.cpp", NULL };
+	CCPP65Builder		cBuilder;
+	CFileUtil			cFileUtil;
+	CChars				szMapBlock;
+	CChars				szSetBlock;
+	CChars				szMapUnknown;
+	CChars				szMapObject;
+	int					w;
+
+	cFileUtil.RemoveDir("Output" _FS_ "CPP816MapLayers");
+	cBuilder.Init();
+	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.SetListingDirectory("Output" _FS_ "CPP816MapLayers");
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	TestCPP65AddUnits(&cBuilder, aszUnits, false);
+	cBuilder.Compile();
+	AssertString("", cBuilder.GetErrors());
+	cBuilder.Kill();
+
+	TestCPP816ReadListing(&szMapBlock, "CPP816MapLayers", "MapBlock");
+	TestCPP816ReadListing(&szSetBlock, "CPP816MapLayers", "SetBlock");
+	TestCPP816ReadListing(&szMapUnknown, "CPP816MapLayers", "MapUnknownUnknown");
+	TestCPP816ReadListing(&szMapObject, "CPP816MapLayers", "MapObject");
+
+	w = 0;
+	if (!TestCPP816AdjustsAndJumpsTo(szMapBlock.Text(), "_CMapBlock__NumElements.ax", "_CArrayBlockSorted__NumElements.ax")) { w |= 1; }
+	if (!TestCPP816AdjustsAndJumpsTo(szMapUnknown.Text(), "_CMapUnknownUnknown__NumElements.ax", "_CArrayBlockSorted__NumElements.ax")) { w |= 2; }
+	if (!TestCPP816AdjustsAndJumpsTo(szMapObject.Text(), "_CMapObject__NumElements.ax", "_CArrayBlockSorted__NumElements.ax")) { w |= 4; }
+	if (!TestCPP816AdjustsAndJumpsTo(szSetBlock.Text(), "_CSetBlock__NumElements.ax", "_CArrayBlockSorted__NumElements.ax")) { w |= 8; }
+	AssertInt(0, w);
+
+	szMapObject.Kill();
+	szMapUnknown.Kill();
+	szSetBlock.Kill();
+	szMapBlock.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index layers, as the map layers (TestCPP816MapLayers): CIndexObject's
+// NonNullElements on its CIndexUnknown, that on its CIndexTreeMemory (1, 2),
+// each add the members' offsets together and jump to the tree's function.
+// CNamedIndexedObjects' NumIndexed on its CIndexedObjects, that on its
+// CIndexTreeMemory (4, 8), read the tree's size themselves (a getter,
+// another unit's, inlined): no call.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816IndexLayers(void)
+{
+	static const char*	aszUnits[] = { "BaseLib/IndexTreeMemory.cpp", "StandardLib/IndexUnknown.cpp", "StandardLib/IndexObject.cpp", "StandardLib/IndexedObjects.cpp", "StandardLib/NamedIndexedObjects.cpp", NULL };
+	CCPP65Builder		cBuilder;
+	CFileUtil			cFileUtil;
+	CChars				szIndexUnknown;
+	CChars				szIndexObject;
+	CChars				szIndexed;
+	CChars				szNamed;
+	int					w;
+
+	cFileUtil.RemoveDir("Output" _FS_ "CPP816IndexLayers");
+	cBuilder.Init();
+	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.SetListingDirectory("Output" _FS_ "CPP816IndexLayers");
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	TestCPP65AddUnits(&cBuilder, aszUnits, false);
+	cBuilder.Compile();
+	AssertString("", cBuilder.GetErrors());
+	cBuilder.Kill();
+
+	TestCPP816ReadListing(&szIndexUnknown, "CPP816IndexLayers", "IndexUnknown");
+	TestCPP816ReadListing(&szIndexObject, "CPP816IndexLayers", "IndexObject");
+	TestCPP816ReadListing(&szIndexed, "CPP816IndexLayers", "IndexedObjects");
+	TestCPP816ReadListing(&szNamed, "CPP816IndexLayers", "NamedIndexedObjects");
+
+	w = 0;
+	if (!TestCPP816AdjustsAndJumpsTo(szIndexUnknown.Text(), "_CIndexUnknown__NonNullElements.ax", "_CIndexTreeMemory__NonNullElements.ax")) { w |= 1; }
+	if (!TestCPP816AdjustsAndJumpsTo(szIndexObject.Text(), "_CIndexObject__NonNullElements.ax", "_CIndexTreeMemory__NonNullElements.ax")) { w |= 2; }
+	if (!TestCPP816OnlyCalls(szIndexed.Text(), "_CIndexedObjects__NumIndexed.ax", NULL)) { w |= 4; }
+	if (!TestCPP816OnlyCalls(szNamed.Text(), "_CNamedIndexedObjects__NumIndexed.ax", NULL)) { w |= 8; }
+	AssertInt(0, w);
+
+	szNamed.Kill();
+	szIndexed.Kill();
+	szIndexObject.Kill();
+	szIndexUnknown.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Interprocedural(void)
@@ -443,6 +612,8 @@ void TestCPP816Interprocedural(void)
 	TestCPP816ListingInlinedFromUnit();
 	TestCPP816Forwarders();
 	TestCPP816ArrayLayers();
+	TestCPP816MapLayers();
+	TestCPP816IndexLayers();
 
 	TestStatistics();
 }

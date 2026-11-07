@@ -398,8 +398,9 @@ bool CIRImports::IsLocalSymbol(CIRModule* pcModule, SIRReference sValue)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcFunction's body can be copied to another unit: it has one, is
-// small, has external linkage, calls no named function and names no symbol
-// local to pcModule's unit.
+// small, has external linkage and names no symbol local to pcModule's unit.
+// The functions it calls are the same symbols in any unit (a call of a
+// forwarder inlined is a call of what it forwards to).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRImports::IsExportable(CIRModule* pcModule, CIRFunction* pcFunction)
@@ -422,8 +423,7 @@ bool CIRImports::IsExportable(CIRModule* pcModule, CIRFunction* pcFunction)
 		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiIndex);
-			if (((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol()) ||
-				IsLocalSymbol(pcModule, psInstruction->asArguments[0]) || IsLocalSymbol(pcModule, psInstruction->asArguments[1]))
+			if (IsLocalSymbol(pcModule, psInstruction->asArguments[0]) || IsLocalSymbol(pcModule, psInstruction->asArguments[1]))
 			{
 				return false;
 			}
@@ -481,15 +481,19 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 	cErrors.Kill();
 	szText.Kill();
 
-	//The function's restrict symbols stay restrict.
+	//The function's restrict symbols stay restrict, and the functions it calls in registers are called in them.
 	for (ui = 0; ui < pcModule->maszSymbols.NumElements(); ui++)
 	{
-		if (pcModule->IsRestrict((uint32)ui))
+		if (pcModule->IsRestrict((uint32)ui) || pcModule->IsRegisterCall((uint32)ui))
 		{
 			iSymbol = mcModule.FindSymbol(pcModule->GetSymbolName((uint32)ui));
-			if (iSymbol >= 0)
+			if ((iSymbol >= 0) && pcModule->IsRestrict((uint32)ui))
 			{
 				mcModule.SetRestrict((uint32)iSymbol);
+			}
+			if ((iSymbol >= 0) && pcModule->IsRegisterCall((uint32)ui))
+			{
+				mcModule.SetRegisterCall((uint32)iSymbol);
 			}
 		}
 	}

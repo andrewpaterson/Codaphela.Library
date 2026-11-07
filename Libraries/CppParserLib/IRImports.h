@@ -53,9 +53,9 @@ typedef CArrayTemplate<SIRParkedUnit> CArrayIRParkedUnits;
 
 
 //Functions other translation units may inline (CIRInliner::SetImports): a copy, in its own module, of each small
-//function with external linkage (not local, weak or variadic) that calls no named function and refers to no symbol
-//local to its unit (globals and the like may be named: they are the same symbols in any unit, and the inliner maps
-//them by name).  Units add their functions after they are optimised (Export); a unit compiled before a function it
+//function with external linkage (not local, weak or variadic) that refers to no symbol local to its unit (globals,
+//the functions it calls and the like may be named: they are the same symbols in any unit, and the inliner maps them
+//by name, with whether they are restrict or called in registers).  Units add their functions after they are optimised (Export); a unit compiled before a function it
 //calls was exported can be compiled again (the builder's CompileUnits).
 //
 //Units compiled at the same time take turns (BeginTurn, EndTurn): each exports functions only in its own turn, its

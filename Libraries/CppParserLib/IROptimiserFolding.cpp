@@ -153,7 +153,8 @@ bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 // unsigned x / 2^n and x % 2^n are shifts and ands; comparisons of
 // extended values are narrowed (NarrowComparison), extensions that are
 // undone go (UndoesExtension, ConvertPhi) and so do x + 0 and the like
-// (IsIdentity) and sums that cancel ((x + y) - y, Cancels).
+// (IsIdentity) and sums that cancel ((x + y) - y, Cancels); a pointer's
+// constant offsets are added together (PointerOffsets).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::FoldConstants(void)
@@ -209,7 +210,7 @@ bool CIROptimiser::FoldConstants(void)
 				}
 				bChanged = true;
 			}
-			else if (PointerOffset(psInstruction))
+			else if (PointerOffset(psInstruction) || PointerOffsets(psInstruction))
 			{
 				bChanged = true;
 			}
@@ -309,6 +310,34 @@ bool CIROptimiser::PointerOffset(SIRInstruction* psInstruction)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A ptradd of a constant to a ptradd of a constant (a member's member: an
+// object's array's block) becomes one ptradd of their sum to the inner's
+// pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::PointerOffsets(SIRInstruction* psInstruction)
+{
+	SIRInstruction*	psInner;
+	SIRType			sOffsetType;
+
+	if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->asArguments[1].IsConstant())
+	{
+		return false;
+	}
+	psInner = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+	if (!psInner || (psInner->uiOpcode != IRO_PtrAdd) || !psInner->asArguments[1].IsConstant())
+	{
+		return false;
+	}
+	sOffsetType = mpcFunction->TypeOf(psInstruction->asArguments[1]);
+	psInstruction->asArguments[1] = mpcFunction->AddInteger(sOffsetType, mpcFunction->GetSigned(psInner->asArguments[1]) + mpcFunction->GetSigned(psInstruction->asArguments[1]));
+	psInstruction->asArguments[0] = Replacement(psInner->asArguments[0]);
+	return true;
 }
 
 
