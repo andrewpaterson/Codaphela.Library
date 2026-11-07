@@ -1,3 +1,4 @@
+#include <new>
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/TypeNames.h"
@@ -259,6 +260,47 @@ void TestChannelsChangeNotByteAligned(void)
 	}
 
 	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copy sets up channels that were never initialised: what was in their
+// memory before (here 0xa5s) isn't taken for a change or debug names.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsCopyIntoUninitialised(void)
+{
+	ObjectsInit();
+
+	CChannels	cSource;
+	CChannels*	pcCopy;
+	uint64		aullMemory[(sizeof(CChannels) + sizeof(uint64) - 1) / sizeof(uint64)];
+	uint64		ulliValue;
+
+	cSource.Init();
+	cSource.BeginChange();
+	cSource.AddChannel(0, PT_uint8, "R", "Red");
+	cSource.AddChannel(1, PT_uint8);
+	cSource.SetSize(2);
+	cSource.EndChange();
+	cSource.SetNative(1, cSource.GetChannel(1), &(ulliValue = 0x42));
+
+	memset(aullMemory, 0xa5, sizeof(aullMemory));
+	pcCopy = new (aullMemory) CChannels;  //Not CChannels(), which would zero the fields first.
+	pcCopy->Copy(&cSource);
+
+	AssertFalse(pcCopy->IsChanging());
+	AssertSize(2, pcCopy->GetNumChannels());
+	AssertSize(2, (size)pcCopy->GetSize());
+	AssertString("Red", pcCopy->GetChannelLongName(0));
+	AssertNull((void*)pcCopy->GetChannelLongName(1));
+	AssertLong(0x42LL, TestChannelsGet(pcCopy, 1, 1));
+
+	pcCopy->~CChannels();
+	cSource.Kill();
 
 	ObjectsKill();
 }
@@ -726,6 +768,7 @@ void TestChannels(void)
 	TestChannelsStuff();
 	TestChannelsRemoveBeforeSize();
 	TestChannelsChangeNotByteAligned();
+	TestChannelsCopyIntoUninitialised();
 	TestChannelsAddDuplicate();
 	TestChannelsBeginChangeTwice();
 	TestChannelsLoad();

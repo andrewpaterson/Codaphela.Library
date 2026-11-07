@@ -1256,11 +1256,10 @@ void CChannels::White(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Copy(CChannels* pcSource)
 {
-	//This assumes Channels is not initialised.
+	//Initialises these channels as a copy of pcSource.  Every field is set first: CopyIntoInitialised reads the
+	//change and debug names pointers, which hold whatever was in the memory before.
 	PreInit();
-	masChannelOffsets.Init();
-	mabData.Init();
-
+	PrivateInit();
 	CopyIntoInitialised(pcSource);
 	PostInit();
 }
