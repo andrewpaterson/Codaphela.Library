@@ -1036,6 +1036,43 @@ void TestLogFileTruncateMemory(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Replacing through a log file empties the backing file when it is
+// committed, not before.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestLogFileReplace(void)
+{
+	CLogFile*		pcLogFile;
+	CMemoryFile*	pcMemoryFile;
+	CFileBasic		cFile;
+
+	pcMemoryFile = MemoryFile();
+	cFile.Init(pcMemoryFile);
+	cFile.Open(EFM_Write_Create);
+	cFile.WriteData("0123456789", 10);
+	cFile.Close();
+
+	pcLogFile = LogFile(pcMemoryFile);
+	cFile.Init(pcLogFile);
+	AssertTrue(pcLogFile->Begin());
+	AssertTrue(cFile.Open(EFM_Write_Replace));
+	AssertLong(0, cFile.GetFileLength());
+	AssertTrue(cFile.WriteData("ab", 2));
+	AssertLong(2, cFile.GetFileLength());
+	AssertTrue(cFile.Close());
+
+	AssertSize(10, pcMemoryFile->GetBufferSize());
+	AssertTrue(pcLogFile->Commit());
+	AssertSize(2, pcMemoryFile->GetBufferSize());
+	AssertMemory("ab", pcMemoryFile->GetBufferPointer(), 2);
+	AssertTrue(pcLogFile->End());
+
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestLogFileTruncateDisk(void)
@@ -1144,6 +1181,7 @@ void TestLogFile(void)
 	TestLogFileMultipleReadsAfterOpens();
 	TestLogFileTruncateMemory();
 	TestLogFileTruncateDisk();
+	TestLogFileReplace();
 	TestLogFilePrint();
 
 	TestStatistics();

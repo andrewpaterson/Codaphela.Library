@@ -25,9 +25,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 
 
-//---------------------------------
-// EFM = Enum File Mode
-//---------------------------------
+//How a file is opened.  The _Create modes make the file if it isn't there and keep what is in it if it is: writing
+//less than it holds leaves the rest.  EFM_Write_Replace makes it, or empties it, for a file written whole.
 enum EFileMode
 {
 	EFM_Unknown,
@@ -36,6 +35,7 @@ enum EFileMode
 	EFM_Read_Create,
 	EFM_ReadWrite,
 	EFM_ReadWrite_Create,
+	EFM_Write_Replace,
 };
 
 
@@ -54,6 +54,7 @@ bool IsFileModeWritable(EFileMode eFileMode);
 bool IsFileModeReadable(EFileMode eFileMode);
 bool IsFileModeReadOnly(EFileMode eFileMode);
 bool IsFileModeCreate(EFileMode eFileMode);
+bool IsFileModeReplace(EFileMode eFileMode);
 
 
 #endif // __FILE_MODE_H__

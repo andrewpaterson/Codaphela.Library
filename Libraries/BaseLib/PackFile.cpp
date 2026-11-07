@@ -55,7 +55,8 @@ void CPackFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPackFile::Open(EFileMode eFileMode)
 {
-	if (eFileMode == EFM_Write_Create)
+	//A pack file is written once, so it always starts empty.
+	if ((eFileMode == EFM_Write_Create) || (eFileMode == EFM_Write_Replace))
 	{
 		if (mpcPackFiles->IsWriteMode())
 		{

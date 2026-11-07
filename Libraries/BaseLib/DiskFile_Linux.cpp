@@ -166,7 +166,7 @@ bool CDiskFile::Open(EFileMode eMode)
 		Close();
 	}
 
-	//O_CREAT without O_TRUNC matches Windows OPEN_ALWAYS.
+	//O_CREAT without O_TRUNC matches Windows OPEN_ALWAYS; with it, CREATE_ALWAYS.
 	if (eMode == EFM_Read)
 	{
 		iFile = open(mszFilename.Text(), O_RDONLY);
@@ -178,6 +178,10 @@ bool CDiskFile::Open(EFileMode eMode)
 	else if (eMode == EFM_Write_Create)
 	{
 		iFile = open(mszFilename.Text(), O_WRONLY | O_CREAT, 0666);
+	}
+	else if (eMode == EFM_Write_Replace)
+	{
+		iFile = open(mszFilename.Text(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 	else if (eMode == EFM_ReadWrite)
 	{

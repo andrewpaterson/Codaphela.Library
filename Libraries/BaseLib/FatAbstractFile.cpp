@@ -52,6 +52,10 @@ void CFatAbstractFile::Kill(void)
 bool CFatAbstractFile::Open(EFileMode eFileMode)
 {
 	mbOpen = mpcFile != NULL;
+	if (mbOpen && IsFileModeReplace(eFileMode))
+	{
+		mbOpen = Truncate(0);
+	}
 	return mbOpen;
 }
 

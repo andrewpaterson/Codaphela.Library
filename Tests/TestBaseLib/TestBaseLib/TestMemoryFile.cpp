@@ -169,6 +169,34 @@ void TestMemoryFileWriteSeekRewrite(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Opened to replace, a memory file starts empty: what it was made with and
+// what was written before go.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMemoryFileReplace(void)
+{
+	CMemoryFile	cMemoryFile;
+	char		szHello[] = "Hello";
+
+	cMemoryFile.Init(szHello, strlen(szHello));
+	AssertTrue(cMemoryFile.Open(EFM_Write_Replace));
+	AssertLong(0, cMemoryFile.Size());
+	AssertSize(1, cMemoryFile.Write("ab", 2, 1));
+	AssertTrue(cMemoryFile.Close());
+	AssertSize(2, cMemoryFile.GetBufferSize());
+
+	AssertTrue(cMemoryFile.Open(EFM_Write_Replace));
+	AssertLong(0, cMemoryFile.Size());
+	AssertSize(1, cMemoryFile.Write("c", 1, 1));
+	AssertTrue(cMemoryFile.Close());
+	AssertSize(1, cMemoryFile.GetBufferSize());
+	AssertMemory("c", cMemoryFile.GetBufferPointer(), 1);
+	cMemoryFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMemoryFile(void)
@@ -177,6 +205,7 @@ void TestMemoryFile(void)
 
 	TestMemoryFileSimple();
 	TestMemoryFileWriteSeekRewrite();
+	TestMemoryFileReplace();
 
 	TestStatistics();
 }

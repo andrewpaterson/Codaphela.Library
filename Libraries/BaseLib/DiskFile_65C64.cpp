@@ -133,7 +133,7 @@ void* CDiskFile::GetFile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Create without truncate, as Windows OPEN_ALWAYS.
+// Create without truncate, as Windows OPEN_ALWAYS; replace with it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDiskFile::Open(EFileMode eMode)
@@ -157,6 +157,10 @@ bool CDiskFile::Open(EFileMode eMode)
 	else if (eMode == EFM_Write_Create)
 	{
 		iMode = HOST_WRITE | HOST_CREATE;
+	}
+	else if (eMode == EFM_Write_Replace)
+	{
+		iMode = HOST_WRITE | HOST_CREATE | HOST_TRUNCATE;
 	}
 	else if (eMode == EFM_ReadWrite)
 	{

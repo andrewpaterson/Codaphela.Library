@@ -146,11 +146,11 @@ void TestDiskFileTruncate(void)
 	AssertTrue(bResult);
 	iResult = (int)cDiskFile.Write(szHello, strlen(szHello) + 1, 1);
 	AssertLong(1, iResult);
-	bResult = cDiskFile.Truncate(4);
-	bResult = cDiskFile.Close();
-
-	AssertTrue(bResult);
+	AssertTrue(cDiskFile.Truncate(4));
+	AssertLong(4, cDiskFile.Size());
+	AssertTrue(cDiskFile.Close());
 	cDiskFile.Kill();
+	AssertLong(4, cFileUtil.Size("Output" _FS_ "Test2.txt"));
 
 	cFileUtil.Delete("Output" _FS_ "Test2.txt");
 }
@@ -233,6 +233,29 @@ void TestDiskFileWrite(void)
 	AssertTrue(cText.Read("Output" _FS_ "Test3.txt"));
 	AssertString("abcdefghijklmnopqrst", cText.mcText.Text());
 	cText.Kill();
+
+	//Replacing empties it first.
+	cFile.Init(DiskFile("Output" _FS_ "Test3.txt"));
+	AssertTrue(cFile.Open(EFM_Write_Replace));
+	AssertLong(0, cFile.GetFileLength());
+	AssertLong(2, cFile.Write("xy", 1, 2));
+	AssertTrue(cFile.Close());
+	cFile.Kill();
+
+	cText.Init();
+	AssertTrue(cText.Read("Output" _FS_ "Test3.txt"));
+	AssertString("xy", cText.mcText.Text());
+	cText.Kill();
+
+	AssertTrue(cFileUtil.Delete("Output" _FS_ "Test3.txt"));
+
+	//Or makes it.
+	cFile.Init(DiskFile("Output" _FS_ "Test3.txt"));
+	AssertTrue(cFile.Open(EFM_Write_Replace));
+	AssertLong(1, cFile.Write("z", 1, 1));
+	AssertTrue(cFile.Close());
+	cFile.Kill();
+	AssertLong(1, cFileUtil.Size("Output" _FS_ "Test3.txt"));
 
 	AssertTrue(cFileUtil.Delete("Output" _FS_ "Test3.txt"));
 }

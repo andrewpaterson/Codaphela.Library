@@ -43,7 +43,7 @@ bool CChunkFileFile::Open(EFileMode eMode)
 		mbReadMode = true;
 		return true;
 	}
-	else if (eMode == EFM_Write_Create)
+	else if ((eMode == EFM_Write_Create) || (eMode == EFM_Write_Replace))
 	{
 		miChunkSize = -1;
 		miChunkStart = mpcChunkFile->ChunkStart();

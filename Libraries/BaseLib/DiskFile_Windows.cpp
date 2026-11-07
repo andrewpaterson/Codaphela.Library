@@ -192,6 +192,10 @@ bool CDiskFile::Open(EFileMode eMode)
 	{
 		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 	}
+	else if (eMode == EFM_Write_Replace)
+	{
+		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
+	}
 	else if (eMode == EFM_ReadWrite)
 	{
 		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING);

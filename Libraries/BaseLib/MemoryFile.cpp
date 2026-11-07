@@ -84,6 +84,12 @@ bool CMemoryFile::Open(EFileMode eFileMode)
 	{
 		mbFakeArray = false;
 		miFlags = MEMORY_FILE_READ_FLAG | MEMORY_FILE_WRITE_FLAG;
+		if (IsFileModeReplace(eFileMode))
+		{
+			//What it held, and what it was made with, go.
+			mcArray.SetUsedElements(0);
+			miInitialLength = 0;
+		}
 		if (miInitialLength != 0)
 		{
 			mcArray.InsertBlockAt((char*)mpvInitialMem, miInitialLength, 0);

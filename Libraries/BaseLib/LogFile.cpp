@@ -388,6 +388,12 @@ bool CLogFile::Open(EFileMode eFileMode)
 {
 	if ((mbBackingFileExists) || IsFileModeCreate(eFileMode))
 	{
+		if (IsFileModeReplace(eFileMode))
+		{
+			//Logged as a create and a truncate, so the backing file is emptied when it is committed.
+			return Open(EFM_Write_Create) && Truncate(0);
+		}
+
 		mbBackingFileExists = true;
 		if (!AddOpenCommand(eFileMode))
 		{
@@ -396,7 +402,6 @@ bool CLogFile::Open(EFileMode eFileMode)
 		}
 
 		meFileMode = eFileMode;
-	
 		miPosition = 0;
 		return true;
 	}
