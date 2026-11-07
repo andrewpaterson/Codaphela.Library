@@ -203,7 +203,6 @@ bool CCPPParser::ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass)
 {
 	CCPPSyntaxBaseSpecifier*	pcBase;
 	CCPPSymbol*					pcSymbol;
-	CArraySyntax				apcAttributes;
 
 	//: base-specifier, ...  [class.derived]
 	Expect(CT_Colon);
@@ -211,9 +210,7 @@ bool CCPPParser::ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass)
 	{
 		pcBase = mpcMemory->Create<CCPPSyntaxBaseSpecifier>(pcClass);
 		pcBase->miFirstToken = CurrentToken();
-		apcAttributes.Init();
-		ParseAttributes(&apcAttributes, pcBase);
-		apcAttributes.Kill();
+		ParseAttributes(&pcBase->macpAttributes, pcBase);
 		for (;;)
 		{
 			if (Accept(CT_virtual))
@@ -422,7 +419,6 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	CCPPScope*							pcSaved;
 	int64								lliName;
 	bool								bNoGreater;
-	CArraySyntax						apcAttributes;
 
 	//enum [class] name [: type] { enumerators }  [dcl.enum]
 	pcEnum = mpcMemory->Create<CCPPSyntaxEnumSpecifier>(pcParent);
@@ -434,9 +430,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 		pcEnum->meScopeKey = ((CCTReservedWord*)Peek(0))->GetToken();
 		Next();
 	}
-	apcAttributes.Init();
-	ParseAttributes(&apcAttributes, pcEnum);
-	apcAttributes.Kill();
+	ParseAttributes(&pcEnum->macpAttributes, pcEnum);
 
 	if (IsIdentifier() || Is(CT_ScopeResolution))
 	{
@@ -537,9 +531,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			}
 		}
 
-		apcAttributes.Init();
-		ParseAttributes(&apcAttributes, pcEnumerator);
-		apcAttributes.Kill();
+		ParseAttributes(&pcEnumerator->macpAttributes, pcEnumerator);
 		if (Accept(CT_Assignment))
 		{
 			pcEnumerator->mpcValue = ParseConstantExpression(pcEnumerator);

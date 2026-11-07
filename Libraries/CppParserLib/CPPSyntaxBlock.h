@@ -73,7 +73,7 @@ typedef CArrayTemplate<SCPPSyntaxBlockDeclared>	CArraySyntaxBlockDeclared;
 //A symbol or scope reference is an index in the block's own, or with CPP_SYNTAX_BLOCK_EXTERNAL its external's.  The
 //block's own scopes are those its nodes have and the members of its own symbols; its own symbols those its nodes
 //declare and those in its own scopes.  So an external is found only from externals before it.
-#define CPP_SYNTAX_BLOCK_MAGIC		0x31425343		//"CSB1".
+#define CPP_SYNTAX_BLOCK_MAGIC		0x32425343		//"CSB2": base specifiers, enums and enumerators keep their attributes.
 #define CPP_SYNTAX_BLOCK_NULL		0xFFFF
 #define CPP_SYNTAX_BLOCK_OUTSIDE	0xFFFE			//A node outside the block (a link to one, or the declaration's parent).
 #define CPP_SYNTAX_BLOCK_EXTERNAL	0x8000

@@ -114,7 +114,9 @@ void TestCPPSyntaxBlockRoundTrip(void)
 	AssertTrue(sBlock.Init("\
 typedef unsigned int uint;\n\
 enum EColour { Red, Green = 3, Blue };\n\
+enum class [[nodiscard]] EKind { One [[deprecated]] = 1, Two };\n\
 struct SPoint { int x; int y; };\n\
+struct SDerived : [[maybe_unused]] public SPoint { int z; };\n\
 class CShape\n\
 {\n\
 public:\n\

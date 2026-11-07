@@ -1682,6 +1682,26 @@ void TestCppParserTentativeMemory(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Attributes on a base class, an enum and an enumerator are kept in the
+// tree (printed where they were written).  [class.derived] [dcl.enum]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserBaseAndEnumAttributes(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	AssertTrue(sParsed.Init("struct B { };\nstruct D : [[maybe_unused]] public B { };\nenum class [[nodiscard]] E { X [[deprecated]] = 1, Y };\n"));
+	AssertInt(0, sParsed.iErrors);
+	sz.Init();
+	AssertString("struct B\n{\n};\nstruct D : [[maybe_unused]] public B\n{\n};\nenum class [[nodiscard]] E\n{\n\tX [[deprecated]] = 1,\n\tY\n};\n", sParsed.Print(&sz));
+	sz.Kill();
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParser(void)
@@ -1719,6 +1739,7 @@ void TestCppParser(void)
 	TestCppParserTentativeClassDefinition();
 	TestCppParserNestedTemplateArguments();
 	TestCppParserTentativeMemory();
+	TestCppParserBaseAndEnumAttributes();
 
 	NumberKill();
 	TypeConverterKill();

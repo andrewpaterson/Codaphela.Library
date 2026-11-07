@@ -29,8 +29,20 @@ void CCPPSyntaxEnumerator::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntax::Init(pcTree, pcParent);
 	miName = -1;
+	macpAttributes.Init(NodeArrayMallocator());
 	mpcValue = NULL;
 	mpcSymbol = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxEnumerator::Kill(void)
+{
+	macpAttributes.Kill();
+	CCPPSyntax::Kill();
 }
 
 
@@ -51,6 +63,11 @@ ECPPSyntax CCPPSyntaxEnumerator::GetKind(void)
 void CCPPSyntaxEnumerator::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	AppendToken(pszDest, miName);
+	if (macpAttributes.NumElements() > 0)
+	{
+		pszDest->Append(' ');
+		PrintList(pszDest, &macpAttributes, " ", iDepth);
+	}
 	if (mpcValue)
 	{
 		pszDest->Append(" = ");
@@ -66,6 +83,7 @@ void CCPPSyntaxEnumerator::PrettyPrint(CChars* pszDest, int iDepth)
 void CCPPSyntaxEnumerator::VisitFields(CCPPSyntaxFields* pcFields)
 {
 	pcFields->Token(&miName);
+	pcFields->Children(&macpAttributes);
 	pcFields->Child(&mpcValue);
 	pcFields->Symbol(&mpcSymbol);
 }

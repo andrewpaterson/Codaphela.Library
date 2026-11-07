@@ -29,12 +29,14 @@ class CCPPSyntaxName;
 class CCPPSyntaxBaseSpecifier : public CCPPSyntax
 {
 public:
+	CArraySyntax			macpAttributes;
 	ECPPAccess				meAccess;
 	bool					mbVirtual;
 	bool					mbPack;
 	CCPPSyntaxName*			mpcName;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
+	void					Kill(void) override;
 	ECPPSyntax				GetKind(void) override;
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;

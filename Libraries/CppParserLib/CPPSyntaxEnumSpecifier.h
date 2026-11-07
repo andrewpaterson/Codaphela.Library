@@ -32,6 +32,7 @@ class CCPPSyntaxEnumSpecifier : public CCPPSyntaxTypeSpecifier
 public:
 	bool					mbScoped;
 	ECppTokens				meScopeKey;
+	CArraySyntax			macpAttributes;
 	CCPPSyntaxName*			mpcName;
 	CCPPSyntaxTypeId*		mpcBase;
 	bool					mbBody;

@@ -30,10 +30,12 @@ class CCPPSyntaxEnumerator : public CCPPSyntax
 {
 public:
 	int32					miName;
+	CArraySyntax			macpAttributes;
 	CCPPSyntaxExpression*	mpcValue;
 	CCPPSymbol*				mpcSymbol;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
+	void					Kill(void) override;
 	ECPPSyntax				GetKind(void) override;
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;

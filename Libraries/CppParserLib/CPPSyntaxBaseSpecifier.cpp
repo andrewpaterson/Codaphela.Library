@@ -28,10 +28,22 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CCPPSyntaxBaseSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntax::Init(pcTree, pcParent);
+	macpAttributes.Init(NodeArrayMallocator());
 	meAccess = CPPA_None;
 	mbVirtual = false;
 	mbPack = false;
 	mpcName = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxBaseSpecifier::Kill(void)
+{
+	macpAttributes.Kill();
+	CCPPSyntax::Kill();
 }
 
 
@@ -51,6 +63,11 @@ ECPPSyntax CCPPSyntaxBaseSpecifier::GetKind(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxBaseSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 {
+	if (macpAttributes.NumElements() > 0)
+	{
+		PrintList(pszDest, &macpAttributes, " ", iDepth);
+		pszDest->Append(' ');
+	}
 	if (mbVirtual)
 	{
 		pszDest->Append("virtual ");
@@ -81,6 +98,7 @@ void CCPPSyntaxBaseSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxBaseSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 {
+	pcFields->Children(&macpAttributes);
 	pcFields->Enum(&meAccess);
 	pcFields->Bool(&mbVirtual);
 	pcFields->Bool(&mbPack);

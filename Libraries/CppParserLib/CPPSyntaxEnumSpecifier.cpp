@@ -30,6 +30,7 @@ void CCPPSyntaxEnumSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	CCPPSyntaxTypeSpecifier::Init(pcTree, pcParent);
 	mbScoped = false;
 	meScopeKey = CT_class;
+	macpAttributes.Init(NodeArrayMallocator());
 	mpcName = NULL;
 	mpcBase = NULL;
 	mbBody = false;
@@ -46,6 +47,7 @@ void CCPPSyntaxEnumSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxEnumSpecifier::Kill(void)
 {
+	macpAttributes.Kill();
 	macpEnumerators.Kill();
 	CCPPSyntaxTypeSpecifier::Kill();
 }
@@ -72,6 +74,11 @@ void CCPPSyntaxEnumSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 	{
 		pszDest->Append(' ');
 		PrintKeyword(pszDest, meScopeKey);
+	}
+	if (macpAttributes.NumElements() > 0)
+	{
+		pszDest->Append(' ');
+		PrintList(pszDest, &macpAttributes, " ", iDepth);
 	}
 	if (mpcName)
 	{
@@ -126,6 +133,7 @@ void CCPPSyntaxEnumSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 {
 	pcFields->Bool(&mbScoped);
 	pcFields->Enum(&meScopeKey);
+	pcFields->Children(&macpAttributes);
 	pcFields->Child(&mpcName);
 	pcFields->Child(&mpcBase);
 	pcFields->Bool(&mbBody);
