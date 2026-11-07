@@ -81,6 +81,19 @@ typedef CArrayTemplate<size>			CArrayTextAreaStopStart;
 typedef CArrayTemplate<size>			CArrayTextAreaLineStart;
 
 
+//Where the tiles laid out so far end (CTextArea::AddTileStops).
+struct STextAreaTileCursor
+{
+	size	uiCellWidth;
+	size	uiCellHeight;
+	int32	iAscent;
+	size	uiColumn;  //Of the next stop, on its row.
+	size	uiColumns;  //The widest row so far.
+	size	uiRow;  //The row of the next stop: the line it is on, as tiles aren't wrapped.
+	size	uiTileRow;  //The row of tiles the row is on: lines' gaps are whole rows of tiles.
+};
+
+
 //Where up and down move the caret: a row or a page of rows.
 enum ETextAreaMove
 {
@@ -357,8 +370,8 @@ protected:
 	void				UpdateText(void);
 	void				UpdateSize(void);
 	int32				GetWrapWidth(void);
-	void				FindStopStarts(void);
-	void				FindLineStarts(void);
+	void				FindStopStarts(size uiFrom);
+	void				FindLineStarts(size uiFrom);
 	size				FindLastRow(size uiLine);
 	void				GapsChanged(void);
 	void				LinesInserted(size uiPosition, const char* szText, size uiLength);
@@ -380,10 +393,12 @@ protected:
 	void				AppendSprites(size uiFrom);
 	Ptr<CText>			ReadTextFrom(size uiFrom);
 	void				AppendTiles(size uiFrom);
-	void				AppendStops(size uiFrom);
-	void				AppendLineStarts(size uiFrom);
 	void				LayoutTiles(void);
-	void				MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans);
+	void				MakeTileSpans(STextStyle* psStyles, size uiFrom, CArrayTileTextSpan* pasSpans);
+	void				StartTileCursor(Ptr<CFont> pWhite, STextAreaTileCursor* psCursor);
+	void				AddTileLine(STextAreaTileCursor* psCursor, size uiFirstStop);
+	size				AddTileStops(STextAreaTileCursor* psCursor);
+	size				GetGapTileRows(size uiLine, size uiCellHeight);
 	void				DecorateTiles(STextStyle* psStyles);
 	void				DecorateTileStretch(uint8 uiDecoration, STextStyle* psStyles, size uiRow, size uiFirstStop, size uiEndStop);
 	STextStyle*			GetTileStyle(STextStyle* psStyles, size uiStop);

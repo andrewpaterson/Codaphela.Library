@@ -110,7 +110,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mauiStopStarts.Init();
 	mauiLineStarts.Init();
 	mcGaps.Init();
-	FindLineStarts();
+	FindLineStarts(0);
 	muiChangeCount = 0;
 	mcNavigation.Init(&mszText);
 	mcUndo.Init();
@@ -310,7 +310,7 @@ void CTextArea::SetText(const char* szText)
 {
 	mszText.Kill();
 	mszText.Init(szText);
-	FindLineStarts();
+	FindLineStarts(0);
 	masSpans.ReInit();
 	mcBackgrounds.Clear();
 	mbBackgroundsDirty = true;
@@ -350,7 +350,7 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 	bAppendSprites = !bAppendTiles && CanAppendSprites();
 	uiStart = mszText.Length();
 	mszText.Append(szText);
-	AppendLineStarts(uiStart);
+	FindLineStarts(uiStart);
 	AddSpan(uiStart, mszText.Length() - uiStart, sColour);
 	if (bAppendTiles)
 	{
@@ -792,16 +792,10 @@ int32 CTextArea::GetWrapWidth(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ReadText(void)
 {
-	CSimpleTextReader		cReader;
-	CUTF8					cUTF8;
-	CArrayTextFontChange	asChanges;
-	Ptr<CFont>				pFont;
-	int16					iBaselineShift;
-
 	mbTextDirty = false;
 	mbSizeDirty = false;
 	mbTextStale = false;
-	FindStopStarts();
+	FindStopStarts(0);
 
 	mbTiled = UseTiles();
 	if (mbTiled)
@@ -814,27 +808,7 @@ void CTextArea::ReadText(void)
 		mpTileLayer->Clear();
 	}
 
-	pFont = mpFamily->GetRunFont(&msStyle, &iBaselineShift);
-	if (pFont.IsNull())
-	{
-		mpText = NULL;
-		return;
-	}
-
-	//The reader's font has no baseline shift or decorations so a style with them needs a change at the start.
-	asChanges.Init();
-	if ((iBaselineShift != 0) || (msStyle.GetDecorations() != 0))
-	{
-		asChanges.Add()->Init(0, &pFont, iBaselineShift, msStyle.GetDecorations(), msStyle.sColour);
-	}
-	MakeFontChanges(&asChanges, pFont, iBaselineShift);
-
-	cUTF8.Init(mszText.Text());
-	cReader.Init(&pFont);
-	mpText = cReader.Read(&cUTF8, true, &asChanges);
-	cReader.Kill();
-	cUTF8.Kill();
-	asChanges.Kill();
+	mpText = ReadTextFrom(0);
 }
 
 
@@ -2359,20 +2333,24 @@ void CTextArea::StopDragSelect(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 //
 // The byte each of the layout's stops is before, found the way the text
-// is read: a stop for each character but carriage returns, then one at
-// the end of the text.
+// is read from uiFrom on (0 for all of it; else the old end, when text
+// was appended): a stop for each character but carriage returns, then one
+// at the end of the text.  Stops found before at or after uiFrom go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::FindStopStarts(void)
+void CTextArea::FindStopStarts(size uiFrom)
 {
 	size	uiPosition;
 	size	uiLength;
 	char*	szText;
 
-	mauiStopStarts.ReInit();
+	while ((mauiStopStarts.NumElements() > 0) && (*mauiStopStarts.Tail() >= uiFrom))
+	{
+		mauiStopStarts.RemoveTail();
+	}
 	szText = mszText.Text();
 	uiLength = mszText.Length();
-	uiPosition = 0;
+	uiPosition = uiFrom;
 	while (uiPosition < uiLength)
 	{
 		if (szText[uiPosition] != '\r')
@@ -2387,21 +2365,28 @@ void CTextArea::FindStopStarts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The start of each line, from the text: 0 and each byte after a line
-// feed.
+// The start of each line, from the text from uiFrom on (0 for all of it;
+// else the old end, when text was appended): 0 and each byte after a line
+// feed.  Starts found before after uiFrom go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::FindLineStarts(void)
+void CTextArea::FindLineStarts(size uiFrom)
 {
 	size	uiPosition;
 	size	uiLength;
 	char*	szText;
 
-	mauiLineStarts.ReInit();
-	*mauiLineStarts.Add() = 0;
+	while ((mauiLineStarts.NumElements() > 0) && (*mauiLineStarts.Tail() > uiFrom))
+	{
+		mauiLineStarts.RemoveTail();
+	}
+	if (mauiLineStarts.NumElements() == 0)
+	{
+		*mauiLineStarts.Add() = 0;
+	}
 	szText = mszText.Text();
 	uiLength = mszText.Length();
-	for (uiPosition = 0; uiPosition < uiLength; uiPosition++)
+	for (uiPosition = uiFrom; uiPosition < uiLength; uiPosition++)
 	{
 		if (szText[uiPosition] == '\n')
 		{
@@ -3897,23 +3882,9 @@ bool CTextArea::UseTiles(void)
 void CTextArea::ReadTiles(void)
 {
 	Ptr<CFontColours>		pColours;
-	Ptr<CFont>				pWhite;
-	size					uiCellWidth;
-	size					uiCellHeight;
-	size					uiNumStops;
-	size					ui;
-	size					uiStart;
-	size					uiEnd;
-	size					uiColumn;
-	size					uiNextColumn;
-	size					uiColumns;
-	size					uiRow;
-	size					uiTileRow;
-	size					uiTextLine;
-	size					uiLength;
-	char*					szText;
-	STextLayoutLine*		psLine;
-	STextLayoutStop*		psStop;
+	STextAreaTileCursor		sCursor;
+	size					uiTileRows;
+	size					uiLine;
 	CArrayTileTextSpan		asSpans;
 	CArrayTileTextLineRows	auiLineRows;
 	STextStyle*				psStyles;
@@ -3922,83 +3893,27 @@ void CTextArea::ReadTiles(void)
 	mpText = NULL;
 
 	pColours = GetFontColours();
-	pWhite = pColours->GetWhite();
-	uiCellWidth = pWhite->GetAverageWidth();
-	uiCellHeight = (size)pWhite->GetLineHeight();
-
-	szText = mszText.Text();
-	uiLength = mszText.Length();
+	StartTileCursor(pColours->GetWhite(), &sCursor);
 	masTileLines.ReInit();
 	masTileStops.ReInit();
-	psLine = masTileLines.Add();
-	psLine->iTop = 0;
-	psLine->iHeight = (int32)uiCellHeight;
-	psLine->iBaseline = pWhite->GetAscent();  //Below the top of the text, as CTextLayout's are.
-	psLine->uiFirstStop = 0;
-	psLine->uiNumStops = 0;
-	psLine->iWidth = 0;
+	AddTileLine(&sCursor, 0);
+	uiTileRows = AddTileStops(&sCursor);
+	msTextSize.Init((int32)(sCursor.uiColumns * sCursor.uiCellWidth), (int32)(uiTileRows * sCursor.uiCellHeight));
 
-	uiColumn = 0;
-	uiColumns = 0;
-	uiRow = 0;
-	uiTileRow = 0;
-	uiTextLine = 0;
-	auiLineRows.Init();
-	*auiLineRows.Add() = 0;
-	uiNumStops = mauiStopStarts.NumElements();
-	for (ui = 0; ui < uiNumStops; ui++)
-	{
-		uiStart = *mauiStopStarts.Get(ui);
-		uiEnd = (ui + 1 < uiNumStops) ? *mauiStopStarts.Get(ui + 1) : uiLength;
-
-		psStop = masTileStops.Add();
-		psStop->x = (int32)(uiColumn * uiCellWidth);
-		psStop->iWidth = 0;
-		psStop->uiLine = uiRow;
-		masTileLines.Get(uiRow)->uiNumStops++;
-
-		if (uiStart < uiLength)
-		{
-			if (szText[uiStart] == '\n')
-			{
-				//The line feed is the last stop of its row.  The line's gap is rows of no text.
-				uiTileRow += 1 + ((size)GetLineGap(uiTextLine) + uiCellHeight - 1) / uiCellHeight;
-				uiTextLine++;
-				*auiLineRows.Add() = uiTileRow;
-				uiRow++;
-				uiColumn = 0;
-				psLine = masTileLines.Add();
-				psLine->iTop = (int32)(uiTileRow * uiCellHeight);
-				psLine->iHeight = (int32)uiCellHeight;
-				psLine->iBaseline = (int32)(uiTileRow * uiCellHeight) + pWhite->GetAscent();
-				psLine->uiFirstStop = ui + 1;
-				psLine->uiNumStops = 0;
-				psLine->iWidth = 0;
-			}
-			else
-			{
-				uiNextColumn = TileTextColumns(&szText[uiStart], uiEnd - uiStart, uiColumn, (size)miTabWidth);
-				psStop->iWidth = (int32)((uiNextColumn - uiColumn) * uiCellWidth);
-				uiColumn = uiNextColumn;
-			}
-		}
-		if (uiColumn > uiColumns)
-		{
-			uiColumns = uiColumn;
-		}
-	}
-	uiTileRow += 1 + ((size)GetLineGap(uiTextLine) + uiCellHeight - 1) / uiCellHeight;
-	msTextSize.Init((int32)(uiColumns * uiCellWidth), (int32)(uiTileRow * uiCellHeight));
-
-	mpTileLayer->SetCelSize(SSizeVec2(uiCellWidth, uiCellHeight));
-	mpTileLayer->SetMapSize(SSizeVec2((uiColumns > 0) ? uiColumns : 1, uiTileRow));
+	mpTileLayer->SetCelSize(SSizeVec2(sCursor.uiCellWidth, sCursor.uiCellHeight));
+	mpTileLayer->SetMapSize(SSizeVec2((sCursor.uiColumns > 0) ? sCursor.uiColumns : 1, uiTileRows));
 	mpTileWriter->SetColours(pColours, msStyle.sColour);
 	mpTileWriter->SetTabWidth((size)miTabWidth);
 
+	auiLineRows.Init();
+	for (uiLine = 0; uiLine < masTileLines.NumElements(); uiLine++)
+	{
+		*auiLineRows.Add() = (size)masTileLines.Get(uiLine)->iTop / sCursor.uiCellHeight;
+	}
 	psStyles = MakeStyles();
 	asSpans.Init();
-	MakeTileSpans(psStyles, &asSpans);
-	mpTileWriter->Write(szText, &asSpans, &auiLineRows);
+	MakeTileSpans(psStyles, 0, &asSpans);
+	mpTileWriter->Write(mszText.Text(), &asSpans, &auiLineRows);
 	asSpans.Kill();
 	auiLineRows.Kill();
 
@@ -4012,9 +3927,117 @@ void CTextArea::ReadTiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The text from uiFrom on in the fonts of its styles, as ReadText reads
-// the whole text, its font changes from uiFrom.  NULL without a font for
-// the text area's style.
+// The cursor at the start of the text, its cells the size of pWhite's
+// characters.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::StartTileCursor(Ptr<CFont> pWhite, STextAreaTileCursor* psCursor)
+{
+	psCursor->uiCellWidth = pWhite->GetAverageWidth();
+	psCursor->uiCellHeight = (size)pWhite->GetLineHeight();
+	psCursor->iAscent = pWhite->GetAscent();
+	psCursor->uiColumn = 0;
+	psCursor->uiColumns = 0;
+	psCursor->uiRow = 0;
+	psCursor->uiTileRow = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A row of tiles starting at the cursor's tile row, its first stop
+// uiFirstStop.  Its baseline is below the top of the text, as
+// CTextLayout's are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AddTileLine(STextAreaTileCursor* psCursor, size uiFirstStop)
+{
+	STextLayoutLine*	psLine;
+
+	psLine = masTileLines.Add();
+	psLine->iTop = (int32)(psCursor->uiTileRow * psCursor->uiCellHeight);
+	psLine->iHeight = (int32)psCursor->uiCellHeight;
+	psLine->iBaseline = psLine->iTop + psCursor->iAscent;
+	psLine->uiFirstStop = uiFirstStop;
+	psLine->uiNumStops = 0;
+	psLine->iWidth = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A tile stop for each stop start after the tile stops there are, laid
+// out from the cursor on: a line feed is the last stop of its row and the
+// line's gap is rows of no text below it.  Returns the rows of tiles the
+// text needs.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::AddTileStops(STextAreaTileCursor* psCursor)
+{
+	size				ui;
+	size				uiNumStops;
+	size				uiStart;
+	size				uiEnd;
+	size				uiNextColumn;
+	size				uiLength;
+	char*				szText;
+	STextLayoutStop*	psStop;
+
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+	uiNumStops = mauiStopStarts.NumElements();
+	for (ui = masTileStops.NumElements(); ui < uiNumStops; ui++)
+	{
+		uiStart = *mauiStopStarts.Get(ui);
+		uiEnd = (ui + 1 < uiNumStops) ? *mauiStopStarts.Get(ui + 1) : uiLength;
+
+		psStop = masTileStops.Add();
+		psStop->x = (int32)(psCursor->uiColumn * psCursor->uiCellWidth);
+		psStop->iWidth = 0;
+		psStop->uiLine = psCursor->uiRow;
+		masTileLines.Get(psCursor->uiRow)->uiNumStops++;
+
+		if (uiStart < uiLength)
+		{
+			if (szText[uiStart] == '\n')
+			{
+				psCursor->uiTileRow += 1 + GetGapTileRows(psCursor->uiRow, psCursor->uiCellHeight);
+				psCursor->uiRow++;
+				psCursor->uiColumn = 0;
+				AddTileLine(psCursor, ui + 1);
+			}
+			else
+			{
+				uiNextColumn = TileTextColumns(&szText[uiStart], uiEnd - uiStart, psCursor->uiColumn, (size)miTabWidth);
+				psStop->iWidth = (int32)((uiNextColumn - psCursor->uiColumn) * psCursor->uiCellWidth);
+				psCursor->uiColumn = uiNextColumn;
+			}
+		}
+		if (psCursor->uiColumn > psCursor->uiColumns)
+		{
+			psCursor->uiColumns = psCursor->uiColumn;
+		}
+	}
+	return psCursor->uiTileRow + 1 + GetGapTileRows(psCursor->uiRow, psCursor->uiCellHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The fewest empty rows of tiles at least as high as line uiLine's gap.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::GetGapTileRows(size uiLine, size uiCellHeight)
+{
+	return ((size)GetLineGap(uiLine) + uiCellHeight - 1) / uiCellHeight;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text from uiFrom on (0 for all of it) in the fonts of its styles,
+// its font changes from uiFrom.  NULL without a font for the text area's
+// style.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CText> CTextArea::ReadTextFrom(size uiFrom)
@@ -4031,6 +4054,8 @@ Ptr<CText> CTextArea::ReadTextFrom(size uiFrom)
 	{
 		return NULL;
 	}
+
+	//The reader's font has no baseline shift or decorations so a style with them needs a change at the start.
 	asChanges.Init();
 	if ((iBaselineShift != 0) || (msStyle.GetDecorations() != 0))
 	{
@@ -4099,7 +4124,7 @@ void CTextArea::AppendSprites(size uiFrom)
 	uiTailStart = *mauiLineStarts.Get(uiTextLine);
 	uiLayoutLine = mpLayout->GetStop(FindStop(uiTailStart))->uiLine;
 	iTop = mpLayout->GetLine(uiLayoutLine)->iTop;
-	AppendStops(uiFrom);
+	FindStopStarts(uiFrom);
 
 	//Its rows' sprites go: they were placed after those of the rows above, below their tops.
 	uiSprite = mpSpriteMap->NumSprites();
@@ -4167,58 +4192,6 @@ bool CTextArea::CanAppendTiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The line starts of the text from uiFrom (the old end) on, after those
-// found before.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AppendLineStarts(size uiFrom)
-{
-	size	uiPosition;
-	size	uiLength;
-	char*	szText;
-
-	szText = mszText.Text();
-	uiLength = mszText.Length();
-	for (uiPosition = uiFrom; uiPosition < uiLength; uiPosition++)
-	{
-		if (szText[uiPosition] == '\n')
-		{
-			*mauiLineStarts.Add() = uiPosition + 1;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The stops of the text from uiFrom (the old end) on: the old end stop is
-// replaced by the new characters' and a new end stop.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AppendStops(size uiFrom)
-{
-	size	uiPosition;
-	size	uiLength;
-	char*	szText;
-
-	mauiStopStarts.RemoveTail();
-	szText = mszText.Text();
-	uiLength = mszText.Length();
-	uiPosition = uiFrom;
-	while (uiPosition < uiLength)
-	{
-		if (szText[uiPosition] != '\r')
-		{
-			*mauiStopStarts.Add() = uiPosition;
-		}
-		uiPosition += mcNavigation.CharacterLength(uiPosition);
-	}
-	*mauiStopStarts.Add() = uiLength;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The text from uiFrom (the old end) on added to the tiles, as ReadTiles
 // would read it: its stops and lines after those before, the layer made
 // big enough, and only the rows of its lines written (the first of them
@@ -4227,128 +4200,49 @@ void CTextArea::AppendStops(size uiFrom)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::AppendTiles(size uiFrom)
 {
-	Ptr<CFontColours>		pColours;
-	Ptr<CFont>				pWhite;
-	size					uiCellWidth;
-	size					uiCellHeight;
-	size					uiNumStops;
-	size					ui;
-	size					uiStart;
-	size					uiEnd;
-	size					uiColumn;
-	size					uiNextColumn;
-	size					uiColumns;
-	size					uiRow;
-	size					uiFirstRow;
-	size					uiTileRow;
-	size					uiLength;
-	size					uiLineStart;
-	size					uiLineEnd;
-	size					uiPosition;
-	size					uiRange;
-	char*					szText;
-	STextLayoutLine*		psLine;
-	STextLayoutStop*		psStop;
-	STextStyle*				psStyles;
-	STileTextSpan*			psTileSpan;
-	CArrayTileTextSpan		asSpans;
-	ARGB32					sColour;
-
-	pColours = GetFontColours();
-	pWhite = pColours->GetWhite();
-	uiCellWidth = pWhite->GetAverageWidth();
-	uiCellHeight = (size)pWhite->GetLineHeight();
-	szText = mszText.Text();
-	uiLength = mszText.Length();
+	STextAreaTileCursor	sCursor;
+	STextLayoutStop*	psStop;
+	size				uiFirstRow;
+	size				uiTileRows;
+	size				uiRow;
+	size				uiLineStart;
+	size				uiLineEnd;
+	size				uiLength;
+	char*				szText;
+	STextStyle*			psStyles;
+	CArrayTileTextSpan	asSpans;
 
 	//The old end stop goes: the text goes on from where it was.
+	StartTileCursor(GetFontColours()->GetWhite(), &sCursor);
 	psStop = masTileStops.Tail();
-	uiColumn = (uiCellWidth > 0) ? (size)psStop->x / uiCellWidth : 0;
-	uiRow = psStop->uiLine;
-	uiFirstRow = uiRow;
-	masTileLines.Get(uiRow)->uiNumStops--;
+	uiFirstRow = psStop->uiLine;
+	sCursor.uiRow = uiFirstRow;
+	sCursor.uiColumn = (sCursor.uiCellWidth > 0) ? (size)psStop->x / sCursor.uiCellWidth : 0;
+	sCursor.uiColumns = (sCursor.uiCellWidth > 0) ? (size)msTextSize.x / sCursor.uiCellWidth : 0;
+	sCursor.uiTileRow = (size)masTileLines.Get(uiFirstRow)->iTop / sCursor.uiCellHeight;
+	masTileLines.Get(uiFirstRow)->uiNumStops--;
 	masTileStops.RemoveTail();
-	uiColumns = (uiCellWidth > 0) ? (size)msTextSize.x / uiCellWidth : 0;
-	uiTileRow = (size)masTileLines.Get(uiRow)->iTop / uiCellHeight;
 
-	AppendStops(uiFrom);
-	uiNumStops = mauiStopStarts.NumElements();
-	for (ui = masTileStops.NumElements(); ui < uiNumStops; ui++)
-	{
-		uiStart = *mauiStopStarts.Get(ui);
-		uiEnd = (ui + 1 < uiNumStops) ? *mauiStopStarts.Get(ui + 1) : uiLength;
+	FindStopStarts(uiFrom);
+	uiTileRows = AddTileStops(&sCursor);
+	msTextSize.Init((int32)(sCursor.uiColumns * sCursor.uiCellWidth), (int32)(uiTileRows * sCursor.uiCellHeight));
+	mpTileLayer->SetMapSize(SSizeVec2((sCursor.uiColumns > 0) ? sCursor.uiColumns : 1, uiTileRows));
 
-		psStop = masTileStops.Add();
-		psStop->x = (int32)(uiColumn * uiCellWidth);
-		psStop->iWidth = 0;
-		psStop->uiLine = uiRow;
-		masTileLines.Get(uiRow)->uiNumStops++;
-
-		if (uiStart < uiLength)
-		{
-			if (szText[uiStart] == '\n')
-			{
-				uiTileRow += 1 + ((size)GetLineGap(uiRow) + uiCellHeight - 1) / uiCellHeight;
-				uiRow++;
-				uiColumn = 0;
-				psLine = masTileLines.Add();
-				psLine->iTop = (int32)(uiTileRow * uiCellHeight);
-				psLine->iHeight = (int32)uiCellHeight;
-				psLine->iBaseline = (int32)(uiTileRow * uiCellHeight) + pWhite->GetAscent();
-				psLine->uiFirstStop = ui + 1;
-				psLine->uiNumStops = 0;
-				psLine->iWidth = 0;
-			}
-			else
-			{
-				uiNextColumn = TileTextColumns(&szText[uiStart], uiEnd - uiStart, uiColumn, (size)miTabWidth);
-				psStop->iWidth = (int32)((uiNextColumn - uiColumn) * uiCellWidth);
-				uiColumn = uiNextColumn;
-			}
-		}
-		if (uiColumn > uiColumns)
-		{
-			uiColumns = uiColumn;
-		}
-	}
-	msTextSize.Init((int32)(uiColumns * uiCellWidth), (int32)((uiTileRow + 1 + ((size)GetLineGap(uiRow) + uiCellHeight - 1) / uiCellHeight) * uiCellHeight));
-	mpTileLayer->SetMapSize(SSizeVec2((uiColumns > 0) ? uiColumns : 1, (size)msTextSize.y / uiCellHeight));
-
-	//The colours of the text from the start of the first line written, as MakeStyles and MakeTileSpans make them.
+	//The colours of the text from the start of the first line written.
 	uiLineStart = *mauiLineStarts.Get(uiFirstRow);
-	uiRange = uiLength - uiLineStart;
-	asSpans.Init();
 	psStyles = MakeStyles(uiLineStart);
-	if (psStyles)
-	{
-		uiPosition = 0;
-		while (uiPosition < uiRange)
-		{
-			sColour = psStyles[uiPosition].sColour;
-			if (sColour == msStyle.sColour)
-			{
-				uiPosition++;
-				continue;
-			}
-			uiStart = uiPosition;
-			while ((uiPosition < uiRange) && (psStyles[uiPosition].sColour == sColour))
-			{
-				uiPosition++;
-			}
-			psTileSpan = asSpans.Add();
-			psTileSpan->uiStart = uiLineStart + uiStart;
-			psTileSpan->uiLength = uiPosition - uiStart;
-			psTileSpan->sColour = sColour;
-		}
-		SafeFree(psStyles);
-	}
+	asSpans.Init();
+	MakeTileSpans(psStyles, uiLineStart, &asSpans);
+	SafeFree(psStyles);
 
 	//Each line from the old last one written on its row.
+	szText = mszText.Text();
+	uiLength = mszText.Length();
 	for (uiRow = uiFirstRow; uiRow < mauiLineStarts.NumElements(); uiRow++)
 	{
 		uiLineStart = *mauiLineStarts.Get(uiRow);
 		uiLineEnd = (uiRow + 1 < mauiLineStarts.NumElements()) ? *mauiLineStarts.Get(uiRow + 1) - 1 : uiLength;
-		mpTileWriter->WriteRow((size)masTileLines.Get(uiRow)->iTop / uiCellHeight, &szText[uiLineStart], uiLineEnd - uiLineStart, uiLineStart, &asSpans);
+		mpTileWriter->WriteRow((size)masTileLines.Get(uiRow)->iTop / sCursor.uiCellHeight, &szText[uiLineStart], uiLineEnd - uiLineStart, uiLineStart, &asSpans);
 	}
 	asSpans.Kill();
 }
@@ -4375,14 +4269,16 @@ void CTextArea::LayoutTiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bytes coloured differently from the text area's style, as sorted
-// spans that don't overlap.  Only the colours of the styles are used:
-// every tile is the size of the text area's font.
+// The bytes from uiFrom on coloured differently from the text area's
+// style, as sorted spans that don't overlap.  psStyles are those of the
+// bytes from uiFrom on (MakeStyles(uiFrom)); NULL makes none.  Only the
+// colours of the styles are used: every tile is the size of the text
+// area's font.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans)
+void CTextArea::MakeTileSpans(STextStyle* psStyles, size uiFrom, CArrayTileTextSpan* pasSpans)
 {
-	size			uiTextLength;
+	size			uiRange;
 	size			uiPosition;
 	size			uiStart;
 	STileTextSpan*	psTileSpan;
@@ -4393,9 +4289,9 @@ void CTextArea::MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans
 		return;
 	}
 
-	uiTextLength = mszText.Length();
+	uiRange = mszText.Length() - uiFrom;
 	uiPosition = 0;
-	while (uiPosition < uiTextLength)
+	while (uiPosition < uiRange)
 	{
 		sColour = psStyles[uiPosition].sColour;
 		if (sColour == msStyle.sColour)
@@ -4404,12 +4300,12 @@ void CTextArea::MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans
 			continue;
 		}
 		uiStart = uiPosition;
-		while ((uiPosition < uiTextLength) && (psStyles[uiPosition].sColour == sColour))
+		while ((uiPosition < uiRange) && (psStyles[uiPosition].sColour == sColour))
 		{
 			uiPosition++;
 		}
 		psTileSpan = pasSpans->Add();
-		psTileSpan->uiStart = uiStart;
+		psTileSpan->uiStart = uiFrom + uiStart;
 		psTileSpan->uiLength = uiPosition - uiStart;
 		psTileSpan->sColour = sColour;
 	}
