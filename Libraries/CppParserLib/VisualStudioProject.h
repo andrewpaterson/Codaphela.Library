@@ -43,7 +43,7 @@ public:
 	char*		GetSource(size uiIndex);
 
 protected:
-	void		MatchCase(CArrayChars* paszFiles, CChars* pszSource);
+	void		MatchCase(CChars* pszSource);
 };
 
 

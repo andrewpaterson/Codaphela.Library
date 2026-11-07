@@ -4,6 +4,7 @@
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "CppParserLib/Project.h"
+#include "CppParserLib/VisualStudioProject.h"
 #include "TestLib/Assert.h"
 
 
@@ -267,6 +268,55 @@ void TestMissingIncludeDirectory(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes szText to szPath.
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteProjectFile(const char* szPath, const char* szText)
+{
+	CTextFile	cFile;
+
+	cFile.Init(szText);
+	AssertTrue(cFile.Write(szPath));
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Visual Studio project's sources are named as the files are, whatever
+// case the project wrote them in, a directory at a time: sub\unit.cpp is
+// Sub/Unit.cpp, not Other/Unit.cpp.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestVisualStudioProjectCase(void)
+{
+	CFileUtil				cFileUtil;
+	CVisualStudioProject	cProject;
+	CChars					szExpected;
+
+	cFileUtil.RemoveDir("Output" _FS_ "VSProject");
+	AssertTrue(cFileUtil.TouchDir("Output" _FS_ "VSProject" _FS_ "Sub"));
+	AssertTrue(cFileUtil.TouchDir("Output" _FS_ "VSProject" _FS_ "Other"));
+	WriteProjectFile("Output" _FS_ "VSProject" _FS_ "Sub" _FS_ "Unit.cpp", "int x;\n");
+	WriteProjectFile("Output" _FS_ "VSProject" _FS_ "Other" _FS_ "Unit.cpp", "int y;\n");
+	WriteProjectFile("Output" _FS_ "VSProject" _FS_ "Main.cpp", "int z;\n");
+	WriteProjectFile("Output" _FS_ "VSProject" _FS_ "Test.vcxproj", "<ItemGroup>\n<ClCompile Include=\"sub\\unit.cpp\" />\n<ClCompile Include=\"MAIN.cpp\" />\n<ClCompile Include=\"Missing.cpp\" />\n</ItemGroup>\n");
+
+	cProject.Init();
+	AssertTrue(cProject.Read("Output" _FS_ "VSProject" _FS_ "Test.vcxproj"));
+	AssertSize(3, cProject.NumSources());
+	szExpected.Init("Sub" _FS_ "Unit.cpp");
+	AssertString(szExpected.Text(), cProject.GetSource(0));
+	szExpected.Kill();
+	AssertString("Main.cpp", cProject.GetSource(1));
+	AssertString("Missing.cpp", cProject.GetSource(2));
+	cProject.Kill();
+	cFileUtil.RemoveDir("Output" _FS_ "VSProject");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestProject(void)
@@ -279,6 +329,7 @@ void TestProject(void)
 	TestWritePostFile();
 	TestNoPostFile();
 	TestMissingIncludeDirectory();
+	TestVisualStudioProjectCase();
 
 	TestStatistics();
 }

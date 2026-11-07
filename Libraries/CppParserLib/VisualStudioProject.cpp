@@ -55,7 +55,6 @@ bool CVisualStudioProject::Read(const char* szProjectFile)
 {
 	CTextFile	cFile;
 	CFileUtil	cFileUtil;
-	CArrayChars	aszFiles;
 	CChars		szSource;
 	const char*	szText;
 	const char*	szStart;
@@ -74,9 +73,6 @@ bool CVisualStudioProject::Read(const char* szProjectFile)
 		return false;
 	}
 
-	aszFiles.Init();
-	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFiles, false, true);
-
 	szTag = "<ClCompile Include=\"";
 	szText = cFile.Text();
 	for (szStart = strstr(szText, szTag); szStart; szStart = strstr(szEnd, szTag))
@@ -90,11 +86,10 @@ bool CVisualStudioProject::Read(const char* szProjectFile)
 		szSource.Init();
 		szSource.Append((char*)szStart, (int)(szEnd - szStart));
 		szSource.Replace('\\', FILE_SEPARATOR[0]);
-		MatchCase(&aszFiles, &szSource);
+		MatchCase(&szSource);
 		maszSources.Add(szSource.Text());
 		szSource.Kill();
 	}
-	aszFiles.Kill();
 	cFile.Kill();
 	return true;
 }
@@ -102,28 +97,67 @@ bool CVisualStudioProject::Read(const char* szProjectFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The name of the file in the directory that is pszSource ignoring case.
+// pszSource (relative to the project's directory) named as its directories
+// and file are, a part at a time: each is the entry of the directory it is
+// in that is it ignoring case.  A part nothing matches (a file that isn't
+// there) is left as it was written.
 //
 //////////////////////////////////////////////////////////////////////////
-void CVisualStudioProject::MatchCase(CArrayChars* paszFiles, CChars* pszSource)
+void CVisualStudioProject::MatchCase(CChars* pszSource)
 {
 	CFileUtil	cFileUtil;
+	CArrayChars	aszParts;
+	CArrayChars	aszEntries;
+	CChars		szDirectory;
+	CChars		szMatched;
 	CChars		szName;
+	char*		szPart;
 	size		i;
+	size		j;
 
-	for (i = 0; i < paszFiles->NumElements(); i++)
+	aszParts.Init();
+	pszSource->Split(&aszParts, FILE_SEPARATOR[0]);
+	szDirectory.Init(mszDirectory);
+	szMatched.Init();
+	for (i = 0; i < aszParts.NumElements(); i++)
 	{
-		szName.Init(paszFiles->GetText(i));
-		cFileUtil.RemovePath(&szName);
-		if (szName.EqualsIgnoreCase(pszSource->Text()))
+		szPart = aszParts.GetText(i);
+		szName.Init(szPart);
+		if ((strcmp(szPart, ".") != 0) && (strcmp(szPart, "..") != 0))
 		{
-			pszSource->Kill();
-			pszSource->Init(szName);
-			szName.Kill();
-			return;
+			aszEntries.Init();
+			cFileUtil.FindAllDirectories(szDirectory.Text(), &aszEntries, true);
+			cFileUtil.FindAllFiles(szDirectory.Text(), &aszEntries, false, true);
+			for (j = 0; j < aszEntries.NumElements(); j++)
+			{
+				szName.Kill();
+				szName.Init(aszEntries.GetText(j));
+				cFileUtil.RemovePath(&szName);
+				if (szName.EqualsIgnoreCase(szPart))
+				{
+					break;
+				}
+			}
+			if (j == aszEntries.NumElements())
+			{
+				szName.Kill();
+				szName.Init(szPart);
+			}
+			aszEntries.Kill();
 		}
+		if (i > 0)
+		{
+			szMatched.Append(FILE_SEPARATOR[0]);
+		}
+		szMatched.Append(szName);
+		cFileUtil.AppendToPath(&szDirectory, szName.Text());
 		szName.Kill();
 	}
+	pszSource->Kill();
+	pszSource->Init(szMatched);
+	szMatched.Kill();
+	szDirectory.Kill();
+	aszParts.Kill();
 }
 
 
