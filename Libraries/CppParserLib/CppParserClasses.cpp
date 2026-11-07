@@ -145,7 +145,10 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 		else
 		{
 			Resolve(pcComponent->miName, pcSymbol, CPPTR_Declaration);
-			pcSymbol->mpcDeclaration = pcClass;
+			if (miTentative == 0)
+			{
+				pcSymbol->mpcDeclaration = pcClass;
+			}
 		}
 	}
 	else if (pcClass->mpcName)
@@ -159,13 +162,14 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 		pcComponent->mpcSymbol = pcSymbol;
 	}
 
+	//A symbol declared before is only changed by the real parse: a tentative one is rewound, its class dropped.
 	pcClass->mpcScope = mpcSymbols->CreateScope(CPPSC_Class, pcQualifier ? pcQualifier : mpcScope, pcSymbol);
-	if (pcSymbol && (!pcSymbol->mpcMembers || bSimple))
-	{
-		pcSymbol->mpcMembers = pcClass->mpcScope;
-	}
 	if (pcSymbol && (miTentative == 0))
 	{
+		if (!pcSymbol->mpcMembers || bSimple)
+		{
+			pcSymbol->mpcMembers = pcClass->mpcScope;
+		}
 		//The injected class name.  [class] 2
 		pcClass->mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol);
 	}
@@ -495,7 +499,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	}
 
 	pcEnum->mpcScope = mpcSymbols->CreateScope(CPPSC_Enum, mpcScope, pcSymbol);
-	if (pcSymbol)
+	if (pcSymbol && (miTentative == 0))
 	{
 		pcSymbol->mpcMembers = pcEnum->mpcScope;
 	}

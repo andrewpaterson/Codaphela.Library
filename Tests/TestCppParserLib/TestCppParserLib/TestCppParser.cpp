@@ -1581,6 +1581,24 @@ int Area(N::SPoint* ps, CArray<int>* pa) { return SQUARE(ps->x) + *pa->Get(ps->y
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A class parsed by a lookahead (sizeof's type-id is parsed tentatively,
+// then again) doesn't change a class declared before: N::S's members are
+// the real definition's, so N::S::a finds the a declared there.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserTentativeClassDefinition(void)
+{
+	SParsedText		sParsed;
+
+	sParsed.Init("namespace N { struct S; }\nint n = sizeof(struct N::S { int a; });\nint m = sizeof(N::S::a);\n");
+	AssertNotNull(sParsed.GetSymbol("a", 0));
+	AssertPointer(sParsed.GetSymbol("a", 0), sParsed.GetSymbol("a", 1));
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParser(void)
@@ -1615,6 +1633,7 @@ void TestCppParser(void)
 	TestCppParserDeclarationErrors();
 	TestCppParserDeclarationsWithoutDeclarators();
 	TestCppParserWorkspace();
+	TestCppParserTentativeClassDefinition();
 
 	NumberKill();
 	TypeConverterKill();
