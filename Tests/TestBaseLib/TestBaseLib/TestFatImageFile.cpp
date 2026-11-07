@@ -4,6 +4,7 @@
 #include "BaseLib/MemoryDrive.h"
 #include "BaseLib/Fat32.h"
 #include "BaseLib/FatImageFile.h"
+#include "BaseLib/FatAbstractFile.h"
 #include "TestLib/Assert.h"
 
 
@@ -156,6 +157,80 @@ void TestFatImageFileRemount(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A FAT file opened to replace through its abstract file starts empty: what
+// is written is all it holds, and the clusters it no longer needs are free
+// again.  Opened to write without replacing, it keeps what it had.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFatImageFileAbstractReplace(void)
+{
+	CMemoryDrive		cDrive;
+	CFatVolume			cVolume;
+	CFatFile			cFile;
+	CFatAbstractFile	cAbstract;
+	uint8				auiFirst[3000];
+	uint8				auiSecond[700];
+	uint8				auiRead[3000];
+	lsize				uiRead;
+	uint32				uiFree;
+	uint32				i;
+
+	for (i = 0; i < sizeof(auiFirst); i++)
+	{
+		auiFirst[i] = (uint8)(i * 7 + 1);
+	}
+	for (i = 0; i < sizeof(auiSecond); i++)
+	{
+		auiSecond[i] = (uint8)(i * 13 + 5);
+	}
+
+	AssertTrue(cDrive.Init((uint64)TEST_FAT_IMAGE_SECTORS * 512, 512));
+	AssertInt(FAT_SUCCESS, FatFormat(FAT_FS_TYPE_FAT16, "Image", 2, &cDrive));
+	AssertInt(FAT_SUCCESS, cVolume.Mount(&cDrive));
+	uiFree = cVolume.GetTotalFreeClusters();
+
+	cFile.Init(&cVolume);
+	AssertInt(FAT_SUCCESS, cFile.Open("\\data.bin", FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_WRITE));
+	AssertInt(FAT_SUCCESS, cFile.Write(auiFirst, sizeof(auiFirst)));
+	AssertInt(FAT_SUCCESS, cFile.Close());
+	AssertInt(uiFree - 3, cVolume.GetTotalFreeClusters());
+
+	//Opened to write, it keeps what it had.
+	cFile.Init(&cVolume);
+	AssertInt(FAT_SUCCESS, cFile.Open("\\data.bin", FAT_FILE_ACCESS_READ | FAT_FILE_ACCESS_WRITE));
+	cAbstract.Init(&cFile);
+	AssertTrue(cAbstract.Open(EFM_ReadWrite));
+	AssertLong(sizeof(auiFirst), cAbstract.Size());
+	AssertTrue(cAbstract.Close());
+
+	//Opened to replace, it is emptied and holds only what is written.
+	AssertTrue(cAbstract.Open(EFM_Write_Replace));
+	AssertLong(0, cAbstract.Size());
+	AssertLong(0, cAbstract.Tell());
+	AssertLong(1, cAbstract.Write(auiSecond, sizeof(auiSecond), 1));
+	AssertLong(sizeof(auiSecond), cAbstract.Size());
+	AssertTrue(cAbstract.Close());
+	cAbstract.Kill();
+	AssertInt(FAT_SUCCESS, cFile.Close());
+	AssertInt(uiFree - 1, cVolume.GetTotalFreeClusters());
+
+	//Still so once mounted again.
+	AssertInt(FAT_SUCCESS, cVolume.Unmount());
+	AssertInt(FAT_SUCCESS, cVolume.Mount(&cDrive));
+	cFile.Init(&cVolume);
+	AssertInt(FAT_SUCCESS, cFile.Open("\\data.bin", FAT_FILE_ACCESS_READ));
+	uiRead = 0;
+	AssertInt(FAT_SUCCESS, cFile.Read(auiRead, sizeof(auiRead), &uiRead));
+	AssertLong(sizeof(auiSecond), (int64)uiRead);
+	AssertMemory(auiSecond, auiRead, sizeof(auiSecond));
+	AssertInt(FAT_SUCCESS, cFile.Close());
+	AssertInt(FAT_SUCCESS, cVolume.Unmount());
+	cDrive.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFatImageFile(void)
@@ -163,6 +238,7 @@ void TestFatImageFile(void)
 	BeginTests();
 
 	TestFatImageFileRemount();
+	TestFatImageFileAbstractReplace();
 	TestFatImageFilePut();
 
 	TestStatistics();
