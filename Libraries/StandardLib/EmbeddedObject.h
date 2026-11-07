@@ -110,6 +110,7 @@ public:
 	virtual size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual size				NumEmbedded(void) =0;
 			void				SetEmbedding(CBaseObject* pcEmbedded);
+			CBaseObject*		GetEmbedding(void);  //The object this is embedded in directly (GetEmbeddingContainer is the outermost); NULL if not embedded.
 	virtual CEmbeddedObject*	GetEmbeddedObject(size iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
 			bool				IsAllocatedInObjects(void);
