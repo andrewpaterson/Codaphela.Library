@@ -1373,6 +1373,38 @@ void TestIR65PeepholeOptimise(const char* szExpected, const char* szCode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A branch or bra to the label after it goes (only a label or nothing
+// between); one with an instruction between stays.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendPeepholeBranchesToNext(void)
+{
+	TestIR65PeepholeOptimise(
+		"_F:\n"
+		"\t\tcmp A, B\n"
+		"L1:\n"
+		"\t\tadd A, 1\n"
+		"L2:\n"
+		"\t\tbras z, L3\n"
+		"\t\tadd A, 2\n"
+		"L3:\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcmp A, B\n"
+		"\t\tbras z, L1\n"
+		"L1:\n"
+		"\t\tadd A, 1\n"
+		"\t\tbra L2\n"
+		"L2:\n"
+		"\t\tbras z, L3\n"
+		"\t\tadd A, 2\n"
+		"L3:\n"
+		"\t\tret\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A cpy of what the register already holds goes: a register, a constant
 // or the function's own memory, unchanged since (across a label the ways
 // in agree on), when the flags it sets aren't read.
@@ -1706,6 +1738,7 @@ void TestIR65Backend(void)
 	TestIR65BackendWidths();
 	TestIR65BackendFlags();
 	TestIR65BackendPeepholeWidths();
+	TestIR65BackendPeepholeBranchesToNext();
 	TestIR65BackendSoftFloatNames();
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();

@@ -162,45 +162,11 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the branch at uiLine goes to a label straight after it.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR65BranchToNext(CArrayChars* paszLines, size uiLine)
-{
-	CChars*		pszLine;
-	CChars*		pszLabel;
-	const char*	szTarget;
-	size		ui;
-
-	pszLine = paszLines->Get(uiLine);
-	if (!pszLine->StartsWith("\t\tbra ") && !pszLine->StartsWith("\t\tbras ") && !pszLine->StartsWith("\t\tbrac ") && !pszLine->StartsWith("\t\tbrasa ") && !pszLine->StartsWith("\t\tbraso "))
-	{
-		return false;
-	}
-	szTarget = FindChar(pszLine->Text(), ' ', true) + 1;
-	for (ui = uiLine + 1; ui < paszLines->NumElements(); ui++)
-	{
-		pszLabel = paszLines->Get(ui);
-		if (pszLabel->Empty() || pszLabel->StartsWith('\t'))
-		{
-			return false;
-		}
-		if (pszLabel->EndsWith(':') && (pszLabel->Length() == strlen(szTarget) + 1) && pszLabel->StartsWith(szTarget))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Cleans up the function's code written from uiStart: a branch to the
-// label just after it goes, and a value stored to a pseudo register or the
-// frame then read straight back (at 32 bits) is copied from the register it
-// was stored from instead (or not at all into the same register: the store
-// set the same flags).
+// Cleans up the function's code written from uiStart: a value stored to a
+// pseudo register or the frame then read straight back (at 32 bits) is
+// copied from the register it was stored from instead (or not at all into
+// the same register: the store set the same flags).  A branch to the label
+// after it is left for CIR65Peephole (RemoveBranchesToNext).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Peephole(size uiStart)
@@ -281,7 +247,7 @@ void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<in
 				memset(aiWidths, 0, sizeof(aiWidths));
 			}
 		}
-		else if ((pszLine->Length() == 2) || IR65BranchToNext(&aszLines, ui))
+		else if (pszLine->Length() == 2)
 		{
 			continue;
 		}
