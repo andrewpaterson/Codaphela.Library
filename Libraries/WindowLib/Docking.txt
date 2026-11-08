@@ -27,7 +27,17 @@ Everything in Steps is built: CDockManager, CDockPane, CDockNode with CDockSplit
 CDockArea, CDockTitleBar, CDockGuides, CDockFloatingWindow, CDockEdge, CDockDragTracker and the auto hide classes
 (AutoHide.h), with TestWindowLib's TestDocking.  The HCP65 IDE uses it: its tool windows and documents are panes and its
 layout is kept in <solution>.layout.user.  Checked on Linux with the reference and X11 windows; the WinGDI side is
-written but not built or run.
+written and compiled with MinGW but not run.
+
+Real X11 drags (2026-11-08, the HCP65 IDE in Xephyr driven by XTest, no window manager): tearing off tabs and title
+bars, the floating window following the pointer out of the main window and back, drops on edge markers, compass arms
+and the compass centre, drops outside the main window, dragging a floating window by its title, Escape, Control, live
+sash drags, the floating window's resize border, auto hide (pin, strip, flyout, click away, pin back) and double
+clicks to float all work.  Docking back by double click split a group into one group per pane; fixed.
+Open: the guides are drawn in the dock area's window, under the floating window being dragged, which sits at the
+pointer.  Whatever guide is near the pointer is hidden by it (dragging a document tab, all of them); the preview and the
+drop still work.  The same holds on Windows.  Also a floating window keeps its docked size, so one floated from a wide
+group can hang off the screen.
 
 Built differently from the sections below:
 - A tab or title bar pulled a few pixels floats what it drags straight away, as Visual Studio does, and every drag is
