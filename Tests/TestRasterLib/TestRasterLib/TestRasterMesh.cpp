@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/NumberControl.h"
 #include "StandardLib/Objects.h"
@@ -280,6 +281,194 @@ void TestRasterMeshFixReversed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A 100 x 100 grid of squares, each 10 units and two triangles, simplified
+// to cells of 100: ten times less each way and its corners stay about where
+// they were, with no holes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshSimplify(void)
+{
+	CRasterMesh			cRaster;
+	SRasterTriangle*	psTriangle;
+	SRasterVertex*		psVertex;
+	int					x;
+	int					y;
+	size				i;
+	int64				iArea;
+	SInt32Vec3*			psA;
+	SInt32Vec3*			psB;
+	SInt32Vec3*			psC;
+	int					iCorner;
+	bool				bAllUsed;
+	bool*				pbUsed;
+
+	cRaster.Init();
+	for (y = 0; y <= 100; y++)
+	{
+		for (x = 0; x <= 100; x++)
+		{
+			TestRasterAddVertex(&cRaster, x * 10, y * 10, 5);
+		}
+	}
+	for (y = 0; y < 100; y++)
+	{
+		for (x = 0; x < 100; x++)
+		{
+			TestRasterAddTriangle(&cRaster.masOpaque, y * 101 + x, y * 101 + x + 1, y * 101 + x + 102, 0xFF808080);
+			TestRasterAddTriangle(&cRaster.masOpaque, y * 101 + x, y * 101 + x + 102, y * 101 + x + 101, 0xFF808080);
+		}
+	}
+	AssertSize(20000, cRaster.NumTriangles());
+
+	cRaster.Simplify(100);
+
+	//11 x 11 cells at most; each square left is two triangles.
+	AssertTrue(cRaster.masVertices.NumElements() <= 121);
+	AssertTrue(cRaster.NumTriangles() <= 200);
+	AssertTrue(cRaster.NumTriangles() >= 100);
+
+	//Every triangle faces up, and they still cover the grid but for up to about a cell around its edge.
+	iArea = 0;
+	for (i = 0; i < cRaster.masOpaque.NumElements(); i++)
+	{
+		psTriangle = cRaster.masOpaque.Get(i);
+		psA = &cRaster.masVertices.Get(psTriangle->aiVertex[0])->sPosition;
+		psB = &cRaster.masVertices.Get(psTriangle->aiVertex[1])->sPosition;
+		psC = &cRaster.masVertices.Get(psTriangle->aiVertex[2])->sPosition;
+		AssertTrue(((int64)psB->x - psA->x) * ((int64)psC->y - psA->y) - ((int64)psB->y - psA->y) * ((int64)psC->x - psA->x) > 0);
+		iArea += ((int64)psB->x - psA->x) * ((int64)psC->y - psA->y) - ((int64)psB->y - psA->y) * ((int64)psC->x - psA->x);
+	}
+	AssertTrue(iArea / 2 >= 800 * 800);
+	AssertTrue(iArea / 2 <= 1000 * 1000);
+
+	//Vertices stay in the box, keep their normals, and every one is used.
+	pbUsed = (bool*)calloc(cRaster.masVertices.NumElements(), sizeof(bool));
+	for (i = 0; i < cRaster.masOpaque.NumElements(); i++)
+	{
+		for (iCorner = 0; iCorner < 3; iCorner++)
+		{
+			pbUsed[cRaster.masOpaque.Get(i)->aiVertex[iCorner]] = true;
+		}
+	}
+	bAllUsed = true;
+	for (i = 0; i < cRaster.masVertices.NumElements(); i++)
+	{
+		bAllUsed &= pbUsed[i];
+		psVertex = cRaster.masVertices.Get(i);
+		AssertTrue((psVertex->sPosition.x >= 0) && (psVertex->sPosition.x <= 1000));
+		AssertInt(5, psVertex->sPosition.z);
+		AssertInt(1 << RASTER_NORMAL_BITS, psVertex->sNormal.z);
+	}
+	AssertTrue(bAllUsed);
+	free(pbUsed);
+	AssertTrue(cRaster.msMax.x <= 1000);
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A sharp edge stays sharp: two faces meeting at a corner in one cell have
+// one place but keep their own normals.  Repeated triangles go; one wound
+// the other way doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshSimplifyKeepsEdges(void)
+{
+	CRasterMesh		cRaster;
+	SRasterVertex*	psVertex;
+	size			i;
+	bool			bUp;
+	bool			bSide;
+
+	cRaster.Init();
+	TestRasterAddVertex(&cRaster, 0, 0, 0);
+	TestRasterAddVertex(&cRaster, 1000, 0, 0);
+	TestRasterAddVertex(&cRaster, 0, 1000, 0);
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF808080);
+	TestRasterAddTriangle(&cRaster.masOpaque, 1, 2, 0, 0xFF808080);  //The same, starting elsewhere.
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 2, 1, 0xFF808080);  //Facing the other way.
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF404040);  //Another colour.
+
+	//At vertex 0's place, a normal along X.
+	psVertex = cRaster.masVertices.Add();
+	psVertex->sPosition.Init(1, 1, 0);
+	psVertex->sNormal.Init(1 << RASTER_NORMAL_BITS, 0, 0);
+	TestRasterAddVertex(&cRaster, 1000, 1000, 0);
+	TestRasterAddTriangle(&cRaster.masOpaque, 3, 1, 4, 0xFF808080);
+
+	cRaster.Simplify(100);
+	AssertSize(4, cRaster.masOpaque.NumElements());
+	AssertSize(5, cRaster.masVertices.NumElements());
+	bUp = false;
+	bSide = false;
+	for (i = 0; i < cRaster.masVertices.NumElements(); i++)
+	{
+		psVertex = cRaster.masVertices.Get(i);
+		if ((psVertex->sPosition.x == 0) && (psVertex->sPosition.y == 0))
+		{
+			bUp |= psVertex->sNormal.z == (1 << RASTER_NORMAL_BITS);
+			bSide |= psVertex->sNormal.x == (1 << RASTER_NORMAL_BITS);
+		}
+	}
+	AssertTrue(bUp);
+	AssertTrue(bSide);
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Two layers a hair apart, of different colours as a board's copper and
+// solder mask are, stay that hair apart.  The same two in one colour merge.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshSimplifyKeepsLayers(void)
+{
+	CRasterMesh	cRaster;
+	int			iColour;
+	int			iLow;
+	int			iHigh;
+	size		i;
+
+	for (iColour = 0; iColour < 2; iColour++)
+	{
+		cRaster.Init();
+		TestRasterAddVertex(&cRaster, 0, 0, 0);
+		TestRasterAddVertex(&cRaster, 1000, 0, 0);
+		TestRasterAddVertex(&cRaster, 0, 1000, 0);
+		TestRasterAddVertex(&cRaster, 0, 0, 2);
+		TestRasterAddVertex(&cRaster, 1000, 0, 2);
+		TestRasterAddVertex(&cRaster, 0, 1000, 2);
+		TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF00FF00);
+		TestRasterAddTriangle(&cRaster.masOpaque, 3, 4, 5, (iColour == 0) ? 0xFFFF0000 : 0xFF00FF00);
+		cRaster.Simplify(100);
+
+		iLow = 0x7FFFFFFF;
+		iHigh = -0x7FFFFFFF;
+		for (i = 0; i < cRaster.masVertices.NumElements(); i++)
+		{
+			iLow = (cRaster.masVertices.Get(i)->sPosition.z < iLow) ? cRaster.masVertices.Get(i)->sPosition.z : iLow;
+			iHigh = (cRaster.masVertices.Get(i)->sPosition.z > iHigh) ? cRaster.masVertices.Get(i)->sPosition.z : iHigh;
+		}
+		if (iColour == 0)
+		{
+			AssertSize(2, cRaster.masOpaque.NumElements());
+			AssertInt(0, iLow);
+			AssertInt(2, iHigh);
+		}
+		else
+		{
+			AssertSize(1, cRaster.masOpaque.NumElements());
+			AssertInt(iLow, iHigh);
+		}
+		cRaster.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMesh(void)
@@ -296,6 +485,9 @@ void TestRasterMesh(void)
 	TestRasterMeshBuildScaled();
 	TestRasterMeshRemoveDegenerate();
 	TestRasterMeshFixReversed();
+	TestRasterMeshSimplify();
+	TestRasterMeshSimplifyKeepsEdges();
+	TestRasterMeshSimplifyKeepsLayers();
 
 	ObjectsKill(false);
 	NumberKill();

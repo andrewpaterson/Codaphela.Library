@@ -60,9 +60,10 @@ class CMesh;
 //The other Build keeps the mesh where it is at a scale that's given, for meshes that are to be drawn together at their
 //true sizes (see SRasterInstance).
 //
-//What's exported from CAD can be cleaned up:
+//What's exported from CAD can be cleaned up and made simpler for how big it will be drawn:
 //  RemoveDegenerate takes out triangles with no area, which can't be seen.
 //  FixReversed turns round triangles that wind against their own normals, which back face culling would leave as holes.
+//  Simplify merges everything of a colour closer than a cell, for a mesh that is always drawn so small that a cell is about a pixel.
 class CRasterMesh
 {
 public:
@@ -80,6 +81,7 @@ public:
 
 	size	RemoveDegenerate(void);
 	size	FixReversed(void);
+	void	Simplify(int32 iCellSize);
 
 	size	NumTriangles(void);
 
@@ -87,6 +89,9 @@ protected:
 	bool	FindBounds(CMesh* pcMesh, SFloat32Vec3* psMin, SFloat32Vec3* psMax);
 	void	BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale);
 	void	UpdateBounds(void);
+	void	MergeCells(int32 iCellSize);
+	void	RemoveRepeatedTriangles(CArrayRasterTriangle* pasTriangles);
+	void	RemoveUnusedVertices(void);
 };
 
 
