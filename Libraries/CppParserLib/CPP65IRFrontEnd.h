@@ -161,7 +161,7 @@ protected:
 	SIRReference			msElide;			//Where the next call that returns an object makes it, instead of a temporary.
 	CCPPSyntax*				mpcValue;			//The expression Value last started on (where a conversion's error is).
 	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its SCPP65Variable.
-	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its frame offset.
+	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;

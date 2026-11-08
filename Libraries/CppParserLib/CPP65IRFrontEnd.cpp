@@ -353,7 +353,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	{
 		//As the generator's EndFunction leaves it.
 		mpcGenerator->mpsFunction = NULL;
-		mpcGenerator->miThisOffset = -1;
+		mpcGenerator->mbThis = false;
 	}
 	if (!bResult && mpcFunction)
 	{
@@ -680,7 +680,6 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	size					uiParameter;
 	SCPP65Type*				psType;
 	SCPP65Variable*			psVariable;
-	int						iOffset;
 	SIRReference			sAddress;
 	SCPP65IRPlace			sPlace;
 	CArrayTemplate<int32>	aiFirst;	//Per C++ parameter: its first IR parameter.
@@ -735,8 +734,8 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		mpcFunction->AddParameter(IRTypeOf(psType));
 	}
 
-	//The generator's parameter variables are known by their offsets after the first argument (the result address
-	//is first).  Object parameters are the called function's to destroy.
+	//The generator's parameter variables are known by their index in the parameters.  Object parameters are the
+	//called function's to destroy.
 	for (ui = 0; ui < mpcGenerator->mapsLocals.NumElements(); ui++)
 	{
 		psVariable = mpcGenerator->mapsLocals.GetPtr(ui);
@@ -744,16 +743,8 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		{
 			continue;
 		}
-		iOffset = msResult.IsNone() ? 0 : 4;
-		for (uiParameter = 0; uiParameter < mpsFunction->mapsParameters.NumElements(); uiParameter++)
-		{
-			if (iOffset == psVariable->iOffset)
-			{
-				break;
-			}
-			iOffset += mpsFunction->mapsParameters.GetPtr(uiParameter)->iBytes;
-		}
-		if (uiParameter == mpsFunction->mapsParameters.NumElements())
+		uiParameter = (size)psVariable->iOffset;
+		if (uiParameter >= mpsFunction->mapsParameters.NumElements())
 		{
 			aiFirst.Kill();
 			asByAddress.Kill();
@@ -1101,14 +1092,14 @@ bool CCPP65IRFrontEnd::Locals(void)
 		if (psVariable->psAnonymous)
 		{
 			//The members of an anonymous union or struct share its slot (made for its first member).
-			psAnonymousAddress = mcAnonymousAddresses.Get((int64)psVariable->iAnonymous);
+			psAnonymousAddress = mcAnonymousAddresses.Get((int64)(size)psVariable->psAnonymous);
 			if (!psAnonymousAddress)
 			{
 				sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psVariable->psAnonymous->psType->iBytes, 4);
-				mcAnonymousAddresses.Put((int64)psVariable->iAnonymous, &sAddress);
-				psAnonymousAddress = mcAnonymousAddresses.Get((int64)psVariable->iAnonymous);
+				mcAnonymousAddresses.Put((int64)(size)psVariable->psAnonymous, &sAddress);
+				psAnonymousAddress = mcAnonymousAddresses.Get((int64)(size)psVariable->psAnonymous);
 			}
-			sAddress = AddressAt(*psAnonymousAddress, psVariable->iOffset - psVariable->iAnonymous);
+			sAddress = AddressAt(*psAnonymousAddress, psVariable->iOffset);
 			mcAddresses.Put((int64)(size)psVariable, &sAddress);
 			continue;
 		}

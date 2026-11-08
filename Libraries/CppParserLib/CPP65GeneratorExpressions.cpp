@@ -815,52 +815,6 @@ bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// V points just below the frame.  Locals are at the bottom of the frame, then the
-// caller's V, the return address and the arguments:
-//
-//	V + 1						locals
-//	V + 1 + frame				the caller's V
-//	V + 1 + frame + 4			the return address
-//	V + 1 + frame + 8 + n		the argument n bytes after the first
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psPlace)
-{
-	psPlace->psType = psVariable->psType;
-	psPlace->lliName = -1;
-	psPlace->iString = -1;
-	psPlace->bInternal = false;
-	psPlace->psClass = psVariable->psClass;
-	switch (psVariable->eStorage)
-	{
-	case CPP65S_Local:
-		psPlace->eKind = CPP65PK_Frame;
-		psPlace->iOffset = psVariable->iOffset;
-		break;
-	case CPP65S_Parameter:
-		psPlace->eKind = CPP65PK_Frame;
-		psPlace->iOffset = miFrameBytes + 8 + psVariable->iOffset;
-		break;
-	case CPP65S_Static:
-		psPlace->eKind = CPP65PK_Global;
-		psPlace->iOffset = 0;
-		psPlace->lliName = psVariable->pcSymbol->mlliName;
-		psPlace->iString = psVariable->iOffset;
-		break;
-	default:
-		psPlace->eKind = CPP65PK_Global;
-		psPlace->iOffset = 0;
-		psPlace->lliName = psVariable->pcSymbol->mlliName;
-		psPlace->bInternal = psVariable->bInternal;
-		psVariable->bUsed = true;
-		break;
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Works out an integer constant expression.  Each value is kept as its
 // type keeps it (ConstantOfType): unsigned and narrow arithmetic wraps.
 //

@@ -508,7 +508,7 @@ bool CCPP65TypeChecker::MemberFunctionAddress(SCPP65Class* psClass, int64 lliNam
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 {
-	if ((mpcGenerator->miThisOffset == -1) || !mpcGenerator->mpsFunction || !mpcGenerator->mpsFunction->psClass)
+	if (!mpcGenerator->mbThis || !mpcGenerator->mpsFunction || !mpcGenerator->mpsFunction->psClass)
 	{
 		Error(pcThis, "this is only in member functions");
 		return NULL;
@@ -1970,7 +1970,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			Error(pcExpression, "Only variables are supported by the compiler here yet");
 			return NULL;
 		}
-		if (mpcGenerator->miThisOffset == -1)
+		if (!mpcGenerator->mbThis)
 		{
 			Error(pcExpression, "A field needs an object");
 			return NULL;

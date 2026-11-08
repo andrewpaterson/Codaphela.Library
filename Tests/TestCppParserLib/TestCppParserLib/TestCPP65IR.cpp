@@ -874,6 +874,25 @@ void TestCPP65IRSharedDivides(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Two anonymous objects in a function: each has its own slot (known by its
+// class), and a member is at its offset in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRAnonymousLocals(void)
+{
+	AssertInt(1 + 2 * 10 + 3 * 100 + 4 * 1000, TestCPP65IRMain(
+		"int main()\n"
+		"{\n"
+		"\tstruct { int a; short b; char c; };\n"
+		"\tunion { int x; char y; };\n"
+		"\ta = 1; b = 2; c = 3; x = 0x104;\n"
+		"\treturn a + b * 10 + c * 100 + y * 1000;\n"
+		"}\n", 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -907,6 +926,7 @@ void TestCPP65IR(void)
 	TestCPP65IRConstantTypes();
 	TestCPP65IRMemberTemplateDefinedLater();
 	TestCPP65IRSharedDivides();
+	TestCPP65IRAnonymousLocals();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

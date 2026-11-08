@@ -805,7 +805,6 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 bool CCPP65IRFrontEnd::VariablePlace(SCPP65Variable* psVariable, SCPP65IRPlace* psPlace)
 {
 	SIRReference*	psAddress;
-	SCPP65Place		sPlace;
 	CChars			szLabel;
 
 	if (!IsPlaceType(psVariable->psType))
@@ -823,9 +822,8 @@ bool CCPP65IRFrontEnd::VariablePlace(SCPP65Variable* psVariable, SCPP65IRPlace* 
 	}
 	else
 	{
-		mpcGenerator->VariablePlace(psVariable, &sPlace);
 		szLabel.Init();
-		mpcGenerator->AppendPlaceLabel(&szLabel, &sPlace);
+		mpcGenerator->AppendVariableLabel(&szLabel, psVariable);
 		psPlace->sAddress = mcModule.Symbol(szLabel.Text());
 		szLabel.Kill();
 		if (psVariable->bRestrict)

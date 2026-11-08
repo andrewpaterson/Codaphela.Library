@@ -98,14 +98,13 @@ struct SCPP65Variable
 	CCPPSymbol*		pcSymbol;
 	SCPP65Type*		psType;
 	ECPP65Storage	eStorage;
-	int				iOffset;		//Locals: bytes from the bottom of the frame.  Parameters: bytes after the first argument's.
+	int				iOffset;		//Parameters: the index in the function's parameters.  Static locals: the number (the label's S<n>_).  Members of an anonymous union or struct (psAnonymous): the offset in it.
 	SCPP65Class*	psClass;		//The class of a static data member.
 	bool			bInternal;		//A static global: the unit's own.
 	bool			bDefined;		//A global's data has been written.
 	bool			bUsed;
 	bool			bRestrict;		//A global or parameter pointer declared __restrict.
 	SCPP65Class*	psAnonymous;	//The anonymous union or struct declared in a function that this local is a member of.
-	int				iAnonymous;		//The anonymous object's offset in the frame (the member's is iOffset).
 };
 
 
@@ -370,28 +369,6 @@ typedef CArrayTemplatePtr<CCPPSymbol>		CArrayCPP65Symbols;
 typedef CArrayTemplatePtr<SCPP65Class>		CArrayCPP65Classes;
 
 
-enum ECPP65PlaceKind
-{
-	CPP65PK_Frame,		//[offset + V].
-	CPP65PK_Global,		//[label + offset].
-	CPP65PK_Address,	//The address is in A.
-	CPP65PK_This,		//[offset + X], a member of this.
-};
-
-
-//Where an lvalue is.
-struct SCPP65Place
-{
-	ECPP65PlaceKind		eKind;
-	SCPP65Type*			psType;
-	int					iOffset;	//Frame: bytes above V + 1.  Global: bytes after the label.  This and Address: bytes after the object.
-	int64				lliName;	//Global: the variable's name.  -1 for a string literal.
-	int					iString;	//Global: the string literal's number, or a static local's when lliName is its name.
-	SCPP65Class*		psClass;	//Global: the class of a static data member.
-	bool				bInternal;	//Global: a static global, labelled with the unit.
-};
-
-
 //A remembered TypeOf: the type of an expression with some template arguments.
 struct SCPP65TypeOf
 {
@@ -468,12 +445,11 @@ protected:
 
 	CArrayCPP65Variables	mapsLocals;
 	SCPP65Function*			mpsFunction;
-	int						miFrameBytes;
 	int						miStatics;			//Static locals in the unit.
 	bool					mbStaticLocal;		//A static local's data is being written.
 	bool					mbLinkageExtern;	//In extern "C" without braces: declarations are extern.
 	bool					mbCLinkage;			//In extern "C": functions declared have C linkage.
-	int						miThisOffset;		//this's place in the frame of a member function, or -1.
+	bool					mbThis;				//The function being written is a member function with this (not a global's or static local's initialiser).
 	int						miLabels;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
 	CCPP65TypeChecker		mcTypeChecker;		//Works out expressions' types (TypeOf).
@@ -576,7 +552,7 @@ protected:
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
-	void					AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace);
+	void					AppendVariableLabel(CChars* psz, SCPP65Variable* psVariable);
 	void					AppendStrings(CChars* pszDest);
 	void					AppendRuntime(void);
 	void					AppendRuntime816(void);
@@ -747,7 +723,6 @@ protected:
 
 	bool					Supported(SCPP65Type* psType, CCPPSyntax* pcNode);
 
-	bool					VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psPlace);
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
 	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);

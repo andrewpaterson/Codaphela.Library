@@ -86,7 +86,7 @@ bool CCPP65Generator::MissedImports(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayChars* CCPP65Generator::GetNotImported(void)
 {
-	return mpcIRFrontEnd ? mpcIRFrontEnd->GetNotImported() : NULL;
+	return mpcIRFrontEnd->GetNotImported();
 }
 
 
@@ -194,13 +194,10 @@ void CCPP65Generator::GetMissingCallees(CArrayChars* paszNames)
 	CArrayChars*	paszMissing;
 	size			i;
 
-	if (mpcIRFrontEnd)
+	paszMissing = mpcIRFrontEnd->GetMissingCallees();
+	for (i = 0; i < paszMissing->NumElements(); i++)
 	{
-		paszMissing = mpcIRFrontEnd->GetMissingCallees();
-		for (i = 0; i < paszMissing->NumElements(); i++)
-		{
-			paszNames->AddIfUnique(paszMissing->GetText(i));
-		}
+		paszNames->AddIfUnique(paszMissing->GetText(i));
 	}
 }
 
@@ -270,12 +267,11 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 
 	mapsLocals.Init();
 	mpsFunction = NULL;
-	miFrameBytes = 0;
 	miStatics = 0;
 	mbStaticLocal = false;
 	mbLinkageExtern = false;
 	mbCLinkage = false;
-	miThisOffset = -1;
+	mbThis = false;
 	miLabels = 0;
 }
 
@@ -440,10 +436,7 @@ bool CCPP65Generator::GenerateBeforeTurn(void)
 	}
 
 	//The IR front end inlines across the unit.
-	if (mpcIRFrontEnd)
-	{
-		mpcIRFrontEnd->InlineUnit();
-	}
+	mpcIRFrontEnd->InlineUnit();
 	return mcErrors.NumErrors() == 0;
 }
 
@@ -463,13 +456,10 @@ bool CCPP65Generator::GenerateAfterTurn(CCPP65Assembly* pcDest)
 	CLargeChars*	pszText;
 
 	//If the IR front end missed a function another unit exported, the unit is generated again (MissedImports).
-	if (mpcIRFrontEnd)
+	if (!mpcIRFrontEnd->FinishUnit())
 	{
-		if (!mpcIRFrontEnd->FinishUnit())
-		{
-			mbMissedImports = true;
-			return false;
-		}
+		mbMissedImports = true;
+		return false;
 	}
 
 	AppendRuntime();
@@ -1929,7 +1919,6 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 	SCPP65Function*				psFunction;
 	SCPP65Type*					psType;
 	SCPP65Type*					psElement;
-	SCPP65Place					sPlace;
 	CChars						szLabel;
 	CCPPSyntaxName*				pcName;
 	SCPP65Class*				psClass;
@@ -2029,15 +2018,14 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		psVariable->bDefined = true;
 		psVariable->psType = psType;
 
-		VariablePlace(psVariable, &sPlace);
 		szLabel.Init();
-		AppendPlaceLabel(&szLabel, &sPlace);
+		AppendVariableLabel(&szLabel, psVariable);
 		bBss = IsBss(pcInit->mpcInitializer, psType);
 		BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !psVariable->bInternal, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL, bBss);
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
-		miThisOffset = -1;
+		mbThis = false;
 		if (bBss)
 		{
 			AppendSpace(psType->iBytes);
@@ -2279,7 +2267,6 @@ SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables
 	psVariable->bInternal = false;
 	psVariable->bRestrict = false;
 	psVariable->psAnonymous = NULL;
-	psVariable->iAnonymous = 0;
 	papsVariables->Add(psVariable);
 	return psVariable;
 }
@@ -2947,10 +2934,8 @@ void CCPP65Generator::AddParameters(SCPP65Function* psFunction)
 	size							j;
 	size							k;
 	size							uiPack;
-	int								iOffset;
 
 	pcSuffix = psFunction->pcDefinition->mpcDeclarator->GetFunctionSuffix();
-	iOffset = psFunction->psReturn->IsClass() ? 4 : 0;
 	j = 0;
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
@@ -2967,7 +2952,7 @@ void CCPP65Generator::AddParameters(SCPP65Function* psFunction)
 			pcSymbol = (psPack && pcParameter->mpcSymbol) ? NewPackElement(pcParameter->mpcSymbol) : pcParameter->mpcSymbol;
 			if (pcSymbol)
 			{
-				psVariable = AddVariable(&mapsLocals, pcSymbol, psType, CPP65S_Parameter, iOffset);
+				psVariable = AddVariable(&mapsLocals, pcSymbol, psType, CPP65S_Parameter, (int)j);
 				psVariable->bRestrict = !psPack && pcParameter->mpcDeclarator && IsRestrictPointer(pcParameter->mpcDeclarator);
 				if (psType->IsClass())
 				{
@@ -2975,7 +2960,6 @@ void CCPP65Generator::AddParameters(SCPP65Function* psFunction)
 					CompleteClass(psType->psClass, pcParameter);
 				}
 			}
-			iOffset += psType->iBytes;
 			j++;
 		}
 	}
@@ -2996,8 +2980,7 @@ void CCPP65Generator::AppendUnsupported(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts generating a function's body.  A member function keeps this (from X) at
-// the bottom of its frame.
+// Starts generating a function's body.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
@@ -3005,13 +2988,7 @@ void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
 	mpsFunction = psFunction;
 	FreeVariables(&mapsLocals);
 
-	miFrameBytes = 0;
-	miThisOffset = -1;
-	if (psFunction->psClass && !psFunction->bStatic)
-	{
-		miThisOffset = 0;
-		miFrameBytes = 4;
-	}
+	mbThis = psFunction->psClass && !psFunction->bStatic;
 	mpcPackParameter = NULL;
 	mapcPackElements.ReInit();
 }
@@ -3027,7 +3004,7 @@ void CCPP65Generator::EndFunction(SCPP65Function* psFunction)
 {
 	//Only a function the IR front end couldn't write ends here (it ends the ones it writes itself): nothing is written.
 	mpsFunction = NULL;
-	miThisOffset = -1;
+	mbThis = false;
 }
 
 
@@ -3090,11 +3067,7 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 				return false;
 			}
 
-			iAlign = (psType->iBytes >= 4) ? 4 : psType->iBytes;
-			iAlign = (psType->IsArray() || psType->IsClass()) ? 4 : iAlign;
-			miFrameBytes = (miFrameBytes + iAlign - 1) & ~(iAlign - 1);
-			AddVariable(&mapsLocals, pcInit->mpcSymbol, psType, CPP65S_Local, miFrameBytes);
-			miFrameBytes += psType->iBytes;
+			AddVariable(&mapsLocals, pcInit->mpcSymbol, psType, CPP65S_Local, 0);
 		}
 	}
 
@@ -3118,7 +3091,6 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 	SCPP65Class*	psClass;
 	SCPP65Field*	psField;
 	SCPP65Variable*	psVariable;
-	int				iOffset;
 	size			i;
 
 	psClass = GetUnnamedClass(pcSpecifier);
@@ -3127,9 +3099,6 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		return Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
 	}
 
-	miFrameBytes = (miFrameBytes + 3) & ~3;
-	iOffset = miFrameBytes;
-	miFrameBytes += psClass->psType->iBytes;
 	for (i = 0; i < psClass->macFields.NumElements(); i++)
 	{
 		psField = psClass->macFields.Get(i);
@@ -3137,9 +3106,8 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		{
 			return Error(pcSpecifier, "Anonymous classes in anonymous local classes are not supported by the compiler yet");
 		}
-		psVariable = AddVariable(&mapsLocals, psField->pcSymbol, psField->psType, CPP65S_Local, iOffset + psField->iOffset);
+		psVariable = AddVariable(&mapsLocals, psField->pcSymbol, psField->psType, CPP65S_Local, psField->iOffset);
 		psVariable->psAnonymous = psClass;
-		psVariable->iAnonymous = iOffset;
 	}
 	return true;
 }
@@ -3156,11 +3124,10 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 {
 	SCPP65Variable*		psVariable;
 	SCPP65Type*			psType;
-	SCPP65Place			sPlace;
 	CChars				szLabel;
 	bool				bResult;
 	bool				bInitialise;
-	int					iThisOffset;
+	bool				bThis;
 
 	psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	if (!psType)
@@ -3175,9 +3142,8 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	psVariable = AddVariable(&mapsLocals, pcInit->mpcSymbol, psType, CPP65S_Static, miStatics);
 	miStatics++;
 	psVariable->bDefined = true;
-	VariablePlace(psVariable, &sPlace);
 	szLabel.Init();
-	AppendPlaceLabel(&szLabel, &sPlace);
+	AppendVariableLabel(&szLabel, psVariable);
 	BeginData(&szLabel, DataAlignment(psType, false), false, NULL, IsBss(pcInit->mpcInitializer, psType));
 	szLabel.Kill();
 	if (IsBss(pcInit->mpcInitializer, psType))
@@ -3186,36 +3152,38 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 		return true;
 	}
 
-	iThisOffset = miThisOffset;
-	miThisOffset = -1;
+	bThis = mbThis;
+	mbThis = false;
 	mbStaticLocal = true;
 	bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
 	mbStaticLocal = false;
-	miThisOffset = iThisOffset;
+	mbThis = bThis;
 	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The label of a Global place: a global, a static data member or a static local
-// (S, its number, _ and its name).
+// The label of a global, a static data member or a static local (S, its
+// number, _ and its name).  A global is used once its label is written.
+//
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace)
+void CCPP65Generator::AppendVariableLabel(CChars* psz, SCPP65Variable* psVariable)
 {
 	char*	szName;
 	int		iLength;
 
-	if ((psPlace->lliName != -1) && (psPlace->iString != -1))
+	if (psVariable->eStorage == CPP65S_Static)
 	{
-		szName = mpcTokeniser->GetIdentifier(psPlace->lliName, &iLength);
+		szName = mpcTokeniser->GetIdentifier(psVariable->pcSymbol->mlliName, &iLength);
 		psz->Append('S');
-		psz->Append(psPlace->iString);
+		psz->Append(psVariable->iOffset);
 		psz->Append('_');
 		psz->Append(szName, iLength);
 		return;
 	}
-	AppendGlobalLabel(psz, psPlace->psClass, psPlace->lliName);
+	psVariable->bUsed = true;
+	AppendGlobalLabel(psz, psVariable->psClass, psVariable->pcSymbol->mlliName);
 }
 
 
