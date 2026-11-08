@@ -53,4 +53,352 @@ int32	FixedMultiplyDivide(int32 iA, int32 iB, int32 iC);
 int32	FixedSquareRoot(int32 iFixed, int iFractionBits);
 
 
+//A fixed point number whose format is part of its type, so that formats can't be mixed by mistake.  M holds the value
+//and N is what a multiply widens to, as in SVec2, SVec3 and SVec4.  Values are only made and converted by name.
+//
+//Multiplying never loses bits: the result is an N holding the fractions of both operands, which must be the same
+//width.  Dividing by another fixed point number takes its fraction bits away.  To changes format rounding to the nearest
+//and ToFloor rounding down.
+template<class M, class N, int BITS>
+class SFixed
+{
+public:
+	typedef M	Storage;
+	typedef N	Wide;
+	enum { Bits = BITS };
+
+	M	miRaw;
+
+	static SFixed	FromRaw(M iRaw);
+	static SFixed	FromInt(int32 i);
+	static SFixed	FromFloat(float32 f);
+
+	float32			ToFloat(void) const;
+	float64			ToDouble(void) const;
+	int32			Floor(void) const;
+	int32			Ceiling(void) const;
+	int32			Round(void) const;
+	SFixed			Fraction(void) const;
+
+	SFixed			operator - (void) const;
+	SFixed			operator + (SFixed s) const;
+	SFixed			operator - (SFixed s) const;
+	SFixed&			operator += (SFixed s);
+	SFixed&			operator -= (SFixed s);
+
+	bool			operator == (SFixed s) const;
+	bool			operator != (SFixed s) const;
+	bool			operator < (SFixed s) const;
+	bool			operator <= (SFixed s) const;
+	bool			operator > (SFixed s) const;
+	bool			operator >= (SFixed s) const;
+
+	template<int OTHER>
+	SFixed<N, N, BITS + OTHER>	operator * (SFixed<M, N, OTHER> s) const;
+
+	template<class P, int OTHER>
+	SFixed<N, N, BITS - OTHER>	DivideRound(SFixed<P, N, OTHER> s) const;
+	template<class P, int OTHER>
+	SFixed<N, N, BITS - OTHER>	DivideFloor(SFixed<P, N, OTHER> s) const;
+
+	template<class F>
+	F				To(void) const;
+	template<class F>
+	F				ToFloor(void) const;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::FromRaw(M iRaw)
+{
+	SFixed	s;
+
+	s.miRaw = iRaw;
+	return s;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::FromInt(int32 i)
+{
+	return FromRaw((M)((int64)i * ((int64)1 << BITS)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::FromFloat(float32 f)
+{
+	return FromRaw((M)FixedFromFloat(f, BITS));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+float32 SFixed<M, N, BITS>::ToFloat(void) const
+{
+	return (float32)ToDouble();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+float64 SFixed<M, N, BITS>::ToDouble(void) const
+{
+	return (float64)miRaw / (float64)((int64)1 << BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+int32 SFixed<M, N, BITS>::Floor(void) const
+{
+	return (int32)(miRaw >> BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+int32 SFixed<M, N, BITS>::Ceiling(void) const
+{
+	return (int32)::DivideCeiling(miRaw, (int64)1 << BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+int32 SFixed<M, N, BITS>::Round(void) const
+{
+	return (int32)::DivideRound(miRaw, (int64)1 << BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::Fraction(void) const
+{
+	return *this - FromInt(Floor());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::operator - (void) const
+{
+	return FromRaw((M)-miRaw);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::operator + (SFixed s) const
+{
+	return FromRaw((M)(miRaw + s.miRaw));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS> SFixed<M, N, BITS>::operator - (SFixed s) const
+{
+	return FromRaw((M)(miRaw - s.miRaw));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS>& SFixed<M, N, BITS>::operator += (SFixed s)
+{
+	miRaw = (M)(miRaw + s.miRaw);
+	return *this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+SFixed<M, N, BITS>& SFixed<M, N, BITS>::operator -= (SFixed s)
+{
+	miRaw = (M)(miRaw - s.miRaw);
+	return *this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+bool SFixed<M, N, BITS>::operator == (SFixed s) const
+{
+	return miRaw == s.miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+bool SFixed<M, N, BITS>::operator != (SFixed s) const
+{
+	return miRaw != s.miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+bool SFixed<M, N, BITS>::operator < (SFixed s) const
+{
+	return miRaw < s.miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+bool SFixed<M, N, BITS>::operator <= (SFixed s) const
+{
+	return miRaw <= s.miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+bool SFixed<M, N, BITS>::operator > (SFixed s) const
+{
+	return miRaw > s.miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+bool SFixed<M, N, BITS>::operator >= (SFixed s) const
+{
+	return miRaw >= s.miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+template<int OTHER>
+SFixed<N, N, BITS + OTHER> SFixed<M, N, BITS>::operator * (SFixed<M, N, OTHER> s) const
+{
+	return SFixed<N, N, BITS + OTHER>::FromRaw((N)miRaw * (N)s.miRaw);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+template<class P, int OTHER>
+SFixed<N, N, BITS - OTHER> SFixed<M, N, BITS>::DivideRound(SFixed<P, N, OTHER> s) const
+{
+	return SFixed<N, N, BITS - OTHER>::FromRaw((N)::DivideRound(miRaw, s.miRaw));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+template<class P, int OTHER>
+SFixed<N, N, BITS - OTHER> SFixed<M, N, BITS>::DivideFloor(SFixed<P, N, OTHER> s) const
+{
+	return SFixed<N, N, BITS - OTHER>::FromRaw((N)::DivideFloor(miRaw, s.miRaw));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+template<class F>
+F SFixed<M, N, BITS>::To(void) const
+{
+	if ((int)F::Bits >= BITS)
+	{
+		return F::FromRaw((typename F::Storage)((int64)miRaw * ((int64)1 << ((int)F::Bits - BITS))));
+	}
+	return F::FromRaw((typename F::Storage)::DivideRound(miRaw, (int64)1 << (BITS - (int)F::Bits)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N, int BITS>
+template<class F>
+F SFixed<M, N, BITS>::ToFloor(void) const
+{
+	if ((int)F::Bits >= BITS)
+	{
+		return F::FromRaw((typename F::Storage)((int64)miRaw * ((int64)1 << ((int)F::Bits - BITS))));
+	}
+	return F::FromRaw((typename F::Storage)((int64)miRaw >> (BITS - (int)F::Bits)));
+}
+
+
 #endif // __FIXED_POINT_H__

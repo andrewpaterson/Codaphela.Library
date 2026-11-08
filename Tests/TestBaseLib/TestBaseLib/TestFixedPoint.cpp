@@ -151,6 +151,86 @@ void TestFixedPointSquareRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestFixedPointSFixed(void)
+{
+	typedef SFixed<int16, int32, 14>	SUnit;
+	typedef SFixed<int32, int64, 4>		SSubpixel;
+	typedef SFixed<int32, int64, 16>	SAxis;
+	typedef SFixed<int32, int64, 0>		SWhole;
+	typedef SFixed<int64, int64, 4>		SWideSubpixel;
+
+	SSubpixel	s;
+	SAxis		sAxis;
+	SUnit		sUnit;
+
+	AssertSize(2, sizeof(SUnit));
+	AssertSize(4, sizeof(SSubpixel));
+
+	s = SSubpixel::FromInt(3);
+	AssertInt((int32)48, s.miRaw);
+	s = SSubpixel::FromInt(-3);
+	AssertInt((int32)-48, s.miRaw);
+	s = SSubpixel::FromFloat(1.5f);
+	AssertInt((int32)24, s.miRaw);
+	AssertFloat(1.5f, s.ToFloat(), 6);
+	AssertDouble(1.5, s.ToDouble(), 10);
+
+	//As FixedFloor, FixedCeiling, FixedRound and FixedFraction for every value either side of zero.
+	for (int32 i = -40; i <= 40; i++)
+	{
+		s = SSubpixel::FromRaw(i);
+		AssertInt(FixedFloor(i, 4), s.Floor());
+		AssertInt(FixedCeiling(i, 4), s.Ceiling());
+		AssertInt(FixedRound(i, 4), s.Round());
+		AssertInt(FixedFraction(i, 4), s.Fraction().miRaw);
+		AssertInt(FixedConvert(i, 4, 2), (s.To<SFixed<int32, int64, 2> >().miRaw));
+		AssertInt(FixedConvert(i, 4, 16), s.To<SAxis>().miRaw);
+		AssertInt((int32)i >> 2, (s.ToFloor<SFixed<int32, int64, 2> >().miRaw));
+	}
+
+	AssertInt((int32)32, (SSubpixel::FromRaw(20) + SSubpixel::FromRaw(12)).miRaw);
+	AssertInt((int32)8, (SSubpixel::FromRaw(20) - SSubpixel::FromRaw(12)).miRaw);
+	AssertInt((int32)-20, (-SSubpixel::FromRaw(20)).miRaw);
+	s = SSubpixel::FromRaw(20);
+	s += SSubpixel::FromRaw(12);
+	AssertInt((int32)32, s.miRaw);
+	s -= SSubpixel::FromRaw(2);
+	AssertInt((int32)30, s.miRaw);
+
+	AssertTrue(SSubpixel::FromRaw(1) < SSubpixel::FromRaw(2));
+	AssertTrue(SSubpixel::FromRaw(2) <= SSubpixel::FromRaw(2));
+	AssertTrue(SSubpixel::FromRaw(3) > SSubpixel::FromRaw(2));
+	AssertTrue(SSubpixel::FromRaw(2) >= SSubpixel::FromRaw(2));
+	AssertTrue(SSubpixel::FromRaw(2) == SSubpixel::FromRaw(2));
+	AssertTrue(SSubpixel::FromRaw(1) != SSubpixel::FromRaw(2));
+
+	//A multiply widens to N: int16 to int32 and int32 to int64, with both formats' fractions.
+	sUnit = SUnit::FromRaw(8192);
+	AssertSize(4, sizeof(sUnit * sUnit));
+	AssertInt((int32)134217728, (SUnit::FromRaw(16384) * sUnit).miRaw);
+
+	sAxis = SAxis::FromRaw(32768);
+	AssertSize(8, sizeof(SSubpixel::FromInt(3) * sAxis));
+	AssertLong(48LL * 32768LL, (SSubpixel::FromInt(3) * sAxis).miRaw);
+
+	//A value too big for int32 is kept.
+	AssertLong(1152921504606846976LL, (SAxis::FromRaw((int32)1 << 30) * SAxis::FromRaw((int32)1 << 30)).miRaw);
+
+	//To narrows back: half of 3 is 1.5.
+	AssertInt((int32)24, (SSubpixel::FromInt(3) * sAxis).To<SSubpixel>().miRaw);
+
+	//Dividing takes the divisor's fractions away, rounding as it says.
+	AssertLong(3, (SWhole::FromRaw(7).DivideFloor(SWhole::FromRaw(2))).miRaw);
+	AssertLong(4, (SWhole::FromRaw(7).DivideRound(SWhole::FromRaw(2))).miRaw);
+	AssertLong(-4, (SWhole::FromRaw(-7).DivideFloor(SWhole::FromRaw(2))).miRaw);
+	AssertLong(5, (SWideSubpixel::FromRaw(10).DivideRound(SWhole::FromRaw(2))).miRaw);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestFixedPoint(void)
 {
 	BeginTests();
@@ -160,6 +240,7 @@ void TestFixedPoint(void)
 	TestFixedPointRounding();
 	TestFixedPointArithmetic();
 	TestFixedPointSquareRoot();
+	TestFixedPointSFixed();
 
 	TestStatistics();
 }
