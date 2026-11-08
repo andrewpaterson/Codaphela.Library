@@ -112,7 +112,7 @@ void CBitWriter::AlignToByte(void)
 // Writes whole bytes.  The writer must be byte aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBitWriter::WriteBytes(uint8* puiData, size uiLength)
+void CBitWriter::WriteBytes(const uint8* puiData, size uiLength)
 {
 	size	i;
 

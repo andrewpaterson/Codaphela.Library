@@ -46,7 +46,7 @@ public:
 
 	void	WriteBits(uint32 uiValue, int iCount);
 	void	AlignToByte(void);
-	void	WriteBytes(uint8* puiData, size uiLength);
+	void	WriteBytes(const uint8* puiData, size uiLength);
 	bool	Flush(void);
 
 protected:

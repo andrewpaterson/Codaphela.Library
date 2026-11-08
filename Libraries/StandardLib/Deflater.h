@@ -40,7 +40,7 @@ protected:
 	bool			mbZLib;
 	CBitWriter		mcBits;
 
-	uint8*			mpuiData;
+	const uint8*	mpuiData;
 	lsize			muiDataSize;
 	int32*			maiHead;		//Most recent position of each hash.
 	int32*			maiPrevious;	//Previous position with the same hash, by position modulo the window.
@@ -57,7 +57,7 @@ public:
 	bool	Init(CFileWriter* pcOutput, bool bZLib);
 	void	Kill(void);
 
-	bool	Deflate(uint8* puiData, lsize uiSize);
+	bool	Deflate(const uint8* puiData, lsize uiSize);
 
 protected:
 	int32	InsertHash(lsize uiPosition);
@@ -75,7 +75,7 @@ protected:
 
 int	DeflateLengthCode(int iLength);
 int	DeflateDistanceCode(size uiDistance);
-int	DeflateMatchLength(uint8* puiCandidate, uint8* puiCurrent, int iMaxLength);
+int	DeflateMatchLength(const uint8* puiCandidate, const uint8* puiCurrent, int iMaxLength);
 
 
 #endif // __DEFLATER_H__

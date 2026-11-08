@@ -41,7 +41,7 @@ bool InflateMemory(uint8* puiData, lsize uiDataSize, bool bZLib, CArrayLargeUint
 // Deflates puiData into pcMemory (which must be initialised).
 //
 //////////////////////////////////////////////////////////////////////////
-bool DeflateMemory(uint8* puiData, lsize uiDataSize, bool bZLib, CMemoryFile* pcMemory)
+bool DeflateMemory(const uint8* puiData, lsize uiDataSize, bool bZLib, CMemoryFile* pcMemory)
 {
 	CFileBasic	cFile;
 	CDeflater	cDeflater;
@@ -126,6 +126,57 @@ void TestCompressionChecksums(void)
 	cCRC.Update(auiData, 1000);
 	cCRC.Update(&auiData[1000], 24600);
 	AssertInt((uint32)0x130F4D3B, cCRC.Get());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The CRC-32 table is what the polynomial makes it: every byte's CRC, worked
+// out a bit at a time.  The checksums and deflate take const data.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCompressionCRCTableAndConstData(void)
+{
+	static const uint8	auiConstData[] = { 'c', 'o', 'n', 's', 't', 'c', 'o', 'n', 's', 't' };
+	CCRC32				cCRC;
+	CAdler32			cAdler;
+	CMemoryFile			cFile;
+	uint32				uiExpected;
+	uint8				uiByte;
+	int					i;
+	int					j;
+	bool				bAllMatch;
+
+	bAllMatch = true;
+	for (i = 0; i < 256; i++)
+	{
+		uiExpected = 0xFFFFFFFF ^ (uint32)i;
+		for (j = 0; j < 8; j++)
+		{
+			uiExpected = (uiExpected & 1) ? (0xEDB88320 ^ (uiExpected >> 1)) : (uiExpected >> 1);
+		}
+		uiExpected ^= 0xFFFFFFFF;
+
+		uiByte = (uint8)i;
+		cCRC.Init();
+		cCRC.Update(&uiByte, 1);
+		bAllMatch &= cCRC.Get() == uiExpected;
+	}
+	AssertTrue(bAllMatch);
+
+	cCRC.Init();
+	cCRC.Update(auiConstData, sizeof(auiConstData));
+	AssertTrue(cCRC.Get() != 0);
+
+	cAdler.Init();
+	cAdler.Update(auiConstData, sizeof(auiConstData));
+	AssertTrue(cAdler.Get() != 1);
+
+	AssertInt(5, DeflateMatchLength(&auiConstData[0], &auiConstData[5], 5));
+
+	cFile.Init();
+	AssertTrue(DeflateMemory(auiConstData, sizeof(auiConstData), true, &cFile));
+	cFile.Kill();
 }
 
 
@@ -667,6 +718,7 @@ void TestCompressionZLib(void)
 	MemoryInit();
 
 	TestCompressionChecksums();
+	TestCompressionCRCTableAndConstData();
 	TestCompressionReverseBits();
 	TestCompressionTooMany();
 	TestCompressionBits();

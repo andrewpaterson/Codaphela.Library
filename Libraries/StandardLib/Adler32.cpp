@@ -42,7 +42,7 @@ void CAdler32::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAdler32::Update(uint8* puiData, lsize uiLength)
+void CAdler32::Update(const uint8* puiData, lsize uiLength)
 {
 	size	uiRun;
 	size	i;

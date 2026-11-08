@@ -110,7 +110,7 @@ int DeflateDistanceCode(size uiDistance)
 // byte of their exclusive or.
 //
 //////////////////////////////////////////////////////////////////////////
-int DeflateMatchLength(uint8* puiCandidate, uint8* puiCurrent, int iMaxLength)
+int DeflateMatchLength(const uint8* puiCandidate, const uint8* puiCurrent, int iMaxLength)
 {
 	int		iLength;
 	uint64	uiCandidate;
@@ -184,7 +184,7 @@ void CDeflater::Kill(void)
 // fails.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDeflater::Deflate(uint8* puiData, lsize uiSize)
+bool CDeflater::Deflate(const uint8* puiData, lsize uiSize)
 {
 	lsize		uiPosition;
 	lsize		uiEnd;
@@ -318,8 +318,8 @@ int CDeflater::FindMatch(lsize uiPosition, int32 iChain, int iPreviousLength, si
 	int		iFound;
 	int		iChainLeft;
 	int		iLength;
-	uint8*	puiCandidate;
-	uint8*	puiCurrent;
+	const uint8*	puiCandidate;
+	const uint8*	puiCurrent;
 	int32	iNext;
 
 	iMaxLength = DEFLATE_MAX_MATCH;
