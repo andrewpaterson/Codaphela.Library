@@ -40,8 +40,8 @@ void CTrueTypeFontFactory::Init(CTrueTypeFont* pcFont, float32 fPixelSize, EFont
 	mcRasteriser.Init(pcFont, fPixelSize);
 	miPixelSize64 = (int32)(fPixelSize * 64.0f + 0.5f);
 	macCharacters.Init();
-	miAscent = FixedCeiling(mcRasteriser.GetAscentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
-	miDescent = FixedCeiling(mcRasteriser.GetDescentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
+	miAscent = mcRasteriser.GetAscentSubpixels().Ceiling();
+	miDescent = mcRasteriser.GetDescentSubpixels().Ceiling();
 }
 
 
@@ -85,7 +85,7 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 		return NULL;
 	}
 
-	iSpaceWidth = FixedRound(mcRasteriser.GetAdvanceSubpixels(mpcFont->GetGlyphIndex(' ')), TRUE_TYPE_SUBPIXEL_BITS);
+	iSpaceWidth = mcRasteriser.GetAdvanceSubpixels(mpcFont->GetGlyphIndex(' ')).Round();
 	iLineHeight = miAscent + miDescent;
 	pDescription = OMalloc<CFontDescription>(szName, (int16)iSpaceWidth, (int16)miAscent, (int16)miDescent, iImageWidth, iImageHeight);
 
@@ -342,10 +342,10 @@ bool CTrueTypeFontFactory::AddCharacters(char* szUTF8Characters)
 		psCharacter->uiCodePoint = uiCodePoint;
 		psCharacter->uiCodePointLength = cUTF8.GetUnicodeCodePointLength(uiCodePoint);
 		psCharacter->iGlyph = mpcFont->GetGlyphIndex(uiCodePoint);
-		psCharacter->iAdvance = FixedRound(mcRasteriser.GetAdvanceSubpixels(psCharacter->iGlyph), TRUE_TYPE_SUBPIXEL_BITS);
+		psCharacter->iAdvance = mcRasteriser.GetAdvanceSubpixels(psCharacter->iGlyph).Round();
 		psCharacter->iImageLeft = 0;
 		psCharacter->iImageTop = 0;
-		if (mcRasteriser.GetGlyphBounds(psCharacter->iGlyph, 0, &sBounds))
+		if (mcRasteriser.GetGlyphBounds(psCharacter->iGlyph, SCoverageSubpixel::FromRaw(0), &sBounds))
 		{
 			psCharacter->iBearing = sBounds.iLeft;
 			psCharacter->iTop = sBounds.iTop;

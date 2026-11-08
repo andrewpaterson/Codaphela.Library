@@ -78,9 +78,9 @@ const char* gaszTrueTypeMetricTags[TTM_NumMetrics] =
 // -2.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TrueTypeRoundDelta(int64 iDelta)
+int32 TrueTypeRoundDelta(STrueTypeFixed sDelta)
 {
-	return (int32)DivideFloor(iDelta + TRUE_TYPE_FIXED_ONE / 2, TRUE_TYPE_FIXED_ONE);
+	return (sDelta.To<STrueTypeWideFixed>() + STrueTypeWideFixed::FromRaw(32768)).Floor();
 }
 
 
@@ -95,8 +95,8 @@ void CTrueTypeVariations::Init(CTrueTypeFont* pcFont)
 	mpcFont = pcFont;
 	masAxes.Init();
 	masInstances.Init();
-	maiAxisValues.Init();
-	maiCoordinates.Init();
+	masAxisValues.Init();
+	masCoordinates.Init();
 	mbVaried = false;
 
 	muiAvarOffset = 0;
@@ -131,8 +131,8 @@ void CTrueTypeVariations::Kill(void)
 {
 	KillItemVariationStore(&msMvarStore);
 	KillItemVariationStore(&msHvarStore);
-	maiCoordinates.Kill();
-	maiAxisValues.Kill();
+	masCoordinates.Kill();
+	masAxisValues.Kill();
 	masInstances.Kill();
 	masAxes.Kill();
 	mpcFont = NULL;
@@ -228,11 +228,11 @@ bool CTrueTypeVariations::ParseFvar(void)
 		mpcFont->ReadUint32(uiRecord + 12, &uiMaximum);
 		mpcFont->ReadUint16(uiRecord + 16, &uiFlags);
 		mpcFont->ReadUint16(uiRecord + 18, &psAxis->uiNameID);
-		psAxis->iMinimum = (int32)uiMinimum;
-		psAxis->iDefault = (int32)uiDefault;
-		psAxis->iMaximum = (int32)uiMaximum;
+		psAxis->sMinimum = STrueTypeFixed::FromRaw((int32)uiMinimum);
+		psAxis->sDefault = STrueTypeFixed::FromRaw((int32)uiDefault);
+		psAxis->sMaximum = STrueTypeFixed::FromRaw((int32)uiMaximum);
 		psAxis->bHidden = (uiFlags & TRUE_TYPE_AXIS_HIDDEN) != 0;
-		if ((psAxis->iMinimum > psAxis->iDefault) || (psAxis->iDefault > psAxis->iMaximum))
+		if ((psAxis->sMinimum > psAxis->sDefault) || (psAxis->sDefault > psAxis->sMaximum))
 		{
 			return false;
 		}
@@ -254,8 +254,8 @@ bool CTrueTypeVariations::ParseFvar(void)
 		}
 	}
 
-	maiAxisValues.Resize(uiAxisCount);
-	maiCoordinates.Resize(uiAxisCount);
+	masAxisValues.Resize(uiAxisCount);
+	masCoordinates.Resize(uiAxisCount);
 	return true;
 }
 
@@ -382,6 +382,7 @@ void CTrueTypeVariations::ParseItemVariationStore(lsize uiOffset, lsize uiTableE
 	uint16	uiAxisCount;
 	uint16	uiRegionCount;
 	lsize	uiRegionList;
+	uint16	uiRegion;
 
 	if ((uiOffset + 8 > uiTableEnd) ||
 		!mpcFont->ReadUint16(uiOffset, &uiFormat) ||
@@ -412,8 +413,11 @@ void CTrueTypeVariations::ParseItemVariationStore(lsize uiOffset, lsize uiTableE
 	psStore->uiRegionAxisCount = uiAxisCount;
 	psStore->uiRegionCount = uiRegionCount;
 	psStore->uiDataCount = uiDataCount;
-	psStore->aiRegionScalars.Resize(uiRegionCount);
-	psStore->aiRegionScalars.SetArrayValues(0);
+	psStore->asRegionScalars.Resize(uiRegionCount);
+	for (uiRegion = 0; uiRegion < uiRegionCount; uiRegion++)
+	{
+		*psStore->asRegionScalars.Get(uiRegion) = STrueTypeFixed::FromRaw(0);
+	}
 }
 
 
@@ -428,7 +432,7 @@ void CTrueTypeVariations::InitItemVariationStore(STrueTypeItemVariationStore* ps
 	psStore->uiRegionAxisCount = 0;
 	psStore->uiRegionCount = 0;
 	psStore->uiDataCount = 0;
-	psStore->aiRegionScalars.Init();
+	psStore->asRegionScalars.Init();
 }
 
 
@@ -438,7 +442,7 @@ void CTrueTypeVariations::InitItemVariationStore(STrueTypeItemVariationStore* ps
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeVariations::KillItemVariationStore(STrueTypeItemVariationStore* psStore)
 {
-	psStore->aiRegionScalars.Kill();
+	psStore->asRegionScalars.Kill();
 	psStore->uiOffset = 0;
 }
 
@@ -509,11 +513,11 @@ size CTrueTypeVariations::FindAxis(const char* szTag)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Sets an axis (16.16, clamped to the axis' range).  Returns false if
+// Sets an axis (clamped to the axis' range).  Returns false if
 // the font doesn't have the axis.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeVariations::SetAxisValue(const char* szTag, int32 iValue)
+bool CTrueTypeVariations::SetAxisValue(const char* szTag, STrueTypeFixed sValue)
 {
 	size			uiAxis;
 	STrueTypeAxis*	psAxis;
@@ -524,15 +528,15 @@ bool CTrueTypeVariations::SetAxisValue(const char* szTag, int32 iValue)
 		return false;
 	}
 	psAxis = masAxes.Get(uiAxis);
-	if (iValue < psAxis->iMinimum)
+	if (sValue < psAxis->sMinimum)
 	{
-		iValue = psAxis->iMinimum;
+		sValue = psAxis->sMinimum;
 	}
-	else if (iValue > psAxis->iMaximum)
+	else if (sValue > psAxis->sMaximum)
 	{
-		iValue = psAxis->iMaximum;
+		sValue = psAxis->sMaximum;
 	}
-	maiAxisValues.SetValue(uiAxis, iValue);
+	*masAxisValues.Get(uiAxis) = sValue;
 	UpdateCoordinates();
 	return true;
 }
@@ -540,19 +544,19 @@ bool CTrueTypeVariations::SetAxisValue(const char* szTag, int32 iValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 16.16.  0 if the font doesn't have the axis.
+// 0 if the font doesn't have the axis.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::GetAxisValue(const char* szTag)
+STrueTypeFixed CTrueTypeVariations::GetAxisValue(const char* szTag)
 {
 	size	uiAxis;
 
 	uiAxis = FindAxis(szTag);
 	if (uiAxis == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
-	return maiAxisValues.GetValue(uiAxis);
+	return *masAxisValues.Get(uiAxis);
 }
 
 
@@ -567,7 +571,7 @@ void CTrueTypeVariations::ResetAxes(void)
 
 	for (i = 0; i < masAxes.NumElements(); i++)
 	{
-		maiAxisValues.SetValue(i, masAxes.Get(i)->iDefault);
+		*masAxisValues.Get(i) = masAxes.Get(i)->sDefault;
 	}
 	UpdateCoordinates();
 }
@@ -575,16 +579,16 @@ void CTrueTypeVariations::ResetAxes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 16.16, from -1 to 1.
+// From -1 to 1.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::GetNormalisedCoordinate(size uiAxis)
+STrueTypeFixed CTrueTypeVariations::GetNormalisedCoordinate(size uiAxis)
 {
-	if (uiAxis >= maiCoordinates.NumElements())
+	if (uiAxis >= masCoordinates.NumElements())
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
-	return maiCoordinates.GetValue(uiAxis);
+	return *masCoordinates.Get(uiAxis);
 }
 
 
@@ -625,7 +629,7 @@ bool CTrueTypeVariations::SetNamedInstance(size uiInstance)
 	STrueTypeNamedInstance*	psInstance;
 	size					i;
 	uint32					uiValue;
-	int32					iValue;
+	STrueTypeFixed			sValue;
 	STrueTypeAxis*			psAxis;
 
 	psInstance = masInstances.SafeGet(uiInstance);
@@ -638,16 +642,16 @@ bool CTrueTypeVariations::SetNamedInstance(size uiInstance)
 	{
 		psAxis = masAxes.Get(i);
 		mpcFont->ReadUint32(psInstance->uiCoordinates + (lsize)i * 4, &uiValue);
-		iValue = (int32)uiValue;
-		if (iValue < psAxis->iMinimum)
+		sValue = STrueTypeFixed::FromRaw((int32)uiValue);
+		if (sValue < psAxis->sMinimum)
 		{
-			iValue = psAxis->iMinimum;
+			sValue = psAxis->sMinimum;
 		}
-		else if (iValue > psAxis->iMaximum)
+		else if (sValue > psAxis->sMaximum)
 		{
-			iValue = psAxis->iMaximum;
+			sValue = psAxis->sMaximum;
 		}
-		maiAxisValues.SetValue(i, iValue);
+		*masAxisValues.Get(i) = sValue;
 	}
 	UpdateCoordinates();
 	return true;
@@ -691,7 +695,7 @@ bool CTrueTypeVariations::SetNamedInstance(const char* szName)
 void CTrueTypeVariations::UpdateCoordinates(void)
 {
 	size	i;
-	int32	iNormalised;
+	STrueTypeFixed	sNormalised;
 	uint16	uiRecordSize;
 	uint16	uiRecordCount;
 	lsize	uiRecord;
@@ -705,10 +709,10 @@ void CTrueTypeVariations::UpdateCoordinates(void)
 	for (i = 0; i < masAxes.NumElements(); i++)
 	{
 		//Kept 16.16 (not rounded to 2.14) as FreeType and fontTools do, so advances round the same way.
-		iNormalised = Normalise(i, maiAxisValues.GetValue(i));
-		iNormalised = MapAvar(i, iNormalised);
-		maiCoordinates.SetValue(i, iNormalised);
-		if (iNormalised != 0)
+		sNormalised = Normalise(i, *masAxisValues.Get(i));
+		sNormalised = MapAvar(i, sNormalised);
+		*masCoordinates.Get(i) = sNormalised;
+		if (sNormalised.miRaw != 0)
 		{
 			mbVaried = true;
 		}
@@ -753,33 +757,39 @@ void CTrueTypeVariations::UpdateCoordinates(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The default normalisation of an axis value: -1 at the minimum, 0 at
-// the default and 1 at the maximum, linear in between.  16.16 in and out.
+// the default and 1 at the maximum, linear in between.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::Normalise(size uiAxis, int32 iValue)
+STrueTypeFixed CTrueTypeVariations::Normalise(size uiAxis, STrueTypeFixed sValue)
 {
-	STrueTypeAxis*	psAxis;
+	typedef SFixed<int64, int64, 32>	SDistance;
+
+	STrueTypeAxis*		psAxis;
+	STrueTypeWideFixed	sWideValue;
+	STrueTypeWideFixed	sWideDefault;
 
 	psAxis = masAxes.Get(uiAxis);
-	if (iValue < psAxis->iDefault)
+	sWideValue = sValue.To<STrueTypeWideFixed>();
+	sWideDefault = psAxis->sDefault.To<STrueTypeWideFixed>();
+	if (sValue < psAxis->sDefault)
 	{
-		return (int32)-DivideRound(((int64)psAxis->iDefault - iValue) << TRUE_TYPE_FIXED_BITS, (int64)psAxis->iDefault - psAxis->iMinimum);
+		return (-(sWideDefault - sWideValue).To<SDistance>().DivideRound(sWideDefault - psAxis->sMinimum.To<STrueTypeWideFixed>())).To<STrueTypeFixed>();
 	}
-	else if (iValue > psAxis->iDefault)
+	else if (sValue > psAxis->sDefault)
 	{
-		return (int32)DivideRound(((int64)iValue - psAxis->iDefault) << TRUE_TYPE_FIXED_BITS, (int64)psAxis->iMaximum - psAxis->iDefault);
+		return (sWideValue - sWideDefault).To<SDistance>().DivideRound(psAxis->sMaximum.To<STrueTypeWideFixed>() - sWideDefault).To<STrueTypeFixed>();
 	}
-	return 0;
+	return STrueTypeFixed::FromRaw(0);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The avar segment map of an axis (2.14 pairs of from and to, sorted by
-// from) applied to a normalised coordinate.  16.16 in and out.
+// from) applied to a normalised coordinate.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::MapAvar(size uiAxis, int32 iNormalised)
+STrueTypeFixed CTrueTypeVariations::MapAvar(size uiAxis, STrueTypeFixed sNormalised)
 {
 	lsize	uiPos;
 	lsize	uiEnd;
@@ -787,14 +797,14 @@ int32 CTrueTypeVariations::MapAvar(size uiAxis, int32 iNormalised)
 	uint16	uiCount;
 	int16	iFrom;
 	int16	iTo;
-	int32	iFrom1;
-	int32	iTo1;
-	int32	iFrom2;
-	int32	iTo2;
+	STrueTypeFixed	sFrom1;
+	STrueTypeFixed	sTo1;
+	STrueTypeFixed	sFrom2;
+	STrueTypeFixed	sTo2;
 
 	if (muiAvarOffset == 0)
 	{
-		return iNormalised;
+		return sNormalised;
 	}
 
 	uiPos = muiAvarOffset + 8;
@@ -803,48 +813,48 @@ int32 CTrueTypeVariations::MapAvar(size uiAxis, int32 iNormalised)
 	{
 		if ((uiPos + 2 > uiEnd) || !mpcFont->ReadUint16(uiPos, &uiCount))
 		{
-			return iNormalised;
+			return sNormalised;
 		}
 		uiPos += 2 + (lsize)uiCount * 4;
 	}
 	if ((uiPos + 2 > uiEnd) || !mpcFont->ReadUint16(uiPos, &uiCount) || (uiPos + 2 + (lsize)uiCount * 4 > uiEnd))
 	{
-		return iNormalised;
+		return sNormalised;
 	}
 	if (uiCount == 0)
 	{
-		return iNormalised;
+		return sNormalised;
 	}
 	uiPos += 2;
 
 	//Before the first pair and after the last the map is a shift.
 	mpcFont->ReadInt16(uiPos, &iFrom);
 	mpcFont->ReadInt16(uiPos + 2, &iTo);
-	iFrom1 = (int32)iFrom << 2;
-	iTo1 = (int32)iTo << 2;
-	if (iNormalised <= iFrom1)
+	sFrom1 = STrueTypeF2Dot14::FromRaw(iFrom).To<STrueTypeFixed>();
+	sTo1 = STrueTypeF2Dot14::FromRaw(iTo).To<STrueTypeFixed>();
+	if (sNormalised <= sFrom1)
 	{
-		return iNormalised + iTo1 - iFrom1;
+		return sNormalised + sTo1 - sFrom1;
 	}
 
 	for (i = 1; i < uiCount; i++)
 	{
 		mpcFont->ReadInt16(uiPos + (lsize)i * 4, &iFrom);
 		mpcFont->ReadInt16(uiPos + (lsize)i * 4 + 2, &iTo);
-		iFrom2 = (int32)iFrom << 2;
-		iTo2 = (int32)iTo << 2;
-		if (iNormalised <= iFrom2)
+		sFrom2 = STrueTypeF2Dot14::FromRaw(iFrom).To<STrueTypeFixed>();
+		sTo2 = STrueTypeF2Dot14::FromRaw(iTo).To<STrueTypeFixed>();
+		if (sNormalised <= sFrom2)
 		{
-			if (iFrom2 == iFrom1)
+			if (sFrom2 == sFrom1)
 			{
-				return iTo2;
+				return sTo2;
 			}
-			return iTo1 + (int32)DivideRound((int64)(iNormalised - iFrom1) * (iTo2 - iTo1), (int64)iFrom2 - iFrom1);
+			return sTo1 + ((sNormalised - sFrom1) * (sTo2 - sTo1)).DivideRound(sFrom2 - sFrom1).To<STrueTypeFixed>();
 		}
-		iFrom1 = iFrom2;
-		iTo1 = iTo2;
+		sFrom1 = sFrom2;
+		sTo1 = sTo2;
 	}
-	return iNormalised + iTo1 - iFrom1;
+	return sNormalised + sTo1 - sFrom1;
 }
 
 
@@ -852,64 +862,67 @@ int32 CTrueTypeVariations::MapAvar(size uiAxis, int32 iNormalised)
 //
 // Scales a region's (or tuple's) scalar by how much of it applies on one
 // axis: all at the peak, falling to none at the start and the end.  The
-// coordinate and scalar are 16.16, the start, peak and end 2.14 (as
-// stored).  An axis with a peak of 0, or an invalid range, doesn't limit
+// the start, peak and end are as stored, 2.14.  An axis with a peak of 0, or an invalid range, doesn't limit
 // the region.  Multiplying and dividing in one step rounds as FreeType's
 // FT_MulDiv does.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::ApplyAxis(int32 iScalar, int32 iCoordinate, int32 iStart, int32 iPeak, int32 iEnd)
+STrueTypeFixed CTrueTypeVariations::ApplyAxis(STrueTypeFixed sScalar, STrueTypeFixed sCoordinate, int16 iStart, int16 iPeak, int16 iEnd)
 {
-	iStart *= 4;
-	iPeak *= 4;
-	iEnd *= 4;
-	if ((iPeak == 0) || (iCoordinate == iPeak))
+	STrueTypeFixed	sStart;
+	STrueTypeFixed	sPeak;
+	STrueTypeFixed	sEnd;
+
+	sStart = STrueTypeF2Dot14::FromRaw(iStart).To<STrueTypeFixed>();
+	sPeak = STrueTypeF2Dot14::FromRaw(iPeak).To<STrueTypeFixed>();
+	sEnd = STrueTypeF2Dot14::FromRaw(iEnd).To<STrueTypeFixed>();
+	if ((iPeak == 0) || (sCoordinate == sPeak))
 	{
-		return iScalar;
+		return sScalar;
 	}
-	if ((iStart > iPeak) || (iPeak > iEnd) || ((iStart < 0) && (iEnd > 0)))
+	if ((sStart > sPeak) || (sPeak > sEnd) || ((iStart < 0) && (iEnd > 0)))
 	{
-		return iScalar;
+		return sScalar;
 	}
-	if ((iCoordinate <= iStart) || (iCoordinate >= iEnd))
+	if ((sCoordinate <= sStart) || (sCoordinate >= sEnd))
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
-	if (iCoordinate < iPeak)
+	if (sCoordinate < sPeak)
 	{
-		return (int32)DivideRound((int64)iScalar * (iCoordinate - iStart), (int64)iPeak - iStart);
+		return (sScalar * (sCoordinate - sStart)).DivideRound(sPeak - sStart).To<STrueTypeFixed>();
 	}
-	return (int32)DivideRound((int64)iScalar * (iEnd - iCoordinate), (int64)iEnd - iPeak);
+	return (sScalar * (sEnd - sCoordinate)).DivideRound(sEnd - sPeak).To<STrueTypeFixed>();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The scalar (16.16) of a gvar tuple.  uiPeak, uiStart and uiEnd are the
+// The scalar of a gvar tuple.  uiPeak, uiStart and uiEnd are the
 // file offsets of a 2.14 value per axis.  A tuple without an intermediate
 // region (uiStart 0) runs from 0 to its peak.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::TupleScalar(lsize uiPeak, lsize uiStart, lsize uiEnd)
+STrueTypeFixed CTrueTypeVariations::TupleScalar(lsize uiPeak, lsize uiStart, lsize uiEnd)
 {
-	int32	iScalar;
+	STrueTypeFixed	sScalar;
 	size	i;
 	int16	iPeak;
 	int16	iStart;
 	int16	iEnd;
 
-	iScalar = TRUE_TYPE_FIXED_ONE;
+	sScalar = STrueTypeFixed::FromInt(1);
 	for (i = 0; i < muiGvarAxisCount; i++)
 	{
 		if (!mpcFont->ReadInt16(uiPeak + (lsize)i * 2, &iPeak))
 		{
-			return 0;
+			return STrueTypeFixed::FromRaw(0);
 		}
 		if (uiStart != 0)
 		{
 			if (!mpcFont->ReadInt16(uiStart + (lsize)i * 2, &iStart) || !mpcFont->ReadInt16(uiEnd + (lsize)i * 2, &iEnd))
 			{
-				return 0;
+				return STrueTypeFixed::FromRaw(0);
 			}
 		}
 		else
@@ -918,13 +931,13 @@ int32 CTrueTypeVariations::TupleScalar(lsize uiPeak, lsize uiStart, lsize uiEnd)
 			iEnd = (iPeak > 0) ? iPeak : 0;
 		}
 
-		iScalar = ApplyAxis(iScalar, maiCoordinates.GetValue(i), iStart, iPeak, iEnd);
-		if (iScalar == 0)
+		sScalar = ApplyAxis(sScalar, *masCoordinates.Get(i), iStart, iPeak, iEnd);
+		if (sScalar.miRaw == 0)
 		{
-			return 0;
+			return STrueTypeFixed::FromRaw(0);
 		}
 	}
-	return iScalar;
+	return sScalar;
 }
 
 
@@ -940,7 +953,7 @@ void CTrueTypeVariations::UpdateRegionScalars(STrueTypeItemVariationStore* psSto
 	int16	iStart;
 	int16	iPeak;
 	int16	iEnd;
-	int32	iScalar;
+	STrueTypeFixed	sScalar;
 
 	if (psStore->uiOffset == 0)
 	{
@@ -949,31 +962,31 @@ void CTrueTypeVariations::UpdateRegionScalars(STrueTypeItemVariationStore* psSto
 
 	for (uiRegion = 0; uiRegion < psStore->uiRegionCount; uiRegion++)
 	{
-		iScalar = TRUE_TYPE_FIXED_ONE;
+		sScalar = STrueTypeFixed::FromInt(1);
 		for (uiAxis = 0; uiAxis < psStore->uiRegionAxisCount; uiAxis++)
 		{
 			uiRecord = psStore->uiRegionList + 4 + ((lsize)uiRegion * psStore->uiRegionAxisCount + uiAxis) * 6;
 			mpcFont->ReadInt16(uiRecord, &iStart);
 			mpcFont->ReadInt16(uiRecord + 2, &iPeak);
 			mpcFont->ReadInt16(uiRecord + 4, &iEnd);
-			iScalar = ApplyAxis(iScalar, maiCoordinates.GetValue(uiAxis), iStart, iPeak, iEnd);
-			if (iScalar == 0)
+			sScalar = ApplyAxis(sScalar, *masCoordinates.Get(uiAxis), iStart, iPeak, iEnd);
+			if (sScalar.miRaw == 0)
 			{
 				break;
 			}
 		}
-		psStore->aiRegionScalars.SetValue(uiRegion, iScalar);
+		*psStore->asRegionScalars.Get(uiRegion) = sScalar;
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The delta (16.16 font units) of an item at the current coordinates.
+// The delta of an item at the current coordinates.
 // Out of range indices have no delta.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, uint16 uiOuter, uint16 uiInner)
+STrueTypeFixed CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, uint16 uiOuter, uint16 uiInner)
 {
 	uint32	uiDataOffset;
 	lsize	uiData;
@@ -987,7 +1000,7 @@ int32 CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, ui
 	lsize	uiPos;
 	size	i;
 	uint16	uiRegion;
-	int64	iSum;
+	STrueTypeWideFixed	sSum;
 	int32	iDelta;
 	uint32	ui32;
 	uint16	ui16;
@@ -995,22 +1008,22 @@ int32 CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, ui
 
 	if ((psStore->uiOffset == 0) || (uiOuter >= psStore->uiDataCount))
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
 	if (!mpcFont->ReadUint32(psStore->uiOffset + 8 + (lsize)uiOuter * 4, &uiDataOffset))
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
 	uiData = psStore->uiOffset + uiDataOffset;
 	if (!mpcFont->ReadUint16(uiData, &uiItemCount) ||
 		!mpcFont->ReadUint16(uiData + 2, &uiWordDeltaCount) ||
 		!mpcFont->ReadUint16(uiData + 4, &uiRegionIndexCount))
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
 	if (uiInner >= uiItemCount)
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
 
 	//The first uiWordCount deltas of a row are words (longs with bLongWords), the rest bytes (words).
@@ -1018,7 +1031,7 @@ int32 CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, ui
 	uiWordCount = uiWordDeltaCount & TRUE_TYPE_WORD_DELTA_COUNT_MASK;
 	if (uiWordCount > uiRegionIndexCount)
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
 	if (bLongWords)
 	{
@@ -1031,10 +1044,10 @@ int32 CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, ui
 	uiRow = uiData + 6 + (lsize)uiRegionIndexCount * 2 + (lsize)uiInner * uiRowSize;
 	if (!mpcFont->IsInFile(uiRow, uiRowSize))
 	{
-		return 0;
+		return STrueTypeFixed::FromRaw(0);
 	}
 
-	iSum = 0;
+	sSum = STrueTypeWideFixed::FromRaw(0);
 	uiPos = uiRow;
 	for (i = 0; i < uiRegionIndexCount; i++)
 	{
@@ -1072,10 +1085,10 @@ int32 CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* psStore, ui
 		mpcFont->ReadUint16(uiData + 6 + (lsize)i * 2, &uiRegion);
 		if (uiRegion < psStore->uiRegionCount)
 		{
-			iSum += (int64)iDelta * psStore->aiRegionScalars.GetValue(uiRegion);
+			sSum += STrueTypeWhole::FromRaw(iDelta) * *psStore->asRegionScalars.Get(uiRegion);
 		}
 	}
-	return (int32)iSum;
+	return sSum.To<STrueTypeFixed>();
 }
 
 
@@ -1191,7 +1204,7 @@ int32 CTrueTypeVariations::GetMetricDelta(ETrueTypeMetric eMetric)
 //////////////////////////////////////////////////////////////////////////
 //
 // Sums the gvar deltas of a glyph's points at the current coordinates
-// into paiDeltaX and paiDeltaY (16.16 font units, uiNumPoints of each).
+// into pasDeltaX and pasDeltaY (font units, uiNumPoints of each).
 // pasPoints are the glyph's points in the default instance: the outline
 // points then the four phantom points of a simple glyph, or a point per
 // component then the phantom points of a composite glyph.  paiContourEnds
@@ -1201,7 +1214,7 @@ int32 CTrueTypeVariations::GetMetricDelta(ETrueTypeMetric eMetric)
 // glyph's variation data is corrupt (the deltas are then all 0).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, int32* paiDeltaX, int32* paiDeltaY)
+bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY)
 {
 	uint32			uiStartOffset;
 	uint32			uiEndOffset;
@@ -1223,7 +1236,7 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 	lsize			uiPeak;
 	lsize			uiIntermediateStart;
 	lsize			uiIntermediateEnd;
-	int32			iScalar;
+	STrueTypeFixed	sScalar;
 	CArrayInt32		aiSharedPoints;
 	bool			bSharedAll;
 	CArrayInt32		aiPrivatePoints;
@@ -1236,14 +1249,14 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 	size			i;
 	int32			iPoint;
 	bool*			pbTouched;
-	int32*			paiTupleX;
-	int32*			paiTupleY;
+	STrueTypeFixed*	pasTupleX;
+	STrueTypeFixed*	pasTupleY;
 	bool			bResult;
 
 	for (i = 0; i < uiNumPoints; i++)
 	{
-		paiDeltaX[i] = 0;
-		paiDeltaY[i] = 0;
+		pasDeltaX[i] = STrueTypeFixed::FromRaw(0);
+		pasDeltaY[i] = STrueTypeFixed::FromRaw(0);
 	}
 	if (!mbVaried || (muiGvarOffset == 0) || (iGlyph < 0) || (iGlyph >= muiGvarGlyphCount) || (uiNumPoints == 0))
 	{
@@ -1296,9 +1309,9 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 	aiX.Init();
 	aiY.Init();
 	pbTouched = (bool*)malloc(uiNumPoints * sizeof(bool));
-	paiTupleX = (int32*)malloc(uiNumPoints * sizeof(int32));
-	paiTupleY = (int32*)malloc(uiNumPoints * sizeof(int32));
-	bResult = (pbTouched != NULL) && (paiTupleX != NULL) && (paiTupleY != NULL);
+	pasTupleX = (STrueTypeFixed*)malloc(uiNumPoints * sizeof(STrueTypeFixed));
+	pasTupleY = (STrueTypeFixed*)malloc(uiNumPoints * sizeof(STrueTypeFixed));
+	bResult = (pbTouched != NULL) && (pasTupleX != NULL) && (pasTupleY != NULL);
 
 	bSharedAll = true;
 	if (bResult && (uiTupleField & TRUE_TYPE_SHARED_POINT_NUMBERS))
@@ -1356,8 +1369,8 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 		}
 		uiData = uiTupleEnd;
 
-		iScalar = TupleScalar(uiPeak, uiIntermediateStart, uiIntermediateEnd);
-		if (iScalar == 0)
+		sScalar = TupleScalar(uiPeak, uiIntermediateStart, uiIntermediateEnd);
+		if (sScalar.miRaw == 0)
 		{
 			continue;
 		}
@@ -1389,8 +1402,8 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 		{
 			for (i = 0; i < uiNumPoints; i++)
 			{
-				paiDeltaX[i] += aiX.GetValue(i) * iScalar;
-				paiDeltaY[i] += aiY.GetValue(i) * iScalar;
+				pasDeltaX[i] += (STrueTypeWhole::FromRaw(aiX.GetValue(i)) * sScalar).To<STrueTypeFixed>();
+				pasDeltaY[i] += (STrueTypeWhole::FromRaw(aiY.GetValue(i)) * sScalar).To<STrueTypeFixed>();
 			}
 		}
 		else
@@ -1399,8 +1412,8 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 			for (i = 0; i < uiNumPoints; i++)
 			{
 				pbTouched[i] = false;
-				paiTupleX[i] = 0;
-				paiTupleY[i] = 0;
+				pasTupleX[i] = STrueTypeFixed::FromRaw(0);
+				pasTupleY[i] = STrueTypeFixed::FromRaw(0);
 			}
 			for (i = 0; i < uiCount; i++)
 			{
@@ -1408,15 +1421,15 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 				if ((iPoint >= 0) && ((size)iPoint < uiNumPoints))
 				{
 					pbTouched[iPoint] = true;
-					paiTupleX[iPoint] = aiX.GetValue(i) * TRUE_TYPE_FIXED_ONE;
-					paiTupleY[iPoint] = aiY.GetValue(i) * TRUE_TYPE_FIXED_ONE;
+					pasTupleX[iPoint] = STrueTypeFixed::FromInt(aiX.GetValue(i));
+					pasTupleY[iPoint] = STrueTypeFixed::FromInt(aiY.GetValue(i));
 				}
 			}
-			InferDeltas(pasPoints, uiNumPoints, paiContourEnds, uiNumContours, pbTouched, paiTupleX, paiTupleY);
+			InferDeltas(pasPoints, uiNumPoints, paiContourEnds, uiNumContours, pbTouched, pasTupleX, pasTupleY);
 			for (i = 0; i < uiNumPoints; i++)
 			{
-				paiDeltaX[i] += (int32)DivideRound((int64)paiTupleX[i] * iScalar, TRUE_TYPE_FIXED_ONE);
-				paiDeltaY[i] += (int32)DivideRound((int64)paiTupleY[i] * iScalar, TRUE_TYPE_FIXED_ONE);
+				pasDeltaX[i] += (pasTupleX[i] * sScalar).To<STrueTypeFixed>();
+				pasDeltaY[i] += (pasTupleY[i] * sScalar).To<STrueTypeFixed>();
 			}
 		}
 	}
@@ -1425,13 +1438,13 @@ bool CTrueTypeVariations::GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, 
 	{
 		for (i = 0; i < uiNumPoints; i++)
 		{
-			paiDeltaX[i] = 0;
-			paiDeltaY[i] = 0;
+			pasDeltaX[i] = STrueTypeFixed::FromRaw(0);
+			pasDeltaY[i] = STrueTypeFixed::FromRaw(0);
 		}
 	}
 
-	free(paiTupleY);
-	free(paiTupleX);
+	free(pasTupleY);
+	free(pasTupleX);
 	free(pbTouched);
 	aiY.Kill();
 	aiX.Kill();
@@ -1611,7 +1624,7 @@ bool CTrueTypeVariations::ReadPackedDeltas(lsize* puiPos, lsize uiEnd, size uiCo
 // Interpolates the deltas of untouched points in each contour.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeVariations::InferDeltas(STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, bool* pbTouched, int32* paiDeltaX, int32* paiDeltaY)
+void CTrueTypeVariations::InferDeltas(STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, bool* pbTouched, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY)
 {
 	size	uiContour;
 	size	uiStart;
@@ -1625,7 +1638,7 @@ void CTrueTypeVariations::InferDeltas(STrueTypePoint* pasPoints, size uiNumPoint
 		{
 			return;
 		}
-		InferContour(pasPoints, uiStart, (size)iEnd, pbTouched, paiDeltaX, paiDeltaY);
+		InferContour(pasPoints, uiStart, (size)iEnd, pbTouched, pasDeltaX, pasDeltaY);
 		uiStart = (size)iEnd + 1;
 	}
 }
@@ -1638,7 +1651,7 @@ void CTrueTypeVariations::InferDeltas(STrueTypePoint* pasPoints, size uiNumPoint
 // touched points doesn't move.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeVariations::InferContour(STrueTypePoint* pasPoints, size uiStart, size uiEnd, bool* pbTouched, int32* paiDeltaX, int32* paiDeltaY)
+void CTrueTypeVariations::InferContour(STrueTypePoint* pasPoints, size uiStart, size uiEnd, bool* pbTouched, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY)
 {
 	size	uiFirst;
 	size	uiPrevious;
@@ -1669,8 +1682,8 @@ void CTrueTypeVariations::InferContour(STrueTypePoint* pasPoints, size uiStart, 
 		i = (uiPrevious == uiEnd) ? uiStart : uiPrevious + 1;
 		while (i != uiNext)
 		{
-			paiDeltaX[i] = InferDelta(pasPoints[i].x, pasPoints[uiPrevious].x, pasPoints[uiNext].x, paiDeltaX[uiPrevious], paiDeltaX[uiNext]);
-			paiDeltaY[i] = InferDelta(pasPoints[i].y, pasPoints[uiPrevious].y, pasPoints[uiNext].y, paiDeltaY[uiPrevious], paiDeltaY[uiNext]);
+			pasDeltaX[i] = InferDelta(pasPoints[i].x, pasPoints[uiPrevious].x, pasPoints[uiNext].x, pasDeltaX[uiPrevious], pasDeltaX[uiNext]);
+			pasDeltaY[i] = InferDelta(pasPoints[i].y, pasPoints[uiPrevious].y, pasPoints[uiNext].y, pasDeltaY[uiPrevious], pasDeltaY[uiNext]);
 			i = (i == uiEnd) ? uiStart : i + 1;
 		}
 		uiPrevious = uiNext;
@@ -1686,34 +1699,35 @@ void CTrueTypeVariations::InferContour(STrueTypePoint* pasPoints, size uiStart, 
 // their delta if they agree and none if they don't.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeVariations::InferDelta(int32 iCoordinate, int32 iCoordinate1, int32 iCoordinate2, int32 iDelta1, int32 iDelta2)
+STrueTypeFixed CTrueTypeVariations::InferDelta(int32 iCoordinate, int32 iCoordinate1, int32 iCoordinate2, STrueTypeFixed sDelta1, STrueTypeFixed sDelta2)
 {
-	int32	iSwap;
-	int64	iSlope;
+	int32				iSwap;
+	STrueTypeFixed		sSwap;
+	STrueTypeWideFixed	sSlope;
 
 	if (iCoordinate1 == iCoordinate2)
 	{
-		return (iDelta1 == iDelta2) ? iDelta1 : 0;
+		return (sDelta1 == sDelta2) ? sDelta1 : STrueTypeFixed::FromRaw(0);
 	}
 	if (iCoordinate1 > iCoordinate2)
 	{
 		iSwap = iCoordinate1;
 		iCoordinate1 = iCoordinate2;
 		iCoordinate2 = iSwap;
-		iSwap = iDelta1;
-		iDelta1 = iDelta2;
-		iDelta2 = iSwap;
+		sSwap = sDelta1;
+		sDelta1 = sDelta2;
+		sDelta2 = sSwap;
 	}
 	if (iCoordinate <= iCoordinate1)
 	{
-		return iDelta1;
+		return sDelta1;
 	}
 	if (iCoordinate >= iCoordinate2)
 	{
-		return iDelta2;
+		return sDelta2;
 	}
 
-	//A rounded slope (16.16 delta per font unit) times the distance, as FreeType does it.
-	iSlope = DivideRound((int64)iDelta2 - iDelta1, (int64)iCoordinate2 - iCoordinate1);
-	return iDelta1 + (int32)(iSlope * (iCoordinate - iCoordinate1));
+	//A rounded slope (delta per font unit) times the distance, as FreeType does it.
+	sSlope = (sDelta2.To<STrueTypeWideFixed>() - sDelta1.To<STrueTypeWideFixed>()).DivideRound(SFixed<int64, int64, 0>::FromRaw((int64)iCoordinate2 - iCoordinate1));
+	return sDelta1 + (sSlope * SFixed<int64, int64, 0>::FromRaw(iCoordinate - iCoordinate1)).To<STrueTypeFixed>();
 }

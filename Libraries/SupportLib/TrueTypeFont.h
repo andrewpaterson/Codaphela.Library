@@ -49,10 +49,10 @@ struct STrueTypeComponent
 	uint16	uiGlyph;
 	int32	iArg1;
 	int32	iArg2;
-	int32	iXX;
-	int32	iXY;
-	int32	iYX;
-	int32	iYY;
+	STrueTypeF2Dot14	sXX;
+	STrueTypeF2Dot14	sXY;
+	STrueTypeF2Dot14	sYX;
+	STrueTypeF2Dot14	sYY;
 };
 
 
@@ -153,7 +153,7 @@ public:
 	size		NumAxes(void);
 	STrueTypeAxis*	GetAxis(size uiAxis);
 	bool		SetAxis(const char* szTag, float32 fValue);
-	bool		SetAxisFixed(const char* szTag, int32 iValue);
+	bool		SetAxisFixed(const char* szTag, STrueTypeFixed sValue);
 	float32		GetAxisValue(const char* szTag);
 	void		ResetAxes(void);
 	size		NumNamedInstances(void);

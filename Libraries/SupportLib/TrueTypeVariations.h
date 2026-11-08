@@ -23,23 +23,30 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayInt32.h"
+#include "BaseLib/FixedPoint.h"
 #include "TrueTypeOutline.h"
 
 
-//Axis values are 16.16 fixed point in the axis' own units (wght 400 is 400 << 16).
-#define TRUE_TYPE_FIXED_BITS			16
-#define TRUE_TYPE_FIXED_ONE				65536
+//Axis values, normalised coordinates from -1 to 1, scalars and deltas are 16.16.  An axis value is in the axis' own units
+//(wght 400 is 400 << 16).
+typedef SFixed<int32, int64, 16>	STrueTypeFixed;
+typedef SFixed<int64, int64, 16>	STrueTypeWideFixed;
+typedef CArrayTemplate<STrueTypeFixed>	CArrayTrueTypeFixed;
 
-//Normalised coordinates are 16.16 fixed point from -1 to 1.  The font stores region peaks etc. as 2.14.
+//The font stores region peaks etc. as 2.14.
+typedef SFixed<int32, int64, 14>	STrueTypeF2Dot14;
+
+//A whole number of font units.
+typedef SFixed<int32, int64, 0>		STrueTypeWhole;
 
 
 //A design axis from the fvar table.
 struct STrueTypeAxis
 {
 	char	szTag[5];
-	int32	iMinimum;	//16.16.
-	int32	iDefault;	//16.16.
-	int32	iMaximum;	//16.16.
+	STrueTypeFixed	sMinimum;
+	STrueTypeFixed	sDefault;
+	STrueTypeFixed	sMaximum;
 	uint16	uiNameID;
 	bool	bHidden;
 };
@@ -80,7 +87,7 @@ struct STrueTypeItemVariationStore
 	uint16		uiRegionAxisCount;
 	uint16		uiRegionCount;
 	uint16		uiDataCount;
-	CArrayInt32	aiRegionScalars;	//16.16.
+	CArrayTrueTypeFixed	asRegionScalars;
 };
 
 
@@ -88,8 +95,8 @@ typedef CArrayTemplate<STrueTypeAxis>			CArrayTrueTypeAxis;
 typedef CArrayTemplate<STrueTypeNamedInstance>	CArrayTrueTypeNamedInstance;
 
 
-//A 16.16 delta to whole font units, halves rounded up as FreeType does.
-int32 TrueTypeRoundDelta(int64 iDelta);
+//A delta to whole font units, halves rounded up as FreeType does.
+int32 TrueTypeRoundDelta(STrueTypeFixed sDelta);
 
 
 class CTrueTypeFont;
@@ -107,8 +114,8 @@ protected:
 
 	CArrayTrueTypeAxis				masAxes;
 	CArrayTrueTypeNamedInstance		masInstances;
-	CArrayInt32						maiAxisValues;		//16.16, by axis.
-	CArrayInt32						maiCoordinates;		//Normalised 16.16, by axis.
+	CArrayTrueTypeFixed				masAxisValues;		//By axis.
+	CArrayTrueTypeFixed				masCoordinates;		//Normalised, by axis.
 	bool							mbVaried;			//Some coordinate isn't 0.
 
 	lsize							muiAvarOffset;		//0 if the font doesn't have it.
@@ -141,10 +148,10 @@ public:
 	size					NumAxes(void);
 	STrueTypeAxis*			GetAxis(size uiAxis);
 	size					FindAxis(const char* szTag);
-	bool					SetAxisValue(const char* szTag, int32 iValue);
-	int32					GetAxisValue(const char* szTag);
+	bool					SetAxisValue(const char* szTag, STrueTypeFixed sValue);
+	STrueTypeFixed			GetAxisValue(const char* szTag);
 	void					ResetAxes(void);
-	int32					GetNormalisedCoordinate(size uiAxis);
+	STrueTypeFixed			GetNormalisedCoordinate(size uiAxis);
 
 	size					NumNamedInstances(void);
 	bool					GetNamedInstanceName(size uiInstance, CChars* psz);
@@ -154,7 +161,7 @@ public:
 	bool					HasAdvanceDeltas(void);
 	int32					GetAdvanceDelta(int iGlyph);
 	int32					GetMetricDelta(ETrueTypeMetric eMetric);
-	bool					GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, int32* paiDeltaX, int32* paiDeltaY);
+	bool					GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY);
 
 protected:
 	bool					ParseFvar(void);
@@ -166,18 +173,18 @@ protected:
 	void					KillItemVariationStore(STrueTypeItemVariationStore* psStore);
 
 	void					UpdateCoordinates(void);
-	int32					Normalise(size uiAxis, int32 iValue);
-	int32					MapAvar(size uiAxis, int32 iNormalised);
-	int32					ApplyAxis(int32 iScalar, int32 iCoordinate, int32 iStart, int32 iPeak, int32 iEnd);
-	int32					TupleScalar(lsize uiPeak, lsize uiStart, lsize uiEnd);
+	STrueTypeFixed			Normalise(size uiAxis, STrueTypeFixed sValue);
+	STrueTypeFixed			MapAvar(size uiAxis, STrueTypeFixed sNormalised);
+	STrueTypeFixed			ApplyAxis(STrueTypeFixed sScalar, STrueTypeFixed sCoordinate, int16 iStart, int16 iPeak, int16 iEnd);
+	STrueTypeFixed			TupleScalar(lsize uiPeak, lsize uiStart, lsize uiEnd);
 	void					UpdateRegionScalars(STrueTypeItemVariationStore* psStore);
-	int32					GetItemDelta(STrueTypeItemVariationStore* psStore, uint16 uiOuter, uint16 uiInner);
+	STrueTypeFixed			GetItemDelta(STrueTypeItemVariationStore* psStore, uint16 uiOuter, uint16 uiInner);
 
 	bool					ReadPackedPoints(lsize* puiPos, lsize uiEnd, CArrayInt32* paiPoints, bool* pbAll);
 	bool					ReadPackedDeltas(lsize* puiPos, lsize uiEnd, size uiCount, CArrayInt32* paiDeltas);
-	void					InferDeltas(STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, bool* pbTouched, int32* paiDeltaX, int32* paiDeltaY);
-	void					InferContour(STrueTypePoint* pasPoints, size uiStart, size uiEnd, bool* pbTouched, int32* paiDeltaX, int32* paiDeltaY);
-	int32					InferDelta(int32 iCoordinate, int32 iCoordinate1, int32 iCoordinate2, int32 iDelta1, int32 iDelta2);
+	void					InferDeltas(STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, bool* pbTouched, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY);
+	void					InferContour(STrueTypePoint* pasPoints, size uiStart, size uiEnd, bool* pbTouched, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY);
+	STrueTypeFixed			InferDelta(int32 iCoordinate, int32 iCoordinate1, int32 iCoordinate2, STrueTypeFixed sDelta1, STrueTypeFixed sDelta2);
 };
 
 

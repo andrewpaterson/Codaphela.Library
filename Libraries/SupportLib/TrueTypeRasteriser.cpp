@@ -38,7 +38,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 void CTrueTypeRasteriser::Init(CTrueTypeFont* pcFont, float32 fPixelSize)
 {
 	mpcFont = pcFont;
-	miPixelSize = FixedFromFloat(fPixelSize, TRUE_TYPE_SUBPIXEL_BITS);
+	msPixelSize = SCoverageSubpixel::FromFloat(fPixelSize);
 	miUnitsPerEm = pcFont->GetUnitsPerEm();
 	mcOutline.Init();
 	mcCoverage.Init();
@@ -64,7 +64,7 @@ void CTrueTypeRasteriser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetScale(void)
 {
-	return FixedToFloat(miPixelSize, TRUE_TYPE_SUBPIXEL_BITS) / (float32)miUnitsPerEm;
+	return msPixelSize.ToFloat() / (float32)miUnitsPerEm;
 }
 
 
@@ -73,9 +73,9 @@ float32 CTrueTypeRasteriser::GetScale(void)
 // Font units to subpixels, rounded.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeRasteriser::Scale(int32 iFontUnits)
+SCoverageSubpixel CTrueTypeRasteriser::Scale(int32 iFontUnits)
 {
-	return (int32)DivideRound((int64)iFontUnits * miPixelSize, miUnitsPerEm);
+	return (SCoverageWhole::FromRaw(iFontUnits) * msPixelSize).DivideRound(SCoverageWhole::FromRaw(miUnitsPerEm)).To<SCoverageSubpixel>();
 }
 
 
@@ -86,7 +86,7 @@ int32 CTrueTypeRasteriser::Scale(int32 iFontUnits)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetAscent(void)
 {
-	return FixedToFloat(GetAscentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
+	return GetAscentSubpixels().ToFloat();
 }
 
 
@@ -97,7 +97,7 @@ float32 CTrueTypeRasteriser::GetAscent(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetDescent(void)
 {
-	return FixedToFloat(GetDescentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
+	return GetDescentSubpixels().ToFloat();
 }
 
 
@@ -108,7 +108,7 @@ float32 CTrueTypeRasteriser::GetDescent(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetLineHeight(void)
 {
-	return FixedToFloat(Scale(mpcFont->GetAscender() - mpcFont->GetDescender() + mpcFont->GetLineGap()), TRUE_TYPE_SUBPIXEL_BITS);
+	return Scale(mpcFont->GetAscender() - mpcFont->GetDescender() + mpcFont->GetLineGap()).ToFloat();
 }
 
 
@@ -118,7 +118,7 @@ float32 CTrueTypeRasteriser::GetLineHeight(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetAdvance(int iGlyph)
 {
-	return FixedToFloat(GetAdvanceSubpixels(iGlyph), TRUE_TYPE_SUBPIXEL_BITS);
+	return GetAdvanceSubpixels(iGlyph).ToFloat();
 }
 
 
@@ -129,7 +129,7 @@ float32 CTrueTypeRasteriser::GetAdvance(int iGlyph)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetTextWidth(char* szUTF8)
 {
-	return FixedToFloat(GetTextWidthSubpixels(szUTF8), TRUE_TYPE_SUBPIXEL_BITS);
+	return GetTextWidthSubpixels(szUTF8).ToFloat();
 }
 
 
@@ -137,7 +137,7 @@ float32 CTrueTypeRasteriser::GetTextWidth(char* szUTF8)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeRasteriser::GetAscentSubpixels(void)
+SCoverageSubpixel CTrueTypeRasteriser::GetAscentSubpixels(void)
 {
 	return Scale(mpcFont->GetAscender());
 }
@@ -148,7 +148,7 @@ int32 CTrueTypeRasteriser::GetAscentSubpixels(void)
 // Positive.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeRasteriser::GetDescentSubpixels(void)
+SCoverageSubpixel CTrueTypeRasteriser::GetDescentSubpixels(void)
 {
 	return Scale(-mpcFont->GetDescender());
 }
@@ -158,13 +158,13 @@ int32 CTrueTypeRasteriser::GetDescentSubpixels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeRasteriser::GetAdvanceSubpixels(int iGlyph)
+SCoverageSubpixel CTrueTypeRasteriser::GetAdvanceSubpixels(int iGlyph)
 {
 	int		iAdvanceWidth;
 
 	if (!mpcFont->GetGlyphAdvanceWidth(iGlyph, &iAdvanceWidth))
 	{
-		return 0;
+		return SCoverageSubpixel::FromRaw(0);
 	}
 	return Scale(iAdvanceWidth);
 }
@@ -174,13 +174,13 @@ int32 CTrueTypeRasteriser::GetAdvanceSubpixels(int iGlyph)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTrueTypeRasteriser::GetTextWidthSubpixels(char* szUTF8)
+SCoverageSubpixel CTrueTypeRasteriser::GetTextWidthSubpixels(char* szUTF8)
 {
-	CUTF8	cUTF8;
-	uint32	uiCodePoint;
-	int32	iWidth;
+	CUTF8				cUTF8;
+	uint32				uiCodePoint;
+	SCoverageSubpixel	sWidth;
 
-	iWidth = 0;
+	sWidth = SCoverageSubpixel::FromRaw(0);
 	cUTF8.Init(szUTF8);
 	for (;;)
 	{
@@ -189,21 +189,21 @@ int32 CTrueTypeRasteriser::GetTextWidthSubpixels(char* szUTF8)
 		{
 			break;
 		}
-		iWidth += GetAdvanceSubpixels(mpcFont->GetGlyphIndex(uiCodePoint));
+		sWidth += GetAdvanceSubpixels(mpcFont->GetGlyphIndex(uiCodePoint));
 	}
 	cUTF8.Kill();
-	return iWidth;
+	return sWidth;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The pixels a glyph covers with its pen origin at iPenX (subpixels) on
+// The pixels a glyph covers with its pen origin at sPenX on
 // the baseline.  Returns false for glyphs without an outline (and
 // corrupt glyphs).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::GetGlyphBounds(int iGlyph, int32 iPenX, STrueTypePixelBounds* psBounds)
+bool CTrueTypeRasteriser::GetGlyphBounds(int iGlyph, SCoverageSubpixel sPenX, STrueTypePixelBounds* psBounds)
 {
 	size			i;
 	size			uiNumPoints;
@@ -252,10 +252,10 @@ bool CTrueTypeRasteriser::GetGlyphBounds(int iGlyph, int32 iPenX, STrueTypePixel
 	}
 
 	//Scaling keeps the order of points, so the scaled extremes are the extremes.
-	psBounds->iLeft = FixedFloor(iPenX + Scale(iXMin), TRUE_TYPE_SUBPIXEL_BITS);
-	psBounds->iRight = FixedCeiling(iPenX + Scale(iXMax), TRUE_TYPE_SUBPIXEL_BITS);
-	psBounds->iTop = FixedFloor(-Scale(iYMax), TRUE_TYPE_SUBPIXEL_BITS);
-	psBounds->iBottom = FixedCeiling(-Scale(iYMin), TRUE_TYPE_SUBPIXEL_BITS);
+	psBounds->iLeft = (sPenX + Scale(iXMin)).Floor();
+	psBounds->iRight = (sPenX + Scale(iXMax)).Ceiling();
+	psBounds->iTop = (-Scale(iYMax)).Floor();
+	psBounds->iBottom = (-Scale(iYMin)).Ceiling();
 	return (psBounds->iRight > psBounds->iLeft) && (psBounds->iBottom > psBounds->iTop);
 }
 
@@ -271,12 +271,12 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 	CUTF8					cUTF8;
 	uint32					uiCodePoint;
 	int						iGlyph;
-	int32					iX;
+	SCoverageSubpixel		sX;
 	STrueTypePixelBounds	sGlyph;
 	bool					bAny;
 
 	bAny = false;
-	iX = 0;
+	sX = SCoverageSubpixel::FromRaw(0);
 	cUTF8.Init(szUTF8);
 	for (;;)
 	{
@@ -287,7 +287,7 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 		}
 
 		iGlyph = mpcFont->GetGlyphIndex(uiCodePoint);
-		if (GetGlyphBounds(iGlyph, iX, &sGlyph))
+		if (GetGlyphBounds(iGlyph, sX, &sGlyph))
 		{
 			if (!bAny)
 			{
@@ -302,7 +302,7 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 				psBounds->iBottom = (sGlyph.iBottom > psBounds->iBottom) ? sGlyph.iBottom : psBounds->iBottom;
 			}
 		}
-		iX += GetAdvanceSubpixels(iGlyph);
+		sX += GetAdvanceSubpixels(iGlyph);
 	}
 	cUTF8.Kill();
 	return bAny;
@@ -324,7 +324,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* pi
 
 	*piLeft = 0;
 	*piTop = 0;
-	if (!GetGlyphBounds(iGlyph, 0, &sBounds))
+	if (!GetGlyphBounds(iGlyph, SCoverageSubpixel::FromRaw(0), &sBounds))
 	{
 		return NULL;
 	}
@@ -333,7 +333,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* pi
 		return NULL;
 	}
 
-	AddGlyph(iGlyph, FixedFromInt(-sBounds.iLeft, TRUE_TYPE_SUBPIXEL_BITS), FixedFromInt(-sBounds.iTop, TRUE_TYPE_SUBPIXEL_BITS));
+	AddGlyph(iGlyph, SCoverageSubpixel::FromInt(-sBounds.iLeft), SCoverageSubpixel::FromInt(-sBounds.iTop));
 	mcCoverage.Accumulate();
 	pImage = CoverageToImage();
 	EndCoverage();
@@ -367,7 +367,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int
 		return NULL;
 	}
 
-	AddText(szUTF8, FixedFromInt(-sBounds.iLeft, TRUE_TYPE_SUBPIXEL_BITS), FixedFromInt(-sBounds.iTop, TRUE_TYPE_SUBPIXEL_BITS));
+	AddText(szUTF8, SCoverageSubpixel::FromInt(-sBounds.iLeft), SCoverageSubpixel::FromInt(-sBounds.iTop));
 	mcCoverage.Accumulate();
 	pImage = CoverageToImage();
 	EndCoverage();
@@ -389,8 +389,8 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int
 bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pDest, float32 fX, float32 fY, char* szUTF8, CImageColour* pcColour)
 {
 	STrueTypePixelBounds	sBounds;
-	int32					iX;
-	int32					iY;
+	SCoverageSubpixel		sX;
+	SCoverageSubpixel		sY;
 	int						iLeft;
 	int						iTop;
 	int						iRight;
@@ -403,12 +403,12 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pDest, float32 fX, float32 fY, ch
 	}
 
 	//The bounds are for a pen at a whole pixel; the fraction can move them one more pixel.
-	iX = FixedFromFloat(fX, TRUE_TYPE_SUBPIXEL_BITS);
-	iY = FixedFromFloat(fY, TRUE_TYPE_SUBPIXEL_BITS);
-	iLeft = FixedFloor(iX, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iLeft;
-	iRight = FixedCeiling(iX, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iRight;
-	iTop = FixedFloor(iY, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iTop;
-	iBottom = FixedCeiling(iY, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iBottom;
+	sX = SCoverageSubpixel::FromFloat(fX);
+	sY = SCoverageSubpixel::FromFloat(fY);
+	iLeft = sX.Floor() + sBounds.iLeft;
+	iRight = sX.Ceiling() + sBounds.iRight;
+	iTop = sY.Floor() + sBounds.iTop;
+	iBottom = sY.Ceiling() + sBounds.iBottom;
 
 	if (iLeft < 0)
 	{
@@ -436,7 +436,7 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pDest, float32 fX, float32 fY, ch
 	{
 		return false;
 	}
-	AddText(szUTF8, iX - FixedFromInt(iLeft, TRUE_TYPE_SUBPIXEL_BITS), iY - FixedFromInt(iTop, TRUE_TYPE_SUBPIXEL_BITS));
+	AddText(szUTF8, sX - SCoverageSubpixel::FromInt(iLeft), sY - SCoverageSubpixel::FromInt(iTop));
 	mcCoverage.Accumulate();
 	bResult = BlendCoverage(pDest, iLeft, iTop, pcColour);
 	EndCoverage();
@@ -466,11 +466,11 @@ void CTrueTypeRasteriser::EndCoverage(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds one line of text with the pen starting at (iX, iY) in coverage
+// Adds one line of text with the pen starting at (sX, sY) in coverage
 // buffer subpixels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::AddText(char* szUTF8, int32 iX, int32 iY)
+bool CTrueTypeRasteriser::AddText(char* szUTF8, SCoverageSubpixel sX, SCoverageSubpixel sY)
 {
 	CUTF8	cUTF8;
 	uint32	uiCodePoint;
@@ -488,8 +488,8 @@ bool CTrueTypeRasteriser::AddText(char* szUTF8, int32 iX, int32 iY)
 		}
 
 		iGlyph = mpcFont->GetGlyphIndex(uiCodePoint);
-		bResult &= AddGlyph(iGlyph, iX, iY);
-		iX += GetAdvanceSubpixels(iGlyph);
+		bResult &= AddGlyph(iGlyph, sX, sY);
+		sX += GetAdvanceSubpixels(iGlyph);
 	}
 	cUTF8.Kill();
 	return bResult;
@@ -498,12 +498,12 @@ bool CTrueTypeRasteriser::AddText(char* szUTF8, int32 iX, int32 iY)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds a glyph's edges with its pen origin at (iX, iY) in coverage buffer
+// Adds a glyph's edges with its pen origin at (sX, sY) in coverage buffer
 // subpixels.  Points off the curve are quadratic control points; two in a
 // row have an implied on curve point half way between them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::AddGlyph(int iGlyph, int32 iX, int32 iY)
+bool CTrueTypeRasteriser::AddGlyph(int iGlyph, SCoverageSubpixel sX, SCoverageSubpixel sY)
 {
 	size			uiContour;
 	size			uiStart;
@@ -512,18 +512,20 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, int32 iX, int32 iY)
 	size			k;
 	STrueTypePoint*	psPoint;
 	STrueTypePoint*	psLast;
-	int32			iStartX;
-	int32			iStartY;
-	int32			iCurrentX;
-	int32			iCurrentY;
-	int32			iControlX;
-	int32			iControlY;
-	int32			iPointX;
-	int32			iPointY;
-	int32			iMiddleX;
-	int32			iMiddleY;
+	SCoverageWhole	sTwo;
+	SCoverageSubpixel	sStartX;
+	SCoverageSubpixel	sStartY;
+	SCoverageSubpixel	sCurrentX;
+	SCoverageSubpixel	sCurrentY;
+	SCoverageSubpixel	sControlX;
+	SCoverageSubpixel	sControlY;
+	SCoverageSubpixel	sPointX;
+	SCoverageSubpixel	sPointY;
+	SCoverageSubpixel	sMiddleX;
+	SCoverageSubpixel	sMiddleY;
 	bool			bControl;
 
+	sTwo = SCoverageWhole::FromRaw(2);
 	mcOutline.Clear();
 	if (!mpcFont->GetGlyphOutline(iGlyph, &mcOutline))
 	{
@@ -547,55 +549,55 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, int32 iX, int32 iY)
 		if (uiFirstOn < uiNumPoints)
 		{
 			psPoint = mcOutline.GetPoint(uiStart + uiFirstOn);
-			iStartX = iX + Scale(psPoint->x);
-			iStartY = iY - Scale(psPoint->y);
+			sStartX = sX + Scale(psPoint->x);
+			sStartY = sY - Scale(psPoint->y);
 		}
 		else
 		{
 			psPoint = mcOutline.GetPoint(uiStart);
 			psLast = mcOutline.GetPoint(uiStart + uiNumPoints - 1);
-			iStartX = iX + (int32)DivideRound((int64)Scale(psPoint->x) + Scale(psLast->x), 2);
-			iStartY = iY - (int32)DivideRound((int64)Scale(psPoint->y) + Scale(psLast->y), 2);
+			sStartX = sX + (Scale(psPoint->x).To<SCoverageWideSubpixel>() + Scale(psLast->x).To<SCoverageWideSubpixel>()).DivideRound(sTwo).To<SCoverageSubpixel>();
+			sStartY = sY - (Scale(psPoint->y).To<SCoverageWideSubpixel>() + Scale(psLast->y).To<SCoverageWideSubpixel>()).DivideRound(sTwo).To<SCoverageSubpixel>();
 			uiFirstOn = uiNumPoints - 1;
 		}
 
-		iCurrentX = iStartX;
-		iCurrentY = iStartY;
-		iControlX = 0;
-		iControlY = 0;
+		sCurrentX = sStartX;
+		sCurrentY = sStartY;
+		sControlX = SCoverageSubpixel::FromRaw(0);
+		sControlY = SCoverageSubpixel::FromRaw(0);
 		bControl = false;
 		for (k = 1; k <= uiNumPoints; k++)
 		{
 			psPoint = mcOutline.GetPoint(uiStart + (uiFirstOn + k) % uiNumPoints);
-			iPointX = iX + Scale(psPoint->x);
-			iPointY = iY - Scale(psPoint->y);
+			sPointX = sX + Scale(psPoint->x);
+			sPointY = sY - Scale(psPoint->y);
 
 			if (psPoint->bOnCurve)
 			{
 				if (bControl)
 				{
-					mcCoverage.AddQuadratic(iCurrentX, iCurrentY, iControlX, iControlY, iPointX, iPointY);
+					mcCoverage.AddQuadratic(sCurrentX, sCurrentY, sControlX, sControlY, sPointX, sPointY);
 				}
 				else
 				{
-					mcCoverage.AddLine(iCurrentX, iCurrentY, iPointX, iPointY);
+					mcCoverage.AddLine(sCurrentX, sCurrentY, sPointX, sPointY);
 				}
-				iCurrentX = iPointX;
-				iCurrentY = iPointY;
+				sCurrentX = sPointX;
+				sCurrentY = sPointY;
 				bControl = false;
 			}
 			else
 			{
 				if (bControl)
 				{
-					iMiddleX = (int32)DivideRound((int64)iControlX + iPointX, 2);
-					iMiddleY = (int32)DivideRound((int64)iControlY + iPointY, 2);
-					mcCoverage.AddQuadratic(iCurrentX, iCurrentY, iControlX, iControlY, iMiddleX, iMiddleY);
-					iCurrentX = iMiddleX;
-					iCurrentY = iMiddleY;
+					sMiddleX = (sControlX.To<SCoverageWideSubpixel>() + sPointX.To<SCoverageWideSubpixel>()).DivideRound(sTwo).To<SCoverageSubpixel>();
+					sMiddleY = (sControlY.To<SCoverageWideSubpixel>() + sPointY.To<SCoverageWideSubpixel>()).DivideRound(sTwo).To<SCoverageSubpixel>();
+					mcCoverage.AddQuadratic(sCurrentX, sCurrentY, sControlX, sControlY, sMiddleX, sMiddleY);
+					sCurrentX = sMiddleX;
+					sCurrentY = sMiddleY;
 				}
-				iControlX = iPointX;
-				iControlY = iPointY;
+				sControlX = sPointX;
+				sControlY = sPointY;
 				bControl = true;
 			}
 		}
@@ -603,11 +605,11 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, int32 iX, int32 iY)
 		//Close the contour.
 		if (bControl)
 		{
-			mcCoverage.AddQuadratic(iCurrentX, iCurrentY, iControlX, iControlY, iStartX, iStartY);
+			mcCoverage.AddQuadratic(sCurrentX, sCurrentY, sControlX, sControlY, sStartX, sStartY);
 		}
 		else
 		{
-			mcCoverage.AddLine(iCurrentX, iCurrentY, iStartX, iStartY);
+			mcCoverage.AddLine(sCurrentX, sCurrentY, sStartX, sStartY);
 		}
 	}
 	return true;

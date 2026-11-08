@@ -25,12 +25,12 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CoverageRasteriser.h"
 
 
-//A pixel completely covered accumulates cover * 2 * COVERAGE_SUBPIXELS - area of this.
-#define COVERAGE_FULL				((int32)2 * COVERAGE_SUBPIXELS * COVERAGE_SUBPIXELS)
+//A pixel completely covered accumulates cover * 2 - area of this many pixels' area.
+#define COVERAGE_FULL_PIXELS		2
 
-//Curves whose control point is less than this far (squared, in subpixels) from straight are drawn as one line;
-//one third of a pixel squared.
-#define COVERAGE_FLAT_DEVIATION		((int32)COVERAGE_SUBPIXELS * COVERAGE_SUBPIXELS / 3)
+//Curves whose control point is less than this far (squared) from straight are drawn as one line; one third of a pixel
+//squared.
+#define COVERAGE_FLAT_DEVIATION		(SFixed<int64, int64, 16>::FromRaw(65536 / 3))
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,8 +39,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCoverageRasteriser::Init(void)
 {
-	mpiCover = NULL;
-	mpiArea = NULL;
+	mpsCover = NULL;
+	mpsArea = NULL;
 	mpuiCoverage = NULL;
 	miWidth = 0;
 	miHeight = 0;
@@ -86,10 +86,10 @@ bool CCoverageRasteriser::Begin(int iWidth, int iHeight)
 	if (uiCells > muiCapacity)
 	{
 		End();
-		mpiCover = (int32*)malloc(uiCells * sizeof(int32));
-		mpiArea = (int32*)malloc(uiCells * sizeof(int32));
+		mpsCover = (SCoverageSubpixel*)malloc(uiCells * sizeof(SCoverageSubpixel));
+		mpsArea = (SCoverageArea*)malloc(uiCells * sizeof(SCoverageArea));
 		mpuiCoverage = (uint8*)malloc(uiCells);
-		if ((mpiCover == NULL) || (mpiArea == NULL) || (mpuiCoverage == NULL))
+		if ((mpsCover == NULL) || (mpsArea == NULL) || (mpuiCoverage == NULL))
 		{
 			End();
 			return false;
@@ -99,8 +99,8 @@ bool CCoverageRasteriser::Begin(int iWidth, int iHeight)
 
 	miWidth = iWidth;
 	miHeight = iHeight;
-	memset(mpiCover, 0, uiCells * sizeof(int32));
-	memset(mpiArea, 0, uiCells * sizeof(int32));
+	memset(mpsCover, 0, uiCells * sizeof(SCoverageSubpixel));
+	memset(mpsArea, 0, uiCells * sizeof(SCoverageArea));
 	return true;
 }
 
@@ -111,11 +111,11 @@ bool CCoverageRasteriser::Begin(int iWidth, int iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CCoverageRasteriser::End(void)
 {
-	free(mpiCover);
-	free(mpiArea);
+	free(mpsCover);
+	free(mpsArea);
 	free(mpuiCoverage);
-	mpiCover = NULL;
-	mpiArea = NULL;
+	mpsCover = NULL;
+	mpsArea = NULL;
 	mpuiCoverage = NULL;
 	miWidth = 0;
 	miHeight = 0;
@@ -129,50 +129,65 @@ void CCoverageRasteriser::End(void)
 // control point is from the chord.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCoverageRasteriser::AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, int32 x2, int32 y2)
+void CCoverageRasteriser::AddQuadratic(SCoverageSubpixel x0, SCoverageSubpixel y0, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2)
 {
-	int64	iDeviationX;
-	int64	iDeviationY;
-	int64	iDeviation;
-	uint64	iNumLines;
-	uint64	i;
-	int64	iDivisor;
-	int64	iWeight0;
-	int64	iWeight1;
-	int64	iWeight2;
-	int32	iLastX;
-	int32	iLastY;
-	int32	x;
-	int32	y;
+	typedef SFixed<int64, int64, 0>		SWeight;
 
-	iDeviationX = (int64)x0 - 2 * (int64)x1 + x2;
-	iDeviationY = (int64)y0 - 2 * (int64)y1 + y2;
-	iDeviation = iDeviationX * iDeviationX + iDeviationY * iDeviationY;
-	if (iDeviation < COVERAGE_FLAT_DEVIATION)
+	SCoverageWideSubpixel		sWideX0;
+	SCoverageWideSubpixel		sWideY0;
+	SCoverageWideSubpixel		sWideX1;
+	SCoverageWideSubpixel		sWideY1;
+	SCoverageWideSubpixel		sWideX2;
+	SCoverageWideSubpixel		sWideY2;
+	SCoverageWideSubpixel		sDeviationX;
+	SCoverageWideSubpixel		sDeviationY;
+	SFixed<int64, int64, 16>	sDeviation;
+	uint64						iNumLines;
+	uint64						i;
+	SWeight						sDivisor;
+	SWeight						sWeight0;
+	SWeight						sWeight1;
+	SWeight						sWeight2;
+	SCoverageSubpixel			sLastX;
+	SCoverageSubpixel			sLastY;
+	SCoverageSubpixel			x;
+	SCoverageSubpixel			y;
+
+	sWideX0 = x0.To<SCoverageWideSubpixel>();
+	sWideY0 = y0.To<SCoverageWideSubpixel>();
+	sWideX1 = x1.To<SCoverageWideSubpixel>();
+	sWideY1 = y1.To<SCoverageWideSubpixel>();
+	sWideX2 = x2.To<SCoverageWideSubpixel>();
+	sWideY2 = y2.To<SCoverageWideSubpixel>();
+
+	sDeviationX = sWideX0 - sWideX1 - sWideX1 + sWideX2;
+	sDeviationY = sWideY0 - sWideY1 - sWideY1 + sWideY2;
+	sDeviation = sDeviationX * sDeviationX + sDeviationY * sDeviationY;
+	if (sDeviation < COVERAGE_FLAT_DEVIATION)
 	{
 		AddLine(x0, y0, x2, y2);
 		return;
 	}
 
 	//1 + the fourth root of three times the deviation in pixels squared.  A subpixel is 1/16th of a pixel's fourth root.
-	iNumLines = 1 + SquareRoot(SquareRoot(3 * iDeviation)) / 16;
+	iNumLines = 1 + SquareRoot(SquareRoot(3 * sDeviation.miRaw)) / 16;
 
 	//Points at t = i / n are ((n - i)^2 * p0 + 2 * i * (n - i) * p1 + i^2 * p2) / n^2.
-	iDivisor = iNumLines * iNumLines;
-	iLastX = x0;
-	iLastY = y0;
+	sDivisor = SWeight::FromRaw(iNumLines * iNumLines);
+	sLastX = x0;
+	sLastY = y0;
 	for (i = 1; i < iNumLines; i++)
 	{
-		iWeight0 = (iNumLines - i) * (iNumLines - i);
-		iWeight1 = 2 * i * (iNumLines - i);
-		iWeight2 = i * i;
-		x = (int32)DivideRound(iWeight0 * x0 + iWeight1 * x1 + iWeight2 * x2, iDivisor);
-		y = (int32)DivideRound(iWeight0 * y0 + iWeight1 * y1 + iWeight2 * y2, iDivisor);
-		AddLine(iLastX, iLastY, x, y);
-		iLastX = x;
-		iLastY = y;
+		sWeight0 = SWeight::FromRaw((iNumLines - i) * (iNumLines - i));
+		sWeight1 = SWeight::FromRaw(2 * i * (iNumLines - i));
+		sWeight2 = SWeight::FromRaw(i * i);
+		x = (sWeight0 * sWideX0 + sWeight1 * sWideX1 + sWeight2 * sWideX2).DivideRound(sDivisor).To<SCoverageSubpixel>();
+		y = (sWeight0 * sWideY0 + sWeight1 * sWideY1 + sWeight2 * sWideY2).DivideRound(sDivisor).To<SCoverageSubpixel>();
+		AddLine(sLastX, sLastY, x, y);
+		sLastX = x;
+		sLastY = y;
 	}
-	AddLine(iLastX, iLastY, x2, y2);
+	AddLine(sLastX, sLastY, x2, y2);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -183,31 +198,31 @@ void CCoverageRasteriser::AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, i
 // exactly.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCoverageRasteriser::AddLine(int32 x1, int32 y1, int32 x2, int32 y2)
+void CCoverageRasteriser::AddLine(SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2)
 {
-	int32	iYMin;
-	int32	iYMax;
-	int		iRow;
-	int		iRowStart;
-	int		iRowEnd;
-	int32	iTop;
-	int32	iBottom;
-	int32	iTopX;
-	int32	iBottomX;
+	SCoverageSubpixel	sYMin;
+	SCoverageSubpixel	sYMax;
+	int					iRow;
+	int					iRowStart;
+	int					iRowEnd;
+	SCoverageSubpixel	sTop;
+	SCoverageSubpixel	sBottom;
+	SCoverageSubpixel	sTopX;
+	SCoverageSubpixel	sBottomX;
 
 	if (y1 == y2)
 	{
 		return;
 	}
 
-	iYMin = (y1 < y2) ? y1 : y2;
-	iYMax = (y1 < y2) ? y2 : y1;
-	iRowStart = FixedFloor(iYMin, COVERAGE_SUBPIXEL_BITS);
+	sYMin = (y1 < y2) ? y1 : y2;
+	sYMax = (y1 < y2) ? y2 : y1;
+	iRowStart = sYMin.Floor();
 	if (iRowStart < 0)
 	{
 		iRowStart = 0;
 	}
-	iRowEnd = FixedCeiling(iYMax, COVERAGE_SUBPIXEL_BITS);
+	iRowEnd = sYMax.Ceiling();
 	if (iRowEnd > miHeight)
 	{
 		iRowEnd = miHeight;
@@ -215,24 +230,24 @@ void CCoverageRasteriser::AddLine(int32 x1, int32 y1, int32 x2, int32 y2)
 
 	for (iRow = iRowStart; iRow < iRowEnd; iRow++)
 	{
-		iTop = FixedFromInt(iRow, COVERAGE_SUBPIXEL_BITS);
-		iBottom = FixedFromInt(iRow + 1, COVERAGE_SUBPIXEL_BITS);
-		iTop = (iTop > iYMin) ? iTop : iYMin;
-		iBottom = (iBottom < iYMax) ? iBottom : iYMax;
-		if (iTop >= iBottom)
+		sTop = SCoverageSubpixel::FromInt(iRow);
+		sBottom = SCoverageSubpixel::FromInt(iRow + 1);
+		sTop = (sTop > sYMin) ? sTop : sYMin;
+		sBottom = (sBottom < sYMax) ? sBottom : sYMax;
+		if (sTop >= sBottom)
 		{
 			continue;
 		}
 
-		iTopX = x1 + (int32)DivideRound((int64)(x2 - x1) * (iTop - y1), y2 - y1);
-		iBottomX = x1 + (int32)DivideRound((int64)(x2 - x1) * (iBottom - y1), y2 - y1);
+		sTopX = x1 + ((x2 - x1) * (sTop - y1)).DivideRound(y2 - y1).To<SCoverageSubpixel>();
+		sBottomX = x1 + ((x2 - x1) * (sBottom - y1)).DivideRound(y2 - y1).To<SCoverageSubpixel>();
 		if (y1 < y2)
 		{
-			AddRowLine(iRow, iTopX, iTop, iBottomX, iBottom);
+			AddRowLine(iRow, sTopX, sTop, sBottomX, sBottom);
 		}
 		else
 		{
-			AddRowLine(iRow, iBottomX, iBottom, iTopX, iTop);
+			AddRowLine(iRow, sBottomX, sBottom, sTopX, sTop);
 		}
 	}
 }
@@ -242,36 +257,38 @@ void CCoverageRasteriser::AddLine(int32 x1, int32 y1, int32 x2, int32 y2)
 // Splits a line inside one pixel row where it crosses pixel columns.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCoverageRasteriser::AddRowLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2)
+void CCoverageRasteriser::AddRowLine(int iRow, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2)
 {
-	int32	iBoundary;
-	int32	iStartX;
-	int32	iStartY;
-	int32	y;
+	SCoverageSubpixel	sBoundary;
+	SCoverageSubpixel	sStartX;
+	SCoverageSubpixel	sStartY;
+	SCoverageSubpixel	sPixel;
+	SCoverageSubpixel	y;
 
-	iStartX = x1;
-	iStartY = y1;
+	sStartX = x1;
+	sStartY = y1;
+	sPixel = SCoverageSubpixel::FromInt(1);
 	if (x1 < x2)
 	{
-		for (iBoundary = FixedFromInt(FixedFloor(x1, COVERAGE_SUBPIXEL_BITS) + 1, COVERAGE_SUBPIXEL_BITS); iBoundary < x2; iBoundary += COVERAGE_SUBPIXELS)
+		for (sBoundary = SCoverageSubpixel::FromInt(x1.Floor() + 1); sBoundary < x2; sBoundary += sPixel)
 		{
-			y = y1 + (int32)DivideRound((int64)(y2 - y1) * (iBoundary - x1), x2 - x1);
-			AddCellLine(iRow, iStartX, iStartY, iBoundary, y);
-			iStartX = iBoundary;
-			iStartY = y;
+			y = y1 + ((y2 - y1) * (sBoundary - x1)).DivideRound(x2 - x1).To<SCoverageSubpixel>();
+			AddCellLine(iRow, sStartX, sStartY, sBoundary, y);
+			sStartX = sBoundary;
+			sStartY = y;
 		}
 	}
 	else if (x1 > x2)
 	{
-		for (iBoundary = FixedFromInt(FixedCeiling(x1, COVERAGE_SUBPIXEL_BITS) - 1, COVERAGE_SUBPIXEL_BITS); iBoundary > x2; iBoundary -= COVERAGE_SUBPIXELS)
+		for (sBoundary = SCoverageSubpixel::FromInt(x1.Ceiling() - 1); sBoundary > x2; sBoundary -= sPixel)
 		{
-			y = y1 + (int32)DivideRound((int64)(y2 - y1) * (iBoundary - x1), x2 - x1);
-			AddCellLine(iRow, iStartX, iStartY, iBoundary, y);
-			iStartX = iBoundary;
-			iStartY = y;
+			y = y1 + ((y2 - y1) * (sBoundary - x1)).DivideRound(x2 - x1).To<SCoverageSubpixel>();
+			AddCellLine(iRow, sStartX, sStartY, sBoundary, y);
+			sStartX = sBoundary;
+			sStartY = y;
 		}
 	}
-	AddCellLine(iRow, iStartX, iStartY, x2, y2);
+	AddCellLine(iRow, sStartX, sStartY, x2, y2);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -282,22 +299,22 @@ void CCoverageRasteriser::AddRowLine(int iRow, int32 x1, int32 y1, int32 x2, int
 // completely; lines right of it are dropped.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCoverageRasteriser::AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2)
+void CCoverageRasteriser::AddCellLine(int iRow, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2)
 {
-	int32	iHeight;
-	int		iColumn;
-	int32	iLeft;
-	int32	iX1;
-	int32	iX2;
-	lsize	uiCell;
+	SCoverageSubpixel	sHeight;
+	int					iColumn;
+	SCoverageSubpixel	sLeft;
+	SCoverageSubpixel	sX1;
+	SCoverageSubpixel	sX2;
+	lsize				uiCell;
 
-	iHeight = y2 - y1;
-	if (iHeight == 0)
+	sHeight = y2 - y1;
+	if (sHeight.miRaw == 0)
 	{
 		return;
 	}
 
-	iColumn = FixedFloor((x1 < x2) ? x1 : x2, COVERAGE_SUBPIXEL_BITS);
+	iColumn = ((x1 < x2) ? x1 : x2).Floor();
 	if (iColumn >= miWidth)
 	{
 		return;
@@ -305,19 +322,19 @@ void CCoverageRasteriser::AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, in
 	if (iColumn < 0)
 	{
 		iColumn = 0;
-		iX1 = 0;
-		iX2 = 0;
+		sX1 = SCoverageSubpixel::FromRaw(0);
+		sX2 = SCoverageSubpixel::FromRaw(0);
 	}
 	else
 	{
-		iLeft = FixedFromInt(iColumn, COVERAGE_SUBPIXEL_BITS);
-		iX1 = x1 - iLeft;
-		iX2 = x2 - iLeft;
+		sLeft = SCoverageSubpixel::FromInt(iColumn);
+		sX1 = x1 - sLeft;
+		sX2 = x2 - sLeft;
 	}
 
 	uiCell = (lsize)iRow * miWidth + iColumn;
-	mpiCover[uiCell] += iHeight;
-	mpiArea[uiCell] += (iX1 + iX2) * iHeight;
+	mpsCover[uiCell] += sHeight;
+	mpsArea[uiCell] += ((sX1 + sX2) * sHeight).To<SCoverageArea>();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -333,27 +350,29 @@ void CCoverageRasteriser::Accumulate(void)
 	uint	x;
 	uint	y;
 	lsize	uiCell;
-	int32	iCover;
-	int32	iCoverage;
+	SCoverageSubpixel	sCover;
+	SCoverageArea		sCoverage;
+	SCoverageArea		sFull;
 
+	sFull = SCoverageArea::FromInt(COVERAGE_FULL_PIXELS);
 	for (y = 0; y < (uint)miHeight; y++)
 	{
-		iCover = 0;
+		sCover = SCoverageSubpixel::FromRaw(0);
 		for (x = 0; x < (uint)miWidth; x++)
 		{
 			uiCell = (lsize)y * miWidth + x;
-			iCover += mpiCover[uiCell];
-			iCoverage = iCover * 2 * COVERAGE_SUBPIXELS - mpiArea[uiCell];
-			if (iCoverage < 0)
+			sCover += mpsCover[uiCell];
+			sCoverage = sCover.To<SCoverageArea>() + sCover.To<SCoverageArea>() - mpsArea[uiCell];
+			if (sCoverage.miRaw < 0)
 			{
-				iCoverage = -iCoverage;
+				sCoverage = -sCoverage;
 			}
-			if (iCoverage > COVERAGE_FULL)
+			if (sCoverage > sFull)
 			{
-				iCoverage = COVERAGE_FULL;
+				sCoverage = sFull;
 			}
-			//Rounded 255ths; COVERAGE_FULL is a power of two and clamped first, so this is a shift in 32 bits.
-			mpuiCoverage[uiCell] = (uint8)((iCoverage * 255 + COVERAGE_FULL / 2) >> (2 * COVERAGE_SUBPIXEL_BITS + 1));
+			//Rounded 255ths; the full area is a power of two and clamped first, so this is a shift in 32 bits.
+			mpuiCoverage[uiCell] = (uint8)(((sCoverage.miRaw * 255 + sFull.miRaw / 2)) >> (SCoverageArea::Bits + 1));
 		}
 	}
 }

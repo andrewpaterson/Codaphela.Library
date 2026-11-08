@@ -130,9 +130,9 @@ float64 CVectorRasteriser::ToPixelY(float64 y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CVectorRasteriser::ToSubpixel(float64 fPixel, int iCorner)
+SCoverageSubpixel CVectorRasteriser::ToSubpixel(float64 fPixel, int iCorner)
 {
-	return (int32)llround((fPixel - iCorner) * COVERAGE_SUBPIXELS);
+	return SCoverageSubpixel::FromRaw((int32)llround((fPixel - iCorner) * (1 << SCoverageSubpixel::Bits)));
 }
 
 

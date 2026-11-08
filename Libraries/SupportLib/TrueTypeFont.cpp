@@ -50,11 +50,19 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //Composite glyphs that nest deeper than this are taken to be corrupt (or recursive).
 #define TRUE_TYPE_MAX_COMPOSITE_DEPTH	8
 
-//Composite glyph scales are 2.14 fixed point; 1.0 is 16384.
-#define TRUE_TYPE_F2DOT14_ONE			16384
 
 //The phantom points that follow a glyph's points in gvar: left, right, top and bottom.
 #define TRUE_TYPE_NUM_PHANTOM_POINTS	4
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 TrueTypeTransform(STrueTypeF2Dot14 sA, int32 iA, STrueTypeF2Dot14 sB, int32 iB)
+{
+	return (sA * STrueTypeWhole::FromRaw(iA) + sB * STrueTypeWhole::FromRaw(iB)).To<STrueTypeWhole>().miRaw;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1227,8 +1235,8 @@ void CTrueTypeFont::VarySimpleGlyph(int iGlyph, CTrueTypeOutline* pcOutline, siz
 	size			uiTotal;
 	STrueTypePoint*	pasPoints;
 	int*			paiContourEnds;
-	int32*			paiDeltaX;
-	int32*			paiDeltaY;
+	STrueTypeFixed*			pasDeltaX;
+	STrueTypeFixed*			pasDeltaY;
 	size			i;
 	STrueTypePoint*	psPoint;
 
@@ -1238,9 +1246,9 @@ void CTrueTypeFont::VarySimpleGlyph(int iGlyph, CTrueTypeOutline* pcOutline, siz
 
 	pasPoints = (STrueTypePoint*)malloc(uiTotal * sizeof(STrueTypePoint));
 	paiContourEnds = (int*)malloc((uiNumContours + 1) * sizeof(int));
-	paiDeltaX = (int32*)malloc(uiTotal * sizeof(int32));
-	paiDeltaY = (int32*)malloc(uiTotal * sizeof(int32));
-	if ((pasPoints != NULL) && (paiContourEnds != NULL) && (paiDeltaX != NULL) && (paiDeltaY != NULL))
+	pasDeltaX = (STrueTypeFixed*)malloc(uiTotal * sizeof(STrueTypeFixed));
+	pasDeltaY = (STrueTypeFixed*)malloc(uiTotal * sizeof(STrueTypeFixed));
+	if ((pasPoints != NULL) && (paiContourEnds != NULL) && (pasDeltaX != NULL) && (pasDeltaY != NULL))
 	{
 		for (i = 0; i < uiNumPoints; i++)
 		{
@@ -1254,20 +1262,20 @@ void CTrueTypeFont::VarySimpleGlyph(int iGlyph, CTrueTypeOutline* pcOutline, siz
 			paiContourEnds[i] = pcOutline->maiContourEnds.GetValue(uiFirstContour + i) - (int)uiFirstPoint;
 		}
 
-		mcVariations.GetGlyphDeltas(iGlyph, pasPoints, uiTotal, paiContourEnds, uiNumContours, paiDeltaX, paiDeltaY);
+		mcVariations.GetGlyphDeltas(iGlyph, pasPoints, uiTotal, paiContourEnds, uiNumContours, pasDeltaX, pasDeltaY);
 
 		for (i = 0; i < uiNumPoints; i++)
 		{
 			psPoint = pcOutline->GetPoint(uiFirstPoint + i);
-			psPoint->x += TrueTypeRoundDelta(paiDeltaX[i]);
-			psPoint->y += TrueTypeRoundDelta(paiDeltaY[i]);
+			psPoint->x += TrueTypeRoundDelta(pasDeltaX[i]);
+			psPoint->y += TrueTypeRoundDelta(pasDeltaY[i]);
 		}
-		psPhantoms->iLeft += TrueTypeRoundDelta(paiDeltaX[uiNumPoints]);
-		psPhantoms->iRight += TrueTypeRoundDelta(paiDeltaX[uiNumPoints + 1]);
+		psPhantoms->iLeft += TrueTypeRoundDelta(pasDeltaX[uiNumPoints]);
+		psPhantoms->iRight += TrueTypeRoundDelta(pasDeltaX[uiNumPoints + 1]);
 	}
 
-	free(paiDeltaY);
-	free(paiDeltaX);
+	free(pasDeltaY);
+	free(pasDeltaX);
 	free(paiContourEnds);
 	free(pasPoints);
 }
@@ -1534,11 +1542,11 @@ bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLengt
 			}
 		}
 
-		//x' = iXX * x + iYX * y,  y' = iXY * x + iYY * y in 2.14 fixed point.
-		psComponent->iXX = TRUE_TYPE_F2DOT14_ONE;
-		psComponent->iXY = 0;
-		psComponent->iYX = 0;
-		psComponent->iYY = TRUE_TYPE_F2DOT14_ONE;
+		//x' = sXX * x + sYX * y,  y' = sXY * x + sYY * y.
+		psComponent->sXX = STrueTypeF2Dot14::FromInt(1);
+		psComponent->sXY = STrueTypeF2Dot14::FromRaw(0);
+		psComponent->sYX = STrueTypeF2Dot14::FromRaw(0);
+		psComponent->sYY = STrueTypeF2Dot14::FromInt(1);
 		if (uiFlags & TRUE_TYPE_HAVE_A_SCALE)
 		{
 			if ((uiPos + 2 > uiEnd) || !ReadInt16(uiPos, &iScale))
@@ -1547,8 +1555,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLengt
 				return false;
 			}
 			uiPos += 2;
-			psComponent->iXX = iScale;
-			psComponent->iYY = iScale;
+			psComponent->sXX = STrueTypeF2Dot14::FromRaw(iScale);
+			psComponent->sYY = STrueTypeF2Dot14::FromRaw(iScale);
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_AN_X_AND_Y_SCALE)
 		{
@@ -1558,8 +1566,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLengt
 				return false;
 			}
 			uiPos += 4;
-			psComponent->iXX = iWord1;
-			psComponent->iYY = iWord2;
+			psComponent->sXX = STrueTypeF2Dot14::FromRaw(iWord1);
+			psComponent->sYY = STrueTypeF2Dot14::FromRaw(iWord2);
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_A_TWO_BY_TWO)
 		{
@@ -1568,15 +1576,15 @@ bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLengt
 				asComponents.Kill();
 				return false;
 			}
-			psComponent->iXX = iWord1;
-			psComponent->iXY = iWord2;
+			psComponent->sXX = STrueTypeF2Dot14::FromRaw(iWord1);
+			psComponent->sXY = STrueTypeF2Dot14::FromRaw(iWord2);
 			if (!ReadInt16(uiPos + 4, &iWord1) || !ReadInt16(uiPos + 6, &iWord2))
 			{
 				asComponents.Kill();
 				return false;
 			}
-			psComponent->iYX = iWord1;
-			psComponent->iYY = iWord2;
+			psComponent->sYX = STrueTypeF2Dot14::FromRaw(iWord1);
+			psComponent->sYY = STrueTypeF2Dot14::FromRaw(iWord2);
 			uiPos += 8;
 		}
 	}
@@ -1614,8 +1622,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLengt
 			psSource = cComponent.GetPoint(i);
 			x = psSource->x;
 			y = psSource->y;
-			psSource->x = (int32)DivideRound((int64)psComponent->iXX * x + (int64)psComponent->iYX * y, TRUE_TYPE_F2DOT14_ONE);
-			psSource->y = (int32)DivideRound((int64)psComponent->iXY * x + (int64)psComponent->iYY * y, TRUE_TYPE_F2DOT14_ONE);
+			psSource->x = TrueTypeTransform(psComponent->sXX, x, psComponent->sYX, y);
+			psSource->y = TrueTypeTransform(psComponent->sXY, x, psComponent->sYY, y);
 		}
 
 		if (uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
@@ -1626,8 +1634,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLengt
 			{
 				x = iDX;
 				y = iDY;
-				iDX = (int32)DivideRound((int64)psComponent->iXX * x + (int64)psComponent->iYX * y, TRUE_TYPE_F2DOT14_ONE);
-				iDY = (int32)DivideRound((int64)psComponent->iXY * x + (int64)psComponent->iYY * y, TRUE_TYPE_F2DOT14_ONE);
+				iDX = TrueTypeTransform(psComponent->sXX, x, psComponent->sYX, y);
+				iDY = TrueTypeTransform(psComponent->sXY, x, psComponent->sYY, y);
 			}
 		}
 		else
@@ -1676,17 +1684,17 @@ void CTrueTypeFont::VaryComponents(int iGlyph, CArrayTrueTypeComponent* pasCompo
 	size				uiNumComponents;
 	size				uiTotal;
 	STrueTypePoint*		pasPoints;
-	int32*				paiDeltaX;
-	int32*				paiDeltaY;
+	STrueTypeFixed*				pasDeltaX;
+	STrueTypeFixed*				pasDeltaY;
 	size				i;
 	STrueTypeComponent*	psComponent;
 
 	uiNumComponents = pasComponents->NumElements();
 	uiTotal = uiNumComponents + TRUE_TYPE_NUM_PHANTOM_POINTS;
 	pasPoints = (STrueTypePoint*)malloc(uiTotal * sizeof(STrueTypePoint));
-	paiDeltaX = (int32*)malloc(uiTotal * sizeof(int32));
-	paiDeltaY = (int32*)malloc(uiTotal * sizeof(int32));
-	if ((pasPoints != NULL) && (paiDeltaX != NULL) && (paiDeltaY != NULL))
+	pasDeltaX = (STrueTypeFixed*)malloc(uiTotal * sizeof(STrueTypeFixed));
+	pasDeltaY = (STrueTypeFixed*)malloc(uiTotal * sizeof(STrueTypeFixed));
+	if ((pasPoints != NULL) && (pasDeltaX != NULL) && (pasDeltaY != NULL))
 	{
 		memset(pasPoints, 0, uiTotal * sizeof(STrueTypePoint));
 		for (i = 0; i < uiNumComponents; i++)
@@ -1701,23 +1709,23 @@ void CTrueTypeFont::VaryComponents(int iGlyph, CArrayTrueTypeComponent* pasCompo
 		pasPoints[uiNumComponents].x = psPhantoms->iLeft;
 		pasPoints[uiNumComponents + 1].x = psPhantoms->iRight;
 
-		mcVariations.GetGlyphDeltas(iGlyph, pasPoints, uiTotal, NULL, 0, paiDeltaX, paiDeltaY);
+		mcVariations.GetGlyphDeltas(iGlyph, pasPoints, uiTotal, NULL, 0, pasDeltaX, pasDeltaY);
 
 		for (i = 0; i < uiNumComponents; i++)
 		{
 			psComponent = pasComponents->Get(i);
 			if (psComponent->uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
 			{
-				psComponent->iArg1 += TrueTypeRoundDelta(paiDeltaX[i]);
-				psComponent->iArg2 += TrueTypeRoundDelta(paiDeltaY[i]);
+				psComponent->iArg1 += TrueTypeRoundDelta(pasDeltaX[i]);
+				psComponent->iArg2 += TrueTypeRoundDelta(pasDeltaY[i]);
 			}
 		}
-		psPhantoms->iLeft += TrueTypeRoundDelta(paiDeltaX[uiNumComponents]);
-		psPhantoms->iRight += TrueTypeRoundDelta(paiDeltaX[uiNumComponents + 1]);
+		psPhantoms->iLeft += TrueTypeRoundDelta(pasDeltaX[uiNumComponents]);
+		psPhantoms->iRight += TrueTypeRoundDelta(pasDeltaX[uiNumComponents + 1]);
 	}
 
-	free(paiDeltaY);
-	free(paiDeltaX);
+	free(pasDeltaY);
+	free(pasDeltaX);
 	free(pasPoints);
 }
 
@@ -1762,18 +1770,18 @@ STrueTypeAxis* CTrueTypeFont::GetAxis(size uiAxis)
 //////////////////////////////////////////////////////////////////////////
 bool CTrueTypeFont::SetAxis(const char* szTag, float32 fValue)
 {
-	return mcVariations.SetAxisValue(szTag, FixedFromFloat(fValue, TRUE_TYPE_FIXED_BITS));
+	return mcVariations.SetAxisValue(szTag, STrueTypeFixed::FromFloat(fValue));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Sets a variation axis to a 16.16 value.
+// Sets a variation axis to an exact value.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::SetAxisFixed(const char* szTag, int32 iValue)
+bool CTrueTypeFont::SetAxisFixed(const char* szTag, STrueTypeFixed sValue)
 {
-	return mcVariations.SetAxisValue(szTag, iValue);
+	return mcVariations.SetAxisValue(szTag, sValue);
 }
 
 
@@ -1784,7 +1792,7 @@ bool CTrueTypeFont::SetAxisFixed(const char* szTag, int32 iValue)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeFont::GetAxisValue(const char* szTag)
 {
-	return FixedToFloat(mcVariations.GetAxisValue(szTag), TRUE_TYPE_FIXED_BITS);
+	return mcVariations.GetAxisValue(szTag).ToFloat();
 }
 
 

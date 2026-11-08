@@ -75,7 +75,7 @@ protected:
 	void		AddLine(SFloat64Vec2* psStart, SFloat64Vec2* psEnd);
 	float64		ToPixelX(float64 x);
 	float64		ToPixelY(float64 y);
-	int32		ToSubpixel(float64 fPixel, int iCorner);
+	SCoverageSubpixel	ToSubpixel(float64 fPixel, int iCorner);
 	int32		ArcSteps(float64 fPixelRadius);
 	void		GridCosSin(int64 iIndex, int32 iSteps, float64* pfCos, float64* pfSin);
 };

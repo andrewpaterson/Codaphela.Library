@@ -20,12 +20,19 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COVERAGE_RASTERISER_H__
 #define __COVERAGE_RASTERISER_H__
+#include "BaseLib/FixedPoint.h"
 #include "BaseLib/PrimitiveTypes.h"
 
 
-//Positions are fixed point with 8 fraction bits: 256 subpixels to a pixel.
-#define COVERAGE_SUBPIXEL_BITS		8
-#define COVERAGE_SUBPIXELS			(1 << COVERAGE_SUBPIXEL_BITS)
+//A position: 256 subpixels to a pixel.
+typedef SFixed<int32, int64, 8>		SCoverageSubpixel;
+typedef SFixed<int64, int64, 8>		SCoverageWideSubpixel;
+
+//A subpixel times a subpixel.
+typedef SFixed<int32, int64, 16>	SCoverageArea;
+
+//A number of something to multiply or divide by.
+typedef SFixed<int32, int64, 0>		SCoverageWhole;
 
 
 //Fills outlines anti-aliased by exact area coverage into a grid of pixels from 0 (empty) to 255 (covered).  Outlines are
@@ -36,8 +43,8 @@ class CCoverageRasteriser
 {
 protected:
 	//Each pixel cell accumulates the height (cover) and twice the area (area) of the edges crossing it, in subpixels.
-	int32*		mpiCover;
-	int32*		mpiArea;
+	SCoverageSubpixel*	mpsCover;
+	SCoverageArea*		mpsArea;
 	uint8*		mpuiCoverage;
 	int			miWidth;
 	int			miHeight;
@@ -50,8 +57,8 @@ public:
 	bool		Begin(int iWidth, int iHeight);
 	void		End(void);
 
-	void		AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, int32 x2, int32 y2);
-	void		AddLine(int32 x1, int32 y1, int32 x2, int32 y2);
+	void		AddQuadratic(SCoverageSubpixel x0, SCoverageSubpixel y0, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2);
+	void		AddLine(SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2);
 	void		Accumulate(void);
 
 	uint8*		GetCoverage(void);
@@ -59,8 +66,8 @@ public:
 	int			GetHeight(void);
 
 protected:
-	void		AddRowLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2);
-	void		AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2);
+	void		AddRowLine(int iRow, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2);
+	void		AddCellLine(int iRow, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2);
 };
 
 

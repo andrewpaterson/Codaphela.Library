@@ -26,11 +26,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Image.h"
 
 
-//Positions are fixed point with 8 fraction bits: 256 subpixels to a pixel.
-#define TRUE_TYPE_SUBPIXEL_BITS		COVERAGE_SUBPIXEL_BITS
-#define TRUE_TYPE_SUBPIXELS			COVERAGE_SUBPIXELS
-
-
 //Pixel bounds of something rasterised, relative to the pen origin on the baseline, y down.  Right and bottom are exclusive.
 struct STrueTypePixelBounds
 {
@@ -49,7 +44,7 @@ class CTrueTypeRasteriser
 {
 protected:
 	CTrueTypeFont*		mpcFont;
-	int32				miPixelSize;  //Subpixels per em.
+	SCoverageSubpixel	msPixelSize;  //Per em.
 	int32				miUnitsPerEm;
 	CTrueTypeOutline	mcOutline;
 
@@ -66,13 +61,13 @@ public:
 	float32			GetAdvance(int iGlyph);
 	float32			GetTextWidth(char* szUTF8);
 
-	int32			Scale(int32 iFontUnits);
-	int32			GetAscentSubpixels(void);
-	int32			GetDescentSubpixels(void);
-	int32			GetAdvanceSubpixels(int iGlyph);
-	int32			GetTextWidthSubpixels(char* szUTF8);
+	SCoverageSubpixel	Scale(int32 iFontUnits);
+	SCoverageSubpixel	GetAscentSubpixels(void);
+	SCoverageSubpixel	GetDescentSubpixels(void);
+	SCoverageSubpixel	GetAdvanceSubpixels(int iGlyph);
+	SCoverageSubpixel	GetTextWidthSubpixels(char* szUTF8);
 
-	bool			GetGlyphBounds(int iGlyph, int32 iPenX, STrueTypePixelBounds* psBounds);
+	bool			GetGlyphBounds(int iGlyph, SCoverageSubpixel sPenX, STrueTypePixelBounds* psBounds);
 	bool			GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBounds);
 
 	Ptr<CImage>		RasteriseGlyph(int iGlyph, int* piLeft, int* piTop);
@@ -82,8 +77,8 @@ public:
 protected:
 	bool			BeginCoverage(int iWidth, int iHeight);
 	void			EndCoverage(void);
-	bool			AddGlyph(int iGlyph, int32 iX, int32 iY);
-	bool			AddText(char* szUTF8, int32 iX, int32 iY);
+	bool			AddGlyph(int iGlyph, SCoverageSubpixel sX, SCoverageSubpixel sY);
+	bool			AddText(char* szUTF8, SCoverageSubpixel sX, SCoverageSubpixel sY);
 	Ptr<CImage>		CoverageToImage(void);
 	bool			BlendCoverage(Ptr<CImage> pDest, int iDestX, int iDestY, CImageColour* pcColour);
 };

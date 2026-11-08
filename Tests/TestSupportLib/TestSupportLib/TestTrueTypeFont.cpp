@@ -1643,15 +1643,15 @@ void TestTrueTypeVariationsAxes(void)
 	AssertSize(2, cFont.NumAxes());
 	psAxis = cFont.GetAxis(0);
 	AssertString("opsz", psAxis->szTag);
-	AssertInt((int32)14 << 16, psAxis->iMinimum);
-	AssertInt((int32)14 << 16, psAxis->iDefault);
-	AssertInt((int32)32 << 16, psAxis->iMaximum);
+	AssertInt((int32)14 << 16, psAxis->sMinimum.miRaw);
+	AssertInt((int32)14 << 16, psAxis->sDefault.miRaw);
+	AssertInt((int32)32 << 16, psAxis->sMaximum.miRaw);
 	AssertFalse(psAxis->bHidden);
 	psAxis = cFont.GetAxis(1);
 	AssertString("wght", psAxis->szTag);
-	AssertInt((int32)100 << 16, psAxis->iMinimum);
-	AssertInt((int32)400 << 16, psAxis->iDefault);
-	AssertInt((int32)900 << 16, psAxis->iMaximum);
+	AssertInt((int32)100 << 16, psAxis->sMinimum.miRaw);
+	AssertInt((int32)400 << 16, psAxis->sDefault.miRaw);
+	AssertInt((int32)900 << 16, psAxis->sMaximum.miRaw);
 	AssertNull(cFont.GetAxis(2));
 	AssertFloat(400.0f, cFont.GetAxisValue("wght"), 2);
 	AssertFloat(14.0f, cFont.GetAxisValue("opsz"), 2);
@@ -1701,19 +1701,19 @@ void TestTrueTypeVariationsNormalise(void)
 	pcVariations = cFont.GetVariations();
 
 	cFont.SetAxis("wght", 700.0f);
-	AssertInt((int32)0, pcVariations->GetNormalisedCoordinate(0));
-	AssertInt((int32)35390, pcVariations->GetNormalisedCoordinate(1));
+	AssertInt((int32)0, pcVariations->GetNormalisedCoordinate(0).miRaw);
+	AssertInt((int32)35390, pcVariations->GetNormalisedCoordinate(1).miRaw);
 	cFont.SetAxis("wght", 250.0f);
-	AssertInt((int32)-32768, pcVariations->GetNormalisedCoordinate(1));
+	AssertInt((int32)-32768, pcVariations->GetNormalisedCoordinate(1).miRaw);
 	cFont.SetAxis("wght", 100.0f);
-	AssertInt((int32)-65536, pcVariations->GetNormalisedCoordinate(1));
+	AssertInt((int32)-65536, pcVariations->GetNormalisedCoordinate(1).miRaw);
 	cFont.SetAxis("wght", 900.0f);
 	cFont.SetAxis("opsz", 32.0f);
-	AssertInt((int32)65536, pcVariations->GetNormalisedCoordinate(0));
-	AssertInt((int32)65536, pcVariations->GetNormalisedCoordinate(1));
+	AssertInt((int32)65536, pcVariations->GetNormalisedCoordinate(0).miRaw);
+	AssertInt((int32)65536, pcVariations->GetNormalisedCoordinate(1).miRaw);
 	cFont.SetAxis("opsz", 23.0f);
-	AssertInt((int32)32768, pcVariations->GetNormalisedCoordinate(0));
-	AssertInt((int32)0, pcVariations->GetNormalisedCoordinate(2));
+	AssertInt((int32)32768, pcVariations->GetNormalisedCoordinate(0).miRaw);
+	AssertInt((int32)0, pcVariations->GetNormalisedCoordinate(2).miRaw);
 
 	cFont.Kill();
 }
