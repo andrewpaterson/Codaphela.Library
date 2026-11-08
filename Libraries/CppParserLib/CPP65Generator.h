@@ -525,6 +525,7 @@ protected:
 	void					RequireFunction(SCPP65Function* psFunction);
 	bool					Emit(CChars* pszLabel);
 	bool					Declarations(CArraySyntax* papcDeclarations);
+	bool					IsScopeDeclaration(CCPPSyntax* pcDeclaration);
 	bool					IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration);
 	bool					GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration);
 	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise);

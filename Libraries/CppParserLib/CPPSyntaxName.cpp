@@ -87,6 +87,40 @@ CCPPSyntaxNameComponent* CCPPSyntaxName::GetLast(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the last component is looked up in (N in M::N::f), or NULL if the
+// name has no qualifier.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxNameComponent* CCPPSyntaxName::GetQualifier(void)
+{
+	size	uiNumElements;
+
+	uiNumElements = macpComponents.NumElements();
+	if (uiNumElements < 2)
+	{
+		return NULL;
+	}
+	return (CCPPSyntaxNameComponent*)macpComponents.GetPtr(uiNumElements - 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the name is qualified by anything but a namespace: a class, or
+// what the parser couldn't resolve in a template.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxName::IsQualifiedByClass(void)
+{
+	CCPPSyntaxNameComponent*	pcQualifier;
+
+	pcQualifier = GetQualifier();
+	return pcQualifier && !(pcQualifier->mpcSymbol && pcQualifier->mpcSymbol->IsNamespace());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSyntaxName::IsSimple(void)

@@ -1093,6 +1093,41 @@ void TestCPP65IRNamespaceRuns(void)
 }
 
 
+static void AssertConstError(const char* szExpected, const char* szSource);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name qualified by a namespace: calls, globals, types and addresses, with
+// nested namespaces, aliases, ::, and definitions outside the namespace.  A
+// class inside a class too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRNamespaceQualified(void)
+{
+	AssertInt(3, TestCPP65Main("namespace N { int F(int a) { return a + 1; } }\nint main() { return N::F(2); }"));
+	AssertInt(5, TestCPP65Main("namespace N { namespace M { int F() { return 5; } } }\nint main() { return N::M::F(); }"));
+	AssertInt(6, TestCPP65Main("namespace N { int F() { return 6; } }\nint main() { return ::N::F(); }"));
+	AssertInt(7, TestCPP65Main("namespace N { int F() { return 7; } }\nnamespace A = N;\nint main() { return A::F(); }"));
+	AssertInt(8, TestCPP65Main("namespace N { int x = 3; }\nint main() { N::x = N::x + 5; return N::x; }"));
+	AssertInt(9, TestCPP65Main("namespace N { int F(int a); }\nint N::F(int a) { return a + 1; }\nint main() { return N::F(8); }"));
+	AssertInt(10, TestCPP65Main("namespace N { extern int x; }\nint N::x = 10;\nint main() { return N::x; }"));
+	AssertInt(11, TestCPP65Main("namespace N { struct S { int i; S(int a); int Get(); static int Twice(int a) { return a + a; } }; }\nN::S::S(int a) : i(a) {}\nint N::S::Get() { return i; }\nint main() { N::S s(1); return s.Get() + N::S::Twice(5); }"));
+	AssertInt(12, TestCPP65Main("namespace N { int F(int a) { return a + 2; } }\nint main() { int (*p)(int) = N::F; int (*q)(int) = &N::F; return p(4) + q(4); }"));
+	AssertInt(13, TestCPP65Main("namespace N { template<class T> struct Box { T t; T Get() { return t; } }; template<class T> T Add(T a, T b) { return a + b; } }\nint main() { N::Box<int> b; b.t = 6; return b.Get() + N::Add<int>(3, 4); }"));
+	AssertInt(14, TestCPP65Main("namespace N { enum E { A = 14 }; typedef int I; }\nint main() { N::I i = N::A; N::E e = N::A; return (e == N::A) ? i : 0; }"));
+	AssertInt(15, TestCPP65Main("struct Outer { struct Inner { int i; int Get(); static int Next(int a); }; };\nint Outer::Inner::Get() { return i; }\nint Outer::Inner::Next(int a) { return a + 1; }\nint main() { Outer::Inner n; n.i = 7; return n.Get() + Outer::Inner::Next(7); }"));
+	AssertInt(16, TestCPP65Main("namespace N { struct Outer { struct Inner { int Get() { return 16; } }; }; }\nint main() { N::Outer::Inner n; return n.Get(); }"));
+	AssertInt(18, TestCPP65Main("namespace N { int F() { return 9; } int x = 9; }\nint main() { using namespace N; return F() + x; }"));
+	AssertInt(19, TestCPP65Main("namespace N { int F() { return 10; } int x = 9; }\nint main() { using N::F; using N::x; return F() + x; }"));
+	AssertInt(20, TestCPP65Main("namespace N { int F() { return 20; } }\nint main() { namespace A = N; return A::F(); }"));
+	AssertInt(21, TestCPP65Main("int main() { using I = int; I i = 21; return i; }"));
+	AssertInt(22, TestCPP65Main("namespace N { using I = int; }\nint main() { N::I i = 22; return i; }"));
+	AssertConstError("This declaration is not supported by the compiler yet", "asm(\"nop\");\nint main() { return 0; }");
+	AssertInt(17, TestCPP65Main("namespace N { struct B { virtual int V() { return 1; } }; struct D : B { int V() { return 17; } }; }\nint main() { N::D d; N::B* p = &d; return p->V(); }"));
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // szSource compiled: szExpected is what its first error is, "" for none.
@@ -1220,6 +1255,7 @@ void TestCPP65IR(void)
 	TestCPP65IRConstErrors();
 	TestCPP65IRNamespaceLabels();
 	TestCPP65IRNamespaceRuns();
+	TestCPP65IRNamespaceQualified();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

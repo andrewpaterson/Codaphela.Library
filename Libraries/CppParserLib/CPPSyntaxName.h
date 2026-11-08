@@ -39,6 +39,8 @@ public:
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 	CCPPSyntaxNameComponent*	GetLast(void);
+	CCPPSyntaxNameComponent*	GetQualifier(void);
+	bool						IsQualifiedByClass(void);
 	bool					IsSimple(void);
 };
 

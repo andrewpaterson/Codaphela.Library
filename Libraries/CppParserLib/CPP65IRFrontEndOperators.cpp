@@ -55,7 +55,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_BitwiseAnd:
 		pcOperand = mpcGenerator->SkipParentheses(pcUnary->mpcOperand);
 		bMember = false;
-		if ((pcOperand->GetKind() == CPPS_IdExpression) && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->macpComponents.NumElements() >= 2) &&
+		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass() &&
 			MemberAddress((CCPPSyntaxIdExpression*)pcOperand, psValue, &bMember))
 		{
 			return true;
@@ -77,7 +77,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcOperand, psValue);
 		}
-		if ((pcOperand->GetKind() == CPPS_IdExpression) && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->macpComponents.NumElements() >= 2))
+		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

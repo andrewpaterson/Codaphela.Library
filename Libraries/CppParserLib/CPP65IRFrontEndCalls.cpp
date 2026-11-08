@@ -68,7 +68,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
 		pcSymbol = pcName->mpcSymbol;
 		pcComponent = pcName->GetLast();
-		if (pcName->macpComponents.NumElements() >= 2)
+		if (pcName->IsQualifiedByClass())
 		{
 			return MemberCall(pcCall, pcCallee, psValue);
 		}
@@ -881,9 +881,9 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 	else
 	{
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
-		if (pcName->macpComponents.NumElements() == 2)
+		if (pcName->IsQualifiedByClass())
 		{
-			psClass = mpcGenerator->GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcCallee);
+			psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
 			bVirtual = false;
 		}
 		else
@@ -895,18 +895,18 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 
 	if (pcName->GetLast()->meKind == CPPNC_Destructor)
 	{
-		return DestructorCall(pcCall, psClass, pcObject, bArrow, (pcName->macpComponents.NumElements() == 2) ? false : bVirtual, psValue);
+		return DestructorCall(pcCall, psClass, pcObject, bArrow, pcName->IsQualifiedByClass() ? false : bVirtual, psValue);
 	}
 
 	lliName = mpcGenerator->GetFunctionName(pcName->GetLast());
-	if (!psClass || (lliName == -1) || (pcName->macpComponents.NumElements() > 2))
+	if (!psClass || (lliName == -1))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psLookup = psClass;
-	if (pcObject && (pcName->macpComponents.NumElements() == 2))
+	if (pcObject && pcName->IsQualifiedByClass())
 	{
-		psLookup = mpcGenerator->QualifierClass(psClass, (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), pcCallee);
+		psLookup = mpcGenerator->QualifierClass(psClass, pcName->GetQualifier(), pcCallee);
 		if (!psLookup)
 		{
 			return Unsupported(__FILE__, __LINE__);

@@ -477,10 +477,10 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 	{
 		pcFunction = (CCPPSyntaxFunctionDefinition*)pcDeclaration;
 		pcName = pcFunction->mpcDeclarator->GetName();
-		if (pcName && (pcName->macpComponents.NumElements() == 2) && !bExplicit)
+		if (pcName && pcName->IsQualifiedByClass() && !bExplicit)
 		{
 			//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }
-			pcClass = (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0);
+			pcClass = pcName->GetQualifier();
 			psClass = GetTemplateByName(GetComponentName(pcClass));
 			if (psClass && pcClassTemplate)
 			{
@@ -2530,7 +2530,7 @@ void CCPP65Generator::ClassUsing(SCPP65Class* psClass, CCPPSyntaxUsingDeclaratio
 	int64			lliName;
 
 	pcName = pcUsing->mpcName;
-	if (pcUsing->mbTypename || !pcName || (pcName->macpComponents.NumElements() != 2))
+	if (pcUsing->mbTypename || !pcName || !pcName->IsQualifiedByClass())
 	{
 		return;
 	}
@@ -2540,7 +2540,7 @@ void CCPP65Generator::ClassUsing(SCPP65Class* psClass, CCPPSyntaxUsingDeclaratio
 		return;
 	}
 	BeginQuiet();
-	psBase = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcUsing, psClass);
+	psBase = GetComponentClass(pcName->GetQualifier(), NULL, pcUsing, psClass);
 	EndQuiet();
 	if (!psBase || (psBase == psClass))
 	{

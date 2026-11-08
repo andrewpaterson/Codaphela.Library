@@ -331,10 +331,10 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 	psFound = NULL;
 	bOverloaded = false;
 	psClass = NULL;
-	bQualified = pcName->macpComponents.NumElements() >= 2;
+	bQualified = pcName->IsQualifiedByClass();
 	if (bQualified)
 	{
-		psClass = mpcGenerator->GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(pcName->macpComponents.NumElements() - 2), NULL, pcId);
+		psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
 	}
 	else if (mpsFunction->psClass)
 	{
@@ -392,7 +392,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 
 	*pbMember = false;
 	pcName = pcId->mpcName;
-	psClass = mpcGenerator->GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(pcName->macpComponents.NumElements() - 2), NULL, pcId);
+	psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
 	lliName = mpcGenerator->GetFunctionName(pcName->GetLast());
 	if (!psClass || (lliName == -1) || !mpcGenerator->CompleteClass(psClass, pcId))
 	{

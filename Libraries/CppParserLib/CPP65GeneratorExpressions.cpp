@@ -258,7 +258,7 @@ bool CCPP65Generator::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP
 	SCPP65Function*		psFunction;
 
 	psPointer = psPointer->WithoutReference();
-	if (!psPointer->IsPointer() || psPointer->IsMemberPointer() || !psPointer->psBase || !psPointer->psBase->IsFunction() || (pcFunction->mpcName->macpComponents.NumElements() != 1))
+	if (!psPointer->IsPointer() || psPointer->IsMemberPointer() || !psPointer->psBase || !psPointer->psBase->IsFunction() || pcFunction->mpcName->IsQualifiedByClass())
 	{
 		return false;
 	}

@@ -338,11 +338,11 @@ SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName
 	psClass = NULL;
 	bQualified = false;
 	pcName = (pcNode && (pcNode->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcNode)->mpcName : NULL;
-	if (pcName && (pcName->macpComponents.NumElements() >= 2))
+	if (pcName && pcName->IsQualifiedByClass())
 	{
 		bQualified = true;
 		mpcGenerator->BeginQuiet();
-		psClass = mpcGenerator->GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(pcName->macpComponents.NumElements() - 2), NULL, pcNode);
+		psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
 		mpcGenerator->EndQuiet();
 	}
 	else if (mpcGenerator->mpsFunction && mpcGenerator->mpsFunction->psClass)
@@ -428,7 +428,7 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type**
 
 	pcName = pcId->mpcName;
 	mpcGenerator->BeginQuiet();
-	psClass = mpcGenerator->GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(pcName->macpComponents.NumElements() - 2), NULL, pcId);
+	psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
 	mpcGenerator->EndQuiet();
 	lliName = mpcGenerator->GetFunctionName(pcName->GetLast());
 	*ppsType = NULL;
@@ -550,7 +550,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		{
 			pcId = (CCPPSyntaxIdExpression*)pcOperand;
 			pcSymbol = pcId->mpcName->mpcSymbol;
-			if ((pcId->mpcName->macpComponents.NumElements() >= 2) && MemberAddress(pcId, &psType))
+			if (pcId->mpcName->IsQualifiedByClass() && MemberAddress(pcId, &psType))
 			{
 				return psType;
 			}
@@ -1075,7 +1075,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
 		pcSymbol = pcName->mpcSymbol;
 		pcComponent = pcName->GetLast();
-		if (pcName->macpComponents.NumElements() >= 2)
+		if (pcName->IsQualifiedByClass())
 		{
 			return MemberCall(pcCall, pcCallee);
 		}
@@ -1503,9 +1503,9 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 	else
 	{
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
-		if (pcName->macpComponents.NumElements() == 2)
+		if (pcName->IsQualifiedByClass())
 		{
-			psClass = mpcGenerator->GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcCallee);
+			psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
 		}
 		else if (mpcGenerator->mpsFunction)
 		{
@@ -1537,9 +1537,9 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 	}
 
 	psLookup = psClass;
-	if (pcObject && (pcName->macpComponents.NumElements() == 2))
+	if (pcObject && pcName->IsQualifiedByClass())
 	{
-		psLookup = mpcGenerator->QualifierClass(psClass, (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), pcCallee);
+		psLookup = mpcGenerator->QualifierClass(psClass, pcName->GetQualifier(), pcCallee);
 		if (!psLookup)
 		{
 			return NULL;
@@ -2142,7 +2142,7 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 	}
 
 	pcFunction = mpcGenerator->FunctionNameFor(pcOperand, psTo);
-	if (pcFunction && (pcFunction->mpcName->macpComponents.NumElements() == 1))
+	if (pcFunction && !pcFunction->mpcName->IsQualifiedByClass())
 	{
 		return FunctionAddress(pcFunction, pcFunction->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
 	}

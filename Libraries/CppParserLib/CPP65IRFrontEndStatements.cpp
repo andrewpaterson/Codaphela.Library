@@ -321,8 +321,8 @@ bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 //////////////////////////////////////////////////////////////////////////
 //
 // Locals already have their slots; this runs their initialisers.  Local
-// function declarations, typedefs and static_asserts were dealt with by the
-// generator's set up, or need nothing.
+// function declarations, typedefs, static_asserts and what only changes what
+// names mean were dealt with by the generator's set up, or need nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement)
@@ -331,6 +331,10 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	{
 		//Checked when it is compiled; nothing is written.
 		return mpcGenerator->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__FILE__, __LINE__);
+	}
+	if (pcStatement->mpcDeclaration && mpcGenerator->IsScopeDeclaration(pcStatement->mpcDeclaration))
+	{
+		return true;
 	}
 	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
 	{

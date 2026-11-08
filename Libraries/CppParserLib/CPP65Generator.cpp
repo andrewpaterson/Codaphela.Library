@@ -1439,11 +1439,11 @@ bool CCPP65Generator::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
 		return false;
 	}
 	pcName = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDeclaration)->mpcDeclarator->GetName();
-	if (!pcName || (pcName->macpComponents.NumElements() != 2))
+	if (!pcName || !pcName->IsQualifiedByClass())
 	{
 		return false;
 	}
-	pcClass = (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0);
+	pcClass = pcName->GetQualifier();
 	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !GetTemplateByName(GetComponentName(pcClass));
 }
 
@@ -1505,20 +1505,42 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 		case CPPS_Namespace:
 			bResult &= Declarations(&((CCPPSyntaxNamespace*)pcDeclaration)->macpDeclarations);
 			break;
-		case CPPS_AliasDeclaration:
-		case CPPS_UsingDeclaration:
-		case CPPS_UsingDirective:
-			break;
 		case CPPS_EmptyDeclaration:
 		case CPPS_StaticAssert:
 		case CPPS_LazyDeclaration:		//A header declaration the unit never used, so never parsed.
 			break;
 		default:
-			bResult &= Error(pcDeclaration, "This declaration is not supported by the compiler yet");
+			if (!IsScopeDeclaration(pcDeclaration))
+			{
+				bResult &= Error(pcDeclaration, "This declaration is not supported by the compiler yet");
+			}
 			break;
 		}
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A declaration that only changes what names mean: the parser has dealt with
+// it (using, using namespace, using X = T and namespace A = N, which is the
+// only skipped declaration that isn't left out, as asm is).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsScopeDeclaration(CCPPSyntax* pcDeclaration)
+{
+	switch (pcDeclaration->GetKind())
+	{
+	case CPPS_AliasDeclaration:
+	case CPPS_UsingDeclaration:
+	case CPPS_UsingDirective:
+		return true;
+	case CPPS_SkippedDeclaration:
+		return mpcTokeniser->Get(pcDeclaration->miFirstToken)->Is(CT_namespace);
+	default:
+		return false;
+	}
 }
 
 
@@ -1577,9 +1599,9 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 
 	pcName = pcDeclarator->GetName();
 	pcComponent = pcName ? pcName->GetLast() : NULL;
-	if (!pcComponent || ((pcComponent->meKind == CPPNC_Conversion) && !psClass) || (!psClass && !psTemplate && (pcName->mbGlobal || (pcName->macpComponents.NumElements() != 1))))
+	if (!pcComponent || ((pcComponent->meKind == CPPNC_Conversion) && !psClass) || (!psClass && !psTemplate && pcName->IsQualifiedByClass()))
 	{
-		Error(pcDeclarator, "Conversion functions outside classes and qualified names are not supported by the compiler yet");
+		Error(pcDeclarator, "Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet");
 		return NULL;
 	}
 	lliName = GetFunctionName(pcComponent);
@@ -1947,17 +1969,17 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 
 		lliName = GetName(pcInit->mpcDeclarator);
 		pcName = pcInit->mpcDeclarator->GetName();
-		if ((lliName == -1) && pcName && (pcName->macpComponents.NumElements() == 2))
+		if ((lliName == -1) && pcName && pcName->IsQualifiedByClass())
 		{
 			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.
-			psClass = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcInit);
+			psClass = GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 			if (psClass)
 			{
 				CompleteClass(psClass, pcInit);
 			}
 		}
 		psVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
-		if (!pcInit->mpcSymbol || ((lliName == -1) && !(psVariable && psVariable->psClass)))
+		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(psVariable && psVariable->psClass)))
 		{
 			bResult &= Error(pcInit, "Only variables with simple names are supported by the compiler yet");
 			continue;
@@ -2754,6 +2776,10 @@ SCPP65Type* CCPP65Generator::GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcN
 		pcParameter = (CCPPSyntaxParameter*)pcDeclaration;
 		return GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
 	}
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_AliasDeclaration))
+	{
+		return GetTypeIdType(((CCPPSyntaxAliasDeclaration*)pcDeclaration)->mpcType);
+	}
 	Error(pcNode, "This declaration is not supported by the compiler yet");
 	return NULL;
 }
@@ -2771,24 +2797,14 @@ bool CCPP65Generator::Function(CCPPSyntaxFunctionDefinition* pcFunction, SCPP65C
 	CCPPSyntaxName*		pcName;
 	SCPP65Function*		psFunction;
 	size				uiErrors;
-	size				i;
 
 	pcName = pcFunction->mpcDeclarator->GetName();
-	if (!psClass && pcName && (pcName->macpComponents.NumElements() >= 2))
+	if (!psClass && pcName && pcName->IsQualifiedByClass())
 	{
-		psClass = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcFunction);
+		psClass = GetComponentClass(pcName->GetQualifier(), NULL, pcFunction);
 		if (!psClass)
 		{
 			return Error(pcFunction, "The function's class has not been defined");
-		}
-
-		//CListBlock::CListBlock::Add names the class again (its injected name).
-		for (i = 1; i + 1 < pcName->macpComponents.NumElements(); i++)
-		{
-			if (GetComponentName((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(i)) != psClass->lliName)
-			{
-				return Error(pcFunction, "Namespaces and nested classes are not supported by the compiler yet");
-			}
 		}
 		if (!CompleteClass(psClass, pcFunction))
 		{
