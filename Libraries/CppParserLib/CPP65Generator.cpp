@@ -1629,7 +1629,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	}
 
 	pcSuffix = pcDeclarator->GetFunctionSuffix();
-	if ((pcDeclarator->macpSuffixes.NumElements() != 1) || pcDeclarator->mpcNested || pcSuffix->mpcTrailingReturn)
+	if ((!pcDeclarator->mpcNested && (pcDeclarator->macpSuffixes.NumElements() != 1)) || pcSuffix->mpcTrailingReturn)
 	{
 		Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
 		return NULL;
@@ -1648,7 +1648,12 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	else if (eKind == CPP65FK_Function)
 	{
 		psReturn = GetType(pcSpecifiers, NULL, pcDeclarator, NULL);
-		for (i = 0; psReturn && (i < pcDeclarator->NumPointers()); i++)
+		if (psReturn && pcDeclarator->mpcNested)
+		{
+			//int (*Pick())(int) returns what the declarators around its name make of the int.
+			psReturn = GetDeclaratorType(psReturn, pcDeclarator, pcDeclarator, NULL, pcSuffix);
+		}
+		for (i = 0; psReturn && !pcDeclarator->mpcNested && (i < pcDeclarator->NumPointers()); i++)
 		{
 			switch (pcDeclarator->GetPointer(i)->meKind)
 			{
@@ -2419,10 +2424,11 @@ SCPP65Type* CCPP65Generator::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 // Applies a declarator to a type: the pointer and reference operators first, then
 // the array and function suffixes from the last, then a nested declarator, as in
 // int (*pf)(int) (a pointer to a function).  [dcl.meaning]  A parameter's array
-// without a size (char* argv[]) is a pointer.  [dcl.fct]
+// without a size (char* argv[]) is a pointer.  [dcl.fct]  It stops at pcFunction
+// if that is given, for the type a function with that suffix returns.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser)
+SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser, CCPPSyntaxFunctionSuffix* pcFunction)
 {
 	CCPPSyntaxPointerOperator*	pcPointer;
 	CCPPSyntax*					pcSuffix;
@@ -2461,6 +2467,10 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 	for (i = pcDeclarator->macpSuffixes.NumElements(); i > 0; i--)
 	{
 		pcSuffix = pcDeclarator->macpSuffixes.GetPtr(i - 1);
+		if (pcSuffix == pcFunction)
+		{
+			return psType;
+		}
 		if (pcSuffix->GetKind() == CPPS_FunctionSuffix)
 		{
 			psType = GetFunctionType(psType, (CCPPSyntaxFunctionSuffix*)pcSuffix, pcNode);
@@ -2500,7 +2510,7 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 
 	if (pcDeclarator->mpcNested)
 	{
-		return GetDeclaratorType(psType, pcDeclarator->mpcNested, pcNode, pcInitialiser);
+		return GetDeclaratorType(psType, pcDeclarator->mpcNested, pcNode, pcInitialiser, pcFunction);
 	}
 	return psType;
 }

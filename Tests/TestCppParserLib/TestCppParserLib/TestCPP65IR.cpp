@@ -1418,6 +1418,31 @@ void TestCPP65IRLineErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function that returns a function pointer needs no typedef: declared,
+// defined, as a member, and called straight away.  A name in brackets is the
+// name, and a pointer to one, or an array of them, is still a variable.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRFunctionsReturningFunctions(void)
+{
+	AssertInt(5 + 8 + 2 + 3 + 6 + 4 + 5 + 8 + 1 + 0, TestCPP65Main(
+		"int Add1(int a) { return a + 1; }\n"
+		"int Twice(int a) { return a * 2; }\n"
+		"int (*Declared(int i))(int);\n"
+		"int (*Pick(int i))(int) { return i ? Add1 : Twice; }\n"
+		"int (*Declared(int i))(int) { return Pick(i); }\n"
+		"struct S { int (*Get())(int) { return Add1; } static int (*Static(int i))(int) { return Pick(i); } };\n"
+		"int (Bracketed)(int a) { return a + 3; }\n"
+		"int ((Twoce))(int a) { return a + 4; }\n"
+		"int (*gpf)(int) = Add1;\n"
+		"int (*gapf[2])(int) = { Add1, Twice };\n"
+		"int main() { S s; int (*pf)(int) = Pick(0);\n"
+		"\treturn Pick(1)(4) + Pick(0)(4) + Declared(1)(1) + s.Get()(2) + pf(3) + (Bracketed)(1) + Twoce(1) + S::Static(0)(4) + gpf(0) + gapf[1](0); }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The 65C64's thunks: a member pointer's to a virtual function goes through
 // the vtable with its slot's offset (CPP65_VTABLE_ENTRY_BYTES apart), and one
 // of a secondary base's vtable adjusts this.
@@ -1614,6 +1639,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IRFunctionsReturningFunctions();
 	TestCPP65IRLineErrors();
 	TestCPP65IRTemplateInstances();
 	TestCPP65IRDeferredBodies();

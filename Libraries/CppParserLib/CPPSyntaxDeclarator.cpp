@@ -108,16 +108,18 @@ bool CCPPSyntaxDeclarator::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxFunctionSuffix* CCPPSyntaxDeclarator::GetFunctionSuffix(void)
 {
-	CCPPSyntax*	pcSuffix;
+	CCPPSyntax*					pcSuffix;
+	CCPPSyntaxFunctionSuffix*	pcNested;
 
 	//The function suffix that applies to the declared name: (*pf)(int) declares a pointer, not a function.
+	//(*Pick())(int) declares Pick, a function that returns one; and (f)(int) is f(int).
 	if (mpcNested && mpcNested->GetName())
 	{
-		if (mpcNested->macpPrefix.NumElements() == 0)
+		pcNested = mpcNested->GetFunctionSuffix();
+		if (pcNested || !mpcNested->IsParenthesisedName())
 		{
-			return mpcNested->GetFunctionSuffix();
+			return pcNested;
 		}
-		return NULL;
 	}
 
 	if (macpSuffixes.NumElements() > 0)
@@ -129,6 +131,22 @@ CCPPSyntaxFunctionSuffix* CCPPSyntaxDeclarator::GetFunctionSuffix(void)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this is only a name, in as many brackets as it likes: no pointers
+// or suffixes change what the declarator outside it declares.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclarator::IsParenthesisedName(void)
+{
+	if ((macpPrefix.NumElements() != 0) || (macpSuffixes.NumElements() != 0))
+	{
+		return false;
+	}
+	return mpcNested ? mpcNested->IsParenthesisedName() : (mpcName != NULL);
 }
 
 

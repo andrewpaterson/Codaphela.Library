@@ -45,6 +45,7 @@ public:
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 	bool					IsEmpty(void);
 	bool					IsFunction(void);
+	bool					IsParenthesisedName(void);
 	CCPPSyntaxFunctionSuffix*	GetFunctionSuffix(void);
 	CCPPSyntaxName*			GetName(void);
 	size					NumPointers(void);
