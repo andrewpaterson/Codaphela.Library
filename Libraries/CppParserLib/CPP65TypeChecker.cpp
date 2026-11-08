@@ -225,13 +225,20 @@ SCPP65Type* CCPP65TypeChecker::Load(SCPP65Type* psPlace, CCPPSyntax* pcNode)
 SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*		psType;
+	CCPPSymbol*		pcSymbol;
+	SCPP65Class*	psClass;
 	int64			lliValue;
 	double			dValue;
 
 	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
 	if (pcExpression->GetKind() == CPPS_IdExpression)
 	{
-		psType = mpcGenerator->EnumeratorType(((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol);
+		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
+		if (!pcSymbol)
+		{
+			pcSymbol = mpcGenerator->QualifiedEnumerator(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression, &psClass);
+		}
+		psType = mpcGenerator->EnumeratorType(pcSymbol);
 	}
 	else
 	{
@@ -283,11 +290,16 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	CCPPSymbol*				pcSymbol;
 	CCPPSyntaxParameter*	pcParameter;
 	SCPP65Type*				psType;
+	SCPP65Class*			psClass;
 
 	pcSymbol = pcId->mpcName->mpcSymbol;
 	if (mpcGenerator->IsFunctionName(pcId))
 	{
 		return mpcTypes->Pointer(&mpcTypes->msChar);
+	}
+	if (!pcSymbol)
+	{
+		pcSymbol = mpcGenerator->QualifiedEnumerator(pcId->mpcName, pcId, &psClass);
 	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator))
 	{
@@ -676,7 +688,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	CArraySyntax	apcRight;
 
 	psResult = mpcGenerator->TypeOf(pcBinary->mpcLeft);
-	if (psResult && psResult->IsClass() && mpcGenerator->HasMember(psResult->psClass, mpcGenerator->GetOperatorName(pcBinary->meOperator, false)))
+	if (psResult && psResult->IsClass() && mpcGenerator->HasOperator(psResult->psClass, mpcGenerator->GetOperatorName(pcBinary->meOperator, false), 1))
 	{
 		apcRight.Init();
 		apcRight.Add(pcBinary->mpcRight);
@@ -1639,7 +1651,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOp
 		return NULL;
 	}
 	uiErrors = mpcGenerator->mcErrors.NumErrors();
-	psFunction = mpcGenerator->FindFunction(psType->psClass, mpcGenerator->GetOperatorName(eOperator, false), CPP65FK_Function, papcArguments, true, pcNode, mpcGenerator->IsConstObject(pcObject));
+	psFunction = mpcGenerator->FindOperator(psType->psClass, mpcGenerator->GetOperatorName(eOperator, false), papcArguments, pcNode, mpcGenerator->IsConstObject(pcObject));
 	if (!psFunction)
 	{
 		if (mpcGenerator->mcErrors.NumErrors() == uiErrors)
@@ -1670,7 +1682,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 	lliName = mpcGenerator->GetOperatorName(eOperator, false);
 	psType = mpcGenerator->ValueTypeOf(pcLeft);
 	apcArguments.Init();
-	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, pcNode) && mpcGenerator->HasMember(psType->psClass, lliName))
+	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, pcNode) && mpcGenerator->HasOperator(psType->psClass, lliName, pcRight ? 1 : 0))
 	{
 		if (pcRight)
 		{
@@ -1678,7 +1690,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 		}
 		uiErrors = mpcGenerator->mcErrors.NumErrors();
 		mpcGenerator->BeginQuiet();
-		psFunction = mpcGenerator->FindFunction(psType->psClass, lliName, CPP65FK_Function, &apcArguments, true, pcNode, mpcGenerator->IsConstObject(pcLeft));
+		psFunction = mpcGenerator->FindOperator(psType->psClass, lliName, &apcArguments, pcNode, mpcGenerator->IsConstObject(pcLeft));
 		mpcGenerator->EndQuiet();
 		mpcGenerator->mcErrors.Truncate(uiErrors);
 		if (psFunction)

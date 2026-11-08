@@ -366,6 +366,10 @@ Supported
 - Local arrays of arrays are initialised from nested lists, strings, or a flat list
   (the braces elided); elements without an initialiser are zero.
 - A parameter declared as an array without a size (char* argv[]) is a pointer.
+- An operator that is a member template is found for an expression as a member function is (a * b, its template
+  arguments deduced); a member function that takes the arguments is chosen first.
+- Class::Name, where Class is an instance of a class template, a typedef of one or a template parameter, can name an
+  enumerator or a typedef (typename F::Storage), worked out with that instance's template arguments.
 - Default arguments of a member template defined outside its class come from its
   declaration in the class.
 - A static member function's name used as a value (Class::f, &Class::f, or f in a

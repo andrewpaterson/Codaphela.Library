@@ -1022,7 +1022,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 	{
 		apcArguments.Add(pcArgument);
 	}
-	psFunction = mpcGenerator->FindFunction(psType->psClass, mpcGenerator->GetOperatorName(eOperator, false), CPP65FK_Function, &apcArguments, true, pcObject, mpcGenerator->IsConstObject(pcObject));
+	psFunction = mpcGenerator->FindOperator(psType->psClass, mpcGenerator->GetOperatorName(eOperator, false), &apcArguments, pcObject, mpcGenerator->IsConstObject(pcObject));
 	if (!psFunction || psFunction->bStatic)
 	{
 		apcArguments.Kill();

@@ -70,6 +70,7 @@ bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
+	SCPP65Class*	psEnumeratorClass;
 	SCPP65Type*						psType;
 	SCPP65IRPlace					sPlace;
 	CCPPSyntaxNamedCastExpression*	pcNamedCast;
@@ -110,6 +111,10 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		if (mpcGenerator->IsFunctionName((CCPPSyntaxIdExpression*)pcExpression))
 		{
 			return FunctionName((CCPPSyntaxIdExpression*)pcExpression, psValue);
+		}
+		if (!pcSymbol)
+		{
+			pcSymbol = mpcGenerator->QualifiedEnumerator(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression, &psEnumeratorClass);
 		}
 		if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
 		{

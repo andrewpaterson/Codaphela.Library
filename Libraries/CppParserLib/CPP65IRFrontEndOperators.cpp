@@ -261,7 +261,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	if (psLeft && psLeft->IsClass())
 	{
 		//object op= value calls the class's operator if it has one; object = object copies the bytes otherwise.
-		if (mpcGenerator->HasMember(psLeft->psClass, mpcGenerator->GetOperatorName(pcBinary->meOperator, false)))
+		if (mpcGenerator->HasOperator(psLeft->psClass, mpcGenerator->GetOperatorName(pcBinary->meOperator, false), 1))
 		{
 			return OperatorCall(pcBinary->mpcLeft, pcBinary->meOperator, pcBinary->mpcRight, psValue);
 		}
@@ -828,13 +828,13 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 	lliName = mpcGenerator->GetOperatorName(eOperator, false);
 	psType = mpcGenerator->ValueTypeOf(pcLeft);
 	apcArguments.Init();
-	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, NULL) && mpcGenerator->HasMember(psType->psClass, lliName))
+	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, NULL) && mpcGenerator->HasOperator(psType->psClass, lliName, pcRight ? 1 : 0))
 	{
 		if (pcRight)
 		{
 			apcArguments.Add(pcRight);
 		}
-		psFunction = mpcGenerator->FindFunction(psType->psClass, lliName, CPP65FK_Function, &apcArguments, true, pcLeft, mpcGenerator->IsConstObject(pcLeft));
+		psFunction = mpcGenerator->FindOperator(psType->psClass, lliName, &apcArguments, pcLeft, mpcGenerator->IsConstObject(pcLeft));
 		apcArguments.Kill();
 		if (psFunction)
 		{

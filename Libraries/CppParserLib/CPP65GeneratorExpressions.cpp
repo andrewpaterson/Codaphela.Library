@@ -518,6 +518,134 @@ bool CCPP65Generator::HasMember(SCPP65Class* psClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether psClass (or a base) has an operator function named lliName: a member function, or a member template taking
+// uiArguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasOperator(SCPP65Class* psClass, int64 lliName, size uiArguments)
+{
+	return HasMember(psClass, lliName) || FindMemberTemplate(psClass, lliName, uiArguments);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The operator function of psClass (or a base) for the arguments: a member function that takes them, or else an
+// instance of a member template.  A class without a member template reports errors as FindFunction does.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::FindOperator(SCPP65Class* psClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject)
+{
+	SCPP65Template*	psTemplate;
+	SCPP65Function*	psFunction;
+	size			uiErrors;
+
+	psTemplate = FindMemberTemplate(psClass, lliName, papcArguments ? papcArguments->NumElements() : 0, iConstObject);
+	if (!psTemplate)
+	{
+		return FindFunction(psClass, lliName, CPP65FK_Function, papcArguments, true, pcNode, iConstObject);
+	}
+
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	psFunction = FindFunction(psClass, lliName, CPP65FK_Function, papcArguments, true, pcNode, iConstObject);
+	if (!psFunction)
+	{
+		psFunction = InstantiateFunction(psTemplate, NULL, papcArguments, pcNode);
+	}
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member of the kind eKind named lliName of psClass or of a base, and in ppsClass the class that declares it.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPP65Generator::ClassMember(SCPP65Class* psClass, int64 lliName, ECPPSymbolKind eKind, SCPP65Class** ppsClass)
+{
+	CCPPSymbol*	pcOwner;
+	CCPPSymbol*	pcSymbol;
+	size		i;
+
+	pcOwner = psClass->pcSpecifier ? psClass->pcSpecifier->mpcSymbol : psClass->pcSymbol;
+	pcSymbol = (pcOwner && pcOwner->mpcMembers) ? pcOwner->mpcMembers->FindHere(lliName) : NULL;
+	if (pcSymbol && (pcSymbol->meKind == eKind))
+	{
+		*ppsClass = psClass;
+		return pcSymbol;
+	}
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		pcSymbol = ClassMember(psClass->macBases.Get(i)->psClass, lliName, eKind, ppsClass);
+		if (pcSymbol)
+		{
+			return pcSymbol;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enumerator Class::Name names.  See QualifiedMember.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPP65Generator::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, SCPP65Class** ppsClass)
+{
+	return QualifiedMember(pcName, CPPSK_Enumerator, pcNode, ppsClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member of the kind eKind Class::Name names, where Class is a class, an instance of a class template, a typedef of
+// one or a template parameter, and in ppsClass the class that declares it: a member of an instance can depend on its
+// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPP65Generator::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, SCPP65Class** ppsClass)
+{
+	CCPPSyntaxNameComponent*	pcQualifier;
+	SCPP65Class*				psClass;
+	CCPPSymbol*					pcSymbol;
+	size						uiErrors;
+
+	if (pcName->macpComponents.NumElements() < 2)
+	{
+		return NULL;
+	}
+	pcQualifier = pcName->GetQualifier();
+	if (!pcQualifier || !pcQualifier->mpcSymbol)
+	{
+		return NULL;
+	}
+	switch (pcQualifier->mpcSymbol->meKind)
+	{
+	case CPPSK_Class:
+	case CPPSK_ClassTemplate:
+	case CPPSK_Typedef:
+	case CPPSK_TypeParameter:
+		break;
+	default:
+		return NULL;
+	}
+
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	psClass = GetComponentClass(pcQualifier, NULL, pcNode);
+	pcSymbol = (psClass && CompleteClass(psClass, pcNode)) ? ClassMember(psClass, GetComponentName(pcName->GetLast()), eKind, ppsClass) : NULL;
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether an expression is object.*member or pointer->*member.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -853,6 +981,10 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	SCPP65Variable*					psVariable;
 	SCPP65Type*						psType;
 	SCPP65Binding*					psBinding;
+	SCPP65Bindings*					psSaved;
+	SCPP65Class*					psClass;
+	CCPPSymbol*						pcEnumerator;
+	bool							bResult;
 	int64							lliLeft;
 	int64							lliRight;
 
@@ -903,6 +1035,18 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	case CPPS_IdExpression:
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
 		pcSymbol = pcId->mpcName->mpcSymbol;
+		if (!pcSymbol || (pcSymbol->meKind == CPPSK_Enumerator))
+		{
+			pcEnumerator = QualifiedEnumerator(pcId->mpcName, pcExpression, &psClass);
+			if (pcEnumerator)
+			{
+				psSaved = mpsBindings;
+				mpsBindings = psClass->psBindings;
+				bResult = EnumeratorValue(pcEnumerator, plliValue);
+				mpsBindings = psSaved;
+				return bResult;
+			}
+		}
 		if (!pcSymbol)
 		{
 			return false;

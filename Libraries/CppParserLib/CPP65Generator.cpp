@@ -2616,6 +2616,10 @@ int CCPP65Generator::GetInitialiserCount(CCPPSyntax* pcInitialiser)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode)
 {
+	CCPPSymbol*					pcMember;
+	SCPP65Class*				psMemberClass;
+	SCPP65Bindings*				psSavedBindings;
+	SCPP65Type*					psMemberType;
 	uint32								uiKeywords;
 	bool								bSigned;
 	CCPPSyntaxTypeSpecifier*			pcType;
@@ -2672,6 +2676,15 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		else if (pcType->GetKind() == CPPS_NamedTypeSpecifier)
 		{
 			pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
+			pcMember = QualifiedMember(pcName, CPPSK_Typedef, pcNode, &psMemberClass);
+			if (pcMember)
+			{
+				psSavedBindings = mpsBindings;
+				mpsBindings = psMemberClass->psBindings;
+				psMemberType = GetSymbolType(pcMember, pcNode);
+				mpsBindings = psSavedBindings;
+				return psMemberType;
+			}
 			if (pcName->mpcSymbol)
 			{
 				switch (pcName->mpcSymbol->meKind)

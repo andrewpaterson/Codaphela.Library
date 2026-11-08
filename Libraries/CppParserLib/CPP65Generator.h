@@ -743,6 +743,11 @@ protected:
 	SCPP65Function*			FindStaticFunction(SCPP65Class* psClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
 	bool					HasMember(SCPP65Class* psClass, int64 lliName);
+	bool					HasOperator(SCPP65Class* psClass, int64 lliName, size uiArguments);
+	SCPP65Function*			FindOperator(SCPP65Class* psClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject);
+	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, SCPP65Class** ppsClass);
+	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, SCPP65Class** ppsClass);
+	CCPPSymbol*				ClassMember(SCPP65Class* psClass, int64 lliName, ECPPSymbolKind eKind, SCPP65Class** ppsClass);
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);

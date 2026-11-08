@@ -2353,6 +2353,117 @@ void TestCPP65GeneratorNewDelete(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a fixed point type like BaseLib's SFixed uses: a member template operator whose template argument is deduced from
+// an instance of its class (through both a binary operator and an explicit call), enumerators and typedefs named through
+// a class template's instance, a typedef of one and a template parameter, and these together in a member template
+// that converts between instances.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorDependentMembers(void)
+{
+	//An operator that is a member template, with the template arguments deduced.
+	AssertInt(1, TestCPP65Main(
+		"template<class M, class N, int BITS>\n"
+		"class SF\n"
+		"{\n"
+		"public:\n"
+		"\tM m;\n"
+		"\tstatic SF Make(M i) { SF s; s.m = i; return s; }\n"
+		"\tSF operator + (SF s) const { return Make((M)(m + s.m)); }\n"
+		"\tSF operator - (SF s) const { return Make((M)(m - s.m)); }\n"
+		"\ttemplate<int O> SF<N, N, BITS + O> operator * (SF<M, N, O> s) const { return SF<N, N, BITS + O>::Make((N)m * (N)s.m); }\n"
+		"\ttemplate<int O> int operator % (SF<M, N, O> s) const { return (int)m + (int)s.m + O; }\n"
+		"};\n"
+		"typedef SF<short, long, 4> S4;\n"
+		"typedef SF<short, long, 8> S8;\n"
+		"typedef SF<long, long, 12> SW;\n"
+		"int main()\n"
+		"{\n"
+		"\tS4 a = S4::Make(300);\n"
+		"\tS4 b = S4::Make(2);\n"
+		"\tS8 c = S8::Make(200);\n"
+		"\tSW w = a * c;\n"
+		"\tlong l = (a * c).m;\n"
+		"\treturn w.m == 60000L && l == 60000L && sizeof(a * c) == 4 && (a * (a - b)).m == 89400L && (a + b - b).m == 300 && a % c == 508 && a.operator*(c).m == 60000L && (a * b).m == 600L;\n"
+		"}\n"));
+
+	//A member function is chosen before a member template, which is used when the function doesn't take the argument.
+	AssertInt(1, TestCPP65Main(
+		"struct S\n"
+		"{\n"
+		"\tint m;\n"
+		"\tint operator * (int i) const { return m + i; }\n"
+		"\ttemplate<class T> int operator * (T* p) const { return m + *p + 1000; }\n"
+		"\ttemplate<class T> S& operator += (T t) { m += (int)t; return *this; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"\tS s;\n"
+		"\tint i = 5;\n"
+		"\ts.m = 1;\n"
+		"\ts += (char)2;\n"
+		"\treturn s.m == 3 && s * 4 == 7 && s * &i == 1008;\n"
+		"}\n"));
+
+	//Enumerators, whose values depend on the template arguments of the instance named.
+	AssertInt(1, TestCPP65Main(
+		"struct SP { enum { Bits = 5 }; };\n"
+		"template<int I> struct ST { enum { Bits = I, Next = I + 1 }; };\n"
+		"template<int I> struct SD : ST<I * 2> { };\n"
+		"typedef ST<3> ST3;\n"
+		"template<class F> int UseBits(void) { return (int)F::Bits; }\n"
+		"template<class F> int UseConstant(void) { int a[F::Bits]; return (int)sizeof(a) / (int)sizeof(a[0]); }\n"
+		"int main()\n"
+		"{\n"
+		"\tint iOne = 1 << ST3::Bits;\n"
+		"\treturn SP::Bits == 5 && ST<3>::Bits == 3 && ST<3>::Next == 4 && ST<7>::Bits == 7 && ST3::Next == 4 && iOne == 8 && UseBits<SP>() == 5 && UseBits<ST<9> >() == 9 && UseBits<ST3>() == 3 && UseBits<SD<4> >() == 8 && UseConstant<ST<6> >() == 6;\n"
+		"}\n"));
+
+	//Typedefs, which depend on the template arguments of the instance named, in casts, declarations and returns.
+	AssertInt(1, TestCPP65Main(
+		"struct SP { typedef short T; };\n"
+		"template<class M> struct ST { typedef M T; M m; };\n"
+		"typedef ST<char> STC;\n"
+		"template<class F> typename F::T Cut(long l) { typename F::T t = (typename F::T)l; return t; }\n"
+		"int main()\n"
+		"{\n"
+		"\tST<short>::T s = 300;\n"
+		"\tSTC::T c = (STC::T)300;\n"
+		"\treturn s == 300 && c == 44 && Cut<SP>(70000L) == 4464 && Cut<ST<char> >(300L) == 44 && sizeof(Cut<ST<char> >(1L)) == 1 && sizeof(Cut<ST<long> >(1L)) == 4;\n"
+		"}\n"));
+
+	//Together: a member template converting between instances, by their static functions, enumerators and typedefs.
+	AssertInt(1, TestCPP65Main(
+		"template<class M, class N, int BITS>\n"
+		"class SF\n"
+		"{\n"
+		"public:\n"
+		"\ttypedef M Storage;\n"
+		"\tenum { Bits = BITS };\n"
+		"\tM m;\n"
+		"\tstatic SF Make(M i) { SF s; s.m = i; return s; }\n"
+		"\ttemplate<class F> F To(void) const\n"
+		"\t{\n"
+		"\t\tif ((int)F::Bits >= BITS)\n"
+		"\t\t{\n"
+		"\t\t\treturn F::Make((typename F::Storage)((long)m << ((int)F::Bits - BITS)));\n"
+		"\t\t}\n"
+		"\t\treturn F::Make((typename F::Storage)((long)m >> (BITS - (int)F::Bits)));\n"
+		"\t}\n"
+		"};\n"
+		"typedef SF<int, long, 4> S4;\n"
+		"typedef SF<int, long, 8> S8;\n"
+		"typedef SF<long, long, 2> S2;\n"
+		"int main()\n"
+		"{\n"
+		"\tS4 a = S4::Make(48);\n"
+		"\treturn a.To<S8>().m == 768 && a.To<S2>().m == 12L && sizeof(a.To<S2>()) == 4 && S8::Make(-768).To<S4>().m == -48;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Member templates: defined in a class and outside it, in a class and in a class
 // template (using both the class's and its own parameters), deduced and explicit
 // arguments, static, and called unqualified from another member.
@@ -3405,6 +3516,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorExtern();
 	TestCPP65GeneratorNewDelete();
 	TestCPP65GeneratorMemberTemplates();
+	TestCPP65GeneratorDependentMembers();
 	TestCPP65GeneratorSpecialisation();
 	TestCPP65GeneratorMemberPointers();
 	TestCPP65GeneratorTemplateOverloads();
