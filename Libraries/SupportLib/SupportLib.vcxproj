@@ -425,6 +425,7 @@
     <ClInclude Include="MeshReader.h" />
     <ClInclude Include="MTLReader.h" />
     <ClInclude Include="OBJReader.h" />
+    <ClInclude Include="VRMLReader.h" />
     <ClInclude Include="MeshWriter.h" />
     <ClInclude Include="OBJWriter.h" />
     <ClInclude Include="Camera.h" />
@@ -674,6 +675,7 @@
     <ClCompile Include="MeshReader.cpp" />
     <ClCompile Include="MTLReader.cpp" />
     <ClCompile Include="OBJReader.cpp" />
+    <ClCompile Include="VRMLReader.cpp" />
     <ClCompile Include="MeshWriter.cpp" />
     <ClCompile Include="OBJWriter.cpp" />
     <ClCompile Include="Camera.cpp" />

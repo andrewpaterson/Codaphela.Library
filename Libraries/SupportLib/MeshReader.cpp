@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "OBJReader.h"
+#include "VRMLReader.h"
 #include "MeshReader.h"
 
 
@@ -41,6 +42,8 @@ bool ReadMesh(Ptr<CMesh> pMesh, char* szFilename, EMeshType eType)
 	{
 	case MT_OBJ:
 		return (LoadOBJ(pMesh, szFilename));
+	case MT_VRML:
+		return (LoadVRML(pMesh, szFilename));
 	default:
 		break;
 	}

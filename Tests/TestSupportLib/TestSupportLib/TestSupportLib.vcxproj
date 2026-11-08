@@ -281,6 +281,7 @@
     <ClCompile Include="TestMeshFaceReturn.cpp" />
     <ClCompile Include="TestMeshMaterial.cpp" />
     <ClCompile Include="TestMeshOBJReader.cpp" />
+    <ClCompile Include="TestMeshVRMLReader.cpp" />
     <ClCompile Include="TestMeshPolygons.cpp" />
     <ClCompile Include="TestMeshShapes.cpp" />
     <ClCompile Include="TestMeshUVCoords.cpp" />

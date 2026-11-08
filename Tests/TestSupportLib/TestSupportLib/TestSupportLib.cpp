@@ -61,6 +61,7 @@ void TestMeshCache(void);
 void TestMeshConnectivity(void);
 void TestNormalGeneration(void);
 void TestMeshOBJReader(void);
+void TestMeshVRMLReader(void);
 void TestImageResampler(void);
 void TestSound(void);
 void TestSoundWAV(void);
@@ -140,6 +141,7 @@ int __cdecl main(void)
 	TestMeshConnectivity();
 	TestNormalGeneration();
 	//TestMeshOBJReader();  Source OBJ file is missing
+	TestMeshVRMLReader();
 	TestSound();
 	TestSoundWAV();
 	TestSoundResampler();

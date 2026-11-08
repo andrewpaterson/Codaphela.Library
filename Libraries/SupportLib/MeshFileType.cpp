@@ -47,6 +47,8 @@ EMeshType GuessMeshType(char *szFilename)
 	//----------------------------------------
 	if (szTest.EqualsIgnoreCase(".obj"))
 		eType = MT_OBJ;
+	else if (szTest.EqualsIgnoreCase(".wrl"))
+		eType = MT_VRML;
 	else
 		eType = MT_Unknown;
 	szTest.Kill();

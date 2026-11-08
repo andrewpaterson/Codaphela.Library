@@ -669,6 +669,9 @@
     <ClInclude Include="OBJReader.h">
       <Filter>Source\Mesh\IO\Reader</Filter>
     </ClInclude>
+    <ClInclude Include="VRMLReader.h">
+      <Filter>Source\Mesh\IO\Reader</Filter>
+    </ClInclude>
     <ClInclude Include="MeshWriter.h">
       <Filter>Source\Mesh\IO\Writer</Filter>
     </ClInclude>
@@ -1419,6 +1422,9 @@
       <Filter>Source\Mesh\IO\Reader</Filter>
     </ClCompile>
     <ClCompile Include="OBJReader.cpp">
+      <Filter>Source\Mesh\IO\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="VRMLReader.cpp">
       <Filter>Source\Mesh\IO\Reader</Filter>
     </ClCompile>
     <ClCompile Include="MeshWriter.cpp">

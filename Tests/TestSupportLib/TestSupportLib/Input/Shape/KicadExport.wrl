@@ -1,0 +1,53 @@
+#VRML V2.0 utf8
+# The structure KiCad exports, and the things in its output that are easy to get wrong.
+DEF TXFM_1 Transform {
+  center 0 0 0
+  rotation 0 0 1 1.5707964
+  scale 2 2 2
+  scaleOrientation 0 0 1 0
+  translation 10 20 30
+ children [
+DEF SHAPE_1 Shape {
+ appearance DEF APP_1 Appearance {
+  material Material {
+   ambientIntensity 0.122244
+   diffuseColor 1 0 0
+   emissiveColor 0 0 0
+   shininess 0.1
+   specularColor 0.12 0.12 0.12
+   transparency 0.2
+} }
+ geometry DEF FACE_1 IndexedFaceSet {
+  coord DEF COORD_1 Coordinate { point [
+  0 0 0,1 0 0,
+  0 1.5e+0 0,2.5e-1 -2.5E-1 0] }
+ coordIndex [
+  0,1,2,-1,0,3,1]
+  normalPerVertex TRUE
+  normal DEF NORM_1 Normal { vector [
+  0 0 1,0 0 1,
+  0 0 1,1 0 0] }
+}
+}
+] }
+DEF TXFM_2 Transform {
+  translation 100 0 0
+ children [
+USE TXFM_1
+] }
+DEF TXFM_3 Transform {
+  scale -2 1 1
+ children [
+Shape {
+ appearance USE APP_1
+ geometry IndexedFaceSet {
+  coord Coordinate { point [ 0 0 0,1 0 0,1 1 0,0 1 0 ] }
+  coordIndex [ 0,1,2,3,-1 ]
+  normal Normal { vector [ 1 1 0,0 0 1,0 0 1,0 0 1 ] }
+} }
+] }
+Shape {
+ geometry IndexedFaceSet {
+  coord Coordinate { point [ 5 5 5,6 5 5,5 6 5 ] }
+  coordIndex [ 0,1,2 ]
+} }
