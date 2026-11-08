@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseLib/SystemAllocator.h"
 #include "ObjectIO.h"
 #include "ExternalObjectReader.h"
@@ -68,8 +70,10 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 	{
 		return NULL;
 	}
-	if (iLength <= 0)
+	//The length counts itself.  An int32's 2GB is the upper bound: a length the data can't fill fails to read.
+	if (iLength < (int32)sizeof(uint32))
 	{
+		gcLogger.Error2(__METHOD__, " Serialised object length [", IntToString(iLength), "] is shorter than the length.", NULL);
 		return NULL;
 	}
 

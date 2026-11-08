@@ -53,27 +53,18 @@ void CExternalObjectSerialiser::Kill(void)
 bool CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
-	bool			bResult;
-	int				iCount;  //Just for debugging.
 
 	ReturnOnFalse(mpcWriter->Begin());
 
 	AddDependent(pcObject);
 
-	for (iCount = 0;; iCount++)
+	for (pcUnwritten = mcDependentObjects.GetUnwritten(); pcUnwritten != NULL; pcUnwritten = mcDependentObjects.GetUnwritten())
 	{
-		pcUnwritten = mcDependentObjects.GetUnwritten();
-		if (pcUnwritten)
+		if (!WriteUnwritten(pcUnwritten))
 		{
-			bResult = WriteUnwritten(pcUnwritten);
-			if (!bResult)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			break;
+			//What was begun is ended, written or not.
+			mpcWriter->End();
+			return false;
 		}
 	}
 
@@ -91,42 +82,42 @@ bool CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 	bool				bResult;
 	CSerialisedObject*	pcSerialised;
 	CChars				szDescription;
-	CMemoryFile			mcMemory;
+	CMemoryFile			cMemory;
 
 	if (!pcObject)
 	{
-		return gcLogger.Error2(__METHOD__, " Could write [NULL] object.", NULL);
+		return gcLogger.Error2(__METHOD__, " Could not write [NULL] object.", NULL);
 	}
 
-	mcMemory.Init();
-	mcMemory.Open(EFM_ReadWrite_Create);
+	cMemory.Init();
+	cMemory.Open(EFM_ReadWrite_Create);
 
-	cObjectWriter.Init(&mcMemory, &mcDependentObjects);
+	cObjectWriter.Init(&cMemory, &mcDependentObjects);
 
 	bResult = cObjectWriter.Write(pcObject);
 
-	mcMemory.Close();
+	cMemory.Close();
 	cObjectWriter.Kill();
 
 	if (!bResult)
 	{
-		mcMemory.Kill();
+		cMemory.Kill();
 		szDescription.Init();
 		gcLogger.Error2(__METHOD__, " Could not serialise object [", pcObject->PrintIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
 		return false;
 	}
 
-	pcSerialised = (CSerialisedObject*)mcMemory.GetBufferPointer();
+	pcSerialised = (CSerialisedObject*)cMemory.GetBufferPointer();
 
 	bResult = mpcWriter->Write(pcSerialised);
 
-	mcMemory.Kill();
+	cMemory.Kill();
 
 	if (!bResult)
 	{
 		szDescription.Init();
-		gcLogger.Error2(__METHOD__, " Could write object [", pcObject->PrintIdentifier(&szDescription), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not write object [", pcObject->PrintIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
 		return false;
 	}

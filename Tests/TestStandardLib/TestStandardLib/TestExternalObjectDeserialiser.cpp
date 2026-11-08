@@ -21,6 +21,9 @@
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
 #include "EmbeddedObjectTestClasses.h"
+#include "BaseLib/FileBasic.h"
+#include "StandardLib/ExternalObjectSerialiser.h"
+#include "StandardLib/ObjectSingleSource.h"
 
 
 //Objects in an external format (simple files, chunk files) are read into memory with new indices, and can then be
@@ -51,6 +54,7 @@ public:
 	size	muiBegins;
 	size	muiEnds;
 	bool	mbFailBegin;
+	bool	mbFailEnd;
 
 	void Init(const char* szDirectory)
 	{
@@ -58,6 +62,7 @@ public:
 		muiBegins = 0;
 		muiEnds = 0;
 		mbFailBegin = false;
+		mbFailEnd = false;
 	}
 
 	bool Begin(void) override
@@ -73,8 +78,39 @@ public:
 	bool End(void) override
 	{
 		muiEnds++;
-		return CObjectReaderSimpleDisk::End();
+		return CObjectReaderSimpleDisk::End() && !mbFailEnd;
 	}
+};
+
+
+//A writer that Begins and Ends but can't Write, counting the Begins and Ends.
+class CTestFailingObjectWriter : public CExternalObjectWriter
+{
+CONSTRUCTABLE(CTestFailingObjectWriter)
+public:
+	size	muiBegins;
+	size	muiEnds;
+
+	void Init(const char* szDirectory)
+	{
+		CExternalObjectWriter::Init(szDirectory, "");
+		muiBegins = 0;
+		muiEnds = 0;
+	}
+	bool Begin(void) override { muiBegins++; return true; }
+	bool Write(CSerialisedObject* pcSerialised) override { return false; }
+	bool End(void) override { muiEnds++; return true; }
+};
+
+
+//A reader that reads nothing, but can read a serialised object's length and data from a file.
+class CTestSerialisedReader : public CExternalObjectReader
+{
+CONSTRUCTABLE(CTestSerialisedReader)
+public:
+	CSerialisedObject* Read(const char* szObjectName) override { return NULL; }
+	CSerialisedObject* Read(OIndex oi) override { return NULL; }
+	CSerialisedObject* TestReadSerialised(CFileReader* pcReader) { return ReadSerialised(pcReader); }
 };
 
 
@@ -1372,6 +1408,180 @@ void TestExternalObjectDeserialiserBadLoad(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// When End fails what was read is in memory: it is still the result.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserEndFails(void)
+{
+	CCodabase*					pcDatabase;
+	CSequence*					pcSequence;
+	CTestCountingObjectReader	cReader;
+	CExternalObjectDeserialiser	cDeserialiser;
+	CMemoryFile					cLog;
+	SLogConfig					sLogConfig;
+	char						szLogged[1024];
+
+	TestExternalObjectDeserialiserClean();
+	TestExternalObjectDeserialiserWriteGraph(false);
+
+	TestExternalObjectDeserialiserOpen(EXTERNAL_READ_DATABASE, &pcDatabase, &pcSequence);
+	{
+		Ptr<CTestSaveableObject2>	pStart;
+
+		cReader.Init(EXTERNAL_FILES_DIRECTORY);
+		cReader.mbFailEnd = true;
+		cDeserialiser.Init(&cReader, false, &gcObjects);
+		StartCapturingLog(&cLog, &sLogConfig);
+		pStart = cDeserialiser.Read("Ext/Start");
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		cDeserialiser.Kill();
+		cReader.Kill();
+
+		AssertNotNull(strstr(szLogged, "Could not end reading [Ext/Start]."));
+		TestExternalObjectDeserialiserAssertGraph(pStart);
+		ObjectsFlush();
+	}
+	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A write that fails part way still Ends what it Began.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserWriteFailsEnds(void)
+{
+	CCodabase*					pcDatabase;
+	CSequence*					pcSequence;
+	CTestFailingObjectWriter	cWriter;
+	CExternalObjectSerialiser	cSerialiser;
+	SLogConfig					sLogConfig;
+	bool						bResult;
+
+	TestExternalObjectDeserialiserClean();
+	TestExternalObjectDeserialiserOpen(EXTERNAL_READ_DATABASE, &pcDatabase, &pcSequence);
+	{
+		Ptr<CTestSaveableObject2>	pObject;
+
+		pObject = ONMalloc<CTestSaveableObject2>("Unwritable", "One");
+		cWriter.Init(EXTERNAL_FILES_DIRECTORY);
+		cSerialiser.Init(&cWriter);
+		sLogConfig = gcLogger.SetSilent();
+		bResult = cSerialiser.Write(&pObject);
+		gcLogger.SetConfig(&sLogConfig);
+		cSerialiser.Kill();
+		cWriter.Kill();
+
+		AssertFalse(bResult);
+		AssertSize(1, cWriter.muiBegins);
+		AssertSize(1, cWriter.muiEnds);
+		ObjectsFlush();
+	}
+	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Dependents are found by the index they were written with, so a pointer
+// to an object written without one is refused.  A dependent keeps the
+// identifier's size.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserDependentWithoutIndex(void)
+{
+	CCodabase*					pcDatabase;
+	CSequence*					pcSequence;
+	CTestCountingObjectReader	cReader;
+	CExternalObjectDeserialiser	cDeserialiser;
+	CObjectIdentifier			cIdentifier;
+	CDependentReadObject		cDependent;
+	CEmbeddedObject*			pcPointedTo;
+	CMemoryFile					cLog;
+	SLogConfig					sLogConfig;
+	char						szLogged[1024];
+
+	cIdentifier.Init(12, 345);
+	cDependent.Init(&cIdentifier);
+	AssertShort((uint16)345, cDependent.muiSize);
+	cDependent.Kill();
+	cIdentifier.Kill();
+
+	TestExternalObjectDeserialiserClean();
+	TestExternalObjectDeserialiserOpen(EXTERNAL_READ_DATABASE, &pcDatabase, &pcSequence);
+	{
+		cReader.Init(EXTERNAL_FILES_DIRECTORY);
+		cDeserialiser.Init(&cReader, false, &gcObjects);
+
+		cIdentifier.Init("Nowhere", INVALID_O_INDEX, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		pcPointedTo = NULL;
+		StartCapturingLog(&cLog, &sLogConfig);
+		AssertFalse(((CDependentReadObjects*)&cDeserialiser)->AddDependent(&cIdentifier, &pcPointedTo, NULL, 1, 0));  //As the object reader sees it.
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Pointed to object [Nowhere] was written without an index."));
+		cIdentifier.Kill();
+
+		cDeserialiser.Kill();
+		cReader.Kill();
+		ObjectsFlush();
+	}
+	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A serialised object's length counts itself: a shorter one is refused
+// before anything is allocated.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserShortLength(void)
+{
+	CTestSerialisedReader	cReader;
+	CMemoryFile				cMemory;
+	CFileBasic				cFile;
+	CMemoryFile				cLog;
+	SLogConfig				sLogConfig;
+	char					szLogged[1024];
+
+	cMemory.Init();
+	cFile.Init(&cMemory);
+	AssertTrue(cFile.Open(EFM_ReadWrite_Create));
+	AssertTrue(cFile.WriteInt32(2));
+	AssertTrue(cFile.Seek(0));
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertNull(cReader.TestReadSerialised(&cFile));
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Serialised object length [2] is shorter than the length."));
+
+	cFile.Close();
+	cFile.Kill();
+	cReader.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A single source has the object whatever the case of its name, as it
+// converts it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserSingleSourceCase(void)
+{
+	CObjectSingleSource	cSource;
+
+	cSource.Init(NULL, NULL, "Input/Tiny.png");
+	AssertTrue(cSource.Contains("Input/Tiny.png"));
+	AssertTrue(cSource.Contains("input/TINY.png"));
+	AssertFalse(cSource.Contains("Input/Tiny"));
+	cSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestExternalObjectDeserialiser(void)
@@ -1387,6 +1597,11 @@ void TestExternalObjectDeserialiser(void)
 	TestExternalObjectDeserialiserMissingObject();
 	TestExternalObjectDeserialiserBadLoad();
 	TestExternalObjectDeserialiserBeginFails();
+	TestExternalObjectDeserialiserEndFails();
+	TestExternalObjectDeserialiserWriteFailsEnds();
+	TestExternalObjectDeserialiserDependentWithoutIndex();
+	TestExternalObjectDeserialiserShortLength();
+	TestExternalObjectDeserialiserSingleSourceCase();
 	TestExternalObjectDeserialiserMissingNamedDependency();
 	TestExternalObjectDeserialiserMissingUnnamedDependency();
 	TestExternalObjectDeserialiserNamedHollows();

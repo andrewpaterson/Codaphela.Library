@@ -133,12 +133,12 @@ bool CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 		return false;
 	}
 
-	ReturnOnFalse(mcChunkFileFileSystem.WriteChunkBegin(szChunkName.Text()));
-	ReturnOnFalse(mcChunkFileFileSystem.WriteData(pcSerialised, pcSerialised->GetLength()));
-	ReturnOnFalse(mcChunkFileFileSystem.WriteChunkEnd());
+	bResult = mcChunkFileFileSystem.WriteChunkBegin(szChunkName.Text());
+	bResult = bResult && mcChunkFileFileSystem.WriteData(pcSerialised, pcSerialised->GetLength());
+	bResult = bResult && mcChunkFileFileSystem.WriteChunkEnd();
 
 	szChunkName.Kill();
-	return true;
+	return bResult;
 }
 
 

@@ -37,11 +37,13 @@ bool CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 	mcChunkFile.Init(pcFile);
 	mcChunkFileFileSystem.Init(&mcChunkFile);
 	mcNames.Init();
-
-	ReturnOnFalse(mcChunkFile.ReadOpen());
-	ReturnOnFalse(ReadNames());
-
 	mpcReader = NULL;
+	mbOpened = false;
+
+	//On false the caller Kills this, which closes what was opened.
+	ReturnOnFalse(mcChunkFile.ReadOpen());
+	mbOpened = true;
+	ReturnOnFalse(ReadNames());
 	return mcChunkFile.StackDepth() == 1;
 }
 
@@ -52,7 +54,11 @@ bool CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceChunked::Kill(void)
 {
-	mcChunkFile.ReadClose();
+	if (mbOpened)
+	{
+		mcChunkFile.ReadClose();
+		mbOpened = false;
+	}
 	mcChunkFile.Kill();
 	mcChunkFileFileSystem.Kill();
 
@@ -102,6 +108,7 @@ CBaseObject* CObjectSourceChunked::Convert(const char* szFullName)
 
 	pvObject = mpcConverter->Convert(this, szFullName);
 	mpcReader->Kill();
+	mpcReader = NULL;
 
 	return pvObject;
 }

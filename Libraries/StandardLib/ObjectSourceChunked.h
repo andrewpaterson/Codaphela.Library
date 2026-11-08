@@ -34,6 +34,7 @@ protected:
 	CChunkFile					mcChunkFile;
 	CChunkFileFileSystem		mcChunkFileFileSystem;
 	CChunkFileObjectReader*		mpcReader;
+	bool						mbOpened;  //The chunk file was opened (Init got that far): Kill closes it.
 
 public:
 	bool			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename);

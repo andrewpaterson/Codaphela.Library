@@ -51,7 +51,8 @@ void CObjectSingleSource::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectSingleSource::Contains(const char* szFullName)
 {
-	return mszObjectName.Equals(szFullName);
+	//As Convert: names ignore case.
+	return mszObjectName.EqualsIgnoreCase(szFullName);
 }
 
 

@@ -94,7 +94,8 @@ CBaseObject* CExternalObjectDeserialiser::Read(const char* szObjectName)
 	pvObject = ReadObjectAndDependents(szObjectName);
 	if (!mpcReader->End())
 	{
-		return NULL;
+		//What was read is in memory already: it's still the result.
+		gcLogger.Error2(__METHOD__, " Could not end reading [", szObjectName, "].", NULL);
 	}
 	return pvObject;
 }
@@ -453,6 +454,12 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	CDependentReadObject	cDependent;
 	CDependentReadPointer*	pcPointer;
 	bool					bNameExistsInDatabase;
+
+	//Dependents are found by the index they were written with.  Only an object in no Objects has none.
+	if (pcObjectIdentifier->moi == INVALID_O_INDEX)
+	{
+		return gcLogger.Error2(__METHOD__, " Pointed to object [", pcObjectIdentifier->GetName(), "] was written without an index.", NULL);
+	}
 
 	cDependent.Init(pcObjectIdentifier);
 
