@@ -567,6 +567,7 @@ static Ptr<CMesh> MeshSimplifyBuild(SMeshSimplify* ps)
 				aiCorners[i] = psCell->iOutputCorner;
 			}
 			pOutput->AddFace(aiCorners[0], aiCorners[1], aiCorners[2]);
+			pOutput->SetFaceName(iOutputFace, pcMesh->GetFaceName(iFace));
 
 			if (ps->bNormals)
 			{

@@ -109,7 +109,7 @@ Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
 	for (iFace = 0; iFace < iNumFaces; iFace++)
 	{
 		piCorners = pMesh->GetFaceCorners(iFace);
-		cEditor.AddFace(piCorners[0], piCorners[1], piCorners[2]);
+		cEditor.AddFace(piCorners[0], piCorners[1], piCorners[2], pMesh->GetFaceName(iFace));
 		if (pMesh->mcColours.InUse())
 		{
 			for (i = 0; i < NUM_FACE_CORNERS; i++)

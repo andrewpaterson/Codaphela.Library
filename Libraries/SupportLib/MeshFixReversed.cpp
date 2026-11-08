@@ -200,6 +200,7 @@ Ptr<CMesh> CMeshFixReversed::Fix(CMesh* pcMesh)
 
 		piCorners = pcMesh->GetFaceCorners(i);
 		pOutput->AddFace(piCorners[0], piCorners[iSecond], piCorners[iThird]);
+		pOutput->SetFaceName(i, pcMesh->GetFaceName(i));
 
 		psNormalFace = pcMesh->mcNormals.mcFaces.Get(i);
 		psOutputNormalFace = pOutput->mcNormals.mcFaces.Get(i);

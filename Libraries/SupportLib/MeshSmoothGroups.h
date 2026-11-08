@@ -53,7 +53,7 @@ public:
 
 	void	GenerateNormals(CMesh* pcMesh);
 	void	GenerateSmoothing(CMeshEditor* pcMeshEditor);
-	void	GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor);
+	void	GenerateSmoothingFromNames(CMesh* pcMesh);
 	void	GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor);
 
 	void	Apply(CMeshEditor* pcMeshEditor);

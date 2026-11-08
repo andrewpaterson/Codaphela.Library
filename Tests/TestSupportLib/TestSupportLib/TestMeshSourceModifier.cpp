@@ -238,6 +238,7 @@ void TestMeshSourceStackKeepsDetails(void)
 	pSource->AddCorner(1, 0, 0);
 	pSource->AddCorner(0, 1, 0);
 	pSource->AddFace(0, 1, 2);
+	pSource->SetFaceName(0, 7);
 	pSource->AddNormal(0, 0.6f, 0.8f);
 	psNormalFace = pSource->mcNormals.mcFaces.Get(0);
 	psNormalFace->aiCornerNormals[0] = 1;
@@ -251,6 +252,7 @@ void TestMeshSourceStackKeepsDetails(void)
 	AssertInt(3 + 4, pOutput->NumCorners());
 	AssertInt(1 + 3, pOutput->NumFaces());
 	AssertInt(3, pOutput->GetFaceCorners(1)[0]);
+	AssertInt(7, pOutput->GetFaceName(0));
 
 	psNormalFace = pOutput->mcNormals.mcFaces.Get(0);
 	iNormal = psNormalFace->aiCornerNormals[0];

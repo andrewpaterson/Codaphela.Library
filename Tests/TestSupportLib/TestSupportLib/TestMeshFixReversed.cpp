@@ -50,6 +50,8 @@ static Ptr<CMesh> TestMeshFixReversedMesh(void)
 	pMesh->AddFace(0, 2, 1);
 	pMesh->AddFace(2, 1, 0);
 
+	pMesh->SetFaceName(1, 9);
+
 	pMesh->AddNormal(0, 0, 1);
 	pMesh->AddNormal(0, 0.6f, 0.8f);
 	for (i = 0; i < 4; i++)
@@ -96,6 +98,9 @@ void TestMeshFixReversedTurnsFaces(void)
 	TestMeshFixReversedAssertCorners(&pOutput, 1, 0, 1, 2);
 	TestMeshFixReversedAssertCorners(&pOutput, 2, 0, 2, 1);
 	TestMeshFixReversedAssertCorners(&pOutput, 3, 2, 0, 1);
+
+	AssertInt(9, pOutput->GetFaceName(1));
+	AssertInt(0, pOutput->GetFaceName(0));
 
 	//The source stays reversed.
 	TestMeshFixReversedAssertCorners(&pSource, 1, 0, 2, 1);

@@ -226,8 +226,10 @@ void TestMeshEditorAddFlippedQuad(void)
 		cMeshEditor.AddCorner((float32)i, 0, 0);
 	}
 
-	r = cMeshEditor.AddQuad(0, 1, 2, 3, 0, true);
+	r = cMeshEditor.AddQuad(0, 1, 2, 3, 5, true);
 	AssertInt(2, r.NumFaces());
+	AssertInt(5, cMesh.GetFaceName(0));
+	AssertInt(5, cMesh.GetFaceName(1));
 
 	r.Unpack1(&iCorner1, &iCorner2, &iCorner3);
 	AssertInt(0, iCorner1);

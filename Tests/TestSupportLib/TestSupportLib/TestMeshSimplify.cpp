@@ -207,10 +207,14 @@ void TestMeshSimplifyKeepsEdges(void)
 		psNormalFace->aiCornerNormals[2] = iNormal;
 	}
 
+	pSource->SetFaceName(3, 8);
+
 	pOutput = TestMeshSimplifyOutput(&cStack, pSource, 100);
 
 	AssertInt(4, pOutput->NumFaces());
 	AssertInt(4, pOutput->NumCorners());
+	AssertInt(0, pOutput->GetFaceName(0));
+	AssertInt(8, pOutput->GetFaceName(1));  //Faces 1 and 2 were repeats of 0.
 
 	bUp = false;
 	bSide = false;

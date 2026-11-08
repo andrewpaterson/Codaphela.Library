@@ -238,6 +238,7 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 	rFace = mpMesh->AddFace(iCorner1, iCorner2, iCorner3);
 	iNewEdges = pcConn->GenerateConnectivity();
 	rFace.Pack(rFace.miFirstFace, 0, 1, 2, iNewEdges);
+	mpMesh->SetFaceName(rFace.miFirstFace, iName);
 	pcFace = mpMesh->GetFace(rFace.miFirstFace);
 
 	mcSelections.AddFace(rFace.NewEdges());

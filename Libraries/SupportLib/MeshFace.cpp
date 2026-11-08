@@ -34,6 +34,7 @@ void CMeshFace::Init(void)
 	maiEdge[0] = -1;
 	maiEdge[1] = -1;
 	maiEdge[2] = -1;
+	miName = 0;
 }
 
 
@@ -49,6 +50,7 @@ void CMeshFace::Init(int iCorner1, int iCorner2, int iCorner3)
 	maiEdge[0] = -1;
 	maiEdge[1] = -1;
 	maiEdge[2] = -1;
+	miName = 0;
 }
 
 
