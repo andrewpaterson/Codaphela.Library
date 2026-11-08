@@ -116,7 +116,7 @@ D5. [444] MyersDiff::Bisect resizes and refills both V arrays per range.
 D6. [452] CMemberCalls::Call copies the array and re-checks Contains per call: O(n²).
 D7. [297] CRoot::Get(name) scans every root object with strcmp (CObjects has a name index).
 D8. [272] CKillOrderCalculator restarts its scan after each pick: O(n²) (fine while n is small).
-D9. [386] ValidateInternalConsistency walks every stack pointer for each object: O(objects × stack pointers).
+D9. [386] ValidateInternalConsistency's check is needed (a stack pointer inside an object is a Ptr field missing from its Class()), but it walks every stack pointer for each object: O(objects × stack pointers).  If validation with many live stack pointers is ever slow, one sorted pass finds the same: the stack pointers' addresses sorted once and each object's range binary searched.  Low priority: it only runs in validation and stack pointers are usually few.
 
 
 E. API, types and return values
