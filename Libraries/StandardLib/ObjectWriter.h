@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJET_WRITER_H__
-#define __OBJET_WRITER_H__
+#ifndef __OBJECT_WRITER_H__
+#define __OBJECT_WRITER_H__
 #include "BaseLib/FileWriter.h"
 #include "BaseLib/MemoryFile.h"
 #include "BaseObject.h"
@@ -55,5 +55,5 @@ protected:
 };
 
 
-#endif // __OBJET_WRITER_H__
+#endif // __OBJECT_WRITER_H__
 

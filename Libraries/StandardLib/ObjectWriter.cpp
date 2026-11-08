@@ -56,7 +56,6 @@ void CObjectWriter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectWriter::Write(CBaseObject* pcThis)
 {
-	bool			bResult;
 	filePos			iStart;
 	filePos			iLength;
 	CObjectHeader	sHeader;
@@ -68,24 +67,30 @@ bool CObjectWriter::Write(CBaseObject* pcThis)
 
 	//The length, written once the object has been, counts from where the object starts.
 	iStart = mcFile.GetFilePos();
-	bResult = WriteSize((lsize)0);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object stream size saving object [", sz.Text(), "].", NULL);
-
-	bResult = mcFile.WriteInt32(OBJECT_DATA);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object magic saving object [", sz.Text(), "].", NULL);
+	if (!WriteSize((lsize)0))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object stream size saving object [", ObjectToString(pcThis), "].", NULL);
+	}
+	if (!mcFile.WriteInt32(OBJECT_DATA))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object magic saving object [", ObjectToString(pcThis), "].", NULL);
+	}
 
 	InitObjectHeader(&sHeader, pcThis, false);
-	bResult &= WriteObjectHeader(&sHeader);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
-
-	bResult = pcThis->SaveManaged(this);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
+	if (!WriteObjectHeader(&sHeader))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object header saving object [", ObjectToString(pcThis), "].", NULL);
+	}
+	if (!pcThis->SaveManaged(this))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not Save() object [", ObjectToString(pcThis), "].", NULL);
+	}
 
 	iLength = mcFile.GetFilePos();
-	bResult = mcFile.Seek(iStart);
-	bResult = bResult && WriteSize((lsize)(iLength - iStart));
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object stream size saving object [", sz.Text(), "].", NULL);
-
+	if (!mcFile.Seek(iStart) || !WriteSize((lsize)(iLength - iStart)))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object stream size saving object [", ObjectToString(pcThis), "].", NULL);
+	}
 	return mcFile.Seek(iLength);
 }
 
@@ -98,23 +103,26 @@ bool CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 {
 	filePos			iStart;
 	filePos			iLength;
-	bool			bResult;
 
 	iStart = mcFile.GetFilePos();
-
-	bResult = WriteSize((lsize)0);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object stream size saving object [", sz.Text(), "] 'froms'.", NULL);
-
-	bResult = mcFile.WriteInt32(OBJECT_FROM_HEAP);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object froms magic saving object [", sz.Text(), "] 'froms'.", NULL);
-
-	bResult = pcThis->SaveHeapFroms(this);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not SaveHeapFroms() object [", sz.Text(), "] 'froms'.", NULL);
+	if (!WriteSize((lsize)0))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object stream size saving object [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
+	if (!mcFile.WriteInt32(OBJECT_FROM_HEAP))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object froms magic saving object [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
+	if (!pcThis->SaveHeapFroms(this))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not SaveHeapFroms() object [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
 
 	iLength = mcFile.GetFilePos();
-	bResult = mcFile.Seek(iStart);
-	bResult = bResult && WriteSize((lsize)(iLength - iStart));
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not write object stream size saving object [", sz.Text(), "] 'froms'.", NULL);
+	if (!mcFile.Seek(iStart) || !WriteSize((lsize)(iLength - iStart)))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write object stream size saving object [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
 
 	return mcFile.Seek(iLength);
 }

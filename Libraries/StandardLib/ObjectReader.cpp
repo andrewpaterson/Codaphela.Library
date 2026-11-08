@@ -184,30 +184,27 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 	filePos			iStart;
 	lsize			iExpectedLength;
 	filePos			iLength;
-	bool			bResult;
 	int32			iMagic;
 
 	iStart = mcFile.GetFilePos();
-	bResult = ReadSize(&iExpectedLength);
-	
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not read object stream size loading object [", sz.Text(), "] 'froms'.", NULL);
-
-	iMagic = OBJECT_FROM_HEAP;
-	bResult = mcFile.ReadInt32(&iMagic);
-	if (bResult)
+	if (!ReadSize(&iExpectedLength))
 	{
-		bResult = iMagic == OBJECT_FROM_HEAP;
+		return gcLogger.Error2(__METHOD__, " Could not read object stream size loading object [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
+	if (!mcFile.ReadInt32(&iMagic) || (iMagic != OBJECT_FROM_HEAP))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not read object froms magic loading object [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
+	if (!pcThis->LoadHeapFroms(this))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not LoadHeapFroms() object [", ObjectToString(pcThis), "] 'froms'.", NULL);
 	}
 
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not read object froms magic loading object [", sz.Text(), "] 'froms'.", NULL);
-
-	bResult = pcThis->LoadHeapFroms(this);
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not LoadHeadFroms() object [", sz.Text(), "] 'froms'.", NULL);
-
 	iLength = mcFile.GetFilePos();
-	bResult = (lsize)(iLength - iStart) == iExpectedLength;
-	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongToString((uint64)iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
-
+	if ((lsize)(iLength - iStart) != iExpectedLength)
+	{
+		return gcLogger.Error2(__METHOD__, " Size mismatch expected stream length [", LongToString((uint64)iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", ObjectToString(pcThis), "] 'froms'.", NULL);
+	}
 	return true;
 }
 

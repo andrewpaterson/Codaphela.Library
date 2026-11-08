@@ -8,12 +8,20 @@
 #include "BaseLib/ValueNamedIndexesConfig.h"
 #include "BaseLib/NamedIndexedHeader.h"
 #include "BaseLib/LifeCycle.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/MemoryFile.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/String.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 #include "ObjectTestClasses.h"
 #include "ChunkFileObjectWriterTestClasses.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -823,6 +831,112 @@ void TestObjectsWalkStampWrap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object that can't be saved.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestSaveFails : public CObject
+{
+CONSTRUCTABLE(CTestSaveFails)
+DESTRUCTABLE(CTestSaveFails)
+public:
+	void Init(void)
+	{
+		PreInit();
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+	}
+
+	void Free(void) override
+	{
+	}
+
+	bool Save(CObjectWriter* pcFile) override
+	{
+		return false;
+	}
+
+	bool Load(CObjectReader* pcFile) override
+	{
+		return false;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A failure to write or read an object says which object it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsWriteAndReadFailuresNameTheObject(void)
+{
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[1024];
+	CMemoryFile		cMemory;
+	CObjectWriter	cWriter;
+	CObjectReader	cReader;
+
+	ObjectsInit();
+	{
+		Ptr<CTestSaveFails>	pObject;
+
+		pObject = ONMalloc<CTestSaveFails>("Unsaveable");
+
+		cMemory.Init();
+		cMemory.Open(EFM_ReadWrite_Create);
+		cWriter.Init(&cMemory, NULL);
+		StartCapturingLog(&cLog, &sLogConfig);
+		AssertFalse(cWriter.Write(&pObject));
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Could not Save() object ["));
+		AssertNotNull(strstr(szLogged, "Unsaveable"));
+		cMemory.Close();
+		cWriter.Kill();
+		cMemory.Kill();
+
+		//Nothing to read.
+		cMemory.Init();
+		cMemory.Open(EFM_ReadWrite_Create);
+		cReader.Init(&cMemory, NULL);
+		StartCapturingLog(&cLog, &sLogConfig);
+		AssertFalse(cReader.ReadHeapFroms(&pObject));
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Could not read object stream size"));
+		AssertNotNull(strstr(szLogged, "Unsaveable"));
+		cMemory.Close();
+		cReader.Kill();
+		cMemory.Kill();
+
+		//A length, then something that isn't the froms' magic.
+		cMemory.Init();
+		cMemory.Open(EFM_ReadWrite_Create);
+		cWriter.Init(&cMemory, NULL);
+		AssertTrue(cWriter.WriteSize((lsize)8));
+		AssertTrue(cWriter.WriteInt32(12345));
+		AssertTrue(cMemory.Seek(0, EFSO_SET));
+		cReader.Init(&cMemory, NULL);
+		StartCapturingLog(&cLog, &sLogConfig);
+		AssertFalse(cReader.ReadHeapFroms(&pObject));
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Could not read object froms magic"));
+		AssertNotNull(strstr(szLogged, "Unsaveable"));
+		cMemory.Close();
+		cReader.Kill();
+		cWriter.Kill();
+		cMemory.Kill();
+
+		pObject = NULL;
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An argument that counts its copies.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1082,6 +1196,7 @@ void TestObjects(void)
 	TestObjectsMallocArgumentsNotCopied();
 	TestObjectsMallocArgumentsValues();
 	TestObjectsLifeAllocArgumentsNotCopied();
+	TestObjectsWriteAndReadFailuresNameTheObject();
 
 	DataIOKill();
 	TypesKill();
