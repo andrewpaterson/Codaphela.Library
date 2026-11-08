@@ -76,7 +76,7 @@ void CPrimitiveObject::SetEmbedding(CObject* pcEmbedding)
 	if (uiOffset > MAX_UINT16)
 	{
 		//The object is still being set up (its Class), so it isn't printed.
-		gcLogger.Error2(__METHOD__, " A primitive [", SizeToString((size)uiOffset), "] bytes into its object can't find it (64KB at most).", NULL);
+		gcLogger.Error2(__METHOD__, " A primitive [", LongToString((uint64)uiOffset), "] bytes into its object can't find it (64KB at most).", NULL);
 		muiNegativeEmbeddingOffset = 0;
 		return;
 	}
