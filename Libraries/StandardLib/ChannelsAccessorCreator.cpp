@@ -136,9 +136,9 @@ CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChanne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
+bool CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
 {
-	mcParams.AddAccess(iChannel, eType);
+	return mcParams.AddAccess(iChannel, eType);
 }
 
 
@@ -146,9 +146,9 @@ void CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType)
+bool CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType)
 {
-	mcParams.AddAccess(iChannel1, iChannel2, eType);
+	return mcParams.AddAccess(iChannel1, iChannel2, eType);
 }
 
 
@@ -156,9 +156,9 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, EPrimit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType)
+bool CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType)
 {
-	mcParams.AddAccess(iChannel1, iChannel2, iChannel3, eType);
+	return mcParams.AddAccess(iChannel1, iChannel2, iChannel3, eType);
 }
 
 
@@ -166,9 +166,9 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType)
+bool CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType)
 {
-	mcParams.AddAccess(iChannel1, iChannel2, iChannel3, iChannel4, eType);
+	return mcParams.AddAccess(iChannel1, iChannel2, iChannel3, iChannel4, eType);
 }
 
 
@@ -176,9 +176,9 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
+bool CChannelsAccessorCreator::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
 {
-	mcParams.AddAccess(paiChannels, eType);
+	return mcParams.AddAccess(paiChannels, eType);
 }
 
 

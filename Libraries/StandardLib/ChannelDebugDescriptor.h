@@ -23,11 +23,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MapIntTemplate.h"
 
 
+//Debug names are copied (a caller's string needn't outlive them), cut to the length kept.
+#define CHANNEL_DEBUG_NAME_LENGTH	32
+
+
 class CChannelDebugDescriptor
 {
 public:
-	const char*	mszLongName;
-	const char*	mszShortName;
+	char	mszLongName[CHANNEL_DEBUG_NAME_LENGTH];
+	char	mszShortName[CHANNEL_DEBUG_NAME_LENGTH];
 
 	void Init(const char* szLongName, const char* szShortName);
 	void Kill(void);

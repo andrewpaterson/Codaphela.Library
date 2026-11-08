@@ -31,16 +31,14 @@ void CChannelsCopier::Init(CChannels* pcSource, CChannels* pcDest)
 {
 	CChannelsAccessorCreator	cCreator;
 
-	//Now we have an accessor that takes what's in the source and converts it to the destinations format.
-	//Although it may have gaps if the destination has channels the source does not.
-	
-	cCreator.Init(pcSource);						//First set the available channels from the Source.
-	cCreator.AddAccess(pcDest);						//Then filter those down to only matching channels in Dest converting the the Dest data format.
+	//The source's channels that the dest has too, read in the dest's types (the dest's other channels are left).
+	cCreator.Init(pcSource);
+	cCreator.AddAccess(pcDest);
 	mpcSourceAccessor = cCreator.CreateAndKill();
 
-	//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
-	cCreator.Init(pcDest);							//First set the available channels from the Dest.
-	cCreator.AddAccess(mpcSourceAccessor);			//Then filter them down to the Dest channels that were also available in Source (still in the Dest data format).
+	//The dest is written from what that reads: the same channels, in the same types.
+	cCreator.Init(pcDest);
+	cCreator.AddAccess(mpcSourceAccessor);
 	mpcDestAccessor = cCreator.CreateAndKill();
 }
 
@@ -68,12 +66,17 @@ void CChannelsCopier::Copy(lsize uiSourcePos, lsize uiDestPos, lsize uiLength)
 	lsize		uiDestSize;
 
 	uiSourceSize = mpcSourceAccessor->GetChannels()->GetSize();
+	uiDestSize = mpcDestAccessor->GetChannels()->GetSize();
+	if ((uiSourcePos >= uiSourceSize) || (uiDestPos >= uiDestSize))
+	{
+		return;
+	}
+
 	if (uiSourcePos + uiLength > uiSourceSize)
 	{
 		uiLength = uiSourceSize - uiSourcePos;
 	}
 
-	uiDestSize = mpcDestAccessor->GetChannels()->GetSize();
 	if (uiDestPos + uiLength > uiDestSize)
 	{
 		uiLength = uiDestSize - uiDestPos;

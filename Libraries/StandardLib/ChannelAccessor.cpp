@@ -59,7 +59,7 @@ void CChannelAccessor::GetNative(void* pvBase, void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 void CChannelAccessor::GetAs(EPrimitiveType eType, void* pvBase, void* pvDest)
 {
-	uint8	auc[16];
+	uint8	auc[CHANNEL_SCRATCH_BYTES];
 
 	//A reversed channel's bytes are put in order before they are converted, as SetFrom reverses them after.
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
@@ -79,7 +79,7 @@ void CChannelAccessor::GetAs(EPrimitiveType eType, void* pvBase, void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, lsize iBitOffset, void* pvDest)
 {
-	char	c[16];
+	char	c[CHANNEL_SCRATCH_BYTES];
 
 	GetBits(pvBase, iBitOffset, miChannelBitSize, &c);
 	gcTypeConverter.Do(eType, pvDest, meChannelType, &c);
@@ -135,7 +135,7 @@ void CChannelAccessor::SetFrom(EPrimitiveType eType, void* pvBase, void* pvSourc
 //////////////////////////////////////////////////////////////////////////
 void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, lsize iBitOffset, void* pvSource)
 {
-	uint8	c[16];
+	uint8	c[CHANNEL_SCRATCH_BYTES];
 
 	gcTypeConverter.Do(meChannelType, &c, eType, pvSource);
 	SetBits(pvBase, iBitOffset, miChannelBitSize, &c);

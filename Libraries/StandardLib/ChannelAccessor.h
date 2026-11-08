@@ -24,6 +24,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 
 
+//The bytes of scratch an access uses for one channel's value: no channel or access can be wider.
+#define CHANNEL_SCRATCH_BYTES	16
+
+
 class CChannelAccessor
 {
 public:

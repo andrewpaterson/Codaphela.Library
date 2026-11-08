@@ -75,6 +75,7 @@ public:
 	void 					AddChannels(CChannels* pcSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	void					SetData(void* pvMem);
+	bool					CopyDataInto(void* pvUserData);
 	void					ByteAlign(void);
 	bool					RenameChannel(size iOldName, size iNewName);
 

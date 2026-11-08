@@ -5,6 +5,7 @@
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/ErrorHandler.h"
+#include "BaseLib/MemoryFile.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/ChannelsCopier.h"
@@ -14,6 +15,10 @@
 #include "StandardLib/ExternalObjectDeserialiser.h"
 #include "StandardLib/FileObjectReader.h"
 #include "TestLib/Assert.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -634,6 +639,11 @@ void TestChannelsCopier16bitTo8bit(void)
 
 	cCopier.Init(&pcSource, &pcDest);
 	cCopier.Copy(0, 0, 4);
+
+	//A start past either end copies nothing.
+	cCopier.Copy(4, 0, 1);
+	cCopier.Copy(0, 4, 1);
+	cCopier.Copy(10, 10, 1);
 	cCopier.Kill();
 
 	pui8 = (uint8*)pcDest->GetData();
@@ -860,6 +870,113 @@ void TestChannelsChangeRefused(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Channels given user data use it as it is: a caller that wants their
+// values kept copies them into it first.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsCopyDataIntoUserData(void)
+{
+	ObjectsInit();
+
+	CChannels	cChannels;
+	char		acUser[4];
+	SLogConfig	sLogConfig;
+
+	cChannels.Init(4, PT_uint8, (size)0, ARRAY_ELEMENT_NOT_FOUND);
+	memcpy(cChannels.GetData(), "abcd", 4);
+	memset(acUser, 0, 4);
+
+	AssertTrue(cChannels.CopyDataInto(acUser));
+	cChannels.BeginChange();
+	cChannels.SetData(acUser);
+	AssertTrue(cChannels.EndChange());
+	AssertTrue(cChannels.IsUserAllocated());
+	AssertPointer(acUser, cChannels.GetData());
+	AssertInt(0, memcmp(acUser, "abcd", 4));
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cChannels.CopyDataInto(NULL));
+	gcLogger.SetConfig(&sLogConfig);
+	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Accessing a channel the channels don't have is skipped; accessing one
+// too wide for an accessor's scratch is an error.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsAccessRefused(void)
+{
+	ObjectsInit();
+
+	CChannels					cChannels;
+	CChannelsAccessorCreator	cCreator;
+	CChannelsAccessor*			pcAccessor;
+	CMemoryFile					cLog;
+	SLogConfig					sLogConfig;
+	char						szLogged[1024];
+
+	cChannels.Init(2, PT_uint8, (size)0, ARRAY_ELEMENT_NOT_FOUND);
+
+	//A channel the channels don't have is skipped, and AddAccess says so.
+	cCreator.Init(&cChannels);
+	AssertFalse(cCreator.AddAccess((size)7, PT_uint8));
+	AssertFalse(cCreator.AddAccess((size)0, (size)7, PT_uint8));
+	AssertTrue(cCreator.AddAccess((size)0, PT_uint8));
+	pcAccessor = cCreator.CreateAndKill();
+	AssertSize(2, pcAccessor->GetAccessors()->NumElements());
+	pcAccessor->Kill();
+
+	cCreator.Init(&cChannels);
+	cCreator.AddAccess((size)0, PT_M4x4float32);
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertNull(cCreator.CreateAndKill());
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Channel [0] or its access is wider than [128] bits."));
+
+	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A channel's debug names are copied: the caller's strings needn't last.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsDebugNamesCopied(void)
+{
+	ObjectsInit();
+
+	CChannels	cChannels;
+	char		szShort[16];
+	char		szLong[16];
+
+	strcpy(szShort, "R");
+	strcpy(szLong, "Red");
+	cChannels.Init();
+	cChannels.BeginChange();
+	cChannels.SetSize(1);
+	cChannels.AddChannel(0, PT_uint8, szShort, szLong);
+	AssertTrue(cChannels.EndChange());
+	strcpy(szShort, "X");
+	strcpy(szLong, "Changed");
+
+	AssertString("R", cChannels.GetChannelShortName(0));
+	AssertString("Red", cChannels.GetChannelLongName(0));
+	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChannels(void)
@@ -878,6 +995,9 @@ void TestChannels(void)
 	TestChannelsBeginChangeTwice();
 	TestChannelsVariadicInit();
 	TestChannelsChangeRefused();
+	TestChannelsCopyDataIntoUserData();
+	TestChannelsAccessRefused();
+	TestChannelsDebugNamesCopied();
 	TestChannelsLoad();
 	TestChannelsCopier16bitTo8bit();
 	TestChannelsCopier24bitTo8bit();

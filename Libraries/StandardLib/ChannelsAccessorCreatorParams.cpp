@@ -19,6 +19,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "Unknowns.h"
 #include "ChannelsAccessorCreatorParams.h"
 
@@ -92,6 +94,10 @@ bool CChannelsAccessorCreatorParams::CreateAccessorParams(void)
 
 			iByteSize = gcTypeNames.GetByteSize(eAccessType);
 			iBitSize = gcTypeNames.GetBitSize(eAccessType);
+			if ((iBitSize > CHANNEL_SCRATCH_BYTES * 8) || (pcChannel->miBitSize > CHANNEL_SCRATCH_BYTES * 8))
+			{
+				return gcLogger.Error2(__METHOD__, " Channel [", SizeToString(pcChannel->iChannel), "] or its access is wider than [", SizeToString(CHANNEL_SCRATCH_BYTES * 8), "] bits.", NULL);
+			}
 			if (iByteSize == 0)
 			{
 				iByteSize = CHANNEL_NON_ALIGNED_BYTES;
@@ -105,7 +111,7 @@ bool CChannelsAccessorCreatorParams::CreateAccessorParams(void)
 	mbSourceTypesSame = CalculateSourceTypesSame();
 	mbChannelByteAligned = CalculateChannelByteAligned();
 	mbAccessByteAligned = CalculateAccessByteAligned();
-	muiBitSize = CalclulateBitSize();
+	muiBitSize = CalculateBitSize();
 
 	if (muiBitSize % 8 == 0)
 	{
@@ -180,7 +186,7 @@ bool CChannelsAccessorCreatorParams::CalculateContiguous(void)
 bool CChannelsAccessorCreatorParams::CalculateSourceTypesSame(void)
 {
 	size				i;
-	CChannelAccessor*	pcAccessor;;
+	CChannelAccessor*	pcAccessor;
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
@@ -259,7 +265,7 @@ bool CChannelsAccessorCreatorParams::CalculateAccessByteAligned(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelsAccessorCreatorParams::CalclulateBitSize(void)
+size CChannelsAccessorCreatorParams::CalculateBitSize(void)
 {
 	size				i;
 	CChannelAccessor*	pcAccessor;
@@ -280,30 +286,40 @@ size CChannelsAccessorCreatorParams::CalclulateBitSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An access to iChannel, if the channels have it: whether they did.  A
+// missing channel is skipped, not an error: an accessor reads the
+// channels it can (an image's opacity, say, when it has one), and
+// ChannelsCopier keeps only the channels both sides have this way.
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreatorParams::AddAccess(size iChannel, EPrimitiveType eType)
+bool CChannelsAccessorCreatorParams::AddAccess(size iChannel, EPrimitiveType eType)
 {
 	SChannelAccess*	psAccess;
 
-	//Can't create an accessor to a channel that does not exist in the source.
-	if (mpcChannels->HasChannel(iChannel))
+	if (!mpcChannels->HasChannel(iChannel))
 	{
-		psAccess = masAccesses.Add();
-		psAccess->eType = eType;
-		psAccess->iChannel = iChannel;
+		return false;
 	}
+
+	psAccess = masAccesses.Add();
+	psAccess->eType = eType;
+	psAccess->iChannel = iChannel;
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each channel the channels have: whether they all were.
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType)
+bool CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType)
 {
-	AddAccess(iChannel1, eType);
-	AddAccess(iChannel2, eType);
+	bool	bAll;
+
+	bAll = AddAccess(iChannel1, eType);
+	bAll &= AddAccess(iChannel2, eType);
+	return bAll;
 }
 
 
@@ -311,11 +327,14 @@ void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, E
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType)
+bool CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType)
 {
-	AddAccess(iChannel1, eType);
-	AddAccess(iChannel2, eType);
-	AddAccess(iChannel3, eType);
+	bool	bAll;
+
+	bAll = AddAccess(iChannel1, eType);
+	bAll &= AddAccess(iChannel2, eType);
+	bAll &= AddAccess(iChannel3, eType);
+	return bAll;
 }
 
 
@@ -323,12 +342,15 @@ void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType)
+bool CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType)
 {
-	AddAccess(iChannel1, eType);
-	AddAccess(iChannel2, eType);
-	AddAccess(iChannel3, eType);
-	AddAccess(iChannel4, eType);
+	bool	bAll;
+
+	bAll = AddAccess(iChannel1, eType);
+	bAll &= AddAccess(iChannel2, eType);
+	bAll &= AddAccess(iChannel3, eType);
+	bAll &= AddAccess(iChannel4, eType);
+	return bAll;
 }
 
 
@@ -336,18 +358,19 @@ void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreatorParams::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
+bool CChannelsAccessorCreatorParams::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
 {
 	size	i;
-	size	iChannel;
 	size	uiNumChannels;
+	bool	bAll;
 
+	bAll = true;
 	uiNumChannels = paiChannels->NumElements();
 	for (i = 0; i < uiNumChannels; i++)
 	{
-		iChannel = paiChannels->GetValue(i);
-		AddAccess(iChannel, eType);
+		bAll &= AddAccess(paiChannels->GetValue(i), eType);
 	}
+	return bAll;
 }
 
 
@@ -418,7 +441,7 @@ void CChannelsAccessorCreatorParams::AddAccess(CChannelsAccessor* pcChannels)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayChannelAccessor* CChannelsAccessorCreatorParams::GetAccessors(void) { return &macAccessors; }
-CArrayChannelAccess* CChannelsAccessorCreatorParams::GetAccesss(void) { return &masAccesses; }
+CArrayChannelAccess* CChannelsAccessorCreatorParams::GetAccesses(void) { return &masAccesses; }
 bool CChannelsAccessorCreatorParams::IsContiguous(void) { return mbContiguous; }
 bool CChannelsAccessorCreatorParams::IsSourceTypesSame(void) { return mbSourceTypesSame; }
 bool CChannelsAccessorCreatorParams::IsChannelByteAligned(void) { return mbChannelByteAligned; }

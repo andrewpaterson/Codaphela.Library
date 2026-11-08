@@ -538,8 +538,8 @@ bool CChannels::EndChange(void)
 			}
 			else if ((mpvUserData != NULL) && (mpsChangingDesc->pvUserData == NULL))
 			{
+				//Fresh data of the channels' own: the user's data stays the user's, and isn't copied.
 				AllocateData();
-				//should copy from mpvUserData
 			}
 			mpvUserData = (char*)mpsChangingDesc->pvUserData;
 		}
@@ -837,6 +837,31 @@ lsize CChannels::CalculateByteSize(size iBitStride, lsize iSize)
 		return 0;
 	}
 	return (lsize)ulliByteSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the channels' data (GetByteSize bytes, as they are laid out
+// now) into pvUserData.  Channels given user data (SetData) use it as
+// it is, so a caller that wants the values kept copies them first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChannels::CopyDataInto(void* pvUserData)
+{
+	lsize	uiByteSize;
+
+	if (pvUserData == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Can't copy the channels' data into [NULL].", NULL);
+	}
+
+	uiByteSize = GetByteSize();
+	if (uiByteSize != 0)
+	{
+		memcpy(pvUserData, GetData(), (size_t)uiByteSize);
+	}
+	return true;
 }
 
 

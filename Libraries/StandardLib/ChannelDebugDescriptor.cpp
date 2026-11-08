@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
 #include "ChannelDebugDescriptor.h"
 
 
@@ -27,8 +28,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CChannelDebugDescriptor::Init(const char* szLongName, const char* szShortName)
 {
-	mszLongName = szLongName;
-	mszShortName = szShortName;
+	StrCpySafe(mszLongName, szLongName, CHANNEL_DEBUG_NAME_LENGTH);
+	StrCpySafe(mszShortName, szShortName, CHANNEL_DEBUG_NAME_LENGTH);
 }
 
 
@@ -38,7 +39,7 @@ void CChannelDebugDescriptor::Init(const char* szLongName, const char* szShortNa
 //////////////////////////////////////////////////////////////////////////
 void CChannelDebugDescriptor::Kill(void)
 {
-	mszLongName = NULL;
-	mszShortName = NULL;
+	mszLongName[0] = '\0';
+	mszShortName[0] = '\0';
 }
 

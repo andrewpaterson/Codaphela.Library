@@ -172,7 +172,7 @@ void* CChannelsAccessorBitAccess<TChannels>::Get(lsize iPos)
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	lsize				iDestBitPos;
-	char				c[16 + 1];
+	char				c[CHANNEL_SCRATCH_BYTES + 1];
 	size				uiNumAccessors;
 	uint8*				pvBuffer;
 	TChannels			sChannels;
@@ -204,7 +204,7 @@ void CChannelsAccessorBitAccess<TChannels>::Set(lsize iPos, void* pvSource)
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	lsize				iSourceBitPos;
-	char				c[16 + 1];
+	char				c[CHANNEL_SCRATCH_BYTES + 1];
 	size				uiNumAccessors;
 	TChannels			sChannels;
 
