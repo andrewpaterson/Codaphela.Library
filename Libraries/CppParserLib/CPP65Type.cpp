@@ -211,6 +211,12 @@ void SCPP65Type::Append(CChars* psz)
 {
 	size	i;
 
+	//const int, but int* const.
+	if (!IsPointer() && !IsMemberPointer())
+	{
+		psz->Append(bConst ? "const " : "");
+		psz->Append(bVolatile ? "volatile " : "");
+	}
 	switch (eKind)
 	{
 	case CPP65TK_Void:
@@ -276,6 +282,11 @@ void SCPP65Type::Append(CChars* psz)
 		psBase->Append(psz);
 		psz->Append(" class::*");
 		break;
+	}
+	if (IsPointer() || IsMemberPointer())
+	{
+		psz->Append(bConst ? " const" : "");
+		psz->Append(bVolatile ? " volatile" : "");
 	}
 }
 
@@ -634,7 +645,8 @@ SCPP65Type* CCPP65Types::Size(void)
 // psType's unqualified type with const and volatile as asked: a copy of it,
 // kept with the types (one for each), that is const (can't be written
 // through) or volatile (its loads and stores are kept and in order).
-// Functions and references can't be qualified.  [basic.type.qualifier]
+// Functions and references can't be qualified, and an array's elements are.
+// [basic.type.qualifier]
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Qualified(SCPP65Type* psType, bool bConst, bool bVolatile)
@@ -647,6 +659,11 @@ SCPP65Type* CCPP65Types::Qualified(SCPP65Type* psType, bool bConst, bool bVolati
 	if (!psType || psType->IsFunction() || psType->IsReference())
 	{
 		return psType;
+	}
+	if (psType->IsArray())
+	{
+		//An array's qualifiers are its elements', which keep their own.  [basic.type.qualifier] 5
+		return Array(Qualified(psType->psBase, bConst || psType->psBase->bConst, bVolatile || psType->psBase->bVolatile), psType->iCount);
 	}
 	psUnqualified = psType->psUnqualified;
 	if (!bConst && !bVolatile)

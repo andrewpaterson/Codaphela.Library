@@ -3759,7 +3759,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 			continue;
 		}
 		bFound = true;
-		if (!RankArguments(psFunction, apsArguments, papcArguments, aiRanks))
+		if (!TakesObject(psFunction, iConstObject) || !RankArguments(psFunction, apsArguments, papcArguments, aiRanks))
 		{
 			continue;
 		}
@@ -3776,7 +3776,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		{
 			continue;
 		}
-		if (RankArguments(psFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
+		if (TakesObject(psFunction, iConstObject) && RankArguments(psFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
 		{
 			if ((CompareRanks(aiBest, aiRanks, uiArguments) < 0) || (CompareQualifiers(psBest, psFunction, papcArguments, iConstObject) <= 0))
 			{
@@ -3955,6 +3955,19 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a function can be called on the object (iConstObject 1 if it is
+// const, 0 if not, -1 for none): a const object takes only const and static
+// member functions.  [over.match.funcs] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::TakesObject(SCPP65Function* psFunction, int iConstObject)
+{
+	return (iConstObject != 1) || !psFunction->psClass || psFunction->bStatic || psFunction->bConstThis;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How psFrom converts to psTo, the same type (Equals) but for const and
 // volatile: exactly (Exact), adding const or volatile at a level with const
 // on every level above it (Qualification), or not at all (None: one is
@@ -3994,7 +4007,7 @@ int CCPP65Generator::QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, boo
 			bAdded = true;
 		}
 		bAllConst &= psTo->bConst;
-		if (!psTo->IsPointer() || !psFrom->IsPointer())
+		if (!(psTo->IsPointer() && psFrom->IsPointer()) && !(psTo->IsArray() && psFrom->IsArray()))
 		{
 			return bAdded ? CPP65CR_Qualification : CPP65CR_Exact;
 		}
@@ -4154,140 +4167,29 @@ int CCPP65Generator::CompareQualifiers(SCPP65Function* psFirst, SCPP65Function* 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an expression is an object that is const: a variable, parameter or field
-// declared const (const T or const T&), a field of a const object, a field in a
-// const member function, or what a pointer to const points to (*p, p->field).
-// Types do not record const, so this is worked out from the declarations.
+// Whether an expression is an object that is const.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IsConstObject(CCPPSyntax* pcExpression)
 {
-	CCPPSyntaxMemberExpression*	pcMember;
-	CCPPSyntaxUnaryExpression*	pcUnary;
-	CCPPSymbol*					pcSymbol;
-	SCPP65Type*					psType;
-	SCPP65Field*				psField;
-	int							iOffset;
+	SCPP65Type*	psType;
 
-	pcExpression = SkipParentheses(pcExpression);
-	if (!pcExpression)
-	{
-		return false;
-	}
-	switch (pcExpression->GetKind())
-	{
-	case CPPS_IdExpression:
-		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
-		if (!pcSymbol)
-		{
-			return false;
-		}
-		if ((pcSymbol->meKind == CPPSK_Variable) || (pcSymbol->meKind == CPPSK_Parameter))
-		{
-			return IsConstDeclared(pcSymbol, false);
-		}
-		if (pcSymbol->meKind == CPPSK_Field)
-		{
-			return IsConstDeclared(pcSymbol, false) || IsConstThis();
-		}
-		return false;
-	case CPPS_MemberExpression:
-		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
-		pcSymbol = pcMember->mpcName->mpcSymbol;
-		if (!pcSymbol)
-		{
-			//The parser leaves object.field unresolved; the field is the object's class's.
-			psType = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : TypeOf(pcMember->mpcObject);
-			psType = (psType && (psType->IsPointer() || psType->IsReference())) ? psType->psBase : psType;
-			psField = (psType && psType->IsClass()) ? FindField(psType->psClass, GetComponentName(pcMember->mpcName->GetLast()), &iOffset) : NULL;
-			pcSymbol = psField ? psField->pcSymbol : NULL;
-		}
-		if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && IsConstDeclared(pcSymbol, false))
-		{
-			return true;
-		}
-		return pcMember->mbArrow ? IsConstPointer(pcMember->mpcObject) : IsConstObject(pcMember->mpcObject);
-	case CPPS_UnaryExpression:
-		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		return (pcUnary->meOperator == CT_Multiply) && IsConstPointer(pcUnary->mpcOperand);
-	default:
-		return false;
-	}
+	psType = ValueTypeOf(pcExpression);
+	return psType && psType->bConst;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an expression is a pointer to const: this in a const member function, or
-// a variable, parameter or field declared const T*.
+// Whether an expression is a pointer to const.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IsConstPointer(CCPPSyntax* pcExpression)
 {
-	CCPPSymbol*	pcSymbol;
+	SCPP65Type*	psType;
 
-	pcExpression = SkipParentheses(pcExpression);
-	if (!pcExpression)
-	{
-		return false;
-	}
-	if (pcExpression->GetKind() == CPPS_ThisExpression)
-	{
-		return IsConstThis();
-	}
-	if (pcExpression->GetKind() != CPPS_IdExpression)
-	{
-		return false;
-	}
-	pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
-	if (pcSymbol && ((pcSymbol->meKind == CPPSK_Variable) || (pcSymbol->meKind == CPPSK_Parameter) || (pcSymbol->meKind == CPPSK_Field)))
-	{
-		return IsConstDeclared(pcSymbol, true);
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a variable, parameter or field is declared const T or const T& (or, when
-// bPointer, const T*).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsConstDeclared(CCPPSymbol* pcSymbol, bool bPointer)
-{
-	CCPPSyntax*					pcDeclaration;
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	CCPPSyntaxDeclarator*		pcDeclarator;
-	ECPPPointer					eKind;
-	size						uiPrefix;
-
-	pcDeclaration = pcSymbol ? pcSymbol->mpcDeclaration : NULL;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
-	{
-		pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
-		pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
-	}
-	else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
-	{
-		pcSpecifiers = ((CCPPSyntaxParameter*)pcDeclaration)->mpcSpecifiers;
-		pcDeclarator = ((CCPPSyntaxParameter*)pcDeclaration)->mpcDeclarator;
-	}
-	else
-	{
-		return false;
-	}
-	if (!pcSpecifiers || !(pcSpecifiers->muiFlags & CPPDS_CONST))
-	{
-		return false;
-	}
-	uiPrefix = pcDeclarator ? pcDeclarator->NumPointers() : 0;
-	eKind = (uiPrefix == 1) ? pcDeclarator->GetPointer(0)->meKind : CPPP_Pointer;
-	if (bPointer)
-	{
-		return (uiPrefix == 1) && (eKind == CPPP_Pointer);
-	}
-	return (uiPrefix == 0) || ((uiPrefix == 1) && ((eKind == CPPP_Reference) || (eKind == CPPP_RValueReference)));
+	psType = ValueTypeOf(pcExpression);
+	return psType && psType->IsPointer() && psType->psBase->bConst;
 }
 
 

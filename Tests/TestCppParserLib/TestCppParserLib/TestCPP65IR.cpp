@@ -968,32 +968,6 @@ void TestCPP65IRConstDeduction(void)
 }
 
 
-//PROBE2
-static void ConstErrors(const char* szName, const char* szSource)
-{
-	CChars	szAssembly;
-	CChars	szErrors;
-	bool	bOk;
-
-	szAssembly.Init();
-	szErrors.Init();
-	bOk = TestCPP65Generate(&szAssembly, &szErrors, szSource, true);
-	fprintf(stderr, "CE[%s] ok=%d {%s}\n", szName, bOk, szErrors.Text());
-	szErrors.Kill();
-	szAssembly.Kill();
-}
-
-
-void TestCPP65IRConstProbe2(void)
-{
-	ConstErrors("toptr", "int F(int* p) { return *p; }\nint main() { const int a = 1; return F(&a); }");
-	ConstErrors("tovoid", "int F(void* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
-	ConstErrors("toconstvoid", "int F(const void* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
-	ConstErrors("toref", "int F(int& r) { return r; }\nint main() { const int a = 1; return F(a); }");
-}
-//ENDPROBE2
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Overloads that differ only in const (and volatile) behind a pointer or
@@ -1056,12 +1030,94 @@ void TestCPP65IRConstMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szSource compiled: szExpected is what its first error is, "" for none.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertConstError(const char* szExpected, const char* szSource)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	TestCPP65Generate(&szAssembly, &szErrors, szSource, true);
+	if (szExpected[0] == '\0')
+	{
+		AssertString("", szErrors.Text());
+	}
+	else
+	{
+		AssertTrue(szErrors.Contains(szExpected));
+	}
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What const forbids is an error: changing a const object, a pointer or
+// reference that takes const away, and a function that isn't const called on a
+// const object.  What it allows, and a cast, isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstErrors(void)
+{
+	static const char*	szChange = "A const object cannot be changed";
+	static const char*	szPointer = "takes const away";
+	static const char*	szBind = "cannot be bound to a reference";
+
+	AssertConstError(szChange, "int main() { const int a = 1; a = 2; return a; }");
+	AssertConstError(szChange, "int main() { const int a = 1; a += 2; return a; }");
+	AssertConstError(szChange, "int main() { const int a = 1; a++; return a; }");
+	AssertConstError(szChange, "int main() { const int a = 1; --a; return a; }");
+	AssertConstError(szChange, "int main() { int x = 1; const int* p = &x; *p = 2; return x; }");
+	AssertConstError(szChange, "int main() { int x = 1; int* const p = &x; p = 0; return x; }");
+	AssertConstError(szChange, "int main() { const int a[2] = { 1, 2 }; a[0] = 3; return a[1]; }");
+	AssertConstError(szChange, "int F(const int i) { i = 2; return i; }\nint main() { return F(1); }");
+	AssertConstError(szChange, "int F(int* const p) { p = 0; return 1; }\nint main() { return F(0); }");
+	AssertConstError(szChange, "struct S { int i; };\nint main() { S s; const S& r = s; r.i = 1; return 0; }");
+	AssertConstError(szChange, "struct S { int i; int Set() const { i = 1; return i; } };\nint main() { S s; return s.Set(); }");
+	AssertConstError(szChange, "struct S { int i; int Set() const { this->i = 1; return i; } };\nint main() { S s; return s.Set(); }");
+	AssertConstError(szChange, "struct S { int i; };\nint main() { S s; const S c = s; c = s; return 0; }");
+
+	AssertConstError(szPointer, "int main() { const int a = 1; int* p = &a; return *p; }");
+	AssertConstError(szPointer, "int main() { const int a = 1; int* p; p = &a; return *p; }");
+	AssertConstError(szPointer, "int main() { const int a = 1; void* p = &a; return p != 0; }");
+	AssertConstError("No function matches the arguments (const long*): it takes (long*)", "int F(int* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
+	AssertConstError(szPointer, "int* F(const int* p) { return p; }\nint main() { return F(0) != 0; }");
+	AssertConstError(szPointer, "const int* F(const int* p) { return p; }\nint main() { int* q = F(0); return q != 0; }");
+	AssertConstError("", "const int* F(const int* p) { return p; }\nint main() { const int* q = F(0); return q != 0; }");
+	AssertConstError("", "char* const F(char* p) { return p; }\nint main() { char* q = F(0); return q != 0; }");
+	AssertConstError(szPointer, "int main() { const char s[2] = { 0, 0 }; char* p = s; return p[0]; }");
+	AssertConstError(szPointer, "int main() { char c = 0; char* p = &c; const char** q = &p; return q != 0; }");
+
+	AssertConstError(szBind, "int main() { const int a = 1; int& r = a; return r; }");
+	AssertConstError("No function matches the arguments (const long): it takes (long&)", "int F(int& r) { return r; }\nint main() { const int a = 1; return F(a); }");
+	AssertConstError(szBind, "int& F(const int& r) { return r; }\nint main() { int a = 1; return F(a); }");
+
+	AssertConstError("No function matches", "struct S { int F() { return 1; } };\nint main() { const S s; return s.F(); }");
+
+	//Allowed.
+	AssertConstError("", "struct S { mutable int m; int i; int Set() const { m = 1; return m; } S() : m(0), i(0) {} };\nint main() { const S s; return s.Set(); }");
+	AssertConstError("", "struct S { int* p; };\nint main() { int x = 0; S s; s.p = &x; const S& r = s; *r.p = 1; return x; }");
+	AssertConstError("", "int main() { int x = 1; const int* p = &x; p = 0; return x; }");
+	AssertConstError("", "int main() { const int a = 1; int b = a; b = 2; return b; }");
+	AssertConstError("", "int main() { const int a = 1; int* p = (int*)&a; *p = 1; return 0; }");
+	AssertConstError("", "int main() { const int a = 1; int* p = const_cast<int*>(&a); return *p; }");
+	AssertConstError("", "int main() { char c = 0; char* p = &c; const char* const* q = &p; return q != 0; }");
+	AssertConstError("", "int main() { char* p = (char*)\"literal\"; const char* q = \"literal\"; return p == q; }");
+	AssertConstError("", "struct S { int i; S() : i(1) {} };\nstruct T { const int k; const S s; T() : k(2) {} };\nint main() { T t; return t.k; }");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
 {
 	BeginTests();
-	TestCPP65IRConstProbe2();
 
 	TypesInit();
 	TypeConverterInit();
@@ -1096,6 +1152,7 @@ void TestCPP65IR(void)
 	TestCPP65IRConstDeduction();
 	TestCPP65IRConstOverloads();
 	TestCPP65IRConstMembers();
+	TestCPP65IRConstErrors();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

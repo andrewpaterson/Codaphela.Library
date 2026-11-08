@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CCPP65Generator;
+struct SCPP65Field;
 struct SCPP65Class;
 struct SCPP65Function;
 
@@ -49,6 +50,10 @@ public:
 	SCPP65Type*		ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
 	SCPP65Type*		Place(CCPPSyntax* pcExpression);
 	bool			Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
+	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 
 protected:
@@ -107,6 +112,8 @@ protected:
 	SCPP65Type*		NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);
 	SCPP65Type*		DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete);
 
+	SCPP65Type*		FieldType(SCPP65Field* psField, bool bConst, bool bVolatile);
+	bool			CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	SCPP65Type*		TemporaryObject(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 	bool			Construct(SCPP65Type* psType, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 	bool			ConstructClass(SCPP65Class* psClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);

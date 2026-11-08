@@ -444,6 +444,10 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		return ArrayInitialiser(psPlace, pcInitialiser);
 	}
+	if ((pcInitialiser->GetKind() != CPPS_InitializerList) && !mpcGenerator->CheckInitialiser(pcInitialiser, psPlace->psType))
+	{
+		return false;
+	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
 		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
@@ -980,6 +984,10 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	if (!pcReturn->mpcValue)
 	{
 		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!mpcGenerator->CheckInitialiser(pcReturn->mpcValue, psReturn))
+	{
+		return false;
 	}
 	if (psReturn->IsReference())
 	{

@@ -99,6 +99,20 @@ Types
 	pointers			4 bytes (the address bus is 32 bits)
 	enums				int
 
+const and volatile make a different type, as the standard says: CCPP65Types::Qualified
+gives each type's const, volatile and const volatile copy (bConst, bVolatile,
+psUnqualified), and an array's qualifiers are its elements'.  SCPP65Type::Equals ignores
+them at every level, for "is it this kind of type", and Same compares them at every level,
+for "is it the same type".  A parameter's own const doesn't count in its function's type
+(void f(const int i) is void f(int i), and ParameterType removes it), but does in its
+variable (ParameterVariableType).  It's an error to change a const object, to lose const
+from what a pointer points to (or volatile), to bind a const object to a reference that
+isn't const, or to call a member function that isn't const on a const object; only a cast
+can take them away.  Overloads rank adding const below the same type, and a mutable field
+stays changeable in a const object.  One leniency: a string literal is an array of char,
+not of const char, so char* p = "x" is still allowed (the standard made that ill-formed
+in C++11).
+
 Values are kept in registers 32 bits wide, sign or zero extended from their type.
 A long long is the exception: it is loaded, stored, pushed and operated on with the
 register widened to 8 bytes for just those instructions (wth A, 64 ... wth A, 32;
@@ -265,8 +279,9 @@ right operand is loaded into B first.
 C++ names are labels with an underscore in front (_main, _gTable).  Members are
 _Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2,
 and a thunk __t and how far it moves this.  A function that is not a member has its
-parameters' types after __F (_Add__Fii, _Call__FPC1A), as units can declare different
-sets of overloads of it; one without parameters, main, extern "C" functions and the
+parameters' types after __F (_Add__Fii, _Call__FPC1A), with const as K and volatile as V
+before what they qualify (_Length__FPKc takes a const char*, _Sum__FRKC1A a const A&), as
+units can declare different sets of overloads of it; one without parameters, main, extern "C" functions and the
 global operator new and delete (which the generator calls by name) are just their names.
 An overloaded member has its parameters the same way (_Counter__0__Fi is the
 constructor taking an int, _Counter__0 the one taking none), so hand-written assembly

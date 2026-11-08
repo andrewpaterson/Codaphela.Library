@@ -565,6 +565,7 @@ protected:
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	SCPP65Type*				ParameterType(SCPP65Type* psType);
+	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);
 	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions, bool bBss = false);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
 	void					AppendSpace(int iBytes);
@@ -657,7 +658,6 @@ protected:
 	SCPP65Function*			FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject = -1);
 	bool					IsConstObject(CCPPSyntax* pcExpression);
 	bool					IsConstPointer(CCPPSyntax* pcExpression);
-	bool					IsConstDeclared(CCPPSymbol* pcSymbol, bool bPointer);
 	bool					IsConstThis(void);
 	bool					RankArguments(SCPP65Function* psFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
@@ -665,6 +665,7 @@ protected:
 	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
 	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
 	static bool				AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
+	static bool				TakesObject(SCPP65Function* psFunction, int iConstObject);
 	int						CompareQualifiers(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(SCPP65Class* psClass, SCPP65Class* psBase, int* piOffset);
 	bool					NeedsConstructor(SCPP65Class* psClass);
@@ -721,6 +722,7 @@ protected:
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
+	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 
 	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
 

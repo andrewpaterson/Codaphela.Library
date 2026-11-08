@@ -1617,13 +1617,13 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	}
 	else if (eKind == CPP65FK_Function)
 	{
-		psReturn = GetBaseType(pcSpecifiers, pcDeclarator);
+		psReturn = GetType(pcSpecifiers, NULL, pcDeclarator, NULL);
 		for (i = 0; psReturn && (i < pcDeclarator->NumPointers()); i++)
 		{
 			switch (pcDeclarator->GetPointer(i)->meKind)
 			{
 			case CPPP_Pointer:
-				psReturn = mcTypes.Pointer(psReturn);
+				psReturn = QualifiedPointer(mcTypes.Pointer(psReturn), pcDeclarator->GetPointer(i));
 				break;
 			case CPPP_Reference:
 			case CPPP_RValueReference:
@@ -2139,7 +2139,7 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 		}
 		//Not a constant: R_Initialise works it out before main.  [basic.start.init]
 		AppendData(psType, 0);
-		if (!mcTypeChecker.Convert(mcTypeChecker.ValueFor(pcInitialiser, psType, false), psType, pcInitialiser))
+		if (!mcTypeChecker.ImplicitConvert(mcTypeChecker.ValueFor(pcInitialiser, psType, false), psType, pcInitialiser))
 		{
 			return false;
 		}
@@ -2472,6 +2472,34 @@ SCPP65Type* CCPP65Generator::ParameterType(SCPP65Type* psType)
 		return mcTypes.Pointer(psType);
 	}
 	return psType->Unqualified();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of a parameter's variable in its function: the parameter's type
+// in the function's type (ParameterType) with the const and volatile that
+// don't count there (void f(const int i), void f(char* const p)).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter)
+{
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxPointerOperator*	pcPointer;
+	uint32						uiFlags;
+
+	pcDeclarator = pcParameter->mpcDeclarator;
+	if (pcDeclarator && ((pcDeclarator->macpSuffixes.NumElements() > 0) || pcDeclarator->mpcNested))
+	{
+		return psType;
+	}
+	if (pcDeclarator && (pcDeclarator->NumPointers() > 0))
+	{
+		pcPointer = pcDeclarator->GetPointer(pcDeclarator->NumPointers() - 1);
+		return (pcPointer->meKind == CPPP_Pointer) ? QualifiedPointer(psType, pcPointer) : psType;
+	}
+	uiFlags = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->muiFlags : 0;
+	return mcTypes.Qualified(psType, (uiFlags & CPPDS_CONST) != 0, (uiFlags & CPPDS_VOLATILE) != 0);
 }
 
 
@@ -2956,7 +2984,7 @@ void CCPP65Generator::AddParameters(SCPP65Function* psFunction)
 			pcSymbol = (psPack && pcParameter->mpcSymbol) ? NewPackElement(pcParameter->mpcSymbol) : pcParameter->mpcSymbol;
 			if (pcSymbol)
 			{
-				psVariable = AddVariable(&mapsLocals, pcSymbol, psType, CPP65S_Parameter, (int)j);
+				psVariable = AddVariable(&mapsLocals, pcSymbol, ParameterVariableType(psType, pcParameter), CPP65S_Parameter, (int)j);
 				psVariable->bRestrict = !psPack && pcParameter->mpcDeclarator && IsRestrictPointer(pcParameter->mpcDeclarator);
 				if (psType->IsClass())
 				{

@@ -774,6 +774,29 @@ void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcValue can initialise a psTo without losing const or volatile
+// (CCPP65TypeChecker::KeepsQualifiers), for the IR front end's initialisers
+// and returns.  It is an error where it is, in quiet mode too, as ReportTypeOf's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
+{
+	int		iQuiet;
+	bool	bQuietFailed;
+	bool	bKept;
+
+	iQuiet = miQuiet;
+	bQuietFailed = mbQuietFailed;
+	miQuiet = 0;
+	bKept = mcTypeChecker.KeepsQualifiers(pcValue, psTo);
+	miQuiet = iQuiet;
+	mbQuietFailed = bQuietFailed;
+	return bKept;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // = and the compound assignments (+= ...).
 //
 //////////////////////////////////////////////////////////////////////////

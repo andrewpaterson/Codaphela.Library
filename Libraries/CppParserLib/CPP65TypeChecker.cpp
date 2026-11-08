@@ -503,7 +503,7 @@ bool CCPP65TypeChecker::MemberFunctionAddress(SCPP65Class* psClass, int64 lliNam
 
 //////////////////////////////////////////////////////////////////////////
 //
-// this, in a member function: a pointer to its class.
+// this, in a member function: a pointer to its class, const in a const one.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
@@ -513,7 +513,7 @@ SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 		Error(pcThis, "this is only in member functions");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcGenerator->mpsFunction->psClass->psType);
+	return mpcTypes->Pointer(mpcTypes->Qualified(mpcGenerator->mpsFunction->psClass->psType, mpcGenerator->IsConstThis(), false));
 }
 
 
@@ -619,7 +619,7 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	SCPP65Type*	psType;
 
 	psType = Place(pcUnary->mpcOperand);
-	if (!psType)
+	if (!psType || !CanChange(psType, pcUnary))
 	{
 		return NULL;
 	}
@@ -718,7 +718,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 
 	psPlace = Place(pcBinary->mpcLeft);
-	if (!psPlace)
+	if (!psPlace || !CanChange(psPlace, pcBinary))
 	{
 		return NULL;
 	}
@@ -735,7 +735,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	if (pcBinary->meOperator == CT_Assignment)
 	{
 		psRight = ValueFor(pcBinary->mpcRight, psPlace, false);
-		return Convert(psRight, psPlace, pcBinary->mpcRight) ? psPlace : NULL;
+		return ImplicitConvert(psRight, psPlace, pcBinary->mpcRight) ? psPlace : NULL;
 	}
 
 	psRight = Value(pcBinary->mpcRight);
@@ -1315,7 +1315,8 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 		psParameter = papsParameters->GetPtr(i - 1);
 		if (psParameter->IsReference())
 		{
-			if (!Place(pcArgument))
+			psType = Place(pcArgument);
+			if (!psType || !CanBind(psParameter, psType, pcArgument))
 			{
 				return false;
 			}
@@ -1336,7 +1337,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 			//An integer to a narrow integer parameter keeps its low bytes.
 			continue;
 		}
-		if (!Convert(psType, psParameter, pcArgument))
+		if (!ImplicitConvert(psType, psParameter, pcArgument))
 		{
 			return false;
 		}
@@ -1746,6 +1747,23 @@ SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A field's type in an object that is const or volatile: a member of one is
+// too, but for a mutable one; a reference field is what it refers to.
+// [expr.ref] 6.2
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::FieldType(SCPP65Field* psField, bool bConst, bool bVolatile)
+{
+	if (psField->psType->IsReference() || psField->bMutable)
+	{
+		return psField->psType->WithoutReference();
+	}
+	return mpcTypes->Qualified(psField->psType, psField->psType->bConst || bConst, psField->psType->bVolatile || bVolatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // object.member and pointer->member: a field (a reference field is what it refers
 // to; a const object's fields are const) or a static data member.
 //
@@ -1797,12 +1815,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 	if (psField)
 	{
 		mpcGenerator->Resolved(pcMember->mpcName, psField->pcSymbol);
-		if (psField->psType->IsReference() || psField->bMutable)
-		{
-			return psField->psType->WithoutReference();
-		}
-		//A member of a const (or volatile) object is const (volatile) too, but for a mutable one.  [expr.ref] 6.2
-		return mpcTypes->Qualified(psField->psType, psField->psType->bConst || psType->bConst, psField->psType->bVolatile || psType->bVolatile);
+		return FieldType(psField, psType->bConst, psType->bVolatile);
 	}
 	psVariable = mpcGenerator->FindStatic(psClass, lliName);
 	if (psVariable)
@@ -1980,7 +1993,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			Error(pcExpression, "A field needs an object");
 			return NULL;
 		}
-		return psField->psType->WithoutReference();
+		return FieldType(psField, mpcGenerator->IsConstThis(), false);
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression);
@@ -2435,7 +2448,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 			}
 			pcInitialiser = (papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL;
 		}
-		bResult = !pcInitialiser || Convert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser);
+		bResult = !pcInitialiser || ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser);
 		apcArguments.Kill();
 		return bResult;
 	}
@@ -2663,9 +2676,9 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		mpcGenerator->BeginQuiet();
 		psValue = Place(pcInitialiser);
 		mpcGenerator->EndQuiet();
-		return psValue || Value(pcInitialiser);
+		return psValue ? CanBind(psType, psValue, pcNode) : (Value(pcInitialiser) != NULL);
 	}
-	return Convert(ValueFor(pcInitialiser, psType, false), psType, pcNode);
+	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode);
 }
 
 
@@ -2724,6 +2737,83 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 		return Error(pcNode, "A pointer cannot be converted to or from floating point");
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Convert, for a conversion no cast asks for: a pointer can't lose const or
+// volatile (KeepsPointerQualifiers).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pointer psFrom converts to psTo (any other types do here) without
+// losing const or volatile from what it points to.  [conv.qual]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	bool	bKept;
+
+	if (!psFrom->IsPointer() || !psTo->IsPointer())
+	{
+		return true;
+	}
+	bKept = psFrom->psBase->Equals(psTo->psBase) ? (mpcGenerator->QualificationRank(psTo, psFrom, false) != CPP65CR_None) : mpcGenerator->AddsQualifiers(psTo->psBase, psFrom->psBase);
+	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a place can be changed: it isn't const.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode)
+{
+	return !psPlace->bConst || Error(pcNode, "A const object cannot be changed");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether reference psReference can bind to a place of type psPlace: it has
+// the place's const and volatile.  [dcl.init.ref]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode)
+{
+	return mpcGenerator->AddsQualifiers(psReference->psBase, psPlace) || Error(pcNode, "A const object cannot be bound to a reference that is not const");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcValue can initialise a psTo (a variable, or what a function
+// returns) with the const and volatile it has.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
+{
+	SCPP65Type*	psValue;
+
+	psValue = mpcGenerator->ValueTypeOf(pcValue);
+	if (!psValue)
+	{
+		return true;
+	}
+	if (psTo->IsReference())
+	{
+		return CanBind(psTo, psValue, pcValue);
+	}
+	return KeepsPointerQualifiers(psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue, psTo, pcValue);
 }
 
 
