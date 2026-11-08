@@ -53,12 +53,12 @@ typedef CArrayTemplate<SIR65Value>	CArrayIR65Value;
 //Widths passes have added their own code: a cpy of a value the register already holds goes (registers,
 //constants, and the function's own memory, which is never volatile), a jump to a jump goes straight to where
 //that one goes, a bra to a ret is a ret, a branch round a bra is the opposite branch to the bra's label, a branch
-//to the next line goes and so does code nothing reaches.
+//to the next line goes and so does code nothing reaches.  The passes over branches are the ones both back ends
+//share (IRBranchPasses.h), over mcCode; ReturnDirectly is the 65C64's own.
 class CIR65Peephole
 {
 protected:
 	CIR65Code				mcCode;
-	CArrayTemplate<uint8>	mauiReached;	//Per line: 1 if it can run.
 	CArrayChars				maszValues;		//The operands registers hold, as written.
 	CArrayIR65Value			masValues;		//What each of them is.
 	CArrayIR65Values		masStates;		//Per line: what the registers hold as it starts.
@@ -81,13 +81,7 @@ protected:
 	void	ForgetMemory(SIR65Values* psState, const char* szOperand, size uiLength);
 	int16	Canonical(SIR65Values* psState, int16 iValue);
 
-	size	NextInstruction(size uiLine);
-	bool	Retarget(size uiLine, const char* szMnemonic, size uiTarget);
-	bool	ThreadJumps(void);
 	bool	ReturnDirectly(void);
-	bool	InvertBranches(void);
-	bool	RemoveBranchesToNext(void);
-	bool	RemoveUnreached(void);
 };
 
 

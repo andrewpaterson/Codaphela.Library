@@ -166,7 +166,7 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 // pseudo register or the frame then read straight back (at 32 bits) is
 // copied from the register it was stored from instead (or not at all into
 // the same register: the store set the same flags).  A branch to the label
-// after it is left for CIR65Peephole (RemoveBranchesToNext).
+// after it is left for CIR65Peephole (IRRemoveBranchesToNext).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Peephole(size uiStart)

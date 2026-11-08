@@ -1813,6 +1813,16 @@ static void AssertPeepholeBranches(const char* szExpected, const char* szCode)
 //////////////////////////////////////////////////////////////////////////
 void TestIR816BackendPeepholeBranches(void)
 {
+	//The passes both back ends share (IRBranchPasses.h): a conditional branch to the next label goes too; a loop only
+	//its own bra reaches goes; a jump table's labels (named by the jmp and its .word lines) are kept; a branch is
+	//threaded through bras to bras, which then can't be reached.
+	AssertPeepholeBranches("_F:\n\t\tcmp 5\n\t\trtl\n", "_F:\n\t\tcmp 5\n\t\tbeq L1\nL1:\n\t\trtl\n");
+	AssertPeepholeBranches("_F:\n\t\trtl\n", "_F:\n\t\trtl\nL1:\n\t\tinx\n\t\tbra L1\n");
+	AssertPeepholeBranches("_F:\n\t\tjmp [L2 + X]\nL2:\n\t\t.word L3\n\t\t.word L4\nL3:\n\t\tlda 1\n\t\trtl\nL4:\n\t\tlda 2\n\t\trtl\n",
+		"_F:\n\t\tjmp [L2 + X]\nL2:\n\t\t.word L3\n\t\t.word L4\nL3:\n\t\tlda 1\n\t\trtl\nL4:\n\t\tlda 2\n\t\trtl\n");
+	AssertPeepholeBranches("_F:\n\t\tbeq L5\n\t\trtl\nL5:\n\t\tlda 1\n\t\trtl\n",
+		"_F:\n\t\tbeq L1\n\t\trtl\nL1:\n\t\tbra L2\nL2:\n\t\tbra L3\nL3:\n\t\tbra L4\nL4:\n\t\tbra L5\nL5:\n\t\tlda 1\n\t\trtl\n");
+
 	//A bra to the label after it.
 	AssertPeepholeBranches("\t\tlda 1\n\t\trtl\n", "\t\tlda 1\n\t\tbra L2\nL2:\n\t\trtl\n");
 

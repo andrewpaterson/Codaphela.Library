@@ -202,6 +202,7 @@
     <ClCompile Include="CPPSyntaxLazyDeclaration.cpp" />
     <ClCompile Include="IRBackend.cpp" />
     <ClCompile Include="IRBackendPasses.cpp" />
+    <ClCompile Include="IRBranchPasses.cpp" />
     <ClCompile Include="IR65Backend.cpp" />
     <ClCompile Include="IR65BackendPeephole.cpp" />
     <ClCompile Include="IR65Instructions.cpp" />
@@ -456,6 +457,7 @@
     <ClInclude Include="CPPSyntaxLazyDeclaration.h" />
     <ClInclude Include="IRBackend.h" />
     <ClInclude Include="IRBackendPasses.h" />
+    <ClInclude Include="IRBranchPasses.h" />
     <ClInclude Include="IR65Backend.h" />
     <ClInclude Include="IR65BackendInternal.h" />
     <ClInclude Include="IR816Backend.h" />

@@ -990,6 +990,134 @@ bool CIR65Code::FallsThrough(size uiLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How the line goes on, for the shared branch passes: anything else not
+// run (a comment, a directive) is an instruction they may take out.
+//
+//////////////////////////////////////////////////////////////////////////
+EIRCodeFlow CIR65Code::Flow(size uiLine)
+{
+	switch (masLines.Get(uiLine)->uiKind)
+	{
+	case IR65CK_Label:
+		return IRCF_Label;
+	case IR65CK_Branch:
+		return IRCF_Branch;
+	case IR65CK_Jump:
+		return IRCF_Jump;
+	case IR65CK_Return:
+		return IRCF_End;
+	case IR65CK_Other:
+		return (IsRemoved(uiLine) || maszLines.Get(uiLine)->Empty()) ? IRCF_None : IRCF_Instruction;
+	default:
+		return IRCF_Instruction;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIR65Code::Target(size uiLine)
+{
+	int32	iTarget;
+
+	iTarget = masLines.Get(uiLine)->iTarget;
+	return (iTarget >= 0) ? (size)iTarget : IR_NO_LINE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only the function's label: Load fails for code with a branch out of it,
+// and nothing else names its labels.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::IsEntry(size uiLine)
+{
+	return uiLine == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The branch or jump at uiLine (bra, bras, brac, brasa or braso) with its
+// condition, to the label at uiLabel.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::Retarget(size uiLine, size uiLabel)
+{
+	CChars		szMnemonic;
+	const char*	szText;
+	bool		bReplaced;
+
+	szText = GetText(uiLine)->Text() + 2;
+	szMnemonic.Init();
+	szMnemonic.AppendSubString(szText, FindChar(szText, ' ', false));
+	bReplaced = Branch(uiLine, szMnemonic.Text(), uiLabel);
+	szMnemonic.Kill();
+	return bReplaced;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// bras to the label at uiLabel for a brac, brac for a bras; false for
+// brasa and braso, which have no opposite.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::Invert(size uiLine, size uiLabel)
+{
+	CChars*	pszLine;
+
+	pszLine = GetText(uiLine);
+	if (pszLine->StartsWith("\t\tbras "))
+	{
+		return Branch(uiLine, "brac", uiLabel);
+	}
+	if (pszLine->StartsWith("\t\tbrac "))
+	{
+		return Branch(uiLine, "bras", uiLabel);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes the branch or jump at uiLine szMnemonic (bra, bras or brac ...)
+// with its condition, to the label at uiLabel.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::Branch(size uiLine, const char* szMnemonic, size uiLabel)
+{
+	CChars*		pszLine;
+	CChars*		pszLabel;
+	CChars		szInstruction;
+	const char*	szCondition;
+	const char*	szTarget;
+	bool		bReplaced;
+
+	pszLine = GetText(uiLine);
+	pszLabel = GetText(uiLabel);
+	szInstruction.Init(szMnemonic);
+	szInstruction.Append(' ');
+	if (GetLine(uiLine)->uiKind == IR65CK_Branch)
+	{
+		//"\t\tbras z, L5": the condition is between the mnemonic and the target.
+		szCondition = FindChar(pszLine->Text() + 2, ' ', false) + 1;
+		szTarget = FindChar(pszLine->Text(), ',', true);
+		szInstruction.AppendSubString(szCondition, szTarget + 2);
+	}
+	szInstruction.AppendSubString(pszLabel->Text(), pszLabel->Length() - 1);
+	bReplaced = Replace(uiLine, szInstruction.Text());
+	szInstruction.Kill();
+	return bReplaced;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The widths each line starts with: 32 bits at the function's label,
 // then what the lines before it leave.  False if a line can be reached
 // with two different widths of one register.

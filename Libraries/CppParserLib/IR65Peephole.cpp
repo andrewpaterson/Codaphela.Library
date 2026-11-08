@@ -23,7 +23,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define IR65_PEEPHOLE_ROUNDS	8		//The most times the jumps are looked at again after some changed.
-#define IR65_PEEPHOLE_HOPS		8		//The most jumps a jump is followed through (a loop of bras never ends).
 #define IR65_PEEPHOLE_VALUES	16384	//The most operands followed in one function.
 #define IR65_NAME_S				0x10	//SIR65Value uiNames: S, V and W after A, B, X and Y.
 #define IR65_NAME_V				0x20
@@ -118,7 +117,6 @@ static void IR65PeepholeOperands(CChars* pszLine, const char** pszFirst, size* p
 void CIR65Peephole::Init(void)
 {
 	mcCode.Init();
-	mauiReached.Init();
 	maszValues.Init();
 	masValues.Init();
 	masStates.Init();
@@ -138,7 +136,6 @@ void CIR65Peephole::Kill(void)
 	masStates.Kill();
 	masValues.Kill();
 	maszValues.Kill();
-	mauiReached.Kill();
 	mcCode.Kill();
 }
 
@@ -165,11 +162,11 @@ void CIR65Peephole::Optimise(CChars* pszCode, size uiStart)
 	bAny = RemoveCopies();
 	for (iRound = 0; iRound < IR65_PEEPHOLE_ROUNDS; iRound++)
 	{
-		bChanged = ThreadJumps();
+		bChanged = IRThreadJumps(&mcCode);
 		bChanged |= ReturnDirectly();
-		bChanged |= InvertBranches();
-		bChanged |= RemoveBranchesToNext();
-		bChanged |= RemoveUnreached();
+		bChanged |= IRInvertBranches(&mcCode);
+		bChanged |= IRRemoveBranchesToNext(&mcCode);
+		bChanged |= IRRemoveUnreached(&mcCode);
 		if (!bChanged)
 		{
 			break;
@@ -623,118 +620,6 @@ int16 CIR65Peephole::Canonical(SIR65Values* psState, int16 iValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The first line from uiLine on that runs (not a label, blank or taken
-// out); NumLines if there is none.
-//
-//////////////////////////////////////////////////////////////////////////
-size CIR65Peephole::NextInstruction(size uiLine)
-{
-	size			uiNum;
-	SIR65CodeLine*	psLine;
-
-	uiNum = mcCode.NumLines();
-	for (; uiLine < uiNum; uiLine++)
-	{
-		psLine = mcCode.GetLine(uiLine);
-		if ((psLine->uiKind != IR65CK_Label) && (psLine->uiKind != IR65CK_Other))
-		{
-			return uiLine;
-		}
-	}
-	return uiNum;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Makes the branch or jump at uiLine szMnemonic (bra, bras or brac) with
-// its condition, to the label at uiTarget.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::Retarget(size uiLine, const char* szMnemonic, size uiTarget)
-{
-	CChars*		pszLine;
-	CChars*		pszLabel;
-	CChars		szInstruction;
-	const char*	szCondition;
-	const char*	szTarget;
-	bool		bReplaced;
-
-	pszLine = mcCode.GetText(uiLine);
-	pszLabel = mcCode.GetText(uiTarget);
-	szInstruction.Init(szMnemonic);
-	szInstruction.Append(' ');
-	if (mcCode.GetLine(uiLine)->uiKind == IR65CK_Branch)
-	{
-		//"\t\tbras z, L5": the condition is between the mnemonic and the target.
-		szCondition = FindChar(pszLine->Text() + 2, ' ', false) + 1;
-		szTarget = FindChar(pszLine->Text(), ',', true);
-		szInstruction.AppendSubString(szCondition, szTarget + 2);
-	}
-	szInstruction.AppendSubString(pszLabel->Text(), pszLabel->Length() - 1);
-	bReplaced = mcCode.Replace(uiLine, szInstruction.Text());
-	szInstruction.Kill();
-	return bReplaced;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A branch or jump to a label whose code is a bra goes where that bra
-// goes (the Widths pass sets the widths a label needs before a jump to
-// it, so the bra is reached with those its label needs too).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::ThreadJumps(void)
-{
-	size			ui;
-	size			uiNum;
-	size			uiTarget;
-	size			uiNext;
-	SIR65CodeLine*	psLine;
-	SIR65CodeLine*	psNext;
-	CChars			szMnemonic;
-	int				iHops;
-	bool			bChanged;
-
-	bChanged = false;
-	uiNum = mcCode.NumLines();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		psLine = mcCode.GetLine(ui);
-		if ((psLine->uiKind != IR65CK_Branch) && (psLine->uiKind != IR65CK_Jump))
-		{
-			continue;
-		}
-		uiTarget = (size)psLine->iTarget;
-		for (iHops = 0; iHops < IR65_PEEPHOLE_HOPS; iHops++)
-		{
-			uiNext = NextInstruction(uiTarget);
-			if (uiNext >= uiNum)
-			{
-				break;
-			}
-			psNext = mcCode.GetLine(uiNext);
-			if ((psNext->uiKind != IR65CK_Jump) || ((size)psNext->iTarget == uiTarget))
-			{
-				break;
-			}
-			uiTarget = (size)psNext->iTarget;
-		}
-		if (uiTarget != (size)psLine->iTarget)
-		{
-			szMnemonic.Init();
-			szMnemonic.AppendSubString(mcCode.GetText(ui)->Text() + 2, FindChar(mcCode.GetText(ui)->Text() + 2, ' ', false));
-			bChanged |= Retarget(ui, szMnemonic.Text(), uiTarget);
-			szMnemonic.Kill();
-		}
-	}
-	return bChanged;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A bra to a label whose code is a ret is a ret.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -755,7 +640,7 @@ bool CIR65Peephole::ReturnDirectly(void)
 		{
 			continue;
 		}
-		uiNext = NextInstruction((size)psLine->iTarget);
+		uiNext = IRNextInstruction(&mcCode, (size)psLine->iTarget);
 		if ((uiNext < uiNum) && (mcCode.GetLine(uiNext)->uiKind == IR65CK_Return) && !mcCode.GetLine(uiNext)->bReadsFirst)
 		{
 			bChanged |= mcCode.Replace(ui, "ret");
@@ -764,143 +649,4 @@ bool CIR65Peephole::ReturnDirectly(void)
 	return bChanged;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//			bras z, L1			->			brac z, L2
-//			bra L2
-//	L1:								L1:
-//
-// (when nothing else goes to the bra).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::InvertBranches(void)
-{
-	size			ui;
-	size			uiNum;
-	size			uiJump;
-	size			uiTarget;
-	SIR65CodeLine*	psLine;
-	SIR65CodeLine*	psJump;
-	CChars*			pszLine;
-	bool			bChanged;
-
-	bChanged = false;
-	uiNum = mcCode.NumLines();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		psLine = mcCode.GetLine(ui);
-		pszLine = mcCode.GetText(ui);
-		if ((psLine->uiKind != IR65CK_Branch) || !(pszLine->StartsWith("\t\tbras ") || pszLine->StartsWith("\t\tbrac ")))
-		{
-			continue;
-		}
-		for (uiJump = ui + 1; (uiJump < uiNum) && (mcCode.GetLine(uiJump)->uiKind == IR65CK_Other); uiJump++)
-		{
-		}
-		if ((uiJump >= uiNum) || (mcCode.GetLine(uiJump)->uiKind != IR65CK_Jump))
-		{
-			continue;
-		}
-		psJump = mcCode.GetLine(uiJump);
-		uiTarget = (size)psLine->iTarget;
-		if ((uiTarget <= uiJump) || (NextInstruction(uiJump + 1) < uiTarget) || ((size)psJump->iTarget == uiTarget))
-		{
-			continue;
-		}
-		if (Retarget(ui, pszLine->StartsWith("\t\tbras ") ? "brac" : "bras", (size)psJump->iTarget))
-		{
-			mcCode.Remove(uiJump);
-			bChanged = true;
-		}
-	}
-	return bChanged;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A branch or jump to a label with nothing that runs between it and the
-// label goes.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::RemoveBranchesToNext(void)
-{
-	size			ui;
-	size			uiNum;
-	size			uiTarget;
-	SIR65CodeLine*	psLine;
-	bool			bChanged;
-
-	bChanged = false;
-	uiNum = mcCode.NumLines();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		psLine = mcCode.GetLine(ui);
-		if ((psLine->uiKind != IR65CK_Branch) && (psLine->uiKind != IR65CK_Jump))
-		{
-			continue;
-		}
-		uiTarget = (size)psLine->iTarget;
-		if ((uiTarget > ui) && (NextInstruction(ui + 1) >= uiTarget))
-		{
-			mcCode.Remove(ui);
-			bChanged = true;
-		}
-	}
-	return bChanged;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Takes out the lines (labels too) that nothing reaches from the
-// function's label.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::RemoveUnreached(void)
-{
-	size					ui;
-	size					uiNum;
-	SIR65CodeLine*			psLine;
-	CArrayTemplate<size>	auiStack;
-	bool					bChanged;
-
-	uiNum = mcCode.NumLines();
-	mauiReached.ReInit();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		mauiReached.Add()[0] = 0;
-	}
-	auiStack.Init();
-	auiStack.Add()[0] = 0;
-	while (auiStack.Pop(&ui))
-	{
-		for (; (ui < uiNum) && !*mauiReached.Get(ui); ui++)
-		{
-			*mauiReached.Get(ui) = 1;
-			psLine = mcCode.GetLine(ui);
-			if (psLine->iTarget >= 0)
-			{
-				auiStack.Add()[0] = (size)psLine->iTarget;
-			}
-			if (!mcCode.FallsThrough(ui))
-			{
-				break;
-			}
-		}
-	}
-	auiStack.Kill();
-
-	bChanged = false;
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		if (!*mauiReached.Get(ui) && !mcCode.IsRemoved(ui) && !mcCode.GetText(ui)->Empty())
-		{
-			mcCode.Remove(ui);
-			bChanged = true;
-		}
-	}
-	return bChanged;
-}
 

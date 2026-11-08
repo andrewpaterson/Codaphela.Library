@@ -23,10 +23,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "IR816BackendInternal.h"
 #include "IR816Code.h"
+#include "IRBranchPasses.h"
 #include "CPPNameCharacters.h"
 
 
-//The W65C816 back end's branches tidied (PeepholeBranches), and the code nothing reaches taken out.
+//The W65C816 back end's branches tidied (PeepholeBranches), and the code nothing reaches taken out: the passes both
+//back ends share (IRBranchPasses.h) over the code as a CIRBranchCode (CIR816BranchCode), then the W65C816's own.
+
+
+#define IR816_BRANCH_PASSES		8		//The most times PeepholeBranches goes over the code while something changes.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -201,18 +206,19 @@ static size IR816LabelledInstruction(CIR816Code* pcCode, const char* szLabel, CA
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds iChange to the count of each local label (L and a number) an instruction line names, in paiMentions by
-// number.  A name is bounded by characters that can't be in a name, as IR816LabelUsed matches it.
+// Marks in pabMentioned (by number) each local label (L and a number) an
+// instruction line names.  A name is bounded by characters that can't be in
+// a name.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816CountMentions(const char* szLine, CArrayTemplate<int32>* paiMentions, int32 iChange)
+static void IR816MarkMentions(const char* szLine, CArrayTemplate<uint8>* pabMentioned)
 {
 	const char*	szAt;
 	const char*	szEnd;
 	int64		lliNumber;
-	int32		iZero;
+	uint8		uiZero;
 
-	iZero = 0;
+	uiZero = 0;
 	for (szAt = szLine; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
 	{
 		if ((szAt == szLine) || IsCPPNameCharacter(szAt[-1]) || (szAt[1] < '0') || (szAt[1] > '9'))
@@ -227,114 +233,12 @@ static void IR816CountMentions(const char* szLine, CArrayTemplate<int32>* paiMen
 			continue;
 		}
 		lliNumber = atoll(szAt + 1);
-		while (paiMentions->NumElements() <= (size)lliNumber)
+		while (pabMentioned->NumElements() <= (size)lliNumber)
 		{
-			paiMentions->Add(&iZero);
+			pabMentioned->Add(&uiZero);
 		}
-		*paiMentions->Get((size)lliNumber) += iChange;
+		*pabMentioned->Get((size)lliNumber) = 1;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a label ("L12:") is named by an instruction's operand.  A local label's mentions are counted
-// (IR816CountMentions, made when first needed and kept up to date as lines are removed: *pbCounted); another's
-// are searched for.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816LabelUsed(CIR816Code* pcCode, CChars* pszLabel, CArrayTemplate<int32>* paiMentions, bool* pbCounted)
-{
-	size		ui;
-	size		uiLength;
-	int64		lliNumber;
-	const char*	szAt;
-	const char*	szText;
-
-	lliNumber = IR816LocalLabelNumber(pszLabel->Text(), true);
-	if (lliNumber >= 0)
-	{
-		if (!*pbCounted)
-		{
-			paiMentions->FakeSetUsedElements(0);
-			for (ui = 0; ui < pcCode->NumLines(); ui++)
-			{
-				szText = pcCode->Text(ui);
-				if (szText[0] == '\t')
-				{
-					IR816CountMentions(szText, paiMentions, 1);
-				}
-			}
-			*pbCounted = true;
-		}
-		return ((size)lliNumber < paiMentions->NumElements()) && (*paiMentions->Get((size)lliNumber) > 0);
-	}
-
-	uiLength = pszLabel->Length() - 1;
-	for (ui = 0; ui < pcCode->NumLines(); ui++)
-	{
-		szText = pcCode->Text(ui);
-		if (szText[0] != '\t')
-		{
-			continue;
-		}
-		for (szAt = szText; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
-		{
-			if ((strncmp(szAt, pszLabel->Text(), uiLength) == 0) && !IsCPPNameCharacter(szAt[-1]) && !IsCPPNameCharacter(szAt[uiLength]))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Removes the instructions after a bra, brl, jml, jmp, rtl, rts or stp
-// (IR816MF_ENDS_FLOW) up to a label other than an unused local one
-// (IR816LabelUsed), which go too.  True if any did.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816Unreachable(CIR816Code* pcCode)
-{
-	size					ui;
-	CChars*					psz;
-	bool					bChanged;
-	CArrayTemplate<int32>	aiMentions;
-	bool					bCounted;
-
-	bChanged = false;
-	aiMentions.Init(CIR816Backend::GetScratch());
-	bCounted = false;
-	for (ui = 0; ui + 1 < pcCode->NumLines(); ui++)
-	{
-		if (!pcCode->Has(ui, IR816MF_ENDS_FLOW))
-		{
-			continue;
-		}
-		while (ui + 1 < pcCode->NumLines())
-		{
-			psz = pcCode->GetText(ui + 1);
-			if (psz->Empty() || ((psz->Text()[0] != '\t') && ((psz->Text()[0] != 'L') || !pcCode->IsLabel(ui + 1) || IR816LabelUsed(pcCode, psz, &aiMentions, &bCounted))))
-			{
-				break;
-			}
-			if ((psz->Text()[0] == '\t') && (psz->Text()[2] == '.'))
-			{
-				break;
-			}
-			if (bCounted && (psz->Text()[0] == '\t'))
-			{
-				IR816CountMentions(psz->Text(), &aiMentions, -1);
-			}
-			pcCode->Remove(ui + 1);
-			bChanged = true;
-		}
-	}
-	aiMentions.Kill();
-	return bChanged;
 }
 
 
@@ -510,17 +414,325 @@ static void IR816SetBranch(CIR816Code* pcCode, size uiLine, const char* szMnemon
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Branches tidied in the code written from uiStart on, until none changes:
-// a bra to the label that follows goes; a branch to a label whose first
-// instruction is a bra goes where that does; Bcc X, bra Y, X: is B!cc Y,
-// X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); Bcc X, bra Y
-// round a loop (marked IR816_ROUND by JumpTo) is B!cc Y, bra X; an lda of a direct
-// page word or a constant goes when what runs next (falling through or
-// after a bra) sets A and N and Z before reading A or the flags; a tax goes
-// when X is written before it is read (IR816SetsXFirst); txa after tax (or tax after txa),
-// only clc or sec between, goes; a txy goes after a txy and an instruction that changes neither X
-// nor Y; and code after a bra, rtl or stp up to a label that is used goes
-// (IR816Unreachable).
+// bcc X, beq X, bra Y, X: (either order of the first two) is beq X, bcs Y,
+// X:.  Before the shared passes, which would make beq X, bra Y, X: bne Y.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816CarryOrEqual(CIR816Code* pcCode)
+{
+	SIR816Line	sLine;
+	SIR816Line	sLine2;
+	SIR816Line	sLine3;
+	char		szLabel[32];
+	char		szLabel2[32];
+	char		szLabel3[32];
+	size		ui;
+	bool		bChanged;
+
+	bChanged = false;
+	for (ui = 0; ui + 2 < pcCode->NumLines(); ui++)
+	{
+		if (IR816BranchLine(pcCode, ui, &sLine, szLabel) && IR816BranchLine(pcCode, ui + 1, &sLine2, szLabel2) &&
+			IR816BranchLine(pcCode, ui + 2, &sLine3, szLabel3) && (sLine3.uiMnemonic == IR816M_Bra) && (StringCompare(szLabel, szLabel2) == 0) &&
+			(((sLine.uiMnemonic == IR816M_Bcc) && (sLine2.uiMnemonic == IR816M_Beq)) || ((sLine.uiMnemonic == IR816M_Beq) && (sLine2.uiMnemonic == IR816M_Bcc))) &&
+			IR816LabelFollows(pcCode, ui + 3, szLabel))
+		{
+			IR816SetBranch(pcCode, ui, "beq", szLabel);
+			IR816SetBranch(pcCode, ui + 1, "bcs", szLabel3);
+			pcCode->Remove(ui + 2);
+			bChanged = true;
+		}
+	}
+	return bChanged;
+}
+
+
+//A W65C816 function's code as the branch passes both back ends share see it (CIRBranchCode, IRBranchPasses.h), for one
+//run of them: a local label's line by its number, the lines taken out (marked, then taken out by Commit, so the
+//lines keep their numbers while the passes run) and the entries: the function's label, a local label anything but
+//a branch names (a jmp [L + X] table, its .word lines), a directive, and anything not tabbed (which stops code being
+//taken out, as a label does).
+class CIR816BranchCode : public CIRBranchCode
+{
+protected:
+	CIR816Code*				mpcCode;
+	CArrayTemplate<size>	mauiLabelLines;		//Per local label number: its line + 1, 0 for none.
+	CArrayTemplate<uint8>	mabRemoved;			//Per line.
+	CArrayTemplate<uint8>	mabNamed;			//Per local label number: named by a line that isn't a branch to it.
+	bool					mbRemoved;
+
+public:
+	void		Init(CIR816Code* pcCode);
+	void		Kill(void);
+	void		Commit(void);
+
+	size		NumLines(void) override;
+	EIRCodeFlow	Flow(size uiLine) override;
+	size		Target(size uiLine) override;
+	bool		IsEntry(size uiLine) override;
+	bool		Retarget(size uiLine, size uiLabel) override;
+	bool		Invert(size uiLine, size uiLabel) override;
+	void		Remove(size uiLine) override;
+
+protected:
+	void		SetBranch(size uiLine, const char* szMnemonic, size uiLabel);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816BranchCode::Init(CIR816Code* pcCode)
+{
+	size		ui;
+	size		uiZero;
+	size		uiLine;
+	uint8		uiFalse;
+	int64		lliNumber;
+	SIR816Line	sLine;
+	char		szLabel[32];
+
+	mpcCode = pcCode;
+	mbRemoved = false;
+	uiZero = 0;
+	uiFalse = 0;
+	mauiLabelLines.Init(CIR816Backend::GetScratch());
+	mabRemoved.Init(CIR816Backend::GetScratch());
+	mabNamed.Init(CIR816Backend::GetScratch());
+	mabRemoved.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);
+	for (ui = 0; ui < pcCode->NumLines(); ui++)
+	{
+		if (pcCode->IsLabel(ui))
+		{
+			lliNumber = IR816LocalLabelNumber(pcCode->Text(ui), true);
+			if (lliNumber < 0)
+			{
+				continue;
+			}
+			while (mauiLabelLines.NumElements() <= (size)lliNumber)
+			{
+				mauiLabelLines.Add(&uiZero);
+			}
+			uiLine = ui + 1;
+			mauiLabelLines.Set((size)lliNumber, &uiLine);
+		}
+		else if (pcCode->IsTabbed(ui) && !IR816BranchLine(pcCode, ui, &sLine, szLabel))
+		{
+			IR816MarkMentions(pcCode->Text(ui), &mabNamed);
+		}
+	}
+	while (mabNamed.NumElements() < mauiLabelLines.NumElements())
+	{
+		mabNamed.Add(&uiFalse);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816BranchCode::Kill(void)
+{
+	mabNamed.Kill();
+	mabRemoved.Kill();
+	mauiLabelLines.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes out the lines the passes removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816BranchCode::Commit(void)
+{
+	if (mbRemoved)
+	{
+		mpcCode->RemoveMarked(&mabRemoved);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIR816BranchCode::NumLines(void)
+{
+	return mpcCode->NumLines();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bra to a local label is a jump; brl, and a bra, jml, jmp, rtl, rts or
+// stp anywhere else, end the flow (IR816MF_ENDS_FLOW); the other branches
+// to a local label are branches.  A line that isn't tabbed or a label isn't
+// run.
+//
+//////////////////////////////////////////////////////////////////////////
+EIRCodeFlow CIR816BranchCode::Flow(size uiLine)
+{
+	SIR816Line	sLine;
+	char		szLabel[32];
+
+	if (*mabRemoved.Get(uiLine))
+	{
+		return IRCF_None;
+	}
+	if (mpcCode->IsLabel(uiLine))
+	{
+		return IRCF_Label;
+	}
+	if (!mpcCode->IsTabbed(uiLine))
+	{
+		return IRCF_None;
+	}
+	if (IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
+	{
+		if (sLine.uiMnemonic == IR816M_Bra)
+		{
+			return IRCF_Jump;
+		}
+		return (sLine.uiFlags & IR816MF_ENDS_FLOW) ? IRCF_End : IRCF_Branch;
+	}
+	return mpcCode->Has(uiLine, IR816MF_ENDS_FLOW) ? IRCF_End : IRCF_Instruction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIR816BranchCode::Target(size uiLine)
+{
+	SIR816Line	sLine;
+	char		szLabel[32];
+	int64		lliNumber;
+	size		uiLabel;
+
+	if (*mabRemoved.Get(uiLine) || !IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
+	{
+		return IR_NO_LINE;
+	}
+	lliNumber = IR816LocalLabelNumber(szLabel, false);
+	if ((lliNumber < 0) || ((size)lliNumber >= mauiLabelLines.NumElements()))
+	{
+		return IR_NO_LINE;
+	}
+	uiLabel = *mauiLabelLines.Get((size)lliNumber);
+	return (uiLabel != 0) ? uiLabel - 1 : IR_NO_LINE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816BranchCode::IsEntry(size uiLine)
+{
+	const char*	szText;
+	int64		lliNumber;
+
+	if (uiLine == 0)
+	{
+		return true;
+	}
+	szText = mpcCode->Text(uiLine);
+	if (mpcCode->IsLabel(uiLine))
+	{
+		lliNumber = IR816LocalLabelNumber(szText, true);
+		return (lliNumber < 0) || (((size)lliNumber < mabNamed.NumElements()) && *mabNamed.Get((size)lliNumber));
+	}
+	return !mpcCode->IsTabbed(uiLine) || (szText[2] == '.');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816BranchCode::Retarget(size uiLine, size uiLabel)
+{
+	SIR816Line	sLine;
+	char		szLabel[32];
+
+	if (!IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
+	{
+		return false;
+	}
+	SetBranch(uiLine, sLine.szMnemonic, uiLabel);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816BranchCode::Invert(size uiLine, size uiLabel)
+{
+	SIR816Line	sLine;
+	char		szLabel[32];
+	const char*	szInverted;
+
+	if (!IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
+	{
+		return false;
+	}
+	szInverted = IR816InvertedBranch(sLine.uiMnemonic);
+	if (!szInverted)
+	{
+		return false;
+	}
+	SetBranch(uiLine, szInverted, uiLabel);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816BranchCode::Remove(size uiLine)
+{
+	*mabRemoved.Get(uiLine) = 1;
+	mbRemoved = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The branch at uiLine as szMnemonic to the label at uiLabel.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816BranchCode::SetBranch(size uiLine, const char* szMnemonic, size uiLabel)
+{
+	CChars	szLabel;
+
+	szLabel.Init(CIR816Backend::GetScratch());
+	szLabel.AppendSubString(mpcCode->Text(uiLabel), mpcCode->GetText(uiLabel)->Length() - 1);
+	IR816SetBranch(mpcCode, uiLine, szMnemonic, szLabel.Text());
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Branches tidied in the code written from uiStart on, until none changes.
+// The passes both back ends share (IRBranchPasses.h): a branch to a label
+// whose first instruction is a bra goes where that does; Bcc X, bra Y, X:
+// is B!cc Y, X:; a branch to the label that follows goes; and code nothing
+// reaches goes.  The W65C816's own: a label nothing names goes; bcc X, beq
+// X, bra Y, X: is beq X, bcs Y, X:; Bcc X, bra Y round a loop (marked
+// IR816_ROUND by JumpTo) is B!cc Y, bra X; an lda of a direct page word or
+// a constant goes when what runs next (falling through or after a bra)
+// sets A and N and Z before reading A or the flags; a tax goes when X is
+// written before it is read (IR816SetsXFirst); txa after tax (or tax after
+// txa), only clc or sec between, goes; and a txy goes after a txy and an
+// instruction that changes neither X nor Y.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
@@ -541,16 +753,15 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 {
+	CIR816BranchCode		cBranches;
 	CArrayTemplate<uint8>	abUsed;
 	CArrayTemplate<size>	auiLabelLines;
 	CChars*					psz;
 	CChars					szRound;
 	SIR816Line				sLine;
 	SIR816Line				sLine2;
-	SIR816Line				sLine3;
 	char					szLabel[32];
 	char					szLabel2[32];
-	char					szLabel3[32];
 	size					ui;
 	size					uiTarget;
 	int						iPass;
@@ -558,9 +769,17 @@ void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 
 	abUsed.Init(CIR816Backend::GetScratch());
 	auiLabelLines.Init(CIR816Backend::GetScratch());
-	for (iPass = 0; iPass < 8; iPass++)
+	for (iPass = 0; iPass < IR816_BRANCH_PASSES; iPass++)
 	{
-		bChanged = false;
+		//Jumps threaded, branches round a bra inverted and branches to the next label taken out (IRBranchPasses.h).
+		bChanged = IR816CarryOrEqual(pcCode);
+		cBranches.Init(pcCode);
+		bChanged |= IRThreadJumps(&cBranches);
+		bChanged |= IRInvertBranches(&cBranches);
+		bChanged |= IRRemoveBranchesToNext(&cBranches);
+		cBranches.Commit();
+		cBranches.Kill();
+
 		IR816FindUsedLabels(pcCode, &abUsed);
 		for (ui = 0; ui < pcCode->NumLines(); ui++)
 		{
@@ -575,35 +794,6 @@ void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 			}
 			if (IR816BranchLine(pcCode, ui, &sLine, szLabel))
 			{
-				//To a bra: straight to where it goes.
-				uiTarget = IR816LabelledInstruction(pcCode, szLabel, &auiLabelLines);
-				if ((uiTarget != (size)-1) && IR816BranchLine(pcCode, uiTarget, &sLine2, szLabel2) && (sLine2.uiMnemonic == IR816M_Bra) &&
-					(StringCompare(szLabel2, szLabel) != 0))
-				{
-					IR816SetBranch(pcCode, ui, sLine.szMnemonic, szLabel2);
-					bChanged = true;
-					continue;
-				}
-
-				//A bra to the next label.
-				if ((sLine.uiMnemonic == IR816M_Bra) && IR816LabelFollows(pcCode, ui + 1, szLabel))
-				{
-					pcCode->Remove(ui);
-					ui--;
-					bChanged = true;
-					continue;
-				}
-
-				//Bcc X, bra Y, X:
-				if ((ui + 1 < pcCode->NumLines()) && IR816InvertedBranch(sLine.uiMnemonic) && IR816BranchLine(pcCode, ui + 1, &sLine2, szLabel2) &&
-					(sLine2.uiMnemonic == IR816M_Bra) && IR816LabelFollows(pcCode, ui + 2, szLabel))
-				{
-					IR816SetBranch(pcCode, ui, IR816InvertedBranch(sLine.uiMnemonic), szLabel2);
-					pcCode->Remove(ui + 1);
-					bChanged = true;
-					continue;
-				}
-
 				//Bcc X, bra Y round a loop (JumpTo marked it) is B!cc Y, bra X: going round, the usual way, is one branch taken.
 				if ((ui + 1 < pcCode->NumLines()) && IR816InvertedBranch(sLine.uiMnemonic) && IR816BranchLine(pcCode, ui + 1, &sLine2, szLabel2) &&
 					(sLine2.uiMnemonic == IR816M_Bra) && pcCode->GetText(ui + 1)->EndsWith(IR816_ROUND) && (StringCompare(szLabel, szLabel2) != 0))
@@ -614,18 +804,6 @@ void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 					continue;
 				}
 
-				//bcc X, beq X, bra Y, X: (either order of the first two) is beq X, bcs Y, X:.
-				if ((ui + 2 < pcCode->NumLines()) && IR816BranchLine(pcCode, ui + 1, &sLine2, szLabel2) &&
-					IR816BranchLine(pcCode, ui + 2, &sLine3, szLabel3) && (sLine3.uiMnemonic == IR816M_Bra) && (StringCompare(szLabel, szLabel2) == 0) &&
-					(((sLine.uiMnemonic == IR816M_Bcc) && (sLine2.uiMnemonic == IR816M_Beq)) || ((sLine.uiMnemonic == IR816M_Beq) && (sLine2.uiMnemonic == IR816M_Bcc))) &&
-					IR816LabelFollows(pcCode, ui + 3, szLabel))
-				{
-					IR816SetBranch(pcCode, ui, "beq", szLabel);
-					IR816SetBranch(pcCode, ui + 1, "bcs", szLabel3);
-					pcCode->Remove(ui + 2);
-					bChanged = true;
-					continue;
-				}
 				continue;
 			}
 
@@ -676,7 +854,11 @@ void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 				continue;
 			}
 		}
-		bChanged |= IR816Unreachable(pcCode);
+		//Code nothing reaches (IRBranchPasses.h).
+		cBranches.Init(pcCode);
+		bChanged |= IRRemoveUnreached(&cBranches);
+		cBranches.Commit();
+		cBranches.Kill();
 		if (!bChanged)
 		{
 			break;

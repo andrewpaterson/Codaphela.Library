@@ -183,6 +183,9 @@
     <ClCompile Include="IRBackendPasses.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRBranchPasses.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR65Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -927,6 +930,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRBackendPasses.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRBranchPasses.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Backend.h">

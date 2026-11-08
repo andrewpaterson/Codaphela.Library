@@ -167,7 +167,7 @@ enum EIR816Mnemonic
 #define IR816MF_BRANCH			0x00002000	//bra, brl and the conditional branches: to a label (IR816BranchLine).
 #define IR816MF_BRANCH_ZN		0x00004000	//beq, bne, bmi, bpl: read Z or N.
 #define IR816MF_BRANCH_C		0x00008000	//bcc, bcs: read C.
-#define IR816MF_ENDS_FLOW		0x00010000	//bra, brl, jml, jmp, rtl, rts, stp: the next line isn't run after it (IR816Unreachable).
+#define IR816MF_ENDS_FLOW		0x00010000	//bra, brl, jml, jmp, rtl, rts, stp: the next line isn't run after it (CIR816BranchCode::Flow).
 #define IR816MF_LEAVES			0x00020000	//Every b, j and rt mnemonic (bit and brk too, conservatively): may leave straight line code.
 #define IR816MF_WIDTH			0x00040000	//sep, rep.
 #define IR816MF_SETS_D			0x00080000	//pld, tcd: the direct page moves.

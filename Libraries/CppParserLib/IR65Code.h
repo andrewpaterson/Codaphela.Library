@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/MapStringInt.h"
+#include "IRBranchPasses.h"
 
 
 #define IR65_CODE_REGISTERS		4		//A, B, X and Y.
@@ -95,8 +96,8 @@ typedef CArrayTemplate<SIR65Widths>	CArrayIR65Widths;
 //A function's 65C64 code as the back end wrote it (from its label on), decoded line by line for the passes over
 //the text (CIR65Flags, CIR65Widths), with the widths each line runs at.  Load fails for code with an instruction
 //it doesn't know, a branch out of the function, or a register used at a width that depends on the way the line was
-//reached; the passes leave such code as it is.
-class CIR65Code
+//reached; the passes leave such code as it is.  It is a CIRBranchCode for the branch passes both back ends share.
+class CIR65Code : public CIRBranchCode
 {
 protected:
 	CArrayChars				maszLines;
@@ -113,7 +114,12 @@ public:
 
 	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
 
-	size			NumLines(void);
+	size			NumLines(void) override;
+	EIRCodeFlow		Flow(size uiLine) override;
+	size			Target(size uiLine) override;
+	bool			IsEntry(size uiLine) override;
+	bool			Retarget(size uiLine, size uiLabel) override;
+	bool			Invert(size uiLine, size uiLabel) override;
 	SIR65CodeLine*	GetLine(size uiLine);
 	CChars*			GetText(size uiLine);
 	SIR65Widths*	GetWidths(size uiLine);
@@ -122,9 +128,10 @@ public:
 	bool			FallsThrough(size uiLine);
 	void			Effect(size uiLine, SIR65Widths* psWidths, SIR65Widths* psReads, SIR65Widths* psWrites, uint8* puiUses);
 	void			ComputeFlagDemand(CArrayTemplate<uint8>* pauiDemand);
-	void			Remove(size uiLine);
+	void			Remove(size uiLine) override;
 	bool			IsRemoved(size uiLine);
 	bool			Replace(size uiLine, const char* szInstruction);
+	bool			Branch(size uiLine, const char* szMnemonic, size uiLabel);
 	void			WriteLine(CChars* pszOut, size uiLine);
 
 	static uint8	Bands(uint8 uiBits);
