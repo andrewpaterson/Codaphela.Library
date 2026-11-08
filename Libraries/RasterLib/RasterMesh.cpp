@@ -210,7 +210,7 @@ void CRasterMesh::BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale)
 	SFloat32Vec3		sOffset;
 	CArrayInt			aiCornerVertex;
 	CArrayInt			aiVertexNormal;
-	CMeshFace*			pcFace;
+	int*				piCorners;
 	SMeshNormalFace*	psNormalFace;
 	SRasterVertex*		psVertex;
 	SRasterTriangle*	psTriangle;
@@ -236,12 +236,12 @@ void CRasterMesh::BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale)
 
 	for (i = 0; i < iNumFaces; i++)
 	{
-		pcFace = pcMesh->GetFace(i);
+		piCorners = pcMesh->GetFaceCorners(i);
 		psNormalFace = bNormals ? pcMesh->mcNormals.mcFaces.Get(i) : NULL;
 
 		for (k = 0; k < 3; k++)
 		{
-			iCorner = pcFace->maiCorner[k];
+			iCorner = piCorners[k];
 
 			iNormal = -1;
 			if (bNormals)

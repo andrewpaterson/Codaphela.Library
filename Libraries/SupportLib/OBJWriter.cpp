@@ -179,7 +179,7 @@ void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, bool bTextureCoords, bool bVer
 {
 	size				i;
 	int					iNumFaces;
-	CMeshFace*			pcFace;
+	int*				piCorners;
 	SMeshUVFace*		psFaceUV;
 	CMeshUVLayer*		pcUVLayer;
 	SMeshNormalFace*	psFaceNormal;
@@ -197,11 +197,11 @@ void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, bool bTextureCoords, bool bVer
 	iNumFaces = pcMesh->NumFaces();
 	for (i = 0; i < (size)iNumFaces; i++)
 	{
-		pcFace = pcMesh->GetFace((int)i);
+		piCorners = pcMesh->GetFaceCorners((int)i);
 		psz->Append("f  ");
 		for (j = 0; j < NUM_FACE_CORNERS; j++)
 		{
-			psz->Append(-(pcFace->maiCorner[j]+1));
+			psz->Append(-(piCorners[j]+1));
 
 			if (bTextureCoords || bVertexNormals)
 			{

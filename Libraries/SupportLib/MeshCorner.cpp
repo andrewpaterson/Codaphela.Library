@@ -45,28 +45,3 @@ void CMeshCorner::Kill(void)
 	maiEdge.Kill();
 	maiFace.Kill();
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshCorner::Save(CFileWriter* pcFile)
-{
-	ReturnOnFalse(maiEdge.Write(pcFile));
-	ReturnOnFalse(maiFace.Write(pcFile));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshCorner::Load(CFileReader* pcFile)
-{
-	ReturnOnFalse(maiEdge.Read(pcFile));
-	ReturnOnFalse(maiFace.Read(pcFile));
-	return true;
-}
-

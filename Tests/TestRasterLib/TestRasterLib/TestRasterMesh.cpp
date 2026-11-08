@@ -58,6 +58,7 @@ void TestRasterMeshBuild(void)
 
 	cRaster.Init();
 	cRaster.Build(&cMesh);
+	AssertFalse(cMesh.GetConnectivity()->IsGenerated());
 
 	//The quad shares corners 0 and 2.  The triangle has its own.
 	AssertSize(7, cRaster.masVertices.NumElements());

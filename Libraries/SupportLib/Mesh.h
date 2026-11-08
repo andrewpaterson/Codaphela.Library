@@ -74,6 +74,7 @@ public:
 	CMeshCorner*	GetCorner(int iIndex);
 	CMeshEdge*		GetEdge(int iIndex);
 	CMeshFace*		GetFace(int iIndex);
+	int*			GetFaceCorners(int iIndex);  //Doesn't generate the mesh's connectivity, GetFace does.
 
 	void			ClearConnectivity(void);
 

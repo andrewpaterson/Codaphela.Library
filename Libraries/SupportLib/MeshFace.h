@@ -20,7 +20,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_FACE_H__
 #define __MESH_FACE_H__
-#include "BaseLib/ChunkFile.h"
 #include "MeshDefines.h"
 
 
@@ -32,8 +31,6 @@ public:
 
 	void 	Init(void);
 	void 	Init(int iCorner1, int iCorner2, int iCorner3);
-	bool	Save(CFileWriter* pcFile);
-	bool	Load(CFileReader* pcFile);
 	int		GetOffsetForCorner(int iCornerNum);
 };
 

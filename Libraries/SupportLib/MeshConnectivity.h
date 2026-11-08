@@ -48,17 +48,25 @@ typedef	CArrayTemplate<CCornerEdgesMap>		CArrayCornerEdgesMap;
 
 
 //Positions belongs in here, not separate.
+//Adding a corner or a face only records it.  What touches what (a corner's faces and edges, the edges, a face's edges) is
+//generated for the corners and faces added since it was last generated, when something asks for it.  A mesh that is
+//only read from its faces' corners never pays for it, and removing a face is never needed: a new mesh is built instead.
 class CMeshConnectivity : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshConnectivity);
 DESTRUCTABLE(CMeshConnectivity);
 public:
+	CArrayFace				mcFaces;  //maiCorner is always valid.  maiEdge isn't until generated, GetFace does that.
+
+protected:
 	CArrayCorner			mcCorners;
 	CArrayEdge				mcEdges;
-	CArrayFace				mcFaces;
-
 	CArrayCornerEdgesMap	mcCornerEdgesMap;
 
+	size					muiNumCorners;
+	size					muiGeneratedFaces;
+
+public:
 	void 			Init(void);
 	void 			Free(void) override;
 	void			Class(void) override;
@@ -67,23 +75,35 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 
-	void			InitCorners(size iNumCorners);
-	void			KillCorners(void);
-	void			KillCornerEdgesMap(void);
-	CMeshCorner*	AddCorner(void);
-	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);
+	void			AddCorner(void);
+	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);  //NewEdges is zero, GenerateConnectivity returns it.
+
+	size			NumCorners(void);
+	size			NumFaces(void);
+	int*			GetFaceCorners(int iElementNum);
+	size			FaceChunkSize(void);
+	size			CornerChunkSize(void);
+
+	//These generate what they need.
+	size			NumEdges(void);
 	CMeshCorner*	GetCorner(int iElementNum);
 	CMeshEdge*		GetEdge(int iElementNum);
 	CMeshFace*		GetFace(int iElementNum);
+	CCornerEdgesMap*	GetCornerEdgesMap(int iElementNum);
 	SAdjFaces		GetAdjacentFaces(int iFaceNum);
 
-	int				GenerateEdgeConnectivity(void);
-	int				GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum);
-	int				GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum, int iC1, int iC2, int iE);
+	int				GenerateConnectivity(void);  //Returns how many edges were new.
+	bool			IsGenerated(void);
 
 	void			IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces);
 
 protected:
+	void			KillCorners(void);
+	void			KillCornerEdgesMap(void);
+	int				GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum);
+	int				GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum, int iC1, int iC2, int iE);
+	void			GenerateCornerFaces(CMeshFace* pcFace, int iFaceNum);
+	void			GenerateCorners(void);
 	CMeshEdge*		AddEdge(void);
 	CMeshFace*		AddFace(void);
 };

@@ -259,7 +259,7 @@ void CMeshFaceTypes::GenerateFromSkin(CMesh* pcMesh)
 {
 	size				i;
 	SMeshFaceType*		psType;
-	CMeshFace*			pcFace;
+	int*				piCorners;
 	size				iNumFaces;
 	int					iMatricies;
 	CMeshSkin*			pcSkin;
@@ -271,10 +271,10 @@ void CMeshFaceTypes::GenerateFromSkin(CMesh* pcMesh)
 	{
 		for (i = 0; i < iNumFaces; i++)
 		{
-			pcFace = pcMesh->GetFace((int)i);
+			piCorners = pcMesh->GetFaceCorners((int)i);
 			psType = mcFaces.Get(i);
 
-			iMatricies = pcSkin->GetFaceVertexMaxMatrixCount(pcFace->maiCorner[0], pcFace->maiCorner[1], pcFace->maiCorner[2]);
+			iMatricies = pcSkin->GetFaceVertexMaxMatrixCount(piCorners[0], piCorners[1], piCorners[2]);
 			psType->iFlags1 |= MESH_FACE_MATRIX_MASK1 & ((uint32)iMatricies << MESH_FACE_MATRIX_SHIFT);
 		}
 	}

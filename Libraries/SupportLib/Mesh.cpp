@@ -142,7 +142,7 @@ bool CMesh::Touch(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::NumCorners(void)
 {
-	return (int)mcConnectivity.mcCorners.NumElements();
+	return (int)mcConnectivity.NumCorners();
 }
 
 
@@ -152,7 +152,7 @@ int CMesh::NumCorners(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::NumFaces(void)
 {
-	return (int)mcConnectivity.mcFaces.NumElements();
+	return (int)mcConnectivity.NumFaces();
 }
 
 
@@ -162,7 +162,7 @@ int CMesh::NumFaces(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::NumEdges(void)
 {
-	return (int)mcConnectivity.mcEdges.NumElements();
+	return (int)mcConnectivity.NumEdges();
 }
 
 
@@ -182,7 +182,7 @@ int CMesh::TestNumPositions(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::FaceChunkSize(void)
 {
-	return (int)mcConnectivity.mcFaces.ChunkSize();
+	return (int)mcConnectivity.FaceChunkSize();
 }
 
 
@@ -192,7 +192,7 @@ int CMesh::FaceChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::CornerChunkSize(void)
 {
-	return (int)mcConnectivity.mcCorners.ChunkSize();
+	return (int)mcConnectivity.CornerChunkSize();
 }
 
 
@@ -222,7 +222,7 @@ SFloat32Vec3* CMesh::GetPosition(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 CMeshCorner* CMesh::GetCorner(int iIndex)
 {
-	return mcConnectivity.mcCorners.Get(iIndex);
+	return mcConnectivity.GetCorner(iIndex);
 }
 
 
@@ -232,7 +232,7 @@ CMeshCorner* CMesh::GetCorner(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 CMeshEdge* CMesh::GetEdge(int iIndex)
 {
-	return mcConnectivity.mcEdges.Get(iIndex);
+	return mcConnectivity.GetEdge(iIndex);
 }
 
 
@@ -242,7 +242,17 @@ CMeshEdge* CMesh::GetEdge(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 CMeshFace* CMesh::GetFace(int iIndex)
 {
-	return mcConnectivity.mcFaces.Get(iIndex);
+	return mcConnectivity.GetFace(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int* CMesh::GetFaceCorners(int iIndex)
+{
+	return mcConnectivity.GetFaceCorners(iIndex);
 }
 
 

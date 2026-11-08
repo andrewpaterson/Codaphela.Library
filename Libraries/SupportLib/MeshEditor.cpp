@@ -226,12 +226,20 @@ void CMeshEditor::AddCorner(SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31)
 {
-	CMFRet		rFace;
-	CMeshFace*	pcFace;
+	CMFRet				rFace;
+	CMeshFace*			pcFace;
+	CMeshConnectivity*	pcConn;
+	int					iNewEdges;
+
+	//Selections, edge visibility and polygons need this one face's edges, not those of faces added directly to the mesh.
+	pcConn = mpMesh->GetConnectivity();
+	pcConn->GenerateConnectivity();
 
 	rFace = mpMesh->AddFace(iCorner1, iCorner2, iCorner3);
+	iNewEdges = pcConn->GenerateConnectivity();
+	rFace.Pack(rFace.miFirstFace, 0, 1, 2, iNewEdges);
 	pcFace = mpMesh->GetFace(rFace.miFirstFace);
-	
+
 	mcSelections.AddFace(rFace.NewEdges());
 	mcEdgeVisibility.AddFace(pcFace, rFace.NewEdges(), bEdge12, bEdge23, bEdge31);
 	mcPolygons.AddFace(pcFace, rFace.miFirstFace, iName, mpMesh->GetConnectivity(), bEdge12, bEdge23, bEdge31);

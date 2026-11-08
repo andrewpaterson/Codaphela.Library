@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/PrimitiveTypes.h"
 #include "MeshFace.h"
 
 
@@ -55,30 +56,6 @@ void CMeshFace::Init(int iCorner1, int iCorner2, int iCorner3)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMeshFace::Save(CFileWriter* pcFile)
-{
-	ReturnOnFalse(pcFile->WriteIntArray(maiCorner, NUM_FACE_CORNERS));
-	ReturnOnFalse(pcFile->WriteIntArray(maiEdge, NUM_FACE_EDGES));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshFace::Load(CFileReader* pcFile)
-{
-	ReturnOnFalse(pcFile->ReadIntArray(maiCorner, NUM_FACE_CORNERS));
-	ReturnOnFalse(pcFile->ReadIntArray(maiEdge, NUM_FACE_EDGES));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 int CMeshFace::GetOffsetForCorner(int iCornerNum)
 {
 	size	i;
@@ -92,5 +69,3 @@ int CMeshFace::GetOffsetForCorner(int iCornerNum)
 	}
 	return -1;
 }
-
-

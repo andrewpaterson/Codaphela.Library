@@ -68,6 +68,9 @@ void CMeshConnectivity::Init(void)
 
 	mcCornerEdgesMap.Init();
 
+	muiNumCorners = 0;
+	muiGeneratedFaces = 0;
+
 	PostInit();
 }
 
@@ -97,12 +100,14 @@ void CMeshConnectivity::Class(void)
 	U_Unknown(CArrayEdge, mcEdges);
 	U_Unknown(CArrayFace, mcFaces);
 	U_Unknown(CArrayCornerEdgesMap, mcCornerEdgesMap);
+	U_Size(muiNumCorners);
+	U_Size(muiGeneratedFaces);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//																				//
+//																				//
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::Clear(void)
 {
@@ -112,15 +117,17 @@ void CMeshConnectivity::Clear(void)
 	KillCorners();
 	mcCorners.Init();
 
-	mcCorners.ReInit();
 	mcEdges.ReInit();
 	mcFaces.ReInit();
+
+	muiNumCorners = 0;
+	muiGeneratedFaces = 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//																				//
+//																				//
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::KillCorners(void)
 {
@@ -140,8 +147,8 @@ void CMeshConnectivity::KillCorners(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//																				//
+//																				//
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::KillCornerEdgesMap(void)
 {
@@ -161,55 +168,22 @@ void CMeshConnectivity::KillCornerEdgesMap(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::InitCorners(size iNumCorners)
-{
-	size			i;
-	CMeshCorner*	psCorner;
-
-	mcCorners.Init();
-	mcCorners.Resize(iNumCorners);
-
-	for (i = 0; i < iNumCorners; i++)
-	{
-		psCorner = mcCorners.Get(i);
-		psCorner->Init();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshConnectivity::AddFace(int iCorner1, int iCorner2, int iCorner3)
 {
 	CMeshFace*		pcFace;
-	CMeshCorner*	pcCorner;
 	int				iFaceNum;
-	int				iNewEdges;
 	CMFRet			rFace;
 
-	//Calling AddFace/RemoveFace is the only public way to alter the connectivity of the mesh.
+	//Calling AddFace is the only public way to alter the connectivity of the mesh.
 	iFaceNum = (int)mcFaces.NumElements();
 
 	pcFace = AddFace();
 	pcFace->Init(iCorner1, iCorner2, iCorner3);
 
-	pcCorner = mcCorners.Get(pcFace->maiCorner[0]);
-	pcCorner->maiFace.Add(iFaceNum);
-
-	pcCorner = mcCorners.Get(pcFace->maiCorner[1]);
-	pcCorner->maiFace.Add(iFaceNum);
-
-	pcCorner = mcCorners.Get(pcFace->maiCorner[2]);
-	pcCorner->maiFace.Add(iFaceNum);
-
-	iNewEdges = GenerateEdgeConnectivity(pcFace, iFaceNum);
-
-	rFace.Pack(iFaceNum, 0, 1, 2,iNewEdges);
+	rFace.Pack(iFaceNum, 0, 1, 2, 0);
 	return rFace;
 }
 
@@ -218,19 +192,10 @@ CMFRet CMeshConnectivity::AddFace(int iCorner1, int iCorner2, int iCorner3)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CMeshCorner* CMeshConnectivity::AddCorner(void)
+void CMeshConnectivity::AddCorner(void)
 {
-	CMeshCorner*		psCorner;
-	CCornerEdgesMap*	pcCornerEdgesMap;
-
 	//Adding a corner does not alter the connectivity until it is part of a face.
-	psCorner = mcCorners.Add();
-	psCorner->Init();
-
-	pcCornerEdgesMap = mcCornerEdgesMap.Add();
-	pcCornerEdgesMap->Init();
-
-	return psCorner;
+	muiNumCorners++;
 }
 
 
@@ -266,8 +231,60 @@ CMeshFace* CMeshConnectivity::AddFace(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+size CMeshConnectivity::NumCorners(void)
+{
+	return muiNumCorners;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshConnectivity::NumFaces(void)
+{
+	return mcFaces.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshConnectivity::NumEdges(void)
+{
+	GenerateConnectivity();
+	return mcEdges.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshConnectivity::FaceChunkSize(void)
+{
+	return mcFaces.ChunkSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshConnectivity::CornerChunkSize(void)
+{
+	return mcCorners.ChunkSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CMeshCorner* CMeshConnectivity::GetCorner(int iElementNum)
 {
+	GenerateConnectivity();
 	return mcCorners.SafeGet(iElementNum);
 }
 
@@ -278,6 +295,7 @@ CMeshCorner* CMeshConnectivity::GetCorner(int iElementNum)
 //////////////////////////////////////////////////////////////////////////
 CMeshEdge* CMeshConnectivity::GetEdge(int iElementNum)
 {
+	GenerateConnectivity();
 	return mcEdges.SafeGet(iElementNum);
 }
 
@@ -288,7 +306,29 @@ CMeshEdge* CMeshConnectivity::GetEdge(int iElementNum)
 //////////////////////////////////////////////////////////////////////////
 CMeshFace* CMeshConnectivity::GetFace(int iElementNum)
 {
+	GenerateConnectivity();
 	return mcFaces.SafeGet(iElementNum);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int* CMeshConnectivity::GetFaceCorners(int iElementNum)
+{
+	return mcFaces.Get(iElementNum)->maiCorner;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCornerEdgesMap* CMeshConnectivity::GetCornerEdgesMap(int iElementNum)
+{
+	GenerateConnectivity();
+	return mcCornerEdgesMap.SafeGet(iElementNum);
 }
 
 
@@ -298,75 +338,38 @@ CMeshFace* CMeshConnectivity::GetFace(int iElementNum)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConnectivity::Load(CObjectReader* pcFile)
 {
-	size			i;
-	CMeshCorner*	pcCorner;
-	size			uiNumElements;
+	size		i;
+	size		uiNumFaces;
+	CMeshFace*	pcFace;
 
 	ReturnOnFalse(CMeshDetail::Load(pcFile));
+	ReturnOnFalse(pcFile->ReadSize(&muiNumCorners));
+	ReturnOnFalse(mcFaces.Read(pcFile));
 
-	if (mcCorners.ReadAllocatorAndHeader(pcFile))
+	uiNumFaces = mcFaces.NumElements();
+	for (i = 0; i < uiNumFaces; i++)
 	{
-		gcUserError.Set("Could not read corners.");
-		return false;
+		pcFace = mcFaces.Get(i);
+		pcFace->Init(pcFace->maiCorner[0], pcFace->maiCorner[1], pcFace->maiCorner[2]);
 	}
 
-	//Read in each corner... they contain arrays themselves.
-	uiNumElements = mcCorners.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcCorner = mcCorners.Get(i);
-		if (!pcCorner->Load(pcFile))
-		{
-			gcUserError.Set("Could not read corner.");
-			return false;
-		}
-	}
-
-	//Read in the edges array.
-	if (mcEdges.Read(pcFile))
-	{
-		gcUserError.Set("Could not read edges array.");
-		return false;
-	}
-
-
-	//Read in the faces array.  
-	if (mcFaces.Read(pcFile))
-	{
-		gcUserError.Set("Could not read faces array.");
-		return false;
-	}
-
+	mcCorners.Init();
+	mcEdges.Init();
+	mcCornerEdgesMap.Init();
+	muiGeneratedFaces = 0;
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only what can't be generated again is written.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConnectivity::Save(CObjectWriter* pcFile)
 {
-	size			i;
-	CMeshCorner*	pcCorner;
-	size			uiNumElements;
-
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
-
-	ReturnOnFalse(mcCorners.WriteAllocatorAndHeader(pcFile));
-
-	uiNumElements = mcCorners.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcCorner = mcCorners.Get(i);
-		if (!pcCorner->Save(pcFile))
-		{
-			gcUserError.Set("Could not read corner.");
-			return false;
-		}
-	}
-
-	ReturnOnFalse(mcEdges.Write(pcFile));
+	ReturnOnFalse(pcFile->WriteSize(muiNumCorners));
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	return true;
 }
@@ -384,6 +387,8 @@ SAdjFaces CMeshConnectivity::GetAdjacentFaces(int iFaceNum)
 	int			iAdjFaceNum;
 	int			iEdgeIndex;
 	SAdjFaces	sAdjFaces;
+
+	GenerateConnectivity();
 
 	psFace = mcFaces.Get(iFaceNum);
 
@@ -413,38 +418,68 @@ SAdjFaces CMeshConnectivity::GetAdjacentFaces(int iFaceNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshConnectivity::GenerateEdgeConnectivity(void)
+int CMeshConnectivity::GenerateConnectivity(void)
 {
-	size				iCornerNum;
-	size				iFaceNum;
-	size				iNumCorners;
-	CCornerEdgesMap*	pcCornerEdgesMap;
-	CMeshFace*			pcFace;
-	int					iNumEdges;
-	size				iNumFaces;
+	size		uiNumFaces;
+	int			iNewEdges;
+	CMeshFace*	pcFace;
 
-	mcEdges.Kill();
-	mcEdges.Init();
+	GenerateCorners();
 
-	KillCornerEdgesMap();
-	mcCornerEdgesMap.Init();
-
-	iNumCorners = mcCorners.NumElements();
-
-	for (iCornerNum = 0; iCornerNum < iNumCorners; iCornerNum++)
+	iNewEdges = 0;
+	uiNumFaces = mcFaces.NumElements();
+	for (; muiGeneratedFaces < uiNumFaces; muiGeneratedFaces++)
 	{
+		pcFace = mcFaces.Get(muiGeneratedFaces);
+		GenerateCornerFaces(pcFace, (int)muiGeneratedFaces);
+		iNewEdges += GenerateEdgeConnectivity(pcFace, (int)muiGeneratedFaces);
+	}
+	return iNewEdges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshConnectivity::IsGenerated(void)
+{
+	return (mcCorners.NumElements() == muiNumCorners) && (muiGeneratedFaces == mcFaces.NumElements());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshConnectivity::GenerateCorners(void)
+{
+	CMeshCorner*		pcCorner;
+	CCornerEdgesMap*	pcCornerEdgesMap;
+
+	while (mcCorners.NumElements() < muiNumCorners)
+	{
+		pcCorner = mcCorners.Add();
+		pcCorner->Init();
+
 		pcCornerEdgesMap = mcCornerEdgesMap.Add();
 		pcCornerEdgesMap->Init();
 	}
+}
 
-	iNumEdges = 0;
-	iNumFaces = mcFaces.NumElements();
-	for (iFaceNum = 0; iFaceNum < iNumFaces; iFaceNum++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshConnectivity::GenerateCornerFaces(CMeshFace* pcFace, int iFaceNum)
+{
+	size	i;
+
+	for (i = 0; i < NUM_FACE_CORNERS; i++)
 	{
-		pcFace = mcFaces.Get(iFaceNum);
-		iNumEdges += GenerateEdgeConnectivity(pcFace, (int)iFaceNum);
+		mcCorners.Get(pcFace->maiCorner[i])->maiFace.Add(iFaceNum);
 	}
-	return iNumEdges;
 }
 
 
@@ -501,7 +536,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 	else
 	{
 		iEdgeIndex = pcCornerEdgesMap->maiEdgeIndex.GetValue(uiIndex);
-		pcEdge = GetEdge(iEdgeIndex);
+		pcEdge = mcEdges.Get(iEdgeIndex);
 	}
 
 	pcCornerSmall = mcCorners.Get(iCornerSmall);

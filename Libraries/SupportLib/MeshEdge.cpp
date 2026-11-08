@@ -39,30 +39,6 @@ void CMeshEdge::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMeshEdge::Save(CFileWriter* pcFile)
-{
-	ReturnOnFalse(pcFile->WriteIntArray(maiCorner, NUM_EDGE_CORNERS));
-	ReturnOnFalse(pcFile->WriteIntArray(maiFace, MAX_EDGE_FACES));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshEdge::Load(CFileReader* pcFile)
-{
-	ReturnOnFalse(pcFile->ReadIntArray(maiCorner, NUM_EDGE_CORNERS));
-	ReturnOnFalse(pcFile->ReadIntArray(maiFace, MAX_EDGE_FACES));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 bool CMeshEdge::AddFace(int iFaceNum)
 {
 	if (maiFace[0] == -1)
@@ -77,4 +53,3 @@ bool CMeshEdge::AddFace(int iFaceNum)
 	}
 	return false;
 }
-

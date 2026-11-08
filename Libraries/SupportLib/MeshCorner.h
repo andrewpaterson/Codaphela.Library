@@ -20,7 +20,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_CORNER_H__
 #define __MESH_CORNER_H__
-#include "BaseLib/ChunkFile.h"
 #include "BaseLib/ArrayEmbeddedInt.h"
 
 
@@ -32,8 +31,6 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
-	bool	Save(CFileWriter* pcFile);
-	bool 	Load(CFileReader* pcFile);
 };
 
 

@@ -50,6 +50,7 @@ void TestMeshVRMLReaderFile(void)
 	//Two triangles, then those again by USE, then a quad and a shape on its own.
 	AssertInt(4 + 4 + 4 + 3, cMesh.NumCorners());
 	AssertInt(2 + 2 + 2 + 1, cMesh.NumFaces());
+	AssertFalse(cMesh.GetConnectivity()->IsGenerated());
 
 	//Scaled by 2, rotated a quarter turn around Z and translated.
 	AssertVRMLVec3(10.0f, 20.0f, 30.0f, cMesh.GetPosition(0));

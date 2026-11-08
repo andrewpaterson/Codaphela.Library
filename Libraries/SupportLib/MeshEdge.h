@@ -20,7 +20,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_EDGE_H__
 #define __MESH_EDGE_H__
-#include "BaseLib/ChunkFile.h"
 
 
 #define NUM_EDGE_CORNERS	2
@@ -34,8 +33,6 @@ public:
 	int		maiFace[MAX_EDGE_FACES];			//Faces on this edge.  A Maximum of two is assumed.  Unused indices are set to -1.
 
 	void	Init(void);
-	bool 	Save(CFileWriter* pcFile);
-	bool 	Load(CFileReader* pcFile);
 	bool	AddFace(int iFaceNum);
 };
 
