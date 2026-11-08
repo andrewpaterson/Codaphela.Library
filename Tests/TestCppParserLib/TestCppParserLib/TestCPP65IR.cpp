@@ -824,6 +824,24 @@ void TestCPP65IRMangledNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// A member template of a class defined outside it after a function that
+// calls it (StandardLib's CString::InitText): the call's instance has the
+// definition, and so its type.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRMemberTemplateDefinedLater(void)
+{
+	AssertInt(5, TestCPP65IRMain(
+		"template<class T> struct P { T* p; P(T* q) { p = q; } P(const P& o) { p = o.p; } };\n"
+		"struct S { int v; template<class X> P<S> Make(X x); P<S> Init(int i); };\n"
+		"P<S> S::Init(int i) { return Make(i); }\n"
+		"template<class X> P<S> S::Make(X x) { v = (int)x; return this; }\n"
+		"int main() { S s; P<S> p = s.Init(5); return p.p->v; }", 4));
+}
+
+
 void TestCPP65IR(void)
 {
 	BeginTests();
@@ -853,6 +871,7 @@ void TestCPP65IR(void)
 	TestCPP65IROverloadedFunctionPointers();
 	TestCPP65IRMangledNames();
 	TestCPP65IRConstantTypes();
+	TestCPP65IRMemberTemplateDefinedLater();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

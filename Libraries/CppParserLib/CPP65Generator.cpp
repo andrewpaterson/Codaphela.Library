@@ -1443,6 +1443,40 @@ int64 CCPP65Generator::GetName(CCPPSyntaxDeclarator* pcDeclarator)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a declaration defines a member template of a class (not a class
+// template) outside it: template<class T> int CValue::Size(T* p) { ... }.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
+{
+	CCPPSyntaxTemplateDeclaration*	pcTemplate;
+	CCPPSyntaxName*					pcName;
+	CCPPSyntaxNameComponent*		pcClass;
+
+	if (pcDeclaration->GetKind() != CPPS_TemplateDeclaration)
+	{
+		return false;
+	}
+	pcTemplate = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
+	if (pcTemplate->mbInstantiation || (pcTemplate->macpParameters.NumElements() == 0) || !pcTemplate->mpcDeclaration || (pcTemplate->mpcDeclaration->GetKind() != CPPS_FunctionDefinition))
+	{
+		return false;
+	}
+	pcName = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDeclaration)->mpcDeclarator->GetName();
+	if (!pcName || (pcName->macpComponents.NumElements() != 2))
+	{
+		return false;
+	}
+	pcClass = (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0);
+	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !GetTemplateByName(GetComponentName(pcClass));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The declarations in order, but the member templates defined outside their
+// class first (IsOutsideMemberTemplate): a function before one may call it,
+// and its instance needs its definition.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
@@ -1458,6 +1492,18 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
 	{
 		pcDeclaration = papcDeclarations->GetPtr(i);
+		if (IsOutsideMemberTemplate(pcDeclaration))
+		{
+			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
+		}
+	}
+	for (i = 0; i < papcDeclarations->NumElements(); i++)
+	{
+		pcDeclaration = papcDeclarations->GetPtr(i);
+		if (IsOutsideMemberTemplate(pcDeclaration))
+		{
+			continue;
+		}
 		switch (pcDeclaration->GetKind())
 		{
 		case CPPS_FunctionDefinition:
