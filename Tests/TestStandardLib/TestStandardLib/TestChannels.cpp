@@ -347,19 +347,28 @@ void TestChannelsAddDuplicate(void)
 	AssertSize(1, cChannels.GetNumChannels());
 	AssertSize(2, cChannels.GetByteSize());
 
-	//Removing a channel and adding it back in one change is allowed.
+	//Removing a channel and adding it back in one change is allowed.  As another type it is a new channel: it starts as
+	//zero, its old bytes aren't read as its new ones.
+	((uint8*)cChannels.GetData())[0] = 0x11;
+	((uint8*)cChannels.GetData())[1] = 0x22;
 	cChannels.BeginChange();
 	AssertTrue(cChannels.RemoveChannel(0));
 	cChannels.AddChannel(0, PT_uint16);
 	AssertTrue(cChannels.EndChange());
 	AssertSize(1, cChannels.GetNumChannels());
 	AssertSize(16, cChannels.GetBitStride());
+	AssertMemory("\0\0\0\0", cChannels.GetData(), 4);
 
+	//A channel kept keeps its data as another is added.
+	((uint16*)cChannels.GetData())[0] = 0x1234;
+	((uint16*)cChannels.GetData())[1] = 0x5678;
 	cChannels.BeginChange();
 	cChannels.AddChannel(1, PT_uint8);
 	AssertTrue(cChannels.EndChange());
 	AssertSize(2, cChannels.GetNumChannels());
 	AssertSize(2 * 3, cChannels.GetByteSize());
+	AssertInt((uint16)0x1234, *(uint16*)&((uint8*)cChannels.GetData())[0]);
+	AssertInt((uint16)0x5678, *(uint16*)&((uint8*)cChannels.GetData())[3]);
 
 	cChannels.Kill();
 

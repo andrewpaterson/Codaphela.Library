@@ -641,8 +641,8 @@ bool CChannels::EndChange(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Lays the data out again for the channels as they are now.  Each channel
-// that was in the old layout is moved, element by element, from its old bits
-// to its new ones; added channels start as zero.
+// that was in the old layout, as the same type, is moved, element by
+// element, from its old bits to its new ones; added channels start as zero.
 //
 //////////////////////////////////////////////////////////////////////////
 void CChannels::RelayoutData(CArrayChannelOffset* pcOldChannels, size uiOldBitStride, lsize uiOldSize)
@@ -689,8 +689,9 @@ void CChannels::RelayoutData(CArrayChannelOffset* pcOldChannels, size uiOldBitSt
 				break;
 			}
 		}
-		if (pcOld == NULL)
+		if ((pcOld == NULL) || (pcOld->eType != pcNew->eType) || (pcOld->miBitSize != pcNew->miBitSize))
 		{
+			//Added, or removed and added again as another type in this change: it starts as zero too.
 			continue;
 		}
 
