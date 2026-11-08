@@ -135,10 +135,10 @@ E11. [232] ValidatePtr is a bare if macro (dangling-else hazard).  [done a7534db
 E12. [324] ObjectFileErrorCheck is a bare if macro declaring a hidden sz.  [done 02f23da2d]
 E13. [233] Ptr/CPointer overload operator& to dereference; &p never gives the pointer's address.  [as intended]
 E14. [259] OMalloc/ONMalloc take Args by value.  [done 8c2ef2ebd]
-E15. [260] Three identical callback typedefs (Allocation/HollowAllocation/Destruction).
-E16. [276] CStackPointer::NumPointers returns int.
-E17. [329] ObjectHeader's ClassName / GetIdentifier return char*.
-E18. [397] OIndex iNumIndexed = mcMemory.NumIndexed() (a size).
+E15. [260] Three identical callback typedefs (Allocation/HollowAllocation/Destruction).  [done 364e44b3c]
+E16. [276] CStackPointer::NumPointers returns int.  [done 65379eda2]
+E17. [329] ObjectHeader's ClassName / GetIdentifier return char*.  [done 9c071b4ae]
+E18. [397] OIndex iNumIndexed = mcMemory.NumIndexed() (a size).  [done 364e44b3c]
 E19. [436] Deflate, Adler32/CRC32 Update and DeflateMatchLength take non-const uint8*.
 E20. [342] CompareDependentWriteObject is ComparePtrPtr on the first field.
 E21. [325] Every identifier writes the ignored 0xffffffff int32 (4 wasted bytes per pointer).
