@@ -68,7 +68,6 @@ B. Code generators to C++14
 
 B-1. C++98/03 still missing
   - B9a (S-M, do first: it is silently wrong) Bit-fields.  The parser keeps the width (CCPPSyntaxInitDeclarator::mpcBitField) but nothing in the generator reads it, so bit-fields are probably full fields with no truncation.
-  - B1 (L) Namespaces.  A namespace is an error when generating (CPP65Generator.cpp:1489, tested in TestCPP65GeneratorErrors).  Qualified names, nested classes in qualified names ("Namespaces and nested classes are not supported", CPP65Generator.cpp:2741), the namespace in labels, and argument-dependent lookup (there is none).  Range-for, free operators and any std:: code need it.  The parser's scopes already work.
   - B2 (XL) Exceptions: throw, try / catch, function-try-blocks, unwinding through destructors and temporaries, noexcept calling std::terminate, new throwing bad_alloc, dynamic_cast<T&> throwing bad_cast.  try is parsed but not a case in CCPP65IRFrontEnd::StatementOf, and throw is not lowered.  Needs exceptional edges in the IR, the optimiser respecting them (SSA, inliner, dead stores), and unwinding in both back ends.  setjmp-style unwinding chained through V is probably cheaper to build on these processors than tables, at a cost for each try.
   - B3 (S-M) typeid and std::type_info.  dynamic_cast<T*> already finds an object's type info.
   - B4 (L) Virtual inheritance.

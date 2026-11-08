@@ -427,6 +427,34 @@ Supported
 - float, double and long double: see Floating point.
 
 
+Namespaces
+----------
+
+The parser's scopes resolve names; the generator only has to tell functions of the same
+name apart, as it finds them by name (mcFunctionsOfNames).  A function that isn't a member has
+its namespace (pcNamespace, NULL for the global one), as a template has (pcNamespace, for one
+with no symbol, an operator).  Classes and variables are found by their symbols.
+
+A call chooses between the functions in the namespaces its name can mean, as
+CCPPScope::GatherOverloadScopes works them out from where the name was looked up
+(CCPPSyntaxName::mpcLookup).  Unqualified, the first scope outwards that has the name hides the
+rest; what a using directive nominates counts as declared in the nearest namespace enclosing
+both.  Qualified, a namespace's own functions (with those of the inline and unnamed namespaces
+in it), and only if it has none those of what it nominates.  An unqualified call also looks in
+the namespaces associated with its arguments' types (AddAssociatedNamespaces), which finds
+functions and function templates nothing declares where the call is, and friends.
+
+An operator has no name to look up: FindFreeOperator uses the namespaces around the function
+being written and the arguments' associated ones.  It doesn't hide outer operators, and a
+using directive in the function's block isn't seen.
+
+A name in a namespace without a name is labelled Unnamed, the namespace's number and __, and is
+local to the object.  A scope has one such namespace, however many blocks open it.
+
+Not done: a using declaration of a name its scope already declares is ignored, as a scope has
+one symbol for a name (AddAlias), so the two sets of overloads aren't merged.
+
+
 Not supported yet
 -----------------
 
@@ -442,7 +470,7 @@ code is generated).
 - Virtual inheritance.
 - Postfix ++ and -- on objects; operator-> that returns an object; conversion functions to classes and
   references, and conversion function templates.
-- Namespaces, nested classes in qualified names, static locals that are objects or
+- Static locals that are objects or
   have initialisers that are not constant (they would need a first time guard),
   extern and thread_local locals, wide and raw string literals.
 
