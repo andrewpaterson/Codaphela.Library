@@ -532,11 +532,9 @@ bool CCPP65IRFrontEnd::ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObje
 //////////////////////////////////////////////////////////////////////////
 //
 // A member function's object is worked out first (ThisObject; last if
-// bObjectLast, for a = b's operator), then the arguments last first, each
-// converted to its parameter's type; missing ones are the defaults.  A
-// variadic function's extra arguments are promoted.  A reference gets the
-// argument's address.  The result comes back as the IR return type and is
-// narrowed to the C++ type.
+// bObjectLast, for a = b's operator), then the arguments (GatherArguments).
+// A reference gets the argument's address.  The result comes back as the
+// IR return type and is narrowed to the C++ type.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject, bool bObjectLast)
@@ -548,25 +546,16 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	size							uiArguments;
 	size							uiParameters;
 	size							ui;
-	CCPPSyntax*						pcArgument;
-	SCPP65Type*						psParameter;
-	SCPP65IRValue					sArgument;
-	SCPP65IRPlace					sPlace;
 	CArrayTemplate<SCPP65IRValue>	asArguments;
 	SIRType							sResultType;
 	SIRReference					sResult;
 	SIRReference					sObject;
 	bool							bThisCall;
-	int								iOffset;
-	int								iPiece;
 	SIRReference					sMade;
-	SIRType							sPiece;
 	CArrayIRReferences				asPieces;		//Every argument's value, an object's in pieces.
 	CArrayIRReferences				asLoaded;		//The pieces of the objects passed by value...
 	CArrayTemplate<int32>			aiLoaded;		//...and per argument where its pieces start, -1 for none.
 	int32							iLoaded;
-	SIRReference					sLoaded;
-	SCPP65IRPlace					sCopy;
 
 	if (psFunction)
 	{
@@ -609,166 +598,12 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	asLoaded.Init();
 	aiLoaded.Init();
 	aiLoaded.GrowToAtLeastNumElements(asArguments.NumElements(), true, 0xFF);
-	for (ui = uiArguments; ui > uiParameters; ui--)
+	if (!GatherArguments(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, &sMade, &asArguments, &asLoaded, &aiLoaded))
 	{
-		pcArgument = papcArguments->GetPtr(ui - 1);
-		if (!Value(pcArgument, &sArgument))
-		{
-			asArguments.Kill();
-			asLoaded.Kill();
-			aiLoaded.Kill();
-			return false;
-		}
-		if (sArgument.psType->eKind == CPP65TK_Bool)
-		{
-			psParameter = &mpcTypes->msInt;
-		}
-		else if (sArgument.psType->IsFloat())
-		{
-			psParameter = &mpcTypes->msDouble;
-		}
-		else if (sArgument.psType->IsInteger())
-		{
-			psParameter = mpcTypes->Promote(sArgument.psType);
-		}
-		else if (sArgument.psType->IsPointer())
-		{
-			psParameter = sArgument.psType;
-		}
-		else
-		{
-			asArguments.Kill();
-			asLoaded.Kill();
-			aiLoaded.Kill();
-			return Unsupported(__FILE__, __LINE__);
-		}
-		if (!Convert(&sArgument, psParameter))
-		{
-			asArguments.Kill();
-			asLoaded.Kill();
-			aiLoaded.Kill();
-			return false;
-		}
-		*asArguments.Get(ui - 1) = sArgument;
-	}
-	for (ui = uiParameters; ui > 0; ui--)
-	{
-		pcArgument = (ui <= uiArguments) ? papcArguments->GetPtr(ui - 1) : (papcDefaults ? papcDefaults->GetPtr(ui - 1) : NULL);
-		psParameter = papsParameters->GetPtr(ui - 1);
-		if (pcArgument && psParameter->IsClass() && (!bVariadic || (ui < uiParameters)) && mpcGenerator->CompleteClass(psParameter->psClass, NULL) && IsPassedByAddress(psParameter))
-		{
-			//A copy made here (and destroyed at the end of the full expression) is passed by its address.  Not a variadic
-			//function's last named parameter, whose address va_start takes for the arguments after it.
-			if (!Temporary(psParameter, &sCopy, true) || !Construct(&sCopy, NULL, pcArgument))
-			{
-				asArguments.Kill();
-				asLoaded.Kill();
-				aiLoaded.Kill();
-				return false;
-			}
-			sArgument.sValue = sCopy.sAddress;
-			sArgument.psType = mpcTypes->Pointer(psParameter);
-			*asArguments.Get(ui - 1) = sArgument;
-			continue;
-		}
-		if (!pcArgument || psParameter->IsArray() || (!IsSupportedType(psParameter) && !psParameter->IsClass()) ||
-			(psParameter->IsClass() && (bVariadic || !mpcGenerator->CompleteClass(psParameter->psClass, NULL) || !mpcGenerator->IsTriviallyCopyable(psParameter->psClass))))
-		{
-			asArguments.Kill();
-			asLoaded.Kill();
-			aiLoaded.Kill();
-			return Unsupported(__FILE__, __LINE__);
-		}
-		mpcGenerator->ConversionOverflow(pcArgument, psParameter);
-		if (psParameter->IsClass())
-		{
-			//An object passed by value is copied a piece at a time (only objects whose copy is their bytes).  One made
-			//for the call (not an object lvalue: a call's, Class(...)'s, or one a converting constructor makes) is the
-			//parameter, which the called function destroys, so it's made in a temporary the caller doesn't destroy.
-			if (!IsObjectLvalue(pcArgument) || !IsObjectExpression(pcArgument))
-			{
-				if (!Temporary(psParameter, &sCopy, false) || !Construct(&sCopy, NULL, pcArgument))
-				{
-					asArguments.Kill();
-					asLoaded.Kill();
-					aiLoaded.Kill();
-					return false;
-				}
-				sArgument.sValue = sCopy.sAddress;
-				sArgument.psType = psParameter;
-			}
-			else if (!Value(pcArgument, &sArgument))
-			{
-				asArguments.Kill();
-				asLoaded.Kill();
-				aiLoaded.Kill();
-				return false;
-			}
-			sPlace.sAddress = sArgument.sValue;
-			sPlace.psType = sArgument.psType->IsReference() ? sArgument.psType->psBase : sArgument.psType;
-			if (!sPlace.psType->IsClass() || !mpcGenerator->IsDerived(sPlace.psType->psClass, psParameter->psClass, NULL) || !ReferenceAddress(&sPlace, mpcTypes->Pointer(psParameter), &sArgument.sValue))
-			{
-				asArguments.Kill();
-				asLoaded.Kill();
-				aiLoaded.Kill();
-				return Unsupported(__FILE__, __LINE__);
-			}
-			sArgument.psType = psParameter;
-
-			//It is copied as it is worked out (the generator constructs it on the stack then), through a temporary for a
-			//class with vtables so the copy has its own class's.
-			if (mpcGenerator->IsPolymorphic(psParameter->psClass))
-			{
-				if (!Temporary(psParameter, &sCopy, false) || !CopyBytes(&sCopy, &sArgument))
-				{
-					asArguments.Kill();
-					asLoaded.Kill();
-					aiLoaded.Kill();
-					return false;
-				}
-				sArgument.sValue = sCopy.sAddress;
-			}
-			*aiLoaded.Get(ui - 1) = (int32)asLoaded.NumElements();
-			for (iOffset = 0; iOffset < psParameter->iBytes; iOffset += iPiece)
-			{
-				iPiece = PieceBytes(psParameter->iBytes - iOffset);
-				sPiece = IRIntegerType(iPiece);
-				sLoaded = mpcFunction->Load(mpcBlock, sPiece, AddressAt(sArgument.sValue, iOffset));
-				asLoaded.Add(&sLoaded);
-			}
-		}
-		else if (psParameter->IsReference())
-		{
-			if (!Place(pcArgument, &sPlace) || !ReferenceAddress(&sPlace, psParameter, &sArgument.sValue))
-			{
-				asArguments.Kill();
-				asLoaded.Kill();
-				aiLoaded.Kill();
-				return false;
-			}
-			sArgument.psType = psParameter;
-		}
-		else if (!ValueFor(pcArgument, psParameter, &sArgument) || !Convert(&sArgument, psParameter))
-		{
-			asArguments.Kill();
-			asLoaded.Kill();
-			aiLoaded.Kill();
-			return false;
-		}
-		*asArguments.Get(ui - 1) = sArgument;
-	}
-
-	//An object returned is made at the address passed first on the stack (a temporary's, or msElide's).
-	if (psReturn->IsClass() && sMade.IsNone())
-	{
-		if (!Temporary(psReturn, &sPlace, true))
-		{
-			asArguments.Kill();
-			asLoaded.Kill();
-			aiLoaded.Kill();
-			return false;
-		}
-		sMade = sPlace.sAddress;
+		aiLoaded.Kill();
+		asLoaded.Kill();
+		asArguments.Kill();
+		return false;
 	}
 
 	//The arguments in order, objects passed by value as their pieces.
@@ -823,6 +658,162 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	}
 	psValue->psType = psReturn;
 	psValue->sValue = psReturn->IsVoid() ? IRNone() : ConvertIR(sResult, sResultType, IRTypeOf(psReturn), false);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Call's arguments, last first: each converted to its parameter's type
+// (missing ones are the defaults; a variadic function's extra ones are
+// promoted), an object passed by value loaded as its pieces into pasLoaded
+// (paiLoaded: per argument where its pieces start, -1 for none), and the
+// temporary an object returned is made in (*psMade, unless it is given).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade,
+									   CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded)
+{
+	size			uiArguments;
+	size			uiParameters;
+	size			ui;
+	CCPPSyntax*		pcArgument;
+	SCPP65Type*		psParameter;
+	SCPP65IRValue	sArgument;
+	SCPP65IRPlace	sPlace;
+	SCPP65IRPlace	sCopy;
+	SIRType			sPiece;
+	SIRReference	sLoaded;
+	int				iOffset;
+	int				iPiece;
+
+	uiArguments = papcArguments->NumElements();
+	uiParameters = papsParameters ? papsParameters->NumElements() : 0;
+	for (ui = uiArguments; ui > uiParameters; ui--)
+	{
+		pcArgument = papcArguments->GetPtr(ui - 1);
+		if (!Value(pcArgument, &sArgument))
+		{
+			return false;
+		}
+		if (sArgument.psType->eKind == CPP65TK_Bool)
+		{
+			psParameter = &mpcTypes->msInt;
+		}
+		else if (sArgument.psType->IsFloat())
+		{
+			psParameter = &mpcTypes->msDouble;
+		}
+		else if (sArgument.psType->IsInteger())
+		{
+			psParameter = mpcTypes->Promote(sArgument.psType);
+		}
+		else if (sArgument.psType->IsPointer())
+		{
+			psParameter = sArgument.psType;
+		}
+		else
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (!Convert(&sArgument, psParameter))
+		{
+			return false;
+		}
+		*pasArguments->Get(ui - 1) = sArgument;
+	}
+	for (ui = uiParameters; ui > 0; ui--)
+	{
+		pcArgument = (ui <= uiArguments) ? papcArguments->GetPtr(ui - 1) : (papcDefaults ? papcDefaults->GetPtr(ui - 1) : NULL);
+		psParameter = papsParameters->GetPtr(ui - 1);
+		if (pcArgument && psParameter->IsClass() && (!bVariadic || (ui < uiParameters)) && mpcGenerator->CompleteClass(psParameter->psClass, NULL) && IsPassedByAddress(psParameter))
+		{
+			//A copy made here (and destroyed at the end of the full expression) is passed by its address.  Not a variadic
+			//function's last named parameter, whose address va_start takes for the arguments after it.
+			if (!Temporary(psParameter, &sCopy, true) || !Construct(&sCopy, NULL, pcArgument))
+			{
+				return false;
+			}
+			sArgument.sValue = sCopy.sAddress;
+			sArgument.psType = mpcTypes->Pointer(psParameter);
+			*pasArguments->Get(ui - 1) = sArgument;
+			continue;
+		}
+		if (!pcArgument || psParameter->IsArray() || (!IsSupportedType(psParameter) && !psParameter->IsClass()) ||
+			(psParameter->IsClass() && (bVariadic || !mpcGenerator->CompleteClass(psParameter->psClass, NULL) || !mpcGenerator->IsTriviallyCopyable(psParameter->psClass))))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		mpcGenerator->ConversionOverflow(pcArgument, psParameter);
+		if (psParameter->IsClass())
+		{
+			//An object passed by value is copied a piece at a time (only objects whose copy is their bytes).  One made
+			//for the call (not an object lvalue: a call's, Class(...)'s, or one a converting constructor makes) is the
+			//parameter, which the called function destroys, so it's made in a temporary the caller doesn't destroy.
+			if (!IsObjectLvalue(pcArgument) || !IsObjectExpression(pcArgument))
+			{
+				if (!Temporary(psParameter, &sCopy, false) || !Construct(&sCopy, NULL, pcArgument))
+				{
+					return false;
+				}
+				sArgument.sValue = sCopy.sAddress;
+				sArgument.psType = psParameter;
+			}
+			else if (!Value(pcArgument, &sArgument))
+			{
+				return false;
+			}
+			sPlace.sAddress = sArgument.sValue;
+			sPlace.psType = sArgument.psType->WithoutReference();
+			if (!sPlace.psType->IsClass() || !mpcGenerator->IsDerived(sPlace.psType->psClass, psParameter->psClass, NULL) || !ReferenceAddress(&sPlace, mpcTypes->Pointer(psParameter), &sArgument.sValue))
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
+			sArgument.psType = psParameter;
+
+			//It is copied as it is worked out (the generator constructs it on the stack then), through a temporary for a
+			//class with vtables so the copy has its own class's.
+			if (mpcGenerator->IsPolymorphic(psParameter->psClass))
+			{
+				if (!Temporary(psParameter, &sCopy, false) || !CopyBytes(&sCopy, &sArgument))
+				{
+					return false;
+				}
+				sArgument.sValue = sCopy.sAddress;
+			}
+			*paiLoaded->Get(ui - 1) = (int32)pasLoaded->NumElements();
+			for (iOffset = 0; iOffset < psParameter->iBytes; iOffset += iPiece)
+			{
+				iPiece = PieceBytes(psParameter->iBytes - iOffset);
+				sPiece = IRIntegerType(iPiece);
+				sLoaded = mpcFunction->Load(mpcBlock, sPiece, AddressAt(sArgument.sValue, iOffset));
+				pasLoaded->Add(&sLoaded);
+			}
+		}
+		else if (psParameter->IsReference())
+		{
+			if (!Place(pcArgument, &sPlace) || !ReferenceAddress(&sPlace, psParameter, &sArgument.sValue))
+			{
+				return false;
+			}
+			sArgument.psType = psParameter;
+		}
+		else if (!ValueFor(pcArgument, psParameter, &sArgument) || !Convert(&sArgument, psParameter))
+		{
+			return false;
+		}
+		*pasArguments->Get(ui - 1) = sArgument;
+	}
+
+	//An object returned is made at the address passed first on the stack (a temporary's, or msElide's).
+	if (psReturn->IsClass() && psMade->IsNone())
+	{
+		if (!Temporary(psReturn, &sPlace, true))
+		{
+			return false;
+		}
+		*psMade = sPlace.sAddress;
+	}
 	return true;
 }
 
