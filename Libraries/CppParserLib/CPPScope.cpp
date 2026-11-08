@@ -38,12 +38,14 @@ void CCPPScope::Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwn
 		mcSymbols.Init(pcMalloc, true);
 		mapcBases.Init(pcMalloc);
 		mapcUsings.Init(pcMalloc);
+		masUsedFunctions.Init(pcMalloc);
 	}
 	else
 	{
 		mcSymbols.Init(true);
 		mapcBases.Init();
 		mapcUsings.Init();
+		masUsedFunctions.Init();
 	}
 	mpcQualifier = NULL;
 	mbDependent = false;
@@ -57,6 +59,7 @@ void CCPPScope::Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwn
 void CCPPScope::Kill(void)
 {
 	mapcUsings.Kill();
+	masUsedFunctions.Kill();
 	mapcBases.Kill();
 	mcSymbols.Kill();
 }
@@ -68,7 +71,8 @@ void CCPPScope::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPScope::Add(CCPPSymbol* pcSymbol)
 {
-	CCPPSymbol**	ppcExisting;
+	CCPPSymbol**			ppcExisting;
+	SCPPScopeUsedFunction*	psUsed;
 
 	//Later declarations of a name chain after the first, so lookup finds the first.  A header's lazy declarations of
 	//the name are parsed first, so they stay before this one.
@@ -78,7 +82,15 @@ void CCPPScope::Add(CCPPSymbol* pcSymbol)
 		LoadLazy(pcSymbol->mlliName);
 		ppcExisting = mcSymbols.Get(pcSymbol->mlliName);
 	}
-	if (ppcExisting && *ppcExisting)
+	if (ppcExisting && *ppcExisting && ((*ppcExisting)->mpcScope != this) && (*ppcExisting)->IsFunction() && pcSymbol->IsFunction() && ((*ppcExisting)->mpcScope->meKind == CPPSC_Namespace))
+	{
+		//A function declared after using N::F; of its name.  The symbol found so far is N's, whose chain isn't this scope's.
+		psUsed = masUsedFunctions.Add();
+		psUsed->lliName = pcSymbol->mlliName;
+		psUsed->pcNamespace = (*ppcExisting)->mpcScope;
+		mcSymbols.Put(pcSymbol->mlliName, &pcSymbol);
+	}
+	else if (ppcExisting && *ppcExisting)
 	{
 		pcSymbol->mpcNext = (*ppcExisting)->mpcNext;
 		(*ppcExisting)->mpcNext = pcSymbol;
@@ -98,13 +110,21 @@ void CCPPScope::AddAlias(int64 lliName, CCPPSymbol* pcSymbol)
 {
 	//The name finds a symbol declared somewhere else, as a using-declaration does.  The symbol is not changed.  A
 	//header's lazy declarations of the name are parsed first.
-	CCPPSymbol**	ppcExisting;
+	CCPPSymbol**			ppcExisting;
+	SCPPScopeUsedFunction*	psUsed;
 
 	LoadLazy(lliName);
 	ppcExisting = mcSymbols.Get(lliName);
 	if (!ppcExisting || !*ppcExisting)
 	{
 		mcSymbols.Put(lliName, &pcSymbol);
+	}
+	else if ((*ppcExisting != pcSymbol) && (*ppcExisting)->IsFunction() && pcSymbol->IsFunction() && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Namespace))
+	{
+		//Its functions are overloads of those the name already has.  [namespace.udecl]
+		psUsed = masUsedFunctions.Add();
+		psUsed->lliName = lliName;
+		psUsed->pcNamespace = pcSymbol->mpcScope;
 	}
 }
 
@@ -349,8 +369,10 @@ bool CCPPScope::Encloses(CCPPScope* pcScope)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPScope::AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces)
 {
-	CCPPSymbol*	pcSymbol;
-	CCPPScope*	pcNamespace;
+	CCPPSymbol*				pcSymbol;
+	CCPPScope*				pcNamespace;
+	SCPPScopeUsedFunction*	psUsed;
+	size					ui;
 
 	for (pcSymbol = FindHere(lliName); pcSymbol; pcSymbol = pcSymbol->mpcNext)
 	{
@@ -360,6 +382,14 @@ bool CCPPScope::AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces)
 			if (papcNamespaces->Find(pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)
 			{
 				papcNamespaces->Add(pcNamespace);
+			}
+			for (ui = 0; ui < masUsedFunctions.NumElements(); ui++)
+			{
+				psUsed = masUsedFunctions.Get(ui);
+				if ((psUsed->lliName == lliName) && (papcNamespaces->Find(psUsed->pcNamespace) == ARRAY_ELEMENT_NOT_FOUND))
+				{
+					papcNamespaces->Add(psUsed->pcNamespace);
+				}
 			}
 			return true;
 		}

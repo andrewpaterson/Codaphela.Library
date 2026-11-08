@@ -41,6 +41,17 @@ typedef CArrayTemplatePtr<CCPPScope>		CArrayScopes;
 typedef CMapLongTemplate<CCPPSymbol*>		CMapSymbols;
 
 
+//using N::F; where the scope has an F too: lookup of the name here finds N's functions as well as its own.
+struct SCPPScopeUsedFunction
+{
+	int64		lliName;
+	CCPPScope*	pcNamespace;
+};
+
+
+typedef CArrayTemplate<SCPPScopeUsedFunction>	CArrayScopeUsedFunctions;
+
+
 class CCPPScope
 {
 public:
@@ -50,6 +61,7 @@ public:
 	CMapSymbols		mcSymbols;
 	CArrayScopes	mapcBases;			//The scopes of a class's base classes.
 	CArrayScopes	mapcUsings;			//Namespaces nominated by using directives (and inline and unnamed namespaces).
+	CArrayScopeUsedFunctions	masUsedFunctions;	//Functions using declarations name that the scope has functions of the name too.
 	CCPPScope*		mpcQualifier;		//A member function defined outside its class: the class is searched before the parent.
 	bool			mbDependent;		//A class whose bases or members depend on template parameters, so lookup can fail.
 
