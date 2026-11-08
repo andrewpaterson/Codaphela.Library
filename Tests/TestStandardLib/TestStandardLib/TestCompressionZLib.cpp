@@ -548,14 +548,14 @@ void TestCompressionInflateCodes(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCompressionReverseBits(void)
 {
-	AssertInt(0, DeflateReverseBits(0, 0));
-	AssertInt(1, DeflateReverseBits(1, 1));
-	AssertInt(0x4, DeflateReverseBits(0x1, 3));
-	AssertInt(0x6, DeflateReverseBits(0x3, 3));
-	AssertInt(0x0D, DeflateReverseBits(0x16, 5));
-	AssertInt(0x5555, DeflateReverseBits(0xAAAA, 16));
-	AssertInt(0x1, DeflateReverseBits(0xFFFF8000, 16));
-	AssertInt(0x0, DeflateReverseBits(0xF0, 4));
+	AssertInt((uint32)0, DeflateReverseBits(0, 0));
+	AssertInt((uint32)1, DeflateReverseBits(1, 1));
+	AssertInt((uint32)0x4, DeflateReverseBits(0x1, 3));
+	AssertInt((uint32)0x6, DeflateReverseBits(0x3, 3));
+	AssertInt((uint32)0x0D, DeflateReverseBits(0x16, 5));
+	AssertInt((uint32)0x5555, DeflateReverseBits(0xAAAA, 16));
+	AssertInt((uint32)0x1, DeflateReverseBits(0xFFFF8000, 16));
+	AssertInt((uint32)0x0, DeflateReverseBits(0xF0, 4));
 }
 
 

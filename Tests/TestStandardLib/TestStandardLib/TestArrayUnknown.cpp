@@ -497,18 +497,18 @@ void TestArrayUnknownRemoveDuringIterationMiddle(void)
 
 	bExists = cArray.StartIteration(&sIter, &pcUnknown);
 	AssertTrue(bExists);
-	AssertInt(0, ((CTestUnknown*)pcUnknown)->miCount);
+	AssertInt((int32)0, ((CTestUnknown*)pcUnknown)->miCount);
 	bExists = cArray.Iterate(&sIter, &pcUnknown);
 	AssertTrue(bExists);
-	AssertInt(1, ((CTestUnknown*)pcUnknown)->miCount);
+	AssertInt((int32)1, ((CTestUnknown*)pcUnknown)->miCount);
 
 	AssertTrue(cArray.RemoveDuringIteration(&sIter));
 	bExists = cArray.Iterate(&sIter, &pcUnknown);
 	AssertTrue(bExists);
-	AssertInt(2, ((CTestUnknown*)pcUnknown)->miCount);
+	AssertInt((int32)2, ((CTestUnknown*)pcUnknown)->miCount);
 	bExists = cArray.Iterate(&sIter, &pcUnknown);
 	AssertTrue(bExists);
-	AssertInt(3, ((CTestUnknown*)pcUnknown)->miCount);
+	AssertInt((int32)3, ((CTestUnknown*)pcUnknown)->miCount);
 	bExists = cArray.Iterate(&sIter, &pcUnknown);
 	AssertFalse(bExists);
 	AssertSize(3, cArray.NumElements());
@@ -545,9 +545,9 @@ void TestArrayUnknownLoadBadNonNullCount(void)
 	//Two elements that aren't NULL in an array of one.
 	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "ArrayUnknownCount" _FS_ "TooMany.dat")));
 	AssertTrue(cFile.WriteOpen());
-	AssertTrue(cFile.WriteSize(1));
-	AssertTrue(cFile.WriteSize(2));
-	AssertTrue(cFile.WriteSize(1));
+	AssertTrue(cFile.WriteSize((size)1));
+	AssertTrue(cFile.WriteSize((size)2));
+	AssertTrue(cFile.WriteSize((size)1));
 	AssertTrue(cFile.WriteInt16((uint16)0));
 	AssertTrue(gcUnknowns.SaveUnknown(&cFile, NULL));
 	AssertTrue(cFile.WriteClose());
@@ -567,9 +567,9 @@ void TestArrayUnknownLoadBadNonNullCount(void)
 	//Two that aren't NULL, but both elements are.
 	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "ArrayUnknownCount" _FS_ "AllNull.dat")));
 	AssertTrue(cFile.WriteOpen());
-	AssertTrue(cFile.WriteSize(2));
-	AssertTrue(cFile.WriteSize(2));
-	AssertTrue(cFile.WriteSize(1));
+	AssertTrue(cFile.WriteSize((size)2));
+	AssertTrue(cFile.WriteSize((size)2));
+	AssertTrue(cFile.WriteSize((size)1));
 	AssertTrue(cFile.WriteInt16((uint16)0));
 	AssertTrue(gcUnknowns.SaveUnknown(&cFile, NULL));
 	AssertTrue(gcUnknowns.SaveUnknown(&cFile, NULL));

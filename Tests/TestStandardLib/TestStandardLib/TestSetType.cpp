@@ -223,10 +223,10 @@ void TestSetTypeSaveWithHole(void)
 	AssertSize(2, gcUnknowns.NumElements());
 	bExists = cSet.StartIteration(&sIter, &pcTest);
 	AssertTrue(bExists);
-	AssertInt(1, pcTest->miCount);
+	AssertInt((int32)1, pcTest->miCount);
 	bExists = cSet.Iterate(&sIter, &pcTest);
 	AssertTrue(bExists);
-	AssertInt(3, pcTest->miCount);
+	AssertInt((int32)3, pcTest->miCount);
 	bExists = cSet.Iterate(&sIter, &pcTest);
 	AssertFalse(bExists);
 

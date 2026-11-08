@@ -1395,8 +1395,8 @@ void TestExternalObjectDeserialiserBadLoad(void)
 		pBad = cDeserialiser.Read("Ext/Bad");
 		cDeserialiser.Kill();
 		AssertTrue(pBad.IsNotNull());
-		AssertInt(5, pBad->miFirst);
-		AssertInt(6, pBad->miSecond);
+		AssertInt((int32)5, pBad->miFirst);
+		AssertInt((int32)6, pBad->miSecond);
 		cReader.Kill();
 
 		pBad = NULL;

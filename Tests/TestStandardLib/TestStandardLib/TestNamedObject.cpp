@@ -267,7 +267,7 @@ void TestNamedObjectAllocateNotInitialised(void)
 
 		pLate->Init(7);
 		AssertTrue(pLate->IsInitialised());
-		AssertInt(7, pLate->miNum);
+		AssertInt((int32)7, pLate->miNum);
 
 		pFound = gcObjects.Get("Late");
 		AssertPointer(pLate.Object(), pFound.Object());
