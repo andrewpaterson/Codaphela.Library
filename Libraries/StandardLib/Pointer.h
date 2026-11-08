@@ -55,7 +55,7 @@ public:
 
 
 bool FailValidPointerClassAllowNull(const char* szMethod, const char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
-#define ValidatePtr(p) if (!p.IsInstanceOfTemplateClass()) FailValidPointerClassAllowNull(__METHOD__, #p, p->ClassName(), p.TemplateClassName());
+#define ValidatePtr(p) do { if (!(p).IsInstanceOfTemplateClass()) { FailValidPointerClassAllowNull(__METHOD__, #p, (p)->ClassName(), (p).TemplateClassName()); } } while (false)
 
 
 //////////////////////////////////////////////////////////////////////////

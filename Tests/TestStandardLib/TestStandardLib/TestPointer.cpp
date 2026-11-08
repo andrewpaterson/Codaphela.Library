@@ -12,6 +12,10 @@
 #include "ObjectTestSetup.h"
 
 
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -377,13 +381,17 @@ void TestPointerReturn(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPointerValidatePtr(void)
 {
+	CMemoryFile	cLog;
 	SLogConfig	sLogConfig;
+	char		szLogged[512];
+	int32		iBranch;
 
 	ObjectsInit();
 	{
 		Ptr<CTestObject>		pTest;
 		Ptr<CPlayerVehicle>		pVehicle;
 		Ptr<CTestObject>		pWrong;
+		Ptr<CTestObject>		pNull;
 		CPointer				pSaveable;
 
 		AssertTrue(pTest.IsInstanceOfTemplateClass());
@@ -400,9 +408,25 @@ void TestPointerValidatePtr(void)
 		AssertFalse(pWrong.IsInstanceOfTemplateClass());
 		AssertString("CTestObject", pWrong.TemplateClassName());
 
-		sLogConfig = gcLogger.SetSilent();
+		StartCapturingLog(&cLog, &sLogConfig);
 		ValidatePtr(pWrong);
-		gcLogger.SetConfig(&sLogConfig);
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Expected pWrong to be [Ptr<CTestObject>] but got [Ptr<CTestSaveableObject1>] instead."));
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		ValidatePtr(pTest);
+		pNull = NULL;
+		ValidatePtr(pNull);
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertString("", szLogged);
+
+		//It is one statement: an else after it goes with the if before it.
+		iBranch = 0;
+		if (iBranch == 1)
+			ValidatePtr(pWrong);
+		else
+			iBranch = 2;
+		AssertInt((int32)2, iBranch);
 
 		pTest = NULL;
 		pVehicle = NULL;
@@ -482,6 +506,32 @@ void TestPointerMoved(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A NULL pointer's object isn't attached to the root, as an object nothing
+// holds isn't, and there is nothing to dirty or kill.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPointerNullDoesNothing(void)
+{
+	ObjectsInit();
+	{
+		CPointer			pNull;
+		Ptr<CTestObject>	pObject;
+
+		AssertInt((int32)UNATTACHED_DIST_TO_ROOT, (int32)pNull.GetDistToRoot());
+		pObject = OMalloc<CTestObject>();
+		AssertInt((int32)UNATTACHED_DIST_TO_ROOT, (int32)pObject.GetDistToRoot());
+
+		pNull.LogicalDirty();
+		pNull.Kill();
+		AssertTrue(pNull.IsNull());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPointer(void)
@@ -504,6 +554,7 @@ void TestPointer(void)
 	TestPointerReturn();
 	TestPointerMoved();
 	TestPointerValidatePtr();
+	TestPointerNullDoesNothing();
 
 	DataIOKill();
 	TypesKill();

@@ -697,14 +697,7 @@ bool CPointer::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int CPointer::GetDistToRoot(void)
 {
-	if (mpcObject)
-	{
-		return mpcObject->GetDistToRoot();
-	}
-	else
-	{
-		return -1;
-	}
+	return mpcObject ? mpcObject->GetDistToRoot() : UNATTACHED_DIST_TO_ROOT;
 }
 
 
@@ -818,7 +811,7 @@ void CPointer::LogicalDirty(void)
 {
 	if (mpcObject)
 	{
-		return mpcObject->LogicalDirty();
+		mpcObject->LogicalDirty();
 	}
 }
 
@@ -846,10 +839,10 @@ bool CPointer::IsEmbeddingAllocatedInObjects(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Kill(void)
 {
-	//This method exists so that it's object can be killed without invoking -> and potentially loading it first.
+	//This method exists so that its object can be killed without invoking -> and potentially loading it first.
 	if (mpcObject)
 	{
-		return mpcObject->Kill();
+		mpcObject->Kill();
 	}
 }
 
