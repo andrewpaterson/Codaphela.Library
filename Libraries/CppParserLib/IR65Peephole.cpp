@@ -118,6 +118,7 @@ void CIR65Peephole::Init(void)
 {
 	mcCode.Init();
 	maszValues.Init();
+	mmValues.Init();
 	masValues.Init();
 	masStates.Init();
 	maiCopied.Init();
@@ -135,6 +136,7 @@ void CIR65Peephole::Kill(void)
 	maiCopied.Kill();
 	masStates.Kill();
 	masValues.Kill();
+	mmValues.Kill();
 	maszValues.Kill();
 	mcCode.Kill();
 }
@@ -237,7 +239,8 @@ int16 CIR65Peephole::AddValue(const char* szOperand, size uiLength)
 {
 	size		ui;
 	SIR65Value	sValue;
-	CChars*		psz;
+	CChars		szValue;
+	int32		iValue;
 	char		c;
 
 	memset(&sValue, 0, sizeof(SIR65Value));
@@ -271,21 +274,17 @@ int16 CIR65Peephole::AddValue(const char* szOperand, size uiLength)
 		sValue.uiNames = IR65PeepholeName((char)sValue.uiBase);
 	}
 
-	for (ui = 0; ui < maszValues.NumElements(); ui++)
+	szValue.Init()->AppendSubString(szOperand, uiLength);
+	iValue = mmValues.Get(szValue.Text());
+	if ((iValue == -1) && (maszValues.NumElements() < IR65_PEEPHOLE_VALUES))
 	{
-		psz = maszValues.Get(ui);
-		if ((psz->Length() == uiLength) && (memcmp(psz->Text(), szOperand, uiLength) == 0))
-		{
-			return (int16)ui;
-		}
+		iValue = (int32)maszValues.NumElements();
+		maszValues.Add(szValue.Text());
+		masValues.Add(&sValue);
+		mmValues.Put(szValue.Text(), iValue);
 	}
-	if (maszValues.NumElements() >= IR65_PEEPHOLE_VALUES)
-	{
-		return IR65_VALUE_UNKNOWN;
-	}
-	maszValues.Add()->Init()->AppendSubString(szOperand, uiLength);
-	masValues.Add(&sValue);
-	return (int16)(maszValues.NumElements() - 1);
+	szValue.Kill();
+	return (iValue == -1) ? IR65_VALUE_UNKNOWN : (int16)iValue;
 }
 
 
@@ -312,6 +311,8 @@ void CIR65Peephole::ComputeCopied(void)
 	int32			iOffset;
 
 	maszValues.ReInit();
+	mmValues.Kill();
+	mmValues.Init();
 	masValues.ReInit();
 	maiCopied.ReInit();
 	uiNum = mcCode.NumLines();

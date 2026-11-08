@@ -302,10 +302,10 @@ bool CCPP65Generator::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
 	{
 		return false;
 	}
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass == psClass) && (psFunction->pcDefinition || psFunction->bImplicit))
+		psFunction = psClass->mapsMembers.GetPtr(i);
+		if (psFunction->pcDefinition || psFunction->bImplicit)
 		{
 			RequireFunction(psFunction);
 		}

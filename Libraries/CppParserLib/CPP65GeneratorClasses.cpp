@@ -41,6 +41,7 @@ SCPP65Class* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 	psClass->macBases.Init();
 	psClass->macUsings.Init();
 	psClass->macFields.Init();
+	psClass->mapsMembers.Init();
 	psClass->mapsVirtuals.Init();
 	psClass->iVtableOffset = -1;
 	psClass->macVtables.Init();
@@ -764,7 +765,6 @@ void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
 	SCPP65Function*	psOwn;
 	SCPP65Function*	psFunction;
 	SCPP65Type*		psParameter;
-	size			uiFunctions;
 	size			i;
 	size			j;
 	size			k;
@@ -777,11 +777,10 @@ void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
 		return;
 	}
 	bAdded = false;
-	uiFunctions = mapsFunctions.NumElements();
-	for (i = 0; i < uiFunctions; i++)
+	for (i = 0; i < psBase->mapsMembers.NumElements(); i++)
 	{
-		psInherited = mapsFunctions.GetPtr(i);
-		if ((psInherited->psClass != psBase) || (psInherited->eKind != CPP65FK_Constructor) || psInherited->psTemplate || psInherited->bImplicit || (psInherited->mapsParameters.NumElements() == 0))
+		psInherited = psBase->mapsMembers.GetPtr(i);
+		if ((psInherited->eKind != CPP65FK_Constructor) || psInherited->psTemplate || psInherited->bImplicit || (psInherited->mapsParameters.NumElements() == 0))
 		{
 			continue;
 		}
@@ -792,10 +791,10 @@ void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
 		}
 
 		bSame = false;
-		for (j = 0; !bSame && (j < mapsFunctions.NumElements()); j++)
+		for (j = 0; !bSame && (j < psClass->mapsMembers.NumElements()); j++)
 		{
-			psOwn = mapsFunctions.GetPtr(j);
-			if ((psOwn->psClass != psClass) || (psOwn->eKind != CPP65FK_Constructor) || (psOwn->mapsParameters.NumElements() != psInherited->mapsParameters.NumElements()))
+			psOwn = psClass->mapsMembers.GetPtr(j);
+			if ((psOwn->eKind != CPP65FK_Constructor) || (psOwn->mapsParameters.NumElements() != psInherited->mapsParameters.NumElements()))
 			{
 				continue;
 			}
@@ -811,7 +810,6 @@ void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
 		}
 
 		psFunction = AddFunction(psClass, psClass->lliName, CPP65FK_Constructor, &mcTypes.msVoid);
-		psInherited = mapsFunctions.GetPtr(i);
 		for (k = 0; k < psInherited->mapsParameters.NumElements(); k++)
 		{
 			psFunction->mapsParameters.Add(psInherited->mapsParameters.GetPtr(k));

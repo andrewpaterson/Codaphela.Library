@@ -1486,6 +1486,33 @@ void TestIR65PeepholeOptimise(const char* szExpected, const char* szCode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A value already held stays known among others, and one whose name starts
+// with another's is its own (CIR65Peephole::AddValue).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendPeepholeValues(void)
+{
+	TestIR65PeepholeOptimise(
+		"_F:\n"
+		"\t\tcpy A, _Long\n"
+		"\t\tcpy B, _LongName\n"
+		"\t\tcpy X, A\n"
+		"\t\tcpy Y, _Other\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcpy A, _Long\n"
+		"\t\tcpy B, _LongName\n"
+		"\t\tcpy X, A\n"
+		"\t\tcpy Y, _Other\n"
+		"\t\tcpy A, _Long\n"
+		"\t\tcpy B, _LongName\n"
+		"\t\tcpy X, _Long\n"
+		"\t\tret\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A branch or bra to the label after it goes (only a label or nothing
 // between); one with an instruction between stays.
 //
@@ -1895,6 +1922,7 @@ void TestIR65Backend(void)
 	TestIR65BackendFlags();
 	TestIR65BackendPeepholeWidths();
 	TestIR65BackendPeepholeBranchesToNext();
+	TestIR65BackendPeepholeValues();
 	TestIR65BackendSoftFloatNames();
 	TestIR65BackendSameOperands();
 	TestIR65BackendSignedDigits();

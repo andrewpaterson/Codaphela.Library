@@ -330,6 +330,7 @@ struct SCPP65Class
 	CArrayCPP65Bases			macBases;
 	CArrayCPP65Usings			macUsings;
 	CArrayCPP65Fields			macFields;
+	CArrayCPP65FunctionPtrs		mapsMembers;		//Its functions, in the order they were added.
 	CArrayCPP65FunctionPtrs		mapsVirtuals;		//The vtable.
 	int							iVtableOffset;		//-1 if the class has no vtable of its own.
 	CArrayCPP65Vtables			macVtables;			//The secondary vtables, written after the vtable.

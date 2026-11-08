@@ -313,6 +313,7 @@ void CCPP65Generator::Kill(void)
 		}
 		psClass->macVtables.Kill();
 		psClass->mapsVirtuals.Kill();
+		psClass->mapsMembers.Kill();
 		psClass->macFields.Kill();
 		psClass->macUsings.Kill();
 		psClass->macBases.Kill();
@@ -1833,6 +1834,10 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->mszArguments.Init();
 	psFunction->psNextOfName = NULL;
 	mapsFunctions.Add(psFunction);
+	if (psClass)
+	{
+		psClass->mapsMembers.Add(psFunction);
+	}
 
 	psOfName = mcFunctionsOfNames.Get(lliName);
 	if (psOfName)

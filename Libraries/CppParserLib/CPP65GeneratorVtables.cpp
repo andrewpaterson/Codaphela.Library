@@ -47,10 +47,10 @@ bool CCPP65Generator::LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		}
 	}
 
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass != psClass) || psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
+		psFunction = psClass->mapsMembers.GetPtr(i);
+		if (psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
 		{
 			continue;
 		}
@@ -189,10 +189,10 @@ void CCPP65Generator::AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP
 		psVtable->maiAdjust.Add(paiAdjust ? paiAdjust->GetValue(i) : 0);
 	}
 
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass != psClass) || psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
+		psFunction = psClass->mapsMembers.GetPtr(i);
+		if (psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
 		{
 			continue;
 		}

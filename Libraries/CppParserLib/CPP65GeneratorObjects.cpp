@@ -76,10 +76,10 @@ SCPP65Function* CCPP65Generator::GetCopyConstructor(SCPP65Class* psClass)
 	SCPP65Type*		psParameter;
 	size			i;
 
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass != psClass) || (psFunction->eKind != CPP65FK_Constructor) || psFunction->bImplicit || (psFunction->mapsParameters.NumElements() == 0))
+		psFunction = psClass->mapsMembers.GetPtr(i);
+		if ((psFunction->eKind != CPP65FK_Constructor) || psFunction->bImplicit || (psFunction->mapsParameters.NumElements() == 0))
 		{
 			continue;
 		}
