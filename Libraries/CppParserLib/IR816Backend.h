@@ -220,6 +220,10 @@ protected:
 	void			Layout(void);
 	void			AddRegions(CIR816LiveRanges* pcRanges);
 	int32			PackTemporaries(void);
+	void			AddPackEvents(CIR816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents);
+	void			AddInstructionPackEvents(CIR816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight);
+	void			AddSuccessorPackEvents(CIR816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition);
+	void			OrderTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder);
 	int32			SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo);
 	int32			PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
 	void			GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
