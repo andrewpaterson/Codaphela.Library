@@ -265,6 +265,7 @@ SCPP65Template* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTem
 	psTemplate->psOwner = NULL;
 	psTemplate->bArguments = false;
 	psTemplate->mszArguments.Init();
+	psTemplate->mapsInstances.Init();
 	psTemplate->pcNamespace = mpcDeclaringNamespace;
 	mapsTemplates.Add(psTemplate);
 	return psTemplate;
@@ -1024,10 +1025,10 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 		return NULL;
 	}
 
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (i = 0; i < psTemplate->mapsInstances.NumElements(); i++)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psTemplate == psTemplate) && psFunction->mszArguments.Equals(&szArguments))
+		psFunction = psTemplate->mapsInstances.GetPtr(i);
+		if (psFunction->mszArguments.Equals(&szArguments))
 		{
 			szArguments.Kill();
 			return psFunction;

@@ -377,6 +377,7 @@ struct SCPP65Template
 	bool							bArguments;		//mszArguments is worked out (a function specialisation's).
 	CCPPScope*						pcNamespace;	//The namespace it was declared in, NULL for the global one: of an instance with no symbol (an operator).
 	CChars							mszArguments;
+	CArrayCPP65FunctionPtrs			mapsInstances;	//A function template's instances.
 };
 
 

@@ -334,6 +334,7 @@ void CCPP65Generator::Kill(void)
 	mapsFunctions.Kill();
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
+		mapsTemplates.GetPtr(i)->mapsInstances.Kill();
 		mapsTemplates.GetPtr(i)->mszArguments.Kill();
 		free(mapsTemplates.GetPtr(i));
 	}
@@ -1775,6 +1776,10 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	if (pszArguments)
 	{
 		psFunction->mszArguments.Append(pszArguments);
+	}
+	if (psTemplate)
+	{
+		psTemplate->mapsInstances.Add(psFunction);
 	}
 	if (eKind == CPP65FK_Constructor)
 	{
