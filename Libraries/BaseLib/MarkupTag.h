@@ -56,7 +56,7 @@ public:
 	bool				IsEmpty(void);
 	bool				GetAttribute(const char* szAttribute, void** ppvData, uint* puiType = NULL);
 	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
-	char*				GetAttribute(char* szAttribute);
+	char*				GetAttribute(const char* szAttribute);
 	char*				GetStringAttribute(const char* szAttribute);
 	bool				GetInt32Attribute(const char* szAttribute, int32* piValue);
 	bool				GetInt64Attribute(const char* szAttribute, int64* piValue);

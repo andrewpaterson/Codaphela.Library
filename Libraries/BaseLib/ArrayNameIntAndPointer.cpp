@@ -161,7 +161,7 @@ void CArrayNameIntAndPointer::RemoveWithData(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SNameIntAndPointer* CArrayNameIntAndPointer::GetWithName(char* szName)
+SNameIntAndPointer* CArrayNameIntAndPointer::GetWithName(const char* szName)
 {
 	size					ui;
 	size					uiNumElements;
@@ -184,7 +184,7 @@ SNameIntAndPointer* CArrayNameIntAndPointer::GetWithName(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayNameIntAndPointer::GetPtr(char* szName)
+void* CArrayNameIntAndPointer::GetPtr(const char* szName)
 {
 	SNameIntAndPointer* ps;
 

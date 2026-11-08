@@ -313,7 +313,7 @@ bool CMarkupTag::GetFloat32Attribute(const char* szAttribute, float32* pfValue)
 //
 //////////////////////////////////////////////////////////////////////////
 // Do not use this method.  I can't remember why.
-char* CMarkupTag::GetAttribute(char* szAttribute)
+char* CMarkupTag::GetAttribute(const char* szAttribute)
 {
 	void* pvData;
 

@@ -35,8 +35,8 @@ public:
 	void*					GetPtr(size iElementPos);
 	uint					GetType(size iElementPos);
 	char*					GetName(size uiIndex);
-	SNameIntAndPointer*		GetWithName(char* szName);
-	void*					GetPtr(char* szName);
+	SNameIntAndPointer*		GetWithName(const char* szName);
+	void*					GetPtr(const char* szName);
 	void					Set(size iElementPos, void* pvData, uint uiType, char* szName);
 	void					RemoveWithData(void* pv);
 };
