@@ -72,8 +72,6 @@ public:
 	void 		SkipWhitespace(void);
 	bool 		NextToken(void);
 	void		NextToken(int iNumToSkip);
-	bool		GetInteger(uint64* pulli, bool bSkipWhitespace, bool bTestSign);
-	bool		GetFloat(long double* pf);
 	void 		PushPosition(void);
 	void 		PopPosition(void);
 	void 		PassPosition(void);
@@ -81,9 +79,6 @@ public:
 	int			Column(void);
 	void		AppendRemaining(CChars* psz);
 	bool		AppendRemaining(CChars* psz, CPPTokenListHolder* pcHolder, bool bAppending);
-	bool		GetDigits(uint64* pulli, int* piNumDecimals);
-	bool		GetHexadecimal(uint64* pulli, int* piNumDigits);
-	bool		GetOctal(uint64* pulli, int* piNumDigits);
 	bool		HasToken(void);
 	CPPToken*	GetToken(void);
 	void		AssignCurrent(CPPToken* pcToken, int iTokenIndex);
