@@ -1257,21 +1257,7 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 	SCPP65IRPlace	sSource;
 	SIRReference	sAddress;
 
-	if (!Place(pcSource, &sSource))
-	{
-		return false;
-	}
-	if (!sSource.psType->IsClass() || !mpcGenerator->IsDerived(sSource.psType->psClass, psPlace->psType->psClass, NULL) ||
-		!ReferenceAddress(&sSource, mpcTypes->Pointer(psPlace->psType), &sAddress))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-	CopyPieces(psPlace->sAddress, sAddress, psPlace->psType->iBytes);
-	if (!StoreVtables(psPlace->sAddress, psPlace->psType->psClass))
-	{
-		return false;
-	}
-	return CopyParts(psPlace->psType->psClass, psPlace->sAddress, sAddress);
+	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->psClass, psPlace->sAddress, sAddress);
 }
 
 
@@ -1428,8 +1414,7 @@ bool CCPP65IRFrontEnd::CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 //////////////////////////////////////////////////////////////////////////
 //
 // Copies the object psSource is (its address, of the place's class or one
-// derived from it, or a reference to one) to the place, a piece at a time,
-// then stores the place's class's vtable pointers.
+// derived from it, or a reference to one) to the place (CopyPlace).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource)
@@ -1439,12 +1424,26 @@ bool CCPP65IRFrontEnd::CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource
 
 	sSource.sAddress = psSource->sValue;
 	sSource.psType = psSource->psType->WithoutReference();
-	if (!sSource.psType->IsClass() || !mpcGenerator->IsDerived(sSource.psType->psClass, psPlace->psType->psClass, NULL) ||
-		!ReferenceAddress(&sSource, mpcTypes->Pointer(psPlace->psType), &sAddress))
+	return CopyPlace(psPlace, &sSource, &sAddress);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the object at psSource (of the place's class or one derived from
+// it) to the place, a piece at a time, then stores the place's class's
+// vtable pointers.  *psAddress is where it was copied from, as the place's
+// class (its base part).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress)
+{
+	if (!psSource->psType->IsClass() || !mpcGenerator->IsDerived(psSource->psType->psClass, psPlace->psType->psClass, NULL) ||
+		!ReferenceAddress(psSource, mpcTypes->Pointer(psPlace->psType), psAddress))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	CopyPieces(psPlace->sAddress, sAddress, psPlace->psType->iBytes);
+	CopyPieces(psPlace->sAddress, *psAddress, psPlace->psType->iBytes);
 	return StoreVtables(psPlace->sAddress, psPlace->psType->psClass);
 }
 

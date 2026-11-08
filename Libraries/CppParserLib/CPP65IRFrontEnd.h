@@ -378,6 +378,7 @@ protected:
 	bool			CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource);
+	bool			CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress);
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
 	bool			CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
