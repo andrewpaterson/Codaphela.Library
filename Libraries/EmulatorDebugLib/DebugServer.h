@@ -77,6 +77,7 @@ public:
 
 	void				Tick(uint64 uiBudget);
 	void				Poll(void);
+	void				ResetTarget(void);
 
 	EDebugServerState	GetState(void);
 	bool				IsConnected(void);

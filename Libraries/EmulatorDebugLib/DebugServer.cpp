@@ -137,6 +137,32 @@ void CDebugServer::Poll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The emulator's user resets the target, rather than the debugger asking
+// (DM_Reset).  A running target runs on from the reset.  A stopped or
+// stepping one stops at the reset and the debugger is told, except that one
+// which stopped itself with no debugger here runs: nobody would continue it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::ResetTarget(void)
+{
+	bool	bRun;
+
+	bRun = (meState == DSS_Running) || (!mbConnected && mpcTarget->IsStopped());
+	mpcTarget->Reset();
+	mbStepped = false;
+	if (bRun)
+	{
+		meState = DSS_Running;
+	}
+	else
+	{
+		Stop(DS_Reset);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The header gives the request's ID, then the body is handled.
 //
 //////////////////////////////////////////////////////////////////////////

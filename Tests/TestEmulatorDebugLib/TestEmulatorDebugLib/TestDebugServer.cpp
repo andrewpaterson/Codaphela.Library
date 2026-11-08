@@ -776,6 +776,76 @@ static void TestDebugServerAttach(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The emulator's own reset, with and without a debugger.  The reset vector
+// is a loop at $1000; $2000 is an STP.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestDebugServerResetTarget(void)
+{
+	CFlat65C816DebugTarget	cTarget;
+	STestDebugLink			sLink;
+	STestDebugLink*			psLink;
+	size					uiStops;
+	uint8*					puiMemory;
+
+	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	puiMemory = cTarget.GetMemory();
+	puiMemory[0x1000] = 0x80;
+	puiMemory[0x1001] = 0xFE;
+	puiMemory[0x2000] = 0xDB;
+	puiMemory[0xFFFC] = 0x00;
+	puiMemory[0xFFFD] = 0x10;
+	psLink = &sLink;
+	AssertTrue(TestDebugLinkInit(psLink, TDT_SharedMemory, &cTarget));
+
+	//Held stopped for a debugger to come (--debug-wait): it stays held, at the reset.
+	psLink->cServer.Kill();
+	psLink->cServer.Init(NULL, &cTarget, true);
+	cTarget.SetProgramAddress(0x2000);
+	psLink->cServer.ResetTarget();
+	AssertInt(DSS_Stopped, psLink->cServer.GetState());
+	AssertIntHex(0x1000, cTarget.GetProgramAddress());
+
+	//Stopped itself with no debugger here: nobody would continue it, so it runs.
+	psLink->cServer.Kill();
+	psLink->cServer.Init(NULL, &cTarget, false);
+	cTarget.SetProgramAddress(0x2000);
+	psLink->cServer.Tick(TEST_DEBUG_BUDGET);
+	AssertInt(DSS_Stopped, psLink->cServer.GetState());
+	AssertTrue(cTarget.IsStopped());
+	psLink->cServer.ResetTarget();
+	AssertInt(DSS_Running, psLink->cServer.GetState());
+	AssertFalse(cTarget.IsStopped());
+	AssertIntHex(0x1000, cTarget.GetProgramAddress());
+
+	//Running with a debugger: it runs on, and the debugger isn't told it stopped.
+	psLink->cServer.Attach(psLink->pcServer);
+	AssertTrue(psLink->cClient.Hello());
+	TestDebugWaitForRunning(psLink);
+	uiStops = psLink->cClient.NumStops();
+	psLink->cServer.ResetTarget();
+	TestDebugSync(psLink);
+	AssertInt(DSS_Running, psLink->cServer.GetState());
+	AssertTrue(psLink->cClient.IsRunning());
+	AssertSize(uiStops, psLink->cClient.NumStops());
+
+	//Stopped by the debugger: it stays stopped, and the debugger is told it is at the reset.
+	AssertTrue(psLink->cClient.Pause());
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumStops, uiStops + 1));
+	AssertInt(DS_Pause, psLink->cClient.GetStopReason());
+	cTarget.SetProgramAddress(0x2000);
+	psLink->cServer.ResetTarget();
+	TestDebugWaitForStop(psLink, DS_Reset, 0x1000);
+	AssertInt(DSS_Stopped, psLink->cServer.GetState());
+	AssertFalse(psLink->cClient.IsBusy());
+
+	TestDebugLinkKill(psLink, TDT_SharedMemory);
+	cTarget.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDebugServer(void)
@@ -788,6 +858,7 @@ void TestDebugServer(void)
 	TestDebugServer65C64(TDT_SharedMemory);
 	TestDebugServer65C64(TDT_Network);
 	TestDebugServerAttach();
+	TestDebugServerResetTarget();
 
 	TestStatistics();
 }
