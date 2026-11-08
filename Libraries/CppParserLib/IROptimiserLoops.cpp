@@ -728,7 +728,7 @@ bool CIROptimiser::DeleteDeadLoops(void)
 			for (uiIndex = 0; bDead && (uiIndex < pcBlock->masInstructions.NumElements()); uiIndex++)
 			{
 				psInstruction = pcBlock->masInstructions.Get(uiIndex);
-				bDead = !HasEffect(psInstruction) && !(psInstruction->sResult.IsTemporary() && UsedOutside(uiLoop, psInstruction->sResult));
+				bDead = !IRHasEffect(psInstruction) && !(psInstruction->sResult.IsTemporary() && UsedOutside(uiLoop, psInstruction->sResult));
 			}
 			for (uiPhi = 0; bDead && (uiPhi < pcBlock->masPhis.NumElements()); uiPhi++)
 			{
@@ -1134,7 +1134,7 @@ bool CIROptimiser::CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExit
 	for (ui = 0; ui < pcHead->masInstructions.NumElements(); ui++)
 	{
 		psInstruction = pcHead->masInstructions.Get(ui);
-		if (HasEffect(psInstruction) || !psInstruction->sResult.IsTemporary())
+		if (IRHasEffect(psInstruction) || !psInstruction->sResult.IsTemporary())
 		{
 			return false;
 		}

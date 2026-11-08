@@ -507,23 +507,7 @@ void CIROptimiser::SetUse(SIRUse* psUse, SIRReference sNew)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Stores, args, calls, a target's instructions (none are IROP_Pure) and
-// volatile loads do something besides make a value.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::HasEffect(SIRInstruction* psInstruction)
-{
-	if (psInstruction->uiOpcode == IRO_Load)
-	{
-		return (psInstruction->uiFlags & IRF_Volatile) != 0;
-	}
-	return !IsIRPure(psInstruction->uiOpcode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// HasEffect, except a call to a function that writes no memory its callers
+// IRHasEffect, except a call to a function that writes no memory its callers
 // can see (CIRModule::IsNoWrites): what is known to be in memory is still
 // so after it.  (Stores are the caller's to look at: this says only that
 // the instruction isn't some other write.)
@@ -535,7 +519,7 @@ bool CIROptimiser::MayWriteMemory(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	return HasEffect(psInstruction);
+	return IRHasEffect(psInstruction);
 }
 
 

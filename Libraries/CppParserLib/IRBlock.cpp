@@ -330,3 +330,19 @@ SIRReference IRAddressOf(SIRInstruction* psInstruction)
 	}
 	return IRNone();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stores, args, calls, a target's instructions (none are IROP_Pure) and
+// volatile loads do something besides make a value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IRHasEffect(SIRInstruction* psInstruction)
+{
+	if (psInstruction->uiOpcode == IRO_Load)
+	{
+		return (psInstruction->uiFlags & IRF_Volatile) != 0;
+	}
+	return !IsIRPure(psInstruction->uiOpcode);
+}

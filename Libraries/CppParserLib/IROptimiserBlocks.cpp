@@ -976,7 +976,7 @@ bool CIROptimiser::RemoveDeadCode(void)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if (HasEffect(psInstruction) || !psInstruction->sResult.IsTemporary())
+			if (IRHasEffect(psInstruction) || !psInstruction->sResult.IsTemporary())
 			{
 				IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[0]);
 				IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[1]);
@@ -1011,7 +1011,7 @@ bool CIROptimiser::RemoveDeadCode(void)
 		for (uiInstruction = pcBlock->masInstructions.NumElements(); uiInstruction > 0; uiInstruction--)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction - 1);
-			if (!HasEffect(psInstruction) && psInstruction->sResult.IsTemporary() && !*abLive.Get(psInstruction->sResult.Index()))
+			if (!IRHasEffect(psInstruction) && psInstruction->sResult.IsTemporary() && !*abLive.Get(psInstruction->sResult.Index()))
 			{
 				pcBlock->masInstructions.RemoveAt(uiInstruction - 1, true);
 				bChanged = true;

@@ -254,8 +254,8 @@ void CIRBackendPasses::MoveLoopTests(CIRFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 //
 // Moves a load used once, later in its block, to just before its use when
-// nothing between writes memory (a store, a call, a volatile load) or
-// pushes arguments, so the use can take it from A or as a memory operand.
+// nothing between has an effect (IRHasEffect: a store, a call, an arg, a
+// volatile load ...), so the use can take it from A or as a memory operand.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackendPasses::SinkLoads(CIRFunction* pcFunction)
@@ -291,7 +291,7 @@ void CIRBackendPasses::SinkLoads(CIRFunction* pcFunction)
 				{
 					break;
 				}
-				if ((psUse->uiOpcode == IRO_Store) || (psUse->uiOpcode == IRO_Call) || (psUse->uiOpcode == IRO_Arg) || ((psUse->uiOpcode == IRO_Load) && (psUse->uiFlags & IRF_Volatile)))
+				if (IRHasEffect(psUse))
 				{
 					bBlocked = true;
 					break;

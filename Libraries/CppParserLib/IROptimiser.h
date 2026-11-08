@@ -403,7 +403,6 @@ protected:
 	bool			FirstTemporaryUse(SIRUse* psUse, CArrayIRBlocks* papcBlocks = NULL);
 	bool			NextUse(SIRUse* psUse);
 	void			SetUse(SIRUse* psUse, SIRReference sNew);
-	bool			HasEffect(SIRInstruction* psInstruction);
 	bool			MayWriteMemory(SIRInstruction* psInstruction);
 	bool			IsOwnFrame(SIRReference sAddress);
 	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
