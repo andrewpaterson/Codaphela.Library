@@ -1130,6 +1130,36 @@ void TestCPP65IRNamespaceQualified(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A call chooses between the functions its name can mean: those of the same
+// name in other namespaces aren't overloads.  An inner name hides an outer one.
+// What using directives nominate are overloads, ambiguous if they are the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRNamespaceOverloads(void)
+{
+	AssertInt(21, TestCPP65Main("namespace A { int F(int a) { return a + 10; } }\nnamespace B { int F(int a) { return a + 8; } int G() { return F(1); } }\nint F(int a) { return a; }\nint main() { return A::F(1) + B::G() + ::F(1); }"));
+	AssertInt(1, TestCPP65Main("int F(int a) { return 2; }\nnamespace N { int F(char c) { return 1; } int G() { return F(300); } }\nint main() { return N::G(); }"));
+	AssertInt(2, TestCPP65Main("int F(int a) { return 2; }\nnamespace N { int F(char c) { return 1; } int G() { return ::F(300); } }\nint main() { return N::G(); }"));
+	AssertInt(3, TestCPP65Main("namespace A { int F(int a) { return 3; } }\nnamespace B { int F(char c) { return 4; } }\nusing namespace A;\nusing namespace B;\nint main() { return F(1000); }"));
+	AssertInt(4, TestCPP65Main("namespace A { int F(int a) { return 3; } }\nnamespace B { using namespace A; int F(char c) { return 4; } int G() { return F(1000); } }\nint main() { return B::G(); }"));
+	AssertInt(5, TestCPP65Main("int F(char c) { return 6; }\nnamespace A { int F(int a) { return 5; } }\nint main() { using namespace A; return F(1000); }"));
+	AssertInt(6, TestCPP65Main("namespace A { int F(int a) { return 6; } }\nnamespace B { using namespace A; }\nint main() { return B::F(1); }"));
+	AssertInt(7, TestCPP65Main("namespace A { int F(int a) { return 8; } }\nnamespace B { using namespace A; int F(char c) { return 7; } }\nint main() { return B::F(1000); }"));
+	AssertInt(8, TestCPP65Main("namespace N { int F(char c) { return 9; } inline namespace V { int F(int a) { return 8; } } }\nint main() { return N::F(1000); }"));
+	AssertInt(9, TestCPP65Main("namespace N { int F(int a) { return 9; } }\nint F(char c) { return 1; }\nint main() { using N::F; return F(1000); }"));
+	AssertInt(10, TestCPP65Main("namespace A { int F(int a) { return 10; } }\nnamespace B { int F(int a) { return 20; } }\nint main() { int (*p)(int) = A::F; return p(1); }"));
+	AssertInt(11, TestCPP65Main("namespace A { int F(int a) { return 11; } }\nnamespace B { int F(int a) { return 20; } }\nint Call(int (*p)(int)) { return p(1); }\nint main() { return Call(A::F); }"));
+	AssertInt(12, TestCPP65Main("namespace N { int G() { return 12; } int F(); struct S { int H(); int I() { return G(); } }; }\nint N::F() { return G(); }\nint main() { return N::F(); }"));
+	AssertInt(13, TestCPP65Main("namespace N { int G() { return 13; } struct S { int H(); }; }\nint G() { return 1; }\nint N::S::H() { return G(); }\nint main() { N::S s; return s.H(); }"));
+	AssertInt(14, TestCPP65Main("namespace N { struct S { int i; }; S operator+(S a, S b) { S s; s.i = a.i + b.i; return s; } }\nint main() { N::S a; N::S b; a.i = 6; b.i = 8; return (a + b).i; }"));
+
+	AssertConstError("The call is ambiguous", "namespace A { int F(int a) { return 1; } }\nnamespace B { int F(int a) { return 2; } }\nusing namespace A;\nusing namespace B;\nint main() { return F(1); }");
+	AssertConstError("No function matches", "namespace N { int F(int a) { return 1; } }\nnamespace M { int F() { return 2; } }\nint main() { return M::F(1); }");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szSource compiled: szExpected is what its first error is, "" for none.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1256,6 +1286,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceLabels();
 	TestCPP65IRNamespaceRuns();
 	TestCPP65IRNamespaceQualified();
+	TestCPP65IRNamespaceOverloads();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

@@ -133,7 +133,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		{
 			return InlineMemcpy(&pcCall->macpArguments, mpcGenerator->TypeOf(pcCall), psValue);
 		}
-		psFunction = mpcGenerator->FindFunction(NULL, lliName, CPP65FK_Function, &pcCall->macpArguments, false, pcCall);
+		psFunction = mpcGenerator->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
 	}
 	else if (pcSymbol)
 	{

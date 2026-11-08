@@ -445,6 +445,7 @@ protected:
 	bool						mbDataBss;			//The last BeginData was bss: the global's start up routines associate with bss.label.
 	bool					mbPureVirtual;
 
+	CCPPScope*				mpcDeclaringNamespace;	//The namespace Declarations is in, NULL for the global one: of what has no symbol (an operator).
 	CArrayScopes			mapcUnnamedNamespaces;	//Their places are the numbers in the labels of what they declare.
 	CArrayCPP65Variables	mapsLocals;
 	SCPP65Function*			mpsFunction;
@@ -659,7 +660,10 @@ protected:
 	void					ClassUsing(SCPP65Class* psClass, CCPPSyntaxUsingDeclaration* pcUsing);
 	void					InheritConstructors(SCPP65Class* psClass);
 	bool					IsOverloadOf(SCPP65Class* psClass, SCPP65Function* psFunction, int64 lliName);
-	SCPP65Function*			FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject = -1);
+	SCPP65Function*			FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject = -1, CArrayScopes* papcNamespaces = NULL);
+	SCPP65Function*			FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Function*			FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
+	void					GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArrayScopes* papcNamespaces);
 	bool					IsConstObject(CCPPSyntax* pcExpression);
 	bool					IsConstPointer(CCPPSyntax* pcExpression);
 	bool					IsConstThis(void);

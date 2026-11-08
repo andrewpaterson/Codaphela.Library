@@ -325,6 +325,176 @@ bool CCPPScope::IsInUnnamedNamespace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcScope is this scope or inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::Encloses(CCPPScope* pcScope)
+{
+	for (; pcScope; pcScope = pcScope->mpcParent)
+	{
+		if (pcScope == this)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// If the name is a function declared in this scope, or named here by a using
+// declaration, adds the namespace its overloads are in.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces)
+{
+	CCPPSymbol*	pcSymbol;
+	CCPPScope*	pcNamespace;
+
+	for (pcSymbol = FindHere(lliName); pcSymbol; pcSymbol = pcSymbol->mpcNext)
+	{
+		if (pcSymbol->IsFunction())
+		{
+			pcNamespace = pcSymbol->mpcScope->GetEnclosingNamespace();
+			if (papcNamespaces->Find(pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)
+			{
+				papcNamespaces->Add(pcNamespace);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the namespaces this scope's using directives nominate, and those
+// they nominate.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPScope::AddNominated(CArrayScopes* papcNominated)
+{
+	CCPPScope*	pcUsing;
+	size		i;
+
+	for (i = 0; i < mapcUsings.NumElements(); i++)
+	{
+		pcUsing = mapcUsings.GetPtr(i);
+		if (papcNominated->Find(pcUsing) == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			papcNominated->Add(pcUsing);
+			pcUsing->AddNominated(papcNominated);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Unqualified lookup of a function: outwards, stopping at the first scope
+// that has the name, which hides the others.  What a using directive nominates
+// counts as declared in the nearest namespace enclosing both, so it can be
+// hidden by a name in the namespace that has the directive.  [namespace.udir] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CArrayScopes* papcNamespaces)
+{
+	CCPPScope*	pcScope;
+	CCPPScope*	pcNominated;
+	size		i;
+	bool		bFound;
+
+	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
+	{
+		pcScope->AddNominated(papcNominated);
+		bFound = pcScope->AddOverloadScope(lliName, papcNamespaces);
+		if (pcScope->meKind == CPPSC_Namespace)
+		{
+			for (i = 0; i < papcNominated->NumElements(); i++)
+			{
+				pcNominated = papcNominated->GetPtr(i);
+				if (pcScope->Encloses(pcNominated))
+				{
+					bFound |= pcNominated->AddOverloadScope(lliName, papcNamespaces);
+				}
+			}
+		}
+		if (bFound)
+		{
+			return true;
+		}
+		if (pcScope->mpcQualifier && pcScope->mpcQualifier->GatherUnqualified(lliName, papcNominated, papcNamespaces))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Qualified lookup of a function in a namespace: its own, with those of the
+// inline and unnamed namespaces directly in it, and only if it has none those
+// of what its using directives nominate.  [namespace.qual] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::GatherQualified(int64 lliName, CArrayScopes* papcNamespaces, int iDepth)
+{
+	CCPPScope*	pcUsing;
+	size		i;
+	bool		bFound;
+
+	if (iDepth > MAX_LOOKUP_DEPTH)
+	{
+		return false;
+	}
+	bFound = AddOverloadScope(lliName, papcNamespaces);
+	for (i = 0; i < mapcUsings.NumElements(); i++)
+	{
+		pcUsing = mapcUsings.GetPtr(i);
+		if (pcUsing->mpcParent == this)
+		{
+			bFound |= pcUsing->GatherQualified(lliName, papcNamespaces, iDepth + 1);
+		}
+	}
+	if (bFound)
+	{
+		return true;
+	}
+	for (i = 0; i < mapcUsings.NumElements(); i++)
+	{
+		bFound |= mapcUsings.GetPtr(i)->GatherQualified(lliName, papcNamespaces, iDepth + 1);
+	}
+	return bFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespaces whose functions of the name a call looked up from this
+// scope can choose between.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPScope::GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScopes* papcNamespaces)
+{
+	CArrayScopes	apcNominated;
+
+	if (bQualified)
+	{
+		GatherQualified(lliName, papcNamespaces, 0);
+		return;
+	}
+	apcNominated.Init();
+	GatherUnqualified(lliName, &apcNominated, papcNamespaces);
+	apcNominated.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPScope::IsDependent(void)

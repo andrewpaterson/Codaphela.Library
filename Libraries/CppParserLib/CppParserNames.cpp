@@ -186,6 +186,7 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 	}
 
 	pcName->mpcSymbol = pcComponent->mpcSymbol;
+	pcName->mpcLookup = pcScope ? pcScope : mpcScope;
 	if (ppcQualifier)
 	{
 		*ppcQualifier = bQualified ? pcScope : NULL;

@@ -32,6 +32,7 @@ public:
 	bool					mbGlobal;
 	CArraySyntax			macpComponents;
 	CCPPSymbol*				mpcSymbol;
+	CCPPScope*				mpcLookup;		//Where the last component was looked up: the qualifier's members, or the scope the name is in.
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void					Kill(void) override;

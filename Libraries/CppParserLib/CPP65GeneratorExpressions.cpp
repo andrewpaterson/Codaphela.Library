@@ -255,21 +255,16 @@ CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer)
 {
-	SCPP65Function*		psFunction;
+	SCPP65Function*		psFound;
+	bool				bOverloaded;
 
 	psPointer = psPointer->WithoutReference();
 	if (!psPointer->IsPointer() || psPointer->IsMemberPointer() || !psPointer->psBase || !psPointer->psBase->IsFunction() || pcFunction->mpcName->IsQualifiedByClass())
 	{
 		return false;
 	}
-	for (psFunction = FirstFunctionOfName(pcFunction->mpcName->mpcSymbol->mlliName); psFunction; psFunction = psFunction->psNextOfName)
-	{
-		if (!psFunction->psClass && !psFunction->psTemplate && psPointer->psBase->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
-		{
-			return true;
-		}
-	}
-	return false;
+	psFound = FindAddressedFunction(pcFunction->mpcName, pcFunction->mpcName->mpcSymbol->mlliName, psPointer->psBase, pcFunction, &bOverloaded);
+	return psFound && psPointer->psBase->Equals(mcTypes.Function(psFound->psReturn, &psFound->mapsParameters, psFound->bVariadic));
 }
 
 

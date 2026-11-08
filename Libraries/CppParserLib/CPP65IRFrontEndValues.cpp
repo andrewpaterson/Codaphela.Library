@@ -320,45 +320,13 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 {
 	SCPP65Function*		psFunction;
 	SCPP65Function*		psFound;
-	SCPP65Class*		psClass;
 	CCPPSyntaxName*		pcName;
 	int64				lliName;
 	bool				bOverloaded;
-	bool				bQualified;
 
 	pcName = pcId->mpcName;
 	lliName = pcName->mpcSymbol->mlliName;
-	psFound = NULL;
-	bOverloaded = false;
-	psClass = NULL;
-	bQualified = pcName->IsQualifiedByClass();
-	if (bQualified)
-	{
-		psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
-	}
-	else if (mpsFunction->psClass)
-	{
-		psClass = mpsFunction->psClass;
-	}
-	if (psClass && mpcGenerator->CompleteClass(psClass, pcId))
-	{
-		psFound = mpcGenerator->FindStaticFunction(psClass, lliName, psTarget, &bOverloaded);
-	}
-	//Every function of the name is looked at (unless the class has one): the one of psTarget's type, else the only one.
-	for (psFunction = (psFound || bQualified) ? NULL : mpcGenerator->FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
-	{
-		if (!psFunction->psClass && !psFunction->psTemplate)
-		{
-			if (psTarget && psTarget->Equals(FunctionType(psFunction)))
-			{
-				psFound = psFunction;
-				bOverloaded = false;
-				break;
-			}
-			bOverloaded |= (psFound != NULL);
-			psFound = psFunction;
-		}
-	}
+	psFound = mpcGenerator->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
 	if (bOverloaded || !psFound)
 	{
 		return Unsupported(__FILE__, __LINE__);

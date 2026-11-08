@@ -326,49 +326,12 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, SCPP65Type* psTarget)
 {
-	SCPP65Function*		psFunction;
 	SCPP65Function*		psFound;
-	SCPP65Class*		psClass;
 	CCPPSyntaxName*		pcName;
 	bool				bOverloaded;
-	bool				bQualified;
 
-	psFound = NULL;
-	bOverloaded = false;
-	psClass = NULL;
-	bQualified = false;
 	pcName = (pcNode && (pcNode->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcNode)->mpcName : NULL;
-	if (pcName && pcName->IsQualifiedByClass())
-	{
-		bQualified = true;
-		mpcGenerator->BeginQuiet();
-		psClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
-		mpcGenerator->EndQuiet();
-	}
-	else if (mpcGenerator->mpsFunction && mpcGenerator->mpsFunction->psClass)
-	{
-		psClass = mpcGenerator->mpsFunction->psClass;
-	}
-	if (psClass && mpcGenerator->CompleteClass(psClass, pcNode))
-	{
-		psFound = mpcGenerator->FindStaticFunction(psClass, lliName, psTarget, &bOverloaded);
-	}
-
-	//Every function of the name is looked at (unless the class has one): the one of psTarget's type, else the only one.
-	for (psFunction = (psFound || bQualified) ? NULL : mpcGenerator->FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
-	{
-		if (!psFunction->psClass && !psFunction->psTemplate)
-		{
-			if (psTarget && psTarget->Equals(mpcTypes->Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
-			{
-				psFound = psFunction;
-				bOverloaded = false;
-				break;
-			}
-			bOverloaded |= (psFound != NULL);
-			psFound = psFunction;
-		}
-	}
+	psFound = mpcGenerator->FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
 	if (bOverloaded)
 	{
 		Error(pcNode, "The address of an overloaded function needs the type of the function it is for");
@@ -1137,7 +1100,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	}
 
 	uiErrors = mpcGenerator->mcErrors.NumErrors();
-	psFunction = mpcGenerator->FindFunction(NULL, lliName, CPP65FK_Function, &pcCall->macpArguments, false, pcCall);
+	psFunction = mpcGenerator->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
 	if (!psFunction)
 	{
 		if (mpcGenerator->mcErrors.NumErrors() == uiErrors)

@@ -243,6 +243,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapsGlobals.Init();
 	mapsFunctions.Init();
 	mcFunctionsOfNames.Init(true);
+	mpcDeclaringNamespace = NULL;
 	mapcUnnamedNamespaces.Init();
 	mapsClasses.Init();
 	mapsTemplates.Init();
@@ -1463,6 +1464,7 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 	bool								bResult;
 	bool								bLinkageExtern;
 	bool								bCLinkage;
+	CCPPScope*							pcEnclosing;
 
 	bResult = true;
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
@@ -1503,7 +1505,10 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
 			break;
 		case CPPS_Namespace:
+			pcEnclosing = mpcDeclaringNamespace;
+			mpcDeclaringNamespace = ((CCPPSyntaxNamespace*)pcDeclaration)->mpcScope;
 			bResult &= Declarations(&((CCPPSyntaxNamespace*)pcDeclaration)->macpDeclarations);
+			mpcDeclaringNamespace = pcEnclosing;
 			break;
 		case CPPS_EmptyDeclaration:
 		case CPPS_StaticAssert:
@@ -1700,7 +1705,11 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 
 	//A declaration of a function declared before.
 	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
-	pcNamespace = (!psClass && pcName->mpcSymbol) ? NamespaceOf(pcName->mpcSymbol->mpcScope) : NULL;
+	pcNamespace = NULL;
+	if (!psClass)
+	{
+		pcNamespace = pcName->mpcSymbol ? NamespaceOf(pcName->mpcSymbol->mpcScope) : mpcDeclaringNamespace;
+	}
 	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
 	{
 		if ((psOther->psClass != psClass) || (psOther->pcNamespace != pcNamespace) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate) ||

@@ -3712,7 +3712,7 @@ void CCPP65Generator::NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECP
 // none matches functions of the name; NULL without an error if there are none.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject)
+SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject, CArrayScopes* papcNamespaces)
 {
 	SCPP65Function*		psFunction;
 	SCPP65Function*		psBest;
@@ -3753,7 +3753,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	bFound = false;
 	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		if ((psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName))
+		if ((psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName) || (papcNamespaces && (papcNamespaces->Find(psFunction->pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)))
 		{
 			continue;
 		}
@@ -3771,7 +3771,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	bAmbiguous = false;
 	for (psFunction = psBest ? FirstFunctionOfName(lliName) : NULL; psFunction; psFunction = psFunction->psNextOfName)
 	{
-		if ((psFunction == psBest) || (psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName))
+		if ((psFunction == psBest) || (psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName) || (papcNamespaces && (papcNamespaces->Find(psFunction->pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)))
 		{
 			continue;
 		}
@@ -3810,6 +3810,112 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespaces a name's function can be in (CCPPScope::GatherOverloadScopes),
+// as functions have them: NULL for the global one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArrayScopes* papcNamespaces)
+{
+	size	i;
+
+	if (pcName->mpcLookup)
+	{
+		pcName->mpcLookup->GatherOverloadScopes(lliName, pcName->mbGlobal || (pcName->GetQualifier() != NULL), papcNamespaces);
+	}
+	if ((papcNamespaces->NumElements() == 0) && pcName->mpcSymbol)
+	{
+		papcNamespaces->Add(pcName->mpcSymbol->mpcScope->GetEnclosingNamespace());
+	}
+	for (i = 0; i < papcNamespaces->NumElements(); i++)
+	{
+		papcNamespaces->SetPtr(i, NamespaceOf(papcNamespaces->GetPtr(i)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function a call of a name that isn't a member's means.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+{
+	CArrayScopes	apcNamespaces;
+	SCPP65Function*	psFunction;
+
+	apcNamespaces.Init();
+	GetOverloadNamespaces(pcName, lliName, &apcNamespaces);
+	psFunction = FindFunction(NULL, lliName, CPP65FK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
+	apcNamespaces.Kill();
+	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function a name's address is of: a static member of the class that
+// qualifies it or of the class of the function being written, or a function
+// it can name.  The one of psTarget's type, else the only one; *pbOverloaded is
+// set when the name has several and psTarget doesn't pick one.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded)
+{
+	SCPP65Function*	psFunction;
+	SCPP65Function*	psFound;
+	SCPP65Class*	psClass;
+	CArrayScopes	apcNamespaces;
+	bool			bQualified;
+
+	psFound = NULL;
+	*pbOverloaded = false;
+	psClass = NULL;
+	bQualified = pcName && pcName->IsQualifiedByClass();
+	if (bQualified)
+	{
+		BeginQuiet();
+		psClass = GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
+		EndQuiet();
+	}
+	else if (mpsFunction && mpsFunction->psClass)
+	{
+		psClass = mpsFunction->psClass;
+	}
+	if (psClass && CompleteClass(psClass, pcNode))
+	{
+		psFound = FindStaticFunction(psClass, lliName, psTarget, pbOverloaded);
+	}
+	if (psFound || bQualified)
+	{
+		return psFound;
+	}
+
+	apcNamespaces.Init();
+	if (pcName)
+	{
+		GetOverloadNamespaces(pcName, lliName, &apcNamespaces);
+	}
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
+	{
+		if (!psFunction->psClass && !psFunction->psTemplate && (!pcName || (apcNamespaces.Find(psFunction->pcNamespace) != ARRAY_ELEMENT_NOT_FOUND)))
+		{
+			if (psTarget && psTarget->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
+			{
+				psFound = psFunction;
+				*pbOverloaded = false;
+				break;
+			}
+			*pbOverloaded |= (psFound != NULL);
+			psFound = psFunction;
+		}
+	}
+	apcNamespaces.Kill();
+	return psFound;
 }
 
 

@@ -31,6 +31,7 @@ void CCPPSyntaxName::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	mbGlobal = false;
 	macpComponents.Init(NodeArrayMallocator());
 	mpcSymbol = NULL;
+	mpcLookup = NULL;
 }
 
 
@@ -146,5 +147,6 @@ void CCPPSyntaxName::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Bool(&mbGlobal);
 	pcFields->Children(&macpComponents);
 	pcFields->Symbol(&mpcSymbol);
+	pcFields->UsedScope(&mpcLookup);
 }
 
