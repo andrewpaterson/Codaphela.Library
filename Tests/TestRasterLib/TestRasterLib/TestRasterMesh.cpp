@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/NumberControl.h"
 #include "StandardLib/Objects.h"
@@ -469,6 +470,47 @@ void TestRasterMeshSimplifyKeepsLayers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What's saved loads the same, but not as the mesh of another source, nor
+// from no file.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshFile(void)
+{
+	CRasterMesh	cRaster;
+	CRasterMesh	cLoaded;
+	CFileUtil	cFileUtil;
+
+	cFileUtil.TouchDir("Output");
+	cRaster.Init();
+	TestRasterAddVertex(&cRaster, 1, 2, 3);
+	TestRasterAddVertex(&cRaster, 100, 0, 0);
+	TestRasterAddVertex(&cRaster, 0, 100, 0);
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF112233);
+	TestRasterAddTriangle(&cRaster.masTransparent, 0, 2, 1, 0x80445566);
+	cRaster.msMin.Init(0, 0, 0);
+	cRaster.msMax.Init(100, 100, 3);
+	AssertTrue(cRaster.Save("Output" _FS_ "Mesh.rastermesh", 0x1234567812345678ULL));
+
+	cLoaded.Init();
+	AssertFalse(cLoaded.Load("Output" _FS_ "NoSuchMesh.rastermesh", 0x1234567812345678ULL));
+	AssertFalse(cLoaded.Load("Output" _FS_ "Mesh.rastermesh", 0x1234567812345679ULL));
+	AssertSize(0, cLoaded.masVertices.NumElements());
+	AssertTrue(cLoaded.Load("Output" _FS_ "Mesh.rastermesh", 0x1234567812345678ULL));
+	AssertSize(3, cLoaded.masVertices.NumElements());
+	AssertSize(1, cLoaded.masOpaque.NumElements());
+	AssertSize(1, cLoaded.masTransparent.NumElements());
+	AssertInt(2, cLoaded.masVertices.Get(0)->sPosition.y);
+	AssertIntHex((int32)0xFF112233, (int32)cLoaded.masOpaque.Get(0)->uiColour);
+	AssertIntHex((int32)0x80445566, (int32)cLoaded.masTransparent.Get(0)->uiColour);
+	AssertInt(100, cLoaded.msMax.x);
+	cLoaded.Kill();
+	cRaster.Kill();
+	cFileUtil.Delete("Output" _FS_ "Mesh.rastermesh");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMesh(void)
@@ -488,6 +530,7 @@ void TestRasterMesh(void)
 	TestRasterMeshSimplify();
 	TestRasterMeshSimplifyKeepsEdges();
 	TestRasterMeshSimplifyKeepsLayers();
+	TestRasterMeshFile();
 
 	ObjectsKill(false);
 	NumberKill();

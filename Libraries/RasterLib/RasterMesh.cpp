@@ -22,6 +22,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/DiskFile.h"
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/GeometricTypes.h"
 #include "SupportLib/ColourARGB32.h"
@@ -32,12 +33,29 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 //VRML's default material for a face with no colour.
 #define RASTER_DEFAULT_COLOUR	0xFFCCCCCC
 
+#define RASTER_MESH_FILE_MAGIC		0x48534D52  //RMSH.
+#define RASTER_MESH_FILE_VERSION	1
+
 //Simplify keeps apart vertices in a cell whose normals are in different ones of these many divisions of each axis, so
 //a sharp edge stays sharp and a curve is only faceted a little.
 #define RASTER_NORMAL_DIVISIONS		5
 
 //Colours that keep to themselves when simplifying: as many as fit in a cell's key.  Any more share the last.
 #define RASTER_MAX_CELL_COLOURS		1024
+
+
+struct SRasterMeshFileHeader
+{
+	uint32		uiMagic;
+	uint32		uiVersion;
+	uint64		uiSource;
+	uint32		uiNumVertices;
+	uint32		uiNumOpaque;
+	uint32		uiNumTransparent;
+	uint32		uiPad;
+	SInt32Vec3	sMin;
+	SInt32Vec3	sMax;
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -872,4 +890,80 @@ void CRasterMesh::RemoveUnusedVertices(void)
 		}
 	}
 	free(piMap);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRasterMesh::Save(const char* szFilename, uint64 uiSource)
+{
+	CDiskFile				cFile;
+	SRasterMeshFileHeader	sHeader;
+	bool					bResult;
+
+	memset(&sHeader, 0, sizeof(sHeader));
+	sHeader.uiMagic = RASTER_MESH_FILE_MAGIC;
+	sHeader.uiVersion = RASTER_MESH_FILE_VERSION;
+	sHeader.uiSource = uiSource;
+	sHeader.uiNumVertices = (uint32)masVertices.NumElements();
+	sHeader.uiNumOpaque = (uint32)masOpaque.NumElements();
+	sHeader.uiNumTransparent = (uint32)masTransparent.NumElements();
+	sHeader.sMin = msMin;
+	sHeader.sMax = msMax;
+
+	cFile.Init(szFilename);
+	if (!cFile.Open(EFM_Write_Replace))
+	{
+		cFile.Kill();
+		return false;
+	}
+	bResult = cFile.Write(&sHeader, sizeof(sHeader), 1) == 1;
+	bResult = bResult && ((sHeader.uiNumVertices == 0) || (cFile.Write(masVertices.GetData(), sizeof(SRasterVertex), sHeader.uiNumVertices) == sHeader.uiNumVertices));
+	bResult = bResult && ((sHeader.uiNumOpaque == 0) || (cFile.Write(masOpaque.GetData(), sizeof(SRasterTriangle), sHeader.uiNumOpaque) == sHeader.uiNumOpaque));
+	bResult = bResult && ((sHeader.uiNumTransparent == 0) || (cFile.Write(masTransparent.GetData(), sizeof(SRasterTriangle), sHeader.uiNumTransparent) == sHeader.uiNumTransparent));
+	cFile.Close();
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False, leaving the mesh as it was, if the file isn't there, isn't this
+// version or wasn't built from uiSource.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRasterMesh::Load(const char* szFilename, uint64 uiSource)
+{
+	CDiskFile				cFile;
+	SRasterMeshFileHeader	sHeader;
+	bool					bResult;
+
+	cFile.Init(szFilename);
+	if (!cFile.Open(EFM_Read))
+	{
+		cFile.Kill();
+		return false;
+	}
+	bResult = cFile.Read(&sHeader, sizeof(sHeader), 1) == 1;
+	bResult = bResult && (sHeader.uiMagic == RASTER_MESH_FILE_MAGIC) && (sHeader.uiVersion == RASTER_MESH_FILE_VERSION) && (sHeader.uiSource == uiSource);
+	if (bResult)
+	{
+		masVertices.ReInit();
+		masOpaque.ReInit();
+		masTransparent.ReInit();
+		masVertices.Resize(sHeader.uiNumVertices);
+		masOpaque.Resize(sHeader.uiNumOpaque);
+		masTransparent.Resize(sHeader.uiNumTransparent);
+		bResult = (sHeader.uiNumVertices == 0) || (cFile.Read(masVertices.GetData(), sizeof(SRasterVertex), sHeader.uiNumVertices) == sHeader.uiNumVertices);
+		bResult = bResult && ((sHeader.uiNumOpaque == 0) || (cFile.Read(masOpaque.GetData(), sizeof(SRasterTriangle), sHeader.uiNumOpaque) == sHeader.uiNumOpaque));
+		bResult = bResult && ((sHeader.uiNumTransparent == 0) || (cFile.Read(masTransparent.GetData(), sizeof(SRasterTriangle), sHeader.uiNumTransparent) == sHeader.uiNumTransparent));
+		msMin = sHeader.sMin;
+		msMax = sHeader.sMax;
+	}
+	cFile.Close();
+	cFile.Kill();
+	return bResult;
 }

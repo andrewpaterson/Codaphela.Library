@@ -64,6 +64,9 @@ class CMesh;
 //  RemoveDegenerate takes out triangles with no area, which can't be seen.
 //  FixReversed turns round triangles that wind against their own normals, which back face culling would leave as holes.
 //  Simplify merges everything of a colour closer than a cell, for a mesh that is always drawn so small that a cell is about a pixel.
+//
+//Building one from a big mesh takes seconds and Save and Load take none: uiSource is whatever says which source it was
+//built from, and Load refuses a file built from another.
 class CRasterMesh
 {
 public:
@@ -82,6 +85,9 @@ public:
 	size	RemoveDegenerate(void);
 	size	FixReversed(void);
 	void	Simplify(int32 iCellSize);
+
+	bool	Save(const char* szFilename, uint64 uiSource);
+	bool	Load(const char* szFilename, uint64 uiSource);
 
 	size	NumTriangles(void);
 
