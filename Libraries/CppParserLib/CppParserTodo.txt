@@ -43,7 +43,6 @@ Right now the highlighting is only spans checked by tests.
 5. Smaller items
 ----------------
 
-  - Decide what happens to WorldLib: port it, or leave it as dead code.  It refers to things that no longer exist (CUnknown, Float3Normalize, Float3Cross, Float3Length, CMeshVertexArrayArray, CStandardTrackerObject) and needs DirectX.  It is not in any .sln.
   - Add a Linux CMake build for TestJavaParserLib, so its tests run after the float128 fix.
   - Instantiate every BaseLib template class in a test, to catch bugs the parser cannot see yet.  That is how the CArrayTemplateEmbeddedPrimitive bugs were found.
 
