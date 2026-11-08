@@ -2,31 +2,14 @@ CppParserLib: issues left from the quality sweep
 ================================================
 
 What is left of the sweep of CppParserLib for code smells, duplication and anything wrong
-or inelegant (2026-11).  Items 1 to 43 and 53 are done; the numbers are kept as they were.
-Written 2026-11-07.
+or inelegant (2026-11).  Items 1 to 59 are done (56 was not a copy: GuardedBy's narrower walk
+is needed, and says why); the numbers are kept as they were.  Written 2026-11-07, updated
+2026-11-08.
 
 
 Duplication
 -----------
 
-44. CopyMembers and CopyBytes share most of their code.
-45. "Strip a reference" is written out about 30 times.
-46. Call() repeats its clean up about 13 times.
-47. The parser's state is saved and restored by hand five times.
-48. The parser's error recovery block is written three times.
-49. The decl-specifier keywords are listed three times, and the lists have drifted.
-50. The identifier character tests are still written in several files (Preprocessor.cpp
-    shares its own).
-51. The punctuators are in two tables.
-52. There are four FNV hash tables.
-54. The W65C816's byte sign extension (eor 0x80; sec; sbc 0x80) is still written out in
-    about six places (the sign word was shared in item 24).
-55. ByteMultiply repeats TableProduct.
-56. GuardedBy and LoopGuarded do the same walk.
-57. Integer comparisons of constants are worked out in two places.
-58. SinkLoads works out "has an effect" again.
-59. CPP65GeneratorClasses.cpp:2171 counts the required parameters by hand instead of
-    calling RequiredParameters.
 92. Both back ends pair a divide with its remainder.  The 65C64's PairDivides (with
     DividePartner, unsigned 32 bits only) moves a urem next to its udiv; the W65C816's
     RemainderLeft (signed and unsigned, 16, 32 and 64 bits) shares the result only when the
@@ -80,7 +63,8 @@ Design and elegance
 82. Each clz and ctz call writes its own 256 byte table.
 83. Comments out of date: the "as the generator's X" ones, IR65Reshape.txt, W65C816.txt
     ("nothing here is built yet"), AppendBitsTable's header, IR.txt (utof for uitof), and
-    the comments above the wrong functions in IROptimiserCounters.cpp.
+    any other comments above the wrong functions in IROptimiserCounters.cpp (LoopGuarded's
+    is fixed).
 
 
 Limits and findings
