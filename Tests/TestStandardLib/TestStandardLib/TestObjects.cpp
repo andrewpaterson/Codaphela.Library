@@ -10,6 +10,7 @@
 #include "BaseLib/LifeCycle.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/MemoryFile.h"
+#include "StandardLib/HollowObject.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/Objects.h"
@@ -831,6 +832,140 @@ void TestObjectsWalkStampWrap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the three callbacks saw last, and how many times they were called.
+//
+//////////////////////////////////////////////////////////////////////////
+static CBaseObject*	gpcTestObjectsCallbackObject = NULL;
+static size			guiTestObjectsAllocated = 0;
+static size			guiTestObjectsHollows = 0;
+static size			guiTestObjectsDestroyed = 0;
+
+
+static void TestObjectsAllocated(CBaseObject* pcObject)
+{
+	gpcTestObjectsCallbackObject = pcObject;
+	guiTestObjectsAllocated++;
+}
+
+
+static void TestObjectsHollowAllocated(CBaseObject* pcObject)
+{
+	gpcTestObjectsCallbackObject = pcObject;
+	guiTestObjectsHollows++;
+}
+
+
+static void TestObjectsDestroyed(CBaseObject* pcObject)
+{
+	gpcTestObjectsCallbackObject = pcObject;
+	guiTestObjectsDestroyed++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each callback is called for its own event, with the object: a hollow is
+// allocated too, so that's both of those.  None is set to begin with, and
+// ObjectsInit forgets them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsCallbacks(void)
+{
+	CHollowObject*	pcHollow;
+	CBaseObject*	pcObject;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pObject;
+
+		guiTestObjectsAllocated = 0;
+		guiTestObjectsHollows = 0;
+		guiTestObjectsDestroyed = 0;
+		pObject = OMalloc<CTestObject>();
+		pObject = NULL;
+		AssertSize(0, guiTestObjectsAllocated);
+		AssertSize(0, guiTestObjectsDestroyed);
+
+		gcObjects.SetAllocationCallback(&TestObjectsAllocated);
+		gcObjects.SetHollowAllocationCallback(&TestObjectsHollowAllocated);
+		gcObjects.SetDestructionCallback(&TestObjectsDestroyed);
+
+		pObject = OMalloc<CTestObject>();
+		AssertSize(1, guiTestObjectsAllocated);
+		AssertSize(0, guiTestObjectsHollows);
+		AssertSize(0, guiTestObjectsDestroyed);
+		AssertPointer(pObject.Object(), gpcTestObjectsCallbackObject);
+
+		pcHollow = gcObjects.AllocateInternalHollow("", gcObjects.GetIndexGenerator()->GetNext(), 1, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		AssertNotNull(pcHollow);
+		AssertSize(2, guiTestObjectsAllocated);
+		AssertSize(1, guiTestObjectsHollows);
+		AssertPointer(pcHollow, gpcTestObjectsCallbackObject);
+
+		pcObject = pObject.BaseObject();
+		pObject = NULL;
+		AssertSize(1, guiTestObjectsDestroyed);
+		AssertPointer(pcObject, gpcTestObjectsCallbackObject);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+
+	//The hollow was left for ObjectsKill to free.
+	AssertSize(2, guiTestObjectsDestroyed);
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pObject;
+
+		pObject = OMalloc<CTestObject>();
+		AssertSize(2, guiTestObjectsAllocated);
+		pObject = NULL;
+		AssertSize(2, guiTestObjectsDestroyed);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ValidateEmpty says how many objects are left, and nothing if none are.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsValidateEmpty(void)
+{
+	CMemoryFile	cLog;
+	SLogConfig	sLogConfig;
+	char		szLogged[2048];
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pObject;
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		gcObjects.ValidateEmpty();
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertString("", szLogged);
+
+		pObject = OMalloc<CTestObject>();
+		StartCapturingLog(&cLog, &sLogConfig);
+		gcObjects.ValidateEmpty();
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "1 objects are still indexed."));
+
+		pObject = NULL;
+		StartCapturingLog(&cLog, &sLogConfig);
+		gcObjects.ValidateEmpty();
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertString("", szLogged);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An object that can't be saved.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1197,6 +1332,8 @@ void TestObjects(void)
 	TestObjectsMallocArgumentsValues();
 	TestObjectsLifeAllocArgumentsNotCopied();
 	TestObjectsWriteAndReadFailuresNameTheObject();
+	TestObjectsCallbacks();
+	TestObjectsValidateEmpty();
 
 	DataIOKill();
 	TypesKill();

@@ -310,9 +310,9 @@ void CObjects::TestSetWalkStamp(uint32 uiWalkStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::SetAllocationCallback(AllocationCallback fAllocationCallback)
+void CObjects::SetAllocationCallback(ObjectCallback fCallback)
 {
-	mAllocationCallback = fAllocationCallback;
+	mAllocationCallback = fCallback;
 }
 
 
@@ -320,9 +320,9 @@ void CObjects::SetAllocationCallback(AllocationCallback fAllocationCallback)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::SetHollowAllocationCallback(HollowAllocationCallback fHollowAllocationCallback)
+void CObjects::SetHollowAllocationCallback(ObjectCallback fCallback)
 {
-	mHollowAllocationCallback = fHollowAllocationCallback;
+	mHollowAllocationCallback = fCallback;
 }
 
 
@@ -330,9 +330,9 @@ void CObjects::SetHollowAllocationCallback(HollowAllocationCallback fHollowAlloc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::SetDestructionCallback(DestructionCallback fDestructionCallback)
+void CObjects::SetDestructionCallback(ObjectCallback fCallback)
 {
-	mDestructionCallback = fDestructionCallback;
+	mDestructionCallback = fCallback;
 }
 
 

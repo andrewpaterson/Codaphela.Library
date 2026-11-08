@@ -29,16 +29,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateEmpty(void)
 {
-	OIndex	iNumIndexed;
+	size	uiNumIndexed;
 
-	iNumIndexed = mcMemory.NumIndexed();
-	if (iNumIndexed != 0)
+	uiNumIndexed = mcMemory.NumIndexed();
+	if (uiNumIndexed != 0)
 	{
 		CChars				sz;
 
 		sz.Init("\n");
 		sz.Append("Memory not empty.  ");
-		sz.Append(iNumIndexed);
+		sz.Append(uiNumIndexed);
 		sz.Append(" objects are still indexed.\n");
 		PrintMemoryUseIteration(&sz);
 		gcLogger.Error(sz.Text());

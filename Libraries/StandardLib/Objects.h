@@ -54,9 +54,7 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args&& ... args);
 #define  LOG_OBJECT_ALLOCATION_FAILURE(Class, Index, Name) LogObjectAllocationFailure(Class, Index, Name, __ENGINE_PRETTY_FUNCTION__)
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
 
-typedef void (*AllocationCallback)(CBaseObject*);
-typedef void (*HollowAllocationCallback)(CBaseObject*);
-typedef void (*DestructionCallback)(CBaseObject*);
+typedef void (*ObjectCallback)(CBaseObject*);
 
 
 class CHollowObject;
@@ -78,9 +76,9 @@ protected:
 	CDataConnection*		mpcDataConnection;
 	CSequenceConnection*	mpcSequenceConnection;
 
-	AllocationCallback		mAllocationCallback;
-	HollowAllocationCallback	mHollowAllocationCallback;
-	DestructionCallback		mDestructionCallback;
+	ObjectCallback			mAllocationCallback;
+	ObjectCallback			mHollowAllocationCallback;
+	ObjectCallback			mDestructionCallback;
 	
 	bool					mbValidateConsistency;
 	CObjectRemovalContext	mcRemovalContext;
@@ -172,9 +170,9 @@ public:
 						void					ValidateEmpty(void);
 						void					ValidateObjectsConsistency(void);
 
-						void					SetAllocationCallback(AllocationCallback fAllocationCallback);
-						void					SetHollowAllocationCallback(HollowAllocationCallback fHollowAllocationCallback);
-						void					SetDestructionCallback(DestructionCallback fDestructionCallback);
+						void					SetAllocationCallback(ObjectCallback fCallback);
+						void					SetHollowAllocationCallback(ObjectCallback fCallback);
+						void					SetDestructionCallback(ObjectCallback fCallback);
 
 						void					EnableValidation(void);
 						void					DisableValidation(void);
