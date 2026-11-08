@@ -477,13 +477,10 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 {
 	SCPPParserPosition				sPosition;
 	SCPPParserPosition				sStart;
-	CCPPScope*						pcScope;
-	int								iClassDepth;
-	bool							bNoGreater;
+	SCPPParserState					sState;
 	bool							bMemberName;
 	int								iTentative;
 	bool							bFailed;
-	bool							bDeclaringTemplate;
 	int								iPack;
 	CArrayDeferredBodies			acDeferred;
 	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
@@ -499,13 +496,10 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	}
 
 	sPosition = Mark();
-	pcScope = mpcScope;
-	iClassDepth = miClassDepth;
-	bNoGreater = mbNoGreater;
+	sState = SaveState();
 	bMemberName = mbMemberName;
 	iTentative = miTentative;
 	bFailed = mbFailed;
-	bDeclaringTemplate = mbDeclaringTemplate;
 	iPack = miPack;
 	acDeferred = macDeferred;
 	macDeferred.Init();
@@ -537,13 +531,10 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	mpapcRecorded = papcRecorded;
 	mpcRecordScope = pcRecordScope;
 	miPack = iPack;
-	mbDeclaringTemplate = bDeclaringTemplate;
 	mbFailed = bFailed;
 	miTentative = iTentative;
 	mbMemberName = bMemberName;
-	mbNoGreater = bNoGreater;
-	miClassDepth = iClassDepth;
-	mpcScope = pcScope;
+	RestoreState(&sState);
 	Rewind(sPosition);
 
 	LoadMembers(pcLazy);

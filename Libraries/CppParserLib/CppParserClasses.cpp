@@ -274,10 +274,8 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 	CCPPSyntaxDeclaration*			pcMember;
 	CCPPSyntaxSkippedDeclaration*	pcSkipped;
 	SCPPParserPosition				sStart;
-	CCPPScope*						pcSaved;
-	bool							bDeclaringTemplate;
-	bool							bNoGreater;
-	int								iClassDepth;
+	SCPPParserState					sOutside;
+	SCPPParserState					sMembers;
 
 	//{ member-specification }  [class.mem]
 	if (!Expect(CT_OpenCurlyBracket))
@@ -285,14 +283,12 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 		return false;
 	}
 
-	pcSaved = mpcScope;
+	sOutside = SaveState();
 	mpcScope = pcClass->mpcScope;
-	bDeclaringTemplate = mbDeclaringTemplate;
 	mbDeclaringTemplate = false;
-	bNoGreater = mbNoGreater;
 	mbNoGreater = false;
 	miClassDepth++;
-	iClassDepth = miClassDepth;
+	sMembers = SaveState();
 
 	while (!IsEnd() && !Is(CT_CloseCurlyBracket))
 	{
@@ -319,26 +315,14 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 		}
 		else
 		{
-			mpcScope = pcClass->mpcScope;
-			miClassDepth = iClassDepth;
-			mbNoGreater = false;
-			mbDeclaringTemplate = false;
-			Rewind(sStart);
-			SkipDeclaration();
-			if (CurrentToken() == sStart.iToken)
-			{
-				Next();
-			}
+			RecoverAt(sStart, &sMembers, false);
 			pcSkipped = mpcMemory->Create<CCPPSyntaxSkippedDeclaration>(pcClass);
 			pcSkipped->SetTokens(sStart.iToken, PreviousToken());
 			pcClass->macpMembers.Add(pcSkipped);
 		}
 	}
 
-	mpcScope = pcSaved;
-	mbDeclaringTemplate = bDeclaringTemplate;
-	mbNoGreater = bNoGreater;
-	miClassDepth--;
+	RestoreState(&sOutside);
 	if (!Expect(CT_CloseCurlyBracket))
 	{
 		return false;
@@ -367,8 +351,7 @@ void CCPPParser::ParseDeferredBodies(void)
 	SCPPDeferredBody	sDeferred;
 	SCPPParserPosition	sPosition;
 	SCPPParserPosition	sBody;
-	CCPPScope*			pcSaved;
-	bool				bNoGreater;
+	SCPPParserState		sState;
 
 	//The bodies of member functions defined in a class, now that the class is complete.  [class.mem] 6
 	while (macDeferred.NumElements() > 0)
@@ -377,8 +360,7 @@ void CCPPParser::ParseDeferredBodies(void)
 		macDeferred.RemoveAt(0, true);
 
 		sPosition = Mark();
-		pcSaved = mpcScope;
-		bNoGreater = mbNoGreater;
+		sState = SaveState();
 		mbNoGreater = false;
 
 		sBody.iToken = sDeferred.iStart;
@@ -397,8 +379,7 @@ void CCPPParser::ParseDeferredBodies(void)
 		}
 
 		Rewind(sPosition);
-		mpcScope = pcSaved;
-		mbNoGreater = bNoGreater;
+		RestoreState(&sState);
 	}
 }
 
@@ -416,9 +397,8 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	CCPPSymbol*							pcSymbol;
 	CCPPSymbol*							pcEnumeratorSymbol;
 	CCPPScope*							pcDeclarationScope;
-	CCPPScope*							pcSaved;
+	SCPPParserState						sOutside;
 	int64								lliName;
-	bool								bNoGreater;
 
 	//enum [class] name [: type] { enumerators }  [dcl.enum]
 	pcEnum = mpcMemory->Create<CCPPSyntaxEnumSpecifier>(pcParent);
@@ -500,16 +480,14 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 
 	Next();
 	pcEnum->mbBody = true;
-	pcSaved = mpcScope;
+	sOutside = SaveState();
 	mpcScope = pcEnum->mpcScope;
-	bNoGreater = mbNoGreater;
 	mbNoGreater = false;
 	while (!Is(CT_CloseCurlyBracket))
 	{
 		if (!IsIdentifier())
 		{
-			mpcScope = pcSaved;
-			mbNoGreater = bNoGreater;
+			RestoreState(&sOutside);
 			Error("Expected an enumerator.");
 			return NULL;
 		}
@@ -537,8 +515,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			pcEnumerator->mpcValue = ParseConstantExpression(pcEnumerator);
 			if (!pcEnumerator->mpcValue)
 			{
-				mpcScope = pcSaved;
-				mbNoGreater = bNoGreater;
+				RestoreState(&sOutside);
 				return NULL;
 			}
 		}
@@ -554,8 +531,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			pcEnum->mbTrailingComma = true;
 		}
 	}
-	mpcScope = pcSaved;
-	mbNoGreater = bNoGreater;
+	RestoreState(&sOutside);
 
 	if (!Expect(CT_CloseCurlyBracket))
 	{

@@ -36,6 +36,18 @@ struct SCPPParserPosition
 };
 
 
+//What parsing a declaration or statement changes as it goes and puts back when it ends: the scope, how deep in
+//classes it is, whether a '>' ends an expression (mbNoGreater) and whether a template is being declared.  A failed
+//one's is put back by RecoverAt.
+struct SCPPParserState
+{
+	CCPPScope*	pcScope;
+	int			iClassDepth;
+	bool		bNoGreater;
+	bool		bDeclaringTemplate;
+};
+
+
 //A member function body, parsed when its class is complete.  [class.mem] 6
 struct SCPPDeferredBody
 {
@@ -166,6 +178,9 @@ protected:
 	bool							AcceptCloseAngle(void);
 	SCPPParserPosition				Mark(void);
 	void							Rewind(SCPPParserPosition sPosition);
+	SCPPParserState					SaveState(void);
+	void							RestoreState(SCPPParserState* psState);
+	void							RecoverAt(SCPPParserPosition sStart, SCPPParserState* psState, bool bStatement);
 	int								CurrentToken(void);
 	int								PreviousToken(void);
 	bool							IsSkimming(void);

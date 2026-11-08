@@ -31,9 +31,7 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 {
 	CCPPSyntaxDeclaration*		pcDeclaration;
 	SCPPParserPosition			sStart;
-	CCPPScope*					pcScope;
-	int							iClassDepth;
-	bool						bNoGreater;
+	SCPPParserState				sState;
 	CCPPSyntaxDeclaration*		pcSkipped;
 	bool						bRecord;
 	CArrayTemplate<CCPPSymbol*>		apcDeclared;
@@ -56,9 +54,7 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 		}
 
 		sStart = Mark();
-		pcScope = mpcScope;
-		iClassDepth = miClassDepth;
-		bNoGreater = mbNoGreater;
+		sState = SaveState();
 		bRecord = mpcHeaderIndex && (miTentative == 0) && (mpcScope->meKind == CPPSC_Namespace);
 		if (bRecord && SkipLazy(papcDeclarations, pcParent))
 		{
@@ -89,16 +85,7 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 		}
 		else
 		{
-			mpcScope = pcScope;
-			miClassDepth = iClassDepth;
-			mbNoGreater = bNoGreater;
-			Rewind(sStart);
-			SkipDeclaration();
-			if (CurrentToken() == sStart.iToken)
-			{
-				//A stray '}' or ')'.
-				Next();
-			}
+			RecoverAt(sStart, &sState, false);
 			pcSkipped = mpcMemory->Create<CCPPSyntaxSkippedDeclaration>(pcParent);
 			pcSkipped->SetTokens(sStart.iToken, PreviousToken());
 			papcDeclarations->Add(pcSkipped);

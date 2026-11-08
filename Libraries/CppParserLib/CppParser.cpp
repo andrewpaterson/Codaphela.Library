@@ -371,6 +371,62 @@ void CCPPParser::Rewind(SCPPParserPosition sPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+SCPPParserState CCPPParser::SaveState(void)
+{
+	SCPPParserState	sState;
+
+	sState.pcScope = mpcScope;
+	sState.iClassDepth = miClassDepth;
+	sState.bNoGreater = mbNoGreater;
+	sState.bDeclaringTemplate = mbDeclaringTemplate;
+	return sState;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::RestoreState(SCPPParserState* psState)
+{
+	mpcScope = psState->pcScope;
+	miClassDepth = psState->iClassDepth;
+	mbNoGreater = psState->bNoGreater;
+	mbDeclaringTemplate = psState->bDeclaringTemplate;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After a declaration (or with bStatement a statement) from sStart that
+// couldn't be parsed: the state as it was there (psState), and the tokens
+// skipped to its end, at least one (a stray '}' or ')').  The caller keeps
+// sStart's tokens to here as a skipped declaration or statement.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::RecoverAt(SCPPParserPosition sStart, SCPPParserState* psState, bool bStatement)
+{
+	RestoreState(psState);
+	Rewind(sStart);
+	if (bStatement)
+	{
+		SkipStatement();
+	}
+	else
+	{
+		SkipDeclaration();
+	}
+	if (CurrentToken() == sStart.iToken)
+	{
+		Next();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CCPPParser::CurrentToken(void)
 {
 	return miToken;

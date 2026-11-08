@@ -83,15 +83,13 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxSkippedStatement*		pcSkipped;
 	CCPPSyntaxAttributedStatement*	pcAttributed;
 	SCPPParserPosition				sStart;
-	CCPPScope*						pcScope;
+	SCPPParserState					sState;
 	int								iErrors;
-	bool							bNoGreater;
 
 	//[stmt.stmt]  A statement that can't be parsed is skipped and kept as its tokens.
 	sStart = Mark();
-	pcScope = mpcScope;
+	sState = SaveState();
 	iErrors = miErrors;
-	bNoGreater = mbNoGreater;
 	mbNoGreater = false;
 	pcStatement = NULL;
 
@@ -248,7 +246,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 		}
 	}
 
-	mbNoGreater = bNoGreater;
+	mbNoGreater = sState.bNoGreater;
 	if (pcStatement)
 	{
 		return pcStatement;
@@ -260,13 +258,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	}
 
 	//Recover: skip the statement and keep its tokens.
-	mpcScope = pcScope;
-	Rewind(sStart);
-	SkipStatement();
-	if (CurrentToken() == sStart.iToken)
-	{
-		Next();
-	}
+	RecoverAt(sStart, &sState, true);
 	if (miErrors == iErrors)
 	{
 		ErrorAt(sStart.iToken, "Could not parse the statement.");

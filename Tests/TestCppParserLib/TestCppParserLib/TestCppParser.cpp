@@ -198,6 +198,53 @@ int Print(const char* sz, ...);\n"));
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A declaration (in a namespace or a class) or a statement that can't be
+// parsed is skipped and kept as its tokens, and the parser goes on as it
+// was before it (RecoverAt): in the same scope, so what follows is
+// declared where it should be.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserRecovery(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	sParsed.Init("\
+namespace N { int a = ) ; int b; }\n\
+struct S { int x; int y = ] ; int z; };\n\
+int f(void) { int i = 1; i = = 2; return i + N::b; }\n");
+	AssertInt(3, sParsed.iErrors);
+	sz.Init();
+	AssertString("\
+namespace N\n\
+{\n\
+	int a = ) ;\n\
+	int b;\n\
+}\n\
+struct S\n\
+{\n\
+	int x;\n\
+	int y = ] ;\n\
+	int z;\n\
+};\n\
+int f(void)\n\
+{\n\
+	int i = 1;\n\
+	i = = 2;\n\
+	return i + N::b;\n\
+}\n", sParsed.Print(&sz));
+	sz.Kill();
+
+	//b, after the skipped a, is N's: N::b finds it.
+	AssertNotNull(sParsed.GetSymbol("b", 0));
+	AssertPointer(sParsed.GetSymbol("b", 0), sParsed.GetSymbol("b", 1));
+	AssertNotNull(sParsed.GetSymbol("z", 0));
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParserDeclarations(void)
@@ -1764,6 +1811,7 @@ void TestCppParser(void)
 
 	TestCppParserDeclarations();
 	TestCppParserParameterCounts();
+	TestCppParserRecovery();
 	TestCppParserAmbiguities();
 	TestCppParserClasses();
 	TestCppParserTemplates();
