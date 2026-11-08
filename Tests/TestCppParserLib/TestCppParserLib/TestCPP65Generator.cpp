@@ -1436,12 +1436,12 @@ void TestCPP65GeneratorArrayTemplate(void)
 	AssertInt(268, TestCPP65MainFile("ArrayTemplateInt.cpp"));
 	AssertInt(553, TestCPP65MainFile("ArrayTemplateStruct.cpp"));
 
-	//Every member: the 40 CArrayBlock functions they call are in ArrayBlock.cpp.
-	AssertInt(40, TestCPP65Assemble("#include \"BaseLib/ArrayTemplate.h\"\ntemplate class CArrayTemplate<int>;\nint main() { return 0; }\n"));
+	//Every member: the 41 CArrayBlock functions they call are in ArrayBlock.cpp.
+	AssertInt(41, TestCPP65Assemble("#include \"BaseLib/ArrayTemplate.h\"\ntemplate class CArrayTemplate<int>;\nint main() { return 0; }\n"));
 	//ArrayBlock.cpp itself compiles and assembles.  Its externals (about 30) are the functions and globals of
 	//other BaseLib files and the C library; the count isn't pinned as BaseLib changes.
 	AssertTrue(TestCPP65AssembleLibraryFile("BaseLib" _FS_ "ArrayBlock.cpp") > 0);
-	AssertInt(40, TestCPP65Assemble("#include \"BaseLib/ArrayTemplate.h\"\nstruct SNode { SNode* psNext; char c; SNode() { psNext = 0; c = 'n'; } };\ntemplate class CArrayTemplate<SNode>;\nint main() { return 0; }\n"));
+	AssertInt(41, TestCPP65Assemble("#include \"BaseLib/ArrayTemplate.h\"\nstruct SNode { SNode* psNext; char c; SNode() { psNext = 0; c = 'n'; } };\ntemplate class CArrayTemplate<SNode>;\nint main() { return 0; }\n"));
 }
 
 
