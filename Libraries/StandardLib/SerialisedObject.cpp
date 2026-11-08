@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "SerialisedObject.h"
 
 
@@ -113,8 +115,13 @@ lsize CSerialisedObject::GetLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSerialisedObject::SetLength(size iLength)
+bool CSerialisedObject::SetLength(size iLength)
 {
+	if ((uint64)iLength > MAX_UINT32)
+	{
+		return gcLogger.Error2(__METHOD__, " A serialised object can't be [", SizeToString(iLength), "] bytes long (4GB at most).", NULL);
+	}
 	miLength = (uint32)iLength;
+	return true;
 }
 

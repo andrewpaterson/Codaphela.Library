@@ -55,7 +55,7 @@ public:
 	char*	GetName(void);
 	OIndex	GetIndex(void);
 	lsize	GetLength(void);
-	void	SetLength(size iLength);
+	bool	SetLength(size iLength);
 };
 #pragma pack(pop)
 

@@ -1969,8 +1969,9 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 //
 // A hollow with its embedded hollows after it.  A fat hollow (uiFatSize
 // not OBJECT_IDENTIFIER_SIZE_NOT_SET) takes the size of the object it
-// will be loaded as, so it can become that object in place.  An empty
-// name is an unnamed hollow.
+// will be loaded as, so it can become that object in place (a uint16: a
+// class too big for one isn't written fat).  An empty name is an unnamed
+// hollow.
 //
 //////////////////////////////////////////////////////////////////////////
 CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize)

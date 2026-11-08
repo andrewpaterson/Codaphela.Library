@@ -79,7 +79,11 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 		return NULL;
 	}
 
-	pcSerialised->SetLength(iLength);
+	if (!pcSerialised->SetLength(iLength))
+	{
+		gcSystemAllocator.Free(pcSerialised);
+		return NULL;
+	}
 	iLength -= (int32)sizeof(uint32);
 
 	pvOffset = RemapSinglePointer(pcSerialised, sizeof(uint32));

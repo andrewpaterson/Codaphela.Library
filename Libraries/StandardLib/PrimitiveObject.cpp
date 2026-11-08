@@ -69,7 +69,18 @@ CPrimitiveObject::CPrimitiveObject(EPrimitiveType eType)
 //////////////////////////////////////////////////////////////////////////
 void CPrimitiveObject::SetEmbedding(CObject* pcEmbedding)
 {
-	muiNegativeEmbeddingOffset = (uint16)((uint8*)this - (uint8*)pcEmbedding);
+	ptr		uiOffset;
+
+	//0 is not embedded: a primitive can't be at its object's start (the object's own fields are there).
+	uiOffset = (ptr)((uint8*)this - (uint8*)pcEmbedding);
+	if (uiOffset > MAX_UINT16)
+	{
+		//The object is still being set up (its Class), so it isn't printed.
+		gcLogger.Error2(__METHOD__, " A primitive [", SizeToString((size)uiOffset), "] bytes into its object can't find it (64KB at most).", NULL);
+		muiNegativeEmbeddingOffset = 0;
+		return;
+	}
+	muiNegativeEmbeddingOffset = (uint16)uiOffset;
 }
 
 

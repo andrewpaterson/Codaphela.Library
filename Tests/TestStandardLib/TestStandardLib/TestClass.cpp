@@ -561,6 +561,27 @@ void TestClassFieldOutsideObject(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A primitive's object is found by a uint16 offset back from it: one more
+// than 64KB away is an error, and the primitive isn't embedded.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestClassPrimitiveTooFarIntoObject(void)
+{
+	Int32		cPrimitive;
+	CMemoryFile	cLog;
+	SLogConfig	sLogConfig;
+	char		szLogged[1024];
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	cPrimitive.SetEmbedding((CObject*)((uint8*)&cPrimitive - 70000));
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "70000] bytes into its object can't find it (64KB at most)."));
+	AssertNull(cPrimitive.Embedding());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestClass(void)
@@ -578,6 +599,7 @@ void TestClass(void)
 	TestClassUnmanagedMatrixSerialisation();
 	TestClassHeapObjectEmbeddedPointers();
 	TestClassFieldOutsideObject();
+	TestClassPrimitiveTooFarIntoObject();
 
 	TypesKill();
 	MemoryKill();

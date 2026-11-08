@@ -9,6 +9,7 @@
 #include "StandardLib/MultiFileObjectWriter.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/DependentWriteObjects.h"
+#include "StandardLib/SerialisedObject.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 #include "ObjectTestClasses.h"
@@ -168,6 +169,82 @@ void TestObjectGraphSerialiserMarkNotDependent(void)
 }
 
 
+#if !defined(BASELIB_SIZE16) && !defined(__W65C816__)
+//////////////////////////////////////////////////////////////////////////
+//
+// An object too big for a fat hollow's uint16 size.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestTooBigToBeFat : public CObject
+{
+CONSTRUCTABLE(CTestTooBigToBeFat);
+DESTRUCTABLE(CTestTooBigToBeFat);
+public:
+	uint8	mauiData[70000];
+
+	void	Init(void) { PreInit(); PostInit(); }
+	void	Class(void) override {}
+	void	Free(void) override {}
+	bool	Save(CObjectWriter* pcFile) override { return true; }
+	bool	Load(CObjectReader* pcFile) override { return true; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer to it can't be written as a fat hollow (its size wouldn't
+// fit), only as an ordinary one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectGraphSerialiserTooBigToBeFat(void)
+{
+	Ptr<CTestTooBigToBeFat>	pBig;
+	CObjectWriter			cWriter;
+	CMemoryFile				cMemory;
+	SLogConfig				sLogConfig;
+	bool					bResult;
+
+	pBig = OMalloc<CTestTooBigToBeFat>();
+
+	cMemory.Init();
+	cMemory.Open(EFM_ReadWrite_Create);
+	cWriter.Init(&cMemory, NULL);
+	sLogConfig = gcLogger.SetSilent();
+	bResult = cWriter.WriteDependent(pBig.Object(), true);
+	gcLogger.SetConfig(&sLogConfig);
+	AssertFalse(bResult);
+	AssertTrue(cWriter.WriteDependent(pBig.Object(), false));
+	cMemory.Close();
+	cWriter.Kill();
+	cMemory.Kill();
+
+	pBig->Kill();
+}
+#endif // !BASELIB_SIZE16 && !__W65C816__
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A serialised object's length is a uint32: a longer one is refused.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectGraphSerialiserSerialisedLength(void)
+{
+	CSerialisedObject	cSerialised;
+
+	AssertTrue(cSerialised.SetLength(100));
+	AssertLSize(100, cSerialised.GetLength());
+#ifdef BUILD_64
+	SLogConfig			sLogConfig;
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cSerialised.SetLength((size)MAX_UINT32 + 1));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertLSize(100, cSerialised.GetLength());
+#endif // BUILD_64
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -183,6 +260,10 @@ void TestObjectGraphSerialiser(void)
 	TestObjectGraphSerialiserReachability();
 	TestObjectGraphSerialiserTwoInOneStream();
 	TestObjectGraphSerialiserMarkNotDependent();
+#if !defined(BASELIB_SIZE16) && !defined(__W65C816__)
+	TestObjectGraphSerialiserTooBigToBeFat();
+#endif // !BASELIB_SIZE16 && !__W65C816__
+	TestObjectGraphSerialiserSerialisedLength();
 
 	TestStatistics();
 	ObjectsKill();
