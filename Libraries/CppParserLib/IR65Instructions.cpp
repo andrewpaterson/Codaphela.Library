@@ -37,7 +37,7 @@ uint8 IR65OpcodeFlags(uint16 uiOpcode)
 {
 	if (IsIRIntegerComparison(uiOpcode))
 	{
-		return IR65F_TAKES_A | IR65F_TAKES_B | (((uiOpcode == IRO_Eq) || (uiOpcode == IRO_Ne)) ? IR65F_COMMUTES : 0);
+		return IR65F_TAKES_A | IR65F_TAKES_B | (IsIRCommutative(uiOpcode) ? IR65F_COMMUTES : 0);
 	}
 	switch (uiOpcode)
 	{

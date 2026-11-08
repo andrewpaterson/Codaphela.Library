@@ -305,7 +305,7 @@ bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 		return false;
 	}
 	uiOpcode = psCompare->uiOpcode;
-	if ((uiOpcode != IRO_SLt) && (uiOpcode != IRO_SLe) && (uiOpcode != IRO_SGt) && (uiOpcode != IRO_SGe))
+	if (!IsIRSignedComparison(uiOpcode))
 	{
 		return false;
 	}

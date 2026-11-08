@@ -25,11 +25,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define IR_PURE		IROP_Pure
 #define IR_SWAPS	(IROP_Pure | IROP_Commutative)
 #define IR_TRAPS	(IROP_Pure | IROP_MayTrap)
+#define IR_SIGNED	(IROP_Pure | IROP_Signed)
+#define IR_SWAP_LT	IROP_SwappedLess
 
 
 #define IR_INTEGER_OP(name, properties)		{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0, properties }
 #define IR_INTEGER_UNARY(name)				{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_None }, IRRS_Same, 0, IR_PURE }
-#define IR_INTEGER_COMPARE(name, properties)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, properties }
+#define IR_INTEGER_COMPARE(name, properties, inverted, swapped, holds)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, (properties) | IROP_IntegerComparison, inverted, swapped, holds }
 #define IR_FLOAT_OP(name, properties)		{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0, properties }
 #define IR_FLOAT_COMPARE(name, properties)	{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, properties }
 #define IR_DIVIDE_OP(name)					{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, IRF_Hot, IR_TRAPS }
@@ -60,16 +62,17 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_CONVERSION("zext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
 	IR_CONVERSION("trunc", IRTM_I1 | IRTM_Integer, IRTM_Integer),
 
-	IR_INTEGER_COMPARE("eq", IR_SWAPS),
-	IR_INTEGER_COMPARE("ne", IR_SWAPS),
-	IR_INTEGER_COMPARE("slt", IR_PURE),
-	IR_INTEGER_COMPARE("sle", IR_PURE),
-	IR_INTEGER_COMPARE("sgt", IR_PURE),
-	IR_INTEGER_COMPARE("sge", IR_PURE),
-	IR_INTEGER_COMPARE("ult", IR_PURE),
-	IR_INTEGER_COMPARE("ule", IR_PURE),
-	IR_INTEGER_COMPARE("ugt", IR_PURE),
-	IR_INTEGER_COMPARE("uge", IR_PURE),
+	//                 name    properties               inverted  swapped   holds when the left operand is
+	IR_INTEGER_COMPARE("eq",   IR_SWAPS,                IRO_Ne,   IRO_Eq,   IRCH_Equal),
+	IR_INTEGER_COMPARE("ne",   IR_SWAPS,                IRO_Eq,   IRO_Ne,   IRCH_Less | IRCH_Greater),
+	IR_INTEGER_COMPARE("slt",  IR_SIGNED,               IRO_SGe,  IRO_SGt,  IRCH_Less),
+	IR_INTEGER_COMPARE("sle",  IR_SIGNED | IR_SWAP_LT,  IRO_SGt,  IRO_SGe,  IRCH_Less | IRCH_Equal),
+	IR_INTEGER_COMPARE("sgt",  IR_SIGNED | IR_SWAP_LT,  IRO_SLe,  IRO_SLt,  IRCH_Greater),
+	IR_INTEGER_COMPARE("sge",  IR_SIGNED,               IRO_SLt,  IRO_SLe,  IRCH_Greater | IRCH_Equal),
+	IR_INTEGER_COMPARE("ult",  IR_PURE,                 IRO_UGe,  IRO_UGt,  IRCH_Less),
+	IR_INTEGER_COMPARE("ule",  IR_PURE | IR_SWAP_LT,    IRO_UGt,  IRO_UGe,  IRCH_Less | IRCH_Equal),
+	IR_INTEGER_COMPARE("ugt",  IR_PURE | IR_SWAP_LT,    IRO_ULe,  IRO_ULt,  IRCH_Greater),
+	IR_INTEGER_COMPARE("uge",  IR_PURE,                 IRO_ULt,  IRO_ULe,  IRCH_Greater | IRCH_Equal),
 
 	IR_FLOAT_OP("fadd", IR_SWAPS),
 	IR_FLOAT_OP("fsub", IR_PURE),
@@ -168,13 +171,24 @@ uint16 FindIROpcode(SIROpcode* pasOpcodes, uint16 uiNumOpcodes, uint16 uiFirst, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The opcode's IROP_ properties: a target's opcodes have none.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint8 IRProperties(uint16 uiOpcode)
+{
+	return (uiOpcode < IRO_NumGeneric) ? gasIROpcodes[uiOpcode].uiProperties : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True for the integer comparisons: eq, ne and the signed and unsigned
-// orderings (eq to uge).
+// orderings.
 //
 //////////////////////////////////////////////////////////////////////////
 bool IsIRIntegerComparison(uint16 uiOpcode)
 {
-	return (uiOpcode >= IRO_Eq) && (uiOpcode <= IRO_UGe);
+	return (IRProperties(uiOpcode) & IROP_IntegerComparison) != 0;
 }
 
 
@@ -185,7 +199,7 @@ bool IsIRIntegerComparison(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 bool IsIRSignedComparison(uint16 uiOpcode)
 {
-	return (uiOpcode >= IRO_SLt) && (uiOpcode <= IRO_SGe);
+	return (IRProperties(uiOpcode) & IROP_Signed) != 0;
 }
 
 
@@ -196,7 +210,7 @@ bool IsIRSignedComparison(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 bool IsIRSwappedComparison(uint16 uiOpcode)
 {
-	return (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_ULe);
+	return (IRProperties(uiOpcode) & IROP_SwappedLess) != 0;
 }
 
 
@@ -208,43 +222,19 @@ bool IsIRSwappedComparison(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 uint16 IRInvertedComparison(uint16 uiOpcode)
 {
-	switch (uiOpcode)
-	{
-	case IRO_Eq:	return IRO_Ne;
-	case IRO_Ne:	return IRO_Eq;
-	case IRO_SLt:	return IRO_SGe;
-	case IRO_SLe:	return IRO_SGt;
-	case IRO_SGt:	return IRO_SLe;
-	case IRO_SGe:	return IRO_SLt;
-	case IRO_ULt:	return IRO_UGe;
-	case IRO_ULe:	return IRO_UGt;
-	case IRO_UGt:	return IRO_ULe;
-	case IRO_UGe:	return IRO_ULt;
-	default:		return IRO_None;
-	}
+	return IsIRIntegerComparison(uiOpcode) ? gasIROpcodes[uiOpcode].uiInverted : (uint16)IRO_None;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The integer comparison of the operands the other way round: a < b is
-// b > a.
+// b > a.  Any other opcode is returned as it is.
 //
 //////////////////////////////////////////////////////////////////////////
 uint16 IRSwappedComparison(uint16 uiOpcode)
 {
-	switch (uiOpcode)
-	{
-	case IRO_SLt:	return IRO_SGt;
-	case IRO_SLe:	return IRO_SGe;
-	case IRO_SGt:	return IRO_SLt;
-	case IRO_SGe:	return IRO_SLe;
-	case IRO_ULt:	return IRO_UGt;
-	case IRO_ULe:	return IRO_UGe;
-	case IRO_UGt:	return IRO_ULt;
-	case IRO_UGe:	return IRO_ULe;
-	default:		return uiOpcode;
-	}
+	return IsIRIntegerComparison(uiOpcode) ? gasIROpcodes[uiOpcode].uiSwapped : uiOpcode;
 }
 
 
@@ -256,26 +246,21 @@ uint16 IRSwappedComparison(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 bool IRCompareIntegers(uint16 uiOpcode, SIRType sType, uint64 ulliLeft, uint64 ulliRight)
 {
-	int64	lliLeft;
-	int64	lliRight;
+	bool	bLess;
+	uint8	uiOrder;
 
 	ulliLeft = IRTruncate(sType, ulliLeft);
 	ulliRight = IRTruncate(sType, ulliRight);
-	lliLeft = IRSignExtend(sType, ulliLeft);
-	lliRight = IRSignExtend(sType, ulliRight);
-	switch (uiOpcode)
+	if (ulliLeft == ulliRight)
 	{
-	case IRO_SLt:	return lliLeft < lliRight;
-	case IRO_SLe:	return lliLeft <= lliRight;
-	case IRO_SGt:	return lliLeft > lliRight;
-	case IRO_SGe:	return lliLeft >= lliRight;
-	case IRO_ULt:	return ulliLeft < ulliRight;
-	case IRO_ULe:	return ulliLeft <= ulliRight;
-	case IRO_UGt:	return ulliLeft > ulliRight;
-	case IRO_UGe:	return ulliLeft >= ulliRight;
-	case IRO_Eq:	return ulliLeft == ulliRight;
-	default:		return ulliLeft != ulliRight;
+		uiOrder = IRCH_Equal;
 	}
+	else
+	{
+		bLess = IsIRSignedComparison(uiOpcode) ? (IRSignExtend(sType, ulliLeft) < IRSignExtend(sType, ulliRight)) : (ulliLeft < ulliRight);
+		uiOrder = bLess ? IRCH_Less : IRCH_Greater;
+	}
+	return (gasIROpcodes[uiOpcode].uiHolds & uiOrder) != 0;
 }
 
 
@@ -298,7 +283,7 @@ bool IsIRIntegerConversion(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 bool IsIRPure(uint16 uiOpcode)
 {
-	return (uiOpcode == IRO_None) || ((uiOpcode < IRO_NumGeneric) && (gasIROpcodes[uiOpcode].uiProperties & IROP_Pure));
+	return (uiOpcode == IRO_None) || ((IRProperties(uiOpcode) & IROP_Pure) != 0);
 }
 
 
@@ -310,15 +295,16 @@ bool IsIRPure(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 bool IsIRMayTrap(uint16 uiOpcode)
 {
-	return (uiOpcode < IRO_NumGeneric) && (gasIROpcodes[uiOpcode].uiProperties & IROP_MayTrap);
+	return (IRProperties(uiOpcode) & IROP_MayTrap) != 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// a op b is b op a (IROP_Commutative).
 //
 //////////////////////////////////////////////////////////////////////////
 bool IsIRCommutative(uint16 uiOpcode)
 {
-	return (uiOpcode < IRO_NumGeneric) && (gasIROpcodes[uiOpcode].uiProperties & IROP_Commutative);
+	return (IRProperties(uiOpcode) & IROP_Commutative) != 0;
 }

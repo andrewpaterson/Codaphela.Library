@@ -98,7 +98,7 @@ bool CIROptimiser::NarrowComparison(SIRInstruction* psInstruction)
 	psInstruction->asArguments[0] = sLeft;
 	psInstruction->asArguments[1] = sRight;
 	psInstruction->sType = sNarrow;
-	if ((uiExtension == IRO_ZExt) && (psInstruction->uiOpcode >= IRO_SLt) && (psInstruction->uiOpcode <= IRO_SGe))
+	if ((uiExtension == IRO_ZExt) && IsIRSignedComparison(psInstruction->uiOpcode))
 	{
 		psInstruction->uiOpcode += IRO_ULt - IRO_SLt;
 	}

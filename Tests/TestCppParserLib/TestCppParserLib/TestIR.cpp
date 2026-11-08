@@ -970,6 +970,66 @@ void TestIRComparisonOpcodes(void)
 	AssertInt(IRO_None, IRInvertedComparison(IRO_Xor));
 	AssertInt(IRO_None, IRInvertedComparison(IRO_And));
 	AssertInt(IRO_None, IRInvertedComparison(IRO_None));
+	AssertInt(IRO_None, IRInvertedComparison(IRO_NumGeneric));
+	AssertInt(IRO_FLt, IRSwappedComparison(IRO_FLt));
+	AssertInt(IRO_NumGeneric, IRSwappedComparison(IRO_NumGeneric));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The comparisons' columns agree with each other and say what each opcode
+// does: only eq to uge have them, the inverse holds exactly when the
+// comparison doesn't and the swapped form holds of the swapped operands.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRComparisonColumns(void)
+{
+	uint16		uiOpcode;
+	SIRType		sType;
+	size		uiLeft;
+	size		uiRight;
+	uint64		aulliValues[] = { 0, 1, 2, 0x7F, 0x80, 0xFF };
+	size		uiNumValues;
+	bool		bHolds;
+
+	uiNumValues = sizeof(aulliValues) / sizeof(aulliValues[0]);
+	sType = IRType(IRTK_I8);
+	for (uiOpcode = IRO_None; uiOpcode < IRO_NumGeneric; uiOpcode++)
+	{
+		AssertBool((uiOpcode >= IRO_Eq) && (uiOpcode <= IRO_UGe), IsIRIntegerComparison(uiOpcode));
+		AssertBool((uiOpcode >= IRO_SLt) && (uiOpcode <= IRO_SGe), IsIRSignedComparison(uiOpcode));
+		AssertBool((uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGt) || (uiOpcode == IRO_ULe) || (uiOpcode == IRO_UGt), IsIRSwappedComparison(uiOpcode));
+		if (IsIRIntegerComparison(uiOpcode))
+		{
+			for (uiLeft = 0; uiLeft < uiNumValues; uiLeft++)
+			{
+				for (uiRight = 0; uiRight < uiNumValues; uiRight++)
+				{
+					bHolds = IRCompareIntegers(uiOpcode, sType, aulliValues[uiLeft], aulliValues[uiRight]);
+					AssertBool(!bHolds, IRCompareIntegers(IRInvertedComparison(uiOpcode), sType, aulliValues[uiLeft], aulliValues[uiRight]));
+					AssertBool(bHolds, IRCompareIntegers(IRSwappedComparison(uiOpcode), sType, aulliValues[uiRight], aulliValues[uiLeft]));
+				}
+			}
+		}
+	}
+
+	//0x80 is -128 signed and 128 unsigned, and bits past the type's width don't count.
+	AssertTrue(IRCompareIntegers(IRO_SLt, sType, 0x80, 0x01));
+	AssertFalse(IRCompareIntegers(IRO_ULt, sType, 0x80, 0x01));
+	AssertTrue(IRCompareIntegers(IRO_Eq, sType, 0x101, 0x01));
+	AssertTrue(IRCompareIntegers(IRO_Ne, sType, 0x80, 0x7F));
+	AssertTrue(IRCompareIntegers(IRO_SGe, sType, 0x7F, 0x7F));
+	AssertFalse(IRCompareIntegers(IRO_UGt, sType, 0x7F, 0x7F));
+	AssertTrue(IRCompareIntegers(IRO_ULe, sType, 0x7F, 0xFF));
+	AssertTrue(IRCompareIntegers(IRO_SGt, sType, 0x7F, 0xFF));
+
+	//Only eq and ne of them work either way round.
+	AssertTrue(IsIRCommutative(IRO_Eq));
+	AssertFalse(IsIRCommutative(IRO_SLt));
+	AssertFalse(IsIRPure(IRO_NumGeneric));
+	AssertFalse(IsIRMayTrap(IRO_NumGeneric));
+	AssertFalse(IsIRCommutative(IRO_NumGeneric));
 }
 
 
@@ -4634,6 +4694,7 @@ void TestIR(void)
 	TestIRDominators();
 	TestIRLoops();
 	TestIRComparisonOpcodes();
+	TestIRComparisonColumns();
 	TestIROptimiserPointerConstantWidth();
 	TestIROptimiserHoistableDivisions();
 	TestIROptimiser();

@@ -140,6 +140,15 @@ enum EIRShape
 #define IROP_Pure			0x01		//No effect and reads no memory: removed when unused, worked out once, moved.
 #define IROP_Commutative	0x02		//a op b is b op a.
 #define IROP_MayTrap		0x04		//Fails on some operands (division by 0): only moved where it would be done anyway.
+#define IROP_IntegerComparison	0x08	//eq, ne and the signed and unsigned orderings: they have the comparison columns.
+#define IROP_Signed			0x10		//An integer comparison of signed operands.
+#define IROP_SwappedLess	0x20		//sgt, sle, ugt and ule: a less than comparison with the operands swapped.
+
+
+//The orders of an integer comparison's operands it holds for (SIROpcode::uiHolds).
+#define IRCH_Less			0x01
+#define IRCH_Equal			0x02
+#define IRCH_Greater		0x04
 
 
 struct SIROpcode
@@ -152,6 +161,11 @@ struct SIROpcode
 	uint8		uiResult;			//EIRResultKind.
 	uint8		uiFlags;			//The IRF_ flags allowed.
 	uint8		uiProperties;		//IROP_.
+
+	//An integer comparison's columns.
+	uint8		uiInverted;			//The comparison that is true when this one is false.
+	uint8		uiSwapped;			//The comparison of the operands the other way round.
+	uint8		uiHolds;			//IRCH_ set of the orders it holds for.
 
 	int			NumOperands(void);
 };
