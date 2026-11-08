@@ -32,8 +32,9 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #define RASTER_SMALL_AREA		16
 
 //From this many pixels across, it's worth working out where each row's covered pixels are rather than looking for them.
-//A long thin triangle at an angle, as a board's outline makes, covers next to nothing of a very big box.
-#define RASTER_WIDE_PIXELS		16
+//A long thin triangle at an angle, as a board's outline makes, covers next to nothing of a very big box.  4 was the
+//fastest when measured on a board: at 2 the working out costs more than it saves.
+#define RASTER_WIDE_PIXELS		4
 
 //Twice a triangle's area, or how far a pixel is inside one of its edges: subpixel times subpixel.
 typedef SFixed<int64, int64, 8>		SRasterEdge;

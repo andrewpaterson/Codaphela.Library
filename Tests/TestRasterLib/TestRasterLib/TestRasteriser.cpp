@@ -400,11 +400,11 @@ void TestRasteriserWideTriangles(void)
 	int				iDrawn;
 
 	puiWide = (uint32*)malloc(128 * 64 * sizeof(uint32));
-	puiTile = (uint32*)malloc(8 * 64 * sizeof(uint32));
+	puiTile = (uint32*)malloc(4 * 64 * sizeof(uint32));
 	cRasteriser.Init();
 	cRasteriser.SetCullBackFaces(false);
 	cWide.Init(puiWide, 128, 64, 128);
-	cTile.Init(puiTile, 8, 64, 8);
+	cTile.Init(puiTile, 4, 64, 4);
 
 	uiRandom = 12345;
 	iDifferent = 0;
@@ -429,16 +429,16 @@ void TestRasteriserWideTriangles(void)
 		DrawTestTriangle(&cRasteriser, &cWide, aiCorner[0], aiCorner[1], aiCorner[2], aiCorner[3], aiCorner[4], aiCorner[5], 100, TEST_RED);
 		iDrawn += 128 * 64 - CountPixels(&cWide, TEST_BLACK);
 
-		for (iTile = 0; iTile < 16; iTile++)
+		for (iTile = 0; iTile < 32; iTile++)
 		{
-			iShift = iTile * 8 * SRasterSubpixel::FromInt(1).miRaw;
+			iShift = iTile * 4 * SRasterSubpixel::FromInt(1).miRaw;
 			cTile.Clear(TEST_BLACK);
 			DrawTestTriangle(&cRasteriser, &cTile, aiCorner[0] - iShift, aiCorner[1], aiCorner[2] - iShift, aiCorner[3], aiCorner[4] - iShift, aiCorner[5], 100, TEST_RED);
 			for (y = 0; y < 64; y++)
 			{
-				for (x = 0; x < 8; x++)
+				for (x = 0; x < 4; x++)
 				{
-					iDifferent += puiTile[y * 8 + x] != puiWide[y * 128 + iTile * 8 + x];
+					iDifferent += puiTile[y * 4 + x] != puiWide[y * 128 + iTile * 4 + x];
 				}
 			}
 		}
