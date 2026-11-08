@@ -35,10 +35,10 @@ public:
 
 	template<class M>
 	M*			Add(void);
-	void		Add(CUnknown* pcUnknown);
+	bool		Add(CUnknown* pcUnknown);
 
 	size		Remove(CUnknown* pcUnknown) override;
-	void		RemoveDuringIteration(SSetIterator* psIter);
+	bool		RemoveDuringIteration(SSetIterator* psIter);
 
 	bool		StartIteration(SSetIterator* psIter, CUnknown** ppcUnknown);
 	bool		Iterate(SSetIterator* psIter, CUnknown** ppcUnknown);
@@ -55,8 +55,7 @@ M* CSetUnknown::Add(void)
 	M*	pv;
 
 	pv = gcUnknowns.Add<M>();
-	Add(pv);
-	return pv;
+	return gcUnknowns.KeptOrFreed(pv, Add(pv));
 }
 
 

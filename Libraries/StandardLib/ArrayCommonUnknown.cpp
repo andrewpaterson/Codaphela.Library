@@ -395,13 +395,13 @@ size CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index of the first of pcUnknown from uiStartIndex on.
 //
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 {
 	CUnknown*	pcCurrent;
 	size		iIndex;
-	bool		bResult;
 	size		uiNumElements;
 
 	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMON_IGNORE_NULL))
@@ -411,16 +411,26 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 
 	if (muiFlags & ARRAY_COMMON_IS_PTR_SORTED)
 	{
-		if (pcUnknown != NULL)
+		CleanNullsBeforeBinarySearch();
+		if (!mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &iIndex))
 		{
-			CleanNullsBeforeBinarySearch();
-			bResult = mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &iIndex);
-			if (bResult && (iIndex >= uiStartIndex))
-			{
-				return iIndex;
-			}
+			return ARRAY_ELEMENT_NOT_FOUND;
 		}
-		return ARRAY_ELEMENT_NOT_FOUND;
+
+		//The search finds any one of the same element.  They are next to each other.
+		if (iIndex < uiStartIndex)
+		{
+			if ((uiStartIndex < mcArray.NumElements()) && (*mcArray.Get(uiStartIndex) == pcUnknown))
+			{
+				return uiStartIndex;
+			}
+			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+		while ((iIndex > uiStartIndex) && (*mcArray.Get(iIndex - 1) == pcUnknown))
+		{
+			iIndex--;
+		}
+		return iIndex;
 	}
 	else
 	{
@@ -619,16 +629,12 @@ bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Inserts pcUnknown where its address sorts it, or with bOverwriteExisting
-// in place of the same element (which is killed if the array kills its
-// elements).  Returns its index.
+// Inserts pcUnknown where its address sorts it, and returns its index.
 //
 //////////////////////////////////////////////////////////////////////////
-size CArrayCommonUnknown::InsertIntoSorted(CUnknown* pcUnknown, bool bOverwriteExisting)
+size CArrayCommonUnknown::InsertIntoSorted(CUnknown* pcUnknown)
 {
-	size		uiIndex;
-	size		uiNumElements;
-	CUnknown*	pcReplaced;
+	size	uiIndex;
 
 	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMON_IGNORE_NULL))
 	{
@@ -641,39 +647,14 @@ size CArrayCommonUnknown::InsertIntoSorted(CUnknown* pcUnknown, bool bOverwriteE
 	}
 	CleanNullsBeforeBinarySearch();
 
-	pcReplaced = NULL;
-	if (bOverwriteExisting && mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &uiIndex))
+	uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, false);
+	if (uiIndex + 1 != mcArray.NumElements())
 	{
-		pcReplaced = *mcArray.Get(uiIndex);
+		SlotsMoved();
 	}
-
-	uiNumElements = mcArray.NumElements();
-	uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, bOverwriteExisting);
-	if (mcArray.NumElements() != uiNumElements)
+	if (pcUnknown != NULL)
 	{
-		if (uiIndex + 1 != mcArray.NumElements())
-		{
-			SlotsMoved();
-		}
-		if (pcUnknown != NULL)
-		{
-			miNonNullElements++;
-		}
-	}
-	else if (pcReplaced != pcUnknown)
-	{
-		if (pcReplaced != NULL)
-		{
-			miNonNullElements--;
-		}
-		if (pcUnknown != NULL)
-		{
-			miNonNullElements++;
-		}
-		if ((pcReplaced != NULL) && (muiFlags & ARRAY_COMMON_KILL_ELEMENT))
-		{
-			pcReplaced->Kill();
-		}
+		miNonNullElements++;
 	}
 	return uiIndex;
 }
@@ -819,16 +800,17 @@ size CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 		return 0;
 	}
 
-	uiRemoved = 0;
 	iIndex = Find(pcUnknown);
 	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		return uiRemoved;
+		return 0;
 	}
 
+	//The NULLs are cleaned after the last: cleaning moves the elements still to be found.
+	uiRemoved = 0;
 	while (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		bResult = Remove(iIndex);
+		bResult = Remove(iIndex, false);
 		if (!bResult)
 		{
 			gcLogger.Error2(__METHOD__, " Could not remove the element found at [", SizeToString(iIndex), "].", NULL);
@@ -837,6 +819,7 @@ size CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 		uiRemoved++;
 		iIndex = FindNext(pcUnknown, iIndex);
 	}
+	CleanNullsIfNecessary();
 	return uiRemoved;
 }
 

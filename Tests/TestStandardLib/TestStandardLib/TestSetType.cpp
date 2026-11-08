@@ -202,7 +202,7 @@ void TestSetTypeSaveWithHole(void)
 	pcTwo = cSet.Add();
 	pcTwo->Init(2);
 	cSet.Add()->Init(3);
-	AssertTrue(cSet.Remove(pcTwo));
+	AssertSize(1, cSet.Remove(pcTwo));
 	AssertSize(2, cSet.NumElements());
 
 	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "SetTypeHole" _FS_ "Set.dat")));
@@ -260,13 +260,66 @@ void TestSetTypeRemoveCounts(void)
 	pcOut = UMalloc(CTestUnknown);
 	pcOut->Init(2);
 
-	AssertSize(0, cSet.CSetUnknown::Remove((CUnknown*)NULL));
-	AssertSize(0, cSet.CSetUnknown::Remove(pcOut));
-	AssertSize(1, cSet.CSetUnknown::Remove(pcIn));
+	AssertSize(0, cSet.Remove((CTestUnknown*)NULL));
+	AssertSize(0, cSet.Remove(pcOut));
+	AssertSize(1, cSet.Remove(pcIn));
 	AssertSize(0, cSet.NumElements());
 
 	pcOut->Kill();
 	cSet.Kill();
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adding says whether the element went in, removing while iterating says
+// whether it came out, and removing by value counts every copy.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetTypeResults(bool bSortPointers)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetType<CTestUnknown>	cSet;
+	CTestUnknown*			pcOne;
+	CTestUnknown*			pcTwo;
+	CTestUnknown*			pcFound;
+	SSetIterator			sIter;
+
+	cSet.Init(bSortPointers);
+	cSet.KillElements(false);
+	pcOne = UMalloc(CTestUnknown);
+	pcOne->Init(1);
+	pcTwo = UMalloc(CTestUnknown);
+	pcTwo->Init(2);
+
+	AssertTrue(cSet.Add(pcOne));
+	AssertFalse(cSet.Add((CTestUnknown*)NULL));
+	AssertSize(1, cSet.NumElements());
+
+	AssertTrue(cSet.Add(pcTwo));
+	AssertTrue(cSet.Add(pcOne));
+	AssertTrue(cSet.Add(pcOne));
+	AssertSize(4, cSet.NumElements());
+	AssertSize(3, cSet.Remove(pcOne));
+	AssertSize(1, cSet.NumElements());
+	AssertFalse(cSet.Contains(pcOne));
+	AssertTrue(cSet.Contains(pcTwo));
+
+	AssertTrue(cSet.StartIteration(&sIter, &pcFound));
+	AssertPointer(pcTwo, pcFound);
+	AssertTrue(cSet.RemoveDuringIteration(&sIter));
+	AssertFalse(cSet.RemoveDuringIteration(&sIter));
+	AssertSize(0, cSet.NumElements());
+
+	pcOne->Kill();
+	pcTwo->Kill();
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
 
 	UnknownsKill();
 	MemoryKill();
@@ -285,6 +338,8 @@ void TestSetType(void)
 	TestSetTypeAddAll();
 	TestSetTypeSaveWithHole();
 	TestSetTypeRemoveCounts();
+	TestSetTypeResults(false);
+	TestSetTypeResults(true);
 
 	TestStatistics();
 }

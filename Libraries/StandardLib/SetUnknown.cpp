@@ -64,18 +64,22 @@ void CSetUnknown::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False if pcUnknown didn't go in: a NULL where NULLs are ignored, or an
+// element a unique set has already.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetUnknown::Add(CUnknown* pcUnknown)
+bool CSetUnknown::Add(CUnknown* pcUnknown)
 {
 	if (!IsMustSort())
 	{
-		CArrayCommonUnknown::Add(pcUnknown);
+		return CArrayCommonUnknown::Add(pcUnknown);
 	}
-	else
+
+	if ((muiFlags & ARRAY_COMMON_UNIQUE_ONLY) && Contains(pcUnknown))
 	{
-		CArrayCommonUnknown::InsertIntoSorted(pcUnknown, FixBool(muiFlags & ARRAY_COMMON_UNIQUE_ONLY));
+		return false;
 	}
+	return CArrayCommonUnknown::InsertIntoSorted(pcUnknown) != ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -93,9 +97,9 @@ size CSetUnknown::Remove(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetUnknown::RemoveDuringIteration(SSetIterator* psIter)
+bool CSetUnknown::RemoveDuringIteration(SSetIterator* psIter)
 {
-	CArrayCommonUnknown::RemoveDuringIteration(psIter);
+	return CArrayCommonUnknown::RemoveDuringIteration(psIter);
 }
 
 

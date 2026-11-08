@@ -99,7 +99,7 @@ public:
 			bool				AddAll(CArrayCommonUnknown* pcSource);
 			bool				Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
 			bool				Insert(size iIndex, CUnknown* pcUnknown);
-			size				InsertIntoSorted(CUnknown* pcUnknown, bool bOverwriteExisting);
+			size				InsertIntoSorted(CUnknown* pcUnknown);
 
 			bool				RemoveEnd(size iIndexInclusive);
 	virtual size				Remove(CUnknown* pcUnknown);

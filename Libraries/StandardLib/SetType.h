@@ -32,12 +32,12 @@ public:
 	void 	Init(bool bSortPointers = true);
 	void 	Kill(void) override;
 
-	void	Add(M* pcUnknown);
+	bool	Add(M* pcUnknown);
 	M*		Add(void);
 	bool	AddAll(CArrayCommonUnknown* pcSource);
 
-	bool	Remove(M* pcUnknown);
-	void	RemoveDuringIteration(SSetIterator* psIter);
+	size	Remove(M* pcUnknown);
+	bool	RemoveDuringIteration(SSetIterator* psIter);
 
 	bool	StartIteration(SSetIterator* psIter, M** ppcUnknown);
 	bool	Iterate(SSetIterator* psIter, M** ppcUnknown);
@@ -78,9 +78,9 @@ void CSetType<M>::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSetType<M>::Add(M* pcUnknown)
+bool CSetType<M>::Add(M* pcUnknown)
 {
-	CSetUnknown::Add(pcUnknown);
+	return CSetUnknown::Add(pcUnknown);
 }
 
 
@@ -91,7 +91,7 @@ void CSetType<M>::Add(M* pcUnknown)
 template<class M>
 M* CSetType<M>::Add(void)
 {
-	return (M*)CSetUnknown::Add<M>();
+	return CSetUnknown::Add<M>();
 }
 
 
@@ -108,10 +108,11 @@ bool CSetType<M>::AddAll(CArrayCommonUnknown* pcSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many times pcUnknown was in the set, and now isn't.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CSetType<M>::Remove(M* pcUnknown)
+size CSetType<M>::Remove(M* pcUnknown)
 {
 	return CSetUnknown::Remove(pcUnknown);
 }
@@ -122,9 +123,9 @@ bool CSetType<M>::Remove(M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSetType<M>::RemoveDuringIteration(SSetIterator* psIter)
+bool CSetType<M>::RemoveDuringIteration(SSetIterator* psIter)
 {
-	CSetUnknown::RemoveDuringIteration(psIter);
+	return CSetUnknown::RemoveDuringIteration(psIter);
 }
 
 

@@ -568,10 +568,10 @@ void TestSetUnknownSetCleansNulls(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A unique sorted set given the same element twice holds it once.
+// A unique set given the same element twice holds it once, and says so.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestSetUnknownSortedUniqueAddTwice(void)
+void TestSetUnknownUniqueAddTwice(bool bSortPointers)
 {
 	MemoryInit();
 	UnknownsInit();
@@ -579,14 +579,116 @@ void TestSetUnknownSortedUniqueAddTwice(void)
 	CSetUnknown		cSet;
 	CTestUnknown*	pcTest;
 
-	cSet.Init(true, true, true, false, 4, true);
+	cSet.Init(true, true, true, false, 4, bSortPointers);
 	pcTest = cSet.Add<CTestUnknown>();
 	pcTest->Init(1);
-	cSet.Add(pcTest);
+	AssertFalse(cSet.Add(pcTest));
+	AssertFalse(cSet.Add((CUnknown*)NULL));
 	AssertSize(1, cSet.NumElements());
 	AssertSize(1, cSet.UnsafeNumElements());
 	AssertSize(1, gcUnknowns.NumElements());
 
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A set that keeps NULLs finds them too, sorted or not, and a unique one
+// holds only one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetUnknownKeepsNull(bool bSortPointers)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetUnknown		cSet;
+	CTestUnknown*	pcTest;
+
+	cSet.Init(false, true, false, false, 4, bSortPointers);
+	pcTest = UMalloc(CTestUnknown);
+	pcTest->Init(1);
+
+	AssertTrue(cSet.Add(pcTest));
+	AssertFalse(cSet.Contains(NULL));
+	AssertTrue(cSet.Add((CUnknown*)NULL));
+	AssertTrue(cSet.Contains(NULL));
+	AssertFalse(cSet.Add((CUnknown*)NULL));
+	AssertFalse(cSet.Add(pcTest));
+	AssertSize(2, cSet.NumElements());
+	AssertSize(1, cSet.UnsafeNonNullElements());
+
+	AssertSize(1, cSet.Remove((CUnknown*)NULL));
+	AssertFalse(cSet.Contains(NULL));
+	AssertSize(1, cSet.NumElements());
+
+	pcTest->Kill();
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every copy of an element is found, in order, and removed and counted,
+// wherever the search lands and however the NULLs left behind are cleaned.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetUnknownRemoveCopies(bool bIgnoreNull, bool bSortPointers, size uiCopies)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetUnknown		cSet;
+	CTestUnknown*	pcCopied;
+	CTestUnknown*	pcOther;
+	size			i;
+	size			uiIndex;
+	size			uiFound;
+	bool			bAllCopied;
+
+	cSet.Init(false, false, bIgnoreNull, false, 1, bSortPointers);
+	pcCopied = UMalloc(CTestUnknown);
+	pcCopied->Init(1);
+	pcOther = UMalloc(CTestUnknown);
+	pcOther->Init(2);
+
+	AssertTrue(cSet.Add(pcOther));
+	for (i = 0; i < uiCopies; i++)
+	{
+		AssertTrue(cSet.Add(pcCopied));
+	}
+	AssertSize(uiCopies + 1, cSet.NumElements());
+
+	bAllCopied = true;
+	uiFound = 0;
+	uiIndex = cSet.Find(pcCopied);
+	while (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		bAllCopied &= cSet.UnsafeGet(uiIndex) == pcCopied;
+		uiFound++;
+		uiIndex = cSet.FindNext(pcCopied, uiIndex + 1);
+	}
+	AssertTrue(bAllCopied);
+	AssertSize(uiCopies, uiFound);
+
+	cSet.SetChunkSize(1);  //The chunk size grew with the array.  Now the NULLs are cleaned as soon as there are 3 of them.
+	AssertSize(uiCopies, cSet.Remove(pcCopied));
+	AssertSize(1, cSet.NumElements());
+	AssertFalse(cSet.Contains(pcCopied));
+	AssertTrue(cSet.Contains(pcOther));
+	AssertSize(0, cSet.Remove(pcCopied));
+
+	pcCopied->Kill();
+	pcOther->Kill();
 	cSet.Kill();
 	AssertSize(0, gcUnknowns.NumElements());
 
@@ -609,7 +711,16 @@ void TestSetUnknown(void)
 	TestSetUnknownLoadAfterRemove();
 	TestSetUnknownAddAllWithNulls();
 	TestSetUnknownSetCleansNulls();
-	TestSetUnknownSortedUniqueAddTwice();
+	TestSetUnknownUniqueAddTwice(true);
+	TestSetUnknownUniqueAddTwice(false);
+	TestSetUnknownKeepsNull(true);
+	TestSetUnknownKeepsNull(false);
+	TestSetUnknownRemoveCopies(true, true, 5);
+	TestSetUnknownRemoveCopies(true, false, 5);
+	TestSetUnknownRemoveCopies(false, true, 5);
+	TestSetUnknownRemoveCopies(false, false, 5);
+	TestSetUnknownRemoveCopies(true, true, 64);
+	TestSetUnknownRemoveCopies(true, false, 64);
 	TestSetUnknownSorted(4);
 	TestSetUnknownSorted(10000);
 
