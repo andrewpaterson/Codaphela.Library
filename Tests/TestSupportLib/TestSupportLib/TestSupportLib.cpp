@@ -59,6 +59,7 @@ void TestMeshPolygons(void);
 void TestMeshShapes(void);
 void TestMeshCache(void);
 void TestMeshConnectivity(void);
+void TestMeshModifierStack(void);
 void TestNormalGeneration(void);
 void TestMeshOBJReader(void);
 void TestMeshVRMLReader(void);
@@ -139,6 +140,7 @@ int __cdecl main(void)
 	//TestMeshShapes();  Write is not consistent.
 	TestMeshCache();
 	TestMeshConnectivity();
+	TestMeshModifierStack();
 	TestNormalGeneration();
 	//TestMeshOBJReader();  Source OBJ file is missing
 	TestMeshVRMLReader();

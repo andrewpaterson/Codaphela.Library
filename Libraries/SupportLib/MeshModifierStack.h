@@ -27,6 +27,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshModifier.h"
 
 
+//The stack holds a source mesh and GetOutput runs it up through the modifiers: Source | Modifier 0 | Modifier 1 | etc...
+//The source isn't changed until Flatten makes the output the new source.
+//A CMeshEditor's stack has no source.  It applies its modifiers to the editor's mesh in place with ApplyAll.
 class CMeshEditor;
 class CMeshModifierStack : public CObject
 {
@@ -35,9 +38,11 @@ DESTRUCTABLE(CMeshModifierStack);
 protected:
 	CArrayUnknown	macEditors;  //Mesh | Editor 0 | Editor 1 | etc...
 	int				miCurrent;
+	Ptr<CMesh>		mpSource;
+	Ptr<CMesh>		mpOutput;
 
 public:
-	void	Init(void);
+	void	Init(Ptr<CMesh> pSource = NULL);
 	void 	Free(void) override;
 	void	Class(void) override;
 
@@ -52,6 +57,11 @@ public:
 	int		NumEditors(void);
 
 	void	ApplyAll(CMeshEditor* pcMeshEditor);
+
+	Ptr<CMesh>	GetSource(void);
+	Ptr<CMesh>	GetOutput(void);  //Kept until a modifier is added or Touch is called.
+	void		Touch(void);  //Call this when a modifier's settings have changed.
+	void		Flatten(void);  //The output becomes the new source and the modifiers are removed.
 
 	void	ClearConnectivity(void);
 

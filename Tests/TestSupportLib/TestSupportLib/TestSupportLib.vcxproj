@@ -278,6 +278,7 @@
     <ClCompile Include="TestMeshCache.cpp" />
     <ClCompile Include="TestMeshColour.cpp" />
     <ClCompile Include="TestMeshConnectivity.cpp" />
+    <ClCompile Include="TestMeshModifierStack.cpp" />
     <ClCompile Include="TestMeshFaceReturn.cpp" />
     <ClCompile Include="TestMeshMaterial.cpp" />
     <ClCompile Include="TestMeshOBJReader.cpp" />

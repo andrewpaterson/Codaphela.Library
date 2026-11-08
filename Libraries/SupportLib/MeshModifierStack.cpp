@@ -29,12 +29,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::Init(void)
+void CMeshModifierStack::Init(Ptr<CMesh> pSource)
 {
 	PreInit();
 
 	macEditors.Init();
 	miCurrent = -1;
+	mpSource = pSource;
+	mpOutput = NULL;
 
 	PostInit();
 }
@@ -58,6 +60,8 @@ void CMeshModifierStack::Class(void)
 {
 	U_SInt(miCurrent);
 	U_Unknown(CArrayUnknown, macEditors);
+	M_Pointer(mpSource);
+	M_Pointer(mpOutput);
 }
 
 
@@ -91,6 +95,7 @@ void CMeshModifierStack::ReInit(void)
 {
 	macEditors.ReInit();
 	miCurrent = -1;
+	mpOutput = NULL;
 }
 
 
@@ -101,6 +106,7 @@ void CMeshModifierStack::ReInit(void)
 void CMeshModifierStack::AddModifier(CMeshModifier* pcEditor)
 {
 	macEditors.Add(pcEditor);
+	mpOutput = NULL;
 }
 
 
@@ -120,6 +126,63 @@ void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 		pcEditor->Apply(pcMeshEditor);
 	}
 	miCurrent = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshModifierStack::GetSource(void)
+{
+	return mpSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshModifierStack::GetOutput(void)
+{
+	CMeshModifier*	pcModifier;
+	Ptr<CMesh>		pMesh;
+	size			i;
+	size			uiNumElements;
+
+	if (mpOutput.IsNull())
+	{
+		pMesh = mpSource;
+		uiNumElements = macEditors.NumElements();
+		for (i = 0; i < uiNumElements; i++)
+		{
+			pcModifier = (CMeshModifier*)macEditors.Get(i);
+			pMesh = pcModifier->Modify(pMesh);
+		}
+		mpOutput = pMesh;
+	}
+	return mpOutput;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshModifierStack::Touch(void)
+{
+	mpOutput = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshModifierStack::Flatten(void)
+{
+	mpSource = GetOutput();
+	ReInit();
 }
 
 

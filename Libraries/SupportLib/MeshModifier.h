@@ -25,8 +25,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MESH_MODIFIER_H__
 #include "BaseLib/GeometricTypes.h"
 #include "StandardLib/Unknown.h"
+#include "Mesh.h"
 
 
+//A modifier either changes the mesh of a CMeshEditor in place (Apply), or leaves the mesh it is given as it was and
+//returns the result (Modify, see CMeshModifierStack::GetOutput).  It overrides the one it is used by.
 class CMeshEditor;
 class CMeshModifier : public CUnknown
 {
@@ -34,7 +37,8 @@ CONSTRUCTABLE(CMeshModifier);
 public:
 	void			Kill(void);
 
-	virtual void	Apply(CMeshEditor* pcMeshEditor) =0;
+	virtual void		Apply(CMeshEditor* pcMeshEditor);
+	virtual Ptr<CMesh>	Modify(Ptr<CMesh> pMesh);  //Returns pMesh itself if there is nothing to change.
 
 	virtual void	ClearConnectivity(void);
 
