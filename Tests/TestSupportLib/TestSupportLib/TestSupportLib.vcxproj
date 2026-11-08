@@ -280,6 +280,7 @@
     <ClCompile Include="TestMeshConnectivity.cpp" />
     <ClCompile Include="TestMeshModifierStack.cpp" />
     <ClCompile Include="TestMeshFixReversed.cpp" />
+    <ClCompile Include="TestMeshSimplify.cpp" />
     <ClCompile Include="TestMeshFaceReturn.cpp" />
     <ClCompile Include="TestMeshMaterial.cpp" />
     <ClCompile Include="TestMeshOBJReader.cpp" />

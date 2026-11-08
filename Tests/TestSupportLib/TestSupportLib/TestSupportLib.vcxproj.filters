@@ -88,6 +88,9 @@
     <ClCompile Include="TestMeshFixReversed.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshSimplify.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshFaceReturn.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
