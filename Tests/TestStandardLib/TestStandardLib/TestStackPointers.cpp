@@ -6,6 +6,7 @@
 #include "StandardLib/Objects.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
+#include "EmbeddedObjectTestClasses.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,7 +15,7 @@
 //////////////////////////////////////////////////////////////////////////
 void TestStackPointersAdd(void)
 {
-	CStackPointers	cStackPointes;
+	CStackPointers	cStackPointers;
 	CPointer		cPointer1;
 	CPointer		cPointer2;
 	CStackPointer*	pcStackPointer11;
@@ -22,78 +23,102 @@ void TestStackPointersAdd(void)
 	CStackPointer*	pcStackPointer13;
 	CStackPointer*	pcStackPointer21;
 	CStackPointer*	pcStackPointer22;
-	CStackPointer*	pcStackPointer23;
 
-	cStackPointes.Init();
+	cStackPointers.Init();
 
-	pcStackPointer11 = cStackPointes.Add(cPointer1.This());
+	pcStackPointer11 = cStackPointers.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer11);
+	pcStackPointer11->LinkBefore(NULL);
+	AssertNull(pcStackPointer11->GetNext());
+	AssertInt(1, pcStackPointer11->NumPointers());
 
-	pcStackPointer12 = cStackPointes.Add(cPointer1.This());
+	pcStackPointer12 = cStackPointers.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer12);
-	cStackPointes.SetLastNext(pcStackPointer12, pcStackPointer11);
-	AssertPointer(pcStackPointer11->GetNext(), pcStackPointer12);
+	pcStackPointer12->LinkBefore(pcStackPointer11);
+	AssertPointer(pcStackPointer11, pcStackPointer12->GetNext());
+	AssertInt(2, pcStackPointer12->NumPointers());
 
-	AssertInt(2, pcStackPointer11->NumPointers());
-
-	pcStackPointer21 = cStackPointes.Add(cPointer2.This());
-	AssertNotNull(pcStackPointer21);
-
-	pcStackPointer22 = cStackPointes.Add(cPointer2.This());
-	AssertNotNull(pcStackPointer22);
-	cStackPointes.SetLastNext(pcStackPointer22, pcStackPointer21);
-	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
-
-	AssertInt(2, pcStackPointer21->NumPointers());
-
-	AssertSize(4, cStackPointes.NumElements());
-
-	pcStackPointer13 = cStackPointes.Add(cPointer1.This());
+	pcStackPointer13 = cStackPointers.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer13);
-	cStackPointes.SetLastNext(pcStackPointer13, pcStackPointer11);
-	AssertPointer(pcStackPointer11->GetNext(), pcStackPointer12);
-	AssertPointer(pcStackPointer12->GetNext(), pcStackPointer13);
-	AssertNull(pcStackPointer13->GetNext());
+	pcStackPointer13->LinkBefore(pcStackPointer12);
+	AssertPointer(pcStackPointer12, pcStackPointer13->GetNext());
+	AssertPointer(pcStackPointer11, pcStackPointer12->GetNext());
+	AssertNull(pcStackPointer11->GetNext());
+	AssertPointer(pcStackPointer11, pcStackPointer13->FindLast());
+	AssertInt(3, pcStackPointer13->NumPointers());
 
-	AssertInt(3, pcStackPointer11->NumPointers());
-
-	pcStackPointer23 = cStackPointes.Add(cPointer1.This());
-	AssertNotNull(pcStackPointer23);
-	cStackPointes.SetLastNext(pcStackPointer23, pcStackPointer21);
-	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
-	AssertPointer(pcStackPointer22->GetNext(), pcStackPointer23);
-	AssertNull(pcStackPointer23->GetNext());
-
-	AssertInt(3, pcStackPointer21->NumPointers());
-
-	AssertSize(6, cStackPointes.NumElements());
-	
-	cStackPointes.RemoveAll(pcStackPointer21);
-
-	AssertSize(3, cStackPointes.NumElements());
-
-	pcStackPointer21 = cStackPointes.Add(cPointer1.This());
-	AssertNotNull(pcStackPointer21);
-
-	pcStackPointer22 = cStackPointes.Add(cPointer2.This());
-	AssertNotNull(pcStackPointer22);
-	cStackPointes.SetLastNext(pcStackPointer22, pcStackPointer21);
-	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
-
+	//A list linked in front of a list: 21, 22, then 13, 12, 11.
+	pcStackPointer21 = cStackPointers.Add(cPointer2.This());
+	pcStackPointer22 = cStackPointers.Add(cPointer2.This());
+	pcStackPointer22->LinkBefore(NULL);
+	pcStackPointer21->LinkBefore(pcStackPointer22);
 	AssertInt(2, pcStackPointer21->NumPointers());
+	pcStackPointer21->LinkBefore(pcStackPointer13);
+	AssertPointer(pcStackPointer22, pcStackPointer21->GetNext());
+	AssertPointer(pcStackPointer13, pcStackPointer22->GetNext());
+	AssertInt(5, pcStackPointer21->NumPointers());
+	AssertSize(5, cStackPointers.NumElements());
 
-	pcStackPointer23 = cStackPointes.Add(cPointer1.This());
-	AssertNotNull(pcStackPointer23);
-	cStackPointes.SetLastNext(pcStackPointer23, pcStackPointer21);
-	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
-	AssertPointer(pcStackPointer22->GetNext(), pcStackPointer23);
-	AssertNull(pcStackPointer23->GetNext());
+	cStackPointers.RemoveAll(pcStackPointer21);
+	AssertSize(0, cStackPointers.NumElements());
 
-	AssertInt(3, pcStackPointer21->NumPointers());
+	cStackPointers.Kill();
+}
 
-	AssertSize(6, cStackPointes.NumElements());
 
-	cStackPointes.Kill();
+//////////////////////////////////////////////////////////////////////////
+//
+// An object's stack froms are newest first.  Stack pointers going in the
+// reverse of the order they came (as they usually do) each come off the
+// front; going in any other order works as well.  HasStackFroms is true
+// for an embedded object when only its container is held from the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStackPointersNewestFirst(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CTestObject>			pObject;
+		Ptr<CTestObject>			apHolders[8];
+		Ptr<CEmbeddedContainer>		pContainer;
+		Ptr<CEmbeddedContainer>		pSecond;
+		CStackPointer*				pcFirst;
+		size						i;
+
+		pObject = OMalloc<CTestObject>();
+		for (i = 0; i < 8; i++)
+		{
+			apHolders[i] = pObject;
+			pcFirst = pObject->GetFirstStackFrom();
+			AssertPointer(apHolders[i].This(), pcFirst->Get()->u.pcPointer);
+		}
+		AssertSize(9, pObject->NumStackFroms());
+
+		for (i = 8; i > 4; i--)
+		{
+			apHolders[i - 1] = NULL;
+			AssertPointer(apHolders[i - 2].This(), pObject->GetFirstStackFrom()->Get()->u.pcPointer);
+		}
+		AssertSize(5, pObject->NumStackFroms());
+		for (i = 0; i < 4; i++)
+		{
+			apHolders[i] = NULL;
+		}
+		AssertSize(1, pObject->NumStackFroms());
+		AssertPointer(pObject.This(), pObject->GetFirstStackFrom()->Get()->u.pcPointer);
+		AssertTrue(pObject->HasStackFroms());
+
+		pContainer = OMalloc<CEmbeddedContainer>();
+		AssertTrue(pContainer->mcOne.HasStackFroms());
+		AssertTrue(pContainer->mcTwo.HasStackFroms());
+		AssertSize(0, pContainer->mcOne.CEmbeddedObject::NumStackFroms());
+		pSecond = pContainer;
+		pContainer = NULL;
+		AssertTrue(pSecond->mcTwo.HasStackFroms());
+		pSecond = NULL;
+	}
+	ObjectsFlush();
+	ObjectsKill();
 }
 
 
@@ -449,6 +474,7 @@ void TestStackPointers(void)
 	DataIOInit();
 
 	TestStackPointersAdd();
+	TestStackPointersNewestFirst();
 	TestStackPointersKillSingle();
 	TestStackPointersHeapKillSingle();
 	TestStackPointersHeapKill();

@@ -693,12 +693,12 @@ void TestMapObjectPointerFromsStack(void)
 		AssertSize(3, cMap.NumElements());
 		apcFroms.Init();
 		pValue1->GetStackFroms(&apcFroms);
-		psStack = apcFroms.Get(0);
-		AssertTrue(psStack->eType == SPT_Pointer);
-		AssertPointer(pValue1.This(), psStack->u.pcPointer);
-		psStack = apcFroms.Get(1);
+		psStack = apcFroms.Get(0);  //Newest first.
 		AssertTrue(psStack->eType == SPT_Collection);
 		AssertPointer(&cMap, psStack->u.pcCollection);
+		psStack = apcFroms.Get(1);
+		AssertTrue(psStack->eType == SPT_Pointer);
+		AssertPointer(pValue1.This(), psStack->u.pcPointer);
 		apcFroms.Kill();
 
 		cMap.Remove(pKey3);

@@ -756,14 +756,27 @@ CStackPointers* CEmbeddedObject::GetStackPointers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether anything on the stack points to the object this is embedded in
+// (or to any object embedded in that).  A test of each one's list, not a
+// count of them.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::HasStackFroms(void)
 {
-	size	iNumStackPointers;
+	CBaseObject*	pcContainer;
+	size			i;
+	size			uiNumEmbedded;
 
-	iNumStackPointers = GetEmbeddingContainer()->NumStackFroms();
-	return iNumStackPointers != 0;
+	pcContainer = GetEmbeddingContainer();
+	uiNumEmbedded = pcContainer->NumEmbedded();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		if (pcContainer->GetEmbeddedObject(i)->mpcStackFroms != NULL)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -901,25 +914,21 @@ bool CEmbeddedObject::AddStackPointersForRemap(CStackPointer* pcStackPointer)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Puts pcStackPointer (and any stack pointers linked after it) in front of
+// this object's stack froms: the newest is first.  Adding one is constant
+// time, and as stack pointers usually go in the reverse of the order they
+// came, so is removing it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::LinkStackFrom(CStackPointer* pcStackPointer)
 {
-	//Adds pcStackPointer (and any stack pointers linked after it) to the end of this Object's stack froms.
-
 	if (pcStackPointer == NULL)
 	{
 		return false;
 	}
 
-	if (mpcStackFroms)
-	{
-		GetStackPointers()->SetLastNext(pcStackPointer, mpcStackFroms);
-	}
-	else
-	{
-		mpcStackFroms = pcStackPointer;
-	}
+	pcStackPointer->LinkBefore(mpcStackFroms);
+	mpcStackFroms = pcStackPointer;
 	return true;
 }
 

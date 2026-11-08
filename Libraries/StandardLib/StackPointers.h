@@ -35,7 +35,6 @@ public:
 
 	CStackPointer*	Add(CPointer* pcPointer);
 	CStackPointer*	Add(CCollection* pcCollection);
-	void			SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
 
 	void			RemoveAll(CStackPointer* pcFirst);
 	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer, bool* pbRemoved);
