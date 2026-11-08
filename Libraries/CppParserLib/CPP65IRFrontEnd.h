@@ -316,6 +316,8 @@ protected:
 	bool			ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
 	bool			Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, SCPP65Class* psObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);
+	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces);
+	void			CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRReference sResult, SCPP65IRValue* psValue);
 	bool			ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee);
 	bool			CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);
 	bool			DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue);

@@ -544,23 +544,16 @@ bool CCPP65IRFrontEnd::ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObje
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject, bool bObjectLast)
 {
-	CArrayCPP65Types*				papsParameters;
-	CArraySyntax*					papcDefaults;
-	SCPP65Type*						psReturn;
-	bool							bVariadic;
-	size							uiArguments;
-	size							uiParameters;
-	size							ui;
-	CArrayTemplate<SCPP65IRValue>	asArguments;
-	SIRType							sResultType;
-	SIRReference					sResult;
-	SIRReference					sObject;
-	bool							bThisCall;
-	SIRReference					sMade;
-	CArrayIRReferences				asPieces;		//Every argument's value, an object's in pieces.
-	CArrayIRReferences				asLoaded;		//The pieces of the objects passed by value...
-	CArrayTemplate<int32>			aiLoaded;		//...and per argument where its pieces start, -1 for none.
-	int32							iLoaded;
+	CArrayCPP65Types*	papsParameters;
+	CArraySyntax*		papcDefaults;
+	SCPP65Type*			psReturn;
+	bool				bVariadic;
+	size				uiParameters;
+	size				ui;
+	SIRReference		sObject;
+	bool				bThisCall;
+	SIRReference		sMade;
+	CArrayIRReferences	asPieces;		//Every argument's value, an object's in pieces.
 
 	if (psFunction)
 	{
@@ -583,9 +576,8 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	uiArguments = papcArguments->NumElements();
 	uiParameters = papsParameters ? papsParameters->NumElements() : 0;
-	if ((uiArguments > uiParameters) && !bVariadic)
+	if ((papcArguments->NumElements() > uiParameters) && !bVariadic)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -598,35 +590,12 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 		return false;
 	}
 
-	asArguments.Init();
-	asArguments.GrowToAtLeastNumElements(uiArguments > uiParameters ? uiArguments : uiParameters, true, 0);
-	asLoaded.Init();
-	aiLoaded.Init();
-	aiLoaded.GrowToAtLeastNumElements(asArguments.NumElements(), true, 0xFF);
-	if (!GatherArguments(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, &sMade, &asArguments, &asLoaded, &aiLoaded))
+	asPieces.Init();
+	if (!ArgumentPieces(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, &sMade, &asPieces))
 	{
-		aiLoaded.Kill();
-		asLoaded.Kill();
-		asArguments.Kill();
+		asPieces.Kill();
 		return false;
 	}
-
-	//The arguments in order, objects passed by value as their pieces.
-	asPieces.Init();
-	for (ui = 0; ui < asArguments.NumElements(); ui++)
-	{
-		iLoaded = *aiLoaded.Get(ui);
-		if (iLoaded < 0)
-		{
-			asPieces.Add(&asArguments.Get(ui)->sValue);
-			continue;
-		}
-		asPieces.InsertBlockAt(asLoaded.Get(iLoaded), PieceCount(asArguments.Get(ui)->psType->iBytes), asPieces.NumElements());
-	}
-	aiLoaded.Kill();
-	asLoaded.Kill();
-	asArguments.Kill();
-
 	if (bThisCall && bObjectLast && !ThisObject(psFunction, pcObject, bArrow, psObjectClass, bVirtual, sGivenObject, &sObject, &sCallee))
 	{
 		asPieces.Kill();
@@ -636,7 +605,6 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	{
 		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sObject);
 	}
-
 	if (psReturn->IsClass())
 	{
 		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sMade);
@@ -647,23 +615,77 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	}
 	asPieces.Kill();
 
-	sResultType = ReturnIRType(psReturn);
-	sResult = mpcFunction->Call(mpcBlock, sResultType, sCallee, bVariadic ? (int)uiParameters : -1, bThisCall);
+	CallResult(psReturn, sMade, mpcFunction->Call(mpcBlock, ReturnIRType(psReturn), sCallee, bVariadic ? (int)uiParameters : -1, bThisCall), psValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The arguments of a call worked out (GatherArguments), and their values in
+// order in pasPieces, objects passed by value as their pieces.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces)
+{
+	CArrayTemplate<SCPP65IRValue>	asArguments;
+	CArrayIRReferences				asLoaded;		//The pieces of the objects passed by value...
+	CArrayTemplate<int32>			aiLoaded;		//...and per argument where its pieces start, -1 for none.
+	size							uiArguments;
+	size							uiParameters;
+	size							ui;
+	int32							iLoaded;
+	bool							bResult;
+
+	uiArguments = papcArguments->NumElements();
+	uiParameters = papsParameters ? papsParameters->NumElements() : 0;
+	asArguments.Init();
+	asArguments.GrowToAtLeastNumElements(uiArguments > uiParameters ? uiArguments : uiParameters, true, 0);
+	asLoaded.Init();
+	aiLoaded.Init();
+	aiLoaded.GrowToAtLeastNumElements(asArguments.NumElements(), true, 0xFF);
+	bResult = GatherArguments(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, psMade, &asArguments, &asLoaded, &aiLoaded);
+	for (ui = 0; bResult && (ui < asArguments.NumElements()); ui++)
+	{
+		iLoaded = *aiLoaded.Get(ui);
+		if (iLoaded < 0)
+		{
+			pasPieces->Add(&asArguments.Get(ui)->sValue);
+		}
+		else
+		{
+			pasPieces->InsertBlockAt(asLoaded.Get(iLoaded), PieceCount(asArguments.Get(ui)->psType->iBytes), pasPieces->NumElements());
+		}
+	}
+	aiLoaded.Kill();
+	asLoaded.Kill();
+	asArguments.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call's value: an object is where it was made (sMade), a reference its
+// address, and anything else is sResult, as the IR return type, narrowed to
+// the C++ type.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRReference sResult, SCPP65IRValue* psValue)
+{
+	psValue->psType = psReturn;
 	if (psReturn->IsClass())
 	{
 		psValue->sValue = sMade;
-		psValue->psType = psReturn;
-		return true;
 	}
-	if (psReturn->IsReference())
+	else if (psReturn->IsReference())
 	{
 		psValue->sValue = sResult;
-		psValue->psType = psReturn;
-		return true;
 	}
-	psValue->psType = psReturn;
-	psValue->sValue = psReturn->IsVoid() ? IRNone() : ConvertIR(sResult, sResultType, IRTypeOf(psReturn), false);
-	return true;
+	else
+	{
+		psValue->sValue = psReturn->IsVoid() ? IRNone() : ConvertIR(sResult, ReturnIRType(psReturn), IRTypeOf(psReturn), false);
+	}
 }
 
 
