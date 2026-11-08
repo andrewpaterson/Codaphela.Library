@@ -1384,6 +1384,40 @@ void TestCPP65IRDeferredBodies(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The parser's and the generator's errors after a #line, and the macro use an
+// error names, are where it says.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRLineErrors(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "#line 50 \"Mine.cpp\"\nint F() { return giNotDeclared; }\n"));
+	AssertTrue(szErrors.Contains("Mine.cpp (50, "));
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "#line 20 \"Mine.cpp\"\nint F( {\n"));
+	AssertTrue(szErrors.Contains("Mine.cpp (20, "));
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "#define M giNotDeclared\n#line 30 \"Mine.cpp\"\nint F() { return M; }\n"));
+	AssertTrue(szErrors.Contains("at Mine.cpp (30, "));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The 65C64's thunks: a member pointer's to a virtual function goes through
 // the vtable with its slot's offset (CPP65_VTABLE_ENTRY_BYTES apart), and one
 // of a secondary base's vtable adjusts this.
@@ -1580,6 +1614,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IRLineErrors();
 	TestCPP65IRTemplateInstances();
 	TestCPP65IRDeferredBodies();
 	TestCPP65IRClassMembers();

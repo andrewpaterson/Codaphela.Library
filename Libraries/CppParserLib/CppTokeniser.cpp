@@ -643,7 +643,7 @@ bool CCPPTokeniser::Error(SPreprocessedToken* psToken, char* szError)
 	psToken->Append(&szDetail);
 	if (psToken->pcFile)
 	{
-		mcErrors.Add(psToken->pcFile->ShortName(), psToken->iLine, psToken->iColumn, miSource, szError, szDetail.Text());
+		mpcSource->AddError(&mcErrors, psToken, miSource, szError, szDetail.Text());
 	}
 	else
 	{

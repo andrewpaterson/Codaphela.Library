@@ -1195,7 +1195,7 @@ void CCPP65Generator::Warning(CCPPSyntax* pcNode, const char* szMessage)
 	AppendMacroUse(psSource, &szMessageText);
 	szDetail.Init();
 	psSource->Append(&szDetail);
-	mcWarnings.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessageText.Text(), szDetail.Text());
+	mpcTokeniser->mpcSource->AddError(&mcWarnings, psSource, iToken, szMessageText.Text(), szDetail.Text());
 	szDetail.Kill();
 	szMessageText.Kill();
 }
@@ -1244,7 +1244,7 @@ bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
 	AppendMacroUse(psSource, &szMessageText);
 	szDetail.Init();
 	psSource->Append(&szDetail);
-	mcErrors.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessageText.Text(), szDetail.Text());
+	mpcTokeniser->mpcSource->AddError(&mcErrors, psSource, iToken, szMessageText.Text(), szDetail.Text());
 	szDetail.Kill();
 	szMessageText.Kill();
 	return false;
@@ -1261,6 +1261,8 @@ void CCPP65Generator::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMe
 {
 	SMacroExpansion*		psExpansion;
 	CPreprocessedTokens*	pcSource;
+	const char*				szFile;
+	int						iLine;
 
 	if (!psSource || (psSource->iExpansion < 0))
 	{
@@ -1279,9 +1281,12 @@ void CCPP65Generator::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMe
 	pszMessage->Append(" (in ");
 	pszMessage->Append(psExpansion->szName, (size)psExpansion->uiNameLength);
 	pszMessage->Append(" at ");
-	pszMessage->Append(psExpansion->pcFile->ShortName());
+	szFile = psExpansion->pcFile->ShortName();
+	iLine = psExpansion->iLine;
+	pcSource->ReportedPosition(psExpansion->pcFile, &szFile, &iLine);
+	pszMessage->Append(szFile);
 	pszMessage->Append(" (");
-	pszMessage->Append(psExpansion->iLine + 1);
+	pszMessage->Append(iLine + 1);
 	pszMessage->Append(", ");
 	pszMessage->Append(psExpansion->iColumn + 1);
 	pszMessage->Append("))");

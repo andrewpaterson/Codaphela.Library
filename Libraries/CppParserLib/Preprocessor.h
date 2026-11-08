@@ -248,6 +248,7 @@ protected:
 	void				AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CArrayPreprocessedTokens* pacDest);
 	bool				Error(SPreprocessedToken* psToken, char* szMessage);
 	bool				Error(SPreprocessorPosition* psPosition, char* szMessage, char* szDetail = NULL);
+	void				AddPositioned(CCPPErrors* pcErrors, SPreprocessorPosition* psPosition, char* szMessage, char* szDetail);
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	void				MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos);

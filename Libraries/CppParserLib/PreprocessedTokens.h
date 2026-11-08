@@ -127,6 +127,19 @@ struct SDirectiveLine
 typedef CArrayTemplate<SDirectiveLine>	CArrayDirectiveLines;
 
 
+//A #line: from iLine on in pcFile, errors are reported at the line plus iOffset, in szName if it isn't NULL.
+struct SLineDirective
+{
+	CSourceFile*	pcFile;
+	int32			iLine;			//0 based.
+	int32			iOffset;
+	const char*		szName;
+};
+
+
+typedef CArrayTemplate<SLineDirective>	CArrayLineDirectives;
+
+
 //Where a unit's preprocessed tokens are allocated (CPreprocessedTokens::SetMallocators): a builder compiling unit after
 //unit on a thread gives it allocators that keep their memory for the next unit (CCPP65UnitWorkspace).
 struct SPreprocessedTokensMallocators
@@ -138,6 +151,9 @@ struct SPreprocessedTokensMallocators
 };
 
 
+class CCPPErrors;
+
+
 //The output of the preprocessor for one translation unit.
 class CPreprocessedTokens
 {
@@ -146,6 +162,7 @@ protected:
 	CArrayMacroExpansions				macExpansions;
 	CArrayInactiveRegions				macInactiveRegions;
 	CArrayDirectiveLines				macDirectiveLines;
+	CArrayLineDirectives				macLineDirectives;
 	CMemoryStackExtended				mcStrings;		//Spellings of tokens the preprocessor made.
 	SPreprocessedTokensMallocators*		mpsMallocators;	//NULL for the system allocator.
 
@@ -171,6 +188,10 @@ public:
 	void					AddDirectiveLine(CSourceFile* pcFile, int iLine, bool bActive);
 	size					NumDirectiveLines(void);
 	SDirectiveLine*			GetDirectiveLine(size iIndex);
+
+	void					AddLineDirective(CSourceFile* pcFile, int iLine, int iOffset, const char* szQuotedName);
+	void					ReportedPosition(CSourceFile* pcFile, const char** pszFile, int* piLine);
+	void					AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail);
 
 	char*					AddString(const char* szText, size uiLength);
 

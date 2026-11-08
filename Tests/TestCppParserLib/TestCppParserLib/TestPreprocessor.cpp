@@ -1730,6 +1730,66 @@ char* f = \"Other.cpp\"; int d = 7;\n", szDest.Text());
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An error with a position makes preprocessing fail, as one in an expression
+// does: an include not found, a bad #define, a bad #line.  A # that ends the
+// file is nothing, and every directive is tokenised.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorPositionErrorsFail(void)
+{
+	static const char*	aszBad[] = { "#include \"Missing.h\"\n", "#define F(1) x\n", "#define\n", "#line x\n", "#line 0\n", "#if 1\n#else\n#else\n#endif\n", NULL };
+	CChars				szErrors;
+	size				ui;
+
+	for (ui = 0; aszBad[ui]; ui++)
+	{
+		szErrors.Init();
+		AssertFalse(PreprocessErrors((char*)aszBad[ui], &szErrors));
+		AssertFalse(szErrors.Empty());
+		szErrors.Kill();
+	}
+
+	szErrors.Init();
+	AssertTrue(PreprocessErrors("int a;\n#", &szErrors));
+	AssertTrue(PreprocessErrors("#\n#pragma nothing\n#define A 1\n#undef A\n#line 3\n#if 1\n#elif 2\n#else\n#endif\n#ifdef A\n#endif\n#ifndef A\n#endif\n", &szErrors));
+	AssertString("", szErrors.Text());
+	szErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Errors and warnings after a #line are reported where it says.  A file name
+// stays until another is given, and what comes before it isn't changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorLineErrors(void)
+{
+	CChars	szErrors;
+	CChars	szWarnings;
+
+	szErrors.Init();
+	AssertFalse(PreprocessErrors("#line 100\n\n#define F(1) x\n", &szErrors));
+	AssertString("Errors.cpp (101, 11): Expected identifier.\n", szErrors.Text());
+	szErrors.Kill();
+
+	szErrors.Init();
+	AssertFalse(PreprocessErrors("\n#line 7 \"Other.cpp\"\n#line 20\n#error stop\n", &szErrors));
+	AssertTrue(szErrors.StartsWith("Other.cpp (20, "));
+	szErrors.Kill();
+
+	szErrors.Init();
+	szWarnings.Init();
+	AssertTrue(PreprocessErrors("#warning first\n#line 50 \"Mine.h\"\n#warning second\n", &szErrors, &szWarnings));
+	AssertTrue(szWarnings.Contains("Errors.cpp (1, "));
+	AssertTrue(szWarnings.Contains("Mine.h (50, "));
+	szWarnings.Kill();
+	szErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __LINE__ is the line of the outermost macro name written in the source,
 // __FILE__ the translation unit's name and __COUNTER__ counts up from 0.
 // __cplusplus is C++14.  [cpp.predefined]
@@ -2173,6 +2233,8 @@ void TestPreprocessor(void)
 	TestPreprocessorErrors();
 	TestPreprocessorUnreadableFile();
 	TestPreprocessorLine();
+	TestPreprocessorPositionErrorsFail();
+	TestPreprocessorLineErrors();
 	TestPreprocessorPragmaPack();
 	TestPreprocessorLineContinuation();
 	TestPreprocessorDirectiveMap();

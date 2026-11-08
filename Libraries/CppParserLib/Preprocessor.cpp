@@ -1238,6 +1238,7 @@ bool CPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorToke
 		{
 			psSource->szLineFile.Set(szRest.Text());
 		}
+		mpcOutput->AddLineDirective(mpcCurrentFile, (int)pcDirective->Line() + 1, psSource->iLineOffset, psSource->szLineFile.Text());
 	}
 	szRest.Kill();
 	return true;
@@ -1508,13 +1509,12 @@ bool CPreprocessor::ProcessHashError(CPPDirective* pcDirective, CPreprocessorTok
 	szMessage.StripWhitespace(true);
 	if (bWarning)
 	{
-		mcWarnings.Add(sPos.mszShortName, (int)sPos.miLine, (int)sPos.miColumn, -1, szMessage.Text(), NULL);
+		AddPositioned(&mcWarnings, &sPos, szMessage.Text(), NULL);
 		szMessage.Kill();
 		return true;
 	}
 	Error(&sPos, szMessage.Text());
 	szMessage.Kill();
-	mbError = true;
 	return false;
 }
 
@@ -2787,7 +2787,11 @@ bool CPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
 	{
 		psToken->Append(&szDetail);
 	}
-	if (psToken && psToken->pcFile)
+	if (psToken && psToken->pcFile && mpcOutput)
+	{
+		mpcOutput->AddError(&mcErrors, psToken, -1, szMessage, szDetail.Text());
+	}
+	else if (psToken && psToken->pcFile)
 	{
 		mcErrors.Add(psToken->pcFile->ShortName(), psToken->iLine, psToken->iColumn, -1, szMessage, szDetail.Text());
 	}
@@ -2808,8 +2812,30 @@ bool CPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessor::Error(SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
 {
-	mcErrors.Add(psPosition->mszShortName, (int)psPosition->miLine, (int)psPosition->miColumn, -1, szMessage, szDetail);
+	AddPositioned(&mcErrors, psPosition, szMessage, szDetail);
+	mbError = true;
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error or warning in the current file at psPosition, where #line says
+// that is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::AddPositioned(CCPPErrors* pcErrors, SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
+{
+	const char*	szFile;
+	int			iLine;
+
+	szFile = psPosition->mszShortName;
+	iLine = (int)psPosition->miLine;
+	if (mpcOutput && mpcCurrentFile)
+	{
+		mpcOutput->ReportedPosition(mpcCurrentFile, &szFile, &iLine);
+	}
+	pcErrors->Add(szFile, iLine, (int)psPosition->miColumn, -1, szMessage, szDetail);
 }
 
 

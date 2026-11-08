@@ -19,7 +19,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Numbers.h"
+#include "CPPErrors.h"
 #include "Punctuators.h"
+#include "SourceFile.h"
 #include "PreprocessedTokens.h"
 
 
@@ -181,6 +183,7 @@ void CPreprocessedTokens::InitArrays(void)
 		macInactiveRegions.Init();
 		macDirectiveLines.Init();
 	}
+	macLineDirectives.Init();
 	mcStrings.Init(4 KB);
 }
 
@@ -192,6 +195,7 @@ void CPreprocessedTokens::InitArrays(void)
 void CPreprocessedTokens::KillArrays(void)
 {
 	mcStrings.Kill();
+	macLineDirectives.Kill();
 	macDirectiveLines.Kill();
 	macInactiveRegions.Kill();
 	macExpansions.Kill();
@@ -492,3 +496,80 @@ bool PreprocessedTokensNeedSpace(SPreprocessedToken* psLeft, SPreprocessedToken*
 	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A #line whose next line is iLine: errors from there on are reported at
+// their line plus iOffset, and in the file szQuotedName names as it was
+// written (quotes and all; empty for the file's own).
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::AddLineDirective(CSourceFile* pcFile, int iLine, int iOffset, const char* szQuotedName)
+{
+	SLineDirective*	psDirective;
+	size			uiLength;
+	char*			szName;
+
+	psDirective = macLineDirectives.Add();
+	psDirective->pcFile = pcFile;
+	psDirective->iLine = iLine;
+	psDirective->iOffset = iOffset;
+	psDirective->szName = NULL;
+	uiLength = strlen(szQuotedName);
+	if (uiLength >= 2)
+	{
+		szName = AddString(&szQuotedName[1], uiLength - 2);
+		psDirective->szName = szName;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where #line says line *piLine of pcFile is: the last #line above it in
+// the file (a file included again has its directives after the last time's)
+// changes *piLine and, if it named one, *pszFile.  Otherwise they are left.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::ReportedPosition(CSourceFile* pcFile, const char** pszFile, int* piLine)
+{
+	SLineDirective*	psDirective;
+	size			ui;
+
+	for (ui = macLineDirectives.NumElements(); ui > 0; ui--)
+	{
+		psDirective = macLineDirectives.Get(ui - 1);
+		if ((psDirective->pcFile == pcFile) && (psDirective->iLine <= *piLine))
+		{
+			*piLine += psDirective->iOffset;
+			if (psDirective->szName)
+			{
+				*pszFile = psDirective->szName;
+			}
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error at psToken, where #line says that is.  iToken is what the error
+// remembers as its token.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail)
+{
+	const char*	szFile;
+	int			iLine;
+
+	if (!psToken->pcFile)
+	{
+		pcErrors->Add(NULL, psToken->iLine, psToken->iColumn, iToken, szMessage, szDetail);
+		return;
+	}
+	szFile = psToken->pcFile->ShortName();
+	iLine = psToken->iLine;
+	ReportedPosition(psToken->pcFile, &szFile, &iLine);
+	pcErrors->Add(szFile, iLine, psToken->iColumn, iToken, szMessage, szDetail);
+}

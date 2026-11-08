@@ -529,7 +529,7 @@ bool CCPPParser::ErrorAt(int iToken, char* szError)
 	}
 	if (psSource && psSource->pcFile)
 	{
-		mpcTree->GetErrors()->Add(psSource->pcFile->ShortName(), psSource->iLine, psSource->iColumn, iToken, szMessage.Text(), pcToken ? szDetail.Text() : NULL);
+		mpcTokeniser->mpcSource->AddError(mpcTree->GetErrors(), psSource, iToken, szMessage.Text(), pcToken ? szDetail.Text() : NULL);
 	}
 	else
 	{
