@@ -30,7 +30,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CDependentWriteObjects::Init(void)
 {
 	mcObjects.Init();
-	miGetIndex = 0;
+	mapcInOrder.Init();
+	muiNextUnwritten = 0;
 }
 
 
@@ -40,6 +41,7 @@ void CDependentWriteObjects::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDependentWriteObjects::Kill(void)
 {
+	mapcInOrder.Kill();
 	mcObjects.Kill();
 }
 
@@ -60,7 +62,35 @@ void CDependentWriteObjects::Add(CBaseObject* pcObject)
 	if (!bExists)
 	{
 		mcObjects.InsertAt(&cObject, iIndex);
+		mapcInOrder.Add(pcObject);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first object added that isn't written yet (the same one again until
+// it's Marked), or NULL when all of them are.  Objects are never unmarked,
+// so the written ones before it are skipped once: a whole write takes
+// every object once.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CDependentWriteObjects::GetUnwritten(void)
+{
+	size			uiNumObjects;
+	CBaseObject*	pcObject;
+
+	uiNumObjects = mapcInOrder.NumElements();
+	while (muiNextUnwritten < uiNumObjects)
+	{
+		pcObject = mapcInOrder.GetPtr(muiNextUnwritten);
+		if (!IsWritten(pcObject))
+		{
+			return pcObject;
+		}
+		muiNextUnwritten++;
+	}
+	return NULL;
 }
 
 
@@ -68,41 +98,17 @@ void CDependentWriteObjects::Add(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDependentWriteObjects::GetUnwritten(void)
+bool CDependentWriteObjects::IsWritten(CBaseObject* pcObject)
 {
-	size 					iOldIndex;
-	CDependentWriteObject*	psObject;
-	size					uiObjects;
+	CDependentWriteObject	cObject;
+	size					iIndex;
 
-	uiObjects = mcObjects.NumElements();
-	if (uiObjects == 0)
+	cObject.Init(pcObject, false);
+	if (mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex))
 	{
-		return NULL;
+		return mcObjects.Get(iIndex)->mbWritten;
 	}
-
-	iOldIndex = miGetIndex;
-	for (;;)
-	{
-		if (miGetIndex >= uiObjects - 1)
-		{
-			miGetIndex = 0;
-		}
-		else
-		{
-			miGetIndex++;
-		}
-
-		psObject = mcObjects.Get(miGetIndex);
-		if (!psObject->mbWritten)
-		{
-			return psObject->mpcObject;
-		}
-
-		if (miGetIndex == iOldIndex)
-		{
-			return NULL;
-		}
-	}
+	return false;
 }
 
 

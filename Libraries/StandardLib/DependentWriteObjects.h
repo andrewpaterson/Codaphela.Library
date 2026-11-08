@@ -20,14 +20,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEPENDENT_WRITE_OBJECTS_H__
 #define __DEPENDENT_WRITE_OBJECTS_H__
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "DependentWriteObject.h"
 
 
+//The objects a write depends on.  GetUnwritten gives them in the order they were added, so a write is breadth first.
 class CDependentWriteObjects
 {
 protected:
-	CArrayDependentWriteObject	mcObjects;
-	size						miGetIndex;
+	CArrayDependentWriteObject		mcObjects;  //Sorted by object, to find one.
+	CArrayTemplatePtr<CBaseObject>	mapcInOrder;  //The same objects in the order they were added.
+	size							muiNextUnwritten;  //Every object in mapcInOrder before this is written.
 
 public:
 	void			Init(void);
@@ -35,6 +38,9 @@ public:
 	void			Add(CBaseObject* pcObject);
 	CBaseObject*	GetUnwritten(void);
 	bool			Mark(CBaseObject* pcObject);
+
+protected:
+	bool			IsWritten(CBaseObject* pcObject);
 };
 
 

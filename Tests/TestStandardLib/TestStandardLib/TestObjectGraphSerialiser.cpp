@@ -169,6 +169,55 @@ void TestObjectGraphSerialiserMarkNotDependent(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Dependents come out in the order they were added, each until it's
+// marked.  One marked out of turn is skipped, and adding one twice adds
+// it once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectGraphSerialiserDependentOrder(void)
+{
+	Ptr<CTestSaveableObject2>	pA;
+	Ptr<CTestSaveableObject2>	pB;
+	Ptr<CTestSaveableObject2>	pC;
+	Ptr<CTestSaveableObject2>	pD;
+	CDependentWriteObjects		cDependents;
+
+	pA = ONMalloc<CTestSaveableObject2>("A", "One");
+	pB = ONMalloc<CTestSaveableObject2>("B", "Two");
+	pC = ONMalloc<CTestSaveableObject2>("C", "Three");
+	pD = ONMalloc<CTestSaveableObject2>("D", "Four");
+
+	cDependents.Init();
+	AssertNull(cDependents.GetUnwritten());
+	cDependents.Add(&pC);
+	cDependents.Add(&pA);
+	cDependents.Add(&pB);
+	cDependents.Add(&pC);
+
+	AssertPointer(pC.Object(), cDependents.GetUnwritten());
+	AssertPointer(pC.Object(), cDependents.GetUnwritten());
+	AssertTrue(cDependents.Mark(&pA));
+	AssertPointer(pC.Object(), cDependents.GetUnwritten());
+	AssertTrue(cDependents.Mark(&pC));
+	AssertPointer(pB.Object(), cDependents.GetUnwritten());
+
+	cDependents.Add(&pD);
+	cDependents.Add(&pA);
+	AssertTrue(cDependents.Mark(&pB));
+	AssertPointer(pD.Object(), cDependents.GetUnwritten());
+	AssertTrue(cDependents.Mark(&pD));
+	AssertNull(cDependents.GetUnwritten());
+	cDependents.Kill();
+
+	pA->Kill();
+	pB->Kill();
+	pC->Kill();
+	pD->Kill();
+}
+
+
 #if !defined(BASELIB_SIZE16) && !defined(__W65C816__)
 //////////////////////////////////////////////////////////////////////////
 //
@@ -260,6 +309,7 @@ void TestObjectGraphSerialiser(void)
 	TestObjectGraphSerialiserReachability();
 	TestObjectGraphSerialiserTwoInOneStream();
 	TestObjectGraphSerialiserMarkNotDependent();
+	TestObjectGraphSerialiserDependentOrder();
 #if !defined(BASELIB_SIZE16) && !defined(__W65C816__)
 	TestObjectGraphSerialiserTooBigToBeFat();
 #endif // !BASELIB_SIZE16 && !__W65C816__
