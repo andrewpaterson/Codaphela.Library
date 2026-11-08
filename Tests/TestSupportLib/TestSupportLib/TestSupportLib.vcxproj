@@ -282,6 +282,7 @@
     <ClCompile Include="TestMeshNormalModifiers.cpp" />
     <ClCompile Include="TestMeshFixReversed.cpp" />
     <ClCompile Include="TestMeshCornerMerge.cpp" />
+    <ClCompile Include="TestMeshWeldCorners.cpp" />
     <ClCompile Include="TestMeshFaceReturn.cpp" />
     <ClCompile Include="TestMeshMaterial.cpp" />
     <ClCompile Include="TestMeshOBJReader.cpp" />

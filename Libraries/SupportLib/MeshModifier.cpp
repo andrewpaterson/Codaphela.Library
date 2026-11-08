@@ -195,3 +195,130 @@ Ptr<CMesh> CMeshModifier::CopyWithNormals(CMesh* pcMesh)
 	pOutput->CopyFrom(pcMesh);
 	return pOutput;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new mesh of pcMesh's faces with their corners changed.  paiFaceCorners has
+// NUM_FACE_CORNERS indices into pasCorners for each of pcMesh's faces, the
+// first of them -1 if the face goes.  Only the corners and normals that are
+// used are kept.  Flat normals come first, so the corner normals are numbered
+// after the faces that stay.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshModifier::BuildFromFaces(CMesh* pcMesh, SFloat32Vec3* pasCorners, int iNumCorners, int* paiFaceCorners)
+{
+	Ptr<CMesh>			pOutput;
+	CArrayInt			aiOutputCorners;
+	CArrayInt			aiOutputNormals;
+	CArrayInt			aiNormalOrder;
+	SMeshNormalFace*	psNormalFace;
+	SMeshNormalFace*	psOutputNormalFace;
+	SFloat32Vec3*		psNormal;
+	int*				piFaceCorners;
+	int*				piColours;
+	int*				piOutputCorner;
+	int*				piOutputNormal;
+	int					aiCorners[NUM_FACE_CORNERS];
+	int					iNumFaces;
+	int					iNumKept;
+	int					iOutputFace;
+	int					iFace;
+	int					i;
+	int					iNormal;
+	bool				bNormals;
+	bool				bColours;
+	size				u;
+
+	bNormals = pcMesh->mcNormals.InUse();
+	bColours = pcMesh->mcColours.InUse();
+
+	pOutput = OMalloc<CMesh>();
+	pOutput->mcNormals.mbInUse = bNormals;
+	pOutput->mcColours.mbInUse = bColours;
+	for (u = 0; u < pcMesh->mcColours.mcColours.NumElements(); u++)
+	{
+		pOutput->mcColours.mcColours.Add(pcMesh->mcColours.mcColours.GetValue(u));
+	}
+
+	iNumFaces = pcMesh->NumFaces();
+	iNumKept = 0;
+	for (iFace = 0; iFace < iNumFaces; iFace++)
+	{
+		if (paiFaceCorners[iFace * NUM_FACE_CORNERS] >= 0)
+		{
+			iNumKept++;
+		}
+	}
+
+	aiOutputCorners.Init();
+	aiOutputCorners.Resize(iNumCorners);
+	aiOutputCorners.SetArrayValues(-1);
+	aiOutputNormals.Init();
+	aiOutputNormals.Resize(pcMesh->mcNormals.mcNormals.NumElements());
+	aiOutputNormals.SetArrayValues(-1);
+	aiNormalOrder.Init();
+
+	iOutputFace = 0;
+	for (iFace = 0; iFace < iNumFaces; iFace++)
+	{
+		piFaceCorners = &paiFaceCorners[iFace * NUM_FACE_CORNERS];
+		if (piFaceCorners[0] >= 0)
+		{
+			for (i = 0; i < NUM_FACE_CORNERS; i++)
+			{
+				piOutputCorner = aiOutputCorners.Get(piFaceCorners[i]);
+				if (*piOutputCorner < 0)
+				{
+					*piOutputCorner = pOutput->NumCorners();
+					pOutput->AddCorner(&pasCorners[piFaceCorners[i]]);
+				}
+				aiCorners[i] = *piOutputCorner;
+			}
+			pOutput->AddFace(aiCorners[0], aiCorners[1], aiCorners[2]);
+			pOutput->SetFaceName(iOutputFace, pcMesh->GetFaceName(iFace));
+
+			if (bNormals)
+			{
+				psNormalFace = pcMesh->mcNormals.mcFaces.Get(iFace);
+				psOutputNormalFace = pOutput->mcNormals.mcFaces.Get(iOutputFace);
+				for (i = 0; i < NUM_FACE_CORNERS; i++)
+				{
+					iNormal = psNormalFace->aiCornerNormals[i];
+					if (iNormal >= 0)
+					{
+						piOutputNormal = aiOutputNormals.Get(iNormal);
+						if (*piOutputNormal < 0)
+						{
+							*piOutputNormal = iNumKept + (int)aiNormalOrder.NumElements();
+							aiNormalOrder.Add(iNormal);
+						}
+						iNormal = *piOutputNormal;
+					}
+					psOutputNormalFace->aiCornerNormals[i] = iNormal;
+				}
+			}
+
+			if (bColours)
+			{
+				piColours = pcMesh->mcColours.mcFaces.Get(iFace)->aiCornerColours;
+				for (i = 0; i < NUM_FACE_CORNERS; i++)
+				{
+					pOutput->mcColours.mcFaces.Get(iOutputFace)->aiCornerColours[i] = piColours[i];
+				}
+			}
+			iOutputFace++;
+		}
+	}
+
+	for (u = 0; u < aiNormalOrder.NumElements(); u++)
+	{
+		psNormal = pcMesh->mcNormals.mcNormals.Get(aiNormalOrder.GetValue(u));
+		pOutput->AddNormal(psNormal->x, psNormal->y, psNormal->z);
+	}
+
+	aiNormalOrder.Kill();
+	aiOutputNormals.Kill();
+	aiOutputCorners.Kill();
+	return pOutput;
+}
