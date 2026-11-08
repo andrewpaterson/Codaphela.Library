@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPTextWithSource.h"
 #include "PPWhiteSpace.h"
 #include "PPHashes.h"
+#include "CPPNameCharacters.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -288,7 +289,7 @@ bool CPreprocessorLineTokeniser::IsDigitSeparator(void)
 	}
 
 	c = mpcParser->GetPos()[1];
-	return ((c >= '0') && (c <= '9')) || ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_');
+	return IsCPPNameCharacter(c);
 }
 
 

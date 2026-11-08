@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ExternalString.h"
 #include "BaseLib/Chars.h"
 #include "PreprocessorParser.h"
+#include "CPPNameCharacters.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -309,24 +310,7 @@ bool CPreprocessorParser::IsWhitespace(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessorParser::IsFirstIdentifier(void)
 {
-	char c;
-
-	c = *mszParserPos;
-	if ((c >= 'A') && (c <= 'Z'))
-	{
-		return true;
-	}
-
-	if ((c >= 'a') && (c <= 'z'))
-	{
-		return true;
-	}
-
-	if (c == '_')
-	{
-		return true;
-	}
-	return false;
+	return IsCPPNameStart(*mszParserPos);
 }
 
 

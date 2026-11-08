@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "IR816BackendInternal.h"
 #include "IR816Code.h"
+#include "CPPNameCharacters.h"
 
 
 //The W65C816 back end's branches tidied (PeepholeBranches), and the code nothing reaches taken out.
@@ -200,17 +201,6 @@ static size IR816LabelledInstruction(CIR816Code* pcCode, const char* szLabel, CA
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether c may be part of a label's name.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816IsNameCharacter(char c)
-{
-	return ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '_');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Adds iChange to the count of each local label (L and a number) an instruction line names, in paiMentions by
 // number.  A name is bounded by characters that can't be in a name, as IR816LabelUsed matches it.
 //
@@ -225,14 +215,14 @@ static void IR816CountMentions(const char* szLine, CArrayTemplate<int32>* paiMen
 	iZero = 0;
 	for (szAt = szLine; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
 	{
-		if ((szAt == szLine) || IR816IsNameCharacter(szAt[-1]) || (szAt[1] < '0') || (szAt[1] > '9'))
+		if ((szAt == szLine) || IsCPPNameCharacter(szAt[-1]) || (szAt[1] < '0') || (szAt[1] > '9'))
 		{
 			continue;
 		}
 		for (szEnd = szAt + 1; (*szEnd >= '0') && (*szEnd <= '9'); szEnd++)
 		{
 		}
-		if (IR816IsNameCharacter(*szEnd) || ((szAt[1] == '0') && (szEnd - szAt > 2)) || (szEnd - szAt > 11))
+		if (IsCPPNameCharacter(*szEnd) || ((szAt[1] == '0') && (szEnd - szAt > 2)) || (szEnd - szAt > 11))
 		{
 			continue;
 		}
@@ -290,7 +280,7 @@ static bool IR816LabelUsed(CIR816Code* pcCode, CChars* pszLabel, CArrayTemplate<
 		}
 		for (szAt = szText; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
 		{
-			if ((strncmp(szAt, pszLabel->Text(), uiLength) == 0) && !IR816IsNameCharacter(szAt[-1]) && !IR816IsNameCharacter(szAt[uiLength]))
+			if ((strncmp(szAt, pszLabel->Text(), uiLength) == 0) && !IsCPPNameCharacter(szAt[-1]) && !IsCPPNameCharacter(szAt[uiLength]))
 			{
 				return true;
 			}
@@ -456,7 +446,7 @@ static void IR816FindUsedLabels(CIR816Code* pcCode, CArrayTemplate<uint8>* pabUs
 		}
 		for (; *szText; szText++)
 		{
-			if ((szText[0] == 'L') && (szText[1] >= '0') && (szText[1] <= '9') && ((szText == pcCode->Text(ui)) || !IR816IsNameCharacter(szText[-1])))
+			if ((szText[0] == 'L') && (szText[1] >= '0') && (szText[1] <= '9') && ((szText == pcCode->Text(ui)) || !IsCPPNameCharacter(szText[-1])))
 			{
 				uiNumber = (size)atoi(&szText[1]);
 				while (pabUsed->NumElements() <= uiNumber)

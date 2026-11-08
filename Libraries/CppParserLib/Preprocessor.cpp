@@ -36,6 +36,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GeneralToken.h"
 #include "PreprocessorPosition.h"
 #include "PPTokenMemory.h"
+#include "CPPNameCharacters.h"
 
 
 #define MAX_INCLUDE_DEPTH	200
@@ -1583,7 +1584,7 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 //////////////////////////////////////////////////////////////////////////
 static bool IsIdentifierStart(char c)
 {
-	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_') || (c == '$');
+	return IsCPPNameStart(c) || (c == '$');
 }
 
 

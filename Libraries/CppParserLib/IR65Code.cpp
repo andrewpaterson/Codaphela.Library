@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/StringHelper.h"
 #include "IR65Code.h"
+#include "CPPNameCharacters.h"
 
 
 #define IR65_CODE_MAX_OPERANDS	3
@@ -127,10 +128,10 @@ static uint8 IR65CodeAddresses(SIR65CodeOperand* psOperand)
 	sz = psOperand->szStart;
 	while (sz < szEnd)
 	{
-		if (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_'))
+		if (IsCPPNameCharacter(*sz))
 		{
 			szWord = sz;
-			while ((sz < szEnd) && (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_')))
+			while ((sz < szEnd) && IsCPPNameCharacter(*sz))
 			{
 				sz++;
 			}
@@ -336,10 +337,10 @@ bool CIR65Code::IsCopyExtendAddress(CChars* pszOperand)
 		{
 			return false;
 		}
-		if (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_'))
+		if (IsCPPNameCharacter(*sz))
 		{
 			szWord = sz;
-			while ((sz < szEnd) && (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_')))
+			while ((sz < szEnd) && IsCPPNameCharacter(*sz))
 			{
 				sz++;
 			}

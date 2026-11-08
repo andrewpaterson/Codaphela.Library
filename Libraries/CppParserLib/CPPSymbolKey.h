@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
+#include "CPPNameCharacters.h"
 
 
 class CCPPSyntaxDeclarator;
@@ -62,7 +63,6 @@ protected:
 };
 
 
-bool IsCPPNameCharacter(char c);
 bool IsDeclaratorToken(CCPPToken* pcToken);
 
 

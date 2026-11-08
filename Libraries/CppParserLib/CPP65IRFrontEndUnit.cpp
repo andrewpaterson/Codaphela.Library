@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IROptimiser.h"
 #include "IR816Backend.h"
 #include "CPP65IRFrontEnd.h"
+#include "CPPNameCharacters.h"
 
 
 //The IR front end's work over a whole unit: inlining (InlineUnit), recursion, what functions don't write,
@@ -748,7 +749,7 @@ static bool IRLabelNamed(const char* szText, const char* szLabel)
 	for (szAt = strstr(szText, szLabel); szAt; szAt = strstr(szAt + 1, szLabel))
 	{
 		c = szAt[uiLength];
-		if (!(((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '_') || (c == '.')))
+		if (!IsCPPNameCharacter(c) && (c != '.'))
 		{
 			return true;
 		}
