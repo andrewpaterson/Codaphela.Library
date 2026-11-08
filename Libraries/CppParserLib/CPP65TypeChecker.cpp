@@ -1291,6 +1291,11 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 			return Error(pcNode, "The number of arguments does not match the function");
 		}
 		psParameter = papsParameters->GetPtr(i - 1);
+		if (psParameter->IsReference() && mpcGenerator->BindsToTemporary(psParameter, pcArgument))
+		{
+			//It is checked as an argument to a parameter of the type referred to.
+			psParameter = psParameter->psBase->Unqualified();
+		}
 		if (psParameter->IsReference())
 		{
 			psType = Place(pcArgument);
@@ -2768,6 +2773,10 @@ bool CCPP65TypeChecker::CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode)
 {
+	if (psPlace->IsArray() && psReference->psBase->IsPointer())
+	{
+		return Error(pcNode, "An array cannot be bound to a reference to a pointer that isn't const");
+	}
 	return mpcGenerator->AddsQualifiers(psReference->psBase, psPlace) || Error(pcNode, "A const object cannot be bound to a reference that is not const");
 }
 

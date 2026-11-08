@@ -334,6 +334,87 @@ static const STestForwardingReference gasTestForwardingReferences[] =
 		"int main() { int ai[2]; int (&r)[2] = ai; ai[1] = 50; return F(r); }\n"
 	},
 	{
+		"StaticConstRead", 61,
+		"struct C { static const int k = 61; };\n"
+		"const int C::k;\n"
+		"int main() { return C::k; }\n"
+	},
+	{
+		"StaticConstInOtherExpression", 62,
+		"struct C { static const int k = 61; };\n"
+		"const int C::k;\n"
+		"int main() { int i = 1; return C::k + i; }\n"
+	},
+	{
+		"ConstPointerRefToArray", 63,
+		"int F(int* const& p) { return p[1]; }\n"
+		"int main() { int ai[2]; ai[1] = 63; return F(ai); }\n"
+	},
+	{
+		"PlainConstRefConverted", 51,
+		"int F(const long& l) { return (l == 3) ? 51 : 0; }\n"
+		"int main() { char c = 3; return F(c); }\n"
+	},
+	{
+		"PlainConstRefLongLong", 52,
+		"int F(const long long& l) { return (l == 5000000000LL) ? 52 : 0; }\n"
+		"int main() { return F(5000000000LL); }\n"
+	},
+	{
+		"PlainConstRefInLoop", 15,
+		"int F(const int& i) { return i; }\n"
+		"int main() { int t = 0; for (int i = 0; i < 5; i++) { t += F(i + 1); } return t; }\n"
+	},
+	{
+		"PlainConstRefRecursive", 21,
+		"int F(const int& n) { return (n == 0) ? 0 : n + F(n - 1); }\n"
+		"int main() { return F(6); }\n"
+	},
+	{
+		"PlainConstRefConditional", 53,
+		"int F(const int& i) { return i; }\n"
+		"int main() { int b = 1; return F(b ? 53 : 54); }\n"
+	},
+	{
+		"PlainConstRefVariable", 55,
+		"int F(const int& i) { return i; }\n"
+		"int main() { int v = 55; return F(v); }\n"
+	},
+	{
+		"PlainConstRefSeesVariable", 56,
+		"int giV = 1;\n"
+		"int F(const int& i) { giV = 56; return i; }\n"
+		"int main() { return F(giV); }\n"
+	},
+	{
+		"ConstructorConstRef", 57,
+		"struct S { int v; S(const int& i) { v = i; } };\n"
+		"int main() { S s(57); return s.v; }\n"
+	},
+	{
+		"MemberConstRef", 58,
+		"struct S { int v; void Set(const int& i) { v = i; } };\n"
+		"int main() { S s; s.Set(50 + 8); return s.v; }\n"
+	},
+	{
+		"LiteralPrefersConstRef", 12,
+		"int F(int& i) { return 1; }\n"
+		"int F(const int& i) { return 2; }\n"
+		"int main() { int v = 0; return F(v) * 10 + F(5); }\n"
+	},
+	{
+		"LiteralSkipsReferenceOverload", 59,
+		"int F(int& i) { return 1; }\n"
+		"int F(long l) { return 59; }\n"
+		"int main() { return F(5); }\n"
+	},
+	{
+		"ScalarTemporaryByReference", 60,
+		"struct CThing { int m; void Init(int& r) { m = r + 60; } };\n"
+		"template<typename ... Args> int Make(CThing* p, Args&& ... args) { p->Init(args...); return p->m; }\n"
+		"int main() { CThing t; return Make(&t, 0); }\n"
+	},
+	{
 		"SingleParameter", 43,
 		"template<class T> int One(T&& t) { return t; }\n"
 		"int main() { int i = 41; return One(i) + One(2); }\n"
@@ -423,14 +504,41 @@ static void TestForwardingReferences(ECPPTarget eTarget, const char* szExpectedN
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only a const reference takes a value with no address, and a reference to
+// a pointer isn't an array's address.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestForwardingReferenceRejected(ECPPTarget eTarget)
+{
+	CCPP65Builder	cBuilder;
+	CChars			szAssembly;
+	CChars			szErrors;
+
+	cBuilder.Init();
+	szAssembly.Init();
+	szErrors.Init();
+	CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", "int F(int& i) { return i; }\nint main() { return F(5); }\n", false, NULL, eTarget);
+	AssertFalse(szErrors.Empty());
+	szErrors.Clear();
+	CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", "int F(int*& p) { return *p; }\nint main() { int ai[2]; ai[0] = 1; return F(ai); }\n", false, NULL, eTarget);
+	AssertFalse(szErrors.Empty());
+	szErrors.Kill();
+	szAssembly.Kill();
+	cBuilder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the compiler can't do yet is listed here for each target: take a
 // program off its list as the compiler does it.  ReferenceCollapsing and
 // ForwardPattern need rvalue references as a type of their own (B10 in
-// CppParserTodo.txt), which passing arguments through doesn't.
+// CppParserTodo.txt), which passing arguments through doesn't.  So does
+// ScalarTemporaryByReference: T&& of a value is const here.
 //
 //////////////////////////////////////////////////////////////////////////
-#define TEST_CPP65_FORWARDING_NOT_DONE		"ConstLValueInt(C) LiteralInt(C) Expression(C) CallResult(C) Enum(C) CastChar(C) LiteralLong(C) ThreeTemporaries(C) StaticConstMember(C) AddressOf(C) This(C) StringLiteral(C) TwoStringLengths(C) CharArray(W) IntArray(W) FunctionName(C) ConstObjectOverload(C) MixedPack(C) ExplicitFirst(C) TwoLayers(C) DeclaredThenDefined(C) NestedCallLiteral(C) PlainConstRefLiteral(C) PlainConstRefExpression(C) PlainConstRefPointer(C) SingleParameter(C) ReferenceCollapsing(W) ForwardPattern(C) "
-#define TEST_CPP816_FORWARDING_NOT_DONE		"ConstLValueInt(C) LiteralInt(C) Expression(C) CallResult(C) Enum(C) CastChar(C) LiteralLong(C) ThreeTemporaries(C) StaticConstMember(C) AddressOf(C) This(C) StringLiteral(C) TwoStringLengths(C) CharArray(W) IntArray(W) FunctionName(C) ConstObjectOverload(C) MixedPack(C) ExplicitFirst(C) TwoLayers(C) DeclaredThenDefined(C) NestedCallLiteral(C) PlainConstRefLiteral(C) PlainConstRefExpression(C) PlainConstRefPointer(C) SingleParameter(C) ReferenceCollapsing(W) ForwardPattern(C) "
+#define TEST_CPP65_FORWARDING_NOT_DONE		"ScalarTemporaryByReference(C) ReferenceCollapsing(W) ForwardPattern(C) "
+#define TEST_CPP816_FORWARDING_NOT_DONE		"ScalarTemporaryByReference(C) ReferenceCollapsing(W) ForwardPattern(C) "
 
 void TestCPP65ForwardingReferences(void)
 {
@@ -442,6 +550,8 @@ void TestCPP65ForwardingReferences(void)
 
 	TestForwardingReferences(CPPT_65C64, TEST_CPP65_FORWARDING_NOT_DONE);
 	TestForwardingReferences(CPPT_W65C816, TEST_CPP816_FORWARDING_NOT_DONE);
+	TestForwardingReferenceRejected(CPPT_65C64);
+	TestForwardingReferenceRejected(CPPT_W65C816);
 
 	NumberKill();
 	TypeConverterKill();

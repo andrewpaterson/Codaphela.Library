@@ -797,7 +797,15 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 		}
 		else if (psParameter->IsReference())
 		{
-			if (!Place(pcArgument, &sPlace) || !ReferenceAddress(&sPlace, psParameter, &sArgument.sValue))
+			if (mpcGenerator->BindsToTemporary(psParameter, pcArgument))
+			{
+				if (!ValueTemporary(pcArgument, psParameter->psBase, &sPlace))
+				{
+					return false;
+				}
+				sArgument.sValue = sPlace.sAddress;
+			}
+			else if (!Place(pcArgument, &sPlace) || !ReferenceAddress(&sPlace, psParameter, &sArgument.sValue))
 			{
 				return false;
 			}

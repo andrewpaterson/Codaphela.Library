@@ -1429,7 +1429,7 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 	}
 	apsDeduced.Init();
 	alliDeduced.Init();
-	DeduceArguments(psTemplate, &apsArguments, &apsDeduced, &alliDeduced);
+	DeduceArguments(psTemplate, &apsArguments, papcArguments, &apsDeduced, &alliDeduced);
 	apsArguments.Kill();
 
 	szArguments.Init();
@@ -1507,12 +1507,13 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 //////////////////////////////////////////////////////////////////////////
 //
 // Deduces a function template's parameters from the types of a call's arguments
-// (an entry may be NULL).  papsDeduced gets an entry for each template parameter,
-// NULL if it is not deduced, and palliDeduced the non-type parameters' values
+// (an entry may be NULL).  papcArguments are the arguments, or NULL if only their
+// types are known.  papsDeduced gets an entry for each template parameter, NULL if
+// it is not deduced, and palliDeduced the non-type parameters' values
 // (DeduceParameter).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Types* papsArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
+void CCPP65Generator::DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	size						i;
@@ -1523,7 +1524,7 @@ void CCPP65Generator::DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Typ
 		papsDeduced->Add(NULL);
 		palliDeduced->Add(0);
 	}
-	DeduceParameters(psTemplate, pcSuffix, papsArguments, papsDeduced, palliDeduced);
+	DeduceParameters(psTemplate, pcSuffix, papsArguments, papcArguments, papsDeduced, palliDeduced);
 }
 
 
@@ -1533,7 +1534,7 @@ void CCPP65Generator::DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Typ
 // type in papsArguments, until a parameter pack takes the rest.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeduceParameters(SCPP65Template* psTemplate, CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
+void CCPP65Generator::DeduceParameters(SCPP65Template* psTemplate, CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
 {
 	CCPPSyntaxParameter*	pcParameter;
 	size					i;
@@ -1541,7 +1542,7 @@ void CCPP65Generator::DeduceParameters(SCPP65Template* psTemplate, CCPPSyntaxFun
 	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < papsArguments->NumElements()); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		if (!DeduceParameter(psTemplate, pcParameter, papsArguments, i, papsDeduced, palliDeduced))
+		if (!DeduceParameter(psTemplate, pcParameter, papsArguments, papcArguments, i, papsDeduced, palliDeduced))
 		{
 			return;
 		}
@@ -1560,11 +1561,11 @@ void CCPP65Generator::DeduceParameters(SCPP65Template* psTemplate, CCPPSyntaxFun
 // the first and the rest are added after it.  A parameter declared as
 // Name<..., N, ...> (or a pointer or reference to one) deduces from the
 // argument's instance of Name (DeduceFromInstance).  A pointer to a member
-// deduces from the argument's pointer to member (DeduceMemberPointer).  Returns
-// false once a pack has taken the rest.
+// deduces from the argument's pointer to member (DeduceMemberPointer).  T&& and
+// Args&& ... take ForwardedType.  Returns false once a pack has taken the rest.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, size i, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
+bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, size i, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
 {
 	CCPPSyntaxTypeSpecifier*	pcType;
 	CCPPSyntaxName*				pcName;
@@ -1573,6 +1574,7 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 	size						j;
 	size						k;
 	size						uiPointers;
+	bool						bForwarding;
 
 	DeduceMemberPointer(psTemplate, pcParameter->mpcDeclarator, papsArguments->GetPtr(i), papsDeduced, palliDeduced);
 	pcType = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->mpcType : NULL;
@@ -1599,6 +1601,7 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 		{
 			continue;
 		}
+		bForwarding = IsForwardingReference(pcParameter);
 		if (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack)
 		{
 			//Args ... args takes the types of the rest of the arguments (the pack is the last parameter).
@@ -1606,7 +1609,10 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 			{
 				psArgument = papsArguments->GetPtr(k);
 				psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
-				psArgument = psArgument ? psArgument->Unqualified() : NULL;
+				if (psArgument)
+				{
+					psArgument = bForwarding ? ForwardedType(psArgument, papcArguments ? papcArguments->GetPtr(k) : NULL) : psArgument->Unqualified();
+				}
 				if (k == i)
 				{
 					papsDeduced->SetPtr(j, psArgument);
@@ -1619,6 +1625,14 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 			return false;
 		}
 		psArgument = papsArguments->GetPtr(i);
+		if (bForwarding)
+		{
+			if (psArgument && !papsDeduced->GetPtr(j))
+			{
+				papsDeduced->SetPtr(j, ForwardedType(psArgument->WithoutReference(), papcArguments ? papcArguments->GetPtr(i) : NULL));
+			}
+			return true;
+		}
 		uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->NumPointers() : 0;
 		if (uiPointers && (pcParameter->mpcDeclarator->GetPointer(0)->meKind != CPPP_Pointer))
 		{
@@ -1644,6 +1658,63 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the parameter is T&& (or Args&& ...), and not const T&&.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsForwardingReference(CCPPSyntaxParameter* pcParameter)
+{
+	CCPPSyntaxDeclarator*	pcDeclarator;
+
+	pcDeclarator = pcParameter->mpcDeclarator;
+	if (!pcDeclarator || (pcDeclarator->NumPointers() != 1) || (pcDeclarator->GetPointer(0)->meKind != CPPP_RValueReference))
+	{
+		return false;
+	}
+	return !pcParameter->mpcSpecifiers || !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What T is for an argument of type psArgument (not a reference) to T&&.
+// && is a & here, not a type of its own, so only what passing arguments on
+// needs is done (B10 in CppParserTodo.txt has the rest).  T is the argument's
+// type with its own const, so an object or a variable binds as it is.  A
+// value with no address is const, as only a const reference can bind to one,
+// and an array or a function is a const pointer to it, so an array of each
+// length isn't an instance of its own.  (The standard's T is not const for a
+// value, and is an array for an array.)
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcArgument)
+{
+	SCPP65Type*	psPlace;
+
+	if (psArgument->IsArray())
+	{
+		return mcTypes.Qualified(mcTypes.Pointer(psArgument->psBase), true, false);
+	}
+	if (psArgument->IsFunction())
+	{
+		return mcTypes.Qualified(mcTypes.Pointer(psArgument), true, false);
+	}
+	if (psArgument->IsClass() || !pcArgument)
+	{
+		return psArgument;
+	}
+
+	//An array's type here is already the pointer it decays to, but its place is the array.
+	psPlace = PlaceOf(pcArgument);
+	if (psPlace && !psPlace->WithoutReference()->IsArray())
+	{
+		return psArgument;
+	}
+	return mcTypes.Qualified(psArgument, true, psArgument->bVolatile);
 }
 
 
@@ -1693,7 +1764,7 @@ void CCPP65Generator::DeduceMemberPointer(SCPP65Template* psTemplate, CCPPSyntax
 			pcSuffix = (pcOuter && (pcOuter->macpSuffixes.NumElements() > 0)) ? pcOuter->macpSuffixes.GetPtr(0) : NULL;
 			if (pcSuffix && (pcSuffix->GetKind() == CPPS_FunctionSuffix) && psArgument->psBase && psArgument->psBase->IsFunction())
 			{
-				DeduceParameters(psTemplate, (CCPPSyntaxFunctionSuffix*)pcSuffix, psArgument->psBase->papsParameters, papsDeduced, palliDeduced);
+				DeduceParameters(psTemplate, (CCPPSyntaxFunctionSuffix*)pcSuffix, psArgument->psBase->papsParameters, NULL, papsDeduced, palliDeduced);
 			}
 		}
 	}
@@ -1855,7 +1926,7 @@ SCPP65Template* CCPP65Generator::FindFunctionSpecialisation(SCPP65Template* psPr
 			}
 			apsDeduced.Init();
 			alliDeduced.Init();
-			DeduceArguments(psPrimary, &apsParameters, &apsDeduced, &alliDeduced);
+			DeduceArguments(psPrimary, &apsParameters, NULL, &apsDeduced, &alliDeduced);
 			if (!BindArguments(psPrimary->pcDeclaration, (psTemplate->pcPattern && psTemplate->pcPattern->mbTemplateArguments) ? &psTemplate->pcPattern->macpTemplateArguments : NULL, &apsDeduced, &psTemplate->mszArguments, pcNode, &alliDeduced))
 			{
 				psTemplate->mszArguments.Clear();
@@ -2554,7 +2625,7 @@ bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* pa
 		}
 		apsDeduced.Init();
 		alliDeduced.Init();
-		DeduceArguments(psTemplate, &apsArguments, &apsDeduced, &alliDeduced);
+		DeduceArguments(psTemplate, &apsArguments, papcArguments, &apsDeduced, &alliDeduced);
 		szArguments.Init();
 		psBindings = BindArguments(psTemplate->pcDeclaration, papcExplicit, &apsDeduced, &szArguments, pcNode, &alliDeduced);
 		szArguments.Kill();
@@ -3041,6 +3112,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 			{
 				psVariable = AddVariable(&mapsGlobals, pcInit->mpcSymbol, psType, CPP65S_Global, 0);
 				psVariable->psClass = psClass;
+				psVariable->pcInClassInitialiser = pcInit->mpcInitializer;
 				continue;
 			}
 
@@ -4236,6 +4308,11 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	bReference = psParameter->IsReference();
 	psParameter = bReference ? psParameter->psBase : psParameter;
 	psArgument = psArgument->WithoutReference();
+	if (bReference && !psParameter->bConst && !psParameter->IsClass() && pcArgument && !PlaceOf(pcArgument))
+	{
+		//A value with no address only binds to a const reference.
+		return CPP65CR_None;
+	}
 	if (psParameter->Equals(psArgument))
 	{
 		if (bReference && psArgument->IsClass() && !psArgument->bConst && pcArgument && IsMadeObject(pcArgument, psArgument->psClass))

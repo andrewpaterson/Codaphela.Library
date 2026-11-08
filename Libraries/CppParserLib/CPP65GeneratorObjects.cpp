@@ -215,6 +215,48 @@ SCPP65Type* CCPP65Generator::CastClassType(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type of the place a reference to the expression would refer to, or
+// NULL if it is a value with no address (a literal, a sum, a call's int).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::PlaceOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psPlace;
+	bool		bQuietFailed;
+
+	//A failure here is not one of the quiet code around it.
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	psPlace = mcTypeChecker.Place(pcExpression);
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	return psPlace;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a reference parameter gets a temporary holding the argument, not
+// the argument's address: a const reference to a type that isn't a class,
+// and an argument that has no address or is of another type (const long&
+// of a char, const char* const& of an array).  [dcl.init.ref]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
+{
+	SCPP65Type*	psPlace;
+
+	if (!psReference->psBase->bConst || psReference->psBase->IsClass())
+	{
+		return false;
+	}
+	psPlace = PlaceOf(pcArgument);
+	return !psPlace || !psReference->psBase->Equals(psPlace->WithoutReference());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if the expression is an object (or a reference to one).
 //
 //////////////////////////////////////////////////////////////////////////

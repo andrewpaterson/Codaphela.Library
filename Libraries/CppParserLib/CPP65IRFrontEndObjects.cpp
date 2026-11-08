@@ -1130,6 +1130,32 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A temporary of psType (not a class) holding pcValue, for a reference to
+// bind to.  It is in the function's frame, so it outlasts the call.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace)
+{
+	SCPP65IRValue	sValue;
+
+	psType = psType->Unqualified();
+	if (!IsSupportedType(psType))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!ValueFor(pcValue, psType, &sValue) || !Convert(&sValue, psType))
+	{
+		return false;
+	}
+	psPlace->psType = psType;
+	psPlace->sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psType->iBytes, 4);
+	Store(psPlace, &sValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A place in the frame for a temporary object.  One that needs destroying
 // (and bDestroy: not a copy of an argument's bytes, which the callee
 // destroys) is destroyed at the end of the full expression

@@ -376,6 +376,7 @@ protected:
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, bool bDestroy);
+	bool			ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace);
 	bool			CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource);

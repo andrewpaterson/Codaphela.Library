@@ -1937,6 +1937,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 {
 	size						i;
 	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntax*					pcInitialiser;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	SCPP65Variable*				psVariable;
 	SCPP65Function*				psFunction;
@@ -2014,7 +2015,14 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			continue;
 		}
 
-		psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+		//const int CClass::k; has the initialiser the class gave it.
+		pcInitialiser = pcInit->mpcInitializer;
+		if (!pcInitialiser && psVariable)
+		{
+			pcInitialiser = psVariable->pcInClassInitialiser;
+		}
+
+		psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInitialiser);
 		if (!psType)
 		{
 			bResult = false;
@@ -2043,7 +2051,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 
 		szLabel.Init();
 		AppendVariableLabel(&szLabel, psVariable);
-		bBss = IsBss(pcInit->mpcInitializer, psType);
+		bBss = IsBss(pcInitialiser, psType);
 		BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !psVariable->bInternal, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL, bBss);
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
@@ -2052,18 +2060,18 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		if (bBss)
 		{
 			AppendSpace(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->psClass->psDestructor != NULL));
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->psClass->psDestructor != NULL));
 		}
 		else if (!psElement->IsClass() && !psType->IsReference())
 		{
 			bInitialise = false;
-			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
-			bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, bInitialise, false);
+			bResult &= GlobalInitialiser(psType, pcInitialiser, pcInit, &bInitialise);
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, bInitialise, false);
 		}
 		else
 		{
 			AppendZeros(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, true, psElement->IsClass() && (psElement->psClass->psDestructor != NULL));
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->psClass->psDestructor != NULL));
 		}
 		miStartUps++;
 		szLabel.Kill();
@@ -2292,6 +2300,7 @@ SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables
 	psVariable->eStorage = eStorage;
 	psVariable->iOffset = iOffset;
 	psVariable->psClass = NULL;
+	psVariable->pcInClassInitialiser = NULL;
 	psVariable->bDefined = false;
 	psVariable->bUsed = false;
 	psVariable->bInternal = pcSymbol && pcSymbol->mpcScope && pcSymbol->mpcScope->IsInUnnamedNamespace();
