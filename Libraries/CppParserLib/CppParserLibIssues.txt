@@ -2,26 +2,9 @@ CppParserLib: issues left from the quality sweep
 ================================================
 
 What is left of the sweep of CppParserLib for code smells, duplication and anything wrong
-or inelegant (2026-11).  Items 1 to 59 are done (56 was not a copy: GuardedBy's narrower walk
-is needed, and says why); the numbers are kept as they were.  Written 2026-11-07, updated
-2026-11-08.
-
-
-Duplication
------------
-
-92. Both back ends pair a divide with its remainder.  The 65C64's PairDivides (with
-    DividePartner, unsigned 32 bits only) moves a urem next to its udiv; the W65C816's
-    RemainderLeft (signed and unsigned, 16, 32 and 64 bits) shares the result only when the
-    two are already next to each other.  One CIRBackendPasses::PairDivides, with a hook for
-    the opcodes and widths each target pairs, would catch the W65C816's pairs with code
-    between them too.  It changes the W65C816's code: measure its cycles.
-93. Both back ends' text passes have the same four branch peepholes: jumps threaded, a
-    branch to the label after it, a branch inverted round a bra, and code nothing reaches
-    (CIR65Peephole: ThreadJumps, RemoveBranchesToNext, InvertBranches, RemoveUnreached;
-    IR816Branches.cpp: PeepholeBranches, IR816Unreachable).  Both now decode their lines
-    (CIR65Code, CIR816Code), so a CIRCode base with a line's kind, branch target and label
-    could hold the four passes once.  A sizeable refactor: the largest copy left.
+or inelegant (2026-11).  Items 1 to 59, 92 and 93 are done (56 was not a copy: GuardedBy's
+narrower walk is needed, and says why); the numbers are kept as they were.  Written 2026-11-07,
+updated 2026-11-08.
 
 
 Dead code

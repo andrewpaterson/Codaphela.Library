@@ -220,3 +220,16 @@ R_DivideSigned64 with UseRuntime, as any runtime routine (were the flags UsesSig
 the generator writes them when its runtime list names them (AppendRuntime), and GetExternals leaves out the
 routines the unit writes itself (R_ and the W65C816's R816_ ones, which it listed before), as its comment always
 said.  The code written is the same on both targets.
+
+Divides and their remainders: done 2026-11-08.  The 65C64's back end PairDivides (an unsigned udiv and urem of
+the same operands moved together, for one div) goes: the optimiser's ShareDivisions does it for both targets, as it
+did for the W65C816, with SetDivideRemainders saying whose divides leave the remainder (the 65C64: unsigned 8, 16
+and 32 bits, by a constant too; the W65C816: 16, 32 and 64 bits, signed too).  The back end still writes the two
+with one div (DividePartner, PairedDivide).  Every test passes on both targets.
+
+Branch passes shared: done 2026-11-08.  Threading jumps, inverting a branch round a bra, taking out a branch to the
+next label and taking out code nothing reaches are IRThreadJumps, IRInvertBranches, IRRemoveBranchesToNext and
+IRRemoveUnreached (IRBranchPasses.h), over a CIRBranchCode: CIR65Code is one, and the W65C816's PeepholeBranches
+runs them over a CIR816BranchCode each pass (its own rules, the bcc/beq pair first, stay).  The 65C64's code is the
+same.  The W65C816 now also takes out a conditional branch to the next label and code only dead code reaches (a
+label something other than a branch names, as a jump table's, is reached).  Every test passes on both targets.
