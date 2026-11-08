@@ -670,8 +670,7 @@ SIRReference CCPP65IRFrontEnd::AddressAt(SIRReference sAddress, int iOffset)
 //////////////////////////////////////////////////////////////////////////
 //
 // The IR parameters are the function's, in order, at their own sizes.  Each
-// named one's place is where it was pushed (argaddr), as the generator's
-// parameters are.
+// named one's place is where it was pushed (argaddr).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Parameters(void)

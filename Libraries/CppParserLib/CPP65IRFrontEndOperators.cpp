@@ -813,7 +813,7 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 //////////////////////////////////////////////////////////////////////////
 //
 // left op right, or op operand when pcRight is NULL, with an object
-// operand, as the generator's OperatorExpression: the left's member
+// operand: the left's member
 // operator if one matches, otherwise a free operator function.
 //
 //////////////////////////////////////////////////////////////////////////

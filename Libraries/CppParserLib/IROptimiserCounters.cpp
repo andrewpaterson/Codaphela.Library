@@ -143,12 +143,6 @@ bool CIROptimiser::SteppedExitUses(size uiLoop, CIRBlock* pcBlock, SIRPhi* psCou
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 32 bit loop counters that stay in 16 bits count in 16 bits
-// (NarrowCounter, for each block of each loop that leaves or goes round on
-// a compare).
-//
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether the loop is only entered when sInitial uiOpcode sBound
 // (LoopGuarded), or the same of the narrower values they extend (the
 // guard compares those once FoldConstants narrows it; a constant is the
@@ -210,6 +204,12 @@ bool CIROptimiser::NarrowLoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference 
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// 32 bit loop counters that stay in 16 bits count in 16 bits
+// (NarrowCounter, for each block of each loop that leaves or goes round on
+// a compare).
+//
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::NarrowCounters(void)
 {

@@ -293,8 +293,7 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 
 //////////////////////////////////////////////////////////////////////////
 //
-// __func__ and the other names of the function: a string, as the
-// generator's IdExpression.
+// __func__ and the other names of the function: a string.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue)
@@ -315,8 +314,7 @@ bool CCPP65IRFrontEnd::FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function's name used as a value is its address, as the generator's
-// FunctionAddress: Class::f and, in a member function, f may be a static
+// A function's name used as a value is its address: Class::f and, in a member function, f may be a static
 // member function (of the class or its bases).  An overloaded name needs
 // the type of the function wanted (psTarget, from a cast).
 //
@@ -343,7 +341,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// &Class::member, as the generator's MemberAddress: a pointer to a member
+// &Class::member: a pointer to a member
 // function is its address (a thunk that calls through the vtable for a
 // virtual one) and a pointer to a field its offset.  Returns false with
 // *pbMember clear if the name isn't a non-static member (it may be a static
@@ -416,8 +414,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 //////////////////////////////////////////////////////////////////////////
 //
 // The member function of the name in psClass, or else in its bases (the
-// first that has one), and the class it is in, as the generator's
-// MemberFunctionAddress.  Returns false for an overloaded name.
+// first that has one), and the class it is in.  Returns false for an overloaded name.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberFunction(SCPP65Class* psClass, int64 lliName, SCPP65Function** ppsFound, SCPP65Class** ppsClass)

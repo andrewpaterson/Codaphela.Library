@@ -110,7 +110,7 @@ Floats:
 
 	fadd fsub fmul fdiv fneg
 	feq fne flt fle fgt fge fordered funordered		-> i1
-	sitof utof ftosi ftoui fext ftrunc
+	sitof uitof ftosi ftoui fext ftrunc
 
 Floats are instructions until legalisation, which makes them SoftFloat* calls on both
 targets.  So constant folding works out 1.0f + 2.0f, value numbering shares a repeated
@@ -292,7 +292,7 @@ then keeps the code Body generated for it.
 Indirect calls (2026-10-25): a load from a constant global, or from known data (CIRModule::
 AddKnownData: read only data defined outside the module, never written out), at a constant
 offset is what is there (CIROptimiser::ConstantData), so a call through it is direct.  The
-front end describes each vtable it stores as known data (DescribeVtable, as the generator's
+front end describes each vtable it stores as known data (DescribeVtable, as
 EnsureVtable writes it), and writes implicit default constructors and destructors as IR too
 (the generator falls back to its own), so a virtual call on an object whose vtable store
 the optimiser sees becomes a call of the function, and may be inlined.  Calls through
@@ -399,8 +399,7 @@ base's at its offset) and function templates by name and of pointers to function
 variadic calls (va_arg is Libc65's macro, plain pointer arithmetic), new, new (address)
 and delete (which does nothing with a null pointer).
 
-Constructors and destructors are written as the generator's ConstructorBody and
-DestructorBody: a constructor starts with its bases (from the member initialisers or by
+Constructors and destructors: a constructor starts with its bases (from the member initialisers or by
 default), the vtable pointers, then the fields (member initialisers, default member
 initialisers or their own constructors); a destructor stores its vtable pointers, and its
 returns go to a last block that destroys the fields then the bases, last first.  Local
@@ -410,7 +409,7 @@ their way out; a goto while an object is living is left to the generator.  (The 
 an if, loop or switch is a scope of its own, and so is a for with its declarations, as
 C++ says; the generator destroys a for's objects at the end of the enclosing block.)
 
-Objects by value, as the generator's ABI (CPP65Generator.txt Objects by value): an
+Objects by value (CPP65Generator.txt Objects by value): an
 object used as a value is its address.  A function that returns one takes a hidden
 pointer parameter (the first on the stack) and returns it; the caller passes a
 temporary's slot, or the object being initialised (msElide: made in place, as C++17
@@ -433,7 +432,7 @@ through any expression that is a pointer to a function (table[i](), (*pf)(), a f
 pointers to members as the generator has them (a member function's address, a
 virtual one's vcall thunk, or a field's offset; 0 is null): &Class::member, object.*m,
 pointer->*m, calls through them, ==, != and conversions; f(args...) expands the
-function parameter pack (as the generator's ExpandPackCall).
+function parameter pack (ExpandPackCall).
 
 Not yet (38 of 11261 BaseLib and StandardLib functions, 2026-10-25): passing objects
 that need a copy constructor (14; the IR passes arguments as values, so the copy would

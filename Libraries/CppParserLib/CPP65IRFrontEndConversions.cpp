@@ -259,7 +259,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Converts a value to psTo, as the generator's Convert does.
+// Converts a value to psTo.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
@@ -409,8 +409,8 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, int iOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Conversions to and from pointers to members, as the generator's (an
-// address or an offset, 4 bytes): an integer (0, null) is one as it is, one
+// Conversions to and from pointers to members (an address or an offset, 4
+// bytes): an integer (0, null) is one as it is, one
 // is a bool when it isn't 0, a pointer to a field of a base is one to the
 // derived class's field (the base's offset added) and back again by a cast
 // (taken off), and other pointers to members (to members of unrelated

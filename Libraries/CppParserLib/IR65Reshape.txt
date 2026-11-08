@@ -6,13 +6,14 @@ code line for line, but they do the same jobs: the duplication is in behaviour. 
 one grew as one 5,346 line file whose stages talk through member state; the W65C816 one is
 split by concern (IR816Places, Instructions, Flow, Frames, Runtime, Lines, Peephole,
 DeadStores).  The user's ruling (2026-11-05): the 65C64 back end is to be shaped toward the
-W65C816's.  Written 2026-11-05.
+W65C816's.  Written 2026-11-05.  The steps below are all done (see Progress), so this records
+how it was and why it changed; the back ends' code says how it is now.
 
 
 The same jobs in the two back ends
 ----------------------------------
 
-Job                         W65C816 (the model)                     65C64 (to be reshaped)
+Job                         W65C816 (the model)                     65C64 (as it was)
 --------------------------  --------------------------------------  -------------------------------------------
 IR rewrites before code     ExpandMultiplies, SinkSteps             ExpandMultiplies, AdjustComparisons,
                                                                     PreferSingleBranches, OrderBlocks,
@@ -126,7 +127,8 @@ step 2's, source comments too.  TestCppParserLib 83262/83262.
 Step 4: done 2026-11-05.  CIRBackendPasses (IRBackendPasses.h/.cpp) has OrderBlocks, MoveLoopTests
 (was CIR65Backend::RotateLoops, renamed so it isn't taken for CIROptimiser's) and SinkLoads (less
 SinkToEnd, which the 65C64 runs after it); CIR65Backend runs them.  The 65C64's AdjustComparisons,
-PreferSingleBranches, PairDivides, SinkToEnd and CopyAddresses stay in IR65Passes.cpp: they serve
+PreferSingleBranches, PairDivides (since gone: Divides and their remainders below), SinkToEnd (since
+gone: Loop steps below) and CopyAddresses stay in IR65Passes.cpp: they serve
 its instructions (cmp with a constant, braso, one div for both, add Y, 1, [8 + X]).  Listings
 identical to step 3's, TestCppParserLib 83262/83262.  Left for later then, as they change the
 W65C816's code and need its cycles measured: the W65C816 running CIRBackendPasses, and one loop step
