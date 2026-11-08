@@ -186,9 +186,43 @@ void CRasteriser::GrowScreen(size uiNumVertices)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether an instance's axis is exactly one of the mesh's or its opposite,
+// and so nothing to multiply or round, and which.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool RasterQuarterTurn(SInt32Vec3* psAxis, int32* piFrom, int32* piSign)
+{
+	int32	iOne;
+
+	iOne = 1 << RASTER_AXIS_BITS;
+	if (((psAxis->x == iOne) || (psAxis->x == -iOne)) && (psAxis->y == 0) && (psAxis->z == 0))
+	{
+		*piFrom = 0;
+		*piSign = (psAxis->x > 0) ? 1 : -1;
+		return true;
+	}
+	if ((psAxis->x == 0) && ((psAxis->y == iOne) || (psAxis->y == -iOne)) && (psAxis->z == 0))
+	{
+		*piFrom = 1;
+		*piSign = (psAxis->y > 0) ? 1 : -1;
+		return true;
+	}
+	if ((psAxis->x == 0) && (psAxis->y == 0) && ((psAxis->z == iOne) || (psAxis->z == -iOne)))
+	{
+		*piFrom = 2;
+		*piSign = (psAxis->z > 0) ? 1 : -1;
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An instance's vertices on the screen, to psScreen.  psLight is towards the
 // light in the space the instances are in.  Turning it back into the mesh's
-// space, once, is the same as turning every normal out of it.
+// space, once, is the same as turning every normal out of it.  A board's
+// vertices often have the normal of the one before, and so its shade.
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen)
@@ -202,6 +236,24 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 	SInt64Vec3				sLight;
 	SInt32Vec3				sMoved;
 	int64					iDot;
+	int32					aiFrom[3];
+	int32					aiSign[3];
+	int32*					piPosition;
+	int32					iShade;
+	int32					iLastX;
+	int32					iLastY;
+	int32					iLastZ;
+	bool					bQuarterTurns;
+
+	bQuarterTurns = RasterQuarterTurn(&psInstance->asAxes[0], &aiFrom[0], &aiSign[0]) &&
+					RasterQuarterTurn(&psInstance->asAxes[1], &aiFrom[1], &aiSign[1]) &&
+					RasterQuarterTurn(&psInstance->asAxes[2], &aiFrom[2], &aiSign[2]);
+
+	//No normal's parts are this.
+	iLastX = 0x7FFFFFFF;
+	iLastY = 0;
+	iLastZ = 0;
+	iShade = 0;
 
 	for (i = 0; i < 3; i++)
 	{
@@ -215,19 +267,36 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 	psVertex = psInstance->pcMesh->masVertices.GetData();
 	for (i = 0; i < uiNumVertices; i++)
 	{
-		sPosition.Init(psVertex[i].sPosition.x, psVertex[i].sPosition.y, psVertex[i].sPosition.z);
-		sMoved.Init((int32)(Int64Vec3Dot(&sPosition, &sAxes[0]) >> RASTER_AXIS_BITS) + psInstance->sOffset.x,
-					(int32)(Int64Vec3Dot(&sPosition, &sAxes[1]) >> RASTER_AXIS_BITS) + psInstance->sOffset.y,
-					(int32)(Int64Vec3Dot(&sPosition, &sAxes[2]) >> RASTER_AXIS_BITS) + psInstance->sOffset.z);
+		if (bQuarterTurns)
+		{
+			piPosition = &psVertex[i].sPosition.x;
+			sMoved.Init(aiSign[0] * piPosition[aiFrom[0]] + psInstance->sOffset.x,
+						aiSign[1] * piPosition[aiFrom[1]] + psInstance->sOffset.y,
+						aiSign[2] * piPosition[aiFrom[2]] + psInstance->sOffset.z);
+		}
+		else
+		{
+			sPosition.Init(psVertex[i].sPosition.x, psVertex[i].sPosition.y, psVertex[i].sPosition.z);
+			sMoved.Init((int32)(Int64Vec3Dot(&sPosition, &sAxes[0]) >> RASTER_AXIS_BITS) + psInstance->sOffset.x,
+						(int32)(Int64Vec3Dot(&sPosition, &sAxes[1]) >> RASTER_AXIS_BITS) + psInstance->sOffset.y,
+						(int32)(Int64Vec3Dot(&sPosition, &sAxes[2]) >> RASTER_AXIS_BITS) + psInstance->sOffset.z);
+		}
 		pcCamera->Project(&psScreen[i], &sMoved);
 
-		sNormal.Init(psVertex[i].sNormal.x.miRaw, psVertex[i].sNormal.y.miRaw, psVertex[i].sNormal.z.miRaw);
-		iDot = Int64Vec3Dot(&sNormal, &sLight);
-		if (iDot < 0)
+		if ((psVertex[i].sNormal.x.miRaw != iLastX) || (psVertex[i].sNormal.y.miRaw != iLastY) || (psVertex[i].sNormal.z.miRaw != iLastZ))
 		{
-			iDot = 0;
+			iLastX = psVertex[i].sNormal.x.miRaw;
+			iLastY = psVertex[i].sNormal.y.miRaw;
+			iLastZ = psVertex[i].sNormal.z.miRaw;
+			sNormal.Init(iLastX, iLastY, iLastZ);
+			iDot = Int64Vec3Dot(&sNormal, &sLight);
+			if (iDot < 0)
+			{
+				iDot = 0;
+			}
+			iShade = RASTER_AMBIENT + (int32)((iDot * RASTER_DIFFUSE) >> (SRasterUnit::Bits * 2));
 		}
-		psScreen[i].iShade = RASTER_AMBIENT + (int32)((iDot * RASTER_DIFFUSE) >> (SRasterUnit::Bits * 2));
+		psScreen[i].iShade = iShade;
 	}
 }
 

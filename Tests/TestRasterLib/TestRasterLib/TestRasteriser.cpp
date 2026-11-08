@@ -980,6 +980,172 @@ void TestRasteriserTurnedAway(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static void TestRasterAddFace(CRasterMesh* pcRaster, int32 i0, int32 i1, int32 i2, uint32 uiColour)
+{
+	SRasterTriangle*	psTriangle;
+
+	psTriangle = pcRaster->masOpaque.Add();
+	psTriangle->aiVertex[0] = i0;
+	psTriangle->aiVertex[1] = i1;
+	psTriangle->aiVertex[2] = i2;
+	psTriangle->uiColour = uiColour;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instance turned by quarter turns draws what the mesh does with its
+// positions and normals turned by hand, for a mesh with runs of the same
+// normal and changes between them.  An instance at any other angle moves its
+// vertices as its axes say, rounding down: with no normals only the positions
+// can differ.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserInstanceTurns(void)
+{
+	static const int32	aaiTurns[6][9] =
+	{
+		{ 1, 0, 0,   0, 1, 0,   0, 0, 1 },
+		{ 0, 0, 1,   0, 1, 0,  -1, 0, 0 },
+		{ 1, 0, 0,   0, 0, -1,  0, 1, 0 },
+		{ 0, -1, 0,  1, 0, 0,   0, 0, 1 },
+		{ -1, 0, 0,  0, -1, 0,  0, 0, 1 },
+		{ 0, 1, 0,   0, 0, 1,   1, 0, 0 },
+	};
+
+	CRasterMesh		cRaster;
+	CRasterMesh		cTurned;
+	CRasterCamera	cCamera;
+	CRasteriser		cRasteriser;
+	CRasterTarget	cActual;
+	CRasterTarget	cExpected;
+	SRasterInstance	sInstance;
+	SRasterVertex*	psFrom;
+	SRasterVertex*	psTo;
+	uint32*			puiActual;
+	uint32*			puiExpected;
+	uint32			uiRandom;
+	int64			aiAxis[3];
+	int32			iNormal[3];
+	int				iTurn;
+	int				iAxis;
+	int				i;
+	bool			bSame;
+
+	cRaster.Init();
+	uiRandom = 4242;
+	for (i = 0; i < 300; i++)
+	{
+		psFrom = cRaster.masVertices.Add();
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psFrom->sPosition.x = (int32)((uiRandom >> 8) % (1 << 20)) - (1 << 19);
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psFrom->sPosition.y = (int32)((uiRandom >> 8) % (1 << 20)) - (1 << 19);
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psFrom->sPosition.z = (int32)((uiRandom >> 8) % (1 << 19)) - (1 << 18);
+
+		//Five vertices a normal, and each part of it a different size.
+		iNormal[0] = (((i / 5) % 7) - 3) * 1000;
+		iNormal[1] = (((i / 5) % 3) - 1) * 3000;
+		iNormal[2] = 9000 - ((i / 5) % 4) * 1000;
+		psFrom->sNormal.Init(SRasterUnit::FromRaw((int16)iNormal[0]), SRasterUnit::FromRaw((int16)iNormal[1]), SRasterUnit::FromRaw((int16)iNormal[2]));
+	}
+	for (i = 0; i < 300; i += 3)
+	{
+		TestRasterAddFace(&cRaster, i, i + 1, i + 2, 0xFF80C040);
+	}
+
+	puiActual = (uint32*)malloc(64 * 48 * sizeof(uint32));
+	puiExpected = (uint32*)malloc(64 * 48 * sizeof(uint32));
+	cActual.Init(puiActual, 64, 48, 64);
+	cExpected.Init(puiExpected, 64, 48, 64);
+	cRasteriser.Init();
+	cRasteriser.SetCullBackFaces(false);
+	cCamera.Init();
+	cCamera.Fit(64, 48);
+
+	for (iTurn = 0; iTurn < 6; iTurn++)
+	{
+		cTurned.Init();
+		sInstance.pcMesh = &cRaster;
+		sInstance.sOffset.Init(1 << 15, -(1 << 16), 1 << 14);
+		for (iAxis = 0; iAxis < 3; iAxis++)
+		{
+			sInstance.asAxes[iAxis].Init(aaiTurns[iTurn][iAxis * 3] << RASTER_AXIS_BITS, aaiTurns[iTurn][iAxis * 3 + 1] << RASTER_AXIS_BITS, aaiTurns[iTurn][iAxis * 3 + 2] << RASTER_AXIS_BITS);
+		}
+		for (i = 0; i < 300; i++)
+		{
+			psFrom = cRaster.masVertices.Get(i);
+			psTo = cTurned.masVertices.Add();
+			for (iAxis = 0; iAxis < 3; iAxis++)
+			{
+				aiAxis[iAxis] = aaiTurns[iTurn][iAxis * 3] * psFrom->sPosition.x + aaiTurns[iTurn][iAxis * 3 + 1] * psFrom->sPosition.y + aaiTurns[iTurn][iAxis * 3 + 2] * psFrom->sPosition.z;
+				iNormal[iAxis] = aaiTurns[iTurn][iAxis * 3] * psFrom->sNormal.x.miRaw + aaiTurns[iTurn][iAxis * 3 + 1] * psFrom->sNormal.y.miRaw + aaiTurns[iTurn][iAxis * 3 + 2] * psFrom->sNormal.z.miRaw;
+			}
+			psTo->sPosition.Init((int32)aiAxis[0] + sInstance.sOffset.x, (int32)aiAxis[1] + sInstance.sOffset.y, (int32)aiAxis[2] + sInstance.sOffset.z);
+			psTo->sNormal.Init(SRasterUnit::FromRaw((int16)iNormal[0]), SRasterUnit::FromRaw((int16)iNormal[1]), SRasterUnit::FromRaw((int16)iNormal[2]));
+		}
+		for (i = 0; i < 300; i += 3)
+		{
+			TestRasterAddFace(&cTurned, i, i + 1, i + 2, 0xFF80C040);
+		}
+
+		cActual.Clear(TEST_BLACK);
+		cRasteriser.Draw(&sInstance, 1, &cCamera, &cActual);
+		cExpected.Clear(TEST_BLACK);
+		cRasteriser.Draw(&cTurned, &cCamera, &cExpected);
+		AssertTrue(CountPixels(&cActual, TEST_BLACK) < 64 * 48);
+		bSame = memcmp(puiActual, puiExpected, 64 * 48 * sizeof(uint32)) == 0;
+		AssertTrue(bSame);
+		bSame = memcmp(cActual.mpiDepths, cExpected.mpiDepths, 64 * 48 * sizeof(int32)) == 0;
+		AssertTrue(bSame);
+		cTurned.Kill();
+	}
+
+	//About 30 degrees around z, as no quarter turn is.
+	for (i = 0; i < 300; i++)
+	{
+		cRaster.masVertices.Get(i)->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
+	}
+	sInstance.asAxes[0].Init(56756, -32768, 0);
+	sInstance.asAxes[1].Init(32768, 56756, 0);
+	sInstance.asAxes[2].Init(0, 0, 65536);
+	cTurned.Init();
+	for (i = 0; i < 300; i++)
+	{
+		psFrom = cRaster.masVertices.Get(i);
+		psTo = cTurned.masVertices.Add();
+		psTo->sPosition.Init((int32)DivideFloor((int64)psFrom->sPosition.x * 56756 - (int64)psFrom->sPosition.y * 32768, 65536) + sInstance.sOffset.x,
+							 (int32)DivideFloor((int64)psFrom->sPosition.x * 32768 + (int64)psFrom->sPosition.y * 56756, 65536) + sInstance.sOffset.y,
+							 psFrom->sPosition.z + sInstance.sOffset.z);
+		psTo->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
+	}
+	for (i = 0; i < 300; i += 3)
+	{
+		TestRasterAddFace(&cTurned, i, i + 1, i + 2, 0xFF80C040);
+	}
+	cActual.Clear(TEST_BLACK);
+	cRasteriser.Draw(&sInstance, 1, &cCamera, &cActual);
+	cExpected.Clear(TEST_BLACK);
+	cRasteriser.Draw(&cTurned, &cCamera, &cExpected);
+	AssertTrue(CountPixels(&cActual, TEST_BLACK) < 64 * 48);
+	bSame = memcmp(puiActual, puiExpected, 64 * 48 * sizeof(uint32)) == 0;
+	AssertTrue(bSame);
+	cTurned.Kill();
+
+	cRasteriser.Kill();
+	cExpected.Kill();
+	cActual.Kill();
+	free(puiExpected);
+	free(puiActual);
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestRasteriser(void)
 {
 	BeginTests();
@@ -997,6 +1163,7 @@ void TestRasteriser(void)
 	TestRasteriserSmallTriangles();
 	TestRasteriserInstances();
 	TestRasteriserInstancesTransparent();
+	TestRasteriserInstanceTurns();
 	TestRasteriserTurnedAway();
 
 	ObjectsKill(false);
