@@ -140,6 +140,146 @@ void TestRasterMeshEmpty(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// iVertex's position and a normal facing +Z.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestRasterAddVertex(CRasterMesh* pcRaster, int32 x, int32 y, int32 z)
+{
+	SRasterVertex*	psVertex;
+
+	psVertex = pcRaster->masVertices.Add();
+	psVertex->sPosition.Init(x, y, z);
+	psVertex->sNormal.Init(0, 0, 1 << RASTER_NORMAL_BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestRasterAddTriangle(CArrayRasterTriangle* pasTriangles, int32 i0, int32 i1, int32 i2, uint32 uiColour)
+{
+	SRasterTriangle*	psTriangle;
+
+	psTriangle = pasTriangles->Add();
+	psTriangle->aiVertex[0] = i0;
+	psTriangle->aiVertex[1] = i1;
+	psTriangle->aiVertex[2] = i2;
+	psTriangle->uiColour = uiColour;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Built where it is and at the scale given, not centred or fitted.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshBuildScaled(void)
+{
+	CMesh		cMesh;
+	CRasterMesh	cRaster;
+
+	cMesh.Init();
+	cMesh.AddCorner(10.0f, 20.0f, 30.0f);
+	cMesh.AddCorner(14.0f, 20.0f, 30.0f);
+	cMesh.AddCorner(14.0f, 22.0f, 30.0f);
+	cMesh.AddFace(0, 1, 2);
+
+	cRaster.Init();
+	cRaster.Build(&cMesh, 100);
+	AssertSize(3, cRaster.masVertices.NumElements());
+	AssertInt(1000, cRaster.masVertices.Get(0)->sPosition.x);
+	AssertInt(2000, cRaster.masVertices.Get(0)->sPosition.y);
+	AssertInt(3000, cRaster.masVertices.Get(0)->sPosition.z);
+	AssertInt(1400, cRaster.masVertices.Get(1)->sPosition.x);
+	AssertInt(1000, cRaster.msMin.x);
+	AssertInt(1400, cRaster.msMax.x);
+	AssertInt(2200, cRaster.msMax.y);
+	AssertSize(1, cRaster.NumTriangles());
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshRemoveDegenerate(void)
+{
+	CRasterMesh	cRaster;
+
+	cRaster.Init();
+	TestRasterAddVertex(&cRaster, 0, 0, 0);
+	TestRasterAddVertex(&cRaster, 100, 0, 0);
+	TestRasterAddVertex(&cRaster, 0, 100, 0);
+	TestRasterAddVertex(&cRaster, 200, 0, 0);
+	TestRasterAddVertex(&cRaster, 0, 0, 0);
+
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF111111);		//Kept.
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 3, 0xFF222222);		//In a line.
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 4, 1, 0xFF333333);		//Two corners in the same place.
+	TestRasterAddTriangle(&cRaster.masOpaque, 1, 0, 2, 0xFF444444);		//Kept: wound the other way isn't degenerate.
+	TestRasterAddTriangle(&cRaster.masTransparent, 1, 1, 2, 0x80555555);	//One vertex twice.
+	TestRasterAddTriangle(&cRaster.masTransparent, 0, 1, 2, 0x80666666);	//Kept.
+
+	AssertSize(3, cRaster.RemoveDegenerate());
+	AssertSize(2, cRaster.masOpaque.NumElements());
+	AssertSize(1, cRaster.masTransparent.NumElements());
+	AssertIntHex((int32)0xFF111111, (int32)cRaster.masOpaque.Get(0)->uiColour);
+	AssertIntHex((int32)0xFF444444, (int32)cRaster.masOpaque.Get(1)->uiColour);
+	AssertIntHex((int32)0x80666666, (int32)cRaster.masTransparent.Get(0)->uiColour);
+	AssertSize(0, cRaster.RemoveDegenerate());
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshFixReversed(void)
+{
+	CRasterMesh			cRaster;
+	SRasterVertex*		psVertex;
+	SRasterTriangle*	psTriangle;
+
+	cRaster.Init();
+	TestRasterAddVertex(&cRaster, 0, 0, 0);
+	TestRasterAddVertex(&cRaster, 100, 0, 0);
+	TestRasterAddVertex(&cRaster, 0, 100, 0);
+
+	//One with no normal can't be wrong.
+	psVertex = cRaster.masVertices.Add();
+	psVertex->sPosition.Init(0, 0, 0);
+	psVertex->sNormal.Init(0, 0, 0);
+	psVertex = cRaster.masVertices.Add();
+	psVertex->sPosition.Init(100, 0, 0);
+	psVertex->sNormal.Init(0, 0, 0);
+	psVertex = cRaster.masVertices.Add();
+	psVertex->sPosition.Init(0, 100, 0);
+	psVertex->sNormal.Init(0, 0, 0);
+
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF111111);		//Anticlockwise looking down +Z, as its normals face.
+	TestRasterAddTriangle(&cRaster.masOpaque, 0, 2, 1, 0xFF222222);		//Reversed.
+	TestRasterAddTriangle(&cRaster.masOpaque, 3, 5, 4, 0xFF333333);		//Would be, but it has no normals.
+	TestRasterAddTriangle(&cRaster.masTransparent, 2, 1, 0, 0x80444444);	//Reversed.
+
+	AssertSize(2, cRaster.FixReversed());
+	psTriangle = cRaster.masOpaque.Get(0);
+	AssertInt(1, psTriangle->aiVertex[1]);
+	AssertInt(2, psTriangle->aiVertex[2]);
+	psTriangle = cRaster.masOpaque.Get(1);
+	AssertInt(1, psTriangle->aiVertex[1]);
+	AssertInt(2, psTriangle->aiVertex[2]);
+	psTriangle = cRaster.masOpaque.Get(2);
+	AssertInt(5, psTriangle->aiVertex[1]);
+	AssertSize(0, cRaster.FixReversed());
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMesh(void)
@@ -153,6 +293,9 @@ void TestRasterMesh(void)
 	TestRasterMeshBuild();
 	TestRasterMeshDifferentNormals();
 	TestRasterMeshEmpty();
+	TestRasterMeshBuildScaled();
+	TestRasterMeshRemoveDegenerate();
+	TestRasterMeshFixReversed();
 
 	ObjectsKill(false);
 	NumberKill();

@@ -21,6 +21,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __RASTER_MESH_H__
 #define __RASTER_MESH_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Float32Vec3.h"
 #include "BaseLib/Int16Vec3.h"
 #include "BaseLib/Int32Vec3.h"
 
@@ -55,6 +56,13 @@ class CMesh;
 
 
 //The integer copy of a CMesh that CRasteriser draws.  Build is the only place in RasterLib that reads the mesh's floats.
+//
+//The other Build keeps the mesh where it is at a scale that's given, for meshes that are to be drawn together at their
+//true sizes (see SRasterInstance).
+//
+//What's exported from CAD can be cleaned up:
+//  RemoveDegenerate takes out triangles with no area, which can't be seen.
+//  FixReversed turns round triangles that wind against their own normals, which back face culling would leave as holes.
 class CRasterMesh
 {
 public:
@@ -68,6 +76,17 @@ public:
 	void	Kill(void);
 
 	void	Build(CMesh* pcMesh);
+	void	Build(CMesh* pcMesh, int32 iScale);
+
+	size	RemoveDegenerate(void);
+	size	FixReversed(void);
+
+	size	NumTriangles(void);
+
+protected:
+	bool	FindBounds(CMesh* pcMesh, SFloat32Vec3* psMin, SFloat32Vec3* psMax);
+	void	BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale);
+	void	UpdateBounds(void);
 };
 
 
