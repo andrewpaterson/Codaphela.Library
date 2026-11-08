@@ -2,7 +2,7 @@ CppParserLib: issues left from the quality sweep
 ================================================
 
 What is left of the sweep of CppParserLib for code smells, duplication and anything wrong
-or inelegant (2026-11).  Items 1 to 84, 92, 93, 99 and 100 are done (56 was not a copy: GuardedBy's
+or inelegant (2026-11).  Items 1 to 96, 99 and 100 are done (56 was not a copy: GuardedBy's
 narrower walk is needed, and says why); the numbers are kept as they were.  Written 2026-11-07,
 updated 2026-11-08.
 
@@ -10,21 +10,9 @@ updated 2026-11-08.
 Limits and findings
 -------------------
 
-85. A constant the type checker folds while finding a type is still worked out in 64 bits.
-86. The parser can't parse a function returning a function pointer (int (*Pick())(int)):
-    it needs a typedef.
-87. Parsing a function definition leaves one node out of the tree.
-88. Preprocessor errors with a position ("Could not include file", #define parameter
-    errors, #line errors) don't make preprocessing fail.
-89. #line changes __LINE__ and __FILE__ but not where errors are reported.
-90. CPreprocessorTokeniser::TokeniseDirective returns NULL for a directive its switch
-    doesn't list (which is how #line was lost).
-91. Narrow string \u escapes are UTF-8 now, but the generator still doesn't do wide or
-    UTF-16/32 string literals.
-94. T() with T a type that isn't a class (T() for int, in a template) is "not supported".
-95. A function can't be declared in a block (int F(int a); in a function).
-96. A using declaration of a name its scope already declares is ignored, so the overloads
-    aren't merged (CCPPScope::AddAlias).
+101. class X; and enum X; leave one node out of the tree: the specifier made before it's known to be elaborated.
+102. An error in an uncalled template instance doesn't fail CCPPSemanticPass::Check, and #define with nothing after it
+     is reported with no position.
 98. An overloaded operator, is never called: both passes make every comma the built in one.
 97. std:: and its library: a separate job, for the end.  The generator has what it needs of
     namespaces and argument-dependent lookup.
