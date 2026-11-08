@@ -115,7 +115,7 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapObject::Remove(CPointer& pKey)
+bool CMapObject::Remove(const CPointer& pKey)
 {
 	CBaseObject*	pcPointedTo;
 	bool			bResult;
@@ -172,7 +172,7 @@ bool CMapObject::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CMapObject::Get(CPointer& pKey)
+CPointer CMapObject::Get(const CPointer& pKey)
 {
 	CBaseObject*	pcValue;
 	CPointer		pValue;

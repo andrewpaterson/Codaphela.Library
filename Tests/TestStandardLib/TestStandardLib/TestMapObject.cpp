@@ -1875,6 +1875,55 @@ void TestMapObjectRemapSelfEntry(size uiNumEntries)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A key is looked at, not changed, so a const one will do.  A key that
+// isn't in the map has no value and can't be removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectConstKeys(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CMapObject>		pMap;
+		Ptr<CTestObject>	pKey;
+		Ptr<CTestObject>	pValue;
+		Ptr<CTestObject>	pMissing;
+		Ptr<CTestObject>	pFound;
+
+		pRoot = ORoot();
+		pMap = OMalloc<CMapObject>();
+		pRoot->Add(pMap);
+		pKey = OMalloc<CTestObject>();
+		pValue = OMalloc<CTestObject>();
+		pMissing = OMalloc<CTestObject>();
+		AssertTrue(pMap->Put(pKey, pValue));
+
+		const Ptr<CTestObject>&	pConstKey = pKey;
+		const Ptr<CTestObject>&	pConstMissing = pMissing;
+
+		AssertTrue(pMap->Contains(pConstKey));
+		pFound = pMap->Get(pConstKey);
+		AssertPointer(pValue.Object(), pFound.Object());
+
+		AssertFalse(pMap->Contains(pConstMissing));
+		pFound = pMap->Get(pConstMissing);
+		AssertNull(pFound.Object());
+		AssertFalse(pMap->Remove(pConstMissing));
+		AssertSize(1, pMap->NumElements());
+
+		AssertTrue(pMap->Remove(pConstKey));
+		AssertFalse(pMap->Contains(pKey));
+		AssertSize(0, pMap->NumElements());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMapObject(void)
@@ -1892,6 +1941,7 @@ void TestMapObject(void)
 	TestMapObjectMapEntry();
 	TestMapObjectIterate();
 	TestMapObjectRemove();
+	TestMapObjectConstKeys();
 	TestMapObjectDetachOnStack();
 	TestMapObjectGetPointerTos();
 	TestMapObjectPointerFromsHeap();

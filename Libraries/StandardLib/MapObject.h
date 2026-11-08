@@ -51,15 +51,10 @@ public:
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	bool				ClearPointerTos(bool bFree) override;
 
-	bool				Remove(CPointer& pKey);
+	bool				Remove(const CPointer& pKey);
 
-	CPointer			Get(CPointer& pKey);
-	template<class M, class N>
-	Ptr<N>				Get(Ptr<M>& pKey);
-
+	CPointer			Get(const CPointer& pKey);
 	bool				Contains(const CPointer& pKey);
-	template<class M, class N>
-	bool				Contains(Ptr<M>& pKey);
 
 	CMapEntry			StartIteration(SMapIterator* psIter);
 	CMapEntry			Iterate(SMapIterator* psIter);
@@ -96,28 +91,6 @@ protected:
 	void				EnsureSorted(void);
 	CMapEntry			Entry(bool bExists, CBaseObject* pcKey, CBaseObject* pcValue);
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class N>
-Ptr<N> CMapObject::Get(Ptr<M>& pKey)
-{
-	return (N*)Get(pKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class N>
-bool CMapObject::Contains(Ptr<M>& pKey)
-{
-	return Contains((CPointer)pKey);
-}
 
 
 #endif // __MAP_OBJECT_H__
