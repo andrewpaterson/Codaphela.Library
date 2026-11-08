@@ -54,14 +54,14 @@ B37. [418] ChannelsAccessorCreatorParams::AddAccess silently drops channels the 
 B38. [425] ChannelsCopier doesn't check uiSourcePos/uiDestPos are inside the channels (a start past the end runs off the data).  [done 3b3661052]
 B39. [426] ChannelDebugDescriptor keeps the caller's const char* without copying (dangling for non-literals).  [done 3b3661052]
 B40. [417] Fixed char c[16] scratch in CChannelsAccessorBitAccess (ChannelsAccessorShapes.h, since C24) and ChannelAccessor: an access type wider than 128 bits overruns it.  [done 3b3661052]
-B41. [431] BitReader::ReadBits / BitWriter::WriteBits work only for ≤ 24 bits (32 is UB); no assert.
-B42. [432] Deflater's int32 hash heads/chains break inputs ≥ 2GB; document or assert.
-B43. [440] SimpleTextDiff's "@@ -a,b +c,d @@" headers are 0-based (unified diff is 1-based); fix or say it's display-only.
-B44. [441] SimpleTextDiff: (size)pcContent->GetLineLength(uiLine) truncates long lines on the W65C816.
-B45. [442] TextComparison::IsRefinable reads GetLineEnd(uiEndLine - 1), which underflows for an empty side; assert it.
-B46. [448] A repeating CTimerAlarm that overruns by more than a period fires on every Update until it catches up.
-B47. [453] A bool() member call that is Call()'d instead of Ask()'d writes through a NULL pvValue.
-B48. [451] COrderer keys holders by OIndex (stack objects all share INVALID_O_INDEX) and has no Remove: it keeps everything it was given alive.
+B41. [431] BitReader::ReadBits / BitWriter::WriteBits work only for ≤ 24 bits (32 is UB); no assert.  [done 1687eaba5]
+B42. [432] Deflater's int32 hash heads/chains break inputs ≥ 2GB; document or assert.  [done 1687eaba5]
+B43. [440] SimpleTextDiff's "@@ -a,b +c,d @@" headers are 0-based (unified diff is 1-based); fix or say it's display-only.  [done 1687eaba5]
+B44. [441] SimpleTextDiff: (size)pcContent->GetLineLength(uiLine) truncates long lines on the W65C816.  [done 1687eaba5]
+B45. [442] TextComparison::IsRefinable reads GetLineEnd(uiEndLine - 1), which underflows for an empty side; assert it.  [done 1687eaba5]
+B46. [448] A repeating CTimerAlarm that overruns by more than a period fires on every Update until it catches up.  [done 1687eaba5]
+B47. [453] A bool() member call that is Call()'d instead of Ask()'d writes through a NULL pvValue.  [done 1687eaba5]
+B48. [451] COrderer keys holders by OIndex (stack objects all share INVALID_O_INDEX) and has no Remove: it keeps everything it was given alive.  [done 1687eaba5]
 
 
 C. Duplication and structure (refactor-sized)
