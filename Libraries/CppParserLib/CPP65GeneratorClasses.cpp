@@ -1498,7 +1498,9 @@ void CCPP65Generator::DeduceParameters(SCPP65Template* psTemplate, CCPPSyntaxFun
 //
 // Deduces from the parameter i of a function, whose argument's type is
 // papsArguments' i: a parameter declared as T, T*, T** ... or T& takes the
-// argument's type, less the pointers.  A function parameter pack (Args ... args)
+// argument's type, less the pointers, and less the const and volatile the
+// parameter has (const T* of const int* is int) or, for T, the argument's
+// own (a const int argument is int).  A function parameter pack (Args ... args)
 // takes the rest of the arguments' types: the template parameter pack's entry is
 // the first and the rest are added after it.  A parameter declared as
 // Name<..., N, ...> (or a pointer or reference to one) deduces from the
@@ -1549,6 +1551,7 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 			{
 				psArgument = papsArguments->GetPtr(k);
 				psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
+				psArgument = psArgument ? psArgument->Unqualified() : NULL;
 				if (k == i)
 				{
 					papsDeduced->SetPtr(j, psArgument);
@@ -1566,9 +1569,19 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 		{
 			uiPointers = 0;
 		}
+		if (psArgument && (!pcParameter->mpcDeclarator || (pcParameter->mpcDeclarator->NumPointers() == 0)))
+		{
+			//A parameter taken by value: the argument's own const and volatile don't count.  [temp.deduct.call] 2
+			psArgument = psArgument->Unqualified();
+		}
 		for (; psArgument && uiPointers > 0; uiPointers--)
 		{
 			psArgument = psArgument->IsPointer() ? psArgument->psBase : NULL;
+		}
+		if (psArgument && pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+		{
+			//const T (const T*, const T&) takes T without the const it has.
+			psArgument = mcTypes.Qualified(psArgument, psArgument->bConst && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST), psArgument->bVolatile && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_VOLATILE));
 		}
 		if (psArgument && !papsDeduced->GetPtr(j))
 		{
@@ -2877,6 +2890,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 				psField->iOffset = 0;
 				psField->iAlign = 0;
 				psField->pcInitialiser = NULL;
+				psField->bMutable = false;
 				return true;
 			}
 		}
@@ -2947,6 +2961,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 			psField->iOffset = 0;
 			psField->iAlign = iAlign;
 			psField->pcInitialiser = pcInit->mpcInitializer;
+			psField->bMutable = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_MUTABLE);
 		}
 		return bResult;
 
@@ -3748,7 +3763,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		{
 			continue;
 		}
-		if (!psBest || (CompareRanks(aiRanks, aiBest, uiArguments) > 0) || ((CompareRanks(aiRanks, aiBest, uiArguments) == 0) && (CompareConstReferences(psFunction, psBest, papcArguments, iConstObject) > 0)))
+		if (!psBest || (CompareRanks(aiRanks, aiBest, uiArguments) > 0) || ((CompareRanks(aiRanks, aiBest, uiArguments) == 0) && (CompareQualifiers(psFunction, psBest, papcArguments, iConstObject) > 0)))
 		{
 			psBest = psFunction;
 			memcpy(aiBest, aiRanks, sizeof(int) * uiArguments);
@@ -3763,7 +3778,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		}
 		if (RankArguments(psFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
 		{
-			if ((CompareRanks(aiBest, aiRanks, uiArguments) < 0) || (CompareConstReferences(psBest, psFunction, papcArguments, iConstObject) <= 0))
+			if ((CompareRanks(aiBest, aiRanks, uiArguments) < 0) || (CompareQualifiers(psBest, psFunction, papcArguments, iConstObject) <= 0))
 			{
 				bAmbiguous = true;
 			}
@@ -3858,11 +3873,21 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	psArgument = psArgument->WithoutReference();
 	if (psParameter->Equals(psArgument))
 	{
-		return CPP65CR_Exact;
+		if (bReference && psArgument->IsClass() && !psArgument->bConst && pcArgument && IsMadeObject(pcArgument, psArgument->psClass))
+		{
+			//An object made for the call binds best to a const reference (T& takes it too, as MSVC lets it).
+			return psParameter->bConst ? CPP65CR_Exact : CPP65CR_Qualification;
+		}
+		//A copy doesn't care what its source's own const is; a reference does, as does what a pointer points to.
+		return QualificationRank(psParameter, psArgument, bReference);
 	}
-	if (psParameter->IsPointer() && (psArgument->IsArray() || psArgument->IsFunction()) && psParameter->psBase->Equals(psArgument->IsArray() ? psArgument->psBase : psArgument))
+	if (psParameter->IsPointer() && psArgument->IsFunction() && psParameter->psBase->Equals(psArgument))
 	{
 		return CPP65CR_Exact;
+	}
+	if (psParameter->IsPointer() && psArgument->IsArray() && psParameter->psBase->Equals(psArgument->psBase))
+	{
+		return QualificationRank(psParameter->psBase, psArgument->psBase, true);
 	}
 	if ((psParameter->IsInteger() || psParameter->IsFloat()) && (psArgument->IsInteger() || psArgument->IsFloat()))
 	{
@@ -3883,7 +3908,8 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer())
 	{
-		if (psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && IsDerived(psArgument->psBase->psClass, psParameter->psBase->psClass, NULL)))
+		if (AddsQualifiers(psParameter->psBase, psArgument->psBase) &&
+			(psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && IsDerived(psArgument->psBase->psClass, psParameter->psBase->psClass, NULL))))
 		{
 			return CPP65CR_Conversion;
 		}
@@ -3908,7 +3934,7 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	}
 	if (psParameter->IsClass() && psArgument->IsClass() && IsDerived(psArgument->psClass, psParameter->psClass, NULL))
 	{
-		return CPP65CR_Conversion;
+		return (!bReference || AddsQualifiers(psParameter, psArgument)) ? CPP65CR_Conversion : CPP65CR_None;
 	}
 	if (bUserDefined && psParameter->IsClass() && HasConvertingConstructor(psParameter->psClass, psArgument, pcArgument))
 	{
@@ -3924,6 +3950,69 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 		}
 	}
 	return CPP65CR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How psFrom converts to psTo, the same type (Equals) but for const and
+// volatile: exactly (Exact), adding const or volatile at a level with const
+// on every level above it (Qualification), or not at all (None: one is
+// taken away, as const T* to T*).  psTo's and psFrom's own qualifiers count
+// only with bTopLevel (a reference bound, a pointer's target); a copy is
+// made of a value.  [conv.qual]
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel)
+{
+	bool	bAdded;
+	bool	bAllConst;
+
+	bAdded = false;
+	bAllConst = true;
+	if (!bTopLevel)
+	{
+		if (!psTo->IsPointer() || !psFrom->IsPointer())
+		{
+			return CPP65CR_Exact;
+		}
+		psTo = psTo->psBase;
+		psFrom = psFrom->psBase;
+	}
+	for (;;)
+	{
+		if (!AddsQualifiers(psTo, psFrom))
+		{
+			return CPP65CR_None;
+		}
+		if ((psTo->bConst != psFrom->bConst) || (psTo->bVolatile != psFrom->bVolatile))
+		{
+			if (!bAllConst)
+			{
+				return CPP65CR_None;
+			}
+			bAdded = true;
+		}
+		bAllConst &= psTo->bConst;
+		if (!psTo->IsPointer() || !psFrom->IsPointer())
+		{
+			return bAdded ? CPP65CR_Qualification : CPP65CR_Exact;
+		}
+		psTo = psTo->psBase;
+		psFrom = psFrom->psBase;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psTo has every qualifier psFrom has (const T from T or const T,
+// not T from const T).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
+{
+	return (psTo->bConst || !psFrom->bConst) && (psTo->bVolatile || !psFrom->bVolatile);
 }
 
 
@@ -4003,15 +4092,15 @@ int CCPP65Generator::CompareRanks(int* aiFirst, int* aiSecond, size uiArguments)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Between two functions whose arguments convert equally well, which binds them to
-// references better: an object made by the argument (a temporary) or a const object
-// binds better to a const reference, others better to a reference that is not
-// const.  The object a member function is called on (iConstObject 1 if it is const,
+// Between two functions whose arguments convert equally well, which qualifies them
+// less: of T* and const T*, or T& and const T&, the one without const, but an object
+// made by the argument (a temporary) or a const object binds better to a const
+// reference.  The object a member function is called on (iConstObject 1 if it is const,
 // 0 if not, -1 for none) is bound to this the same way.  1 if the first does, -1 if
-// the second does, 0 if neither.
+// the second does, 0 if neither.  [over.ics.rank] 3.2.6
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::CompareConstReferences(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject)
+int CCPP65Generator::CompareQualifiers(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject)
 {
 	size		i;
 	bool		bFirst;
@@ -4037,12 +4126,12 @@ int CCPP65Generator::CompareConstReferences(SCPP65Function* psFirst, SCPP65Funct
 	{
 		psParameter = psFirst->mapsParameters.GetPtr(i);
 		psOther = psSecond->mapsParameters.GetPtr(i);
-		if (!psParameter->IsReference() || !psOther->IsReference() || (psParameter->IsConstReference() == psOther->IsConstReference()))
+		if (!((psParameter->IsPointer() && psOther->IsPointer()) || (psParameter->IsReference() && psOther->IsReference())) || (psParameter->psBase->bConst == psOther->psBase->bConst) || !psParameter->psBase->Equals(psOther->psBase))
 		{
 			continue;
 		}
-		bConstBetter = (psParameter->psBase->IsClass() && IsMadeObject(papcArguments->GetPtr(i), psParameter->psBase->psClass)) || IsConstObject(papcArguments->GetPtr(i));
-		if (psParameter->IsConstReference() == bConstBetter)
+		bConstBetter = psParameter->IsReference() && ((psParameter->psBase->IsClass() && IsMadeObject(papcArguments->GetPtr(i), psParameter->psBase->psClass)) || IsConstObject(papcArguments->GetPtr(i)));
+		if (psParameter->psBase->bConst == bConstBetter)
 		{
 			bFirst = true;
 		}

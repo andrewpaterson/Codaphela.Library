@@ -83,7 +83,6 @@ struct SCPP65Type
 	bool	IsWide(void);
 	bool	Equals(SCPP65Type* psOther);
 	bool	Same(SCPP65Type* psOther);
-	bool	IsConstReference(void);
 	SCPP65Type*	Unqualified(void);
 	SCPP65Type*	WithoutReference(void);
 	int		GetElementBytes(void);

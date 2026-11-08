@@ -175,6 +175,7 @@ enum ECPP65ConversionRank
 	CPP65CR_Boolean,		//A pointer to bool, worse than the other conversions.
 	CPP65CR_Conversion,
 	CPP65CR_Promotion,
+	CPP65CR_Qualification,	//An exact match but for const or volatile added: worse than the same type.  [over.ics.rank] 3.2.6
 	CPP65CR_Exact,
 };
 
@@ -188,6 +189,7 @@ struct SCPP65Field
 	int				iOffset;
 	int				iAlign;				//Its alignas, 0 for none.
 	CCPPSyntax*		pcInitialiser;		//The default member initialiser, or NULL.
+	bool			bMutable;			//Declared mutable: not const in a const object.
 };
 
 
@@ -661,7 +663,9 @@ protected:
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(SCPP65Class* psClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
-	int						CompareConstReferences(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject);
+	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
+	static bool				AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
+	int						CompareQualifiers(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(SCPP65Class* psClass, SCPP65Class* psBase, int* piOffset);
 	bool					NeedsConstructor(SCPP65Class* psClass);
 	bool					NeedsDestructor(SCPP65Class* psClass);

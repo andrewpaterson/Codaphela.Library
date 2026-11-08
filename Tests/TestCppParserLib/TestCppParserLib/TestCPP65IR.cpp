@@ -949,11 +949,119 @@ void TestCPP65IRConstTypes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a const argument deduces T as [temp.deduct.call]: T and const T&
+// and const T* take int (a value's own const doesn't count; the
+// parameter's own is taken off), T& and T* const int.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstDeduction(void)
+{
+	AssertInt(1 * 10 + 1 * 1000 + 6 * 10000, TestCPP65IRMain(
+		"template<class T> struct SIsConst { static int V() { return 0; } };\n"
+		"template<class T> struct SIsConst<const T> { static int V() { return 1; } };\n"
+		"template<class T> int ByValue(T x) { x = x + 1; return SIsConst<T>::V() * 10000 + x * 10000; }\n"
+		"template<class T> int ByReference(T& r) { return SIsConst<T>::V() * 10; }\n"
+		"template<class T> int ByConstReference(const T& r) { return SIsConst<T>::V() * 100; }\n"
+		"template<class T> int ByPointer(T* p) { return SIsConst<T>::V() * 1000; }\n"
+		"template<class T> int ByConstPointer(const T* p) { return SIsConst<T>::V() * 100000; }\n"
+		"int main() { const int a = 5; return ByValue(a) + ByReference(a) + ByConstReference(a) + ByPointer(&a) + ByConstPointer(&a); }", 8));
+}
+
+
+//PROBE2
+static void ConstErrors(const char* szName, const char* szSource)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+	bool	bOk;
+
+	szAssembly.Init();
+	szErrors.Init();
+	bOk = TestCPP65Generate(&szAssembly, &szErrors, szSource, true);
+	fprintf(stderr, "CE[%s] ok=%d {%s}\n", szName, bOk, szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+void TestCPP65IRConstProbe2(void)
+{
+	ConstErrors("toptr", "int F(int* p) { return *p; }\nint main() { const int a = 1; return F(&a); }");
+	ConstErrors("tovoid", "int F(void* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
+	ConstErrors("toconstvoid", "int F(const void* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
+	ConstErrors("toref", "int F(int& r) { return r; }\nint main() { const int a = 1; return F(a); }");
+}
+//ENDPROBE2
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Overloads that differ only in const (and volatile) behind a pointer or
+// reference: each is called for what it fits best, and a T* takes a const
+// T* no longer (only const void*, not void*; a base of const Derived only
+// when it is const).  Adding const is a worse match than none, but better
+// than a conversion.  [over.ics.rank] 3.2.6
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstOverloads(void)
+{
+	AssertInt(1 + 2 * 10 + 3 * 100 + 4 * 1000 + 2 * 10000 + 2 * 100000 + 6 * 1000000, TestCPP65IRMain(
+		"int F(int* p) { return 1; }\n"
+		"int F(const int* p) { return 2; }\n"
+		"int G(int& r) { return 3; }\n"
+		"int G(const int& r) { return 4; }\n"
+		"int OnlyConst(const int* p) { return 2; }\n"
+		"int Void(void* p) { return 1; }\n"
+		"int Void(const void* p) { return 2; }\n"
+		"int Convert(const int* p) { return 6; }\n"
+		"int Convert(void* p) { return 7; }\n"
+		"int main() { int a = 0; const int b = 0; return F(&a) + F(&b) * 10 + G(a) * 100 + G(b) * 1000 + OnlyConst(&a) * 10000 + Void(&b) * 100000 + Convert(&a) * 1000000; }", 10));
+
+	AssertInt(1 + 2 * 10 + 1 * 100 + 2 * 1000 + 2 * 10000, TestCPP65IRMain(
+		"struct B { int i; };\n"
+		"struct D : public B { int j; };\n"
+		"int P(B* p) { return 1; }\n"
+		"int P(const B* p) { return 2; }\n"
+		"int R(B& r) { return 1; }\n"
+		"int R(const B& r) { return 2; }\n"
+		"int A(char* p) { return 1; }\n"
+		"int A(const char* p) { return 2; }\n"
+		"int main() { D d; const D c = d; const char s[2] = { 0, 0 }; return P(&d) + P(&c) * 10 + R(d) * 100 + R(c) * 1000 + A(s) * 10000; }", 7));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member of a const object is const, but for a mutable one; through a
+// pointer or reference to const too; a member a reference is what it refers
+// to.  Overloads show the type.  [expr.ref] 6.2
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstMembers(void)
+{
+	AssertInt(2 + 1 * 10 + 2 * 100 + 1 * 1000 + 1 * 10000 + 2 * 100000, TestCPP65IRMain(
+		"int G(int& r) { return 1; }\n"
+		"int G(const int& r) { return 2; }\n"
+		"struct S { int i; mutable int m; int& r; const int k; S(int& x) : i(0), m(0), r(x), k(0) {} };\n"
+		"int main()\n"
+		"{\n"
+		"\tint x = 0;\n"
+		"\tconst S c(x);\n"
+		"\tS s(x);\n"
+		"\tconst S* p = &s;\n"
+		"\treturn G(c.i) + G(s.i) * 10 + G(p->i) * 100 + G(c.m) * 1000 + G(c.r) * 10000 + G(s.k) * 100000;\n"
+		"}\n", 4));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
 {
 	BeginTests();
+	TestCPP65IRConstProbe2();
 
 	TypesInit();
 	TypeConverterInit();
@@ -985,6 +1093,9 @@ void TestCPP65IR(void)
 	TestCPP65IRAnonymousLocals();
 	TestCPP65IRConstClassSize();
 	TestCPP65IRConstTypes();
+	TestCPP65IRConstDeduction();
+	TestCPP65IRConstOverloads();
+	TestCPP65IRConstMembers();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

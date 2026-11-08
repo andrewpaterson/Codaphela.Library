@@ -1747,7 +1747,7 @@ SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pc
 //////////////////////////////////////////////////////////////////////////
 //
 // object.member and pointer->member: a field (a reference field is what it refers
-// to) or a static data member.
+// to; a const object's fields are const) or a static data member.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
@@ -1797,7 +1797,12 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 	if (psField)
 	{
 		mpcGenerator->Resolved(pcMember->mpcName, psField->pcSymbol);
-		return psField->psType->WithoutReference();
+		if (psField->psType->IsReference() || psField->bMutable)
+		{
+			return psField->psType->WithoutReference();
+		}
+		//A member of a const (or volatile) object is const (volatile) too, but for a mutable one.  [expr.ref] 6.2
+		return mpcTypes->Qualified(psField->psType, psField->psType->bConst || psType->bConst, psField->psType->bVolatile || psType->bVolatile);
 	}
 	psVariable = mpcGenerator->FindStatic(psClass, lliName);
 	if (psVariable)
