@@ -58,6 +58,7 @@ public:
 	void					Add(Ptr<CBaseObject> pObject);
 	void					AddFulfilment(Ptr<CBaseObject> pObject, const char* szName);
 	void					AddRequirement(Ptr<CBaseObject> pObject, const char* szName);
+	bool					Remove(Ptr<CBaseObject> pObject);
 
 	bool					Order(Ptr<CArray<CBaseObject>> pOrdered);
 	bool					Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>> pUnordered);

@@ -255,6 +255,8 @@ void CSimpleTextDiff::AddFragment(STextDiffBlock* psBlock, lsize uiStart1, lsize
 //////////////////////////////////////////////////////////////////////////
 void CSimpleTextDiff::Print(CChars* psz)
 {
+	//Unified diff's layout for reading and tests, not a patch: the line numbers are 0-based (the blocks'), and ~ lines
+	//show each block's refined fragments.
 	lsize				uiBlock;
 	lsize				uiFragment;
 	STextDiffBlock*		psBlock;
@@ -305,11 +307,17 @@ void CSimpleTextDiff::Print(CChars* psz)
 void CSimpleTextDiff::PrintLines(CChars* psz, CTextContent* pcContent, lsize uiStartLine, lsize uiEndLine, char cPrefix)
 {
 	lsize	uiLine;
+	lsize	uiLength;
 
 	for (uiLine = uiStartLine; uiLine < uiEndLine; uiLine++)
 	{
 		psz->Append(cPrefix);
-		psz->Append(pcContent->GetLineText(uiLine), (size)pcContent->GetLineLength(uiLine));
+		uiLength = pcContent->GetLineLength(uiLine);
+		if (uiLength > (lsize)MAX_SIZE)
+		{
+			uiLength = (lsize)MAX_SIZE;
+		}
+		psz->Append(pcContent->GetLineText(uiLine), (size)uiLength);
 		psz->AppendNewLine();
 		if (pcContent->GetLineSeparator(uiLine) == TLS_None)
 		{

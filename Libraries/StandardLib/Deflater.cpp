@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseLib/SystemAllocator.h"
 #include <stdlib.h>
 #include <string.h>
@@ -170,6 +172,12 @@ bool CDeflater::Deflate(uint8* puiData, lsize uiSize)
 	size		uiPreviousDistance;
 	CAdler32	cAdler;
 	uint32		uiAdler;
+
+	//Positions are kept in int32 hash heads and chains.
+	if (uiSize > (lsize)MAX_INT32)
+	{
+		return gcLogger.Error2(__METHOD__, " Can't deflate [", LongToString((uint64)uiSize), "] bytes at once (2GB at most).", NULL);
+	}
 
 	mpuiData = puiData;
 	muiDataSize = uiSize;

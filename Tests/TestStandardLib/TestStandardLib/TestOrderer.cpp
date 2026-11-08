@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
@@ -744,6 +745,53 @@ void TestOrdererSaveAndLoad(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object can be taken out again.  One that isn't in the objects (on the
+// stack) can't be ordered: holders are found by index, and it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOrdererRemove(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CTestInteger>	pA;
+		Ptr<CTestInteger>	pB;
+		Ptr<COrderer>		pOrderer;
+		CTestInteger		cOnStack;
+		SLogConfig			sLogConfig;
+
+		pRoot = ORoot();
+		pA = OMalloc<CTestInteger>(1, 0, 0);
+		pB = OMalloc<CTestInteger>(2, 0, 0);
+		pRoot->Add(pA, pB);
+		pOrderer = OMalloc<COrderer>();
+		pRoot->Add(pOrderer);
+
+		pOrderer->AddFulfilment(pA, "A");
+		pOrderer->AddRequirement(pB, "A");
+		AssertSize(2, pOrderer->NumObjects());
+		AssertTrue(pOrderer->Remove(pA));
+		AssertFalse(pOrderer->Remove(pA));
+		AssertSize(1, pOrderer->NumObjects());
+		AssertTrue(pOrderer->GetHolder(pA).IsNull());
+		AssertTrue(pOrderer->GetHolder(pB).IsNotNull());
+
+		cOnStack.Init(3, 0, 0);
+		sLogConfig = gcLogger.SetSilent();
+		pOrderer->AddFulfilment(&cOnStack, "C");
+		gcLogger.SetConfig(&sLogConfig);
+		AssertSize(1, pOrderer->NumObjects());
+		cOnStack.Kill();
+
+		pRoot->Remove(pOrderer);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestOrderer(void)
@@ -757,6 +805,7 @@ void TestOrderer(void)
 	TestOrdererChain();
 	TestOrdererPasses();
 	TestOrdererUnsatisfiable();
+	TestOrdererRemove();
 	TestOrdererParentsFirst();
 	TestOrdererSubcircuitSave();
 	TestOrdererSubcircuitInstances();

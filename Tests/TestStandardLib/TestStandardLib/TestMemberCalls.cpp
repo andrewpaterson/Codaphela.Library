@@ -1,3 +1,6 @@
+#include "StandardLib/TimerAlarm.h"
+#include "StandardLib/Action.h"
+#include "BaseLib/Timer.h"
 #include "BaseLib/Chars.h"
 #include "StandardLib/MemberCalls.h"
 #include "TestLib/Assert.h"
@@ -226,6 +229,80 @@ void TestMemberCallsDerived(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A bool() member called without a place for its answer (Call, not Ask)
+// is called, and the answer dropped.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMemberCallAnswerDropped(void)
+{
+	SMemberCall				sCall;
+	CTestMemberCallsTarget	cTarget;
+
+	cTarget.Init(NULL);
+	cTarget.mbAnswer = true;
+	sCall.Init(&cTarget, &CTestMemberCallsTarget::Answer);
+	sCall.Call(NULL);
+	AssertTrue(sCall.Ask());
+	cTarget.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestAlarmCounter
+{
+public:
+	size	muiFired;
+
+	void Fired(CAction* pcAction, void* pvContext) { muiFired++; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A repeating alarm that overran by more than its period fires once, and
+// keeps in step with its period, rather than on every Update until it
+// catches up.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMemberCallsAlarmOverrun(void)
+{
+	CAction				cAction;
+	CTimerAlarm			cAlarm;
+	CTestAlarmCounter	cCounter;
+	int64				iUpdateTime;
+
+	iUpdateTime = gcTimer.miUpdateTime;
+	cCounter.muiFired = 0;
+	cAction.Init("Alarm");
+	cAction.Add(&cCounter, &CTestAlarmCounter::Fired);
+	cAlarm.Init(&cAction, "Every 10", 10, true);
+
+	gcTimer.miUpdateTime = 5;
+	cAlarm.Update();
+	AssertSize(0, cCounter.muiFired);
+
+	//25ms over: it fires, and is due again in 5ms.
+	gcTimer.miUpdateTime = 35;
+	cAlarm.Update();
+	AssertSize(1, cCounter.muiFired);
+	gcTimer.miUpdateTime = 0;
+	cAlarm.Update();
+	AssertSize(1, cCounter.muiFired);
+	gcTimer.miUpdateTime = 5;
+	cAlarm.Update();
+	AssertSize(2, cCounter.muiFired);
+
+	cAlarm.Kill();
+	cAction.Kill();
+	gcTimer.miUpdateTime = iUpdateTime;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMemberCalls(void)
@@ -234,6 +311,8 @@ void TestMemberCalls(void)
 
 	TestMemberCallShapes();
 	TestMemberCallAsk();
+	TestMemberCallAnswerDropped();
+	TestMemberCallsAlarmOverrun();
 	TestMemberCallsRemove();
 	TestMemberCallsChangedWhileCalled();
 	TestMemberCallsDerived();

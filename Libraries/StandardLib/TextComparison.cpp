@@ -227,6 +227,11 @@ bool CTextComparison::CompareFragments(CTextContent* pcContent1, CTextContent* p
 //////////////////////////////////////////////////////////////////////////
 bool CTextComparison::IsRefinable(CTextContent* pcContent, lsize uiStartLine, lsize uiEndLine)
 {
+	//An empty side (an insertion or deletion) has nothing to refine against.
+	if (uiEndLine <= uiStartLine)
+	{
+		return false;
+	}
 	return pcContent->GetLineEnd(uiEndLine - 1) - pcContent->GetLineStart(uiStartLine) <= TEXT_DIFF_MAX_REFINE_LENGTH;
 }
 

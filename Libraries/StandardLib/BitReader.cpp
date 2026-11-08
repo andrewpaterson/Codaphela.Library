@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BitReader.h"
 
 
@@ -52,6 +54,11 @@ void CBitReader::Kill(void)
 bool CBitReader::ReadBits(int iCount, uint32* puiValue)
 {
 	uint8	uiByte;
+
+	if ((iCount < 0) || (iCount > BIT_READER_MAX_BITS))
+	{
+		return gcLogger.Error2(__METHOD__, " Can't read [", IntToString(iCount), "] bits at once (at most 24).", NULL);
+	}
 
 	while (miNumBits < iCount)
 	{

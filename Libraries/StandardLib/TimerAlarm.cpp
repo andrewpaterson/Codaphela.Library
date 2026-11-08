@@ -108,7 +108,12 @@ float CTimerAlarm::Update(void)
 	{
 		if (mbRepeat)
 		{
+			//Overrun by more than a period, it fires once, in step with its period, rather than on every Update.
 			miRemainingTime = miTime + miRemainingTime;
+			if ((miRemainingTime <= 0) && (miTime > 0))
+			{
+				miRemainingTime = miTime - ((-miRemainingTime) % miTime);
+			}
 		}
 		else
 		{

@@ -24,6 +24,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define BIT_WRITER_BUFFER_SIZE	4096
+//The most bits one WriteBits can write: up to seven are waiting for their byte, and they share a uint32.
+#define BIT_WRITER_MAX_BITS		24
 
 
 //Writes bits least significant first, as deflate packs them.  Whole bytes are buffered and written to the file when

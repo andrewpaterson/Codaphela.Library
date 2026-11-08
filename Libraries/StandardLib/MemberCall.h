@@ -60,7 +60,14 @@ void MemberCallAsk(void* pvObject, uint8* pucFunction, void* pvArgument, void* p
 	bool(M::*fFunction)(void);
 
 	memcpy(&fFunction, pucFunction, sizeof(fFunction));
-	*(bool*)pvValue = (((M*)pvObject)->*fFunction)();
+	bool	bAnswer;
+
+	//Called without a place for the answer (Call rather than Ask), it's dropped.
+	bAnswer = (((M*)pvObject)->*fFunction)();
+	if (pvValue != NULL)
+	{
+		*(bool*)pvValue = bAnswer;
+	}
 }
 
 

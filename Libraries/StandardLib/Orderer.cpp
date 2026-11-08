@@ -98,7 +98,13 @@ void COrderer::Add(Ptr<CBaseObject> pObject)
 //////////////////////////////////////////////////////////////////////////
 void COrderer::AddFulfilment(Ptr<CBaseObject> pObject, const char* szName)
 {
-	GetOrAddHolder(pObject)->AddFulfilment(szName);
+	Ptr<COrdererHolder>	pHolder;
+
+	pHolder = GetOrAddHolder(pObject);
+	if (pHolder.IsNotNull())
+	{
+		pHolder->AddFulfilment(szName);
+	}
 }
 
 
@@ -108,7 +114,36 @@ void COrderer::AddFulfilment(Ptr<CBaseObject> pObject, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void COrderer::AddRequirement(Ptr<CBaseObject> pObject, const char* szName)
 {
-	GetOrAddHolder(pObject)->AddRequirement(szName);
+	Ptr<COrdererHolder>	pHolder;
+
+	pHolder = GetOrAddHolder(pObject);
+	if (pHolder.IsNotNull())
+	{
+		pHolder->AddRequirement(szName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pObject is no longer ordered (or kept alive by the orderer).  False if
+// it wasn't added.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COrderer::Remove(Ptr<CBaseObject> pObject)
+{
+	size	uiIndex;
+
+	uiIndex = GetHolderIndex(pObject);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+
+	//The holder indices no longer match the holders, so they are made again when next looked up.
+	mpHolders->RemoveAt(uiIndex);
+	mcHolderIndices.ReInit();
+	return true;
 }
 
 
@@ -334,13 +369,20 @@ Ptr<COrdererHolder> COrderer::GetOrAddHolder(Ptr<CBaseObject> pObject)
 	OIndex				oi;
 	size				uiIndex;
 
+	//Holders are found by the object's index (which a Load keeps): one not in the objects has none to be found by.
+	oi = pObject.GetIndex();
+	if (oi == INVALID_O_INDEX)
+	{
+		gcLogger.Error2(__METHOD__, " Can't order an object that isn't in the objects (it has no index).", NULL);
+		return NULL;
+	}
+
 	pHolder = GetHolder(pObject);
 	if (pHolder.IsNull())
 	{
 		pHolder = OMalloc<COrdererHolder>(pObject);
 		uiIndex = mpHolders->NumElements();
 		mpHolders->Add(pHolder);
-		oi = pObject.GetIndex();
 		mcHolderIndices.Put(oi, &uiIndex);
 	}
 	return pHolder;

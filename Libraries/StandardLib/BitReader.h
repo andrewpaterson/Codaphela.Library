@@ -20,6 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __BIT_READER_H__
 #define __BIT_READER_H__
+
+
+//The most bits one ReadBits can read: up to seven are left from the byte before, and they share a uint32.
+#define BIT_READER_MAX_BITS		24
 #include "BaseLib/FileReader.h"
 
 

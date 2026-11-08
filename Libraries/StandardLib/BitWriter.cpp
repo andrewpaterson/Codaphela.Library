@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BitWriter.h"
 
 
@@ -72,6 +74,12 @@ void CBitWriter::WriteByte(uint8 uiByte)
 //////////////////////////////////////////////////////////////////////////
 void CBitWriter::WriteBits(uint32 uiValue, int iCount)
 {
+	if ((iCount < 0) || (iCount > BIT_WRITER_MAX_BITS))
+	{
+		gcLogger.Error2(__METHOD__, " Can't write [", IntToString(iCount), "] bits at once (at most 24).", NULL);
+		return;
+	}
+
 	muiBits |= (uiValue & ((1u << iCount) - 1)) << miNumBits;
 	miNumBits += iCount;
 	while (miNumBits >= 8)

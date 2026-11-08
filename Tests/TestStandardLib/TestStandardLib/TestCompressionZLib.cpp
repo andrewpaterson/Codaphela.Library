@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include <string.h>
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileBasic.h"
@@ -561,6 +562,57 @@ void TestCompressionReverseBits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// More bits at once than the bit reader and writer can hold together
+// with the ones left over is an error, and nothing is read or written.
+// So is deflating more than an int32 can count.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCompressionTooMany(void)
+{
+	CMemoryFile		cMemory;
+	CFileBasic		cFile;
+	CBitWriter		cWriter;
+	CBitReader		cReader;
+	uint32			uiValue;
+	SLogConfig		sLogConfig;
+	uint8			auiData[4];
+
+	cMemory.Init();
+	cFile.Init(&cMemory);
+	AssertTrue(cFile.Open(EFM_Write_Create));
+	cWriter.Init(&cFile);
+	sLogConfig = gcLogger.SetSilent();
+	cWriter.WriteBits(1, BIT_WRITER_MAX_BITS + 1);
+	gcLogger.SetConfig(&sLogConfig);
+	cWriter.WriteBits(0xAB, 8);
+	AssertTrue(cWriter.Flush());
+	cWriter.Kill();
+	AssertTrue(cFile.Close());
+	AssertSize(1, cMemory.GetBufferSize());
+
+	AssertTrue(cFile.Open(EFM_Read));
+	cReader.Init(&cFile);
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cReader.ReadBits(BIT_READER_MAX_BITS + 1, &uiValue));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertTrue(cReader.ReadBits(8, &uiValue));
+	AssertInt((uint32)0xAB, uiValue);
+	cReader.Kill();
+	AssertTrue(cFile.Close());
+	cFile.Kill();
+	cMemory.Kill();
+
+	memset(auiData, 0, 4);
+	cMemory.Init();
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(DeflateMemory(auiData, (lsize)MAX_INT32 + 1, true, &cMemory));
+	gcLogger.SetConfig(&sLogConfig);
+	cMemory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCompressionZLib(void)
@@ -570,6 +622,7 @@ void TestCompressionZLib(void)
 
 	TestCompressionChecksums();
 	TestCompressionReverseBits();
+	TestCompressionTooMany();
 	TestCompressionBits();
 	TestCompressionInflateZLib();
 	TestCompressionInflateRaw();
