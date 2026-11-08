@@ -612,8 +612,13 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 
 	switch (pcBinary->meOperator)
 	{
-	case CT_MemberFunctionPointerIndirection:
 	case CT_MemberByPointerFunctionPointerIndirection:
+		if (mpcGenerator->IsObject(pcBinary->mpcLeft))
+		{
+			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
+		}
+		return Load(Place(pcBinary), pcBinary);
+	case CT_MemberFunctionPointerIndirection:
 		return Load(Place(pcBinary), pcBinary);
 	case CT_Assignment:
 	case CT_AssignmentAdd:

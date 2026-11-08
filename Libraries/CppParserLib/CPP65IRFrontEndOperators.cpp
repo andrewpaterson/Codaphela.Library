@@ -193,8 +193,13 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 
 	switch (pcBinary->meOperator)
 	{
-	case CT_MemberFunctionPointerIndirection:
 	case CT_MemberByPointerFunctionPointerIndirection:
+		if (mpcGenerator->IsObject(pcBinary->mpcLeft))
+		{
+			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
+		}
+		return MemberPointerPlace(pcBinary, &sPlace) && Load(&sPlace, psValue);
+	case CT_MemberFunctionPointerIndirection:
 		//object.*field (a member function can only be called).
 		return MemberPointerPlace(pcBinary, &sPlace) && Load(&sPlace, psValue);
 	case CT_Assignment:

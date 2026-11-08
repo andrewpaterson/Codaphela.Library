@@ -1827,6 +1827,33 @@ void TestCppParserBaseAndEnumAttributes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The operators that can't be overloaded, and tokens that aren't operators,
+// don't name operator functions [over.oper]; ->* and the others do.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserOperatorNames(void)
+{
+	static char*	aszBad[] = { "struct S { int operator.*(int a); };", "struct S { int operator.(int a); };", "struct S { int operator::(int a); };", "struct S { int operator?(int a); };", "struct S { int operator...(int a); };", "struct S { int operator)(int a); };", "struct S { int operator](int a); };", NULL };
+	static char*	aszGood[] = { "struct S { int operator->*(int a); };", "struct S { int operator->(); };", "struct S { int operator,(int a); };", "struct S { int operator()(int a); };", "struct S { int operator[](int a); };", "struct S { int operator+(int a); };", "struct S { int operator<<=(int a); };", "struct S { void* operator new[](unsigned long s); };", NULL };
+	SParsedText		sParsed;
+	size			i;
+
+	for (i = 0; aszBad[i]; i++)
+	{
+		AssertFalse(sParsed.Init(aszBad[i]));
+		sParsed.Kill();
+	}
+	for (i = 0; aszGood[i]; i++)
+	{
+		AssertTrue(sParsed.Init(aszGood[i]));
+		AssertInt(0, sParsed.iErrors);
+		sParsed.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParser(void)
@@ -1837,6 +1864,7 @@ void TestCppParser(void)
 	TypeConverterInit();
 	NumberInit();
 
+	TestCppParserOperatorNames();
 	TestCppParserDeclarations();
 	TestCppParserParameterCounts();
 	TestCppParserRecovery();

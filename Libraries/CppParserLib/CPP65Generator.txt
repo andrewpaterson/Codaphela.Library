@@ -634,8 +634,9 @@ Operators
 ---------
 
 Member operator functions are named after their token: operator[] is _Class__opIndex,
-operator+= _Class__opAddAssign and so on.  object[index], object op= value and
-object = value call them when the class has them (assignment copies otherwise).
+operator+= _Class__opAddAssign, operator->* _Class__opArrowMember and so on.  object[index],
+object op= value and object = value call them when the class has them (assignment copies
+otherwise).
 
 
 this (the user, 2026-10-23)

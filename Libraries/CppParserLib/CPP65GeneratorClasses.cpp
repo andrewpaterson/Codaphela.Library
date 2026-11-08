@@ -5223,10 +5223,11 @@ const char* CCPP65Generator::GetOperatorLabel(int64 lliName)
 	case CT_Increment:					return "Increment";
 	case CT_Decrement:					return "Decrement";
 	case CT_MemberByPointer:			return "Arrow";
+	case CT_MemberByPointerFunctionPointerIndirection:	return "ArrowMember";
 	case CT_Comma:						return "Comma";
 	case CT_new:						return bArray ? "NewArray" : "New";
 	case CT_delete:						return bArray ? "DeleteArray" : "Delete";
-	default:							return "Operator";
+	default:							return "Operator";		//ParseOperatorName takes no other token.
 	}
 }
 

@@ -198,6 +198,44 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a token on its own names an operator function [over.oper].  () and
+// [] are two tokens, and new and delete are words: ParseOperatorName takes
+// those itself.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsOverloadableOperator(CCPPToken* pcToken)
+{
+	ECppTokens	eToken;
+
+	if (!pcToken->IsReservedWord())
+	{
+		return false;
+	}
+	eToken = ((CCTReservedWord*)pcToken)->GetToken();
+	switch (eToken)
+	{
+	case CT_OpenRoundBracket:
+	case CT_CloseRoundBracket:
+	case CT_OpenCurlyBracket:
+	case CT_CloseCurlyBracket:
+	case CT_OpenSquareBracket:
+	case CT_CloseSquareBracket:
+	case CT_ScopeResolution:
+	case CT_QuestionMark:
+	case CT_Colon:
+	case CT_SemiColon:
+	case CT_Member:
+	case CT_MemberFunctionPointerIndirection:
+	case CT_Elipsis:
+		return false;
+	default:
+		return eToken < CT_Hash;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxNameComponent* CCPPParser::ParseOperatorName(CCPPSyntax* pcParent)
@@ -235,7 +273,7 @@ CCPPSyntaxNameComponent* CCPPParser::ParseOperatorName(CCPPSyntax* pcParent)
 		Next();
 		Next();
 	}
-	else if (pcToken->IsReservedWord() && (((CCTReservedWord*)pcToken)->GetToken() < CT_Hash) && !pcToken->Is(CT_OpenRoundBracket) && !pcToken->Is(CT_OpenSquareBracket) && !pcToken->Is(CT_OpenCurlyBracket) && !pcToken->Is(CT_CloseCurlyBracket) && !pcToken->Is(CT_SemiColon) && !pcToken->Is(CT_ScopeResolution) && !pcToken->Is(CT_Member) && !pcToken->Is(CT_QuestionMark) && !pcToken->Is(CT_Colon))
+	else if (IsOverloadableOperator(pcToken))
 	{
 		pcComponent->meKind = CPPNC_Operator;
 		pcComponent->miName = CurrentToken();

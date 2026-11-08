@@ -1093,6 +1093,26 @@ void TestCPP65IRTypeTraits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// operator->* has its own label, so it and another operator can't meet in
+// the assembly, and is called like any other binary operator.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IROperatorLabels(void)
+{
+	static const char*	szSource = "struct S { int i; int operator->*(int a) { return i + a; } };\nint Free(S s) { return s->*1; }\nint main() { S s; s.i = 10; return (s->*3) + Free(s); }";
+	static const char*	aszLabels[] = { "_S__opArrowMember", NULL };
+	static const char*	aszNotLabels[] = { "__opOperator", NULL };
+
+	AssertNamespaceLabels(szSource, aszLabels, aszNotLabels);
+	AssertInt(24, TestCPP65Main(szSource));
+
+	//A pointer on the left is still the built in operator.
+	AssertInt(5, TestCPP65Main("struct S { int i; int operator->*(int a) { return a; } };\nint main() { S s; s.i = 5; S* p = &s; int S::* m = &S::i; return p->*m; }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What a namespace declares has the namespace in its label, and a parameter
 // of a class in one too.  extern "C", the global main and what isn't in a
 // namespace don't.  A namespace without a name is the unit's own.
@@ -1379,6 +1399,7 @@ void TestCPP65IR(void)
 	TestCPP65IRConstMembers();
 	TestCPP65IRConstErrors();
 	TestCPP65IRTypeTraits();
+	TestCPP65IROperatorLabels();
 	TestCPP65IRNamespaceLabels();
 	TestCPP65IRNamespaceRuns();
 	TestCPP65IRNamespaceQualified();
