@@ -29,6 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentInput.h"
 #include "Button.h"
 #include "NativeSoundFactory.h"
+#include "ToolTips.h"
 #include "Window.h"
 
 
@@ -108,6 +109,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mbTicking = false;
 	mpcComponentInput = NULL;
 	mpCommands = NULL;
+	mpToolTips = NULL;
 	mpDefaultButton = NULL;
 	mpCancelButton = NULL;
 	mbLayoutAgain = false;
@@ -177,6 +179,7 @@ void CWindow::Class(void)
 	M_Pointer(mpCanvas);
 	M_Pointer(mpCaretBacking);
 	M_Pointer(mpCommands);
+	M_Pointer(mpToolTips);
 	U_Unknown(SMemberCall, msCloseApprover);
 	U_Data(CInt32Rect, mcCaret);
 	U_UInt32(msCaretColour);
@@ -292,6 +295,7 @@ bool CWindow::Show(void)
 		}
 		PaintOwned(bContinuous);
 		BlinkCaret(GetDebugTickCount());
+		ShowToolTip(GetDebugTickCount());
 		miTickDelay = -1;
 		RunPosted();
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
@@ -341,6 +345,10 @@ int64 CWindow::GetWaitMilliseconds(void)
 	}
 	iWait = ShorterWait(iWait, miTickDelay);
 	iWait = ShorterWait(iWait, mcFocus.GetCaretBlinkWait(GetDebugTickCount()));
+	if (mpToolTips.IsNotNull())
+	{
+		iWait = ShorterWait(iWait, mpToolTips->GetWait(GetDebugTickCount()));
+	}
 	if (mpcComponentInput && mpcComponentInput->GetEvictionDelay(&uiDelay))
 	{
 		iWait = ShorterWait(iWait, uiDelay);
@@ -990,10 +998,11 @@ void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 //keep the layout (CInputAction::SetKeepsLayout, the text editing commands), or for a key's release nothing took.  The
 //pointer moving, and the mouse's movement (CWindow::Input's WIET_Delta), only change what it is over; a component that
 //changes as the mouse moves, or moves things as it is dragged, invalidates itself or its layout.
-void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); RequestPaint(); }
-void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); RequestPaint(); }
-void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { if (mcFocus.Command(eCommand, bInsert)) { RequestPaint(); } else { InvalidateLayout(); } }
-void CWindow::InputPrintable(char c, bool bInsert) { mcFocus.Printable(c, bInsert); RequestPaint(); }
+//A tool tip waits for the pointer to rest; input takes it away.
+void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); if (mpToolTips.IsNotNull()) { mpToolTips->PointerMoved(mcFocus.GetMouseOverComponent(), GetDebugTickCount()); } RequestPaint(); }
+void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); if (mpToolTips.IsNotNull()) { mpToolTips->PointerLeft(); } RequestPaint(); }
+void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { DismissToolTip(); if (mcFocus.Command(eCommand, bInsert)) { RequestPaint(); } else { InvalidateLayout(); } }
+void CWindow::InputPrintable(char c, bool bInsert) { DismissToolTip(); mcFocus.Printable(c, bInsert); RequestPaint(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1023,6 +1032,10 @@ void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcCompone
 {
 	bool	bLayoutKept;
 
+	if (psWindowEvent->eType != WIET_Delta)
+	{
+		DismissToolTip();
+	}
 	bLayoutKept = mcFocus.Input(psWindowEvent, pcComponentInput);
 	if ((psWindowEvent->eType == WIET_Delta) || bLayoutKept)
 	{
@@ -1043,6 +1056,7 @@ void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcCompone
 void CWindow::Deactivate(void)
 {
 	InvalidateLayout();
+	DismissToolTip();
 	mcFocus.Deactivate();
 	//A tool window of the same owner that took the input, by being pressed, keeps what is held.
 	if (mpcComponentInput && (mpcComponentInput->GetWindow() == this))
@@ -1411,6 +1425,8 @@ Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 void					CWindow::SetCommands(Ptr<CCommandSet> pCommands) { mpCommands = pCommands; }  //Keys nothing focused takes run these; see CFocus::DispatchUnhandledCommand.
 Ptr<CCommandSet>		CWindow::GetCommands(void) { return mpCommands; }
+void					CWindow::SetToolTips(Ptr<CToolTips> pToolTips) { mpToolTips = pToolTips; }  //Made for this window; NULL shows none.
+Ptr<CToolTips>			CWindow::GetToolTips(void) { return mpToolTips; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
@@ -1581,6 +1597,32 @@ void CWindow::DrawCaret(bool bOn)
 	else
 	{
 		mpCanvas->DrawCanvas(mcCaret.GetLeft(), mcCaret.GetTop(), mpCaretBacking);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows the tool tip of the component the pointer has rested on, if it
+// is due (see CToolTips).  True if it showed: its popup lays the window
+// out again.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::ShowToolTip(int64 iNow)
+{
+	return mpToolTips.IsNotNull() && mpToolTips->ShowIfDue(iNow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::DismissToolTip(void)
+{
+	if (mpToolTips.IsNotNull())
+	{
+		mpToolTips->Dismiss();
 	}
 }
 

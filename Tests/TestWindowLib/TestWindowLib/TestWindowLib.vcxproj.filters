@@ -121,6 +121,15 @@
     <ClCompile Include="TestProgressBar.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestToolbar.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStatusBar.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestToolTips.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestGridContainer.cpp">
       <Filter>Source\Component\Container</Filter>
     </ClCompile>

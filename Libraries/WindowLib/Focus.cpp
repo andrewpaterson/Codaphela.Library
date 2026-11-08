@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Window.h"
 #include "Button.h"
 #include "ComponentInput.h"
+#include "ToolTips.h"
 
 
 //What a drag's commands tell the component dragging: it started, the pointer moved, it stopped.
@@ -799,6 +800,10 @@ void CFocus::Forget(Ptr<CComponent> pComponent)
 		{
 			pLost->FocusLost();
 		}
+	}
+	if (mpWindow->GetToolTips().IsNotNull())
+	{
+		mpWindow->GetToolTips()->Forget(pComponent);
 	}
 }
 

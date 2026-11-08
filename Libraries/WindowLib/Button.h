@@ -80,6 +80,7 @@ public:
 	void						Click(void);
 	void						SetCommand(Ptr<CCommand> pCommand);
 	Ptr<CCommand>				GetCommand(void);
+	bool						GetToolTip(CChars* pszDest) override;
 
 	EButtonState		GetState(void);
 	bool				IsPressed(void);

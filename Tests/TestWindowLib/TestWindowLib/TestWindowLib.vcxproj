@@ -255,6 +255,9 @@
     <ClCompile Include="TestLineZones.cpp" />
     <ClCompile Include="TestScrollPane.cpp" />
     <ClCompile Include="TestProgressBar.cpp" />
+    <ClCompile Include="TestToolbar.cpp" />
+    <ClCompile Include="TestStatusBar.cpp" />
+    <ClCompile Include="TestToolTips.cpp" />
     <ClCompile Include="TestButton.cpp" />
     <ClCompile Include="TestButtonBar.cpp" />
     <ClCompile Include="TestList.cpp" />

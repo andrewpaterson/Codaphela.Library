@@ -96,6 +96,16 @@ enum EThemeMetric
 	TM_AutoHideTabSpacing,		//Between a strip's tabs.
 	TM_AutoHideLine,			//A strip tab's line along the strip's outer side.
 	TM_AutoHideEdge,			//A flyout's inner edge, dragged to resize it.
+	TM_ToolbarThickness,		//A toolbar's height, or a vertical one's width.
+	TM_ToolbarInset,			//Before a toolbar's first item.
+	TM_ToolbarSeparatorSpace,	//Along a toolbar, the space a separator takes.
+	TM_ToolbarSeparatorLength,	//Across a toolbar, a separator's line.
+	TM_StatusBarHeight,
+	TM_StatusFieldGap,			//Before each of a status bar's fields, and after the last.
+	TM_StatusSeparatorLength,	//A status bar separator's line.
+	TM_ToolTipPaddingX,			//Between a tool tip's border and its text.
+	TM_ToolTipPaddingY,
+	TM_ToolTipOffset,			//From the pointer down to a tool tip's top, clear of the pointer's shape.
 
 	TM_NumMetrics,
 };

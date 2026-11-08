@@ -307,6 +307,47 @@ Ptr<CCommand> CButton::GetCommand(void) { return mpCommand; }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The tool tip set, or else its command's caption and keys, as a menu
+// item shows them: "Build (Control+Shift+B)".  A button with a caption
+// only has its command's tool tip if the command has keys; the caption
+// already says the rest.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CButton::GetToolTip(CChars* pszDest)
+{
+	CChars	szKeys;
+	bool	bKeys;
+
+	if (CImageBorderContainer::GetToolTip(pszDest))
+	{
+		return true;
+	}
+	if (mpCommand.IsNull())
+	{
+		return false;
+	}
+
+	szKeys.Init();
+	bKeys = mpCommand->AppendKeysText(&szKeys, mpWindow->GetComponentInput());
+	if (!bKeys && HasCaption())
+	{
+		szKeys.Kill();
+		return false;
+	}
+	pszDest->Append(mpCommand->GetCaption());
+	if (bKeys)
+	{
+		pszDest->Append(" (");
+		pszDest->Append(szKeys);
+		pszDest->Append(")");
+	}
+	szKeys.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A focussed button clicks itself on enter, not the default button.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -79,6 +79,18 @@
     <Filter Include="Source\Component\Widgets\Label">
       <UniqueIdentifier>{8c7e5d17-bdd0-43da-9a95-99f16a742e8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Toolbar">
+      <UniqueIdentifier>{8580cb25-3f47-48b3-88ee-3e4d6717a85e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\Status Bar">
+      <UniqueIdentifier>{2b391694-016e-441b-a196-3a67c7c9492b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\Tool Tips">
+      <UniqueIdentifier>{52833693-1f09-4ec4-8dd5-1752cbb54b56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Container\Bar">
+      <UniqueIdentifier>{c982caf6-6c20-4f3f-a4f3-4d6e9aed1923}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Component\Widgets\Progress Bar">
       <UniqueIdentifier>{57e217e9-6c65-4a1e-880d-adadf92c3cb4}</UniqueIdentifier>
     </Filter>
@@ -425,6 +437,18 @@
     </ClInclude>
     <ClInclude Include="Label.h">
       <Filter>Source\Component\Widgets\Label</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolbar.h">
+      <Filter>Source\Component\Widgets\Toolbar</Filter>
+    </ClInclude>
+    <ClInclude Include="StatusBar.h">
+      <Filter>Source\Component\Widgets\Status Bar</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolTips.h">
+      <Filter>Source\Component\Widgets\Tool Tips</Filter>
+    </ClInclude>
+    <ClInclude Include="BarContainer.h">
+      <Filter>Source\Component\Container\Bar</Filter>
     </ClInclude>
     <ClInclude Include="ProgressBar.h">
       <Filter>Source\Component\Widgets\Progress Bar</Filter>
@@ -775,6 +799,18 @@
     </ClCompile>
     <ClCompile Include="Label.cpp">
       <Filter>Source\Component\Widgets\Label</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolbar.cpp">
+      <Filter>Source\Component\Widgets\Toolbar</Filter>
+    </ClCompile>
+    <ClCompile Include="StatusBar.cpp">
+      <Filter>Source\Component\Widgets\Status Bar</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolTips.cpp">
+      <Filter>Source\Component\Widgets\Tool Tips</Filter>
+    </ClCompile>
+    <ClCompile Include="BarContainer.cpp">
+      <Filter>Source\Component\Container\Bar</Filter>
     </ClCompile>
     <ClCompile Include="ProgressBar.cpp">
       <Filter>Source\Component\Widgets\Progress Bar</Filter>

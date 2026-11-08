@@ -41,6 +41,7 @@ class CWindowTick;
 class CNativeSoundFactory;
 class CComponentInput;
 class CButton;
+class CToolTips;
 
 
 typedef CArrayTemplate<SMemberCall>	CArrayMemberCalls;
@@ -51,8 +52,7 @@ class CWindow : public CComponent
 CONSTRUCTABLE(CWindow);
 DESTRUCTABLE(CWindow);
 protected:
-	CChars					mszWindowTitle;
-
+	CChars						mszWindowTitle;
 	CNativeWindow*				mpcNativeWindow;
 	Ptr<CCanvas>				mpCanvas;
 	Ptr<CWindowTick>			mpWindowTick;
@@ -60,6 +60,7 @@ protected:
 	CFocus						mcFocus;
 	CComponentInput*			mpcComponentInput;  //Optional.  Updated every tick when set.
 	Ptr<CCommandSet>			mpCommands;  //The application's commands, NULL for none.  Dialogs and tool windows use their owner's.
+	Ptr<CToolTips>				mpToolTips;  //Shows the components' tool tips, NULL for none (see SetToolTips).
 	Ptr<CButton>				mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
 	Ptr<CButton>				mpCancelButton;  //Clicked by escape when no popup is open.
 	bool						mbLayoutAgain;  //A component's required size changed while it was being laid out.
@@ -167,6 +168,9 @@ public:
 	CComponentInput*		GetComponentInput(void);
 	void					SetCommands(Ptr<CCommandSet> pCommands);
 	Ptr<CCommandSet>		GetCommands(void);
+	void					SetToolTips(Ptr<CToolTips> pToolTips);
+	Ptr<CToolTips>			GetToolTips(void);
+	bool					ShowToolTip(int64 iNow);
 
 	const char*				GetWindowTitle(void);
 	void					SetWindowTitle(const char* szTitle);
@@ -201,6 +205,7 @@ protected:
 	bool					FindPopup(Ptr<CComponent> pContent, size* puiIndex);
 	void					LayoutIfChanged(void);
 	void					CheckLayoutCache(void);
+	void					DismissToolTip(void);
 	int64					GetWaitMilliseconds(void);
 	bool					IsFrameDue(void);
 	void					PaintOwned(bool bContinuous);

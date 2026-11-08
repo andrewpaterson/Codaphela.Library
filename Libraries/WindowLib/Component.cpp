@@ -47,6 +47,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	mpWindow = pWindow;
 	mpContextMenu = NULL;
 	meCursor = NC_Arrow;
+	mszToolTip.Init();
 
 	PostInit();
 }
@@ -58,6 +59,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Free(void)
 {
+	mszToolTip.Kill();
 }
 
 
@@ -80,6 +82,7 @@ void CComponent::Class(void)
 	M_Embedded(maInputActions);
 	M_Pointer(mpContextMenu);
 	U_Enum(meCursor);
+	U_String(mszToolTip);
 }
 
 
@@ -1102,6 +1105,36 @@ void CComponent::SetCursor(ENativeCursor eCursor)
 
 
 ENativeCursor CComponent::GetCursor(void) { return meCursor; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text shown after the pointer rests on the component, NULL or "" for
+// none.  A tool tip already showing isn't changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::SetToolTip(const char* szToolTip)
+{
+	mszToolTip.Kill();
+	mszToolTip.Init(szToolTip);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends the component's tool tip to pszDest.  False if it has none, and
+// the pointer resting on it shows its parent's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::GetToolTip(CChars* pszDest)
+{
+	if (mszToolTip.Empty())
+	{
+		return false;
+	}
+	pszDest->Append(mszToolTip);
+	return true;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

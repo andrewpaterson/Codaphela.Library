@@ -220,6 +220,10 @@
     <ClInclude Include="Label.h" />
     <ClInclude Include="ClearCanvasDraw.h" />
     <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="BarContainer.h" />
+    <ClInclude Include="Toolbar.h" />
+    <ClInclude Include="StatusBar.h" />
+    <ClInclude Include="ToolTips.h" />
     <ClInclude Include="ProgressBarDraw.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
@@ -396,6 +400,10 @@
     <ClCompile Include="LineZones.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
     <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="BarContainer.cpp" />
+    <ClCompile Include="Toolbar.cpp" />
+    <ClCompile Include="StatusBar.cpp" />
+    <ClCompile Include="ToolTips.cpp" />
     <ClCompile Include="ProgressBarDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeClipboard.cpp" />

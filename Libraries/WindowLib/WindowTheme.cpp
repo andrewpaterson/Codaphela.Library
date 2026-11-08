@@ -38,7 +38,13 @@ static const char*	gaszThemeMetricNames[] =
 	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent", "FileChooserWidth", "FileChooserHeight",
 	"FileChooserMinWidth", "FileChooserMinHeight", "FileChooserRowHeight", "FileChooserIconWidth", "FileChooserGap",
 	"GoToWidth", "GoToHeight", "GoToRowHeight", "GoToIconWidth", "GoToGap",
-	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip", "DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd", "DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth", "AutoHideStripSize", "AutoHideTabGap", "AutoHideTabSpacing", "AutoHideLine", "AutoHideEdge",
+	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip",
+	"DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd",
+	"DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth",
+	"AutoHideStripSize", "AutoHideTabGap", "AutoHideTabSpacing", "AutoHideLine", "AutoHideEdge",
+	"ToolbarThickness", "ToolbarInset", "ToolbarSeparatorSpace", "ToolbarSeparatorLength",
+	"StatusBarHeight", "StatusFieldGap", "StatusSeparatorLength",
+	"ToolTipPaddingX", "ToolTipPaddingY", "ToolTipOffset",
 };
 static_assert(sizeof(gaszThemeMetricNames) / sizeof(gaszThemeMetricNames[0]) == TM_NumMetrics, "gaszThemeMetricNames needs a row for each EThemeMetric.");
 
@@ -63,6 +69,7 @@ static const char*	gaszThemeColourNames[] =
 	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockStrip", "DockStripTab", "DockStripTabHover",
 	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
 	"DockPreviewBorder", "DockFrameBorder",
+	"ToolTip", "ToolTipBorder",
 };
 static_assert(sizeof(gaszThemeColourNames) / sizeof(gaszThemeColourNames[0]) == TC_NumColours, "gaszThemeColourNames needs a row for each EThemeColour.");
 

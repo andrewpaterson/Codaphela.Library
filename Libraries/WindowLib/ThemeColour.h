@@ -85,6 +85,10 @@ enum EThemeColour
 	TC_DockPreviewBorder,
 	TC_DockFrameBorder,			//A floating window's edge.
 
+	//Tool tips' (see CToolTips).
+	TC_ToolTip,					//Behind a tool tip's text.
+	TC_ToolTipBorder,
+
 	TC_NumColours,
 };
 

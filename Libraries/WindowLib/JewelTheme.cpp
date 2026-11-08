@@ -99,6 +99,16 @@ static int32	gaiJewelThemeMetrics[] =
 	4,		//TM_AutoHideTabSpacing
 	3,		//TM_AutoHideLine
 	4,		//TM_AutoHideEdge
+	34,		//TM_ToolbarThickness
+	4,		//TM_ToolbarInset
+	13,		//TM_ToolbarSeparatorSpace
+	22,		//TM_ToolbarSeparatorLength
+	24,		//TM_StatusBarHeight
+	8,		//TM_StatusFieldGap
+	16,		//TM_StatusSeparatorLength
+	8,		//TM_ToolTipPaddingX
+	5,		//TM_ToolTipPaddingY
+	20,		//TM_ToolTipOffset
 };
 static_assert(sizeof(gaiJewelThemeMetrics) / sizeof(gaiJewelThemeMetrics[0]) == TM_NumMetrics, "gaiJewelThemeMetrics needs a row for each EThemeMetric.");
 
@@ -160,6 +170,8 @@ static ARGB32	gasJewelThemeColours[] =
 	Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0, (uint8)0x50),  //TC_DockPreview, see-through blue.
 	JEWEL_BLUE,				//TC_DockPreviewBorder
 	JEWEL_SEPARATOR,		//TC_DockFrameBorder
+	JEWEL_PANEL,			//TC_ToolTip
+	JEWEL_SEPARATOR,		//TC_ToolTipBorder
 };
 static_assert(sizeof(gasJewelThemeColours) / sizeof(gasJewelThemeColours[0]) == TC_NumColours, "gasJewelThemeColours needs a row for each EThemeColour.");
 

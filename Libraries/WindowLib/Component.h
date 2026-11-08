@@ -58,6 +58,7 @@ protected:
 	CArray<CInputAction>		maInputActions;
 	Ptr<CContextMenu>			mpContextMenu;  //NULL for none.
 	ENativeCursor				meCursor;  //The pointer's shape over the component, NC_Arrow for its parent's.
+	CChars						mszToolTip;  //Shown after the pointer rests on the component (see CToolTips), empty for none.
 
 public:
 			void				Init(Ptr<CWindow> pWindow);
@@ -113,6 +114,8 @@ public:
 			void				MoveToWindow(Ptr<CWindow> pWindow);
 			void				SetCursor(ENativeCursor eCursor);
 			ENativeCursor		GetCursor(void);
+			void				SetToolTip(const char* szToolTip);
+	virtual	bool				GetToolTip(CChars* pszDest);
 	virtual	void				Invalidate(void);
 	virtual	void				InvalidateLayout(void);
 			bool				IsWithin(Ptr<CComponent> pAncestor);

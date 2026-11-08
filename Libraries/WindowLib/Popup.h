@@ -48,6 +48,7 @@ protected:
 	bool				mbBackground;  //The background is drawn behind the content; false, and nothing is, until a look is set.
 	bool				mbBorder;
 	bool				mbOwnerPressKeepsOpen;
+	bool				mbPointerPasses;  //The pointer finds what is under the popup, as for a tool tip.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
@@ -60,6 +61,8 @@ public:
 	void				SetOpenPosition(SInt32Vec2 sPosition);
 	void				SetOwnerPressKeepsOpen(bool bKeepsOpen);
 	bool				IsOwnerPressKeepsOpen(void);
+	void				SetPointerPasses(bool bPasses);
+	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 	void				SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets);
 	void				SetLook(ARGB32 sBackground, SInsets* psInsets);
 
