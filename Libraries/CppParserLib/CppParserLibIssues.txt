@@ -2,24 +2,9 @@ CppParserLib: issues left from the quality sweep
 ================================================
 
 What is left of the sweep of CppParserLib for code smells, duplication and anything wrong
-or inelegant (2026-11).  Items 1 to 59, 92 and 93 are done (56 was not a copy: GuardedBy's
+or inelegant (2026-11).  Items 1 to 65, 92 and 93 are done (56 was not a copy: GuardedBy's
 narrower walk is needed, and says why); the numbers are kept as they were.  Written 2026-11-07,
 updated 2026-11-08.
-
-
-Dead code
----------
-
-60. GetFloat, GetInteger and those with them, about 380 lines
-    (PreprocessorTokenParser.cpp:448-830).
-61. The CPPToken::Equals hierarchy, which only calls itself.
-62. Functions nothing calls: IsRegisterArguments, SetWarnNarrowing,
-    GetDefaultWarnNarrowing, Is64, DumpPost, IsPunctuator(const char*, size) and one
-    PeepholeFlowRegisters overload.
-63. Four empty CPPSyntax*.cpp files, and 25 forward declarations nothing needs.
-64. What the old generator left: ECPP65PlaceKind, VariablePlace's local and parameter
-    branches, the frame layout, miThisOffset, and if (mpcIRFrontEnd) checks that can't fail.
-65. CDefineMap::Get's bExact = false path, and mszBaseDirectoryName (written, never read).
 
 
 Design and elegance
