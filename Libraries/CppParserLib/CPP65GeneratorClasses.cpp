@@ -1687,8 +1687,10 @@ bool CCPP65Generator::IsForwardingReference(CCPPSyntaxParameter* pcParameter)
 // type with its own const, so an object or a variable binds as it is.  A
 // value with no address is const, as only a const reference can bind to one,
 // and an array or a function is a const pointer to it, so an array of each
-// length isn't an instance of its own.  (The standard's T is not const for a
-// value, and is an array for an array.)
+// length isn't an instance of its own.  A string literal's characters are
+// const here, as the standard has them, or Init("x") would choose Init(char*)
+// over Init(const char*).  (The standard's T is not const for a value, and is
+// an array for an array.)
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcArgument)
@@ -1706,6 +1708,10 @@ SCPP65Type* CCPP65Generator::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* p
 	if (psArgument->IsClass() || !pcArgument)
 	{
 		return psArgument;
+	}
+	if (SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression)
+	{
+		return mcTypes.Qualified(mcTypes.Pointer(mcTypes.Qualified(psArgument->psBase, true, false)), true, false);
 	}
 
 	//An array's type here is already the pointer it decays to, but its place is the array.
@@ -4312,6 +4318,11 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	{
 		//A value with no address only binds to a const reference.
 		return CPP65CR_None;
+	}
+	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && (SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression))
+	{
+		//A string literal's characters are const: char* p = "x" is allowed, but const char* is the better match.
+		return psParameter->psBase->bConst ? CPP65CR_Exact : CPP65CR_Qualification;
 	}
 	if (psParameter->Equals(psArgument))
 	{

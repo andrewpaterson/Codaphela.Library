@@ -132,6 +132,25 @@ static const STestForwardingReference gasTestForwardingReferences[] =
 		"int main() { CThing t; return Make(&t, \"AB\"); }\n"
 	},
 	{
+		"StringLiteralOverload", 1,
+		"struct CThing { int m; void Init(const char* a) { m = 1; } void Init(char* a) { m = 2; } };\n"
+		"template<typename ... Args> int Make(CThing* p, Args&& ... args) { p->Init(args...); return p->m; }\n"
+		"int main() { CThing t; return Make(&t, \"AB\"); }\n"
+	},
+	{
+		"StringLiteralTwoLayers", 1,
+		"struct CThing { int m; void Init(const char* a) { m = 1; } void Init(char* a) { m = 2; } };\n"
+		"template<typename ... Args> int Make(CThing* p, Args&& ... args) { p->Init(args...); return p->m; }\n"
+		"template<typename ... Args> int Outer(Args&& ... args) { CThing t; return Make(&t, args...); }\n"
+		"int main() { return Outer(\"AB\"); }\n"
+	},
+	{
+		"PlainStringLiteralOverload", 1,
+		"int F(const char* a) { return 1; }\n"
+		"int F(char* a) { return 2; }\n"
+		"int main() { return F(\"AB\"); }\n"
+	},
+	{
 		"TwoStringLengths", 134,
 		"struct CThing { int m; void Init(const char* a) { m = a[1]; } };\n"
 		"template<typename ... Args> int Make(CThing* p, Args&& ... args) { p->Init(args...); return p->m; }\n"

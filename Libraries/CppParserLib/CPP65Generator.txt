@@ -111,7 +111,7 @@ isn't const, or to call a member function that isn't const on a const object; on
 can take them away.  Overloads rank adding const below the same type, and a mutable field
 stays changeable in a const object.  One leniency: a string literal is an array of char,
 not of const char, so char* p = "x" is still allowed (the standard made that ill-formed
-in C++11).
+in C++11), but overloads rank const char* above char* for one.
 
 Values are kept in registers 32 bits wide, sign or zero extended from their type.
 A long long is the exception: it is loaded, stored, pushed and operated on with the
@@ -596,7 +596,8 @@ any argument without copying it, as a function that passes its arguments on want
 T is the argument's type with its own const.  Unlike the standard, a value with no
 address makes T const (it can only bind to a const reference), and an array or a
 function makes T a const pointer to it (so each length of string literal isn't an
-instance of its own).  Inside the function the parameter is a variable, as in the
+instance of its own, and a string literal's characters are const, unlike the leniency
+above).  Inside the function the parameter is a variable, as in the
 standard.  Reference collapsing and std::forward's cast are not done: T is never
 a reference.
 
