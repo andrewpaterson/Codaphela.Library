@@ -69,9 +69,7 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 	if ((psInstruction->uiOpcode == IRO_AShr) && (sType.Is(IRTK_I8) || sType.Is(IRTK_I1)))
 	{
 		Frame("lda", iResult);
-		Line(sType.Is(IRTK_I8) ? "eor 0x80" : "eor 1");
-		Line("sec");
-		Line(sType.Is(IRTK_I8) ? "sbc 0x80" : "sbc 1");
+		SignExtendInA(sType.Is(IRTK_I8) ? 7 : 0);
 		Frame("sta", iResult);
 	}
 

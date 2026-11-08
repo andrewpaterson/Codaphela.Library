@@ -95,9 +95,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
 				Line("and 0xFF");
-				Line("eor 0x80");
-				Line("sec");
-				Line("sbc 0x80");
+				SignExtendInA(7);
 				Frame("sta", (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
 			}
 		}
@@ -115,9 +113,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 			if (bSigned && sType.Is(IRTK_I8))
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
-				Line("eor 0x80");
-				Line("sec");
-				Line("sbc 0x80");
+				SignExtendInA(7);
 				Line("pha");
 			}
 			else

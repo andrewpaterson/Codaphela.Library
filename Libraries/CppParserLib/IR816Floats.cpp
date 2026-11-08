@@ -414,9 +414,7 @@ void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 	Operand("lda", sValue, 0);
 	if (bSigned && sType.Is(IRTK_I8))
 	{
-		Line("eor 0x80");
-		Line("sec");
-		Line("sbc 0x80");
+		SignExtendInA(7);
 	}
 	Frame("sta", IR816_SCRATCH_VALUE);
 	if (bSigned && !sType.Is(IRTK_I1))

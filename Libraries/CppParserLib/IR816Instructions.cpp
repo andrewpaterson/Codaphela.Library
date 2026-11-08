@@ -663,9 +663,7 @@ void CIR816Backend::ExtendInX(SIRInstruction* psInstruction)
 	else if ((psInstruction->uiOpcode == IRO_SExt) && sSource.Is(IRTK_I8))
 	{
 		Operand("lda", sValue, 0);
-		Line("eor 0x80");
-		Line("sec");
-		Line("sbc 0x80");
+		SignExtendInA(7);
 		Mask(sType);
 	}
 	else if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
@@ -731,9 +729,7 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 		else if (sSource.Is(IRTK_I8))
 		{
 			Operand("lda", sValue, 0);
-			Line("eor 0x80");
-			Line("sec");
-			Line("sbc 0x80");
+			SignExtendInA(7);
 			Frame("sta", iResult);
 			iCopied = 1;
 		}
