@@ -1,4 +1,5 @@
 #include "BaseLib/GlobalDataTypesIO.h"
+#include "BaseLib/Logger.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Image.h"
 #include "SupportLib/ImageReader.h"
@@ -42,6 +43,7 @@ void TestObjectConverterImageSources(void)
 	CObjectConverterImage	cConverter;
 	CObjectSource*			pcSource;
 	Ptr<CImage>				pImage;
+	SLogConfig				sLogConfig;
 
 	cConverter.Init(&gcObjects);
 	pcSource = cConverter.CreateSource(NULL, "Input/Tiny.png");
@@ -64,7 +66,10 @@ void TestObjectConverterImageSources(void)
 	AssertObjectConverterImage("Input/Opacity.png");
 	AssertObjectConverterImage("Input/BMP/pal4.bmp");
 
+	//The missing file is an error (logged), not a crash.
+	sLogConfig = gcLogger.SetSilent();
 	pImage = gcObjects.Get<CImage>("Input/DoesNotExist.png");
+	gcLogger.SetConfig(&sLogConfig);
 	AssertTrue(pImage.IsNull());
 	pImage = gcObjects.Get<CImage>("Input/NotASource.png");
 	AssertTrue(pImage.IsNull());
