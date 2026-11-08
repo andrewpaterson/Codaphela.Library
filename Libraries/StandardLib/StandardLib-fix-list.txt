@@ -108,24 +108,24 @@ C38. [344] CDependentReadObjects: empty Init/Kill; its header includes Objects.h
 
 D. Performance
 --------------
-D1. [275] An object's stack froms are a tail-appended list (SetLastNext → FindLast), and HasStackFroms counts the whole list: every Ptr copy to a widely held object is O(n). Head insertion and a non-NULL test would do.  [done c7fc65b61]
-D2. [341] CDependentWriteObjects::GetUnwritten scans round from the last position each call: O(n²) over a write.  [done 47f0b4ac0]
-D3. [433] DeflateLengthCode / DeflateDistanceCode scan their tables on every call (3–4 calls per match); use lookup tables.  [done 41b4355f7]
-D4. [443] TextDiffLineMapper::TransferLine scans every block in float64 (soft float on the W65C816).  [done 8246dfa29]
-D5. [444] MyersDiff::Bisect resizes and refills both V arrays per range.  [done 7472ff16f]
-D6. [452] CMemberCalls::Call copies the array and re-checks Contains per call: O(n²).  [done b7c77ae81]
-D7. [297] CRoot::Get(name) scans every root object with strcmp (CObjects has a name index).  [done d97f58794]
-D8. [272] CKillOrderCalculator restarts its scan after each pick: O(n²) (fine while n is small).  [done 51cda2842]
-D9. [386] ValidateInternalConsistency's check is needed (a stack pointer inside an object is a Ptr field missing from its Class()), but it walks every stack pointer for each object: O(objects × stack pointers).  If validation with many live stack pointers is ever slow, one sorted pass finds the same: the stack pointers' addresses sorted once and each object's range binary searched.  Low priority: it only runs in validation and stack pointers are usually few.  [done 461d75cce]
+D1. [275] An object's stack froms are a tail-appended list (SetLastNext → FindLast), and HasStackFroms counts the whole list: every Ptr copy to a widely held object is O(n). Head insertion and a non-NULL test would do.  [done 11ca2b18e]
+D2. [341] CDependentWriteObjects::GetUnwritten scans round from the last position each call: O(n²) over a write.  [done fc626883c]
+D3. [433] DeflateLengthCode / DeflateDistanceCode scan their tables on every call (3–4 calls per match); use lookup tables.  [done f5f628a2a]
+D4. [443] TextDiffLineMapper::TransferLine scans every block in float64 (soft float on the W65C816).  [done a5496110a]
+D5. [444] MyersDiff::Bisect resizes and refills both V arrays per range.  [done e710cabd6]
+D6. [452] CMemberCalls::Call copies the array and re-checks Contains per call: O(n²).  [done 8ca9e4cfd]
+D7. [297] CRoot::Get(name) scans every root object with strcmp (CObjects has a name index).  [done 6688922c8]
+D8. [272] CKillOrderCalculator restarts its scan after each pick: O(n²) (fine while n is small).  [done 79f23374b]
+D9. [386] ValidateInternalConsistency's check is needed (a stack pointer inside an object is a Ptr field missing from its Class()), but it walks every stack pointer for each object: O(objects × stack pointers).  If validation with many live stack pointers is ever slow, one sorted pass finds the same: the stack pointers' addresses sorted once and each object's range binary searched.  Low priority: it only runs in validation and stack pointers are usually few.  [done ede2d9a5e]
 
 
 E. API, types and return values
 -------------------------------
-E1. [93] CUnknowns::Add<M>'s IsUnknown() check is a runtime check (use static_assert) and frees without the destructor.  [done 86b20cff6]
-E2. [98] CUnknown::Compare memcmp's whole objects, vtable included.  [done cfd5e444d]
-E3. [123] CSetUnknown::Add returns void (swallows failure); CSetType::Remove returns bool of a count.  [done de4bc3fc9]
-E4. [140] CArray<M>::Add returns void.  [done d4c23a323]
-E5. [164] CMapObject::Get<M,N> returns (N*)Get(pKey); Contains<M,N> has an unused N; Get(const CPointer&) declares an unused CPointer.  [done 4a4a537ac]
+E1. [93] CUnknowns::Add<M>'s IsUnknown() check is a runtime check (use static_assert) and frees without the destructor.  [done dfa58b7f0]
+E2. [98] CUnknown::Compare memcmp's whole objects, vtable included.  [done 4173d5c4a]
+E3. [123] CSetUnknown::Add returns void (swallows failure); CSetType::Remove returns bool of a count.  [done fbbfbfaff]
+E4. [140] CArray<M>::Add returns void.  [done dafa3edb1]
+E5. [164] CMapObject::Get<M,N> returns (N*)Get(pKey); Contains<M,N> has an unused N; Get(const CPointer&) declares an unused CPointer.  [done 81ebda239]
 E6. [136] CSetObject::UnsafeGetObject hides the base's (non-virtual) with an unused CPointer local; UnsafeGet duplicates it.
 E7. [192] CBaseObject::SetFlag(uint16, uint16 iFlagValue) takes a bool as uint16.
 E8. [191] CBaseObject::NumEmbedded() has a side effect (SetFlagNumEmbedded).
@@ -153,7 +153,7 @@ F1. [95] strcmp(ShortName(), "CMemoryAllocator") twice in Unknowns.cpp.
 F2. [96] IsFreed's 0xefefefef magic.
 F3. [105] ArrayCommonUnknown.h's "Most of these should be protected or virtual" comment.
 F4. [116] CArrayCommonUnknown::RemoveEnd's if (i != iIndexInclusive) is always true after the guard.
-F5. [125] Stray pSet->ClassName(); (Set.h:77).  (Array.h's went with E4, d4c23a323.)
+F5. [125] Stray pSet->ClassName(); (Set.h:77).  (Array.h's went with E4, dafa3edb1.)
 F6. [134] DestructOnStack, CCollection::Kill and CObject::Kill compare muiFlags to OBJECT_FLAGS_CALLED_CONSTRUCTOR exactly.
 F7. [137] CSetObject::TouchAll has a different body from the base's.
 F8. [141] Collection.h says "This class has no fields" (it has mbSubRoot, mpcMemberLocations); mbSubRoot is set in both PreFields and Init.  [done 884c875c6]
