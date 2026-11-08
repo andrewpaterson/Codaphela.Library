@@ -204,6 +204,43 @@ void TestMeshFaceTypesFromSkin(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A flipped quad's return says which of the quad's corners are in each of its two faces.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshEditorAddFlippedQuad(void)
+{
+	CMesh		cMesh;
+	CMeshEditor	cMeshEditor;
+	CMFRet		r;
+	int			i;
+	int			iCorner1;
+	int			iCorner2;
+	int			iCorner3;
+
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	for (i = 0; i < 4; i++)
+	{
+		cMeshEditor.AddCorner((float32)i, 0, 0);
+	}
+
+	r = cMeshEditor.AddQuad(0, 1, 2, 3, 0, true);
+	AssertInt(2, r.NumFaces());
+
+	r.Unpack1(&iCorner1, &iCorner2, &iCorner3);
+	AssertInt(0, iCorner1);
+	AssertInt(3, iCorner2);
+	AssertInt(1, iCorner3);
+
+	r.Unpack2(&iCorner1, &iCorner2, &iCorner3);
+	AssertInt(1, iCorner1);
+	AssertInt(3, iCorner2);
+	AssertInt(2, iCorner3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshConnectivity(void)
@@ -215,6 +252,7 @@ void TestMeshConnectivity(void)
 
 	TestMeshEdgeConnectivity();
 	TestMeshFaceTypesFromSkin();
+	TestMeshEditorAddFlippedQuad();
 
 	ObjectsKill(false);
 	DataIOKill();

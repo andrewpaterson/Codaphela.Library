@@ -285,7 +285,7 @@ CMFRet CMeshEditor::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorne
 		rFace1 = AddFace(iCorner1, iCorner4, iCorner2, iName, true, false, true);
 		rFace1.Repack(0, 3, 1);
 		rFace2 = AddFace(iCorner2, iCorner4, iCorner3, iName, false, true, true);
-		rFace1.Repack(1, 3, 2);
+		rFace2.Repack(1, 3, 2);
 		rFace1.Pack2(rFace2);
 	}
 	return rFace1;
