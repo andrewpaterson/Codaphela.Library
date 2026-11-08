@@ -366,9 +366,9 @@ F SFixed<M, N, BITS>::To(void) const
 {
 	if ((int)F::Bits >= BITS)
 	{
-		return F::FromRaw((typename F::Storage)((int64)miRaw * ((int64)1 << ((int)F::Bits - BITS))));
+		return F::FromRaw((typename F::Storage)((int64)miRaw * ((int64)1 << (((int)F::Bits >= BITS) ? (int)F::Bits - BITS : 0))));
 	}
-	return F::FromRaw((typename F::Storage)::DivideRound(miRaw, (int64)1 << (BITS - (int)F::Bits)));
+	return F::FromRaw((typename F::Storage)::DivideRound(miRaw, (int64)1 << ((BITS >= (int)F::Bits) ? BITS - (int)F::Bits : 0)));
 }
 
 
@@ -382,9 +382,9 @@ F SFixed<M, N, BITS>::ToFloor(void) const
 {
 	if ((int)F::Bits >= BITS)
 	{
-		return F::FromRaw((typename F::Storage)((int64)miRaw * ((int64)1 << ((int)F::Bits - BITS))));
+		return F::FromRaw((typename F::Storage)((int64)miRaw * ((int64)1 << (((int)F::Bits >= BITS) ? (int)F::Bits - BITS : 0))));
 	}
-	return F::FromRaw((typename F::Storage)((int64)miRaw >> (BITS - (int)F::Bits)));
+	return F::FromRaw((typename F::Storage)((int64)miRaw >> ((BITS >= (int)F::Bits) ? BITS - (int)F::Bits : 0)));
 }
 
 
