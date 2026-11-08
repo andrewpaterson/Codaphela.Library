@@ -599,6 +599,7 @@
     <ClInclude Include="PreprocessedTokens.h" />
     <ClInclude Include="Punctuators.h" />
     <ClInclude Include="CPPNameCharacters.h" />
+    <ClInclude Include="CPPPunctuatorList.h" />
     <ClInclude Include="DirectiveMap.h" />
     <ClInclude Include="PreprocessorPosition.h" />
     <ClInclude Include="ConditionalStack.h" />

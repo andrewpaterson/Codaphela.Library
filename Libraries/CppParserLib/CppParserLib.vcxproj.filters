@@ -1496,6 +1496,9 @@
     <ClInclude Include="CPPNameCharacters.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
+    <ClInclude Include="CPPPunctuatorList.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
     <ClInclude Include="SpecialOperatorMap.h">
       <Filter>Source\Preprocessor\Define</Filter>
     </ClInclude>

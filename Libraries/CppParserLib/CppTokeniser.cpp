@@ -33,6 +33,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CTInt.h"
 #include "CTLongLong.h"
 #include "CTShort.h"
+#include "CPPPunctuatorList.h"
 
 
 struct SCPPReservedWord
@@ -45,57 +46,9 @@ struct SCPPReservedWord
 //The first spelling of each token is in ECppTokens order and is how the token prints.  The alternative spellings follow.
 static SCPPReservedWord gasCPPReservedWords[] =
 {
-	{ "(", CT_OpenRoundBracket },
-	{ ")", CT_CloseRoundBracket },
-	{ "{", CT_OpenCurlyBracket },
-	{ "}", CT_CloseCurlyBracket },
-	{ "[", CT_OpenSquareBracket },
-	{ "]", CT_CloseSquareBracket },
-	{ "<<=", CT_AssignmentLeftShift },
-	{ ">>=", CT_AssignmentRightShift },
-	{ "++", CT_Increment },
-	{ "--", CT_Decrement },
-	{ "==", CT_EqualTo },
-	{ "!=", CT_NotEqualTo },
-	{ ">=", CT_GreaterThanEqualTo },
-	{ "<=", CT_LessThanEqualTo },
-	{ "||", CT_LogicalOr },
-	{ "&&", CT_LogicalAnd },
-	{ "+=", CT_AssignmentAdd },
-	{ "-=", CT_AssignmentSubtract },
-	{ "*=", CT_AssignmentMultiply },
-	{ "/=", CT_AssignmentDivide },
-	{ "%=", CT_AssignmentModulus },
-	{ "&=", CT_AssignmentBitwiseAnd },
-	{ "|=", CT_AssignmentBitwiseOr },
-	{ "^=", CT_AssignmentBitwiseXor },
-	{ "<<", CT_LeftShift },
-	{ ">>", CT_RightShift },
-	{ "+", CT_Add },
-	{ "-", CT_Subtract },
-	{ "*", CT_Multiply },
-	{ "/", CT_Divide },
-	{ "%", CT_Modulus },
-	{ "=", CT_Assignment },
-	{ "!", CT_LogicalNot },
-	{ "&", CT_BitwiseAnd },
-	{ "|", CT_BitwiseOr },
-	{ "^", CT_BitwiseXor },
-	{ "<", CT_LessThan },
-	{ ">", CT_GreaterThan },
-	{ "~", CT_BitwiseNot },
-	{ "::", CT_ScopeResolution },
-	{ "?", CT_QuestionMark },
-	{ ":", CT_Colon },
-	{ ";", CT_SemiColon },
-	{ "->", CT_MemberByPointer },
-	{ ".", CT_Member },
-	{ "->*", CT_MemberByPointerFunctionPointerIndirection },
-	{ ".*", CT_MemberFunctionPointerIndirection },
-	{ "...", CT_Elipsis },
-	{ ",", CT_Comma },
-	{ "#", CT_Hash },
-	{ "##", CT_HashHash },
+#define CPP_RESERVED_SPELLING(sz, eToken)	{ sz, eToken },
+	CPP_PUNCTUATORS(CPP_RESERVED_SPELLING)
+
 
 	{ "alignas", CT_alignas },
 	{ "alignof", CT_alignof },
@@ -204,12 +157,7 @@ static SCPPReservedWord gasCPPReservedWords[] =
 	{ "__thread", CT___thread },
 
 	//Alternative tokens [lex.digraph].
-	{ "<:", CT_OpenSquareBracket },
-	{ ":>", CT_CloseSquareBracket },
-	{ "<%", CT_OpenCurlyBracket },
-	{ "%>", CT_CloseCurlyBracket },
-	{ "%:", CT_Hash },
-	{ "%:%:", CT_HashHash },
+	CPP_ALTERNATIVE_PUNCTUATORS(CPP_RESERVED_SPELLING)
 	{ "and", CT_LogicalAnd },
 	{ "and_eq", CT_AssignmentBitwiseAnd },
 	{ "bitand", CT_BitwiseAnd },
@@ -239,6 +187,7 @@ static SCPPReservedWord gasCPPReservedWords[] =
 
 	{ NULL, NUM_CPP_TOKENS }
 };
+#undef CPP_RESERVED_SPELLING
 
 
 #define NUM_CPP_RESERVED_SPELLINGS	(sizeof(gasCPPReservedWords) / sizeof(SCPPReservedWord) - 1)

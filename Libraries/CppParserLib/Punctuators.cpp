@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "Punctuators.h"
+#include "CPPPunctuatorList.h"
 
 
 //Each punctuator with its length, so a lookup compares the first character before anything else (the
@@ -34,19 +35,13 @@ struct SPunctuator
 #define PUNCTUATOR(sz)	{ sz, sizeof(sz) - 1 }
 
 
+#define CPP_PUNCTUATOR_ENTRY(sz, eToken)	PUNCTUATOR(sz),
 static const SPunctuator gasPunctuators[] =
 {
-	PUNCTUATOR("{"), PUNCTUATOR("}"), PUNCTUATOR("["), PUNCTUATOR("]"), PUNCTUATOR("#"), PUNCTUATOR("##"),
-	PUNCTUATOR("("), PUNCTUATOR(")"), PUNCTUATOR("<:"), PUNCTUATOR(":>"), PUNCTUATOR("<%"), PUNCTUATOR("%>"),
-	PUNCTUATOR("%:"), PUNCTUATOR("%:%:"), PUNCTUATOR(";"), PUNCTUATOR(":"), PUNCTUATOR("..."), PUNCTUATOR("?"),
-	PUNCTUATOR("::"), PUNCTUATOR("."), PUNCTUATOR(".*"), PUNCTUATOR("+"), PUNCTUATOR("-"), PUNCTUATOR("*"),
-	PUNCTUATOR("/"), PUNCTUATOR("%"), PUNCTUATOR("^"), PUNCTUATOR("&"), PUNCTUATOR("|"), PUNCTUATOR("~"),
-	PUNCTUATOR("!"), PUNCTUATOR("="), PUNCTUATOR("<"), PUNCTUATOR(">"), PUNCTUATOR("+="), PUNCTUATOR("-="),
-	PUNCTUATOR("*="), PUNCTUATOR("/="), PUNCTUATOR("%="), PUNCTUATOR("^="), PUNCTUATOR("&="), PUNCTUATOR("|="),
-	PUNCTUATOR("<<"), PUNCTUATOR(">>"), PUNCTUATOR(">>="), PUNCTUATOR("<<="), PUNCTUATOR("=="), PUNCTUATOR("!="),
-	PUNCTUATOR("<="), PUNCTUATOR(">="), PUNCTUATOR("&&"), PUNCTUATOR("||"), PUNCTUATOR("++"), PUNCTUATOR("--"),
-	PUNCTUATOR(","), PUNCTUATOR("->*"), PUNCTUATOR("->"),
+	CPP_PUNCTUATORS(CPP_PUNCTUATOR_ENTRY)
+	CPP_ALTERNATIVE_PUNCTUATORS(CPP_PUNCTUATOR_ENTRY)
 };
+#undef CPP_PUNCTUATOR_ENTRY
 
 
 #define NUM_PUNCTUATORS	(sizeof(gasPunctuators) / sizeof(SPunctuator))
