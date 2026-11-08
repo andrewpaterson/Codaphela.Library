@@ -188,6 +188,51 @@ void TestCPP65LazyHeadersMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The NamespaceProject: what a header's namespaces declare is defined in other
+// units, inside the namespace and outside it, and links.  Each unit has its own
+// namespace without a name, with the same names.  Eager and lazy give the same
+// program.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65LazyHeadersNamespaces(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/NamespaceProject/Shapes.cpp", "Input/CPP65/NamespaceProject/Other.cpp", "Input/CPP65/NamespaceProject/Main.cpp", NULL };
+	CCPP65Builder		cEager;
+	CCPP65Builder		cLazy;
+	CCPP65Builder*		pcBuilder;
+	STestCPP65Run		sRun;
+	int					j;
+	bool				abLinked[2];
+
+	for (j = 0; j < 2; j++)
+	{
+		pcBuilder = (j == 0) ? &cEager : &cLazy;
+		pcBuilder->Init();
+		TestCPP65AddIncludeDirectories(pcBuilder);
+		pcBuilder->SetLazyHeaders(j == 1);
+		pcBuilder->AddStartUp();
+		TestCPP65AddUnits(pcBuilder, aszUnits, true);
+		abLinked[j] = pcBuilder->Link();
+		AssertString("", pcBuilder->GetErrors());
+		AssertTrue(abLinked[j]);
+	}
+	AssertTrue(cLazy.NumLazySkipped() > 0);
+	AssertString(cEager.GetMap(), cLazy.GetMap());
+	if (abLinked[1])
+	{
+		TestCPP65BeginBuilt(&sRun, &cLazy);
+		AssertTrue(TestCPP65Run(&sRun, 1000000) < 1000000);
+		AssertInt(9 + 4 + 3 + 10 + 7 + 11 + 2001 + 6 + 500 + 2, (int32)TestCPP65MPU(&sRun)->GetA());
+		TestCPP65End(&sRun);
+	}
+
+	cLazy.Kill();
+	cEager.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65LazyHeaders(void)
@@ -197,6 +242,7 @@ void TestCPP65LazyHeaders(void)
 	TestCPP65LazyHeadersSame();
 	TestCPP65LazyHeadersFriends();
 	TestCPP65LazyHeadersMembers();
+	TestCPP65LazyHeadersNamespaces();
 
 	TestStatistics();
 }

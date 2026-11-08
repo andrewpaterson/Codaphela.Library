@@ -128,6 +128,31 @@ void TestCPP65HeaderCacheProject(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The NamespaceProject's units get Shapes.h from the cache, with what its
+// namespaces declare, and build the same program on both targets.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65HeaderCacheNamespaces(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/NamespaceProject/Shapes.cpp", "Input/CPP65/NamespaceProject/Other.cpp", "Input/CPP65/NamespaceProject/Main.cpp", NULL };
+	CCPP65Builder		cWithout;
+	CCPP65Builder		cWith;
+	int					i;
+
+	for (i = 0; i < 2; i++)
+	{
+		AssertTrue(TestCPP65HeaderCacheBuild(&cWithout, (i == 0) ? CPPT_65C64 : CPPT_W65C816, false, NULL, aszUnits, NULL));
+		AssertTrue(TestCPP65HeaderCacheBuild(&cWith, (i == 0) ? CPPT_65C64 : CPPT_W65C816, true, NULL, aszUnits, NULL));
+		TestCPP65HeaderCacheAssertSame(&cWithout, &cWith);
+		AssertTrue(cWith.GetHeaderCache()->NumHits() >= 2);
+		cWith.Kill();
+		cWithout.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // BaseLib's index tree units (which include many of the same headers)
 // built with the header cache, a unit at a time and by four threads, are
 // the same as without, for both targets.
@@ -173,6 +198,7 @@ void TestCPP65HeaderCache(void)
 	BeginTests();
 
 	TestCPP65HeaderCacheProject();
+	TestCPP65HeaderCacheNamespaces();
 	TestCPP65HeaderCacheBaseLib();
 
 	TestStatistics();
