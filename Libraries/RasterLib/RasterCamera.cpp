@@ -51,6 +51,10 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #define RASTER_PAN_STEP_NUMERATOR	7
 #define RASTER_PAN_STEP_DENOMINATOR	160
 
+//What FitOrbit looks at: enough turns of the box to find its furthest corners within a fraction of a pixel.
+#define RASTER_FIT_PASSES			8
+#define RASTER_FIT_YAWS				72
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -134,6 +138,81 @@ void CRasterCamera::Fit(int32 iWidth, int32 iHeight)
 	msPivot.Init(0, 0, 0);
 	msPan.Init(0, 0);
 	Resize(iHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pivot, focal length and pan that keep the box on the screen, but for
+// iMargin pixels each side, at every yaw with this pitch, turning around
+// its middle.  The eye stays where it is, so the perspective doesn't change.
+// It sits in the middle up and down, and turning about the middle leaves it
+// there across.  Panning changes how big its near corners look, so it takes
+// a few goes to settle.  It leaves the camera at a yaw of 0.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterCamera::FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitch, int32 iWidth, int32 iHeight, int32 iMargin)
+{
+	SRasterScreenVertex	sScreen;
+	SInt32Vec3			sCorner;
+	int32				iLeft;
+	int32				iRight;
+	int32				iTop;
+	int32				iBottom;
+	int64				iAcross;
+	int64				iDown;
+	int64				iRoomAcross;
+	int64				iRoomDown;
+	int					iPass;
+	int					iYaw;
+	int					i;
+
+	msPivot.Init((int32)(((int64)psMin->x + psMax->x) / 2), (int32)(((int64)psMin->y + psMax->y) / 2), (int32)(((int64)psMin->z + psMax->z) / 2));
+	msPan.Init(0, 0);
+	Resize(iHeight);
+	iRoomAcross = (int64)FixedFromInt(iWidth - 2 * iMargin, RASTER_SUBPIXEL_BITS);
+	iRoomDown = (int64)FixedFromInt(iHeight - 2 * iMargin, RASTER_SUBPIXEL_BITS);
+	for (iPass = 0; iPass < RASTER_FIT_PASSES; iPass++)
+	{
+		iLeft = RASTER_MAX_SCREEN;
+		iTop = RASTER_MAX_SCREEN;
+		iRight = -RASTER_MAX_SCREEN;
+		iBottom = -RASTER_MAX_SCREEN;
+		for (iYaw = 0; iYaw < RASTER_FIT_YAWS; iYaw++)
+		{
+			SetOrbit((float32)iYaw * 6.28318530718f / RASTER_FIT_YAWS, fPitch);
+			Prepare(iWidth, iHeight);
+			for (i = 0; i < 8; i++)
+			{
+				sCorner.Init((i & 1) ? psMax->x : psMin->x, (i & 2) ? psMax->y : psMin->y, (i & 4) ? psMax->z : psMin->z);
+				Project(&sScreen, &sCorner);
+				iLeft = (sScreen.sPosition.x < iLeft) ? sScreen.sPosition.x : iLeft;
+				iTop = (sScreen.sPosition.y < iTop) ? sScreen.sPosition.y : iTop;
+				iRight = (sScreen.sPosition.x > iRight) ? sScreen.sPosition.x : iRight;
+				iBottom = (sScreen.sPosition.y > iBottom) ? sScreen.sPosition.y : iBottom;
+			}
+		}
+
+		//Across is from the middle, so that the box turns in the middle of the screen.
+		iAcross = (iRight - msScreenCentre.x > msScreenCentre.x - iLeft) ? 2 * ((int64)iRight - msScreenCentre.x) : 2 * ((int64)msScreenCentre.x - iLeft);
+		iDown = (int64)iBottom - iTop;
+		if ((iAcross <= 0) || (iDown <= 0))
+		{
+			break;
+		}
+
+		//A pixel is the eye's distance over the focal length of the mesh's units.
+		msPan.y += (int32)((((int64)iTop + iBottom) / 2 - msScreenCentre.y) * miDistance / ((int64)miFocalLength << RASTER_SUBPIXEL_BITS));
+		if (iRoomAcross * iDown < iRoomDown * iAcross)
+		{
+			miFocalLength = (int32)((int64)miFocalLength * iRoomAcross / iAcross);
+		}
+		else
+		{
+			miFocalLength = (int32)((int64)miFocalLength * iRoomDown / iDown);
+		}
+	}
+	SetOrbit(0.0f, fPitch);
 }
 
 

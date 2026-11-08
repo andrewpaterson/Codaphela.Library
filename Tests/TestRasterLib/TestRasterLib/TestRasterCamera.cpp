@@ -356,6 +356,69 @@ void TestRasterCameraLookAtScreen(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A box away from the origin stays on the screen, and nearly reaches its
+// sides, as it turns; and it turns around its own middle.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterCameraFitOrbit(void)
+{
+	CRasterCamera		cCamera;
+	SInt32Vec3			sMin;
+	SInt32Vec3			sMax;
+	SInt32Vec3			sCorner;
+	SInt32Vec3			sMiddle;
+	SRasterScreenVertex	sScreen;
+	SRasterScreenVertex	sFirstMiddle;
+	int32				iLeft;
+	int32				iRight;
+	int32				iTop;
+	int32				iBottom;
+	int					iYaw;
+	int					i;
+
+	sMin.Init(100000, 50000, 0);
+	sMax.Init(900000, 650000, 300000);
+	sMiddle.Init(500000, 350000, 150000);
+
+	cCamera.Init();
+	cCamera.FitOrbit(&sMin, &sMax, -1.04719755f, 640, 360, 10);
+
+	iLeft = iTop = 0x7FFFFFFF;
+	iRight = iBottom = -0x7FFFFFFF;
+	cCamera.Prepare(640, 360);
+	cCamera.Project(&sFirstMiddle, &sMiddle);
+	for (iYaw = 0; iYaw < 360; iYaw += 7)
+	{
+		cCamera.SetOrbit((float32)iYaw * TEST_HALF_PI / 90.0f, -1.04719755f);
+		cCamera.Prepare(640, 360);
+		for (i = 0; i < 8; i++)
+		{
+			sCorner.Init((i & 1) ? sMax.x : sMin.x, (i & 2) ? sMax.y : sMin.y, (i & 4) ? sMax.z : sMin.z);
+			cCamera.Project(&sScreen, &sCorner);
+			iLeft = (sScreen.sPosition.x < iLeft) ? sScreen.sPosition.x : iLeft;
+			iRight = (sScreen.sPosition.x > iRight) ? sScreen.sPosition.x : iRight;
+			iTop = (sScreen.sPosition.y < iTop) ? sScreen.sPosition.y : iTop;
+			iBottom = (sScreen.sPosition.y > iBottom) ? sScreen.sPosition.y : iBottom;
+		}
+		cCamera.Project(&sScreen, &sMiddle);
+		AssertInt(sFirstMiddle.sPosition.x, sScreen.sPosition.x);
+		AssertInt(sFirstMiddle.sPosition.y, sScreen.sPosition.y);
+	}
+
+	//The margins, within a pixel or two as the turns tried here aren't the fit's.
+	AssertTrue(iLeft >= (10 - 2) * RASTER_SUBPIXELS);
+	AssertTrue(iRight <= (630 + 2) * RASTER_SUBPIXELS);
+	AssertTrue(iTop >= (10 - 2) * RASTER_SUBPIXELS);
+	AssertTrue(iBottom <= (350 + 2) * RASTER_SUBPIXELS);
+
+	//It fills one of the two ways, and is in the middle up and down.
+	AssertTrue((iRight - iLeft >= (620 - 8) * RASTER_SUBPIXELS) || (iBottom - iTop >= (340 - 8) * RASTER_SUBPIXELS));
+	AssertTrue((((iTop + iBottom) / 2) >= (180 - 2) * RASTER_SUBPIXELS) && (((iTop + iBottom) / 2) <= (180 + 2) * RASTER_SUBPIXELS));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterCamera(void)
@@ -369,6 +432,7 @@ void TestRasterCamera(void)
 	TestRasterCameraZoom();
 	TestRasterCameraDrag();
 	TestRasterCameraLookAtScreen();
+	TestRasterCameraFitOrbit();
 
 	TestStatistics();
 }

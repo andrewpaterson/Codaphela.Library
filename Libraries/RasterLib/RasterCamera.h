@@ -56,6 +56,8 @@ struct SRasterScreenVertex
 //Drag, Pan, PanStep, Zoom and LookAtScreen move the camera as KiCad's 3D viewer does: a virtual trackball, a pan that
 //keeps what is at the pivot's depth under the pointer, and zooming by moving the eye (so a very close eye can cut
 //off triangles, see Project).
+//
+//FitOrbit is for a view that spins by itself: a box turns around its middle with SetOrbit's yaw and stays on the screen.
 class CRasterCamera
 {
 protected:
@@ -78,6 +80,7 @@ public:
 	void				SetPan(int32 iX, int32 iY);
 	void				SetPerspective(int32 iDistance, int32 iFocalLength);
 	void				Fit(int32 iWidth, int32 iHeight);
+	void				FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitch, int32 iWidth, int32 iHeight, int32 iMargin);
 	void				Resize(int32 iHeight);
 
 	void				Drag(int32 iLastX, int32 iLastY, int32 iX, int32 iY, int32 iWidth, int32 iHeight);
