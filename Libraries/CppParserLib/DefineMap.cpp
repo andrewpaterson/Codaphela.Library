@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Numbers.h"
 #include "DefineMap.h"
+#include "FNVHash.h"
 
 
 #define DEFINE_MAP_FIRST_CAPACITY	256
@@ -74,16 +75,7 @@ void CDefineMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CDefineMap::Hash(const char* szName, size uiLength)
 {
-	uint32	uiHash;
-	size	i;
-
-	uiHash = 2166136261U;
-	for (i = 0; i < uiLength; i++)
-	{
-		uiHash ^= (uint8)szName[i];
-		uiHash *= 16777619U;
-	}
-	return uiHash;
+	return FNVHash32(szName, uiLength);
 }
 
 

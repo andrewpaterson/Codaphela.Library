@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "ASCIIIndex.h"
+#include "FNVHash.h"
 
 
 #define ASCII_INDEX_FIRST_TABLE		256
@@ -214,16 +215,7 @@ void CASCIIIndex::Grow(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CASCIIIndex::Hash(const char* sz, int iLength)
 {
-	uint32	uiHash;
-	int		i;
-
-	uiHash = 2166136261u;
-	for (i = 0; i < iLength; i++)
-	{
-		uiHash ^= (uint8)sz[i];
-		uiHash *= 16777619u;
-	}
-	return uiHash;
+	return FNVHash32(sz, (size)iLength);
 }
 
 

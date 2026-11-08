@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "NameSet.h"
+#include "FNVHash.h"
 
 
 #define NAME_SET_FIRST_CAPACITY	64
@@ -61,16 +62,7 @@ void CNameSet::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 uint64 CNameSet::Hash(const char* szName, size uiLength)
 {
-	uint64	uiHash;
-	size	i;
-
-	uiHash = 0xCBF29CE484222325ULL;
-	for (i = 0; i < uiLength; i++)
-	{
-		uiHash ^= (uint8)szName[i];
-		uiHash *= 0x100000001B3ULL;
-	}
-	return uiHash;
+	return FNVHash64(szName, uiLength);
 }
 
 

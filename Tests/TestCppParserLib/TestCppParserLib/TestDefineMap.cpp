@@ -1,5 +1,6 @@
 #include "BaseLib/Chars.h"
 #include "CppParserLib/DefineMap.h"
+#include "CppParserLib/FNVHash.h"
 #include "TestLib/Assert.h"
 
 
@@ -181,9 +182,32 @@ void TestDefineMapLongestPrefix(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// FNVHash32 and FNVHash64 (the define map's, the ASCII index's, the name
+// sets' and the IR fingerprints' hash) give FNV-1a's published values.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFNVHash(void)
+{
+	AssertIntHex(0x811C9DC5u, FNVHash32("", 0));
+	AssertIntHex(0xE40C292Cu, FNVHash32("a", 1));
+	AssertIntHex(0xBF9CF968u, FNVHash32("foobar", 6));
+	AssertLongLongIntHex((int64)0xCBF29CE484222325ULL, (int64)FNVHash64("", 0));
+	AssertLongLongIntHex((int64)0xAF63DC4C8601EC8CULL, (int64)FNVHash64("a", 1));
+	AssertLongLongIntHex((int64)0x85944171F73967E8ULL, (int64)FNVHash64("foobar", 6));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestDefineMap(void)
 {
 	BeginTests();
+
+	TestFNVHash();
 
 	TestDefineMapAddRemove();
 	TestDefineMapLongestPrefix();

@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IR816Backend.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPNameCharacters.h"
+#include "FNVHash.h"
 
 
 //The IR front end's work over a whole unit: inlining (InlineUnit), recursion, what functions don't write,
@@ -1342,16 +1343,11 @@ void CCPP65IRFrontEnd::RemoveDeadArguments(CArrayTemplate<bool>* pabChanged)
 uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 {
 	CChars			szText;
-	const char*		sz;
 	uint32			uiHash;
 
 	szText.Init();
 	PrintFunction(pcFunction, &szText, false);
-	uiHash = 2166136261u;
-	for (sz = szText.Text(); *sz != '\0'; sz++)
-	{
-		uiHash = (uiHash ^ (uint8)*sz) * 16777619u;
-	}
+	uiHash = FNVHash32(szText.Text(), szText.Length());
 	szText.Kill();
 	return uiHash;
 }
