@@ -265,14 +265,7 @@ void CMenuItem::MenuOpening(void)
 	if (mpCommand.IsNotNull())
 	{
 		SetEnabled(mpCommand->IsEnabled());
-		if (!StrEmpty(mpCommand->GetKeys()))
-		{
-			CComponentInput::AppendShortcutText(&szKeys, mpCommand->GetKeys());
-		}
-		else if ((mpCommand->GetStandardCommand() != CIC_Ignored) && (pcInput != NULL))
-		{
-			pcInput->GetShortcutText(mpCommand->GetStandardCommand(), &szKeys);
-		}
+		mpCommand->AppendKeysText(&szKeys, pcInput);
 	}
 	else if ((meShortcut != CIC_Ignored) && (pcInput != NULL))
 	{

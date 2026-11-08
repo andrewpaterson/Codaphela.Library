@@ -125,3 +125,25 @@ char* CCommand::GetCaption(void) { return mszCaption.Text(); }
 char* CCommand::GetKeys(void) { return mszKeys.Text(); }
 Ptr<CImageCel> CCommand::GetIcon(void) { return mpIcon; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends the keys that run the command as a menu shows them: its own,
+// or those pcInput binds to the component command it stands for (pcInput
+// can be NULL).  False, and nothing appended, if no key runs it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommand::AppendKeysText(CChars* pszDest, CComponentInput* pcInput)
+{
+	if (!mszKeys.Empty())
+	{
+		CComponentInput::AppendShortcutText(pszDest, mszKeys.Text());
+		return true;
+	}
+	if ((meStandard != CIC_Ignored) && (pcInput != NULL))
+	{
+		return pcInput->GetShortcutText(meStandard, pszDest);
+	}
+	return false;
+}
+

@@ -27,6 +27,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentInputCommand.h"
 
 
+class CComponentInput;
+
+
 //Something the application does, like Build or Step Over, that its keys, a menu item and a tool button can all ask
 //for: its name (how it is found, by scripts too), caption and icon, the keys bound to it (see
 //CComponentInput::BindKeys), what it runs and whether it can run now.  Keys reach it when nothing focused takes them
@@ -70,6 +73,7 @@ public:
 	char*				GetCaption(void);
 	char*				GetKeys(void);
 	Ptr<CImageCel>		GetIcon(void);
+	bool				AppendKeysText(CChars* pszDest, CComponentInput* pcInput);
 
 protected:
 	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, SMemberCall* psRun, bool bRunAsks);
