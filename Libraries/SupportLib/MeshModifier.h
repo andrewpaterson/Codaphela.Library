@@ -56,6 +56,9 @@ public:
 
 	virtual void	MovePosition(int iPosition, SFloat32Vec3* psPosition);
 	virtual void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
+
+protected:
+	bool			CanRebuild(CMesh* pcMesh);  //Modify builds a new mesh of positions, normals and colours.
 };
 
 

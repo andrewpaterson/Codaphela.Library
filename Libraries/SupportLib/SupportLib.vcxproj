@@ -407,6 +407,7 @@
     <ClInclude Include="MeshModifier.h" />
     <ClInclude Include="MeshModifierStack.h" />
     <ClInclude Include="MeshFlatFaces.h" />
+    <ClInclude Include="MeshFixReversed.h" />
     <ClInclude Include="MeshSmoothFaces.h" />
     <ClInclude Include="MeshSmoothGroups.h" />
     <ClInclude Include="MeshSourceModifier.h" />
@@ -660,6 +661,7 @@
     <ClCompile Include="MeshModifier.cpp" />
     <ClCompile Include="MeshModifierStack.cpp" />
     <ClCompile Include="MeshFlatFaces.cpp" />
+    <ClCompile Include="MeshFixReversed.cpp" />
     <ClCompile Include="MeshSmoothFaces.cpp" />
     <ClCompile Include="MeshSmoothGroups.cpp" />
     <ClCompile Include="MeshSourceModifier.cpp" />

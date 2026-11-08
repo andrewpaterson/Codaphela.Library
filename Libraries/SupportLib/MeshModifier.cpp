@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "MeshModifier.h"
 
 
@@ -151,4 +152,20 @@ void CMeshModifier::MovePosition(int iPosition, SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifier::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition)
 {
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh with more than that is left as it is, rather than losing the rest.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshModifier::CanRebuild(CMesh* pcMesh)
+{
+	if (pcMesh->mcUVs.InUse() || pcMesh->mcSkin.InUse() || pcMesh->mcMaterials.InUse())
+	{
+		gcLogger.Warning2(__METHOD__, " Can't keep a mesh's UVs, skin or materials.  It is left as it is.", NULL);
+		return false;
+	}
+	return true;
 }
