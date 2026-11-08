@@ -613,6 +613,52 @@ void TestCompressionTooMany(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The code of every match length and distance is the last whose base it
+// reaches (RFC 1951 3.2.5), and its extra bits hold the rest.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCompressionDeflateCodes(void)
+{
+	int		iLength;
+	size	uiDistance;
+	int		iCode;
+	int		iExpected;
+
+	for (iLength = DEFLATE_MIN_MATCH; iLength <= DEFLATE_MAX_MATCH; iLength++)
+	{
+		iExpected = DEFLATE_NUM_LENGTH_CODES - 1;
+		while (iLength < gauiDeflateLengthBase[iExpected])
+		{
+			iExpected--;
+		}
+		iCode = DeflateLengthCode(iLength);
+		AssertInt(iExpected, iCode);
+		AssertTrue(iLength - gauiDeflateLengthBase[iCode] < (1 << gauiDeflateLengthExtra[iCode]));
+	}
+	AssertInt(0, DeflateLengthCode(DEFLATE_MIN_MATCH));
+	AssertInt(DEFLATE_NUM_LENGTH_CODES - 1, DeflateLengthCode(DEFLATE_MAX_MATCH));
+	AssertInt(DEFLATE_NUM_LENGTH_CODES - 2, DeflateLengthCode(DEFLATE_MAX_MATCH - 1));
+
+	for (uiDistance = 1; uiDistance <= DEFLATE_WINDOW_SIZE; uiDistance++)
+	{
+		iExpected = DEFLATE_NUM_DISTANCES - 1;
+		while (uiDistance < gauiDeflateDistanceBase[iExpected])
+		{
+			iExpected--;
+		}
+		iCode = DeflateDistanceCode(uiDistance);
+		AssertInt(iExpected, iCode);
+		AssertTrue(uiDistance - gauiDeflateDistanceBase[iCode] < ((size)1 << gauiDeflateDistanceExtra[iCode]));
+	}
+	AssertInt(0, DeflateDistanceCode(1));
+	AssertInt(16, DeflateDistanceCode(257));
+	AssertInt(15, DeflateDistanceCode(256));
+	AssertInt(DEFLATE_NUM_DISTANCES - 1, DeflateDistanceCode(DEFLATE_WINDOW_SIZE));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCompressionZLib(void)
@@ -629,6 +675,7 @@ void TestCompressionZLib(void)
 	TestCompressionInflateBad();
 	TestCompressionDeflate();
 	TestCompressionDeflateMatches();
+	TestCompressionDeflateCodes();
 	TestCompressionInflateCodes();
 
 	MemoryKill();
