@@ -1330,7 +1330,7 @@ void CIR816Backend::Return(CIRBlock* pcBlock)
 			Line("tax");
 			Operand("lda", psJump->sArgument, 0);
 		}
-		else if (!psJump->sArgument.IsTemporary() || (OffsetOf(psJump->sArgument) + 2 * iWords <= 255))
+		else if (!psJump->sArgument.IsTemporary() || IR816OnDirectPage(OffsetOf(psJump->sArgument) + 2 * iWords))
 		{
 			//Straight into A and X.
 			if (iWords > 1)

@@ -33,6 +33,30 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a frame offset is a direct page operand, [D + n], so needn't be
+// reached through X.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IR816OnDirectPage(int32 iOffset)
+{
+	return iOffset < IR816_DIRECT_PAGE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a pointer at a frame offset can be read where it is, as [[D + n]]
+// or [[D + n], y]: all of its 3 bytes are on the direct page.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IR816PointerOnDirectPage(int32 iOffset)
+{
+	return iOffset + IR816_LONG_POINTER_BYTES <= IR816_DIRECT_PAGE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The frame (msFrame), its parts added in order: the temporaries after the scratch bytes, shared by those that are
 // never live at once; then each slot its own place.  The arguments are above the frame and the link:
 // the hidden result pointer first, then the parameters in order.
@@ -89,7 +113,7 @@ void CIR816Backend::Layout(void)
 			}
 		}
 	}
-	msFrame.iSavedS = ((msFrame.Link() + iRest > 256) && (msFrame.Link() + 2 <= 256)) ? msFrame.Add(2) : -1;
+	msFrame.iSavedS = ((msFrame.Link() + iRest > IR816_DIRECT_PAGE) && (msFrame.Link() + 2 <= IR816_DIRECT_PAGE)) ? msFrame.Add(2) : -1;
 	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 	{
 		pcBlock = mpcFunction->GetBlock(uiBlock);
@@ -134,7 +158,7 @@ void CIR816Backend::Layout(void)
 	}
 
 	//Frame reaches past the direct page through X, so nothing is kept in X then.
-	if (iArgument > 255)
+	if (!IR816OnDirectPage(iArgument))
 	{
 		for (ui = 0; ui < mabInX.NumElements(); ui++)
 		{

@@ -96,7 +96,7 @@ bool CIR816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRReference 
 		}
 		if (sPointer.IsTemporary())
 		{
-			return (OffsetOf(sPointer) <= 253) && !FusedOverlaps(sResult, sPointer, true);
+			return IR816PointerOnDirectPage(OffsetOf(sPointer)) && !FusedOverlaps(sResult, sPointer, true);
 		}
 		return sPointer.IsSymbol();
 	}
@@ -253,7 +253,7 @@ bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	default:
 		return false;
 	}
-	if (sNextResult.IsTemporary() && (InX(sNextResult) || (OffsetOf(sNextResult) > 255)))
+	if (sNextResult.IsTemporary() && (InX(sNextResult) || !IR816OnDirectPage(OffsetOf(sNextResult))))
 	{
 		return false;
 	}

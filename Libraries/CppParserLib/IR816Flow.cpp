@@ -554,7 +554,7 @@ static bool IR816BuildFlowLabelled(CIR816Code* pcCode, bool bStores, CArrayTempl
 		}
 		else if ((psLine->sLine.uiOperand > 1) && (szOperand[0] == '[') && (szOperand[1] == '['))
 		{
-			if (!IR816PlainDirect(szOperand, psLine->sLine.uiOperand, 1, &psLine->iPointer) || (psLine->iPointer + 2 >= IR816_DIRECT_PAGE))
+			if (!IR816PlainDirect(szOperand, psLine->sLine.uiOperand, 1, &psLine->iPointer) || !IR816PointerOnDirectPage(psLine->iPointer))
 			{
 				if (bStores)
 				{

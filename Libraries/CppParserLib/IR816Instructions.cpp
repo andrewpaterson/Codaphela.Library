@@ -36,7 +36,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CIR816Backend::Frame(const char* szMnemonic, int32 iOffset)
 {
 	mpszOut->Append("\t\t");
-	if (iOffset <= 255)
+	if (IR816OnDirectPage(iOffset))
 	{
 		mpszOut->Append(szMnemonic);
 		mpszOut->Append(" [D + ");
@@ -153,7 +153,7 @@ void CIR816Backend::Store(SIRReference sResult, int iWord)
 		Line("tax");
 		return;
 	}
-	if ((miBlock >= 0) && (Words(mpcFunction->GetTemporaryType(sResult)) == 1) && (OffsetOf(sResult) <= 255) &&
+	if ((miBlock >= 0) && (Words(mpcFunction->GetTemporaryType(sResult)) == 1) && IR816OnDirectPage(OffsetOf(sResult)) &&
 		(sResult.Index() < maiUseBlock.NumElements()) && (*maiUseBlock.Get(sResult.Index()) == miBlock))
 	{
 		//Its one use is later in the block: the store is marked for Peephole, which leaves the value in A when that
@@ -290,7 +290,7 @@ void CIR816Backend::PushValue(SIRReference sValue, SIRType sType)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::PushWord(SIRReference sValue, int iWord)
 {
-	if (sValue.IsTemporary() && (iWord < Words(mpcFunction->GetTemporaryType(sValue))) && ((OffsetOf(sValue) + 2 * iWord <= 255) || InX(sValue)))
+	if (sValue.IsTemporary() && (iWord < Words(mpcFunction->GetTemporaryType(sValue))) && (IR816OnDirectPage(OffsetOf(sValue) + 2 * iWord) || InX(sValue)))
 	{
 		//pei pushes a direct page word without A (Peephole makes it pha when A holds it).
 		Operand("pei", sValue, iWord);
@@ -343,7 +343,7 @@ void CIR816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** p
 		*pszSymbol = mpcModule->GetSymbolName(sPointer.Index());
 		return;
 	}
-	if (sPointer.IsTemporary() && (OffsetOf(sPointer) <= 253))
+	if (sPointer.IsTemporary() && IR816PointerOnDirectPage(OffsetOf(sPointer)))
 	{
 		*piPlace = OffsetOf(sPointer);
 		return;
@@ -559,7 +559,7 @@ bool CIR816Backend::StepInPlace(SIRInstruction* psInstruction)
 	bWord = psInstruction->sType.Is(IRTK_I16);
 	if (((Words(psInstruction->sType) != 2) && !bWord) || !psInstruction->sResult.IsTemporary() || !sValue.IsTemporary() || Fused(sValue) ||
 		!psInstruction->asArguments[1].IsConstant() || InX(sValue) || InX(psInstruction->sResult) ||
-		(OffsetOf(psInstruction->sResult) != OffsetOf(sValue)) || (OffsetOf(sValue) > 253))
+		(OffsetOf(psInstruction->sResult) != OffsetOf(sValue)) || !IR816PointerOnDirectPage(OffsetOf(sValue)))
 	{
 		return false;
 	}

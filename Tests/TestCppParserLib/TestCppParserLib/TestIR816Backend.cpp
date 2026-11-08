@@ -2799,6 +2799,24 @@ void TestIR816BackendRuntimeRoutines(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A frame operand is on the direct page up to 255, and a pointer read through
+// it only if its 3 bytes are.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendDirectPage(void)
+{
+	AssertTrue(IR816OnDirectPage(0));
+	AssertTrue(IR816OnDirectPage(255));
+	AssertFalse(IR816OnDirectPage(256));
+	AssertTrue(IR816PointerOnDirectPage(0));
+	AssertTrue(IR816PointerOnDirectPage(253));
+	AssertFalse(IR816PointerOnDirectPage(254));
+	AssertFalse(IR816PointerOnDirectPage(256));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The table of how X serves each opcode, tested at the ends of its groups as
 // its rows are in the order of EIROpcode.
 //
@@ -2891,6 +2909,7 @@ void TestIR816Backend(void)
 	C65C64InstructionFactory::GetInstance()->Init();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
+	TestIR816BackendDirectPage();
 	TestIR816BackendXOpcodes();
 	TestIR816BackendBasics();
 	TestIR816BackendLoops();

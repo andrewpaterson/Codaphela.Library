@@ -44,6 +44,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define IR816_BITS_TABLE_LENGTH		9
 #define IR816_FRAME_OPERANDS		".dp"	//A soft float frame operand entry's label suffix (FrameOperandCall).
 #define IR816_DIRECT_PAGE			256		//The bytes [D + n] reaches (IR816FindReads).
+#define IR816_LONG_POINTER_BYTES	3		//The bytes an instruction reads of a pointer on the direct page.
 #define IR816_SCRATCH_FIRST			3		//The caller's bytes the scratch runtime routines may read (D + 5 to D + 22, with
 #define IR816_SCRATCH_END			24		//a byte either side).
 
@@ -228,7 +229,9 @@ void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 
-//IR816Places.cpp: how X serves an instruction (AllocateX).
+//IR816Places.cpp: what the direct page reaches, and how X serves an instruction (AllocateX).
+bool		IR816OnDirectPage(int32 iOffset);
+bool		IR816PointerOnDirectPage(int32 iOffset);
 int32		IR816XUse(uint16 uiOpcode, int iArgument);
 bool		IR816XResult(SIRInstruction* psInstruction);
 bool		IR816ClobbersX(SIRInstruction* psInstruction);

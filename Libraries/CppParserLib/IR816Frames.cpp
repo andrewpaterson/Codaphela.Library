@@ -257,7 +257,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR81
 	iRegisterWords = psFrame->iRegisterWords;
 	szCode = pszCode->Text();
 	szBodyLabel = NULL;
-	bBig = iTop > 255;
+	bBig = !IR816OnDirectPage(iTop);
 	if ((psFrame->iFrameBytes == 0) || (bBig && (psFrame->iSavedS < 0)) || psFrame->bVariadic || bRecursive)
 	{
 		return false;

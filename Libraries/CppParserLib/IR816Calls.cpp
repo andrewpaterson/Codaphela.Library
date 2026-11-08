@@ -69,7 +69,7 @@ void CIR816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
 			Mask(psInstruction->sType);
 			Store(psInstruction->sResult, 0);
 		}
-		else if (OffsetOf(psInstruction->sResult) + 2 <= 255)
+		else if (IR816OnDirectPage(OffsetOf(psInstruction->sResult) + 2))
 		{
 			Store(psInstruction->sResult, 0);
 			Frame("stx", OffsetOf(psInstruction->sResult) + 2);
@@ -357,7 +357,7 @@ bool CIR816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 	{
 		return true;
 	}
-	return (iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || (OffsetOf(sValue) + 2 * iWord <= 255);
+	return (iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || IR816OnDirectPage(OffsetOf(sValue) + 2 * iWord);
 }
 
 

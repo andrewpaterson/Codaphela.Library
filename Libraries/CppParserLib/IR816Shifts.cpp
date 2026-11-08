@@ -88,7 +88,7 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 
 	iLoop = NewLabel();
 	iEnd = NewLabel();
-	if ((iWords <= 2) && (iResult + 2 * iWords <= 255))
+	if ((iWords <= 2) && IR816OnDirectPage(iResult + 2 * iWords))
 	{
 		ShiftInA(psInstruction->uiOpcode, iResult, iWords, sAmount, iLoop, iEnd);
 	}
@@ -179,7 +179,7 @@ bool CIR816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 	}
 	iAmount = (int)(mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits & 63);
 	iResult = OffsetOf(psInstruction->sResult);
-	if ((iAmount < 1) || (iAmount > 7) || (iResult + 4 > 255))
+	if ((iAmount < 1) || (iAmount > 7) || !IR816OnDirectPage(iResult + 4))
 	{
 		return false;
 	}
@@ -252,7 +252,7 @@ bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
 		return false;
 	}
 	iResult = OffsetOf(psInstruction->sResult);
-	if (iResult + 2 * iWords > 255)
+	if (!IR816OnDirectPage(iResult + 2 * iWords))
 	{
 		return false;
 	}
