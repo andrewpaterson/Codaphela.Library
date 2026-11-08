@@ -659,7 +659,7 @@ static bool TestReferenceSmallTriangle(CRasterTarget* pcTarget, SRasterScreenVer
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserSmallTriangles(void)
 {
-	static const int	aiSpreads[4] = { 32, 64, 128, 640 };
+	static const int	aiSpreads[5] = { 32, 64, 128, 256, 640 };
 
 	CRasteriser			cRasteriser;
 	CRasterTarget		cActual;
@@ -690,7 +690,7 @@ void TestRasteriserSmallTriangles(void)
 	for (iTriangle = 0; iTriangle < 20000; iTriangle++)
 	{
 		uiRandom = uiRandom * 1103515245 + 12345;
-		iSpread = aiSpreads[(uiRandom >> 16) & 3];
+		iSpread = aiSpreads[(uiRandom >> 16) % 5];
 		uiRandom = uiRandom * 1103515245 + 12345;
 		iBaseX = (int32)((uiRandom >> 8) % (34 * 16)) - 16;
 		uiRandom = uiRandom * 1103515245 + 12345;

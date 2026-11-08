@@ -40,8 +40,8 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 //fastest when measured on a board: at 2 the working out costs more than it saves.
 #define RASTER_WIDE_PIXELS		4
 
-//How many pixels of a row a small triangle's box can have for AVX2 to test them at once.
-#define RASTER_LANES			8
+//How many pixels of a row a small triangle's box can have for AVX2 to test them at once: two vectors of eight.
+#define RASTER_LANES			16
 
 //Twice a triangle's area, or how far a pixel is inside one of its edges: subpixel times subpixel.
 typedef SFixed<int64, int64, 8>		SRasterEdge;
@@ -403,12 +403,14 @@ static FORCE_INLINE void RasterWritePixel(uint32* puiPixel, int32* piDepth, int3
 
 
 #ifdef __AVX2__
-//How far along a row each of the eight pixels' edge values are, for each edge, and which pixels are in the box.  Most of a
+//How far along a row each pixel's edge values are, for each edge, and which pixels are in the box.  Most of a
 //board's triangles cover a few pixels at most of a small box, so nearly every test of a pixel on its own is a branch that
 //can't be predicted.  Testing a row at once and then going to the hits has none.
 struct SRasterLanes
 {
 	__m256i	asAlong[3];
+	__m256i	asAlongNext[3];  //For the second eight pixels.
+	bool	bNext;
 	uint32	uiInBox;
 };
 
@@ -425,6 +427,10 @@ static void RasterLanesInit(SRasterLanes* psLanes, SRasterEdge sStepX0, SRasterE
 	psLanes->asAlong[0] = _mm256_mullo_epi32(sIndex, _mm256_set1_epi32((int32)sStepX0.miRaw));
 	psLanes->asAlong[1] = _mm256_mullo_epi32(sIndex, _mm256_set1_epi32((int32)sStepX1.miRaw));
 	psLanes->asAlong[2] = _mm256_mullo_epi32(sIndex, _mm256_set1_epi32((int32)sStepX2.miRaw));
+	psLanes->asAlongNext[0] = _mm256_add_epi32(psLanes->asAlong[0], _mm256_set1_epi32((int32)sStepX0.miRaw * 8));
+	psLanes->asAlongNext[1] = _mm256_add_epi32(psLanes->asAlong[1], _mm256_set1_epi32((int32)sStepX1.miRaw * 8));
+	psLanes->asAlongNext[2] = _mm256_add_epi32(psLanes->asAlong[2], _mm256_set1_epi32((int32)sStepX2.miRaw * 8));
+	psLanes->bNext = iPixels > 8;
 	psLanes->uiInBox = (1u << iPixels) - 1u;
 }
 
@@ -453,12 +459,25 @@ static bool RasterLanesFit(SRasterEdge sRow, SRasterEdge sStepX, SRasterEdge sSt
 //////////////////////////////////////////////////////////////////////////
 static FORCE_INLINE uint32 RasterLaneHits(SRasterLanes* psLanes, SRasterEdge s0, SRasterEdge s1, SRasterEdge s2)
 {
+	__m256i	sRow0;
+	__m256i	sRow1;
+	__m256i	sRow2;
 	__m256i	sAny;
+	uint32	uiOutside;
 
-	sAny = _mm256_or_si256(_mm256_add_epi32(_mm256_set1_epi32((int32)s0.miRaw), psLanes->asAlong[0]),
-						   _mm256_add_epi32(_mm256_set1_epi32((int32)s1.miRaw), psLanes->asAlong[1]));
-	sAny = _mm256_or_si256(sAny, _mm256_add_epi32(_mm256_set1_epi32((int32)s2.miRaw), psLanes->asAlong[2]));
-	return ~(uint32)_mm256_movemask_ps(_mm256_castsi256_ps(sAny)) & psLanes->uiInBox;
+	sRow0 = _mm256_set1_epi32((int32)s0.miRaw);
+	sRow1 = _mm256_set1_epi32((int32)s1.miRaw);
+	sRow2 = _mm256_set1_epi32((int32)s2.miRaw);
+	sAny = _mm256_or_si256(_mm256_add_epi32(sRow0, psLanes->asAlong[0]), _mm256_add_epi32(sRow1, psLanes->asAlong[1]));
+	sAny = _mm256_or_si256(sAny, _mm256_add_epi32(sRow2, psLanes->asAlong[2]));
+	uiOutside = (uint32)_mm256_movemask_ps(_mm256_castsi256_ps(sAny));
+	if (psLanes->bNext)
+	{
+		sAny = _mm256_or_si256(_mm256_add_epi32(sRow0, psLanes->asAlongNext[0]), _mm256_add_epi32(sRow1, psLanes->asAlongNext[1]));
+		sAny = _mm256_or_si256(sAny, _mm256_add_epi32(sRow2, psLanes->asAlongNext[2]));
+		uiOutside |= (uint32)_mm256_movemask_ps(_mm256_castsi256_ps(sAny)) << 8;
+	}
+	return ~uiOutside & psLanes->uiInBox;
 }
 #endif
 
