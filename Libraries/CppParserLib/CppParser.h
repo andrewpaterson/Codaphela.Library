@@ -224,6 +224,7 @@ protected:
 	void							ParseAttributes(CArraySyntax* papcAttributes, CCPPSyntax* pcParent);
 	CCPPSyntaxAlignasSpecifier*		ParseAlignasSpecifier(CCPPSyntax* pcParent);
 	bool							IsDeclSpecifierKeyword(ECppTokens eToken);
+	bool							DeclSpecifierFlag(ECppTokens eToken, uint32* puiFlag);
 	bool							IsSimpleTypeKeyword(ECppTokens eToken);
 	bool							IsTypeStartKeyword(ECppTokens eToken);
 	bool							IsConstructorName(CCPPSyntaxName* pcName);

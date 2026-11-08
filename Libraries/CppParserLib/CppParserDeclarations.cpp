@@ -932,31 +932,34 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether eToken is a decl-specifier keyword (or a qualifier or calling
+// convention kept with them), and the CPPDS_ flag it sets in *puiFlag: 0
+// for those that set none (__restrict, __cdecl ...).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPParser::IsDeclSpecifierKeyword(ECppTokens eToken)
+bool CCPPParser::DeclSpecifierFlag(ECppTokens eToken, uint32* puiFlag)
 {
 	switch (eToken)
 	{
-	case CT_typedef:
-	case CT_friend:
-	case CT_constexpr:
-	case CT_static:
-	case CT_extern:
-	case CT_register:
-	case CT_mutable:
+	case CT_typedef:		*puiFlag = CPPDS_TYPEDEF;		return true;
+	case CT_friend:			*puiFlag = CPPDS_FRIEND;		return true;
+	case CT_constexpr:		*puiFlag = CPPDS_CONSTEXPR;		return true;
+	case CT_static:			*puiFlag = CPPDS_STATIC;		return true;
+	case CT_extern:			*puiFlag = CPPDS_EXTERN;		return true;
+	case CT_register:		*puiFlag = CPPDS_REGISTER;		return true;
+	case CT_mutable:		*puiFlag = CPPDS_MUTABLE;		return true;
 	case CT_thread_local:
-	case CT___thread:
+	case CT___thread:		*puiFlag = CPPDS_THREAD_LOCAL;	return true;
 	case CT_inline:
 	case CT___inline:
 	case CT___inline__:
-	case CT___forceinline:
-	case CT_virtual:
-	case CT_explicit:
+	case CT___forceinline:	*puiFlag = CPPDS_INLINE;		return true;
+	case CT_virtual:		*puiFlag = CPPDS_VIRTUAL;		return true;
+	case CT_explicit:		*puiFlag = CPPDS_EXPLICIT;		return true;
 	case CT_const:
-	case CT___const__:
+	case CT___const__:		*puiFlag = CPPDS_CONST;			return true;
 	case CT_volatile:
-	case CT___volatile__:
+	case CT___volatile__:	*puiFlag = CPPDS_VOLATILE;		return true;
 	case CT___restrict:
 	case CT___restrict__:
 	case CT___unaligned:
@@ -967,11 +970,21 @@ bool CCPPParser::IsDeclSpecifierKeyword(ECppTokens eToken)
 	case CT___stdcall:
 	case CT___fastcall:
 	case CT___thiscall:
-	case CT___vectorcall:
-		return true;
-	default:
-		return false;
+	case CT___vectorcall:	*puiFlag = 0;					return true;
+	default:												return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsDeclSpecifierKeyword(ECppTokens eToken)
+{
+	uint32	uiFlag;
+
+	return DeclSpecifierFlag(eToken, &uiFlag);
 }
 
 
@@ -1193,6 +1206,7 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 	CCPPSymbol*						pcSymbol;
 	bool							bTypeLike;
 	int								iErrors;
+	uint32							uiFlag;
 
 	//[dcl.spec]
 	pcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcParent);
@@ -1220,31 +1234,9 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 		if (pcToken->IsReservedWord())
 		{
 			eToken = ((CCTReservedWord*)pcToken)->GetToken();
-			if (IsDeclSpecifierKeyword(eToken) && ((eContext != CPPDC_TypeId) || (eToken == CT_const) || (eToken == CT_volatile) || (eToken == CT___const__) || (eToken == CT___volatile__)))
+			if (DeclSpecifierFlag(eToken, &uiFlag) && ((eContext != CPPDC_TypeId) || (uiFlag == CPPDS_CONST) || (uiFlag == CPPDS_VOLATILE)))
 			{
-				switch (eToken)
-				{
-				case CT_typedef:		pcSpecifiers->muiFlags |= CPPDS_TYPEDEF;		break;
-				case CT_friend:			pcSpecifiers->muiFlags |= CPPDS_FRIEND;			break;
-				case CT_constexpr:		pcSpecifiers->muiFlags |= CPPDS_CONSTEXPR;		break;
-				case CT_static:			pcSpecifiers->muiFlags |= CPPDS_STATIC;			break;
-				case CT_extern:			pcSpecifiers->muiFlags |= CPPDS_EXTERN;			break;
-				case CT_register:		pcSpecifiers->muiFlags |= CPPDS_REGISTER;		break;
-				case CT_mutable:		pcSpecifiers->muiFlags |= CPPDS_MUTABLE;		break;
-				case CT_thread_local:
-				case CT___thread:		pcSpecifiers->muiFlags |= CPPDS_THREAD_LOCAL;	break;
-				case CT_inline:
-				case CT___inline:
-				case CT___inline__:
-				case CT___forceinline:	pcSpecifiers->muiFlags |= CPPDS_INLINE;			break;
-				case CT_virtual:		pcSpecifiers->muiFlags |= CPPDS_VIRTUAL;		break;
-				case CT_explicit:		pcSpecifiers->muiFlags |= CPPDS_EXPLICIT;		break;
-				case CT_const:
-				case CT___const__:		pcSpecifiers->muiFlags |= CPPDS_CONST;			break;
-				case CT_volatile:
-				case CT___volatile__:	pcSpecifiers->muiFlags |= CPPDS_VOLATILE;		break;
-				default:																break;
-				}
+				pcSpecifiers->muiFlags |= uiFlag;
 				pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcSpecifiers);
 				pcKeyword->meKeyword = eToken;
 				pcKeyword->SetTokens(CurrentToken(), CurrentToken());

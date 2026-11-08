@@ -307,23 +307,12 @@ bool CCPPParser::IsDeclarationStatement(ECPPDeclarationContext eContext)
 	if (pcToken->IsReservedWord())
 	{
 		eToken = ((CCTReservedWord*)pcToken)->GetToken();
+		if (IsDeclSpecifierKeyword(eToken))
+		{
+			return true;
+		}
 		switch (eToken)
 		{
-		case CT_typedef:
-		case CT_static:
-		case CT_extern:
-		case CT_register:
-		case CT_mutable:
-		case CT_thread_local:
-		case CT___thread:
-		case CT_inline:
-		case CT_virtual:
-		case CT_friend:
-		case CT_constexpr:
-		case CT_const:
-		case CT___const__:
-		case CT_volatile:
-		case CT___volatile__:
 		case CT_class:
 		case CT_struct:
 		case CT_union:

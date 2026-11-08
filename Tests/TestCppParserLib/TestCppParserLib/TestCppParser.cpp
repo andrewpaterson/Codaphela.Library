@@ -245,6 +245,34 @@ int f(void)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A statement starting with any decl-specifier keyword (or a qualifier or
+// calling convention kept with them, DeclSpecifierFlag) is a declaration:
+// IsDeclarationStatement and ParseDeclSpecifiers know the same ones.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserDeclarationStatements(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	AssertTrue(sParsed.Init("int f(void) { __unaligned int* p = 0; __w64 int n = 1; __inline int g(void); return n; }\n"));
+	AssertInt(0, sParsed.iErrors);
+	sz.Init();
+	AssertString("\
+int f(void)\n\
+{\n\
+	__unaligned int *p = 0;\n\
+	__w64 int n = 1;\n\
+	__inline int g(void);\n\
+	return n;\n\
+}\n", sParsed.Print(&sz));
+	sz.Kill();
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParserDeclarations(void)
@@ -1812,6 +1840,7 @@ void TestCppParser(void)
 	TestCppParserDeclarations();
 	TestCppParserParameterCounts();
 	TestCppParserRecovery();
+	TestCppParserDeclarationStatements();
 	TestCppParserAmbiguities();
 	TestCppParserClasses();
 	TestCppParserTemplates();
