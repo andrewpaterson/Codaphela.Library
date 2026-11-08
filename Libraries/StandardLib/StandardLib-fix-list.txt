@@ -144,7 +144,7 @@ E20. [342] CompareDependentWriteObject is ComparePtrPtr on the first field.
 E21. [325] Every identifier writes the ignored 0xffffffff int32 (4 wasted bytes per pointer).
 E22. [326] Multi-character constants ('\0XDI', '\0MAN') compared through *((int32*)&mszType): implementation-defined, matters for the W65C816 compiler.
 E23. [435] CRC32's table is a mutable global built lazily (const table, or built once).
-E24. [416] CChannelsAccessor::Init "moves" the caller's array with memcpy + memset.
+E24. [416] CChannelsAccessor::Init "moves" the caller's array with memcpy + memset.  [done 4b48cfa14]
 
 
 F. Hygiene: names, comments, typos, dead code
