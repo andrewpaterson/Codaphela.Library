@@ -66,7 +66,9 @@ bool CIROptimiser::MatchIdiomCounter(size uiLoop, CIRBlock* pcHead, CIRBlock* pc
 // Whether loop uiLoop is only entered when sLeft uiOpcode sRight (an
 // integer comparison): the way in branches on it (as RotateLoops leaves
 // it), past blocks of only a jump (preheaders), or both are constants for
-// which it holds.
+// which it holds (IRCompareIntegers).  Only the nearest branch counts, not
+// LoopGuarded's walk up the dominators: a loop an idiom has put its own
+// check in front of (the memmove's overlap test) is then not matched again.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft, SIRReference sRight)
@@ -74,12 +76,7 @@ bool CIROptimiser::GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft, S
 	SIRInstruction*	psGuard;
 	CIRBlock*		pcEntering;
 	CIRBlock*		pcTarget;
-	SIRType			sType;
 	int				iSteps;
-	uint64			ulliLeft;
-	uint64			ulliRight;
-	int64			lliLeft;
-	int64			lliRight;
 
 	pcEntering = mcLoops.GetLoop(uiLoop)->pcEntering;
 	if (!pcEntering)
@@ -103,28 +100,8 @@ bool CIROptimiser::GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft, S
 		return (((pcEntering->msJump.pcThen == pcTarget) ? psGuard->uiOpcode : IRInvertedComparison(psGuard->uiOpcode)) == uiOpcode) &&
 			   psGuard->asArguments[0].Equals(sLeft) && psGuard->asArguments[1].Equals(sRight);
 	}
-	if (!sLeft.IsConstant() || !sRight.IsConstant())
-	{
-		return false;
-	}
-	sType = mpcFunction->TypeOf(sLeft);
-	ulliLeft = IRTruncate(sType, mpcFunction->GetConstant(sLeft)->ulliBits);
-	ulliRight = IRTruncate(sType, mpcFunction->GetConstant(sRight)->ulliBits);
-	lliLeft = IRSignExtend(sType, ulliLeft);
-	lliRight = IRSignExtend(sType, ulliRight);
-	switch (uiOpcode)
-	{
-	case IRO_SLt:	return lliLeft < lliRight;
-	case IRO_SLe:	return lliLeft <= lliRight;
-	case IRO_SGt:	return lliLeft > lliRight;
-	case IRO_SGe:	return lliLeft >= lliRight;
-	case IRO_ULt:	return ulliLeft < ulliRight;
-	case IRO_ULe:	return ulliLeft <= ulliRight;
-	case IRO_UGt:	return ulliLeft > ulliRight;
-	case IRO_UGe:	return ulliLeft >= ulliRight;
-	case IRO_Eq:	return ulliLeft == ulliRight;
-	default:		return ulliLeft != ulliRight;
-	}
+	return sLeft.IsConstant() && sRight.IsConstant() &&
+		   IRCompareIntegers(uiOpcode, mpcFunction->TypeOf(sLeft), mpcFunction->GetConstant(sLeft)->ulliBits, mpcFunction->GetConstant(sRight)->ulliBits);
 }
 
 

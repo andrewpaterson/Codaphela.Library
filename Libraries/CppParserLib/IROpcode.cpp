@@ -250,6 +250,37 @@ uint16 IRSwappedComparison(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether integer comparison uiOpcode holds for constants ulliLeft and
+// ulliRight of sType (their bits as wide as it, signed for the s ones).
+//
+//////////////////////////////////////////////////////////////////////////
+bool IRCompareIntegers(uint16 uiOpcode, SIRType sType, uint64 ulliLeft, uint64 ulliRight)
+{
+	int64	lliLeft;
+	int64	lliRight;
+
+	ulliLeft = IRTruncate(sType, ulliLeft);
+	ulliRight = IRTruncate(sType, ulliRight);
+	lliLeft = IRSignExtend(sType, ulliLeft);
+	lliRight = IRSignExtend(sType, ulliRight);
+	switch (uiOpcode)
+	{
+	case IRO_SLt:	return lliLeft < lliRight;
+	case IRO_SLe:	return lliLeft <= lliRight;
+	case IRO_SGt:	return lliLeft > lliRight;
+	case IRO_SGe:	return lliLeft >= lliRight;
+	case IRO_ULt:	return ulliLeft < ulliRight;
+	case IRO_ULe:	return ulliLeft <= ulliRight;
+	case IRO_UGt:	return ulliLeft > ulliRight;
+	case IRO_UGe:	return ulliLeft >= ulliRight;
+	case IRO_Eq:	return ulliLeft == ulliRight;
+	default:		return ulliLeft != ulliRight;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // trunc, sext and zext: an integer to an integer of another width.
 //
 //////////////////////////////////////////////////////////////////////////

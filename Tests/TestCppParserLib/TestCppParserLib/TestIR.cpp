@@ -4526,12 +4526,33 @@ void TestIRVerifierFlagErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// IRCompareIntegers (the optimiser's folding and loop guards): signed
+// comparisons sign extend from the type's width, unsigned ones don't, and
+// both see only the type's bits.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRCompareIntegers(void)
+{
+	AssertTrue(IRCompareIntegers(IRO_SLt, IRType(IRTK_I8), 0xFF, 1));
+	AssertFalse(IRCompareIntegers(IRO_ULt, IRType(IRTK_I8), 0xFF, 1));
+	AssertTrue(IRCompareIntegers(IRO_UGe, IRType(IRTK_I8), 0xFF, 0x80));
+	AssertTrue(IRCompareIntegers(IRO_SLe, IRType(IRTK_I16), 0x8000, 0x7FFF));
+	AssertTrue(IRCompareIntegers(IRO_Eq, IRType(IRTK_I8), 0x1FF, 0xFF));
+	AssertFalse(IRCompareIntegers(IRO_Ne, IRType(IRTK_I8), 0x1FF, 0xFF));
+	AssertTrue(IRCompareIntegers(IRO_SGt, IRType(IRTK_I64), 1, 0xFFFFFFFFFFFFFFFFULL));
+	AssertFalse(IRCompareIntegers(IRO_UGt, IRType(IRTK_I64), 1, 0xFFFFFFFFFFFFFFFFULL));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR(void)
 {
 	BeginTests();
 
+	TestIRCompareIntegers();
 	TestIRRoundTripLoop();
 	TestIRRoundTripRegisterCall();
 	TestIRRoundTripNoWrites();

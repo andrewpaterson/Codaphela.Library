@@ -87,13 +87,6 @@ bool CIROptimiser::MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLo
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if loop uiLoop is only entered when sInitial uiOpcode sBound (ult or
-// slt) holds: its head, or a block up IR_GUARD_DEPTH immediate dominators
-// from it, is reached (but from inside the loop) only from a branch on that
-// compare, the way it holds.
-//
-//////////////////////////////////////////////////////////////////////////
-//
 // LoopGuarded of a compare in the form it looks for (a > b as b < a).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -486,6 +479,13 @@ bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// True if loop uiLoop is only entered when sInitial uiOpcode sBound holds:
+// its head, or a block up IR_GUARD_DEPTH immediate dominators from it, is
+// reached (but from inside the loop) only from a branch on that compare
+// (either way round: b > a is a < b), the way it holds.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound)
 {

@@ -117,16 +117,18 @@ bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 			*pulliResult = (uint64)(sa >> b);
 		}
 		break;
-	case IRO_Eq:	*pulliResult = a == b;	break;
-	case IRO_Ne:	*pulliResult = a != b;	break;
-	case IRO_ULt:	*pulliResult = a < b;	break;
-	case IRO_ULe:	*pulliResult = a <= b;	break;
-	case IRO_UGt:	*pulliResult = a > b;	break;
-	case IRO_UGe:	*pulliResult = a >= b;	break;
-	case IRO_SLt:	*pulliResult = IRSignExtend(sType, a) < sb;	break;
-	case IRO_SLe:	*pulliResult = IRSignExtend(sType, a) <= sb;	break;
-	case IRO_SGt:	*pulliResult = IRSignExtend(sType, a) > sb;	break;
-	case IRO_SGe:	*pulliResult = IRSignExtend(sType, a) >= sb;	break;
+	case IRO_Eq:
+	case IRO_Ne:
+	case IRO_ULt:
+	case IRO_ULe:
+	case IRO_UGt:
+	case IRO_UGe:
+	case IRO_SLt:
+	case IRO_SLe:
+	case IRO_SGt:
+	case IRO_SGe:
+		*pulliResult = IRCompareIntegers(psInstruction->uiOpcode, sType, a, b);
+		break;
 	case IRO_SExt:	*pulliResult = (uint64)sa;	break;
 	case IRO_ZExt:
 	case IRO_Trunc:
