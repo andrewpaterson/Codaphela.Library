@@ -49,11 +49,11 @@ B32. [370] ChunkFileObjectWriter's three ReturnOnFalse exits leak szChunkName.  
 B33. [378] ObjectSourceChunked::Convert Kills its reader and leaves mpcReader dangling.  [done c4423c1f8]
 B34. [382] ObjectSourceChunked::Init returns false after ReadOpen without closing the file.  [done c4423c1f8]
 B35. [379] ObjectSingleSource::Contains is case-sensitive; Convert is case-insensitive.  [done c4423c1f8]
-B36. [405] Channels switching from user data to owned data allocate fresh data: the pixels are lost ("should copy from mpvUserData").
-B37. [418] ChannelsAccessorCreatorParams::AddAccess silently drops channels the source lacks.
-B38. [425] ChannelsCopier doesn't check uiSourcePos/uiDestPos are inside the channels (a start past the end runs off the data).
-B39. [426] ChannelDebugDescriptor keeps the caller's const char* without copying (dangling for non-literals).
-B40. [417] Fixed char c[16] scratch in CChannelsAccessorBitAccess (ChannelsAccessorShapes.h, since C24) and ChannelAccessor: an access type wider than 128 bits overruns it.
+B36. [405] Channels switching from user data to owned data allocate fresh data: the pixels are lost ("should copy from mpvUserData").  [as intended: the data is fresh, not copied]
+B37. [418] ChannelsAccessorCreatorParams::AddAccess silently drops channels the source lacks.  [done 3b3661052]
+B38. [425] ChannelsCopier doesn't check uiSourcePos/uiDestPos are inside the channels (a start past the end runs off the data).  [done 3b3661052]
+B39. [426] ChannelDebugDescriptor keeps the caller's const char* without copying (dangling for non-literals).  [done 3b3661052]
+B40. [417] Fixed char c[16] scratch in CChannelsAccessorBitAccess (ChannelsAccessorShapes.h, since C24) and ChannelAccessor: an access type wider than 128 bits overruns it.  [done 3b3661052]
 B41. [431] BitReader::ReadBits / BitWriter::WriteBits work only for ≤ 24 bits (32 is UB); no assert.
 B42. [432] Deflater's int32 hash heads/chains break inputs ≥ 2GB; document or assert.
 B43. [440] SimpleTextDiff's "@@ -a,b +c,d @@" headers are 0-based (unified diff is 1-based); fix or say it's display-only.
@@ -203,7 +203,7 @@ F51. [389] Declarations after an early return (BaseObjectValidate, KillInternal)
 F52. [396] ObjectsValidate reads muiFlags directly in one place and TestedForSanity() in another.
 F53. [398] CObjects::DumpNames is a stub with commented-out code.
 F54. [410] CChannels::Dump's uiLine <= uiNum prints an empty trailing line.
-F55. [419] Typos CalclulateBitSize, GetAccesss, pcAccessor;;.
-F56. [425] ChannelsCopier's "looks a bit retarded" comment.
+F55. [419] Typos CalclulateBitSize, GetAccesss, pcAccessor;;.  [done 3b3661052]
+F56. [425] ChannelsCopier's "looks a bit retarded" comment.  [done 3b3661052]
 F57. [448] CTimerAlarm's fields are public; STimerData::szTimerName is char*.
 F58. [454] Actions.h: include guard __ACTIONABLE_H__, field mlcActions, linear GetAction.
