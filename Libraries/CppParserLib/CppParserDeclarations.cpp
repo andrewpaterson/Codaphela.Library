@@ -486,13 +486,11 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 
 	//[dcl.dcl] simple-declaration, [dcl.fct.def] function-definition and [class.mem] member-declaration.
 	iFirstToken = CurrentToken();
-	pcSimple = mpcMemory->Create<CCPPSyntaxSimpleDeclaration>(pcParent);
-	pcSpecifiers = ParseDeclSpecifiers(pcSimple, eContext);
+	pcSpecifiers = ParseDeclSpecifiers(pcParent, eContext);
 	if (!pcSpecifiers)
 	{
 		return NULL;
 	}
-	pcSimple->mpcSpecifiers = pcSpecifiers;
 
 	if (Is(CT_SemiColon))
 	{
@@ -508,13 +506,14 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 			ErrorAt(iFirstToken, "The declaration does not declare anything.");
 		}
 		Next();
+		pcSimple = NewSimpleDeclaration(pcParent, pcSpecifiers);
 		pcSimple->SetTokens(iFirstToken, PreviousToken());
 		return pcSimple;
 	}
 
 	//An unnamed bit-field, as in int : 0;
 	eDeclaratorKind = ((eContext == CPPDC_Class) && Is(CT_Colon)) ? CPPDK_Abstract : CPPDK_Named;
-	pcDeclarator = ParseDeclarator(pcSimple, eDeclaratorKind, eContext);
+	pcDeclarator = ParseDeclarator(pcParent, eDeclaratorKind, eContext);
 	if (!pcDeclarator)
 	{
 		return NULL;
@@ -525,6 +524,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 		return ParseFunctionDefinition(pcParent, pcSpecifiers, pcDeclarator, eContext, iFirstToken);
 	}
 
+	pcSimple = NewSimpleDeclaration(pcParent, pcSpecifiers);
 	for (;;)
 	{
 		pcInit = mpcMemory->Create<CCPPSyntaxInitDeclarator>(pcSimple);
@@ -576,6 +576,23 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 		return NULL;
 	}
 	pcSimple->SetTokens(iFirstToken, PreviousToken());
+	return pcSimple;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node for a declaration, once it isn't a function definition, which is
+// its own kind of node.  The specifiers were parsed before that was known.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxSimpleDeclaration* CCPPParser::NewSimpleDeclaration(CCPPSyntax* pcParent, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+
+	pcSimple = mpcMemory->Create<CCPPSyntaxSimpleDeclaration>(pcParent);
+	pcSimple->mpcSpecifiers = pcSpecifiers;
+	pcSpecifiers->mpcParent = pcSimple;
 	return pcSimple;
 }
 

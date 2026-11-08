@@ -228,6 +228,7 @@ protected:
 	bool							IsFunctionDefinitionStart(void);
 	bool							IsDeclaringSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	CCPPSymbol*						DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcDeclaration, ECPPDeclarationContext eContext);
+	CCPPSyntaxSimpleDeclaration*	NewSimpleDeclaration(CCPPSyntax* pcParent, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	CCPPSyntaxDeclSpecifiers*		ParseDeclSpecifiers(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);
 	ECPPDeclSpecifierStep			ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, ECppTokens eToken, bool* pbType);
 	ECPPDeclSpecifierStep			ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, bool* pbType);

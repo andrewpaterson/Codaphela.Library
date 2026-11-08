@@ -1792,12 +1792,15 @@ static size CountUnreachable(char* szSource)
 //////////////////////////////////////////////////////////////////////////
 //
 // What a lookahead parses (to decide a type-id from an expression, a
-// declaration from a statement) is taken back: code full of lookaheads
-// leaves no more nodes out of its tree than a plain function does.
+// declaration from a statement) is taken back, and a function definition has
+// no node for the declaration it turned out not to be: nothing is left out of
+// the tree, however full of lookaheads the code is.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParserTentativeMemory(void)
 {
+	AssertSize(0, CountUnreachable("int g(int x) { return x; }\n"));
+	AssertSize(0, CountUnreachable("struct A { int F() { return G(); } int G() { return 1; } };\nint a = 1, b;\n"));
 	AssertSize(CountUnreachable("template<class T> struct A { int m; };\nint g(int x) { return x; }\n"),
 			   CountUnreachable("template<class T> struct A { int m; };\n"
 								"A<A<A<int>>> a;\n"
