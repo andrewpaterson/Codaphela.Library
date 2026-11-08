@@ -5,12 +5,16 @@
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/MemoryFile.h"
 #include "TestLib/Assert.h"
 #include "NamedObjectTestClasses.h"
 #include "TestArrayObject.h"
 
 
 void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1513,6 +1517,45 @@ void TestArrayObjectWriteThroughMembersChanged(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// CArray<M> says whether adding worked: all of a NULL array is an error
+// and adds nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectAddResults(void)
+{
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[512];
+
+	ObjectsInit();
+	{
+		Ptr<CArray<CTestSaveableObject1>>	pArray;
+		Ptr<CArray<CTestSaveableObject1>>	pOther;
+		Ptr<CArrayCommonObject>				pNoArray;
+
+		pArray = OMalloc<CArray<CTestSaveableObject1>>();
+		pOther = OMalloc<CArray<CTestSaveableObject1>>();
+
+		AssertTrue(pArray->Add(OMalloc<CTestSaveableObject1>()));
+		AssertTrue(pArray->Add(OMalloc<CTestSaveableObject1>()));
+		AssertTrue(pOther->AddAll(pArray));
+		AssertSize(2, pOther->NumElements());
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		AssertFalse(pOther->AddAll(pNoArray));
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Cannot add all of a NULL array."));
+		AssertSize(2, pOther->NumElements());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObject(void)
@@ -1526,6 +1569,7 @@ void TestArrayObject(void)
 	TestArrayObjectGet();
 	TestArrayObjectInsert();
 	TestArrayObjectAddAll();
+	TestArrayObjectAddResults();
 	TestArrayObjectRemove();
 	TestArrayObjectSneakyOnStack();
 	TestArrayObjectOnStackKill();

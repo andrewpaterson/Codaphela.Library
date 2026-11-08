@@ -250,7 +250,7 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 //
 // Adds each of pcArray's objects.  True if every one was added: a unique
-// array refuses those it has already.
+// array refuses those it has already.  There is nothing to add from NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
@@ -261,6 +261,12 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 	size 						uiNumElements;
 	bool						bIgnoreNull;
 	bool						bAllAdded;
+
+	if (pcArray == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot add all of a NULL array.", NULL);
+		return false;
+	}
 
 	//Every slot is looked at: an array that ignores NULLs has them where objects were removed, and they aren't objects.
 	//They are copied first as adding can move them (a sorted array, or pcArray being this).

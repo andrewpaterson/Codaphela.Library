@@ -32,8 +32,8 @@ CONSTRUCTABLE(CArray)
 public:
 	void			Init(void);
 
-	void			Add(Ptr<M> pObject);
-	void			AddAll(Ptr<CArrayCommonObject> pArray);
+	bool			Add(Ptr<M> pObject);
+	bool			AddAll(Ptr<CArrayCommonObject> pArray);
 	bool			Insert(size iIndex, Ptr<M> pObject);
 	Ptr<M>			Get(size iIndex);
 	bool			Set(size iIndex, Ptr<M> pObject);
@@ -61,9 +61,9 @@ void CArray<M>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::Add(Ptr<M> pObject)
+bool CArray<M>::Add(Ptr<M> pObject)
 {
-	CArrayObject::Add(pObject);
+	return CArrayObject::Add(pObject);
 }
 
 
@@ -72,10 +72,9 @@ void CArray<M>::Add(Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::AddAll(Ptr<CArrayCommonObject> pArray)
+bool CArray<M>::AddAll(Ptr<CArrayCommonObject> pArray)
 {
-	pArray->ClassName();
-	CArrayObject::AddAll((CArrayCommonObject*)pArray.Dereference());
+	return CArrayCommonObject::AddAll((CArrayCommonObject*)pArray.Dereference());
 }
 
 
