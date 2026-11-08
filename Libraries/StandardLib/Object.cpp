@@ -30,6 +30,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 CObject::CObject()
 {
 	mapEmbedded.Init();
+#if defined(LINUX_GNU) && !defined(BUILD_64)
+	muiTailPadding = 0;
+#endif
 }
 
 

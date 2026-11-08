@@ -79,6 +79,7 @@ void TestClassDefinition(void)
 	AssertTrue(pcField->IsPointer());
 	AssertString("mpObject", pcField->GetName());
 	AssertLayoutSize(OBJECT_SIZE, pcField->GetOffset());
+	AssertLayoutSize(sizeof(CObject), pcField->GetOffset());  //No subclass field in CObject's tail padding, as MSVC lays them out.
 
 	pcField = pcTestClassClass->GetField("mpTest");
 	AssertTrue(pcField->IsPointer());

@@ -53,6 +53,11 @@ protected:
 	//killed (or go out of scope) before ObjectsKill frees the classes.  The embedded objects are kept
 	//flat: GetEmbeddedObject's index (the one objects are saved by) reaches any depth in one step.
 	CArrayTemplateEmbeddedPtr<CBaseObject, 3>		mapEmbedded;  //Every object embedded in this, at any depth, in GetEmbeddedObject's order (index + 1): each followed by those embedded in it.
+#if defined(LINUX_GNU) && !defined(BUILD_64)
+	//CObject's fields end 4 bytes short of its 8 byte alignment.  g++ -m32 puts a subclass's first field in those 4
+	//bytes; MSVC never puts one in a base's tail padding.  Filled, so both lay subclasses out alike (TestClass checks).
+	uint32											muiTailPadding;
+#endif
 
 public:
 						CObject();
