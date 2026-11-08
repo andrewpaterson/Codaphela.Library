@@ -28,8 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(bool bSortPointers)
 {
-
-	CArrayCommonUnknown::Init(Flags(false, true, false, true, bSortPointers, bSortPointers));
+	CArrayCommonUnknown::Init(Flags(false, true, false, true, false, bSortPointers));
 }
 
 
@@ -39,7 +38,7 @@ void CSetUnknown::Init(bool bSortPointers)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(size iChunkSize, bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(Flags(false, true, false, true, bSortPointers, bSortPointers), iChunkSize);
+	CArrayCommonUnknown::Init(Flags(false, true, false, true, false, bSortPointers), iChunkSize);
 }
 
 

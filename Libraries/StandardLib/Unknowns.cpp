@@ -48,8 +48,12 @@ void CUnknowns::Init(const char* szName, CConstructors* pcConstructors)
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::Init(CLifeInit<CMallocator> cMalloc, const char* szName, CConstructors* pcConstructors)
 {
+	//Without constructors only Add<M> (and AddExisting) can add: nothing can be added by class name.
 	mpcConstructors = pcConstructors;
-	mpcConstructors->ValidateMemoryInitialised();
+	if (mpcConstructors)
+	{
+		mpcConstructors->ValidateMemoryInitialised();
+	}
 
 	cMalloc.ConfigureLife(&mcMallocLife, &mpcMalloc);
 
@@ -112,6 +116,11 @@ CUnknown* CUnknowns::Add(const char* szClassName, size uiAdditionalSize)
 	if (StrEmpty(szClassName))
 	{
 		gcLogger.Error2(__METHOD__, " No constructor found for class with empty name.", NULL);
+		return NULL;
+	}
+	if (mpcConstructors == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Unknowns [", mszName.Text(), "] has no constructors to make class [", szClassName, "].", NULL);
 		return NULL;
 	}
 
@@ -254,11 +263,21 @@ bool CUnknowns::SaveKnownType(CFileWriter* pcFile, CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 bool CUnknowns::Remove(CUnknown* pcUnknown)
 {
-	if ((pcUnknown->GetUnknownsThisIn() == this) || (pcUnknown->GetUnknownsThisIn() == NULL))
+	CUnknowns*	pcThisIn;
+
+	if (pcUnknown == NULL)
+	{
+		return false;
+	}
+
+	pcThisIn = pcUnknown->GetUnknownsThisIn();
+	if ((pcThisIn == this) || (pcThisIn == NULL))
 	{
 		pcUnknown->Kill();  //Unknown.Kill will cause the Unknowns to remove the Unknown from it.
 		return true;
 	}
+
+	gcLogger.Error2(__METHOD__, " Cannot remove [", pcUnknown->ClassName(), "] from Unknowns [", mszName.Text(), "]: it is in Unknowns [", pcThisIn->mszName.Text(), "].", NULL);
 	return false;
 }
 
@@ -520,7 +539,10 @@ size CUnknowns::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 size CUnknowns::GetIterableListsHeadNumElements(void)
 {
-	return mcIterables.mcIterableLists.GetHead()->mcFreeListPtrs.NumElements();
+	CIterableList*	pcHead;
+
+	pcHead = mcIterables.mcIterableLists.GetHead();
+	return pcHead ? pcHead->mcFreeListPtrs.NumElements() : 0;
 }
 
 

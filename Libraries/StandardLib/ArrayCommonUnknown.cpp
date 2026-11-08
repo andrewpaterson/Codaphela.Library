@@ -160,6 +160,11 @@ bool CArrayCommonUnknown::ReadArrayHeader(CFileReader* pcFile, uint16* piFlags, 
 	ReturnOnFalse(pcFile->ReadSize(&iNonNullElements));
 	ReturnOnFalse(pcFile->ReadSize(&iChunkSize));
 	ReturnOnFalse(pcFile->ReadInt16(piFlags));
+	if (iNonNullElements > *piNumElements)
+	{
+		gcLogger.Error2(__METHOD__, " The array has [", SizeToString(iNonNullElements), "] elements that aren't NULL but only [", SizeToString(*piNumElements), "] elements.", NULL);
+		return false;
+	}
 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMON_TYPE_KNOWN);
 
@@ -195,6 +200,7 @@ bool CArrayCommonUnknown::Load(CFileReader* pcFile)
 
 	ReturnOnFalse(ReadArrayHeader(pcFile, &iFlags, &iNumElements));
 	ReturnOnFalse(ReadElements(pcFile, iNumElements));
+	miNonNullElements = CountNonNull();  //What was read, not what the header said.
 	PostLoad(iFlags);
 	return true;
 }
@@ -549,6 +555,13 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 	size		i;
 	CUnknown*	pcUnknown;
 
+	if ((muiFlags & ARRAY_COMMON_KILL_ELEMENT) && (pcSource->muiFlags & ARRAY_COMMON_KILL_ELEMENT))
+	{
+		//Both would kill the same elements.  The source must give them up first: KillElements(false).
+		gcLogger.Error2(__METHOD__, " Both arrays kill their elements.  Call KillElements(false) on the source before adding all of it.", NULL);
+		return false;
+	}
+
 	if (muiFlags & ARRAY_COMMON_UNIQUE_ONLY)
 	{
 		for (i = 0; i < pcSource->mcArray.NumElements(); i++)
@@ -688,13 +701,10 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 
 	if (muiFlags & ARRAY_COMMON_IGNORE_NULL)
 	{
-		if (miNonNullElements != 0)
+		uiArrayElements = mcArray.NumElements();
+		if (uiArrayElements - miNonNullElements >= mcArray.ChunkSize() * 3)
 		{
-			uiArrayElements = mcArray.NumElements();
-			if (uiArrayElements - miNonNullElements >= mcArray.ChunkSize() * 3)
-			{
-				CleanNulls();
-			}
+			CleanNulls();
 		}
 	}
 }
@@ -715,6 +725,30 @@ void CArrayCommonUnknown::CleanNullsBeforeBinarySearch(void)
 			CleanNulls();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of the slots hold an element.
+//
+//////////////////////////////////////////////////////////////////////////
+size CArrayCommonUnknown::CountNonNull(void)
+{
+	size	i;
+	size	uiNumElements;
+	size	uiNonNull;
+
+	uiNonNull = 0;
+	uiNumElements = mcArray.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		if (*mcArray.Get(i) != NULL)
+		{
+			uiNonNull++;
+		}
+	}
+	return uiNonNull;
 }
 
 

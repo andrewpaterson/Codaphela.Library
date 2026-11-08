@@ -197,8 +197,7 @@ bool CIterables::Remove(CUnknown* pcUnknown)
 	{
 		if (pcList->Is(szName))
 		{
-			pcList->Remove(pcUnknown);
-			return true;
+			return pcList->Remove(pcUnknown);
 		}
 		pcList = mcIterableLists.GetNext(pcList);
 	}

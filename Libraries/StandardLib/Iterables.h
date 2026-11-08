@@ -131,22 +131,19 @@ template<class M>
 M* CIterables::StartIteration(SIteratorTemplate<M>* psIter)
 {
 	CIterableList*	pcList;
-	M				vTemp;
 
-	if (vTemp.Iterable())
+	//Only iterable unknowns have a list, so a class that isn't iterable has none to find.
+	pcList = mcIterableLists.GetHead();
+	while (pcList)
 	{
-		pcList = mcIterableLists.GetHead();
-		while (pcList)
+		if (pcList->Is(M::StaticClassName()))
 		{
-			if (pcList->Is(vTemp.ClassName()))
-			{
-				return pcList->StartIteration(psIter);
-			}
-			pcList = mcIterableLists.GetNext(pcList);
+			return pcList->StartIteration(psIter);
 		}
-		psIter->pcList = NULL;
-		psIter->sIter.psCurrent = NULL;
+		pcList = mcIterableLists.GetNext(pcList);
 	}
+	psIter->pcList = NULL;
+	psIter->sIter.psCurrent = NULL;
 	return NULL;
 }
 
@@ -180,6 +177,11 @@ template<class M>
 void CIterables::RemoveDuringIteration(SIteratorTemplate<M>* psIter)
 {
 	M**	ppv;
+
+	if (psIter->pcList == NULL)
+	{
+		return;
+	}
 
 	ppv = (M**)psIter->pcList->mcFreeListPtrs.GetElement(psIter->sIter.psCurrent, psIter->sIter.iPosition);
 	psIter->pcList->mcFreeListPtrs.RemoveDuringIteration(&psIter->sIter);

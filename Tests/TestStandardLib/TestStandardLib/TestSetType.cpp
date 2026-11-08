@@ -7,6 +7,12 @@
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/SetType.h"
 #include "UnknownTestClasses.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/Logger.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -103,6 +109,9 @@ void TestSetTypeAddAll(void)
 	CSetType<CTestNamedUnknown>	cDest;
 	CChars						sz;
 	CTestNamedUnknown*			pcTest25;
+	CMemoryFile					cLog;
+	SLogConfig					sLogConfig;
+	char						szLogged[512];
 
 	cSet.Init(false);
 	pcTest25 = NULL;
@@ -124,8 +133,16 @@ void TestSetTypeAddAll(void)
 	cSet.Remove(pcTest25);
 
 	cDest.Init(false);
-	cDest.AddAll(&cSet);
+
+	//Both kill their elements: refused until the source gives them up.
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertFalse(cDest.AddAll(&cSet));
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Both arrays kill their elements."));
+	AssertSize(0, cDest.NumElements());
+
 	cSet.KillElements(false);
+	AssertTrue(cDest.AddAll(&cSet));
 	cSet.Kill();
 
 	AssertSize(49, cDest.NumElements());

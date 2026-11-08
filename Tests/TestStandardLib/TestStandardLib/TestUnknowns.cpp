@@ -268,6 +268,123 @@ void TestUnknownsInitKillTwice(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestUnknownsRemoveFromOther(void)
+{
+	MemoryInit();
+
+	CUnknowns		cA;
+	CUnknowns		cB;
+	CTestUnknown*	pcTest;
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[512];
+
+	cA.Init("A", &gcConstructors);
+	cB.Init("B", &gcConstructors);
+	pcTest = cA.Add<CTestUnknown>();
+	pcTest->Init();
+
+	//An unknown in another Unknowns isn't removed, and that's an error.
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertFalse(cB.Remove(pcTest));
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Cannot remove [CTestUnknown] from Unknowns [B]: it is in Unknowns [A]."));
+	AssertSize(1, cA.NumElements());
+
+	AssertFalse(cA.Remove(NULL));
+	AssertTrue(cA.Remove(pcTest));
+	AssertSize(0, cA.NumElements());
+
+	cB.Kill();
+	cA.Kill();
+
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUnknownsWithoutConstructors(void)
+{
+	MemoryInit();
+
+	CUnknowns		cUnknowns;
+	CTestUnknown*	pcTest;
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[512];
+
+	//No constructors: Add<M> still works, adding by class name is an error.
+	cUnknowns.Init("Plain", NULL);
+	AssertSize(0, cUnknowns.GetIterableListsHeadNumElements());
+
+	pcTest = cUnknowns.Add<CTestUnknown>();
+	AssertNotNull(pcTest);
+	pcTest->Init();
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertNull(cUnknowns.Add("CTestUnknown"));
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Unknowns [Plain] has no constructors to make class [CTestUnknown]."));
+
+	pcTest->Kill();
+	AssertSize(0, cUnknowns.NumElements());
+	cUnknowns.Kill();
+
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUnknownsIterablesMissing(void)
+{
+	MemoryInit();
+
+	CUnknowns								cUnknowns;
+	CIterables								cIterables;
+	CTestIterableUnknown*					pcIterable;
+	CTestIterableUnknown*					pcOther;
+	SIteratorTemplate<CTestUnknown>			sIter;
+
+	cUnknowns.Init("Iterables", &gcConstructors);
+	pcIterable = cUnknowns.Add<CTestIterableUnknown>();
+	pcIterable->Init(1);
+	pcOther = cUnknowns.Add<CTestIterableUnknown>();
+	pcOther->Init(2);
+	AssertSize(2, cUnknowns.GetIterableListsHeadNumElements());
+
+	//A class with no list (it isn't iterable) iterates nothing, and removing from that iteration does nothing.
+	sIter.pcList = (CIterableList*)1;
+	AssertNull(cUnknowns.StartIteration(&sIter));
+	AssertNull(sIter.pcList);
+	cUnknowns.RemoveDuringIteration(&sIter);
+	AssertSize(2, cUnknowns.NumElements());
+
+	//Remove says whether the list had the unknown.
+	cIterables.Init();
+	cIterables.Add(pcIterable);
+	AssertFalse(cIterables.Remove(pcOther));
+	AssertTrue(cIterables.Remove(pcIterable));
+	AssertFalse(cIterables.Remove(pcIterable));
+	cIterables.Kill();
+
+	pcOther->Kill();
+	pcIterable->Kill();
+	cUnknowns.Kill();
+
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestUnknowns(void)
 {
 	BeginTests();
@@ -277,6 +394,9 @@ void TestUnknowns(void)
 	TestUnknownListRemoveDuringIteration();
 	TestUnknownsFreeMacro();
 	TestUnknownsInitKillTwice();
+	TestUnknownsRemoveFromOther();
+	TestUnknownsWithoutConstructors();
+	TestUnknownsIterablesMissing();
 
 	TestStatistics();
 }

@@ -6,7 +6,14 @@
 #include "TestLib/Assert.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ArrayUnknown.h"
+#include "StandardLib/SetUnknown.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/Logger.h"
 #include "UnknownTestClasses.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -516,6 +523,118 @@ void TestArrayUnknownRemoveDuringIterationMiddle(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The header's count of elements that aren't NULL is checked against its
+// count of elements, and replaced by what was read.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayUnknownLoadBadNonNullCount(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CArrayUnknown		cArray;
+	CChunkFile			cFile;
+	CFileUtil			cFileUtil;
+	CMemoryFile			cLog;
+	SLogConfig			sLogConfig;
+	char				szLogged[512];
+
+	cFileUtil.RemoveDir("Output" _FS_ "ArrayUnknownCount");
+	cFileUtil.TouchDir("Output" _FS_ "ArrayUnknownCount");
+
+	//Two elements that aren't NULL in an array of one.
+	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "ArrayUnknownCount" _FS_ "TooMany.dat")));
+	AssertTrue(cFile.WriteOpen());
+	AssertTrue(cFile.WriteSize(1));
+	AssertTrue(cFile.WriteSize(2));
+	AssertTrue(cFile.WriteSize(1));
+	AssertTrue(cFile.WriteInt16((uint16)0));
+	AssertTrue(gcUnknowns.SaveUnknown(&cFile, NULL));
+	AssertTrue(cFile.WriteClose());
+	cFile.Kill();
+
+	cArray._Init();
+	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "ArrayUnknownCount" _FS_ "TooMany.dat")));
+	AssertTrue(cFile.ReadOpen());
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertFalse(cArray.Load(&cFile));
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "The array has [2] elements that aren't NULL but only [1] elements."));
+	AssertTrue(cFile.ReadClose());
+	cFile.Kill();
+	cArray.Kill();
+
+	//Two that aren't NULL, but both elements are.
+	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "ArrayUnknownCount" _FS_ "AllNull.dat")));
+	AssertTrue(cFile.WriteOpen());
+	AssertTrue(cFile.WriteSize(2));
+	AssertTrue(cFile.WriteSize(2));
+	AssertTrue(cFile.WriteSize(1));
+	AssertTrue(cFile.WriteInt16((uint16)0));
+	AssertTrue(gcUnknowns.SaveUnknown(&cFile, NULL));
+	AssertTrue(gcUnknowns.SaveUnknown(&cFile, NULL));
+	AssertTrue(cFile.WriteClose());
+	cFile.Kill();
+
+	cFile.Init(BufferedFile(DiskFile("Output" _FS_ "ArrayUnknownCount" _FS_ "AllNull.dat")));
+	AssertTrue(cFile.ReadOpen());
+	AssertTrue(cArray.Load(&cFile));
+	AssertTrue(cFile.ReadClose());
+	cFile.Kill();
+	AssertSize(2, cArray.UnsafeNumElements());
+	AssertSize(0, cArray.UnsafeNonNullElements());
+	cArray.Kill();
+
+	cFileUtil.RemoveDir("Output" _FS_ "ArrayUnknownCount");
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An array that ignores NULLs is cleaned when enough of it is NULL, even
+// when all of it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayUnknownCleanAllNull(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetUnknown		cSet;
+	CTestUnknown*	pcTest;
+	size			i;
+
+	cSet.Init(true, false, true, false, 1, false);
+	for (i = 0; i < 64; i++)
+	{
+		pcTest = cSet.Add<CTestUnknown>();
+		pcTest->Init();
+	}
+	for (i = 0; i < 64; i++)
+	{
+		AssertTrue(cSet.CArrayCommonUnknown::Remove(i, false));  //Leaves a NULL; doesn't clean.
+	}
+	AssertSize(64, cSet.UnsafeNumElements());
+	AssertSize(0, cSet.UnsafeNonNullElements());
+
+	pcTest = cSet.Add<CTestUnknown>();
+	pcTest->Init();
+	AssertSize(1, cSet.UnsafeNumElements());
+	AssertSize(1, cSet.UnsafeNonNullElements());
+
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayUnknown(void)
@@ -530,6 +649,8 @@ void TestArrayUnknown(void)
 	TestArrayUnknownSetKillsReplaced();
 	TestArrayUnknownRemoveKeepsSorted();
 	TestArrayUnknownRemoveDuringIterationMiddle();
+	TestArrayUnknownLoadBadNonNullCount();
+	TestArrayUnknownCleanAllNull();
 
 	TestStatistics();
 }
