@@ -14,7 +14,7 @@ bool	TestCPP816Calls(const char* szListing, const char* szPrefix, const char* sz
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Mod/ref summaries (CCPP65IRFrontEnd::MarkNoWrites): what a function
+// Mod/ref summaries (CIRInterprocedural::MarkNoWrites): what a function
 // knows is in memory survives calls to the unit's functions that write
 // none of it, and only those.  A global read, then written by a call, is
 // read again; a function that reads but calls one that writes, writes;
@@ -65,7 +65,7 @@ void TestCPP816NoWritesCalls(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Dead argument removal (CCPP65IRFrontEnd::RemoveDeadArguments): a static
+// Dead argument removal (CIRInterprocedural::RemoveDeadArguments): a static
 // function's parameters it never reads go, and its calls' arguments with
 // them, so its register suffix is that of the parameters left.  One in A,
 // a long that would have been pushed, one between used ones and one of a

@@ -270,6 +270,13 @@ the 65C64 branches on less in one instruction (LessLoopTests); and strength redu
 an address p + (i << s) or p + i * k with p unchanged by the loop becomes a pointer of its
 own, p + init * k before the loop and stepped by c * k going round.
 
+Interprocedural passes (CIRInterprocedural, IRInterprocedural.h/.cpp): over a unit's functions,
+before inlining.  SpecialiseConstantArguments gives a function only the unit calls a copy
+(name__K<parameter>_<value>) per constant its strong parameter gets, RemoveDeadArguments takes away
+parameters never read and their arguments, and MarkNoWrites finds the functions that write no
+memory their callers can see.  They ask a CIRUnitFunctions for the functions and how to optimise,
+and tell it what was added or can go, so they know nothing of the C++ or the generated text.
+
 Inlining (CIRInliner, IRInliner.h/.cpp, 2026-10-25): a call of a function of the same
 module with at most 16 instructions (32 when the call is in a loop, 8 more for each
 constant argument whose parameter it compares or branches on, as those fold; not variadic,

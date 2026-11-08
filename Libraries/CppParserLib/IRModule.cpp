@@ -483,7 +483,7 @@ bool CIRModule::IsRegisterCall(uint32 uiSymbol)
 //
 // Whether the symbol is a function that writes no memory its callers can
 // see: only its own frame, no volatile access, and it calls only such
-// functions (CCPP65IRFrontEnd::MarkNoWrites works it out for the unit's
+// functions (CIRInterprocedural::MarkNoWrites works it out for the unit's
 // functions).  A call to it is no barrier to what the optimiser knows is
 // in memory (CIROptimiser::MayWriteMemory).
 //

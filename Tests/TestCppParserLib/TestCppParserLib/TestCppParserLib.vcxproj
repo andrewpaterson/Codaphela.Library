@@ -235,6 +235,7 @@
     <ClCompile Include="TestCppTokeniser.cpp" />
     <ClCompile Include="TestCppErrors.cpp" />
     <ClCompile Include="TestIR.cpp" />
+    <ClCompile Include="TestIRInterprocedural.cpp" />
     <ClCompile Include="TestIR65Backend.cpp" />
     <ClCompile Include="TestIR816Backend.cpp" />
     <ClCompile Include="TestCPP816.cpp" />

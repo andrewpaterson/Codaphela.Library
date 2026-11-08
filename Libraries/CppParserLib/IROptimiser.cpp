@@ -562,7 +562,7 @@ bool CIROptimiser::IsOwnFrame(SIRReference sAddress)
 // Whether pcFunction may write memory its callers can see: a store not to
 // its own frame, a volatile load or store, a call to a function not known
 // to write nothing (CIRModule::IsNoWrites), an indirect call, or anything
-// else with an effect.  CCPP65IRFrontEnd::MarkNoWrites works the unit's
+// else with an effect.  CIRInterprocedural::MarkNoWrites works the unit's
 // functions out with it, together.
 //
 //////////////////////////////////////////////////////////////////////////

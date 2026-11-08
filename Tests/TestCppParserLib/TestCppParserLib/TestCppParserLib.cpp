@@ -11,6 +11,7 @@ void TestCPPSyntaxBlock(void);
 void TestCppHighlighter(void);
 void TestCppIndex(void);
 void TestIR(void);
+void TestIRInterprocedural(void);
 void TestIR65Backend(void);
 void TestIR816Backend(void);
 void TestCPP816(void);
@@ -52,6 +53,7 @@ int __cdecl main(void)
 	TestCppHighlighter();
 	TestCppIndex();
 	TestIR();
+	TestIRInterprocedural();
 	TestIRImportsTurns();
 	TestIR65Backend();
 	TestIR816Backend();

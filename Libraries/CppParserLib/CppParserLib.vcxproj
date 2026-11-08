@@ -246,6 +246,7 @@
     <ClCompile Include="IRFunction.cpp" />
     <ClCompile Include="IRImports.cpp" />
     <ClCompile Include="IRInliner.cpp" />
+    <ClCompile Include="IRInterprocedural.cpp" />
     <ClCompile Include="IRLiveness.cpp" />
     <ClCompile Include="IRLiveSets.cpp" />
     <ClCompile Include="IRModule.cpp" />
@@ -474,6 +475,7 @@
     <ClInclude Include="IRFunction.h" />
     <ClInclude Include="IRImports.h" />
     <ClInclude Include="IRInliner.h" />
+    <ClInclude Include="IRInterprocedural.h" />
     <ClInclude Include="IRLiveness.h" />
     <ClInclude Include="IRLiveSets.h" />
     <ClInclude Include="IRModule.h" />

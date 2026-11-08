@@ -5418,7 +5418,7 @@ bool TestCPP816Within(const char* szStart, const char* szEnd, const char* szFind
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Interprocedural constant propagation (CCPP65IRFrontEnd::
+// Interprocedural constant propagation (CIRInterprocedural::
 // SpecialiseConstantArguments): a function only its unit calls, with a
 // parameter that counts (a shift's count) a constant at every call, gets a
 // copy for each value (name__K<parameter>_<value>) and goes; with one

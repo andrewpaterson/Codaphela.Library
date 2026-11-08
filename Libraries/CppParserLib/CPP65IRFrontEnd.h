@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRModule.h"
 #include "IR816Backend.h"
 #include "IRInliner.h"
+#include "IRInterprocedural.h"
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
 
@@ -122,9 +123,6 @@ struct SCPP65IRCountedLoop
 #define IR816_INLINE_LOOP_INSTRUCTIONS	128		//is inlined (measured 2026-10-31, TestBaseLib65 and TestStandardLib65: 16/32/24 to
 #define IR816_INLINE_CALLS				64		//32/64/32 -3.3% and -5.0%, then -2.0% and -3.5%; 96 ran one out of bank 0's stack).
 #define IR816_INLINE_HOT_INSTRUCTIONS	192		//With a profile: more than in a loop, or a profile would add nothing there.
-#define IR65_SPECIALISE_ROUNDS			3		//Interprocedural constant propagation (SpecialiseConstantArguments): rounds,
-#define IR65_SPECIALISE_VALUES			3		//the most values a parameter is specialised for (a copy each),
-#define IR65_SPECIALISE_INSTRUCTIONS	4000	//and the biggest function copied.
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
@@ -142,7 +140,7 @@ typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 //(having changed nothing) and the function is an error (CCPP65Generator::GenerateDefinition).  Locals are slots,
 //read and written with load and store; parameters are where their caller pushed them (argaddr).  What is
 //supported is in IR.txt (Front end).
-class CCPP65IRFrontEnd : public CIRInlineProfile
+class CCPP65IRFrontEnd : public CIRInlineProfile, public CIRUnitFunctions
 {
 protected:
 	CIRFunction*			mpcProfiledCaller;	//The caller CallCount last looked at...
@@ -203,14 +201,11 @@ public:
 	void			InlineUnit(void);
 	bool			FinishUnit(void);
 	CArrayChars*	GetNotImported(void);
-	void			SpecialiseConstantArguments(CArrayTemplate<bool>* pabChanged);
-	void			MarkNoWrites(CArrayTemplate<bool>* pabCalls);
-	void			RemoveDeadArguments(CArrayTemplate<bool>* pabChanged);
-	uint32			DeadParameters(CIRFunction* pcFunction);
-	int				WrittenIndex(uint32 uiSymbol);
-	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);
-	bool			SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTemplate<bool>* pabChanged);
-	void			OptimiseSpecialised(CIRFunction* pcFunction);
+	size			NumUnitFunctions(void);
+	CIRFunction*	GetUnitFunction(size uiFunction);
+	void			InitOptimiser(CIROptimiser* pcOptimiser);
+	void			AddSpecialised(size uiFunction, CIRFunction* pcCopy);
+	bool			RemoveSpecialised(size uiFunction);
 	void			SetUnsupported(const char* szFile, int iLine, const char* szReason);
 	void			AppendUnsupported(CChars* psz);
 	void			ClearUnsupported(void);
@@ -228,7 +223,6 @@ protected:
 	bool			FinishWriting(bool bResult, const char* szLabel);
 	void			OptimiserWarnings(CChars* pszWarnings);
 	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame);
-	bool			IsRecursive(CIRFunction* pcFunction);
 	bool			Unsupported(const char* szFile, int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);
 	void			NoFloats(void);
@@ -334,7 +328,6 @@ protected:
 	bool			BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue);
 	bool			CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue);
 	bool			VerifyIR(CIRFunction* pcFunction, const char* szFile, int iLine);
-	void			InitOptimiser(CIROptimiser* pcOptimiser);
 	SIRReference	ConvertIR(SIRReference sValue, SIRType sFrom, SIRType sTo, bool bSigned);
 	SIRReference	BaseAddress(SIRReference sAddress, int iOffset);
 	bool			ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRReference* psAddress);
