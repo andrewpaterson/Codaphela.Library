@@ -1875,6 +1875,48 @@ void TestMapObjectRemapSelfEntry(size uiNumEntries)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Putting a value takes the old value's place, or a NULL's, or puts a NULL
+// there.  The key stays, what was replaced is freed, and the objects are
+// consistent after each.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectPutReplaces(void)
+{
+	STestObjectFreedNotifier	sNotifierOne;
+
+	ObjectsInit();
+	{
+		Ptr<CMapObject>		pMap;
+		Ptr<CTestObject>	pKey;
+		Ptr<CTestObject>	pNull;
+		Ptr<CTestObject>	pFound;
+
+		pMap = OMalloc<CMapObject>();
+		ORoot()->Add(pMap);
+		pKey = OMalloc<CTestObject>();
+		AssertTrue(pMap->Put(pKey, OMalloc<CTestObject>(&sNotifierOne)));
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pMap->Put(pKey, pNull));
+		AssertTrue(sNotifierOne.bFreed);
+		AssertTrue(pMap->Contains(pKey));
+		pFound = pMap->Get(pKey);
+		AssertTrue(pFound.IsNull());
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pMap->Put(pKey, OMalloc<CTestObject>()));
+		pFound = pMap->Get(pKey);
+		AssertTrue(pFound.IsNotNull());
+		AssertSize(1, pMap->NumElements());
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A key is looked at, not changed, so a const one will do.  A key that
 // isn't in the map has no value and can't be removed.
 //
@@ -1942,6 +1984,7 @@ void TestMapObject(void)
 	TestMapObjectIterate();
 	TestMapObjectRemove();
 	TestMapObjectConstKeys();
+	TestMapObjectPutReplaces();
 	TestMapObjectDetachOnStack();
 	TestMapObjectGetPointerTos();
 	TestMapObjectPointerFromsHeap();

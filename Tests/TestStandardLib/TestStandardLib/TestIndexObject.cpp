@@ -23,6 +23,37 @@ void TestIndexObjectAddConstructors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Putting at a key takes the place of what's there, which is freed, and the
+// objects are consistent after each.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexObjectPutReplaces(void)
+{
+	STestObjectFreedNotifier	sNotifierOne;
+	STestObjectFreedNotifier	sNotifierTwo;
+
+	ObjectsInit();
+	{
+		Ptr<CIndexObject>	pIndex;
+
+		pIndex = OMalloc<CIndexObject>();
+		ORoot()->Add(pIndex);
+		pIndex->Put("shnork", OMalloc<CTestObject>(&sNotifierOne));
+		gcObjects.ValidateObjectsConsistency();
+
+		pIndex->Put("shnork", OMalloc<CTestObject>(&sNotifierTwo));
+		AssertTrue(sNotifierOne.bFreed);
+		AssertFalse(sNotifierTwo.bFreed);
+		AssertSize(1, pIndex->NumElements());
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexObjectPut(void)
@@ -1281,6 +1312,7 @@ void TestIndexObject(void)
 	TestIndexObjectConstructorExists();
 	TestIndexObjectClassExists();
 	TestIndexObjectPut();
+	TestIndexObjectPutReplaces();
 	TestIndexObjectDetachInHeap();
 	TestIndexObjectIterateSafeNull();
 	TestIndexObjectIterateUnsafeNull();

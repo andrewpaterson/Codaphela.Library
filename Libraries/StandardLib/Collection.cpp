@@ -178,6 +178,21 @@ void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcNew (which may be NULL) has taken the place of pcOld (which may be NULL)
+// in this collection.  The new from is added first: they may be the same
+// object, which removing first would free.  The objects can only be
+// validated once both are done, so that's after the last step there is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::ReplaceObjectFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
+{
+	AddObjectFrom(pcNew, pcOld == NULL);
+	return RemoveObjectTryFree(pcOld, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A member (or an empty place) was added or taken out: what's saved has
 // changed, and the change is done (LogicalDirty: a write-through Codabase
 // writes it now, not when a stack pointer happens to be pointed at it

@@ -130,8 +130,6 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 	CBaseObject*		pcPointedTo;
 	CEmbeddedObject*	pvObject;
 
-	//The new object's from is added before the old one's is removed: they may be the same object, which removing
-	//first would free.
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
 	if (!mcIndex.Put(pvKey, iKeySize, pvObject))
@@ -141,9 +139,7 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 
 	RemoveMemberKey(pcPointedTo, pvKey, iKeySize);
 	AddMemberKey(pvObject, pvKey, iKeySize);
-
-	AddObjectFrom(pvObject, pcPointedTo == NULL);
-	return RemoveObjectTryFree(pcPointedTo, true);
+	return ReplaceObjectFrom(pvObject, pcPointedTo);
 }
 
 

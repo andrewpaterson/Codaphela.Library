@@ -1517,6 +1517,46 @@ void TestArrayObjectWriteThroughMembersChanged(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Set takes an object's place, or a NULL's, or puts a NULL there.  What was
+// replaced is freed, and the objects are consistent after each.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectSetReplaces(void)
+{
+	STestObjectFreedNotifier	sNotifierOne;
+	STestObjectFreedNotifier	sNotifierTwo;
+
+	ObjectsInit();
+	{
+		Ptr<CArray<CTestObject>>	pArray;
+		Ptr<CTestObject>			pNull;
+
+		pArray = OMalloc<CArray<CTestObject>>();
+		ORoot()->Add(pArray);
+		AssertTrue(pArray->Add(OMalloc<CTestObject>(&sNotifierOne)));
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pArray->Set(0, OMalloc<CTestObject>(&sNotifierTwo)));
+		AssertTrue(sNotifierOne.bFreed);
+		AssertFalse(sNotifierTwo.bFreed);
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pArray->Set(0, pNull));
+		AssertTrue(sNotifierTwo.bFreed);
+		AssertSize(1, pArray->NumElements());
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pArray->Set(0, OMalloc<CTestObject>()));
+		AssertTrue(pArray->Get(0).IsNotNull());
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // CArray<M> says whether adding worked: all of a NULL array is an error
 // and adds nothing.
 //
@@ -1570,6 +1610,7 @@ void TestArrayObject(void)
 	TestArrayObjectInsert();
 	TestArrayObjectAddAll();
 	TestArrayObjectAddResults();
+	TestArrayObjectSetReplaces();
 	TestArrayObjectRemove();
 	TestArrayObjectSneakyOnStack();
 	TestArrayObjectOnStackKill();

@@ -309,8 +309,6 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 
 	EnsureSorted();
 
-	//The new object's from is added before the old one's is removed: they may be the same object, which removing
-	//first would free.
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
 	if (!mcArray.Set(iIndex, pvObject))
@@ -320,8 +318,7 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 
 	MemberRemoved(pcPointedTo, iIndex);
 	MemberAdded(pvObject, iIndex);
-	AddObjectFrom(pvObject, pcPointedTo == NULL);
-	return RemoveObjectTryFree(pcPointedTo, true);
+	return ReplaceObjectFrom(pvObject, pcPointedTo);
 }
 
 

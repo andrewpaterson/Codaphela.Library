@@ -86,8 +86,7 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 	pcKey = (CBaseObject*)pKey.Object();
 	pcValue = (CBaseObject*)pValue.Object();
 
-	//An existing key keeps its one from.  The new value's from is added before the old value's is removed: they
-	//may be the same object, which removing first would free.
+	//An existing key keeps its one from.
 	bKeyExisted = mcMap.Contains(pcKey);
 	pcOldValue = NULL;
 	if (bKeyExisted)
@@ -106,8 +105,7 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 	{
 		AddObjectFrom(pcKey, false);
 	}
-	AddObjectFrom(pcValue, pcOldValue == NULL);
-	return RemoveObjectTryFree(pcOldValue, true);
+	return ReplaceObjectFrom(pcValue, pcOldValue);
 }
 
 
