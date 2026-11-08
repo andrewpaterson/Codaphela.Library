@@ -505,6 +505,43 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The thunks' frames (CPP65_816_VCALL_THIS and the rest): a virtual function
+// called through a member pointer, this adjusted for a secondary base's
+// vtable, with arguments that must arrive as they were pushed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816Thunks(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szListing;
+
+	AssertInt(0, TestCPP816RunListed(
+		"struct A { int a; virtual int F(int x) { return x + a; } virtual int G(int x, int y) { return x * a + y; } };\n"
+		"struct B { int b; virtual int H(int x) { return x - b; } };\n"
+		"struct C : A, B { int c; int H(int x) { return x - c; } int G(int x, int y) { return x * c + y; } };\n"
+		"volatile int gi = 1;\n"
+		"int main(void)\n"
+		"{\n"
+		"\tC o; A* pa = &o; B* pb = &o; int w = 0;\n"
+		"\to.a = 2; o.b = 3; o.c = 5;\n"
+		"\tint (A::*pg)(int, int) = &A::G;\n"
+		"\tint (A::*pf)(int) = &A::F;\n"
+		"\tif (gi == 0) { pg = 0; }\n"
+		"\tif ((pa->*pg)(7, 1) != 36) { w |= 1; }\n"
+		"\tif ((pa->*pf)(7) != 9) { w |= 2; }\n"
+		"\tif (pb->H(7) != 2) { w |= 4; }\n"
+		"\treturn w;\n"
+		"}\n", aszNone, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("__vcall_0_1:"));
+	AssertTrue(szListing.Contains("lda [[D + 10]:24 + Y]"));
+	AssertTrue(szListing.Contains("lda [S + 4]"));
+	AssertTrue(szListing.Contains("sta [S + 6]"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A signed int converted to float (extended to 32 bits in the frame) has no
 // hand counted branch for its sign word (bcc C + 1 kept the flow passes off
 // the function).
@@ -5500,6 +5537,7 @@ void TestCPP816(void)
 	TestCPP816SignedToFloat();
 	TestCPP816Functions();
 	TestCPP816Classes();
+	TestCPP816Thunks();
 	TestCPP816Statements();
 	TestCPP816NarrowSubscripts();
 	TestCPP816SharedDivisions();

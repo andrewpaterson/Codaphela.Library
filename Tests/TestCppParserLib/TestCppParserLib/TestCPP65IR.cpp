@@ -1242,6 +1242,37 @@ void TestCPP65IRNamespaceTemplates(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The 65C64's thunks: a member pointer's to a virtual function goes through
+// the vtable with its slot's offset (CPP65_VTABLE_ENTRY_BYTES apart), and one
+// of a secondary base's vtable adjusts this.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRThunks(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors,
+		"struct A { int a; virtual int F() { return 1; } virtual int G() { return 2; } };\n"
+		"struct B { int b; virtual int H() { return 3; } };\n"
+		"struct C : A, B { int H() { return 4; } };\n"
+		"int Call(A* p) { int (A::*f)() = &A::G; return (p->*f)(); }\n"
+		"int Make(void) { C c; return c.H(); }\n"));
+	AssertTrue(szAssembly.Contains(
+		"__vcall_0_1:\n"
+		"\t\tcpy A, [0 + X]\n"
+		"\t\tjmp [4 + A]\n"));
+	AssertTrue(szAssembly.Contains("\t\tadd X, -8\n\t\tjmp "));
+	AssertString("", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A call also looks in the namespaces of its arguments' types: their classes,
 // bases, template arguments and enums, through pointers and references.  An
 // operator does too, and a friend is in its class's namespace.  A qualified name
@@ -1406,6 +1437,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceOverloads();
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
+	TestCPP65IRThunks();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

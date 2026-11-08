@@ -243,12 +243,25 @@ typedef CArrayTemplate<SCPP65Vtable>	CArrayCPP65Vtables;
 //The type info (_Class__3) is an entry per subobject, its class's type info and its offset, and a zero.
 #define CPP65_VTABLE_ENTRY_BYTES		4
 #define CPP65_VTABLE_HEADER_ENTRIES		2
-#define CPP65_VTABLE_TOP_OFFSET			(-2 * CPP65_VTABLE_ENTRY_BYTES)		//From a vtable pointer: the distance to the object's start.
+#define CPP65_VTABLE_TOP_OFFSET			(-CPP65_VTABLE_HEADER_ENTRIES * CPP65_VTABLE_ENTRY_BYTES)	//From a vtable pointer: the distance to the object's start.
 #define CPP65_VTABLE_TYPE_INFO_OFFSET	(-CPP65_VTABLE_ENTRY_BYTES)			//From a vtable pointer: the class's type info.
 #define CPP65_TYPE_INFO_ENTRY_BYTES		(2 * CPP65_VTABLE_ENTRY_BYTES)
 #define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//In a type info entry: the subobject's offset.
 #define CPP65_VTABLE_LABEL				"2"
 #define CPP65_TYPE_INFO_LABEL			"3"
+
+
+//The W65C816's thunks, which work a word at a time.  A this adjusting thunk (AppendAdjustThunk816) has its caller's
+//stack: this, the first argument and so pushed last, is above the long return address.  A virtual call thunk
+//(AppendVirtualCallThunk816) saves D and pushes a word twice, and D then points at the stack: from D, what follows.
+//The function's address - 1 is put at CPP65_816_VCALL_TARGET, over the saved D, for rtl to jump to.
+#define CPP65_816_WORD_BYTES			2
+#define CPP65_816_ADJUST_THIS			4	//From S: this, in the adjusting thunk.
+#define CPP65_816_VCALL_VTABLE			1	//The vtable pointer (a low word and a high word).
+#define CPP65_816_VCALL_TARGET			4	//The function's address - 1: its low word...
+#define CPP65_816_VCALL_CALLER_D		5	//The caller's D.
+#define CPP65_816_VCALL_TARGET_BANK		6	//...and its bank.
+#define CPP65_816_VCALL_THIS			10	//this, past the caller's D and the long return address.
 
 
 enum ECPP65VtableEntry
@@ -660,6 +673,7 @@ protected:
 	void					AppendVtableHeader(SCPP65Class* psClass, int iVtablePointer);
 	int						VtablePointerOffset(SCPP65Class* psClass);
 	void					AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunction);
+	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
 	void					AppendVtableEntry(SCPP65Function* psFunction, int iAdjust);
 	void					VtableEntries(SCPP65Class* psClass, CArrayCPP65VtableEntries* pasEntries);
 	void					AppendVtableEntryLabel(CChars* psz, SCPP65Function* psFunction, int iAdjust);
