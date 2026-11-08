@@ -62,10 +62,8 @@ class CMesh;
 //The other Build keeps the mesh where it is at a scale that's given, for meshes that are to be drawn together at their
 //true sizes (see SRasterInstance).
 //
-//What's exported from CAD can be cleaned up and made simpler for how big it will be drawn:
-//  RemoveDegenerate takes out triangles with no area, which can't be seen.
-//  FixReversed turns round triangles that wind against their own normals, which back face culling would leave as holes.
-//  Simplify merges everything of a colour closer than a cell, for a mesh that is always drawn so small that a cell is about a pixel.
+//RemoveDegenerate takes out triangles with no area, which can't be seen.  What's exported from CAD is cleaned up and made
+//simpler for how big it will be drawn by modifiers on the CMesh it's built from (see CMeshFixReversed and CMeshSimplify).
 //
 //Building one from a big mesh takes seconds and Save and Load take none: uiSource is whatever says which source it was
 //built from, and Load refuses a file built from another.
@@ -85,8 +83,6 @@ public:
 	void	Build(CMesh* pcMesh, int32 iScale);
 
 	size	RemoveDegenerate(void);
-	size	FixReversed(void);
-	void	Simplify(int32 iCellSize);
 
 	bool	Save(const char* szFilename, uint64 uiSource);
 	bool	Load(const char* szFilename, uint64 uiSource);
@@ -97,9 +93,6 @@ protected:
 	bool	FindBounds(CMesh* pcMesh, SFloat32Vec3* psMin, SFloat32Vec3* psMax);
 	void	BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale);
 	void	UpdateBounds(void);
-	void	MergeCells(int32 iCellSize);
-	void	RemoveRepeatedTriangles(CArrayRasterTriangle* pasTriangles);
-	void	RemoveUnusedVertices(void);
 };
 
 
