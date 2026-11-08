@@ -1160,6 +1160,33 @@ void TestCPP65IRNamespaceOverloads(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Templates of the same name in different namespaces are different templates,
+// with different instances and labels.  Their members can be defined outside,
+// and specialised.  An instance has the namespace of its template, wherever
+// it is used from.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRNamespaceTemplates(void)
+{
+	static const char*	aszLabels[] = { "_A__Box__T", "_B__Box__T", "_A__Add__T", "_B__Add__T", "_N__opAdd__T", NULL };
+	static const char*	aszNone[] = { NULL };
+
+	AssertInt(21, TestCPP65Main("namespace A { template<class T> struct Box { T t; T Get() { return t + 1; } }; }\nnamespace B { template<class T> struct Box { T t; T s; T Get() { return t + 10; } }; }\nint main() { A::Box<int> a; B::Box<int> b; a.t = 0; b.t = 10; return a.Get() + b.Get(); }"));
+	AssertInt(4, TestCPP65Main("namespace A { template<class T> struct Box { T t; }; }\nnamespace B { template<class T> struct Box { T t; T s; }; }\nint main() { return sizeof(B::Box<char>) * 2 - sizeof(A::Box<char>) * 0; }"));
+	AssertInt(3, TestCPP65Main("namespace A { template<class T> T Add(T a) { return a + 1; } }\nnamespace B { template<class T> T Add(T a) { return a + 2; } int Go() { return Add(1); } }\nint main() { return B::Go(); }"));
+	AssertInt(5, TestCPP65Main("namespace A { template<class T> T Add(T a) { return a + 1; } }\nnamespace B { template<class T> T Add(T a) { return a + 2; } }\nint main() { return A::Add(1) + B::Add<int>(1); }"));
+	AssertInt(6, TestCPP65Main("namespace N { template<class T> struct Box { T t; T Get(); }; }\ntemplate<class T> T N::Box<T>::Get() { return t; }\nint main() { N::Box<int> b; b.t = 6; return b.Get(); }"));
+	AssertInt(7, TestCPP65Main("namespace N { template<class T> struct Box { T t; T Get(); }; template<class T> T Box<T>::Get() { return t + 1; } }\nint main() { N::Box<int> b; b.t = 6; return b.Get(); }"));
+	AssertInt(8, TestCPP65Main("namespace M { template<class T> struct S { int V() { return 1; } }; }\nnamespace N { template<class T> struct S { int V() { return 2; } }; template<> struct S<int> { int V() { return 8; } }; }\nint main() { N::S<int> s; return s.V(); }"));
+	AssertInt(9, TestCPP65Main("namespace M { template<class T> int Size(T a) { return 1; } }\nnamespace N { template<class T> int Size(T a) { return 2; } template<> int Size<int>(int a) { return 9; } }\nint main() { return N::Size<int>(1); }"));
+	AssertInt(10, TestCPP65Main("namespace A { template<class T> struct In { T t; int V() { return 1; } }; }\nnamespace B { template<class T> struct In { T t; int V() { return 10; } }; template<class T> struct Out { In<T> i; int V() { return i.V(); } }; }\nint main() { B::Out<int> o; return o.V(); }"));
+	AssertInt(11, TestCPP65Main("namespace A { template<class T> T F(T a) { return a + 1; } }\nnamespace B { template<class T> T F(T a, T b) { return a + b; } }\nusing namespace A;\nusing namespace B;\nint main() { return F(4) + F(3, 3); }"));
+	AssertNamespaceLabels("namespace A { template<class T> struct Box { T Get() { T t = 0; return t; } }; template<class T> T Add(T a) { return a; } }\nnamespace B { template<class T> struct Box { T Get() { T t = 0; return t; } }; template<class T> T Add(T a) { return a; } }\nnamespace N { struct S { int i; }; template<class T> S operator+(S a, T b) { return a; } }\nint main() { A::Box<int> a; B::Box<int> b; N::S s; s.i = 0; s = s + 1; return a.Get() + b.Get() + A::Add<int>(1) + B::Add<int>(1) + s.i; }", aszLabels, aszNone);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szSource compiled: szExpected is what its first error is, "" for none.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1287,6 +1314,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceRuns();
 	TestCPP65IRNamespaceQualified();
 	TestCPP65IRNamespaceOverloads();
+	TestCPP65IRNamespaceTemplates();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

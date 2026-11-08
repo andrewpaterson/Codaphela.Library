@@ -1445,7 +1445,7 @@ bool CCPP65Generator::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
 		return false;
 	}
 	pcClass = pcName->GetQualifier();
-	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !GetTemplateByName(GetComponentName(pcClass));
+	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !GetComponentTemplate(pcClass);
 }
 
 

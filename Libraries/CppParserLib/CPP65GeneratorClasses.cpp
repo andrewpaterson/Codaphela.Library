@@ -134,23 +134,58 @@ SCPP65Class* CCPP65Generator::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecif
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A class (not a template instance) by name, for qualified names.
+// A class (not a template instance) by name, for a qualifier the parser
+// couldn't resolve: one visible from pcLookup, else any.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Class* CCPP65Generator::FindClass(int64 lliName)
+SCPP65Class* CCPP65Generator::FindClass(int64 lliName, CCPPScope* pcLookup)
 {
 	SCPP65Class*	psClass;
+	SCPP65Class*	psFound;
 	size			i;
 
+	psFound = NULL;
 	for (i = 0; i < mapsClasses.NumElements(); i++)
 	{
 		psClass = mapsClasses.GetPtr(i);
 		if ((psClass->lliName == lliName) && !psClass->psTemplate)
 		{
-			return psClass;
+			if (psClass->pcSymbol && psClass->pcSymbol->mpcScope->Encloses(pcLookup))
+			{
+				return psClass;
+			}
+			psFound = psFound ? psFound : psClass;
 		}
 	}
-	return NULL;
+	return psFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psClass is an instance (of any arguments) of the class template
+// pcSymbol names, and not one of the same name in another scope.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsInstanceNamed(SCPP65Class* psClass, CCPPSymbol* pcSymbol)
+{
+	return !psClass->psTemplate && (psClass->lliName == pcSymbol->mlliName) && (!psClass->pcSymbol || (psClass->pcSymbol->mpcScope == pcSymbol->mpcScope));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a name's component is declared if the parser resolved it, else where
+// the name was looked up: what to choose between things of its name with.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPP65Generator::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
+{
+	if (pcComponent->mpcSymbol)
+	{
+		return pcComponent->mpcSymbol->mpcScope;
+	}
+	return (pcComponent->mpcParent && (pcComponent->mpcParent->GetKind() == CPPS_Name)) ? ((CCPPSyntaxName*)pcComponent->mpcParent)->mpcLookup : NULL;
 }
 
 
@@ -243,14 +278,14 @@ SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompo
 	{
 		//Names in templates are not always resolved by the parser.
 		lliName = GetComponentName(pcComponent);
-		psTemplate = (lliName != -1) ? GetTemplateByName(lliName) : NULL;
+		psTemplate = GetComponentTemplate(pcComponent);
 		if (psTemplate)
 		{
 			pcSymbol = psTemplate->pcSymbol;
 		}
 		else if (lliName != -1)
 		{
-			return FindClass(lliName);
+			return FindClass(lliName, ComponentLookup(pcComponent));
 		}
 	}
 	if (!pcSymbol)
@@ -481,7 +516,7 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 		{
 			//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }
 			pcClass = pcName->GetQualifier();
-			psClass = GetTemplateByName(GetComponentName(pcClass));
+			psClass = GetComponentTemplate(pcClass);
 			if (psClass && pcClassTemplate)
 			{
 				psTemplate = NewTemplate(psClass->pcSymbol, pcTemplate, pcFunction, true);
@@ -530,19 +565,14 @@ SCPP65Template* CCPP65Generator::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntax
 {
 	SCPP65Template*	psPrimary;
 	SCPP65Template*	psTemplate;
-	size			i;
 	int64			lliName;
 
 	//template<> int Size(short s) names a new function; its template is found by name.
 	psPrimary = pcSymbol ? GetTemplate(pcSymbol) : NULL;
 	lliName = pcPattern ? GetComponentName(pcPattern) : -1;
-	for (i = 0; !psPrimary && (lliName != -1) && (i < mapsTemplates.NumElements()); i++)
+	if (!psPrimary && (lliName != -1))
 	{
-		psTemplate = mapsTemplates.GetPtr(i);
-		if (!psTemplate->bMember && (psTemplate->psPrimary == psTemplate) && psTemplate->pcSymbol && (psTemplate->pcSymbol->mlliName == lliName) && (psTemplate->pcDefinition->GetKind() == pcDefinition->GetKind()))
-		{
-			psPrimary = psTemplate;
-		}
+		psPrimary = GetTemplateByName(lliName, pcDefinition->GetKind(), ComponentLookup(pcPattern));
 	}
 	if (!psPrimary || (psPrimary->pcDefinition->GetKind() != pcDefinition->GetKind()))
 	{
@@ -653,6 +683,7 @@ SCPP65Template* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTem
 	psTemplate->psOwner = NULL;
 	psTemplate->bArguments = false;
 	psTemplate->mszArguments.Init();
+	psTemplate->pcNamespace = mpcDeclaringNamespace;
 	mapsTemplates.Add(psTemplate);
 	return psTemplate;
 }
@@ -735,23 +766,44 @@ SCPP65Template* CCPP65Generator::GetTemplate(CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A class template by name.
+// A primary template by name, of a class or a function (eDefinition): one
+// visible from pcLookup, else any.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Template* CCPP65Generator::GetTemplateByName(int64 lliName)
+SCPP65Template* CCPP65Generator::GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup)
 {
 	SCPP65Template*	psTemplate;
+	SCPP65Template*	psFound;
 	size			i;
 
+	psFound = NULL;
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
 		psTemplate = mapsTemplates.GetPtr(i);
-		if (!psTemplate->bMember && (psTemplate->psPrimary == psTemplate) && psTemplate->pcSymbol && (psTemplate->pcSymbol->mlliName == lliName) && (psTemplate->pcDefinition->GetKind() == CPPS_ClassSpecifier))
+		if (!psTemplate->bMember && (psTemplate->psPrimary == psTemplate) && psTemplate->pcSymbol && (psTemplate->pcSymbol->mlliName == lliName) && (psTemplate->pcDefinition->GetKind() == eDefinition))
 		{
-			return psTemplate;
+			if (psTemplate->pcSymbol->mpcScope->Encloses(pcLookup))
+			{
+				return psTemplate;
+			}
+			psFound = psFound ? psFound : psTemplate;
 		}
 	}
-	return NULL;
+	return psFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class template a name's component names.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent)
+{
+	int64	lliName;
+
+	lliName = GetComponentName(pcComponent);
+	return (lliName != -1) ? GetTemplateByName(lliName, CPPS_ClassSpecifier, ComponentLookup(pcComponent)) : NULL;
 }
 
 
@@ -979,7 +1031,7 @@ SCPP65Class* CCPP65Generator::InstantiateClass(SCPP65Template* psTemplate, CArra
 	psClass = NULL;
 	for (i = 0; i < mapsClasses.NumElements(); i++)
 	{
-		if (!mapsClasses.GetPtr(i)->psTemplate && (mapsClasses.GetPtr(i)->lliName == psTemplate->pcSymbol->mlliName) && mapsClasses.GetPtr(i)->mszArguments.Equals(&szArguments))
+		if (IsInstanceNamed(mapsClasses.GetPtr(i), psTemplate->pcSymbol) && mapsClasses.GetPtr(i)->mszArguments.Equals(&szArguments))
 		{
 			psClass = mapsClasses.GetPtr(i);
 			psClass->pcSymbol = psTemplate->pcSymbol;
@@ -1034,7 +1086,7 @@ SCPP65Class* CCPP65Generator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySynt
 	for (i = 0; i < mapsClasses.NumElements(); i++)
 	{
 		psClass = mapsClasses.GetPtr(i);
-		if (!psClass->psTemplate && (psClass->lliName == pcSymbol->mlliName) && psClass->mszArguments.Equals(&szArguments))
+		if (IsInstanceNamed(psClass, pcSymbol) && psClass->mszArguments.Equals(&szArguments))
 		{
 			szArguments.Kill();
 			return psClass;
@@ -1257,7 +1309,7 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 	pcComponent = pcNamed ? pcNamed->mpcName->GetLast() : NULL;
 	if (pcComponent && pcComponent->mbTemplateArguments)
 	{
-		psTemplate = pcComponent->mpcSymbol ? GetTemplate(pcComponent->mpcSymbol) : GetTemplateByName(GetComponentName(pcComponent));
+		psTemplate = pcComponent->mpcSymbol ? GetTemplate(pcComponent->mpcSymbol) : GetComponentTemplate(pcComponent);
 		if (!psTemplate || !psType->IsClass() || !psType->psClass->psTemplate || (psType->psClass->psTemplate->psPrimary != psTemplate))
 		{
 			return false;
@@ -1359,6 +1411,7 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 	CArrayCPP65Types				apsDeduced;
 	CArrayInt64						alliDeduced;
 	CChars							szArguments;
+	CCPPScope*						pcSavedNamespace;
 	CCPPSyntaxFunctionSuffix*		pcInClass;
 	CCPPSyntaxParameter*			pcParameter;
 	size							i;
@@ -1416,7 +1469,10 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 		psBindings->psOuter = mpsBindings;
 	}
 	mpsBindings = psBindings;
+	pcSavedNamespace = mpcDeclaringNamespace;
+	mpcDeclaringNamespace = psTemplate->pcNamespace;
 	psFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, psTemplate->psClass, false, psTemplate, &szArguments);
+	mpcDeclaringNamespace = pcSavedNamespace;
 	mpsBindings = psSaved;
 	if (!psTemplate->psClass)
 	{
@@ -2290,13 +2346,47 @@ void CCPP65Generator::GetMemberTemplates(SCPP65Class* psClass, int64 lliName, si
 //////////////////////////////////////////////////////////////////////////
 SCPP65Template* CCPP65Generator::GetCallTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit)
 {
-	CArrayCPP65Templates		apsCandidates;
+	CArrayCPP65Templates	apsCandidates;
+	CArrayScopes			apcNamespaces;
+	SCPP65Template*			psTemplate;
+	CCPPSyntaxName*			pcName;
+	size					i;
+
+	apsCandidates.Init();
+	apcNamespaces.Init();
+	pcName = (pcCall->mpcCallee->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName : NULL;
+	if (pcName && pcName->mpcLookup)
+	{
+		pcName->mpcLookup->GatherOverloadScopes(pcSymbol->mlliName, pcName->mbGlobal || (pcName->GetQualifier() != NULL), &apcNamespaces);
+	}
+	for (i = 0; i < apcNamespaces.NumElements(); i++)
+	{
+		AddCallTemplates(apcNamespaces.GetPtr(i)->FindHere(pcSymbol->mlliName), pcCall, &apsCandidates);
+	}
+	if (apcNamespaces.NumElements() == 0)
+	{
+		AddCallTemplates(pcSymbol, pcCall, &apsCandidates);
+	}
+	psTemplate = (apsCandidates.NumElements() > 0) ? ChooseTemplate(&apsCandidates, -1, papcExplicit, pcCall) : GetTemplate(pcSymbol);
+	apcNamespaces.Kill();
+	apsCandidates.Kill();
+	return psTemplate;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the function templates of pcSymbol's declarations that take the call's
+// number of arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArrayCPP65Templates* papsCandidates)
+{
 	SCPP65Template*				psTemplate;
 	CCPPSymbol*					pcDeclaration;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	size						i;
 
-	apsCandidates.Init();
 	for (pcDeclaration = pcSymbol; pcDeclaration; pcDeclaration = pcDeclaration->mpcNext)
 	{
 		if (pcDeclaration->meKind != CPPSK_FunctionTemplate)
@@ -2313,13 +2403,10 @@ SCPP65Template* CCPP65Generator::GetCallTemplate(CCPPSymbol* pcSymbol, CCPPSynta
 			pcSuffix = ((CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition)->mpcDeclarator->GetFunctionSuffix();
 			if (pcSuffix && TakesArguments(pcSuffix, pcCall->macpArguments.NumElements()))
 			{
-				apsCandidates.Add(psTemplate);
+				papsCandidates->Add(psTemplate);
 			}
 		}
 	}
-	psTemplate = (apsCandidates.NumElements() > 0) ? ChooseTemplate(&apsCandidates, -1, papcExplicit, pcCall) : GetTemplate(pcSymbol);
-	apsCandidates.Kill();
-	return psTemplate;
 }
 
 

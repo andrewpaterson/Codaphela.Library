@@ -359,6 +359,7 @@ struct SCPP65Template
 	CCPPSyntaxNameComponent*		pcPattern;
 	SCPP65Template*					psOwner;
 	bool							bArguments;		//mszArguments is worked out (a function specialisation's).
+	CCPPScope*						pcNamespace;	//The namespace it was declared in, NULL for the global one: of an instance with no symbol (an operator).
 	CChars							mszArguments;
 };
 
@@ -587,7 +588,9 @@ protected:
 	SCPP65Class*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	SCPP65Class*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	SCPP65Class*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
-	SCPP65Class*			FindClass(int64 lliName);
+	SCPP65Class*			FindClass(int64 lliName, CCPPScope* pcLookup);
+	CCPPScope*				ComponentLookup(CCPPSyntaxNameComponent* pcComponent);
+	static bool				IsInstanceNamed(SCPP65Class* psClass, CCPPSymbol* pcSymbol);
 	SCPP65Class*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, SCPP65Class* psContext = NULL);
 	SCPP65Class*			FindBaseInstance(SCPP65Class* psClass, SCPP65Template* psTemplate);
 	SCPP65Class*			QualifierClass(SCPP65Class* psClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
@@ -598,7 +601,8 @@ protected:
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate);
 	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration);
 	SCPP65Template*			GetTemplate(CCPPSymbol* pcSymbol);
-	SCPP65Template*			GetTemplateByName(int64 lliName);
+	SCPP65Template*			GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup);
+	SCPP65Template*			GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent);
 	SCPP65Bindings*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced = NULL);
 	SCPP65Binding*			FindBinding(CCPPSymbol* pcParameter);
 	SCPP65Class*			InstantiateClass(SCPP65Template* psTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
@@ -610,6 +614,7 @@ protected:
 	SCPP65Template*			ChooseMemberTemplate(SCPP65Class* psClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, int iConstObject);
 	void					GetMemberTemplates(SCPP65Class* psClass, int64 lliName, size uiArguments, CArrayCPP65Templates* papsCandidates);
 	SCPP65Template*			GetCallTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit);
+	void					AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArrayCPP65Templates* papsCandidates);
 	SCPP65Template*			ChooseTemplate(CArrayCPP65Templates* papsCandidates, int iConstObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall);
 	bool					TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int* aiRanks);
 	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);

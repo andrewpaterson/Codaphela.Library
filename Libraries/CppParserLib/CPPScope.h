@@ -68,11 +68,11 @@ public:
 	CCPPScope*		FindUnnamedNamespace(void);
 	bool			IsInUnnamedNamespace(void);
 	bool			IsDependent(void);
+	bool			Encloses(CCPPScope* pcScope);
 	void			GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScopes* papcNamespaces);
 
 protected:
 	CCPPSymbol*		FindMember(int64 lliName, int iDepth);
-	bool			Encloses(CCPPScope* pcScope);
 	bool			AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces);
 	void			AddNominated(CArrayScopes* papcNominated);
 	bool			GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CArrayScopes* papcNamespaces);
