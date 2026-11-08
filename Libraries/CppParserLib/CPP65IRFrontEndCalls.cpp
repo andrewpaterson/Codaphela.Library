@@ -119,7 +119,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	psFunction = NULL;
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
-		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
+		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!psTemplate)
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -138,6 +138,11 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	else if (pcSymbol)
 	{
 		return CallThroughPointer(pcCall, pcCallee, psValue);
+	}
+	else
+	{
+		//Nothing declares it here: it may be in a namespace of its arguments'.
+		psFunction = mpcGenerator->FindAssociatedFunction(pcName, lliName, pcCall);
 	}
 	if (!psFunction || (psFunction->psClass && !psFunction->bStatic))
 	{

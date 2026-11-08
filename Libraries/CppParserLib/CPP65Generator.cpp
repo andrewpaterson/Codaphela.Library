@@ -1600,6 +1600,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	size						uiPack;
 	uint32						uiFlags;
 	bool						bConstThis;
+	bool						bFriend;
 	CCPPScope*					pcNamespace;
 
 	pcName = pcDeclarator->GetName();
@@ -1708,7 +1709,9 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	pcNamespace = NULL;
 	if (!psClass)
 	{
-		pcNamespace = pcName->mpcSymbol ? NamespaceOf(pcName->mpcSymbol->mpcScope) : mpcDeclaringNamespace;
+		//A friend with a simple name is of the namespace its class is in, whatever the name finds.  [namespace.memdef] 3
+		bFriend = pcName->IsSimple() && (uiFlags & CPPDS_FRIEND);
+		pcNamespace = (pcName->mpcSymbol && !bFriend) ? NamespaceOf(pcName->mpcSymbol->mpcScope) : mpcDeclaringNamespace;
 	}
 	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
 	{

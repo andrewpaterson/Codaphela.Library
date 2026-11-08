@@ -243,8 +243,38 @@ SCPP65Class* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The scope code being written is in, as far as the generator knows without
+// its block: the one the function's name is declared from, or the namespace
+// being declared in.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPP65Generator::CurrentLookupScope(void)
+{
+	CCPPSyntaxName*	pcName;
+
+	if (!mpsFunction)
+	{
+		return mpcDeclaringNamespace;
+	}
+	pcName = mpsFunction->pcDeclarator ? mpsFunction->pcDeclarator->GetName() : NULL;
+	if (pcName && pcName->mpcLookup)
+	{
+		return pcName->mpcLookup;
+	}
+	if (mpsFunction->psClass && mpsFunction->psClass->pcSymbol)
+	{
+		return mpsFunction->psClass->pcSymbol->mpcScope;
+	}
+	return mpsFunction->pcNamespace;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The operator function (not a member) for the arguments: a declared one, or an
-// instance of a function template of that name.  NULL, quietly, if none matches.
+// instance of a function template of that name.  Those of the namespaces around
+// the function being written (without the hiding names have) and those the
+// arguments are associated with.  NULL, quietly, if none matches.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
@@ -253,6 +283,8 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 	SCPP65Template*					psTemplate;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPSyntaxName*					pcName;
+	CCPPScope*						pcLookup;
+	CArrayScopes					apcNamespaces;
 	size							uiErrors;
 	size							i;
 	bool							bDeclared;
@@ -269,9 +301,21 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 	uiErrors = mcErrors.NumErrors();
 	psFunction = NULL;
 	BeginQuiet();
+	apcNamespaces.Init();
+	pcLookup = CurrentLookupScope();
+	if (pcLookup)
+	{
+		pcLookup->GatherEnclosingNamespaces(&apcNamespaces);
+	}
+	AddArgumentNamespaces(papcArguments, &apcNamespaces);
+	NormaliseNamespaces(&apcNamespaces);
+	if (apcNamespaces.Find(NULL) == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		apcNamespaces.Add(NULL);
+	}
 	if (bDeclared)
 	{
-		psFunction = FindFunction(NULL, lliName, CPP65FK_Function, papcArguments, false, pcNode);
+		psFunction = FindFunction(NULL, lliName, CPP65FK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
 	}
 	for (i = 0; !psFunction && (i < mapsTemplates.NumElements()); i++)
 	{
@@ -282,11 +326,12 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 		}
 		pcDefinition = (CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition;
 		pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
-		if (pcName && (pcName->macpComponents.NumElements() == 1) && (GetFunctionName(pcName->GetLast()) == lliName))
+		if (pcName && (pcName->macpComponents.NumElements() == 1) && (GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Find(psTemplate->pcNamespace) != ARRAY_ELEMENT_NOT_FOUND))
 		{
 			psFunction = InstantiateFunction(psTemplate, NULL, papcArguments, pcNode);
 		}
 	}
+	apcNamespaces.Kill();
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
 	return psFunction;

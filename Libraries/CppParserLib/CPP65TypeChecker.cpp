@@ -1052,7 +1052,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		{
 			return MemberCall(pcCall, pcCallee);
 		}
-		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
+		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!psTemplate)
 		{
 			Error(pcCallee, "The function template has not been defined");
@@ -1087,6 +1087,21 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	{
 		//Only checking: an intrinsic of the host's compiler (__debugbreak()), declared by no header.
 		return UncheckedCall(&pcCall->macpArguments);
+	}
+	if (!pcSymbol && pcName)
+	{
+		//Nothing declares it here: it may be in a namespace of its arguments'.
+		uiErrors = mpcGenerator->mcErrors.NumErrors();
+		psFunction = mpcGenerator->FindAssociatedFunction(pcName, lliName, pcCall);
+		if (psFunction)
+		{
+			mpcGenerator->Resolved(pcName, psFunction);
+			return Call(psFunction, &pcCall->macpArguments, pcCall);
+		}
+		if (mpcGenerator->mcErrors.NumErrors() != uiErrors)
+		{
+			return NULL;
+		}
 	}
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{

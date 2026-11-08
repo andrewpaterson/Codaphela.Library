@@ -495,6 +495,27 @@ void CCPPScope::GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScope
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The namespaces around this scope, and what using directives nominate on
+// the way out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPScope::GatherEnclosingNamespaces(CArrayScopes* papcNamespaces)
+{
+	CCPPScope*	pcScope;
+
+	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
+	{
+		if ((pcScope->meKind == CPPSC_Namespace) && (papcNamespaces->Find(pcScope) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			papcNamespaces->Add(pcScope);
+		}
+		pcScope->AddNominated(papcNamespaces);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPScope::IsDependent(void)

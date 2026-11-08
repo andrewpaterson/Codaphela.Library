@@ -1970,6 +1970,7 @@ bool CCPP65Generator::CompleteClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 {
+	CCPPScope*						pcEnclosing;
 	CCPPSyntaxClassSpecifier*		pcSpecifier;
 	CCPPSyntaxBaseSpecifier*		pcBaseSpecifier;
 	CCPPSyntaxNameComponent*		pcComponent;
@@ -2008,10 +2009,17 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		bResult &= CompleteClass(psClass->macBases.Get(i)->psClass, pcBaseSpecifier);
 	}
 
+	//Its friends are of its namespace, whatever is being generated when it is completed.
+	pcEnclosing = mpcDeclaringNamespace;
+	if (psClass->pcSymbol)
+	{
+		mpcDeclaringNamespace = NamespaceOf(psClass->pcSymbol->mpcScope);
+	}
 	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
 	{
 		bResult &= ClassMember(psClass, pcSpecifier->macpMembers.GetPtr(i));
 	}
+	mpcDeclaringNamespace = pcEnclosing;
 
 	//A class template's members defined outside it.  Their template parameters are
 	//new names for the class's.
@@ -2344,30 +2352,36 @@ void CCPP65Generator::GetMemberTemplates(SCPP65Class* psClass, int64 lliName, si
 // GetTemplate's.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Template* CCPP65Generator::GetCallTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit)
+SCPP65Template* CCPP65Generator::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit)
 {
 	CArrayCPP65Templates	apsCandidates;
 	CArrayScopes			apcNamespaces;
 	SCPP65Template*			psTemplate;
-	CCPPSyntaxName*			pcName;
 	size					i;
 
 	apsCandidates.Init();
 	apcNamespaces.Init();
-	pcName = (pcCall->mpcCallee->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName : NULL;
-	if (pcName && pcName->mpcLookup)
+	if (pcCall->mpcCallee->GetKind() == CPPS_IdExpression)
 	{
-		pcName->mpcLookup->GatherOverloadScopes(pcSymbol->mlliName, pcName->mbGlobal || (pcName->GetQualifier() != NULL), &apcNamespaces);
+		GetCallNamespaces(((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName, lliName, &pcCall->macpArguments, &apcNamespaces);
 	}
 	for (i = 0; i < apcNamespaces.NumElements(); i++)
 	{
-		AddCallTemplates(apcNamespaces.GetPtr(i)->FindHere(pcSymbol->mlliName), pcCall, &apsCandidates);
+		AddCallTemplates(apcNamespaces.GetPtr(i)->FindHere(lliName), pcCall, &apsCandidates);
 	}
 	if (apcNamespaces.NumElements() == 0)
 	{
 		AddCallTemplates(pcSymbol, pcCall, &apsCandidates);
 	}
-	psTemplate = (apsCandidates.NumElements() > 0) ? ChooseTemplate(&apsCandidates, -1, papcExplicit, pcCall) : GetTemplate(pcSymbol);
+	psTemplate = NULL;
+	if (apsCandidates.NumElements() > 0)
+	{
+		psTemplate = ChooseTemplate(&apsCandidates, -1, papcExplicit, pcCall);
+	}
+	else if (pcSymbol)
+	{
+		psTemplate = GetTemplate(pcSymbol);
+	}
 	apcNamespaces.Kill();
 	apsCandidates.Kill();
 	return psTemplate;
@@ -3902,14 +3916,28 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The namespaces a name's function can be in (CCPPScope::GatherOverloadScopes),
-// as functions have them: NULL for the global one.
+// The namespaces as functions have them: NULL for the global one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::NormaliseNamespaces(CArrayScopes* papcNamespaces)
+{
+	size	i;
+
+	for (i = 0; i < papcNamespaces->NumElements(); i++)
+	{
+		papcNamespaces->SetPtr(i, NamespaceOf(papcNamespaces->GetPtr(i)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespaces (as the scopes they are) a name's function can be in
+// (CCPPScope::GatherOverloadScopes).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArrayScopes* papcNamespaces)
 {
-	size	i;
-
 	if (pcName->mpcLookup)
 	{
 		pcName->mpcLookup->GatherOverloadScopes(lliName, pcName->mbGlobal || (pcName->GetQualifier() != NULL), papcNamespaces);
@@ -3918,9 +3946,124 @@ void CCPP65Generator::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliNam
 	{
 		papcNamespaces->Add(pcName->mpcSymbol->mpcScope->GetEnclosingNamespace());
 	}
-	for (i = 0; i < papcNamespaces->NumElements(); i++)
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the namespace pcScope is in, if it isn't there already.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddNamespaceOf(CCPPScope* pcScope, CArrayScopes* papcNamespaces)
+{
+	CCPPScope*	pcNamespace;
+
+	pcNamespace = pcScope->GetEnclosingNamespace();
+	if (papcNamespaces->Find(pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		papcNamespaces->SetPtr(i, NamespaceOf(papcNamespaces->GetPtr(i)));
+		papcNamespaces->Add(pcNamespace);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the namespaces associated with a type: a class's, its bases' and its
+// template arguments', an enum's, and those of what a pointer, reference, array
+// or function type is made from.  [basic.lookup.argdep] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddAssociatedNamespaces(SCPP65Type* psType, CArrayScopes* papcNamespaces, int iDepth)
+{
+	SCPP65Class*	psClass;
+	SCPP65Binding*	psBinding;
+	size			i;
+	size			j;
+
+	if (!psType || (iDepth > CPP65_MAX_ASSOCIATED_DEPTH))
+	{
+		return;
+	}
+	switch (psType->eKind)
+	{
+	case CPP65TK_Class:
+		psClass = psType->psClass;
+		if (psClass->pcSymbol)
+		{
+			AddNamespaceOf(psClass->pcSymbol->mpcScope, papcNamespaces);
+		}
+		for (i = 0; i < psClass->macBases.NumElements(); i++)
+		{
+			AddAssociatedNamespaces(psClass->macBases.Get(i)->psClass->psType, papcNamespaces, iDepth + 1);
+		}
+		for (i = 0; psClass->psBindings && (i < psClass->psBindings->macBindings.NumElements()); i++)
+		{
+			psBinding = psClass->psBindings->macBindings.Get(i);
+			AddAssociatedNamespaces(psBinding->psType, papcNamespaces, iDepth + 1);
+			for (j = 0; psBinding->papsPack && (j < psBinding->papsPack->NumElements()); j++)
+			{
+				AddAssociatedNamespaces(psBinding->papsPack->GetPtr(j), papcNamespaces, iDepth + 1);
+			}
+		}
+		break;
+	case CPP65TK_Function:
+		AddAssociatedNamespaces(psType->psBase, papcNamespaces, iDepth + 1);
+		for (i = 0; psType->papsParameters && (i < psType->papsParameters->NumElements()); i++)
+		{
+			AddAssociatedNamespaces(psType->papsParameters->GetPtr(i), papcNamespaces, iDepth + 1);
+		}
+		break;
+	case CPP65TK_MemberPointer:
+		AddAssociatedNamespaces(psType->psClass->psType, papcNamespaces, iDepth + 1);
+		AddAssociatedNamespaces(psType->psBase, papcNamespaces, iDepth + 1);
+		break;
+	case CPP65TK_Pointer:
+	case CPP65TK_Reference:
+	case CPP65TK_Array:
+		AddAssociatedNamespaces(psType->psBase, papcNamespaces, iDepth + 1);
+		break;
+	default:
+		if (psType->pcEnum)
+		{
+			AddNamespaceOf(psType->pcEnum->mpcScope, papcNamespaces);
+		}
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the namespaces associated with the types of a call's arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddArgumentNamespaces(CArraySyntax* papcArguments, CArrayScopes* papcNamespaces)
+{
+	size	i;
+
+	for (i = 0; papcArguments && (i < papcArguments->NumElements()); i++)
+	{
+		if (!FunctionNameOf(papcArguments->GetPtr(i)))
+		{
+			AddAssociatedNamespaces(TypeOf(papcArguments->GetPtr(i)), papcNamespaces, 0);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespaces a call's function can be in: what the name finds, and for
+// a name that isn't qualified the namespaces its arguments are associated with.
+// [basic.lookup.argdep] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CArrayScopes* papcNamespaces)
+{
+	GetOverloadNamespaces(pcName, lliName, papcNamespaces);
+	if (!pcName->mbGlobal && !pcName->GetQualifier())
+	{
+		AddArgumentNamespaces(papcArguments, papcNamespaces);
 	}
 }
 
@@ -3936,10 +4079,39 @@ SCPP65Function* CCPP65Generator::FindNamedFunction(CCPPSyntaxName* pcName, int64
 	SCPP65Function*	psFunction;
 
 	apcNamespaces.Init();
-	GetOverloadNamespaces(pcName, lliName, &apcNamespaces);
+	GetCallNamespaces(pcName, lliName, papcArguments, &apcNamespaces);
+	NormaliseNamespaces(&apcNamespaces);
 	psFunction = FindFunction(NULL, lliName, CPP65FK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
 	apcNamespaces.Kill();
 	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function or function template's instance a call of a name nothing
+// declares where it is means: one only its arguments' namespaces have.  NULL
+// if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::FindAssociatedFunction(CCPPSyntaxName* pcName, int64 lliName, CCPPSyntaxCallExpression* pcCall)
+{
+	SCPP65Function*	psFunction;
+	SCPP65Template*	psTemplate;
+	size			uiErrors;
+
+	if ((lliName == -1) || pcName->mbGlobal || pcName->GetQualifier() || (pcCall->macpArguments.NumElements() == 0))
+	{
+		return NULL;
+	}
+	uiErrors = mcErrors.NumErrors();
+	psFunction = FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+	if (psFunction || (mcErrors.NumErrors() != uiErrors))
+	{
+		return psFunction;
+	}
+	psTemplate = GetCallTemplate(NULL, lliName, pcCall, NULL);
+	return psTemplate ? InstantiateFunction(psTemplate, NULL, &pcCall->macpArguments, pcCall) : NULL;
 }
 
 
@@ -3986,6 +4158,7 @@ SCPP65Function* CCPP65Generator::FindAddressedFunction(CCPPSyntaxName* pcName, i
 	if (pcName)
 	{
 		GetOverloadNamespaces(pcName, lliName, &apcNamespaces);
+		NormaliseNamespaces(&apcNamespaces);
 	}
 	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{

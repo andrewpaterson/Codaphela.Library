@@ -70,6 +70,7 @@ public:
 	bool			IsDependent(void);
 	bool			Encloses(CCPPScope* pcScope);
 	void			GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScopes* papcNamespaces);
+	void			GatherEnclosingNamespaces(CArrayScopes* papcNamespaces);
 
 protected:
 	CCPPSymbol*		FindMember(int64 lliName, int iDepth);

@@ -1187,6 +1187,39 @@ void TestCPP65IRNamespaceTemplates(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A call also looks in the namespaces of its arguments' types: their classes,
+// bases, template arguments and enums, through pointers and references.  An
+// operator does too, and a friend is in its class's namespace.  A qualified name
+// doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRNamespaceArguments(void)
+{
+	AssertInt(1, TestCPP65Main("namespace N { struct S { int i; }; int Get(S s) { return s.i; } }\nint main() { N::S s; s.i = 1; return Get(s); }"));
+	AssertInt(2, TestCPP65Main("namespace N { struct S { int i; }; int Get(S* p) { return p->i; } int Get(const S& r) { return r.i + 1; } }\nint main() { N::S s; s.i = 2; return Get(&s); }"));
+	AssertInt(3, TestCPP65Main("namespace N { struct S { int i; }; int Get(const S& r) { return r.i + 1; } }\nint main() { N::S s; s.i = 2; return Get(s); }"));
+	AssertInt(4, TestCPP65Main("namespace N { struct B { int i; }; int Get(B& b) { return b.i; } }\nstruct D : N::B { };\nint main() { D d; d.i = 4; return Get(d); }"));
+	AssertInt(5, TestCPP65Main("namespace N { struct S { int i; }; template<class T> struct Box { T t; }; int Get(Box<S>& b) { return b.t.i; } }\ntemplate<class T> struct Own { T t; };\nnamespace M { struct A { int i; }; int Get(Own<A>& o) { return o.t.i; } }\nint main() { Own<M::A> o; o.t.i = 5; return Get(o); }"));
+	AssertInt(6, TestCPP65Main("namespace N { enum E { A = 6 }; int Get(E e) { return e; } }\nint main() { return Get(N::A); }"));
+	AssertInt(7, TestCPP65Main("namespace N { struct S { int i; }; template<class T> int Get(T t, S s) { return t + s.i; } }\nint main() { N::S s; s.i = 3; return Get(4, s); }"));
+	AssertInt(8, TestCPP65Main("namespace N { struct S { int i; }; int Get(S s) { return s.i; } }\ntemplate<class T> int Call(T t) { return Get(t); }\nint main() { N::S s; s.i = 8; return Call(s); }"));
+	AssertInt(9, TestCPP65Main("namespace N { struct S { int i; }; int F(S s) { return s.i; } }\nint F(int a) { return a; }\nint main() { N::S s; s.i = 4; return F(s) + F(5); }"));
+	AssertInt(10, TestCPP65Main("namespace N { struct S { int i; friend int Peek(S s) { return s.i; } }; }\nint main() { N::S s; s.i = 10; return Peek(s); }"));
+	AssertInt(11, TestCPP65Main("int Peek(int a) { return a; }\nnamespace N { struct S { int i; friend int Peek(S s) { return s.i + 1; } }; }\nint main() { N::S s; s.i = 10; return Peek(s); }"));
+	AssertInt(12, TestCPP65Main("namespace N { struct S { int i; friend S operator+(S a, S b) { S s; s.i = a.i + b.i; return s; } }; }\nint main() { N::S a; N::S b; a.i = 5; b.i = 7; return (a + b).i; }"));
+	AssertInt(13, TestCPP65Main("namespace A { struct S { int i; }; int operator+(S a, int b) { return a.i + b; } }\nnamespace B { struct S { int i; }; int operator+(S a, int b) { return a.i - b; } }\nint main() { A::S a; B::S b; a.i = 10; b.i = 5; return (a + 1) + (b + 3); }"));
+	AssertInt(14, TestCPP65Main("namespace N { struct S { int i; }; template<class T> int operator+(S a, T b) { return a.i + b; } }\nint main() { N::S a; a.i = 10; return a + 4; }"));
+	AssertInt(15, TestCPP65Main("namespace N { struct S { int i; }; bool operator==(S a, S b) { return a.i == b.i; } }\ntemplate<class T> int Same(T a, T b) { return (a == b) ? 15 : 0; }\nint main() { N::S a; N::S b; a.i = 1; b.i = 1; return Same(a, b); }"));
+	AssertInt(16, TestCPP65Main("struct S { int i; };\nnamespace M { int operator-(S a, S b) { return a.i - b.i; } }\nusing namespace M;\nint main() { S a; S b; a.i = 20; b.i = 4; return a - b; }"));
+	AssertInt(17, TestCPP65Main("struct S { int i; };\nint operator-(S a, S b) { return a.i - b.i; }\nnamespace N { int F() { S a; S b; a.i = 20; b.i = 3; return a - b; } }\nint main() { return N::F(); }"));
+
+	AssertConstError("No function matches", "namespace N { struct S { int i; }; int Get(S s) { return s.i; } }\nint Get(int a) { return a; }\nint main() { N::S s; s.i = 1; return ::Get(s); }");
+	AssertConstError("The call is ambiguous", "namespace A { struct S { int i; }; int Get(S s, int a) { return 1; } }\nnamespace B { struct T { int i; }; int Get(A::S s, T t) { return 2; } int Get(A::S s, int a) { return 3; } }\nint main() { A::S s; B::T t; using B::Get; return Get(s, 1); }");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szSource compiled: szExpected is what its first error is, "" for none.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1315,6 +1348,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceQualified();
 	TestCPP65IRNamespaceOverloads();
 	TestCPP65IRNamespaceTemplates();
+	TestCPP65IRNamespaceArguments();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();
