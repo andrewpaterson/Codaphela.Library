@@ -98,21 +98,19 @@ void CStackPointer::LinkBefore(CStackPointer* pcFirst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CStackPointer::NumPointers(void)
+size CStackPointer::NumPointers(void)
 {
-	CStackPointer* pcNext;
+	CStackPointer*	pcNext;
+	size			uiCount;
 
-	int iCount;
-
-	iCount = 1;
+	uiCount = 1;
 	pcNext = mpcNext;
 	while (pcNext != NULL)
 	{
-		iCount++;
+		uiCount++;
 		pcNext = pcNext->mpcNext;
 	}
-	
-	return iCount;
+	return uiCount;
 }
 
 

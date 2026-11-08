@@ -37,13 +37,13 @@ void TestStackPointersAdd(void)
 	AssertNotNull(pcStackPointer11);
 	pcStackPointer11->LinkBefore(NULL);
 	AssertNull(pcStackPointer11->GetNext());
-	AssertInt(1, pcStackPointer11->NumPointers());
+	AssertSize(1, pcStackPointer11->NumPointers());
 
 	pcStackPointer12 = cStackPointers.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer12);
 	pcStackPointer12->LinkBefore(pcStackPointer11);
 	AssertPointer(pcStackPointer11, pcStackPointer12->GetNext());
-	AssertInt(2, pcStackPointer12->NumPointers());
+	AssertSize(2, pcStackPointer12->NumPointers());
 
 	pcStackPointer13 = cStackPointers.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer13);
@@ -52,18 +52,18 @@ void TestStackPointersAdd(void)
 	AssertPointer(pcStackPointer11, pcStackPointer12->GetNext());
 	AssertNull(pcStackPointer11->GetNext());
 	AssertPointer(pcStackPointer11, pcStackPointer13->FindLast());
-	AssertInt(3, pcStackPointer13->NumPointers());
+	AssertSize(3, pcStackPointer13->NumPointers());
 
 	//A list linked in front of a list: 21, 22, then 13, 12, 11.
 	pcStackPointer21 = cStackPointers.Add(cPointer2.This());
 	pcStackPointer22 = cStackPointers.Add(cPointer2.This());
 	pcStackPointer22->LinkBefore(NULL);
 	pcStackPointer21->LinkBefore(pcStackPointer22);
-	AssertInt(2, pcStackPointer21->NumPointers());
+	AssertSize(2, pcStackPointer21->NumPointers());
 	pcStackPointer21->LinkBefore(pcStackPointer13);
 	AssertPointer(pcStackPointer22, pcStackPointer21->GetNext());
 	AssertPointer(pcStackPointer13, pcStackPointer22->GetNext());
-	AssertInt(5, pcStackPointer21->NumPointers());
+	AssertSize(5, pcStackPointer21->NumPointers());
 	AssertSize(5, cStackPointers.NumElements());
 
 	cStackPointers.RemoveAll(pcStackPointer21);

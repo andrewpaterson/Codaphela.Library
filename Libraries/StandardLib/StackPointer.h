@@ -61,7 +61,7 @@ public:
 
 	void				SetNext(CStackPointer* pcNext);
 	void				LinkBefore(CStackPointer* pcFirst);
-	int					NumPointers(void);
+	size				NumPointers(void);
 	CStackPointer*		FindLast(void);
 	CStackPointer*		GetNext(void);
 	
