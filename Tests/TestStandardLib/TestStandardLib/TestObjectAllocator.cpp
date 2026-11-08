@@ -919,6 +919,79 @@ void TestObjectAllocatorOverwrittensFlushedObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static STestObjectFreedNotifier*	gpsDestroyedNotifier;
+static bool							gbFreedWhenDestroyed;
+void TestObjectAllocatorFreedWhenDestroyed(CBaseObject* pvObject)
+{
+	if (gpsDestroyedNotifier)
+	{
+		gbFreedWhenDestroyed = gpsDestroyedNotifier->bFreed;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object no longer reached is removed in a batch: destroyed (the
+// destruction callback, marked freed) before its Free is called, so the
+// pointers Free changes don't walk through what is going anyway.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectAllocatorBatchDestroyedBeforeFree(void)
+{
+	MemoryInit();
+	TypesInit();
+	DataIOInit();
+	ObjectsInit();
+	{
+		STestObjectFreedNotifier	sNotifier;
+		Ptr<CTestObject>			pObject;
+
+		gpsDestroyedNotifier = &sNotifier;
+		gbFreedWhenDestroyed = true;
+		gcObjects.SetDestructionCallback(&TestObjectAllocatorFreedWhenDestroyed);
+
+		pObject = OMalloc<CTestObject>(&sNotifier);
+		AssertFalse(sNotifier.bFreed);
+		pObject = NULL;
+		AssertTrue(sNotifier.bFreed);
+		AssertFalse(gbFreedWhenDestroyed);
+
+		gpsDestroyedNotifier = NULL;
+	}
+	ObjectsKill();
+	DataIOKill();
+	TypesKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Objects without a database have nothing in one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectAllocatorNoDataConnection(void)
+{
+	MemoryInit();
+	TypesInit();
+	DataIOInit();
+	ObjectsInit();
+
+	AssertLong(0, gcObjects.NumDatabaseIndexes());
+	AssertLong(0, gcObjects.NumDatabaseNames());
+
+	ObjectsKill();
+	DataIOKill();
+	TypesKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestObjectAllocator(void)
 {
 	BeginTests();
@@ -932,6 +1005,8 @@ void TestObjectAllocator(void)
 	TestObjectAllocatorOverwrittensParentMaintainsPointerToOverwritten();
 	TestObjectAllocatorOverwrittensParentMaintainsPointerToOverwrittenWithEmbedded();
 	TestObjectAllocatorOverwrittensFlushedObjects();
+	TestObjectAllocatorBatchDestroyedBeforeFree();
+	TestObjectAllocatorNoDataConnection();
 
 	// Test dependent named objects overwrite existing named objects.  i.e:  Load "Name 1" -> x -> "Name 2" overwrites "Name 2" that exists in the database.
 

@@ -43,6 +43,8 @@ void CStackPointers::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointers::Kill(void)
 {
+	//A stack pointer still here is alive (its destructor would have removed it): clearing it stops that destructor
+	//reaching an object that is gone.  ObjectsKill reports them before this.
 	ClearAllPointers();
 	mcFreeList.Kill();
 }

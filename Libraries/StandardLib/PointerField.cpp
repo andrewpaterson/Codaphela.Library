@@ -32,15 +32,9 @@ void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, const cha
 {
 	CClasses*	pcClasses;
 
+	//CClass only makes fields inside the object (iOffset isn't negative).
 	pcClasses = pcContainingClass->GetClasses();
-	if (iOffset >= 0)
-	{
-		CField::Init(pcClasses->GetPointer(), iOffset, pcContainingClass, szName);
-	}
-	else
-	{
-		CField::Init(NULL, 0, pcContainingClass, szName);
-	}
+	CField::Init(pcClasses->GetPointer(), iOffset, pcContainingClass, szName);
 
 	mbDoNoFreePointedTo = false;
 }

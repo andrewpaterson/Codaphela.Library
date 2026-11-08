@@ -263,9 +263,14 @@ void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The base for a new walk.  When the count wraps the stamps of the objects
-// in memory are cleared, so no old stamp can look like a new walk's.
-// Objects not allocated in Objects aren't cleared; they don't live long.
+// A new walk: the objects it visits are stamped with what this returns
+// (and the steps after it, see WALK_STAMP_STEP), so it can tell them from
+// those it hasn't.  A walk started while another is still under way
+// restamps what it visits, and the first then takes those for unvisited:
+// a walk that calls code that walks (a validator, CanFindRoot) must not
+// rely on its stamps afterwards.  Validation uses flags (DUMPED,
+// TESTED_FOR_SANITY) for that reason.  Nothing ends a walk, so this can't
+// be checked.
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 CObjects::StartWalk(void)
@@ -1074,6 +1079,10 @@ void CObjects::SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
 {
+	//Done (marked freed) before Free, unlike a single Kill: the pointers the objects' Free changes then don't start
+	//distance walks through objects that are going anyway (the walks skip freed objects).  With a batch of thousands
+	//sharing an object that's the difference between linear and quadratic (TestDistToRootUpdateFreeBatchSpeed).  The
+	//destruction callback is called before Free.
 	SaveStoredDirty(papcObjectPts);
 	DoneKill(papcObjectPts);
 	FreeInternal(papcObjectPts);
@@ -1158,6 +1167,11 @@ Ptr<CRoot> CObjects::Root(void)
 	if (pRoot.IsNull())
 	{
 		pRoot = Malloc<CRoot>(ROOT_NAME);
+		if (pRoot.IsNull())
+		{
+			gcLogger.Error2(__METHOD__, " Could not allocate the root.", NULL);
+			return pRoot;
+		}
 		pRoot->Init();
 	}
 	return pRoot;
@@ -1174,11 +1188,20 @@ Ptr<CFreeObjects> CObjects::FreeObjects(void)
 	Ptr<CRoot>			pRoot;
 
 	pRoot = Root();
+	if (pRoot.IsNull())
+	{
+		return NULL;
+	}
 
 	pFree = Get(FREE_OBJECTS_NAME);
 	if (pFree.IsNull())
 	{
 		pFree = Malloc<CFreeObjects>(FREE_OBJECTS_NAME);
+		if (pFree.IsNull())
+		{
+			gcLogger.Error2(__METHOD__, " Could not allocate the free objects.", NULL);
+			return pFree;
+		}
 		pFree->Init();
 
 		pRoot->Add(pFree);
@@ -1193,7 +1216,14 @@ Ptr<CFreeObjects> CObjects::FreeObjects(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AddFreeObject(CPointer& p)
 {
-	return FreeObjects()->Add(p);
+	Ptr<CFreeObjects>	pFree;
+
+	pFree = FreeObjects();
+	if (pFree.IsNull())
+	{
+		return NULL;
+	}
+	return pFree->Add(p);
 }
 
 
@@ -1694,6 +1724,11 @@ int64 CObjects::NumDatabaseIndexes(void)
 	OIndex					oi;
 	int64					iCount;
 
+	if (mpcDataConnection == NULL)
+	{
+		return 0;
+	}
+
 	iCount = 0;
 	oi = mpcDataConnection->StartIndexIteration(&sIter, NULL, NULL, 0);
 	while (oi != INVALID_O_INDEX)
@@ -1715,6 +1750,11 @@ int64 CObjects::NumDatabaseNames(void)
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
 	int64					iCount;
+
+	if (mpcDataConnection == NULL)
+	{
+		return 0;
+	}
 
 	iCount = 0;
 	mpcDataConnection->StartNameIteration(&sIter, NULL, &oi);

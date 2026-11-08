@@ -31,6 +31,7 @@ public:
 
 private:
 	size	RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
+	void	WarnDroppedEmbedded(CEmbeddedObject* pcOld, size uiNumRemapped);
 	size	CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 };
 

@@ -30,14 +30,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iObjectOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, const char* szName)
 {
-	if (iObjectOffset >= 0)
-	{
-		CField::Init(pcFieldClass, iObjectOffset, pcContainingClass, szName);
-	}
-	else
-	{
-		CField::Init(NULL, 0, pcContainingClass, szName);
-	}
+	//CClass only makes fields inside the object (the offsets aren't negative).
+	CField::Init(pcFieldClass, iObjectOffset, pcContainingClass, szName);
 	muiValueOffset = iValueOffset;
 	mpcIO = pcIO;
 }

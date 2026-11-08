@@ -28,12 +28,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The offset of a field (pvField) in the object pcThis.
+// Where pvField is in pcThis.  A field before the object (a negative
+// offset) isn't one of its fields: that's an error and no field is added.
 //
 //////////////////////////////////////////////////////////////////////////
-static ptrdiff_t FieldOffset(CBaseObject* pcThis, void* pvField)
+bool CClass::FieldOffset(CBaseObject* pcThis, void* pvField, const char* szFieldName, ptrdiff_t* piOffset)
 {
-	return (ptrdiff_t)((ptr)pvField - (ptr)pcThis);
+	*piOffset = (ptrdiff_t)((ptr)pvField - (ptr)pcThis);
+	if (*piOffset < 0)
+	{
+		return gcLogger.Error2(__METHOD__, " Field [", szFieldName, "] of class [", GetName(), "] isn't inside the object.", NULL);
+	}
+	return true;
 }
 
 
@@ -245,7 +251,10 @@ CPointerField* CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, const c
 	CPointerField*	pcPointerField;
 	ptrdiff_t		iOffset;
 
-	iOffset = FieldOffset(pcThis, pcPointer);
+	if (!FieldOffset(pcThis, pcPointer, szFieldName, &iOffset))
+	{
+		return NULL;
+	}
 	pcPointerField = NewField<CPointerField>(&mapcPointers, szFieldName);
 	pcPointerField->Init(iOffset, this, szFieldName);
 	return pcPointerField;
@@ -264,10 +273,12 @@ CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrim
 	CClass*				pcClass;
 	SDataIO*			psIO;
 
+	if (!FieldOffset(pcThis, pcPrimitive, szFieldName, &iObjectOffset) || !FieldOffset(pcThis, pvPrimitive, szFieldName, &iValueOffset))
+	{
+		return NULL;
+	}
 	pcPrimitive->SetEmbedding((CObject*)pcThis);
 
-	iObjectOffset = FieldOffset(pcThis, pcPrimitive);
-	iValueOffset = FieldOffset(pcThis, pvPrimitive);
 	pcDataField = AddPrimitive(szFieldName);
 	pcClass = GetClass(pcPrimitive->GetClassType());
 	psIO = gcDataTypesIO.GetIO(pcClass->GetName());
@@ -285,7 +296,10 @@ CEmbeddedObjectField* CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObjec
 	CEmbeddedObjectField*	pcEmbeddedObjectField;
 	ptrdiff_t				iOffset;
 
-	iOffset = FieldOffset(pcThis, pcObject);
+	if (!FieldOffset(pcThis, pcObject, szFieldName, &iOffset))
+	{
+		return NULL;
+	}
 	pcEmbeddedObjectField = NewField<CEmbeddedObjectField>(&mapcEmbeddedObjects, szFieldName);
 	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this, szFieldName);
 	return pcEmbeddedObjectField;
@@ -381,9 +395,14 @@ void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, size uiLength, c
 void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, const char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
 
+	if (!FieldOffset(pcThis, pv, szFieldName, &iOffset))
+	{
+		return;
+	}
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Data, FieldOffset(pcThis, pv), this, uiSizeof, 1, szFieldName);
+	pcUnmanagedField->Init(PT_Data, iOffset, this, uiSizeof, 1, szFieldName);
 }
 
 
@@ -393,10 +412,15 @@ void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, const c
 //////////////////////////////////////////////////////////////////////////
 void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, const char* szFieldName)
 {
-	CUnmanagedField* pcUnmanagedField;
+	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
 
+	if (!FieldOffset(pcThis, pv, szFieldName, &iOffset))
+	{
+		return;
+	}
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_void, FieldOffset(pcThis, pv), this, 0, szFieldName);
+	pcUnmanagedField->Init(PT_void, iOffset, this, 0, szFieldName);
 }
 
 
@@ -406,10 +430,15 @@ void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, const char* szFieldNam
 //////////////////////////////////////////////////////////////////////////
 void CClass::UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, const char* szFieldName)
 {
-	CUnmanagedField* pcUnmanagedField;
+	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
 
+	if (!FieldOffset(pcThis, pv, szFieldName, &iOffset))
+	{
+		return;
+	}
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Undefined, FieldOffset(pcThis, pv), this, 0, szFieldName);
+	pcUnmanagedField->Init(PT_Undefined, iOffset, this, 0, szFieldName);
 }
 
 
@@ -419,10 +448,15 @@ void CClass::UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, cons
 //////////////////////////////////////////////////////////////////////////
 void CClass::UnmanagedPointer(CBaseObject* pcThis, void** pv, const char* szFieldName)
 {
-	CUnmanagedField* pcUnmanagedField;
+	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
 
+	if (!FieldOffset(pcThis, pv, szFieldName, &iOffset))
+	{
+		return;
+	}
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Pointer, FieldOffset(pcThis, pv), this, 1, szFieldName);
+	pcUnmanagedField->Init(PT_Pointer, iOffset, this, 1, szFieldName);
 }
 
 
@@ -433,9 +467,14 @@ void CClass::UnmanagedPointer(CBaseObject* pcThis, void** pv, const char* szFiel
 void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, const char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
 
+	if (!FieldOffset(pcThis, pv, szFieldName, &iOffset))
+	{
+		return;
+	}
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(eType, FieldOffset(pcThis, pv), this, szFieldName);
+	pcUnmanagedField->Init(eType, iOffset, this, szFieldName);
 }
 
 
@@ -446,9 +485,14 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, cons
 void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, const char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
 
+	if (!FieldOffset(pcThis, pv, szFieldName, &iOffset))
+	{
+		return;
+	}
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(eType, FieldOffset(pcThis, pv), this, uiLength, szFieldName);
+	pcUnmanagedField->Init(eType, iOffset, this, uiLength, szFieldName);
 }
 
 

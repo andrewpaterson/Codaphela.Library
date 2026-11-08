@@ -48,7 +48,8 @@ size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	}
 
 	//An embedded object pcNew doesn't have (it is of a class with fewer) keeps its froms until pcOld is killed, which
-	//clears the pointers to it.
+	//clears the pointers to it.  That's on purpose, but the pointers lose what they pointed to, so it's a warning.
+	WarnDroppedEmbedded(pcOld, iNumEmbedded);
 	pcOld->KillInternal(bHeapFromChanged, true);
 
 	return iCount;
@@ -135,6 +136,30 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 	pcOldFroms->PostRemapFroms();
 
 	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcOld's embedded objects from uiNumRemapped on have no place in the
+// object it was remapped to: a warning for each that is pointed to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectRemapFrom::WarnDroppedEmbedded(CEmbeddedObject* pcOld, size uiNumRemapped)
+{
+	size				i;
+	size				uiNumEmbedded;
+	CEmbeddedObject*	pcEmbedded;
+
+	uiNumEmbedded = pcOld->NumEmbedded();
+	for (i = uiNumRemapped; i < uiNumEmbedded; i++)
+	{
+		pcEmbedded = pcOld->GetEmbeddedObject(i);
+		if ((pcEmbedded->CEmbeddedObject::NumHeapFroms() != 0) || (pcEmbedded->CEmbeddedObject::NumStackFroms() != 0))
+		{
+			gcLogger.Warning2(__METHOD__, " Object {", ObjectToString(pcOld), "} was remapped to one without its embedded object [", SizeToString(i), "]: the pointers to it are cleared.", NULL);
+		}
+	}
 }
 
 

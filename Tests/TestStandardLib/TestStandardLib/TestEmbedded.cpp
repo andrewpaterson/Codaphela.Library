@@ -17,6 +17,10 @@
 #include "ObjectTestClasses.h"
 
 
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1159,7 +1163,9 @@ void TestEmbeddedHeapFromIteration(void)
 //////////////////////////////////////////////////////////////////////////
 void TestEmbeddedReplaceWithFewerEmbedded(void)
 {
-	char	szErrors[1024];
+	char		szErrors[1024];
+	CMemoryFile	cLog;
+	SLogConfig	sLogConfig;
 
 	ObjectsInit();
 	SetupEmbeddedObjectConstructors();
@@ -1181,8 +1187,12 @@ void TestEmbeddedReplaceWithFewerEmbedded(void)
 		pContainer->mcTwo.mpTest = pHeld;
 		AssertSize(3, pContainer->NumEmbedded());
 
+		//The pointers lose what they pointed to: a warning.
 		pContainer = NULL;
+		StartCapturingLog(&cLog, &sLogConfig);
 		pReplacement = gcObjects.AllocateReplacingNamed("CTestObject", "Thing");
+		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
+		AssertNotNull(strstr(szErrors, "was remapped to one without its embedded object [2]: the pointers to it are cleared."));
 		AssertTrue(pReplacement.IsNotNull());
 		pReplacement->Init();
 		AssertSize(1, pReplacement->NumEmbedded());

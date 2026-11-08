@@ -188,6 +188,7 @@ public:
 	void					Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, size uiLength, const char* szFieldName);
 
 protected:
+	bool					FieldOffset(CBaseObject* pcThis, void* pvField, const char* szFieldName, ptrdiff_t* piOffset);
 	CField*					AddField(size uiFieldSize, const char* szName);
 	template<class TField>
 	TField*					NewField(CArrayVoidPtr* papcFields, const char* szName);

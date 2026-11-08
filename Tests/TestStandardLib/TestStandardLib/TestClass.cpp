@@ -1,6 +1,8 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/Logger.h"
 #include "StandardLib/ExternalObjectDeserialiser.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/Objects.h"
@@ -11,6 +13,10 @@
 #include "TestLib/Assert.h"
 #include "TestBaseObject.h"
 #include "TestClass.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -512,6 +518,49 @@ void TestClassHeapObjectEmbeddedPointers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A field before the object isn't one of its fields: that's an error and
+// the class doesn't get the field.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestClassFieldOutsideObject(void)
+{
+	Ptr<CTestClass>		pTestClass;
+	CBaseObject*		pcObject;
+	CClass*				pcClass;
+	size				uiPointers;
+	size				uiUnmanaged;
+	CMemoryFile			cLog;
+	SLogConfig			sLogConfig;
+	char				szLogged[1024];
+
+	DataIOInit();
+	ObjectsInit();
+
+	pTestClass = gcObjects.Malloc<CTestClass>();
+	pTestClass->Init();
+	pcObject = pTestClass.BaseObject();
+	pcClass = pcObject->GetClass();
+	uiPointers = pcClass->GetPointerFields()->NumElements();
+	uiUnmanaged = pcClass->GetUnmanagedFields()->NumElements();
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	AssertNull(pcClass->Pointer(pcObject, (CPointer*)((uint8*)pcObject - 32), "Before"));
+	pcClass->UnmanagedInt32(pcObject, (int32*)((uint8*)pcObject - 4), "AlsoBefore");
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Field [Before] of class [CTestClass] isn't inside the object."));
+	AssertNotNull(strstr(szLogged, "Field [AlsoBefore] of class [CTestClass] isn't inside the object."));
+	AssertSize(uiPointers, pcClass->GetPointerFields()->NumElements());
+	AssertSize(uiUnmanaged, pcClass->GetUnmanagedFields()->NumElements());
+
+	pTestClass = NULL;
+
+	ObjectsKill();
+	DataIOKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestClass(void)
@@ -528,6 +577,7 @@ void TestClass(void)
 	TestClassPrimitiveClasses();
 	TestClassUnmanagedMatrixSerialisation();
 	TestClassHeapObjectEmbeddedPointers();
+	TestClassFieldOutsideObject();
 
 	TypesKill();
 	MemoryKill();

@@ -246,6 +246,12 @@ void CDistCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, CDistTo
 	}
 
 	pcClosestToRoot = pcObject->GetClosestFromToRoot();
+	if (pcClosestToRoot == NULL)
+	{
+		//It was expected at a distance because something reaching the root points to it.
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcObject), "} has no from closer to the root.", NULL);
+		return;
+	}
 	iClosestToRoot = pcClosestToRoot->GetDistToRoot() + 1;
 
 	AddTouched(pcObject);
