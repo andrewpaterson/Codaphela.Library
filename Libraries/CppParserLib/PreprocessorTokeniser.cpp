@@ -264,9 +264,11 @@ CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokenMemory* pcTokens
 	case PPD_null:
 	case PPD_unknown:
 		return TokeniseHashPlain(pcTokens, eDirective);
-	default:
+	case PPD_nomore:
 		break;
 	}
+
+	//The file ended after the #.  Every other directive is listed above, with no default so that a new one is noticed.
 	return NULL;
 }
 
