@@ -95,8 +95,6 @@ public:
 	int				GenerateConnectivity(void);  //Returns how many edges were new.
 	bool			IsGenerated(void);
 
-	void			IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces);
-
 protected:
 	void			KillCorners(void);
 	void			KillCornerEdgesMap(void);

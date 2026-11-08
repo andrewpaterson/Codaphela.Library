@@ -54,8 +54,6 @@ public:
 	bool	Save(CObjectWriter* pcFile) override;
 
 	void	AddFace(void);
-
-	void	IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces);
 };
 
 

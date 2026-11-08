@@ -62,7 +62,6 @@ public:
 
 	void		GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
 	void		AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
-	void		IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces);
 
 	void		RemoveCornerNormals(int iNumFaces);
 

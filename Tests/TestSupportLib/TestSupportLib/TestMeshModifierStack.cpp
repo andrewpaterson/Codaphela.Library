@@ -6,7 +6,32 @@
 #include "TestLib/Assert.h"
 
 
-size CountMeshMemoryObjects(const char* szClassName);
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CountMeshMemoryObjects(const char* szClassName)
+{
+	SIndexesIterator	sIter;
+	OIndex				oi;
+	CPointer			p;
+	size				uiCount;
+
+	uiCount = 0;
+	oi = gcObjects.StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		p = gcObjects.TestGetFromMemory(oi);
+		if (StringCompare(p->ClassName(), szClassName) == 0)
+		{
+			uiCount++;
+		}
+		oi = gcObjects.IterateMemory(&sIter);
+	}
+	sIter.Kill();
+	p = NULL;
+	return uiCount;
+}
 
 
 //Returns a new mesh of the one corner it is given, moved.

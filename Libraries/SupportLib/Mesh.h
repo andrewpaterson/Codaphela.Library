@@ -30,8 +30,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshSkin.h"
 #include "MeshMaterials.h"
 #include "MeshColours.h"
-#include "MeshFaceTypes.h"
-#include "MeshCache.h"
 
 
 class CMesh : public CObject
@@ -47,10 +45,7 @@ public:
 	CMeshUVCoords		mcUVs;
 	CMeshMaterials		mcMaterials;		
 	CMeshColours		mcColours;			
-	CMeshSkin			mcSkin;				
-
-	CMeshFaceTypes		mcFaceTypes;		//Touched, Optional: Normals, Material, Skin, UVCoords
-	CMeshCache			mcCache;			//Touched, Depends: FaceTypes
+	CMeshSkin			mcSkin;
 
 	void			Init(void);
 	void 			Free(void) override;
@@ -59,7 +54,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 	
-	bool			Touch(void);
+	void			Touch(void);
 
 	int				NumCorners(void);
 	int				NumFaces(void);

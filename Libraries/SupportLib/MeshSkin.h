@@ -60,7 +60,6 @@ typedef CArrayTemplate<CMeshSkinVert> CArrayMeshSkinVert;
 
 
 //This class can be applied to both positions and normals because the postion/normal index is implicit.
-class CMeshConnectivity;
 class CMeshSkin : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshSkin);
@@ -85,9 +84,7 @@ public:
 	void	Touch(void);
 	void	AddCorner(void);
 	int		GetFaceMatrixCount(int iVert1, int iVert2, int iVert3);
-	int		GetFaceVertexMaxMatrixCount(int iVert1, int iVert2, int iVert3);
 	void	PrivateAddMatricies(CMeshSkinVert* pcVert, CArrayInt* paiMatricies);
-	void	IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces, CMeshConnectivity* pcConn);
 };
 
 

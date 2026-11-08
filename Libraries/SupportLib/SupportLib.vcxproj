@@ -387,12 +387,6 @@
     <ClInclude Include="MeshCorner.h" />
     <ClInclude Include="MeshEdge.h" />
     <ClInclude Include="MeshFace.h" />
-    <ClInclude Include="MeshCache.h" />
-    <ClInclude Include="MeshFaceTypes.h" />
-    <ClInclude Include="MeshIndexArray.h" />
-    <ClInclude Include="MeshVertexArray.h" />
-    <ClInclude Include="MeshCacher.h" />
-    <ClInclude Include="MeshTypeIndices.h" />
     <ClInclude Include="MeshShape.h" />
     <ClInclude Include="MeshBoundingBox.h" />
     <ClInclude Include="MeshConvexHull.h" />
@@ -643,11 +637,6 @@
     <ClCompile Include="MeshCorner.cpp" />
     <ClCompile Include="MeshEdge.cpp" />
     <ClCompile Include="MeshFace.cpp" />
-    <ClCompile Include="MeshCache.cpp" />
-    <ClCompile Include="MeshFaceTypes.cpp" />
-    <ClCompile Include="MeshVertexArray.cpp" />
-    <ClCompile Include="MeshCacher.cpp" />
-    <ClCompile Include="MeshTypeIndices.cpp" />
     <ClCompile Include="MeshShape.cpp" />
     <ClCompile Include="MeshBoundingBox.cpp" />
     <ClCompile Include="MeshConvexHull.cpp" />

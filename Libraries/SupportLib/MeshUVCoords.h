@@ -77,7 +77,6 @@ public:
 	int				AddLayer(CMeshConnectivity* pcConn);
 	CMeshUVLayer*	EnsureLayerExists(size iLayer, CMeshConnectivity* pcConn);
 
-	void			IndexFaceCorners(int* paiDest, ptrdiff iStride, CArrayInt* paiSourceFaces, size iNumLayers);
 	int				NumUVs(void);
 };
 

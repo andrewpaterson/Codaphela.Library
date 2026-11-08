@@ -239,36 +239,6 @@ void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshNormals::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces)
-{
-	size				i;
-	size				iFaceIndex;
-	SMeshNormalFace*	psFaceNormal;
-	size				uiNumElements;
-
-	//This assumes something else has check that paiSourceFaces actually have corner normals.
-	uiNumElements = paiSourceFaces->NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		iFaceIndex = paiSourceFaces->GetValue(i);
-		psFaceNormal = mcFaces.Get(iFaceIndex);
-
-		*paiDest = psFaceNormal->aiCornerNormals[0];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		*paiDest = psFaceNormal->aiCornerNormals[1];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		*paiDest = psFaceNormal->aiCornerNormals[2];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SFloat32Vec3* CMeshNormals::GetFaceNormal(int iFace)
 {
 	return mcNormals.Get(iFace);

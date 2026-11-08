@@ -28,12 +28,6 @@
     <Filter Include="Source\Mesh\Detail\Connectivity">
       <UniqueIdentifier>{2299b482-779b-4fc1-9a0c-b3182d143326}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Mesh\Detail\Cache">
-      <UniqueIdentifier>{6a8f1b63-7b54-4451-9ffc-2e464a40a58c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Mesh\Detail\Cache\Intermediate">
-      <UniqueIdentifier>{5556c625-cb6a-49f9-89df-6a8b9010da55}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Mesh\Shape">
       <UniqueIdentifier>{540a21a9-166f-4544-9886-0772d89185fc}</UniqueIdentifier>
     </Filter>
@@ -554,24 +548,6 @@
     </ClInclude>
     <ClInclude Include="MeshFace.h">
       <Filter>Source\Mesh\Detail\Connectivity</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshCache.h">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshFaceTypes.h">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshIndexArray.h">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshVertexArray.h">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshCacher.h">
-      <Filter>Source\Mesh\Detail\Cache\Intermediate</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshTypeIndices.h">
-      <Filter>Source\Mesh\Detail\Cache\Intermediate</Filter>
     </ClInclude>
     <ClInclude Include="MeshShape.h">
       <Filter>Source\Mesh\Shape</Filter>
@@ -1327,21 +1303,6 @@
     </ClCompile>
     <ClCompile Include="MeshFace.cpp">
       <Filter>Source\Mesh\Detail\Connectivity</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshCache.cpp">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshFaceTypes.cpp">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshVertexArray.cpp">
-      <Filter>Source\Mesh\Detail\Cache</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshCacher.cpp">
-      <Filter>Source\Mesh\Detail\Cache\Intermediate</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshTypeIndices.cpp">
-      <Filter>Source\Mesh\Detail\Cache\Intermediate</Filter>
     </ClCompile>
     <ClCompile Include="MeshShape.cpp">
       <Filter>Source\Mesh\Shape</Filter>

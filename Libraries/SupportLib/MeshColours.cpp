@@ -123,33 +123,3 @@ void CMeshColours::AddFace(void)
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshColours::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces)
-{
-	size				i;
-	size				iFaceIndex;
-	SMeshFaceColour*	psFaceColour;
-	size				uiNumElements;
-
-	//This assumes something else has check that paiSourceFaces actually have corner normals.
-	uiNumElements = paiSourceFaces->NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		iFaceIndex = paiSourceFaces->GetValue(i);
-		psFaceColour = mcFaces.Get(iFaceIndex);
-
-		*paiDest = psFaceColour->aiCornerColours[0];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		*paiDest = psFaceColour->aiCornerColours[1];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		*paiDest = psFaceColour->aiCornerColours[2];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-	}
-}
-

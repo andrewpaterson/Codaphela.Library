@@ -53,8 +53,6 @@ void CMesh::PrivateInit(void)
 	mcSkin.Init();
 	mcMaterials.Init();
 	mcColours.Init();
-	mcFaceTypes.Init();
-	mcCache.Init();
 }
 
 
@@ -80,8 +78,6 @@ void CMesh::Class(void)
 	M_Embedded(mcMaterials);
 	M_Embedded(mcColours);
 	M_Embedded(mcSkin);
-	M_Embedded(mcFaceTypes);
-	M_Embedded(mcCache);
 }
 
 
@@ -98,8 +94,6 @@ bool CMesh::Load(CObjectReader* pcFile)
 	ReturnOnFalse(mcSkin.Load(pcFile));
 	ReturnOnFalse(mcMaterials.Load(pcFile));
 	ReturnOnFalse(mcColours.Load(pcFile));
-	ReturnOnFalse(mcFaceTypes.Load(pcFile));
-	ReturnOnFalse(mcCache.Load(pcFile));
 	return true;
 }
 
@@ -117,8 +111,6 @@ bool CMesh::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(mcSkin.Save(pcFile));
 	ReturnOnFalse(mcMaterials.Save(pcFile));
 	ReturnOnFalse(mcColours.Save(pcFile));
-	ReturnOnFalse(mcFaceTypes.Save(pcFile));
-	ReturnOnFalse(mcCache.Save(pcFile));
 	return true;
 }
 
@@ -127,12 +119,9 @@ bool CMesh::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMesh::Touch(void)
+void CMesh::Touch(void)
 {
 	mcSkin.Touch();
-
-	mcFaceTypes.Touch(this);
-	return mcCache.Touch(this);
 }
 
 

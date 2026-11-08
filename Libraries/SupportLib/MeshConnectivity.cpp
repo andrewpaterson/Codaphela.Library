@@ -555,32 +555,3 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 	return iAddedEdges;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces)
-{
-	size		i;
-	int			iFaceIndex;
-	CMeshFace*	pcFace;
-	size		uiNumElements;
-
-	uiNumElements = paiSourceFaces->NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		iFaceIndex = paiSourceFaces->GetValue(i);
-		pcFace = mcFaces.Get(iFaceIndex);
-
-		*paiDest = pcFace->maiCorner[0];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		*paiDest = pcFace->maiCorner[1];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		*paiDest = pcFace->maiCorner[2];
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-	}
-}
-

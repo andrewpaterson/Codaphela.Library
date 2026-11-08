@@ -295,54 +295,6 @@ void CMeshUVCoords::AddFace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUVCoords::IndexFaceCorners(int* paiDest, ptrdiff iStride, CArrayInt* paiSourceFaces, size iNumLayers)
-{
-	size				i;
-	int					iFaceIndex;
-	SMeshUVFace*		psFaceUV;
-	size				j;
-	CMeshUVLayer*		pcUVLayer;
-	size				uiNumElements;
-
-	uiNumElements = paiSourceFaces->NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		iFaceIndex = paiSourceFaces->GetValue(i);
-		for (j = 0; j < iNumLayers; j++)
-		{
-			pcUVLayer = mcLayers.Get(j);
-			psFaceUV = pcUVLayer->mcFaces.Get(iFaceIndex);
-
-			paiDest[j] = psFaceUV->aiUVs[0];
-		}
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		for (j = 0; j < iNumLayers; j++)
-		{
-			pcUVLayer = mcLayers.Get(j);
-			psFaceUV = pcUVLayer->mcFaces.Get(iFaceIndex);
-
-			paiDest[j] = psFaceUV->aiUVs[1];
-		}
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-
-		for (j = 0; j < iNumLayers; j++)
-		{
-			pcUVLayer = mcLayers.Get(j);
-			psFaceUV = pcUVLayer->mcFaces.Get(iFaceIndex);
-
-			paiDest[j] = psFaceUV->aiUVs[2];
-		}
-		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
-	}
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CMeshUVCoords::NumUVs(void)
 {
 	CMeshUVLayer*	pcUVLayer;

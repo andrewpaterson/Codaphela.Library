@@ -168,44 +168,6 @@ void AssertEdgeCorners(CMeshEdge* pcEdge, size iCorner1, size iCorner2)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A face's matrix count is the most of any of its three corners and reading it leaves the corners as they were.
-//
-//////////////////////////////////////////////////////////////////////////
-void TestMeshFaceTypesFromSkin(void)
-{
-	CMesh			cMesh;
-	CMeshFace*		pcFace;
-	SSkinWeight*	psWeight;
-	int				i;
-
-	cMesh.Init();
-	cMesh.mcSkin.mbInUse = true;
-	for (i = 0; i < 3; i++)
-	{
-		cMesh.AddCorner((float32)i, 0, 0);
-	}
-	cMesh.AddFace(0, 1, 2);
-
-	for (i = 0; i < 2; i++)
-	{
-		psWeight = cMesh.mcSkin.mcSkinVerts.Get(2)->mcWeights.Add();
-		psWeight->iMatrix = i;
-		psWeight->fWeight = 0.5f;
-	}
-
-	cMesh.mcFaceTypes.ClearFaceTypes(1);
-	cMesh.mcFaceTypes.GenerateFromSkin(&cMesh);
-
-	pcFace = cMesh.GetFace(0);
-	AssertInt(0, pcFace->maiCorner[0]);
-	AssertInt(1, pcFace->maiCorner[1]);
-	AssertInt(2, pcFace->maiCorner[2]);
-	AssertInt(2 << MESH_FACE_MATRIX_SHIFT, (int)cMesh.mcFaceTypes.mcFaces.Get(0)->iFlags1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A flipped quad's return says which of the quad's corners are in each of its two faces.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -428,7 +390,6 @@ void TestMeshConnectivity(void)
 	ObjectsInit();
 
 	TestMeshEdgeConnectivity();
-	TestMeshFaceTypesFromSkin();
 	TestMeshEditorAddFlippedQuad();
 	TestMeshConnectivitySaveLoad();
 	TestMeshConnectivityGeneratedWhenNeeded();

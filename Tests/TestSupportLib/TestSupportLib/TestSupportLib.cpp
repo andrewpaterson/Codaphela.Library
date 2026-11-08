@@ -57,7 +57,6 @@ void TestTriangleShape(void);
 void TestMeshFaceReturn(void);
 void TestMeshPolygons(void);
 void TestMeshShapes(void);
-void TestMeshCache(void);
 void TestMeshConnectivity(void);
 void TestMeshModifierStack(void);
 void TestMeshSourceModifier(void);
@@ -142,7 +141,6 @@ int __cdecl main(void)
 	TestMeshFaceReturn();
 	TestMeshPolygons();
 	//TestMeshShapes();  Write is not consistent.
-	TestMeshCache();
 	TestMeshConnectivity();
 	TestMeshModifierStack();
 	TestMeshSourceModifier();
