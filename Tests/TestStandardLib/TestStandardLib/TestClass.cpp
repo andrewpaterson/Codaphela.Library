@@ -106,7 +106,7 @@ void TestClassDefinition(void)
 #ifdef BUILD_64
 	AssertLayoutSize(OBJECT_SIZE + 352, pcField->GetOffset());
 #elif defined(__W65C816__)
-	AssertLayoutSize(OBJECT_SIZE + 208, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 184, pcField->GetOffset());
 #else
 	AssertLayoutSize(OBJECT_SIZE + 208, pcField->GetOffset());
 #endif // BUILD_64
@@ -116,7 +116,7 @@ void TestClassDefinition(void)
 #ifdef BUILD_64
 	AssertLayoutSize(OBJECT_SIZE + 368, pcField->GetOffset());
 #elif defined(__W65C816__)
-	AssertLayoutSize(OBJECT_SIZE + 224, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 200, pcField->GetOffset());
 #else
 	AssertLayoutSize(OBJECT_SIZE + 224, pcField->GetOffset());
 #endif // BUILD_64

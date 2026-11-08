@@ -60,14 +60,14 @@ void TestObjectGraphSerialiserReachability(void)
 #ifdef BUILD_64
 	AssertLayoutSize(376, sizeof(CTestSaveableObject1));  //If these sizes change the input test files will be wrong if the serialisation has changed.
 #elif defined(__W65C816__)
-	AssertLayoutSize(200, sizeof(CTestSaveableObject1));
+	AssertLayoutSize(176, sizeof(CTestSaveableObject1));
 #else
 	AssertLayoutSize(208, sizeof(CTestSaveableObject1));  //If these sizes change the input test files will be wrong if the serialisation has changed.
 #endif // BUILD_64
 #ifdef BUILD_64
 	AssertLayoutSize(384, sizeof(CTestSaveableObject2));
 #elif defined(__W65C816__)
-	AssertLayoutSize(208, sizeof(CTestSaveableObject2));
+	AssertLayoutSize(184, sizeof(CTestSaveableObject2));
 #else
 	AssertLayoutSize(216, sizeof(CTestSaveableObject2));
 #endif // BUILD_64
