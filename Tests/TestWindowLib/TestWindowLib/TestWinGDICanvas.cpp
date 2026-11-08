@@ -29,6 +29,7 @@ static Ptr<CCanvas> NewGDICanvas(Ptr<CWindow> pWindow, int32 iWidth, int32 iHeig
 	pCanvas = OMalloc<CCanvas>(pWindow, pNull);
 	pCanvas->SetActualSize(iWidth, iHeight);
 	pCanvas->SetTransparent(bTransparent);
+	pCanvas->UpdateNativeArea();
 	pCanvas->CreateNativeCanvas();
 	AssertTrue(pCanvas->GetPixelData() != NULL);
 	return pCanvas;
