@@ -221,6 +221,35 @@ void TestDataMemoryIteration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestDataMemoryAfterParamsKilled(void)
+{
+	CMemoryFreeListParams	cParams;
+	CDataMemory				cMemory;
+	void*					pv;
+
+	cParams.Init(sizeof(SDataMemoryAllocation), true);
+	AssertTrue(cParams.GetMaxFreeListElementSize() > 0);
+	AssertNotNull(cParams.GetFreeListParamsForSize(16));
+
+	//Killed params are as params that were never initialised: no free lists, so everything is large.
+	cParams.Kill();
+	AssertSize(0, cParams.GetMaxFreeListElementSize());
+	AssertNull(cParams.GetFreeListParamsForSize(16));
+
+	cMemory.Init(&cParams);
+	pv = cMemory.Add(16);
+	AssertNotNull(pv);
+	AssertSize(1, cMemory.NumElements());
+	AssertTrue(cMemory.Remove(pv));
+	AssertSize(0, cMemory.NumElements());
+	cMemory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestDataMemory(void)
 {
 	BeginTests();
@@ -230,6 +259,7 @@ void TestDataMemory(void)
 	TestDataMemorySizeof();
 	TestDataMemoryAdd();
 	TestDataMemoryIteration();
+	TestDataMemoryAfterParamsKilled();
 
 	DataMemoryKill();
 	WordsKill();

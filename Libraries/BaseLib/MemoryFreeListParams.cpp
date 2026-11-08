@@ -110,6 +110,7 @@ void CMemoryFreeListParams::Kill(void)
 	mbSizeIndicesValid = false;
 	mcParams.Kill();
 	miHeaderSize = 0;
+	muiFreeListSizeLimit = 0;
 }
 
 
