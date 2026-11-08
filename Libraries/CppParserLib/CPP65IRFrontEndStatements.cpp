@@ -612,7 +612,8 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 //////////////////////////////////////////////////////////////////////////
 //
 // Zeroes iCount elements (scalars or arrays of them) from iOffset bytes into
-// the array at sAddress.
+// the array at sAddress: all at once when there are many (ZeroBytes), unless
+// they are volatile, which must each be written as themselves.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::ZeroElements(SIRReference sAddress, int iOffset, SCPP65Type* psElement, int iCount)
@@ -629,6 +630,11 @@ void CCPP65IRFrontEnd::ZeroElements(SIRReference sAddress, int iOffset, SCPP65Ty
 	{
 		iScalars *= psScalar->iCount;
 		psScalar = psScalar->psBase;
+	}
+	if (!psScalar->bVolatile && (iScalars * psScalar->iBytes > IR65_ZERO_ELEMENT_BYTES))
+	{
+		ZeroBytes(AddressAt(sAddress, iOffset), iScalars * psScalar->iBytes);
+		return;
 	}
 	sZero.sValue = mpcFunction->AddConstant(IRTypeOf(psScalar), 0);
 	sZero.psType = psScalar;

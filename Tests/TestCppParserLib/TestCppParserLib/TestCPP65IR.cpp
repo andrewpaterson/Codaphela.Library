@@ -1242,6 +1242,77 @@ void TestCPP65IRNamespaceTemplates(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A class's own functions (SCPP65Class::mapsMembers), with another class's
+// declared between them: its copy constructor and converting constructor are
+// found, an explicit one isn't a conversion, and virtual functions override
+// in its vtable and a secondary one.  Constructors inherited with using come
+// from the base's alone, unless the class has its own of those parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRClassMembers(void)
+{
+	AssertInt(7, TestCPP65Main(
+		"struct O;\n"
+		"struct A { int a; A(int x) : a(x) {} explicit A(char* p) : a(1) {} A(const A& s) : a(s.a + 1) {} virtual int F() { return a; } virtual int G() { return 1; } };\n"
+		"struct O { int o; O(int x) : o(x + 100) {} O(const O& s) : o(s.o + 100) {} virtual int F() { return 50; } };\n"
+		"struct B { virtual int H() { return 2; } };\n"
+		"struct C : A, B { C(int x) : A(x) {} int H() { return 3; } int G() { return 2; } };\n"
+		"int Take(A s) { return s.a; }\n"
+		"int main() { C c(1); A* pa = &c; B* pb = &c; O o(0); O p(o); A b(4); A d(b); if (d.a != 5) return 1; if (Take(2) != 2) return 2; return pa->G() + pb->H() + (p.o == 200 ? 2 : 0); }"));
+	AssertInt(23, TestCPP65Main(
+		"struct B { int b; B(int x) : b(x) {} B(int x, int y) : b(x + y) {} };\n"
+		"struct O { int o; O(int x) : o(0) {} };\n"
+		"struct D : B { using B::B; D(int x) : B(x + 10) {} };\n"
+		"int main() { D d(3); D e(4, 6); O o(1); return d.b + e.b + o.o; }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rest of a big array is zeroed all at once (ZeroBytes), not an element
+// at a time, up to its end and no further; a small or volatile array's is
+// still each element's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRZeroedArrays(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	AssertInt(0, TestCPP65Main(
+		"struct S { int iBefore; char a[61]; char cAfter; };\n"
+		"int main()\n"
+		"{\n"
+		"\tchar acGuard[3]; char sz[256] = \"xy\"; int ai[50] = { 5 }; S s = { 1, \"q\", 9 }; long al[3][10] = { { 1 } }; int i;\n"
+		"\tfor (i = 0; i < 3; i++) { acGuard[i] = 7; }\n"
+		"\tif ((sz[0] != 'x') || (sz[1] != 'y') || (ai[0] != 5) || (al[0][0] != 1)) { return 1; }\n"
+		"\tfor (i = 2; i < 256; i++) { if (sz[i]) { return 2; } }\n"
+		"\tfor (i = 1; i < 50; i++) { if (ai[i]) { return 3; } }\n"
+		"\tfor (i = 1; i < 30; i++) { if (al[i / 10][i % 10]) { return 4; } }\n"
+		"\tif ((s.iBefore != 1) || (s.a[0] != 'q') || (s.cAfter != 9)) { return 5; }\n"
+		"\tfor (i = 1; i < 61; i++) { if (s.a[i]) { return 6; } }\n"
+		"\treturn 0;\n"
+		"}\n"));
+
+	//A few instructions, not 255 stores.
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int Big() { volatile int i = 0; char sz[256] = \"x\"; return sz[i]; }"));
+	AssertTrue(szAssembly.Count(10) < 100);
+	szAssembly.Kill();
+	szErrors.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int Each() { volatile char sz[64] = { 1 }; return sz[0]; }"));
+	AssertTrue(szAssembly.Count(10) > 63);
+	szAssembly.Kill();
+	szErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The 65C64's thunks: a member pointer's to a virtual function goes through
 // the vtable with its slot's offset (CPP65_VTABLE_ENTRY_BYTES apart), and one
 // of a secondary base's vtable adjusts this.
@@ -1438,6 +1509,8 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IRClassMembers();
+	TestCPP65IRZeroedArrays();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

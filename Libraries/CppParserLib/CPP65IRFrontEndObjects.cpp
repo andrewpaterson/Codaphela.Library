@@ -302,7 +302,7 @@ bool CCPP65IRFrontEnd::InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psR
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The start of a constructor, as the generator's ConstructorBody: the bases
+// The start of a constructor: the bases
 // (from the member initialiser list or their default constructors), the
 // vtable pointers, then the fields from the member initialisers, the
 // default member initialisers or their own constructors.
@@ -554,7 +554,7 @@ void CCPP65IRFrontEnd::DescribeVtable(CArrayCPP65VtableEntries* pasEntries, SCPP
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Initialises the object at a place, as the generator's Construct: from
+// Initialises the object at a place: from
 // nothing, (arguments), {arguments}, = value or = Class(arguments).  Scalars
 // and references take their initialiser as a local's do (or are zero),
 // arrays are initialised element by element, objects are constructed (or
@@ -856,7 +856,7 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 
 //////////////////////////////////////////////////////////////////////////
 //
-// new Type[count], as the generator's NewArray: count elements from operator
+// new Type[count]: count elements from operator
 // new[], constructed by default first to last.  A class that needs
 // destroying has the count (32 bits) in front of the elements.
 //
@@ -922,7 +922,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 
 //////////////////////////////////////////////////////////////////////////
 //
-// delete[] of objects with a destructor, as the generator's: the count is
+// delete[] of objects with a destructor: the count is
 // in front of the elements, which are destroyed last first, and operator
 // delete[] is given the memory from the count on.  psPointer isn't null.
 //
@@ -1206,7 +1206,7 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 //////////////////////////////////////////////////////////////////////////
 //
 // Copy constructs the object at psPlace from pcSource (of its class or one
-// derived from it), as the generator's CopyConstruct: with the class's copy
+// derived from it): with the class's copy
 // constructor, its implicit one (CopyMembers), or its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1247,23 +1247,23 @@ void CCPP65IRFrontEnd::ZeroBytes(SIRReference sAddress, int iBytes)
 	int					iLongs;
 	int					i;
 
-	iLongs = iBytes / 4;
-	if (iLongs > 4)
+	iLongs = iBytes / IR65_ZERO_LONG_BYTES;
+	if (iLongs > IR65_ZERO_LONGS)
 	{
 		//loop: the offset counts up in longs.
 		sOffset = IRIntegerType(mcModule.GetPointerSize(0));
-		sIndex = BeginCountedLoop(&sLoop, sOffset, mpcFunction->AddInteger(sOffset, 0), IRO_ULt, mpcFunction->AddInteger(sOffset, 4 * iLongs));
+		sIndex = BeginCountedLoop(&sLoop, sOffset, mpcFunction->AddInteger(sOffset, 0), IRO_ULt, mpcFunction->AddInteger(sOffset, IR65_ZERO_LONG_BYTES * iLongs));
 		mpcFunction->Store(mpcBlock, IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), 0), mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sAddress, sIndex));
-		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sOffset, sIndex, mpcFunction->AddInteger(sOffset, 4)));
+		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sOffset, sIndex, mpcFunction->AddInteger(sOffset, IR65_ZERO_LONG_BYTES)));
 	}
 	else
 	{
 		for (i = 0; i < iLongs; i++)
 		{
-			mpcFunction->Store(mpcBlock, IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), 0), AddressAt(sAddress, 4 * i));
+			mpcFunction->Store(mpcBlock, IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), 0), AddressAt(sAddress, IR65_ZERO_LONG_BYTES * i));
 		}
 	}
-	for (i = 4 * iLongs; i < iBytes; i++)
+	for (i = IR65_ZERO_LONG_BYTES * iLongs; i < iBytes; i++)
 	{
 		mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 0), AddressAt(sAddress, i));
 	}
@@ -1273,7 +1273,7 @@ void CCPP65IRFrontEnd::ZeroBytes(SIRReference sAddress, int iBytes)
 //////////////////////////////////////////////////////////////////////////
 //
 // The implicit copy constructor of a class whose bases or fields have copy
-// constructors, as the generator's CopyMembers: the bytes are copied (and
+// constructors: the bytes are copied (and
 // the vtable pointers stored), then those bases and fields are copied again
 // with their copy constructors.
 //

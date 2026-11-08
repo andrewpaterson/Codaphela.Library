@@ -542,6 +542,39 @@ void TestCPP816Thunks(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// 64 bit counts read the runtime's tables, however many there are, not a table
+// of their own each.  A big array's rest is zeroed all at once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816SharedTables(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szListing;
+
+	AssertInt(0, TestCPP816RunListed(
+		"volatile unsigned long long gull = 0x100000ULL;\n"
+		"int A(void) { return __builtin_clzll(gull); }\n"
+		"int B(void) { return __builtin_ctzll(gull); }\n"
+		"int C(void) { return __builtin_clzll(gull << 3); }\n"
+		"int D(void) { return __builtin_ctzll(gull << 3); }\n"
+		"int main(void)\n"
+		"{\n"
+		"\tchar sz[256] = \"x\"; int i; int w = 0;\n"
+		"\tif ((A() != 43) || (B() != 20)) { w |= 1; }\n"
+		"\tif ((C() != 40) || (D() != 23)) { w |= 2; }\n"
+		"\tif (sz[0] != 'x') { w |= 4; }\n"
+		"\tfor (i = 1; i < 256; i++) { if (sz[i]) { w |= 8; } }\n"
+		"\treturn w;\n"
+		"}\n", aszNone, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("R816_Clz8"));
+	AssertTrue(szListing.Contains("R816_Ctz8"));
+	AssertFalse(szListing.Contains("Str0:"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A signed int converted to float (extended to 32 bits in the frame) has no
 // hand counted branch for its sign word (bcc C + 1 kept the flow passes off
 // the function).
@@ -5538,6 +5571,7 @@ void TestCPP816(void)
 	TestCPP816Functions();
 	TestCPP816Classes();
 	TestCPP816Thunks();
+	TestCPP816SharedTables();
 	TestCPP816Statements();
 	TestCPP816NarrowSubscripts();
 	TestCPP816SharedDivisions();

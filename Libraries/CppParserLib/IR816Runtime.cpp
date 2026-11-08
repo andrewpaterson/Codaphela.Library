@@ -69,6 +69,8 @@ static const SIR816Routine gasIR816Routines[] =
 	{ "R816_AShr32", true, false },
 	{ "R816_BcdAdd", false, false },
 	{ "R816_BcdSubtract", false, false },
+	{ "R816_Clz8", false, false },			//A table, which the 64 bit counts read too (CCPP65IRFrontEnd::CountTable).
+	{ "R816_Ctz8", false, false },
 	{ "R816_Clz16", false, false },
 	{ "R816_Clz32", false, false },
 	{ "R816_Ctz16", false, false },
@@ -183,9 +185,8 @@ void CIR816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The table TableDivide reads (szName is R816_STable<c> or R816_UTable<c>):
-// for each byte b, b / c and b % c (b signed for STable) as a word, q in
-// its low byte.
+// The table a shift by a variable count reads (szName is R816_Bits<n>, for
+// n bits): 1 << k in n / 16 words for each k from 0 to 63, 0 past the width.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::AppendBitsTable(CChars* pszDest, const char* szName)

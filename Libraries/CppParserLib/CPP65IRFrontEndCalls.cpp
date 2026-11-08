@@ -159,7 +159,8 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 // __builtin_clz or __builtin_ctz (bLeading) of psArgument (psType wide): the
 // width when it is 0, else narrowed by halves to a byte (NarrowCount, each
 // half's bits counted) and the byte's leading or trailing zeros looked up in
-// a 256 byte table, instead of a loop of up to 15 shifts.
+// the runtime's 256 byte table (R816_Clz8 or R816_Ctz8), instead of a loop of
+// up to 15 shifts.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue)
@@ -172,15 +173,12 @@ bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP
 	SIRReference	sByteValue;
 	SIRReference	sAddress;
 	SIRReference	sZeros;
-	SCPP65IRValue	sTable;
+	const char*		szTable;
 	CIRBlock*		pcZero;
 	CIRBlock*		pcNarrow;
 	CIRBlock*		pcCounted;
 	CIRBlock*		pcDone;
-	char			acZeros[256];
 	int				iBits;
-	int				i;
-	int				iBit;
 
 	sType = IRTypeOf(psType);
 	sInt = IRTypeOf(&mpcTypes->msInt);
@@ -199,17 +197,10 @@ bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP
 	{
 		NarrowCount(bLeading, &sByteValue, &sCount, &iBits, sInt);
 	}
-	acZeros[0] = 8;
-	for (i = 1; i < 256; i++)
-	{
-		for (iBit = 0; (iBit < 8) && !(i & (bLeading ? (0x80 >> iBit) : (1 << iBit))); iBit++)
-		{
-		}
-		acZeros[i] = (char)iBit;
-	}
-	StringData(acZeros, 256, &sTable);
+	szTable = bLeading ? "R816_Clz8" : "R816_Ctz8";
+	maszRuntime.AddIfUnique((char*)szTable);
 	sAddress = mpcFunction->Add(mpcBlock, IRO_ZExt, IRIntegerType(mcModule.GetPointerSize(0)), sByteValue);
-	sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sTable.sValue, sAddress);
+	sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), mcModule.Symbol(szTable), sAddress);
 	sZeros = mpcFunction->Load(mpcBlock, sByte, sAddress);
 	sZeros = mpcFunction->Add(mpcBlock, IRO_ZExt, sInt, sZeros);
 	sCount = mpcFunction->Add(mpcBlock, IRO_Add, sInt, sCount, sZeros);
@@ -855,8 +846,8 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 
 //////////////////////////////////////////////////////////////////////////
 //
-// object.f(), pointer->f(), f() and Class::f() in a member function, as the
-// generator's MemberCall: calls through a pointer or this are virtual; calls
+// object.f(), pointer->f(), f() and Class::f() in a member function: calls
+// through a pointer or this are virtual; calls
 // on an object variable and qualified calls are not.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1024,7 +1015,7 @@ bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, SCPP65Cl
 //////////////////////////////////////////////////////////////////////////
 //
 // object op argument (pcArgument NULL for none): a call of the object's
-// member operator, as the generator's OperatorCall.
+// member operator.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue)
