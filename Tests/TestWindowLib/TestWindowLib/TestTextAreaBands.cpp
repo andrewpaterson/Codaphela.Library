@@ -146,26 +146,26 @@ void TestTextAreaBandsAddRows(void)
 	CTextAreaBands			cBefore;
 	CTextAreaBands			cNow;
 	CArrayInt32Vec2			asChanged;
-	STextLayoutLine*		psSecond;
+	int32					iSecondTop;
 
 	ObjectsInit();
 	cDocument.Init("ab\ncd");
 	pLayout = OMalloc<CTextAreaLayout>(&cDocument, OMalloc<CFontFamily>(OMalloc<CFontColours>(ReadLabelFont())));
 	pLayout->ReadText();
 	pLayout->LayoutText();
-	psSecond = pLayout->GetLayoutLine(1);
+	iSecondTop = pLayout->GetLayoutLine(1)->iTop;  //Kept: TextSet lays the lines out again.
 
 	cBefore.Init();
 	cBefore.AddRows(&pLayout, &cDocument, 0, 1000, 500);
 	cBefore.Complete();
 	AssertSize(2, cBefore.NumBands());
 	AssertInt(pLayout->GetLayoutLine(0)->iTop, cBefore.Get(0)->iTop);
-	AssertInt(psSecond->iTop, cBefore.Get(0)->iBottom);
+	AssertInt(iSecondTop, cBefore.Get(0)->iBottom);
 	AssertInt(500, cBefore.Get(1)->iBottom);
 
 	//Only the rows from iTop to iBottom.
 	cNow.Init();
-	cNow.AddRows(&pLayout, &cDocument, psSecond->iTop, 1000, 500);
+	cNow.AddRows(&pLayout, &cDocument, iSecondTop, 1000, 500);
 	AssertSize(1, cNow.NumBands());
 	cNow.Kill();
 
@@ -177,7 +177,7 @@ void TestTextAreaBandsAddRows(void)
 	asChanged.Init();
 	cNow.Compare(&cBefore, &asChanged);
 	AssertSize(1, asChanged.NumElements());
-	AssertInt(psSecond->iTop, asChanged.Get(0)->x);
+	AssertInt(iSecondTop, asChanged.Get(0)->x);
 	AssertInt(500, asChanged.Get(0)->y);
 
 	asChanged.Kill();
