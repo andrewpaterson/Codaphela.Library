@@ -48,7 +48,6 @@ void CMeshCache::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshCache::Free(void)
 {
-	mcMeshVerticesArrays.Kill();
 }
 
 
