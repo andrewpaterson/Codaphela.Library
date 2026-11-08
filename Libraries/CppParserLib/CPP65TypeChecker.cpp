@@ -645,6 +645,10 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 	case CT_AssignmentRightShift:
 		return Assignment(pcBinary);
 	case CT_Comma:
+		if (mpcGenerator->IsOverloadedComma(pcBinary))
+		{
+			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
+		}
 		if (!Value(pcBinary->mpcLeft))
 		{
 			return NULL;

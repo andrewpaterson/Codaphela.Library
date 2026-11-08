@@ -170,7 +170,11 @@ bool CCPP65Generator::MakesObject(CCPPSyntax* pcExpression)
 		return IsObject(pcConditional->mpcTrue) || IsObject(pcConditional->mpcFalse);
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		return (pcBinary->meOperator != CT_Comma) && (pcBinary->meOperator != CT_Assignment) && (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight));
+		if (pcBinary->meOperator == CT_Comma)
+		{
+			return IsOverloadedComma(pcBinary);
+		}
+		return (pcBinary->meOperator != CT_Assignment) && (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight));
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
 		return IsObject(pcUnary->mpcOperand);
@@ -252,6 +256,50 @@ bool CCPP65Generator::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcAr
 	}
 	psPlace = PlaceOf(pcArgument);
 	return !psPlace || !psReference->psBase->Equals(psPlace->WithoutReference());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether left, right is a call of an operator, because an operand is an
+// object and one matches.  Other operators with an object need one; a comma
+// without one is the built in comma.  [over.match.oper] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
+{
+	CArraySyntax	apcArguments;
+	SCPP65Type*		psType;
+	SCPP65Function*	psFunction;
+	int64			lliName;
+	size			uiErrors;
+
+	if (!IsObject(pcBinary->mpcLeft) && !IsObject(pcBinary->mpcRight))
+	{
+		return false;
+	}
+	lliName = GetOperatorName(CT_Comma, false);
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	psFunction = NULL;
+	psType = ValueTypeOf(pcBinary->mpcLeft);
+	apcArguments.Init();
+	if (psType && psType->IsClass() && CompleteClass(psType->psClass, NULL) && HasOperator(psType->psClass, lliName, 1))
+	{
+		apcArguments.Add(pcBinary->mpcRight);
+		psFunction = FindOperator(psType->psClass, lliName, &apcArguments, pcBinary, IsConstObject(pcBinary->mpcLeft));
+		apcArguments.ReInit();
+	}
+	if (!psFunction)
+	{
+		apcArguments.Add(pcBinary->mpcLeft);
+		apcArguments.Add(pcBinary->mpcRight);
+		psFunction = FindFreeOperator(lliName, &apcArguments, pcBinary);
+	}
+	apcArguments.Kill();
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	return psFunction != NULL;
 }
 
 

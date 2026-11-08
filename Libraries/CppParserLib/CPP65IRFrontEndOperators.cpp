@@ -215,6 +215,10 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 	case CT_AssignmentRightShift:
 		return Assignment(pcBinary, psValue);
 	case CT_Comma:
+		if (mpcGenerator->IsOverloadedComma(pcBinary))
+		{
+			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
+		}
 		return Value(pcBinary->mpcLeft, &sLeft) && Value(pcBinary->mpcRight, psValue);
 	case CT_LogicalAnd:
 	case CT_LogicalOr:

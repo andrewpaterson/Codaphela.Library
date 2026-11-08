@@ -1595,6 +1595,51 @@ void TestCPP65IRWideStrings(void)
 }
 
 
+//Both targets run these overloaded commas (TestCPP65IROverloadedComma, TestCPP816OverloadedComma).  0 if they're right.
+const char*	gszTestCPP65OverloadedComma =
+	"struct S { int i; S(int a) : i(a) {} int operator,(int b) { return i * 10 + b; } };\n"
+	"struct T { int i; T(int a) : i(a) {} };\n"
+	"int operator,(T a, T b) { return a.i + b.i; }\n"
+	"int operator,(int a, T b) { return a * 100 + b.i; }\n"
+	"struct V { int n; V(int a) : n(a) {} V operator,(int b) { V r(n + b); return r; } };\n"
+	"struct C { int n; C(int a) : n(a) {} int operator,(int b) const { return n + b; } };\n"
+	"struct N { int i; N(int a) : i(a) {} };\n"
+	"struct O { int i; O(int a) : i(a) {} int operator,(char* p) { return 99; } };\n"
+	"int giCount = 0;\n"
+	"int Count(void) { giCount++; return giCount; }\n"
+	"int Twice(int a) { return a * 2; }\n"
+	"int main(void)\n"
+	"{\n"
+	"\tS s(2); T x(3); T y(4); V v(1); const C c(5); N n(1); O o(1); int w = 0; int i;\n"
+	"\tif ((s, 3) != 23) { w |= 1; }\n"
+	"\tif ((x, y) != 7) { w |= 2; }\n"
+	"\tif ((2, x) != 203) { w |= 4; }\n"
+	"\tif ((v, 1, 2).n != 4) { w |= 8; }\n"
+	"\tif ((c, 1) != 6) { w |= 16; }\n"
+	"\tif ((n, 5) != 5) { w |= 32; }\n"
+	"\tif ((o, 6) != 6) { w |= 64; }\n"
+	"\tif ((o, (char*)0) != 99) { w |= 128; }\n"
+	"\tif (Twice((s, 1)) != 42) { w |= 256; }\n"
+	"\tif (((s, Count()), Count()) != 2) { w |= 512; }\n"
+	"\tfor (i = 0; i < 2; n, i++) { }\n"
+	"\tif ((i != 2) || ((1, 2) != 2)) { w |= 1024; }\n"
+	"\treturn w;\n"
+	"}\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A comma with an object operand calls a matching operator, of its class or
+// free, one to the left of another, on a const object, as an argument, or
+// returning an object.  With none that matches it is the built in comma.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IROverloadedComma(void)
+{
+	AssertInt(0, TestCPP65Main(gszTestCPP65OverloadedComma));
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The 65C64's thunks: a member pointer's to a virtual function goes through
@@ -1793,6 +1838,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IROverloadedComma();
 	TestCPP65IRWideStrings();
 	TestCPP65IRSpecialisationMembers();
 	TestCPP65IRScalarConstruct();

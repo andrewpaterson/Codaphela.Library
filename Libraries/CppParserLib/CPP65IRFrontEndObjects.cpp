@@ -165,7 +165,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 		return true;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		return !mpcGenerator->IsAssignmentOperator(pcBinary->meOperator) && !mpcGenerator->IsMemberPointerOperator(pcExpression) && (pcBinary->meOperator != CT_Comma);
+		return !mpcGenerator->IsAssignmentOperator(pcBinary->meOperator) && !mpcGenerator->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcGenerator->IsOverloadedComma(pcBinary));
 	case CPPS_UnaryExpression:
 		eOperator = ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator;
 		return (eOperator == CT_Subtract) || (eOperator == CT_Add) || (eOperator == CT_BitwiseNot);

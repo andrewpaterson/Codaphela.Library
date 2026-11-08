@@ -808,6 +808,7 @@ protected:
 	SCPP65Function*			GetCopyConstructor(SCPP65Class* psClass);
 	bool					IsTriviallyCopyable(SCPP65Class* psClass);
 	bool					IsObject(CCPPSyntax* pcExpression);
+	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
 	SCPP65Class*			ObjectClass(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClass);

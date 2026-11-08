@@ -605,6 +605,20 @@ void TestCPP816WideStrings(void)
 }
 
 
+extern const char*	gszTestCPP65OverloadedComma;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The overloaded commas of TestCPP65IROverloadedComma.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816OverloadedComma(void)
+{
+	AssertInt(0, TestCPP816Run(gszTestCPP65OverloadedComma));
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A signed int converted to float (extended to 32 bits in the frame) has no
@@ -5603,6 +5617,7 @@ void TestCPP816(void)
 	TestCPP816Functions();
 	TestCPP816Classes();
 	TestCPP816Thunks();
+	TestCPP816OverloadedComma();
 	TestCPP816WideStrings();
 	TestCPP816NestedConstants();
 	TestCPP816SharedTables();
