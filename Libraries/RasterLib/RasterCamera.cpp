@@ -19,6 +19,9 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#if defined(_MSC_VER) && defined(_M_X64)
+#include <intrin.h>
+#endif
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/GeometricTypes.h"
 #include "RasterMesh.h"
@@ -490,6 +493,67 @@ static SRasterSubpixel RasterClampScreen(SFixed<int64, int64, 4> s)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+#if defined(_MSC_VER) && defined(_M_X64)
+#define RASTER_MULTIPLY_HIGH(a, b)	__umulh(a, b)
+#elif defined(__SIZEOF_INT128__)
+#define RASTER_MULTIPLY_HIGH(a, b)	((uint64)(((unsigned __int128)(a) * (b)) >> 64))
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A vertex divides three numbers by the same distance.  One real division
+// makes this, and RasterDivideFloor makes each of them from it.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE uint64 RasterDivideInverse(uint64 uiDivisor)
+{
+#ifdef RASTER_MULTIPLY_HIGH
+	return ~(uint64)0 / uiDivisor;
+#else
+	return 0;
+#endif
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Exactly what DivideFloor gives, for a divisor above 0.  Multiplying by the
+// inverse can only come out a little low, and the remainder corrects that.
+// Where there's no multiply that gives the high 64 bits this just divides.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE int64 RasterDivideFloor(int64 iNumerator, uint64 uiDivisor, uint64 uiInverse)
+{
+#ifdef RASTER_MULTIPLY_HIGH
+	uint64	uiNumerator;
+	uint64	uiQuotient;
+	uint64	uiRemainder;
+
+	uiNumerator = (iNumerator < 0) ? (uint64)0 - (uint64)iNumerator : (uint64)iNumerator;
+	uiQuotient = RASTER_MULTIPLY_HIGH(uiNumerator, uiInverse);
+	uiRemainder = uiNumerator - uiQuotient * uiDivisor;
+	while (uiRemainder >= uiDivisor)
+	{
+		uiQuotient++;
+		uiRemainder -= uiDivisor;
+	}
+	if (iNumerator >= 0)
+	{
+		return (int64)uiQuotient;
+	}
+	return -(int64)uiQuotient - ((uiRemainder != 0) ? 1 : 0);
+#else
+	(void)uiInverse;
+	return DivideFloor(iNumerator, (int64)uiDivisor);
+#endif
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static int32 RasterDot(SInt32Vec3* psPosition, SRasterAxisVec3* psAxis)
 {
 	return (SRasterWhole::FromRaw(psPosition->x) * psAxis->x + SRasterWhole::FromRaw(psPosition->y) * psAxis->y + SRasterWhole::FromRaw(psPosition->z) * psAxis->z).Floor();
@@ -510,6 +574,7 @@ void CRasterCamera::Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition)
 	int32			y;
 	int32			z;
 	int64			iEyeDistance;
+	uint64			uiInverse;
 	SWideSubpixel	sCentreX;
 	SWideSubpixel	sCentreY;
 	SWideSubpixel	sScreenX;
@@ -533,9 +598,10 @@ void CRasterCamera::Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition)
 		}
 		sScreenX = (SRasterWhole::FromRaw(x) * SRasterWhole::FromRaw(miFocalLength)).To<SWideSubpixel>();
 		sScreenY = (SRasterWhole::FromRaw(y) * SRasterWhole::FromRaw(miFocalLength)).To<SWideSubpixel>();
-		psDest->sPosition.x = RasterClampScreen(sScreenX.DivideFloor(SWide::FromRaw(iEyeDistance)) + sCentreX);
-		psDest->sPosition.y = RasterClampScreen(sCentreY - sScreenY.DivideFloor(SWide::FromRaw(iEyeDistance)));
-		psDest->iDepth = (int32)(RASTER_DEPTH_NUMERATOR / iEyeDistance);
+		uiInverse = RasterDivideInverse((uint64)iEyeDistance);
+		psDest->sPosition.x = RasterClampScreen(SWideSubpixel::FromRaw(RasterDivideFloor(sScreenX.miRaw, (uint64)iEyeDistance, uiInverse)) + sCentreX);
+		psDest->sPosition.y = RasterClampScreen(sCentreY - SWideSubpixel::FromRaw(RasterDivideFloor(sScreenY.miRaw, (uint64)iEyeDistance, uiInverse)));
+		psDest->iDepth = (int32)RasterDivideFloor(RASTER_DEPTH_NUMERATOR, (uint64)iEyeDistance, uiInverse);
 	}
 	else
 	{

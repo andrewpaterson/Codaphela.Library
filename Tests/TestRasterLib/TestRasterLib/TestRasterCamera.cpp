@@ -1,3 +1,4 @@
+#include "BaseLib/FixedPoint.h"
 #include "BaseLib/GeometricTypes.h"
 #include "RasterLib/RasterCamera.h"
 #include "RasterLib/RasterMesh.h"
@@ -419,6 +420,84 @@ void TestRasterCameraFitOrbit(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Perspective's divisions come out exactly as real divisions do, rounding
+// down, for all sizes of position in front of the eye and either side of
+// the middle of the screen.  Too near the eye there's no depth.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterCameraPerspectiveDivides(void)
+{
+	CRasterCamera		cCamera;
+	SInt32Vec3			sPosition;
+	SRasterScreenVertex	sScreen;
+	uint32				uiRandom;
+	int32				aiPart[3];
+	int64				iEye;
+	int64				iExpectedX;
+	int64				iExpectedY;
+	int64				iClamp;
+	int					iDifferent;
+	int					iNegative;
+	int					iClamped;
+	int					iTooNear;
+	int					i;
+	int					k;
+
+	iClamp = 1 << 19;
+	cCamera.Init();
+	cCamera.SetPerspective(1 << 21, 317);
+	cCamera.Prepare(200, 100);
+
+	uiRandom = 54321;
+	iDifferent = 0;
+	iNegative = 0;
+	iClamped = 0;
+	iTooNear = 0;
+	for (i = 0; i < 100000; i++)
+	{
+		for (k = 0; k < 3; k++)
+		{
+			uiRandom = uiRandom * 1103515245 + 12345;
+			aiPart[k] = (int32)((uiRandom >> 4) & ((1u << (4 + (i + k) % 20)) - 1));
+			uiRandom = uiRandom * 1103515245 + 12345;
+			aiPart[k] = ((uiRandom >> 16) & 1) ? -aiPart[k] : aiPart[k];
+		}
+		//Big in x, close to the eye or too close: off the side of the screen, or with no depth.
+		if ((i % 20) == 19)
+		{
+			aiPart[2] = (1 << 21) - (i % 2048);
+		}
+		sPosition.Init(aiPart[0], aiPart[1], aiPart[2]);
+		cCamera.Project(&sScreen, &sPosition);
+
+		iEye = (int64)(1 << 21) - aiPart[2];
+		if (iEye < (1 << 10))
+		{
+			iTooNear++;
+			iDifferent += sScreen.iDepth != 0;
+		}
+		else
+		{
+			iExpectedX = 1600 + DivideFloor((int64)aiPart[0] * 317 * 16, iEye);
+			iExpectedY = 800 - DivideFloor((int64)aiPart[1] * 317 * 16, iEye);
+			iNegative += (aiPart[0] < 0) ? 1 : 0;
+			iClamped += ((iExpectedX > iClamp) || (iExpectedX < -iClamp)) ? 1 : 0;
+			iExpectedX = (iExpectedX > iClamp) ? iClamp : ((iExpectedX < -iClamp) ? -iClamp : iExpectedX);
+			iExpectedY = (iExpectedY > iClamp) ? iClamp : ((iExpectedY < -iClamp) ? -iClamp : iExpectedY);
+			iDifferent += sScreen.sPosition.x.miRaw != iExpectedX;
+			iDifferent += sScreen.sPosition.y.miRaw != iExpectedY;
+			iDifferent += sScreen.iDepth != (int32)(((int64)1 << 40) / iEye);
+		}
+	}
+	AssertInt(0, iDifferent);
+	AssertTrue(iNegative > 1000);
+	AssertTrue(iClamped > 100);
+	AssertTrue(iTooNear > 100);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterCamera(void)
@@ -427,6 +506,7 @@ void TestRasterCamera(void)
 
 	TestRasterCameraOrthographic();
 	TestRasterCameraPerspective();
+	TestRasterCameraPerspectiveDivides();
 	TestRasterCameraViewToMesh();
 	TestRasterCameraPan();
 	TestRasterCameraZoom();
