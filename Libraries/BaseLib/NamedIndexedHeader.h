@@ -5,7 +5,7 @@
 class CNamedIndexedHeader
 {
 private:
-	int miNameLength;
+	int32	miNameLength;	//Written to file: the same width on every CPU.
 
 public:
 	void	Init(void* pvData, lsize uiDataSize);

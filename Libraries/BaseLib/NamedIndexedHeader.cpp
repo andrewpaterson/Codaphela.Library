@@ -69,7 +69,7 @@ char* CNamedIndexedHeader::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 int CNamedIndexedHeader::GetNameLength(void)
 {
-	return miNameLength;
+	return (int)miNameLength;
 }
 
 
@@ -95,7 +95,7 @@ int CNamedIndexedHeader::GetHeaderSize(void)
 	}
 	else
 	{
-		return sizeof(CNamedIndexedHeader) + miNameLength + sizeof(char);
+		return (int)(sizeof(CNamedIndexedHeader) + miNameLength + sizeof(char));
 	}
 }
 
