@@ -31,6 +31,8 @@ class CMemberCalls
 {
 protected:
 	CArrayTemplate<SMemberCall>	masCalls;
+	size						muiCallDepth;  //Calls running now (a function can Call again).
+	size						muiNumCleared;  //Calls removed while running are cleared, and taken out when the last returns.
 
 public:
 	void			Init(void);
@@ -43,7 +45,7 @@ public:
 	void			Call(void* pvArgument, void* pvValue);
 
 protected:
-	bool			Contains(SMemberCall* psCall);
+	void			RemoveCleared(void);
 };
 
 

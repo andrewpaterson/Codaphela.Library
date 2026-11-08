@@ -20,6 +20,7 @@ public:
 		mpcCalls = pcCalls;
 		mbAnswer = false;
 		miValue = 0;
+		mpvOther = NULL;
 	}
 
 	void Kill(void)
@@ -52,6 +53,34 @@ public:
 		mszCalled.Append("RemovesItself ");
 		mpcCalls->Remove(this);
 	}
+
+	void AddsPlain(void)
+	{
+		mszCalled.Append("AddsPlain ");
+		mpcCalls->Add()->Init(this, &CTestMemberCallsTarget::Plain);
+	}
+
+	void CallsAgain(void)
+	{
+		mszCalled.Append("CallsAgain ");
+		if (miValue == 0)
+		{
+			miValue = 1;
+			mpcCalls->Call(NULL, NULL);
+		}
+	}
+
+	void RemovesOther(void)
+	{
+		mszCalled.Append("RemovesOther ");
+		if (mpvOther != NULL)
+		{
+			mpcCalls->Remove(mpvOther);
+			mpvOther = NULL;
+		}
+	}
+
+	void*	mpvOther;
 
 	bool Answer(void)
 	{
@@ -197,6 +226,65 @@ void TestMemberCallsChangedWhileCalled(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Calls added while they're running (even many, moving the array) are
+// called the next time.  Calls removed while they're running, by a call
+// made from inside a call too, aren't counted, aren't called, and are
+// gone once the calls return.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMemberCallsAddedAndRemovedWhileCalled(void)
+{
+	CMemberCalls			cCalls;
+	CTestMemberCallsTarget	cAdder;
+	CTestMemberCallsTarget	cAgain;
+	CTestMemberCallsTarget	cRemover;
+	CTestMemberCallsTarget	cRemoved;
+	size					i;
+
+	cCalls.Init();
+	cAdder.Init(&cCalls);
+	cAgain.Init(&cCalls);
+	cRemover.Init(&cCalls);
+	cRemoved.Init(&cCalls);
+
+	for (i = 0; i < 20; i++)
+	{
+		cCalls.Add()->Init(&cAdder, &CTestMemberCallsTarget::AddsPlain);
+	}
+	cCalls.Call(NULL, NULL);
+	AssertSize(40, cCalls.NumCalls());
+	AssertInt(20 * 10, (int)cAdder.mszCalled.Length());
+	AssertTrue(cCalls.Remove(&cAdder));
+	AssertSize(0, cCalls.NumCalls());
+	cAdder.mszCalled.Clear();
+
+	//Again calls the calls from inside, and the remover takes the removed out there: the outer call doesn't call it.
+	cRemover.mpvOther = &cRemoved;
+	cCalls.Add()->Init(&cAgain, &CTestMemberCallsTarget::CallsAgain);
+	cCalls.Add()->Init(&cRemover, &CTestMemberCallsTarget::RemovesOther);
+	cCalls.Add()->Init(&cRemoved, &CTestMemberCallsTarget::Plain);
+	cCalls.Add()->Init(&cRemoved, &CTestMemberCallsTarget::Plain);
+	cCalls.Call(NULL, NULL);
+	AssertString("CallsAgain CallsAgain ", cAgain.mszCalled.Text());
+	AssertString("RemovesOther RemovesOther ", cRemover.mszCalled.Text());
+	AssertString("", cRemoved.mszCalled.Text());
+	AssertSize(2, cCalls.NumCalls());
+	AssertFalse(cCalls.Remove(&cRemoved));
+
+	cCalls.Call(NULL, NULL);
+	AssertString("CallsAgain CallsAgain CallsAgain ", cAgain.mszCalled.Text());
+	AssertSize(2, cCalls.NumCalls());
+
+	cRemoved.Kill();
+	cRemover.Kill();
+	cAgain.Kill();
+	cAdder.Kill();
+	cCalls.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function is called on the right part of an object whose class
 // derives from the function's after another base.  Its calls are removed
 // with the object as it was given or as the function's class.
@@ -315,6 +403,7 @@ void TestMemberCalls(void)
 	TestMemberCallsAlarmOverrun();
 	TestMemberCallsRemove();
 	TestMemberCallsChangedWhileCalled();
+	TestMemberCallsAddedAndRemovedWhileCalled();
 	TestMemberCallsDerived();
 
 	TestStatistics();

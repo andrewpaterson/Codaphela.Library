@@ -28,6 +28,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CMemberCalls::Init(void)
 {
 	masCalls.Init();
+	muiCallDepth = 0;
+	muiNumCleared = 0;
 }
 
 
@@ -56,19 +58,31 @@ SMemberCall* CMemberCalls::Add(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Removes every call on pvObject.  Returns false if there were none.
+// While the calls are running they are cleared instead, so the calls
+// still to come stay where Call will look for them.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CMemberCalls::Remove(void* pvObject)
 {
-	size	i;
-	bool	bRemoved;
+	size			i;
+	bool			bRemoved;
+	SMemberCall*	psCall;
 
 	bRemoved = false;
 	for (i = masCalls.NumElements(); i > 0; i--)
 	{
-		if (masCalls.Get(i - 1)->IsOn(pvObject))
+		psCall = masCalls.Get(i - 1);
+		if (psCall->IsSet() && psCall->IsOn(pvObject))
 		{
-			masCalls.RemoveAt(i - 1);
+			if (muiCallDepth == 0)
+			{
+				masCalls.RemoveAt(i - 1);
+			}
+			else
+			{
+				psCall->Clear();
+				muiNumCleared++;
+			}
 			bRemoved = true;
 		}
 	}
@@ -82,7 +96,7 @@ bool CMemberCalls::Remove(void* pvObject)
 //////////////////////////////////////////////////////////////////////////
 size CMemberCalls::NumCalls(void)
 {
-	return masCalls.NumElements();
+	return masCalls.NumElements() - muiNumCleared;
 }
 
 
@@ -96,39 +110,59 @@ size CMemberCalls::NumCalls(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemberCalls::Call(void* pvArgument, void* pvValue)
 {
-	CArrayTemplate<SMemberCall>	asCalls;
-	SMemberCall*				psCall;
-	size						i;
+	SMemberCall*	psCall;
+	SMemberCall		sCall;
+	size			i;
+	size			uiNumCalls;
 
-	asCalls.Init();
-	asCalls.Copy(&masCalls);
-	for (i = 0; i < asCalls.NumElements(); i++)
+	//Calls added from here on are after these.
+	uiNumCalls = masCalls.NumElements();
+	muiCallDepth++;
+	for (i = 0; i < uiNumCalls; i++)
 	{
-		psCall = asCalls.Get(i);
-		if (Contains(psCall))
+		psCall = masCalls.Get(i);
+		if (psCall->IsSet())
 		{
-			psCall->Call(pvArgument, pvValue);
+			//Called from a copy: adding a call can move the array.
+			sCall = *psCall;
+			sCall.Call(pvArgument, pvValue);
 		}
 	}
-	asCalls.Kill();
+	muiCallDepth--;
+
+	if ((muiCallDepth == 0) && (muiNumCleared != 0))
+	{
+		RemoveCleared();
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Takes out the calls removed while they were running, keeping the order
+// of the rest.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemberCalls::Contains(SMemberCall* psCall)
+void CMemberCalls::RemoveCleared(void)
 {
-	size	i;
+	size	uiRead;
+	size	uiWrite;
+	size	uiNumCalls;
 
-	for (i = 0; i < masCalls.NumElements(); i++)
+	uiNumCalls = masCalls.NumElements();
+	uiWrite = 0;
+	for (uiRead = 0; uiRead < uiNumCalls; uiRead++)
 	{
-		if (masCalls.Get(i)->Equals(psCall))
+		if (masCalls.Get(uiRead)->IsSet())
 		{
-			return true;
+			if (uiWrite != uiRead)
+			{
+				*masCalls.Get(uiWrite) = *masCalls.Get(uiRead);
+			}
+			uiWrite++;
 		}
 	}
-	return false;
+	masCalls.Resize(uiWrite);
+	muiNumCleared = 0;
 }
 
