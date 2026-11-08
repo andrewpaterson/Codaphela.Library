@@ -564,6 +564,141 @@ void TestRasteriserInstances(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A square facing +Z in a mesh, in a list of its triangles.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestRasterAddSquare(CRasterMesh* pcRaster, CArrayRasterTriangle* pasTriangles, int32 x, int32 y, int32 z, int32 iHalf, uint32 uiColour)
+{
+	SRasterVertex*		psVertex;
+	SRasterTriangle*	psTriangle;
+	int32				iFirst;
+	int					i;
+
+	iFirst = (int32)pcRaster->masVertices.NumElements();
+	for (i = 0; i < 4; i++)
+	{
+		psVertex = pcRaster->masVertices.Add();
+		psVertex->sPosition.Init(x + (((i == 1) || (i == 2)) ? iHalf : -iHalf), y + ((i >= 2) ? iHalf : -iHalf), z);
+		psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromInt(1));
+	}
+	for (i = 0; i < 2; i++)
+	{
+		psTriangle = pasTriangles->Add();
+		psTriangle->aiVertex[0] = iFirst;
+		psTriangle->aiVertex[1] = iFirst + i + 1;
+		psTriangle->aiVertex[2] = iFirst + i + 2;
+		psTriangle->uiColour = uiColour;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Instances with opaque and transparent triangles draw the same as those
+// triangles a list at a time, all the opaque before any transparent.  Each
+// instance's transparent triangles have to find its own vertices, whichever
+// meshes came before it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserInstancesTransparent(void)
+{
+	CRasterMesh		acWhole[2];
+	CRasterMesh		acOpaque[2];
+	CRasterMesh		acTransparent[2];
+	CRasterCamera	cCamera;
+	CRasteriser		cRasteriser;
+	CRasterTarget	cTogether;
+	CRasterTarget	cApart;
+	SRasterInstance	asInstances[2];
+	SRasterInstance	sInstance;
+	uint32*			puiTogether;
+	uint32*			puiApart;
+	int				i;
+	int				iFrame;
+	bool			bSame;
+
+	for (i = 0; i < 2; i++)
+	{
+		acWhole[i].Init();
+		acOpaque[i].Init();
+		acTransparent[i].Init();
+	}
+
+	//A mesh with more vertices first, so that the second's vertices aren't where the first's are.
+	TestRasterAddSquare(&acWhole[0], &acWhole[0].masOpaque, -(1 << 18), 0, 0, 1 << 18, 0xFF00FF00);
+	TestRasterAddSquare(&acWhole[0], &acWhole[0].masOpaque, -(1 << 18), 1 << 19, 0, 1 << 17, 0xFFFFFF00);
+	TestRasterAddSquare(&acWhole[0], &acWhole[0].masTransparent, -(1 << 17), 1 << 16, 1 << 19, 1 << 18, 0x8000FFFF);
+	TestRasterAddSquare(&acOpaque[0], &acOpaque[0].masOpaque, -(1 << 18), 0, 0, 1 << 18, 0xFF00FF00);
+	TestRasterAddSquare(&acOpaque[0], &acOpaque[0].masOpaque, -(1 << 18), 1 << 19, 0, 1 << 17, 0xFFFFFF00);
+	TestRasterAddSquare(&acTransparent[0], &acTransparent[0].masTransparent, -(1 << 17), 1 << 16, 1 << 19, 1 << 18, 0x8000FFFF);
+
+	TestRasterAddSquare(&acWhole[1], &acWhole[1].masTransparent, 1 << 18, 0, 1 << 20, 1 << 18, 0x80FF00FF);
+	TestRasterAddSquare(&acWhole[1], &acWhole[1].masOpaque, 1 << 17, -(1 << 18), 1 << 18, 1 << 18, 0xFFFF0000);
+	TestRasterAddSquare(&acOpaque[1], &acOpaque[1].masOpaque, 1 << 17, -(1 << 18), 1 << 18, 1 << 18, 0xFFFF0000);
+	TestRasterAddSquare(&acTransparent[1], &acTransparent[1].masTransparent, 1 << 18, 0, 1 << 20, 1 << 18, 0x80FF00FF);
+
+	puiTogether = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	puiApart = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	cTogether.Init(puiTogether, 64, 64, 64);
+	cApart.Init(puiApart, 64, 64, 64);
+	cRasteriser.Init();
+	cCamera.Init();
+	cCamera.Fit(64, 64);
+
+	sInstance.pcMesh = NULL;
+	sInstance.asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
+	sInstance.asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	sInstance.asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	sInstance.sOffset.Init(1 << 16, 0, 0);
+
+	//The second frame draws over what the first left in the screen, and with fewer instances the third.
+	for (iFrame = 0; iFrame < 3; iFrame++)
+	{
+		int	iNumInstances = (iFrame == 2) ? 1 : 2;
+
+		for (i = 0; i < 2; i++)
+		{
+			asInstances[i] = sInstance;
+			asInstances[i].pcMesh = &acWhole[i];
+		}
+		cTogether.Clear(TEST_BLACK);
+		cRasteriser.Draw(asInstances, iNumInstances, &cCamera, &cTogether);
+
+		cApart.Clear(TEST_BLACK);
+		for (i = 0; i < iNumInstances; i++)
+		{
+			asInstances[0].pcMesh = &acOpaque[i];
+			cRasteriser.Draw(asInstances, 1, &cCamera, &cApart);
+		}
+		for (i = 0; i < iNumInstances; i++)
+		{
+			asInstances[0].pcMesh = &acTransparent[i];
+			cRasteriser.Draw(asInstances, 1, &cCamera, &cApart);
+		}
+
+		AssertTrue(CountPixels(&cTogether, TEST_BLACK) < 64 * 64);
+		bSame = memcmp(puiTogether, puiApart, 64 * 64 * sizeof(uint32)) == 0;
+		AssertTrue(bSame);
+		bSame = memcmp(cTogether.mpiDepths, cApart.mpiDepths, 64 * 64 * sizeof(int32)) == 0;
+		AssertTrue(bSame);
+	}
+
+	cRasteriser.Kill();
+	cApart.Kill();
+	cTogether.Kill();
+	free(puiApart);
+	free(puiTogether);
+	for (i = 0; i < 2; i++)
+	{
+		acTransparent[i].Kill();
+		acOpaque[i].Kill();
+		acWhole[i].Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriser(void)
@@ -581,6 +716,7 @@ void TestRasteriser(void)
 	TestRasteriserMesh();
 	TestRasteriserWideTriangles();
 	TestRasteriserInstances();
+	TestRasteriserInstancesTransparent();
 
 	ObjectsKill(false);
 	NumberKill();

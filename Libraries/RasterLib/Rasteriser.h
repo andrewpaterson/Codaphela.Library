@@ -48,7 +48,7 @@ struct SRasterInstance
 class CRasteriser
 {
 protected:
-	CArrayRasterScreenVertex	masScreen;
+	CArrayRasterScreenVertex	masScreen;  //Only ever grows, as a frame's vertices are about the same as the last's.
 	SRasterUnitVec3				msLight;  //Towards the light, on the screen.
 	bool						mbCullBackFaces;
 
@@ -63,8 +63,9 @@ public:
 	void	DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent);
 
 protected:
-	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight);
-	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, CRasterTarget* pcTarget, bool bTransparent);
+	void	GrowScreen(size uiNumVertices);
+	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen);
+	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent);
 };
 
 

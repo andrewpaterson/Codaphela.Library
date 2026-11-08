@@ -102,7 +102,7 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 	pcCamera->ViewToMesh(&sLight, &msLight);
 
 	uiNumVertices = pcMesh->masVertices.NumElements();
-	masScreen.Resize(uiNumVertices);
+	GrowScreen(uiNumVertices);
 
 	psVertex = pcMesh->masVertices.GetData();
 	psScreen = masScreen.GetData();
@@ -118,54 +118,76 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 		psScreen[i].iShade = RASTER_AMBIENT + (SFixed<int64, int64, 28>::FromRaw(sDot.miRaw) * SRasterWideWhole::FromRaw(RASTER_DIFFUSE)).Floor();
 	}
 
-	DrawTriangles(&pcMesh->masOpaque, pcTarget, false);
-	DrawTriangles(&pcMesh->masTransparent, pcTarget, true);
+	DrawTriangles(&pcMesh->masOpaque, psScreen, pcTarget, false);
+	DrawTriangles(&pcMesh->masTransparent, psScreen, pcTarget, true);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The screen holds one instance's vertices at a time, so an instance with
-// transparent triangles is projected twice.
+// The screen holds every instance's vertices, one after another, so that the
+// transparent triangles drawn after all the opaque ones use them as they are.
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget)
 {
-	SRasterUnitVec3	sLight;
-	size			i;
+	SRasterUnitVec3			sLight;
+	SRasterScreenVertex*	psScreen;
+	size					uiNumVertices;
+	size					i;
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
 	pcCamera->ViewToMesh(&sLight, &msLight);
 
+	uiNumVertices = 0;
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		ProjectInstance(&asInstances[i], pcCamera, &sLight);
-		DrawTriangles(&asInstances[i].pcMesh->masOpaque, pcTarget, false);
+		uiNumVertices += asInstances[i].pcMesh->masVertices.NumElements();
 	}
+	GrowScreen(uiNumVertices);
+
+	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		if (asInstances[i].pcMesh->masTransparent.NumElements() > 0)
-		{
-			ProjectInstance(&asInstances[i], pcCamera, &sLight);
-			DrawTriangles(&asInstances[i].pcMesh->masTransparent, pcTarget, true);
-		}
+		ProjectInstance(&asInstances[i], pcCamera, &sLight, psScreen);
+		DrawTriangles(&asInstances[i].pcMesh->masOpaque, psScreen, pcTarget, false);
+		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
+	}
+
+	psScreen = masScreen.GetData();
+	for (i = 0; i < uiNumInstances; i++)
+	{
+		DrawTriangles(&asInstances[i].pcMesh->masTransparent, psScreen, pcTarget, true);
+		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// masScreen for an instance.  psLight is towards the light in the space
-// the instances are in.  Turning it back into the mesh's space, once, is
-// the same as turning every normal out of it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight)
+void CRasteriser::GrowScreen(size uiNumVertices)
+{
+	if (masScreen.NumElements() < uiNumVertices)
+	{
+		masScreen.Resize(uiNumVertices);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instance's vertices on the screen, to psScreen.  psLight is towards the
+// light in the space the instances are in.  Turning it back into the mesh's
+// space, once, is the same as turning every normal out of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen)
 {
 	size					i;
 	size					uiNumVertices;
 	SRasterVertex*			psVertex;
-	SRasterScreenVertex*	psScreen;
 	SInt64Vec3				sAxes[3];
 	SInt64Vec3				sPosition;
 	SInt64Vec3				sNormal;
@@ -182,9 +204,7 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 				(sAxes[0].z * psLight->x.miRaw + sAxes[1].z * psLight->y.miRaw + sAxes[2].z * psLight->z.miRaw) >> RASTER_AXIS_BITS);
 
 	uiNumVertices = psInstance->pcMesh->masVertices.NumElements();
-	masScreen.Resize(uiNumVertices);
 	psVertex = psInstance->pcMesh->masVertices.GetData();
-	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumVertices; i++)
 	{
 		sPosition.Init(psVertex[i].sPosition.x, psVertex[i].sPosition.y, psVertex[i].sPosition.z);
@@ -208,16 +228,14 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, CRasterTarget* pcTarget, bool bTransparent)
+void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent)
 {
-	size					i;
-	size					uiNumTriangles;
-	SRasterTriangle*		psTriangle;
-	SRasterScreenVertex*	psScreen;
+	size				i;
+	size				uiNumTriangles;
+	SRasterTriangle*	psTriangle;
 
 	uiNumTriangles = pasTriangles->NumElements();
 	psTriangle = pasTriangles->GetData();
-	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumTriangles; i++)
 	{
 		DrawTriangle(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], psTriangle[i].uiColour, bTransparent);
