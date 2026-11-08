@@ -561,17 +561,18 @@ SCPP65Function* CCPP65Generator::FindOperator(SCPP65Class* psClass, int64 lliNam
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The member of the kind eKind named lliName of psClass or of a base, and in ppsClass the class that declares it.
+// The member of the kind eKind named lliName of psClass or of a base, and in ppsClass the class that declares it.  A
+// specialisation has its own members: its symbol is its primary template's, whose members they aren't.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPP65Generator::ClassMember(SCPP65Class* psClass, int64 lliName, ECPPSymbolKind eKind, SCPP65Class** ppsClass)
 {
-	CCPPSymbol*	pcOwner;
+	CCPPScope*	pcMembers;
 	CCPPSymbol*	pcSymbol;
 	size		i;
 
-	pcOwner = psClass->pcSpecifier ? psClass->pcSpecifier->mpcSymbol : psClass->pcSymbol;
-	pcSymbol = (pcOwner && pcOwner->mpcMembers) ? pcOwner->mpcMembers->FindHere(lliName) : NULL;
+	pcMembers = psClass->pcSpecifier ? psClass->pcSpecifier->mpcScope : (psClass->pcSymbol ? psClass->pcSymbol->mpcMembers : NULL);
+	pcSymbol = pcMembers ? pcMembers->FindHere(lliName) : NULL;
 	if (pcSymbol && (pcSymbol->meKind == eKind))
 	{
 		*ppsClass = psClass;
@@ -973,6 +974,8 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPSyntaxConditionalExpression*	pcConditional;
 	CCPPSyntaxSizeofExpression*		pcSizeof;
 	CCPPSyntaxCastExpression*		pcCast;
+	CCPPSyntaxConstructExpression*	pcConstruct;
+	CArraySyntax*					papcElements;
 	CCPPSyntaxIdExpression*			pcId;
 	CCPPSyntax*						pcOperand;
 	CCPPSymbol*						pcSymbol;
@@ -1134,6 +1137,22 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		*plliValue = ConstantOfType(psType, lliLeft);
 		return true;
 
+	case CPPS_ConstructExpression:
+		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
+		psType = GetTypeIdType(pcConstruct->mpcType);
+		papcElements = ConstructElements(pcConstruct);
+		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !papcElements || (papcElements->NumElements() > 1))
+		{
+			return false;
+		}
+		lliLeft = 0;
+		if ((papcElements->NumElements() == 1) && !Constant(papcElements->GetPtr(0), &lliLeft))
+		{
+			return false;
+		}
+		*plliValue = ConstantOfType(psType, lliLeft);
+		return true;
+
 	case CPPS_TypeTraitExpression:
 		return TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, plliValue);
 
@@ -1187,22 +1206,45 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type Constant works pcExpression out in, or NULL (64 bit, as a
-// constant the type checker asks for while finding a type is).  TypeOf
-// can ask for the constant whose type is being found.
+// What is in the brackets or braces of Type(arguments) or Type{arguments}, or
+// NULL if it isn't either.
+//
+//////////////////////////////////////////////////////////////////////////
+CArraySyntax* CCPP65Generator::ConstructElements(CCPPSyntaxConstructExpression* pcConstruct)
+{
+	CCPPSyntax*	pcInitialiser;
+
+	pcInitialiser = pcConstruct->mpcInitializer;
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
+	{
+		return &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+	}
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList))
+	{
+		return &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type Constant works pcExpression out in, or NULL (64 bit) if that is
+// being found already: TypeOf can ask for the constant whose type it is
+// finding.  Other constants on the way have their own types.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::ConstantTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	if (miConstantTypes > 0)
+	if (mapcConstantTypes.Find(pcExpression) != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return NULL;
 	}
-	miConstantTypes++;
+	mapcConstantTypes.Add(pcExpression);
 	psType = TypeOf(pcExpression);
-	miConstantTypes--;
+	mapcConstantTypes.RemoveTail();
 	return psType;
 }
 

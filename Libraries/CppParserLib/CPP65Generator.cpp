@@ -260,7 +260,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	maszEmitted.Init();
 	miQuiet = 0;
 	miWarningChecks = 0;
-	miConstantTypes = 0;
+	mapcConstantTypes.Init();
 	mbWarnNarrowing = gbCPP65DefaultWarnNarrowing;
 	mbQuietFailed = false;
 	maszStrings.Init();
@@ -358,6 +358,7 @@ void CCPP65Generator::Kill(void)
 		free(mapcPackSymbols.GetPtr(i));
 	}
 	mapcPackSymbols.Kill();
+	mapcConstantTypes.Kill();
 	mapsQueue.Kill();
 	mapcFailed.Kill();
 	mcTypeOfs.Kill();
@@ -1800,6 +1801,23 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 		psClass->psDestructor = psFunction;
 	}
 	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// int F(int a); in a block declares a function of the namespace around the
+// block, as if it was declared there.  [basic.link] 6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	BeginQuiet();
+	if (!DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false))
+	{
+		mapcFailed.Add(pcDeclarator);
+	}
+	EndQuiet();
 }
 
 

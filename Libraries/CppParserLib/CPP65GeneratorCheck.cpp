@@ -263,6 +263,11 @@ void CCPP65Generator::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 {
 	SCPP65Variable*	psVariable;
 
+	if (pcInit->mpcDeclarator->IsFunction())
+	{
+		DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
+		return;
+	}
 	psVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
 	if (psVariable && mcTypeChecker.Initialise(psVariable->psType, pcInit->mpcInitializer, pcInit))
 	{

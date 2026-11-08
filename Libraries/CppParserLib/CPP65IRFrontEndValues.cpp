@@ -178,6 +178,8 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 			return DynamicCastExpression(pcNamedCast, psValue);
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
+	case CPPS_ConstructExpression:
+		return ScalarConstruct((CCPPSyntaxConstructExpression*)pcExpression, psValue);
 	default:
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -287,6 +289,33 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 	}
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
 	auiBytes.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Type(), Type{}, Type(value) or Type{value} of a type that isn't a class: zero
+// (nothing, of void), or the value cast to it.  [expr.type.conv]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruct, SCPP65IRValue* psValue)
+{
+	CArraySyntax*	papcElements;
+	SCPP65Type*		psType;
+
+	papcElements = mpcGenerator->ConstructElements(pcConstruct);
+	if (papcElements && (papcElements->NumElements() == 1))
+	{
+		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), psValue);
+	}
+	psType = mpcGenerator->GetTypeIdType(pcConstruct->mpcType);
+	if (!psType || !papcElements || (papcElements->NumElements() != 0) || !(psType->IsScalar() || psType->IsVoid()))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	psValue->psType = psType;
+	psValue->sValue = psType->IsVoid() ? IRNone() : mpcFunction->AddConstant(IRTypeOf(psType), 0);
 	return true;
 }
 

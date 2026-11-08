@@ -367,7 +367,8 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, S
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(ui);
 		if (pcInit->mpcDeclarator->IsFunction())
 		{
-			return Unsupported(__FILE__, __LINE__);
+			mpcGenerator->DeclareBlockFunction(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator);
+			continue;
 		}
 		psVariable = pcInit->mpcSymbol ? mpcGenerator->GetVariable(pcInit->mpcSymbol) : NULL;
 		if (!psVariable)

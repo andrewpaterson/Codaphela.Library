@@ -575,6 +575,23 @@ void TestCPP816SharedTables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A constant is worked out in its own type even while the type of another is
+// being found: A<65535u + 1> is A<0> with a 16 bit int, whose T is long long,
+// so the sum around it doesn't wrap.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816NestedConstants(void)
+{
+	AssertInt(1, TestCPP816Run(
+		"template<long N> struct A { typedef char T; };\n"
+		"template<> struct A<0> { typedef long long T; };\n"
+		"enum { V = ((A<65535u + 1>::T)1 + 65535u) >> 8 };\n"
+		"int main(void) { return V == 256; }\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A signed int converted to float (extended to 32 bits in the frame) has no
 // hand counted branch for its sign word (bcc C + 1 kept the flow passes off
 // the function).
@@ -5571,6 +5588,7 @@ void TestCPP816(void)
 	TestCPP816Functions();
 	TestCPP816Classes();
 	TestCPP816Thunks();
+	TestCPP816NestedConstants();
 	TestCPP816SharedTables();
 	TestCPP816Statements();
 	TestCPP816NarrowSubscripts();

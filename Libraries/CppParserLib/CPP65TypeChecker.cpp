@@ -2167,7 +2167,8 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Type(arguments): a temporary of a class, or a cast of one value.
+// Type(arguments) or Type{arguments}: a temporary of a class, or of any other
+// type a cast of one value, or zero for none.  [expr.type.conv]
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression* pcConstruct)
@@ -2180,13 +2181,14 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	{
 		return TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct);
 	}
-	if (pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
+	papcElements = mpcGenerator->ConstructElements(pcConstruct);
+	if (psType && papcElements && (papcElements->NumElements() == 0) && (psType->IsScalar() || psType->IsVoid()))
 	{
-		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements;
-		if (papcElements->NumElements() == 1)
-		{
-			return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), pcConstruct);
-		}
+		return psType;
+	}
+	if (papcElements && (papcElements->NumElements() == 1))
+	{
+		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), pcConstruct);
 	}
 	Error(pcConstruct, "This construction is not supported by the compiler yet");
 	return NULL;

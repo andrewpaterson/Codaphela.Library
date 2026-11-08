@@ -1443,6 +1443,105 @@ void TestCPP65IRFunctionsReturningFunctions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Type() of a type that isn't a class is zero, and Type(value) and Type{value}
+// casts: in a template, directly, through a typedef, as a constant and for a
+// pointer or an enum.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRScalarConstruct(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "float F() { return float(); }\ndouble G() { return double{}; }\n"));
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	AssertInt(0, TestCPP65Main("template<class T> T Zero() { return T(); }\nint main() { return Zero<int>(); }"));
+	AssertInt(0, TestCPP65Main("template<class T> T Zero() { T t = T{}; return t; }\nint main() { return Zero<int>(); }"));
+	AssertInt(1, TestCPP65Main("template<class T> T Zero() { return T(); }\nint main() { return Zero<char*>() == 0; }"));
+	AssertInt(0, TestCPP65Main("enum E { A = 3 };\ntemplate<class T> T Zero() { return T(); }\nint main() { return Zero<E>(); }"));
+	AssertInt(5, TestCPP65Main("typedef char* PC;\nint main() { int i = int(); long l = long(); bool b = bool(); PC q = PC(); return i + l + b + (q == 0) + 4; }"));
+	AssertInt(7, TestCPP65Main("int main() { char d = 3; int i = int(d); char c = char{4}; return i + c; }"));
+	AssertInt(3, TestCPP65Main("void Nothing() { return void(); }\nint gi = int();\nint gj = int(3);\nchar gac[int(2) + 1];\nint main() { Nothing(); return gi + gj + sizeof(gac) - 3; }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function declared in a block is its namespace's: the definition after
+// it is the same function, however the block is reached.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRBlockFunctions(void)
+{
+	AssertInt(4, TestCPP65Main("int main() { int F(int a); return F(3); }\nint F(int a) { return a + 1; }"));
+	AssertInt(4, TestCPP65Main("namespace N { int G(int a) { return a; } int H(int a) { int G(int b); return G(a); } }\nint main() { return N::H(4); }"));
+	AssertInt(2, TestCPP65Main("struct S { int M() { int L(int); return L(1); } };\nint L(int a) { return a + 1; }\nint main() { S s; return s.M(); }"));
+	AssertInt(6, TestCPP65Main("int F(int a) { return a; }\nint main() { int x = 2; int F(int a), y = 3; return F(1) + x + y; }"));
+	AssertInt(3, TestCPP65Main("template<class T> T Call(T t) { T Back(T); return Back(t); }\nint Back(int a) { return a + 1; }\nint main() { return Call(2); }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// using N::F; where the scope has an F too merges the overloads, whichever
+// comes first, and asking for the name through that scope finds both.  N's own
+// F aren't changed.  A name that isn't a function is left as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRUsingOverloads(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	AssertInt(8, TestCPP65Main("namespace N { int F(int a) { return a; } }\nint F(char* p) { return 5; }\nusing N::F;\nint main() { return F(3) + F((char*)0); }"));
+	AssertInt(8, TestCPP65Main("namespace N { int F(int a) { return a; } }\nusing N::F;\nint F(char* p) { return 5; }\nint main() { return F(3) + F((char*)0); }"));
+	AssertInt(8, TestCPP65Main("namespace N { int F(int a) { return a; } }\nnamespace M { int F(char* p) { return 5; } using N::F; }\nint main() { return M::F(3) + M::F((char*)0); }"));
+	AssertInt(9, TestCPP65Main("namespace N { int F(int a) { return a; } int F(long long a) { return 1; } }\nint F(char* p) { return 5; }\nusing N::F;\nint main() { return F(3) + F((char*)0) + F(1LL); }"));
+	AssertInt(3, TestCPP65Main("namespace N { int F(int a) { return a; } }\nint main() { int x = 0; using N::F; return F(3) + x; }"));
+
+	//N's F can't take a char*, as the name F in N doesn't find the one using it merged with.
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "namespace N { int F(int a) { return a; } }\nusing N::F;\nint F(char* p) { return 5; }\nnamespace N { int G() { char* p = 0; return F(p); } }\nint main() { return 0; }", true));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A specialisation's enumerators and typedefs are its own, not its primary
+// template's, explicit or partial, through a typedef too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRSpecialisationMembers(void)
+{
+	static const char*	szTemplates =
+		"template<int N> struct A { typedef char T; enum { e = 1 }; };\n"
+		"template<> struct A<0> { typedef long long T; enum { e = 2 }; };\n"
+		"template<class X> struct B { typedef char T; };\n"
+		"template<> struct B<int> { typedef long long T; };\n"
+		"template<class X> struct B<X*> { typedef short T; };\n";
+	CChars	sz;
+
+	sz.Init(szTemplates);
+	sz.Append("typedef A<0> C;\nint main() { return A<1>::e * 1000 + A<0>::e * 100 + C::e * 10 + sizeof(A<0>::T); }\n");
+	AssertInt(1228, TestCPP65Main(sz.Text()));
+	sz.Kill();
+
+	sz.Init(szTemplates);
+	sz.Append("int main() { B<int>::T t = 1; return sizeof(B<char>::T) * 100 + sizeof(B<char*>::T) * 10 + sizeof(t); }\n");
+	AssertInt(128, TestCPP65Main(sz.Text()));
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The 65C64's thunks: a member pointer's to a virtual function goes through
 // the vtable with its slot's offset (CPP65_VTABLE_ENTRY_BYTES apart), and one
 // of a secondary base's vtable adjusts this.
@@ -1639,6 +1738,10 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IRSpecialisationMembers();
+	TestCPP65IRScalarConstruct();
+	TestCPP65IRBlockFunctions();
+	TestCPP65IRUsingOverloads();
 	TestCPP65IRFunctionsReturningFunctions();
 	TestCPP65IRLineErrors();
 	TestCPP65IRTemplateInstances();

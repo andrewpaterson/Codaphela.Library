@@ -285,6 +285,7 @@ protected:
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	bool			ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValue);
+	bool			ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruct, SCPP65IRValue* psValue);
 	bool			FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue);
 	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue, bool* pbMember);

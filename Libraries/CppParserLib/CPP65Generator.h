@@ -456,7 +456,7 @@ protected:
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
-	int						miConstantTypes;	//Above 0 while Constant works out a type (ConstantTypeOf), for the same reason.
+	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
 	bool					mbWarnNarrowing;	//Implicit conversions of non constant integers to a narrower type are warned about.
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
@@ -816,6 +816,8 @@ protected:
 
 	//Check only.  CPP65GeneratorCheck.cpp
 	bool					CheckDefinitions(void);
+	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);
+	void					DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
 	void					CheckClasses(CArraySyntax* papcDeclarations);
 	void					CheckFunction(SCPP65Function* psFunction);
 	void					CheckNode(CCPPSyntax* pcNode);
