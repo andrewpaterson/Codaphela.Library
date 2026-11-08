@@ -165,27 +165,18 @@ M* CUnknowns::Add(size uiAdditionalSize)
 	char(*		acDebug)[4];
 	size		uiSize;
 
-	//You can only add Unknown classes to Unknowns.
+	static_assert(__is_base_of(CUnknown, M), "Only classes derived from CUnknown can be added to Unknowns.");
 
 	uiSize = sizeof(M);
 	pv = (M*)mpcMalloc->Malloc(uiSize + uiAdditionalSize, &acDebug);
-	if (pv)
-	{
-		memset(pv, 0, uiSize + uiAdditionalSize);
-		new(pv) M();
-		if (!pv->IsUnknown())
-		{
-			mpcMalloc->Free(pv);
-			return NULL;
-		}
-
-		pv = (M*)AddExisting(pv, acDebug);
-		return pv;
-	}
-	else
+	if (pv == NULL)
 	{
 		return NULL;
 	}
+
+	memset(pv, 0, uiSize + uiAdditionalSize);
+	new(pv) M();
+	return (M*)AddExisting(pv, acDebug);
 }
 
 

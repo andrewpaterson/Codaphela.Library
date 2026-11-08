@@ -383,6 +383,46 @@ void TestUnknownsIterablesMissing(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Add<M> makes an M in the Unknowns, constructed, with its additional size
+// after it, and all of it zero.  (A class that isn't a CUnknown doesn't
+// compile.)
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUnknownsAddAdditionalSize(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CTestUnknown*	pcTest;
+	uint8*			puiAdditional;
+	size			i;
+	bool			bZero;
+
+	pcTest = gcUnknowns.Add<CTestUnknown>(32);
+	AssertNotNull(pcTest);
+	AssertString("CTestUnknown", pcTest->ClassName());
+	AssertPointer(&gcUnknowns, pcTest->GetUnknownsThisIn());
+	AssertInt((int32)0, pcTest->miCount);
+	AssertSize(1, gcUnknowns.NumElements());
+
+	puiAdditional = (uint8*)RemapSinglePointer(pcTest, sizeof(CTestUnknown));
+	bZero = true;
+	for (i = 0; i < 32; i++)
+	{
+		bZero &= puiAdditional[i] == 0;
+	}
+	AssertTrue(bZero);
+
+	pcTest->Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestUnknowns(void)
@@ -397,6 +437,7 @@ void TestUnknowns(void)
 	TestUnknownsRemoveFromOther();
 	TestUnknownsWithoutConstructors();
 	TestUnknownsIterablesMissing();
+	TestUnknownsAddAdditionalSize();
 
 	TestStatistics();
 }

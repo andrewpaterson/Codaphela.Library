@@ -36,7 +36,6 @@ public:
 			void		SetUnknowns(CUnknowns* pcUnknowns);
 			void 		Kill(void) override;
 
-	virtual bool		IsUnknown(void);
 	virtual bool		Iterable(void);
 			bool		SaveHeader(CFileWriter* pcFile);
 	virtual bool		Save(CFileWriter* pcFile);
