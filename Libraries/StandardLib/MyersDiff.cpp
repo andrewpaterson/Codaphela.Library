@@ -65,8 +65,7 @@ void CMyersDiff::Init(void)
 	mpacChanges = NULL;
 	muiFirstChange = 0;
 	macPending.Init();
-	maiForward.Init();
-	maiBackward.Init();
+	maiPaths.Init();
 }
 
 
@@ -76,8 +75,7 @@ void CMyersDiff::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMyersDiff::Kill(void)
 {
-	maiBackward.Kill();
-	maiForward.Kill();
+	maiPaths.Kill();
 	macPending.Kill();
 	mpacChanges = NULL;
 	mpaui2 = NULL;
@@ -217,14 +215,14 @@ bool CMyersDiff::Bisect(SDiffRange* psRange, lsize* puiSplit1, lsize* puiSplit2)
 	iOffset = iMaxD;
 	iVLength = 2 * iMaxD + 2;
 
-	maiForward.Resize((lsize)iVLength);
-	maiBackward.Resize((lsize)iVLength);
-	paiForward = maiForward.GetData();
-	paiBackward = maiBackward.GetData();
-	for (i = 0; i < iVLength; i++)
+	//The paths aren't resized for each range (ranges only get smaller), but every diagonal this range can look at is
+	//marked unvisited: like the snakes the search follows, that is linear in the range.
+	maiPaths.GrowToAtLeastNumElements((lsize)(2 * iVLength));
+	paiForward = maiPaths.GetData();
+	paiBackward = &paiForward[iVLength];
+	for (i = 0; i < 2 * iVLength; i++)
 	{
 		paiForward[i] = -1;
-		paiBackward[i] = -1;
 	}
 	paiForward[iOffset + 1] = 0;
 	paiBackward[iOffset + 1] = 0;

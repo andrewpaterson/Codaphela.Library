@@ -57,8 +57,7 @@ protected:
 	CArrayDiffRange*			mpacChanges;
 	lsize						muiFirstChange;  //Changes before this one were in mpacChanges before Diff and are never merged with.
 	CArrayDiffRange				macPending;
-	CArrayLargeTemplate<int64>	maiForward;
-	CArrayLargeTemplate<int64>	maiBackward;
+	CArrayLargeTemplate<int64>	maiPaths;  //Bisect's forward then backward furthest paths.  It only grows: the first range is the largest.
 
 public:
 	void	Init(void);

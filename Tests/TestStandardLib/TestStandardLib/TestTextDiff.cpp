@@ -864,6 +864,61 @@ void TestMyersDiffRandom(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A diff's paths are kept for the next: a diff after a bigger one finds
+// the same changes as a diff on its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMyersDiffReused(void)
+{
+	CMyersDiff		cReused;
+	CMyersDiff		cFresh;
+	CArrayDiffRange	acReused;
+	CArrayDiffRange	acFresh;
+	lsize			auiBig1[200];
+	lsize			auiBig2[200];
+	lsize			auiSmall1[] = { 1, 2, 3, 4, 5, 6 };
+	lsize			auiSmall2[] = { 1, 7, 3, 5, 8, 6, 9 };
+	lsize			ui;
+	SDiffRange*		psReused;
+	SDiffRange*		psFresh;
+
+	for (ui = 0; ui < 200; ui++)
+	{
+		auiBig1[ui] = ui % 7;
+		auiBig2[ui] = (ui * 3) % 5;
+	}
+
+	cReused.Init();
+	acReused.Init();
+	cReused.Diff(auiBig1, 200, auiBig2, 200, &acReused);
+	acReused.ReInit();
+	cReused.Diff(auiSmall1, 6, auiSmall2, 7, &acReused);
+
+	cFresh.Init();
+	acFresh.Init();
+	cFresh.Diff(auiSmall1, 6, auiSmall2, 7, &acFresh);
+
+	AssertLSize(4, acFresh.NumElements());  //2 to 7, 4 removed, 8 and 9 added.
+	AssertLSize(acFresh.NumElements(), acReused.NumElements());
+	for (ui = 0; ui < acFresh.NumElements(); ui++)
+	{
+		psReused = acReused.Get(ui);
+		psFresh = acFresh.Get(ui);
+		AssertLSize(psFresh->uiStart1, psReused->uiStart1);
+		AssertLSize(psFresh->uiEnd1, psReused->uiEnd1);
+		AssertLSize(psFresh->uiStart2, psReused->uiStart2);
+		AssertLSize(psFresh->uiEnd2, psReused->uiEnd2);
+	}
+
+	acFresh.Kill();
+	cFresh.Kill();
+	acReused.Kill();
+	cReused.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Maps lines between the two sides of szText1 and szText2's diff: the
 // first iLeftToRight of afLeft map to the same of afRight, then the next
 // iRightToLeft of afRight map to the same of afLeft.  Mapping isn't always
@@ -1067,6 +1122,7 @@ void TestTextDiff(void)
 	TestTextDiffLineMapperManyBlocks();
 	TestMyersDiffEdges();
 	TestMyersDiffRandom();
+	TestMyersDiffReused();
 
 	MemoryKill();
 	TestStatistics();
