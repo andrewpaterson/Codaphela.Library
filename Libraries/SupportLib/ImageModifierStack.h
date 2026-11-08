@@ -48,7 +48,7 @@ public:
 
 	void 					AddModifier(Ptr<CImageModifier> pModifier);
 	template<class M, typename ... Args>
-	Ptr<M>					AddModifier(Args ... args);
+	Ptr<M>					AddModifier(Args&& ... args);
 
 	void					SetImage(Ptr<CImage> pImage);  //SetImage and ApplyAll make the stack act on multiple images.  There should be a better way of doing this.
 	void					ApplyAll(void);  //Better way.  CImageModifierStack has a list of images.  But then the cache is broken.  Need a cached image.
@@ -63,7 +63,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M, typename ... Args>
-Ptr<M> CImageModifierStack::AddModifier(Args ... args)
+Ptr<M> CImageModifierStack::AddModifier(Args&& ... args)
 {
 	Ptr<M>	pModifier;
 

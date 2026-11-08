@@ -45,7 +45,7 @@ public:
 
 	void 					AddModifier(Ptr<CSoundModifier> pModifier);
 	template<class M, typename ... Args>
-	Ptr<M>					AddModifier(Args ... args);
+	Ptr<M>					AddModifier(Args&& ... args);
 
 	void					SetSound(Ptr<CSound> pSound);
 	void					ApplyAll(void);  //The sound set is changed in place, so everything pointing to it sees the result.
@@ -60,7 +60,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M, typename ... Args>
-Ptr<M> CSoundModifierStack::AddModifier(Args ... args)
+Ptr<M> CSoundModifierStack::AddModifier(Args&& ... args)
 {
 	Ptr<M>	pModifier;
 

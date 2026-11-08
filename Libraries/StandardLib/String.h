@@ -26,9 +26,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects.h"
 
 
-template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> OString(Args ... args);
-
 class CObjectWriter;
 class CObjectReader;
 class CString : public CObject
@@ -207,7 +204,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <typename ... Args>
-Ptr<CString> OString(Args ... args)
+Ptr<CString> OString(Args&& ... args)
 {
 	Ptr<CString> pObject = gcObjects.Malloc<CString>();
 	if (pObject.IsNotNull())

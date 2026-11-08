@@ -42,11 +42,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 Ptr<CRoot> ORoot(void);
 
+//The arguments go to Init as they are, not copied: Init's own parameters say what is copied.
 template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> OMalloc(Args ... args);
+Ptr<SpecificClass> OMalloc(Args&& ... args);
 
 template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
+Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args&& ... args);
 
 
 #define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)
@@ -453,7 +454,7 @@ M* CObjects::AddFreeObject(Ptr<M>& p)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> OMalloc(Args ... args)
+Ptr<SpecificClass> OMalloc(Args&& ... args)
 {
 	//Calls .Init on the allocated instance to ensure it's properly wound into the Objects machinery.
 	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>();
@@ -470,7 +471,7 @@ Ptr<SpecificClass> OMalloc(Args ... args)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
+Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args&& ... args)
 {
 	//Calls .Init on the allocated instance to ensure it's properly wound into the Objects machinery.
 	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>(szObjectName);

@@ -8,7 +8,7 @@ void AddDebugChannel(Ptr<CImage> pImage, EPrimitiveType eType, EChannel eChannel
 
 //The image readers' allocation: named szObjectName when there is one (an image converted from a file into the Codabase).
 template<typename ... Args>
-Ptr<CImage> ImageMalloc(const char* szObjectName, Args ... args)
+Ptr<CImage> ImageMalloc(const char* szObjectName, Args&& ... args)
 {
 	if (szObjectName)
 	{

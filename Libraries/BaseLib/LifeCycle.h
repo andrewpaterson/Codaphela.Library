@@ -84,7 +84,7 @@ void CLife<M>::Init(M** ppcLifeCycleObject, bool bMustFree, bool bMustKill)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class SpecificClass, class SuperClass, typename ... Args>
-CLifeInit<SuperClass> LifeAlloc(Args ... args)
+CLifeInit<SuperClass> LifeAlloc(Args&& ... args)
 {
 	CLifeInit<SuperClass>	cLife;
 	SpecificClass*			pcLife;
