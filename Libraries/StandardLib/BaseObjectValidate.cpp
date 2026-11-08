@@ -363,44 +363,64 @@ void CBaseObject::ValidateKillCalled(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a class checks of its own state.  Nothing here.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateInternalConsistency(void)
 {
-	CStackPointer*		pcStackPointer;
-	SStackPointer*		psStackPointer;
-	void*				pvStart;
-	void*				pvEnd;
-	void*				pvPointer;
-	SFreeListIterator	sIter;
+}
 
-	if (IsEmbeddingContainerAllocatedInObjects())
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A stack pointer inside an object (in Objects) is a Ptr field missing
+// from its Class().  papvSortedStackPointers are the stack pointers'
+// addresses, sorted: the first not before this object is found by a
+// binary search, and those up to its end are inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateNoStackPointerInside(CArrayVoidPtr* papvSortedStackPointers)
+{
+	void*	pvStart;
+	void*	pvEnd;
+	void*	pvPointer;
+	size	uiLow;
+	size	uiHigh;
+	size	uiMiddle;
+	size	uiNumStackPointers;
+
+	if (!IsEmbeddingContainerAllocatedInObjects())
 	{
-		pvStart = this;
-		pvEnd = RemapSinglePointer(pvStart, ClassSize());
+		return;
+	}
 
-		pcStackPointer = GetStackPointers()->StartIteration(&sIter);
-		while (pcStackPointer)
+	pvStart = this;
+	pvEnd = RemapSinglePointer(pvStart, ClassSize());
+
+	uiNumStackPointers = papvSortedStackPointers->NumElements();
+	uiLow = 0;
+	uiHigh = uiNumStackPointers;
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = uiLow + (uiHigh - uiLow) / 2;
+		if (papvSortedStackPointers->GetPtr(uiMiddle) < pvStart)
 		{
-			psStackPointer = pcStackPointer->Get();
-			if (psStackPointer->eType == SPT_Pointer)
-			{
-				pvPointer = psStackPointer->u.pcPointer;
-			}
-			else if (psStackPointer->eType == SPT_Collection)
-			{
-				pvPointer = psStackPointer->u.pcCollection;
-			}
-			else
-			{
-				pvPointer = NULL;
-			}
-			if ((pvPointer >= pvStart) && (pvPointer < pvEnd))
-			{
-				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Ensure it is set up in Class().", NULL);
-			}
-			pcStackPointer = GetStackPointers()->Iterate(&sIter);
+			uiLow = uiMiddle + 1;
 		}
+		else
+		{
+			uiHigh = uiMiddle;
+		}
+	}
+
+	for (; uiLow < uiNumStackPointers; uiLow++)
+	{
+		pvPointer = papvSortedStackPointers->GetPtr(uiLow);
+		if (pvPointer >= pvEnd)
+		{
+			break;
+		}
+		gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Ensure it is set up in Class().", NULL);
 	}
 }
 

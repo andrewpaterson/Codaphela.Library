@@ -4,9 +4,16 @@
 #include "StandardLib/StackPointers.h"
 #include "StandardLib/Pointer.h"
 #include "StandardLib/Objects.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/Logger.h"
+#include "StandardLib/MapObject.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
 #include "EmbeddedObjectTestClasses.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -464,6 +471,110 @@ void TestStackPointersFromRemoved(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object with a Ptr field its Class() leaves out.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestPtrNotInClass : public CObject
+{
+CONSTRUCTABLE(CTestPtrNotInClass)
+DESTRUCTABLE(CTestPtrNotInClass)
+public:
+	Ptr<CTestObject>	mpMissing;
+
+	void Init(void)
+	{
+		PreInit();
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+	}
+
+	void Free(void) override
+	{
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A map with a Ptr field its Class() leaves out.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestMapPtrNotInClass : public CMapObject
+{
+CONSTRUCTABLE(CTestMapPtrNotInClass)
+DESTRUCTABLE(CTestMapPtrNotInClass)
+public:
+	Ptr<CTestObject>	mpMissing;
+
+	void Class(void) override
+	{
+		CMapObject::Class();
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Ptr field missing from an object's Class() is a stack pointer inside
+// the object, and validating finds it, among many stack pointers (and in
+// a map, which checks its own state too).  Stack pointers that aren't
+// inside an object aren't reported.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStackPointersInsideObject(void)
+{
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[2048];
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>			pObject;
+		Ptr<CTestObject>			apHolders[50];
+		Ptr<CTestPtrNotInClass>		pHolder;
+		Ptr<CTestMapPtrNotInClass>	pMap;
+		size						i;
+
+		pObject = OMalloc<CTestObject>();
+		for (i = 0; i < 50; i++)
+		{
+			apHolders[i] = pObject;
+		}
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		gcObjects.ValidateObjectsConsistency();
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertString("", szLogged);
+
+		pHolder = OMalloc<CTestPtrNotInClass>();
+		pMap = OMalloc<CTestMapPtrNotInClass>();
+		pHolder->mpMissing = pObject;
+		pMap->mpMissing = pObject;
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		gcObjects.ValidateObjectsConsistency();
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertTrue(strstr(szLogged, "appears to belong to Object {") != NULL);
+		AssertTrue(strstr(szLogged, "CTestPtrNotInClass") != NULL);
+		AssertTrue(strstr(szLogged, "CTestMapPtrNotInClass") != NULL);
+
+		pMap->mpMissing = NULL;
+		pHolder->mpMissing = NULL;
+		StartCapturingLog(&cLog, &sLogConfig);
+		gcObjects.ValidateObjectsConsistency();
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertTrue(strstr(szLogged, "appears to belong to Object {") == NULL);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStackPointers(void)
@@ -481,6 +592,7 @@ void TestStackPointers(void)
 	TestStackPointersSorting1();
 	TestStackPointersRemoveMissing();
 	TestStackPointersFromRemoved();
+	TestStackPointersInsideObject();
 
 	DataIOKill();
 	TypesKill();

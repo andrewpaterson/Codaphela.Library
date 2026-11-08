@@ -218,6 +218,7 @@ protected:
 						void					ValidateIndexedObjects(CArrayBaseObjectPtr* papcObjects);
 						void					ClearValidationFlags(CArrayBaseObjectPtr* papcObjects);
 						void					ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects);
+						void					GetStackPointerAddresses(CArrayVoidPtr* papvAddresses);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize);
 						void					AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemoryUseIteration(CChars* psz);

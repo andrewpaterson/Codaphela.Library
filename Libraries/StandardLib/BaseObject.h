@@ -236,6 +236,7 @@ public:
 			void					ValidateInitCalled(void);
 			void					ValidateKillCalled(void);
 	virtual void					ValidateInternalConsistency(void);
+			void					ValidateNoStackPointerInside(CArrayVoidPtr* papvSortedStackPointers);
 	
 protected:
 			void					Allocate(CObjects* pcObjects) override;

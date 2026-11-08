@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/PointerFunctions.h"
 #include "BaseObject.h"
 #include "Objects.h"
 
@@ -142,13 +143,48 @@ void CObjects::ClearValidationFlags(CArrayBaseObjectPtr* papcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects)
 {
-	size	i;
-	size	uiNumObjects;
+	size			i;
+	size			uiNumObjects;
+	CBaseObject*	pcObject;
+	CArrayVoidPtr	apvStackPointers;
+
+	//Sorted once, so finding those inside an object is a search, not a walk of them all.
+	apvStackPointers.Init();
+	GetStackPointerAddresses(&apvStackPointers);
+	apvStackPointers.QuickSort(&ComparePtrPtr);
 
 	uiNumObjects = papcObjects->NumElements();
 	for (i = 0; i < uiNumObjects; i++)
 	{
-		papcObjects->GetPtr(i)->ValidateInternalConsistency();
+		pcObject = papcObjects->GetPtr(i);
+		pcObject->ValidateNoStackPointerInside(&apvStackPointers);
+		pcObject->ValidateInternalConsistency();
+	}
+	apvStackPointers.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address of each stack pointer (a Ptr or a collection on the stack).
+// A collection pointing to several objects is there once for each.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::GetStackPointerAddresses(CArrayVoidPtr* papvAddresses)
+{
+	CStackPointer*		pcStackPointer;
+	SStackPointer*		psStackPointer;
+	SFreeListIterator	sIter;
+
+	pcStackPointer = GetStackPointers()->StartIteration(&sIter);
+	while (pcStackPointer)
+	{
+		psStackPointer = pcStackPointer->Get();
+		if ((psStackPointer->eType == SPT_Pointer) || (psStackPointer->eType == SPT_Collection))
+		{
+			papvAddresses->Add(psStackPointer->u.pvPointer);
+		}
+		pcStackPointer = GetStackPointers()->Iterate(&sIter);
 	}
 }
 
