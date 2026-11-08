@@ -47,16 +47,8 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	SCPP65IRPlace	sPlace;
 	bool			bLvalue;
 
-	psTrue = mpcGenerator->TypeOf(pcConditional->mpcTrue);
-	psFalse = mpcGenerator->TypeOf(pcConditional->mpcFalse);
-	if (psTrue && psTrue->IsReference())
-	{
-		psTrue = psTrue->psBase;
-	}
-	if (psFalse && psFalse->IsReference())
-	{
-		psFalse = psFalse->psBase;
-	}
+	psTrue = mpcGenerator->ValueTypeOf(pcConditional->mpcTrue);
+	psFalse = mpcGenerator->ValueTypeOf(pcConditional->mpcFalse);
 	if (!psTrue || (psTrue != psFalse) || !psTrue->IsClass())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -150,11 +142,7 @@ bool CCPP65IRFrontEnd::IsObjectExpression(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcGenerator->TypeOf(pcExpression);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = mpcGenerator->ValueTypeOf(pcExpression);
 	return psType && psType->IsClass();
 }
 
@@ -196,7 +184,7 @@ bool CCPP65IRFrontEnd::IsObjectValue(SCPP65IRValue* psValue)
 {
 	SCPP65Type*	psType;
 
-	psType = psValue->psType->IsReference() ? psValue->psType->psBase : psValue->psType;
+	psType = psValue->psType->WithoutReference();
 	return psType->IsClass();
 }
 
@@ -214,7 +202,7 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	SCPP65Function*	psFunction;
 	SCPP65IRValue	sResult;
 
-	psClass = (psValue->psType->IsReference() ? psValue->psType->psBase : psValue->psType)->psClass;
+	psClass = psValue->psType->WithoutReference()->psClass;
 	psFunction = mpcGenerator->FindConversion(psClass, psTo, true, NULL);
 	if (!psFunction)
 	{
@@ -248,11 +236,7 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 	if (bArrow)
 	{
 		//An object's operator-> gives the pointer.
-		psType = mpcGenerator->TypeOf(pcObject);
-		if (psType && psType->IsReference())
-		{
-			psType = psType->psBase;
-		}
+		psType = mpcGenerator->ValueTypeOf(pcObject);
 		if (psType && psType->IsClass())
 		{
 			if (!OperatorCall(pcObject, CT_MemberByPointer, NULL, &sPointer))
@@ -678,11 +662,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	//(object) and = object copy an object.
 	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !psClass->bConstructors)
 	{
-		psSource = mpcGenerator->TypeOf(papcArguments->GetPtr(0));
-		if (psSource && psSource->IsReference())
-		{
-			psSource = psSource->psBase;
-		}
+		psSource = mpcGenerator->ValueTypeOf(papcArguments->GetPtr(0));
 		if (psSource && psSource->IsClass() && mpcGenerator->IsDerived(psSource->psClass, psClass, NULL))
 		{
 			return CopyConstruct(psPlace, papcArguments->GetPtr(0));
@@ -725,10 +705,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 			}
 			return CopyBytes(psPlace, &sMade);
 		}
-		if (psSource && psSource->IsReference())
-		{
-			psSource = psSource->psBase;
-		}
+		psSource = psSource ? psSource->WithoutReference() : NULL;
 		if (psSource && psSource->IsClass() && mpcGenerator->IsDerived(psSource->psClass, psClass, NULL))
 		{
 			return CopyConstruct(psPlace, pcInitialiser);
@@ -1461,7 +1438,7 @@ bool CCPP65IRFrontEnd::CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource
 	SIRReference	sAddress;
 
 	sSource.sAddress = psSource->sValue;
-	sSource.psType = psSource->psType->IsReference() ? psSource->psType->psBase : psSource->psType;
+	sSource.psType = psSource->psType->WithoutReference();
 	if (!sSource.psType->IsClass() || !mpcGenerator->IsDerived(sSource.psType->psClass, psPlace->psType->psClass, NULL) ||
 		!ReferenceAddress(&sSource, mpcTypes->Pointer(psPlace->psType), &sAddress))
 	{

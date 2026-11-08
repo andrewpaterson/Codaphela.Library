@@ -918,8 +918,8 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse)
 {
-	psTrue = psTrue->IsReference() ? psTrue->psBase : psTrue;
-	psFalse = psFalse->IsReference() ? psFalse->psBase : psFalse;
+	psTrue = psTrue->WithoutReference();
+	psFalse = psFalse->WithoutReference();
 	if (!psTrue->IsClass() || !psFalse->IsClass() || (psTrue->psClass != psFalse->psClass))
 	{
 		Error(pcConditional, "c ? x : y with objects of different types is not supported by the compiler yet");
@@ -1679,11 +1679,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 	size				uiErrors;
 
 	lliName = mpcGenerator->GetOperatorName(eOperator, false);
-	psType = mpcGenerator->TypeOf(pcLeft);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = mpcGenerator->ValueTypeOf(pcLeft);
 	apcArguments.Init();
 	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, pcNode) && mpcGenerator->HasMember(psType->psClass, lliName))
 	{
@@ -1801,7 +1797,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 	if (psField)
 	{
 		mpcGenerator->Resolved(pcMember->mpcName, psField->pcSymbol);
-		return psField->psType->IsReference() ? psField->psType->psBase : psField->psType;
+		return psField->psType->WithoutReference();
 	}
 	psVariable = mpcGenerator->FindStatic(psClass, lliName);
 	if (psVariable)
@@ -1955,7 +1951,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 		psVariable = pcSymbol ? mpcGenerator->GetVariable(pcSymbol) : NULL;
 		if (psVariable)
 		{
-			return psVariable->psType->IsReference() ? psVariable->psType->psBase : psVariable->psType;
+			return psVariable->psType->WithoutReference();
 		}
 		psClass = mpcGenerator->mpsFunction ? mpcGenerator->mpsFunction->psClass : NULL;
 		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && psClass) ? mpcGenerator->FindFieldSymbol(psClass, pcSymbol, &iOffset) : NULL;
@@ -1979,7 +1975,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			Error(pcExpression, "A field needs an object");
 			return NULL;
 		}
-		return psField->psType->IsReference() ? psField->psType->psBase : psField->psType;
+		return psField->psType->WithoutReference();
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression);
@@ -2592,11 +2588,7 @@ SCPP65Type* CCPP65TypeChecker::ObjectType(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcGenerator->TypeOf(pcExpression);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = mpcGenerator->ValueTypeOf(pcExpression);
 	return (psType && psType->IsClass()) ? psType : NULL;
 }
 

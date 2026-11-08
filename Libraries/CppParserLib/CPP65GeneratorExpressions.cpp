@@ -257,7 +257,7 @@ bool CCPP65Generator::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP
 {
 	SCPP65Function*		psFunction;
 
-	psPointer = psPointer->IsReference() ? psPointer->psBase : psPointer;
+	psPointer = psPointer->WithoutReference();
 	if (!psPointer->IsPointer() || psPointer->IsMemberPointer() || !psPointer->psBase || !psPointer->psBase->IsFunction() || (pcFunction->mpcName->macpComponents.NumElements() != 1))
 	{
 		return false;
@@ -688,6 +688,20 @@ void CCPP65Generator::ReportFailedDeclaration(int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// TypeOf, a reference as the type it refers to (NULL if it is wrong).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ValueTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = TypeOf(pcExpression);
+	return psType ? psType->WithoutReference() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type of an expression (NULL if it is wrong), worked out without its code by
 // CCPP65TypeChecker.  Its errors are dropped: they are reported where its code is
 // written (ReportTypeOf).  An expression's type only depends on the template
@@ -1041,10 +1055,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		if (psType->IsReference())
-		{
-			psType = psType->psBase;
-		}
+		psType = psType->WithoutReference();
 		if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !CompleteClass((psType->IsArray() ? psType->psBase : psType)->psClass, pcExpression))
 		{
 			return false;

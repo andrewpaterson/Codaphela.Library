@@ -83,6 +83,7 @@ struct SCPP65Type
 	bool	Is64(void);
 	bool	Equals(SCPP65Type* psOther);
 	SCPP65Type*	Unqualified(void);
+	SCPP65Type*	WithoutReference(void);
 	int		GetElementBytes(void);
 	void	Append(CChars* psz);
 };

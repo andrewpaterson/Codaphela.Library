@@ -1008,11 +1008,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 	CArraySyntax	apcArguments;
 	bool			bResult;
 
-	psType = mpcGenerator->TypeOf(pcObject);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = mpcGenerator->ValueTypeOf(pcObject);
 	if (!psType || !psType->IsClass() || !mpcGenerator->CompleteClass(psType->psClass, pcObject))
 	{
 		return Unsupported(__FILE__, __LINE__);

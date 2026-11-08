@@ -222,11 +222,7 @@ bool CCPP65Generator::IsObject(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = TypeOf(pcExpression);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = ValueTypeOf(pcExpression);
 	return psType && psType->IsClass();
 }
 
@@ -240,11 +236,7 @@ SCPP65Class* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = TypeOf(pcExpression);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = ValueTypeOf(pcExpression);
 	return psType->psClass;
 }
 

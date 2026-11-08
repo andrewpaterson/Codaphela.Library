@@ -821,11 +821,7 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 	bool			bResult;
 
 	lliName = mpcGenerator->GetOperatorName(eOperator, false);
-	psType = mpcGenerator->TypeOf(pcLeft);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = mpcGenerator->ValueTypeOf(pcLeft);
 	apcArguments.Init();
 	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, NULL) && mpcGenerator->HasMember(psType->psClass, lliName))
 	{

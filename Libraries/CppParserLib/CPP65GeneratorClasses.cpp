@@ -2482,7 +2482,7 @@ bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* pa
 				continue;
 			}
 			psParameter = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
-			psArgument = psArgument->IsReference() ? psArgument->psBase : psArgument;
+			psArgument = psArgument->WithoutReference();
 			if (psArgument->IsMemberPointer() && psArgument->psBase && psArgument->psBase->IsFunction())
 			{
 				bTakes = psParameter && psParameter->Equals(psArgument);
@@ -3863,7 +3863,7 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 
 	bReference = psParameter->IsReference();
 	psParameter = bReference ? psParameter->psBase : psParameter;
-	psArgument = psArgument->IsReference() ? psArgument->psBase : psArgument;
+	psArgument = psArgument->WithoutReference();
 	if (psParameter->Equals(psArgument))
 	{
 		return CPP65CR_Exact;
@@ -3964,7 +3964,7 @@ bool CCPP65Generator::HasConvertingConstructor(SCPP65Class* psClass, SCPP65Type*
 			continue;
 		}
 		psParameter = psFunction->mapsParameters.GetPtr(0);
-		psParameter = psParameter->IsReference() ? psParameter->psBase : psParameter;
+		psParameter = psParameter->WithoutReference();
 		if (psParameter->IsClass() && (psParameter->psClass == psClass))
 		{
 			continue;

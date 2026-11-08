@@ -243,10 +243,7 @@ bool CCPP65IRFrontEnd::ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* ps
 	{
 		return false;
 	}
-	if (psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = psType->WithoutReference();
 	if (psType->IsFloat())
 	{
 		if (!mpcGenerator->FloatConstant(pcExpression, &dValue))
@@ -778,7 +775,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			return Unsupported(__FILE__, __LINE__);
 		}
 		psPlace->sAddress = sAddress.sValue;
-		psPlace->psType = sAddress.psType->IsReference() ? sAddress.psType->psBase : sAddress.psType;
+		psPlace->psType = sAddress.psType->WithoutReference();
 		return psPlace->psType->IsClass() || Unsupported(__FILE__, __LINE__);
 
 	case CPPS_CastExpression:
@@ -858,10 +855,7 @@ bool CCPP65IRFrontEnd::VariablePlace(SCPP65Variable* psVariable, SCPP65IRPlace* 
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65IRFrontEnd::ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psType)
 {
-	if (psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = psType->WithoutReference();
 	if (psType->IsClass())
 	{
 		psType = mpcGenerator->ArrowType(pcObject, pcObject);
@@ -962,11 +956,7 @@ bool CCPP65IRFrontEnd::IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscr
 {
 	SCPP65Type*	psType;
 
-	psType = mpcGenerator->TypeOf(pcSubscript->mpcArray);
-	if (psType && psType->IsReference())
-	{
-		psType = psType->psBase;
-	}
+	psType = mpcGenerator->ValueTypeOf(pcSubscript->mpcArray);
 	return psType && psType->IsClass();
 }
 

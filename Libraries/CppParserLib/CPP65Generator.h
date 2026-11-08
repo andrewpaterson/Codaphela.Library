@@ -743,6 +743,7 @@ protected:
 	bool					HasMember(SCPP65Class* psClass, int64 lliName);
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
 
 	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
 
