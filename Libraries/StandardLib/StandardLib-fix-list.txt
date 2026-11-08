@@ -129,10 +129,10 @@ E5. [164] CMapObject::Get<M,N> returns (N*)Get(pKey); Contains<M,N> has an unuse
 E6. [136] CSetObject::UnsafeGetObject hides the base's (non-virtual) with an unused CPointer local; UnsafeGet duplicates it.  [done 30ced0916]
 E7. [192] CBaseObject::SetFlag(uint16, uint16 iFlagValue) takes a bool as uint16.  [done 11f8ea4a5]
 E8. [191] CBaseObject::NumEmbedded() has a side effect (SetFlagNumEmbedded).  [done a8007c5db]
-E9. [163] AddObjectFrom(pcValue, pcOldValue == NULL): bValidate driven by an unrelated condition.
-E10. [231] CPointer::GetDistToRoot returns -1 for NULL (use UNATTACHED_DIST_TO_ROOT); return mpcObject->LogicalDirty(); / return mpcObject->Kill(); return void from void.
-E11. [232] ValidatePtr is a bare if macro (dangling-else hazard).
-E12. [324] ObjectFileErrorCheck is a bare if macro declaring a hidden sz.
+E9. [163] AddObjectFrom(pcValue, pcOldValue == NULL): bValidate driven by an unrelated condition.  [done 5ea0d194b]
+E10. [231] CPointer::GetDistToRoot returns -1 for NULL (use UNATTACHED_DIST_TO_ROOT); return mpcObject->LogicalDirty(); / return mpcObject->Kill(); return void from void.  [done a7534dbc4]
+E11. [232] ValidatePtr is a bare if macro (dangling-else hazard).  [done a7534dbc4]
+E12. [324] ObjectFileErrorCheck is a bare if macro declaring a hidden sz.  [done 02f23da2d]
 E13. [233] Ptr/CPointer overload operator& to dereference; &p never gives the pointer's address.
 E14. [259] OMalloc/ONMalloc take Args by value.  [done 8c2ef2ebd]
 E15. [260] Three identical callback typedefs (Allocation/HollowAllocation/Destruction).
@@ -174,7 +174,7 @@ F22. [212] Parameter size eFieldOffest; CPrimitiveClasses::Kill clears only mpcC
 F23. [213] CUnmanagedClasses::Kill clears two members and then memsets this.
 F24. [215] CClasses::Init(CObjects*) ignores its parameter; Get(uint32) beside Get(EPrimitiveType); muiCurrentClassType set 0 then CLASS_TYPES-1.
 F25. [217] mbDoNoFreePointedTo typo.
-F26. [224] return (uint16)uiNumEmbedded; pointless cast.
+F26. [224] return (uint16)uiNumEmbedded; pointless cast.  [done a8007c5db]
 F27. [228] if ((char*)this < CORRUPT_MEMORY) return; silently ignores a corrupt pointer.
 F28. [234] CPointer::This()'s "should only *ever* be called whilst in the Load method" comment is stale.
 F29. [238] CEmbeddedObject::Kill/KillInternal/Evict are NotImplemented() stubs: pure virtual or remove.
@@ -192,7 +192,7 @@ F40. [311] CHollowObject's constructor and its "I Don'think this does anything" 
 F41. [315] RemovalPointerContainer.h's #endif // __OBJECT_REMOVAL_CONTEXT_H__.
 F42. [316] mp = NULL;; in PointerContainer.cpp.
 F43. [318] gbForceFatHollows: a global mutable flag that changes serialisation (tests flip it).
-F44. [328][336] Include guard __OBJET_WRITER_H__; "LoadHeadFroms" typo.
+F44. [328][336] Include guard __OBJET_WRITER_H__; "LoadHeadFroms" typo.  [done 02f23da2d]
 F45. [349] ExternalObjectSerialiser: unused int iCount; //Just for debugging.; local CMemoryFile named mcMemory; "Could write [NULL] object" is missing "not".  [done c4423c1f8]
 F46. [350][373] CExternalObjectWriter::Init ignores its parameter, which both writers pass.  [done 3a3633a5d]
 F47. [358] CExternalObjectDeserialiser::AddReverseDependent returns true doing nothing, without saying it's intended.
