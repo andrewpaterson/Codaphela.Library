@@ -228,6 +228,11 @@ void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 
+//IR816Places.cpp: how X serves an instruction (AllocateX).
+int32		IR816XUse(uint16 uiOpcode, int iArgument);
+bool		IR816XResult(SIRInstruction* psInstruction);
+bool		IR816ClobbersX(SIRInstruction* psInstruction);
+
 //IR816Lines.cpp: assembly lines decoded, and what A, X and Y are known to hold.
 bool		IR816IsInstruction(const char* szLine);
 void		IR816Decode(const char* szLine, SIR816Line* psLine);

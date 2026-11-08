@@ -1918,151 +1918,172 @@ int32 CIR816Backend::PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate
 }
 
 
-#define IR816_X_BAD		-100000		//A use X can't serve: the temporary isn't kept in X (AllocateX's abBad, not a score).
+#define IR816_X_BAD			-100000		//A use X can't serve: the temporary isn't kept in X (AllocateX's abBad, not a score).
 #define IR816_X_MAX_DEPTH	4			//The loops a use's weight counts (CIRLoops::Weight).
+
+//What keeping a temporary in X saves, in about cycles, at each place it is used or defined.
+#define IR816_X_READ		3			//Read: txa for an lda, phx for a push, a commutative instruction's operands swapped.
+#define IR816_X_SCRATCH		-5			//Read through a scratch word: it costs.
+#define IR816_X_NOTHING		0			//Read as a conversion: neither saved nor spent.
+#define IR816_X_DEFINE		3			//Defined: tax for an sta.
+#define IR816_X_STEP		6			//inx or dex for an add or a sub, when both are in X (to each of them).
+#define IR816_X_PHI			5			//A phi's result.
+#define IR816_X_PHI_VALUE	3			//A phi's argument.
+#define IR816_X_JUMP		3			//A jump's condition.
+
+
+//An answer that may depend on the instruction.
+enum EIR816XAnswer
+{
+	IR816XA_No,
+	IR816XA_Yes,
+	IR816XA_Shift,		//A shift's: see IR816XResult and IR816ClobbersX.
+};
+
+
+//How X serves an opcode's instructions.
+struct SIR816XOpcode
+{
+	int32	aiUse[2];		//What keeping each argument in X saves where it is read (IR816_X_).
+	uint8	uiResult;		//EIR816XAnswer: whether the result can be kept in X.
+	uint8	uiClobbers;		//EIR816XAnswer: whether writing it changes X.
+};
+
+
+#define IR816_X_NO_USE		{ IR816_X_BAD, IR816_X_BAD }
+#define IR816_X_READS		{ IR816_X_READ, IR816_X_READ }
+#define IR816_X_LEFT		{ IR816_X_READ, IR816_X_SCRATCH }		//A second operand is read through a scratch word.
+#define IR816_X_CONVERTS	{ IR816_X_NOTHING, IR816_X_NOTHING }
+
+
+//In the order of EIROpcode.  A result goes to its place through Store, which can put it in X, or is worked out in A and put
+//in X.  What changes X is a call (and the runtime and soft float routines) and a shift by a count only known at run time.
+static SIR816XOpcode gasIR816XOpcodes[IRO_NumGeneric] =
+{
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//none
+
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_No },								//add
+	{ IR816_X_LEFT, IR816XA_Yes, IR816XA_No },								//sub
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_Yes },							//mul
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_Yes },							//sdiv
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_Yes },							//udiv
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_Yes },							//srem
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_Yes },							//urem
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_No },								//and
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_No },								//or
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_No },								//xor
+	{ IR816_X_READS, IR816XA_Shift, IR816XA_Shift },						//shl
+	{ IR816_X_READS, IR816XA_Shift, IR816XA_Shift },						//lshr
+	{ IR816_X_READS, IR816XA_Shift, IR816XA_Shift },						//ashr
+	{ { IR816_X_SCRATCH, IR816_X_SCRATCH }, IR816XA_Yes, IR816XA_No },		//neg
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_No },								//not
+	{ IR816_X_READS, IR816XA_Yes, IR816XA_No },								//copy
+	{ IR816_X_CONVERTS, IR816XA_Yes, IR816XA_No },							//sext
+	{ IR816_X_CONVERTS, IR816XA_Yes, IR816XA_No },							//zext
+	{ IR816_X_CONVERTS, IR816XA_Yes, IR816XA_No },							//trunc
+
+	{ IR816_X_LEFT, IR816XA_No, IR816XA_No },								//eq
+	{ IR816_X_LEFT, IR816XA_No, IR816XA_No },								//ne
+	{ IR816_X_READS, IR816XA_No, IR816XA_No },								//slt
+	{ IR816_X_READS, IR816XA_No, IR816XA_No },								//sle
+	{ IR816_X_READS, IR816XA_No, IR816XA_No },								//sgt
+	{ IR816_X_READS, IR816XA_No, IR816XA_No },								//sge
+	{ IR816_X_LEFT, IR816XA_No, IR816XA_No },								//ult
+	{ IR816_X_LEFT, IR816XA_No, IR816XA_No },								//ule
+	{ IR816_X_LEFT, IR816XA_No, IR816XA_No },								//ugt
+	{ IR816_X_LEFT, IR816XA_No, IR816XA_No },								//uge
+
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fadd
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fsub
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fmul
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fdiv
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//fneg
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//feq
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fne
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//flt
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fle
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fgt
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fge
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fordered
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//funordered
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//sitof
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//uitof
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//ftosi
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//ftoui
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//fext
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_Yes },							//ftrunc
+
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//slot
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//argaddr
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//ptradd
+	{ IR816_X_CONVERTS, IR816XA_Yes, IR816XA_No },							//ptrtoi
+	{ IR816_X_CONVERTS, IR816XA_No, IR816XA_No },							//itoptr
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//spacecast
+	{ IR816_X_NO_USE, IR816XA_Yes, IR816XA_No },							//load
+	{ { IR816_X_READ, IR816_X_BAD }, IR816XA_No, IR816XA_No },				//store
+	{ IR816_X_READS, IR816XA_No, IR816XA_No },								//arg
+	{ IR816_X_NO_USE, IR816XA_Yes, IR816XA_Yes },							//call
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An opcode's row; a target's opcodes have no use for X, as IRO_None.
+//
+//////////////////////////////////////////////////////////////////////////
+static SIR816XOpcode* IR816XOpcode(uint16 uiOpcode)
+{
+	return &gasIR816XOpcodes[(uiOpcode < IRO_NumGeneric) ? uiOpcode : IRO_None];
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // What keeping argument iArgument of an instruction in X saves (in about
-// cycles) where it is read: txa for an lda, phx for a push, the operands
-// of a commutative instruction swapped; a second operand read through a
-// scratch word costs.  IR816_X_BAD for a use that can't read X.
+// cycles) where it is read.  IR816_X_BAD for a use that can't read X.
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 IR816XUse(uint16 uiOpcode, int iArgument)
+int32 IR816XUse(uint16 uiOpcode, int iArgument)
 {
-	switch (uiOpcode)
-	{
-	case IRO_Arg:
-	case IRO_Copy:
-	case IRO_Shl:
-	case IRO_LShr:
-	case IRO_AShr:
-	case IRO_Mul:
-	case IRO_UDiv:
-	case IRO_SDiv:
-	case IRO_URem:
-	case IRO_SRem:
-	case IRO_Add:
-	case IRO_And:
-	case IRO_Or:
-	case IRO_Xor:
-	case IRO_Not:
-		return 3;
-	case IRO_Sub:
-	case IRO_Eq:
-	case IRO_Ne:
-	case IRO_ULt:
-	case IRO_ULe:
-	case IRO_UGt:
-	case IRO_UGe:
-		return (iArgument == 0) ? 3 : -5;
-	case IRO_SLt:
-	case IRO_SLe:
-	case IRO_SGt:
-	case IRO_SGe:
-		return 3;
-	case IRO_Neg:
-		return -5;
-	case IRO_SExt:
-	case IRO_ZExt:
-	case IRO_Trunc:
-	case IRO_PtrToI:
-	case IRO_IToPtr:
-		return 0;
-	case IRO_Store:
-		return (iArgument == 0) ? 3 : IR816_X_BAD;
-	default:
-		return IR816_X_BAD;
-	}
+	return IR816XOpcode(uiOpcode)->aiUse[iArgument];
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an instruction's result goes to its place through Store (which
-// can put it in X), or can be worked out in A and put in X (a copy, an
-// extension or trunc, a 16 bit shift by a constant).
+// Whether an instruction's result can be kept in X.  A shift's only if it is
+// 16 bits, by a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816XResult(SIRInstruction* psInstruction)
+bool IR816XResult(SIRInstruction* psInstruction)
 {
-	switch (psInstruction->uiOpcode)
+	uint8	uiResult;
+
+	uiResult = IR816XOpcode(psInstruction->uiOpcode)->uiResult;
+	if (uiResult == IR816XA_Shift)
 	{
-	case IRO_Copy:
-	case IRO_SExt:
-	case IRO_ZExt:
-	case IRO_Trunc:
-	case IRO_PtrToI:
-		return true;
-	case IRO_Shl:
-	case IRO_LShr:
-	case IRO_AShr:
 		return psInstruction->asArguments[1].IsConstant() && psInstruction->sType.Is(IRTK_I16);
-	case IRO_Add:
-	case IRO_Sub:
-	case IRO_And:
-	case IRO_Or:
-	case IRO_Xor:
-	case IRO_Not:
-	case IRO_Neg:
-	case IRO_Load:
-	case IRO_Call:
-	case IRO_Mul:
-	case IRO_UDiv:
-	case IRO_SDiv:
-	case IRO_URem:
-	case IRO_SRem:
-		return true;
-	default:
-		return false;
 	}
+	return uiResult == IR816XA_Yes;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether writing an instruction changes X: calls (and the runtime and soft
-// float routines), and shifts by a count only known at run time.
+// Whether writing an instruction changes X.  A shift's does unless it is by
+// a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816ClobbersX(SIRInstruction* psInstruction)
+bool IR816ClobbersX(SIRInstruction* psInstruction)
 {
-	switch (psInstruction->uiOpcode)
+	uint8	uiClobbers;
+
+	uiClobbers = IR816XOpcode(psInstruction->uiOpcode)->uiClobbers;
+	if (uiClobbers == IR816XA_Shift)
 	{
-	case IRO_Call:
-	case IRO_Mul:
-	case IRO_UDiv:
-	case IRO_SDiv:
-	case IRO_URem:
-	case IRO_SRem:
-	case IRO_FAdd:
-	case IRO_FSub:
-	case IRO_FMul:
-	case IRO_FDiv:
-	case IRO_FEq:
-	case IRO_FNe:
-	case IRO_FLt:
-	case IRO_FLe:
-	case IRO_FGt:
-	case IRO_FGe:
-	case IRO_FOrdered:
-	case IRO_FUnordered:
-	case IRO_SIToF:
-	case IRO_UIToF:
-	case IRO_FToSI:
-	case IRO_FToUI:
-	case IRO_FExt:
-	case IRO_FTrunc:
-		return true;
-	case IRO_Shl:
-	case IRO_LShr:
-	case IRO_AShr:
 		return !psInstruction->asArguments[1].IsConstant();
-	default:
-		return false;
 	}
+	return uiClobbers == IR816XA_Yes;
 }
 
 
@@ -2151,7 +2172,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 				if (sValue.IsTemporary())
 				{
 					iScore = IR816XUse(psInstruction->uiOpcode, iArgument);
-					if (!FoldedBase(sValue).Equals(sValue) || (psInstruction->uiOpcode == IRO_Call) || (psInstruction->uiOpcode == IRO_Load))
+					if (!FoldedBase(sValue).Equals(sValue))
 					{
 						iScore = IR816_X_BAD;
 					}
@@ -2169,20 +2190,19 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 			if (sValue.IsTemporary() && FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction))
 			{
 				*abCandidate.Get(sValue.Index()) = true;
-				*aiScore.Get(sValue.Index()) += 3 * iWeight;
+				*aiScore.Get(sValue.Index()) += IR816_X_DEFINE * iWeight;
 				if (((psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub)) && psInstruction->asArguments[0].IsTemporary() &&
 					psInstruction->asArguments[1].IsConstant() && (mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits <= 2))
 				{
-					//inx or dex when both are in X.
-					*aiScore.Get(sValue.Index()) += 6 * iWeight;
-					*aiScore.Get(psInstruction->asArguments[0].Index()) += 6 * iWeight;
+					*aiScore.Get(sValue.Index()) += IR816_X_STEP * iWeight;
+					*aiScore.Get(psInstruction->asArguments[0].Index()) += IR816_X_STEP * iWeight;
 				}
 			}
 			iPosition++;
 		}
 		if (pcBlock->msJump.sArgument.IsTemporary())
 		{
-			*aiScore.Get(pcBlock->msJump.sArgument.Index()) += 3 * iWeight;
+			*aiScore.Get(pcBlock->msJump.sArgument.Index()) += IR816_X_JUMP * iWeight;
 		}
 		iPosition++;
 		for (uj = 0; uj < pcBlock->NumSuccessors(); uj++)
@@ -2192,10 +2212,10 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 			{
 				psPhi = pcSuccessor->masPhis.Get(uk);
 				psArgument = pcSuccessor->FindPhiArgument(psPhi, pcBlock);
-				*aiScore.Get(psPhi->sResult.Index()) += 5 * iWeight;
+				*aiScore.Get(psPhi->sResult.Index()) += IR816_X_PHI * iWeight;
 				if (psArgument && psArgument->sValue.IsTemporary())
 				{
-					*aiScore.Get(psArgument->sValue.Index()) += 3 * iWeight;
+					*aiScore.Get(psArgument->sValue.Index()) += IR816_X_PHI_VALUE * iWeight;
 				}
 			}
 		}

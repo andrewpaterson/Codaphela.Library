@@ -17,6 +17,7 @@
 #include "CppParserLib/IRParser.h"
 #include "CppParserLib/IRVerifier.h"
 #include "CppParserLib/IR816Backend.h"
+#include "CppParserLib/IR816BackendInternal.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -2798,6 +2799,86 @@ void TestIR816BackendRuntimeRoutines(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The table of how X serves each opcode, tested at the ends of its groups as
+// its rows are in the order of EIROpcode.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendXOpcodes(void)
+{
+	SIRInstruction	sInstruction;
+	int32			iBad;
+
+	iBad = IR816XUse(IRO_None, 0);
+	AssertTrue(iBad < 0);
+	AssertInt(iBad, IR816XUse(IRO_NumGeneric, 0));
+	AssertInt(3, IR816XUse(IRO_Add, 1));
+	AssertInt(-5, IR816XUse(IRO_Sub, 1));
+	AssertInt(3, IR816XUse(IRO_Sub, 0));
+	AssertInt(-5, IR816XUse(IRO_Neg, 0));
+	AssertInt(3, IR816XUse(IRO_Not, 0));
+	AssertInt(0, IR816XUse(IRO_SExt, 0));
+	AssertInt(0, IR816XUse(IRO_Trunc, 0));
+	AssertInt(-5, IR816XUse(IRO_Ne, 1));
+	AssertInt(3, IR816XUse(IRO_SLt, 1));
+	AssertInt(3, IR816XUse(IRO_SGe, 1));
+	AssertInt(-5, IR816XUse(IRO_ULt, 1));
+	AssertInt(-5, IR816XUse(IRO_UGe, 1));
+	AssertInt(iBad, IR816XUse(IRO_FAdd, 0));
+	AssertInt(iBad, IR816XUse(IRO_FTrunc, 0));
+	AssertInt(iBad, IR816XUse(IRO_PtrAdd, 0));
+	AssertInt(0, IR816XUse(IRO_PtrToI, 0));
+	AssertInt(0, IR816XUse(IRO_IToPtr, 0));
+	AssertInt(iBad, IR816XUse(IRO_SpaceCast, 0));
+	AssertInt(iBad, IR816XUse(IRO_Load, 0));
+	AssertInt(3, IR816XUse(IRO_Store, 0));
+	AssertInt(iBad, IR816XUse(IRO_Store, 1));
+	AssertInt(3, IR816XUse(IRO_Arg, 0));
+	AssertInt(iBad, IR816XUse(IRO_Call, 0));
+
+	memset(&sInstruction, 0, sizeof(sInstruction));
+	sInstruction.uiOpcode = IRO_Copy;
+	AssertTrue(IR816XResult(&sInstruction));
+	AssertFalse(IR816ClobbersX(&sInstruction));
+	sInstruction.uiOpcode = IRO_Eq;
+	AssertFalse(IR816XResult(&sInstruction));
+	AssertFalse(IR816ClobbersX(&sInstruction));
+	sInstruction.uiOpcode = IRO_IToPtr;
+	AssertFalse(IR816XResult(&sInstruction));
+	sInstruction.uiOpcode = IRO_PtrToI;
+	AssertTrue(IR816XResult(&sInstruction));
+	sInstruction.uiOpcode = IRO_Load;
+	AssertTrue(IR816XResult(&sInstruction));
+	AssertFalse(IR816ClobbersX(&sInstruction));
+	sInstruction.uiOpcode = IRO_Call;
+	AssertTrue(IR816XResult(&sInstruction));
+	AssertTrue(IR816ClobbersX(&sInstruction));
+	sInstruction.uiOpcode = IRO_URem;
+	AssertTrue(IR816XResult(&sInstruction));
+	AssertTrue(IR816ClobbersX(&sInstruction));
+	sInstruction.uiOpcode = IRO_FNeg;
+	AssertFalse(IR816XResult(&sInstruction));
+	AssertFalse(IR816ClobbersX(&sInstruction));
+	sInstruction.uiOpcode = IRO_FTrunc;
+	AssertFalse(IR816XResult(&sInstruction));
+	AssertTrue(IR816ClobbersX(&sInstruction));
+
+	//A shift depends on what it shifts by, and how wide it is.
+	sInstruction.uiOpcode = IRO_Shl;
+	sInstruction.sType = IRType(IRTK_I16);
+	sInstruction.asArguments[1] = IRReference(IRRK_Temporary, 1);
+	AssertFalse(IR816XResult(&sInstruction));
+	AssertTrue(IR816ClobbersX(&sInstruction));
+	sInstruction.asArguments[1] = IRReference(IRRK_Constant, 0);
+	AssertTrue(IR816XResult(&sInstruction));
+	AssertFalse(IR816ClobbersX(&sInstruction));
+	sInstruction.sType = IRType(IRTK_I32);
+	AssertFalse(IR816XResult(&sInstruction));
+	AssertFalse(IR816ClobbersX(&sInstruction));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR816Backend(void)
@@ -2810,6 +2891,7 @@ void TestIR816Backend(void)
 	C65C64InstructionFactory::GetInstance()->Init();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
+	TestIR816BackendXOpcodes();
 	TestIR816BackendBasics();
 	TestIR816BackendLoops();
 	TestIR816BackendNarrow();
