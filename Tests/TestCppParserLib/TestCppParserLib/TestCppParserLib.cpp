@@ -18,6 +18,7 @@ void TestCPP816Assembly(void);
 void TestCPP816Interprocedural(void);
 void TestCPP65ListingIndex(void);
 void TestCPP816Volatile(void);
+void TestCPP65ForwardingReferences(void);
 void TestCPP65IR(void);
 void TestCPP65Generator(void);
 void TestCPP65LazyHeaders(void);
@@ -59,6 +60,7 @@ int __cdecl main(void)
 	TestCPP65ListingIndex();
 	TestCPP816();
 	TestCPP816Volatile();
+	TestCPP65ForwardingReferences();
 	TestCPP65Generator();
 	TestCPP65IR();
 	TestCPP65LazyHeaders();
