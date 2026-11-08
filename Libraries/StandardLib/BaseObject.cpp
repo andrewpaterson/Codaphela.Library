@@ -689,15 +689,15 @@ void CBaseObject::AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms)
 // container, the life-cycle flags on this object.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
+void CBaseObject::SetFlag(uint16 uiFlag, bool bFlagValue)
 {
-	if (iFlag & OBJECT_FLAGS_CONTAINER)
+	if (uiFlag & OBJECT_FLAGS_CONTAINER)
 	{
-		::SetFlagShort(&GetEmbeddingContainer()->muiFlags, iFlag & OBJECT_FLAGS_CONTAINER, iFlagValue);
+		::SetFlagShort(&GetEmbeddingContainer()->muiFlags, uiFlag & OBJECT_FLAGS_CONTAINER, bFlagValue);
 	}
-	if (iFlag & ~OBJECT_FLAGS_CONTAINER)
+	if (uiFlag & ~OBJECT_FLAGS_CONTAINER)
 	{
-		::SetFlagShort(&muiFlags, iFlag & ~OBJECT_FLAGS_CONTAINER, iFlagValue);
+		::SetFlagShort(&muiFlags, uiFlag & ~OBJECT_FLAGS_CONTAINER, bFlagValue);
 	}
 }
 

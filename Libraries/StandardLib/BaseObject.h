@@ -200,7 +200,7 @@ public:
 			CEmbeddedObject* 		TestGetPointerTo(size iToIndex);
 			size 					TestGetNumEmbeddedFromFlags(void);
 			void					ClearFlagNumEmbedded(void);
-			void					SetFlag(uint16 iFlag, uint16 iFlagValue);
+			void					SetFlag(uint16 uiFlag, bool bFlagValue);
 			void					EmbedIn(CBaseObject* pcContainer);
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);

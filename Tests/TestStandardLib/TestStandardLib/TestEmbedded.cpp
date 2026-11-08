@@ -1210,6 +1210,54 @@ void TestEmbeddedReplaceWithFewerEmbedded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// SetFlag changes only the flag it is given.  A container flag is on the
+// embedding container, so all of it sees the flag; a life-cycle flag is on
+// the embedded object alone.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedSetFlag(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CEmbeddedContainer>	pContainer;
+		uint16					uiContainerFlags;
+		uint16					uiOneFlags;
+		uint16					uiTwoFlags;
+
+		pContainer = OMalloc<CEmbeddedContainer>();
+		uiContainerFlags = pContainer->GetFlags();
+		uiOneFlags = pContainer->mcOne.GetFlags();
+		uiTwoFlags = pContainer->mcTwo.GetFlags();
+		AssertFalse(FixBool(uiOneFlags & OBJECT_FLAGS_DUMPED));
+
+		pContainer->mcOne.SetFlag(OBJECT_FLAGS_DUMPED, true);
+		AssertInt((int32)(uiContainerFlags | OBJECT_FLAGS_DUMPED), (int32)pContainer->GetFlags());
+		AssertInt((int32)(uiOneFlags | OBJECT_FLAGS_DUMPED), (int32)pContainer->mcOne.GetFlags());
+		AssertInt((int32)(uiTwoFlags | OBJECT_FLAGS_DUMPED), (int32)pContainer->mcTwo.GetFlags());
+
+		pContainer->mcOne.SetFlag(OBJECT_FLAGS_DUMPED, false);
+		AssertInt((int32)uiContainerFlags, (int32)pContainer->GetFlags());
+		AssertInt((int32)uiOneFlags, (int32)pContainer->mcOne.GetFlags());
+		AssertInt((int32)uiTwoFlags, (int32)pContainer->mcTwo.GetFlags());
+
+		AssertTrue(FixBool(uiOneFlags & OBJECT_FLAGS_CALLED_CLASS));
+		pContainer->mcOne.SetFlag(OBJECT_FLAGS_CALLED_CLASS, false);
+		AssertInt((int32)(uiOneFlags & ~OBJECT_FLAGS_CALLED_CLASS), (int32)pContainer->mcOne.GetFlags());
+		AssertInt((int32)uiTwoFlags, (int32)pContainer->mcTwo.GetFlags());
+		AssertInt((int32)uiContainerFlags, (int32)pContainer->GetFlags());
+
+		pContainer->mcOne.SetFlag(OBJECT_FLAGS_CALLED_CLASS, true);
+		AssertInt((int32)uiOneFlags, (int32)pContainer->mcOne.GetFlags());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbedded(void)
@@ -1240,6 +1288,7 @@ void TestEmbedded(void)
 	TestEmbeddedPointerTosListing();
 	TestEmbeddedNestedPointerValidated();
 	TestEmbeddedReplaceWithFewerEmbedded();
+	TestEmbeddedSetFlag();
 
 	DataIOKill();
 	TypesKill();
