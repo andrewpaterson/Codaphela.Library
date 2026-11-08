@@ -353,11 +353,12 @@ void CCPPParser::ParseDeferredBodies(void)
 	SCPPParserPosition	sBody;
 	SCPPParserState		sState;
 
-	//The bodies of member functions defined in a class, now that the class is complete.  [class.mem] 6
-	while (macDeferred.NumElements() > 0)
+	//The bodies of member functions defined in a class, now that the class is complete.  [class.mem] 6  A class in one
+	//of them comes back here when it ends, and takes the rest: this loop then has none left.
+	while (muiDeferredNext < macDeferred.NumElements())
 	{
-		sDeferred = *macDeferred.Get(0);
-		macDeferred.RemoveAt(0, true);
+		sDeferred = *macDeferred.Get(muiDeferredNext);
+		muiDeferredNext++;
 
 		sPosition = Mark();
 		sState = SaveState();
@@ -381,6 +382,8 @@ void CCPPParser::ParseDeferredBodies(void)
 		Rewind(sPosition);
 		RestoreState(&sState);
 	}
+	macDeferred.FakeSetUsedElements(0);
+	muiDeferredNext = 0;
 }
 
 

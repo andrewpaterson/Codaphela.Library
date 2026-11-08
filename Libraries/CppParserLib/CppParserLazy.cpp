@@ -483,6 +483,7 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	bool							bFailed;
 	int								iPack;
 	CArrayDeferredBodies			acDeferred;
+	size						uiDeferredNext;
 	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
 	CCPPScope*						pcRecordScope;
 	CCPPSyntaxDeclaration*			pcDeclaration;
@@ -502,7 +503,9 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	bFailed = mbFailed;
 	iPack = miPack;
 	acDeferred = macDeferred;
+	uiDeferredNext = muiDeferredNext;
 	macDeferred.Init();
+	muiDeferredNext = 0;
 	papcRecorded = mpapcRecorded;
 	pcRecordScope = mpcRecordScope;
 
@@ -528,6 +531,7 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 
 	macDeferred.Kill();
 	macDeferred = acDeferred;
+	muiDeferredNext = uiDeferredNext;
 	mpapcRecorded = papcRecorded;
 	mpcRecordScope = pcRecordScope;
 	miPack = iPack;

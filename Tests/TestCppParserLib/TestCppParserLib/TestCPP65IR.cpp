@@ -1313,6 +1313,77 @@ void TestCPP65IRZeroedArrays(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many times szFind is in pszText.
+//
+//////////////////////////////////////////////////////////////////////////
+static int TestCPP65IRCount(CChars* pszText, const char* szFind)
+{
+	const char*	sz;
+	int			iCount;
+
+	iCount = 0;
+	for (sz = strstr(pszText->Text(), szFind); sz; sz = strstr(sz + 1, szFind))
+	{
+		iCount++;
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template's instances (SCPP65Template::mapsInstances): the same
+// arguments are the one instance however often it is called, others another,
+// and a template of the same arguments has its own; a specialisation stands
+// for its arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRTemplateInstances(void)
+{
+	static const char*	szSource =
+		"template<class T> T Same(T t) { return t + 1; }\n"
+		"template<class T> T Other(T t) { return t + 2; }\n"
+		"template<> short Same<short>(short t) { return t + 10; }\n"
+		"int main() { char c = 1; short s = 5; return Same(1) + Same(2) + Same(c) + Other(3) + Other(4) + Same(s); }";
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	AssertInt(33, TestCPP65Main(szSource));
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource));
+	AssertInt(3, TestCPP65IRCount(&szAssembly, ".section text._Same"));
+	AssertInt(1, TestCPP65IRCount(&szAssembly, ".section text._Other"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Member function bodies wait until their class is complete, first found
+// first.  A class in one of them finishes the others (and its own) from its
+// end, and the classes after them still have theirs parsed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRDeferredBodies(void)
+{
+	AssertInt(21, TestCPP65Main(
+		"struct A\n"
+		"{\n"
+		"\tint F() { struct L { int G() { return H(); } int H() { return 1; } }; L l; return l.G() + K(); }\n"
+		"\tint J() { return K() + 1; }\n"
+		"\tint K() { return 2; }\n"
+		"};\n"
+		"struct B { int M() { struct P { struct Q { int R() { return 4; } }; int S() { Q q; return q.R(); } }; P p; return p.S() + N(); } int N() { return 5; } };\n"
+		"struct C { int T() { return U(); } int U() { return 6; } };\n"
+		"int main() { A a; B b; C c; return a.F() + a.J() + b.M() + c.T(); }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The 65C64's thunks: a member pointer's to a virtual function goes through
 // the vtable with its slot's offset (CPP65_VTABLE_ENTRY_BYTES apart), and one
 // of a secondary base's vtable adjusts this.
@@ -1509,6 +1580,8 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IRTemplateInstances();
+	TestCPP65IRDeferredBodies();
 	TestCPP65IRClassMembers();
 	TestCPP65IRZeroedArrays();
 

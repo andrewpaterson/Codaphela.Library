@@ -53,6 +53,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	miClassDepth = 0;
 	mbDeclaringTemplate = false;
 	macDeferred.Init();
+	muiDeferredNext = 0;
 	miErrors = 0;
 	miSkimmedErrors = 0;
 	mbReportSkimmed = false;
