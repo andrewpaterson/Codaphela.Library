@@ -20,18 +20,26 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __RASTER_CAMERA_H__
 #define __RASTER_CAMERA_H__
+#include "BaseLib/FixedPoint.h"
 #include "BaseLib/Float4x4.h"
 #include "BaseLib/Int32Vec2.h"
 #include "BaseLib/Int32Vec3.h"
-#include "BaseLib/Int64Vec3.h"
+#include "BaseLib/Vec2.h"
+#include "BaseLib/Vec3.h"
+#include "RasterMesh.h"
 
 
-//Screen positions are fixed point: 16 subpixels to a pixel, y down.
-#define RASTER_SUBPIXEL_BITS	4
-#define RASTER_SUBPIXELS		(1 << RASTER_SUBPIXEL_BITS)
+//A screen position: 16 subpixels to a pixel, y down.
+typedef SFixed<int32, int64, 4>		SRasterSubpixel;
+typedef SVec2<SRasterSubpixel, int64>	SRasterSubpixelVec2;
 
-//The camera's axes are fixed point: 1.0 is 65536.
-#define RASTER_AXIS_BITS		16
+//A part of one of the camera's axes.
+typedef SFixed<int32, int64, 16>	SRasterAxis;
+typedef SVec3<SRasterAxis, int64>	SRasterAxisVec3;
+#define RASTER_AXIS_BITS	SRasterAxis::Bits  //SRasterInstance's axes hold their raw values.
+
+//A whole number of the mesh's units, or pixels, for multiplying by.
+typedef SFixed<int32, int64, 0>		SRasterWhole;
 
 
 enum ERasterProjection
@@ -44,7 +52,7 @@ enum ERasterProjection
 //A vertex on the screen.  A larger iDepth is nearer the viewer and an iDepth of 0 is not drawable (behind the near plane).
 struct SRasterScreenVertex
 {
-	SInt32Vec2	sPosition;
+	SRasterSubpixelVec2	sPosition;
 	int32		iDepth;
 	int32		iShade;  //0 .. 256.
 };
@@ -68,9 +76,9 @@ protected:
 	int32				miDistance;
 	int32				miInitialDistance;  //What the limits on zooming are relative to.
 	int32				miFocalLength;  //Pixels.
-	int64				miOrthographicScale;  //Pixels per unit with 32 fraction bits.  At the pivot both projections are the same size.
-	SInt32Vec2			msScreenCentre;
-	SInt64Vec3			masAxes[3];  //What the mesh's position is dotted with for the screen's x (right), y (up) and z (out).
+	SFixed<int64, int64, 32>	msOrthographicScale;  //Pixels per unit.  At the pivot both projections are the same size.
+	SRasterSubpixelVec2	msScreenCentre;
+	SRasterAxisVec3		masAxes[3];  //What the mesh's position is dotted with for the screen's x (right), y (up) and z (out).
 
 public:
 	void				Init(void);
@@ -91,7 +99,7 @@ public:
 
 	void				Prepare(int32 iWidth, int32 iHeight);
 	void				Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition);
-	void				ViewToMesh(SInt64Vec3* psDest, SInt64Vec3* psView);
+	void				ViewToMesh(SRasterUnitVec3* psDest, SRasterUnitVec3* psView);
 };
 
 

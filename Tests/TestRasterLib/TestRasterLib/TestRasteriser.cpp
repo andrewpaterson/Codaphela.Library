@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////////////////////////////
 void InitScreenVertex(SRasterScreenVertex* psVertex, int32 x, int32 y, int32 iDepth, int32 iShade)
 {
-	psVertex->sPosition.Init(x, y);
+	psVertex->sPosition.Init(SRasterSubpixel::FromRaw(x), SRasterSubpixel::FromRaw(y));
 	psVertex->iDepth = iDepth;
 	psVertex->iShade = iShade;
 }
@@ -414,7 +414,7 @@ void TestRasteriserWideTriangles(void)
 		for (i = 0; i < 6; i++)
 		{
 			uiRandom = uiRandom * 1103515245 + 12345;
-			iShift = (i & 1) ? (64 * RASTER_SUBPIXELS) : (128 * RASTER_SUBPIXELS);
+			iShift = (i & 1) ? (64 * SRasterSubpixel::FromInt(1).miRaw) : (128 * SRasterSubpixel::FromInt(1).miRaw);
 			aiCorner[i] = (int32)((uiRandom >> 8) % (uint32)(iShift * 2)) - iShift / 2;
 		}
 
@@ -431,7 +431,7 @@ void TestRasteriserWideTriangles(void)
 
 		for (iTile = 0; iTile < 16; iTile++)
 		{
-			iShift = iTile * 8 * RASTER_SUBPIXELS;
+			iShift = iTile * 8 * SRasterSubpixel::FromInt(1).miRaw;
 			cTile.Clear(TEST_BLACK);
 			DrawTestTriangle(&cRasteriser, &cTile, aiCorner[0] - iShift, aiCorner[1], aiCorner[2] - iShift, aiCorner[3], aiCorner[4] - iShift, aiCorner[5], 100, TEST_RED);
 			for (y = 0; y < 64; y++)

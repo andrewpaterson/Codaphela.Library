@@ -18,8 +18,8 @@ void AssertProject(int32 iExpectedX, int32 iExpectedY, CRasterCamera* pcCamera, 
 
 	sPosition.Init(x, y, z);
 	pcCamera->Project(&sScreen, &sPosition);
-	AssertInt(iExpectedX, sScreen.sPosition.x);
-	AssertInt(iExpectedY, sScreen.sPosition.y);
+	AssertInt(iExpectedX, sScreen.sPosition.x.miRaw);
+	AssertInt(iExpectedY, sScreen.sPosition.y.miRaw);
 }
 
 
@@ -34,13 +34,13 @@ void AssertProjectNear(int32 iExpectedX, int32 iExpectedY, CRasterCamera* pcCame
 
 	sPosition.Init(x, y, z);
 	pcCamera->Project(&sScreen, &sPosition);
-	if ((sScreen.sPosition.x < iExpectedX - 1) || (sScreen.sPosition.x > iExpectedX + 1))
+	if ((sScreen.sPosition.x.miRaw < iExpectedX - 1) || (sScreen.sPosition.x.miRaw > iExpectedX + 1))
 	{
-		AssertInt(iExpectedX, sScreen.sPosition.x);
+		AssertInt(iExpectedX, sScreen.sPosition.x.miRaw);
 	}
-	if ((sScreen.sPosition.y < iExpectedY - 1) || (sScreen.sPosition.y > iExpectedY + 1))
+	if ((sScreen.sPosition.y.miRaw < iExpectedY - 1) || (sScreen.sPosition.y.miRaw > iExpectedY + 1))
 	{
-		AssertInt(iExpectedY, sScreen.sPosition.y);
+		AssertInt(iExpectedY, sScreen.sPosition.y.miRaw);
 	}
 	AssertTrue(true);
 }
@@ -121,7 +121,7 @@ void TestRasterCameraPerspective(void)
 	cCamera.Project(&sNear, &sPosition);
 	sPosition.Init(1 << 20, 0, -(1 << 20));
 	cCamera.Project(&sFar, &sPosition);
-	AssertTrue(sNear.sPosition.x > sFar.sPosition.x);
+	AssertTrue(sNear.sPosition.x.miRaw > sFar.sPosition.x.miRaw);
 	AssertTrue(sNear.iDepth > sFar.iDepth);
 	AssertTrue(sFar.iDepth > 0);
 
@@ -138,7 +138,7 @@ void TestRasterCameraPerspective(void)
 	cCamera.Prepare(100, 100);
 	sPosition.Init(RASTER_MESH_HALF_EXTENT, 0, RASTER_MESH_HALF_EXTENT);
 	cCamera.Project(&sNear, &sPosition);
-	AssertTrue(sNear.sPosition.x <= 100 << RASTER_SUBPIXEL_BITS);
+	AssertTrue(sNear.sPosition.x.miRaw <= SRasterSubpixel::FromInt(100).miRaw);
 }
 
 
@@ -149,19 +149,19 @@ void TestRasterCameraPerspective(void)
 void TestRasterCameraViewToMesh(void)
 {
 	CRasterCamera	cCamera;
-	SInt64Vec3		sView;
-	SInt64Vec3		sMesh;
+	SRasterUnitVec3	sView;
+	SRasterUnitVec3	sMesh;
 
 	cCamera.Init();
 	cCamera.SetOrbit(TEST_HALF_PI, 0.0f);
 	cCamera.Prepare(100, 100);
 
 	//The mesh's x axis is the screen's y, so the screen's y comes back as the mesh's x.
-	sView.Init(0, 16384, 0);
+	sView.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(16384), SRasterUnit::FromRaw(0));
 	cCamera.ViewToMesh(&sMesh, &sView);
-	AssertLong(16384, sMesh.x);
-	AssertTrue((sMesh.y >= -1) && (sMesh.y <= 1));
-	AssertLong(0, sMesh.z);
+	AssertInt(16384, sMesh.x.miRaw);
+	AssertTrue((sMesh.y.miRaw >= -1) && (sMesh.y.miRaw <= 1));
+	AssertInt(0, sMesh.z.miRaw);
 }
 
 
@@ -274,8 +274,8 @@ void TestRasterCameraDrag(void)
 	cCamera.Prepare(100, 100);
 	sPosition.Init(0, 0, RASTER_MESH_HALF_EXTENT);
 	cCamera.Project(&sScreen, &sPosition);
-	AssertTrue((sScreen.sPosition.x >= 800 + 118) && (sScreen.sPosition.x <= 800 + 122));
-	AssertInt(800, sScreen.sPosition.y);
+	AssertTrue((sScreen.sPosition.x.miRaw >= 800 + 118) && (sScreen.sPosition.x.miRaw <= 800 + 122));
+	AssertInt(800, sScreen.sPosition.y.miRaw);
 
 	//Dragging up moves the front up the screen, and what is on the rotation's axis stays where it is.
 	cCamera.Init();
@@ -284,8 +284,8 @@ void TestRasterCameraDrag(void)
 	cCamera.Drag(50, 50, 50, 40, 100, 100);
 	cCamera.Prepare(100, 100);
 	cCamera.Project(&sScreen, &sPosition);
-	AssertTrue(sScreen.sPosition.y < 800 - 100);
-	AssertInt(800, sScreen.sPosition.x);
+	AssertTrue(sScreen.sPosition.y.miRaw < 800 - 100);
+	AssertInt(800, sScreen.sPosition.x.miRaw);
 	AssertProject(800 + 480, 800, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
 
 	//Each drag turns what the last one left, around the screen's axes and not the mesh's.
@@ -302,7 +302,7 @@ void TestRasterCameraDrag(void)
 	cCamera.Drag(99, 50, 100, 50, 100, 100);
 	cCamera.Prepare(100, 100);
 	cCamera.Project(&sScreen, &sPosition);
-	AssertTrue((sScreen.sPosition.x > 800) && (sScreen.sPosition.x < 800 + 60));
+	AssertTrue((sScreen.sPosition.x.miRaw > 800) && (sScreen.sPosition.x.miRaw < 800 + 60));
 }
 
 
@@ -395,25 +395,25 @@ void TestRasterCameraFitOrbit(void)
 		{
 			sCorner.Init((i & 1) ? sMax.x : sMin.x, (i & 2) ? sMax.y : sMin.y, (i & 4) ? sMax.z : sMin.z);
 			cCamera.Project(&sScreen, &sCorner);
-			iLeft = (sScreen.sPosition.x < iLeft) ? sScreen.sPosition.x : iLeft;
-			iRight = (sScreen.sPosition.x > iRight) ? sScreen.sPosition.x : iRight;
-			iTop = (sScreen.sPosition.y < iTop) ? sScreen.sPosition.y : iTop;
-			iBottom = (sScreen.sPosition.y > iBottom) ? sScreen.sPosition.y : iBottom;
+			iLeft = (sScreen.sPosition.x.miRaw < iLeft) ? sScreen.sPosition.x.miRaw : iLeft;
+			iRight = (sScreen.sPosition.x.miRaw > iRight) ? sScreen.sPosition.x.miRaw : iRight;
+			iTop = (sScreen.sPosition.y.miRaw < iTop) ? sScreen.sPosition.y.miRaw : iTop;
+			iBottom = (sScreen.sPosition.y.miRaw > iBottom) ? sScreen.sPosition.y.miRaw : iBottom;
 		}
 		cCamera.Project(&sScreen, &sMiddle);
-		AssertInt(sFirstMiddle.sPosition.x, sScreen.sPosition.x);
-		AssertInt(sFirstMiddle.sPosition.y, sScreen.sPosition.y);
+		AssertInt(sFirstMiddle.sPosition.x.miRaw, sScreen.sPosition.x.miRaw);
+		AssertInt(sFirstMiddle.sPosition.y.miRaw, sScreen.sPosition.y.miRaw);
 	}
 
 	//The margins, within a pixel or two as the turns tried here aren't the fit's.
-	AssertTrue(iLeft >= (10 - 2) * RASTER_SUBPIXELS);
-	AssertTrue(iRight <= (630 + 2) * RASTER_SUBPIXELS);
-	AssertTrue(iTop >= (10 - 2) * RASTER_SUBPIXELS);
-	AssertTrue(iBottom <= (350 + 2) * RASTER_SUBPIXELS);
+	AssertTrue(iLeft >= (10 - 2) * SRasterSubpixel::FromInt(1).miRaw);
+	AssertTrue(iRight <= (630 + 2) * SRasterSubpixel::FromInt(1).miRaw);
+	AssertTrue(iTop >= (10 - 2) * SRasterSubpixel::FromInt(1).miRaw);
+	AssertTrue(iBottom <= (350 + 2) * SRasterSubpixel::FromInt(1).miRaw);
 
 	//It fills one of the two ways, and is in the middle up and down.
-	AssertTrue((iRight - iLeft >= (620 - 8) * RASTER_SUBPIXELS) || (iBottom - iTop >= (340 - 8) * RASTER_SUBPIXELS));
-	AssertTrue((((iTop + iBottom) / 2) >= (180 - 2) * RASTER_SUBPIXELS) && (((iTop + iBottom) / 2) <= (180 + 2) * RASTER_SUBPIXELS));
+	AssertTrue((iRight - iLeft >= (620 - 8) * SRasterSubpixel::FromInt(1).miRaw) || (iBottom - iTop >= (340 - 8) * SRasterSubpixel::FromInt(1).miRaw));
+	AssertTrue((((iTop + iBottom) / 2) >= (180 - 2) * SRasterSubpixel::FromInt(1).miRaw) && (((iTop + iBottom) / 2) <= (180 + 2) * SRasterSubpixel::FromInt(1).miRaw));
 }
 
 

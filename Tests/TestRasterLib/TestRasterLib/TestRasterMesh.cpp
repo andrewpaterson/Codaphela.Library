@@ -78,9 +78,9 @@ void TestRasterMeshBuild(void)
 	AssertInt(-RASTER_MESH_HALF_EXTENT, psVertex->sPosition.x);
 	AssertInt(-RASTER_MESH_HALF_EXTENT / 2, psVertex->sPosition.y);
 	AssertInt(-RASTER_MESH_HALF_EXTENT / 4, psVertex->sPosition.z);
-	AssertInt(0, psVertex->sNormal.x);
-	AssertInt(0, psVertex->sNormal.y);
-	AssertInt(1 << RASTER_NORMAL_BITS, psVertex->sNormal.z);
+	AssertInt(0, psVertex->sNormal.x.miRaw);
+	AssertInt(0, psVertex->sNormal.y.miRaw);
+	AssertInt(16384, psVertex->sNormal.z.miRaw);
 
 	psVertex = cRaster.masVertices.Get(2);
 	AssertInt(RASTER_MESH_HALF_EXTENT, psVertex->sPosition.x);
@@ -88,7 +88,7 @@ void TestRasterMeshBuild(void)
 
 	//The triangle uses its flat normal, which faces out of the plane.
 	psVertex = cRaster.masVertices.Get(6);
-	AssertInt(1 << RASTER_NORMAL_BITS, psVertex->sNormal.z);
+	AssertInt(16384, psVertex->sNormal.z.miRaw);
 
 	cRaster.Kill();
 }
@@ -116,8 +116,8 @@ void TestRasterMeshDifferentNormals(void)
 	cRaster.Init();
 	cRaster.Build(&cMesh);
 	AssertSize(6, cRaster.masVertices.NumElements());
-	AssertInt(1 << RASTER_NORMAL_BITS, cRaster.masVertices.Get(0)->sNormal.z);
-	AssertInt(1 << RASTER_NORMAL_BITS, cRaster.masVertices.Get(3)->sNormal.y);
+	AssertInt(16384, cRaster.masVertices.Get(0)->sNormal.z.miRaw);
+	AssertInt(16384, cRaster.masVertices.Get(3)->sNormal.y.miRaw);
 	cRaster.Kill();
 }
 
@@ -151,7 +151,7 @@ static void TestRasterAddVertex(CRasterMesh* pcRaster, int32 x, int32 y, int32 z
 
 	psVertex = pcRaster->masVertices.Add();
 	psVertex->sPosition.Init(x, y, z);
-	psVertex->sNormal.Init(0, 0, 1 << RASTER_NORMAL_BITS);
+	psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromInt(1));
 }
 
 
@@ -253,13 +253,13 @@ void TestRasterMeshFixReversed(void)
 	//One with no normal can't be wrong.
 	psVertex = cRaster.masVertices.Add();
 	psVertex->sPosition.Init(0, 0, 0);
-	psVertex->sNormal.Init(0, 0, 0);
+	psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 	psVertex = cRaster.masVertices.Add();
 	psVertex->sPosition.Init(100, 0, 0);
-	psVertex->sNormal.Init(0, 0, 0);
+	psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 	psVertex = cRaster.masVertices.Add();
 	psVertex->sPosition.Init(0, 100, 0);
-	psVertex->sNormal.Init(0, 0, 0);
+	psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 
 	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF111111);		//Anticlockwise looking down +Z, as its normals face.
 	TestRasterAddTriangle(&cRaster.masOpaque, 0, 2, 1, 0xFF222222);		//Reversed.
@@ -358,7 +358,7 @@ void TestRasterMeshSimplify(void)
 		psVertex = cRaster.masVertices.Get(i);
 		AssertTrue((psVertex->sPosition.x >= 0) && (psVertex->sPosition.x <= 1000));
 		AssertInt(5, psVertex->sPosition.z);
-		AssertInt(1 << RASTER_NORMAL_BITS, psVertex->sNormal.z);
+		AssertInt(SRasterUnit::FromInt(1).miRaw, psVertex->sNormal.z.miRaw);
 	}
 	AssertTrue(bAllUsed);
 	free(pbUsed);
@@ -394,7 +394,7 @@ void TestRasterMeshSimplifyKeepsEdges(void)
 	//At vertex 0's place, a normal along X.
 	psVertex = cRaster.masVertices.Add();
 	psVertex->sPosition.Init(1, 1, 0);
-	psVertex->sNormal.Init(1 << RASTER_NORMAL_BITS, 0, 0);
+	psVertex->sNormal.Init(SRasterUnit::FromInt(1), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 	TestRasterAddVertex(&cRaster, 1000, 1000, 0);
 	TestRasterAddTriangle(&cRaster.masOpaque, 3, 1, 4, 0xFF808080);
 
@@ -408,8 +408,8 @@ void TestRasterMeshSimplifyKeepsEdges(void)
 		psVertex = cRaster.masVertices.Get(i);
 		if ((psVertex->sPosition.x == 0) && (psVertex->sPosition.y == 0))
 		{
-			bUp |= psVertex->sNormal.z == (1 << RASTER_NORMAL_BITS);
-			bSide |= psVertex->sNormal.x == (1 << RASTER_NORMAL_BITS);
+			bUp |= psVertex->sNormal.z == SRasterUnit::FromInt(1);
+			bSide |= psVertex->sNormal.x == SRasterUnit::FromInt(1);
 		}
 	}
 	AssertTrue(bUp);

@@ -19,6 +19,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FixedPoint.h"
+#include "BaseLib/Int64Vec3.h"
 #include "Rasteriser.h"
 
 
@@ -28,14 +29,26 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Twice a triangle's area in subpixels squared, 16 pixels.  Below it each covered pixel is worked out exactly, and there
 //is little to do because most triangles here cover a few pixels at most.  From it, gradients step across the triangle.
-#define RASTER_SMALL_AREA		(16 << (RASTER_SUBPIXEL_BITS * 2))
+#define RASTER_SMALL_AREA		16
 
 //From this many pixels across, it's worth working out where each row's covered pixels are rather than looking for them.
 //A long thin triangle at an angle, as a board's outline makes, covers next to nothing of a very big box.
 #define RASTER_WIDE_PIXELS		16
 
-//Fraction bits of the depth and shade gradients.
-#define RASTER_GRADIENT_BITS	12
+//Twice a triangle's area, or how far a pixel is inside one of its edges: subpixel times subpixel.
+typedef SFixed<int64, int64, 8>		SRasterEdge;
+
+//A depth or shade.
+typedef SFixed<int64, int64, 0>		SRasterWideWhole;
+
+//How much a depth or shade changes across a pixel.
+typedef SFixed<int64, int64, 8>		SRasterGradient;
+
+//A depth or shade part of the way across a triangle: a gradient times a distance in subpixels.
+typedef SFixed<int64, int64, 12>	SRasterInterpolated;
+
+//A distance across a triangle.
+typedef SFixed<int64, int64, 4>		SRasterWideSubpixel;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,7 +61,7 @@ void CRasteriser::Init(void)
 	mbCullBackFaces = true;
 
 	//From over the viewer's shoulder.
-	msLight.Init(4096, 6144, 14336);
+	msLight.Init(SRasterUnit::FromRaw(4096), SRasterUnit::FromRaw(6144), SRasterUnit::FromRaw(14336));
 }
 
 
@@ -82,9 +95,8 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 	size					uiNumVertices;
 	SRasterVertex*			psVertex;
 	SRasterScreenVertex*	psScreen;
-	SInt64Vec3				sLight;
-	SInt64Vec3				sNormal;
-	int64					iDot;
+	SRasterUnitVec3			sLight;
+	SFixed<int32, int32, 28>	sDot;
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
 	pcCamera->ViewToMesh(&sLight, &msLight);
@@ -98,13 +110,12 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 	{
 		pcCamera->Project(&psScreen[i], &psVertex[i].sPosition);
 
-		sNormal.Init(psVertex[i].sNormal.x, psVertex[i].sNormal.y, psVertex[i].sNormal.z);
-		iDot = Int64Vec3Dot(&sNormal, &sLight);
-		if (iDot < 0)
+		sDot = psVertex[i].sNormal.x * sLight.x + psVertex[i].sNormal.y * sLight.y + psVertex[i].sNormal.z * sLight.z;
+		if (sDot.miRaw < 0)
 		{
-			iDot = 0;
+			sDot.miRaw = 0;
 		}
-		psScreen[i].iShade = RASTER_AMBIENT + (int32)((iDot * RASTER_DIFFUSE) >> (RASTER_NORMAL_BITS * 2));
+		psScreen[i].iShade = RASTER_AMBIENT + (SFixed<int64, int64, 28>::FromRaw(sDot.miRaw) * SRasterWideWhole::FromRaw(RASTER_DIFFUSE)).Floor();
 	}
 
 	DrawTriangles(&pcMesh->masOpaque, pcTarget, false);
@@ -120,8 +131,8 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget)
 {
-	SInt64Vec3	sLight;
-	size		i;
+	SRasterUnitVec3	sLight;
+	size			i;
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
 	pcCamera->ViewToMesh(&sLight, &msLight);
@@ -149,7 +160,7 @@ void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRaste
 // the same as turning every normal out of it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SInt64Vec3* psLight)
+void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight)
 {
 	size					i;
 	size					uiNumVertices;
@@ -166,9 +177,9 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 	{
 		sAxes[i].Init(psInstance->asAxes[i].x, psInstance->asAxes[i].y, psInstance->asAxes[i].z);
 	}
-	sLight.Init((sAxes[0].x * psLight->x + sAxes[1].x * psLight->y + sAxes[2].x * psLight->z) >> RASTER_AXIS_BITS,
-				(sAxes[0].y * psLight->x + sAxes[1].y * psLight->y + sAxes[2].y * psLight->z) >> RASTER_AXIS_BITS,
-				(sAxes[0].z * psLight->x + sAxes[1].z * psLight->y + sAxes[2].z * psLight->z) >> RASTER_AXIS_BITS);
+	sLight.Init((sAxes[0].x * psLight->x.miRaw + sAxes[1].x * psLight->y.miRaw + sAxes[2].x * psLight->z.miRaw) >> RASTER_AXIS_BITS,
+				(sAxes[0].y * psLight->x.miRaw + sAxes[1].y * psLight->y.miRaw + sAxes[2].y * psLight->z.miRaw) >> RASTER_AXIS_BITS,
+				(sAxes[0].z * psLight->x.miRaw + sAxes[1].z * psLight->y.miRaw + sAxes[2].z * psLight->z.miRaw) >> RASTER_AXIS_BITS);
 
 	uiNumVertices = psInstance->pcMesh->masVertices.NumElements();
 	masScreen.Resize(uiNumVertices);
@@ -182,13 +193,13 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 					(int32)(Int64Vec3Dot(&sPosition, &sAxes[2]) >> RASTER_AXIS_BITS) + psInstance->sOffset.z);
 		pcCamera->Project(&psScreen[i], &sMoved);
 
-		sNormal.Init(psVertex[i].sNormal.x, psVertex[i].sNormal.y, psVertex[i].sNormal.z);
+		sNormal.Init(psVertex[i].sNormal.x.miRaw, psVertex[i].sNormal.y.miRaw, psVertex[i].sNormal.z.miRaw);
 		iDot = Int64Vec3Dot(&sNormal, &sLight);
 		if (iDot < 0)
 		{
 			iDot = 0;
 		}
-		psScreen[i].iShade = RASTER_AMBIENT + (int32)((iDot * RASTER_DIFFUSE) >> (RASTER_NORMAL_BITS * 2));
+		psScreen[i].iShade = RASTER_AMBIENT + (int32)((iDot * RASTER_DIFFUSE) >> (SRasterUnit::Bits * 2));
 	}
 }
 
@@ -214,16 +225,12 @@ void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, CRasterTarge
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static int32 Min3(int32 a, int32 b, int32 c)
+static SRasterSubpixel Min3(SRasterSubpixel a, SRasterSubpixel b, SRasterSubpixel c)
 {
-	int32	i;
+	SRasterSubpixel	s;
 
-	i = (a < b) ? a : b;
-	return (i < c) ? i : c;
+	s = (a < b) ? a : b;
+	return (s < c) ? s : c;
 }
 
 
@@ -231,12 +238,12 @@ static int32 Min3(int32 a, int32 b, int32 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 Max3(int32 a, int32 b, int32 c)
+static SRasterSubpixel Max3(SRasterSubpixel a, SRasterSubpixel b, SRasterSubpixel c)
 {
-	int32	i;
+	SRasterSubpixel	s;
 
-	i = (a > b) ? a : b;
-	return (i > c) ? i : c;
+	s = (a > b) ? a : b;
+	return (s > c) ? s : c;
 }
 
 
@@ -246,14 +253,14 @@ static int32 Max3(int32 a, int32 b, int32 c)
 // the rest are moved inwards by the smallest amount.
 //
 //////////////////////////////////////////////////////////////////////////
-static int64 RasterEdgeBias(SInt32Vec2* psFrom, SInt32Vec2* psTo)
+static SRasterEdge RasterEdgeBias(SRasterSubpixelVec2* psFrom, SRasterSubpixelVec2* psTo)
 {
-	int32	iDeltaX;
-	int32	iDeltaY;
+	SRasterSubpixel	sDeltaX;
+	SRasterSubpixel	sDeltaY;
 
-	iDeltaX = psTo->x - psFrom->x;
-	iDeltaY = psTo->y - psFrom->y;
-	return ((iDeltaY < 0) || ((iDeltaY == 0) && (iDeltaX > 0))) ? 0 : -1;
+	sDeltaX = psTo->x - psFrom->x;
+	sDeltaY = psTo->y - psFrom->y;
+	return SRasterEdge::FromRaw(((sDeltaY.miRaw < 0) || ((sDeltaY.miRaw == 0) && (sDeltaX.miRaw > 0))) ? 0 : -1);
 }
 
 
@@ -261,22 +268,48 @@ static int64 RasterEdgeBias(SInt32Vec2* psFrom, SInt32Vec2* psTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static int64 RasterEdge(SInt32Vec2* psFrom, SInt32Vec2* psTo, int32 iX, int32 iY)
+static SRasterEdge RasterEdge(SRasterSubpixelVec2* psFrom, SRasterSubpixelVec2* psTo, SRasterSubpixel sX, SRasterSubpixel sY)
 {
-	return ((int64)psTo->x - psFrom->x) * ((int64)iY - psFrom->y) - ((int64)psTo->y - psFrom->y) * ((int64)iX - psFrom->x);
+	return (psTo->x - psFrom->x) * (sY - psFrom->y) - (psTo->y - psFrom->y) * (sX - psFrom->x);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Narrows a row's pixels to those an edge lets in: where its value, iValue
-// at pixel iX and changing by iStep each pixel, isn't negative.
+// The weights are how far a pixel is inside each edge, so a value is the weighted sum over the area.  Depths and shades
+// on one triangle share one format.
 //
 //////////////////////////////////////////////////////////////////////////
-static void RasterEdgeSpan(int64 iValue, int64 iStep, int32 iX, int32* piFirstX, int32* piLastX)
+static int32 RasterWeigh(SRasterEdge s0, SRasterEdge s1, SRasterEdge s2, SRasterWideWhole sA, SRasterWideWhole sB, SRasterWideWhole sC, SRasterEdge sArea)
 {
+	return (int32)(s0 * sA + s1 * sB + s2 * sC).DivideFloor(sArea).miRaw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static SRasterGradient RasterGradient(SRasterWideWhole sDeltaB, SRasterWideWhole sDeltaC, SRasterSubpixel sDistanceB, SRasterSubpixel sDistanceC, SRasterEdge sArea)
+{
+	return (sDeltaB * sDistanceC.To<SRasterWideSubpixel>() - sDeltaC * sDistanceB.To<SRasterWideSubpixel>()).To<SFixed<int64, int64, 16> >().DivideFloor(sArea);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Narrows a row's pixels to those an edge lets in: where its value, sValue
+// at pixel iX and changing by sStep each pixel, isn't negative.
+//
+//////////////////////////////////////////////////////////////////////////
+static void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, int32 iX, int32* piFirstX, int32* piLastX)
+{
+	int64	iValue;
+	int64	iStep;
 	int64	iPixels;
 
+	iValue = sValue.miRaw;
+	iStep = sStep.miRaw;
 	if (iStep > 0)
 	{
 		if (iValue < 0)
@@ -310,48 +343,53 @@ static void RasterEdgeSpan(int64 iValue, int64 iStep, int32 iX, int32* piFirstX,
 void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent)
 {
 	SRasterScreenVertex*	psSwap;
-	int64					iArea;
+	SRasterEdge				sArea;
 	int32					iMinX;
 	int32					iMaxX;
 	int32					iMinY;
 	int32					iMaxY;
 	int32					x;
 	int32					y;
-	int32					iSampleX;
-	int32					iSampleY;
-	int64					iBias0;
-	int64					iBias1;
-	int64					iBias2;
-	int64					iRow0;
-	int64					iRow1;
-	int64					iRow2;
-	int64					i0;
-	int64					i1;
-	int64					i2;
-	int64					iStepX0;
-	int64					iStepX1;
-	int64					iStepX2;
-	int64					iStepY0;
-	int64					iStepY1;
-	int64					iStepY2;
-	int64					iDepthA;
-	int64					iDepthB;
-	int64					iDepthC;
-	int64					iShadeA;
-	int64					iShadeB;
-	int64					iShadeC;
+	SRasterSubpixel			sSampleX;
+	SRasterSubpixel			sSampleY;
+	SRasterSubpixel			sOnePixel;
+	SRasterEdge				sBias0;
+	SRasterEdge				sBias1;
+	SRasterEdge				sBias2;
+	SRasterEdge				sRow0;
+	SRasterEdge				sRow1;
+	SRasterEdge				sRow2;
+	SRasterEdge				s0;
+	SRasterEdge				s1;
+	SRasterEdge				s2;
+	SRasterEdge				sStepX0;
+	SRasterEdge				sStepX1;
+	SRasterEdge				sStepX2;
+	SRasterEdge				sStepY0;
+	SRasterEdge				sStepY1;
+	SRasterEdge				sStepY2;
+	SRasterWideWhole		sDepthA;
+	SRasterWideWhole		sDepthB;
+	SRasterWideWhole		sDepthC;
+	SRasterWideWhole		sShadeA;
+	SRasterWideWhole		sShadeB;
+	SRasterWideWhole		sShadeC;
 	int32					iMinDepth;
 	int32					iMaxDepth;
-	int64					iDepthX;
-	int64					iDepthY;
-	int64					iShadeX;
-	int64					iShadeY;
-	int64					iDepthF;
-	int64					iShadeF;
-	int32					iDeltaBX;
-	int32					iDeltaBY;
-	int32					iDeltaCX;
-	int32					iDeltaCY;
+	SRasterGradient			sDepthX;
+	SRasterGradient			sDepthY;
+	SRasterGradient			sShadeX;
+	SRasterGradient			sShadeY;
+	SRasterInterpolated		sDepth;
+	SRasterInterpolated		sShade;
+	SRasterInterpolated		sStepDepth;
+	SRasterInterpolated		sStepShade;
+	SRasterWideSubpixel		sOffsetX;
+	SRasterWideSubpixel		sOffsetY;
+	SRasterSubpixel			sDeltaBX;
+	SRasterSubpixel			sDeltaBY;
+	SRasterSubpixel			sDeltaCX;
+	SRasterSubpixel			sDeltaCY;
 	int32					iNextX;
 	int32					iFirstX;
 	int32					iLastX;
@@ -371,19 +409,19 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 		return;
 	}
 
-	iArea = RasterEdge(&psA->sPosition, &psB->sPosition, psC->sPosition.x, psC->sPosition.y);
-	if (iArea == 0)
+	sArea = RasterEdge(&psA->sPosition, &psB->sPosition, psC->sPosition.x, psC->sPosition.y);
+	if (sArea.miRaw == 0)
 	{
 		return;
 	}
 
 	//The mesh's front faces wind anticlockwise looking at them with y up.  With y down their area is negative.
-	if (iArea < 0)
+	if (sArea.miRaw < 0)
 	{
 		psSwap = psB;
 		psB = psC;
 		psC = psSwap;
-		iArea = -iArea;
+		sArea = -sArea;
 	}
 	else if (mbCullBackFaces)
 	{
@@ -391,10 +429,11 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	}
 
 	//A pixel's sample is at its centre.
-	iMinX = (Min3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) + (RASTER_SUBPIXELS / 2 - 1)) >> RASTER_SUBPIXEL_BITS;
-	iMinY = (Min3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) + (RASTER_SUBPIXELS / 2 - 1)) >> RASTER_SUBPIXEL_BITS;
-	iMaxX = (Max3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) - (RASTER_SUBPIXELS / 2)) >> RASTER_SUBPIXEL_BITS;
-	iMaxY = (Max3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) - (RASTER_SUBPIXELS / 2)) >> RASTER_SUBPIXEL_BITS;
+	sOnePixel = SRasterSubpixel::FromInt(1);
+	iMinX = (Min3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) + SRasterSubpixel::FromRaw(7)).Floor();
+	iMinY = (Min3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) + SRasterSubpixel::FromRaw(7)).Floor();
+	iMaxX = (Max3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) - SRasterSubpixel::FromRaw(8)).Floor();
+	iMaxY = (Max3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) - SRasterSubpixel::FromRaw(8)).Floor();
 	if (iMinX < 0)
 	{
 		iMinX = 0;
@@ -416,85 +455,91 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 		return;
 	}
 
-	iSampleX = (iMinX << RASTER_SUBPIXEL_BITS) + (RASTER_SUBPIXELS / 2);
-	iSampleY = (iMinY << RASTER_SUBPIXEL_BITS) + (RASTER_SUBPIXELS / 2);
+	sSampleX = SRasterSubpixel::FromInt(iMinX) + SRasterSubpixel::FromRaw(8);
+	sSampleY = SRasterSubpixel::FromInt(iMinY) + SRasterSubpixel::FromRaw(8);
 
-	iBias0 = RasterEdgeBias(&psB->sPosition, &psC->sPosition);
-	iBias1 = RasterEdgeBias(&psC->sPosition, &psA->sPosition);
-	iBias2 = RasterEdgeBias(&psA->sPosition, &psB->sPosition);
+	sBias0 = RasterEdgeBias(&psB->sPosition, &psC->sPosition);
+	sBias1 = RasterEdgeBias(&psC->sPosition, &psA->sPosition);
+	sBias2 = RasterEdgeBias(&psA->sPosition, &psB->sPosition);
 
-	iRow0 = RasterEdge(&psB->sPosition, &psC->sPosition, iSampleX, iSampleY) + iBias0;
-	iRow1 = RasterEdge(&psC->sPosition, &psA->sPosition, iSampleX, iSampleY) + iBias1;
-	iRow2 = RasterEdge(&psA->sPosition, &psB->sPosition, iSampleX, iSampleY) + iBias2;
+	sRow0 = RasterEdge(&psB->sPosition, &psC->sPosition, sSampleX, sSampleY) + sBias0;
+	sRow1 = RasterEdge(&psC->sPosition, &psA->sPosition, sSampleX, sSampleY) + sBias1;
+	sRow2 = RasterEdge(&psA->sPosition, &psB->sPosition, sSampleX, sSampleY) + sBias2;
 
-	iStepX0 = (int64)(psB->sPosition.y - psC->sPosition.y) << RASTER_SUBPIXEL_BITS;
-	iStepX1 = (int64)(psC->sPosition.y - psA->sPosition.y) << RASTER_SUBPIXEL_BITS;
-	iStepX2 = (int64)(psA->sPosition.y - psB->sPosition.y) << RASTER_SUBPIXEL_BITS;
-	iStepY0 = (int64)(psC->sPosition.x - psB->sPosition.x) << RASTER_SUBPIXEL_BITS;
-	iStepY1 = (int64)(psA->sPosition.x - psC->sPosition.x) << RASTER_SUBPIXEL_BITS;
-	iStepY2 = (int64)(psB->sPosition.x - psA->sPosition.x) << RASTER_SUBPIXEL_BITS;
+	sStepX0 = (psB->sPosition.y - psC->sPosition.y) * sOnePixel;
+	sStepX1 = (psC->sPosition.y - psA->sPosition.y) * sOnePixel;
+	sStepX2 = (psA->sPosition.y - psB->sPosition.y) * sOnePixel;
+	sStepY0 = (psC->sPosition.x - psB->sPosition.x) * sOnePixel;
+	sStepY1 = (psA->sPosition.x - psC->sPosition.x) * sOnePixel;
+	sStepY2 = (psB->sPosition.x - psA->sPosition.x) * sOnePixel;
 
-	iDepthA = psA->iDepth;
-	iDepthB = psB->iDepth;
-	iDepthC = psC->iDepth;
-	iShadeA = psA->iShade;
-	iShadeB = psB->iShade;
-	iShadeC = psC->iShade;
+	sDepthA = SRasterWideWhole::FromRaw(psA->iDepth);
+	sDepthB = SRasterWideWhole::FromRaw(psB->iDepth);
+	sDepthC = SRasterWideWhole::FromRaw(psC->iDepth);
+	sShadeA = SRasterWideWhole::FromRaw(psA->iShade);
+	sShadeB = SRasterWideWhole::FromRaw(psB->iShade);
+	sShadeC = SRasterWideWhole::FromRaw(psC->iShade);
 
-	bSmall = iArea < RASTER_SMALL_AREA;
-	iDepthX = 0;
-	iDepthY = 0;
-	iShadeX = 0;
-	iShadeY = 0;
+	bSmall = sArea < SRasterEdge::FromInt(RASTER_SMALL_AREA);
+	sDepthX = SRasterGradient::FromRaw(0);
+	sDepthY = SRasterGradient::FromRaw(0);
+	sShadeX = SRasterGradient::FromRaw(0);
+	sShadeY = SRasterGradient::FromRaw(0);
 	iMinDepth = 0;
 	iMaxDepth = 0;
 	if (!bSmall)
 	{
-		iDeltaBX = psB->sPosition.x - psA->sPosition.x;
-		iDeltaBY = psB->sPosition.y - psA->sPosition.y;
-		iDeltaCX = psC->sPosition.x - psA->sPosition.x;
-		iDeltaCY = psC->sPosition.y - psA->sPosition.y;
-		iDepthX = DivideFloor(((iDepthB - iDepthA) * iDeltaCY - (iDepthC - iDepthA) * iDeltaBY) << RASTER_GRADIENT_BITS, iArea);
-		iDepthY = DivideFloor(((iDepthC - iDepthA) * iDeltaBX - (iDepthB - iDepthA) * iDeltaCX) << RASTER_GRADIENT_BITS, iArea);
-		iShadeX = DivideFloor(((iShadeB - iShadeA) * iDeltaCY - (iShadeC - iShadeA) * iDeltaBY) << RASTER_GRADIENT_BITS, iArea);
-		iShadeY = DivideFloor(((iShadeC - iShadeA) * iDeltaBX - (iShadeB - iShadeA) * iDeltaCX) << RASTER_GRADIENT_BITS, iArea);
-		iMinDepth = Min3(psA->iDepth, psB->iDepth, psC->iDepth);
-		iMaxDepth = Max3(psA->iDepth, psB->iDepth, psC->iDepth);
+		sDeltaBX = psB->sPosition.x - psA->sPosition.x;
+		sDeltaBY = psB->sPosition.y - psA->sPosition.y;
+		sDeltaCX = psC->sPosition.x - psA->sPosition.x;
+		sDeltaCY = psC->sPosition.y - psA->sPosition.y;
+		sDepthX = RasterGradient(sDepthB - sDepthA, sDepthC - sDepthA, sDeltaBY, sDeltaCY, sArea);
+		sDepthY = RasterGradient(sDepthC - sDepthA, sDepthB - sDepthA, sDeltaCX, sDeltaBX, sArea);
+		sShadeX = RasterGradient(sShadeB - sShadeA, sShadeC - sShadeA, sDeltaBY, sDeltaCY, sArea);
+		sShadeY = RasterGradient(sShadeC - sShadeA, sShadeB - sShadeA, sDeltaCX, sDeltaBX, sArea);
+		iMinDepth = psA->iDepth;
+		iMinDepth = (psB->iDepth < iMinDepth) ? psB->iDepth : iMinDepth;
+		iMinDepth = (psC->iDepth < iMinDepth) ? psC->iDepth : iMinDepth;
+		iMaxDepth = psA->iDepth;
+		iMaxDepth = (psB->iDepth > iMaxDepth) ? psB->iDepth : iMaxDepth;
+		iMaxDepth = (psC->iDepth > iMaxDepth) ? psC->iDepth : iMaxDepth;
 	}
+	sStepDepth = sDepthX.To<SRasterInterpolated>();
+	sStepShade = sShadeX.To<SRasterInterpolated>();
 
 	puiPixelRow = &pcTarget->mpuiPixels[(lsize)iMinY * (lsize)pcTarget->miStride];
 	piDepthRow = &pcTarget->mpiDepths[(lsize)iMinY * (lsize)pcTarget->miWidth];
-	iDepthF = 0;
-	iShadeF = 0;
+	sDepth = SRasterInterpolated::FromRaw(0);
+	sShade = SRasterInterpolated::FromRaw(0);
 	bWide = (iMaxX - iMinX) >= RASTER_WIDE_PIXELS;
 	for (y = iMinY; y <= iMaxY; y++)
 	{
-		i0 = iRow0;
-		i1 = iRow1;
-		i2 = iRow2;
+		s0 = sRow0;
+		s1 = sRow1;
+		s2 = sRow2;
 		iNextX = -1;
 		iFirstX = iMinX;
 		iLastX = iMaxX;
 		if (bWide)
 		{
 			//A triangle is convex, so a row covers one run of pixels and each edge says where it can start or stop.
-			RasterEdgeSpan(i0, iStepX0, iMinX, &iFirstX, &iLastX);
-			RasterEdgeSpan(i1, iStepX1, iMinX, &iFirstX, &iLastX);
-			RasterEdgeSpan(i2, iStepX2, iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s0, sStepX0, iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s1, sStepX1, iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s2, sStepX2, iMinX, &iFirstX, &iLastX);
 			if (iFirstX > iMinX)
 			{
-				i0 += iStepX0 * (iFirstX - iMinX);
-				i1 += iStepX1 * (iFirstX - iMinX);
-				i2 += iStepX2 * (iFirstX - iMinX);
+				s0 += SRasterEdge::FromRaw(sStepX0.miRaw * (iFirstX - iMinX));
+				s1 += SRasterEdge::FromRaw(sStepX1.miRaw * (iFirstX - iMinX));
+				s2 += SRasterEdge::FromRaw(sStepX2.miRaw * (iFirstX - iMinX));
 			}
 		}
 		for (x = iFirstX; x <= iLastX; x++)
 		{
-			if ((i0 | i1 | i2) >= 0)
+			if ((s0.miRaw | s1.miRaw | s2.miRaw) >= 0)
 			{
 				if (bSmall)
 				{
-					iDepth = (int32)(((i0 - iBias0) * iDepthA + (i1 - iBias1) * iDepthB + (i2 - iBias2) * iDepthC) / iArea);
+					iDepth = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sDepthA, sDepthB, sDepthC, sArea);
 					iShade = 0;  //Worked out below, if the pixel is to be drawn: most of a mesh's pixels are behind another.
 				}
 				else
@@ -502,15 +547,15 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 					//Each row's run of covered pixels only needs its start working out.
 					if (iNextX != x)
 					{
-						iSampleX = (x << RASTER_SUBPIXEL_BITS) + (RASTER_SUBPIXELS / 2);
-						iSampleY = (y << RASTER_SUBPIXEL_BITS) + (RASTER_SUBPIXELS / 2);
-						iDepthF = (iDepthA << RASTER_GRADIENT_BITS) + iDepthX * (iSampleX - psA->sPosition.x) + iDepthY * (iSampleY - psA->sPosition.y);
-						iShadeF = (iShadeA << RASTER_GRADIENT_BITS) + iShadeX * (iSampleX - psA->sPosition.x) + iShadeY * (iSampleY - psA->sPosition.y);
+						sOffsetX = (SRasterSubpixel::FromInt(x) + SRasterSubpixel::FromRaw(8) - psA->sPosition.x).To<SRasterWideSubpixel>();
+						sOffsetY = (SRasterSubpixel::FromInt(y) + SRasterSubpixel::FromRaw(8) - psA->sPosition.y).To<SRasterWideSubpixel>();
+						sDepth = sDepthA.To<SRasterInterpolated>() + sDepthX * sOffsetX + sDepthY * sOffsetY;
+						sShade = sShadeA.To<SRasterInterpolated>() + sShadeX * sOffsetX + sShadeY * sOffsetY;
 					}
-					iDepth = (int32)(iDepthF >> RASTER_GRADIENT_BITS);
-					iShade = (int32)(iShadeF >> RASTER_GRADIENT_BITS);
-					iDepthF += iDepthX << RASTER_SUBPIXEL_BITS;
-					iShadeF += iShadeX << RASTER_SUBPIXEL_BITS;
+					iDepth = sDepth.Floor();
+					iShade = sShade.Floor();
+					sDepth += sStepDepth;
+					sShade += sStepShade;
 					iNextX = x + 1;
 
 					//Rounding must not move a pixel out of its triangle's depths, or 0 which is the empty depth.
@@ -536,7 +581,7 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 				{
 					if (bSmall)
 					{
-						iShade = (int32)(((i0 - iBias0) * iShadeA + (i1 - iBias1) * iShadeB + (i2 - iBias2) * iShadeC) / iArea);
+						iShade = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
 					}
 					uiRB = (((uiColour & 0x00FF00FF) * (uint32)iShade) >> 8) & 0x00FF00FF;
 					uiG = (((uiColour & 0x0000FF00) * (uint32)iShade) >> 8) & 0x0000FF00;
@@ -555,13 +600,13 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 					puiPixelRow[x] = 0xFF000000 | uiRB | uiG;
 				}
 			}
-			i0 += iStepX0;
-			i1 += iStepX1;
-			i2 += iStepX2;
+			s0 += sStepX0;
+			s1 += sStepX1;
+			s2 += sStepX2;
 		}
-		iRow0 += iStepY0;
-		iRow1 += iStepY1;
-		iRow2 += iStepY2;
+		sRow0 += sStepY0;
+		sRow1 += sStepY1;
+		sRow2 += sStepY2;
 		puiPixelRow += pcTarget->miStride;
 		piDepthRow += pcTarget->miWidth;
 	}

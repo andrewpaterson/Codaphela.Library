@@ -21,7 +21,6 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __RASTERISER_H__
 #define __RASTERISER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/Int64Vec3.h"
 #include "RasterCamera.h"
 #include "RasterMesh.h"
 #include "RasterTarget.h"
@@ -50,7 +49,7 @@ class CRasteriser
 {
 protected:
 	CArrayRasterScreenVertex	masScreen;
-	SInt64Vec3					msLight;  //Towards the light, on the screen, with RASTER_NORMAL_BITS.
+	SRasterUnitVec3				msLight;  //Towards the light, on the screen.
 	bool						mbCullBackFaces;
 
 public:
@@ -64,7 +63,7 @@ public:
 	void	DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent);
 
 protected:
-	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SInt64Vec3* psLight);
+	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight);
 	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, CRasterTarget* pcTarget, bool bTransparent);
 };
 

@@ -69,11 +69,11 @@ void CRasterCamera::Init(void)
 	miDistance = RASTER_INITIAL_DISTANCE;
 	miInitialDistance = RASTER_INITIAL_DISTANCE;
 	miFocalLength = 1;
-	miOrthographicScale = 0;
-	msScreenCentre.Init(0, 0);
-	masAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
-	masAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
-	masAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	msOrthographicScale = SFixed<int64, int64, 32>::FromRaw(0);
+	msScreenCentre.Init(SRasterSubpixel::FromRaw(0), SRasterSubpixel::FromRaw(0));
+	masAxes[0].Init(SRasterAxis::FromInt(1), SRasterAxis::FromRaw(0), SRasterAxis::FromRaw(0));
+	masAxes[1].Init(SRasterAxis::FromRaw(0), SRasterAxis::FromInt(1), SRasterAxis::FromRaw(0));
+	masAxes[2].Init(SRasterAxis::FromRaw(0), SRasterAxis::FromRaw(0), SRasterAxis::FromInt(1));
 }
 
 
@@ -170,8 +170,8 @@ void CRasterCamera::FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitc
 	msPivot.Init((int32)(((int64)psMin->x + psMax->x) / 2), (int32)(((int64)psMin->y + psMax->y) / 2), (int32)(((int64)psMin->z + psMax->z) / 2));
 	msPan.Init(0, 0);
 	Resize(iHeight);
-	iRoomAcross = (int64)FixedFromInt(iWidth - 2 * iMargin, RASTER_SUBPIXEL_BITS);
-	iRoomDown = (int64)FixedFromInt(iHeight - 2 * iMargin, RASTER_SUBPIXEL_BITS);
+	iRoomAcross = SRasterSubpixel::FromInt(iWidth - 2 * iMargin).miRaw;
+	iRoomDown = SRasterSubpixel::FromInt(iHeight - 2 * iMargin).miRaw;
 	for (iPass = 0; iPass < RASTER_FIT_PASSES; iPass++)
 	{
 		iLeft = RASTER_MAX_SCREEN;
@@ -186,15 +186,15 @@ void CRasterCamera::FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitc
 			{
 				sCorner.Init((i & 1) ? psMax->x : psMin->x, (i & 2) ? psMax->y : psMin->y, (i & 4) ? psMax->z : psMin->z);
 				Project(&sScreen, &sCorner);
-				iLeft = (sScreen.sPosition.x < iLeft) ? sScreen.sPosition.x : iLeft;
-				iTop = (sScreen.sPosition.y < iTop) ? sScreen.sPosition.y : iTop;
-				iRight = (sScreen.sPosition.x > iRight) ? sScreen.sPosition.x : iRight;
-				iBottom = (sScreen.sPosition.y > iBottom) ? sScreen.sPosition.y : iBottom;
+				iLeft = (sScreen.sPosition.x.miRaw < iLeft) ? sScreen.sPosition.x.miRaw : iLeft;
+				iTop = (sScreen.sPosition.y.miRaw < iTop) ? sScreen.sPosition.y.miRaw : iTop;
+				iRight = (sScreen.sPosition.x.miRaw > iRight) ? sScreen.sPosition.x.miRaw : iRight;
+				iBottom = (sScreen.sPosition.y.miRaw > iBottom) ? sScreen.sPosition.y.miRaw : iBottom;
 			}
 		}
 
 		//Across is from the middle, so that the box turns in the middle of the screen.
-		iAcross = (iRight - msScreenCentre.x > msScreenCentre.x - iLeft) ? 2 * ((int64)iRight - msScreenCentre.x) : 2 * ((int64)msScreenCentre.x - iLeft);
+		iAcross = (iRight - msScreenCentre.x.miRaw > msScreenCentre.x.miRaw - iLeft) ? 2 * ((int64)iRight - msScreenCentre.x.miRaw) : 2 * ((int64)msScreenCentre.x.miRaw - iLeft);
 		iDown = (int64)iBottom - iTop;
 		if ((iAcross <= 0) || (iDown <= 0))
 		{
@@ -202,7 +202,7 @@ void CRasterCamera::FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitc
 		}
 
 		//A pixel is the eye's distance over the focal length of the mesh's units.
-		msPan.y += (int32)((((int64)iTop + iBottom) / 2 - msScreenCentre.y) * miDistance / ((int64)miFocalLength << RASTER_SUBPIXEL_BITS));
+		msPan.y += (int32)((((int64)iTop + iBottom) / 2 - msScreenCentre.y.miRaw) * miDistance / ((int64)miFocalLength << SRasterSubpixel::Bits));
 		if (iRoomAcross * iDown < iRoomDown * iAcross)
 		{
 			miFocalLength = (int32)((int64)miFocalLength * iRoomAcross / iAcross);
@@ -369,8 +369,8 @@ bool CRasterCamera::LookAtScreen(int32 iX, int32 iY, SInt32Vec3* psMin, SInt32Ve
 	int			i;
 	int			k;
 
-	fRight = (float64)(FixedFromInt(iX, RASTER_SUBPIXEL_BITS) + RASTER_SUBPIXELS / 2 - msScreenCentre.x) / RASTER_SUBPIXELS;
-	fUp = (float64)(msScreenCentre.y - FixedFromInt(iY, RASTER_SUBPIXEL_BITS) - RASTER_SUBPIXELS / 2) / RASTER_SUBPIXELS;
+	fRight = (SRasterSubpixel::FromInt(iX) + SRasterSubpixel::FromRaw(8) - msScreenCentre.x).ToDouble();
+	fUp = (msScreenCentre.y - SRasterSubpixel::FromInt(iY) - SRasterSubpixel::FromRaw(8)).ToDouble();
 
 	if (meProjection == RP_Perspective)
 	{
@@ -391,15 +391,15 @@ bool CRasterCamera::LookAtScreen(int32 iX, int32 iY, SInt32Vec3* psMin, SInt32Ve
 		afViewDirection[2] = -1.0;
 	}
 
-	afOrigin[0] = msPivot.x + (afViewOrigin[0] * masAxes[0].x + afViewOrigin[1] * masAxes[1].x + afViewOrigin[2] * masAxes[2].x) / (1 << RASTER_AXIS_BITS);
-	afOrigin[1] = msPivot.y + (afViewOrigin[0] * masAxes[0].y + afViewOrigin[1] * masAxes[1].y + afViewOrigin[2] * masAxes[2].y) / (1 << RASTER_AXIS_BITS);
-	afOrigin[2] = msPivot.z + (afViewOrigin[0] * masAxes[0].z + afViewOrigin[1] * masAxes[1].z + afViewOrigin[2] * masAxes[2].z) / (1 << RASTER_AXIS_BITS);
+	afOrigin[0] = msPivot.x + afViewOrigin[0] * masAxes[0].x.ToDouble() + afViewOrigin[1] * masAxes[1].x.ToDouble() + afViewOrigin[2] * masAxes[2].x.ToDouble();
+	afOrigin[1] = msPivot.y + afViewOrigin[0] * masAxes[0].y.ToDouble() + afViewOrigin[1] * masAxes[1].y.ToDouble() + afViewOrigin[2] * masAxes[2].y.ToDouble();
+	afOrigin[2] = msPivot.z + afViewOrigin[0] * masAxes[0].z.ToDouble() + afViewOrigin[1] * masAxes[1].z.ToDouble() + afViewOrigin[2] * masAxes[2].z.ToDouble();
 	for (k = 0; k < 3; k++)
 	{
 		afDirection[k] = 0.0;
 		for (i = 0; i < 3; i++)
 		{
-			afDirection[k] += afViewDirection[i] * (float64)((k == 0) ? masAxes[i].x : ((k == 1) ? masAxes[i].y : masAxes[i].z)) / (1 << RASTER_AXIS_BITS);
+			afDirection[k] += afViewDirection[i] * ((k == 0) ? masAxes[i].x : ((k == 1) ? masAxes[i].y : masAxes[i].z)).ToDouble();
 		}
 	}
 
@@ -459,12 +459,12 @@ bool CRasterCamera::LookAtScreen(int32 iX, int32 iY, SInt32Vec3* psMin, SInt32Ve
 //////////////////////////////////////////////////////////////////////////
 void CRasterCamera::Prepare(int32 iWidth, int32 iHeight)
 {
-	masAxes[0].Init(FixedFromFloat(msRotation.x.x, RASTER_AXIS_BITS), FixedFromFloat(msRotation.y.x, RASTER_AXIS_BITS), FixedFromFloat(msRotation.z.x, RASTER_AXIS_BITS));
-	masAxes[1].Init(FixedFromFloat(msRotation.x.y, RASTER_AXIS_BITS), FixedFromFloat(msRotation.y.y, RASTER_AXIS_BITS), FixedFromFloat(msRotation.z.y, RASTER_AXIS_BITS));
-	masAxes[2].Init(FixedFromFloat(msRotation.x.z, RASTER_AXIS_BITS), FixedFromFloat(msRotation.y.z, RASTER_AXIS_BITS), FixedFromFloat(msRotation.z.z, RASTER_AXIS_BITS));
+	masAxes[0].Init(SRasterAxis::FromFloat(msRotation.x.x), SRasterAxis::FromFloat(msRotation.y.x), SRasterAxis::FromFloat(msRotation.z.x));
+	masAxes[1].Init(SRasterAxis::FromFloat(msRotation.x.y), SRasterAxis::FromFloat(msRotation.y.y), SRasterAxis::FromFloat(msRotation.z.y));
+	masAxes[2].Init(SRasterAxis::FromFloat(msRotation.x.z), SRasterAxis::FromFloat(msRotation.y.z), SRasterAxis::FromFloat(msRotation.z.z));
 
-	miOrthographicScale = ((int64)miFocalLength << 32) / miDistance;
-	msScreenCentre.Init(FixedFromInt(iWidth, RASTER_SUBPIXEL_BITS - 1), FixedFromInt(iHeight, RASTER_SUBPIXEL_BITS - 1));
+	msOrthographicScale = SFixed<int64, int64, 32>::FromRaw(((int64)miFocalLength << 32) / miDistance);
+	msScreenCentre.Init(SRasterSubpixel::FromRaw(iWidth * 8), SRasterSubpixel::FromRaw(iHeight * 8));
 }
 
 
@@ -472,17 +472,27 @@ void CRasterCamera::Prepare(int32 iWidth, int32 iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 RasterClampScreen(int64 i)
+static SRasterSubpixel RasterClampScreen(SFixed<int64, int64, 4> s)
 {
-	if (i > RASTER_MAX_SCREEN)
+	if (s.miRaw > RASTER_MAX_SCREEN)
 	{
-		return RASTER_MAX_SCREEN;
+		return SRasterSubpixel::FromRaw(RASTER_MAX_SCREEN);
 	}
-	if (i < -RASTER_MAX_SCREEN)
+	if (s.miRaw < -RASTER_MAX_SCREEN)
 	{
-		return -RASTER_MAX_SCREEN;
+		return SRasterSubpixel::FromRaw(-RASTER_MAX_SCREEN);
 	}
-	return (int32)i;
+	return SRasterSubpixel::FromRaw((int32)s.miRaw);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 RasterDot(SInt32Vec3* psPosition, SRasterAxisVec3* psAxis)
+{
+	return (SRasterWhole::FromRaw(psPosition->x) * psAxis->x + SRasterWhole::FromRaw(psPosition->y) * psAxis->y + SRasterWhole::FromRaw(psPosition->z) * psAxis->z).Floor();
 }
 
 
@@ -492,34 +502,48 @@ static int32 RasterClampScreen(int64 i)
 //////////////////////////////////////////////////////////////////////////
 void CRasterCamera::Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition)
 {
-	SInt64Vec3	sPosition;
-	int64		x;
-	int64		y;
-	int64		z;
-	int64		iEyeDistance;
+	typedef SFixed<int64, int64, 0>		SWide;
+	typedef SFixed<int64, int64, 4>		SWideSubpixel;
 
-	sPosition.Init((int64)psPosition->x - msPivot.x, (int64)psPosition->y - msPivot.y, (int64)psPosition->z - msPivot.z);
-	x = (Int64Vec3Dot(&sPosition, &masAxes[0]) >> RASTER_AXIS_BITS) + msPan.x;
-	y = (Int64Vec3Dot(&sPosition, &masAxes[1]) >> RASTER_AXIS_BITS) + msPan.y;
-	z = Int64Vec3Dot(&sPosition, &masAxes[2]) >> RASTER_AXIS_BITS;
+	SInt32Vec3		sPosition;
+	int32			x;
+	int32			y;
+	int32			z;
+	int64			iEyeDistance;
+	SWideSubpixel	sCentreX;
+	SWideSubpixel	sCentreY;
+	SWideSubpixel	sScreenX;
+	SWideSubpixel	sScreenY;
+
+	Int32Vec3Subtract(&sPosition, psPosition, &msPivot);
+	x = RasterDot(&sPosition, &masAxes[0]) + msPan.x;
+	y = RasterDot(&sPosition, &masAxes[1]) + msPan.y;
+	z = RasterDot(&sPosition, &masAxes[2]);
+
+	sCentreX = msScreenCentre.x.To<SWideSubpixel>();
+	sCentreY = msScreenCentre.y.To<SWideSubpixel>();
 
 	if (meProjection == RP_Perspective)
 	{
-		iEyeDistance = miDistance - z;
+		iEyeDistance = (int64)miDistance - z;
 		if (iEyeDistance < RASTER_NEAR_DISTANCE)
 		{
 			psDest->iDepth = 0;
 			return;
 		}
-		psDest->sPosition.x = RasterClampScreen(DivideFloor((x * miFocalLength) << RASTER_SUBPIXEL_BITS, iEyeDistance) + msScreenCentre.x);
-		psDest->sPosition.y = RasterClampScreen(msScreenCentre.y - DivideFloor((y * miFocalLength) << RASTER_SUBPIXEL_BITS, iEyeDistance));
+		sScreenX = (SRasterWhole::FromRaw(x) * SRasterWhole::FromRaw(miFocalLength)).To<SWideSubpixel>();
+		sScreenY = (SRasterWhole::FromRaw(y) * SRasterWhole::FromRaw(miFocalLength)).To<SWideSubpixel>();
+		psDest->sPosition.x = RasterClampScreen(sScreenX.DivideFloor(SWide::FromRaw(iEyeDistance)) + sCentreX);
+		psDest->sPosition.y = RasterClampScreen(sCentreY - sScreenY.DivideFloor(SWide::FromRaw(iEyeDistance)));
 		psDest->iDepth = (int32)(RASTER_DEPTH_NUMERATOR / iEyeDistance);
 	}
 	else
 	{
-		psDest->sPosition.x = RasterClampScreen(((x * miOrthographicScale) >> (32 - RASTER_SUBPIXEL_BITS)) + msScreenCentre.x);
-		psDest->sPosition.y = RasterClampScreen(msScreenCentre.y - ((y * miOrthographicScale) >> (32 - RASTER_SUBPIXEL_BITS)));
-		psDest->iDepth = (int32)z + RASTER_ORTHOGRAPHIC_DEPTH;
+		sScreenX = (SWide::FromRaw(x) * msOrthographicScale).ToFloor<SWideSubpixel>();
+		sScreenY = (SWide::FromRaw(y) * msOrthographicScale).ToFloor<SWideSubpixel>();
+		psDest->sPosition.x = RasterClampScreen(sScreenX + sCentreX);
+		psDest->sPosition.y = RasterClampScreen(sCentreY - sScreenY);
+		psDest->iDepth = z + RASTER_ORTHOGRAPHIC_DEPTH;
 	}
 }
 
@@ -529,10 +553,19 @@ void CRasterCamera::Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition)
 // Rotates a direction on the screen back into the mesh, keeping its fixed point.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasterCamera::ViewToMesh(SInt64Vec3* psDest, SInt64Vec3* psView)
+void CRasterCamera::ViewToMesh(SRasterUnitVec3* psDest, SRasterUnitVec3* psView)
 {
-	psDest->x = (psView->x * masAxes[0].x + psView->y * masAxes[1].x + psView->z * masAxes[2].x) >> RASTER_AXIS_BITS;
-	psDest->y = (psView->x * masAxes[0].y + psView->y * masAxes[1].y + psView->z * masAxes[2].y) >> RASTER_AXIS_BITS;
-	psDest->z = (psView->x * masAxes[0].z + psView->y * masAxes[1].z + psView->z * masAxes[2].z) >> RASTER_AXIS_BITS;
+	typedef SFixed<int32, int64, 14>	SWideUnit;
+
+	SWideUnit	sX;
+	SWideUnit	sY;
+	SWideUnit	sZ;
+
+	sX = psView->x.To<SWideUnit>();
+	sY = psView->y.To<SWideUnit>();
+	sZ = psView->z.To<SWideUnit>();
+	psDest->x = (sX * masAxes[0].x + sY * masAxes[1].x + sZ * masAxes[2].x).ToFloor<SRasterUnit>();
+	psDest->y = (sX * masAxes[0].y + sY * masAxes[1].y + sZ * masAxes[2].y).ToFloor<SRasterUnit>();
+	psDest->z = (sX * masAxes[0].z + sY * masAxes[1].z + sZ * masAxes[2].z).ToFloor<SRasterUnit>();
 }
 

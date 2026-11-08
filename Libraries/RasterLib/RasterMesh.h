@@ -21,13 +21,15 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __RASTER_MESH_H__
 #define __RASTER_MESH_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/FixedPoint.h"
 #include "BaseLib/Float32Vec3.h"
-#include "BaseLib/Int16Vec3.h"
 #include "BaseLib/Int32Vec3.h"
+#include "BaseLib/Vec3.h"
 
 
-//Normals are fixed point: 1.0 is 16384.
-#define RASTER_NORMAL_BITS		14
+//A part of a unit normal.
+typedef SFixed<int16, int32, 14>	SRasterUnit;
+typedef SVec3<SRasterUnit, int32>	SRasterUnitVec3;
 
 //The mesh is centred and scaled so that its largest half width is this many units.
 #define RASTER_MESH_HALF_EXTENT	(1 << 20)
@@ -36,7 +38,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 struct SRasterVertex
 {
 	SInt32Vec3	sPosition;
-	SInt16Vec3	sNormal;
+	SRasterUnitVec3	sNormal;
 };
 
 

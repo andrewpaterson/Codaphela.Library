@@ -265,11 +265,11 @@ void CRasterMesh::BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale)
 
 				psVertex = masVertices.Add();
 				psVertex->sPosition.Init(FloatToIntScaled(sOffset.x, iScale), FloatToIntScaled(sOffset.y, iScale), FloatToIntScaled(sOffset.z, iScale));
-				psVertex->sNormal.Init(0, 0, 0);
+				psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 				if (iNormal >= 0)
 				{
 					psNormal = pcMesh->mcNormals.mcNormals.Get(iNormal);
-					psVertex->sNormal.Init((int16)FixedFromFloat(psNormal->x, RASTER_NORMAL_BITS), (int16)FixedFromFloat(psNormal->y, RASTER_NORMAL_BITS), (int16)FixedFromFloat(psNormal->z, RASTER_NORMAL_BITS));
+					psVertex->sNormal.Init(SRasterUnit::FromFloat(psNormal->x), SRasterUnit::FromFloat(psNormal->y), SRasterUnit::FromFloat(psNormal->z));
 				}
 			}
 			aiVertex[k] = iVertex;
@@ -417,7 +417,7 @@ size CRasterMesh::RemoveDegenerate(void)
 static size RasterFixReversed(CRasterMesh* pcMesh, CArrayRasterTriangle* pasTriangles)
 {
 	SRasterTriangle*	psTriangle;
-	SInt16Vec3*			psNormal;
+	SRasterUnitVec3*	psNormal;
 	size				uiNumTriangles;
 	size				uiFixed;
 	size				i;
@@ -441,9 +441,9 @@ static size RasterFixReversed(CRasterMesh* pcMesh, CArrayRasterTriangle* pasTria
 		for (k = 0; k < 3; k++)
 		{
 			psNormal = &pcMesh->masVertices.Get(psTriangle[i].aiVertex[k])->sNormal;
-			iNormalX += psNormal->x;
-			iNormalY += psNormal->y;
-			iNormalZ += psNormal->z;
+			iNormalX += psNormal->x.miRaw;
+			iNormalY += psNormal->y.miRaw;
+			iNormalZ += psNormal->z.miRaw;
 		}
 
 		RasterTriangleNormal(pcMesh, &psTriangle[i], &iX, &iY, &iZ);
@@ -545,11 +545,11 @@ static int32 RasterKeyTableFind(SRasterKeyTable* psTable, uint64 uiKey, int32 iN
 // Which of RASTER_NORMAL_DIVISIONS a part of a normal is in.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 RasterNormalDivision(int16 iPart)
+static uint64 RasterNormalDivision(SRasterUnit sPart)
 {
 	int32	iDivision;
 
-	iDivision = (((int32)iPart + (1 << RASTER_NORMAL_BITS)) * RASTER_NORMAL_DIVISIONS) >> (RASTER_NORMAL_BITS + 1);
+	iDivision = (((int32)sPart.miRaw + (1 << SRasterUnit::Bits)) * RASTER_NORMAL_DIVISIONS) >> (SRasterUnit::Bits + 1);
 	if (iDivision < 0)
 	{
 		return 0;
@@ -690,9 +690,9 @@ void CRasterMesh::MergeCells(int32 iCellSize)
 			piVertexCell[iNumMerged] = iCell;
 			iNumMerged++;
 		}
-		piNormalSums[iMerged * 3] += psVertex[i].sNormal.x;
-		piNormalSums[iMerged * 3 + 1] += psVertex[i].sNormal.y;
-		piNormalSums[iMerged * 3 + 2] += psVertex[i].sNormal.z;
+		piNormalSums[iMerged * 3] += psVertex[i].sNormal.x.miRaw;
+		piNormalSums[iMerged * 3 + 1] += psVertex[i].sNormal.y.miRaw;
+		piNormalSums[iMerged * 3 + 2] += psVertex[i].sNormal.z.miRaw;
 		piVertexMap[i] = iMerged;
 	}
 
@@ -703,11 +703,11 @@ void CRasterMesh::MergeCells(int32 iCellSize)
 		fLength = sqrt((float64)piNormalSums[i * 3] * piNormalSums[i * 3] + (float64)piNormalSums[i * 3 + 1] * piNormalSums[i * 3 + 1] + (float64)piNormalSums[i * 3 + 2] * piNormalSums[i * 3 + 2]);
 		if (fLength > 0.0)
 		{
-			psMerged[i].sNormal.Init((int16)((float64)piNormalSums[i * 3] * (1 << RASTER_NORMAL_BITS) / fLength), (int16)((float64)piNormalSums[i * 3 + 1] * (1 << RASTER_NORMAL_BITS) / fLength), (int16)((float64)piNormalSums[i * 3 + 2] * (1 << RASTER_NORMAL_BITS) / fLength));
+			psMerged[i].sNormal.Init(SRasterUnit::FromRaw((int16)((float64)piNormalSums[i * 3] * (1 << SRasterUnit::Bits) / fLength)), SRasterUnit::FromRaw((int16)((float64)piNormalSums[i * 3 + 1] * (1 << SRasterUnit::Bits) / fLength)), SRasterUnit::FromRaw((int16)((float64)piNormalSums[i * 3 + 2] * (1 << SRasterUnit::Bits) / fLength)));
 		}
 		else
 		{
-			psMerged[i].sNormal.Init(0, 0, 0);
+			psMerged[i].sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 		}
 	}
 
