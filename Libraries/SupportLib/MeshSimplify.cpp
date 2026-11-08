@@ -412,7 +412,7 @@ static bool MeshSimplifyHasArea(SMeshSimplify* ps, int* piCells)
 // Faces the same come together, the first of them first.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshSimplifyCompareFaces(const void* pv1, const void* pv2)
+static int __cdecl MeshSimplifyCompareFaces(const void* pv1, const void* pv2)
 {
 	SMeshSimplifyFace*	ps1;
 	SMeshSimplifyFace*	ps2;
