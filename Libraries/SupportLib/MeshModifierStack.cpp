@@ -123,11 +123,12 @@ void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 	iNumElements = (int)macEditors.NumElements();
 	if (HasSourceModifier())
 	{
-		pcMeshEditor->ClearConnectivity();
+		pcMeshEditor->RestoreBase();
 		for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
 		{
 			pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
 			pcEditor->ClearConnectivity();
+			TellOfFaces(pcEditor, &pcMeshEditor->mpMesh);
 		}
 	}
 
@@ -137,6 +138,25 @@ void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 		pcEditor->Apply(pcMeshEditor);
 	}
 	miCurrent = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshModifierStack::TellOfFaces(CMeshModifier* pcModifier, CMesh* pcMesh)
+{
+	int*	piCorners;
+	int		i;
+	int		iNumFaces;
+
+	iNumFaces = pcMesh->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		piCorners = pcMesh->GetFaceCorners(i);
+		pcModifier->AddFace(piCorners[0], piCorners[1], piCorners[2]);
+	}
 }
 
 

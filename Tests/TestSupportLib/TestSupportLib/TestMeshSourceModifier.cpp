@@ -10,6 +10,7 @@
 #include "SupportLib/MeshModifierStack.h"
 #include "SupportLib/MeshPlaneEditor.h"
 #include "SupportLib/MeshRingEditor.h"
+#include "SupportLib/MeshSmoothFaces.h"
 #include "TestLib/Assert.h"
 
 
@@ -153,14 +154,15 @@ void TestMeshSourceEditorAddsShapes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A mesh given to an editor with a shape is emptied, and one with no shape
-// isn't.
+// A shape is added to what a mesh already has, however many times it is
+// applied, and clearing the editor means starting again from nothing.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSourceEditorEmptiesOnce(void)
+void TestMeshSourceEditorAddsToMesh(void)
 {
 	CMesh		cMesh;
 	CMeshEditor	cEditor;
+	int			i;
 
 	cMesh.Init();
 	cMesh.AddCorner(0, 0, 0);
@@ -171,9 +173,130 @@ void TestMeshSourceEditorEmptiesOnce(void)
 
 	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Disc);
 	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Plane);
+	for (i = 0; i < 2; i++)
+	{
+		cEditor.mcModifiers.ApplyAll(&cEditor);
+		AssertInt(1 + 4 + 9, cMesh.NumCorners());
+		AssertInt(3 + 8, cMesh.NumFaces());
+		AssertInt(1, cMesh.GetFaceCorners(0)[0]);
+	}
+
+	cEditor.ClearConnectivity();
+	AssertInt(0, cMesh.NumCorners());
 	cEditor.mcModifiers.ApplyAll(&cEditor);
 	AssertInt(4 + 9, cMesh.NumCorners());
-	AssertInt(3 + 8, cMesh.NumFaces());
+	cEditor.mcModifiers.ApplyAll(&cEditor);
+	AssertInt(4 + 9, cMesh.NumCorners());
+	cEditor.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A shape added to a collapsed mesh leaves its polygons, names and visible
+// edges as they were, and collapsing again makes that the next base.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshSourceEditorAddsToCollapsed(void)
+{
+	CMesh				cMesh;
+	CMeshEditor			cEditor;
+	CMeshPlaneEditor*	pcPlane;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sStart;
+	int					iVisibleEdges;
+	int					i;
+
+	sX.Init(1, 0, 0);
+	sY.Init(0, 1, 0);
+	sStart.Init(0, 0, 0);
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	pcPlane = cEditor.AddModifier<CMeshPlaneEditor>();
+	pcPlane->Init(&sX, &sY, &sStart, 2, 2);
+	pcPlane->SetFaceName(3);
+	cEditor.Collapse();
+
+	AssertInt(4, cEditor.NumPolygons());
+	iVisibleEdges = cEditor.NumVisibleEdges(1);
+	AssertInt(12, iVisibleEdges);
+
+	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Disc);
+	for (i = 0; i < 2; i++)
+	{
+		cEditor.mcModifiers.ApplyAll(&cEditor);
+		AssertInt(9 + 4, cMesh.NumCorners());
+		AssertInt(8 + 3, cMesh.NumFaces());
+		AssertInt(4 + 3, cEditor.NumPolygons());
+		AssertInt(iVisibleEdges + 6, cEditor.NumVisibleEdges(1));
+		AssertInt(3, cMesh.GetFaceName(7));
+		AssertInt(0, cMesh.GetFaceName(8));
+		AssertInt(9, cMesh.GetFaceCorners(8)[0]);
+	}
+	cEditor.Collapse();
+
+	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Disc);
+	cEditor.mcModifiers.ApplyAll(&cEditor);
+	cEditor.mcModifiers.ApplyAll(&cEditor);
+	AssertInt(9 + 4 + 4, cMesh.NumCorners());
+	AssertInt(4 + 3 + 3, cEditor.NumPolygons());
+	cEditor.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A smoothed mesh keeps its corner normals under a new shape, and one with
+// what a copy wouldn't keep can only be emptied.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshSourceEditorKeepsNormals(void)
+{
+	CMesh				cMesh;
+	CMeshEditor			cEditor;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sStart;
+	SLogConfig			sLogConfig;
+	SMeshNormalFace*	psNormalFace;
+	int					i;
+
+	sX.Init(1, 0, 0);
+	sY.Init(0, 1, 0);
+	sStart.Init(0, 0, 0);
+
+	cMesh.Init();
+	cMesh.mcNormals.mbInUse = true;
+	cEditor.Init(&cMesh);
+	cEditor.AddModifier<CMeshPlaneEditor>()->Init(&sX, &sY, &sStart, 2, 2);
+	cEditor.AddModifier<CMeshSmoothFaces>()->Init();
+	cEditor.Collapse();
+	AssertSize(8 + 9, cMesh.mcNormals.mcNormals.NumElements());
+
+	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Disc);
+	for (i = 0; i < 2; i++)
+	{
+		cEditor.mcModifiers.ApplyAll(&cEditor);
+		AssertSize(8 + 3 + 9, cMesh.mcNormals.mcNormals.NumElements());
+		psNormalFace = cMesh.mcNormals.mcFaces.Get(0);
+		AssertTrue(psNormalFace->aiCornerNormals[0] >= 8 + 3);
+		AssertFloat(1.0f, cMesh.mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[0])->z, 3);
+		AssertInt(-1, cMesh.mcNormals.mcFaces.Get(8)->aiCornerNormals[0]);
+	}
+	cEditor.Kill();
+
+	cMesh.ClearConnectivity();
+	cMesh.AddCorner(0, 0, 0);
+	cMesh.mcMaterials.mbInUse = true;
+	cEditor.Init(&cMesh);
+	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Plane);
+	sLogConfig = gcLogger.SetSilent();
+	cEditor.mcModifiers.ApplyAll(&cEditor);
+	gcLogger.SetConfig(&sLogConfig);
+	AssertInt(9, cMesh.NumCorners());
+	cEditor.Kill();
 }
 
 
@@ -291,7 +414,9 @@ void TestMeshSourceModifier(void)
 	ObjectsInit();
 
 	TestMeshSourceEditorAddsShapes();
-	TestMeshSourceEditorEmptiesOnce();
+	TestMeshSourceEditorAddsToMesh();
+	TestMeshSourceEditorAddsToCollapsed();
+	TestMeshSourceEditorKeepsNormals();
 	TestMeshSourceStackAddsShapes();
 	TestMeshSourceStackKeepsDetails();
 

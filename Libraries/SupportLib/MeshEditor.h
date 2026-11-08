@@ -44,6 +44,13 @@ public:
 	CMeshEdgeVisibility		mcEdgeVisibility;
 	CMeshPolygons			mcPolygons;
 
+protected:
+	//The mesh as it was before its modifiers made any shapes, which they add to each time they're applied.
+	bool					mbBaseKept;
+	Ptr<CMesh>				mpBase;
+	CArrayChar				macBaseEdges;  //Whether each edge of each of its faces is visible.
+
+public:
 	void	Init(Ptr<CMesh> pMesh);
 	void 	Free(void) override;
 	void	Class(void) override;
@@ -66,6 +73,7 @@ public:
 	int		NumPolygons(void);
 
 	void	ClearConnectivity(void);
+	void	RestoreBase(void);  //For CMeshModifierStack: the mesh goes back to what its shapes are added to.
 
 	//These are the only methods that editors/modifers may use to alter mesh connectivity or positions.
 	void 	AddCorner(float32 x, float32 y, float32 z);
@@ -83,6 +91,11 @@ public:
 
 	void	MovePosition(int iPosition, SFloat32Vec3* psPosition);
 	void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
+
+protected:
+	void	ClearMesh(void);
+	void	KeepBase(void);
+	void	ForgetBase(void);
 };
 
 

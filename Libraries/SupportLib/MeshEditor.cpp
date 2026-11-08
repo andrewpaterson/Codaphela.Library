@@ -22,6 +22,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "Mesh.h"
+#include "BaseLib/Logger.h"
+#include "StandardLib/Objects.h"
 #include "MeshEditor.h"
 
 
@@ -41,6 +43,10 @@ void CMeshEditor::Init(Ptr<CMesh> pMesh)
 
 	mcModifiers.Init();
 
+	mbBaseKept = false;
+	mpBase = NULL;
+	macBaseEdges.Init();
+
 	PostInit();
 }
 
@@ -51,6 +57,7 @@ void CMeshEditor::Init(Ptr<CMesh> pMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::Free(void)
 {
+	macBaseEdges.Kill();
 }
 
 
@@ -65,6 +72,9 @@ void CMeshEditor::Class(void)
 	M_Embedded(mcSelections);
 	M_Embedded(mcEdgeVisibility);
 	M_Embedded(mcPolygons);
+	U_Bool(mbBaseKept);
+	M_Pointer(mpBase);
+	U_Unknown(CArrayChar, macBaseEdges);
 }
 
 
@@ -124,6 +134,7 @@ void CMeshEditor::Collapse(void)
 void CMeshEditor::RemoveModifiers(void)
 {
 	mcModifiers.ReInit();
+	ForgetBase();
 }
 
 
@@ -182,6 +193,17 @@ int CMeshEditor::NumVisibleEdges(char cEdge)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::ClearConnectivity(void)
 {
+	ClearMesh();
+	ForgetBase();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::ClearMesh(void)
+{
 	mpMesh->ClearConnectivity();
 	
 	mcSelections.Clear();
@@ -189,6 +211,101 @@ void CMeshEditor::ClearConnectivity(void)
 	mcPolygons.Clear();
 
 	mcModifiers.ClearConnectivity();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first time the modifiers are applied.  A mesh with what a copy
+// wouldn't keep can't be gone back to, so its shapes start from nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::KeepBase(void)
+{
+	CMeshFace*	pcFace;
+	int			i;
+	int			k;
+	int			iNumFaces;
+	int			iEdge;
+
+	if (mbBaseKept)
+	{
+		return;
+	}
+	mbBaseKept = true;
+
+	if (mpMesh->NumCorners() == 0)
+	{
+		return;
+	}
+	if (!mpMesh->CanCopy())
+	{
+		gcLogger.Warning2(__METHOD__, " Can't keep a mesh's UVs, skin or materials to add shapes to.  It is emptied.", NULL);
+		return;
+	}
+
+	mpBase = OMalloc<CMesh>();
+	mpBase->CopyFrom(&mpMesh);
+
+	iNumFaces = mpMesh->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		pcFace = mpMesh->GetFace(i);
+		for (k = 0; k < NUM_FACE_EDGES; k++)
+		{
+			iEdge = pcFace->maiEdge[k];
+			macBaseEdges.Add((iEdge < (int)mcEdgeVisibility.mcEdges.NumElements()) ? mcEdgeVisibility.GetEdge(iEdge) : 1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::ForgetBase(void)
+{
+	mbBaseKept = false;
+	mpBase = NULL;
+	macBaseEdges.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Through AddFace so that its polygons, which its visible edges decide, come
+// back as they were.  What was selected doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::RestoreBase(void)
+{
+	int*	piCorners;
+	int		i;
+	int		iNumCorners;
+	int		iNumFaces;
+
+	KeepBase();
+	ClearMesh();
+
+	if (mpBase.IsNotNull())
+	{
+		iNumCorners = mpBase->NumCorners();
+		for (i = 0; i < iNumCorners; i++)
+		{
+			AddCorner(mpBase->GetPosition(i));
+		}
+
+		iNumFaces = mpBase->NumFaces();
+		for (i = 0; i < iNumFaces; i++)
+		{
+			piCorners = mpBase->GetFaceCorners(i);
+			AddFace(piCorners[0], piCorners[1], piCorners[2], mpBase->GetFaceName(i),
+					macBaseEdges.GetValue(i * NUM_FACE_EDGES) != 0, macBaseEdges.GetValue(i * NUM_FACE_EDGES + 1) != 0, macBaseEdges.GetValue(i * NUM_FACE_EDGES + 2) != 0);
+		}
+
+		mpMesh->CopyDetailsFrom(&mpBase);
+	}
 }
 
 

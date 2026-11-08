@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 //A modifier that adds a shape from its own settings to what it is given, so that a stack can add many to one mesh.
-//A stack with one starts from an empty mesh (CMeshEditor's clears its mesh each time it applies its modifiers).
+//A stack starts from its source, or an empty mesh if it hasn't one (see CMeshModifierStack).
 class CMeshEditor;
 class CMeshSourceModifier : public CMeshModifier
 {
