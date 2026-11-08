@@ -1142,6 +1142,166 @@ void TestRasteriserInstanceTurns(void)
 }
 
 
+//Jobs run last first, when asked to wait, to show that nothing depends on the order they run in.
+class CTestBackwardsJobs : public CJobs
+{
+public:
+	JobFunction	mafJobs[1024];
+	void*		mapvData[1024];
+	int			miNumJobs;
+	int			miRun;
+
+	void	Init(void) { miNumJobs = 0; miRun = 0; }
+	void	Run(JobFunction fJob, void* pvData) override { mafJobs[miNumJobs] = fJob; mapvData[miNumJobs] = pvData; miNumJobs++; }
+	void	Wait(void) override
+	{
+		while (miNumJobs > 0)
+		{
+			miNumJobs--;
+			miRun++;
+			mafJobs[miNumJobs](mapvData[miNumJobs]);
+		}
+	}
+	int		NumThreads(void) override { return 8; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Instances draw the same bytes with jobs as without, in a mesh big enough
+// for several jobs of each kind, with triangles across many bands and depths
+// fighting, and transparent ones over them.  Jobs that can't run at the same
+// time draw as they do without jobs.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserJobs(void)
+{
+	CRasterMesh			acRaster[2];
+	CRasterCamera		cCamera;
+	CRasteriser			cRasteriser;
+	CRasterTarget		cWithout;
+	CRasterTarget		cWith;
+	SRasterInstance		asInstances[3];
+	CTestBackwardsJobs	cJobs;
+	CSerialJobs			cSerial;
+	SRasterVertex*		psVertex;
+	SRasterTriangle*	psTriangle;
+	uint32*				puiWithout;
+	uint32*				puiWith;
+	uint32				uiRandom;
+	int					iMesh;
+	int					iNumVertices;
+	int					iNumTriangles;
+	int					i;
+	int					iCorner;
+	int					iCull;
+	bool				bSame;
+
+	uiRandom = 31337;
+	for (iMesh = 0; iMesh < 2; iMesh++)
+	{
+		iNumVertices = (iMesh == 0) ? 70000 : 300;
+		iNumTriangles = (iMesh == 0) ? 80000 : 500;
+		acRaster[iMesh].Init();
+		for (i = 0; i < iNumVertices; i++)
+		{
+			psVertex = acRaster[iMesh].masVertices.Add();
+			uiRandom = uiRandom * 1103515245 + 12345;
+			psVertex->sPosition.x = (int32)((uiRandom >> 8) % (RASTER_MESH_HALF_EXTENT * 2)) - RASTER_MESH_HALF_EXTENT;
+			uiRandom = uiRandom * 1103515245 + 12345;
+			psVertex->sPosition.y = (int32)((uiRandom >> 8) % (RASTER_MESH_HALF_EXTENT * 2)) - RASTER_MESH_HALF_EXTENT;
+			uiRandom = uiRandom * 1103515245 + 12345;
+			psVertex->sPosition.z = (int32)((uiRandom >> 8) % RASTER_MESH_HALF_EXTENT) - RASTER_MESH_HALF_EXTENT / 2;
+
+			//Each three vertices close together, for small triangles.
+			if ((i % 3) != 0)
+			{
+				psVertex->sPosition.x = acRaster[iMesh].masVertices.Get(i - 1)->sPosition.x + (psVertex->sPosition.x >> 5);
+				psVertex->sPosition.y = acRaster[iMesh].masVertices.Get(i - 1)->sPosition.y + (psVertex->sPosition.y >> 5);
+				psVertex->sPosition.z = acRaster[iMesh].masVertices.Get(i - 1)->sPosition.z;
+			}
+			psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromInt(1));
+		}
+		for (i = 0; i < iNumTriangles; i++)
+		{
+			psTriangle = (i % 4 == 0) ? acRaster[iMesh].masTransparent.Add() : acRaster[iMesh].masOpaque.Add();
+			uiRandom = uiRandom * 1103515245 + 12345;
+			psTriangle->uiColour = (i % 4 == 0) ? (0x80000000 | (uiRandom >> 8)) : (0xFF000000 | (uiRandom >> 8));
+			uiRandom = uiRandom * 1103515245 + 12345;
+			if ((i % 8) != 0)
+			{
+				psTriangle->aiVertex[0] = (int32)((uiRandom >> 8) % (uint32)(iNumVertices / 3)) * 3;
+				psTriangle->aiVertex[1] = psTriangle->aiVertex[0] + 1;
+				psTriangle->aiVertex[2] = psTriangle->aiVertex[0] + 2;
+			}
+			else
+			{
+				//Big ones, across many bands.
+				for (iCorner = 0; iCorner < 3; iCorner++)
+				{
+					uiRandom = uiRandom * 1103515245 + 12345;
+					psTriangle->aiVertex[iCorner] = (int32)((uiRandom >> 8) % (uint32)iNumVertices);
+				}
+			}
+		}
+	}
+
+	puiWithout = (uint32*)malloc(200 * 150 * sizeof(uint32));
+	puiWith = (uint32*)malloc(200 * 150 * sizeof(uint32));
+	cWithout.Init(puiWithout, 200, 150, 200);
+	cWith.Init(puiWith, 200, 150, 200);
+	cRasteriser.Init();
+	cCamera.Init();
+	cCamera.Fit(200, 150);
+
+	asInstances[0].pcMesh = &acRaster[1];
+	asInstances[0].asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
+	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	asInstances[0].asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	asInstances[0].sOffset.Init(0, 0, 1 << 16);
+	asInstances[1] = asInstances[0];
+	asInstances[1].pcMesh = &acRaster[0];
+	asInstances[1].sOffset.Init(1 << 15, -(1 << 15), 0);
+	asInstances[2] = asInstances[0];
+	asInstances[2].sOffset.Init(-(1 << 17), 1 << 16, 1 << 17);
+
+	for (iCull = 0; iCull < 2; iCull++)
+	{
+		cRasteriser.SetCullBackFaces(iCull == 0);
+
+		cRasteriser.SetJobs(NULL);
+		cWithout.Clear(TEST_BLACK);
+		cRasteriser.Draw(asInstances, 3, &cCamera, &cWithout);
+		AssertTrue(CountPixels(&cWithout, TEST_BLACK) < 200 * 150 - 1000);
+
+		cJobs.Init();
+		cRasteriser.SetJobs(&cJobs);
+		cWith.Clear(TEST_BLACK);
+		cRasteriser.Draw(asInstances, 3, &cCamera, &cWith);
+		AssertTrue(cJobs.miRun > 10);
+		bSame = memcmp(puiWithout, puiWith, 200 * 150 * sizeof(uint32)) == 0;
+		AssertTrue(bSame);
+		bSame = memcmp(cWithout.mpiDepths, cWith.mpiDepths, 200 * 150 * sizeof(int32)) == 0;
+		AssertTrue(bSame);
+
+		//One job at a time is no reason to use them.
+		cRasteriser.SetJobs(&cSerial);
+		cWith.Clear(TEST_BLACK);
+		cRasteriser.Draw(asInstances, 3, &cCamera, &cWith);
+		bSame = memcmp(puiWithout, puiWith, 200 * 150 * sizeof(uint32)) == 0;
+		AssertTrue(bSame);
+	}
+
+	cRasteriser.Kill();
+	cWith.Kill();
+	cWithout.Kill();
+	free(puiWith);
+	free(puiWithout);
+	acRaster[1].Kill();
+	acRaster[0].Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1163,6 +1323,7 @@ void TestRasteriser(void)
 	TestRasteriserSmallTriangles();
 	TestRasteriserInstances();
 	TestRasteriserInstancesTransparent();
+	TestRasteriserJobs();
 	TestRasteriserInstanceTurns();
 	TestRasteriserTurnedAway();
 

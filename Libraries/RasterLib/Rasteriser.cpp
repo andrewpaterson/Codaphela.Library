@@ -43,6 +43,12 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 //How many pixels of a row a small triangle's box can have for AVX2 to test them at once: two vectors of eight.
 #define RASTER_LANES			16
 
+//How much work is one job when drawing with jobs.  Enough jobs for threads to share out what's slow to do, not so many that
+//starting them costs anything.
+#define RASTER_JOB_VERTICES		32768
+#define RASTER_JOB_TRIANGLES	32768
+#define RASTER_JOB_ROWS			16
+
 //Twice a triangle's area, or how far a pixel is inside one of its edges: subpixel times subpixel.
 typedef SFixed<int64, int64, 8>		SRasterEdge;
 
@@ -67,6 +73,11 @@ void CRasteriser::Init(void)
 {
 	masScreen.Init();
 	mbCullBackFaces = true;
+	mpcJobs = NULL;
+	masProjectJobs.Init();
+	masListJobs.Init();
+	masBandJobs.Init();
+	masDrawables.Init();
 
 	//From over the viewer's shoulder.
 	msLight.Init(SRasterUnit::FromRaw(4096), SRasterUnit::FromRaw(6144), SRasterUnit::FromRaw(14336));
@@ -79,6 +90,10 @@ void CRasteriser::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::Kill(void)
 {
+	masDrawables.Kill();
+	masBandJobs.Kill();
+	masListJobs.Kill();
+	masProjectJobs.Kill();
 	masScreen.Kill();
 }
 
@@ -90,6 +105,16 @@ void CRasteriser::Kill(void)
 void CRasteriser::SetCullBackFaces(bool bCullBackFaces)
 {
 	mbCullBackFaces = bCullBackFaces;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::SetJobs(CJobs* pcJobs)
+{
+	mpcJobs = pcJobs;
 }
 
 
@@ -154,10 +179,16 @@ void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRaste
 	}
 	GrowScreen(uiNumVertices);
 
+	if ((mpcJobs != NULL) && (mpcJobs->NumThreads() > 1))
+	{
+		DrawWithJobs(asInstances, uiNumInstances, pcCamera, &sLight, pcTarget);
+		return;
+	}
+
 	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		ProjectInstance(&asInstances[i], pcCamera, &sLight, psScreen);
+		ProjectInstance(&asInstances[i], pcCamera, &sLight, psScreen, 0, asInstances[i].pcMesh->masVertices.NumElements());
 		DrawTriangles(&asInstances[i].pcMesh->masOpaque, psScreen, pcTarget, false);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
@@ -167,6 +198,124 @@ void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRaste
 	{
 		DrawTriangles(&asInstances[i].pcMesh->masTransparent, psScreen, pcTarget, true);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, CRasterTarget* pcTarget)
+{
+	SRasterProjectJob*		psProjectJob;
+	SRasterBandJob*			psBandJob;
+	SRasterScreenVertex*	psScreen;
+	SRasterDrawable*		psDrawables;
+	size					uiNumTriangles;
+	size					uiNumVertices;
+	size					uiFirst;
+	size					i;
+	int32					iTop;
+
+	//Every array is grown here, as allocating isn't for the jobs to do.
+	uiNumTriangles = 0;
+	for (i = 0; i < uiNumInstances; i++)
+	{
+		uiNumTriangles += asInstances[i].pcMesh->NumTriangles();
+	}
+	if (masDrawables.NumElements() < uiNumTriangles)
+	{
+		masDrawables.Resize(uiNumTriangles);
+	}
+
+	masProjectJobs.Resize(0);
+	psScreen = masScreen.GetData();
+	for (i = 0; i < uiNumInstances; i++)
+	{
+		uiNumVertices = asInstances[i].pcMesh->masVertices.NumElements();
+		for (uiFirst = 0; uiFirst < uiNumVertices; uiFirst += RASTER_JOB_VERTICES)
+		{
+			psProjectJob = masProjectJobs.Add();
+			psProjectJob->pcRasteriser = this;
+			psProjectJob->psInstance = &asInstances[i];
+			psProjectJob->pcCamera = pcCamera;
+			psProjectJob->psLight = psLight;
+			psProjectJob->psScreen = psScreen;
+			psProjectJob->uiFirst = uiFirst;
+			psProjectJob->uiNumVertices = ((uiNumVertices - uiFirst) < RASTER_JOB_VERTICES) ? (uiNumVertices - uiFirst) : RASTER_JOB_VERTICES;
+		}
+		psScreen += uiNumVertices;
+	}
+	for (i = 0; i < masProjectJobs.NumElements(); i++)
+	{
+		mpcJobs->Run(ProjectJob, masProjectJobs.Get(i));
+	}
+	mpcJobs->Wait();
+
+	//All the opaque triangles and then all the transparent ones, as without jobs.
+	masListJobs.Resize(0);
+	psDrawables = masDrawables.GetData();
+	psScreen = masScreen.GetData();
+	for (i = 0; i < uiNumInstances; i++)
+	{
+		AddListJobs(&asInstances[i].pcMesh->masOpaque, psScreen, pcTarget, false, &psDrawables);
+		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
+	}
+	psScreen = masScreen.GetData();
+	for (i = 0; i < uiNumInstances; i++)
+	{
+		AddListJobs(&asInstances[i].pcMesh->masTransparent, psScreen, pcTarget, true, &psDrawables);
+		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
+	}
+	for (i = 0; i < masListJobs.NumElements(); i++)
+	{
+		mpcJobs->Run(ListJob, masListJobs.Get(i));
+	}
+	mpcJobs->Wait();
+
+	masBandJobs.Resize(0);
+	for (iTop = 0; iTop < pcTarget->miHeight; iTop += RASTER_JOB_ROWS)
+	{
+		psBandJob = masBandJobs.Add();
+		psBandJob->pcRasteriser = this;
+		psBandJob->pcTarget = pcTarget;
+		psBandJob->iTop = iTop;
+		psBandJob->iBottom = (iTop + RASTER_JOB_ROWS - 1 < pcTarget->miHeight - 1) ? iTop + RASTER_JOB_ROWS - 1 : pcTarget->miHeight - 1;
+	}
+	for (i = 0; i < masBandJobs.NumElements(); i++)
+	{
+		mpcJobs->Run(BandJob, masBandJobs.Get(i));
+	}
+	mpcJobs->Wait();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::AddListJobs(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, SRasterDrawable** ppsDrawables)
+{
+	SRasterListJob*	psJob;
+	size			uiNumTriangles;
+	size			uiFirst;
+
+	uiNumTriangles = pasTriangles->NumElements();
+	for (uiFirst = 0; uiFirst < uiNumTriangles; uiFirst += RASTER_JOB_TRIANGLES)
+	{
+		psJob = masListJobs.Add();
+		psJob->pcRasteriser = this;
+		psJob->pcTarget = pcTarget;
+		psJob->psTriangles = pasTriangles->GetData() + uiFirst;
+		psJob->uiNumTriangles = ((uiNumTriangles - uiFirst) < RASTER_JOB_TRIANGLES) ? (uiNumTriangles - uiFirst) : RASTER_JOB_TRIANGLES;
+		psJob->psScreen = psScreen;
+		psJob->psDrawables = *ppsDrawables;
+		psJob->uiNumDrawables = 0;
+		psJob->iTop = 0x7FFFFFFF;
+		psJob->iBottom = -0x7FFFFFFF;
+		psJob->bTransparent = bTransparent;
+		*ppsDrawables += psJob->uiNumTriangles;
 	}
 }
 
@@ -219,16 +368,16 @@ static bool RasterQuarterTurn(SInt32Vec3* psAxis, int32* piFrom, int32* piSign)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An instance's vertices on the screen, to psScreen.  psLight is towards the
+// Some of an instance's vertices on the screen, from psScreen, which is where
+// its first vertex goes.  psLight is towards the
 // light in the space the instances are in.  Turning it back into the mesh's
 // space, once, is the same as turning every normal out of it.  A board's
 // vertices often have the normal of the one before, and so its shade.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen)
+void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices)
 {
 	size					i;
-	size					uiNumVertices;
 	SRasterVertex*			psVertex;
 	SInt64Vec3				sAxes[3];
 	SInt64Vec3				sPosition;
@@ -263,9 +412,8 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 				(sAxes[0].y * psLight->x.miRaw + sAxes[1].y * psLight->y.miRaw + sAxes[2].y * psLight->z.miRaw) >> RASTER_AXIS_BITS,
 				(sAxes[0].z * psLight->x.miRaw + sAxes[1].z * psLight->y.miRaw + sAxes[2].z * psLight->z.miRaw) >> RASTER_AXIS_BITS);
 
-	uiNumVertices = psInstance->pcMesh->masVertices.NumElements();
 	psVertex = psInstance->pcMesh->masVertices.GetData();
-	for (i = 0; i < uiNumVertices; i++)
+	for (i = uiFirst; i < uiFirst + uiNumVertices; i++)
 	{
 		if (bQuarterTurns)
 		{
@@ -528,7 +676,7 @@ static FORCE_INLINE void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, u
 // pixel, which is most of them, for less than it costs to call DrawTriangle.
 //
 //////////////////////////////////////////////////////////////////////////
-static FORCE_INLINE bool RasterMayDraw(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, bool bCullBackFaces)
+static FORCE_INLINE bool RasterMayDraw(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, bool bCullBackFaces, int32* piTop, int32* piBottom)
 {
 	SRasterEdge	sArea;
 	int32		iMinX;
@@ -549,6 +697,8 @@ static FORCE_INLINE bool RasterMayDraw(CRasterTarget* pcTarget, SRasterScreenVer
 	iMinY = (Min3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) + SRasterSubpixel::FromRaw(7)).Floor();
 	iMaxX = (Max3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) - SRasterSubpixel::FromRaw(8)).Floor();
 	iMaxY = (Max3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) - SRasterSubpixel::FromRaw(8)).Floor();
+	*piTop = iMinY;
+	*piBottom = iMaxY;
 	return (iMinX <= iMaxX) && (iMinY <= iMaxY) && (iMinX < pcTarget->miWidth) && (iMinY < pcTarget->miHeight) && (iMaxX >= 0) && (iMaxY >= 0);
 }
 
@@ -562,14 +712,105 @@ void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScree
 	size				i;
 	size				uiNumTriangles;
 	SRasterTriangle*	psTriangle;
+	int32				iTop;
+	int32				iBottom;
 
 	uiNumTriangles = pasTriangles->NumElements();
 	psTriangle = pasTriangles->GetData();
 	for (i = 0; i < uiNumTriangles; i++)
 	{
-		if (RasterMayDraw(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], mbCullBackFaces))
+		if (RasterMayDraw(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], mbCullBackFaces, &iTop, &iBottom))
 		{
-			DrawTriangle(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], psTriangle[i].uiColour, bTransparent);
+			DrawTriangleRows(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], psTriangle[i].uiColour, bTransparent, 0, pcTarget->miHeight - 1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::ProjectJob(void* pvJob)
+{
+	SRasterProjectJob*	psJob;
+
+	psJob = (SRasterProjectJob*)pvJob;
+	psJob->pcRasteriser->ProjectInstance(psJob->psInstance, psJob->pcCamera, psJob->psLight, psJob->psScreen, psJob->uiFirst, psJob->uiNumVertices);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes only to its own drawables.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::ListJob(void* pvJob)
+{
+	SRasterListJob*			psJob;
+	SRasterTriangle*		psTriangle;
+	SRasterScreenVertex*	psScreen;
+	SRasterDrawable*		psDrawable;
+	size					i;
+	int32					iTop;
+	int32					iBottom;
+	bool					bCullBackFaces;
+
+	psJob = (SRasterListJob*)pvJob;
+	psScreen = psJob->psScreen;
+	bCullBackFaces = psJob->pcRasteriser->mbCullBackFaces;
+	for (i = 0; i < psJob->uiNumTriangles; i++)
+	{
+		psTriangle = &psJob->psTriangles[i];
+		if (RasterMayDraw(psJob->pcTarget, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[1]], &psScreen[psTriangle->aiVertex[2]], bCullBackFaces, &iTop, &iBottom))
+		{
+			psDrawable = &psJob->psDrawables[psJob->uiNumDrawables];
+			psJob->uiNumDrawables++;
+			psDrawable->psTriangle = psTriangle;
+			psDrawable->iTop = iTop;
+			psDrawable->iBottom = iBottom;
+			psJob->iTop = (iTop < psJob->iTop) ? iTop : psJob->iTop;
+			psJob->iBottom = (iBottom > psJob->iBottom) ? iBottom : psJob->iBottom;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes only to its own rows of the target.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::BandJob(void* pvJob)
+{
+	SRasterBandJob*			psJob;
+	CRasteriser*			pcRasteriser;
+	SRasterListJob*			psList;
+	SRasterDrawable*		psDrawable;
+	SRasterTriangle*		psTriangle;
+	SRasterScreenVertex*	psScreen;
+	size					uiNumLists;
+	size					uiList;
+	size					i;
+
+	psJob = (SRasterBandJob*)pvJob;
+	pcRasteriser = psJob->pcRasteriser;
+	uiNumLists = pcRasteriser->masListJobs.NumElements();
+	for (uiList = 0; uiList < uiNumLists; uiList++)
+	{
+		psList = pcRasteriser->masListJobs.Get(uiList);
+		if ((psList->iBottom >= psJob->iTop) && (psList->iTop <= psJob->iBottom))
+		{
+			psScreen = psList->psScreen;
+			for (i = 0; i < psList->uiNumDrawables; i++)
+			{
+				psDrawable = &psList->psDrawables[i];
+				if ((psDrawable->iBottom >= psJob->iTop) && (psDrawable->iTop <= psJob->iBottom))
+				{
+					psTriangle = psDrawable->psTriangle;
+					pcRasteriser->DrawTriangleRows(psJob->pcTarget, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[1]], &psScreen[psTriangle->aiVertex[2]], psTriangle->uiColour, psList->bTransparent, psJob->iTop, psJob->iBottom);
+				}
+			}
 		}
 	}
 }
@@ -580,6 +821,18 @@ void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScree
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent)
+{
+	DrawTriangleRows(pcTarget, psA, psB, psC, uiColour, bTransparent, 0, pcTarget->miHeight - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As much of it as is on rows iTop to iBottom.  What's drawn on a row is the
+// same whichever others are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent, int32 iTop, int32 iBottom)
 {
 	SRasterScreenVertex*	psSwap;
 	SRasterEdge				sArea;
@@ -695,6 +948,14 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	if (iMaxY >= pcTarget->miHeight)
 	{
 		iMaxY = pcTarget->miHeight - 1;
+	}
+	if (iMinY < iTop)
+	{
+		iMinY = iTop;
+	}
+	if (iMaxY > iBottom)
+	{
+		iMaxY = iBottom;
 	}
 	if ((iMinX > iMaxX) || (iMinY > iMaxY))
 	{
