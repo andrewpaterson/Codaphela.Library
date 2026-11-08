@@ -318,7 +318,6 @@ bool CCPP65IRFrontEnd::FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue*
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue)
 {
-	SCPP65Function*		psFunction;
 	SCPP65Function*		psFound;
 	CCPPSyntaxName*		pcName;
 	int64				lliName;
