@@ -38,12 +38,20 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // A vertex divides three numbers by the same distance.  One real division
-// makes this, and RasterDivideFloor makes each of them from it.
+// makes this, and RasterDivideFloor makes each of them from it.  A double's
+// division costs well under half a 64 bit integer's, and how close it is
+// doesn't matter as long as it isn't too high: RasterDivideFloor corrects what
+// comes from it to the exact answer, so no build can draw a different pixel.
 //
 //////////////////////////////////////////////////////////////////////////
 static FORCE_INLINE uint64 RasterDivideInverse(uint64 uiDivisor)
 {
 #ifdef RASTER_MULTIPLY_HIGH
+	//2^64 less 2^12, so that rounding can't take it above the true inverse.  From 4 it fits an int64.
+	if (uiDivisor >= 4)
+	{
+		return (uint64)(int64)(18446744073709547520.0 / (float64)(int64)uiDivisor);
+	}
 	return ~(uint64)0 / uiDivisor;
 #else
 	return 0;

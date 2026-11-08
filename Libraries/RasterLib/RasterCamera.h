@@ -59,7 +59,7 @@ struct SRasterScreenVertex
 
 
 //The eye looks along -Z from miDistance away, with the mesh turned around msPivot by a rotation held in BaseLib's float
-//matrix.  Prepare converts it to fixed point once a frame and Project is then entirely integer.
+//matrix.  Prepare converts it to fixed point once a frame and Project's results are then exact integers.
 //
 //Drag, Pan, PanStep, Zoom and LookAtScreen move the camera as KiCad's 3D viewer does: a virtual trackball, a pan that
 //keeps what is at the pivot's depth under the pointer, and zooming by moving the eye (so a very close eye can cut
