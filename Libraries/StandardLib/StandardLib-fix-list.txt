@@ -14,20 +14,20 @@ A4. [321] CObjectIdentifier::Init(void) leaves muiSize unset; CPointerHeader::In
 
 B. Near-bugs: leaks, dangling or unchecked pointers, wrong results
 ------------------------------------------------------------------
-B1. [91] CUnknowns::Remove silently returns false for an unknown that belongs to another CUnknowns.  [done 783cfa7bf]
-B2. [92] CUnknowns::Init dereferences mpcConstructors without a NULL check.  [done 783cfa7bf]
-B3. [97] GetIterableListsHeadNumElements reaches into mcFreeListPtrs and crashes on a NULL head.  [done 783cfa7bf]
-B4. [101] CIterables::StartIteration<M> constructs an M on the stack (no Init/Kill) just to ask its class.  [done 783cfa7bf]
-B5. [102] CIterables::Remove returns true whether or not the list held the unknown.  [done 783cfa7bf]
-B6. [103] CIterables::RemoveDuringIteration<M> dereferences psIter->pcList unchecked.  [done 783cfa7bf]
-B7. [114] ReadArrayHeader calls Init (leaks if already Init'd) and trusts the non-NULL count from the file.  [done 783cfa7bf]
-B8. [115] CArrayCommonUnknown::AddAll (not unique) copies raw slots: two kill-elements arrays both kill them.  [done 783cfa7bf]
-B9. [117] CleanNullsIfNecessary never cleans an array that is all NULLs.  [done 783cfa7bf]
-B10. [122] CSetUnknown::Init passes bSortPointers in the bPreserveOrder slot.  [done 783cfa7bf]
-B11. [138] CSetObject::Dump loops to the non-NULL count over raw slots, missing tail entries.
-B12. [142] RemoveObjectCopiesTryFree(NULL) returns false where RemoveObjectTryFree(NULL) returns true.
-B13. [148] CMapUnknownUnknown::SetKey writes a key into a pointer-sorted map without re-sorting or killing the old key; SetValue doesn't kill the old value.
-B14. [161] CMapObject::NonNullElements and IsMemberAt (a validator) call EnsureSorted: queries that mutate.
+B1. [91] CUnknowns::Remove silently returns false for an unknown that belongs to another CUnknowns.  [done 99a61bfdd]
+B2. [92] CUnknowns::Init dereferences mpcConstructors without a NULL check.  [done 99a61bfdd]
+B3. [97] GetIterableListsHeadNumElements reaches into mcFreeListPtrs and crashes on a NULL head.  [done 99a61bfdd]
+B4. [101] CIterables::StartIteration<M> constructs an M on the stack (no Init/Kill) just to ask its class.  [done 99a61bfdd]
+B5. [102] CIterables::Remove returns true whether or not the list held the unknown.  [done 99a61bfdd]
+B6. [103] CIterables::RemoveDuringIteration<M> dereferences psIter->pcList unchecked.  [done 99a61bfdd]
+B7. [114] ReadArrayHeader calls Init (leaks if already Init'd) and trusts the non-NULL count from the file.  [done 99a61bfdd]
+B8. [115] CArrayCommonUnknown::AddAll (not unique) copies raw slots: two kill-elements arrays both kill them.  [done 99a61bfdd]
+B9. [117] CleanNullsIfNecessary never cleans an array that is all NULLs.  [done 99a61bfdd]
+B10. [122] CSetUnknown::Init passes bSortPointers in the bPreserveOrder slot.  [done 99a61bfdd]
+B11. [138] CSetObject::Dump loops to the non-NULL count over raw slots, missing tail entries.  [done 3b84bf869]
+B12. [142] RemoveObjectCopiesTryFree(NULL) returns false where RemoveObjectTryFree(NULL) returns true.  [done 3b84bf869]
+B13. [148] CMapUnknownUnknown::SetKey writes a key into a pointer-sorted map without re-sorting or killing the old key; SetValue doesn't kill the old value.  [done 3b84bf869]
+B14. [161] CMapObject::NonNullElements and IsMemberAt (a validator) call EnsureSorted: queries that mutate.  [done 3b84bf869]
 B15. [216] A negative field offset (field not inside the object) silently becomes a NULL-class field at offset 0 (CPointerField, CPrimitiveField); it should be an error.
 B16. [250] CObjects::Root() and FreeObjects() call ->Init() on Malloc's result without a NULL check.
 B17. [251] NumDatabaseIndexes / NumDatabaseNames dereference mpcDataConnection unchecked.
