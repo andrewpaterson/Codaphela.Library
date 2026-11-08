@@ -147,12 +147,24 @@ bool SDockRestore::IsSet(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Beside the document well on a side.
+// Beside the document well on a side, or beside a node holding it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool SDockRestore::IsBesideWell(void)
 {
-	return szNeighbour.Equals(DOCK_WELL_NEIGHBOUR) && (eSide != DS_None) && (eSide != DS_Centre);
+	return (szNeighbour.Equals(DOCK_WELL_NEIGHBOUR) || szNeighbour.Equals(DOCK_AROUND_WELL_NEIGHBOUR)) && (eSide != DS_None) && (eSide != DS_Centre);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Beside a node holding the document well and more, as a group docked
+// along the edge of the whole area is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SDockRestore::IsAroundWell(void)
+{
+	return IsBesideWell() && szNeighbour.Equals(DOCK_AROUND_WELL_NEIGHBOUR);
 }
 
 

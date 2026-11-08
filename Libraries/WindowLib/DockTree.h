@@ -48,7 +48,7 @@ public:
 	void				ReplaceInParent(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew);
 	void				Tidy(Ptr<CDockNode> pNode);
 	void				Flatten(Ptr<CDockSplit> pSplit);
-	Ptr<CDockNode>		ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide);
+	Ptr<CDockNode>		ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide, bool bAround = false);
 	EDockSide			SideOfWell(Ptr<CDockNode> pNode);
 	Ptr<CDockGroup>		GatherInto(Ptr<CDockNode> pNode, bool bDocuments);
 

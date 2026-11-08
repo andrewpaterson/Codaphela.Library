@@ -63,7 +63,7 @@ struct SDockPlace
 
 
 //Where a pane goes back to when it is docked again: the group it was in (by ID) and its tab's place there, and a pane
-//near it (by ID, or DOCK_WELL_NEIGHBOUR) with the side of that pane's node it was on, centre for in its group, and its
+//near it (by ID, or DOCK_WELL_NEIGHBOUR or DOCK_AROUND_WELL_NEIGHBOUR) with the side of that pane's node it was on, centre for in its group, and its
 //size along that side.  bInWell if it was in the document well.
 struct SDockRestore
 {
@@ -80,6 +80,7 @@ struct SDockRestore
 	void	SetNeighbour(const char* szNeighbour);
 	bool	IsSet(void);
 	bool	IsBesideWell(void);
+	bool	IsAroundWell(void);
 };
 
 

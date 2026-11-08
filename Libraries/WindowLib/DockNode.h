@@ -33,6 +33,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define DOCK_GRAB_LEFT			40	//A tab torn off is held this far into its floating window's title.
 #define DOCK_RESTORE_DEPTH		4	//Neighbours followed back to find where a pane goes.
 #define DOCK_WELL_NEIGHBOUR		"#DocumentWell"	//A pane's restore neighbour when it was beside the document well.
+#define DOCK_AROUND_WELL_NEIGHBOUR	"#AroundDocumentWell"	//When it was beside a node holding the well and more.
 
 
 //The sides something can be docked on, of a group, the document well or a dock area, and the centre: tabbed into a

@@ -526,10 +526,12 @@ void CDockTree::MergeSplit(Ptr<CDockSplit> pParent, Ptr<CDockSplit> pChild)
 //
 // The first node up from pStart that is in a split of the direction: what
 // a group was docked beside when it was in such a split with pStart's
-// node.  pStart if there is none: the split went when the group left.
+// node.  If there is none the split went when the group left: pStart, or
+// with bAround (the group was beside a node holding pStart and more) the
+// top node, which was that node.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CDockNode> CDockTree::ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide)
+Ptr<CDockNode> CDockTree::ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide, bool bAround)
 {
 	Ptr<CDockNode>		pNode;
 	Ptr<CDockSplit>		pSplit;
@@ -546,8 +548,8 @@ Ptr<CDockNode> CDockTree::ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide)
 		pParent = pNode->GetParentNode();
 		if (pParent.IsNull())
 		{
-			//No split of the direction: beside pStart itself, which was what the group was beside.
-			return pStart;
+			//No split of the direction: beside pStart itself, or the node around it, which was what the group was beside.
+			return bAround ? pNode : pStart;
 		}
 		pNode = pParent;
 	}

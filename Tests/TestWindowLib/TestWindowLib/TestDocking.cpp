@@ -467,7 +467,8 @@ void TestDockingHideFloatAutoHide(void)
 		sTest.Init(&cNativeFactory);
 		pOutputGroup = sTest.pOutput->GetGroup();
 
-		//Explorer hidden: the well takes its place.  Shown, it goes back on the left at its width.
+		//Explorer hidden: the well takes its place.  It was beside the well and Output.  Shown, it goes back on the left at
+		//its width.
 		sTest.pManager->Hide(sTest.pExplorer);
 		sTest.pWindow->Layout();
 		AssertInt(DPS_Hidden, sTest.pExplorer->GetState());
@@ -475,7 +476,7 @@ void TestDockingHideFloatAutoHide(void)
 		AssertTrue(sTest.pExplorer->GetContent()->GetParent().IsNull());
 		sTest.pManager->GetWell()->GetActualBounds(&cBounds);
 		AssertInt(0, cBounds.GetLeft());
-		AssertString(DOCK_WELL_NEIGHBOUR, sTest.pExplorer->GetRestore()->szNeighbour.Text());
+		AssertString(DOCK_AROUND_WELL_NEIGHBOUR, sTest.pExplorer->GetRestore()->szNeighbour.Text());
 		AssertInt(DS_Left, sTest.pExplorer->GetRestore()->eSide);
 		sTest.pManager->Show(sTest.pExplorer);
 		sTest.pWindow->Layout();
@@ -1930,6 +1931,79 @@ void TestDockingCloseMultiple(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tool group of two floated by double clicking its title bar, then
+// docked back by double clicking the floating window's: both panes go
+// back to the one group, where it was, with the same tab selected.  Checked beside the well and along
+// the area's bottom edge (the node beside it holds the well).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingFloatGroupBack(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	int						iEdge;
+
+	for (iEdge = 0; iEdge < 2; iEdge++)
+	{
+		SDockTest				sTest;
+		SDockTarget				sTarget;
+		Ptr<CDockNode>			pGroup;
+		Ptr<CDockFloatingWindow>	pFloating;
+		CInt32Rect				cBefore;
+		CInt32Rect				cAfter;
+
+		sTest.Init(&cNativeFactory);
+		if (iEdge == 1)
+		{
+			sTest.pManager->FloatGroup(sTest.pOutput->GetGroup());
+			pFloating = sTest.pManager->GetFloating(0);
+			pGroup = pFloating->TakeRoot();
+			sTest.pManager->RemoveFloating(pFloating);
+			pFloating = NULL;
+			sTarget.Init();
+			sTarget.eKind = DTK_AreaEdge;
+			sTarget.eSide = DS_Bottom;
+			sTarget.pcArea = &sTest.pManager->GetArea();
+			sTarget.cPreview.Init(0, 480, 800, 120);
+			AssertTrue(sTest.pManager->DockNodeAt(pGroup, &sTarget));
+			pGroup = NULL;
+			sTest.pWindow->Layout();
+		}
+		AssertTrue(sTest.pOutput->GetGroup() == sTest.pErrors->GetGroup());
+		sTest.pOutput->GetGroup()->SelectPane(sTest.pOutput);
+		sTest.pWindow->Layout();
+		sTest.pOutput->GetGroup()->GetActualBounds(&cBefore);
+
+		sTest.pManager->ToggleFloatGroup(sTest.pOutput->GetGroup());
+		sTest.pWindow->Layout();
+		AssertSize(1, sTest.pManager->NumFloating());
+		AssertInt(DPS_Floating, sTest.pOutput->GetState());
+		AssertInt(DPS_Floating, sTest.pErrors->GetState());
+
+		sTest.pManager->ToggleFloatGroup(sTest.pOutput->GetGroup());
+		sTest.pWindow->Layout();
+		AssertSize(0, sTest.pManager->NumFloating());
+		AssertInt(DPS_Docked, sTest.pOutput->GetState());
+		AssertInt(DPS_Docked, sTest.pErrors->GetState());
+		AssertTrue(sTest.pOutput->GetGroup() == sTest.pErrors->GetGroup());
+		AssertSize(2, sTest.pOutput->GetGroup()->NumPanes());
+		AssertTrue(sTest.pOutput->GetGroup()->GetSelectedPane() == sTest.pOutput);
+		sTest.pOutput->GetGroup()->GetActualBounds(&cAfter);
+		AssertInt(cBefore.GetLeft(), cAfter.GetLeft());
+		AssertInt(cBefore.GetTop(), cAfter.GetTop());
+		AssertInt(cBefore.GetWidth(), cAfter.GetWidth());
+		AssertInt(cBefore.GetHeight(), cAfter.GetHeight());
+
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDocking(void)
@@ -1954,6 +2028,7 @@ void TestDocking(void)
 	TestDockingLayoutFile();
 	TestDockingLayoutFileAreaEdge();
 	TestDockingFloatingInput();
+	TestDockingFloatGroupBack();
 	ValidateLabelObjects();
 
 	ObjectsFlush();

@@ -326,11 +326,14 @@ void CDockMover::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every pane of the floating window goes back where it was docked; the
+// tabs selected in its groups are still selected.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockMover::DockFloating(Ptr<CDockFloatingWindow> pFloating)
 {
 	CArray<CDockPane>	aPanes;
+	CArray<CDockPane>	aSelected;
 	size				i;
 	Ptr<CDockNode>		pRoot;
 	Ptr<CDockPane>		pPane;
@@ -341,12 +344,30 @@ void CDockMover::DockFloating(Ptr<CDockFloatingWindow> pFloating)
 		return;
 	}
 	aPanes.Init();
+	aSelected.Init();
 	pRoot->GetPanes(&aPanes);
+	for (i = 0; i < aPanes.NumElements(); i++)
+	{
+		pPane = aPanes.Get(i);
+		if (pPane->GetGroup()->GetSelectedPane() == pPane)
+		{
+			aSelected.Add(pPane);
+		}
+	}
 	for (i = 0; i < aPanes.NumElements(); i++)
 	{
 		pPane = aPanes.Get(i);
 		Dock(pPane);
 	}
+	for (i = 0; i < aSelected.NumElements(); i++)
+	{
+		pPane = aSelected.Get(i);
+		if (pPane->GetState() == DPS_Docked)
+		{
+			pPane->GetGroup()->SelectPane(pPane);
+		}
+	}
+	aSelected.Kill();
 	aPanes.Kill();
 }
 

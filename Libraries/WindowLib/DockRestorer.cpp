@@ -160,7 +160,7 @@ void CDockRestorer::SetNeighbour(SDockRestore* psDest, Ptr<CDockNode> pSibling)
 
 	if (pSibling->ContainsDocumentWell())
 	{
-		psDest->SetNeighbour(DOCK_WELL_NEIGHBOUR);
+		psDest->SetNeighbour(pSibling->IsDocumentWell() ? DOCK_WELL_NEIGHBOUR : DOCK_AROUND_WELL_NEIGHBOUR);
 		return;
 	}
 	pSiblingGroup = pSibling->GetFirstGroup();
@@ -231,6 +231,13 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 		return;
 	}
 
+	//The group remembered is still there but not docked (floating, with the rest of its panes): it gives up its ID, so
+	//the group made for this pane where it was docked takes it, and the panes docked back after this one join it.
+	if (pGroup.IsNotNull() && !pGroup->IsWithin(mpcState->GetArea()))
+	{
+		pGroup->SetID(mpcState->TakeGroupID(0));
+	}
+
 	if (psFrom->IsBesideWell())
 	{
 		DockBeside(pPane, mpcState->GetWell(), psFrom);
@@ -295,7 +302,7 @@ void CDockRestorer::DockBeside(Ptr<CDockPane> pPane, Ptr<CDockNode> pNear, SDock
 	Ptr<CDockNode>	pBeside;
 	Ptr<CDockGroup>	pNew;
 
-	pBeside = mpcState->GetTree()->ClimbToSplit(pNear, psFrom->eSide);
+	pBeside = mpcState->GetTree()->ClimbToSplit(pNear, psFrom->eSide, psFrom->IsAroundWell());
 	pNew = mpcManager->CreateGroup(mpcManager->IsInWell(pBeside), psFrom->iGroup);
 	mpcManager->PlaceInGroup(pNew, pPane);
 	mpcState->GetTree()->DockBeside(pBeside, pNew, psFrom->eSide, psFrom->iSize);
