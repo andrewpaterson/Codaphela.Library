@@ -508,23 +508,23 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	psElement = psPlace->psType->psBase;
 	pcInitialiser = mpcGenerator->StringInitialiser(pcInitialiser, psElement);
-	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psElement->iBytes == 1) && psElement->IsScalar())
+	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && psElement->IsScalar() && (psElement->iBytes == mpcGenerator->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
-		if (!mpcGenerator->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() > (size)psPlace->psType->iCount))
+		if (!mpcGenerator->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() / psElement->iBytes > (size)psPlace->psType->iCount))
 		{
 			auiBytes.Kill();
 			return Unsupported(__FILE__, __LINE__);
 		}
-		for (ui = 0; ui < auiBytes.NumElements(); ui++)
+		for (ui = 0; ui < auiBytes.NumElements() / psElement->iBytes; ui++)
 		{
-			sPlace.sAddress = AddressAt(psPlace->sAddress, (int)ui);
+			sPlace.sAddress = AddressAt(psPlace->sAddress, (int)ui * psElement->iBytes);
 			sPlace.psType = psElement;
-			sValue.sValue = Integer(psElement, auiBytes.GetValue(ui));
+			sValue.sValue = Integer(psElement, mpcGenerator->StringElement(&auiBytes, psElement->iBytes, ui));
 			sValue.psType = psElement;
 			Store(&sPlace, &sValue);
 		}
-		ZeroElements(psPlace->sAddress, (int)ui, psElement, psPlace->psType->iCount - (int)ui);
+		ZeroElements(psPlace->sAddress, (int)ui * psElement->iBytes, psElement, psPlace->psType->iCount - (int)ui);
 		auiBytes.Kill();
 		return true;
 	}

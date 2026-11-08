@@ -2289,23 +2289,29 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 {
 	CCPPToken*	pcToken;
 	int			iToken;
+	int			iElementBytes;
 	CChars		szName;
 	char*		szIdentifier;
 	int			iLength;
 	size		i;
 
+	iElementBytes = StringElementBytes(pcString);
 	for (iToken = pcString->miFirstToken; iToken <= pcString->miLastToken; iToken++)
 	{
 		pcToken = mpcTokeniser->Get(iToken);
 		if (pcToken->IsString())
 		{
-			if (!DecodeStringToken(pcString, (CCTString*)pcToken, pauiBytes))
+			if (!DecodeStringToken(pcString, (CCTString*)pcToken, iElementBytes, pauiBytes))
 			{
 				return false;
 			}
 			continue;
 		}
 
+		if (iElementBytes != 1)
+		{
+			return Error(pcString, "The function's name can't be part of a wide string literal");
+		}
 		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength) : NULL;
 		szName.Init();
 		if (szIdentifier && (iLength == 13) && (memcmp(szIdentifier, "__FUNCDNAME__", 13) == 0))
@@ -2327,6 +2333,133 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		szName.Kill();
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends a string's element, the low byte first.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendStringElement(CArrayUint8* pauiBytes, uint32 uiElement, int iElementBytes)
+{
+	int		i;
+
+	for (i = 0; i < iElementBytes; i++)
+	{
+		pauiBytes->Add((uint8)(uiElement >> (8 * i)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A character of a wide string: UTF-32 in 4 byte elements, otherwise UTF-16,
+// where one past 0xFFFF is a surrogate pair.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendWideCharacter(CArrayUint8* pauiBytes, uint32 uiCharacter, int iElementBytes)
+{
+	if ((iElementBytes == 2) && (uiCharacter > 0xFFFF))
+	{
+		AppendStringElement(pauiBytes, 0xD800 + ((uiCharacter - 0x10000) >> 10), 2);
+		AppendStringElement(pauiBytes, 0xDC00 + ((uiCharacter - 0x10000) & 0x3FF), 2);
+		return;
+	}
+	AppendStringElement(pauiBytes, uiCharacter, iElementBytes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The character whose UTF-8 *psz is at (a byte that doesn't start one is that
+// byte), with *psz moved past it.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 DecodeUTF8(const char** psz, const char* szEnd)
+{
+	const uint8*	pu;
+	uint32			uiCharacter;
+	int				iMore;
+	int				i;
+
+	pu = (const uint8*)*psz;
+	iMore = ((pu[0] & 0xE0) == 0xC0) ? 1 : ((pu[0] & 0xF0) == 0xE0) ? 2 : ((pu[0] & 0xF8) == 0xF0) ? 3 : 0;
+	uiCharacter = (iMore == 0) ? pu[0] : (pu[0] & (0x3F >> iMore));
+	for (i = 1; i <= iMore; i++)
+	{
+		if (((const char*)&pu[i] >= szEnd) || ((pu[i] & 0xC0) != 0x80))
+		{
+			(*psz)++;
+			return pu[0];
+		}
+		uiCharacter = (uiCharacter << 6) | (pu[i] & 0x3F);
+	}
+	*psz += iMore + 1;
+	return uiCharacter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes of an element of a string expression: its widest token's, as
+// adjacent literals take the prefix any of them has.  [lex.string]
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::StringElementBytes(CCPPSyntax* pcString)
+{
+	CCPPToken*	pcToken;
+	int			iToken;
+	int			iBytes;
+
+	iBytes = 1;
+	for (iToken = pcString->miFirstToken; iToken <= pcString->miLastToken; iToken++)
+	{
+		pcToken = mpcTokeniser->Get(iToken);
+		if (pcToken->IsString() && (((CCTString*)pcToken)->meEncoding == CTE_UTF32))
+		{
+			return 4;
+		}
+		if (pcToken->IsString() && ((((CCTString*)pcToken)->meEncoding == CTE_Wide) || (((CCTString*)pcToken)->meEncoding == CTE_UTF16)))
+		{
+			iBytes = 2;
+		}
+	}
+	return iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of a string expression's elements: char, or for a wide string
+// wchar_t, char16_t or char32_t (the same unsigned integers of their widths).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::StringElementType(CCPPSyntax* pcString)
+{
+	int		iBytes;
+
+	iBytes = StringElementBytes(pcString);
+	return (iBytes == 1) ? &mcTypes.msChar : mcTypes.Integer(iBytes, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A decoded string's element uiElement.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPP65Generator::StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement)
+{
+	uint32	uiValue;
+	int		i;
+
+	uiValue = 0;
+	for (i = 0; i < iElementBytes; i++)
+	{
+		uiValue |= (uint32)pauiBytes->GetValue(uiElement * iElementBytes + i) << (8 * i);
+	}
+	return uiValue;
 }
 
 
@@ -2368,17 +2501,12 @@ static void AppendUTF8(CArrayUint8* pauiBytes, uint32 uiCharacter)
 // the tokeniser decodes them, DecodeEscape).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, CArrayUint8* pauiBytes)
+bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes)
 {
 	const char*		sz;
 	const char*		szEnd;
 	uint32			uiValue;
 	char			cEscape;
-
-	if ((pcToken->meEncoding != CTE_Narrow) && (pcToken->meEncoding != CTE_UTF8))
-	{
-		return Error(pcString, "Wide string literals are not supported by the compiler yet");
-	}
 
 	sz = pcToken->mszStart;
 	while (*sz != '"')
@@ -2396,8 +2524,15 @@ bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken
 	{
 		if (*sz != '\\')
 		{
-			pauiBytes->Add((uint8)*sz);
-			sz++;
+			if (iElementBytes == 1)
+			{
+				pauiBytes->Add((uint8)*sz);
+				sz++;
+			}
+			else
+			{
+				AppendWideCharacter(pauiBytes, DecodeUTF8(&sz, szEnd), iElementBytes);
+			}
 			continue;
 		}
 
@@ -2410,15 +2545,22 @@ bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken
 		}
 		if ((cEscape == 'u') || (cEscape == 'U'))
 		{
-			AppendUTF8(pauiBytes, uiValue);
+			if (iElementBytes == 1)
+			{
+				AppendUTF8(pauiBytes, uiValue);
+			}
+			else
+			{
+				AppendWideCharacter(pauiBytes, uiValue, iElementBytes);
+			}
 		}
-		else if (uiValue > 0xFF)
+		else if ((iElementBytes < 4) && (uiValue >= ((uint32)1 << (8 * iElementBytes))))
 		{
-			return Error(pcString, "The escape sequence's value is too large for a char");
+			return Error(pcString, (iElementBytes == 1) ? "The escape sequence's value is too large for a char" : "The escape sequence's value is too large for a wide character");
 		}
 		else
 		{
-			pauiBytes->Add((uint8)uiValue);
+			AppendStringElement(pauiBytes, uiValue, iElementBytes);
 		}
 	}
 	return true;

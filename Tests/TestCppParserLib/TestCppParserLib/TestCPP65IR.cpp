@@ -1540,6 +1540,61 @@ void TestCPP65IRSpecialisationMembers(void)
 }
 
 
+//The wide string literals both targets run (TestCPP65IRWideStrings, TestCPP816WideStrings).  0 if they're right.
+const char*	gszTestCPP65WideStrings =
+	"const char16_t* gp = u\"hi\";\n"
+	"const wchar_t* gq = L\"yo\";\n"
+	"wchar_t ga[] = L\"abc\";\n"
+	"char16_t gb[4] = u\"de\";\n"
+	"char32_t gc[] = U\"\\U0001F600x\";\n"
+	"char16_t gd[] = u\"\\U0001F600\";\n"
+	"wchar_t ge[] = { L\"f\" };\n"
+	"int main()\n"
+	"{\n"
+	"\twchar_t la[] = L\"xy\"; char32_t lb[3] = U\"z\"; const wchar_t* lp = L\"p\" \"q\"; int w = 0; char16_t lc[40] = u\"k\"; int i;\n"
+	"\tif ((sizeof(ga) != 8) || (ga[0] != 'a') || (ga[2] != 'c') || (ga[3] != 0)) { w |= 1; }\n"
+	"\tif ((gb[0] != 'd') || (gb[1] != 'e') || (gb[2] != 0) || (gb[3] != 0)) { w |= 2; }\n"
+	"\tif ((sizeof(gc) != 12) || (gc[0] != 0x1F600L) || (gc[1] != 'x') || (gc[2] != 0)) { w |= 4; }\n"
+	"\tif ((sizeof(gd) != 6) || (gd[0] != 0xD83Du) || (gd[1] != 0xDE00u) || (gd[2] != 0)) { w |= 8; }\n"
+	"\tif ((gp[0] != 'h') || (gp[1] != 'i') || (gp[2] != 0) || (gq[1] != 'o') || (ge[0] != 'f') || (ge[1] != 0)) { w |= 16; }\n"
+	"\tif ((sizeof(la) != 6) || (la[1] != 'y') || (la[2] != 0) || (lb[0] != 'z') || (lb[1] != 0) || (lb[2] != 0)) { w |= 32; }\n"
+	"\tif ((lp[0] != 'p') || (lp[1] != 'q') || (lp[2] != 0)) { w |= 64; }\n"
+	"\tif ((u\"\\x41\"[0] != 0x41) || (u\"\\xFFFF\"[0] != 0xFFFFu) || (u\"\xC3\xA9\"[0] != 0xE9) || (U\"\xE2\x82\xAC\"[0] != 0x20AC) || (u\"\\u00E9\"[0] != 0xE9) || (L\"\"[0] != 0)) { w |= 128; }\n"
+	"\tfor (i = 1; i < 40; i++) { if (lc[i] != 0) { w |= 256; } }\n"
+	"\tif ((lc[0] != 'k') || ('n' != \"n\" \"\"[0])) { w |= 512; }\n"
+	"\treturn w;\n"
+	"}\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// L, u and U strings have elements of their own widths, ended by a whole zero:
+// in globals, locals and through pointers, with adjacent literals taking the
+// prefix.  \u past 0xFFFF is a surrogate pair in 16 bits, and raw characters are
+// the UTF-8 they're written in.  A string only initialises an array of its own
+// width, and an escape must fit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRWideStrings(void)
+{
+	static const char*	aszBad[] = { "char ga[] = L\"x\";\nint main() { return 0; }", "wchar_t ga[] = \"x\";\nint main() { return 0; }", "int main() { char a[3] = u\"x\"; return a[0]; }", "const char16_t* gp = u\"\\x10000\";\nint main() { return 0; }", NULL };
+	CChars	szAssembly;
+	CChars	szErrors;
+	size	ui;
+
+	AssertInt(0, TestCPP65Main(gszTestCPP65WideStrings));
+
+	for (ui = 0; aszBad[ui]; ui++)
+	{
+		szAssembly.Init();
+		szErrors.Init();
+		AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, aszBad[ui], true));
+		szErrors.Kill();
+		szAssembly.Kill();
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The 65C64's thunks: a member pointer's to a virtual function goes through
@@ -1738,6 +1793,7 @@ void TestCPP65IR(void)
 	TestCPP65IRNamespaceTemplates();
 	TestCPP65IRNamespaceArguments();
 	TestCPP65IRThunks();
+	TestCPP65IRWideStrings();
 	TestCPP65IRSpecialisationMembers();
 	TestCPP65IRScalarConstruct();
 	TestCPP65IRBlockFunctions();

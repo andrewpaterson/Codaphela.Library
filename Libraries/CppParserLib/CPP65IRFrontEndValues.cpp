@@ -287,7 +287,11 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 		auiBytes.Kill();
 		return Unsupported(__FILE__, __LINE__);
 	}
+
+	//StringData's data ends with one zero byte.
+	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + mpcGenerator->StringElementBytes(pcString) - 1, true, 0);
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
+	psValue->psType = mpcTypes->Pointer(mpcGenerator->StringElementType(pcString));
 	auiBytes.Kill();
 	return true;
 }

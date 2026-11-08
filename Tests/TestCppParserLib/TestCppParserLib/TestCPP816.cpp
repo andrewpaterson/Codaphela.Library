@@ -590,6 +590,21 @@ void TestCPP816NestedConstants(void)
 }
 
 
+extern const char*	gszTestCPP65WideStrings;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The wide strings of TestCPP65IRWideStrings: on the W65C816 their elements
+// are unsigned int and unsigned long.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816WideStrings(void)
+{
+	AssertInt(0, TestCPP816Run(gszTestCPP65WideStrings));
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A signed int converted to float (extended to 32 bits in the frame) has no
@@ -5588,6 +5603,7 @@ void TestCPP816(void)
 	TestCPP816Functions();
 	TestCPP816Classes();
 	TestCPP816Thunks();
+	TestCPP816WideStrings();
 	TestCPP816NestedConstants();
 	TestCPP816SharedTables();
 	TestCPP816Statements();

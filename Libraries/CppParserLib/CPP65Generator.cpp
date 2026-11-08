@@ -2172,13 +2172,13 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 		{
 			i = 0;
 		}
-		else if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psType->psBase->iBytes == 1))
+		else if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
 		{
 			auiBytes.Init();
 			bResult = DecodeString(pcInitialiser, &auiBytes);
-			for (i = 0; i < auiBytes.NumElements(); i++)
+			for (i = 0; i < auiBytes.NumElements() / psType->psBase->iBytes; i++)
 			{
-				AppendData(psType->psBase, auiBytes.GetValue(i));
+				AppendData(psType->psBase, StringElement(&auiBytes, psType->psBase->iBytes, i));
 			}
 			auiBytes.Kill();
 			if (i > (size)psType->iCount)
@@ -2220,12 +2220,14 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 		AppendData(psType, FloatBits(psType, dValue));
 		return true;
 	}
-	if (pcInitialiser && psType->IsPointer() && (psType->psBase->iBytes == 1) && (pcInitialiser->GetKind() == CPPS_StringExpression))
+	if (pcInitialiser && psType->IsPointer() && (pcInitialiser->GetKind() == CPPS_StringExpression) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
 		bResult = DecodeString(pcInitialiser, &auiBytes);
 		if (bResult)
 		{
+			//AddString ends it with one zero byte.
+			auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + psType->psBase->iBytes - 1, true, 0);
 			mszData.Append("\t\t.long Str")->Append(AddString((char*)auiBytes.GetData(), auiBytes.NumElements()))->AppendNewLine();
 		}
 		auiBytes.Kill();
@@ -2627,10 +2629,10 @@ CCPPSyntax* CCPP65Generator::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65
 {
 	CArraySyntax*	papcElements;
 
-	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger() && (psElement->iBytes == 1))
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
 	{
 		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
-		if ((papcElements->NumElements() == 1) && (papcElements->GetPtr(0)->GetKind() == CPPS_StringExpression))
+		if ((papcElements->NumElements() == 1) && (papcElements->GetPtr(0)->GetKind() == CPPS_StringExpression) && (StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
 		{
 			return papcElements->GetPtr(0);
 		}
@@ -2661,7 +2663,7 @@ int CCPP65Generator::GetInitialiserCount(CCPPSyntax* pcInitialiser)
 	if (pcInitialiser->GetKind() == CPPS_StringExpression)
 	{
 		auiBytes.Init();
-		iCount = DecodeString(pcInitialiser, &auiBytes) ? (int)auiBytes.NumElements() + 1 : 0;
+		iCount = DecodeString(pcInitialiser, &auiBytes) ? ((int)auiBytes.NumElements() / StringElementBytes(pcInitialiser)) + 1 : 0;
 		auiBytes.Kill();
 		return iCount;
 	}

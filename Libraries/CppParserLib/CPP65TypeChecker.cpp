@@ -274,7 +274,7 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 	auiBytes.Init();
 	bDecoded = mpcGenerator->DecodeString(pcString, &auiBytes);
 	auiBytes.Kill();
-	return bDecoded ? mpcTypes->Pointer(&mpcTypes->msChar) : NULL;
+	return bDecoded ? mpcTypes->Pointer(mpcGenerator->StringElementType(pcString)) : NULL;
 }
 
 
