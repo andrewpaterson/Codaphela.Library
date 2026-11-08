@@ -3,20 +3,20 @@
 #include "StandardLib/Objects.h"
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshModifierStack.h"
-#include "SupportLib/MeshSimplify.h"
+#include "SupportLib/MeshCornerMerge.h"
 #include "TestLib/Assert.h"
 
 
-#define TEST_MESH_SIMPLIFY_COLOUR_GREY	0
-#define TEST_MESH_SIMPLIFY_COLOUR_DARK	1
-#define TEST_MESH_SIMPLIFY_COLOUR_GREY2	2  //The same value as grey.
+#define TEST_MESH_CORNER_MERGE_COLOUR_GREY	0
+#define TEST_MESH_CORNER_MERGE_COLOUR_DARK	1
+#define TEST_MESH_CORNER_MERGE_COLOUR_GREY2	2  //The same value as grey.
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static Ptr<CMesh> TestMeshSimplifyNewMesh(void)
+static Ptr<CMesh> TestMeshCornerMergeNewMesh(void)
 {
 	Ptr<CMesh>	pMesh;
 
@@ -34,7 +34,7 @@ static Ptr<CMesh> TestMeshSimplifyNewMesh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestMeshSimplifyAddFace(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3, int iColour)
+static void TestMeshCornerMergeAddFace(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3, int iColour)
 {
 	CMFRet	r;
 	int		i;
@@ -51,25 +51,25 @@ static void TestMeshSimplifyAddFace(CMesh* pcMesh, int iCorner1, int iCorner2, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static Ptr<CMesh> TestMeshSimplifyOutput(CMeshModifierStack* pcStack, Ptr<CMesh> pSource, float32 fCellSize)
+static Ptr<CMesh> TestMeshCornerMergeOutput(CMeshModifierStack* pcStack, Ptr<CMesh> pSource, float32 fCellSize)
 {
-	CMeshSimplify*	pcSimplify;
+	CMeshCornerMerge*	pcMerge;
 
 	pcStack->Init(pSource);
-	pcSimplify = pcStack->AddModifier<CMeshSimplify>();
-	pcSimplify->Init(fCellSize);
+	pcMerge = pcStack->AddModifier<CMeshCornerMerge>();
+	pcMerge->Init(fCellSize);
 	return pcStack->GetOutput();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A 30 x 30 grid of squares, each 10 units and two faces, simplified to
-// cells of 100: its corners stay about where they were, with no holes, and
+// A 30 x 30 grid of squares, each 10 units and two faces, merged in cells
+// of 100: its corners stay about where they were, with no holes, and
 // nothing changes in the source.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSimplifyGrid(void)
+void TestMeshCornerMergeGrid(void)
 {
 	CMeshModifierStack	cStack;
 	Ptr<CMesh>			pSource;
@@ -88,7 +88,7 @@ void TestMeshSimplifyGrid(void)
 	int					i;
 	int					k;
 
-	pSource = TestMeshSimplifyNewMesh();
+	pSource = TestMeshCornerMergeNewMesh();
 	for (y = 0; y <= 30; y++)
 	{
 		for (x = 0; x <= 30; x++)
@@ -100,12 +100,12 @@ void TestMeshSimplifyGrid(void)
 	{
 		for (x = 0; x < 30; x++)
 		{
-			TestMeshSimplifyAddFace(&pSource, y * 31 + x, y * 31 + x + 1, y * 31 + x + 32, TEST_MESH_SIMPLIFY_COLOUR_GREY);
-			TestMeshSimplifyAddFace(&pSource, y * 31 + x, y * 31 + x + 32, y * 31 + x + 31, TEST_MESH_SIMPLIFY_COLOUR_GREY);
+			TestMeshCornerMergeAddFace(&pSource, y * 31 + x, y * 31 + x + 1, y * 31 + x + 32, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
+			TestMeshCornerMergeAddFace(&pSource, y * 31 + x, y * 31 + x + 32, y * 31 + x + 31, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
 		}
 	}
 
-	pOutput = TestMeshSimplifyOutput(&cStack, pSource, 100);
+	pOutput = TestMeshCornerMergeOutput(&cStack, pSource, 100);
 
 	AssertInt(961, pSource->NumCorners());
 	AssertInt(1800, pSource->NumFaces());
@@ -144,7 +144,7 @@ void TestMeshSimplifyGrid(void)
 			psNormal = pOutput->mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[k]);
 			AssertFloat(1.0f, psNormal->z, 3);
 		}
-		AssertInt(TEST_MESH_SIMPLIFY_COLOUR_GREY, pOutput->mcColours.mcFaces.Get(i)->aiCornerColours[0]);
+		AssertInt(TEST_MESH_CORNER_MERGE_COLOUR_GREY, pOutput->mcColours.mcFaces.Get(i)->aiCornerColours[0]);
 	}
 	AssertTrue(fArea >= 200.0 * 200.0);
 	AssertTrue(fArea <= 300.0 * 300.0);
@@ -169,7 +169,7 @@ void TestMeshSimplifyGrid(void)
 // of another colour don't.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSimplifyKeepsEdges(void)
+void TestMeshCornerMergeKeepsEdges(void)
 {
 	CMeshModifierStack	cStack;
 	Ptr<CMesh>			pSource;
@@ -182,19 +182,19 @@ void TestMeshSimplifyKeepsEdges(void)
 	bool				bUp;
 	bool				bSide;
 
-	pSource = TestMeshSimplifyNewMesh();
+	pSource = TestMeshCornerMergeNewMesh();
 	pSource->AddCorner(0, 0, 0);
 	pSource->AddCorner(1000, 0, 0);
 	pSource->AddCorner(0, 1000, 0);
 	pSource->AddCorner(1, 1, 0);  //In corner 0's cell.
 	pSource->AddCorner(1000, 1000, 0);
 
-	TestMeshSimplifyAddFace(&pSource, 0, 1, 2, TEST_MESH_SIMPLIFY_COLOUR_GREY);
-	TestMeshSimplifyAddFace(&pSource, 1, 2, 0, TEST_MESH_SIMPLIFY_COLOUR_GREY);  //The same, starting elsewhere.
-	TestMeshSimplifyAddFace(&pSource, 0, 1, 2, TEST_MESH_SIMPLIFY_COLOUR_GREY2);  //The same, in another of the colour.
-	TestMeshSimplifyAddFace(&pSource, 0, 2, 1, TEST_MESH_SIMPLIFY_COLOUR_GREY);  //Facing the other way.
-	TestMeshSimplifyAddFace(&pSource, 0, 1, 2, TEST_MESH_SIMPLIFY_COLOUR_DARK);  //Another colour.
-	TestMeshSimplifyAddFace(&pSource, 3, 1, 4, TEST_MESH_SIMPLIFY_COLOUR_GREY);
+	TestMeshCornerMergeAddFace(&pSource, 0, 1, 2, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
+	TestMeshCornerMergeAddFace(&pSource, 1, 2, 0, TEST_MESH_CORNER_MERGE_COLOUR_GREY);  //The same, starting elsewhere.
+	TestMeshCornerMergeAddFace(&pSource, 0, 1, 2, TEST_MESH_CORNER_MERGE_COLOUR_GREY2);  //The same, in another of the colour.
+	TestMeshCornerMergeAddFace(&pSource, 0, 2, 1, TEST_MESH_CORNER_MERGE_COLOUR_GREY);  //Facing the other way.
+	TestMeshCornerMergeAddFace(&pSource, 0, 1, 2, TEST_MESH_CORNER_MERGE_COLOUR_DARK);  //Another colour.
+	TestMeshCornerMergeAddFace(&pSource, 3, 1, 4, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
 
 	pSource->AddNormal(0, 0, 1);
 	pSource->AddNormal(1, 0, 0);
@@ -209,7 +209,7 @@ void TestMeshSimplifyKeepsEdges(void)
 
 	pSource->SetFaceName(3, 8);
 
-	pOutput = TestMeshSimplifyOutput(&cStack, pSource, 100);
+	pOutput = TestMeshCornerMergeOutput(&cStack, pSource, 100);
 
 	AssertInt(4, pOutput->NumFaces());
 	AssertInt(4, pOutput->NumCorners());
@@ -242,7 +242,7 @@ void TestMeshSimplifyKeepsEdges(void)
 // solder mask are, stay that hair apart.  The same two in one colour merge.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSimplifyKeepsLayers(void)
+void TestMeshCornerMergeKeepsLayers(void)
 {
 	CMeshModifierStack	cStack;
 	Ptr<CMesh>			pSource;
@@ -254,17 +254,17 @@ void TestMeshSimplifyKeepsLayers(void)
 
 	for (iLayers = 0; iLayers < 2; iLayers++)
 	{
-		pSource = TestMeshSimplifyNewMesh();
+		pSource = TestMeshCornerMergeNewMesh();
 		pSource->AddCorner(0, 0, 0);
 		pSource->AddCorner(1000, 0, 0);
 		pSource->AddCorner(0, 1000, 0);
 		pSource->AddCorner(0, 0, 2);
 		pSource->AddCorner(1000, 0, 2);
 		pSource->AddCorner(0, 1000, 2);
-		TestMeshSimplifyAddFace(&pSource, 0, 1, 2, TEST_MESH_SIMPLIFY_COLOUR_GREY);
-		TestMeshSimplifyAddFace(&pSource, 3, 4, 5, (iLayers == 0) ? TEST_MESH_SIMPLIFY_COLOUR_DARK : TEST_MESH_SIMPLIFY_COLOUR_GREY2);
+		TestMeshCornerMergeAddFace(&pSource, 0, 1, 2, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
+		TestMeshCornerMergeAddFace(&pSource, 3, 4, 5, (iLayers == 0) ? TEST_MESH_CORNER_MERGE_COLOUR_DARK : TEST_MESH_CORNER_MERGE_COLOUR_GREY2);
 
-		pOutput = TestMeshSimplifyOutput(&cStack, pSource, 100);
+		pOutput = TestMeshCornerMergeOutput(&cStack, pSource, 100);
 
 		fLow = pOutput->GetPosition(0)->z;
 		fHigh = fLow;
@@ -295,7 +295,7 @@ void TestMeshSimplifyKeepsLayers(void)
 // Each time starts from the source, so the output is the same every time.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSimplifyAgain(void)
+void TestMeshCornerMergeAgain(void)
 {
 	CMeshModifierStack	cStack;
 	Ptr<CMesh>			pSource;
@@ -303,15 +303,15 @@ void TestMeshSimplifyAgain(void)
 	Ptr<CMesh>			pSecond;
 	int					i;
 
-	pSource = TestMeshSimplifyNewMesh();
+	pSource = TestMeshCornerMergeNewMesh();
 	pSource->AddCorner(0, 0, 0);
 	pSource->AddCorner(90, 0, 0);
 	pSource->AddCorner(110, 0, 0);
 	pSource->AddCorner(0, 110, 0);
-	TestMeshSimplifyAddFace(&pSource, 0, 2, 3, TEST_MESH_SIMPLIFY_COLOUR_GREY);
-	TestMeshSimplifyAddFace(&pSource, 1, 2, 3, TEST_MESH_SIMPLIFY_COLOUR_GREY);
+	TestMeshCornerMergeAddFace(&pSource, 0, 2, 3, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
+	TestMeshCornerMergeAddFace(&pSource, 1, 2, 3, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
 
-	pFirst = TestMeshSimplifyOutput(&cStack, pSource, 100);
+	pFirst = TestMeshCornerMergeOutput(&cStack, pSource, 100);
 	cStack.Touch();
 	pSecond = cStack.GetOutput();
 
@@ -330,24 +330,24 @@ void TestMeshSimplifyAgain(void)
 // With no faces, or what a new mesh wouldn't keep, the mesh itself comes back.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSimplifyLeavesMesh(void)
+void TestMeshCornerMergeLeavesMesh(void)
 {
 	CMeshModifierStack	cStack;
 	Ptr<CMesh>			pSource;
 	SLogConfig			sLogConfig;
 
-	pSource = TestMeshSimplifyNewMesh();
-	AssertTrue(TestMeshSimplifyOutput(&cStack, pSource, 100) == pSource);
+	pSource = TestMeshCornerMergeNewMesh();
+	AssertTrue(TestMeshCornerMergeOutput(&cStack, pSource, 100) == pSource);
 	cStack.Kill();
 
-	pSource = TestMeshSimplifyNewMesh();
+	pSource = TestMeshCornerMergeNewMesh();
 	pSource->AddCorner(0, 0, 0);
 	pSource->AddCorner(100, 0, 0);
 	pSource->AddCorner(0, 100, 0);
-	TestMeshSimplifyAddFace(&pSource, 0, 1, 2, TEST_MESH_SIMPLIFY_COLOUR_GREY);
+	TestMeshCornerMergeAddFace(&pSource, 0, 1, 2, TEST_MESH_CORNER_MERGE_COLOUR_GREY);
 	pSource->mcSkin.mbInUse = true;
 	sLogConfig = gcLogger.SetSilent();
-	AssertTrue(TestMeshSimplifyOutput(&cStack, pSource, 100) == pSource);
+	AssertTrue(TestMeshCornerMergeOutput(&cStack, pSource, 100) == pSource);
 	gcLogger.SetConfig(&sLogConfig);
 	cStack.Kill();
 }
@@ -357,18 +357,18 @@ void TestMeshSimplifyLeavesMesh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void TestMeshSimplify(void)
+void TestMeshCornerMerge(void)
 {
 	BeginTests();
 
 	DataIOInit();
 	ObjectsInit();
 
-	TestMeshSimplifyGrid();
-	TestMeshSimplifyKeepsEdges();
-	TestMeshSimplifyKeepsLayers();
-	TestMeshSimplifyAgain();
-	TestMeshSimplifyLeavesMesh();
+	TestMeshCornerMergeGrid();
+	TestMeshCornerMergeKeepsEdges();
+	TestMeshCornerMergeKeepsLayers();
+	TestMeshCornerMergeAgain();
+	TestMeshCornerMergeLeavesMesh();
 
 	ObjectsKill(false);
 	DataIOKill();

@@ -27,21 +27,21 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/Numbers.h"
 #include "StandardLib/Objects.h"
-#include "MeshSimplify.h"
+#include "MeshCornerMerge.h"
 
 
 //A normal's axes are each split into this many divisions, and normals in the same ones merge.
-#define MESH_SIMPLIFY_NORMAL_DIVISIONS	5
+#define MESH_CORNER_MERGE_NORMAL_DIVISIONS	5
 
 //How a cell is found in a 64 bit key: this many bits for each axis and the rest for its colour.
-#define MESH_SIMPLIFY_AXIS_BITS			18
-#define MESH_SIMPLIFY_MAX_AXIS_CELLS	((int32)1 << MESH_SIMPLIFY_AXIS_BITS)
+#define MESH_CORNER_MERGE_AXIS_BITS			18
+#define MESH_CORNER_MERGE_MAX_AXIS_CELLS	((int32)1 << MESH_CORNER_MERGE_AXIS_BITS)
 
 //Colours that keep to themselves: as many as fit in a cell's key.  Any more share the last.
-#define MESH_SIMPLIFY_MAX_COLOURS		1024
+#define MESH_CORNER_MERGE_MAX_COLOURS		1024
 
 
-struct SMeshSimplifyCell
+struct SMeshCornerMergeCell
 {
 	float64	fX;
 	float64	fY;
@@ -51,7 +51,7 @@ struct SMeshSimplifyCell
 };
 
 
-struct SMeshSimplifyNormal
+struct SMeshCornerMergeNormal
 {
 	float64	fX;
 	float64	fY;
@@ -61,7 +61,7 @@ struct SMeshSimplifyNormal
 
 
 //A face as it will be compared.  Its corners start from the smallest so it is the same whichever it started from.
-struct SMeshSimplifyFace
+struct SMeshCornerMergeFace
 {
 	int		aiCell[NUM_FACE_CORNERS];
 	uint32	uiColour;
@@ -69,14 +69,14 @@ struct SMeshSimplifyFace
 };
 
 
-typedef CArrayTemplate<SMeshSimplifyCell>	CArrayMeshSimplifyCell;
-typedef CArrayTemplate<SMeshSimplifyNormal>	CArrayMeshSimplifyNormal;
-typedef CArrayTemplate<SMeshSimplifyFace>	CArrayMeshSimplifyFace;
-typedef CMapLongTemplate<int>				CMapMeshSimplifyKey;
+typedef CArrayTemplate<SMeshCornerMergeCell>	CArrayMeshCornerMergeCell;
+typedef CArrayTemplate<SMeshCornerMergeNormal>	CArrayMeshCornerMergeNormal;
+typedef CArrayTemplate<SMeshCornerMergeFace>	CArrayMeshCornerMergeFace;
+typedef CMapLongTemplate<int>					CMapMeshCornerMergeKey;
 
 
-//What's known about a mesh as it is simplified.
-struct SMeshSimplify
+//What's known about a mesh as its corners are merged.
+struct SMeshCornerMerge
 {
 	CMesh*						pcMesh;
 	bool						bNormals;
@@ -85,12 +85,12 @@ struct SMeshSimplify
 	SFloat32Vec3				sMin;
 	float64						fCellSize;
 
-	CMapMeshSimplifyKey			cColours;
-	CMapMeshSimplifyKey			cCells;
-	CMapMeshSimplifyKey			cNormals;
+	CMapMeshCornerMergeKey		cColours;
+	CMapMeshCornerMergeKey		cCells;
+	CMapMeshCornerMergeKey		cNormals;
 
-	CArrayMeshSimplifyCell		asCells;
-	CArrayMeshSimplifyNormal	asNormals;
+	CArrayMeshCornerMergeCell	asCells;
+	CArrayMeshCornerMergeNormal	asNormals;
 	CArrayInt					aiCornerCells;	//The cell of each of the mesh's corners, -1 if it isn't used.
 	CArrayInt					aiFaceNormals;	//The merged normal of each corner of each face.
 	CArrayInt					aiKeptFaces;	//Whether each face stays.
@@ -103,7 +103,7 @@ struct SMeshSimplify
 // The value of iKey, which is iNew if it wasn't in the map.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshSimplifyFind(CMapMeshSimplifyKey* pcMap, int64 iKey, int iNew)
+static int MeshCornerMergeFind(CMapMeshCornerMergeKey* pcMap, int64 iKey, int iNew)
 {
 	int*	piValue;
 
@@ -122,7 +122,7 @@ static int MeshSimplifyFind(CMapMeshSimplifyKey* pcMap, int64 iKey, int iNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshSimplifyInit(SMeshSimplify* ps, CMesh* pcMesh, float32 fCellSize)
+static void MeshCornerMergeInit(SMeshCornerMerge* ps, CMesh* pcMesh, float32 fCellSize)
 {
 	SFloat32Vec3*	psPosition;
 	SFloat32Vec3	sMax;
@@ -166,9 +166,9 @@ static void MeshSimplifyInit(SMeshSimplify* ps, CMesh* pcMesh, float32 fCellSize
 	fExtent = (sMax.y - ps->sMin.y > fExtent) ? sMax.y - ps->sMin.y : fExtent;
 	fExtent = (sMax.z - ps->sMin.z > fExtent) ? sMax.z - ps->sMin.z : fExtent;
 	ps->fCellSize = fCellSize;
-	if ((float64)fExtent / ps->fCellSize >= MESH_SIMPLIFY_MAX_AXIS_CELLS)
+	if ((float64)fExtent / ps->fCellSize >= MESH_CORNER_MERGE_MAX_AXIS_CELLS)
 	{
-		ps->fCellSize = (float64)fExtent / (MESH_SIMPLIFY_MAX_AXIS_CELLS - 1);
+		ps->fCellSize = (float64)fExtent / (MESH_CORNER_MERGE_MAX_AXIS_CELLS - 1);
 	}
 }
 
@@ -177,7 +177,7 @@ static void MeshSimplifyInit(SMeshSimplify* ps, CMesh* pcMesh, float32 fCellSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshSimplifyKill(SMeshSimplify* ps)
+static void MeshCornerMergeKill(SMeshCornerMerge* ps)
 {
 	ps->aiKeptFaces.Kill();
 	ps->aiFaceNormals.Kill();
@@ -195,7 +195,7 @@ static void MeshSimplifyKill(SMeshSimplify* ps)
 // A face with no colour isn't the colour of any value of uiColour.
 //
 //////////////////////////////////////////////////////////////////////////
-static int64 MeshSimplifyFaceColour(SMeshSimplify* ps, int iFace)
+static int64 MeshCornerMergeFaceColour(SMeshCornerMerge* ps, int iFace)
 {
 	int	iColour;
 
@@ -218,16 +218,16 @@ static int64 MeshSimplifyFaceColour(SMeshSimplify* ps, int iFace)
 // a shape's faces have one colour, and don't share corners with another's.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshSimplifyCornerCell(SMeshSimplify* ps, int iCorner, int iFace)
+static int MeshCornerMergeCornerCell(SMeshCornerMerge* ps, int iCorner, int iFace)
 {
-	SFloat32Vec3*		psPosition;
-	SMeshSimplifyCell*	psCell;
-	int*				piCell;
-	int					iColour;
-	int					iCell;
-	int					iNumColours;
-	int					iNumCells;
-	uint64				uiKey;
+	SFloat32Vec3*			psPosition;
+	SMeshCornerMergeCell*	psCell;
+	int*					piCell;
+	int						iColour;
+	int						iCell;
+	int						iNumColours;
+	int						iNumCells;
+	uint64					uiKey;
 
 	piCell = ps->aiCornerCells.Get(iCorner);
 	if (*piCell >= 0)
@@ -236,17 +236,17 @@ static int MeshSimplifyCornerCell(SMeshSimplify* ps, int iCorner, int iFace)
 	}
 
 	iNumColours = (int)ps->cColours.NumElements();
-	iColour = (iNumColours < MESH_SIMPLIFY_MAX_COLOURS - 1) ? iNumColours : MESH_SIMPLIFY_MAX_COLOURS - 1;
-	iColour = MeshSimplifyFind(&ps->cColours, MeshSimplifyFaceColour(ps, iFace), iColour);
+	iColour = (iNumColours < MESH_CORNER_MERGE_MAX_COLOURS - 1) ? iNumColours : MESH_CORNER_MERGE_MAX_COLOURS - 1;
+	iColour = MeshCornerMergeFind(&ps->cColours, MeshCornerMergeFaceColour(ps, iFace), iColour);
 
 	psPosition = ps->pcMesh->GetPosition(iCorner);
 	uiKey = (uint64)(((float64)psPosition->x - ps->sMin.x) / ps->fCellSize);
-	uiKey |= (uint64)(((float64)psPosition->y - ps->sMin.y) / ps->fCellSize) << MESH_SIMPLIFY_AXIS_BITS;
-	uiKey |= (uint64)(((float64)psPosition->z - ps->sMin.z) / ps->fCellSize) << (MESH_SIMPLIFY_AXIS_BITS * 2);
-	uiKey |= (uint64)iColour << (MESH_SIMPLIFY_AXIS_BITS * 3);
+	uiKey |= (uint64)(((float64)psPosition->y - ps->sMin.y) / ps->fCellSize) << MESH_CORNER_MERGE_AXIS_BITS;
+	uiKey |= (uint64)(((float64)psPosition->z - ps->sMin.z) / ps->fCellSize) << (MESH_CORNER_MERGE_AXIS_BITS * 2);
+	uiKey |= (uint64)iColour << (MESH_CORNER_MERGE_AXIS_BITS * 3);
 
 	iNumCells = (int)ps->asCells.NumElements();
-	iCell = MeshSimplifyFind(&ps->cCells, (int64)uiKey, iNumCells);
+	iCell = MeshCornerMergeFind(&ps->cCells, (int64)uiKey, iNumCells);
 	if (iCell == iNumCells)
 	{
 		psCell = ps->asCells.Add();
@@ -273,16 +273,16 @@ static int MeshSimplifyCornerCell(SMeshSimplify* ps, int iCorner, int iFace)
 // Which division a part of a unit normal is in.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 MeshSimplifyNormalDivision(float32 fPart)
+static uint64 MeshCornerMergeNormalDivision(float32 fPart)
 {
 	int	iDivision;
 
-	iDivision = (int)floorf((fPart + 1.0f) * MESH_SIMPLIFY_NORMAL_DIVISIONS * 0.5f);
+	iDivision = (int)floorf((fPart + 1.0f) * MESH_CORNER_MERGE_NORMAL_DIVISIONS * 0.5f);
 	if (iDivision < 0)
 	{
 		return 0;
 	}
-	return (iDivision >= MESH_SIMPLIFY_NORMAL_DIVISIONS) ? MESH_SIMPLIFY_NORMAL_DIVISIONS - 1 : (uint64)iDivision;
+	return (iDivision >= MESH_CORNER_MERGE_NORMAL_DIVISIONS) ? MESH_CORNER_MERGE_NORMAL_DIVISIONS - 1 : (uint64)iDivision;
 }
 
 
@@ -291,11 +291,11 @@ static uint64 MeshSimplifyNormalDivision(float32 fPart)
 // The merged normal of one corner of a face.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshSimplifyCornerNormal(SMeshSimplify* ps, int iCell, int iFace, int iFaceCorner)
+static int MeshCornerMergeCornerNormal(SMeshCornerMerge* ps, int iCell, int iFace, int iFaceCorner)
 {
 	SMeshNormalFace*		psNormalFace;
 	SFloat32Vec3*			psNormal;
-	SMeshSimplifyNormal*	psMerged;
+	SMeshCornerMergeNormal*	psMerged;
 	int						iNormal;
 	int						iNumNormals;
 	int						iMerged;
@@ -310,12 +310,12 @@ static int MeshSimplifyCornerNormal(SMeshSimplify* ps, int iCell, int iFace, int
 	psNormal = ps->pcMesh->mcNormals.mcNormals.Get(iNormal);
 
 	uiKey = (uint64)(uint32)iCell << 12;
-	uiKey |= MeshSimplifyNormalDivision(psNormal->x);
-	uiKey |= MeshSimplifyNormalDivision(psNormal->y) << 4;
-	uiKey |= MeshSimplifyNormalDivision(psNormal->z) << 8;
+	uiKey |= MeshCornerMergeNormalDivision(psNormal->x);
+	uiKey |= MeshCornerMergeNormalDivision(psNormal->y) << 4;
+	uiKey |= MeshCornerMergeNormalDivision(psNormal->z) << 8;
 
 	iNumNormals = (int)ps->asNormals.NumElements();
-	iMerged = MeshSimplifyFind(&ps->cNormals, (int64)uiKey, iNumNormals);
+	iMerged = MeshCornerMergeFind(&ps->cNormals, (int64)uiKey, iNumNormals);
 	if (iMerged == iNumNormals)
 	{
 		psMerged = ps->asNormals.Add();
@@ -337,7 +337,7 @@ static int MeshSimplifyCornerNormal(SMeshSimplify* ps, int iCell, int iFace, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshSimplifyMerge(SMeshSimplify* ps)
+static void MeshCornerMergeMerge(SMeshCornerMerge* ps)
 {
 	int*	piCorners;
 	int		iNumFaces;
@@ -351,10 +351,10 @@ static void MeshSimplifyMerge(SMeshSimplify* ps)
 		piCorners = ps->pcMesh->GetFaceCorners(iFace);
 		for (i = 0; i < NUM_FACE_CORNERS; i++)
 		{
-			iCell = MeshSimplifyCornerCell(ps, piCorners[i], iFace);
+			iCell = MeshCornerMergeCornerCell(ps, piCorners[i], iFace);
 			if (ps->bNormals)
 			{
-				ps->aiFaceNormals.Add(MeshSimplifyCornerNormal(ps, iCell, iFace, i));
+				ps->aiFaceNormals.Add(MeshCornerMergeCornerNormal(ps, iCell, iFace, i));
 			}
 		}
 	}
@@ -365,7 +365,7 @@ static void MeshSimplifyMerge(SMeshSimplify* ps)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshSimplifyCellPosition(SMeshSimplifyCell* psCell, float64* pfX, float64* pfY, float64* pfZ)
+static void MeshCornerMergeCellPosition(SMeshCornerMergeCell* psCell, float64* pfX, float64* pfY, float64* pfZ)
 {
 	*pfX = psCell->fX / psCell->iCount;
 	*pfY = psCell->fY / psCell->iCount;
@@ -377,7 +377,7 @@ static void MeshSimplifyCellPosition(SMeshSimplifyCell* psCell, float64* pfX, fl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static bool MeshSimplifyHasArea(SMeshSimplify* ps, int* piCells)
+static bool MeshCornerMergeHasArea(SMeshCornerMerge* ps, int* piCells)
 {
 	float64	fAX;
 	float64	fAY;
@@ -394,9 +394,9 @@ static bool MeshSimplifyHasArea(SMeshSimplify* ps, int* piCells)
 		return false;
 	}
 
-	MeshSimplifyCellPosition(ps->asCells.Get(piCells[0]), &fAX, &fAY, &fAZ);
-	MeshSimplifyCellPosition(ps->asCells.Get(piCells[1]), &fBX, &fBY, &fBZ);
-	MeshSimplifyCellPosition(ps->asCells.Get(piCells[2]), &fCX, &fCY, &fCZ);
+	MeshCornerMergeCellPosition(ps->asCells.Get(piCells[0]), &fAX, &fAY, &fAZ);
+	MeshCornerMergeCellPosition(ps->asCells.Get(piCells[1]), &fBX, &fBY, &fBZ);
+	MeshCornerMergeCellPosition(ps->asCells.Get(piCells[2]), &fCX, &fCY, &fCZ);
 	fBX -= fAX;
 	fBY -= fAY;
 	fBZ -= fAZ;
@@ -412,14 +412,14 @@ static bool MeshSimplifyHasArea(SMeshSimplify* ps, int* piCells)
 // Faces the same come together, the first of them first.
 //
 //////////////////////////////////////////////////////////////////////////
-static int __cdecl MeshSimplifyCompareFaces(const void* pv1, const void* pv2)
+static int __cdecl MeshCornerMergeCompareFaces(const void* pv1, const void* pv2)
 {
-	SMeshSimplifyFace*	ps1;
-	SMeshSimplifyFace*	ps2;
-	int					i;
+	SMeshCornerMergeFace*	ps1;
+	SMeshCornerMergeFace*	ps2;
+	int						i;
 
-	ps1 = (SMeshSimplifyFace*)pv1;
-	ps2 = (SMeshSimplifyFace*)pv2;
+	ps1 = (SMeshCornerMergeFace*)pv1;
+	ps2 = (SMeshCornerMergeFace*)pv2;
 	for (i = 0; i < NUM_FACE_CORNERS; i++)
 	{
 		if (ps1->aiCell[i] != ps2->aiCell[i])
@@ -445,19 +445,19 @@ static int __cdecl MeshSimplifyCompareFaces(const void* pv1, const void* pv2)
 // start from.  One wound the other way faces the other way, so it stays.
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshSimplifyChooseFaces(SMeshSimplify* ps)
+static void MeshCornerMergeChooseFaces(SMeshCornerMerge* ps)
 {
-	CArrayMeshSimplifyFace	asFaces;
-	SMeshSimplifyFace*		psFace;
-	SMeshSimplifyFace*		psLast;
-	int*					piCorners;
-	int						aiCells[NUM_FACE_CORNERS];
-	int						iNumFaces;
-	int						iFace;
-	int						iStart;
-	int						i;
-	size					uiNumElements;
-	size					u;
+	CArrayMeshCornerMergeFace	asFaces;
+	SMeshCornerMergeFace*		psFace;
+	SMeshCornerMergeFace*		psLast;
+	int*						piCorners;
+	int							aiCells[NUM_FACE_CORNERS];
+	int							iNumFaces;
+	int							iFace;
+	int							iStart;
+	int							i;
+	size						uiNumElements;
+	size						u;
 
 	asFaces.Init();
 	iNumFaces = ps->pcMesh->NumFaces();
@@ -471,7 +471,7 @@ static void MeshSimplifyChooseFaces(SMeshSimplify* ps)
 		{
 			aiCells[i] = ps->aiCornerCells.GetValue(piCorners[i]);
 		}
-		if (MeshSimplifyHasArea(ps, aiCells))
+		if (MeshCornerMergeHasArea(ps, aiCells))
 		{
 			iStart = 0;
 			iStart = (aiCells[1] < aiCells[iStart]) ? 1 : iStart;
@@ -482,7 +482,7 @@ static void MeshSimplifyChooseFaces(SMeshSimplify* ps)
 			{
 				psFace->aiCell[i] = aiCells[(iStart + i) % NUM_FACE_CORNERS];
 			}
-			psFace->uiColour = (uint32)MeshSimplifyFaceColour(ps, iFace);
+			psFace->uiColour = (uint32)MeshCornerMergeFaceColour(ps, iFace);
 			psFace->iFace = iFace;
 		}
 	}
@@ -490,7 +490,7 @@ static void MeshSimplifyChooseFaces(SMeshSimplify* ps)
 	uiNumElements = asFaces.NumElements();
 	if (uiNumElements > 0)
 	{
-		qsort(asFaces.GetData(), uiNumElements, sizeof(SMeshSimplifyFace), MeshSimplifyCompareFaces);
+		qsort(asFaces.GetData(), uiNumElements, sizeof(SMeshCornerMergeFace), MeshCornerMergeCompareFaces);
 	}
 
 	psLast = NULL;
@@ -516,12 +516,12 @@ static void MeshSimplifyChooseFaces(SMeshSimplify* ps)
 // the faces that stay.
 //
 //////////////////////////////////////////////////////////////////////////
-static Ptr<CMesh> MeshSimplifyBuild(SMeshSimplify* ps)
+static Ptr<CMesh> MeshCornerMergeBuild(SMeshCornerMerge* ps)
 {
 	Ptr<CMesh>				pOutput;
 	CMesh*					pcMesh;
-	SMeshSimplifyCell*		psCell;
-	SMeshSimplifyNormal*	psNormal;
+	SMeshCornerMergeCell*	psCell;
+	SMeshCornerMergeNormal*	psNormal;
 	SMeshNormalFace*		psNormalFace;
 	CArrayInt				aiOutputNormals;
 	float64					fX;
@@ -560,7 +560,7 @@ static Ptr<CMesh> MeshSimplifyBuild(SMeshSimplify* ps)
 				psCell = ps->asCells.Get(ps->aiCornerCells.GetValue(piCorners[i]));
 				if (psCell->iOutputCorner < 0)
 				{
-					MeshSimplifyCellPosition(psCell, &fX, &fY, &fZ);
+					MeshCornerMergeCellPosition(psCell, &fX, &fY, &fZ);
 					psCell->iOutputCorner = pOutput->NumCorners();
 					pOutput->AddCorner((float32)fX, (float32)fY, (float32)fZ);
 				}
@@ -619,7 +619,7 @@ static Ptr<CMesh> MeshSimplifyBuild(SMeshSimplify* ps)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSimplify::Init(float32 fCellSize)
+void CMeshCornerMerge::Init(float32 fCellSize)
 {
 	mfCellSize = fCellSize;
 }
@@ -629,20 +629,20 @@ void CMeshSimplify::Init(float32 fCellSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMesh> CMeshSimplify::Modify(Ptr<CMesh> pMesh)
+Ptr<CMesh> CMeshCornerMerge::Modify(Ptr<CMesh> pMesh)
 {
-	SMeshSimplify	sSimplify;
-	Ptr<CMesh>		pOutput;
+	SMeshCornerMerge	sMerge;
+	Ptr<CMesh>			pOutput;
 
 	if ((pMesh->NumFaces() == 0) || (mfCellSize <= 0.0f) || !CanRebuild(&pMesh))
 	{
 		return pMesh;
 	}
 
-	MeshSimplifyInit(&sSimplify, &pMesh, mfCellSize);
-	MeshSimplifyMerge(&sSimplify);
-	MeshSimplifyChooseFaces(&sSimplify);
-	pOutput = MeshSimplifyBuild(&sSimplify);
-	MeshSimplifyKill(&sSimplify);
+	MeshCornerMergeInit(&sMerge, &pMesh, mfCellSize);
+	MeshCornerMergeMerge(&sMerge);
+	MeshCornerMergeChooseFaces(&sMerge);
+	pOutput = MeshCornerMergeBuild(&sMerge);
+	MeshCornerMergeKill(&sMerge);
 	return pOutput;
 }

@@ -63,7 +63,7 @@ void TestMeshModifierStack(void);
 void TestMeshSourceModifier(void);
 void TestMeshNormalModifiers(void);
 void TestMeshFixReversed(void);
-void TestMeshSimplify(void);
+void TestMeshCornerMerge(void);
 void TestNormalGeneration(void);
 void TestMeshOBJReader(void);
 void TestMeshVRMLReader(void);
@@ -148,7 +148,7 @@ int __cdecl main(void)
 	TestMeshSourceModifier();
 	TestMeshNormalModifiers();
 	TestMeshFixReversed();
-	TestMeshSimplify();
+	TestMeshCornerMerge();
 	TestNormalGeneration();
 	//TestMeshOBJReader();  Source OBJ file is missing
 	TestMeshVRMLReader();

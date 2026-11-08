@@ -21,8 +21,8 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MESH_SIMPLIFY_H__
-#define __MESH_SIMPLIFY_H__
+#ifndef __MESH_CORNER_MERGE_H__
+#define __MESH_CORNER_MERGE_H__
 #include "MeshModifier.h"
 
 
@@ -30,9 +30,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //pixel.  Each corner is the average of those in its cell and each merged normal the average of those in its cell that
 //are close, so a sharp edge stays sharp and a curve is only faceted a little.  Two layers of different colours a hair
 //apart, as a board's copper and solder mask are, stay that hair apart.
-class CMeshSimplify : public CMeshModifier
+class CMeshCornerMerge : public CMeshModifier
 {
-CONSTRUCTABLE(CMeshSimplify);
+CONSTRUCTABLE(CMeshCornerMerge);
 protected:
 	float32		mfCellSize;  //In the mesh's own units.
 
@@ -43,4 +43,4 @@ public:
 };
 
 
-#endif // __MESH_SIMPLIFY_H__
+#endif // __MESH_CORNER_MERGE_H__

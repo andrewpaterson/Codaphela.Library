@@ -618,7 +618,7 @@
     <ClInclude Include="MeshFixReversed.h">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClInclude>
-    <ClInclude Include="MeshSimplify.h">
+    <ClInclude Include="MeshCornerMerge.h">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClInclude>
     <ClInclude Include="MeshSmoothFaces.h">
@@ -1388,7 +1388,7 @@
     <ClCompile Include="MeshFixReversed.cpp">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClCompile>
-    <ClCompile Include="MeshSimplify.cpp">
+    <ClCompile Include="MeshCornerMerge.cpp">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClCompile>
     <ClCompile Include="MeshSmoothFaces.cpp">
