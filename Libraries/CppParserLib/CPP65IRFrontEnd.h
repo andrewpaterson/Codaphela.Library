@@ -210,7 +210,6 @@ public:
 	int				WrittenIndex(uint32 uiSymbol);
 	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);
 	bool			SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTemplate<bool>* pabChanged);
-	CIRFunction*	CopyFunction(CIRFunction* pcFunction, const char* szName);
 	void			OptimiseSpecialised(CIRFunction* pcFunction);
 	void			SetUnsupported(const char* szFile, int iLine, const char* szReason);
 	void			AppendUnsupported(CChars* psz);

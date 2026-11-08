@@ -94,6 +94,7 @@ public:
 public:
 	void			Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes, uint32* puiSource);
 	void			Kill(void);
+	void			CopyBody(CIRFunction* pcSource);
 
 	SIRReference	AddTemporary(SIRType sType, const char* szName = NULL);
 	SIRReference	AddParameter(SIRType sType, const char* szName = NULL);

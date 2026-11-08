@@ -89,6 +89,74 @@ void CIRFunction::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// This function (just made, in pcSource's module) gets pcSource's parameters,
+// temporaries, constants and blocks, with their sources.  Every temporary and
+// constant keeps its index, so references mean the same here.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::CopyBody(CIRFunction* pcSource)
+{
+	CIRBlock*		pcFrom;
+	CIRBlock*		pcTo;
+	SIRConstant*	psConstant;
+	SIRPhi*			psFromPhi;
+	SIRPhi*			psToPhi;
+	SIRPhiArgument*	psArgument;
+	SIRReference	sTemporary;
+	size			ui;
+	size			uj;
+	size			uiBlock;
+
+	for (ui = 0; ui < pcSource->masTemporaries.NumElements(); ui++)
+	{
+		sTemporary = IRReference(IRRK_Temporary, (uint32)ui);
+		AddTemporary(pcSource->GetTemporaryType(sTemporary), pcSource->GetTemporaryName(sTemporary));
+	}
+	for (ui = 0; ui < pcSource->masParameters.NumElements(); ui++)
+	{
+		masParameters.Add(pcSource->masParameters.Get(ui));
+	}
+	muiRestrictParameters = pcSource->muiRestrictParameters;
+	for (ui = 0; ui < pcSource->masConstants.NumElements(); ui++)
+	{
+		psConstant = pcSource->masConstants.Get(ui);
+		AddConstant(psConstant->sType, psConstant->ulliBits);
+	}
+
+	//The blocks first: phis and jumps name them, by their index.
+	pcSource->Renumber();
+	for (uiBlock = 0; uiBlock < pcSource->NumBlocks(); uiBlock++)
+	{
+		AddBlock(pcSource->GetBlock(uiBlock)->GetName());
+	}
+	for (uiBlock = 0; uiBlock < pcSource->NumBlocks(); uiBlock++)
+	{
+		pcFrom = pcSource->GetBlock(uiBlock);
+		pcTo = GetBlock(uiBlock);
+		for (ui = 0; ui < pcFrom->masPhis.NumElements(); ui++)
+		{
+			psFromPhi = pcFrom->masPhis.Get(ui);
+			psToPhi = pcTo->AddPhi(psFromPhi->sType, psFromPhi->sResult);
+			for (uj = 0; uj < psFromPhi->asArguments.NumElements(); uj++)
+			{
+				psArgument = psFromPhi->asArguments.Get(uj);
+				pcTo->AddPhiArgument(psToPhi, GetBlock(psArgument->pcBlock->muiIndex), psArgument->sValue);
+			}
+		}
+		for (ui = 0; ui < pcFrom->masInstructions.NumElements(); ui++)
+		{
+			*pcTo->masInstructions.Add() = *pcFrom->masInstructions.Get(ui);
+		}
+		pcTo->msJump = pcFrom->msJump;
+		pcTo->msJump.pcThen = pcFrom->msJump.pcThen ? GetBlock(pcFrom->msJump.pcThen->muiIndex) : NULL;
+		pcTo->msJump.pcElse = pcFrom->msJump.pcElse ? GetBlock(pcFrom->msJump.pcElse->muiIndex) : NULL;
+	}
+	ComputePredecessors();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A name is kept unless it is empty or all digits (those are how unnamed
 // temporaries and blocks print).
 //

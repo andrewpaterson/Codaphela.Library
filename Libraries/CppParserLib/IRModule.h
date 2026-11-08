@@ -152,6 +152,7 @@ public:
 
 	CIRFunction*	AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes = 0);
 	CIRFunction*	FindFunction(uint32 uiSymbol);
+	CIRFunction*	CopyFunction(CIRFunction* pcFunction, const char* szName);
 	void			RemoveFunction(CIRFunction* pcFunction);
 	size			NumFunctions(void);
 	CIRFunction*	GetFunction(size uiIndex);

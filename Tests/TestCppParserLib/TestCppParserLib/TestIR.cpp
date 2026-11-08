@@ -1171,6 +1171,104 @@ void TestIROptimiserConstantsRight(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// CIRModule::CopyFunction: the copy prints as the function does but for its
+// name, and is its own: blocks, phis and sources are the copy's, it stays
+// when the function goes, and it verifies.  It is local and takes register
+// arguments as the function does.  A second copy of that name is the first.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRCopyFunction(void)
+{
+	static const char*	szText =
+		"space default 4\n"
+		"\n"
+		"function i32 @_Sum(ptr restrict %p, i32 %n), inline\n"
+		"{\n"
+		"entry:\n"
+		"\t%s = slot ptr 4, 4\n"
+		"\tjmp loop\n"
+		"loop:\n"
+		"\t%i = phi i32 [entry, 0], [body, %next]\n"
+		"\t%c = slt i32 %i, %n\n"
+		"\tbrif %c, body, done\n"
+		"body:\n"
+		"\tstore i32 %i, %s\n"
+		"\t%next = add i32 %i, 1\n"
+		"\tjmp loop\n"
+		"done:\n"
+		"\t%r = load i32 %p\n"
+		"\tret i32 %r\n"
+		"}\n";
+	CIRModule		cModule;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIRPrinter		cPrinter;
+	CIRVerifier		cVerifier;
+	CChars			szExpected;
+	CChars			szPrinted;
+	CIRFunction*	pcFunction;
+	CIRFunction*	pcCopy;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcCopied;
+	size			ui;
+
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	cModule.muiSource = 7;
+	AssertTrue(cParser.Parse(szText));
+	cModule.muiSource = 0;
+	cParser.Kill();
+	pcFunction = cModule.GetFunction(0);
+	cModule.SetRegisterCall(pcFunction->muiSymbol);
+
+	pcCopy = cModule.CopyFunction(pcFunction, "_Sum__K1_3");
+	AssertTrue(pcCopy != NULL);
+	AssertTrue(pcCopy != pcFunction);
+	AssertTrue(cModule.IsLocal(pcCopy->muiSymbol));
+	AssertTrue(cModule.IsRegisterCall(pcCopy->muiSymbol));
+	AssertFalse(cModule.IsLocal(pcFunction->muiSymbol));
+	AssertTrue(pcCopy->IsRestrictParameter(0));
+	AssertTrue(pcCopy == cModule.CopyFunction(pcFunction, "_Sum__K1_3"));
+	AssertSize(2, cModule.NumFunctions());
+
+	//Its blocks are its own, and so what they name.
+	pcLoop = pcFunction->FindBlock("loop");
+	pcCopied = pcCopy->FindBlock("loop");
+	AssertTrue(pcCopied != pcLoop);
+	AssertTrue(pcCopied == pcCopy->FindBlock("entry")->msJump.pcThen);
+	AssertTrue(pcCopy->FindBlock("body") == pcCopied->masPhis.Get(0)->asArguments.Get(1)->pcBlock);
+	AssertTrue(pcCopied->HasPredecessor(pcCopy->FindBlock("body")));
+	for (ui = 0; ui < pcCopied->masInstructions.NumElements(); ui++)
+	{
+		AssertInt(7, pcCopied->masInstructions.Get(ui)->uiSource);
+	}
+	AssertInt(7, pcCopied->msJump.uiSource);
+
+	//It prints the same with the function gone, and verifies.
+	szExpected.Init();
+	cPrinter.Init(&cModule, &szExpected);
+	cPrinter.PrintFunction(pcFunction);
+	cPrinter.Kill();
+	szExpected.Replace("@_Sum(", "@_Sum__K1_3(");
+	cModule.RemoveFunction(pcFunction);
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintFunction(pcCopy);
+	cPrinter.Kill();
+	AssertString(szExpected.Text(), szPrinted.Text());
+	cVerifier.Init(&cModule, &cErrors);
+	AssertTrue(cVerifier.Verify());
+	cVerifier.Kill();
+	szPrinted.Kill();
+	szExpected.Kill();
+	cErrors.Kill();
+	cModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Two inlined calls with a constant argument (SignBit and MaxExponent of a
 // specialised DefaultNaN, softfloat): each is a branch on a constant to a
 // phi, the second's blocks after the first's join, which is a phi of one
@@ -4757,6 +4855,7 @@ void TestIR(void)
 	TestIRLiveness();
 	TestIRDominanceFrontiers();
 	TestIRRoundTripFlags();
+	TestIRCopyFunction();
 	TestIRVerifierFlagErrors();
 	TestIRVerifierUnusedOperand();
 

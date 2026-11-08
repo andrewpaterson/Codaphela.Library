@@ -19,11 +19,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
-#include "IRParser.h"
 #include "SourceFile.h"
 #include "CPP65Generator.h"
 #include "IRInliner.h"
-#include "IRPrinter.h"
 #include "IROptimiser.h"
 #include "IR816Backend.h"
 #include "CPP65IRFrontEnd.h"
@@ -920,7 +918,7 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 			{
 				szName.Append((int64)ulliValue);
 			}
-			pcCopy = CopyFunction(pcCallee, szName.Text());
+			pcCopy = mcModule.CopyFunction(pcCallee, szName.Text());
 			if (pcCopy)
 			{
 				IRReplaceUses(pcCopy, *pcCopy->masParameters.Get(uiParameter), pcCopy->AddConstant(sType, ulliValue));
@@ -1003,78 +1001,6 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 	aulliValues.Kill();
 	asSites.Kill();
 	return bDone;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A copy of pcFunction (through its text) named szName, in the unit, local
-// and taking register arguments as it does, or NULL if it couldn't be
-// made.  An existing function of that name is it.
-//
-//////////////////////////////////////////////////////////////////////////
-CIRFunction* CCPP65IRFrontEnd::CopyFunction(CIRFunction* pcFunction, const char* szName)
-{
-	CChars			szText;
-	CChars			szHeader;
-	CIRPrinter		cPrinter;
-	CIRParser		cParser;
-	CCPPErrors		cErrors;
-	int				iSymbol;
-	size			uiAt;
-	bool			bResult;
-	CIRFunction*	pcCopy;
-
-	iSymbol = mcModule.FindSymbol(szName);
-	if (iSymbol >= 0)
-	{
-		pcCopy = mcModule.FindFunction((uint32)iSymbol);
-		if (pcCopy)
-		{
-			return pcCopy;
-		}
-	}
-	szText.Init();
-	cPrinter.Init(&mcModule, &szText);
-	cPrinter.PrintFunction(pcFunction);
-	cPrinter.Kill();
-
-	//The function's own name (in its first line) is the copy's.
-	szHeader.Init("@");
-	szHeader.Append(mcModule.GetSymbolName(pcFunction->muiSymbol));
-	szHeader.Append('(');
-	uiAt = szText.Find(0, szHeader.Text());
-	if (uiAt == ARRAY_ELEMENT_NOT_FOUND)
-	{
-		szHeader.Kill();
-		szText.Kill();
-		return NULL;
-	}
-	szText.Remove(uiAt + 1, uiAt + szHeader.Length() - 1);
-	szText.Insert(uiAt + 1, szName);
-	szHeader.Kill();
-
-	cErrors.Init();
-	cParser.Init(&mcModule, &cErrors, "specialised");
-	bResult = cParser.Parse(szText.Text());
-	cParser.Kill();
-	cErrors.Kill();
-	szText.Kill();
-	iSymbol = mcModule.FindSymbol(szName);
-	if (!bResult || (iSymbol < 0))
-	{
-		return NULL;
-	}
-	pcCopy = mcModule.FindFunction((uint32)iSymbol);
-	if (pcCopy)
-	{
-		mcModule.SetLocal((uint32)iSymbol);
-		if (mcModule.IsRegisterCall(pcFunction->muiSymbol))
-		{
-			mcModule.SetRegisterCall((uint32)iSymbol);
-		}
-	}
-	return pcCopy;
 }
 
 

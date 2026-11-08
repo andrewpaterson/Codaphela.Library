@@ -525,6 +525,34 @@ CIRFunction* CIRModule::AddFunction(const char* szName, SIRType sReturnType, uin
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A copy of pcFunction named szName, local and taking register arguments as
+// it does.  An existing function of that name is it.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CIRModule::CopyFunction(CIRFunction* pcFunction, const char* szName)
+{
+	CIRFunction*	pcCopy;
+	int				iSymbol;
+
+	iSymbol = FindSymbol(szName);
+	pcCopy = (iSymbol >= 0) ? FindFunction((uint32)iSymbol) : NULL;
+	if (pcCopy)
+	{
+		return pcCopy;
+	}
+	pcCopy = AddFunction(szName, pcFunction->msReturnType, pcFunction->muiAttributes);
+	pcCopy->CopyBody(pcFunction);
+	SetLocal(pcCopy->muiSymbol);
+	if (IsRegisterCall(pcFunction->muiSymbol))
+	{
+		SetRegisterCall(pcCopy->muiSymbol);
+	}
+	return pcCopy;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Removes and frees a function; its symbol stays (undefined).
 //
 //////////////////////////////////////////////////////////////////////////
