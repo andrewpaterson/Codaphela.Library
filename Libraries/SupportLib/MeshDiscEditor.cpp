@@ -112,18 +112,7 @@ int CMeshDiscEditor::ExpectedCornerChunkSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshDiscEditor::Apply(CMeshEditor* pcMeshEditor)
-{
-	ClearConnectivity(pcMeshEditor);
-	GenerateDisc(pcMeshEditor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshDiscEditor::GenerateDisc(CMeshEditor* pcMeshEditor)
+void CMeshDiscEditor::Generate(CMeshEditor* pcMeshEditor)
 {
 	uint		i;
 	uint		j;

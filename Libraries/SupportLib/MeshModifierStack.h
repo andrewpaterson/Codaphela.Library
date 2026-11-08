@@ -28,8 +28,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 //The stack holds a source mesh and GetOutput runs it up through the modifiers: Source | Modifier 0 | Modifier 1 | etc...
-//The source isn't changed until Flatten makes the output the new source.
-//A CMeshEditor's stack has no source.  It applies its modifiers to the editor's mesh in place with ApplyAll.
+//The source isn't changed until Flatten makes the output the new source.  With no source it starts from an empty mesh.
+//A CMeshEditor's stack has no source.  It applies its modifiers to the editor's mesh in place with ApplyAll, which empties
+//the mesh first if any of them makes a shape, so applying them again gives the same mesh.
 class CMeshEditor;
 class CMeshModifierStack : public CObject
 {
@@ -57,6 +58,7 @@ public:
 	int		NumEditors(void);
 
 	void	ApplyAll(CMeshEditor* pcMeshEditor);
+	bool	HasSourceModifier(void);
 
 	Ptr<CMesh>	GetSource(void);
 	Ptr<CMesh>	GetOutput(void);  //Kept until a modifier is added or Touch is called.

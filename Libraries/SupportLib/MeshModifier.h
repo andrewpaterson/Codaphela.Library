@@ -37,6 +37,7 @@ CONSTRUCTABLE(CMeshModifier);
 public:
 	void			Kill(void);
 
+	virtual bool		IsSource(void);  //Whether it makes a shape, rather than changing what's there.
 	virtual void		Apply(CMeshEditor* pcMeshEditor);
 	virtual Ptr<CMesh>	Modify(Ptr<CMesh> pMesh);  //Returns pMesh itself if there is nothing to change.
 

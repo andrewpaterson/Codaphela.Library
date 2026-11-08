@@ -52,8 +52,7 @@ public:
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);
 
-	void	Apply(CMeshEditor* pcMeshEditor);
-	void	GenerateRing(CMeshEditor* pcMeshEditor);
+	void	Generate(CMeshEditor* pcMeshEditor) override;
 	void	AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, bool bFlipFaces);
 };
 

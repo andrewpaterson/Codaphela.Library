@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/Objects.h"
 #include "MeshEditor.h"
 #include "MeshModifierStack.h"
 
@@ -120,12 +121,45 @@ void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 	int				iNumElements;
 
 	iNumElements = (int)macEditors.NumElements();
+	if (HasSourceModifier())
+	{
+		pcMeshEditor->ClearConnectivity();
+		for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
+		{
+			pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
+			pcEditor->ClearConnectivity();
+		}
+	}
+
 	for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
 	{
 		pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
 		pcEditor->Apply(pcMeshEditor);
 	}
 	miCurrent = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshModifierStack::HasSourceModifier(void)
+{
+	CMeshModifier*	pcModifier;
+	size			i;
+	size			uiNumElements;
+
+	uiNumElements = macEditors.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcModifier = (CMeshModifier*)macEditors.Get(i);
+		if (pcModifier->IsSource())
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -152,6 +186,11 @@ Ptr<CMesh> CMeshModifierStack::GetOutput(void)
 
 	if (mpOutput.IsNull())
 	{
+		if (mpSource.IsNull())
+		{
+			mpSource = OMalloc<CMesh>();
+		}
+
 		pMesh = mpSource;
 		uiNumElements = macEditors.NumElements();
 		for (i = 0; i < uiNumElements; i++)

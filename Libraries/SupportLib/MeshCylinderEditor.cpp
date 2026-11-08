@@ -69,8 +69,8 @@ int CMeshCylinderEditor::ExpectedCornerChunkSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshCylinderEditor::Apply(CMeshEditor* pcMeshEditor)
+void CMeshCylinderEditor::Generate(CMeshEditor* pcMeshEditor)
 {
-	mcConeEditor.Apply(pcMeshEditor);
+	mcConeEditor.Generate(pcMeshEditor);
 }
 

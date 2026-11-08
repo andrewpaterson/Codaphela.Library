@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/Objects.h"
 #include "MeshEditor.h"
 #include "MeshSourceModifier.h"
 
@@ -44,11 +45,102 @@ void CMeshSourceModifier::Kill(void)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSourceModifier::ClearConnectivity(CMeshEditor* pcMeshEditor)
+bool CMeshSourceModifier::IsSource(void)
 {
-	pcMeshEditor->ClearConnectivity();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSourceModifier::Apply(CMeshEditor* pcMeshEditor)
+{
+	Generate(pcMeshEditor);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new mesh of pMesh and the shape.  The shape's faces come after pMesh's,
+// and flat normals come before corner normals, so pMesh's corner normals go
+// on after the shape's flat ones and are numbered that much higher.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
+{
+	Ptr<CMesh>			pOutput;
+	CMeshEditor			cEditor;
+	SMeshNormalFace*	psNormalFace;
+	SMeshNormalFace*	psOutputNormalFace;
+	SFloat32Vec3*		psNormal;
+	int*				piCorners;
+	int					iNumFaces;
+	int					iNumNormals;
+	int					iNumCorners;
+	int					iNewFaces;
+	int					iFace;
+	int					i;
+	size				u;
+
+	if (!CanRebuild(&pMesh))
+	{
+		return pMesh;
+	}
+
+	pOutput = OMalloc<CMesh>();
+	pOutput->mcNormals.mbInUse = pMesh->mcNormals.InUse();
+	pOutput->mcColours.mbInUse = pMesh->mcColours.InUse();
+	for (u = 0; u < pMesh->mcColours.mcColours.NumElements(); u++)
+	{
+		pOutput->mcColours.mcColours.Add(pMesh->mcColours.mcColours.GetValue(u));
+	}
+
+	cEditor.Init(pOutput);
+
+	iNumCorners = pMesh->NumCorners();
+	for (i = 0; i < iNumCorners; i++)
+	{
+		cEditor.AddCorner(pMesh->GetPosition(i));
+	}
+
+	iNumFaces = pMesh->NumFaces();
+	for (iFace = 0; iFace < iNumFaces; iFace++)
+	{
+		piCorners = pMesh->GetFaceCorners(iFace);
+		cEditor.AddFace(piCorners[0], piCorners[1], piCorners[2]);
+		if (pMesh->mcColours.InUse())
+		{
+			for (i = 0; i < NUM_FACE_CORNERS; i++)
+			{
+				pOutput->mcColours.mcFaces.Get(iFace)->aiCornerColours[i] = pMesh->mcColours.mcFaces.Get(iFace)->aiCornerColours[i];
+			}
+		}
+	}
+
+	Generate(&cEditor);
+	cEditor.Kill();
+
+	if (pMesh->mcNormals.InUse())
+	{
+		iNewFaces = pOutput->NumFaces() - iNumFaces;
+		for (iFace = 0; iFace < iNumFaces; iFace++)
+		{
+			psNormalFace = pMesh->mcNormals.mcFaces.Get(iFace);
+			psOutputNormalFace = pOutput->mcNormals.mcFaces.Get(iFace);
+			for (i = 0; i < NUM_FACE_CORNERS; i++)
+			{
+				psOutputNormalFace->aiCornerNormals[i] = (psNormalFace->aiCornerNormals[i] < 0) ? -1 : psNormalFace->aiCornerNormals[i] + iNewFaces;
+			}
+		}
+
+		iNumNormals = (int)pMesh->mcNormals.mcNormals.NumElements();
+		for (i = iNumFaces; i < iNumNormals; i++)
+		{
+			psNormal = pMesh->mcNormals.mcNormals.Get(i);
+			pOutput->AddNormal(psNormal->x, psNormal->y, psNormal->z);
+		}
+	}
+	return pOutput;
 }

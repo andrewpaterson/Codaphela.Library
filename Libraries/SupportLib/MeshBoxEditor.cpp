@@ -119,7 +119,7 @@ int CMeshBoxEditor::ExpectedCornerChunkSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
+void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 {
 	CMeshPlaneEditor	cPlaneEditor;
 	SFloat32Vec3				sBottom;
@@ -153,15 +153,12 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 	int					iNameFront = 5;
 	int					iNameBack = 6;
 
-	ClearConnectivity(pcMeshEditor);
-
-
 	//Top
-	iFirstTop = 0;
+	iFirstTop = pcMeshEditor->NumCorners();
 	cPlaneEditor.Init(&msXDirection, &msYDirection, &msStart, miXSegments, miYSegments);
 	cPlaneEditor.SetFlipFaces(true);
 	cPlaneEditor.SetFaceName(iNameTop);
-	cPlaneEditor.GeneratePlane(pcMeshEditor);
+	cPlaneEditor.Generate(pcMeshEditor);
 	cPlaneEditor.Kill();
 
 	//Bottom
@@ -171,7 +168,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 
 	cPlaneEditor.Init(&msXDirection, &msYDirection, &sBottom, miXSegments, miYSegments);
 	cPlaneEditor.SetFaceName(iNameBottom);
-	cPlaneEditor.GeneratePlane(pcMeshEditor);
+	cPlaneEditor.Generate(pcMeshEditor);
 	cPlaneEditor.Kill();
 
 	if (miZSegments > 1)
@@ -181,7 +178,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		cPlaneEditor.Init(&msXDirection, &msZDirection, &msStart, miXSegments, miZSegments);
 		cPlaneEditor.SetFaceName(iNameLeft);
 		cPlaneEditor.SetYOffsets(1, 1);
-		cPlaneEditor.GeneratePlane(pcMeshEditor);
+		cPlaneEditor.Generate(pcMeshEditor);
 		cPlaneEditor.Kill();
 
 		//Right
@@ -193,7 +190,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		cPlaneEditor.SetFaceName(iNameRight);
 		cPlaneEditor.SetYOffsets(1, 1);
 		cPlaneEditor.SetFlipFaces(true);
-		cPlaneEditor.GeneratePlane(pcMeshEditor);
+		cPlaneEditor.Generate(pcMeshEditor);
 		cPlaneEditor.Kill();
 	}
 	if ((miYSegments > 1) && (miZSegments > 1))
@@ -205,7 +202,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		cPlaneEditor.SetFlipFaces(true);
 		cPlaneEditor.SetYOffsets(1, 1);
 		cPlaneEditor.SetXOffsets(1, 1);
-		cPlaneEditor.GeneratePlane(pcMeshEditor);
+		cPlaneEditor.Generate(pcMeshEditor);
 		cPlaneEditor.Kill();
 
 		//Back
@@ -217,7 +214,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		cPlaneEditor.SetFaceName(iNameBack);
 		cPlaneEditor.SetYOffsets(1, 1);
 		cPlaneEditor.SetXOffsets(1, 1);
-		cPlaneEditor.GeneratePlane(pcMeshEditor);
+		cPlaneEditor.Generate(pcMeshEditor);
 		cPlaneEditor.Kill();
 	}
 	iIndex1 = iFirstTop + ((miXSegments+1) * (miYSegments));

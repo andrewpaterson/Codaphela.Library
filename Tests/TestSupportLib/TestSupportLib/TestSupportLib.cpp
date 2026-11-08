@@ -60,6 +60,7 @@ void TestMeshShapes(void);
 void TestMeshCache(void);
 void TestMeshConnectivity(void);
 void TestMeshModifierStack(void);
+void TestMeshSourceModifier(void);
 void TestMeshFixReversed(void);
 void TestMeshSimplify(void);
 void TestNormalGeneration(void);
@@ -143,6 +144,7 @@ int __cdecl main(void)
 	TestMeshCache();
 	TestMeshConnectivity();
 	TestMeshModifierStack();
+	TestMeshSourceModifier();
 	TestMeshFixReversed();
 	TestMeshSimplify();
 	TestNormalGeneration();

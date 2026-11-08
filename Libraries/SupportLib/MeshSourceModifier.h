@@ -26,6 +26,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshModifier.h"
 
 
+//A modifier that adds a shape from its own settings to what it is given, so that a stack can add many to one mesh.
+//A stack with one starts from an empty mesh (CMeshEditor's clears its mesh each time it applies its modifiers).
 class CMeshEditor;
 class CMeshSourceModifier : public CMeshModifier
 {
@@ -37,7 +39,11 @@ public:
 	virtual int ExpectedFaceChunkSize(void) =0;
 	virtual int ExpectedCornerChunkSize(void) =0;
 
-	void		ClearConnectivity(CMeshEditor* pcMeshEditor);
+	virtual void	Generate(CMeshEditor* pcMeshEditor) =0;
+
+	bool		IsSource(void) override;
+	void		Apply(CMeshEditor* pcMeshEditor) override;
+	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };
 
 

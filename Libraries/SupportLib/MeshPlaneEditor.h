@@ -53,8 +53,7 @@ public:
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);
 
-	void	Apply(CMeshEditor* pcMeshEditor);
-	void	GeneratePlane(CMeshEditor* pcMeshEditor);
+	void	Generate(CMeshEditor* pcMeshEditor) override;
 };
 
 

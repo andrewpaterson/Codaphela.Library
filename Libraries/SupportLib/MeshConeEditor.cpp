@@ -101,7 +101,7 @@ int CMeshConeEditor::ExpectedCornerChunkSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
+void CMeshConeEditor::Generate(CMeshEditor* pcMeshEditor)
 {
 	SFloat32Vec3				sTopCenter;
 	int					iFirstRing;
@@ -123,19 +123,17 @@ void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 	mcBottomDisc.Init(&msZDirection, &msStart, 0.0f, mfBottomRadius, miWedgeSegments, miBottomCircleSegments);
 	mcBottomDisc.SetFlipFaces(true);
 	mcBottomDisc.SetFaceName(3);
-	
-	ClearConnectivity(pcMeshEditor);
 
-	mcTopDisc.GenerateDisc(pcMeshEditor);
+	mcTopDisc.Generate(pcMeshEditor);
 	iLastTop = pcMeshEditor->NumCorners() - miWedgeSegments;
 
-	mcBottomDisc.GenerateDisc(pcMeshEditor);
+	mcBottomDisc.Generate(pcMeshEditor);
 	iLastBottom = pcMeshEditor->NumCorners() - miWedgeSegments;
 
 	if (miRingSegments > 2)
 	{
 		iFirstRing = pcMeshEditor->NumCorners();
-		mcRing.GenerateRing(pcMeshEditor);
+		mcRing.Generate(pcMeshEditor);
 		iLastRing = pcMeshEditor->NumCorners() - miWedgeSegments;
 
 		mcRing.AddZStrip(pcMeshEditor, iLastRing, iLastTop, true);

@@ -42,7 +42,7 @@ public:
 	void	Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments, int iZSegments);
 	void	Kill(void);
 
-	void	Apply(CMeshEditor* pcMeshEditor);
+	void	Generate(CMeshEditor* pcMeshEditor) override;
 
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);
