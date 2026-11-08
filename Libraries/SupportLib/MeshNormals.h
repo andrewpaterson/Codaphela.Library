@@ -66,6 +66,9 @@ public:
 
 	SFloat32Vec3*	GetFaceNormal(int iFace);
 	SFloat32Vec3*	GetCornerNormal(int iCorner);
+
+protected:
+	void		MoveCornerNormalsUp(int iNumFaces);  //A new flat normal has gone in before the corner normals.
 };
 
 
