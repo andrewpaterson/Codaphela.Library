@@ -5464,6 +5464,27 @@ void TestCPP816WideMultiplies(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Namespaces run on the W65C816 too: qualified names, overloads, templates,
+// argument-dependent lookup, operators and friends, and the NamespaceProject's
+// units linked.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816Namespaces(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/NamespaceProject/Shapes.cpp", "Input/CPP65/NamespaceProject/Other.cpp", "Input/CPP65/NamespaceProject/Main.cpp", NULL };
+
+	AssertInt(21, TestCPP816Run("namespace A { int F(int a) { return a + 10; } }\nnamespace B { int F(int a) { return a + 8; } int G() { return F(1); } }\nint F(int a) { return a; }\nint main() { return A::F(1) + B::G() + ::F(1); }\n"));
+	AssertInt(13, TestCPP816Run("namespace N { template<class T> struct Box { T t; T Get() { return t; } }; template<class T> T Add(T a, T b) { return a + b; } }\nint main() { N::Box<int> b; b.t = 6; return b.Get() + N::Add<int>(3, 4); }\n"));
+	AssertInt(1, TestCPP816Run("namespace N { struct S { int i; }; int Get(S s) { return s.i; } }\nint main() { N::S s; s.i = 1; return Get(s); }\n"));
+	AssertInt(13, TestCPP816Run("namespace A { struct S { int i; }; int operator+(S a, int b) { return a.i + b; } }\nnamespace B { struct S { int i; }; int operator+(S a, int b) { return a.i - b; } }\nint main() { A::S a; B::S b; a.i = 10; b.i = 5; return (a + 1) + (b + 3); }\n"));
+	AssertInt(10, TestCPP816Run("namespace N { struct S { int i; friend int Peek(S s) { return s.i; } }; }\nint main() { N::S s; s.i = 10; return Peek(s); }\n"));
+	AssertInt(7, TestCPP816Run("namespace N { int x = 3; }\nnamespace { int x = 4; }\nint main() { return N::x + x; }\n"));
+	AssertInt(9 + 4 + 3 + 10 + 7 + 11 + 2001 + 6 + 500 + 2, TestCPP816RunProject(aszUnits, "", NULL));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816(void)
@@ -5554,6 +5575,7 @@ void TestCPP816(void)
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();
 	TestCPP816ConstantArguments();
+	TestCPP816Namespaces();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	NumberKill();
