@@ -1396,6 +1396,7 @@ void TestSetObjectAddAllWithHoles(void)
 	Ptr<CTestSaveableObject1>		pOne;
 	Ptr<CTestSaveableObject1>		pTwo;
 	Ptr<CTestSaveableObject1>		pThree;
+	CChars							sz;
 
 	pacStuff = OMalloc<CSet<CTestSaveableObject1>>(false);
 	pOne = OMalloc<CTestSaveableObject1>();
@@ -1406,6 +1407,14 @@ void TestSetObjectAddAllWithHoles(void)
 	pacStuff->Add(pThree);
 	AssertTrue(pacStuff->Remove(pTwo));
 	AssertSize(2, pacStuff->NumElements());
+
+	//Every slot prints, the hole where pTwo was and the last one after it too.
+	sz.Init();
+	pacStuff->PrintSlots(&sz);
+	AssertNotNull(strstr(sz.Text(), "0: "));
+	AssertNotNull(strstr(sz.Text(), "1: "));
+	AssertNotNull(strstr(sz.Text(), "2: "));
+	sz.Kill();
 
 	pacMore = OMalloc<CSet<CTestSaveableObject1>>(false);
 	pacMore->AddAll(pacStuff);

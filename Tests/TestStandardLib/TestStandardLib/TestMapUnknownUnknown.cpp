@@ -633,6 +633,64 @@ void TestMapUnknownUnknownNoOverwrite(void)
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
+// SetValue replaces the value an iteration is at, killing the old one   //
+// as Put would.                                                        //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+void TestMapUnknownUnknownSetValue(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CMapUnknownUnknown		cMap;
+	CTestNamedUnknown*		pcKey;
+	CTestNamedUnknown*		pcOld;
+	CTestNamedUnknown*		pcNew;
+	CTestNamedUnknown*		pcNewKey;
+	CUnknown*				pcIterKey;
+	CUnknown*				pcIterValue;
+	SMapIterator			sIter;
+
+	cMap.Init();
+	pcKey = gcUnknowns.Add<CTestNamedUnknown>();
+	pcKey->Init("Key");
+	pcOld = gcUnknowns.Add<CTestNamedUnknown>();
+	pcOld->Init("Old");
+	AssertTrue(cMap.Put(pcKey, pcOld));
+	pcNew = gcUnknowns.Add<CTestNamedUnknown>();
+	pcNew->Init("New");
+	AssertSize(3, gcUnknowns.NumElements());
+
+	AssertTrue(cMap.StartIteration(&sIter, &pcIterKey, &pcIterValue));
+	AssertPointer(pcOld, pcIterValue);
+	cMap.SetValue(&sIter, pcNew);
+	AssertSize(2, gcUnknowns.NumElements());
+	AssertPointer(pcNew, cMap.Get(pcKey));
+
+	//The same value again isn't killed.
+	AssertTrue(cMap.StartIteration(&sIter, &pcIterKey, &pcIterValue));
+	cMap.SetValue(&sIter, pcNew);
+	AssertSize(2, gcUnknowns.NumElements());
+
+	//SetKey kills the key it replaces; the map is sorted again before it's searched.
+	pcNewKey = gcUnknowns.Add<CTestNamedUnknown>();
+	pcNewKey->Init("New Key");
+	AssertTrue(cMap.StartIteration(&sIter, &pcIterKey, &pcIterValue));
+	cMap.SetKey(&sIter, pcNewKey);
+	cMap.Sort();
+	AssertSize(2, gcUnknowns.NumElements());
+	AssertPointer(pcNew, cMap.Get(pcNewKey));
+
+	cMap.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 void TestMapUnknownUnknownPrintNull(void)
@@ -680,6 +738,7 @@ void TestMapUnknownUnknown(void)
 	TestMapUnknownUnknownReplaceSameValue();
 	TestMapUnknownUnknownNoOverwrite();
 	TestMapUnknownUnknownPrintNull();
+	TestMapUnknownUnknownSetValue();
 
 	TestStatistics();
 }

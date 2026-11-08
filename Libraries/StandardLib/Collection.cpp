@@ -284,9 +284,14 @@ bool CCollection::RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRe
 	size	i;
 	bool	bResult;
 
-	if ((pcObject == NULL) || (uiRemoved == 0))
+	//Nothing to remove succeeds, as for RemoveObjectTryFree.
+	if (uiRemoved == 0)
 	{
-		return false;
+		return true;
+	}
+	if (pcObject == NULL)
+	{
+		return RemoveObjectTryFree(NULL, bValidate);
 	}
 
 	bResult = true;

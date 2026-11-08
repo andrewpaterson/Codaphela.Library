@@ -77,6 +77,7 @@ protected:
 	void		FreeData(void* pvData) override;
 	bool		WriteData(CFileWriter* pcFile, void* pvData) override;
 	bool		ReadData(CFileReader* pcFile, void* pvData) override;
+	void		ReplaceValue(CUnknown** ppcValue, CUnknown* pcKey, CUnknown* pcValue);
 };
 
 

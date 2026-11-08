@@ -153,8 +153,7 @@ size CMapObject::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 size CMapObject::NonNullElements(void)
 {
-	EnsureSorted();
-
+	//A count, so the order doesn't matter.
 	return mcMap.NonNullElements();
 }
 
@@ -687,8 +686,27 @@ void CMapObject::AddMemberLocations(CPointerLocations* pcLocations)
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
 {
-	EnsureSorted();
-	return (mcMap.GetNode((CUnknown*)uiLocation) != NULL) && (mcMap.Get((CUnknown*)uiLocation) == (CUnknown*)pcMember);
+	CBaseObject*	pcKey;
+	CBaseObject*	pcValue;
+	SMapIterator	sIter;
+	bool			bExists;
+
+	if (mbSorted)
+	{
+		return (mcMap.GetNode((CUnknown*)uiLocation) != NULL) && (mcMap.Get((CUnknown*)uiLocation) == (CUnknown*)pcMember);
+	}
+
+	//Unsorted it can't be searched by key.  It's a validator's question: it mustn't sort the map to answer it.
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	while (bExists)
+	{
+		if ((ptr)pcKey == uiLocation)
+		{
+			return pcValue == pcMember;
+		}
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	}
+	return false;
 }
 
 

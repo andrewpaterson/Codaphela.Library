@@ -127,7 +127,6 @@ bool CMapUnknownUnknown::Put(CUnknown* pcKey, CUnknown* pcValue)
 {
 	SMNode*		psNode;
 	CUnknown**	ppcValue;
-	CUnknown*	pcOldValue;
 
 	if (!pcKey)
 	{
@@ -144,12 +143,7 @@ bool CMapUnknownUnknown::Put(CUnknown* pcKey, CUnknown* pcValue)
 
 		//Replace the value in place.  Removing the node and adding a new one would kill the key too when the map kills its elements.
 		ppcValue = (CUnknown**)mcMap.GetValue(psNode);
-		pcOldValue = *ppcValue;
-		*ppcValue = pcValue;
-		if (IsKillElements() && pcOldValue && (pcOldValue != pcValue) && (pcOldValue != pcKey))
-		{
-			pcOldValue->Kill();
-		}
+		ReplaceValue(ppcValue, pcKey, pcValue);
 		return true;
 	}
 
@@ -243,6 +237,10 @@ bool CMapUnknownUnknown::Remove(CUnknown* pcKey)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The key an iteration is at becomes pcNewKey.  The map is then out of
+// key order: the caller sorts it (Sort) before it is searched again.  The
+// key replaced is killed if the map kills its elements, unless it is
+// still in the map (the new key, or the value).
 //
 //////////////////////////////////////////////////////////////////////////
 void CMapUnknownUnknown::SetKey(SMapIterator* psIter, CUnknown* pcNewKey)
@@ -250,12 +248,18 @@ void CMapUnknownUnknown::SetKey(SMapIterator* psIter, CUnknown* pcNewKey)
 	SMNode*		psNode;
 	void*		pvValue;
 	void*		pvKey;
-	CUnknown**	ppcOldKey;
+	CUnknown**	ppcKey;
+	CUnknown*	pcOldKey;
 
 	psNode = mcMap.GetNode(psIter);
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
-	ppcOldKey = (CUnknown**)pvKey;
-	*ppcOldKey = pcNewKey;
+	ppcKey = (CUnknown**)pvKey;
+	pcOldKey = *ppcKey;
+	*ppcKey = pcNewKey;
+	if (IsKillElements() && pcOldKey && (pcOldKey != pcNewKey) && (pcOldKey != *(CUnknown**)pvValue))
+	{
+		pcOldKey->Kill();
+	}
 }
 
 
@@ -268,12 +272,30 @@ void CMapUnknownUnknown::SetValue(SMapIterator* psIter, CUnknown* pcNewValue)
 	SMNode*		psNode;
 	void*		pvValue;
 	void*		pvKey;
-	CUnknown**	ppcOldValue;
 
 	psNode = mcMap.GetNode(psIter);
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
-	ppcOldValue = (CUnknown**)pvValue;
-	*ppcOldValue = pcNewValue;
+	ReplaceValue((CUnknown**)pvValue, *(CUnknown**)pvKey, pcNewValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value *ppcValue (under pcKey) becomes pcValue.  The one replaced is
+// killed if the map kills its elements, unless it is still in the map
+// (the new value, or the key itself).
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapUnknownUnknown::ReplaceValue(CUnknown** ppcValue, CUnknown* pcKey, CUnknown* pcValue)
+{
+	CUnknown*	pcOldValue;
+
+	pcOldValue = *ppcValue;
+	*ppcValue = pcValue;
+	if (IsKillElements() && pcOldValue && (pcOldValue != pcValue) && (pcOldValue != pcKey))
+	{
+		pcOldValue->Kill();
+	}
 }
 
 

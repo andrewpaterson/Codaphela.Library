@@ -41,6 +41,7 @@ public:
 						void			TouchAll(void) override;
 
 						void			Dump(void) override;
+						void			PrintSlots(CChars* psz);
 };
 
 

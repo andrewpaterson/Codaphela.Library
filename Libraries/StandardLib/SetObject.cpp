@@ -117,15 +117,29 @@ void CSetObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CSetObject::Dump(void)
 {
+	CChars	sz;
+
+	sz.Init();
+	PrintSlots(&sz);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every slot, a NULL where a member was removed (a set ignores NULLs, so
+// it leaves them until it cleans): its index and the member's address.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSetObject::PrintSlots(CChars* psz)
+{
 	size				uiNumElements;
 	size				ui;
 	CEmbeddedObject*	pcEmbedded;
-	CChars				sz;
 	CChars				szLineNumber;
 	size				uiPadding;
 
-	sz.Init();
-	uiNumElements = mcArray.NumElements();
+	uiNumElements = mcArray.UnsafeNumElements();
 	uiPadding = NumberOfDigits(uiNumElements);
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
@@ -135,12 +149,11 @@ void CSetObject::Dump(void)
 		szLineNumber.RightAlign(' ', uiPadding);
 		szLineNumber.Append(": ");
 
-		sz.Append(szLineNumber);
-		sz.AppendPointer(pcEmbedded);
-		sz.AppendNewLine();
+		psz->Append(szLineNumber);
+		psz->AppendPointer(pcEmbedded);
+		psz->AppendNewLine();
 
 		szLineNumber.Kill();
 	}
-	sz.DumpKill();
 }
 

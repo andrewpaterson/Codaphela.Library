@@ -1295,6 +1295,12 @@ void TestMapObjectInternalSerialisation(size uiNumMapItems)
 		AssertSize(uiNumMapItems, pMap->NumElements());
 		AssertFalse(pMap->IsSorted());
 
+		//Questions about an unsorted map answer it without sorting it: the count, and the validator's (big enough maps
+		//keep their members' locations, which the validator checks with IsMemberAt).
+		pMap->NonNullElements();
+		pMap->ValidateConsistency();
+		AssertFalse(pMap->IsSorted());
+
 		bResult = true;
 		for (ui = 0; ui < uiNumMapItems; ui++)
 		{
