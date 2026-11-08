@@ -456,6 +456,114 @@ void TestRasteriserWideTriangles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// One mesh, held once, drawn twice.  Left where it is an instance draws what
+// the mesh does.  Moved it appears there too, in the same picture whichever
+// is drawn first as the depths sort them out.  Turned, it faces the way it
+// was turned.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserInstances(void)
+{
+	CMesh			cMesh;
+	CRasterMesh		cRaster;
+	CRasterCamera	cCamera;
+	CRasteriser		cRasteriser;
+	CRasterTarget	cTarget;
+	SRasterInstance	asInstances[2];
+	SRasterInstance	sSwap;
+	uint32*			puiFirst;
+	uint32*			puiSecond;
+	int				iOne;
+	int				iTwo;
+	bool			bSame;
+
+	cMesh.Init();
+	cMesh.mcNormals.mbInUse = true;
+
+	//A square facing +Z at the origin.
+	cMesh.AddCorner(-0.25f, -0.25f, 0.0f);
+	cMesh.AddCorner(0.25f, -0.25f, 0.0f);
+	cMesh.AddCorner(0.25f, 0.25f, 0.0f);
+	cMesh.AddCorner(-0.25f, 0.25f, 0.0f);
+	cMesh.AddFace(0, 1, 2);
+	cMesh.AddFace(0, 2, 3);
+
+	cRaster.Init();
+	cRaster.Build(&cMesh, 1 << 20);
+
+	puiFirst = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	puiSecond = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	cRasteriser.Init();
+	cCamera.Init();
+	cCamera.Fit(64, 64);
+
+	//An instance that hasn't moved is the mesh.
+	cTarget.Init(puiFirst, 64, 64, 64);
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(&cRaster, &cCamera, &cTarget);
+	iOne = 64 * 64 - CountPixels(&cTarget, TEST_BLACK);
+	AssertTrue(iOne > 0);
+	cTarget.Kill();
+
+	asInstances[0].pcMesh = &cRaster;
+	asInstances[0].asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
+	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	asInstances[0].asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	asInstances[0].sOffset.Init(0, 0, 0);
+
+	cTarget.Init(puiSecond, 64, 64, 64);
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(asInstances, 1, &cCamera, &cTarget);
+	bSame = memcmp(puiFirst, puiSecond, 64 * 64 * sizeof(uint32)) == 0;
+	AssertTrue(bSame);
+	cTarget.Kill();
+
+	//The same mesh again, overlapping it, moved right and nearer the eye.  They cover more than one does, and it makes no
+	//difference which is drawn first.
+	asInstances[1] = asInstances[0];
+	asInstances[1].sOffset.Init(1 << 18, 0, 1 << 20);
+	cTarget.Init(puiFirst, 64, 64, 64);
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(asInstances, 2, &cCamera, &cTarget);
+	iTwo = 64 * 64 - CountPixels(&cTarget, TEST_BLACK);
+	AssertTrue(iTwo > iOne);
+	cTarget.Kill();
+
+	sSwap = asInstances[0];
+	asInstances[0] = asInstances[1];
+	asInstances[1] = sSwap;
+	cTarget.Init(puiSecond, 64, 64, 64);
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(asInstances, 2, &cCamera, &cTarget);
+	bSame = memcmp(puiFirst, puiSecond, 64 * 64 * sizeof(uint32)) == 0;
+	AssertTrue(bSame);
+
+	//A quarter turn around X makes the square edge on: nothing is drawn.
+	asInstances[0] = sSwap;
+	asInstances[0].asAxes[1].Init(0, 0, -(1 << RASTER_AXIS_BITS));
+	asInstances[0].asAxes[2].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(asInstances, 1, &cCamera, &cTarget);
+	AssertInt(64 * 64, CountPixels(&cTarget, TEST_BLACK));
+
+	//Half a turn around Y faces it away from the eye, and it is culled.
+	asInstances[0].asAxes[0].Init(-(1 << RASTER_AXIS_BITS), 0, 0);
+	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	asInstances[0].asAxes[2].Init(0, 0, -(1 << RASTER_AXIS_BITS));
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(asInstances, 1, &cCamera, &cTarget);
+	AssertInt(64 * 64, CountPixels(&cTarget, TEST_BLACK));
+	cTarget.Kill();
+
+	cRasteriser.Kill();
+	free(puiSecond);
+	free(puiFirst);
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriser(void)
@@ -472,6 +580,7 @@ void TestRasteriser(void)
 	TestRasteriserTransparency();
 	TestRasteriserMesh();
 	TestRasteriserWideTriangles();
+	TestRasteriserInstances();
 
 	ObjectsKill(false);
 	NumberKill();

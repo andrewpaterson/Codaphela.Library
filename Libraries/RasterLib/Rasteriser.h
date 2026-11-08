@@ -30,10 +30,22 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CArrayTemplate<SRasterScreenVertex>	CArrayRasterScreenVertex;
 
 
+//A mesh somewhere: its positions and normals turned by asAxes, then its positions moved by sOffset.  Any number can share
+//one mesh, which is only held once.  asAxes are what a position is dotted with for the new x, y and z, with
+//RASTER_AXIS_BITS.  They must turn it, not mirror it, or its faces would wind the wrong way.
+struct SRasterInstance
+{
+	CRasterMesh*	pcMesh;
+	SInt32Vec3		asAxes[3];
+	SInt32Vec3		sOffset;
+};
+
+
 //Draws a CRasterMesh with integer arithmetic only, so that every build draws the same pixels (given the same camera axes).
 //Triangles are filled by half-space edge functions with the top-left rule so that triangles sharing an edge never leave
 //a gap or draw a pixel twice.  Opaque triangles write depth.  Transparent ones are drawn after them, unsorted, testing
-//depth without writing it.
+//depth without writing it.  With instances that goes for all of them: every opaque triangle is drawn before any
+//transparent one.
 class CRasteriser
 {
 protected:
@@ -48,9 +60,11 @@ public:
 	void	SetCullBackFaces(bool bCullBackFaces);
 
 	void	Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarget* pcTarget);
+	void	Draw(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget);
 	void	DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent);
 
 protected:
+	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SInt64Vec3* psLight);
 	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, CRasterTarget* pcTarget, bool bTransparent);
 };
 
