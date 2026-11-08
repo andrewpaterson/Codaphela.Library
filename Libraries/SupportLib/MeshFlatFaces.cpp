@@ -80,6 +80,24 @@ void CMeshFlatFaces::Apply(CMeshEditor* pcMeshEditor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshFlatFaces::Modify(Ptr<CMesh> pMesh)
+{
+	Ptr<CMesh>	pOutput;
+
+	if (!CanRebuild(&pMesh))
+	{
+		return pMesh;
+	}
+	pOutput = CopyWithNormals(&pMesh);
+	GenerateNormals(&pOutput);
+	return pOutput;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMeshFlatFaces::GenerateNormals(CMesh* pcMesh)
 {
 	size				i;

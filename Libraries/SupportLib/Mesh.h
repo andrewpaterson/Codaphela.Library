@@ -80,6 +80,10 @@ public:
 
 	void			ClearConnectivity(void);
 
+	bool			CanCopy(void);  //CopyFrom keeps positions, faces, normals and colours: not UVs, skin or materials.
+	void			CopyFrom(CMesh* pcSource);  //Into an empty mesh.
+	void			CopyDetailsFrom(CMesh* pcSource);  //Normals and colours of the faces and corners it already has from pcSource.
+
 	void 			AddCorner(float32 x, float32 y, float32 z);
 	void			AddCorner(SFloat32Vec3* psPosition);
 

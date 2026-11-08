@@ -79,8 +79,55 @@ bool CMeshSmoothGroups::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::Apply(CMeshEditor* pcMeshEditor)
 {
+	EnsureGroups(pcMeshEditor->mpMesh->NumFaces());
 	GenerateSmoothing(pcMeshEditor);
 	GenerateNormals(&pcMeshEditor->mpMesh);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// SGS_Angle's polygons belong to an editor, which a new mesh doesn't have,
+// but it doesn't smooth anything yet in any case.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshSmoothGroups::Modify(Ptr<CMesh> pMesh)
+{
+	Ptr<CMesh>	pOutput;
+
+	if (!CanRebuild(&pMesh))
+	{
+		return pMesh;
+	}
+
+	pOutput = CopyWithNormals(&pMesh);
+	ClearConnectivity();
+	EnsureGroups(pOutput->NumFaces());
+
+	if (meGenerationStyle == SGS_Name)
+	{
+		GenerateSmoothingFromNames(&pOutput);
+	}
+	else if (meGenerationStyle == SGS_Angle)
+	{
+		mcSmoothingGroups.SetArrayValues(0);
+	}
+	GenerateNormals(&pOutput);
+	return pOutput;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh that was there before the modifier has faces it wasn't told of.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSmoothGroups::EnsureGroups(int iNumFaces)
+{
+	while ((int)mcSmoothingGroups.NumElements() < iNumFaces)
+	{
+		mcSmoothingGroups.Add(miAddGroup);
+	}
 }
 
 
@@ -219,7 +266,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	CMeshNormals*		pcNormals;
 	size				uiNumFaces;
 
-	if (!pcMesh->mcNormals.InUse())
+	if (!pcMesh->mcNormals.InUse() || (pcMesh->NumFaces() == 0))
 	{
 		return;
 	}
@@ -231,6 +278,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	piSmoothing = mcSmoothingGroups.Get(0);
 
 	pcNormals = &pcMesh->mcNormals;
+	pcNormals->RemoveCornerNormals(pcMesh->NumFaces());
 
 	iNumCorners = pcMesh->NumCorners();
 	//Step through every vertex

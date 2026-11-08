@@ -57,6 +57,7 @@ public:
 	void	GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor);
 
 	void	Apply(CMeshEditor* pcMeshEditor);
+	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 
 	void	ClearConnectivity(void);
 
@@ -66,6 +67,9 @@ public:
 	void	RemoveFaces(CArraySize* paiFaces);
 
 	void	SetAllGroups(int iGroup);
+
+protected:
+	void	EnsureGroups(int iNumFaces);
 };
 
 

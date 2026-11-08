@@ -1,7 +1,16 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Mesh.h"
+#include "SupportLib/MeshEditor.h"
+#include "SupportLib/MeshFlatFaces.h"
+#include "SupportLib/MeshModifierStack.h"
+#include "SupportLib/MeshPlaneEditor.h"
+#include "SupportLib/MeshSmoothFaces.h"
+#include "SupportLib/MeshSmoothGroups.h"
 #include "TestLib/Assert.h"
+
+
+size CountMeshMemoryObjects(const char* szClassName);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,6 +54,192 @@ void TestMeshAddFaceKeepsCornerNormals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Two faces sharing corners 0 and 2, each with its own name.  No normals.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMesh> TestMeshNormalTwoFaces(int iName1, int iName2)
+{
+	Ptr<CMesh>	pMesh;
+
+	pMesh = OMalloc<CMesh>();
+	pMesh->AddCorner(0, 0, 0);
+	pMesh->AddCorner(1, 0, 0);
+	pMesh->AddCorner(1, 1, 0);
+	pMesh->AddCorner(0, 1, 0);
+	pMesh->AddFace(0, 1, 2);
+	pMesh->AddFace(0, 2, 3);
+	pMesh->SetFaceName(0, iName1);
+	pMesh->SetFaceName(1, iName2);
+	return pMesh;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each makes a new mesh with normals from one that has none, which stays
+// as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshNormalModifiersMakeNewMeshes(void)
+{
+	CMeshModifierStack	cStack;
+	Ptr<CMesh>			pSource;
+	Ptr<CMesh>			pOutput;
+	SMeshNormalFace*	psNormalFace;
+
+	pSource = TestMeshNormalTwoFaces(1, 2);
+
+	cStack.Init(pSource);
+	cStack.AddModifier<CMeshFlatFaces>()->Init();
+	pOutput = cStack.GetOutput();
+	AssertFalse(pOutput == pSource);
+	AssertFalse(pSource->mcNormals.InUse());
+	AssertTrue(pOutput->mcNormals.InUse());
+	AssertSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	psNormalFace = pOutput->mcNormals.mcFaces.Get(1);
+	AssertInt(1, psNormalFace->aiCornerNormals[0]);
+	AssertInt(1, psNormalFace->aiCornerNormals[2]);
+	AssertInt(4, pOutput->NumCorners());
+	AssertInt(2, pOutput->GetFaceName(1));
+	cStack.Kill();
+
+	cStack.Init(pSource);
+	cStack.AddModifier<CMeshSmoothFaces>()->Init();
+	pOutput = cStack.GetOutput();
+	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	psNormalFace = pOutput->mcNormals.mcFaces.Get(0);
+	AssertInt(2, psNormalFace->aiCornerNormals[0]);
+	AssertFloat(1.0f, pOutput->mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[1])->z, 3);
+	cStack.Kill();
+
+	AssertFalse(pSource->mcNormals.InUse());
+	AssertInt(2, pSource->NumFaces());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Faces in one group share a normal at a corner, in two they have one each,
+// and in none they use their flat ones.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshSmoothGroupsModify(void)
+{
+	CMeshModifierStack	cStack;
+	Ptr<CMesh>			pOutput;
+	CMeshSmoothGroups*	pcSmoothing;
+
+	cStack.Init(TestMeshNormalTwoFaces(1, 1));
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init(1);
+	pOutput = cStack.GetOutput();
+	AssertSize(2, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+
+	//Again gives the same.
+	cStack.Touch();
+	pOutput = cStack.GetOutput();
+	AssertSize(2, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	cStack.Kill();
+
+	cStack.Init(TestMeshNormalTwoFaces(1, 2));
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Name;
+	pOutput = cStack.GetOutput();
+	AssertInt(1, pcSmoothing->mcSmoothingGroups.GetValue(0));
+	AssertInt(2, pcSmoothing->mcSmoothingGroups.GetValue(1));
+	AssertSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
+	cStack.Kill();
+
+	cStack.Init(TestMeshNormalTwoFaces(1, 1));
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init(0);
+	pOutput = cStack.GetOutput();
+	AssertSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	AssertInt(1, pOutput->mcNormals.mcFaces.Get(1)->aiCornerNormals[0]);
+	cStack.Kill();
+
+	cStack.Init(TestMeshNormalTwoFaces(1, 2));
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cStack.GetOutput();
+	AssertSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	cStack.Kill();
+
+	cStack.Init();
+	cStack.AddModifier<CMeshSmoothGroups>()->Init();
+	AssertInt(0, cStack.GetOutput()->NumFaces());
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Modifiers follow each other in a stack: a shape, then normals on it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshNormalModifiersAfterShape(void)
+{
+	CMeshModifierStack	cStack;
+	Ptr<CMesh>			pOutput;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sStart;
+
+	sX.Init(1, 0, 0);
+	sY.Init(0, 1, 0);
+	sStart.Init(0, 0, 0);
+
+	cStack.Init();
+	cStack.AddModifier<CMeshPlaneEditor>()->Init(&sX, &sY, &sStart, 2, 2);
+	cStack.AddModifier<CMeshSmoothFaces>()->Init();
+	pOutput = cStack.GetOutput();
+	AssertInt(8, pOutput->NumFaces());
+	AssertSize(8 + 9, pOutput->mcNormals.mcNormals.NumElements());
+	AssertSize(2, CountMeshMemoryObjects("CMesh"));
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// On a mesh in an editor with no shape, applying them again doesn't pile
+// up corner normals, and it doesn't matter that they weren't told of faces
+// that were already there.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshNormalModifiersInEditorAgain(void)
+{
+	CMesh				cMesh;
+	CMeshEditor			cEditor;
+	CMeshSmoothGroups*	pcSmoothing;
+
+	cMesh.Init();
+	cMesh.mcNormals.mbInUse = true;
+	cMesh.CopyFrom(&TestMeshNormalTwoFaces(1, 1));
+	AssertSize(2, cMesh.mcNormals.mcNormals.NumElements());
+
+	cEditor.Init(&cMesh);
+	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init(1);
+
+	cEditor.mcModifiers.ApplyAll(&cEditor);
+	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
+	AssertSize(2, pcSmoothing->mcSmoothingGroups.NumElements());
+
+	cEditor.mcModifiers.ApplyAll(&cEditor);
+	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
+	AssertInt(2, cMesh.NumFaces());
+	AssertInt(4, cMesh.NumCorners());
+	cEditor.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshNormalModifiers(void)
@@ -55,6 +250,10 @@ void TestMeshNormalModifiers(void)
 	ObjectsInit();
 
 	TestMeshAddFaceKeepsCornerNormals();
+	TestMeshNormalModifiersMakeNewMeshes();
+	TestMeshSmoothGroupsModify();
+	TestMeshNormalModifiersAfterShape();
+	TestMeshNormalModifiersInEditorAgain();
 
 	ObjectsKill(false);
 	DataIOKill();

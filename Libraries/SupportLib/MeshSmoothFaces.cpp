@@ -80,6 +80,24 @@ void CMeshSmoothFaces::Apply(CMeshEditor* pcMeshEditor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshSmoothFaces::Modify(Ptr<CMesh> pMesh)
+{
+	Ptr<CMesh>	pOutput;
+
+	if (!CanRebuild(&pMesh))
+	{
+		return pMesh;
+	}
+	pOutput = CopyWithNormals(&pMesh);
+	GenerateNormals(&pOutput);
+	return pOutput;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 {
 	size				i, j, l;
@@ -105,6 +123,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	psFaces = pcMesh->GetFace(0);
 
 	pcNormals = &pcMesh->mcNormals;
+	pcNormals->RemoveCornerNormals(pcMesh->NumFaces());
 
 	iNumCorners = pcMesh->NumCorners();
 	//Step through every vertex

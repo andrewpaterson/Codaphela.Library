@@ -64,6 +64,8 @@ public:
 	void		AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
 	void		IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces);
 
+	void		RemoveCornerNormals(int iNumFaces);
+
 	SFloat32Vec3*	GetFaceNormal(int iFace);
 	SFloat32Vec3*	GetCornerNormal(int iCorner);
 

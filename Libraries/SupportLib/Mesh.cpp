@@ -297,6 +297,99 @@ void CMesh::ClearConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMesh::CanCopy(void)
+{
+	return !mcUVs.InUse() && !mcSkin.InUse() && !mcMaterials.InUse();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::CopyFrom(CMesh* pcSource)
+{
+	int*	piCorners;
+	int		i;
+	int		iNumCorners;
+	int		iNumFaces;
+
+	mcNormals.mbInUse |= pcSource->mcNormals.InUse();
+	mcColours.mbInUse = pcSource->mcColours.InUse();
+
+	iNumCorners = pcSource->NumCorners();
+	for (i = 0; i < iNumCorners; i++)
+	{
+		AddCorner(pcSource->GetPosition(i));
+	}
+
+	iNumFaces = pcSource->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		piCorners = pcSource->GetFaceCorners(i);
+		AddFace(piCorners[0], piCorners[1], piCorners[2]);
+		SetFaceName(i, pcSource->GetFaceName(i));
+	}
+
+	CopyDetailsFrom(pcSource);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its faces make the same flat normals, so its corner normals have the same
+// indices.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::CopyDetailsFrom(CMesh* pcSource)
+{
+	SFloat32Vec3*	psNormal;
+	int				i;
+	int				k;
+	int				iNumFaces;
+	int				iNumNormals;
+
+	iNumFaces = pcSource->NumFaces();
+
+	for (i = 0; i < (int)pcSource->mcColours.mcColours.NumElements(); i++)
+	{
+		mcColours.mcColours.Add(pcSource->mcColours.mcColours.GetValue(i));
+	}
+	if (pcSource->mcColours.InUse())
+	{
+		for (i = 0; i < iNumFaces; i++)
+		{
+			for (k = 0; k < NUM_FACE_CORNERS; k++)
+			{
+				mcColours.mcFaces.Get(i)->aiCornerColours[k] = pcSource->mcColours.mcFaces.Get(i)->aiCornerColours[k];
+			}
+		}
+	}
+
+	if (pcSource->mcNormals.InUse())
+	{
+		for (i = 0; i < iNumFaces; i++)
+		{
+			for (k = 0; k < NUM_FACE_CORNERS; k++)
+			{
+				mcNormals.mcFaces.Get(i)->aiCornerNormals[k] = pcSource->mcNormals.mcFaces.Get(i)->aiCornerNormals[k];
+			}
+		}
+
+		iNumNormals = (int)pcSource->mcNormals.mcNormals.NumElements();
+		for (i = iNumFaces; i < iNumNormals; i++)
+		{
+			psNormal = pcSource->mcNormals.mcNormals.Get(i);
+			AddNormal(psNormal->x, psNormal->y, psNormal->z);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMesh::AddCorner(float32 x, float32 y, float32 z)
 {
 	mcPositions.AddPosition(x, y, z);

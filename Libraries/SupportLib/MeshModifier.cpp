@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "StandardLib/Objects.h"
 #include "MeshModifier.h"
 
 
@@ -172,10 +173,25 @@ void CMeshModifier::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosit
 //////////////////////////////////////////////////////////////////////////
 bool CMeshModifier::CanRebuild(CMesh* pcMesh)
 {
-	if (pcMesh->mcUVs.InUse() || pcMesh->mcSkin.InUse() || pcMesh->mcMaterials.InUse())
+	if (!pcMesh->CanCopy())
 	{
 		gcLogger.Warning2(__METHOD__, " Can't keep a mesh's UVs, skin or materials.  It is left as it is.", NULL);
 		return false;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshModifier::CopyWithNormals(CMesh* pcMesh)
+{
+	Ptr<CMesh>	pOutput;
+
+	pOutput = OMalloc<CMesh>();
+	pOutput->mcNormals.mbInUse = true;
+	pOutput->CopyFrom(pcMesh);
+	return pOutput;
 }

@@ -145,6 +145,32 @@ void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshCon
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMeshNormals::RemoveCornerNormals(int iNumFaces)
+{
+	SMeshNormalFace*	psNormalFace;
+	int					i;
+	int					k;
+
+	if ((int)mcNormals.NumElements() > iNumFaces)
+	{
+		mcNormals.RemoveRange(iNumFaces, mcNormals.NumElements());
+	}
+
+	for (i = 0; i < iNumFaces; i++)
+	{
+		psNormalFace = mcFaces.Get(i);
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
+		{
+			psNormalFace->aiCornerNormals[k] = -1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMeshNormals::MoveCornerNormalsUp(int iNumFaces)
 {
 	SMeshNormalFace*	psNormalFace;

@@ -60,6 +60,7 @@ public:
 
 protected:
 	bool			CanRebuild(CMesh* pcMesh);  //Modify builds a new mesh of positions, normals and colours.
+	Ptr<CMesh>		CopyWithNormals(CMesh* pcMesh);
 };
 
 
