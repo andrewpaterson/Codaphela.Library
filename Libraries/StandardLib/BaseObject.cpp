@@ -47,7 +47,7 @@ CBaseObject::CBaseObject()
 	moi = INVALID_O_INDEX;
 	mon._Init();
 	muiFlags = OBJECT_FLAGS_CALLED_CONSTRUCTOR;
-	muiNumEmbedded = 0;
+	muiNumEmbedded = 1;
 	muiPreInits = 0;
 	muiPostInits = 0;
 }
@@ -426,7 +426,6 @@ void CBaseObject::CopyFields(CEmbeddedObject* pcOther)
 	mon = pcBaseObject->mon;
 	miDistToRoot = pcBaseObject->miDistToRoot;
 	muiWalkStamp = pcBaseObject->muiWalkStamp;
-	muiNumEmbedded = pcBaseObject->muiNumEmbedded;
 	muiPreInits = 1;
 	muiPostInits = 1;
 	CEmbeddedObject::CopyFields(pcOther);
@@ -518,15 +517,7 @@ void CBaseObject::DoneKill(bool bAllocatedInObjects)
 //////////////////////////////////////////////////////////////////////////
 size CBaseObject::NumHeapFromHolders(void)
 {
-	size	uiNumEmbedded;
-
-	//The count is kept once worked out; asking for it is a virtual call for every object walked.
-	uiNumEmbedded = muiNumEmbedded;
-	if (uiNumEmbedded == 0)
-	{
-		uiNumEmbedded = NumEmbedded();
-	}
-	return uiNumEmbedded;
+	return muiNumEmbedded;
 }
 
 
@@ -1743,48 +1734,24 @@ void CBaseObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 //////////////////////////////////////////////////////////////////////////
 size CBaseObject::NumEmbedded(void)
 {
-	SetFlagNumEmbedded(1);
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint16 CBaseObject::GetNumEmbeddedFromFlags(void)
-{
 	return muiNumEmbedded;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer says which embedded object it points to in 16 bits.  More than
+// that is an error, and only those that fit can be pointed to.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetFlagNumEmbedded(size iNumEmbedded)
+void CBaseObject::SetNumEmbedded(size uiNumEmbedded)
 {
-	muiNumEmbedded = (uint16)iNumEmbedded;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearFlagNumEmbedded(void)
-{
-	muiNumEmbedded = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CBaseObject::TestGetNumEmbeddedFromFlags(void)
-{
-	return GetNumEmbeddedFromFlags();
+	if (uiNumEmbedded > MAX_UINT16)
+	{
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has [", SizeToString(uiNumEmbedded), "] embedded objects; a pointer can say which of at most 65535.", NULL);
+		uiNumEmbedded = MAX_UINT16;
+	}
+	muiNumEmbedded = (uint16)uiNumEmbedded;
 }
 
 

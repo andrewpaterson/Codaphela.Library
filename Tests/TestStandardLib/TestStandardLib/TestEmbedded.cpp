@@ -5,6 +5,7 @@
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/HollowObject.h"
 #include "StandardLib/PointerContainer.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/MapObject.h"
@@ -467,9 +468,7 @@ void TestEmbeddedGetEmbeddedIndex(void)
 
 	cComplex.Init();
 
-	AssertSize(0, cComplex.TestGetNumEmbeddedFromFlags());
 	AssertSize(6, cComplex.NumEmbedded());
-	AssertSize(6, cComplex.TestGetNumEmbeddedFromFlags());
 
 	AssertSize(1, cComplex.mcSimple.NumEmbedded());
 	AssertSize(1, cComplex.ma.NumEmbedded());
@@ -553,7 +552,6 @@ void TestEmbeddedObjectClass(void)
 	AssertSize(0, cComplex.GetNumFieldPointerTos());
 	AssertSize(1, cComplex.NumEmbedded());
 
-	cComplex.ClearFlagNumEmbedded();
 	cComplex.Init();
 	AssertSize(5, cComplex.GetNumFieldPointerTos());
 	AssertSize(6, cComplex.NumEmbedded());
@@ -1210,6 +1208,232 @@ void TestEmbeddedReplaceWithFewerEmbedded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reaches CObjects' conversion of a fat hollow.  A class can change its
+// embedded objects without changing its size, so the count a hollow was
+// saved with need not be its class's.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestFatHollowConverter : public CObjects
+{
+public:
+	CBaseObject* TestConvert(CHollowObject* pcHollow, const char* szClassName)
+	{
+		return ConvertFatHollowToUninitialisedByClassName(pcHollow, szClassName);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedContainer* TestEmbeddedConvertFatHollow(CHollowObject* pcHollow)
+{
+	return (CEmbeddedContainer*)((CTestFatHollowConverter*)&gcObjects)->TestConvert(pcHollow, "CEmbeddedContainer");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A fat hollow saved with more embedded objects than its class has now: the
+// object has its class's count, a pointer to an embedded hollow it still
+// has moves to the embedded object, and a pointer to one it doesn't have is
+// cleared with a warning (the hollow it pointed to has been overwritten).
+// Its distance to root comes from the pointers left: with none from the
+// heap it is no longer attached.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedFatHollowMoreEmbeddedThanClass(bool bKeptFromHeap)
+{
+	char		szErrors[1024];
+	CMemoryFile	cLog;
+	SLogConfig	sLogConfig;
+
+	ObjectsInit();
+	SetupEmbeddedObjectConstructors();
+	gcObjects.AddConstructor<CTestObject>();
+	{
+		Ptr<CTestObject>		pHolder;
+		Ptr<CTestObject>		pKeptHolder;
+		Ptr<CEmbeddedContainer>	pContainer;
+		CPointer				pOnStack;
+		CPointer				pKept;
+		CHollowObject*			pcHollow;
+		CEmbeddedContainer*		pcObject;
+
+		pcHollow = gcObjects.AllocateInternalHollow("", 1000, 4, (uint16)sizeof(CEmbeddedContainer));
+		AssertNotNull(pcHollow);
+		AssertTrue(pcHollow->IsFatHollow());
+		AssertSize(4, pcHollow->NumEmbedded());
+
+		pHolder = OMalloc<CTestObject>();
+		ORoot()->Add(pHolder);
+		pHolder->mpObject = pcHollow->GetEmbeddedObject(3);
+		pOnStack = pcHollow->GetEmbeddedObject(3);
+		pKept = pcHollow->GetEmbeddedObject(1);
+		if (bKeptFromHeap)
+		{
+			pKeptHolder = OMalloc<CTestObject>();
+			ORoot()->Add(pKeptHolder);
+			pKeptHolder->mpObject = pcHollow->GetEmbeddedObject(1);
+		}
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		pcObject = TestEmbeddedConvertFatHollow(pcHollow);
+		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
+		AssertNotNull(pcObject);
+		AssertNotNull(strstr(szErrors, "without its embedded object [3]: the pointers to it are cleared."));
+
+		AssertSize(3, pcObject->NumEmbedded());
+		AssertTrue(pHolder->mpObject.IsNull());
+		AssertTrue(pOnStack.IsNull());
+		AssertPointer(pcObject->GetEmbeddedObject(1), pKept.Object());
+		if (bKeptFromHeap)
+		{
+			AssertPointer(pcObject->GetEmbeddedObject(1), pKeptHolder->mpObject.Object());
+			AssertInt(pKeptHolder->GetDistToRoot() + 1, pcObject->GetDistToRoot());
+		}
+		else
+		{
+			AssertInt(UNATTACHED_DIST_TO_ROOT, pcObject->GetDistToRoot());
+		}
+
+		pcObject->Init();
+		pContainer = pcObject;
+		AssertSize(3, pContainer->NumEmbedded());
+		AssertSize(1, pContainer->mcOne.NumStackFroms());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pKept = NULL;
+		pContainer = NULL;
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A fat hollow saved with fewer embedded objects than its class has now: the
+// object still has all of its class's, and nothing is dropped.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedFatHollowFewerEmbeddedThanClass(void)
+{
+	char		szErrors[1024];
+	CMemoryFile	cLog;
+	SLogConfig	sLogConfig;
+
+	ObjectsInit();
+	SetupEmbeddedObjectConstructors();
+	{
+		Ptr<CEmbeddedContainer>	pContainer;
+		CHollowObject*			pcHollow;
+		CEmbeddedContainer*		pcObject;
+
+		pcHollow = gcObjects.AllocateInternalHollow("", 1001, 1, (uint16)sizeof(CEmbeddedContainer));
+		AssertNotNull(pcHollow);
+		AssertSize(1, pcHollow->NumEmbedded());
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		pcObject = TestEmbeddedConvertFatHollow(pcHollow);
+		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
+		AssertNotNull(pcObject);
+		AssertString("", szErrors);
+
+		AssertSize(3, pcObject->NumEmbedded());
+		AssertPointer(&pcObject->mcOne, pcObject->GetEmbeddedObject(1));
+		AssertPointer(&pcObject->mcTwo, pcObject->GetEmbeddedObject(2));
+
+		pcObject->Init();
+		pContainer = pcObject;
+		AssertSize(3, pContainer->NumEmbedded());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pContainer = NULL;
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object that can be given a count, as no class can have that many
+// embedded objects in a test.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestSetNumEmbedded : public CObject
+{
+CONSTRUCTABLE(CTestSetNumEmbedded)
+DESTRUCTABLE(CTestSetNumEmbedded)
+public:
+	void Init(void)
+	{
+		PreInit();
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+	}
+
+	void Free(void) override
+	{
+	}
+
+	void TestSetNumEmbedded(size uiNumEmbedded)
+	{
+		SetNumEmbedded(uiNumEmbedded);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// More embedded objects than a pointer can say is an error when the count
+// is set, and asking for the count again gives the same answer.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedTooManyEmbedded(void)
+{
+#ifndef SIZE_16
+	char		szErrors[1024];
+	CMemoryFile	cLog;
+	SLogConfig	sLogConfig;
+
+	ObjectsInit();
+	{
+		CTestSetNumEmbedded	cObject;
+
+		cObject.Init();
+		AssertSize(1, cObject.NumEmbedded());
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		cObject.TestSetNumEmbedded(65536);
+		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
+		AssertNotNull(strstr(szErrors, "a pointer can say which of at most 65535."));
+		AssertSize(65535, cObject.NumEmbedded());
+		AssertSize(65535, cObject.NumEmbedded());
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		cObject.TestSetNumEmbedded(65535);
+		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		cObject.TestSetNumEmbedded(1);
+		cObject.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+#endif // SIZE_16
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // SetFlag changes only the flag it is given.  A container flag is on the
 // embedding container, so all of it sees the flag; a life-cycle flag is on
 // the embedded object alone.
@@ -1289,6 +1513,10 @@ void TestEmbedded(void)
 	TestEmbeddedNestedPointerValidated();
 	TestEmbeddedReplaceWithFewerEmbedded();
 	TestEmbeddedSetFlag();
+	TestEmbeddedFatHollowFewerEmbeddedThanClass();
+	TestEmbeddedFatHollowMoreEmbeddedThanClass(false);
+	TestEmbeddedFatHollowMoreEmbeddedThanClass(true);
+	TestEmbeddedTooManyEmbedded();
 
 	DataIOKill();
 	TypesKill();

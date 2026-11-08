@@ -54,7 +54,7 @@ CHollowObject::~CHollowObject()
 void CHollowObject::Init(size iNumEmbedded)
 {
 	PreInit();
-	SetFlagNumEmbedded(iNumEmbedded);
+	SetNumEmbedded(iNumEmbedded);
 	muiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
 	PostInit();
 }
@@ -67,7 +67,7 @@ void CHollowObject::Init(size iNumEmbedded)
 void CHollowObject::Init(size iNumEmbedded, uint16 uiFatSize)
 {
 	PreInit();
-	SetFlagNumEmbedded(iNumEmbedded);
+	SetNumEmbedded(iNumEmbedded);
 	muiSize = uiFatSize;
 	PostInit();
 }
@@ -215,19 +215,9 @@ void CHollowObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CHollowObject::NumEmbedded(void)
-{
-	return GetNumEmbeddedFromFlags();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CHollowObject::GetEmbeddedObject(size iIndex)
 {
-	if (iIndex >= GetNumEmbeddedFromFlags())
+	if (iIndex >= muiNumEmbedded)
 	{
 		return NULL;
 	}

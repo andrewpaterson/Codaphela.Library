@@ -106,6 +106,7 @@ public:
 
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
+			size				ClearFromsOfCopy(CEmbeddedObject* pcOriginal);
 	virtual bool				Save(CObjectWriter* pcFile) =0;
 	virtual bool				Load(CObjectReader* pcFile) =0;
 	virtual bool				IsHollow(void) =0;

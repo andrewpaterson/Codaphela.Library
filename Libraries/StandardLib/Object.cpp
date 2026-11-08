@@ -152,6 +152,7 @@ void CObject::EmbedEmbeddedObjectFields(void)
 			}
 		}
 	}
+	SetNumEmbedded(CountNumEmbedded());
 }
 
 
@@ -575,27 +576,6 @@ size CObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 		}
 	}
 	return ARRAY_ELEMENT_NOT_FOUND;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CObject::NumEmbedded(void)
-{
-	size			uiNumEmbedded;
-
-	uiNumEmbedded = GetNumEmbeddedFromFlags();
-	if (uiNumEmbedded != 0)
-	{
-		return (uint16)uiNumEmbedded;
-	}
-
-	uiNumEmbedded = CountNumEmbedded();
-
-	SetFlagNumEmbedded(uiNumEmbedded);
-	return uiNumEmbedded;
 }
 
 

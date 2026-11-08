@@ -167,10 +167,6 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow
 			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcDependent), "} is not embedded in its container {", ObjectToString(pcContainer), "}.", NULL);
 		}
 		iNumEmbedded = pcContainer->NumEmbedded();
-		if (iNumEmbedded > MAX_UINT16)
-		{
-			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcContainer), "} has [", SizeToString(iNumEmbedded), "] embedded objects; a pointer can say which of at most 65535.", NULL);
-		}
 		if ((bFatHollow || gbForceFatHollows) && (pcContainer->ClassSize() >= OBJECT_IDENTIFIER_SIZE_NOT_SET))
 		{
 			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcContainer), "} of [", SizeToString(pcContainer->ClassSize()), "] bytes is too big to be a fat hollow (65534 at most).", NULL);

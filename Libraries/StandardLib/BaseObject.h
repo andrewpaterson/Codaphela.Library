@@ -119,7 +119,7 @@ protected:
 	int					miDistToRoot;	//EMBEDDED_DIST_TO_ROOT in an embedded object: its distance is its embedding container's.
 	uint32				muiWalkStamp;
 	uint16				muiFlags;
-	uint16				muiNumEmbedded;
+	uint16				muiNumEmbedded;	//This and every object embedded in it at any depth: 1 until its fields are embedded.  A hollow's is what was saved.
 	uint16				muiPreInits;
 	uint16				muiPostInits;
 
@@ -167,7 +167,7 @@ public:
 			void					PrintFlags(CChars* psz);
 			void					Print(CChars* psz) override;
 
-			size					NumEmbedded(void) override;
+			size					NumEmbedded(void) final;
 			size					NumHeapFroms(void) override;
 			size					NumStackFroms(void) override;
 			void					GetStackFroms(CArrayStackPointerE32* papcFroms) override;
@@ -198,8 +198,6 @@ public:
 
 			bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 		TestGetPointerTo(size iToIndex);
-			size 					TestGetNumEmbeddedFromFlags(void);
-			void					ClearFlagNumEmbedded(void);
 			void					SetFlag(uint16 uiFlag, bool bFlagValue);
 			void					EmbedIn(CBaseObject* pcContainer);
 			uint16					GetFlags(void);
@@ -264,8 +262,7 @@ protected:
 
 			bool					IsBaseObject(void) override;
 			size					NumHeapFromHolders(void);
-			uint16					GetNumEmbeddedFromFlags(void);
-			void					SetFlagNumEmbedded(size iNumEmbedded);
+			void					SetNumEmbedded(size uiNumEmbedded);
 			void					ContainerPreInit(void);
 			void					ContainerPostInit(void);
 

@@ -326,6 +326,44 @@ void CEmbeddedObject::PostRemapFroms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// This is a copy of pcOriginal, which has been overwritten (a fat hollow
+// converted in place) and has no place in what replaced it.  The pointers
+// to pcOriginal that this holds as froms are cleared.  Returns how many
+// froms there were.
+//
+//////////////////////////////////////////////////////////////////////////
+size CEmbeddedObject::ClearFromsOfCopy(CEmbeddedObject* pcOriginal)
+{
+	size			i;
+	size			uiNumFroms;
+	size			uiNumHeapFroms;
+	CStackPointer*	pcStackPointer;
+
+	uiNumHeapFroms = CEmbeddedObject::NumHeapFroms();
+	for (i = 0; i < uiNumHeapFroms; i++)
+	{
+		CEmbeddedObject::GetHeapFrom(i)->RemovePointerTo(pcOriginal);
+	}
+
+	uiNumFroms = uiNumHeapFroms;
+	pcStackPointer = mpcStackFroms;
+	while (pcStackPointer)
+	{
+		pcStackPointer = pcStackPointer->ClearPointerGetNext(pcOriginal);
+		uiNumFroms++;
+	}
+	if (mpcStackFroms)
+	{
+		GetStackPointers()->RemoveAll(mpcStackFroms);
+	}
+
+	PostRemapFroms();
+	return uiNumFroms;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RemoveAllHeapFroms(void)

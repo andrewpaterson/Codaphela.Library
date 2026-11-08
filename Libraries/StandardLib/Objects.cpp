@@ -1818,6 +1818,12 @@ bool CObjects::ValidateCanAllocate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Makes a fat hollow into an uninitialised object of szClassName, in the
+// same memory: a fat hollow was allocated at the size of the object it
+// stands in for, so whatever points to it needn't change.  The object has
+// its class's embedded objects, which may not be what the hollow was saved
+// with.  NULL (and the hollow is left as it was) if szClassName can't be
+// allocated or isn't the hollow's size.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName)
@@ -1886,19 +1892,34 @@ void CObjects::RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEm
 	CEmbeddedObject*		pcOldEmbedded;
 	CHollowEmbeddedObject*	pcOldEmbeddedFroms;
 	CEmbeddedObject*		pcNewEmbedded;
+	size					uiNumInObject;
+	bool					bDropped;
+	CBaseObject*			pcClosest;
 
-	if (pcObject->NumEmbedded() < uiNumEmbedded)
-	{
-		uiNumEmbedded = pcObject->NumEmbedded();
-	}
-
+	bDropped = false;
+	uiNumInObject = pcObject->NumEmbedded();
 	for (i = 1; i < uiNumEmbedded; i++)
 	{
 		pcOldEmbedded = (CEmbeddedObject*)RemapSinglePointer(pcObject, sizeof(CHollowObject) + ((lsize)sizeof(CHollowEmbeddedObject) * (i - 1)));
 		pcOldEmbeddedFroms = (CHollowEmbeddedObject*)RemapSinglePointer(pvHollowEmbedded, (lsize)sizeof(CHollowEmbeddedObject) * (i - 1));
-		pcNewEmbedded = pcObject->GetEmbeddedObject(i);
+		if (i < uiNumInObject)
+		{
+			pcNewEmbedded = pcObject->GetEmbeddedObject(i);
+			cRemapper.RemapEmbedded(pcNewEmbedded, pcOldEmbedded, pcOldEmbeddedFroms);
+		}
+		else if (pcOldEmbeddedFroms->ClearFromsOfCopy(pcOldEmbedded) != 0)
+		{
+			//The class has fewer embedded objects than when this was saved.  As in CObjectRemapFrom::Remap: on purpose, but the pointers lose what they pointed to.
+			gcLogger.Warning2(__METHOD__, " Object {", ObjectToString(pcObject), "} was loaded without its embedded object [", SizeToString(i), "]: the pointers to it are cleared.", NULL);
+			bDropped = true;
+		}
+	}
 
-		cRemapper.RemapEmbedded(pcNewEmbedded, pcOldEmbedded, pcOldEmbeddedFroms);
+	if (bDropped)
+	{
+		//A dropped pointer may have been what held this to the root.  An object not yet loaded points to nothing, so no other object's distance depends on this one's.
+		pcClosest = pcObject->GetClosestFromToRoot();
+		pcObject->SetDistToRoot((pcClosest != NULL) ? pcClosest->GetDistToRoot() + 1 : UNATTACHED_DIST_TO_ROOT);
 	}
 }
 

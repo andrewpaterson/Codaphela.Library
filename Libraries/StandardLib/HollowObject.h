@@ -49,7 +49,6 @@ public:
 
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded) override;
-			size				NumEmbedded(void) override;
 
 			void				ValidateConsistency(void) override;
 

@@ -70,7 +70,6 @@ public:
 	void				GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers) override;
 
 	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded) override;
-	size				NumEmbedded(void) override;
 	size				CountNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 	CBaseObject*		Dehollow(void) override;
