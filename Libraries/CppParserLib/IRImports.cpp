@@ -33,7 +33,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CIRImports::Init(size uiMaxInstructions)
 {
 	mcModule.Init();
-	mcModule.AddSpace("default", 4);
+	mcModule.AddDefaultSpace();
 	muiMaxInstructions = uiMaxInstructions;
 	mcMutex.Init();
 	mcTurnChanged.Init();

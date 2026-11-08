@@ -2159,10 +2159,10 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 	}
 	else if (psClass->mapsVirtuals.NumElements() > 0)
 	{
-		iFieldAlign = PackAlignment(4, iPack);
+		iFieldAlign = PackAlignment(mpsTarget->iPointerBytes, iPack);
 		iBytes = (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
 		psClass->iVtableOffset = iBytes;
-		iBytes += 4;
+		iBytes += mpsTarget->iPointerBytes;
 		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
 	}
 	LayoutSecondaryVtables(psClass);

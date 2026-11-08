@@ -47,6 +47,9 @@ typedef CArrayTemplate<SIRDataItem>	CArrayIRDataItems;
 typedef CArrayTemplate<uint8>		CArrayIRBytes;
 
 
+#define IR_DEFAULT_POINTER_BYTES	4		//The default space's pointers, for a module that isn't a target's (see SCPPTarget::iPointerBytes).
+
+
 class CIRModule;
 
 
@@ -126,6 +129,7 @@ public:
 	void			Kill(void);
 
 	uint8			AddSpace(const char* szName, int iPointerBytes);
+	uint8			AddDefaultSpace(int iPointerBytes = IR_DEFAULT_POINTER_BYTES);
 	int				FindSpace(const char* szName);
 	size			NumSpaces(void);
 	char*			GetSpaceName(uint8 uiSpace);

@@ -66,7 +66,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mpcProfiledCaller = NULL;
 	mbProfiledCaller = false;
 	mcModule.Init();
-	mcModule.AddSpace("default", 4);
+	mcModule.AddDefaultSpace(pcGenerator->mpsTarget->iPointerBytes);
 	masWritten.Init();
 	masJumps.Init();
 	masCases.Init();

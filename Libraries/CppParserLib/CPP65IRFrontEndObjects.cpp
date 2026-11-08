@@ -893,13 +893,13 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	sBytes = mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, psType->iBytes));
 	if (bCookie)
 	{
-		sBytes = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes, mpcFunction->AddInteger(sSize, 4));
+		sBytes = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes, mpcFunction->AddInteger(sSize, mcModule.GetPointerSize(0)));
 	}
 	sMemory = CallRuntime("opNewArray", IRType(IRTK_Pointer), sSize, sBytes);
 	if (bCookie)
 	{
 		mpcFunction->Store(mpcBlock, sSize, sCount.sValue, sMemory);
-		sMemory = AddressAt(sMemory, 4);
+		sMemory = AddressAt(sMemory, mcModule.GetPointerSize(0));
 	}
 
 	if (psType->IsClass() && mpcGenerator->NeedsConstructor(psType->psClass))
@@ -938,7 +938,7 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, SCPP65Class* psClas
 	SCPP65IRCountedLoop	sLoop;
 
 	sSize = IRIntegerType(mcModule.GetPointerSize(0));
-	sBase = AddressAt(psPointer->sValue, -4);
+	sBase = AddressAt(psPointer->sValue, -mcModule.GetPointerSize(0));
 	sCount = mpcFunction->Load(mpcBlock, sSize, sBase);
 
 	//loop: the index counts down from the count.

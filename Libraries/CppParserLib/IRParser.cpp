@@ -569,7 +569,7 @@ bool CIRParser::GetString(CArrayTemplate<uint8>* pacBytes)
 //////////////////////////////////////////////////////////////////////////
 //
 // szName as a type: void (if allowed), i1 ... f64, ptr or ptr.space.  A
-// module without spaces gets "default", 4 bytes, when ptr is first used.
+// module without spaces gets the default space (AddDefaultSpace) when ptr is first used.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::MatchType(const char* szName, SIRType* psType, bool bAllowVoid)
@@ -587,7 +587,7 @@ bool CIRParser::MatchType(const char* szName, SIRType* psType, bool bAllowVoid)
 	{
 		if (mpcModule->NumSpaces() == 0)
 		{
-			mpcModule->AddSpace("default", 4);
+			mpcModule->AddDefaultSpace();
 		}
 		*psType = IRType(IRTK_Pointer);
 		return true;

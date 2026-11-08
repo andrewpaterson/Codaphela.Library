@@ -427,7 +427,7 @@ void TestCPP65GeneratorOperatorTypes(void)
 
 	for (iIntBytes = 4; iIntBytes >= 2; iIntBytes -= 2)
 	{
-		cTypes.Init(iIntBytes);
+		cTypes.Init(iIntBytes, 4);
 		psPointer = cTypes.Pointer(&cTypes.msShort);
 		psVoidPointer = cTypes.Pointer(&cTypes.msVoid);
 
@@ -499,7 +499,7 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	psSecondClass = (SCPP65Class*)&acKeys[1];
 	pcFirstEnum = (CCPPSymbol*)&acKeys[2];
 	pcSecondEnum = (CCPPSymbol*)&acKeys[3];
-	cTypes.Init();
+	cTypes.Init(4, 4);
 
 	psClass = cTypes.Class(psFirstClass);
 	AssertPointer(psClass, cTypes.Class(psFirstClass));

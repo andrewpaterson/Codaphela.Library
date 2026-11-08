@@ -136,11 +136,11 @@ int CIR816Backend::ValueBytes(SIRType sType)
 	case IRTK_F64:
 		return 8;
 	case IRTK_Pointer:
-		if (mpcModule->GetPointerSize(sType.uiSpace) != 4)
+		if (mpcModule->GetPointerSize(sType.uiSpace) != IR816_POINTER_BYTES)
 		{
 			Error("Only 4 byte pointers are done yet");
 		}
-		return 4;
+		return IR816_POINTER_BYTES;
 	default:
 		return 0;
 	}

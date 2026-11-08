@@ -131,7 +131,7 @@ public:
 	SCPP65Type			msDouble;
 	SCPP65Type			msLongDouble;
 
-	void				Init(int iIntBytes = 4, int iPointerBytes = 4);
+	void				Init(int iIntBytes, int iPointerBytes);
 	void				Kill(void);
 
 	SCPP65Type*			Integer(int iBytes, bool bSigned);

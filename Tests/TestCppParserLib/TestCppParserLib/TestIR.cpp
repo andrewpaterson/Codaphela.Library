@@ -8,6 +8,7 @@
 #include "CppParserLib/IRInliner.h"
 #include "CppParserLib/IRSSAUpdater.h"
 #include "CppParserLib/IRLiveness.h"
+#include "CppParserLib/CPPTarget.h"
 #include "TestLib/Assert.h"
 
 
@@ -944,6 +945,32 @@ void AssertIROptimised(const char* szExpected, const char* szText, bool bIndexed
 	uiOptions |= bLibrary ? IR_TEST_LIBRARY : 0;
 	uiOptions |= bNarrowMultiplies ? IR_TEST_NARROW_MULTIPLIES : 0;
 	AssertIROptimisedOptions(szExpected, szText, uiOptions);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The default space is what a text with no spaces gets, the size the target
+// says when a front end adds it, and both targets' pointers are its size.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRDefaultSpace(void)
+{
+	CIRModule	cModule;
+
+	cModule.Init();
+	AssertInt(0, cModule.AddDefaultSpace());
+	AssertInt(IR_DEFAULT_POINTER_BYTES, cModule.GetPointerSize(0));
+	AssertInt(0, cModule.FindSpace("default"));
+	cModule.Kill();
+
+	cModule.Init();
+	AssertInt(0, cModule.AddDefaultSpace(8));
+	AssertInt(8, cModule.GetPointerSize(0));
+	cModule.Kill();
+
+	AssertInt(IR_DEFAULT_POINTER_BYTES, GetCPPTarget(CPPT_65C64)->iPointerBytes);
+	AssertInt(IR_DEFAULT_POINTER_BYTES, GetCPPTarget(CPPT_W65C816)->iPointerBytes);
 }
 
 
@@ -4693,6 +4720,7 @@ void TestIR(void)
 	TestIRVerifierErrors();
 	TestIRDominators();
 	TestIRLoops();
+	TestIRDefaultSpace();
 	TestIRComparisonOpcodes();
 	TestIRComparisonColumns();
 	TestIROptimiserPointerConstantWidth();
