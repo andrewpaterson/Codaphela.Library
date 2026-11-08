@@ -397,7 +397,7 @@ void TestCppTokeniserIdentifierIndex(void)
 
 	cIndex.Init();
 	AssertInt(0, cIndex.NumElements());
-	AssertLong(-1, cIndex.Get("miCount", NULL, true));
+	AssertLong(-1, cIndex.Get("miCount", NULL));
 	AssertNull(cIndex.Get(0));
 
 	AssertLong(0, cIndex.Add("miCount"));
@@ -406,10 +406,10 @@ void TestCppTokeniserIdentifierIndex(void)
 	AssertLong(-1, cIndex.Add("Count"));
 	AssertInt(3, cIndex.NumElements());
 
-	AssertLong(0, cIndex.Get("miCount", NULL, true));
-	AssertLong(1, cIndex.Get("Count", NULL, true));
-	AssertLong(1, cIndex.Get(szCountMe, szCountMe + 4, true));
-	AssertLong(-1, cIndex.Get("Coun", NULL, true));
+	AssertLong(0, cIndex.Get("miCount", NULL));
+	AssertLong(1, cIndex.Get("Count", NULL));
+	AssertLong(1, cIndex.Get(szCountMe, szCountMe + 4));
+	AssertLong(-1, cIndex.Get("Coun", NULL));
 	szName = cIndex.Get(2, &iLength);
 	AssertString("Value", szName);
 	AssertInt(5, iLength);
@@ -425,10 +425,10 @@ void TestCppTokeniserIdentifierIndex(void)
 	for (i = 3; i < 2000; i++)
 	{
 		sprintf(sz, "Name%d", i);
-		AssertLong(i, cIndex.Get(sz, NULL, true));
+		AssertLong(i, cIndex.Get(sz, NULL));
 		AssertString(sz, cIndex.Get(i));
 	}
-	AssertLong(0, cIndex.Get("miCount", NULL, true));
+	AssertLong(0, cIndex.Get("miCount", NULL));
 	AssertString("Count", cIndex.Get(1));
 
 	cIndex.Kill();

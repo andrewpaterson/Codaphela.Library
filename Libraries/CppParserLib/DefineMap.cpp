@@ -207,28 +207,12 @@ CDefine* CDefineMap::AddDefine(char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The define called pcName, or NULL.  bExact false finds the longest name
-// defined that pcName starts with.
+// The define called pcName, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::Get(CExternalString* pcName, bool bExact)
+CDefine* CDefineMap::Get(CExternalString* pcName)
 {
-	CDefine*	pcDefine;
-	size		uiLength;
-
-	if (bExact)
-	{
-		return GetExact(pcName->msz, pcName->miLen);
-	}
-	for (uiLength = pcName->miLen; uiLength > 0; uiLength--)
-	{
-		pcDefine = GetExact(pcName->msz, uiLength);
-		if (pcDefine)
-		{
-			return pcDefine;
-		}
-	}
-	return NULL;
+	return GetExact(pcName->msz, pcName->miLen);
 }
 
 
@@ -236,12 +220,12 @@ CDefine* CDefineMap::Get(CExternalString* pcName, bool bExact)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::Get(char* szName, bool bExact)
+CDefine* CDefineMap::Get(char* szName)
 {
 	CExternalString		cExternalString;
 
 	cExternalString.Init(szName, StrLen(szName));
-	return Get(&cExternalString, bExact);
+	return Get(&cExternalString);
 }
 
 

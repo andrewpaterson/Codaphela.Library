@@ -25,10 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMapDirectory::Init(CHeaderFiles* pcHeaderNameMap, char* szBaseDirectoryName)
+void CHeaderNameMapDirectory::Init(CHeaderFiles* pcHeaderNameMap)
 {
 	mpcHeaderNameMap = pcHeaderNameMap;
-	mszBaseDirectoryName.Init(szBaseDirectoryName);
 }
 
 
@@ -38,7 +37,6 @@ void CHeaderNameMapDirectory::Init(CHeaderFiles* pcHeaderNameMap, char* szBaseDi
 //////////////////////////////////////////////////////////////////////////
 void CHeaderNameMapDirectory::Kill(void)
 {
-	mszBaseDirectoryName.Kill();
 }
 
 

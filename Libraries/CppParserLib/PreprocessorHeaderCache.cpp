@@ -190,7 +190,7 @@ bool CPreprocessor::CachedHeaderMatches(SPPCachedHeader* psHeader)
 	{
 		psQuery = psHeader->asQueries.Get(i);
 		cName.Init((char*)psQuery->szName, (int)psQuery->uiLength);
-		DefineIdentity(mcDefines.Get(&cName, true), &sIdentity);
+		DefineIdentity(mcDefines.Get(&cName), &sIdentity);
 		if (!sIdentity.Equals(&psQuery->sIdentity))
 		{
 			return false;

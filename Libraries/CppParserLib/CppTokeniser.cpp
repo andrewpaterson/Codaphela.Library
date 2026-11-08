@@ -223,7 +223,7 @@ void CCPPTokeniser::Init(CMallocator* pcTokens)
 	mcReservedWords.Init();
 	for (i = 0; i < NUM_CPP_RESERVED_SPELLINGS; i++)
 	{
-		lliID = mcReservedWords.Get(gasCPPReservedWords[i].szSpelling, NULL, true);
+		lliID = mcReservedWords.Get(gasCPPReservedWords[i].szSpelling, NULL);
 		if (lliID == -1)
 		{
 			lliID = mcReservedWords.Add(gasCPPReservedWords[i].szSpelling);
@@ -341,7 +341,7 @@ bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken, int iSource)
 	CCTBoolean*			pcBoolean;
 	CCTIdentifier*		pcIdentifier;
 
-	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1, true);
+	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1);
 	if (lliID != -1)
 	{
 		eToken = gasCPPReservedWords[lliID].eToken;
@@ -360,7 +360,7 @@ bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken, int iSource)
 		return true;
 	}
 
-	lliID = mcIdentifiers.Get(psToken->szText, psToken->szText + psToken->uiLength - 1, true);
+	lliID = mcIdentifiers.Get(psToken->szText, psToken->szText + psToken->uiLength - 1);
 	if (lliID == -1)
 	{
 		lliID = mcIdentifiers.Add(psToken->szText, psToken->szText + psToken->uiLength - 1);
@@ -381,7 +381,7 @@ bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken, int iSource)
 	int64				lliID;
 	CCTReservedWord*	pcReservedWord;
 
-	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1, true);
+	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1);
 	if (lliID == -1)
 	{
 		return Error(psToken, "Unknown punctuator.");
@@ -715,7 +715,7 @@ int64 CCPPTokeniser::GetIdentifierID(char* szName)
 {
 	int64	lliID;
 
-	lliID = mcIdentifiers.Get(szName, NULL, true);
+	lliID = mcIdentifiers.Get(szName, NULL);
 	if (lliID == -1)
 	{
 		lliID = mcIdentifiers.Add(szName);

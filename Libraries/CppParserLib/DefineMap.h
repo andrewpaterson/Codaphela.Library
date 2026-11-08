@@ -43,8 +43,8 @@ public:
 
 	CDefine*	AddDefine(CExternalString* pcName);
 	CDefine*	AddDefine(char* szName);
-	CDefine*	Get(CExternalString* pcName, bool bExact);
-	CDefine*	Get(char* szName, bool bExact);
+	CDefine*	Get(CExternalString* pcName);
+	CDefine*	Get(char* szName);
 	void		Remove(CExternalString* pcName);
 	void		Remove(char* szName);
 	size		NumDefines(void);

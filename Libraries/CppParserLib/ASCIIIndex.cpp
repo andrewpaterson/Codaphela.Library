@@ -136,10 +136,10 @@ char* CASCIIIndex::Get(int64 lliID, int* piLength)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The name's ID, or -1.  Only exact matches are found (bExact is ignored).
+// The name's ID, or -1.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIIIndex::Get(const char* szText, const char* szLastCharInclusive, bool bExact)
+int64 CASCIIIndex::Get(const char* szText, const char* szLastCharInclusive)
 {
 	int		iLength;
 	int32	iID;

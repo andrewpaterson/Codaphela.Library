@@ -52,7 +52,7 @@ public:
 	int64	Add(const char* sz, const char* szLastCharInclusive = NULL);
 
 	char*	Get(int64 lliID, int* piLength = NULL);
-	int64	Get(const char* szText, const char* szLastCharInclusive, bool bExact);
+	int64	Get(const char* szText, const char* szLastCharInclusive);
 
 	int		NumElements(void);
 

@@ -37,7 +37,7 @@ static bool TestDefineMapMatches(CDefineMap* pcMap, bool* abDefined)
 	for (i = 0; i < TEST_DEFINE_MAP_NAMES; i++)
 	{
 		TestDefineMapName(&sz, i);
-		pcDefine = pcMap->Get(sz.Text(), true);
+		pcDefine = pcMap->Get(sz.Text());
 		if (abDefined[i])
 		{
 			uiDefined++;
@@ -145,41 +145,6 @@ void TestDefineMapAddRemove(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Looking up a name that isn't exact finds the longest define it starts
-// with.
-//
-//////////////////////////////////////////////////////////////////////////
-void TestDefineMapLongestPrefix(void)
-{
-	CDefineMap	cMap;
-	CDefine*	pcDefine;
-
-	cMap.Init();
-	AssertNull(cMap.Get((char*)"AB", true));
-	cMap.AddDefine((char*)"AB");
-	cMap.AddDefine((char*)"ABCD");
-
-	pcDefine = cMap.Get((char*)"ABCDE", false);
-	AssertNotNull(pcDefine);
-	AssertString("ABCD", pcDefine->GetName());
-	pcDefine = cMap.Get((char*)"ABX", false);
-	AssertNotNull(pcDefine);
-	AssertString("AB", pcDefine->GetName());
-	AssertNull(cMap.Get((char*)"A", false));
-	AssertNull(cMap.Get((char*)"ABCDE", true));
-	AssertNotNull(cMap.Get((char*)"AB", true));
-
-	cMap.Remove((char*)"ABCD");
-	pcDefine = cMap.Get((char*)"ABCDE", false);
-	AssertNotNull(pcDefine);
-	AssertString("AB", pcDefine->GetName());
-
-	cMap.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // FNVHash32 and FNVHash64 (the define map's, the ASCII index's, the name
 // sets' and the IR fingerprints' hash) give FNV-1a's published values.
 //
@@ -206,7 +171,6 @@ void TestDefineMap(void)
 	TestFNVHash();
 
 	TestDefineMapAddRemove();
-	TestDefineMapLongestPrefix();
 
 	TestStatistics();
 }

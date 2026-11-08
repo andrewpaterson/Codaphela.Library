@@ -174,15 +174,13 @@ public:
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderFiles* pcHeaderNames);
 
-	CDefine*			GetDefine(CExternalString* pcString, bool bExact);
-	CDefine*			GetDefine(char* szName, bool bExact);
+	CDefine*			GetDefine(CExternalString* pcString);
+	CDefine*			GetDefine(char* szName);
 	CDefine* 			AddDefine(char* szDefine);
 	CDefine*			AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory);
 	CDefine*			AddSpecialDefine(char* szDefine);
 	CDefine*			AddNumberDefine(char* szDefine, int64 lliValue);
 
-	CSpecialOperator*	GetSpecialOperator(CExternalString* pcString, bool bExact);
-	CSpecialOperator*	GetSpecialOperator(char* szName, bool bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	bool				PreprocessTranslationUnit(CTranslationUnit* pcFile);

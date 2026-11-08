@@ -216,7 +216,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 	}
 
 	cName.Init(szName, (int)(szEnd - szName));
-	pcDirective = mcDirectives.Get(&cName, true);
+	pcDirective = mcDirectives.Get(&cName);
 	if (pcDirective == NULL)
 	{
 		//The name is left in the directive's tokens so it can be reported.

@@ -38,7 +38,7 @@ public:
 
 	int64				Add(const char* szText, const char* szLastCharInclusive = NULL);
 
-	SASCIINameIndex*	Get(const char* szText, const char* szLastCharInclusive, bool bExact);
+	SASCIINameIndex*	Get(const char* szText, const char* szLastCharInclusive);
 
 	bool				Remove(const char* szText, const char* szLastCharInclusive = NULL);
 

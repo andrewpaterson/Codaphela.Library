@@ -61,9 +61,9 @@ CPreprocessorDirective* CDirectiveMap::AddDirective(char* szName, EPreprocessorD
 // Returns the directive called szName, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CPreprocessorDirective* CDirectiveMap::GetDirective(char* szName, bool bExact)
+CPreprocessorDirective* CDirectiveMap::GetDirective(char* szName)
 {
-	return Get(szName, bExact);
+	return Get(szName);
 }
 
 

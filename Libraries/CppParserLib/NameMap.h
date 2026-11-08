@@ -41,9 +41,9 @@ protected:
 public:
 	void 	Init(void);
 	void 	Kill(void);
-	D*		Get(CExternalString* pcName, bool bExact);
-	D*		Get(CChars* pszName, bool bExact);
-	D*		Get(char* szName, bool bExact);
+	D*		Get(CExternalString* pcName);
+	D*		Get(CChars* pszName);
+	D*		Get(char* szName);
 	void	Remove(CExternalString* pcName);
 	void	Remove(char* szName);
 	void	Dump(void);
@@ -104,7 +104,7 @@ D* CNameMap<D>::AddEntry(CExternalString* pcName, int64* plliID)
 	D		cValue;
 	int64	lliID;
 
-	if (mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true) != NULL)
+	if (mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive()) != NULL)
 	{
 		return NULL;
 	}
@@ -128,16 +128,15 @@ D* CNameMap<D>::AddEntry(CExternalString* pcName, int64* plliID)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Returns the value for the name, or NULL.  bExact false matches the
-// longest name in the map that pcName starts with.
+// Returns the value for the name, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-D* CNameMap<D>::Get(CExternalString* pcName, bool bExact)
+D* CNameMap<D>::Get(CExternalString* pcName)
 {
 	SASCIINameIndex*	psNameIndex;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
 	if (psNameIndex)
 	{
 		return mcIDToValueIndex.Get(psNameIndex->mlliID);
@@ -155,12 +154,12 @@ D* CNameMap<D>::Get(CExternalString* pcName, bool bExact)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-D* CNameMap<D>::Get(CChars* pszName, bool bExact)
+D* CNameMap<D>::Get(CChars* pszName)
 {
 	CExternalString	cExternalString;
 
 	cExternalString.Init(pszName->Text(), pszName->Length());
-	return Get(&cExternalString, bExact);
+	return Get(&cExternalString);
 }
 
 
@@ -170,12 +169,12 @@ D* CNameMap<D>::Get(CChars* pszName, bool bExact)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-D* CNameMap<D>::Get(char* szName, bool bExact)
+D* CNameMap<D>::Get(char* szName)
 {
 	CExternalString	cExternalString;
 
 	cExternalString.Init(szName, StrLen(szName));
-	return Get(&cExternalString, bExact);
+	return Get(&cExternalString);
 }
 
 
@@ -190,7 +189,7 @@ void CNameMap<D>::Remove(CExternalString* pcName)
 	SASCIINameIndex*	psNameIndex;
 	D*					pcValue;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
 	if (psNameIndex)
 	{
 		pcValue = mcIDToValueIndex.Get(psNameIndex->mlliID);

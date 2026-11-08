@@ -230,7 +230,6 @@ bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 {
 	SPPSource*					psSource;
 	CHeaderNameMapDirectory*	pcNewDirectory;
-	CChars						szPath;
 	CChars						szError;
 	uint64						uiIncludingDirectories;
 	uint64						uiDirectory;
@@ -282,11 +281,9 @@ bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 
 	if (pcHeaderNameMap)
 	{
-		//Quoted includes in this file are also searched for relative to its directory.
+		//The include directory the file was found in, where #include_next in it starts after (FindBestInclude).
 		pcNewDirectory = mcHeadersStack.Add();
-		pcFile->Path(&szPath);
-		pcNewDirectory->Init(pcHeaderNameMap, szPath.Text());
-		szPath.Kill();
+		pcNewDirectory->Init(pcHeaderNameMap);
 		psSource->bHeaderDirectory = true;
 	}
 
@@ -922,9 +919,9 @@ void CPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::GetDefine(CExternalString* pcString, bool bExact)
+CDefine* CPreprocessor::GetDefine(CExternalString* pcString)
 {
-	return mcDefines.Get(pcString, bExact);
+	return mcDefines.Get(pcString);
 }
 
 
@@ -932,29 +929,9 @@ CDefine* CPreprocessor::GetDefine(CExternalString* pcString, bool bExact)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::GetDefine(char* szName, bool bExact)
+CDefine* CPreprocessor::GetDefine(char* szName)
 {
-	return mcDefines.Get(szName, bExact);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CPreprocessor::GetSpecialOperator(CExternalString* pcString, bool bExact)
-{
-	return mcSpecialOperators.Get(pcString , bExact);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CPreprocessor::GetSpecialOperator(char* szName, bool bExact)
-{
-	return mcSpecialOperators.Get(szName, bExact);
+	return mcDefines.Get(szName);
 }
 
 
@@ -1070,7 +1047,7 @@ bool CPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTo
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
-		pcExisting = mcDefines.Get(&cIdentifier, true);
+		pcExisting = mcDefines.Get(&cIdentifier);
 		if (pcExisting)
 		{
 			mcDefines.Remove(&cIdentifier);
@@ -2696,7 +2673,7 @@ CDefine* CPreprocessor::LookUpDefine(const char* szName, size uiLength)
 	CDefine*			pcDefine;
 
 	cName.Init((char*)szName, (int)uiLength);
-	pcDefine = mcDefines.Get(&cName, true);
+	pcDefine = mcDefines.Get(&cName);
 	if (masRecorders.NumElements() > 0)
 	{
 		NoteLookUp(szName, uiLength, pcDefine);
@@ -2738,7 +2715,7 @@ bool CPreprocessor::IsDefined(SPreprocessedToken* psToken)
 		return true;
 	}
 	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-	return mcSpecialOperators.Get(&cName, true) != NULL;
+	return mcSpecialOperators.Get(&cName) != NULL;
 }
 
 
@@ -3258,7 +3235,7 @@ bool CPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSourc
 		}
 
 		cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-		pcSpecial = mcSpecialOperators.Get(&cName, true);
+		pcSpecial = mcSpecialOperators.Get(&cName);
 		psNext = pacSource->SafeGet(i + 1);
 		if (pcSpecial)
 		{

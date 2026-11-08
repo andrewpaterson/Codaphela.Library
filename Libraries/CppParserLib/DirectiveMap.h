@@ -29,7 +29,7 @@ class CDirectiveMap : public CNameMap<CPreprocessorDirective>
 public:
 	CPreprocessorDirective*		AddDirective(CExternalString* pcName, EPreprocessorDirective eDirective);
 	CPreprocessorDirective*		AddDirective(char* szName, EPreprocessorDirective eDirective);
-	CPreprocessorDirective*		GetDirective(char* szName, bool bExact);
+	CPreprocessorDirective*		GetDirective(char* szName);
 	void						RemoveDirective(char* szName);
 };
 

@@ -786,13 +786,13 @@ void TestPreprocessorRedefinedEmpty(void)
 
 	AssertString("", szDest.Text());
 
-	pcDefine = cPreprocessor.GetDefine("_HAS_X", true);
+	pcDefine = cPreprocessor.GetDefine("_HAS_X");
 	pcText = (CPPText*)pcDefine->GetReplacement()->Get(0);
 	szText.Init();
 	AssertString("0", pcText->Print(&szText));
 	szText.Kill();
 
-	pcDefine = cPreprocessor.GetDefine("_HAS_Y", true);
+	pcDefine = cPreprocessor.GetDefine("_HAS_Y");
 	pcText = (CPPText*)pcDefine->GetReplacement()->Get(0);
 	szText.Init();
 	AssertString("0", pcText->Print(&szText));
@@ -945,13 +945,13 @@ void TestPreprocessorHasCPPNameSpaceAttribute()
 	AssertString("", szDest.Text());
 
 	//__has_cpp_attribute counts as defined, as it does for MSVC and g++ (and C++20 [cpp.cond]), but knows no attributes.
-	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_1", true);
+	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_1");
 	AssertNull(pcDefine);
-	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_2", true);
+	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_2");
 	AssertNull(pcDefine);
-	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_3", true);
+	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_3");
 	AssertNull(pcDefine);
-	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_4", true);
+	pcDefine = cPreprocessor.GetDefine("_KNOWN_SEMANTICS_4");
 	AssertNotNull(pcDefine);
 
 	cPreprocessor.Kill();
@@ -1545,10 +1545,10 @@ void TestPreprocessorDirectiveMap(void)
 	cMap.Init();
 	cMap.AddDirective("define", PPD_define);
 	cMap.AddDirective("undef", PPD_undef);
-	AssertNotNull(cMap.GetDirective("define", true));
+	AssertNotNull(cMap.GetDirective("define"));
 	cMap.RemoveDirective("define");
-	AssertNull(cMap.GetDirective("define", true));
-	AssertNotNull(cMap.GetDirective("undef", true));
+	AssertNull(cMap.GetDirective("define"));
+	AssertNotNull(cMap.GetDirective("undef"));
 	cMap.Kill();
 }
 

@@ -28,9 +28,8 @@ class CHeaderNameMapDirectory
 {
 public:
 	CHeaderFiles*		mpcHeaderNameMap;
-	CChars				mszBaseDirectoryName;
 
-	void Init(CHeaderFiles* pcHeaderNameMap, char* szBaseDirectoryName);
+	void Init(CHeaderFiles* pcHeaderNameMap);
 	void Kill(void);
 };
 
