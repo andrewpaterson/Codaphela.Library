@@ -4953,7 +4953,7 @@ void TestCPP816ObjectArguments(void)
 	CCPP65IRFrontEnd::sbInline = false;
 	AssertInt(iBig + 378 + 1020 + 5, TestCPP816RunListed(szSource, aszNone, &szListing, NULL, 0));
 	CCPP65IRFrontEnd::sbInline = bInline;
-	AssertTrue(szListing.Contains("jsl _Big__FC4SBigC4SBigPctPc\n"));
+	AssertTrue(szListing.Contains("jsl _Big__FC4SBigC4SBigPKctPKc\n"));
 	AssertTrue(szListing.Contains("jsl _Six__FsC4SSix\n"));
 	AssertTrue(szListing.Contains("jsl _Plain__Fss.ax"));
 	szListing.Kill();

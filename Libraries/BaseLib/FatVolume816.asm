@@ -1879,7 +1879,7 @@ SetLabel:
 		pei [D + F_POINTER + 2]
 		pei [D + F_POINTER]
 		jsr PushLabel
-		jsl _CChars__Init__FPctt
+		jsl _CChars__Init__FPKctt
 		tsc
 		clc
 		adc 12
@@ -2737,7 +2737,7 @@ FillEntry:
 		pei [D + F_WORK]
 		pei [D + F_POINTER + 2]
 		pei [D + F_POINTER]
-		jsl _ConvertFATShortInternalNameInto8Dot3Format__FPhPh
+		jsl _ConvertFATShortInternalNameInto8Dot3Format__FPhPKh
 		pla
 		sta [D + F_POINTER]
 		pla
@@ -2891,7 +2891,7 @@ _CFatVolume__FindFirstFATEntry:
 		stz [D + FF_PARENT + 2]
 		pei [D + FF_PATH + 2]
 		pei [D + FF_PATH]
-		jsl _StepPathOverSlash__FPc
+		jsl _StepPathOverSlash__FPKc
 		ply
 		ply
 		sta [D + F_WORK]
@@ -3029,7 +3029,7 @@ FakeRootEntry:
 		adc 0
 		pha
 		phx
-		jsl _GetFatShortNameForEntry__FPcPcb
+		jsl _GetFatShortNameForEntry__FPcPKcb
 		tsc
 		clc
 		adc 10
@@ -3087,7 +3087,7 @@ _CFatVolume__GetFileEntry:
 		jsr Enter
 		pei [D + GE_PATH + 2]
 		pei [D + GE_PATH]
-		jsl _StepPathOverSlash__FPc
+		jsl _StepPathOverSlash__FPKc
 		ply
 		ply
 		sta [D + GE_PATH]
@@ -3361,7 +3361,7 @@ NextPathItem:
 		.width (A, X), 16
 		pei [D + GE_PATH + 2]
 		pei [D + GE_PATH]
-		jsl _StepPathOverSlash__FPc
+		jsl _StepPathOverSlash__FPKc
 		ply
 		ply
 		sta [D + GE_PATH]
@@ -4450,7 +4450,7 @@ CreateEntryLength:
 		pha
 		pei [D + CE_NAME + 2]
 		pei [D + CE_NAME]
-		jsl _IsIllegalFilename__FPct
+		jsl _IsIllegalFilename__FPKct
 		ply
 		ply
 		ply
@@ -4479,7 +4479,7 @@ CreateEntryClear:
 		pei [D + CE_NAME]
 		pei [D + CE_SHORT + 2]
 		pei [D + CE_SHORT]
-		jsl _GetFatShortNameForEntry__FPcPcb
+		jsl _GetFatShortNameForEntry__FPcPKcb
 		tay
 		tsc
 		clc
@@ -5461,8 +5461,8 @@ LongNameCharacterPlaces:
 ; EFatCode CFatVolume::CreateDirectory(const char* szDirectory)
 CD_PATH			= F_ARGUMENT
 CD_ENTRY		= F_LOCALS			; SFatDirectoryEntry (below the frame).
-		.global _CFatVolume__CreateDirectory__FPc
-_CFatVolume__CreateDirectory__FPc:
+		.global _CFatVolume__CreateDirectory__FPKc
+_CFatVolume__CreateDirectory__FPKc:
 		.width (A, X), 16
 		jsr Enter
 		tsc
@@ -5542,7 +5542,7 @@ CreateDirectoryIn:
 		; A path ending in \ isn't a directory's.
 		pei [D + CD_PATH + 2]
 		pei [D + CD_PATH]
-		jsl _StrLen__FPc
+		jsl _StrLen__FPKc
 		ply
 		ply
 		dec A
@@ -5561,7 +5561,7 @@ CreateDirectoryIn:
 CreateDirectoryInName:
 		pei [D + CD_NAME + 2]
 		pei [D + CD_NAME]
-		jsl _StepPathToSlash__FPc
+		jsl _StepPathToSlash__FPKc
 		ply
 		ply
 		sta [D + CD_NAME]
@@ -5726,7 +5726,7 @@ DeleteNoClusters:
 		pei [D + DE_PATH_PART]
 		pei [D + DE_PATH + 2]
 		pei [D + DE_PATH]
-		jsl _ParsePathAndFilename__FPcPcPPc
+		jsl _ParsePathAndFilename__FPKcPcPPKc
 		tsc
 		clc
 		adc 12
@@ -6193,7 +6193,7 @@ ParsePath:
 		pha
 		lda [D + 0 + X]
 		pha
-		jsl _ParsePathAndFilename__FPcPcPPc
+		jsl _ParsePathAndFilename__FPKcPcPPKc
 		tsc
 		clc
 		adc 12
@@ -6240,7 +6240,7 @@ GetEntryOf:
 		.global _CFatVolume__CalculateFirstSectorOfCluster.ax, _CFatVolume__CalculateFATIndexAndOffset.ax, _CFatVolume__ReadSector.axssssy, _CFatVolume__ReadFatEntry.ax
 		.global _CFatVolume__GetNextClusterEntry.ax, _CFatVolume__SetClusterEntry.ax, _CFatVolume__Flush.ax, _CFatVolume__Erase.ax, _CFatVolume__Mount.ax, _CFatVolume__Unmount.ax
 		.global _CFatVolume__FillDirectoryEntryFromRawEntry.ax, _CFatVolume__FindFirstFATEntry.axssy, _CFatVolume__FindNextFATEntry.ax, _CFatVolume__GetFileEntry.ax, _CFatVolume__SeekByClusterCount.axssy, _CFatVolume__FreeChain.ax
-		.global _CFatVolume__FreeDirectoryEntry.ax, _CFatVolume__UpdateDirectoryEntry.ax, _CFatVolume__AllocateClusters__FjjPjj.ax, _CFatVolume__CreateFATEntry.axssssy, _CFatVolume__CreateDirectory__FPc.ax, _CFatVolume__Delete.ax
+		.global _CFatVolume__FreeDirectoryEntry.ax, _CFatVolume__UpdateDirectoryEntry.ax, _CFatVolume__AllocateClusters__FjjPjj.ax, _CFatVolume__CreateFATEntry.axssssy, _CFatVolume__CreateDirectory__FPKc.ax, _CFatVolume__Delete.ax
 		.global _CFatVolume__Rename.ax
 
 _CFatVolume__GetID.ax:
@@ -6467,9 +6467,9 @@ _CFatVolume__CreateFATEntry.axssssy:
 		ldy _CFatVolume__CreateFATEntry & 0xFFFF
 		brl RegisterEntry_axssssy_8
 
-_CFatVolume__CreateDirectory__FPc.ax:
+_CFatVolume__CreateDirectory__FPKc.ax:
 		.width (A, X), 16
-		ldy _CFatVolume__CreateDirectory__FPc & 0xFFFF
+		ldy _CFatVolume__CreateDirectory__FPKc & 0xFFFF
 		brl RegisterEntry_ax_2
 
 _CFatVolume__Delete.ax:

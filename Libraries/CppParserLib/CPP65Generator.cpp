@@ -1573,7 +1573,6 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	size						j;
 	size						uiPack;
 	uint32						uiFlags;
-	uint32						uiConstReferences;
 	bool						bConstThis;
 
 	pcName = pcDeclarator->GetName();
@@ -1644,7 +1643,6 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 
 	apsParameters.Init();
 	apcDefaults.Init();
-	uiConstReferences = 0;
 	bConstThis = psClass && IsConstSuffix(pcSuffix);
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
@@ -1673,19 +1671,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 			{
 				break;
 			}
-			if (psType->IsArray())
-			{
-				psType = mcTypes.Pointer(psType->psBase);
-			}
-			else if (psType->IsFunction())
-			{
-				psType = mcTypes.Pointer(psType);
-			}
-			if (psType->IsReference() && pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST) && (apsParameters.NumElements() < 32))
-			{
-				uiConstReferences |= 1u << apsParameters.NumElements();
-			}
-			apsParameters.Add(psType);
+			apsParameters.Add(ParameterType(psType));
 			apcDefaults.Add(pcParameter->mpcDefault);
 		}
 	}
@@ -1703,14 +1689,14 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 		{
 			continue;
 		}
-		if (((lliName == CPP65_CONVERSION_NAME) && !psOther->psReturn->Equals(psReturn)) || (psOther->uiConstReferences != uiConstReferences) || (psOther->bConstThis != bConstThis))
+		if (((lliName == CPP65_CONVERSION_NAME) && !psOther->psReturn->Equals(psReturn)) || (psOther->bConstThis != bConstThis))
 		{
 			continue;
 		}
 		psFunction = psOther;
 		for (j = 0; j < apsParameters.NumElements(); j++)
 		{
-			if (!psOther->mapsParameters.GetPtr(j)->Equals(apsParameters.GetPtr(j)))
+			if (!psOther->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j)))
 			{
 				psFunction = NULL;
 				break;
@@ -1743,7 +1729,6 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 		psFunction->mapsParameters.Add(apsParameters.GetPtr(i));
 		psFunction->mapcDefaults.Add(apcDefaults.GetPtr(i));
 	}
-	psFunction->uiConstReferences = uiConstReferences;
 	psFunction->bConstThis = bConstThis;
 	apcDefaults.Kill();
 	apsParameters.Kill();
@@ -1796,7 +1781,6 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->bCLinkage = false;
 	psFunction->bExplicit = false;
 	psFunction->bConstThis = false;
-	psFunction->uiConstReferences = 0;
 	psFunction->bImplicit = false;
 	psFunction->psInherited = NULL;
 	psFunction->mapcDefaults.Init();
@@ -1892,7 +1876,7 @@ bool CCPP65Generator::SameParameters(SCPP65Function* psFunction, SCPP65Function*
 	}
 	for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
 	{
-		if (!psFunction->mapsParameters.GetPtr(i)->Equals(psOther->mapsParameters.GetPtr(i)))
+		if (!psFunction->mapsParameters.GetPtr(i)->Same(psOther->mapsParameters.GetPtr(i)))
 		{
 			return false;
 		}
@@ -2462,11 +2446,32 @@ SCPP65Type* CCPP65Generator::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFun
 		{
 			break;
 		}
-		apsParameters.Add(psType->IsArray() ? mcTypes.Pointer(psType->psBase) : psType);
+		apsParameters.Add(ParameterType(psType));
 	}
 	psType = mcTypes.Function(psReturn, &apsParameters, pcSuffix->mbVariadic);
 	apsParameters.Kill();
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A parameter's type in its function's type: an array is a pointer to its
+// element, a function a pointer to it, and const and volatile on the
+// parameter itself go (f(const int) is f(int)).  [dcl.fct] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ParameterType(SCPP65Type* psType)
+{
+	if (psType->IsArray())
+	{
+		return mcTypes.Pointer(psType->psBase);
+	}
+	if (psType->IsFunction())
+	{
+		return mcTypes.Pointer(psType);
+	}
+	return psType->Unqualified();
 }
 
 

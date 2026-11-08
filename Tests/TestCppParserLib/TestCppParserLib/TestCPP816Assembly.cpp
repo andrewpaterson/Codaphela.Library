@@ -150,7 +150,7 @@ static bool TestCPP816AssemblyHasBase(CArrayChars* pasz, const char* szBase)
 // runtime routines (R816_) go with whatever code uses them.  And the C++
 // functions the assembly calls are ones the C++ calls too, or defines: a
 // name that went stale (a member's, when a second overload of it gives it
-// its parameters, _CChars__Init__FPctt) is listed.
+// its parameters, _CChars__Init__FPKctt) is listed.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestCPP816AssemblyReplaces(const char** aszCPlusPlus, const char** aszAssembly)

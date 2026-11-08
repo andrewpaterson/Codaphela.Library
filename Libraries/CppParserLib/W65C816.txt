@@ -139,7 +139,7 @@ see this source is this one", so extern "C" functions take them too):
   returns 64 bits (then the hidden result pointer is, and this is pushed).
 - The function's code is at its label plus a suffix naming each argument word's place:
   a dot, then a, x or y for a register or s for a pushed word, without the pushed words
-  at the end (_Add__Fii.ax; _MemSwp16__FPvPvt.axssy).  No suffix when nothing is in a
+  at the end (_Add__Fii.ax; _MemSwp16__FPKvPKvt.axssy).  No suffix when nothing is in a
   register.  C++ labels have no dot, so the suffix can't clash, and a caller and a
   definition that don't agree don't link.
 - The prologue pushes the register words into the top of the frame (phd, phy, phx, pha,

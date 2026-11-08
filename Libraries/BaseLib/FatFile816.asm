@@ -373,8 +373,8 @@ InitClear:
 
 ; EFatCode FindBackslash(const char* szFilename, const char** ppcFilenameScanner): the last \ in the path (not its
 ; last character).
-		.global _FindBackslash__FPcPPc
-_FindBackslash__FPcPPc:
+		.global _FindBackslash__FPKcPPKc
+_FindBackslash__FPKcPPKc:
 		.width (A, X), 16
 		jsr Enter
 		ldy 0
@@ -477,8 +477,8 @@ CacheFlush:
 
 
 ; EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags)
-		.global _CFatFile__Open__FPch
-_CFatFile__Open__FPch:
+		.global _CFatFile__Open__FPKch
+_CFatFile__Open__FPKch:
 		.width (A, X), 16
 		jsr Enter
 		lda 0
@@ -554,7 +554,7 @@ OpenCreate:
 		pei [D + F_ADDRESS]
 		pei [D + F_ARGUMENT + 2]
 		pei [D + F_ARGUMENT]
-		jsl _FindBackslash__FPcPPc
+		jsl _FindBackslash__FPKcPPKc
 		ldx 8
 		jsr Drop
 		cmp FAT_SUCCESS
@@ -1786,7 +1786,7 @@ Getter8:
 ; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
 ; entries are unchanged.
 
-		.global _CFatFile__Init.ax, _FindBackslash__FPcPPc.ax, _CFatFile__Open__FPch.axssy, _CFatFile__Open__FPC18SFatDirectoryEntryh.axssy, _CFatFile__CalculateFirstCluster.ax, _CFatFile__Seek.axssy
+		.global _CFatFile__Init.ax, _FindBackslash__FPKcPPKc.ax, _CFatFile__Open__FPKch.axssy, _CFatFile__Open__FPC18SFatDirectoryEntryh.axssy, _CFatFile__CalculateFirstCluster.ax, _CFatFile__Seek.axssy
 		.global _CFatFile__AllocateClusters.ax, _CFatFile__Write.ax, _CFatFile__Read.ax, _CFatFile__Flush.ax, _CFatFile__Truncate.ax, _CFatFile__Close.ax
 		.global _CFatFile__Size.ax, _CFatFile__Tell.ax, _CFatFile__IsBusy.ax, _CFatFile__GetAccessFlags.ax
 
@@ -1795,15 +1795,15 @@ _CFatFile__Init.ax:
 		ldy _CFatFile__Init & 0xFFFF
 		brl RegisterEntry_ax_2
 
-_FindBackslash__FPcPPc.ax:
+_FindBackslash__FPKcPPKc.ax:
 		.width (A, X), 16
-		ldy _FindBackslash__FPcPPc & 0xFFFF
+		ldy _FindBackslash__FPKcPPKc & 0xFFFF
 		brl RegisterEntry_ax_2
 
-_CFatFile__Open__FPch.axssy:
+_CFatFile__Open__FPKch.axssy:
 		.width (A, X), 16
 		phy
-		ldy _CFatFile__Open__FPch & 0xFFFF
+		ldy _CFatFile__Open__FPKch & 0xFFFF
 		brl RegisterEntry_axssy_2
 
 _CFatFile__Open__FPC18SFatDirectoryEntryh.axssy:

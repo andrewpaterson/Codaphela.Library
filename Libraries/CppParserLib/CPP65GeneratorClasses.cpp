@@ -789,7 +789,6 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		psBinding->psType = NULL;
 		psBinding->lliValue = 0;
 		psBinding->pcParameter = NULL;
-		psBinding->bConst = false;
 		psBinding->papsPack = NULL;
 
 		if (pcParameter->GetKind() == CPPS_TypeParameter)
@@ -828,10 +827,8 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			}
 			if (pcArgument && (pcArgument->GetKind() == CPPS_TypeId))
 			{
-				//const int is a different argument to int; const char* is not const itself.
-				pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
-				psBinding->psType = GetTypeIdType(pcTypeId);
-				psBinding->bConst = pcTypeId->mpcSpecifiers && (pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || (pcTypeId->mpcDeclarator->NumPointers() == 0));
+				//const int is a different argument to int (its type is const).
+				psBinding->psType = GetTypeIdType((CCPPSyntaxTypeId*)pcArgument);
 			}
 			else if (!pcArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -852,7 +849,7 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				bResult = Error(pcArgument ? pcArgument : pcNode, "The template argument is not a type the compiler supports");
 				break;
 			}
-			pszArguments->Append(psBinding->bConst ? "_K" : "_");
+			pszArguments->Append('_');
 			AppendMangledType(pszArguments, psBinding->psType);
 		}
 		else if (pcParameter->GetKind() == CPPS_Parameter)
@@ -1094,7 +1091,6 @@ SCPP65Template* CCPP65Generator::FindClassSpecialisation(SCPP65Template* psPrima
 			psBinding->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
 			psBinding->psType = NULL;
 			psBinding->lliValue = 0;
-			psBinding->bConst = false;
 			psBinding->papsPack = NULL;
 		}
 
@@ -1207,7 +1203,6 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 	SCPP65Type*						psNamed;
 	SCPP65Bindings*					psSaved;
 	size							i;
-	bool							bConst;
 	bool							bResult;
 
 	pcSpecifiers = pcPattern->mpcSpecifiers;
@@ -1218,7 +1213,6 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 	}
 
 	psType = psArgument->psType;
-	bConst = psArgument->bConst;
 	for (i = pcDeclarator ? pcDeclarator->NumPointers() : 0; i > 0; i--)
 	{
 		pcOperator = pcDeclarator->GetPointer(i - 1);
@@ -1234,16 +1228,16 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 		{
 			return false;
 		}
-		bConst = false;
 		(*piScore)++;
 	}
-	if ((pcSpecifiers->muiFlags & CPPDS_CONST) && (!pcDeclarator || (pcDeclarator->NumPointers() == 0)))
+	if (pcSpecifiers->muiFlags & CPPDS_CONST)
 	{
-		if (!bConst)
+		//const T matches a const type, T the type without its const.
+		if (!psType->bConst)
 		{
 			return false;
 		}
-		bConst = false;
+		psType = mcTypes.Qualified(psType, false, psType->bVolatile);
 		(*piScore)++;
 	}
 
@@ -1254,10 +1248,9 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 	{
 		if (psBinding->psType)
 		{
-			return psBinding->psType->Equals(psType) && (psBinding->bConst == bConst);
+			return psBinding->psType->Same(psType);
 		}
 		psBinding->psType = psType;
-		psBinding->bConst = bConst;
 		return true;
 	}
 
@@ -1281,7 +1274,7 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 	psNamed = GetTypeIdType(pcPattern);
 	EndQuiet();
 	mpsBindings = psSaved;
-	bResult = psNamed && psNamed->Equals(psArgument->psType) && !bConst;
+	bResult = psNamed && psNamed->Same(psArgument->psType);
 	*piScore += 2;
 	return bResult;
 }
@@ -2621,7 +2614,6 @@ void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
 			psFunction->mapsParameters.Add(psInherited->mapsParameters.GetPtr(k));
 			psFunction->mapcDefaults.Add(psInherited->mapcDefaults.GetPtr(k));
 		}
-		psFunction->uiConstReferences = psInherited->uiConstReferences;
 		psFunction->bExplicit = psInherited->bExplicit;
 		psFunction->bImplicit = true;
 		psFunction->bDefined = true;
@@ -4021,14 +4013,13 @@ int CCPP65Generator::CompareRanks(int* aiFirst, int* aiSecond, size uiArguments)
 //////////////////////////////////////////////////////////////////////////
 int CCPP65Generator::CompareConstReferences(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject)
 {
-	uint32		uiDifferent;
 	size		i;
 	bool		bFirst;
 	bool		bSecond;
 	bool		bConstBetter;
 	SCPP65Type*	psParameter;
+	SCPP65Type*	psOther;
 
-	uiDifferent = psFirst->uiConstReferences ^ psSecond->uiConstReferences;
 	bFirst = false;
 	bSecond = false;
 	if ((iConstObject >= 0) && (psFirst->bConstThis != psSecond->bConstThis))
@@ -4042,19 +4033,16 @@ int CCPP65Generator::CompareConstReferences(SCPP65Function* psFirst, SCPP65Funct
 			bSecond = true;
 		}
 	}
-	for (i = 0; uiDifferent && papcArguments && (i < papcArguments->NumElements()) && (i < 32); i++)
+	for (i = 0; papcArguments && (i < papcArguments->NumElements()) && (i < psFirst->mapsParameters.NumElements()) && (i < psSecond->mapsParameters.NumElements()); i++)
 	{
-		if (!(uiDifferent & (1u << i)) || (i >= psFirst->mapsParameters.NumElements()) || (i >= psSecond->mapsParameters.NumElements()))
-		{
-			continue;
-		}
 		psParameter = psFirst->mapsParameters.GetPtr(i);
-		if (!psParameter->IsReference() || !psSecond->mapsParameters.GetPtr(i)->IsReference())
+		psOther = psSecond->mapsParameters.GetPtr(i);
+		if (!psParameter->IsReference() || !psOther->IsReference() || (psParameter->IsConstReference() == psOther->IsConstReference()))
 		{
 			continue;
 		}
 		bConstBetter = (psParameter->psBase->IsClass() && IsMadeObject(papcArguments->GetPtr(i), psParameter->psBase->psClass)) || IsConstObject(papcArguments->GetPtr(i));
-		if (((psFirst->uiConstReferences & (1u << i)) != 0) == bConstBetter)
+		if (psParameter->IsConstReference() == bConstBetter)
 		{
 			bFirst = true;
 		}
@@ -4409,11 +4397,6 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 			psz->Append("__F");
 			for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
 			{
-				if ((i < 32) && (psFunction->uiConstReferences & (1u << i)))
-				{
-					//const T& is KR, as T& and const T& are different overloads.
-					psz->Append('K');
-				}
 				AppendMangledType(psz, psFunction->mapsParameters.GetPtr(i));
 			}
 			if (psFunction->bVariadic)
@@ -4575,7 +4558,8 @@ void CCPP65Generator::AppendFunctionName(CChars* psz, int64 lliName)
 // Types in labels: v void, b bool, c char, h unsigned char, s short, t unsigned
 // short, i int, j unsigned, x long long, y unsigned long long, f float, d double,
 // e long double, P pointer, R reference, A count _ array, F return parameters E
-// function, and C, the length and the label of a class.
+// function, and C, the length and the label of a class.  A volatile type starts
+// with V and a const one with K (VK both): const char* is PKc, const T& RK.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
@@ -4585,6 +4569,14 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 	char*	szIdentifier;
 	int		iLength;
 
+	if (psType->bVolatile)
+	{
+		psz->Append('V');
+	}
+	if (psType->bConst)
+	{
+		psz->Append('K');
+	}
 	switch (psType->eKind)
 	{
 	case CPP65TK_Void:

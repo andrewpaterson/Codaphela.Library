@@ -71,7 +71,6 @@ struct SCPP65Binding
 	CCPPSymbol*		pcParameter;
 	SCPP65Type*		psType;
 	int64			lliValue;
-	bool			bConst;			//The type argument was const (types do not record const).
 	CArrayTemplatePtr<SCPP65Type>*	papsPack;	//A parameter pack's types.
 };
 
@@ -124,7 +123,6 @@ struct SCPP65Function
 	SCPP65Type*						psReturn;
 	CArrayCPP65Types				mapsParameters;
 	CArraySyntax					mapcDefaults;	//Each parameter's default argument, or NULL.
-	uint32							uiConstReferences;	//A bit for each of the first 32 parameters that is a const reference (types do not record const).
 	bool							bVariadic;
 	bool							bDefined;
 	SCPP65Class*					psClass;		//NULL for a function that is not a member.
@@ -564,6 +562,7 @@ protected:
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
+	SCPP65Type*				ParameterType(SCPP65Type* psType);
 	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions, bool bBss = false);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
 	void					AppendSpace(int iBytes);

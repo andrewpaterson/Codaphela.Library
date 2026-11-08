@@ -290,7 +290,7 @@ _MatchesFatFileName__FPbPbPcPtPcPtPh:
 		pei [D + MF_PATH]
 		pei [D + MF_SHORT + 2]
 		pei [D + MF_SHORT]
-		jsl _GetFatShortNameForEntry__FPcPcb
+		jsl _GetFatShortNameForEntry__FPcPKcb
 		ply
 		ply
 		ply
@@ -351,8 +351,8 @@ MatchesResult:
 SN_DEST			= F_ARGUMENT
 SN_SOURCE		= F_ARGUMENT + 4
 SN_DISABLED		= F_ARGUMENT + 8
-		.global _GetFatShortNameForEntry__FPcPcb
-_GetFatShortNameForEntry__FPcPcb:
+		.global _GetFatShortNameForEntry__FPcPKcb
+_GetFatShortNameForEntry__FPcPKcb:
 		.width (A, X), 16
 		jsr Enter
 		stz [D + F_UPPER]
@@ -635,8 +635,8 @@ ShortPutByte:
 ; "NAME.EXT".
 CF_DEST			= F_ARGUMENT
 CF_SOURCE		= F_ARGUMENT + 4
-		.global _ConvertFATShortInternalNameInto8Dot3Format__FPhPh
-_ConvertFATShortInternalNameInto8Dot3Format__FPhPh:
+		.global _ConvertFATShortInternalNameInto8Dot3Format__FPhPKh
+_ConvertFATShortInternalNameInto8Dot3Format__FPhPKh:
 		.width (A, X), 16
 		jsr Enter
 		lda CF_DEST
@@ -733,8 +733,8 @@ ConstructEnd:
 
 
 ; const char* StepPathOverSlash(const char* szPathName)
-		.global _StepPathOverSlash__FPc
-_StepPathOverSlash__FPc:
+		.global _StepPathOverSlash__FPKc
+_StepPathOverSlash__FPKc:
 		.width (A, X), 16
 		jsr Enter
 		lda [D + F_ARGUMENT]
@@ -758,8 +758,8 @@ StepOverReturn:
 
 
 ; const char* StepPathToSlash(const char* szPathName): back to the \ before it.
-		.global _StepPathToSlash__FPc
-_StepPathToSlash__FPc:
+		.global _StepPathToSlash__FPKc
+_StepPathToSlash__FPKc:
 		.width (A, X), 16
 		jsr Enter
 StepToBack:
@@ -856,8 +856,8 @@ IllegalCharactersEnd:
 ; bool IsIllegalFilename(const char* szName, uint16 uiLength)
 II_NAME			= F_ARGUMENT
 II_LENGTH		= F_ARGUMENT + 4
-		.global _IsIllegalFilename__FPct
-_IsIllegalFilename__FPct:
+		.global _IsIllegalFilename__FPKct
+_IsIllegalFilename__FPKct:
 		.width (A, X), 16
 		jsr Enter
 		lda II_NAME
@@ -961,8 +961,8 @@ GeneratePut:
 PP_PATH			= F_ARGUMENT
 PP_PART			= F_ARGUMENT + 4
 PP_FILENAME		= F_ARGUMENT + 8
-		.global _ParsePathAndFilename__FPcPcPPc
-_ParsePathAndFilename__FPcPcPPc:
+		.global _ParsePathAndFilename__FPKcPcPPKc
+_ParsePathAndFilename__FPKcPcPPKc:
 		.width (A, X), 16
 		jsr Enter
 		lda PP_PATH
@@ -1027,9 +1027,9 @@ ParsePathCopied:
 ; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
 ; entries are unchanged.
 
-		.global _GetFatLongNameForEntry__FPtPc.ax, _CompareFatShortName__FPcPc.ax, _CompareFatLongName__FPtPt.ax, _MatchesFatFileName__FPbPbPcPtPcPtPh.ax, _GetFatShortNameForEntry__FPcPcb.axssy, _ConvertFATShortInternalNameInto8Dot3Format__FPhPh.ax
-		.global _ConstructFatLongFileNameFromShortName__FPtPcbb.axssy, _StepPathOverSlash__FPc.ax, _StepPathToSlash__FPc.ax, _CopyLongFilenameIntoString__FPcPt.ax, _IsIllegalFilenameCharacter__Fc.a, _IsIllegalFilename__FPct.axy
-		.global _GenerateShortNameWithSuffix__FtPh.axy, _ParsePathAndFilename__FPcPcPPc.ax
+		.global _GetFatLongNameForEntry__FPtPc.ax, _CompareFatShortName__FPcPc.ax, _CompareFatLongName__FPtPt.ax, _MatchesFatFileName__FPbPbPcPtPcPtPh.ax, _GetFatShortNameForEntry__FPcPKcb.axssy, _ConvertFATShortInternalNameInto8Dot3Format__FPhPKh.ax
+		.global _ConstructFatLongFileNameFromShortName__FPtPcbb.axssy, _StepPathOverSlash__FPKc.ax, _StepPathToSlash__FPKc.ax, _CopyLongFilenameIntoString__FPcPt.ax, _IsIllegalFilenameCharacter__Fc.a, _IsIllegalFilename__FPKct.axy
+		.global _GenerateShortNameWithSuffix__FtPh.axy, _ParsePathAndFilename__FPKcPcPPKc.ax
 
 _GetFatLongNameForEntry__FPtPc.ax:
 		.width (A, X), 16
@@ -1051,15 +1051,15 @@ _MatchesFatFileName__FPbPbPcPtPcPtPh.ax:
 		ldy _MatchesFatFileName__FPbPbPcPtPcPtPh & 0xFFFF
 		brl RegisterEntry_ax_12
 
-_GetFatShortNameForEntry__FPcPcb.axssy:
+_GetFatShortNameForEntry__FPcPKcb.axssy:
 		.width (A, X), 16
 		phy
-		ldy _GetFatShortNameForEntry__FPcPcb & 0xFFFF
+		ldy _GetFatShortNameForEntry__FPcPKcb & 0xFFFF
 		brl RegisterEntry_axssy_2
 
-_ConvertFATShortInternalNameInto8Dot3Format__FPhPh.ax:
+_ConvertFATShortInternalNameInto8Dot3Format__FPhPKh.ax:
 		.width (A, X), 16
-		ldy _ConvertFATShortInternalNameInto8Dot3Format__FPhPh & 0xFFFF
+		ldy _ConvertFATShortInternalNameInto8Dot3Format__FPhPKh & 0xFFFF
 		brl RegisterEntry_ax_2
 
 _ConstructFatLongFileNameFromShortName__FPtPcbb.axssy:
@@ -1068,14 +1068,14 @@ _ConstructFatLongFileNameFromShortName__FPtPcbb.axssy:
 		ldy _ConstructFatLongFileNameFromShortName__FPtPcbb & 0xFFFF
 		brl RegisterEntry_axssy_3
 
-_StepPathOverSlash__FPc.ax:
+_StepPathOverSlash__FPKc.ax:
 		.width (A, X), 16
-		ldy _StepPathOverSlash__FPc & 0xFFFF
+		ldy _StepPathOverSlash__FPKc & 0xFFFF
 		brl RegisterEntry_ax_0
 
-_StepPathToSlash__FPc.ax:
+_StepPathToSlash__FPKc.ax:
 		.width (A, X), 16
-		ldy _StepPathToSlash__FPc & 0xFFFF
+		ldy _StepPathToSlash__FPKc & 0xFFFF
 		brl RegisterEntry_ax_0
 
 _CopyLongFilenameIntoString__FPcPt.ax:
@@ -1088,10 +1088,10 @@ _IsIllegalFilenameCharacter__Fc.a:
 		ldy _IsIllegalFilenameCharacter__Fc & 0xFFFF
 		brl RegisterEntry_a_0
 
-_IsIllegalFilename__FPct.axy:
+_IsIllegalFilename__FPKct.axy:
 		.width (A, X), 16
 		phy
-		ldy _IsIllegalFilename__FPct & 0xFFFF
+		ldy _IsIllegalFilename__FPKct & 0xFFFF
 		brl RegisterEntry_axy_0
 
 _GenerateShortNameWithSuffix__FtPh.axy:
@@ -1100,9 +1100,9 @@ _GenerateShortNameWithSuffix__FtPh.axy:
 		ldy _GenerateShortNameWithSuffix__FtPh & 0xFFFF
 		brl RegisterEntry_axy_0
 
-_ParsePathAndFilename__FPcPcPPc.ax:
+_ParsePathAndFilename__FPKcPcPPKc.ax:
 		.width (A, X), 16
-		ldy _ParsePathAndFilename__FPcPcPPc & 0xFFFF
+		ldy _ParsePathAndFilename__FPKcPcPPKc & 0xFFFF
 		brl RegisterEntry_ax_4
 
 RegisterEntry_ax_2:

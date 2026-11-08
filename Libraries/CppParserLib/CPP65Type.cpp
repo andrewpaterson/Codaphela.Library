@@ -165,7 +165,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 {
 	size	i;
 
-	//volatile doesn't make a type different here (a pointer to volatile converts to and from a pointer).
+	//const and volatile don't make a type different here (Same tells them apart).
 	if ((this == psOther) || (psUnqualified == psOther->psUnqualified))
 	{
 		return true;
@@ -277,6 +277,53 @@ void SCPP65Type::Append(CChars* psz)
 		psz->Append(" class::*");
 		break;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the types are the same (Equals) with the same const and volatile
+// at every level: const int* isn't int*.  [basic.type.qualifier]
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::Same(SCPP65Type* psOther)
+{
+	size	i;
+
+	if (this == psOther)
+	{
+		return true;
+	}
+	if ((bConst != psOther->bConst) || (bVolatile != psOther->bVolatile) || !Equals(psOther))
+	{
+		return false;
+	}
+	if (psBase && !psBase->Same(psOther->psBase))
+	{
+		return false;
+	}
+	if (eKind == CPP65TK_Function)
+	{
+		for (i = 0; i < papsParameters->NumElements(); i++)
+		{
+			if (!papsParameters->GetPtr(i)->Same(psOther->papsParameters->GetPtr(i)))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// const T&: a reference to a const type.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsConstReference(void)
+{
+	return IsReference() && psBase->bConst;
 }
 
 

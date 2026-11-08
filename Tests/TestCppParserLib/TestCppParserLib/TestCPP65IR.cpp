@@ -912,6 +912,43 @@ void TestCPP65IRConstClassSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// const and volatile are part of a type: in a label (K and V, as the
+// standard's mangling has them: const char* is PKc, const int& RKi), but
+// not on a parameter itself (f(const int) is f(int)); a template deduces
+// T* from a const int* as const int, which a const T specialisation tells
+// from int.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstTypes(void)
+{
+	static const char*	szSource =
+		"int F(const char* p) { return p[0]; }\n"
+		"int G(const int& r) { return r; }\n"
+		"int H(volatile int* p) { return *p; }\n"
+		"int I(const int x) { return x + 1; }\n"
+		"template<class T> struct SIsConst { static int V() { return 0; } };\n"
+		"template<class T> struct SIsConst<const T> { static int V() { return 1; } };\n"
+		"template<class T> int Check(T* p) { return SIsConst<T>::V(); }\n"
+		"int main() { const int a = 2; int b = 3; volatile int c = 4; return F(\"A\") + G(a) * 10 + H(&c) * 100 + I(b) * 1000 + Check(&a) * 10000 + Check(&b) * 20000; }";
+	CChars				szAssembly;
+	CChars				szErrors;
+
+	AssertInt('A' + 2 * 10 + 4 * 100 + 4 * 1000 + 10000, TestCPP65IRMain(szSource, 9));
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource, true));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Contains("_F__FPKc:"));
+	AssertTrue(szAssembly.Contains("_G__FRKi:"));
+	AssertTrue(szAssembly.Contains("_H__FPVi:"));
+	AssertTrue(szAssembly.Contains("_I__Fi:"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -947,6 +984,7 @@ void TestCPP65IR(void)
 	TestCPP65IRSharedDivides();
 	TestCPP65IRAnonymousLocals();
 	TestCPP65IRConstClassSize();
+	TestCPP65IRConstTypes();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();
