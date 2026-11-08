@@ -230,13 +230,14 @@ void TestMeshConnectivitySaveLoad(void)
 	cMemory.Open(EFM_ReadWrite_Create);
 	cWriter.Init(&cMemory, NULL);
 	AssertTrue(cMesh.GetConnectivity()->Save(&cWriter));
+	cMemory.Close();
 	cWriter.Kill();
 
-	cMemory.Seek(0, EFSO_SET);
+	cMemory.Open(EFM_Read);
 	cReader.Init(&cMemory, NULL);
 	AssertTrue(cLoaded.Load(&cReader));
-	cReader.Kill();
 	cMemory.Close();
+	cReader.Kill();
 	cMemory.Kill();
 
 	AssertFalse(cLoaded.IsGenerated());
