@@ -456,6 +456,40 @@ void TestImageBlackWhiteUserData(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An image prints whatever number of channels it has (there were room for
+// eight), and the accessors it prints with are freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestImagePrintManyChannels(void)
+{
+	Ptr<CImage>	pImage;
+	CChars		sz;
+	size		uiUnknowns;
+
+	ObjectsInit();
+
+	pImage = OMalloc<CImage>(2, 1);  //Red, green and blue.
+	pImage->BeginChange();
+	pImage->AddChannel(IMAGE_OPACITY, IMAGE_MASK, IMAGE_BUMP_U, IMAGE_BUMP_V, PT_uint8);
+	pImage->AddChannel(IMAGE_SPECULAR, IMAGE_NORMAL_X, PT_uint8);
+	AssertTrue(pImage->EndChange());
+	AssertSize(9, pImage->GetChannels()->GetNumChannels());
+
+	uiUnknowns = gcUnknowns.NumElements();
+	sz.Init();
+	pImage->Print(&sz);
+	AssertSize(uiUnknowns, gcUnknowns.NumElements());
+	AssertTrue(sz.StartsWith("Object["));
+	sz.Kill();
+
+	pImage = NULL;
+
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestImage(void)
@@ -470,6 +504,7 @@ void TestImage(void)
 	TestImageCopierRealPNG();
 	TestImageSizeLimits();
 	TestImageBlackWhiteUserData();
+	TestImagePrintManyChannels();
 
 	DataIOKill();
 

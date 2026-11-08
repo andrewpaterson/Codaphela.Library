@@ -1442,12 +1442,13 @@ void CImage::Print(CChars* psz)
 	CChannels*			pcChannels;
 	CArraySize			aiChannels;
 	size				i;
-	uint				uiChannel;
+	size				uiChannel;
 	CChannel*			pcChannel;
-	const char*				szChannelName;
+	const char*			szChannelName;
 	uint32				x;
 	uint32				y;
-	CChannelsAccessor*	apcAccessors[8];
+	CArrayVoidPtr		apcAccessors;  //One per channel, however many the image has.
+	CChannelsAccessor*	pcAccessor;
 	uint				ui;
 	size				uiNumElements;
 
@@ -1457,6 +1458,7 @@ void CImage::Print(CChars* psz)
 	pcChannels = GetChannels();
 
 	aiChannels.Init();
+	apcAccessors.Init();
 	pcChannels->GetAllChannels(&aiChannels);
 
 	uiNumElements = aiChannels.NumElements();
@@ -1482,7 +1484,7 @@ void CImage::Print(CChars* psz)
 		psz->Append(pcChannel->miBitOffset);
 		psz->Append("]  ");
 
-		apcAccessors[i] = CChannelsAccessorCreator::CreateSingleChannelAccessor(GetChannels(), uiChannel);
+		apcAccessors.Add(CChannelsAccessorCreator::CreateSingleChannelAccessor(GetChannels(), uiChannel));
 	}
 	psz->RemoveFromEnd(2);
 	psz->AppendNewLine();
@@ -1511,7 +1513,8 @@ void CImage::Print(CChars* psz)
 			uiNumElements = aiChannels.NumElements();
 			for (i = 0; i < uiNumElements; i++)
 			{
-				ui = *((uint*)apcAccessors[i]->Get(x + y * msSize.x));
+				pcAccessor = (CChannelsAccessor*)apcAccessors.GetPtr(i);
+				ui = *((uint*)pcAccessor->Get(x + y * msSize.x));
 				psz->Append(" ");
 				psz->AppendHexLoHi(&ui, 1);
 				psz->Append(" ");
@@ -1521,6 +1524,13 @@ void CImage::Print(CChars* psz)
 		psz->AppendNewLine();
 	}
 
+	uiNumElements = apcAccessors.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcAccessor = (CChannelsAccessor*)apcAccessors.GetPtr(i);
+		pcAccessor->Kill();
+	}
+	apcAccessors.Kill();
 	aiChannels.Kill();
 }
 
