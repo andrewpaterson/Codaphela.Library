@@ -927,6 +927,120 @@ void TestTextDiffLineMapper(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The mapping as it is defined: the first block the line is before or in,
+// found by looking at each block in turn.
+//
+//////////////////////////////////////////////////////////////////////////
+float64 TextDiffTransferLineByScan(CSimpleTextDiff* pcDiff, ETextDiffSide eFrom, float64 fLine)
+{
+	lsize			uiBlock;
+	STextDiffBlock*	psBlock;
+	float64			fFromStart;
+	float64			fFromEnd;
+	float64			fToStart;
+	float64			fToEnd;
+
+	fFromEnd = 0;
+	fToEnd = 0;
+	for (uiBlock = 0; uiBlock < pcDiff->NumBlocks(); uiBlock++)
+	{
+		psBlock = pcDiff->GetBlock(uiBlock);
+		fFromStart = (float64)((eFrom == TDS_Left) ? psBlock->uiStartLine1 : psBlock->uiStartLine2);
+		fFromEnd = (float64)((eFrom == TDS_Left) ? psBlock->uiEndLine1 : psBlock->uiEndLine2);
+		fToStart = (float64)((eFrom == TDS_Left) ? psBlock->uiStartLine2 : psBlock->uiStartLine1);
+		fToEnd = (float64)((eFrom == TDS_Left) ? psBlock->uiEndLine2 : psBlock->uiEndLine1);
+		if (fLine < fFromStart)
+		{
+			return fLine + (fToStart - fFromStart);
+		}
+		if (fLine < fFromEnd)
+		{
+			return fToStart + (fLine - fFromStart) * (fToEnd - fToStart) / (fFromEnd - fFromStart);
+		}
+	}
+	return fLine + (fToEnd - fFromEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With many blocks of every kind (lines added, removed and changed, at the
+// start and the end too) the mapper finds the same line as looking at
+// each block in turn, from before the first line to past the last.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextDiffLineMapperManyBlocks(void)
+{
+	CSimpleTextDiff		cDiff;
+	CTextDiffProducer	cProducer;
+	CTextDiffLineMapper	cMapper;
+	CChars				szText1;
+	CChars				szText2;
+	int					i;
+	float64				fLine;
+	float64				fExpected;
+	ETextDiffSide		eFrom;
+
+	szText1.Init();
+	szText2.Init();
+	szText2.Append("start\n");
+	for (i = 0; i < 60; i++)
+	{
+		switch (i % 4)
+		{
+		case 0:
+			szText1.Append("same ")->Append(i)->Append("\n");
+			szText2.Append("same ")->Append(i)->Append("\n");
+			break;
+		case 1:
+			szText1.Append("removed ")->Append(i)->Append("\n");
+			break;
+		case 2:
+			szText1.Append("same ")->Append(i)->Append("\n");
+			szText2.Append("same ")->Append(i)->Append("\n");
+			szText2.Append("added ")->Append(i)->Append("\n");
+			szText2.Append("added ")->Append(i)->Append(" again\n");
+			break;
+		case 3:
+			szText1.Append("old ")->Append(i)->Append("\n");
+			szText1.Append("old ")->Append(i)->Append(" again\n");
+			szText2.Append("new ")->Append(i)->Append("\n");
+			break;
+		}
+	}
+	szText1.Append("end\n");
+
+	cDiff.Init("Diff");
+	cProducer.Init(TDW_Default, TDH_Lines);
+	cProducer.ProduceFromText(&cDiff, "A", szText1.Text(), "B", szText2.Text());
+	AssertTrue(cDiff.NumBlocks() > 25);  //An insertion and a change touch, and are one block.
+	cMapper.Init(&cDiff);
+
+	for (eFrom = TDS_Left; eFrom <= TDS_Right; eFrom = (ETextDiffSide)(eFrom + 1))
+	{
+		for (fLine = -2; fLine < 140; fLine += 0.25)
+		{
+			fExpected = TextDiffTransferLineByScan(&cDiff, eFrom, fLine);
+			AssertDouble(fExpected, cMapper.TransferLine(eFrom, fLine), 6);
+		}
+	}
+
+	cMapper.Kill();
+	cProducer.Kill();
+	cDiff.Kill();
+	szText2.Kill();
+	szText1.Kill();
+
+	cDiff.Init("Diff");
+	cMapper.Init(&cDiff);
+	AssertDouble(3.5, cMapper.TransferLine(TDS_Left, 3.5), 6);
+	cMapper.Kill();
+	cDiff.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextDiff(void)
@@ -950,6 +1064,7 @@ void TestTextDiff(void)
 	TestTextDiffManyLines();
 	TestTextDiffFiles();
 	TestTextDiffLineMapper();
+	TestTextDiffLineMapperManyBlocks();
 	TestMyersDiffEdges();
 	TestMyersDiffRandom();
 

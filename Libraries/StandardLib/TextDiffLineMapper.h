@@ -45,6 +45,9 @@ public:
 	void	Kill(void);
 
 	float64	TransferLine(ETextDiffSide eFrom, float64 fLine);
+
+protected:
+	lsize	FindBlockEndingAfter(ETextDiffSide eFrom, float64 fLine);
 };
 
 

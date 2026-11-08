@@ -44,50 +44,106 @@ void CTextDiffLineMapper::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A block's lines on the side mapped from and the side mapped to.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TextDiffBlockSides(STextDiffBlock* psBlock, ETextDiffSide eFrom, lsize* puiFromStart, lsize* puiFromEnd, lsize* puiToStart, lsize* puiToEnd)
+{
+	if (eFrom == TDS_Left)
+	{
+		*puiFromStart = psBlock->uiStartLine1;
+		*puiFromEnd = psBlock->uiEndLine1;
+		*puiToStart = psBlock->uiStartLine2;
+		*puiToEnd = psBlock->uiEndLine2;
+	}
+	else
+	{
+		*puiFromStart = psBlock->uiStartLine2;
+		*puiFromEnd = psBlock->uiEndLine2;
+		*puiToStart = psBlock->uiStartLine1;
+		*puiToEnd = psBlock->uiEndLine1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first block that ends, on side eFrom, after fLine: fLine is before
+// it or in it.  NumBlocks if none does.  The blocks are in order on both
+// sides, so it is a binary search, of whole lines: a block's end is past
+// fLine exactly when it is past fLine's whole line.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextDiffLineMapper::FindBlockEndingAfter(ETextDiffSide eFrom, float64 fLine)
+{
+	lsize			uiLine;
+	lsize			uiLow;
+	lsize			uiHigh;
+	lsize			uiMiddle;
+	STextDiffBlock*	psBlock;
+	lsize			uiEnd;
+
+	if (fLine < 0)
+	{
+		//Every block ends at or after line 0.
+		return 0;
+	}
+
+	uiLine = (lsize)fLine;
+	uiLow = 0;
+	uiHigh = mpcDiff->NumBlocks();
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = uiLow + (uiHigh - uiLow) / 2;
+		psBlock = mpcDiff->GetBlock(uiMiddle);
+		uiEnd = (eFrom == TDS_Left) ? psBlock->uiEndLine1 : psBlock->uiEndLine2;
+		if (uiEnd > uiLine)
+		{
+			uiHigh = uiMiddle;
+		}
+		else
+		{
+			uiLow = uiMiddle + 1;
+		}
+	}
+	return uiLow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The line on the other side that fLine on side eFrom lines up with.
 //
 //////////////////////////////////////////////////////////////////////////
 float64 CTextDiffLineMapper::TransferLine(ETextDiffSide eFrom, float64 fLine)
 {
+	lsize			uiNumBlocks;
 	lsize			uiBlock;
-	STextDiffBlock*	psBlock;
-	float64			fFromStart;
-	float64			fFromEnd;
-	float64			fToStart;
-	float64			fToEnd;
+	lsize			uiFromStart;
+	lsize			uiFromEnd;
+	lsize			uiToStart;
+	lsize			uiToEnd;
 
-	fFromEnd = 0;
-	fToEnd = 0;
-	for (uiBlock = 0; uiBlock < mpcDiff->NumBlocks(); uiBlock++)
+	uiNumBlocks = mpcDiff->NumBlocks();
+	if (uiNumBlocks == 0)
 	{
-		psBlock = mpcDiff->GetBlock(uiBlock);
-		if (eFrom == TDS_Left)
-		{
-			fFromStart = (float64)psBlock->uiStartLine1;
-			fFromEnd = (float64)psBlock->uiEndLine1;
-			fToStart = (float64)psBlock->uiStartLine2;
-			fToEnd = (float64)psBlock->uiEndLine2;
-		}
-		else
-		{
-			fFromStart = (float64)psBlock->uiStartLine2;
-			fFromEnd = (float64)psBlock->uiEndLine2;
-			fToStart = (float64)psBlock->uiStartLine1;
-			fToEnd = (float64)psBlock->uiEndLine1;
-		}
-
-		if (fLine < fFromStart)
-		{
-			//In the unchanged lines before the block.
-			return fLine + (fToStart - fFromStart);
-		}
-		if (fLine < fFromEnd)
-		{
-			return fToStart + (fLine - fFromStart) * (fToEnd - fToStart) / (fFromEnd - fFromStart);
-		}
+		return fLine;
 	}
 
-	//After the last block.
-	return fLine + (fToEnd - fFromEnd);
+	uiBlock = FindBlockEndingAfter(eFrom, fLine);
+	if (uiBlock == uiNumBlocks)
+	{
+		//After the last block.
+		TextDiffBlockSides(mpcDiff->GetBlock(uiNumBlocks - 1), eFrom, &uiFromStart, &uiFromEnd, &uiToStart, &uiToEnd);
+		return fLine + ((float64)uiToEnd - (float64)uiFromEnd);
+	}
+
+	TextDiffBlockSides(mpcDiff->GetBlock(uiBlock), eFrom, &uiFromStart, &uiFromEnd, &uiToStart, &uiToEnd);
+	if (fLine < (float64)uiFromStart)
+	{
+		//In the unchanged lines before the block.
+		return fLine + ((float64)uiToStart - (float64)uiFromStart);
+	}
+	return (float64)uiToStart + (fLine - (float64)uiFromStart) * (float64)(uiToEnd - uiToStart) / (float64)(uiFromEnd - uiFromStart);
 }
 
