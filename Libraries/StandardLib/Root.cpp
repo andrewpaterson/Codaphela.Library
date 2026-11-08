@@ -203,37 +203,32 @@ CPointer CRoot::UnsafeGet(size iIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The root's object named szObjectName, as it is (a hollow is left
+// hollow).  Once the root's set is in memory so are its objects, if only
+// as hollows, so the name is looked up in memory and the object is the
+// root's if the set points to it.  An object of that name that isn't the
+// root's is Null, and isn't loaded.
 //
 //////////////////////////////////////////////////////////////////////////
 CPointer CRoot::Get(const char* szObjectName)
 {
-	SSetIterator	sIter;
-	char*			szName;
-	bool			bExists;
+	CBaseObject*	pcObject;
+	CPointer		pObject;
 
-	if (StrEmpty(szObjectName))
+	if (StrEmpty(szObjectName) || mpObjects.IsNull())
 	{
 		return Null();
 	}
 
-	CPointer pObject = mpObjects->StartIteration(&sIter, &bExists);
-	while (bExists)
+	mpObjects.Dereference();
+	pcObject = GetObjectsThisIn()->GetFromMemory(szObjectName);
+	if ((pcObject == NULL) || !pcObject->ContainsFrom(&mpObjects))
 	{
-		if (pObject.IsNotNull())
-		{
-			szName = pObject.GetName();
-			if (szName != NULL)
-			{
-				if (strcmp(szObjectName, szName) == 0)
-				{
-					return pObject;
-				}
-			}
-			pObject = mpObjects->Iterate(&sIter, &bExists);
-		}
+		return Null();
 	}
 
-	return Null();
+	pObject.AssignObject(pcObject);
+	return pObject;
 }
 
 

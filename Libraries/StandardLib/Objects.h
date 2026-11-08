@@ -64,6 +64,7 @@ class CObjects
 {
 friend class CBaseObject;
 friend class CInternalObjectDeserialiser;
+friend class CRoot;
 protected:
 	bool					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;

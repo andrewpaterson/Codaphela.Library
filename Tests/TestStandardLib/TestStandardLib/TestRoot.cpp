@@ -1260,6 +1260,64 @@ void TestRootSetRemoveAll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The root's objects are found by name, one held from many places (a
+// hub) too.  An object of that name that isn't the root's, an unnamed one
+// and an empty name aren't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRootGetByName(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CTestObject>	pFirst;
+		Ptr<CTestObject>	pHeld;
+		Ptr<CTestObject>	pNotInRoot;
+		Ptr<CTestObject>	pUnnamed;
+		Ptr<CTestObject>	pHolder;
+		Ptr<CTestObject>	pFound;
+		Ptr<CArrayObject>	pHolders;
+		size				i;
+
+		pRoot = ORoot();
+		pFirst = ONMalloc<CTestObject>("Root/First");
+		pHeld = ONMalloc<CTestObject>("Root/Held");
+		pNotInRoot = ONMalloc<CTestObject>("Root/NotInRoot");
+		pUnnamed = OMalloc<CTestObject>();
+		pHolders = OMalloc<CArrayObject>();
+		pRoot->Add(pFirst, pHeld, pUnnamed);
+		pRoot->Add(pHolders);
+		for (i = 0; i < HEAP_FROM_HUB_MIN_FROMS + 8; i++)
+		{
+			pHolder = OMalloc<CTestObject>();
+			pHolder->mpTest = pHeld;
+			pHolders->Add(pHolder);
+		}
+		pHolder = NULL;
+		pNotInRoot->mpTest = pFirst;
+
+		pFound = pRoot->Get("Root/First");
+		AssertPointer(&pFirst, &pFound);
+		pFound = pRoot->Get("Root/Held");
+		AssertPointer(&pHeld, &pFound);
+		AssertTrue(pRoot->Get("Root/NotInRoot").IsNull());
+		AssertTrue(pRoot->Get("Root/Missing").IsNull());
+		AssertTrue(pRoot->Get("").IsNull());
+		AssertTrue(pRoot->Get(NULL).IsNull());
+
+		pRoot->Add(pNotInRoot);
+		pFound = pRoot->Get("Root/NotInRoot");
+		AssertPointer(&pNotInRoot, &pFound);
+		pRoot->Remove(pFirst);
+		AssertTrue(pRoot->Get("Root/First").IsNull());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRootSetKillAll(void)
@@ -1424,6 +1482,7 @@ void TestRoot(void)
 	TestRootGraphRemoveErrorFromObjectConverter();
 	TestRootSetKillAll();
 	TestRootSetRemoveAll();
+	TestRootGetByName();
 
 	DataIOKill();
 	TypesKill();
