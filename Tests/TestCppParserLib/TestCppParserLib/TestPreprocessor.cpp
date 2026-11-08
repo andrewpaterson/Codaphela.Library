@@ -1087,6 +1087,44 @@ void TestPreprocessorStandardExample5(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An empty argument next to ## leaves the other token, and two leave no token.
+// An argument next to ## isn't
+// macro replaced, one elsewhere is.  What ## can't make a token of stays two
+// tokens.  An object-like macro with no replacement is 0 in #if, and one that
+// makes nothing gives its spacing to what follows.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorMacroSubstitution(void)
+{
+	CChars	szDest;
+
+	szDest.Init();
+	CPreprocessor::Preprocess(
+		"#define CAT(a, b) a ## b\n"
+		"#define V 3\n"
+		"#define RAW(a) a a ## 1\n"
+		"#define EMPTY\n"
+		"[CAT(, x)] [CAT(x, )] [CAT(, )]\n"
+		"RAW(V)\n"
+		"CAT(+, /)\n"
+		"#if EMPTY\n"
+		"no\n"
+		"#else\n"
+		"yes\n"
+		"#endif\n"
+		"a EMPTY b\n", &szDest);
+	AssertString(
+		"[x] [x] []\n"
+		"3 V1\n"
+		"+ /\n"
+		"yes\n"
+		"a b\n", szDest.Text());
+	szDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPreprocessorStandardExample7(void)
@@ -2124,6 +2162,7 @@ void TestPreprocessor(void)
 	TestPreprocessorStandardExample4();
 	TestPreprocessorStandardExample5();
 	TestPreprocessorStandardExample7();
+	TestPreprocessorMacroSubstitution();
 	TestPreprocessorConditionalArithmetic();
 	TestPreprocessorConditionalUniversalCharacterNames();
 	TestPreprocessorConditionalIntegerSuffixes();

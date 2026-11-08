@@ -2062,21 +2062,87 @@ bool CPreprocessor::CollectArguments(CDefine* pcDefine, SPreprocessedToken* psNa
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
 {
+	CArrayPreprocessedTokens	acResult;
+	CArrayPreprocessedTokens	acFinal;
+	SPreprocessedToken*			psToken;
+	int							iExpansion;
+
+	iExpansion = mpcOutput->AddExpansion(psName->szText, psName->uiLength, psName->pcFile, psName->iLine, psName->iColumn, psName->iExpansion);
+
+	acResult.Init();
+	if (!SubstituteParameters(pcDefine, pacArguments, iExpansion, &acResult))
+	{
+		acResult.Kill();
+		return false;
+	}
+	acFinal.Init();
+	PasteTokens(&acResult, &acFinal);
+	acResult.Kill();
+
+	if (mbInCondition && (acFinal.NumElements() == 0) && !pcDefine->IsBracketed())
+	{
+		//An object-like macro with no replacement is 0 in #if.  (Strictly this is an error.)
+		AddNumber(0, psName, &acFinal);
+		acFinal.Tail()->iExpansion = iExpansion;
+	}
+
+	//The expansion is spaced like the macro name was.
+	if (acFinal.NumElements() > 0)
+	{
+		psToken = acFinal.Get(0);
+		psToken->uiFlags = (psToken->uiFlags & ~PTF_LEADING_SPACE) | (psName->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE));
+	}
+	else
+	{
+		muiPendingFlags |= psName->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE);
+	}
+
+	//Rescan.  [cpp.rescan]
+	PushTokens(PPST_Macro, &acFinal, pcDefine->GetID());
+	acFinal.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// An argument's tokens appended, the first spaced as uiLeadingSpace	//
+// says.																//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static void AppendArgumentTokens(CArrayPreprocessedTokens* pacArgument, uint32 uiLeadingSpace, CArrayPreprocessedTokens* pacResult)
+{
+	SPreprocessedToken	sToken;
+	size				i;
+
+	for (i = 0; i < pacArgument->NumElements(); i++)
+	{
+		sToken = *pacArgument->Get(i);
+		if (i == 0)
+		{
+			sToken.uiFlags = (sToken.uiFlags & ~(PTF_LEADING_SPACE | PTF_START_OF_LINE)) | uiLeadingSpace;
+		}
+		pacResult->Add(&sToken);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// The macro's body with its parameters replaced, in pacResult.  False	//
+// if expanding an argument failed.  [cpp.subst]						//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::SubstituteParameters(CDefine* pcDefine, CArrayPreprocessedTokenArrays* pacArguments, int iExpansion, CArrayPreprocessedTokens* pacResult)
+{
 	CArrayPreprocessedTokens*		pacBody;
-	CArrayPreprocessedTokens		acResult;
-	CArrayPreprocessedTokens		acPasted;
-	CArrayPreprocessedTokens		acFinal;
 	CArrayPreprocessedTokenArrays	acExpanded;
 	CArrayPreprocessedTokens*		pacArgument;
 	SPreprocessedToken*				psBody;
-	SPreprocessedToken*				psToken;
-	SPreprocessedToken*				psLeft;
 	SPreprocessedToken				sToken;
 	size							i;
-	size							j;
 	size							iNumBody;
 	size							iNumParameters;
-	int								iExpansion;
 	int								iParameter;
 	bool							bFunctionLike;
 	bool							bRaw;
@@ -2085,7 +2151,6 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 	iNumBody = pacBody->NumElements();
 	iNumParameters = pacArguments->NumElements();
 	bFunctionLike = pcDefine->IsBracketed();
-	iExpansion = mpcOutput->AddExpansion(psName->szText, psName->uiLength, psName->pcFile, psName->iLine, psName->iColumn, psName->iExpansion);
 
 	//Arguments are macro replaced once, when first needed.
 	acExpanded.Init();
@@ -2094,8 +2159,6 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 		acExpanded.Add()->Init();
 	}
 
-	//Substitute the parameters.  [cpp.subst]
-	acResult.Init();
 	for (i = 0; i < iNumBody; i++)
 	{
 		psBody = pacBody->Get(i);
@@ -2105,7 +2168,7 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 			Stringify(pacArguments->Get(pacBody->Get(i + 1)->iParameter), &sToken);
 			sToken.uiFlags = psBody->uiFlags & PTF_LEADING_SPACE;
 			sToken.iExpansion = iExpansion;
-			acResult.Add(&sToken);
+			pacResult->Add(&sToken);
 			i++;
 			continue;
 		}
@@ -2116,19 +2179,11 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 			pacArgument = pacArguments->Get(iNumParameters - 1);
 			if (pacArgument->NumElements() == 0)
 			{
-				acResult.Pop();
+				pacResult->Pop();
 			}
 			else
 			{
-				for (j = 0; j < pacArgument->NumElements(); j++)
-				{
-					sToken = *pacArgument->Get(j);
-					if (j == 0)
-					{
-						sToken.uiFlags = (sToken.uiFlags & ~(PTF_LEADING_SPACE | PTF_START_OF_LINE)) | (pacBody->Get(i + 1)->uiFlags & PTF_LEADING_SPACE);
-					}
-					acResult.Add(&sToken);
-				}
+				AppendArgumentTokens(pacArgument, pacBody->Get(i + 1)->uiFlags & PTF_LEADING_SPACE, pacResult);
 			}
 			i++;
 			continue;
@@ -2162,19 +2217,11 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 				sToken.Init(PTK_Placemarker, "", 0, NULL, -1, -1);
 				sToken.uiFlags = psBody->uiFlags & PTF_LEADING_SPACE;
 				sToken.iExpansion = iExpansion;
-				acResult.Add(&sToken);
+				pacResult->Add(&sToken);
 			}
 			else
 			{
-				for (j = 0; j < pacArgument->NumElements(); j++)
-				{
-					sToken = *pacArgument->Get(j);
-					if (j == 0)
-					{
-						sToken.uiFlags = (sToken.uiFlags & ~(PTF_LEADING_SPACE | PTF_START_OF_LINE)) | (psBody->uiFlags & PTF_LEADING_SPACE);
-					}
-					acResult.Add(&sToken);
-				}
+				AppendArgumentTokens(pacArgument, psBody->uiFlags & PTF_LEADING_SPACE, pacResult);
 			}
 			continue;
 		}
@@ -2182,7 +2229,7 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 		sToken = *psBody;
 		sToken.iExpansion = iExpansion;
 		sToken.iParameter = -1;
-		acResult.Add(&sToken);
+		pacResult->Add(&sToken);
 	}
 
 	for (i = 0; i < acExpanded.NumElements(); i++)
@@ -2190,31 +2237,41 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 		acExpanded.Get(i)->Kill();
 	}
 	acExpanded.Kill();
+	return !mbError;
+}
 
-	if (mbError)
-	{
-		acResult.Kill();
-		return false;
-	}
 
-	//Paste.  ## is only an operator if it came from the body.  [cpp.concat]
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// The tokens with each ## done and the placemarkers gone, in pacFinal.	//
+// ## is only an operator if it came from the body.  [cpp.concat]		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPreprocessedTokens* pacFinal)
+{
+	CArrayPreprocessedTokens	acPasted;
+	SPreprocessedToken*			psToken;
+	SPreprocessedToken*			psLeft;
+	SPreprocessedToken			sToken;
+	size						i;
+
 	acPasted.Init();
-	for (i = 0; i < acResult.NumElements(); i++)
+	for (i = 0; i < pacTokens->NumElements(); i++)
 	{
-		psToken = acResult.Get(i);
+		psToken = pacTokens->Get(i);
 		if (psToken->uiFlags & PTF_PASTE)
 		{
-			if ((acPasted.NumElements() > 0) && (i + 1 < acResult.NumElements()))
+			if ((acPasted.NumElements() > 0) && (i + 1 < pacTokens->NumElements()))
 			{
 				psLeft = acPasted.Tail();
-				if (Paste(psLeft, acResult.Get(i + 1), &sToken))
+				if (Paste(psLeft, pacTokens->Get(i + 1), &sToken))
 				{
 					*psLeft = sToken;
 				}
 				else
 				{
 					//Not a valid token.  The compilers that allow it keep the two tokens.
-					acPasted.Add(acResult.Get(i + 1));
+					acPasted.Add(pacTokens->Get(i + 1));
 				}
 				i++;
 			}
@@ -2222,9 +2279,7 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 		}
 		acPasted.Add(psToken);
 	}
-	acResult.Kill();
 
-	acFinal.Init();
 	for (i = 0; i < acPasted.NumElements(); i++)
 	{
 		psToken = acPasted.Get(i);
@@ -2232,33 +2287,10 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 		{
 			sToken = *psToken;
 			sToken.uiFlags &= ~(PTF_PASTE | PTF_STRINGIFY | PTF_START_OF_LINE);
-			acFinal.Add(&sToken);
+			pacFinal->Add(&sToken);
 		}
 	}
 	acPasted.Kill();
-
-	if (mbInCondition && (acFinal.NumElements() == 0) && !bFunctionLike)
-	{
-		//An object-like macro with no replacement is 0 in #if.  (Strictly this is an error.)
-		AddNumber(0, psName, &acFinal);
-		acFinal.Tail()->iExpansion = iExpansion;
-	}
-
-	//The expansion is spaced like the macro name was.
-	if (acFinal.NumElements() > 0)
-	{
-		psToken = acFinal.Get(0);
-		psToken->uiFlags = (psToken->uiFlags & ~PTF_LEADING_SPACE) | (psName->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE));
-	}
-	else
-	{
-		muiPendingFlags |= psName->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE);
-	}
-
-	//Rescan.  [cpp.rescan]
-	PushTokens(PPST_Macro, &acFinal, pcDefine->GetID());
-	acFinal.Kill();
-	return true;
 }
 
 

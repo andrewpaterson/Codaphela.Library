@@ -203,6 +203,8 @@ protected:
 	void				NoteSkipping(CPPDirective* pcDirective, bool bWasParsing);
 	void				AddInactiveLine(CSourceFile* pcFile, int iLine);
 	bool				ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments);
+	bool				SubstituteParameters(CDefine* pcDefine, CArrayPreprocessedTokenArrays* pacArguments, int iExpansion, CArrayPreprocessedTokens* pacResult);
+	void				PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPreprocessedTokens* pacFinal);
 	void				ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPreprocessedTokens* pacExpanded);
 	void				ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest);
 	void				Stringify(CArrayPreprocessedTokens* pacArgument, SPreprocessedToken* psResult);
