@@ -213,7 +213,6 @@ public:
 protected:
 	void				AdjustComparisons(void);
 	void				PreferSingleBranches(void);
-	void				PairDivides(void);
 	bool				DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);

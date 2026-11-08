@@ -188,6 +188,14 @@ struct SIRLoopCounter
 };
 
 
+//The divides whose remainder a urem or srem of the same operands straight after can take (SetDivideRemainders).
+#define IR_DIVIDE_REMAINDERS_8		0x01
+#define IR_DIVIDE_REMAINDERS_16		0x02
+#define IR_DIVIDE_REMAINDERS_32		0x04
+#define IR_DIVIDE_REMAINDERS_64		0x08
+#define IR_DIVIDE_REMAINDERS_SIGNED	0x10	//sdiv and srem too, not only udiv and urem.
+
+
 #define IR_COUNTER_SUB		0x01	//MatchCounter: the step may be a sub of a constant (lliStep its negative).
 #define IR_COUNTER_INSIDE	0x02	//MatchCounter: sNext's argument must come from a block in the loop.
 
@@ -285,7 +293,7 @@ protected:
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
-	bool					mbDivideRemainders;		//A 16, 32 or 64 bit divide leaves its remainder for a urem or srem right after it (SetDivideRemainders).
+	uint32					muiDivideRemainders;	//The IR_DIVIDE_REMAINDERS_ divides that leave their remainder for a urem or srem right after them.
 	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
 	bool					mbBiasedIndices;	//Signed i16 indices are biased unsigned ones (SetBiasedIndices).
 	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
@@ -318,7 +326,7 @@ public:
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetConstantDivisions(bool bConstantDivisions);
-	void			SetDivideRemainders(bool bDivideRemainders);
+	void			SetDivideRemainders(uint32 uiDivideRemainders);
 	void			SetNarrowCounters(bool bNarrowCounters);
 	void			SetBiasedIndices(bool bBiasedIndices);
 	void			SetWarnings(CChars* pszWarnings);
@@ -367,6 +375,7 @@ public:
 	bool			ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
 	bool			SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int64 lliMax);
 	bool			FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift, int* piBits, int* piPreShift);
+	bool			LeavesRemainder(SIRInstruction* psRemainder);
 	bool			HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor);
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);

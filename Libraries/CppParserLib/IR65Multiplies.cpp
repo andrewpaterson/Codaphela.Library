@@ -235,6 +235,24 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if psPartner is the unsigned udiv (not 64 bits) of psFirst's urem
+// (or the urem of its udiv): the same operands, so the one div does both.
+// The optimiser puts them next to each other (SetDivideRemainders).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner)
+{
+	if (((psFirst->uiOpcode != IRO_UDiv) && (psFirst->uiOpcode != IRO_URem)) || IsWide(psFirst->sType))
+	{
+		return false;
+	}
+	return (psPartner->uiOpcode == ((psFirst->uiOpcode == IRO_UDiv) ? IRO_URem : IRO_UDiv)) && psPartner->sType.Equals(psFirst->sType) &&
+		psPartner->asArguments[0].Equals(psFirst->asArguments[0]) && psPartner->asArguments[1].Equals(psFirst->asArguments[1]) && psPartner->sResult.IsTemporary();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The partner (DividePartner) just after the udiv or urem uiIndex that one
 // div gives the results of both, the one kept in Y not kept in A; NULL for
 // none.

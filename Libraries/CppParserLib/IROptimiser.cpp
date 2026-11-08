@@ -33,7 +33,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mbIndexedAddresses = true;
 	mbNarrowMultiplies = false;
 	mbConstantDivisions = false;
-	mbDivideRemainders = false;
+	muiDivideRemainders = 0;
 	mbNarrowCounters = false;
 	mbBiasedIndices = false;
 	mbBranchRanges = false;
@@ -151,15 +151,16 @@ void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the target's 16, 32 and 64 bit divides leave the remainder where a
-// urem or srem straight after them with the same operands can take it (the
-// W65C816's R816_UDiv16, R816_SDiv32 ...: D + 5).  ShareDivisions then puts
-// such a urem right after its udiv instead of making it a multiply.
+// The target's divides (IR_DIVIDE_REMAINDERS_ widths, and signed ones)
+// that leave the remainder where a urem or srem straight after them with
+// the same operands can take it (the W65C816's R816_UDiv16, R816_SDiv32
+// ...: D + 5; the 65C64's div: B).  ShareDivisions puts such a urem right
+// after its udiv.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SetDivideRemainders(bool bDivideRemainders)
+void CIROptimiser::SetDivideRemainders(uint32 uiDivideRemainders)
 {
-	mbDivideRemainders = bDivideRemainders;
+	muiDivideRemainders = uiDivideRemainders;
 }
 
 
@@ -248,7 +249,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= SignedPowerDivisions();
 		bChanged |= mbConstantDivisions && DivisibilityTests();
 		bChanged |= mbConstantDivisions && ConstantDivisions();
-		bChanged |= mbConstantDivisions && ShareDivisions();
+		bChanged |= (mbConstantDivisions || (muiDivideRemainders != 0)) && ShareDivisions();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
 		bChanged |= mbBiasedIndices && MergeAddressPhis();

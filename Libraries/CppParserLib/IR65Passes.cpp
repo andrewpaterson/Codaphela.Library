@@ -142,64 +142,6 @@ void CIR65Backend::PreferSingleBranches(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The unsigned 32 bit udiv or urem that is DividePartner of one earlier in
-// its block moves to just after it, so one div gives both (Divide).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::PairDivides(void)
-{
-	size			ui;
-	size			uiFirst;
-	size			uiPartner;
-	CIRBlock*		pcBlock;
-	SIRInstruction	sPartner;
-	uint16			uiOpcode;
-
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uiFirst = 0; uiFirst + 1 < pcBlock->masInstructions.NumElements(); uiFirst++)
-		{
-			uiOpcode = pcBlock->masInstructions.Get(uiFirst)->uiOpcode;
-			if ((uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem))
-			{
-				continue;
-			}
-			for (uiPartner = uiFirst + 2; uiPartner < pcBlock->masInstructions.NumElements(); uiPartner++)
-			{
-				if (DividePartner(pcBlock->masInstructions.Get(uiFirst), pcBlock->masInstructions.Get(uiPartner)))
-				{
-					//Its operands are the first's, so it can be worked out as early.
-					sPartner = *pcBlock->masInstructions.Get(uiPartner);
-					pcBlock->masInstructions.RemoveAt(uiPartner, true);
-					pcBlock->masInstructions.InsertAt(&sPartner, uiFirst + 1);
-					break;
-				}
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if psPartner is the unsigned 32 bit udiv of psFirst's urem (or the
-// urem of its udiv): the same operands, so the one div does both.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner)
-{
-	if (((psFirst->uiOpcode != IRO_UDiv) && (psFirst->uiOpcode != IRO_URem)) || IsWide(psFirst->sType))
-	{
-		return false;
-	}
-	return (psPartner->uiOpcode == ((psFirst->uiOpcode == IRO_UDiv) ? IRO_URem : IRO_UDiv)) && psPartner->sType.Equals(psFirst->sType) &&
-		psPartner->asArguments[0].Equals(psFirst->asArguments[0]) && psPartner->asArguments[1].Equals(psFirst->asArguments[1]) && psPartner->sResult.IsTemporary();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // True if psInstruction is a ptradd of a constant (which a load or store
 // can fold into its address: [8 + X]).
 //

@@ -393,6 +393,25 @@ void TestIR65BackendNarrow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many div instructions szAssembly has.
+//
+//////////////////////////////////////////////////////////////////////////
+static int CountDivs(const char* szAssembly)
+{
+	int			iDivs;
+	const char*	sz;
+
+	iDivs = 0;
+	for (sz = strstr(szAssembly, "\t\tdiv\n"); sz; sz = strstr(sz + 1, "\t\tdiv\n"))
+	{
+		iDivs++;
+	}
+	return iDivs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR65BackendDivide(void)
@@ -437,14 +456,17 @@ void TestIR65BackendDivide(void)
 		"\t%5 = load i8 %q\n\t%6 = sext i8 %5 to i16\n\t%7 = zext i16 %6 to i32\n"
 		"\t%s = add i32 %2, %4\n\t%t = add i32 %s, %7\n\tret i32 %t\n}\n"));
 
-	//udiv and urem of the same operands share a div, with an instruction between them, in either order: 1234 / 10 * 1000 + 1234 % 10 and
-	//1234 % 100 * 1000 + 1234 / 100.
-	AssertInt(123 * 1000 + 4 + 34 * 1000 + 12, TestIR65Main(
+	//udiv and urem of the same operands next to each other (the optimiser puts them there: SetDivideRemainders) share a
+	//div, in either order: 1234 / 10 * 1000 + 1234 % 10 and 1234 % 100 * 1000 + 1234 / 100.
+	szAssembly.Init();
+	AssertInt(123 * 1000 + 4 + 34 * 1000 + 12, (int32)TestIR65Run(
 		"function i32 @_D__Fjj(i32 %a, i32 %b, i32 %c), local\n{\nb:\n"
-		"\t%q = udiv i32 %a, %b\n\t%m = mul i32 %q, 1000\n\t%r = urem i32 %a, %b\n\t%s = add i32 %m, %r\n"
-		"\t%r2 = urem i32 %a, %c\n\t%m2 = mul i32 %r2, 1000\n\t%q2 = udiv i32 %a, %c\n\t%s2 = add i32 %m2, %q2\n"
+		"\t%q = udiv i32 %a, %b\n\t%r = urem i32 %a, %b\n\t%m = mul i32 %q, 1000\n\t%s = add i32 %m, %r\n"
+		"\t%r2 = urem i32 %a, %c\n\t%q2 = udiv i32 %a, %c\n\t%m2 = mul i32 %r2, 1000\n\t%s2 = add i32 %m2, %q2\n"
 		"\t%t = add i32 %s, %s2\n\tret i32 %t\n}\n\n"
-		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_D__Fjj(i32 1234, i32 10, i32 100)\n\tret i32 %r\n}\n"));
+		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_D__Fjj(i32 1234, i32 10, i32 100)\n\tret i32 %r\n}\n", false, &szAssembly));
+	AssertInt(2, CountDivs(szAssembly.Text()));
+	szAssembly.Kill();
 	AssertInt(-14, TestIR65Main(
 		"function i32 @_main()\n{\nb:\n"
 		"\t%a = sdiv i8 -100, 7\n"

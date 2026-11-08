@@ -510,7 +510,8 @@ kept there too (add X, 1; add [8 + W], A; shl [4 + W], 2), in the result's regis
 instruction allows (add A, Y; and A, [12 + V]; add, sub, cmp, shl and shr can't address
 memory with V, so those go through B).  mul leaves the product in Y and div the quotient
 in Y and remainder in B, which are stored from there; an unsigned udiv and urem of the same
-operands in one block are moved together and share the div.  A multiply by a constant of a
+operands in one block are moved together by the optimiser (SetDivideRemainders) and share
+the div.  A multiply by a constant of a
 few signed digits (10, 7, 24, 11...) is shifts and adds or subs, as on the W65C816
 (CIRBackend::ExpandMultiplies), when they cost fewer cycles than the mul (which steps once
 a byte of B and needs W cleared after it).  A narrow load that only a sext just after it uses is

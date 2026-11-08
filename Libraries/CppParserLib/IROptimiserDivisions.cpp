@@ -695,14 +695,16 @@ bool CIROptimiser::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int
 
 //////////////////////////////////////////////////////////////////////////
 //
-// x % d next to x / d in one block (d not a constant, ConstantDivisions has
-// those; the same signedness and type) is x - (x / d) * d: one divide
+// x % d next to x / d in one block (d not a constant with
+// SetConstantDivisions: ConstantDivisions has those; the same signedness and
+// type) is x - (x / d) * d: one divide
 // instead of two, for a target whose divides are runtime calls (a multiply
 // is much cheaper).  When the remainder comes first a divide is put before
 // it, which common subexpressions make the later one.  C's division rounds
-// towards 0, so it holds signed too.  With SetDivideRemainders a 16, 32 or
-// 64 bit urem or srem is instead moved to right after its udiv or sdiv (which
-// leaves the remainder), or the divide is put right before it.
+// towards 0, so it holds signed too.  A urem or srem whose divide leaves the
+// remainder (LeavesRemainder) is instead moved to right after its udiv or
+// sdiv, or the divide is put right before it.  Without SetConstantDivisions
+// only that is done.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ShareDivisions(void)
@@ -729,7 +731,7 @@ bool CIROptimiser::ShareDivisions(void)
 		for (uiRemainder = 0; uiRemainder < pcBlock->masInstructions.NumElements(); uiRemainder++)
 		{
 			psRemainder = pcBlock->masInstructions.Get(uiRemainder);
-			if (((psRemainder->uiOpcode != IRO_URem) && (psRemainder->uiOpcode != IRO_SRem)) || psRemainder->asArguments[1].IsConstant() || !psRemainder->sType.IsInteger())
+			if (((psRemainder->uiOpcode != IRO_URem) && (psRemainder->uiOpcode != IRO_SRem)) || (mbConstantDivisions && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
 			{
 				continue;
 			}
@@ -749,7 +751,7 @@ bool CIROptimiser::ShareDivisions(void)
 			{
 				continue;
 			}
-			if (mbDivideRemainders && (sType.Is(IRTK_I16) || sType.Is(IRTK_I32) || sType.Is(IRTK_I64)))
+			if (LeavesRemainder(psRemainder))
 			{
 				if (uiDivide + 1 == uiRemainder)
 				{
@@ -765,6 +767,10 @@ bool CIROptimiser::ShareDivisions(void)
 					uiRemainder++;
 				}
 				bChanged = true;
+				continue;
+			}
+			if (!mbConstantDivisions)
+			{
 				continue;
 			}
 			uiAt = uiRemainder;
@@ -786,6 +792,32 @@ bool CIROptimiser::ShareDivisions(void)
 		}
 	}
 	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the divide of psRemainder's operands (a urem or srem) leaves the
+// remainder for it (SetDivideRemainders).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::LeavesRemainder(SIRInstruction* psRemainder)
+{
+	uint32	uiWidth;
+
+	if ((psRemainder->uiOpcode == IRO_SRem) && !(muiDivideRemainders & IR_DIVIDE_REMAINDERS_SIGNED))
+	{
+		return false;
+	}
+	switch (psRemainder->sType.IntegerBits())
+	{
+	case 8:		uiWidth = IR_DIVIDE_REMAINDERS_8;	break;
+	case 16:	uiWidth = IR_DIVIDE_REMAINDERS_16;	break;
+	case 32:	uiWidth = IR_DIVIDE_REMAINDERS_32;	break;
+	case 64:	uiWidth = IR_DIVIDE_REMAINDERS_64;	break;
+	default:	return false;
+	}
+	return (muiDivideRemainders & uiWidth) != 0;
 }
 
 

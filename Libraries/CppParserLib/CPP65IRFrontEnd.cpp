@@ -1291,7 +1291,9 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 	pcOptimiser->SetIndexedAddresses(!bW65C816);
 	pcOptimiser->SetNarrowMultiplies(bW65C816);
 	pcOptimiser->SetConstantDivisions(bW65C816);
-	pcOptimiser->SetDivideRemainders(bW65C816);
+	//The W65C816's divide routines leave the remainder at D + 5; the 65C64's div leaves an unsigned one in B.
+	pcOptimiser->SetDivideRemainders(bW65C816 ? (IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32 | IR_DIVIDE_REMAINDERS_64 | IR_DIVIDE_REMAINDERS_SIGNED) :
+										   (IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32));
 	pcOptimiser->SetNarrowCounters(bW65C816);
 	pcOptimiser->SetBiasedIndices(bW65C816);
 	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));

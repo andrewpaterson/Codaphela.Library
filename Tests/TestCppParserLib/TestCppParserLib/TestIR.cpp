@@ -848,6 +848,7 @@ void TestIRLoops(void)
 #define IR_TEST_NARROW_COUNTERS		0x08	//SetNarrowCounters (the W65C816's).
 #define IR_TEST_BIASED_INDICES		0x10	//SetBiasedIndices (the W65C816's [p],Y).
 #define IR_TEST_CONSTANT_DIVISIONS	0x20	//SetConstantDivisions (the W65C816's).
+#define IR_TEST_DIVIDE_REMAINDERS	0x40	//SetDivideRemainders of the 65C64's divides (unsigned, 8 to 32 bits).
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -885,6 +886,10 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	cOptimiser.SetNarrowCounters((uiOptions & IR_TEST_NARROW_COUNTERS) != 0);
 	cOptimiser.SetBiasedIndices((uiOptions & IR_TEST_BIASED_INDICES) != 0);
 	cOptimiser.SetConstantDivisions((uiOptions & IR_TEST_CONSTANT_DIVISIONS) != 0);
+	if (uiOptions & IR_TEST_DIVIDE_REMAINDERS)
+	{
+		cOptimiser.SetDivideRemainders(IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32);
+	}
 	if (uiOptions & IR_TEST_LIBRARY)
 	{
 		cOptimiser.SetLibraryInt(IRType(IRTK_I16));
@@ -3797,6 +3802,67 @@ void TestIROptimiserSharedDivisions(void)
 		"\t%s = xor i16 %q, %r\n"
 		"\tret i16 %s\n"
 		"}\n", IR_TEST_CONSTANT_DIVISIONS);
+
+	//The 65C64's div leaves an unsigned remainder (SetDivideRemainders): a urem moves to just after its udiv, by a
+	//constant too (it has no ConstantDivisions), or a udiv is put before it and the later one is the same value.  Not
+	//64 bits or signed.
+	AssertIROptimisedOptions(
+		"function i32 @f(i32 %x, i32 %d, i64 %y, i64 %e, i16 %z, i16 %f)\n"
+		"{\n"
+		"a:\n"
+		"\t%q = udiv i32 %x, %d\n"
+		"\t%r = urem i32 %x, %d\n"
+		"\t%m = mul i32 %q, 1000\n"
+		"\t%t = udiv i32 %x, 10\n"
+		"\t%u = urem i32 %x, 10\n"
+		"\t%0 = udiv i16 %z, %f\n"
+		"\t%w = urem i16 %z, %f\n"
+		"\t%p = udiv i64 %y, %e\n"
+		"\t%n = add i32 %m, %r\n"
+		"\t%o = urem i64 %y, %e\n"
+		"\t%k = srem i32 %x, %d\n"
+		"\t%g = sdiv i32 %x, %d\n"
+		"\t%1 = add i32 %n, %t\n"
+		"\t%2 = add i32 %1, %u\n"
+		"\t%3 = zext i16 %w to i32\n"
+		"\t%4 = add i32 %2, %3\n"
+		"\t%5 = zext i16 %0 to i32\n"
+		"\t%6 = add i32 %4, %5\n"
+		"\t%7 = add i64 %p, %o\n"
+		"\t%8 = trunc i64 %7 to i32\n"
+		"\t%9 = add i32 %6, %8\n"
+		"\t%10 = add i32 %9, %k\n"
+		"\t%11 = add i32 %10, %g\n"
+		"\tret i32 %11\n"
+		"}\n",
+		"function i32 @f(i32 %x, i32 %d, i64 %y, i64 %e, i16 %z, i16 %f)\n"
+		"{\n"
+		"a:\n"
+		"\t%q = udiv i32 %x, %d\n"
+		"\t%m = mul i32 %q, 1000\n"
+		"\t%t = udiv i32 %x, 10\n"
+		"\t%r = urem i32 %x, %d\n"
+		"\t%u = urem i32 %x, 10\n"
+		"\t%w = urem i16 %z, %f\n"
+		"\t%v = udiv i16 %z, %f\n"
+		"\t%p = udiv i64 %y, %e\n"
+		"\t%n = add i32 %m, %r\n"
+		"\t%o = urem i64 %y, %e\n"
+		"\t%k = srem i32 %x, %d\n"
+		"\t%g = sdiv i32 %x, %d\n"
+		"\t%1 = add i32 %n, %t\n"
+		"\t%2 = add i32 %1, %u\n"
+		"\t%3 = zext i16 %w to i32\n"
+		"\t%4 = add i32 %2, %3\n"
+		"\t%5 = zext i16 %v to i32\n"
+		"\t%6 = add i32 %4, %5\n"
+		"\t%7 = add i64 %p, %o\n"
+		"\t%8 = trunc i64 %7 to i32\n"
+		"\t%9 = add i32 %6, %8\n"
+		"\t%10 = add i32 %9, %k\n"
+		"\t%11 = add i32 %10, %g\n"
+		"\tret i32 %11\n"
+		"}\n", IR_TEST_DIVIDE_REMAINDERS);
 }
 
 

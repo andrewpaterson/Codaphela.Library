@@ -840,6 +840,40 @@ void TestCPP65IRMemberTemplateDefinedLater(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// x / d and x % d with code between them (by a constant too) share one div
+// on the 65C64: the optimiser puts the urem after the udiv
+// (SetDivideRemainders) and the back end writes them with one div.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRSharedDivides(void)
+{
+	static const char*	szSource =
+		"unsigned Digits(unsigned x, unsigned d) { unsigned q = x / d; unsigned y = q * 3; unsigned r = x % d; return y + r; }\n"
+		"unsigned Tens(unsigned x) { unsigned r = x % 10; unsigned y = r * 7; unsigned q = x / 10; return y + q; }\n"
+		"int main() { return (int)(Digits(1234, 100) + Tens(1234)); }";
+	CChars				szAssembly;
+	CChars				szErrors;
+	const char*			sz;
+	int					iDivs;
+
+	AssertInt(12 * 3 + 34 + 4 * 7 + 123, TestCPP65IRMain(szSource, 3));
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource, true));
+	AssertString("", szErrors.Text());
+	iDivs = 0;
+	for (sz = strstr(szAssembly.Text(), "\t\tdiv\n"); sz; sz = strstr(sz + 1, "\t\tdiv\n"))
+	{
+		iDivs++;
+	}
+	AssertInt(2, iDivs);
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -872,6 +906,7 @@ void TestCPP65IR(void)
 	TestCPP65IRMangledNames();
 	TestCPP65IRConstantTypes();
 	TestCPP65IRMemberTemplateDefinedLater();
+	TestCPP65IRSharedDivides();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();
