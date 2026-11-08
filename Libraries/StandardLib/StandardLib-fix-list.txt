@@ -28,14 +28,14 @@ B11. [138] CSetObject::Dump loops to the non-NULL count over raw slots, missing 
 B12. [142] RemoveObjectCopiesTryFree(NULL) returns false where RemoveObjectTryFree(NULL) returns true.  [done 3b84bf869]
 B13. [148] CMapUnknownUnknown::SetKey writes a key into a pointer-sorted map without re-sorting or killing the old key; SetValue doesn't kill the old value.  [done 3b84bf869]
 B14. [161] CMapObject::NonNullElements and IsMemberAt (a validator) call EnsureSorted: queries that mutate.  [done 3b84bf869]
-B15. [216] A negative field offset (field not inside the object) silently becomes a NULL-class field at offset 0 (CPointerField, CPrimitiveField); it should be an error.
-B16. [250] CObjects::Root() and FreeObjects() call ->Init() on Malloc's result without a NULL check.
-B17. [251] NumDatabaseIndexes / NumDatabaseNames dereference mpcDataConnection unchecked.
-B18. [252] RemoveBatch runs DoneKill then FreeInternal; FreeAllInKillOrder runs FreeInternal then DoneKill. Pick one order.
-B19. [258] ObjectRemapFrom silently uses min(old, new) embedded counts, dropping froms on the extra embedded objects. Should be an error.
-B20. [263] Nothing guards a walk started inside another walk (a validator calling CanFindRoot mid-walk breaks the outer one). Assert or document at StartWalk.
-B21. [266] DistToRoot dereferences GetClosestFromToRoot() unchecked.
-B22. [277] CStackPointers::Kill → ClearAllPointers writes through stack pointers that are already dead.
+B15. [216] A negative field offset (field not inside the object) silently becomes a NULL-class field at offset 0 (CPointerField, CPrimitiveField); it should be an error.  [done 4735d494a]
+B16. [250] CObjects::Root() and FreeObjects() call ->Init() on Malloc's result without a NULL check.  [done 4735d494a]
+B17. [251] NumDatabaseIndexes / NumDatabaseNames dereference mpcDataConnection unchecked.  [done 4735d494a]
+B18. [252] RemoveBatch runs DoneKill then FreeInternal; FreeAllInKillOrder runs FreeInternal then DoneKill. Pick one order.  [done 4735d494a]
+B19. [258] ObjectRemapFrom silently uses min(old, new) embedded counts, dropping froms on the extra embedded objects. Should be an error.  [done 4735d494a]
+B20. [263] Nothing guards a walk started inside another walk (a validator calling CanFindRoot mid-walk breaks the outer one). Assert or document at StartWalk.  [done 4735d494a]
+B21. [266] DistToRoot dereferences GetClosestFromToRoot() unchecked.  [done 4735d494a]
+B22. [277] CStackPointers::Kill → ClearAllPointers writes through stack pointers that are already dead.  [done 4735d494a]
 B23. [306] CPrimitiveObject::SetEmbedding stores the offset in uint16 unchecked (wraps past 64KB); 0 doubles as "not embedded".
 B24. [312] Fat-hollow sizes are uint16 (muiSize, AllocateHollow's uiFatSize): a class over 64KB is truncated, not refused.
 B25. [323] ObjectWriter: (uint16)pcObject->ClassSize() and the uint16 embedded count/index casts are unchecked.
