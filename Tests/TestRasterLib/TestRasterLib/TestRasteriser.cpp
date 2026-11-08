@@ -353,7 +353,7 @@ void TestRasteriserMesh(void)
 		AssertTrue(puiFirst[32 * 64 + 32] != TEST_BLACK);
 		AssertInt((int32)TEST_BLACK, (int32)puiFirst[0]);
 		iDrawn = 64 * 64 - CountPixels(&cTarget, TEST_BLACK);
-		AssertTrue(iDrawn > 64 * 64 / 8);
+		AssertTrue(iDrawn > 64 * 64 / 16);
 		cTarget.Kill();
 
 		//The same camera draws the same pixels.

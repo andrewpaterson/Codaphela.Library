@@ -61,6 +61,8 @@ public:
 	CArrayRasterVertex		masVertices;
 	CArrayRasterTriangle	masOpaque;
 	CArrayRasterTriangle	masTransparent;
+	SInt32Vec3				msMin;  //The bounds of its vertices.
+	SInt32Vec3				msMax;
 
 	void	Init(void);
 	void	Kill(void);

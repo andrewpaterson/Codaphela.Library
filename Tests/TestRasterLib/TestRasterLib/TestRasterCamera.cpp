@@ -27,6 +27,29 @@ void AssertProject(int32 iExpectedX, int32 iExpectedY, CRasterCamera* pcCamera, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void AssertProjectNear(int32 iExpectedX, int32 iExpectedY, CRasterCamera* pcCamera, int32 x, int32 y, int32 z)
+{
+	SInt32Vec3			sPosition;
+	SRasterScreenVertex	sScreen;
+
+	sPosition.Init(x, y, z);
+	pcCamera->Project(&sScreen, &sPosition);
+	if ((sScreen.sPosition.x < iExpectedX - 1) || (sScreen.sPosition.x > iExpectedX + 1))
+	{
+		AssertInt(iExpectedX, sScreen.sPosition.x);
+	}
+	if ((sScreen.sPosition.y < iExpectedY - 1) || (sScreen.sPosition.y > iExpectedY + 1))
+	{
+		AssertInt(iExpectedY, sScreen.sPosition.y);
+	}
+	AssertTrue(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestRasterCameraOrthographic(void)
 {
 	CRasterCamera		cCamera;
@@ -39,11 +62,12 @@ void TestRasterCameraOrthographic(void)
 	cCamera.Fit(200, 100);
 	cCamera.Prepare(200, 100);
 
-	//The smaller side, 100 pixels or 1600 subpixels, fits the mesh.  y goes down the screen.
+	//A focal length of 120 pixels and an eye four half widths away make a half width 30 pixels, or 480 subpixels.
+	//y goes down the screen.
 	AssertProject(1600, 800, &cCamera, 0, 0, 0);
-	AssertProject(1600 + 800, 800, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
-	AssertProject(1600 - 800, 800, &cCamera, -RASTER_MESH_HALF_EXTENT, 0, 0);
-	AssertProject(1600, 0, &cCamera, 0, RASTER_MESH_HALF_EXTENT, 0);
+	AssertProject(1600 + 480, 800, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
+	AssertProject(1600 - 480, 800, &cCamera, -RASTER_MESH_HALF_EXTENT, 0, 0);
+	AssertProject(1600, 800 - 480, &cCamera, 0, RASTER_MESH_HALF_EXTENT, 0);
 
 	sPosition.Init(0, 0, 100);
 	cCamera.Project(&sNear, &sPosition);
@@ -55,18 +79,18 @@ void TestRasterCameraOrthographic(void)
 	//A quarter turn takes x to y.
 	cCamera.SetOrbit(TEST_HALF_PI, 0.0f);
 	cCamera.Prepare(200, 100);
-	AssertProject(1600, 0, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
+	AssertProject(1600, 800 - 480, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
 
-	//A quarter tilt takes y out of the screen and z up it.
+	//A quarter tilt takes y out of the screen and z down it.
 	cCamera.SetOrbit(0.0f, TEST_HALF_PI);
 	cCamera.Prepare(200, 100);
 	AssertProject(1600, 800, &cCamera, 0, RASTER_MESH_HALF_EXTENT, 0);
-	AssertProject(1600, 1600, &cCamera, 0, 0, RASTER_MESH_HALF_EXTENT);
+	AssertProject(1600, 800 + 480, &cCamera, 0, 0, RASTER_MESH_HALF_EXTENT);
 
 	cCamera.SetOrbit(0.0f, 0.0f);
 	cCamera.SetPan(RASTER_MESH_HALF_EXTENT, 0);
 	cCamera.Prepare(200, 100);
-	AssertProject(1600 + 800, 800, &cCamera, 0, 0, 0);
+	AssertProject(1600 + 480, 800, &cCamera, 0, 0, 0);
 }
 
 
@@ -145,6 +169,195 @@ void TestRasterCameraViewToMesh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestRasterCameraPan(void)
+{
+	CRasterCamera	cCamera;
+
+	//The picture moves by pixels (16 subpixels), to within one subpixel as it is rounded to the mesh's units.
+	cCamera.Init();
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Prepare(100, 100);
+	AssertProject(800, 800, &cCamera, 0, 0, 0);
+	cCamera.Pan(10, 5);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800 + 160, 800 + 80, &cCamera, 0, 0, 0);
+
+	cCamera.Init();
+	cCamera.SetPerspective(1 << 21, 100);
+	cCamera.Prepare(100, 100);
+	cCamera.Pan(10, 5);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800 + 160, 800 + 80, &cCamera, 0, 0, 0);
+
+	//A step of the wheel is 7/160 of the distance: at 1 << 21 that is 91750 units or 70 subpixels at this focal length.
+	cCamera.Init();
+	cCamera.SetPerspective(1 << 21, 100);
+	cCamera.PanStep(1, 0);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800 + 70, 800, &cCamera, 0, 0, 0);
+	cCamera.PanStep(-1, 1);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800, 800 - 70, &cCamera, 0, 0, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterCameraZoom(void)
+{
+	CRasterCamera	cCamera;
+	int				i;
+
+	//A closer eye scales what is at the pivot.
+	cCamera.Init();
+	cCamera.SetPerspective(1 << 21, 100);
+	cCamera.Zoom(2.0f);
+	cCamera.Prepare(100, 100);
+	AssertProject(800 + 1600, 800, &cCamera, 1 << 20, 0, 0);
+	cCamera.Zoom(0.5f);
+	cCamera.Prepare(100, 100);
+	AssertProject(800 + 800, 800, &cCamera, 1 << 20, 0, 0);
+
+	//Orthographic zooms with it.
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Zoom(2.0f);
+	cCamera.Prepare(100, 100);
+	AssertProject(800 + 960, 800, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
+
+	//KiCad's limits: 0.02 and 2 times the initial distance.
+	cCamera.Init();
+	cCamera.SetPerspective(1 << 21, 100);
+	for (i = 0; i < 400; i++)
+	{
+		cCamera.Zoom(1.1f);
+	}
+	cCamera.Prepare(100, 100);
+	AssertProject(800 + 38, 800, &cCamera, 1000, 0, 0);
+	for (i = 0; i < 400; i++)
+	{
+		cCamera.Zoom(1.0f / 1.1f);
+	}
+	cCamera.Prepare(100, 100);
+	AssertProject(800 + 400, 800, &cCamera, 1 << 20, 0, 0);
+
+	//Resizing keeps the zoom and the field of view.
+	cCamera.Init();
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Zoom(2.0f);
+	cCamera.Resize(200);
+	cCamera.Prepare(100, 200);
+	AssertProject(800 + 1928, 1600, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterCameraDrag(void)
+{
+	CRasterCamera		cCamera;
+	SInt32Vec3			sPosition;
+	SRasterScreenVertex	sScreen;
+
+	//Dragging right from the middle: chord 0.2016 of a sphere of 0.8 is a turn of 0.2527 radians around the screen's y,
+	//which moves the front of the mesh towards the pointer: sin(0.2527) of 480 subpixels is 120.
+	cCamera.Init();
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Drag(50, 50, 60, 50, 100, 100);
+	cCamera.Prepare(100, 100);
+	sPosition.Init(0, 0, RASTER_MESH_HALF_EXTENT);
+	cCamera.Project(&sScreen, &sPosition);
+	AssertTrue((sScreen.sPosition.x >= 800 + 118) && (sScreen.sPosition.x <= 800 + 122));
+	AssertInt(800, sScreen.sPosition.y);
+
+	//Dragging up moves the front up the screen, and what is on the rotation's axis stays where it is.
+	cCamera.Init();
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Drag(50, 50, 50, 40, 100, 100);
+	cCamera.Prepare(100, 100);
+	cCamera.Project(&sScreen, &sPosition);
+	AssertTrue(sScreen.sPosition.y < 800 - 100);
+	AssertInt(800, sScreen.sPosition.x);
+	AssertProject(800 + 480, 800, &cCamera, RASTER_MESH_HALF_EXTENT, 0, 0);
+
+	//Each drag turns what the last one left, around the screen's axes and not the mesh's.
+	cCamera.Drag(50, 50, 50, 40, 100, 100);
+	cCamera.Drag(50, 50, 50, 60, 100, 100);
+	cCamera.Drag(50, 50, 50, 60, 100, 100);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800, 800, &cCamera, 0, 0, RASTER_MESH_HALF_EXTENT);
+
+	//Not moving does nothing, and a drag outside the sphere is still a small turn.
+	cCamera.Drag(70, 70, 70, 70, 100, 100);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800, 800, &cCamera, 0, 0, RASTER_MESH_HALF_EXTENT);
+	cCamera.Drag(99, 50, 100, 50, 100, 100);
+	cCamera.Prepare(100, 100);
+	cCamera.Project(&sScreen, &sPosition);
+	AssertTrue((sScreen.sPosition.x > 800) && (sScreen.sPosition.x < 800 + 60));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterCameraLookAtScreen(void)
+{
+	CRasterCamera	cCamera;
+	SInt32Vec3		sMin;
+	SInt32Vec3		sMax;
+
+	sMin.Init(-RASTER_MESH_HALF_EXTENT, -RASTER_MESH_HALF_EXTENT, -RASTER_MESH_HALF_EXTENT);
+	sMax.Init(RASTER_MESH_HALF_EXTENT, RASTER_MESH_HALF_EXTENT, RASTER_MESH_HALF_EXTENT);
+
+	//Pixel 59, 49's centre is 9.5 pixels right of the screen's and 0.5 up, and a half width is 30 pixels.  That point on
+	//the box's top moves to the centre.
+	cCamera.Init();
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Prepare(100, 100);
+	AssertTrue(cCamera.LookAtScreen(59, 49, &sMin, &sMax));
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800, 800, &cCamera, 332050, 17476, RASTER_MESH_HALF_EXTENT);
+
+	//And the mesh turns around it now.
+	cCamera.SetOrbit(TEST_HALF_PI, 0.0f);
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800, 800, &cCamera, 332050, 17476, RASTER_MESH_HALF_EXTENT);
+
+	//Off the box nothing changes.
+	cCamera.Init();
+	cCamera.SetProjection(RP_Orthographic);
+	cCamera.Fit(100, 100);
+	cCamera.Prepare(100, 100);
+	AssertFalse(cCamera.LookAtScreen(1, 1, &sMin, &sMax));
+	cCamera.Prepare(100, 100);
+	AssertProject(800, 800, &cCamera, 0, 0, 0);
+
+	//Perspective: from the eye through the same pixel with a focal length of 120 reaches the top, which is three half
+	//widths from the eye, 9.5 / 120 and 0.5 / 120 of that along.
+	cCamera.Init();
+	cCamera.Fit(100, 100);
+	cCamera.Prepare(100, 100);
+	AssertTrue(cCamera.LookAtScreen(59, 49, &sMin, &sMax));
+	cCamera.Prepare(100, 100);
+	AssertProjectNear(800, 800, &cCamera, 249037, 13107, RASTER_MESH_HALF_EXTENT);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestRasterCamera(void)
 {
 	BeginTests();
@@ -152,6 +365,10 @@ void TestRasterCamera(void)
 	TestRasterCameraOrthographic();
 	TestRasterCameraPerspective();
 	TestRasterCameraViewToMesh();
+	TestRasterCameraPan();
+	TestRasterCameraZoom();
+	TestRasterCameraDrag();
+	TestRasterCameraLookAtScreen();
 
 	TestStatistics();
 }

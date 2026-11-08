@@ -20,6 +20,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __RASTER_CAMERA_H__
 #define __RASTER_CAMERA_H__
+#include "BaseLib/Float4x4.h"
 #include "BaseLib/Int32Vec2.h"
 #include "BaseLib/Int32Vec3.h"
 #include "BaseLib/Int64Vec3.h"
@@ -49,18 +50,23 @@ struct SRasterScreenVertex
 };
 
 
-//Yaw turns the mesh around its Z axis and pitch then tilts it around the screen's X axis, using BaseLib's float matrices.
-//Prepare converts the result to fixed point once a frame.  Project is entirely integer.
+//The eye looks along -Z from miDistance away, with the mesh turned around msPivot by a rotation held in BaseLib's float
+//matrix.  Prepare converts it to fixed point once a frame and Project is then entirely integer.
+//
+//Drag, Pan, PanStep, Zoom and LookAtScreen move the camera as KiCad's 3D viewer does: a virtual trackball, a pan that
+//keeps what is at the pivot's depth under the pointer, and zooming by moving the eye (so a very close eye can cut
+//off triangles, see Project).
 class CRasterCamera
 {
 protected:
 	ERasterProjection	meProjection;
-	float32				mfYaw;
-	float32				mfPitch;
+	SFloat4x4			msRotation;
+	SInt32Vec3			msPivot;  //The point in the mesh the rotation turns it around.
 	SInt32Vec2			msPan;
 	int32				miDistance;
+	int32				miInitialDistance;  //What the limits on zooming are relative to.
 	int32				miFocalLength;  //Pixels.
-	int64				miOrthographicScale;  //Pixels per unit with 32 fraction bits.
+	int64				miOrthographicScale;  //Pixels per unit with 32 fraction bits.  At the pivot both projections are the same size.
 	SInt32Vec2			msScreenCentre;
 	SInt64Vec3			masAxes[3];  //What the mesh's position is dotted with for the screen's x (right), y (up) and z (out).
 
@@ -71,8 +77,14 @@ public:
 	void				SetOrbit(float32 fYaw, float32 fPitch);
 	void				SetPan(int32 iX, int32 iY);
 	void				SetPerspective(int32 iDistance, int32 iFocalLength);
-	void				SetOrthographic(int64 iScale);
 	void				Fit(int32 iWidth, int32 iHeight);
+	void				Resize(int32 iHeight);
+
+	void				Drag(int32 iLastX, int32 iLastY, int32 iX, int32 iY, int32 iWidth, int32 iHeight);
+	void				Pan(int32 iRight, int32 iDown);
+	void				PanStep(int32 iRight, int32 iUp);
+	void				Zoom(float32 fFactor);
+	bool				LookAtScreen(int32 iX, int32 iY, SInt32Vec3* psMin, SInt32Vec3* psMax);
 
 	void				Prepare(int32 iWidth, int32 iHeight);
 	void				Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition);

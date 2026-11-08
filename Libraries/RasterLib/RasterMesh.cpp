@@ -40,6 +40,8 @@ void CRasterMesh::Init(void)
 	masVertices.Init();
 	masOpaque.Init();
 	masTransparent.Init();
+	msMin.Init(0, 0, 0);
+	msMax.Init(0, 0, 0);
 }
 
 
@@ -116,6 +118,8 @@ void CRasterMesh::Build(CMesh* pcMesh)
 	masVertices.ReInit();
 	masOpaque.ReInit();
 	masTransparent.ReInit();
+	msMin.Init(0, 0, 0);
+	msMax.Init(0, 0, 0);
 
 	iNumCorners = pcMesh->NumCorners();
 	iNumFaces = pcMesh->NumFaces();
@@ -203,5 +207,13 @@ void CRasterMesh::Build(CMesh* pcMesh)
 
 	aiVertexNormal.Kill();
 	aiCornerVertex.Kill();
+
+	msMin = masVertices.Get(0)->sPosition;
+	msMax = msMin;
+	for (i = 1; i < (int)masVertices.NumElements(); i++)
+	{
+		Int32Vec3Minimize(&msMin, &msMin, &masVertices.Get(i)->sPosition);
+		Int32Vec3Maximize(&msMax, &msMax, &masVertices.Get(i)->sPosition);
+	}
 }
 
