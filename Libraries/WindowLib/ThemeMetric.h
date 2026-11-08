@@ -97,7 +97,7 @@ enum EThemeMetric
 	TM_AutoHideLine,			//A strip tab's line along the strip's outer side.
 	TM_AutoHideEdge,			//A flyout's inner edge, dragged to resize it.
 	TM_ToolbarThickness,		//A toolbar's height, or a vertical one's width.
-	TM_ToolbarInset,			//Before a toolbar's first item.
+	TM_ToolbarInset,			//Before a toolbar's first item, and after its last.
 	TM_ToolbarSeparatorSpace,	//Along a toolbar, the space a separator takes.
 	TM_ToolbarSeparatorLength,	//Across a toolbar, a separator's line.
 	TM_StatusBarHeight,

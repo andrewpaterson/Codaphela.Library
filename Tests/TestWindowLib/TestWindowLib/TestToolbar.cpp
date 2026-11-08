@@ -101,9 +101,9 @@ void TestToolbarLayout(void)
 		AssertInt((iThickness - cRun.GetHeight()) / 2, cRun.GetTop());
 		AssertInt((iThickness - cBuild.GetHeight()) / 2, cBuild.GetTop());
 
-		//After the stretch: at the far end.
+		//After the stretch: at the far end, the inset from it.
 		pBranch->GetActualBounds(&cBranch);
-		AssertInt(400, cBranch.GetRight());
+		AssertInt(400 - pTheme->GetMetric(TM_ToolbarInset), cBranch.GetRight());
 
 		//Its buttons run their commands.
 		pRun->Click();

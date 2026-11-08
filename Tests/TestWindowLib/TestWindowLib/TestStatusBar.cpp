@@ -71,7 +71,7 @@ void TestStatusBarLayout(void)
 		pZoom->GetActualBounds(&cZoom);
 		AssertInt(iGap, cCircuit.GetLeft());
 		AssertInt(100, cCircuit.GetWidth());
-		AssertInt(cCircuit.GetRight() + iGap + iGap, cMessage.GetLeft());
+		AssertInt(cCircuit.GetRight() + 1 + iGap, cMessage.GetLeft());
 		AssertInt(cZoom.GetLeft() - iGap, cMessage.GetRight());
 		AssertInt(400 - iGap, cZoom.GetRight());
 

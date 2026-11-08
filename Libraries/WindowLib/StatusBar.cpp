@@ -101,11 +101,13 @@ Ptr<CLabel> CStatusBar::AddMessageField(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A line straight after what is before it; the next field's gap is after
+// it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CStatusBar::AddSeparator(void)
 {
-	AppendLine(mpTheme->GetMetric(TM_StatusFieldGap), mpTheme->GetMetric(TM_StatusSeparatorLength), mpTheme->GetColour(TC_Separator));
+	AppendLine(1, mpTheme->GetMetric(TM_StatusSeparatorLength), mpTheme->GetColour(TC_Separator));
 }
 
 

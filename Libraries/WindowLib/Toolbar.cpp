@@ -25,14 +25,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // An empty toolbar, along the top of a window, or down its side if
-// bVertical.
+// bVertical.  Its inset is at both ends.
 //
 //////////////////////////////////////////////////////////////////////////
 void CToolbar::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, bool bVertical)
 {
 	PreInit();
 
-	CBarContainer::Init(pWindow, bVertical, pTheme->GetMetric(TM_ToolbarThickness), 0);
+	CBarContainer::Init(pWindow, bVertical, pTheme->GetMetric(TM_ToolbarThickness), pTheme->GetMetric(TM_ToolbarInset));
 	mpTheme = pTheme;
 	AddGap(pTheme->GetMetric(TM_ToolbarInset));
 
