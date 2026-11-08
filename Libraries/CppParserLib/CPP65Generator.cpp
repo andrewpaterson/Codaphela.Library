@@ -3053,7 +3053,6 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 	SCPP65Type*					psType;
 	size						i;
-	int							iAlign;
 	bool						bResult;
 
 	if (!pcNode)

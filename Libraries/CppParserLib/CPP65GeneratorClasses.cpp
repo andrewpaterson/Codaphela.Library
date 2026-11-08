@@ -772,7 +772,6 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 	CCPPSyntax*				pcArgument;
 	CCPPSyntaxTypeParameter*	pcType;
 	CCPPSyntaxParameter*	pcValue;
-	CCPPSyntaxTypeId*		pcTypeId;
 	SCPP65Bindings*			psSaved;
 	SCPP65Type*				psType;
 	size					i;
