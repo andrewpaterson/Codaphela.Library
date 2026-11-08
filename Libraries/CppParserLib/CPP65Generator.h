@@ -447,7 +447,8 @@ protected:
 	CArrayCPP65Symbols		mapcPackSymbols;	//The symbols made for function parameter packs' elements.
 	CCPPSymbol*				mpcPackParameter;	//The function parameter pack of the function being generated, or NULL.
 	CArrayCPP65Symbols		mapcPackElements;	//Its elements' symbols.
-	CArrayCPP65FunctionPtrs	mapsQueue;			//Functions to generate.
+	CArrayCPP65FunctionPtrs	mapsQueue;			//Functions to generate, first queued first...
+	size					muiQueueNext;		//...from this one: those before it have been.
 	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
 	SCPP65Bindings*			mpsBindings;		//The template arguments of what is being generated or laid out.
 	CMapCPP65TypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
@@ -564,6 +565,7 @@ protected:
 
 	bool					Function(CCPPSyntaxFunctionDefinition* pcFunction, SCPP65Class* psClass);
 	void					GenerateFunction(SCPP65Function* psFunction);
+	bool					GenerateQueued(void);
 	bool					GenerateDefinition(SCPP65Function* psFunction);
 	void					AddParameters(SCPP65Function* psFunction);
 	void					BeginFunction(SCPP65Function* psFunction);

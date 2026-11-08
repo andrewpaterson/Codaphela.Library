@@ -253,6 +253,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcPackSymbols.Init();
 	mpcPackParameter = NULL;
 	mapsQueue.Init();
+	muiQueueNext = 0;
 	mapcFailed.Init();
 	mpsBindings = NULL;
 	mcTypeOfs.Init(true);
@@ -423,7 +424,6 @@ bool CCPP65Generator::Generate(CCPP65Assembly* pcDest)
 bool CCPP65Generator::GenerateBeforeTurn(void)
 {
 	CCPPSyntaxTranslationUnit*	pcRoot;
-	SCPP65Function*				psFunction;
 
 	pcRoot = mpcTree->GetRoot();
 	if (pcRoot)
@@ -432,12 +432,7 @@ bool CCPP65Generator::GenerateBeforeTurn(void)
 	}
 
 	//Functions generated when they are first called, which may call others.
-	while (mapsQueue.NumElements() > 0)
-	{
-		psFunction = mapsQueue.GetPtr(0);
-		mapsQueue.RemoveAt(0);
-		GenerateFunction(psFunction);
-	}
+	GenerateQueued();
 
 	//The IR front end inlines across the unit.
 	mpcIRFrontEnd->InlineUnit();
@@ -1867,6 +1862,28 @@ SCPP65Function* CCPP65Generator::FirstFunctionOfName(int64 lliName)
 
 	psOfName = mcFunctionsOfNames.Get(lliName);
 	return psOfName ? psOfName->psFirst : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generates the functions waiting in the order they were queued, and those
+// generating them queues after them.  True if there were any.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GenerateQueued(void)
+{
+	bool	bGenerated;
+
+	bGenerated = muiQueueNext < mapsQueue.NumElements();
+	while (muiQueueNext < mapsQueue.NumElements())
+	{
+		muiQueueNext++;
+		GenerateFunction(mapsQueue.GetPtr(muiQueueNext - 1));
+	}
+	mapsQueue.FakeSetUsedElements(0);
+	muiQueueNext = 0;
+	return bGenerated;
 }
 
 

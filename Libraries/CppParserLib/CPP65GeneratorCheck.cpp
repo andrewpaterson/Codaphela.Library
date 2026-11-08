@@ -69,14 +69,7 @@ bool CCPP65Generator::CheckDefinitions(void)
 	size			i;
 	bool			bChecked;
 
-	bChecked = false;
-	while (mapsQueue.NumElements() > 0)
-	{
-		psFunction = mapsQueue.GetPtr(0);
-		mapsQueue.RemoveAt(0);
-		GenerateFunction(psFunction);
-		bChecked = true;
-	}
+	bChecked = GenerateQueued();
 	for (i = 0; i < mapsFunctions.NumElements(); i++)
 	{
 		psFunction = mapsFunctions.GetPtr(i);

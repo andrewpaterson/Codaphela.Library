@@ -1039,6 +1039,58 @@ void TestCPP65GeneratorPrograms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where in szText szLabel is defined, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+static int TestCPP65GeneratorLabelAt(CChars* pszText, const char* szLabel)
+{
+	const char*	sz;
+
+	sz = strstr(pszText->Text(), szLabel);
+	return sz ? (int)(sz - pszText->Text()) : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Functions wait to be generated in the order they were first called, those
+// they call after everything already waiting: Run calls A then B, A calls C
+// and B calls D, so they are written A, B, C, D.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorQueueOrder(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+	int		iA;
+	int		iB;
+	int		iC;
+	int		iD;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors,
+		"inline int D(int x) { return x * 4; }\n"
+		"inline int C(int x) { return x * 3; }\n"
+		"inline int B(int x) { return D(x) + 2; }\n"
+		"inline int A(int x) { return C(x) + 1; }\n"
+		"int Run(int x) { return A(x) + B(x); }\n"));
+	AssertString("", szErrors.Text());
+	iA = TestCPP65GeneratorLabelAt(&szAssembly, "\n_A__Fi:");
+	iB = TestCPP65GeneratorLabelAt(&szAssembly, "\n_B__Fi:");
+	iC = TestCPP65GeneratorLabelAt(&szAssembly, "\n_C__Fi:");
+	iD = TestCPP65GeneratorLabelAt(&szAssembly, "\n_D__Fi:");
+	AssertTrue(iA >= 0);
+	AssertTrue(iA < iB);
+	AssertTrue(iB < iC);
+	AssertTrue(iC < iD);
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Classes: fields, member functions (this in X), constructors, destructors,
 // single inheritance, virtual functions, static members and overloads.
 //
@@ -3512,6 +3564,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorConversions();
 	TestCPP65GeneratorStatements();
 	TestCPP65GeneratorPrograms();
+	TestCPP65GeneratorQueueOrder();
 	TestCPP65GeneratorClasses();
 	TestCPP65GeneratorExtern();
 	TestCPP65GeneratorNewDelete();

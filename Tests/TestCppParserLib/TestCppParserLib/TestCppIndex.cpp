@@ -306,6 +306,63 @@ int Use(CFoo* pc, CFoo& c)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Check of szSource, whose functions nothing calls.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestCppSemanticPassCheck(const char* szSource)
+{
+	CTranslationUnit	cFile;
+	CPreprocessor		cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPSemanticPass	cPass;
+	bool				bResult;
+
+	cFile.Init("Queued.cpp", NULL, false);
+	cFile.SetContents((char*)szSource);
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	cPass.Init();
+	bResult = cPass.Check(&cTree);
+	cPass.Kill();
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Checking one function queues those it calls, a template's instance that
+// isn't there yet among them, after the first drain of the queue: they are
+// checked, and what is wrong in a plain function among them is found.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassQueued(void)
+{
+	AssertTrue(TestCppSemanticPassCheck(
+		"template<class T> T Twice(T t) { return t + t; }\n"
+		"inline int Second(int x) { return Twice(x); }\n"
+		"inline int First(int x) { return Second(x); }\n"));
+	AssertFalse(TestCppSemanticPassCheck(
+		"inline int Third(int x) { return x + giNotDeclared; }\n"
+		"inline int Second(int x) { return Third(x); }\n"
+		"inline int First(int x) { return Second(x); }\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The host's C++ checks without errors: calling conventions in
 // declarators (void* __cdecl f()), its compiler's builtins and intrinsics
 // (__builtin_va_arg(ap, T) is a T), and its 8 byte pointers and size_t.
@@ -729,6 +786,7 @@ void TestCppIndex(void)
 	TestCppIndexUnits();
 	TestCppIndexSignatures();
 	TestCppIndexSemanticPass();
+	TestCppSemanticPassQueued();
 	TestCppSemanticPassHost();
 	TestCppIndexMacroNames();
 	TestCppIndexContainers();
