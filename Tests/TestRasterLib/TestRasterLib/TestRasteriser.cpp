@@ -374,6 +374,88 @@ void TestRasteriserMesh(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Triangles wide enough to have each row's covered pixels worked out must
+// cover the same pixels as ones whose pixels are looked for.  Each triangle
+// is drawn across the whole of a wide target, then moved and drawn again in
+// tiles too narrow to work anything out.  All sorts of triangles, long thin
+// ones and ones off the screen too, wound both ways.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserWideTriangles(void)
+{
+	CRasteriser		cRasteriser;
+	CRasterTarget	cWide;
+	CRasterTarget	cTile;
+	uint32*			puiWide;
+	uint32*			puiTile;
+	uint32			uiRandom;
+	int32			aiCorner[6];
+	int32			iShift;
+	int				iTriangle;
+	int				iTile;
+	int				x;
+	int				y;
+	int				i;
+	int				iDifferent;
+	int				iDrawn;
+
+	puiWide = (uint32*)malloc(128 * 64 * sizeof(uint32));
+	puiTile = (uint32*)malloc(8 * 64 * sizeof(uint32));
+	cRasteriser.Init();
+	cRasteriser.SetCullBackFaces(false);
+	cWide.Init(puiWide, 128, 64, 128);
+	cTile.Init(puiTile, 8, 64, 8);
+
+	uiRandom = 12345;
+	iDifferent = 0;
+	iDrawn = 0;
+	for (iTriangle = 0; iTriangle < 500; iTriangle++)
+	{
+		for (i = 0; i < 6; i++)
+		{
+			uiRandom = uiRandom * 1103515245 + 12345;
+			iShift = (i & 1) ? (64 * RASTER_SUBPIXELS) : (128 * RASTER_SUBPIXELS);
+			aiCorner[i] = (int32)((uiRandom >> 8) % (uint32)(iShift * 2)) - iShift / 2;
+		}
+
+		//Some start as long thin ones: the third corner close to the second.
+		if (iTriangle % 3 == 0)
+		{
+			aiCorner[4] = aiCorner[2] + (aiCorner[5] % 32);
+			aiCorner[5] = aiCorner[3] + (aiCorner[4] % 32);
+		}
+
+		cWide.Clear(TEST_BLACK);
+		DrawTestTriangle(&cRasteriser, &cWide, aiCorner[0], aiCorner[1], aiCorner[2], aiCorner[3], aiCorner[4], aiCorner[5], 100, TEST_RED);
+		iDrawn += 128 * 64 - CountPixels(&cWide, TEST_BLACK);
+
+		for (iTile = 0; iTile < 16; iTile++)
+		{
+			iShift = iTile * 8 * RASTER_SUBPIXELS;
+			cTile.Clear(TEST_BLACK);
+			DrawTestTriangle(&cRasteriser, &cTile, aiCorner[0] - iShift, aiCorner[1], aiCorner[2] - iShift, aiCorner[3], aiCorner[4] - iShift, aiCorner[5], 100, TEST_RED);
+			for (y = 0; y < 64; y++)
+			{
+				for (x = 0; x < 8; x++)
+				{
+					iDifferent += puiTile[y * 8 + x] != puiWide[y * 128 + iTile * 8 + x];
+				}
+			}
+		}
+	}
+	AssertInt(0, iDifferent);
+	AssertTrue(iDrawn > 100000);
+
+	cTile.Kill();
+	cWide.Kill();
+	cRasteriser.Kill();
+	free(puiTile);
+	free(puiWide);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriser(void)
@@ -389,6 +471,7 @@ void TestRasteriser(void)
 	TestRasteriserInterpolation();
 	TestRasteriserTransparency();
 	TestRasteriserMesh();
+	TestRasteriserWideTriangles();
 
 	ObjectsKill(false);
 	NumberKill();

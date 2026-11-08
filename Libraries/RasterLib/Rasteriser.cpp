@@ -30,6 +30,10 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 //is little to do because most triangles here cover a few pixels at most.  From it, gradients step across the triangle.
 #define RASTER_SMALL_AREA		(16 << (RASTER_SUBPIXEL_BITS * 2))
 
+//From this many pixels across, it's worth working out where each row's covered pixels are rather than looking for them.
+//A long thin triangle at an angle, as a board's outline makes, covers next to nothing of a very big box.
+#define RASTER_WIDE_PIXELS		16
+
 //Fraction bits of the depth and shade gradients.
 #define RASTER_GRADIENT_BITS	12
 
@@ -184,6 +188,42 @@ static int64 RasterEdge(SInt32Vec2* psFrom, SInt32Vec2* psTo, int32 iX, int32 iY
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Narrows a row's pixels to those an edge lets in: where its value, iValue
+// at pixel iX and changing by iStep each pixel, isn't negative.
+//
+//////////////////////////////////////////////////////////////////////////
+static void RasterEdgeSpan(int64 iValue, int64 iStep, int32 iX, int32* piFirstX, int32* piLastX)
+{
+	int64	iPixels;
+
+	if (iStep > 0)
+	{
+		if (iValue < 0)
+		{
+			iPixels = (-iValue + iStep - 1) / iStep;
+			if (iX + iPixels > *piFirstX)
+			{
+				*piFirstX = (iX + iPixels > *piLastX) ? *piLastX + 1 : (int32)(iX + iPixels);
+			}
+		}
+	}
+	else if (iValue < 0)
+	{
+		*piLastX = iX - 1;  //It only falls from here, or stays.
+	}
+	else if (iStep < 0)
+	{
+		iPixels = iValue / -iStep;
+		if (iX + iPixels < *piLastX)
+		{
+			*piLastX = (int32)(iX + iPixels);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent)
@@ -232,6 +272,9 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	int32					iDeltaCX;
 	int32					iDeltaCY;
 	int32					iNextX;
+	int32					iFirstX;
+	int32					iLastX;
+	bool					bWide;
 	bool					bSmall;
 	int32					iDepth;
 	int32					iShade;
@@ -342,20 +385,36 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	piDepthRow = &pcTarget->mpiDepths[(lsize)iMinY * (lsize)pcTarget->miWidth];
 	iDepthF = 0;
 	iShadeF = 0;
+	bWide = (iMaxX - iMinX) >= RASTER_WIDE_PIXELS;
 	for (y = iMinY; y <= iMaxY; y++)
 	{
 		i0 = iRow0;
 		i1 = iRow1;
 		i2 = iRow2;
 		iNextX = -1;
-		for (x = iMinX; x <= iMaxX; x++)
+		iFirstX = iMinX;
+		iLastX = iMaxX;
+		if (bWide)
+		{
+			//A triangle is convex, so a row covers one run of pixels and each edge says where it can start or stop.
+			RasterEdgeSpan(i0, iStepX0, iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(i1, iStepX1, iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(i2, iStepX2, iMinX, &iFirstX, &iLastX);
+			if (iFirstX > iMinX)
+			{
+				i0 += iStepX0 * (iFirstX - iMinX);
+				i1 += iStepX1 * (iFirstX - iMinX);
+				i2 += iStepX2 * (iFirstX - iMinX);
+			}
+		}
+		for (x = iFirstX; x <= iLastX; x++)
 		{
 			if ((i0 | i1 | i2) >= 0)
 			{
 				if (bSmall)
 				{
 					iDepth = (int32)(((i0 - iBias0) * iDepthA + (i1 - iBias1) * iDepthB + (i2 - iBias2) * iDepthC) / iArea);
-					iShade = (int32)(((i0 - iBias0) * iShadeA + (i1 - iBias1) * iShadeB + (i2 - iBias2) * iShadeC) / iArea);
+					iShade = 0;  //Worked out below, if the pixel is to be drawn: most of a mesh's pixels are behind another.
 				}
 				else
 				{
@@ -394,6 +453,10 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 
 				if (iDepth > piDepthRow[x])
 				{
+					if (bSmall)
+					{
+						iShade = (int32)(((i0 - iBias0) * iShadeA + (i1 - iBias1) * iShadeB + (i2 - iBias2) * iShadeC) / iArea);
+					}
 					uiRB = (((uiColour & 0x00FF00FF) * (uint32)iShade) >> 8) & 0x00FF00FF;
 					uiG = (((uiColour & 0x0000FF00) * (uint32)iShade) >> 8) & 0x0000FF00;
 					if (bTransparent)
