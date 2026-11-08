@@ -59,8 +59,8 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	char*	ClassName(void);
-	char*	GetIdentifier(CChars* sz);
+	const char*	ClassName(void);
+	const char*	GetIdentifier(CChars* psz);
 };
 
 

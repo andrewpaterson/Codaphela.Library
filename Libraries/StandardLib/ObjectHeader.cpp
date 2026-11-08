@@ -194,6 +194,7 @@ uint16 CObjectIdentifier::GetFatSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectHeader::Init(void)
 {
+	CObjectIdentifier::Init();
 	mszClassName._Init();
 }
 
@@ -213,7 +214,7 @@ void CObjectHeader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectHeader::ClassName(void)
+const char* CObjectHeader::ClassName(void)
 {
 	return mszClassName.Text();
 }
@@ -223,7 +224,7 @@ char* CObjectHeader::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectHeader::GetIdentifier(CChars* psz)
+const char* CObjectHeader::GetIdentifier(CChars* psz)
 {
 	const char* szName;
 

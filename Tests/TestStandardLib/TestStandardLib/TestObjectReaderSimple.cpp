@@ -142,6 +142,9 @@ void TestObjectReaderSimpleHeaderInit(void)
 {
 	CObjectIdentifier	cIdentifier;
 	CPointerHeader		cHeader;
+	CObjectHeader	cObjectHeader;
+	CChars			sz;
+	const char*		szClassName;
 
 	//Init leaves nothing unset, whatever was there before.
 	memset(&cIdentifier, 0xcd, sizeof(CObjectIdentifier));
@@ -161,6 +164,29 @@ void TestObjectReaderSimpleHeaderInit(void)
 	AssertShort((uint16)0, cHeader.miNumEmbedded);
 	AssertShort((uint16)0, cHeader.miEmbeddedIndex);
 	cHeader.Kill();
+
+	memset(&cObjectHeader, 0xcd, sizeof(CObjectHeader));
+	cObjectHeader.Init();
+	AssertInt(OBJECT_POINTER_NULL, cObjectHeader.meType);
+	AssertLong(INVALID_O_INDEX, cObjectHeader.moi);
+	AssertShort((uint16)0, cObjectHeader.muiSize);
+	AssertString("", cObjectHeader.mszObjectName.Text());
+
+	cObjectHeader.mszClassName.Init("CThing");
+	cObjectHeader.meType = OBJECT_POINTER_ID;
+	cObjectHeader.moi = 5;
+	sz.Init();
+	AssertString("CThing:5", cObjectHeader.GetIdentifier(&sz));
+	sz.Kill();
+	szClassName = cObjectHeader.ClassName();
+	AssertString("CThing", szClassName);
+
+	cObjectHeader.meType = OBJECT_POINTER_NAMED;
+	cObjectHeader.mszObjectName.Append("Door");
+	sz.Init();
+	AssertString("CThing:5:\"Door\"", cObjectHeader.GetIdentifier(&sz));
+	sz.Kill();
+	cObjectHeader.Kill();
 }
 
 
