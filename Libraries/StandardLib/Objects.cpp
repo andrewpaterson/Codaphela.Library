@@ -254,7 +254,7 @@ void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
 	CArrayBaseObjectPtr*	papcKilledNesObjects;
 
 	//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
-	cKillOrder.Init(this, papcKilled);
+	cKillOrder.Init(papcKilled);
 	papcKilledNesObjects = cKillOrder.Calculate();
 	Remove(papcKilled, papcKilledNesObjects);
 	cKillOrder.Kill();
@@ -897,7 +897,7 @@ void CObjects::FreeAllInKillOrder(bool bDeallocate)
 	//The kill order must be calculated before anything is freed; freeing clears the Nes pointers it looks for.
 	apcDependents.Init();
 	apcDependents.InsertArrayAfterEnd(&apcAll);
-	cKillOrder.Init(this, &apcDependents);
+	cKillOrder.Init(&apcDependents);
 	papcNes = cKillOrder.Calculate();
 
 	FreeInternal(&apcDependents);

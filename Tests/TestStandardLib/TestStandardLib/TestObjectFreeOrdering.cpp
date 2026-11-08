@@ -622,6 +622,103 @@ void TestObjectFreeOrderingNesChain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A long chain of Nes pointers found from its end is freed from its start,
+// and two holders needing the same object are both freed before it, with
+// nothing logged.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingNesLongChain(void)
+{
+	STestObjectFreedNotifier	asNotifiers[40];
+	STestObjectFreedNotifier	sNotifierH1;
+	STestObjectFreedNotifier	sNotifierH2;
+	STestObjectFreedNotifier	sNotifierB;
+	STestObjectFreedNotifier	sNotifierC;
+	CMemoryFile					cLog;
+	SLogConfig					sLogConfig;
+	char						szLogged[1024];
+	size						i;
+	bool						bInOrder;
+	bool						bAllFreed;
+
+	ObjectsInit();
+	{
+		Ptr<CRoot>					pRoot;
+		Ptr<CArrayObject>			pArray;
+		Ptr<CTestNesChainObject>	apChain[40];
+		Ptr<CTestNesChainObject>	pH1;
+		Ptr<CTestNesChainObject>	pH2;
+		Ptr<CTestNesChainObject>	pB;
+		Ptr<CTestNesChainObject>	pC;
+
+		//  Root -> Array -> 39, 38 ... 0 and 0 =Nes=> 1 =Nes=> ... =Nes=> 39
+		pRoot = ORoot();
+		pArray = OMalloc<CArrayObject>();
+		for (i = 0; i < 40; i++)
+		{
+			apChain[i] = OMalloc<CTestNesChainObject>(&asNotifiers[i]);
+		}
+		for (i = 0; i < 39; i++)
+		{
+			apChain[i]->mpNeeds = apChain[i + 1];
+		}
+		for (i = 40; i > 0; i--)
+		{
+			pArray->Add(apChain[i - 1]);
+			apChain[i - 1] = NULL;
+		}
+
+		//  Array -> C, B, H1, H2 and H1 =Nes=> B, H2 =Nes=> B, B =Nes=> C
+		pH1 = OMalloc<CTestNesChainObject>(&sNotifierH1);
+		pH2 = OMalloc<CTestNesChainObject>(&sNotifierH2);
+		pB = OMalloc<CTestNesChainObject>(&sNotifierB);
+		pC = OMalloc<CTestNesChainObject>(&sNotifierC);
+		pH1->mpNeeds = pB;
+		pH2->mpNeeds = pB;
+		pB->mpNeeds = pC;
+		pArray->Add(pC);
+		pArray->Add(pB);
+		pArray->Add(pH1);
+		pArray->Add(pH2);
+		pH1 = NULL;
+		pH2 = NULL;
+		pB = NULL;
+		pC = NULL;
+		pRoot->Add(pArray);
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		pRoot->Remove(pArray);
+		pArray = NULL;
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertString("", szLogged);
+
+		bAllFreed = true;
+		bInOrder = true;
+		for (i = 0; i < 40; i++)
+		{
+			bAllFreed &= asNotifiers[i].bFreed;
+			bAllFreed &= !asNotifiers[i].bDependsOnFreedFirst;
+			if ((i > 0) && (asNotifiers[i - 1].uiFreedOrder >= asNotifiers[i].uiFreedOrder))
+			{
+				bInOrder = false;
+			}
+		}
+		AssertTrue(bAllFreed);
+		AssertTrue(bInOrder);
+
+		AssertTrue(sNotifierC.bFreed);
+		AssertTrue(sNotifierH1.uiFreedOrder < sNotifierB.uiFreedOrder);
+		AssertTrue(sNotifierH2.uiFreedOrder < sNotifierB.uiFreedOrder);
+		AssertTrue(sNotifierB.uiFreedOrder < sNotifierC.uiFreedOrder);
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Objects that need each other (a Nes cycle) can't be ordered: it is an
 // error, and they are freed anyway.
 //
@@ -837,6 +934,7 @@ void TestObjectFreeOrdering(void)
 	TestObjectFreeOrderingObjectsKillNestedRemoval();
 	TestObjectFreeOrderingDiscoveryOrder();
 	TestObjectFreeOrderingNesChain();
+	TestObjectFreeOrderingNesLongChain();
 	TestObjectFreeOrderingNesCycle();
 	TestObjectFreeOrderingNesToItself();
 

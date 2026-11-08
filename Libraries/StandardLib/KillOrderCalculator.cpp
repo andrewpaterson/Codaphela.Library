@@ -28,9 +28,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CKillOrderCalculator::Init(CObjects* pcObjects, CArrayBaseObjectPtr* papcKilled)
+void CKillOrderCalculator::Init(CArrayBaseObjectPtr* papcKilled)
 {
-	mpcObjects = pcObjects;
 	mpapcKilled = papcKilled;
 	mapcKilledNesObjects.Init();
 }
@@ -83,93 +82,275 @@ CArrayBaseObjectPtr* CKillOrderCalculator::Calculate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+static int CompareKillOrderObject(const void* pv1, const void* pv2)
+{
+	CBaseObject*	pc1;
+	CBaseObject*	pc2;
+
+	pc1 = ((SKillOrderObject*)pv1)->pcObject;
+	pc2 = ((SKillOrderObject*)pv2)->pcObject;
+	if (pc1 < pc2)
+	{
+		return -1;
+	}
+	else if (pc1 > pc2)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The objects that can go next, by where they were found, smallest first.
+//
+//////////////////////////////////////////////////////////////////////////
+static void KillOrderReadyPush(CArrayTemplate<size>* pauiReady, size uiFound)
+{
+	size	uiChild;
+	size	uiParent;
+	size	uiSwap;
+
+	pauiReady->Push(&uiFound);
+	uiChild = pauiReady->NumElements() - 1;
+	while (uiChild > 0)
+	{
+		uiParent = (uiChild - 1) / 2;
+		if (*pauiReady->Get(uiParent) <= *pauiReady->Get(uiChild))
+		{
+			break;
+		}
+		uiSwap = *pauiReady->Get(uiParent);
+		*pauiReady->Get(uiParent) = *pauiReady->Get(uiChild);
+		*pauiReady->Get(uiChild) = uiSwap;
+		uiChild = uiParent;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static size KillOrderReadyPop(CArrayTemplate<size>* pauiReady)
+{
+	size	uiFirst;
+	size	uiLast;
+	size	uiNum;
+	size	uiParent;
+	size	uiChild;
+	size	uiSwap;
+
+	uiFirst = *pauiReady->Get(0);
+	pauiReady->Pop(&uiLast);
+	uiNum = pauiReady->NumElements();
+	if (uiNum == 0)
+	{
+		return uiFirst;
+	}
+
+	*pauiReady->Get(0) = uiLast;
+	uiParent = 0;
+	for (;;)
+	{
+		uiChild = uiParent * 2 + 1;
+		if (uiChild >= uiNum)
+		{
+			break;
+		}
+		if ((uiChild + 1 < uiNum) && (*pauiReady->Get(uiChild + 1) < *pauiReady->Get(uiChild)))
+		{
+			uiChild++;
+		}
+		if (*pauiReady->Get(uiParent) <= *pauiReady->Get(uiChild))
+		{
+			break;
+		}
+		uiSwap = *pauiReady->Get(uiParent);
+		*pauiReady->Get(uiParent) = *pauiReady->Get(uiChild);
+		*pauiReady->Get(uiChild) = uiSwap;
+		uiParent = uiChild;
+	}
+	return uiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Orders the Nes pointed to objects so each is freed after the objects
 // freed with it that hold Nes pointers to it (a chain: a component needs
 // its panel, which needs its window).  Of those that can go next the
 // first found goes.  Objects holding Nes pointers to each other in a cycle
 // can't be ordered; they are freed in the order found.
 //
+// Each object counts the waiting objects that hold Nes pointers to it;
+// ordering a holder counts it off the objects it holds, and those that
+// get to none can go.  Linear in the objects and their Nes pointers (and
+// a log for picking the first found).
+//
 //////////////////////////////////////////////////////////////////////////
 void CKillOrderCalculator::OrderNesObjects(void)
 {
-	CArrayBaseObjectPtr		apcWaiting;
-	CBaseObject*			pcObject;
-	size					i;
-	size					uiNumWaiting;
-	uint32					uiWaiting;
-	bool					bFound;
+	CArrayTemplate<SKillOrderNeed>	asNeeds;
+	CArrayTemplate<size>			auiNumHolders;
+	CArrayTemplate<size>			auiFirstNeed;
+	CArrayTemplate<size>			auiHeld;
+	CArrayTemplate<size>			auiReady;
+	CArrayBaseObjectPtr				apcOrdered;
+	SKillOrderNeed*					psNeed;
+	size							uiNumObjects;
+	size							uiNumNeeds;
+	size							i;
+	size							uiFound;
+	size							uiNeed;
+	size							uiHeld;
 
-	uiNumWaiting = mapcKilledNesObjects.NumElements();
-	if (uiNumWaiting < 2)
+	uiNumObjects = mapcKilledNesObjects.NumElements();
+	if (uiNumObjects < 2)
 	{
 		return;
 	}
 
-	//The objects not ordered yet are stamped.
-	uiWaiting = mpcObjects->StartWalk() | WALK_STATE_TOUCHED;
-	apcWaiting.Init();
-	apcWaiting.InsertArrayAfterEnd(&mapcKilledNesObjects);
-	for (i = 0; i < uiNumWaiting; i++)
+	asNeeds.Init();
+	auiNumHolders.Init();
+	FindNeeds(&asNeeds, &auiNumHolders);
+
+	//Each holder's needs, together: the held objects of holder i are auiHeld[auiFirstNeed[i]] to before auiFirstNeed[i + 1].
+	uiNumNeeds = asNeeds.NumElements();
+	auiFirstNeed.Init();
+	auiFirstNeed.GrowToAtLeastNumElements(uiNumObjects + 1, true, 0);
+	for (i = 0; i < uiNumNeeds; i++)
 	{
-		apcWaiting.GetPtr(i)->SetWalkStamp(uiWaiting);
+		(*auiFirstNeed.Get(asNeeds.Get(i)->uiHolder + 1))++;
+	}
+	for (i = 0; i < uiNumObjects; i++)
+	{
+		*auiFirstNeed.Get(i + 1) += *auiFirstNeed.Get(i);
+	}
+	auiHeld.Init();
+	auiHeld.GrowToAtLeastNumElements(uiNumNeeds);
+	for (i = 0; i < uiNumNeeds; i++)
+	{
+		psNeed = asNeeds.Get(i);
+		*auiHeld.Get((*auiFirstNeed.Get(psNeed->uiHolder))++) = psNeed->uiHeld;
+	}
+	//Filling moved each start to the next holder's.
+	for (i = uiNumObjects; i > 0; i--)
+	{
+		*auiFirstNeed.Get(i) = *auiFirstNeed.Get(i - 1);
+	}
+	*auiFirstNeed.Get(0) = 0;
+	asNeeds.Kill();
+
+	auiReady.Init();
+	for (i = 0; i < uiNumObjects; i++)
+	{
+		if (*auiNumHolders.Get(i) == 0)
+		{
+			KillOrderReadyPush(&auiReady, i);
+		}
+	}
+
+	apcOrdered.Init();
+	while (auiReady.NumElements() > 0)
+	{
+		uiFound = KillOrderReadyPop(&auiReady);
+		apcOrdered.Add(mapcKilledNesObjects.GetPtr(uiFound));
+		for (uiNeed = *auiFirstNeed.Get(uiFound); uiNeed < *auiFirstNeed.Get(uiFound + 1); uiNeed++)
+		{
+			uiHeld = *auiHeld.Get(uiNeed);
+			(*auiNumHolders.Get(uiHeld))--;
+			if (*auiNumHolders.Get(uiHeld) == 0)
+			{
+				KillOrderReadyPush(&auiReady, uiHeld);
+			}
+		}
+	}
+
+	if (apcOrdered.NumElements() != uiNumObjects)
+	{
+		//Those left wait on each other: a cycle, or held from one.
+		i = 0;
+		while (*auiNumHolders.Get(i) == 0)
+		{
+			i++;
+		}
+		gcLogger.Error2(__METHOD__, " Objects freed together hold Nes pointers to each other in a cycle, starting with {", ObjectToString(mapcKilledNesObjects.GetPtr(i)), "}.  They are freed in the order found.", NULL);
+		for (; i < uiNumObjects; i++)
+		{
+			if (*auiNumHolders.Get(i) != 0)
+			{
+				apcOrdered.Add(mapcKilledNesObjects.GetPtr(i));
+			}
+		}
 	}
 
 	mapcKilledNesObjects.ReInit();
-	while (apcWaiting.NumElements() > 0)
-	{
-		bFound = false;
-		uiNumWaiting = apcWaiting.NumElements();
-		for (i = 0; i < uiNumWaiting; i++)
-		{
-			pcObject = apcWaiting.GetPtr(i);
-			if (!IsNesPointedToFromWaiting(pcObject, uiWaiting))
-			{
-				mapcKilledNesObjects.Add(pcObject);
-				pcObject->SetWalkStamp(0);
-				apcWaiting.RemoveAt(i, true);
-				bFound = true;
-				break;
-			}
-		}
+	mapcKilledNesObjects.InsertArrayAfterEnd(&apcOrdered);
 
-		if (!bFound)
-		{
-			gcLogger.Error2(__METHOD__, " Objects freed together hold Nes pointers to each other in a cycle, starting with {", ObjectToString(apcWaiting.GetPtr(0)), "}.  They are freed in the order found.", NULL);
-			mapcKilledNesObjects.InsertArrayAfterEnd(&apcWaiting);
-			break;
-		}
-	}
-	apcWaiting.Kill();
+	apcOrdered.Kill();
+	auiReady.Kill();
+	auiHeld.Kill();
+	auiFirstNeed.Kill();
+	auiNumHolders.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an object still waiting to be ordered (other than pcObject
-// itself) holds a Nes pointer to pcObject or an object embedded in it.
+// Each Nes pointer from one of the objects to another (or to an object
+// embedded in another) is a need, and each object counts the needs of it.
+// A Nes pointer from an object to itself isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKillOrderCalculator::IsNesPointedToFromWaiting(CBaseObject* pcObject, uint32 uiWaiting)
+void CKillOrderCalculator::FindNeeds(CArrayTemplate<SKillOrderNeed>* pasNeeds, CArrayTemplate<size>* pauiNumHolders)
 {
-	CArrayEmbeddedObjectPtrE8	apcHolders;
-	CBaseObject*				pcHolder;
-	size						i;
-	size						uiNumHolders;
-	bool						bWaiting;
+	CArrayTemplate<SKillOrderObject>	asByAddress;
+	CArrayEmbeddedObjectPtrE8			apcHolders;
+	SKillOrderObject*					psObject;
+	SKillOrderObject					sHolder;
+	SKillOrderNeed*						psNeed;
+	CBaseObject*						pcObject;
+	size								uiNumObjects;
+	size								i;
+	size								j;
+	size								uiNumHolders;
+	size								uiIndex;
 
-	bWaiting = false;
-	apcHolders.Init();
-	pcObject->GetNesPointerToThis(&apcHolders);
-	uiNumHolders = apcHolders.NumElements();
-	for (i = 0; i < uiNumHolders; i++)
+	uiNumObjects = mapcKilledNesObjects.NumElements();
+	asByAddress.Init();
+	for (i = 0; i < uiNumObjects; i++)
 	{
-		pcHolder = apcHolders.GetPtr(i)->GetEmbeddingContainer();
-		if ((pcHolder != pcObject) && (pcHolder->GetWalkStamp() == uiWaiting))
+		psObject = asByAddress.Add();
+		psObject->pcObject = mapcKilledNesObjects.GetPtr(i);
+		psObject->uiFound = i;
+	}
+	asByAddress.QuickSort(&CompareKillOrderObject);
+	sHolder.uiFound = 0;
+
+	pauiNumHolders->GrowToAtLeastNumElements(uiNumObjects, true, 0);
+	apcHolders.Init();
+	for (i = 0; i < uiNumObjects; i++)
+	{
+		pcObject = mapcKilledNesObjects.GetPtr(i);
+		apcHolders.ReInit();
+		pcObject->GetNesPointerToThis(&apcHolders);
+		uiNumHolders = apcHolders.NumElements();
+		for (j = 0; j < uiNumHolders; j++)
 		{
-			bWaiting = true;
-			break;
+			sHolder.pcObject = apcHolders.GetPtr(j)->GetEmbeddingContainer();
+			if ((sHolder.pcObject != pcObject) && asByAddress.FindInSorted(&sHolder, &CompareKillOrderObject, &uiIndex))
+			{
+				psNeed = pasNeeds->Add();
+				psNeed->uiHolder = asByAddress.Get(uiIndex)->uiFound;
+				psNeed->uiHeld = i;
+				(*pauiNumHolders->Get(i))++;
+			}
 		}
 	}
 	apcHolders.Kill();
-	return bWaiting;
+	asByAddress.Kill();
 }

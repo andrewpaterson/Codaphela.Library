@@ -20,27 +20,41 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __KILL_ORDER_CALCULATOR_H__
 #define __KILL_ORDER_CALCULATOR_H__
+#include "BaseLib/ArrayTemplate.h"
 #include "ObjectPointerArrays.h"
 
 
-class CObjects;
+//A Nes pointed to object being ordered, as it is looked up by its address.
+struct SKillOrderObject
+{
+	CBaseObject*	pcObject;
+	size			uiFound;  //Its place in the order the objects were found.
+};
+
+
+//A waiting object (uiHolder, by where it was found) that holds a Nes pointer to another (uiHeld).
+struct SKillOrderNeed
+{
+	size	uiHolder;
+	size	uiHeld;
+};
+
 
 class CKillOrderCalculator
 {
 protected:
-	CObjects*				mpcObjects;
 	CArrayBaseObjectPtr*	mpapcKilled;
 	CArrayBaseObjectPtr		mapcKilledNesObjects;
 
 public:
-	void					Init(CObjects* pcObjects, CArrayBaseObjectPtr* papcKilled);
+	void					Init(CArrayBaseObjectPtr* papcKilled);
 	void					Kill(void);
 
 	CArrayBaseObjectPtr*	Calculate(void);
 
 protected:
 	void					OrderNesObjects(void);
-	bool					IsNesPointedToFromWaiting(CBaseObject* pcObject, uint32 uiWaiting);
+	void					FindNeeds(CArrayTemplate<SKillOrderNeed>* pasNeeds, CArrayTemplate<size>* pauiNumHolders);
 };
 
 
