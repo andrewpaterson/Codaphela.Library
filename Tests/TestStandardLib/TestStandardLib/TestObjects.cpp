@@ -277,17 +277,25 @@ void TestObjectsFlushDurable(void)
 	ObjectsKill(false);
 
 
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "48_0.DAT",     "Output" _FS_ "Flush2" _FS_ "48_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "56_0.DAT",     "Output" _FS_ "Flush2" _FS_ "56_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "68_0.DAT",     "Output" _FS_ "Flush2" _FS_ "68_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "89_0.DAT",     "Output" _FS_ "Flush2" _FS_ "89_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "93_0.DAT",     "Output" _FS_ "Flush2" _FS_ "93_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "101_0.DAT",    "Output" _FS_ "Flush2" _FS_ "101_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "102_0.DAT",    "Output" _FS_ "Flush2" _FS_ "102_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Files.DAT",    "Output" _FS_ "Flush2" _FS_ "Files.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Indicies.DAT", "Output" _FS_ "Flush2" _FS_ "Indicies.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "32_0.NAM",     "Output" _FS_ "Flush2" _FS_ "32_0.NAM");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Files.NAM",    "Output" _FS_ "Flush2" _FS_ "Files.NAM");
+	//The index files left out (Index/38_0.IDAT, Index/Files.IDX, Index/Index.IDX and Names/Index.IDX) hold sizes as wide as the build.
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "90_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "90_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "100_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "100_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "104_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "104_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "129_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "129_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "154_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "154_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "157_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "157_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "158_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "158_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "169_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "169_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "181_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "181_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "22_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "22_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "86_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "86_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "2062_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "2062_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "Root.IDX", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "Root.IDX");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Names" _FS_ "22_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Names" _FS_ "22_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Names" _FS_ "38_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Names" _FS_ "38_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Names" _FS_ "70_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Names" _FS_ "70_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Names" _FS_ "2062_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Names" _FS_ "2062_0.IDAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Names" _FS_ "Root.IDX", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Names" _FS_ "Root.IDX");
 
 	cFileUtil.RemoveDir(szDirectory);
 }

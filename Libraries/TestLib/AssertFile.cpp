@@ -30,6 +30,34 @@ bool PrivateAssertFilePath(const char* szExpected, const char* szActual, int iLi
 
 //////////////////////////////////////////////////////////////////////////
 //
+// CFileCompare::Compare is content when neither file exists, which is no
+// check at all for a test that names the file it expects.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool PrivateAssertExpectedFileExists(const char* szExpectedFilename, const char* szPrefix, size iLine, const char* szFile)
+{
+	CFileUtil	cFileUtil;
+	CChars		szExpected;
+	CChars		szActual;
+
+	if (cFileUtil.Exists(szExpectedFilename))
+	{
+		return true;
+	}
+
+	szExpected.Init(szExpectedFilename);
+	szExpected.Append(" exists");
+	szActual.Init(szExpectedFilename);
+	szActual.Append(" does not exist");
+	Failed(szExpected.Text(), szActual.Text(), szPrefix, iLine, szFile, false);
+	szActual.Kill();
+	szExpected.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertFile(const char* szExpectedFilename, const char* szActualFilename, const char* szPrefix, size iLine, const char* szFile)
@@ -38,6 +66,11 @@ bool PrivateAssertFile(const char* szExpectedFilename, const char* szActualFilen
 	bool			bResult;
 	CChars			szExpected;
 	CChars			szActual;
+
+	if (!PrivateAssertExpectedFileExists(szExpectedFilename, szPrefix, iLine, szFile))
+	{
+		return false;
+	}
 
 	szExpected.Init();
 	szActual.Init();
@@ -79,6 +112,11 @@ bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, lsi
 	bool			bResult;
 	CChars			szExpected;
 	CChars			szActual;
+
+	if (!PrivateAssertExpectedFileExists(szExpectedFilename, szPrefix, iLine, szFile))
+	{
+		return false;
+	}
 
 	szExpected.Init();
 	szActual.Init();
