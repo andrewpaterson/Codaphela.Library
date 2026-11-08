@@ -1558,6 +1558,7 @@ void TestExternalObjectDeserialiserShortLength(void)
 
 	cFile.Close();
 	cFile.Kill();
+	cMemory.Kill();
 	cReader.Kill();
 }
 
