@@ -269,6 +269,62 @@ CCPPScope* CCPPScope::GetEnclosingNamespace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A namespace without a name.  The global scope has no owner either, but
+// has no parent.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::IsUnnamedNamespace(void)
+{
+	return (meKind == CPPSC_Namespace) && mpcParent && !mpcOwner;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespace without a name directly in this one, or NULL.  It is always
+// among the usings, as its members are visible here.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPPScope::FindUnnamedNamespace(void)
+{
+	CCPPScope*	pcUsing;
+	size		i;
+
+	for (i = 0; i < mapcUsings.NumElements(); i++)
+	{
+		pcUsing = mapcUsings.GetPtr(i);
+		if (pcUsing->IsUnnamedNamespace() && (pcUsing->mpcParent == this))
+		{
+			return pcUsing;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether what is declared here is the unit's own, as it is in any scope
+// inside a namespace without a name.  [basic.link] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::IsInUnnamedNamespace(void)
+{
+	CCPPScope*	pcScope;
+
+	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
+	{
+		if (pcScope->IsUnnamedNamespace())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPScope::IsDependent(void)

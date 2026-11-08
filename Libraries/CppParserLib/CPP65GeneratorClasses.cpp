@@ -4353,7 +4353,7 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 	}
 
 	//main, and the global operator new and delete the generator calls by name, are just their names.
-	bPlainName = !psFunction->psClass && (szName.Equals("main") ||
+	bPlainName = !psFunction->psClass && !psFunction->pcNamespace && (szName.Equals("main") ||
 			((psFunction->mapsParameters.NumElements() == 1) && (szName.Equals("opNew") || szName.Equals("opNewArray") || szName.Equals("opDelete") || szName.Equals("opDeleteArray"))));
 	if (psFunction->psClass)
 	{
@@ -4362,6 +4362,10 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 	else
 	{
 		psz->Append('_');
+		if (!psFunction->bCLinkage)
+		{
+			AppendScopeNames(psz, psFunction->pcNamespace);
+		}
 		psz->Append(&szName);
 	}
 	szName.Kill();
@@ -4493,7 +4497,9 @@ void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
 //
 // The named classes and namespaces pcScope is in, outermost first, each
 // followed by __, so N::Outer::Inner's class is N__Outer__Inner and two
-// Inners (of different classes) have different labels.
+// Inners (of different classes) have different labels.  A namespace without
+// a name is Unnamed and its number, so what it declares doesn't clash with
+// the same name outside it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendScopeNames(CChars* psz, CCPPScope* pcScope)
@@ -4501,6 +4507,7 @@ void CCPP65Generator::AppendScopeNames(CChars* psz, CCPPScope* pcScope)
 	char*		szName;
 	int			iLength;
 	CCPPSymbol*	pcOwner;
+	size		uiUnnamed;
 
 	if (!pcScope || ((pcScope->meKind != CPPSC_Class) && (pcScope->meKind != CPPSC_Namespace)))
 	{
@@ -4514,6 +4521,32 @@ void CCPP65Generator::AppendScopeNames(CChars* psz, CCPPScope* pcScope)
 		psz->Append(szName, iLength);
 		psz->Append("__");
 	}
+	else if (pcScope->IsUnnamedNamespace())
+	{
+		uiUnnamed = mapcUnnamedNamespaces.Find(pcScope);
+		if (uiUnnamed == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			uiUnnamed = mapcUnnamedNamespaces.NumElements();
+			mapcUnnamedNamespaces.Add(pcScope);
+		}
+		psz->Append("Unnamed");
+		psz->Append((int)uiUnnamed);
+		psz->Append("__");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespace pcScope is in (or is), and NULL for the global one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPP65Generator::NamespaceOf(CCPPScope* pcScope)
+{
+	CCPPScope*	pcNamespace;
+
+	pcNamespace = pcScope->GetEnclosingNamespace();
+	return (pcNamespace && pcNamespace->mpcParent) ? pcNamespace : NULL;
 }
 
 

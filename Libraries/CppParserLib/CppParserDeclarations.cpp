@@ -244,9 +244,13 @@ CCPPSyntaxDeclaration* CCPPParser::ParseNamespace(CCPPSyntax* pcParent)
 	}
 	else
 	{
-		//The members of an unnamed namespace are visible in the enclosing namespace.  [namespace.unnamed]
-		pcScope = mpcSymbols->CreateScope(CPPSC_Namespace, mpcScope, NULL);
-		mpcScope->mapcUsings.Add(pcScope);
+		//The members of an unnamed namespace are visible in the enclosing namespace, which has only one.  [namespace.unnamed]
+		pcScope = mpcScope->FindUnnamedNamespace();
+		if (!pcScope)
+		{
+			pcScope = mpcSymbols->CreateScope(CPPSC_Namespace, mpcScope, NULL);
+			mpcScope->mapcUsings.Add(pcScope);
+		}
 	}
 
 	if (pcNamespace->mbInline && (lliName != -1))

@@ -243,6 +243,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapsGlobals.Init();
 	mapsFunctions.Init();
 	mcFunctionsOfNames.Init(true);
+	mapcUnnamedNamespaces.Init();
 	mapsClasses.Init();
 	mapsTemplates.Init();
 	mapsAllBindings.Init();
@@ -325,6 +326,7 @@ void CCPP65Generator::Kill(void)
 		psFunction->mapsParameters.Kill();
 		SafeFree(psFunction);
 	}
+	mapcUnnamedNamespaces.Kill();
 	mcFunctionsOfNames.Kill();
 	mapsFunctions.Kill();
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
@@ -994,17 +996,20 @@ void CCPP65Generator::AppendGlobal(CChars* psz, CChars* pszLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A static function or a member of a class without a name is the unit's own: its
-// label is local to the object.
+// A static function, a member of a class without a name, or what is in a
+// namespace without a name is the unit's own: its label is local to the object.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IsUnitFunction(SCPP65Function* psFunction)
 {
-	if (psFunction->psClass)
+	SCPP65Class*	psClass;
+
+	psClass = psFunction->psClass;
+	if (psClass)
 	{
-		return psFunction->psClass->lliName < 0;
+		return (psClass->lliName < 0) || (psClass->pcSymbol && psClass->pcSymbol->mpcScope->IsInUnnamedNamespace());
 	}
-	return psFunction->bStatic;
+	return psFunction->bStatic || (psFunction->pcNamespace && psFunction->pcNamespace->IsInUnnamedNamespace());
 }
 
 
@@ -1058,7 +1063,7 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 		if (psVariable->bUsed && !psVariable->bDefined)
 		{
 			szLabel.Init();
-			AppendGlobalLabel(&szLabel, psVariable->psClass, psVariable->pcSymbol->mlliName);
+			AppendGlobalLabel(&szLabel, psVariable);
 			paszLabels->AddIfUnique(szLabel);
 			szLabel.Kill();
 		}
@@ -1498,12 +1503,6 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
 			break;
 		case CPPS_Namespace:
-			if (!mpcSemanticPass)
-			{
-				bResult &= Error(pcDeclaration, "This declaration is not supported by the compiler yet");
-				break;
-			}
-			//Checking looks at what it can in a namespace (qualified names aren't supported yet).
 			bResult &= Declarations(&((CCPPSyntaxNamespace*)pcDeclaration)->macpDeclarations);
 			break;
 		case CPPS_AliasDeclaration:
@@ -1574,6 +1573,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	size						uiPack;
 	uint32						uiFlags;
 	bool						bConstThis;
+	CCPPScope*					pcNamespace;
 
 	pcName = pcDeclarator->GetName();
 	pcComponent = pcName ? pcName->GetLast() : NULL;
@@ -1678,9 +1678,10 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 
 	//A declaration of a function declared before.
 	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
+	pcNamespace = (!psClass && pcName->mpcSymbol) ? NamespaceOf(pcName->mpcSymbol->mpcScope) : NULL;
 	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
 	{
-		if ((psOther->psClass != psClass) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate) ||
+		if ((psOther->psClass != psClass) || (psOther->pcNamespace != pcNamespace) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate) ||
 			(psOther->bVariadic != pcSuffix->mbVariadic))
 		{
 			continue;
@@ -1723,6 +1724,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	}
 
 	psFunction = AddFunction(psClass, lliName, eKind, psReturn);
+	psFunction->pcNamespace = pcNamespace;
 	psFunction->pcDeclarator = pcDeclarator;
 	for (i = 0; i < apsParameters.NumElements(); i++)
 	{
@@ -1773,6 +1775,7 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->mapsParameters.Init();
 	psFunction->bDefined = false;
 	psFunction->psClass = psClass;
+	psFunction->pcNamespace = NULL;
 	psFunction->eKind = eKind;
 	psFunction->bStatic = false;
 	psFunction->bVirtual = false;
@@ -2216,21 +2219,28 @@ void CCPP65Generator::AppendZeros(int iBytes)
 // _name, or _Class__name for a static data member.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendGlobalLabel(CChars* psz, SCPP65Class* psClass, int64 lliName)
+void CCPP65Generator::AppendGlobalLabel(CChars* psz, SCPP65Variable* psVariable)
 {
 	CChars	szName;
 	char*	szIdentifier;
 	int		iLength;
+	int64	lliName;
 
-	if (!psClass)
+	lliName = psVariable->pcSymbol->mlliName;
+	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	if (psVariable->psClass)
 	{
-		AppendName(psz, lliName);
+		szName.Init(szIdentifier, 0, iLength);
+		AppendClassLabel(psz, psVariable->psClass, szName.Text());
+		szName.Kill();
 		return;
 	}
-	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
-	szName.Init(szIdentifier, 0, iLength);
-	AppendClassLabel(psz, psClass, szName.Text());
-	szName.Kill();
+	psz->Append('_');
+	if (!psVariable->bCLinkage)
+	{
+		AppendScopeNames(psz, NamespaceOf(psVariable->pcSymbol->mpcScope));
+	}
+	psz->Append(szIdentifier, iLength);
 }
 
 
@@ -2250,7 +2260,8 @@ SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables
 	psVariable->psClass = NULL;
 	psVariable->bDefined = false;
 	psVariable->bUsed = false;
-	psVariable->bInternal = false;
+	psVariable->bInternal = pcSymbol && pcSymbol->mpcScope && pcSymbol->mpcScope->IsInUnnamedNamespace();
+	psVariable->bCLinkage = mbCLinkage;
 	psVariable->bRestrict = false;
 	psVariable->psAnonymous = NULL;
 	papsVariables->Add(psVariable);
@@ -3214,7 +3225,7 @@ void CCPP65Generator::AppendVariableLabel(CChars* psz, SCPP65Variable* psVariabl
 		return;
 	}
 	psVariable->bUsed = true;
-	AppendGlobalLabel(psz, psVariable->psClass, psVariable->pcSymbol->mlliName);
+	AppendGlobalLabel(psz, psVariable);
 }
 
 

@@ -1030,6 +1030,71 @@ void TestCPP65IRConstMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szSource's assembly: compiled without errors, for what labels it has.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertNamespaceLabels(const char* szSource, const char** aszLabels, const char** aszNotLabels)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+	size	i;
+
+	szAssembly.Init();
+	szErrors.Init();
+	TestCPP65Generate(&szAssembly, &szErrors, szSource, true);
+	AssertString("", szErrors.Text());
+	for (i = 0; aszLabels[i]; i++)
+	{
+		AssertTrue(szAssembly.Contains(aszLabels[i]));
+	}
+	for (i = 0; aszNotLabels[i]; i++)
+	{
+		AssertFalse(szAssembly.Contains(aszNotLabels[i]));
+	}
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a namespace declares has the namespace in its label, and a parameter
+// of a class in one too.  extern "C", the global main and what isn't in a
+// namespace don't.  A namespace without a name is the unit's own.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRNamespaceLabels(void)
+{
+	static const char*	aszNamed[] = { "_N__x:", "_N__F__Fi:", "_N__M__x:", "_N__M__G__Fi:", "_N__S__Get", "_N__Take__FC4N__S:", "_N__Inline__I__Fi:", NULL };
+	static const char*	aszNotNamed[] = { "\n_x:", "\n_F__Fi:", NULL };
+	static const char*	aszPlain[] = { "_N__main:", "\n_main:", "_Exported:", "_y:", "_Global__Fi:", NULL };
+	static const char*	aszNotPlain[] = { "_N__Exported", "_N__y", NULL };
+	static const char*	aszUnnamed[] = { "_x:", "_Unnamed0__x:", "_Unnamed0__F__Fi:", NULL };
+	static const char*	aszNotUnnamed[] = { ".global _Unnamed0__x", ".global _Unnamed0__F__Fi", NULL };
+
+	AssertNamespaceLabels("namespace N { int x = 1; int F(int a) { return a + x; }\nnamespace M { int x = 2; int G(int a) { return a + x; } }\nstruct S { int i; int Get() { return i; } };\nint Take(S s) { return s.Get(); }\ninline namespace Inline { int I(int a) { return a; } } }\nusing namespace N;\nusing namespace N::M;\nint main() { S s; s.i = 1; return F(1) + G(1) + Take(s) + I(1); }", aszNamed, aszNotNamed);
+	AssertNamespaceLabels("namespace N { int main() { return 1; }\nextern \"C\" int Exported(int a) { return a; }\nextern \"C\" { int y = 1; } }\nint Global(int a) { return a; }\nusing N::Exported;\nusing N::y;\nint main() { return Exported(y) + Global(1); }", aszPlain, aszNotPlain);
+	AssertNamespaceLabels("int x = 1;\nnamespace { int x2 = 1; }\nnamespace { int x = 2; int F(int a) { return a + 1; } }\nint main() { return ::x + x2 + F(1); }", aszUnnamed, aszNotUnnamed);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a namespace declares works from inside it and through a using
+// directive or declaration, with its own globals' values.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRNamespaceRuns(void)
+{
+	AssertInt(13, TestCPP65Main("namespace N { int x = 10; int F(int a) { return a + x; } struct S { int i; S() : i(1) {} int Get() { return i; } }; }\nusing namespace N;\nint main() { S s; return F(2) + s.Get(); }"));
+	AssertInt(7, TestCPP65Main("namespace N { int x = 3; int F() { return x; } }\nnamespace { int y = 4; int G() { return y; } }\nusing N::F;\nint main() { return F() + G(); }"));
+	AssertInt(9, TestCPP65Main("namespace { int F(int a); }\nnamespace { int F(int a) { return a + 1; } }\nint main() { return F(8); }"));
+	AssertInt(5, TestCPP65Main("namespace N { enum E { A = 2, B }; typedef int I; }\nusing namespace N;\nint main() { I i = B; E e = A; return i + e; }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szSource compiled: szExpected is what its first error is, "" for none.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1153,6 +1218,8 @@ void TestCPP65IR(void)
 	TestCPP65IRConstOverloads();
 	TestCPP65IRConstMembers();
 	TestCPP65IRConstErrors();
+	TestCPP65IRNamespaceLabels();
+	TestCPP65IRNamespaceRuns();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

@@ -99,7 +99,8 @@ struct SCPP65Variable
 	ECPP65Storage	eStorage;
 	int				iOffset;		//Parameters: the index in the function's parameters.  Static locals: the number (the label's S<n>_).  Members of an anonymous union or struct (psAnonymous): the offset in it.
 	SCPP65Class*	psClass;		//The class of a static data member.
-	bool			bInternal;		//A static global: the unit's own.
+	bool			bInternal;		//A static global, or one in a namespace without a name: the unit's own.
+	bool			bCLinkage;		//Declared in extern "C": its label is only its name.
 	bool			bDefined;		//A global's data has been written.
 	bool			bUsed;
 	bool			bRestrict;		//A global or parameter pointer declared __restrict.
@@ -126,6 +127,7 @@ struct SCPP65Function
 	bool							bVariadic;
 	bool							bDefined;
 	SCPP65Class*					psClass;		//NULL for a function that is not a member.
+	CCPPScope*						pcNamespace;	//The namespace of a function that is not a member, NULL for the global one.
 	ECPP65FunctionKind				eKind;
 	bool							bStatic;
 	bool							bVirtual;
@@ -443,6 +445,7 @@ protected:
 	bool						mbDataBss;			//The last BeginData was bss: the global's start up routines associate with bss.label.
 	bool					mbPureVirtual;
 
+	CArrayScopes			mapcUnnamedNamespaces;	//Their places are the numbers in the labels of what they declare.
 	CArrayCPP65Variables	mapsLocals;
 	SCPP65Function*			mpsFunction;
 	int						miStatics;			//Static locals in the unit.
@@ -527,7 +530,7 @@ protected:
 	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise);
 	void					AppendData(SCPP65Type* psType, int64 lliValue);
 	void					AppendZeros(int iBytes);
-	void					AppendGlobalLabel(CChars* psz, SCPP65Class* psClass, int64 lliName);
+	void					AppendGlobalLabel(CChars* psz, SCPP65Variable* psVariable);
 	SCPP65Variable*			AddVariable(CArrayCPP65Variables* papsVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPP65Storage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPP65Variables* papsVariables);
 	SCPP65Variable*			GetVariable(CCPPSymbol* pcSymbol);
@@ -676,6 +679,7 @@ protected:
 	void					AppendTypeInfoLabel(CChars* psz, SCPP65Class* psClass);
 	void					AppendClassName(CChars* psz, SCPP65Class* psClass);
 	void					AppendScopeNames(CChars* psz, CCPPScope* pcScope);
+	static CCPPScope*		NamespaceOf(CCPPScope* pcScope);
 	void					AppendFunctionName(CChars* psz, int64 lliName);
 	void					AppendMangledType(CChars* psz, SCPP65Type* psType);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);

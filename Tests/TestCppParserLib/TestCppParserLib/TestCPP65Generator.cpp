@@ -3212,7 +3212,6 @@ static void AssertCPP65Error(const char* szExpected, const char* szSource)
 void TestCPP65GeneratorErrors(void)
 {
 	AssertCPP65Error("Generated.cpp (1, 27): The operands must be integers [f]\n", "float f; int g() { return f % 2; }");
-	AssertCPP65Error("Generated.cpp (1, 1): This declaration is not supported by the compiler yet [namespace]\n", "namespace N { int x; }");
 	AssertCPP65Error("Generated.cpp (1, 19): Only new Type[count] (one dimension, no initialiser list) is supported by the compiler yet [new]\n", "int* f() { return new int[2]{1, 2}; }");
 	AssertCPP65Error("Generated.cpp (1, 44): The object has no conversion to the type it is used as [p]\n", "struct P { int x; }; int f() { P p; return p; }");
 	AssertCPP65Error("Generated.cpp (1, 32): No function matches the arguments (): it takes (long) [f]\n", "int f(int a); int g() { return f(); }");

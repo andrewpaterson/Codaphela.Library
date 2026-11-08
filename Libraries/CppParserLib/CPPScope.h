@@ -64,6 +64,9 @@ public:
 	CCPPSymbol*		Find(int64 lliName);
 	CCPPScope*		GetDeclarationScope(void);
 	CCPPScope*		GetEnclosingNamespace(void);
+	bool			IsUnnamedNamespace(void);
+	CCPPScope*		FindUnnamedNamespace(void);
+	bool			IsInUnnamedNamespace(void);
 	bool			IsDependent(void);
 
 protected:
