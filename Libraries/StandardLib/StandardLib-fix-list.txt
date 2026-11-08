@@ -128,7 +128,7 @@ E4. [140] CArray<M>::Add returns void.  [done dafa3edb1]
 E5. [164] CMapObject::Get<M,N> returns (N*)Get(pKey); Contains<M,N> has an unused N; Get(const CPointer&) declares an unused CPointer.  [done 81ebda239]
 E6. [136] CSetObject::UnsafeGetObject hides the base's (non-virtual) with an unused CPointer local; UnsafeGet duplicates it.  [done 30ced0916]
 E7. [192] CBaseObject::SetFlag(uint16, uint16 iFlagValue) takes a bool as uint16.  [done 11f8ea4a5]
-E8. [191] CBaseObject::NumEmbedded() has a side effect (SetFlagNumEmbedded).
+E8. [191] CBaseObject::NumEmbedded() has a side effect (SetFlagNumEmbedded).  [done a8007c5db]
 E9. [163] AddObjectFrom(pcValue, pcOldValue == NULL): bValidate driven by an unrelated condition.
 E10. [231] CPointer::GetDistToRoot returns -1 for NULL (use UNATTACHED_DIST_TO_ROOT); return mpcObject->LogicalDirty(); / return mpcObject->Kill(); return void from void.
 E11. [232] ValidatePtr is a bare if macro (dangling-else hazard).
@@ -180,7 +180,7 @@ F28. [234] CPointer::This()'s "should only *ever* be called whilst in the Load m
 F29. [238] CEmbeddedObject::Kill/KillInternal/Evict are NotImplemented() stubs: pure virtual or remove.
 F30. [242] RemoveAllStackFroms tests GetStackPointers() for NULL (never); IsEmbeddingContainerAllocatedInObjects tests GetEmbeddingContainer() (never NULL).
 F31. [243] HasStackFroms/HasHeapFroms ask the container while NumStackFroms/NumHeapFroms are this object's own: same prefix, different scope.
-F32. [256] ConvertFatHollowToUninitialisedByClassName needs a comment block.
+F32. [256] ConvertFatHollowToUninitialisedByClassName needs a comment block.  [done a8007c5db]
 F33. [257] for (...; bResult && ...) loops whose bodies already return; the "Could not save object" error logs GetName() (empty for unnamed) instead of the index.
 F34. [265] The empty "Kill none of them" branch in DistToStack.
 F35. [285] CPointerLocations::MoveLocations has no caller.
