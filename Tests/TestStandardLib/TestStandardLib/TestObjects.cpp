@@ -7,7 +7,9 @@
 #include "BaseLib/ValueIndexedDataConfig.h"
 #include "BaseLib/ValueNamedIndexesConfig.h"
 #include "BaseLib/NamedIndexedHeader.h"
+#include "BaseLib/LifeCycle.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/String.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 #include "ObjectTestClasses.h"
@@ -821,6 +823,240 @@ void TestObjectsWalkStampWrap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An argument that counts its copies.
+//
+//////////////////////////////////////////////////////////////////////////
+static size guiTestMallocArgumentCopies = 0;
+
+class CTestMallocArgument
+{
+public:
+	int32	miValue;
+
+	CTestMallocArgument(int32 iValue)
+	{
+		miValue = iValue;
+	}
+
+	CTestMallocArgument(const CTestMallocArgument& cOther)
+	{
+		miValue = cOther.miValue;
+		guiTestMallocArgumentCopies++;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object with an Init for each kind of argument OMalloc passes on.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestMallocArguments : public CObject
+{
+CONSTRUCTABLE(CTestMallocArguments)
+DESTRUCTABLE(CTestMallocArguments)
+public:
+	int32	miValue;
+	size	muiStackFromsInInit;
+
+	void Set(int32 iValue)
+	{
+		PreInit();
+		miValue = iValue;
+		PostInit();
+	}
+
+	void Init(void)								{ Set(1); }
+	void Init(CTestMallocArgument& cArgument)	{ cArgument.miValue = 7; Set(cArgument.miValue); }
+	void Init(const CTestMallocArgument& cArgument, int32 iAdd)	{ Set(cArgument.miValue + iAdd); }
+	void Init(CTestMallocArgument cArgument, bool bFlag)		{ Set(bFlag ? cArgument.miValue : 0); }
+	void Init(int32 iFirst, int32 iSecond)		{ Set(iFirst * 100 + iSecond); }
+	void Init(const char* sz)					{ Set(sz[1]); }
+	void Init(char* sz)							{ sz[0] = 'Y'; Set(2); }
+	void Init(int32* pai)						{ Set(pai[1]); }
+	void Init(int32 (*fGet)(void), bool bFlag)	{ Set(fGet()); }
+
+	void Init(Ptr<CTestObject> pObject)
+	{
+		muiStackFromsInInit = pObject.Object()->NumStackFroms();
+		Set(3);
+	}
+
+	void Class(void) override
+	{
+	}
+
+	void Free(void) override
+	{
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 TestObjectsMallocGetValue(void)
+{
+	return 44;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// OMalloc and ONMalloc give Init the arguments they were given, not copies:
+// an Init taking a reference changes the caller's variable, a const
+// reference copies nothing, and a by value parameter is the one copy.  A
+// stack pointer's only other stack from is Init's parameter.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsMallocArgumentsNotCopied(void)
+{
+	STestObjectFreedNotifier	sNotifier;
+	CTestMallocArgument			cArgument(1);
+	const CTestMallocArgument	cConstArgument(5);
+
+	ObjectsInit();
+	{
+		Ptr<CTestMallocArguments>	pMade;
+		Ptr<CTestObject>			pObject;
+
+		guiTestMallocArgumentCopies = 0;
+		pMade = OMalloc<CTestMallocArguments>(cArgument);
+		AssertInt((int32)7, cArgument.miValue);
+		AssertInt((int32)7, pMade->miValue);
+		AssertSize(0, guiTestMallocArgumentCopies);
+
+		cArgument.miValue = 1;
+		pMade = ONMalloc<CTestMallocArguments>("Named", cArgument);
+		AssertInt((int32)7, cArgument.miValue);
+		AssertSize(0, guiTestMallocArgumentCopies);
+
+		pMade = OMalloc<CTestMallocArguments>(cConstArgument, (int32)10);
+		AssertInt((int32)15, pMade->miValue);
+		AssertSize(0, guiTestMallocArgumentCopies);
+
+		pMade = OMalloc<CTestMallocArguments>(cArgument, true);
+		AssertInt((int32)7, pMade->miValue);
+		AssertSize(1, guiTestMallocArgumentCopies);
+
+		pObject = OMalloc<CTestObject>();
+		AssertSize(1, pObject.Object()->NumStackFroms());
+		pMade = OMalloc<CTestMallocArguments>(pObject);
+		AssertSize(2, pMade->muiStackFromsInInit);
+		AssertSize(1, pObject.Object()->NumStackFroms());
+
+		//A temporary outlasts the call to Init, and is gone after it.
+		pMade = OMalloc<CTestMallocArguments>(OMalloc<CTestObject>(&sNotifier));
+		AssertSize(2, pMade->muiStackFromsInInit);
+		AssertTrue(sNotifier.bFreed);
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What has no address, and what decays, still reaches an Init that takes it
+// by value: literals, sums, string literals of any length, arrays (their
+// elements, not a copy) and functions.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsMallocArgumentsValues(void)
+{
+	char	acChars[3];
+	int32	aiValues[2];
+	int32	i;
+
+	ObjectsInit();
+	{
+		Ptr<CTestMallocArguments>	pMade;
+		Ptr<CString>				pString;
+
+		i = 4;
+		pMade = OMalloc<CTestMallocArguments>(5, i + 2);
+		AssertInt((int32)506, pMade->miValue);
+
+		pMade = OMalloc<CTestMallocArguments>("AB");
+		AssertInt((int32)'B', pMade->miValue);
+		pMade = OMalloc<CTestMallocArguments>("CDEFG");
+		AssertInt((int32)'D', pMade->miValue);
+
+		acChars[0] = 'Z';
+		acChars[1] = 'X';
+		pMade = OMalloc<CTestMallocArguments>(acChars);
+		AssertInt((int32)2, pMade->miValue);
+		AssertInt((int32)'Y', (int32)acChars[0]);
+
+		aiValues[1] = 33;
+		pMade = OMalloc<CTestMallocArguments>(aiValues);
+		AssertInt((int32)33, pMade->miValue);
+
+		pMade = OMalloc<CTestMallocArguments>(TestObjectsMallocGetValue, true);
+		AssertInt((int32)44, pMade->miValue);
+
+		pString = OString("Door");
+		AssertString("Door", pString->Text());
+		pString = OString(pString);
+		AssertString("Door", pString->Text());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// LifeAlloc gives Init the arguments it was given too.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestLifeAllocated : public CKillable
+{
+public:
+	int32	miValue;
+
+	void Init(CTestMallocArgument& cArgument, const CTestMallocArgument& cOther)
+	{
+		cArgument.miValue = 8;
+		miValue = cOther.miValue;
+	}
+
+	void Kill(void) override
+	{
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsLifeAllocArgumentsNotCopied(void)
+{
+	CTestMallocArgument			cArgument(1);
+	CTestMallocArgument			cOther(9);
+	CLifeInit<CKillable>		cInit;
+	CLife<CKillable>			cLife;
+	CKillable*					pcKillable;
+
+	guiTestMallocArgumentCopies = 0;
+	cInit = LifeAlloc<CTestLifeAllocated, CKillable>(cArgument, cOther);
+	AssertInt((int32)8, cArgument.miValue);
+	AssertSize(0, guiTestMallocArgumentCopies);
+
+	cInit.ConfigureLife(&cLife, &pcKillable);
+	AssertInt((int32)9, ((CTestLifeAllocated*)pcKillable)->miValue);
+	cLife.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjects(void)
@@ -843,6 +1079,9 @@ void TestObjects(void)
 	TestObjectsEvict();
 	TestObjectDehollowfication();
 	TestObjectsWalkStampWrap();
+	TestObjectsMallocArgumentsNotCopied();
+	TestObjectsMallocArgumentsValues();
+	TestObjectsLifeAllocArgumentsNotCopied();
 
 	DataIOKill();
 	TypesKill();
