@@ -231,25 +231,6 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent)
-{
-	size				i;
-	size				uiNumTriangles;
-	SRasterTriangle*	psTriangle;
-
-	uiNumTriangles = pasTriangles->NumElements();
-	psTriangle = pasTriangles->GetData();
-	for (i = 0; i < uiNumTriangles; i++)
-	{
-		DrawTriangle(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], psTriangle[i].uiColour, bTransparent);
-	}
-}
-
-
 static SRasterSubpixel Min3(SRasterSubpixel a, SRasterSubpixel b, SRasterSubpixel c)
 {
 	SRasterSubpixel	s;
@@ -454,6 +435,59 @@ static void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, int32 iX, int3
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False for a triangle DrawTriangle would return from without looking at a
+// pixel, which is most of them, for less than it costs to call DrawTriangle.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE bool RasterMayDraw(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, bool bCullBackFaces)
+{
+	SRasterEdge	sArea;
+	int32		iMinX;
+	int32		iMaxX;
+	int32		iMinY;
+	int32		iMaxY;
+
+	if ((psA->iDepth == 0) || (psB->iDepth == 0) || (psC->iDepth == 0))
+	{
+		return false;
+	}
+	sArea = RasterEdge(&psA->sPosition, &psB->sPosition, psC->sPosition.x, psC->sPosition.y);
+	if ((sArea.miRaw == 0) || ((sArea.miRaw > 0) && bCullBackFaces))
+	{
+		return false;
+	}
+	iMinX = (Min3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) + SRasterSubpixel::FromRaw(7)).Floor();
+	iMinY = (Min3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) + SRasterSubpixel::FromRaw(7)).Floor();
+	iMaxX = (Max3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) - SRasterSubpixel::FromRaw(8)).Floor();
+	iMaxY = (Max3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) - SRasterSubpixel::FromRaw(8)).Floor();
+	return (iMinX <= iMaxX) && (iMinY <= iMaxY) && (iMinX < pcTarget->miWidth) && (iMinY < pcTarget->miHeight) && (iMaxX >= 0) && (iMaxY >= 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent)
+{
+	size				i;
+	size				uiNumTriangles;
+	SRasterTriangle*	psTriangle;
+
+	uiNumTriangles = pasTriangles->NumElements();
+	psTriangle = pasTriangles->GetData();
+	for (i = 0; i < uiNumTriangles; i++)
+	{
+		if (RasterMayDraw(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], mbCullBackFaces))
+		{
+			DrawTriangle(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[1]], &psScreen[psTriangle[i].aiVertex[2]], psTriangle[i].uiColour, bTransparent);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent)
@@ -641,7 +675,31 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	if (bLanes)
 	{
 		RasterLanesInit(&sLanes, sStepX0, sStepX1, sStepX2, iMaxX - iMinX + 1);
-		bWide = false;
+		for (y = iMinY; y <= iMaxY; y++)
+		{
+			uiHits = RasterLaneHits(&sLanes, sRow0, sRow1, sRow2);
+			while (uiHits != 0)
+			{
+				iHit = (int32)_tzcnt_u32(uiHits);
+				uiHits &= uiHits - 1;
+				x = iMinX + iHit;
+				sHit0 = SRasterEdge::FromRaw(sRow0.miRaw + sStepX0.miRaw * iHit);
+				sHit1 = SRasterEdge::FromRaw(sRow1.miRaw + sStepX1.miRaw * iHit);
+				sHit2 = SRasterEdge::FromRaw(sRow2.miRaw + sStepX2.miRaw * iHit);
+				iDepth = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sDepthA, sDepthB, sDepthC, sArea);
+				if (iDepth > piDepthRow[x])
+				{
+					iShade = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
+					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
+				}
+			}
+			sRow0 += sStepY0;
+			sRow1 += sStepY1;
+			sRow2 += sStepY2;
+			puiPixelRow += pcTarget->miStride;
+			piDepthRow += pcTarget->miWidth;
+		}
+		return;
 	}
 #endif
 	for (y = iMinY; y <= iMaxY; y++)
@@ -665,28 +723,6 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 				s2 += SRasterEdge::FromRaw(sStepX2.miRaw * (iFirstX - iMinX));
 			}
 		}
-#ifdef __AVX2__
-		if (bLanes)
-		{
-			uiHits = RasterLaneHits(&sLanes, s0, s1, s2);
-			while (uiHits != 0)
-			{
-				iHit = (int32)_tzcnt_u32(uiHits);
-				uiHits &= uiHits - 1;
-				x = iMinX + iHit;
-				sHit0 = SRasterEdge::FromRaw(s0.miRaw + sStepX0.miRaw * iHit);
-				sHit1 = SRasterEdge::FromRaw(s1.miRaw + sStepX1.miRaw * iHit);
-				sHit2 = SRasterEdge::FromRaw(s2.miRaw + sStepX2.miRaw * iHit);
-				iDepth = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sDepthA, sDepthB, sDepthC, sArea);
-				if (iDepth > piDepthRow[x])
-				{
-					iShade = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
-					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
-				}
-			}
-			iLastX = iFirstX - 1;  //So that the search below doesn't look at this row.
-		}
-#endif
 		for (x = iFirstX; x <= iLastX; x++)
 		{
 			if ((s0.miRaw | s1.miRaw | s2.miRaw) >= 0)

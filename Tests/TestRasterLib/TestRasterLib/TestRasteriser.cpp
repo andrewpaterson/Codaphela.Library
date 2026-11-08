@@ -873,6 +873,111 @@ void TestRasteriserInstancesTransparent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A mesh draws what its triangles do one at a time through DrawTriangle:
+// whichever way they face, with none of their area, or off the target.  With
+// no normals every vertex has just the ambient shade.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserTurnedAway(void)
+{
+	CRasterMesh				cRaster;
+	CRasterCamera			cCamera;
+	CRasteriser				cRasteriser;
+	CRasterTarget			cMesh;
+	CRasterTarget			cOneByOne;
+	SRasterVertex*			psVertex;
+	SRasterTriangle*		psTriangle;
+	SRasterScreenVertex*	psScreen;
+	uint32*					puiMesh;
+	uint32*					puiOneByOne;
+	uint32					uiRandom;
+	int						i;
+	int						iCorner;
+	int						iCull;
+	bool					bSame;
+
+	cRaster.Init();
+	uiRandom = 777;
+	for (i = 0; i < 400; i++)
+	{
+		psVertex = cRaster.masVertices.Add();
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psVertex->sPosition.x = (int32)((uiRandom >> 8) % (RASTER_MESH_HALF_EXTENT * 4)) - RASTER_MESH_HALF_EXTENT * 2;
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psVertex->sPosition.y = (int32)((uiRandom >> 8) % (RASTER_MESH_HALF_EXTENT * 4)) - RASTER_MESH_HALF_EXTENT * 2;
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psVertex->sPosition.z = (int32)((uiRandom >> 8) % RASTER_MESH_HALF_EXTENT) - RASTER_MESH_HALF_EXTENT / 2;
+		psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
+	}
+	for (i = 0; i < 1500; i++)
+	{
+		psTriangle = (i % 5 == 0) ? cRaster.masTransparent.Add() : cRaster.masOpaque.Add();
+		uiRandom = uiRandom * 1103515245 + 12345;
+		psTriangle->uiColour = (i % 5 == 0) ? (0x80000000 | (uiRandom >> 8)) : (0xFF000000 | (uiRandom >> 8));
+		for (iCorner = 0; iCorner < 3; iCorner++)
+		{
+			uiRandom = uiRandom * 1103515245 + 12345;
+			psTriangle->aiVertex[iCorner] = (int32)((uiRandom >> 8) % 400);
+		}
+
+		//Some with the same vertex twice, for no area.
+		if (i % 50 == 0)
+		{
+			psTriangle->aiVertex[1] = psTriangle->aiVertex[0];
+		}
+	}
+
+	puiMesh = (uint32*)malloc(64 * 48 * sizeof(uint32));
+	puiOneByOne = (uint32*)malloc(64 * 48 * sizeof(uint32));
+	psScreen = (SRasterScreenVertex*)malloc(400 * sizeof(SRasterScreenVertex));
+	cMesh.Init(puiMesh, 64, 48, 64);
+	cOneByOne.Init(puiOneByOne, 64, 48, 64);
+	cRasteriser.Init();
+	cCamera.Init();
+	cCamera.Fit(64, 48);
+
+	for (iCull = 0; iCull < 2; iCull++)
+	{
+		cRasteriser.SetCullBackFaces(iCull == 0);
+		cMesh.Clear(TEST_BLACK);
+		cRasteriser.Draw(&cRaster, &cCamera, &cMesh);
+
+		cOneByOne.Clear(TEST_BLACK);
+		for (i = 0; i < 400; i++)
+		{
+			cCamera.Project(&psScreen[i], &cRaster.masVertices.Get(i)->sPosition);
+			psScreen[i].iShade = 64;
+		}
+		for (i = 0; i < (int)cRaster.masOpaque.NumElements(); i++)
+		{
+			psTriangle = cRaster.masOpaque.Get(i);
+			cRasteriser.DrawTriangle(&cOneByOne, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[1]], &psScreen[psTriangle->aiVertex[2]], psTriangle->uiColour, false);
+		}
+		for (i = 0; i < (int)cRaster.masTransparent.NumElements(); i++)
+		{
+			psTriangle = cRaster.masTransparent.Get(i);
+			cRasteriser.DrawTriangle(&cOneByOne, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[1]], &psScreen[psTriangle->aiVertex[2]], psTriangle->uiColour, true);
+		}
+
+		AssertTrue(CountPixels(&cMesh, TEST_BLACK) < 64 * 48);
+		bSame = memcmp(puiMesh, puiOneByOne, 64 * 48 * sizeof(uint32)) == 0;
+		AssertTrue(bSame);
+		bSame = memcmp(cMesh.mpiDepths, cOneByOne.mpiDepths, 64 * 48 * sizeof(int32)) == 0;
+		AssertTrue(bSame);
+	}
+
+	cRasteriser.Kill();
+	cOneByOne.Kill();
+	cMesh.Kill();
+	free(psScreen);
+	free(puiOneByOne);
+	free(puiMesh);
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriser(void)
@@ -892,6 +997,7 @@ void TestRasteriser(void)
 	TestRasteriserSmallTriangles();
 	TestRasteriserInstances();
 	TestRasteriserInstancesTransparent();
+	TestRasteriserTurnedAway();
 
 	ObjectsKill(false);
 	NumberKill();
