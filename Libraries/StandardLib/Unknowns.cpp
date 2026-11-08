@@ -543,6 +543,7 @@ void UnknownsInit(void)
 	if (gbUnknowns)
 	{
 		gcLogger.Error("Unknowns has already been initialised.");
+		return;
 	}
 
 	gcUnknowns.Init("Global", &gcConstructors);
@@ -558,7 +559,8 @@ void UnknownsKill(void)
 {
 	if (!gbUnknowns)
 	{
-		gcLogger.Error("Global Memory has already been Killed.");
+		gcLogger.Error("Unknowns has already been Killed.");
+		return;
 	}
 
 	gcUnknowns.Kill();

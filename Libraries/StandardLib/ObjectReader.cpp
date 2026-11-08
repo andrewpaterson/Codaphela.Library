@@ -277,6 +277,7 @@ bool CObjectReader::ReadPointerHeader(CPointerHeader* pcHeader)
 {
 	bool	bResult;
 
+	pcHeader->Init();
 	ReturnOnFalse(ReadIdentifier(pcHeader));
 	if (pcHeader->meType == OBJECT_POINTER_NULL)
 	{

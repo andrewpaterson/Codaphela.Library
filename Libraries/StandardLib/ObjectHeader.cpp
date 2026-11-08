@@ -31,6 +31,7 @@ void CObjectIdentifier::Init(void)
 	meType = OBJECT_POINTER_NULL;
 	moi = INVALID_O_INDEX;
 	mszObjectName.Init();
+	muiSize = 0;
 }
 
 
@@ -246,7 +247,8 @@ char* CObjectHeader::GetIdentifier(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CPointerHeader::Init(void)
 {
-	//This must not call CObjectIdentifier::Init.
+	CObjectIdentifier::Init();
+	miNumEmbedded = 0;
 	miEmbeddedIndex = 0;
 }
 

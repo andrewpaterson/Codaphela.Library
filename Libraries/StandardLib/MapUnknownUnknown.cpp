@@ -411,6 +411,27 @@ CMapPtrPtr* CMapUnknownUnknown::GetPointerMap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A key or a value as Print shows it: its class and what it prints, or
+// NULL (a map may hold NULL values).
+//
+//////////////////////////////////////////////////////////////////////////
+static void PrintUnknown(CChars* psz, CUnknown* pcUnknown)
+{
+	if (pcUnknown == NULL)
+	{
+		psz->Append("NULL");
+		return;
+	}
+
+	psz->Append(pcUnknown->ClassName());
+	psz->Append(":[");
+	pcUnknown->Print(psz);
+	psz->Append("]");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CMapUnknownUnknown::Print(CChars* psz)
@@ -432,14 +453,9 @@ void CMapUnknownUnknown::Print(CChars* psz)
 		psz->Append(szNumber);
 		szNumber.Kill();
 		psz->Append(" ");
-		psz->Append(pcKey->ClassName());
-		psz->Append(":[");
-		pcKey->Print(psz);
-		psz->Append("] -> ");
-		psz->Append(pcValue->ClassName());
-		psz->Append(":[");
-		pcValue->Print(psz);
-		psz->Append("]");
+		PrintUnknown(psz, pcKey);
+		psz->Append(" -> ");
+		PrintUnknown(psz, pcValue);
 		psz->AppendNewLine();
 		bResult = Iterate(&sIter, &pcKey, &pcValue);
 		ui++;

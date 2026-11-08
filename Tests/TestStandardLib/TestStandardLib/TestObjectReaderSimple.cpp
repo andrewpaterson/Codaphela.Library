@@ -6,6 +6,7 @@
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ObjectHeader.h"
 #include "StandardLib/ObjectReaderSimpleDisk.h"
 #include "StandardLib/ExternalObjectDeserialiser.h"
 #include "StandardLib/MultiFileObjectWriter.h"
@@ -137,6 +138,36 @@ void TestObjectReaderSimpleDeserialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestObjectReaderSimpleHeaderInit(void)
+{
+	CObjectIdentifier	cIdentifier;
+	CPointerHeader		cHeader;
+
+	//Init leaves nothing unset, whatever was there before.
+	memset(&cIdentifier, 0xcd, sizeof(CObjectIdentifier));
+	cIdentifier.Init();
+	AssertInt(OBJECT_POINTER_NULL, cIdentifier.meType);
+	AssertLong(INVALID_O_INDEX, cIdentifier.moi);
+	AssertShort((uint16)0, cIdentifier.muiSize);
+	AssertString("", cIdentifier.mszObjectName.Text());
+	cIdentifier.Kill();
+
+	memset(&cHeader, 0xcd, sizeof(CPointerHeader));
+	cHeader.Init();
+	AssertInt(OBJECT_POINTER_NULL, cHeader.meType);
+	AssertLong(INVALID_O_INDEX, cHeader.moi);
+	AssertShort((uint16)0, cHeader.muiSize);
+	AssertString("", cHeader.mszObjectName.Text());
+	AssertShort((uint16)0, cHeader.miNumEmbedded);
+	AssertShort((uint16)0, cHeader.miEmbeddedIndex);
+	cHeader.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestObjectReaderSimple(void)
 {
 	BeginTests();
@@ -145,6 +176,7 @@ void TestObjectReaderSimple(void)
 	DataIOInit();
 
 	TestObjectReaderSimpleDeserialised();
+	TestObjectReaderSimpleHeaderInit();
 
 	DataIOKill();
 	TypesKill();

@@ -1,7 +1,13 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/MemoryFile.h"
 #include "StandardLib/Unknowns.h"
 #include "TestLib/Assert.h"
 #include "UnknownTestClasses.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,6 +202,72 @@ void TestUnknownListRemoveDuringIteration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestUnknownsFreeMacro(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CTestUnknown*	pcTest;
+	bool			bFree;
+
+	pcTest = UMalloc(CTestUnknown);
+	AssertSize(1, gcUnknowns.NumElements());
+
+	//UFree is one statement: under an if that's false it neither frees nor clears.
+	bFree = false;
+	if (bFree)
+		UFree(pcTest);
+	AssertNotNull(pcTest);
+	AssertSize(1, gcUnknowns.NumElements());
+
+	UFree(pcTest);
+	AssertNull(pcTest);
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUnknownsInitKillTwice(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CTestUnknown*	pcTest;
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[256];
+
+	pcTest = UMalloc(CTestUnknown);
+
+	//A second Init is an error, and must not Init (and lose) the unknowns again.
+	StartCapturingLog(&cLog, &sLogConfig);
+	UnknownsInit();
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Unknowns has already been initialised."));
+	AssertSize(1, gcUnknowns.NumElements());
+
+	UFree(pcTest);
+	UnknownsKill();
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	UnknownsKill();
+	StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+	AssertNotNull(strstr(szLogged, "Unknowns has already been Killed."));
+
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestUnknowns(void)
 {
 	BeginTests();
@@ -203,6 +275,8 @@ void TestUnknowns(void)
 	TestUnknownListAddKill();
 	TestUnknownListIterables();
 	TestUnknownListRemoveDuringIteration();
+	TestUnknownsFreeMacro();
+	TestUnknownsInitKillTwice();
 
 	TestStatistics();
 }

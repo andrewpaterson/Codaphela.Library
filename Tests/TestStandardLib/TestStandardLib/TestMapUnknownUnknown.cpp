@@ -635,6 +635,38 @@ void TestMapUnknownUnknownNoOverwrite(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+void TestMapUnknownUnknownPrintNull(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CMapUnknownUnknown		cMap;
+	CTestNamedUnknown*		pcKey;
+	CChars					sz;
+
+	cMap.Init();
+	pcKey = gcUnknowns.Add<CTestNamedUnknown>();
+	pcKey->Init("Nothing");
+	AssertTrue(cMap.Put(pcKey, NULL));
+
+	//A NULL value prints as NULL.
+	sz.Init();
+	cMap.Print(&sz);
+	AssertString("    0 CTestNamedUnknown:[\"Nothing\"] -> NULL\n", sz.Text());
+	sz.Kill();
+
+	cMap.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 void TestMapUnknownUnknown(void)
 {
 	BeginTests();
@@ -647,6 +679,7 @@ void TestMapUnknownUnknown(void)
 	TestMapUnknownUnknownReplaceValue();
 	TestMapUnknownUnknownReplaceSameValue();
 	TestMapUnknownUnknownNoOverwrite();
+	TestMapUnknownUnknownPrintNull();
 
 	TestStatistics();
 }
