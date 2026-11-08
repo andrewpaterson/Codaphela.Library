@@ -916,29 +916,31 @@ bool CCPP65Generator::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if a pointer operator is qualified volatile (T* volatile p): the
-// pointer itself is volatile.
+// psType with a pointer operator's qualifiers (T* const p, T* volatile p):
+// the pointer itself is const or volatile.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsVolatilePointer(CCPPSyntaxPointerOperator* pcPointer)
+SCPP65Type* CCPP65Generator::QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer)
 {
 	CCPPSyntax*	pcQualifier;
 	ECppTokens	eKeyword;
 	size		i;
+	bool		bConst;
+	bool		bVolatile;
 
+	bConst = false;
+	bVolatile = false;
 	for (i = 0; i < pcPointer->macpQualifiers.NumElements(); i++)
 	{
 		pcQualifier = pcPointer->macpQualifiers.GetPtr(i);
 		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
 		{
 			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
-			if ((eKeyword == CT_volatile) || (eKeyword == CT___volatile__))
-			{
-				return true;
-			}
+			bConst |= (eKeyword == CT_const) || (eKeyword == CT___const__);
+			bVolatile |= (eKeyword == CT_volatile) || (eKeyword == CT___volatile__);
 		}
 	}
-	return false;
+	return mcTypes.Qualified(psType, bConst, bVolatile);
 }
 
 
@@ -2329,9 +2331,10 @@ SCPP65Type* CCPP65Generator::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 	SCPP65Type*	psType;
 
 	psType = GetBaseType(pcSpecifiers, pcNode);
-	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_VOLATILE))
+	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
 	{
-		psType = mcTypes.Volatile(psType);
+		//The base type's own qualifiers stay (a typedef of const int).
+		psType = mcTypes.Qualified(psType, psType->bConst || (pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile || (pcSpecifiers->muiFlags & CPPDS_VOLATILE));
 	}
 	if (!psType || !pcDeclarator)
 	{
@@ -2364,11 +2367,7 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		switch (pcPointer->meKind)
 		{
 		case CPPP_Pointer:
-			psType = mcTypes.Pointer(psType);
-			if (IsVolatilePointer(pcPointer))
-			{
-				psType = mcTypes.Volatile(psType);
-			}
+			psType = QualifiedPointer(mcTypes.Pointer(psType), pcPointer);
 			break;
 		case CPPP_Reference:
 		case CPPP_RValueReference:

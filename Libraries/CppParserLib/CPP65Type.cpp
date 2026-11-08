@@ -282,7 +282,7 @@ void SCPP65Type::Append(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type without volatile.
+// The type without const and volatile.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* SCPP65Type::Unqualified(void)
@@ -319,7 +319,7 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 	mcFunctions.Init(true);
 	mcClasses.Init(true);
 	mcEnums.Init(true);
-	mcVolatiles.Init(true);
+	mcQualified.Init(true);
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
 	InitBuiltin(&msChar, CPP65TK_Integer, 1, true);
@@ -359,7 +359,7 @@ void CCPP65Types::Kill(void)
 		SafeFree(psType);
 	}
 	mapsTypes.Kill();
-	mcVolatiles.Kill();
+	mcQualified.Kill();
 	mcEnums.Kill();
 	mcClasses.Kill();
 	mcFunctions.Kill();
@@ -383,6 +383,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
 	psType->pcEnum = NULL;
+	psType->bConst = false;
 	psType->bVolatile = false;
 	psType->psUnqualified = psType;
 	psType->psNextSameBase = NULL;
@@ -594,31 +595,101 @@ SCPP65Type* CCPP65Types::Size(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// volatile psType: a copy of it, kept with the types, whose loads and
-// stores are volatile.  Functions and references can't be volatile.
+// psType's unqualified type with const and volatile as asked: a copy of it,
+// kept with the types (one for each), that is const (can't be written
+// through) or volatile (its loads and stores are kept and in order).
+// Functions and references can't be qualified.  [basic.type.qualifier]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Qualified(SCPP65Type* psType, bool bConst, bool bVolatile)
+{
+	SCPP65Type*		psUnqualified;
+	SCPP65Type*		psQualified;
+	SCPP65Type**	ppsFound;
+	int64			lliKey;
+
+	if (!psType || psType->IsFunction() || psType->IsReference())
+	{
+		return psType;
+	}
+	psUnqualified = psType->psUnqualified;
+	if (!bConst && !bVolatile)
+	{
+		return psUnqualified;
+	}
+	lliKey = QualifiedKey(psUnqualified, bConst, bVolatile);
+	ppsFound = mcQualified.Get(lliKey);
+	if (ppsFound)
+	{
+		return *ppsFound;
+	}
+	psQualified = NewType(psUnqualified->eKind, psUnqualified->iBytes);
+	*psQualified = *psUnqualified;
+	psQualified->papsParameters = NULL;
+	psQualified->bConst = bConst;
+	psQualified->bVolatile = bVolatile;
+	psQualified->psUnqualified = psUnqualified;
+	AddType(psQualified);
+	mcQualified.Put(lliKey, &psQualified);
+	return psQualified;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// const psType (with its volatile).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Const(SCPP65Type* psType)
+{
+	return psType ? Qualified(psType, true, psType->bVolatile) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// volatile psType (with its const).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Volatile(SCPP65Type* psType)
 {
-	SCPP65Type*	psVolatile;
+	return psType ? Qualified(psType, psType->bConst, true) : NULL;
+}
 
-	if (!psType || psType->bVolatile || psType->IsFunction() || psType->IsReference())
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class type's size, once it is laid out: its const and volatile copies
+// (made when it was named, perhaps before) get it too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Types::SetClassBytes(SCPP65Type* psType, int iBytes)
+{
+	SCPP65Type**	ppsQualified;
+	int				iQualifiers;
+
+	psType = psType->psUnqualified;
+	psType->iBytes = iBytes;
+	for (iQualifiers = 1; iQualifiers < 4; iQualifiers++)
 	{
-		return psType;
+		ppsQualified = mcQualified.Get(QualifiedKey(psType, (iQualifiers & 1) != 0, (iQualifiers & 2) != 0));
+		if (ppsQualified)
+		{
+			(*ppsQualified)->iBytes = iBytes;
+		}
 	}
-	psVolatile = GetMapped(&mcVolatiles, psType);
-	if (psVolatile)
-	{
-		return psVolatile;
-	}
-	psVolatile = NewType(psType->eKind, psType->iBytes);
-	*psVolatile = *psType;
-	psVolatile->papsParameters = NULL;
-	psVolatile->bVolatile = true;
-	psVolatile->psUnqualified = psType;
-	AddType(psVolatile);
-	mcVolatiles.Put(GetPointerKey(psType), &psVolatile);
-	return psVolatile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The key of the qualified copy of psUnqualified (QualifiedKey's two bits
+// below the pointer, which types are aligned to more than).
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPP65Types::QualifiedKey(SCPP65Type* psUnqualified, bool bConst, bool bVolatile)
+{
+	return ((int64)(size)psUnqualified << 2) | (bConst ? 1 : 0) | (bVolatile ? 2 : 0);
 }
 
 

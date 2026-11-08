@@ -2052,7 +2052,7 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		psClass->bEmpty &= psClass->macBases.Get(i)->psClass->bEmpty;
 	}
 	psClass->iAlign = iAlign;
-	psClass->psType->iBytes = (iBytes > 0) ? iBytes : 1;
+	mcTypes.SetClassBytes(psClass->psType, (iBytes > 0) ? iBytes : 1);
 	psClass->bComplete = true;
 	psClass->bLayingOut = false;
 

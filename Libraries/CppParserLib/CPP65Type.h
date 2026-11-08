@@ -63,8 +63,9 @@ struct SCPP65Type
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
+	bool			bConst;			//const T: a copy of psUnqualified that can't be written through.
 	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
-	SCPP65Type*		psUnqualified;	//The type without volatile (itself when it isn't volatile).
+	SCPP65Type*		psUnqualified;	//The type without const and volatile (itself when it is neither).
 	SCPP65Type*		psNextSameBase;	//The next type made of its kind and base (CCPP65Types::mcByBase), NULL if none.
 	SCPP65Type*		psNextSameSignature;	//A function type: the next made with its signature's hash (CCPP65Types::mcFunctions).
 
@@ -109,7 +110,7 @@ protected:
 	CMapLongTemplate<SCPP65TypeChain>	mcFunctions;	//The function types made with a signature's hash (Function).
 	CMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its SCPP65Class.
 	CMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
-	CMapLongTemplate<SCPP65Type*>		mcVolatiles;	//A type's volatile copy, by the type.
+	CMapLongTemplate<SCPP65Type*>		mcQualified;	//A type's const and volatile copies, by the unqualified type and the qualifiers (QualifiedKey).
 	int									miPointerBytes;	//The target's pointers, references and pointers to members.
 
 public:
@@ -145,7 +146,10 @@ public:
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);
 	SCPP65Type*			Class(SCPP65Class* psClass);
+	SCPP65Type*			Qualified(SCPP65Type* psType, bool bConst, bool bVolatile);
+	SCPP65Type*			Const(SCPP65Type* psType);
 	SCPP65Type*			Volatile(SCPP65Type* psType);
+	void				SetClassBytes(SCPP65Type* psType, int iBytes);
 	SCPP65Type*			Promote(SCPP65Type* psType);
 	SCPP65Type*			Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
 	SCPP65Type*			FloatArithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
@@ -159,6 +163,7 @@ protected:
 	void				AddType(SCPP65Type* psType);
 	static int64		GetBaseKey(ECPP65TypeKind eKind, SCPP65Type* psBase);
 	static int64		GetPointerKey(void* pv);
+	static int64		QualifiedKey(SCPP65Type* psUnqualified, bool bConst, bool bVolatile);
 	static uint64		HashStructure(SCPP65Type* psType);
 	static void			AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext);
 	static SCPP65Type*	GetMapped(CMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey);

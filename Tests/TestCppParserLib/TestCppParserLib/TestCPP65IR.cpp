@@ -893,6 +893,25 @@ void TestCPP65IRAnonymousLocals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// const S named before S is defined (a parameter of a declaration): the
+// const type has S's size once S is laid out, so an array of it is laid
+// out by it (CCPP65Types::SetClassBytes).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRConstClassSize(void)
+{
+	AssertInt(3 * 100 + 4 * 10 + 8, TestCPP65IRMain(
+		"struct S;\n"
+		"int First(const S* ps);\n"
+		"struct S { int a; int b; };\n"
+		"const S gas[] = { { 1, 2 }, { 3, 4 } };\n"
+		"int First(const S* ps) { return ps->a; }\n"
+		"int main() { return First(&gas[1]) * 100 + gas[1].b * 10 + (int)sizeof(gas[0]); }\n", 3));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -927,6 +946,7 @@ void TestCPP65IR(void)
 	TestCPP65IRMemberTemplateDefinedLater();
 	TestCPP65IRSharedDivides();
 	TestCPP65IRAnonymousLocals();
+	TestCPP65IRConstClassSize();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

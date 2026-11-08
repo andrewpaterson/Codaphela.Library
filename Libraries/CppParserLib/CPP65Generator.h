@@ -563,7 +563,7 @@ protected:
 	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
-	bool					IsVolatilePointer(CCPPSyntaxPointerOperator* pcPointer);
+	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions, bool bBss = false);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
 	void					AppendSpace(int iBytes);
