@@ -1527,6 +1527,125 @@ static void TestFast65C816BreakpointSwitch(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The WDMs a signal callback saw: the signature byte before PC and the
+// cycles counted when each was signalled.
+//
+//////////////////////////////////////////////////////////////////////////
+#define TEST_FAST_65C816_MAX_WDMS	4
+
+struct STestFast65C816WDMContext
+{
+	CFast65C816*	pcFast;
+	uint8*			puiMemory;
+	size			uiNumWDMs;
+	uint8			auiSignatures[TEST_FAST_65C816_MAX_WDMS];
+	uint64			auiCycles[TEST_FAST_65C816_MAX_WDMS];
+};
+
+
+static uint8 TestFast65C816WDMRead(void* pvContext, uint32 uiAddress)
+{
+	return 0xFF;
+}
+
+
+static void TestFast65C816WDMWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+{
+}
+
+
+static void TestFast65C816WDMSignal(void* pvContext, uint8 uiSignal)
+{
+	STestFast65C816WDMContext*	psContext;
+
+	psContext = (STestFast65C816WDMContext*)pvContext;
+	if ((uiSignal == FAST_65C816_SIGNAL_WDM) && (psContext->uiNumWDMs < TEST_FAST_65C816_MAX_WDMS))
+	{
+		psContext->auiSignatures[psContext->uiNumWDMs] = psContext->puiMemory[psContext->pcFast->GetProgramCounter() - 1];
+		psContext->auiCycles[psContext->uiNumWDMs] = psContext->pcFast->NumCycles();
+		psContext->uiNumWDMs++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs the WDM program from $1000 to its STP, Stepping or Running, with or
+// without the signal callback.  The cycles it took.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint64 TestFast65C816WDMRun(CFast65C816* pcFast, bool bStep, bool bSignal)
+{
+	uint64	uiStart;
+	int		i;
+
+	pcFast->SetSignal(bSignal ? TestFast65C816WDMSignal : NULL);
+	pcFast->Reset();
+	pcFast->TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
+	pcFast->TestSetS(0x1F0);
+	pcFast->TestSetProgramCounter(0, 0x1000);
+	uiStart = pcFast->NumCycles();
+	if (bStep)
+	{
+		for (i = 0; (i < 100) && !pcFast->IsStopped(); i++)
+		{
+			pcFast->Step();
+		}
+	}
+	else
+	{
+		pcFast->Run(100);
+	}
+	AssertTrue(pcFast->IsStopped());
+	return pcFast->NumCycles() - uiStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// WDM is a two byte no-op that signals FAST_65C816_SIGNAL_WDM once it has
+// run, with PC just past its signature byte, Stepped or Run.  It takes
+// the same cycles with and without anyone listening.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816WDM(void)
+{
+	uint8*						puiMemory;
+	STestFast65C816WDMContext	sContext;
+	CFast65C816					cFast;
+	uint64						uiQuietCycles;
+	int							iStep;
+	static uint8				auiWDM[] = {
+		0x42, 0xD6,			//$1000 WDM #$D6
+		0xEA,				//$1002 NOP
+		0x42, 0x00,			//$1003 WDM #$00
+		0xDB };				//$1005 STP
+
+	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	memcpy(&puiMemory[0x1000], auiWDM, sizeof(auiWDM));
+	sContext.pcFast = &cFast;
+	sContext.puiMemory = puiMemory;
+	cFast.Init(TestFast65C816WDMRead, TestFast65C816WDMWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+
+	for (iStep = 0; iStep < 2; iStep++)
+	{
+		uiQuietCycles = TestFast65C816WDMRun(&cFast, iStep == 1, false);
+		sContext.uiNumWDMs = 0;
+		AssertLong(uiQuietCycles, TestFast65C816WDMRun(&cFast, iStep == 1, true));
+		AssertSize(2, sContext.uiNumWDMs);
+		AssertInt(0xD6, sContext.auiSignatures[0]);
+		AssertInt(0x00, sContext.auiSignatures[1]);
+		AssertTrue(sContext.auiCycles[1] > sContext.auiCycles[0]);
+	}
+
+	cFast.Kill();
+	free(puiMemory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFast65C816(void)
@@ -1554,6 +1673,7 @@ void TestFast65C816(void)
 	TestFast65C816BreakpointRun();
 	TestFast65C816BreakpointBlockMove();
 	TestFast65C816BreakpointSwitch();
+	TestFast65C816WDM();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 

@@ -1926,9 +1926,13 @@ FORCE_INLINE void CFast65C816::Execute(void)
 	case 0xB8:	muiCycles++;	muiP &= ~FAST_816_V;	break;
 	case 0xEA:	muiCycles++;							break;
 	case 0x42:
-		//WDM skips its signature byte without reading it.
+		//WDM skips its signature byte without reading it.  A computer that gives WDM a meaning finds the byte before PC.
 		muiCycles++;
 		muiPC++;
+		if (mfSignal)
+		{
+			mfSignal(mpvContext, FAST_65C816_SIGNAL_WDM);
+		}
 		break;
 
 	case 0xC2:

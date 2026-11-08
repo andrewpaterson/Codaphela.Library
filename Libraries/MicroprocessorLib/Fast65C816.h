@@ -45,6 +45,7 @@ typedef void(*CFast65C816Signal)(void* pvContext, uint8 uiSignal);
 #define FAST_65C816_SIGNAL_VECTOR_PULL	0	//VPB is about to go low: an interrupt, BRK, COP or reset vector is read next.
 #define FAST_65C816_SIGNAL_RTI			1	//An RTI opcode has been fetched; its pulls come next.
 #define FAST_65C816_SIGNAL_NATIVE		2	//XCE has just cleared E.
+#define FAST_65C816_SIGNAL_WDM			3	//WDM has run (a no-op): its signature byte is the one before PC.
 
 
 //An instruction level W65C816S.  It does what CW65C816 does an instruction at a time, without pins, bus
