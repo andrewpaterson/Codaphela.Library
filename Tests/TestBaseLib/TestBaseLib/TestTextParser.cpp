@@ -289,6 +289,84 @@ void TestTextParserGetFloatLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE TextParserGetFloatWithExponent(char* szText, float64* pf)
+{
+	CTextParser cTextParser;
+	TRISTATE	tResult;
+
+	cTextParser.Init(szText);
+	tResult = cTextParser.GetFloatWithExponent(pf);
+	cTextParser.Kill();
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextParserGetFloatWithExponent(void)
+{
+	float64		f;
+	float32		f32;
+	CTextParser cTextParser;
+
+	//No exponent is the same as GetFloat.
+	AssertTritrue(TextParserGetFloatWithExponent("1.5", &f));
+	AssertDouble(1.5, f, 10);
+	AssertTritrue(TextParserGetFloatWithExponent("-42", &f));
+	AssertDouble(-42.0, f, 10);
+	AssertTritrue(TextParserGetFloatWithExponent("  .5", &f));
+	AssertDouble(0.5, f, 10);
+
+	AssertTritrue(TextParserGetFloatWithExponent("1e5", &f));
+	AssertDouble(100000.0, f, 10);
+	AssertTritrue(TextParserGetFloatWithExponent("1.5e-3", &f));
+	AssertDouble(0.0015, f, 10);
+	AssertTritrue(TextParserGetFloatWithExponent("-9.4382988e-05", &f));
+	AssertDouble(-0.000094382988, f, 10);
+	AssertTrue(f < 0.0);
+	AssertTritrue(TextParserGetFloatWithExponent("2.5E+2", &f));
+	AssertDouble(250.0, f, 10);
+	AssertTritrue(TextParserGetFloatWithExponent("-2.5E2", &f));
+	AssertDouble(-250.0, f, 10);
+	AssertTritrue(TextParserGetFloatWithExponent("3e0", &f));
+	AssertDouble(3.0, f, 10);
+
+	AssertTrifalse(TextParserGetFloatWithExponent("abc", &f));
+	AssertTrierror(TextParserGetFloatWithExponent("", &f));
+	AssertTrierror(TextParserGetFloatWithExponent("1.x", &f));
+	AssertTrierror(TextParserGetFloatWithExponent("1.5e", &f));
+	AssertTrierror(TextParserGetFloatWithExponent("1.5e-", &f));
+	AssertTrierror(TextParserGetFloatWithExponent("1.5east", &f));
+
+	cTextParser.Init("1.5e-3,2 e3");
+	AssertTritrue(cTextParser.GetFloatWithExponent(&f32));
+	AssertFloat(0.0015f, f32, 6);
+	AssertTritrue(cTextParser.GetExactCharacter(','));
+
+	//Whitespace ends the number.
+	AssertTritrue(cTextParser.GetFloatWithExponent(&f));
+	AssertDouble(2.0, f, 10);
+	AssertTritrue(cTextParser.GetExactCharacter('e'));
+	cTextParser.Kill();
+
+	//A malformed exponent leaves the parser at the start of the number.
+	cTextParser.Init("7e!");
+	AssertTrierror(cTextParser.GetFloatWithExponent(&f));
+	AssertTritrue(cTextParser.GetFloat(&f));
+	AssertDouble(7.0, f, 10);
+
+	//GetFloat itself still stops at an exponent.
+	AssertTritrue(cTextParser.GetExactCharacter('e'));
+	cTextParser.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE TextParserGetFloat(char* szText, float64* pf)
 {
 	CTextParser cTextParser;
@@ -468,6 +546,7 @@ void TestTextParser(void)
 	TestTextParserGetIntegerLiteral();
 	TestTextParserGetFloatLiteral();
 	TestTextParserGetFloat();
+	TestTextParserGetFloatWithExponent();
 	TestTextParserGetIdentifierWithWhitespace();
 	TestTextParserGetString();
 

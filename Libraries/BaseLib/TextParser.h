@@ -112,6 +112,8 @@ public:
 	TRISTATE		GetOctal(uint64* pulli, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetFloat(float* pf, bool bSkipWhitespace = true);
 	TRISTATE		GetFloat(double* pf, bool bSkipWhitespace = true);
+	TRISTATE		GetFloatWithExponent(float* pf, bool bSkipWhitespace = true);
+	TRISTATE		GetFloatWithExponent(double* pf, bool bSkipWhitespace = true);
 	TRISTATE		GetNumber(CNumber* pcNumber, bool bSkipWhitespace = true);
 	TRISTATE		GetNumber(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bSkipWhitespace = true);
 	TRISTATE		GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 uiAllowedSeparator, uint16* puiNumDigits, bool bSkipWhitespace);

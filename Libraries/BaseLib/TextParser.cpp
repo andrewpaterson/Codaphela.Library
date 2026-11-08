@@ -2158,6 +2158,67 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetFloatWithExponent(float* pf, bool bSkipWhitespace)
+{
+	double		d;
+	TRISTATE	t;
+
+	t = GetFloatWithExponent(&d, bSkipWhitespace);
+	if (t == TRITRUE)
+	{
+		*pf = (float)d;
+	}
+	return t;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number as GetFloat reads it, optionally followed by e or E and a signed whole number.  An e that is not followed
+// by digits is an error, as a decimal point that is not followed by digits is in GetFloat.
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetFloatWithExponent(double* pf, bool bSkipWhitespace)
+{
+	TRISTATE	tReturn;
+	uint64		ulliExponent;
+	int16		iSign;
+
+	PushPosition();
+
+	tReturn = GetFloat(pf, bSkipWhitespace);
+	if (tReturn != TRITRUE)
+	{
+		PopPosition();
+		return tReturn;
+	}
+
+	if ((!mbOutsideText) && ((mszParserPos[0] == 'e') || (mszParserPos[0] == 'E')))
+	{
+		StepRight();
+		tReturn = TRIERROR;
+		if (!mbOutsideText)
+		{
+			tReturn = GetDigits(&ulliExponent, &iSign, NULL, false, true);
+		}
+		if (tReturn != TRITRUE)
+		{
+			PopPosition();
+			SetErrorSyntaxError();
+			return TRIERROR;
+		}
+		*pf *= pow(10.0, ((double)ulliExponent) * iSign);
+	}
+
+	PassPosition();
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetNumber(CNumber* pcNumber, bool bSkipWhitespace)
 {
 	return GetNumber(pcNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS, bSkipWhitespace);
