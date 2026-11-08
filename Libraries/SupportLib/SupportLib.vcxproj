@@ -263,8 +263,6 @@
     <ClInclude Include="TextDrawable.h" />
     <ClInclude Include="TileMapPattern.h" />
     <ClInclude Include="TrackerTypes.h" />
-    <ClInclude Include="VertexArray.h" />
-    <ClInclude Include="VertexChannel.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageChannel.h" />
     <ClInclude Include="ImageCopier.h" />

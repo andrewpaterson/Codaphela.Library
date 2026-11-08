@@ -169,9 +169,6 @@
     <Filter Include="Source\Scene\Hack">
       <UniqueIdentifier>{20acef2b-0b7f-4b56-8353-cd43761baee7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Vertex">
-      <UniqueIdentifier>{d4ba6af5-fe4d-4472-b2aa-a6e97ee1061d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Image\IO\Common">
       <UniqueIdentifier>{69516bc9-34d7-4a85-8403-e4a19afc539e}</UniqueIdentifier>
     </Filter>
@@ -263,12 +260,6 @@
     </ClInclude>
     <ClInclude Include="TrackerTypes.h">
       <Filter>Source\Scene\Hack</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexArray.h">
-      <Filter>Source\Vertex</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexChannel.h">
-      <Filter>Source\Vertex</Filter>
     </ClInclude>
     <ClInclude Include="Image.h">
       <Filter>Source\Image</Filter>
