@@ -283,26 +283,16 @@ bool CObjectWriter::WriteObjectHeader(CObjectHeader* pcHeader)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectWriter::WriteIdentifier(CObjectIdentifier* pcObjectIdentifier)
 {
-	bool bResult;
-
-	bResult = WriteInt32(pcObjectIdentifier->meType);
-	ReturnOnFalse(bResult);
-
-	bResult = WriteInt32(0xffffffff);
-	ReturnOnFalse(bResult);
+	ReturnOnFalse(WriteInt32(pcObjectIdentifier->meType));
 
 	if (pcObjectIdentifier->meType != OBJECT_POINTER_NULL)
 	{
-		bResult = WriteInt64(pcObjectIdentifier->moi);
-		ReturnOnFalse(bResult);
-
-		bResult = WriteInt16(pcObjectIdentifier->muiSize);
-		ReturnOnFalse(bResult);
+		ReturnOnFalse(WriteInt64(pcObjectIdentifier->moi));
+		ReturnOnFalse(WriteInt16(pcObjectIdentifier->muiSize));
 
 		if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
 		{
-			bResult = WriteString(pcObjectIdentifier->mszObjectName.Text());
-			ReturnOnFalse(bResult);
+			ReturnOnFalse(WriteString(pcObjectIdentifier->mszObjectName.Text()));
 		}
 	}
 	return true;

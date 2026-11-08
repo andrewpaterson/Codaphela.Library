@@ -215,11 +215,8 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcObjectIdentifier)
 {
-	int32	iIgnored;
-
 	pcObjectIdentifier->Init();
 	ReturnOnFalse(ReadInt32(&pcObjectIdentifier->meType));
-	ReturnOnFalse(ReadInt32(&iIgnored));
 
 	if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
 	{

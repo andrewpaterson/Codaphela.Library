@@ -40,7 +40,6 @@ protected:
 	uint32				miLength;  //Four bytes in 32 and 64 bit builds; this class maps onto the written file data.
 	int32				miMagic;
 	int32				meType;  //See ObjectFileGeneral.h
-	uint32				miIgnored;
 
 	OIndex				moi;
 	uint16				muiSize;
