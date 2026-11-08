@@ -109,31 +109,6 @@ void CUnknown::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CUnknown::Compare(CUnknown* pcRight)
-{
-	size	iSmallest;
-
-	if (pcRight)
-	{
-		iSmallest = ClassSize();
-		if (pcRight->ClassSize() < iSmallest)
-		{
-			iSmallest = pcRight->ClassSize();
-		}
-		return memcmp(this, pcRight, iSmallest);
-	}
-	else
-	{
-		//It's not really valid to compare this with NULL but we have to return something.
-		return -1;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CUnknowns* CUnknown::GetUnknownsThisIn(void)
 {
 	return mpcUnknownsThisIn;

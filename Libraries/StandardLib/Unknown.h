@@ -42,7 +42,6 @@ public:
 	virtual bool		Load(CFileReader* pcFile);
 			void		Print(CChars* psz)  override;
 			void		Dump(void);
-	virtual int			Compare(CUnknown* pcRight);
 			CUnknowns*	GetUnknownsThisIn(void);
 			void		SetNotInUnknowns(void);
 			void		NotImplemented(const char* szMethod);
