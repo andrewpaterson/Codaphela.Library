@@ -44,6 +44,9 @@ public:
 	CPP_SYNTAX_GET_KIND(FunctionSuffix)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
+
+	size					NumParameters(void);
+	size					RequiredParameters(void);
 };
 
 

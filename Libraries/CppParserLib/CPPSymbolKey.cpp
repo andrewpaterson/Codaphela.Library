@@ -502,11 +502,6 @@ bool CCPPSymbolKey::GetParameterCounts(CCPPSymbol* pcSymbol, int* piMinimum, int
 {
 	CCPPSyntaxDeclarator*		pcDeclarator;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
-	CCPPSyntaxParameter*		pcParameter;
-	CChars						szType;
-	size						i;
-	int							iMinimum;
-	int							iCount;
 
 	pcDeclarator = GetDeclarator(pcSymbol);
 	pcSuffix = pcDeclarator ? pcDeclarator->GetFunctionSuffix() : NULL;
@@ -515,28 +510,8 @@ bool CCPPSymbolKey::GetParameterCounts(CCPPSymbol* pcSymbol, int* piMinimum, int
 		return false;
 	}
 
-	iCount = (int)pcSuffix->macpParameters.NumElements();
-	if (iCount == 1)
-	{
-		szType.Init();
-		AppendParameter((CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0), &szType);
-		if (szType.Equals("void"))
-		{
-			iCount = 0;
-		}
-		szType.Kill();
-	}
-	iMinimum = 0;
-	for (i = 0; i < (size)iCount; i++)
-	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		if (pcParameter->mpcDefault == NULL)
-		{
-			iMinimum = (int)i + 1;
-		}
-	}
-	*piMinimum = iMinimum;
-	*piMaximum = pcSuffix->mbVariadic ? -1 : iCount;
+	*piMinimum = (int)pcSuffix->RequiredParameters();
+	*piMaximum = pcSuffix->mbVariadic ? -1 : (int)pcSuffix->NumParameters();
 	return true;
 }
 

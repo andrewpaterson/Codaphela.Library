@@ -5,6 +5,7 @@
 #include "CppParserLib/CppParser.h"
 #include "CppParserLib/HeaderFileMap.h"
 #include "CppParserLib/CPP65UnitWorkspace.h"
+#include "CppParserLib/CPPSymbolKey.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/ConstructorCall.h"
 #include "TestLib/Assert.h"
@@ -143,6 +144,55 @@ int SParsedText::GetRole(char* szSpelling, int iOccurrence)
 		return -1;
 	}
 	return cTree.GetTokenSymbol(iToken)->uiRole;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many arguments a function's declaration takes (its suffix's
+// NumParameters and RequiredParameters): none for (void), not for a
+// parameter that is void (*)(void), and the parameters before the trailing
+// defaults at least.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertParameterCounts(SParsedText* psParsed, char* szName, int iMinimum, int iMaximum)
+{
+	CCPPSymbolKey	cKey;
+	int				iFoundMinimum;
+	int				iFoundMaximum;
+
+	cKey.Init(&psParsed->cTokeniser, &psParsed->cTree);
+	AssertTrue(cKey.GetParameterCounts(psParsed->GetSymbol(szName, 0), &iFoundMinimum, &iFoundMaximum));
+	AssertInt(iMinimum, iFoundMinimum);
+	AssertInt(iMaximum, iFoundMaximum);
+	cKey.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserParameterCounts(void)
+{
+	SParsedText		sParsed;
+
+	AssertTrue(sParsed.Init("\
+void None(void);\n\
+void Empty();\n\
+void Callback(void (*pf)(void));\n\
+int Defaults(int a, int b = 2, int c = 3);\n\
+int AllDefault(int a = 1);\n\
+int Print(const char* sz, ...);\n"));
+	AssertInt(0, sParsed.iErrors);
+
+	AssertParameterCounts(&sParsed, "None", 0, 0);
+	AssertParameterCounts(&sParsed, "Empty", 0, 0);
+	AssertParameterCounts(&sParsed, "Callback", 1, 1);
+	AssertParameterCounts(&sParsed, "Defaults", 1, 3);
+	AssertParameterCounts(&sParsed, "AllDefault", 0, 1);
+	AssertParameterCounts(&sParsed, "Print", 1, -1);
+	sParsed.Kill();
 }
 
 
@@ -1713,6 +1763,7 @@ void TestCppParser(void)
 	NumberInit();
 
 	TestCppParserDeclarations();
+	TestCppParserParameterCounts();
 	TestCppParserAmbiguities();
 	TestCppParserClasses();
 	TestCppParserTemplates();

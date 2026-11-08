@@ -116,3 +116,45 @@ void CCPPSyntaxFunctionSuffix::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Scope(&mpcScope);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of parameters declared: none for (void).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntaxFunctionSuffix::NumParameters(void)
+{
+	CCPPSyntaxParameter*	pcParameter;
+
+	if (macpParameters.NumElements() != 1)
+	{
+		return macpParameters.NumElements();
+	}
+	pcParameter = (CCPPSyntaxParameter*)macpParameters.GetPtr(0);
+	//(void), but not void (M::*f)(...) or void (*f)(...).
+	if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) &&
+		(!pcParameter->mpcDeclarator || ((pcParameter->mpcDeclarator->NumPointers() == 0) && !pcParameter->mpcDeclarator->mpcNested && (pcParameter->mpcDeclarator->macpSuffixes.NumElements() == 0))))
+	{
+		return 0;
+	}
+	return 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of parameters a call must give: those before the trailing
+// ones with defaults.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntaxFunctionSuffix::RequiredParameters(void)
+{
+	size	uiRequired;
+
+	uiRequired = NumParameters();
+	while ((uiRequired > 0) && ((CCPPSyntaxParameter*)macpParameters.GetPtr(uiRequired - 1))->mpcDefault)
+	{
+		uiRequired--;
+	}
+	return uiRequired;
+}

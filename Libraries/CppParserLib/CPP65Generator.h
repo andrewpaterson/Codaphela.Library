@@ -634,7 +634,6 @@ protected:
 	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);
 	bool					IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSyntax* pcNode);
-	size					NumParameters(CCPPSyntaxFunctionSuffix* pcSuffix);
 	SCPP65Bindings*			RenameBindings(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	SCPP65Bindings*			NewBindings(void);
 	CArrayCPP65Types*		NewPack(void);

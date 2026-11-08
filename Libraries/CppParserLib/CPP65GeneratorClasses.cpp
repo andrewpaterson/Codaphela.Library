@@ -2170,12 +2170,8 @@ bool CCPP65Generator::TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size ui
 	size					uiParameters;
 	size					uiRequired;
 
-	uiParameters = NumParameters(pcSuffix);
-	uiRequired = uiParameters;
-	while ((uiRequired > 0) && ((CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(uiRequired - 1))->mpcDefault)
-	{
-		uiRequired--;
-	}
+	uiParameters = pcSuffix->NumParameters();
+	uiRequired = pcSuffix->RequiredParameters();
 	pcLast = (uiParameters > 0) ? (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(uiParameters - 1) : NULL;
 	if (pcLast && pcLast->mpcDeclarator && pcLast->mpcDeclarator->mbPack)
 	{
@@ -2516,34 +2512,6 @@ bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* pa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The number of parameters a function suffix declares: none for (void).
-//
-//////////////////////////////////////////////////////////////////////////
-size CCPP65Generator::NumParameters(CCPPSyntaxFunctionSuffix* pcSuffix)
-{
-	CCPPSyntaxParameter*	pcParameter;
-	size					uiParameters;
-
-	if (!pcSuffix)
-	{
-		return 0;
-	}
-	uiParameters = pcSuffix->macpParameters.NumElements();
-	if (uiParameters == 1)
-	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0);
-		//(void), but not void (M::*f)(...) or void (*f)(...).
-		if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) && (!pcParameter->mpcDeclarator || ((pcParameter->mpcDeclarator->NumPointers() == 0) && !pcParameter->mpcDeclarator->mpcNested && (pcParameter->mpcDeclarator->macpSuffixes.NumElements() == 0))))
-		{
-			uiParameters = 0;
-		}
-	}
-	return uiParameters;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // using Base::f; in a class makes Base's functions named f overloads of the class's
 // own.  using Base::Base; inherits Base's constructors (see InheritConstructors).
 // Other using declarations (of types) are left out.
@@ -2772,7 +2740,7 @@ bool CCPP65Generator::DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSynta
 			continue;
 		}
 		pcOutsideSuffix = ((CCPPSyntaxFunctionDefinition*)psOutside->pcDefinition)->mpcDeclarator->GetFunctionSuffix();
-		if (NumParameters(pcOutsideSuffix) != NumParameters(pcSuffix))
+		if ((pcOutsideSuffix ? pcOutsideSuffix->NumParameters() : 0) != (pcSuffix ? pcSuffix->NumParameters() : 0))
 		{
 			continue;
 		}
