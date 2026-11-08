@@ -10,7 +10,9 @@
 #include "BaseLib/LifeCycle.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/MemoryFile.h"
+#include "StandardLib/DependentWriteObject.h"
 #include "StandardLib/HollowObject.h"
+#include "StandardLib/ObjectFileGeneral.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/Objects.h"
@@ -832,6 +834,55 @@ void TestObjectsWalkStampWrap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The magic values files already hold: changing one means old files can't
+// be read.  They are the same on every compiler and target.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertObjectFileMagic(const char* szExpected, int32 iMagic)
+{
+	AssertTrue(memcmp(szExpected, &iMagic, 4) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsFileMagic(void)
+{
+	AssertObjectFileMagic("BAS", BASIC_OBJECT_FILE);
+	AssertObjectFileMagic("CHK", CHUNKED_OBJECT_FILE);
+	AssertObjectFileMagic("DAT", OBJECT_DATA);
+	AssertObjectFileMagic("HEA", OBJECT_FROM_HEAP);
+	AssertObjectFileMagic("NUL", OBJECT_POINTER_NULL);
+	AssertObjectFileMagic("IDX", OBJECT_POINTER_ID);
+	AssertObjectFileMagic("NAM", OBJECT_POINTER_NAMED);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Dependent objects sort by the object they are for.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsDependentWriteObjectCompare(void)
+{
+	CBaseObject*			apcObjects[2];
+	CDependentWriteObject	cFirst;
+	CDependentWriteObject	cSecond;
+
+	cFirst.Init((CBaseObject*)&apcObjects[0], false);
+	cSecond.Init((CBaseObject*)&apcObjects[1], true);
+	AssertTrue(CompareDependentWriteObject(&cFirst, &cSecond) < 0);
+	AssertTrue(CompareDependentWriteObject(&cSecond, &cFirst) > 0);
+
+	cSecond.Init((CBaseObject*)&apcObjects[0], true);
+	AssertInt(0, CompareDependentWriteObject(&cFirst, &cSecond));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the three callbacks saw last, and how many times they were called.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1332,6 +1383,8 @@ void TestObjects(void)
 	TestObjectsMallocArgumentsValues();
 	TestObjectsLifeAllocArgumentsNotCopied();
 	TestObjectsWriteAndReadFailuresNameTheObject();
+	TestObjectsFileMagic();
+	TestObjectsDependentWriteObjectCompare();
 	TestObjectsCallbacks();
 	TestObjectsValidateEmpty();
 

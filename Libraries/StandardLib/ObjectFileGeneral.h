@@ -20,20 +20,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_FILE_GENERAL__
 #define __OBJECT_FILE_GENERAL__
+#include "BaseLib/PrimitiveTypes.h"
 
 
 #define OBJECT_FILE_EXTENSION	"DRG"
 
-//Magic file values.
-#define BASIC_OBJECT_FILE		'\0SAB'
-#define CHUNKED_OBJECT_FILE		'\0KHC'
+//Magic file values: three characters and a zero in a file, as a little endian int32 of them.  A multi-character constant's
+//value is up to the compiler.  The shifts are of an int32 as an int can be 16 bits.
+#define OBJECT_FILE_MAGIC(a, b, c)	((int32)(a) | ((int32)(b) << 8) | ((int32)(c) << 16))
 
-#define OBJECT_DATA				'\0TAD'
-#define OBJECT_FROM_HEAP		'\0AEH'
+#define BASIC_OBJECT_FILE		OBJECT_FILE_MAGIC('B', 'A', 'S')
+#define CHUNKED_OBJECT_FILE		OBJECT_FILE_MAGIC('C', 'H', 'K')
 
-#define OBJECT_POINTER_NULL		'\0LUN'
-#define OBJECT_POINTER_ID		'\0XDI'
-#define OBJECT_POINTER_NAMED	'\0MAN'
+#define OBJECT_DATA				OBJECT_FILE_MAGIC('D', 'A', 'T')
+#define OBJECT_FROM_HEAP		OBJECT_FILE_MAGIC('H', 'E', 'A')
+
+#define OBJECT_POINTER_NULL		OBJECT_FILE_MAGIC('N', 'U', 'L')
+#define OBJECT_POINTER_ID		OBJECT_FILE_MAGIC('I', 'D', 'X')
+#define OBJECT_POINTER_NAMED	OBJECT_FILE_MAGIC('N', 'A', 'M')
 
 #define OBJECT_UNNAMED_FILE		"Unnamed"
 

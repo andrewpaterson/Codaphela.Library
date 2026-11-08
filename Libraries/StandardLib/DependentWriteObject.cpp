@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/PointerFunctions.h"
 #include "DependentWriteObject.h"
 
 
@@ -43,18 +44,6 @@ int CompareDependentWriteObject(const void* ps1, const void* ps2)
 
 	psObj1 = (CDependentWriteObject*)ps1;
 	psObj2 = (CDependentWriteObject*)ps2;
-
-	if (psObj1->mpcObject < psObj2->mpcObject)
-	{
-		return -1;
-	}
-	else if (psObj1->mpcObject > psObj2->mpcObject)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	return ComparePtr(psObj1->mpcObject, psObj2->mpcObject);
 }
 
