@@ -6,6 +6,7 @@
 #include "CppParserLib/IRParser.h"
 #include "CppParserLib/IRVerifier.h"
 #include "CppParserLib/IR65Backend.h"
+#include "CppParserLib/IR65BackendInternal.h"
 #include "CppParserLib/IR65Flags.h"
 #include "CppParserLib/IR65Peephole.h"
 #include "CppParserLib/IR65Widths.h"
@@ -1826,6 +1827,29 @@ void TestIR65BackendPeepholeJumps(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The mnemonic of each integer opcode.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendMnemonics(void)
+{
+	AssertString("add", IR65IntegerMnemonic(IRO_Add));
+	AssertString("add", IR65IntegerMnemonic(IRO_PtrAdd));
+	AssertString("sub", IR65IntegerMnemonic(IRO_Sub));
+	AssertString("and", IR65IntegerMnemonic(IRO_And));
+	AssertString("or", IR65IntegerMnemonic(IRO_Or));
+	AssertString("xor", IR65IntegerMnemonic(IRO_Xor));
+	AssertString("xor", IR65IntegerMnemonic(IRO_Not));
+	AssertString("shl", IR65IntegerMnemonic(IRO_Shl));
+	AssertString("shr", IR65IntegerMnemonic(IRO_LShr));
+	AssertString("neg", IR65IntegerMnemonic(IRO_Neg));
+	AssertTrue(IR65IntegerMnemonic(IRO_AShr) == NULL);
+	AssertTrue(IR65IntegerMnemonic(IRO_Mul) == NULL);
+	AssertTrue(IR65IntegerMnemonic(IRO_Call) == NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR65Backend(void)
@@ -1837,6 +1861,7 @@ void TestIR65Backend(void)
 	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
+	TestIR65BackendMnemonics();
 	TestIR65BackendReturn();
 	TestIR65BackendLoop();
 	TestIR65BackendSwap();

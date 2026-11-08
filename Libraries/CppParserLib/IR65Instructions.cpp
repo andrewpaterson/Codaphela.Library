@@ -101,6 +101,40 @@ uint8 IR65OpcodeFlags(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The mnemonic an integer opcode is written with; NULL if none is.  not is an
+// xor (with -1), and ptradd an add.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* IR65IntegerMnemonic(uint16 uiOpcode)
+{
+	switch (uiOpcode)
+	{
+	case IRO_Add:
+	case IRO_PtrAdd:
+		return "add";
+	case IRO_Sub:
+		return "sub";
+	case IRO_And:
+		return "and";
+	case IRO_Or:
+		return "or";
+	case IRO_Xor:
+	case IRO_Not:
+		return "xor";
+	case IRO_Shl:
+		return "shl";
+	case IRO_LShr:
+		return "shr";
+	case IRO_Neg:
+		return "neg";
+	default:
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
@@ -248,7 +282,6 @@ bool CIR65Backend::ReadModifyWrite(SIRInstruction* psInstruction, SIRInstruction
 	char			cRegister;
 	bool			bShift;
 	bool			bResult;
-	CChars*			psz;
 
 	switch (psInstruction->uiOpcode)
 	{
@@ -312,17 +345,7 @@ bool CIR65Backend::ReadModifyWrite(SIRInstruction* psInstruction, SIRInstruction
 	}
 	if (bResult)
 	{
-		switch (psInstruction->uiOpcode)
-		{
-		case IRO_Add:	psz = Line("add ");	break;
-		case IRO_Sub:	psz = Line("sub ");	break;
-		case IRO_And:	psz = Line("and ");	break;
-		case IRO_Or:	psz = Line("or ");	break;
-		case IRO_Xor:	psz = Line("xor ");	break;
-		case IRO_Shl:	psz = Line("shl ");	break;
-		default:		psz = Line("shr ");	break;
-		}
-		psz->Append(szAddress)->Append(", ")->Append(szOperand)->AppendNewLine();
+		Line(IR65IntegerMnemonic(psInstruction->uiOpcode))->Append(' ')->Append(szAddress)->Append(", ")->Append(szOperand)->AppendNewLine();
 		msInA = msAvailable;
 	}
 	szAddress.Kill();
@@ -365,38 +388,7 @@ bool CIR65Backend::Integer(SIRInstruction* psInstruction)
 	sResult = psInstruction->sResult;
 	bShift = (uiOpcode == IRO_Shl) || (uiOpcode == IRO_LShr);
 	bArithmetic = (uiOpcode == IRO_Add) || (uiOpcode == IRO_Sub) || (uiOpcode == IRO_PtrAdd) || bShift;
-	switch (uiOpcode)
-	{
-	case IRO_Add:
-	case IRO_PtrAdd:
-		szOperation = "add ";
-		break;
-	case IRO_Sub:
-		szOperation = "sub ";
-		break;
-	case IRO_And:
-		szOperation = "and ";
-		break;
-	case IRO_Or:
-		szOperation = "or ";
-		break;
-	case IRO_Xor:
-	case IRO_Not:
-		szOperation = "xor ";
-		break;
-	case IRO_Shl:
-		szOperation = "shl ";
-		break;
-	case IRO_LShr:
-		szOperation = "shr ";
-		break;
-	case IRO_Neg:
-		szOperation = "neg ";
-		break;
-	default:
-		szOperation = NULL;
-		break;
-	}
+	szOperation = IR65IntegerMnemonic(uiOpcode);
 
 	//Where the first operand is kept already (or the second, if they swap).
 	if (Commutes(uiOpcode) && SamePlace(sRight, sResult) && !SamePlace(sLeft, sResult))
@@ -434,7 +426,7 @@ bool CIR65Backend::Integer(SIRInstruction* psInstruction)
 					szOperand.Clear();
 					szOperand.Append('B');
 				}
-				Line(szOperation)->Append(RegisterName(psResult))->Append(", ")->Append(szOperand)->AppendNewLine();
+				Line(szOperation)->Append(' ')->Append(RegisterName(psResult))->Append(", ")->Append(szOperand)->AppendNewLine();
 				szOperand.Kill();
 				return true;
 			}
@@ -460,7 +452,7 @@ bool CIR65Backend::Integer(SIRInstruction* psInstruction)
 			}
 			if (!szOperand.Empty())
 			{
-				psz = Line(szOperation);
+				psz = Line(szOperation)->Append(' ');
 				AppendPlace(psz, psResult);
 				psz->Append(", ")->Append(szOperand)->AppendNewLine();
 				szOperand.Kill();
@@ -492,7 +484,7 @@ bool CIR65Backend::Integer(SIRInstruction* psInstruction)
 		{
 			//x - A is -A + x.
 			Line("neg A, A")->AppendNewLine();
-			szOperation = "add ";
+			szOperation = "add";
 		}
 		else
 		{
@@ -529,7 +521,7 @@ bool CIR65Backend::Integer(SIRInstruction* psInstruction)
 	}
 	else if (szOperation)
 	{
-		Line(szOperation)->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
+		Line(szOperation)->Append(' ')->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
 	}
 	szOperand.Kill();
 	if (StringCompare(szWork, "A") == 0)
@@ -549,49 +541,24 @@ bool CIR65Backend::Integer(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IntegerWide(SIRInstruction* psInstruction)
 {
-	const char*	szInstruction;
+	const char*	szMnemonic;
 
 	LoadOperands(psInstruction, IR65E_Zero, true);
 	Line("wtth (A, B), 64")->AppendNewLine();
-	switch (psInstruction->uiOpcode)
+	if (psInstruction->uiOpcode == IRO_Neg)
 	{
-	case IRO_Add:
-	case IRO_PtrAdd:
-		szInstruction = "add A, ";
-		break;
-	case IRO_Sub:
-		szInstruction = "sub A, ";
-		break;
-	case IRO_And:
-		szInstruction = "and A, ";
-		break;
-	case IRO_Or:
-		szInstruction = "or A, ";
-		break;
-	case IRO_Xor:
-		szInstruction = "xor A, ";
-		break;
-	case IRO_Shl:
-		szInstruction = "shl A, ";
-		break;
-	case IRO_LShr:
-		szInstruction = "shr A, ";
-		break;
-	case IRO_Neg:
-		szInstruction = "neg A, A";
-		break;
-	case IRO_Not:
-		szInstruction = "xor A, -1";
-		break;
-	default:
-		szInstruction = NULL;
-		break;
+		Line("neg A, A")->AppendNewLine();
 	}
-	if (szInstruction)
+	else if (psInstruction->uiOpcode == IRO_Not)
 	{
-		Line(szInstruction);
-		if (szInstruction[StrLen(szInstruction) - 1] == ' ')
+		Line("xor A, -1")->AppendNewLine();
+	}
+	else
+	{
+		szMnemonic = IR65IntegerMnemonic(psInstruction->uiOpcode);
+		if (szMnemonic)
 		{
+			Line(szMnemonic)->Append(" A, ");
 			if (mbRightImmediate)
 			{
 				AppendImmediate(mpszOut, psInstruction->asArguments[1], IR65E_Zero);
@@ -600,8 +567,8 @@ bool CIR65Backend::IntegerWide(SIRInstruction* psInstruction)
 			{
 				mpszOut->Append('B');
 			}
+			mpszOut->AppendNewLine();
 		}
-		mpszOut->AppendNewLine();
 	}
 	Line("wtth (A, B), 32")->AppendNewLine();
 	msAvailable = IRNone();
