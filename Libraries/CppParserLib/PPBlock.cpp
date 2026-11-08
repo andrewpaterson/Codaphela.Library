@@ -75,23 +75,6 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPBlock::Equals(CPPToken* pcOther)
-{
-	if (pcOther->IsBlock())
-	{
-		if (CPPTokenListHolder::Equals(pcOther))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CPPBlock::SetNext(size iTokenIndex, size iBlockIndex)
 {
 	msNext.Init(iTokenIndex, iBlockIndex);
@@ -128,4 +111,3 @@ SPPTokenBlockIndex CPPBlock::GetNextTokenBlock(void)
 {
 	return msNext;
 }
-

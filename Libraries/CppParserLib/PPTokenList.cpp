@@ -120,40 +120,6 @@ char* CPPTokenList::Print(CChars* psz, bool bShowFileAndLine)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPPTokenList::Equals(CPPTokenList* pcOther)
-{
-	size		i;
-	CPPToken*	pcThisToken;
-	CPPToken*	pcOtherToken;
-	bool		bAnyFailed;
-
-	if (mcArray.NumElements() == pcOther->mcArray.NumElements())
-	{
-		bAnyFailed = false;
-		for (i = 0; i < mcArray.NumElements(); i++)
-		{
-			pcThisToken = *mcArray.Get(i);
-			pcOtherToken = *pcOther->mcArray.Get(i);
-
-			if (!pcThisToken->Equals(pcOtherToken))
-			{
-				bAnyFailed = true;
-				break;
-			}
-		}
-		if (!bAnyFailed)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CPPTokenList::SavageAppend(CChars* psz, size iDepth)
 {
 	CPPToken*			pcToken;
@@ -223,4 +189,3 @@ size CPPTokenList::NumTokens(void)
 {
 	return mcArray.NumElements();
 }
-

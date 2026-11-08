@@ -58,7 +58,6 @@ public:
 	void 			AddArgument(CExternalString* pcName);
 	void			SetVariadic(void);
 	void 			AddReplacementToken(CPPToken* pcToken);
-	bool 			Equals(CDefine* pcOther);
 	char*			GetName(void);
 	size			GetNameLength(void);
 	uint32			GetNameHash(void);

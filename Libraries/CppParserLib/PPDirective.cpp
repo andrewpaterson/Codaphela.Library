@@ -174,23 +174,7 @@ bool CPPDirective::IsConditional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPDirective::Equals(CPPToken* pcOther)
-{
-	//Another directive of the same kind with the same tokens (a line, with the same tokens, isn't).
-	if (pcOther->IsDirective() && (((CPPDirective*)pcOther)->meType == meType))
-	{
-		return CPPTokenListHolder::Equals(pcOther);
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CPPDirective::NeedsNewLine(void)
 {
 	return true;
 }
-

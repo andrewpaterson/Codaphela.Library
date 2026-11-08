@@ -127,24 +127,6 @@ CPPToken* CPPTokenListHolder::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPTokenListHolder::Equals(CPPToken* pcOther)
-{
-	CPPTokenListHolder*	pcCast;	
-
-	if (pcOther->IsTokenListHolder())
-	{
-		pcCast = (CPPTokenListHolder*)pcOther;
-
-		return mcTokens.Equals(&pcCast->mcTokens);
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CPPTokenListHolder::IsEmpty(void)
 {
 	int			i;
@@ -188,4 +170,3 @@ void CPPTokenListHolder::Fake(CPPTokenList* pcTokens)
 	Set(-1, -1);
 	memcpy(&mcTokens, pcTokens, sizeof(CPPTokenList));
 }
-

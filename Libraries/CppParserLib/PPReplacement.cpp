@@ -101,27 +101,6 @@ void CPPReplacement::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPReplacement::Equals(CPPToken* pcOther)
-{
-	CPPReplacement*	pcCast;	
-
-	if (pcOther->IsReplacement())
-	{
-		pcCast = (CPPReplacement*)pcOther;
-		//The same argument of the define (the define is the same one wherever the replacements are compared).
-		if (miArgIndex == pcCast->miArgIndex)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CPPReplacement::IsEmpty(void)
 {
 	return false;
@@ -136,4 +115,3 @@ bool CPPReplacement::IsVariadic(void)
 {
 	return mbVariadic;
 }
-

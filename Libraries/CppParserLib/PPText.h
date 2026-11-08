@@ -49,7 +49,6 @@ public:
 	char* 			Print(CChars* psz);
 	void 			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	virtual bool	HasSource(void);
-	bool			Equals(CPPToken* pcOther);
 	virtual	const char*	TextStart(void);
 	virtual	const char*	TextEndInclusive(void);
 	bool			IsEmpty(void);

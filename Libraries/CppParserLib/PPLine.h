@@ -33,7 +33,6 @@ public:
 	void	Kill(void);
 	bool	IsLine(void);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	bool	Equals(CPPToken* pcOther);
 	bool	NeedsNewLine(void);
 };
 

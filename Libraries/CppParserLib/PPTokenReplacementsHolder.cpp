@@ -52,19 +52,3 @@ void CPPTokenReplacementsHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcToke
 		CPPTokenListHolder::Copy((CPPTokenListHolder*)pcSource, pcTokens);
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CPPTokenReplacementsHolder::Equals(CPPToken* pcOther)
-{
-	if (pcOther->IsTokenReplacementsHolder())
-	{
-		return CPPTokenListHolder::Equals(pcOther);
-	}
-	return false;
-}
-
-

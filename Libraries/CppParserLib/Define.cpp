@@ -314,26 +314,6 @@ void CDefine::SetBracketed(bool b)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::Equals(CDefine* pcOther)
-{
-	if (pcOther)
-	{
-		if (IsBracketed() == pcOther->IsBracketed())
-		{
-			if (mcReplacement.Equals(&pcOther->mcReplacement))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 char* CDefine::GetName(void)
 {
 	return mszName.Text();

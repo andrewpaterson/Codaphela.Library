@@ -64,7 +64,6 @@ public:
 			void			Set(int iLine, int iColumn);
 	virtual char*			Print(CChars* psz) =0;
 	virtual void			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens) =0;
-	virtual bool			Equals(CPPToken* pcOther) =0;
 	virtual void			Use(void);
 			void			Unuse(void);
 

@@ -38,7 +38,6 @@ public:
 	void 				Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);
-	bool				Equals(CPPToken* pcOther);
 	bool				IsEmpty(void);
 	CPPTokenList*		GetTokenList(void);
 

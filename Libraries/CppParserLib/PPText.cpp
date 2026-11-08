@@ -142,29 +142,6 @@ bool CPPText::HasSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPText::Equals(CPPToken* pcOther)
-{
-	CPPText*	pcCast;	
-
-	if (pcOther->IsText())
-	{
-		pcCast = (CPPText*)pcOther;
-		if (meType == pcCast->meType)
-		{
-			if (mcText.Equals(&pcCast->mcText))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 const char* CPPText::TextStart(void)
 {
 	return mcText.msz;
@@ -199,4 +176,3 @@ int CPPText::Length(void)
 {
 	return (int)mcText.miLen;
 }
-

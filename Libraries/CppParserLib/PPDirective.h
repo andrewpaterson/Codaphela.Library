@@ -62,7 +62,6 @@ public:
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	Is(EPreprocessorDirective eType);
 	bool	IsConditional(void);
-	bool	Equals(CPPToken* pcOther);
 	bool	NeedsNewLine(void);
 };
 

@@ -35,7 +35,6 @@ public:
 	bool	IsHash(void);
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	bool	Equals(CPPToken* pcOther);
 	bool	IsEmpty(void);
 };
 

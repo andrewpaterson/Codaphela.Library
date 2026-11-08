@@ -94,28 +94,7 @@ void CPPHashes::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPHashes::Equals(CPPToken* pcOther)
-{
-	CPPHashes*	pcCast;	
-
-	if (pcOther->IsHash())
-	{
-		pcCast = (CPPHashes*)pcOther;
-		if (miCount == pcCast->miCount)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CPPHashes::IsEmpty(void)
 {
 	return false;
 }
-

@@ -40,7 +40,6 @@ public:
 	bool 				IsBlock(void);
 	void				Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	void				SetNext(size	iTokenIndex, size iBlockIndex);
-	bool				Equals(CPPToken* pcOther);
 	SPPTokenBlockIndex	GetNextTokenBlock(void);
 	void				DumpPointersAsChars(CArrayIntAndPointer* papc);
 };
