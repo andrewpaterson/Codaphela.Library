@@ -18,6 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/Int64Vec3.h"
 #include "Rasteriser.h"
@@ -35,6 +38,9 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 //A long thin triangle at an angle, as a board's outline makes, covers next to nothing of a very big box.  4 was the
 //fastest when measured on a board: at 2 the working out costs more than it saves.
 #define RASTER_WIDE_PIXELS		4
+
+//How many pixels of a row a small triangle's box can have for AVX2 to test them at once.
+#define RASTER_LANES			8
 
 //Twice a triangle's area, or how far a pixel is inside one of its edges: subpixel times subpixel.
 typedef SFixed<int64, int64, 8>		SRasterEdge;
@@ -317,6 +323,97 @@ static SRasterGradient RasterGradient(SRasterWideWhole sDeltaB, SRasterWideWhole
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pixel of colour uiColour times iShade.  An opaque one writes its depth.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE void RasterWritePixel(uint32* puiPixel, int32* piDepth, int32 iDepth, int32 iShade, uint32 uiColour, bool bTransparent)
+{
+	uint32	uiRB;
+	uint32	uiG;
+	uint32	uiAlpha;
+	uint32	uiPixel;
+
+	uiRB = (((uiColour & 0x00FF00FF) * (uint32)iShade) >> 8) & 0x00FF00FF;
+	uiG = (((uiColour & 0x0000FF00) * (uint32)iShade) >> 8) & 0x0000FF00;
+	if (bTransparent)
+	{
+		uiAlpha = uiColour >> 24;
+		uiAlpha += uiAlpha >> 7;
+		uiPixel = *puiPixel;
+		uiRB = ((uiRB * uiAlpha + (uiPixel & 0x00FF00FF) * (256 - uiAlpha)) >> 8) & 0x00FF00FF;
+		uiG = ((uiG * uiAlpha + (uiPixel & 0x0000FF00) * (256 - uiAlpha)) >> 8) & 0x0000FF00;
+	}
+	else
+	{
+		*piDepth = iDepth;
+	}
+	*puiPixel = 0xFF000000 | uiRB | uiG;
+}
+
+
+#ifdef __AVX2__
+//How far along a row each of the eight pixels' edge values are, for each edge, and which pixels are in the box.  Most of a
+//board's triangles cover a few pixels at most of a small box, so nearly every test of a pixel on its own is a branch that
+//can't be predicted.  Testing a row at once and then going to the hits has none.
+struct SRasterLanes
+{
+	__m256i	asAlong[3];
+	uint32	uiInBox;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void RasterLanesInit(SRasterLanes* psLanes, SRasterEdge sStepX0, SRasterEdge sStepX1, SRasterEdge sStepX2, int32 iPixels)
+{
+	__m256i	sIndex;
+
+	sIndex = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
+	psLanes->asAlong[0] = _mm256_mullo_epi32(sIndex, _mm256_set1_epi32((int32)sStepX0.miRaw));
+	psLanes->asAlong[1] = _mm256_mullo_epi32(sIndex, _mm256_set1_epi32((int32)sStepX1.miRaw));
+	psLanes->asAlong[2] = _mm256_mullo_epi32(sIndex, _mm256_set1_epi32((int32)sStepX2.miRaw));
+	psLanes->uiInBox = (1u << iPixels) - 1u;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an edge's value stays in the 32 bits a lane has, everywhere in a
+// box of iRows rows and RASTER_LANES pixels.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool RasterLanesFit(SRasterEdge sRow, SRasterEdge sStepX, SRasterEdge sStepY, int32 iRows)
+{
+	int64	iBound;
+
+	iBound = (sRow.miRaw < 0) ? -sRow.miRaw : sRow.miRaw;
+	iBound += ((sStepX.miRaw < 0) ? -sStepX.miRaw : sStepX.miRaw) * RASTER_LANES;
+	iBound += ((sStepY.miRaw < 0) ? -sStepY.miRaw : sStepY.miRaw) * iRows;
+	return iBound <= 0x7FFFFFFF;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit for each pixel of the row in the box that's inside all three edges.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE uint32 RasterLaneHits(SRasterLanes* psLanes, SRasterEdge s0, SRasterEdge s1, SRasterEdge s2)
+{
+	__m256i	sAny;
+
+	sAny = _mm256_or_si256(_mm256_add_epi32(_mm256_set1_epi32((int32)s0.miRaw), psLanes->asAlong[0]),
+						   _mm256_add_epi32(_mm256_set1_epi32((int32)s1.miRaw), psLanes->asAlong[1]));
+	sAny = _mm256_or_si256(sAny, _mm256_add_epi32(_mm256_set1_epi32((int32)s2.miRaw), psLanes->asAlong[2]));
+	return ~(uint32)_mm256_movemask_ps(_mm256_castsi256_ps(sAny)) & psLanes->uiInBox;
+}
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Narrows a row's pixels to those an edge lets in: where its value, sValue
 // at pixel iX and changing by sStep each pixel, isn't negative.
 //
@@ -416,12 +513,17 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	bool					bSmall;
 	int32					iDepth;
 	int32					iShade;
-	uint32					uiPixel;
-	uint32					uiRB;
-	uint32					uiG;
-	uint32					uiAlpha;
 	uint32*					puiPixelRow;
 	int32*					piDepthRow;
+#ifdef __AVX2__
+	SRasterLanes			sLanes;
+	bool					bLanes;
+	uint32					uiHits;
+	int32					iHit;
+	SRasterEdge				sHit0;
+	SRasterEdge				sHit1;
+	SRasterEdge				sHit2;
+#endif
 
 	if ((psA->iDepth == 0) || (psB->iDepth == 0) || (psC->iDepth == 0))
 	{
@@ -531,6 +633,17 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	sDepth = SRasterInterpolated::FromRaw(0);
 	sShade = SRasterInterpolated::FromRaw(0);
 	bWide = (iMaxX - iMinX) >= RASTER_WIDE_PIXELS;
+#ifdef __AVX2__
+	bLanes = bSmall && ((iMaxX - iMinX) < RASTER_LANES) &&
+			 RasterLanesFit(sRow0, sStepX0, sStepY0, iMaxY - iMinY + 1) &&
+			 RasterLanesFit(sRow1, sStepX1, sStepY1, iMaxY - iMinY + 1) &&
+			 RasterLanesFit(sRow2, sStepX2, sStepY2, iMaxY - iMinY + 1);
+	if (bLanes)
+	{
+		RasterLanesInit(&sLanes, sStepX0, sStepX1, sStepX2, iMaxX - iMinX + 1);
+		bWide = false;
+	}
+#endif
 	for (y = iMinY; y <= iMaxY; y++)
 	{
 		s0 = sRow0;
@@ -552,6 +665,28 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 				s2 += SRasterEdge::FromRaw(sStepX2.miRaw * (iFirstX - iMinX));
 			}
 		}
+#ifdef __AVX2__
+		if (bLanes)
+		{
+			uiHits = RasterLaneHits(&sLanes, s0, s1, s2);
+			while (uiHits != 0)
+			{
+				iHit = (int32)_tzcnt_u32(uiHits);
+				uiHits &= uiHits - 1;
+				x = iMinX + iHit;
+				sHit0 = SRasterEdge::FromRaw(s0.miRaw + sStepX0.miRaw * iHit);
+				sHit1 = SRasterEdge::FromRaw(s1.miRaw + sStepX1.miRaw * iHit);
+				sHit2 = SRasterEdge::FromRaw(s2.miRaw + sStepX2.miRaw * iHit);
+				iDepth = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sDepthA, sDepthB, sDepthC, sArea);
+				if (iDepth > piDepthRow[x])
+				{
+					iShade = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
+					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
+				}
+			}
+			iLastX = iFirstX - 1;  //So that the search below doesn't look at this row.
+		}
+#endif
 		for (x = iFirstX; x <= iLastX; x++)
 		{
 			if ((s0.miRaw | s1.miRaw | s2.miRaw) >= 0)
@@ -602,21 +737,7 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 					{
 						iShade = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
 					}
-					uiRB = (((uiColour & 0x00FF00FF) * (uint32)iShade) >> 8) & 0x00FF00FF;
-					uiG = (((uiColour & 0x0000FF00) * (uint32)iShade) >> 8) & 0x0000FF00;
-					if (bTransparent)
-					{
-						uiAlpha = uiColour >> 24;
-						uiAlpha += uiAlpha >> 7;
-						uiPixel = puiPixelRow[x];
-						uiRB = ((uiRB * uiAlpha + (uiPixel & 0x00FF00FF) * (256 - uiAlpha)) >> 8) & 0x00FF00FF;
-						uiG = ((uiG * uiAlpha + (uiPixel & 0x0000FF00) * (256 - uiAlpha)) >> 8) & 0x0000FF00;
-					}
-					else
-					{
-						piDepthRow[x] = iDepth;
-					}
-					puiPixelRow[x] = 0xFF000000 | uiRB | uiG;
+					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
 				}
 			}
 			s0 += sStepX0;

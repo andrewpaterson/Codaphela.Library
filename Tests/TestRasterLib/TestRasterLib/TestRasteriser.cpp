@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/FixedPoint.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/NumberControl.h"
 #include "StandardLib/Objects.h"
@@ -564,6 +565,179 @@ void TestRasteriserInstances(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How far a sample is inside an edge, with what the top-left rule takes off.
+//
+//////////////////////////////////////////////////////////////////////////
+static int64 TestReferenceEdge(SRasterScreenVertex* psFrom, SRasterScreenVertex* psTo, int64 iX, int64 iY, int64* piBias)
+{
+	int64	iDeltaX;
+	int64	iDeltaY;
+
+	iDeltaX = (int64)psTo->sPosition.x.miRaw - psFrom->sPosition.x.miRaw;
+	iDeltaY = (int64)psTo->sPosition.y.miRaw - psFrom->sPosition.y.miRaw;
+	*piBias = ((iDeltaY < 0) || ((iDeltaY == 0) && (iDeltaX > 0))) ? 0 : -1;
+	return iDeltaX * (iY - psFrom->sPosition.y.miRaw) - iDeltaY * (iX - psFrom->sPosition.x.miRaw);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A front facing triangle of under 16 square pixels of doubled area, tested
+// and weighted a pixel at a time by the rules of DrawTriangle.  False if the
+// triangle isn't one of those.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestReferenceSmallTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent)
+{
+	SRasterScreenVertex*	psSwap;
+	int64					iArea;
+	int64					iBias0;
+	int64					iBias1;
+	int64					iBias2;
+	int64					i0;
+	int64					i1;
+	int64					i2;
+	int32					iDepth;
+	int32					iShade;
+	uint32					uiRB;
+	uint32					uiG;
+	uint32					uiAlpha;
+	int						x;
+	int						y;
+
+	iArea = TestReferenceEdge(psA, psB, psC->sPosition.x.miRaw, psC->sPosition.y.miRaw, &iBias0);
+	if ((iArea >= 0) || (-iArea >= (16 << 8)))
+	{
+		return false;
+	}
+	psSwap = psB;
+	psB = psC;
+	psC = psSwap;
+	iArea = -iArea;
+
+	for (y = 0; y < pcTarget->miHeight; y++)
+	{
+		for (x = 0; x < pcTarget->miWidth; x++)
+		{
+			i0 = TestReferenceEdge(psB, psC, x * 16 + 8, y * 16 + 8, &iBias0);
+			i1 = TestReferenceEdge(psC, psA, x * 16 + 8, y * 16 + 8, &iBias1);
+			i2 = TestReferenceEdge(psA, psB, x * 16 + 8, y * 16 + 8, &iBias2);
+			if ((i0 + iBias0 >= 0) && (i1 + iBias1 >= 0) && (i2 + iBias2 >= 0))
+			{
+				iDepth = (int32)DivideFloor(i0 * psA->iDepth + i1 * psB->iDepth + i2 * psC->iDepth, iArea);
+				if (iDepth > pcTarget->mpiDepths[y * pcTarget->miWidth + x])
+				{
+					iShade = (int32)DivideFloor(i0 * psA->iShade + i1 * psB->iShade + i2 * psC->iShade, iArea);
+					uiRB = (((uiColour & 0x00FF00FF) * (uint32)iShade) >> 8) & 0x00FF00FF;
+					uiG = (((uiColour & 0x0000FF00) * (uint32)iShade) >> 8) & 0x0000FF00;
+					if (bTransparent)
+					{
+						uiAlpha = uiColour >> 24;
+						uiAlpha += uiAlpha >> 7;
+						uiRB = ((uiRB * uiAlpha + (pcTarget->mpuiPixels[y * pcTarget->miStride + x] & 0x00FF00FF) * (256 - uiAlpha)) >> 8) & 0x00FF00FF;
+						uiG = ((uiG * uiAlpha + (pcTarget->mpuiPixels[y * pcTarget->miStride + x] & 0x0000FF00) * (256 - uiAlpha)) >> 8) & 0x0000FF00;
+					}
+					else
+					{
+						pcTarget->mpiDepths[y * pcTarget->miWidth + x] = iDepth;
+					}
+					pcTarget->mpuiPixels[y * pcTarget->miStride + x] = 0xFF000000 | uiRB | uiG;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Small triangles, which AVX2 builds test a row at a time, draw what each
+// pixel tested on its own does.  Up against the target's sides too, and long
+// thin ones whose boxes are too big for a row at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserSmallTriangles(void)
+{
+	static const int	aiSpreads[4] = { 32, 64, 128, 640 };
+
+	CRasteriser			cRasteriser;
+	CRasterTarget		cActual;
+	CRasterTarget		cExpected;
+	SRasterScreenVertex	asCorners[3];
+	uint32*				puiActual;
+	uint32*				puiExpected;
+	uint32				uiRandom;
+	uint32				uiColour;
+	bool				bTransparent;
+	int32				iBaseX;
+	int32				iBaseY;
+	int32				iSpread;
+	int					iTriangle;
+	int					iCorner;
+	int					iDifferent;
+	int					iDrawn;
+
+	puiActual = (uint32*)malloc(32 * 24 * sizeof(uint32));
+	puiExpected = (uint32*)malloc(32 * 24 * sizeof(uint32));
+	cRasteriser.Init();
+	cActual.Init(puiActual, 32, 24, 32);
+	cExpected.Init(puiExpected, 32, 24, 32);
+
+	uiRandom = 2024;
+	iDifferent = 0;
+	iDrawn = 0;
+	for (iTriangle = 0; iTriangle < 20000; iTriangle++)
+	{
+		uiRandom = uiRandom * 1103515245 + 12345;
+		iSpread = aiSpreads[(uiRandom >> 16) & 3];
+		uiRandom = uiRandom * 1103515245 + 12345;
+		iBaseX = (int32)((uiRandom >> 8) % (34 * 16)) - 16;
+		uiRandom = uiRandom * 1103515245 + 12345;
+		iBaseY = (int32)((uiRandom >> 8) % (26 * 16)) - 16;
+		for (iCorner = 0; iCorner < 3; iCorner++)
+		{
+			int32	iX;
+			int32	iY;
+
+			uiRandom = uiRandom * 1103515245 + 12345;
+			iX = iBaseX + (int32)((uiRandom >> 8) % (uint32)iSpread);
+			uiRandom = uiRandom * 1103515245 + 12345;
+			iY = iBaseY + (int32)((uiRandom >> 8) % (uint32)iSpread);
+			uiRandom = uiRandom * 1103515245 + 12345;
+			InitScreenVertex(&asCorners[iCorner], iX, iY, 1 + (int32)((uiRandom >> 4) % 100000), (int32)((uiRandom >> 20) % 257));
+		}
+		uiRandom = uiRandom * 1103515245 + 12345;
+		uiColour = 0xFF000000 | (uiRandom >> 8);
+		bTransparent = ((uiRandom >> 3) & 3) == 0;
+		if (bTransparent)
+		{
+			uiColour = 0x80000000 | (uiColour & 0x00FFFFFF);
+		}
+
+		cActual.Clear(TEST_BLACK);
+		cExpected.Clear(TEST_BLACK);
+		if (TestReferenceSmallTriangle(&cExpected, &asCorners[0], &asCorners[1], &asCorners[2], uiColour, bTransparent))
+		{
+			cRasteriser.DrawTriangle(&cActual, &asCorners[0], &asCorners[1], &asCorners[2], uiColour, bTransparent);
+			iDifferent += memcmp(puiActual, puiExpected, 32 * 24 * sizeof(uint32)) != 0;
+			iDifferent += memcmp(cActual.mpiDepths, cExpected.mpiDepths, 32 * 24 * sizeof(int32)) != 0;
+			iDrawn += 32 * 24 - CountPixels(&cActual, TEST_BLACK);
+		}
+	}
+	AssertInt(0, iDifferent);
+	AssertTrue(iDrawn > 1000);
+
+	cExpected.Kill();
+	cActual.Kill();
+	cRasteriser.Kill();
+	free(puiExpected);
+	free(puiActual);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A square facing +Z in a mesh, in a list of its triangles.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -715,6 +889,7 @@ void TestRasteriser(void)
 	TestRasteriserTransparency();
 	TestRasteriserMesh();
 	TestRasteriserWideTriangles();
+	TestRasteriserSmallTriangles();
 	TestRasteriserInstances();
 	TestRasteriserInstancesTransparent();
 
