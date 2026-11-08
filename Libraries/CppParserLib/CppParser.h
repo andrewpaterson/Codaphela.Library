@@ -86,6 +86,15 @@ enum ECPPDeclarationContext
 };
 
 
+//What ParseDeclSpecifiers does after a specifier is looked for.
+enum ECPPDeclSpecifierStep
+{
+	CPPDSS_Next,	//One was parsed: look for another.
+	CPPDSS_Stop,	//There isn't one here: they have ended.
+	CPPDSS_Failed,
+};
+
+
 enum ECPPDeclaratorKind
 {
 	CPPDK_Named,		//A declarator-id is required.
@@ -219,6 +228,12 @@ protected:
 	bool							IsDeclaringSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	CCPPSymbol*						DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcDeclaration, ECPPDeclarationContext eContext);
 	CCPPSyntaxDeclSpecifiers*		ParseDeclSpecifiers(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);
+	ECPPDeclSpecifierStep			ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, ECppTokens eToken, bool* pbType);
+	ECPPDeclSpecifierStep			ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, bool* pbType);
+	void							AddKeywordSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
+	CCPPSyntaxNamedTypeSpecifier*	ParseTypenameSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
+	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
+	bool							IsUnknownNameAType(ECPPDeclarationContext eContext);
 	CCPPSyntaxAttribute*			ParseAttribute(CCPPSyntax* pcParent);
 	bool							IsAttributeStart(void);
 	void							ParseAttributes(CArraySyntax* papcAttributes, CCPPSyntax* pcParent);

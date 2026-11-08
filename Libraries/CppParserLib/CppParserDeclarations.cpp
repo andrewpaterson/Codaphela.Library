@@ -1195,22 +1195,11 @@ CCPPSyntaxAlignasSpecifier* CCPPParser::ParseAlignasSpecifier(CCPPSyntax* pcPare
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, ECPPDeclarationContext eContext)
 {
-	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
-	CCPPSyntaxKeywordSpecifier*		pcKeyword;
-	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
-	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
-	CCPPSyntaxAlignasSpecifier*		pcAlignas;
-	CCPPSyntaxTypeSpecifier*		pcType;
-	CCPPSyntaxAttribute*			pcAttribute;
-	CCPPSyntaxName*					pcName;
-	CCPPToken*						pcToken;
-	ECppTokens						eToken;
-	bool							bType;
-	SCPPParserPosition				sPosition;
-	CCPPSymbol*						pcSymbol;
-	bool							bTypeLike;
-	int								iErrors;
-	uint32							uiFlag;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxAttribute*		pcAttribute;
+	CCPPToken*					pcToken;
+	ECPPDeclSpecifierStep		eStep;
+	bool						bType;
 
 	//[dcl.spec]
 	pcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcParent);
@@ -1234,213 +1223,280 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 		{
 			break;
 		}
-
 		if (pcToken->IsReservedWord())
 		{
-			eToken = ((CCTReservedWord*)pcToken)->GetToken();
-			if (DeclSpecifierFlag(eToken, &uiFlag) && ((eContext != CPPDC_TypeId) || (uiFlag == CPPDS_CONST) || (uiFlag == CPPDS_VOLATILE)))
-			{
-				pcSpecifiers->muiFlags |= uiFlag;
-				pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcSpecifiers);
-				pcKeyword->meKeyword = eToken;
-				pcKeyword->SetTokens(CurrentToken(), CurrentToken());
-				pcSpecifiers->macpSpecifiers.Add(pcKeyword);
-				Next();
-				continue;
-			}
-
-			if (IsSimpleTypeKeyword(eToken))
-			{
-				switch (eToken)
-				{
-				case CT_void:		pcSpecifiers->muiTypeKeywords |= CPPTK_VOID;		break;
-				case CT_bool:		pcSpecifiers->muiTypeKeywords |= CPPTK_BOOL;		break;
-				case CT_char:		pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR;		break;
-				case CT_wchar_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_WCHAR_T;		break;
-				case CT_char16_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR16_T;	break;
-				case CT_char32_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR32_T;	break;
-				case CT_short:		pcSpecifiers->muiTypeKeywords |= CPPTK_SHORT;		break;
-				case CT_int:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT;			break;
-				case CT_long:		pcSpecifiers->miLongs++;							break;
-				case CT_signed:
-				case CT___signed__:	pcSpecifiers->muiTypeKeywords |= CPPTK_SIGNED;		break;
-				case CT_unsigned:	pcSpecifiers->muiTypeKeywords |= CPPTK_UNSIGNED;	break;
-				case CT_float:		pcSpecifiers->muiTypeKeywords |= CPPTK_FLOAT;		break;
-				case CT_double:		pcSpecifiers->muiTypeKeywords |= CPPTK_DOUBLE;		break;
-				case CT_auto:		pcSpecifiers->muiTypeKeywords |= CPPTK_AUTO;		break;
-				case CT___int8:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT8;		break;
-				case CT___int16:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT16;		break;
-				case CT___int32:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT32;		break;
-				case CT___int64:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT64;		break;
-				default:																break;
-				}
-				pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcSpecifiers);
-				pcKeyword->meKeyword = eToken;
-				pcKeyword->SetTokens(CurrentToken(), CurrentToken());
-				pcSpecifiers->macpSpecifiers.Add(pcKeyword);
-				Next();
-				bType = true;
-				continue;
-			}
-
-			if ((eToken == CT_class) || (eToken == CT_struct) || (eToken == CT_union))
-			{
-				if (bType && !pcSpecifiers->mpcType)
-				{
-					break;
-				}
-				pcType = ParseClassSpecifier(pcSpecifiers, eContext, (pcSpecifiers->muiFlags & CPPDS_FRIEND) != 0);
-				if (!pcType)
-				{
-					return NULL;
-				}
-				pcSpecifiers->mpcType = pcType;
-				pcSpecifiers->macpSpecifiers.Add(pcType);
-				bType = true;
-				continue;
-			}
-
-			if (eToken == CT_enum)
-			{
-				pcType = ParseEnumSpecifier(pcSpecifiers, eContext);
-				if (!pcType)
-				{
-					return NULL;
-				}
-				pcSpecifiers->mpcType = pcType;
-				pcSpecifiers->macpSpecifiers.Add(pcType);
-				bType = true;
-				continue;
-			}
-
-			if ((eToken == CT_typename) && !bType)
-			{
-				//typename X::Y  [temp.res]
-				pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcSpecifiers);
-				pcKeyword->meKeyword = eToken;
-				pcKeyword->SetTokens(CurrentToken(), CurrentToken());
-				pcSpecifiers->macpSpecifiers.Add(pcKeyword);
-				Next();
-
-				pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcSpecifiers);
-				pcNamed->miFirstToken = CurrentToken();
-				pcNamed->mpcName = ParseName(pcNamed, false, NULL);
-				if (!pcNamed->mpcName)
-				{
-					return NULL;
-				}
-				pcNamed->miLastToken = PreviousToken();
-				pcSpecifiers->mpcType = pcNamed;
-				pcSpecifiers->macpSpecifiers.Add(pcNamed);
-				bType = true;
-				continue;
-			}
-
-			if (((eToken == CT_decltype) || (eToken == CT___typeof__)) && !bType)
-			{
-				//decltype(e) and g++'s __typeof__(e) or __typeof__(type).
-				pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcSpecifiers);
-				pcDecltype->miFirstToken = CurrentToken();
-				pcDecltype->meKeyword = eToken;
-				Next();
-				if (!Expect(CT_OpenRoundBracket))
-				{
-					return NULL;
-				}
-				pcDecltype->mpcOperand = ParseTypeIdOrExpression(pcDecltype, false);
-				if (!pcDecltype->mpcOperand || !Expect(CT_CloseRoundBracket))
-				{
-					return NULL;
-				}
-				pcDecltype->miLastToken = PreviousToken();
-				pcSpecifiers->mpcType = pcDecltype;
-				pcSpecifiers->macpSpecifiers.Add(pcDecltype);
-				bType = true;
-				continue;
-			}
-
-			if (eToken == CT_alignas)
-			{
-				pcAlignas = ParseAlignasSpecifier(pcSpecifiers);
-				if (!pcAlignas)
-				{
-					return NULL;
-				}
-				pcSpecifiers->macpSpecifiers.Add(pcAlignas);
-				continue;
-			}
+			eStep = ParseKeywordDeclSpecifier(pcSpecifiers, eContext, ((CCTReservedWord*)pcToken)->GetToken(), &bType);
+		}
+		else if ((pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution)) && !bType)
+		{
+			eStep = ParseNamedDeclSpecifier(pcSpecifiers, eContext, &bType);
+		}
+		else
+		{
+			eStep = CPPDSS_Stop;
+		}
+		if (eStep == CPPDSS_Failed)
+		{
+			return NULL;
+		}
+		if (eStep == CPPDSS_Stop)
+		{
 			break;
 		}
-
-		if ((pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution)) && !bType)
-		{
-			//A type name, unless it is the name being declared.
-			sPosition = Mark();
-			pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcSpecifiers);
-			pcNamed->miFirstToken = CurrentToken();
-
-			iErrors = miErrors + miSkimmedErrors;
-			pcName = ParseName(pcNamed, false, NULL);
-
-			if (!pcName)
-			{
-				if (iErrors != miErrors + miSkimmedErrors)
-				{
-					//The error is reported; the declarator would report it again.
-					return NULL;
-				}
-				Rewind(sPosition);
-				break;
-			}
-
-			if ((IsConstructorName(pcName) && Is(CT_OpenRoundBracket)) || (pcName->GetLast()->meKind != CPPNC_Identifier))
-			{
-				Rewind(sPosition);
-				break;
-			}
-
-			pcSymbol = pcName->mpcSymbol;
-			if (!pcSymbol && IsSkimming(sPosition.iToken) && Peek(0) && Peek(0)->IsReservedWord() && pcName->IsSimple() && (IsDeclSpecifierKeyword(((CCTReservedWord*)Peek(0))->GetToken()) || IsSimpleTypeKeyword(((CCTReservedWord*)Peek(0))->GetToken())))
-			{
-				//An unknown name before a type keyword in a skimmed header is an undefined macro, as in __MINGW_IMPORT int x;
-				pcAttribute = mpcMemory->Create<CCPPSyntaxAttribute>(pcSpecifiers);
-				pcAttribute->SetTokens(sPosition.iToken, sPosition.iToken);
-				pcSpecifiers->macpSpecifiers.Add(pcAttribute);
-				continue;
-			}
-
-			pcSymbol = pcName->mpcSymbol;
-			bTypeLike = pcSymbol && pcSymbol->IsType();
-			if (!bTypeLike && !pcSymbol)
-			{
-				//An unknown name, from a dependent scope or a skimmed header, is a type if a declarator follows.
-				if (IsIdentifier() || ((eContext != CPPDC_Block) && (eContext != CPPDC_Condition) && (eContext != CPPDC_ForInit) && (Is(CT_Multiply) || Is(CT_BitwiseAnd) || Is(CT_LogicalAnd) || Is(CT___cdecl) || Is(CT___stdcall))))
-				{
-					bTypeLike = true;
-				}
-				else if ((eContext == CPPDC_Parameter) && (Is(CT_Comma) || Is(CT_CloseRoundBracket) || Is(CT_OpenSquareBracket)))
-				{
-					bTypeLike = true;
-				}
-			}
-
-			if (!bTypeLike)
-			{
-				Rewind(sPosition);
-				break;
-			}
-
-			pcNamed->mpcName = pcName;
-			pcNamed->miLastToken = PreviousToken();
-			pcSpecifiers->mpcType = pcNamed;
-			pcSpecifiers->macpSpecifiers.Add(pcNamed);
-			bType = true;
-			continue;
-		}
-		break;
 	}
 
 	pcSpecifiers->miLastToken = PreviousToken();
 	return pcSpecifiers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keyword at the current token as a specifier of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::AddKeywordSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
+{
+	CCPPSyntaxKeywordSpecifier*	pcKeyword;
+
+	pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcSpecifiers);
+	pcKeyword->meKeyword = eToken;
+	pcKeyword->SetTokens(CurrentToken(), CurrentToken());
+	pcSpecifiers->macpSpecifiers.Add(pcKeyword);
+	Next();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcType is the declaration's type.
+//
+//////////////////////////////////////////////////////////////////////////
+static ECPPDeclSpecifierStep CPPSetTypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxTypeSpecifier* pcType, bool* pbType)
+{
+	if (!pcType)
+	{
+		return CPPDSS_Failed;
+	}
+	pcSpecifiers->mpcType = pcType;
+	pcSpecifiers->macpSpecifiers.Add(pcType);
+	*pbType = true;
+	return CPPDSS_Next;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A simple type keyword counted in the specifiers.
+//
+//////////////////////////////////////////////////////////////////////////
+static void CPPCountTypeKeyword(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
+{
+	switch (eToken)
+	{
+	case CT_void:		pcSpecifiers->muiTypeKeywords |= CPPTK_VOID;		break;
+	case CT_bool:		pcSpecifiers->muiTypeKeywords |= CPPTK_BOOL;		break;
+	case CT_char:		pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR;		break;
+	case CT_wchar_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_WCHAR_T;		break;
+	case CT_char16_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR16_T;	break;
+	case CT_char32_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR32_T;	break;
+	case CT_short:		pcSpecifiers->muiTypeKeywords |= CPPTK_SHORT;		break;
+	case CT_int:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT;			break;
+	case CT_long:		pcSpecifiers->miLongs++;							break;
+	case CT_signed:
+	case CT___signed__:	pcSpecifiers->muiTypeKeywords |= CPPTK_SIGNED;		break;
+	case CT_unsigned:	pcSpecifiers->muiTypeKeywords |= CPPTK_UNSIGNED;	break;
+	case CT_float:		pcSpecifiers->muiTypeKeywords |= CPPTK_FLOAT;		break;
+	case CT_double:		pcSpecifiers->muiTypeKeywords |= CPPTK_DOUBLE;		break;
+	case CT_auto:		pcSpecifiers->muiTypeKeywords |= CPPTK_AUTO;		break;
+	case CT___int8:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT8;		break;
+	case CT___int16:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT16;		break;
+	case CT___int32:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT32;		break;
+	case CT___int64:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT64;		break;
+	default:																break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The specifier a keyword, eToken, starts.  CPPDSS_Stop if it doesn't start
+// one (or another type can't be here).
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPDeclSpecifierStep CCPPParser::ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, ECppTokens eToken, bool* pbType)
+{
+	CCPPSyntaxAlignasSpecifier*	pcAlignas;
+	uint32						uiFlag;
+
+	if (DeclSpecifierFlag(eToken, &uiFlag) && ((eContext != CPPDC_TypeId) || (uiFlag == CPPDS_CONST) || (uiFlag == CPPDS_VOLATILE)))
+	{
+		pcSpecifiers->muiFlags |= uiFlag;
+		AddKeywordSpecifier(pcSpecifiers, eToken);
+		return CPPDSS_Next;
+	}
+	if (IsSimpleTypeKeyword(eToken))
+	{
+		CPPCountTypeKeyword(pcSpecifiers, eToken);
+		AddKeywordSpecifier(pcSpecifiers, eToken);
+		*pbType = true;
+		return CPPDSS_Next;
+	}
+	if ((eToken == CT_class) || (eToken == CT_struct) || (eToken == CT_union))
+	{
+		if (*pbType && !pcSpecifiers->mpcType)
+		{
+			return CPPDSS_Stop;
+		}
+		return CPPSetTypeSpecifier(pcSpecifiers, ParseClassSpecifier(pcSpecifiers, eContext, (pcSpecifiers->muiFlags & CPPDS_FRIEND) != 0), pbType);
+	}
+	if (eToken == CT_enum)
+	{
+		return CPPSetTypeSpecifier(pcSpecifiers, ParseEnumSpecifier(pcSpecifiers, eContext), pbType);
+	}
+	if ((eToken == CT_typename) && !*pbType)
+	{
+		return CPPSetTypeSpecifier(pcSpecifiers, ParseTypenameSpecifier(pcSpecifiers), pbType);
+	}
+	if (((eToken == CT_decltype) || (eToken == CT___typeof__)) && !*pbType)
+	{
+		return CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, eToken), pbType);
+	}
+	if (eToken == CT_alignas)
+	{
+		pcAlignas = ParseAlignasSpecifier(pcSpecifiers);
+		if (!pcAlignas)
+		{
+			return CPPDSS_Failed;
+		}
+		pcSpecifiers->macpSpecifiers.Add(pcAlignas);
+		return CPPDSS_Next;
+	}
+	return CPPDSS_Stop;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// typename X::Y  [temp.res]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxNamedTypeSpecifier* CCPPParser::ParseTypenameSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
+
+	AddKeywordSpecifier(pcSpecifiers, CT_typename);
+	pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcSpecifiers);
+	pcNamed->miFirstToken = CurrentToken();
+	pcNamed->mpcName = ParseName(pcNamed, false, NULL);
+	if (!pcNamed->mpcName)
+	{
+		return NULL;
+	}
+	pcNamed->miLastToken = PreviousToken();
+	return pcNamed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// decltype(e) and g++'s __typeof__(e) or __typeof__(type).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
+{
+	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
+
+	pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcSpecifiers);
+	pcDecltype->miFirstToken = CurrentToken();
+	pcDecltype->meKeyword = eToken;
+	Next();
+	if (!Expect(CT_OpenRoundBracket))
+	{
+		return NULL;
+	}
+	pcDecltype->mpcOperand = ParseTypeIdOrExpression(pcDecltype, false);
+	if (!pcDecltype->mpcOperand || !Expect(CT_CloseRoundBracket))
+	{
+		return NULL;
+	}
+	pcDecltype->miLastToken = PreviousToken();
+	return pcDecltype;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type name, unless it is the name being declared (CPPDSS_Stop, with the
+// parser back where it was).
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPDeclSpecifierStep CCPPParser::ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, bool* pbType)
+{
+	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
+	CCPPSyntaxAttribute*			pcAttribute;
+	CCPPSyntaxName*					pcName;
+	CCPPSymbol*						pcSymbol;
+	SCPPParserPosition				sPosition;
+	int								iErrors;
+
+	sPosition = Mark();
+	pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcSpecifiers);
+	pcNamed->miFirstToken = CurrentToken();
+
+	iErrors = miErrors + miSkimmedErrors;
+	pcName = ParseName(pcNamed, false, NULL);
+	if (!pcName)
+	{
+		if (iErrors != miErrors + miSkimmedErrors)
+		{
+			//The error is reported; the declarator would report it again.
+			return CPPDSS_Failed;
+		}
+		Rewind(sPosition);
+		return CPPDSS_Stop;
+	}
+
+	if ((IsConstructorName(pcName) && Is(CT_OpenRoundBracket)) || (pcName->GetLast()->meKind != CPPNC_Identifier))
+	{
+		Rewind(sPosition);
+		return CPPDSS_Stop;
+	}
+
+	pcSymbol = pcName->mpcSymbol;
+	if (!pcSymbol && IsSkimming(sPosition.iToken) && Peek(0) && Peek(0)->IsReservedWord() && pcName->IsSimple() && (IsDeclSpecifierKeyword(((CCTReservedWord*)Peek(0))->GetToken()) || IsSimpleTypeKeyword(((CCTReservedWord*)Peek(0))->GetToken())))
+	{
+		//An unknown name before a type keyword in a skimmed header is an undefined macro, as in __MINGW_IMPORT int x;
+		pcAttribute = mpcMemory->Create<CCPPSyntaxAttribute>(pcSpecifiers);
+		pcAttribute->SetTokens(sPosition.iToken, sPosition.iToken);
+		pcSpecifiers->macpSpecifiers.Add(pcAttribute);
+		return CPPDSS_Next;
+	}
+
+	if (pcSymbol ? !pcSymbol->IsType() : !IsUnknownNameAType(eContext))
+	{
+		Rewind(sPosition);
+		return CPPDSS_Stop;
+	}
+
+	pcNamed->mpcName = pcName;
+	pcNamed->miLastToken = PreviousToken();
+	return CPPSetTypeSpecifier(pcSpecifiers, pcNamed, pbType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An unknown name, from a dependent scope or a skimmed header, is a type if a
+// declarator follows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsUnknownNameAType(ECPPDeclarationContext eContext)
+{
+	if (IsIdentifier() || ((eContext != CPPDC_Block) && (eContext != CPPDC_Condition) && (eContext != CPPDC_ForInit) && (Is(CT_Multiply) || Is(CT_BitwiseAnd) || Is(CT_LogicalAnd) || Is(CT___cdecl) || Is(CT___stdcall))))
+	{
+		return true;
+	}
+	return (eContext == CPPDC_Parameter) && (Is(CT_Comma) || Is(CT_CloseRoundBracket) || Is(CT_OpenSquareBracket));
 }
 
