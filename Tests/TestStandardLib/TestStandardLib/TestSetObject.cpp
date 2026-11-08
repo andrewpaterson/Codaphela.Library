@@ -6,12 +6,18 @@
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
 #include "BaseLib/DebugOutput.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/MemoryFile.h"
 #include "StandardLib/HollowObject.h"
 #include "StandardLib/Set.h"
 #include "StandardLib/ArrayObject.h"
 #include "TestLib/Assert.h"
 #include "NamedObjectTestClasses.h"
 #include "TestSetObject.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
@@ -1165,7 +1171,7 @@ size TestSetObjectOccupiedSlot(CSetObject* pcSet, bool bLast, CEmbeddedObject* p
 	uiOccupied = ARRAY_ELEMENT_NOT_FOUND;
 	for (i = 0; i < pcSet->NumElements() * 4; i++)
 	{
-		pcMember = pcSet->UnsafeGetObject(i);
+		pcMember = pcSet->UnsafeGet(i).Object();
 		if ((pcMember != NULL) && (pcMember != pcSkip))
 		{
 			uiOccupied = i;
@@ -1522,6 +1528,126 @@ void TestSetObjectLoadKeepsFlags(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A set has one UnsafeGetObject, whichever class it is called through.
+// UnsafeGet is the one that can be asked for a slot past the end.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectUnsafeGet(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CSet<CTestSaveableObject1>>	pSet;
+		Ptr<CTestSaveableObject1>		pObject;
+		CSetObject*						pcSet;
+		CArrayCommonObject*				pcCommon;
+
+		pSet = OMalloc<CSet<CTestSaveableObject1>>();
+		pObject = OMalloc<CTestSaveableObject1>();
+		AssertTrue(pSet->Add(pObject));
+
+		pcSet = &pSet;
+		pcCommon = &pSet;
+		AssertPointer(pObject.Object(), pSet->UnsafeGet(0).Object());
+		AssertPointer(pObject.Object(), pcSet->UnsafeGetObject(0));
+		AssertPointer(pObject.Object(), pcCommon->UnsafeGetObject(0));
+		AssertNull(pSet->UnsafeGet(1).Object());
+		AssertNull(pSet->UnsafeGet(1000).Object());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removing while iterating says whether it removed anything: an iterator
+// over an empty set, or past the end, isn't on a member.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectRemoveDuringIterationResult(void)
+{
+	SSetIterator	sIter;
+	bool			bExists;
+
+	ObjectsInit();
+	{
+		Ptr<CSet<CTestSaveableObject1>>	pSet;
+		Ptr<CTestSaveableObject1>		pOne;
+		Ptr<CTestSaveableObject1>		pTwo;
+		Ptr<CTestSaveableObject1>		pFound;
+
+		pSet = OMalloc<CSet<CTestSaveableObject1>>();
+		pFound = pSet->StartIteration(&sIter, &bExists);
+		AssertFalse(bExists);
+		AssertFalse(pSet->RemoveDuringIteration(&sIter));
+
+		pOne = OMalloc<CTestSaveableObject1>();
+		pTwo = OMalloc<CTestSaveableObject1>();
+		AssertTrue(pSet->Add(pOne));
+		AssertTrue(pSet->Add(pTwo));
+
+		pFound = pSet->StartIteration(&sIter, &bExists);
+		AssertTrue(bExists);
+		AssertTrue(pSet->RemoveDuringIteration(&sIter));
+		AssertSize(1, pSet->NumElements());
+
+		pFound = pSet->Iterate(&sIter, &bExists);
+		AssertTrue(bExists);
+		pFound = pSet->Iterate(&sIter, &bExists);
+		AssertFalse(bExists);
+		AssertFalse(pSet->RemoveDuringIteration(&sIter));
+		AssertSize(1, pSet->NumElements());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CSet<M>::AddAll says whether adding worked: all of a NULL set is an error
+// and adds nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectAddAllResult(void)
+{
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLogged[512];
+
+	ObjectsInit();
+	{
+		Ptr<CSet<CTestSaveableObject1>>	pSet;
+		Ptr<CSet<CTestSaveableObject1>>	pOther;
+		Ptr<CArrayCommonObject>			pNoSet;
+
+		pSet = OMalloc<CSet<CTestSaveableObject1>>();
+		pOther = OMalloc<CSet<CTestSaveableObject1>>();
+		AssertTrue(pSet->Add(OMalloc<CTestSaveableObject1>()));
+		AssertTrue(pSet->Add(OMalloc<CTestSaveableObject1>()));
+
+		AssertTrue(pOther->AddAll(pSet));
+		AssertSize(2, pOther->NumElements());
+
+		StartCapturingLog(&cLog, &sLogConfig);
+		AssertFalse(pOther->AddAll(pNoSet));
+		StopCapturingLog(&cLog, &sLogConfig, szLogged, sizeof(szLogged));
+		AssertNotNull(strstr(szLogged, "Cannot add all of a NULL array."));
+		AssertSize(2, pOther->NumElements());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetObject(void)
@@ -1556,6 +1682,9 @@ void TestSetObject(void)
 	TestSetObjectMemberLocations(false);
 	TestSetObjectSortedInsertMovesMembers();
 	TestSetObjectLoadKeepsFlags();
+	TestSetObjectUnsafeGet();
+	TestSetObjectRemoveDuringIterationResult();
+	TestSetObjectAddAllResult();
 
 	DataIOKill();
 	TypesKill();

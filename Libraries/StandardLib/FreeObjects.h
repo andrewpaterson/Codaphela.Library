@@ -42,8 +42,6 @@ public:
 						bool			Remove(CBaseObject* pcObject);
 
 						size			NumObjects(void);
-
-						CBaseObject*	UnsafeGetObject(size iIndex);
 };
 
 

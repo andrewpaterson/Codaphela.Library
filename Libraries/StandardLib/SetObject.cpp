@@ -33,20 +33,17 @@ void CSetObject::Init(bool bSortPointers)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What is in the slot at iIndex, not dehollowed: NULL for a removed member
+// or past the end of the slots.
 //
 //////////////////////////////////////////////////////////////////////////
 CPointer CSetObject::UnsafeGet(size iIndex)
 {
-	CBaseObject* pcObject;
-	CPointer		pObject;
-	size			uiNumElements;
+	CPointer	pObject;
 
-	uiNumElements = mcArray.UnsafeNumElements();
-	if (iIndex < uiNumElements)
+	if (iIndex < mcArray.UnsafeNumElements())
 	{
-		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-		pObject.AssignObject(pcObject);
-		return pObject;
+		pObject.AssignObject(UnsafeGetObject(iIndex));
 	}
 	return pObject;
 }
@@ -54,42 +51,29 @@ CPointer CSetObject::UnsafeGet(size iIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False if the iterator isn't on a member: it may be past the end.  The
+// object being removed must lose its from, as it does in Remove.
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CSetObject::UnsafeGetObject(size iIndex)
+bool CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 {
-	CBaseObject*	pcObject;
-	CPointer		pObject;
-	size			uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	if (iIndex < uiNumElements)
-	{
-		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-		return pcObject;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSetObject::RemoveDuringIteration(SSetIterator* psIter)
-{
-	//The Object being removed must lose its from, as it does in Remove.
-
 	CBaseObject*	pcObject;
 	size			uiIndex;
 
 	uiIndex = psIter->iIndex;
-	pcObject = UnsafeGetObject(uiIndex);
-	if (mcArray.RemoveDuringIteration(psIter))
+	if (uiIndex >= mcArray.UnsafeNumElements())
 	{
-		MemberRemoved(pcObject, uiIndex);
-		RemoveObjectTryFree(pcObject, true);
+		return false;
 	}
+
+	pcObject = UnsafeGetObject(uiIndex);
+	if (!mcArray.RemoveDuringIteration(psIter))
+	{
+		return false;
+	}
+
+	MemberRemoved(pcObject, uiIndex);
+	return RemoveObjectTryFree(pcObject, true);
 }
 
 

@@ -33,12 +33,12 @@ public:
 	void			Init(bool bSortPointers = true);
 
 	bool			Add(Ptr<M> pObject);
-	void			AddAll(Ptr<CArrayCommonObject> pSet);
+	bool			AddAll(Ptr<CArrayCommonObject> pSet);
 	Ptr<M>			UnsafeGet(size iIndex);
 	bool			Remove(Ptr<M> pObject);
 
 	//Do not Add, Remove or call Contains while iterating over a sorted set.  They can remove the NULLs left by RemoveDuringIteration which moves the Objects not yet iterated.
-	void			RemoveDuringIteration(SSetIterator* psIter);
+	bool			RemoveDuringIteration(SSetIterator* psIter);
 
 	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists = NULL);
 	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists = NULL);
@@ -72,10 +72,9 @@ bool CSet<M>::Add(Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSet<M>::AddAll(Ptr<CArrayCommonObject> pSet)
+bool CSet<M>::AddAll(Ptr<CArrayCommonObject> pSet)
 {
-	pSet->ClassName();
-	CSetObject::AddAll((CArrayCommonObject*)pSet.Dereference());
+	return CArrayCommonObject::AddAll((CArrayCommonObject*)pSet.Dereference());
 }
 
 
@@ -106,10 +105,11 @@ bool CSet<M>::Remove(Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSet<M>::RemoveDuringIteration(SSetIterator* psIter)
+bool CSet<M>::RemoveDuringIteration(SSetIterator* psIter)
 {
-	CSetObject::RemoveDuringIteration(psIter);
+	return CSetObject::RemoveDuringIteration(psIter);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
