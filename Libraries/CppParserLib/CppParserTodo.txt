@@ -79,7 +79,7 @@ B-1. C++98/03 still missing
   - Delegating constructors: CCPP65IRFrontEnd::ConstructorStart has no case for a member initialiser naming the constructor's own class.  It may be skipped silently rather than reported.  Test it.
 
 B-2. C++11
-  - B10 (L) Rvalue references as a type of their own: && is made a & now (CPP65Generator.cpp:2402), with T&& deduced so arguments can be passed through (ForwardedType).  Reference collapsing, deducing forwarding references as the standard does, & and && overloads, implicit move constructors and assignment (and when they are deleted), xvalues, ref-qualified members.
+  - B10 (L) Rvalue references as a type of their own: && is made a & now (GetDeclaratorType; rechecked 2026-11-08: item 103 of CppParserLibIssues.txt says what works), with T&& deduced so arguments can be passed through (ForwardedType).  Reference collapsing, deducing forwarding references as the standard does, & and && overloads, implicit move constructors and assignment (and when they are deleted), xvalues, ref-qualified members.
   - B11 (M) auto variables (an error at CPP65Generator.cpp:2636) and decltype (its specifier is never made a type).
   - B12 (L) Lambdas: the parser (CppParserExpressions.cpp:665), closure classes, captures by value and by reference and this, and the conversion to a function pointer when nothing is captured.  A closure is a class, which the back ends already do well.
   - B13 (L) constexpr functions and literal classes.  constexpr is only inline now, and Constant (CPP65GeneratorExpressions.cpp:781) does integers without calls.  C++14's relaxed constexpr allows loops and assignment, so running the IR at compile time (an IR interpreter) may be better than growing the tree folder.
