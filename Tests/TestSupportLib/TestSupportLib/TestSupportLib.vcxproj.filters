@@ -94,6 +94,9 @@
     <ClCompile Include="TestMeshCornerMerge.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshMergeNormals.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshEdgeCollapse.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
