@@ -427,26 +427,14 @@ bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
 {
-	int32	iHigh;
-	int32	iGot;
-
 	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8) || !mbMathTables)
 	{
 		return false;
 	}
-	iHigh = NewLabel();
-	iGot = NewLabel();
 	Operand("lda", psInstruction->asArguments[1], 0);
 	Line("xba");
 	Operand("ora", psInstruction->asArguments[0], 0);
-	Line("asl A");
-	Line("tax");
-	Branch("bcs", iHigh);
-	Line("lda [MathMult + X]:24");
-	Branch("bra", iGot);
-	Label(iHigh);
-	Line("lda [MathMult + 0x10000 + X]:24");
-	Label(iGot);
+	TableProduct();
 	Line("and 0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
