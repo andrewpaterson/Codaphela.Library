@@ -24,8 +24,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
-#include "MeshConnectivity.h"
-#include "MeshPolygons.h"
 #include "MeshEdgeVisibility.h"
 
 
@@ -157,63 +155,3 @@ size CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
 	}
 	return iCount;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshEdgeVisibility::GenerateEdgeSelectionFromPolygons(CMeshConnectivity* pcConn, CMeshPolygons* pcPolygons)
-{
-	size			i;
-	size			iPolygon;
-	CMeshPolygon*	psPolygon;
-	int				iFaceIndex;
-	size			j;
-	CMeshFace*		psFace;
-	int				iEdgeIndex;
-	int				iAdjFaceIndex;
-	int				iAdjPolygon;
-	char*			pcEdge;
-	SAdjFaces		sAdjFaces;
-	size			uiNumFaces;
-	size			uiNumPolygons;
-
-	pcConn->mcEdges.Zero();
-
-	//I'm not sure how this used to work.
-	pcEdge = NULL;
-
-	uiNumPolygons = pcPolygons->mcPolygons.NumElements();
-	for (iPolygon = 0; iPolygon < uiNumPolygons; iPolygon++)
-	{
-		psPolygon = pcPolygons->mcPolygons.Get(iPolygon);
-		uiNumFaces = psPolygon->maiFaces.NumElements();
-		for (i = 0; i < uiNumFaces; i++)
-		{
-			iFaceIndex = psPolygon->maiFaces.GetValue(i);
-			psFace = pcConn->GetFace(iFaceIndex);
-			sAdjFaces = pcConn->GetAdjacentFaces(iFaceIndex);
-			for (j = 0; j < NUM_FACE_EDGES; j++)
-			{
-				iAdjFaceIndex = sAdjFaces.aiFace[j];
-				if (iAdjFaceIndex == -1)
-				{
-					*pcEdge = 1;
-				}
-				else
-				{
-					iEdgeIndex = psFace->maiEdge[j];
-					pcEdge = mcEdges.Get(iEdgeIndex);
-
-					iAdjPolygon = pcPolygons->maiFacesToPolygons.GetValue(iAdjFaceIndex);
-					if (iAdjPolygon != (int)iPolygon)
-					{
-						*pcEdge = 1;
-					}
-				}
-			}
-		}
-	}
-}
-

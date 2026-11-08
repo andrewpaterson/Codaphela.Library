@@ -28,8 +28,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshFace.h"
 
 
-class CMeshPolygons;
-class CMeshConnectivity;
 class CMeshEdgeVisibility : public CObject
 {
 CONSTRUCTABLE(CMeshEdgeVisibility);
@@ -50,8 +48,6 @@ public:
 	void	AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
 	char	GetEdge(int iEdge);
 	size	NumVisibleEdges(char cEdge);
-
-	void	GenerateEdgeSelectionFromPolygons(CMeshConnectivity* pcConn, CMeshPolygons* pcPolygons);
 };
 
 
