@@ -173,7 +173,6 @@ public:
 
 	static void		IndexMnemonics(void);
 	static void		SetRegisterArguments(bool bRegisterArguments);
-	static bool		IsRegisterArguments(void);
 	static CMallocator*	SetScratch(CMallocator* pcScratch);
 	static CMallocator*	GetScratch(void);
 	static void		SetSoftFloatInFrame(bool bInFrame);
@@ -197,7 +196,6 @@ public:
 	static void		RemoveDeadStores(CIR816Code* pcCode);
 	static bool		RemoveFlowDeadStores(CChars* pszDest, size uiStart);
 	static bool		RemoveFlowDeadStores(CIR816Code* pcCode);
-	static bool		PeepholeFlowRegisters(CChars* pszDest, size uiStart);
 	static bool		PeepholeFlowRegisters(CIR816Code* pcCode);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
 	static void		PeepholeBranches(CIR816Code* pcCode);

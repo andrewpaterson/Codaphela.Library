@@ -80,7 +80,6 @@ struct SCPP65Type
 	bool	IsFloat(void);
 	bool	IsSupported(void);
 	bool	IsWide(void);
-	bool	Is64(void);
 	bool	Equals(SCPP65Type* psOther);
 	SCPP65Type*	Unqualified(void);
 	SCPP65Type*	WithoutReference(void);

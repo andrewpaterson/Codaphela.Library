@@ -25,7 +25,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //C++14 [lex.operators] preprocessing-op-or-punc, without the keyword-like ones (new, and, bitor, ...).
 size	PunctuatorLength(const char* sz, size uiAvailable);
-bool	IsPunctuator(const char* sz, size uiLength);
 bool	IsPunctuatorPrefix(const char* sz, size uiLength);
 
 

@@ -38,36 +38,15 @@ bool	gbW65C816Assembly = CPP65_W65C816_ASSEMBLY;		//SetW65C816Assembly.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether generators made from now on warn about narrowing conversions (see
-// SetWarnNarrowing).
+// Whether generators made from now on warn about narrowing conversions: an
+// implicit conversion of a non constant integer to a narrower integer type
+// ("Integer conversion narrows").  Off by default: code written for a 32
+// bit int and size has many that are correct.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::SetDefaultWarnNarrowing(bool bWarnNarrowing)
 {
 	gbCPP65DefaultWarnNarrowing = bWarnNarrowing;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GetDefaultWarnNarrowing(void)
-{
-	return gbCPP65DefaultWarnNarrowing;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An implicit conversion of a non constant integer to a narrower integer
-// type is warned about ("Integer conversion narrows").  Off by default: code
-// written for a 32 bit int and size has many that are correct.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetWarnNarrowing(bool bWarnNarrowing)
-{
-	mbWarnNarrowing = bWarnNarrowing;
 }
 
 

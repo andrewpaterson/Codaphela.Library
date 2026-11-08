@@ -4299,7 +4299,7 @@ void TestCPP816LoopCounterWarnings(void)
 //
 // A comparison with a constant outside the other side's range is always true
 // or always false (a 16 bit size compared with a 32 bit "not found").  With
-// SetWarnNarrowing a non constant integer implicitly converted to a narrower
+// SetDefaultWarnNarrowing a non constant integer implicitly converted to a narrower
 // type is warned about (a 32 bit index stored in a 16 bit one).
 //
 //////////////////////////////////////////////////////////////////////////

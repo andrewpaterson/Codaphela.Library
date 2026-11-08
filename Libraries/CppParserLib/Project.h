@@ -60,7 +60,6 @@ public:
 	CHeaderFile*		GetIncludeFile(char* szAbsoluteFileName);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
-	void				DumpPost(CTranslationUnit* pcTU);
 	CTranslationUnit*	Start(SProcessIter* psIter, char* szConfiguration);
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);

@@ -203,16 +203,6 @@ void CIR816Backend::SetRegisterArguments(bool bRegisterArguments)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsRegisterArguments(void)
-{
-	return gbIR816RegisterArguments;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The back end's passes on this thread allocate their working arrays and
 // strings with pcScratch (an arena, CCPP65IRFrontEnd::GenerateCode's for
 // one function), or with the system allocator when it is NULL.  Nothing

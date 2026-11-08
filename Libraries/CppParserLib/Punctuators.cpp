@@ -51,31 +51,6 @@ static const SPunctuator gasPunctuators[] =
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool IsPunctuator(const char* sz, size uiLength)
-{
-	size				i;
-	const SPunctuator*	psPunctuator;
-
-	if (uiLength == 0)
-	{
-		return false;
-	}
-	for (i = 0; i < NUM_PUNCTUATORS; i++)
-	{
-		psPunctuator = &gasPunctuators[i];
-		if ((psPunctuator->sz[0] == sz[0]) && (psPunctuator->uiLength == uiLength) && (memcmp(psPunctuator->sz, sz, uiLength) == 0))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 bool IsPunctuatorPrefix(const char* sz, size uiLength)
 {
 	size				i;

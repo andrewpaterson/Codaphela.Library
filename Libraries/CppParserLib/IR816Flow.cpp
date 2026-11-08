@@ -1038,27 +1038,6 @@ static bool IR816SameHeld(SIR816Held* asHeld, SIR816Held* asOther)
 // (but before something reads the N and Z they set).  True if any went.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
-{
-	CIR816Code	cCode;
-	bool		bRemoved;
-
-	cCode.Init();
-	cCode.Load(pszDest, uiStart);
-	bRemoved = PeepholeFlowRegisters(&cCode);
-	if (bRemoved)
-	{
-		cCode.Write(pszDest, uiStart);
-	}
-	cCode.Kill();
-	return bRemoved;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
 {
 	CArrayTemplate<SIR816FlowLine>	asLines;

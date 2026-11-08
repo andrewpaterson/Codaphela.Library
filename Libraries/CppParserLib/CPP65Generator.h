@@ -496,9 +496,7 @@ protected:
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
 	void					Kill(void);
-	void					SetWarnNarrowing(bool bWarnNarrowing);
 	static void				SetDefaultWarnNarrowing(bool bWarnNarrowing);
-	static bool				GetDefaultWarnNarrowing(void);
 
 	bool					Generate(CChars* pszDest);
 	bool					Generate(CCPP65Assembly* pcDest);
