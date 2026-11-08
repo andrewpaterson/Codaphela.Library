@@ -272,6 +272,10 @@
     <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPP65Generator.cpp" />
     <ClCompile Include="CPP65GeneratorClasses.cpp" />
+    <ClCompile Include="CPP65GeneratorTemplates.cpp" />
+    <ClCompile Include="CPP65GeneratorVtables.cpp" />
+    <ClCompile Include="CPP65GeneratorOverloads.cpp" />
+    <ClCompile Include="CPP65GeneratorLabels.cpp" />
     <ClCompile Include="CPP65GeneratorExpressions.cpp" />
     <ClCompile Include="CPP65GeneratorFloat.cpp" />
     <ClCompile Include="CPP65GeneratorObjects.cpp" />

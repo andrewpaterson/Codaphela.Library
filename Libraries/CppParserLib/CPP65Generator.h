@@ -599,7 +599,8 @@ protected:
 	bool					ReportErrorAt(int iToken, const char* szMessage);
 	bool					HasWarning(CCPPSyntax* pcNode, const char* szText);
 
-	//Classes and templates.  CPP65GeneratorClasses.cpp
+	//Classes, templates, virtual functions, overloads and labels.  CPP65GeneratorClasses.cpp, CPP65GeneratorTemplates.cpp,
+	//CPP65GeneratorVtables.cpp, CPP65GeneratorOverloads.cpp and CPP65GeneratorLabels.cpp
 	SCPP65Class*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	SCPP65Class*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	SCPP65Class*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);

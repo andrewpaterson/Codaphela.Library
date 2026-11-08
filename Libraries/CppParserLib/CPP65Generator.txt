@@ -48,7 +48,9 @@ start up's object is linked first so it is at the start of the text, 0001:0000; 
 reset vector is left to the loader.
 
 Files: CPP65Generator.cpp (declarations, globals, functions), CPP65GeneratorClasses.cpp
-(classes, templates, overloads), CPP65GeneratorExpressions.cpp (constants, warnings and
+(classes), CPP65GeneratorTemplates.cpp, CPP65GeneratorVtables.cpp (virtual functions, type
+info and thunks), CPP65GeneratorOverloads.cpp, CPP65GeneratorLabels.cpp (mangled names),
+CPP65GeneratorExpressions.cpp (constants, warnings and
 TypeOf), CPP65GeneratorObjects.cpp and CPP65GeneratorFloat.cpp, CPP65Type.cpp (types and
 the rules for the types of operators), CPP65TypeChecker.cpp (expressions' types and
 errors) and CPP65IRFrontEnd.cpp (every function body, as IR).
