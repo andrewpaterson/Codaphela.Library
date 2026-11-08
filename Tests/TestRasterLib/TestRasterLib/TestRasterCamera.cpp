@@ -1,6 +1,7 @@
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/GeometricTypes.h"
 #include "RasterLib/RasterCamera.h"
+#include "RasterLib/RasterDivide.h"
 #include "RasterLib/RasterMesh.h"
 #include "TestLib/Assert.h"
 
@@ -498,6 +499,50 @@ void TestRasterCameraPerspectiveDivides(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Dividing by an inverse gives what real division does, rounding down, for
+// numbers of all sizes and signs and divisors from 1 up.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterDivideFloor(void)
+{
+	uint64	uiRandom;
+	uint64	uiDivisor;
+	int64	iNumerator;
+	int		iDifferent;
+	int		i;
+
+	uiRandom = 88172645463325252ULL;
+	iDifferent = 0;
+	for (i = 0; i < 300000; i++)
+	{
+		uiRandom ^= uiRandom << 13;
+		uiRandom ^= uiRandom >> 7;
+		uiRandom ^= uiRandom << 17;
+		iNumerator = (int64)(uiRandom >> (2 + (i % 61)));
+		iNumerator = ((uiRandom >> 1) & 1) ? -iNumerator : iNumerator;
+
+		uiRandom ^= uiRandom << 13;
+		uiRandom ^= uiRandom >> 7;
+		uiRandom ^= uiRandom << 17;
+		uiDivisor = (uiRandom >> (24 + (i % 40))) + 1;
+
+		//Exact multiples, and one either side of them, are where rounding goes wrong.
+		if ((i % 7) == 0)
+		{
+			iNumerator = (iNumerator / (int64)uiDivisor) * (int64)uiDivisor + ((i % 3) - 1);
+		}
+		iDifferent += RasterDivideFloor(iNumerator, uiDivisor, RasterDivideInverse(uiDivisor)) != DivideFloor(iNumerator, (int64)uiDivisor);
+	}
+	AssertInt(0, iDifferent);
+	AssertLong(-1, RasterDivideFloor(-1, 2, RasterDivideInverse(2)));
+	AssertLong(0, RasterDivideFloor(0, 1, RasterDivideInverse(1)));
+	AssertLong(7, RasterDivideFloor(7, 1, RasterDivideInverse(1)));
+	AssertLong(-3, RasterDivideFloor(-9, 3, RasterDivideInverse(3)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterCamera(void)
@@ -507,6 +552,7 @@ void TestRasterCamera(void)
 	TestRasterCameraOrthographic();
 	TestRasterCameraPerspective();
 	TestRasterCameraPerspectiveDivides();
+	TestRasterDivideFloor();
 	TestRasterCameraViewToMesh();
 	TestRasterCameraPan();
 	TestRasterCameraZoom();

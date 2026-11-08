@@ -27,6 +27,7 @@
   <ItemGroup>
     <ClInclude Include="RasterMesh.h" />
     <ClInclude Include="RasterCamera.h" />
+    <ClInclude Include="RasterDivide.h" />
     <ClInclude Include="RasterTarget.h" />
     <ClInclude Include="Rasteriser.h" />
   </ItemGroup>

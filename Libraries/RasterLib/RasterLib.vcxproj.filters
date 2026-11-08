@@ -26,6 +26,9 @@
     <ClInclude Include="RasterCamera.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="RasterDivide.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="RasterTarget.h">
       <Filter>Source</Filter>
     </ClInclude>

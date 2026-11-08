@@ -24,6 +24,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/Int64Vec3.h"
 #include "Rasteriser.h"
+#include "RasterDivide.h"
 
 
 //Shade is 0 .. 256.
@@ -286,9 +287,9 @@ static SRasterEdge RasterEdge(SRasterSubpixelVec2* psFrom, SRasterSubpixelVec2* 
 // on one triangle share one format.
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 RasterWeigh(SRasterEdge s0, SRasterEdge s1, SRasterEdge s2, SRasterWideWhole sA, SRasterWideWhole sB, SRasterWideWhole sC, SRasterEdge sArea)
+static FORCE_INLINE int32 RasterWeigh(SRasterEdge s0, SRasterEdge s1, SRasterEdge s2, SRasterWideWhole sA, SRasterWideWhole sB, SRasterWideWhole sC, SRasterEdge sArea, uint64 uiInverse)
 {
-	return (int32)(s0 * sA + s1 * sB + s2 * sC).DivideFloor(sArea).miRaw;
+	return (int32)RasterDivideFloor((s0 * sA + s1 * sB + s2 * sC).miRaw, (uint64)sArea.miRaw, uiInverse);
 }
 
 
@@ -399,7 +400,7 @@ static FORCE_INLINE uint32 RasterLaneHits(SRasterLanes* psLanes, SRasterEdge s0,
 // at pixel iX and changing by sStep each pixel, isn't negative.
 //
 //////////////////////////////////////////////////////////////////////////
-static void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, int32 iX, int32* piFirstX, int32* piLastX)
+static FORCE_INLINE void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, uint64 uiInverse, int32 iX, int32* piFirstX, int32* piLastX)
 {
 	int64	iValue;
 	int64	iStep;
@@ -411,7 +412,7 @@ static void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, int32 iX, int3
 	{
 		if (iValue < 0)
 		{
-			iPixels = (-iValue + iStep - 1) / iStep;
+			iPixels = RasterDivideFloor(-iValue + iStep - 1, (uint64)iStep, uiInverse);
 			if (iX + iPixels > *piFirstX)
 			{
 				*piFirstX = (iX + iPixels > *piLastX) ? *piLastX + 1 : (int32)(iX + iPixels);
@@ -424,7 +425,7 @@ static void RasterEdgeSpan(SRasterEdge sValue, SRasterEdge sStep, int32 iX, int3
 	}
 	else if (iStep < 0)
 	{
-		iPixels = iValue / -iStep;
+		iPixels = RasterDivideFloor(iValue, (uint64)-iStep, uiInverse);
 		if (iX + iPixels < *piLastX)
 		{
 			*piLastX = (int32)(iX + iPixels);
@@ -549,6 +550,8 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	int32					iShade;
 	uint32*					puiPixelRow;
 	int32*					piDepthRow;
+	uint64					uiAreaInverse;  //Made when a triangle first covers a pixel, and most don't cover any.
+	uint64					auiStepInverse[3];
 #ifdef __AVX2__
 	SRasterLanes			sLanes;
 	bool					bLanes;
@@ -667,6 +670,7 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 	sDepth = SRasterInterpolated::FromRaw(0);
 	sShade = SRasterInterpolated::FromRaw(0);
 	bWide = (iMaxX - iMinX) >= RASTER_WIDE_PIXELS;
+	uiAreaInverse = 0;
 #ifdef __AVX2__
 	bLanes = bSmall && ((iMaxX - iMinX) < RASTER_LANES) &&
 			 RasterLanesFit(sRow0, sStepX0, sStepY0, iMaxY - iMinY + 1) &&
@@ -683,13 +687,17 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 				iHit = (int32)_tzcnt_u32(uiHits);
 				uiHits &= uiHits - 1;
 				x = iMinX + iHit;
+				if (uiAreaInverse == 0)
+				{
+					uiAreaInverse = RasterDivideInverse((uint64)sArea.miRaw);
+				}
 				sHit0 = SRasterEdge::FromRaw(sRow0.miRaw + sStepX0.miRaw * iHit);
 				sHit1 = SRasterEdge::FromRaw(sRow1.miRaw + sStepX1.miRaw * iHit);
 				sHit2 = SRasterEdge::FromRaw(sRow2.miRaw + sStepX2.miRaw * iHit);
-				iDepth = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sDepthA, sDepthB, sDepthC, sArea);
+				iDepth = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sDepthA, sDepthB, sDepthC, sArea, uiAreaInverse);
 				if (iDepth > piDepthRow[x])
 				{
-					iShade = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
+					iShade = RasterWeigh(sHit0 - sBias0, sHit1 - sBias1, sHit2 - sBias2, sShadeA, sShadeB, sShadeC, sArea, uiAreaInverse);
 					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
 				}
 			}
@@ -702,6 +710,13 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 		return;
 	}
 #endif
+	if (bWide)
+	{
+		//A step of 0 never divides.
+		auiStepInverse[0] = (sStepX0.miRaw != 0) ? RasterDivideInverse((uint64)((sStepX0.miRaw < 0) ? -sStepX0.miRaw : sStepX0.miRaw)) : 0;
+		auiStepInverse[1] = (sStepX1.miRaw != 0) ? RasterDivideInverse((uint64)((sStepX1.miRaw < 0) ? -sStepX1.miRaw : sStepX1.miRaw)) : 0;
+		auiStepInverse[2] = (sStepX2.miRaw != 0) ? RasterDivideInverse((uint64)((sStepX2.miRaw < 0) ? -sStepX2.miRaw : sStepX2.miRaw)) : 0;
+	}
 	for (y = iMinY; y <= iMaxY; y++)
 	{
 		s0 = sRow0;
@@ -713,9 +728,9 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 		if (bWide)
 		{
 			//A triangle is convex, so a row covers one run of pixels and each edge says where it can start or stop.
-			RasterEdgeSpan(s0, sStepX0, iMinX, &iFirstX, &iLastX);
-			RasterEdgeSpan(s1, sStepX1, iMinX, &iFirstX, &iLastX);
-			RasterEdgeSpan(s2, sStepX2, iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s0, sStepX0, auiStepInverse[0], iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s1, sStepX1, auiStepInverse[1], iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s2, sStepX2, auiStepInverse[2], iMinX, &iFirstX, &iLastX);
 			if (iFirstX > iMinX)
 			{
 				s0 += SRasterEdge::FromRaw(sStepX0.miRaw * (iFirstX - iMinX));
@@ -729,7 +744,11 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 			{
 				if (bSmall)
 				{
-					iDepth = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sDepthA, sDepthB, sDepthC, sArea);
+					if (uiAreaInverse == 0)
+					{
+						uiAreaInverse = RasterDivideInverse((uint64)sArea.miRaw);
+					}
+					iDepth = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sDepthA, sDepthB, sDepthC, sArea, uiAreaInverse);
 					iShade = 0;  //Worked out below, if the pixel is to be drawn: most of a mesh's pixels are behind another.
 				}
 				else
@@ -771,7 +790,7 @@ void CRasteriser::DrawTriangle(CRasterTarget* pcTarget, SRasterScreenVertex* psA
 				{
 					if (bSmall)
 					{
-						iShade = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sShadeA, sShadeB, sShadeC, sArea);
+						iShade = RasterWeigh(s0 - sBias0, s1 - sBias1, s2 - sBias2, sShadeA, sShadeB, sShadeC, sArea, uiAreaInverse);
 					}
 					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
 				}
