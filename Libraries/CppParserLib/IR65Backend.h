@@ -138,6 +138,9 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 
 
 #define IR65_PSEUDO_UNITS		32		//Four byte units of [$00 + W] to [$7F + W], and again from [$80 + W].
+#define IR65_PSEUDO_UNIT_BYTES	4
+#define IR65_PSEUDO_SAVED		0x80	//The units from here are callee saved: the prologue pushes those used.
+#define IR65_SAVED_UNIT(iUnit)	(IR65_PSEUDO_SAVED + IR65_PSEUDO_UNIT_BYTES * (iUnit))
 #define IR65_HOME_PSEUDO		IR65R_Count
 #define IR65_HOME_SAVED			(IR65_HOME_PSEUDO + IR65_PSEUDO_UNITS)
 #define IR65_HOME_FRAME			(IR65_HOME_SAVED + IR65_PSEUDO_UNITS)

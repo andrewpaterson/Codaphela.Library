@@ -59,7 +59,20 @@ enum EIR65CodeKind
 };
 
 
-//A line of a function's code, decoded.  Registers are 0 to 3 for A, B, X and Y, -1 for none (or S, V, W).
+//The registers a line's widths follow, as indexes.
+enum EIR65CodeRegister
+{
+	IR65CR_A,
+	IR65CR_B,
+	IR65CR_X,
+	IR65CR_Y,
+};
+
+
+#define IR65_REGISTER_BIT(eRegister)	(1 << (eRegister))		//SIR65CodeLine's uiRegisters, and the uses of a line.
+
+
+//A line of a function's code, decoded.  Registers are EIR65CodeRegister, -1 for none (or S, V, W).
 struct SIR65CodeLine
 {
 	uint8	uiKind;

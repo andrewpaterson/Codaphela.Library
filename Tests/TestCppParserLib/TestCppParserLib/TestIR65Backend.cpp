@@ -1827,6 +1827,24 @@ void TestIR65BackendPeepholeJumps(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The callee saved pseudo registers start at [$80 + W], four bytes apart, and
+// a register's bit is its index in the order A, B, X, Y.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendUnits(void)
+{
+	AssertInt(128, IR65_SAVED_UNIT(0));
+	AssertInt(132, IR65_SAVED_UNIT(1));
+	AssertInt(252, IR65_SAVED_UNIT(IR65_PSEUDO_UNITS - 1));
+	AssertInt(1, IR65_REGISTER_BIT(IR65CR_A));
+	AssertInt(2, IR65_REGISTER_BIT(IR65CR_B));
+	AssertInt(4, IR65_REGISTER_BIT(IR65CR_X));
+	AssertInt(8, IR65_REGISTER_BIT(IR65CR_Y));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The mnemonic of each integer opcode.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1862,6 +1880,7 @@ void TestIR65Backend(void)
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestIR65BackendMnemonics();
+	TestIR65BackendUnits();
 	TestIR65BackendReturn();
 	TestIR65BackendLoop();
 	TestIR65BackendSwap();

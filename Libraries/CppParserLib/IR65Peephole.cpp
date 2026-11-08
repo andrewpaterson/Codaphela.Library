@@ -39,10 +39,10 @@ static uint8 IR65PeepholeName(char c)
 {
 	switch (c)
 	{
-	case 'A':	return 0x01;
-	case 'B':	return 0x02;
-	case 'X':	return 0x04;
-	case 'Y':	return 0x08;
+	case 'A':	return IR65_REGISTER_BIT(IR65CR_A);
+	case 'B':	return IR65_REGISTER_BIT(IR65CR_B);
+	case 'X':	return IR65_REGISTER_BIT(IR65CR_X);
+	case 'Y':	return IR65_REGISTER_BIT(IR65CR_Y);
 	case 'S':	return IR65_NAME_S;
 	case 'V':	return IR65_NAME_V;
 	case 'W':	return IR65_NAME_W;

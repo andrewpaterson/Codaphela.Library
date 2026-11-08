@@ -924,19 +924,19 @@ void CIR65Code::Effect(size uiLine, SIR65Widths* psWidths, SIR65Widths* psReads,
 		break;
 
 	case IR65CK_Multiply:
-		*puiUses |= 0x1 | 0x2 | 0x8;
-		psReads->auiRegisters[0] |= Bands(auiWidths[0]);
-		psReads->auiRegisters[1] |= Bands(auiWidths[1]);
-		psWrites->auiRegisters[3] |= Bands(auiWidths[3]);
+		*puiUses |= IR65_REGISTER_BIT(IR65CR_A) | IR65_REGISTER_BIT(IR65CR_B) | IR65_REGISTER_BIT(IR65CR_Y);
+		psReads->auiRegisters[IR65CR_A] |= Bands(auiWidths[IR65CR_A]);
+		psReads->auiRegisters[IR65CR_B] |= Bands(auiWidths[IR65CR_B]);
+		psWrites->auiRegisters[IR65CR_Y] |= Bands(auiWidths[IR65CR_Y]);
 		break;
 
 	case IR65CK_Divide:
-		*puiUses |= 0x1 | 0x2 | 0x8;
-		psReads->auiRegisters[0] |= Bands(auiWidths[0]);
-		psReads->auiRegisters[1] |= Bands(auiWidths[1]);
-		psReads->auiRegisters[3] |= Bands(auiWidths[3]);
-		psWrites->auiRegisters[1] |= Bands(auiWidths[1]);
-		psWrites->auiRegisters[3] |= Bands(auiWidths[3]);
+		*puiUses |= IR65_REGISTER_BIT(IR65CR_A) | IR65_REGISTER_BIT(IR65CR_B) | IR65_REGISTER_BIT(IR65CR_Y);
+		psReads->auiRegisters[IR65CR_A] |= Bands(auiWidths[IR65CR_A]);
+		psReads->auiRegisters[IR65CR_B] |= Bands(auiWidths[IR65CR_B]);
+		psReads->auiRegisters[IR65CR_Y] |= Bands(auiWidths[IR65CR_Y]);
+		psWrites->auiRegisters[IR65CR_B] |= Bands(auiWidths[IR65CR_B]);
+		psWrites->auiRegisters[IR65CR_Y] |= Bands(auiWidths[IR65CR_Y]);
 		break;
 
 	case IR65CK_Call:
@@ -962,7 +962,7 @@ void CIR65Code::Effect(size uiLine, SIR65Widths* psWidths, SIR65Widths* psReads,
 	case IR65CK_Return:
 		//The result is A, all of it for a 64 bit one; stp may be looked at by anything.
 		*puiUses = IR65_CODE_ALL;
-		psReads->auiRegisters[0] = Bands(64);
+		psReads->auiRegisters[IR65CR_A] = Bands(64);
 		if (psLine->bReadsFirst)
 		{
 			for (i = 1; i < IR65_CODE_REGISTERS; i++)

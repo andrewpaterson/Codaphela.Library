@@ -218,7 +218,7 @@ void CIR65Backend::Prologue(const char* szLabel)
 	{
 		if (msFrame.uiSaved & (1u << iUnit))
 		{
-			Line("psh [")->Append(128 + 4 * iUnit)->Append(" + W]")->AppendNewLine();
+			Line("psh [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
 		}
 	}
 
@@ -281,7 +281,7 @@ void CIR65Backend::Epilogue(void)
 	{
 		if (msFrame.uiSaved & (1u << iUnit))
 		{
-			Line("pul [")->Append(128 + 4 * iUnit)->Append(" + W]")->AppendNewLine();
+			Line("pul [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
 		}
 	}
 	if (!msFrame.bFrameless)

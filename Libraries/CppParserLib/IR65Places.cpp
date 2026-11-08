@@ -871,7 +871,7 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		iUnit = bCall ? -1 : FindUnits(IR65_HOME_PSEUDO, iUnits, iLeader);
 		if (iUnit >= 0)
 		{
-			PlaceClass(iLeader, IR65P_Pseudo, 4 * iUnit, 4 * iUnits);
+			PlaceClass(iLeader, IR65P_Pseudo, IR65_PSEUDO_UNIT_BYTES * iUnit, IR65_PSEUDO_UNIT_BYTES * iUnits);
 			return;
 		}
 	}
@@ -885,32 +885,32 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	if (iUnit >= 0)
 	{
 		msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;
-		PlaceClass(iLeader, IR65P_Pseudo, 128 + 4 * iUnit, 4 * iUnits);
+		PlaceClass(iLeader, IR65P_Pseudo, IR65_SAVED_UNIT(iUnit), IR65_PSEUDO_UNIT_BYTES * iUnits);
 		return;
 	}
 
 	for (iHome = IR65_HOME_FRAME; iHome + iUnits <= (int32)masHomes.NumElements(); iHome++)
 	{
-		if ((iUnits == 2) && (masHomes.Get(iHome + 1)->iOffset != masHomes.Get(iHome)->iOffset + 4))
+		if ((iUnits == 2) && (masHomes.Get(iHome + 1)->iOffset != masHomes.Get(iHome)->iOffset + IR65_PSEUDO_UNIT_BYTES))
 		{
 			continue;
 		}
 		if (TakeHomes(iHome, iUnits, iLeader))
 		{
-			PlaceClass(iLeader, IR65P_Frame, masHomes.Get(iHome)->iOffset, 4 * iUnits);
+			PlaceClass(iLeader, IR65P_Frame, masHomes.Get(iHome)->iOffset, IR65_PSEUDO_UNIT_BYTES * iUnits);
 			return;
 		}
 	}
-	iOffset = msFrame.Add(4 * iUnits);
+	iOffset = msFrame.Add(IR65_PSEUDO_UNIT_BYTES * iUnits);
 	iHome = (int32)masHomes.NumElements();
 	for (iUnit = 0; iUnit < iUnits; iUnit++)
 	{
 		psHome = masHomes.Add();
 		psHome->asRanges.Init();
-		psHome->iOffset = iOffset + 4 * iUnit;
+		psHome->iOffset = iOffset + IR65_PSEUDO_UNIT_BYTES * iUnit;
 	}
 	TakeHomes(iHome, iUnits, iLeader);
-	PlaceClass(iLeader, IR65P_Frame, iOffset, 4 * iUnits);
+	PlaceClass(iLeader, IR65P_Frame, iOffset, IR65_PSEUDO_UNIT_BYTES * iUnits);
 }
 
 
