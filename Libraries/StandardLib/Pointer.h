@@ -42,7 +42,7 @@ public:
 			Ptr&	operator = (const Ptr& cPointer) { CPointer::operator = (cPointer); return *this; };
 	
 	M*		operator -> ();
-	M*		operator & ();
+	M*		operator & ();  //The address of the object this points to, as CPointer's.
 
 	Ptr<M>	operator + (Ptr<M> obj);
 	Ptr<M>	operator + (const char* sz);

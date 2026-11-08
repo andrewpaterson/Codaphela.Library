@@ -133,7 +133,7 @@ E9. [163] AddObjectFrom(pcValue, pcOldValue == NULL): bValidate driven by an unr
 E10. [231] CPointer::GetDistToRoot returns -1 for NULL (use UNATTACHED_DIST_TO_ROOT); return mpcObject->LogicalDirty(); / return mpcObject->Kill(); return void from void.  [done a7534dbc4]
 E11. [232] ValidatePtr is a bare if macro (dangling-else hazard).  [done a7534dbc4]
 E12. [324] ObjectFileErrorCheck is a bare if macro declaring a hidden sz.  [done 02f23da2d]
-E13. [233] Ptr/CPointer overload operator& to dereference; &p never gives the pointer's address.
+E13. [233] Ptr/CPointer overload operator& to dereference; &p never gives the pointer's address.  [as intended]
 E14. [259] OMalloc/ONMalloc take Args by value.  [done 8c2ef2ebd]
 E15. [260] Three identical callback typedefs (Allocation/HollowAllocation/Destruction).
 E16. [276] CStackPointer::NumPointers returns int.

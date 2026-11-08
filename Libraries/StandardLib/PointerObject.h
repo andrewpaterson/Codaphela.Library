@@ -69,7 +69,7 @@ public:
 	void				operator = (CPointer& pPointer);
 	void				operator = (const CPointer& pPointer);
 	CEmbeddedObject*	operator -> ();
-	CEmbeddedObject*	operator & ();
+	CEmbeddedObject*	operator & ();  //The address of the object this points to (loaded if it is hollow), on purpose.  This() is the pointer's own address.
 	bool				operator ! ();
 	bool				operator == (const CPointer& pPointer);
 	bool				operator != (const CPointer& pPointer);
