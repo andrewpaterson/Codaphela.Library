@@ -514,6 +514,56 @@ void TestChannelsAccessorWorstCase(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A creator can create again: each accessor takes the accessors made for
+// it, and the creator makes them afresh from its accesses.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsAccessorCreateTwice(void)
+{
+	CChannels*					pcChannels;
+	CChannelsAccessor*			pcFirst;
+	CChannelsAccessor*			pcSecond;
+	CChannelsAccessorCreator	cCreator;
+	uint16						asData[2];
+	uint16*						psData;
+
+	pcChannels = UMalloc(CChannels);
+	pcChannels->Init();
+	pcChannels->BeginChange();
+	pcChannels->SetSize(2);
+	pcChannels->AddChannel(CHANNEL_NAME_JACK, PT_int16);
+	pcChannels->AddChannel(CHANNEL_NAME_ALICE, PT_int16);
+	pcChannels->EndChange();
+
+	cCreator.Init(pcChannels);
+	cCreator.AddAccess(CHANNEL_NAME_JACK, PT_Undefined);
+	cCreator.AddAccess(CHANNEL_NAME_ALICE, PT_Undefined);
+
+	pcFirst = cCreator.Create();
+	AssertNotNull(pcFirst);
+	pcSecond = cCreator.Create();
+	AssertNotNull(pcSecond);
+	cCreator.Kill();
+
+	AssertSize(2, pcFirst->GetAccessors()->NumElements());
+	AssertSize(2, pcSecond->GetAccessors()->NumElements());
+	AssertFalse(pcFirst->GetAccessors()->GetData() == pcSecond->GetAccessors()->GetData());
+
+	asData[0] = 784;
+	asData[1] = 602;
+	pcFirst->Set(1, asData);
+	psData = (uint16*)pcSecond->Get(1);
+	AssertShort((uint16)784, psData[0]);
+	AssertShort((uint16)602, psData[1]);
+
+	pcFirst->Kill();
+	pcSecond->Kill();
+	pcChannels->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChannelsAccessor(void)
@@ -533,6 +583,7 @@ void TestChannelsAccessor(void)
 	TestChannelsAccessorAccessBitty();
 	TestChannelsAccessorAccessBittySecondElement();
 	TestChannelsAccessorWorstCase();
+	TestChannelsAccessorCreateTwice();
 
 	ObjectsKill();
 	DataIOKill();

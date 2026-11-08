@@ -101,6 +101,26 @@ void ARRAY_BLOCK::Fake(ASIZE iElementSize, void* pvData, ASIZE iNum, ASIZE iChun
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// Initialises this with pcSource's elements, without copying them.		//
+// pcSource is left an empty array that can still be used, and must		//
+// still be killed.  Like an Init, this frees nothing this already had.	//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void ARRAY_BLOCK::TakeFrom(ARRAY_BLOCK* pcSource)
+{
+	Init(pcSource->mpcMalloc, pcSource->miElementSize, pcSource->miChunkSize);
+	mpvArray = pcSource->mpvArray;
+	miNumElements = pcSource->miNumElements;
+	miUsedElements = pcSource->miUsedElements;
+
+	pcSource->mpvArray = NULL;
+	pcSource->miNumElements = 0;
+	pcSource->miUsedElements = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void ARRAY_BLOCK::ReInit(void)

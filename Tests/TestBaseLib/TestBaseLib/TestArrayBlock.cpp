@@ -157,6 +157,57 @@ void TestArrayBlockFindInSorted(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// TakeFrom moves the elements without copying them, and leaves the
+// source an empty array that can be added to and must be killed.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void TestArrayBlockTakeFrom(void)
+{
+	M		cSource;
+	M		cDest;
+	void*	pvData;
+
+	cSource.Init(&gcSystemAllocator, sizeof(int32), 4);
+	*(int32*)cSource.Add() = 11;
+	*(int32*)cSource.Add() = 22;
+	*(int32*)cSource.Add() = 33;
+	pvData = cSource.GetData();
+
+	cDest.TakeFrom(&cSource);
+	AssertPointer(pvData, cDest.GetData());
+	AssertTrue(cDest.NumElements() == 3);
+	AssertTrue(cDest.ChunkSize() == 4);
+	AssertInt((int32)22, *(int32*)cDest.Get(1));
+
+	AssertNull(cSource.GetData());
+	AssertTrue(cSource.IsEmpty());
+	AssertTrue(cSource.ChunkSize() == 4);
+
+	//Neither is tied to the other any more.
+	*(int32*)cSource.Add() = 44;
+	AssertTrue(cSource.NumElements() == 1);
+	AssertInt((int32)44, *(int32*)cSource.Get(0));
+	AssertTrue(cDest.NumElements() == 3);
+	*(int32*)cDest.Add() = 55;
+	AssertInt((int32)11, *(int32*)cDest.Get(0));
+	AssertInt((int32)55, *(int32*)cDest.Get(3));
+
+	cSource.Kill();
+	cDest.Kill();
+
+	//An empty source gives an empty array.
+	cSource.Init(sizeof(int32));
+	cDest.TakeFrom(&cSource);
+	AssertTrue(cDest.IsEmpty());
+	AssertNull(cDest.GetData());
+	cSource.Kill();
+	cDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayBlock(void)
@@ -167,6 +218,8 @@ void TestArrayBlock(void)
 	TestArrayBlockRemoveBatch();
 	TestArrayBlockFindInSorted<CArrayBlock, size>();
 	TestArrayBlockFindInSorted<CArrayLargeBlock, lsize>();
+	TestArrayBlockTakeFrom<CArrayBlock>();
+	TestArrayBlockTakeFrom<CArrayLargeBlock>();
 
 	MemoryKill();
 	TestStatistics();

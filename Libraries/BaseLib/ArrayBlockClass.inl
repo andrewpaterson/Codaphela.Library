@@ -57,6 +57,7 @@ public:
 
 	void 	Finalise(void);
 	void	Fake(ASIZE iElementSize, void* pvData, ASIZE iNum, ASIZE iChunkSize = 1);
+	void	TakeFrom(ARRAY_BLOCK* pcSource);
 
 	void 	Kill(void);
 

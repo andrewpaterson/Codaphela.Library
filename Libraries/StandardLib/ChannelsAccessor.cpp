@@ -25,13 +25,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// This takes pcAccessors' elements, leaving pcAccessors empty.
 //
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessor::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize)
 {
 	mpcChannels = pcChannels;
-	memcpy(&macAccessors, pcAccessors, sizeof(CArrayChannelAccessor));
-	memset(pcAccessors, 0, sizeof(CArrayChannelAccessor));
+	macAccessors.TakeFrom(pcAccessors);
 	miByteSize = iByteSize;
 	miBitSize = iBitSize;
 	msBuffer.Init(GetBufferSize());

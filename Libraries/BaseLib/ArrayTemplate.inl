@@ -32,6 +32,7 @@ public:
 	void 	Init(CMallocator* pcMalloc, ASIZE iChunkSize);
 	void	Init(CMallocator* pcMalloc, M* pvData, ASIZE uiNumData);
 	void	Fake(M* pvData, ASIZE iNum, ASIZE iChunkSize = 1);
+	void	TakeFrom(ARRAY_TEMPLATE<M>* pcSource);
 	void	Kill(void);
 
 	M*		Add(void);
@@ -88,6 +89,7 @@ template<class M> void	ARRAY_TEMPLATE<M>::Init(void) { ARRAY_BLOCK::Init(sizeof(
 template<class M> void	ARRAY_TEMPLATE<M>::Init(CMallocator* pcMalloc) { ARRAY_BLOCK::Init(pcMalloc, sizeof(M)); }
 template<class M> void	ARRAY_TEMPLATE<M>::Init(CMallocator* pcMalloc, ASIZE iChunkSize) { ARRAY_BLOCK::Init(pcMalloc, sizeof(M), iChunkSize); }
 template<class M> void	ARRAY_TEMPLATE<M>::Init(CMallocator* pcMalloc, M* pvData, ASIZE uiNumData) { ARRAY_BLOCK::Init(pcMalloc, sizeof(M), pvData, uiNumData); }
+template<class M> void	ARRAY_TEMPLATE<M>::TakeFrom(ARRAY_TEMPLATE<M>* pcSource) { ARRAY_BLOCK::TakeFrom(pcSource); }
 template<class M> void	ARRAY_TEMPLATE<M>::Kill(void) { ARRAY_BLOCK::Kill(); }
 template<class M> M*	ARRAY_TEMPLATE<M>::SafeGet(ASIZE iIndex) { return (M*)ARRAY_BLOCK::SafeGet(iIndex); }
 template<class M> bool	ARRAY_TEMPLATE<M>::SafeSet(ASIZE iIndex, M* pvData) { return ARRAY_BLOCK::SafeSet(iIndex, pvData); }
