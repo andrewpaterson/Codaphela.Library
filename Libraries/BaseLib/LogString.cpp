@@ -357,7 +357,7 @@ char* PointerToString(void* pv)
 
 	uiCount = IncrementLogToStringCount();
 	sz.Init();
-	sz.AppendHexHiLo(&pv, sizeof(size));
+	sz.AppendHexHiLo(&pv, sizeof(void*));  //All of it: a size can be narrower than a pointer (the W65C816, a 16 bit size host build).
 	StrCpySafe(gaszLogToStringScratchPad[uiCount], sz.Text(), LOG_TO_STRING_MAX_LENGTH);
 	sz.Kill();
 	return gaszLogToStringScratchPad[uiCount];
