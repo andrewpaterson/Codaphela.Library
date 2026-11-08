@@ -40,15 +40,15 @@ B23. [306] CPrimitiveObject::SetEmbedding stores the offset in uint16 unchecked 
 B24. [312] Fat-hollow sizes are uint16 (muiSize, AllocateHollow's uiFatSize): a class over 64KB is truncated, not refused.  [done 3826f80b3]
 B25. [323] ObjectWriter: (uint16)pcObject->ClassSize() and the uint16 embedded count/index casts are unchecked.  [done 3826f80b3]
 B26. [327] CSerialisedObject::SetLength truncates size to uint32 silently.  [done 3826f80b3]
-B27. [343] CDependentReadObject::Init doesn't copy muiSize.
-B28. [349] A failed WriteUnwritten returns without mpcWriter->End().
-B29. [355] CExternalObjectDeserialiser::Read returns NULL when End() fails though the objects are already in memory.
-B30. [357] External read objects are keyed by moi only: named records without an index collide.
-B31. [363] ExternalObjectReader accepts lengths 1–3 (negative after -= 4) and has no upper bound before Malloc.
-B32. [370] ChunkFileObjectWriter's three ReturnOnFalse exits leak szChunkName.
-B33. [378] ObjectSourceChunked::Convert Kills its reader and leaves mpcReader dangling.
-B34. [382] ObjectSourceChunked::Init returns false after ReadOpen without closing the file.
-B35. [379] ObjectSingleSource::Contains is case-sensitive; Convert is case-insensitive.
+B27. [343] CDependentReadObject::Init doesn't copy muiSize.  [done c4423c1f8]
+B28. [349] A failed WriteUnwritten returns without mpcWriter->End().  [done c4423c1f8]
+B29. [355] CExternalObjectDeserialiser::Read returns NULL when End() fails though the objects are already in memory.  [done c4423c1f8]
+B30. [357] External read objects are keyed by moi only: named records without an index collide.  [done c4423c1f8]
+B31. [363] ExternalObjectReader accepts lengths 1–3 (negative after -= 4) and has no upper bound before Malloc.  [done c4423c1f8]
+B32. [370] ChunkFileObjectWriter's three ReturnOnFalse exits leak szChunkName.  [done c4423c1f8]
+B33. [378] ObjectSourceChunked::Convert Kills its reader and leaves mpcReader dangling.  [done c4423c1f8]
+B34. [382] ObjectSourceChunked::Init returns false after ReadOpen without closing the file.  [done c4423c1f8]
+B35. [379] ObjectSingleSource::Contains is case-sensitive; Convert is case-insensitive.  [done c4423c1f8]
 B36. [405] Channels switching from user data to owned data allocate fresh data: the pixels are lost ("should copy from mpvUserData").
 B37. [418] ChannelsAccessorCreatorParams::AddAccess silently drops channels the source lacks.
 B38. [425] ChannelsCopier doesn't check uiSourcePos/uiDestPos are inside the channels (a start past the end runs off the data).
@@ -193,7 +193,7 @@ F41. [315] RemovalPointerContainer.h's #endif // __OBJECT_REMOVAL_CONTEXT_H__.
 F42. [316] mp = NULL;; in PointerContainer.cpp.
 F43. [318] gbForceFatHollows: a global mutable flag that changes serialisation (tests flip it).
 F44. [328][336] Include guard __OBJET_WRITER_H__; "LoadHeadFroms" typo.
-F45. [349] ExternalObjectSerialiser: unused int iCount; //Just for debugging.; local CMemoryFile named mcMemory; "Could write [NULL] object" is missing "not".
+F45. [349] ExternalObjectSerialiser: unused int iCount; //Just for debugging.; local CMemoryFile named mcMemory; "Could write [NULL] object" is missing "not".  [done c4423c1f8]
 F46. [350][373] CExternalObjectWriter::Init ignores its parameter, which both writers pass.  [done 3a3633a5d]
 F47. [358] CExternalObjectDeserialiser::AddReverseDependent returns true doing nothing, without saying it's intended.
 F48. [380] CObjectsSource::mcFiles is never Init'd, Killed or used.
