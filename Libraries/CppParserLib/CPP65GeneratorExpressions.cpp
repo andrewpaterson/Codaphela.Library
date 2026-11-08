@@ -1789,13 +1789,74 @@ void CCPP65Generator::ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CC
 }
 
 
+//The compiler's type traits of one type.
+enum ECPP65TypeTrait
+{
+	CPP65TT_None,
+	CPP65TT_Class,
+	CPP65TT_Union,
+	CPP65TT_Enum,
+	CPP65TT_Empty,
+	CPP65TT_Polymorphic,
+	CPP65TT_Abstract,
+	CPP65TT_TrivialConstructor,
+	CPP65TT_TrivialDestructor,
+	CPP65TT_Trivial,
+};
+
+
+struct SCPP65TypeTraitName
+{
+	const char*			szName;
+	ECPP65TypeTrait		eTrait;
+};
+
+
+static SCPP65TypeTraitName gasCPP65TypeTraits[] =
+{
+	{ "__is_class", CPP65TT_Class },
+	{ "__is_union", CPP65TT_Union },
+	{ "__is_enum", CPP65TT_Enum },
+	{ "__is_empty", CPP65TT_Empty },
+	{ "__is_polymorphic", CPP65TT_Polymorphic },
+	{ "__is_abstract", CPP65TT_Abstract },
+	{ "__is_trivially_constructible", CPP65TT_TrivialConstructor },
+	{ "__has_trivial_constructor", CPP65TT_TrivialConstructor },
+	{ "__is_trivially_destructible", CPP65TT_TrivialDestructor },
+	{ "__has_trivial_destructor", CPP65TT_TrivialDestructor },
+	{ "__is_pod", CPP65TT_Trivial },
+	{ "__is_trivial", CPP65TT_Trivial },
+	{ "__is_trivially_copyable", CPP65TT_Trivial },
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
-// The compiler's type traits: __is_class, __is_enum, __is_union, __is_empty,
-// __is_polymorphic, __is_abstract, __is_pod, __is_trivial, __is_trivially_copyable,
-// __is_trivially_constructible, __is_trivially_destructible and
-// __has_trivial_destructor of one type.  A class is abstract when one of its
-// virtual functions is still pure.
+// The type trait called pszName, CPP65TT_None if there is none this
+// compiler knows.
+//
+//////////////////////////////////////////////////////////////////////////
+static ECPP65TypeTrait CPP65FindTypeTrait(CChars* pszName)
+{
+	size	ui;
+
+	for (ui = 0; ui < sizeof(gasCPP65TypeTraits) / sizeof(gasCPP65TypeTraits[0]); ui++)
+	{
+		if (pszName->Equals(gasCPP65TypeTraits[ui].szName))
+		{
+			return gasCPP65TypeTraits[ui].eTrait;
+		}
+	}
+	return CPP65TT_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A compiler type trait's value (see gasCPP65TypeTraits).  A class is
+// abstract when one of its virtual functions is still pure, and trivial when
+// nothing the compiler writes runs to make, copy or destroy one: no
+// constructor, copy constructor, destructor or vtable.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
@@ -1803,7 +1864,7 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 	SCPP65Type*		psType;
 	SCPP65Class*	psClass;
 	CChars			szTrait;
-	bool			bResult;
+	ECPP65TypeTrait	eTrait;
 
 	if ((pcTrait->macpArguments.NumElements() < 1) || (pcTrait->macpArguments.GetPtr(0)->GetKind() != CPPS_TypeId))
 	{
@@ -1822,51 +1883,25 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 
 	szTrait.Init();
 	mpcTokeniser->GetSource(mpcTokeniser->Get(pcTrait->miName))->Append(&szTrait);
-	bResult = true;
-	if (szTrait.Equals("__is_class"))
-	{
-		*plliValue = psClass && !psClass->bUnion;
-	}
-	else if (szTrait.Equals("__is_union"))
-	{
-		*plliValue = psClass && psClass->bUnion;
-	}
-	else if (szTrait.Equals("__is_enum"))
-	{
-		*plliValue = psType->pcEnum != NULL;
-	}
-	else if (szTrait.Equals("__is_empty"))
-	{
-		*plliValue = psClass && psClass->bEmpty;
-	}
-	else if (szTrait.Equals("__is_polymorphic"))
-	{
-		*plliValue = psClass && IsPolymorphic(psClass);
-	}
-	else if (szTrait.Equals("__is_abstract"))
-	{
-		*plliValue = psClass && IsAbstract(psClass);
-	}
-	else if (szTrait.Equals("__is_trivially_constructible") || szTrait.Equals("__has_trivial_constructor"))
-	{
-		*plliValue = !psClass || !NeedsConstructor(psClass);
-	}
-	else if (szTrait.Equals("__is_trivially_destructible") || szTrait.Equals("__has_trivial_destructor"))
-	{
-		*plliValue = !psClass || !psClass->psDestructor;
-	}
-	else if (szTrait.Equals("__is_pod") || szTrait.Equals("__is_trivial") || szTrait.Equals("__is_trivially_copyable"))
-	{
-		//Nothing the compiler writes runs to make, copy or destroy one: no constructor, copy constructor, destructor
-		//or vtable.
-		*plliValue = !psClass || (!NeedsConstructor(psClass) && !psClass->psDestructor && !HasCopyConstructor(psClass) && !IsPolymorphic(psClass));
-	}
-	else
-	{
-		bResult = false;
-	}
+	eTrait = CPP65FindTypeTrait(&szTrait);
 	szTrait.Kill();
-	return bResult;
+
+	switch (eTrait)
+	{
+	case CPP65TT_Class:					*plliValue = psClass && !psClass->bUnion;					return true;
+	case CPP65TT_Union:					*plliValue = psClass && psClass->bUnion;					return true;
+	case CPP65TT_Enum:					*plliValue = psType->pcEnum != NULL;						return true;
+	case CPP65TT_Empty:					*plliValue = psClass && psClass->bEmpty;					return true;
+	case CPP65TT_Polymorphic:			*plliValue = psClass && IsPolymorphic(psClass);				return true;
+	case CPP65TT_Abstract:				*plliValue = psClass && IsAbstract(psClass);				return true;
+	case CPP65TT_TrivialConstructor:	*plliValue = !psClass || !NeedsConstructor(psClass);		return true;
+	case CPP65TT_TrivialDestructor:		*plliValue = !psClass || !psClass->psDestructor;			return true;
+	case CPP65TT_Trivial:
+		*plliValue = !psClass || (!NeedsConstructor(psClass) && !psClass->psDestructor && !HasCopyConstructor(psClass) && !IsPolymorphic(psClass));
+		return true;
+	default:
+		return false;
+	}
 }
 
 

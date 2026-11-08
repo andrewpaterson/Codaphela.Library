@@ -1058,6 +1058,41 @@ static void AssertNamespaceLabels(const char* szSource, const char** aszLabels, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each type trait the compiler knows, of a class, a union, an enum and a type
+// that is none of them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRTypeTraits(void)
+{
+	static const char*	szTypes = "struct Plain { int i; };\nstruct Empty {};\nunion U { int i; char c; };\nenum E { A };\nstruct Made { int i; Made() : i(1) {} };\nstruct Gone { int i; ~Gone() {} };\nstruct Copied { int i; Copied() {} Copied(const Copied& c) : i(c.i) {} };\nstruct Virtual { virtual int F() { return 1; } };\nstruct Abstract { virtual int F() = 0; };\n";
+	static const char*	aszTraits[] =
+	{
+		"__is_class(Plain) && __is_class(Empty) && !__is_class(U) && !__is_class(E) && !__is_class(int)",
+		"__is_union(U) && !__is_union(Plain) && !__is_union(int)",
+		"__is_enum(E) && !__is_enum(Plain) && !__is_enum(int)",
+		"__is_empty(Empty) && !__is_empty(Plain) && !__is_empty(int)",
+		"__is_polymorphic(Virtual) && __is_polymorphic(Abstract) && !__is_polymorphic(Plain) && !__is_polymorphic(int)",
+		"__is_abstract(Abstract) && !__is_abstract(Virtual) && !__is_abstract(int)",
+		"__is_trivially_constructible(Plain) && !__is_trivially_constructible(Made) && __has_trivial_constructor(int) && !__has_trivial_constructor(Made)",
+		"__is_trivially_destructible(Plain) && !__is_trivially_destructible(Gone) && __has_trivial_destructor(int) && !__has_trivial_destructor(Gone)",
+		"__is_pod(Plain) && __is_trivial(int) && __is_trivially_copyable(Plain) && !__is_pod(Made) && !__is_trivial(Gone) && !__is_trivially_copyable(Copied) && !__is_pod(Virtual)",
+		NULL,
+	};
+	CChars	sz;
+	size	i;
+
+	for (i = 0; aszTraits[i]; i++)
+	{
+		sz.Init(szTypes);
+		sz.Append("int main() { return (")->Append(aszTraits[i])->Append(") ? 7 : 1; }");
+		AssertInt(7, TestCPP65Main(sz.Text()));
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What a namespace declares has the namespace in its label, and a parameter
 // of a class in one too.  extern "C", the global main and what isn't in a
 // namespace don't.  A namespace without a name is the unit's own.
@@ -1343,6 +1378,7 @@ void TestCPP65IR(void)
 	TestCPP65IRConstOverloads();
 	TestCPP65IRConstMembers();
 	TestCPP65IRConstErrors();
+	TestCPP65IRTypeTraits();
 	TestCPP65IRNamespaceLabels();
 	TestCPP65IRNamespaceRuns();
 	TestCPP65IRNamespaceQualified();
