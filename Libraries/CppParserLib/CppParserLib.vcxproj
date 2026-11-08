@@ -288,12 +288,8 @@
     <ClCompile Include="CPPScope.cpp" />
     <ClCompile Include="CPPSymbolTable.cpp" />
     <ClCompile Include="CPPSymbol.cpp" />
-    <ClCompile Include="CPPSyntaxTypeSpecifier.cpp" />
     <ClCompile Include="CPPSyntaxTree.cpp" />
-    <ClCompile Include="CPPSyntaxStatement.cpp" />
     <ClCompile Include="CPPSyntaxMemory.cpp" />
-    <ClCompile Include="CPPSyntaxExpression.cpp" />
-    <ClCompile Include="CPPSyntaxDeclaration.cpp" />
     <ClCompile Include="CPPSyntax.cpp" />
     <ClCompile Include="CPPSyntaxWhileStatement.cpp" />
     <ClCompile Include="CPPSyntaxUsingDirective.cpp" />

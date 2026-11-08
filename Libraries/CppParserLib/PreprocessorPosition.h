@@ -23,7 +23,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CPreprocessorTokenParser;
-class CSourceFile;
 class CChars;
 struct SPreprocessorPosition
 {

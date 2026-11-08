@@ -59,7 +59,6 @@ enum EPreprocessedTokenKind
 
 
 class CSourceFile;
-class CDefine;
 
 
 //A preprocessing token after macro expansion.  The spelling location is where its characters are: in the source,

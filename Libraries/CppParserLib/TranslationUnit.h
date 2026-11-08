@@ -25,6 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PreprocessedTokens.h"
 
 
+class CLibrary;
+
+
 struct STULog
 {
 	CChars	szIncludesLog;

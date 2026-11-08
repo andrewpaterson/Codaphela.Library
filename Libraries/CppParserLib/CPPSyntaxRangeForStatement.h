@@ -25,7 +25,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CCPPSyntaxDeclSpecifiers;
 class CCPPSyntaxDeclarator;
-class CCPPSyntaxStatement;
 
 
 class CCPPSyntaxRangeForStatement : public CCPPSyntaxStatement

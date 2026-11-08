@@ -23,9 +23,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxDeclaration.h"
 
 
-class CCPPSyntaxDeclaration;
-
-
 class CCPPSyntaxTemplateDeclaration : public CCPPSyntaxDeclaration
 {
 public:

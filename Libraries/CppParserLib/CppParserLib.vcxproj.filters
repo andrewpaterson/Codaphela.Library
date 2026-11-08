@@ -408,22 +408,10 @@
     <ClCompile Include="CPPSymbol.cpp">
       <Filter>Source\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="CPPSyntaxTypeSpecifier.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
     <ClCompile Include="CPPSyntaxTree.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="CPPSyntaxStatement.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
     <ClCompile Include="CPPSyntaxMemory.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="CPPSyntaxExpression.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="CPPSyntaxDeclaration.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
     <ClCompile Include="CPPSyntax.cpp">
