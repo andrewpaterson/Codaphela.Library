@@ -36,10 +36,10 @@ B19. [258] ObjectRemapFrom silently uses min(old, new) embedded counts, dropping
 B20. [263] Nothing guards a walk started inside another walk (a validator calling CanFindRoot mid-walk breaks the outer one). Assert or document at StartWalk.  [done 4735d494a]
 B21. [266] DistToRoot dereferences GetClosestFromToRoot() unchecked.  [done 4735d494a]
 B22. [277] CStackPointers::Kill → ClearAllPointers writes through stack pointers that are already dead.  [done 4735d494a]
-B23. [306] CPrimitiveObject::SetEmbedding stores the offset in uint16 unchecked (wraps past 64KB); 0 doubles as "not embedded".
-B24. [312] Fat-hollow sizes are uint16 (muiSize, AllocateHollow's uiFatSize): a class over 64KB is truncated, not refused.
-B25. [323] ObjectWriter: (uint16)pcObject->ClassSize() and the uint16 embedded count/index casts are unchecked.
-B26. [327] CSerialisedObject::SetLength truncates size to uint32 silently.
+B23. [306] CPrimitiveObject::SetEmbedding stores the offset in uint16 unchecked (wraps past 64KB); 0 doubles as "not embedded".  [done 3826f80b3]
+B24. [312] Fat-hollow sizes are uint16 (muiSize, AllocateHollow's uiFatSize): a class over 64KB is truncated, not refused.  [done 3826f80b3]
+B25. [323] ObjectWriter: (uint16)pcObject->ClassSize() and the uint16 embedded count/index casts are unchecked.  [done 3826f80b3]
+B26. [327] CSerialisedObject::SetLength truncates size to uint32 silently.  [done 3826f80b3]
 B27. [343] CDependentReadObject::Init doesn't copy muiSize.
 B28. [349] A failed WriteUnwritten returns without mpcWriter->End().
 B29. [355] CExternalObjectDeserialiser::Read returns NULL when End() fails though the objects are already in memory.
