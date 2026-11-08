@@ -36,21 +36,8 @@ int64	DivideRound(int64 iNumerator, int64 iDenominator);
 int64	DivideFloor(int64 iNumerator, int64 iDenominator);
 int64	DivideCeiling(int64 iNumerator, int64 iDenominator);
 
-int32	FixedFromInt(int32 i, int iFractionBits);
 int32	FixedFromFloat(float32 f, int iFractionBits);
 int32	FloatToIntScaled(float32 f, int32 iScale);
-float32	FixedToFloat(int32 iFixed, int iFractionBits);
-int32	FixedConvert(int32 iFixed, int iFromFractionBits, int iToFractionBits);
-
-int32	FixedFloor(int32 iFixed, int iFractionBits);
-int32	FixedCeiling(int32 iFixed, int iFractionBits);
-int32	FixedRound(int32 iFixed, int iFractionBits);
-int32	FixedFraction(int32 iFixed, int iFractionBits);
-
-int32	FixedMultiply(int32 iA, int32 iB, int iFractionBits);
-int32	FixedDivide(int32 iA, int32 iB, int iFractionBits);
-int32	FixedMultiplyDivide(int32 iA, int32 iB, int32 iC);
-int32	FixedSquareRoot(int32 iFixed, int iFractionBits);
 
 
 //A fixed point number whose format is part of its type, so that formats can't be mixed by mistake.  M holds the value

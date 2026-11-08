@@ -37,15 +37,24 @@ void TestFixedPointDivide(void)
 }
 
 
+typedef SFixed<int32, int64, 8>		SFixed8;
+typedef SFixed<int32, int64, 16>	SFixed16;
+typedef SFixed<int32, int64, 0>		SFixed0;
+typedef SFixed<int64, int64, 16>	SWideFixed16;
+typedef SFixed<int64, int64, 32>	SWideFixed32;
+typedef SFixed<int32, int64, 6>		SFixed6;
+typedef SFixed<int32, int64, 10>	SFixed10;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFixedPointConversion(void)
 {
-	AssertInt((int32)256, FixedFromInt(1, 8));
-	AssertInt((int32)-768, FixedFromInt(-3, 8));
-	AssertInt(65536, FixedFromInt(1, 16));
+	AssertInt((int32)256, SFixed8::FromInt(1).miRaw);
+	AssertInt((int32)-768, SFixed8::FromInt(-3).miRaw);
+	AssertInt((int32)65536, SFixed16::FromInt(1).miRaw);
 
 	AssertInt((int32)384, FixedFromFloat(1.5f, 8));
 	AssertInt((int32)-384, FixedFromFloat(-1.5f, 8));
@@ -60,14 +69,14 @@ void TestFixedPointConversion(void)
 	AssertInt((int32)77, FloatToIntScaled(0.3f, 255));
 	AssertInt((int32)-77, FloatToIntScaled(-0.3f, 255));
 
-	AssertFloat(1.5f, FixedToFloat(384, 8), 6);
-	AssertFloat(-0.25f, FixedToFloat(-64, 8), 6);
+	AssertFloat(1.5f, SFixed8::FromRaw(384).ToFloat(), 6);
+	AssertFloat(-0.25f, SFixed8::FromRaw(-64).ToFloat(), 6);
 
-	AssertInt((int32)96, FixedConvert(384, 8, 6));
-	AssertInt((int32)1536, FixedConvert(384, 8, 10));
-	AssertInt((int32)2, FixedConvert(384, 8, 0));
-	AssertInt((int32)-2, FixedConvert(-384, 8, 0));
-	AssertInt((int32)1, FixedConvert(383, 8, 0));
+	AssertInt((int32)96, SFixed8::FromRaw(384).To<SFixed6>().miRaw);
+	AssertInt((int32)1536, SFixed8::FromRaw(384).To<SFixed10>().miRaw);
+	AssertInt((int32)2, SFixed8::FromRaw(384).To<SFixed0>().miRaw);
+	AssertInt((int32)-2, SFixed8::FromRaw(-384).To<SFixed0>().miRaw);
+	AssertInt((int32)1, SFixed8::FromRaw(383).To<SFixed0>().miRaw);
 }
 
 
@@ -77,52 +86,47 @@ void TestFixedPointConversion(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFixedPointRounding(void)
 {
-	AssertInt((int32)1, FixedFloor(384, 8));
-	AssertInt((int32)-2, FixedFloor(-384, 8));
-	AssertInt((int32)2, FixedFloor(512, 8));
-	AssertInt((int32)-2, FixedFloor(-512, 8));
+	AssertInt((int32)1, SFixed8::FromRaw(384).Floor());
+	AssertInt((int32)-2, SFixed8::FromRaw(-384).Floor());
+	AssertInt((int32)2, SFixed8::FromRaw(512).Floor());
+	AssertInt((int32)-2, SFixed8::FromRaw(-512).Floor());
 
-	AssertInt((int32)2, FixedCeiling(384, 8));
-	AssertInt((int32)-1, FixedCeiling(-384, 8));
-	AssertInt((int32)2, FixedCeiling(512, 8));
-	AssertInt((int32)1, FixedCeiling(1, 8));
+	AssertInt((int32)2, SFixed8::FromRaw(384).Ceiling());
+	AssertInt((int32)-1, SFixed8::FromRaw(-384).Ceiling());
+	AssertInt((int32)2, SFixed8::FromRaw(512).Ceiling());
+	AssertInt((int32)1, SFixed8::FromRaw(1).Ceiling());
 
-	AssertInt((int32)2, FixedRound(384, 8));
-	AssertInt((int32)-2, FixedRound(-384, 8));
-	AssertInt((int32)1, FixedRound(383, 8));
-	AssertInt((int32)-1, FixedRound(-383, 8));
+	AssertInt((int32)2, SFixed8::FromRaw(384).Round());
+	AssertInt((int32)-2, SFixed8::FromRaw(-384).Round());
+	AssertInt((int32)1, SFixed8::FromRaw(383).Round());
+	AssertInt((int32)-1, SFixed8::FromRaw(-383).Round());
 
-	AssertInt((int32)128, FixedFraction(384, 8));
-	AssertInt((int32)192, FixedFraction(-320, 8));
-	AssertInt((int32)0, FixedFraction(-512, 8));
+	AssertInt((int32)128, SFixed8::FromRaw(384).Fraction().miRaw);
+	AssertInt((int32)192, SFixed8::FromRaw(-320).Fraction().miRaw);
+	AssertInt((int32)0, SFixed8::FromRaw(-512).Fraction().miRaw);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A multiply then To rounds to the nearest, and a value made wider first keeps its fractions through a divide.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFixedPointArithmetic(void)
 {
-	AssertInt((int32)576, FixedMultiply(384, 384, 8));
-	AssertInt((int32)-576, FixedMultiply(-384, 384, 8));
-	AssertInt((int32)1, FixedMultiply(1, 128, 8));
-	AssertInt((int32)-1, FixedMultiply(-1, 128, 8));
-	AssertInt(0x7FFF0000, FixedMultiply(0x7FFF0000, 0x10000, 16));
+	AssertInt((int32)576, (SFixed8::FromRaw(384) * SFixed8::FromRaw(384)).To<SFixed8>().miRaw);
+	AssertInt((int32)-576, (SFixed8::FromRaw(-384) * SFixed8::FromRaw(384)).To<SFixed8>().miRaw);
+	AssertInt((int32)1, (SFixed8::FromRaw(1) * SFixed8::FromRaw(128)).To<SFixed8>().miRaw);
+	AssertInt((int32)-1, (SFixed8::FromRaw(-1) * SFixed8::FromRaw(128)).To<SFixed8>().miRaw);
+	AssertInt((int32)0x7FFF0000, (SFixed16::FromRaw(0x7FFF0000) * SFixed16::FromRaw(0x10000)).To<SFixed16>().miRaw);
 
-	AssertInt((int32)256, FixedDivide(384, 384, 8));
-	AssertInt((int32)85, FixedDivide(256, 768, 8));
-	AssertInt((int32)-171, FixedDivide(-512, 768, 8));
-	AssertInt(32768, FixedDivide(1, 2, 16));
+	AssertLong(256, SFixed8::FromRaw(384).To<SWideFixed16>().DivideRound(SFixed8::FromRaw(384)).miRaw);
+	AssertLong(85, SFixed8::FromRaw(256).To<SWideFixed16>().DivideRound(SFixed8::FromRaw(768)).miRaw);
+	AssertLong(-171, SFixed8::FromRaw(-512).To<SWideFixed16>().DivideRound(SFixed8::FromRaw(768)).miRaw);
+	AssertLong(32768, SFixed16::FromRaw(1).To<SWideFixed32>().DivideRound(SFixed16::FromRaw(2)).miRaw);
 
-	AssertInt(2000000000, FixedMultiplyDivide(2000000000, 300000, 300000));
-	AssertInt((int32)67, FixedMultiplyDivide(100, 2, 3));
-
-	AssertInt((int32)512, FixedSquareRoot(1024, 8));
-	AssertInt((int32)362, FixedSquareRoot(512, 8));
-	AssertInt((int32)0, FixedSquareRoot(0, 8));
-	AssertInt((int32)16, FixedSquareRoot(1, 8));
-	AssertInt((int32)-1, FixedSquareRoot(-1, 8));
+	AssertLong(2000000000, (SFixed0::FromRaw(2000000000) * SFixed0::FromRaw(300000)).DivideRound(SFixed0::FromRaw(300000)).miRaw);
+	AssertLong(67, (SFixed0::FromRaw(100) * SFixed0::FromRaw(2)).DivideRound(SFixed0::FromRaw(3)).miRaw);
 }
 
 
@@ -175,16 +179,16 @@ void TestFixedPointSFixed(void)
 	AssertFloat(1.5f, s.ToFloat(), 6);
 	AssertDouble(1.5, s.ToDouble(), 10);
 
-	//As FixedFloor, FixedCeiling, FixedRound and FixedFraction for every value either side of zero.
+	//Every value either side of zero.
 	for (int32 i = -40; i <= 40; i++)
 	{
 		s = SSubpixel::FromRaw(i);
-		AssertInt(FixedFloor(i, 4), s.Floor());
-		AssertInt(FixedCeiling(i, 4), s.Ceiling());
-		AssertInt(FixedRound(i, 4), s.Round());
-		AssertInt(FixedFraction(i, 4), s.Fraction().miRaw);
-		AssertInt(FixedConvert(i, 4, 2), (s.To<SFixed<int32, int64, 2> >().miRaw));
-		AssertInt(FixedConvert(i, 4, 16), s.To<SAxis>().miRaw);
+		AssertInt((int32)DivideFloor(i, 16), s.Floor());
+		AssertInt((int32)DivideCeiling(i, 16), s.Ceiling());
+		AssertInt((int32)DivideRound(i, 16), s.Round());
+		AssertInt(i - (int32)DivideFloor(i, 16) * 16, s.Fraction().miRaw);
+		AssertInt((int32)DivideRound(i, 4), (s.To<SFixed<int32, int64, 2> >().miRaw));
+		AssertInt(i * 4096, s.To<SAxis>().miRaw);
 		AssertInt((int32)i >> 2, (s.ToFloor<SFixed<int32, int64, 2> >().miRaw));
 	}
 
