@@ -486,7 +486,11 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 	bool			bCrush2;
 	bool			bCrush3;
 
-	maiFacesToPolygons.Add(-1);
+	//The mesh numbers the faces, and it may have some that were added to it directly.
+	while ((int)maiFacesToPolygons.NumElements() <= iFace)
+	{
+		maiFacesToPolygons.Add(-1);
+	}
 
 	aiPolygon[0] = -1;
 	aiPolygon[1] = -1;

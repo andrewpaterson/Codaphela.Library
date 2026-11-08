@@ -359,7 +359,7 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 	pcFace = mpMesh->GetFace(rFace.miFirstFace);
 
 	mcSelections.AddFace(rFace.NewEdges());
-	mcEdgeVisibility.AddFace(pcFace, rFace.NewEdges(), bEdge12, bEdge23, bEdge31);
+	mcEdgeVisibility.AddFace(pcFace, bEdge12, bEdge23, bEdge31);
 	mcPolygons.AddFace(pcFace, rFace.miFirstFace, iName, mpMesh->GetConnectivity(), bEdge12, bEdge23, bEdge31);
 
 	mcModifiers.AddFace(iCorner1, iCorner2, iCorner3);

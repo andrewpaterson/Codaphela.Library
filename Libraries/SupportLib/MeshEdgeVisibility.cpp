@@ -94,16 +94,20 @@ bool CMeshEdgeVisibility::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEdgeVisibility::AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12, char cEdge23, char cEdge31)
+void CMeshEdgeVisibility::AddFace(CMeshFace* pcFace, char cEdge12, char cEdge23, char cEdge31)
 {
-	size	i;
+	int		i;
 	char*	pcValue;
 
-	for (i = 0; i < (size)iNewEdges; i++)
+	//The mesh numbers the edges, and it may have some from faces that were added to it directly.
+	for (i = 0; i < NUM_FACE_EDGES; i++)
 	{
-		mcEdges.Add(0);
+		while ((int)mcEdges.NumElements() <= pcFace->maiEdge[i])
+		{
+			mcEdges.Add(0);
+		}
 	}
-	
+
 	pcValue = mcEdges.Get(pcFace->maiEdge[0]);
 	if (*pcValue < cEdge12)
 	{

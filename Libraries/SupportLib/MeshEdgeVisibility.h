@@ -45,7 +45,7 @@ public:
 
 	void	Clear(void);
 
-	void	AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
+	void	AddFace(CMeshFace* pcFace, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
 	char	GetEdge(int iEdge);
 	size	NumVisibleEdges(char cEdge);
 };
