@@ -63,7 +63,8 @@ class CMesh;
 //true sizes (see SRasterInstance).
 //
 //RemoveDegenerate takes out triangles with no area, which can't be seen.  What's exported from CAD is cleaned up and made
-//simpler for how big it will be drawn by modifiers on the CMesh it's built from (see CMeshFixReversed and CMeshCornerMerge).
+//simpler for how big it will be drawn by modifiers on the CMesh it's built from (see CMeshFixReversed, CMeshWeldCorners and
+//CMeshEdgeCollapse).
 //
 //Building one from a big mesh takes seconds and Save and Load take none: uiSource is whatever says which source it was
 //built from, and Load refuses a file built from another.
