@@ -141,7 +141,7 @@ E17. [329] ObjectHeader's ClassName / GetIdentifier return char*.  [done 9c071b4
 E18. [397] OIndex iNumIndexed = mcMemory.NumIndexed() (a size).  [done 364e44b3c]
 E19. [436] Deflate, Adler32/CRC32 Update and DeflateMatchLength take non-const uint8*.  [done 2d97501b1]
 E20. [342] CompareDependentWriteObject is ComparePtrPtr on the first field.  [done 84c7431b9]
-E21. [325] Every identifier writes the ignored 0xffffffff int32 (4 wasted bytes per pointer).
+E21. [325] Every identifier writes the ignored 0xffffffff int32 (4 wasted bytes per pointer).  [done 2e681a59e]
 E22. [326] Multi-character constants ('\0XDI', '\0MAN') compared through *((int32*)&mszType): implementation-defined, matters for the W65C816 compiler.  [done 84c7431b9]
 E23. [435] CRC32's table is a mutable global built lazily (const table, or built once).  [done 2d97501b1]
 E24. [416] CChannelsAccessor::Init "moves" the caller's array with memcpy + memset.  [done 4b48cfa14]
