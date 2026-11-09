@@ -258,7 +258,7 @@ EOldDragonVersion COldDragonFile::Identify(void)
 		return ODV_Unknown;
 	}
 
-	if ((memcmp(mpuiData, "CHK", 4) == 0) || (memcmp(mpuiData, "DRG", 4) == 0))
+	if ((memcmp(mpuiData, "CHK", 4) == 0) || (memcmp(mpuiData, "DRG", 4) == 0) || (memcmp(mpuiData, "SCN", 4) == 0))
 	{
 		return ODV_Current;
 	}
