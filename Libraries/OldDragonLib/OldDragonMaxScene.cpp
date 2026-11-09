@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/ArrayTemplate.h"
@@ -68,6 +69,8 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_MAX_POLYGON_CORNERS		1024
 #define MAX_MATERIAL_DEPTH			8
 #define MAX_UV_CHANNEL				1
+
+#define MAX_SAME_POSITION			0.001f
 
 
 struct SMaxChunk
@@ -913,6 +916,125 @@ bool ReadOldDragonMaxScene(const char* szFilename, COldDragonScene* pcScene)
 	sReader.asObjects.Kill();
 	sReader.asClasses.Kill();
 	cOle.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool SameOldDragonPositions(COldDragonMesh* pcA, COldDragonMesh* pcB)
+{
+	size			i;
+	SOldDragonVec3*	psA;
+	SOldDragonVec3*	psB;
+
+	if (pcA->macPositions.NumElements() != pcB->macPositions.NumElements())
+	{
+		return false;
+	}
+	for (i = 0; i < pcA->macPositions.NumElements(); i++)
+	{
+		psA = pcA->macPositions.Get(i);
+		psB = pcB->macPositions.Get(i);
+		if ((fabsf(psA->x - psB->x) > MAX_SAME_POSITION) || (fabsf(psA->y - psB->y) > MAX_SAME_POSITION) || (fabsf(psA->z - psB->z) > MAX_SAME_POSITION))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 FindOldDragonMaterial(COldDragonScene* pcScene, const char* szName)
+{
+	size	i;
+
+	for (i = 0; i < pcScene->macMaterials.NumElements(); i++)
+	{
+		if (strcmp(pcScene->macMaterials.Get(i)->szName, szName) == 0)
+		{
+			return (int32)i;
+		}
+	}
+	return OLD_DRAGON_NO_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void CopyMaxFaces(COldDragonMesh* pcSource, COldDragonScene* pcSourceScene, COldDragonMesh* pcDest, COldDragonScene* pcDestScene)
+{
+	size			i;
+	SOldDragonFace	sFace;
+
+	for (i = 0; i < pcSource->macUVs.NumElements(); i++)
+	{
+		pcDest->macUVs.Add(pcSource->macUVs.Get(i));
+	}
+	for (i = 0; i < pcSource->macFaces.NumElements(); i++)
+	{
+		sFace = *pcSource->macFaces.Get(i);
+		if (sFace.iMaterial != OLD_DRAGON_NO_INDEX)
+		{
+			sFace.iMaterial = FindOldDragonMaterial(pcDestScene, pcSourceScene->macMaterials.Get((size)sFace.iMaterial)->szName);
+		}
+		pcDest->macFaces.Add(&sFace);
+	}
+	if (pcDest->mszName[0] == 0)
+	{
+		strcpy(pcDest->mszName, pcSource->mszName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh only takes faces from a Max mesh with the same positions in the
+// same order, so faces can never land on the wrong mesh or the wrong file.
+//
+//////////////////////////////////////////////////////////////////////////
+bool AddOldDragonMaxFaces(const char* szMaxFilename, COldDragonScene* pcScene, size* puiMeshesFilled)
+{
+	COldDragonScene	cMaxScene;
+	size			i;
+	size			j;
+	COldDragonMesh*	pcMesh;
+	COldDragonMesh*	pcSource;
+	bool			bResult;
+
+	*puiMeshesFilled = 0;
+	cMaxScene.Init();
+	bResult = ReadOldDragonMaxScene(szMaxFilename, &cMaxScene);
+	if (bResult)
+	{
+		for (i = 0; i < pcScene->macMeshes.NumElements(); i++)
+		{
+			pcMesh = pcScene->macMeshes.Get(i);
+			if (pcMesh->macFaces.NumElements() != 0)
+			{
+				continue;
+			}
+			for (j = 0; j < cMaxScene.macMeshes.NumElements(); j++)
+			{
+				pcSource = cMaxScene.macMeshes.Get(j);
+				if (SameOldDragonPositions(pcMesh, pcSource))
+				{
+					CopyMaxFaces(pcSource, &cMaxScene, pcMesh, pcScene);
+					(*puiMeshesFilled)++;
+					break;
+				}
+			}
+		}
+	}
+	cMaxScene.Kill();
 	return bResult;
 }
 

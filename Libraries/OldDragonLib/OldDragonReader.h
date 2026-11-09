@@ -40,6 +40,10 @@ bool	ReadOldDragonParticles(const char* szFilename, COldDragonScene* pcScene);
 //to y up as the exporter did.  Nothing places them, and Editable Meshes and anything else are counted in muiSkippedChunks.
 bool	ReadOldDragonMaxScene(const char* szFilename, COldDragonScene* pcScene);
 
+//Gives meshes with no faces, as all of Melee.DRG's are, the faces of the mesh in a .max file with the same positions in the same
+//order.  Materials are matched by name.  Not filling a mesh isn't a failure, so check *puiMeshesFilled.
+bool	AddOldDragonMaxFaces(const char* szMaxFilename, COldDragonScene* pcScene, size* puiMeshesFilled);
+
 
 #endif // __OLD_DRAGON_READER_H__
 
