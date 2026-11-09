@@ -143,7 +143,7 @@ int __cdecl main(void)
 	TestTriangleShape();
 	TestMeshFaceReturn();
 	TestMeshPolygons();
-	//TestMeshShapes();  Write is not consistent.
+	TestMeshShapes();
 	TestMeshConnectivity();
 	TestMeshModifierStack();
 	TestMeshSourceModifier();

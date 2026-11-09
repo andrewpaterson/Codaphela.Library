@@ -8,12 +8,100 @@
 #include "SupportLib/MeshConeEditor.h"
 #include "SupportLib/MeshCylinderEditor.h"
 #include "SupportLib/MeshWriter.h"
+#include "BaseLib/TextFile.h"
+#include "BaseLib/TextParser.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 
 
 void AssertFace(CMeshFace* pcMeshFace, int iCorner1, int iCorner2, int iCorner3);
 void AssertCornerCount(CMeshCorner* pcMeshCorner, int iEdgeCount, int iFaceCount);
+
+
+//A written position is rounded to 1 / 65536 (BINARY_PRECISION).  One that came from a sine can land on either side of a
+//rounding on different builds.
+#define OBJ_SHAPE_POSITION_TOLERANCE	(2.0f / 65536.0f)
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertOBJPositionLine(CChars* pszExpected, CChars* pszActual)
+{
+	CTextParser	cExpected;
+	CTextParser	cActual;
+	float32		fExpected;
+	float32		fActual;
+	int			i;
+
+	cExpected.Init(pszExpected->Text(), pszExpected->Length());
+	cActual.Init(pszActual->Text(), pszActual->Length());
+	AssertTritrue(cExpected.GetExactCharacter('v'));
+	AssertTritrue(cActual.GetExactCharacter('v'));
+	for (i = 0; i < 3; i++)
+	{
+		AssertTritrue(cExpected.GetFloat(&fExpected));
+		AssertTritrue(cActual.GetFloat(&fActual));
+		AssertTrue(fabsf(fExpected - fActual) <= OBJ_SHAPE_POSITION_TOLERANCE);
+	}
+	cActual.Kill();
+	cExpected.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same as AssertFile for a shape made with sines and cosines, except
+// that its positions can differ by what they are rounded to.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertOBJShape(const char* szExpected, const char* szActual)
+{
+	CTextFile	cExpected;
+	CTextFile	cActual;
+	CArrayChars	aszExpected;
+	CArrayChars	aszActual;
+	CChars*		pszExpected;
+	CChars*		pszActual;
+	size		i;
+	size		uiNumLines;
+
+	cExpected.Init();
+	cActual.Init();
+	AssertTrue(cExpected.Read(szExpected));
+	AssertTrue(cActual.Read(szActual));
+	cExpected.PassifyNewlines();
+	cActual.PassifyNewlines();
+
+	aszExpected.Fake();
+	aszActual.Fake();
+	cExpected.mcText.SplitLines(&aszExpected);
+	cActual.mcText.SplitLines(&aszActual);
+
+	uiNumLines = aszExpected.NumElements();
+	AssertSize(uiNumLines, aszActual.NumElements());
+	for (i = 0; i < uiNumLines; i++)
+	{
+		pszExpected = aszExpected.Get(i);
+		pszActual = aszActual.Get(i);
+		if (strncmp(pszExpected->Text(), "v ", 2) == 0)
+		{
+			AssertOBJPositionLine(pszExpected, pszActual);
+		}
+		else
+		{
+			//The lines are in the file's text, so they aren't terminated.
+			AssertSize(pszExpected->Length(), pszActual->Length());
+			AssertTrue(memcmp(pszExpected->Text(), pszActual->Text(), pszExpected->Length()) == 0);
+		}
+	}
+
+	aszActual.Kill();
+	aszExpected.Kill();
+	cActual.Kill();
+	cExpected.Kill();
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -471,7 +559,7 @@ void TestCone(void)
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
-	AssertFile("Input/Shape/Cone20x3x4x11.OBJ", "Output/Shape/Cone20x3x4x11.OBJ");
+	AssertOBJShape("Input/Shape/Cone20x3x4x11.OBJ", "Output/Shape/Cone20x3x4x11.OBJ");
 
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
@@ -496,7 +584,7 @@ void TestCone(void)
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
-	AssertFile("Input/Shape/Cone3x1x1x2.OBJ", "Output/Shape/Cone3x1x1x2.OBJ");
+	AssertOBJShape("Input/Shape/Cone3x1x1x2.OBJ", "Output/Shape/Cone3x1x1x2.OBJ");
 
 	cFileUtil.RemoveDir("Output/Shape");
 }
@@ -532,7 +620,7 @@ void TestCylinder(void)
 
 	cMeshEditor.RemoveModifiers();
 	cMesh.Kill();
-	AssertFile("Input/Shape/Cylinder8x3x4x11.OBJ", "Output/Shape/Cylinder8x3x4x11.OBJ");
+	AssertOBJShape("Input/Shape/Cylinder8x3x4x11.OBJ", "Output/Shape/Cylinder8x3x4x11.OBJ");
 	cMeshEditor.Kill();
 
 	cFileUtil.RemoveDir("Output/Shape");
