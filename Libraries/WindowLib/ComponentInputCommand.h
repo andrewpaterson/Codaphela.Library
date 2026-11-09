@@ -82,6 +82,7 @@ enum EComponentInputCommand
 	CIC_DeleteLine,  //Control+Y, as IntelliJ's.
 	CIC_Undo,
 	CIC_Redo,  //Control+Shift+Z, as IntelliJ's.
+	CIC_ToggleInsert,  //An editor's keys for insert and overwrite (CComponentInput::BindEditorKeys); the insert key does it itself elsewhere.
 
 	//Differences
 	CIC_NextDifference,  //F7.

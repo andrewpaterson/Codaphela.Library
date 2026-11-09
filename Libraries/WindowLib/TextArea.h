@@ -246,6 +246,7 @@ public:
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool				Draw(void) override;
 	bool				WantsEnter(void) override;
+	bool				UsesEditorKeys(void) override;
 	bool				CanDoCommand(EComponentInputCommand eCommand) override;
 	SInt32Vec2			GetContextMenuPosition(void) override;
 

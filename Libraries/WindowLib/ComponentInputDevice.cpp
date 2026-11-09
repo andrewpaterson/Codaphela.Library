@@ -253,6 +253,44 @@ CInputSourceDesc* CComponentInputDevice::SetCommand(const char* szFriendlyName, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Pressing the key gives no command, so it types what it types again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInputDevice::RemoveCommand(const char* szFriendlyName)
+{
+	CInputSourceDesc*			pcSource;
+	CComponentInputCommand*		psCommand;
+
+	pcSource = GetSource(szFriendlyName);
+	psCommand = pcSource ? GetPressedCommand(pcSource) : NULL;
+	if (psCommand)
+	{
+		masPressedCommands.Remove(psCommand);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No key pressed gives eCommand.  The keys stay, giving nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInputDevice::RemoveCommands(EComponentInputCommand eCommand)
+{
+	size	i;
+
+	for (i = 0; i < masPressedCommands.NumElements(); i++)
+	{
+		if (masPressedCommands.Get(i)->meCommand == eCommand)
+		{
+			masPressedCommands.Get(i)->Init(CIC_Ignored, masPressedCommands.Get(i)->mpcSource);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The chord named szName has been made with this keyboard's modifiers
 // (CComponentInput::AddChordCommands), so it isn't made again.
 //

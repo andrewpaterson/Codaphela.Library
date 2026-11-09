@@ -63,6 +63,8 @@ public:
 
 	CInputSourceDesc*			AddCommand(const char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
 	CInputSourceDesc*			SetCommand(const char* szFriendlyName, EComponentInputCommand eCommand);
+	void						RemoveCommand(const char* szFriendlyName);
+	void						RemoveCommands(EComponentInputCommand eCommand);
 	void						AddChord(const char* szName);
 	bool						HasChord(const char* szName);
 	CInputSourceDesc*			AddPrintable(const char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);

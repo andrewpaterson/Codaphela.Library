@@ -292,7 +292,7 @@ bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponen
 		return false;
 	}
 	pFocussed = mpFocussedComponent;
-	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
+	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents, mpFocussedComponent.IsNotNull() && mpFocussedComponent->UsesEditorKeys() && !mpWindow->IsModal());
 	psTaken = DispatchEvents(asEvents, uiNumEvents);
 	if (mpFocussedComponent != pFocussed)
 	{

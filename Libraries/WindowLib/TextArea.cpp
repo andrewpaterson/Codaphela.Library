@@ -1131,6 +1131,9 @@ bool CTextArea::WantsEnter(void)
 }
 
 
+bool CTextArea::UsesEditorKeys(void) { return true; }
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Undo and redo only with something to undo or redo; cut and paste only
