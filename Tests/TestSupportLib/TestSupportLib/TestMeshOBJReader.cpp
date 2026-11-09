@@ -325,6 +325,87 @@ void TestMeshOBJReaderEditor(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What OBJPolygons.OBJ cuts into, worked out by hand.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertOBJPolygonsMesh(CMesh* pcMesh)
+{
+	int		i;
+
+	AssertInt(18, pcMesh->NumCorners());
+	AssertInt(10, pcMesh->NumFaces());
+
+	//The convex hexagon is a fan from its last corner, and each corner keeps its UV and normal.
+	AssertFaceCorners(pcMesh, 0, 0, 1, 5);
+	AssertFaceCorners(pcMesh, 1, 1, 2, 5);
+	AssertFaceCorners(pcMesh, 2, 2, 3, 5);
+	AssertFaceCorners(pcMesh, 3, 3, 4, 5);
+	AssertFaceUVs(pcMesh, 0, 0, 1, 5);
+	AssertFaceUVs(pcMesh, 1, 1, 2, 5);
+	AssertFaceUVs(pcMesh, 2, 2, 3, 5);
+	AssertFaceUVs(pcMesh, 3, 3, 4, 5);
+	for (i = 0; i < 3; i++)
+	{
+		AssertVec3(0, 0, 1, GetFaceCornerNormal(pcMesh, 3, i));
+	}
+
+	//The concave quad's first corner points inwards, so it isn't cut across from there.
+	AssertFaceCorners(pcMesh, 4, 7, 8, 6);
+	AssertFaceCorners(pcMesh, 5, 6, 8, 9);
+	AssertVec3(0, 0, 1, pcMesh->mcNormals.GetFaceNormal(4));
+
+	//The upright concave polygon, whose faces all face -x.
+	AssertFaceCorners(pcMesh, 6, 11, 12, 10);
+	AssertFaceCorners(pcMesh, 7, 10, 12, 14);
+	AssertFaceCorners(pcMesh, 8, 12, 13, 14);
+	AssertVec3(-1, 0, 0, pcMesh->mcNormals.GetFaceNormal(6));
+	AssertVec3(-1, 0, 0, pcMesh->mcNormals.GetFaceNormal(7));
+	AssertVec3(-1, 0, 0, pcMesh->mcNormals.GetFaceNormal(8));
+
+	AssertFaceCorners(pcMesh, 9, 15, 16, 17);
+	AssertFaceUVs(pcMesh, 9, -1, -1, -1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshOBJReaderPolygons(void)
+{
+	ObjectsInit();
+	{
+		CMesh				cMesh;
+		Ptr<CMesh>			pMesh;
+		Ptr<CMeshEditor>	pEditor;
+
+		cMesh.Init();
+		AssertTrue(ReadMesh(&cMesh, "Input/Shape/OBJPolygons.OBJ"));
+		AssertOBJPolygonsMesh(&cMesh);
+		cMesh.Kill();
+
+		cMesh.Init();
+		AssertTrue(ReadMesh(&cMesh, "Input/Shape/OBJPentagon.OBJ"));
+		AssertInt(3, cMesh.NumFaces());
+		AssertFaceCorners(&cMesh, 0, 0, 1, 4);
+		AssertFaceCorners(&cMesh, 1, 1, 2, 4);
+		AssertFaceCorners(&cMesh, 2, 2, 3, 4);
+		cMesh.Kill();
+
+		//An editor sees each one as one polygon, with only the outside edges showing.
+		pMesh = OMalloc<CMesh>();
+		pEditor = OMalloc<CMeshEditor>(pMesh);
+		AssertTrue(LoadOBJ(pEditor, "Input/Shape/OBJPolygons.OBJ"));
+		AssertOBJPolygonsMesh(&pMesh);
+		AssertInt(4, pEditor->NumPolygons());
+		AssertInt(6 + 4 + 5 + 3, pEditor->NumVisibleEdges(1));
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshOBJReaderFailures(void)
@@ -347,7 +428,7 @@ void TestMeshOBJReaderFailures(void)
 		cMesh.Kill();
 
 		cMesh.Init();
-		AssertFalse(ReadMesh(&cMesh, "Input/Shape/OBJPentagon.OBJ"));
+		AssertFalse(ReadMesh(&cMesh, "Input/Shape/OBJTwoCorners.OBJ"));
 		AssertInt(0, cMesh.NumFaces());
 		cMesh.Kill();
 
@@ -385,6 +466,7 @@ void TestMeshOBJReader(void)
 	TestMeshOBJReaderFlatNormals();
 	TestMeshOBJReaderFile();
 	TestMeshOBJReaderEditor();
+	TestMeshOBJReaderPolygons();
 	TestMeshOBJReaderFailures();
 
 	cFileUtil.RemoveDir("Output/Shape");

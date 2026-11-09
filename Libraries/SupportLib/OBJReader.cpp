@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Float64Vec2.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/SystemAllocator.h"
@@ -121,6 +122,167 @@ static bool ReadOBJFloats(CTextParser* pcTextParser, float32* pafValues, int iNu
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two of a polygon's corners are next to each other around it, so
+// that the edge between them is on its outside.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsOBJPolygonEdge(int iCorner1, int iCorner2, int iNumCorners)
+{
+	return (((iCorner1 + 1) % iNumCorners) == iCorner2) || (((iCorner2 + 1) % iNumCorners) == iCorner1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Flattens a polygon by dropping the axis its normal is most along, so that
+// its corners go anticlockwise.  A polygon need not be exactly flat.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ProjectOBJPolygon(CMesh* pcMesh, CArrayMeshCornerBuilder* pasCorners, CArrayFloat64Vec2* pasPoints)
+{
+	SFloat32Vec3*	psPosition;
+	SFloat32Vec3*	psNext;
+	SFloat64Vec2*	psPoint;
+	float64			fNormalX;
+	float64			fNormalY;
+	float64			fNormalZ;
+	float64			fSizeX;
+	float64			fSizeY;
+	float64			fSizeZ;
+	float64			fU;
+	float64			fV;
+	bool			bSwap;
+	size			i;
+	size			uiNumCorners;
+
+	fNormalX = 0.0;
+	fNormalY = 0.0;
+	fNormalZ = 0.0;
+	uiNumCorners = pasCorners->NumElements();
+	for (i = 0; i < uiNumCorners; i++)
+	{
+		psPosition = pcMesh->GetPosition(pasCorners->Get(i)->miVertex);
+		psNext = pcMesh->GetPosition(pasCorners->Get((i + 1) % uiNumCorners)->miVertex);
+		fNormalX += ((float64)psPosition->y - (float64)psNext->y) * ((float64)psPosition->z + (float64)psNext->z);
+		fNormalY += ((float64)psPosition->z - (float64)psNext->z) * ((float64)psPosition->x + (float64)psNext->x);
+		fNormalZ += ((float64)psPosition->x - (float64)psNext->x) * ((float64)psPosition->y + (float64)psNext->y);
+	}
+
+	fSizeX = fabs(fNormalX);
+	fSizeY = fabs(fNormalY);
+	fSizeZ = fabs(fNormalZ);
+	for (i = 0; i < uiNumCorners; i++)
+	{
+		psPosition = pcMesh->GetPosition(pasCorners->Get(i)->miVertex);
+		if ((fSizeZ >= fSizeX) && (fSizeZ >= fSizeY))
+		{
+			fU = psPosition->x;
+			fV = psPosition->y;
+			bSwap = fNormalZ < 0.0;
+		}
+		else if (fSizeX >= fSizeY)
+		{
+			fU = psPosition->y;
+			fV = psPosition->z;
+			bSwap = fNormalX < 0.0;
+		}
+		else
+		{
+			fU = psPosition->z;
+			fV = psPosition->x;
+			bSwap = fNormalY < 0.0;
+		}
+
+		psPoint = pasPoints->Add();
+		psPoint->x = bSwap ? fV : fU;
+		psPoint->y = bSwap ? fU : fV;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Above zero if the three points go anticlockwise.
+//
+//////////////////////////////////////////////////////////////////////////
+static float64 OBJPointsTurn(SFloat64Vec2* psA, SFloat64Vec2* psB, SFloat64Vec2* psC)
+{
+	return (psB->x - psA->x) * (psC->y - psA->y) - (psB->y - psA->y) * (psC->x - psA->x);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A corner can be cut off if it turns the way the polygon does and no other
+// corner is in the triangle it would cut off.  A corner in the same place as
+// one of the triangle's doesn't count, or a polygon that touches itself
+// would have no ears.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsOBJEar(CArrayFloat64Vec2* pasPoints, CArrayInt* paiRemaining, int iNumRemaining, int iCorner)
+{
+	SFloat64Vec2*	psA;
+	SFloat64Vec2*	psB;
+	SFloat64Vec2*	psC;
+	SFloat64Vec2*	psOther;
+	int				iPrevious;
+	int				iNext;
+	int				i;
+
+	iPrevious = (iCorner + iNumRemaining - 1) % iNumRemaining;
+	iNext = (iCorner + 1) % iNumRemaining;
+	psA = pasPoints->Get(paiRemaining->GetValue(iPrevious));
+	psB = pasPoints->Get(paiRemaining->GetValue(iCorner));
+	psC = pasPoints->Get(paiRemaining->GetValue(iNext));
+
+	if (OBJPointsTurn(psA, psB, psC) <= 0.0)
+	{
+		return false;
+	}
+
+	for (i = 0; i < iNumRemaining; i++)
+	{
+		if ((i != iPrevious) && (i != iCorner) && (i != iNext))
+		{
+			psOther = pasPoints->Get(paiRemaining->GetValue(i));
+			if (((psOther->x != psA->x) || (psOther->y != psA->y)) &&
+				((psOther->x != psB->x) || (psOther->y != psB->y)) &&
+				((psOther->x != psC->x) || (psOther->y != psC->y)) &&
+				(OBJPointsTurn(psA, psB, psOther) >= 0.0) &&
+				(OBJPointsTurn(psB, psC, psOther) >= 0.0) &&
+				(OBJPointsTurn(psC, psA, psOther) >= 0.0))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A polygon with no ears, as it has no area or crosses itself, is still cut
+// up, from its first corner.
+//
+//////////////////////////////////////////////////////////////////////////
+static int FindOBJEar(CArrayFloat64Vec2* pasPoints, CArrayInt* paiRemaining, int iNumRemaining)
+{
+	int		i;
+
+	for (i = 0; i < iNumRemaining; i++)
+	{
+		if (IsOBJEar(pasPoints, paiRemaining, iNumRemaining, i))
+		{
+			return i;
+		}
+	}
+	return 0;
 }
 
 
@@ -402,48 +564,96 @@ void CObjReader::SetFaceDetails(int iFace, int* aiPolygonCorners, CArrayMeshCorn
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A mesh can only make faces from three and four sided polygons.
+// Makes one face of a polygon.  The edges inside the polygon are hidden, so
+// that an editor still sees one polygon.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjReader::AddPolygonFace(int* aiPolygonCorners, CArrayMeshCornerBuilder* pasCorners)
+{
+	int		iNumCorners;
+	bool	bEdge12;
+	bool	bEdge23;
+	bool	bEdge31;
+	CMFRet	r;
+
+	iNumCorners = (int)pasCorners->NumElements();
+	bEdge12 = IsOBJPolygonEdge(aiPolygonCorners[0], aiPolygonCorners[1], iNumCorners);
+	bEdge23 = IsOBJPolygonEdge(aiPolygonCorners[1], aiPolygonCorners[2], iNumCorners);
+	bEdge31 = IsOBJPolygonEdge(aiPolygonCorners[2], aiPolygonCorners[0], iNumCorners);
+
+	r = mcWrapper.AddFace(pasCorners->Get(aiPolygonCorners[0])->miVertex, pasCorners->Get(aiPolygonCorners[1])->miVertex, pasCorners->Get(aiPolygonCorners[2])->miVertex, 0, bEdge12, bEdge23, bEdge31);
+	SetFaceDetails(r.miFirstFace, aiPolygonCorners, pasCorners);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Cuts a polygon into faces by taking the first ear each time.  A convex quad
+// comes out as CMesh::AddQuad cuts it: corners 0, 1, 3 and then 1, 2, 3.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjReader::AddPolygonFaces(CArrayMeshCornerBuilder* pasCorners)
+{
+	CArrayFloat64Vec2	asPoints;
+	CArrayInt			aiRemaining;
+	int					iNumRemaining;
+	int					iEar;
+	int					aiPolygonCorners[NUM_FACE_CORNERS];
+	int					i;
+
+	asPoints.Init();
+	ProjectOBJPolygon(mcWrapper.mpcMesh, pasCorners, &asPoints);
+
+	iNumRemaining = (int)pasCorners->NumElements();
+	aiRemaining.Init();
+	aiRemaining.Resize(iNumRemaining);
+	for (i = 0; i < iNumRemaining; i++)
+	{
+		aiRemaining.SetValue(i, i);
+	}
+
+	while (iNumRemaining >= NUM_FACE_CORNERS)
+	{
+		iEar = FindOBJEar(&asPoints, &aiRemaining, iNumRemaining);
+		aiPolygonCorners[0] = aiRemaining.GetValue(iEar);
+		aiPolygonCorners[1] = aiRemaining.GetValue((iEar + 1) % iNumRemaining);
+		aiPolygonCorners[2] = aiRemaining.GetValue((iEar + iNumRemaining - 1) % iNumRemaining);
+		AddPolygonFace(aiPolygonCorners, pasCorners);
+
+		iNumRemaining--;
+		for (i = iEar; i < iNumRemaining; i++)
+		{
+			aiRemaining.SetValue(i, aiRemaining.GetValue(i + 1));
+		}
+	}
+
+	aiRemaining.Kill();
+	asPoints.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadFace(CTextParser* pcTextParser)
 {
 	CArrayMeshCornerBuilder	asCorners;
-	CArrayInt				aiCorners;
-	CMFRet					r;
-	size					i;
-	size					uiNumCorners;
-	int						aiPolygonCorners[NUM_FACE_CORNERS];
 	bool					bResult;
 
 	asCorners.Init();
 	ReadFaceCorners(pcTextParser, &asCorners);
 
-	uiNumCorners = asCorners.NumElements();
-	if ((uiNumCorners != 3) && (uiNumCorners != 4))
+	if (asCorners.NumElements() < NUM_FACE_CORNERS)
 	{
 		asCorners.Kill();
-		return Error("A face must have three or four corners");
+		return Error("A face must have at least three corners");
 	}
 
 	bResult = ResolveFaceCorners(&asCorners);
 	if (bResult)
 	{
-		aiCorners.Init();
-		aiCorners.Resize(uiNumCorners);
-		for (i = 0; i < uiNumCorners; i++)
-		{
-			aiCorners.SetValue(i, asCorners.Get(i)->miVertex);
-		}
-		r = mcWrapper.AddPolygon(&aiCorners);
-		aiCorners.Kill();
-
-		r.Unpack1(&aiPolygonCorners[0], &aiPolygonCorners[1], &aiPolygonCorners[2]);
-		SetFaceDetails(r.miFirstFace, aiPolygonCorners, &asCorners);
-		if (r.NumFaces() == 2)
-		{
-			r.Unpack2(&aiPolygonCorners[0], &aiPolygonCorners[1], &aiPolygonCorners[2]);
-			SetFaceDetails(r.miFirstFace + 1, aiPolygonCorners, &asCorners);
-		}
+		AddPolygonFaces(&asCorners);
 	}
 
 	asCorners.Kill();

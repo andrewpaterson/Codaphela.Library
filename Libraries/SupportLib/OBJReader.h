@@ -69,6 +69,8 @@ protected:
 	bool	ReadFace(CTextParser* pcTextParser);
 	void	ReadFaceCorners(CTextParser* pcTextParser, CArrayMeshCornerBuilder* pasCorners);
 	bool	ResolveFaceCorners(CArrayMeshCornerBuilder* pasCorners);
+	void	AddPolygonFaces(CArrayMeshCornerBuilder* pasCorners);
+	void	AddPolygonFace(int* aiPolygonCorners, CArrayMeshCornerBuilder* pasCorners);
 	void	SetFaceDetails(int iFace, int* aiPolygonCorners, CArrayMeshCornerBuilder* pasCorners);
 	bool	Error(const char* szMessage);
 };
