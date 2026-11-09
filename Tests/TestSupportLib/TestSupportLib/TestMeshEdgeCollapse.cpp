@@ -1,4 +1,5 @@
 #include <math.h>
+#include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/Logger.h"
 #include "StandardLib/Objects.h"
@@ -261,63 +262,126 @@ static void TestMeshEdgeCollapseCorner(CMesh* pcMesh, int iCorner, SFloat64Vec3*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How far f is outside the range of fA, fB and fC on one axis, or 0 if it
-// is inside it.  It's never more than the distance to their triangle.
 //
 //////////////////////////////////////////////////////////////////////////
-static float64 TestMeshEdgeCollapseAxisGap(float64 f, float64 fA, float64 fB, float64 fC)
+static float64 TestMeshEdgeCollapseMin(float64 fA, float64 fB, float64 fC)
 {
-	float64	fMin;
-	float64	fMax;
-
-	fMin = (fA < fB) ? fA : fB;
-	fMin = (fC < fMin) ? fC : fMin;
-	fMax = (fA > fB) ? fA : fB;
-	fMax = (fC > fMax) ? fC : fMax;
-	if (f < fMin)
-	{
-		return fMin - f;
-	}
-	else if (f > fMax)
-	{
-		return f - fMax;
-	}
-	return 0.0;
+	fA = (fB < fA) ? fB : fA;
+	return (fC < fA) ? fC : fA;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How far a point is from a mesh's nearest face.  A face further away on
-// one axis than the nearest so far is passed over, as working out its
-// distance is slow in soft float.
 //
 //////////////////////////////////////////////////////////////////////////
-static float64 TestMeshEdgeCollapseDistanceToMesh(SFloat64Vec3* psPoint, CMesh* pcMesh)
+static float64 TestMeshEdgeCollapseMax(float64 fA, float64 fB, float64 fC)
+{
+	fA = (fB > fA) ? fB : fA;
+	return (fC > fA) ? fC : fA;
+}
+
+
+//The box around a mesh's face, made once for every point measured against it.  Its corners stay in the mesh, so a
+//mesh of hundreds of faces still fits in a W65C816 array (under 64KB).
+struct STestMeshEdgeCollapseFace
+{
+	SFloat64Vec3	sMin;
+	SFloat64Vec3	sMax;
+	int				aiCorners[NUM_FACE_CORNERS];
+};
+
+
+typedef CArrayTemplate<STestMeshEdgeCollapseFace>	CArrayTestMeshEdgeCollapseFace;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestMeshEdgeCollapseFaces(CMesh* pcMesh, CArrayTestMeshEdgeCollapseFace* pasFaces)
+{
+	STestMeshEdgeCollapseFace*	psFace;
+	SFloat64Vec3				sA;
+	SFloat64Vec3				sB;
+	SFloat64Vec3				sC;
+	int*						piCorners;
+	int							i;
+	int							j;
+
+	pasFaces->Init();
+	for (i = 0; i < pcMesh->NumFaces(); i++)
+	{
+		piCorners = pcMesh->GetFaceCorners(i);
+		psFace = pasFaces->Add();
+		for (j = 0; j < NUM_FACE_CORNERS; j++)
+		{
+			psFace->aiCorners[j] = piCorners[j];
+		}
+		TestMeshEdgeCollapseCorner(pcMesh, piCorners[0], &sA);
+		TestMeshEdgeCollapseCorner(pcMesh, piCorners[1], &sB);
+		TestMeshEdgeCollapseCorner(pcMesh, piCorners[2], &sC);
+		psFace->sMin.Init(TestMeshEdgeCollapseMin(sA.x, sB.x, sC.x), TestMeshEdgeCollapseMin(sA.y, sB.y, sC.y), TestMeshEdgeCollapseMin(sA.z, sB.z, sC.z));
+		psFace->sMax.Init(TestMeshEdgeCollapseMax(sA.x, sB.x, sC.x), TestMeshEdgeCollapseMax(sA.y, sB.y, sC.y), TestMeshEdgeCollapseMax(sA.z, sB.z, sC.z));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static float64 TestMeshEdgeCollapseDistanceToFace(SFloat64Vec3* psPoint, CMesh* pcMesh, STestMeshEdgeCollapseFace* psFace)
 {
 	SFloat64Vec3	sA;
 	SFloat64Vec3	sB;
 	SFloat64Vec3	sC;
-	int*			piCorners;
-	float64			fBest;
-	float64			fDistance;
-	int				i;
 
-	fBest = 1e30;
-	for (i = 0; i < pcMesh->NumFaces(); i++)
+	TestMeshEdgeCollapseCorner(pcMesh, psFace->aiCorners[0], &sA);
+	TestMeshEdgeCollapseCorner(pcMesh, psFace->aiCorners[1], &sB);
+	TestMeshEdgeCollapseCorner(pcMesh, psFace->aiCorners[2], &sC);
+	return TestMeshEdgeCollapseDistance(psPoint, &sA, &sB, &sC);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How far a point is from the nearest of pcMesh's faces, or a distance no
+// more than fEnough once a face is that near (the point then can't be the
+// furthest).  *puiNearest is the face tried first, the last point's
+// nearest, which is usually near this one too, and is given this point's.
+// A face further away on one axis than the nearest so far is passed over, as
+// working out its distance is slow in soft float.
+//
+//////////////////////////////////////////////////////////////////////////
+static float64 TestMeshEdgeCollapseDistanceToMesh(SFloat64Vec3* psPoint, CMesh* pcMesh, CArrayTestMeshEdgeCollapseFace* pasFaces, float64 fEnough, size* puiNearest)
+{
+	STestMeshEdgeCollapseFace*	psFace;
+	float64						fBest;
+	float64						fDistance;
+	size						ui;
+
+	if (pasFaces->NumElements() == 0)
 	{
-		piCorners = pcMesh->GetFaceCorners(i);
-		TestMeshEdgeCollapseCorner(pcMesh, piCorners[0], &sA);
-		TestMeshEdgeCollapseCorner(pcMesh, piCorners[1], &sB);
-		TestMeshEdgeCollapseCorner(pcMesh, piCorners[2], &sC);
-		if ((TestMeshEdgeCollapseAxisGap(psPoint->x, sA.x, sB.x, sC.x) >= fBest) ||
-			(TestMeshEdgeCollapseAxisGap(psPoint->y, sA.y, sB.y, sC.y) >= fBest) ||
-			(TestMeshEdgeCollapseAxisGap(psPoint->z, sA.z, sB.z, sC.z) >= fBest))
+		return 1e30;
+	}
+	fBest = TestMeshEdgeCollapseDistanceToFace(psPoint, pcMesh, pasFaces->Get(*puiNearest));
+	for (ui = 0; (ui < pasFaces->NumElements()) && (fBest > fEnough); ui++)
+	{
+		psFace = pasFaces->Get(ui);
+		if ((ui == *puiNearest) ||
+			(psFace->sMin.x - psPoint->x >= fBest) || (psPoint->x - psFace->sMax.x >= fBest) ||
+			(psFace->sMin.y - psPoint->y >= fBest) || (psPoint->y - psFace->sMax.y >= fBest) ||
+			(psFace->sMin.z - psPoint->z >= fBest) || (psPoint->z - psFace->sMax.z >= fBest))
 		{
 			continue;
 		}
-		fDistance = TestMeshEdgeCollapseDistance(psPoint, &sA, &sB, &sC);
-		fBest = (fDistance < fBest) ? fDistance : fBest;
+		fDistance = TestMeshEdgeCollapseDistanceToFace(psPoint, pcMesh, psFace);
+		if (fDistance < fBest)
+		{
+			fBest = fDistance;
+			*puiNearest = ui;
+		}
 	}
 	return fBest;
 }
@@ -330,16 +394,20 @@ static float64 TestMeshEdgeCollapseDistanceToMesh(SFloat64Vec3* psPoint, CMesh* 
 //////////////////////////////////////////////////////////////////////////
 static float64 TestMeshEdgeCollapseFurthest(CMesh* pcFrom, CMesh* pcTo)
 {
-	SFloat64Vec3	sA;
-	SFloat64Vec3	sB;
-	SFloat64Vec3	sC;
-	SFloat64Vec3	sMiddle;
-	int*			piCorners;
-	float64			fFurthest;
-	float64			fDistance;
-	int				i;
+	CArrayTestMeshEdgeCollapseFace	asTo;
+	SFloat64Vec3					sA;
+	SFloat64Vec3					sB;
+	SFloat64Vec3					sC;
+	SFloat64Vec3					sMiddle;
+	int*							piCorners;
+	float64							fFurthest;
+	float64							fDistance;
+	int								i;
+	size							uiNearest;
 
+	TestMeshEdgeCollapseFaces(pcTo, &asTo);
 	fFurthest = 0.0;
+	uiNearest = 0;
 	for (i = 0; i < pcFrom->NumFaces(); i++)
 	{
 		piCorners = pcFrom->GetFaceCorners(i);
@@ -348,11 +416,12 @@ static float64 TestMeshEdgeCollapseFurthest(CMesh* pcFrom, CMesh* pcTo)
 		TestMeshEdgeCollapseCorner(pcFrom, piCorners[2], &sC);
 		sMiddle.Init((sA.x + sB.x + sC.x) / 3.0, (sA.y + sB.y + sC.y) / 3.0, (sA.z + sB.z + sC.z) / 3.0);
 
-		fDistance = TestMeshEdgeCollapseDistanceToMesh(&sA, pcTo);
+		fDistance = TestMeshEdgeCollapseDistanceToMesh(&sA, pcTo, &asTo, fFurthest, &uiNearest);
 		fFurthest = (fDistance > fFurthest) ? fDistance : fFurthest;
-		fDistance = TestMeshEdgeCollapseDistanceToMesh(&sMiddle, pcTo);
+		fDistance = TestMeshEdgeCollapseDistanceToMesh(&sMiddle, pcTo, &asTo, fFurthest, &uiNearest);
 		fFurthest = (fDistance > fFurthest) ? fDistance : fFurthest;
 	}
+	asTo.Kill();
 	return fFurthest;
 }
 
@@ -514,13 +583,7 @@ void TestMeshEdgeCollapseCurve(void)
 
 	pSource = TestMeshEdgeCollapseNewMesh();
 	iAround = 48;
-#ifdef __W65C816__
-	//Fewer rings on the W65C816, where checking every face against every face in soft float would take more than the
-	//4G instructions a 65 test program gets.
-	iAlong = 3;
-#else
 	iAlong = 6;
-#endif
 	for (j = 0; j <= iAlong; j++)
 	{
 		for (i = 0; i < iAround; i++)
