@@ -79,9 +79,8 @@ public:
 
 	void			ClearConnectivity(void);
 
-	bool			CanCopy(void);  //CopyFrom keeps positions, faces, normals, colours, polygons and smoothing: not UVs, skin or materials.
-	void			CopyFrom(CMesh* pcSource);  //Into an empty mesh.
-	void			CopyDetailsFrom(CMesh* pcSource);  //Normals and colours of the faces and corners it already has from pcSource.
+	void			CopyFrom(CMesh* pcSource);  //Into an empty mesh.  It keeps everything.
+	void			CopyDetailsFrom(CMesh* pcSource);  //Normals, colours, UVs, materials and skin of the faces and corners it already has from pcSource.
 
 	void 			AddCorner(float32 x, float32 y, float32 z);
 	void			AddCorner(SFloat32Vec3* psPosition);
@@ -107,6 +106,9 @@ public:
 
 protected:
 	void	PrivateInit(void);
+	void	CopyUVsFrom(CMesh* pcSource);
+	void	CopyMaterialsFrom(CMesh* pcSource);
+	void	CopySkinFrom(CMesh* pcSource);
 };
 
 

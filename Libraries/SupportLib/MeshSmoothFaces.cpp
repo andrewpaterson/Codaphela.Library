@@ -84,10 +84,6 @@ Ptr<CMesh> CMeshSmoothFaces::Modify(Ptr<CMesh> pMesh)
 {
 	Ptr<CMesh>	pOutput;
 
-	if (!CanRebuild(&pMesh))
-	{
-		return pMesh;
-	}
 	pOutput = CopyWithNormals(&pMesh);
 	GenerateNormals(&pOutput);
 	return pOutput;

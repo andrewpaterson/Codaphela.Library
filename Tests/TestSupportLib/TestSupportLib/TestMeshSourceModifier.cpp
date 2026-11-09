@@ -249,7 +249,7 @@ void TestMeshSourceEditorAddsToCollapsed(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A smoothed mesh keeps its corner normals under a new shape, and one with
-// what a copy wouldn't keep can only be emptied.
+// materials keeps what it had too.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshSourceEditorKeepsNormals(void)
@@ -259,7 +259,6 @@ void TestMeshSourceEditorKeepsNormals(void)
 	SFloat32Vec3		sX;
 	SFloat32Vec3		sY;
 	SFloat32Vec3		sStart;
-	SLogConfig			sLogConfig;
 	SMeshNormalFace*	psNormalFace;
 	int					i;
 
@@ -292,10 +291,9 @@ void TestMeshSourceEditorKeepsNormals(void)
 	cMesh.mcMaterials.mbInUse = true;
 	cEditor.Init(&cMesh);
 	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Plane);
-	sLogConfig = gcLogger.SetSilent();
 	cEditor.mcModifiers.ApplyAll(&cEditor);
-	gcLogger.SetConfig(&sLogConfig);
-	AssertInt(9, cMesh.NumCorners());
+	AssertInt(1 + 9, cMesh.NumCorners());
+	AssertTrue(cMesh.mcMaterials.InUse());
 	cEditor.Kill();
 }
 

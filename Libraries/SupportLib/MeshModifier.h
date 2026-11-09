@@ -59,7 +59,7 @@ public:
 	virtual void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
 
 protected:
-	bool			CanRebuild(CMesh* pcMesh);  //Modify builds a new mesh of positions, normals and colours.
+	bool			CanRebuild(CMesh* pcMesh);  //For a Modify that builds a mesh of other faces, which only keeps positions, normals and colours.
 	Ptr<CMesh>		CopyWithNormals(CMesh* pcMesh);
 	Ptr<CMesh>		BuildFromFaces(CMesh* pcMesh, SFloat32Vec3* pasCorners, int iNumCorners, int* paiFaceCorners);
 };

@@ -296,16 +296,6 @@ void CMesh::ClearConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMesh::CanCopy(void)
-{
-	return !mcUVs.InUse() && !mcSkin.InUse() && !mcMaterials.InUse();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMesh::CopyFrom(CMesh* pcSource)
 {
 	int*	piCorners;
@@ -383,6 +373,115 @@ void CMesh::CopyDetailsFrom(CMesh* pcSource)
 			psNormal = pcSource->mcNormals.mcNormals.Get(i);
 			AddNormal(psNormal->x, psNormal->y, psNormal->z);
 		}
+	}
+
+	CopyUVsFrom(pcSource);
+	CopyMaterialsFrom(pcSource);
+	CopySkinFrom(pcSource);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::CopyUVsFrom(CMesh* pcSource)
+{
+	CMeshUVLayer*	pcFrom;
+	CMeshUVLayer*	pcTo;
+	size			uiLayer;
+	size			i;
+
+	if (!pcSource->mcUVs.InUse())
+	{
+		return;
+	}
+
+	mcUVs.mbInUse = true;
+	for (uiLayer = 0; uiLayer < pcSource->mcUVs.mcLayers.NumElements(); uiLayer++)
+	{
+		pcFrom = pcSource->mcUVs.mcLayers.Get(uiLayer);
+		pcTo = mcUVs.EnsureLayerExists(uiLayer, &mcConnectivity);
+		for (i = 0; i < pcFrom->mcUVs.NumElements(); i++)
+		{
+			pcTo->mcUVs.Add(pcFrom->mcUVs.Get(i));
+		}
+		for (i = 0; i < (size)pcSource->NumFaces(); i++)
+		{
+			*pcTo->mcFaces.Get(i) = *pcFrom->mcFaces.Get(i);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same materials, not copies of them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::CopyMaterialsFrom(CMesh* pcSource)
+{
+	size	i;
+
+	if (!pcSource->mcMaterials.InUse())
+	{
+		return;
+	}
+
+	mcMaterials.mbInUse = true;
+	mcMaterials.mapMaterials.RemoveAll();
+	for (i = 0; i < pcSource->mcMaterials.mapMaterials.NumElements(); i++)
+	{
+		mcMaterials.mapMaterials.Add(pcSource->mcMaterials.mapMaterials.Get(i));
+	}
+	for (i = 0; i < (size)pcSource->NumFaces(); i++)
+	{
+		mcMaterials.mcFaces.SetValue(i, pcSource->mcMaterials.mcFaces.GetValue(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A corner added while the skin was in use already has an empty vert.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::CopySkinFrom(CMesh* pcSource)
+{
+	CMeshSkinVert*	pcFrom;
+	CMeshSkinVert*	pcTo;
+	size			i;
+	size			j;
+
+	if (!pcSource->mcSkin.InUse())
+	{
+		return;
+	}
+
+	mcSkin.mbInUse = true;
+	for (i = 0; i < pcSource->mcSkin.mcSkinVerts.NumElements(); i++)
+	{
+		pcFrom = pcSource->mcSkin.mcSkinVerts.Get(i);
+		if (i < mcSkin.mcSkinVerts.NumElements())
+		{
+			pcTo = mcSkin.mcSkinVerts.Get(i);
+			pcTo->Kill();
+		}
+		else
+		{
+			pcTo = mcSkin.mcSkinVerts.Add();
+		}
+		pcTo->Init();
+		for (j = 0; j < pcFrom->mcWeights.NumElements(); j++)
+		{
+			pcTo->mcWeights.Add(pcFrom->mcWeights.Get(j));
+		}
+	}
+
+	mcSkin.mcInverseSkinMatricies.ReInit();
+	for (i = 0; i < pcSource->mcSkin.mcInverseSkinMatricies.NumElements(); i++)
+	{
+		mcSkin.mcInverseSkinMatricies.Add(pcSource->mcSkin.mcInverseSkinMatricies.Get(i));
 	}
 }
 

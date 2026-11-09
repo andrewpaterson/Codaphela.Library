@@ -295,8 +295,7 @@ void CMeshEditor::ClearMesh(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The first time the modifiers are applied.  A mesh with what a copy
-// wouldn't keep can't be gone back to, so its shapes start from nothing.
+// The first time the modifiers are applied.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::KeepBase(void)
@@ -317,12 +316,6 @@ void CMeshEditor::KeepBase(void)
 	{
 		return;
 	}
-	if (!mpMesh->CanCopy())
-	{
-		gcLogger.Warning2(__METHOD__, " Can't keep a mesh's UVs, skin or materials to add shapes to.  It is emptied.", NULL);
-		return;
-	}
-
 	mpBase = OMalloc<CMesh>();
 	mpBase->CopyFrom(&mpMesh);
 

@@ -173,7 +173,7 @@ void CMeshModifier::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosit
 //////////////////////////////////////////////////////////////////////////
 bool CMeshModifier::CanRebuild(CMesh* pcMesh)
 {
-	if (!pcMesh->CanCopy())
+	if (pcMesh->mcUVs.InUse() || pcMesh->mcSkin.InUse() || pcMesh->mcMaterials.InUse())
 	{
 		gcLogger.Warning2(__METHOD__, " Can't keep a mesh's UVs, skin or materials.  It is left as it is.", NULL);
 		return false;

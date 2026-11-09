@@ -69,11 +69,6 @@ Ptr<CMesh> CMeshSmoothGroups::Modify(Ptr<CMesh> pMesh)
 {
 	Ptr<CMesh>	pOutput;
 
-	if (!CanRebuild(&pMesh))
-	{
-		return pMesh;
-	}
-
 	pOutput = CopyWithNormals(&pMesh);
 	GenerateGroups(&pOutput, true);
 	GenerateNormals(&pOutput);

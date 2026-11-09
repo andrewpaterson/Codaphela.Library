@@ -240,6 +240,75 @@ void TestMeshNormalModifiersInEditorAgain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// They only change normals, so a mesh's UVs, materials and skin come
+// through, as Goober needs.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshNormalModifiersKeepDetails(void)
+{
+	CMeshModifierStack	cStack;
+	Ptr<CMesh>			pSource;
+	Ptr<CMesh>			pOutput;
+	Ptr<CMaterial>		pMaterial;
+	CMeshSkinVert*		pcVert;
+	SSkinWeight			sWeight;
+	SFloat4x4			sInverse;
+	int					i;
+
+	pSource = TestMeshNormalTwoFaces(1, 1);
+	pSource->mcUVs.mbInUse = true;
+	pSource->AddUV(0.25f, 0.75f);
+	pSource->mcUVs.mcLayers.Get(0)->mcFaces.Get(1)->aiUVs[2] = 0;
+
+	pMaterial = OMalloc<CMaterial>();
+	pSource->mcMaterials.mbInUse = true;
+	pSource->mcMaterials.mapMaterials.Add(pMaterial);
+	pSource->mcMaterials.mcFaces.SetValue(1, 0);
+
+	pSource->mcSkin.mbInUse = true;
+	for (i = 0; i < pSource->NumCorners(); i++)
+	{
+		pSource->mcSkin.mcSkinVerts.Add()->Init();
+	}
+	sWeight.fWeight = 1.0f;
+	sWeight.iMatrix = 0;
+	pSource->mcSkin.mcSkinVerts.Get(2)->mcWeights.Add(&sWeight);
+	sInverse.Identity();
+	pSource->mcSkin.mcInverseSkinMatricies.Add(&sInverse);
+
+	cStack.Init(pSource);
+	cStack.AddModifier<CMeshSmoothGroups>()->Init(1);
+	pOutput = cStack.GetOutput();
+	AssertFalse(pOutput == pSource);
+	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+
+	AssertTrue(pOutput->mcUVs.InUse());
+	AssertSize(1, pOutput->mcUVs.mcLayers.NumElements());
+	AssertFloat(0.75f, pOutput->mcUVs.mcLayers.Get(0)->mcUVs.Get(0)->y, 3);
+	AssertInt(0, pOutput->mcUVs.mcLayers.Get(0)->mcFaces.Get(1)->aiUVs[2]);
+	AssertInt(-1, pOutput->mcUVs.mcLayers.Get(0)->mcFaces.Get(0)->aiUVs[0]);
+
+	AssertTrue(pOutput->mcMaterials.InUse());
+	AssertTrue(&pOutput->mcMaterials.mapMaterials.Get(0) == &pMaterial);
+	AssertInt(-1, pOutput->mcMaterials.mcFaces.GetValue(0));
+	AssertInt(0, pOutput->mcMaterials.mcFaces.GetValue(1));
+
+	AssertTrue(pOutput->mcSkin.InUse());
+	AssertSize(4, pOutput->mcSkin.mcSkinVerts.NumElements());
+	pcVert = pOutput->mcSkin.mcSkinVerts.Get(2);
+	AssertSize(1, pcVert->mcWeights.NumElements());
+	AssertFloat(1.0f, pcVert->mcWeights.Get(0)->fWeight, 3);
+	AssertSize(0, pOutput->mcSkin.mcSkinVerts.Get(0)->mcWeights.NumElements());
+	AssertSize(1, pOutput->mcSkin.mcInverseSkinMatricies.NumElements());
+
+	//What it was made from is as it was.
+	AssertSize(0, pSource->mcNormals.mcNormals.NumElements());
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshNormalModifiers(void)
@@ -254,6 +323,7 @@ void TestMeshNormalModifiers(void)
 	TestMeshSmoothGroupsModify();
 	TestMeshNormalModifiersAfterShape();
 	TestMeshNormalModifiersInEditorAgain();
+	TestMeshNormalModifiersKeepDetails();
 
 	ObjectsKill(false);
 	DataIOKill();
