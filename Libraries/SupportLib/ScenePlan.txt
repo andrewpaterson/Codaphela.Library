@@ -123,9 +123,73 @@ Each renderer subclasses CRenderMesh directly.  CCanvas has a native object bene
 depend on the host.  A render mesh has little, so that layer would buy almost nothing, and a native object couldn't hold a Ptr.
 
 
+The scene file format
+---------------------
+The goal behind this plan is a file that meshes and whole scenes can be saved to.  It comes before the steps below and needs none
+of them.  It is simpler than the CObject graph, so that something like a 3ds Max exporter can write it with no object system: the
+old exporter filled engine objects and called their Save, so the format was whatever those classes were at the time.
+
+CChunkFile is the main format.  OBJ is kept for plain meshes, and glTF import may come later for what other tools make.  None of the
+open formats fits as the main one: OBJ has no skin, animation or hierarchy, glTF has no polygons, smoothing groups or Blinn
+materials, FBX is closed, and COLLADA and USD are large.
+
+  Reader and writer   Calls, not a model in memory.  cWriter.BeginMesh, WritePositions, WriteFaces, EndMesh and so on.  Only needs
+                      BaseLib, so an exporter links it and never sees chunk names or layouts.  What fills a CMesh or a CScene from
+                      the reader lives in SupportLib.
+  Extension           .DRG, with a version header.  CChunkFile's user ID says which kind of .DRG it is, as ChunkFileObjectWriter's
+                      does, and a required first chunk holds the format's version.  A reader refuses a version it doesn't know.
+  Modifier stacks     Not in this format.  It holds final meshes, as a Max scene arrives with its modifiers applied.  Editable
+                      stacks are for internal saving through the CObject graph, later, if an editor needs it.
+
+The rules that keep it from going the way of the old files:
+  Each attribute is a chunk of its own: Positions, Normals, UVs.  A new attribute is a new chunk, so nothing changes size.  Readers
+  ask for chunks by name, so an old file lacks a new chunk and gets a default, and an old reader ignores a new one.  The version
+  only changes when that isn't enough.
+  No struct is written whole.  Only fixed size types: no size, and no pointers.
+  References are indices into lists in the same file.  The writer checks them when the file closes.
+  Every result is checked.  A failed write fails the export.  (Melee.DRG's mesh faces were lost because a Save's result was ignored.)
+  CChunkFile's own layout must stay put, so a saved sample file and a test fail if it changes.
+
+Format steps:
+A. Fix SupportLib's OBJWriter, see below.  Done.
+B. The reader and writer, holding what Goober and Melee contain: meshes, polygons, smoothing groups, UVs, skin, materials, images,
+   connections, animation, instances, lights, cameras and particles.
+C. Convert the old files, see below.
+D. Read every converted file back and compare it value by value with what the converter wrote.  Check its counts against
+   OldDragonLib's.  Render them, including Goober's walk, as value checks can't catch a wrong rule.
+E. Fill a CMesh and then a CScene from the reader.  Write them too.
+F. A Max exporter writing through the writer, if one is wanted.
+
+OBJ is done (step A): SaveOBJ and the reader handle positions, normals and one layer of UVs in both directions, and TestMeshShapes and
+TestMeshOBJReader run again.  What OBJ still doesn't carry here:
+  Writing gives triangles only: no polygons, as CMesh has none until they move to it, and no smoothing groups, materials or object
+  names.  Normals say how a mesh is smoothed, so nothing is lost by the first of those for drawing it.
+  Reading ignores groups, smoothing groups and materials, and refuses faces of more than four corners, as CMesh can't make them.
+  A file's normals must come before its faces.
+  Positions are rounded to 1 / 65536 when written (BINARY_PRECISION, SFloat32Vec3::Fix).  That is about 0.015mm for a mesh in metres, as
+  KiCad's newer exports are, so OBJ isn't a lossless format for those.  The chunk format writes floats as they are.
+  The heading holds ENGINE_VERSION, so changing the version means changing the expected .OBJ files.
+
+OldDragonLib is only used once, to convert the old files.  It stays in the repo, out of the regular builds and tests, in case a
+conversion mistake turns up.  The new format owes nothing to the old layouts, and quirks are fixed in the converter and never reach
+a new file: Melee's faces from Melee.max, diffuse red and opacity in their right places, Goober's pose from its keyframes and not its
+connections' matrices, and key times in whatever the new format defines.  A material's colours come from the .max, and are white
+when it has a diffuse texture.
+
+  Old file                                                 Goes to
+  IOX2021\data\meshes, 15 DRGs                             IntoOblivionX
+  StarControl1\Melee.DRG, with MaxFiles\Melee.max          StarControlRedux
+  Star Control\Builds\StarControl\Test.DRG                 StarControlRedux
+  Builds\ViewerV7beta2009.9.20\Goober.DRG, with Stars.csv  CommonLibraries, as a test scene
+
+The old files are kept as they are.  IntoOblivionX and StarControlRedux move to the new CObjects model eventually; holding their
+converted files is the start.  After this the new files are what's true, and everything reads them.
+
+
 Steps
 -----
-Each is done when something needs it, with tests.  Skinning must be proved before Vulkan.
+These are the scene objects and the renderer.  Each is done when something needs it, with tests.  Skinning must be proved before
+Vulkan.
 
 1. Scene objects.  Remove CFakeTracker and TrackerTypes.  CScene becomes a CObject with its three lists.  Write CInstance and
    CInstanceMesh.  CLight and CCamera each get a Ptr<CConnection>.  CMeshMaterials' mcMaterials and mcFaces and
@@ -162,8 +226,8 @@ Each is done when something needs it, with tests.  Skinning must be proved befor
    connections.  Sharing a walk also needs a clip that groups the tracks of many connections, as one CConnectionAnimation is one
    connection.
 8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  The fixed point skinning
-   goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober proves it.  Needs
-   modifiers that keep UVs and skin (see Open) and a conversion from COldDragonScene to CScene.
+   goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from its
+   converted file, proves it.  Needs modifiers that keep UVs and skin (see Open).
 9. In-place updates, if dragging plain meshes is slow.
 10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
     This is left until now so that BoardScene's vertex order and pixels aren't put at risk for nothing.
@@ -173,10 +237,11 @@ Test scenes
 -----------
 BoardScene proves the rigid path, including the parent chain.  It has no textures, materials or skinning.
 
-Goober, a skinned mesh walking a field of stars, proves the rest: D:\Work\Star Control\Builds\ViewerV7beta2009.9.20\Goober.DRG
-and Particles\Stars.csv beside it, read by OldDragonLib.  1 mesh (3241 positions, 6134 faces), 1 material, 3 images, 67 bones
-and 1105 stars.  The Max source is in D:\Work\Bounty Arms\MaxFiles\Goober.
+Goober, a skinned mesh walking a field of stars, proves the rest, and becomes a test scene in CommonLibraries once converted.  Its
+source is D:\Work\Star Control\Builds\ViewerV7beta2009.9.20\Goober.DRG and Particles\Stars.csv beside it.  1 mesh (3241 positions,
+6134 faces), 1 material, 3 images, 67 bones and 1105 stars.  The Max source is in D:\Work\Bounty Arms\MaxFiles\Goober.
 
+What the converter and whatever poses it need to know:
   Pose it with vectors on the left of row-major matrices:
     fWeight * (position * inverse[iMatrix] * keyframe world of maiConnections[iMatrix])
   Use key frames, not its connections' matrices, which tear the mesh.
@@ -194,13 +259,8 @@ and instances, as the .max's node transforms weren't decoded when last reported.
 
 Open
 ----
-The scene file format.  A generic 3D scene format is to be designed once the old readers in OldDragonLib are finished.  It has to
-decide what is stored: the CMeshEditor with its mesh and stack, the final mesh, or both.  That decides whether a loaded scene can
-still be edited and whether a cached model loads without its CMesh.  The old files show what to avoid: layouts that changed
-between versions, raw pointers stored in arrays, and saves that failed without anything noticing.
-
-Particles.  Goober's stars are neither a mesh nor an instance.  Either CScene gets a fourth list or they are something else, and
-a point list has its own cook and draw on each renderer.
+Particles.  Goober's stars are neither a mesh nor an instance, but the file format has to hold them.  Either CScene gets a fourth
+list or they are something else, and a point list has its own cook and draw on each renderer.
 
 Modifiers can't keep UVs, skin or materials.  CMeshModifier::CanRebuild refuses a mesh with any of them: it logs a warning and
 Modify returns the mesh as it was, so the modifier does nothing.  Goober has them and needs its normals generated by a modifier,
