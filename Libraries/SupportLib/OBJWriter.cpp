@@ -21,11 +21,51 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Version.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
+#include "MeshEditor.h"
 #include "OBJWriter.h"
+
+
+//A corner of a line in the file.  iUV and iNormal are -1 if it has none.  iNormal is the mesh's until AddOBJNormals.
+struct SOBJCorner
+{
+	int		iPosition;
+	int		iUV;
+	int		iNormal;
+};
+
+
+//An edge of a face, going the way the face goes around.
+struct SOBJEdge
+{
+	int		iFrom;
+	int		iTo;
+	int		iFace;
+	int		iFaceCorner;
+};
+
+
+typedef CArrayTemplate<SOBJCorner>	CArrayOBJCorner;
+typedef CArrayTemplate<SOBJEdge>	CArrayOBJEdge;
+
+
+//What's in a mesh that goes in a file, and the lines the file's faces will be.
+struct SOBJFaces
+{
+	CMesh*			pcMesh;
+	CMeshUVLayer*	pcUVLayer;  //NULL if the file has no UVs.  A file only holds one layer of them.
+	bool			bNormals;
+	CArrayOBJCorner	asCorners;
+	CArrayInt		aiLineSizes;
+};
+
+
+//Normals this close are one normal: a written normal is rounded to more than this.
+#define OBJ_SAME_NORMAL_TOLERANCE	(1.0f / 65536.0f)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,63 +131,370 @@ static void AddOBJVertices(CMesh* pcMesh, CLargeChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The normal a face's corner uses: its own, or the face's flat one.
+// A corner of a face: its own normal if it has one, or the face's flat one.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshCornerNormal(SMeshNormalFace* psFaceNormal, int iFaceCorner)
+static void GetOBJCorner(SOBJFaces* psFaces, int iFace, int iFaceCorner, SOBJCorner* psCorner)
 {
-	if (psFaceNormal->aiCornerNormals[iFaceCorner] >= 0)
+	SMeshNormalFace*	psFaceNormal;
+
+	psCorner->iPosition = psFaces->pcMesh->GetFaceCorners(iFace)[iFaceCorner];
+	psCorner->iUV = psFaces->pcUVLayer ? psFaces->pcUVLayer->mcFaces.Get(iFace)->aiUVs[iFaceCorner] : -1;
+	psCorner->iNormal = -1;
+	if (psFaces->bNormals)
 	{
-		return psFaceNormal->aiCornerNormals[iFaceCorner];
+		psFaceNormal = psFaces->pcMesh->mcNormals.mcFaces.Get(iFace);
+		psCorner->iNormal = psFaceNormal->aiCornerNormals[iFaceCorner];
+		if (psCorner->iNormal < 0)
+		{
+			psCorner->iNormal = psFaceNormal->iFaceNormal;
+		}
 	}
-	return psFaceNormal->iFaceNormal;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Only the normals a face uses are written, as a reader makes flat normals
-// of its own.  paiOBJNormals is given each normal's index in the file from
-// its index in the mesh, -1 if it isn't written.  False if there are none.
+// Gets the edges of a polygon's faces that are on its outside, those with no
+// face going back along them.  False if an edge is used twice the same way.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool AddOBJNormals(CMesh* pcMesh, CLargeChars* psz, CArrayInt* paiOBJNormals)
+static bool GetOBJPolygonOutsideEdges(SOBJFaces* psFaces, CMeshPolygon* pcPolygon, CArrayOBJEdge* pasEdges, CArrayOBJEdge* pasOutside)
 {
-	CMeshNormals*		pcNormals;
-	SMeshNormalFace*	psFaceNormal;
-	SFloat32Vec3		sNormal;
-	int					iNumNormals;
-	int					iNumWritten;
-	int					iNumFaces;
-	int					i;
-	int					j;
+	SOBJEdge*	psEdge;
+	SOBJEdge*	psOther;
+	int*		piCorners;
+	int			iFace;
+	bool		bReversed;
+	size		i;
+	size		j;
+	size		uiNumEdges;
+	int			k;
 
-	pcNormals = &pcMesh->mcNormals;
-	if (!pcNormals->InUse())
+	for (i = 0; i < pcPolygon->maiFaces.NumElements(); i++)
+	{
+		iFace = pcPolygon->maiFaces.GetValue(i);
+		piCorners = psFaces->pcMesh->GetFaceCorners(iFace);
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
+		{
+			psEdge = pasEdges->Add();
+			psEdge->iFrom = piCorners[k];
+			psEdge->iTo = piCorners[(k + 1) % NUM_FACE_CORNERS];
+			psEdge->iFace = iFace;
+			psEdge->iFaceCorner = k;
+		}
+	}
+
+	uiNumEdges = pasEdges->NumElements();
+	for (i = 0; i < uiNumEdges; i++)
+	{
+		psEdge = pasEdges->Get(i);
+		bReversed = false;
+		for (j = 0; j < uiNumEdges; j++)
+		{
+			psOther = pasEdges->Get(j);
+			if ((j != i) && (psOther->iFrom == psEdge->iFrom) && (psOther->iTo == psEdge->iTo))
+			{
+				return false;
+			}
+			bReversed |= (psOther->iFrom == psEdge->iTo) && (psOther->iTo == psEdge->iFrom);
+		}
+		if (!bReversed)
+		{
+			*pasOutside->Add() = *psEdge;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts a polygon's outside edges in order around it.  False unless they are
+// one loop with every corner of the polygon on it: n faces with no corners
+// inside them have n + 2 edges around them.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool OrderOBJPolygonLoop(CMeshPolygon* pcPolygon, CArrayOBJEdge* pasOutside)
+{
+	SOBJEdge*	psEdge;
+	SOBJEdge*	psNext;
+	SOBJEdge	sSwap;
+	size		uiNumEdges;
+	size		i;
+	size		j;
+	size		uiFound;
+
+	uiNumEdges = pasOutside->NumElements();
+	if (uiNumEdges != (pcPolygon->maiFaces.NumElements() + 2))
 	{
 		return false;
 	}
 
-	iNumNormals = (int)pcNormals->mcNormals.NumElements();
-	paiOBJNormals->Resize(iNumNormals);
-	paiOBJNormals->SetArrayValues(-1);
+	for (i = 0; i + 1 < uiNumEdges; i++)
+	{
+		psEdge = pasOutside->Get(i);
+		uiFound = uiNumEdges;
+		for (j = 0; j < uiNumEdges; j++)
+		{
+			psNext = pasOutside->Get(j);
+			if (psNext->iFrom == psEdge->iTo)
+			{
+				if ((j <= i) || (uiFound != uiNumEdges))
+				{
+					//It came back too soon, or it can go two ways from here.
+					return false;
+				}
+				uiFound = j;
+			}
+		}
+		if (uiFound == uiNumEdges)
+		{
+			return false;
+		}
 
-	iNumFaces = pcMesh->NumFaces();
+		sSwap = *pasOutside->Get(i + 1);
+		*pasOutside->Get(i + 1) = *pasOutside->Get(uiFound);
+		*pasOutside->Get(uiFound) = sSwap;
+	}
+	return pasOutside->Get(uiNumEdges - 1)->iTo == pasOutside->Get(0)->iFrom;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool AreOBJNormalsSame(CMesh* pcMesh, int iNormal1, int iNormal2)
+{
+	SFloat32Vec3*	psNormal1;
+	SFloat32Vec3*	psNormal2;
+
+	if (iNormal1 == iNormal2)
+	{
+		return true;
+	}
+	psNormal1 = pcMesh->mcNormals.mcNormals.Get(iNormal1);
+	psNormal2 = pcMesh->mcNormals.mcNormals.Get(iNormal2);
+	return (fabsf(psNormal1->x - psNormal2->x) <= OBJ_SAME_NORMAL_TOLERANCE) &&
+		   (fabsf(psNormal1->y - psNormal2->y) <= OBJ_SAME_NORMAL_TOLERANCE) &&
+		   (fabsf(psNormal1->z - psNormal2->z) <= OBJ_SAME_NORMAL_TOLERANCE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line in a file only has one UV and one normal for each corner.  False if
+// a polygon's faces don't agree about one, as with a seam across it.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool DoOBJPolygonCornersAgree(SOBJFaces* psFaces, CArrayOBJEdge* pasEdges, CArrayOBJEdge* pasLoop)
+{
+	SOBJEdge*	psEdge;
+	SOBJEdge*	psLoop;
+	SOBJCorner	sCorner;
+	SOBJCorner	sLoopCorner;
+	size		i;
+	size		j;
+	size		uiNumEdges;
+	size		uiNumLoop;
+
+	uiNumEdges = pasEdges->NumElements();
+	uiNumLoop = pasLoop->NumElements();
+	for (i = 0; i < uiNumEdges; i++)
+	{
+		psEdge = pasEdges->Get(i);
+		GetOBJCorner(psFaces, psEdge->iFace, psEdge->iFaceCorner, &sCorner);
+		for (j = 0; j < uiNumLoop; j++)
+		{
+			psLoop = pasLoop->Get(j);
+			if (psLoop->iFrom == psEdge->iFrom)
+			{
+				GetOBJCorner(psFaces, psLoop->iFace, psLoop->iFaceCorner, &sLoopCorner);
+				if (sCorner.iUV != sLoopCorner.iUV)
+				{
+					return false;
+				}
+				if (psFaces->bNormals && !AreOBJNormalsSame(psFaces->pcMesh, sCorner.iNormal, sLoopCorner.iNormal))
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds a polygon as one line, starting from its lowest numbered corner, so
+// that the line doesn't depend on how the polygon was cut into faces.  False
+// if one line can't say what its faces do, and then it's left to its faces.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool AddOBJPolygonLine(SOBJFaces* psFaces, CMeshPolygon* pcPolygon)
+{
+	CArrayOBJEdge	asEdges;
+	CArrayOBJEdge	asLoop;
+	SOBJEdge*		psLoop;
+	SOBJCorner*		psCorner;
+	int				iFirstNormal;
+	bool			bResult;
+	size			i;
+	size			uiNumLoop;
+	size			uiStart;
+
+	asEdges.Init();
+	asLoop.Init();
+
+	bResult = GetOBJPolygonOutsideEdges(psFaces, pcPolygon, &asEdges, &asLoop);
+	bResult = bResult && OrderOBJPolygonLoop(pcPolygon, &asLoop);
+	bResult = bResult && DoOBJPolygonCornersAgree(psFaces, &asEdges, &asLoop);
+	if (bResult)
+	{
+		uiNumLoop = asLoop.NumElements();
+		uiStart = 0;
+		for (i = 1; i < uiNumLoop; i++)
+		{
+			if (asLoop.Get(i)->iFrom < asLoop.Get(uiStart)->iFrom)
+			{
+				uiStart = i;
+			}
+		}
+
+		for (i = 0; i < uiNumLoop; i++)
+		{
+			psLoop = asLoop.Get((uiStart + i) % uiNumLoop);
+			psCorner = psFaces->asCorners.Add();
+			GetOBJCorner(psFaces, psLoop->iFace, psLoop->iFaceCorner, psCorner);
+
+			//A flat polygon's faces each have a normal, and it only needs one.
+			if (i == 0)
+			{
+				iFirstNormal = psCorner->iNormal;
+			}
+			else if (psFaces->bNormals && AreOBJNormalsSame(psFaces->pcMesh, iFirstNormal, psCorner->iNormal))
+			{
+				psCorner->iNormal = iFirstNormal;
+			}
+		}
+		psFaces->aiLineSizes.Add((int)uiNumLoop);
+	}
+
+	asLoop.Kill();
+	asEdges.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddOBJFaceLine(SOBJFaces* psFaces, int iFace)
+{
+	int		i;
+
+	for (i = 0; i < NUM_FACE_CORNERS; i++)
+	{
+		GetOBJCorner(psFaces, iFace, i, psFaces->asCorners.Add());
+	}
+	psFaces->aiLineSizes.Add(NUM_FACE_CORNERS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line for each face, in order, but for a polygon that can be one line,
+// which goes where its first face would.  pcPolygons is NULL for a mesh on
+// its own.  A face added directly to the mesh has no polygon.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddOBJLines(SOBJFaces* psFaces, CMeshPolygons* pcPolygons)
+{
+	CArrayInt	aiPolygonLines;  //-1 for not looked at yet, 1 if it's a line, 0 if it's left to its faces.
+	int			iNumFaces;
+	int			iPolygon;
+	int			i;
+
+	aiPolygonLines.Init();
+	if (pcPolygons)
+	{
+		aiPolygonLines.Resize(pcPolygons->mcPolygons.NumElements());
+		aiPolygonLines.SetArrayValues(-1);
+	}
+
+	iNumFaces = psFaces->pcMesh->NumFaces();
 	for (i = 0; i < iNumFaces; i++)
 	{
-		psFaceNormal = pcNormals->mcFaces.Get(i);
-		for (j = 0; j < NUM_FACE_CORNERS; j++)
+		iPolygon = -1;
+		if (pcPolygons && (i < (int)pcPolygons->maiFacesToPolygons.NumElements()))
 		{
-			paiOBJNormals->SetValue(MeshCornerNormal(psFaceNormal, j), 0);
+			iPolygon = pcPolygons->maiFacesToPolygons.GetValue(i);
+		}
+
+		if (iPolygon == -1)
+		{
+			AddOBJFaceLine(psFaces, i);
+		}
+		else
+		{
+			if (aiPolygonLines.GetValue(iPolygon) == -1)
+			{
+				aiPolygonLines.SetValue(iPolygon, AddOBJPolygonLine(psFaces, pcPolygons->mcPolygons.Get(iPolygon)) ? 1 : 0);
+			}
+			if (aiPolygonLines.GetValue(iPolygon) == 0)
+			{
+				AddOBJFaceLine(psFaces, i);
+			}
 		}
 	}
 
-	iNumWritten = 0;
-	for (i = 0; i < iNumNormals; i++)
+	aiPolygonLines.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only the normals the lines use are written, as a reader makes flat normals
+// of its own.  The lines' corners are changed to index what's written.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddOBJNormals(SOBJFaces* psFaces, CLargeChars* psz)
+{
+	CMeshNormals*	pcNormals;
+	CArrayInt		aiOBJNormals;
+	SOBJCorner*		psCorner;
+	SFloat32Vec3	sNormal;
+	int				iNumNormals;
+	int				iNumWritten;
+	size			i;
+	size			uiNumCorners;
+
+	if (!psFaces->bNormals)
 	{
-		if (paiOBJNormals->GetValue(i) == 0)
+		return;
+	}
+
+	pcNormals = &psFaces->pcMesh->mcNormals;
+	iNumNormals = (int)pcNormals->mcNormals.NumElements();
+	aiOBJNormals.Init();
+	aiOBJNormals.Resize(iNumNormals);
+	aiOBJNormals.SetArrayValues(-1);
+
+	uiNumCorners = psFaces->asCorners.NumElements();
+	for (i = 0; i < uiNumCorners; i++)
+	{
+		aiOBJNormals.SetValue(psFaces->asCorners.Get(i)->iNormal, 0);
+	}
+
+	iNumWritten = 0;
+	for (i = 0; i < (size)iNumNormals; i++)
+	{
+		if (aiOBJNormals.GetValue(i) == 0)
 		{
-			paiOBJNormals->SetValue(i, iNumWritten);
+			aiOBJNormals.SetValue(i, iNumWritten);
 			iNumWritten++;
 
 			sNormal = *pcNormals->mcNormals.Get(i);
@@ -163,32 +510,35 @@ static bool AddOBJNormals(CMesh* pcMesh, CLargeChars* psz, CArrayInt* paiOBJNorm
 		}
 	}
 
+	for (i = 0; i < uiNumCorners; i++)
+	{
+		psCorner = psFaces->asCorners.Get(i);
+		psCorner->iNormal = aiOBJNormals.GetValue(psCorner->iNormal);
+	}
+	aiOBJNormals.Kill();
+
 	psz->Append("# ");
 	psz->Append(iNumWritten);
 	psz->Append(" vertex normals\n");
 	psz->AppendNewLine();
-	return iNumWritten > 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A file only holds one layer of UVs.  False if there are none.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CLargeChars* psz)
+static void AddOBJTextureCoords(CMeshUVLayer* pcUVLayer, CLargeChars* psz)
 {
 	size			i;
 	SFloat32Vec2	sUV;
-	CMeshUVLayer*	pcUVLayer;
 	size			uiNumUVs;
 
-	if (!pcUVs->InUse() || (pcUVs->mcLayers.NumElements() == 0))
+	if (!pcUVLayer)
 	{
-		return false;
+		return;
 	}
 
-	pcUVLayer = pcUVs->mcLayers.Get(0);
 	uiNumUVs = pcUVLayer->mcUVs.NumElements();
 	for (i = 0; i < uiNumUVs; i++)
 	{
@@ -206,80 +556,112 @@ static bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CLargeChars* psz)
 	psz->Append(uiNumUVs);
 	psz->Append(" texture coords\n");
 	psz->AppendNewLine();
-	return uiNumUVs > 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A file's indices count from 1.  iUV and iNormal are -1 if the corner has
-// none.  A corner with a normal and no UV is written v//n.
+// A file's indices count from 1.  A corner with a normal and no UV is written
+// v//n.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AddOBJFaceCorner(CLargeChars* psz, int iPosition, int iUV, int iNormal)
+static void AddOBJFaceCorner(CLargeChars* psz, SOBJCorner* psCorner)
 {
-	psz->Append(iPosition + 1);
+	psz->Append(psCorner->iPosition + 1);
 
-	if ((iUV >= 0) || (iNormal >= 0))
+	if ((psCorner->iUV >= 0) || (psCorner->iNormal >= 0))
 	{
 		psz->Append("/");
-		if (iUV >= 0)
+		if (psCorner->iUV >= 0)
 		{
-			psz->Append(iUV + 1);
+			psz->Append(psCorner->iUV + 1);
 		}
 	}
 
-	if (iNormal >= 0)
+	if (psCorner->iNormal >= 0)
 	{
 		psz->Append("/");
-		psz->Append(iNormal + 1);
+		psz->Append(psCorner->iNormal + 1);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// pcUVLayer and paiOBJNormals are NULL if the file doesn't have any.  A
-// face that isn't textured has a UV of -1 in the layer.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, CMeshUVLayer* pcUVLayer, CArrayInt* paiOBJNormals)
+static void AddOBJFaces(SOBJFaces* psFaces, CLargeChars* psz)
 {
-	int					i;
-	int					iNumFaces;
-	int*				piCorners;
-	SMeshUVFace*		psFaceUV;
-	SMeshNormalFace*	psFaceNormal;
-	int					j;
-	int					iUV;
-	int					iNormal;
+	size	i;
+	size	uiNumLines;
+	size	uiCorner;
+	int		iLineSize;
+	int		j;
+	bool	bTriangles;
 
-	iNumFaces = pcMesh->NumFaces();
-	for (i = 0; i < iNumFaces; i++)
+	bTriangles = true;
+	uiCorner = 0;
+	uiNumLines = psFaces->aiLineSizes.NumElements();
+	for (i = 0; i < uiNumLines; i++)
 	{
-		piCorners = pcMesh->GetFaceCorners(i);
-		psFaceUV = pcUVLayer ? pcUVLayer->mcFaces.Get(i) : NULL;
-		psFaceNormal = paiOBJNormals ? pcMesh->mcNormals.mcFaces.Get(i) : NULL;
+		iLineSize = psFaces->aiLineSizes.GetValue(i);
+		bTriangles &= iLineSize == NUM_FACE_CORNERS;
 
 		psz->Append("f  ");
-		for (j = 0; j < NUM_FACE_CORNERS; j++)
+		for (j = 0; j < iLineSize; j++)
 		{
-			iUV = psFaceUV ? psFaceUV->aiUVs[j] : -1;
-			iNormal = psFaceNormal ? paiOBJNormals->GetValue(MeshCornerNormal(psFaceNormal, j)) : -1;
-
 			if (j > 0)
 			{
 				psz->Append(" ");
 			}
-			AddOBJFaceCorner(psz, piCorners[j], iUV, iNormal);
+			AddOBJFaceCorner(psz, psFaces->asCorners.Get(uiCorner));
+			uiCorner++;
 		}
 		psz->AppendNewLine();
 	}
 
 	psz->Append("# ");
-	psz->Append(iNumFaces);
-	psz->Append(" triangles\n");
+	psz->Append(uiNumLines);
+	psz->Append(bTriangles ? " triangles\n" : " polygons\n");
 	psz->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool SaveOBJFaces(CMesh* pcMesh, CMeshPolygons* pcPolygons, const char* szFilename)
+{
+	CTextFile	cTextFile;
+	SOBJFaces	sFaces;
+	bool		bResult;
+
+	sFaces.pcMesh = pcMesh;
+	sFaces.pcUVLayer = NULL;
+	if (pcMesh->mcUVs.InUse() && (pcMesh->mcUVs.mcLayers.NumElements() > 0) && (pcMesh->mcUVs.mcLayers.Get(0)->mcUVs.NumElements() > 0))
+	{
+		sFaces.pcUVLayer = pcMesh->mcUVs.mcLayers.Get(0);
+	}
+	sFaces.bNormals = pcMesh->mcNormals.InUse();
+	sFaces.asCorners.Init();
+	sFaces.aiLineSizes.Init();
+	AddOBJLines(&sFaces, pcPolygons);
+
+	cTextFile.Init();
+	AddOBJHeading(&cTextFile.mcText);
+	AddOBJName(pcMesh, &cTextFile.mcText);
+	AddOBJVertices(pcMesh, &cTextFile.mcText);
+	AddOBJNormals(&sFaces, &cTextFile.mcText);
+	AddOBJTextureCoords(sFaces.pcUVLayer, &cTextFile.mcText);
+	AddOBJFaces(&sFaces, &cTextFile.mcText);
+
+	bResult = cTextFile.Write(szFilename);
+
+	cTextFile.Kill();
+	sFaces.aiLineSizes.Kill();
+	sFaces.asCorners.Kill();
+	return bResult;
 }
 
 
@@ -289,26 +671,16 @@ static void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, CMeshUVLayer* pcUVLayer
 //////////////////////////////////////////////////////////////////////////
 bool SaveOBJ(CMesh* pcMesh, const char* szFilename)
 {
-	CTextFile		cTextFile;
-	CArrayInt		aiOBJNormals;
-	bool			bTextureCoords;
-	bool			bVertexNormals;
-	bool			bResult;
+	return SaveOBJFaces(pcMesh, NULL, szFilename);
+}
 
-	cTextFile.Init();
-	aiOBJNormals.Init();
 
-	AddOBJHeading(&cTextFile.mcText);
-	AddOBJName(pcMesh, &cTextFile.mcText);
-	AddOBJVertices(pcMesh, &cTextFile.mcText);
-	bVertexNormals = AddOBJNormals(pcMesh, &cTextFile.mcText, &aiOBJNormals);
-	bTextureCoords = AddOBJTextureCoords(&pcMesh->mcUVs, &cTextFile.mcText);
-	AddOBJFaces(pcMesh, &cTextFile.mcText, bTextureCoords ? pcMesh->mcUVs.mcLayers.Get(0) : NULL, bVertexNormals ? &aiOBJNormals : NULL);
-
-	bResult = cTextFile.Write(szFilename);
-
-	aiOBJNormals.Kill();
-	cTextFile.Kill();
-	return bResult;
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveOBJ(CMeshEditor* pcEditor, const char* szFilename)
+{
+	return SaveOBJFaces(&pcEditor->mpMesh, &pcEditor->mcPolygons, szFilename);
 }
 

@@ -162,9 +162,12 @@ F. A Max exporter writing through the writer, if one is wanted.
 
 OBJ is done (step A): SaveOBJ and the reader handle positions, normals and one layer of UVs in both directions, and TestMeshShapes and
 TestMeshOBJReader run again.  What OBJ still doesn't carry here:
-  Writing gives triangles only: no polygons, as CMesh has none until they move to it, and no smoothing groups, materials or object
-  names.  Normals say how a mesh is smoothed, so nothing is lost by the first of those for drawing it.
-  Reading ignores groups, smoothing groups and materials, and refuses faces of more than four corners, as CMesh can't make them.
+  Reading takes polygons of any size and cuts them into faces, with the edges inside hidden.  Writing a CMesh gives triangles, as
+  it has no polygons, and writing a CMeshEditor gives each polygon as one line where that can say what its triangles do: one loop
+  with no corners inside, whose triangles agree on each corner's UV and normal.  When polygons move to CMesh (step 2) the one
+  function does both.
+  Holes aren't read, as OBJ has none, and a polygon that crosses itself is cut up from its first corner.
+  It writes no smoothing groups, materials or object names, and reading ignores them.  Normals say how a mesh is smoothed.
   A file's normals must come before its faces.
   Positions are rounded to 1 / 65536 when written (BINARY_PRECISION, SFloat32Vec3::Fix).  That is about 0.015mm for a mesh in metres, as
   KiCad's newer exports are, so OBJ isn't a lossless format for those.  The chunk format writes floats as they are.

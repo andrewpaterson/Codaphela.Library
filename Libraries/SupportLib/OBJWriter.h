@@ -26,7 +26,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 
+class CMeshEditor;
+
+
+//A mesh on its own is written as triangles.  An editor knows its mesh's polygons, and writes each as one face where that
+//can say what its triangles do: it is one loop with no corners inside it, and its triangles agree on each corner's UV and
+//normal.  Any other is written as its triangles.
 bool SaveOBJ(CMesh* pcMesh, const char* szFilename);
+bool SaveOBJ(CMeshEditor* pcEditor, const char* szFilename);
 
 
 #endif // __OBJ_WRITER_H__
