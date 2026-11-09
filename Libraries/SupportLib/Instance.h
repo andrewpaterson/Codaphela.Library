@@ -20,33 +20,47 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INSTANCE_H__
 #define __INSTANCE_H__
-#include "BaseLib/DataTypes.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/ArrayInt.h"
-#include "BaseLib/ArrayBlock.h"
-#include "BaseLib/ChunkFile.h"
-#include "BaseLib/ArrayEmbeddedInt.h"
+#include "BaseLib/Chars.h"
+#include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
-#include "TrackerTypes.h"
+#include "Connection.h"
+#include "Material.h"
+#include "MeshEditor.h"
 
 
-class CInstance : public CObject  //Example to copy / paste from
+//A mesh in an instance.  Its editor is shared with other instances, and so can't point at connections, as each instance has its own.
+//maiConnectionSlots says which of the instance's connections each of the mesh's matrices uses: one for a rigid mesh, and one for each
+//of its matrices for a skinned one.  mapMaterials replace the mesh's defaults, NULL to keep one, and none to keep them all.
+class CInstanceMesh : public CObject
+{
+CONSTRUCTABLE(CInstanceMesh);
+DESTRUCTABLE(CInstanceMesh);
+public:
+	Ptr<CMeshEditor>	mpEditor;
+	CArrayInt			maiConnectionSlots;
+	CArrayMaterial		mapMaterials;
+
+	void 	Init(Ptr<CMeshEditor> pEditor);
+	void 	Free(void) override;
+	void	Class(void) override;
+};
+
+
+//One thing in a game, one character say.  Two characters are two instances that share their meshes and are drawn in different places.
+//The order of its connections matters, as its meshes refer to them by their place.
+class CInstance : public CObject
 {
 CONSTRUCTABLE(CInstance);
 DESTRUCTABLE(CInstance);
-protected:
-	ETrackerType		meType;  //Which Tracker to look this object up in.
-	int					miObjectIndex;
-	CArrayEmbeddedInt	maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
-	
 public:
+	CChars					mszName;
+	CArray<CConnection>		mapConnections;
+	CArray<CInstanceMesh>	mapMeshes;
+
 	void 	Init(void);
 	void 	Free(void) override;
 	void	Class(void) override;
-
-	bool	Load(CObjectReader* pcFile) override;
-	bool	Save(CObjectWriter* pcFile) override;
 };
 
 

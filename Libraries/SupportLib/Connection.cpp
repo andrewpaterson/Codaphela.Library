@@ -18,22 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
 #include "Connection.h"
-#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 Ptr<CConnection> CConnection::Init(void)
 {
 	PreInit();
 
-	msWorldMatrix.Init();
-	msLocalMatrix.Init();
+	mszName.Init();
+	mpParent = NULL;
+	msWorldMatrix.Identity();
+	msLocalMatrix.Identity();
 	mbSelected = false;
 	mbTopLevel = false;
 	mbParity = false;
@@ -45,12 +44,12 @@ Ptr<CConnection> CConnection::Init(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CConnection::Free(void)
-{	
-	mbSelected = 0;
+{
+	mszName.Kill();
 }
 
 
@@ -60,6 +59,8 @@ void CConnection::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CConnection::Class(void)
 {
+	U_String(mszName);
+	M_Pointer(mpParent);
 	U_4x4Float32(msWorldMatrix);
 	U_4x4Float32(msLocalMatrix);
 	U_Bool(mbSelected);
@@ -74,8 +75,13 @@ void CConnection::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CConnection::Copy(CConnection* pcConnection)
 {
-	Init();
-	memcpy(&msWorldMatrix, &pcConnection->msWorldMatrix, sizeof(SFloat4x4));
-	memcpy(&msLocalMatrix, &pcConnection->msLocalMatrix, sizeof(SFloat4x4));
+	mszName.ReInit();
+	mszName.Append(pcConnection->mszName.Text());
+	mpParent = pcConnection->mpParent;
+	msWorldMatrix = pcConnection->msWorldMatrix;
+	msLocalMatrix = pcConnection->msLocalMatrix;
+	mbSelected = pcConnection->mbSelected;
+	mbTopLevel = pcConnection->mbTopLevel;
+	mbParity = pcConnection->mbParity;
 }
 

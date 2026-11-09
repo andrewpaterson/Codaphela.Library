@@ -18,34 +18,70 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/GlobalMemory.h"
-#include "StandardLib/ObjectWriter.h"
-#include "StandardLib/ObjectReader.h"
 #include "Instance.h"
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-void CInstance::Init(void)
+void CInstanceMesh::Init(Ptr<CMeshEditor> pEditor)
 {
 	PreInit();
 
-	maiConnections.Init();
-	meType = TT_Unknown;
+	mpEditor = pEditor;
+	maiConnectionSlots.Init();
+	mapMaterials.Init();
 
 	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstanceMesh::Free(void)
+{
+	maiConnectionSlots.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstanceMesh::Class(void)
+{
+	M_Pointer(mpEditor);
+	U_Unknown(CArrayInt, maiConnectionSlots);
+	M_Embedded(mapMaterials);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstance::Init(void)
+{
+	PreInit();
+
+	mszName.Init();
+	mapConnections.Init();
+	mapMeshes.Init();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CInstance::Free(void)
-{	
-	maiConnections.Kill();
+{
+	mszName.Kill();
 }
 
 
@@ -55,32 +91,8 @@ void CInstance::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CInstance::Class(void)
 {
-	CObject::ClassNotImplemented();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CInstance::Load(CObjectReader* pcFile)
-{
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meType));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&miObjectIndex));
-	ReturnOnFalse(maiConnections.Read(pcFile));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CInstance::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(pcFile->WriteSInt(meType));
-	ReturnOnFalse(pcFile->WriteSInt(miObjectIndex));
-	ReturnOnFalse(maiConnections.Write(pcFile));
-	return true;
+	U_String(mszName);
+	M_Embedded(mapConnections);
+	M_Embedded(mapMeshes);
 }
 

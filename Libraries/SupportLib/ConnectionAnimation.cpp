@@ -18,8 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectWriter.h"
-#include "StandardLib/ObjectReader.h"
 #include "ConnectionAnimation.h"
 
 
@@ -32,7 +30,7 @@ void CConnectionAnimation::Init(void)
 	PreInit();
 
 	masKeyFrames.Init();
-	miConnectionIndex = -1;
+	mpConnection = NULL;
 
 	PostInit();
 }
@@ -55,7 +53,7 @@ void CConnectionAnimation::Free(void)
 void CConnectionAnimation::Class(void)
 {
 	U_Unknown(CArrayAnimKeyFrame, masKeyFrames);
-	U_SInt(miConnectionIndex);
+	M_Pointer(mpConnection);
 }
 
 
@@ -131,24 +129,17 @@ CAnimKeyFrame* CConnectionAnimation::Add(SQuaternion* psRotation, float32 fTime)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-bool CConnectionAnimation::Load(CObjectReader* pcFile)
+void CSceneAnimation::Init(void)
 {
-	ReturnOnFalse(masKeyFrames.Read(pcFile));
-	return true;
-}
+	PreInit();
 
+	mszName.Init();
+	mapTracks.Init();
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CConnectionAnimation::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(masKeyFrames.Write(pcFile));
-	return true;
+	PostInit();
 }
 
 
@@ -156,9 +147,9 @@ bool CConnectionAnimation::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConnectionAnimation::Copy(CConnectionAnimation* pCSequence)
+void CSceneAnimation::Free(void)
 {
-	Init();
+	mszName.Kill();
 }
 
 
@@ -166,17 +157,9 @@ void CConnectionAnimation::Copy(CConnectionAnimation* pCSequence)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConnectionAnimation::SetConnectionID(int iConnectionID)
+void CSceneAnimation::Class(void)
 {
-	miConnectionIndex = iConnectionID;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CConnectionAnimation::Dump(void)
-{
+	U_String(mszName);
+	M_Embedded(mapTracks);
 }
 

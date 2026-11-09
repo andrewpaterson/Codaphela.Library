@@ -20,20 +20,21 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONNECTION_H__
 #define __CONNECTION_H__
-#include "BaseLib/DataTypes.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/ArrayInt.h"
-#include "BaseLib/ArrayBlock.h"
-#include "BaseLib/ChunkFile.h"
+#include "BaseLib/Chars.h"
 #include "BaseLib/Float4x4.h"
 #include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
 
 
+//Something spatial that meshes, lights, cameras or other game information can be attached to.  mszName is what it's called in a
+//file, and many may have the same one, which an object's name can't.  Nothing keeps msWorldMatrix up to date from its parent yet.
 class CConnection : public CObject
 {
 CONSTRUCTABLE(CConnection);
 DESTRUCTABLE(CConnection);
 public:
+	CChars				mszName;
+	Ptr<CConnection>	mpParent;
 	SFloat4x4			msWorldMatrix;
 	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.
 	bool				mbSelected;

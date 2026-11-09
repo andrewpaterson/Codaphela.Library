@@ -20,9 +20,12 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONNECTION_ANIMATION_H__
 #define __CONNECTION_ANIMATION_H__
-#include "BaseLib/ChunkFile.h"
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Chars.h"
 #include "BaseLib/GeometricTypes.h"
+#include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
+#include "Connection.h"
 
 
 enum EKeyframeType
@@ -58,7 +61,7 @@ struct CAnimKeyFrame
 {
 	int					miType;  //Which parts of the key frame are actually used...
 	SAnimKeyFrameData	msf;
-	float32				mfTime;  //Time until the next frame.
+	float32				mfTime;  //Seconds from the start of the animation.
 };
 
 
@@ -71,23 +74,31 @@ CONSTRUCTABLE(CConnectionAnimation);
 DESTRUCTABLE(CConnectionAnimation);
 public:
 	CArrayAnimKeyFrame	masKeyFrames;
-	int					miConnectionIndex;  //The connection this key-frame animates
+	Ptr<CConnection>	mpConnection;  //What these keys move.
 
 	void 			Init(void);
 	void 			Free(void) override;
 	void			Class(void) override;
 
-	bool			Load(CObjectReader* pcFile) override;
-	bool			Save(CObjectWriter* pcFile) override;
-
-	void			Copy(CConnectionAnimation* pcConnection);
-
-	void			Dump(void);
 	CAnimKeyFrame*	Add(SFloat4x4* psMatrix, float32 fTime);
 	CAnimKeyFrame*	Add(SFloat32Vec3* psPosition, SQuaternion* psRotation, float32 fTime);
 	CAnimKeyFrame*	Add(SFloat32Vec3* psPosition, float32 fTime);
 	CAnimKeyFrame*	Add(SQuaternion* psRotation, float32 fTime);
-	void			SetConnectionID(int iConnectionID);
+};
+
+
+//Tracks that play together.  A walk is one of these, with a track for each bone.
+class CSceneAnimation : public CObject
+{
+CONSTRUCTABLE(CSceneAnimation);
+DESTRUCTABLE(CSceneAnimation);
+public:
+	CChars						mszName;
+	CArray<CConnectionAnimation>	mapTracks;
+
+	void 	Init(void);
+	void 	Free(void) override;
+	void	Class(void) override;
 };
 
 

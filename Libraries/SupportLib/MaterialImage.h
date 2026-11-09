@@ -23,7 +23,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MATERIAL_IMAGE_H__
 #define __MATERIAL_IMAGE_H__
-#include "BaseLib/ChunkFile.h"
+#include "BaseLib/Chars.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
+#include "Image.h"
 
 
 enum EUVAddress
@@ -60,21 +63,25 @@ enum EUVSource
 };
 
 
-class CMaterialImage
+//An image a material uses, and how it's sampled.  mszImageName is what the image was called in a file: many images can have the same
+//one there, which an object's name can't.
+class CMaterialImage : public CObject
 {
+CONSTRUCTABLE(CMaterialImage);
+DESTRUCTABLE(CMaterialImage);
 public:
-	int					miImageID;
-	EUVAddress			meAddressU;  
-	EUVAddress			meAddressV;
-	EUVFilter			meMagFilter;  
-	EUVFilter			meMinFilter;
-	EUVFilter			meMipFilter;
-	EUVSource			meUVSource;
+	Ptr<CImage>	mpImage;
+	CChars		mszImageName;
+	EUVAddress	meAddressU;
+	EUVAddress	meAddressV;
+	EUVFilter	meMagFilter;
+	EUVFilter	meMinFilter;
+	EUVFilter	meMipFilter;
+	EUVSource	meUVSource;
 
-	void Init(void);
-	void Kill(void);
-	bool Save(CFileWriter* pcFile);
-	bool Load(CFileReader* pcFile);
+	void	Init(void);
+	void	Free(void) override;
+	void	Class(void) override;
 };
 
 

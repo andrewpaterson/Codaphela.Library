@@ -18,8 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
 #include "Camera.h"
 
 
@@ -31,25 +29,12 @@ Ptr<CCamera> CCamera::Init(void)
 {
 	PreInit();
 
+	mszName.Init();
 	meCameraType = CAT_Perspective;
 	mfFOV = 0.0f;
-
-	PostInit();
-
-	return this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CCamera> CCamera::Init(ECameraType eCameraType, float32 fFOV)
-{
-	PreInit();
-
-	mfFOV = fFOV;
-	meCameraType = eCameraType;
+	mfNear = 0.0f;
+	mfFar = 0.0f;
+	mpConnection = NULL;
 
 	PostInit();
 
@@ -63,7 +48,7 @@ Ptr<CCamera> CCamera::Init(ECameraType eCameraType, float32 fFOV)
 //////////////////////////////////////////////////////////////////////////
 void CCamera::Free(void)
 {
-	meCameraType = CAT_Unknown;
+	mszName.Kill();
 }
 
 
@@ -73,17 +58,11 @@ void CCamera::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CCamera::Class(void)
 {
-	U_Float32(mfFOV);
+	U_String(mszName);
 	U_Enum(meCameraType);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCamera::Copy(CCamera* pcCamera)
-{
-	//Implement me please.
+	U_Float32(mfFOV);
+	U_Float32(mfNear);
+	U_Float32(mfFar);
+	M_Pointer(mpConnection);
 }
 

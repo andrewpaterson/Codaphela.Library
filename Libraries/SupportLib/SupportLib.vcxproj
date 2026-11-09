@@ -239,7 +239,6 @@
     <ClInclude Include="TextUTF16Long.h" />
     <ClInclude Include="TextUTF16Multi.h" />
     <ClInclude Include="TextUTF16Short.h" />
-    <ClInclude Include="FakeTracker.h" />
     <ClInclude Include="FontFactory.h" />
     <ClInclude Include="FontImportParameters.h" />
     <ClInclude Include="ImageCopyDimension.h" />
@@ -251,6 +250,7 @@
     <ClInclude Include="BlockMap.h" />
     <ClInclude Include="PNGWriter.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneParticles.h" />
     <ClInclude Include="SceneFileGeneral.h" />
     <ClInclude Include="SceneFileReader.h" />
     <ClInclude Include="SceneFileWriter.h" />
@@ -265,7 +265,6 @@
     <ClInclude Include="TextRun.h" />
     <ClInclude Include="TextDrawable.h" />
     <ClInclude Include="TileMapPattern.h" />
-    <ClInclude Include="TrackerTypes.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageChannel.h" />
     <ClInclude Include="ImageCopier.h" />
@@ -369,7 +368,6 @@
     <ClInclude Include="ColourBlend.h" />
     <ClInclude Include="ImageColour.h" />
     <ClInclude Include="Material.h" />
-    <ClInclude Include="MaterialHelper.h" />
     <ClInclude Include="MaterialImage.h" />
     <ClInclude Include="MaterialProperties.h" />
     <ClInclude Include="ConnectionAnimation.h" />
@@ -463,7 +461,6 @@
     <ClCompile Include="ColourFormat.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="SizingImageBlitterSize.cpp" />
-    <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="FontCreationParameters.cpp" />
     <ClCompile Include="ImageColourConverter.cpp" />
     <ClCompile Include="TileCelBrush.cpp" />
@@ -500,6 +497,7 @@
     <ClCompile Include="BlockMap.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneParticles.cpp" />
     <ClCompile Include="SceneFileGeneral.cpp" />
     <ClCompile Include="SceneFileReader.cpp" />
     <ClCompile Include="SceneFileWriter.cpp" />
@@ -626,7 +624,6 @@
     <ClCompile Include="ColourBlend.cpp" />
     <ClCompile Include="ImageColour.cpp" />
     <ClCompile Include="Material.cpp" />
-    <ClCompile Include="MaterialHelper.cpp" />
     <ClCompile Include="MaterialImage.cpp" />
     <ClCompile Include="MaterialProperties.cpp" />
     <ClCompile Include="ConnectionAnimation.cpp" />

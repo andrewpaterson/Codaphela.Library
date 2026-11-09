@@ -20,37 +20,30 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SCENE_H__
 #define __SCENE_H__
-#include "BaseLib/ChunkFile.h"
-#include "Image.h"
-#include "ImageCelGroup.h"
-#include "Mesh.h"
-#include "Light.h"
+#include "StandardLib/Array.h"
+#include "StandardLib/Object.h"
 #include "Camera.h"
-#include "Connection.h"
 #include "ConnectionAnimation.h"
 #include "Instance.h"
-#include "Material.h"
-#include "FakeTracker.h"
+#include "Light.h"
+#include "SceneParticles.h"
 
 
-class CScene
+//What's in a world.  Meshes, materials, images and connections are reached through what uses them, so one nothing uses isn't here.
+class CScene : public CObject
 {
+CONSTRUCTABLE(CScene);
+DESTRUCTABLE(CScene);
 public:
-	int					miUniqueID;
+	CArray<CInstance>		mapInstances;
+	CArray<CLight>			mapLights;
+	CArray<CCamera>			mapCameras;
+	CArray<CSceneAnimation>	mapAnimations;
+	CArray<CSceneParticles>	mapParticles;
 
-	CFakeTracker		mcConnectionTracker;
-	CFakeTracker		mcMeshTracker;
-	CFakeTracker		mcCameraTracker;
-	CFakeTracker		mcLightTracker;
-	CFakeTracker		mcSequenceTracker;
-	CFakeTracker		mcImageTracker;
-	CFakeTracker		mcMaterialTracker;
-	CFakeTracker		mcInstanceTracker;
-
-	void Init(void);
-	bool Load(CFileReader* pcChunkFile);
-	void Kill(void);
-	bool Touch(void);
+	void 	Init(void);
+	void 	Free(void) override;
+	void	Class(void) override;
 };
 
 

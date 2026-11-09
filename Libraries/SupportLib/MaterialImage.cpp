@@ -25,55 +25,49 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CMaterialImage::Init(void)
 {
-	memset(this, 0, sizeof(CMaterialImage));
-	miImageID = -1;
+	PreInit();
+
+	mpImage = NULL;
+	mszImageName.Init();
+	meAddressU = UVA_Tile;
+	meAddressV = UVA_Tile;
+	meMagFilter = UVF_Nearest;
+	meMinFilter = UVF_Nearest;
+	meMipFilter = UVF_Nearest;
+	meUVSource = UVS_0;
+
+	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-void CMaterialImage::Kill(void)
+void CMaterialImage::Free(void)
 {
+	mszImageName.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-bool CMaterialImage::Save(CFileWriter* pcFile)
+void CMaterialImage::Class(void)
 {
-	ReturnOnFalse(pcFile->WriteSInt(miImageID));
-	ReturnOnFalse(pcFile->WriteSInt(meAddressU));
-	ReturnOnFalse(pcFile->WriteSInt(meAddressV));
-	ReturnOnFalse(pcFile->WriteSInt(meMagFilter));
-	ReturnOnFalse(pcFile->WriteSInt(meMinFilter));
-	ReturnOnFalse(pcFile->WriteSInt(meMipFilter));
-	ReturnOnFalse(pcFile->WriteSInt(meUVSource));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMaterialImage::Load(CFileReader* pcFile)
-{
-	ReturnOnFalse(pcFile->ReadSInt(&miImageID));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meAddressU));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meAddressV));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meMagFilter));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meMinFilter));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meMipFilter));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meUVSource));
-	return true;
+	M_Pointer(mpImage);
+	U_String(mszImageName);
+	U_Enum(meAddressU);
+	U_Enum(meAddressV);
+	U_Enum(meMagFilter);
+	U_Enum(meMinFilter);
+	U_Enum(meMipFilter);
+	U_Enum(meUVSource);
 }
 

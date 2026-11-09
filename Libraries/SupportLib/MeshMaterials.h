@@ -24,18 +24,19 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_MATERIALS_H__
 #define __MESH_MATERIALS_H__
 #include "BaseLib/ArrayInt.h"
+#include "Material.h"
 #include "MeshDetail.h"
 
 
+//mapMaterials are the mesh's default materials, which an instance can replace.  mcFaces has a slot in them for each of the mesh's
+//faces, -1 for none.
 class CMeshMaterials : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshMaterials);
 DESTRUCTABLE(CMeshMaterials);
 public:
-	CArrayInt	mcMaterials;  //mcMaterials.NumElements is the number of materials in this mesh.  It maps 0 -> A, 1 -> B, 2 -> C
-							  //where A, B, C etc... are indexes in the Material Tracker.
-							  //This is a default group of materials rather than the actual list of materials that appears on the Mesh Instance.
-	CArrayInt	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.  The int is an index lookup into the MaterialTracker.
+	CArrayMaterial	mapMaterials;
+	CArrayInt		mcFaces;
 
 	void 	Init(void);
 	void	Class(void) override;

@@ -20,9 +20,9 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __LIGHT_H__
 #define __LIGHT_H__
-#include "BaseLib/ChunkFile.h"
-#include "BaseLib/GeometricTypes.h"
+#include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
+#include "Connection.h"
 #include "ImageColour.h"
 
 
@@ -42,27 +42,25 @@ enum ELightType
 };
 
 
+//Shines along its connection's -z.  mpConnection is NULL if it isn't placed anywhere.
 class CLight : public CObject
 {
 CONSTRUCTABLE(CLight);
 DESTRUCTABLE(CLight);
 public:
+	CChars				mszName;
 	ELightType			meType;
 	CImageColourARGB	msColour;
 	ELightDecayType		meDecay;
 	float32				mfDecayStart;
+	float32				mfRange;
 	bool				mbCastShadows;
 	float32				mfIntensity;
+	Ptr<CConnection>	mpConnection;
 
 	void 	Init(void);
-	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float32 fDecayStart, bool bCastShadows, float32 fIntensity);
 	void	Free(void) override;
 	void	Class(void) override;
-
-	bool	Load(CObjectReader* pcFile) override;
-	bool	Save(CObjectWriter* pcFile) override;
-
-	void	Copy(CLight* pcLight);
 };
 
 

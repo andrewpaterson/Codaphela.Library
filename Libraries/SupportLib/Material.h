@@ -20,16 +20,38 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MATERIAL_H__
 #define __MATERIAL_H__
-#include "BaseLib/ChunkFile.h"
+#include "BaseLib/Chars.h"
+#include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "MaterialImage.h"
 #include "MaterialProperties.h"
+
+
+//In the order a scene file numbers them.
+enum EMaterialImage
+{
+	MI_Diffuse,
+	MI_DiffuseLevel,
+	MI_Specular,
+	MI_Illumination,
+	MI_Opacity,
+	MI_Bump,
+	MI_Detail,
+	MI_Decal,
+	MI_Reflection,
+
+	MI_NumImages,
+};
 
 
 class CMaterial : public CObject
 {
 CONSTRUCTABLE(CMaterial);
 DESTRUCTABLE(CMaterial);
+public:
+	CChars				mszName;
+	CMaterialProperties	msProperties;
+
 protected:
 	CMaterialImage		msDiffuse;
 	CMaterialImage		msDiffuseLevel;
@@ -40,20 +62,17 @@ protected:
 	CMaterialImage		msDetail;
 	CMaterialImage		msDecal;
 	CMaterialImage		msReflection;
-	CMaterialProperties	msProperties;
 
 public:
-	void		Init(void);
-	void		Free(void) override;
-	void		Class(void) override;
+	void			Init(void);
+	void			Free(void) override;
+	void			Class(void) override;
 
-	bool		Load(CObjectReader* pcFile) override;
-	bool		Save(CObjectWriter* pcFile) override;
-	
-	void		Copy(CMaterial* pcMaterial);
-
-	void		Dump(void);
+	CMaterialImage*	GetImage(EMaterialImage eImage);
 };
+
+
+typedef CArray<CMaterial>	CArrayMaterial;
 
 
 #endif //__MATERIAL_H__

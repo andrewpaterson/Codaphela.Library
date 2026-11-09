@@ -36,7 +36,7 @@ void CMeshMaterials::Init(void)
 	PreInit();
 
 	CMeshDetail::Init();
-	mcMaterials.Init();
+	mapMaterials.Init();
 	mcFaces.Init();
 
 	PostInit();
@@ -48,7 +48,7 @@ void CMeshMaterials::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshMaterials::Clear(void)
 {
-	mcMaterials.ReInit();
+	mapMaterials.RemoveAll();
 	mcFaces.ReInit();
 }
 
@@ -59,7 +59,6 @@ void CMeshMaterials::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshMaterials::Free(void)
 {
-	mcMaterials.Kill();
 	mcFaces.Kill();
 	CUnknown::Kill();
 }
@@ -73,7 +72,7 @@ void CMeshMaterials::Class(void)
 {
 	CMeshDetail::Class();
 
-	U_Unknown(CArrayInt, mcMaterials);
+	M_Embedded(mapMaterials);
 	U_Unknown(CArrayInt, mcFaces);
 }
 
@@ -86,7 +85,6 @@ bool CMeshMaterials::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(CMeshDetail::Load(pcFile));
 
-	ReturnOnFalse(mcMaterials.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
 	return true;
 }
@@ -100,7 +98,6 @@ bool CMeshMaterials::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
-	ReturnOnFalse(mcMaterials.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	return true;
 }

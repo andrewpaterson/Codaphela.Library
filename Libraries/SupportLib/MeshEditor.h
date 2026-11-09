@@ -37,6 +37,7 @@ class CMeshEditor : public CObject
 CONSTRUCTABLE(CMeshEditor);
 DESTRUCTABLE(CMeshEditor);
 public:
+	CChars					mszName;  //What it's called in a file, and many can have the same one, which an object's name can't.
 	Ptr<CMesh>				mpMesh;
 	CMeshModifierStack		mcModifiers;
 

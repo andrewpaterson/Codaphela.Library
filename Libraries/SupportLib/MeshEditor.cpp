@@ -35,6 +35,7 @@ void CMeshEditor::Init(Ptr<CMesh> pMesh)
 {
 	PreInit();
 
+	mszName.Init();
 	mpMesh = pMesh;
 
 	mcSelections.Init();
@@ -67,6 +68,7 @@ void CMeshEditor::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::Class(void)
 {
+	U_String(mszName);
 	M_Pointer(mpMesh);
 	M_Embedded(mcModifiers);
 	M_Embedded(mcSelections);

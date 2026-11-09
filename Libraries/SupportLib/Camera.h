@@ -20,8 +20,9 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
-#include "BaseLib/ChunkFile.h"
+#include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
+#include "Connection.h"
 
 
 enum ECameraType
@@ -32,20 +33,22 @@ enum ECameraType
 };
 
 
+//Looks along its connection's -z with y up.  mfFOV is horizontal, in radians.  mpConnection is NULL if it isn't placed anywhere.
 class CCamera : public CObject
 {
 CONSTRUCTABLE(CCamera);
 DESTRUCTABLE(CCamera);
 public:
-	ECameraType		meCameraType;
-	float32			mfFOV;
+	CChars				mszName;
+	ECameraType			meCameraType;
+	float32				mfFOV;
+	float32				mfNear;
+	float32				mfFar;
+	Ptr<CConnection>	mpConnection;
 
 	Ptr<CCamera>	Init(void);
-	Ptr<CCamera>	Init(ECameraType eCameraType, float32 fFOV);
 	void 			Free(void) override;
 	void			Class(void) override;
-
-	void			Copy(CCamera* pcCamera);
 };
 
 

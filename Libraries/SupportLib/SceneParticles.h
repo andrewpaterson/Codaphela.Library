@@ -17,23 +17,36 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
-libpng is Copyright Glenn Randers-Pehrson
-zlib is Copyright Jean-loup Gailly and Mark Adler
-
 ** ------------------------------------------------------------------------ **/
-#ifndef __TRACKER_TYPES_H__
-#define __TRACKER_TYPES_H__
+#ifndef __SCENE_PARTICLES_H__
+#define __SCENE_PARTICLES_H__
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Chars.h"
+#include "StandardLib/Object.h"
 
 
-//This is basically a hack until the tracker templates go away or are rewritten or something.
-enum ETrackerType
+typedef CArrayTemplate<float32>	CArrayParticleFloat;
+
+
+//Points, as a field of stars is.  mafPositions and mafColours have three floats each for each of them.
+class CSceneParticles : public CObject
 {
-	TT_Unknown,
-	TT_Mesh,
-	TT_Light,
-	TT_Camera,
+CONSTRUCTABLE(CSceneParticles);
+DESTRUCTABLE(CSceneParticles);
+public:
+	CChars				mszName;
+	CArrayParticleFloat	mafPositions;
+	CArrayParticleFloat	mafColours;
+	CArrayParticleFloat	mafRadii;
+	CArrayParticleFloat	mafIntensities;
+
+	void 	Init(void);
+	void 	Free(void) override;
+	void	Class(void) override;
+
+	size	NumParticles(void);
 };
 
 
-#endif // __TRACKER_TYPES_H__
+#endif // __SCENE_PARTICLES_H__
 

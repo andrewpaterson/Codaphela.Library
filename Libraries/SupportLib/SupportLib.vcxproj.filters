@@ -258,6 +258,9 @@
     <ClInclude Include="Scene.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="SceneParticles.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="SceneFileGeneral.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
@@ -266,9 +269,6 @@
     </ClInclude>
     <ClInclude Include="SceneFileWriter.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="TrackerTypes.h">
-      <Filter>Source\Scene\Hack</Filter>
     </ClInclude>
     <ClInclude Include="Image.h">
       <Filter>Source\Image</Filter>
@@ -492,9 +492,6 @@
     <ClInclude Include="Material.h">
       <Filter>Source\Material</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialHelper.h">
-      <Filter>Source\Material</Filter>
-    </ClInclude>
     <ClInclude Include="MaterialImage.h">
       <Filter>Source\Material</Filter>
     </ClInclude>
@@ -716,9 +713,6 @@
     </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="FakeTracker.h">
-      <Filter>Source\Scene</Filter>
     </ClInclude>
     <ClInclude Include="ImageToR3G3B2A.h">
       <Filter>Source\Image\Modifiers\Colour</Filter>
@@ -1049,6 +1043,9 @@
     <ClCompile Include="Scene.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="SceneParticles.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="SceneFileGeneral.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
@@ -1268,9 +1265,6 @@
     <ClCompile Include="Material.cpp">
       <Filter>Source\Material</Filter>
     </ClCompile>
-    <ClCompile Include="MaterialHelper.cpp">
-      <Filter>Source\Material</Filter>
-    </ClCompile>
     <ClCompile Include="MaterialImage.cpp">
       <Filter>Source\Material</Filter>
     </ClCompile>
@@ -1480,9 +1474,6 @@
     </ClCompile>
     <ClCompile Include="Triangle.cpp">
       <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="FakeTracker.cpp">
-      <Filter>Source\Scene</Filter>
     </ClCompile>
     <ClCompile Include="ChannelTypes.cpp">
       <Filter>Source\Channel</Filter>

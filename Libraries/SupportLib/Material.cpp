@@ -18,21 +18,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
 #include "Material.h"
 
 
 //////////////////////////////////////////////////////////////////////////
-//	Material
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CMaterial::Init(void)
 {
 	PreInit();
 
+	mszName.Init();
+	msProperties.Init();
 	msDiffuse.Init();
 	msDiffuseLevel.Init();
 	msSpecular.Init();
@@ -42,27 +40,19 @@ void CMaterial::Init(void)
 	msDetail.Init();
 	msDecal.Init();
 	msReflection.Init();
-	msProperties.Init();
 
 	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CMaterial::Free(void)
 {
-	msDiffuse.Kill();
-	msDiffuseLevel.Kill();
-	msSpecular.Kill();
-	msIllumination.Kill();
-	msOpacity.Kill();
-	msBump.Kill();
-	msDetail.Kill();
-	msDecal.Kill();
-	msReflection.Kill();
+	msProperties.Kill();
+	mszName.Kill();
 }
 
 
@@ -72,66 +62,67 @@ void CMaterial::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMaterial::Class(void)
 {
-	CObject::ClassNotImplemented();
+	U_String(mszName);
+	U_Float32(msProperties.mcDiffuseColour.mfAlpha);
+	U_Float32(msProperties.mcDiffuseColour.mfRed);
+	U_Float32(msProperties.mcDiffuseColour.mfGreen);
+	U_Float32(msProperties.mcDiffuseColour.mfBlue);
+	U_Float32(msProperties.mcAmbientColour.mfAlpha);
+	U_Float32(msProperties.mcAmbientColour.mfRed);
+	U_Float32(msProperties.mcAmbientColour.mfGreen);
+	U_Float32(msProperties.mcAmbientColour.mfBlue);
+	U_Float32(msProperties.mcEmissiveColour.mfAlpha);
+	U_Float32(msProperties.mcEmissiveColour.mfRed);
+	U_Float32(msProperties.mcEmissiveColour.mfGreen);
+	U_Float32(msProperties.mcEmissiveColour.mfBlue);
+	U_Float32(msProperties.mcSpecularColour.mfAlpha);
+	U_Float32(msProperties.mcSpecularColour.mfRed);
+	U_Float32(msProperties.mcSpecularColour.mfGreen);
+	U_Float32(msProperties.mcSpecularColour.mfBlue);
+	U_Float32(msProperties.mfShininessPower);
+	U_Float32(msProperties.mfShininessBase);
+	U_Bool(msProperties.mbLit);
+	U_Enum(msProperties.meOpacity);
+	M_Embedded(msDiffuse);
+	M_Embedded(msDiffuseLevel);
+	M_Embedded(msSpecular);
+	M_Embedded(msIllumination);
+	M_Embedded(msOpacity);
+	M_Embedded(msBump);
+	M_Embedded(msDetail);
+	M_Embedded(msDecal);
+	M_Embedded(msReflection);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-void CMaterial::Copy(CMaterial* pcMaterial)
+CMaterialImage* CMaterial::GetImage(EMaterialImage eImage)
 {
-	//Implement me please.
+	switch (eImage)
+	{
+	case MI_Diffuse:
+		return &msDiffuse;
+	case MI_DiffuseLevel:
+		return &msDiffuseLevel;
+	case MI_Specular:
+		return &msSpecular;
+	case MI_Illumination:
+		return &msIllumination;
+	case MI_Opacity:
+		return &msOpacity;
+	case MI_Bump:
+		return &msBump;
+	case MI_Detail:
+		return &msDetail;
+	case MI_Decal:
+		return &msDecal;
+	case MI_Reflection:
+		return &msReflection;
+	default:
+		return NULL;
+	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMaterial::Load(CObjectReader* pcFile)
-{
-	ReturnOnFalse(msProperties.Load(pcFile));
-	ReturnOnFalse(msDiffuse.Load(pcFile));
-	ReturnOnFalse(msDiffuseLevel.Load(pcFile));
-	ReturnOnFalse(msSpecular.Load(pcFile));
-	ReturnOnFalse(msIllumination.Load(pcFile));
-	ReturnOnFalse(msOpacity.Load(pcFile));
-	ReturnOnFalse(msBump.Load(pcFile));
-	ReturnOnFalse(msDetail.Load(pcFile));
-	ReturnOnFalse(msDecal.Load(pcFile));
-	ReturnOnFalse(msReflection.Load(pcFile));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMaterial::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(msProperties.Save(pcFile));
-	ReturnOnFalse(msDiffuse.Save(pcFile));
-	ReturnOnFalse(msDiffuseLevel.Save(pcFile));
-	ReturnOnFalse(msSpecular.Save(pcFile));
-	ReturnOnFalse(msIllumination.Save(pcFile));
-	ReturnOnFalse(msOpacity.Save(pcFile));
-	ReturnOnFalse(msBump.Save(pcFile));
-	ReturnOnFalse(msDetail.Save(pcFile));
-	ReturnOnFalse(msDecal.Save(pcFile));
-	ReturnOnFalse(msReflection.Save(pcFile));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMaterial::Dump(void)
-{
-}
-
 

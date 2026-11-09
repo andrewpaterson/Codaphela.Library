@@ -18,8 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectWriter.h"
-#include "StandardLib/ObjectReader.h"
 #include "Light.h"
 
 
@@ -31,31 +29,15 @@ void CLight::Init(void)
 {
 	PreInit();
 
+	mszName.Init();
 	meType = LT_Omni;
 	msColour.Init(0, 0, 0, 0);
 	meDecay = LDT_None;
 	mfDecayStart = 0.0f;
+	mfRange = 0.0f;
 	mbCastShadows = false;
 	mfIntensity = 0.0f;
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float32 fDecayStart, bool bCastShadows, float32 fIntensity)
-{
-	PreInit();
-
-	msColour = sColour;
-	meDecay = eDecay;
-	mfDecayStart = fDecayStart;
-	mbCastShadows = bCastShadows;
-	mfIntensity = fIntensity;
-	meType = eType;
+	mpConnection = NULL;
 
 	PostInit();
 }
@@ -67,6 +49,7 @@ void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eD
 //////////////////////////////////////////////////////////////////////////
 void CLight::Free(void)
 {
+	mszName.Kill();
 }
 
 
@@ -76,48 +59,17 @@ void CLight::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CLight::Class(void)
 {
-	CObject::ClassNotImplemented();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CLight::Load(CObjectReader* pcFile)
-{
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meType));
-	ReturnOnFalse(msColour.Load(pcFile));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&meDecay));
-	ReturnOnFalse(pcFile->ReadFloat(&mfDecayStart));
-	ReturnOnFalse(pcFile->ReadBool(&mbCastShadows));
-	ReturnOnFalse(pcFile->ReadFloat(&mfIntensity));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CLight::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(pcFile->WriteSInt(meType));
-	ReturnOnFalse(msColour.Save(pcFile));
-	ReturnOnFalse(pcFile->WriteSInt(meDecay));
-	ReturnOnFalse(pcFile->WriteFloat(mfDecayStart));
-	ReturnOnFalse(pcFile->WriteBool(mbCastShadows));
-	ReturnOnFalse(pcFile->WriteFloat(mfIntensity));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CLight::Copy(CLight* pcLight)
-{
-	//Implement me please.
+	U_String(mszName);
+	U_Enum(meType);
+	U_Float32(msColour.mfAlpha);
+	U_Float32(msColour.mfRed);
+	U_Float32(msColour.mfGreen);
+	U_Float32(msColour.mfBlue);
+	U_Enum(meDecay);
+	U_Float32(mfDecayStart);
+	U_Float32(mfRange);
+	U_Bool(mbCastShadows);
+	U_Float32(mfIntensity);
+	M_Pointer(mpConnection);
 }
 
