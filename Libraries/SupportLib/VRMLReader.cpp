@@ -41,7 +41,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadVRML(Ptr<CMesh> pMesh, char* szFilename)
+bool LoadVRML(Ptr<CMesh> pMesh, const char* szFilename)
 {
 	CVRMLReader	cReader;
 	bool		bResult;
@@ -99,7 +99,7 @@ static bool IsVRMLNameEnd(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CVRMLReader::Init(Ptr<CMesh> pMesh, char* szFilename)
+void CVRMLReader::Init(Ptr<CMesh> pMesh, const char* szFilename)
 {
 	mpcMesh = &pMesh;
 	mszFileName.Init(szFilename);

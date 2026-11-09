@@ -43,8 +43,8 @@ class CMeshEditor;
 class CTextParser;
 
 
-bool LoadOBJ(Ptr<CMesh> pMesh, char* szFilename);
-bool LoadOBJ(Ptr<CMeshEditor> pMesh, char* szFilename);
+bool LoadOBJ(Ptr<CMesh> pMesh, const char* szFilename);
+bool LoadOBJ(Ptr<CMeshEditor> pEditor, const char* szFilename);
 
 
 class CObjReader
@@ -55,8 +55,8 @@ protected:
 	int					miLine;
 
 public:
-	void	Init(Ptr<CMesh> pMesh, char* szFilename);
-	void	Init(Ptr<CMeshEditor> pEditor, char* szFilename);
+	void	Init(Ptr<CMesh> pMesh, const char* szFilename);
+	void	Init(Ptr<CMeshEditor> pEditor, const char* szFilename);
 	void	Kill(void);
 
 	bool	Read(void);

@@ -29,9 +29,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EMeshType GuessMeshType(char *szFilename)
+EMeshType GuessMeshType(const char* szFilename)
 {
-	//char*		szExtension;
 	int			iIndex;
 	CChars		szTest;
 	EMeshType	eType;

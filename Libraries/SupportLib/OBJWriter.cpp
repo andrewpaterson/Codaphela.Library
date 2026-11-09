@@ -287,7 +287,7 @@ static void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, CMeshUVLayer* pcUVLayer
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveOBJ(CMesh* pcMesh, char* szFilename)
+bool SaveOBJ(CMesh* pcMesh, const char* szFilename)
 {
 	CTextFile		cTextFile;
 	CArrayInt		aiOBJNormals;

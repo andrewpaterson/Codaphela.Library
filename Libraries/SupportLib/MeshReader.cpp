@@ -30,14 +30,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ReadMesh(Ptr<CMesh> pMesh, char* szFilename, EMeshType eType)
+bool ReadMesh(Ptr<CMesh> pMesh, const char* szFilename, EMeshType eType)
 {
 	if (eType == MT_Unknown)
 	{
 		eType = GuessMeshType(szFilename);
 	}
 
-	//Oi! Check to make sure none of the below expect an initialised image.
 	switch (eType)
 	{
 	case MT_OBJ:

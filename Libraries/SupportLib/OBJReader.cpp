@@ -42,7 +42,7 @@ static const char* const gaszOBJTypes[] = { "v", "vt", "vn", "f" };
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadOBJ(Ptr<CMesh> pMesh, char* szFilename)
+bool LoadOBJ(Ptr<CMesh> pMesh, const char* szFilename)
 {
 	CObjReader	cReader;
 	bool		bResult;
@@ -59,7 +59,7 @@ bool LoadOBJ(Ptr<CMesh> pMesh, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadOBJ(Ptr<CMeshEditor> pEditor, char* szFilename)
+bool LoadOBJ(Ptr<CMeshEditor> pEditor, const char* szFilename)
 {
 	CObjReader	cReader;
 	bool		bResult;
@@ -128,7 +128,7 @@ static bool ReadOBJFloats(CTextParser* pcTextParser, float32* pafValues, int iNu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMesh> pMesh, char* szFilename)
+void CObjReader::Init(Ptr<CMesh> pMesh, const char* szFilename)
 {
 	mcWrapper.Init(pMesh);
 	mszFileName.Init(szFilename);
@@ -140,7 +140,7 @@ void CObjReader::Init(Ptr<CMesh> pMesh, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMeshEditor> pEditor, char* szFilename)
+void CObjReader::Init(Ptr<CMeshEditor> pEditor, const char* szFilename)
 {
 	mcWrapper.Init(pEditor);
 	mszFileName.Init(szFilename);

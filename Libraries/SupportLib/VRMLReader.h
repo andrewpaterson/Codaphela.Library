@@ -68,7 +68,7 @@ typedef CArrayTemplate<SVRMLTransform>	CArrayVRMLTransform;
 class CMesh;
 
 
-bool LoadVRML(Ptr<CMesh> pMesh, char* szFilename);
+bool LoadVRML(Ptr<CMesh> pMesh, const char* szFilename);
 
 
 //Reads the VRML 2.0 that KiCad exports: Transform, Shape, Appearance, Material, IndexedFaceSet, Coordinate and Normal.
@@ -94,7 +94,7 @@ protected:
 	int						miNextNormal;
 
 public:
-	void 	Init(Ptr<CMesh> pMesh, char* szFilename);
+	void 	Init(Ptr<CMesh> pMesh, const char* szFilename);
 	void 	Kill(void);
 
 	bool 	Read(void);
