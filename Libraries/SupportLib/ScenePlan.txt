@@ -6,6 +6,26 @@ and CScene still rests on CFakeTracker and TrackerTypes.  RasterLib draws, in in
 CRasterMesh: one way, from the description to what is drawn.
 
 
+What the objects are
+--------------------
+A CInstance is one thing in the game, one character say.  It holds pointers to meshes and bone information, and has its own
+connections.  Two characters are two CInstances that share their meshes and bones and are drawn in different places.
+
+A CConnection is something spatial that lights, cameras, meshes or other game information can be attached to.
+
+  Kind        What                                 Reaches its connection by
+  Shared      CMesh, bones                         The instance holds it, and a slot in the instance's connections
+  Not shared  CLight, CCamera, small game objects  Its own Ptr<CConnection>
+
+Shared data can't point at a connection, as each instance has its own.  It refers to one by slot, so the order of an
+instance's connections matters and is saved with it.
+
+Lights and cameras are too small to be worth sharing and aren't instanced.  Two lanterns are two CLights.  A light on its own
+has its own connection, and one carried by a character has a connection whose parent is the character's hand.
+
+CScene holds three lists: instances, lights and cameras.  Everything else is reached through what uses it.
+
+
 The rule
 --------
 A step builds RasterLib's types from the scene.  RasterLib never includes the scene's headers.
@@ -21,7 +41,7 @@ What goes where
 ---------------
   Scene                  Drawn as                     Today
   CMesh                  CRasterMesh                  Done: CRasterMesh::Build
-  CInstance+CConnection  SRasterInstance              BoardScene writes axes and offsets by hand
+  CInstance's meshes     SRasterInstance, per mesh    BoardScene writes axes and offsets by hand
   CCamera+CConnection    CRasterCamera                Viewers set CRasterCamera up directly
   CLight                 CRasteriser's light values   Fixed: msLight and RASTER_AMBIENT
   CConnectionAnimation   (changes CConnection)        Nothing.  BoardScene sets a yaw
@@ -31,9 +51,11 @@ Steps
 -----
 Each is done when something needs it, with tests.
 
-1. Replace CFakeTracker in CScene and CInstance, so that an instance refers to its mesh and connections.
-2. CConnection updates: a world matrix from a local one and a parent's.
-3. The step from a scene to SRasterInstances: axes and offset from a connection's world matrix, in one scene-wide scale.
+1. Remove CFakeTracker and TrackerTypes.  CScene becomes a CObject with its three lists.  CInstance holds its meshes, a
+   connection slot for each, and its connections.  CLight and CCamera each get a Ptr<CConnection>.
+2. CConnection gets a Ptr<CConnection> parent and updates: a world matrix from a local one and the parent's.
+3. The step from a scene to SRasterInstances, one for each rigid mesh of each instance: axes and offset from the world matrix
+   of the mesh's connection, in one scene-wide scale.
    Decide what happens to a mirrored matrix (mbParity), as SRasterInstance must turn and not mirror, and to one that scales.
 4. The camera: CCamera and its connection set up a CRasterCamera.  ECameraType decides the projection, so ERasterProjection
    isn't set separately, and FOV becomes focal length.  Drag, Pan, Zoom and FitOrbit stay on CRasterCamera as viewer controls.
@@ -41,6 +63,21 @@ Each is done when something needs it, with tests.
 5. Lights: CRasteriser takes light values, in place of msLight and RASTER_AMBIENT, with what they are now as the default.
 6. Move BoardScene onto a CScene: its models, the mainboard and boards standing in their sockets become instances and
    connections, and its yaw a connection or an animation.  This is what proves the steps above.
-7. CConnectionAnimation: keyframes change connections, and the step in 3 runs again.
+7. CConnectionAnimation: keyframes change connections, and the step in 3 runs again.  miConnectionIndex is a slot in the
+   instance's connections, so that characters can share an animation.
 
-Not planned: skinning.  CInstance's maiConnections allows for it, but RasterLib has none, so it is new work of its own.
+Not planned: skinning.  CInstance's connections allow for it, as a skinned mesh's weights can use their slots, but RasterLib
+has none, so it is new work of its own.
+
+
+Open
+----
+Who owns the CRasterMeshes.  SRasterInstance's pcMesh is a raw pointer, and RasterLib can't see the scene, so something must
+remember which CMesh was built into which CRasterMesh, so that a shared mesh is built once.
+
+Where bone hierarchy lives.  CMeshSkin has the weights and inverse matrices, but nothing holds a skeleton that instances could
+share.
+
+Creating and removing an attached light.  Copying an instance doesn't bring its lantern along, so whatever creates the
+character must also create the light and add it to the scene.  When the character is removed, something must remove the light,
+or it stays lit where the hand was: its connection's parent keeps the hand's connection alive, but nothing updates it.
