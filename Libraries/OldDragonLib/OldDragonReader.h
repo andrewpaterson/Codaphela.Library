@@ -36,12 +36,13 @@ bool	ReadOldDragonMax(COldDragonFile* pcFile, COldDragonScene* pcScene);
 //optional, in any order.  The Viewer's defaults for missing columns aren't known: Z is 0 and the others are 1 here.
 bool	ReadOldDragonParticles(const char* szFilename, COldDragonScene* pcScene);
 
-//Adds the Editable Polys in a 3ds Max .max file to pcScene as meshes, with triangles, UVs, smoothing and named materials, turned
-//to y up as the exporter did.  Nothing places them, and Editable Meshes and anything else are counted in muiSkippedChunks.
+//Adds the Editable Polys in a 3ds Max .max file to pcScene as meshes, with triangles, UVs, smoothing and materials with their
+//colours, turned to y up as the exporter did.  Nothing places them, and Editable Meshes and anything else are counted in
+//muiSkippedChunks.  Vertex colours aren't read: only Arilou Headlights has any and they're all white.
 bool	ReadOldDragonMaxScene(const char* szFilename, COldDragonScene* pcScene);
 
 //Gives meshes with no faces, as all of Melee.DRG's are, the faces of the mesh in a .max file with the same positions in the same
-//order.  Materials are matched by name.  Not filling a mesh isn't a failure, so check *puiMeshesFilled.
+//order.  Materials are matched by name and colour.  Not filling a mesh isn't a failure, so check *puiMeshesFilled.
 bool	AddOldDragonMaxFaces(const char* szMaxFilename, COldDragonScene* pcScene, size* puiMeshesFilled);
 
 

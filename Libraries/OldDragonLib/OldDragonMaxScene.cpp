@@ -70,7 +70,21 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_MATERIAL_DEPTH			8
 #define MAX_UV_CHANNEL				1
 
+#define MAX_CHUNK_PARAMETER			0x000e
+#define MAX_PARAMETER_HEADER		15
+#define MAX_CLASS_BLINN_A			0x00000038
+#define MAX_CLASS_SHADER_SUPER		0x000010b0
+#define MAX_BLINN_AMBIENT			0
+#define MAX_BLINN_DIFFUSE			1
+#define MAX_BLINN_SPECULAR			2
+#define MAX_BLINN_SELF_ILLUMINATION	7
+#define MAX_BLINN_SHININESS_POWER	9
+#define MAX_BLINN_SHININESS_BASE	10
+#define MAX_STANDARD_EXTENDED_BLOCK	4
+#define MAX_EXTENDED_OPACITY		1
+
 #define MAX_SAME_POSITION			0.001f
+#define MAX_SAME_COLOUR				0.002f
 
 
 struct SMaxChunk
@@ -371,6 +385,164 @@ static void LinkMaxNodes(SMaxReader* psReader)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A parameter block is a list of entries: id(2), type(2), some bytes that
+// aren't known, then from byte 15 the values, which aren't aligned.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool FindMaxParameter(SMaxObject* psBlock, uint32 uiParameter, float32* afValues, size uiNumValues)
+{
+	const uint8*	puiPos;
+	SMaxChunk		sEntry;
+	bool			bBad;
+	uint16			uiID;
+
+	if (!psBlock->bContainer)
+	{
+		return false;
+	}
+	puiPos = psBlock->puiData;
+	bBad = false;
+	while (NextMaxChunk(&puiPos, psBlock->puiData + psBlock->uiSize, &sEntry, &bBad))
+	{
+		if ((sEntry.uiID != MAX_CHUNK_PARAMETER) || sEntry.bContainer || (sEntry.uiSize < MAX_PARAMETER_HEADER + uiNumValues * sizeof(float32)))
+		{
+			continue;
+		}
+		memcpy(&uiID, sEntry.puiData, sizeof(uint16));
+		if (uiID == uiParameter)
+		{
+			memcpy(afValues, &sEntry.puiData[MAX_PARAMETER_HEADER], uiNumValues * sizeof(float32));
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void ReadMaxColourParameter(SMaxObject* psBlock, uint32 uiParameter, SOldDragonColour* psColour)
+{
+	float32	afColour[3];
+
+	if (FindMaxParameter(psBlock, uiParameter, afColour, 3))
+	{
+		psColour->r = afColour[0];
+		psColour->g = afColour[1];
+		psColour->b = afColour[2];
+	}
+	psColour->a = 1.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 MaxReference(SMaxChunk* psReferences, size uiIndex)
+{
+	int32	iReference;
+
+	if (uiIndex >= psReferences->uiSize / sizeof(int32))
+	{
+		return -1;
+	}
+	memcpy(&iReference, &psReferences->puiData[uiIndex * sizeof(int32)], sizeof(int32));
+	return iReference;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The colours belong to a Standard material's shader.  Every material
+// in these files uses Blinn, so another shader's are left black.  Opacity
+// is in the Standard's own extended parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ReadMaxMaterialColours(SMaxReader* psReader, SMaxObject* psObject, SOldDragonMaterial* psMaterial)
+{
+	SMaxChunk		sReferences;
+	SMaxChunk		sShaderReferences;
+	size			i;
+	size			uiNum;
+	int32			iReference;
+	SMaxClass*		psClass;
+	SMaxObject*		psShader;
+	SMaxObject*		psBlock;
+	float32			fValue;
+	int32			iBlock;
+
+	psMaterial->sDiffuse.a = 1.0f;
+	psMaterial->sAmbient.a = 1.0f;
+	psMaterial->sEmissive.a = 1.0f;
+	psMaterial->sSpecular.a = 1.0f;
+
+	if (!FindMaxChild(psObject->puiData, psObject->uiSize, MAX_CHUNK_REFERENCES, &sReferences))
+	{
+		return;
+	}
+
+	uiNum = sReferences.uiSize / sizeof(int32);
+	for (i = 0; i < uiNum; i++)
+	{
+		iReference = MaxReference(&sReferences, i);
+		if ((iReference < 0) || ((size)iReference >= psReader->asObjects.NumElements()))
+		{
+			continue;
+		}
+		psClass = GetMaxClass(psReader, (size)iReference);
+		if ((psClass == NULL) || (psClass->uiA != MAX_CLASS_BLINN_A) || (psClass->uiB != 0) || (psClass->uiSuper != MAX_CLASS_SHADER_SUPER))
+		{
+			continue;
+		}
+
+		psShader = psReader->asObjects.Get((size)iReference);
+		if (!psShader->bContainer || !FindMaxChild(psShader->puiData, psShader->uiSize, MAX_CHUNK_REFERENCES, &sShaderReferences))
+		{
+			break;
+		}
+		iBlock = MaxReference(&sShaderReferences, 0);
+		if ((iBlock < 0) || ((size)iBlock >= psReader->asObjects.NumElements()))
+		{
+			break;
+		}
+
+		psBlock = psReader->asObjects.Get((size)iBlock);
+		ReadMaxColourParameter(psBlock, MAX_BLINN_AMBIENT, &psMaterial->sAmbient);
+		ReadMaxColourParameter(psBlock, MAX_BLINN_DIFFUSE, &psMaterial->sDiffuse);
+		ReadMaxColourParameter(psBlock, MAX_BLINN_SPECULAR, &psMaterial->sSpecular);
+		if (FindMaxParameter(psBlock, MAX_BLINN_SELF_ILLUMINATION, &fValue, 1))
+		{
+			psMaterial->sEmissive.r = fValue;
+			psMaterial->sEmissive.g = fValue;
+			psMaterial->sEmissive.b = fValue;
+		}
+		if (FindMaxParameter(psBlock, MAX_BLINN_SHININESS_POWER, &fValue, 1))
+		{
+			psMaterial->fShininessPower = fValue;
+		}
+		if (FindMaxParameter(psBlock, MAX_BLINN_SHININESS_BASE, &fValue, 1))
+		{
+			psMaterial->fShininessBase = fValue;
+		}
+		break;
+	}
+
+	iBlock = MaxReference(&sReferences, MAX_STANDARD_EXTENDED_BLOCK);
+	if ((iBlock >= 0) && ((size)iBlock < psReader->asObjects.NumElements()))
+	{
+		if (FindMaxParameter(psReader->asObjects.Get((size)iBlock), MAX_EXTENDED_OPACITY, &fValue, 1))
+		{
+			psMaterial->sDiffuse.a = fValue;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The scene material for a face.  A Standard material is one.  A
 // Multi/Sub-Object picks one by the face's material number, wrapping as
 // Max does.  Anything else, or an empty slot, is no material.
@@ -413,6 +585,7 @@ static int32 ResolveMaxMaterial(SMaxReader* psReader, int32 iObject, uint32 uiFa
 			{
 				CopyMaxName(psMaterial->szName, sizeof(psMaterial->szName), sName.puiData, sName.uiSize);
 			}
+			ReadMaxMaterialColours(psReader, psObject, psMaterial);
 		}
 		return *piMade;
 	}
@@ -951,18 +1124,42 @@ static bool SameOldDragonPositions(COldDragonMesh* pcA, COldDragonMesh* pcB)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 FindOldDragonMaterial(COldDragonScene* pcScene, const char* szName)
+static bool SameOldDragonColour(SOldDragonColour* psA, SOldDragonColour* psB)
 {
-	size	i;
+	return (fabsf(psA->r - psB->r) <= MAX_SAME_COLOUR) && (fabsf(psA->g - psB->g) <= MAX_SAME_COLOUR) && (fabsf(psA->b - psB->b) <= MAX_SAME_COLOUR);
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Finds the scene's material for a Max material.  Names aren't unique:
+// Melee.DRG has two Arilou Dark Blues that aren't the same colour.  So
+// the one with the same colour is preferred over the first with the name.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 FindOldDragonMaterial(COldDragonScene* pcScene, SOldDragonMaterial* psSource)
+{
+	size				i;
+	int32				iFirst;
+	SOldDragonMaterial*	psMaterial;
+
+	iFirst = OLD_DRAGON_NO_INDEX;
 	for (i = 0; i < pcScene->macMaterials.NumElements(); i++)
 	{
-		if (strcmp(pcScene->macMaterials.Get(i)->szName, szName) == 0)
+		psMaterial = pcScene->macMaterials.Get(i);
+		if (strcmp(psMaterial->szName, psSource->szName) == 0)
 		{
-			return (int32)i;
+			if (SameOldDragonColour(&psMaterial->sDiffuse, &psSource->sDiffuse))
+			{
+				return (int32)i;
+			}
+			if (iFirst == OLD_DRAGON_NO_INDEX)
+			{
+				iFirst = (int32)i;
+			}
 		}
 	}
-	return OLD_DRAGON_NO_INDEX;
+	return iFirst;
 }
 
 
@@ -984,7 +1181,7 @@ static void CopyMaxFaces(COldDragonMesh* pcSource, COldDragonScene* pcSourceScen
 		sFace = *pcSource->macFaces.Get(i);
 		if (sFace.iMaterial != OLD_DRAGON_NO_INDEX)
 		{
-			sFace.iMaterial = FindOldDragonMaterial(pcDestScene, pcSourceScene->macMaterials.Get((size)sFace.iMaterial)->szName);
+			sFace.iMaterial = FindOldDragonMaterial(pcDestScene, pcSourceScene->macMaterials.Get((size)sFace.iMaterial));
 		}
 		pcDest->macFaces.Add(&sFace);
 	}
