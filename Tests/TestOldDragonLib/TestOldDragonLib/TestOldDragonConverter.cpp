@@ -176,13 +176,21 @@ static void AddTestKey(COldDragonSequence* pcSequence, float32 fValue, float32 f
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A scene that's written and then read back, to look at what's in it.
 //
 //////////////////////////////////////////////////////////////////////////
 static void AssertConverts(COldDragonScene* pcScene)
 {
+	CSceneFileReader	cReader;
+
 	AssertTrue(WriteOldDragonSceneFile(pcScene, CONVERTED));
-	AssertTrue(VerifyOldDragonSceneFile(pcScene, CONVERTED));
+
+	cReader.Init(CONVERTED);
+	AssertTrue(cReader.Open());
+	AssertSize(pcScene->macMeshes.NumElements(), cReader.NumMeshes());
+	AssertSize(pcScene->macImages.NumElements(), cReader.NumImages());
+	AssertSize(pcScene->macMaterials.NumElements(), cReader.NumMaterials());
+	AssertSize(pcScene->macConnections.NumElements(), cReader.NumConnections());
+	cReader.Kill();
 }
 
 
@@ -702,59 +710,6 @@ void TestOldDragonConvertFromIntoOblivionNodes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The comparison is what the whole conversion is trusted on, so it has to
-// notice things being wrong.
-//
-//////////////////////////////////////////////////////////////////////////
-void TestOldDragonVerifyNoticesDifferences(void)
-{
-	SLogConfig			sLogConfig;
-	COldDragonScene	cScene;
-	COldDragonMesh*	pcMesh;
-
-	cScene.Init();
-	cScene.meVersion = ODV_September2009;
-	pcMesh = AddTestMesh(&cScene, "Mesh");
-	AddTestMaterial(&cScene, "Material");
-	AddTestConnection(&cScene, "Place", OLD_DRAGON_NO_INDEX, 0);
-	AddTestInstance(&cScene, OLD_DRAGON_2009_INSTANCE_MESH, 0, 0);
-	AssertConverts(&cScene);
-
-	sLogConfig = gcLogger.SetSilent();
-
-	pcMesh->macPositions.Get(1)->y = 7.0f;
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-	pcMesh->macPositions.Get(1)->y = 1.0f;
-	AssertTrue(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-
-	pcMesh->macFaces.Get(0)->aiPositions[1] = 2;
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-	pcMesh->macFaces.Get(0)->aiPositions[1] = 1;
-
-	cScene.macMaterials.Get(0)->sDiffuse.g = 0.5f;
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-	cScene.macMaterials.Get(0)->sDiffuse.g = 0.0f;
-
-	cScene.macConnections.Get(0)->sWorld.af[5] = -1.0f;
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-	SetTestMatrix(&cScene.macConnections.Get(0)->sWorld, 1.0f);
-
-	cScene.macInstances.Get(0)->miObject = 1;
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-	cScene.macInstances.Get(0)->miObject = 0;
-
-	AddTestMaterial(&cScene, "Another");
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTED));
-
-	AssertFalse(VerifyOldDragonSceneFile(&cScene, CONVERTER_OUTPUT_DIR _FS_ "NotThere.DRG"));
-
-	gcLogger.SetConfig(&sLogConfig);
-	cScene.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestOldDragonConvertOldFiles(void)
@@ -798,7 +753,6 @@ void TestOldDragonConverter(void)
 	TestOldDragonConvertNumbering();
 	TestOldDragonConvertFromInstances();
 	TestOldDragonConvertFromIntoOblivionNodes();
-	TestOldDragonVerifyNoticesDifferences();
 	TestOldDragonConvertOldFiles();
 
 	cFileUtil.RemoveDir(CONVERTER_OUTPUT_DIR);

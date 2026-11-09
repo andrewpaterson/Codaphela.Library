@@ -157,7 +157,7 @@ B. The reader and writer, holding what Goober and Melee contain: meshes, polygon
    SceneFileGeneral.h.  Faces are polygons, a triangle being a polygon of 3.  A failure sticks, and Close then fails and leaves no
    file.  Input/Scene/Sample.DRG in TestSupportLib uses all of it and fails its test if the bytes change.
 C. Convert the old files, see below.  Done: OldDragonConverter in OldDragonLib, run by Tools\ConvertOldDragon, whose ConvertAll.py
-   lists what came from where.  Each file is read back and compared as it's converted.
+   lists what came from where.
 D. Render the converted files, including Goober's walk, as value checks can't catch a wrong rule.  What's checked so far is below.
 E. Fill a CMesh and then a CScene from the reader.  Write them too.
 F. A Max exporter writing through the writer, if one is wanted.  It links SupportLib, StandardLib and BaseLib for that.
@@ -189,7 +189,7 @@ What the converter found the old files really do, which is in OldDragonConverter
   Every sequence's last key is the one before it again, with no time.
   Into Oblivion's link nodes say what they place, and one link can place many things.  Its instances don't say.
 
-How the converted files were checked, apart from the converter comparing them with what it meant to write:
+How the converted files were checked, once, as the converter only runs once:
   A decoder with no C++ in it found all 18 follow the format's rules, with Goober's 6134 triangles and Melee's 132,356.
   Goober's bones are all bones, each track has its own connection, its first key is its connection's world matrix, and its skin holds
   together at every key tried (edges at 0.996 to 1.033 of their rest length).

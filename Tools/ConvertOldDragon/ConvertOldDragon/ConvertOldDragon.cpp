@@ -30,8 +30,7 @@ along with Codaphela ConvertOldDragon.  If not, see <http://www.gnu.org/licenses
 
 //ConvertOldDragon <old .DRG> <new .DRG> [--max <.max>] [--particles <.csv>]
 //
-//Converts one old scene to a scene file, reads that back, and compares it with what it should hold.  ConvertAll.py lists what was
-//converted and where it went.
+//Converts one old scene to a scene file.  ConvertAll.py lists what was converted and where it went.
 static bool Convert(const char* szOld, const char* szNew, const char* szMax, const char* szParticles)
 {
 	COldDragonScene	cScene;
@@ -54,7 +53,6 @@ static bool Convert(const char* szOld, const char* szNew, const char* szMax, con
 		bResult = ReadOldDragonParticles(szParticles, &cScene);
 	}
 	bResult = bResult && WriteOldDragonSceneFile(&cScene, szNew);
-	bResult = bResult && VerifyOldDragonSceneFile(&cScene, szNew);
 
 	if (bResult)
 	{

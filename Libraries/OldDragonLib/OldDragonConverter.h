@@ -41,9 +41,6 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 //scene's list, where the old files numbered them in a way that in Goober isn't that place.
 bool	WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename);
 
-//Reads a scene file back and compares everything in it with what WriteOldDragonSceneFile should have written for pcScene.
-bool	VerifyOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename);
-
 
 #endif // __OLD_DRAGON_CONVERTER_H__
 
