@@ -256,6 +256,7 @@ void CRasterMesh::BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale)
 				sOffset.Init(psPosition->x - psCentre->x, psPosition->y - psCentre->y, psPosition->z - psCentre->z);
 
 				psVertex = masVertices.Add();
+				memset(psVertex, 0, sizeof(SRasterVertex));  //Its padding is saved with it, so Save writes the same bytes each time.
 				psVertex->sPosition.Init(FloatToIntScaled(sOffset.x, iScale), FloatToIntScaled(sOffset.y, iScale), FloatToIntScaled(sOffset.z, iScale));
 				psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 				if (iNormal >= 0)

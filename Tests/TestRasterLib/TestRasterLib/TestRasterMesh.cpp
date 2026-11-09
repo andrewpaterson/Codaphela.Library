@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/NumberControl.h"
@@ -238,6 +239,51 @@ void TestRasterMeshRemoveDegenerate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A vertex's padding after its normal is saved with it, so it's zero
+// whatever was in the memory before.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshPadding(void)
+{
+	CMesh			cMesh;
+	CRasterMesh		cRaster;
+	SRasterVertex*	psVertex;
+	uint8*			puiPad;
+	size			uiPad;
+	size			i;
+	size			j;
+
+	cMesh.Init();
+	cMesh.AddCorner(0.0f, 0.0f, 0.0f);
+	cMesh.AddCorner(1.0f, 0.0f, 0.0f);
+	cMesh.AddCorner(0.0f, 1.0f, 0.0f);
+	cMesh.AddFace(0, 1, 2);
+
+	cRaster.Init();
+	for (i = 0; i < 3; i++)
+	{
+		psVertex = cRaster.masVertices.Add();
+		memset(psVertex, 0xFF, sizeof(SRasterVertex));
+	}
+	cRaster.Build(&cMesh);
+	AssertSize(3, cRaster.masVertices.NumElements());
+
+	uiPad = sizeof(SRasterVertex) - (sizeof(SInt32Vec3) + sizeof(SRasterUnitVec3));
+	for (i = 0; i < cRaster.masVertices.NumElements(); i++)
+	{
+		puiPad = (uint8*)(&cRaster.masVertices.Get(i)->sNormal + 1);
+		for (j = 0; j < uiPad; j++)
+		{
+			AssertInt(0, puiPad[j]);
+		}
+	}
+
+	cRaster.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What's saved loads the same, but not as the mesh of another source, nor
 // from no file.
 //
@@ -294,6 +340,7 @@ void TestRasterMesh(void)
 	TestRasterMeshEmpty();
 	TestRasterMeshBuildScaled();
 	TestRasterMeshRemoveDegenerate();
+	TestRasterMeshPadding();
 	TestRasterMeshFile();
 
 	ObjectsKill(false);
