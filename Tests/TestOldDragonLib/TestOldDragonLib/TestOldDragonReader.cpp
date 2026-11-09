@@ -360,8 +360,8 @@ static void MultiplyOldDragonMatrices(SOldDragonMatrix* psDest, SOldDragonMatrix
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Finds the sequence for a connection, as a sequence's miConnection and
-// an instance's maiConnections both index the scene's connections.
+// Finds a sequence by its number, which is what an instance's maiConnections
+// hold.  Those aren't all places in the scene's connections.
 //
 //////////////////////////////////////////////////////////////////////////
 static COldDragonSequence* FindOldDragonSequence(COldDragonScene* pcScene, int32 iConnection)

@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestOldDragonLib", "TestOld
 		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4} = {6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SceneFileLib", "..\..\Libraries\SceneFileLib\SceneFileLib.vcxproj", "{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -53,6 +55,14 @@ Global
 		{A94D7E31-52C8-4B6F-8E17-3F60C2D9B7A5}.Release|Win32.Build.0 = Release|Win32
 		{A94D7E31-52C8-4B6F-8E17-3F60C2D9B7A5}.Release|x64.ActiveCfg = Release|x64
 		{A94D7E31-52C8-4B6F-8E17-3F60C2D9B7A5}.Release|x64.Build.0 = Release|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|Win32.Build.0 = Debug|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|x64.ActiveCfg = Debug|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|x64.Build.0 = Debug|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|Win32.ActiveCfg = Release|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|Win32.Build.0 = Release|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|x64.ActiveCfg = Release|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

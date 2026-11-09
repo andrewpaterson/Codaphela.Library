@@ -1,0 +1,63 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31402.337
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BaseLib", "..\..\Libraries\BaseLib\BaseLib.vcxproj", "{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OldDragonLib", "..\..\Libraries\OldDragonLib\OldDragonLib.vcxproj", "{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConvertOldDragon", "ConvertOldDragon\ConvertOldDragon.vcxproj", "{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4} = {6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SceneFileLib", "..\..\Libraries\SceneFileLib\SceneFileLib.vcxproj", "{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Debug|Win32.Build.0 = Debug|Win32
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Debug|x64.ActiveCfg = Debug|x64
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Debug|x64.Build.0 = Debug|x64
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|Win32.ActiveCfg = Release|Win32
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|Win32.Build.0 = Release|Win32
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|x64.ActiveCfg = Release|x64
+		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|x64.Build.0 = Release|x64
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Debug|Win32.Build.0 = Debug|Win32
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Debug|x64.ActiveCfg = Debug|x64
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Debug|x64.Build.0 = Debug|x64
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Release|Win32.ActiveCfg = Release|Win32
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Release|Win32.Build.0 = Release|Win32
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Release|x64.ActiveCfg = Release|x64
+		{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}.Release|x64.Build.0 = Release|x64
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Debug|Win32.Build.0 = Debug|Win32
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Debug|x64.ActiveCfg = Debug|x64
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Debug|x64.Build.0 = Debug|x64
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Release|Win32.ActiveCfg = Release|Win32
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Release|Win32.Build.0 = Release|Win32
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Release|x64.ActiveCfg = Release|x64
+		{3E7A91C4-6D28-4F05-8B1A-C49E02D7F631}.Release|x64.Build.0 = Release|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|Win32.Build.0 = Debug|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|x64.ActiveCfg = Debug|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Debug|x64.Build.0 = Debug|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|Win32.ActiveCfg = Release|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|Win32.Build.0 = Release|Win32
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|x64.ActiveCfg = Release|x64
+		{5D3E8A17-2C4F-4B91-A6E0-71F9C3B2D864}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8f2c6d10-41ab-47e3-9a52-6e07b1c3d9f4}
+	EndGlobalSection
+EndGlobal

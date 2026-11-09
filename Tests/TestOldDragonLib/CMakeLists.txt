@@ -36,6 +36,7 @@ set(COMMON_DIR "${CODAPHELA_ROOT}/commonlibraries/Libraries")
 set(BASELIB_DIR "${COMMON_DIR}/BaseLib")
 set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(OLDDRAGONLIB_DIR "${COMMON_DIR}/OldDragonLib")
+set(SCENEFILELIB_DIR "${COMMON_DIR}/SceneFileLib")
 set(TESTOLDDRAGONLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/TestOldDragonLib")
 
 # Reads <ClCompile Include="..."/> entries from a .vcxproj and resolves them
@@ -84,6 +85,8 @@ vcxproj_sources(BASELIB_SOURCES "${BASELIB_DIR}/BaseLib.vcxproj")
 vcxproj_sources(TESTLIB_SOURCES "${TESTLIB_DIR}/TestLib.vcxproj")
 
 vcxproj_sources(OLDDRAGONLIB_SOURCES "${OLDDRAGONLIB_DIR}/OldDragonLib.vcxproj")
+
+vcxproj_sources(SCENEFILELIB_SOURCES "${SCENEFILELIB_DIR}/SceneFileLib.vcxproj")
 
 vcxproj_sources(TESTOLDDRAGONLIB_SOURCES "${TESTOLDDRAGONLIB_DIR}/TestOldDragonLib.vcxproj")
 
@@ -163,11 +166,14 @@ target_link_libraries(BaseLib PUBLIC Threads::Threads)
 add_library(TestLib STATIC ${TESTLIB_SOURCES})
 target_link_libraries(TestLib PUBLIC BaseLib)
 
+add_library(SceneFileLib STATIC ${SCENEFILELIB_SOURCES})
+target_link_libraries(SceneFileLib PUBLIC BaseLib)
+
 add_library(OldDragonLib STATIC ${OLDDRAGONLIB_SOURCES})
-target_link_libraries(OldDragonLib PUBLIC BaseLib)
+target_link_libraries(OldDragonLib PUBLIC SceneFileLib BaseLib)
 
 add_executable(TestOldDragonLib ${TESTOLDDRAGONLIB_SOURCES})
-target_link_libraries(TestOldDragonLib PRIVATE TestLib OldDragonLib BaseLib)
+target_link_libraries(TestOldDragonLib PRIVATE TestLib OldDragonLib SceneFileLib BaseLib)
 
 # The tests read their input (Input/ ...) relative to the project directory,
 # as Visual Studio does.

@@ -9,6 +9,7 @@
 
 
 void TestOldDragonReader(void);
+void TestOldDragonConverter(void);
 
 
 int __cdecl main(void)
@@ -23,6 +24,7 @@ int __cdecl main(void)
 	MemoryInit();
 
 	TestOldDragonReader();
+	TestOldDragonConverter();
 
 	MemoryKill();
 	TypeConverterKill();

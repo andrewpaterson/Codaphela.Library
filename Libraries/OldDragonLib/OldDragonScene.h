@@ -89,7 +89,7 @@ struct SOldDragonSkinVert
 
 
 //To skin a position, with vectors on the left of row major matrices, add up for each of its weights:
-//	fWeight * (position * macInverseSkinMatrices[iMatrix] * world matrix of the instance's maiConnections[iMatrix])
+//	fWeight * (position * macInverseSkinMatrices[iMatrix] * world matrix of the sequence numbered the instance's maiConnections[iMatrix])
 class COldDragonMesh
 {
 public:
@@ -108,7 +108,8 @@ public:
 };
 
 
-//mpuiPixels is in the order the file has them and is NULL if they couldn't be found.
+//mpuiPixels is in the order the file has them, with the top row first, and is NULL if they couldn't be found.  Into Oblivion and
+//the 2009 files have BGR and BGRA.  The Max exporter's have RGB and RGBA.
 class COldDragonImage
 {
 public:
@@ -209,6 +210,9 @@ struct SOldDragonConnection
 };
 
 
+//miConnection is the same number an instance's maiConnections hold, as the file wrote it: OLD_DRAGON_NO_INDEX for a node it didn't
+//count.  It's only a place in the scene's macConnections if the file counted all of them, which Goober doesn't.  mszName is the
+//name of the connection this moves in every file.
 class COldDragonSequence
 {
 public:
@@ -223,7 +227,8 @@ public:
 
 
 //Ties an object (a mesh, light or camera) to the connections that place it.  For a skinned mesh those are its bones, in the
-//order its weights index them.  Into Oblivion's links become instances with no object, and their nodes become connections.
+//order its weights index them, with numbers that are explained at COldDragonSequence.  Into Oblivion's links become instances with
+//no object, and their nodes become connections.
 //miType is whatever the version wrote: OLD_DRAGON_2009_INSTANCE_ for the 2009 files, 1 for a mesh in the Max files.
 class COldDragonInstance
 {

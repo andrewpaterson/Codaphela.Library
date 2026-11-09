@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="OldDragon2009Reader.cpp" />
+    <ClCompile Include="OldDragonConverter.cpp" />
     <ClCompile Include="OldDragonCursor.cpp" />
     <ClCompile Include="OldDragonFile.cpp" />
     <ClCompile Include="OldDragonIOXReader.cpp" />
@@ -32,6 +33,7 @@
     <ClCompile Include="OldDragonScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OldDragonConverter.h" />
     <ClInclude Include="OldDragonCursor.h" />
     <ClInclude Include="OldDragonFile.h" />
     <ClInclude Include="OldDragonImageReader.h" />
