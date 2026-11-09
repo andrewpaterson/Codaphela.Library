@@ -36,6 +36,10 @@ bool	ReadOldDragonMax(COldDragonFile* pcFile, COldDragonScene* pcScene);
 //optional, in any order.  The Viewer's defaults for missing columns aren't known: Z is 0 and the others are 1 here.
 bool	ReadOldDragonParticles(const char* szFilename, COldDragonScene* pcScene);
 
+//Adds the Editable Polys in a 3ds Max .max file to pcScene as meshes, with triangles, UVs, smoothing and named materials, turned
+//to y up as the exporter did.  Nothing places them, and Editable Meshes and anything else are counted in muiSkippedChunks.
+bool	ReadOldDragonMaxScene(const char* szFilename, COldDragonScene* pcScene);
+
 
 #endif // __OLD_DRAGON_READER_H__
 
