@@ -179,25 +179,25 @@ void TestPlane(void)
 	AssertFace(cMesh.GetFace(6), 4, 5, 7);
 	AssertFace(cMesh.GetFace(7), 5, 8, 7);
 
-	pcPolygon = cMeshEditor.mcPolygons.mcPolygons.Get(0);
+	pcPolygon = cMeshEditor.mpMesh->mcPolygons.mcPolygons.Get(0);
 	AssertInt(0, pcPolygon->miName);
 	AssertSize(2, pcPolygon->maiFaces.NumElements());
 	AssertInt(0, pcPolygon->maiFaces.GetValue(0));
 	AssertInt(1, pcPolygon->maiFaces.GetValue(1));
 
-	pcPolygon = cMeshEditor.mcPolygons.mcPolygons.Get(1);
+	pcPolygon = cMeshEditor.mpMesh->mcPolygons.mcPolygons.Get(1);
 	AssertInt(0, pcPolygon->miName);
 	AssertSize(2, pcPolygon->maiFaces.NumElements());
 	AssertInt(2, pcPolygon->maiFaces.GetValue(0));
 	AssertInt(3, pcPolygon->maiFaces.GetValue(1));
 
-	pcPolygon = cMeshEditor.mcPolygons.mcPolygons.Get(2);
+	pcPolygon = cMeshEditor.mpMesh->mcPolygons.mcPolygons.Get(2);
 	AssertInt(0, pcPolygon->miName);
 	AssertSize(2, pcPolygon->maiFaces.NumElements());
 	AssertInt(4, pcPolygon->maiFaces.GetValue(0));
 	AssertInt(5, pcPolygon->maiFaces.GetValue(1));
 
-	pcPolygon = cMeshEditor.mcPolygons.mcPolygons.Get(3);
+	pcPolygon = cMeshEditor.mpMesh->mcPolygons.mcPolygons.Get(3);
 	AssertInt(0, pcPolygon->miName);
 	AssertSize(2, pcPolygon->maiFaces.NumElements());
 	AssertInt(6, pcPolygon->maiFaces.GetValue(0));
@@ -252,7 +252,7 @@ void TestBox(void)
 	AssertInt(150, iNumCorners);
 	AssertInt(296, iNumFaces);
 	AssertInt(150, iNumPositions);
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
@@ -267,7 +267,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box1x2x2.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -281,7 +281,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box2x2x2.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -295,7 +295,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box2x1x2.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -309,7 +309,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box2x2x1.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -323,7 +323,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box1x1x2.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -337,7 +337,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box1x2x1.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -351,7 +351,7 @@ void TestBox(void)
 
 	cMeshEditor.Touch();
 	WriteMesh(&cMesh, "Output/Shape/Box2x1x1.OBJ");
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
 	cMesh.Kill();
@@ -377,7 +377,7 @@ void TestBox(void)
 	AssertInt(8, iNumCorners);
 	AssertInt(12, iNumFaces);
 	AssertInt(8, iNumPositions);
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 
 	WriteMesh(&cMesh, "Output/Shape/Box1x1x1.OBJ");
 	cMeshEditor.RemoveModifiers();
@@ -554,7 +554,7 @@ void TestCone(void)
 	AssertInt(640, cMesh.NumFaces());
 	AssertInt(322, cMesh.TestNumPositions());
 	AssertInt(340, cMeshEditor.NumPolygons());
-	AssertInt(3, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(3, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();
@@ -579,7 +579,7 @@ void TestCone(void)
 	AssertInt(12, cMesh.NumFaces());
 	AssertInt(8, cMesh.TestNumPositions());
 	AssertInt(9, cMeshEditor.NumPolygons());
-	AssertInt(3, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(3, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 
 	cMeshEditor.RemoveModifiers();
 	cMeshEditor.Kill();

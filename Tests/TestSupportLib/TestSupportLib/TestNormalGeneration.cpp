@@ -136,7 +136,7 @@ void TestMeshSmoothGroupsNamed(void)
 	AssertInt(26, cMesh.NumCorners());
 	AssertInt(72, cMesh.NumEdges());
 	AssertInt(48, cMeshEditor.NumVisibleEdges(1));
-	AssertInt(6, cMeshEditor.mcPolygons.NumUniqueNames());
+	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	AssertSize(48 + 54, cMesh.mcNormals.mcNormals.NumElements());
 
 	WriteMesh(&cMesh, "Output/NormalsNamed2x2x2.OBJ");

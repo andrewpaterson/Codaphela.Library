@@ -30,6 +30,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshSkin.h"
 #include "MeshMaterials.h"
 #include "MeshColours.h"
+#include "MeshPolygons.h"
 
 
 class CMesh : public CObject
@@ -46,6 +47,7 @@ public:
 	CMeshMaterials		mcMaterials;		
 	CMeshColours		mcColours;			
 	CMeshSkin			mcSkin;
+	CMeshPolygons		mcPolygons;  //Only built by a CMeshEditor's AddFace.
 
 	void			Init(void);
 	void 			Free(void) override;
@@ -75,7 +77,7 @@ public:
 
 	void			ClearConnectivity(void);
 
-	bool			CanCopy(void);  //CopyFrom keeps positions, faces, normals and colours: not UVs, skin or materials.
+	bool			CanCopy(void);  //CopyFrom keeps positions, faces, normals, colours and polygons: not UVs, skin or materials.
 	void			CopyFrom(CMesh* pcSource);  //Into an empty mesh.
 	void			CopyDetailsFrom(CMesh* pcSource);  //Normals and colours of the faces and corners it already has from pcSource.
 

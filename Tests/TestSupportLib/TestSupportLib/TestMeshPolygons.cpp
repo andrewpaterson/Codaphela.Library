@@ -1,7 +1,10 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshEditor.h"
+#include "SupportLib/MeshFlatFaces.h"
+#include "SupportLib/MeshModifierStack.h"
 #include "SupportLib/MeshPlaneEditor.h"
+#include "StandardLib/Objects.h"
 #include "TestLib/Assert.h"
 
 
@@ -26,7 +29,7 @@ void TestMeshPolygonsAddFace(void)
 		cMesh.AddCorner(1, 1, 0);
 		cMesh.AddCorner(0, 1, 0);
 
-		AssertSize(0, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(0, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 
 		cMeshEditor.AddFace(0, 1, 2, 1, true, true, false);
 
@@ -35,11 +38,11 @@ void TestMeshPolygonsAddFace(void)
 		AssertChar(1, cMeshEditor.mcEdgeVisibility.GetEdge(1));
 		AssertChar(0, cMeshEditor.mcEdgeVisibility.GetEdge(2));
 
-		AssertSize(1, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(1, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 
-		pcPolygon = cMeshEditor.mcPolygons.mcPolygons.Get(0);
+		pcPolygon = cMeshEditor.mpMesh->mcPolygons.mcPolygons.Get(0);
 
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(0));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(0));
 		AssertSize(1, pcPolygon->maiFaces.NumElements());
 		AssertInt(0, pcPolygon->maiFaces.GetValue(0));
 
@@ -52,13 +55,13 @@ void TestMeshPolygonsAddFace(void)
 		AssertChar(1, cMeshEditor.mcEdgeVisibility.GetEdge(3));
 		AssertChar(1, cMeshEditor.mcEdgeVisibility.GetEdge(4));
 
-		AssertSize(1, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(1, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 
-		pcPolygon = cMeshEditor.mcPolygons.mcPolygons.Get(0);
+		pcPolygon = cMeshEditor.mpMesh->mcPolygons.mcPolygons.Get(0);
 
-		AssertSize(2, cMeshEditor.mcPolygons.maiFacesToPolygons.NumElements());
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(0));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(1));
+		AssertSize(2, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.NumElements());
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(0));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(1));
 		AssertSize(2, pcPolygon->maiFaces.NumElements());
 		AssertInt(0, pcPolygon->maiFaces.GetValue(0));
 		AssertInt(1, pcPolygon->maiFaces.GetValue(1));
@@ -91,27 +94,27 @@ void TestMeshPolygonsAddDiscontiguousFace(bool bOutEdgeValue)
 		cMesh.AddCorner(-0.5f, 0.5f, 0);
 		cMesh.AddCorner(0.5f, 1.5f, 0);
 
-		AssertSize(0, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(0, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 
 		cMeshEditor.AddFace(0, 1, 2, 1, bOutEdgeValue, bOutEdgeValue, false);
 		cMeshEditor.AddFace(0, 3, 4, 1, false, bOutEdgeValue, bOutEdgeValue);
 		cMeshEditor.AddFace(5, 3, 2, 1, bOutEdgeValue, false, bOutEdgeValue);
 
 		AssertSize(9, cMeshEditor.mcEdgeVisibility.mcEdges.NumElements());
-		AssertSize(3, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(3, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 
 		cMeshEditor.AddFace(0, 2, 3, 1, false, false, false);
 
 		AssertSize(9, cMeshEditor.mcEdgeVisibility.mcEdges.NumElements());
-		AssertSize(1, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(1, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 
-		AssertSize(4, cMeshEditor.mcPolygons.maiFacesToPolygons.NumElements());
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(0));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(1));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(2));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(3));
+		AssertSize(4, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.NumElements());
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(0));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(1));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(2));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(3));
 
-		pcPolygon = cMeshEditor.mcPolygons.Get(0);
+		pcPolygon = cMeshEditor.mpMesh->mcPolygons.Get(0);
 		AssertSize(4, pcPolygon->maiFaces.NumElements());
 
 		//The order isn't important.  We must not have lost any faces though.
@@ -123,7 +126,7 @@ void TestMeshPolygonsAddDiscontiguousFace(bool bOutEdgeValue)
 		cMeshEditor.AddFace(5, 4, 3, 2, true, true, true);
 
 		AssertSize(10, cMeshEditor.mcEdgeVisibility.mcEdges.NumElements());
-		AssertSize(2, cMeshEditor.mcPolygons.mcPolygons.NumElements());
+		AssertSize(2, cMeshEditor.mpMesh->mcPolygons.mcPolygons.NumElements());
 	}
 	ObjectsKill(false);
 	DataIOKill();
@@ -156,7 +159,7 @@ void TestMeshPolygonAdjacency(void)
 		cMeshEditor.Collapse();
 
 		aiAdjacent.Init();
-		cMeshEditor.mcPolygons.GetAdjacentPolygons(cMesh.GetConnectivity(), 4, &aiAdjacent);
+		cMeshEditor.mpMesh->mcPolygons.GetAdjacentPolygons(cMesh.GetConnectivity(), 4, &aiAdjacent);
 
 		AssertSize(4, aiAdjacent.NumElements());
 		AssertInt(1, aiAdjacent.GetValue(0));
@@ -167,7 +170,7 @@ void TestMeshPolygonAdjacency(void)
 		aiAdjacent.Kill();
 
 		aiAdjacent.Init();
-		cMeshEditor.mcPolygons.GetAdjacentPolygons(cMesh.GetConnectivity(), 0, &aiAdjacent);
+		cMeshEditor.mpMesh->mcPolygons.GetAdjacentPolygons(cMesh.GetConnectivity(), 0, &aiAdjacent);
 
 		AssertSize(2, aiAdjacent.NumElements());
 		AssertInt(1, aiAdjacent.GetValue(0));
@@ -207,10 +210,10 @@ void TestMeshPolygonsTwoEdgesToOnePolygon(void)
 
 		cMeshEditor.AddFace(0, 3, 1, 0, false, true, false);
 		AssertInt(1, cMeshEditor.NumPolygons());
-		AssertSize(3, cMeshEditor.mcPolygons.Get(0)->maiFaces.NumElements());
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(0));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(1));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(2));
+		AssertSize(3, cMeshEditor.mpMesh->mcPolygons.Get(0)->maiFaces.NumElements());
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(0));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(1));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(2));
 
 		cMeshEditor.Kill();
 		cMesh.Kill();
@@ -240,7 +243,7 @@ void TestMeshPolygonsMergeThree(void)
 
 		cMesh.Init();
 		cMeshEditor.Init(&cMesh);
-		pcPolygons = &cMeshEditor.mcPolygons;
+		pcPolygons = &cMeshEditor.mpMesh->mcPolygons;
 
 		for (i = 0; i < 9; i++)
 		{
@@ -299,11 +302,69 @@ void TestMeshPolygonsNextToFaceWithNoPolygon(void)
 		cMeshEditor.AddFace(0, 2, 3, 0, false, true, true);
 
 		AssertInt(1, cMeshEditor.NumPolygons());
-		AssertInt(-1, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(0));
-		AssertInt(0, cMeshEditor.mcPolygons.maiFacesToPolygons.GetValue(1));
+		AssertInt(-1, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(0));
+		AssertInt(0, cMeshEditor.mpMesh->mcPolygons.maiFacesToPolygons.GetValue(1));
 
 		cMeshEditor.Kill();
 		cMesh.Kill();
+	}
+	ObjectsKill(false);
+	DataIOKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh on its own makes no polygons.  One in an editor does, and a copy
+// of it, or the output of a modifier that doesn't change its faces, keeps
+// them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshPolygonsOnMesh(void)
+{
+	DataIOInit();
+	ObjectsInit();
+	{
+		Ptr<CMesh>			pMesh;
+		Ptr<CMesh>			pCopy;
+		Ptr<CMeshEditor>	pEditor;
+		CMeshModifierStack	cStack;
+		Ptr<CMesh>			pOutput;
+
+		pMesh = OMalloc<CMesh>();
+		pMesh->AddCorner(0, 0, 0);
+		pMesh->AddCorner(1, 0, 0);
+		pMesh->AddCorner(1, 1, 0);
+		pMesh->AddCorner(0, 1, 0);
+		pMesh->AddQuad(0, 1, 2, 3);
+		AssertFalse(pMesh->mcPolygons.InUse());
+		AssertSize(0, pMesh->mcPolygons.mcPolygons.NumElements());
+
+		pMesh = OMalloc<CMesh>();
+		pMesh->mcNormals.mbInUse = true;
+		pEditor = OMalloc<CMeshEditor>(pMesh);
+		AssertTrue(pMesh->mcPolygons.InUse());
+		pEditor->AddCorner(0, 0, 0);
+		pEditor->AddCorner(1, 0, 0);
+		pEditor->AddCorner(1, 1, 0);
+		pEditor->AddCorner(0, 1, 0);
+		pEditor->AddQuad(0, 1, 2, 3, 7);
+		AssertInt(1, pEditor->NumPolygons());
+
+		pCopy = OMalloc<CMesh>();
+		pCopy->CopyFrom(&pMesh);
+		AssertTrue(pCopy->mcPolygons.InUse());
+		AssertSize(1, pCopy->mcPolygons.mcPolygons.NumElements());
+		AssertInt(7, pCopy->mcPolygons.Get(0)->miName);
+		AssertSize(2, pCopy->mcPolygons.Get(0)->maiFaces.NumElements());
+		AssertInt(0, pCopy->mcPolygons.maiFacesToPolygons.GetValue(1));
+
+		cStack.Init(pMesh);
+		cStack.AddModifier<CMeshFlatFaces>()->Init();
+		pOutput = cStack.GetOutput();
+		AssertFalse(pOutput == pMesh);
+		AssertSize(1, pOutput->mcPolygons.mcPolygons.NumElements());
+		cStack.Kill();
 	}
 	ObjectsKill(false);
 	DataIOKill();
@@ -318,6 +379,7 @@ void TestMeshPolygons(void)
 {
 	BeginTests();
 
+	TestMeshPolygonsOnMesh();
 	TestMeshPolygonsAddFace();
 	TestMeshPolygonsAddDiscontiguousFace(true);
 	TestMeshPolygonsAddDiscontiguousFace(false);

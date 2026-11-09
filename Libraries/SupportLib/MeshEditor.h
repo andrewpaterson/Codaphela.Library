@@ -32,7 +32,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 class CMesh;
-//The mesh and its modifiers.  GetOutput is the mesh with its modifiers applied, which is the mesh itself if there are none.  It's
+//The mesh and its modifiers.  An editor turns on its mesh's polygons, which its AddFace builds from the edges it's told are hidden.
+//Its edge visibility and selections are what the user sees and does, and stay with it.  GetOutput is the mesh with its modifiers applied, which is the mesh itself if there are none.  It's
 //kept until the mesh is changed through the editor, a modifier is added, or mcModifiers.Touch says a modifier's settings changed.
 //What's changed in the mesh directly, not through the editor's methods, isn't seen.
 //
@@ -53,7 +54,6 @@ public:
 
 	CMeshSelections			mcSelections;
 	CMeshEdgeVisibility		mcEdgeVisibility;
-	CMeshPolygons			mcPolygons;
 
 protected:
 	//The mesh as it was before its modifiers made any shapes, which they add to each time they're applied.

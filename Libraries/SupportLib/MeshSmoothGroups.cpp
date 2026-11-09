@@ -209,16 +209,16 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	fDot = Deg2Dot(mfSharpAngle);
 
 	asNormals.Init();
-	pcMeshEditor->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpMesh->mcNormals);
+	pcMeshEditor->mpMesh->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpMesh->mcNormals);
 
 	mcSmoothingGroups.SetArrayValues(0);
 
-	iNumPolygons = pcMeshEditor->mcPolygons.mcPolygons.NumElements();
+	iNumPolygons = pcMeshEditor->mpMesh->mcPolygons.mcPolygons.NumElements();
 	for (i = 0; i < iNumPolygons; i++)
 	{
 		psThisNormal = asNormals.Get(i);
 		aiAdjPolys.Init();
-		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpMesh->GetConnectivity(), (int)i, &aiAdjPolys);
+		pcMeshEditor->mpMesh->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpMesh->GetConnectivity(), (int)i, &aiAdjPolys);
 
 		uiNumElements = aiAdjPolys.NumElements();
 		for (j = 0; j < uiNumElements; j++)

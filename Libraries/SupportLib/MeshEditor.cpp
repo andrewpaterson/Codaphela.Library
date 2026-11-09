@@ -37,10 +37,13 @@ void CMeshEditor::Init(Ptr<CMesh> pMesh)
 
 	mszName.Init();
 	mpMesh = pMesh;
+	if (pMesh.IsNotNull())
+	{
+		pMesh->mcPolygons.mbInUse = true;
+	}
 
 	mcSelections.Init();
 	mcEdgeVisibility.Init();
-	mcPolygons.Init();
 
 	mcModifiers.Init(pMesh);
 
@@ -79,7 +82,6 @@ void CMeshEditor::Class(void)
 	M_Embedded(mcModifiers);
 	M_Embedded(mcSelections);
 	M_Embedded(mcEdgeVisibility);
-	M_Embedded(mcPolygons);
 	U_Bool(mbBaseKept);
 	M_Pointer(mpBase);
 	U_Unknown(CArrayChar, macBaseEdges);
@@ -98,7 +100,6 @@ bool CMeshEditor::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(mcSelections.Save(pcFile));
 	ReturnOnFalse(mcEdgeVisibility.Save(pcFile));
-	ReturnOnFalse(mcPolygons.Save(pcFile));
 	return true;
 }
 
@@ -111,7 +112,6 @@ bool CMeshEditor::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(mcSelections.Load(pcFile));
 	ReturnOnFalse(mcEdgeVisibility.Load(pcFile));
-	ReturnOnFalse(mcPolygons.Load(pcFile));
 	return true;
 }
 
@@ -242,7 +242,7 @@ int CMeshEditor::NumFaces(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditor::NumPolygons(void)
 {
-	return (int)mcPolygons.mcPolygons.NumElements();
+	return (int)mpMesh->mcPolygons.mcPolygons.NumElements();
 }
 
 
@@ -288,7 +288,6 @@ void CMeshEditor::ClearMesh(void)
 	
 	mcSelections.Clear();
 	mcEdgeVisibility.Clear();
-	mcPolygons.Clear();
 
 	mcModifiers.ClearConnectivity();
 }
@@ -443,7 +442,7 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 
 	mcSelections.AddFace(rFace.NewEdges());
 	mcEdgeVisibility.AddFace(pcFace, bEdge12, bEdge23, bEdge31);
-	mcPolygons.AddFace(pcFace, rFace.miFirstFace, iName, mpMesh->GetConnectivity(), bEdge12, bEdge23, bEdge31);
+	mpMesh->mcPolygons.AddFace(pcFace, rFace.miFirstFace, iName, mpMesh->GetConnectivity(), bEdge12, bEdge23, bEdge31);
 
 	mcModifiers.AddFace(iCorner1, iCorner2, iCorner3);
 

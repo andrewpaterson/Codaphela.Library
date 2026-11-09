@@ -552,6 +552,6 @@ bool SaveOBJ(CMesh* pcMesh, const char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool SaveOBJ(CMeshEditor* pcEditor, const char* szFilename)
 {
-	return SaveOBJFaces(&pcEditor->mpMesh, &pcEditor->mcPolygons, szFilename);
+	return SaveOBJFaces(&pcEditor->mpMesh, &pcEditor->mpMesh->mcPolygons, szFilename);
 }
 

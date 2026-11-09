@@ -622,7 +622,7 @@ static void GatherSceneFilePolygons(SSceneFilePolygons* psPolygons, CMeshEditor*
 	int						iPolygon;
 	int						iNumFaces;
 
-	pcPolygons = &pcEditor->mcPolygons;
+	pcPolygons = &pcEditor->mpMesh->mcPolygons;
 	iNumFaces = psPolygons->pcMesh->NumFaces();
 	aiDone.Init();
 	aiDone.Resize(pcPolygons->mcPolygons.NumElements());

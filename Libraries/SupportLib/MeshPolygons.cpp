@@ -55,6 +55,7 @@ void CMeshPolygon::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygon::Save(CFileWriter* pcFile)
 {
+	ReturnOnFalse(pcFile->WriteInt32(miName));
 	ReturnOnFalse(maiFaces.Write(pcFile));
 	return true;
 }
@@ -66,8 +67,9 @@ bool CMeshPolygon::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygon::Load(CFileReader* pcFile)
 {
+	ReturnOnFalse(pcFile->ReadInt32(&miName));
 	ReturnOnFalse(maiFaces.Read(pcFile));
-	return TRITRUE;
+	return true;
 }
 
 
@@ -79,7 +81,8 @@ void CMeshPolygons::Init(void)
 {
 	PreInit();
 
-	mcPolygons.Init(); 
+	CMeshDetail::Init();
+	mcPolygons.Init();
 	maiFacesToPolygons.Init();
 
 	PostInit();
@@ -125,6 +128,7 @@ void CMeshPolygons::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::Class(void)
 {
+	CMeshDetail::Class();
 	U_Unknown(CArrayMeshPolygon, mcPolygons);
 	U_Unknown(CArrayInt, maiFacesToPolygons);
 }
@@ -139,6 +143,35 @@ void CMeshPolygons::Clear(void)
 	mcPolygons.Init();
 
 	maiFacesToPolygons.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshPolygons::Copy(CMeshPolygons* pcSource)
+{
+	CMeshPolygon*	pcFrom;
+	CMeshPolygon*	pcTo;
+	size			i;
+	size			j;
+
+	Clear();
+	mbInUse = pcSource->mbInUse;
+	for (i = 0; i < pcSource->mcPolygons.NumElements(); i++)
+	{
+		pcFrom = pcSource->mcPolygons.Get(i);
+		pcTo = Add(pcFrom->miName);
+		for (j = 0; j < pcFrom->maiFaces.NumElements(); j++)
+		{
+			pcTo->maiFaces.Add(pcFrom->maiFaces.GetValue(j));
+		}
+	}
+	for (i = 0; i < pcSource->maiFacesToPolygons.NumElements(); i++)
+	{
+		maiFacesToPolygons.Add(pcSource->maiFacesToPolygons.GetValue(i));
+	}
 }
 
 
@@ -489,6 +522,11 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 	bool			bFound;
 	int				i;
 	int				j;
+
+	if (!mbInUse)
+	{
+		return;
+	}
 
 	//The mesh numbers the faces, and it may have some that were added to it directly.
 	while ((int)maiFacesToPolygons.NumElements() <= iFace)

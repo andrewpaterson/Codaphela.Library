@@ -53,6 +53,7 @@ void CMesh::PrivateInit(void)
 	mcSkin.Init();
 	mcMaterials.Init();
 	mcColours.Init();
+	mcPolygons.Init();
 }
 
 
@@ -78,6 +79,7 @@ void CMesh::Class(void)
 	M_Embedded(mcMaterials);
 	M_Embedded(mcColours);
 	M_Embedded(mcSkin);
+	M_Embedded(mcPolygons);
 }
 
 
@@ -94,6 +96,7 @@ bool CMesh::Load(CObjectReader* pcFile)
 	ReturnOnFalse(mcSkin.Load(pcFile));
 	ReturnOnFalse(mcMaterials.Load(pcFile));
 	ReturnOnFalse(mcColours.Load(pcFile));
+	ReturnOnFalse(mcPolygons.Load(pcFile));
 	return true;
 }
 
@@ -111,6 +114,7 @@ bool CMesh::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(mcSkin.Save(pcFile));
 	ReturnOnFalse(mcMaterials.Save(pcFile));
 	ReturnOnFalse(mcColours.Save(pcFile));
+	ReturnOnFalse(mcPolygons.Save(pcFile));
 	return true;
 }
 
@@ -279,6 +283,7 @@ void CMesh::ClearConnectivity(void)
 	mcSkin.Clear();
 	mcMaterials.Clear();
 	mcColours.Clear();
+	mcPolygons.Clear();
 }
 
 
@@ -321,6 +326,7 @@ void CMesh::CopyFrom(CMesh* pcSource)
 	}
 
 	CopyDetailsFrom(pcSource);
+	mcPolygons.Copy(&pcSource->mcPolygons);
 }
 
 

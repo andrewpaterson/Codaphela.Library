@@ -47,10 +47,13 @@ typedef CArrayTemplate<CMeshPolygon> CArrayMeshPolygon;
 
 //Every face in a mesh should be referred to by a polygon (mcPolygons).
 //maiFacesToPolygons is the reverse mapping.  Given a face one can get the polygon it's a part of.
+//
+//It's a detail of a mesh, which only builds its polygons when it's in use, as that needs the mesh's connectivity for every face added:
+//a CMeshEditor turns it on.  A face added to the mesh directly is in no polygon (-1).
 class CMeshEdgeVisibility;
 class CMeshConnectivity;
 class CMeshNormals;
-class CMeshPolygons : public CObject
+class CMeshPolygons : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshPolygons);
 DESTRUCTABLE(CMeshPolygons);
@@ -64,6 +67,7 @@ public:
 	void			KillPolygons(void);
 
 	void 			Clear(void);
+	void			Copy(CMeshPolygons* pcSource);
 
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
