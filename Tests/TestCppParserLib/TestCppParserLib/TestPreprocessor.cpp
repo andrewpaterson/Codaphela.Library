@@ -509,6 +509,8 @@ Expected\n\
 	szDest.Kill();
 	cConfig.Kill();
 	cFile.Kill();
+
+	szName.Kill();
 }
 
 

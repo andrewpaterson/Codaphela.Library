@@ -832,6 +832,7 @@ void TestProject65RunTests(STestProject65* psProject)
 	AssertTrue(aszTests.NumElements() >= psProject->uiMinPrograms);
 
 	//LinkWith's name is the main's file's name.
+	szMainFile.Kill();
 	szMainFile.Init(psProject->szTestProject);
 	szMainFile.Append(".cpp");
 
