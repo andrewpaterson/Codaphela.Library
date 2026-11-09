@@ -521,12 +521,37 @@ void TestChunkFileManyChunks(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestChunkFileUserID(void)
+{
+	CChunkFile	cChunkFile;
+	CFileUtil	cFileUtil;
+
+	cFileUtil.MakeDir("Output");
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "UserID.bin"));
+	AssertTrue(cChunkFile.WriteOpen(0x00123456));
+	AssertTrue(cChunkFile.WriteClose());
+	cChunkFile.Kill();
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "UserID.bin"));
+	AssertTrue(cChunkFile.ReadOpen());
+	AssertInt(0x00123456, cChunkFile.GetUserID());
+	AssertTrue(cChunkFile.ReadClose());
+	cChunkFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChunkFile(void)
 {
 	BeginTests();
 	MemoryInit();
-	
+
 	TestChunkFileSimple();
+	TestChunkFileUserID();
 	TestChunkFileRewrite();
 	TestChunkFileMD5ing();
 	TestChunkFilenameing();

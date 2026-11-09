@@ -61,6 +61,8 @@ public:
 	bool		WriteOpen(chunkName iUserID);
 	bool		WriteClose(void);
 
+	chunkName	GetUserID(void);  //What WriteOpen was given.  Says what kind of chunk file this is.
+
 	lsize		FindFirstChunkWithName(const char* szName);
 	lsize		FindNextChunkWithName(void);
 	lsize		GetNumChunks(void);
