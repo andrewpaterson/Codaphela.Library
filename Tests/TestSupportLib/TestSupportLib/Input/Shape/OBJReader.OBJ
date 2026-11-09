@@ -1,0 +1,23 @@
+# Indices from 1 and negative ones, a quad, corners with and without UVs and normals, and lines the reader ignores.
+o Thing
+mtllib Thing.mtl
+g Group
+v 0 0 0
+v 1 0 0
+v 1 1 0
+v 0 1 0
+v 0 0 1.5e-1
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+vn 0 0 1
+vn 1 0 0
+vn 0 1 0
+vp 0.5 0.5
+usemtl Red
+s 1
+f 1/1/1 2/2/1 3/3/1 4/4/1
+s off
+f -5/-4/-2 -4/-3/-2 -1//-1
+f 2 3 5

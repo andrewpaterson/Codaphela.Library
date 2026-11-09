@@ -154,7 +154,7 @@ int __cdecl main(void)
 	TestMeshEdgeCollapse();
 	TestMeshMergeNormals();
 	TestNormalGeneration();
-	//TestMeshOBJReader();  Source OBJ file is missing
+	TestMeshOBJReader();
 	TestMeshVRMLReader();
 	TestSound();
 	TestSoundWAV();

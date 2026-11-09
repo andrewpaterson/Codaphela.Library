@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __OBJ_READER_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "MeshCornerBuilder.h"
 #include "MeshEditorWrapper.h"
 
 
@@ -33,11 +34,7 @@ enum EWavefrontOBJPrefix
 	WOBJP_v,
 	WOBJP_vt,
 	WOBJP_vn,
-	WOBJP_g,
 	WOBJP_f,
-	WOBJP_s,
-	WOBJP_usemtl,
-	WOBJP_mtllib,
 };
 
 
@@ -52,28 +49,28 @@ bool LoadOBJ(Ptr<CMeshEditor> pMesh, char* szFilename);
 
 class CObjReader
 {
-public:
+protected:
 	CMeshEditorWrapper	mcWrapper;
 	CChars				mszFileName;
-	int					miMaterial;
-	int					miSmoothingGroup;
+	int					miLine;
 
-	void Init(Ptr<CMesh> pMesh, char *szFilename);
-	void Init(Ptr<CMeshEditor> pEditor, char *szFilename);
-	void Kill(void);
+public:
+	void	Init(Ptr<CMesh> pMesh, char* szFilename);
+	void	Init(Ptr<CMeshEditor> pEditor, char* szFilename);
+	void	Kill(void);
 
-	bool Read(void);
-	bool ReadPosition(void);
-	bool ReadNormal(void);
-	bool ReadUVCoord(void);
-	bool ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNormals, int iNumUVs);
-	bool ReadPosition(CTextParser* pcTextParser);
-	bool ReadUVCoord(CTextParser* pcTextParser);
-	bool ReadNormal(CTextParser* pcTextParser);
-	bool ReadObjectName(CTextParser* pcTextParser);
-	bool ReadMaterialLibrary(CTextParser* pcTextParser);
-	bool ReadMaterial(CTextParser* pcTextParser);
-	bool ReadSmoothingGroup(CTextParser* pcTextParser);
+	bool	Read(void);
+
+protected:
+	bool	ReadLine(CTextParser* pcTextParser);
+	bool	ReadPosition(CTextParser* pcTextParser);
+	bool	ReadUVCoord(CTextParser* pcTextParser);
+	bool	ReadNormal(CTextParser* pcTextParser);
+	bool	ReadFace(CTextParser* pcTextParser);
+	void	ReadFaceCorners(CTextParser* pcTextParser, CArrayMeshCornerBuilder* pasCorners);
+	bool	ResolveFaceCorners(CArrayMeshCornerBuilder* pasCorners);
+	void	SetFaceDetails(int iFace, int* aiPolygonCorners, CArrayMeshCornerBuilder* pasCorners);
+	bool	Error(const char* szMessage);
 };
 
 

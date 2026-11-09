@@ -25,23 +25,24 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseLib/SystemAllocator.h"
 #include "BaseLib/TextParser.h"
 #include "Mesh.h"
 #include "MeshEditor.h"
-#include "MeshCornerBuilder.h"
 #include "OBJReader.h"
 
 
-//Indexed by EOBJParse.
-static const char* const gaszOBJTypes[] = { "v", "vt", "vn", "g", "f", "s", "usemtl", "mtllib" };
+//Indexed by EWavefrontOBJPrefix.
+static const char* const gaszOBJTypes[] = { "v", "vt", "vn", "f" };
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadOBJ(Ptr<CMesh> pMesh, char *szFilename)
+bool LoadOBJ(Ptr<CMesh> pMesh, char* szFilename)
 {
 	CObjReader	cReader;
 	bool		bResult;
@@ -58,10 +59,49 @@ bool LoadOBJ(Ptr<CMesh> pMesh, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMesh> pMesh, char *szFilename)
+bool LoadOBJ(Ptr<CMeshEditor> pEditor, char* szFilename)
 {
-	mcWrapper.Init(pMesh);
-	mszFileName.Init(szFilename);
+	CObjReader	cReader;
+	bool		bResult;
+
+	cReader.Init(pEditor, szFilename);
+	bResult = cReader.Read();
+	cReader.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An index in a file counts from 1, or back from the last one read if it's
+// negative.  False if there is no such one.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ResolveOBJIndex(int* piIndex, int iNumRead)
+{
+	int		iIndex;
+
+	iIndex = *piIndex;
+	if (iIndex > 0)
+	{
+		iIndex = iIndex - 1;
+	}
+	else if (iIndex < 0)
+	{
+		iIndex = iNumRead + iIndex;
+	}
+	else
+	{
+		return false;
+	}
+
+	if ((iIndex < 0) || (iIndex >= iNumRead))
+	{
+		return false;
+	}
+	*piIndex = iIndex;
+	return true;
 }
 
 
@@ -69,13 +109,42 @@ void CObjReader::Init(Ptr<CMesh> pMesh, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMeshEditor> pEditor, char *szFilename)
+static bool ReadOBJFloats(CTextParser* pcTextParser, float32* pafValues, int iNumValues)
+{
+	int		i;
+
+	for (i = 0; i < iNumValues; i++)
+	{
+		if (pcTextParser->GetFloatWithExponent(&pafValues[i]) != TRITRUE)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjReader::Init(Ptr<CMesh> pMesh, char* szFilename)
+{
+	mcWrapper.Init(pMesh);
+	mszFileName.Init(szFilename);
+	miLine = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjReader::Init(Ptr<CMeshEditor> pEditor, char* szFilename)
 {
 	mcWrapper.Init(pEditor);
 	mszFileName.Init(szFilename);
-
-	miMaterial = -1;
-	miSmoothingGroup = 1;
+	miLine = 0;
 }
 
 
@@ -90,85 +159,79 @@ void CObjReader::Kill(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
+// The Mesh/MeshEditor must already be initialised.  Lines that aren't
+// positions, UVs, normals or faces are ignored, including groups, smoothing
+// groups and materials: a file's normals say how it is smoothed.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::Read(void)
 {
-	CTextParser 		cTextParser;
-	CTextFile			cTextFile;
-	size				iType;
-	CArrayChars			cLines;
-	CChars*				pszLine;
-	size				i;
-	TRISTATE			tResult;
-	size				uiNumElements;
+	CTextFile	cTextFile;
+	CArrayChars	cLines;
+	CChars*		pszLine;
+	CTextParser	cTextParser;
+	size		i;
+	size		uiNumLines;
+	bool		bResult;
 
 	cTextFile.Init();
 	if (!cTextFile.Read(mszFileName.Text()))
 	{
 		cTextFile.Kill();
-		return false;
+		return Error("Could not read the file");
 	}
 
 	cTextFile.PassifyNewlines();
 	cLines.Fake();
 	cTextFile.mcText.SplitLines(&cLines);
-	
 
-	//The Mesh/MeshEditor must already be initialised.
 	mcWrapper.ClearConnectivity();
 
-	uiNumElements = cLines.NumElements();
-	for (i = 0; i < uiNumElements; i++)
+	bResult = true;
+	uiNumLines = cLines.NumElements();
+	for (i = 0; (i < uiNumLines) && bResult; i++)
 	{
+		miLine = (int)i + 1;
 		pszLine = cLines.Get(i);
 		cTextParser.Init(pszLine->Text(), pszLine->Length());
-
-		tResult = cTextParser.GetLongestIdentifier(gaszOBJTypes, sizeof(gaszOBJTypes) / sizeof(gaszOBJTypes[0]), &iType);
-
-		if (tResult == TRITRUE)
-		{
-			switch (iType)
-			{
-			case WOBJP_v:
-				ReturnOnFalse(ReadPosition(&cTextParser));
-				break;
-			case WOBJP_vt:
-				ReturnOnFalse(ReadUVCoord(&cTextParser));
-				break;
-			case WOBJP_vn:
-				ReturnOnFalse(ReadNormal(&cTextParser));
-				break;
-			case WOBJP_g:
-				ReturnOnFalse(ReadObjectName(&cTextParser));
-				break;
-			case WOBJP_f:
-				ReturnOnFalse(ReadFace(&cTextParser, mcWrapper.NumCorners(), mcWrapper.NumNormals(), mcWrapper.NumUVs()));
-				break;
-			case WOBJP_s:
-				ReturnOnFalse(ReadSmoothingGroup(&cTextParser));
-				break;
-			case WOBJP_usemtl:
-				ReturnOnFalse(ReadMaterial(&cTextParser));
-				break;
-			case WOBJP_mtllib:
-				ReturnOnFalse(ReadMaterialLibrary(&cTextParser));
-				break;
-			default:
-				break;
-			};
-		}
-
+		bResult = ReadLine(&cTextParser);
 		cTextParser.Kill();
 	}
-	
+
 	cLines.Kill();
 	cTextFile.Kill();
+	return bResult;
+}
 
-	return true;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjReader::ReadLine(CTextParser* pcTextParser)
+{
+	size	iType;
+
+	if (pcTextParser->GetLongestIdentifier(gaszOBJTypes, sizeof(gaszOBJTypes) / sizeof(gaszOBJTypes[0]), &iType) != TRITRUE)
+	{
+		return true;
+	}
+
+	switch (iType)
+	{
+	case WOBJP_v:
+		return ReadPosition(pcTextParser);
+	case WOBJP_vt:
+		return ReadUVCoord(pcTextParser);
+	case WOBJP_vn:
+		return ReadNormal(pcTextParser);
+	case WOBJP_f:
+		return ReadFace(pcTextParser);
+	default:
+		return true;
+	}
 }
 
 
@@ -178,31 +241,37 @@ bool CObjReader::Read(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadPosition(CTextParser* pcTextParser)
 {
-	float32				x, y, z;
+	float32		afPosition[3];
 
-	pcTextParser->GetFloat(&x);
-	pcTextParser->GetFloat(&y);
-	pcTextParser->GetFloat(&z);
-	mcWrapper.AddCorner(x, y, z);
-
+	if (!ReadOBJFloats(pcTextParser, afPosition, 3))
+	{
+		return Error("Could not read a position");
+	}
+	mcWrapper.AddCorner(afPosition[0], afPosition[1], afPosition[2]);
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A mesh only keeps normals for its faces from when it has normals, so a
+// file's normals must come before its faces.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadNormal(CTextParser* pcTextParser)
 {
-	float32				x, y, z;
+	float32		afNormal[3];
 
-	pcTextParser->GetFloat(&x);
-	pcTextParser->GetFloat(&y);
-	pcTextParser->GetFloat(&z);
+	if (!ReadOBJFloats(pcTextParser, afNormal, 3))
+	{
+		return Error("Could not read a normal");
+	}
+	if ((mcWrapper.NumNormals() == 0) && (mcWrapper.NumFaces() > 0))
+	{
+		return Error("Normals must come before faces");
+	}
 	mcWrapper.SetNormalsInUse(true);
-	mcWrapper.AddNormal(x, y, z);
-
+	mcWrapper.AddNormal(afNormal[0], afNormal[1], afNormal[2]);
 	return true;
 }
 
@@ -213,144 +282,172 @@ bool CObjReader::ReadNormal(CTextParser* pcTextParser)
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadUVCoord(CTextParser* pcTextParser)
 {
-	float32				u, v;
+	float32		afUV[2];
 
-	pcTextParser->GetFloat(&u);
-	pcTextParser->GetFloat(&v);
+	if (!ReadOBJFloats(pcTextParser, afUV, 2))
+	{
+		return Error("Could not read a texture coord");
+	}
 	mcWrapper.SetUVsInUse(true);
-	mcWrapper.AddUV(u, v);
-
+	mcWrapper.AddUV(afUV[0], afUV[1]);
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// v, v/vt, v//vn or v/vt/vn for each corner.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNormals, int iNumUVs)
+void CObjReader::ReadFaceCorners(CTextParser* pcTextParser, CArrayMeshCornerBuilder* pasCorners)
 {
-	TRISTATE				tResult;
-	CArrayMeshCornerBuilder	asCorners;
-	int64					iCorner;
-	int64					iUV;
-	CMeshCornerBuilder*		psCorner;
-	int64					iNormal;
-	CArrayInt				aiCorners;
-	size					i;
-	int						iNumFaces;
-	bool					bNormals;
-	SMeshNormalFace*		psFaceNormal;
-	CMFRet					r;
-	int						aiCornerIndices[6];
-	size					uiNumElements;
+	int32				iValue;
+	CMeshCornerBuilder*	psCorner;
 
-	asCorners.Init();
-	while (true)
+	while (pcTextParser->GetInteger(&iValue) == TRITRUE)
 	{
-		tResult = pcTextParser->GetInteger(&iCorner);
-		if (tResult != TRITRUE)
-		{
-			break;
-		}
-		psCorner = asCorners.Add();
-		psCorner->Init((int)iCorner);
+		psCorner = pasCorners->Add();
+		psCorner->Init(iValue);
 
 		//No skipping whitespace because // is whitespace.
-		tResult = pcTextParser->GetExactCharacter('/', false);
-		if (tResult == TRITRUE)
+		if (pcTextParser->GetExactCharacter('/', false) == TRITRUE)
 		{
-			tResult = pcTextParser->GetInteger(&iUV);
-			if (tResult == TRITRUE)
+			if (pcTextParser->GetInteger(&iValue, NULL, false) == TRITRUE)
 			{
 				psCorner->mbUVCoord = true;
-				psCorner->miUVCoord = (int)iUV;
+				psCorner->miUVCoord = iValue;
 			}
 
-			tResult = pcTextParser->GetExactCharacter('/', false);
-			if (tResult == TRITRUE)
+			if (pcTextParser->GetExactCharacter('/', false) == TRITRUE)
 			{
-				tResult = pcTextParser->GetInteger(&iNormal);
-				if (tResult == TRITRUE)
+				if (pcTextParser->GetInteger(&iValue, NULL, false) == TRITRUE)
 				{
 					psCorner->mbNormal = true;
-					psCorner->miNormal = (int)iNormal;
+					psCorner->miNormal = iValue;
 				}
 			}
 		}
 	}
+}
 
-	bNormals = true;
 
-	aiCorners.Init();
-	aiCorners.Resize(asCorners.NumElements());
-	uiNumElements = asCorners.NumElements();
-	for (i = 0; i < uiNumElements; i++)
+//////////////////////////////////////////////////////////////////////////
+//
+// Turns the corners' indices in the file to ones from 0, among what the
+// file has read so far.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjReader::ResolveFaceCorners(CArrayMeshCornerBuilder* pasCorners)
+{
+	CMeshCornerBuilder*	psCorner;
+	size				i;
+	size				uiNumCorners;
+	int					iNumFileNormals;
+
+	//A mesh's flat normals, one for each face, come before the normals from the file.
+	iNumFileNormals = mcWrapper.NumNormals() - mcWrapper.NumFaces();
+
+	uiNumCorners = pasCorners->NumElements();
+	for (i = 0; i < uiNumCorners; i++)
 	{
-		psCorner = asCorners.Get(i);
-		iCorner = psCorner->miVertex;
-		if (iCorner < 0)
+		psCorner = pasCorners->Get(i);
+		if (!ResolveOBJIndex(&psCorner->miVertex, mcWrapper.NumCorners()))
 		{
-			iCorner = iNumCorners + iCorner;
+			return Error("A face refers to a position that isn't there");
 		}
-		aiCorners.SetValue(i, (int)iCorner);
+		if (psCorner->mbUVCoord && !ResolveOBJIndex(&psCorner->miUVCoord, mcWrapper.NumUVs()))
+		{
+			return Error("A face refers to a texture coord that isn't there");
+		}
+		if (psCorner->mbNormal && !ResolveOBJIndex(&psCorner->miNormal, iNumFileNormals))
+		{
+			return Error("A face refers to a normal that isn't there");
+		}
+	}
+	return true;
+}
 
-		if (!psCorner->mbNormal)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// aiPolygonCorners is which of the polygon's corners each of the face's
+// corners is.  A corner keeps the face's flat normal unless it has its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjReader::SetFaceDetails(int iFace, int* aiPolygonCorners, CArrayMeshCornerBuilder* pasCorners)
+{
+	CMeshCornerBuilder*	psCorner;
+	SMeshNormalFace*	psFaceNormal;
+	SMeshUVFace*		psFaceUV;
+	int					iNumFlatNormals;
+	int					i;
+
+	iNumFlatNormals = mcWrapper.NumFaces();
+	for (i = 0; i < NUM_FACE_CORNERS; i++)
+	{
+		psCorner = pasCorners->Get(aiPolygonCorners[i]);
+		if (psCorner->mbNormal)
 		{
-			bNormals = false;
+			psFaceNormal = mcWrapper.GetFaceNormal(iFace);
+			psFaceNormal->aiCornerNormals[i] = iNumFlatNormals + psCorner->miNormal;
 		}
-		if (!psCorner->mbUVCoord)
+		if (psCorner->mbUVCoord)
 		{
+			psFaceUV = mcWrapper.GetUVFace(iFace, 0);
+			psFaceUV->aiUVs[i] = psCorner->miUVCoord;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh can only make faces from three and four sided polygons.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjReader::ReadFace(CTextParser* pcTextParser)
+{
+	CArrayMeshCornerBuilder	asCorners;
+	CArrayInt				aiCorners;
+	CMFRet					r;
+	size					i;
+	size					uiNumCorners;
+	int						aiPolygonCorners[NUM_FACE_CORNERS];
+	bool					bResult;
+
+	asCorners.Init();
+	ReadFaceCorners(pcTextParser, &asCorners);
+
+	uiNumCorners = asCorners.NumElements();
+	if ((uiNumCorners != 3) && (uiNumCorners != 4))
+	{
+		asCorners.Kill();
+		return Error("A face must have three or four corners");
+	}
+
+	bResult = ResolveFaceCorners(&asCorners);
+	if (bResult)
+	{
+		aiCorners.Init();
+		aiCorners.Resize(uiNumCorners);
+		for (i = 0; i < uiNumCorners; i++)
+		{
+			aiCorners.SetValue(i, asCorners.Get(i)->miVertex);
+		}
+		r = mcWrapper.AddPolygon(&aiCorners);
+		aiCorners.Kill();
+
+		r.Unpack1(&aiPolygonCorners[0], &aiPolygonCorners[1], &aiPolygonCorners[2]);
+		SetFaceDetails(r.miFirstFace, aiPolygonCorners, &asCorners);
+		if (r.NumFaces() == 2)
+		{
+			r.Unpack2(&aiPolygonCorners[0], &aiPolygonCorners[1], &aiPolygonCorners[2]);
+			SetFaceDetails(r.miFirstFace + 1, aiPolygonCorners, &asCorners);
 		}
 	}
 
-	r = mcWrapper.AddPolygon(&aiCorners);
-	iNumFaces = mcWrapper.NumFaces() - r.miFirstFace;
-
-	if (bNormals)
-	{
-		if (iNumFaces <= 2)
-		{
-			if (iNumFaces == 1)
-			{
-				r.Unpack1(&aiCornerIndices[0], &aiCornerIndices[1], &aiCornerIndices[2]);
-				psFaceNormal = mcWrapper.GetFaceNormal(r.miFirstFace);
-				psFaceNormal->aiCornerNormals[aiCornerIndices[0]] = iNumNormals + asCorners.Get(0)->miNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[1]] = iNumNormals + asCorners.Get(1)->miNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[2]] = iNumNormals + asCorners.Get(2)->miNormal;
-			}
-			else if (iNumFaces == 2)
-			{
-				psCorner = asCorners.Get(0);
-				r.Unpack1(&aiCornerIndices[0], &aiCornerIndices[1], &aiCornerIndices[2]);
-				psFaceNormal = mcWrapper.GetFaceNormal(r.miFirstFace);
-				psFaceNormal->aiCornerNormals[aiCornerIndices[0]] = iNumNormals + asCorners.Get(0)->miNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[1]] = iNumNormals + asCorners.Get(1)->miNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[2]] = iNumNormals + asCorners.Get(2)->miNormal;
-
-				psCorner = asCorners.Get(1);
-				r.Unpack2(&aiCornerIndices[3], &aiCornerIndices[4], &aiCornerIndices[5]);
-				psFaceNormal = mcWrapper.GetFaceNormal(r.miFirstFace);
-				psFaceNormal->aiCornerNormals[aiCornerIndices[3]] = iNumNormals + asCorners.Get(3)->miNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[4]] = iNumNormals + asCorners.Get(4)->miNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[5]] = iNumNormals + asCorners.Get(5)->miNormal;
-			}
-		}
-	}
-
-	aiCorners.Kill();
 	asCorners.Kill();
-	return true;
-};
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObjReader::ReadObjectName(CTextParser* pcTextParser)
-{
-	return true;
+	return bResult;
 }
 
 
@@ -358,30 +455,8 @@ bool CObjReader::ReadObjectName(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjReader::ReadMaterialLibrary(CTextParser* pcTextParser)
+bool CObjReader::Error(const char* szMessage)
 {
-	pcTextParser->SkipWhitespace();
-
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObjReader::ReadMaterial(CTextParser* pcTextParser)
-{
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObjReader::ReadSmoothingGroup(CTextParser* pcTextParser)
-{
-	return true;
+	return gcLogger.Error2(__METHOD__, " ", szMessage, " in [", mszFileName.Text(), "] line [", IntToString(miLine), "].", NULL);
 }
 
