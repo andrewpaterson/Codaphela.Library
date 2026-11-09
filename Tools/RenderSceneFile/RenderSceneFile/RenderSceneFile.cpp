@@ -28,6 +28,7 @@ along with Codaphela RenderSceneFile.  If not, see <http://www.gnu.org/licenses/
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/LeakDetector.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/TypeNames.h"
 #include "RasterLib/Rasteriser.h"
@@ -1149,7 +1150,7 @@ int __cdecl main(int argc, char* argv[])
 	sOptions.fPitch = 0.0f;
 	sOptions.fParticleScale = 1.0f;
 	sOptions.bEye = false;
-	for (i = 3; i + 1 < argc; i += 2)
+	for (i = (strcmp(argv[1], "--resave") == 0) ? argc : 3; i + 1 < argc; i += 2)
 	{
 		if (strcmp(argv[i], "--key") == 0)
 		{
@@ -1190,6 +1191,7 @@ int __cdecl main(int argc, char* argv[])
 		}
 	}
 
+	gcLogger.Init();
 	TypesInit();
 	TypeConverterInit();
 	MemoryInit();
@@ -1208,6 +1210,7 @@ int __cdecl main(int argc, char* argv[])
 	TypeConverterKill();
 	TypesKill();
 	LeakDetection();
+	gcLogger.Kill();
 	return bResult ? 0 : 1;
 }
 

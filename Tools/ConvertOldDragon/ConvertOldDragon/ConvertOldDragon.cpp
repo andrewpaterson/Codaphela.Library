@@ -22,6 +22,7 @@ along with Codaphela ConvertOldDragon.  If not, see <http://www.gnu.org/licenses
 #include <string.h>
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/LeakDetector.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/TypeNames.h"
 #include "OldDragonLib/OldDragonConverter.h"
@@ -102,6 +103,7 @@ int __cdecl main(int argc, char* argv[])
 		return 1;
 	}
 
+	gcLogger.Init();
 	TypesInit();
 	TypeConverterInit();
 	MemoryInit();
@@ -112,6 +114,7 @@ int __cdecl main(int argc, char* argv[])
 	TypeConverterKill();
 	TypesKill();
 	LeakDetection();
+	gcLogger.Kill();
 	return bResult ? 0 : 1;
 }
 
