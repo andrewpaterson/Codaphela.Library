@@ -29,6 +29,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshEdgeCollapse.h"
 
 
+//The same mesh must simplify to the same mesh in every build.  Which edge goes next depends on the last bits of what's worked
+//out here, which /fp:fast lets an optimised build change.
+#ifdef _MSC_VER
+#pragma float_control(precise, on)
+#endif // _MSC_VER
+
+
 //How much a corner is held to where it started, as a part of how much it's held to a plane.  It is the standard deviation
 //of the normal in a probabilistic quadric, and it's what makes A in Ax = b always solvable.  It is small so that it decides
 //where a corner goes on a flat area, and doesn't count against the corner on a curved one.
