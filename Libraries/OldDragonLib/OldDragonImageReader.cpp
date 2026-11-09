@@ -25,7 +25,7 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // Tries each channel count, looking for a simple array's tag and size
-// exactly that far from the end of the chunk.  August 2009 wrote the
+// exactly that far from the end of the chunk.  The 2009 files wrote the
 // stale pointer before the count and Max wrote it after, so the size can
 // be in either place.  It's the size matching that says these are pixels.
 //

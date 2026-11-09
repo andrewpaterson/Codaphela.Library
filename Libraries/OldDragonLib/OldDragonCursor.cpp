@@ -373,6 +373,36 @@ const uint8* COldDragonCursor::ReadTaggedSimple(size uiElementSize, size* puiNum
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The 2009 files have the stale pointer before the number of elements.
+//
+//////////////////////////////////////////////////////////////////////////
+const uint8* COldDragonCursor::ReadTaggedSimple2009(size uiElementSize, size* puiNumElements)
+{
+	uint32	uiNumElements;
+	uint64	ulliByteSize;
+
+	*puiNumElements = 0;
+	if (ReadUint32() != OLD_DRAGON_TAG_SIMPLE)
+	{
+		mbFailed = true;
+		return NULL;
+	}
+	ReadUint32();
+	uiNumElements = ReadUint32();
+
+	ulliByteSize = (uint64)uiElementSize * (uint64)uiNumElements;
+	if (ulliByteSize > (uint64)Remaining())
+	{
+		mbFailed = true;
+		return NULL;
+	}
+	*puiNumElements = uiNumElements;
+	return ReadBytes((size)ulliByteSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CopyOldDragonName(char* szDest, size uiDestSize, const uint8* puiSource, size uiSourceSize)

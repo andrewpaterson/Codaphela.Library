@@ -35,6 +35,9 @@ void COldDragonMesh::Init(void)
 	macFaces.Init();
 	macNormals.Init();
 	macUVs.Init();
+	macSkinVerts.Init();
+	macSkinWeights.Init();
+	macInverseSkinMatrices.Init();
 }
 
 
@@ -44,6 +47,9 @@ void COldDragonMesh::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void COldDragonMesh::Kill(void)
 {
+	macInverseSkinMatrices.Kill();
+	macSkinWeights.Kill();
+	macSkinVerts.Kill();
 	macUVs.Kill();
 	macNormals.Kill();
 	macFaces.Kill();
@@ -341,9 +347,32 @@ static bool IndexInRange(int32 iIndex, size uiNum, bool bMayBeNone)
 //////////////////////////////////////////////////////////////////////////
 bool ValidateOldDragonMesh(COldDragonMesh* pcMesh)
 {
-	size			i;
-	int32			j;
-	SOldDragonFace*	psFace;
+	size					i;
+	int32					j;
+	SOldDragonFace*			psFace;
+	SOldDragonSkinVert*		psSkinVert;
+	SOldDragonSkinWeight*	psSkinWeight;
+
+	if ((pcMesh->macSkinVerts.NumElements() != 0) && (pcMesh->macSkinVerts.NumElements() != pcMesh->macPositions.NumElements()))
+	{
+		return false;
+	}
+	for (i = 0; i < pcMesh->macSkinVerts.NumElements(); i++)
+	{
+		psSkinVert = pcMesh->macSkinVerts.Get(i);
+		if ((psSkinVert->iFirstWeight < 0) || (psSkinVert->iNumWeights < 0) || ((size)psSkinVert->iFirstWeight + (size)psSkinVert->iNumWeights > pcMesh->macSkinWeights.NumElements()))
+		{
+			return false;
+		}
+	}
+	for (i = 0; i < pcMesh->macSkinWeights.NumElements(); i++)
+	{
+		psSkinWeight = pcMesh->macSkinWeights.Get(i);
+		if (!IndexInRange(psSkinWeight->iMatrix, pcMesh->macInverseSkinMatrices.NumElements(), false))
+		{
+			return false;
+		}
+	}
 
 	for (i = 0; i < pcMesh->macFaces.NumElements(); i++)
 	{

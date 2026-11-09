@@ -66,6 +66,7 @@ public:
 	const uint8*	ReadTaggedArray(size* puiElementSize, size* puiNumElements);
 	const uint8*	ReadTaggedArrayAugust(size* puiElementSize, size* puiNumElements);
 	const uint8*	ReadTaggedSimple(size uiElementSize, size* puiNumElements);
+	const uint8*	ReadTaggedSimple2009(size uiElementSize, size* puiNumElements);
 };
 
 

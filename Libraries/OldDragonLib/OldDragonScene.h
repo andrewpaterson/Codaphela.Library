@@ -28,6 +28,9 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OLD_DRAGON_MAX_TEXTURES		16
 #define OLD_DRAGON_NO_INDEX			-1
 
+#define OLD_DRAGON_2009_INSTANCE_MESH	0x68
+#define OLD_DRAGON_2009_INSTANCE_CAMERA	0x69
+
 
 struct SOldDragonVec2
 {
@@ -61,6 +64,7 @@ struct SOldDragonFace
 };
 
 
+//sMatrix is the connection's world matrix at this key and fTime is the seconds since the previous key.
 struct SOldDragonKeyFrame
 {
 	SOldDragonMatrix	sMatrix;
@@ -68,15 +72,36 @@ struct SOldDragonKeyFrame
 };
 
 
+//iMatrix indexes the mesh's macInverseSkinMatrices and, for the mesh's instance, the instance's maiConnections.
+struct SOldDragonSkinWeight
+{
+	int32	iMatrix;
+	float32	fWeight;
+};
+
+
+//Which of macSkinWeights belong to a position.
+struct SOldDragonSkinVert
+{
+	int32	iFirstWeight;
+	int32	iNumWeights;
+};
+
+
+//To skin a position, with vectors on the left of row major matrices, add up for each of its weights:
+//	fWeight * (position * macInverseSkinMatrices[iMatrix] * world matrix of the instance's maiConnections[iMatrix])
 class COldDragonMesh
 {
 public:
-	char								mszName[OLD_DRAGON_NAME_SIZE];
-	int32								miID;
-	CArrayTemplate<SOldDragonVec3>		macPositions;
-	CArrayTemplate<SOldDragonFace>		macFaces;
-	CArrayTemplate<SOldDragonVec3>		macNormals;
-	CArrayTemplate<SOldDragonVec2>		macUVs;
+	char									mszName[OLD_DRAGON_NAME_SIZE];
+	int32									miID;
+	CArrayTemplate<SOldDragonVec3>			macPositions;
+	CArrayTemplate<SOldDragonFace>			macFaces;
+	CArrayTemplate<SOldDragonVec3>			macNormals;
+	CArrayTemplate<SOldDragonVec2>			macUVs;
+	CArrayTemplate<SOldDragonSkinVert>		macSkinVerts;	//One per position, or none if the mesh isn't skinned.
+	CArrayTemplate<SOldDragonSkinWeight>	macSkinWeights;
+	CArrayTemplate<SOldDragonMatrix>		macInverseSkinMatrices;
 
 	void	Init(void);
 	void	Kill(void);
@@ -101,6 +126,8 @@ public:
 
 
 //The colours are only in Into Oblivion's files.  The other versions' colours aren't decoded, as nothing says what they mean.
+//In the 2009 and Max files aiTextures has nine slots, each an index into the scene's images or OLD_DRAGON_NO_INDEX: diffuse,
+//diffuse level, specular, illumination, opacity, bump, detail, decal, reflection.
 struct SOldDragonMaterial
 {
 	char	szName[OLD_DRAGON_NAME_SIZE];
@@ -162,8 +189,9 @@ public:
 };
 
 
-//Ties an object (a mesh, light or camera) to the connections that place it.  Into Oblivion's links become instances with
-//no object, and their nodes become connections.
+//Ties an object (a mesh, light or camera) to the connections that place it.  For a skinned mesh those are its bones, in the
+//order its weights index them.  Into Oblivion's links become instances with no object, and their nodes become connections.
+//miType is whatever the version wrote: OLD_DRAGON_2009_INSTANCE_ for the 2009 files, 1 for a mesh in the Max files.
 class COldDragonInstance
 {
 public:
@@ -207,7 +235,8 @@ public:
 };
 
 
-//Every face's positions, normals and UVs have to be in range.  This is most of what shows a reader understood a mesh.
+//Every face's positions, normals and UVs, and every skin weight's matrix, have to be in range.  This is most of what shows a
+//reader understood a mesh.
 bool	ValidateOldDragonMesh(COldDragonMesh* pcMesh);
 
 
