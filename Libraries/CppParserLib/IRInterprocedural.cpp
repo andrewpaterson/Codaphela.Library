@@ -788,7 +788,7 @@ bool CIRInterprocedural::SpecialiseCallee(size uiCallee, uint32 uiStrong)
 	bDone = false;
 	if (FindCalls(pcCallee->muiSymbol, &asSites))
 	{
-		for (uiParameter = 0; (uiParameter < pcCallee->masParameters.NumElements()) && (uiParameter < IR_PARAMETER_BITS) && !bDone; uiParameter++)
+		for (uiParameter = 0; (uiParameter < pcCallee->masParameters.NumElements()) && (uiParameter < IR_PARAMETER_BITS); uiParameter++)
 		{
 			if (!(uiStrong & ((uint32)1 << uiParameter)) || !ConstantArguments(&asSites, uiParameter, &aulliValues) || (aulliValues.NumElements() > IR_SPECIALISE_VALUES))
 			{
@@ -805,8 +805,10 @@ bool CIRInterprocedural::SpecialiseCallee(size uiCallee, uint32 uiStrong)
 			}
 			else
 			{
+				//The callee may be removed and freed (CopyForValues), so the loop can't look at it again.
 				CopyForValues(uiCallee, uiParameter, &asSites, &aulliValues);
 			}
+			break;
 		}
 	}
 	aulliValues.Kill();
