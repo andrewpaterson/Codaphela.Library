@@ -11,11 +11,16 @@
 #include "WindowLib/ComponentInput.h"
 #include "WindowLib/CommandSet.h"
 #include "WindowLib/EditCommands.h"
+#include "WindowLib/KeyCaptureField.h"
+#include "WindowLib/JewelTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
 #include "ScriptFramesTick.h"
+
+
+Ptr<CFont>	GenerateMenuFont(Ptr<CWindow> pWindow);
 
 
 #define AssertLog(e)	AssertString(e, szLog.Text()); szLog.Clear()
@@ -996,6 +1001,95 @@ void TestKeymapFile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The field has every key and chord before it can do anything else, and
+// waits through modifiers; escape and enter go on.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapCapture(void)
+{
+	CChars						szLog;
+	CKeymapTestWindow			cTest;
+	Ptr<CKeyCaptureField>		pField;
+	Ptr<CCommandSet>			pCommands;
+	CKeymapTestCommands			cRun;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	cRun.mpszLog = &szLog;
+	pCommands = OMalloc<CCommandSet>();
+	cTest.pWindow->SetCommands(pCommands);
+	pCommands->Add("Bound", "Bound", "F5", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pCommands->Add("BoundChord", "Bound Chord", "Control+D", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	pField = OMalloc<CKeyCaptureField>(cTest.pWindow, CJewelTheme::CreateDarkTheme(cTest.pWindow, GenerateMenuFont(cTest.pWindow)));
+	AssertTrue(cTest.pGrid->AddComponent(pField, 0, 1, 2, 1, 1, 1));
+	cTest.pWindow->Layout();
+	cTest.pWindow->GetFocus()->SetFocus(pField);
+	AssertString("", pField->GetKeys());
+
+	//One key, not run, and shown as a menu shows it.
+	cTest.cDevices.Tap("F5");
+	AssertString("F5", pField->GetKeys());
+	AssertString("F5", pField->GetText());
+	AssertLog("");
+
+	//A chord the keyboard knows, and one it doesn't.
+	cTest.cDevices.Control("C");
+	AssertString("Control+C", pField->GetKeys());
+	AssertString("Ctrl+C", pField->GetText());
+	cTest.cDevices.Control("D");
+	AssertString("Control+D", pField->GetKeys());
+	AssertLog("");
+	cTest.cDevices.Control("Q");
+	AssertString("Control+Q", pField->GetKeys());
+	cTest.cDevices.Press("Right Control");
+	cTest.cDevices.Press("Left Alt");
+	cTest.cDevices.Press("Left Shift");
+	cTest.cDevices.Tap("Q");
+	cTest.cDevices.Release("Left Shift");
+	cTest.cDevices.Release("Left Alt");
+	cTest.cDevices.Release("Right Control");
+	AssertString("Control+Alt+Shift+Q", pField->GetKeys());
+	cTest.cDevices.Shift("Q");
+	AssertString("Shift+Q", pField->GetKeys());
+
+	//What would type or move in a field is only keys.
+	cTest.cDevices.Tap("Q");
+	AssertString("Q", pField->GetKeys());
+	cTest.cDevices.Tap("Tab");
+	AssertString("Tab", pField->GetKeys());
+	cTest.cDevices.Tap("Cursor Up");
+	AssertString("Cursor Up", pField->GetKeys());
+	AssertString("Up", pField->GetText());
+
+	//Modifiers alone change nothing.
+	cTest.cDevices.Tap("Left Control");
+	cTest.cDevices.Tap("Left Shift");
+	cTest.cDevices.Tap("Right Alt");
+	AssertString("Cursor Up", pField->GetKeys());
+
+	//Plain escape and enter aren't captured; with a modifier they are.
+	cTest.cDevices.Tap("Escape");
+	cTest.cDevices.Tap("Enter");
+	AssertString("Cursor Up", pField->GetKeys());
+	cTest.cDevices.Control("Enter");
+	AssertString("Control+Enter", pField->GetKeys());
+
+	//Cleared.
+	pField->SetKeys("");
+	AssertString("", pField->GetKeys());
+	AssertString("", pField->GetText());
+
+	cTest.pWindow->SetCommands(NULL);
+	pCommands = NULL;
+	pField = NULL;
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the dialog asks about keys before it lets them be bound.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1070,6 +1164,7 @@ void TestKeymap(void)
 	TestKeymapEditCommands();
 	TestKeymapEditCommandsStandard();
 	TestKeymapFile();
+	TestKeymapCapture();
 	TestKeymapKeyQueries();
 
 	ObjectsFlush();
