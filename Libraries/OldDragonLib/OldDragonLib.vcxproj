@@ -25,6 +25,7 @@
     <ClCompile Include="OldDragonIOXReader.cpp" />
     <ClCompile Include="OldDragonImageReader.cpp" />
     <ClCompile Include="OldDragonMaxReader.cpp" />
+    <ClCompile Include="OldDragonOle.cpp" />
     <ClCompile Include="OldDragonParticles.cpp" />
     <ClCompile Include="OldDragonReader.cpp" />
     <ClCompile Include="OldDragonScene.cpp" />
@@ -33,6 +34,7 @@
     <ClInclude Include="OldDragonCursor.h" />
     <ClInclude Include="OldDragonFile.h" />
     <ClInclude Include="OldDragonImageReader.h" />
+    <ClInclude Include="OldDragonOle.h" />
     <ClInclude Include="OldDragonReader.h" />
     <ClInclude Include="OldDragonScene.h" />
   </ItemGroup>
