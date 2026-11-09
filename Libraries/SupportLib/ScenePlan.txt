@@ -133,9 +133,9 @@ CChunkFile is the main format.  OBJ is kept for plain meshes, and glTF import ma
 open formats fits as the main one: OBJ has no skin, animation or hierarchy, glTF has no polygons, smoothing groups or Blinn
 materials, FBX is closed, and COLLADA and USD are large.
 
-  Reader and writer   Calls, not a model in memory.  cWriter.BeginMesh, WritePositions, WriteFaces, EndMesh and so on.  Only needs
-                      BaseLib, so an exporter links it and never sees chunk names or layouts.  What fills a CMesh or a CScene from
-                      the reader lives in SupportLib.
+  Reader and writer   Calls, not a model in memory.  cWriter.BeginMesh, WritePositions, WriteFaces, EndMesh and so on.  In SupportLib, as
+                      they're only used with CMesh and co, though they only use BaseLib, and an exporter never sees chunk names or
+                      layouts.  What fills a CMesh or a CScene from the reader lives beside them.
   Extension           .DRG, with a version header.  CChunkFile's user ID says which kind of .DRG it is, as ChunkFileObjectWriter's
                       does, and a required chunk holds the format's version.  A reader refuses a version it doesn't know.
   Modifier stacks     Not in this format.  It holds final meshes, as a Max scene arrives with its modifiers applied.  Editable
@@ -158,7 +158,8 @@ B. The reader and writer, holding what Goober and Melee contain: meshes, polygon
    file.  Input/Scene/Sample.DRG in TestSupportLib uses all of it and fails its test if the bytes change.
 C. Convert the old files, see below.  Done: OldDragonConverter in OldDragonLib, run by Tools\ConvertOldDragon, whose ConvertAll.py
    lists what came from where.
-D. Render the converted files, including Goober's walk, as value checks can't catch a wrong rule.  What's checked so far is below.
+D. Render the converted files, including Goober's walk, as value checks can't catch a wrong rule.  Done: Tools\RenderSceneFile draws
+   them with RasterLib and goes once CScene can do this (step E and on).  What it found is below.
 E. Fill a CMesh and then a CScene from the reader.  Write them too.
 F. A Max exporter writing through the writer, if one is wanted.  It links SupportLib, StandardLib and BaseLib for that.
 
@@ -188,6 +189,18 @@ What the converter found the old files really do, which is in OldDragonConverter
   Pixels are BGR and BGRA in Into Oblivion and the 2009 files, but RGB and RGBA in the Max exporter's.  All have the top row first.
   Every sequence's last key is the one before it again, with no time.
   Into Oblivion's link nodes say what they place, and one link can place many things.  Its instances don't say.
+
+What rendering them found, which is in SceneFileGeneral.h and OldDragonConverter.h:
+  A scene is right handed with y up: the exporter's (x, z, -y) doesn't mirror, Into Oblivion projects with PerspectiveFovRH, and Goober
+  faces +z with its left hand at +x.  A polygon goes anticlockwise, and a v of 0 is an image's top row, in all of them.
+  A camera didn't mean the same in any two.  The exporter's look along their -y with -z up, so Melee's and Test.DRG's identity matrices
+  look straight down.  Into Oblivion's one holds forward, up and left in its rows, which mirrors it, and its game never used it:
+  Level.cpp puts a view of its own in that matrix when a level starts.  They now all look along -z with y up.
+  Lights shine along their -y in the old files (Into Oblivion's Light.cpp takes -_21) and along -z in the new ones.  Nothing draws with
+  them yet, so this rests on that code.
+  A field of view is horizontal: 45 degrees in Melee and Test.DRG, and Into Oblivion's 0.589 is that times 3/4 (CameraHelper::Set).
+  Arilou Headlights winds the wrong way, the only mesh that does.  It's small, and it's left as it is.
+  Melee's one channel images aren't the alpha of their PNGs.  Nothing has drawn with them, so what they should do is still open.
 
 How the converted files were checked, once, as the converter only runs once:
   A decoder with no C++ in it found all 18 follow the format's rules, with Goober's 6134 triangles and Melee's 132,356.
@@ -268,6 +281,7 @@ What the converter and whatever poses it need to know:
   A connection's world matrix is its track's first key, so either poses it the same.  This was thought to tear the mesh, but that was
   the old files' numbering.
   Its keys hold world matrices, and it has no parents, so it doesn't exercise the parent chain.
+  Its stars are all in a box of size 1 with radii up to 0.0086.  The Viewer made them bigger somehow, which isn't in its file.
   A key's time is seconds from the start of the animation.  CAnimKeyFrame::mfTime is commented as time until the next frame, so
   don't copy one to the other.
   The walk is on the spot.  Moving across the stars is the instance's own connection.
