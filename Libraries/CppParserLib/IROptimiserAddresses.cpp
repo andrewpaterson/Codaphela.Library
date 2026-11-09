@@ -245,7 +245,6 @@ bool CIROptimiser::BiasSignedIndices(void)
 	SIRInstruction*			psInstruction;
 	SIRInstruction*			psInner;
 	SIRInstruction*			psExtend;
-	SIRInstruction*			psScale;
 	SIRReference			sIndex;
 	SIRReference			sBase;
 	SIRReference			sOffset;
@@ -253,12 +252,14 @@ bool CIROptimiser::BiasSignedIndices(void)
 	SIRType					sOffsetType;
 	SIRType					sShort;
 	int64					lliScale;
+	int64					lliScaleBy;
 	int64					lliExtra;
 	int64					lliBias;
 	int64					lliMin;
 	int64					lliMax;
 	size					ui;
 	size					uj;
+	uint16					uiScaleOpcode;
 	bool					bChanged;
 
 	mpcFunction->CountUses(&mauiUses);
@@ -301,21 +302,24 @@ bool CIROptimiser::BiasSignedIndices(void)
 				continue;
 			}
 			lliScale = 1;
+			lliScaleBy = 1;
+			uiScaleOpcode = IRO_Mul;
 			psExtend = mcDefinitions.Instruction(sOffset);
-			psScale = NULL;
 			if (psExtend && ((psExtend->uiOpcode == IRO_Shl) || (psExtend->uiOpcode == IRO_Mul)) && psExtend->asArguments[1].IsConstant())
 			{
-				psScale = psExtend;
-				lliScale = mpcFunction->GetSigned(psScale->asArguments[1]);
-				if ((psScale->uiOpcode == IRO_Shl) && (lliScale >= 0) && (lliScale < 16))
+				//Kept by value, as the inserts below move the block's instructions.
+				uiScaleOpcode = psExtend->uiOpcode;
+				lliScaleBy = mpcFunction->GetSigned(psExtend->asArguments[1]);
+				lliScale = lliScaleBy;
+				if ((uiScaleOpcode == IRO_Shl) && (lliScale >= 0) && (lliScale < 16))
 				{
 					lliScale = (int64)1 << lliScale;
 				}
-				else if ((psScale->uiOpcode == IRO_Shl) || (lliScale < 1) || (lliScale > 0x7FFF))
+				else if ((uiScaleOpcode == IRO_Shl) || (lliScale < 1) || (lliScale > 0x7FFF))
 				{
 					continue;
 				}
-				psExtend = psScale->asArguments[0].IsTemporary() ? mcDefinitions.Instruction(psScale->asArguments[0]) : NULL;
+				psExtend = psExtend->asArguments[0].IsTemporary() ? mcDefinitions.Instruction(psExtend->asArguments[0]) : NULL;
 			}
 			if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !mpcFunction->TypeOf(psExtend->asArguments[0]).Is(IRTK_I16))
 			{
@@ -363,7 +367,7 @@ bool CIROptimiser::BiasSignedIndices(void)
 				}
 				if (lliScale != 1)
 				{
-					sIndex = InsertInstruction(pcBlock, uj++, (psScale->uiOpcode == IRO_Shl) ? IRO_Shl : IRO_Mul, sShort, sIndex, mpcFunction->AddInteger(sShort, psScale->uiOpcode == IRO_Shl ? mpcFunction->GetSigned(psScale->asArguments[1]) : lliScale));
+					sIndex = InsertInstruction(pcBlock, uj++, uiScaleOpcode, sShort, sIndex, mpcFunction->AddInteger(sShort, (uiScaleOpcode == IRO_Shl) ? lliScaleBy : lliScale));
 				}
 				if (lliBias != 0)
 				{
