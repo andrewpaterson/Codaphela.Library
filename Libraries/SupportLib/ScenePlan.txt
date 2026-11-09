@@ -249,7 +249,10 @@ Vulkan.
    Left: CMesh::MovePosition, MovePositions, RemoveFace, RemoveFaces and RemoveCorner are empty, so moving and removing do
    nothing yet, and it isn't decided whether a move is to a position or by an offset.  SaveOBJ of a CMesh writes triangles even
    when it has polygons, as a test reading triangles back expects that.
-3. CConnection has a Ptr<CConnection> parent, which a file fills.  It updates: a world matrix from a local one and the parent's.
+3. CConnection updates.  Done: UpdateWorldMatrix makes its world matrix its local one times its parent's, and its local one with no
+   parent, parents first, and sets its parity from it.  CScene::UpdateConnections does all of a scene's.  Nothing calls it on its own:
+   the converted files hold world matrices that are right, but Goober's and Test.DRG's locals are relative to parents in Max that the
+   old files lost, so updating them would move things.  Most of those parents can be found again (see Open).
 4. RenderLib and RasterRenderLib: create and replace only.  CRasterMesh::Build moves to RasterRenderLib, the same code, so that
    RasterLib no longer includes SupportLib/Mesh.h.  BoardScene, VRMLCanvasDraw and any tests that build from a CMesh call it
    there.  Check whether SupportLib/ColourARGB32.h can go with it.  CRasterMesh becomes a CObject: BoardScene and VRMLCanvasDraw
@@ -311,6 +314,11 @@ is lost, and a point list has its own cook and draw on each renderer.
 Modifiers that make other faces (weld, corner merge, edge collapse, fix reversed, merge normals) can't keep UVs, skin or materials,
 as they only rebuild positions, normals and colours: CMeshModifier::CanRebuild refuses such a mesh and Modify returns it as it was.
 Modifiers that only change normals, and shapes, keep everything since step 2.
+
+The parents the old files lost.  A connection whose local matrix isn't its world matrix had a parent in Max, and another connection's
+world matrix makes it: Test.DRG's camera is under Point01 (local * parent, as scene files are), and of Goober's 137, 117 have one parent
+that fits and 20 have two, a bone and the finger helper at the same place.  Goober's locals are the other way round (parent * local).
+The converter could give them parents and locals the right way round, or make a root's local its world matrix.
 
 Where bone hierarchy lives.  CMeshSkin has the weights and inverse matrices, but nothing holds a skeleton that instances could
 share.
