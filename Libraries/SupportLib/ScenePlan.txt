@@ -2,33 +2,97 @@ Scene plan
 ==========
 
 CScene, CInstance, CConnection, CConnectionAnimation, CCamera and CLight describe a scene, in floats.  They aren't used yet,
-and CScene still rests on CFakeTracker and TrackerTypes.  RasterLib draws, in integers.  The split is the same as CMesh and
-CRasterMesh: one way, from the description to what is drawn.
+and CScene still rests on CFakeTracker and TrackerTypes.  A renderer draws what is converted from them, one way, from the
+description to what is drawn.  RasterLib is the renderer today and a Vulkan one is to come, so nothing here is only for
+RasterLib unless it says so.
 
 
 What the objects are
 --------------------
-A CInstance is one thing in the game, one character say.  It holds pointers to meshes and bone information, and has its own
-connections.  Two characters are two CInstances that share their meshes and bones and are drawn in different places.
+  CScene                    Instances, lights and cameras.  Everything else is reached through what uses it.
+    CInstance               One thing in the game, one character say.
+      CArray<CConnection>   Its own, in slot order.
+      CArray<CInstanceMesh>
+        Ptr<CMeshEditor>    Shared with other instances.  Holds the mesh and its modifier stack.
+        Connection slots    What each of the mesh's matrices uses.  One for a rigid mesh, one per matrix for a skinned one.
+        Materials           In place of the mesh's defaults.
+    CLight, CCamera         Not instanced.  Each has its own Ptr<CConnection>.
+
+Two characters are two CInstances that share their meshes and bones and are drawn in different places.
 
 A CConnection is something spatial that lights, cameras, meshes or other game information can be attached to.
 
   Kind        What                                 Reaches its connection by
-  Shared      CMesh, bones                         The instance holds it, and a slot in the instance's connections
+  Shared      CMeshEditor, bones                   The instance holds it, and slots in the instance's connections
   Not shared  CLight, CCamera, small game objects  Its own Ptr<CConnection>
 
 Shared data can't point at a connection, as each instance has its own.  It refers to one by slot, so the order of an
-instance's connections matters and is saved with it.
+instance's connections matters and is saved with it.  A skinned mesh's SSkinWeight::iMatrix numbers its own matrices, not the
+instance's connections, which is why the slots are per mesh.
 
 Lights and cameras are too small to be worth sharing and aren't instanced.  Two lanterns are two CLights.  A light on its own
 has its own connection, and one carried by a character has a connection whose parent is the character's hand.
 
-CScene holds three lists: instances, lights and cameras.  Everything else is reached through what uses it.
+Pose (skinning, morphs) is per instance and never changes the shared CMesh, as two characters share it and stand differently.
+
+CMeshEditor holds the mesh and the modifier stack and produces the final mesh to be cooked.
+
+
+From the scene to what is drawn
+-------------------------------
+  CMeshEditor::GetOutput --> CMesh                                  Runs the stack.
+    1. Cook: when it has changed.                                   SRenderMeshData and friends.  Plain, for any renderer.
+    2. Create: per device.                                          CRenderMesh --> CNativeRenderMesh*
+    3. Extract: every frame, from connections, camera and lights.   SRenderFrame
+    4. Draw.                                                        CRasteriser, or Vulkan command buffers.
+
+  Source                 Cooked or extracted             Raster                     Vulkan
+  CMesh                  Unique vertices, submeshes by   CRasterMesh                Vertex and index buffers, ranges
+                         material slot, opaque and
+                         transparent, bounds
+  CMaterial              Parameters, image references    Flat colour at most        Descriptor set, pipeline key
+  CImage                 Pixels in a format, with mips   Ignored for now            VkImage, view, sampler
+  CMeshSkin              Weights, inverse matrices       Skinned on the CPU         Vertex attributes, matrix palette
+  CConnection            World matrix, parity            asAxes and sOffset         Per instance buffer, front face
+  CCamera                View and projection             CRasterCamera              Uniform buffer
+  CLight                 A list of lights                CRasteriser's light values Uniform buffer
+  CConnectionAnimation   (changes CConnection)           Never sees it              Never sees it
+
+A cooked mesh keeps a table from the CMesh's corners to its vertices, while it is being edited, for updating it in place.
+Position and normal are a stream of their own, so that a change of shape or pose only touches them.  CRasterMesh already
+splits this way, with masVertices apart from its triangles.
+
+The integer scale, quantising and turn-only axes are the raster renderer's own, and so is what it does with a mirrored matrix.
+
+
+When something changes
+----------------------
+Each frame CRenderScene walks the scene and looks at the editors' change counters.  Nothing has to notify it.
+
+  Change                                   What happens
+  Structure, or any edit under modifiers   The stack runs again and a new render mesh replaces the old at a frame boundary.
+  Shape, with no modifiers                 The same at first.  Updated in place once something needs that speed.
+  Pose                                     Per instance.  The shared CMesh and the stack aren't touched.
+  A mesh no longer used                    Its Ptr is dropped and the graph frees it.
+
+Modifiers may add or remove vertices, so a mesh with any modifiers can't be updated in place: there may be no old vertex to
+overwrite.  A heavy stack is too slow to run on every mouse move, so an editor may run it when a drag ends, or draw the
+unmodified mesh during the drag.  That is the editor's choice.
+
+The graph can free a render mesh at any moment, while the GPU may still be using it.  On Vulkan destroying a native mesh only
+queues it until that frame's fence signals.  Raster frees it at once.
 
 
 The rule
 --------
-A step builds RasterLib's types from the scene.  RasterLib never includes the scene's headers.
+Nothing in the scene knows a renderer exists, and a renderer only sees what it is given.
+
+  SupportLib        The scene.  Knows nothing of renderers.
+  RenderLib         Cooking, CRenderer (per device, holds the shared resources), CRenderScene, CRenderMesh and friends, and
+                    the abstract CNativeRenderFactory.  Follows CCanvas, CNativeCanvas and CNativeWindowFactory.
+  RasterRenderLib   Implements the factory using RasterLib.
+  VulkanLib         Implements the factory using Vulkan.
+  RasterLib         Draws.  Knows nothing of scenes, but for CRasterMesh::Build, which includes SupportLib/Mesh.h.
 
 These stay out of RasterLib:
   Transforms with parents        CConnection's local and world matrices.
@@ -36,44 +100,87 @@ These stay out of RasterLib:
   Keyframes or time              CConnectionAnimation.
   A list of what's in the world  CScene.
 
-
-What goes where
----------------
-  Scene                  Drawn as                     Today
-  CMesh                  CRasterMesh                  Done: CRasterMesh::Build
-  CInstance's meshes     SRasterInstance, per mesh    BoardScene writes axes and offsets by hand
-  CCamera+CConnection    CRasterCamera                Viewers set CRasterCamera up directly
-  CLight                 CRasteriser's light values   Fixed: msLight and RASTER_AMBIENT
-  CConnectionAnimation   (changes CConnection)        Nothing.  BoardScene sets a yaw
+SupportLib can't use RasterLib, as RasterLib already depends on it, so a CScene could never create a CRasterMesh itself.
 
 
 Steps
 -----
-Each is done when something needs it, with tests.
+Each is done when something needs it, with tests.  Skinning must be proved before Vulkan.
 
-1. Remove CFakeTracker and TrackerTypes.  CScene becomes a CObject with its three lists.  CInstance holds its meshes, a
-   connection slot for each, and its connections.  CLight and CCamera each get a Ptr<CConnection>.
-2. CConnection gets a Ptr<CConnection> parent and updates: a world matrix from a local one and the parent's.
-3. The step from a scene to SRasterInstances, one for each rigid mesh of each instance: axes and offset from the world matrix
-   of the mesh's connection, in one scene-wide scale.
-   Decide what happens to a mirrored matrix (mbParity), as SRasterInstance must turn and not mirror, and to one that scales.
-4. The camera: CCamera and its connection set up a CRasterCamera.  ECameraType decides the projection, so ERasterProjection
-   isn't set separately, and FOV becomes focal length.  Drag, Pan, Zoom and FitOrbit stay on CRasterCamera as viewer controls.
-   Decide how they write back to the scene, if they should.
-5. Lights: CRasteriser takes light values, in place of msLight and RASTER_AMBIENT, with what they are now as the default.
+1. Scene objects.  Remove CFakeTracker and TrackerTypes.  CScene becomes a CObject with its three lists.  Write CInstance and
+   CInstanceMesh.  CLight and CCamera each get a Ptr<CConnection>.  CMeshMaterials' mcMaterials and mcFaces and
+   CMaterialImage::miImageID are indices into trackers: faces hold slots (-1 for no material), the mesh's list becomes Ptrs, and
+   CMaterial holds the Ptr<CImage>s, leaving CMaterialImage with how they are sampled.
+2. CMeshEditor.  CMeshEditor::Init gives its stack the mesh, as it has no source today, and GetOutput returns the stack's.  With
+   no modifiers that is the mesh itself.  Structure and shape counters go on the editor's methods.  The renderer clears the
+   output after cooking.
+3. CConnection gets a Ptr<CConnection> parent and updates: a world matrix from a local one and the parent's.
+4. RenderLib and RasterRenderLib: create and replace only, with the raster renderer still calling CRasterMesh::Build.
+5. Extract.
+   Connections become SRasterInstances, one for each rigid mesh of each instance: axes and offset from the world matrix of the
+   mesh's connection, in one scene-wide scale.  Decide what happens to a mirrored matrix (mbParity), as SRasterInstance must turn
+   and not mirror, and to one that scales.
+   CCamera and its connection set up a CRasterCamera.  ECameraType decides the projection, so ERasterProjection isn't set
+   separately, and FOV becomes focal length.  Drag, Pan, Zoom and FitOrbit stay on CRasterCamera as viewer controls.  Decide how
+   they write back to the scene, if they should.
+   CRasteriser takes light values, in place of msLight and RASTER_AMBIENT, with what they are now as the default.
 6. Move BoardScene onto a CScene: its models, the mainboard and boards standing in their sockets become instances and
-   connections, and its yaw a connection or an animation.  This is what proves the steps above.
-7. CConnectionAnimation: keyframes change connections, and the step in 3 runs again.  miConnectionIndex is a slot in the
-   instance's connections, so that characters can share an animation.
+   connections, and its yaw a connection or an animation.  Its pixels must stay byte-identical.  The VRML read becomes lazy, so
+   that a cached model needs no CMesh.  This is what proves the rigid path.
+7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  miConnectionIndex is a slot in the instance's
+   connections.  Sharing a walk also needs a clip that groups the tracks of many connections, as one CConnectionAnimation is one
+   connection.
+8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  Goober proves it.  Needs
+   modifiers that keep UVs and skin (see Open) and a conversion from COldDragonScene to CScene.
+9. In-place updates, if dragging plain meshes is slow.
+10. The cook stage and VulkanLib.  The native factory changes from CMesh* to cooked data.  This is left until now so that
+    BoardScene's vertex order and pixels aren't put at risk for nothing.
 
-Not planned: skinning.  CInstance's connections allow for it, as a skinned mesh's weights can use their slots, but RasterLib
-has none, so it is new work of its own.
+
+Test scenes
+-----------
+BoardScene proves the rigid path, including the parent chain.  It has no textures, materials or skinning.
+
+Goober, a skinned mesh walking a field of stars, proves the rest: D:\Work\Star Control\Builds\ViewerV7beta2009.9.20\Goober.DRG
+and Particles\Stars.csv beside it, read by OldDragonLib.  1 mesh (3241 positions, 6134 faces), 1 material, 3 images, 67 bones
+and 1105 stars.  The Max source is in D:\Work\Bounty Arms\MaxFiles\Goober.
+
+  Pose it with vectors on the left of row-major matrices:
+    fWeight * (position * inverse[iMatrix] * keyframe world of maiConnections[iMatrix])
+  Use key frames, not its connections' matrices, which tear the mesh.
+  Its keys look to hold world matrices, so it may not exercise the parent chain.
+  SOldDragonKeyFrame::fTime is seconds since the previous key.  CAnimKeyFrame::mfTime is commented as time until the next
+  frame, so don't copy one to the other.
+  The walk is on the spot.  Moving across the stars is the instance's own connection.
+  It has no stored normals.  They come from its smoothing groups.
+
+Melee.DRG is no use as a sample: its 64 meshes have no faces.
+
+
+To decide
+---------
+Whether CRenderMesh is a CObject over a raw native pointer.  This plan assumes so, as that is the CCanvas pattern.  The cost is a
+layer per kind of resource.
+
+Whether the full cook waits for Vulkan.  This plan assumes so.
+
+Whether Apply and CMeshEditor::Touch go, leaving only Modify and GetOutput.  Every modifier with an Apply also has a Modify, but
+Apply is what keeps polygons and selections up to date as shapes are generated, so those need a new home first.  Adding GetOutput
+doesn't depend on this.
 
 
 Open
 ----
-Who owns the CRasterMeshes.  SRasterInstance's pcMesh is a raw pointer, and RasterLib can't see the scene, so something must
-remember which CMesh was built into which CRasterMesh, so that a shared mesh is built once.
+The scene file format.  A generic 3D scene format is to be designed once the old readers in OldDragonLib are finished.  It has to
+decide what is stored: the CMeshEditor with its mesh and stack, the final mesh, or both.  That decides whether a loaded scene can
+still be edited and whether a cached model loads without its CMesh.  The old files show what to avoid: layouts that changed
+between versions, raw pointers stored in arrays, and saves that failed without anything noticing.
+
+Particles.  Goober's stars are neither a mesh nor an instance.  Either CScene gets a fourth list or they are something else, and
+a point list has its own cook and draw on each renderer.
+
+Modifiers lose data.  CMesh::CopyFrom keeps positions, faces, normals and colours, and CMeshModifier's rebuild the same, so UVs,
+skin and materials are lost.  Goober's normals come from a modifier, so this must be fixed before step 8.
 
 Where bone hierarchy lives.  CMeshSkin has the weights and inverse matrices, but nothing holds a skeleton that instances could
 share.
@@ -81,3 +188,12 @@ share.
 Creating and removing an attached light.  Copying an instance doesn't bring its lantern along, so whatever creates the
 character must also create the light and add it to the scene.  When the character is removed, something must remove the light,
 or it stays lit where the hand was: its connection's parent keeps the hand's connection alive, but nothing updates it.
+
+Coordinates.  Max's exports were Y-up and the KiCad boards look Z-up, so CMesh has no one convention.  Set one, and importers
+convert to it.
+
+Threads.  Cooking would run on CJobs and draws skip what isn't ready, but it isn't known yet that reading a CMesh off the main
+thread is safe.
+
+Vulkan in a window.  CCanvas is software pixels, while Vulkan presents to a surface made from the native window.  A Vulkan view in
+a dialog needs a design of its own.
