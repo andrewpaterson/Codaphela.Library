@@ -27,7 +27,11 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Something spatial that meshes, lights, cameras or other game information can be attached to.  mszName is what it's called in a
-//file, and many may have the same one, which an object's name can't.  Nothing keeps msWorldMatrix up to date from its parent yet.
+//file, and many may have the same one, which an object's name can't.
+//
+//Matrices are row major with vectors on their left.  UpdateWorldMatrix makes msWorldMatrix msLocalMatrix * the parent's world matrix,
+//and msLocalMatrix itself with no parent, updating its parents first.  mbParity is then whether it mirrors.  uiUpdate says which update
+//this is, so that a parent shared by many is only done once, and a loop of parents stops.
 class CConnection : public CObject
 {
 CONSTRUCTABLE(CConnection);
@@ -36,10 +40,13 @@ public:
 	CChars				mszName;
 	Ptr<CConnection>	mpParent;
 	SFloat4x4			msWorldMatrix;
-	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.
+	SFloat4x4			msLocalMatrix;  //Relative to the parent, or the world with no parent.
 	bool				mbSelected;
 	bool				mbTopLevel;
 	bool				mbParity;
+
+protected:
+	size				muiUpdate;
 
 public:
 	Ptr<CConnection> 	Init(void);
@@ -47,6 +54,8 @@ public:
 	void				Class(void) override;
 
 	void				Copy(CConnection* pcConnection);
+
+	void				UpdateWorldMatrix(size uiUpdate);
 };
 
 

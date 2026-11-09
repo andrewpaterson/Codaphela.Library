@@ -517,6 +517,83 @@ void TestSceneSmoothGroups(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static Ptr<CConnection> TestSceneConnection(float32 x, Ptr<CConnection> pParent)
+{
+	Ptr<CConnection>	pConnection;
+
+	pConnection = OMalloc<CConnection>();
+	pConnection->msLocalMatrix.pos.x = x;
+	pConnection->mpParent = pParent;
+	return pConnection;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A world matrix is the local one times the parent's, so a child turned by
+// its parent moves the way its parent faces.  A parent nothing else holds is
+// still done, a mirror sets the parity, and a loop of parents stops.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneUpdateConnections(void)
+{
+	Ptr<CScene>			pScene;
+	Ptr<CInstance>		pInstance;
+	Ptr<CConnection>	pRoot;
+	Ptr<CConnection>	pChild;
+	Ptr<CConnection>	pGrandchild;
+	Ptr<CConnection>	pMirrored;
+	Ptr<CLight>			pLight;
+	Ptr<CConnection>	pFirst;
+	Ptr<CConnection>	pSecond;
+
+	pRoot = TestSceneConnection(10, NULL);
+	Float4x4RotationZ(&pRoot->msLocalMatrix, 3.14159265f / 2.0f);
+	pRoot->msLocalMatrix.pos.x = 10;
+	pChild = TestSceneConnection(1, pRoot);
+	pGrandchild = TestSceneConnection(2, pChild);
+	pGrandchild->msWorldMatrix.pos.z = 99;
+
+	pInstance = OMalloc<CInstance>();
+	pInstance->mapConnections.Add(pGrandchild);
+	pScene = OMalloc<CScene>();
+	pScene->mapInstances.Add(pInstance);
+
+	pMirrored = TestSceneConnection(0, NULL);
+	pMirrored->msLocalMatrix.x.x = -1;
+	pLight = OMalloc<CLight>();
+	pLight->mpConnection = pMirrored;
+	pScene->mapLights.Add(pLight);
+
+	pScene->UpdateConnections();
+
+	AssertFloat(10.0f, pRoot->msWorldMatrix.pos.x, 3);
+	AssertFloat(10.0f, pChild->msWorldMatrix.pos.x, 3);
+	AssertFloat(1.0f, pChild->msWorldMatrix.pos.y, 3);
+	AssertFloat(10.0f, pGrandchild->msWorldMatrix.pos.x, 3);
+	AssertFloat(3.0f, pGrandchild->msWorldMatrix.pos.y, 3);
+	AssertFloat(0.0f, pGrandchild->msWorldMatrix.pos.z, 3);
+	AssertFalse(pGrandchild->mbParity);
+	AssertTrue(pMirrored->mbParity);
+
+	//A parent moved is seen by the next update.
+	pRoot->msLocalMatrix.pos.y = 5;
+	pScene->UpdateConnections();
+	AssertFloat(8.0f, pGrandchild->msWorldMatrix.pos.y, 3);
+
+	pFirst = TestSceneConnection(1, NULL);
+	pSecond = TestSceneConnection(1, pFirst);
+	pFirst->mpParent = pSecond;
+	pInstance->mapConnections.Add(pFirst);
+	pScene->UpdateConnections();
+	pFirst->mpParent = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestSceneFailures(void)
 {
 	Ptr<CScene>			pScene;
@@ -565,6 +642,7 @@ void TestScene(void)
 	TestSceneWrite();
 	TestSceneImages();
 	TestSceneSmoothGroups();
+	TestSceneUpdateConnections();
 
 	sLogConfig = gcLogger.SetSilent();
 	TestSceneFailures();

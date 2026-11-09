@@ -36,6 +36,7 @@ Ptr<CConnection> CConnection::Init(void)
 	mbSelected = false;
 	mbTopLevel = false;
 	mbParity = false;
+	muiUpdate = 0;
 
 	PostInit();
 
@@ -66,6 +67,7 @@ void CConnection::Class(void)
 	U_Bool(mbSelected);
 	U_Bool(mbTopLevel);
 	U_Bool(mbParity);
+	U_Size(muiUpdate);
 }
 
 
@@ -83,5 +85,30 @@ void CConnection::Copy(CConnection* pcConnection)
 	mbSelected = pcConnection->mbSelected;
 	mbTopLevel = pcConnection->mbTopLevel;
 	mbParity = pcConnection->mbParity;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CConnection::UpdateWorldMatrix(size uiUpdate)
+{
+	if (muiUpdate == uiUpdate)
+	{
+		return;
+	}
+	muiUpdate = uiUpdate;
+
+	if (mpParent.IsNotNull())
+	{
+		mpParent->UpdateWorldMatrix(uiUpdate);
+		Float4x4Multiply(&msWorldMatrix, &msLocalMatrix, &mpParent->msWorldMatrix);
+	}
+	else
+	{
+		msWorldMatrix = msLocalMatrix;
+	}
+	mbParity = msWorldMatrix.Determinant() < 0.0f;
 }
 

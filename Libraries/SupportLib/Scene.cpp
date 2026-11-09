@@ -1154,6 +1154,7 @@ void CScene::Init(void)
 	mapCameras.Init();
 	mapAnimations.Init();
 	mapParticles.Init();
+	muiUpdates = 0;
 
 	PostInit();
 }
@@ -1179,6 +1180,7 @@ void CScene::Class(void)
 	M_Embedded(mapCameras);
 	M_Embedded(mapAnimations);
 	M_Embedded(mapParticles);
+	U_Size(muiUpdates);
 }
 
 
@@ -1205,5 +1207,57 @@ bool CScene::WriteFile(const char* szFilename)
 
 	pSave = OMalloc<CSceneFileSave>(szFilename);
 	return pSave->Write(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScene::UpdateConnections(void)
+{
+	Ptr<CInstance>			pInstance;
+	Ptr<CSceneAnimation>	pAnimation;
+	Ptr<CConnection>		pConnection;
+	size					i;
+	size					j;
+
+	muiUpdates++;
+	for (i = 0; i < mapInstances.NumElements(); i++)
+	{
+		pInstance = mapInstances.Get(i);
+		for (j = 0; j < pInstance->mapConnections.NumElements(); j++)
+		{
+			pInstance->mapConnections.Get(j)->UpdateWorldMatrix(muiUpdates);
+		}
+	}
+	for (i = 0; i < mapLights.NumElements(); i++)
+	{
+		pConnection = mapLights.Get(i)->mpConnection;
+		if (pConnection.IsNotNull())
+		{
+			pConnection->UpdateWorldMatrix(muiUpdates);
+		}
+	}
+	for (i = 0; i < mapCameras.NumElements(); i++)
+	{
+		pConnection = mapCameras.Get(i)->mpConnection;
+		if (pConnection.IsNotNull())
+		{
+			pConnection->UpdateWorldMatrix(muiUpdates);
+		}
+	}
+	for (i = 0; i < mapAnimations.NumElements(); i++)
+	{
+		pAnimation = mapAnimations.Get(i);
+		for (j = 0; j < pAnimation->mapTracks.NumElements(); j++)
+		{
+			pConnection = pAnimation->mapTracks.Get(j)->mpConnection;
+			if (pConnection.IsNotNull())
+			{
+				pConnection->UpdateWorldMatrix(muiUpdates);
+			}
+		}
+	}
 }
 
