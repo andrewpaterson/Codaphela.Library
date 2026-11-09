@@ -40,6 +40,15 @@ typedef CArrayTemplatePrimitive<uint32>	CArrayConvertUints;
 typedef CArrayTemplatePrimitive<uint8>	CArrayConvertBytes;
 
 
+//How a connection's matrices are turned into what a scene file means by them.
+enum EOldDragonAim
+{
+	OLDA_AsItIs,
+	OLDA_Exporter,		//A camera looks along its -y with -z up, and a light shines along its -y.
+	OLDA_IOXCamera,		//Its x is forward, y is up and z is left, which mirrors it.  Its game put a view of its own in it when it ran.
+};
+
+
 enum EOldDragonPlacedKind
 {
 	OLDPK_Mesh,
@@ -407,6 +416,55 @@ static void GetInstanceConnections(COldDragonScene* pcScene, SOldDragonPlaced* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How to turn the matrices of this connection, by what's attached to it.
+//
+//////////////////////////////////////////////////////////////////////////
+static EOldDragonAim GetConnectionAim(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, int32 iConnection)
+{
+	SOldDragonPlaced*	psPlaced;
+	size				i;
+
+	for (i = 0; i < pasPlaced->NumElements(); i++)
+	{
+		psPlaced = pasPlaced->Get(i);
+		if ((psPlaced->eKind != OLDPK_Mesh) && (GetPlacedConnection(pcScene, psPlaced) == iConnection))
+		{
+			return ((pcScene->meVersion == ODV_IOX) && (psPlaced->eKind == OLDPK_Camera)) ? OLDA_IOXCamera : OLDA_Exporter;
+		}
+	}
+	return OLDA_AsItIs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A camera looks along its -z with y up, and a light shines along its -z.
+// Subtracting from 0 doesn't turn a 0 into a -0.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AimMatrix(float32* pafDest, const float32* pafSource, EOldDragonAim eAim)
+{
+	int32	j;
+
+	memcpy(pafDest, pafSource, sizeof(float32) * OLD_DRAGON_FLOATS_IN_MATRIX);
+	for (j = 0; j < 3; j++)
+	{
+		if (eAim == OLDA_Exporter)
+		{
+			pafDest[4 + j] = 0.0f - pafSource[8 + j];
+			pafDest[8 + j] = pafSource[4 + j];
+		}
+		else if (eAim == OLDA_IOXCamera)
+		{
+			pafDest[0 + j] = 0.0f - pafSource[8 + j];
+			pafDest[8 + j] = 0.0f - pafSource[0 + j];
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // False if the channels aren't known.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -463,10 +521,11 @@ static bool GetImagePixels(COldDragonScene* pcScene, COldDragonImage* pcImage, C
 // time after it isn't understood, and fails.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool GetTrackKeys(COldDragonSequence* pcSequence, CArrayConvertFloats* pafTimes, CArrayConvertFloats* paf4x4s)
+static bool GetTrackKeys(COldDragonSequence* pcSequence, EOldDragonAim eAim, CArrayConvertFloats* pafTimes, CArrayConvertFloats* paf4x4s)
 {
 	SOldDragonKeyFrame*	psKey;
 	SOldDragonKeyFrame*	psPrevious;
+	float32				af4x4[OLD_DRAGON_FLOATS_IN_MATRIX];
 	float64				fTime;
 	float32				fKeyTime;
 	size				i;
@@ -490,7 +549,8 @@ static bool GetTrackKeys(COldDragonSequence* pcSequence, CArrayConvertFloats* pa
 		fTime += (float64)psKey->fTime;
 		fKeyTime = (float32)fTime;
 		pafTimes->Add(fKeyTime);
-		paf4x4s->Add(psKey->sMatrix.af, OLD_DRAGON_FLOATS_IN_MATRIX);
+		AimMatrix(af4x4, psKey->sMatrix.af, eAim);
+		paf4x4s->Add(af4x4, OLD_DRAGON_FLOATS_IN_MATRIX);
 	}
 	return true;
 }
@@ -526,7 +586,7 @@ static float32 GetLightIntensity(COldDragonScene* pcScene, SOldDragonLight* psLi
 //////////////////////////////////////////////////////////////////////////
 static float32 GetCameraFieldOfView(COldDragonScene* pcScene, SOldDragonCamera* psCamera)
 {
-	return (pcScene->meVersion == ODV_IOX) ? psCamera->fFOV : (float32)((float64)psCamera->fFOV * OLD_DRAGON_DEGREES_TO_RADIANS);
+	return (pcScene->meVersion == ODV_IOX) ? (psCamera->fFOV * 4.0f / 3.0f) : (float32)((float64)psCamera->fFOV * OLD_DRAGON_DEGREES_TO_RADIANS);
 }
 
 
@@ -657,11 +717,15 @@ static bool WriteMaterial(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteConnection(CSceneFileWriter* pcWriter, SOldDragonConnection* psConnection)
+static void WriteConnection(CSceneFileWriter* pcWriter, SOldDragonConnection* psConnection, EOldDragonAim eAim)
 {
+	float32	af4x4[OLD_DRAGON_FLOATS_IN_MATRIX];
+
 	pcWriter->BeginConnection(psConnection->szName);
-	pcWriter->WriteWorldMatrix(psConnection->sWorld.af);
-	pcWriter->WriteLocalMatrix(psConnection->sLocal.af);
+	AimMatrix(af4x4, psConnection->sWorld.af, eAim);
+	pcWriter->WriteWorldMatrix(af4x4);
+	AimMatrix(af4x4, psConnection->sLocal.af, eAim);
+	pcWriter->WriteLocalMatrix(af4x4);
 	pcWriter->WriteParity(psConnection->bParity);
 	pcWriter->EndConnection();
 }
@@ -820,7 +884,7 @@ static void WriteLightsAndCameras(CSceneFileWriter* pcWriter, COldDragonScene* p
 // One animation holds all of a scene's sequences, as they play together.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene)
+static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced)
 {
 	COldDragonSequence*	pcSequence;
 	CArrayConvertFloats	afTimes;
@@ -848,7 +912,7 @@ static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene)
 		}
 		afTimes.Init();
 		af4x4s.Init();
-		bResult = GetTrackKeys(pcSequence, &afTimes, &af4x4s);
+		bResult = GetTrackKeys(pcSequence, GetConnectionAim(pcScene, pasPlaced, iConnection), &afTimes, &af4x4s);
 		if (bResult)
 		{
 			pcWriter->WriteTrack(iConnection, afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());
@@ -955,10 +1019,10 @@ bool WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename)
 		}
 		for (i = 0; i < pcScene->macConnections.NumElements(); i++)
 		{
-			WriteConnection(&cWriter, pcScene->macConnections.Get(i));
+			WriteConnection(&cWriter, pcScene->macConnections.Get(i), GetConnectionAim(pcScene, &asPlaced, (int32)i));
 		}
 		WriteLightsAndCameras(&cWriter, pcScene, &asPlaced);
-		bResult = bResult && WriteAnimation(&cWriter, pcScene);
+		bResult = bResult && WriteAnimation(&cWriter, pcScene, &asPlaced);
 		for (i = 0; i < asPlaced.NumElements(); i++)
 		{
 			if (asPlaced.Get(i)->eKind == OLDPK_Mesh)

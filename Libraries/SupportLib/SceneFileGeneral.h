@@ -32,6 +32,10 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //No struct is written whole, and only fixed size types are written, little endian.  An index refers to a list in the same
 //file, counts from 0, and is -1 for none.
 //
+//A scene is right handed with y up, and matrices are row major with vectors on their left.  A polygon's corners go anticlockwise
+//seen from outside.  A UV's v of 0 is an image's top row.  A camera looks along its connection's -z with y up, and a light shines
+//along its connection's -z.
+//
 //	Version		int32
 //	Mesh		Name
 //				Positions		float32 x, y, z
@@ -71,7 +75,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //				Attached		int32 connection
 //	Camera		Name
 //				CameraType		int32 ESceneFileCameraType
-//				Lens			float32 field of view in radians, near, far
+//				Lens			float32 horizontal field of view in radians, near, far
 //				Attached		int32 connection
 //	Animation	Name
 //				Track			Attached		int32 connection

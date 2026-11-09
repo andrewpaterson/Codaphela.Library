@@ -700,9 +700,103 @@ void TestOldDragonConvertFromIntoOblivionNodes(void)
 	AssertTrue(cReader.BeginCamera(0));
 	AssertInt(4, cReader.GetAttached());
 	AssertTrue(cReader.ReadLens(&fFOV, &fNear, &fFar));
-	AssertFloat(0.589f, fFOV, 3);
+	AssertFloat(0.589f * 4.0f / 3.0f, fFOV, 3);
 	AssertTrue(cReader.End());
 
+	cReader.Kill();
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rows of a world matrix, as 1 to 12, after it has been converted.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestAxes(float32* pafWorld, float32 fX, float32 fY, float32 fZ, int32 iFirst)
+{
+	AssertFloat(fX, pafWorld[iFirst], 3);
+	AssertFloat(fY, pafWorld[iFirst + 1], 3);
+	AssertFloat(fZ, pafWorld[iFirst + 2], 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonConvertAims(void)
+{
+	COldDragonScene		cScene;
+	COldDragonSequence*	pcSequence;
+	CSceneFileReader	cReader;
+	float32				afWorld[16];
+	float32				afKey[16];
+
+	//The exporter's camera looks along its -y with -z up, and a mesh's connection isn't touched.
+	cScene.Init();
+	cScene.meVersion = ODV_Max;
+	AddTestMesh(&cScene, "Mesh");
+	AddTestCamera(&cScene, "Camera", 45.0f);
+	AddTestConnection(&cScene, "Mesh Place", OLD_DRAGON_NO_INDEX, 0);
+	AddTestConnection(&cScene, "Camera Place", OLD_DRAGON_NO_INDEX, 1);
+	AddTestInstance(&cScene, 1, 0, 0);
+	AddTestInstance(&cScene, 3, 0, 1);
+	pcSequence = cScene.AddSequence();
+	SetTestName(pcSequence->mszName, "Camera Place");
+	pcSequence->miConnection = 1;
+	AddTestKey(pcSequence, 200.0f, 0.0f);
+	AssertConverts(&cScene);
+
+	cReader.Init(CONVERTED);
+	AssertTrue(cReader.Open());
+	AssertTrue(cReader.BeginConnection(0));
+	AssertTrue(cReader.ReadWorldMatrix(afWorld));
+	AssertTrue(cReader.End());
+	AssertTestAxes(afWorld, 5.0f, 6.0f, 7.0f, 4);
+	AssertTestAxes(afWorld, 9.0f, 10.0f, 11.0f, 8);
+
+	AssertTrue(cReader.BeginConnection(1));
+	AssertTrue(cReader.ReadWorldMatrix(afWorld));
+	AssertTrue(cReader.End());
+	AssertTestAxes(afWorld, 1.0f, 2.0f, 3.0f, 0);
+	AssertTestAxes(afWorld, -9.0f, -10.0f, -11.0f, 4);
+	AssertTestAxes(afWorld, 5.0f, 6.0f, 7.0f, 8);
+	AssertTestAxes(afWorld, 13.0f, 14.0f, 15.0f, 12);
+
+	AssertTrue(cReader.BeginAnimation(0));
+	AssertTrue(cReader.BeginTrack(0));
+	AssertTrue(cReader.ReadKeyMatrices(afKey));
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.End());
+	AssertTestAxes(afKey, -208.0f, -209.0f, -210.0f, 4);
+	AssertTestAxes(afKey, 204.0f, 205.0f, 206.0f, 8);
+	cReader.Kill();
+	cScene.Kill();
+
+	//A light's is the same, in Into Oblivion too, where only the camera is different.
+	cScene.Init();
+	cScene.meVersion = ODV_IOX;
+	AddTestLight(&cScene, "Light", 0);
+	AddTestCamera(&cScene, "Camera", 0.5f);
+	AddTestConnection(&cScene, "Light Node", OIOX_Light, 0);
+	AddTestConnection(&cScene, "Camera Node", OIOX_Camera, 0);
+	AssertConverts(&cScene);
+
+	cReader.Init(CONVERTED);
+	AssertTrue(cReader.Open());
+	AssertTrue(cReader.BeginConnection(0));
+	AssertTrue(cReader.ReadWorldMatrix(afWorld));
+	AssertTrue(cReader.End());
+	AssertTestAxes(afWorld, -9.0f, -10.0f, -11.0f, 4);
+	AssertTestAxes(afWorld, 5.0f, 6.0f, 7.0f, 8);
+
+	AssertTrue(cReader.BeginConnection(1));
+	AssertTrue(cReader.ReadWorldMatrix(afWorld));
+	AssertTrue(cReader.End());
+	AssertTestAxes(afWorld, -9.0f, -10.0f, -11.0f, 0);
+	AssertTestAxes(afWorld, 5.0f, 6.0f, 7.0f, 4);
+	AssertTestAxes(afWorld, -1.0f, -2.0f, -3.0f, 8);
 	cReader.Kill();
 	cScene.Kill();
 }
@@ -753,6 +847,7 @@ void TestOldDragonConverter(void)
 	TestOldDragonConvertNumbering();
 	TestOldDragonConvertFromInstances();
 	TestOldDragonConvertFromIntoOblivionNodes();
+	TestOldDragonConvertAims();
 	TestOldDragonConvertOldFiles();
 
 	cFileUtil.RemoveDir(CONVERTER_OUTPUT_DIR);
