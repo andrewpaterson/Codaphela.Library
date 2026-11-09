@@ -53,7 +53,7 @@ along with Codaphela SceneFileLib.  If not, see <http://www.gnu.org/licenses/>.
 //	Image		Name
 //				Size			int32 width, height
 //				Channels		char for each channel, as "RGBA"
-//				Pixels			uint8 for each channel of each pixel
+//				Pixels			uint8 for each channel of each pixel, with the top row first
 //	Material	Name
 //				Diffuse, Ambient, Emissive, Specular	float32 r, g, b, a
 //				Shininess		float32 power, base
@@ -94,6 +94,8 @@ along with Codaphela SceneFileLib.  If not, see <http://www.gnu.org/licenses/>.
 #define SCENE_FILE_VERSION	1
 #define SCENE_FILE_NONE		-1
 
+
+#define SCENE_FILE_FLOATS_IN_MATRIX		16
 
 #define SCENE_CHUNK_VERSION				"Version"
 #define SCENE_CHUNK_NAME				"Name"

@@ -23,7 +23,7 @@ along with Codaphela SceneFileLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SceneFileReader.h"
 
 
-#define SCENE_FILE_MATRIX_SIZE	(sizeof(float32) * 16)
+#define SCENE_FILE_MATRIX_SIZE	(sizeof(float32) * SCENE_FILE_FLOATS_IN_MATRIX)
 
 
 //////////////////////////////////////////////////////////////////////////

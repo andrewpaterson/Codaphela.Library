@@ -24,9 +24,6 @@ along with Codaphela SceneFileLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SceneFileWriter.h"
 
 
-#define SCENE_FILE_FLOATS_IN_MATRIX		16
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -278,6 +275,29 @@ bool CSceneFileWriter::CheckIndices(const int32* paiIndices, size uiNumIndices, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// For indices where being none means nothing.  A polygon's corner can go
+// without a normal but not without a position, and something that's not
+// attached leaves out being attached.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::CheckRequiredIndices(const int32* paiIndices, size uiNumIndices, int32* piMax)
+{
+	size	i;
+
+	ReturnOnFalse(CheckIndices(paiIndices, uiNumIndices, piMax));
+	for (i = 0; i < uiNumIndices; i++)
+	{
+		if (paiIndices[i] == SCENE_FILE_NONE)
+		{
+			return Fail("An index that has to be there is -1");
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileWriter::BeginMesh(const char* szName)
@@ -354,7 +374,7 @@ bool CSceneFileWriter::WritePolygons(const int32* paiSizes, size uiNumPolygons, 
 	{
 		return Fail("The polygons' sizes don't add up to their corners");
 	}
-	ReturnOnFalse(CheckIndices(paiCornerPositions, uiNumCorners, &msMesh.iMaxPosition));
+	ReturnOnFalse(CheckRequiredIndices(paiCornerPositions, uiNumCorners, &msMesh.iMaxPosition));
 
 	msMesh.uiPolygons = uiNumPolygons;
 	msMesh.uiCorners = uiNumCorners;
@@ -434,7 +454,7 @@ bool CSceneFileWriter::WriteUVLayer(const float32* pafUVs, size uiNumUVs, const 
 bool CSceneFileWriter::WriteMaterialSlots(const int32* paiMaterials, size uiNumSlots)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
-	ReturnOnFalse(CheckIndices(paiMaterials, uiNumSlots, &miMaxMaterial));
+	ReturnOnFalse(CheckRequiredIndices(paiMaterials, uiNumSlots, &miMaxMaterial));
 	msMesh.uiMaterialSlots = uiNumSlots;
 	return WriteChunk(SCENE_CHUNK_MATERIAL_SLOTS, paiMaterials, sizeof(int32), uiNumSlots);
 }
@@ -489,7 +509,7 @@ bool CSceneFileWriter::WriteSkin(const int32* paiCounts, size uiNumPositions, co
 	{
 		return Fail("The positions' counts don't add up to the weights");
 	}
-	ReturnOnFalse(CheckIndices(paiMatrices, uiNumWeights, &msMesh.iMaxSkinMatrix));
+	ReturnOnFalse(CheckRequiredIndices(paiMatrices, uiNumWeights, &msMesh.iMaxSkinMatrix));
 
 	msMesh.uiSkinCounts = uiNumPositions;
 	ReturnOnFalse(WriteChunk(SCENE_CHUNK_SKIN_COUNTS, paiCounts, sizeof(int32), uiNumPositions));
@@ -664,7 +684,7 @@ bool CSceneFileWriter::WriteShininess(float32 fPower, float32 fBase)
 bool CSceneFileWriter::WriteMaterialTexture(ESceneFileTexture eTexture, int32 iImage)
 {
 	ReturnOnFalse(InBlock(SFB_Material));
-	ReturnOnFalse(CheckIndices(&iImage, 1, &miMaxImage));
+	ReturnOnFalse(CheckRequiredIndices(&iImage, 1, &miMaxImage));
 	return WriteInt32Chunk(gaszSceneFileTextures[eTexture], iImage);
 }
 
@@ -698,7 +718,7 @@ bool CSceneFileWriter::BeginConnection(const char* szName)
 bool CSceneFileWriter::WriteParent(int32 iConnection)
 {
 	ReturnOnFalse(InBlock(SFB_Connection));
-	ReturnOnFalse(CheckIndices(&iConnection, 1, &miMaxConnection));
+	ReturnOnFalse(CheckRequiredIndices(&iConnection, 1, &miMaxConnection));
 	return WriteInt32Chunk(SCENE_CHUNK_PARENT, iConnection);
 }
 
@@ -889,7 +909,7 @@ bool CSceneFileWriter::WriteAttached(int32 iConnection)
 	{
 		return Fail("Only a light or a camera is attached");
 	}
-	ReturnOnFalse(CheckIndices(&iConnection, 1, &miMaxConnection));
+	ReturnOnFalse(CheckRequiredIndices(&iConnection, 1, &miMaxConnection));
 	return WriteInt32Chunk(SCENE_CHUNK_ATTACHED, iConnection);
 }
 
@@ -913,7 +933,7 @@ bool CSceneFileWriter::WriteTrack(int32 iConnection, const float32* pafTimes, co
 	size	i;
 
 	ReturnOnFalse(InBlock(SFB_Animation));
-	ReturnOnFalse(CheckIndices(&iConnection, 1, &miMaxConnection));
+	ReturnOnFalse(CheckRequiredIndices(&iConnection, 1, &miMaxConnection));
 
 	for (i = 1; i < uiNumKeys; i++)
 	{
@@ -967,7 +987,7 @@ bool CSceneFileWriter::BeginInstance(const char* szName)
 bool CSceneFileWriter::WriteConnections(const int32* paiConnections, size uiNumConnections)
 {
 	ReturnOnFalse(InBlock(SFB_Instance));
-	ReturnOnFalse(CheckIndices(paiConnections, uiNumConnections, &miMaxConnection));
+	ReturnOnFalse(CheckRequiredIndices(paiConnections, uiNumConnections, &miMaxConnection));
 	muiNumInstanceConnections = uiNumConnections;
 	return WriteChunk(SCENE_CHUNK_CONNECTIONS, paiConnections, sizeof(int32), uiNumConnections);
 }
@@ -982,7 +1002,7 @@ bool CSceneFileWriter::WriteInstanceMesh(int32 iMesh, const int32* paiConnection
 	int32	iMaxSlot;
 
 	ReturnOnFalse(InBlock(SFB_Instance));
-	ReturnOnFalse(CheckIndices(&iMesh, 1, &miMaxMesh));
+	ReturnOnFalse(CheckRequiredIndices(&iMesh, 1, &miMaxMesh));
 	ReturnOnFalse(CheckIndices(paiMaterials, uiNumMaterials, &miMaxMaterial));
 
 	iMaxSlot = SCENE_FILE_NONE;

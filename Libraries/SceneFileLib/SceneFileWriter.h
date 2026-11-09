@@ -160,6 +160,7 @@ protected:
 	bool	WriteChunk(const char* szChunk, const void* pvData, size uiElementSize, size uiNumElements);
 	bool	WriteInt32Chunk(const char* szChunk, int32 iValue);
 	bool	CheckIndices(const int32* paiIndices, size uiNumIndices, int32* piMax);
+	bool	CheckRequiredIndices(const int32* paiIndices, size uiNumIndices, int32* piMax);
 	bool	CheckMesh(void);
 };
 
