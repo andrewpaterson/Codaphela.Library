@@ -237,24 +237,18 @@ Vulkan.
 1. Scene objects.  Done.  CScene is a CObject with its lists, and CFakeTracker and TrackerTypes are gone.  CInstance, CInstanceMesh, CLight and
    CCamera hold Ptrs to what they use, a mesh's faces hold slots (-1 for no material) in a list of Ptrs, and a CMaterialImage holds
    its Ptr<CImage> and how it's sampled.  Names are CChars and not object names, as many things in a file share one.
-2. CMeshEditor.  CMeshEditor::Init gives its stack the mesh, as it has no source today, and GetOutput returns the stack's.  With
-   no modifiers that is the mesh itself.  Structure and shape counters go on the editor's methods.  The renderer clears the
-   output after cooking.
-   Polygons move to CMesh as an opt-in detail, as they describe the shape and an output mesh needs them.  Being opt-in (mbInUse)
-   keeps big meshes from generating connectivity for every face they add.  CMesh copies them, and CMeshSmoothGroups can smooth by
-   angle in Modify.  A modifier that knows about polygons rebuilds them.  Any other that changes faces loses them, and its output
-   is plain triangles.  CMeshEditor's AddFace still takes edge flags, and the mesh's polygons are built from them.
-   Smoothing groups move to CMesh as an opt-in detail too, for the same reason: they describe the shape.  CMeshSmoothGroups then
-   makes normals from the mesh's groups, and a scene file's groups go into the mesh rather than onto the editor's stack.
-   Straight after, CopyFrom keeps UVs, skin and materials, so that CanRebuild no longer refuses them (see Open), and the modifiers
-   that only change normals work on a mesh like Goober's.
-   Edge visibility and selections stay on the editor.  They are what the user sees and does, not the shape, and they describe the
-   mesh being edited.  Polygons are built from the edge flags, not from CMeshEdgeVisibility, and an edge is hidden when the faces
-   on both sides are in one polygon, so something drawing an output's edges can work that out.
-   Apply and CMeshEditor::Touch then go, leaving only Modify and GetOutput.  A shape stays a modifier on the stack, and is collapsed
-   to edit its faces.  Every modifier with an Apply also has a Modify.
-   CMeshEditor::Collapse uses Touch, so it changes too, and the base it keeps (mpBase, macBaseEdges) goes with them.  GetOutput
-   doesn't wait for any of this.
+2. CMeshEditor.  Done.
+   The editor's stack has its mesh as its source, GetOutput is the mesh with its modifiers applied (the mesh itself with none),
+   and structure and shape counters say what changed.  ClearOutput lets the output go after cooking.  Modifiers only Modify, and
+   Collapse makes the output the editor's mesh, keeping the same mesh.  A shape is a modifier, and is collapsed to edit its faces.
+   Polygons and smoothing groups are opt-in details of CMesh, as they describe the shape.  Being opt-in keeps big meshes from
+   generating connectivity for every face they add: an editor turns polygons on, and its AddFace builds them from its edge flags.
+   A copy of a mesh keeps everything, so a modifier that only changes normals works on any mesh, and a shape keeps what the mesh
+   it's added to has on that mesh's own faces.  Edge visibility and selections stay on the editor: they are what the user sees
+   and does.  An edge is hidden when the faces on both sides are in one polygon (CMeshPolygons::GetFaceEdges).
+   Left: CMesh::MovePosition, MovePositions, RemoveFace, RemoveFaces and RemoveCorner are empty, so moving and removing do
+   nothing yet, and it isn't decided whether a move is to a position or by an offset.  SaveOBJ of a CMesh writes triangles even
+   when it has polygons, as a test reading triangles back expects that.
 3. CConnection has a Ptr<CConnection> parent, which a file fills.  It updates: a world matrix from a local one and the parent's.
 4. RenderLib and RasterRenderLib: create and replace only.  CRasterMesh::Build moves to RasterRenderLib, the same code, so that
    RasterLib no longer includes SupportLib/Mesh.h.  BoardScene, VRMLCanvasDraw and any tests that build from a CMesh call it
@@ -277,7 +271,7 @@ Vulkan.
    an instance's connections, and something to say which instance is playing it.
 8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  The fixed point skinning
    goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from its
-   converted file, proves it.  Needs modifiers that keep UVs and skin (see Open).
+   converted file, proves it.
 9. In-place updates, if dragging plain meshes is slow.
 10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
     This is left until now so that BoardScene's vertex order and pixels aren't put at risk for nothing.
@@ -314,9 +308,9 @@ Open
 Particles.  Goober's stars are neither a mesh nor an instance.  For now they're a list of CSceneParticles on a CScene, so that nothing in a file
 is lost, and a point list has its own cook and draw on each renderer.
 
-Modifiers can't keep UVs, skin or materials (to be fixed in step 2, straight after polygons and groups move).  CMeshModifier::CanRebuild refuses a mesh with any of them: it logs a warning and
-Modify returns the mesh as it was, so the modifier does nothing.  Goober has them and needs its normals generated by a modifier,
-so this must be fixed before step 8.
+Modifiers that make other faces (weld, corner merge, edge collapse, fix reversed, merge normals) can't keep UVs, skin or materials,
+as they only rebuild positions, normals and colours: CMeshModifier::CanRebuild refuses such a mesh and Modify returns it as it was.
+Modifiers that only change normals, and shapes, keep everything since step 2.
 
 Where bone hierarchy lives.  CMeshSkin has the weights and inverse matrices, but nothing holds a skeleton that instances could
 share.
