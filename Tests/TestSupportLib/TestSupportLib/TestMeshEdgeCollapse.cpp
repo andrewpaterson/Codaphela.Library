@@ -261,7 +261,36 @@ static void TestMeshEdgeCollapseCorner(CMesh* pcMesh, int iCorner, SFloat64Vec3*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How far a point is from a mesh's nearest face.
+// How far f is outside the range of fA, fB and fC on one axis, or 0 if it
+// is inside it.  It's never more than the distance to their triangle.
+//
+//////////////////////////////////////////////////////////////////////////
+static float64 TestMeshEdgeCollapseAxisGap(float64 f, float64 fA, float64 fB, float64 fC)
+{
+	float64	fMin;
+	float64	fMax;
+
+	fMin = (fA < fB) ? fA : fB;
+	fMin = (fC < fMin) ? fC : fMin;
+	fMax = (fA > fB) ? fA : fB;
+	fMax = (fC > fMax) ? fC : fMax;
+	if (f < fMin)
+	{
+		return fMin - f;
+	}
+	else if (f > fMax)
+	{
+		return f - fMax;
+	}
+	return 0.0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How far a point is from a mesh's nearest face.  A face further away on
+// one axis than the nearest so far is passed over, as working out its
+// distance is slow in soft float.
 //
 //////////////////////////////////////////////////////////////////////////
 static float64 TestMeshEdgeCollapseDistanceToMesh(SFloat64Vec3* psPoint, CMesh* pcMesh)
@@ -281,6 +310,12 @@ static float64 TestMeshEdgeCollapseDistanceToMesh(SFloat64Vec3* psPoint, CMesh* 
 		TestMeshEdgeCollapseCorner(pcMesh, piCorners[0], &sA);
 		TestMeshEdgeCollapseCorner(pcMesh, piCorners[1], &sB);
 		TestMeshEdgeCollapseCorner(pcMesh, piCorners[2], &sC);
+		if ((TestMeshEdgeCollapseAxisGap(psPoint->x, sA.x, sB.x, sC.x) >= fBest) ||
+			(TestMeshEdgeCollapseAxisGap(psPoint->y, sA.y, sB.y, sC.y) >= fBest) ||
+			(TestMeshEdgeCollapseAxisGap(psPoint->z, sA.z, sB.z, sC.z) >= fBest))
+		{
+			continue;
+		}
 		fDistance = TestMeshEdgeCollapseDistance(psPoint, &sA, &sB, &sC);
 		fBest = (fDistance < fBest) ? fDistance : fBest;
 	}
@@ -479,7 +514,13 @@ void TestMeshEdgeCollapseCurve(void)
 
 	pSource = TestMeshEdgeCollapseNewMesh();
 	iAround = 48;
+#ifdef __W65C816__
+	//Fewer rings on the W65C816, where checking every face against every face in soft float would take more than the
+	//4G instructions a 65 test program gets.
+	iAlong = 3;
+#else
 	iAlong = 6;
+#endif
 	for (j = 0; j <= iAlong; j++)
 	{
 		for (i = 0; i < iAround; i++)
@@ -507,7 +548,7 @@ void TestMeshEdgeCollapseCurve(void)
 		psPosition = pOutput->GetPosition(i);
 		fRadius = sqrtf(psPosition->x * psPosition->x + psPosition->y * psPosition->y);
 		AssertTrue(fabsf(fRadius - 10.0f) <= 0.1f);
-		AssertTrue((psPosition->z >= -0.1f) && (psPosition->z <= 24.1f));
+		AssertTrue((psPosition->z >= -0.1f) && (psPosition->z <= iAlong * 4.0f + 0.1f));
 	}
 	AssertTrue(TestMeshEdgeCollapseFurthest(&pSource, &pOutput) <= 0.2);
 	AssertTrue(TestMeshEdgeCollapseFurthest(&pOutput, &pSource) <= 0.2);
