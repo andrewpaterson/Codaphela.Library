@@ -182,10 +182,25 @@ struct SOldDragonCamera
 };
 
 
+//What an Into Oblivion link's node places.  Its iID is that thing's miID or iID, by its kind.
+enum EOldDragonIOXObject
+{
+	OIOX_Mesh,
+	OIOX_Camera,
+	OIOX_Light,
+	OIOX_Root,
+	OIOX_Target,
+	OIOX_World,
+	OIOX_Unknown,
+};
+
+
+//iObjectType is an EOldDragonIOXObject in Into Oblivion's files, and OLD_DRAGON_NO_INDEX in others, where instances say this.
 struct SOldDragonConnection
 {
 	char				szName[OLD_DRAGON_NAME_SIZE];
 	int32				iID;
+	int32				iObjectType;
 	SOldDragonMatrix	sWorld;
 	SOldDragonMatrix	sLocal;
 	bool				bSelected;

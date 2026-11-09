@@ -298,6 +298,7 @@ SOldDragonConnection* COldDragonScene::AddConnection(void)
 	psConnection = macConnections.Add();
 	memset(psConnection, 0, sizeof(SOldDragonConnection));
 	psConnection->iID = OLD_DRAGON_NO_INDEX;
+	psConnection->iObjectType = OLD_DRAGON_NO_INDEX;
 	return psConnection;
 }
 

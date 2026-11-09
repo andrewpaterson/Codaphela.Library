@@ -130,6 +130,8 @@ void TestOldDragonReadIOX(void)
 	AssertSize(1, cScene.macConnections.NumElements());
 	psConnection = cScene.macConnections.Get(0);
 	AssertString("Cylinder01Link", psConnection->szName);
+	AssertInt(OIOX_Mesh, psConnection->iObjectType);
+	AssertInt(0, psConnection->iID);
 	AssertTrue(psConnection->bTopLevel);
 	AssertFloat(50.0f, psConnection->sWorld.af[13], 3);
 	AssertFloat(1.0f, psConnection->sWorld.af[15], 3);

@@ -383,7 +383,7 @@ static bool ReadIOXLinks(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 		}
 		psConnection->sLocal = psConnection->sWorld;
 		psConnection->iID = cCursor.ReadInt32();
-		cCursor.ReadInt32();	//Type.
+		psConnection->iObjectType = cCursor.ReadInt32();
 		cCursor.ReadUint32();	//The stale pointer to the Max node.
 		psConnection->bTopLevel = (uiPathSize == 0);
 		pcInstance->maiConnections.Add(&iConnection);
