@@ -753,6 +753,8 @@ void TestDockingDrag(void)
 		//Its title bar moves it.
 		pFloating->GetWindow()->Layout();
 		AssertTrue(pFloating->IsSingleToolGroup());
+		pFloating->GetRectangle(&cBounds);
+		sStart.Init(cBounds.GetWidth(), cBounds.GetTop());
 		sTest.pExplorer->GetGroup()->GetTitleBar()->GetActualBounds(&cBounds);
 		pFloating->GetWindow()->PointerMoved(cBounds.GetLeft() + 20, cBounds.GetTop() + 5);
 		pFloating->GetWindow()->InputCommand(CIC_ActivateComponent, true);
@@ -763,7 +765,8 @@ void TestDockingDrag(void)
 		AssertFalse(sTest.pManager->IsDragging());
 		AssertSize(1, sTest.pManager->NumFloating());
 		pFloating->GetRectangle(&cBounds);
-		AssertInt(60 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2 + 40, cBounds.GetTop());
+		AssertTrue(cBounds.GetTop() > sStart.y);
+		AssertInt(sStart.x, cBounds.GetWidth());
 
 		//Double clicking its title bar docks it back.
 		sTest.pManager->ToggleFloatGroup(sTest.pExplorer->GetGroup());
@@ -779,6 +782,100 @@ void TestDockingDrag(void)
 		pArea = NULL;
 		pFloating = NULL;
 		pDocParent = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A floating window doesn't cover the guides: over them it's only its
+// title, beside the pointer, and it has its size back away from them, let
+// go there or moved out of the window.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingDragSmall(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest					sTest;
+		Ptr<CDockGroup>				pOutputGroup;
+		Ptr<CTabComponent>			pTab;
+		CInt32Rect					cBounds;
+		CInt32Rect					cRect;
+		SInt32Vec2					sStart;
+		Ptr<CDockFloatingWindow>	pFloating;
+		int32						iFullWidth;
+		int32						iFullHeight;
+		int32						iSmallHeight;
+
+		sTest.Init(&cNativeFactory);
+		pOutputGroup = sTest.pOutput->GetGroup();
+		iSmallHeight = sTest.pTheme->GetMetric(TM_DockFrameBorder) * 2 + sTest.pTheme->GetMetric(TM_DockTitleBarHeight);
+
+		pTab = pOutputGroup->GetTab(sTest.pErrors);
+		pTab->GetActualBounds(&cBounds);
+		sStart.Init(cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		DockPress(sTest.pWindow, sStart.x, sStart.y);
+		DockMove(sTest.pWindow, sStart.x + 10, sStart.y - 10);
+		AssertTrue(sTest.pManager->IsDragging());
+		AssertSize(1, sTest.pManager->NumFloating());
+		pFloating = sTest.pManager->GetFloating(0);
+
+		//Over the guides: small, clear of the pointer.
+		AssertTrue(sTest.pManager->GetArea()->GetGuides().IsNotNull());
+		DockMove(sTest.pWindow, 300, 200);
+		pFloating->GetRectangle(&cRect);
+		AssertInt(DOCK_DRAG_SMALL_WIDTH, cRect.GetWidth());
+		AssertInt(iSmallHeight, cRect.GetHeight());
+		AssertInt(300 + DOCK_DRAG_SMALL_OFFSET, cRect.GetLeft());
+		AssertInt(200 + DOCK_DRAG_SMALL_OFFSET, cRect.GetTop());
+
+		//Out of the window there are no guides, and it's its own size held where it was grabbed.
+		DockMove(sTest.pWindow, 1000, 900);
+		AssertTrue(sTest.pManager->GetArea()->GetGuides().IsNull());
+		pFloating->GetRectangle(&cRect);
+		iFullWidth = cRect.GetWidth();
+		iFullHeight = cRect.GetHeight();
+		AssertTrue(iFullWidth > DOCK_DRAG_SMALL_WIDTH);
+		AssertTrue(iFullHeight > iSmallHeight);
+		AssertInt(1000 - DOCK_GRAB_LEFT, cRect.GetLeft());
+
+		//Back over them it's small again, and let go away from a guide it's its own size where the pointer has it.
+		DockMove(sTest.pWindow, 300, 200);
+		pFloating->GetRectangle(&cRect);
+		AssertInt(DOCK_DRAG_SMALL_WIDTH, cRect.GetWidth());
+		AssertFalse(sTest.pManager->GetTarget()->IsValid());
+		DockRelease(sTest.pWindow);
+		AssertFalse(sTest.pManager->IsDragging());
+		AssertInt(DPS_Floating, sTest.pErrors->GetState());
+		pFloating->GetRectangle(&cRect);
+		AssertInt(iFullWidth, cRect.GetWidth());
+		AssertInt(iFullHeight, cRect.GetHeight());
+		AssertInt(300 - DOCK_GRAB_LEFT, cRect.GetLeft());
+
+		//Its title bar drags it the same way, and Escape puts it back as it was.
+		pFloating->GetWindow()->Layout();
+		sTest.pErrors->GetGroup()->GetTitleBar()->GetActualBounds(&cBounds);
+		pFloating->GetWindow()->PointerMoved(cBounds.GetLeft() + 20, cBounds.GetTop() + 5);
+		pFloating->GetWindow()->InputCommand(CIC_ActivateComponent, true);
+		pFloating->GetWindow()->PointerMoved(cBounds.GetLeft() + 60, cBounds.GetTop() + 45);
+		AssertTrue(sTest.pManager->IsDragging());
+		pFloating->GetWindow()->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(sTest.pManager->IsDragging());
+		pFloating->GetRectangle(&cRect);
+		AssertInt(iFullWidth, cRect.GetWidth());
+		AssertInt(iFullHeight, cRect.GetHeight());
+		AssertInt(300 - DOCK_GRAB_LEFT, cRect.GetLeft());
+
+		pOutputGroup = NULL;
+		pTab = NULL;
+		pFloating = NULL;
 		sTest.Kill();
 	}
 
@@ -2120,6 +2217,7 @@ void TestDocking(void)
 	TestDockingDefaults();
 	TestDockingHideFloatAutoHide();
 	TestDockingDrag();
+	TestDockingDragSmall();
 	TestDockingDragOnHeader();
 	TestDockingNarrowToolTabs();
 	TestDockingSplitsMerged();

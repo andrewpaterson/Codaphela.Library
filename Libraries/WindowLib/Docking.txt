@@ -34,10 +34,9 @@ bars, the floating window following the pointer out of the main window and back,
 and the compass centre, drops outside the main window, dragging a floating window by its title, Escape, Control, live
 sash drags, the floating window's resize border, auto hide (pin, strip, flyout, click away, pin back) and double
 clicks to float all work.  Docking back by double click split a group into one group per pane; fixed.
-Open: the guides are drawn in the dock area's window, under the floating window being dragged, which sits at the
-pointer.  Whatever guide is near the pointer is hidden by it (dragging a document tab, all of them); the preview and the
-drop still work.  The same holds on Windows.  Also a floating window keeps its docked size, so one floated from a wide
-group can hang off the screen.
+The guides are drawn in the dock area's window, under the floating window being dragged, so while they show that window
+shrinks to its title beside the pointer (2026-11-09), and a group's title bar and tabs are its centre guide too.
+Open: a floating window keeps its docked size, so one floated from a wide group can hang off the screen.
 
 Built differently from the sections below:
 - A tab or title bar pulled a few pixels floats what it drags straight away, as Visual Studio does, and every drag is

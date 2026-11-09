@@ -34,7 +34,8 @@ class CDockDragTracker;
 //BeginGroup) and every drag is then of a floating window (BeginFloating): a drag tracker takes the drag from the
 //component that started it (Take), the window follows the pointer held where it was grabbed, the window under the
 //pointer shows its docking guides, and the drop docks it at the guide under the pointer, leaves it floating, or, with
-//Escape, puts it back.  Control held keeps the guides away.
+//Escape, puts it back.  Control held keeps the guides away.  While guides show the window shrinks to its title beside
+//the pointer, as it would otherwise cover them; it has its size back away from them and if it's let go there.
 class CDockDrag : public CObject
 {
 CONSTRUCTABLE(CDockDrag);
@@ -47,6 +48,7 @@ protected:
 	Ptr<CDockDragTracker>		mpTracker;
 	SInt32Vec2					msGrab;  //The pointer relative to the floating window's top left.
 	CInt32Rect					mcStart;  //Where the floating window was when the drag started.
+	CInt32Rect					mcFull;  //Where the floating window would be, at its own size, with the pointer where it is.
 	bool						mbTornOff;  //The drag floated what it drags, Escape docks it back.
 	bool						mbCancelled;
 	bool						mbNoDock;  //Dropped without docking, see SetNoDock.
@@ -76,7 +78,7 @@ protected:
 	bool						Take(Ptr<CWindow> pSource);
 	void						Start(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<CWindow> pSource, bool bTornOff);
 	void						End(void);
-	void						Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, bool bCancelled, bool bTornOff, CInt32Rect* pcStart);
+	void						Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, bool bCancelled, bool bTornOff, CInt32Rect* pcStart, CInt32Rect* pcFull);
 	void						ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Vec2 sClient);
 	void						HideGuides(void);
 	bool						IsDraggingDocuments(void);

@@ -47,6 +47,7 @@ void CDockDrag::Init(Ptr<CDockManager> pManager, CDockState* pcState)
 	mpTracker = NULL;
 	msGrab.Init(0, 0);
 	mcStart.Init(0, 0, 0, 0);
+	mcFull.Init(0, 0, 0, 0);
 	mbTornOff = false;
 	mbCancelled = false;
 	mbNoDock = false;
@@ -70,6 +71,7 @@ void CDockDrag::Class(void)
 	M_Pointer(mpTracker);
 	U_2Int32(msGrab);
 	U_Data(CInt32Rect, mcStart);
+	U_Data(CInt32Rect, mcFull);
 	U_Bool(mbTornOff);
 	U_Bool(mbCancelled);
 	U_Bool(mbNoDock);
@@ -263,6 +265,7 @@ void CDockDrag::Start(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<
 	mbNoDock = false;
 	msTarget.Init();
 	pFloating->GetRectangle(&mcStart);
+	mcFull.Init(&mcStart);
 	pFloating->GetWindow()->Raise();
 	Moved();
 }
@@ -317,7 +320,8 @@ bool CDockDrag::IsDraggingDocuments(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The pointer moved: the floating window follows it and the guides of the
-// window under it show where it would go.
+// window under it show where it would go, with the floating window small
+// so it doesn't cover them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockDrag::Moved(void)
@@ -332,18 +336,29 @@ void CDockDrag::Moved(void)
 		return;
 	}
 	mpSource->GetPointerScreenPosition(&sPointer);
-	mpFloating->GetRectangle(&cRect);
-	iWidth = cRect.GetWidth();
-	iHeight = cRect.GetHeight();
-	cRect.Init(sPointer.x - msGrab.x, sPointer.y - msGrab.y, sPointer.x - msGrab.x + iWidth, sPointer.y - msGrab.y + iHeight);
-	mpFloating->Move(&cRect);
+	iWidth = mcFull.GetWidth();
+	iHeight = mcFull.GetHeight();
+	mcFull.Init(sPointer.x - msGrab.x, sPointer.y - msGrab.y, sPointer.x - msGrab.x + iWidth, sPointer.y - msGrab.y + iHeight);
 	if (mbNoDock || IsControlHeld())
 	{
 		HideGuides();
 		msTarget.Init();
-		return;
 	}
-	FindTarget(sPointer, &msTarget);
+	else
+	{
+		FindTarget(sPointer, &msTarget);
+	}
+
+	if (mpGuidesArea.IsNotNull())
+	{
+		iHeight = mpManager->GetMetric(TM_DockFrameBorder) * 2 + mpManager->GetMetric(TM_DockTitleBarHeight);
+		cRect.Init(sPointer.x + DOCK_DRAG_SMALL_OFFSET, sPointer.y + DOCK_DRAG_SMALL_OFFSET, sPointer.x + DOCK_DRAG_SMALL_OFFSET + DOCK_DRAG_SMALL_WIDTH, sPointer.y + DOCK_DRAG_SMALL_OFFSET + iHeight);
+		mpFloating->Move(&cRect);
+	}
+	else
+	{
+		mpFloating->Move(&mcFull);
+	}
 }
 
 
@@ -398,7 +413,6 @@ void CDockDrag::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 void CDockDrag::ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Vec2 sClient)
 {
 	Ptr<CDockGuides>	pGuides;
-	CInt32Rect			cRect;
 	SInt32Vec2			sDragged;
 
 	if (mpGuidesArea != pArea)
@@ -410,8 +424,7 @@ void CDockDrag::ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Ve
 		pArea->GetWindow()->Layout();
 	}
 	pGuides = pArea->GetGuides();
-	mpFloating->GetRectangle(&cRect);
-	sDragged.Init(cRect.GetWidth(), cRect.GetHeight());
+	sDragged.Init(mcFull.GetWidth(), mcFull.GetHeight());
 	pGuides->Build(sClient.x, sClient.y, IsDraggingDocuments(), sDragged);
 	pGuides->Hit(sClient.x, sClient.y, psTarget, sDragged);
 	pArea->GetWindow()->Invalidate();
@@ -491,6 +504,7 @@ void CDockDrag::Dropped(void)
 	Ptr<CDockPane>				pSelected;
 	Ptr<CDockGroup>				pGroup;
 	CInt32Rect					cRect;
+	CInt32Rect					cFull;
 
 	if (!IsDragging())
 	{
@@ -501,6 +515,7 @@ void CDockDrag::Dropped(void)
 	bCancelled = mbCancelled;
 	bTornOff = mbTornOff;
 	cRect.Init(&mcStart);
+	cFull.Init(&mcFull);
 	End();
 	if (pFloating.IsNull() || pFloating->GetRoot().IsNull())
 	{
@@ -512,7 +527,7 @@ void CDockDrag::Dropped(void)
 		pSelected = pGroup->GetSelectedPane();
 	}
 
-	Drop(pFloating, &sTarget, bCancelled, bTornOff, &cRect);
+	Drop(pFloating, &sTarget, bCancelled, bTornOff, &cRect, &cFull);
 	mpManager->LayoutChanged();
 	if (pSelected.IsNotNull() && pSelected->IsShown())
 	{
@@ -525,13 +540,13 @@ void CDockDrag::Dropped(void)
 //
 // Puts the dropped floating window where the drag left it: back where it
 // started, or docked again if it was torn off, when cancelled (pcStart);
-// docked at a valid target; else it stays floating where it is.
+// docked at a valid target; else it stays floating, at its own size where
+// the pointer has it (pcFull).
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockDrag::Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, bool bCancelled, bool bTornOff, CInt32Rect* pcStart)
+void CDockDrag::Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, bool bCancelled, bool bTornOff, CInt32Rect* pcStart, CInt32Rect* pcFull)
 {
 	Ptr<CDockNode>	pRoot;
-	CInt32Rect		cRect;
 
 	if (bCancelled)
 	{
@@ -552,8 +567,8 @@ void CDockDrag::Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, 
 	}
 	else
 	{
-		pFloating->GetRectangle(&cRect);
-		pFloating->GetRoot()->SetPaneFloatRectangles(&cRect);
+		pFloating->Move(pcFull);
+		pFloating->GetRoot()->SetPaneFloatRectangles(pcFull);
 	}
 }
 

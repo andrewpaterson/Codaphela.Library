@@ -31,6 +31,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define DOCK_FLOAT_HEIGHT		420
 #define DOCK_FLOAT_OFFSET		100	//A pane floated from nowhere, from the main window's top left.
 #define DOCK_GRAB_LEFT			40	//A tab torn off is held this far into its floating window's title.
+#define DOCK_DRAG_SMALL_WIDTH	200	//A window dragged over guides is this wide, with only its title showing, so they can be seen.
+#define DOCK_DRAG_SMALL_OFFSET	24	//And this far right of and below the pointer, clear of the guide under it and those beside that.
 #define DOCK_RESTORE_DEPTH		4	//Neighbours followed back to find where a pane goes.
 #define DOCK_WELL_NEIGHBOUR		"#DocumentWell"	//A pane's restore neighbour when it was beside the document well.
 #define DOCK_AROUND_WELL_NEIGHBOUR	"#AroundDocumentWell"	//When it was beside a node holding the well and more.
