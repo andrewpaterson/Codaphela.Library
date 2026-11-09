@@ -33,8 +33,8 @@ typedef CArrayTemplatePrimitive<int32>	CArraySceneFileIndex;
 //Fills an empty editor, and its mesh, from a mesh in a scene file.  A polygon is cut into faces with the edges inside it hidden, so that the
 //editor still sees one polygon.  papMaterials are the file's materials, which the mesh's slots refer to.
 //
-//A CMesh doesn't hold smoothing groups, so they go in a CMeshSmoothGroups on the editor's stack.  If the file has no normals then the mesh gets
-//them from its groups, which is what they're for.  Skin weights are put in the order CMeshSkinVert needs them.
+//If the file has smoothing groups but no normals then the mesh gets its normals from its groups, which is what they're for.  Skin weights are put
+//in the order CMeshSkinVert needs them.
 bool	ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcEditor, CArrayMaterial* papMaterials);
 
 //Writes an editor's mesh.  A polygon of the editor's is written as one, unless one polygon couldn't say what its faces do, as with a seam across

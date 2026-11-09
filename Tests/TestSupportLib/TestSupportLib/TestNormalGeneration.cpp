@@ -47,7 +47,7 @@ void TestMeshSmoothGroupsOneAndZero(void)
 	cMeshEditor.Touch();
 
 	AssertInt(48, cMesh.NumFaces());
-	AssertSize(48, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(26, cMesh.NumCorners());
 	AssertSize(48 + 26, cMesh.mcNormals.mcNormals.NumElements());
 
@@ -70,7 +70,7 @@ void TestMeshSmoothGroupsOneAndZero(void)
 	cMeshEditor.Touch();
 
 	AssertInt(48, cMesh.NumFaces());
-	AssertSize(48, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(26, cMesh.NumCorners());
 	AssertSize(48, cMesh.mcNormals.mcNormals.NumElements());
 
@@ -132,7 +132,7 @@ void TestMeshSmoothGroupsNamed(void)
 	cMeshEditor.Touch();
 
 	AssertInt(48, cMesh.NumFaces());
-	AssertSize(48, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(26, cMesh.NumCorners());
 	AssertInt(72, cMesh.NumEdges());
 	AssertInt(48, cMeshEditor.NumVisibleEdges(1));

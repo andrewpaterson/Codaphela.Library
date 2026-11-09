@@ -615,6 +615,9 @@
     <ClInclude Include="MeshSmoothGroups.h">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClInclude>
+    <ClInclude Include="MeshSmoothing.h">
+      <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
+    </ClInclude>
     <ClInclude Include="MeshSourceModifier.h">
       <Filter>Source\Mesh\Modifier\Source</Filter>
     </ClInclude>
@@ -1389,6 +1392,9 @@
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClCompile>
     <ClCompile Include="MeshSmoothGroups.cpp">
+      <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshSmoothing.cpp">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClCompile>
     <ClCompile Include="MeshSourceModifier.cpp">

@@ -54,7 +54,6 @@ struct SSceneFileFaces
 struct SSceneFilePolygons
 {
 	CMesh*					pcMesh;
-	CMeshSmoothGroups*		pcGroups;
 	CArraySceneFileIndex	aiSizes;
 	CArraySceneFileIndex	aiFirstFaces;
 	CArraySceneFileCorner	asCorners;
@@ -386,7 +385,7 @@ static bool ReadSceneFileSkin(CSceneFileReader* pcReader, CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ReadSceneFileSmoothGroups(CSceneFileReader* pcReader, CMesh* pcMesh, CMeshSmoothGroups* pcGroups, SSceneFileFaces* psFaces)
+static bool ReadSceneFileSmoothGroups(CSceneFileReader* pcReader, CMesh* pcMesh, SSceneFileFaces* psFaces)
 {
 	CArraySceneFileUint	auiGroups;
 	size				i;
@@ -394,16 +393,16 @@ static bool ReadSceneFileSmoothGroups(CSceneFileReader* pcReader, CMesh* pcMesh,
 	auiGroups.Init();
 	auiGroups.Resize(pcReader->NumSmoothGroups());
 	ReturnOnFalse(pcReader->ReadSmoothGroups(auiGroups.GetData()));
-	pcGroups->mcSmoothingGroups.Resize(pcMesh->NumFaces());
+	pcMesh->mcSmoothing.SetAll((size)pcMesh->NumFaces(), 0);
 	for (i = 0; i < (size)pcMesh->NumFaces(); i++)
 	{
-		pcGroups->mcSmoothingGroups.SetValue(i, (int32)auiGroups.GetValue((size)psFaces->aiPolygons.GetValue(i)));
+		pcMesh->mcSmoothing.mauiGroups.SetValue(i, auiGroups.GetValue((size)psFaces->aiPolygons.GetValue(i)));
 	}
 	auiGroups.Kill();
 
 	if (pcReader->NumCornerNormals() == 0)
 	{
-		pcGroups->GenerateNormals(pcMesh);
+		CMeshSmoothGroups::GenerateNormals(pcMesh);
 	}
 	return true;
 }
@@ -419,7 +418,6 @@ bool ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcE
 	CArraySceneFileFloat	afPositions;
 	CMesh*					pcMesh;
 	CMeshUVLayer*			pcLayer;
-	CMeshSmoothGroups*		pcGroups;
 	size					i;
 	size					uiNumLayers;
 
@@ -436,13 +434,6 @@ bool ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcE
 	for (i = 0; i < uiNumLayers; i++)
 	{
 		pcMesh->mcUVs.AddLayer(pcMesh->GetConnectivity());
-	}
-
-	pcGroups = NULL;
-	if (pcReader->NumSmoothGroups() > 0)
-	{
-		pcGroups = pcEditor->AddModifier<CMeshSmoothGroups>();
-		pcGroups->Init(0);
 	}
 
 	afPositions.Init();
@@ -471,9 +462,9 @@ bool ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcE
 	ReturnOnFalse(ReadSceneFileColours(pcReader, pcMesh, &sFaces));
 	ReturnOnFalse(ReadSceneFileMaterials(pcReader, pcMesh, &sFaces, papMaterials));
 	ReturnOnFalse(ReadSceneFileSkin(pcReader, pcMesh));
-	if (pcGroups != NULL)
+	if (pcReader->NumSmoothGroups() > 0)
 	{
-		ReturnOnFalse(ReadSceneFileSmoothGroups(pcReader, pcMesh, pcGroups, &sFaces));
+		ReturnOnFalse(ReadSceneFileSmoothGroups(pcReader, pcMesh, &sFaces));
 	}
 	sFaces.aiPolygons.Kill();
 	sFaces.aiCorners.Kill();
@@ -534,7 +525,7 @@ static bool DoSceneFileFacesAgree(SSceneFilePolygons* psPolygons, CArrayMeshPoly
 		{
 			return false;
 		}
-		if ((psPolygons->pcGroups != NULL) && (psPolygons->pcGroups->mcSmoothingGroups.GetValue((size)psEdge->iFace) != psPolygons->pcGroups->mcSmoothingGroups.GetValue((size)pasEdges->Get(0)->iFace)))
+		if (pcMesh->mcSmoothing.InUse() && (pcMesh->mcSmoothing.mauiGroups.GetValue((size)psEdge->iFace) != pcMesh->mcSmoothing.mauiGroups.GetValue((size)pasEdges->Get(0)->iFace)))
 		{
 			return false;
 		}
@@ -813,7 +804,6 @@ bool WriteSceneFileMesh(CSceneFileWriter* pcWriter, CMeshEditor* pcEditor, CArra
 
 	pcMesh = &pcEditor->mpMesh;
 	sPolygons.pcMesh = pcMesh;
-	sPolygons.pcGroups = pcEditor->mcModifiers.GetModifier<CMeshSmoothGroups>();
 	sPolygons.aiSizes.Init();
 	sPolygons.aiFirstFaces.Init();
 	sPolygons.asCorners.Init();
@@ -861,12 +851,12 @@ bool WriteSceneFileMesh(CSceneFileWriter* pcWriter, CMeshEditor* pcEditor, CArra
 		aiSlots.Kill();
 	}
 
-	if (sPolygons.pcGroups != NULL)
+	if (pcMesh->mcSmoothing.InUse())
 	{
 		auiGroups.Init();
 		for (i = 0; i < sPolygons.aiFirstFaces.NumElements(); i++)
 		{
-			auiGroups.Add((uint32)sPolygons.pcGroups->mcSmoothingGroups.GetValue((size)sPolygons.aiFirstFaces.GetValue(i)));
+			auiGroups.Add(pcMesh->mcSmoothing.mauiGroups.GetValue((size)sPolygons.aiFirstFaces.GetValue(i)));
 		}
 		pcWriter->WriteSmoothGroups(auiGroups.GetData(), auiGroups.NumElements());
 		auiGroups.Kill();

@@ -30,7 +30,6 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 	CMesh*				pcMesh;
 	CMeshSkinVert*		pcVert;
 	SFloat32Vec3*		psPosition;
-	CMeshSmoothGroups*	pcGroups;
 	int					iNumFlat;
 
 	AssertSize(1, pScene->mapInstances.NumElements());
@@ -76,11 +75,12 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 	AssertInt(0, pcMesh->mcMaterials.mcFaces.GetValue(1));
 	AssertInt(-1, pcMesh->mcMaterials.mcFaces.GetValue(2));
 
-	pcGroups = pEditor->mcModifiers.GetModifier<CMeshSmoothGroups>();
-	AssertNotNull(pcGroups);
-	AssertInt((int32)1, pcGroups->mcSmoothingGroups.GetValue(0));
-	AssertInt((int32)1, pcGroups->mcSmoothingGroups.GetValue(1));
-	AssertInt((int32)0x80000002, pcGroups->mcSmoothingGroups.GetValue(2));
+	//A scene file's groups are the mesh's, not a modifier's on the editor's stack.
+	AssertNull(pEditor->mcModifiers.GetModifier<CMeshSmoothGroups>());
+	AssertTrue(pcMesh->mcSmoothing.InUse());
+	AssertTrue(pcMesh->mcSmoothing.mauiGroups.GetValue(0) == 1);
+	AssertTrue(pcMesh->mcSmoothing.mauiGroups.GetValue(1) == 1);
+	AssertTrue(pcMesh->mcSmoothing.mauiGroups.GetValue(2) == 0x80000002);
 
 	AssertTrue(pcMesh->mcSkin.InUse());
 	AssertSize(5, pcMesh->mcSkin.mcSkinVerts.NumElements());
@@ -614,7 +614,8 @@ void TestSceneGooberRead(void)
 
 	//It has no normals in its file: they come from its smoothing groups.
 	AssertTrue(pcMesh->mcNormals.mcNormals.NumElements() > (size)pcMesh->NumFaces());
-	AssertNotNull(pInstanceMesh->mpEditor->mcModifiers.GetModifier<CMeshSmoothGroups>());
+	AssertTrue(pcMesh->mcSmoothing.InUse());
+	AssertSize(6134, pcMesh->mcSmoothing.mauiGroups.NumElements());
 
 	AssertSize(1, pScene->mapAnimations.NumElements());
 	AssertSize(140, pScene->mapAnimations.Get(0)->mapTracks.NumElements());

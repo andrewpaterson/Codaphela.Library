@@ -32,10 +32,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::Init(int iAddGroup)
+void CMeshSmoothGroups::Init(uint32 uiAddGroup)
 {
-	mcSmoothingGroups.Init();
-	miAddGroup = iAddGroup;
+	muiAddGroup = uiAddGroup;
 	meGenerationStyle = SGS_None;
 	mfSharpAngle = 22.5f;
 }
@@ -47,29 +46,7 @@ void CMeshSmoothGroups::Init(int iAddGroup)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::Kill(void)
 {
-	mcSmoothingGroups.Kill();
 	CMeshModifier::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshSmoothGroups::Load(CFileReader* pcFile)
-{
-	ReturnOnFalse(mcSmoothingGroups.Read(pcFile));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshSmoothGroups::Save(CFileWriter* pcFile)
-{
-	return mcSmoothingGroups.Write(pcFile);
 }
 
 
@@ -79,16 +56,13 @@ bool CMeshSmoothGroups::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::Apply(CMeshEditor* pcMeshEditor)
 {
-	EnsureGroups(pcMeshEditor->mpMesh->NumFaces());
-	GenerateSmoothing(pcMeshEditor);
+	GenerateGroups(&pcMeshEditor->mpMesh, false);
 	GenerateNormals(&pcMeshEditor->mpMesh);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// SGS_Angle's polygons belong to an editor, which a new mesh doesn't have,
-// but it doesn't smooth anything yet in any case.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshSmoothGroups::Modify(Ptr<CMesh> pMesh)
@@ -101,51 +75,32 @@ Ptr<CMesh> CMeshSmoothGroups::Modify(Ptr<CMesh> pMesh)
 	}
 
 	pOutput = CopyWithNormals(&pMesh);
-	ClearConnectivity();
-	EnsureGroups(pOutput->NumFaces());
-
-	if (meGenerationStyle == SGS_Name)
-	{
-		GenerateSmoothingFromNames(&pOutput);
-	}
-	else if (meGenerationStyle == SGS_Angle)
-	{
-		mcSmoothingGroups.SetArrayValues(0);
-	}
+	GenerateGroups(&pOutput, true);
 	GenerateNormals(&pOutput);
 	return pOutput;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-// A mesh that was there before the modifier has faces it wasn't told of.
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::EnsureGroups(int iNumFaces)
-{
-	while ((int)mcSmoothingGroups.NumElements() < iNumFaces)
-	{
-		mcSmoothingGroups.Add(miAddGroup);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
+// bKeep keeps groups the mesh already has, with SGS_None.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::GenerateSmoothing(CMeshEditor* pcMeshEditor)
+void CMeshSmoothGroups::GenerateGroups(CMesh* pcMesh, bool bKeep)
 {
 	switch (meGenerationStyle)
 	{
 	case SGS_None:
+		if (!bKeep || !pcMesh->mcSmoothing.InUse())
+		{
+			pcMesh->mcSmoothing.SetAll((size)pcMesh->NumFaces(), muiAddGroup);
+		}
 		break;
 	case SGS_Name:
-		GenerateSmoothingFromNames(&pcMeshEditor->mpMesh);
+		GenerateGroupsFromNames(pcMesh);
 		break;
 	case SGS_Angle:
-		GenerateSmoothingFromAngles(pcMeshEditor);
+		GenerateGroupsFromAngles(pcMesh);
 		break;
 	}
 }
@@ -155,7 +110,7 @@ void CMeshSmoothGroups::GenerateSmoothing(CMeshEditor* pcMeshEditor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::GenerateSmoothingFromNames(CMesh* pcMesh)
+void CMeshSmoothGroups::GenerateGroupsFromNames(CMesh* pcMesh)
 {
 	CArrayInt	aiUniqueNames;
 	int			i;
@@ -173,14 +128,15 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMesh* pcMesh)
 	if (aiUniqueNames.NumElements() >= 32)
 	{
 		//Too many face names to deal with.
-		mcSmoothingGroups.SetArrayValues(1);
+		pcMesh->mcSmoothing.SetAll((size)iNumFaces, 1);
 	}
 	else
 	{
+		pcMesh->mcSmoothing.SetAll((size)iNumFaces, 0);
 		for (i = 0; i < iNumFaces; i++)
 		{
 			iName = pcMesh->GetFaceName(i);
-			mcSmoothingGroups.SetValue(i, (iName != 0) ? (int32)((uint32)1 << (iName - 1)) : 0);
+			pcMesh->mcSmoothing.mauiGroups.SetValue(i, (iName != 0) ? ((uint32)1 << (iName - 1)) : 0);
 		}
 	}
 
@@ -192,7 +148,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
+void CMeshSmoothGroups::GenerateGroupsFromAngles(CMesh* pcMesh)
 {
 	size			i;
 	size			iNumPolygons;
@@ -209,16 +165,16 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	fDot = Deg2Dot(mfSharpAngle);
 
 	asNormals.Init();
-	pcMeshEditor->mpMesh->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpMesh->mcNormals);
+	pcMesh->mcPolygons.GetNormals(&asNormals, &pcMesh->mcNormals);
 
-	mcSmoothingGroups.SetArrayValues(0);
+	pcMesh->mcSmoothing.SetAll((size)pcMesh->NumFaces(), 0);
 
-	iNumPolygons = pcMeshEditor->mpMesh->mcPolygons.mcPolygons.NumElements();
+	iNumPolygons = pcMesh->mcPolygons.mcPolygons.NumElements();
 	for (i = 0; i < iNumPolygons; i++)
 	{
 		psThisNormal = asNormals.Get(i);
 		aiAdjPolys.Init();
-		pcMeshEditor->mpMesh->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpMesh->GetConnectivity(), (int)i, &aiAdjPolys);
+		pcMesh->mcPolygons.GetAdjacentPolygons(pcMesh->GetConnectivity(), (int)i, &aiAdjPolys);
 
 		uiNumElements = aiAdjPolys.NumElements();
 		for (j = 0; j < uiNumElements; j++)
@@ -257,8 +213,8 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	CMeshFace*			psFaces;
 	int					iPosition;
 	bool				bSmoothingOverlap;
-	int32*				piSmoothing;
-	int32				iSmoothing;
+	uint32*				puiSmoothing;
+	uint32				uiSmoothing;
 	int					iNewNormalIndex;
 	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
@@ -266,7 +222,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	CMeshNormals*		pcNormals;
 	size				uiNumFaces;
 
-	if (!pcMesh->mcNormals.InUse() || (pcMesh->NumFaces() == 0))
+	if (!pcMesh->mcNormals.InUse() || !pcMesh->mcSmoothing.InUse() || (pcMesh->NumFaces() == 0))
 	{
 		return;
 	}
@@ -275,7 +231,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	psCorners = pcMesh->GetCorner(0);
 	psFaces = pcMesh->GetFace(0);
 
-	piSmoothing = mcSmoothingGroups.Get(0);
+	puiSmoothing = pcMesh->mcSmoothing.mauiGroups.Get(0);
 
 	pcNormals = &pcMesh->mcNormals;
 	pcNormals->RemoveCornerNormals(pcMesh->NumFaces());
@@ -297,18 +253,18 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 		uiNumFaces = psCorners[i].maiFace.NumElements();
 		for (j = 0; j < uiNumFaces; j++)
 		{
-			iSmoothing = piSmoothing[aiFaceRef[j]];
+			uiSmoothing = puiSmoothing[aiFaceRef[j]];
 			//Ignore faces with zero smoothing groups
-			if (iSmoothing != 0)
+			if (uiSmoothing != 0)
 			{
 				bSmoothingOverlap = false;
 
 				for (k = 0; k < iNumNormals; k++)
 				{
 					//If the smoothing groups overlap then add this face normal to the temp normal
-					if (dwSmooth[k] & iSmoothing)
+					if (dwSmooth[k] & uiSmoothing)
 					{
-						dwSmooth[k] |= iSmoothing;
+						dwSmooth[k] |= uiSmoothing;
 						bSmoothingOverlap = true;
 						break;
 					}
@@ -318,7 +274,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 					//Just in case
 					if (iNumNormals < MAX_UNOVERLAPPING_SMOOTHING_GROUPS)
 					{
-						dwSmooth[iNumNormals] = iSmoothing;
+						dwSmooth[iNumNormals] = uiSmoothing;
 						iNumNormals++;
 					}
 				}
@@ -358,10 +314,10 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			uiNumFaces = psCorners[i].maiFace.NumElements();
 			for (j = 0; j < uiNumFaces; j++)
 			{
-				iSmoothing = piSmoothing[aiFaceRef[j]];
+				uiSmoothing = puiSmoothing[aiFaceRef[j]];
 
 				//If smoothing group on this normal overlaps smoothing group on face
-				if (iSmoothing & dwSmooth[k])
+				if (uiSmoothing & dwSmooth[k])
 				{
 					psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 
@@ -383,10 +339,10 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			uiNumFaces = psCorners[i].maiFace.NumElements();
 			for (j = 0; j < uiNumFaces; j++)
 			{
-				iSmoothing = piSmoothing[aiFaceRef[j]];
+				uiSmoothing = puiSmoothing[aiFaceRef[j]];
 
 				//If the smoothing group on this normal overlaps the smoothing group on face
-				if (iSmoothing & dwSmooth[k])
+				if (uiSmoothing & dwSmooth[k])
 				{
 					//Then set the face point normal reference to the newly added normal
 					for (l = 0; l < 3; l++)
@@ -407,9 +363,9 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 		uiNumFaces = psCorners[i].maiFace.NumElements();
 		for (j = 0; j < uiNumFaces; j++)
 		{
-			iSmoothing = piSmoothing[aiFaceRef[j]];
+			uiSmoothing = puiSmoothing[aiFaceRef[j]];
 
-			if (iSmoothing == 0)
+			if (uiSmoothing == 0)
 			{
 				psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 				if (psFaceNormal->iFaceNormal == -1)
@@ -427,52 +383,12 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 
 
 //////////////////////////////////////////////////////////////////////////
+// What faces are put in when they're given groups.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::ClearConnectivity(void)
+void CMeshSmoothGroups::SetAllGroups(uint32 uiGroups)
 {
-	mcSmoothingGroups.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::AddFace(int iCorner1, int iCorner2, int iCorner3)
-{
-	mcSmoothingGroups.Add(miAddGroup);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::RemoveFace(size iFace)
-{
-	mcSmoothingGroups.RemoveAt(iFace, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::RemoveFaces(CArraySize* paiFaces)
-{
-	mcSmoothingGroups.RemoveAt(paiFaces->GetData(), paiFaces->NumElements());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::SetAllGroups(int iGroup)
-{
-	mcSmoothingGroups.SetArrayValues(iGroup);
-	miAddGroup = iGroup;
+	muiAddGroup = uiGroups;
 }
 

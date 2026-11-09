@@ -23,8 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_SMOOTH_GROUPS_H__
 #define __MESH_SMOOTH_GROUPS_H__
-#include "BaseLib/ArrayTemplatePrimitive.h"
-#include "BaseLib/ArraySize.h"
 #include "MeshModifier.h"
 
 
@@ -36,43 +34,36 @@ enum ESmoothGenerationStyle
 };
 
 
-typedef CArrayTemplatePrimitive<int32>	CArraySmoothGroups;  //32 bits, whatever size an int is, as a group is a bit of one.
-
-
 class CMesh;
+
+
+//Makes a mesh's normals from its smoothing groups (CMesh::mcSmoothing).  With SGS_None it keeps the mesh's groups, and a mesh with none has
+//every face put in muiAddGroup.  SGS_Name makes them from its faces' names, one group for each name.  SGS_Angle doesn't smooth anything yet.
+//
+//Apply, until it goes (ScenePlan step 2), puts every face in muiAddGroup with SGS_None, as an editor's stack makes its mesh again each time
+//and so its faces are new.
 class CMeshSmoothGroups : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothGroups);
 public:
-	CArraySmoothGroups		mcSmoothingGroups;  //A smoothing group for each face: mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
-	int						miAddGroup;
+	uint32					muiAddGroup;
 	ESmoothGenerationStyle	meGenerationStyle;
 	float32					mfSharpAngle;
 
-	void 	Init(int iAddGroup = 1);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 		Init(uint32 uiAddGroup = 1);
+	void 		Kill(void);
 
-	void	GenerateNormals(CMesh* pcMesh);
-	void	GenerateSmoothing(CMeshEditor* pcMeshEditor);
-	void	GenerateSmoothingFromNames(CMesh* pcMesh);
-	void	GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor);
-
-	void	Apply(CMeshEditor* pcMeshEditor);
+	void		Apply(CMeshEditor* pcMeshEditor);
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 
-	void	ClearConnectivity(void);
+	void		SetAllGroups(uint32 uiGroups);
 
-	void	AddFace(int iCorner1, int iCorner2, int iCorner3);
-
-	void	RemoveFace(size iFace);
-	void	RemoveFaces(CArraySize* paiFaces);
-
-	void	SetAllGroups(int iGroup);
+	static void	GenerateNormals(CMesh* pcMesh);
 
 protected:
-	void	EnsureGroups(int iNumFaces);
+	void		GenerateGroups(CMesh* pcMesh, bool bKeep);
+	void		GenerateGroupsFromNames(CMesh* pcMesh);
+	void		GenerateGroupsFromAngles(CMesh* pcMesh);
 };
 
 

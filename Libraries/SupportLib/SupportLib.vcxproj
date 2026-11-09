@@ -409,6 +409,7 @@
     <ClInclude Include="MeshWeldCorners.h" />
     <ClInclude Include="MeshSmoothFaces.h" />
     <ClInclude Include="MeshSmoothGroups.h" />
+    <ClInclude Include="MeshSmoothing.h" />
     <ClInclude Include="MeshSourceModifier.h" />
     <ClInclude Include="MeshBoxEditor.h" />
     <ClInclude Include="MeshTorusEditor.h" />
@@ -666,6 +667,7 @@
     <ClCompile Include="MeshWeldCorners.cpp" />
     <ClCompile Include="MeshSmoothFaces.cpp" />
     <ClCompile Include="MeshSmoothGroups.cpp" />
+    <ClCompile Include="MeshSmoothing.cpp" />
     <ClCompile Include="MeshSourceModifier.cpp" />
     <ClCompile Include="MeshBoxEditor.cpp" />
     <ClCompile Include="MeshDiscEditor.cpp" />

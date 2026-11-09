@@ -133,13 +133,13 @@ void TestMeshSmoothGroupsModify(void)
 	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
 	pcSmoothing->Init(1);
 	pOutput = cStack.GetOutput();
-	AssertSize(2, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
 	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 
 	//Again gives the same.
 	cStack.Touch();
 	pOutput = cStack.GetOutput();
-	AssertSize(2, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
 	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
@@ -148,8 +148,8 @@ void TestMeshSmoothGroupsModify(void)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Name;
 	pOutput = cStack.GetOutput();
-	AssertInt((int32)1, pcSmoothing->mcSmoothingGroups.GetValue(0));
-	AssertInt((int32)2, pcSmoothing->mcSmoothingGroups.GetValue(1));
+	AssertTrue(pOutput->mcSmoothing.mauiGroups.GetValue(0) == 1);
+	AssertTrue(pOutput->mcSmoothing.mauiGroups.GetValue(1) == 2);
 	AssertSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
@@ -228,7 +228,7 @@ void TestMeshNormalModifiersInEditorAgain(void)
 
 	cEditor.mcModifiers.ApplyAll(&cEditor);
 	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
-	AssertSize(2, pcSmoothing->mcSmoothingGroups.NumElements());
+	AssertSize(2, cMesh.mcSmoothing.mauiGroups.NumElements());
 
 	cEditor.mcModifiers.ApplyAll(&cEditor);
 	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());

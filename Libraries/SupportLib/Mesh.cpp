@@ -54,6 +54,7 @@ void CMesh::PrivateInit(void)
 	mcMaterials.Init();
 	mcColours.Init();
 	mcPolygons.Init();
+	mcSmoothing.Init();
 }
 
 
@@ -80,6 +81,7 @@ void CMesh::Class(void)
 	M_Embedded(mcColours);
 	M_Embedded(mcSkin);
 	M_Embedded(mcPolygons);
+	M_Embedded(mcSmoothing);
 }
 
 
@@ -97,6 +99,7 @@ bool CMesh::Load(CObjectReader* pcFile)
 	ReturnOnFalse(mcMaterials.Load(pcFile));
 	ReturnOnFalse(mcColours.Load(pcFile));
 	ReturnOnFalse(mcPolygons.Load(pcFile));
+	ReturnOnFalse(mcSmoothing.Load(pcFile));
 	return true;
 }
 
@@ -115,6 +118,7 @@ bool CMesh::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(mcMaterials.Save(pcFile));
 	ReturnOnFalse(mcColours.Save(pcFile));
 	ReturnOnFalse(mcPolygons.Save(pcFile));
+	ReturnOnFalse(mcSmoothing.Save(pcFile));
 	return true;
 }
 
@@ -284,6 +288,7 @@ void CMesh::ClearConnectivity(void)
 	mcMaterials.Clear();
 	mcColours.Clear();
 	mcPolygons.Clear();
+	mcSmoothing.Clear();
 }
 
 
@@ -327,6 +332,7 @@ void CMesh::CopyFrom(CMesh* pcSource)
 
 	CopyDetailsFrom(pcSource);
 	mcPolygons.Copy(&pcSource->mcPolygons);
+	mcSmoothing.Copy(&pcSource->mcSmoothing);
 }
 
 
@@ -418,6 +424,7 @@ CMFRet CMesh::AddFace(int iCorner1, int iCorner2, int iCorner3)
 	mcUVs.AddFace();
 	mcMaterials.AddFace();
 	mcColours.AddFace();
+	mcSmoothing.AddFace();
 	return r;
 }
 
