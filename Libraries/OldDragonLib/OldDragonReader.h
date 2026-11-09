@@ -31,6 +31,11 @@ bool	ReadOldDragonIOX(COldDragonFile* pcFile, COldDragonScene* pcScene);
 bool	ReadOldDragon2009(COldDragonFile* pcFile, COldDragonScene* pcScene);
 bool	ReadOldDragonMax(COldDragonFile* pcFile, COldDragonScene* pcScene);
 
+//Adds the points in a Viewer particle file to pcScene.  These are CSV files named by the Viewer's Config.txt, and a scene like
+//Goober's star field is only complete with them.  The headings X and Y are required.  Z, R, G, B, Radius and Intensity are
+//optional, in any order.  The Viewer's defaults for missing columns aren't known: Z is 0 and the others are 1 here.
+bool	ReadOldDragonParticles(const char* szFilename, COldDragonScene* pcScene);
+
 
 #endif // __OLD_DRAGON_READER_H__
 

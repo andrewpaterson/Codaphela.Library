@@ -206,6 +206,18 @@ public:
 };
 
 
+//A point from a Viewer particle file.  These aren't in .DRG files: see ReadOldDragonParticles.
+struct SOldDragonParticle
+{
+	SOldDragonVec3	sPosition;
+	float32			fRed;
+	float32			fGreen;
+	float32			fBlue;
+	float32			fRadius;
+	float32			fIntensity;
+};
+
+
 class COldDragonScene
 {
 public:
@@ -220,6 +232,7 @@ public:
 	CArrayTemplate<SOldDragonConnection>	macConnections;
 	CArrayTemplate<COldDragonSequence>		macSequences;
 	CArrayTemplate<COldDragonInstance>		macInstances;
+	CArrayTemplate<SOldDragonParticle>		macParticles;
 
 	void	Init(void);
 	void	Kill(void);

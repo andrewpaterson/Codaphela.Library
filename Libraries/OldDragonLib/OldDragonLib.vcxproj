@@ -25,6 +25,7 @@
     <ClCompile Include="OldDragonIOXReader.cpp" />
     <ClCompile Include="OldDragonImageReader.cpp" />
     <ClCompile Include="OldDragonMaxReader.cpp" />
+    <ClCompile Include="OldDragonParticles.cpp" />
     <ClCompile Include="OldDragonReader.cpp" />
     <ClCompile Include="OldDragonScene.cpp" />
   </ItemGroup>

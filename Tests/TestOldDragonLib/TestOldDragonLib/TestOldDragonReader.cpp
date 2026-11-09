@@ -11,6 +11,7 @@
 #define MELEE			".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "StarControl1" _FS_ "StarControl1" _FS_ "Melee.DRG"
 #define STAR_CONTROL	"D:/Work/Star Control/Builds/StarControl/Test.DRG"
 #define GOOBER			"D:/Work/Star Control/Builds/ViewerV7beta2009.9.20/Goober.DRG"
+#define STARS			"D:/Work/Star Control/Builds/ViewerV7beta2009.9.20/Particles/Stars.csv"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -597,6 +598,52 @@ void TestOldDragonReadGoober(void)
 	AssertTrue(fabsf(fMinZ - fStartMinZ) < 2.0f);
 	AssertTrue(fabsf(fMaxZ - fStartMaxZ) < 2.0f);
 
+	AssertTrue(ReadOldDragonParticles(STARS, &cScene));
+	AssertSize(1105, cScene.macParticles.NumElements());
+	AssertFloat(0.87631f, cScene.macParticles.Get(0)->sPosition.x, 3);
+	AssertFloat(0.74185f, cScene.macParticles.Get(0)->sPosition.z, 3);
+	AssertFloat(0.90983f, cScene.macParticles.Get(0)->fRed, 3);
+	AssertFloat(1.6f, cScene.macParticles.Get(0)->fIntensity, 3);
+	AssertFloat(0.00272f, cScene.macParticles.Get(0)->fRadius, 3);
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonReadParticles(void)
+{
+	COldDragonScene		cScene;
+	SOldDragonParticle*	psParticle;
+	SLogConfig			sLogConfig;
+
+	cScene.Init();
+	AssertTrue(ReadOldDragonParticles("Input" _FS_ "ParticlesAll.csv", &cScene));
+	AssertSize(2, cScene.macParticles.NumElements());
+	psParticle = cScene.macParticles.Get(1);
+	AssertOldDragonVec3(4.0f, 5.0f, 6.0f, &psParticle->sPosition);
+	AssertFloat(0.25f, psParticle->fRed, 3);
+	AssertFloat(0.5f, psParticle->fGreen, 3);
+	AssertFloat(0.75f, psParticle->fBlue, 3);
+	AssertFloat(2.0f, psParticle->fIntensity, 3);
+	AssertFloat(0.125f, psParticle->fRadius, 3);
+
+	//The Y is first, there's no Z, and the unset columns get their defaults.  These add to what's there.
+	AssertTrue(ReadOldDragonParticles("Input" _FS_ "ParticlesTwo.csv", &cScene));
+	AssertSize(3, cScene.macParticles.NumElements());
+	psParticle = cScene.macParticles.Get(2);
+	AssertOldDragonVec3(8.0f, 7.0f, 0.0f, &psParticle->sPosition);
+	AssertFloat(1.0f, psParticle->fRed, 3);
+	AssertFloat(1.0f, psParticle->fRadius, 3);
+	cScene.Kill();
+
+	cScene.Init();
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(ReadOldDragonParticles("Input" _FS_ "NoSuchFile.csv", &cScene));
+	AssertFalse(ReadOldDragonParticles("Input" _FS_ "Plane.DRG", &cScene));
+	gcLogger.SetConfig(&sLogConfig);
 	cScene.Kill();
 }
 
@@ -835,6 +882,7 @@ void TestOldDragonReader(void)
 	TestOldDragonReadMax();
 	TestOldDragonReadDamagedMax();
 	TestOldDragonReadGoober();
+	TestOldDragonReadParticles();
 	TestOldDragonReadLargeFiles();
 	TestOldDragonNotOldOrMissing();
 	TestOldDragonDamagedFiles();

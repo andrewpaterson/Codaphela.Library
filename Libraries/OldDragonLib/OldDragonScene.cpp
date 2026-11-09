@@ -164,6 +164,7 @@ void COldDragonScene::Init(void)
 	macConnections.Init();
 	macSequences.Init();
 	macInstances.Init();
+	macParticles.Init();
 }
 
 
@@ -174,6 +175,8 @@ void COldDragonScene::Init(void)
 void COldDragonScene::Kill(void)
 {
 	size	i;
+
+	macParticles.Kill();
 
 	for (i = 0; i < macInstances.NumElements(); i++)
 	{
