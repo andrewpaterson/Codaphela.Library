@@ -654,6 +654,115 @@ void TestOldDragonReadParticles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+static SOldDragonMaterial* FindTestMaterial(COldDragonScene* pcScene, const char* szName)
+{
+	size	i;
+
+	for (i = 0; i < pcScene->macMaterials.NumElements(); i++)
+	{
+		if (strcmp(pcScene->macMaterials.Get(i)->szName, szName) == 0)
+		{
+			return pcScene->macMaterials.Get(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertOldDragonColour(float32 r, float32 g, float32 b, float32 a, SOldDragonColour* psColour)
+{
+	AssertFloat(r, psColour->r, 2);
+	AssertFloat(g, psColour->g, 2);
+	AssertFloat(b, psColour->b, 2);
+	AssertFloat(a, psColour->a, 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every version's colours.  The Max ones go through the same names twice:
+// once from Melee.DRG, where the exporter lost the diffuse red, and once
+// from Melee.max, where it wasn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonColours(void)
+{
+	COldDragonScene		cScene;
+	CFileUtil			cFileUtil;
+	SOldDragonMaterial*	psMaterial;
+
+	cScene.Init();
+	AssertTrue(ReadOldDragonFile("Input" _FS_ "Laser.DRG", &cScene));
+	psMaterial = cScene.macMaterials.Get(0);
+	AssertOldDragonColour(1.0f, 1.0f, 1.0f, 1.0f, &psMaterial->sDiffuse);
+	AssertOldDragonColour(0.90f, 0.90f, 0.90f, 1.0f, &psMaterial->sSpecular);
+	cScene.Kill();
+
+	cScene.Init();
+	AssertTrue(ReadOldDragonFile("Input" _FS_ "Box.DRG", &cScene));
+	psMaterial = cScene.macMaterials.Get(0);
+	AssertOldDragonColour(1.0f, 1.0f, 1.0f, 1.0f, &psMaterial->sDiffuse);
+	AssertOldDragonColour(0.0f, 0.0f, 0.0f, 1.0f, &psMaterial->sEmissive);
+	AssertOldDragonColour(0.9f, 0.9f, 0.9f, 1.0f, &psMaterial->sSpecular);
+	AssertFloat(0.1f, psMaterial->fShininessBase, 2);
+	cScene.Kill();
+
+	if (cFileUtil.Exists(STAR_CONTROL))
+	{
+		cScene.Init();
+		AssertTrue(ReadOldDragonFile(STAR_CONTROL, &cScene));
+		AssertOldDragonColour(0.0f, 0.56f, 1.0f, 1.0f, &FindTestMaterial(&cScene, "Life Blue")->sDiffuse);
+		AssertOldDragonColour(0.0f, 0.27f, 0.76f, 0.33f, &FindTestMaterial(&cScene, "Colony Dome")->sDiffuse);
+		AssertOldDragonColour(0.66f, 0.14f, 0.0f, 1.0f, &FindTestMaterial(&cScene, "Human Thruster Red")->sEmissive);
+		AssertFloat(1.21f, FindTestMaterial(&cScene, "Human Thruster Red")->fShininessPower, 2);
+		cScene.Kill();
+	}
+
+	if (cFileUtil.Exists(MELEE))
+	{
+		cScene.Init();
+		AssertTrue(ReadOldDragonFile(MELEE, &cScene));
+		psMaterial = FindTestMaterial(&cScene, "Androsynth Blue");
+		AssertOldDragonColour(0.0f, 0.22f, 0.61f, 1.0f, &psMaterial->sDiffuse);
+		AssertOldDragonColour(0.0f, 0.22f, 0.61f, 1.0f, &psMaterial->sAmbient);
+		AssertOldDragonColour(0.48f, 0.90f, 0.90f, 1.0f, &psMaterial->sSpecular);
+		AssertFloat(1.07f, psMaterial->fShininessPower, 2);
+		AssertFloat(0.08f, psMaterial->fShininessBase, 2);
+		AssertOldDragonColour(1.0f, 0.0f, 0.0f, 1.0f, &FindTestMaterial(&cScene, "Chenjesu Red")->sDiffuse);
+		AssertOldDragonColour(0.73f, 0.73f, 0.73f, 1.0f, &FindTestMaterial(&cScene, "Chenjesu Glow")->sEmissive);
+		AssertFloat(0.5f, FindTestMaterial(&cScene, "Druuge Red")->sDiffuse.a, 2);
+		AssertFloat(0.3f, FindTestMaterial(&cScene, "Orz Fishie Glass")->sDiffuse.a, 2);
+		AssertOldDragonColour(1.0f, 1.0f, 1.0f, 1.0f, &cScene.macLights.Get(0)->sColour);
+		cScene.Kill();
+	}
+
+	if (cFileUtil.Exists(MELEE_MAX))
+	{
+		cScene.Init();
+		AssertTrue(ReadOldDragonMaxScene(MELEE_MAX, &cScene));
+		psMaterial = FindTestMaterial(&cScene, "Androsynth Blue");
+		AssertOldDragonColour(0.0f, 0.22f, 0.61f, 1.0f, &psMaterial->sDiffuse);
+		AssertOldDragonColour(0.0f, 0.22f, 0.61f, 1.0f, &psMaterial->sAmbient);
+		AssertOldDragonColour(0.48f, 0.90f, 0.90f, 1.0f, &psMaterial->sSpecular);
+		AssertFloat(1.07f, psMaterial->fShininessPower, 2);
+		AssertFloat(0.08f, psMaterial->fShininessBase, 2);
+		AssertOldDragonColour(1.0f, 0.0f, 0.0f, 1.0f, &FindTestMaterial(&cScene, "Chenjesu Red")->sDiffuse);
+		AssertOldDragonColour(0.73f, 0.73f, 0.73f, 1.0f, &FindTestMaterial(&cScene, "Chenjesu Glow")->sEmissive);
+		AssertFloat(0.5f, FindTestMaterial(&cScene, "Druuge Red")->sDiffuse.a, 2);
+		AssertFloat(0.3f, FindTestMaterial(&cScene, "Orz Fishie Glass")->sDiffuse.a, 2);
+		cScene.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Counts how many of a mesh's triangle edges pair up with the same edge
 // running the other way, as they all do on a closed and consistent surface.
 //
@@ -789,6 +898,11 @@ void TestOldDragonFillMelee(void)
 	size				uiFrontPurple;
 	size				uiDefault;
 	const char*			szMaterial;
+	COldDragonScene		cMaxScene;
+	COldDragonMesh*		pcSource;
+	SOldDragonColour*	psColour;
+	SOldDragonColour*	psSourceColour;
+	size				uiDifferent;
 
 	if (!cFileUtil.Exists(MELEE) || !cFileUtil.Exists(MELEE_MAX))
 	{
@@ -850,6 +964,39 @@ void TestOldDragonFillMelee(void)
 	AssertSize(180, uiPurple);
 	AssertSize(502, uiFrontPurple);
 	AssertSize(96, uiDefault);
+
+	//Faces whose material's colour in Melee.DRG isn't the one in Melee.max.  They're all on textured materials, which the
+	//exporter wrote as white: Asteroid, Material #733, Yehat Shield, Androsynth Blazer and Bubble and UrQuan Window.  Picking the
+	//wrong one of two materials with the same name would add to these.  The count comes from comparing the two files separately.
+	cMaxScene.Init();
+	AssertTrue(ReadOldDragonMaxScene(MELEE_MAX, &cMaxScene));
+	uiDifferent = 0;
+	for (i = 0; i < cScene.macMeshes.NumElements(); i++)
+	{
+		pcMesh = cScene.macMeshes.Get(i);
+		pcSource = NULL;
+		for (j = 0; j < cMaxScene.macMeshes.NumElements(); j++)
+		{
+			if (strcmp(cMaxScene.macMeshes.Get(j)->mszName, pcMesh->mszName) == 0)
+			{
+				pcSource = cMaxScene.macMeshes.Get(j);
+				break;
+			}
+		}
+		AssertNotNull(pcSource);
+		for (j = 0; j < pcMesh->macFaces.NumElements(); j++)
+		{
+			psFace = pcMesh->macFaces.Get(j);
+			psColour = &cScene.macMaterials.Get((size)psFace->iMaterial)->sDiffuse;
+			psSourceColour = &cMaxScene.macMaterials.Get((size)pcSource->macFaces.Get(j)->iMaterial)->sDiffuse;
+			if ((fabsf(psColour->r - psSourceColour->r) > 0.002f) || (fabsf(psColour->g - psSourceColour->g) > 0.002f) || (fabsf(psColour->b - psSourceColour->b) > 0.002f))
+			{
+				uiDifferent++;
+			}
+		}
+	}
+	AssertSize(15150, uiDifferent);
+	cMaxScene.Kill();
 	cScene.Kill();
 }
 
@@ -1195,6 +1342,7 @@ void TestOldDragonReader(void)
 	TestOldDragonReadDamagedMax();
 	TestOldDragonReadGoober();
 	TestOldDragonReadParticles();
+	TestOldDragonColours();
 	TestOldDragonReadMaxSceneSample();
 	TestOldDragonFillMelee();
 	TestOldDragonReadAllMaxFiles();
