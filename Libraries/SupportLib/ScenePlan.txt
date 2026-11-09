@@ -251,7 +251,8 @@ Vulkan.
    Edge visibility and selections stay on the editor.  They are what the user sees and does, not the shape, and they describe the
    mesh being edited.  Polygons are built from the edge flags, not from CMeshEdgeVisibility, and an edge is hidden when the faces
    on both sides are in one polygon, so something drawing an output's edges can work that out.
-   Apply and CMeshEditor::Touch then go, leaving only Modify and GetOutput.  Every modifier with an Apply also has a Modify.
+   Apply and CMeshEditor::Touch then go, leaving only Modify and GetOutput.  A shape stays a modifier on the stack, and is collapsed
+   to edit its faces.  Every modifier with an Apply also has a Modify.
    CMeshEditor::Collapse uses Touch, so it changes too, and the base it keeps (mpBase, macBaseEdges) goes with them.  GetOutput
    doesn't wait for any of this.
 3. CConnection has a Ptr<CConnection> parent, which a file fills.  It updates: a world matrix from a local one and the parent's.

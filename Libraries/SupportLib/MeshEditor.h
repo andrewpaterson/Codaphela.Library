@@ -32,6 +32,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 class CMesh;
+//The mesh and its modifiers.  GetOutput is the mesh with its modifiers applied, which is the mesh itself if there are none.  It's
+//kept until the mesh is changed through the editor, a modifier is added, or mcModifiers.Touch says a modifier's settings changed.
+//What's changed in the mesh directly, not through the editor's methods, isn't seen.
+//
+//The structure counter goes up when corners or faces are added or removed, and the shape counter when positions move, so that
+//whatever uses the output can tell what it has to redo.  ClearOutput lets the output go once something has made what it needs from
+//it, as with modifiers it's a second whole mesh.
+//
+//Until Apply goes (ScenePlan step 2), Touch still changes the mesh in place, so a shape it adds is in the mesh and GetOutput would add
+//it again.  Use one or the other.
 class CMeshEditor : public CObject
 {
 CONSTRUCTABLE(CMeshEditor);
@@ -51,6 +61,11 @@ protected:
 	Ptr<CMesh>				mpBase;
 	CArrayChar				macBaseEdges;  //Whether each edge of each of its faces is visible.
 
+	size					muiStructureChanges;
+	size					muiShapeChanges;
+	size					muiOutputStructure;  //What the counters were when the output was made.
+	size					muiOutputShape;
+
 public:
 	void	Init(Ptr<CMesh> pMesh);
 	void 	Free(void) override;
@@ -59,8 +74,13 @@ public:
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;
 
-	void	Touch(void);
-	void	Collapse(void);
+	void		Touch(void);
+	void		Collapse(void);
+
+	Ptr<CMesh>	GetOutput(void);
+	void		ClearOutput(void);
+	size		NumStructureChanges(void);
+	size		NumShapeChanges(void);
 
 	void	RemoveModifiers(void);
 
@@ -95,6 +115,8 @@ public:
 
 protected:
 	void	ClearMesh(void);
+	void	ChangedStructure(void);
+	void	ChangedShape(void);
 	void	KeepBase(void);
 	void	ForgetBase(void);
 };

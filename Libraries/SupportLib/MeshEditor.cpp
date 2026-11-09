@@ -42,11 +42,16 @@ void CMeshEditor::Init(Ptr<CMesh> pMesh)
 	mcEdgeVisibility.Init();
 	mcPolygons.Init();
 
-	mcModifiers.Init();
+	mcModifiers.Init(pMesh);
 
 	mbBaseKept = false;
 	mpBase = NULL;
 	macBaseEdges.Init();
+
+	muiStructureChanges = 0;
+	muiShapeChanges = 0;
+	muiOutputStructure = 0;
+	muiOutputShape = 0;
 
 	PostInit();
 }
@@ -59,6 +64,7 @@ void CMeshEditor::Init(Ptr<CMesh> pMesh)
 void CMeshEditor::Free(void)
 {
 	macBaseEdges.Kill();
+	mszName.Kill();
 }
 
 
@@ -77,6 +83,10 @@ void CMeshEditor::Class(void)
 	U_Bool(mbBaseKept);
 	M_Pointer(mpBase);
 	U_Unknown(CArrayChar, macBaseEdges);
+	U_Size(muiStructureChanges);
+	U_Size(muiShapeChanges);
+	U_Size(muiOutputStructure);
+	U_Size(muiOutputShape);
 }
 
 
@@ -113,6 +123,7 @@ bool CMeshEditor::Load(CObjectReader* pcFile)
 void CMeshEditor::Touch(void)
 {
 	mcModifiers.ApplyAll(this);
+	ChangedStructure();
 
 	mpMesh->Touch();
 }
@@ -126,6 +137,72 @@ void CMeshEditor::Collapse(void)
 {
 	Touch();
 	RemoveModifiers();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshEditor::GetOutput(void)
+{
+	if ((muiOutputStructure != muiStructureChanges) || (muiOutputShape != muiShapeChanges))
+	{
+		mcModifiers.Touch();
+		muiOutputStructure = muiStructureChanges;
+		muiOutputShape = muiShapeChanges;
+	}
+	return mcModifiers.GetOutput();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::ClearOutput(void)
+{
+	mcModifiers.Touch();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshEditor::NumStructureChanges(void)
+{
+	return muiStructureChanges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshEditor::NumShapeChanges(void)
+{
+	return muiShapeChanges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::ChangedStructure(void)
+{
+	muiStructureChanges++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::ChangedShape(void)
+{
+	muiShapeChanges++;
 }
 
 
@@ -206,6 +283,7 @@ void CMeshEditor::ClearConnectivity(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::ClearMesh(void)
 {
+	ChangedStructure();
 	mpMesh->ClearConnectivity();
 	
 	mcSelections.Clear();
@@ -321,6 +399,7 @@ void CMeshEditor::AddCorner(float32 x, float32 y, float32 z)
 
 	s.Init(x, y, z);
 
+	ChangedStructure();
 	mpMesh->AddCorner(&s);
 	mcModifiers.AddPosition(&s);
 	mcSelections.AddCorner();
@@ -333,6 +412,7 @@ void CMeshEditor::AddCorner(float32 x, float32 y, float32 z)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::AddCorner(SFloat32Vec3* psPosition)
 {
+	ChangedStructure();
 	mpMesh->AddCorner(psPosition);
 	mcModifiers.AddPosition(psPosition);
 	mcSelections.AddCorner();
@@ -351,6 +431,7 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 	int					iNewEdges;
 
 	//Selections, edge visibility and polygons need this one face's edges, not those of faces added directly to the mesh.
+	ChangedStructure();
 	pcConn = mpMesh->GetConnectivity();
 	pcConn->GenerateConnectivity();
 
@@ -455,6 +536,7 @@ CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::RemoveFace(int iFace)
 {
+	ChangedStructure();
 	mpMesh->RemoveFace(iFace);
 	mcModifiers.RemoveFace(iFace);
 }
@@ -466,6 +548,7 @@ void CMeshEditor::RemoveFace(int iFace)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::RemoveFaces(CArrayInt* paiFaces)
 {
+	ChangedStructure();
 	mpMesh->RemoveFaces(paiFaces);
 	mcModifiers.RemoveFaces(paiFaces);
 }
@@ -477,6 +560,7 @@ void CMeshEditor::RemoveFaces(CArrayInt* paiFaces)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::RemoveCorner(int iCorner)
 {
+	ChangedStructure();
 	mpMesh->RemoveCorner(iCorner);
 	mcModifiers.RemoveCorner(iCorner);
 }
@@ -488,6 +572,7 @@ void CMeshEditor::RemoveCorner(int iCorner)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::MovePosition(int iPosition, SFloat32Vec3* psPosition)
 {
+	ChangedShape();
 	mpMesh->MovePosition(iPosition, psPosition);
 	mcModifiers.MovePosition(iPosition, psPosition);
 }
@@ -499,6 +584,7 @@ void CMeshEditor::MovePosition(int iPosition, SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition)
 {
+	ChangedShape();
 	mpMesh->MovePositions(paiPositions, psPosition);
 	mcModifiers.MovePositions(paiPositions, psPosition);
 }
