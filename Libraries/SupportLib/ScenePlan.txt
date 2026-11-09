@@ -42,7 +42,7 @@ From the scene to what is drawn
 -------------------------------
   CMeshEditor::GetOutput --> CMesh                                  Runs the stack.
     1. Cook: when it has changed.                                   SRenderMeshData and friends.  Plain, for any renderer.
-    2. Create: per device.                                          CRenderMesh --> CNativeRenderMesh*
+    2. Create: per device.                                          CRasterRenderMesh or CVulkanRenderMesh, from CRenderMesh.
     3. Extract: every frame, from connections, camera and lights.   SRenderFrame
     4. Draw.                                                        CRasteriser, or Vulkan command buffers.
 
@@ -79,8 +79,15 @@ Modifiers may add or remove vertices, so a mesh with any modifiers can't be upda
 overwrite.  A heavy stack is too slow to run on every mouse move, so an editor may run it when a drag ends, or draw the
 unmodified mesh during the drag.  That is the editor's choice.
 
-The graph can free a render mesh at any moment, while the GPU may still be using it.  On Vulkan destroying a native mesh only
-queues it until that frame's fence signals.  Raster frees it at once.
+The graph can free a render mesh at any moment, while the GPU may still be using it.  On Vulkan its Free only queues its buffers
+until that frame's fence signals.  Raster frees them at once.
+
+Destruction order is what CComponent does with Nes(M_Pointer(mpWindow)).  A render mesh holds a Nes pointer to its CRenderer, so
+every mesh is freed before the renderer, and the pointer is still valid in the mesh's Free.  The renderer's lookup pointing back
+at its meshes is fine: only a cycle made entirely of Nes pointers can't be ordered (see TestObjectFreeOrdering).  The renderer's
+Free waits for the device, empties the queue and destroys the device.  The factory isn't an object in the graph and is made by the
+app, so it outlives them all, as CNativeWindowFactory does CWindow.  A mesh's Free shouldn't read a collection on the renderer:
+after an explicit Kill only pointer fields are put back for it, not collection entries.
 
 
 The rule
@@ -88,11 +95,12 @@ The rule
 Nothing in the scene knows a renderer exists, and a renderer only sees what it is given.
 
   SupportLib        The scene.  Knows nothing of renderers.
-  RenderLib         Cooking, CRenderer (per device, holds the shared resources), CRenderScene, CRenderMesh and friends, and
-                    the abstract CNativeRenderFactory.  Follows CCanvas, CNativeCanvas and CNativeWindowFactory.
-  RasterRenderLib   Implements the factory using RasterLib.
+  RenderLib         Cooking, CRenderer (per device, holds the shared resources), CRenderScene, the abstract CRenderMesh and
+                    friends, and the abstract CRenderFactory.  The app makes the factory, as it does CNativeWindowFactory.
+  RasterRenderLib   Implements the factory using RasterLib.  Converts floats and scene types into what RasterLib wants.
   VulkanLib         Implements the factory using Vulkan.
-  RasterLib         Draws.  Knows nothing of scenes, but for CRasterMesh::Build, which includes SupportLib/Mesh.h.
+  RasterLib         A standalone fixed point renderer.  Takes integers and draws, and is usable with no scene at all.  Standalone
+                    means no SupportLib or RenderLib.  BaseLib and StandardLib are part of it.
 
 These stay out of RasterLib:
   Transforms with parents        CConnection's local and world matrices.
@@ -100,7 +108,19 @@ These stay out of RasterLib:
   Keyframes or time              CConnectionAnimation.
   A list of what's in the world  CScene.
 
-SupportLib can't use RasterLib, as RasterLib already depends on it, so a CScene could never create a CRasterMesh itself.
+Drawing features in fixed point go in RasterLib, and whatever touches floats or scene types goes in RasterRenderLib, which is a
+library of its own so that RasterLib depends on neither RenderLib nor the scene.  Today RasterLib isn't quite standalone:
+CRasterMesh::Build includes SupportLib/Mesh.h, until step 4.  CRasterCamera keeps its rotation in a float matrix, which it
+converts to fixed point once a frame.
+
+A CScene never creates a CRasterMesh.  RasterRenderLib does.
+
+CRasterMesh is a CObject, so that anything can share one through a Ptr, with or without a scene.  SRasterInstance stays a plain
+struct with a raw pointer, as it is per-frame data used by the worker threads.  Whatever builds the list of instances holds the
+Ptr<CRasterMesh>s, which keeps them alive during the draw.
+
+Each renderer subclasses CRenderMesh directly.  CCanvas has a native object beneath it because it has a lot of logic that doesn't
+depend on the host.  A render mesh has little, so that layer would buy almost nothing, and a native object couldn't hold a Ptr.
 
 
 Steps
@@ -115,7 +135,10 @@ Each is done when something needs it, with tests.  Skinning must be proved befor
    no modifiers that is the mesh itself.  Structure and shape counters go on the editor's methods.  The renderer clears the
    output after cooking.
 3. CConnection gets a Ptr<CConnection> parent and updates: a world matrix from a local one and the parent's.
-4. RenderLib and RasterRenderLib: create and replace only, with the raster renderer still calling CRasterMesh::Build.
+4. RenderLib and RasterRenderLib: create and replace only.  CRasterMesh::Build moves to RasterRenderLib, the same code, so that
+   RasterLib no longer includes SupportLib/Mesh.h.  BoardScene, VRMLCanvasDraw and any tests that build from a CMesh call it
+   there.  Check whether SupportLib/ColourARGB32.h can go with it.  CRasterMesh becomes a CObject: BoardScene and VRMLCanvasDraw
+   hold it by value through U_Data and TestRasterLib has many as locals, so they change too.
 5. Extract.
    Connections become SRasterInstances, one for each rigid mesh of each instance: axes and offset from the world matrix of the
    mesh's connection, in one scene-wide scale.  Decide what happens to a mirrored matrix (mbParity), as SRasterInstance must turn
@@ -130,11 +153,12 @@ Each is done when something needs it, with tests.  Skinning must be proved befor
 7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  miConnectionIndex is a slot in the instance's
    connections.  Sharing a walk also needs a clip that groups the tracks of many connections, as one CConnectionAnimation is one
    connection.
-8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  Goober proves it.  Needs
+8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  The fixed point skinning
+   goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober proves it.  Needs
    modifiers that keep UVs and skin (see Open) and a conversion from COldDragonScene to CScene.
 9. In-place updates, if dragging plain meshes is slow.
-10. The cook stage and VulkanLib.  The native factory changes from CMesh* to cooked data.  This is left until now so that
-    BoardScene's vertex order and pixels aren't put at risk for nothing.
+10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
+    This is left until now so that BoardScene's vertex order and pixels aren't put at risk for nothing.
 
 
 Test scenes
@@ -154,14 +178,13 @@ and 1105 stars.  The Max source is in D:\Work\Bounty Arms\MaxFiles\Goober.
   The walk is on the spot.  Moving across the stars is the instance's own connection.
   It has no stored normals.  They come from its smoothing groups.
 
-Melee.DRG is no use as a sample: its 64 meshes have no faces.
+Melee.DRG has 64 meshes with no faces, but AddOldDragonMaxFaces with D:\Work\Star Control\MaxFiles\Melee.max restores their faces,
+UVs, names and materials (132,356 triangles).  Placement comes from the DRG's connections and instances.  Material colours and
+the .max's node transforms aren't decoded.
 
 
 To decide
 ---------
-Whether CRenderMesh is a CObject over a raw native pointer.  This plan assumes so, as that is the CCanvas pattern.  The cost is a
-layer per kind of resource.
-
 Whether the full cook waits for Vulkan.  This plan assumes so.
 
 Whether Apply and CMeshEditor::Touch go, leaving only Modify and GetOutput.  Every modifier with an Apply also has a Modify, but
