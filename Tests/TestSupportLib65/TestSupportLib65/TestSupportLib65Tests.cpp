@@ -46,6 +46,10 @@ static const char* gaszTestSupportLib65Excluded816[] =
 	"TestImageSFTWriter",
 	"TestRectangleBestPackerWithRotation",
 
+	//Its images are 33MB, more than the W65C816's 16MB.  It used all of its 4G instructions, 27.9G cycles, without finishing.
+	"TestSceneGoober",
+	"TestSceneGooberResave",
+
 	NULL
 };
 
@@ -64,10 +68,10 @@ void TestSupportLib65Tests(void)
 	sProject.aszLibraries = gaszTestSupportLib65Libraries;
 	sProject.aszExcluded = gaszTestSupportLib65Excluded;
 	sProject.aszExcluded816 = gaszTestSupportLib65Excluded816;
-	sProject.uiMinPrograms = 48;
-	sProject.iMinTestsRun = 25116;
-	sProject.uiMinPrograms816 = 46;
-	sProject.iMinTestsRun816 = 16725;
+	sProject.uiMinPrograms = 51;
+	sProject.iMinTestsRun = 25533;
+	sProject.uiMinPrograms816 = 47;
+	sProject.iMinTestsRun816 = 17051;
 	TestProject65RunTests(&sProject);
 
 	TestStatistics();

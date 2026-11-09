@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_SMOOTH_GROUPS_H__
 #define __MESH_SMOOTH_GROUPS_H__
-#include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayTemplatePrimitive.h"
 #include "BaseLib/ArraySize.h"
 #include "MeshModifier.h"
 
@@ -36,12 +36,15 @@ enum ESmoothGenerationStyle
 };
 
 
+typedef CArrayTemplatePrimitive<int32>	CArraySmoothGroups;  //32 bits, whatever size an int is, as a group is a bit of one.
+
+
 class CMesh;
 class CMeshSmoothGroups : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothGroups);
 public:
-	CArrayInt				mcSmoothingGroups;  //A smoothing group for each face: mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
+	CArraySmoothGroups		mcSmoothingGroups;  //A smoothing group for each face: mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
 	int						miAddGroup;
 	ESmoothGenerationStyle	meGenerationStyle;
 	float32					mfSharpAngle;

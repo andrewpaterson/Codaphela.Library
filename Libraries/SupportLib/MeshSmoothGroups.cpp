@@ -180,7 +180,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMesh* pcMesh)
 		for (i = 0; i < iNumFaces; i++)
 		{
 			iName = pcMesh->GetFaceName(i);
-			mcSmoothingGroups.SetValue(i, (iName != 0) ? (int)((uint32)1 << (iName - 1)) : 0);
+			mcSmoothingGroups.SetValue(i, (iName != 0) ? (int32)((uint32)1 << (iName - 1)) : 0);
 		}
 	}
 
@@ -257,8 +257,8 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	CMeshFace*			psFaces;
 	int					iPosition;
 	bool				bSmoothingOverlap;
-	int*				piSmoothing;
-	int					iSmoothing;
+	int32*				piSmoothing;
+	int32				iSmoothing;
 	int					iNewNormalIndex;
 	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;

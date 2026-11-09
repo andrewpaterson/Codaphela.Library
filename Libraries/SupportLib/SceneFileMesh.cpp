@@ -397,7 +397,7 @@ static bool ReadSceneFileSmoothGroups(CSceneFileReader* pcReader, CMesh* pcMesh,
 	pcGroups->mcSmoothingGroups.Resize(pcMesh->NumFaces());
 	for (i = 0; i < (size)pcMesh->NumFaces(); i++)
 	{
-		pcGroups->mcSmoothingGroups.SetValue(i, (int)auiGroups.GetValue((size)psFaces->aiPolygons.GetValue(i)));
+		pcGroups->mcSmoothingGroups.SetValue(i, (int32)auiGroups.GetValue((size)psFaces->aiPolygons.GetValue(i)));
 	}
 	auiGroups.Kill();
 

@@ -74,6 +74,7 @@ void TestSceneFile(void);
 void TestSceneFileGoober(void);
 void TestScene(void);
 void TestSceneGoober(void);
+void TestSceneGooberResave(void);
 void TestImageResampler(void);
 void TestSound(void);
 void TestSoundWAV(void);
@@ -166,6 +167,7 @@ int __cdecl main(void)
 	TestSceneFileGoober();
 	TestScene();
 	TestSceneGoober();
+	TestSceneGooberResave();
 	TestSound();
 	TestSoundWAV();
 	TestSoundResampler();

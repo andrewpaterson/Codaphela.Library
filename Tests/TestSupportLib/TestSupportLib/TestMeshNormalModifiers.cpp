@@ -148,8 +148,8 @@ void TestMeshSmoothGroupsModify(void)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Name;
 	pOutput = cStack.GetOutput();
-	AssertInt(1, pcSmoothing->mcSmoothingGroups.GetValue(0));
-	AssertInt(2, pcSmoothing->mcSmoothingGroups.GetValue(1));
+	AssertInt((int32)1, pcSmoothing->mcSmoothingGroups.GetValue(0));
+	AssertInt((int32)2, pcSmoothing->mcSmoothingGroups.GetValue(1));
 	AssertSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 

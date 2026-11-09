@@ -78,9 +78,9 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 
 	pcGroups = pEditor->mcModifiers.GetModifier<CMeshSmoothGroups>();
 	AssertNotNull(pcGroups);
-	AssertInt(1, pcGroups->mcSmoothingGroups.GetValue(0));
-	AssertInt(1, pcGroups->mcSmoothingGroups.GetValue(1));
-	AssertInt((int)0x80000002, pcGroups->mcSmoothingGroups.GetValue(2));
+	AssertInt((int32)1, pcGroups->mcSmoothingGroups.GetValue(0));
+	AssertInt((int32)1, pcGroups->mcSmoothingGroups.GetValue(1));
+	AssertInt((int32)0x80000002, pcGroups->mcSmoothingGroups.GetValue(2));
 
 	AssertTrue(pcMesh->mcSkin.InUse());
 	AssertSize(5, pcMesh->mcSkin.mcSkinVerts.NumElements());
@@ -120,8 +120,8 @@ static void TestSceneReadMaterials(Ptr<CScene> pScene)
 	AssertString("Checks", pcBump->mszImageName.Text());
 	pImage = pcBump->mpImage;
 	AssertTrue(pImage.IsNotNull());
-	AssertInt(2, pImage->GetWidth());
-	AssertInt(2, pImage->GetHeight());
+	AssertInt(2, (int)pImage->GetWidth());
+	AssertInt(2, (int)pImage->GetHeight());
 	AssertInt(3, (int)pImage->NumChannels());
 	AssertInt(1, ((uint8*)pImage->GetData())[0]);
 	AssertInt(12, ((uint8*)pImage->GetData())[11]);
@@ -258,6 +258,7 @@ void TestSceneWrite(void)
 	CSceneFileReader	cReader;
 	int32				aiSizes[2];
 	int32				aiCorners[7];
+	uint32				auiGroups[2];
 
 	pScene = OMalloc<CScene>();
 	AssertTrue(pScene->ReadFile(SCENE_SAMPLE));
@@ -290,6 +291,9 @@ void TestSceneWrite(void)
 	AssertSize(2, cReader.NumColours());
 	AssertSize(2, cReader.NumMaterialSlots());
 	AssertSize(2, cReader.NumSmoothGroups());
+	AssertTrue(cReader.ReadSmoothGroups(auiGroups));
+	AssertTrue(auiGroups[0] == 1);
+	AssertTrue(auiGroups[1] == 0x80000002);
 	AssertSize(5, cReader.NumSkinCounts());
 	AssertSize(2, cReader.NumInverseMatrices());
 	AssertTrue(cReader.End());
@@ -576,30 +580,16 @@ void TestScene(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A skinned mesh walking in a field of stars.  Its images are bigger than
-// the debug allocator's limit.
+// A skinned mesh walking in a field of stars.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestSceneGoober(void)
+void TestSceneGooberRead(void)
 {
 	Ptr<CScene>			pScene;
-	Ptr<CScene>			pAgain;
 	Ptr<CInstance>		pInstance;
 	Ptr<CInstanceMesh>	pInstanceMesh;
 	CMesh*				pcMesh;
-	CFileUtil			cFileUtil;
-	lsize				uiMaxDebugAllocatorSize;
 	size				i;
-
-	BeginTests();
-
-	uiMaxDebugAllocatorSize = guiMaxDebugAllocatorSize;
-	InitAllocatorDebug(32 MB);
-	DataIOInit();
-	ObjectsInit();
-	cFileUtil.MakeDir("Output");
-	cFileUtil.RemoveDir(SCENE_OUTPUT_DIR);
-	cFileUtil.MakeDir(SCENE_OUTPUT_DIR);
 
 	pScene = OMalloc<CScene>();
 	AssertTrue(pScene->ReadFile(SCENE_GOOBER));
@@ -634,17 +624,98 @@ void TestSceneGoober(void)
 
 	AssertTrue(pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mpImage.IsNotNull());
 	AssertString("Goober_D.tga", pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mszImageName.Text());
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its file stays the same once it's been through a scene.  Only one scene
+// is held at a time, as its images are 33MB.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneGooberWrite(void)
+{
+	Ptr<CScene>	pScene;
+
+	pScene = OMalloc<CScene>();
+	AssertTrue(pScene->ReadFile(SCENE_GOOBER));
 	AssertTrue(pScene->WriteFile(SCENE_OUTPUT_A));
-	pAgain = OMalloc<CScene>();
-	AssertTrue(pAgain->ReadFile(SCENE_OUTPUT_A));
-	AssertTrue(pAgain->WriteFile(SCENE_OUTPUT_B));
+	pScene = NULL;
+
+	pScene = OMalloc<CScene>();
+	AssertTrue(pScene->ReadFile(SCENE_OUTPUT_A));
+	AssertTrue(pScene->WriteFile(SCENE_OUTPUT_B));
+	pScene = NULL;
+
 	AssertFile(SCENE_OUTPUT_A, SCENE_OUTPUT_B);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Goober's images are bigger than the debug allocator's limit.
+//
+//////////////////////////////////////////////////////////////////////////
+static void BeginTestSceneGoober(lsize* puiMaxDebugAllocatorSize)
+{
+	CFileUtil	cFileUtil;
+
+	*puiMaxDebugAllocatorSize = guiMaxDebugAllocatorSize;
+	InitAllocatorDebug(32 MB);
+	DataIOInit();
+	ObjectsInit();
+	cFileUtil.MakeDir("Output");
+	cFileUtil.RemoveDir(SCENE_OUTPUT_DIR);
+	cFileUtil.MakeDir(SCENE_OUTPUT_DIR);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void EndTestSceneGoober(lsize uiMaxDebugAllocatorSize)
+{
+	CFileUtil	cFileUtil;
 
 	cFileUtil.RemoveDir(SCENE_OUTPUT_DIR);
 	ObjectsKill(false);
 	DataIOKill();
 	InitAllocatorDebug(uiMaxDebugAllocatorSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneGoober(void)
+{
+	lsize	uiMaxDebugAllocatorSize;
+
+	BeginTests();
+
+	BeginTestSceneGoober(&uiMaxDebugAllocatorSize);
+	TestSceneGooberRead();
+	EndTestSceneGoober(uiMaxDebugAllocatorSize);
+
+	TestStatistics();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneGooberResave(void)
+{
+	lsize	uiMaxDebugAllocatorSize;
+
+	BeginTests();
+
+	BeginTestSceneGoober(&uiMaxDebugAllocatorSize);
+	TestSceneGooberWrite();
+	EndTestSceneGoober(uiMaxDebugAllocatorSize);
 
 	TestStatistics();
 }
