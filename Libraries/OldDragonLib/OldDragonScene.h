@@ -125,31 +125,49 @@ public:
 };
 
 
-//The colours are only in Into Oblivion's files.  The other versions' colours aren't decoded, as nothing says what they mean.
+struct SOldDragonColour
+{
+	float32	r;
+	float32	g;
+	float32	b;
+	float32	a;
+};
+
+
+//sDiffuse's alpha is the material's opacity.  A diffuse texture made the exporter write white, so a textured material's
+//colours are white in a .DRG but not in the .max file.  uiDiffuseColour, uiSpecularColour and fSpecularStrength are as Into
+//Oblivion stored them and are only set for its files, where the colours are made from them.
 //In the 2009 and Max files aiTextures has nine slots, each an index into the scene's images or OLD_DRAGON_NO_INDEX: diffuse,
 //diffuse level, specular, illumination, opacity, bump, detail, decal, reflection.
 struct SOldDragonMaterial
 {
-	char	szName[OLD_DRAGON_NAME_SIZE];
-	int32	iID;
-	uint32	uiDiffuseColour;
-	uint32	uiSpecularColour;
-	float32	fSpecularStrength;
-	int32	iNumTextures;
-	int32	aiTextures[OLD_DRAGON_MAX_TEXTURES];
+	char				szName[OLD_DRAGON_NAME_SIZE];
+	int32				iID;
+	SOldDragonColour	sDiffuse;
+	SOldDragonColour	sAmbient;
+	SOldDragonColour	sEmissive;
+	SOldDragonColour	sSpecular;
+	float32				fShininessPower;
+	float32				fShininessBase;
+	uint32				uiDiffuseColour;
+	uint32				uiSpecularColour;
+	float32				fSpecularStrength;
+	int32				iNumTextures;
+	int32				aiTextures[OLD_DRAGON_MAX_TEXTURES];
 };
 
 
 struct SOldDragonLight
 {
-	char	szName[OLD_DRAGON_NAME_SIZE];
-	int32	iID;
-	int32	iType;
-	uint32	uiColour;
-	float32	fDecayStart;
-	float32	fRange;
-	float32	fIntensity;
-	bool	bShadows;
+	char				szName[OLD_DRAGON_NAME_SIZE];
+	int32				iID;
+	int32				iType;
+	SOldDragonColour	sColour;
+	uint32				uiColour;
+	float32				fDecayStart;
+	float32				fRange;
+	float32				fIntensity;
+	bool				bShadows;
 };
 
 

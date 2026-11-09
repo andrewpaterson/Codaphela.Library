@@ -217,6 +217,20 @@ static bool ReadIOXImage(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Into Oblivion's colours are Direct3D's: 0xAARRGGBB.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ConvertIOXColour(uint32 uiColour, SOldDragonColour* psColour)
+{
+	psColour->a = (float32)((uiColour >> 24) & 0xff) / 255.0f;
+	psColour->r = (float32)((uiColour >> 16) & 0xff) / 255.0f;
+	psColour->g = (float32)((uiColour >> 8) & 0xff) / 255.0f;
+	psColour->b = (float32)(uiColour & 0xff) / 255.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static bool ReadIOXMaterial(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldDragonScene* pcScene)
@@ -231,6 +245,11 @@ static bool ReadIOXMaterial(COldDragonFile* pcFile, SOldDragonChunk* psChunk, CO
 	psMaterial->fSpecularStrength = cCursor.ReadFloat();
 	psMaterial->uiDiffuseColour = cCursor.ReadUint32();
 	psMaterial->uiSpecularColour = cCursor.ReadUint32();
+	ConvertIOXColour(psMaterial->uiDiffuseColour, &psMaterial->sDiffuse);
+	ConvertIOXColour(psMaterial->uiDiffuseColour, &psMaterial->sAmbient);
+	ConvertIOXColour(psMaterial->uiSpecularColour, &psMaterial->sSpecular);
+	psMaterial->sEmissive.a = 1.0f;
+	psMaterial->fShininessPower = psMaterial->fSpecularStrength;
 	for (i = 0; i < IOX_MAX_SAMPLE; i++)
 	{
 		psMaterial->aiTextures[i] = cCursor.ReadInt32();
@@ -262,6 +281,7 @@ static bool ReadIOXLight(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 	psLight = pcScene->AddLight();
 	cCursor.ReadName(psLight->szName, sizeof(psLight->szName), IOX_MAX_NAME);
 	psLight->uiColour = cCursor.ReadUint32();
+	ConvertIOXColour(psLight->uiColour, &psLight->sColour);
 	psLight->fDecayStart = cCursor.ReadFloat();	//Atten0.
 	cCursor.ReadFloat();						//Atten1.
 	cCursor.ReadFloat();						//Atten2.

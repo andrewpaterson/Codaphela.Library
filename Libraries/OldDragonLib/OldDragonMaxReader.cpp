@@ -31,6 +31,8 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_FACE_SIZE				24		//Three corners, three edges.
 #define MAX_MATERIAL_PROPERTIES		128
 #define MAX_MATERIAL_IMAGE			28		//Image ID, then how it's addressed and filtered.
+#define MAX_COLOUR_OBJECT_SIZE		28
+#define MAX_COLOUR_OBJECT_HEADER	12
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -113,6 +115,44 @@ static bool ReadMaxSequence(COldDragonCursor* pcCursor, COldDragonScene* pcScene
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A colour object written whole: three words of object, then r, g, b, a.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ReadMaxColour(const uint8* puiColour, SOldDragonColour* psColour)
+{
+	memcpy(psColour, &puiColour[MAX_COLOUR_OBJECT_HEADER], sizeof(SOldDragonColour));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Four colours, two shininesses, then lit and opacity type.  The exporter
+// set the opacity after the colour with sDiffuseColour.a, but a is in the
+// same place r gets written, so the diffuse colour's red is really the
+// opacity.  Max's own ambient and diffuse reds are the same in every
+// material in Melee.max, so the red is taken back from the ambient colour.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ReadMaxMaterialProperties(const uint8* puiProperties, SOldDragonMaterial* psMaterial)
+{
+	float32	fOpacity;
+
+	ReadMaxColour(&puiProperties[MAX_COLOUR_OBJECT_SIZE * 0], &psMaterial->sDiffuse);
+	ReadMaxColour(&puiProperties[MAX_COLOUR_OBJECT_SIZE * 1], &psMaterial->sAmbient);
+	ReadMaxColour(&puiProperties[MAX_COLOUR_OBJECT_SIZE * 2], &psMaterial->sEmissive);
+	ReadMaxColour(&puiProperties[MAX_COLOUR_OBJECT_SIZE * 3], &psMaterial->sSpecular);
+
+	fOpacity = psMaterial->sDiffuse.r;
+	psMaterial->sDiffuse.r = psMaterial->sAmbient.r;
+	psMaterial->sDiffuse.a = fOpacity;
+
+	memcpy(&psMaterial->fShininessPower, &puiProperties[MAX_COLOUR_OBJECT_SIZE * 4], sizeof(float32));
+	memcpy(&psMaterial->fShininessBase, &puiProperties[MAX_COLOUR_OBJECT_SIZE * 4 + sizeof(float32)], sizeof(float32));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static bool ReadMaxMaterial(COldDragonCursor* pcCursor, COldDragonScene* pcScene)
@@ -131,6 +171,7 @@ static bool ReadMaxMaterial(COldDragonCursor* pcCursor, COldDragonScene* pcScene
 	{
 		return false;
 	}
+	ReadMaxMaterialProperties(puiData, psMaterial);
 
 	//Diffuse, diffuse level, specular, illumination, opacity, bump, detail, decal and reflection.
 	while (pcCursor->Remaining() > 0)
@@ -155,13 +196,19 @@ static bool ReadMaxMaterial(COldDragonCursor* pcCursor, COldDragonScene* pcScene
 static bool ReadMaxLight(COldDragonCursor* pcCursor, COldDragonScene* pcScene)
 {
 	SOldDragonLight*	psLight;
+	const uint8*		puiColour;
 	size				uiSize;
 
 	psLight = pcScene->AddLight();
 	psLight->iID = pcCursor->ReadTaggedInt();
 	pcCursor->ReadTaggedChars(psLight->szName, sizeof(psLight->szName));
 	psLight->iType = pcCursor->ReadTaggedInt();
-	pcCursor->ReadTaggedData(&uiSize);		//The colour.  Its layout isn't known.
+	puiColour = pcCursor->ReadTaggedData(&uiSize);
+	if ((puiColour == NULL) || (uiSize != MAX_COLOUR_OBJECT_SIZE))
+	{
+		return false;
+	}
+	ReadMaxColour(puiColour, &psLight->sColour);
 	pcCursor->ReadTaggedInt();				//Decay type.
 	psLight->fDecayStart = pcCursor->ReadTaggedFloat();
 	psLight->bShadows = pcCursor->ReadTaggedBool();

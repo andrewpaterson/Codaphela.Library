@@ -771,21 +771,34 @@ static bool Read2009Image(COldDragonFile* pcFile, size uiChunk, COldDragonScene*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The colours in a material's properties aren't understood, so they
-// aren't kept.  Its images are the first int of each slot.
+// Four colours of r, g, b, a, two shininesses, then lit and opacity type.
+// A material's images are the first int of each slot.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool Read2009Material(COldDragonCursor* pcCursor, COldDragonScene* pcScene)
 {
 	SOldDragonMaterial*	psMaterial;
 	const uint8*		puiData;
+	size				uiPos;
 
 	psMaterial = pcScene->AddMaterial();
 	pcCursor->ReadTaggedName(psMaterial->szName, sizeof(psMaterial->szName));
-	if (Read2009Element(pcCursor, MATERIAL_2009_PROPERTIES) == NULL)
+	puiData = Read2009Element(pcCursor, MATERIAL_2009_PROPERTIES);
+	if (puiData == NULL)
 	{
 		return false;
 	}
+	uiPos = 0;
+	memcpy(&psMaterial->sDiffuse, &puiData[uiPos], sizeof(SOldDragonColour));
+	uiPos += sizeof(SOldDragonColour);
+	memcpy(&psMaterial->sAmbient, &puiData[uiPos], sizeof(SOldDragonColour));
+	uiPos += sizeof(SOldDragonColour);
+	memcpy(&psMaterial->sEmissive, &puiData[uiPos], sizeof(SOldDragonColour));
+	uiPos += sizeof(SOldDragonColour);
+	memcpy(&psMaterial->sSpecular, &puiData[uiPos], sizeof(SOldDragonColour));
+	uiPos += sizeof(SOldDragonColour);
+	memcpy(&psMaterial->fShininessPower, &puiData[uiPos], sizeof(float32));
+	memcpy(&psMaterial->fShininessBase, &puiData[uiPos + sizeof(float32)], sizeof(float32));
 
 	while (pcCursor->Remaining() > 0)
 	{
