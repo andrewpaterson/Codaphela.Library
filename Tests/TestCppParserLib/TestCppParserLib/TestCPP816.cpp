@@ -3443,7 +3443,8 @@ void TestCPP816WideDivisors(void)
 	szSource.Kill();
 
 	AssertInt(2, TestCPP816CountInAssembly(szFunctions, "lda 675"));
-	AssertInt(2, TestCPP816CountInAssembly(szFunctions, "jsl R816_SDiv32"));
+	AssertInt(1, TestCPP816CountInAssembly(szFunctions, "jsl R816_SDiv32"));
+	AssertInt(1, TestCPP816CountInAssembly(szFunctions, "jsl R816_SRem32"));
 	AssertInt(0, TestCPP816CountInAssembly(szFunctions, "jsl R816_URem32"));
 	AssertInt(0, TestCPP816CountInAssembly(szFunctions, "jsl R816_UDiv32"));
 }

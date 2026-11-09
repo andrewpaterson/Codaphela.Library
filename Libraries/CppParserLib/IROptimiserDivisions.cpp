@@ -444,6 +444,7 @@ bool CIROptimiser::ConstantDivisions(void)
 	SIRReference						sQuotient;
 	SIRReference						sSign;
 	SIRReference						sDivisor;
+	SIRReference						sConstant;
 	SIRType								sType;
 	SIRType								sWork;
 	int64								lliDivisor;
@@ -541,9 +542,11 @@ bool CIROptimiser::ConstantDivisions(void)
 		psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 		uiOpcode = psInstruction->uiOpcode;
 		sType = psInstruction->sType;
+		//Kept by value, as the split's inserts move the block's instructions.
 		sValue = psInstruction->asArguments[0];
+		sConstant = psInstruction->asArguments[1];
 		bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
-		lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) : (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+		lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(sConstant)->ulliBits) : (int64)IRTruncate(sType, mpcFunction->GetConstant(sConstant)->ulliBits);
 		lliMin = psFound->lliMin;
 		lliMax = psFound->lliMax;
 		if (psFound->bSplit)
@@ -561,7 +564,7 @@ bool CIROptimiser::ConstantDivisions(void)
 				psInstruction->asArguments[0] = sWide;
 				psInstruction->asArguments[1] = sDivisor;
 			}
-			else if (HasDivision(pcBlock, uiOpcode == IRO_SRem ? IRO_SDiv : IRO_UDiv, sValue, psInstruction->asArguments[1]))
+			else if (HasDivision(pcBlock, uiOpcode == IRO_SRem ? IRO_SDiv : IRO_UDiv, sValue, sConstant))
 			{
 				//x - ((x / 2^k) / m) * c: the same q as the divide's.
 				sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SDiv : IRO_UDiv, sType, sWide, sDivisor);
