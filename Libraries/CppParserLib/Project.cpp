@@ -39,6 +39,20 @@ void CProject::Init(bool bDumpLogs, bool bWritePostFile)
 	mcIncludeFiles.Init();
 	mcHeaderNames.Init();
 	mpcHeaderCache = NULL;
+	mbSkipFailedDirectives = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With bSkip a unit's directive that fails (an #include that can't be
+// found) is skipped and the rest of the unit preprocessed, as a code model
+// wants (CPreprocessor::SetSkipFailedDirectives).  The unit still fails.
+//
+//////////////////////////////////////////////////////////////////////////
+void CProject::SetSkipFailedDirectives(bool bSkip)
+{
+	mbSkipFailedDirectives = bSkip;
 }
 
 
@@ -256,6 +270,7 @@ bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CCha
 	cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 	cPreprocessor.LogDumping(mbDumpLogs);
 	cPreprocessor.SetHeaderCache(mpcHeaderCache);
+	cPreprocessor.SetSkipFailedDirectives(mbSkipFailedDirectives);
 
 	bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 	if (pszErrors)

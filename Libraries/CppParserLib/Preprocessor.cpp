@@ -161,6 +161,7 @@ bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 	mpcOutput = pcFile->GetTokens();
 	mpcOutput->Clear();
 	mbError = false;
+	mbSkippedDirective = false;
 	muiPendingFlags = 0;
 
 	bResult = PushFile(pcFile, NULL);
@@ -171,7 +172,7 @@ bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 		{
 			EmitToken(&sToken);
 		}
-		bResult = !mbError;
+		bResult = !mbError && !mbSkippedDirective;
 	}
 
 	while (macSources.NumElements() > 0)
@@ -183,6 +184,21 @@ bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 
 	mpcOutput = NULL;
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With bSkip a directive that fails (an #include that can't be found, an
+// #if that can't be evaluated, an #error) is skipped and preprocessing
+// goes on after it, for a code model, which wants as much of the unit as
+// it can get.  Its error is still reported and the unit still fails.
+// Without it (as a compiler wants) the unit ends there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::SetSkipFailedDirectives(bool bSkip)
+{
+	mbSkipFailedDirectives = bSkip;
 }
 
 
@@ -504,8 +520,20 @@ bool CPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psTok
 			bResult = ProcessDirective((CPPDirective*)pcToken);
 			if (!bResult)
 			{
-				mbError = true;
-				return false;
+				if (!mbSkipFailedDirectives)
+				{
+					mbError = true;
+					return false;
+				}
+
+				//Its error stays reported and the unit carries on after it.  The sources are read again from the top,
+				//as the directive may have moved them.
+				mbError = false;
+				mbInCondition = false;
+				mbDefinedOperand = false;
+				mbSkippedDirective = true;
+				*pbChanged = true;
+				return true;
 			}
 			if (macSources.NumElements() != iNumSources)
 			{
@@ -844,6 +872,8 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	mbInCondition = false;
 	mbDefinedOperand = false;
 	mbError = false;
+	mbSkipFailedDirectives = false;
+	mbSkippedDirective = false;
 	mbKeepPragmaPack = pcConfig ? pcConfig->mbKeepPragmaPack : false;
 	miCounter = 0;
 	mcErrors.Init();

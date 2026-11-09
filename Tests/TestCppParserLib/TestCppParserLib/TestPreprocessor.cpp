@@ -1556,6 +1556,70 @@ void TestPreprocessorErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szSource preprocessed with failed directives skipped (as the IDE's code
+// model does): its output and errors.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool PreprocessSkippingFailures(char* szSource, CChars* pszOutput, CChars* pszErrors)
+{
+	CTranslationUnit	cFile;
+	CPreprocessor		cPreprocessor;
+	bool				bResult;
+
+	cFile.Init("Skip.cpp", NULL, false);
+	cFile.SetContents(szSource);
+	cPreprocessor.Init(NULL);
+	cPreprocessor.SetSkipFailedDirectives(true);
+	bResult = cPreprocessor.PreprocessTranslationUnit(&cFile);
+	cFile.Print(pszOutput);
+	pszErrors->Append(cPreprocessor.GetErrors()->Text());
+	cPreprocessor.Kill();
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A failed directive skipped: its error is reported, the unit still fails,
+// and the rest of it is preprocessed.  Without it the unit ends there.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorSkipFailedDirectives(void)
+{
+	CChars	szOutput;
+	CChars	szErrors;
+
+	szOutput.Init();
+	szErrors.Init();
+	AssertFalse(PreprocessSkippingFailures("#include <missing.h>\n#include \"Missing.h\"\n#define X 2\nint x = X;\n", &szOutput, &szErrors));
+	AssertString("int x = 2;\n", szOutput.Text());
+	AssertString("Skip.cpp (1, 10): Could not include file <missing.h>\nSkip.cpp (2, 10): Could not include file \"Missing.h\"\n", szErrors.Text());
+	szErrors.Kill();
+	szOutput.Kill();
+
+	//A stray #endif, an unknown directive and an #error are skipped too, and conditionals still work after them.
+	szOutput.Init();
+	szErrors.Init();
+	AssertFalse(PreprocessSkippingFailures("#endif\nint a;\n#frobnicate\n#if 0\nint b;\n#else\nint c;\n#endif\n#error Stop\nint d;\n", &szOutput, &szErrors));
+	AssertString("int a;\nint c;\nint d;\n", szOutput.Text());
+	AssertString("Skip.cpp (1, 7): #elif, #else or #endif without #if.\nSkip.cpp (3, 2): Unknown directive #frobnicate\nSkip.cpp (9, 7): #error Stop\n", szErrors.Text());
+	szErrors.Kill();
+	szOutput.Kill();
+
+	//With nothing failing the unit succeeds as it would have.
+	szOutput.Init();
+	szErrors.Init();
+	AssertTrue(PreprocessSkippingFailures("#define Y 3\nint y = Y;\n", &szOutput, &szErrors));
+	AssertString("int y = 3;\n", szOutput.Text());
+	AssertString("", szErrors.Text());
+	szErrors.Kill();
+	szOutput.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A unit whose file can't be read is an error, not an empty unit.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2233,6 +2297,7 @@ void TestPreprocessor(void)
 	TestPreprocessorMultiLineArguments();
 	TestPreprocessorLocations();
 	TestPreprocessorErrors();
+	TestPreprocessorSkipFailedDirectives();
 	TestPreprocessorUnreadableFile();
 	TestPreprocessorLine();
 	TestPreprocessorPositionErrorsFail();

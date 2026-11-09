@@ -145,6 +145,8 @@ protected:
 	bool							mbInCondition;			//Expanding the expression of a #if.
 	bool							mbDefinedOperand;		//The next identifier is the operand of defined.
 	bool							mbError;
+	bool							mbSkipFailedDirectives;	//A directive that fails is skipped, not the end (SetSkipFailedDirectives).
+	bool							mbSkippedDirective;		//One was.
 	bool							mbKeepPragmaPack;		//#pragma pack(...) is output as __pragma(pack(...)) (CConfig).
 	int								miCounter;
 	CCPPErrors						mcErrors;
@@ -185,6 +187,7 @@ public:
 
 	bool				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 	void				SetHeaderCache(CPPHeaderCache* pcHeaderCache);
+	void				SetSkipFailedDirectives(bool bSkip);
 
 protected:
 	//Sources.
