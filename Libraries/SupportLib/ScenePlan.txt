@@ -156,9 +156,9 @@ B. The reader and writer, holding what Goober and Melee contain: meshes, polygon
    connections, animation, instances, lights, cameras and particles.  Done: SceneFileLib, with the format described in
    SceneFileGeneral.h.  Faces are polygons, a triangle being a polygon of 3.  A failure sticks, and Close then fails and leaves no
    file.  Input/Scene/Sample.DRG in TestSceneFileLib uses all of it and fails its test if the bytes change.
-C. Convert the old files, see below.
-D. Read every converted file back and compare it value by value with what the converter wrote.  Check its counts against
-   OldDragonLib's.  Render them, including Goober's walk, as value checks can't catch a wrong rule.
+C. Convert the old files, see below.  Done: OldDragonConverter in OldDragonLib, run by Tools\ConvertOldDragon, whose ConvertAll.py
+   lists what came from where.  Each file is read back and compared as it's converted.
+D. Render the converted files, including Goober's walk, as value checks can't catch a wrong rule.  What's checked so far is below.
 E. Fill a CMesh and then a CScene from the reader.  Write them too.
 F. A Max exporter writing through the writer, if one is wanted.
 
@@ -177,9 +177,25 @@ TestMeshOBJReader run again.  What OBJ still doesn't carry here:
 
 OldDragonLib is only used once, to convert the old files.  It stays in the repo, out of the regular builds and tests, in case a
 conversion mistake turns up.  The new format owes nothing to the old layouts, and quirks are fixed in the converter and never reach
-a new file: Melee's faces from Melee.max, diffuse red and opacity in their right places, Goober's pose from its keyframes and not its
-connections' matrices, and key times in whatever the new format defines.  A material's colours come from the .max, and are white
-when it has a diffuse texture.
+a new file: Melee's faces from Melee.max, diffuse red and opacity in their right places, and key times in what the new format defines.
+A material's colours are the DRG's, which are white when it has a diffuse texture.  They only differ from the .max in Chenjesu Rim
+(ambient red 0.30 in the DRG, 0.60 in the .max) and 04 - Default.
+
+What the converter found the old files really do, which is in OldDragonConverter.h:
+  An instance's and a sequence's connection numbers aren't places in the list of connections in Goober, as its 18 IK chains and finger
+  helpers are in the list but aren't counted, so most point at the wrong one.  Instances and sequences agree with each other, so
+  skinning from them looks right.  A sequence's name is what says which connection it moves, in every file.
+  Pixels are BGR and BGRA in Into Oblivion and the 2009 files, but RGB and RGBA in the Max exporter's.  All have the top row first.
+  Every sequence's last key is the one before it again, with no time.
+  Into Oblivion's link nodes say what they place, and one link can place many things.  Its instances don't say.
+
+How the converted files were checked, apart from the converter comparing them with what it meant to write:
+  A decoder with no C++ in it found all 18 follow the format's rules, with Goober's 6134 triangles and Melee's 132,356.
+  Goober's bones are all bones, each track has its own connection, its first key is its connection's world matrix, and its skin holds
+  together at every key tried (edges at 0.996 to 1.033 of their rest length).
+  Images with a source were compared with it: Goober's 2 TGAs and Melee's PNGs.  Into Oblivion's BMPs are gone, so its order comes from
+  its CTexture, which puts A8R8G8B8 ints straight into a locked Direct3D texture.  Rendering still has to show its V agrees.
+  Melee's Mycon Spore Outer is 515x512 in the DRG and 512x512 as a PNG.  It's the DRG's that was converted, and it isn't sheared.
 
   Old file                                                 Goes to
   IOX2021\data\meshes, 15 DRGs                             IntoOblivionX
@@ -248,11 +264,12 @@ source is D:\Work\Star Control\Builds\ViewerV7beta2009.9.20\Goober.DRG and Parti
 
 What the converter and whatever poses it need to know:
   Pose it with vectors on the left of row-major matrices:
-    fWeight * (position * inverse[iMatrix] * keyframe world of maiConnections[iMatrix])
-  Use key frames, not its connections' matrices, which tear the mesh.
-  Its keys look to hold world matrices, so it may not exercise the parent chain.
-  SOldDragonKeyFrame::fTime is seconds since the previous key.  CAnimKeyFrame::mfTime is commented as time until the next
-  frame, so don't copy one to the other.
+    fWeight * (position * inverse[iMatrix] * world matrix of Connections[slot of iMatrix])
+  A connection's world matrix is its track's first key, so either poses it the same.  This was thought to tear the mesh, but that was
+  the old files' numbering.
+  Its keys hold world matrices, and it has no parents, so it doesn't exercise the parent chain.
+  A key's time is seconds from the start of the animation.  CAnimKeyFrame::mfTime is commented as time until the next frame, so
+  don't copy one to the other.
   The walk is on the spot.  Moving across the stars is the instance's own connection.
   It has no stored normals.  They come from its smoothing groups.
 
