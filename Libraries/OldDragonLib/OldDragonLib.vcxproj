@@ -19,12 +19,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="OldDragon2009Reader.cpp" />
     <ClCompile Include="OldDragonCursor.cpp" />
     <ClCompile Include="OldDragonFile.cpp" />
+    <ClCompile Include="OldDragonIOXReader.cpp" />
+    <ClCompile Include="OldDragonImageReader.cpp" />
+    <ClCompile Include="OldDragonMaxReader.cpp" />
+    <ClCompile Include="OldDragonReader.cpp" />
+    <ClCompile Include="OldDragonScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OldDragonCursor.h" />
     <ClInclude Include="OldDragonFile.h" />
+    <ClInclude Include="OldDragonImageReader.h" />
+    <ClInclude Include="OldDragonReader.h" />
+    <ClInclude Include="OldDragonScene.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6B1F4C2E-3A77-4E0D-9C51-8D2A7F10E3B4}</ProjectGuid>
