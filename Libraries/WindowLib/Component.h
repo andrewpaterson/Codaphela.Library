@@ -106,6 +106,7 @@ public:
 			void				SetCanGetFocus(bool bCanGetFocus);
 			void				SetHitAsWhole(bool bHitAsWhole);
 	virtual	bool				WantsEnter(void);
+	virtual	bool				IsTabStop(void);
 	virtual	bool				CanDoCommand(EComponentInputCommand eCommand);
 	virtual	void				PopupClosed(Ptr<CComponent> pContent);  //Overrides call it.
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);

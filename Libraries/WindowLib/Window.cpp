@@ -107,6 +107,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mpCanvas = OMalloc<CCanvas>(this, pDraw, pcFormat);
 	AddComponent(mpCanvas);
 	mbTicking = false;
+	mbModal = false;
 	mpcComponentInput = NULL;
 	mpCommands = NULL;
 	mpToolTips = NULL;
@@ -184,6 +185,7 @@ void CWindow::Class(void)
 	U_Data(CInt32Rect, mcCaret);
 	U_UInt32(msCaretColour);
 	U_Bool(mbCaretPainted);
+	U_Bool(mbModal);
 	U_Data(CDamageArea, mcDamage);
 	U_Data(CDamageArea, mcPaintedDamage);
 	U_Bool(mbPartialRedraw);
@@ -815,7 +817,9 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	//The dialog is the active window, the native window may say so again.
 	mpcNativeWindow->SetOwner(pcOwnerNative);
 	Activate();
+	mbModal = true;
 	bResult = Show();
+	mbModal = false;
 	mcFocus.Deactivate();
 
 	//The owner is enabled before the dialog goes so that the owner is the window activated.
@@ -1830,6 +1834,7 @@ void CWindow::Raise(void)
 
 
 bool CWindow::IsShown(void) { return mpcNativeWindow->IsCreated() && ((mpOwner.IsNotNull()) || mbTicking); }
+bool CWindow::IsModal(void) { return mbModal; }
 Ptr<CWindow> CWindow::GetOwner(void) { return mpOwner; }
 size CWindow::NumOwned(void) { return maOwned.NumElements(); }
 CComponentEvent<CWindow>* CWindow::GetClosedEvent(void) { return &mcClosed; }

@@ -76,6 +76,7 @@ protected:
 	int64						miLastPaintTime;  //GetDebugTickCount when last painted.
 	int64						miTickDelay;  //Milliseconds after this tick that another was asked for, -1 if none was.
 	Ptr<CWindow>				mpOwner;  //The window a tool window floats over, see ShowOwned.  NULL for the others.
+	bool						mbModal;  //It's being shown by ShowModal, a dialog.
 	CArray<CWindow>				maOwned;  //Tool windows shown over this one, run by its loop.
 	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
 	SMemberCall					msCloseApprover;  //Asked whether the close button may close the window, not set if it always may.
@@ -106,6 +107,7 @@ public:
 	bool						ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle);
 	void						CloseOwned(void);
 	bool						IsShown(void);
+	bool						IsModal(void);
 	Ptr<CWindow>				GetOwner(void);
 	size						NumOwned(void);
 	CComponentEvent<CWindow>*	GetClosedEvent(void);

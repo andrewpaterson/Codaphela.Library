@@ -43,6 +43,8 @@ public:
 	int32				iFrames;  //Painted while shown.
 	bool				bOwnerDisabledWhileShown;
 	bool				bPressEscape;
+	Ptr<CGridContainer>	pOwnerGrid;  //In the owner, when a test wants something there.
+	Ptr<CCheckBox>		pOwnerOther;
 
 	void Init(Ptr<CWindow> pOwnerWindow, CNativeWindowFactory* pcFactory, Ptr<CWindowTick> pTick)
 	{
@@ -94,6 +96,8 @@ public:
 		pInverse = NULL;
 		pOK = NULL;
 		pCancel = NULL;
+		pOwnerGrid = NULL;
+		pOwnerOther = NULL;
 		ORoot()->Remove(pDialog);
 		pDialog = NULL;
 		pOwner = NULL;
@@ -227,6 +231,100 @@ void TestDialogModal(void)
 	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tab moves the focus round a dialog, shift tab back, and with nothing
+// focussed they start at either end.  The main window keeps its focus.
+//
+//////////////////////////////////////////////////////////////////////////
+bool DialogTabFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
+{
+	CTestDialog*	pcDialog;
+
+	pcDialog = (CTestDialog*)pvContext;
+	AssertTrue(pWindow->IsModal());
+	pWindow->GetFocus()->SetFocus(pcDialog->pName);
+	pWindow->InputCommand(CIC_Tab, true);
+	AssertTrue(pcDialog->pInverse->IsFocussed());
+	pWindow->InputCommand(CIC_Tab, true);
+	AssertTrue(pcDialog->pOK->IsFocussed());
+	pWindow->InputCommand(CIC_Tab, true);
+	AssertTrue(pcDialog->pCancel->IsFocussed());
+	pWindow->InputCommand(CIC_Tab, true);
+	AssertTrue(pcDialog->pName->IsFocussed());
+	pWindow->InputCommand(CIC_BackTab, true);
+	AssertTrue(pcDialog->pCancel->IsFocussed());
+	pWindow->InputCommand(CIC_BackTab, true);
+	AssertTrue(pcDialog->pOK->IsFocussed());
+
+	pWindow->GetFocus()->SetFocus(Ptr<CComponent>());
+	pWindow->InputCommand(CIC_Tab, true);
+	AssertTrue(pcDialog->pName->IsFocussed());
+	pWindow->GetFocus()->SetFocus(Ptr<CComponent>());
+	pWindow->InputCommand(CIC_BackTab, true);
+	AssertTrue(pcDialog->pCancel->IsFocussed());
+	return false;
+}
+
+
+bool DialogTabOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
+{
+	CTestDialog*	pcDialog;
+
+	pcDialog = (CTestDialog*)pvContext;
+	if (iFrame == 0)
+	{
+		//Not in a dialog: tab doesn't move the keys around the main window.
+		AssertFalse(pWindow->IsModal());
+		pcDialog->pOwnerOther = OMalloc<CCheckBox>(pWindow, CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow)), "Other");
+		pcDialog->pOwnerGrid = OMalloc<CGridContainer>(pWindow);
+		pWindow->SetContainer(pcDialog->pOwnerGrid);
+		pcDialog->pOwnerGrid->AddComponent(pcDialog->pOwnerOther, 0, 0, 1, 1, 1, 1);
+		pWindow->Layout();
+		pWindow->GetFocus()->SetFocus(pcDialog->pOwnerOther);
+		pWindow->InputCommand(CIC_Tab, true);
+		AssertTrue(pcDialog->pOwnerOther->IsFocussed());
+		pcDialog->pDialog->ShowModal(pWindow);
+		AssertFalse(pcDialog->pDialog->IsModal());
+		return true;
+	}
+	return false;
+}
+
+
+void TestDialogTab(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CScriptFramesTick>		pTick;
+		Ptr<CScriptFramesTick>		pDialogTick;
+		CTestDialog					cDialog;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CScriptFramesTick>(DialogTabOwnerFrames, &cDialog);
+		pTestWindow = OMalloc<CWindow>("Dialog Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pDialogTick = OMalloc<CScriptFramesTick>(DialogTabFrames, &cDialog);
+		cDialog.Init(pTestWindow, &cNativeFactory, pDialogTick);
+
+		pTestWindow->Show();
+
+		cDialog.Kill();
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pDialogTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -591,6 +689,7 @@ void TestDialog(void)
 	ObjectsInit();
 
 	TestDialogModal();
+	TestDialogTab();
 	TestDialogButtons();
 	TestMessageDialog();
 	TestWindowCloseApprover();

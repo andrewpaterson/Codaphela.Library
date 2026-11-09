@@ -462,6 +462,10 @@ bool CFocus::DispatchUnhandledCommand(SComponentInputEvent* psEvent)
 	{
 		return RunCommand(mpWindow, psEvent->szName);
 	}
+	if (((psEvent->eCommand == CIC_Tab) || (psEvent->eCommand == CIC_BackTab)) && mpWindow->IsModal())
+	{
+		return MoveFocus(psEvent->eCommand == CIC_Tab);
+	}
 
 	pContent = mpWindow->GetContainer();
 	if (pContent.IsNotNull() && (mpFocussedComponent.IsNull() || !mpFocussedComponent->IsWithin(pContent)))
@@ -481,6 +485,80 @@ bool CFocus::DispatchUnhandledCommand(SComponentInputEvent* psEvent)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tab, in a dialog, with nothing focussed wanting it: the focus goes to
+// the next or previous component that can be tabbed to, round from the
+// last to the first.  False if there's nowhere for it to go.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::MoveFocus(bool bForward)
+{
+	SFocusTabStops	sStops;
+	Ptr<CComponent>	pContent;
+	Ptr<CComponent>	pTarget;
+
+	pContent = mpWindow->GetContainer();
+	if (pContent.IsNull())
+	{
+		return false;
+	}
+	sStops.bPassed = false;
+	FindTabStops(pContent, &sStops);
+	if (bForward)
+	{
+		pTarget = sStops.pAfter.IsNotNull() ? sStops.pAfter : sStops.pFirst;
+	}
+	else
+	{
+		pTarget = (sStops.bPassed && sStops.pBefore.IsNotNull()) ? sStops.pBefore : sStops.pLast;
+	}
+	if (pTarget.IsNull())
+	{
+		return false;
+	}
+	SetFocus(pTarget);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pComponent then what's inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::FindTabStops(Ptr<CComponent> pComponent, SFocusTabStops* psStops)
+{
+	size	i;
+
+	if (!pComponent->IsDrawn())
+	{
+		return;
+	}
+	if (pComponent->IsTabStop())
+	{
+		if (psStops->pFirst.IsNull())
+		{
+			psStops->pFirst = pComponent;
+		}
+		if (psStops->bPassed && psStops->pAfter.IsNull())
+		{
+			psStops->pAfter = pComponent;
+		}
+		if (pComponent == mpFocussedComponent)
+		{
+			psStops->bPassed = true;
+			psStops->pBefore = psStops->pLast;
+		}
+		psStops->pLast = pComponent;
+	}
+	for (i = 0; i < pComponent->NumComponents(); i++)
+	{
+		FindTabStops(pComponent->GetComponent(i), psStops);
+	}
 }
 
 

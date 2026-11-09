@@ -783,6 +783,7 @@ bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
 void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }  //A component made of others, like a button, has the pointer over it and takes focus rather than its parts.
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
+bool CComponent::IsTabStop(void) { return mbCanGetFocus; }  //Tab can move the focus to it in a dialog (CFocus::MoveFocus).
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }

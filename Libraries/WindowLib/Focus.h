@@ -39,6 +39,19 @@ enum EFocusDrag
 
 class CWindow;
 class CComponent;
+
+
+//The components Tab can move between around the focussed one, in the order of the window's tree (CFocus::MoveFocus).
+struct SFocusTabStops
+{
+	Ptr<CComponent>		pFirst;
+	Ptr<CComponent>		pLast;
+	Ptr<CComponent>		pBefore;  //The last before the focussed component.
+	Ptr<CComponent>		pAfter;  //The first after it.
+	bool				bPassed;  //The focussed component has been passed.
+};
+
+
 struct SWindowInputEvent;
 class CComponentInput;
 //How long a caret is shown, then hidden, for (IntelliJ's default), see CFocus::SetCaretBlinkPeriod.
@@ -114,6 +127,8 @@ protected:
 	bool				Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
 	bool				Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
 	bool				DispatchUnhandledCommand(SComponentInputEvent* psEvent);
+	bool				MoveFocus(bool bForward);
+	void				FindTabStops(Ptr<CComponent> pComponent, SFocusTabStops* psStops);
 	bool				RunCommand(Ptr<CWindow> pWindow, char* szKeys);
 	bool				FocusClick(void);
 	void				InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, bool bInsert);
