@@ -1,6 +1,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "BaseLib/Chars.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/Logger.h"
 #include "OldDragonLib/OldDragonReader.h"
@@ -12,6 +14,8 @@
 #define STAR_CONTROL	"D:/Work/Star Control/Builds/StarControl/Test.DRG"
 #define GOOBER			"D:/Work/Star Control/Builds/ViewerV7beta2009.9.20/Goober.DRG"
 #define STARS			"D:/Work/Star Control/Builds/ViewerV7beta2009.9.20/Particles/Stars.csv"
+#define MAX_FILES		"D:/Work/Star Control/MaxFiles/"
+#define MELEE_MAX		MAX_FILES "Melee.max"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -650,6 +654,251 @@ void TestOldDragonReadParticles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Counts how many of a mesh's triangle edges pair up with the same edge
+// running the other way, as they all do on a closed and consistent surface.
+//
+//////////////////////////////////////////////////////////////////////////
+static size CountUnpairedOldDragonEdges(COldDragonMesh* pcMesh)
+{
+	size			uiNumPositions;
+	size			uiNumFaces;
+	size			uiNumEdges;
+	int64*			pliEdges;
+	size			i;
+	int32			j;
+	SOldDragonFace*	psFace;
+	int32			iFrom;
+	int32			iTo;
+	size			uiUnpaired;
+	size			uiLow;
+	size			uiHigh;
+	size			uiMiddle;
+	int64			liOpposite;
+	bool			bFound;
+
+	uiNumPositions = pcMesh->macPositions.NumElements();
+	uiNumFaces = pcMesh->macFaces.NumElements();
+	uiNumEdges = uiNumFaces * 3;
+	pliEdges = (int64*)malloc(uiNumEdges * sizeof(int64));
+	for (i = 0; i < uiNumFaces; i++)
+	{
+		psFace = pcMesh->macFaces.Get(i);
+		for (j = 0; j < 3; j++)
+		{
+			iFrom = psFace->aiPositions[j];
+			iTo = psFace->aiPositions[(j + 1) % 3];
+			pliEdges[i * 3 + j] = (int64)iFrom * (int64)uiNumPositions + (int64)iTo;
+		}
+	}
+	qsort(pliEdges, uiNumEdges, sizeof(int64), [](const void* pvA, const void* pvB) -> int
+	{
+		int64	liA;
+		int64	liB;
+
+		liA = *(const int64*)pvA;
+		liB = *(const int64*)pvB;
+		return (liA < liB) ? -1 : ((liA > liB) ? 1 : 0);
+	});
+
+	uiUnpaired = 0;
+	for (i = 0; i < uiNumEdges; i++)
+	{
+		iFrom = (int32)(pliEdges[i] / (int64)uiNumPositions);
+		iTo = (int32)(pliEdges[i] % (int64)uiNumPositions);
+		liOpposite = (int64)iTo * (int64)uiNumPositions + (int64)iFrom;
+		uiLow = 0;
+		uiHigh = uiNumEdges;
+		bFound = false;
+		while (uiLow < uiHigh)
+		{
+			uiMiddle = (uiLow + uiHigh) / 2;
+			if (pliEdges[uiMiddle] == liOpposite)
+			{
+				bFound = true;
+				break;
+			}
+			if (pliEdges[uiMiddle] < liOpposite)
+			{
+				uiLow = uiMiddle + 1;
+			}
+			else
+			{
+				uiHigh = uiMiddle;
+			}
+		}
+		if (!bFound)
+		{
+			uiUnpaired++;
+		}
+	}
+	free(pliEdges);
+	return uiUnpaired;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A small Max file kept with the test.  Its expected values are from a
+// separate parse of the file.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonReadMaxSceneSample(void)
+{
+	COldDragonScene	cScene;
+	COldDragonMesh*	pcMesh;
+	size			i;
+	size			uiFaces;
+
+	cScene.Init();
+	AssertTrue(ReadOldDragonMaxScene("Input" _FS_ "Box.max", &cScene));
+	AssertSize(1, cScene.macMeshes.NumElements());
+	pcMesh = cScene.macMeshes.Get(0);
+	AssertString("Box01", pcMesh->mszName);
+	AssertSize(8, pcMesh->macPositions.NumElements());
+	uiFaces = pcMesh->macFaces.NumElements();
+	AssertSize(12, uiFaces);
+	for (i = 0; i < uiFaces; i++)
+	{
+		AssertTrue(pcMesh->macFaces.Get(i)->aiPositions[0] != pcMesh->macFaces.Get(i)->aiPositions[1]);
+	}
+	AssertSize(0, CountUnpairedOldDragonEdges(pcMesh));
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The real prize.  Melee.DRG lost all its faces when it was written and
+// Melee.max, which it was exported from, still has them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonFillMelee(void)
+{
+	COldDragonScene		cScene;
+	CFileUtil			cFileUtil;
+	COldDragonMesh*		pcMesh;
+	SOldDragonFace*		psFace;
+	size				uiFilled;
+	size				i;
+	size				j;
+	size				uiWithoutMaterial;
+	size				uiFaces;
+	size				uiBlue;
+	size				uiBlue2;
+	size				uiPurple;
+	size				uiFrontPurple;
+	size				uiDefault;
+	const char*			szMaterial;
+
+	if (!cFileUtil.Exists(MELEE) || !cFileUtil.Exists(MELEE_MAX))
+	{
+		return;
+	}
+
+	cScene.Init();
+	AssertTrue(ReadOldDragonFile(MELEE, &cScene));
+	AssertTrue(AddOldDragonMaxFaces(MELEE_MAX, &cScene, &uiFilled));
+	AssertSize(64, uiFilled);
+	AssertSize(64, cScene.macMeshes.NumElements());
+	AssertSize(199, cScene.macMaterials.NumElements());
+
+	uiFaces = 0;
+	uiWithoutMaterial = 0;
+	for (i = 0; i < cScene.macMeshes.NumElements(); i++)
+	{
+		pcMesh = cScene.macMeshes.Get(i);
+		AssertTrue(pcMesh->macFaces.NumElements() > 0);
+		AssertTrue(pcMesh->mszName[0] != 0);
+		AssertTrue(ValidateOldDragonMesh(pcMesh));
+		uiFaces += pcMesh->macFaces.NumElements();
+		for (j = 0; j < pcMesh->macFaces.NumElements(); j++)
+		{
+			if (pcMesh->macFaces.Get(j)->iMaterial == OLD_DRAGON_NO_INDEX)
+			{
+				uiWithoutMaterial++;
+			}
+		}
+	}
+	AssertSize(132356, uiFaces);
+	AssertSize(0, uiWithoutMaterial);
+
+	pcMesh = cScene.macMeshes.Get(0);
+	AssertString("Androsynth Guardian", pcMesh->mszName);
+	AssertSize(1704, pcMesh->macPositions.NumElements());
+	AssertSize(3404, pcMesh->macFaces.NumElements());
+	AssertSize(2346, pcMesh->macUVs.NumElements());
+	AssertSize(0, CountUnpairedOldDragonEdges(pcMesh));
+
+	//How many of the Guardian's faces go to each of its materials.
+	uiBlue = 0;
+	uiBlue2 = 0;
+	uiPurple = 0;
+	uiFrontPurple = 0;
+	uiDefault = 0;
+	for (j = 0; j < pcMesh->macFaces.NumElements(); j++)
+	{
+		psFace = pcMesh->macFaces.Get(j);
+		szMaterial = cScene.macMaterials.Get((size)psFace->iMaterial)->szName;
+		uiBlue += (strcmp(szMaterial, "Androsynth Blue") == 0) ? 1 : 0;
+		uiBlue2 += (strcmp(szMaterial, "Androsynth Blue2") == 0) ? 1 : 0;
+		uiPurple += (strcmp(szMaterial, "Androsynth Purple") == 0) ? 1 : 0;
+		uiFrontPurple += (strcmp(szMaterial, "Androsynth Front Purple") == 0) ? 1 : 0;
+		uiDefault += (strcmp(szMaterial, "08 - Default") == 0) ? 1 : 0;
+	}
+	AssertSize(2410, uiBlue);
+	AssertSize(216, uiBlue2);
+	AssertSize(180, uiPurple);
+	AssertSize(502, uiFrontPurple);
+	AssertSize(96, uiDefault);
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every .max file with the ships has to read.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonReadAllMaxFiles(void)
+{
+	static const char*	aszNames[] =
+	{
+		"Androsynth Guardian", "Animation", "Arilou Skiff", "Asteroids", "Box", "BoxEditor", "Chenjesu Broodhome", "Chmmr Avatar",
+		"Druuge Mauler", "Earthling Cruiser", "Ilwrath Avenger", "Kohr-Ah Marauder", "Melee", "MeleeTest", "Mmrnmhrm Transformer",
+		"Mycon Podship", "Orz Nemesis Mock", "Orz Nemesis", "Pkunk Fury", "Plane", "Planets", "Shape", "Shofixti Scout", "Smoothing",
+		"Spathi Discriminator", "Suppox Blade", "Syreen Penetrator", "Title", "Umgah Drone", "Ur-Quan Dreadnought", "Ur-Quan Mockery",
+		"Ur-Quan", "Utwig Jugger", "Vux Intruder", "VuxUmgahPose", "Yehat Terminator"
+	};
+	COldDragonScene		cScene;
+	CFileUtil			cFileUtil;
+	CChars				szPath;
+	size				i;
+	size				uiMeshes;
+
+	uiMeshes = 0;
+	for (i = 0; i < sizeof(aszNames) / sizeof(aszNames[0]); i++)
+	{
+		szPath.Init(MAX_FILES);
+		szPath.Append(aszNames[i]);
+		szPath.Append(".max");
+		if (cFileUtil.Exists(szPath.Text()))
+		{
+			cScene.Init();
+			AssertTrue(ReadOldDragonMaxScene(szPath.Text(), &cScene));
+			uiMeshes += cScene.macMeshes.NumElements();
+			cScene.Kill();
+		}
+		szPath.Kill();
+	}
+	if (cFileUtil.Exists(MELEE_MAX))
+	{
+		AssertSize(223, uiMeshes);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // These are too big to keep with the test.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -808,6 +1057,69 @@ void TestOldDragonDamagedFiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Damaged .max files go through the OLE container and then the chunks, so
+// both have to cope.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonDamagedMaxFile(void)
+{
+	static const uint8	auiValues[] = { 0x00, 0xff };
+	CFileUtil			cFileUtil;
+	SLogConfig			sLogConfig;
+	FILE*				pvFile;
+	uint8*				puiData;
+	size				uiSize;
+	size				uiPos;
+	size				uiValue;
+	uint8				uiOriginal;
+	COldDragonScene		cScene;
+
+	cFileUtil.TouchDir("Output");
+	pvFile = fopen("Input" _FS_ "Box.max", "rb");
+	AssertNotNull(pvFile);
+	fseek(pvFile, 0, SEEK_END);
+	uiSize = (size)ftell(pvFile);
+	fseek(pvFile, 0, SEEK_SET);
+	puiData = (uint8*)malloc(uiSize);
+	AssertSize(uiSize, fread(puiData, 1, uiSize, pvFile));
+	fclose(pvFile);
+
+	sLogConfig = gcLogger.SetSilent();
+	for (uiPos = 0; uiPos < uiSize; uiPos += 2053)
+	{
+		pvFile = fopen("Output" _FS_ "Damaged.max", "wb");
+		fwrite(puiData, 1, uiPos, pvFile);
+		fclose(pvFile);
+		cScene.Init();
+		ReadOldDragonMaxScene("Output" _FS_ "Damaged.max", &cScene);
+		cScene.Kill();
+	}
+
+	//Every byte of the OLE header, as everything depends on it, and then a sample of the rest.
+	for (uiPos = 0; uiPos < uiSize; uiPos += (uiPos < 128) ? 1 : (uiSize / 200))
+	{
+		uiOriginal = puiData[uiPos];
+		for (uiValue = 0; uiValue < sizeof(auiValues); uiValue++)
+		{
+			puiData[uiPos] = auiValues[uiValue];
+			pvFile = fopen("Output" _FS_ "Damaged.max", "wb");
+			fwrite(puiData, 1, uiSize, pvFile);
+			fclose(pvFile);
+			cScene.Init();
+			ReadOldDragonMaxScene("Output" _FS_ "Damaged.max", &cScene);
+			cScene.Kill();
+		}
+		puiData[uiPos] = uiOriginal;
+	}
+	gcLogger.SetConfig(&sLogConfig);
+
+	free(puiData);
+	cFileUtil.Delete("Output" _FS_ "Damaged.max");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // There's no small September file to keep with the test, and at 36MB this
 // one can only be damaged in a few places.  They're in the mesh, as that's
 // where a September file differs from an August one.
@@ -883,10 +1195,14 @@ void TestOldDragonReader(void)
 	TestOldDragonReadDamagedMax();
 	TestOldDragonReadGoober();
 	TestOldDragonReadParticles();
+	TestOldDragonReadMaxSceneSample();
+	TestOldDragonFillMelee();
+	TestOldDragonReadAllMaxFiles();
 	TestOldDragonReadLargeFiles();
 	TestOldDragonNotOldOrMissing();
 	TestOldDragonDamagedFiles();
 	TestOldDragonDamagedSeptember();
+	TestOldDragonDamagedMaxFile();
 
 	TestStatistics();
 }
