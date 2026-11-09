@@ -264,6 +264,9 @@
     <ClInclude Include="SceneFileGeneral.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="SceneFileMesh.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="SceneFileReader.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
@@ -574,6 +577,9 @@
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
     <ClInclude Include="MeshPolygons.h">
+      <Filter>Source\Mesh\Modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshPolygonShape.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
     <ClInclude Include="MeshSelections.h">
@@ -1049,6 +1055,9 @@
     <ClCompile Include="SceneFileGeneral.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="SceneFileMesh.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="SceneFileReader.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
@@ -1344,6 +1353,9 @@
       <Filter>Source\Mesh\Modifier</Filter>
     </ClCompile>
     <ClCompile Include="MeshPolygons.cpp">
+      <Filter>Source\Mesh\Modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshPolygonShape.cpp">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClCompile>
     <ClCompile Include="MeshSelections.cpp">

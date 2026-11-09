@@ -147,6 +147,9 @@ public:
 	size	NumParticleSets(void);
 	bool	BeginParticles(size uiSet);
 	size	NumParticles(void);
+	size	NumParticleColours(void);
+	size	NumParticleRadii(void);
+	size	NumParticleIntensities(void);
 	bool	ReadParticlePositions(float32* pafXYZ);
 	bool	ReadParticleColours(float32* pafRGB);
 	bool	ReadParticleRadii(float32* pafRadii);

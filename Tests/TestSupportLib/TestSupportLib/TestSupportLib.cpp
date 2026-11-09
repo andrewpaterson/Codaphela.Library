@@ -72,6 +72,8 @@ void TestMeshOBJWriter(void);
 void TestMeshVRMLReader(void);
 void TestSceneFile(void);
 void TestSceneFileGoober(void);
+void TestScene(void);
+void TestSceneGoober(void);
 void TestImageResampler(void);
 void TestSound(void);
 void TestSoundWAV(void);
@@ -162,6 +164,8 @@ int __cdecl main(void)
 	TestMeshVRMLReader();
 	TestSceneFile();
 	TestSceneFileGoober();
+	TestScene();
+	TestSceneGoober();
 	TestSound();
 	TestSoundWAV();
 	TestSoundResampler();

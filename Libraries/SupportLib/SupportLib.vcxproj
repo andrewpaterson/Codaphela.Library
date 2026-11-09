@@ -252,6 +252,7 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneParticles.h" />
     <ClInclude Include="SceneFileGeneral.h" />
+    <ClInclude Include="SceneFileMesh.h" />
     <ClInclude Include="SceneFileReader.h" />
     <ClInclude Include="SceneFileWriter.h" />
     <ClInclude Include="SFTCommon.h" />
@@ -396,6 +397,7 @@
     <ClInclude Include="MeshEditor.h" />
     <ClInclude Include="MeshEditorWrapper.h" />
     <ClInclude Include="MeshPolygons.h" />
+    <ClInclude Include="MeshPolygonShape.h" />
     <ClInclude Include="MeshSelections.h" />
     <ClInclude Include="MeshModifier.h" />
     <ClInclude Include="MeshModifierStack.h" />
@@ -499,6 +501,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneParticles.cpp" />
     <ClCompile Include="SceneFileGeneral.cpp" />
+    <ClCompile Include="SceneFileMesh.cpp" />
     <ClCompile Include="SceneFileReader.cpp" />
     <ClCompile Include="SceneFileWriter.cpp" />
     <ClCompile Include="SFTCommon.cpp" />
@@ -651,6 +654,7 @@
     <ClCompile Include="MeshEditor.cpp" />
     <ClCompile Include="MeshEditorWrapper.cpp" />
     <ClCompile Include="MeshPolygons.cpp" />
+    <ClCompile Include="MeshPolygonShape.cpp" />
     <ClCompile Include="MeshSelections.cpp" />
     <ClCompile Include="MeshModifier.cpp" />
     <ClCompile Include="MeshModifierStack.cpp" />

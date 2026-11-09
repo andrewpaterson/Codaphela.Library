@@ -118,6 +118,9 @@
     <ClCompile Include="TestMeshVRMLReader.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestScene.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestSceneFile.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>

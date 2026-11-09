@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
 #include "MeshEditor.h"
+#include "MeshPolygonShape.h"
 #include "OBJWriter.h"
 
 
@@ -39,18 +40,7 @@ struct SOBJCorner
 };
 
 
-//An edge of a face, going the way the face goes around.
-struct SOBJEdge
-{
-	int		iFrom;
-	int		iTo;
-	int		iFace;
-	int		iFaceCorner;
-};
-
-
 typedef CArrayTemplate<SOBJCorner>	CArrayOBJCorner;
-typedef CArrayTemplate<SOBJEdge>	CArrayOBJEdge;
 
 
 //What's in a mesh that goes in a file, and the lines the file's faces will be.
@@ -155,114 +145,6 @@ static void GetOBJCorner(SOBJFaces* psFaces, int iFace, int iFaceCorner, SOBJCor
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Gets the edges of a polygon's faces that are on its outside, those with no
-// face going back along them.  False if an edge is used twice the same way.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool GetOBJPolygonOutsideEdges(SOBJFaces* psFaces, CMeshPolygon* pcPolygon, CArrayOBJEdge* pasEdges, CArrayOBJEdge* pasOutside)
-{
-	SOBJEdge*	psEdge;
-	SOBJEdge*	psOther;
-	int*		piCorners;
-	int			iFace;
-	bool		bReversed;
-	size		i;
-	size		j;
-	size		uiNumEdges;
-	int			k;
-
-	for (i = 0; i < pcPolygon->maiFaces.NumElements(); i++)
-	{
-		iFace = pcPolygon->maiFaces.GetValue(i);
-		piCorners = psFaces->pcMesh->GetFaceCorners(iFace);
-		for (k = 0; k < NUM_FACE_CORNERS; k++)
-		{
-			psEdge = pasEdges->Add();
-			psEdge->iFrom = piCorners[k];
-			psEdge->iTo = piCorners[(k + 1) % NUM_FACE_CORNERS];
-			psEdge->iFace = iFace;
-			psEdge->iFaceCorner = k;
-		}
-	}
-
-	uiNumEdges = pasEdges->NumElements();
-	for (i = 0; i < uiNumEdges; i++)
-	{
-		psEdge = pasEdges->Get(i);
-		bReversed = false;
-		for (j = 0; j < uiNumEdges; j++)
-		{
-			psOther = pasEdges->Get(j);
-			if ((j != i) && (psOther->iFrom == psEdge->iFrom) && (psOther->iTo == psEdge->iTo))
-			{
-				return false;
-			}
-			bReversed |= (psOther->iFrom == psEdge->iTo) && (psOther->iTo == psEdge->iFrom);
-		}
-		if (!bReversed)
-		{
-			*pasOutside->Add() = *psEdge;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Puts a polygon's outside edges in order around it.  False unless they are
-// one loop with every corner of the polygon on it: n faces with no corners
-// inside them have n + 2 edges around them.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool OrderOBJPolygonLoop(CMeshPolygon* pcPolygon, CArrayOBJEdge* pasOutside)
-{
-	SOBJEdge*	psEdge;
-	SOBJEdge*	psNext;
-	SOBJEdge	sSwap;
-	size		uiNumEdges;
-	size		i;
-	size		j;
-	size		uiFound;
-
-	uiNumEdges = pasOutside->NumElements();
-	if (uiNumEdges != (pcPolygon->maiFaces.NumElements() + 2))
-	{
-		return false;
-	}
-
-	for (i = 0; i + 1 < uiNumEdges; i++)
-	{
-		psEdge = pasOutside->Get(i);
-		uiFound = uiNumEdges;
-		for (j = 0; j < uiNumEdges; j++)
-		{
-			psNext = pasOutside->Get(j);
-			if (psNext->iFrom == psEdge->iTo)
-			{
-				if ((j <= i) || (uiFound != uiNumEdges))
-				{
-					//It came back too soon, or it can go two ways from here.
-					return false;
-				}
-				uiFound = j;
-			}
-		}
-		if (uiFound == uiNumEdges)
-		{
-			return false;
-		}
-
-		sSwap = *pasOutside->Get(i + 1);
-		*pasOutside->Get(i + 1) = *pasOutside->Get(uiFound);
-		*pasOutside->Get(uiFound) = sSwap;
-	}
-	return pasOutside->Get(uiNumEdges - 1)->iTo == pasOutside->Get(0)->iFrom;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 static bool AreOBJNormalsSame(CMesh* pcMesh, int iNormal1, int iNormal2)
@@ -288,10 +170,10 @@ static bool AreOBJNormalsSame(CMesh* pcMesh, int iNormal1, int iNormal2)
 // a polygon's faces don't agree about one, as with a seam across it.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool DoOBJPolygonCornersAgree(SOBJFaces* psFaces, CArrayOBJEdge* pasEdges, CArrayOBJEdge* pasLoop)
+static bool DoOBJPolygonCornersAgree(SOBJFaces* psFaces, CArrayMeshPolygonEdge* pasEdges, CArrayMeshPolygonEdge* pasLoop)
 {
-	SOBJEdge*	psEdge;
-	SOBJEdge*	psLoop;
+	SMeshPolygonEdge*	psEdge;
+	SMeshPolygonEdge*	psLoop;
 	SOBJCorner	sCorner;
 	SOBJCorner	sLoopCorner;
 	size		i;
@@ -335,37 +217,26 @@ static bool DoOBJPolygonCornersAgree(SOBJFaces* psFaces, CArrayOBJEdge* pasEdges
 //////////////////////////////////////////////////////////////////////////
 static bool AddOBJPolygonLine(SOBJFaces* psFaces, CMeshPolygon* pcPolygon)
 {
-	CArrayOBJEdge	asEdges;
-	CArrayOBJEdge	asLoop;
-	SOBJEdge*		psLoop;
+	CArrayMeshPolygonEdge	asEdges;
+	CArrayMeshPolygonEdge	asLoop;
+	SMeshPolygonEdge*		psLoop;
 	SOBJCorner*		psCorner;
 	int				iFirstNormal;
 	bool			bResult;
 	size			i;
 	size			uiNumLoop;
-	size			uiStart;
 
 	asEdges.Init();
 	asLoop.Init();
 
-	bResult = GetOBJPolygonOutsideEdges(psFaces, pcPolygon, &asEdges, &asLoop);
-	bResult = bResult && OrderOBJPolygonLoop(pcPolygon, &asLoop);
+	bResult = GetMeshPolygonLoop(psFaces->pcMesh, pcPolygon, &asEdges, &asLoop);
 	bResult = bResult && DoOBJPolygonCornersAgree(psFaces, &asEdges, &asLoop);
 	if (bResult)
 	{
 		uiNumLoop = asLoop.NumElements();
-		uiStart = 0;
-		for (i = 1; i < uiNumLoop; i++)
-		{
-			if (asLoop.Get(i)->iFrom < asLoop.Get(uiStart)->iFrom)
-			{
-				uiStart = i;
-			}
-		}
-
 		for (i = 0; i < uiNumLoop; i++)
 		{
-			psLoop = asLoop.Get((uiStart + i) % uiNumLoop);
+			psLoop = asLoop.Get(i);
 			psCorner = psFaces->asCorners.Add();
 			GetOBJCorner(psFaces, psLoop->iFace, psLoop->iFaceCorner, psCorner);
 

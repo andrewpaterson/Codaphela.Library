@@ -400,6 +400,9 @@ bool	CSceneFileReader::ReadInstanceMaterials(int32* paiMaterials) { return ReadC
 size	CSceneFileReader::NumParticleSets(void) { return NumChunks(SCENE_CHUNK_PARTICLES); }
 bool	CSceneFileReader::BeginParticles(size uiSet) { return Begin(SCENE_CHUNK_PARTICLES, uiSet); }
 size	CSceneFileReader::NumParticles(void) { return NumElements(SCENE_CHUNK_POSITIONS, sizeof(float32) * 3); }
+size	CSceneFileReader::NumParticleColours(void) { return NumElements(SCENE_CHUNK_COLOURS, sizeof(float32) * 3); }
+size	CSceneFileReader::NumParticleRadii(void) { return NumElements(SCENE_CHUNK_RADII, sizeof(float32)); }
+size	CSceneFileReader::NumParticleIntensities(void) { return NumElements(SCENE_CHUNK_INTENSITIES, sizeof(float32)); }
 bool	CSceneFileReader::ReadParticlePositions(float32* pafXYZ) { return ReadChunk(SCENE_CHUNK_POSITIONS, pafXYZ, sizeof(float32) * 3); }
 bool	CSceneFileReader::ReadParticleColours(float32* pafRGB) { return ReadChunk(SCENE_CHUNK_COLOURS, pafRGB, sizeof(float32) * 3); }
 bool	CSceneFileReader::ReadParticleRadii(float32* pafRadii) { return ReadChunk(SCENE_CHUNK_RADII, pafRadii, sizeof(float32)); }

@@ -28,7 +28,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CArrayTemplate<float32>	CArrayParticleFloat;
 
 
-//Points, as a field of stars is.  mafPositions and mafColours have three floats each for each of them.
+//Points, as a field of stars is.  mafPositions and mafColours have three floats for each of them.  Any but mafPositions can be empty.
 class CSceneParticles : public CObject
 {
 CONSTRUCTABLE(CSceneParticles);

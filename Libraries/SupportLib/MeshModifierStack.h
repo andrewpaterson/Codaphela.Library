@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_MODIFIER_STACK_H__
 #define __MESH_MODIFIER_STACK_H__
+#include <string.h>
 #include "StandardLib/ArrayUnknown.h"
 #include "MeshModifier.h"
 
@@ -56,6 +57,8 @@ public:
 	void 	AddModifier(CMeshModifier* pcEditor);
 	template<typename M>
 	M*		AddModifier(void);
+	template<typename M>
+	M*		GetModifier(void);  //The first of its class, or NULL.
 	int		NumEditors(void);
 
 	void	ApplyAll(CMeshEditor* pcMeshEditor);
@@ -104,6 +107,28 @@ M* CMeshModifierStack::AddModifier(void)
 	}
 	AddModifier(pv);
 	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<typename M>
+M* CMeshModifierStack::GetModifier(void)
+{
+	CUnknown*	pcModifier;
+	size		i;
+
+	for (i = 0; i < macEditors.NumElements(); i++)
+	{
+		pcModifier = macEditors.Get(i);
+		if (strcmp(pcModifier->ClassName(), M::StaticClassName()) == 0)
+		{
+			return (M*)pcModifier;
+		}
+	}
+	return NULL;
 }
 
 

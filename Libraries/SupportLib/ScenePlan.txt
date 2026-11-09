@@ -1,15 +1,14 @@
 Scene plan
 ==========
 
-CScene, CInstance, CConnection, CConnectionAnimation, CCamera and CLight describe a scene, in floats.  They aren't used yet,
-and CScene still rests on CFakeTracker and TrackerTypes.  A renderer draws what is converted from them, one way, from the
-description to what is drawn.  RasterLib is the renderer today and a Vulkan one is to come, so nothing here is only for
-RasterLib unless it says so.
+CScene, CInstance, CConnection, CConnectionAnimation, CCamera and CLight describe a scene, in floats.  A scene file fills them and
+they write one, and nothing else uses them yet.  A renderer draws what is converted from them, one way, from the description to what
+is drawn.  RasterLib is the renderer today and a Vulkan one is to come, so nothing here is only for RasterLib unless it says so.
 
 
 What the objects are
 --------------------
-  CScene                    Instances, lights and cameras.  Everything else is reached through what uses it.
+  CScene                    Instances, lights, cameras, animations and particles.  Everything else is reached through what uses it.
     CInstance               One thing in the game, one character say.
       CArray<CConnection>   Its own, in slot order.
       CArray<CInstanceMesh>
@@ -160,7 +159,8 @@ C. Convert the old files, see below.  Done: OldDragonConverter in OldDragonLib, 
    lists what came from where.
 D. Render the converted files, including Goober's walk, as value checks can't catch a wrong rule.  Done: Tools\RenderSceneFile draws
    them with RasterLib and goes once CScene can do this (step E and on).  What it found is below.
-E. Fill a CMesh and then a CScene from the reader.  Write them too.
+E. Fill a CMesh and then a CScene from the reader.  Write them too.  Done: CScene::ReadFile and WriteFile, with SceneFileMesh for a mesh in
+   an editor.  This needed step 1 below.  All the converted files go through a CScene and then render to the same bytes as before.
 F. A Max exporter writing through the writer, if one is wanted.  It links SupportLib, StandardLib and BaseLib for that.
 
 OBJ is done (step A): SaveOBJ and the reader handle positions, normals and one layer of UVs in both directions, and TestMeshShapes and
@@ -202,6 +202,15 @@ What rendering them found, which is in SceneFileGeneral.h and OldDragonConverter
   Arilou Headlights winds the wrong way, the only mesh that does.  It's small, and it's left as it is.
   Melee's one channel images aren't the alpha of their PNGs.  Nothing has drawn with them, so what they should do is still open.
 
+What going through a CScene does to a file.  None of this changes how anything looks:
+  What nothing uses isn't kept, as a CScene reaches things through what uses them.  Test.DRG loses all 19 of its materials, as its meshes have
+  no slots.  Melee loses 21 materials and 2 images, PowerUps 2 materials, LevelOne a material and an image, and Goober its goober_ connection.
+  The source files keep them if one turns out to matter.
+  Normals made from smoothing groups are written, as well as the groups, so a re-saved Goober has a Normals chunk.  It's about the same size.
+  Every material, connection and so on gets what a file left out written with its default.
+  A polygon of more than one face starts at its lowest corner.  A skin's weights are written largest first.
+  After that a file stays the same, byte for byte, however many times it goes through.
+
 How the converted files were checked, once, as the converter only runs once:
   A decoder with no C++ in it found all 18 follow the format's rules, with Goober's 6134 triangles and Melee's 132,356.
   Goober's bones are all bones, each track has its own connection, its first key is its connection's world matrix, and its skin holds
@@ -225,10 +234,9 @@ Steps
 These are the scene objects and the renderer.  Each is done when something needs it, with tests.  Skinning must be proved before
 Vulkan.
 
-1. Scene objects.  Remove CFakeTracker and TrackerTypes.  CScene becomes a CObject with its three lists.  Write CInstance and
-   CInstanceMesh.  CLight and CCamera each get a Ptr<CConnection>.  CMeshMaterials' mcMaterials and mcFaces and
-   CMaterialImage::miImageID are indices into trackers: faces hold slots (-1 for no material), the mesh's list becomes Ptrs, and
-   CMaterial holds the Ptr<CImage>s, leaving CMaterialImage with how they are sampled.
+1. Scene objects.  Done.  CScene is a CObject with its lists, and CFakeTracker and TrackerTypes are gone.  CInstance, CInstanceMesh, CLight and
+   CCamera hold Ptrs to what they use, a mesh's faces hold slots (-1 for no material) in a list of Ptrs, and a CMaterialImage holds
+   its Ptr<CImage> and how it's sampled.  Names are CChars and not object names, as many things in a file share one.
 2. CMeshEditor.  CMeshEditor::Init gives its stack the mesh, as it has no source today, and GetOutput returns the stack's.  With
    no modifiers that is the mesh itself.  Structure and shape counters go on the editor's methods.  The renderer clears the
    output after cooking.
@@ -240,7 +248,7 @@ Vulkan.
    Selections stay on the editor.  They are what the user is doing, not the shape, and they describe the mesh being edited.
    Apply and CMeshEditor::Touch then go, leaving only Modify and GetOutput.  Every modifier with an Apply also has a Modify.
    CMeshEditor::Collapse uses Touch, so it changes too.  GetOutput doesn't wait for any of this.
-3. CConnection gets a Ptr<CConnection> parent and updates: a world matrix from a local one and the parent's.
+3. CConnection has a Ptr<CConnection> parent, which a file fills.  It updates: a world matrix from a local one and the parent's.
 4. RenderLib and RasterRenderLib: create and replace only.  CRasterMesh::Build moves to RasterRenderLib, the same code, so that
    RasterLib no longer includes SupportLib/Mesh.h.  BoardScene, VRMLCanvasDraw and any tests that build from a CMesh call it
    there.  Check whether SupportLib/ColourARGB32.h can go with it.  CRasterMesh becomes a CObject: BoardScene and VRMLCanvasDraw
@@ -256,9 +264,9 @@ Vulkan.
 6. Move BoardScene onto a CScene: its models, the mainboard and boards standing in their sockets become instances and
    connections, and its yaw a connection or an animation.  Its pixels must stay byte-identical.  The VRML read becomes lazy, so
    that a cached model needs no CMesh.  This is what proves the rigid path.
-7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  miConnectionIndex is a slot in the instance's
-   connections.  Sharing a walk also needs a clip that groups the tracks of many connections, as one CConnectionAnimation is one
-   connection.
+7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  A track holds a Ptr to the connection it moves and a
+   CSceneAnimation groups them, which is what a file holds.  Sharing a walk between instances still needs tracks to refer to a slot in
+   an instance's connections, and something to say which instance is playing it.
 8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  The fixed point skinning
    goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from its
    converted file, proves it.  Needs modifiers that keep UVs and skin (see Open).
@@ -295,8 +303,8 @@ and instances, as the .max's node transforms weren't decoded when last reported.
 
 Open
 ----
-Particles.  Goober's stars are neither a mesh nor an instance, but the file format has to hold them.  Either CScene gets a fourth
-list or they are something else, and a point list has its own cook and draw on each renderer.
+Particles.  Goober's stars are neither a mesh nor an instance.  For now they're a list of CSceneParticles on a CScene, so that nothing in a file
+is lost, and a point list has its own cook and draw on each renderer.
 
 Modifiers can't keep UVs, skin or materials.  CMeshModifier::CanRebuild refuses a mesh with any of them: it logs a warning and
 Modify returns the mesh as it was, so the modifier does nothing.  Goober has them and needs its normals generated by a modifier,
@@ -309,8 +317,8 @@ Creating and removing an attached light.  Copying an instance doesn't bring its 
 character must also create the light and add it to the scene.  When the character is removed, something must remove the light,
 or it stays lit where the hand was: its connection's parent keeps the hand's connection alive, but nothing updates it.
 
-Coordinates.  Max's exports were Y-up and the KiCad boards look Z-up, so CMesh has no one convention.  Set one, and importers
-convert to it.
+Coordinates.  A scene file is right handed with y up, but the KiCad boards look Z-up, so CMesh has no one convention.  Set one, and
+importers convert to it.
 
 Threads.  Cooking would run on CJobs and draws skip what isn't ready, but it isn't known yet that reading a CMesh off the main
 thread is safe.

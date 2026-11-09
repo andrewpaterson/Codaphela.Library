@@ -29,7 +29,8 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SceneParticles.h"
 
 
-//What's in a world.  Meshes, materials, images and connections are reached through what uses them, so one nothing uses isn't here.
+//What's in a world.  Meshes, materials, images and connections are reached through what uses them, so one nothing uses isn't here, and isn't
+//kept from a file that has it.  ReadFile adds to what's here.  WriteFile fails, leaving no file, if a scene file can't hold what's here.
 class CScene : public CObject
 {
 CONSTRUCTABLE(CScene);
@@ -44,6 +45,9 @@ public:
 	void 	Init(void);
 	void 	Free(void) override;
 	void	Class(void) override;
+
+	bool	ReadFile(const char* szFilename);
+	bool	WriteFile(const char* szFilename);
 };
 
 
