@@ -23,7 +23,7 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "OldDragonScene.h"
 
 
-//Writes an old scene as a scene file (see SceneFileLib).  What the old files got wrong or left strange stops here:
+//Writes an old scene as a scene file (see SupportLib's SceneFileGeneral.h).  What the old files got wrong or left strange stops here:
 //
 //	Each mesh placed in the scene is an instance of its own.  Nothing in the old files says which meshes make up one thing.
 //	Faces are polygons of 3, with each mesh having its own list of the materials it uses.

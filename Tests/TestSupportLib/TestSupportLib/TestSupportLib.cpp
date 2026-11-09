@@ -70,6 +70,8 @@ void TestNormalGeneration(void);
 void TestMeshOBJReader(void);
 void TestMeshOBJWriter(void);
 void TestMeshVRMLReader(void);
+void TestSceneFile(void);
+void TestSceneFileGoober(void);
 void TestImageResampler(void);
 void TestSound(void);
 void TestSoundWAV(void);
@@ -158,6 +160,8 @@ int __cdecl main(void)
 	TestMeshOBJReader();
 	TestMeshOBJWriter();
 	TestMeshVRMLReader();
+	TestSceneFile();
+	TestSceneFileGoober();
 	TestSound();
 	TestSoundWAV();
 	TestSoundResampler();

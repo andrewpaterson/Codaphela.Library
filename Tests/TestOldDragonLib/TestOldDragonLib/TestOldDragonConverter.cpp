@@ -4,7 +4,7 @@
 #include "BaseLib/Logger.h"
 #include "OldDragonLib/OldDragonConverter.h"
 #include "OldDragonLib/OldDragonReader.h"
-#include "SceneFileLib/SceneFileReader.h"
+#include "SupportLib/SceneFileReader.h"
 #include "TestLib/Assert.h"
 
 

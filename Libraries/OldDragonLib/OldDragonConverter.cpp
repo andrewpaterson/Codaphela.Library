@@ -23,8 +23,8 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplatePrimitive.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/Logger.h"
-#include "SceneFileLib/SceneFileReader.h"
-#include "SceneFileLib/SceneFileWriter.h"
+#include "SupportLib/SceneFileReader.h"
+#include "SupportLib/SceneFileWriter.h"
 #include "OldDragonFile.h"
 #include "OldDragonConverter.h"
 
@@ -595,7 +595,7 @@ static bool CheckMaterialTextures(COldDragonScene* pcScene, SOldDragonMaterial* 
 	{
 		return gcLogger.Error2(__METHOD__, " Material [", psMaterial->szName, "] has more than one image, and which is which isn't known.", NULL);
 	}
-	if (psMaterial->iNumTextures > (int32)SFT_NumTextures)
+	if (psMaterial->iNumTextures > (int32)SFTX_NumTextures)
 	{
 		return gcLogger.Error2(__METHOD__, " Material [", psMaterial->szName, "] has too many images.", NULL);
 	}
@@ -1261,7 +1261,7 @@ static bool VerifyMaterial(CSceneFileReader* pcReader, COldDragonScene* pcScene,
 	{
 		return VerifyFail("Colours", psMaterial->szName);
 	}
-	for (i = 0; i < (int32)SFT_NumTextures; i++)
+	for (i = 0; i < (int32)SFTX_NumTextures; i++)
 	{
 		iExpected = (i < psMaterial->iNumTextures) ? psMaterial->aiTextures[i] : SCENE_FILE_NONE;
 		if (pcReader->GetMaterialTexture((ESceneFileTexture)i) != iExpected)

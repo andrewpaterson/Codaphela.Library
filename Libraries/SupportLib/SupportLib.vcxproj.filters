@@ -258,6 +258,15 @@
     <ClInclude Include="Scene.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="SceneFileGeneral.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneFileReader.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneFileWriter.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="TrackerTypes.h">
       <Filter>Source\Scene\Hack</Filter>
     </ClInclude>
@@ -1038,6 +1047,15 @@
       <Filter>Source\CopyPaste</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneFileGeneral.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneFileReader.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneFileWriter.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
     <ClCompile Include="Image.cpp">

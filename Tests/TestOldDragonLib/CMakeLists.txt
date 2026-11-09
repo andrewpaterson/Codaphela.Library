@@ -36,7 +36,8 @@ set(COMMON_DIR "${CODAPHELA_ROOT}/commonlibraries/Libraries")
 set(BASELIB_DIR "${COMMON_DIR}/BaseLib")
 set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(OLDDRAGONLIB_DIR "${COMMON_DIR}/OldDragonLib")
-set(SCENEFILELIB_DIR "${COMMON_DIR}/SceneFileLib")
+set(STANDARDLIB_DIR "${COMMON_DIR}/StandardLib")
+set(SUPPORTLIB_DIR "${COMMON_DIR}/SupportLib")
 set(TESTOLDDRAGONLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/TestOldDragonLib")
 
 # Reads <ClCompile Include="..."/> entries from a .vcxproj and resolves them
@@ -86,7 +87,9 @@ vcxproj_sources(TESTLIB_SOURCES "${TESTLIB_DIR}/TestLib.vcxproj")
 
 vcxproj_sources(OLDDRAGONLIB_SOURCES "${OLDDRAGONLIB_DIR}/OldDragonLib.vcxproj")
 
-vcxproj_sources(SCENEFILELIB_SOURCES "${SCENEFILELIB_DIR}/SceneFileLib.vcxproj")
+vcxproj_sources(STANDARDLIB_SOURCES "${STANDARDLIB_DIR}/StandardLib.vcxproj")
+
+vcxproj_sources(SUPPORTLIB_SOURCES "${SUPPORTLIB_DIR}/SupportLib.vcxproj")
 
 vcxproj_sources(TESTOLDDRAGONLIB_SOURCES "${TESTOLDDRAGONLIB_DIR}/TestOldDragonLib.vcxproj")
 
@@ -166,14 +169,20 @@ target_link_libraries(BaseLib PUBLIC Threads::Threads)
 add_library(TestLib STATIC ${TESTLIB_SOURCES})
 target_link_libraries(TestLib PUBLIC BaseLib)
 
-add_library(SceneFileLib STATIC ${SCENEFILELIB_SOURCES})
-target_link_libraries(SceneFileLib PUBLIC BaseLib)
+add_library(StandardLib STATIC ${STANDARDLIB_SOURCES})
+target_link_libraries(StandardLib PUBLIC BaseLib)
+
+# The Debug configurations of StandardLib (only) define DEBUG_POINTER.
+target_compile_definitions(StandardLib PRIVATE $<$<CONFIG:Debug>:DEBUG_POINTER>)
+
+add_library(SupportLib STATIC ${SUPPORTLIB_SOURCES})
+target_link_libraries(SupportLib PUBLIC StandardLib BaseLib)
 
 add_library(OldDragonLib STATIC ${OLDDRAGONLIB_SOURCES})
-target_link_libraries(OldDragonLib PUBLIC SceneFileLib BaseLib)
+target_link_libraries(OldDragonLib PUBLIC SupportLib StandardLib BaseLib)
 
 add_executable(TestOldDragonLib ${TESTOLDDRAGONLIB_SOURCES})
-target_link_libraries(TestOldDragonLib PRIVATE TestLib OldDragonLib SceneFileLib BaseLib)
+target_link_libraries(TestOldDragonLib PRIVATE TestLib OldDragonLib SupportLib StandardLib BaseLib)
 
 # The tests read their input (Input/ ...) relative to the project directory,
 # as Visual Studio does.

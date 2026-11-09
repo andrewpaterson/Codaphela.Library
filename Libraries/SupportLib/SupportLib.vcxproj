@@ -251,6 +251,9 @@
     <ClInclude Include="BlockMap.h" />
     <ClInclude Include="PNGWriter.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneFileGeneral.h" />
+    <ClInclude Include="SceneFileReader.h" />
+    <ClInclude Include="SceneFileWriter.h" />
     <ClInclude Include="SFTCommon.h" />
     <ClInclude Include="PNGCommon.h" />
     <ClInclude Include="ImageReaderCommon.h" />
@@ -497,6 +500,9 @@
     <ClCompile Include="BlockMap.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneFileGeneral.cpp" />
+    <ClCompile Include="SceneFileReader.cpp" />
+    <ClCompile Include="SceneFileWriter.cpp" />
     <ClCompile Include="SFTCommon.cpp" />
     <ClCompile Include="PNGCommon.cpp" />
     <ClCompile Include="ImageReaderCommon.cpp" />

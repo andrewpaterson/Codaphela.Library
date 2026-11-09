@@ -22,7 +22,7 @@ OLD_STAR_CONTROL = "D:/Work/Star Control"
 VIEWER = OLD_STAR_CONTROL + "/Builds/ViewerV7beta2009.9.20"
 
 CONVERSIONS = [
-    (VIEWER + "/Goober.DRG", COMMON + "/Tests/TestSceneFileLib/TestSceneFileLib/Input/Scene/Goober.DRG", ["--particles", VIEWER + "/Particles/Stars.csv"]),
+    (VIEWER + "/Goober.DRG", COMMON + "/Tests/TestSupportLib/TestSupportLib/Input/Scene/Goober.DRG", ["--particles", VIEWER + "/Particles/Stars.csv"]),
     (GAME_ENGINE + "/StarControl1/StarControl1/Melee.DRG", STAR_CONTROL + "/Melee.DRG", ["--max", OLD_STAR_CONTROL + "/MaxFiles/Melee.max"]),
     (OLD_STAR_CONTROL + "/Builds/StarControl/Test.DRG", STAR_CONTROL + "/Test.DRG", []),
 ]

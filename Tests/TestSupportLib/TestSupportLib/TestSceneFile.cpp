@@ -2,14 +2,13 @@
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/Logger.h"
-#include "SceneFileLib/SceneFileReader.h"
-#include "SceneFileLib/SceneFileWriter.h"
+#include "SupportLib/SceneFileReader.h"
+#include "SupportLib/SceneFileWriter.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 
 
 #define SAMPLE_FILE		"Input" _FS_ "Scene" _FS_ "Sample.DRG"
-#define GOOBER_FILE		"Input" _FS_ "Scene" _FS_ "Goober.DRG"
 #define OUTPUT_DIR		"Output" _FS_ "Scene"
 #define OUTPUT_FILE		OUTPUT_DIR _FS_ "Sample.DRG"
 #define BAD_FILE		OUTPUT_DIR _FS_ "Bad.DRG"
@@ -36,6 +35,7 @@ static const float32	gafSkinWeights[] = { 1, 1, 1, 1, 0.75f, 0.25f };
 static const float32	gafIdentity[] = { 1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1 };
 static const float32	gafMoved[] = { 1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  2, 3, 4, 1 };
 static const uint8		gauiPixels[] = { 1, 2, 3,  4, 5, 6,  7, 8, 9,  10, 11, 12 };
+static const float32	gafBackwards[] = { 1, 0.5f };
 static const float32	gafRed[] = { 1, 0, 0, 0.5f };
 static const float32	gafGrey[] = { 0.25f, 0.25f, 0.25f, 1 };
 static const float32	gafKeyTimes[] = { 0, 0.5f };
@@ -129,7 +129,7 @@ static void WriteSample(const char* szFilename)
 	AssertTrue(cWriter.WriteMaterialColour(SFMC_Diffuse, gafRed));
 	AssertTrue(cWriter.WriteMaterialColour(SFMC_Specular, gafGrey));
 	AssertTrue(cWriter.WriteShininess(1.5f, 0.25f));
-	AssertTrue(cWriter.WriteMaterialTexture(SFT_Bump, 0));
+	AssertTrue(cWriter.WriteMaterialTexture(SFTX_Bump, 0));
 	AssertTrue(cWriter.EndMaterial());
 
 	AssertTrue(cWriter.BeginMaterial("Bare"));
@@ -297,8 +297,8 @@ static void AssertSampleImage(CSceneFileReader* pcReader)
 
 	AssertName(pcReader, "Checks");
 	AssertTrue(pcReader->ReadImageSize(&iWidth, &iHeight));
-	AssertInt(2, iWidth);
-	AssertInt(2, iHeight);
+	AssertInt((int32)2, iWidth);
+	AssertInt((int32)2, iHeight);
 	szChannels.Init();
 	AssertTrue(pcReader->ReadChannels(&szChannels));
 	AssertString("RGB", szChannels.Text());
@@ -331,8 +331,8 @@ static void AssertSampleMaterials(CSceneFileReader* pcReader)
 	AssertTrue(pcReader->ReadShininess(&fPower, &fBase));
 	AssertFloat(1.5f, fPower, 3);
 	AssertFloat(0.25f, fBase, 3);
-	AssertInt(0, pcReader->GetMaterialTexture(SFT_Bump));
-	AssertInt(SCENE_FILE_NONE, pcReader->GetMaterialTexture(SFT_Diffuse));
+	AssertInt((int32)0, pcReader->GetMaterialTexture(SFTX_Bump));
+	AssertInt((int32)SCENE_FILE_NONE, pcReader->GetMaterialTexture(SFTX_Diffuse));
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->BeginMaterial(1));
@@ -354,7 +354,7 @@ static void AssertSampleConnections(CSceneFileReader* pcReader)
 
 	AssertTrue(pcReader->BeginConnection(0));
 	AssertName(pcReader, "Root");
-	AssertInt(SCENE_FILE_NONE, pcReader->GetParent());
+	AssertInt((int32)SCENE_FILE_NONE, pcReader->GetParent());
 	AssertTrue(pcReader->ReadWorldMatrix(af4x4));
 	AssertFloats(gafIdentity, af4x4, 16);
 	AssertFalse(pcReader->ReadLocalMatrix(af4x4));
@@ -363,7 +363,7 @@ static void AssertSampleConnections(CSceneFileReader* pcReader)
 
 	AssertTrue(pcReader->BeginConnection(1));
 	AssertName(pcReader, "Child");
-	AssertInt(0, pcReader->GetParent());
+	AssertInt((int32)0, pcReader->GetParent());
 	AssertTrue(pcReader->ReadWorldMatrix(af4x4));
 	AssertFloats(gafMoved, af4x4, 16);
 	AssertTrue(pcReader->ReadLocalMatrix(af4x4));
@@ -396,7 +396,7 @@ static void AssertSampleLightAndCamera(CSceneFileReader* pcReader)
 	AssertFloat(0.5f, f3, 3);
 	AssertInt(SFLD_Square, pcReader->GetLightDecay());
 	AssertTrue(pcReader->GetShadows());
-	AssertInt(1, pcReader->GetAttached());
+	AssertInt((int32)1, pcReader->GetAttached());
 	AssertTrue(pcReader->End());
 
 	AssertSize(1, pcReader->NumCameras());
@@ -407,7 +407,7 @@ static void AssertSampleLightAndCamera(CSceneFileReader* pcReader)
 	AssertFloat(1, f1, 3);
 	AssertFloat(0.25f, f2, 3);
 	AssertFloat(100, f3, 3);
-	AssertInt(0, pcReader->GetAttached());
+	AssertInt((int32)0, pcReader->GetAttached());
 	AssertTrue(pcReader->End());
 }
 
@@ -427,7 +427,7 @@ static void AssertSampleAnimation(CSceneFileReader* pcReader)
 	AssertSize(2, pcReader->NumTracks());
 
 	AssertTrue(pcReader->BeginTrack(0));
-	AssertInt(0, pcReader->GetAttached());
+	AssertInt((int32)0, pcReader->GetAttached());
 	AssertSize(2, pcReader->NumKeys());
 	AssertTrue(pcReader->ReadKeyTimes(afTimes));
 	AssertFloats(gafKeyTimes, afTimes, 2);
@@ -437,7 +437,7 @@ static void AssertSampleAnimation(CSceneFileReader* pcReader)
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->BeginTrack(1));
-	AssertInt(1, pcReader->GetAttached());
+	AssertInt((int32)1, pcReader->GetAttached());
 	AssertSize(1, pcReader->NumKeys());
 	AssertTrue(pcReader->End());
 
@@ -462,17 +462,17 @@ static void AssertSampleInstance(CSceneFileReader* pcReader)
 	AssertSize(2, pcReader->NumInstanceMeshes());
 
 	AssertTrue(pcReader->BeginInstanceMesh(0));
-	AssertInt(0, pcReader->GetInstanceMesh());
+	AssertInt((int32)0, pcReader->GetInstanceMesh());
 	AssertSize(2, pcReader->NumConnectionSlots());
 	AssertTrue(pcReader->ReadConnectionSlots(ai));
 	AssertInts(gaiConnectionSlots, ai, 2);
 	AssertSize(1, pcReader->NumInstanceMaterials());
 	AssertTrue(pcReader->ReadInstanceMaterials(ai));
-	AssertInt(1, ai[0]);
+	AssertInt((int32)1, ai[0]);
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->BeginInstanceMesh(1));
-	AssertInt(1, pcReader->GetInstanceMesh());
+	AssertInt((int32)1, pcReader->GetInstanceMesh());
 	AssertSize(1, pcReader->NumConnectionSlots());
 	AssertSize(0, pcReader->NumInstanceMaterials());
 	AssertTrue(pcReader->End());
@@ -710,7 +710,6 @@ void TestSceneFileWriterReferenceFailures(void)
 	CSceneFileWriter	cWriter;
 	static const int32	aiMaterial[] = { 0 };
 	static const int32	aiSlot[] = { 1 };
-	static const float32	afBackwards[] = { 1, 0.5f };
 	float32				af4x4s[32];
 
 	memset(af4x4s, 0, sizeof(af4x4s));
@@ -726,7 +725,7 @@ void TestSceneFileWriterReferenceFailures(void)
 	cWriter.Init(BAD_FILE);
 	AssertTrue(cWriter.Open());
 	AssertTrue(cWriter.BeginMaterial("Textured"));
-	AssertTrue(cWriter.WriteMaterialTexture(SFT_Diffuse, 0));
+	AssertTrue(cWriter.WriteMaterialTexture(SFTX_Diffuse, 0));
 	AssertTrue(cWriter.EndMaterial());
 	AssertNoFile(&cWriter);
 
@@ -762,7 +761,7 @@ void TestSceneFileWriterReferenceFailures(void)
 	cWriter.Init(BAD_FILE);
 	AssertTrue(cWriter.Open());
 	AssertTrue(cWriter.BeginAnimation("Move"));
-	AssertFalse(cWriter.WriteTrack(0, afBackwards, af4x4s, 2));
+	AssertFalse(cWriter.WriteTrack(0, gafBackwards, af4x4s, 2));
 	AssertNoFile(&cWriter);
 
 	//A track, an attachment or a parent on nothing.
@@ -1062,127 +1061,6 @@ void TestSceneFileReaderFailures(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertGooberName(CSceneFileReader* pcReader, const char* szExpected)
-{
-	CChars	sz;
-
-	sz.Init();
-	AssertTrue(pcReader->ReadName(&sz));
-	AssertString(szExpected, sz.Text());
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////
-//
-// A skinned mesh walking in a field of stars, converted from one of the
-// old files.  Each track's first key being its connection's world matrix
-// is what shows they're on the right connections.
-//
-//////////////////////////////////////////////////////////////////////
-void TestSceneFileGoober(void)
-{
-	CSceneFileReader	cReader;
-	CChars				szChannels;
-	float32				afWorlds[141 * SCENE_FILE_FLOATS_IN_MATRIX];
-	float32				afKeys[80 * SCENE_FILE_FLOATS_IN_MATRIX];
-	float32				afTimes[80];
-	size				i;
-	size				j;
-	int32				iWidth;
-	int32				iHeight;
-
-	cReader.Init(GOOBER_FILE);
-	AssertTrue(cReader.Open());
-
-	AssertSize(1, cReader.NumMeshes());
-	AssertTrue(cReader.BeginMesh(0));
-	AssertGooberName(&cReader, "goober_");
-	AssertSize(3241, cReader.NumPositions());
-	AssertSize(6134, cReader.NumPolygons());
-	AssertSize(6134 * 3, cReader.NumCorners());
-	AssertSize(0, cReader.NumNormals());
-	AssertSize(6134, cReader.NumSmoothGroups());
-	AssertSize(1, cReader.NumUVLayers());
-	AssertSize(3241, cReader.NumSkinCounts());
-	AssertSize(8124, cReader.NumSkinWeights());
-	AssertSize(67, cReader.NumInverseMatrices());
-	AssertTrue(cReader.End());
-
-	AssertSize(3, cReader.NumImages());
-	szChannels.Init();
-	AssertTrue(cReader.BeginImage(0));
-	AssertGooberName(&cReader, "Goober_D.tga");
-	AssertTrue(cReader.ReadImageSize(&iWidth, &iHeight));
-	AssertInt(2048, iWidth);
-	AssertInt(2048, iHeight);
-	AssertTrue(cReader.ReadChannels(&szChannels));
-	AssertString("RGBA", szChannels.Text());
-	AssertTrue(cReader.End());
-	szChannels.Kill();
-
-	AssertSize(1, cReader.NumMaterials());
-	AssertTrue(cReader.BeginMaterial(0));
-	AssertInt(0, cReader.GetMaterialTexture(SFT_Diffuse));
-	AssertInt(1, cReader.GetMaterialTexture(SFT_Bump));
-	AssertInt(2, cReader.GetMaterialTexture(SFT_Reflection));
-	AssertTrue(cReader.End());
-
-	AssertSize(0, cReader.NumLights());
-	AssertSize(0, cReader.NumCameras());
-
-	AssertSize(141, cReader.NumConnections());
-	for (i = 0; i < 141; i++)
-	{
-		AssertTrue(cReader.BeginConnection(i));
-		AssertTrue(cReader.ReadWorldMatrix(&afWorlds[i * SCENE_FILE_FLOATS_IN_MATRIX]));
-		AssertTrue(cReader.End());
-	}
-
-	AssertSize(1, cReader.NumAnimations());
-	AssertTrue(cReader.BeginAnimation(0));
-	AssertSize(140, cReader.NumTracks());
-	for (i = 0; i < 140; i++)
-	{
-		AssertTrue(cReader.BeginTrack(i));
-		AssertInt((int32)i + 1, cReader.GetAttached());
-		AssertSize(80, cReader.NumKeys());
-		AssertTrue(cReader.ReadKeyTimes(afTimes));
-		AssertTrue(cReader.ReadKeyMatrices(afKeys));
-		AssertTrue(cReader.End());
-
-		AssertFloat(0.0f, afTimes[0], 3);
-		for (j = 0; j < SCENE_FILE_FLOATS_IN_MATRIX; j++)
-		{
-			AssertFloat(afWorlds[(i + 1) * SCENE_FILE_FLOATS_IN_MATRIX + j], afKeys[j], 2);
-		}
-	}
-	AssertTrue(cReader.End());
-
-	AssertSize(1, cReader.NumInstances());
-	AssertTrue(cReader.BeginInstance(0));
-	AssertSize(67, cReader.NumInstanceConnections());
-	AssertSize(1, cReader.NumInstanceMeshes());
-	AssertTrue(cReader.BeginInstanceMesh(0));
-	AssertInt(0, cReader.GetInstanceMesh());
-	AssertSize(67, cReader.NumConnectionSlots());
-	AssertTrue(cReader.End());
-	AssertTrue(cReader.End());
-
-	AssertSize(1, cReader.NumParticleSets());
-	AssertTrue(cReader.BeginParticles(0));
-	AssertSize(1105, cReader.NumParticles());
-	AssertTrue(cReader.End());
-
-	AssertFalse(cReader.Failed());
-	cReader.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////
 void TestSceneFile(void)
 {
 	CFileUtil	cFileUtil;
@@ -1195,7 +1073,6 @@ void TestSceneFile(void)
 	cFileUtil.MakeDir(OUTPUT_DIR);
 
 	TestSceneFileSample();
-	TestSceneFileGoober();
 	TestSceneFileWriterForwardReferences();
 	TestSceneFileReaderUnknownAndMissing();
 

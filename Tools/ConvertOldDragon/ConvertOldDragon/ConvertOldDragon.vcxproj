@@ -230,8 +230,11 @@
       <Project>{e25d2dac-0e80-42b2-8fa7-99b837cf7588}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Libraries\SceneFileLib\SceneFileLib.vcxproj">
-      <Project>{5d3e8a17-2c4f-4b91-a6e0-71f9c3b2d864}</Project>
+    <ProjectReference Include="..\..\..\Libraries\StandardLib\StandardLib.vcxproj">
+      <Project>{2cfa23fa-6565-4744-8b75-9790b21cc0e5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\SupportLib\SupportLib.vcxproj">
+      <Project>{221022f1-b103-456a-8f55-721f33f2e26d}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Libraries\OldDragonLib\OldDragonLib.vcxproj">
       <Project>{6b1f4c2e-3a77-4e0d-9c51-8d2a7f10e3b4}</Project>

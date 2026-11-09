@@ -1122,7 +1122,7 @@ void TestOldDragonNotOldOrMissing(void)
 	AssertFalse(cFile.Init(".." _FS_ ".." _FS_ "TestStandardLib" _FS_ "TestStandardLib" _FS_ "Input" _FS_ "ChunkFile.DRG"));
 	AssertInt(ODV_Current, cFile.GetVersion());
 	cFile.Kill();
-	AssertFalse(cFile.Init(".." _FS_ ".." _FS_ "TestSceneFileLib" _FS_ "TestSceneFileLib" _FS_ "Input" _FS_ "Scene" _FS_ "Sample.DRG"));
+	AssertFalse(cFile.Init(".." _FS_ ".." _FS_ "TestSupportLib" _FS_ "TestSupportLib" _FS_ "Input" _FS_ "Scene" _FS_ "Sample.DRG"));
 	AssertInt(ODV_Current, cFile.GetVersion());
 	cFile.Kill();
 	gcLogger.SetConfig(&sLogConfig);

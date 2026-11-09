@@ -153,14 +153,14 @@ The rules that keep it from going the way of the old files:
 Format steps:
 A. Fix SupportLib's OBJWriter, see below.  Done.
 B. The reader and writer, holding what Goober and Melee contain: meshes, polygons, smoothing groups, UVs, skin, materials, images,
-   connections, animation, instances, lights, cameras and particles.  Done: SceneFileLib, with the format described in
+   connections, animation, instances, lights, cameras and particles.  Done: CSceneFileWriter and CSceneFileReader in SupportLib, with the format described in
    SceneFileGeneral.h.  Faces are polygons, a triangle being a polygon of 3.  A failure sticks, and Close then fails and leaves no
-   file.  Input/Scene/Sample.DRG in TestSceneFileLib uses all of it and fails its test if the bytes change.
+   file.  Input/Scene/Sample.DRG in TestSupportLib uses all of it and fails its test if the bytes change.
 C. Convert the old files, see below.  Done: OldDragonConverter in OldDragonLib, run by Tools\ConvertOldDragon, whose ConvertAll.py
    lists what came from where.  Each file is read back and compared as it's converted.
 D. Render the converted files, including Goober's walk, as value checks can't catch a wrong rule.  What's checked so far is below.
 E. Fill a CMesh and then a CScene from the reader.  Write them too.
-F. A Max exporter writing through the writer, if one is wanted.
+F. A Max exporter writing through the writer, if one is wanted.  It links SupportLib, StandardLib and BaseLib for that.
 
 OBJ is done (step A): SaveOBJ and the reader handle positions, normals and one layer of UVs in both directions, and TestMeshShapes and
 TestMeshOBJReader run again.  What OBJ still doesn't carry here:

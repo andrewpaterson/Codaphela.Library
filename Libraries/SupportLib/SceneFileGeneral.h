@@ -2,20 +2,20 @@
 
 Copyright (c) 2026 Andrew Paterson
 
-This file is part of The Codaphela Project: Codaphela SceneFileLib
+This file is part of The Codaphela Project: Codaphela SupportLib
 
-Codaphela SceneFileLib is free software: you can redistribute it and/or modify
+Codaphela SupportLib is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Codaphela SceneFileLib is distributed in the hope that it will be useful,
+Codaphela SupportLib is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with Codaphela SceneFileLib.  If not, see <http://www.gnu.org/licenses/>.
+along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #ifndef __SCENE_FILE_GENERAL_H__
@@ -177,17 +177,17 @@ enum ESceneFileMaterialColour
 //Each of these is a chunk's name: see gaszSceneFileTextures.
 enum ESceneFileTexture
 {
-	SFT_Diffuse,
-	SFT_DiffuseLevel,
-	SFT_Specular,
-	SFT_Illumination,
-	SFT_Opacity,
-	SFT_Bump,
-	SFT_Detail,
-	SFT_Decal,
-	SFT_Reflection,
+	SFTX_Diffuse,
+	SFTX_DiffuseLevel,
+	SFTX_Specular,
+	SFTX_Illumination,
+	SFTX_Opacity,
+	SFTX_Bump,
+	SFTX_Detail,
+	SFTX_Decal,
+	SFTX_Reflection,
 
-	SFT_NumTextures,
+	SFTX_NumTextures,
 };
 
 
@@ -219,7 +219,7 @@ enum ESceneFileCameraType
 
 //Indexed by ESceneFileMaterialColour and ESceneFileTexture.
 extern const char* const gaszSceneFileMaterialColours[SFMC_NumColours];
-extern const char* const gaszSceneFileTextures[SFT_NumTextures];
+extern const char* const gaszSceneFileTextures[SFTX_NumTextures];
 
 
 #endif // __SCENE_FILE_GENERAL_H__
