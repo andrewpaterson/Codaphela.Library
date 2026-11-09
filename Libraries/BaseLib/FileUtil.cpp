@@ -475,7 +475,7 @@ void CFileUtil::SplitPath(const char* szPathName, CArrayChars* paszComponents)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::GetFileName(CChars* szDest, char* szPathName)
+void CFileUtil::GetFileName(CChars* szDest, const char* szPathName)
 {
 	size	iIndex;
 	size	iLength;

@@ -68,7 +68,7 @@ public:
 	bool	HomeDirectory(CChars* szDest);
 	void	SplitPath(const char* szPathName, CChars* szDestFilename, CChars* szDestDirectory);
 	void	SplitPath(const char* szPathName, CArrayChars* paszComponents);
-	void	GetFileName(CChars* szDest, char* szPathName);
+	void	GetFileName(CChars* szDest, const char* szPathName);
 
 	void    RemoveExtension(CChars* szPathName);
 	size	FindExtension(const char* szPathName);
