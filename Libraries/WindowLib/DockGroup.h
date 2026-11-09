@@ -100,6 +100,7 @@ public:
 	bool					IsDocumentGroup(void);
 	Ptr<CTabbedContainer>	GetTabs(void);
 	Ptr<CDockTitleBar>		GetTitleBar(void);
+	bool					IsPointInHeader(int x, int y);
 	Ptr<CMenuContainer>		GetMenu(Ptr<CDockPane> pPane);
 	void					OpenMenu(Ptr<CDockPane> pPane, SInt32Vec2 sPosition);
 	Ptr<CTabComponent>		GetTab(Ptr<CDockPane> pPane);

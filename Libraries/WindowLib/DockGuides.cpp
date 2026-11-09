@@ -321,7 +321,8 @@ void CDockGuides::AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments
 //////////////////////////////////////////////////////////////////////////
 //
 // The guide at x, y in window client space; psTarget says what dropping
-// there does.  Returns false over no guide.
+// there does.  A group's title bar or tabs are its centre guide too, as
+// that's where a tab is expected to go.  Returns false over neither.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDockGuides::Hit(int x, int y, SDockTarget* psTarget, SInt32Vec2 sDraggedSize)
@@ -339,6 +340,10 @@ bool CDockGuides::Hit(int x, int y, SDockTarget* psTarget, SInt32Vec2 sDraggedSi
 			uiHover = i;
 			break;
 		}
+	}
+	if (uiHover == MAX_SIZE)
+	{
+		uiHover = FindHeaderGuide(x, y);
 	}
 	if (uiHover != muiHover)
 	{
@@ -361,6 +366,36 @@ bool CDockGuides::Hit(int x, int y, SDockTarget* psTarget, SInt32Vec2 sDraggedSi
 	mcPreview.Init(&psTarget->cPreview);
 	mbPreview = true;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The centre guide of the group whose title bar or tabs are at x, y,
+// MAX_SIZE if that's not where one is, or what's dragged can't be tabbed
+// into it, so it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDockGuides::FindHeaderGuide(int x, int y)
+{
+	Ptr<CDockGroup>	pGroup;
+	SDockGuide*		psGuide;
+	size			i;
+
+	pGroup = mpArea->FindGroupAt(x, y);
+	if (pGroup.IsNull() || !pGroup->IsPointInHeader(x, y))
+	{
+		return MAX_SIZE;
+	}
+	for (i = 0; i < masGuides.NumElements(); i++)
+	{
+		psGuide = masGuides.Get(i);
+		if ((psGuide->eKind == DTK_Group) && (psGuide->eSide == DS_Centre) && (psGuide->pcNode == &pGroup))
+		{
+			return i;
+		}
+	}
+	return MAX_SIZE;
 }
 
 

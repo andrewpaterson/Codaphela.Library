@@ -116,6 +116,7 @@ public:
 	void							Select(Ptr<CTabComponent> pTab);
 	void							Select(size uiIndex);
 	Ptr<CTabComponent>				GetSelected(void);
+	bool							IsPointInBar(int x, int y);
 	size							NumTabs(void);
 	Ptr<CTabComponent>				GetTab(size uiIndex);
 	Ptr<CComponent>					GetPage(size uiIndex);

@@ -741,14 +741,14 @@ void TestDockingDrag(void)
 		pTab->GetActualBounds(&cBounds);
 		sStart.Init(cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
 		DockPress(sTest.pWindow, sStart.x, sStart.y);
-		DockMove(sTest.pWindow, sStart.x - 300, 20);
+		DockMove(sTest.pWindow, sStart.x - 300, 60);
 		AssertFalse(sTest.pManager->GetTarget()->IsValid());
 		DockRelease(sTest.pWindow);
 		AssertInt(DPS_Floating, sTest.pExplorer->GetState());
 		AssertSize(1, sTest.pManager->NumFloating());
 		pFloating = sTest.pManager->GetFloating(0);
 		pFloating->GetRectangle(&cBounds);
-		AssertInt(20 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2, cBounds.GetTop());
+		AssertInt(60 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2, cBounds.GetTop());
 
 		//Its title bar moves it.
 		pFloating->GetWindow()->Layout();
@@ -763,7 +763,7 @@ void TestDockingDrag(void)
 		AssertFalse(sTest.pManager->IsDragging());
 		AssertSize(1, sTest.pManager->NumFloating());
 		pFloating->GetRectangle(&cBounds);
-		AssertInt(20 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2 + 40, cBounds.GetTop());
+		AssertInt(60 - sTest.pTheme->GetMetric(TM_DockFrameBorder) - sTest.pTheme->GetMetric(TM_DockTitleBarHeight) / 2 + 40, cBounds.GetTop());
 
 		//Double clicking its title bar docks it back.
 		sTest.pManager->ToggleFloatGroup(sTest.pExplorer->GetGroup());
@@ -779,6 +779,111 @@ void TestDockingDrag(void)
 		pArea = NULL;
 		pFloating = NULL;
 		pDocParent = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pane let go on a group's title bar or tabs is tabbed into it, without
+// finding the compass's centre.  A group's body isn't that, and documents
+// still only go with documents outside of the well.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingDragOnHeader(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest					sTest;
+		Ptr<CDockGroup>				pOutputGroup;
+		Ptr<CDockGroup>				pPropertiesGroup;
+		Ptr<CDockGroup>				pDocGroup;
+		Ptr<CTabComponent>			pTab;
+		CInt32Rect					cBounds;
+		SInt32Vec2					sStart;
+		Ptr<CDockArea>				pArea;
+
+		sTest.Init(&cNativeFactory);
+		pArea = sTest.pManager->GetArea();
+		pOutputGroup = sTest.pOutput->GetGroup();
+		pPropertiesGroup = sTest.pProperties->GetGroup();
+
+		//Explorer's title pulled over Output's group's body, away from its compass: nothing.
+		sTest.pExplorer->GetGroup()->GetTitleBar()->GetActualBounds(&cBounds);
+		sStart.Init(cBounds.GetLeft() + 20, cBounds.GetTop() + 5);
+		DockPress(sTest.pWindow, sStart.x, sStart.y);
+		DockMove(sTest.pWindow, sStart.x + 10, sStart.y + 10);
+		AssertTrue(sTest.pManager->IsDragging());
+		pOutputGroup->GetActualBounds(&cBounds);
+		DockMove(sTest.pWindow, cBounds.GetLeft() + 5, cBounds.GetTop() + cBounds.GetHeight() / 2);
+		AssertFalse(sTest.pManager->GetTarget()->IsValid());
+
+		//On its tab bar: its centre.
+		pOutputGroup->GetTab(sTest.pOutput)->GetActualBounds(&cBounds);
+		DockMove(sTest.pWindow, cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		AssertTrue(sTest.pManager->GetTarget()->IsValid());
+		AssertInt(DTK_Group, sTest.pManager->GetTarget()->eKind);
+		AssertInt(DS_Centre, sTest.pManager->GetTarget()->eSide);
+		AssertTrue(sTest.pManager->GetTarget()->pcNode == &pOutputGroup);
+		pOutputGroup->GetActualBounds(&cBounds);
+		AssertInt(cBounds.GetHeight(), sTest.pManager->GetTarget()->cPreview.GetHeight());
+		DockRelease(sTest.pWindow);
+		AssertFalse(sTest.pManager->IsDragging());
+		AssertTrue(sTest.pExplorer->GetGroup() == pOutputGroup);
+		AssertSize(3, pOutputGroup->NumPanes());
+		AssertSize(0, sTest.pManager->NumFloating());
+		sTest.pWindow->Layout();
+
+		//On the title bar of a group of one, which has no tabs.
+		pTab = pOutputGroup->GetTab(sTest.pExplorer);
+		pTab->GetActualBounds(&cBounds);
+		sStart.Init(cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		DockPress(sTest.pWindow, sStart.x, sStart.y);
+		DockMove(sTest.pWindow, sStart.x, sStart.y - 20);
+		AssertTrue(sTest.pManager->IsDragging());
+		pPropertiesGroup->GetTitleBar()->GetActualBounds(&cBounds);
+		DockMove(sTest.pWindow, cBounds.GetLeft() + 20, cBounds.GetTop() + 5);
+		AssertInt(DS_Centre, sTest.pManager->GetTarget()->eSide);
+		DockRelease(sTest.pWindow);
+		AssertTrue(sTest.pExplorer->GetGroup() == pPropertiesGroup);
+		AssertSize(2, pPropertiesGroup->NumPanes());
+		sTest.pWindow->Layout();
+
+		//A document on a tool group's title bar has nowhere to go.
+		sTest.pManager->Show(sTest.pFirstDoc);
+		sTest.pManager->Show(sTest.pSecondDoc);
+		sTest.pWindow->Layout();
+		pDocGroup = sTest.pSecondDoc->GetGroup();
+		pTab = pDocGroup->GetTab(sTest.pSecondDoc);
+		pTab->GetActualBounds(&cBounds);
+		sStart.Init(cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		DockPress(sTest.pWindow, sStart.x, sStart.y);
+		DockMove(sTest.pWindow, sStart.x + 10, sStart.y + 60);
+		AssertTrue(sTest.pManager->IsDragging());
+		pOutputGroup->GetTitleBar()->GetActualBounds(&cBounds);
+		DockMove(sTest.pWindow, cBounds.GetLeft() + 20, cBounds.GetTop() + 5);
+		AssertFalse(sTest.pManager->GetTarget()->IsValid());
+
+		//And on the document group's tabs it goes back in.
+		pDocGroup->GetTabs()->GetTab(0)->GetActualBounds(&cBounds);
+		DockMove(sTest.pWindow, cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		AssertInt(DS_Centre, sTest.pManager->GetTarget()->eSide);
+		AssertTrue(sTest.pManager->GetTarget()->pcNode == &pDocGroup);
+		DockRelease(sTest.pWindow);
+		AssertTrue(sTest.pSecondDoc->GetGroup() == pDocGroup);
+		AssertSize(0, sTest.pManager->NumFloating());
+
+		pOutputGroup = NULL;
+		pPropertiesGroup = NULL;
+		pDocGroup = NULL;
+		pTab = NULL;
+		pArea = NULL;
 		sTest.Kill();
 	}
 
@@ -2015,6 +2120,7 @@ void TestDocking(void)
 	TestDockingDefaults();
 	TestDockingHideFloatAutoHide();
 	TestDockingDrag();
+	TestDockingDragOnHeader();
 	TestDockingNarrowToolTabs();
 	TestDockingSplitsMerged();
 	TestDockingTitlesAndColours();

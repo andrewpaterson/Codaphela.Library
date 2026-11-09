@@ -833,6 +833,7 @@ void					CDockGroup::SetID(int32 iID) { miID = iID; }
 bool					CDockGroup::IsDocumentGroup(void) { return mbDocuments; }
 Ptr<CTabbedContainer>	CDockGroup::GetTabs(void) { return mpTabs; }
 Ptr<CDockTitleBar>		CDockGroup::GetTitleBar(void) { return mpTitleBar; }
+bool CDockGroup::IsPointInHeader(int x, int y) { return (mpTitleBar.IsNotNull() && mpTitleBar->IsPointIn(x, y)) || mpTabs->IsPointInBar(x, y); }  //Its title bar or its tabs; x and y are in window client space.
 
 
 size					CDockGroup::CountPanes(void) { return NumPanes(); }

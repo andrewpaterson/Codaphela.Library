@@ -93,6 +93,7 @@ public:
 	void				DrawGuides(Ptr<CCanvas> pCanvas);
 
 protected:
+	size				FindHeaderGuide(int x, int y);
 	void				AddGuide(int x, int y, EDockTargetKind eKind, EDockSide eSide, CDockNode* pcNode, bool bOuter);
 	CDockNode*			FindCompassNode(int x, int y, bool* pbInWell);
 	void				AddEdgeMarkers(void);

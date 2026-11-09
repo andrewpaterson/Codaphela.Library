@@ -701,6 +701,7 @@ Ptr<CTabComponent> CTabbedContainer::GetTab(size uiIndex) { return maTabs.Get(ui
 Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiIndex); }
 ETabSide CTabbedContainer::GetTabSide(void) { return meTabSide; }
 bool CTabbedContainer::IsBarShown(void) { return mbBarShown; }
+bool CTabbedContainer::IsPointInBar(int x, int y) { return mbBarShown && mpBar->IsPointIn(x, y); }  //x and y are in window client space.
 Ptr<CMenuContainer> CTabbedContainer::GetOverflowMenu(void) { return mpOverflowMenu; }
 
 
