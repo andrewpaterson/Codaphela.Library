@@ -68,6 +68,7 @@ void TestMeshEdgeCollapse(void);
 void TestMeshMergeNormals(void);
 void TestNormalGeneration(void);
 void TestMeshOBJReader(void);
+void TestMeshOBJWriter(void);
 void TestMeshVRMLReader(void);
 void TestImageResampler(void);
 void TestSound(void);
@@ -155,6 +156,7 @@ int __cdecl main(void)
 	TestMeshMergeNormals();
 	TestNormalGeneration();
 	TestMeshOBJReader();
+	TestMeshOBJWriter();
 	TestMeshVRMLReader();
 	TestSound();
 	TestSoundWAV();

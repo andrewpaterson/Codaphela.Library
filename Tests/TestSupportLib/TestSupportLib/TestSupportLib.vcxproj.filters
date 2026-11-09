@@ -112,6 +112,9 @@
     <ClCompile Include="TestMeshOBJReader.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshOBJWriter.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshVRMLReader.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
