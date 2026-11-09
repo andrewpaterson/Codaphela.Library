@@ -90,6 +90,7 @@ void CX11Window::DestroyNativeWindow(void)
 {
     Display*            psDisplay;
     CX11WindowFactory*  pcFactory;
+    XWindowAttributes   sOwnerAttributes;
 
     if (mulWindow)
     {
@@ -104,10 +105,14 @@ void CX11Window::DestroyNativeWindow(void)
             mbScreenRectangle = true;
         }
 
-        //The keys go back to the owner, rather than to whatever the window manager chooses.
+        //The keys go back to the owner, rather than to whatever the window manager chooses.  It may not be on the screen
+        //yet, if it's a dialog that opened this one straight away, and a window that isn't can't have the keys.
         if (mpcOwner && ((CX11Window*)mpcOwner)->mulWindow)
         {
-            XSetInputFocus(psDisplay, ((CX11Window*)mpcOwner)->mulWindow, RevertToParent, CurrentTime);
+            if (XGetWindowAttributes(psDisplay, ((CX11Window*)mpcOwner)->mulWindow, &sOwnerAttributes) && (sOwnerAttributes.map_state == IsViewable))
+            {
+                XSetInputFocus(psDisplay, ((CX11Window*)mpcOwner)->mulWindow, RevertToParent, CurrentTime);
+            }
         }
 
         pcFactory->RemoveWindow(this);
