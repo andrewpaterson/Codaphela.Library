@@ -1198,7 +1198,7 @@ bool CPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorToke
 	CChars					szRest;
 	SPPSource*				psSource;
 	int64					lliLine;
-	int						i;
+	size					i;
 
 	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
 	pcParser->SkipWhitespace();
