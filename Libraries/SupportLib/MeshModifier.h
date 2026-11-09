@@ -28,8 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 
-//A modifier either changes the mesh of a CMeshEditor in place (Apply), or leaves the mesh it is given as it was and
-//returns the result (Modify, see CMeshModifierStack::GetOutput).  It overrides the one it is used by.
+//A modifier leaves the mesh it is given as it was and returns the result (see CMeshModifierStack::GetOutput).
 class CMeshEditor;
 class CMeshModifier : public CUnknown
 {
@@ -37,26 +36,8 @@ CONSTRUCTABLE(CMeshModifier);
 public:
 	void			Kill(void);
 
-	virtual bool		IsSource(void);  //Whether it makes a shape, rather than changing what's there.
-	virtual void		Apply(CMeshEditor* pcMeshEditor);
 	virtual Ptr<CMesh>	Modify(Ptr<CMesh> pMesh);  //Returns pMesh itself if there is nothing to change.
 
-	virtual void	ClearConnectivity(void);
-
-	virtual void 	AddPosition(float32 x, float32 y, float32 z);
-	virtual void	AddPosition(SFloat32Vec3* psPosition);
-
-	virtual void	AddFace(int iCorner1, int iCorner2, int iCorner3);
-	virtual void	AddFaces(CArrayInt* paiCorners);  //paiCorners size is a multiple of 3.
-
-	virtual void	RemoveFace(int iFace);
-	virtual void	RemoveFaces(CArrayInt* paiFaces);
-
-	virtual void	RemoveCorner(int iCorner);
-	virtual void	RemoveCorners(CArrayInt* paiCorners);
-
-	virtual void	MovePosition(int iPosition, SFloat32Vec3* psPosition);
-	virtual void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
 
 protected:
 	bool			CanRebuild(CMesh* pcMesh);  //For a Modify that builds a mesh of other faces, which only keeps positions, normals and colours.

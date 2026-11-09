@@ -45,27 +45,12 @@ void CMeshSourceModifier::Kill(void)
 }
 
 
-bool CMeshSourceModifier::IsSource(void)
-{
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSourceModifier::Apply(CMeshEditor* pcMeshEditor)
-{
-	Generate(pcMeshEditor);
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A new mesh of pMesh and the shape.  The shape's faces come after pMesh's,
 // and flat normals come before corner normals, so pMesh's corner normals go
-// on after the shape's flat ones and are numbered that much higher.
+// on after the shape's flat ones and are numbered that much higher.  pMesh's
+// polygons, smoothing, UVs, materials and skin stay on its own faces.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
@@ -83,15 +68,12 @@ Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
 	int					iFace;
 	int					i;
 	size				u;
-
-	if (!CanRebuild(&pMesh))
-	{
-		return pMesh;
-	}
+	bool				abEdges[NUM_FACE_EDGES];
 
 	pOutput = OMalloc<CMesh>();
 	pOutput->mcNormals.mbInUse = pMesh->mcNormals.InUse();
 	pOutput->mcColours.mbInUse = pMesh->mcColours.InUse();
+	pOutput->mcSmoothing.mbInUse = pMesh->mcSmoothing.InUse();
 	for (u = 0; u < pMesh->mcColours.mcColours.NumElements(); u++)
 	{
 		pOutput->mcColours.mcColours.Add(pMesh->mcColours.mcColours.GetValue(u));
@@ -109,7 +91,12 @@ Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
 	for (iFace = 0; iFace < iNumFaces; iFace++)
 	{
 		piCorners = pMesh->GetFaceCorners(iFace);
-		cEditor.AddFace(piCorners[0], piCorners[1], piCorners[2], pMesh->GetFaceName(iFace));
+		pMesh->mcPolygons.GetFaceEdges(pMesh->GetConnectivity(), iFace, abEdges);
+		cEditor.AddFace(piCorners[0], piCorners[1], piCorners[2], pMesh->GetFaceName(iFace), abEdges[0], abEdges[1], abEdges[2]);
+		if (pMesh->mcSmoothing.InUse())
+		{
+			pOutput->mcSmoothing.mauiGroups.SetValue(iFace, pMesh->mcSmoothing.mauiGroups.GetValue(iFace));
+		}
 		if (pMesh->mcColours.InUse())
 		{
 			for (i = 0; i < NUM_FACE_CORNERS; i++)
@@ -121,6 +108,10 @@ Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
 
 	Generate(&cEditor);
 	cEditor.Kill();
+
+	pOutput->CopyUVsFrom(&pMesh);
+	pOutput->CopyMaterialsFrom(&pMesh);
+	pOutput->CopySkinFrom(&pMesh);
 
 	if (pMesh->mcNormals.InUse())
 	{

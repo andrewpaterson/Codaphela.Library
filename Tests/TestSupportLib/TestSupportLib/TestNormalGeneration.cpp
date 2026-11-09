@@ -44,7 +44,7 @@ void TestMeshSmoothGroupsOneAndZero(void)
 	pcSmoothing = cMeshEditor.AddModifier<CMeshSmoothGroups>();
 	pcSmoothing->Init(1);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
@@ -65,9 +65,10 @@ void TestMeshSmoothGroupsOneAndZero(void)
 
 	WriteMesh(&cMesh, "Output/NormalsOne2x2x2.OBJ");
 
-	pcSmoothing->SetAllGroups(0);
-
-	cMeshEditor.Touch();
+	//Its groups are its own now: with none, the same modifier makes it flat.
+	cMesh.mcSmoothing.SetAll(48, 0);
+	cMeshEditor.AddModifier<CMeshSmoothGroups>()->Init();
+	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
@@ -129,7 +130,7 @@ void TestMeshSmoothGroupsNamed(void)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Name;
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
@@ -185,7 +186,7 @@ void TestMeshSmoothFaces(void)
 	pcSmoothing = cMeshEditor.AddModifier<CMeshSmoothFaces>();
 	pcSmoothing->Init();
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertInt(26, cMesh.NumCorners());
@@ -248,7 +249,7 @@ void TestMeshFlatFaces(void)
 	pcSmoothing = cMeshEditor.AddModifier<CMeshFlatFaces>();
 	pcSmoothing->Init();
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertInt(26, cMesh.NumCorners());

@@ -100,7 +100,7 @@ void TestMeshOBJWriterBox(void)
 		sStart.Init(-0.5f, -0.5f, -0.5f);
 		pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 		pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
-		cMeshEditor.Touch();
+		cMeshEditor.Collapse();
 		AssertInt(48, cMesh.NumFaces());
 		AssertInt(24, cMeshEditor.NumPolygons());
 

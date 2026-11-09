@@ -121,7 +121,6 @@ void CMeshPolygons::Free(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -171,6 +170,46 @@ void CMeshPolygons::Copy(CMeshPolygons* pcSource)
 	for (i = 0; i < pcSource->maiFacesToPolygons.NumElements(); i++)
 	{
 		maiFacesToPolygons.Add(pcSource->maiFacesToPolygons.GetValue(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether each of a face's three edges is on the outside of its polygon,
+// which is how CMeshEditor::AddFace is told to make the same polygons
+// again.  An edge is hidden when the face on its other side is in the same
+// polygon.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshPolygons::GetFaceEdges(CMeshConnectivity* pcConn, int iFace, bool* pabVisible)
+{
+	SAdjFaces	sAdjFaces;
+	int			iPolygon;
+	int			i;
+
+	for (i = 0; i < NUM_FACE_EDGES; i++)
+	{
+		pabVisible[i] = true;
+	}
+	if (!mbInUse || (iFace >= (int)maiFacesToPolygons.NumElements()))
+	{
+		return;
+	}
+	iPolygon = maiFacesToPolygons.GetValue(iFace);
+	if (iPolygon == -1)
+	{
+		return;
+	}
+
+	pcConn->GenerateConnectivity();
+	sAdjFaces = pcConn->GetAdjacentFaces(iFace);
+	for (i = 0; i < NUM_FACE_EDGES; i++)
+	{
+		if ((sAdjFaces.aiFace[i] != -1) && (sAdjFaces.aiFace[i] < (int)maiFacesToPolygons.NumElements()) && (maiFacesToPolygons.GetValue(sAdjFaces.aiFace[i]) == iPolygon))
+		{
+			pabVisible[i] = false;
+		}
 	}
 }
 
@@ -295,7 +334,6 @@ int CMeshPolygons::GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStar
 	}
 	return -1;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -423,7 +461,6 @@ CMeshPolygon* CMeshPolygons::GetPolygonForFace(int iFaceNum)
 	}
 	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -610,7 +647,6 @@ void CMeshPolygons::GetUniqueNames(CArrayInt* paiNames)
 
 	paiNames->QuickSort();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

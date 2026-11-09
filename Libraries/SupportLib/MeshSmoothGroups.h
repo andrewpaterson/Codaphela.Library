@@ -39,9 +39,6 @@ class CMesh;
 
 //Makes a mesh's normals from its smoothing groups (CMesh::mcSmoothing).  With SGS_None it keeps the mesh's groups, and a mesh with none has
 //every face put in muiAddGroup.  SGS_Name makes them from its faces' names, one group for each name.  SGS_Angle doesn't smooth anything yet.
-//
-//Apply, until it goes (ScenePlan step 2), puts every face in muiAddGroup with SGS_None, as an editor's stack makes its mesh again each time
-//and so its faces are new.
 class CMeshSmoothGroups : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothGroups);
@@ -53,15 +50,12 @@ public:
 	void 		Init(uint32 uiAddGroup = 1);
 	void 		Kill(void);
 
-	void		Apply(CMeshEditor* pcMeshEditor);
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
-
-	void		SetAllGroups(uint32 uiGroups);
 
 	static void	GenerateNormals(CMesh* pcMesh);
 
 protected:
-	void		GenerateGroups(CMesh* pcMesh, bool bKeep);
+	void		GenerateGroups(CMesh* pcMesh);
 	void		GenerateGroupsFromNames(CMesh* pcMesh);
 	void		GenerateGroupsFromAngles(CMesh* pcMesh);
 };

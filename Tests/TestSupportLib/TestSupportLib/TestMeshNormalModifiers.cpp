@@ -206,16 +206,15 @@ void TestMeshNormalModifiersAfterShape(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// On a mesh in an editor with no shape, applying them again doesn't pile
-// up corner normals, and it doesn't matter that they weren't told of faces
-// that were already there.
+// On a mesh in an editor, its output has the normals and the mesh doesn't
+// until it's collapsed.  Collapsing again doesn't pile up corner normals.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshNormalModifiersInEditorAgain(void)
 {
 	CMesh				cMesh;
 	CMeshEditor			cEditor;
-	CMeshSmoothGroups*	pcSmoothing;
+	Ptr<CMesh>			pOutput;
 
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
@@ -223,14 +222,19 @@ void TestMeshNormalModifiersInEditorAgain(void)
 	AssertSize(2, cMesh.mcNormals.mcNormals.NumElements());
 
 	cEditor.Init(&cMesh);
-	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init(1);
+	cEditor.AddModifier<CMeshSmoothGroups>()->Init(1);
+	pOutput = cEditor.GetOutput();
+	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertSize(2, cMesh.mcNormals.mcNormals.NumElements());
+	pOutput = NULL;
 
-	cEditor.mcModifiers.ApplyAll(&cEditor);
+	cEditor.Collapse();
 	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
 	AssertSize(2, cMesh.mcSmoothing.mauiGroups.NumElements());
+	AssertInt(0, cEditor.mcModifiers.NumEditors());
 
-	cEditor.mcModifiers.ApplyAll(&cEditor);
+	cEditor.AddModifier<CMeshSmoothGroups>()->Init(1);
+	cEditor.Collapse();
 	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
 	AssertInt(2, cMesh.NumFaces());
 	AssertInt(4, cMesh.NumCorners());

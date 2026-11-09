@@ -22,7 +22,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
-#include "MeshEditor.h"
 #include "MeshModifierStack.h"
 
 
@@ -35,7 +34,6 @@ void CMeshModifierStack::Init(Ptr<CMesh> pSource)
 	PreInit();
 
 	macEditors.Init();
-	miCurrent = -1;
 	mpSource = pSource;
 	mpOutput = NULL;
 
@@ -59,7 +57,6 @@ void CMeshModifierStack::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::Class(void)
 {
-	U_SInt(miCurrent);
 	U_Unknown(CArrayUnknown, macEditors);
 	M_Pointer(mpSource);
 	M_Pointer(mpOutput);
@@ -95,7 +92,6 @@ bool CMeshModifierStack::Save(CObjectWriter* pcFile)
 void CMeshModifierStack::ReInit(void)
 {
 	macEditors.ReInit();
-	miCurrent = -1;
 	mpOutput = NULL;
 }
 
@@ -108,78 +104,6 @@ void CMeshModifierStack::AddModifier(CMeshModifier* pcEditor)
 {
 	macEditors.Add(pcEditor);
 	mpOutput = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
-{
-	CMeshModifier*	pcEditor;
-	int				iNumElements;
-
-	iNumElements = (int)macEditors.NumElements();
-	if (HasSourceModifier())
-	{
-		pcMeshEditor->RestoreBase();
-		for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
-			pcEditor->ClearConnectivity();
-			TellOfFaces(pcEditor, &pcMeshEditor->mpMesh);
-		}
-	}
-
-	for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
-	{
-		pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
-		pcEditor->Apply(pcMeshEditor);
-	}
-	miCurrent = -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::TellOfFaces(CMeshModifier* pcModifier, CMesh* pcMesh)
-{
-	int*	piCorners;
-	int		i;
-	int		iNumFaces;
-
-	iNumFaces = pcMesh->NumFaces();
-	for (i = 0; i < iNumFaces; i++)
-	{
-		piCorners = pcMesh->GetFaceCorners(i);
-		pcModifier->AddFace(piCorners[0], piCorners[1], piCorners[2]);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMeshModifierStack::HasSourceModifier(void)
-{
-	CMeshModifier*	pcModifier;
-	size			i;
-	size			uiNumElements;
-
-	uiNumElements = macEditors.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcModifier = (CMeshModifier*)macEditors.Get(i);
-		if (pcModifier->IsSource())
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 
@@ -254,165 +178,4 @@ int CMeshModifierStack::NumEditors(void)
 	return (int)macEditors.NumElements();
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::ClearConnectivity(void)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->ClearConnectivity();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::AddPosition(SFloat32Vec3* psPosition)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->AddPosition(psPosition);
-		}
-	}
-
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::AddFace(int iCorner1, int iCorner2, int iCorner3)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->AddFace(iCorner1, iCorner2, iCorner3);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::RemoveFace(int iFace)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->RemoveFace(iFace);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::RemoveFaces(CArrayInt* paiFaces)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->RemoveFaces(paiFaces);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::RemoveCorner(int iCorner)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->RemoveCorner(iCorner);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::MovePosition(int iPosition, SFloat32Vec3* psDelta)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->MovePosition(iPosition, psDelta);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psDelta)
-{
-	size			i;
-	CMeshModifier*	pcEditor;
-
-	if (miCurrent != -1)
-	{
-		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
-		{
-			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->MovePositions(paiPositions, psDelta);
-		}
-	}
-
-}
 

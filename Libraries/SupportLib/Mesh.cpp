@@ -127,16 +127,6 @@ bool CMesh::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::Touch(void)
-{
-	mcSkin.Touch();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CMesh::NumCorners(void)
 {
 	return (int)mcConnectivity.NumCorners();
@@ -476,6 +466,11 @@ void CMesh::CopySkinFrom(CMesh* pcSource)
 		{
 			pcTo->mcWeights.Add(pcFrom->mcWeights.Get(j));
 		}
+	}
+
+	while (mcSkin.mcSkinVerts.NumElements() < (size)NumCorners())
+	{
+		mcSkin.mcSkinVerts.Add()->Init();
 	}
 
 	mcSkin.mcInverseSkinMatricies.ReInit();

@@ -58,8 +58,6 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 	
-	void			Touch(void);
-
 	int				NumCorners(void);
 	int				NumFaces(void);
 	int				NumEdges(void);
@@ -81,6 +79,9 @@ public:
 
 	void			CopyFrom(CMesh* pcSource);  //Into an empty mesh.  It keeps everything.
 	void			CopyDetailsFrom(CMesh* pcSource);  //Normals, colours, UVs, materials and skin of the faces and corners it already has from pcSource.
+	void			CopyUVsFrom(CMesh* pcSource);  //Of pcSource's faces, which it has as its first.
+	void			CopyMaterialsFrom(CMesh* pcSource);  //The same.
+	void			CopySkinFrom(CMesh* pcSource);  //Of pcSource's corners, which it has as its first.  Its others have none.
 
 	void 			AddCorner(float32 x, float32 y, float32 z);
 	void			AddCorner(SFloat32Vec3* psPosition);
@@ -106,9 +107,6 @@ public:
 
 protected:
 	void	PrivateInit(void);
-	void	CopyUVsFrom(CMesh* pcSource);
-	void	CopyMaterialsFrom(CMesh* pcSource);
-	void	CopySkinFrom(CMesh* pcSource);
 };
 
 

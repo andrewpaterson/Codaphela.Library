@@ -81,7 +81,6 @@ public:
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;
 
-	void	Touch(void);
 	void	AddCorner(void);
 	int		GetFaceMatrixCount(int iVert1, int iVert2, int iVert3);
 	void	PrivateAddMatricies(CMeshSkinVert* pcVert, CArrayInt* paiMatricies);

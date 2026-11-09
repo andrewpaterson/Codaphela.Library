@@ -41,8 +41,6 @@ public:
 
 	virtual void	Generate(CMeshEditor* pcMeshEditor) =0;
 
-	bool		IsSource(void) override;
-	void		Apply(CMeshEditor* pcMeshEditor) override;
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };
 

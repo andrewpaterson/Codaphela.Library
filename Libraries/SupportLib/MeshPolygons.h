@@ -68,6 +68,7 @@ public:
 
 	void 			Clear(void);
 	void			Copy(CMeshPolygons* pcSource);
+	void			GetFaceEdges(CMeshConnectivity* pcConn, int iFace, bool* pabVisible);
 
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;

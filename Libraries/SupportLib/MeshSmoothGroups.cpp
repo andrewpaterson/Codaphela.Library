@@ -54,39 +54,28 @@ void CMeshSmoothGroups::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::Apply(CMeshEditor* pcMeshEditor)
-{
-	GenerateGroups(&pcMeshEditor->mpMesh, false);
-	GenerateNormals(&pcMeshEditor->mpMesh);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshSmoothGroups::Modify(Ptr<CMesh> pMesh)
 {
 	Ptr<CMesh>	pOutput;
 
 	pOutput = CopyWithNormals(&pMesh);
-	GenerateGroups(&pOutput, true);
+	GenerateGroups(&pOutput);
 	GenerateNormals(&pOutput);
 	return pOutput;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-// bKeep keeps groups the mesh already has, with SGS_None.
+// SGS_None keeps groups the mesh already has.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::GenerateGroups(CMesh* pcMesh, bool bKeep)
+void CMeshSmoothGroups::GenerateGroups(CMesh* pcMesh)
 {
 	switch (meGenerationStyle)
 	{
 	case SGS_None:
-		if (!bKeep || !pcMesh->mcSmoothing.InUse())
+		if (!pcMesh->mcSmoothing.InUse())
 		{
 			pcMesh->mcSmoothing.SetAll((size)pcMesh->NumFaces(), muiAddGroup);
 		}
@@ -376,14 +365,4 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-// What faces are put in when they're given groups.
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::SetAllGroups(uint32 uiGroups)
-{
-	muiAddGroup = uiGroups;
-}
 

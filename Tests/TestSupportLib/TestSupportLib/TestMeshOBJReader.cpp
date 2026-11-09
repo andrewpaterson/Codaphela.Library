@@ -110,7 +110,7 @@ void MakeSmoothedBox(CMesh* pcMesh, CMeshEditor* pcEditor)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Name;
 
-	pcEditor->Touch();
+	pcEditor->Collapse();
 
 	pcMesh->mcUVs.mbInUse = true;
 	for (i = 0; i < pcMesh->NumCorners(); i++)

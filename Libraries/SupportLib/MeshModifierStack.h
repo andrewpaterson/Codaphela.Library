@@ -30,9 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 //The stack holds a source mesh and GetOutput runs it up through the modifiers: Source | Modifier 0 | Modifier 1 | etc...
 //The source isn't changed until Flatten makes the output the new source.  With no source it starts from an empty mesh.
-//A CMeshEditor's stack has no source.  It applies its modifiers to the editor's mesh in place with ApplyAll.  If any of them
-//makes a shape the mesh goes back first to what it was before they were first applied, so applying them again gives the
-//same mesh, and a shape is added to a mesh that was collapsed.
+//A CMeshEditor's stack has its mesh as its source.
 class CMeshEditor;
 class CMeshModifierStack : public CObject
 {
@@ -40,7 +38,6 @@ CONSTRUCTABLE(CMeshModifierStack);
 DESTRUCTABLE(CMeshModifierStack);
 protected:
 	CArrayUnknown	macEditors;  //Mesh | Editor 0 | Editor 1 | etc...
-	int				miCurrent;
 	Ptr<CMesh>		mpSource;
 	Ptr<CMesh>		mpOutput;
 
@@ -61,30 +58,14 @@ public:
 	M*		GetModifier(void);  //The first of its class, or NULL.
 	int		NumEditors(void);
 
-	void	ApplyAll(CMeshEditor* pcMeshEditor);
-	bool	HasSourceModifier(void);
 
 	Ptr<CMesh>	GetSource(void);
 	Ptr<CMesh>	GetOutput(void);  //Kept until a modifier is added or Touch is called.
 	void		Touch(void);  //Call this when a modifier's settings have changed.
 	void		Flatten(void);  //The output becomes the new source and the modifiers are removed.
 
-	void	ClearConnectivity(void);
-
-	void	AddPosition(SFloat32Vec3* psPosition);
-
-	void	AddFace(int iCorner1, int iCorner2, int iCorner3);
-
-	void	RemoveFace(int iFace);
-	void	RemoveFaces(CArrayInt* paiFaces);
-
-	void	RemoveCorner(int iCorner);
-
-	void	MovePosition(int iPosition, SFloat32Vec3* psDelta);
-	void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psDelta);
 
 protected:
-	void	TellOfFaces(CMeshModifier* pcModifier, CMesh* pcMesh);
 };
 
 

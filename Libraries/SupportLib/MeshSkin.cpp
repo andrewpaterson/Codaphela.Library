@@ -248,28 +248,6 @@ bool CMeshSkin::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSkin::Touch(void)
-{
-	CMeshSkinVert*	pcSkinVert;
-	size			i;
-	size			uiNumElements;
-
-	if (mbInUse)
-	{
-		uiNumElements = mcSkinVerts.NumElements();
-		for (i = 0; i < uiNumElements; i++)
-		{
-			pcSkinVert = mcSkinVerts.Get(i);
-			pcSkinVert->SortSkinWeights();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMeshSkin::AddCorner(void)
 {
 	CMeshSkinVert*	pcSkinVert;

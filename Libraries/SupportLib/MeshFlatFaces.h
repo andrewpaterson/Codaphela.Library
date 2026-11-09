@@ -37,7 +37,6 @@ public:
 	bool	Save(CFileWriter* pcFile);
 
 	void	GenerateNormals(CMesh* pcMesh);
-	void	Apply(CMeshEditor* pcMeshEditor);
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };
 

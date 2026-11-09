@@ -131,7 +131,7 @@ void TestPlane(void)
 	pcPlaneEditor = cMeshEditor.AddModifier<CMeshPlaneEditor>();
 	pcPlaneEditor->Init(&sXDirection, &sYDirection, &sStart, 2, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	iNumCorners = cMesh.NumCorners();;
 	iNumFaces = cMesh.NumFaces();
@@ -237,7 +237,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 4, 5, 6);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box4x5x6.OBJ");
 
 	//I don't know why I'm testing this.
@@ -265,7 +265,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 2, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box1x2x2.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -279,7 +279,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x2x2.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -293,7 +293,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 1, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x1x2.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -307,7 +307,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 1);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x2x1.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -321,7 +321,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 1, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box1x1x2.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -335,7 +335,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 2, 1);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box1x2x1.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -349,7 +349,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 1, 1);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x1x1.OBJ");
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
 	cMeshEditor.RemoveModifiers();
@@ -363,7 +363,7 @@ void TestBox(void)
 	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
 	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 1, 1);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	//I don't know why I'm testing this.
 	AssertInt(4, cMesh.CornerChunkSize());
@@ -410,7 +410,7 @@ void TestDisc(void)
 	pcDiscEditor = cMeshEditor.AddModifier<CMeshDiscEditor>();
 	pcDiscEditor->Init(&sZDirection, &sStart, 0.0f, 1.0f, 3, 1);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	//I don't know why I'm testing this.
 	AssertInt(2, cMesh.CornerChunkSize());
@@ -432,7 +432,7 @@ void TestDisc(void)
 	pcDiscEditor = cMeshEditor.AddModifier<CMeshDiscEditor>();
 	pcDiscEditor->Init(&sZDirection, &sStart, 0.0f, 1.0f, 3, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	//I don't know why I'm testing this.
 	AssertInt(4, cMesh.CornerChunkSize());
@@ -475,7 +475,7 @@ void TestRing(void)
 	pcRingEditor = cMeshEditor.AddModifier<CMeshRingEditor>();
 	pcRingEditor->Init(&sZDirection, &sStart, 0.5f, 1.0f, 1.0f, 3, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	//I don't know why I'm testing this.
 	AssertInt(4, cMesh.CornerChunkSize());
@@ -497,7 +497,7 @@ void TestRing(void)
 	pcRingEditor = cMeshEditor.AddModifier<CMeshRingEditor>();
 	pcRingEditor->Init(&sZDirection, &sStart, 0.5f, 1.0f, 3.0f, 12, 8);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 
 	//I don't know why I'm testing this.
 	AssertInt(32, cMesh.CornerChunkSize());
@@ -542,7 +542,7 @@ void TestCone(void)
 	pcConeEditor = cMeshEditor.AddModifier<CMeshConeEditor>();
 	pcConeEditor->Init(&sZDirection, &sStart, 1.0f, 3.0f, 6.0f, 20, 3, 4, 11);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cone20x3x4x11.OBJ");
 
 	//I don't know why I'm testing this.
@@ -567,7 +567,7 @@ void TestCone(void)
 	pcConeEditor = cMeshEditor.AddModifier<CMeshConeEditor>();
 	pcConeEditor->Init(&sZDirection, &sStart, 1.0f, 1.0f, 2.0f, 3, 1, 1, 2);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cone3x1x1x2.OBJ");
 
 	//I don't know why I'm testing this.
@@ -615,7 +615,7 @@ void TestCylinder(void)
 	pcCylinderEditor = cMeshEditor.AddModifier<CMeshCylinderEditor>();
 	pcCylinderEditor->Init(&sZDirection, &sStart, 1.0f, 2.0f, 8, 3, 4);
 
-	cMeshEditor.Touch();
+	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cylinder8x3x4x11.OBJ");
 
 	cMeshEditor.RemoveModifiers();

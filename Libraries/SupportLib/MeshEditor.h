@@ -41,8 +41,8 @@ class CMesh;
 //whatever uses the output can tell what it has to redo.  ClearOutput lets the output go once something has made what it needs from
 //it, as with modifiers it's a second whole mesh.
 //
-//Until Apply goes (ScenePlan step 2), Touch still changes the mesh in place, so a shape it adds is in the mesh and GetOutput would add
-//it again.  Use one or the other.
+//Collapse makes the output the mesh, keeping the same mesh, and removes the modifiers.  A shape is a modifier, and is collapsed to edit
+//its faces.
 class CMeshEditor : public CObject
 {
 CONSTRUCTABLE(CMeshEditor);
@@ -56,11 +56,6 @@ public:
 	CMeshEdgeVisibility		mcEdgeVisibility;
 
 protected:
-	//The mesh as it was before its modifiers made any shapes, which they add to each time they're applied.
-	bool					mbBaseKept;
-	Ptr<CMesh>				mpBase;
-	CArrayChar				macBaseEdges;  //Whether each edge of each of its faces is visible.
-
 	size					muiStructureChanges;
 	size					muiShapeChanges;
 	size					muiOutputStructure;  //What the counters were when the output was made.
@@ -74,7 +69,6 @@ public:
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;
 
-	void		Touch(void);
 	void		Collapse(void);
 
 	Ptr<CMesh>	GetOutput(void);
@@ -94,9 +88,8 @@ public:
 	int		NumPolygons(void);
 
 	void	ClearConnectivity(void);
-	void	RestoreBase(void);  //For CMeshModifierStack: the mesh goes back to what its shapes are added to.
 
-	//These are the only methods that editors/modifers may use to alter mesh connectivity or positions.
+	//What changes the mesh, so that its counters know.
 	void 	AddCorner(float32 x, float32 y, float32 z);
 	void	AddCorner(SFloat32Vec3* psPosition);
 
@@ -117,8 +110,6 @@ protected:
 	void	ClearMesh(void);
 	void	ChangedStructure(void);
 	void	ChangedShape(void);
-	void	KeepBase(void);
-	void	ForgetBase(void);
 };
 
 
