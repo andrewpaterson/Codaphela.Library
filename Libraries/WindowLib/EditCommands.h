@@ -33,6 +33,9 @@ class CFocus;
 //command (CIC_Undo ...), and each can run while it would do something there (CComponent::CanDoCommand).  Once that
 //component has gone from the window, they act on GetDefaultTarget's (an IDE's active document, say).  Their keys are
 //the standard ones, Control+Z and so on, shown but not bound again.
+//
+//AddKeymapCommands is for an application whose user can change the keys.  The commands then have keys of their own,
+//and every other standard action gets a command too, so an editor's keys and the window's are all commands to change.
 class CEditCommands : public CObject
 {
 CONSTRUCTABLE(CEditCommands);
@@ -48,6 +51,8 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
+	void						AddKeymapCommands(Ptr<CCommandSet> pCommands);
+	void						RunStandard(CCommand* pcCommand);
 	Ptr<CComponent>				GetTarget(void);
 	virtual Ptr<CComponent>		GetDefaultTarget(void);
 	void						FocusChanged(CFocus* pcFocus);

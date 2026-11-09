@@ -33,11 +33,11 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 	PreInit();
 	mszName.Init(szName);
 	mszCaption.Init(szCaption);
-	mszKeys.Init();
-	if (!StrEmpty(szKeys))
-	{
-		CComponentInput::NameKeys(szKeys, &mszKeys);
-	}
+	maszKeys.Init();
+	maszDefaultKeys.Init();
+	maszBoundKeys.Init();
+	meKeyScope = CKS_Application;
+	AddDefaultKeys(szKeys);
 	mpIcon = pIcon;
 	msRun = *psRun;
 	mbRunAsks = bRunAsks;
@@ -55,7 +55,10 @@ void CCommand::Class(void)
 {
 	U_String(mszName);
 	U_String(mszCaption);
-	U_String(mszKeys);
+	U_Unknown(CArrayChars, maszKeys);
+	U_Unknown(CArrayChars, maszDefaultKeys);
+	U_Unknown(CArrayChars, maszBoundKeys);
+	U_Enum(meKeyScope);
 	M_Pointer(mpIcon);
 	U_Unknown(SMemberCall, msRun);
 	U_Unknown(SMemberCall, msEnabled);
@@ -70,7 +73,9 @@ void CCommand::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CCommand::Free(void)
 {
-	mszKeys.Kill();
+	maszBoundKeys.Kill();
+	maszDefaultKeys.Kill();
+	maszKeys.Kill();
 	mszCaption.Kill();
 	mszName.Kill();
 }
@@ -122,8 +127,206 @@ void CCommand::SetStandardCommand(EComponentInputCommand eStandard) { meStandard
 EComponentInputCommand CCommand::GetStandardCommand(void) { return meStandard; }
 char* CCommand::GetName(void) { return mszName.Text(); }
 char* CCommand::GetCaption(void) { return mszCaption.Text(); }
-char* CCommand::GetKeys(void) { return mszKeys.Text(); }
+char* CCommand::GetKeys(void) { return (maszKeys.NumElements() > 0) ? maszKeys.GetText(0) : (char*)""; }  //The first of them, those a menu shows.  "" for none.
+size CCommand::NumKeys(void) { return maszKeys.NumElements(); }
+char* CCommand::GetKeys(size uiIndex) { return maszKeys.GetText(uiIndex); }
+size CCommand::NumDefaultKeys(void) { return maszDefaultKeys.NumElements(); }
+char* CCommand::GetDefaultKeys(size uiIndex) { return maszDefaultKeys.GetText(uiIndex); }
+void CCommand::SetKeyScope(ECommandKeyScope eScope) { meKeyScope = eScope; }  //A scope other than CKS_Application needs a standard command (SetStandardCommand).
+ECommandKeyScope CCommand::GetKeyScope(void) { return meKeyScope; }
 Ptr<CImageCel> CCommand::GetIcon(void) { return mpIcon; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether szKeys, written any way CComponentInput reads, are the command's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommand::HasKeys(const char* szKeys)
+{
+	CChars	szName;
+	bool	bResult;
+
+	szName.Init();
+	bResult = !StrEmpty(szKeys) && CComponentInput::NameKeys(szKeys, &szName) && maszKeys.Contains(szName.Text());
+	szName.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keys the command has unless a user says otherwise.  NULL or "" adds
+// none, and keys that can't be read aren't added.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCommand::AddDefaultKeys(const char* szKeys)
+{
+	CChars	szName;
+
+	szName.Init();
+	if (!StrEmpty(szKeys) && CComponentInput::NameKeys(szKeys, &szName) && !maszDefaultKeys.Contains(szName.Text()))
+	{
+		maszDefaultKeys.Add(szName.Text());
+		if (!maszKeys.Contains(szName.Text()))
+		{
+			maszKeys.Add(szName.Text());
+		}
+	}
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Another keys for the command, once they're next bound.  False if they
+// can't be read, or the command has them already.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommand::AddKeys(const char* szKeys)
+{
+	CChars	szName;
+	bool	bResult;
+
+	szName.Init();
+	bResult = !StrEmpty(szKeys) && CComponentInput::NameKeys(szKeys, &szName) && !maszKeys.Contains(szName.Text());
+	if (bResult)
+	{
+		maszKeys.Add(szName.Text());
+	}
+	szName.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The command no longer has szKeys, once they're next bound.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCommand::RemoveKeys(const char* szKeys)
+{
+	CChars	szName;
+
+	szName.Init();
+	if (!StrEmpty(szKeys) && CComponentInput::NameKeys(szKeys, &szName) && maszKeys.Contains(szName.Text()))
+	{
+		maszKeys.Remove(szName.Text());
+	}
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCommand::SetKeys(CArrayChars* paszKeys)
+{
+	size	i;
+
+	ClearKeys();
+	for (i = 0; i < paszKeys->NumElements(); i++)
+	{
+		AddKeys(paszKeys->GetText(i));
+	}
+}
+
+
+void CCommand::ClearKeys(void) { maszKeys.ReInit(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys it was made with again, once they're next bound.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCommand::ResetKeys(void)
+{
+	SetKeys(&maszDefaultKeys);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether its keys are those it was made with, in any order.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommand::HasDefaultKeys(void)
+{
+	size	i;
+
+	if (maszKeys.NumElements() != maszDefaultKeys.NumElements())
+	{
+		return false;
+	}
+	for (i = 0; i < maszKeys.NumElements(); i++)
+	{
+		if (!maszDefaultKeys.Contains(maszKeys.GetText(i)))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives pcInput the command's keys, as its scope says.  False if any
+// couldn't be bound.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommand::Bind(CComponentInput* pcInput)
+{
+	size	i;
+	bool	bResult;
+	char*	szKeys;
+
+	bResult = true;
+	for (i = 0; i < maszKeys.NumElements(); i++)
+	{
+		szKeys = maszKeys.GetText(i);
+		switch (meKeyScope)
+		{
+		case CKS_Application:
+			bResult &= pcInput->BindKeys(szKeys, CIC_Command);
+			break;
+		case CKS_Window:
+			bResult &= pcInput->BindKeys(szKeys, meStandard);
+			break;
+		case CKS_Editor:
+			bResult &= pcInput->BindEditorKeys(szKeys, meStandard);
+			break;
+		}
+		maszBoundKeys.Add(szKeys);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes back from pcInput the keys Bind gave it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCommand::Unbind(CComponentInput* pcInput)
+{
+	size	i;
+
+	for (i = 0; i < maszBoundKeys.NumElements(); i++)
+	{
+		if (meKeyScope == CKS_Editor)
+		{
+			pcInput->UnbindEditorKeys(maszBoundKeys.GetText(i));
+		}
+		else
+		{
+			pcInput->UnbindKeys(maszBoundKeys.GetText(i));
+		}
+	}
+	maszBoundKeys.ReInit();
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,12 +338,12 @@ Ptr<CImageCel> CCommand::GetIcon(void) { return mpIcon; }
 //////////////////////////////////////////////////////////////////////////
 bool CCommand::AppendKeysText(CChars* pszDest, CComponentInput* pcInput)
 {
-	if (!mszKeys.Empty())
+	if (maszKeys.NumElements() > 0)
 	{
-		CComponentInput::AppendShortcutText(pszDest, mszKeys.Text());
+		CComponentInput::AppendShortcutText(pszDest, maszKeys.GetText(0));
 		return true;
 	}
-	if ((meStandard != CIC_Ignored) && (pcInput != NULL))
+	if ((meKeyScope == CKS_Application) && (meStandard != CIC_Ignored) && (pcInput != NULL))
 	{
 		return pcInput->GetShortcutText(meStandard, pszDest);
 	}

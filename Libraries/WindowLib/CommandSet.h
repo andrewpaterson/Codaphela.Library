@@ -28,6 +28,14 @@ class CComponentInput;
 //An application's commands, given to its window (CWindow::SetCommands).  Their keys are bound (BindKeys) as
 //CIC_Command; such a key that nothing focused takes runs the command whose keys it is (see
 //CFocus::DispatchUnhandledCommand).  A command is found by its name too, as scripts and menus find it.
+//
+//A user's keys are kept in a file of theirs, only for the commands they differ on, so a command added later comes with
+//its own:
+//
+//	<Keymap>
+//		<Command Name="Edit.Copy"><Keys>Control+Shift+C</Keys><Keys>Control+Insert</Keys></Command>
+//		<Command Name="Debug.StepOver"/>
+//	</Keymap>
 class CCommandSet : public CObject
 {
 CONSTRUCTABLE(CCommandSet);
@@ -57,6 +65,10 @@ public:
 	bool				BindKeys(CComponentInput* pcInput);
 	bool				Run(const char* szName);
 	bool				RunKeys(const char* szKeys);
+
+	bool				ReadKeys(const char* szFile);
+	bool				WriteKeys(const char* szFile);
+	void				ResetKeys(void);
 };
 
 

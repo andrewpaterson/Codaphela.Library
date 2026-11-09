@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMMAND_H__
 #define __COMMAND_H__
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/MemberCall.h"
@@ -30,12 +31,24 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CComponentInput;
 
 
+//Where a command's keys work, and so how they're bound.
+enum ECommandKeyScope
+{
+	CKS_Application,	//Anywhere nothing focused takes them; they run the command.
+	CKS_Window,			//Anywhere; they give its standard command, which a window's parts take (Close Document).
+	CKS_Editor,			//In a component that uses editor keys; they give it its standard command (Copy).
+};
+
+
 //Something the application does, like Build or Step Over, that its keys, a menu item and a tool button can all ask
 //for: its name (how it is found, by scripts too), caption and icon, the keys bound to it (see
 //CComponentInput::BindKeys), what it runs and whether it can run now.  Keys reach it when nothing focused takes them
 //(see CCommandSet), so a focused component's own keys come first.  Several commands can run one function that is
 //given the command run (a table of an application's actions, say).  The functions' object isn't held by the command;
 //it must outlive it.
+//
+//A command can have several keys, the first being those a menu shows.  It remembers those it started with, so a user's
+//changes can be told from them and undone, and those it last bound, so they can be unbound.
 class CCommand : public CObject
 {
 CONSTRUCTABLE(CCommand);
@@ -43,7 +56,10 @@ DESTRUCTABLE(CCommand);
 protected:
 	CChars					mszName;
 	CChars					mszCaption;
-	CChars					mszKeys;  //Named as CComponentInput names them, empty for none.
+	CArrayChars				maszKeys;  //Named as CComponentInput names them.
+	CArrayChars				maszDefaultKeys;  //The keys it was made with.
+	CArrayChars				maszBoundKeys;  //The keys given to a CComponentInput by Bind.
+	ECommandKeyScope		meKeyScope;
 	Ptr<CImageCel>			mpIcon;  //NULL for none.
 	SMemberCall				msRun;
 	SMemberCall				msEnabled;  //Not set: the command can always run.
@@ -72,6 +88,22 @@ public:
 	char*				GetName(void);
 	char*				GetCaption(void);
 	char*				GetKeys(void);
+	size				NumKeys(void);
+	char*				GetKeys(size uiIndex);
+	bool				HasKeys(const char* szKeys);
+	void				AddDefaultKeys(const char* szKeys);
+	bool				AddKeys(const char* szKeys);
+	void				RemoveKeys(const char* szKeys);
+	void				SetKeys(CArrayChars* paszKeys);
+	void				ClearKeys(void);
+	void				ResetKeys(void);
+	bool				HasDefaultKeys(void);
+	size				NumDefaultKeys(void);
+	char*				GetDefaultKeys(size uiIndex);
+	void				SetKeyScope(ECommandKeyScope eScope);
+	ECommandKeyScope	GetKeyScope(void);
+	bool				Bind(CComponentInput* pcInput);
+	void				Unbind(CComponentInput* pcInput);
 	Ptr<CImageCel>		GetIcon(void);
 	bool				AppendKeysText(CChars* pszDest, CComponentInput* pcInput);
 

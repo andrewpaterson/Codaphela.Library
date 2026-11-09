@@ -1,4 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/TextFile.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/ClassDefines.h"
 #include "InputLib/Input.h"
@@ -7,6 +9,8 @@
 #include "WindowLib/GridContainer.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/ComponentInput.h"
+#include "WindowLib/CommandSet.h"
+#include "WindowLib/EditCommands.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
@@ -15,6 +19,8 @@
 
 
 #define AssertLog(e)	AssertString(e, szLog.Text()); szLog.Clear()
+#define TEST_KEYMAP_DIRECTORY	"Output" _FS_ "Keymap"
+#define TEST_KEYMAP_FILE		"Output" _FS_ "Keymap" _FS_ "Keymap.xml"
 
 
 struct SKeymapTestCommand
@@ -222,6 +228,20 @@ public:
 
 	void FocusEditor(void) { pWindow->GetFocus()->SetFocus(pEditor); }
 	void FocusField(void) { pWindow->GetFocus()->SetFocus(pField); }
+};
+
+
+//Counts the commands run, by the command's name.
+class CKeymapTestCommands
+{
+public:
+	CChars*		mpszLog;
+
+	void Run(CCommand* pcCommand)
+	{
+		mpszLog->Append(pcCommand->GetName());
+		mpszLog->Append(';');
+	}
 };
 
 
@@ -535,6 +555,447 @@ void TestKeymapDialog(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A command with several keys, changed and bound again: both of a pair
+// swapped, one moved off a standard chord that then has its own back, and
+// the first being those a menu shows.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapCommands(void)
+{
+	CChars					szLog;
+	CChars					szKeys;
+	CKeymapTestWindow		cTest;
+	CKeymapTestCommands		cRun;
+	Ptr<CCommandSet>		pCommands;
+	Ptr<CCommand>			pFirst;
+	Ptr<CCommand>			pSecond;
+	CArrayChars				aszKeys;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	cRun.mpszLog = &szLog;
+	pCommands = OMalloc<CCommandSet>();
+	cTest.pWindow->SetCommands(pCommands);
+	pFirst = pCommands->Add("First", "First", "Control+Q", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pSecond = pCommands->Add("Second", "Second", "F5", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pFirst->AddDefaultKeys("Alt+Z");
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	cTest.FocusField();
+
+	AssertSize(2, pFirst->NumKeys());
+	AssertSize(2, pFirst->NumDefaultKeys());
+	AssertString("Control+Q", pFirst->GetKeys());
+	AssertString("Alt+Z", pFirst->GetKeys(1));
+	AssertTrue(pFirst->HasKeys("Control+Q"));
+	AssertFalse(pFirst->HasKeys("Control+W"));
+	AssertFalse(pFirst->HasKeys(""));
+	AssertTrue(pFirst->HasDefaultKeys());
+	AssertString("First", pCommands->FindKeys("Alt+Z")->GetName());
+
+	//Any of its keys run it.
+	cTest.cDevices.Control("Q");
+	cTest.cDevices.Press("Left Alt");
+	cTest.cDevices.Tap("Z");
+	cTest.cDevices.Release("Left Alt");
+	cTest.cDevices.Tap("F5");
+	AssertLog("First;First;Second;");
+
+	//Changed and bound again.
+	pFirst->ClearKeys();
+	AssertTrue(pFirst->AddKeys("Control+W"));
+	AssertFalse(pFirst->AddKeys("Control+W"));
+	AssertFalse(pFirst->AddKeys(""));
+	AssertFalse(pFirst->HasDefaultKeys());
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	cTest.cDevices.Control("Q");
+	AssertLog("");
+	cTest.cDevices.Control("W");
+	AssertLog("First;");
+
+	//The first of them is what's shown.
+	szKeys.Init();
+	AssertTrue(pFirst->AppendKeysText(&szKeys, &cTest.cInput));
+	AssertString("Ctrl+W", szKeys.Text());
+	szKeys.Kill();
+
+	//Swapped in one go, and off the standard chord, which has its own back.
+	aszKeys.Init();
+	aszKeys.Add("F5");
+	pFirst->SetKeys(&aszKeys);
+	aszKeys.ReInit();
+	aszKeys.Add("Control+Q");
+	pSecond->SetKeys(&aszKeys);
+	aszKeys.Kill();
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	cTest.cDevices.Tap("F5");
+	cTest.cDevices.Control("Q");
+	cTest.cDevices.Control("W");
+	AssertLog("First;Second;SelectWord;");
+
+	//No keys at all.
+	pSecond->ClearKeys();
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	AssertFalse(cTest.cInput.IsBound("Control+Q"));
+	cTest.cDevices.Control("Q");
+	AssertLog("");
+	AssertString("", pSecond->GetKeys());
+
+	//Back to what they were made with.
+	pCommands->ResetKeys();
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	AssertTrue(pFirst->HasDefaultKeys());
+	cTest.cDevices.Control("Q");
+	cTest.cDevices.Tap("F5");
+	AssertLog("First;Second;");
+
+	cTest.pWindow->SetCommands(NULL);
+	pCommands = NULL;
+	pFirst = NULL;
+	pSecond = NULL;
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys of a window's standard action can be changed for good: the
+// keys it had stop giving it, a default put back gives it again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapWindowCommands(void)
+{
+	CChars				szLog;
+	CKeymapTestWindow	cTest;
+	CKeymapTestCommands	cRun;
+	Ptr<CCommandSet>	pCommands;
+	Ptr<CCommand>		pClose;
+	Ptr<CCommand>		pDifference;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	cRun.mpszLog = &szLog;
+	pCommands = OMalloc<CCommandSet>();
+	cTest.pWindow->SetCommands(pCommands);
+	pClose = pCommands->Add("Close", "Close", "Control+F4", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pClose->SetStandardCommand(CIC_CloseDocument);
+	pClose->SetKeyScope(CKS_Window);
+	pDifference = pCommands->Add("Difference", "Difference", "F7", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pDifference->SetStandardCommand(CIC_NextDifference);
+	pDifference->SetKeyScope(CKS_Window);
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+
+	//They give the standard command, they don't run the command.
+	cTest.FocusField();
+	cTest.cDevices.Control("F4");
+	cTest.cDevices.Tap("F7");
+	AssertLog("CloseDocument;NextDifference;");
+
+	//Moved, to everywhere.
+	pClose->ClearKeys();
+	AssertTrue(pClose->AddKeys("Alt+Q"));
+	pDifference->ClearKeys();
+	AssertTrue(pDifference->AddKeys("F6"));
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	cTest.cDevices.Control("F4");
+	cTest.cDevices.Tap("F7");
+	AssertLog("");
+	cTest.cDevices.Press("Left Alt");
+	cTest.cDevices.Tap("Q");
+	cTest.cDevices.Release("Left Alt");
+	cTest.cDevices.Tap("F6");
+	AssertLog("CloseDocument;NextDifference;");
+	cTest.FocusEditor();
+	cTest.cDevices.Tap("F6");
+	AssertLog("NextDifference;");
+
+	//Back.
+	pCommands->ResetKeys();
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	cTest.cDevices.Control("F4");
+	cTest.cDevices.Tap("F7");
+	AssertLog("CloseDocument;NextDifference;");
+	cTest.cDevices.Tap("F6");
+	AssertLog("");
+
+	cTest.pWindow->SetCommands(NULL);
+	pCommands = NULL;
+	pClose = NULL;
+	pDifference = NULL;
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The standard actions as commands: every key does as it did until it is
+// changed, the Edit commands show theirs, and changing one changes it in
+// the editor alone.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapEditCommands(void)
+{
+	CChars				szLog;
+	CChars				szKeys;
+	CKeymapTestWindow	cTest;
+	Ptr<CCommandSet>	pCommands;
+	Ptr<CEditCommands>	pEdit;
+	Ptr<CCommand>		pCopy;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	pCommands = OMalloc<CCommandSet>();
+	cTest.pWindow->SetCommands(pCommands);
+	pEdit = OMalloc<CEditCommands>(cTest.pWindow, pCommands);
+	pEdit->AddKeymapCommands(pCommands);
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+
+	pCopy = pCommands->Find("Edit.Copy");
+	AssertSize(2, pCopy->NumKeys());
+	AssertInt(CKS_Editor, pCopy->GetKeyScope());
+	AssertInt(CIC_Copy, pCopy->GetStandardCommand());
+	AssertInt(CIC_Up, pCommands->Find("Editor.Up")->GetStandardCommand());
+	AssertInt(CKS_Window, pCommands->Find("Window.CloseDocument")->GetKeyScope());
+	AssertSize(2, pCommands->Find("Editor.Enter")->NumKeys());
+	AssertTrue(cTest.cInput.IsEditorBound("Control+C"));
+	AssertTrue(cTest.cInput.IsEditorBound("Control+Insert"));
+	AssertTrue(cTest.cInput.IsEditorBound("Cursor Up"));
+	AssertFalse(cTest.cInput.IsBound("Control+C"));
+
+	szKeys.Init();
+	AssertTrue(pCopy->AppendKeysText(&szKeys, &cTest.cInput));
+	AssertString("Ctrl+C", szKeys.Text());
+	szKeys.Kill();
+
+	//Everything as it was, in and out of an editor.
+	cTest.FocusEditor();
+	cTest.cDevices.Control("C");
+	cTest.cDevices.Control("Insert");
+	cTest.cDevices.Control("X");
+	cTest.cDevices.Shift("Delete");
+	cTest.cDevices.Control("Z");
+	cTest.cDevices.ControlShift("Z");
+	cTest.cDevices.Control("A");
+	cTest.cDevices.Control("W");
+	cTest.cDevices.Control("D");
+	cTest.cDevices.Tap("Cursor Up");
+	cTest.cDevices.Tap("Enter");
+	cTest.cDevices.Tap("Tab");
+	cTest.cDevices.Tap("Escape");
+	cTest.cDevices.Tap("Space");
+	cTest.cDevices.Tap("F7");
+	cTest.cDevices.Control("F4");
+	cTest.cDevices.Tap("A");
+	AssertLog("Copy;Copy;Cut;Cut;Undo;Redo;SelectAll;SelectWord;Duplicate;Up;Enter;Tab;Escape;Space;NextDifference;CloseDocument;a;");
+	AssertTrue(cTest.cInput.IsInsert());
+	cTest.cDevices.Tap("Insert");
+	AssertFalse(cTest.cInput.IsInsert());
+	cTest.cDevices.Tap("Insert");
+
+	cTest.FocusField();
+	cTest.cDevices.Control("C");
+	cTest.cDevices.Tap("Cursor Up");
+	cTest.cDevices.Tap("Enter");
+	cTest.cDevices.Tap("F7");
+	AssertLog("Copy;Up;Enter;NextDifference;");
+
+	//Copy moves in the editor and nowhere else; a menu shows the new keys.
+	pCopy->ClearKeys();
+	AssertTrue(pCopy->AddKeys("Control+Q"));
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	szKeys.Init();
+	AssertTrue(pCopy->AppendKeysText(&szKeys, &cTest.cInput));
+	AssertString("Ctrl+Q", szKeys.Text());
+	szKeys.Kill();
+	cTest.cDevices.Control("C");
+	AssertLog("Copy;");
+	cTest.cDevices.Control("Q");
+	AssertLog("");
+	cTest.FocusEditor();
+	cTest.cDevices.Control("C");
+	AssertLog("");
+	cTest.cDevices.Control("Q");
+	AssertLog("Copy;");
+
+	//With no keys a menu shows none, rather than the standard ones.
+	pCopy->ClearKeys();
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+	szKeys.Init();
+	AssertFalse(pCopy->AppendKeysText(&szKeys, &cTest.cInput));
+	AssertString("", szKeys.Text());
+	szKeys.Kill();
+
+	//Run from a menu or a script, a made command gives the target its standard command.
+	AssertTrue(pCommands->Run("Editor.Duplicate"));
+	AssertLog("Duplicate;");
+
+	cTest.pWindow->SetCommands(NULL);
+	pCommands = NULL;
+	pEdit = NULL;
+	pCopy = NULL;
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Without AddKeymapCommands the Edit commands are as they always were:
+// the standard keys, shown but not bound.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapEditCommandsStandard(void)
+{
+	CChars				szLog;
+	CChars				szKeys;
+	CKeymapTestWindow	cTest;
+	Ptr<CCommandSet>	pCommands;
+	Ptr<CEditCommands>	pEdit;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	pCommands = OMalloc<CCommandSet>();
+	cTest.pWindow->SetCommands(pCommands);
+	pEdit = OMalloc<CEditCommands>(cTest.pWindow, pCommands);
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+
+	AssertSize(0, pCommands->Find("Edit.Copy")->NumKeys());
+	AssertFalse(cTest.cInput.IsBound("Control+C"));
+	szKeys.Init();
+	AssertTrue(pCommands->Find("Edit.Copy")->AppendKeysText(&szKeys, &cTest.cInput));
+	AssertString("Ctrl+C", szKeys.Text());
+	szKeys.Kill();
+
+	cTest.FocusEditor();
+	cTest.cDevices.Control("C");
+	AssertLog("Copy;");
+
+	cTest.pWindow->SetCommands(NULL);
+	pCommands = NULL;
+	pEdit = NULL;
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A user's keys go to a file and come back: only those that differ, and
+// a command with none is kept as having none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapFile(void)
+{
+	CChars				szLog;
+	CKeymapTestCommands	cRun;
+	Ptr<CCommandSet>	pCommands;
+	Ptr<CCommand>		pFirst;
+	Ptr<CCommand>		pSecond;
+	Ptr<CCommand>		pThird;
+	CFileUtil			cFileUtil;
+	CTextFile			cFile;
+	CChars				szText;
+
+	szLog.Init();
+	cRun.mpszLog = &szLog;
+	cFileUtil.RemoveDir(TEST_KEYMAP_DIRECTORY);
+
+	pCommands = OMalloc<CCommandSet>();
+	ORoot()->Add(pCommands);
+	pFirst = pCommands->Add("Debug.First", "First", "F5", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pSecond = pCommands->Add("Debug.Second", "Second", "Control+Pause/Break", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pThird = pCommands->Add("Debug.Third", "Third", "Control+Q", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+
+	//It isn't there yet, and everything keeps what it was made with.
+	AssertFalse(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertTrue(pFirst->HasDefaultKeys());
+
+	//Nothing changed.
+	AssertTrue(pCommands->WriteKeys(TEST_KEYMAP_FILE));
+	cFile.Init();
+	AssertTrue(cFile.Read(TEST_KEYMAP_FILE));
+	AssertTrue(strstr(cFile.Text(), "<Keymap") != NULL);
+	AssertTrue(strstr(cFile.Text(), "Command") == NULL);
+	cFile.Kill();
+	AssertTrue(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertTrue(pFirst->HasDefaultKeys());
+
+	//Several keys, a name with a slash, and none.
+	pFirst->ClearKeys();
+	AssertTrue(pFirst->AddKeys("Control+Shift+Pause/Break"));
+	AssertTrue(pFirst->AddKeys("F6"));
+	pSecond->ClearKeys();
+	AssertTrue(pCommands->WriteKeys(TEST_KEYMAP_FILE));
+
+	cFile.Init();
+	AssertTrue(cFile.Read(TEST_KEYMAP_FILE));
+	AssertTrue(strstr(cFile.Text(), "Debug.First") != NULL);
+	AssertTrue(strstr(cFile.Text(), "Debug.Second") != NULL);
+	AssertTrue(strstr(cFile.Text(), "Debug.Third") == NULL);
+	cFile.Kill();
+
+	pCommands->ResetKeys();
+	AssertTrue(pFirst->HasDefaultKeys());
+	AssertTrue(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertSize(2, pFirst->NumKeys());
+	AssertString("Control+Shift+Pause/Break", pFirst->GetKeys(0));
+	AssertString("F6", pFirst->GetKeys(1));
+	AssertSize(0, pSecond->NumKeys());
+	AssertTrue(pThird->HasDefaultKeys());
+
+	//Reading replaces what's there.
+	pThird->ClearKeys();
+	AssertTrue(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertTrue(pThird->HasDefaultKeys());
+
+	//Going back to the defaults leaves nothing to keep.
+	pCommands->ResetKeys();
+	AssertTrue(pCommands->WriteKeys(TEST_KEYMAP_FILE));
+	cFile.Init();
+	AssertTrue(cFile.Read(TEST_KEYMAP_FILE));
+	AssertTrue(strstr(cFile.Text(), "Debug.") == NULL);
+	cFile.Kill();
+
+	//What a user gave a command is taken from one that kept it; the first of two given it has it.  Commands that aren't
+	//there and keys that can't be read are ignored.
+	szText.Init("<Keymap>\n");
+	szText.Append("  <Command Name=\"Nothing.Here\"><Keys>F1</Keys></Command>\n");
+	szText.Append("  <Command Name=\"Debug.First\"><Keys>Control+Q</Keys><Keys>Control+F, H</Keys><Keys>F8</Keys></Command>\n");
+	szText.Append("  <Command Name=\"Debug.Second\"><Keys>F8</Keys><Keys>F9</Keys></Command>\n");
+	szText.Append("</Keymap>\n");
+	cFile.Init(szText.Text());
+	AssertTrue(cFile.Write(TEST_KEYMAP_FILE));
+	cFile.Kill();
+	szText.Kill();
+	AssertTrue(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertSize(2, pFirst->NumKeys());
+	AssertString("Control+Q", pFirst->GetKeys(0));
+	AssertString("F8", pFirst->GetKeys(1));
+	AssertSize(1, pSecond->NumKeys());
+	AssertString("F9", pSecond->GetKeys(0));
+	AssertSize(0, pThird->NumKeys());
+
+	//A file that isn't a keymap: everything keeps what it was made with.
+	cFile.Init("<NotAKeymap><Command Name=\"Debug.First\"><Keys>F1</Keys></Command></NotAKeymap>");
+	AssertTrue(cFile.Write(TEST_KEYMAP_FILE));
+	cFile.Kill();
+	AssertFalse(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertTrue(pFirst->HasDefaultKeys());
+	AssertTrue(pThird->HasDefaultKeys());
+
+	ORoot()->Remove(pCommands);
+	pCommands = NULL;
+	pFirst = NULL;
+	pSecond = NULL;
+	pThird = NULL;
+	szLog.Kill();
+	cFileUtil.RemoveDir(TEST_KEYMAP_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the dialog asks about keys before it lets them be bound.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -604,6 +1065,11 @@ void TestKeymap(void)
 	TestKeymapEditorKeys();
 	TestKeymapInsert();
 	TestKeymapDialog();
+	TestKeymapCommands();
+	TestKeymapWindowCommands();
+	TestKeymapEditCommands();
+	TestKeymapEditCommandsStandard();
+	TestKeymapFile();
 	TestKeymapKeyQueries();
 
 	ObjectsFlush();
