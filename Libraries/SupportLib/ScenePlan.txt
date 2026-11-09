@@ -240,14 +240,16 @@ Vulkan.
 2. CMeshEditor.  CMeshEditor::Init gives its stack the mesh, as it has no source today, and GetOutput returns the stack's.  With
    no modifiers that is the mesh itself.  Structure and shape counters go on the editor's methods.  The renderer clears the
    output after cooking.
-   Polygons and edge visibility move to CMesh as opt-in details, as they describe the shape and an output mesh needs them.  Being
-   opt-in (mbInUse) keeps big meshes from generating connectivity for every face they add.  CMesh copies them, so macBaseEdges goes
-   from CMeshEditor, and CMeshSmoothGroups can smooth by angle in Modify.  A modifier that knows about polygons rebuilds them.  Any
-   other that changes faces loses them, and its output is plain triangles.  CMeshEditor's AddFace still takes edge flags and writes
-   them into the mesh.
-   Selections stay on the editor.  They are what the user is doing, not the shape, and they describe the mesh being edited.
+   Polygons move to CMesh as an opt-in detail, as they describe the shape and an output mesh needs them.  Being opt-in (mbInUse)
+   keeps big meshes from generating connectivity for every face they add.  CMesh copies them, and CMeshSmoothGroups can smooth by
+   angle in Modify.  A modifier that knows about polygons rebuilds them.  Any other that changes faces loses them, and its output
+   is plain triangles.  CMeshEditor's AddFace still takes edge flags, and the mesh's polygons are built from them.
+   Edge visibility and selections stay on the editor.  They are what the user sees and does, not the shape, and they describe the
+   mesh being edited.  Polygons are built from the edge flags, not from CMeshEdgeVisibility, and an edge is hidden when the faces
+   on both sides are in one polygon, so something drawing an output's edges can work that out.
    Apply and CMeshEditor::Touch then go, leaving only Modify and GetOutput.  Every modifier with an Apply also has a Modify.
-   CMeshEditor::Collapse uses Touch, so it changes too.  GetOutput doesn't wait for any of this.
+   CMeshEditor::Collapse uses Touch, so it changes too, and the base it keeps (mpBase, macBaseEdges) goes with them.  GetOutput
+   doesn't wait for any of this.
 3. CConnection has a Ptr<CConnection> parent, which a file fills.  It updates: a world matrix from a local one and the parent's.
 4. RenderLib and RasterRenderLib: create and replace only.  CRasterMesh::Build moves to RasterRenderLib, the same code, so that
    RasterLib no longer includes SupportLib/Mesh.h.  BoardScene, VRMLCanvasDraw and any tests that build from a CMesh call it
