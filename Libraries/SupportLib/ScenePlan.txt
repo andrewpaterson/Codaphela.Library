@@ -262,8 +262,9 @@ Vulkan.
    they write back to the scene, if they should.
    CRasteriser takes light values, in place of msLight and RASTER_AMBIENT, with what they are now as the default.
 6. Move BoardScene onto a CScene: its models, the mainboard and boards standing in their sockets become instances and
-   connections, and its yaw a connection or an animation.  Its pixels must stay byte-identical.  The VRML read becomes lazy, so
-   that a cached model needs no CMesh.  This is what proves the rigid path.
+   connections, and its yaw a connection or an animation.  Its pixels must stay byte-identical.  The VRML read is already lazy:
+   each model's mesh is saved after its modifiers as a .DRG in Output/Models, which a cached model is read from instead.  This
+   is what proves the rigid path.
 7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  A track holds a Ptr to the connection it moves and a
    CSceneAnimation groups them, which is what a file holds.  Sharing a walk between instances still needs tracks to refer to a slot in
    an instance's connections, and something to say which instance is playing it.
