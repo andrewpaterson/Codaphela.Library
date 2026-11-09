@@ -480,11 +480,15 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, bool bEdge12, bool bEdge23, bool bEdge31)
 {
 	SAdjFaces		sAdjFaces;
-	int				aiPolygon[NUM_FACE_EDGES];
+	bool			abHidden[NUM_FACE_EDGES];
+	int				aiJoined[NUM_FACE_EDGES];
+	int				iNumJoined;
+	int				iPolygon;
+	int				iLastPolygon;
 	CMeshPolygon*	pcPolygon;
-	bool			bPartOfExisting;
-	bool			bCrush2;
-	bool			bCrush3;
+	bool			bFound;
+	int				i;
+	int				j;
 
 	//The mesh numbers the faces, and it may have some that were added to it directly.
 	while ((int)maiFacesToPolygons.NumElements() <= iFace)
@@ -492,98 +496,55 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 		maiFacesToPolygons.Add(-1);
 	}
 
-	aiPolygon[0] = -1;
-	aiPolygon[1] = -1;
-	aiPolygon[2] = -1;
-	bPartOfExisting = false;
-	bCrush2 = false;
-	bCrush3 = false;
-
 	sAdjFaces = pcConn->GetAdjacentFaces(iFace);
+	abHidden[0] = !bEdge12;
+	abHidden[1] = !bEdge23;
+	abHidden[2] = !bEdge31;
 
-	if (bEdge12 == false)
+	//The polygons on the far side of its hidden edges, each once.  A face added directly to the mesh has none.
+	iNumJoined = 0;
+	for (i = 0; i < NUM_FACE_EDGES; i++)
 	{
-		if (sAdjFaces.aiFace[0] != -1)
+		if (abHidden[i] && (sAdjFaces.aiFace[i] != -1))
 		{
-			aiPolygon[0] = maiFacesToPolygons.GetValue(sAdjFaces.aiFace[0]);
-			pcPolygon = mcPolygons.Get(aiPolygon[0]);
-			pcPolygon->maiFaces.Add(iFace);
-			maiFacesToPolygons.SetValue(iFace, aiPolygon[0]);
-			bPartOfExisting = true;
-		}
-	}
-
-	if (bEdge23 == false)
-	{
-		if (sAdjFaces.aiFace[1] != -1)
-		{
-			aiPolygon[1] = maiFacesToPolygons.GetValue(sAdjFaces.aiFace[1]);
-			pcPolygon = mcPolygons.Get(aiPolygon[1]);
-			if (aiPolygon[0] != aiPolygon[1])
+			iPolygon = maiFacesToPolygons.GetValue(sAdjFaces.aiFace[i]);
+			bFound = iPolygon == -1;
+			for (j = 0; j < iNumJoined; j++)
 			{
-				if (bPartOfExisting)
-				{
-					bCrush2 = true;
-				}
-				else
-				{
-					maiFacesToPolygons.SetValue(iFace, aiPolygon[1]);
-					pcPolygon->maiFaces.Add(iFace);
-					bPartOfExisting = true;
-				}
+				bFound |= aiJoined[j] == iPolygon;
+			}
+			if (!bFound)
+			{
+				aiJoined[iNumJoined] = iPolygon;
+				iNumJoined++;
 			}
 		}
 	}
 
-	if (bEdge31 == false)
-	{
-		if (sAdjFaces.aiFace[2] != -1)
-		{
-			aiPolygon[2] = maiFacesToPolygons.GetValue(sAdjFaces.aiFace[2]);
-			pcPolygon = mcPolygons.Get(aiPolygon[2]);
-			if ((aiPolygon[0] != aiPolygon[2]) || (aiPolygon[1] != aiPolygon[2]))
-			{
-				if (bPartOfExisting)
-				{
-					bCrush3 = true;
-				}
-				else
-				{
-					maiFacesToPolygons.SetValue(iFace, aiPolygon[2]);
-					pcPolygon->maiFaces.Add(iFace);
-					bPartOfExisting = true;
-				}
-			}
-		}
-	}
-
-	if (!bPartOfExisting)
+	if (iNumJoined == 0)
 	{
 		maiFacesToPolygons.SetValue(iFace, (int)mcPolygons.NumElements());
 
 		pcPolygon = mcPolygons.Add();
 		pcPolygon->Init(iName);
 		pcPolygon->maiFaces.Add(iFace);
+		return;
 	}
-	else
+
+	maiFacesToPolygons.SetValue(iFace, aiJoined[0]);
+	mcPolygons.Get(aiJoined[0])->maiFaces.Add(iFace);
+
+	for (i = iNumJoined - 1; i > 0; i--)
 	{
-		if (bCrush2 && bCrush3)
+		iLastPolygon = (int)mcPolygons.NumElements() - 1;
+		MergePolygon(aiJoined[0], aiJoined[i]);
+
+		//The last polygon has moved to where the merged one was.
+		for (j = 0; j < i; j++)
 		{
-			MergePolygon(aiPolygon[0], aiPolygon[1], aiPolygon[2]);
-		}
-		else if (bCrush2)
-		{
-			MergePolygon(aiPolygon[0], aiPolygon[1]);
-		}
-		else if (bCrush3)
-		{
-			if (aiPolygon[0] != -1)
+			if (aiJoined[j] == iLastPolygon)
 			{
-				MergePolygon(aiPolygon[0], aiPolygon[2]);
-			}
-			else
-			{
-				MergePolygon(aiPolygon[1], aiPolygon[2]);
+				aiJoined[j] = aiJoined[i];
 			}
 		}
 	}
@@ -668,27 +629,6 @@ void CMeshPolygons::GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNo
 		{
 			pasNormalsData[i].Normalize();
 		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource1, int iSource2)
-{
-	MergePolygon(iDestPolygon, iSource2);
-
-	if (iSource1 != (int)mcPolygons.NumElements())
-	{
-		MergePolygon(iDestPolygon, iSource1);
-	}
-	else
-	{
-		//Then this index has changed.
-		//It became iSource2 after merging.
-		MergePolygon(iDestPolygon, iSource2);
 	}
 }
 

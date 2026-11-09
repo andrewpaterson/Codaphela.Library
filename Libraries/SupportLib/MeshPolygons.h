@@ -81,7 +81,6 @@ public:
 	int				NumUniqueNames(void);
 	void			GetUniqueNames(CArrayInt* paiNames);
 	void			GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNormals);
-	void			MergePolygon(int iDestPolygon, int iSource1, int iSource2);
 	void			MergePolygon(int iDestPolygon, int iSource);
 	void			GetAdjacentPolygons(CMeshConnectivity* pcConn, int iPolygon, CArrayInt* paiAdj);
 };
