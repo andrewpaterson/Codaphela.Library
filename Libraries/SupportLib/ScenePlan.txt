@@ -10,10 +10,11 @@ What the objects are
 --------------------
   CScene                    Instances, lights, cameras, animations and particles.  Everything else is reached through what uses it.
     CInstance               One thing in the game, one character say.
-      CArray<CConnection>   Its own, in slot order.
+      CArray<CConnection>   Its own, in the order a file holds them.
       CArray<CInstanceMesh>
         Ptr<CMeshEditor>    Shared with other instances.  Holds the mesh and its modifier stack.
-        Connection slots    What each of the mesh's matrices uses.  One for a rigid mesh, one per matrix for a skinned one.
+        CArray<CConnection> The instance's connections the mesh's matrices use.  One for a rigid mesh, one per matrix for a
+                            skinned one.
         Materials           In place of the mesh's defaults.
     CLight, CCamera         Not instanced.  Each has its own Ptr<CConnection>.
 
@@ -22,12 +23,13 @@ Two characters are two CInstances that share their meshes and bones and are draw
 A CConnection is something spatial that lights, cameras, meshes or other game information can be attached to.
 
   Kind        What                                 Reaches its connection by
-  Shared      CMeshEditor, bones                   The instance holds it, and slots in the instance's connections
+  Shared      CMeshEditor, bones                   The instance's CInstanceMesh, which holds the connections it uses
   Not shared  CLight, CCamera, small game objects  Its own Ptr<CConnection>
 
-Shared data can't point at a connection, as each instance has its own.  It refers to one by slot, so the order of an
-instance's connections matters and is saved with it.  A skinned mesh's SSkinWeight::iMatrix numbers its own matrices, not the
-instance's connections, which is why the slots are per mesh.
+Shared data can't point at a connection, as each instance has its own, so what an instance uses of it is in an object of the
+instance's: a CInstanceMesh holds the editor, shared, and the instance's connections its matrices use, which a file holds as
+their places in the instance's list.  A skinned mesh's SSkinWeight::iMatrix numbers its own matrices, not the instance's
+connections, which is why the connections are per mesh.
 
 Lights and cameras are too small to be worth sharing and aren't instanced.  Two lanterns are two CLights.  A light on its own
 has its own connection, and one carried by a character has a connection whose parent is the character's hand.
@@ -290,11 +292,12 @@ Vulkan.
    leaves with no area.  The VRML read is lazy as it was: each model's mesh is saved after its modifiers, in millimetres, as a
    .DRG in Output/Models, which a cached model is read from instead.
 7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  A track holds a Ptr to the connection it moves and a
-   CSceneAnimation groups them, which is what a file holds.  Sharing a walk between instances still needs tracks to refer to a slot in
-   an instance's connections, and something to say which instance is playing it.
-8. Skinning, in software on the raster renderer: per-instance vertices, using the slots from step 1.  The fixed point skinning
-   goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from its
-   converted file, proves it.
+   CSceneAnimation groups them, which is what a file holds.  Sharing a walk between instances still needs its tracks to name the
+   connections they move, and a player for each instance that binds the names to that instance's connections and says where it is
+   in the walk.
+8. Skinning, in software on the raster renderer: per-instance vertices, using each instance mesh's connections.  The fixed point
+   skinning goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from
+   its converted file, proves it.
 9. In-place updates, if dragging plain meshes is slow.
 10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
 
@@ -309,7 +312,7 @@ source is D:\Work\Star Control\Builds\ViewerV7beta2009.9.20\Goober.DRG and Parti
 
 What the converter and whatever poses it need to know:
   Pose it with vectors on the left of row-major matrices:
-    fWeight * (position * inverse[iMatrix] * world matrix of Connections[slot of iMatrix])
+    fWeight * (position * inverse[iMatrix] * world matrix of the instance mesh's mapConnections[iMatrix])
   A connection's world matrix is its track's first key, so either poses it the same.  This was thought to tear the mesh, but that was
   the old files' numbering.
   Its keys hold world matrices.  Its file lost its parents, but the converter found them again: a connection's local matrix was still
