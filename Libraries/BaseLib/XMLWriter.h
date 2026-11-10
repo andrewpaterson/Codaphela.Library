@@ -26,20 +26,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayChars.h"
 
 
-//Writes an XML document, two spaces indenting each level.  Begin opens an element; attributes are added until its
-//first child or End, which closes it (as <Name/> when it has no children).  Text in attributes and between elements is
-//escaped.  Floats are written with enough digits to read back exactly.
+//Writes an XML document, two spaces indenting each level unless SetIndent says otherwise.  Begin opens an element;
+//attributes are added until its first child or End, which closes it (as <Name/> when it has no children).  Text in
+//attributes and between elements is escaped.  Floats are written with enough digits to read back exactly.  Comment
+//writes <!--szText--> where the next element would go, before the root element too; szText isn't escaped, and can't
+//hold "--".
 class CXMLWriter
 {
 protected:
 	CLargeChars		mszText;
 	CArrayChars		maszOpen;
 	bool			mbStartOpen;		//The last element's start tag still takes attributes.
-	bool			mbHasChildren;		//The innermost element has children (elements or text).
+	bool			mbHasChildren;		//The innermost element has children (elements, text or comments).
+	CChars			mszIndent;			//What indents each level.
 
 public:
 	void	Init(void);
 	void	Kill(void);
+
+	void	SetIndent(const char* szIndent);
 
 	void	Begin(const char* szName);
 	void	End(void);
@@ -51,6 +56,7 @@ public:
 	void	Attribute(const char* szName, float32 fValue);
 	void	Attribute(const char* szName, float64 fValue);
 	void	Text(const char* szText);
+	void	Comment(const char* szText);
 
 	bool	IsComplete(void);
 	char*	GetText(void);
@@ -59,7 +65,7 @@ public:
 protected:
 	void	CloseStart(void);
 	void	AppendEscaped(const char* szText, bool bAttribute);
-	void	Indent(void);
+	void	Indent(size uiLevels);
 };
 
 

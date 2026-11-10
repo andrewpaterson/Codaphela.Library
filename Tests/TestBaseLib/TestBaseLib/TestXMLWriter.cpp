@@ -161,6 +161,63 @@ void TestXMLWriterReadAttributeEntities(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tab indents each level, and comments go where the next element would,
+// before the root element too.  Read back, a document keeps the comments
+// before its root element, as they were, and not those inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestXMLWriterCommentsAndIndent(void)
+{
+	CXMLWriter	cWriter;
+	CXMLFile	cFile;
+	CFileUtil	cFileUtil;
+	CMarkupDoc*	pcDoc;
+	char		szExpected[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<!-- What the file is. -->\n\
+<!--Its second line-->\n\
+<Root>\n\
+\t<!-- Inside. -->\n\
+\t<Item>\n\
+\t\t<Child/>\n\
+\t</Item>\n\
+\t<Last>\n\
+\t\t<!-- Only a comment. -->\n\
+\t</Last>\n\
+</Root>\n";
+
+	cWriter.Init();
+	cWriter.SetIndent("\t");
+	cWriter.Comment(" What the file is. ");
+	cWriter.Comment("Its second line");
+	cWriter.Begin("Root");
+	cWriter.Comment(" Inside. ");
+	cWriter.Begin("Item");
+	cWriter.Begin("Child");
+	cWriter.End();
+	cWriter.End();
+	cWriter.Begin("Last");
+	cWriter.Comment(" Only a comment. ");
+	cWriter.End();
+	cWriter.End();
+	AssertTrue(cWriter.IsComplete());
+	AssertString(szExpected, cWriter.GetText());
+	cFileUtil.MakeDir("Output");
+	AssertTrue(cWriter.Write("Output" _FS_ "Comments.xml"));
+	cWriter.Kill();
+
+	cFile.Init();
+	AssertTrue(cFile.Read("Comments.xml", "Output"));
+	pcDoc = cFile.mcMarkup.mpcDoc;
+	AssertTrue(pcDoc->GetRootTag()->Is("Root"));
+	AssertSize(2, pcDoc->NumComments());
+	AssertString(" What the file is. ", pcDoc->GetComment(0));
+	AssertString("Its second line", pcDoc->GetComment(1));
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestXMLWriter(void)
@@ -171,6 +228,7 @@ void TestXMLWriter(void)
 	TestXMLWriterText();
 	TestXMLWriterReadBack();
 	TestXMLWriterReadAttributeEntities();
+	TestXMLWriterCommentsAndIndent();
 
 	DataMemoryKill();
 	TestStatistics();

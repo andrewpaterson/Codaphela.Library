@@ -36,6 +36,7 @@ void CXMLWriter::Init(void)
 	maszOpen.Init();
 	mbStartOpen = false;
 	mbHasChildren = false;
+	mszIndent.Init("  ");
 }
 
 
@@ -45,6 +46,7 @@ void CXMLWriter::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CXMLWriter::Kill(void)
 {
+	mszIndent.Kill();
 	maszOpen.Kill();
 	mszText.Kill();
 }
@@ -54,9 +56,25 @@ void CXMLWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLWriter::Indent(void)
+void CXMLWriter::Indent(size uiLevels)
 {
-	mszText.Append(' ', (lsize)maszOpen.NumElements() * 2);
+	size	i;
+
+	for (i = 0; i < uiLevels; i++)
+	{
+		mszText.Append(mszIndent.Text());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What indents each level from now on, such as a tab.
+//
+//////////////////////////////////////////////////////////////////////////
+void CXMLWriter::SetIndent(const char* szIndent)
+{
+	mszIndent.Set(szIndent);
 }
 
 
@@ -86,7 +104,7 @@ void CXMLWriter::Begin(const char* szName)
 	{
 		CloseStart();
 	}
-	Indent();
+	Indent(maszOpen.NumElements());
 	mszText.Append('<');
 	mszText.Append(szName);
 	maszOpen.Add(szName);
@@ -115,7 +133,7 @@ void CXMLWriter::End(void)
 	}
 	else
 	{
-		mszText.Append(' ', ((lsize)maszOpen.NumElements() - 1) * 2);
+		Indent(maszOpen.NumElements() - 1);
 		mszText.Append("</");
 		mszText.Append(maszOpen.Tail()->Text());
 		mszText.Append(">\n");
@@ -216,9 +234,26 @@ void CXMLWriter::Attribute(const char* szName, float64 fValue)
 void CXMLWriter::Text(const char* szText)
 {
 	CloseStart();
-	Indent();
+	Indent(maszOpen.NumElements());
 	AppendEscaped(szText, false);
 	mszText.Append('\n');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CXMLWriter::Comment(const char* szText)
+{
+	if (maszOpen.NumElements() > 0)
+	{
+		CloseStart();
+	}
+	Indent(maszOpen.NumElements());
+	mszText.Append("<!--");
+	mszText.Append(szText);
+	mszText.Append("-->\n");
 }
 
 
