@@ -279,10 +279,16 @@ Vulkan.
      as far as they'd add a shade, or their range, worked out when they're added.  One is only worked out for an instance its
      reach gets to the bounds of, a bit each in a mask, and then only for a vertex within its reach.  All grey for now.
    What the rasteriser drew before is byte-identical: 36 golden frames over every draw path hashed the same after each change.
-6. Move BoardScene onto a CScene: its models, the mainboard and boards standing in their sockets become instances and
-   connections, and its yaw a connection or an animation.  Its pixels must stay byte-identical.  The VRML read is already lazy:
-   each model's mesh is saved after its modifiers as a .DRG in Output/Models, which a cached model is read from instead.  This
-   is what proves the rigid path.
+6. Move BoardScene onto a CScene.  Done, though the Board Configuration dialog is still to be run by hand.  The scene is in
+   millimetres, one size for every mesh: a model is scaled to them with CMeshEditor::Scale as it's read, and an editor has no
+   scale of its own beyond what a connection's matrix does.  The mainboard is an instance whose connections are its own and,
+   as their children, one for each socket at the middle of the floor of its slot.  A board standing in a socket is an instance
+   whose connection is a child of the socket's.  Each model is an editor that every socket holding that board shares.  The
+   yaw stays the raster camera's SetOrbit, after Fit and FitOrbit once, and the frame writes it back to the scene camera's
+   connection.  The user's decision: its pixels needn't stay byte-identical, as the models are now simplified in millimetres.
+   CMeshRemoveDegenerate is on the models' stack, after CMeshEdgeCollapse, and BuildRasterMesh leaves out what its rounding
+   leaves with no area.  The VRML read is lazy as it was: each model's mesh is saved after its modifiers, in millimetres, as a
+   .DRG in Output/Models, which a cached model is read from instead.
 7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  A track holds a Ptr to the connection it moves and a
    CSceneAnimation groups them, which is what a file holds.  Sharing a walk between instances still needs tracks to refer to a slot in
    an instance's connections, and something to say which instance is playing it.
@@ -291,7 +297,6 @@ Vulkan.
    converted file, proves it.
 9. In-place updates, if dragging plain meshes is slow.
 10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
-    This is left until now so that BoardScene's vertex order and pixels aren't put at risk for nothing.
 
 
 Test scenes
