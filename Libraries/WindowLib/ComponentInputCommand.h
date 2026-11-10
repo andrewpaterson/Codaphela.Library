@@ -96,6 +96,7 @@ enum EComponentInputCommand
 	CIC_ContextMenuKey,  //The Menu key or Shift+F10: for the focussed component.
 	CIC_CloseDocument,  //Control+F4: the active document closes.
 	CIC_HideToolWindow,  //Shift+Escape: the active tool window is hidden.
+	CIC_JumpToSource,  //F4, as IntelliJ IDEA's: what is selected is gone to, as double clicking a list's or tree's row does.
 	CIC_StartDragScroll,
 	CIC_ContDragScroll,  //The pointer moved during a drag; only CFocus gives these, to the drag component.
 	CIC_StopDragScroll,

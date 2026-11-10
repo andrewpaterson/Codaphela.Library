@@ -70,6 +70,7 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	AddInputAction(CIC_PageDown, this, &CListContainer::PageDown);
 	AddInputAction(CIC_Space, this, &CListContainer::Activate);
 	AddInputAction(CIC_Enter, this, &CListContainer::Activate);
+	AddInputAction(CIC_JumpToSource, this, &CListContainer::Activate);
 
 	PostInit();
 }

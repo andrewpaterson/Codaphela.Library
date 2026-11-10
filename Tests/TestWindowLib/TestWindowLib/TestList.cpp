@@ -228,11 +228,12 @@ void TestListInput(void)
 		pTestWindow->InputCommand(CIC_PageUp, true);
 		AssertLog("");
 
-		//Enter and space activate the selected row.
+		//Enter, space and jump to source (F4) activate the selected row.
 		AssertTrue(pList->WantsEnter());
 		pTestWindow->InputCommand(CIC_Enter, true);
 		pTestWindow->InputCommand(CIC_Space, true);
-		AssertLog("Activated:0;Activated:0;");
+		pTestWindow->InputCommand(CIC_JumpToSource, true);
+		AssertLog("Activated:0;Activated:0;Activated:0;");
 
 		//Disabling the selected row clears the selection.
 		AssertFalse(pList->Select(2));

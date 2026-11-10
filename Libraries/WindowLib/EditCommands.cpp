@@ -97,6 +97,7 @@ static SEditKeymapRow gasEditKeymapRows[] =
 	{ "Window.ContextMenu",				"Show Context Menu",		CIC_ContextMenuKey,				CKS_Window,	"Menu",						"Shift+F10" },
 	{ "Window.CloseDocument",			"Close Document",			CIC_CloseDocument,				CKS_Window,	"Control+F4",				NULL },
 	{ "Window.HideToolWindow",			"Hide Tool Window",			CIC_HideToolWindow,				CKS_Window,	"Shift+Escape",				NULL },
+	{ "Window.JumpToSource",			"Jump to Source",			CIC_JumpToSource,				CKS_Window,	"F4",						NULL },
 };
 
 

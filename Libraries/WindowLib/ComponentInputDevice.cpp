@@ -125,11 +125,11 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddPrintable("Numpad +", '+', '+', '+', '+');
 
 	//Function keys don't type anything; an application binds its own (see CComponentInput::BindKeys).  As in
-	//IntelliJ IDEA F7 goes to the next difference in a diff.
+	//IntelliJ IDEA F4 jumps to the source of what is selected and F7 goes to the next difference in a diff.
 	AddCommand("F1", CIC_Ignored);
 	AddCommand("F2", CIC_Ignored);
 	AddCommand("F3", CIC_Ignored);
-	AddCommand("F4", CIC_Ignored);
+	AddCommand("F4", CIC_JumpToSource);
 	AddCommand("F5", CIC_Ignored);
 	AddCommand("F6", CIC_Ignored);
 	AddCommand("F7", CIC_NextDifference);
