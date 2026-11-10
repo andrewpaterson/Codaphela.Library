@@ -19,6 +19,7 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include "BaseLib/Float4x4.h"
 #include "BaseLib/Logger.h"
 #include "OldDragonCursor.h"
 #include "OldDragonReader.h"
@@ -324,8 +325,43 @@ static bool ReadIOXCamera(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COld
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A node's path is which child it is at each level down from the root.
+// The nodes come parent first, so a node's parent is the last one with
+// the path less its last step, and the paths before it say where that is.
+// paiSteps holds the last step of the last node at each level, and is
+// updated for this node.  iPreviousLevel is the level of the node before,
+// -1 for none.  False if this node's parent isn't there.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ReadIOXPath(COldDragonCursor* pcCursor, uint32 uiPathSize, int32 iPreviousLevel, int32* paiSteps)
+{
+	uint32	k;
+	int32	iStep;
+	bool	bParentThere;
+
+	bParentThere = (int32)uiPathSize <= iPreviousLevel + 1;
+	for (k = 0; k < uiPathSize; k++)
+	{
+		iStep = pcCursor->ReadInt32();
+		if (k + 1 < uiPathSize)
+		{
+			bParentThere = bParentThere && (iStep == paiSteps[k + 1]);
+		}
+		else
+		{
+			paiSteps[uiPathSize] = iStep;
+		}
+	}
+	return bParentThere;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A tree of nodes, each with the path to it from the root.  An axis has
-// no w column in the file, so the matrix gets one.
+// no w column in the file, so the matrix gets one.  It's the node's local
+// matrix, and the game made a node's world matrix its parent's world matrix
+// times its local one.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool ReadIOXLinks(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldDragonScene* pcScene)
@@ -339,6 +375,9 @@ static bool ReadIOXLinks(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 	int32					j;
 	int32					iRow;
 	uint32					uiPathSize;
+	int32					iPreviousLevel;
+	int32					aiSteps[IOX_MAX_PATH + 1];
+	int32					aiAtLevel[IOX_MAX_PATH + 1];
 	int32					iConnection;
 	char					szName[OLD_DRAGON_NAME_SIZE];
 
@@ -360,6 +399,7 @@ static bool ReadIOXLinks(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 		cCursor.Fail();
 	}
 
+	iPreviousLevel = -1;
 	for (i = 0; (i < iNumNodes) && !cCursor.Failed(); i++)
 	{
 		uiPathSize = cCursor.ReadUint32();
@@ -368,7 +408,10 @@ static bool ReadIOXLinks(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 			cCursor.Fail();
 			break;
 		}
-		cCursor.ReadBytes((size)uiPathSize * sizeof(int32));
+		if (!ReadIOXPath(&cCursor, uiPathSize, iPreviousLevel, aiSteps))
+		{
+			return gcLogger.Error2(__METHOD__, " Links [", szName, "] have a node whose parent isn't before it.", NULL);
+		}
 
 		iConnection = (int32)pcScene->macConnections.NumElements();
 		psConnection = pcScene->AddConnection();
@@ -377,11 +420,21 @@ static bool ReadIOXLinks(COldDragonFile* pcFile, SOldDragonChunk* psChunk, COldD
 		{
 			for (j = 0; j < 3; j++)
 			{
-				psConnection->sWorld.af[iRow * 4 + j] = cCursor.ReadFloat();
+				psConnection->sLocal.af[iRow * 4 + j] = cCursor.ReadFloat();
 			}
-			psConnection->sWorld.af[iRow * 4 + 3] = (iRow == 3) ? 1.0f : 0.0f;
+			psConnection->sLocal.af[iRow * 4 + 3] = (iRow == 3) ? 1.0f : 0.0f;
 		}
-		psConnection->sLocal = psConnection->sWorld;
+		if (uiPathSize == 0)
+		{
+			psConnection->sWorld = psConnection->sLocal;
+		}
+		else
+		{
+			psConnection->iParent = aiAtLevel[uiPathSize - 1];
+			Float4x4Multiply((SFloat4x4*)psConnection->sWorld.af, (SFloat4x4*)pcScene->macConnections.Get((size)psConnection->iParent)->sWorld.af, (SFloat4x4*)psConnection->sLocal.af);
+		}
+		aiAtLevel[uiPathSize] = iConnection;
+		iPreviousLevel = (int32)uiPathSize;
 		psConnection->iID = cCursor.ReadInt32();
 		psConnection->iObjectType = cCursor.ReadInt32();
 		cCursor.ReadUint32();	//The stale pointer to the Max node.

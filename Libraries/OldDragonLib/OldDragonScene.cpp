@@ -299,6 +299,7 @@ SOldDragonConnection* COldDragonScene::AddConnection(void)
 	memset(psConnection, 0, sizeof(SOldDragonConnection));
 	psConnection->iID = OLD_DRAGON_NO_INDEX;
 	psConnection->iObjectType = OLD_DRAGON_NO_INDEX;
+	psConnection->iParent = OLD_DRAGON_NO_INDEX;
 	return psConnection;
 }
 

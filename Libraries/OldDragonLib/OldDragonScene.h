@@ -197,11 +197,13 @@ enum EOldDragonIOXObject
 
 
 //iObjectType is an EOldDragonIOXObject in Into Oblivion's files, and OLD_DRAGON_NO_INDEX in others, where instances say this.
+//iParent is the connection's parent in Into Oblivion's files.  The others didn't keep it, and it's OLD_DRAGON_NO_INDEX in them.
 struct SOldDragonConnection
 {
 	char				szName[OLD_DRAGON_NAME_SIZE];
 	int32				iID;
 	int32				iObjectType;
+	int32				iParent;
 	SOldDragonMatrix	sWorld;
 	SOldDragonMatrix	sLocal;
 	bool				bSelected;

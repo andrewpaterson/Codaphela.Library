@@ -1048,6 +1048,39 @@ void TestOldDragonReadAllMaxFiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A node's path says which its parent is, and its axis is relative to it.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestIOXParents(COldDragonScene* pcScene)
+{
+	SOldDragonConnection*	psRocket;
+	int32					aiParents[] = { OLD_DRAGON_NO_INDEX, 0, 1, 0, 3, OLD_DRAGON_NO_INDEX, OLD_DRAGON_NO_INDEX };
+	size					i;
+	float32					fX;
+
+	AssertSize(7, pcScene->macConnections.NumElements());
+	for (i = 0; i < 7; i++)
+	{
+		AssertInt(aiParents[i], pcScene->macConnections.Get(i)->iParent);
+	}
+	AssertTrue(pcScene->macConnections.Get(0)->bTopLevel);
+	AssertFalse(pcScene->macConnections.Get(2)->bTopLevel);
+
+	//Nothing in Boss is turned, so a rocket's place is its own, its turret's and the body's added up.
+	fX = 0.0f;
+	for (i = 0; i < 3; i++)
+	{
+		fX += pcScene->macConnections.Get(i)->sLocal.af[12];
+	}
+	psRocket = pcScene->macConnections.Get(2);
+	AssertFloat(fX, psRocket->sWorld.af[12], 3);
+	AssertFloat(44.0f, psRocket->sWorld.af[13], 3);
+	AssertFloat(14.0f, psRocket->sLocal.af[13], 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // These are too big to keep with the test.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1078,6 +1111,18 @@ void TestOldDragonReadLargeFiles(void)
 		}
 		szPath.Kill();
 	}
+
+	//Boss's turrets are under its body, and each rocket is under a turret.
+	szPath.Init(IOX_MESHES);
+	szPath.Append("Boss.DRG");
+	if (cFileUtil.Exists(szPath.Text()))
+	{
+		cScene.Init();
+		AssertTrue(ReadOldDragonFile(szPath.Text(), &cScene));
+		AssertTestIOXParents(&cScene);
+		cScene.Kill();
+	}
+	szPath.Kill();
 
 	if (cFileUtil.Exists(STAR_CONTROL))
 	{
