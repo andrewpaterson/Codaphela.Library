@@ -510,6 +510,7 @@ void TestRasteriserInstances(void)
 	asInstances[0].asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
 	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	asInstances[0].asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	asInstances[0].OnlyTurns();
 	asInstances[0].sOffset.Init(0, 0, 0);
 
 	cTarget.Init(puiSecond, 64, 64, 64);
@@ -543,6 +544,7 @@ void TestRasteriserInstances(void)
 	asInstances[0] = sSwap;
 	asInstances[0].asAxes[1].Init(0, 0, -(1 << RASTER_AXIS_BITS));
 	asInstances[0].asAxes[2].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	asInstances[0].OnlyTurns();
 	cTarget.Clear(TEST_BLACK);
 	cRasteriser.Draw(asInstances, 1, &cCamera, &cTarget);
 	AssertInt(64 * 64, CountPixels(&cTarget, TEST_BLACK));
@@ -551,6 +553,7 @@ void TestRasteriserInstances(void)
 	asInstances[0].asAxes[0].Init(-(1 << RASTER_AXIS_BITS), 0, 0);
 	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	asInstances[0].asAxes[2].Init(0, 0, -(1 << RASTER_AXIS_BITS));
+	asInstances[0].OnlyTurns();
 	cTarget.Clear(TEST_BLACK);
 	cRasteriser.Draw(asInstances, 1, &cCamera, &cTarget);
 	AssertInt(64 * 64, CountPixels(&cTarget, TEST_BLACK));
@@ -822,6 +825,7 @@ void TestRasteriserInstancesTransparent(void)
 	sInstance.asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
 	sInstance.asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	sInstance.asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	sInstance.OnlyTurns();
 	sInstance.sOffset.Init(1 << 16, 0, 0);
 
 	//The second frame draws over what the first left in the screen, and with fewer instances the third.
@@ -1065,6 +1069,7 @@ void TestRasteriserInstanceTurns(void)
 		{
 			sInstance.asAxes[iAxis].Init(aaiTurns[iTurn][iAxis * 3] << RASTER_AXIS_BITS, aaiTurns[iTurn][iAxis * 3 + 1] << RASTER_AXIS_BITS, aaiTurns[iTurn][iAxis * 3 + 2] << RASTER_AXIS_BITS);
 		}
+		sInstance.OnlyTurns();
 		for (i = 0; i < 300; i++)
 		{
 			psFrom = pRaster->masVertices.Get(i);
@@ -1101,6 +1106,7 @@ void TestRasteriserInstanceTurns(void)
 	sInstance.asAxes[0].Init(56756, -32768, 0);
 	sInstance.asAxes[1].Init(32768, 56756, 0);
 	sInstance.asAxes[2].Init(0, 0, 65536);
+	sInstance.OnlyTurns();
 	pTurned = OMalloc<CRasterMesh>();
 	for (i = 0; i < 300; i++)
 	{
@@ -1247,6 +1253,7 @@ void TestRasteriserJobs(void)
 	asInstances[0].asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
 	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	asInstances[0].asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	asInstances[0].OnlyTurns();
 	asInstances[0].sOffset.Init(0, 0, 1 << 16);
 	asInstances[1] = asInstances[0];
 	asInstances[1].pcMesh = &apRaster[0];
@@ -1291,6 +1298,158 @@ void TestRasteriserJobs(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pMade's pixels and depths are what pRaster's instance draws, with pMade
+// drawn where it is.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestRasterDrawsAsMade(SRasterInstance* psInstance, CRasterMesh* pcMade, CRasterCamera* pcCamera, CRasteriser* pcRasteriser)
+{
+	CRasterTarget	cInstance;
+	CRasterTarget	cMade;
+	SRasterInstance	sMade;
+	uint32*			puiInstance;
+	uint32*			puiMade;
+	bool			bSame;
+
+	puiInstance = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	puiMade = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	cInstance.Init(puiInstance, 64, 64, 64);
+	cMade.Init(puiMade, 64, 64, 64);
+
+	sMade.pcMesh = pcMade;
+	sMade.asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
+	sMade.asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	sMade.asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	sMade.OnlyTurns();
+	sMade.sOffset.Init(0, 0, 0);
+
+	cInstance.Clear(TEST_BLACK);
+	pcRasteriser->Draw(psInstance, 1, pcCamera, &cInstance);
+	cMade.Clear(TEST_BLACK);
+	pcRasteriser->Draw(&sMade, 1, pcCamera, &cMade);
+
+	AssertTrue(CountPixels(&cInstance, TEST_BLACK) < 64 * 64);
+	bSame = memcmp(puiInstance, puiMade, 64 * 64 * sizeof(uint32)) == 0;
+	AssertTrue(bSame);
+	bSame = memcmp(cInstance.mpiDepths, cMade.mpiDepths, 64 * 64 * sizeof(int32)) == 0;
+	AssertTrue(bSame);
+
+	cMade.Kill();
+	cInstance.Kill();
+	free(puiMade);
+	free(puiInstance);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instance that mirrors draws what a mesh made mirrored does, its
+// triangles wound the other way so that they still face the eye.  One that
+// scales draws what a mesh made bigger does, as the light is turned by its
+// rotation alone.  A shade past the most is the colour, not carried into the
+// next channel.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasteriserMirroredAndScaled(void)
+{
+	Ptr<CRasterMesh>	pRaster;
+	Ptr<CRasterMesh>	pMade;
+	CRasterCamera		cCamera;
+	CRasteriser			cRasteriser;
+	CRasterTarget		cTarget;
+	SRasterInstance		sInstance;
+	SRasterVertex*		psVertex;
+	SRasterTriangle*	psTriangle;
+	uint32*				puiPixels;
+	size				i;
+
+	cRasteriser.Init();
+	cCamera.Init();
+	cCamera.Fit(64, 64);
+
+	//Off the middle, with its normals leaning across, so that a mirror moves it and changes its shade.
+	pRaster = OMalloc<CRasterMesh>();
+	TestRasterAddSquare(&pRaster, &pRaster->masOpaque, 1 << 18, 1 << 17, 0, 1 << 18, 0xFF80C040);
+	for (i = 0; i < pRaster->masVertices.NumElements(); i++)
+	{
+		pRaster->masVertices.Get(i)->sNormal.Init(SRasterUnit::FromFloat(0.6f), SRasterUnit::FromRaw(0), SRasterUnit::FromFloat(0.8f));
+	}
+
+	pMade = OMalloc<CRasterMesh>();
+	for (i = 0; i < pRaster->masVertices.NumElements(); i++)
+	{
+		psVertex = pMade->masVertices.Add();
+		*psVertex = *pRaster->masVertices.Get(i);
+		psVertex->sPosition.x = -psVertex->sPosition.x;
+		psVertex->sNormal.x = SRasterUnit::FromRaw(-psVertex->sNormal.x.miRaw);
+	}
+	for (i = 0; i < pRaster->masOpaque.NumElements(); i++)
+	{
+		psTriangle = pMade->masOpaque.Add();
+		*psTriangle = *pRaster->masOpaque.Get(i);
+		psTriangle->aiVertex[1] = pRaster->masOpaque.Get(i)->aiVertex[2];
+		psTriangle->aiVertex[2] = pRaster->masOpaque.Get(i)->aiVertex[1];
+	}
+	sInstance.pcMesh = &pRaster;
+	sInstance.asAxes[0].Init(-(1 << RASTER_AXIS_BITS), 0, 0);
+	sInstance.asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	sInstance.asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	sInstance.asLightAxes[0] = sInstance.asAxes[0];
+	sInstance.asLightAxes[1] = sInstance.asAxes[1];
+	sInstance.asLightAxes[2] = sInstance.asAxes[2];
+	sInstance.bMirrored = true;
+	sInstance.sOffset.Init(0, 0, 0);
+	AssertTestRasterDrawsAsMade(&sInstance, &pMade, &cCamera, &cRasteriser);
+
+	pMade = OMalloc<CRasterMesh>();
+	for (i = 0; i < pRaster->masVertices.NumElements(); i++)
+	{
+		psVertex = pMade->masVertices.Add();
+		*psVertex = *pRaster->masVertices.Get(i);
+		psVertex->sPosition.Init(psVertex->sPosition.x * 2, psVertex->sPosition.y * 2, psVertex->sPosition.z * 2);
+	}
+	for (i = 0; i < pRaster->masOpaque.NumElements(); i++)
+	{
+		*pMade->masOpaque.Add() = *pRaster->masOpaque.Get(i);
+	}
+	sInstance.asAxes[0].Init(2 << RASTER_AXIS_BITS, 0, 0);
+	sInstance.asAxes[1].Init(0, 2 << RASTER_AXIS_BITS, 0);
+	sInstance.asAxes[2].Init(0, 0, 2 << RASTER_AXIS_BITS);
+	sInstance.asLightAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
+	sInstance.asLightAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	sInstance.asLightAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	sInstance.bMirrored = false;
+	AssertTestRasterDrawsAsMade(&sInstance, &pMade, &cCamera, &cRasteriser);
+
+	//A normal too long, facing the light, would shade past the most.
+	pRaster = OMalloc<CRasterMesh>();
+	TestRasterAddSquare(&pRaster, &pRaster->masOpaque, 0, 0, 0, 1 << 18, 0xFFFFFFFF);
+	for (i = 0; i < pRaster->masVertices.NumElements(); i++)
+	{
+		pRaster->masVertices.Get(i)->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromFloat(1.9f));
+	}
+	puiPixels = (uint32*)malloc(64 * 64 * sizeof(uint32));
+	cTarget.Init(puiPixels, 64, 64, 64);
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(&pRaster, &cCamera, &cTarget);
+	AssertIntHex((int32)0xFFFFFFFF, (int32)puiPixels[32 * 64 + 32]);
+	sInstance.pcMesh = &pRaster;
+	sInstance.asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
+	sInstance.asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
+	sInstance.asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
+	sInstance.OnlyTurns();
+	cTarget.Clear(TEST_BLACK);
+	cRasteriser.Draw(&sInstance, 1, &cCamera, &cTarget);
+	AssertIntHex((int32)0xFFFFFFFF, (int32)puiPixels[32 * 64 + 32]);
+	cTarget.Kill();
+	free(puiPixels);
+
+	cRasteriser.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriser(void)
@@ -1312,6 +1471,7 @@ void TestRasteriser(void)
 	TestRasteriserInstancesTransparent();
 	TestRasteriserJobs();
 	TestRasteriserInstanceTurns();
+	TestRasteriserMirroredAndScaled();
 	TestRasteriserTurnedAway();
 
 	ObjectsKill(false);

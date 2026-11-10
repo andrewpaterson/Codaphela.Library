@@ -30,14 +30,20 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CArrayTemplate<SRasterScreenVertex>	CArrayRasterScreenVertex;
 
 
-//A mesh somewhere: its positions and normals turned by asAxes, then its positions moved by sOffset.  Any number can share
-//one mesh, which is only held once.  asAxes are what a position is dotted with for the new x, y and z, with
-//RASTER_AXIS_BITS.  They must turn it, not mirror it, or its faces would wind the wrong way.
+//A mesh somewhere: its positions turned by asAxes, then moved by sOffset.  Any number can share one mesh, which is only held
+//once.  asAxes are what a position is dotted with for the new x, y and z, with RASTER_AXIS_BITS.  They may scale and mirror.
+//asLightAxes are their rotation alone, a mirror included, which the light is turned into the mesh by, as turning the light by
+//axes that scale would shade it brighter or darker.  bMirrored is whether asAxes mirror, and its triangles are then wound the
+//other way, so that they still face the way they did.  OnlyTurns says asAxes only turn: they're the light axes too.
 struct SRasterInstance
 {
 	CRasterMesh*	pcMesh;
 	SInt32Vec3		asAxes[3];
+	SInt32Vec3		asLightAxes[3];
 	SInt32Vec3		sOffset;
+	bool			bMirrored;
+
+	void	OnlyTurns(void);
 };
 
 
@@ -79,6 +85,7 @@ struct SRasterListJob
 	int32					iTop;  //Of all its drawables.
 	int32					iBottom;
 	bool					bTransparent;
+	bool					bMirrored;
 };
 
 
@@ -134,10 +141,10 @@ public:
 protected:
 	void	GrowScreen(size uiNumVertices);
 	void	DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, CRasterTarget* pcTarget);
-	void	AddListJobs(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, SRasterDrawable** ppsDrawables);
+	void	AddListJobs(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables);
 	void	DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent, int32 iTop, int32 iBottom);
 	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices);
-	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent);
+	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored);
 
 	static void	ProjectJob(void* pvJob);
 	static void	ListJob(void* pvJob);
