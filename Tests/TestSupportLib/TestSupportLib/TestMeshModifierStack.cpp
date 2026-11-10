@@ -291,6 +291,42 @@ void TestMeshEditorOutputChanges(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The modifier counter goes up when what the modifiers do changes, so that
+// what uses the output can tell, but not when the output is only let go or
+// made again because the mesh changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshEditorModifierChanges(void)
+{
+	Ptr<CMeshEditor>		pEditor;
+	CMeshTestMoveModifier*	pcAdd;
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddCorner(3, 0, 0);
+	AssertSize(0, pEditor->NumModifierChanges());
+
+	pcAdd = pEditor->AddModifier<CMeshTestMoveModifier>();
+	pcAdd->Init(1, 1);
+	AssertSize(1, pEditor->NumModifierChanges());
+
+	pEditor->GetOutput();
+	pEditor->ClearOutput();
+	pEditor->AddCorner(1, 1, 1);
+	pEditor->GetOutput();
+	AssertSize(1, pEditor->NumModifierChanges());
+	AssertInt(2, pcAdd->miCalls);
+
+	pEditor->mcModifiers.Touch();
+	AssertSize(2, pEditor->NumModifierChanges());
+
+	pEditor->Collapse();
+	AssertSize(3, pEditor->NumModifierChanges());
+	AssertInt(0, pEditor->mcModifiers.NumEditors());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshModifierStack(void)
@@ -311,6 +347,8 @@ void TestMeshModifierStack(void)
 	TestMeshEditorOutputIsMesh();
 	ObjectsFlush();
 	TestMeshEditorOutputChanges();
+	ObjectsFlush();
+	TestMeshEditorModifierChanges();
 
 	ObjectsKill(false);
 	DataIOKill();

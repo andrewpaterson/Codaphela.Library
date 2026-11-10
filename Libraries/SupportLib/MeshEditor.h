@@ -38,8 +38,9 @@ class CMesh;
 //What's changed in the mesh directly, not through the editor's methods, isn't seen.
 //
 //The structure counter goes up when corners or faces are added or removed, and the shape counter when positions move, so that
-//whatever uses the output can tell what it has to redo.  ClearOutput lets the output go once something has made what it needs from
-//it, as with modifiers it's a second whole mesh.
+//whatever uses the output can tell what it has to redo.  The modifier counter goes up when what the modifiers do changes (see
+//CMeshModifierStack::NumChanges).  ClearOutput lets the output go once something has made what it needs from it, as with
+//modifiers it's a second whole mesh, and changes no counter.
 //
 //Collapse makes the output the mesh, keeping the same mesh, and removes the modifiers.  A shape is a modifier, and is collapsed to edit
 //its faces.
@@ -75,6 +76,7 @@ public:
 	void		ClearOutput(void);
 	size		NumStructureChanges(void);
 	size		NumShapeChanges(void);
+	size		NumModifierChanges(void);
 
 	void	RemoveModifiers(void);
 

@@ -36,6 +36,7 @@ void CMeshModifierStack::Init(Ptr<CMesh> pSource)
 	macEditors.Init();
 	mpSource = pSource;
 	mpOutput = NULL;
+	muiChanges = 0;
 
 	PostInit();
 }
@@ -60,6 +61,7 @@ void CMeshModifierStack::Class(void)
 	U_Unknown(CArrayUnknown, macEditors);
 	M_Pointer(mpSource);
 	M_Pointer(mpOutput);
+	U_Size(muiChanges);
 }
 
 
@@ -92,7 +94,7 @@ bool CMeshModifierStack::Save(CObjectWriter* pcFile)
 void CMeshModifierStack::ReInit(void)
 {
 	macEditors.ReInit();
-	mpOutput = NULL;
+	Changed();
 }
 
 
@@ -103,7 +105,7 @@ void CMeshModifierStack::ReInit(void)
 void CMeshModifierStack::AddModifier(CMeshModifier* pcEditor)
 {
 	macEditors.Add(pcEditor);
-	mpOutput = NULL;
+	Changed();
 }
 
 
@@ -154,7 +156,38 @@ Ptr<CMesh> CMeshModifierStack::GetOutput(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::Touch(void)
 {
+	Changed();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshModifierStack::ClearOutput(void)
+{
 	mpOutput = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshModifierStack::NumChanges(void)
+{
+	return muiChanges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshModifierStack::Changed(void)
+{
+	mpOutput = NULL;
+	muiChanges++;
 }
 
 

@@ -31,6 +31,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //The stack holds a source mesh and GetOutput runs it up through the modifiers: Source | Modifier 0 | Modifier 1 | etc...
 //The source isn't changed until Flatten makes the output the new source.  With no source it starts from an empty mesh.
 //A CMeshEditor's stack has its mesh as its source.
+//
+//NumChanges goes up whenever what the modifiers do changes: one is added, Touch says one's settings changed, or they're
+//removed or flattened.  ClearOutput only lets the output go, to be made again the same.
 class CMeshEditor;
 class CMeshModifierStack : public CObject
 {
@@ -40,6 +43,7 @@ protected:
 	CArrayUnknown	macEditors;  //Mesh | Editor 0 | Editor 1 | etc...
 	Ptr<CMesh>		mpSource;
 	Ptr<CMesh>		mpOutput;
+	size			muiChanges;
 
 public:
 	void	Init(Ptr<CMesh> pSource = NULL);
@@ -62,10 +66,12 @@ public:
 	Ptr<CMesh>	GetSource(void);
 	Ptr<CMesh>	GetOutput(void);  //Kept until a modifier is added or Touch is called.
 	void		Touch(void);  //Call this when a modifier's settings have changed.
+	void		ClearOutput(void);
 	void		Flatten(void);  //The output becomes the new source and the modifiers are removed.
-
+	size		NumChanges(void);
 
 protected:
+	void		Changed(void);
 };
 
 

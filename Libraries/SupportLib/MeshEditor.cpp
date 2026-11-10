@@ -161,7 +161,7 @@ Ptr<CMesh> CMeshEditor::GetOutput(void)
 {
 	if ((muiOutputStructure != muiStructureChanges) || (muiOutputShape != muiShapeChanges))
 	{
-		mcModifiers.Touch();
+		mcModifiers.ClearOutput();
 		muiOutputStructure = muiStructureChanges;
 		muiOutputShape = muiShapeChanges;
 	}
@@ -175,7 +175,7 @@ Ptr<CMesh> CMeshEditor::GetOutput(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::ClearOutput(void)
 {
-	mcModifiers.Touch();
+	mcModifiers.ClearOutput();
 }
 
 
@@ -196,6 +196,16 @@ size CMeshEditor::NumStructureChanges(void)
 size CMeshEditor::NumShapeChanges(void)
 {
 	return muiShapeChanges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMeshEditor::NumModifierChanges(void)
+{
+	return mcModifiers.NumChanges();
 }
 
 
