@@ -100,6 +100,9 @@
     <ClCompile Include="TestMeshEdgeCollapse.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshRemoveDegenerate.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshWeldCorners.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>

@@ -406,6 +406,7 @@
     <ClInclude Include="MeshCornerMerge.h" />
     <ClInclude Include="MeshMergeNormals.h" />
     <ClInclude Include="MeshEdgeCollapse.h" />
+    <ClInclude Include="MeshRemoveDegenerate.h" />
     <ClInclude Include="MeshWeldCorners.h" />
     <ClInclude Include="MeshSmoothFaces.h" />
     <ClInclude Include="MeshSmoothGroups.h" />
@@ -664,6 +665,7 @@
     <ClCompile Include="MeshCornerMerge.cpp" />
     <ClCompile Include="MeshMergeNormals.cpp" />
     <ClCompile Include="MeshEdgeCollapse.cpp" />
+    <ClCompile Include="MeshRemoveDegenerate.cpp" />
     <ClCompile Include="MeshWeldCorners.cpp" />
     <ClCompile Include="MeshSmoothFaces.cpp" />
     <ClCompile Include="MeshSmoothGroups.cpp" />

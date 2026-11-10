@@ -284,6 +284,7 @@
     <ClCompile Include="TestMeshCornerMerge.cpp" />
     <ClCompile Include="TestMeshMergeNormals.cpp" />
     <ClCompile Include="TestMeshEdgeCollapse.cpp" />
+    <ClCompile Include="TestMeshRemoveDegenerate.cpp" />
     <ClCompile Include="TestMeshWeldCorners.cpp" />
     <ClCompile Include="TestMeshFaceReturn.cpp" />
     <ClCompile Include="TestMeshMaterial.cpp" />

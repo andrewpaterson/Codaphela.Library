@@ -606,6 +606,9 @@
     <ClInclude Include="MeshEdgeCollapse.h">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClInclude>
+    <ClInclude Include="MeshRemoveDegenerate.h">
+      <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
+    </ClInclude>
     <ClInclude Include="MeshWeldCorners.h">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClInclude>
@@ -1383,6 +1386,9 @@
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClCompile>
     <ClCompile Include="MeshEdgeCollapse.cpp">
+      <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRemoveDegenerate.cpp">
       <Filter>Source\Mesh\Modifier\Detail\Normals</Filter>
     </ClCompile>
     <ClCompile Include="MeshWeldCorners.cpp">

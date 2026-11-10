@@ -63,6 +63,7 @@ void TestMeshSourceModifier(void);
 void TestMeshNormalModifiers(void);
 void TestMeshFixReversed(void);
 void TestMeshCornerMerge(void);
+void TestMeshRemoveDegenerate(void);
 void TestMeshWeldCorners(void);
 void TestMeshEdgeCollapse(void);
 void TestMeshMergeNormals(void);
@@ -156,6 +157,7 @@ int __cdecl main(void)
 	TestMeshNormalModifiers();
 	TestMeshFixReversed();
 	TestMeshCornerMerge();
+	TestMeshRemoveDegenerate();
 	TestMeshWeldCorners();
 	TestMeshEdgeCollapse();
 	TestMeshMergeNormals();
