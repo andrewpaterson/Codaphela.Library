@@ -7,6 +7,7 @@
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/Mesh.h"
 #include "RasterLib/RasterMesh.h"
+#include "RasterRenderLib/RasterMeshBuild.h"
 #include "TestLib/Assert.h"
 
 
@@ -58,7 +59,7 @@ void TestRasterMeshBuild(void)
 	psColourFace->aiCornerColours[0] = 1;
 
 	cRaster.Init();
-	cRaster.Build(&cMesh);
+	BuildRasterMesh(&cRaster, &cMesh);
 	AssertFalse(cMesh.GetConnectivity()->IsGenerated());
 
 	//The quad shares corners 0 and 2.  The triangle has its own.
@@ -116,7 +117,7 @@ void TestRasterMeshDifferentNormals(void)
 	cMesh.AddFace(1, 0, 3);
 
 	cRaster.Init();
-	cRaster.Build(&cMesh);
+	BuildRasterMesh(&cRaster, &cMesh);
 	AssertSize(6, cRaster.masVertices.NumElements());
 	AssertInt(16384, cRaster.masVertices.Get(0)->sNormal.z.miRaw);
 	AssertInt(16384, cRaster.masVertices.Get(3)->sNormal.y.miRaw);
@@ -135,7 +136,7 @@ void TestRasterMeshEmpty(void)
 
 	cMesh.Init();
 	cRaster.Init();
-	cRaster.Build(&cMesh);
+	BuildRasterMesh(&cRaster, &cMesh);
 	AssertSize(0, cRaster.masVertices.NumElements());
 	AssertSize(0, cRaster.masOpaque.NumElements());
 	cRaster.Kill();
@@ -190,7 +191,7 @@ void TestRasterMeshBuildScaled(void)
 	cMesh.AddFace(0, 1, 2);
 
 	cRaster.Init();
-	cRaster.Build(&cMesh, 100);
+	BuildRasterMesh(&cRaster, &cMesh, 100);
 	AssertSize(3, cRaster.masVertices.NumElements());
 	AssertInt(1000, cRaster.masVertices.Get(0)->sPosition.x);
 	AssertInt(2000, cRaster.masVertices.Get(0)->sPosition.y);
@@ -265,7 +266,7 @@ void TestRasterMeshPadding(void)
 		psVertex = cRaster.masVertices.Add();
 		memset(psVertex, 0xFF, sizeof(SRasterVertex));
 	}
-	cRaster.Build(&cMesh);
+	BuildRasterMesh(&cRaster, &cMesh);
 	AssertSize(3, cRaster.masVertices.NumElements());
 
 	uiPad = sizeof(SRasterVertex) - (sizeof(SInt32Vec3) + sizeof(SRasterUnitVec3));

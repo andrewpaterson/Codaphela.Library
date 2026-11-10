@@ -1,5 +1,5 @@
 # Linux build of TestRasterLib (BaseLib + TestLib + StandardLib + SupportLib +
-# RasterLib + TestRasterLib).
+# RasterLib + RasterRenderLib + TestRasterLib).
 #
 # Builds 32-bit (-m32, needs g++-multilib) by default.  Add -DBASELIB_64=ON
 # for a 64-bit build, in its own build directory:
@@ -38,6 +38,7 @@ set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(STANDARDLIB_DIR "${COMMON_DIR}/StandardLib")
 set(SUPPORTLIB_DIR "${COMMON_DIR}/SupportLib")
 set(RASTERLIB_DIR "${COMMON_DIR}/RasterLib")
+set(RASTERRENDERLIB_DIR "${COMMON_DIR}/RasterRenderLib")
 set(TESTRASTERLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/TestRasterLib")
 
 
@@ -92,6 +93,8 @@ vcxproj_sources(STANDARDLIB_SOURCES "${STANDARDLIB_DIR}/StandardLib.vcxproj")
 vcxproj_sources(SUPPORTLIB_SOURCES "${SUPPORTLIB_DIR}/SupportLib.vcxproj")
 
 vcxproj_sources(RASTERLIB_SOURCES "${RASTERLIB_DIR}/RasterLib.vcxproj")
+
+vcxproj_sources(RASTERRENDERLIB_SOURCES "${RASTERRENDERLIB_DIR}/RasterRenderLib.vcxproj")
 
 vcxproj_sources(TESTRASTERLIB_SOURCES "${TESTRASTERLIB_DIR}/TestRasterLib.vcxproj")
 
@@ -184,10 +187,13 @@ add_library(SupportLib STATIC ${SUPPORTLIB_SOURCES})
 target_link_libraries(SupportLib PUBLIC StandardLib BaseLib)
 
 add_library(RasterLib STATIC ${RASTERLIB_SOURCES})
-target_link_libraries(RasterLib PUBLIC SupportLib BaseLib)
+target_link_libraries(RasterLib PUBLIC StandardLib BaseLib)
+
+add_library(RasterRenderLib STATIC ${RASTERRENDERLIB_SOURCES})
+target_link_libraries(RasterRenderLib PUBLIC RasterLib SupportLib StandardLib BaseLib)
 
 add_executable(TestRasterLib ${TESTRASTERLIB_SOURCES})
-target_link_libraries(TestRasterLib PRIVATE TestLib RasterLib SupportLib StandardLib BaseLib)
+target_link_libraries(TestRasterLib PRIVATE TestLib RasterRenderLib RasterLib SupportLib StandardLib BaseLib)
 
 # The tests read their input (Input/ ...) relative to the project directory,
 # as Visual Studio does.

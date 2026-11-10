@@ -18,19 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <math.h>
 #include <string.h>
-#include "BaseLib/ArrayInt.h"
 #include "BaseLib/DiskFile.h"
-#include "BaseLib/FixedPoint.h"
-#include "BaseLib/GeometricTypes.h"
-#include "SupportLib/ColourARGB32.h"
-#include "SupportLib/Mesh.h"
 #include "RasterMesh.h"
 
-
-//VRML's default material for a face with no colour.
-#define RASTER_DEFAULT_COLOUR	0xFFCCCCCC
 
 #define RASTER_MESH_FILE_MAGIC		0x48534D52  //RMSH.
 #define RASTER_MESH_FILE_VERSION	1
@@ -80,206 +71,13 @@ void CRasterMesh::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static uint32 RasterColour(CMesh* pcMesh, int iFace)
+void CRasterMesh::Clear(void)
 {
-	int		iColour;
-	ARGB32	uiColour;
-
-	if (!pcMesh->mcColours.InUse())
-	{
-		return RASTER_DEFAULT_COLOUR;
-	}
-
-	iColour = pcMesh->mcColours.mcFaces.Get(iFace)->aiCornerColours[0];
-	if (iColour < 0)
-	{
-		return RASTER_DEFAULT_COLOUR;
-	}
-
-	uiColour = pcMesh->mcColours.mcColours.GetValue(iColour);
-	return ((uint32)Get8BitAlphaColour(uiColour) << 24) | ((uint32)Get8BitRedColour(uiColour) << 16) | ((uint32)Get8BitGreenColour(uiColour) << 8) | (uint32)Get8BitBlueColour(uiColour);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Centred on the origin, and scaled so that its largest half width is
-// RASTER_MESH_HALF_EXTENT.
-//
-//////////////////////////////////////////////////////////////////////////
-void CRasterMesh::Build(CMesh* pcMesh)
-{
-	SFloat32Vec3	sMin;
-	SFloat32Vec3	sMax;
-	SFloat32Vec3	sCentre;
-	float32			fHalfExtent;
-	int32			iScale;
-
-	if (!FindBounds(pcMesh, &sMin, &sMax))
-	{
-		return;
-	}
-	sCentre.Init((sMin.x + sMax.x) * 0.5f, (sMin.y + sMax.y) * 0.5f, (sMin.z + sMax.z) * 0.5f);
-
-	fHalfExtent = (sMax.x - sMin.x) * 0.5f;
-	if ((sMax.y - sMin.y) * 0.5f > fHalfExtent)
-	{
-		fHalfExtent = (sMax.y - sMin.y) * 0.5f;
-	}
-	if ((sMax.z - sMin.z) * 0.5f > fHalfExtent)
-	{
-		fHalfExtent = (sMax.z - sMin.z) * 0.5f;
-	}
-	iScale = (fHalfExtent > 0.0f) ? (int32)floor((float64)RASTER_MESH_HALF_EXTENT / (float64)fHalfExtent) : 1;
-	BuildFrom(pcMesh, &sCentre, iScale);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Where it is, with iScale units to each of the mesh's.
-//
-//////////////////////////////////////////////////////////////////////////
-void CRasterMesh::Build(CMesh* pcMesh, int32 iScale)
-{
-	SFloat32Vec3	sMin;
-	SFloat32Vec3	sMax;
-	SFloat32Vec3	sCentre;
-
-	if (FindBounds(pcMesh, &sMin, &sMax))
-	{
-		sCentre.Init(0.0f, 0.0f, 0.0f);
-		BuildFrom(pcMesh, &sCentre, iScale);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Empties this mesh.  False if pcMesh has nothing to build.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CRasterMesh::FindBounds(CMesh* pcMesh, SFloat32Vec3* psMin, SFloat32Vec3* psMax)
-{
-	SFloat32Vec3*	psPosition;
-	int				iNumCorners;
-	int				i;
-
 	masVertices.ReInit();
 	masOpaque.ReInit();
 	masTransparent.ReInit();
 	msMin.Init(0, 0, 0);
 	msMax.Init(0, 0, 0);
-
-	iNumCorners = pcMesh->NumCorners();
-	if ((iNumCorners == 0) || (pcMesh->NumFaces() == 0))
-	{
-		return false;
-	}
-
-	*psMin = *pcMesh->GetPosition(0);
-	*psMax = *psMin;
-	for (i = 1; i < iNumCorners; i++)
-	{
-		psPosition = pcMesh->GetPosition(i);
-		Float32Vec3Minimize(psMin, psMin, psPosition);
-		Float32Vec3Maximize(psMax, psMax, psPosition);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Corners are shared between faces if they use the same normal.  Only each corner's latest vertex is checked: a corner
-// whose faces alternate normals gets extra vertices but they look the same.
-//
-//////////////////////////////////////////////////////////////////////////
-void CRasterMesh::BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale)
-{
-	SFloat32Vec3*		psPosition;
-	SFloat32Vec3*		psNormal;
-	SFloat32Vec3		sOffset;
-	CArrayInt			aiCornerVertex;
-	CArrayInt			aiVertexNormal;
-	int*				piCorners;
-	SMeshNormalFace*	psNormalFace;
-	SRasterVertex*		psVertex;
-	SRasterTriangle*	psTriangle;
-	int					iNumCorners;
-	int					iNumFaces;
-	int					i;
-	int					k;
-	int					iCorner;
-	int					iNormal;
-	int					iVertex;
-	int					aiVertex[3];
-	uint32				uiColour;
-	bool				bNormals;
-
-	iNumCorners = pcMesh->NumCorners();
-	iNumFaces = pcMesh->NumFaces();
-	bNormals = pcMesh->mcNormals.InUse();
-
-	aiCornerVertex.Init();
-	aiVertexNormal.Init();
-	aiCornerVertex.Resize(iNumCorners);
-	aiCornerVertex.SetArrayValues(-1);
-
-	for (i = 0; i < iNumFaces; i++)
-	{
-		piCorners = pcMesh->GetFaceCorners(i);
-		psNormalFace = bNormals ? pcMesh->mcNormals.mcFaces.Get(i) : NULL;
-
-		for (k = 0; k < 3; k++)
-		{
-			iCorner = piCorners[k];
-
-			iNormal = -1;
-			if (bNormals)
-			{
-				iNormal = psNormalFace->aiCornerNormals[k];
-				if (iNormal < 0)
-				{
-					iNormal = psNormalFace->iFaceNormal;
-				}
-			}
-
-			iVertex = aiCornerVertex.GetValue(iCorner);
-			if ((iVertex < 0) || (aiVertexNormal.GetValue(iVertex) != iNormal))
-			{
-				iVertex = (int)masVertices.NumElements();
-				aiCornerVertex.SetValue(iCorner, iVertex);
-				aiVertexNormal.Add(iNormal);
-
-				psPosition = pcMesh->GetPosition(iCorner);
-				sOffset.Init(psPosition->x - psCentre->x, psPosition->y - psCentre->y, psPosition->z - psCentre->z);
-
-				psVertex = masVertices.Add();
-				memset(psVertex, 0, sizeof(SRasterVertex));  //Its padding is saved with it, so Save writes the same bytes each time.
-				psVertex->sPosition.Init(FloatToIntScaled(sOffset.x, iScale), FloatToIntScaled(sOffset.y, iScale), FloatToIntScaled(sOffset.z, iScale));
-				psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
-				if (iNormal >= 0)
-				{
-					psNormal = pcMesh->mcNormals.mcNormals.Get(iNormal);
-					psVertex->sNormal.Init(SRasterUnit::FromFloat(psNormal->x), SRasterUnit::FromFloat(psNormal->y), SRasterUnit::FromFloat(psNormal->z));
-				}
-			}
-			aiVertex[k] = iVertex;
-		}
-
-		uiColour = RasterColour(pcMesh, i);
-		psTriangle = ((uiColour >> 24) == 0xFF) ? masOpaque.Add() : masTransparent.Add();
-		psTriangle->aiVertex[0] = aiVertex[0];
-		psTriangle->aiVertex[1] = aiVertex[1];
-		psTriangle->aiVertex[2] = aiVertex[2];
-		psTriangle->uiColour = uiColour;
-	}
-
-	aiVertexNormal.Kill();
-	aiCornerVertex.Kill();
-
-	UpdateBounds();
 }
 
 
@@ -457,9 +255,7 @@ bool CRasterMesh::Load(const char* szFilename, uint64 uiSource)
 	bResult = bResult && (sHeader.uiMagic == RASTER_MESH_FILE_MAGIC) && (sHeader.uiVersion == RASTER_MESH_FILE_VERSION) && (sHeader.uiSource == uiSource);
 	if (bResult)
 	{
-		masVertices.ReInit();
-		masOpaque.ReInit();
-		masTransparent.ReInit();
+		Clear();
 		masVertices.Resize(sHeader.uiNumVertices);
 		masOpaque.Resize(sHeader.uiNumOpaque);
 		masTransparent.Resize(sHeader.uiNumTransparent);

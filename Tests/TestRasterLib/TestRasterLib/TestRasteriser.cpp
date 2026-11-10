@@ -7,6 +7,7 @@
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/Mesh.h"
 #include "RasterLib/Rasteriser.h"
+#include "RasterRenderLib/RasterMeshBuild.h"
 #include "TestLib/Assert.h"
 
 
@@ -334,7 +335,7 @@ void TestRasteriserMesh(void)
 	cMesh.AddFace(5, 7, 6);
 
 	cRaster.Init();
-	cRaster.Build(&cMesh);
+	BuildRasterMesh(&cRaster, &cMesh);
 
 	puiFirst = (uint32*)malloc(64 * 64 * sizeof(uint32));
 	puiSecond = (uint32*)malloc(64 * 64 * sizeof(uint32));
@@ -490,7 +491,7 @@ void TestRasteriserInstances(void)
 	cMesh.AddFace(0, 2, 3);
 
 	cRaster.Init();
-	cRaster.Build(&cMesh, 1 << 20);
+	BuildRasterMesh(&cRaster, &cMesh, 1 << 20);
 
 	puiFirst = (uint32*)malloc(64 * 64 * sizeof(uint32));
 	puiSecond = (uint32*)malloc(64 * 64 * sizeof(uint32));

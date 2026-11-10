@@ -22,7 +22,6 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __RASTER_MESH_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/FixedPoint.h"
-#include "BaseLib/Float32Vec3.h"
 #include "BaseLib/Int32Vec3.h"
 #include "BaseLib/Vec3.h"
 
@@ -54,13 +53,8 @@ typedef CArrayTemplate<SRasterVertex>	CArrayRasterVertex;
 typedef CArrayTemplate<SRasterTriangle>	CArrayRasterTriangle;
 
 
-class CMesh;
-
-
-//The integer copy of a CMesh that CRasteriser draws.  Build is the only place in RasterLib that reads the mesh's floats.
-//
-//The other Build keeps the mesh where it is at a scale that's given, for meshes that are to be drawn together at their
-//true sizes (see SRasterInstance).
+//The integer copy of a mesh that CRasteriser draws.  RasterRenderLib's BuildRasterMesh makes one from a CMesh, as RasterLib
+//knows nothing of the scene.  Clear empties it, and UpdateBounds sets msMin and msMax from its vertices.
 //
 //RemoveDegenerate takes out triangles with no area, which can't be seen.  What's exported from CAD is cleaned up and made
 //simpler for how big it will be drawn by modifiers on the CMesh it's built from (see CMeshFixReversed, CMeshWeldCorners and
@@ -80,8 +74,8 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	void	Build(CMesh* pcMesh);
-	void	Build(CMesh* pcMesh, int32 iScale);
+	void	Clear(void);
+	void	UpdateBounds(void);
 
 	size	RemoveDegenerate(void);
 
@@ -89,11 +83,6 @@ public:
 	bool	Load(const char* szFilename, uint64 uiSource);
 
 	size	NumTriangles(void);
-
-protected:
-	bool	FindBounds(CMesh* pcMesh, SFloat32Vec3* psMin, SFloat32Vec3* psMax);
-	void	BuildFrom(CMesh* pcMesh, SFloat32Vec3* psCentre, int32 iScale);
-	void	UpdateBounds(void);
 };
 
 
