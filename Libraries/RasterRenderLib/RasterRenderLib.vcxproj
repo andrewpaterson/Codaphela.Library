@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="RasterFrame.cpp" />
     <ClCompile Include="RasterMeshBuild.cpp" />
     <ClCompile Include="RasterRenderer.cpp" />
     <ClCompile Include="RasterRenderFactory.cpp" />
     <ClCompile Include="RasterRenderMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RasterFrame.h" />
     <ClInclude Include="RasterMeshBuild.h" />
     <ClInclude Include="RasterRenderer.h" />
     <ClInclude Include="RasterRenderFactory.h" />

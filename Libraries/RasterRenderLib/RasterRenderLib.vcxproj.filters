@@ -6,6 +6,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="RasterFrame.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="RasterMeshBuild.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -20,6 +23,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RasterFrame.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="RasterMeshBuild.h">
       <Filter>Source</Filter>
     </ClInclude>

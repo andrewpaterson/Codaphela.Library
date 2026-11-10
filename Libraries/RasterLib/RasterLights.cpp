@@ -28,15 +28,26 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// From over the viewer's shoulder.
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasterLights::Init(void)
 {
-	SRasterUnitVec3	sTowards;
-
 	masDirectional.Init();
 	masPoint.Init();
+	Default();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// From over the viewer's shoulder.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterLights::Default(void)
+{
+	SRasterUnitVec3	sTowards;
+
+	Clear();
 	miAmbient = RASTER_DEFAULT_AMBIENT;
 	sTowards.Init(SRasterUnit::FromRaw(4096), SRasterUnit::FromRaw(6144), SRasterUnit::FromRaw(14336));
 	AddDirectional(&sTowards, RASTER_DEFAULT_DIFFUSE, true);

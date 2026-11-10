@@ -75,6 +75,8 @@ public:
 
 	Ptr<CRenderMesh>	GetMesh(Ptr<CMeshEditor> pEditor);  //NULL if the scene's instances didn't use it at the last update.
 	size				NumMeshes(void);
+	Ptr<CScene>			GetScene(void);
+	Ptr<CRenderer>		GetRenderer(void);
 
 protected:
 	void					UpdateEditor(Ptr<CMeshEditor> pEditor);

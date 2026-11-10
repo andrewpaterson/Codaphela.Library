@@ -229,6 +229,7 @@
     <ClCompile Include="TestRasteriser.cpp" />
     <ClCompile Include="TestRasterLights.cpp" />
     <ClCompile Include="TestRenderScene.cpp" />
+    <ClCompile Include="TestRasterFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

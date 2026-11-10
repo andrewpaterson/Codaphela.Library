@@ -15,6 +15,7 @@ void TestRasterCamera(void);
 void TestRasteriser(void);
 void TestRasterLights(void);
 void TestRenderScene(void);
+void TestRasterFrame(void);
 
 
 int __cdecl main(void)
@@ -33,6 +34,7 @@ int __cdecl main(void)
 	TestRasteriser();
 	TestRasterLights();
 	TestRenderScene();
+	TestRasterFrame();
 
 	MemoryKill();
 	TypeConverterKill();

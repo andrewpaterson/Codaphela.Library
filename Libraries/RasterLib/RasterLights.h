@@ -76,7 +76,8 @@ typedef CArrayTemplate<SRasterPointLight>		CArrayRasterPointLight;
 
 
 //What CRasteriser shades with: an ambient amount, lights far away and point lights, all grey.  Their amounts add up.  Init
-//gives the light it has always had: 64 ambient and 192 from over the viewer's shoulder.  Clear leaves no light at all.
+//and Default give the light it has always had: 64 ambient and 192 from over the viewer's shoulder.  Clear leaves no light at
+//all.
 //
 //A point light's range, if it has one, is as far as it reaches.  A light with more than RASTER_MAX_ lights of its kind isn't
 //added, and Add returns false.
@@ -90,6 +91,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
+	void	Default(void);
 	void	Clear(void);
 	void	SetAmbient(int32 iAmount);
 	bool	AddDirectional(SRasterUnitVec3* psTowards, int32 iAmount, bool bOnScreen);
