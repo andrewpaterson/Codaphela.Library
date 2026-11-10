@@ -216,7 +216,8 @@ What going through a CScene does to a file.  None of this changes how anything l
 How the converted files were checked, once, as the converter only runs once:
   A decoder with no C++ in it found all 18 follow the format's rules, with Goober's 6134 triangles and Melee's 132,356.
   Goober's bones are all bones, each track has its own connection, its first key is its connection's world matrix, and its skin holds
-  together at every key tried (edges at 0.996 to 1.033 of their rest length).
+  together at every key tried (edges at 0.996 to 1.033 of their rest length).  Its keys were world matrices then; since step 7 they're
+  local, and its first key is its connection's local matrix.
   Images with a source were compared with it: Goober's 2 TGAs and Melee's PNGs.  Into Oblivion's BMPs are gone, so its order comes from
   its CTexture, which puts A8R8G8B8 ints straight into a locked Direct3D texture.  Rendering still has to show its V agrees.
   Melee's Mycon Spore Outer is 515x512 in the DRG and 512x512 as a PNG.  It's the DRG's that was converted, and it isn't sheared.
@@ -291,13 +292,24 @@ Vulkan.
    CMeshRemoveDegenerate is on the models' stack, after CMeshEdgeCollapse, and BuildRasterMesh leaves out what its rounding
    leaves with no area.  The VRML read is lazy as it was: each model's mesh is saved after its modifiers, in millimetres, as a
    .DRG in Output/Models, which a cached model is read from instead.
-7. CConnectionAnimation: keyframes change connections, and step 5 runs again.  A track holds a Ptr to the connection it moves and a
-   CSceneAnimation groups them, which is what a file holds.  Sharing a walk between instances still needs its tracks to name the
-   connections they move, and a player for each instance that binds the names to that instance's connections and says where it is
-   in the walk.
+7. CConnectionAnimation.  Done: keyframes change connections, and step 5 runs again.  A track (CConnectionAnimation) holds a Ptr to
+   the connection it moves and its keys (SConnectionKey: a time and a matrix), and a CSceneAnimation groups tracks, which is what a
+   file holds.  CAnimationPlayer plays one: its time, speed and whether it loops; Apply sets the connections' local matrices and
+   CScene::UpdateConnections makes their world ones.  A player is the app's, not the file's.  The user's decisions:
+     A key is the connection's local matrix, relative to its parent's, so a parent carries what's animated: Goober walks on the
+     spot and its instance's connection moves it.  The format's rule changed from world matrices; the converter makes each old
+     world key relative to its parent's world matrix at the same time, and of the converted files only Goober and Test.DRG changed.
+     Between two keys each is split into scale, rotation and position (BaseLib's Float4x4Decompose), blended, the rotation by
+     slerp, and put back.  What the split loses, the slight shear Goober's keys have, is blended straight, so each key is itself at
+     its time and nothing jumps.
+     Tracks hold Ptrs.  Sharing a walk between instances waits until something needs it: its tracks would name the connections
+     they move, and a player for each instance would bind the names to that instance's connections.
+     Tests prove it, not a picture: played at its start every bone of Goober's is where its file has it, and through the walk,
+     at its keys and between them, no bone changes length.  RenderSceneFile --key poses it the same way, and draws it whole.
 8. Skinning, in software on the raster renderer: per-instance vertices, using each instance mesh's connections.  The fixed point
    skinning goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from
-   its converted file, proves it.
+   its converted file, proves it.  Its mesh is bound in another pose than its walk's first key, so posed at that key its edges are
+   0.09 to 4.4 times their length in the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
 9. In-place updates, if dragging plain meshes is slow.
 10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
 
@@ -313,12 +325,13 @@ source is D:\Work\Star Control\Builds\ViewerV7beta2009.9.20\Goober.DRG and Parti
 What the converter and whatever poses it need to know:
   Pose it with vectors on the left of row-major matrices:
     fWeight * (position * inverse[iMatrix] * world matrix of the instance mesh's mapConnections[iMatrix])
-  A connection's world matrix is its track's first key, so either poses it the same.  This was thought to tear the mesh, but that was
-  the old files' numbering.
-  Its keys hold world matrices.  Its file lost its parents, but the converter found them again: a connection's local matrix was still
-  relative to its parent, and its parent came before it.  So its 67 bones are a skeleton 12 deep under bone_goober_00.  Where a bone
-  and a finger helper are in the same place the first is taken, as either gives the same world matrix.  Its locals were the parent's
-  matrix times the local one, the other way round to a scene file, so the converter works its locals out again from the world ones.
+  A connection's local matrix is its track's first key, so either poses it the same.  That a pose tore the mesh was the old files'
+  numbering.
+  Its old file's keys held world matrices, which the converter makes local.  Its file lost its parents, but the converter found
+  them again: a connection's local matrix was still relative to its parent, and its parent came before it.  So its 67 bones are a
+  skeleton 12 deep under bone_goober_00.  Where a bone and a finger helper are in the same place the first is taken, as either
+  gives the same world matrix.  Its locals were the parent's matrix times the local one, the other way round to a scene file, so
+  the converter works its locals out again from the world ones.
   Its stars are all in a box of size 1 with radii up to 0.0086.  The Viewer made them bigger somehow, which isn't in its file.
   A key's time is seconds from the start of the animation.  CAnimKeyFrame::mfTime is commented as time until the next frame, so
   don't copy one to the other.
