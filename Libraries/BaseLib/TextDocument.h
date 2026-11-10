@@ -105,6 +105,7 @@ public:
 
 	size					NumLines(void);
 	size					GetLineStart(size uiLine);
+	size					GetLineEnd(size uiLine);
 	size					FindLine(size uiPosition);
 	CArrayTextLineStart*	GetLineStarts(void);
 

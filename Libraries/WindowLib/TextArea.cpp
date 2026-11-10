@@ -894,6 +894,15 @@ size CTextArea::GetLineStart(size uiLine) { return mcDocument.GetLineStart(uiLin
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where line uiLine ends: its line feed, or the end of the text for the
+// last line and any past it.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::GetLineEnd(size uiLine) { return mcDocument.GetLineEnd(uiLine); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The line uiPosition (a byte of the text) is on.  A line feed is on the
 // line it ends.
 //

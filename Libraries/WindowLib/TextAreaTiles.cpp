@@ -175,7 +175,6 @@ void CTextAreaTiles::Append(Ptr<CFontColours> pColours, int32 iTabWidth, STextSt
 	size				uiRow;
 	size				uiLineStart;
 	size				uiLineEnd;
-	size				uiLength;
 	char*				szText;
 	CArrayTileTextSpan	asSpans;
 
@@ -199,11 +198,10 @@ void CTextAreaTiles::Append(Ptr<CFontColours> pColours, int32 iTabWidth, STextSt
 	asSpans.Init();
 	MakeSpans(psStyles, mpcDocument->GetLineStart(uiFirstRow), &asSpans);
 	szText = mpcDocument->Text();
-	uiLength = mpcDocument->Length();
 	for (uiRow = uiFirstRow; uiRow < mpcDocument->NumLines(); uiRow++)
 	{
 		uiLineStart = mpcDocument->GetLineStart(uiRow);
-		uiLineEnd = (uiRow + 1 < mpcDocument->NumLines()) ? mpcDocument->GetLineStart(uiRow + 1) - 1 : uiLength;
+		uiLineEnd = mpcDocument->GetLineEnd(uiRow);
 		mpTileWriter->WriteRow((size)masLines.Get(uiRow)->iTop / sCursor.uiCellHeight, &szText[uiLineStart], uiLineEnd - uiLineStart, uiLineStart, &asSpans);
 	}
 	asSpans.Kill();

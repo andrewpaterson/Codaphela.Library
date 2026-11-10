@@ -93,6 +93,19 @@ void TestTextDocumentLines(void)
 	//A line past the last starts at the end.
 	AssertSize(12, cDocument.GetLineStart(5));
 	AssertSize(12, cDocument.GetLineStart(MAX_SIZE));
+
+	//A line ends at its line feed, the last at the end, as does one past it.
+	AssertSize(3, cDocument.GetLineEnd(0));
+	AssertSize(8, cDocument.GetLineEnd(1));
+	AssertSize(9, cDocument.GetLineEnd(2));
+	AssertSize(11, cDocument.GetLineEnd(3));
+	AssertSize(12, cDocument.GetLineEnd(4));
+	AssertSize(12, cDocument.GetLineEnd(5));
+	AssertSize(12, cDocument.GetLineEnd(MAX_SIZE));
+	cDocument.Kill();
+
+	cDocument.Init("ab");
+	AssertSize(2, cDocument.GetLineEnd(0));
 	cDocument.Kill();
 	sz.Kill();
 }

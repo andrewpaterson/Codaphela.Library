@@ -181,6 +181,7 @@ public:
 	//Lines and the gaps below them.
 	size					NumLines(void);
 	size					GetLineStart(size uiLine);
+	size					GetLineEnd(size uiLine);
 	size					FindLine(size uiPosition);
 	bool					GetLineBounds(size uiLine, CInt32Rect* pcDest);
 	bool					SetLineGap(size uiLine, int32 iHeight);
