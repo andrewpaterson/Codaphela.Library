@@ -12,6 +12,9 @@
     <ClCompile Include="RasterCamera.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="RasterLights.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="RasterTarget.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -27,6 +30,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="RasterDivide.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterLights.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="RasterTarget.h">

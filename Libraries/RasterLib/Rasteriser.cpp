@@ -27,11 +27,6 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "RasterDivide.h"
 
 
-//Shade is 0 .. 256.  Ambient and diffuse add up to the most, which a light turned by axes that scale could go past.
-#define RASTER_AMBIENT			64
-#define RASTER_DIFFUSE			192
-#define RASTER_MAX_SHADE		256
-
 //Twice a triangle's area in subpixels squared, 16 pixels.  Below it each covered pixel is worked out exactly, and there
 //is little to do because most triangles here cover a few pixels at most.  From it, gradients step across the triangle.
 #define RASTER_SMALL_AREA		16
@@ -103,9 +98,9 @@ void CRasteriser::Init(void)
 	masListJobs.Init();
 	masBandJobs.Init();
 	masDrawables.Init();
-
-	//From over the viewer's shoulder.
-	msLight.Init(SRasterUnit::FromRaw(4096), SRasterUnit::FromRaw(6144), SRasterUnit::FromRaw(14336));
+	mcLights.Init();
+	muiNumTowards = 0;
+	mauiPointLights.Init();
 }
 
 
@@ -115,6 +110,8 @@ void CRasteriser::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::Kill(void)
 {
+	mauiPointLights.Kill();
+	mcLights.Kill();
 	masDrawables.Kill();
 	masBandJobs.Kill();
 	masListJobs.Kill();
@@ -147,17 +144,161 @@ void CRasteriser::SetJobs(CJobs* pcJobs)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CRasterLights* CRasteriser::GetLights(void)
+{
+	return &mcLights;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each light far away towards it in the space the instances are put in, for
+// this frame.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::PrepareLights(CRasterCamera* pcCamera)
+{
+	SRasterDirectionalLight*	psLight;
+	size						i;
+
+	muiNumTowards = mcLights.masDirectional.NumElements();
+	for (i = 0; i < muiNumTowards; i++)
+	{
+		psLight = mcLights.masDirectional.Get(i);
+		if (psLight->bOnScreen)
+		{
+			pcCamera->ViewToMesh(&masTowards[i], &psLight->sTowards);
+		}
+		else
+		{
+			masTowards[i] = psLight->sTowards;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The point lights that may reach an instance: those whose reach gets to the
+// box its mesh's bounds are in once turned and moved.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CRasteriser::FindPointLights(SRasterInstance* psInstance)
+{
+	SRasterPointLight*	psLight;
+	SInt64Vec3			sCorner;
+	SInt64Vec3			sMin;
+	SInt64Vec3			sMax;
+	int64				aiMoved[3];
+	int64				aiClosest[3];
+	int64				aiLight[3];
+	uint64				uiPointLights;
+	uint64				uiSquared;
+	CRasterMesh*		pcMesh;
+	size				uiNumLights;
+	size				i;
+	int					iCorner;
+	int					iAxis;
+
+	uiNumLights = mcLights.masPoint.NumElements();
+	if (uiNumLights == 0)
+	{
+		return 0;
+	}
+
+	pcMesh = psInstance->pcMesh;
+	sMin.Init(0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL);
+	sMax.Init(-0x7FFFFFFFFFFFFFFFLL, -0x7FFFFFFFFFFFFFFFLL, -0x7FFFFFFFFFFFFFFFLL);
+	for (iCorner = 0; iCorner < 8; iCorner++)
+	{
+		sCorner.Init((iCorner & 1) ? pcMesh->msMax.x : pcMesh->msMin.x, (iCorner & 2) ? pcMesh->msMax.y : pcMesh->msMin.y, (iCorner & 4) ? pcMesh->msMax.z : pcMesh->msMin.z);
+		for (iAxis = 0; iAxis < 3; iAxis++)
+		{
+			aiMoved[iAxis] = ((sCorner.x * psInstance->asAxes[iAxis].x + sCorner.y * psInstance->asAxes[iAxis].y + sCorner.z * psInstance->asAxes[iAxis].z) >> RASTER_AXIS_BITS) + (&psInstance->sOffset.x)[iAxis];
+		}
+		sMin.Init((aiMoved[0] < sMin.x) ? aiMoved[0] : sMin.x, (aiMoved[1] < sMin.y) ? aiMoved[1] : sMin.y, (aiMoved[2] < sMin.z) ? aiMoved[2] : sMin.z);
+		sMax.Init((aiMoved[0] > sMax.x) ? aiMoved[0] : sMax.x, (aiMoved[1] > sMax.y) ? aiMoved[1] : sMax.y, (aiMoved[2] > sMax.z) ? aiMoved[2] : sMax.z);
+	}
+
+	uiPointLights = 0;
+	for (i = 0; i < uiNumLights; i++)
+	{
+		psLight = mcLights.masPoint.Get(i);
+		aiLight[0] = psLight->sPosition.x;
+		aiLight[1] = psLight->sPosition.y;
+		aiLight[2] = psLight->sPosition.z;
+		uiSquared = 0;
+		for (iAxis = 0; iAxis < 3; iAxis++)
+		{
+			aiClosest[iAxis] = aiLight[iAxis];
+			if (aiClosest[iAxis] < (&sMin.x)[iAxis])
+			{
+				aiClosest[iAxis] = (&sMin.x)[iAxis];
+			}
+			else if (aiClosest[iAxis] > (&sMax.x)[iAxis])
+			{
+				aiClosest[iAxis] = (&sMax.x)[iAxis];
+			}
+			aiClosest[iAxis] -= aiLight[iAxis];
+			if ((aiClosest[iAxis] >= psLight->iReach) || (aiClosest[iAxis] <= -psLight->iReach))
+			{
+				uiSquared = psLight->uiReachSquared;
+				break;
+			}
+			uiSquared += (uint64)(aiClosest[iAxis] * aiClosest[iAxis]);
+		}
+		if (uiSquared < psLight->uiReachSquared)
+		{
+			uiPointLights |= (uint64)1 << i;
+		}
+	}
+	return uiPointLights;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the point lights in uiPointLights add at a vertex.  psNormal is its
+// normal in the space the instances are put in, as psPosition is.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CRasteriser::ShadePointLights(uint64 uiPointLights, SInt64Vec3* psNormal, SInt32Vec3* psPosition)
+{
+	int32	iShade;
+	size	i;
+
+	iShade = 0;
+	for (i = 0; uiPointLights != 0; i++, uiPointLights >>= 1)
+	{
+		if (uiPointLights & 1)
+		{
+			iShade += RasterPointShade(mcLights.masPoint.Get(i), psNormal, psPosition);
+		}
+	}
+	return iShade;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarget* pcTarget)
 {
-	size					i;
-	size					uiNumVertices;
-	SRasterVertex*			psVertex;
-	SRasterScreenVertex*	psScreen;
-	SRasterUnitVec3			sLight;
+	size						i;
+	size						j;
+	size						uiNumVertices;
+	SRasterVertex*				psVertex;
+	SRasterScreenVertex*		psScreen;
 	SFixed<int32, int32, 28>	sDot;
+	SInt64Vec3					sNormal;
+	uint64						uiPointLights;
+	int32						iShade;
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
-	pcCamera->ViewToMesh(&sLight, &msLight);
+	PrepareLights(pcCamera);
+	//All the point lights, as the mesh is where it is.
+	uiPointLights = (mcLights.masPoint.NumElements() == 0) ? 0 : ((((uint64)1 << (mcLights.masPoint.NumElements() - 1)) << 1) - 1);
 
 	uiNumVertices = pcMesh->masVertices.NumElements();
 	GrowScreen(uiNumVertices);
@@ -168,12 +309,22 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 	{
 		pcCamera->Project(&psScreen[i], &psVertex[i].sPosition);
 
-		sDot = psVertex[i].sNormal.x * sLight.x + psVertex[i].sNormal.y * sLight.y + psVertex[i].sNormal.z * sLight.z;
-		if (sDot.miRaw < 0)
+		iShade = mcLights.miAmbient;
+		for (j = 0; j < muiNumTowards; j++)
 		{
-			sDot.miRaw = 0;
+			sDot = psVertex[i].sNormal.x * masTowards[j].x + psVertex[i].sNormal.y * masTowards[j].y + psVertex[i].sNormal.z * masTowards[j].z;
+			if (sDot.miRaw < 0)
+			{
+				sDot.miRaw = 0;
+			}
+			iShade += (int32)(SFixed<int64, int64, 28>::FromRaw(sDot.miRaw) * SRasterWideWhole::FromRaw(mcLights.masDirectional.Get(j)->iAmount)).Floor();
 		}
-		psScreen[i].iShade = RasterClampShade(RASTER_AMBIENT + (int32)(SFixed<int64, int64, 28>::FromRaw(sDot.miRaw) * SRasterWideWhole::FromRaw(RASTER_DIFFUSE)).Floor());
+		if (uiPointLights != 0)
+		{
+			sNormal.Init(psVertex[i].sNormal.x.miRaw, psVertex[i].sNormal.y.miRaw, psVertex[i].sNormal.z.miRaw);
+			iShade += ShadePointLights(uiPointLights, &sNormal, &psVertex[i].sPosition);
+		}
+		psScreen[i].iShade = RasterClampShade(iShade);
 	}
 
 	DrawTriangles(&pcMesh->masOpaque, psScreen, pcTarget, false, false);
@@ -189,31 +340,32 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 //////////////////////////////////////////////////////////////////////////
 void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget)
 {
-	SRasterUnitVec3			sLight;
 	SRasterScreenVertex*	psScreen;
 	size					uiNumVertices;
 	size					i;
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
-	pcCamera->ViewToMesh(&sLight, &msLight);
+	PrepareLights(pcCamera);
 
 	uiNumVertices = 0;
+	mauiPointLights.Resize(uiNumInstances);
 	for (i = 0; i < uiNumInstances; i++)
 	{
 		uiNumVertices += asInstances[i].pcMesh->masVertices.NumElements();
+		mauiPointLights.SetValue(i, FindPointLights(&asInstances[i]));
 	}
 	GrowScreen(uiNumVertices);
 
 	if ((mpcJobs != NULL) && (mpcJobs->NumThreads() > 1))
 	{
-		DrawWithJobs(asInstances, uiNumInstances, pcCamera, &sLight, pcTarget);
+		DrawWithJobs(asInstances, uiNumInstances, pcCamera, pcTarget);
 		return;
 	}
 
 	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		ProjectInstance(&asInstances[i], pcCamera, &sLight, psScreen, 0, asInstances[i].pcMesh->masVertices.NumElements());
+		ProjectInstance(&asInstances[i], pcCamera, mauiPointLights.GetValue(i), psScreen, 0, asInstances[i].pcMesh->masVertices.NumElements());
 		DrawTriangles(&asInstances[i].pcMesh->masOpaque, psScreen, pcTarget, false, asInstances[i].bMirrored);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
@@ -231,7 +383,7 @@ void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRaste
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, CRasterTarget* pcTarget)
+void CRasteriser::DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget)
 {
 	SRasterProjectJob*		psProjectJob;
 	SRasterBandJob*			psBandJob;
@@ -265,7 +417,7 @@ void CRasteriser::DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances
 			psProjectJob->pcRasteriser = this;
 			psProjectJob->psInstance = &asInstances[i];
 			psProjectJob->pcCamera = pcCamera;
-			psProjectJob->psLight = psLight;
+			psProjectJob->uiPointLights = mauiPointLights.GetValue(i);
 			psProjectJob->psScreen = psScreen;
 			psProjectJob->uiFirst = uiFirst;
 			psProjectJob->uiNumVertices = ((uiNumVertices - uiFirst) < RASTER_JOB_VERTICES) ? (uiNumVertices - uiFirst) : RASTER_JOB_VERTICES;
@@ -395,27 +547,31 @@ static bool RasterQuarterTurn(SInt32Vec3* psAxis, int32* piFrom, int32* piSign)
 //////////////////////////////////////////////////////////////////////////
 //
 // Some of an instance's vertices on the screen, from psScreen, which is where
-// its first vertex goes.  psLight is towards the
-// light in the space the instances are in.  Turning it back into the mesh's
+// its first vertex goes.  Turning the lights far away back into the mesh's
 // space by the light axes, once, is the same as turning every normal out of
 // it.  A board's vertices often have the normal of the one before, and so its
-// shade.
+// shade from them.  A point light is worked out at each vertex, from the
+// normal turned out by the light axes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices)
+void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, uint64 uiPointLights, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices)
 {
 	size					i;
+	size					j;
 	SRasterVertex*			psVertex;
 	SInt64Vec3				sAxes[3];
+	SInt64Vec3				sLightAxes[3];
 	SInt64Vec3				sPosition;
 	SInt64Vec3				sNormal;
-	SInt64Vec3				sLight;
+	SInt64Vec3				sTurnedNormal;
+	SInt64Vec3				asTowards[RASTER_MAX_DIRECTIONAL_LIGHTS];
 	SInt32Vec3				sMoved;
 	int64					iDot;
 	int32					aiFrom[3];
 	int32					aiSign[3];
 	int32*					piPosition;
 	int32					iShade;
+	int32					iFarShade;
 	int32					iLastX;
 	int32					iLastY;
 	int32					iLastZ;
@@ -430,17 +586,18 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 	iLastY = 0;
 	iLastZ = 0;
 	iShade = 0;
+	iFarShade = 0;
 
 	for (i = 0; i < 3; i++)
 	{
-		sAxes[i].Init(psInstance->asLightAxes[i].x, psInstance->asLightAxes[i].y, psInstance->asLightAxes[i].z);
-	}
-	sLight.Init((sAxes[0].x * psLight->x.miRaw + sAxes[1].x * psLight->y.miRaw + sAxes[2].x * psLight->z.miRaw) >> RASTER_AXIS_BITS,
-				(sAxes[0].y * psLight->x.miRaw + sAxes[1].y * psLight->y.miRaw + sAxes[2].y * psLight->z.miRaw) >> RASTER_AXIS_BITS,
-				(sAxes[0].z * psLight->x.miRaw + sAxes[1].z * psLight->y.miRaw + sAxes[2].z * psLight->z.miRaw) >> RASTER_AXIS_BITS);
-	for (i = 0; i < 3; i++)
-	{
 		sAxes[i].Init(psInstance->asAxes[i].x, psInstance->asAxes[i].y, psInstance->asAxes[i].z);
+		sLightAxes[i].Init(psInstance->asLightAxes[i].x, psInstance->asLightAxes[i].y, psInstance->asLightAxes[i].z);
+	}
+	for (j = 0; j < muiNumTowards; j++)
+	{
+		asTowards[j].Init((sLightAxes[0].x * masTowards[j].x.miRaw + sLightAxes[1].x * masTowards[j].y.miRaw + sLightAxes[2].x * masTowards[j].z.miRaw) >> RASTER_AXIS_BITS,
+						  (sLightAxes[0].y * masTowards[j].x.miRaw + sLightAxes[1].y * masTowards[j].y.miRaw + sLightAxes[2].y * masTowards[j].z.miRaw) >> RASTER_AXIS_BITS,
+						  (sLightAxes[0].z * masTowards[j].x.miRaw + sLightAxes[1].z * masTowards[j].y.miRaw + sLightAxes[2].z * masTowards[j].z.miRaw) >> RASTER_AXIS_BITS);
 	}
 
 	psVertex = psInstance->pcMesh->masVertices.GetData();
@@ -468,14 +625,27 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 			iLastY = psVertex[i].sNormal.y.miRaw;
 			iLastZ = psVertex[i].sNormal.z.miRaw;
 			sNormal.Init(iLastX, iLastY, iLastZ);
-			iDot = Int64Vec3Dot(&sNormal, &sLight);
-			if (iDot < 0)
+			iFarShade = mcLights.miAmbient;
+			for (j = 0; j < muiNumTowards; j++)
 			{
-				iDot = 0;
+				iDot = Int64Vec3Dot(&sNormal, &asTowards[j]);
+				if (iDot < 0)
+				{
+					iDot = 0;
+				}
+				iFarShade += (int32)((iDot * mcLights.masDirectional.Get(j)->iAmount) >> (SRasterUnit::Bits * 2));
 			}
-			iShade = RasterClampShade(RASTER_AMBIENT + (int32)((iDot * RASTER_DIFFUSE) >> (SRasterUnit::Bits * 2)));
+			iShade = RasterClampShade(iFarShade);
 		}
-		psScreen[i].iShade = iShade;
+		if (uiPointLights != 0)
+		{
+			sTurnedNormal.Init(Int64Vec3Dot(&sNormal, &sLightAxes[0]) >> RASTER_AXIS_BITS, Int64Vec3Dot(&sNormal, &sLightAxes[1]) >> RASTER_AXIS_BITS, Int64Vec3Dot(&sNormal, &sLightAxes[2]) >> RASTER_AXIS_BITS);
+			psScreen[i].iShade = RasterClampShade(iFarShade + ShadePointLights(uiPointLights, &sTurnedNormal, &sMoved));
+		}
+		else
+		{
+			psScreen[i].iShade = iShade;
+		}
 	}
 }
 
@@ -771,7 +941,7 @@ void CRasteriser::ProjectJob(void* pvJob)
 	SRasterProjectJob*	psJob;
 
 	psJob = (SRasterProjectJob*)pvJob;
-	psJob->pcRasteriser->ProjectInstance(psJob->psInstance, psJob->pcCamera, psJob->psLight, psJob->psScreen, psJob->uiFirst, psJob->uiNumVertices);
+	psJob->pcRasteriser->ProjectInstance(psJob->psInstance, psJob->pcCamera, psJob->uiPointLights, psJob->psScreen, psJob->uiFirst, psJob->uiNumVertices);
 }
 
 

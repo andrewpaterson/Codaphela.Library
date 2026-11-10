@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="RasterMesh.cpp" />
     <ClCompile Include="RasterCamera.cpp" />
+    <ClCompile Include="RasterLights.cpp" />
     <ClCompile Include="RasterTarget.cpp" />
     <ClCompile Include="Rasteriser.cpp" />
   </ItemGroup>
@@ -28,6 +29,7 @@
     <ClInclude Include="RasterMesh.h" />
     <ClInclude Include="RasterCamera.h" />
     <ClInclude Include="RasterDivide.h" />
+    <ClInclude Include="RasterLights.h" />
     <ClInclude Include="RasterTarget.h" />
     <ClInclude Include="Rasteriser.h" />
   </ItemGroup>

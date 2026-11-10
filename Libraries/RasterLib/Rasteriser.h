@@ -21,8 +21,10 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __RASTERISER_H__
 #define __RASTERISER_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePrimitive.h"
 #include "BaseLib/Jobs.h"
 #include "RasterCamera.h"
+#include "RasterLights.h"
 #include "RasterMesh.h"
 #include "RasterTarget.h"
 
@@ -65,7 +67,7 @@ struct SRasterProjectJob
 	CRasteriser*			pcRasteriser;
 	SRasterInstance*		psInstance;
 	CRasterCamera*			pcCamera;
-	SRasterUnitVec3*		psLight;
+	uint64					uiPointLights;  //Those that may reach the instance, a bit each.
 	SRasterScreenVertex*	psScreen;  //The instance's first vertex.
 	size					uiFirst;
 	size					uiNumVertices;
@@ -103,6 +105,7 @@ typedef CArrayTemplate<SRasterProjectJob>	CArrayRasterProjectJob;
 typedef CArrayTemplate<SRasterListJob>		CArrayRasterListJob;
 typedef CArrayTemplate<SRasterBandJob>		CArrayRasterBandJob;
 typedef CArrayTemplate<SRasterDrawable>		CArrayRasterDrawable;
+typedef CArrayTemplatePrimitive<uint64>		CArrayRasterLightMask;
 
 
 //Draws a CRasterMesh with integer arithmetic only, so that every build draws the same pixels (given the same camera axes).
@@ -110,6 +113,10 @@ typedef CArrayTemplate<SRasterDrawable>		CArrayRasterDrawable;
 //a gap or draw a pixel twice.  Opaque triangles write depth.  Transparent ones are drawn after them, unsorted, testing
 //depth without writing it.  With instances that goes for all of them: every opaque triangle is drawn before any
 //transparent one.
+//
+//GetLights is what it shades with, which starts as the light it has always had (see CRasterLights).  A vertex's shade is
+//worked out when it's projected.  A point light is only worked out for an instance it may reach, by its mesh's bounds
+//turned and moved, so msMin and msMax must be up to date, and then only for a vertex within its reach.
 //
 //Given jobs that can run at the same time (SetJobs), instances are drawn by them: vertices are projected, then the triangles
 //that may draw are found, then the target is drawn a band of rows at a time.  A band draws its triangles in the order they'd
@@ -119,7 +126,10 @@ class CRasteriser
 {
 protected:
 	CArrayRasterScreenVertex	masScreen;  //Only ever grows, as a frame's vertices are about the same as the last's.
-	SRasterUnitVec3				msLight;  //Towards the light, on the screen.
+	CRasterLights				mcLights;
+	SRasterUnitVec3				masTowards[RASTER_MAX_DIRECTIONAL_LIGHTS];  //This frame's, in the space the instances are put in.
+	size						muiNumTowards;
+	CArrayRasterLightMask		mauiPointLights;  //The point lights that may reach each instance this frame.
 	bool						mbCullBackFaces;
 	CJobs*						mpcJobs;  //What draws instances (SetJobs), NULL to draw them on the caller's thread.
 	CArrayRasterProjectJob		masProjectJobs;
@@ -131,8 +141,9 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	void	SetCullBackFaces(bool bCullBackFaces);
-	void	SetJobs(CJobs* pcJobs);
+	void			SetCullBackFaces(bool bCullBackFaces);
+	void			SetJobs(CJobs* pcJobs);
+	CRasterLights*	GetLights(void);
 
 	void	Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarget* pcTarget);
 	void	Draw(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget);
@@ -140,10 +151,13 @@ public:
 
 protected:
 	void	GrowScreen(size uiNumVertices);
-	void	DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, CRasterTarget* pcTarget);
+	void	PrepareLights(CRasterCamera* pcCamera);
+	uint64	FindPointLights(SRasterInstance* psInstance);
+	int32	ShadePointLights(uint64 uiPointLights, SInt64Vec3* psNormal, SInt32Vec3* psPosition);
+	void	DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget);
 	void	AddListJobs(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables);
 	void	DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent, int32 iTop, int32 iBottom);
-	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, SRasterUnitVec3* psLight, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices);
+	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, uint64 uiPointLights, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices);
 	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored);
 
 	static void	ProjectJob(void* pvJob);
