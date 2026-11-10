@@ -195,12 +195,14 @@ enum ESceneFileTexture
 };
 
 
-//The values of these are in files.
+//The values of these are in files, and are ELightType's.  An ambient light lights everything the same, so where it's attached
+//doesn't matter.
 enum ESceneFileLightType
 {
 	SFLT_Omni,
 	SFLT_Directional,
 	SFLT_Spot,
+	SFLT_Ambient,
 };
 
 

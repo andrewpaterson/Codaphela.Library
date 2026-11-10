@@ -34,15 +34,18 @@ enum ELightDecayType
 };
 
 
+//The same values as ESceneFileLightType.
 enum ELightType
 {
 	LT_Omni,
 	LT_Directional,
-	LT_Spot
+	LT_Spot,
+	LT_Ambient,
 };
 
 
-//Shines along its connection's -z.  mpConnection is NULL if it isn't placed anywhere.
+//Shines along its connection's -z.  mpConnection is NULL if it isn't placed anywhere.  An ambient light lights everything the
+//same, so it needs no connection.
 class CLight : public CObject
 {
 CONSTRUCTABLE(CLight);

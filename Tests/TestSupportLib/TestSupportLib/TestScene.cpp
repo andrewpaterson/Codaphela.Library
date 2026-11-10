@@ -593,6 +593,35 @@ void TestSceneUpdateConnections(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An ambient light needs no connection, and keeps its type through a file.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneAmbientLight(void)
+{
+	Ptr<CScene>	pScene;
+	Ptr<CLight>	pLight;
+
+	pScene = OMalloc<CScene>();
+	pLight = OMalloc<CLight>();
+	pLight->mszName.Append("Sky");
+	pLight->meType = LT_Ambient;
+	pLight->mfIntensity = 0.25f;
+	pScene->mapLights.Add(pLight);
+	AssertTrue(pScene->WriteFile(SCENE_OUTPUT_A));
+
+	pScene = OMalloc<CScene>();
+	AssertTrue(pScene->ReadFile(SCENE_OUTPUT_A));
+	AssertSize(1, pScene->mapLights.NumElements());
+	pLight = pScene->mapLights.Get(0);
+	AssertString("Sky", pLight->mszName.Text());
+	AssertInt(LT_Ambient, pLight->meType);
+	AssertFloat(0.25f, pLight->mfIntensity, 3);
+	AssertTrue(pLight->mpConnection.IsNull());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSceneFailures(void)
@@ -644,6 +673,7 @@ void TestScene(void)
 	TestSceneImages();
 	TestSceneSmoothGroups();
 	TestSceneUpdateConnections();
+	TestSceneAmbientLight();
 
 	sLogConfig = gcLogger.SetSilent();
 	TestSceneFailures();
