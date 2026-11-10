@@ -2,6 +2,7 @@
 #include <string.h>
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/NativeThread.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Sound.h"
 #include "SupportLib/SoundCel.h"
@@ -100,14 +101,14 @@ public:
 		U_UInt8(muiRight);
 	}
 
-	lsize Fill(Ptr<CSound> pBuffer) override
+	lsize Fill(CSound* pcBuffer) override
 	{
 		lsize	uiFrames;
 		uint8*	pui;
 		lsize	i;
 
-		uiFrames = muiPending < pBuffer->GetNumFrames() ? muiPending : pBuffer->GetNumFrames();
-		pui = (uint8*)pBuffer->GetData();
+		uiFrames = muiPending < pcBuffer->GetNumFrames() ? muiPending : pcBuffer->GetNumFrames();
+		pui = (uint8*)pcBuffer->GetData();
 		for (i = 0; i < uiFrames; i++)
 		{
 			pui[i * 2] = muiLeft;
@@ -198,7 +199,6 @@ void TestSoundMixerCelVoice(void)
 	int16					aiSamples[1000];
 	lsize					i;
 	bool					bSame;
-	uint32					uiDelay;
 
 	cSoundFactory.Init(&gcMemoryAllocator);
 	{
@@ -209,19 +209,9 @@ void TestSoundMixerCelVoice(void)
 		pMixer = OMalloc<CSoundMixer>(&cSoundFactory, (uint32)48000);
 		pcNative = (CTestNativeSoundMixer*)pMixer->GetNativeMixer();
 
-		//With nothing playing the mixer needn't be mixed again.
-		AssertFalse(pMixer->GetMixDelay(&uiDelay));
 		pVoice = OMalloc<CSoundCelVoice>(MakeTestMonoSound(48000, 1000, aiSamples), (lsize)SOUND_CEL_NO_LOOP);
 		pMixer->AddVoice(pVoice);
 		AssertSize(1, pMixer->NumVoices());
-
-		//Playing, it must be mixed again within a quarter of its lead.
-		AssertTrue(pMixer->GetMixDelay(&uiDelay));
-		AssertInt(SOUND_MIXER_DEFAULT_LEAD_MS / 4, uiDelay);
-		pMixer->SetLead(40);
-		AssertTrue(pMixer->GetMixDelay(&uiDelay));
-		AssertInt(10, uiDelay);
-		pMixer->SetLead(SOUND_MIXER_DEFAULT_LEAD_MS);
 
 		//A mono sound plays on both sides.
 		pMixer->Mix(600);
@@ -241,7 +231,6 @@ void TestSoundMixerCelVoice(void)
 		AssertShort(0, pcNative->Right(1199));
 		AssertTrue(pVoice->IsFinished());
 		AssertSize(0, pMixer->NumVoices());
-		AssertFalse(pMixer->GetMixDelay(&uiDelay));
 
 		//Half volume.
 		pVoice = OMalloc<CSoundCelVoice>(MakeTestMonoSound(48000, 1000, aiSamples), (lsize)SOUND_CEL_NO_LOOP);
@@ -372,6 +361,27 @@ void TestSoundMixerStreamVoice(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many frames the mixer has written to the test's host, which its
+// thread writes under its lock.
+//
+//////////////////////////////////////////////////////////////////////////
+static lsize NumTestFramesWritten(CSoundMixer* pcMixer)
+{
+	lsize	uiFrames;
+
+	pcMixer->Lock();
+	uiFrames = ((CTestNativeSoundMixer*)pcMixer->GetNativeMixer())->muiWrittenFrames;
+	pcMixer->Unlock();
+	return uiFrames;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While a window is shown its mixer keeps the host a lead ahead on a
+// thread of its own: the first lead is mixed as it starts and, as the
+// test's output never plays, a whole lead each time the thread wakes.  It
+// stops with the window.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerWindow(void)
@@ -391,19 +401,25 @@ void TestSoundMixerWindow(void)
 		Ptr<CTickTestRefWindow>		pTick;
 		SDataTestRefWindow			cData;
 		CPointer					pNull;
-		CTestNativeSoundMixer*		pcNative;
+		lsize						uiWritten;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 2);
 		pWindow = OMalloc<CWindow>("Sound Window", &cNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		AssertTrue(pWindow->GetSoundMixer().IsNotNull());
 		AssertInt(SOUND_MIXER_DEFAULT_SAMPLE_RATE, pWindow->GetSoundMixer()->GetSampleRate());
-		pcNative = (CTestNativeSoundMixer*)pWindow->GetSoundMixer()->GetNativeMixer();
+		AssertFalse(pWindow->GetSoundMixer()->IsRunning());
 
-		//Mixed after each of the two ticks; the test's output never plays so each time the whole lead is mixed.
 		pWindow->Show();
 		AssertInt(2, cData.iTick);
-		AssertLSize(9600, pcNative->muiWrittenFrames);
+		AssertFalse(pWindow->GetSoundMixer()->IsRunning());
+		uiWritten = NumTestFramesWritten(&pWindow->GetSoundMixer());
+		AssertTrue(uiWritten >= 4800);
+		AssertLSize(0, uiWritten % 4800);
+
+		//Stopped, it mixes no more.
+		ThreadSleep(SOUND_MIXER_DEFAULT_LEAD_MS);
+		AssertLSize(uiWritten, NumTestFramesWritten(&pWindow->GetSoundMixer()));
 
 		ORoot()->Remove(pWindow);
 		pWindow = NULL;
@@ -423,14 +439,28 @@ void TestSoundMixerWindow(void)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// A window waiting for events wakes in time to mix its sound while a
-// voice is playing.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool StopSoundWindow(Ptr<CWindow> pWindow, size uiWait, int64 iMilliseconds, void* pvContext)
+//What the window's thread saw of the mixer while it was waiting for events.
+struct STestSoundWaiting
 {
+	lsize	uiBefore;
+	lsize	uiAfter;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window's thread sits in its wait for most of a second's lead, as a
+// busy or blocked thread would, and stops the window.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool WaitSoundWindow(Ptr<CWindow> pWindow, size uiWait, int64 iMilliseconds, void* pvContext)
+{
+	STestSoundWaiting*	psWaiting;
+
+	psWaiting = (STestSoundWaiting*)pvContext;
+	psWaiting->uiBefore = NumTestFramesWritten(&pWindow->GetSoundMixer());
+	ThreadSleep(SOUND_MIXER_DEFAULT_LEAD_MS * 3);
+	psWaiting->uiAfter = NumTestFramesWritten(&pWindow->GetSoundMixer());
 	pWindow->Stop();
 	return true;
 }
@@ -438,6 +468,8 @@ static bool StopSoundWindow(Ptr<CWindow> pWindow, size uiWait, int64 iMillisecon
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A window waiting for events doesn't wake to mix its sound, even while a
+// voice is playing: its mixer's thread mixes while it waits.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerWindowWaits(void)
@@ -448,10 +480,13 @@ void TestSoundMixerWindowWaits(void)
 	char						szDirectory[] = "Output" _FS_ "SoundMixerWindowWaits";
 	int16						aiSamples[1000];
 	lsize						i;
+	STestSoundWaiting			sWaiting;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
-	cNativeFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, StopSoundWindow, NULL);
+	sWaiting.uiBefore = 0;
+	sWaiting.uiAfter = 0;
+	cNativeFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, WaitSoundWindow, &sWaiting);
 	cSoundFactory.Init(&gcMemoryAllocator);
 	{
 		Ptr<CWindow>				pWindow;
@@ -472,13 +507,9 @@ void TestSoundMixerWindowWaits(void)
 		AssertTrue(pWindow->Show());
 		pcNativeWindow = (CWaitTestRefWindow*)pWindow->GetNativeWindow();
 		AssertSize(1, pcNativeWindow->NumWaits());
-		AssertLong(SOUND_MIXER_DEFAULT_LEAD_MS / 4, pcNativeWindow->GetWait(0));
-
-		//Without a voice playing it waits for events.
-		pWindow->GetSoundMixer()->RemoveAllVoices();
-		AssertTrue(pWindow->Show());
-		AssertSize(2, pcNativeWindow->NumWaits());
-		AssertLong(-1, pcNativeWindow->GetWait(1));
+		AssertLong(-1, pcNativeWindow->GetWait(0));
+		AssertTrue(sWaiting.uiBefore >= 4800);
+		AssertTrue(sWaiting.uiAfter > sWaiting.uiBefore);
 
 		ORoot()->Remove(pWindow);
 		pWindow = NULL;

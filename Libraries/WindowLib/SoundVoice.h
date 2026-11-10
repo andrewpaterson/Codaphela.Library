@@ -27,6 +27,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //One of the sounds a sound mixer plays, as a canvas draw is what a canvas shows.  Play adds the voice's next frames,
 //at the mixer's sample rate, to what has been mixed so far.  A voice that has finished is taken out of the mixer.
+//
+//Play is called on the mixer's thread, under its lock (see CSoundMixer), so it mustn't make, copy or let go of a
+//Ptr, nor make or free objects: the object graph isn't safe to use from two threads.  It reads the voice's objects
+//through their Ptrs' -> and raw pointers.  SetVolume and Stop write one value each, which the thread reads.
 class CSoundVoice : public CObject
 {
 CONSTRUCTABLE(CSoundVoice);

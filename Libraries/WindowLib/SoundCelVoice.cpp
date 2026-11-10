@@ -99,7 +99,7 @@ void CSoundCelVoice::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSoundCelVoice::Play(float64* pfLeft, float64* pfRight, lsize uiFrames, uint32 uiSampleRate)
 {
-	Ptr<CSound>	pSound;
+	CSound*		pcSound;
 	size		uiLeft;
 	size		uiRight;
 	lsize		uiFirst;
@@ -116,13 +116,13 @@ void CSoundCelVoice::Play(float64* pfLeft, float64* pfRight, lsize uiFrames, uin
 		return;
 	}
 
-	pSound = mpCel->GetSourceSound();
-	fStep = (float64)pSound->GetSampleRate() / (float64)uiSampleRate;
+	pcSound = mpCel->UnsafeGetSourceSound();
+	fStep = (float64)pcSound->GetSampleRate() / (float64)uiSampleRate;
 	uiFirst = (lsize)mfPosition;
 	fStart = mfPosition - (float64)uiFirst;
 	uiSpan = (lsize)(fStart + (float64)(uiFrames - 1) * fStep) + 2;
 
-	GetStereoChannelIndices(&pSound, &uiLeft, &uiRight);
+	GetStereoChannelIndices(pcSound, &uiLeft, &uiRight);
 	pfWorkLeft = GetWork(uiSpan);
 	pfWorkRight = &pfWorkLeft[uiSpan];
 	mpCel->Play(uiLeft, uiFirst, uiSpan, pfWorkLeft);

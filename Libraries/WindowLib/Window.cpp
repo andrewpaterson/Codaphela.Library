@@ -85,8 +85,8 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 //////////////////////////////////////////////////////////////////////////
 //
 // A window given a sound factory has a sound mixer, at the default
-// sample rate, that is mixed after each tick.  The canvas the window is
-// drawn on is in pcFormat.
+// sample rate, that mixes on its own thread while the window is shown.
+// The canvas the window is drawn on is in pcFormat.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat)
@@ -241,8 +241,10 @@ bool CWindow::Load(CObjectReader* pcFile)
 // Each pass executes the native window's events, updates the input, paints
 // the window if it has changed and then ticks it.  Between passes the
 // window sleeps until it has events or something is due: a paint held
-// back by the frame rate, a tick asked for with RequestTick, held chord
-// inputs to let through or sound to mix.  Input, the pointer, activation
+// back by the frame rate, a tick asked for with RequestTick or held chord
+// inputs to let through.  The sound mixer, if there is one, mixes on its
+// own thread from the first pass to the last, and the voices that have
+// finished are taken out after each tick.  Input, the pointer, activation
 // and resizing mark the window changed; anything else that changes what
 // it shows calls Invalidate.  A continuous window, or one whose native
 // window can't wait, never sleeps and paints every pass.
@@ -271,6 +273,10 @@ bool CWindow::Show(void)
 	miTickDelay = -1;
 	miLastPaintTime = GetDebugTickCount() - muiFrameMilliseconds;
 	bFirst = true;
+	if (mpSoundMixer.IsNotNull())
+	{
+		mpSoundMixer->Start();
+	}
 	while (mbTicking)
 	{
 		//The first pass paints the window straight away.
@@ -301,6 +307,10 @@ bool CWindow::Show(void)
 		miTickDelay = -1;
 		RunPosted();
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
+	}
+	if (mpSoundMixer.IsNotNull())
+	{
+		mpSoundMixer->Stop();
 	}
 	return bResult;
 }
@@ -352,10 +362,6 @@ int64 CWindow::GetWaitMilliseconds(void)
 		iWait = ShorterWait(iWait, mpToolTips->GetWait(GetDebugTickCount()));
 	}
 	if (mpcComponentInput && mpcComponentInput->GetEvictionDelay(&uiDelay))
-	{
-		iWait = ShorterWait(iWait, uiDelay);
-	}
-	if (mpSoundMixer.IsNotNull() && mpSoundMixer->GetMixDelay(&uiDelay))
 	{
 		iWait = ShorterWait(iWait, uiDelay);
 	}
@@ -1301,7 +1307,7 @@ void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds
 	mpWindowTick->Tick(this, iUpdateTimeInMillieconds, iTotalTimeInMillieconds);
 	if (mpSoundMixer.IsNotNull())
 	{
-		mpSoundMixer->Mix();
+		mpSoundMixer->RemoveFinishedVoices();
 	}
 }
 

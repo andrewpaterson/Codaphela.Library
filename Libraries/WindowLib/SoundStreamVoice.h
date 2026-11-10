@@ -60,7 +60,7 @@ public:
 
 			void			Play(float64* pfLeft, float64* pfRight, lsize uiFrames, uint32 uiSampleRate) override;
 
-	virtual lsize			Fill(Ptr<CSound> pBuffer) =0;
+	virtual lsize			Fill(CSound* pcBuffer) =0;  //On the mixer's thread: see CSoundVoice.
 	virtual uint32			GetStreamSampleRate(void);  //Zero when the stream isn't playing.
 
 			void			SetLatency(uint32 uiLatencyMs, uint32 uiMaxLatencyMs);

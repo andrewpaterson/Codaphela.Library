@@ -187,7 +187,7 @@ void CSoundStreamVoice::Read(uint32 uiStreamRate)
 	uiBufferFrames = mpBuffer->GetNumFrames();
 	do
 	{
-		uiFilled = Fill(mpBuffer);
+		uiFilled = Fill(&mpBuffer);
 		if (uiFilled > uiBufferFrames)
 		{
 			uiFilled = uiBufferFrames;

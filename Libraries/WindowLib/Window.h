@@ -65,7 +65,7 @@ protected:
 	Ptr<CButton>				mpCancelButton;  //Clicked by escape when no popup is open.
 	bool						mbLayoutAgain;  //A component's required size changed while it was being laid out.
 	CArray<CPopup>				maPopups;  //Open popups, the last opened last.  Each opened by one before it is closed with it.
-	Ptr<CSoundMixer>			mpSoundMixer;  //Only if the window was given a sound factory.  Mixed every tick.
+	Ptr<CSoundMixer>			mpSoundMixer;  //Only if the window was given a sound factory.  Mixes on its own thread while the window is shown.
 	Ptr<CClipboard>				mpClipboard;  //The system's clipboard.
 	bool						mbContinuous;  //Ticked and painted every pass, as a game is, rather than waiting for events.
 	bool						mbRedraw;  //Something has changed since the window was last painted.
