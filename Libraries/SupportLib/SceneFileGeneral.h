@@ -80,7 +80,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //	Animation	Name
 //				Track			Attached		int32 connection
 //								KeyTimes		float32 seconds from the start of the animation
-//								KeyMatrices		float32 x 16 for each key, the connection's world matrix
+//								KeyMatrices		float32 x 16 for each key, the connection's local matrix
 //	Instance	Name
 //				Connections		int32 connections, the instance's own list in slot order
 //				InstanceMesh	MeshIndex		int32 mesh

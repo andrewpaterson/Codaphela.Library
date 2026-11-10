@@ -24,15 +24,16 @@ static void AssertGooberName(CSceneFileReader* pcReader, const char* szExpected)
 //////////////////////////////////////////////////////////////////////
 //
 // A skinned mesh walking in a field of stars, converted from one of the
-// old files.  Each track's first key being its connection's world matrix
-// is what shows they're on the right connections.
+// old files.  Each track's first key being its connection's local matrix
+// is what shows they're on the right connections, and that the keys are
+// relative to their parents.
 //
 //////////////////////////////////////////////////////////////////////
 static void TestSceneFileGooberContents(void)
 {
 	CSceneFileReader	cReader;
 	CChars				szChannels;
-	float32				afWorlds[141 * SCENE_FILE_FLOATS_IN_MATRIX];
+	float32				afLocals[141 * SCENE_FILE_FLOATS_IN_MATRIX];
 	float32				afKeys[80 * SCENE_FILE_FLOATS_IN_MATRIX];
 	float32				afTimes[80];
 	size				i;
@@ -83,7 +84,7 @@ static void TestSceneFileGooberContents(void)
 	for (i = 0; i < 141; i++)
 	{
 		AssertTrue(cReader.BeginConnection(i));
-		AssertTrue(cReader.ReadWorldMatrix(&afWorlds[i * SCENE_FILE_FLOATS_IN_MATRIX]));
+		AssertTrue(cReader.ReadLocalMatrix(&afLocals[i * SCENE_FILE_FLOATS_IN_MATRIX]));
 		AssertTrue(cReader.End());
 	}
 
@@ -102,7 +103,7 @@ static void TestSceneFileGooberContents(void)
 		AssertFloat(0.0f, afTimes[0], 3);
 		for (j = 0; j < SCENE_FILE_FLOATS_IN_MATRIX; j++)
 		{
-			AssertFloat(afWorlds[(i + 1) * SCENE_FILE_FLOATS_IN_MATRIX + j], afKeys[j], 2);
+			AssertFloat(afLocals[(i + 1) * SCENE_FILE_FLOATS_IN_MATRIX + j], afKeys[j], 2);
 		}
 	}
 	AssertTrue(cReader.End());

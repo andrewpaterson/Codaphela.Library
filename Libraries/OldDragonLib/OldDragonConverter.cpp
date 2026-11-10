@@ -36,6 +36,7 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OLD_DRAGON_DEGREES_TO_RADIANS	(3.14159265358979 / 180.0)
 #define OLD_DRAGON_FLOATS_IN_MATRIX		16
 #define OLD_DRAGON_PARENT_TOLERANCE		0.001f
+#define OLD_DRAGON_KEY_TIME_TOLERANCE	0.0001f	//Seconds two keys can be apart and still be the same frame.
 
 
 typedef CArrayTemplatePrimitive<float32>	CArrayConvertFloats;
@@ -1001,6 +1002,99 @@ static void WriteLightsAndCameras(CSceneFileWriter* pcWriter, COldDragonScene* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The sequence moving iConnection, or NULL if none does.
+//
+//////////////////////////////////////////////////////////////////////////
+static COldDragonSequence* FindConnectionSequence(COldDragonScene* pcScene, int32 iConnection)
+{
+	COldDragonSequence*	pcSequence;
+	size				i;
+
+	for (i = 0; i < pcScene->macSequences.NumElements(); i++)
+	{
+		pcSequence = pcScene->macSequences.Get(i);
+		if (GetSequenceConnection(pcScene, pcSequence) == iConnection)
+		{
+			return pcSequence;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The old files' keys are world matrices, and a scene file's are local:
+// relative to the parent's world matrix at the same time.  That's the
+// parent's own key then, if a sequence moves it, and where it is if none
+// does.  A parent moved by a sequence with no key at one of this one's
+// times isn't understood, and fails.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool MakeKeysLocal(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, int32 iConnection, CArrayConvertFloats* pafTimes, CArrayConvertFloats* paf4x4s)
+{
+	COldDragonSequence*	pcParentSequence;
+	CArrayConvertFloats	afParentTimes;
+	CArrayConvertFloats	afParent4x4s;
+	SFloat4x4			sParentWorld;
+	SFloat4x4			sInverse;
+	SFloat4x4			sWorld;
+	SFloat4x4*			psKey;
+	int32				iParent;
+	size				i;
+	size				j;
+	bool				bResult;
+
+	iParent = GetConnectionParent(pcScene, iConnection);
+	if (iParent == SCENE_FILE_NONE)
+	{
+		return true;
+	}
+
+	afParentTimes.Init();
+	afParent4x4s.Init();
+	pcParentSequence = FindConnectionSequence(pcScene, iParent);
+	bResult = true;
+	if (pcParentSequence)
+	{
+		bResult = GetTrackKeys(pcParentSequence, GetConnectionAim(pcScene, pasPlaced, iParent), &afParentTimes, &afParent4x4s);
+	}
+	else
+	{
+		AimMatrix((float32*)&sParentWorld, pcScene->macConnections.Get((size)iParent)->sWorld.af, GetConnectionAim(pcScene, pasPlaced, iParent));
+		Float4x4Inverse(&sInverse, NULL, &sParentWorld);
+	}
+
+	for (i = 0; bResult && (i < pafTimes->NumElements()); i++)
+	{
+		if (pcParentSequence)
+		{
+			for (j = 0; j < afParentTimes.NumElements(); j++)
+			{
+				if (fabsf(afParentTimes.GetValue(j) - pafTimes->GetValue(i)) <= OLD_DRAGON_KEY_TIME_TOLERANCE)
+				{
+					break;
+				}
+			}
+			if (j == afParentTimes.NumElements())
+			{
+				bResult = gcLogger.Error2(__METHOD__, " Connection [", pcScene->macConnections.Get((size)iConnection)->szName, "] has a key where its parent's sequence has none.", NULL);
+				break;
+			}
+			Float4x4Inverse(&sInverse, NULL, (SFloat4x4*)afParent4x4s.Get(j * OLD_DRAGON_FLOATS_IN_MATRIX));
+		}
+		psKey = (SFloat4x4*)paf4x4s->Get(i * OLD_DRAGON_FLOATS_IN_MATRIX);
+		sWorld = *psKey;
+		Float4x4Multiply(psKey, &sWorld, &sInverse);
+	}
+	afParent4x4s.Kill();
+	afParentTimes.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // One animation holds all of a scene's sequences, as they play together.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1032,7 +1126,7 @@ static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene,
 		}
 		afTimes.Init();
 		af4x4s.Init();
-		bResult = GetTrackKeys(pcSequence, GetConnectionAim(pcScene, pasPlaced, iConnection), &afTimes, &af4x4s);
+		bResult = GetTrackKeys(pcSequence, GetConnectionAim(pcScene, pasPlaced, iConnection), &afTimes, &af4x4s) && MakeKeysLocal(pcScene, pasPlaced, iConnection, &afTimes, &af4x4s);
 		if (bResult)
 		{
 			pcWriter->WriteTrack(iConnection, afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());

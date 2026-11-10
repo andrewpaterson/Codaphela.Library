@@ -45,7 +45,8 @@ along with Codaphela RenderSceneFile.  If not, see <http://www.gnu.org/licenses/
 //CRasterMesh already where it is on the screen, as RasterLib has no skinning, connections or textures yet.  A texture is shown by
 //cutting up each triangle and giving the pieces the colour of the texture beneath them.
 //
-//--key poses it at that key of each track, and the connections' world matrices if not given.  The view turns around the middle of what's
+//--key poses it at that key of each track, a key being its connection's local matrix, and draws the connections' world matrices if it isn't
+//given.  The view turns around the middle of what's
 //drawn, unless --camera looks through a camera in the file or --eye looks along -z from a place in the world.  --instance only draws that
 //instance.  Particles are drawn where they are unless --particle-scale spreads them around the origin: Goober's are all in a box of
 //size 1, and whatever made them bigger in the Viewer isn't in its file.
@@ -64,6 +65,7 @@ along with Codaphela RenderSceneFile.  If not, see <http://www.gnu.org/licenses/
 
 
 typedef CArrayTemplatePrimitive<float32>	CArrayRenderFloats;
+typedef CArrayTemplatePrimitive<int32>	CArrayRenderInts;
 typedef CArrayTemplatePrimitive<int32>		CArrayRenderInts;
 typedef CArrayTemplatePrimitive<uint32>		CArrayRenderUints;
 typedef CArrayTemplatePrimitive<uint8>		CArrayRenderBytes;
@@ -283,13 +285,50 @@ bool CRenderScene::Load(SRenderOptions* psOptions)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each connection's world matrix, or that of its track's key.  A track
-// with fewer keys holds its last.
+// Connection uiConnection's world matrix: its local one times its parent's
+// world one, which is made first, or its local one with no parent.
+// pabMade stops a loop of parents going round for ever.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MakeRenderWorld(size uiConnection, CArrayRenderFloats* pafLocals, CArrayRenderInts* paiParents, bool* pabMade, CArrayRenderFloats* pafWorlds)
+{
+	float32*	pfWorld;
+	float32*	pfLocal;
+	int32		iParent;
+
+	if (pabMade[uiConnection])
+	{
+		return;
+	}
+	pabMade[uiConnection] = true;
+
+	pfWorld = pafWorlds->GetData() + uiConnection * RENDER_FLOATS_IN_MATRIX;
+	pfLocal = pafLocals->GetData() + uiConnection * RENDER_FLOATS_IN_MATRIX;
+	iParent = paiParents->GetValue(uiConnection);
+	if ((iParent < 0) || ((size)iParent >= paiParents->NumElements()))
+	{
+		memcpy(pfWorld, pfLocal, sizeof(float32) * RENDER_FLOATS_IN_MATRIX);
+		return;
+	}
+	MakeRenderWorld((size)iParent, pafLocals, paiParents, pabMade, pafWorlds);
+	Float4x4Multiply((SFloat4x4*)pfWorld, (SFloat4x4*)pfLocal, (SFloat4x4*)(pafWorlds->GetData() + (size)iParent * RENDER_FLOATS_IN_MATRIX));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each connection's world matrix, or at a key the one that key makes: a
+// track's key is its connection's local matrix there, and a connection's
+// world matrix is its local one times its parent's.  A track with fewer
+// keys holds its last.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CRenderScene::LoadWorlds(int32 iKey)
 {
 	CArrayRenderFloats	afKeys;
+	CArrayRenderFloats	afLocals;
+	CArrayRenderInts	aiParents;
+	bool*				abMade;
 	size				uiNumConnections;
 	size				uiKey;
 	size				i;
@@ -297,15 +336,22 @@ bool CRenderScene::LoadWorlds(int32 iKey)
 
 	uiNumConnections = mcReader.NumConnections();
 	mafWorlds.Resize(uiNumConnections * RENDER_FLOATS_IN_MATRIX);
+	afLocals.Init();
+	afLocals.Resize(uiNumConnections * RENDER_FLOATS_IN_MATRIX);
+	aiParents.Init();
 	for (i = 0; i < uiNumConnections; i++)
 	{
 		ReturnOnFalse(mcReader.BeginConnection(i));
 		ReturnOnFalse(mcReader.ReadWorldMatrix(mafWorlds.GetData() + i * RENDER_FLOATS_IN_MATRIX));
+		ReturnOnFalse(mcReader.ReadLocalMatrix(afLocals.GetData() + i * RENDER_FLOATS_IN_MATRIX));
+		aiParents.Add(mcReader.GetParent());
 		ReturnOnFalse(mcReader.End());
 	}
 
 	if ((iKey == SCENE_FILE_NONE) || (mcReader.NumAnimations() == 0))
 	{
+		aiParents.Kill();
+		afLocals.Kill();
 		return true;
 	}
 
@@ -317,10 +363,20 @@ bool CRenderScene::LoadWorlds(int32 iKey)
 		afKeys.Resize(mcReader.NumKeys() * RENDER_FLOATS_IN_MATRIX);
 		ReturnOnFalse(mcReader.ReadKeyMatrices(afKeys.GetData()));
 		uiKey = ((size)iKey >= mcReader.NumKeys()) ? mcReader.NumKeys() - 1 : (size)iKey;
-		memcpy(mafWorlds.GetData() + (size)mcReader.GetAttached() * RENDER_FLOATS_IN_MATRIX, afKeys.GetData() + uiKey * RENDER_FLOATS_IN_MATRIX, sizeof(float32) * RENDER_FLOATS_IN_MATRIX);
+		memcpy(afLocals.GetData() + (size)mcReader.GetAttached() * RENDER_FLOATS_IN_MATRIX, afKeys.GetData() + uiKey * RENDER_FLOATS_IN_MATRIX, sizeof(float32) * RENDER_FLOATS_IN_MATRIX);
 		afKeys.Kill();
 		ReturnOnFalse(mcReader.End());
 	}
+
+	abMade = (bool*)malloc(uiNumConnections * sizeof(bool));
+	memset(abMade, 0, uiNumConnections * sizeof(bool));
+	for (i = 0; i < uiNumConnections; i++)
+	{
+		MakeRenderWorld(i, &afLocals, &aiParents, abMade, &mafWorlds);
+	}
+	free(abMade);
+	aiParents.Kill();
+	afLocals.Kill();
 	return mcReader.End();
 }
 

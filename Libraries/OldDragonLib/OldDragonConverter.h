@@ -30,6 +30,7 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 //	Pixels are RGB or RGBA, and a single channel is called A.  Into Oblivion and the 2009 files hold BGR and BGRA, and the Max
 //	exporter's already hold RGB and RGBA.  All have the top row first.
 //	A key's time is from the start of its animation.  The old files hold the time since the previous key, and repeat the last key.
+//	A key is the connection's local matrix, relative to its parent's at that time.  The old files hold world matrices.
 //	A camera's field of view is horizontal, in radians.  The 2009 and Max files hold degrees, and Into Oblivion 3/4 of it in radians.
 //	A camera looks along its connection's -z with y up, and a light shines along -z.  The exporter's looked along their -y with -z
 //	up.  Into Oblivion's one camera is a mirrored matrix that its game replaced when it ran.

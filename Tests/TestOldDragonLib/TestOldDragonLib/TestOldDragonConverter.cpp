@@ -449,6 +449,127 @@ void TestOldDragonConvertKeys(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The identity moved to x.
+//
+//////////////////////////////////////////////////////////////////////////
+static void SetTestTranslation(SOldDragonMatrix* psMatrix, float32 x)
+{
+	int32	i;
+
+	for (i = 0; i < 16; i++)
+	{
+		psMatrix->af[i] = ((i % 5) == 0) ? 1.0f : 0.0f;
+	}
+	psMatrix->af[12] = x;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddTestPlacedConnection(COldDragonScene* pcScene, const char* szName, float32 fLocalX, float32 fWorldX)
+{
+	SOldDragonConnection*	psConnection;
+
+	psConnection = AddTestConnection(pcScene, szName, OLD_DRAGON_NO_INDEX, (int32)pcScene->macConnections.NumElements());
+	SetTestTranslation(&psConnection->sLocal, fLocalX);
+	SetTestTranslation(&psConnection->sWorld, fWorldX);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddTestMovingKey(COldDragonSequence* pcSequence, float32 fWorldX, float32 fTime)
+{
+	SOldDragonKeyFrame*	psKey;
+
+	psKey = pcSequence->macKeyFrames.Add();
+	SetTestTranslation(&psKey->sMatrix, fWorldX);
+	psKey->fTime = fTime;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The old files' keys are world matrices and a scene file's are local:
+// each is made relative to its parent's world matrix at the same time,
+// the parent's own key if it's animated and where it is if it isn't.  A
+// key where an animated parent has none isn't understood.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonConvertLocalKeys(void)
+{
+	COldDragonScene		cScene;
+	COldDragonSequence*	pcSequence;
+	CSceneFileReader	cReader;
+	SLogConfig			sLogConfig;
+	float32				af4x4s[32];
+	size				i;
+	float32				afExpected[3][2] = { { 10.0f, 20.0f }, { 1.0f, 2.0f }, { 1.0f, 2.0f } };
+
+	cScene.Init();
+	cScene.meVersion = ODV_September2009;
+	AddTestPlacedConnection(&cScene, "Root", 10.0f, 10.0f);
+	AddTestPlacedConnection(&cScene, "Bone", 1.0f, 11.0f);
+	AddTestPlacedConnection(&cScene, "Static", 5.0f, 5.0f);
+	AddTestPlacedConnection(&cScene, "Arm", 1.0f, 6.0f);
+
+	pcSequence = cScene.AddSequence();
+	SetTestName(pcSequence->mszName, "Root");
+	AddTestMovingKey(pcSequence, 10.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 20.0f, 0.5f);
+	pcSequence = cScene.AddSequence();
+	SetTestName(pcSequence->mszName, "Bone");
+	AddTestMovingKey(pcSequence, 11.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 22.0f, 0.5f);
+	pcSequence = cScene.AddSequence();
+	SetTestName(pcSequence->mszName, "Arm");
+	AddTestMovingKey(pcSequence, 6.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 7.0f, 0.5f);
+	AssertConverts(&cScene);
+
+	cReader.Init(CONVERTED);
+	AssertTrue(cReader.Open());
+	AssertTrue(cReader.BeginAnimation(0));
+	AssertSize(3, cReader.NumTracks());
+	for (i = 0; i < 3; i++)
+	{
+		AssertTrue(cReader.BeginTrack(i));
+		AssertSize(2, cReader.NumKeys());
+		AssertTrue(cReader.ReadKeyMatrices(af4x4s));
+		AssertFloat(afExpected[i][0], af4x4s[12], 3);
+		AssertFloat(afExpected[i][1], af4x4s[16 + 12], 3);
+		AssertFloat(1.0f, af4x4s[0], 3);
+		AssertTrue(cReader.End());
+	}
+	AssertTrue(cReader.End());
+	cReader.Kill();
+	cScene.Kill();
+
+	//The bone has a key at a time its parent has none.
+	cScene.Init();
+	cScene.meVersion = ODV_September2009;
+	AddTestPlacedConnection(&cScene, "Root", 10.0f, 10.0f);
+	AddTestPlacedConnection(&cScene, "Bone", 1.0f, 11.0f);
+	pcSequence = cScene.AddSequence();
+	SetTestName(pcSequence->mszName, "Root");
+	AddTestMovingKey(pcSequence, 10.0f, 0.0f);
+	pcSequence = cScene.AddSequence();
+	SetTestName(pcSequence->mszName, "Bone");
+	AddTestMovingKey(pcSequence, 11.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 12.0f, 0.25f);
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(WriteOldDragonSceneFile(&cScene, CONVERTED));
+	gcLogger.SetConfig(&sLogConfig);
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestOldDragonConvertNumbering(void)
@@ -948,6 +1069,7 @@ void TestOldDragonConverter(void)
 	TestOldDragonConvertFaces();
 	TestOldDragonConvertImages();
 	TestOldDragonConvertKeys();
+	TestOldDragonConvertLocalKeys();
 	TestOldDragonConvertNumbering();
 	TestOldDragonConvertFromInstances();
 	TestOldDragonConvertFromIntoOblivionNodes();
