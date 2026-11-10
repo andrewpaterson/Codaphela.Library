@@ -2227,7 +2227,12 @@ SCPP65Type* CCPP65Generator::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifie
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An enumerator is one more than the one before it unless it is given a value.
+// An enumerator is one more than the one before it unless it is given a
+// value: the nearest one at or before it that is given a value (or the
+// first, 0) plus how far before it that one is.  Only that value is worked
+// out.  Working out every value before it, each of which can name the one
+// before it (urlmon.h's BINDSTATUS_CONNECTING = (BINDSTATUS_FINDINGRESOURCE
+// + 1) and so on 78 times), doubled the work with each enumerator.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
@@ -2236,6 +2241,9 @@ bool CCPP65Generator::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 	CCPPSyntaxEnumerator*		pcOther;
 	CCPPSyntaxEnumSpecifier*	pcEnum;
 	size						i;
+	size						uiIndex;
+	size						uiValued;
+	size						uiNumEnumerators;
 	int64						lliValue;
 
 	pcEnumerator = (CCPPSyntaxEnumerator*)pcSymbol->mpcDeclaration;
@@ -2245,22 +2253,37 @@ bool CCPP65Generator::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 	}
 	pcEnum = (CCPPSyntaxEnumSpecifier*)pcEnumerator->mpcParent;
 
-	lliValue = 0;
-	for (i = 0; i < pcEnum->macpEnumerators.NumElements(); i++)
+	uiNumEnumerators = pcEnum->macpEnumerators.NumElements();
+	for (uiIndex = 0; uiIndex < uiNumEnumerators; uiIndex++)
 	{
-		pcOther = (CCPPSyntaxEnumerator*)pcEnum->macpEnumerators.GetPtr(i);
-		if (pcOther->mpcValue && !Constant(pcOther->mpcValue, &lliValue))
+		if (pcEnum->macpEnumerators.GetPtr(uiIndex) == pcEnumerator)
 		{
-			return false;
+			break;
 		}
-		if (pcOther == pcEnumerator)
-		{
-			*plliValue = lliValue;
-			return true;
-		}
-		lliValue++;
 	}
-	return false;
+	if (uiIndex == uiNumEnumerators)
+	{
+		return false;
+	}
+
+	//Without one given a value at or before it, it is as far from the first as the first's 0.
+	lliValue = 0;
+	uiValued = 0;
+	for (i = uiIndex + 1; i > 0; i--)
+	{
+		pcOther = (CCPPSyntaxEnumerator*)pcEnum->macpEnumerators.GetPtr(i - 1);
+		if (pcOther->mpcValue)
+		{
+			if (!Constant(pcOther->mpcValue, &lliValue))
+			{
+				return false;
+			}
+			uiValued = i - 1;
+			break;
+		}
+	}
+	*plliValue = lliValue + (int64)(uiIndex - uiValued);
+	return true;
 }
 
 

@@ -425,6 +425,52 @@ void Use(char* sz, char* szOther)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The source of an enum whose 78 enumerators are each the one before plus
+// one, as urlmon.h's tagBINDSTATUS's are, and of a function with a
+// parameter of it (declaring it works out the enum's underlying type).
+// szMain is appended after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppEnumeratorChainSource(CChars* pszDest, const char* szMain)
+{
+	int	i;
+
+	pszDest->Append("typedef enum tagSTATUS\n{\n\tSTATUS_0 = 1,\n");
+	for (i = 1; i < 78; i++)
+	{
+		pszDest->Append("\tSTATUS_");
+		pszDest->Append(i);
+		pszDest->Append(" = ( STATUS_");
+		pszDest->Append(i - 1);
+		pszDest->Append(" + 1 ) ,\n");
+	}
+	pszDest->Append("} STATUS;\n");
+	pszDest->Append("enum EMixed { MIXED_A = 5, MIXED_B, MIXED_C = MIXED_B + 10, MIXED_D };\n");
+	pszDest->Append("int Status(STATUS eStatus) { return eStatus; }\n");
+	pszDest->Append(szMain);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enum of chained enumerators is checked in a moment: an enumerator's
+// value doesn't work out the values of those before it again, which
+// doubled the work with each (TestCPP65IREnumeratorChain has the values).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassEnumeratorChain(void)
+{
+	CChars	szSource;
+
+	szSource.Init();
+	TestCppEnumeratorChainSource(&szSource, "inline int Last(void) { return Status(STATUS_77); }\n");
+	AssertTrue(TestCppSemanticPassCheck(szSource.Text()));
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A class whose name a macro makes, as BaseLib's ARRAY_BLOCK makes
 // CArrayBlock and, included again, CArrayLargeBlock, is defined where the
 // macro was used (flagged CPPIF_MACRO), so Go to Class and Go to
@@ -906,6 +952,7 @@ void TestCppIndex(void)
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassQueued();
 	TestCppSemanticPassHost();
+	TestCppSemanticPassEnumeratorChain();
 	TestCppIndexMacroNames();
 	TestCppIndexContainers();
 	TestCppIndexUsageTypes();

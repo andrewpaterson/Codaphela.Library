@@ -1148,6 +1148,34 @@ void TestCPP65IRNamespaceRuns(void)
 }
 
 
+void TestCppEnumeratorChainSource(CChars* pszDest, const char* szMain);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enumerator without a value is one more than the nearest before it
+// with one, or as far from the first as the first's 0: each of 78
+// enumerators the one before plus one makes the last 78.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IREnumeratorChain(void)
+{
+	CChars	szSource;
+
+	szSource.Init();
+	TestCppEnumeratorChainSource(&szSource, "int main() { return Status(STATUS_77) * 100 + STATUS_0 * 10 + ((STATUS_40 == 41) ? 1 : 0); }\n");
+	AssertInt(7811, TestCPP65Main(szSource.Text()));
+	szSource.Kill();
+
+	szSource.Init();
+	TestCppEnumeratorChainSource(&szSource, "int main() { return MIXED_A * 1000 + MIXED_B * 100 + MIXED_C * 2 + MIXED_D; }\n");
+	AssertInt(5000 + 600 + 32 + 17, TestCPP65Main(szSource.Text()));
+	szSource.Kill();
+
+	AssertInt(134, TestCPP65Main("enum E { A, B, C = 3, D };\nint main() { return A * 1000 + B * 100 + C * 10 + D; }"));
+}
+
+
 static void AssertConstError(const char* szExpected, const char* szSource);
 
 
@@ -1833,6 +1861,7 @@ void TestCPP65IR(void)
 	TestCPP65IROperatorLabels();
 	TestCPP65IRNamespaceLabels();
 	TestCPP65IRNamespaceRuns();
+	TestCPP65IREnumeratorChain();
 	TestCPP65IRNamespaceQualified();
 	TestCPP65IRNamespaceOverloads();
 	TestCPP65IRNamespaceTemplates();
