@@ -97,6 +97,7 @@ public:
 	
 	void			MovePosition(int iPosition, SFloat32Vec3* psPosition);
 	void			MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
+	void			Scale(float32 fScale);  //Every position, by more than 0.  Normals don't change, and neither do a skin's matrices yet.
 
 	void			AddUV(float32 u, float32 v, size iLayer = 0);
 	void			AddNormal(float32 x, float32 y, float32 z);

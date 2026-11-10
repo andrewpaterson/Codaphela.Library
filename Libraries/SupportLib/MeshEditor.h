@@ -107,6 +107,7 @@ public:
 
 	void	MovePosition(int iPosition, SFloat32Vec3* psPosition);
 	void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
+	void	Scale(float32 fScale);  //The mesh, as a unit of it becomes fScale of another, such as metres to millimetres.  A shape modifier's own positions aren't scaled yet.
 
 protected:
 	void	ClearMesh(void);

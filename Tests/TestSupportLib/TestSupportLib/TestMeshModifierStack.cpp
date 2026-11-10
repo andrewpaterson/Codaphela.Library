@@ -327,6 +327,55 @@ void TestMeshEditorModifierChanges(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Scaling moves every position and is a change of shape, so the output is
+// made again from the scaled mesh.  Normals stay as they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshEditorScale(void)
+{
+	Ptr<CMeshEditor>		pEditor;
+	CMeshTestMoveModifier*	pcAdd;
+	SFloat32Vec3*			psPosition;
+	SFloat32Vec3			sNormal;
+	size					uiStructure;
+	size					uiShape;
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->mpMesh->mcNormals.mbInUse = true;
+	pEditor->AddCorner(1, 2, 3);
+	pEditor->AddCorner(4, 0, 0);
+	pEditor->AddCorner(0, 4, 0);
+	pEditor->AddFace(0, 1, 2);
+	pcAdd = pEditor->AddModifier<CMeshTestMoveModifier>();
+	pcAdd->Init(1, 1);
+	pEditor->GetOutput();
+	AssertInt(1, pcAdd->miCalls);
+
+	AssertSize(1, pEditor->mpMesh->mcNormals.mcNormals.NumElements());
+	sNormal = *pEditor->mpMesh->mcNormals.mcNormals.Get(0);
+
+	uiStructure = pEditor->NumStructureChanges();
+	uiShape = pEditor->NumShapeChanges();
+	pEditor->Scale(1000.0f);
+	AssertSize(uiStructure, pEditor->NumStructureChanges());
+	AssertSize(uiShape + 1, pEditor->NumShapeChanges());
+
+	psPosition = pEditor->mpMesh->GetPosition(0);
+	AssertFloat(1000, psPosition->x, 3);
+	AssertFloat(2000, psPosition->y, 3);
+	AssertFloat(3000, psPosition->z, 3);
+	AssertFloat(4000, pEditor->mpMesh->GetPosition(1)->x, 3);
+	AssertFloat(sNormal.x, pEditor->mpMesh->mcNormals.mcNormals.Get(0)->x, 5);
+	AssertFloat(sNormal.y, pEditor->mpMesh->mcNormals.mcNormals.Get(0)->y, 5);
+	AssertFloat(sNormal.z, pEditor->mpMesh->mcNormals.mcNormals.Get(0)->z, 5);
+
+	AssertFloat(1001, pEditor->GetOutput()->GetPosition(0)->x, 3);
+	AssertInt(2, pcAdd->miCalls);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshModifierStack(void)
@@ -349,6 +398,8 @@ void TestMeshModifierStack(void)
 	TestMeshEditorOutputChanges();
 	ObjectsFlush();
 	TestMeshEditorModifierChanges();
+	ObjectsFlush();
+	TestMeshEditorScale();
 
 	ObjectsKill(false);
 	DataIOKill();

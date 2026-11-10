@@ -505,3 +505,14 @@ void CMeshEditor::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPositio
 	mpMesh->MovePositions(paiPositions, psPosition);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEditor::Scale(float32 fScale)
+{
+	ChangedShape();
+	mpMesh->Scale(fScale);
+}
+

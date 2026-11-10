@@ -623,6 +623,28 @@ void CMesh::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The same scale every way leaves each face's normal facing as it did.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::Scale(float32 fScale)
+{
+	SFloat32Vec3*	psPosition;
+	int				i;
+	int				iNumCorners;
+
+	iNumCorners = NumCorners();
+	for (i = 0; i < iNumCorners; i++)
+	{
+		psPosition = GetPosition(i);
+		psPosition->x *= fScale;
+		psPosition->y *= fScale;
+		psPosition->z *= fScale;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CMesh::AddUV(float32 u, float32 v, size iLayer)
