@@ -66,6 +66,10 @@ struct SRasterScreenVertex
 //off triangles, see Project).
 //
 //FitOrbit is for a view that spins by itself: a box turns around its middle with SetOrbit's yaw and stays on the screen.
+//
+//SetView puts the camera somewhere: what turns the mesh onto the screen's axes, the point it turns around, and how far the eye is
+//from it.  The Get functions read it back.  NumChanges goes up whenever what it shows changes, so that what set it can tell the
+//controls have moved it.
 class CRasterCamera
 {
 protected:
@@ -79,6 +83,7 @@ protected:
 	SFixed<int64, int64, 32>	msOrthographicScale;  //Pixels per unit.  At the pivot both projections are the same size.
 	SRasterSubpixelVec2	msScreenCentre;
 	SRasterAxisVec3		masAxes[3];  //What the mesh's position is dotted with for the screen's x (right), y (up) and z (out).
+	size				muiChanges;
 
 public:
 	void				Init(void);
@@ -90,6 +95,8 @@ public:
 	void				Fit(int32 iWidth, int32 iHeight);
 	void				FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitch, int32 iWidth, int32 iHeight, int32 iMargin);
 	void				Resize(int32 iHeight);
+	void				SetView(SFloat4x4* psRotation, SInt32Vec3* psPivot, int32 iDistance);
+	void				SetFocalLength(int32 iFocalLength);
 
 	void				Drag(int32 iLastX, int32 iLastY, int32 iX, int32 iY, int32 iWidth, int32 iHeight);
 	void				Pan(int32 iRight, int32 iDown);
@@ -100,6 +107,17 @@ public:
 	void				Prepare(int32 iWidth, int32 iHeight);
 	void				Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition);
 	void				ViewToMesh(SRasterUnitVec3* psDest, SRasterUnitVec3* psView);
+
+	ERasterProjection	GetProjection(void);
+	SFloat4x4*			GetRotation(void);
+	SInt32Vec3*			GetPivot(void);
+	SInt32Vec2*			GetPan(void);
+	int32				GetDistance(void);
+	int32				GetFocalLength(void);
+	size				NumChanges(void);
+
+protected:
+	void				Changed(void);
 };
 
 

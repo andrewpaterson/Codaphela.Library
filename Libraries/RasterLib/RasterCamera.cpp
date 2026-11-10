@@ -75,6 +75,7 @@ void CRasterCamera::Init(void)
 	masAxes[0].Init(SRasterAxis::FromInt(1), SRasterAxis::FromRaw(0), SRasterAxis::FromRaw(0));
 	masAxes[1].Init(SRasterAxis::FromRaw(0), SRasterAxis::FromInt(1), SRasterAxis::FromRaw(0));
 	masAxes[2].Init(SRasterAxis::FromRaw(0), SRasterAxis::FromRaw(0), SRasterAxis::FromInt(1));
+	muiChanges = 0;
 }
 
 
@@ -85,6 +86,7 @@ void CRasterCamera::Init(void)
 void CRasterCamera::SetProjection(ERasterProjection eProjection)
 {
 	meProjection = eProjection;
+	Changed();
 }
 
 
@@ -102,6 +104,7 @@ void CRasterCamera::SetOrbit(float32 fYaw, float32 fPitch)
 	Float4x4RotationZ(&sYaw, fYaw);
 	Float4x4RotationX(&sPitch, fPitch);
 	Float4x4Multiply(&msRotation, &sYaw, &sPitch);
+	Changed();
 }
 
 
@@ -112,6 +115,7 @@ void CRasterCamera::SetOrbit(float32 fYaw, float32 fPitch)
 void CRasterCamera::SetPan(int32 iX, int32 iY)
 {
 	msPan.Init(iX, iY);
+	Changed();
 }
 
 
@@ -124,6 +128,7 @@ void CRasterCamera::SetPerspective(int32 iDistance, int32 iFocalLength)
 	miDistance = iDistance;
 	miInitialDistance = iDistance;
 	miFocalLength = iFocalLength;
+	Changed();
 }
 
 
@@ -139,6 +144,7 @@ void CRasterCamera::Fit(int32 iWidth, int32 iHeight)
 	msPivot.Init(0, 0, 0);
 	msPan.Init(0, 0);
 	Resize(iHeight);
+	Changed();
 }
 
 
@@ -225,6 +231,37 @@ void CRasterCamera::FitOrbit(SInt32Vec3* psMin, SInt32Vec3* psMax, float32 fPitc
 void CRasterCamera::Resize(int32 iHeight)
 {
 	miFocalLength = (iHeight * RASTER_FOCAL_THOUSANDTHS) / 1000;
+	Changed();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psRotation turns a position, less the pivot, onto the screen's axes: x
+// right, y up and z out of the screen towards the eye, iDistance away.  It
+// isn't panned.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterCamera::SetView(SFloat4x4* psRotation, SInt32Vec3* psPivot, int32 iDistance)
+{
+	msRotation = *psRotation;
+	msPivot = *psPivot;
+	msPan.Init(0, 0);
+	miDistance = iDistance;
+	miInitialDistance = iDistance;
+	Changed();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In pixels.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterCamera::SetFocalLength(int32 iFocalLength)
+{
+	miFocalLength = iFocalLength;
+	Changed();
 }
 
 
@@ -289,6 +326,7 @@ void CRasterCamera::Drag(int32 iLastX, int32 iLastY, int32 iX, int32 iY, int32 i
 
 	Float4x4RotationVector(&sSpin, &sAxis, (float32)(2.0 * asin(fChord)));
 	Float4x4Multiply(&msRotation, &msRotation, &sSpin);
+	Changed();
 }
 
 
@@ -301,6 +339,7 @@ void CRasterCamera::Pan(int32 iRight, int32 iDown)
 {
 	msPan.x += (int32)(((int64)iRight * miDistance) / miFocalLength);
 	msPan.y -= (int32)(((int64)iDown * miDistance) / miFocalLength);
+	Changed();
 }
 
 
@@ -316,6 +355,7 @@ void CRasterCamera::PanStep(int32 iRight, int32 iUp)
 	iStep = (int32)(((int64)miDistance * RASTER_PAN_STEP_NUMERATOR) / RASTER_PAN_STEP_DENOMINATOR);
 	msPan.x += iRight * iStep;
 	msPan.y += iUp * iStep;
+	Changed();
 }
 
 
@@ -342,6 +382,7 @@ void CRasterCamera::Zoom(float32 fFactor)
 		fDistance = fMax;
 	}
 	miDistance = (int32)fDistance;
+	Changed();
 }
 
 
@@ -450,6 +491,7 @@ bool CRasterCamera::LookAtScreen(int32 iX, int32 iY, SInt32Vec3* psMin, SInt32Ve
 
 	msPivot.Init((int32)(afOrigin[0] + afDirection[0] * fNear), (int32)(afOrigin[1] + afDirection[1] * fNear), (int32)(afOrigin[2] + afDirection[2] * fNear));
 	msPan.Init(0, 0);
+	Changed();
 	return true;
 }
 
@@ -574,5 +616,85 @@ void CRasterCamera::ViewToMesh(SRasterUnitVec3* psDest, SRasterUnitVec3* psView)
 	psDest->x = (sX * masAxes[0].x + sY * masAxes[1].x + sZ * masAxes[2].x).ToFloor<SRasterUnit>();
 	psDest->y = (sX * masAxes[0].y + sY * masAxes[1].y + sZ * masAxes[2].y).ToFloor<SRasterUnit>();
 	psDest->z = (sX * masAxes[0].z + sY * masAxes[1].z + sZ * masAxes[2].z).ToFloor<SRasterUnit>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ERasterProjection CRasterCamera::GetProjection(void)
+{
+	return meProjection;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat4x4* CRasterCamera::GetRotation(void)
+{
+	return &msRotation;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec3* CRasterCamera::GetPivot(void)
+{
+	return &msPivot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2* CRasterCamera::GetPan(void)
+{
+	return &msPan;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CRasterCamera::GetDistance(void)
+{
+	return miDistance;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CRasterCamera::GetFocalLength(void)
+{
+	return miFocalLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CRasterCamera::NumChanges(void)
+{
+	return muiChanges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterCamera::Changed(void)
+{
+	muiChanges++;
 }
 
