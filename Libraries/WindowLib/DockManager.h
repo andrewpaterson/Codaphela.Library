@@ -132,6 +132,7 @@ public:
 
 	//Moving panes: shown, hidden, floated, docked and auto hidden.
 	void						Show(Ptr<CDockPane> pPane);
+	bool						IsPaneVisible(Ptr<CDockPane> pPane);
 	void						Activate(Ptr<CDockPane> pPane);
 	void						Hide(Ptr<CDockPane> pPane);
 	bool						Close(Ptr<CDockPane> pPane);

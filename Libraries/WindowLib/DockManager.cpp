@@ -392,6 +392,41 @@ void CDockManager::Show(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the pane can be seen: docked or floating (its window shown) and
+// its group's selected tab, or auto hidden and slid out.  Not hidden,
+// behind another tab, or auto hidden to its strip.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::IsPaneVisible(Ptr<CDockPane> pPane)
+{
+	Ptr<CDockFloatingWindow>	pFloating;
+
+	if (pPane.IsNull())
+	{
+		return false;
+	}
+	switch (pPane->GetState())
+	{
+	case DPS_AutoHidden:
+		return mpState->GetFocus()->IsInFlyout(pPane);
+	case DPS_Floating:
+		pFloating = FindFloating(pPane);
+		if (pFloating.IsNull() || !pFloating->IsShown())
+		{
+			return false;
+		}
+		break;
+	case DPS_Docked:
+		break;
+	default:
+		return false;
+	}
+	return pPane->GetGroup().IsNotNull() && (pPane->GetGroup()->GetSelectedPane() == pPane);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Shows the pane and gives it the keys.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -609,6 +609,71 @@ void TestDockingHideFloatAutoHide(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pane is visible docked or floating as its group's selected tab, and
+// auto hidden only while it is slid out: not hidden, behind another tab,
+// or on its strip.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingPaneVisible(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest		sTest;
+		Ptr<CDockGroup>	pOutputGroup;
+		CInt32Rect		cRect;
+
+		sTest.Init(&cNativeFactory);
+		pOutputGroup = sTest.pOutput->GetGroup();
+		AssertTrue(sTest.pErrors->GetGroup() == pOutputGroup);
+
+		//Docked alone, and docked in a group as its selected tab only.
+		AssertTrue(sTest.pManager->IsPaneVisible(sTest.pExplorer));
+		sTest.pManager->Show(sTest.pOutput);
+		AssertTrue(sTest.pManager->IsPaneVisible(sTest.pOutput));
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pErrors));
+		sTest.pManager->Show(sTest.pErrors);
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pOutput));
+		AssertTrue(sTest.pManager->IsPaneVisible(sTest.pErrors));
+
+		//Hidden, it isn't.
+		sTest.pManager->Hide(sTest.pExplorer);
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pExplorer));
+		sTest.pManager->Show(sTest.pExplorer);
+		AssertTrue(sTest.pManager->IsPaneVisible(sTest.pExplorer));
+
+		//Floating in its own window it is, until it closes.
+		cRect.Init(300, 200, 500, 400);
+		sTest.pManager->Float(sTest.pProperties, &cRect);
+		AssertInt(DPS_Floating, sTest.pProperties->GetState());
+		AssertTrue(sTest.pManager->IsPaneVisible(sTest.pProperties));
+		sTest.pManager->Hide(sTest.pProperties);
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pProperties));
+
+		//Auto hidden on its strip it isn't; slid out it is, and the other tab on the strip isn't.
+		sTest.pManager->AutoHideGroup(pOutputGroup);
+		AssertInt(DPS_AutoHidden, sTest.pOutput->GetState());
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pOutput));
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pErrors));
+		sTest.pManager->ShowFlyout(sTest.pOutput);
+		AssertTrue(sTest.pManager->IsPaneVisible(sTest.pOutput));
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pErrors));
+		sTest.pManager->CloseFlyout();
+		AssertFalse(sTest.pManager->IsPaneVisible(sTest.pOutput));
+		AssertFalse(sTest.pManager->IsPaneVisible(Ptr<CDockPane>()));
+
+		pOutputGroup = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Dragging tabs and title bars: torn off into floating windows, dropped
 // on the guides, and put back by Escape.
 //
@@ -2216,6 +2281,7 @@ void TestDocking(void)
 	TestDockingTabbedContainer();
 	TestDockingDefaults();
 	TestDockingHideFloatAutoHide();
+	TestDockingPaneVisible();
 	TestDockingDrag();
 	TestDockingDragSmall();
 	TestDockingDragOnHeader();
