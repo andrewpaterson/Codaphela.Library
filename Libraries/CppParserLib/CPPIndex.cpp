@@ -34,6 +34,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxCallExpression.h"
 #include "CPPSyntaxIdExpression.h"
 #include "CPPSyntaxMemberExpression.h"
+#include "CPPSyntaxBinaryExpression.h"
+#include "CPPSyntaxUnaryExpression.h"
+#include "CPPSyntaxParenthesisedExpression.h"
+#include "CPPSyntaxMemberInitializer.h"
 #include "CPPSyntaxName.h"
 #include "CPPSyntaxNameComponent.h"
 #include "CPPSyntaxTranslationUnit.h"
@@ -217,18 +221,19 @@ void CCPPIndexUnit::Kill(void)
 // A name of the symbol szKey at a token's place.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndexUnit::Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags)
+void CCPPIndexUnit::Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags, ECPPUsageType eUsage)
 {
-	AddEntry(AddKey(szKey, eKind), psSource, eRole, uiFlags);
+	AddEntry(AddKey(szKey, eKind), psSource, eRole, uiFlags, eUsage);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A name of the unit's key iKey (from AddKey) at a token's place.
+// A name of the unit's key iKey (from AddKey) at a token's place, used as
+// eUsage says.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndexUnit::AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags)
+void CCPPIndexUnit::AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags, ECPPUsageType eUsage)
 {
 	SCPPIndexEntry*	psEntry;
 	int				iFile;
@@ -242,6 +247,7 @@ void CCPPIndexUnit::AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRo
 	psEntry->iLength = (int32)psSource->uiLength;
 	psEntry->uiRole = (uint8)eRole;
 	psEntry->uiFlags = uiFlags;
+	psEntry->uiUsage = (uint8)eUsage;
 	psEntry->iContainer = miContainer;
 }
 
@@ -381,6 +387,7 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	ECPPSymbolKind			eContainerKind;
 	CSourceFile*			pcLastFile;
 	bool					bLastIndexed;
+	SCPPUsageContext		sContext;
 
 	uiNumTokens = pcTokeniser->NumTokens();
 	pcLastFile = NULL;
@@ -391,6 +398,10 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	{
 		FindNames(pcTree->GetRoot(), &asTokens, false);
 		FindContainers(pcTree->GetRoot(), &asTokens);
+		sContext.eScope = CPPUS_Namespace;
+		sContext.bExpression = false;
+		sContext.bTemplateArgument = false;
+		FindUsageTypes(pcTree->GetRoot(), &asTokens, &sContext);
 	}
 
 	cKeys.Init(pcTokeniser, pcTree);
@@ -463,7 +474,7 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 
 		if (psResolved)
 		{
-			GatherResolved(&cKeys, psResolved, psSource, pcDest);
+			GatherResolved(&cKeys, psResolved, psSource, (ECPPUsageType)asTokens.Get(i)->uiUsage, pcDest);
 		}
 		else
 		{
@@ -514,6 +525,7 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 		sLocation.iLength = psEntry->iLength;
 		sLocation.uiRole = psEntry->uiRole;
 		sLocation.uiFlags = psEntry->uiFlags;
+		sLocation.uiUsage = psEntry->uiUsage;
 		sLocation.iContainer = (psEntry->iContainer >= 0) ? aiSymbols.GetValue((size)psEntry->iContainer) : -1;
 		AddLocation(aiSymbols.GetValue(psEntry->uiKey), &sLocation);
 	}
@@ -592,6 +604,272 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 	}
 	cChildren.mpasTokens = pasTokens;
 	pcNode->VisitFields(&cChildren);
+}
+
+
+class CCPPIndexUsageChildren : public CCPPSyntaxChildVisitor
+{
+public:
+	CArrayIndexTokens*	mpasTokens;
+	SCPPUsageContext*	mpsContext;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindUsageTypes(pcChild, mpasTokens, mpsContext); }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each token's usage type, from the nodes it is in: a node says what the
+// names it spans are used as (a parameter's, as its type), then its
+// children say it again for theirs, the innermost last.  After the
+// children, the names a node uses itself are set: what a call calls,
+// what an assignment assigns to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::FindUsageTypes(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, SCPPUsageContext* psContext)
+{
+	CCPPIndexUsageChildren	cChildren;
+	SCPPUsageContext		sContext;
+	ECPPSyntax				eKind;
+	ECppTokens				eOperator;
+	CCPPSyntaxName*			pcName;
+
+	sContext = *psContext;
+	cChildren.mpasTokens = pasTokens;
+	cChildren.mpsContext = &sContext;
+	if (psContext->bTemplateArgument)
+	{
+		//All of a template argument is one, whatever it is made of.
+		FillUsageType(pcNode, pasTokens, CPPUT_TemplateArgument);
+		return;
+	}
+
+	eKind = pcNode->GetKind();
+	switch (eKind)
+	{
+	case CPPS_TranslationUnit:
+	case CPPS_Namespace:
+	case CPPS_LinkageSpecification:
+		sContext.eScope = CPPUS_Namespace;
+		sContext.bExpression = false;
+		break;
+	case CPPS_ClassSpecifier:
+		sContext.eScope = CPPUS_Class;
+		sContext.bExpression = false;
+		break;
+	case CPPS_FunctionDefinition:
+		FillUsageType(pcNode, pasTokens, CPPUT_Function);
+		sContext.eScope = CPPUS_Function;
+		sContext.bExpression = false;
+		break;
+	case CPPS_SimpleDeclaration:
+		FillUsageType(pcNode, pasTokens, GetDeclarationUsageType(pcNode, psContext->eScope));
+		sContext.bExpression = false;
+		break;
+	case CPPS_RangeForStatement:
+		FillUsageType(pcNode, pasTokens, CPPUT_Local);
+		break;
+	case CPPS_Parameter:
+		FillUsageType(pcNode, pasTokens, CPPUT_Parameter);
+		sContext.bExpression = false;
+		break;
+	case CPPS_BaseSpecifier:
+		FillUsageType(pcNode, pasTokens, CPPUT_BaseClass);
+		break;
+	case CPPS_AliasDeclaration:
+	case CPPS_UsingDeclaration:
+	case CPPS_UsingDirective:
+		FillUsageType(pcNode, pasTokens, CPPUT_Alias);
+		break;
+	case CPPS_TypeId:
+		if (psContext->bExpression)
+		{
+			FillUsageType(pcNode, pasTokens, CPPUT_TypeInExpression);
+		}
+		break;
+	case CPPS_NameComponent:
+		//What a name component has in it is its template's arguments.
+		sContext.bTemplateArgument = true;
+		break;
+	default:
+		if ((eKind >= CPPS_LiteralExpression) && (eKind <= CPPS_NoexceptExpression) && !psContext->bExpression)
+		{
+			//An expression's names are read, but for what says otherwise inside it.
+			FillUsageType(pcNode, pasTokens, CPPUT_Read);
+			sContext.bExpression = true;
+		}
+		break;
+	}
+
+	pcNode->VisitFields(&cChildren);
+
+	switch (eKind)
+	{
+	case CPPS_CallExpression:
+		SetNameUsageType(((CCPPSyntaxCallExpression*)pcNode)->mpcCallee, pasTokens, CPPUT_Call);
+		break;
+	case CPPS_BinaryExpression:
+		eOperator = ((CCPPSyntaxBinaryExpression*)pcNode)->meOperator;
+		if ((eOperator == CT_Assignment) || (eOperator == CT_AssignmentAdd) || (eOperator == CT_AssignmentSubtract) || (eOperator == CT_AssignmentMultiply) ||
+			(eOperator == CT_AssignmentDivide) || (eOperator == CT_AssignmentModulus) || (eOperator == CT_AssignmentBitwiseAnd) || (eOperator == CT_AssignmentBitwiseOr) ||
+			(eOperator == CT_AssignmentBitwiseXor) || (eOperator == CT_AssignmentLeftShift) || (eOperator == CT_AssignmentRightShift))
+		{
+			SetNameUsageType(((CCPPSyntaxBinaryExpression*)pcNode)->mpcLeft, pasTokens, CPPUT_Write);
+		}
+		break;
+	case CPPS_UnaryExpression:
+		eOperator = ((CCPPSyntaxUnaryExpression*)pcNode)->meOperator;
+		if ((eOperator == CT_Increment) || (eOperator == CT_Decrement))
+		{
+			SetNameUsageType(((CCPPSyntaxUnaryExpression*)pcNode)->mpcOperand, pasTokens, CPPUT_Write);
+		}
+		break;
+	case CPPS_MemberInitializer:
+		pcName = ((CCPPSyntaxMemberInitializer*)pcNode)->mpcName;
+		if (pcName && pcName->GetLast() && (pcName->GetLast()->miName >= 0) && pasTokens->SafeGet((size)pcName->GetLast()->miName))
+		{
+			pasTokens->Get((size)pcName->GetLast()->miName)->uiUsage = CPPUT_Write;
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every token pcNode spans is used as eUsage, until something inside it
+// says otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::FillUsageType(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, ECPPUsageType eUsage)
+{
+	int32			iToken;
+	SCPPIndexToken*	psToken;
+
+	for (iToken = pcNode->miFirstToken; (iToken >= 0) && (iToken <= pcNode->miLastToken); iToken++)
+	{
+		psToken = pasTokens->SafeGet((size)iToken);
+		if (psToken)
+		{
+			psToken->uiUsage = (uint8)eUsage;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name an expression is (x, (x), o.x or p->x) is used as eUsage; any
+// other expression names nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::SetNameUsageType(CCPPSyntax* pcExpression, CArrayIndexTokens* pasTokens, ECPPUsageType eUsage)
+{
+	CCPPSyntaxName*	pcName;
+	SCPPIndexToken*	psToken;
+
+	while (pcExpression && (pcExpression->GetKind() == CPPS_ParenthesisedExpression))
+	{
+		pcExpression = ((CCPPSyntaxParenthesisedExpression*)pcExpression)->mpcExpression;
+	}
+	if (pcExpression == NULL)
+	{
+		return;
+	}
+	if (pcExpression->GetKind() == CPPS_IdExpression)
+	{
+		pcName = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName;
+	}
+	else if (pcExpression->GetKind() == CPPS_MemberExpression)
+	{
+		pcName = ((CCPPSyntaxMemberExpression*)pcExpression)->mpcName;
+	}
+	else
+	{
+		return;
+	}
+	if (pcName && pcName->GetLast() && (pcName->GetLast()->miName >= 0))
+	{
+		psToken = pasTokens->SafeGet((size)pcName->GetLast()->miName);
+		if (psToken)
+		{
+			psToken->uiUsage = (uint8)eUsage;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a simple declaration's names are used as, where it is: a typedef's
+// are an alias's, a function declaration's are its, and a variable's are
+// a field's, a local's or a global's.  A declaration that declares
+// nothing (class C { ... };) leaves its names to what is in it.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPUsageType CCPPIndex::GetDeclarationUsageType(CCPPSyntax* pcNode, ECPPUsageScope eScope)
+{
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntax*						pcDeclarator;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	size							i;
+
+	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcNode;
+	if (pcSimple->mpcSpecifiers && (pcSimple->mpcSpecifiers->muiFlags & CPPDS_TYPEDEF))
+	{
+		return CPPUT_Alias;
+	}
+	if (pcSimple->macpDeclarators.NumElements() == 0)
+	{
+		return CPPUT_Other;
+	}
+	for (i = 0; i < pcSimple->macpDeclarators.NumElements(); i++)
+	{
+		pcDeclarator = pcSimple->macpDeclarators.GetPtr(i);
+		if (pcDeclarator && (pcDeclarator->GetKind() == CPPS_InitDeclarator))
+		{
+			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclarator;
+			if (pcInit->mpcDeclarator && pcInit->mpcDeclarator->IsFunction())
+			{
+				return CPPUT_Function;
+			}
+		}
+	}
+	switch (eScope)
+	{
+	case CPPUS_Class:
+		return CPPUT_Field;
+	case CPPUS_Function:
+		return CPPUT_Local;
+	default:
+		return CPPUT_Global;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type named in an expression (CFoo(1), (CFoo*)p) constructs or casts
+// to it: it isn't read, written or called.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPUsageType CCPPIndex::GetSymbolUsageType(CCPPSymbol* pcSymbol, ECPPUsageType eUsage)
+{
+	ECPPSymbolKind	eKind;
+
+	if ((pcSymbol == NULL) || ((eUsage != CPPUT_Read) && (eUsage != CPPUT_Write) && (eUsage != CPPUT_Call)))
+	{
+		return eUsage;
+	}
+	eKind = pcSymbol->meKind;
+	if ((eKind == CPPSK_Class) || (eKind == CPPSK_Enum) || (eKind == CPPSK_Typedef) || (eKind == CPPSK_ClassTemplate) || (eKind == CPPSK_AliasTemplate) ||
+		(eKind == CPPSK_TypeParameter) || (eKind == CPPSK_BuiltinType))
+	{
+		return CPPUT_TypeInExpression;
+	}
+	return eUsage;
 }
 
 
@@ -1099,7 +1377,7 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 	pcSymbol = psSymbol->pcSymbol;
 	if ((psSymbol->uiRole == CPPTR_Reference) && pcKeys->IsFunction(pcSymbol))
 	{
-		GatherReferenceToOverload(pcKeys, pcSymbol, psToken->iArguments - 1, psSource, pcDest);
+		GatherReferenceToOverload(pcKeys, pcSymbol, psToken->iArguments - 1, psSource, (ECPPUsageType)psToken->uiUsage, pcDest);
 		return;
 	}
 
@@ -1114,7 +1392,7 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 		{
 			eRole = psToken->bDefinition ? CPPIR_Definition : CPPIR_Declaration;
 		}
-		pcDest->AddEntry(iKey, psSource, eRole, uiFlags);
+		pcDest->AddEntry(iKey, psSource, eRole, uiFlags, GetSymbolUsageType(pcSymbol, (ECPPUsageType)psToken->uiUsage));
 	}
 }
 
@@ -1167,14 +1445,14 @@ int CCPPIndex::GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSynta
 // or to the one overload a call calls.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest)
+void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest)
 {
 	int	iKey;
 
 	iKey = GetUnitKey(pcKeys, psResolved->pcSymbol, psResolved->pcDeclarator, pcDest);
 	if (iKey >= 0)
 	{
-		pcDest->AddEntry(iKey, psSource, CPPIR_Reference, 0);
+		pcDest->AddEntry(iKey, psSource, CPPIR_Reference, 0, GetSymbolUsageType(psResolved->pcSymbol, eUsage));
 	}
 }
 
@@ -1187,7 +1465,7 @@ void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolv
 // each, flagged ambiguous when there is more than one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest)
+void CCPPIndex::GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest)
 {
 	CArrayInt		aiCandidates;
 	CArrayInt		aiAll;
@@ -1229,7 +1507,7 @@ void CCPPIndex::GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcS
 	paiChosen = (aiCandidates.NumElements() > 0) ? &aiCandidates : &aiAll;
 	for (i = 0; i < paiChosen->NumElements(); i++)
 	{
-		pcDest->AddEntry(paiChosen->GetValue(i), psSource, CPPIR_Reference, (paiChosen->NumElements() > 1) ? CPPIF_AMBIGUOUS : 0);
+		pcDest->AddEntry(paiChosen->GetValue(i), psSource, CPPIR_Reference, (paiChosen->NumElements() > 1) ? CPPIF_AMBIGUOUS : 0, eUsage);
 	}
 	aiAll.Kill();
 	aiCandidates.Kill();

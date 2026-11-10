@@ -558,6 +558,124 @@ int giTotal;\n", true);
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each place says how it uses its symbol, as Find Usages groups them: the
+// declaration a type is named in (a field's, a parameter's, a local's, a
+// global's, a function's, a typedef's, a base class), a type in an
+// expression, and a variable read, written or a function called.
+//
+//////////////////////////////////////////////////////////////////////////
+static CCPPIndexSymbol* FindCppIndexSymbolStarting(CCPPIndex* pcIndex, const char* szStart)
+{
+	size	i;
+
+	for (i = 0; i < pcIndex->NumSymbols(); i++)
+	{
+		if (pcIndex->GetSymbol(i)->mszKey.StartsWith(szStart))
+		{
+			return pcIndex->GetSymbol(i);
+		}
+	}
+	return NULL;
+}
+
+
+//The usage type of the uiNth place (by column) on iLine of a symbol, -1 if it has none there.
+static int GetCppIndexUsage(CCPPIndexSymbol* pcSymbol, int iLine, size uiNth)
+{
+	size				i;
+	size				uiFound;
+	SCPPIndexLocation*	psLocation;
+	SCPPIndexLocation*	psBest;
+	int					iAfter;
+
+	if (pcSymbol == NULL)
+	{
+		return -1;
+	}
+	iAfter = -1;
+	psBest = NULL;
+	for (uiFound = 0; uiFound <= uiNth; uiFound++)
+	{
+		psBest = NULL;
+		for (i = 0; i < pcSymbol->NumLocations(); i++)
+		{
+			psLocation = pcSymbol->GetLocation(i);
+			if ((psLocation->iLine == iLine) && (psLocation->iColumn > iAfter) && ((psBest == NULL) || (psLocation->iColumn < psBest->iColumn)))
+			{
+				psBest = psLocation;
+			}
+		}
+		if (psBest == NULL)
+		{
+			return -1;
+		}
+		iAfter = psBest->iColumn;
+	}
+	return psBest->uiUsage;
+}
+
+
+void TestCppIndexUsageTypes(void)
+{
+	CCPPIndex			cIndex;
+	CCPPIndexSymbol*	pcFoo;
+	CCPPIndexSymbol*	pcCount;
+
+	cIndex.Init();
+	IndexText(&cIndex, "U.cpp", "\
+class CBase { };\n\
+class CFoo : public CBase\n\
+{\n\
+public:\n\
+	CFoo*	mpcNext;\n\
+	int		miCount;\n\
+	CFoo(int i);\n\
+	CFoo*	Get(CFoo* pc);\n\
+};\n\
+typedef CFoo* PFoo;\n\
+CFoo	gcFoo(1);\n\
+CFoo::CFoo(int i) : miCount(i)\n\
+{\n\
+}\n\
+CFoo* CFoo::Get(CFoo* pc)\n\
+{\n\
+	CFoo*	pcLocal;\n\
+	pcLocal = (CFoo*)pc;\n\
+	miCount++;\n\
+	miCount = miCount + 1;\n\
+	Get(pcLocal);\n\
+	return pcLocal;\n\
+}\n", true);
+
+	AssertInt(CPPUT_BaseClass, GetCppIndexUsage(cIndex.FindSymbol("CBase"), 1, 0));
+
+	pcFoo = cIndex.FindSymbol("CFoo");
+	AssertNotNull(pcFoo);
+	AssertInt(CPPUT_Field, GetCppIndexUsage(pcFoo, 4, 0));
+	AssertInt(CPPUT_Function, GetCppIndexUsage(pcFoo, 7, 0));
+	AssertInt(CPPUT_Parameter, GetCppIndexUsage(pcFoo, 7, 1));
+	AssertInt(CPPUT_Alias, GetCppIndexUsage(pcFoo, 9, 0));
+	AssertInt(CPPUT_Global, GetCppIndexUsage(pcFoo, 10, 0));
+	AssertInt(CPPUT_Function, GetCppIndexUsage(pcFoo, 14, 0));
+	AssertInt(CPPUT_Function, GetCppIndexUsage(pcFoo, 14, 1));
+	AssertInt(CPPUT_Parameter, GetCppIndexUsage(pcFoo, 14, 2));
+	AssertInt(CPPUT_Local, GetCppIndexUsage(pcFoo, 16, 0));
+	AssertInt(CPPUT_TypeInExpression, GetCppIndexUsage(pcFoo, 17, 0));
+
+	pcCount = cIndex.FindSymbol("CFoo::miCount");
+	AssertNotNull(pcCount);
+	AssertInt(CPPUT_Write, GetCppIndexUsage(pcCount, 11, 0));
+	AssertInt(CPPUT_Write, GetCppIndexUsage(pcCount, 18, 0));
+	AssertInt(CPPUT_Write, GetCppIndexUsage(pcCount, 19, 0));
+	AssertInt(CPPUT_Read, GetCppIndexUsage(pcCount, 19, 1));
+
+	AssertInt(CPPUT_Call, GetCppIndexUsage(FindCppIndexSymbolStarting(&cIndex, "CFoo::Get("), 20, 0));
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The overrides of a virtual member function are the functions with its
 // name and parameters up and down its class's hierarchy, siblings too,
 // whichever unit (and whichever class of them) said virtual or override.
@@ -790,6 +908,7 @@ void TestCppIndex(void)
 	TestCppSemanticPassHost();
 	TestCppIndexMacroNames();
 	TestCppIndexContainers();
+	TestCppIndexUsageTypes();
 	TestCppIndexOverrides();
 	TestCppIndexRemoveFile();
 	TestCppIndexRemoveFileHierarchy();

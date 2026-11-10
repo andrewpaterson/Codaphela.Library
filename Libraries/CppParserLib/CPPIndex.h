@@ -42,6 +42,27 @@ enum ECPPIndexRole
 };
 
 
+//How a reference uses its symbol: what is around it in the syntax tree (CCPPIndex::FindUsageTypes), as IntelliJ
+//IDEA's Find Usages groups usages.  A declaration's or definition's is what it is in too.
+enum ECPPUsageType
+{
+	CPPUT_Other,				//Nothing more is known.
+	CPPUT_Call,					//The function a call calls.
+	CPPUT_Read,					//In an expression, read.
+	CPPUT_Write,				//Assigned to, incremented or decremented, or a member a constructor initialises.
+	CPPUT_TypeInExpression,		//A type in an expression: a cast, new, sizeof or a value constructed.
+	CPPUT_TemplateArgument,
+	CPPUT_BaseClass,
+	CPPUT_Field,				//In a data member's declaration (as its type).
+	CPPUT_Local,				//In a local variable's declaration.
+	CPPUT_Global,				//In a variable's declaration outside any class or function.
+	CPPUT_Parameter,			//In a parameter's declaration.
+	CPPUT_Function,				//In a function's declaration or definition: its return type, or its class in C::F.
+	CPPUT_Alias,				//In a typedef, an alias or a using declaration.
+	CPPUT_NumUsageTypes
+};
+
+
 //SCPPIndexLocation::uiFlags
 #define CPPIF_AMBIGUOUS		0x01	//A call the parser can't tell the overload of: it is a reference of each it could be.
 #define CPPIF_MACRO			0x02	//A name a macro made, where the macro was used: the text there is the macro's name,
@@ -57,6 +78,7 @@ struct SCPPIndexLocation
 	int32	iLength;
 	uint8	uiRole;
 	uint8	uiFlags;
+	uint8	uiUsage;	//ECPPUsageType.
 	int32	iContainer;	//The symbol of the class or function definition the name is in, -1 if it is in neither.
 };
 
@@ -71,6 +93,24 @@ struct SCPPIndexToken
 	int32					iArguments;		//The callee of a call: its number of arguments plus one.
 	bool					bDefinition;	//It names what a definition defines.
 	CCPPSyntax*				pcContainer;	//The innermost class or function definition the token is in, NULL if none.
+	uint8					uiUsage;		//ECPPUsageType (FindUsageTypes).
+};
+
+
+//Where a node is, for the usage types of the names in it (CCPPIndex::FindUsageTypes).
+enum ECPPUsageScope
+{
+	CPPUS_Namespace,
+	CPPUS_Class,
+	CPPUS_Function,
+};
+
+
+struct SCPPUsageContext
+{
+	ECPPUsageScope	eScope;
+	bool			bExpression;		//In an expression, whose names are read unless something says otherwise.
+	bool			bTemplateArgument;	//In a template's argument list: everything in it is a template argument.
 };
 
 
@@ -87,6 +127,7 @@ struct SCPPIndexEntry
 	int32			iLength;
 	uint8			uiRole;
 	uint8			uiFlags;
+	uint8			uiUsage;	//ECPPUsageType.
 	int32			iContainer;	//Index of the key of the class or function it is in, -1 if neither.
 };
 
@@ -118,8 +159,8 @@ public:
 	void	AddVirtual(const char* szFunction, ECPPSymbolKind eKind, CSourceFile* pcFile);
 	int		AddFile(CSourceFile* pcFile);
 
-	void	Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
-	void	AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
+	void	Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags, ECPPUsageType eUsage = CPPUT_Other);
+	void	AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags, ECPPUsageType eUsage = CPPUT_Other);
 	void	SetContainer(const char* szKey, ECPPSymbolKind eKind);
 	int		AddKey(const char* szKey, ECPPSymbolKind eKind);
 };
@@ -186,6 +227,7 @@ class CCPPIndex
 friend class CCPPIndexNameChildren;
 friend class CCPPIndexContainerChildren;
 friend class CCPPIndexHierarchyChildren;
+friend class CCPPIndexUsageChildren;
 protected:
 	CArrayChars				maszFiles;
 	CMapStringInt			mcFiles;		//File name to index in maszFiles.
@@ -217,11 +259,16 @@ public:
 protected:
 	static void			GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, uint8 uiFlags, CCPPIndexUnit* pcDest);
 	static bool			GetMacroUse(CCPPTokeniser* pcTokeniser, SPreprocessedToken* psSource, SPreprocessedToken* psDest);
-	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
+	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
 	static int			GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator, CCPPIndexUnit* pcDest);
-	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
+	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
 	static void			FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens);
+	static void			FindUsageTypes(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, SCPPUsageContext* psContext);
+	static void			FillUsageType(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, ECPPUsageType eUsage);
+	static void			SetNameUsageType(CCPPSyntax* pcExpression, CArrayIndexTokens* pasTokens, ECPPUsageType eUsage);
+	static ECPPUsageType	GetDeclarationUsageType(CCPPSyntax* pcNode, ECPPUsageScope eScope);
+	static ECPPUsageType	GetSymbolUsageType(CCPPSymbol* pcSymbol, ECPPUsageType eUsage);
 	static void			FindHierarchy(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest);
 	static void			GatherVirtual(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest);
 	static CSourceFile*	GetTokenFile(CCPPTokeniser* pcTokeniser, int32 iToken);
