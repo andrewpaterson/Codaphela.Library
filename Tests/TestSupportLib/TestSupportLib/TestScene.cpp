@@ -161,8 +161,8 @@ static void TestSceneReadConnections(Ptr<CScene> pScene)
 	AssertFloat(2.0f, pChild->msWorldMatrix.pos.x, 3);
 	AssertFloat(4.0f, pChild->msLocalMatrix.pos.z, 3);
 
-	AssertSize(2, pInstance->mapMeshes.Get(0)->maiConnectionSlots.NumElements());
-	AssertInt(1, pInstance->mapMeshes.Get(0)->maiConnectionSlots.GetValue(1));
+	AssertSize(2, pInstance->mapMeshes.Get(0)->mapConnections.NumElements());
+	AssertTrue(&pInstance->mapMeshes.Get(0)->mapConnections.Get(1) == &pRoot);
 
 	AssertSize(1, pScene->mapLights.NumElements());
 	pLight = pScene->mapLights.Get(0);
@@ -629,6 +629,7 @@ void TestSceneFailures(void)
 	Ptr<CScene>			pScene;
 	Ptr<CMaterial>		pMaterial;
 	Ptr<CInstance>		pInstance;
+	Ptr<CInstance>		pOther;
 	Ptr<CMeshEditor>	pEditor;
 	Ptr<CInstanceMesh>	pInstanceMesh;
 	CFileUtil			cFileUtil;
@@ -648,6 +649,22 @@ void TestSceneFailures(void)
 	pScene->mapInstances.Add(pInstance);
 	AssertFalse(pScene->WriteFile(SCENE_OUTPUT_DIR _FS_ "Bad.DRG"));
 	AssertFalse(cFileUtil.Exists(SCENE_OUTPUT_DIR _FS_ "Bad.DRG"));
+
+	//A file holds a mesh's connections as places in its instance's list, so one using another instance's connection reads
+	//back as an error rather than as some other connection.
+	pScene = OMalloc<CScene>();
+	pOther = OMalloc<CInstance>();
+	pOther->mapConnections.Add(OMalloc<CConnection>());
+	pScene->mapInstances.Add(pOther);
+	pInstance = OMalloc<CInstance>();
+	pInstance->mapConnections.Add(OMalloc<CConnection>());
+	pInstanceMesh = OMalloc<CInstanceMesh>(OMalloc<CMeshEditor>(OMalloc<CMesh>()));
+	pInstanceMesh->mapConnections.Add(pOther->mapConnections.Get(0));
+	pInstance->mapMeshes.Add(pInstanceMesh);
+	pScene->mapInstances.Add(pInstance);
+	AssertTrue(pScene->WriteFile(SCENE_OUTPUT_DIR _FS_ "Elsewhere.DRG"));
+	pScene = OMalloc<CScene>();
+	AssertFalse(pScene->ReadFile(SCENE_OUTPUT_DIR _FS_ "Elsewhere.DRG"));
 }
 
 
@@ -764,7 +781,7 @@ void TestSceneGooberRead(void)
 	}
 
 	pInstanceMesh = pInstance->mapMeshes.Get(0);
-	AssertSize(67, pInstanceMesh->maiConnectionSlots.NumElements());
+	AssertSize(67, pInstanceMesh->mapConnections.NumElements());
 	pcMesh = &pInstanceMesh->mpEditor->mpMesh;
 	AssertInt(3241, pcMesh->NumCorners());
 	AssertInt(6134, pcMesh->NumFaces());

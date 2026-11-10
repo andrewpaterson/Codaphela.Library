@@ -21,6 +21,7 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "StandardLib/Objects.h"
 #include "ImageChannel.h"
 #include "SceneFileMesh.h"
@@ -541,6 +542,8 @@ bool CSceneFileLoad::ReadInstanceMesh(CInstance* pcInstance)
 	CArraySceneFileIndex	aiSlots;
 	CArraySceneFileIndex	aiMaterials;
 	size					i;
+	int32					iSlot;
+	bool					bResult;
 
 	pInstanceMesh = OMalloc<CInstanceMesh>(mapEditors.Get((size)mcReader.GetInstanceMesh()));
 
@@ -556,19 +559,31 @@ bool CSceneFileLoad::ReadInstanceMesh(CInstance* pcInstance)
 	{
 		ReturnOnFalse(mcReader.ReadInstanceMaterials(aiMaterials.GetData()));
 	}
-	for (i = 0; i < aiSlots.NumElements(); i++)
+	bResult = true;
+	for (i = 0; bResult && (i < aiSlots.NumElements()); i++)
 	{
-		pInstanceMesh->maiConnectionSlots.Add(aiSlots.GetValue(i));
+		iSlot = aiSlots.GetValue(i);
+		if ((iSlot < 0) || ((size)iSlot >= pcInstance->mapConnections.NumElements()))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has a mesh using its connection ", IntToString(iSlot), ", but it has ", SizeToString(pcInstance->mapConnections.NumElements()), ".", NULL);
+		}
+		else
+		{
+			pInstanceMesh->mapConnections.Add(pcInstance->mapConnections.Get((size)iSlot));
+		}
 	}
-	for (i = 0; i < aiMaterials.NumElements(); i++)
+	for (i = 0; bResult && (i < aiMaterials.NumElements()); i++)
 	{
 		pInstanceMesh->mapMaterials.Add((aiMaterials.GetValue(i) == SCENE_FILE_NONE) ? Ptr<CMaterial>() : mapMaterials.Get((size)aiMaterials.GetValue(i)));
 	}
 	aiMaterials.Kill();
 	aiSlots.Kill();
 
-	pcInstance->mapMeshes.Add(pInstanceMesh);
-	return true;
+	if (bResult)
+	{
+		pcInstance->mapMeshes.Add(pInstanceMesh);
+	}
+	return bResult;
 }
 
 
@@ -1081,9 +1096,9 @@ void CSceneFileSave::WriteInstances(CScene* pcScene)
 			pInstanceMesh = pInstance->mapMeshes.Get(j);
 			aiSlots.Init();
 			aiMaterials.Init();
-			for (k = 0; k < pInstanceMesh->maiConnectionSlots.NumElements(); k++)
+			for (k = 0; k < pInstanceMesh->mapConnections.NumElements(); k++)
 			{
-				aiSlots.Add(pInstanceMesh->maiConnectionSlots.GetValue(k));
+				aiSlots.Add(SceneFileIndex<CConnection>(&pInstance->mapConnections, pInstanceMesh->mapConnections.Get(k), false));
 			}
 			for (k = 0; k < pInstanceMesh->mapMaterials.NumElements(); k++)
 			{

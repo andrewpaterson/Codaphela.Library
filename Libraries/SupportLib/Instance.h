@@ -20,7 +20,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INSTANCE_H__
 #define __INSTANCE_H__
-#include "BaseLib/ArrayInt.h"
 #include "BaseLib/Chars.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
@@ -30,15 +29,16 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //A mesh in an instance.  Its editor is shared with other instances, and so can't point at connections, as each instance has its own.
-//maiConnectionSlots says which of the instance's connections each of the mesh's matrices uses: one for a rigid mesh, and one for each
-//of its matrices for a skinned one.  mapMaterials replace the mesh's defaults, NULL to keep one, and none to keep them all.
+//mapConnections are the instance's connections that the mesh's matrices use, in the mesh's order: one for a rigid mesh, and one for
+//each of its matrices for a skinned one.  They must be the instance's own, as a file holds them as places in its list.  mapMaterials
+//replace the mesh's defaults, NULL to keep one, and none to keep them all.
 class CInstanceMesh : public CObject
 {
 CONSTRUCTABLE(CInstanceMesh);
 DESTRUCTABLE(CInstanceMesh);
 public:
 	Ptr<CMeshEditor>	mpEditor;
-	CArrayInt			maiConnectionSlots;
+	CArray<CConnection>	mapConnections;
 	CArrayMaterial		mapMaterials;
 
 	void 	Init(Ptr<CMeshEditor> pEditor);

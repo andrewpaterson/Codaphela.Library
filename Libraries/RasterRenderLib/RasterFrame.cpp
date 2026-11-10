@@ -243,7 +243,6 @@ void CRasterFrame::ExtractInstances(int32 iScale)
 	Ptr<CRasterMesh>		pRasterMesh;
 	size					i;
 	size					j;
-	int						iSlot;
 
 	masInstances.ReInit();
 	mapMeshes.RemoveAll();
@@ -254,12 +253,7 @@ void CRasterFrame::ExtractInstances(int32 iScale)
 		for (j = 0; j < pInstance->mapMeshes.NumElements(); j++)
 		{
 			pInstanceMesh = pInstance->mapMeshes.Get(j);
-			if (pInstanceMesh->mpEditor.IsNull() || pInstanceMesh->mpEditor->mpMesh->mcSkin.InUse() || (pInstanceMesh->maiConnectionSlots.NumElements() == 0))
-			{
-				continue;
-			}
-			iSlot = pInstanceMesh->maiConnectionSlots.GetValue(0);
-			if ((iSlot < 0) || ((size)iSlot >= pInstance->mapConnections.NumElements()))
+			if (pInstanceMesh->mpEditor.IsNull() || pInstanceMesh->mpEditor->mpMesh->mcSkin.InUse() || (pInstanceMesh->mapConnections.NumElements() == 0))
 			{
 				continue;
 			}
@@ -273,7 +267,7 @@ void CRasterFrame::ExtractInstances(int32 iScale)
 			{
 				continue;
 			}
-			pConnection = pInstance->mapConnections.Get((size)iSlot);
+			pConnection = pInstanceMesh->mapConnections.Get(0);
 			mapMeshes.Add(pRasterMesh);
 			RasterPlace(masInstances.Add(), &pRasterMesh, &pConnection->msWorldMatrix, iScale);
 		}

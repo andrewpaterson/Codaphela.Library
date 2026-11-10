@@ -30,7 +30,7 @@ void CInstanceMesh::Init(Ptr<CMeshEditor> pEditor)
 	PreInit();
 
 	mpEditor = pEditor;
-	maiConnectionSlots.Init();
+	mapConnections.Init();
 	mapMaterials.Init();
 
 	PostInit();
@@ -43,7 +43,6 @@ void CInstanceMesh::Init(Ptr<CMeshEditor> pEditor)
 //////////////////////////////////////////////////////////////////////////
 void CInstanceMesh::Free(void)
 {
-	maiConnectionSlots.Kill();
 }
 
 
@@ -54,7 +53,7 @@ void CInstanceMesh::Free(void)
 void CInstanceMesh::Class(void)
 {
 	M_Pointer(mpEditor);
-	U_Unknown(CArrayInt, maiConnectionSlots);
+	M_Embedded(mapConnections);
 	M_Embedded(mapMaterials);
 }
 

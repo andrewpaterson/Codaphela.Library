@@ -41,7 +41,7 @@ static Ptr<CMeshEditor> TestFrameAddInstance(Ptr<CScene> pScene, SFloat4x4* psWo
 	pConnection->msWorldMatrix = *psWorld;
 	pConnection->msLocalMatrix = *psWorld;
 	pInstanceMesh = OMalloc<CInstanceMesh>(pEditor);
-	pInstanceMesh->maiConnectionSlots.Add(0);
+	pInstanceMesh->mapConnections.Add(pConnection);
 	pInstance = OMalloc<CInstance>();
 	pInstance->mapConnections.Add(pConnection);
 	pInstance->mapMeshes.Add(pInstanceMesh);
