@@ -54,6 +54,7 @@ public:
 	bool			IsValid(void);
 
 	Ptr<CSound>		GetSourceSound(void);
+	CSound*			UnsafeGetSourceSound(void);  //Without making a Ptr, for a thread other than the objects' (see CSoundMixer).
 	lsize			GetFirstFrame(void);
 	lsize			GetNumFrames(void);
 	bool			HasLoop(void);
