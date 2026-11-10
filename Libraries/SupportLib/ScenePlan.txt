@@ -108,9 +108,9 @@ These stay out of RasterLib:
   A list of what's in the world  CScene.
 
 Drawing features in fixed point go in RasterLib, and whatever touches floats or scene types goes in RasterRenderLib, which is a
-library of its own so that RasterLib depends on neither RenderLib nor the scene.  Today RasterLib isn't quite standalone:
-CRasterMesh::Build includes SupportLib/Mesh.h, until step 4.  CRasterCamera keeps its rotation in a float matrix, which it
-converts to fixed point once a frame.
+library of its own so that RasterLib depends on neither RenderLib nor the scene.  Since step 4 RasterLib includes nothing
+from SupportLib: RasterRenderLib's BuildRasterMesh makes a CRasterMesh from a CMesh.  CRasterCamera keeps its rotation in a
+float matrix, which it converts to fixed point once a frame.
 
 A CScene never creates a CRasterMesh.  RasterRenderLib does.
 
@@ -252,10 +252,17 @@ Vulkan.
 3. CConnection updates.  Done: UpdateWorldMatrix makes its world matrix its local one times its parent's, and its local one with no
    parent, parents first, and sets its parity from it.  CScene::UpdateConnections does all of a scene's.  Nothing calls it on its own
    yet.  The converted files have their parents back (see Test scenes), so updating them leaves everything where it was.
-4. RenderLib and RasterRenderLib: create and replace only.  CRasterMesh::Build moves to RasterRenderLib, the same code, so that
-   RasterLib no longer includes SupportLib/Mesh.h.  BoardScene, VRMLCanvasDraw and any tests that build from a CMesh call it
-   there.  Check whether SupportLib/ColourARGB32.h can go with it.  CRasterMesh becomes a CObject: BoardScene and VRMLCanvasDraw
-   hold it by value through U_Data and TestRasterLib has many as locals, so they change too.
+4. RenderLib and RasterRenderLib: create and replace only.  Done.
+   CRasterMesh::Build moved unchanged to RasterRenderLib's BuildRasterMesh, so RasterLib no longer includes SupportLib, and
+   ColourARGB32.h stays in SupportLib as most of it and WindowLib use it.  CRasterMesh is a CObject: BoardScene holds its
+   models in a CArray, VRMLCanvasDraw through a Ptr, and TestRasterLib's are Ptrs.  Its Save and Load are WriteFile and
+   ReadFile, as they'd hide CObject's.
+   RenderLib has the abstract CRenderFactory, CRenderer and CRenderMesh, and CRenderScene, whose Update makes a render mesh
+   for each editor a scene's instances use, one for an editor many share, and a new one when the editor's structure, shape or
+   modifier counter moves.  A mesh no longer used is let go.  The modifier counter is new: adding or touching a modifier
+   changed the output without moving the other two.  RasterRenderLib's CRasterRenderFactory makes a CRasterRenderer, which
+   has the one scene-wide scale, and CRasterRenderMeshes built where their mesh is at that scale.  The tests are in
+   TestRasterLib.  Nothing calls CRenderScene yet: step 5's extract is the first.
 5. Extract.
    Connections become SRasterInstances, one for each rigid mesh of each instance: axes and offset from the world matrix of the
    mesh's connection, in one scene-wide scale.  Decide what happens to a mirrored matrix (mbParity), as SRasterInstance must turn
