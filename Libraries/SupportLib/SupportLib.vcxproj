@@ -372,6 +372,7 @@
     <ClInclude Include="MaterialImage.h" />
     <ClInclude Include="MaterialProperties.h" />
     <ClInclude Include="ConnectionAnimation.h" />
+    <ClInclude Include="AnimationPlayer.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshDefines.h" />
@@ -632,6 +633,7 @@
     <ClCompile Include="MaterialImage.cpp" />
     <ClCompile Include="MaterialProperties.cpp" />
     <ClCompile Include="ConnectionAnimation.cpp" />
+    <ClCompile Include="AnimationPlayer.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshFaceReturn.cpp" />

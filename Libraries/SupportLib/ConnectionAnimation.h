@@ -22,85 +22,68 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __CONNECTION_ANIMATION_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
-#include "BaseLib/GeometricTypes.h"
+#include "BaseLib/Float4x4.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "Connection.h"
 
 
-enum EKeyframeType
+//Where a connection is at fTime, seconds from the start of the animation: its local matrix, relative to its parent's, or to
+//the world when it has no parent.
+struct SConnectionKey
 {
-	KFT_Position = 0x1,
-	KFT_Rotation = 0x2,
-	KFT_Scale    = 0x4,
-	KFT_Matrix	 = 0x8,
+	float32		fTime;
+	SFloat4x4	sMatrix;
 };
 
 
-struct SAnimKeyFramePRS
-{
-	SFloat32Vec3			sPosition;
-	SQuaternion		sRotation;
-	//Scale
-};
-
-struct SAnimKeyFrameMatrix
-{
-	SFloat4x4		sMatrix;
-};
+typedef CArrayTemplate<SConnectionKey>	CArrayConnectionKey;
 
 
-struct SAnimKeyFrameData
-{
-	//union this please.
-	float32 f[16];  //This is the sizeof SAnimKeyFramePRS or SAnimKeyFrameMatrix.  Whichever is greater.
-};
-
-
-struct CAnimKeyFrame
-{
-	int					miType;  //Which parts of the key frame are actually used...
-	SAnimKeyFrameData	msf;
-	float32				mfTime;  //Seconds from the start of the animation.
-};
-
-
-typedef CArrayTemplate<CAnimKeyFrame>	CArrayAnimKeyFrame;
-
-
+//A track: the keys that move one connection, in time order.  GetMatrix is where they put it at a time.  Between two keys each
+//is split into a scale, a rotation and a position (Float4x4Decompose), and they're blended, the rotation by slerp, so that a
+//bone stays rigid as it turns.  What the split loses, a shear say, is blended straight, so it's each key itself at its time.
+//Before the first key it's at the first, and after the last at the last.  Apply sets the connection's local matrix; its world
+//matrix is made by CScene::UpdateConnections.
 class CConnectionAnimation : public CObject
 {
 CONSTRUCTABLE(CConnectionAnimation);
 DESTRUCTABLE(CConnectionAnimation);
 public:
-	CArrayAnimKeyFrame	masKeyFrames;
+	CArrayConnectionKey	masKeys;
 	Ptr<CConnection>	mpConnection;  //What these keys move.
 
 	void 			Init(void);
 	void 			Free(void) override;
 	void			Class(void) override;
 
-	CAnimKeyFrame*	Add(SFloat4x4* psMatrix, float32 fTime);
-	CAnimKeyFrame*	Add(SFloat32Vec3* psPosition, SQuaternion* psRotation, float32 fTime);
-	CAnimKeyFrame*	Add(SFloat32Vec3* psPosition, float32 fTime);
-	CAnimKeyFrame*	Add(SQuaternion* psRotation, float32 fTime);
+	SConnectionKey*	AddKey(SFloat4x4* psMatrix, float32 fTime);
+	size			NumKeys(void);
+	SConnectionKey*	GetKey(size uiIndex);
+	float32			GetDuration(void);
+
+	bool			GetMatrix(SFloat4x4* psDest, float32 fTime);
+	void			Apply(float32 fTime);
 };
 
 
-//Tracks that play together.  A walk is one of these, with a track for each bone.
+//Tracks that play together.  A walk is one of these, with a track for each bone.  It lasts as long as its longest track, and
+//Apply puts each of its connections where its track has it at fTime.
 class CSceneAnimation : public CObject
 {
 CONSTRUCTABLE(CSceneAnimation);
 DESTRUCTABLE(CSceneAnimation);
 public:
-	CChars						mszName;
+	CChars							mszName;
 	CArray<CConnectionAnimation>	mapTracks;
 
 	void 	Init(void);
 	void 	Free(void) override;
 	void	Class(void) override;
+
+	float32	GetDuration(void);
+	void	Apply(float32 fTime);
 };
 
 
 #endif // __CONNECTION_ANIMATION_H__
-

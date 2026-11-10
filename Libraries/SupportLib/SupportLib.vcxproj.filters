@@ -504,6 +504,9 @@
     <ClInclude Include="ConnectionAnimation.h">
       <Filter>Source\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationPlayer.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="Instance.h">
       <Filter>Source\Instance</Filter>
     </ClInclude>
@@ -1287,6 +1290,9 @@
       <Filter>Source\Material</Filter>
     </ClCompile>
     <ClCompile Include="ConnectionAnimation.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationPlayer.cpp">
       <Filter>Source\Animation</Filter>
     </ClCompile>
     <ClCompile Include="Instance.cpp">

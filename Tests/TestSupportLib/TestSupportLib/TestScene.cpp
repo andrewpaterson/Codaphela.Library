@@ -1,9 +1,11 @@
 #include <math.h>
+#include "BaseLib/ArrayFloat32.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/Mallocator.h"
 #include "StandardLib/Objects.h"
+#include "SupportLib/AnimationPlayer.h"
 #include "SupportLib/MeshSmoothGroups.h"
 #include "SupportLib/Scene.h"
 #include "SupportLib/SceneFileReader.h"
@@ -191,9 +193,8 @@ static void TestSceneReadConnections(Ptr<CScene> pScene)
 	AssertSize(2, pAnimation->mapTracks.NumElements());
 	pTrack = pAnimation->mapTracks.Get(0);
 	AssertTrue(&pTrack->mpConnection == &pRoot);
-	AssertSize(2, pTrack->masKeyFrames.NumElements());
-	AssertFloat(0.5f, pTrack->masKeyFrames.Get(1)->mfTime, 3);
-	AssertInt(KFT_Matrix, pTrack->masKeyFrames.Get(1)->miType);
+	AssertSize(2, pTrack->NumKeys());
+	AssertFloat(0.5f, pTrack->GetKey(1)->fTime, 3);
 	AssertTrue(&pAnimation->mapTracks.Get(1)->mpConnection == &pChild);
 }
 
@@ -796,7 +797,7 @@ void TestSceneGooberRead(void)
 
 	AssertSize(1, pScene->mapAnimations.NumElements());
 	AssertSize(140, pScene->mapAnimations.Get(0)->mapTracks.NumElements());
-	AssertSize(80, pScene->mapAnimations.Get(0)->mapTracks.Get(0)->masKeyFrames.NumElements());
+	AssertSize(80, pScene->mapAnimations.Get(0)->mapTracks.Get(0)->masKeys.NumElements());
 	AssertSize(1, pScene->mapParticles.NumElements());
 	AssertSize(1105, pScene->mapParticles.Get(0)->NumParticles());
 
@@ -804,6 +805,146 @@ void TestSceneGooberRead(void)
 	AssertString("Goober_D.tga", pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mszImageName.Text());
 
 	TestSceneGooberSkeleton(pScene, pInstance);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The most any of an instance's bones has changed in length, from its
+// parent's position to its own, against pafLengths, which it fills the
+// first time (when it's empty).  A change is against the length and a
+// unit, so that a bone of almost no length doesn't make rounding look big.
+//
+//////////////////////////////////////////////////////////////////////////
+static float32 TestSceneGooberBoneChange(Ptr<CInstance> pInstance, CArrayFloat32* pafLengths)
+{
+	Ptr<CConnection>	pConnection;
+	SFloat4x4*			psChild;
+	SFloat4x4*			psParent;
+	float32				x;
+	float32				y;
+	float32				z;
+	float32				fLength;
+	float32				fFirst;
+	float32				fChange;
+	float32				fWorst;
+	size				i;
+	size				uiBone;
+	bool				bFirst;
+
+	bFirst = pafLengths->NumElements() == 0;
+	fWorst = 0.0f;
+	uiBone = 0;
+	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
+	{
+		pConnection = pInstance->mapConnections.Get(i);
+		if (pConnection->mpParent.IsNull())
+		{
+			continue;
+		}
+		psChild = &pConnection->msWorldMatrix;
+		psParent = &pConnection->mpParent->msWorldMatrix;
+		x = psChild->pos.x - psParent->pos.x;
+		y = psChild->pos.y - psParent->pos.y;
+		z = psChild->pos.z - psParent->pos.z;
+		fLength = sqrtf(x * x + y * y + z * z);
+		if (bFirst)
+		{
+			pafLengths->Add(fLength);
+		}
+		else
+		{
+			fFirst = pafLengths->GetValue(uiBone);
+			fChange = fabsf(fLength - fFirst) / (fFirst + 1.0f);
+			fWorst = (fChange > fWorst) ? fChange : fWorst;
+		}
+		uiBone++;
+	}
+	return fWorst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Goober's walk starts where it stands: played at its start, every bone is
+// where its file has it.  As it walks its bones move but stay the same
+// length, at its keys and between them, which only comes out so if each
+// key is relative to its parent's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneGooberWalk(void)
+{
+	Ptr<CScene>					pScene;
+	Ptr<CInstance>				pInstance;
+	Ptr<CSceneAnimation>		pAnimation;
+	Ptr<CConnectionAnimation>	pTrack;
+	Ptr<CAnimationPlayer>		pPlayer;
+	Ptr<CConnection>			pConnection;
+	CArrayFloat4x4				asWorlds;
+	CArrayFloat32				afLengths;
+	size						i;
+	int32						j;
+	float32						fDifference;
+	float32						fWorst;
+	float32						fMoved;
+
+	pScene = OMalloc<CScene>();
+	AssertTrue(pScene->ReadFile(SCENE_GOOBER));
+	pInstance = pScene->mapInstances.Get(0);
+	pAnimation = pScene->mapAnimations.Get(0);
+	pTrack = pAnimation->mapTracks.Get(0);
+	AssertTrue(pAnimation->GetDuration() > 1.0f);
+
+	asWorlds.Init();
+	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
+	{
+		asWorlds.Add(&pInstance->mapConnections.Get(i)->msWorldMatrix);
+	}
+
+	pPlayer = OMalloc<CAnimationPlayer>(pAnimation, true);
+	pPlayer->Apply();
+	pScene->UpdateConnections();
+	fWorst = 0.0f;
+	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
+	{
+		pConnection = pInstance->mapConnections.Get(i);
+		for (j = 0; j < 16; j++)
+		{
+			fDifference = fabsf(((float32*)&pConnection->msWorldMatrix)[j] - ((float32*)asWorlds.Get(i))[j]) / (fabsf(((float32*)asWorlds.Get(i))[j]) + 1.0f);
+			fWorst = (fDifference > fWorst) ? fDifference : fWorst;
+		}
+	}
+	AssertTrue(fWorst < 0.0001f);
+
+	afLengths.Init();
+	TestSceneGooberBoneChange(pInstance, &afLengths);
+	AssertSize(66, afLengths.NumElements());
+	fWorst = 0.0f;
+	for (i = 4; i < pTrack->NumKeys(); i += 4)
+	{
+		pPlayer->SetTime(pTrack->GetKey(i)->fTime);
+		pPlayer->Apply();
+		pScene->UpdateConnections();
+		fDifference = TestSceneGooberBoneChange(pInstance, &afLengths);
+		fWorst = (fDifference > fWorst) ? fDifference : fWorst;
+	}
+	AssertTrue(fWorst < 0.0001f);
+
+	pPlayer->SetTime((pTrack->GetKey(40)->fTime + pTrack->GetKey(41)->fTime) * 0.5f);
+	pPlayer->Apply();
+	pScene->UpdateConnections();
+	AssertTrue(TestSceneGooberBoneChange(pInstance, &afLengths) < 0.001f);
+	fMoved = 0.0f;
+	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
+	{
+		pConnection = pInstance->mapConnections.Get(i);
+		fDifference = fabsf(pConnection->msWorldMatrix.pos.x - asWorlds.Get(i)->pos.x) + fabsf(pConnection->msWorldMatrix.pos.y - asWorlds.Get(i)->pos.y) + fabsf(pConnection->msWorldMatrix.pos.z - asWorlds.Get(i)->pos.z);
+		fMoved = (fDifference > fMoved) ? fDifference : fMoved;
+	}
+	AssertTrue(fMoved > 0.01f);
+
+	afLengths.Kill();
+	asWorlds.Kill();
 }
 
 
@@ -877,6 +1018,8 @@ void TestSceneGoober(void)
 
 	BeginTestSceneGoober(&uiMaxDebugAllocatorSize);
 	TestSceneGooberRead();
+	ObjectsFlush();
+	TestSceneGooberWalk();
 	EndTestSceneGoober(uiMaxDebugAllocatorSize);
 
 	TestStatistics();

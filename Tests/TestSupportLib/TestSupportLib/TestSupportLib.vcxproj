@@ -292,6 +292,7 @@
     <ClCompile Include="TestMeshOBJWriter.cpp" />
     <ClCompile Include="TestMeshVRMLReader.cpp" />
     <ClCompile Include="TestScene.cpp" />
+    <ClCompile Include="TestConnectionAnimation.cpp" />
     <ClCompile Include="TestSceneFile.cpp" />
     <ClCompile Include="TestSceneFileGoober.cpp" />
     <ClCompile Include="TestMeshPolygons.cpp" />

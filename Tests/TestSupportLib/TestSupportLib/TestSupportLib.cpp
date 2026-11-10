@@ -74,6 +74,7 @@ void TestMeshVRMLReader(void);
 void TestSceneFile(void);
 void TestSceneFileGoober(void);
 void TestScene(void);
+void TestConnectionAnimation(void);
 void TestSceneGoober(void);
 void TestSceneGooberResave(void);
 void TestImageResampler(void);
@@ -168,6 +169,7 @@ int __cdecl main(void)
 	TestSceneFile();
 	TestSceneFileGoober();
 	TestScene();
+	TestConnectionAnimation();
 	TestSceneGoober();
 	TestSceneGooberResave();
 	TestSound();

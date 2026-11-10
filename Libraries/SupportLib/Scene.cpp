@@ -517,7 +517,7 @@ bool CSceneFileLoad::ReadAnimations(CScene* pcScene)
 			}
 			for (k = 0; k < afTimes.NumElements(); k++)
 			{
-				pTrack->Add((SFloat4x4*)(af4x4s.GetData() + k * SCENE_FILE_FLOATS_IN_MATRIX), afTimes.GetValue(k));
+				pTrack->AddKey((SFloat4x4*)(af4x4s.GetData() + k * SCENE_FILE_FLOATS_IN_MATRIX), afTimes.GetValue(k));
 			}
 			af4x4s.Kill();
 			afTimes.Kill();
@@ -1032,7 +1032,7 @@ void CSceneFileSave::WriteAnimations(CScene* pcScene)
 {
 	Ptr<CSceneAnimation>				pAnimation;
 	Ptr<CConnectionAnimation>			pTrack;
-	CAnimKeyFrame*						psKey;
+	SConnectionKey*						psKey;
 	CArrayTemplatePrimitive<float32>	afTimes;
 	CArrayTemplatePrimitive<float32>	af4x4s;
 	size								i;
@@ -1048,11 +1048,11 @@ void CSceneFileSave::WriteAnimations(CScene* pcScene)
 			pTrack = pAnimation->mapTracks.Get(j);
 			afTimes.Init();
 			af4x4s.Init();
-			for (k = 0; k < pTrack->masKeyFrames.NumElements(); k++)
+			for (k = 0; k < pTrack->NumKeys(); k++)
 			{
-				psKey = pTrack->masKeyFrames.Get(k);
-				afTimes.Add(psKey->mfTime);
-				af4x4s.Add(psKey->msf.f, SCENE_FILE_FLOATS_IN_MATRIX);
+				psKey = pTrack->GetKey(k);
+				afTimes.Add(psKey->fTime);
+				af4x4s.Add((float32*)&psKey->sMatrix, SCENE_FILE_FLOATS_IN_MATRIX);
 			}
 			mcWriter.WriteTrack(SceneFileIndex<CConnection>(&mapConnections, pTrack->mpConnection, false), afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());
 			af4x4s.Kill();
