@@ -25,3 +25,4 @@ us.stackdump
 /Tests/TestBaseLib65/TestBaseLib65/Log_65C64.txt
 /Tests/TestCppParserLib/TestCppParserLib/TempMap.txt
 *.layout.user
+*.hcp65user
