@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{e94c1a7b-6d25-4b38-8f0e-3a5d9c2b7e14}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderMesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderScene.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RenderFactory.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderMesh.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderScene.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

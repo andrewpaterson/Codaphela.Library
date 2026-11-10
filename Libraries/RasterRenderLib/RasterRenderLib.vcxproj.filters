@@ -9,9 +9,27 @@
     <ClCompile Include="RasterMeshBuild.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="RasterRenderer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterRenderFactory.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterRenderMesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RasterMeshBuild.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterRenderer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterRenderFactory.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterRenderMesh.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

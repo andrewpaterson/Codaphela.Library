@@ -13,6 +13,7 @@
 void TestRasterMesh(void);
 void TestRasterCamera(void);
 void TestRasteriser(void);
+void TestRenderScene(void);
 
 
 int __cdecl main(void)
@@ -29,6 +30,7 @@ int __cdecl main(void)
 	TestRasterMesh();
 	TestRasterCamera();
 	TestRasteriser();
+	TestRenderScene();
 
 	MemoryKill();
 	TypeConverterKill();

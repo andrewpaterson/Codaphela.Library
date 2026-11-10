@@ -20,9 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RasterMeshBuild.cpp" />
+    <ClCompile Include="RasterRenderer.cpp" />
+    <ClCompile Include="RasterRenderFactory.cpp" />
+    <ClCompile Include="RasterRenderMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RasterMeshBuild.h" />
+    <ClInclude Include="RasterRenderer.h" />
+    <ClInclude Include="RasterRenderFactory.h" />
+    <ClInclude Include="RasterRenderMesh.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8C1E5B47-3A9D-4F62-B0E4-71D2A6C93F58}</ProjectGuid>
