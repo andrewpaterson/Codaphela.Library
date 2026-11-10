@@ -374,6 +374,86 @@ void TestTextAreaBackgroundsCaretLine(void)
 }
 
 
+//Counts the edits it is told of, and the lines they put in and took out.
+class CTestTextAreaDocumentListener : public CTextDocumentListener
+{
+public:
+	size	muiInserted;
+	size	muiRemoved;
+	size	muiLines;
+
+	void Init(void) { muiInserted = 0; muiRemoved = 0; muiLines = 0; }
+	void DocumentChanged(STextDocumentChange* psChange) override
+	{
+		if (psChange->eChange == TDC_Inserted)
+		{
+			muiInserted++;
+		}
+		else
+		{
+			muiRemoved++;
+		}
+		muiLines += psChange->uiLines;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A listener added to a text area is told its edits, as what it anchors
+// to the text is, until it is removed.  Setting the text isn't an edit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaBackgroundsDocumentListener(void)
+{
+	CWinRefWindowFactory			cNativeFactory;
+	CTestTextAreaDocumentListener	cListener;
+
+	cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTextArea>			pTextArea;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "aaa\nbbb\nccc");
+		pTestWindow->SetContainer(pTextArea);
+		cListener.Init();
+		pTextArea->AddDocumentListener(&cListener);
+
+		pTextArea->SetCaretPosition(4);
+		pTextArea->Paste("Z\n");
+		pTextArea->Select(0, 4);
+		pTextArea->Delete();
+		AssertSize(1, cListener.muiInserted);
+		AssertSize(1, cListener.muiRemoved);
+		AssertSize(2, cListener.muiLines);
+
+		pTextArea->SetText("ddd");
+		AssertSize(1, cListener.muiInserted);
+		AssertSize(1, cListener.muiRemoved);
+
+		pTextArea->RemoveDocumentListener(&cListener);
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Paste("\n");
+		AssertSize(1, cListener.muiInserted);
+		pTestWindow->Layout();
+
+		pTextArea = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertLabelObjectsRemoved();
+	cNativeFactory.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -387,6 +467,7 @@ void TestTextAreaBackgrounds(void)
 	TestTextAreaBackgroundsAdd();
 	TestTextAreaBackgroundsEdit();
 	TestTextAreaBackgroundsCaretLine();
+	TestTextAreaBackgroundsDocumentListener();
 
 	ObjectsFlush();
 	ObjectsKill();

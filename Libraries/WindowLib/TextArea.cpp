@@ -403,6 +403,17 @@ bool CTextArea::AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColo
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcListener is told each edit of the text (CTextDocumentListener), to
+// keep what it has anchored to the text in step, until it is removed.  It
+// isn't held.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AddDocumentListener(CTextDocumentListener* pcListener) { mcDocument.AddListener(pcListener); }
+void CTextArea::RemoveDocumentListener(CTextDocumentListener* pcListener) { mcDocument.RemoveListener(pcListener); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A line iThickness pixels high across the text area's whole width,
 // centred on the top of line uiLine, or on the bottom of the last line
 // (below its gap) if uiLine is NumLines.  It stays above its line as the

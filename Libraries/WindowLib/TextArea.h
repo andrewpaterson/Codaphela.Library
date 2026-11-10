@@ -152,6 +152,8 @@ public:
 	size					NumSpans(void);
 	bool					AddBackground(size uiStart, size uiEnd, ARGB32 sColour);
 	bool					AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColour);
+	void					AddDocumentListener(CTextDocumentListener* pcListener);
+	void					RemoveDocumentListener(CTextDocumentListener* pcListener);
 	bool					AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour);
 	void					ClearBackgrounds(void);
 	size					NumBackgrounds(void);
