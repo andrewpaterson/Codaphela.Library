@@ -262,15 +262,23 @@ Vulkan.
    modifier counter moves.  A mesh no longer used is let go.  The modifier counter is new: adding or touching a modifier
    changed the output without moving the other two.  RasterRenderLib's CRasterRenderFactory makes a CRasterRenderer, which
    has the one scene-wide scale, and CRasterRenderMeshes built where their mesh is at that scale.  The tests are in
-   TestRasterLib.  Nothing calls CRenderScene yet: step 5's extract is the first.
-5. Extract.
-   Connections become SRasterInstances, one for each rigid mesh of each instance: axes and offset from the world matrix of the
-   mesh's connection, in one scene-wide scale.  Decide what happens to a mirrored matrix (mbParity), as SRasterInstance must turn
-   and not mirror, and to one that scales.
-   CCamera and its connection set up a CRasterCamera.  ECameraType decides the projection, so ERasterProjection isn't set
-   separately, and FOV becomes focal length.  Drag, Pan, Zoom and FitOrbit stay on CRasterCamera as viewer controls.  Decide how
-   they write back to the scene, if they should.
-   CRasteriser takes light values, in place of msLight and RASTER_AMBIENT, with what they are now as the default.
+   TestRasterLib.  Step 5's CRasterFrame is the first to call CRenderScene.
+5. Extract.  Done: RasterRenderLib's CRasterFrame, whose Extract updates the render scene and makes what CRasteriser draws.
+   Connections become SRasterInstances, one for each rigid mesh of each instance, at the renderer's scale.  A skinned mesh waits
+   for step 8.  The user's decisions:
+     An instance's axes may scale and mirror.  Its light axes are their rotation alone, which the light is turned into the mesh
+     by, and a mirrored instance's triangles are wound the other way.  The shade is clamped at 256, so it can't carry into the
+     next colour channel.  An uneven scale shades as if the normals were only turned, which is very nearly right for the small
+     scales the converted files have.
+     The camera is the scene camera, and the viewer's controls write back to it: when CRasterCamera's change counter moves the
+     next Extract puts the view into the camera's connection, and when the scene camera moves the camera follows it, keeping
+     its distance to the point it turns around.  ECameraType decides the projection, and FOV across the target's width makes
+     the focal length.
+     CRasteriser shades with CRasterLights, which start as the light it always had.  Ambient is a light (LT_Ambient), and
+     ambient lights add up.  Directional lights, one or two, add up too.  Point lights (omni, and spot without its cone) reach
+     as far as they'd add a shade, or their range, worked out when they're added.  One is only worked out for an instance its
+     reach gets to the bounds of, a bit each in a mask, and then only for a vertex within its reach.  All grey for now.
+   What the rasteriser drew before is byte-identical: 36 golden frames over every draw path hashed the same after each change.
 6. Move BoardScene onto a CScene: its models, the mainboard and boards standing in their sockets become instances and
    connections, and its yaw a connection or an animation.  Its pixels must stay byte-identical.  The VRML read is already lazy:
    each model's mesh is saved after its modifiers as a .DRG in Output/Models, which a cached model is read from instead.  This
