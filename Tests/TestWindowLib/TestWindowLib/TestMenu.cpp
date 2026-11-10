@@ -1707,6 +1707,16 @@ void TestMenuPopupMaximumHeight(void)
 		AssertInt(0, pPopup->GetScrollPane()->GetScrollPosition().y);
 		pMenu->Close();
 
+		//A menu wider than the window is in a popup no wider than it, so its scroll bar is on it.
+		pMenu->AddItem("An item far wider than the three hundred pixel window the menu is opened in, by a long way");
+		pPopup = pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		pPopup->SetMaximumHeight(60, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pTestWindow->Layout();
+		AssertTrue(pMenu->GetDesiredSize().x > 300);
+		AssertInt(300, pPopup->GetActualSize().x);
+		AssertInt(0, pPopup->GetPosition().x);
+		pMenu->Close();
+
 		pPopup = NULL;
 		pMenu = NULL;
 		pTheme = NULL;

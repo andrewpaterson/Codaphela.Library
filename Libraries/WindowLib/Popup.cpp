@@ -213,7 +213,8 @@ bool CPopup::RemoveAllComponents(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The area is the whole window.  The popup ignores where it would put it
-// and goes where it was opened, kept inside the area.
+// and goes where it was opened, kept inside the area, and is no bigger
+// than the area.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPopup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -224,6 +225,16 @@ void CPopup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SInt32Vec2	sContentSize;
 
 	sSize = GetDesiredSize();
+
+	//No bigger than the window, so its edges (and a scroll pane's scroll bar) are on it.
+	if (sSize.x > sAreaSize.x)
+	{
+		sSize.x = sAreaSize.x;
+	}
+	if (sSize.y > sAreaSize.y)
+	{
+		sSize.y = sAreaSize.y;
+	}
 	sPopupPosition = msOpenPosition;
 	if (sPopupPosition.x + sSize.x > sPosition.x + sAreaSize.x)
 	{
