@@ -203,6 +203,38 @@ void TestRasterMeshBuildScaled(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A sliver a thousandth of a unit across has no area at 100 raster units to
+// one, and has at a million, so it's only left out of the first.  Its corner
+// stays a vertex.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMeshBuildRemovesDegenerate(void)
+{
+	CMesh				cMesh;
+	Ptr<CRasterMesh>	pRaster;
+
+	cMesh.Init();
+	cMesh.AddCorner(0.0f, 0.0f, 0.0f);
+	cMesh.AddCorner(10.0f, 0.0f, 0.0f);
+	cMesh.AddCorner(0.0f, 10.0f, 0.0f);
+	cMesh.AddCorner(5.0f, 0.001f, 0.0f);
+	cMesh.AddFace(0, 1, 2);
+	cMesh.AddFace(0, 1, 3);
+
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh, 100);
+	AssertSize(4, pRaster->masVertices.NumElements());
+	AssertSize(1, pRaster->NumTriangles());
+	AssertInt(2, pRaster->masOpaque.Get(0)->aiVertex[2]);
+	AssertInt(1000, pRaster->msMax.y);
+
+	BuildRasterMesh(&pRaster, &cMesh, 1 << 20);
+	AssertSize(2, pRaster->NumTriangles());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMeshRemoveDegenerate(void)
@@ -332,6 +364,7 @@ void TestRasterMesh(void)
 	TestRasterMeshDifferentNormals();
 	TestRasterMeshEmpty();
 	TestRasterMeshBuildScaled();
+	TestRasterMeshBuildRemovesDegenerate();
 	TestRasterMeshRemoveDegenerate();
 	TestRasterMeshPadding();
 	TestRasterMeshFile();

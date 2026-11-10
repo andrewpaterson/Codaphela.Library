@@ -59,7 +59,7 @@ typedef CArrayTemplate<SRasterTriangle>	CArrayRasterTriangle;
 //that anything can share one through a Ptr, with or without a scene.  SRasterInstance points at one, and whatever builds
 //the instances holds the Ptrs, which keeps the meshes alive while they're drawn.
 //
-//RemoveDegenerate takes out triangles with no area, which can't be seen.  What's exported from CAD is cleaned up and made
+//RemoveDegenerate takes out triangles with no area, which BuildRasterMesh does.  What's exported from CAD is cleaned up and made
 //simpler for how big it will be drawn by modifiers on the CMesh it's built from (see CMeshFixReversed, CMeshWeldCorners and
 //CMeshEdgeCollapse).
 //

@@ -33,6 +33,9 @@ class CRasterMesh;
 //The first centres the mesh on the origin and scales it so that its largest half width is RASTER_MESH_HALF_EXTENT.  The other
 //keeps the mesh where it is at a scale that's given, for meshes that are to be drawn together at their true sizes (see
 //SRasterInstance).
+//
+//Both leave out the triangles with no area once their corners are rounded to the raster mesh's units, which depends on the
+//scale, so it's done here.  A face with no area in the CMesh is the mesh's to take out (see CMeshRemoveDegenerate).
 void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh);
 void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale);
 

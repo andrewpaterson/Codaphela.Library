@@ -179,6 +179,7 @@ static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CMesh* pcMesh, SFloat32Ve
 	aiVertexNormal.Kill();
 	aiCornerVertex.Kill();
 
+	pcRaster->RemoveDegenerate();
 	pcRaster->UpdateBounds();
 }
 
