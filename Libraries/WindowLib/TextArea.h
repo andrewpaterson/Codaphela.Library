@@ -92,6 +92,9 @@ protected:
 	CTextAreaBands			mcBands;  //What was drawn, row by row, to find what changed (PrepareArea).
 	ARGB32					msSelectionColour;
 	ARGB32					msCaretColour;
+	bool					mbCaretLine;  //The caret's line is drawn under the other backgrounds, in msCaretLineColour.
+	ARGB32					msCaretLineColour;
+	size					muiCaretLine;  //The line it was drawn on.
 	CTextEditing			mcEditing;  //The caret, the selection and the edits of mcDocument.
 	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	CTextEditingInput		mcInput;  //The input actions that reach mcEditing.
@@ -162,6 +165,9 @@ public:
 	bool				IsSelectable(void);
 	void				SetTabWidth(int32 iTabWidth);
 	void				SetMarkColours(ARGB32 sSelection, ARGB32 sCaret);
+	void				SetCaretLine(bool bShown, ARGB32 sColour);
+	bool				IsCaretLineShown(void);
+	size				GetCaretLine(void);
 	size				GetCaretPosition(void);
 	void				SetCaretPosition(size uiPosition);
 	bool				GetSelection(size* puiStart, size* puiEnd);
@@ -265,6 +271,7 @@ public:
 	size				ScrollPage(size uiRow, bool bDown) override;
 	void				MarksChanged(void) override;
 	void				ShowCaret(void) override;
+	void				UpdateCaretLine(void);
 	void				TextEdited(void) override;
 	void				UndoChanged(STextUndoChange* psChange) override;
 

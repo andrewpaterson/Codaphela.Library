@@ -307,6 +307,75 @@ void TestTextAreaBackgroundsEdit(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The caret's line, when it is highlighted, follows the caret as it moves
+// and as lines are put in and taken out above it.  It isn't one of the
+// backgrounds.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaBackgroundsCaretLine(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTextArea>			pTextArea;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		//Lines: aaa 0-2, bbb 4-6, ccc 8-10, ddd 12-14.  Off until it is shown.
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "aaa\nbbb\nccc\nddd");
+		pTestWindow->SetContainer(pTextArea);
+		AssertFalse(pTextArea->IsCaretLineShown());
+		pTextArea->SetCaretPosition(9);
+		pTextArea->SetCaretLine(true, Set32BitColour((uint8)0x26, (uint8)0x28, (uint8)0x2E));
+		AssertTrue(pTextArea->IsCaretLineShown());
+		AssertSize(2, pTextArea->GetCaretLine());
+		AssertSize(0, pTextArea->NumBackgrounds());
+
+		//Moved by the caret, a selection's end and the keys.
+		pTextArea->SetCaretPosition(1);
+		AssertSize(0, pTextArea->GetCaretLine());
+		pTextArea->Select(2, 13);
+		AssertSize(3, pTextArea->GetCaretLine());
+		pTextArea->SetCaretPosition(5);
+		pTextArea->Down();
+		AssertSize(2, pTextArea->GetCaretLine());
+
+		//A line put in above moves it down; taking it out moves it back.
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Paste("Z\n");
+		AssertSize(1, pTextArea->GetCaretLine());
+		pTextArea->SetCaretPosition(11);
+		AssertSize(3, pTextArea->GetCaretLine());
+		pTextArea->Select(0, 2);
+		pTextArea->Delete();
+		AssertSize(0, pTextArea->GetCaretLine());
+		pTestWindow->Layout();
+
+		//Not shown, it stays where it was.
+		pTextArea->SetCaretLine(false, 0);
+		AssertFalse(pTextArea->IsCaretLineShown());
+		pTextArea->SetCaretPosition(13);
+		AssertSize(0, pTextArea->GetCaretLine());
+
+		pTextArea = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertLabelObjectsRemoved();
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaBackgrounds(void)
@@ -317,6 +386,7 @@ void TestTextAreaBackgrounds(void)
 	TestTextAreaBackgroundsDraw();
 	TestTextAreaBackgroundsAdd();
 	TestTextAreaBackgroundsEdit();
+	TestTextAreaBackgroundsCaretLine();
 
 	ObjectsFlush();
 	ObjectsKill();

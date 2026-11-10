@@ -131,6 +131,7 @@ static ARGB32	gasJewelThemeColours[] =
 	JEWEL_RED,				//TC_Failure
 	JEWEL_SELECTION,		//TC_TextSelection
 	JEWEL_ICON,				//TC_Caret
+	JEWEL_CARET_LINE,		//TC_CaretLine
 	JEWEL_SELECTION,		//TC_ListSelected
 	JEWEL_HOVER,			//TC_ListHover
 	JEWEL_EDITOR,			//TC_TabBar

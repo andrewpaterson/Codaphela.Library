@@ -85,6 +85,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mpMaps->SetViewportPosition(0, 0);
 	msSelectionColour = pTheme->GetColour(TC_TextSelection);
 	msCaretColour = pTheme->GetColour(TC_Caret);
+	mbCaretLine = false;
+	msCaretLineColour = 0;
+	muiCaretLine = 0;
 	mcDocument.AddListener(&mcBackgrounds);
 	mcEditing.Init(&mcDocument, this);
 	mcUndoEvent.Init();
@@ -151,6 +154,9 @@ void CTextArea::Class(void)
 	U_Unknown(CTextAreaBands, mcBands);
 	U_UInt32(msSelectionColour);
 	U_UInt32(msCaretColour);
+	U_Bool(mbCaretLine);
+	U_UInt32(msCaretLineColour);
+	U_Size(muiCaretLine);
 	U_Unknown(CTextEditing, mcEditing);
 	U_Bool(mbSelectable);
 	U_Unknown(CTextEditingInput, mcInput);
@@ -751,6 +757,26 @@ void CTextArea::SetMarkColours(ARGB32 sSelection, ARGB32 sCaret)
 	msCaretColour = sCaret;
 	UpdateMarks();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line the caret is on is highlighted in sColour, under the other
+// backgrounds and the selection, as IntelliJ's caret row is, with or
+// without the keys; or not, without bShown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetCaretLine(bool bShown, ARGB32 sColour)
+{
+	mbCaretLine = bShown;
+	msCaretLineColour = sColour;
+	muiCaretLine = FindLine(GetCaretPosition());
+	BackgroundsChanged();
+}
+
+
+bool CTextArea::IsCaretLineShown(void) { return mbCaretLine; }
+size CTextArea::GetCaretLine(void) { return muiCaretLine; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1423,6 +1449,7 @@ void CTextArea::TextEdited(void)
 		LayoutChanged();
 	}
 	ShowCaret();
+	UpdateCaretLine();
 
 	//An edit shows the caret, even one that doesn't move it.
 	if (HasFocus())
@@ -1451,6 +1478,30 @@ void CTextArea::UndoChanged(STextUndoChange* psChange)
 void CTextArea::MarksChanged(void)
 {
 	UpdateMarks();
+	UpdateCaretLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caret's line highlighted (SetCaretLine) is drawn again on the line
+// the caret is on now, if that changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::UpdateCaretLine(void)
+{
+	size	uiLine;
+
+	if (!mbCaretLine)
+	{
+		return;
+	}
+	uiLine = FindLine(GetCaretPosition());
+	if (uiLine != muiCaretLine)
+	{
+		muiCaretLine = uiLine;
+		BackgroundsChanged();
+	}
 }
 
 
@@ -1570,6 +1621,10 @@ void CTextArea::UpdateBackgrounds(void)
 	mpBackgroundMap->Clear();
 	miBackgroundWidth = GetFullWidth();
 	mbBackgroundsDirty = false;
+	if (mbCaretLine && (muiCaretLine < NumLines()))
+	{
+		mcShapes.AddLine(mpBackgroundMap, muiCaretLine, msCaretLineColour, miBackgroundWidth);
+	}
 	mcShapes.AddBackgrounds(mpBackgroundMap, &mcBackgrounds, miBackgroundWidth);
 }
 

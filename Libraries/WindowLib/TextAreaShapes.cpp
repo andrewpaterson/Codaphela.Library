@@ -79,6 +79,24 @@ void CTextAreaShapes::AddBackgrounds(Ptr<CGeometryMap> pMap, CTextBackgrounds* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// One line's rows across iWidth, as a line background is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextAreaShapes::AddLine(Ptr<CGeometryMap> pMap, size uiLine, ARGB32 sColour, int32 iWidth)
+{
+	STextAreaBackground	sLine;
+
+	sLine.eType = TAB_Lines;
+	sLine.uiStart = uiLine;
+	sLine.uiEnd = uiLine + 1;
+	sLine.iThickness = 0;
+	sLine.sColour = sColour;
+	AddLines(pMap, &sLine, iWidth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // One rectangle for each run of lines without gaps between them.
 //
 //////////////////////////////////////////////////////////////////////////

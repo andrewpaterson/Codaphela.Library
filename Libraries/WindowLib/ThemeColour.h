@@ -43,6 +43,7 @@ enum EThemeColour
 	//The widgets'.
 	TC_TextSelection,			//Behind selected text.
 	TC_Caret,
+	TC_CaretLine,				//Behind the line an editor's caret is on.
 	TC_ListSelected,			//A list's selected row.
 	TC_ListHover,				//A list's row under the pointer.
 	TC_TabBar,					//Behind a tabbed container's tabs.

@@ -32,6 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define JEWEL_BORDER_PUSHED		Set32BitColour((uint8)0x86, (uint8)0x8A, (uint8)0x91)  //A control's border while pushed.
 #define JEWEL_SEPARATOR			Set32BitColour((uint8)0x43, (uint8)0x45, (uint8)0x4A)  //Separators and a menu's border.
 #define JEWEL_HOVER				Set32BitColour((uint8)0x39, (uint8)0x3B, (uint8)0x40)  //A row or flat button under the pointer.
+#define JEWEL_CARET_LINE		Set32BitColour((uint8)0x26, (uint8)0x28, (uint8)0x2E)  //Behind the editor's caret line.
 #define JEWEL_SELECTION			Set32BitColour((uint8)0x2E, (uint8)0x43, (uint8)0x6E)  //Selected rows and text.
 #define JEWEL_BLUE				Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0)  //Focus rings, default buttons and ticked boxes.
 #define JEWEL_BLUE_HOVER		Set32BitColour((uint8)0x46, (uint8)0x82, (uint8)0xFA)

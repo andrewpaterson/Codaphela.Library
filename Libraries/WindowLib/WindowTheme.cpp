@@ -62,7 +62,7 @@ static const char*	gaszThemeColourNames[] =
 {
 	"Text", "DimText", "BrightText", "Icon", "Panel", "Editor", "Separator", "Border", "BorderHover", "Accent",
 	"AccentHover", "Success", "Failure",
-	"TextSelection", "Caret", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
+	"TextSelection", "Caret", "CaretLine", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
 	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
 	"DialogDivider", "LineNumber", "LineNumberActive", "Gutter", "DiffInsertedLines", "DiffDeletedLines",
 	"DiffModifiedLines", "DiffInsertedChanges", "DiffDeletedChanges", "DiffModifiedChanges", "DiffDivider",
