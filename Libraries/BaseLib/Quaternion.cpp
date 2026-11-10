@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include <math.h>
 #include "Numbers.h"
 #include "FloatHelper.h"
 #include "Quaternion.h"
@@ -199,3 +200,85 @@ bool SQuaternion::operator != (const SQuaternion& q) const
 	return x != q.x || y != q.y || z != q.z || w != q.w;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+float QuaternionDot(SQuaternion* ps1, SQuaternion* ps2)
+{
+	return ps1->x * ps2->x + ps1->y * ps2->y + ps1->z * ps2->z + ps1->w * ps2->w;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No rotation if psIn has no length.
+//
+//////////////////////////////////////////////////////////////////////////
+SQuaternion* QuaternionNormalize(SQuaternion* psOut, SQuaternion* psIn)
+{
+	float64	fLength;
+
+	fLength = sqrt((float64)psIn->x * psIn->x + (float64)psIn->y * psIn->y + (float64)psIn->z * psIn->z + (float64)psIn->w * psIn->w);
+	if (fLength <= 0.0)
+	{
+		psOut->x = 0.0f;
+		psOut->y = 0.0f;
+		psOut->z = 0.0f;
+		psOut->w = 1.0f;
+		return psOut;
+	}
+	psOut->x = (float)(psIn->x / fLength);
+	psOut->y = (float)(psIn->y / fLength);
+	psOut->z = (float)(psIn->z / fLength);
+	psOut->w = (float)(psIn->w / fLength);
+	return psOut;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// q and -q are the same rotation, so psTo is taken whichever way is
+// shorter.  Close together, blending them straight is as good and doesn't
+// divide by almost nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+SQuaternion* QuaternionSlerp(SQuaternion* psOut, SQuaternion* psFrom, SQuaternion* psTo, float fT)
+{
+	float64		fDot;
+	float64		fSign;
+	float64		fAngle;
+	float64		fSin;
+	float64		fFrom;
+	float64		fTo;
+	SQuaternion	sBlend;
+
+	fDot = (float64)psFrom->x * psTo->x + (float64)psFrom->y * psTo->y + (float64)psFrom->z * psTo->z + (float64)psFrom->w * psTo->w;
+	fSign = 1.0;
+	if (fDot < 0.0)
+	{
+		fDot = -fDot;
+		fSign = -1.0;
+	}
+
+	if (fDot > 0.9995)
+	{
+		fFrom = 1.0 - fT;
+		fTo = fT;
+	}
+	else
+	{
+		fAngle = acos(fDot);
+		fSin = sin(fAngle);
+		fFrom = sin((1.0 - fT) * fAngle) / fSin;
+		fTo = sin(fT * fAngle) / fSin;
+	}
+	fTo *= fSign;
+
+	sBlend.x = (float)(fFrom * psFrom->x + fTo * psTo->x);
+	sBlend.y = (float)(fFrom * psFrom->y + fTo * psTo->y);
+	sBlend.z = (float)(fFrom * psFrom->z + fTo * psTo->z);
+	sBlend.w = (float)(fFrom * psFrom->w + fTo * psTo->w);
+	return QuaternionNormalize(psOut, &sBlend);
+}

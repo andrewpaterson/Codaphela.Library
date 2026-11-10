@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class SFloat32Vec2;
 class SFloat32Vec3;
 class SFloat32Vec4;
+class SQuaternion;
 class SFloat4x4
 {
 CONSTRUCTABLE(SFloat4x4);
@@ -74,6 +75,15 @@ bool		Float4x4Inverse(SFloat4x4* psOut, float* pfDeterminant, SFloat4x4* psIn);
 SFloat4x4* 	Float4x4LookAtRH(SFloat4x4* psOut, const SFloat32Vec3* psEye, const SFloat32Vec3* psAt, const SFloat32Vec3* psUp);
 SFloat4x4* 	Float4x4PerspectiveFovRH(SFloat4x4* psOut, float fFovY, float fAspect, float fZNear, float fZFar);
 bool		Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2);
+
+//Rotations are row major with vectors on their left, as the rest: a matrix's x, y and z rows are where its x, y and z axes go.
+//Float4x4Decompose splits a matrix into a scale along each axis, a rotation and a position, which Float4x4Compose puts back
+//together.  A mirrored matrix has a negative z scale, so its rotation is still a rotation.  The rows are made at right angles
+//to those before them, so a shear is lost.
+void		Float4x4RotationQuaternion(SFloat4x4* psOut, SQuaternion* psRotation);
+void		QuaternionRotationMatrix(SQuaternion* psOut, SFloat4x4* psRotation);
+void		Float4x4Decompose(SFloat32Vec3* psScale, SQuaternion* psRotation, SFloat32Vec3* psPosition, SFloat4x4* psIn);
+void		Float4x4Compose(SFloat4x4* psOut, SFloat32Vec3* psScale, SQuaternion* psRotation, SFloat32Vec3* psPosition);
 
 
 #endif // __FLOAT_4_X_4_H__

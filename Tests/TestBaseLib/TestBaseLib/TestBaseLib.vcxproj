@@ -416,6 +416,7 @@
     <ClCompile Include="TestSequence.cpp" />
     <ClCompile Include="TestXMLFile.cpp" />
     <ClCompile Include="TestXMLWriter.cpp" />
+    <ClCompile Include="TestQuaternion.cpp" />
     <ClCompile Include="TestFunctionCaller.cpp" />
     <ClCompile Include="TestNumber.cpp" />
     <ClCompile Include="TestXMLParser.cpp" />

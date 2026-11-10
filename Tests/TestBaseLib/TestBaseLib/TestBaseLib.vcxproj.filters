@@ -600,6 +600,9 @@
     <ClCompile Include="TestXMLWriter.cpp">
       <Filter>Source\File\XML</Filter>
     </ClCompile>
+    <ClCompile Include="TestQuaternion.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
     <ClCompile Include="TestFunctionCaller.cpp">
       <Filter>Source\Function</Filter>
     </ClCompile>

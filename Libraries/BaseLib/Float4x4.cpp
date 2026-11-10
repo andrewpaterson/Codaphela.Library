@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Float32Vec2.h"
 #include "Float32Vec3.h"
 #include "Float32Vec4.h"
+#include "Quaternion.h"
 #include "Float4x4.h"
 
 
@@ -544,4 +545,172 @@ SFloat4x4* Float4x4PerspectiveFovRH(SFloat4x4* psOut, float fFovY, float fAspect
 bool Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2)
 {
 	return memcmp(ps1, ps2, sizeof(SFloat4x4)) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only the rotation's rows and columns are set, and no position.
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4x4RotationQuaternion(SFloat4x4* psOut, SQuaternion* psRotation)
+{
+	float64	x;
+	float64	y;
+	float64	z;
+	float64	w;
+
+	x = psRotation->x;
+	y = psRotation->y;
+	z = psRotation->z;
+	w = psRotation->w;
+
+	psOut->x.x = (float)(1.0 - 2.0 * (y * y + z * z));	psOut->x.y = (float)(2.0 * (x * y + z * w));	psOut->x.z = (float)(2.0 * (x * z - y * w));	psOut->x.w = 0.0f;
+	psOut->y.x = (float)(2.0 * (x * y - z * w));	psOut->y.y = (float)(1.0 - 2.0 * (x * x + z * z));	psOut->y.z = (float)(2.0 * (y * z + x * w));	psOut->y.w = 0.0f;
+	psOut->z.x = (float)(2.0 * (x * z + y * w));	psOut->z.y = (float)(2.0 * (y * z - x * w));	psOut->z.z = (float)(1.0 - 2.0 * (x * x + y * y));	psOut->z.w = 0.0f;
+	psOut->pos.x = 0.0f;	psOut->pos.y = 0.0f;	psOut->pos.z = 0.0f;	psOut->pos.w = 1.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psRotation's x, y and z rows must be units at right angles.  The largest
+// of w, x, y and z is worked out first, so that nothing is divided by
+// almost nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void QuaternionRotationMatrix(SQuaternion* psOut, SFloat4x4* psRotation)
+{
+	float64		m11;
+	float64		m12;
+	float64		m13;
+	float64		m21;
+	float64		m22;
+	float64		m23;
+	float64		m31;
+	float64		m32;
+	float64		m33;
+	float64		fTrace;
+	float64		s;
+	SQuaternion	sRotation;
+
+	m11 = psRotation->x.x;	m12 = psRotation->x.y;	m13 = psRotation->x.z;
+	m21 = psRotation->y.x;	m22 = psRotation->y.y;	m23 = psRotation->y.z;
+	m31 = psRotation->z.x;	m32 = psRotation->z.y;	m33 = psRotation->z.z;
+
+	fTrace = m11 + m22 + m33;
+	if (fTrace > 0.0)
+	{
+		s = sqrt(fTrace + 1.0) * 2.0;
+		sRotation.w = (float)(0.25 * s);
+		sRotation.x = (float)((m23 - m32) / s);
+		sRotation.y = (float)((m31 - m13) / s);
+		sRotation.z = (float)((m12 - m21) / s);
+	}
+	else if ((m11 > m22) && (m11 > m33))
+	{
+		s = sqrt(1.0 + m11 - m22 - m33) * 2.0;
+		sRotation.w = (float)((m23 - m32) / s);
+		sRotation.x = (float)(0.25 * s);
+		sRotation.y = (float)((m12 + m21) / s);
+		sRotation.z = (float)((m31 + m13) / s);
+	}
+	else if (m22 > m33)
+	{
+		s = sqrt(1.0 + m22 - m11 - m33) * 2.0;
+		sRotation.w = (float)((m31 - m13) / s);
+		sRotation.x = (float)((m12 + m21) / s);
+		sRotation.y = (float)(0.25 * s);
+		sRotation.z = (float)((m23 + m32) / s);
+	}
+	else
+	{
+		s = sqrt(1.0 + m33 - m11 - m22) * 2.0;
+		sRotation.w = (float)((m12 - m21) / s);
+		sRotation.x = (float)((m31 + m13) / s);
+		sRotation.y = (float)((m23 + m32) / s);
+		sRotation.z = (float)(0.25 * s);
+	}
+	QuaternionNormalize(psOut, &sRotation);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A row of no length is taken as along its own axis.
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4x4Decompose(SFloat32Vec3* psScale, SQuaternion* psRotation, SFloat32Vec3* psPosition, SFloat4x4* psIn)
+{
+	float64		afRows[3][3];
+	float64		afScale[3];
+	float64		fDot;
+	float64		fDeterminant;
+	SFloat4x4	sRotation;
+	SFloat32Vec4*	psRow;
+	int			iRow;
+	int			iBefore;
+	int			k;
+
+	for (iRow = 0; iRow < 3; iRow++)
+	{
+		psRow = &(&psIn->x)[iRow];
+		afRows[iRow][0] = psRow->x;
+		afRows[iRow][1] = psRow->y;
+		afRows[iRow][2] = psRow->z;
+		for (iBefore = 0; iBefore < iRow; iBefore++)
+		{
+			fDot = afRows[iRow][0] * afRows[iBefore][0] + afRows[iRow][1] * afRows[iBefore][1] + afRows[iRow][2] * afRows[iBefore][2];
+			for (k = 0; k < 3; k++)
+			{
+				afRows[iRow][k] -= fDot * afRows[iBefore][k];
+			}
+		}
+		afScale[iRow] = sqrt(afRows[iRow][0] * afRows[iRow][0] + afRows[iRow][1] * afRows[iRow][1] + afRows[iRow][2] * afRows[iRow][2]);
+		for (k = 0; k < 3; k++)
+		{
+			afRows[iRow][k] = (afScale[iRow] > 0.0) ? afRows[iRow][k] / afScale[iRow] : ((k == iRow) ? 1.0 : 0.0);
+		}
+	}
+
+	fDeterminant = afRows[0][0] * (afRows[1][1] * afRows[2][2] - afRows[1][2] * afRows[2][1])
+				 - afRows[0][1] * (afRows[1][0] * afRows[2][2] - afRows[1][2] * afRows[2][0])
+				 + afRows[0][2] * (afRows[1][0] * afRows[2][1] - afRows[1][1] * afRows[2][0]);
+	if (fDeterminant < 0.0)
+	{
+		afScale[2] = -afScale[2];
+		for (k = 0; k < 3; k++)
+		{
+			afRows[2][k] = -afRows[2][k];
+		}
+	}
+
+	sRotation.Identity();
+	for (iRow = 0; iRow < 3; iRow++)
+	{
+		psRow = &(&sRotation.x)[iRow];
+		psRow->x = (float)afRows[iRow][0];
+		psRow->y = (float)afRows[iRow][1];
+		psRow->z = (float)afRows[iRow][2];
+	}
+	QuaternionRotationMatrix(psRotation, &sRotation);
+	psScale->Init((float)afScale[0], (float)afScale[1], (float)afScale[2]);
+	psPosition->Init(psIn->pos.x, psIn->pos.y, psIn->pos.z);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4x4Compose(SFloat4x4* psOut, SFloat32Vec3* psScale, SQuaternion* psRotation, SFloat32Vec3* psPosition)
+{
+	Float4x4RotationQuaternion(psOut, psRotation);
+	psOut->x.x *= psScale->x;	psOut->x.y *= psScale->x;	psOut->x.z *= psScale->x;
+	psOut->y.x *= psScale->y;	psOut->y.y *= psScale->y;	psOut->y.z *= psScale->y;
+	psOut->z.x *= psScale->z;	psOut->z.y *= psScale->z;	psOut->z.z *= psScale->z;
+	psOut->pos.x = psPosition->x;
+	psOut->pos.y = psPosition->y;
+	psOut->pos.z = psPosition->z;
+	psOut->pos.w = 1.0f;
 }

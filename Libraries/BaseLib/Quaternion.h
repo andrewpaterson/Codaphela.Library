@@ -59,6 +59,13 @@ public:
 };
 
 
+//A rotation is a unit quaternion (x, y, z, w): sin(a / 2) times its axis, and cos(a / 2), for a turn of a about the axis.
+//QuaternionSlerp turns from psFrom to psTo the shorter way round, steadily: fT of 0 is psFrom and 1 is psTo.
+float			QuaternionDot(SQuaternion* ps1, SQuaternion* ps2);
+SQuaternion*	QuaternionNormalize(SQuaternion* psOut, SQuaternion* psIn);
+SQuaternion*	QuaternionSlerp(SQuaternion* psOut, SQuaternion* psFrom, SQuaternion* psTo, float fT);
+
+
 
 #endif // __QUATERNION_H__
 
