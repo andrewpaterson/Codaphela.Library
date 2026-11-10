@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FreeList.h"
 #include "MarkupTag.h"
 #include "ArrayTemplatePtr.h"
+#include "ArrayChars.h"
 
 
 class CMarkupReference;
@@ -43,6 +44,7 @@ public:
 	CArrayMarkupReference	macRefs;
 	CArrayMarkupSubstitute	macSubstitutes;
 	CMarkup*				mpcMarkup;
+	CArrayChars				maszComments;  //Before the root element, without their <!-- and -->, so that a file written again can keep them.
 
 	void			Init(CMarkup* pcMarkup);
 	void			Kill(void);
@@ -59,6 +61,10 @@ public:
 	void			AddSubstitute(CMarkupSubstitute* pcSubstitute);
 
 	CMarkup*		GetMarkup(void);
+
+	void			AddComment(const char* szText, lsize uiLength);
+	size			NumComments(void);
+	char*			GetComment(size uiIndex);
 
 	size			Print(CChars* psz);
 	size			Print(CChars* psz, size iDepth, size iLine);

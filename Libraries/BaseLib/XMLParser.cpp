@@ -134,13 +134,14 @@ TRISTATE CXMLParser::Parse(void)
 	tResult = ParseProlog();
 	ReturnOnError(tResult);
 
-	tResult = ParseComments();
+	//The comments before the root element are kept: they describe the file.
+	tResult = ParseComments(true);
 	ReturnOnError(tResult);
 
 	tResult = ParseDocType();
 	ReturnOnError(tResult);
 
-	tResult = ParseComments();
+	tResult = ParseComments(true);
 	ReturnOnError(tResult);
 
 	tResult = ParseElement();
@@ -693,7 +694,7 @@ TRISTATE CXMLParser::ParseContent(void)
 
 	for (;;)
 	{
-		tResult = ParseComment();
+		tResult = ParseComment(false);
 		if (tResult == TRITRUE)
 		{
 			continue;
@@ -810,9 +811,10 @@ TRISTATE CXMLParser::ParseText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CXMLParser::ParseComment(void)
+TRISTATE CXMLParser::ParseComment(bool bKeep)
 {
 	TRISTATE	tResult;
+	const char*	szText;
 
 	mcParser.PushPosition();
 	tResult = mcParser.GetExactCharacterSequence("<!--");
@@ -823,6 +825,7 @@ TRISTATE CXMLParser::ParseComment(void)
 	}
 
 	//Nested comments aren't allowed but we should still fail gracefully on them.
+	szText = mcParser.mszParserPos;
 	tResult = mcParser.FindExactCharacterSequence("-->");
 	if (tResult != TRITRUE)
 	{
@@ -830,6 +833,10 @@ TRISTATE CXMLParser::ParseComment(void)
 		return TRIERROR;
 	}
 
+	if (bKeep && mpcDoc)
+	{
+		mpcDoc->AddComment(szText, (lsize)(mcParser.mszParserPos - szText));
+	}
 	mcParser.GetExactCharacterSequence("-->");
 	mcParser.PassPosition();
 	return TRITRUE;
@@ -840,13 +847,13 @@ TRISTATE CXMLParser::ParseComment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CXMLParser::ParseComments(void)
+TRISTATE CXMLParser::ParseComments(bool bKeep)
 {
 	TRISTATE tResult;
 
 	for (;;)
 	{
-		tResult = ParseComment();
+		tResult = ParseComment(bKeep);
 		if (tResult == TRIERROR)
 		{
 			return TRIERROR;

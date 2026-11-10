@@ -34,6 +34,7 @@ void CMarkupDoc::Init(CMarkup* pcMarkup)
 	macRefs.Init();
 	macSubstitutes.Init();
 	mpcMarkup = pcMarkup;
+	maszComments.Init();
 }
 
 
@@ -58,6 +59,7 @@ void CMarkupDoc::Kill(void)
 		pcSubstitute->Kill();
 	}
 
+	maszComments.Kill();
 	macSubstitutes.Kill();
 	macRefs.Kill();
 	mpcMarkup = NULL;
@@ -239,6 +241,38 @@ void CMarkupDoc::AddReference(CMarkupReference* pcRef)
 CMarkup* CMarkupDoc::GetMarkup(void)
 {
 	return mpcMarkup;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiLength characters of szText, the text between a comment's <!-- and
+// -->.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMarkupDoc::AddComment(const char* szText, lsize uiLength)
+{
+	maszComments.Add(szText, 0, (size)uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMarkupDoc::NumComments(void)
+{
+	return maszComments.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CMarkupDoc::GetComment(size uiIndex)
+{
+	return maszComments.GetText(uiIndex);
 }
 
 
