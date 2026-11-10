@@ -47,11 +47,15 @@ struct SRasterMeshFileHeader
 //////////////////////////////////////////////////////////////////////////
 void CRasterMesh::Init(void)
 {
+	PreInit();
+
 	masVertices.Init();
 	masOpaque.Init();
 	masTransparent.Init();
 	msMin.Init(0, 0, 0);
 	msMax.Init(0, 0, 0);
+
+	PostInit();
 }
 
 
@@ -59,11 +63,26 @@ void CRasterMesh::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasterMesh::Kill(void)
+void CRasterMesh::Free(void)
 {
 	masTransparent.Kill();
 	masOpaque.Kill();
 	masVertices.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its triangles are saved by WriteFile, not with the object.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterMesh::Class(void)
+{
+	U_Unknown(CArrayRasterVertex, masVertices);
+	U_Unknown(CArrayRasterTriangle, masOpaque);
+	U_Unknown(CArrayRasterTriangle, masTransparent);
+	U_3Int32(msMin);
+	U_3Int32(msMax);
 }
 
 
@@ -201,7 +220,7 @@ size CRasterMesh::RemoveDegenerate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRasterMesh::Save(const char* szFilename, uint64 uiSource)
+bool CRasterMesh::WriteFile(const char* szFilename, uint64 uiSource)
 {
 	CDiskFile				cFile;
 	SRasterMeshFileHeader	sHeader;
@@ -239,7 +258,7 @@ bool CRasterMesh::Save(const char* szFilename, uint64 uiSource)
 // version or wasn't built from uiSource.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRasterMesh::Load(const char* szFilename, uint64 uiSource)
+bool CRasterMesh::ReadFile(const char* szFilename, uint64 uiSource)
 {
 	CDiskFile				cFile;
 	SRasterMeshFileHeader	sHeader;

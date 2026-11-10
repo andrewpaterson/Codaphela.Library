@@ -24,6 +24,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/Int32Vec3.h"
 #include "BaseLib/Vec3.h"
+#include "StandardLib/Object.h"
 
 
 //A part of a unit normal.
@@ -54,16 +55,20 @@ typedef CArrayTemplate<SRasterTriangle>	CArrayRasterTriangle;
 
 
 //The integer copy of a mesh that CRasteriser draws.  RasterRenderLib's BuildRasterMesh makes one from a CMesh, as RasterLib
-//knows nothing of the scene.  Clear empties it, and UpdateBounds sets msMin and msMax from its vertices.
+//knows nothing of the scene.  Clear empties it, and UpdateBounds sets msMin and msMax from its vertices.  It's a CObject so
+//that anything can share one through a Ptr, with or without a scene.  SRasterInstance points at one, and whatever builds
+//the instances holds the Ptrs, which keeps the meshes alive while they're drawn.
 //
 //RemoveDegenerate takes out triangles with no area, which can't be seen.  What's exported from CAD is cleaned up and made
 //simpler for how big it will be drawn by modifiers on the CMesh it's built from (see CMeshFixReversed, CMeshWeldCorners and
 //CMeshEdgeCollapse).
 //
-//Building one from a big mesh takes seconds and Save and Load take none: uiSource is whatever says which source it was
-//built from, and Load refuses a file built from another.
-class CRasterMesh
+//Building one from a big mesh takes seconds and WriteFile and ReadFile take none: uiSource is whatever says which source it
+//was built from, and ReadFile refuses a file built from another.
+class CRasterMesh : public CObject
 {
+CONSTRUCTABLE(CRasterMesh);
+DESTRUCTABLE(CRasterMesh);
 public:
 	CArrayRasterVertex		masVertices;
 	CArrayRasterTriangle	masOpaque;
@@ -72,15 +77,16 @@ public:
 	SInt32Vec3				msMax;
 
 	void	Init(void);
-	void	Kill(void);
+	void	Free(void) override;
+	void	Class(void) override;
 
 	void	Clear(void);
 	void	UpdateBounds(void);
 
 	size	RemoveDegenerate(void);
 
-	bool	Save(const char* szFilename, uint64 uiSource);
-	bool	Load(const char* szFilename, uint64 uiSource);
+	bool	WriteFile(const char* szFilename, uint64 uiSource);
+	bool	ReadFile(const char* szFilename, uint64 uiSource);
 
 	size	NumTriangles(void);
 };

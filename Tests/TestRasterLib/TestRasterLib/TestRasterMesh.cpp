@@ -18,7 +18,7 @@
 void TestRasterMeshBuild(void)
 {
 	CMesh				cMesh;
-	CRasterMesh			cRaster;
+	Ptr<CRasterMesh>	pRaster;
 	SMeshNormalFace*	psNormalFace;
 	SMeshFaceColour*	psColourFace;
 	SRasterVertex*		psVertex;
@@ -58,26 +58,26 @@ void TestRasterMeshBuild(void)
 	psColourFace = cMesh.mcColours.mcFaces.Get(2);
 	psColourFace->aiCornerColours[0] = 1;
 
-	cRaster.Init();
-	BuildRasterMesh(&cRaster, &cMesh);
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh);
 	AssertFalse(cMesh.GetConnectivity()->IsGenerated());
 
 	//The quad shares corners 0 and 2.  The triangle has its own.
-	AssertSize(7, cRaster.masVertices.NumElements());
-	AssertSize(2, cRaster.masOpaque.NumElements());
-	AssertSize(1, cRaster.masTransparent.NumElements());
+	AssertSize(7, pRaster->masVertices.NumElements());
+	AssertSize(2, pRaster->masOpaque.NumElements());
+	AssertSize(1, pRaster->masTransparent.NumElements());
 
-	psTriangle = cRaster.masOpaque.Get(1);
+	psTriangle = pRaster->masOpaque.Get(1);
 	AssertInt(0, psTriangle->aiVertex[0]);
 	AssertInt(2, psTriangle->aiVertex[1]);
 	AssertInt(3, psTriangle->aiVertex[2]);
 	AssertInt((int32)0xFFFF0000, (int32)psTriangle->uiColour);
 
-	psTriangle = cRaster.masTransparent.Get(0);
+	psTriangle = pRaster->masTransparent.Get(0);
 	AssertInt((int32)0x800000FF, (int32)psTriangle->uiColour);
 
 	//Centred on (12, 21, 30.5) with its half width of 2 made RASTER_MESH_HALF_EXTENT.
-	psVertex = cRaster.masVertices.Get(0);
+	psVertex = pRaster->masVertices.Get(0);
 	AssertInt(-RASTER_MESH_HALF_EXTENT, psVertex->sPosition.x);
 	AssertInt(-RASTER_MESH_HALF_EXTENT / 2, psVertex->sPosition.y);
 	AssertInt(-RASTER_MESH_HALF_EXTENT / 4, psVertex->sPosition.z);
@@ -85,15 +85,14 @@ void TestRasterMeshBuild(void)
 	AssertInt(0, psVertex->sNormal.y.miRaw);
 	AssertInt(16384, psVertex->sNormal.z.miRaw);
 
-	psVertex = cRaster.masVertices.Get(2);
+	psVertex = pRaster->masVertices.Get(2);
 	AssertInt(RASTER_MESH_HALF_EXTENT, psVertex->sPosition.x);
 	AssertInt(RASTER_MESH_HALF_EXTENT / 2, psVertex->sPosition.y);
 
 	//The triangle uses its flat normal, which faces out of the plane.
-	psVertex = cRaster.masVertices.Get(6);
+	psVertex = pRaster->masVertices.Get(6);
 	AssertInt(16384, psVertex->sNormal.z.miRaw);
 
-	cRaster.Kill();
 }
 
 
@@ -104,7 +103,7 @@ void TestRasterMeshBuild(void)
 void TestRasterMeshDifferentNormals(void)
 {
 	CMesh				cMesh;
-	CRasterMesh			cRaster;
+	Ptr<CRasterMesh>	pRaster;
 
 	//The faces share an edge but not their flat normals, so the shared corners must not be merged.
 	cMesh.Init();
@@ -116,12 +115,11 @@ void TestRasterMeshDifferentNormals(void)
 	cMesh.AddFace(0, 1, 2);
 	cMesh.AddFace(1, 0, 3);
 
-	cRaster.Init();
-	BuildRasterMesh(&cRaster, &cMesh);
-	AssertSize(6, cRaster.masVertices.NumElements());
-	AssertInt(16384, cRaster.masVertices.Get(0)->sNormal.z.miRaw);
-	AssertInt(16384, cRaster.masVertices.Get(3)->sNormal.y.miRaw);
-	cRaster.Kill();
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh);
+	AssertSize(6, pRaster->masVertices.NumElements());
+	AssertInt(16384, pRaster->masVertices.Get(0)->sNormal.z.miRaw);
+	AssertInt(16384, pRaster->masVertices.Get(3)->sNormal.y.miRaw);
 }
 
 
@@ -131,15 +129,14 @@ void TestRasterMeshDifferentNormals(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMeshEmpty(void)
 {
-	CMesh		cMesh;
-	CRasterMesh	cRaster;
+	CMesh				cMesh;
+	Ptr<CRasterMesh>	pRaster;
 
 	cMesh.Init();
-	cRaster.Init();
-	BuildRasterMesh(&cRaster, &cMesh);
-	AssertSize(0, cRaster.masVertices.NumElements());
-	AssertSize(0, cRaster.masOpaque.NumElements());
-	cRaster.Kill();
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh);
+	AssertSize(0, pRaster->masVertices.NumElements());
+	AssertSize(0, pRaster->masOpaque.NumElements());
 }
 
 
@@ -181,8 +178,8 @@ static void TestRasterAddTriangle(CArrayRasterTriangle* pasTriangles, int32 i0, 
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMeshBuildScaled(void)
 {
-	CMesh		cMesh;
-	CRasterMesh	cRaster;
+	CMesh				cMesh;
+	Ptr<CRasterMesh>	pRaster;
 
 	cMesh.Init();
 	cMesh.AddCorner(10.0f, 20.0f, 30.0f);
@@ -190,18 +187,17 @@ void TestRasterMeshBuildScaled(void)
 	cMesh.AddCorner(14.0f, 22.0f, 30.0f);
 	cMesh.AddFace(0, 1, 2);
 
-	cRaster.Init();
-	BuildRasterMesh(&cRaster, &cMesh, 100);
-	AssertSize(3, cRaster.masVertices.NumElements());
-	AssertInt(1000, cRaster.masVertices.Get(0)->sPosition.x);
-	AssertInt(2000, cRaster.masVertices.Get(0)->sPosition.y);
-	AssertInt(3000, cRaster.masVertices.Get(0)->sPosition.z);
-	AssertInt(1400, cRaster.masVertices.Get(1)->sPosition.x);
-	AssertInt(1000, cRaster.msMin.x);
-	AssertInt(1400, cRaster.msMax.x);
-	AssertInt(2200, cRaster.msMax.y);
-	AssertSize(1, cRaster.NumTriangles());
-	cRaster.Kill();
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh, 100);
+	AssertSize(3, pRaster->masVertices.NumElements());
+	AssertInt(1000, pRaster->masVertices.Get(0)->sPosition.x);
+	AssertInt(2000, pRaster->masVertices.Get(0)->sPosition.y);
+	AssertInt(3000, pRaster->masVertices.Get(0)->sPosition.z);
+	AssertInt(1400, pRaster->masVertices.Get(1)->sPosition.x);
+	AssertInt(1000, pRaster->msMin.x);
+	AssertInt(1400, pRaster->msMax.x);
+	AssertInt(2200, pRaster->msMax.y);
+	AssertSize(1, pRaster->NumTriangles());
 }
 
 
@@ -211,30 +207,29 @@ void TestRasterMeshBuildScaled(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMeshRemoveDegenerate(void)
 {
-	CRasterMesh	cRaster;
+	Ptr<CRasterMesh>	pRaster;
 
-	cRaster.Init();
-	TestRasterAddVertex(&cRaster, 0, 0, 0);
-	TestRasterAddVertex(&cRaster, 100, 0, 0);
-	TestRasterAddVertex(&cRaster, 0, 100, 0);
-	TestRasterAddVertex(&cRaster, 200, 0, 0);
-	TestRasterAddVertex(&cRaster, 0, 0, 0);
+	pRaster = OMalloc<CRasterMesh>();
+	TestRasterAddVertex(&pRaster, 0, 0, 0);
+	TestRasterAddVertex(&pRaster, 100, 0, 0);
+	TestRasterAddVertex(&pRaster, 0, 100, 0);
+	TestRasterAddVertex(&pRaster, 200, 0, 0);
+	TestRasterAddVertex(&pRaster, 0, 0, 0);
 
-	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF111111);		//Kept.
-	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 3, 0xFF222222);		//In a line.
-	TestRasterAddTriangle(&cRaster.masOpaque, 0, 4, 1, 0xFF333333);		//Two corners in the same place.
-	TestRasterAddTriangle(&cRaster.masOpaque, 1, 0, 2, 0xFF444444);		//Kept: wound the other way isn't degenerate.
-	TestRasterAddTriangle(&cRaster.masTransparent, 1, 1, 2, 0x80555555);	//One vertex twice.
-	TestRasterAddTriangle(&cRaster.masTransparent, 0, 1, 2, 0x80666666);	//Kept.
+	TestRasterAddTriangle(&pRaster->masOpaque, 0, 1, 2, 0xFF111111);		//Kept.
+	TestRasterAddTriangle(&pRaster->masOpaque, 0, 1, 3, 0xFF222222);		//In a line.
+	TestRasterAddTriangle(&pRaster->masOpaque, 0, 4, 1, 0xFF333333);		//Two corners in the same place.
+	TestRasterAddTriangle(&pRaster->masOpaque, 1, 0, 2, 0xFF444444);		//Kept: wound the other way isn't degenerate.
+	TestRasterAddTriangle(&pRaster->masTransparent, 1, 1, 2, 0x80555555);	//One vertex twice.
+	TestRasterAddTriangle(&pRaster->masTransparent, 0, 1, 2, 0x80666666);	//Kept.
 
-	AssertSize(3, cRaster.RemoveDegenerate());
-	AssertSize(2, cRaster.masOpaque.NumElements());
-	AssertSize(1, cRaster.masTransparent.NumElements());
-	AssertIntHex((int32)0xFF111111, (int32)cRaster.masOpaque.Get(0)->uiColour);
-	AssertIntHex((int32)0xFF444444, (int32)cRaster.masOpaque.Get(1)->uiColour);
-	AssertIntHex((int32)0x80666666, (int32)cRaster.masTransparent.Get(0)->uiColour);
-	AssertSize(0, cRaster.RemoveDegenerate());
-	cRaster.Kill();
+	AssertSize(3, pRaster->RemoveDegenerate());
+	AssertSize(2, pRaster->masOpaque.NumElements());
+	AssertSize(1, pRaster->masTransparent.NumElements());
+	AssertIntHex((int32)0xFF111111, (int32)pRaster->masOpaque.Get(0)->uiColour);
+	AssertIntHex((int32)0xFF444444, (int32)pRaster->masOpaque.Get(1)->uiColour);
+	AssertIntHex((int32)0x80666666, (int32)pRaster->masTransparent.Get(0)->uiColour);
+	AssertSize(0, pRaster->RemoveDegenerate());
 }
 
 
@@ -246,13 +241,13 @@ void TestRasterMeshRemoveDegenerate(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMeshPadding(void)
 {
-	CMesh			cMesh;
-	CRasterMesh		cRaster;
-	SRasterVertex*	psVertex;
-	uint8*			puiPad;
-	size			uiPad;
-	size			i;
-	size			j;
+	CMesh				cMesh;
+	Ptr<CRasterMesh>	pRaster;
+	SRasterVertex*		psVertex;
+	uint8*				puiPad;
+	size				uiPad;
+	size				i;
+	size				j;
 
 	cMesh.Init();
 	cMesh.AddCorner(0.0f, 0.0f, 0.0f);
@@ -260,26 +255,25 @@ void TestRasterMeshPadding(void)
 	cMesh.AddCorner(0.0f, 1.0f, 0.0f);
 	cMesh.AddFace(0, 1, 2);
 
-	cRaster.Init();
+	pRaster = OMalloc<CRasterMesh>();
 	for (i = 0; i < 3; i++)
 	{
-		psVertex = cRaster.masVertices.Add();
+		psVertex = pRaster->masVertices.Add();
 		memset(psVertex, 0xFF, sizeof(SRasterVertex));
 	}
-	BuildRasterMesh(&cRaster, &cMesh);
-	AssertSize(3, cRaster.masVertices.NumElements());
+	BuildRasterMesh(&pRaster, &cMesh);
+	AssertSize(3, pRaster->masVertices.NumElements());
 
 	uiPad = sizeof(SRasterVertex) - (sizeof(SInt32Vec3) + sizeof(SRasterUnitVec3));
-	for (i = 0; i < cRaster.masVertices.NumElements(); i++)
+	for (i = 0; i < pRaster->masVertices.NumElements(); i++)
 	{
-		puiPad = (uint8*)(&cRaster.masVertices.Get(i)->sNormal + 1);
+		puiPad = (uint8*)(&pRaster->masVertices.Get(i)->sNormal + 1);
 		for (j = 0; j < uiPad; j++)
 		{
 			AssertInt(0, puiPad[j]);
 		}
 	}
 
-	cRaster.Kill();
 }
 
 
@@ -291,35 +285,33 @@ void TestRasterMeshPadding(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMeshFile(void)
 {
-	CRasterMesh	cRaster;
-	CRasterMesh	cLoaded;
-	CFileUtil	cFileUtil;
+	Ptr<CRasterMesh>	pRaster;
+	Ptr<CRasterMesh>	pLoaded;
+	CFileUtil			cFileUtil;
 
 	cFileUtil.TouchDir("Output");
-	cRaster.Init();
-	TestRasterAddVertex(&cRaster, 1, 2, 3);
-	TestRasterAddVertex(&cRaster, 100, 0, 0);
-	TestRasterAddVertex(&cRaster, 0, 100, 0);
-	TestRasterAddTriangle(&cRaster.masOpaque, 0, 1, 2, 0xFF112233);
-	TestRasterAddTriangle(&cRaster.masTransparent, 0, 2, 1, 0x80445566);
-	cRaster.msMin.Init(0, 0, 0);
-	cRaster.msMax.Init(100, 100, 3);
-	AssertTrue(cRaster.Save("Output" _FS_ "Mesh.rastermesh", 0x1234567812345678ULL));
+	pRaster = OMalloc<CRasterMesh>();
+	TestRasterAddVertex(&pRaster, 1, 2, 3);
+	TestRasterAddVertex(&pRaster, 100, 0, 0);
+	TestRasterAddVertex(&pRaster, 0, 100, 0);
+	TestRasterAddTriangle(&pRaster->masOpaque, 0, 1, 2, 0xFF112233);
+	TestRasterAddTriangle(&pRaster->masTransparent, 0, 2, 1, 0x80445566);
+	pRaster->msMin.Init(0, 0, 0);
+	pRaster->msMax.Init(100, 100, 3);
+	AssertTrue(pRaster->WriteFile("Output" _FS_ "Mesh.rastermesh", 0x1234567812345678ULL));
 
-	cLoaded.Init();
-	AssertFalse(cLoaded.Load("Output" _FS_ "NoSuchMesh.rastermesh", 0x1234567812345678ULL));
-	AssertFalse(cLoaded.Load("Output" _FS_ "Mesh.rastermesh", 0x1234567812345679ULL));
-	AssertSize(0, cLoaded.masVertices.NumElements());
-	AssertTrue(cLoaded.Load("Output" _FS_ "Mesh.rastermesh", 0x1234567812345678ULL));
-	AssertSize(3, cLoaded.masVertices.NumElements());
-	AssertSize(1, cLoaded.masOpaque.NumElements());
-	AssertSize(1, cLoaded.masTransparent.NumElements());
-	AssertInt(2, cLoaded.masVertices.Get(0)->sPosition.y);
-	AssertIntHex((int32)0xFF112233, (int32)cLoaded.masOpaque.Get(0)->uiColour);
-	AssertIntHex((int32)0x80445566, (int32)cLoaded.masTransparent.Get(0)->uiColour);
-	AssertInt(100, cLoaded.msMax.x);
-	cLoaded.Kill();
-	cRaster.Kill();
+	pLoaded = OMalloc<CRasterMesh>();
+	AssertFalse(pLoaded->ReadFile("Output" _FS_ "NoSuchMesh.rastermesh", 0x1234567812345678ULL));
+	AssertFalse(pLoaded->ReadFile("Output" _FS_ "Mesh.rastermesh", 0x1234567812345679ULL));
+	AssertSize(0, pLoaded->masVertices.NumElements());
+	AssertTrue(pLoaded->ReadFile("Output" _FS_ "Mesh.rastermesh", 0x1234567812345678ULL));
+	AssertSize(3, pLoaded->masVertices.NumElements());
+	AssertSize(1, pLoaded->masOpaque.NumElements());
+	AssertSize(1, pLoaded->masTransparent.NumElements());
+	AssertInt(2, pLoaded->masVertices.Get(0)->sPosition.y);
+	AssertIntHex((int32)0xFF112233, (int32)pLoaded->masOpaque.Get(0)->uiColour);
+	AssertIntHex((int32)0x80445566, (int32)pLoaded->masTransparent.Get(0)->uiColour);
+	AssertInt(100, pLoaded->msMax.x);
 	cFileUtil.Delete("Output" _FS_ "Mesh.rastermesh");
 }
 

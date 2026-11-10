@@ -307,16 +307,16 @@ void TestRasteriserTransparency(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserMesh(void)
 {
-	CMesh			cMesh;
-	CRasterMesh		cRaster;
-	CRasterCamera	cCamera;
-	CRasteriser		cRasteriser;
-	CRasterTarget	cTarget;
-	uint32*			puiFirst;
-	uint32*			puiSecond;
-	int				i;
-	int				iDrawn;
-	bool			bSame;
+	CMesh				cMesh;
+	Ptr<CRasterMesh>	pRaster;
+	CRasterCamera		cCamera;
+	CRasteriser			cRasteriser;
+	CRasterTarget		cTarget;
+	uint32*				puiFirst;
+	uint32*				puiSecond;
+	int					i;
+	int					iDrawn;
+	bool				bSame;
 
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
@@ -334,8 +334,8 @@ void TestRasteriserMesh(void)
 	cMesh.AddFace(5, 4, 7);
 	cMesh.AddFace(5, 7, 6);
 
-	cRaster.Init();
-	BuildRasterMesh(&cRaster, &cMesh);
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh);
 
 	puiFirst = (uint32*)malloc(64 * 64 * sizeof(uint32));
 	puiSecond = (uint32*)malloc(64 * 64 * sizeof(uint32));
@@ -351,7 +351,7 @@ void TestRasteriserMesh(void)
 		//Looking down Z only the front (lit, not black) face is visible.  The centre is drawn and a corner isn't.
 		cTarget.Init(puiFirst, 64, 64, 64);
 		cTarget.Clear(TEST_BLACK);
-		cRasteriser.Draw(&cRaster, &cCamera, &cTarget);
+		cRasteriser.Draw(&pRaster, &cCamera, &cTarget);
 		AssertTrue(puiFirst[32 * 64 + 32] != TEST_BLACK);
 		AssertInt((int32)TEST_BLACK, (int32)puiFirst[0]);
 		iDrawn = 64 * 64 - CountPixels(&cTarget, TEST_BLACK);
@@ -361,7 +361,7 @@ void TestRasteriserMesh(void)
 		//The same camera draws the same pixels.
 		cTarget.Init(puiSecond, 64, 64, 64);
 		cTarget.Clear(TEST_BLACK);
-		cRasteriser.Draw(&cRaster, &cCamera, &cTarget);
+		cRasteriser.Draw(&pRaster, &cCamera, &cTarget);
 		bSame = memcmp(puiFirst, puiSecond, 64 * 64 * sizeof(uint32)) == 0;
 		AssertTrue(bSame);
 		cTarget.Kill();
@@ -370,7 +370,6 @@ void TestRasteriserMesh(void)
 	cRasteriser.Kill();
 	free(puiSecond);
 	free(puiFirst);
-	cRaster.Kill();
 }
 
 
@@ -466,18 +465,18 @@ void TestRasteriserWideTriangles(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserInstances(void)
 {
-	CMesh			cMesh;
-	CRasterMesh		cRaster;
-	CRasterCamera	cCamera;
-	CRasteriser		cRasteriser;
-	CRasterTarget	cTarget;
-	SRasterInstance	asInstances[2];
-	SRasterInstance	sSwap;
-	uint32*			puiFirst;
-	uint32*			puiSecond;
-	int				iOne;
-	int				iTwo;
-	bool			bSame;
+	CMesh				cMesh;
+	Ptr<CRasterMesh>	pRaster;
+	CRasterCamera		cCamera;
+	CRasteriser			cRasteriser;
+	CRasterTarget		cTarget;
+	SRasterInstance		asInstances[2];
+	SRasterInstance		sSwap;
+	uint32*				puiFirst;
+	uint32*				puiSecond;
+	int					iOne;
+	int					iTwo;
+	bool				bSame;
 
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
@@ -490,8 +489,8 @@ void TestRasteriserInstances(void)
 	cMesh.AddFace(0, 1, 2);
 	cMesh.AddFace(0, 2, 3);
 
-	cRaster.Init();
-	BuildRasterMesh(&cRaster, &cMesh, 1 << 20);
+	pRaster = OMalloc<CRasterMesh>();
+	BuildRasterMesh(&pRaster, &cMesh, 1 << 20);
 
 	puiFirst = (uint32*)malloc(64 * 64 * sizeof(uint32));
 	puiSecond = (uint32*)malloc(64 * 64 * sizeof(uint32));
@@ -502,12 +501,12 @@ void TestRasteriserInstances(void)
 	//An instance that hasn't moved is the mesh.
 	cTarget.Init(puiFirst, 64, 64, 64);
 	cTarget.Clear(TEST_BLACK);
-	cRasteriser.Draw(&cRaster, &cCamera, &cTarget);
+	cRasteriser.Draw(&pRaster, &cCamera, &cTarget);
 	iOne = 64 * 64 - CountPixels(&cTarget, TEST_BLACK);
 	AssertTrue(iOne > 0);
 	cTarget.Kill();
 
-	asInstances[0].pcMesh = &cRaster;
+	asInstances[0].pcMesh = &pRaster;
 	asInstances[0].asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
 	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	asInstances[0].asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
@@ -560,7 +559,6 @@ void TestRasteriserInstances(void)
 	cRasteriser.Kill();
 	free(puiSecond);
 	free(puiFirst);
-	cRaster.Kill();
 }
 
 
@@ -777,40 +775,40 @@ static void TestRasterAddSquare(CRasterMesh* pcRaster, CArrayRasterTriangle* pas
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserInstancesTransparent(void)
 {
-	CRasterMesh		acWhole[2];
-	CRasterMesh		acOpaque[2];
-	CRasterMesh		acTransparent[2];
-	CRasterCamera	cCamera;
-	CRasteriser		cRasteriser;
-	CRasterTarget	cTogether;
-	CRasterTarget	cApart;
-	SRasterInstance	asInstances[2];
-	SRasterInstance	sInstance;
-	uint32*			puiTogether;
-	uint32*			puiApart;
-	int				i;
-	int				iFrame;
-	bool			bSame;
+	Ptr<CRasterMesh>	apWhole[2];
+	Ptr<CRasterMesh>	apOpaque[2];
+	Ptr<CRasterMesh>	apTransparent[2];
+	CRasterCamera		cCamera;
+	CRasteriser			cRasteriser;
+	CRasterTarget		cTogether;
+	CRasterTarget		cApart;
+	SRasterInstance		asInstances[2];
+	SRasterInstance		sInstance;
+	uint32*				puiTogether;
+	uint32*				puiApart;
+	int					i;
+	int					iFrame;
+	bool				bSame;
 
 	for (i = 0; i < 2; i++)
 	{
-		acWhole[i].Init();
-		acOpaque[i].Init();
-		acTransparent[i].Init();
+		apWhole[i] = OMalloc<CRasterMesh>();
+		apOpaque[i] = OMalloc<CRasterMesh>();
+		apTransparent[i] = OMalloc<CRasterMesh>();
 	}
 
 	//A mesh with more vertices first, so that the second's vertices aren't where the first's are.
-	TestRasterAddSquare(&acWhole[0], &acWhole[0].masOpaque, -(1 << 18), 0, 0, 1 << 18, 0xFF00FF00);
-	TestRasterAddSquare(&acWhole[0], &acWhole[0].masOpaque, -(1 << 18), 1 << 19, 0, 1 << 17, 0xFFFFFF00);
-	TestRasterAddSquare(&acWhole[0], &acWhole[0].masTransparent, -(1 << 17), 1 << 16, 1 << 19, 1 << 18, 0x8000FFFF);
-	TestRasterAddSquare(&acOpaque[0], &acOpaque[0].masOpaque, -(1 << 18), 0, 0, 1 << 18, 0xFF00FF00);
-	TestRasterAddSquare(&acOpaque[0], &acOpaque[0].masOpaque, -(1 << 18), 1 << 19, 0, 1 << 17, 0xFFFFFF00);
-	TestRasterAddSquare(&acTransparent[0], &acTransparent[0].masTransparent, -(1 << 17), 1 << 16, 1 << 19, 1 << 18, 0x8000FFFF);
+	TestRasterAddSquare(&apWhole[0], &apWhole[0]->masOpaque, -(1 << 18), 0, 0, 1 << 18, 0xFF00FF00);
+	TestRasterAddSquare(&apWhole[0], &apWhole[0]->masOpaque, -(1 << 18), 1 << 19, 0, 1 << 17, 0xFFFFFF00);
+	TestRasterAddSquare(&apWhole[0], &apWhole[0]->masTransparent, -(1 << 17), 1 << 16, 1 << 19, 1 << 18, 0x8000FFFF);
+	TestRasterAddSquare(&apOpaque[0], &apOpaque[0]->masOpaque, -(1 << 18), 0, 0, 1 << 18, 0xFF00FF00);
+	TestRasterAddSquare(&apOpaque[0], &apOpaque[0]->masOpaque, -(1 << 18), 1 << 19, 0, 1 << 17, 0xFFFFFF00);
+	TestRasterAddSquare(&apTransparent[0], &apTransparent[0]->masTransparent, -(1 << 17), 1 << 16, 1 << 19, 1 << 18, 0x8000FFFF);
 
-	TestRasterAddSquare(&acWhole[1], &acWhole[1].masTransparent, 1 << 18, 0, 1 << 20, 1 << 18, 0x80FF00FF);
-	TestRasterAddSquare(&acWhole[1], &acWhole[1].masOpaque, 1 << 17, -(1 << 18), 1 << 18, 1 << 18, 0xFFFF0000);
-	TestRasterAddSquare(&acOpaque[1], &acOpaque[1].masOpaque, 1 << 17, -(1 << 18), 1 << 18, 1 << 18, 0xFFFF0000);
-	TestRasterAddSquare(&acTransparent[1], &acTransparent[1].masTransparent, 1 << 18, 0, 1 << 20, 1 << 18, 0x80FF00FF);
+	TestRasterAddSquare(&apWhole[1], &apWhole[1]->masTransparent, 1 << 18, 0, 1 << 20, 1 << 18, 0x80FF00FF);
+	TestRasterAddSquare(&apWhole[1], &apWhole[1]->masOpaque, 1 << 17, -(1 << 18), 1 << 18, 1 << 18, 0xFFFF0000);
+	TestRasterAddSquare(&apOpaque[1], &apOpaque[1]->masOpaque, 1 << 17, -(1 << 18), 1 << 18, 1 << 18, 0xFFFF0000);
+	TestRasterAddSquare(&apTransparent[1], &apTransparent[1]->masTransparent, 1 << 18, 0, 1 << 20, 1 << 18, 0x80FF00FF);
 
 	puiTogether = (uint32*)malloc(64 * 64 * sizeof(uint32));
 	puiApart = (uint32*)malloc(64 * 64 * sizeof(uint32));
@@ -834,7 +832,7 @@ void TestRasteriserInstancesTransparent(void)
 		for (i = 0; i < 2; i++)
 		{
 			asInstances[i] = sInstance;
-			asInstances[i].pcMesh = &acWhole[i];
+			asInstances[i].pcMesh = &apWhole[i];
 		}
 		cTogether.Clear(TEST_BLACK);
 		cRasteriser.Draw(asInstances, iNumInstances, &cCamera, &cTogether);
@@ -842,12 +840,12 @@ void TestRasteriserInstancesTransparent(void)
 		cApart.Clear(TEST_BLACK);
 		for (i = 0; i < iNumInstances; i++)
 		{
-			asInstances[0].pcMesh = &acOpaque[i];
+			asInstances[0].pcMesh = &apOpaque[i];
 			cRasteriser.Draw(asInstances, 1, &cCamera, &cApart);
 		}
 		for (i = 0; i < iNumInstances; i++)
 		{
-			asInstances[0].pcMesh = &acTransparent[i];
+			asInstances[0].pcMesh = &apTransparent[i];
 			cRasteriser.Draw(asInstances, 1, &cCamera, &cApart);
 		}
 
@@ -863,12 +861,6 @@ void TestRasteriserInstancesTransparent(void)
 	cTogether.Kill();
 	free(puiApart);
 	free(puiTogether);
-	for (i = 0; i < 2; i++)
-	{
-		acTransparent[i].Kill();
-		acOpaque[i].Kill();
-		acWhole[i].Kill();
-	}
 }
 
 
@@ -881,7 +873,7 @@ void TestRasteriserInstancesTransparent(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserTurnedAway(void)
 {
-	CRasterMesh				cRaster;
+	Ptr<CRasterMesh>		pRaster;
 	CRasterCamera			cCamera;
 	CRasteriser				cRasteriser;
 	CRasterTarget			cMesh;
@@ -897,11 +889,11 @@ void TestRasteriserTurnedAway(void)
 	int						iCull;
 	bool					bSame;
 
-	cRaster.Init();
+	pRaster = OMalloc<CRasterMesh>();
 	uiRandom = 777;
 	for (i = 0; i < 400; i++)
 	{
-		psVertex = cRaster.masVertices.Add();
+		psVertex = pRaster->masVertices.Add();
 		uiRandom = uiRandom * 1103515245 + 12345;
 		psVertex->sPosition.x = (int32)((uiRandom >> 8) % (RASTER_MESH_HALF_EXTENT * 4)) - RASTER_MESH_HALF_EXTENT * 2;
 		uiRandom = uiRandom * 1103515245 + 12345;
@@ -912,7 +904,7 @@ void TestRasteriserTurnedAway(void)
 	}
 	for (i = 0; i < 1500; i++)
 	{
-		psTriangle = (i % 5 == 0) ? cRaster.masTransparent.Add() : cRaster.masOpaque.Add();
+		psTriangle = (i % 5 == 0) ? pRaster->masTransparent.Add() : pRaster->masOpaque.Add();
 		uiRandom = uiRandom * 1103515245 + 12345;
 		psTriangle->uiColour = (i % 5 == 0) ? (0x80000000 | (uiRandom >> 8)) : (0xFF000000 | (uiRandom >> 8));
 		for (iCorner = 0; iCorner < 3; iCorner++)
@@ -941,22 +933,22 @@ void TestRasteriserTurnedAway(void)
 	{
 		cRasteriser.SetCullBackFaces(iCull == 0);
 		cMesh.Clear(TEST_BLACK);
-		cRasteriser.Draw(&cRaster, &cCamera, &cMesh);
+		cRasteriser.Draw(&pRaster, &cCamera, &cMesh);
 
 		cOneByOne.Clear(TEST_BLACK);
 		for (i = 0; i < 400; i++)
 		{
-			cCamera.Project(&psScreen[i], &cRaster.masVertices.Get(i)->sPosition);
+			cCamera.Project(&psScreen[i], &pRaster->masVertices.Get(i)->sPosition);
 			psScreen[i].iShade = 64;
 		}
-		for (i = 0; i < (int)cRaster.masOpaque.NumElements(); i++)
+		for (i = 0; i < (int)pRaster->masOpaque.NumElements(); i++)
 		{
-			psTriangle = cRaster.masOpaque.Get(i);
+			psTriangle = pRaster->masOpaque.Get(i);
 			cRasteriser.DrawTriangle(&cOneByOne, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[1]], &psScreen[psTriangle->aiVertex[2]], psTriangle->uiColour, false);
 		}
-		for (i = 0; i < (int)cRaster.masTransparent.NumElements(); i++)
+		for (i = 0; i < (int)pRaster->masTransparent.NumElements(); i++)
 		{
-			psTriangle = cRaster.masTransparent.Get(i);
+			psTriangle = pRaster->masTransparent.Get(i);
 			cRasteriser.DrawTriangle(&cOneByOne, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[1]], &psScreen[psTriangle->aiVertex[2]], psTriangle->uiColour, true);
 		}
 
@@ -973,7 +965,6 @@ void TestRasteriserTurnedAway(void)
 	free(psScreen);
 	free(puiOneByOne);
 	free(puiMesh);
-	cRaster.Kill();
 }
 
 
@@ -1014,8 +1005,8 @@ void TestRasteriserInstanceTurns(void)
 		{ 0, 1, 0,   0, 0, 1,   1, 0, 0 },
 	};
 
-	CRasterMesh		cRaster;
-	CRasterMesh		cTurned;
+	Ptr<CRasterMesh>		pRaster;
+	Ptr<CRasterMesh>		pTurned;
 	CRasterCamera	cCamera;
 	CRasteriser		cRasteriser;
 	CRasterTarget	cActual;
@@ -1033,11 +1024,11 @@ void TestRasteriserInstanceTurns(void)
 	int				i;
 	bool			bSame;
 
-	cRaster.Init();
+	pRaster = OMalloc<CRasterMesh>();
 	uiRandom = 4242;
 	for (i = 0; i < 300; i++)
 	{
-		psFrom = cRaster.masVertices.Add();
+		psFrom = pRaster->masVertices.Add();
 		uiRandom = uiRandom * 1103515245 + 12345;
 		psFrom->sPosition.x = (int32)((uiRandom >> 8) % (1 << 20)) - (1 << 19);
 		uiRandom = uiRandom * 1103515245 + 12345;
@@ -1053,7 +1044,7 @@ void TestRasteriserInstanceTurns(void)
 	}
 	for (i = 0; i < 300; i += 3)
 	{
-		TestRasterAddFace(&cRaster, i, i + 1, i + 2, 0xFF80C040);
+		TestRasterAddFace(&pRaster, i, i + 1, i + 2, 0xFF80C040);
 	}
 
 	puiActual = (uint32*)malloc(64 * 48 * sizeof(uint32));
@@ -1067,8 +1058,8 @@ void TestRasteriserInstanceTurns(void)
 
 	for (iTurn = 0; iTurn < 6; iTurn++)
 	{
-		cTurned.Init();
-		sInstance.pcMesh = &cRaster;
+		pTurned = OMalloc<CRasterMesh>();
+		sInstance.pcMesh = &pRaster;
 		sInstance.sOffset.Init(1 << 15, -(1 << 16), 1 << 14);
 		for (iAxis = 0; iAxis < 3; iAxis++)
 		{
@@ -1076,8 +1067,8 @@ void TestRasteriserInstanceTurns(void)
 		}
 		for (i = 0; i < 300; i++)
 		{
-			psFrom = cRaster.masVertices.Get(i);
-			psTo = cTurned.masVertices.Add();
+			psFrom = pRaster->masVertices.Get(i);
+			psTo = pTurned->masVertices.Add();
 			for (iAxis = 0; iAxis < 3; iAxis++)
 			{
 				aiAxis[iAxis] = aaiTurns[iTurn][iAxis * 3] * psFrom->sPosition.x + aaiTurns[iTurn][iAxis * 3 + 1] * psFrom->sPosition.y + aaiTurns[iTurn][iAxis * 3 + 2] * psFrom->sPosition.z;
@@ -1088,34 +1079,33 @@ void TestRasteriserInstanceTurns(void)
 		}
 		for (i = 0; i < 300; i += 3)
 		{
-			TestRasterAddFace(&cTurned, i, i + 1, i + 2, 0xFF80C040);
+			TestRasterAddFace(&pTurned, i, i + 1, i + 2, 0xFF80C040);
 		}
 
 		cActual.Clear(TEST_BLACK);
 		cRasteriser.Draw(&sInstance, 1, &cCamera, &cActual);
 		cExpected.Clear(TEST_BLACK);
-		cRasteriser.Draw(&cTurned, &cCamera, &cExpected);
+		cRasteriser.Draw(&pTurned, &cCamera, &cExpected);
 		AssertTrue(CountPixels(&cActual, TEST_BLACK) < 64 * 48);
 		bSame = memcmp(puiActual, puiExpected, 64 * 48 * sizeof(uint32)) == 0;
 		AssertTrue(bSame);
 		bSame = memcmp(cActual.mpiDepths, cExpected.mpiDepths, 64 * 48 * sizeof(int32)) == 0;
 		AssertTrue(bSame);
-		cTurned.Kill();
 	}
 
 	//About 30 degrees around z, as no quarter turn is.
 	for (i = 0; i < 300; i++)
 	{
-		cRaster.masVertices.Get(i)->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
+		pRaster->masVertices.Get(i)->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 	}
 	sInstance.asAxes[0].Init(56756, -32768, 0);
 	sInstance.asAxes[1].Init(32768, 56756, 0);
 	sInstance.asAxes[2].Init(0, 0, 65536);
-	cTurned.Init();
+	pTurned = OMalloc<CRasterMesh>();
 	for (i = 0; i < 300; i++)
 	{
-		psFrom = cRaster.masVertices.Get(i);
-		psTo = cTurned.masVertices.Add();
+		psFrom = pRaster->masVertices.Get(i);
+		psTo = pTurned->masVertices.Add();
 		psTo->sPosition.Init((int32)DivideFloor((int64)psFrom->sPosition.x * 56756 - (int64)psFrom->sPosition.y * 32768, 65536) + sInstance.sOffset.x,
 							 (int32)DivideFloor((int64)psFrom->sPosition.x * 32768 + (int64)psFrom->sPosition.y * 56756, 65536) + sInstance.sOffset.y,
 							 psFrom->sPosition.z + sInstance.sOffset.z);
@@ -1123,23 +1113,21 @@ void TestRasteriserInstanceTurns(void)
 	}
 	for (i = 0; i < 300; i += 3)
 	{
-		TestRasterAddFace(&cTurned, i, i + 1, i + 2, 0xFF80C040);
+		TestRasterAddFace(&pTurned, i, i + 1, i + 2, 0xFF80C040);
 	}
 	cActual.Clear(TEST_BLACK);
 	cRasteriser.Draw(&sInstance, 1, &cCamera, &cActual);
 	cExpected.Clear(TEST_BLACK);
-	cRasteriser.Draw(&cTurned, &cCamera, &cExpected);
+	cRasteriser.Draw(&pTurned, &cCamera, &cExpected);
 	AssertTrue(CountPixels(&cActual, TEST_BLACK) < 64 * 48);
 	bSame = memcmp(puiActual, puiExpected, 64 * 48 * sizeof(uint32)) == 0;
 	AssertTrue(bSame);
-	cTurned.Kill();
 
 	cRasteriser.Kill();
 	cExpected.Kill();
 	cActual.Kill();
 	free(puiExpected);
 	free(puiActual);
-	cRaster.Kill();
 }
 
 
@@ -1177,7 +1165,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserJobs(void)
 {
-	CRasterMesh			acRaster[2];
+	Ptr<CRasterMesh>	apRaster[2];
 	CRasterCamera		cCamera;
 	CRasteriser			cRasteriser;
 	CRasterTarget		cWithout;
@@ -1203,10 +1191,10 @@ void TestRasteriserJobs(void)
 	{
 		iNumVertices = (iMesh == 0) ? 70000 : 300;
 		iNumTriangles = (iMesh == 0) ? 80000 : 500;
-		acRaster[iMesh].Init();
+		apRaster[iMesh] = OMalloc<CRasterMesh>();
 		for (i = 0; i < iNumVertices; i++)
 		{
-			psVertex = acRaster[iMesh].masVertices.Add();
+			psVertex = apRaster[iMesh]->masVertices.Add();
 			uiRandom = uiRandom * 1103515245 + 12345;
 			psVertex->sPosition.x = (int32)((uiRandom >> 8) % (RASTER_MESH_HALF_EXTENT * 2)) - RASTER_MESH_HALF_EXTENT;
 			uiRandom = uiRandom * 1103515245 + 12345;
@@ -1217,15 +1205,15 @@ void TestRasteriserJobs(void)
 			//Each three vertices close together, for small triangles.
 			if ((i % 3) != 0)
 			{
-				psVertex->sPosition.x = acRaster[iMesh].masVertices.Get(i - 1)->sPosition.x + (psVertex->sPosition.x >> 5);
-				psVertex->sPosition.y = acRaster[iMesh].masVertices.Get(i - 1)->sPosition.y + (psVertex->sPosition.y >> 5);
-				psVertex->sPosition.z = acRaster[iMesh].masVertices.Get(i - 1)->sPosition.z;
+				psVertex->sPosition.x = apRaster[iMesh]->masVertices.Get(i - 1)->sPosition.x + (psVertex->sPosition.x >> 5);
+				psVertex->sPosition.y = apRaster[iMesh]->masVertices.Get(i - 1)->sPosition.y + (psVertex->sPosition.y >> 5);
+				psVertex->sPosition.z = apRaster[iMesh]->masVertices.Get(i - 1)->sPosition.z;
 			}
 			psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromInt(1));
 		}
 		for (i = 0; i < iNumTriangles; i++)
 		{
-			psTriangle = (i % 4 == 0) ? acRaster[iMesh].masTransparent.Add() : acRaster[iMesh].masOpaque.Add();
+			psTriangle = (i % 4 == 0) ? apRaster[iMesh]->masTransparent.Add() : apRaster[iMesh]->masOpaque.Add();
 			uiRandom = uiRandom * 1103515245 + 12345;
 			psTriangle->uiColour = (i % 4 == 0) ? (0x80000000 | (uiRandom >> 8)) : (0xFF000000 | (uiRandom >> 8));
 			uiRandom = uiRandom * 1103515245 + 12345;
@@ -1255,13 +1243,13 @@ void TestRasteriserJobs(void)
 	cCamera.Init();
 	cCamera.Fit(200, 150);
 
-	asInstances[0].pcMesh = &acRaster[1];
+	asInstances[0].pcMesh = &apRaster[1];
 	asInstances[0].asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
 	asInstances[0].asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	asInstances[0].asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);
 	asInstances[0].sOffset.Init(0, 0, 1 << 16);
 	asInstances[1] = asInstances[0];
-	asInstances[1].pcMesh = &acRaster[0];
+	asInstances[1].pcMesh = &apRaster[0];
 	asInstances[1].sOffset.Init(1 << 15, -(1 << 15), 0);
 	asInstances[2] = asInstances[0];
 	asInstances[2].sOffset.Init(-(1 << 17), 1 << 16, 1 << 17);
@@ -1298,8 +1286,6 @@ void TestRasteriserJobs(void)
 	cWithout.Kill();
 	free(puiWith);
 	free(puiWithout);
-	acRaster[1].Kill();
-	acRaster[0].Kill();
 }
 
 

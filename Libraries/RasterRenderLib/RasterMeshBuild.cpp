@@ -156,7 +156,7 @@ static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CMesh* pcMesh, SFloat32Ve
 				sOffset.Init(psPosition->x - psCentre->x, psPosition->y - psCentre->y, psPosition->z - psCentre->z);
 
 				psVertex = pcRaster->masVertices.Add();
-				memset(psVertex, 0, sizeof(SRasterVertex));  //Its padding is saved with it, so Save writes the same bytes each time.
+				memset(psVertex, 0, sizeof(SRasterVertex));  //Its padding is saved with it, so WriteFile writes the same bytes each time.
 				psVertex->sPosition.Init(FloatToIntScaled(sOffset.x, iScale), FloatToIntScaled(sOffset.y, iScale), FloatToIntScaled(sOffset.z, iScale));
 				psVertex->sNormal.Init(SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0), SRasterUnit::FromRaw(0));
 				if (iNormal >= 0)
