@@ -24,6 +24,10 @@
 #include "ComponentInputTestDevices.h"
 
 
+Ptr<CScrollBarImages> CreateScrollBarImages(void);
+Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages);
+
+
 Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 
 
@@ -1644,6 +1648,81 @@ void TestMenuOpener(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A popup given a maximum height is no taller: its menu, taller, scrolls
+// in it, the selection moved by the keys scrolling into view.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuPopupMaximumHeight(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CMenuContainer>		pMenu;
+		Ptr<CPopup>				pPopup;
+		CPointer				pNull;
+		CChars					szItem;
+		int32					i;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		for (i = 0; i < 30; i++)
+		{
+			szItem.Init("Item ");
+			szItem.Append(i);
+			pMenu->AddItem(szItem.Text());
+			szItem.Kill();
+		}
+
+		//Without a maximum the popup is as tall as the menu.
+		pPopup = pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertTrue(pPopup->GetScrollPane().IsNull());
+		AssertInt(-1, pPopup->GetMaximumHeight());
+		pTestWindow->Layout();
+		AssertTrue(pMenu->GetActualSize().y > 60);
+		pMenu->Close();
+
+		//With one it is 60 inside its insets, and the menu, as tall as it was, scrolls in it.
+		pPopup = pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		pPopup->SetMaximumHeight(60, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pTestWindow->Layout();
+		AssertTrue(pPopup->GetScrollPane().IsNotNull());
+		AssertInt(60, pPopup->GetScrollPane()->GetActualSize().y);
+		AssertTrue(pMenu->GetActualSize().y > 60);
+		AssertInt(0, pPopup->GetScrollPane()->GetScrollPosition().y);
+
+		//The last row selected is scrolled to; the first scrolls back.
+		pTestWindow->InputCommand(CIC_End, true);
+		pTestWindow->Layout();
+		AssertInt(29, pMenu->GetSelected());
+		AssertInt(pPopup->GetScrollPane()->GetMaximumScrollPosition().y, pPopup->GetScrollPane()->GetScrollPosition().y);
+		AssertTrue(pPopup->GetScrollPane()->GetScrollPosition().y > 0);
+		pTestWindow->InputCommand(CIC_Home, true);
+		pTestWindow->Layout();
+		AssertInt(0, pMenu->GetSelected());
+		AssertInt(0, pPopup->GetScrollPane()->GetScrollPosition().y);
+		pMenu->Close();
+
+		pPopup = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -1664,6 +1743,7 @@ void TestMenu(void)
 	TestMenuItemClickEvent();
 	TestMenuItemShortcutFromCommand();
 	TestMenuOpener();
+	TestMenuPopupMaximumHeight();
 
 	ObjectsFlush();
 	ObjectsKill();

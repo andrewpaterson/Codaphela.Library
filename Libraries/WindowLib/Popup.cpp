@@ -45,6 +45,8 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	mbBorder = false;
 	mbOwnerPressKeepsOpen = true;
 	mbPointerPasses = false;
+	mpScrollPane = NULL;
+	miMaximumHeight = -1;
 	AddComponent(pContent);
 
 	PostInit();
@@ -68,6 +70,8 @@ void CPopup::Class(void)
 	U_Bool(mbBorder);
 	U_Bool(mbOwnerPressKeepsOpen);
 	U_Bool(mbPointerPasses);
+	M_Pointer(mpScrollPane);
+	U_Int32(miMaximumHeight);
 }
 
 
@@ -143,8 +147,66 @@ void CPopup::SetRequiredSize(void)
 	{
 		sSize.y = 0;
 	}
+	if ((miMaximumHeight >= 0) && (sSize.y > miMaximumHeight))
+	{
+		sSize.y = miMaximumHeight;
+	}
 	AddInsets(&sSize);
 	msRequiredSize = sSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The popup is no taller than iHeight (inside its insets); its content
+// scrolls in a scroll pane in pTheme's look if it is taller.  -1 lets it
+// be as tall as its content again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPopup::SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme)
+{
+	Ptr<CComponent>	pFocussed;
+
+	miMaximumHeight = iHeight;
+	if ((iHeight >= 0) && mpScrollPane.IsNull())
+	{
+		//The content keeps the keys if it has them (a menu opened with them), though it is taken out to go in the scroll pane.
+		pFocussed = mpWindow->GetFocus()->GetFocussedComponent();
+		if (pFocussed.IsNotNull() && !pFocussed->IsWithin(mpContent))
+		{
+			pFocussed = NULL;
+		}
+		RemoveComponent(mpContent);
+		mpScrollPane = OMalloc<CScrollPane>(mpWindow, pTheme);
+		mpScrollPane->SetPolicy(SBO_Horizontal, SPP_Never);
+		mpScrollPane->SetContent(mpContent);
+		AddComponent(mpScrollPane);
+		if (pFocussed.IsNotNull())
+		{
+			mpWindow->GetFocus()->SetFocus(pFocussed);
+		}
+	}
+	InvalidateLayout();
+}
+
+
+int32 CPopup::GetMaximumHeight(void) { return miMaximumHeight; }
+Ptr<CScrollPane> CPopup::GetScrollPane(void) { return mpScrollPane; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Closed (CWindow::ClosePopup), the content is let go of, out of the
+// scroll pane too, so it can be opened in another popup.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPopup::RemoveAllComponents(void)
+{
+	if (mpScrollPane.IsNotNull())
+	{
+		mpScrollPane->SetContent(NULL);
+	}
+	return CContainer::RemoveAllComponents();
 }
 
 
@@ -185,7 +247,14 @@ void CPopup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	InsetArea(&sContentPosition, &sContentSize);
 	SetContainerBounds(sContentPosition, sContentSize);
 
-	mpContent->Layout(sContentPosition, sContentSize);
+	if (mpScrollPane.IsNotNull())
+	{
+		mpScrollPane->Layout(sContentPosition, sContentSize);
+	}
+	else
+	{
+		mpContent->Layout(sContentPosition, sContentSize);
+	}
 
 	SetActualBounds(sPopupPosition, sSize);
 }

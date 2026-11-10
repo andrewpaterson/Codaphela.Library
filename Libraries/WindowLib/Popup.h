@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __POPUP_H__
 #include "SupportLib/ColourARGB32.h"
 #include "Container.h"
+#include "ScrollPane.h"
 
 
 //Holds one component, like a menu, over everything else in the window.  CWindow::OpenPopup makes them; the window's
@@ -35,6 +36,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //The owner is the component that opened it.  A press on the owner, or in any popup, leaves the popups open; a press
 //anywhere else closes them.  A popup whose owner is large, like a context menu's page, closes on a press on its owner
 //too (SetOwnerPressKeepsOpen).  The owner is told when its popup closes.
+//
+//Given a maximum height (SetMaximumHeight) the popup is no taller: content taller than that scrolls up and down in
+//a scroll pane inside it, as a list's selection moved by the keys scrolls into view.
 class CPopup : public CContainer
 {
 CONSTRUCTABLE(CPopup);
@@ -49,6 +53,8 @@ protected:
 	bool				mbBorder;
 	bool				mbOwnerPressKeepsOpen;
 	bool				mbPointerPasses;  //The pointer finds what is under the popup, as for a tool tip.
+	Ptr<CScrollPane>	mpScrollPane;  //Between the popup and its content, once it has a maximum height.
+	int32				miMaximumHeight;  //-1 for none.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
@@ -62,6 +68,10 @@ public:
 	void				SetOwnerPressKeepsOpen(bool bKeepsOpen);
 	bool				IsOwnerPressKeepsOpen(void);
 	void				SetPointerPasses(bool bPasses);
+	void				SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme);
+	int32				GetMaximumHeight(void);
+	Ptr<CScrollPane>	GetScrollPane(void);
+	bool				RemoveAllComponents(void) override;
 	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 	void				SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets);
 	void				SetLook(ARGB32 sBackground, SInsets* psInsets);
