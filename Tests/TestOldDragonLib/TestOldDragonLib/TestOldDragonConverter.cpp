@@ -1,5 +1,6 @@
 #include <string.h>
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Float4x4.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/Logger.h"
 #include "OldDragonLib/OldDragonConverter.h"
@@ -84,7 +85,7 @@ static SOldDragonConnection* AddTestConnection(COldDragonScene* pcScene, const c
 	psConnection->iID = iID;
 	psConnection->iObjectType = iObjectType;
 	SetTestMatrix(&psConnection->sWorld, 1.0f);
-	SetTestMatrix(&psConnection->sLocal, 100.0f);
+	SetTestMatrix(&psConnection->sLocal, 1.0f);
 	psConnection->bSelected = false;
 	psConnection->bTopLevel = false;
 	psConnection->bParity = false;
@@ -804,6 +805,109 @@ void TestOldDragonConvertAims(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A converted connection's world matrix is its local one times its
+// parent's world one, or its local one with no parent.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestParents(int32* paiParents, size uiNumConnections)
+{
+	CSceneFileReader	cReader;
+	SFloat4x4			asWorlds[8];
+	SFloat4x4			sLocal;
+	SFloat4x4			sMade;
+	size				i;
+	int32				j;
+
+	cReader.Init(CONVERTED);
+	AssertTrue(cReader.Open());
+	AssertSize(uiNumConnections, cReader.NumConnections());
+	for (i = 0; i < uiNumConnections; i++)
+	{
+		AssertTrue(cReader.BeginConnection(i));
+		AssertInt(paiParents[i], cReader.GetParent());
+		AssertTrue(cReader.ReadWorldMatrix((float32*)&asWorlds[i]));
+		AssertTrue(cReader.ReadLocalMatrix((float32*)&sLocal));
+		AssertTrue(cReader.End());
+		if (paiParents[i] == SCENE_FILE_NONE)
+		{
+			sMade = sLocal;
+		}
+		else
+		{
+			Float4x4Multiply(&sMade, &sLocal, &asWorlds[paiParents[i]]);
+		}
+		for (j = 0; j < 16; j++)
+		{
+			AssertFloat(((float32*)&asWorlds[i])[j], ((float32*)&sMade)[j], 3);
+		}
+	}
+	cReader.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The Max files lost their parents.  A connection whose local matrix isn't
+// its world one goes under the first connection before it that makes its
+// world matrix from its local one, either way round, and under none if
+// none does.  Into Oblivion's files say what a parent is.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonConvertParents(void)
+{
+	COldDragonScene			cScene;
+	SOldDragonConnection*	psConnection;
+	SLogConfig				sLogConfig;
+	int32					aiMaxParents[] = { SCENE_FILE_NONE, SCENE_FILE_NONE, 0, 2, SCENE_FILE_NONE };
+	int32					aiIOXParents[] = { SCENE_FILE_NONE, 0 };
+
+	cScene.Init();
+	cScene.meVersion = ODV_Max;
+
+	//A root, turned and moved, and a helper in the same place.
+	psConnection = AddTestConnection(&cScene, "Root", OLD_DRAGON_NO_INDEX, 0);
+	Float4x4RotationZ((SFloat4x4*)psConnection->sLocal.af, 3.14159265f / 2.0f);
+	psConnection->sLocal.af[12] = 10.0f;
+	psConnection->sWorld = psConnection->sLocal;
+	psConnection = AddTestConnection(&cScene, "Helper", OLD_DRAGON_NO_INDEX, 1);
+	psConnection->sLocal = cScene.macConnections.Get(0)->sLocal;
+	psConnection->sWorld = psConnection->sLocal;
+
+	//Under the root as Goober is, its parent's world matrix times its local one.
+	psConnection = AddTestConnection(&cScene, "Goober Way", OLD_DRAGON_NO_INDEX, 2);
+	Float4x4Translation((SFloat4x4*)psConnection->sLocal.af, 1.0f, 0.0f, 0.0f);
+	Float4x4Multiply((SFloat4x4*)psConnection->sWorld.af, (SFloat4x4*)cScene.macConnections.Get(0)->sWorld.af, (SFloat4x4*)psConnection->sLocal.af);
+
+	//Under that as Test is, its local matrix times its parent's world one.
+	psConnection = AddTestConnection(&cScene, "Test Way", OLD_DRAGON_NO_INDEX, 3);
+	Float4x4Translation((SFloat4x4*)psConnection->sLocal.af, 0.0f, 2.0f, 0.0f);
+	Float4x4Multiply((SFloat4x4*)psConnection->sWorld.af, (SFloat4x4*)psConnection->sLocal.af, (SFloat4x4*)cScene.macConnections.Get(2)->sWorld.af);
+
+	psConnection = AddTestConnection(&cScene, "Lost", OLD_DRAGON_NO_INDEX, 4);
+	Float4x4Translation((SFloat4x4*)psConnection->sLocal.af, 7.0f, 7.0f, 7.0f);
+	Float4x4Translation((SFloat4x4*)psConnection->sWorld.af, 5.0f, 5.0f, 5.0f);
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertConverts(&cScene);
+	gcLogger.SetConfig(&sLogConfig);
+	AssertTestParents(aiMaxParents, 5);
+	cScene.Kill();
+
+	cScene.Init();
+	cScene.meVersion = ODV_IOX;
+	psConnection = AddTestConnection(&cScene, "Root", OIOX_Root, 0);
+	Float4x4RotationZ((SFloat4x4*)psConnection->sWorld.af, 3.14159265f / 2.0f);
+	psConnection = AddTestConnection(&cScene, "Child", OIOX_Root, 1);
+	Float4x4Translation((SFloat4x4*)psConnection->sWorld.af, 1.0f, 2.0f, 3.0f);
+	psConnection->iParent = 0;
+	AssertConverts(&cScene);
+	AssertTestParents(aiIOXParents, 2);
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestOldDragonConvertOldFiles(void)
@@ -848,6 +952,7 @@ void TestOldDragonConverter(void)
 	TestOldDragonConvertFromInstances();
 	TestOldDragonConvertFromIntoOblivionNodes();
 	TestOldDragonConvertAims();
+	TestOldDragonConvertParents();
 	TestOldDragonConvertOldFiles();
 
 	cFileUtil.RemoveDir(CONVERTER_OUTPUT_DIR);

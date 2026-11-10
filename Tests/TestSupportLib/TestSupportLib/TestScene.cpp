@@ -1,3 +1,4 @@
+#include <math.h>
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/Logger.h"
@@ -658,6 +659,57 @@ void TestScene(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Goober's bones are a skeleton, all under the first, and working out
+// their world matrices from it leaves them where its file has them.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestSceneGooberSkeleton(Ptr<CScene> pScene, Ptr<CInstance> pInstance)
+{
+	Ptr<CConnection>	pConnection;
+	CArrayFloat4x4		asWorlds;
+	size				uiNumParents;
+	size				i;
+	int32				j;
+	float32				fExpected;
+	float32				fDifference;
+	float32				fWorst;
+
+	asWorlds.Init();
+	uiNumParents = 0;
+	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
+	{
+		pConnection = pInstance->mapConnections.Get(i);
+		asWorlds.Add(&pConnection->msWorldMatrix);
+		if (pConnection->mpParent.IsNotNull())
+		{
+			uiNumParents++;
+		}
+	}
+	AssertSize(66, uiNumParents);
+	AssertTrue(pInstance->mapConnections.Get(0)->mpParent.IsNull());
+
+	pScene->UpdateConnections();
+	fWorst = 0.0f;
+	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
+	{
+		pConnection = pInstance->mapConnections.Get(i);
+		for (j = 0; j < 16; j++)
+		{
+			fExpected = ((float32*)asWorlds.Get(i))[j];
+			fDifference = fabsf(((float32*)&pConnection->msWorldMatrix)[j] - fExpected) / (fabsf(fExpected) + 1.0f);
+			if (fDifference > fWorst)
+			{
+				fWorst = fDifference;
+			}
+		}
+	}
+	AssertTrue(fWorst < 0.0001f);
+	asWorlds.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A skinned mesh walking in a field of stars.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -703,6 +755,8 @@ void TestSceneGooberRead(void)
 
 	AssertTrue(pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mpImage.IsNotNull());
 	AssertString("Goober_D.tga", pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mszImageName.Text());
+
+	TestSceneGooberSkeleton(pScene, pInstance);
 }
 
 

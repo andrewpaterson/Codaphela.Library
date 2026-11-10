@@ -18,9 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <math.h>
 #include <string.h>
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayTemplatePrimitive.h"
+#include "BaseLib/Float4x4.h"
 #include "BaseLib/Logger.h"
 #include "SupportLib/SceneFileWriter.h"
 #include "OldDragonFile.h"
@@ -33,6 +35,7 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define OLD_DRAGON_DEGREES_TO_RADIANS	(3.14159265358979 / 180.0)
 #define OLD_DRAGON_FLOATS_IN_MATRIX		16
+#define OLD_DRAGON_PARENT_TOLERANCE		0.001f
 
 
 typedef CArrayTemplatePrimitive<float32>	CArrayConvertFloats;
@@ -715,17 +718,134 @@ static bool WriteMaterial(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The largest difference between two matrices.
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteConnection(CSceneFileWriter* pcWriter, SOldDragonConnection* psConnection, EOldDragonAim eAim)
+static float32 MatrixDifference(const float32* pafA, const float32* pafB)
 {
-	float32	af4x4[OLD_DRAGON_FLOATS_IN_MATRIX];
+	float32	fDifference;
+	float32	fLargest;
+	int32	i;
+
+	fLargest = 0.0f;
+	for (i = 0; i < OLD_DRAGON_FLOATS_IN_MATRIX; i++)
+	{
+		fDifference = fabsf(pafA[i] - pafB[i]);
+		if (fDifference > fLargest)
+		{
+			fLargest = fDifference;
+		}
+	}
+	return fLargest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a connection's world matrix is its local one and psParent's
+// world one.  Goober multiplies them the way Into Oblivion's game did,
+// the parent's first, and Test the other way round, so either fits.  How
+// close it must be grows with how far from the origin the connection is.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsLostParent(SOldDragonConnection* psConnection, SOldDragonConnection* psParent)
+{
+	SFloat4x4	sWorld;
+	float32		fTolerance;
+	float32		fFurthest;
+	int32		i;
+
+	fFurthest = 0.0f;
+	for (i = 12; i < 15; i++)
+	{
+		if (fabsf(psConnection->sWorld.af[i]) > fFurthest)
+		{
+			fFurthest = fabsf(psConnection->sWorld.af[i]);
+		}
+	}
+	fTolerance = OLD_DRAGON_PARENT_TOLERANCE * (fFurthest + 1.0f);
+
+	Float4x4Multiply(&sWorld, (SFloat4x4*)psParent->sWorld.af, (SFloat4x4*)psConnection->sLocal.af);
+	if (MatrixDifference((float32*)&sWorld, psConnection->sWorld.af) < fTolerance)
+	{
+		return true;
+	}
+	Float4x4Multiply(&sWorld, (SFloat4x4*)psConnection->sLocal.af, (SFloat4x4*)psParent->sWorld.af);
+	return MatrixDifference((float32*)&sWorld, psConnection->sWorld.af) < fTolerance;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A connection's parent.  Into Oblivion's files say what it is.  The others
+// lost it, but a connection's local matrix is still relative to it, and in
+// them a parent comes before its children.  So it's the first connection
+// before this one that makes this one's world matrix from its local one.
+// One whose local matrix is its world one has no parent.  In Goober a bone
+// and a finger helper can be in the same place, and as either gives the
+// same world matrix the first is taken.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 GetConnectionParent(COldDragonScene* pcScene, int32 iConnection)
+{
+	SOldDragonConnection*	psConnection;
+	int32					i;
+
+	psConnection = pcScene->macConnections.Get((size)iConnection);
+	if (pcScene->meVersion == ODV_IOX)
+	{
+		return (psConnection->iParent == OLD_DRAGON_NO_INDEX) ? SCENE_FILE_NONE : psConnection->iParent;
+	}
+	if (MatrixDifference(psConnection->sWorld.af, psConnection->sLocal.af) < OLD_DRAGON_PARENT_TOLERANCE)
+	{
+		return SCENE_FILE_NONE;
+	}
+	for (i = 0; i < iConnection; i++)
+	{
+		if (IsLostParent(psConnection, pcScene->macConnections.Get((size)i)))
+		{
+			return i;
+		}
+	}
+	gcLogger.Warning2(__METHOD__, " Connection [", psConnection->szName, "] has a local matrix that doesn't put it where it is under any connection before it, so it has no parent.", NULL);
+	return SCENE_FILE_NONE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The world matrix is kept, and the local matrix is worked out from it and
+// the parent's, as not all the old files multiplied them the way a scene
+// file does.
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteConnection(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, int32 iConnection)
+{
+	SOldDragonConnection*	psConnection;
+	SFloat4x4				sWorld;
+	SFloat4x4				sParentWorld;
+	SFloat4x4				sInverse;
+	SFloat4x4				sLocal;
+	int32					iParent;
+
+	psConnection = pcScene->macConnections.Get((size)iConnection);
+	AimMatrix((float32*)&sWorld, psConnection->sWorld.af, GetConnectionAim(pcScene, pasPlaced, iConnection));
+	iParent = GetConnectionParent(pcScene, iConnection);
 
 	pcWriter->BeginConnection(psConnection->szName);
-	AimMatrix(af4x4, psConnection->sWorld.af, eAim);
-	pcWriter->WriteWorldMatrix(af4x4);
-	AimMatrix(af4x4, psConnection->sLocal.af, eAim);
-	pcWriter->WriteLocalMatrix(af4x4);
+	pcWriter->WriteWorldMatrix((float32*)&sWorld);
+	if (iParent == SCENE_FILE_NONE)
+	{
+		pcWriter->WriteLocalMatrix((float32*)&sWorld);
+	}
+	else
+	{
+		AimMatrix((float32*)&sParentWorld, pcScene->macConnections.Get((size)iParent)->sWorld.af, GetConnectionAim(pcScene, pasPlaced, iParent));
+		Float4x4Inverse(&sInverse, NULL, &sParentWorld);
+		Float4x4Multiply(&sLocal, &sWorld, &sInverse);
+		pcWriter->WriteParent(iParent);
+		pcWriter->WriteLocalMatrix((float32*)&sLocal);
+	}
 	pcWriter->WriteParity(psConnection->bParity);
 	pcWriter->EndConnection();
 }
@@ -1019,7 +1139,7 @@ bool WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename)
 		}
 		for (i = 0; i < pcScene->macConnections.NumElements(); i++)
 		{
-			WriteConnection(&cWriter, pcScene->macConnections.Get(i), GetConnectionAim(pcScene, &asPlaced, (int32)i));
+			WriteConnection(&cWriter, pcScene, &asPlaced, (int32)i);
 		}
 		WriteLightsAndCameras(&cWriter, pcScene, &asPlaced);
 		bResult = bResult && WriteAnimation(&cWriter, pcScene, &asPlaced);
