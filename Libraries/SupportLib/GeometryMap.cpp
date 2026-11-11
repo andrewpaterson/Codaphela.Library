@@ -508,6 +508,12 @@ void CGeometryMap::AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psComm
 		uiNumPoints--;
 	}
 
+	if (uiNumPoints == 0)
+	{
+		//A polyline with no points draws nothing (AddPolyline doesn't add one).
+		free(asPoints);
+		return;
+	}
 	if (uiNumPoints < 2)
 	{
 		//A polyline that doesn't go anywhere is a square dot, as a square capped line is.
