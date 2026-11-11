@@ -1607,6 +1607,23 @@ void TestCPP816BaseLib(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A unit compiled again keeps what it defines (Input/CPP65/CompiledAgainProject).  Counter.cpp is nothing but its
+// includes: Counter.inl defines CCounter's members and Thrice, none of them inline.  It is compiled before
+// Other.cpp, whose Twice they call, so it is compiled again once Twice is exported; by then the header index has
+// seen Counter.inl, and the definitions were left unparsed with the class nothing in the unit names, so the
+// unit's object was empty and the program didn't link.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816CompiledAgain(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/CompiledAgainProject/Counter.cpp", "Input/CPP65/CompiledAgainProject/Other.cpp", "Input/CPP65/CompiledAgainProject/Main.cpp", NULL };
+
+	AssertInt(21, TestCPP816RunProject(aszUnits, "", NULL));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Sprite drawing in C style (Input/CPP65/SpriteProject: Sprite.h and Sprite.cpp as given, Image.cpp's DrawPixel on a
 // 320 x 200 byte screen at 0011:0000): a container of an opaque and a transparent sprite, iterated and drawn.  The
 // expected values are from the same sources built natively (with DrawPixel on an array): 20 pixels set, 2 images and
@@ -5642,6 +5659,7 @@ void TestCPP816(void)
 	TestCPP816MemSwp();
 	TestCPP816LoopIdioms();
 	TestCPP816BaseLib();
+	TestCPP816CompiledAgain();
 	TestCPP816Sprites();
 	TestCPP816TideVideo();
 	TestCPP816Restrict();

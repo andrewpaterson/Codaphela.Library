@@ -136,7 +136,8 @@ bool CCPPParser::HeaderTokens(int iFirst, int iLast, CSourceFile** ppcFile, uint
 //
 // A namespace declaration of a header that names a class, enum, typedef,
 // template or function (and declares no variable), or defines a member
-// function outside its class, can be left unparsed.
+// function outside its class, can be left unparsed; but not the definition
+// of a function that isn't inline, which the unit must define.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclaration* pcDeclaration, CArrayTemplate<CCPPSymbol*>* papcDeclared)
@@ -148,6 +149,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 	SCPPHeaderDeclaration*	psRecord;
 	CCPPSymbol*				pcSymbol;
 	CCPPSymbol*				pcClass;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	ECPPSyntax				eKind;
 	bool					bLazy;
 	char*					szName;
@@ -213,6 +215,19 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 		if (pcClass)
 		{
 			bLazy = true;
+		}
+	}
+
+	//A function defined in a header that isn't inline (or constexpr, or a template) is defined by every unit that
+	//includes it, whether the unit uses it or not: it is always parsed.  The generator's rule is the same
+	//(CCPP65Generator::Function: inline functions are generated when first called, the others where they are defined).
+	if (bLazy && (eKind == CPPS_FunctionDefinition))
+	{
+		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+		if (!pcSpecifiers || !(pcSpecifiers->muiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)))
+		{
+			bLazy = false;
+			pcClass = NULL;
 		}
 	}
 
