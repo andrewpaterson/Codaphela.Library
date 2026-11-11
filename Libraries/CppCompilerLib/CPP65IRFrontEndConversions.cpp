@@ -82,8 +82,8 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psTo;
-	SCPP65Class*	psFrom;
-	SCPP65Class*	psTarget;
+	CCPPClass*	pcFrom;
+	CCPPClass*	pcTarget;
 
 	psTo = mpcGenerator->GetTypeIdType(pcCast->mpcType);
 	if (!psTo)
@@ -110,31 +110,31 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 		return Unsupported(__FILE__, __LINE__);
 	}
 
-	psFrom = psValue->psType->psBase->psClass;
-	if (!mpcGenerator->CompleteClass(psFrom, pcCast))
+	pcFrom = psValue->psType->psBase->pcClass;
+	if (!mpcGenerator->CompleteClass(pcFrom, pcCast))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psTarget = NULL;
+	pcTarget = NULL;
 	if (psTo->psBase->IsClass())
 	{
-		psTarget = psTo->psBase->psClass;
-		if (!mpcGenerator->CompleteClass(psTarget, pcCast))
+		pcTarget = psTo->psBase->pcClass;
+		if (!mpcGenerator->CompleteClass(pcTarget, pcCast))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (mpcGenerator->IsDerived(psFrom, psTarget, NULL))
+		if (mpcGenerator->IsDerived(pcFrom, pcTarget, NULL))
 		{
 			return Convert(psValue, psTo);
 		}
 	}
-	if (!mpcGenerator->IsPolymorphic(psFrom))
+	if (!mpcGenerator->IsPolymorphic(pcFrom))
 	{
 		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
-	psValue->sValue = DynamicCast(psValue->sValue, psFrom, psTarget);
+	psValue->sValue = DynamicCast(psValue->sValue, pcFrom, pcTarget);
 	psValue->psType = psTo;
 	return true;
 }
@@ -148,7 +148,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 // (its part's header, CPP65_VTABLE_TOP_OFFSET); the type info lists every subobject.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* psFrom, SCPP65Class* psTo)
+SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo)
 {
 	CIRBlock*		pcStart;
 	CIRBlock*		pcLook;
@@ -189,23 +189,23 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 
 	//The start of the whole object.
 	StartBlock(pcLook);
-	sVtablePointer = AddressAt(sAddress, mpcGenerator->VtablePointerOffset(psFrom));
+	sVtablePointer = AddressAt(sAddress, mpcGenerator->VtablePointerOffset(pcFrom));
 	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
 	sTop = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), sOffset, true);
 	sTop = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);
-	if (!psTo)
+	if (!pcTo)
 	{
 		JumpTo(pcEnd);
 		StartBlock(pcEnd);
 		return Phi(pcEnd, sPointer, pcStart, sNullPointer, pcLook, sTop);
 	}
 
-	mpcGenerator->EnsureTypeInfo(psTo);
+	mpcGenerator->EnsureTypeInfo(pcTo);
 	szLabel.Init();
-	mpcGenerator->AppendTypeInfoLabel(&szLabel, psTo);
+	mpcGenerator->AppendTypeInfoLabel(&szLabel, pcTo);
 	sTarget = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
-	if (psTo->lliName < 0)
+	if (pcTo->mlliName < 0)
 	{
 		mcModule.SetLocal(sTarget.Index());
 	}
@@ -290,9 +290,9 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	}
 	//A pointer to a derived class points at its base, which may be further on (a null pointer stays null).  The
 	//derived class is laid out to know where its base is, even if nothing else has needed it whole yet.
-	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->psClass != psTo->psBase->psClass) &&
-		mpcGenerator->IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, NULL) && mpcGenerator->CompleteClass(psFrom->psBase->psClass, NULL) &&
-		mpcGenerator->IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, &iOffset) && (iOffset != 0))
+	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) &&
+		mpcGenerator->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcGenerator->CompleteClass(psFrom->psBase->pcClass, NULL) &&
+		mpcGenerator->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
 	{
 		psValue->sValue = BaseAddress(psValue->sValue, iOffset);
 		psValue->psType = psTo;
@@ -440,7 +440,7 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 	{
 		//Base to derived adds the base's offset, derived to base takes it off.  Otherwise (a cast between unrelated
 		//classes, say) it is the same value.
-		iOffset = BaseOffset(psTo->psClass, psFrom->psClass) - BaseOffset(psFrom->psClass, psTo->psClass);
+		iOffset = BaseOffset(psTo->pcClass, psFrom->pcClass) - BaseOffset(psFrom->pcClass, psTo->pcClass);
 		if ((iOffset != 0) && psFrom->psBase->IsFunction())
 		{
 			return Unsupported(__FILE__, __LINE__);

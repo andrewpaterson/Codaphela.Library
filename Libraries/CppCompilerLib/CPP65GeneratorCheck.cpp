@@ -65,25 +65,25 @@ bool CCPP65Generator::Check(CCPPSemanticPass* pcPass)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::CheckDefinitions(void)
 {
-	SCPP65Function*	psFunction;
+	CCPPFunction*	pcFunction;
 	size			i;
 	bool			bChecked;
 
 	bChecked = GenerateQueued();
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (i = 0; i < mapcFunctions.NumElements(); i++)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if (psFunction->pcDefinition && !psFunction->bGenerated && !psFunction->bImplicit)
+		pcFunction = mapcFunctions.GetPtr(i);
+		if (pcFunction->mpcDefinition && !pcFunction->mbGenerated && !pcFunction->mbImplicit)
 		{
-			if (psFunction->psBindings)
+			if (pcFunction->mpcBindings)
 			{
 				BeginQuiet();
-				GenerateFunction(psFunction);
+				GenerateFunction(pcFunction);
 				EndQuiet();
 			}
 			else
 			{
-				GenerateFunction(psFunction);
+				GenerateFunction(pcFunction);
 			}
 			bChecked = true;
 		}
@@ -104,9 +104,9 @@ void CCPP65Generator::CheckClasses(CArraySyntax* papcDeclarations)
 	size							i;
 	CCPPSyntax*						pcDeclaration;
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
-	CCPPSyntaxClassSpecifier*		pcClass;
+	CCPPSyntaxClassSpecifier*		pcClassSpecifier;
 	CCPPSymbol*						pcSymbol;
-	SCPP65Class*					psClass;
+	CCPPClass*					pcClass;
 
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
 	{
@@ -119,12 +119,12 @@ void CCPP65Generator::CheckClasses(CArraySyntax* papcDeclarations)
 			{
 				break;
 			}
-			pcClass = (CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType;
-			pcSymbol = pcClass->mpcSymbol;
+			pcClassSpecifier = (CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType;
+			pcSymbol = pcClassSpecifier->mpcSymbol;
 			if (pcSymbol && (pcSymbol->meKind == CPPSK_Class))
 			{
-				psClass = GetClass(pcSymbol, pcClass);
-				CompleteClass(psClass, pcClass);
+				pcClass = GetClass(pcSymbol, pcClassSpecifier);
+				CompleteClass(pcClass, pcClassSpecifier);
 			}
 			break;
 		case CPPS_LinkageSpecification:
@@ -147,26 +147,26 @@ void CCPP65Generator::CheckClasses(CArraySyntax* papcDeclarations)
 // isn't supported is an error; the rest of the function is still checked.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckFunction(SCPP65Function* psFunction)
+void CCPP65Generator::CheckFunction(CCPPFunction* pcFunction)
 {
-	CCPPSyntaxFunctionDefinition*	pcFunction;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	size							i;
 
-	pcFunction = psFunction->pcDefinition;
-	if (!pcFunction || psFunction->bImplicit)
+	pcDefinition = pcFunction->mpcDefinition;
+	if (!pcDefinition || pcFunction->mbImplicit)
 	{
 		return;
 	}
 
-	BeginFunction(psFunction);
-	AddParameters(psFunction);
-	AllocateLocals(pcFunction->mpcBody);
-	for (i = 0; i < pcFunction->macpMemberInitializers.NumElements(); i++)
+	BeginFunction(pcFunction);
+	AddParameters(pcFunction);
+	AllocateLocals(pcDefinition->mpcBody);
+	for (i = 0; i < pcDefinition->macpMemberInitializers.NumElements(); i++)
 	{
-		CheckChildren(pcFunction->macpMemberInitializers.GetPtr(i));
+		CheckChildren(pcDefinition->macpMemberInitializers.GetPtr(i));
 	}
-	CheckNode(pcFunction->mpcBody);
-	EndFunction(psFunction);
+	CheckNode(pcDefinition->mpcBody);
+	EndFunction(pcFunction);
 }
 
 
@@ -261,15 +261,15 @@ void CCPP65Generator::CheckExpression(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 {
-	SCPP65Variable*	psVariable;
+	CCPPVariable*	pcVariable;
 
 	if (pcInit->mpcDeclarator->IsFunction())
 	{
 		DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
 		return;
 	}
-	psVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
-	if (psVariable && mcTypeChecker.Initialise(psVariable->psType, pcInit->mpcInitializer, pcInit))
+	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	if (pcVariable && mcTypeChecker.Initialise(pcVariable->mpsType, pcInit->mpcInitializer, pcInit))
 	{
 		return;
 	}
@@ -307,26 +307,26 @@ bool CCPP65Generator::IsCheckedExpression(CCPPSyntax* pcNode)
 // semantic pass is told, when checking.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Resolved(CCPPSyntaxName* pcName, SCPP65Function* psFunction)
+void CCPP65Generator::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 {
 	CCPPSyntaxName*	pcDeclared;
 	CCPPSymbol*		pcSymbol;
 
-	if (!mpcSemanticPass || !pcName || !pcName->GetLast() || !psFunction)
+	if (!mpcSemanticPass || !pcName || !pcName->GetLast() || !pcFunction)
 	{
 		return;
 	}
 	pcSymbol = NULL;
-	if (psFunction->pcDeclarator)
+	if (pcFunction->mpcDeclarator)
 	{
-		pcDeclared = psFunction->pcDeclarator->GetName();
+		pcDeclared = pcFunction->mpcDeclarator->GetName();
 		pcSymbol = pcDeclared ? pcDeclared->mpcSymbol : NULL;
 	}
 	if (!pcSymbol)
 	{
 		pcSymbol = pcName->mpcSymbol;
 	}
-	mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, psFunction->pcDeclarator);
+	mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, pcFunction->mpcDeclarator);
 }
 
 

@@ -1266,7 +1266,7 @@ void TestCPP65IRNamespaceTemplates(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A class's own functions (SCPP65Class::mapsMembers), with another class's
+// A class's own functions (CCPPClass::mapcMembers), with another class's
 // declared between them: its copy constructor and converting constructor are
 // found, an explicit one isn't a conversion, and virtual functions override
 // in its vtable and a secondary one.  Constructors inherited with using come
@@ -1356,7 +1356,7 @@ static int TestCPP65IRCount(CChars* pszText, const char* szFind)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function template's instances (SCPP65Template::mapsInstances): the same
+// A function template's instances (CCPPTemplate::mapcInstances): the same
 // arguments are the one instance however often it is called, others another,
 // and a template of the same arguments has its own; a specialisation stands
 // for its arguments.

@@ -42,14 +42,14 @@ enum ECPP65TypeKind
 };
 
 
-struct SCPP65Class;
+class CCPPClass;
 class CCPPSymbol;
 
 
 //The type of a value the compiler works with.  Integers are 1, 2, 4 or 8 bytes (int is 4 bytes on the 65C64 and 2
-//on the W65C816, long is 4 on both), pointers and references are 4 bytes.  A pointer to a member of psClass (psBase
+//on the W65C816, long is 4 on both), pointers and references are 4 bytes.  A pointer to a member of pcClass (psBase
 //is the member's type) is 4 bytes: a member function's address or a field's offset.  float is 4 bytes, double and
-//long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
+//long double 8.  A class type's layout is in pcClass.  A function type has its parameters.  Types are made by
 //CCPP65Types and are never freed while it lives.
 struct SCPP65Type
 {
@@ -58,7 +58,7 @@ struct SCPP65Type
 	bool			bSigned;
 	SCPP65Type*		psBase;		//The type pointed to, the element type or the return type.
 	int				iCount;		//Array elements.
-	SCPP65Class*	psClass;
+	CCPPClass*	pcClass;
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
@@ -109,7 +109,7 @@ protected:
 	CArrayCPP65Types					mapsTypes;
 	CMapLongTemplate<SCPP65TypeChain>	mcByBase;		//The types made of a kind and base (Add, MemberPointer).
 	CMapLongTemplate<SCPP65TypeChain>	mcFunctions;	//The function types made with a signature's hash (Function).
-	CMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its SCPP65Class.
+	CMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its CCPPClass.
 	CMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
 	CMapLongTemplate<SCPP65Type*>		mcQualified;	//A type's const and volatile copies, by the unqualified type and the qualifiers (QualifiedKey).
 	int									miPointerBytes;	//The target's pointers, references and pointers to members.
@@ -141,12 +141,12 @@ public:
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
 	SCPP65Type*			Reference(SCPP65Type* psBase);
-	SCPP65Type*			MemberPointer(SCPP65Class* psClass, SCPP65Type* psMember);
+	SCPP65Type*			MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember);
 	SCPP65Type*			Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned);
 	SCPP65Type*			FindEnum(CCPPSymbol* pcEnum);
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);
-	SCPP65Type*			Class(SCPP65Class* psClass);
+	SCPP65Type*			Class(CCPPClass* pcClass);
 	SCPP65Type*			Qualified(SCPP65Type* psType, bool bConst, bool bVolatile);
 	SCPP65Type*			Const(SCPP65Type* psType);
 	SCPP65Type*			Volatile(SCPP65Type* psType);

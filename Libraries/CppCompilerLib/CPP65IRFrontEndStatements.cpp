@@ -177,7 +177,7 @@ bool CCPP65IRFrontEnd::ScopedStatement(CCPPSyntax* pcStatement)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::AddLiving(SCPP65IRPlace* psPlace)
 {
-	if (ElementType(psPlace->psType)->psClass->psDestructor)
+	if (ElementType(psPlace->psType)->pcClass->mpcDestructor)
 	{
 		masLiving.Add(psPlace);
 	}
@@ -350,10 +350,10 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 // declared (NULL if it isn't wanted).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, SCPP65Variable** ppsLast)
+bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable** ppcLast)
 {
 	CCPPSyntaxInitDeclarator*		pcInit;
-	SCPP65Variable*					psVariable;
+	CCPPVariable*					pcVariable;
 	SCPP65IRPlace					sPlace;
 	size							ui;
 	size							uiTemporaries;
@@ -370,27 +370,27 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, S
 			mpcGenerator->DeclareBlockFunction(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator);
 			continue;
 		}
-		psVariable = pcInit->mpcSymbol ? mpcGenerator->GetVariable(pcInit->mpcSymbol) : NULL;
-		if (!psVariable)
+		pcVariable = pcInit->mpcSymbol ? mpcGenerator->GetVariable(pcInit->mpcSymbol) : NULL;
+		if (!pcVariable)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (psVariable->eStorage == CPP65S_Static)
+		if (pcVariable->meStorage == CPPVS_Static)
 		{
 			continue;
 		}
-		if (psVariable->eStorage != CPP65S_Local)
+		if (pcVariable->meStorage != CPPVS_Local)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (ppsLast)
+		if (ppcLast)
 		{
-			*ppsLast = psVariable;
+			*ppcLast = pcVariable;
 		}
-		sPlace.sAddress = *mcAddresses.Get((int64)(size)psVariable);
-		sPlace.psType = psVariable->psType;
+		sPlace.sAddress = *mcAddresses.Get((int64)(size)pcVariable);
+		sPlace.psType = pcVariable->mpsType;
 		uiTemporaries = masTemporaries.NumElements();
-		if (ElementType(psVariable->psType)->IsClass())
+		if (ElementType(pcVariable->mpsType)->IsClass())
 		{
 			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left.
 			if (!Construct(&sPlace, NULL, pcInit->mpcInitializer))
@@ -405,7 +405,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, S
 		}
 
 		//Each initialiser is a full expression.  A reference to a temporary would keep it alive (not supported).
-		if (psVariable->psType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
+		if (pcVariable->mpsType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -952,7 +952,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	SIRType			sType;
 	size			uiTemporaries;
 
-	psReturn = mpsFunction->psReturn;
+	psReturn = mpcCPPFunction->mpsReturn;
 	sType = mpcFunction->msReturnType;
 	uiTemporaries = masTemporaries.NumElements();
 	//The value is worked out, then the living objects are destroyed.  An object is made at the result address, which

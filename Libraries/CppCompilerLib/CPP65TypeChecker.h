@@ -25,9 +25,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPP65Generator;
-struct SCPP65Field;
-struct SCPP65Class;
-struct SCPP65Function;
+struct SCPPField;
+class CCPPClass;
+class CCPPFunction;
 
 
 //The type of a C++ expression, and what is wrong with it, worked out without writing any code: the generator's
@@ -65,7 +65,7 @@ protected:
 	SCPP65Type*		FunctionAddress(CCPPSyntax* pcNode, int64 lliName, SCPP65Type* psTarget);
 	SCPP65Type*		FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId);
 	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type** ppsType);
-	bool			MemberFunctionAddress(SCPP65Class* psClass, int64 lliName, SCPP65Type** ppsType, CCPPSyntax* pcNode);
+	bool			MemberFunctionAddress(CCPPClass* pcClass, int64 lliName, SCPP65Type** ppsType, CCPPSyntax* pcNode);
 	SCPP65Type*		ThisExpression(CCPPSyntax* pcThis);
 
 	SCPP65Type*		UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary);
@@ -86,14 +86,14 @@ protected:
 	SCPP65Type*		ExpandPackCall(CCPPSyntaxCallExpression* pcCall);
 	SCPP65Type*		UncheckedCall(CArraySyntax* papcArguments);
 	SCPP65Type*		CallThroughPointer(CCPPSyntaxCallExpression* pcCall, SCPP65Type* psFunctionType);
-	SCPP65Type*		Call(SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Type*		Call(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	bool			Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn);
 	SCPP65Type*		Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName);
 	SCPP65Type*		InlineMemcpy(CArraySyntax* papcArguments);
 
 	SCPP65Type*		MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee);
-	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, SCPP65Function* psFunction);
-	SCPP65Type*		ObjectCall(CCPPSyntax* pcObject, SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction);
+	SCPP65Type*		ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);
 	SCPP65Type*		ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
@@ -112,13 +112,13 @@ protected:
 	SCPP65Type*		NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);
 	SCPP65Type*		DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete);
 
-	SCPP65Type*		FieldType(SCPP65Field* psField, bool bConst, bool bVolatile);
+	SCPP65Type*		FieldType(SCPPField* psField, bool bConst, bool bVolatile);
 	bool			CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	SCPP65Type*		TemporaryObject(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 	bool			Construct(SCPP65Type* psType, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
-	bool			ConstructClass(SCPP65Class* psClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	bool			CopyConstruct(SCPP65Class* psClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
-	bool			CopyObject(SCPP65Class* psClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
+	bool			ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	bool			CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
+	bool			CopyObject(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
 	SCPP65Type*		ObjectType(CCPPSyntax* pcExpression);
 
 	bool			Error(CCPPSyntax* pcNode, const char* szMessage);

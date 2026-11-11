@@ -31,49 +31,49 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // are added on the end.  A destructor overrides a virtual base destructor.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode)
+bool CCPP65Generator::LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
-	SCPP65Function*		psFunction;
-	SCPP65Function*		psVirtual;
+	CCPPFunction*		pcFunction;
+	CCPPFunction*		pcVirtual;
 	size				i;
 	size				j;
 	bool				bOverride;
 
-	if (psClass->psBase)
+	if (pcClass->mpcBase)
 	{
-		for (i = 0; i < psClass->psBase->mapsVirtuals.NumElements(); i++)
+		for (i = 0; i < pcClass->mpcBase->mapcVirtuals.NumElements(); i++)
 		{
-			psClass->mapsVirtuals.Add(psClass->psBase->mapsVirtuals.GetPtr(i));
+			pcClass->mapcVirtuals.Add(pcClass->mpcBase->mapcVirtuals.GetPtr(i));
 		}
 	}
 
-	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 	{
-		psFunction = psClass->mapsMembers.GetPtr(i);
-		if (psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if (pcFunction->mbStatic || (pcFunction->meKind == CPPFK_Constructor))
 		{
 			continue;
 		}
 
 		bOverride = false;
-		for (j = 0; j < psClass->mapsVirtuals.NumElements(); j++)
+		for (j = 0; j < pcClass->mapcVirtuals.NumElements(); j++)
 		{
-			psVirtual = psClass->mapsVirtuals.GetPtr(j);
-			if (Overrides(psVirtual, psFunction))
+			pcVirtual = pcClass->mapcVirtuals.GetPtr(j);
+			if (Overrides(pcVirtual, pcFunction))
 			{
-				psClass->mapsVirtuals.SetPtr(j, psFunction);
-				psFunction->bVirtual = true;
-				psFunction->iSlot = (int)j;
+				pcClass->mapcVirtuals.SetPtr(j, pcFunction);
+				pcFunction->mbVirtual = true;
+				pcFunction->miSlot = (int)j;
 				bOverride = true;
 				break;
 			}
 		}
 		//A function that overrides one in a secondary vtable also gets a place in the class's own.
-		if (!bOverride && (psFunction->bVirtual || OverridesBase(psClass, psFunction)))
+		if (!bOverride && (pcFunction->mbVirtual || OverridesBase(pcClass, pcFunction)))
 		{
-			psFunction->bVirtual = true;
-			psFunction->iSlot = (int)psClass->mapsVirtuals.NumElements();
-			psClass->mapsVirtuals.Add(psFunction);
+			pcFunction->mbVirtual = true;
+			pcFunction->miSlot = (int)pcClass->mapcVirtuals.NumElements();
+			pcClass->mapcVirtuals.Add(pcFunction);
 		}
 	}
 	return true;
@@ -82,46 +82,46 @@ bool CCPP65Generator::LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if psFunction overrides psVirtual: destructors override destructors, other
+// True if pcFunction overrides pcVirtual: destructors override destructors, other
 // functions need the same name and parameters.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Overrides(SCPP65Function* psVirtual, SCPP65Function* psFunction)
+bool CCPP65Generator::Overrides(CCPPFunction* pcVirtual, CCPPFunction* pcFunction)
 {
-	return (psVirtual->eKind == psFunction->eKind) && ((psFunction->eKind == CPP65FK_Destructor) || ((psVirtual->lliName == psFunction->lliName) && SameParameters(psVirtual, psFunction)));
+	return (pcVirtual->meKind == pcFunction->meKind) && ((pcFunction->meKind == CPPFK_Destructor) || ((pcVirtual->mlliName == pcFunction->mlliName) && SameParameters(pcVirtual, pcFunction)));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if psFunction overrides a virtual function in any of psClass's bases'
+// True if pcFunction overrides a virtual function in any of pcClass's bases'
 // vtables.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::OverridesBase(SCPP65Class* psClass, SCPP65Function* psFunction)
+bool CCPP65Generator::OverridesBase(CCPPClass* pcClass, CCPPFunction* pcFunction)
 {
-	SCPP65Class*	psBase;
-	SCPP65Vtable*	psVtable;
+	CCPPClass*	pcBase;
+	SCPPSecondaryVtable*	psVtable;
 	size			i;
 	size			j;
 	size			k;
 
-	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
-		psBase = psClass->macBases.Get(i)->psClass;
-		for (j = 0; j < psBase->mapsVirtuals.NumElements(); j++)
+		pcBase = pcClass->macBases.Get(i)->pcClass;
+		for (j = 0; j < pcBase->mapcVirtuals.NumElements(); j++)
 		{
-			if (Overrides(psBase->mapsVirtuals.GetPtr(j), psFunction))
+			if (Overrides(pcBase->mapcVirtuals.GetPtr(j), pcFunction))
 			{
 				return true;
 			}
 		}
-		for (j = 0; j < psBase->macVtables.NumElements(); j++)
+		for (j = 0; j < pcBase->macVtables.NumElements(); j++)
 		{
-			psVtable = psBase->macVtables.Get(j);
-			for (k = 0; k < psVtable->mapsFunctions.NumElements(); k++)
+			psVtable = pcBase->macVtables.Get(j);
+			for (k = 0; k < psVtable->mapcFunctions.NumElements(); k++)
 			{
-				if (Overrides(psVtable->mapsFunctions.GetPtr(k), psFunction))
+				if (Overrides(psVtable->mapcFunctions.GetPtr(k), pcFunction))
 				{
 					return true;
 				}
@@ -140,26 +140,26 @@ bool CCPP65Generator::OverridesBase(SCPP65Class* psClass, SCPP65Function* psFunc
 // offsets must be known.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::LayoutSecondaryVtables(SCPP65Class* psClass)
+void CCPP65Generator::LayoutSecondaryVtables(CCPPClass* pcClass)
 {
-	SCPP65Base*		psBase;
-	SCPP65Vtable*	psVtable;
+	SCPPBase*		psBase;
+	SCPPSecondaryVtable*	psVtable;
 	bool			bShared;
 	size			i;
 	size			j;
 
-	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
-		psBase = psClass->macBases.Get(i);
-		bShared = (i == 0) && (psClass->psBase == psBase->psClass) && (psBase->psClass->iVtableOffset != -1) && (psClass->iVtableOffset == psBase->psClass->iVtableOffset);
-		if (!bShared && (psBase->psClass->iVtableOffset != -1))
+		psBase = pcClass->macBases.Get(i);
+		bShared = (i == 0) && (pcClass->mpcBase == psBase->pcClass) && (psBase->pcClass->miVtableOffset != -1) && (pcClass->miVtableOffset == psBase->pcClass->miVtableOffset);
+		if (!bShared && (psBase->pcClass->miVtableOffset != -1))
 		{
-			AddSecondaryVtable(psClass, psBase->iOffset, psBase->psClass, &psBase->psClass->mapsVirtuals, NULL);
+			AddSecondaryVtable(pcClass, psBase->iOffset, psBase->pcClass, &psBase->pcClass->mapcVirtuals, NULL);
 		}
-		for (j = 0; j < psBase->psClass->macVtables.NumElements(); j++)
+		for (j = 0; j < psBase->pcClass->macVtables.NumElements(); j++)
 		{
-			psVtable = psBase->psClass->macVtables.Get(j);
-			AddSecondaryVtable(psClass, psBase->iOffset + psVtable->iOffset, psVtable->psOwner, &psVtable->mapsFunctions, &psVtable->maiAdjust);
+			psVtable = psBase->pcClass->macVtables.Get(j);
+			AddSecondaryVtable(pcClass, psBase->iOffset + psVtable->iOffset, psVtable->pcOwner, &psVtable->mapcFunctions, &psVtable->maiAdjust);
 		}
 	}
 }
@@ -171,36 +171,36 @@ void CCPP65Generator::LayoutSecondaryVtables(SCPP65Class* psClass)
 // override; they need this moved back from the subobject to the class.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP65Class* psOwner, CArrayCPP65FunctionPtrs* papsFunctions, CArrayInt* paiAdjust)
+void CCPP65Generator::AddSecondaryVtable(CCPPClass* pcClass, int iOffset, CCPPClass* pcOwner, CArrayCPPFunctions* papcFunctions, CArrayInt* paiAdjust)
 {
-	SCPP65Vtable*		psVtable;
-	SCPP65Function*		psFunction;
+	SCPPSecondaryVtable*		psVtable;
+	CCPPFunction*		pcFunction;
 	size				i;
 	size				j;
 
-	psVtable = psClass->macVtables.Add();
+	psVtable = pcClass->macVtables.Add();
 	psVtable->iOffset = iOffset;
-	psVtable->psOwner = psOwner;
-	psVtable->mapsFunctions.Init();
+	psVtable->pcOwner = pcOwner;
+	psVtable->mapcFunctions.Init();
 	psVtable->maiAdjust.Init();
-	for (i = 0; i < papsFunctions->NumElements(); i++)
+	for (i = 0; i < papcFunctions->NumElements(); i++)
 	{
-		psVtable->mapsFunctions.Add(papsFunctions->GetPtr(i));
+		psVtable->mapcFunctions.Add(papcFunctions->GetPtr(i));
 		psVtable->maiAdjust.Add(paiAdjust ? paiAdjust->GetValue(i) : 0);
 	}
 
-	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 	{
-		psFunction = psClass->mapsMembers.GetPtr(i);
-		if (psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if (pcFunction->mbStatic || (pcFunction->meKind == CPPFK_Constructor))
 		{
 			continue;
 		}
-		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
 		{
-			if (Overrides(psVtable->mapsFunctions.GetPtr(j), psFunction))
+			if (Overrides(psVtable->mapcFunctions.GetPtr(j), pcFunction))
 			{
-				psVtable->mapsFunctions.SetPtr(j, psFunction);
+				psVtable->mapcFunctions.SetPtr(j, pcFunction);
 				psVtable->maiAdjust.SetValue(j, -iOffset);
 			}
 		}
@@ -213,9 +213,9 @@ void CCPP65Generator::AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP
 // True if objects of the class have a vtable pointer, its own or a base's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsPolymorphic(SCPP65Class* psClass)
+bool CCPP65Generator::IsPolymorphic(CCPPClass* pcClass)
 {
-	return (psClass->iVtableOffset != -1) || (psClass->macVtables.NumElements() > 0);
+	return (pcClass->miVtableOffset != -1) || (pcClass->macVtables.NumElements() > 0);
 }
 
 
@@ -225,25 +225,25 @@ bool CCPP65Generator::IsPolymorphic(SCPP65Class* psClass)
 // virtual: no object of the class can be made.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsAbstract(SCPP65Class* psClass)
+bool CCPP65Generator::IsAbstract(CCPPClass* pcClass)
 {
-	SCPP65Vtable*	psVtable;
+	SCPPSecondaryVtable*	psVtable;
 	size			i;
 	size			j;
 
-	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
+	for (i = 0; i < pcClass->mapcVirtuals.NumElements(); i++)
 	{
-		if (psClass->mapsVirtuals.GetPtr(i)->bPure)
+		if (pcClass->mapcVirtuals.GetPtr(i)->mbPure)
 		{
 			return true;
 		}
 	}
-	for (i = 0; i < psClass->macVtables.NumElements(); i++)
+	for (i = 0; i < pcClass->macVtables.NumElements(); i++)
 	{
-		psVtable = psClass->macVtables.Get(i);
-		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		psVtable = pcClass->macVtables.Get(i);
+		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
 		{
-			if (psVtable->mapsFunctions.GetPtr(j)->bPure)
+			if (psVtable->mapcFunctions.GetPtr(j)->mbPure)
 			{
 				return true;
 			}
@@ -260,29 +260,29 @@ bool CCPP65Generator::IsAbstract(SCPP65Class* psClass)
 // functions are R_Pure, which stops.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
+void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 {
-	CArrayCPP65VtableEntries	asEntries;
-	SCPP65VtableEntry*			psEntry;
+	CArrayCPPVtableEntries	asEntries;
+	SCPPVtableEntry*			psEntry;
 	size						i;
 	CChars						szLabel;
 
-	if (psClass->bVtable)
+	if (pcClass->mbVtable)
 	{
 		return;
 	}
-	psClass->bVtable = true;
+	pcClass->mbVtable = true;
 
 	//Each unit that makes one of a class's objects writes its vtable in a COMDAT section
 	//(the linker keeps one); a class without a name has its own.
 	szLabel.Init();
-	AppendVtableLabel(&szLabel, psClass);
+	AppendVtableLabel(&szLabel, pcClass);
 	if (!Emit(&szLabel))
 	{
 		szLabel.Kill();
 		return;
 	}
-	if (psClass->lliName < 0)
+	if (pcClass->mlliName < 0)
 	{
 		AppendSection(&mszData, "rodata", &szLabel, NULL);
 	}
@@ -296,17 +296,17 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 
 	//The label is after the first part's header.
 	asEntries.Init();
-	VtableEntries(psClass, &asEntries);
+	VtableEntries(pcClass, &asEntries);
 	for (i = 0; i < asEntries.NumElements(); i++)
 	{
 		psEntry = asEntries.Get(i);
-		if (psEntry->eKind == CPP65VE_Header)
+		if (psEntry->eKind == CPPVE_Header)
 		{
-			AppendVtableHeader(psClass, psEntry->iVtablePointer);
+			AppendVtableHeader(pcClass, psEntry->iVtablePointer);
 		}
 		else
 		{
-			AppendVtableEntry(psEntry->psFunction, psEntry->iAdjust);
+			AppendVtableEntry(psEntry->pcFunction, psEntry->iAdjust);
 		}
 		if (i == 0)
 		{
@@ -318,7 +318,7 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	asEntries.Kill();
 	szLabel.Kill();
 
-	EnsureTypeInfo(psClass);
+	EnsureTypeInfo(pcClass);
 }
 
 
@@ -331,40 +331,40 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 // the same list.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::VtableEntries(SCPP65Class* psClass, CArrayCPP65VtableEntries* pasEntries)
+void CCPP65Generator::VtableEntries(CCPPClass* pcClass, CArrayCPPVtableEntries* pasEntries)
 {
-	SCPP65VtableEntry*	psEntry;
-	SCPP65Vtable*		psVtable;
+	SCPPVtableEntry*	psEntry;
+	SCPPSecondaryVtable*		psVtable;
 	size				i;
 	size				j;
 
 	psEntry = pasEntries->Add();
-	psEntry->eKind = CPP65VE_Header;
-	psEntry->iVtablePointer = (psClass->iVtableOffset == -1) ? 0 : psClass->iVtableOffset;
-	psEntry->psFunction = NULL;
+	psEntry->eKind = CPPVE_Header;
+	psEntry->iVtablePointer = (pcClass->miVtableOffset == -1) ? 0 : pcClass->miVtableOffset;
+	psEntry->pcFunction = NULL;
 	psEntry->iAdjust = 0;
-	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
+	for (i = 0; i < pcClass->mapcVirtuals.NumElements(); i++)
 	{
 		psEntry = pasEntries->Add();
-		psEntry->eKind = CPP65VE_Function;
+		psEntry->eKind = CPPVE_Function;
 		psEntry->iVtablePointer = 0;
-		psEntry->psFunction = psClass->mapsVirtuals.GetPtr(i);
+		psEntry->pcFunction = pcClass->mapcVirtuals.GetPtr(i);
 		psEntry->iAdjust = 0;
 	}
-	for (i = 0; i < psClass->macVtables.NumElements(); i++)
+	for (i = 0; i < pcClass->macVtables.NumElements(); i++)
 	{
-		psVtable = psClass->macVtables.Get(i);
+		psVtable = pcClass->macVtables.Get(i);
 		psEntry = pasEntries->Add();
-		psEntry->eKind = CPP65VE_Header;
-		psEntry->iVtablePointer = psVtable->iOffset + psVtable->psOwner->iVtableOffset;
-		psEntry->psFunction = NULL;
+		psEntry->eKind = CPPVE_Header;
+		psEntry->iVtablePointer = psVtable->iOffset + psVtable->pcOwner->miVtableOffset;
+		psEntry->pcFunction = NULL;
 		psEntry->iAdjust = 0;
-		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
 		{
 			psEntry = pasEntries->Add();
-			psEntry->eKind = CPP65VE_Function;
+			psEntry->eKind = CPPVE_Function;
 			psEntry->iVtablePointer = 0;
-			psEntry->psFunction = psVtable->mapsFunctions.GetPtr(j);
+			psEntry->pcFunction = psVtable->mapcFunctions.GetPtr(j);
 			psEntry->iAdjust = psVtable->maiAdjust.GetValue(j);
 		}
 	}
@@ -378,13 +378,13 @@ void CCPP65Generator::VtableEntries(SCPP65Class* psClass, CArrayCPP65VtableEntri
 // where that pointer is in the object), then the class's type info.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableHeader(SCPP65Class* psClass, int iVtablePointer)
+void CCPP65Generator::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 {
 	mszData.Append("\t\t.long ");
 	mszData.Append(-iVtablePointer);
 	mszData.AppendNewLine();
 	mszData.Append("\t\t.long ");
-	AppendTypeInfoLabel(&mszData, psClass);
+	AppendTypeInfoLabel(&mszData, pcClass);
 	mszData.AppendNewLine();
 }
 
@@ -398,25 +398,25 @@ void CCPP65Generator::AppendVtableHeader(SCPP65Class* psClass, int iVtablePointe
 // class.  The type infos of the bases are written too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::EnsureTypeInfo(SCPP65Class* psClass)
+void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
 {
 	CChars	szLabel;
 	size	i;
 
-	if (psClass->bTypeInfo)
+	if (pcClass->mbTypeInfo)
 	{
 		return;
 	}
-	psClass->bTypeInfo = true;
+	pcClass->mbTypeInfo = true;
 
 	szLabel.Init();
-	AppendTypeInfoLabel(&szLabel, psClass);
+	AppendTypeInfoLabel(&szLabel, pcClass);
 	if (!Emit(&szLabel))
 	{
 		szLabel.Kill();
 		return;
 	}
-	if (psClass->lliName < 0)
+	if (pcClass->mlliName < 0)
 	{
 		AppendSection(&mszData, "rodata", &szLabel, NULL);
 	}
@@ -428,16 +428,16 @@ void CCPP65Generator::EnsureTypeInfo(SCPP65Class* psClass)
 	szLabel.Kill();
 	mszData.Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
 	mszData.AppendNewLine();
-	AppendTypeInfoLabel(&mszData, psClass);
+	AppendTypeInfoLabel(&mszData, pcClass);
 	mszData.Append(':');
 	mszData.AppendNewLine();
-	AppendTypeInfoBases(psClass, 0);
+	AppendTypeInfoBases(pcClass, 0);
 	mszData.Append("\t\t.long 0");
 	mszData.AppendNewLine();
 
-	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
-		EnsureTypeInfo(psClass->macBases.Get(i)->psClass);
+		EnsureTypeInfo(pcClass->macBases.Get(i)->pcClass);
 	}
 }
 
@@ -447,21 +447,21 @@ void CCPP65Generator::EnsureTypeInfo(SCPP65Class* psClass)
 // The type info entries for the class's subobject at iOffset and all its bases'.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendTypeInfoBases(SCPP65Class* psClass, int iOffset)
+void CCPP65Generator::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 {
-	SCPP65Base*	psBase;
+	SCPPBase*	psBase;
 	size		i;
 
 	mszData.Append("\t\t.long ");
-	AppendTypeInfoLabel(&mszData, psClass);
+	AppendTypeInfoLabel(&mszData, pcClass);
 	mszData.AppendNewLine();
 	mszData.Append("\t\t.long ");
 	mszData.Append(iOffset);
 	mszData.AppendNewLine();
-	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
-		psBase = psClass->macBases.Get(i);
-		AppendTypeInfoBases(psBase->psClass, iOffset + psBase->iOffset);
+		psBase = pcClass->macBases.Get(i);
+		AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset);
 	}
 }
 
@@ -472,16 +472,16 @@ void CCPP65Generator::AppendTypeInfoBases(SCPP65Class* psClass, int iOffset)
 // the first secondary one's.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::VtablePointerOffset(SCPP65Class* psClass)
+int CCPP65Generator::VtablePointerOffset(CCPPClass* pcClass)
 {
-	SCPP65Vtable*	psVtable;
+	SCPPSecondaryVtable*	psVtable;
 
-	if (psClass->iVtableOffset != -1)
+	if (pcClass->miVtableOffset != -1)
 	{
-		return psClass->iVtableOffset;
+		return pcClass->miVtableOffset;
 	}
-	psVtable = psClass->macVtables.Get(0);
-	return psVtable->iOffset + psVtable->psOwner->iVtableOffset;
+	psVtable = pcClass->macVtables.Get(0);
+	return psVtable->iOffset + psVtable->pcOwner->miVtableOffset;
 }
 
 
@@ -491,30 +491,30 @@ int CCPP65Generator::VtablePointerOffset(SCPP65Class* psClass)
 // it.  Each thunk is written once.  Pure virtual functions are R_Pure.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
+void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 {
 	CChars	szLabel;
 	CChars	szFunction;
 
 	mszData.Append("\t\t.long ");
-	if (psFunction->bPure)
+	if (pcFunction->mbPure)
 	{
-		AppendVtableEntryLabel(&mszData, psFunction, iAdjust);
+		AppendVtableEntryLabel(&mszData, pcFunction, iAdjust);
 		mbPureVirtual = true;
 		mszData.AppendNewLine();
 		return;
 	}
 
-	RequireFunction(psFunction);
+	RequireFunction(pcFunction);
 	szLabel.Init();
-	AppendVtableEntryLabel(&szLabel, psFunction, iAdjust);
+	AppendVtableEntryLabel(&szLabel, pcFunction, iAdjust);
 	if (iAdjust != 0)
 	{
 		if (Emit(&szLabel))
 		{
-			AppendThunkLabel(&szLabel, !IsUnitFunction(psFunction));
+			AppendThunkLabel(&szLabel, !IsUnitFunction(pcFunction));
 			szFunction.Init();
-			AppendFunctionLabel(&szFunction, psFunction);
+			AppendFunctionLabel(&szFunction, pcFunction);
 			mpcTarget->AppendAdjustThunk(&mszThunks, iAdjust, szFunction.Text());
 			szFunction.Kill();
 		}
@@ -532,14 +532,14 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 // is adjusted by iAdjust first.  AppendVtableEntry writes the thunk.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableEntryLabel(CChars* psz, SCPP65Function* psFunction, int iAdjust)
+void CCPP65Generator::AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust)
 {
-	if (psFunction->bPure)
+	if (pcFunction->mbPure)
 	{
 		psz->Append("R_Pure");
 		return;
 	}
-	AppendFunctionLabel(psz, psFunction);
+	AppendFunctionLabel(psz, pcFunction);
 	if (iAdjust != 0)
 	{
 		psz->Append("__t");
@@ -557,18 +557,18 @@ void CCPP65Generator::AppendVtableEntryLabel(CChars* psz, SCPP65Function* psFunc
 // them (comdat).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunction)
+void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
 {
 	CChars	szLabel;
 
 	szLabel.Init("__vcall_");
-	szLabel.Append(psFunction->psClass->iVtableOffset);
+	szLabel.Append(pcFunction->mpcClass->miVtableOffset);
 	szLabel.Append('_');
-	szLabel.Append(psFunction->iSlot);
+	szLabel.Append(pcFunction->miSlot);
 	if (Emit(&szLabel))
 	{
 		AppendThunkLabel(&szLabel, true);
-		mpcTarget->AppendVirtualCallThunk(&mszThunks, psFunction->psClass->iVtableOffset, CPP65_VTABLE_ENTRY_BYTES * psFunction->iSlot);
+		mpcTarget->AppendVirtualCallThunk(&mszThunks, pcFunction->mpcClass->miVtableOffset, CPP65_VTABLE_ENTRY_BYTES * pcFunction->miSlot);
 	}
 	psz->Append(szLabel);
 	szLabel.Kill();

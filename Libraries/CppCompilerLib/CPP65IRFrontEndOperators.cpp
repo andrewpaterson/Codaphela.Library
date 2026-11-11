@@ -265,7 +265,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	if (psLeft && psLeft->IsClass())
 	{
 		//object op= value calls the class's operator if it has one; object = object copies the bytes otherwise.
-		if (mpcGenerator->HasOperator(psLeft->psClass, mpcGenerator->GetOperatorName(pcBinary->meOperator, false), 1))
+		if (mpcGenerator->HasOperator(psLeft->pcClass, mpcGenerator->GetOperatorName(pcBinary->meOperator, false), 1))
 		{
 			return OperatorCall(pcBinary->mpcLeft, pcBinary->meOperator, pcBinary->mpcRight, psValue);
 		}
@@ -461,7 +461,7 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 bool CCPP65IRFrontEnd::IsClassPointerTo(SCPP65Type* psFrom, SCPP65Type* psTo)
 {
 	return psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() &&
-		   (psFrom->psBase->psClass != psTo->psBase->psClass) && mpcGenerator->IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, NULL);
+		   (psFrom->psBase->pcClass != psTo->psBase->pcClass) && mpcGenerator->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL);
 }
 
 
@@ -506,8 +506,8 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	{
 		//Pointers to members (an address or an offset, 0 for none) are equal or not, a base's as the derived class's.
 		psType = sLeft.psType->IsMemberPointer() ? sLeft.psType : sRight.psType;
-		if (sLeft.psType->IsMemberPointer() && sRight.psType->IsMemberPointer() && (sLeft.psType->psClass != sRight.psType->psClass) &&
-			mpcGenerator->IsDerived(sRight.psType->psClass, sLeft.psType->psClass, NULL))
+		if (sLeft.psType->IsMemberPointer() && sRight.psType->IsMemberPointer() && (sLeft.psType->pcClass != sRight.psType->pcClass) &&
+			mpcGenerator->IsDerived(sRight.psType->pcClass, sLeft.psType->pcClass, NULL))
 		{
 			psType = sRight.psType;
 		}
@@ -688,7 +688,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	SCPP65IRValue				sValue;
 	SIRReference				sCondition;
 	bool						bResult;
-	SCPP65Variable*				psVariable;
+	CCPPVariable*				pcVariable;
 	SCPP65IRPlace				sPlace;
 
 	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
@@ -761,12 +761,12 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	else if (pcExpression->GetKind() == CPPS_SimpleDeclaration)
 	{
 		//if (T x = value): the variable (a scalar) is the condition.
-		psVariable = NULL;
-		if (!Declaration((CCPPSyntaxSimpleDeclaration*)pcExpression, &psVariable))
+		pcVariable = NULL;
+		if (!Declaration((CCPPSyntaxSimpleDeclaration*)pcExpression, &pcVariable))
 		{
 			return false;
 		}
-		if (!psVariable || !psVariable->psType->IsScalar() || !VariablePlace(psVariable, &sPlace) || !Load(&sPlace, &sValue) || !Truth(&sValue, &sCondition))
+		if (!pcVariable || !pcVariable->mpsType->IsScalar() || !VariablePlace(pcVariable, &sPlace) || !Load(&sPlace, &sValue) || !Truth(&sValue, &sCondition))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -824,7 +824,7 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psType;
-	SCPP65Function*	psFunction;
+	CCPPFunction*	pcFunction;
 	CArraySyntax	apcArguments;
 	int64			lliName;
 	bool			bResult;
@@ -832,15 +832,15 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 	lliName = mpcGenerator->GetOperatorName(eOperator, false);
 	psType = mpcGenerator->ValueTypeOf(pcLeft);
 	apcArguments.Init();
-	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, NULL) && mpcGenerator->HasOperator(psType->psClass, lliName, pcRight ? 1 : 0))
+	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->pcClass, NULL) && mpcGenerator->HasOperator(psType->pcClass, lliName, pcRight ? 1 : 0))
 	{
 		if (pcRight)
 		{
 			apcArguments.Add(pcRight);
 		}
-		psFunction = mpcGenerator->FindOperator(psType->psClass, lliName, &apcArguments, pcLeft, mpcGenerator->IsConstObject(pcLeft));
+		pcFunction = mpcGenerator->FindOperator(psType->pcClass, lliName, &apcArguments, pcLeft, mpcGenerator->IsConstObject(pcLeft));
 		apcArguments.Kill();
-		if (psFunction)
+		if (pcFunction)
 		{
 			return OperatorCall(pcLeft, eOperator, pcRight, psValue);
 		}
@@ -853,13 +853,13 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 	{
 		apcArguments.Add(pcRight);
 	}
-	psFunction = mpcGenerator->FindFreeOperator(lliName, &apcArguments, pcLeft);
-	if (!psFunction)
+	pcFunction = mpcGenerator->FindFreeOperator(lliName, &apcArguments, pcLeft);
+	if (!pcFunction)
 	{
 		apcArguments.Kill();
 		return Unsupported(__FILE__, __LINE__);
 	}
-	bResult = Call(psFunction, FunctionSymbol(psFunction), NULL, &apcArguments, psValue);
+	bResult = Call(pcFunction, FunctionSymbol(pcFunction), NULL, &apcArguments, psValue);
 	apcArguments.Kill();
 	return bResult;
 }

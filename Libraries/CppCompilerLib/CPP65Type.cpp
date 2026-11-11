@@ -170,7 +170,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	{
 		return true;
 	}
-	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (psClass != psOther->psClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum))
+	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (pcClass != psOther->pcClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum))
 	{
 		return false;
 	}
@@ -425,7 +425,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bSigned = bSigned;
 	psType->psBase = NULL;
 	psType->iCount = 0;
-	psType->psClass = NULL;
+	psType->pcClass = NULL;
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
@@ -535,7 +535,7 @@ uint64 CCPP65Types::HashStructure(SCPP65Type* psType)
 	ulliHash = ulliHash * 31 + (uint64)(int64)psType->iBytes;
 	ulliHash = ulliHash * 31 + (uint64)psType->bSigned;
 	ulliHash = ulliHash * 31 + (uint64)(int64)psType->iCount;
-	ulliHash = ulliHash * 31 + (uint64)(size)psType->psClass;
+	ulliHash = ulliHash * 31 + (uint64)(size)psType->pcClass;
 	ulliHash = ulliHash * 31 + (uint64)psType->bLongDouble;
 	ulliHash = ulliHash * 31 + (uint64)(size)psType->pcEnum;
 	if (psType->psBase)
@@ -820,10 +820,10 @@ SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer to a member of psClass whose type is psMember.
+// A pointer to a member of pcClass whose type is psMember.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMember)
+SCPP65Type* CCPP65Types::MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember)
 {
 	SCPP65Type*			psType;
 	SCPP65TypeChain*	psChain;
@@ -831,7 +831,7 @@ SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMembe
 	psChain = mcByBase.Get(GetBaseKey(CPP65TK_MemberPointer, psMember));
 	for (psType = psChain ? psChain->psFirst : NULL; psType; psType = psType->psNextSameBase)
 	{
-		if (psType->psClass == psClass)
+		if (psType->pcClass == pcClass)
 		{
 			return psType;
 		}
@@ -839,7 +839,7 @@ SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMembe
 
 	psType = NewType(CPP65TK_MemberPointer, miPointerBytes);
 	psType->psBase = psMember;
-	psType->psClass = psClass;
+	psType->pcClass = pcClass;
 	AddType(psType);
 	return psType;
 }
@@ -908,20 +908,20 @@ SCPP65Type* CCPP65Types::LongDouble(void)
 // A class's type.  Its size is filled in when the class is laid out.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
+SCPP65Type* CCPP65Types::Class(CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
-	psType = GetMapped(&mcClasses, psClass);
+	psType = GetMapped(&mcClasses, pcClass);
 	if (psType)
 	{
 		return psType;
 	}
 
 	psType = NewType(CPP65TK_Class, 0);
-	psType->psClass = psClass;
+	psType->pcClass = pcClass;
 	AddType(psType);
-	mcClasses.Put(GetPointerKey(psClass), &psType);
+	mcClasses.Put(GetPointerKey(pcClass), &psType);
 	return psType;
 }
 

@@ -39,7 +39,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // with defaults.
 //
 //////////////////////////////////////////////////////////////////////////
-size SCPP65Function::RequiredParameters(void)
+size CCPPFunction::RequiredParameters(void)
 {
 	size	uiRequired;
 
@@ -58,9 +58,9 @@ size SCPP65Function::RequiredParameters(void)
 // constructor).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasCopyConstructor(SCPP65Class* psClass)
+bool CCPP65Generator::HasCopyConstructor(CCPPClass* pcClass)
 {
-	return GetCopyConstructor(psClass) != NULL;
+	return GetCopyConstructor(pcClass) != NULL;
 }
 
 
@@ -70,23 +70,23 @@ bool CCPP65Generator::HasCopyConstructor(SCPP65Class* psClass)
 // parameters having defaults), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Function* CCPP65Generator::GetCopyConstructor(SCPP65Class* psClass)
+CCPPFunction* CCPP65Generator::GetCopyConstructor(CCPPClass* pcClass)
 {
-	SCPP65Function*	psFunction;
+	CCPPFunction*	pcFunction;
 	SCPP65Type*		psParameter;
 	size			i;
 
-	for (i = 0; i < psClass->mapsMembers.NumElements(); i++)
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 	{
-		psFunction = psClass->mapsMembers.GetPtr(i);
-		if ((psFunction->eKind != CPP65FK_Constructor) || psFunction->bImplicit || (psFunction->mapsParameters.NumElements() == 0))
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if ((pcFunction->meKind != CPPFK_Constructor) || pcFunction->mbImplicit || (pcFunction->mapsParameters.NumElements() == 0))
 		{
 			continue;
 		}
-		psParameter = psFunction->mapsParameters.GetPtr(0);
-		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->psClass == psClass) && (psFunction->RequiredParameters() == 1))
+		psParameter = pcFunction->mapsParameters.GetPtr(0);
+		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->pcClass == pcClass) && (pcFunction->RequiredParameters() == 1))
 		{
-			return psFunction;
+			return pcFunction;
 		}
 	}
 	return NULL;
@@ -99,27 +99,27 @@ SCPP65Function* CCPP65Generator::GetCopyConstructor(SCPP65Class* psClass)
 // and fields have copy constructors.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsTriviallyCopyable(SCPP65Class* psClass)
+bool CCPP65Generator::IsTriviallyCopyable(CCPPClass* pcClass)
 {
 	SCPP65Type*		psType;
 	size			i;
 
-	if (HasCopyConstructor(psClass))
+	if (HasCopyConstructor(pcClass))
 	{
 		return false;
 	}
-	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
-		if (!IsTriviallyCopyable(psClass->macBases.Get(i)->psClass))
+		if (!IsTriviallyCopyable(pcClass->macBases.Get(i)->pcClass))
 		{
 			return false;
 		}
 	}
-	for (i = 0; i < psClass->macFields.NumElements(); i++)
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
-		psType = psClass->macFields.Get(i)->psType;
+		psType = pcClass->macFields.Get(i)->psType;
 		psType = psType->IsArray() ? psType->psBase : psType;
-		if (psType->IsClass() && !IsTriviallyCopyable(psType->psClass))
+		if (psType->IsClass() && !IsTriviallyCopyable(psType->pcClass))
 		{
 			return false;
 		}
@@ -134,7 +134,7 @@ bool CCPP65Generator::IsTriviallyCopyable(SCPP65Class* psClass)
 // returns one): it can be made where the object it initialises is.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClass)
+bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
@@ -144,7 +144,7 @@ bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClas
 		return false;
 	}
 	psType = TypeOf(pcExpression);
-	return psType && psType->IsClass() && (psType->psClass == psClass);
+	return psType && psType->IsClass() && (psType->pcClass == pcClass);
 }
 
 
@@ -272,7 +272,7 @@ bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	CArraySyntax	apcArguments;
 	SCPP65Type*		psType;
-	SCPP65Function*	psFunction;
+	CCPPFunction*	pcFunction;
 	int64			lliName;
 	size			uiErrors;
 
@@ -283,25 +283,25 @@ bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	lliName = GetOperatorName(CT_Comma, false);
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
-	psFunction = NULL;
+	pcFunction = NULL;
 	psType = ValueTypeOf(pcBinary->mpcLeft);
 	apcArguments.Init();
-	if (psType && psType->IsClass() && CompleteClass(psType->psClass, NULL) && HasOperator(psType->psClass, lliName, 1))
+	if (psType && psType->IsClass() && CompleteClass(psType->pcClass, NULL) && HasOperator(psType->pcClass, lliName, 1))
 	{
 		apcArguments.Add(pcBinary->mpcRight);
-		psFunction = FindOperator(psType->psClass, lliName, &apcArguments, pcBinary, IsConstObject(pcBinary->mpcLeft));
+		pcFunction = FindOperator(psType->pcClass, lliName, &apcArguments, pcBinary, IsConstObject(pcBinary->mpcLeft));
 		apcArguments.ReInit();
 	}
-	if (!psFunction)
+	if (!pcFunction)
 	{
 		apcArguments.Add(pcBinary->mpcLeft);
 		apcArguments.Add(pcBinary->mpcRight);
-		psFunction = FindFreeOperator(lliName, &apcArguments, pcBinary);
+		pcFunction = FindFreeOperator(lliName, &apcArguments, pcBinary);
 	}
 	apcArguments.Kill();
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
-	return psFunction != NULL;
+	return pcFunction != NULL;
 }
 
 
@@ -324,12 +324,12 @@ bool CCPP65Generator::IsObject(CCPPSyntax* pcExpression)
 // The class of an object expression (see IsObject).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Class* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
+CCPPClass* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
 	psType = ValueTypeOf(pcExpression);
-	return psType->psClass;
+	return psType->pcClass;
 }
 
 
@@ -344,20 +344,20 @@ CCPPScope* CCPP65Generator::CurrentLookupScope(void)
 {
 	CCPPSyntaxName*	pcName;
 
-	if (!mpsFunction)
+	if (!mpcFunction)
 	{
 		return mpcDeclaringNamespace;
 	}
-	pcName = mpsFunction->pcDeclarator ? mpsFunction->pcDeclarator->GetName() : NULL;
+	pcName = mpcFunction->mpcDeclarator ? mpcFunction->mpcDeclarator->GetName() : NULL;
 	if (pcName && pcName->mpcLookup)
 	{
 		return pcName->mpcLookup;
 	}
-	if (mpsFunction->psClass && mpsFunction->psClass->pcSymbol)
+	if (mpcFunction->mpcClass && mpcFunction->mpcClass->mpcSymbol)
 	{
-		return mpsFunction->psClass->pcSymbol->mpcScope;
+		return mpcFunction->mpcClass->mpcSymbol->mpcScope;
 	}
-	return mpsFunction->pcNamespace;
+	return mpcFunction->mpcNamespace;
 }
 
 
@@ -369,10 +369,10 @@ CCPPScope* CCPP65Generator::CurrentLookupScope(void)
 // arguments are associated with.  NULL, quietly, if none matches.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPFunction* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
-	SCPP65Function*					psFunction;
-	SCPP65Template*					psTemplate;
+	CCPPFunction*					pcFunction;
+	CCPPTemplate*					pcTemplate;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPSyntaxName*					pcName;
 	CCPPScope*						pcLookup;
@@ -383,16 +383,16 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 
 	mpcStatistics->Count(CPPCC_FindFreeOperator);
 	bDeclared = false;
-	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
+	for (pcFunction = FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (!psFunction->psClass && !psFunction->psTemplate)
+		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate)
 		{
 			bDeclared = true;
 		}
 	}
 
 	uiErrors = mcErrors.NumErrors();
-	psFunction = NULL;
+	pcFunction = NULL;
 	BeginQuiet();
 	apcNamespaces.Init();
 	pcLookup = CurrentLookupScope();
@@ -408,25 +408,25 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 	}
 	if (bDeclared)
 	{
-		psFunction = FindFunction(NULL, lliName, CPP65FK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
+		pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
 	}
-	for (i = 0; !psFunction && (i < mapsTemplates.NumElements()); i++)
+	for (i = 0; !pcFunction && (i < mapcTemplates.NumElements()); i++)
 	{
-		psTemplate = mapsTemplates.GetPtr(i);
-		if (psTemplate->bMember || (psTemplate->psPrimary != psTemplate) || !psTemplate->pcDefinition || (psTemplate->pcDefinition->GetKind() != CPPS_FunctionDefinition))
+		pcTemplate = mapcTemplates.GetPtr(i);
+		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcDefinition || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
 		{
 			continue;
 		}
-		pcDefinition = (CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition;
+		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition;
 		pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
-		if (pcName && (pcName->macpComponents.NumElements() == 1) && (GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Find(psTemplate->pcNamespace) != ARRAY_ELEMENT_NOT_FOUND))
+		if (pcName && (pcName->macpComponents.NumElements() == 1) && (GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Find(pcTemplate->mpcNamespace) != ARRAY_ELEMENT_NOT_FOUND))
 		{
-			psFunction = InstantiateFunction(psTemplate, NULL, papcArguments, pcNode);
+			pcFunction = InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
 		}
 	}
 	apcNamespaces.Kill();
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
-	return psFunction;
+	return pcFunction;
 }
 

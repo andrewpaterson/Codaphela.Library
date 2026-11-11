@@ -478,8 +478,8 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 {
 	CCPP65Types						cTypes;
 	char							acKeys[4];
-	SCPP65Class*					psFirstClass;
-	SCPP65Class*					psSecondClass;
+	CCPPClass*					pcFirstClass;
+	CCPPClass*					pcSecondClass;
 	CCPPSymbol*						pcFirstEnum;
 	CCPPSymbol*						pcSecondEnum;
 	SCPP65Type*						psClass;
@@ -495,22 +495,22 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	CArrayTemplatePtr<SCPP65Type>	apsNone;
 	CChars							szType;
 
-	psFirstClass = (SCPP65Class*)&acKeys[0];
-	psSecondClass = (SCPP65Class*)&acKeys[1];
+	pcFirstClass = (CCPPClass*)&acKeys[0];
+	pcSecondClass = (CCPPClass*)&acKeys[1];
 	pcFirstEnum = (CCPPSymbol*)&acKeys[2];
 	pcSecondEnum = (CCPPSymbol*)&acKeys[3];
 	cTypes.Init(4, 4);
 
-	psClass = cTypes.Class(psFirstClass);
-	AssertPointer(psClass, cTypes.Class(psFirstClass));
-	AssertTrue(cTypes.Class(psSecondClass) != psClass);
+	psClass = cTypes.Class(pcFirstClass);
+	AssertPointer(psClass, cTypes.Class(pcFirstClass));
+	AssertTrue(cTypes.Class(pcSecondClass) != psClass);
 	psVolatileClass = cTypes.Volatile(psClass);
 	AssertTrue(psVolatileClass != psClass);
 	AssertTrue(psVolatileClass->bVolatile);
 	AssertPointer(psClass, psVolatileClass->psUnqualified);
 	AssertPointer(psVolatileClass, cTypes.Volatile(psClass));
 	AssertPointer(psVolatileClass, cTypes.Volatile(psVolatileClass));
-	AssertPointer(psClass, cTypes.Class(psFirstClass));
+	AssertPointer(psClass, cTypes.Class(pcFirstClass));
 
 	AssertNull(cTypes.FindEnum(pcFirstEnum));
 	psEnum = cTypes.Enum(pcFirstEnum, 2, false);
@@ -522,12 +522,12 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	AssertTrue(psEnum != &cTypes.msUnsignedShort);
 	AssertPointer(&cTypes.msUnsignedShort, cTypes.Integer(2, false));
 
-	psMemberPointer = cTypes.MemberPointer(psFirstClass, &cTypes.msInt);
-	AssertPointer(psMemberPointer, cTypes.MemberPointer(psFirstClass, &cTypes.msInt));
-	AssertTrue(cTypes.MemberPointer(psSecondClass, &cTypes.msInt) != psMemberPointer);
-	AssertTrue(cTypes.MemberPointer(psFirstClass, &cTypes.msChar) != psMemberPointer);
+	psMemberPointer = cTypes.MemberPointer(pcFirstClass, &cTypes.msInt);
+	AssertPointer(psMemberPointer, cTypes.MemberPointer(pcFirstClass, &cTypes.msInt));
+	AssertTrue(cTypes.MemberPointer(pcSecondClass, &cTypes.msInt) != psMemberPointer);
+	AssertTrue(cTypes.MemberPointer(pcFirstClass, &cTypes.msChar) != psMemberPointer);
 	AssertTrue(cTypes.Volatile(psMemberPointer) != psMemberPointer);
-	AssertPointer(psMemberPointer, cTypes.MemberPointer(psFirstClass, &cTypes.msInt));
+	AssertPointer(psMemberPointer, cTypes.MemberPointer(pcFirstClass, &cTypes.msInt));
 
 	//f(volatile int, char) is made first, so f(int, char) is it.
 	apsParameters.Init();

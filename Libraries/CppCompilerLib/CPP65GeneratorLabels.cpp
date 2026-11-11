@@ -35,68 +35,68 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // and cannot start with a digit, so none can clash.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunction)
+void CCPP65Generator::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction)
 {
 	CChars	szName;
 	size	i;
 	bool	bPlainName;
 
 	szName.Init();
-	if (psFunction->eKind == CPP65FK_Constructor)
+	if (pcFunction->meKind == CPPFK_Constructor)
 	{
 		szName.Append('0');
 	}
-	else if (psFunction->eKind == CPP65FK_Destructor)
+	else if (pcFunction->meKind == CPPFK_Destructor)
 	{
 		szName.Append('1');
 	}
 	else
 	{
-		AppendFunctionName(&szName, psFunction->lliName);
+		AppendFunctionName(&szName, pcFunction->mlliName);
 	}
 
 	//main, and the global operator new and delete the generator calls by name, are just their names.
-	bPlainName = !psFunction->psClass && !psFunction->pcNamespace && (szName.Equals("main") ||
-			((psFunction->mapsParameters.NumElements() == 1) && (szName.Equals("opNew") || szName.Equals("opNewArray") || szName.Equals("opDelete") || szName.Equals("opDeleteArray"))));
-	if (psFunction->psClass)
+	bPlainName = !pcFunction->mpcClass && !pcFunction->mpcNamespace && (szName.Equals("main") ||
+			((pcFunction->mapsParameters.NumElements() == 1) && (szName.Equals("opNew") || szName.Equals("opNewArray") || szName.Equals("opDelete") || szName.Equals("opDeleteArray"))));
+	if (pcFunction->mpcClass)
 	{
-		AppendClassLabel(psz, psFunction->psClass, szName.Text());
+		AppendClassLabel(psz, pcFunction->mpcClass, szName.Text());
 	}
 	else
 	{
 		psz->Append('_');
-		if (!psFunction->bCLinkage)
+		if (!pcFunction->mbCLinkage)
 		{
-			AppendScopeNames(psz, psFunction->pcNamespace);
+			AppendScopeNames(psz, pcFunction->mpcNamespace);
 		}
 		psz->Append(&szName);
 	}
 	szName.Kill();
 
-	if (psFunction->mszArguments.Length() > 0)
+	if (pcFunction->mszArguments.Length() > 0)
 	{
 		psz->Append("__T");
-		psz->Append(&psFunction->mszArguments);
+		psz->Append(&pcFunction->mszArguments);
 	}
-	if (((!psFunction->psClass && !psFunction->psTemplate) || (psFunction->mszArguments.Length() > 0) || IsOverloaded(psFunction)) && !psFunction->bCLinkage && !bPlainName)
+	if (((!pcFunction->mpcClass && !pcFunction->mpcTemplate) || (pcFunction->mszArguments.Length() > 0) || IsOverloaded(pcFunction)) && !pcFunction->mbCLinkage && !bPlainName)
 	{
 		//A function that is not a member has its parameters in its label, as units can declare different sets of
 		//overloads.  Without parameters (only one such overload can exist) or with C linkage it is just its name.
 		//So does an instance of a function template, as Add<M>(void) and Add<M>(size) are both Add__T_..., and an
 		//overloaded member (hand-written assembly calls it by a label that doesn't depend on the order of its
 		//overloads); a const one ends in K.
-		if (psFunction->bConstThis)
+		if (pcFunction->mbConstThis)
 		{
 			psz->Append("__K");
 		}
-		if ((psFunction->mapsParameters.NumElements() > 0) || psFunction->bVariadic)
+		if ((pcFunction->mapsParameters.NumElements() > 0) || pcFunction->mbVariadic)
 		{
 			psz->Append("__F");
-			for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
+			for (i = 0; i < pcFunction->mapsParameters.NumElements(); i++)
 			{
-				AppendMangledType(psz, psFunction->mapsParameters.GetPtr(i));
+				AppendMangledType(psz, pcFunction->mapsParameters.GetPtr(i));
 			}
-			if (psFunction->bVariadic)
+			if (pcFunction->mbVariadic)
 			{
 				//f(int) and f(int, ...) are different overloads.
 				psz->Append('z');
@@ -112,13 +112,13 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 // name.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsOverloaded(SCPP65Function* psFunction)
+bool CCPP65Generator::IsOverloaded(CCPPFunction* pcFunction)
 {
-	SCPP65Function*	psOther;
+	CCPPFunction*	pcOther;
 
-	for (psOther = FirstFunctionOfName(psFunction->lliName); psOther; psOther = psOther->psNextOfName)
+	for (pcOther = FirstFunctionOfName(pcFunction->mlliName); pcOther; pcOther = pcOther->mpcNextOfName)
 	{
-		if ((psOther != psFunction) && (psOther->psClass == psFunction->psClass) && (psOther->eKind == psFunction->eKind) && !psOther->psTemplate)
+		if ((pcOther != pcFunction) && (pcOther->mpcClass == pcFunction->mpcClass) && (pcOther->meKind == pcFunction->meKind) && !pcOther->mpcTemplate)
 		{
 			return true;
 		}
@@ -132,10 +132,10 @@ bool CCPP65Generator::IsOverloaded(SCPP65Function* psFunction)
 // _Class__part.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendClassLabel(CChars* psz, SCPP65Class* psClass, const char* szPart)
+void CCPP65Generator::AppendClassLabel(CChars* psz, CCPPClass* pcClass, const char* szPart)
 {
 	psz->Append('_');
-	AppendClassName(psz, psClass);
+	AppendClassName(psz, pcClass);
 	psz->Append("__");
 	psz->Append(szPart);
 }
@@ -146,9 +146,9 @@ void CCPP65Generator::AppendClassLabel(CChars* psz, SCPP65Class* psClass, const 
 // _Class__2, the class's vtable (CPP65_VTABLE_LABEL).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableLabel(CChars* psz, SCPP65Class* psClass)
+void CCPP65Generator::AppendVtableLabel(CChars* psz, CCPPClass* pcClass)
 {
-	AppendClassLabel(psz, psClass, CPP65_VTABLE_LABEL);
+	AppendClassLabel(psz, pcClass, CPP65_VTABLE_LABEL);
 }
 
 
@@ -157,9 +157,9 @@ void CCPP65Generator::AppendVtableLabel(CChars* psz, SCPP65Class* psClass)
 // _Class__3, the class's type info (CPP65_TYPE_INFO_LABEL).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendTypeInfoLabel(CChars* psz, SCPP65Class* psClass)
+void CCPP65Generator::AppendTypeInfoLabel(CChars* psz, CCPPClass* pcClass)
 {
-	AppendClassLabel(psz, psClass, CPP65_TYPE_INFO_LABEL);
+	AppendClassLabel(psz, pcClass, CPP65_TYPE_INFO_LABEL);
 }
 
 
@@ -170,28 +170,28 @@ void CCPP65Generator::AppendTypeInfoLabel(CChars* psz, SCPP65Class* psClass)
 // Unnamed and its number.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
+void CCPP65Generator::AppendClassName(CChars* psz, CCPPClass* pcClass)
 {
 	char*	szName;
 	int		iLength;
 
-	if (psClass->lliName < 0)
+	if (pcClass->mlliName < 0)
 	{
 		//A class without a name is the unit's own (its labels are local to the object).
 		psz->Append("Unnamed");
-		psz->Append((int)mapsClasses.Find(psClass));
+		psz->Append((int)mapcClasses.Find(pcClass));
 		return;
 	}
-	if (psClass->pcSymbol)
+	if (pcClass->mpcSymbol)
 	{
-		AppendScopeNames(psz, psClass->pcSymbol->mpcScope);
+		AppendScopeNames(psz, pcClass->mpcSymbol->mpcScope);
 	}
-	szName = mpcTokeniser->GetIdentifier(psClass->lliName, &iLength);
+	szName = mpcTokeniser->GetIdentifier(pcClass->mlliName, &iLength);
 	psz->Append(szName, iLength);
-	if (psClass->mszArguments.Length() > 0)
+	if (pcClass->mszArguments.Length() > 0)
 	{
 		psz->Append("__T");
-		psz->Append(&psClass->mszArguments);
+		psz->Append(&pcClass->mszArguments);
 	}
 }
 
@@ -364,7 +364,7 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 		break;
 	case CPP65TK_Class:
 		szClass.Init();
-		AppendClassName(&szClass, psType->psClass);
+		AppendClassName(&szClass, psType->pcClass);
 		psz->Append('C');
 		psz->Append((int)szClass.Length());
 		psz->Append(&szClass);
@@ -372,7 +372,7 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 		break;
 	case CPP65TK_MemberPointer:
 		psz->Append('M');
-		AppendMangledType(psz, psType->psClass->psType);
+		AppendMangledType(psz, psType->pcClass->mpsType);
 		AppendMangledType(psz, psType->psBase);
 		break;
 	}

@@ -36,9 +36,9 @@ class CIROptimiser;
 
 
 class CCPP65Generator;
-struct SCPP65Function;
-struct SCPP65Variable;
-struct SCPP65VtableEntry;
+class CCPPFunction;
+class CCPPVariable;
+struct SCPPVtableEntry;
 
 
 //A C++ value: an IR value and its C++ type (never a reference).
@@ -151,12 +151,12 @@ protected:
 	bool					mbCodeGiven;		//The written functions' code is the unit's assembly's (FinishUnit), which takes it out of the store.
 	CIRFunction*			mpcFunction;
 	CIRBlock*				mpcBlock;
-	SCPP65Function*			mpsFunction;
+	CCPPFunction*			mpcCPPFunction;
 	SIRReference			msThis;				//A member function's this, IRNone in others.
 	SIRReference			msResult;			//Where a function that returns an object makes it, IRNone in others.
 	SIRReference			msElide;			//Where the next call that returns an object makes it, instead of a temporary.
 	CCPPSyntax*				mpcValue;			//The expression Value last started on (where a conversion's error is).
-	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its SCPP65Variable.
+	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its CCPPVariable.
 	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
@@ -184,7 +184,7 @@ public:
 	void			Kill(void);
 	void			SetStatistics(CCPPCompileStatistics* pcStatistics);
 
-	bool			Body(SCPP65Function* psFunction);
+	bool			Body(CCPPFunction* pcFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			InlineUnit(void);
 	bool			FinishUnit(void);
@@ -207,7 +207,7 @@ public:
 	CArrayChars*	GetMissingCallees(void);
 
 protected:
-	void			BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
+	void			BeginWriting(CCPPFunction* pcFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
 	bool			FinishWriting(bool bResult, const char* szLabel);
 	void			OptimiserWarnings(CChars* pszWarnings);
 	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, CIRWrittenFunction** ppcWritten);
@@ -247,7 +247,7 @@ protected:
 	bool			DestroyTemporaryPlaces(size uiFrom);
 	bool			DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
-	bool			Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, SCPP65Variable** ppsLast);
+	bool			Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable** ppcLast);
 	bool			LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser);
 	bool			ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser);
 	bool			ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcElements, size* puiNext);
@@ -275,13 +275,13 @@ protected:
 	bool			FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue);
 	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue, bool* pbMember);
-	bool			MemberFunction(SCPP65Class* psClass, int64 lliName, SCPP65Function** ppsFound, SCPP65Class** ppsClass);
+	bool			MemberFunction(CCPPClass* pcClass, int64 lliName, CCPPFunction** ppcFound, CCPPClass** ppcClass);
 	bool			MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SIRReference* psObject, SCPP65Type** ppsMember);
 	bool			MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace);
 	void			StringData(char* pcBytes, size uiLength, SCPP65IRValue* psValue);
 	bool			Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace);
-	bool			VariablePlace(SCPP65Variable* psVariable, SCPP65IRPlace* psPlace);
+	bool			VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* psPlace);
 	bool			UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
 	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
 	bool			BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
@@ -305,13 +305,13 @@ protected:
 	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
 	bool			ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
-	bool			Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, SCPP65Class* psObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);
+	bool			Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, CCPPClass* pcObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);
 	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces);
 	void			CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRReference sResult, SCPP65IRValue* psValue);
-	bool			ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee);
+	bool			ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject, bool bArrow, CCPPClass* pcObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee);
 	bool			CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);
 	bool			DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue);
-	SIRReference	DynamicCast(SIRReference sAddress, SCPP65Class* psFrom, SCPP65Class* psTo);
+	SIRReference	DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo);
 	bool			Convert(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	bool			CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue);
 	void			NarrowCount(bool bLeading, SIRReference* psValue, SIRReference* psCount, int* piBits, SIRType sInt);
@@ -327,9 +327,9 @@ protected:
 	bool			ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	SCPP65Type*		ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psType);
 	bool			MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65IRPlace* psPlace);
-	bool			FieldPlace(SIRReference sObject, SCPP65Class* psClass, int64 lliName, CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace);
+	bool			FieldPlace(SIRReference sObject, CCPPClass* pcClass, int64 lliName, CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace);
 	bool			MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
-	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, SCPP65Class* psClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
+	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
 	bool			OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue);
 	bool			OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue);
 	bool			IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscript);
@@ -339,24 +339,24 @@ protected:
 	void			PrintFunction(CIRFunction* pcFunction, CChars* pszText, bool bSources);
 	bool			ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool			DestructorEnd(void);
-	bool			StoreVtables(SIRReference sObject, SCPP65Class* psClass);
-	void			DescribeVtable(CArrayTemplate<SCPP65VtableEntry>* pasEntries, SCPP65Class* psClass, uint32 uiSymbol);
+	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass);
+	void			DescribeVtable(CArrayTemplate<SCPPVtableEntry>* pasEntries, CCPPClass* pcClass, uint32 uiSymbol);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
-	bool			ConstructClass(SCPP65IRPlace* psPlace, SCPP65Class* psClass, CArraySyntax* papcArguments);
+	bool			ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass, CArraySyntax* papcArguments);
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);
 	SIRReference	Phi(CIRBlock* pcBlock, SIRType sType, CIRBlock* pcFrom1, SIRReference sValue1, CIRBlock* pcFrom2, SIRReference sValue2);
 	SIRReference	LoopPhi(CIRBlock* pcLoop, SIRType sType, CIRBlock* pcEntry, SIRReference sStart);
 	void			ClosePhi(CIRBlock* pcLoop, SIRReference sPhi, CIRBlock* pcLatch, SIRReference sNext);
 	SIRReference	BeginCountedLoop(SCPP65IRCountedLoop* psLoop, SIRType sType, SIRReference sStart, uint16 uiTest, SIRReference sLimit);
 	void			EndCountedLoop(SCPP65IRCountedLoop* psLoop, SIRReference sNext);
-	SIRReference	FunctionSymbol(SCPP65Function* psFunction);
-	void			MarkFunctionSymbol(SCPP65Function* psFunction, uint32 uiSymbol);
+	SIRReference	FunctionSymbol(CCPPFunction* pcFunction);
+	void			MarkFunctionSymbol(CCPPFunction* pcFunction, uint32 uiSymbol);
 	bool			FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
-	bool			CallObject(SCPP65Function* psFunction, SIRReference sObject, SCPP65Class* psObjectClass, CArraySyntax* papcArguments, bool bVirtual);
+	bool			CallObject(CCPPFunction* pcFunction, SIRReference sObject, CCPPClass* pcObjectClass, CArraySyntax* papcArguments, bool bVirtual);
 	SIRReference	CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue);
 	bool			NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRValue* psValue);
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);
-	bool			DeleteArray(SCPP65IRValue* psPointer, SCPP65Class* psClass);
+	bool			DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, bool bDestroy);
@@ -366,10 +366,10 @@ protected:
 	bool			CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource);
 	bool			CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress);
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
-	bool			CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
-	bool			CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
-	SCPP65Type*		FunctionType(SCPP65Function* psFunction);
-	int				BaseOffset(SCPP65Class* psDerived, SCPP65Class* psBase);
+	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource);
+	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource);
+	SCPP65Type*		FunctionType(CCPPFunction* pcFunction);
+	int				BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase);
 	void			CopyPieces(SIRReference sDest, SIRReference sSource, int iBytes);
 	void			ZeroBytes(SIRReference sAddress, int iBytes);
 	bool			IsPassedByAddress(SCPP65Type* psType);
