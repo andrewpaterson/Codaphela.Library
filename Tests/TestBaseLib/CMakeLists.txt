@@ -3,9 +3,9 @@
 # Builds 32-bit (-m32, needs g++-multilib) by default.  Add -DBASELIB_64=ON
 # for a 64-bit build, in its own build directory:
 #
-#   cmake -S commonlibraries/Tests/TestBaseLib -B build/TestBaseLib64 -G Ninja -DBASELIB_64=ON
+#   cmake -S CommonLibraries/Tests/TestBaseLib -B build/TestBaseLib64 -G Ninja -DBASELIB_64=ON
 #
-#   cmake -S commonlibraries/Tests/TestBaseLib -B build/TestBaseLib -G Ninja -DCMAKE_BUILD_TYPE=Debug
+#   cmake -S CommonLibraries/Tests/TestBaseLib -B build/TestBaseLib -G Ninja -DCMAKE_BUILD_TYPE=Debug
 #   cmake --build build/TestBaseLib
 #   ctest --test-dir build/TestBaseLib --output-on-failure
 #
@@ -14,7 +14,7 @@
 # Add -DBASELIB_SIZE16=ON (32-bit only) to check the W65C816's size model on the host: size is 16 bits and lsize 32,
 # and -Wconversion warns of each wider value narrowed to a size ("to 'size'" in the warning).
 #
-#   cmake -S commonlibraries/Tests/TestBaseLib -B build/TestBaseLibSize16 -G Ninja -DBASELIB_SIZE16=ON
+#   cmake -S CommonLibraries/Tests/TestBaseLib -B build/TestBaseLibSize16 -G Ninja -DBASELIB_SIZE16=ON
 #
 # Source lists are read from the .vcxproj files so Visual Studio stays the
 # source of truth.  Building re-runs the configure step automatically when a
@@ -37,7 +37,7 @@ option(BASELIB_64 "Build 64-bit instead of 32-bit" OFF)
 option(BASELIB_SIZE16 "Build with a 16-bit size (the W65C816's size model) and -Wconversion" OFF)
 
 get_filename_component(CODAPHELA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
-set(COMMON_DIR "${CODAPHELA_ROOT}/commonlibraries/Libraries")
+set(COMMON_DIR "${CODAPHELA_ROOT}/CommonLibraries/Libraries")
 set(BASELIB_DIR "${COMMON_DIR}/BaseLib")
 set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(TESTBASELIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/TestBaseLib")

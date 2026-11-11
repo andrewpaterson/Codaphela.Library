@@ -7,9 +7,9 @@
 # Builds 32-bit (-m32, needs g++-multilib) by default.  Add -DBASELIB_64=ON
 # for a 64-bit build, in its own build directory:
 #
-#   cmake -S commonlibraries/Tests/TestSupportLib65 -B build/TestSupportLib65_64 -G Ninja -DBASELIB_64=ON
+#   cmake -S CommonLibraries/Tests/TestSupportLib65 -B build/TestSupportLib65_64 -G Ninja -DBASELIB_64=ON
 #
-#   cmake -S commonlibraries/Tests/TestSupportLib65 -B build/TestSupportLib65 -G Ninja -DCMAKE_BUILD_TYPE=Debug
+#   cmake -S CommonLibraries/Tests/TestSupportLib65 -B build/TestSupportLib65 -G Ninja -DCMAKE_BUILD_TYPE=Debug
 #   cmake --build build/TestSupportLib65
 #   ctest --test-dir build/TestSupportLib65 -V
 #
@@ -35,7 +35,7 @@ option(BASELIB_ASAN "Build with AddressSanitizer and LeakSanitizer" OFF)
 option(BASELIB_64 "Build 64-bit instead of 32-bit" OFF)
 
 get_filename_component(CODAPHELA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
-set(COMMON_DIR "${CODAPHELA_ROOT}/commonlibraries/Libraries")
+set(COMMON_DIR "${CODAPHELA_ROOT}/CommonLibraries/Libraries")
 set(BASELIB_DIR "${COMMON_DIR}/BaseLib")
 set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(STANDARDLIB_DIR "${COMMON_DIR}/StandardLib")

@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A test project (TestBaseLib, TestStandardLib) and the commonlibraries projects it uses are each added to a
+// A test project (TestBaseLib, TestStandardLib) and the CommonLibraries projects it uses are each added to a
 // CCPP65Builder's CProject (as a library whose units are only linked when used) with Libc65, and compiled once with
 // the real source.  Each test that the test project's main calls is then linked as its own program, the main's
 // file with only that test's call left in its main (a whole test project does not fit below the 65C64's stack), and
