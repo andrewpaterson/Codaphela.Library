@@ -119,6 +119,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		//IR that stops verifying once inlined keeps the code written before (a pass's mistake, recorded for finding it).
 		bResult = VerifyIR(psWritten->pcFunction, __FILE__, __LINE__);
 		szCode.Init();
+		pcWritten = NULL;
 		if (bResult)
 		{
 			mcModule.Begin(CPPCP_BackEnd);
