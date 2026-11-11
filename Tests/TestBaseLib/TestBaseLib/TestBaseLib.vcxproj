@@ -336,6 +336,7 @@
     <ClCompile Include="TestTextEditing.cpp" />
     <ClCompile Include="TestTextNavigation.cpp" />
     <ClCompile Include="TestNameMatcher.cpp" />
+    <ClCompile Include="TestTextSearch.cpp" />
     <ClCompile Include="TestLine.cpp" />
     <ClCompile Include="TestStackMemory.cpp" />
     <ClCompile Include="TestStringHelper.cpp" />

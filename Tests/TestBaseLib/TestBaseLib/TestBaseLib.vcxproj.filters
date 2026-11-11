@@ -288,6 +288,9 @@
     <ClCompile Include="TestNameMatcher.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="TestTextSearch.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
     <ClCompile Include="TestLine.cpp">
       <Filter>Source\Data\Geometric\Vec2</Filter>
     </ClCompile>
