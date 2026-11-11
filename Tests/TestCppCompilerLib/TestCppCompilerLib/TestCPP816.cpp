@@ -251,7 +251,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 		if (cFast.IsStopped())
 		{
 			iResult = (int16)cFast.GetC();
-			AssertIntHex(GetCPPTarget(CPPT_W65C816)->uiStackTop, (uint32)cFast.GetS());
+			AssertIntHex(GetCPPTarget(CPPT_W65C816)->GetStackTop(), (uint32)cFast.GetS());
 		}
 		for (i = 0; i < uiResults; i++)
 		{
@@ -4154,7 +4154,7 @@ int32 TestCPP816RunFrames(const char* szSource, CAsm65816Profile* pcProfile, CAs
 	if (cFast.IsStopped())
 	{
 		iResult = (int16)cFast.GetC();
-		AssertIntHex(GetCPPTarget(CPPT_W65C816)->uiStackTop, (uint32)cFast.GetS());
+		AssertIntHex(GetCPPTarget(CPPT_W65C816)->GetStackTop(), (uint32)cFast.GetS());
 	}
 	*puiCycles = cFast.NumCycles();
 	cFast.Kill();
@@ -4737,7 +4737,7 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 		iResult = (int16)cFast.GetC();
 		if (bReturns)
 		{
-			AssertIntHex(GetCPPTarget(CPPT_W65C816)->uiStackTop, (uint32)cFast.GetS());
+			AssertIntHex(GetCPPTarget(CPPT_W65C816)->GetStackTop(), (uint32)cFast.GetS());
 		}
 	}
 	for (i = 0; i < uiResults; i++)

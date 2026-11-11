@@ -177,7 +177,7 @@ protected:
 	CArrayCPP65IncludeDirectories	macIncludeDirectories;
 	CArrayCPP65LinkLibraries		macLinkLibraries;
 	CProject						mcProject;
-	ECPPTarget						meTarget;
+	CCPPTarget*						mpcTarget;
 	size							muiUnits;
 	uint32							muiLimit;
 	bool							mbCompiled;
@@ -200,7 +200,7 @@ protected:
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
 	bool							mbNoFloats;			//No floating point (SetNoFloats).
 	bool							mbMathTables;		//The W65C816's runtime reads MathMult (SetMathTables).
-	bool							mbRuntime816;		//The W65C816's runtime units have been added (AddRuntime816).
+	bool							mbRuntime;			//The target's runtime units have been added (AddRuntime).
 	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
 	CMemorySpillStore				mcMemorySpillStore;
@@ -254,7 +254,7 @@ public:
 	bool			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
 	void			AddMathTables(const char* szLibc65Directory);
-	void			AddRuntime816(const char* szLibc65Directory);
+	void			AddRuntime(const char* szLibc65Directory);
 	void			AddLibc65(const char* szLibc65Directory);
 	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
 	void			AddProjectSources(const char* szLibrary, const char* szDirectory, CArrayChars* paszSources, bool bLinkAsLibrary);
@@ -295,7 +295,7 @@ protected:
 	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL, const char* szSourceFile = NULL);
 	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile = NULL);
-	void			AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
+	void			AddAssemblyUnit(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
 	bool			CompileUnits(void);
 	CJobs*			UnitJobs(CSerialJobs* pcSerialJobs);
 	void			StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFile, size uiTurn, bool bOwnSpillStore);

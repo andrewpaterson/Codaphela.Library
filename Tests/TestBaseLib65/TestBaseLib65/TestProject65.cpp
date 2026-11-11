@@ -503,7 +503,7 @@ static void TestProject65AppendStop(CCPP65Builder* pcBuilder, uint32 uiAddress, 
 
 	if (pcMemory)
 	{
-		uiTop = GetCPPTarget(CPPT_W65C816)->uiStackTop;
+		uiTop = GetCPPTarget(CPPT_W65C816)->GetStackTop();
 		iCalls = 0;
 		for (; (uiS + 3 <= uiTop) && (iCalls < 12); uiS++)
 		{
@@ -650,7 +650,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		{
 			uiSteps = TestProject65RunW65C816(pcBuilder, pcMemory, &cMPU816, uiMaxSteps, getenv("TEST_PROJECT65_RUN_TIME") ? NULL : pszFaults);
 		}
-		bReturned = cMPU816.IsStopped() && (cMPU816.GetS() == GetCPPTarget(CPPT_W65C816)->uiStackTop);
+		bReturned = cMPU816.IsStopped() && (cMPU816.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop());
 		if (getenv("TEST_PROJECT65_CYCLES"))
 		{
 			printf("CYCLES %llu\n", (unsigned long long)cMPU816.NumCycles());

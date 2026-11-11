@@ -159,7 +159,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 // __builtin_clz or __builtin_ctz (bLeading) of psArgument (psType wide): the
 // width when it is 0, else narrowed by halves to a byte (NarrowCount, each
 // half's bits counted) and the byte's leading or trailing zeros looked up in
-// the runtime's 256 byte table (R816_Clz8 or R816_Ctz8), instead of a loop of
+// the runtime's 256 byte table (CCPPTarget::GetCountTable), instead of a loop of
 // up to 15 shifts.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -197,7 +197,7 @@ bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP
 	{
 		NarrowCount(bLeading, &sByteValue, &sCount, &iBits, sInt);
 	}
-	szTable = bLeading ? "R816_Clz8" : "R816_Ctz8";
+	szTable = mpcGenerator->mpcTarget->GetCountTable(bLeading);
 	maszRuntime.AddIfUnique((char*)szTable);
 	sAddress = mpcFunction->Add(mpcBlock, IRO_ZExt, IRIntegerType(mcModule.GetPointerSize(0)), sByteValue);
 	sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), mcModule.Symbol(szTable), sAddress);
@@ -304,7 +304,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 
 	psBuiltin = mpcGenerator->FindBuiltin(lliName);
 	if (!psBuiltin || ((int)pcCall->macpArguments.NumElements() != psBuiltin->iArguments) ||
-		(psBuiltin->szW65C816Only && (mpcGenerator->mpsTarget->eTarget != CPPT_W65C816)))
+		(psBuiltin->szDecimalModeOnly && !mpcGenerator->mpcTarget->HasDecimalMode()))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -349,19 +349,19 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 
 	//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
 	//clears the lowest set bit until there are none.  ctz and clz of more than 16 bits are narrowed first
-	//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  On the W65C816 those of 16 and 32 bits
-	//are the runtime's R816_Clz16 ... (a byte table read with long,X), of 64 bits narrowed to a byte whose count
-	//is looked up (CountTable).
-	if (!bPopcount && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (psType->iBytes <= 4))
+	//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  A target with a runtime routine for the
+	//width calls it (CCPPTarget::GetCountRoutine: the W65C816's R816_Clz16 ...), and one with a table of bytes'
+	//counts narrows wider ones to a byte and looks its count up (CountTable).
+	szLabel = bPopcount ? NULL : (char*)mpcGenerator->mpcTarget->GetCountRoutine(bClz, psType->iBytes);
+	if (szLabel)
 	{
-		szLabel = (char*)(bClz ? ((psType->iBytes == 4) ? "R816_Clz32" : "R816_Clz16") : ((psType->iBytes == 4) ? "R816_Ctz32" : "R816_Ctz16"));
 		maszRuntime.AddIfUnique(szLabel);
 		mpcFunction->Argument(mpcBlock, IRTypeOf(psType), sArgument.sValue);
 		psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(&mpcTypes->msInt), mcModule.Symbol(szLabel));
 		psValue->psType = &mpcTypes->msInt;
 		return true;
 	}
-	if (!bPopcount && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
+	if (!bPopcount && mpcGenerator->mpcTarget->GetCountTable(bClz))
 	{
 		return CountTable(bClz, &sArgument, psType, psValue) || Unsupported(__FILE__, __LINE__);
 	}

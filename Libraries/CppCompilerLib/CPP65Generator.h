@@ -252,19 +252,6 @@ typedef CArrayTemplate<SCPP65Vtable>	CArrayCPP65Vtables;
 #define CPP65_TYPE_INFO_LABEL			"3"
 
 
-//The W65C816's thunks, which work a word at a time.  A this adjusting thunk (AppendAdjustThunk816) has its caller's
-//stack: this, the first argument and so pushed last, is above the long return address.  A virtual call thunk
-//(AppendVirtualCallThunk816) saves D and pushes a word twice, and D then points at the stack: from D, what follows.
-//The function's address - 1 is put at CPP65_816_VCALL_TARGET, over the saved D, for rtl to jump to.
-#define CPP65_816_WORD_BYTES			2
-#define CPP65_816_ADJUST_THIS			4	//From S: this, in the adjusting thunk.
-#define CPP65_816_VCALL_VTABLE			1	//The vtable pointer (a low word and a high word).
-#define CPP65_816_VCALL_TARGET			4	//The function's address - 1: its low word...
-#define CPP65_816_VCALL_CALLER_D		5	//The caller's D.
-#define CPP65_816_VCALL_TARGET_BANK		6	//...and its bank.
-#define CPP65_816_VCALL_THIS			10	//this, past the caller's D and the long return address.
-
-
 enum ECPP65VtableEntry
 {
 	CPP65VE_Header,		//A part's header: iVtablePointer is where the part's vtable pointer is in the object.
@@ -316,7 +303,7 @@ struct SCPP65Builtin
 	ECPP65Builtin			eBuiltin;
 	int						iArguments;
 	ECPP65BuiltinOperand	eOperand;
-	const char*				szW65C816Only;	//The error on another target, NULL if the builtin is every target's.
+	const char*				szDecimalModeOnly;	//The error on a target with no decimal mode (CCPPTarget::HasDecimalMode), NULL if the builtin is every target's.
 };
 
 
@@ -421,7 +408,7 @@ class CCPPSemanticPass;
 //
 //Check only works out the types of the unit's expressions, for CCPPSemanticPass: no code is generated and it keeps
 //going past what it can't type (CPP65GeneratorCheck.cpp).
-class CCPP65Generator
+class CCPP65Generator : public CCPPRuntimeWriter
 {
 friend class CCPP65CheckChildren;
 friend class CCPP65IRFrontEnd;
@@ -430,7 +417,7 @@ protected:
 	CCPPSyntaxTree*			mpcTree;
 	CCPPTokeniser*			mpcTokeniser;
 	CCPP65Types				mcTypes;
-	SCPPTarget*				mpsTarget;
+	CCPPTarget*				mpcTarget;
 
 	CChars					mszCode;
 	CChars					mszData;
@@ -503,8 +490,6 @@ public:
 	bool					Generate(CChars* pszDest);
 	bool					Generate(CCPP65Assembly* pcDest);
 	bool					GenerateProgram(CChars* pszDest);
-	static void				AppendStartUp(CChars* pszDest, ECPPTarget eTarget = CPPT_65C64);
-	static void				AppendStartUp816(CChars* pszDest);
 	static void				AddDefines(CConfig* pcConfig, ECPPTarget eTarget = CPPT_65C64);
 	static void				SetW65C816Assembly(bool bAssembly);
 	static bool				IsW65C816Assembly(void);
@@ -586,9 +571,10 @@ protected:
 	void					AppendVariableLabel(CChars* psz, SCPP65Variable* psVariable);
 	void					AppendStrings(CChars* pszDest);
 	void					AppendRuntime(void);
-	void					AppendRuntime816(void);
-	void					AppendDivideSigned(const char* szName, int iBytes);
-	void					BeginRuntime(const char* szName);
+	CArrayChars*			GetRuntimeCalls(void) override;
+	bool					BeginRuntime(const char* szName) override;
+	CChars*					GetRuntimeCode(void) override;
+	void					RuntimeError(const char* szMessage) override;
 	void					AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData);
 	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy);
 	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
@@ -734,9 +720,6 @@ protected:
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	SCPP65Function*			FindConversion(SCPP65Class* psClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);
-
-	void					AppendAdjustThunk816(int iAdjust);
-	void					AppendVirtualCallThunk816(SCPP65Function* psFunction);
 
 	void					NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode);
 

@@ -66,7 +66,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mpcProfiledCaller = NULL;
 	mbProfiledCaller = false;
 	mcModule.Init();
-	mcModule.AddDefaultSpace(pcGenerator->mpsTarget->iPointerBytes);
+	mcModule.AddDefaultSpace(pcGenerator->mpcTarget->GetPointerBytes());
 	masWritten.Init();
 	masJumps.Init();
 	masCases.Init();
@@ -499,7 +499,7 @@ void CCPP65IRFrontEnd::NoFloats(void)
 //////////////////////////////////////////////////////////////////////////
 SIRType CCPP65IRFrontEnd::ReturnIRType(SCPP65Type* psType)
 {
-	if (mpcGenerator->mpsTarget->bWidenResults && psType->IsScalar() && !psType->IsPointer() && (psType->iBytes < 4))
+	if (mpcGenerator->mpcTarget->WidensResults() && psType->IsScalar() && !psType->IsPointer() && (psType->iBytes < 4))
 	{
 		return IRType(IRTK_I32);
 	}
@@ -873,7 +873,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 	CScratchPadAllocator*	pcScratch;
 	CMallocator*			pcOldScratch;
 
-	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
+	if (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816)
 	{
 		//The back end's working arrays and strings are in the generator's arena, emptied when it has finished.
 		pcScratch = mpcGenerator->GetBackendScratch();
@@ -1293,7 +1293,7 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 {
 	bool	bW65C816;
 
-	bW65C816 = mpcGenerator->mpsTarget->eTarget == CPPT_W65C816;
+	bW65C816 = mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816;
 	pcOptimiser->Init(&mcModule);
 	pcOptimiser->SetIndexedAddresses(!bW65C816);
 	pcOptimiser->SetNarrowMultiplies(bW65C816);

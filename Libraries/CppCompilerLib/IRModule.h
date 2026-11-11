@@ -48,7 +48,7 @@ typedef CArrayTemplate<SIRDataItem>	CArrayIRDataItems;
 typedef CArrayTemplate<uint8>		CArrayIRBytes;
 
 
-#define IR_DEFAULT_POINTER_BYTES	4		//The default space's pointers, for a module that isn't a target's (see SCPPTarget::iPointerBytes).
+#define IR_DEFAULT_POINTER_BYTES	4		//The default space's pointers, for a module that isn't a target's (see CCPPTarget::GetPointerBytes).
 
 
 class CIRModule;

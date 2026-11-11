@@ -234,8 +234,8 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 {
 	mpcTree = pcTree;
 	mpcTokeniser = pcTree->GetTokeniser();
-	mpsTarget = GetCPPTarget(eTarget);
-	mcTypes.Init(mpsTarget->iIntBytes, mpsTarget->iPointerBytes);
+	mpcTarget = GetCPPTarget(eTarget);
+	mcTypes.Init(mpcTarget->GetIntBytes(), mpcTarget->GetPointerBytes());
 
 	mszCode.Init();
 	mszData.Init();
@@ -573,246 +573,14 @@ bool CCPP65Generator::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcIn
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A whole program from one translation unit, as one object: the start up (see
-// AppendStartUp), then the translation unit.
+// A whole program from one translation unit, as one object: the target's start up
+// (CCPPTarget::AppendStartUp), then the translation unit.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::GenerateProgram(CChars* pszDest)
 {
-	AppendStartUp(pszDest);
+	mpcTarget->AppendStartUp(pszDest);
 	return Generate(pszDest);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The start up sets the stack to 001F:FFFF (the first 4 bytes pushed are at
-// 001F:FFFC), W to the pseudo registers at 0000:0000 and the registers to 32 bits,
-// calls the init table (each global's R_Initialise, in link order), calls main, calls
-// the fini table backwards and stops with main's result in A.  Its object must be
-// linked first so it is at the start of the text, 0001:0000; the reset vector is left
-// to the loader.
-//
-// After main it calls Libc65's __RunAtExit (the atexit functions, last first) when
-// stdlib.cpp is linked: the reference is weak, so it doesn't pull stdlib.cpp in.
-//
-// It also defines C's _Exit(int iStatus), which stops at once with iStatus in A.
-// Libc65's exit runs the atexit functions and the fini table and then calls it.
-//
-// It is kept, and everything it reaches, when the linker leaves out what is unused, and
-// it is resident when functions are loaded lazily.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendStartUp(CChars* pszDest, ECPPTarget eTarget)
-{
-	if (eTarget == CPPT_W65C816)
-	{
-		AppendStartUp816(pszDest);
-		return;
-	}
-	pszDest->Append("\t\t.section text, keep, resident")->AppendNewLine();
-	pszDest->Append("Start:")->AppendNewLine();
-	pszDest->Append("\t\tcpy S, 0x")->Append((uint32)CPP65_STACK_TOP, 16)->AppendNewLine();
-	pszDest->Append("\t\tcpy W, 0")->AppendNewLine();
-	pszDest->Append("\t\twtth (A, B), 32")->AppendNewLine();
-	pszDest->Append("\t\twtth (X, Y), 32")->AppendNewLine();
-	pszDest->Append("\t\tcpy Y, __init_start")->AppendNewLine();
-	pszDest->Append("StartInitialise:")->AppendNewLine();
-	pszDest->Append("\t\tcmp Y, __init_end")->AppendNewLine();
-	pszDest->Append("\t\tbras c, StartMain")->AppendNewLine();
-	pszDest->Append("\t\tpsh Y")->AppendNewLine();
-	pszDest->Append("\t\tjsr [Y]")->AppendNewLine();
-	pszDest->Append("\t\tpul Y")->AppendNewLine();
-	pszDest->Append("\t\tadd Y, 4")->AppendNewLine();
-	pszDest->Append("\t\tbra StartInitialise")->AppendNewLine();
-	pszDest->Append("StartMain:")->AppendNewLine();
-	pszDest->Append("\t\tjsr _main")->AppendNewLine();
-	pszDest->Append("\t\tpsh A")->AppendNewLine();
-	pszDest->Append("\t\t.weak ___RunAtExit")->AppendNewLine();
-	pszDest->Append("\t\tcpy Y, ___RunAtExit")->AppendNewLine();
-	pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
-	pszDest->Append("\t\tbras z, StartAtExitDone")->AppendNewLine();
-	pszDest->Append("\t\tjsr Y")->AppendNewLine();
-	pszDest->Append("StartAtExitDone:")->AppendNewLine();
-	pszDest->Append("\t\tcpy Y, __fini_end")->AppendNewLine();
-	pszDest->Append("StartFinalise:")->AppendNewLine();
-	pszDest->Append("\t\tcmp Y, __fini_start")->AppendNewLine();
-	pszDest->Append("\t\tbras z, StartStop")->AppendNewLine();
-	pszDest->Append("\t\tsub Y, 4")->AppendNewLine();
-	pszDest->Append("\t\tpsh Y")->AppendNewLine();
-	pszDest->Append("\t\tjsr [Y]")->AppendNewLine();
-	pszDest->Append("\t\tpul Y")->AppendNewLine();
-	pszDest->Append("\t\tbra StartFinalise")->AppendNewLine();
-	pszDest->Append("StartStop:")->AppendNewLine();
-	pszDest->Append("\t\tpul A")->AppendNewLine();
-	pszDest->Append("\t\tstp")->AppendNewLine();
-	pszDest->Append("\t\t.global __Exit")->AppendNewLine();
-	pszDest->Append("__Exit:")->AppendNewLine();
-	pszDest->Append("\t\tcpy V, S")->AppendNewLine();
-	pszDest->Append("\t\tcpy A, [5 + V]")->AppendNewLine();
-	pszDest->Append("\t\tstp")->AppendNewLine();
-	pszDest->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The W65C816's start up.  Bank 0 only holds the stack, the direct page, the vectors and their stubs (the user,
-// 2026-10-25), so the reset vector goes to a jml stub there and the start up is in bank 1 onwards.  It switches to
-// native mode with 16 bit registers, sets S to the target's stack top and D to 0, clears bss, calls the init table's routines
-// (each global's R_Initialise, in link order), calls main, Libc65's __RunAtExit when stdlib.cpp is linked (a weak
-// reference), the fini table's routines last first, and stops with main's result in A.  The table walks keep a far
-// pointer at 0000:0000 (the direct page while D is 0).  _Exit(int) stops with its argument in A (__Exit.a, the
-// register entry the compiler's callers use, and __Exit, the stack entry).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendStartUp816(CChars* pszDest)
-{
-	pszDest->Append("\t\t.section rodata.ResetVector, at 0xFFFC, keep\n");
-	pszDest->Append("\t\t.word ResetStub\n");
-	pszDest->Append("\t\t.section text.ResetStub, at 0xFF00, keep\n");
-	pszDest->Append("ResetStub:\n");
-	pszDest->Append("\t\tjml Start\n");
-	pszDest->Append("\t\t.section text, keep\n");
-	pszDest->Append("Start:\n");
-	pszDest->Append("\t\tclc\n");
-	pszDest->Append("\t\txce\n");
-	pszDest->Append("\t\trep (m, x)\n");
-	pszDest->Append("\t\tlda 0x")->Append(GetCPPTarget(CPPT_W65C816)->uiStackTop, 16)->AppendNewLine();
-	pszDest->Append("\t\ttcs\n");
-	pszDest->Append("\t\tlda 0\n");
-	pszDest->Append("\t\ttcd\n");
-
-	//bss (globals with no initialiser) isn't in the program's image.  Up to 64KB is cleared a word at a time (a long
-	//address plus X crosses banks; an odd size clears the byte after it too, where nothing is yet), more a byte at a time.
-	pszDest->Append("\t\tlda __bss_end & 0xFFFF\n");
-	pszDest->Append("\t\tsec\n");
-	pszDest->Append("\t\tsbc __bss_start & 0xFFFF\n");
-	pszDest->Append("\t\ttay\n");
-	pszDest->Append("\t\tlda __bss_end >> 16\n");
-	pszDest->Append("\t\tsbc __bss_start >> 16\n");
-	pszDest->Append("\t\tbne StartClearLarge\n");
-	pszDest->Append("\t\ttya\n");
-	pszDest->Append("\t\tinc A\n");
-	pszDest->Append("\t\tlsr A\n");
-	pszDest->Append("\t\tbeq StartCleared\n");
-	pszDest->Append("\t\ttay\n");
-	pszDest->Append("\t\tldx 0\n");
-	pszDest->Append("\t\tlda 0\n");
-	pszDest->Append("StartClearWord:\n");
-	pszDest->Append("\t\tsta [__bss_start + X]:24\n");
-	pszDest->Append("\t\tinx\n");
-	pszDest->Append("\t\tinx\n");
-	pszDest->Append("\t\tdey\n");
-	pszDest->Append("\t\tbne StartClearWord\n");
-	pszDest->Append("\t\tbra StartCleared\n");
-	pszDest->Append("StartClearLarge:\n");
-	pszDest->Append("\t\tlda __bss_start & 0xFFFF\n");
-	pszDest->Append("\t\tsta [D + 0]\n");
-	pszDest->Append("\t\tlda __bss_start >> 16\n");
-	pszDest->Append("\t\tsta [D + 2]\n");
-	pszDest->Append("StartClear:\n");
-	pszDest->Append("\t\tlda [D + 0]\n");
-	pszDest->Append("\t\tcmp __bss_end & 0xFFFF\n");
-	pszDest->Append("\t\tbne StartClearByte\n");
-	pszDest->Append("\t\tlda [D + 2]\n");
-	pszDest->Append("\t\tcmp __bss_end >> 16\n");
-	pszDest->Append("\t\tbeq StartCleared\n");
-	pszDest->Append("StartClearByte:\n");
-	pszDest->Append("\t\tsep m\n");
-	pszDest->Append("\t\tlda 0\n");
-	pszDest->Append("\t\tsta [[D + 0]:24]\n");
-	pszDest->Append("\t\trep m\n");
-	pszDest->Append("\t\tinc [D + 0]\n");
-	pszDest->Append("\t\tbne StartClear\n");
-	pszDest->Append("\t\tinc [D + 2]\n");
-	pszDest->Append("\t\tbra StartClear\n");
-	pszDest->Append("StartCleared:\n");
-	pszDest->Append("\t\tlda __init_start & 0xFFFF\n");
-	pszDest->Append("\t\tsta [D + 0]\n");
-	pszDest->Append("\t\tlda __init_start >> 16\n");
-	pszDest->Append("\t\tsta [D + 2]\n");
-	pszDest->Append("StartInitialise:\n");
-	pszDest->Append("\t\tlda [D + 0]\n");
-	pszDest->Append("\t\tcmp __init_end & 0xFFFF\n");
-	pszDest->Append("\t\tbne StartInitialiseCall\n");
-	pszDest->Append("\t\tlda [D + 2]\n");
-	pszDest->Append("\t\tcmp __init_end >> 16\n");
-	pszDest->Append("\t\tbeq StartMain\n");
-	pszDest->Append("StartInitialiseCall:\n");
-	pszDest->Append("\t\tjsr StartCallEntry\n");
-	pszDest->Append("\t\tclc\n");
-	pszDest->Append("\t\tlda [D + 0]\n");
-	pszDest->Append("\t\tadc 4\n");
-	pszDest->Append("\t\tsta [D + 0]\n");
-	pszDest->Append("\t\tlda [D + 2]\n");
-	pszDest->Append("\t\tadc 0\n");
-	pszDest->Append("\t\tsta [D + 2]\n");
-	pszDest->Append("\t\tbra StartInitialise\n");
-	pszDest->Append("StartMain:\n");
-	pszDest->Append("\t\tjsl _main\n");
-	pszDest->Append("\t\tpha\n");
-	pszDest->Append("\t\t.weak ___RunAtExit\n");
-	pszDest->Append("\t\tlda ___RunAtExit & 0xFFFF\n");
-	pszDest->Append("\t\tora ___RunAtExit >> 16\n");
-	pszDest->Append("\t\tbeq StartAtExitDone\n");
-	pszDest->Append("\t\tjsl ___RunAtExit\n");
-	pszDest->Append("StartAtExitDone:\n");
-	pszDest->Append("\t\tlda __fini_end & 0xFFFF\n");
-	pszDest->Append("\t\tsta [D + 0]\n");
-	pszDest->Append("\t\tlda __fini_end >> 16\n");
-	pszDest->Append("\t\tsta [D + 2]\n");
-	pszDest->Append("StartFinalise:\n");
-	pszDest->Append("\t\tlda [D + 0]\n");
-	pszDest->Append("\t\tcmp __fini_start & 0xFFFF\n");
-	pszDest->Append("\t\tbne StartFinaliseCall\n");
-	pszDest->Append("\t\tlda [D + 2]\n");
-	pszDest->Append("\t\tcmp __fini_start >> 16\n");
-	pszDest->Append("\t\tbeq StartStop\n");
-	pszDest->Append("StartFinaliseCall:\n");
-	pszDest->Append("\t\tsec\n");
-	pszDest->Append("\t\tlda [D + 0]\n");
-	pszDest->Append("\t\tsbc 4\n");
-	pszDest->Append("\t\tsta [D + 0]\n");
-	pszDest->Append("\t\tlda [D + 2]\n");
-	pszDest->Append("\t\tsbc 0\n");
-	pszDest->Append("\t\tsta [D + 2]\n");
-	pszDest->Append("\t\tjsr StartCallEntry\n");
-	pszDest->Append("\t\tbra StartFinalise\n");
-	pszDest->Append("StartStop:\n");
-	pszDest->Append("\t\tpla\n");
-	pszDest->Append("\t\tstp\n");
-
-	//Calls the routine the table entry [D + 0] points at: the return address and the routine - 1 are pushed, and rtl
-	//goes to it.
-	pszDest->Append("StartCallEntry:\n");
-	pszDest->Append("\t\t.width (A, X), 16\n");
-	pszDest->Append("\t\tldy 0\n");
-	pszDest->Append("\t\tlda [[D + 0]:24 + Y]\n");
-	pszDest->Append("\t\tsta [D + 4]\n");
-	pszDest->Append("\t\tldy 2\n");
-	pszDest->Append("\t\tlda [[D + 0]:24 + Y]\n");
-	pszDest->Append("\t\tsta [D + 6]\n");
-	pszDest->Append("\t\tphk\n");
-	pszDest->Append("\t\tper StartCallReturn - 1\n");
-	pszDest->Append("\t\tsep m\n");
-	pszDest->Append("\t\tlda [D + 6]\n");
-	pszDest->Append("\t\tpha\n");
-	pszDest->Append("\t\trep m\n");
-	pszDest->Append("\t\tlda [D + 4]\n");
-	pszDest->Append("\t\tdec A\n");
-	pszDest->Append("\t\tpha\n");
-	pszDest->Append("\t\trtl\n");
-	pszDest->Append("StartCallReturn:\n");
-	pszDest->Append("\t\trts\n");
-	//_Exit's stack entry, and its register entry (iStatus in A, as the compiler's callers pass it).
-	pszDest->Append("\t\t.global __Exit, __Exit.a\n");
-	pszDest->Append("__Exit:\n");
-	pszDest->Append("\t\t.width (A, X), 16\n");
-	pszDest->Append("\t\tlda [S + 4]\n");
-	pszDest->Append("__Exit.a:\n");
-	pszDest->Append("\t\tstp\n");
-	pszDest->AppendNewLine();
 }
 
 
@@ -866,16 +634,15 @@ void CCPP65Generator::BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A global or static local with no initialiser starts as zeros: on the
-// W65C816 it goes in bss, which takes no space in the program's image and
-// is cleared by the start up.  (The 65C64's start up and lazy loading don't
-// clear bss, so it keeps its zeros in data.)  An object is cleared there
-// too, before its constructor runs from the init table.
+// A global or static local with no initialiser starts as zeros: on a
+// target whose start up clears bss (CCPPTarget::HasZeroedBss) it goes
+// there, and takes no space in the program's image.  An object is cleared
+// there too, before its constructor runs from the init table.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
 {
-	return (mpsTarget->eTarget == CPPT_W65C816) && !pcInitialiser && !psType->IsReference() && (psType->iBytes > 0);
+	return mpcTarget->HasZeroedBss() && !pcInitialiser && !psType->IsReference() && (psType->iBytes > 0);
 }
 
 
@@ -1153,29 +920,13 @@ bool CCPP65Generator::IsW65C816Assembly(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The macros the target predefines, for the configuration code is preprocessed
-// with.  __65C64__ or __W65C816__ is the processor (Libc65 uses __65C64__ for
-// what its 65C64 assembly does), and __W65C816_ASSEMBLY__ when W65C816 builds
-// use the X816.asm units (SetW65C816Assembly); __LIBC65__ is on both: the Libc65 headers and
-// devices, which BaseLib's Define.h and its _65C64.cpp files are written for.
-// The host's macros (_MSC_VER, _WIN32) are not defined, so its headers and
-// _Windows.cpp files are left out.
+// with (CCPPTarget::AddDefines), its assembly units built or not as
+// SetW65C816Assembly says.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
 {
-	if (eTarget == CPPT_Host)
-	{
-		//The host's project defines its own macros.
-		return;
-	}
-	pcConfig->AddDefine((char*)GetCPPTarget(eTarget)->szDefine);
-	pcConfig->AddDefine("__LIBC65__=1");
-	if ((eTarget == CPPT_W65C816) && gbW65C816Assembly)
-	{
-		pcConfig->AddDefine("__W65C816_ASSEMBLY__=1");
-	}
-	pcConfig->mbKeepPragmaPack = true;
-	pcConfig->mbHostDefines = false;
+	GetCPPTarget(eTarget)->AddDefines(pcConfig, gbW65C816Assembly);
 }
 
 
@@ -3112,7 +2863,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	else
 	{
 		szMessage.Init("This function uses C++ the ");
-		szMessage.Append(mpsTarget->szName);
+		szMessage.Append(mpcTarget->GetConfigurationName());
 		szMessage.Append(" compiler doesn't support yet");
 		AppendUnsupported(&szMessage);
 		Error(pcFunction, szMessage.Text());
@@ -3450,148 +3201,51 @@ void CCPP65Generator::AppendStrings(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Signed divide: A / B.  The quotient is in A and the remainder in B.  The quotient
-// is negative when the signs differ, the remainder has the dividend's sign.  The
-// 64 bit routine is called with A and B 64 bits wide and leaves them so; it widens
-// X and Y while it works.  Changes A, B, X and Y.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendDivideSigned(const char* szName, int iBytes)
-{
-	if (iBytes == 8)
-	{
-		Line("wtth (X, Y), 64")->AppendNewLine();
-	}
-	Line("cpy X, A")->AppendNewLine();
-	Line("xor X, B")->AppendNewLine();
-	Line("psh X")->AppendNewLine();
-	Line("psh A")->AppendNewLine();
-	Line("abs Y, A")->AppendNewLine();
-	Line("abs A, B")->AppendNewLine();
-	Line("cpy B, 0")->AppendNewLine();
-	Line("div")->AppendNewLine();
-	Line("cpy W, 0")->AppendNewLine();
-	Line("pul X")->AppendNewLine();
-	Line("cmp X, 0")->AppendNewLine();
-	Line("brac n, ")->Append(szName)->Append('1')->AppendNewLine();
-	Line("neg B, B")->AppendNewLine();
-	mszCode.Append(szName);
-	mszCode.Append("1:");
-	mszCode.AppendNewLine();
-	Line("pul X")->AppendNewLine();
-	Line("cmp X, 0")->AppendNewLine();
-	Line("brac n, ")->Append(szName)->Append('2')->AppendNewLine();
-	Line("neg Y, Y")->AppendNewLine();
-	mszCode.Append(szName);
-	mszCode.Append("2:");
-	mszCode.AppendNewLine();
-	Line("cpy A, Y")->AppendNewLine();
-	if (iBytes == 8)
-	{
-		Line("wtth (X, Y), 32")->AppendNewLine();
-	}
-	Line("ret")->AppendNewLine();
-	mszCode.AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Runtime routines the generated code calls.  Only the ones used are added.
+// Runtime routines the generated code calls.  Only the ones used are added:
+// R_Pure, which a pure virtual function's vtable entry is, and the target's
+// own (CCPPTarget::AppendRuntime).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendRuntime(void)
 {
-	CChars	szLabel;
-	bool	bPure;
-	bool	bDivide;
-	bool	bDivide64;
-
-	if (mpsTarget->eTarget == CPPT_W65C816)
-	{
-		AppendRuntime816();
-		return;
-	}
-	szLabel.Init("R_Pure");
-	bPure = mbPureVirtual && Emit(&szLabel);
-	szLabel.Kill();
-	szLabel.Init("R_DivideSigned");
-	bDivide = maszRuntime.Contains("R_DivideSigned") && Emit(&szLabel);
-	szLabel.Kill();
-	if (bPure)
+	if (mbPureVirtual && BeginRuntime("R_Pure"))
 	{
 		//A pure virtual function was called.
-		BeginRuntime("R_Pure");
 		Line("stp")->AppendNewLine();
 		mszCode.AppendNewLine();
 	}
-	if (bDivide)
-	{
-		BeginRuntime("R_DivideSigned");
-		AppendDivideSigned("R_DivideSigned", 4);
-	}
-	szLabel.Init("R_DivideSigned64");
-	bDivide64 = maszRuntime.Contains("R_DivideSigned64") && Emit(&szLabel);
-	szLabel.Kill();
-	if (bDivide64)
-	{
-		BeginRuntime("R_DivideSigned64");
-		AppendDivideSigned("R_DivideSigned64", 8);
-	}
+	mpcTarget->AppendRuntime(this);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816's runtime: R_Pure, and the tables the W65C816 back end's code reads (R816_STable7 ...), each a
-// COMDAT section so only one copy is linked.  The R816_ routines it calls are Libc65's (CCPP65Builder::AddRuntime816).
+// The runtime routines' labels the unit's code calls (CCPPRuntimeWriter).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendRuntime816(void)
+CArrayChars* CCPP65Generator::GetRuntimeCalls(void)
 {
-	CChars		szLabel;
-	CArrayChars	aszRoutines;
-	CCPPErrors	cErrors;
-	size		i;
-
-	szLabel.Init("R_Pure");
-	if (mbPureVirtual && Emit(&szLabel))
-	{
-		BeginRuntime("R_Pure");
-		Line("stp")->AppendNewLine();
-		mszCode.AppendNewLine();
-	}
-	szLabel.Kill();
-
-	aszRoutines.Init();
-	for (i = 0; i < maszRuntime.NumElements(); i++)
-	{
-		if (strncmp(maszRuntime.GetText(i), "R816_", 5) == 0)
-		{
-			aszRoutines.Add(maszRuntime.GetText(i));
-		}
-	}
-	if (aszRoutines.NumElements() != 0)
-	{
-		cErrors.Init();
-		if (!CIR816Backend::GenerateRuntime(&aszRoutines, &mszCode, &cErrors))
-		{
-			ErrorAt(-1, cErrors.Text());
-		}
-		cErrors.Kill();
-	}
-	aszRoutines.Kill();
+	return &maszRuntime;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A runtime routine's COMDAT section and label (any unit may write it).
+// A runtime routine's COMDAT section and label (any unit may write it), unless
+// the unit has written it already: then false.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::BeginRuntime(const char* szName)
+bool CCPP65Generator::BeginRuntime(const char* szName)
 {
 	CChars	szLabel;
+
+	szLabel.Init(szName);
+	if (!Emit(&szLabel))
+	{
+		szLabel.Kill();
+		return false;
+	}
+	szLabel.Kill();
 
 	//Resident: it is called with A and B wider than a function's 32 bits, which the lazy loader can't keep.
 	szLabel.Init(szName);
@@ -3601,4 +3255,26 @@ void CCPP65Generator::BeginRuntime(const char* szName)
 	mszCode.Append(szName);
 	mszCode.Append(':');
 	mszCode.AppendNewLine();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a runtime routine's code goes (CCPPRuntimeWriter).
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CCPP65Generator::GetRuntimeCode(void)
+{
+	return &mszCode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::RuntimeError(const char* szMessage)
+{
+	ErrorAt(-1, szMessage);
 }

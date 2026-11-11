@@ -47,7 +47,7 @@ static bool TestCPP65SpillBuild(CCPP65Builder* pcBuilder, ECPPTarget eTarget, bo
 		szLibc65.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
 		cFileUtil.FullPath(&szLibc65);
 		pcBuilder->SetMathTables(false);  //The runtime without the maths tables: they don't fit with all the code kept.
-		pcBuilder->AddRuntime816(szLibc65.Text());
+		pcBuilder->AddRuntime(szLibc65.Text());
 		szLibc65.Kill();
 	}
 	pcBuilder->AddSource("Main.cpp", "int main() { return 0; }\n");

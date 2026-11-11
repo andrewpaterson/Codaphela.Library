@@ -30,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //The runtime routines in assembly are Libc65's IR816Runtime-Common.asm (divides, shifts, the 64 bit multiply and
 //BCD) and IR816Runtime-MathTables.asm or IR816Runtime-MathSafe.asm (the 16 and 32 bit multiplies, with Garth
-//Wilson's product table MathMult or without it), linked as libraries by CCPP65Builder::AddRuntime816.  The
+//Wilson's product table MathMult or without it), linked as libraries by CCPP65Builder::AddRuntime.  The
 //multiplies and the 16 and 32 bit unsigned divides run on the caller's D with a at D + 15 and b at D + 19
 //(IR816ScratchRoutine), using the caller's D + 5 to D + 22; the 64 bit ones' arguments are pushed (last first, after
 //the jsl's return address) and they point D at the stack.  A 16 bit result is left in A, a 32 bit one in A (low) and
@@ -255,7 +255,7 @@ void CIR816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 //
 // Writes the tables named in paszRuntime that TableDivide and the shifts
 // read (R816_STable<c>, R816_UTable<c>, R816_Bits<n>).  Every other R816_
-// routine is in assembly, linked from Libc65 (CCPP65Builder::AddRuntime816;
+// routine is in assembly, linked from Libc65 (CCPP65Builder::AddRuntime;
 // IR816FindRoutine); any other name is an error.
 //
 //////////////////////////////////////////////////////////////////////////

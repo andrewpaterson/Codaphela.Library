@@ -969,8 +969,8 @@ void TestIRDefaultSpace(void)
 	AssertInt(8, cModule.GetPointerSize(0));
 	cModule.Kill();
 
-	AssertInt(IR_DEFAULT_POINTER_BYTES, GetCPPTarget(CPPT_65C64)->iPointerBytes);
-	AssertInt(IR_DEFAULT_POINTER_BYTES, GetCPPTarget(CPPT_W65C816)->iPointerBytes);
+	AssertInt(IR_DEFAULT_POINTER_BYTES, GetCPPTarget(CPPT_65C64)->GetPointerBytes());
+	AssertInt(IR_DEFAULT_POINTER_BYTES, GetCPPTarget(CPPT_W65C816)->GetPointerBytes());
 }
 
 

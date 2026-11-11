@@ -64,7 +64,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 
 	//The inliner's and optimiser's instructions have no source of their own.
 	mcModule.muiSource = 0;
-	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
+	if (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816)
 	{
 		cInliner.Init(&mcModule, IR816_INLINE_INSTRUCTIONS, IR816_INLINE_LOOP_INSTRUCTIONS, IR816_INLINE_CALLS);
 		cInliner.SetForwardersJump(true);
@@ -78,7 +78,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 	mpcProfiledCaller = NULL;
 	if (InliningProfile())
 	{
-		cInliner.SetProfile(this, (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) ? IR816_INLINE_HOT_INSTRUCTIONS : IR65_INLINE_HOT_INSTRUCTIONS);
+		cInliner.SetProfile(this, (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816) ? IR816_INLINE_HOT_INSTRUCTIONS : IR65_INLINE_HOT_INSTRUCTIONS);
 	}
 	cInterprocedural.Init(&mcModule, this);
 	if (sbInline && sbOptimise)
@@ -198,7 +198,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		psWritten = masWritten.Get(ui);
 		szCode.Init();
 		CCPP65Assembly::GetCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui, psWritten->uiPieces, &szCode);
-		if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
+		if (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816)
 		{
 			cMarkers.Take(&szCode, 0);
 			CIR816Backend::AlignFrame(&szCode, psWritten->szLabel.Text(), &psWritten->sFrame, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
@@ -401,7 +401,7 @@ uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 CAsm65816Profile* CCPP65IRFrontEnd::InliningProfile(void)
 {
-	return (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) ? mpcGenerator->mpcFrameProfile : NULL;
+	return (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816) ? mpcGenerator->mpcFrameProfile : NULL;
 }
 
 

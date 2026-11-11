@@ -1384,9 +1384,9 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 		Error(pcCall, "This builtin is not supported by the compiler yet");
 		return NULL;
 	}
-	if (psBuiltin->szW65C816Only && (mpcGenerator->mpsTarget->eTarget != CPPT_W65C816))
+	if (psBuiltin->szDecimalModeOnly && !mpcGenerator->mpcTarget->HasDecimalMode())
 	{
-		Error(pcCall, (char*)psBuiltin->szW65C816Only);
+		Error(pcCall, (char*)psBuiltin->szDecimalModeOnly);
 		return NULL;
 	}
 	if ((int)papcArguments->NumElements() != psBuiltin->iArguments)

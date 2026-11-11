@@ -1026,7 +1026,7 @@ bool CCPP65IRFrontEnd::NarrowSubscript(SCPP65Type* psArray, SCPP65IRValue* psPoi
 	SIRReference	sOffset;
 	int				iBytes;
 
-	if ((mpcGenerator->mpsTarget->eTarget != CPPT_W65C816) || !psArray->IsArray() || (psArray->iCount < 2) || (psArray->iBytes >= 0x10000) ||
+	if (!mpcGenerator->mpcTarget->NarrowsSubscripts() || !psArray->IsArray() || (psArray->iCount < 2) || (psArray->iBytes >= 0x10000) ||
 		!psIndex->psType->IsInteger() || !psPointer->psType->IsPointer())
 	{
 		return false;

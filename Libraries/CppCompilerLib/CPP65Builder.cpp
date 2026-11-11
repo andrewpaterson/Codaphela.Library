@@ -46,7 +46,7 @@ void CCPP65Builder::Init(void)
 	macIncludeDirectories.Init();
 	macLinkLibraries.Init();
 	mcProject.Init(false);
-	meTarget = CPPT_65C64;
+	mpcTarget = GetCPPTarget(CPPT_65C64);
 	muiUnits = 0;
 	muiLimit = CPP65_HEAP_ADDRESS;
 	mbCompiled = false;
@@ -73,7 +73,7 @@ void CCPP65Builder::Init(void)
 	mbLineTable = false;
 	mbNoFloats = false;
 	mbMathTables = true;
-	mbRuntime816 = false;
+	mbRuntime = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
@@ -183,7 +183,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	if (!pcLibrary)
 	{
 		pcLibrary = mcProject.AddLibrary((char*)szLibrary, (char*)szDirectory, false);
-		CCPP65Generator::AddDefines(pcLibrary->AddConfiguration((char*)GetCPPTarget(meTarget)->szName), meTarget);
+		CCPP65Generator::AddDefines(pcLibrary->AddConfiguration((char*)mpcTarget->GetConfigurationName()), mpcTarget->GetTarget());
 		if (bLinkAsLibrary)
 		{
 			psLinkLibrary = macLinkLibraries.Add();
@@ -245,75 +245,85 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816's runtime (AddRuntime816) and maths tables (Libc65/MathTbls,
-// Garth Wilson's): MathMult for the runtime's multiply (SetMathTables) and
-// the soft float's, MathInvert for the soft float's divide.  Each is linked
-// only when it is used.  The other targets need none.  A program whose
-// tables are in memory already (an HCP65 program: UserLib's
-// UserMathTables.asm gives their addresses) adds Libc65 alone.
+// The target's runtime (AddRuntime) and its maths tables, in Libc65/MathTbls
+// (CCPPTarget::GetMathTableUnits: the W65C816's, Garth Wilson's MathMult
+// for the runtime's multiply (SetMathTables) and the soft float's, and
+// MathInvert for the soft float's divide).  Each is linked only when it is
+// used.  A target with none needs none.  A program whose tables are in
+// memory already (an HCP65 program: UserLib's UserMathTables.asm gives
+// their addresses) adds Libc65 alone.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
 {
-	CChars		szDirectory;
-	CFileUtil	cFileUtil;
+	const char**	paszUnits;
+	CChars			szDirectory;
+	CFileUtil		cFileUtil;
+	size			i;
 
-	if (meTarget != CPPT_W65C816)
+	paszUnits = mpcTarget->GetMathTableUnits();
+	if (!paszUnits)
 	{
 		return;
 	}
-	AddRuntime816(szLibc65Directory);
+	AddRuntime(szLibc65Directory);
 	szDirectory.Init(szLibc65Directory);
 	cFileUtil.AppendToPath(&szDirectory, "MathTbls");
-	AddUnit("MathTables", szDirectory.Text(), "MathMult.asm", true);
-	AddUnit("MathTables", szDirectory.Text(), "MathInvert.asm");
+	for (i = 0; paszUnits[i]; i++)
+	{
+		AddUnit("MathTables", szDirectory.Text(), paszUnits[i], i == 0);
+	}
 	szDirectory.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816 back end's runtime routines (R816_Mul16 ...: multiply,
-// divide, shifts and BCD, in Libc65's IR816Runtime-*.asm), linked as a
-// library so only those used are kept: IR816Runtime-Common.asm and either
-// IR816Runtime-MathTables.asm (multiplies that read MathMult) or
-// IR816Runtime-MathSafe.asm (SetMathTables(false)).  Added once, by
-// AddMathTables or AddLibc65.
+// The back end's runtime routines, in Libc65 (CCPPTarget::GetRuntimeUnits:
+// the W65C816's R816_Mul16 ..., its multiplies reading MathMult or not as
+// SetMathTables says), linked as a library so only those used are kept.
+// Added once, by AddMathTables or AddLibc65.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::AddRuntime816(const char* szLibc65Directory)
+void CCPP65Builder::AddRuntime(const char* szLibc65Directory)
 {
-	if ((meTarget != CPPT_W65C816) || mbRuntime816)
+	const char**	paszUnits;
+	size			i;
+
+	paszUnits = mpcTarget->GetRuntimeUnits(mbMathTables);
+	if (!paszUnits || mbRuntime)
 	{
 		return;
 	}
-	mbRuntime816 = true;
-	AddUnit("Runtime816", szLibc65Directory, "IR816Runtime-Common.asm", true);
-	AddUnit("Runtime816", szLibc65Directory, mbMathTables ? "IR816Runtime-MathTables.asm" : "IR816Runtime-MathSafe.asm");
+	mbRuntime = true;
+	for (i = 0; paszUnits[i]; i++)
+	{
+		AddUnit("Runtime", szLibc65Directory, paszUnits[i], i == 0);
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Libc65's runtime for the W65C816 (its own assembly for string and soft
-// float), each unit linked only when it is used.  A program that calls
-// the C library or the compiler's runtime links with these.  The other
-// targets have none yet.
+// Libc65's runtime for the target (CCPPTarget::GetLibc65Units), each unit
+// linked only when it is used.  A program that calls the C library or the
+// compiler's runtime links with these.  A target with none has none yet.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddLibc65(const char* szLibc65Directory)
 {
-	static const char* aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "string816.asm", "string816_16.asm", "softfloat816.asm", NULL };
-	size	i;
+	const char**	paszUnits;
+	size			i;
 
-	if (meTarget != CPPT_W65C816)
+	paszUnits = mpcTarget->GetLibc65Units();
+	if (!paszUnits)
 	{
 		return;
 	}
-	AddRuntime816(szLibc65Directory);
-	for (i = 0; aszUnits[i]; i++)
+	AddRuntime(szLibc65Directory);
+	for (i = 0; paszUnits[i]; i++)
 	{
-		AddUnit("Libc65", szLibc65Directory, aszUnits[i], true);
+		AddUnit("Libc65", szLibc65Directory, paszUnits[i], true);
 	}
 }
 
@@ -431,10 +441,7 @@ void CCPP65Builder::AddProjectSources(const char* szLibrary, const char* szDirec
 			}
 		}
 		AddUnit(szUnitLibrary.Text(), szUnitDirectory.Text(), szFile.Text(), bLinkAsLibrary);
-		if (meTarget == CPPT_W65C816)
-		{
-			AddW65C816Assembly(szUnitLibrary.Text(), szUnitDirectory.Text(), szFile.Text(), bLinkAsLibrary);
-		}
+		AddAssemblyUnit(szUnitLibrary.Text(), szUnitDirectory.Text(), szFile.Text(), bLinkAsLibrary);
 		szUnitLibrary.Kill();
 		szFile.Kill();
 		szUnitDirectory.Kill();
@@ -456,7 +463,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 	size		i;
 
 	pcLibrary = mcProject.GetLibrary((char*)szLibrary);
-	pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)GetCPPTarget(meTarget)->szName) : NULL;
+	pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mpcTarget->GetConfigurationName()) : NULL;
 	if (!pcConfig)
 	{
 		return false;
@@ -469,7 +476,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 		if (StringCompare(maszOutsideProjects.GetText(i), szLibrary) == 0)
 		{
 			pcLibrary = mcProject.GetLibrary(maszOutsideLibraries.GetText(i));
-			pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)GetCPPTarget(meTarget)->szName) : NULL;
+			pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mpcTarget->GetConfigurationName()) : NULL;
 			if (pcConfig)
 			{
 				pcConfig->AddDefine((char*)szDefine);
@@ -482,20 +489,21 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A project's unit X.cpp may have W65C816 assembly next to it, X816.asm,
-// with the functions X.cpp leaves out on the W65C816 (#ifndef
-// __W65C816_ASSEMBLY__).  It is added with it, unless the C++ is used
-// instead (CCPP65Generator::SetW65C816Assembly(false)).
+// A project's unit X.cpp may have the target's assembly next to it (the
+// W65C816's X816.asm, CCPPTarget::GetAssemblyUnitSuffix), with the functions
+// X.cpp leaves out on the target (#ifndef __W65C816_ASSEMBLY__).  It is
+// added with it, unless the C++ is used instead
+// (CCPP65Generator::SetW65C816Assembly(false)).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary)
+void CCPP65Builder::AddAssemblyUnit(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary)
 {
 	CFileUtil	cFileUtil;
 	CChars		szUnit;
 	CChars		szPath;
 	const char*	szExtension;
 
-	if (!CCPP65Generator::IsW65C816Assembly())
+	if (!mpcTarget->HasAssemblyUnits() || !CCPP65Generator::IsW65C816Assembly())
 	{
 		return;
 	}
@@ -506,7 +514,7 @@ void CCPP65Builder::AddW65C816Assembly(const char* szLibrary, const char* szDire
 	}
 	szUnit.Init();
 	szUnit.Append(szSource, (size)(szExtension - szSource));
-	szUnit.Append("816.asm");
+	szUnit.Append(mpcTarget->GetAssemblyUnitSuffix());
 	szPath.Init(szDirectory);
 	cFileUtil.AppendToPath(&szPath, szUnit.Text());
 	if (cFileUtil.Exists(szPath.Text()))
@@ -585,7 +593,7 @@ size CCPP65Builder::NumUnitsToCompile(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 {
-	meTarget = eTarget;
+	mpcTarget = GetCPPTarget(eTarget);
 }
 
 
@@ -946,7 +954,7 @@ void CCPP65Builder::SetNoFloats(bool bNoFloats)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetMathTables(bool bMathTables)
 {
-	if (mbRuntime816 && (mbMathTables != bMathTables))
+	if (mbRuntime && (mbMathTables != bMathTables))
 	{
 		mszErrors.Append("CCPP65Builder::SetMathTables must be called before AddMathTables and AddLibc65.\n");
 	}
@@ -1027,7 +1035,7 @@ bool CCPP65Builder::AddStartUp(void)
 	bool	bResult;
 
 	szAssembly.Init();
-	CCPP65Generator::AppendStartUp(&szAssembly, meTarget);
+	mpcTarget->AppendStartUp(&szAssembly);
 	bResult = AddObject("start up", szAssembly.Text(), true);
 	szAssembly.Kill();
 	return bResult;
@@ -1063,7 +1071,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mbMathTables);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mbMathTables);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
@@ -1193,8 +1201,9 @@ void CCPP65Builder::ResetLinker(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::LinkObjects(void)
 {
-	bool	bResult;
-	size	i;
+	const char*	szPrefix;
+	bool		bResult;
+	size		i;
 
 	//The libraries are only added now, when their array won't move them any more.
 	for (i = 0; i < macLinkLibraries.NumElements(); i++)
@@ -1203,10 +1212,10 @@ bool CCPP65Builder::LinkObjects(void)
 	}
 	mcLinker.SetAddress(ASK65_Text, CPP65_PROGRAM_ADDRESS);
 	mcLinker.SetLimit(muiLimit);
-	mcLinker.SetBankSize(GetCPPTarget(meTarget)->uiBankSize);
-	if (meTarget == CPPT_W65C816)
+	mcLinker.SetBankSize(mpcTarget->GetBankSize());
+	if (mpcTarget->GetStubOpcode() >= 0)
 	{
-		mcLinker.SetStubOpcode(0xDB);  //stp
+		mcLinker.SetStubOpcode((uint8)mpcTarget->GetStubOpcode());
 	}
 	mcStatistics.Begin(CPPCP_Link);
 	bResult = mcLinker.Link();
@@ -1214,11 +1223,12 @@ bool CCPP65Builder::LinkObjects(void)
 	mszErrors.Append(mcLinker.GetErrors());
 
 	//A runtime routine isn't stubbed: its program would stop at the first multiply.
-	for (i = 0; i < mcLinker.NumMissing(); i++)
+	szPrefix = mpcTarget->GetRuntimePrefix();
+	for (i = 0; szPrefix && (i < mcLinker.NumMissing()); i++)
 	{
-		if (strncmp(mcLinker.GetMissing(i), "R816_", 5) == 0)
+		if (strncmp(mcLinker.GetMissing(i), szPrefix, strlen(szPrefix)) == 0)
 		{
-			mszErrors.Append("The W65C816 runtime routine ")->Append(mcLinker.GetMissing(i))->Append(" isn't linked (CCPP65Builder::AddMathTables or AddLibc65 adds the runtime).\n");
+			mszErrors.Append("The ")->Append(mpcTarget->GetConfigurationName())->Append(" runtime routine ")->Append(mcLinker.GetMissing(i))->Append(" isn't linked (CCPP65Builder::AddMathTables or AddLibc65 adds the runtime).\n");
 			bResult = false;
 		}
 	}
@@ -1398,7 +1408,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 		acHeaderFiles.Get(i)->Init(psInclude->szDirectory.Text(), &cHeaderFileMap, psInclude->bIncludeSubDirectories, psInclude->bSystem);
 	}
 
-	cConfig.Init((char*)GetCPPTarget(eTarget)->szName);
+	cConfig.Init((char*)GetCPPTarget(eTarget)->GetConfigurationName());
 	CCPP65Generator::AddDefines(&cConfig, eTarget);
 	cFile.Init((char*)szName, NULL, false);
 	cFile.SetContents((char*)szSource);
@@ -1532,7 +1542,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, con
 	CAsm65816Assembler	cAssembler816;
 	bool				bResult;
 
-	if (meTarget == CPPT_W65C816)
+	if (mpcTarget->GetTarget() == CPPT_W65C816)
 	{
 		cAssembler816.Init();
 		if (szDirectory)
@@ -1715,7 +1725,7 @@ bool CCPP65Builder::CompileUnits(void)
 	bResult = true;
 	uiTurn = 0;
 	apsUnits.Init();
-	for (pcFile = mcProject.Start(&sIter, (char*)GetCPPTarget(meTarget)->szName); pcFile; pcFile = mcProject.Iterate(&sIter))
+	for (pcFile = mcProject.Start(&sIter, (char*)mpcTarget->GetConfigurationName()); pcFile; pcFile = mcProject.Iterate(&sIter))
 	{
 		psUnit = NewMalloc<SCPP65CompiledUnit>();
 		StartUnit(psUnit, pcFile, uiTurn, mpcSpillStore != &mcIndexTreeSpillStore);
@@ -1734,7 +1744,7 @@ bool CCPP65Builder::CompileUnits(void)
 
 	//The units that call functions exported after they were compiled, compiled again in order.  A unit decides in its
 	//turn if it calls only functions not yet exported (a unit before it may export one).
-	if (bResult && (meTarget == CPPT_W65C816))
+	if (bResult && mpcTarget->InlinesAcrossUnits())
 	{
 		for (ui = 0; ui < apsUnits.NumElements(); ui++)
 		{
@@ -2134,7 +2144,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	psCompile->pcWorkspace = TakeWorkspace();
 	psUnit->pcFile->GetTokens()->SetMallocators(psCompile->pcWorkspace->GetPreprocessedTokensMallocators());
 
-	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
+	szConfiguration = (char*)mpcTarget->GetConfigurationName();
 	psUnit->cStatistics.Begin(CPPCP_Preprocess);
 	if (bReport)
 	{
@@ -2186,10 +2196,10 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 
 	psCompile = psUnit->psCompile;
 	psCompile->cAssembly.Init(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
-	psCompile->cGenerator.Init(&psCompile->cTree, meTarget);
+	psCompile->cGenerator.Init(&psCompile->cTree, mpcTarget->GetTarget());
 	psCompile->cGenerator.SetStatistics(&psUnit->cStatistics);
 	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
-	if (meTarget == CPPT_W65C816)
+	if (mpcTarget->InlinesAcrossUnits())
 	{
 		psCompile->cGenerator.SetImports(&mcImports, psUnit->uiTurn);
 		psCompile->cGenerator.SetFrameProfile(mpcFrameProfile);
@@ -2219,7 +2229,7 @@ void CCPP65Builder::StartGenerating(SCPP65CompiledUnit* psUnit)
 	psCompile = psUnit->psCompile;
 	InitGenerator(psUnit);
 	psCompile->bGenerated = psCompile->cGenerator.GenerateBeforeTurn();
-	if (meTarget != CPPT_W65C816)
+	if (!mpcTarget->InlinesAcrossUnits())
 	{
 		ContinueGenerating(psUnit);
 		return;
@@ -2303,7 +2313,7 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psUnit->szErrors.Append(psCompile->cGenerator.GetErrors()->Text());
 	psUnit->szWarnings.Append(psCompile->cGenerator.GetWarnings()->Text());
 	psCompile->cGenerator.Kill();
-	if (meTarget == CPPT_W65C816)
+	if (mpcTarget->InlinesAcrossUnits())
 	{
 		//Its turn is over even if it didn't get to it (an error before the unit was finished).
 		mcImports.EndTurn(psUnit->uiTurn);
