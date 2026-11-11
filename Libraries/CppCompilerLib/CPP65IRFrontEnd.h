@@ -23,7 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayUint8.h"
 #include "IRModule.h"
-#include "IR816Backend.h"
+#include "IRBackend.h"
 #include "IRInliner.h"
 #include "IRInterprocedural.h"
 #include "CPPSyntaxes.h"
@@ -98,7 +98,7 @@ struct SCPP65IRWritten
 	CIRFunction*	pcFunction;		//NULL once it failed after inlining.
 	CChars			szLabel;
 	uint16			uiPieces;		//How many pieces its code is in, in the generator's spill store (CCPP65Assembly::PutCode).
-	SIR816Frame		sFrame;			//The W65C816's frame, for AlignFrame.
+	CIRWrittenFunction*	pcBackend;	//What the back end kept about it, for CIRBackend::FinishFunction, or NULL.
 	uint32			uiFingerprint;	//A hash of its IR before it was optimised (for a line table).
 };
 
@@ -117,15 +117,7 @@ struct SCPP65IRCountedLoop
 #define IR65_ZERO_LONG_BYTES			4		//ZeroBytes zeroes a long at a time...
 #define IR65_ZERO_LONGS					4		//...in a loop for more than this many of them...
 #define IR65_ZERO_ELEMENT_BYTES			(IR65_ZERO_LONG_BYTES * IR65_ZERO_LONGS)	//...and elements of an array past as many bytes use it.
-#define IR65_INLINE_INSTRUCTIONS		16		//The most instructions a function inlined may have...
-#define IR65_INLINE_LOOP_INSTRUCTIONS	32		//...or where the call is in a loop...
-#define IR65_INLINE_CALLS				24		//...and the most calls inlined into one function at a time...
-#define IR65_INLINE_ROUNDS				4		//...in at most this many rounds (optimising between them).
-#define IR65_INLINE_HOT_INSTRUCTIONS	64		//With a profile, the most a hot call's callee may have (CIRInliner::SetProfile).
-#define IR816_INLINE_INSTRUCTIONS		64		//The W65C816's: a call costs it far more (about 70 cycles with its frame), so more
-#define IR816_INLINE_LOOP_INSTRUCTIONS	128		//is inlined (measured 2026-10-31, TestBaseLib65 and TestStandardLib65: 16/32/24 to
-#define IR816_INLINE_CALLS				64		//32/64/32 -3.3% and -5.0%, then -2.0% and -3.5%; 96 ran one out of bank 0's stack).
-#define IR816_INLINE_HOT_INSTRUCTIONS	192		//With a profile: more than in a loop, or a profile would add nothing there.
+#define IR65_INLINE_ROUNDS				4		//Calls are inlined into a function in at most this many rounds (optimising between them).
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
@@ -152,6 +144,7 @@ protected:
 	CCPP65Types*			mpcTypes;
 
 	CIRModule				mcModule;			//The unit's functions written as IR.
+	CIRBackend*				mpcBackend;			//The target's back end (CCPPTarget::NewBackend), which writes their code; NULL for a target nothing is generated for.
 	CArrayCPP65IRWritten	masWritten;			//The same, in the order written.
 	bool					mbCodeGiven;		//The written functions' code is the unit's assembly's (FinishUnit), which takes it out of the store.
 	CIRFunction*			mpcFunction;
@@ -215,7 +208,8 @@ protected:
 	void			BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
 	bool			FinishWriting(bool bResult, const char* szLabel);
 	void			OptimiserWarnings(CChars* pszWarnings);
-	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame);
+	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, CIRWrittenFunction** ppcWritten);
+	void			FreeWritten(SCPP65IRWritten* psWritten);
 	bool			Unsupported(const char* szFile, int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);
 	void			NoFloats(void);

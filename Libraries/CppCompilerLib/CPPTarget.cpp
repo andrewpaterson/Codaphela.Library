@@ -18,7 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Chars.h"
 #include "Config.h"
+#include "IRInliner.h"
 #include "CPPTarget65C64.h"
 #include "CPPTargetW65C816.h"
 #include "CPPTargetHost.h"
@@ -258,6 +260,73 @@ void CCPPTarget::AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szF
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget::AppendVirtualCallThunk(CChars* pszDest, int iVtableOffset, int iEntryOffset)
+{
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nothing is inlined unless the target says what is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions)
+{
+	psLimits->uiInstructions = 0;
+	psLimits->uiLoopInstructions = 0;
+	psLimits->uiHotInstructions = 0;
+	psLimits->uiCalls = 0;
+	psLimits->bForwardersJump = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget::ConfigureOptimiser(CIROptimiser* pcOptimiser)
+{
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTarget::UsesProfile(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBackend* CCPPTarget::NewBackend(void)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A target nothing is generated for assembles nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTarget::Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors)
+{
+	pszErrors->Append("The ")->Append(GetConfigurationName())->Append(" target has no assembler.\n");
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget::PrepareForThreads(void)
 {
 
 }

@@ -28,7 +28,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRVerifier.h"
 #include "IROptimiser.h"
 #include "IR65Backend.h"
-#include "IR816Backend.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -57,6 +56,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mbProfiledCaller = false;
 	mcModule.Init();
 	mcModule.AddDefaultSpace(pcGenerator->mpcTarget->GetPointerBytes());
+	mpcBackend = pcGenerator->mpcTarget->NewBackend();
 	masWritten.Init();
 	masJumps.Init();
 	masCases.Init();
@@ -110,6 +110,7 @@ void CCPP65IRFrontEnd::Kill(void)
 	{
 		psWritten = masWritten.Get(ui);
 		psWritten->szLabel.Kill();
+		FreeWritten(psWritten);
 
 		//Code not given to the unit's assembly (a unit generated again, or one that failed) leaves the store.
 		if (!mbCodeGiven)
@@ -118,6 +119,7 @@ void CCPP65IRFrontEnd::Kill(void)
 		}
 	}
 	masWritten.Kill();
+	SafeFree(mpcBackend);
 	mcModule.Kill();
 	mapcNone.Kill();
 	masTemporaries.Kill();
@@ -273,7 +275,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	CChars					szCode;
 	CChars					szWarnings;
 	SCPP65IRWritten*		psWritten;
-	SIR816Frame				sFrame;
+	CIRWrittenFunction*		pcWritten;
 	SAsm65816FunctionProfile*	psProfiled;
 	size					ui;
 	size					uiStart;
@@ -324,7 +326,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	{
 		szCode.Init();
 		mcModule.Begin(CPPCP_BackEnd);
-		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &sFrame);
+		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &pcWritten);
 		mcModule.End(CPPCP_BackEnd);
 		if (bResult)
 		{
@@ -334,7 +336,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten->szLabel.Init(szLabel);
 			psWritten->uiPieces = 0;
 			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
-			psWritten->sFrame = sFrame;
+			psWritten->pcBackend = pcWritten;
 			psWritten->uiFingerprint = uiFingerprint;
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
 			mpcGenerator->mszCode.Append((int)(masWritten.NumElements() - 1));
@@ -847,66 +849,63 @@ int CCPP65IRFrontEnd::PieceBytes(int iLeft)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Generates a function with the target's back end: CIR65Backend, or CIR816Backend
-// for the W65C816 (whose runtime routines the generator then writes).
+// Generates a function with the target's back end, in the generator's arena.
+// The runtime routines its code calls are added to the generator's, and what
+// the back end kept about it (for CIRBackend::FinishFunction) is *ppcWritten,
+// the caller's to free: NULL if nothing, or if the function wasn't written.
+// The back end's errors (a frame too big ...) are why it wasn't.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame)
+bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, CIRWrittenFunction** ppcWritten)
 {
-	CIR65Backend			cBackend;
-	CIR816Backend			cBackend816;
-	CCPPErrors				cErrors;
-	CArrayChars*			paszRuntime;
-	size					ui;
-	bool					bResult;
-	CScratchPadAllocator*	pcScratch;
-	CMallocator*			pcOldScratch;
+	CCPPErrors		cErrors;
+	CArrayChars*	paszRuntime;
+	size			ui;
+	bool			bResult;
 
-	if (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816)
+	*ppcWritten = NULL;
+	if (!mpcBackend)
 	{
-		//The back end's working arrays and strings are in the generator's arena, emptied when it has finished.
-		pcScratch = mpcGenerator->GetBackendScratch();
-		pcOldScratch = CIR816Backend::SetScratch(pcScratch);
+		return Unsupported(__FILE__, __LINE__);
+	}
 
-		//The back end's errors (a frame too big ...) are why the function wasn't written.
-		cErrors.Init();
-		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
-		cBackend816.SetOptions(mpcGenerator->mpcOptions);
-		cBackend816.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
-		cBackend816.SetMathTables(mpcGenerator->mbMathTables);
-		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
-		cBackend816.GetFrame(psFrame);
-		if (!bResult)
-		{
-			SetUnsupported(__FILE__, __LINE__, cErrors.Text());
-		}
-		cErrors.Kill();
-		paszRuntime = cBackend816.GetRuntime();
-		for (ui = 0; bResult && (ui < paszRuntime->NumElements()); ui++)
+	cErrors.Init();
+	mpcBackend->Init(&mcModule, &mpcGenerator->miLabels, mpcGenerator->GetBackendScratch());
+	mpcBackend->SetOptions(mpcGenerator->mpcOptions);
+	mpcBackend->SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
+	bResult = mpcBackend->GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
+	if (bResult)
+	{
+		*ppcWritten = mpcBackend->TakeWritten();
+		paszRuntime = mpcBackend->GetRuntime();
+		for (ui = 0; ui < paszRuntime->NumElements(); ui++)
 		{
 			mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
 		}
-		cBackend816.Kill();
-
-		CIR816Backend::SetScratch(pcOldScratch);
-		if (pcOldScratch != pcScratch)
-		{
-			pcScratch->GetScratchPad()->Recycle((lsize)CPP65_BACKEND_SCRATCH_KEPT);
-		}
-		return bResult;
 	}
-
-	cBackend.Init(&mcModule, &mpcGenerator->miLabels);
-	cBackend.SetOptions(mpcGenerator->mpcOptions);
-	cBackend.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
-	bResult = cBackend.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
-	paszRuntime = cBackend.GetRuntime();
-	for (ui = 0; ui < paszRuntime->NumElements(); ui++)
+	else
 	{
-		mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
+		SetUnsupported(__FILE__, __LINE__, cErrors.Text());
 	}
-	cBackend.Kill();
+	mpcBackend->Kill();
+	cErrors.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the back end kept about a written function is freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::FreeWritten(SCPP65IRWritten* psWritten)
+{
+	if (psWritten->pcBackend)
+	{
+		psWritten->pcBackend->Kill();
+		free(psWritten->pcBackend);
+		psWritten->pcBackend = NULL;
+	}
 }
 
 
@@ -1275,25 +1274,14 @@ void CCPP65IRFrontEnd::EndCountedLoop(SCPP65IRCountedLoop* psLoop, SIRReference 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Inits pcOptimiser with the target's passes: the W65C816 has no indexed
-// addresses, narrows multiplies and counters, divides by constants with
-// multiplies and biases signed indices; and the profile when there is one.
+// Inits pcOptimiser with the target's settings (CCPPTarget::ConfigureOptimiser),
+// the target's int and, when the target is guided by one, the profile.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 {
-	bool	bW65C816;
-
-	bW65C816 = mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816;
 	pcOptimiser->Init(&mcModule);
-	pcOptimiser->SetIndexedAddresses(!bW65C816);
-	pcOptimiser->SetNarrowMultiplies(bW65C816);
-	pcOptimiser->SetConstantDivisions(bW65C816);
-	//The W65C816's divide routines leave the remainder at D + 5; the 65C64's div leaves an unsigned one in B.
-	pcOptimiser->SetDivideRemainders(bW65C816 ? (IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32 | IR_DIVIDE_REMAINDERS_64 | IR_DIVIDE_REMAINDERS_SIGNED) :
-										   (IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32));
-	pcOptimiser->SetNarrowCounters(bW65C816);
-	pcOptimiser->SetBiasedIndices(bW65C816);
+	mpcGenerator->mpcTarget->ConfigureOptimiser(pcOptimiser);
 	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 	if (InliningProfile())
 	{

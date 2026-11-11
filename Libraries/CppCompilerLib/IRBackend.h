@@ -56,6 +56,19 @@ typedef CArrayTemplate<SIRCopyStep>	CArrayIRCopySteps;
 #define IR_MAX_MULTIPLY_DIGITS	8
 
 
+class CScratchPadAllocator;
+class CAsm65816Profile;
+
+
+//What a back end keeps about a function it wrote (TakeWritten), for FinishFunction: its own to make sense of.  The
+//W65C816's is the function's frame.
+class CIRWrittenFunction
+{
+public:
+	virtual void	Kill(void);
+};
+
+
 //What the 65C64 (CIR65Backend) and W65C816 (CIR816Backend) back ends share: the module and the label counter, the
 //function being written and the text it goes to, its source markers, errors and block labels, the runtime routines
 //its code calls, the order of the phis' copies on a jump (ParallelCopy), multiplies by constants as shifts and adds
@@ -78,12 +91,19 @@ protected:
 	CCPPCompileOptions*		mpcOptions;			//How the code is to be written where there is a choice (SetOptions); the defaults unless set.
 
 public:
+	//A back end is made once for a unit (CCPPTarget::NewBackend) and, for each function, initialised, given its
+	//options, asked for the function's code and killed.  pcArena, when there is one, is where its working memory for
+	//the function may come from: the caller empties it between functions.
+	virtual void	Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) = 0;
+	virtual void	Kill(void);
+	virtual void	SetOptions(CCPPCompileOptions* pcOptions);
 	virtual bool	GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) = 0;
+	virtual CIRWrittenFunction*	TakeWritten(void);
+	virtual void	FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile);
 
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	void			SetSourceMarkers(bool bSourceMarkers);
-	void			SetOptions(CCPPCompileOptions* pcOptions);
 	CArrayChars*	GetRuntime(void);
 
 	static void		AppendSoftFloatName(CChars* psz, SIRInstruction* psInstruction, SIRType sFrom);
@@ -92,8 +112,7 @@ public:
 	static int		SignedDigits(uint64 ulliMultiplier, int iBits, int* aiPlaces, int* aiSigns);
 
 protected:
-	void			Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator = NULL);
-	void			Kill(void);
+	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
 
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	bool			Error(const char* szMessage, const char* szDetail = NULL);

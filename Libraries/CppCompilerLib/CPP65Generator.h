@@ -26,10 +26,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP65_STACK_TOP				0x1FFFFF
 #define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_MAX_ASSOCIATED_DEPTH	16		//How deep a type's bases and template arguments are followed for associated namespaces.
-#define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place.
+#define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place...
+#define CPP65_INLINE_MEMCPY_SIZE	8		//...or, preferring size (CCPPCompileOptions::mePrefer), this many: about what the call's own code is.
 #define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
-#define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The W65C816 back end's arena (CCPP65Generator::GetBackendScratch) grows by chunks this big...
-#define CPP65_BACKEND_SCRATCH_KEPT	(1 MB)		//...and keeps this much of them from one function to the next.
+#define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The back end's arena (CCPP65Generator::GetBackendScratch) grows by chunks this big.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint8.h"
@@ -470,7 +470,6 @@ protected:
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
-	bool					mbMathTables;		//The W65C816's MathMult is in memory (SetMathTables).
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
 	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore),
 	uint32					muiSpillUnit;		//by the unit's number.
@@ -502,7 +501,6 @@ public:
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
-	void					SetMathTables(bool bMathTables);
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
 	void					SetOptions(CCPPCompileOptions* pcOptions);

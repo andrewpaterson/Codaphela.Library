@@ -67,6 +67,10 @@ typedef CArrayTemplate<SIRParkedUnit> CArrayIRParkedUnits;
 //A unit that arrives before its turn (Arrive) doesn't hold a thread waiting: it is parked, and resumed (SetResume's
 //function) when the turn before it ends, or as soon as a function it didn't find is exported (it does its work again
 //then, so it misses fewer in its turn).
+//The biggest function a unit exports for the others to inline.
+#define IR_IMPORT_INSTRUCTIONS	32
+
+
 class CIRImports
 {
 protected:

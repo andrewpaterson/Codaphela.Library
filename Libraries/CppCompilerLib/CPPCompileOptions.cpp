@@ -33,6 +33,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	true,						//mbAssemblyUnits
 	true,						//mbSoftFloatInFrame
 	true,						//mbRegisterArguments
+	true,						//mbMathTables
 };
 
 

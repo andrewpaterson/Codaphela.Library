@@ -20,8 +20,21 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/ConstructorCall.h"
+#include "Assembler65Lib/Asm65C64Assembler.h"
 #include "Config.h"
+#include "CPPCompileOptions.h"
+#include "IRInliner.h"
+#include "IROptimiser.h"
+#include "IR65Backend.h"
 #include "CPPTarget65C64.h"
+
+
+#define CPP65_INLINE_INSTRUCTIONS		16		//The most instructions a function inlined may have...
+#define CPP65_INLINE_LOOP_INSTRUCTIONS	32		//...or where the call is in a loop...
+#define CPP65_INLINE_HOT_INSTRUCTIONS	64		//...or, with a profile, where the call is hot (CIRInliner::SetProfile)...
+#define CPP65_INLINE_CALLS				24		//...and the most calls inlined into one function at a time.
+#define CPP65_INLINE_SIZE_INSTRUCTIONS	4		//Preferring size: the most instructions a function inlined may have, wherever its call is.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,5 +282,80 @@ void CCPPTarget65C64::AppendVirtualCallThunk(CChars* pszDest, int iVtableOffset,
 	pszDest->Append(" + A]");
 	pszDest->AppendNewLine();
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Preferring size, only a function no bigger than its call is inlined: an
+// accessor, or one that passes a call on.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget65C64::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions)
+{
+	psLimits->uiInstructions = CPP65_INLINE_INSTRUCTIONS;
+	psLimits->uiLoopInstructions = CPP65_INLINE_LOOP_INSTRUCTIONS;
+	psLimits->uiHotInstructions = CPP65_INLINE_HOT_INSTRUCTIONS;
+	psLimits->uiCalls = CPP65_INLINE_CALLS;
+	psLimits->bForwardersJump = false;
+	if (pcOptions->PrefersSize())
+	{
+		psLimits->uiInstructions = CPP65_INLINE_SIZE_INSTRUCTIONS;
+		psLimits->uiLoopInstructions = CPP65_INLINE_SIZE_INSTRUCTIONS;
+		psLimits->uiHotInstructions = CPP65_INLINE_SIZE_INSTRUCTIONS;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The 65C64 has indexed addresses, a multiply and a divide, so nothing is
+// narrowed or made of shifts for it.  Its div leaves an unsigned remainder in
+// B.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget65C64::ConfigureOptimiser(CIROptimiser* pcOptimiser)
+{
+	pcOptimiser->SetIndexedAddresses(true);
+	pcOptimiser->SetNarrowMultiplies(false);
+	pcOptimiser->SetConstantDivisions(false);
+	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32);
+	pcOptimiser->SetNarrowCounters(false);
+	pcOptimiser->SetBiasedIndices(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBackend* CCPPTarget65C64::NewBackend(void)
+{
+	return NewMalloc<CIR65Backend>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTarget65C64::Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors)
+{
+	CAsm65C64Assembler	cAssembler;
+	bool				bResult;
+
+	cAssembler.Init();
+	if (szDirectory)
+	{
+		cAssembler.SetDirectory(szDirectory);
+	}
+	if (szSourceFile)
+	{
+		cAssembler.SetSourceFile(szSourceFile);
+	}
+	bResult = cAssembler.AssembleObject(pcSource, pcObject);
+	pszErrors->Append(cAssembler.GetErrors());
+	cAssembler.Kill();
+	return bResult;
 }
 

@@ -297,7 +297,7 @@ EnsureVtable writes it), and writes implicit default constructors and destructor
 (the generator falls back to its own), so a virtual call on an object whose vtable store
 the optimiser sees becomes a call of the function, and may be inlined.  Calls through
 function pointers held in objects (CArrayBlockSorted's mfCompare) stay indirect.  The front end runs it
-on every function it writes (CCPP65IRFrontEnd::sbOptimise switches it off).
+on every function it writes (CCPPCompileOptions::mbOptimise switches it off).
 
 Analyses shared by the passes and back ends (2026-10-29): CIRDefinitions (each temporary's
 defining instruction or phi, its block and its number of uses, kept as block and index so it

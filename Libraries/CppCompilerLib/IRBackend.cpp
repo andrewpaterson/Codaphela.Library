@@ -27,7 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // Function sections have no options until a back end sets them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackend::Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator)
+void CIRBackend::InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator)
 {
 	mpcOptions = GetDefaultCPPCompileOptions();
 	mpcModule = pcModule;
@@ -405,6 +405,45 @@ void CIRBackend::SetSourceMarkers(bool bSourceMarkers)
 void CIRBackend::SetOptions(CCPPCompileOptions* pcOptions)
 {
 	mpcOptions = pcOptions ? pcOptions : GetDefaultCPPCompileOptions();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What FinishFunction needs of the function GenerateFunction just wrote: a
+// new record the caller kills and frees, or NULL when the back end keeps
+// nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRWrittenFunction* CIRBackend::TakeWritten(void)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After every function of the unit is written, and whatever was to be inlined
+// is: a last look at a function's code (pszCode, as GenerateFunction wrote it
+// for szLabel), with what TakeWritten gave for it (NULL if nothing).
+// bRecursive: the function may call itself.  pcProfile: the measured functions
+// of an earlier run, or NULL.  It is called on a back end that isn't
+// initialised.  Nothing, unless the back end has something to do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile)
+{
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRWrittenFunction::Kill(void)
+{
+
 }
 
 

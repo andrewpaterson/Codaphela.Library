@@ -199,7 +199,6 @@ protected:
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
 	bool							mbNoFloats;			//No floating point (SetNoFloats).
-	bool							mbMathTables;		//The W65C816's runtime reads MathMult (SetMathTables).
 	bool							mbRuntime;			//The target's runtime units have been added (AddRuntime).
 	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).

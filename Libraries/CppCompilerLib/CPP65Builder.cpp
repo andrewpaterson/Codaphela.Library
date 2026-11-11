@@ -63,7 +63,7 @@ void CCPP65Builder::Init(void)
 	mcLinker.SetRemoveUnused(true);
 	mszErrors.Init();
 	mszWarnings.Init();
-	mcImports.Init(IR65_INLINE_LOOP_INSTRUCTIONS);
+	mcImports.Init(IR_IMPORT_INSTRUCTIONS);
 	mcImports.SetResume(ResumeUnit, this);
 	mpcUnitJobs = NULL;
 	mpcFrameProfile = NULL;
@@ -72,7 +72,6 @@ void CCPP65Builder::Init(void)
 	maszOutsideLibraries.Init();
 	mbLineTable = false;
 	mbNoFloats = false;
-	mbMathTables = true;
 	mbRuntime = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
@@ -291,7 +290,7 @@ void CCPP65Builder::AddRuntime(const char* szLibc65Directory)
 	const char**	paszUnits;
 	size			i;
 
-	paszUnits = mpcTarget->GetRuntimeUnits(mbMathTables);
+	paszUnits = mpcTarget->GetRuntimeUnits(mcOptions.mbMathTables);
 	if (!paszUnits || mbRuntime)
 	{
 		return;
@@ -968,11 +967,11 @@ void CCPP65Builder::SetNoFloats(bool bNoFloats)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetMathTables(bool bMathTables)
 {
-	if (mbRuntime && (mbMathTables != bMathTables))
+	if (mbRuntime && (mcOptions.mbMathTables != bMathTables))
 	{
 		mszErrors.Append("CCPP65Builder::SetMathTables must be called before AddMathTables and AddLibc65.\n");
 	}
-	mbMathTables = bMathTables;
+	mcOptions.mbMathTables = bMathTables;
 }
 
 
@@ -1085,7 +1084,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mbMathTables, &mcOptions);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mcOptions.mbMathTables, &mcOptions);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
@@ -1404,6 +1403,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	CArrayTemplate<CHeaderFiles>	acHeaderFiles;
 	SCPP65IncludeDirectory*			psInclude;
 	CConfig							cConfig;
+	CCPPCompileOptions				cOptions;
 	size							uiIncludes;
 	size							i;
 	bool							bResult;
@@ -1423,10 +1423,10 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	}
 
 	cConfig.Init((char*)GetCPPTarget(eTarget)->GetConfigurationName());
-	if (!pcOptions)
-	{
-		pcOptions = GetDefaultCPPCompileOptions();
-	}
+	//The options given, or the defaults, with the maths tables as bMathTables says.
+	cOptions = pcOptions ? *pcOptions : *GetDefaultCPPCompileOptions();
+	cOptions.mbMathTables = bMathTables;
+	pcOptions = &cOptions;
 	GetCPPTarget(eTarget)->AddDefines(&cConfig, pcOptions->mbAssemblyUnits);
 	cFile.Init((char*)szName, NULL, false);
 	cFile.SetContents((char*)szSource);
@@ -1460,7 +1460,6 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cGenerator.SetListing(bListing);
 	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
 	cGenerator.SetNoFloats(bNoFloats);
-	cGenerator.SetMathTables(bMathTables);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -1554,43 +1553,12 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Assembles pcSource into pcObject with the target's assembler.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile)
 {
-	CAsm65C64Assembler		cAssembler;
-	CAsm65816Assembler	cAssembler816;
-	bool				bResult;
-
-	if (mpcTarget->GetTarget() == CPPT_W65C816)
-	{
-		cAssembler816.Init();
-		if (szDirectory)
-		{
-			cAssembler816.SetDirectory(szDirectory);
-		}
-		if (szSourceFile)
-		{
-			cAssembler816.SetSourceFile(szSourceFile);
-		}
-		bResult = cAssembler816.AssembleObject(pcSource, pcObject);
-		pszErrors->Append(cAssembler816.GetErrors());
-		cAssembler816.Kill();
-		return bResult;
-	}
-	cAssembler.Init();
-	if (szDirectory)
-	{
-		cAssembler.SetDirectory(szDirectory);
-	}
-	if (szSourceFile)
-	{
-		cAssembler.SetSourceFile(szSourceFile);
-	}
-	bResult = cAssembler.AssembleObject(pcSource, pcObject);
-	pszErrors->Append(cAssembler.GetErrors());
-	cAssembler.Kill();
-	return bResult;
+	return mpcTarget->Assemble(pcSource, pcObject, szDirectory, szSourceFile, pszErrors);
 }
 
 
@@ -1842,8 +1810,7 @@ CJobs* CCPP65Builder::UnitJobs(CSerialJobs* pcSerialJobs)
 	}
 
 	//Built before the units, which only look them up.
-	CIR816Backend::IndexMnemonics();
-	CAsm65816Assembler::IndexMnemonics();
+	mpcTarget->PrepareForThreads();
 	return mpcJobs;
 }
 
@@ -2228,7 +2195,6 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cGenerator.SetListing(!mszListings.Empty());
 	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
 	psCompile->cGenerator.SetNoFloats(mbNoFloats && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
-	psCompile->cGenerator.SetMathTables(mbMathTables);
 }
 
 

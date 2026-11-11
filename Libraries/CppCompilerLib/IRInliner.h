@@ -68,6 +68,19 @@ public:
 //W65C816's CIR816Backend::Forwarder), it takes only a callee no bigger than itself (IR_INLINE_THUNK_INSTRUCTIONS),
 //unless the call is hot or passes a constant the callee compares: inlining another would save only the jump, and
 //copy the work the layers share into each.
+//How much the inliner may inline (CCPPTarget::GetInlineLimits): the most instructions a function inlined may have,
+//or where the call is in a loop, or where it is hot by a profile, the most calls inlined into one function at a
+//time, and whether a function that only passes a call on is a jump (SetForwardersJump).
+struct SIRInlineLimits
+{
+	size	uiInstructions;
+	size	uiLoopInstructions;
+	size	uiHotInstructions;
+	size	uiCalls;
+	bool	bForwardersJump;
+};
+
+
 class CIRInliner
 {
 protected:

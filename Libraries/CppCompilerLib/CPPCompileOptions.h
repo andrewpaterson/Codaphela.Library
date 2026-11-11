@@ -41,7 +41,7 @@ enum ECPPPrefer
 class CCPPCompileOptions
 {
 public:
-	ECPPPrefer	mePrefer;				//Speed or size.
+	ECPPPrefer	mePrefer;				//Speed or size: how big a function is inlined (CCPPTarget::GetInlineLimits) and how many bytes memcpy copies in place.
 	bool		mbOptimise;				//The passes over a function's IR run (CIROptimiser).
 	bool		mbInline;				//Small functions are inlined across the unit and the project (CIRInliner).
 	bool		mbPrintIR;				//Each function's IR is printed to stderr, for debugging.
@@ -50,6 +50,7 @@ public:
 	bool		mbAssemblyUnits;		//The target's assembly beside a unit (X816.asm) is built in place of the C++ it replaces.
 	bool		mbSoftFloatInFrame;		//The W65C816's soft float routines take their operands in the caller's frame: the assembly ones do.
 	bool		mbRegisterArguments;	//The W65C816 passes a call's first arguments in registers.
+	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);

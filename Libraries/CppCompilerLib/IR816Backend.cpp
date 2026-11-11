@@ -34,9 +34,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
+void CIR816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena)
 {
-	CIRBackend::Init(pcModule, piLabels, CIR816Backend::GetScratch());
+	//The working arrays and strings are in the arena, which is this thread's scratch until Kill.
+	mpcArena = pcArena;
+	mpcOldScratch = pcArena ? SetScratch(pcArena) : NULL;
+	InitBackend(pcModule, piLabels, CIR816Backend::GetScratch());
 	maiOffsets.Init(CIR816Backend::GetScratch());
 	masCopies.Init(CIR816Backend::GetScratch());
 	masCopySteps.Init(CIR816Backend::GetScratch());
@@ -59,7 +62,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	miFused = 0;
 	mpsWritten = NULL;
 	mpsDivided = NULL;
-	mbMathTables = true;
+	mbMathTables = mpcOptions->mbMathTables;
 }
 
 
@@ -87,6 +90,17 @@ void CIR816Backend::Kill(void)
 	mcBackendPasses.Kill();
 	mcDominators.Kill();
 	CIRBackend::Kill();
+
+	//The thread's scratch is what it was, and the arena is emptied (unless the thread had it already: then it is
+	//whoever gave it to the thread who empties it).
+	if (mpcArena)
+	{
+		SetScratch(mpcOldScratch);
+		if (mpcOldScratch != mpcArena)
+		{
+			mpcArena->GetScratchPad()->Recycle((lsize)IR816_ARENA_KEPT);
+		}
+	}
 }
 
 
@@ -450,6 +464,63 @@ void CIR816Backend::SetMathTables(bool bMathTables)
 void CIR816Backend::GetFrame(SIR816Frame* psFrame)
 {
 	*psFrame = msFrame;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's frame, for FinishFunction.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRWrittenFunction* CIR816Backend::TakeWritten(void)
+{
+	CIR816Written*	pcWritten;
+
+	pcWritten = NewMalloc<CIR816Written>();
+	pcWritten->msFrame = msFrame;
+	return pcWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's frame is put on a page if that is worth it, now that the
+// unit's calls are known (AlignFrame; a listing's source markers are taken
+// out while it looks at the code).  A function nothing was kept for has an
+// empty frame.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile)
+{
+	CIRSourceMarkers	cMarkers;
+	SIR816Frame			sFrame;
+
+	if (pcWritten)
+	{
+		sFrame = ((CIR816Written*)pcWritten)->msFrame;
+	}
+	else
+	{
+		memset(&sFrame, 0, sizeof(sFrame));
+	}
+	cMarkers.Init();
+	cMarkers.Take(pszCode, 0);
+	AlignFrame(pszCode, szLabel, &sFrame, bRecursive, pcProfile);
+	cMarkers.Put(pszCode, 0);
+	cMarkers.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The options, and from them whether the code may read the maths tables
+// (SetMathTables changes it for this back end alone).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SetOptions(CCPPCompileOptions* pcOptions)
+{
+	CIRBackend::SetOptions(pcOptions);
+	mbMathTables = mpcOptions->mbMathTables;
 }
 
 

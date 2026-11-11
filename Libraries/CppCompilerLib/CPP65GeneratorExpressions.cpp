@@ -463,7 +463,8 @@ char* CCPP65Generator::BuiltinName(int64 lliName, int* piLength)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a call to lliName is memcpy (or __builtin_memcpy) with a constant count
-// of 1 to CPP65_INLINE_MEMCPY bytes, which InlineMemcpy copies in place.
+// of 1 to CPP65_INLINE_MEMCPY bytes (CPP65_INLINE_MEMCPY_SIZE preferring size), which InlineMemcpy copies in
+// place.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
@@ -481,7 +482,7 @@ bool CCPP65Generator::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
 	{
 		return false;
 	}
-	return Constant(papcArguments->GetPtr(2), &lliBytes) && (lliBytes > 0) && (lliBytes <= CPP65_INLINE_MEMCPY);
+	return Constant(papcArguments->GetPtr(2), &lliBytes) && (lliBytes > 0) && (lliBytes <= (mpcOptions->PrefersSize() ? CPP65_INLINE_MEMCPY_SIZE : CPP65_INLINE_MEMCPY));
 }
 
 

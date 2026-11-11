@@ -24,7 +24,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRInliner.h"
 #include "IRInterprocedural.h"
 #include "IROptimiser.h"
-#include "IR816Backend.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPNameCharacters.h"
 #include "FNVHash.h"
@@ -59,26 +58,22 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 	CChars				szCode;
 	SCPP65IRWritten*	psWritten;
 	size				ui;
+	SIRInlineLimits		sLimits;
+	CIRWrittenFunction*	pcWritten;
 	int					iRound;
 	bool				bResult;
 
 	//The inliner's and optimiser's instructions have no source of their own.
 	mcModule.muiSource = 0;
-	if (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816)
-	{
-		cInliner.Init(&mcModule, IR816_INLINE_INSTRUCTIONS, IR816_INLINE_LOOP_INSTRUCTIONS, IR816_INLINE_CALLS);
-		cInliner.SetForwardersJump(true);
-	}
-	else
-	{
-		cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
-	}
+	mpcGenerator->mpcTarget->GetInlineLimits(&sLimits, mpcGenerator->mpcOptions);
+	cInliner.Init(&mcModule, sLimits.uiInstructions, sLimits.uiLoopInstructions, sLimits.uiCalls);
+	cInliner.SetForwardersJump(sLimits.bForwardersJump);
 	//Other units' functions are found before the unit's turn, and checked in it (CIRImports::Missed).
 	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing, &maszNotImported);
 	mpcProfiledCaller = NULL;
 	if (InliningProfile())
 	{
-		cInliner.SetProfile(this, (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816) ? IR816_INLINE_HOT_INSTRUCTIONS : IR65_INLINE_HOT_INSTRUCTIONS);
+		cInliner.SetProfile(this, sLimits.uiHotInstructions);
 	}
 	cInterprocedural.Init(&mcModule, this);
 	if (mpcGenerator->mpcOptions->mbInline && mpcGenerator->mpcOptions->mbOptimise)
@@ -127,11 +122,14 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		if (bResult)
 		{
 			mcModule.Begin(CPPCP_BackEnd);
-			bResult = GenerateCode(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode, &psWritten->sFrame);
+			bResult = GenerateCode(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode, &pcWritten);
 			mcModule.End(CPPCP_BackEnd);
 		}
 		if (bResult)
 		{
+			//What the back end kept is the new code's (a function that fails keeps its old code, and what was kept for it).
+			FreeWritten(psWritten);
+			psWritten->pcBackend = pcWritten;
 			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 		}
 		else
@@ -159,7 +157,6 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	CChars				szCode;
 	SCPP65IRWritten*	psWritten;
 	size				ui;
-	CIRSourceMarkers	cMarkers;
 
 	//In its turn the unit has found what it would have, as if the units were compiled one after another, unless a
 	//function it didn't find was exported since.
@@ -186,11 +183,10 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		mpcGenerator->mpcImports->EndTurn(mpcGenerator->muiImportsTurn);
 	}
 
-	//Each function's code is finished: on the W65C816 frames worth it are put on a page, now that the unit's calls
-	//are known (CIR816Backend::AlignFrame; a listing's source markers are taken out while it looks at the code), then
-	//the source markers become comments or .line directives.  The generator's code keeps the markers (the code stays
+	//Each function's code is finished: the back end has a last look at it now that the unit's calls are known
+	//(CIRBackend::FinishFunction: the W65C816's frames worth it are put on a page), then the source markers become
+	//comments or .line directives.  The generator's code keeps the markers (the code stays
 	//in the spill store until the unit is assembled, CCPP65Assembly).
-	cMarkers.Init();
 	mpcGenerator->mauiCodePieces.Kill();
 	mpcGenerator->mauiCodePieces.Init();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
@@ -198,12 +194,11 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		psWritten = masWritten.Get(ui);
 		szCode.Init();
 		CCPP65Assembly::GetCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui, psWritten->uiPieces, &szCode);
-		if (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816)
+		if (mpcBackend)
 		{
-			cMarkers.Take(&szCode, 0);
-			CIR816Backend::AlignFrame(&szCode, psWritten->szLabel.Text(), &psWritten->sFrame, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
-			cMarkers.Put(&szCode, 0);
+			mpcBackend->FinishFunction(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
 		}
+		FreeWritten(psWritten);
 		SourceComments(&szCode, mpcGenerator->mbListing, mpcGenerator->mbLineTable);
 		if (mpcGenerator->mbLineTable)
 		{
@@ -223,7 +218,6 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		mpcGenerator->mauiCodePieces.Add(&psWritten->uiPieces);
 		szCode.Kill();
 	}
-	cMarkers.Kill();
 	mbCodeGiven = true;
 
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
@@ -255,7 +249,7 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	psWritten->pcFunction = pcCopy;
 	psWritten->szLabel.Init(szName.Text());
 	psWritten->uiPieces = 0;
-	memset(&psWritten->sFrame, 0, sizeof(psWritten->sFrame));
+	psWritten->pcBackend = NULL;
 	psWritten->uiFingerprint = 0;
 
 	szMarker.Init(IR65_FRONT_END_MARKER);
@@ -395,13 +389,13 @@ uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The profile the inliner is guided by: the generator's, on the W65C816
-// (CCPP65Builder::SetFrameProfile).  NULL for none.
+// The profile the inliner is guided by: the generator's, for a target that
+// is guided by one (CCPPTarget::UsesProfile).  NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
 CAsm65816Profile* CCPP65IRFrontEnd::InliningProfile(void)
 {
-	return (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816) ? mpcGenerator->mpcFrameProfile : NULL;
+	return mpcGenerator->mpcTarget->UsesProfile() ? mpcGenerator->mpcFrameProfile : NULL;
 }
 
 

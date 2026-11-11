@@ -40,6 +40,11 @@ public:
 	void		AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szFunction) override;
 	void		AppendVirtualCallThunk(CChars* pszDest, int iVtableOffset, int iEntryOffset) override;
 
+	void		GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions) override;
+	void		ConfigureOptimiser(CIROptimiser* pcOptimiser) override;
+	CIRBackend*	NewBackend(void) override;
+	bool		Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors) override;
+
 protected:
 	void		AppendDivideSigned(CChars* pszCode, const char* szName, int iBytes);
 };

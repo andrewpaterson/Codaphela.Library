@@ -173,13 +173,13 @@ see this source is this one", so extern "C" functions take them too):
 - AlignFrame aligns register functions too: it pushes the register words as the prologue
   does, then copies them (those read) to the frame's top with the pushed arguments.  Not
   for a frame past the page.
-- CIR816Backend::SetRegisterArguments(false) (TestProject65's TEST_PROJECT65_STACK_ARGUMENTS)
+- CCPPCompileOptions::mbRegisterArguments false (TestProject65's TEST_PROJECT65_STACK_ARGUMENTS)
   pushes every argument, to compare.
 - Cost: a register word is a load by the caller and a push by the callee (8 cycles, a pei
   is 6), but the caller removes nothing after the call (10 to 13 cycles).
 - The compiler's float instructions don't call the soft float by its C functions' rule: with
-  softfloat816.asm (CCPP65Generator::SetW65C816Assembly sets CIR816Backend::
-  SetSoftFloatInFrame) they call its frame operand entries (name.dp: FrameOperandCall).
+  softfloat816.asm (CCPPCompileOptions::SetAssemblyUnits sets mbSoftFloatInFrame with
+  it) they call its frame operand entries (name.dp: FrameOperandCall).
   The operands stay in the caller's frame and their places (from D) are in X and Y (a
   constant or a value without a place is copied to the scratch bytes first, a narrow
   integer is extended there); a 64 bit result's place is in A and the routine writes it

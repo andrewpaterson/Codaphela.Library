@@ -36,6 +36,12 @@ enum ECPPTarget
 class CConfig;
 class CChars;
 class CArrayChars;
+class CIRBackend;
+class CIROptimiser;
+class CCPPCompileOptions;
+class CAsm65Source;
+class CAsm65Object;
+struct SIRInlineLimits;
 
 
 //What a target writes its runtime routines through (CCPPTarget::AppendRuntime): the unit's code, as the generator has
@@ -81,7 +87,15 @@ public:
 	virtual const char*	GetCountRoutine(bool bLeading, int iBytes);		//The runtime routine that counts an integer's leading or trailing zeros, or NULL.
 	virtual const char*	GetCountTable(bool bLeading);	//The runtime's table of each byte's leading or trailing zeros, or NULL.
 
+	//The IR: how much is inlined, the optimiser's settings and the back end.
+	virtual void		GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions);
+	virtual void		ConfigureOptimiser(CIROptimiser* pcOptimiser);
+	virtual bool		UsesProfile(void);				//The inliner and the optimiser are guided by a measured run's profile when there is one.
+	virtual CIRBackend*	NewBackend(void);				//A back end for a unit, the caller's to free, or NULL for a target nothing is generated for.
+	virtual void		PrepareForThreads(void);		//What the back end and the assembler make when first needed is made, before units are compiled at the same time.
+
 	//What a program is built with.
+	virtual bool		Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors);
 	virtual bool		InlinesAcrossUnits(void);		//Units import each other's small functions, in turns, and may be compiled again.
 	virtual bool		HasAssemblyUnits(void);			//A unit X.cpp may have the target's assembly beside it.
 	virtual const char*	GetAssemblyUnitSuffix(void);	//What that unit is called after X: "816.asm".

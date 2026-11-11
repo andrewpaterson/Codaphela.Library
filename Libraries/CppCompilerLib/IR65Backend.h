@@ -207,10 +207,10 @@ protected:
 	CIRBackendPasses		mcBackendPasses;
 
 public:
-	void				Init(CIRModule* pcModule, int* piLabels);
-	void				Kill(void);
+	void				Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) override;
+	void				Kill(void) override;
 
-	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels);
 
 protected:

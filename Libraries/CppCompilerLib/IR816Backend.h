@@ -22,6 +22,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __I_R_816_BACKEND_H__
 #include "BaseLib/ArrayChars.h"
 #include "Assembler65Lib/Asm65816Profile.h"
+#include "BaseLib/Numbers.h"
+#include "BaseLib/ScratchPadAllocator.h"
 #include "IRBackend.h"
 #include "IRBackendPasses.h"
 #include "IRDominators.h"
@@ -113,6 +115,18 @@ struct SIR816Frame
 };
 
 
+//What the W65C816 back end keeps about a function it wrote: its frame, for AlignFrame.
+class CIR816Written : public CIRWrittenFunction
+{
+public:
+	SIR816Frame		msFrame;
+};
+
+
+//How much of its arena (Init's) the back end leaves in it from one function to the next.
+#define IR816_ARENA_KEPT	(1 MB)
+
+
 //Writes W65C816 assembly (Assembler65816Syntax.txt) for IR functions, without optimising (W65C816.txt step 4).
 //
 //The direct page is the frame: the prologue saves D, makes room on the stack and points D at it, so every
@@ -167,18 +181,23 @@ protected:
 	SIRInstruction*			mpsDivided;			//The last udiv or sdiv that called a divide routine (RemainderLeft).
 	SIRInstruction*			mpsWritten;			//The instruction GenerateBody wrote last in the block, NULL at its start or after a fused one.
 	bool					mbMathTables;		//An i8 multiply reads MathMult in place (SetMathTables), else it calls R816_Mul16.
+	CScratchPadAllocator*	mpcArena;			//Init's arena, this thread's scratch (SetScratch) until Kill, or NULL...
+	CMallocator*			mpcOldScratch;		//...and what the thread's scratch was before.
 
 public:
-	void			Init(CIRModule* pcModule, int* piLabels);
+	void			Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) override;
+	void			SetOptions(CCPPCompileOptions* pcOptions) override;
 
 	static void		IndexMnemonics(void);
 	static CMallocator*	SetScratch(CMallocator* pcScratch);
 	static CMallocator*	GetScratch(void);
 	void			SetMathTables(bool bMathTables);
 	void			GetFrame(SIR816Frame* psFrame);
+	CIRWrittenFunction*	TakeWritten(void) override;
+	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile) override;
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
-	void			Kill(void);
-	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	void			Kill(void) override;
+	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel, size uiStart);
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);

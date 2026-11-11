@@ -21,9 +21,24 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayChars.h"
 #include "Config.h"
+#include "BaseLib/ConstructorCall.h"
+#include "Assembler65Lib/Asm65816Assembler.h"
 #include "CPPErrors.h"
+#include "CPPCompileOptions.h"
+#include "IRInliner.h"
+#include "IROptimiser.h"
 #include "IR816Backend.h"
 #include "CPPTargetW65C816.h"
+
+
+//A call costs the W65C816 far more than the 65C64 (about 70 cycles with its frame), so more is inlined (measured
+//2026-10-31, TestBaseLib65 and TestStandardLib65: 16/32/24 to 32/64/32 -3.3% and -5.0%, then to these -2.0% and
+//-3.5%; 96 calls ran one out of bank 0's stack).
+#define CPP816_INLINE_INSTRUCTIONS		64		//The most instructions a function inlined may have...
+#define CPP816_INLINE_LOOP_INSTRUCTIONS	128		//...or where the call is in a loop...
+#define CPP816_INLINE_HOT_INSTRUCTIONS	192		//...or, with a profile, where the call is hot: more than in a loop, or a profile would add nothing there...
+#define CPP816_INLINE_CALLS				64		//...and the most calls inlined into one function at a time.
+#define CPP816_INLINE_SIZE_INSTRUCTIONS	4		//Preferring size: the most instructions a function inlined may have, wherever its call is.
 
 
 //The W65C816's thunks, which work a word at a time.  A this adjusting thunk (AppendAdjustThunk) has its caller's
@@ -550,5 +565,106 @@ void CCPPTargetW65C816::AppendVirtualCallThunk(CChars* pszDest, int iVtableOffse
 	pszDest->Append("\t\ttcd\n");
 	pszDest->Append("\t\trtl\n");
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Preferring size, only a function no bigger than its call is inlined: an
+// accessor, or one that passes a call on.  A function that only passes
+// a call on is a jump either way.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTargetW65C816::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions)
+{
+	psLimits->uiInstructions = CPP816_INLINE_INSTRUCTIONS;
+	psLimits->uiLoopInstructions = CPP816_INLINE_LOOP_INSTRUCTIONS;
+	psLimits->uiHotInstructions = CPP816_INLINE_HOT_INSTRUCTIONS;
+	psLimits->uiCalls = CPP816_INLINE_CALLS;
+	psLimits->bForwardersJump = true;
+	if (pcOptions->PrefersSize())
+	{
+		psLimits->uiInstructions = CPP816_INLINE_SIZE_INSTRUCTIONS;
+		psLimits->uiLoopInstructions = CPP816_INLINE_SIZE_INSTRUCTIONS;
+		psLimits->uiHotInstructions = CPP816_INLINE_SIZE_INSTRUCTIONS;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The W65C816 has no indexed addresses, so they are not made for it; its
+// multiplies and counters are narrowed, divisions by constants are multiplies
+// and signed indices are biased.  Its divide routines leave the remainder at
+// D + 5.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTargetW65C816::ConfigureOptimiser(CIROptimiser* pcOptimiser)
+{
+	pcOptimiser->SetIndexedAddresses(false);
+	pcOptimiser->SetNarrowMultiplies(true);
+	pcOptimiser->SetConstantDivisions(true);
+	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32 | IR_DIVIDE_REMAINDERS_64 | IR_DIVIDE_REMAINDERS_SIGNED);
+	pcOptimiser->SetNarrowCounters(true);
+	pcOptimiser->SetBiasedIndices(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The measured functions also say which frames are worth a page.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTargetW65C816::UsesProfile(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBackend* CCPPTargetW65C816::NewBackend(void)
+{
+	return NewMalloc<CIR816Backend>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTargetW65C816::Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors)
+{
+	CAsm65816Assembler	cAssembler;
+	bool				bResult;
+
+	cAssembler.Init();
+	if (szDirectory)
+	{
+		cAssembler.SetDirectory(szDirectory);
+	}
+	if (szSourceFile)
+	{
+		cAssembler.SetSourceFile(szSourceFile);
+	}
+	bResult = cAssembler.AssembleObject(pcSource, pcObject);
+	pszErrors->Append(cAssembler.GetErrors());
+	cAssembler.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The back end's and the assembler's indexes of their mnemonics, which the
+// units only look up.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTargetW65C816::PrepareForThreads(void)
+{
+	CIR816Backend::IndexMnemonics();
+	CAsm65816Assembler::IndexMnemonics();
 }
 

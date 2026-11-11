@@ -44,7 +44,13 @@ public:
 	bool		HasDecimalMode(void) override;
 	const char*	GetCountRoutine(bool bLeading, int iBytes) override;
 	const char*	GetCountTable(bool bLeading) override;
+	void		GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions) override;
+	void		ConfigureOptimiser(CIROptimiser* pcOptimiser) override;
+	bool		UsesProfile(void) override;
+	CIRBackend*	NewBackend(void) override;
+	void		PrepareForThreads(void) override;
 	bool		InlinesAcrossUnits(void) override;
+	bool		Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors) override;
 	const char*	GetAssemblyUnitSuffix(void) override;
 	const char**	GetLibc65Units(void) override;
 	const char**	GetRuntimeUnits(bool bMathTables) override;

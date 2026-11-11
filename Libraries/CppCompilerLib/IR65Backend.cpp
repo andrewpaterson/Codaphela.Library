@@ -30,9 +30,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // soft float routines' labels the code calls are GetRuntime's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Init(CIRModule* pcModule, int* piLabels)
+void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena)
 {
-	CIRBackend::Init(pcModule, piLabels);
+	InitBackend(pcModule, piLabels, NULL);
 	mcDominators.Init();
 	mcLiveness.Init();
 	masPlaces.Init();
