@@ -76,6 +76,8 @@ enum EThemeMetric
 	TM_GoToRowHeight,			//A Go To dialog's result rows.
 	TM_GoToIconWidth,			//The column of a Go To dialog's icons.
 	TM_GoToGap,					//Between a Go To dialog's field and results, and after a result's name.
+	TM_FindWidth,				//A Find in Files dialog as it opens; it can be resized to half this.
+	TM_FindHeight,
 	TM_DockFrameBorder,			//A floating window's edge, dragged to resize it.
 	TM_DockGuideSize,			//A docking guide's square.
 	TM_DockGuideStep,			//From one guide of a compass to the next.

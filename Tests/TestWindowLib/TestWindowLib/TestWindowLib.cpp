@@ -55,6 +55,7 @@ void TestComboBox(void);
 void TestDialog(void);
 void TestFileChooser(void);
 void TestGoToDialog(void);
+void TestFindInFilesDialog(void);
 void TestCaretBlink(void);
 void TestSoundMixer(void);
 void TestWindowRedraw(void);
@@ -118,6 +119,7 @@ void RunWindowTests(void)
 	TestDialog();
 	TestFileChooser();
 	TestGoToDialog();
+	TestFindInFilesDialog();
 	TestCaretBlink();
 	TestSoundMixer();
 	TestWindowRedraw();

@@ -348,6 +348,9 @@
     <ClInclude Include="GoToDialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="FindInFilesDialog.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="KeyCaptureField.h">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClInclude>
@@ -723,6 +726,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="GoToDialog.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="FindInFilesDialog.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="KeyCaptureField.cpp">

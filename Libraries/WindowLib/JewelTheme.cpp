@@ -79,6 +79,8 @@ static int32	gaiJewelThemeMetrics[] =
 	22,		//TM_GoToRowHeight
 	22,		//TM_GoToIconWidth
 	8,		//TM_GoToGap
+	900,	//TM_FindWidth
+	680,	//TM_FindHeight
 	4,		//TM_DockFrameBorder
 	30,		//TM_DockGuideSize
 	32,		//TM_DockGuideStep
@@ -132,6 +134,7 @@ static ARGB32	gasJewelThemeColours[] =
 	JEWEL_SELECTION,		//TC_TextSelection
 	JEWEL_ICON,				//TC_Caret
 	JEWEL_CARET_LINE,		//TC_CaretLine
+	JEWEL_SEARCH_MATCH,		//TC_SearchMatch
 	JEWEL_SELECTION,		//TC_ListSelected
 	JEWEL_HOVER,			//TC_ListHover
 	JEWEL_EDITOR,			//TC_TabBar

@@ -38,6 +38,7 @@ static const char*	gaszThemeMetricNames[] =
 	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent", "FileChooserWidth", "FileChooserHeight",
 	"FileChooserMinWidth", "FileChooserMinHeight", "FileChooserRowHeight", "FileChooserIconWidth", "FileChooserGap",
 	"GoToWidth", "GoToHeight", "GoToRowHeight", "GoToIconWidth", "GoToGap",
+	"FindWidth", "FindHeight",
 	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip",
 	"DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd",
 	"DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth",
@@ -62,7 +63,7 @@ static const char*	gaszThemeColourNames[] =
 {
 	"Text", "DimText", "BrightText", "Icon", "Panel", "Editor", "Separator", "Border", "BorderHover", "Accent",
 	"AccentHover", "Success", "Failure",
-	"TextSelection", "Caret", "CaretLine", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
+	"TextSelection", "Caret", "CaretLine", "SearchMatch", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
 	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
 	"DialogDivider", "LineNumber", "LineNumberActive", "Gutter", "DiffInsertedLines", "DiffDeletedLines",
 	"DiffModifiedLines", "DiffInsertedChanges", "DiffDeletedChanges", "DiffModifiedChanges", "DiffDivider",
