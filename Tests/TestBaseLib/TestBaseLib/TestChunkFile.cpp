@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/ChunkFile.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/MemoryFile.h"
@@ -543,6 +544,59 @@ void TestChunkFileUserID(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A chunk file that can't be created, or is closed with a chunk still
+// begun, fails and frees its chunks (ASan builds find any left behind).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChunkFileCloseFailures(void)
+{
+	CChunkFile	cChunkFile;
+	CFileUtil	cFileUtil;
+	SLogConfig	sLogConfig;
+
+	cFileUtil.MakeDir("Output");
+
+	//Somewhere it can't be created.
+	cChunkFile.Init(DiskFile("Output" _FS_ "NoSuchDirectory" _FS_ "ChunkFile.bin"));
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cChunkFile.WriteOpen());
+	gcLogger.SetConfig(&sLogConfig);
+	AssertFalse(cChunkFile.IsOpen());
+	cChunkFile.Kill();
+
+	//A chunk begun and not ended.
+	cFileUtil.Delete("Output" _FS_ "Unfinished.bin");
+	cChunkFile.Init(DiskFile("Output" _FS_ "Unfinished.bin"));
+	AssertTrue(cChunkFile.WriteOpen());
+	AssertTrue(cChunkFile.WriteChunkBegin());
+	AssertTrue(cChunkFile.WriteChunkBegin());
+	AssertTrue(cChunkFile.WriteChunkEnd("Inner"));
+	AssertTrue(cChunkFile.WriteChunkBegin());
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cChunkFile.WriteClose());
+	gcLogger.SetConfig(&sLogConfig);
+	AssertFalse(cChunkFile.IsOpen());
+	cChunkFile.Kill();
+
+	//The same file written properly.
+	cChunkFile.Init(DiskFile("Output" _FS_ "Unfinished.bin"));
+	AssertTrue(cChunkFile.WriteOpen());
+	AssertTrue(cChunkFile.WriteChunkBegin());
+	AssertTrue(cChunkFile.WriteChunkEnd("Outer"));
+	AssertTrue(cChunkFile.WriteClose());
+	cChunkFile.Kill();
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "Unfinished.bin"));
+	AssertTrue(cChunkFile.ReadOpen());
+	AssertLSize(0, cChunkFile.FindFirstChunkWithName("Outer"));
+	AssertTrue(cChunkFile.ReadClose());
+	cChunkFile.Kill();
+	cFileUtil.Delete("Output" _FS_ "Unfinished.bin");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChunkFile(void)
@@ -559,6 +613,7 @@ void TestChunkFile(void)
 	TestChunkFileHashing();
 	TestChunkFileIndexNames();
 	TestChunkFileManyChunks();
+	TestChunkFileCloseFailures();
 
 	MemoryKill();
 	TestStatistics();

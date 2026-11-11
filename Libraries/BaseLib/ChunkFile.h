@@ -94,6 +94,7 @@ protected:
 	bool		WriteChunkEnd(chunkName iChunkName);
 	bool		WriteBasic(const void* pvSource, lsize uiSize);
 	chunkName	GetTailChunkNameIndex(lsize iChunkNum);
+	void		KillChunkStack(void);
 };
 
 

@@ -97,15 +97,24 @@ bool CChunkFile::WriteOpen(chunkName iUserID)
 
 	if (!CFileBasic::Open(EFM_Write_Replace))
 	{
+		KillChunkStack();
 		return gcLogger.Error2(__METHOD__, " Could not create chunk file [", GetFilename(), "].", NULL);
 	}
 
 	if (!WriteBasic(&msHeader, sizeof(SChunkFileHeader)))
 	{
+		CFileBasic::Close();
+		KillChunkStack();
 		return gcLogger.Error2(__METHOD__, " Could not write chunk file [", GetFilename(), "] header.", NULL);
 	}
 
-	return WriteChunkBegin();
+	if (!WriteChunkBegin())
+	{
+		CFileBasic::Close();
+		KillChunkStack();
+		return false;
+	}
+	return true;
 }
 
 
@@ -123,30 +132,51 @@ bool CChunkFile::WriteBasic(const void* pvSource, lsize uiSize)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Only the file's own chunk can still be open.  The file is closed and the
+// chunks freed whether or not it could be finished.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::WriteClose(void)
 {
-	ReturnOnFalse(WriteChunkEnd(CFN_Chunk));
-	if (mpcHashFile)
-	{
-		mpcHashFile->ResetHash();
-	}
-	ReturnOnFalse(WriteChunkNames());
-	if (mpcHashFile)
-	{
-		mpcHashFile->StopHashing();
-		mpcHashFile->CopyDigestToDest(msHeader.macMD5Hash);
-	}
-	CFileBasic::Seek(0);
-	ReturnOnFalse(CFileBasic::WriteData(&msHeader, sizeof(SChunkFileHeader)));
-	CFileBasic::Seek(0, EFSO_END);
-	ReturnOnFalse(CFileBasic::Close());
+	bool	bResult;
 
-	mcChunkStack.Kill();
-	mmsziNames.Kill();
-	return true;
+	bResult = true;
+	if (mcChunkStack.NumElements() != 1)
+	{
+		bResult = gcLogger.Error2(__METHOD__, " Chunk file [", GetFilename(), "] has a chunk that was begun and not ended.", NULL);
+	}
+
+	if (bResult)
+	{
+		bResult = WriteChunkEnd(CFN_Chunk);
+	}
+	if (bResult)
+	{
+		if (mpcHashFile)
+		{
+			mpcHashFile->ResetHash();
+		}
+		bResult = WriteChunkNames();
+	}
+	if (bResult)
+	{
+		if (mpcHashFile)
+		{
+			mpcHashFile->StopHashing();
+			mpcHashFile->CopyDigestToDest(msHeader.macMD5Hash);
+		}
+		CFileBasic::Seek(0);
+		bResult = CFileBasic::WriteData(&msHeader, sizeof(SChunkFileHeader));
+		CFileBasic::Seek(0, EFSO_END);
+	}
+
+	if (!CFileBasic::Close())
+	{
+		bResult = false;
+	}
+	KillChunkStack();
+	return bResult;
 }
 
 
@@ -183,8 +213,22 @@ bool CChunkFile::ReadOpen(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadClose(void)
 {
-	size	i;
 	bool	bResult;
+
+	bResult = CFileBasic::Close();
+	KillChunkStack();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Frees the chunks still on the stack (each has its index) and the names.
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CChunkFile::KillChunkStack(void)
+{
+	size	i;
 	size	uiNumElements;
 
 	uiNumElements = mcChunkStack.NumElements();
@@ -192,10 +236,8 @@ bool CChunkFile::ReadClose(void)
 	{
 		mcChunkStack.Get(i)->cChunkIndex.Kill();
 	}
-	bResult = CFileBasic::Close();
 	mcChunkStack.Kill();
 	mmsziNames.Kill();
-	return bResult;
 }
 
 
