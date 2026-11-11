@@ -1576,6 +1576,7 @@ bool CIROptimiser::UnswitchLoops(void)
 
 		//The values the loop defines (with their blocks, and whether each block and its copy can still be reached),
 		//before the blocks the branch no longer reaches go: an unreachable cycle would send the updater round it.
+		mpcModule->Count(CPPCC_Dominators);
 		mcDominators.Compute(mpcFunction);
 		asValues.Init();
 		for (ui = 0; ui < apcBlocks.NumElements(); ui++)

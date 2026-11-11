@@ -868,6 +868,7 @@ bool CIROptimiser::RemoveCommonSubexpressions(void)
 
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(mpcFunction);
 	ClearReplacements();
 	bChanged = false;

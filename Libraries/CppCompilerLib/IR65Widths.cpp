@@ -150,6 +150,18 @@ void CIR65Widths::Optimise(CChars* pszCode, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the last Optimise could read the code it was given (it left the
+// code as it was if not).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Widths::IsLoaded(void)
+{
+	return mcCode.IsLoaded();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bits of each register read before they are written, from the start
 // of each line (live in).
 //

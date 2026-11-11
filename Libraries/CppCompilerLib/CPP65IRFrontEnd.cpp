@@ -93,6 +93,17 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the unit's functions are counted and timed in: the generator's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::SetStatistics(CCPPCompileStatistics* pcStatistics)
+{
+	mcModule.SetStatistics(pcStatistics);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Kill(void)
@@ -303,7 +314,9 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			}
 			szWarnings.Init();
 			cOptimiser.SetWarnings(&szWarnings);
+			mcModule.Begin(CPPCP_Optimise);
 			cOptimiser.Optimise(mpcFunction);
+			mcModule.End(CPPCP_Optimise);
 			cOptimiser.Kill();
 			mpcProfiledCaller = NULL;
 			OptimiserWarnings(&szWarnings);
@@ -320,7 +333,9 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		szCode.Init();
+		mcModule.Begin(CPPCP_BackEnd);
 		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &sFrame);
+		mcModule.End(CPPCP_BackEnd);
 		if (bResult)
 		{
 			//The code waits (with a marker where it goes) for FinishUnit, which inlines across the unit.
@@ -367,6 +382,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		suiWritten++;
+		mcModule.Count(CPPCC_Functions);
 	}
 	return bResult;
 }
@@ -418,6 +434,7 @@ bool CCPP65IRFrontEnd::Unsupported(const char* szFile, int iLine)
 		SetUnsupported(szFile, iLine, NULL);
 	}
 	mbUnsupported = true;
+	mpcGenerator->mpcStatistics->Count(CPPCC_UnsupportedExits);
 	return false;
 }
 

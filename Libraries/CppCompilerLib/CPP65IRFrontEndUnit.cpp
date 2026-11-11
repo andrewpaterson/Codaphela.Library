@@ -126,7 +126,9 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		szCode.Init();
 		if (bResult)
 		{
+			mcModule.Begin(CPPCP_BackEnd);
 			bResult = GenerateCode(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode, &psWritten->sFrame);
+			mcModule.End(CPPCP_BackEnd);
 		}
 		if (bResult)
 		{

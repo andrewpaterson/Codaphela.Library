@@ -198,6 +198,7 @@ public:
 
 	void			Init(CCPP65Generator* pcGenerator);
 	void			Kill(void);
+	void			SetStatistics(CCPPCompileStatistics* pcStatistics);
 
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);

@@ -49,6 +49,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "Config.h"
 #include "CPP65Assembly.h"
 #include "CPP65TypeChecker.h"
+#include "CPPCompileStatistics.h"
 
 
 enum ECPP65Storage
@@ -491,6 +492,8 @@ protected:
 	CScratchPadAllocator	mcBackendScratch;	//The W65C816 back end's working arrays and strings, for one function at a time (CIR816Backend::SetScratch).
 	CArrayLargeTemplate<uint16>	mauiCodePieces;	//Per function written by the IR front end: how many pieces its code is in.
 	CCPPSemanticPass*		mpcSemanticPass;	//Check only: what names resolved to goes here.  NULL when generating.
+	CCPPCompileStatistics*	mpcStatistics;		//What compiling the unit is counted and timed in (SetStatistics): the builder's for the unit...
+	CCPPCompileStatistics	mcOwnStatistics;	//...or the generator's own when none is set.
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
@@ -520,6 +523,8 @@ public:
 	void					SetNoFloats(bool bNoFloats);
 	void					SetMathTables(bool bMathTables);
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
+	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
+	CCPPCompileStatistics*	GetStatistics(void);
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
 	bool					Check(CCPPSemanticPass* pcPass);
@@ -568,6 +573,7 @@ protected:
 	void					GenerateFunction(SCPP65Function* psFunction);
 	bool					GenerateQueued(void);
 	bool					GenerateDefinition(SCPP65Function* psFunction);
+	bool					WriteBody(SCPP65Function* psFunction);
 	void					AddParameters(SCPP65Function* psFunction);
 	void					BeginFunction(SCPP65Function* psFunction);
 	void					EndFunction(SCPP65Function* psFunction);

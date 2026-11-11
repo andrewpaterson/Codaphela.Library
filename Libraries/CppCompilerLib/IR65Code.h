@@ -117,6 +117,7 @@ protected:
 	CArrayIR65CodeLines		masLines;
 	CArrayIR65Widths		masWidths;		//Per line: the widths it starts with.
 	CArrayTemplate<uint8>	mauiReached;	//Per line: 1 if it can run.
+	bool					mbLoaded;		//The last Load could read the code.
 	CArrayTemplate<uint8>	mauiJumpedBack;	//Per line: 1 for a label a branch after it goes to.
 	CArrayTemplate<uint8>	mauiRemoved;	//Per line: 1 for a line a pass took out (now IR65CK_Other).
 	CMapStringInt			mmLabels;		//Label name to line.
@@ -126,6 +127,7 @@ public:
 	void			Kill(void);
 
 	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
+	bool			IsLoaded(void);
 
 	size			NumLines(void) override;
 	EIRCodeFlow		Flow(size uiLine) override;

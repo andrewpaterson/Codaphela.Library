@@ -418,6 +418,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	//The blocks' dominators and loops, for Layout (the loop depths PackTemporaries and AllocateX weigh by) and
 	//GenerateBody (the jumps round loops, AlignFrame's estimate).  Nothing after changes the blocks or their jumps.
 	pcFunction->ComputePredecessors();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(pcFunction);
 	mcLoops.Compute(pcFunction, &mcDominators);
 	FunctionArguments();
@@ -635,6 +636,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	}
 
 	//The passes over the code, decoded once (CIR816Code).
+	mpcModule->Begin(CPPCP_CodePasses);
 	cCode.Init();
 	cCode.Load(mpszOut, uiStart);
 	Peephole(&cCode);
@@ -658,6 +660,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	PeepholeFlowRegisters(&cCode);
 	cCode.Write(mpszOut, uiStart);
 	cCode.Kill();
+	mpcModule->End(CPPCP_CodePasses);
 }
 
 

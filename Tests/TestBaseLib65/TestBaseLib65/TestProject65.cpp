@@ -797,6 +797,8 @@ void TestProject65RunTests(STestProject65* psProject)
 	cMeasure.Init();
 	gpcTestProject65Measure = TestProject65ProfileFile() ? &cMeasure : NULL;
 	cBuilder.SetLineTable(gpcTestProject65Measure != NULL);
+	//TEST_PROJECT65_COMPILE_STATS: the compile is timed by phase, and its counts and times printed.
+	cBuilder.SetTimes(getenv("TEST_PROJECT65_COMPILE_STATS") != NULL);
 	TestProject65AddProjects(psProject, &cBuilder);
 	bCompiled = cBuilder.Compile();
 	//The errors are printed (and flushed) before the assert, which breaks before stdout is written.
@@ -813,6 +815,11 @@ void TestProject65RunTests(STestProject65* psProject)
 		//TEST_PROJECT65_COMPILE_STATS: the W65C816 units generated again for a missed import, and compiled again.
 		printf("%d imports stale, %d missed, %d compiled again; headers: %d kept, %d replayed (%d tokens); lazy declarations: %d skipped, %d loaded (%d read)\n", (int)cBuilder.NumImportsStale(), (int)cBuilder.NumImportsMissed(), (int)cBuilder.NumCompiledAgain(),
 			(int)cBuilder.GetHeaderCache()->NumHeaders(), (int)cBuilder.GetHeaderCache()->NumHits(), (int)cBuilder.GetHeaderCache()->NumReplayedTokens(), (int)cBuilder.NumLazySkipped(), (int)cBuilder.NumLazyLoaded(), (int)cBuilder.NumLazyRead());
+		szText.Init();
+		cBuilder.GetStatistics()->Print(&szText);
+		printf("%s", szText.Text());
+		szText.Kill();
+		fflush(stdout);
 	}
 
 	TestProject65TestDirectory(psProject, &szMainFile);
@@ -879,6 +886,11 @@ void TestProject65RunTests(STestProject65* psProject)
 		else
 		{
 			uiPrograms++;
+			if (getenv("TEST_PROJECT65_CYCLES"))
+			{
+				//With each program's cycles (TestProject65Run), its size: the bytes of its linked image.
+				printf("SIZE %llu %s\n", (unsigned long long)cBuilder.GetOutput()->NumBytes(), aszTests.GetText(i));
+			}
 			bReturned = TestProject65Run(psProject, &cBuilder, &szConsole, &szFaults);
 			iRun = TestProject65ConsoleNumber(&szConsole, "Total Tests Run: ");
 			iFailed = TestProject65ConsoleNumber(&szConsole, "Total Failed: ");

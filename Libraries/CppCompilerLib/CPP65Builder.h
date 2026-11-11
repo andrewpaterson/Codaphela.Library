@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppTokeniser.h"
 #include "CppParser.h"
 #include "CPP65Generator.h"
+#include "CPPCompileStatistics.h"
 
 
 //How many times a W65C816 unit is generated again before its turn, having missed a function exported while it inlined
@@ -134,6 +135,7 @@ struct SCPP65CompiledUnit
 	size				uiLazySkipped;
 	size				uiLazyLoaded;
 	size				uiLazyRead;
+	CCPPCompileStatistics	cStatistics;	//What compiling it was counted and timed in, until it is added to the builder's (FinishUnit).
 	SCPP65UnitCompile*	psCompile;		//While it is being compiled.
 	ECPP65UnitStage		eStage;			//While it waits for its turn.
 };
@@ -219,6 +221,7 @@ protected:
 	size							muiCompiledAgain;		//W65C816 units compiled a second time.
 	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
 	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
+	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
 
 public:
 	void			Init(void);
@@ -230,6 +233,8 @@ public:
 	void			SetLazyHeaders(bool bLazyHeaders);
 	void			SetJobs(CJobs* pcJobs);
 	void			SetUnitReports(bool bUnitReports);
+	void			SetTimes(bool bTimes);
+	CCPPCompileStatistics*	GetStatistics(void);
 	void			TakeUnitReports(CArrayCPP65UnitReports* pasDest);
 	static void		KillUnitReports(CArrayCPP65UnitReports* pasReports);
 	size			NumLazySkipped(void);

@@ -235,8 +235,10 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 	mbRestrict = mpcModule->HasRestrict() || (pcFunction->muiRestrictParameters != 0);
 	miUnswitched = 0;
 	bAny = false;
+	mpcModule->Count(CPPCC_OptimisedFunctions);
 	for (iRound = 0; iRound < IR_OPTIMISE_ROUNDS; iRound++)
 	{
+		mpcModule->Count(CPPCC_OptimiserRounds);
 		bChanged = SimplifyCFG();
 		bChanged |= UnifySlotTypes();
 		bChanged |= SplitSlots();
@@ -641,6 +643,7 @@ void CIROptimiser::ComputeLoops(void)
 {
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(mpcFunction);
 	FindDefinitions();
 	mcLoops.Compute(mpcFunction, &mcDominators);

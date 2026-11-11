@@ -40,6 +40,7 @@ bool CIROptimiser::PromoteSlots(void)
 		return false;
 	}
 	ClearReplacements();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(mpcFunction);
 	mcDominators.ComputeFrontiers();
 	PlacePhis();

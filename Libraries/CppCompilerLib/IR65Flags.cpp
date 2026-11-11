@@ -122,6 +122,18 @@ void CIR65Flags::Optimise(CChars* pszCode, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the last Optimise could read the code it was given (it left the
+// code as it was if not).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Flags::IsLoaded(void)
+{
+	return mcCode.IsLoaded();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the flags hold as each line starts: nothing at the function's
 // label, then what the lines before it leave (nothing where two ways in
 // disagree).

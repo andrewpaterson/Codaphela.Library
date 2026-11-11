@@ -439,6 +439,7 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(mpcFunction);
 	ClearReplacements();
 	FindDefinitions();

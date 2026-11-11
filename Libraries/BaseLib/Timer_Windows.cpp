@@ -42,5 +42,27 @@ int64 GetDebugTickCount()
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The counter's frequency doesn't change while the system runs, so it is
+// asked for once.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 GetDebugMicroseconds()
+{
+	static int64	lliFrequency = 0;
+	LARGE_INTEGER	freq;
+	LARGE_INTEGER	counter;
+
+	if (lliFrequency == 0)
+	{
+		QueryPerformanceFrequency(&freq);
+		lliFrequency = freq.QuadPart;
+	}
+	QueryPerformanceCounter(&counter);
+	return (counter.QuadPart / lliFrequency) * 1000000 + ((counter.QuadPart % lliFrequency) * 1000000) / lliFrequency;
+}
+
+
 #endif // WIN32
 

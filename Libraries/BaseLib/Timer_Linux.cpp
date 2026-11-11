@@ -41,4 +41,17 @@ int64 GetDebugTickCount()
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 GetDebugMicroseconds()
+{
+	struct timespec	sTime;
+
+	clock_gettime(CLOCK_MONOTONIC, &sTime);
+	return (int64)sTime.tv_sec * 1000000 + sTime.tv_nsec / 1000;
+}
+
+
 #endif // LINUX_GNU

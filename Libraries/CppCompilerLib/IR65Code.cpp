@@ -375,6 +375,7 @@ void CIR65Code::Init(void)
 	masLines.Init();
 	masWidths.Init();
 	mauiReached.Init();
+	mbLoaded = false;
 	mauiJumpedBack.Init();
 	mauiRemoved.Init();
 	mmLabels.Init();
@@ -413,11 +414,19 @@ bool CIR65Code::Load(CChars* pszCode, size uiStart, bool bConflicts)
 	szText.Init(pszCode->Text() + uiStart);
 	szText.SplitLines(&maszLines);
 	szText.Kill();
-	if (!Decode())
-	{
-		return false;
-	}
-	return ComputeWidths() || (bConflicts && (masLines.NumElements() > 0));
+	mbLoaded = Decode() && (ComputeWidths() || (bConflicts && (masLines.NumElements() > 0)));
+	return mbLoaded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the last Load could read the code.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::IsLoaded(void)
+{
+	return mbLoaded;
 }
 
 

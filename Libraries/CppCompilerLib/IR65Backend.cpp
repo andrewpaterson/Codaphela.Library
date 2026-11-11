@@ -137,6 +137,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	CopyAddresses();
 	mpcFunction->CountUses(&mauiUses);
 	FindNarrowOnly();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(pcFunction);
 	mcLiveness.Compute(pcFunction, &mcDominators);
 	Layout();
@@ -170,16 +171,32 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	{
 		mcSourceMarkers.Take(pszDest, uiStart);
 	}
+	mpcModule->Begin(CPPCP_CodePasses);
 	Peephole(uiStart);
 	mcFlags.Optimise(pszDest, uiStart);
+	CountLoaded(mcFlags.IsLoaded());
 	mcWidths.Optimise(pszDest, uiStart);
+	CountLoaded(mcWidths.IsLoaded());
 	mcPeephole.Optimise(pszDest, uiStart);
+	CountLoaded(mcPeephole.IsLoaded());
 	IR65PseudoWithoutW(pszDest, uiStart);
+	mpcModule->End(CPPCP_CodePasses);
 	if (mbSourceMarkers)
 	{
 		mcSourceMarkers.Put(pszDest, uiStart);
 	}
 	return mbResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pass over the function's code read it (bLoaded) or left it as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::CountLoaded(bool bLoaded)
+{
+	mpcModule->Count(bLoaded ? CPPCC_Code65Loaded : CPPCC_Code65Refused);
 }
 
 

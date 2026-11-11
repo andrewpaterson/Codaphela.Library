@@ -1333,6 +1333,7 @@ SCPP65Function* CCPP65Generator::FindConversion(SCPP65Class* psClass, SCPP65Type
 	int				iRank;
 	int				iBest;
 
+	mpcStatistics->Count(CPPCC_FindConversion);
 	if (!CompleteClass(psClass, pcNode))
 	{
 		return NULL;

@@ -107,6 +107,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	bool				bAmbiguous;
 	bool				bFound;
 
+	mpcStatistics->Count(CPPCC_FindFunction);
 	if (psClass && !CompleteClass(psClass, pcNode))
 	{
 		return NULL;
@@ -360,6 +361,7 @@ SCPP65Function* CCPP65Generator::FindNamedFunction(CCPPSyntaxName* pcName, int64
 	CArrayScopes	apcNamespaces;
 	SCPP65Function*	psFunction;
 
+	mpcStatistics->Count(CPPCC_FindNamedFunction);
 	apcNamespaces.Init();
 	GetCallNamespaces(pcName, lliName, papcArguments, &apcNamespaces);
 	NormaliseNamespaces(&apcNamespaces);
@@ -382,6 +384,7 @@ SCPP65Function* CCPP65Generator::FindAssociatedFunction(CCPPSyntaxName* pcName, 
 	SCPP65Template*	psTemplate;
 	size			uiErrors;
 
+	mpcStatistics->Count(CPPCC_FindAssociatedFunction);
 	if ((lliName == -1) || pcName->mbGlobal || pcName->GetQualifier() || (pcCall->macpArguments.NumElements() == 0))
 	{
 		return NULL;
@@ -413,6 +416,7 @@ SCPP65Function* CCPP65Generator::FindAddressedFunction(CCPPSyntaxName* pcName, i
 	CArrayScopes	apcNamespaces;
 	bool			bQualified;
 
+	mpcStatistics->Count(CPPCC_FindAddressedFunction);
 	psFound = NULL;
 	*pbOverloaded = false;
 	psClass = NULL;

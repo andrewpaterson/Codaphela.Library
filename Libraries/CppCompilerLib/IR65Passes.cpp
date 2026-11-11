@@ -108,6 +108,7 @@ void CIR65Backend::PreferSingleBranches(void)
 	uint16			uiOpcode;
 	bool			bHead;
 
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(mpcFunction);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{

@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_MODULE_H__
 #define __I_R_MODULE_H__
 #include "IRFunction.h"
+#include "CPPCompileStatistics.h"
 
 
 enum EIRDataKind
@@ -123,10 +124,15 @@ public:
 	uint16						muiNumTargetOpcodes;
 
 	uint32						muiSource;			//The source token + 1 instructions added to the module's blocks now are for (0: none, as the optimiser's).
+	CCPPCompileStatistics*		mpcStatistics;		//What compiling the unit's functions is counted and timed in (SetStatistics), or NULL.
 
 public:
 	void			Init(void);
 	void			Kill(void);
+	void			SetStatistics(CCPPCompileStatistics* pcStatistics);
+	void			Count(ECPPCompileCount eCount, uint64 uiCount = 1);
+	void			Begin(ECPPCompilePhase ePhase);
+	void			End(ECPPCompilePhase ePhase);
 
 	uint8			AddSpace(const char* szName, int iPointerBytes);
 	uint8			AddDefaultSpace(int iPointerBytes = IR_DEFAULT_POINTER_BYTES);

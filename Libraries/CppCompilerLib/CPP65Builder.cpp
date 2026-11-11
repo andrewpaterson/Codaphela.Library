@@ -92,6 +92,7 @@ void CCPP65Builder::Init(void)
 	muiCompiledAgain = 0;
 	mapcWorkspaces.Init();
 	mbUnitReports = false;
+	mcStatistics.Init();
 	masUnitReports.Init();
 }
 
@@ -111,6 +112,7 @@ void CCPP65Builder::Kill(void)
 	KillWorkspaces();
 	mapcWorkspaces.Kill();
 	KillUnitReports(&masUnitReports);
+	mcStatistics.Kill();
 	mcCompiled.Kill();
 	mcCompilingMutex.Kill();
 	mcMemorySpillStore.Kill();
@@ -663,6 +665,30 @@ void CCPP65Builder::SetUnitReports(bool bUnitReports)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The units' compiling is timed by phase as well as counted
+// (GetStatistics).  Set before the units are compiled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetTimes(bool bTimes)
+{
+	mcStatistics.SetTimes(bTimes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What compiling the units was counted (and timed, SetTimes) in, added up
+// as each finished, and linking.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPCompileStatistics* CCPP65Builder::GetStatistics(void)
+{
+	return &mcStatistics;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The units reported since the last time, in the order they finished,
 // added to pasDest (KillUnitReports frees them).  Safe while Compile runs
 // on another thread.
@@ -1182,7 +1208,9 @@ bool CCPP65Builder::LinkObjects(void)
 	{
 		mcLinker.SetStubOpcode(0xDB);  //stp
 	}
+	mcStatistics.Begin(CPPCP_Link);
 	bResult = mcLinker.Link();
+	mcStatistics.End(CPPCP_Link);
 	mszErrors.Append(mcLinker.GetErrors());
 
 	//A runtime routine isn't stubbed: its program would stop at the first multiply.
@@ -1811,6 +1839,8 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
 	psUnit->uiLazyRead = 0;
+	psUnit->cStatistics.Init();
+	psUnit->cStatistics.SetTimes(mcStatistics.IsTimed());
 	psUnit->psCompile = NULL;
 	psUnit->eStage = CPP65US_Generating;
 }
@@ -1905,6 +1935,8 @@ void CCPP65Builder::FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings)
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
 	psUnit->uiLazyRead = 0;
+	mcStatistics.Add(&psUnit->cStatistics);
+	psUnit->cStatistics.Clear();
 }
 
 
@@ -2103,6 +2135,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	psUnit->pcFile->GetTokens()->SetMallocators(psCompile->pcWorkspace->GetPreprocessedTokensMallocators());
 
 	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
+	psUnit->cStatistics.Begin(CPPCP_Preprocess);
 	if (bReport)
 	{
 		bResult = mcProject.ProcessUnit(psUnit->pcFile, szConfiguration, &psUnit->szErrors, &psUnit->szWarnings);
@@ -2113,14 +2146,17 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 		mcProject.ProcessUnit(psUnit->pcFile, szConfiguration);
 		bResult = true;
 	}
+	psUnit->cStatistics.End(CPPCP_Preprocess);
 
 	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
 	{
 		psUnit->cSpillStore.Init();
 	}
 
+	psUnit->cStatistics.Begin(CPPCP_Tokenise);
 	psCompile->cTokeniser.Init(psCompile->pcWorkspace->GetCPPTokensMallocator());
 	bResult &= psCompile->cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
+	psUnit->cStatistics.End(CPPCP_Tokenise);
 	psUnit->szErrors.Append(psCompile->cTokeniser.GetErrors()->Text());
 	psCompile->cTree.Init(&psCompile->cTokeniser, psCompile->pcWorkspace->GetSyntaxTreeMallocators());
 	psCompile->cParser.Init(&psCompile->cTokeniser, &psCompile->cTree);
@@ -2128,7 +2164,9 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	{
 		psCompile->cParser.SetHeaderIndex(&mcHeaderIndex);
 	}
+	psUnit->cStatistics.Begin(CPPCP_Parse);
 	bResult &= psCompile->cParser.Parse();
+	psUnit->cStatistics.End(CPPCP_Parse);
 	psUnit->szErrors.Append(psCompile->cTree.GetErrors()->Text());
 	psCompile->bResult = bResult;
 
@@ -2149,6 +2187,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile = psUnit->psCompile;
 	psCompile->cAssembly.Init(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	psCompile->cGenerator.Init(&psCompile->cTree, meTarget);
+	psCompile->cGenerator.SetStatistics(&psUnit->cStatistics);
 	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	if (meTarget == CPPT_W65C816)
 	{
@@ -2282,7 +2321,9 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psCompile->cTree.Kill();
 	psCompile->cTokeniser.Kill();
 
+	psUnit->cStatistics.Begin(CPPCP_Assemble);
 	bResult &= Assemble(psUnit->pcObject, &psCompile->cAssembly, NULL, &psUnit->szErrors);
+	psUnit->cStatistics.End(CPPCP_Assemble);
 	psCompile->cAssembly.Kill();
 	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
 	{

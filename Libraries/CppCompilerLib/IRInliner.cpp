@@ -674,6 +674,7 @@ void CIRInliner::FindLoops(void)
 	mpcCaller->Renumber();
 	mpcCaller->ComputePredecessors();
 	cDominators.Init();
+	mpcModule->Count(CPPCC_Dominators);
 	cDominators.Compute(mpcCaller);
 	cLoops.Init();
 	cLoops.Compute(mpcCaller, &cDominators);

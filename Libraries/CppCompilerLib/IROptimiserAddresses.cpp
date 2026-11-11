@@ -135,6 +135,7 @@ bool CIROptimiser::MergeAddressPhis(void)
 
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
+	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(mpcFunction);
 	mpcFunction->CountUses(&mauiUses);
 	FindDefinitions();

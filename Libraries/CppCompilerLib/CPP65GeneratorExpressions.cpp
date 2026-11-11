@@ -281,6 +281,7 @@ SCPP65Function* CCPP65Generator::FindStaticFunction(SCPP65Class* psClass, int64 
 	SCPP65Function*		psFound;
 	size				i;
 
+	mpcStatistics->Count(CPPCC_FindStaticFunction);
 	psFound = NULL;
 	*pbOverloaded = false;
 	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
@@ -540,6 +541,7 @@ SCPP65Function* CCPP65Generator::FindOperator(SCPP65Class* psClass, int64 lliNam
 	SCPP65Function*	psFunction;
 	size			uiErrors;
 
+	mpcStatistics->Count(CPPCC_FindOperator);
 	psTemplate = FindMemberTemplate(psClass, lliName, papcArguments ? papcArguments->NumElements() : 0, iConstObject);
 	if (!psTemplate)
 	{
@@ -722,6 +724,7 @@ CCPPSyntax* CCPP65Generator::ExpandPackArguments(CCPPSyntaxCallExpression* pcCal
 	size						i;
 	size						j;
 
+	mpcStatistics->Count(CPPCC_PackExpansions);
 	papcArguments->Init();
 	papcArguments->Copy(&pcCall->macpArguments);
 	pcCall->macpArguments.ReInit();
@@ -743,6 +746,7 @@ CCPPSyntax* CCPP65Generator::ExpandPackArguments(CCPPSyntaxCallExpression* pcCal
 		pcLast = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast();
 		for (j = 0; j < mapcPackElements.NumElements(); j++)
 		{
+			mpcStatistics->Count(CPPCC_PackExpansionNodes, 3);
 			pcId = pcMemory->Create<CCPPSyntaxIdExpression>(pcCall);
 			pcId->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
 			pcName = pcMemory->Create<CCPPSyntaxName>(pcId);
@@ -839,14 +843,18 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	SCPP65TypeOf	sTypeOf;
 	size			uiErrors;
 
+	mpcStatistics->Count(CPPCC_TypeOf);
 	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
 	if (psTypeOf && (psTypeOf->psBindings == mpsBindings) && (psTypeOf->psFunction == mpsFunction))
 	{
 		return psTypeOf->psType;
 	}
 
+	mpcStatistics->Count(CPPCC_TypeOfWorkedOut);
 	uiErrors = mcErrors.NumErrors();
+	mpcStatistics->Begin(CPPCP_Types);
 	psType = mcTypeChecker.Value(pcExpression);
+	mpcStatistics->End(CPPCP_Types);
 	mcErrors.Truncate(uiErrors);
 
 	sTypeOf.psBindings = mpsBindings;
@@ -867,7 +875,9 @@ SCPP65Type* CCPP65Generator::PlaceTypeOf(CCPPSyntax* pcExpression)
 	SCPP65Type*	psType;
 
 	BeginQuiet();
+	mpcStatistics->Begin(CPPCP_Types);
 	psType = mcTypeChecker.Place(pcExpression);
+	mpcStatistics->End(CPPCP_Types);
 	EndQuiet();
 	return psType;
 }
@@ -890,7 +900,9 @@ void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
 	iQuiet = miQuiet;
 	bQuietFailed = mbQuietFailed;
 	miQuiet = 0;
+	mpcStatistics->Begin(CPPCP_Types);
 	mcTypeChecker.Value(pcExpression);
+	mpcStatistics->End(CPPCP_Types);
 	miQuiet = iQuiet;
 	mbQuietFailed = bQuietFailed;
 }

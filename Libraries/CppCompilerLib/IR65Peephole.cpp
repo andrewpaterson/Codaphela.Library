@@ -190,6 +190,18 @@ void CIR65Peephole::Optimise(CChars* pszCode, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the last Optimise could read the code it was given (it left the
+// code as it was if not).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Peephole::IsLoaded(void)
+{
+	return mcCode.IsLoaded();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Takes out each cpy into A, B, X or Y (at 32 bits) of the value it
 // already holds, when the n and z it sets aren't read.
 //

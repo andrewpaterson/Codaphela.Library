@@ -1677,6 +1677,7 @@ SCPP65Template* CCPP65Generator::FindMemberTemplate(SCPP65Class* psClass, int64 
 	CArrayCPP65Templates	apsCandidates;
 	SCPP65Template*			psTemplate;
 
+	mpcStatistics->Count(CPPCC_FindMemberTemplate);
 	apsCandidates.Init();
 	GetMemberTemplates(psClass, lliName, uiArguments, &apsCandidates);
 	psTemplate = ChooseTemplate(&apsCandidates, iConstObject, NULL, NULL);
@@ -1696,6 +1697,7 @@ SCPP65Template* CCPP65Generator::ChooseMemberTemplate(SCPP65Class* psClass, int6
 	CArrayCPP65Templates	apsCandidates;
 	SCPP65Template*			psTemplate;
 
+	mpcStatistics->Count(CPPCC_ChooseMemberTemplate);
 	apsCandidates.Init();
 	GetMemberTemplates(psClass, lliName, pcCall->macpArguments.NumElements(), &apsCandidates);
 	psTemplate = ChooseTemplate(&apsCandidates, iConstObject, papcExplicit, pcCall);
@@ -1752,6 +1754,7 @@ SCPP65Template* CCPP65Generator::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lli
 	SCPP65Template*			psTemplate;
 	size					i;
 
+	mpcStatistics->Count(CPPCC_GetCallTemplate);
 	apsCandidates.Init();
 	apcNamespaces.Init();
 	if (pcCall->mpcCallee->GetKind() == CPPS_IdExpression)
@@ -1842,6 +1845,7 @@ SCPP65Template* CCPP65Generator::ChooseTemplate(CArrayCPP65Templates* papsCandid
 	size					uiBest;
 	size					i;
 
+	mpcStatistics->Count(CPPCC_ChooseTemplate);
 	apsTaken.Init();
 	apsBest.Init();
 	aiRanks.Init();

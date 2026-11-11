@@ -231,7 +231,9 @@ SCPP65Type* CCPP65Generator::PlaceOf(CCPPSyntax* pcExpression)
 	//A failure here is not one of the quiet code around it.
 	bQuietFailed = mbQuietFailed;
 	BeginQuiet();
+	mpcStatistics->Begin(CPPCP_Types);
 	psPlace = mcTypeChecker.Place(pcExpression);
+	mpcStatistics->End(CPPCP_Types);
 	EndQuiet();
 	mbQuietFailed = bQuietFailed;
 	return psPlace;
@@ -379,6 +381,7 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 	size							i;
 	bool							bDeclared;
 
+	mpcStatistics->Count(CPPCC_FindFreeOperator);
 	bDeclared = false;
 	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{

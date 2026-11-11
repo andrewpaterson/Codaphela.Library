@@ -221,6 +221,7 @@ protected:
 	void				CopyAddresses(void);
 	void				MarkFolded(void);
 	void				Peephole(size uiStart);
+	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
 	void				Epilogue(void);
 	CChars*				Line(const char* szText);

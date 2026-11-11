@@ -46,6 +46,7 @@ public:
 	void	Kill(void);
 
 	void	Optimise(CChars* pszCode, size uiStart);
+	bool	IsLoaded(void);
 
 protected:
 	void	NarrowExtensions(void);

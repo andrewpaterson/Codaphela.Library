@@ -60,6 +60,9 @@ extern CTimer	gcTimer;
 //Milliseconds from the platform's clock (Timer_Windows.cpp, Timer_Linux.cpp or Timer_65C64.cpp).
 int64 GetDebugTickCount(void);
 
+//Microseconds from the same clock, for timing what takes less than a millisecond.
+int64 GetDebugMicroseconds(void);
+
 
 #endif // __TIMER_H__
 
