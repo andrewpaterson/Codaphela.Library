@@ -162,9 +162,29 @@ bool CSharedMemoryQueue::InitClient(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryQueue::Kill(void)
 {
+	bool					bEmpty;
+	SCircularMemoryList*	psList;
+
+	//Only a queue with elements in it is handed over to another client: the
+	//memory may be in a file only this one has open (see CResizableSharedMemory::HandOver).
+	//Memory that has moved to another file isn't this client's to hand over, so
+	//it isn't Touched (which would connect to the new file).
+	mcMutex.Lock();
+	psList = (SCircularMemoryList*)mcSharedMemory.GetValidMemory();
+	if (psList)
+	{
+		mcQueue.Remap(psList, mcSharedMemory.GetSize());
+		bEmpty = mcQueue.IsEmpty();
+	}
+	else
+	{
+		bEmpty = true;
+	}
+	mcMutex.Unlock();
+
 	mcQueue.Kill();
 	mcSharedMemory.Close();
-	mcSharedMemory.Kill();
+	mcSharedMemory.Kill(!bEmpty);
 	mcMutex.Close();
 	mcMutex.Kill();
 }
