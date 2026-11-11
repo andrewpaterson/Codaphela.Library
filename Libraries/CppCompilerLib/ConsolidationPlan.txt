@@ -5,10 +5,10 @@ How the compiler is to be reshaped from five very large classes, full of special
 each do one job.  Written 2026-11-11, from reading the code and measuring it; nothing here is started.  The library
 was CppParserLib until that day.
 
-The rule for every step (the user, 2026-11-11): the code the compiler writes must work, and ideally is faster.
-It does not have to be the assembly written before.  So a step is free to take the simpler design where the old
+The rule for every stage (the user, 2026-11-11): the code the compiler writes must work, and ideally is faster.
+It does not have to be the assembly written before.  So a stage is free to take the simpler design where the old
 one's special cases were only there to be kept, and to let one way of doing a thing replace two that differed.
-A step doesn't add C++ features.
+A stage doesn't add C++ features.
 
 
 Where it is now
@@ -116,13 +116,67 @@ The name CPP65 goes from the Meaning layer as its classes are reworked (CCPPType
 65C64, the W65C816 and the host.  IR65 and IR816 keep theirs.
 
 
-The steps
+Measuring
 ---------
 
-Step 1 comes first because everything reads the target.  Steps 2, 3 and 4 are in order.  Steps 5, 6, 7 and 8
-don't depend on them or on each other, and can be done between them.  Sizes are relative: S, M, L, XL.
+Two things are measured all the way through: the code the compiler writes (does it work, how fast, how big)
+and the compiler itself (how long it takes, how much memory).  Neither may get worse without a reason given in
+the commit.
 
-1. The target is a class.  (S-M)
+What there is already (TestProject65 and the suites):
+  - TEST_PROJECT65_CYCLES: each test program's cycles on its emulator.  TEST_SOFT_FLOAT_CYCLES and
+    TEST_IR816_RUNTIME_CYCLES: the soft float routines' and the runtime routines'.
+  - TEST_PROJECT65_PROFILE and TEST_PROJECT65_PROFILE_REPORT: where a program's cycles go, by function and line.
+  - TEST_PROJECT65_COMPILE_STATS: imports missed and stale, units compiled again, header cache hits, lazy
+    declarations skipped, loaded and read.
+  - TEST_PROJECT65_SERIAL, TEST_PROJECT65_THREADS and TEST_PROJECT65_ONLY=NoSuchTest: a compile alone, on one
+    thread (for CPU time) or many (for wall time).
+  - TEST_PROJECT65_LISTINGS: every unit's listing, to see what changed.
+  - CPP65_PRINT_IR, and VTune on the x64 build (software sampling) for where the compiler's own time goes.
+
+What is missing, and is made in stage 0:
+  - The compile's time by phase: preprocess, tokenise, parse, declarations, expressions' types, IR front end,
+    inlining, optimiser, back end (writing, and the passes over what is written), assembling, linking.
+  - Counters for the things this plan removes, so each stage can show they went: TypeOf calls and those not
+    remembered, quiet trials and how many failed, overload resolutions by the way in, pack expansions and the
+    nodes they make, Unsupported exits taken (and where), functions whose code CIR65Code refuses, dominators
+    worked out, optimiser rounds for each function.
+  - Peak memory: the process's, and each workspace allocator's high water mark.
+  - Size: each linked program's text and data bytes, and the W65C816's fullest bank.
+  - One script that runs the lot and writes one table, so a stage's numbers are taken the same way each time.
+
+How to measure (learned on the compile speed work): CPU questions are measured serially, and old against new
+alternately, because other sessions load the machine; wall time only for the parallel build; Release x64; the
+old compiler built in a worktree beside the tree so both compile the same sources.
+
+The profile of 2026-11-04 (W65C816 TestSupportLib65, serial, about 100s of CPU) is the picture to check first,
+as it says where this plan should pay: generation 56s without assembling, of which the back end 27s
+(PeepholeBranches 8.7s, decoding its own text again 6.8s), the optimiser 12.4s (SimplifyCFG 4.8s, full
+dominators for RemoveUnreachable 2.1s) and the front end about 12s; parsing about 20s; assembling 15.5s;
+preprocessing and tokenising 7.7s.  The type checker has replaced the old expression walk since, so the front
+end's share is the first thing to take again.
+
+
+The order of work
+-----------------
+
+Twelve stages, 0 to 11, in the order they are done.  Each says what is done, what is measured before it starts, and
+what must be true when it ends.  After every stage: the whole proof (below) and a row in Progress at the end of
+this file.  Sizes are relative: S, M, L, XL.
+
+Stage 0.  Ground.  (S)
+
+   - TestCppParser.cpp line 268 passes on Windows (the note at the end), so the whole suite runs.
+   - The measuring kit above: the phase times and counters in the compiler behind TEST_PROJECT65_COMPILE_STATS,
+     the size and memory figures, and the script.
+   - The baseline, written into Progress: the suites' totals; each Lib65 suite's cycles and sizes on both
+     processors; the soft float and runtime routines' cycles; compile CPU (serial), wall (parallel) and peak
+     memory for the three Lib65 projects on both processors; every counter; the listings kept; and one VTune
+     profile of the serial W65C816 TestSupportLib65 compile.
+   Ends when: the baseline can be taken again and gives the same numbers (cycles and counters exactly, times
+   within what two runs of the same build differ by: that spread is written down too).
+
+Stage 1.  The target is a class.  (S-M)
 
    CCPPTarget has the sizes SCPPTarget has, and virtual functions for the rest: AddDefines, NewBackend,
    BuildPipeline (at first, the optimiser's settings), GetInlineLimits, AppendStartUp, AppendRuntime, the thunks
@@ -130,10 +184,32 @@ don't depend on them or on each other, and can be done between them.  Sizes are 
    the questions now asked as "is it the W65C816": are zeroed globals bss, are indices narrowed, are units
    compiled again after inlining.  What a back end keeps about a function it wrote (the W65C816's frame) is the
    back end's own, and finishing a function's code (AlignFrame) is a CIRBackend virtual.  The globals become a
-   CCPPCompileOptions the builder owns and hands down, and the counters a statistics object it adds up under its
-   mutex.  When it is done CPPT_W65C816 is named only where a target is chosen.
+   CCPPCompileOptions the builder owns and hands down.  Stage 0's times and counters become a
+   CCPPCompileStatistics, one for each unit and added up under the builder's mutex, so they are exact in a
+   parallel build too.
+   Measure: nothing new before.  The sizes stay fields, not virtual calls: they are read for every type.
+   Ends when: CPPT_W65C816 is named only where a target is chosen; the listings are the same (this stage only
+   moves code); compile CPU and memory are within the spread.
 
-2. The C++'s things do their own work.  (M)
+Stage 2.  A pass is a class.  (L, mostly moving code)
+
+   Done early because it stands alone in the IR layer, and it gives every later stage its tools: the IR after
+   any pass, a wrong pass found by its number, and each pass's time.
+   CIRPass has a name and Run.  What passes share is a CIRPassContext: the function, the module, the
+   replacements, and the analyses (dominators, loops, liveness, ranges, use counts) worked out when asked for
+   and thrown away when a pass says it changed the blocks.  The passes are today's files' groups.  CIRPipeline
+   is the list of them, built by the target, in today's order: the W65C816's adds the passes the 65C64 doesn't
+   run, and the mb flags go.  The four byte loop idioms share one matcher of the loop's shape.  The longest
+   passes are split into finding, checking and rewriting.  The order is not changed here (stage 10).
+   Measure before: the optimiser's share of the compile, and how often each analysis is worked out for a
+   function.
+   Measure after, from the pipeline itself, for each pass on each processor: its time, how many functions it
+   ran on, how many it changed, and in which round.  That table goes in Progress: it shows the passes that
+   never change anything, those that only do in the first round, and what the rounds after the second cost.
+   Ends when: the listings are the same (the order is, and a kept analysis must be the one that would have
+   been worked out); the optimiser's time is lower, by about what the repeated dominators cost.
+
+Stage 3.  The C++'s things do their own work.  (M)
 
    SCPP65Class becomes CCPPClass with FindField, IsDerivedFrom, IsPolymorphic, IsAbstract, NeedsConstructor,
    NeedsDestructor, HasCopyConstructor, IsTriviallyCopyable.  Its bComplete, bLayingOut and bBases are one state
@@ -143,8 +219,11 @@ don't depend on them or on each other, and can be done between them.  Sizes are 
    Overrides, TakesObject; conversion and operator are kinds, not names to test), SCPP65Variable CCPPVariable,
    SCPP65Template and SCPP65Bindings CCPPTemplate and CCPPTemplateArguments.  Every label is made by
    CCPPMangler.  This is nearly all moving code, and takes about a third of the generator.
+   Measure: nothing new; this stage is watched, not profiled.
+   Ends when: the listings are the same; compile CPU and memory are within the spread; the generator's
+   function count is down by about a hundred.
 
-3. The generator's jobs become classes that hold their own state.  (L)
+Stage 4.  The generator's jobs become classes that hold their own state.  (L)
 
    CCPPOverloads is a set of candidates: add a class's members, a namespace's functions, the arguments'
    namespaces, templates, operators; Choose picks one with the one ranking there is (RankArguments,
@@ -160,75 +239,113 @@ don't depend on them or on each other, and can be done between them.  Sizes are 
    empty".
    CCPPUnitData writes the globals, strings, bss and the init and fini tables.
    What is left is CCPPUnit: it owns these, walks the declarations and queues the functions.  No friends.
+   Measure before: overload resolutions in a build by each of the twelve ways in, the candidates in each, and
+   the same call resolved more than once; quiet trials and how many fail; the front end's time in FindFunction,
+   RankArguments and ConversionRank.
+   Measure after: the same counts (the same or fewer); what a trial costs, since it now has a list of its
+   own (the list is in the context's arena, and a trial that fails must not allocate from the heap).
+   Ends when: there is one way in; no member is saved and put back by hand; the suites pass.  The listings may
+   differ where two of the old ways in ranked the same call differently: each difference is read, the right
+   ranking kept, and a test added.
 
-4. An expression is resolved once.  (XL: the heart of the plan)
+Stage 5.  A call, a name and a member are resolved once; then the checkpoint.  (L)
 
-   CCPPBinder is the type checker grown up.  For an expression it makes a tree of CCPPBound nodes.  A bound
-   node has its type, whether it is a place, a value or an object in memory, and everything that was decided:
-   which function a call calls and how (directly, through the vtable, through a pointer), each argument with
-   its conversion and the defaults filled in, which builtin, which field at which offset, which constructor,
-   which temporaries are made and when they are destroyed.  There are about 25 kinds (constant, variable, field,
-   load, assign, unary, binary, compare, logical, conditional, convert, call, builtin, construct, temporary,
-   destroy, new, delete, dynamic cast, function address ...).  Every error is found here, with its message.
+   The first half of resolving an expression once (decided 2026-11-11: bound nodes, reached in stages, with a
+   checkpoint).  It needs stage 4's context: binding a call has to know where the compiler is.
 
-   CCPPLowering is the IR front end shrunk.  Each bound class writes itself as IR (a virtual Lower).  It
-   decides nothing, asks the unit nothing, and can't fail: the 165 Unsupported exits go.
+   CCPPSyntaxVisitor comes first: a virtual for each kind of node, so the binder has no switch on GetKind and
+   no casts.  The small questions callers spell out go onto the nodes (an expression without its parentheses,
+   a name's template arguments).
 
-   Then: TypeOf is the bound node's type, and the map of remembered types goes.  A constant is folded once,
-   in the binder.  The warnings are a pass over bound nodes.  Checking for the IDE is binding alone, and Find
-   Usages gets what each name resolved to from the same nodes.  A function's bound tree lives in the
-   function's arena and is freed when it is lowered, so only one function's is in memory at a time.
+   a. Calls.  One ResolveCall holds the cascade.  What it makes is the first bound node, CCPPBoundCall: which
+      function and how it is called (directly, through the vtable, through a pointer, a builtin, memcpy in
+      place), the object, and its arguments, each with its conversion and the defaults filled in.  A call
+      that expands a pack owns its expanded arguments: they are made once for an instance, the syntax tree is
+      not rewritten and put back, and the fifty places that read the call node's arguments read the bound
+      call's.  The type checker and the IR front end both read it.
+   b. Names and members: what an identifier is (a local, a parameter, a global, a field of this, an
+      enumerator, a function's address), and which field at which offset.
 
-   It is done a kind of expression at a time, calls first because they repeat the most: the binder makes the
-   kind's bound node; the front end's function for that kind is rewritten to take it; the checker's old
-   cascade for it is deleted.  While the two ways live together a kind not yet moved is a bound node that only
-   has its type.  Before an old cascade is deleted, a debug check runs both and compares what they chose over
-   every test and all three Lib65 projects.  Where they differ, one of them is wrong today: the binder takes
-   the right one, by the standard, and the difference gets a test.
-   Order: calls; members and places; operators and conversions; objects (construct, copy, destroy,
-   temporaries); new and delete; the rest; then statements where the binder decides something (declarations,
-   return, switch, range-for).
+   While old and new live together a debug check runs both and compares what they chose, over every test and
+   the three Lib65 projects.  Where they differ, one of them is wrong today: the binder takes the right one, by
+   the standard, and the difference gets a test.
 
-   CCPPSyntaxVisitor comes in at the start of this step: a virtual for each kind of node, so the binder has no
-   switch on GetKind and no casts.  The small questions callers spell out go onto the nodes (an expression
-   without its parentheses, a name's template arguments).
+   Measure before: TypeOf calls and those not remembered; the type checker's and the front end's shares of the
+   compile (VTune, by class); pack expansions and the nodes they make; which Unsupported exits are ever taken
+   in the suites; the lines in the two walkers' call, name and member functions.
+   Measure at the checkpoint: the same, and the bound nodes made for a function (the most and the average),
+   peak memory, compile CPU, the suites' cycles (a call resolved differently can change them) and the
+   disagreements found.
+   The checkpoint: if the front end's call and member functions are short and decide nothing, and memory and
+   compile time are within the spread or better, stage 6 goes ahead.  If they haven't shrunk much, stage 6 is
+   dropped: what is there is the lighter form, and nothing made is wasted.  The decision and its numbers go in
+   Progress.
 
-5. The back ends are the same parts, and their code is instructions.  (L, then L-XL)
+Stage 6.  The rest of an expression is resolved once.  (XL)
 
-   a. One record for each temporary (its place, slot, folded base, offset and index, uses, whether it is in X)
-      in place of nine arrays.  CIR816Backend becomes its parts: CIR816Places (PackTemporaries, PlaceTemporaries,
-      GroupTemporaries, AllocateX), CIR816Folds, CIR816Fusion, CIR816Calls (PushArguments, LoadRegisterArguments,
-      the register stub, Forwarder), CIR816Selector (an IR instruction to machine instructions) and
-      CIR816Runtime.  CIR65Backend becomes the same parts with the same names, which finishes the reshaping
-      IR65Reshape.txt began.
-   b. The selector adds instructions (mnemonic, operand, source position) to the back end's code instead of
-      text.  The passes are classes over the instructions, run from a list; nothing is decoded; a source
-      position is a field of an instruction; aligning a frame changes operands.  One printer writes the text
-      at the end.  The W65C816 first, the 65C64 after.  The passes then see every instruction: today
-      CIR65Code gives up on a function with a line it doesn't know, and the passes leave that function as it
-      is.  A pass that does one job on both processors is written once over what their instructions share,
-      as the branch passes already are (CIRBranchCode).
+   A kind at a time, as stage 5 did calls: operators and conversions; objects (construct, copy, destroy,
+   temporaries, and when each is destroyed); new and delete; the rest (about 25 kinds of bound node in all);
+   then statements where the binder decides something (declarations, return, switch, range-for).  A bound node
+   has its type and whether it is a place, a value or an object in memory.  Every error is found in the
+   binder, with its message.
 
-6. A pass is a class.  (L, mostly moving code)
+   Then the walkers change their names and their jobs.  CCPPBinder is the type checker grown up.  CCPPLowering
+   is the IR front end shrunk: each bound class writes itself as IR (a virtual Lower); it decides nothing, asks
+   the unit nothing and can't fail.  TypeOf is the bound node's type, and the map of remembered types goes.  A
+   constant is folded once, in the binder.  The warnings are a pass over bound nodes.  Checking for the IDE is
+   binding alone, and Find Usages gets what each name resolved to from the same nodes.  A function's bound tree
+   lives in the function's arena and is freed when it is lowered.
 
-   CIRPass has a name and Run.  What passes share is a CIRPassContext: the function, the module, the
-   replacements, and the analyses (dominators, loops, liveness, ranges, use counts) worked out when asked for
-   and thrown away when a pass says it changed the blocks.  The passes are today's files' groups.  CIRPipeline
-   is the list of them, built by the target: the W65C816's adds the passes the 65C64 doesn't run, and the mb
-   flags go.  It starts as today's order.  After that the order is the target's to change, a change at a
-   time with its cycles measured: passes the 65C64 never ran can be tried on it, and a pass that only tidies
-   after another can run straight after it instead of a round later.  A list also gives printing the IR after
-   any pass, finding a wrong pass by its number, and each pass's time.  The four byte loop idioms share one
-   matcher of the loop's shape.  The longest passes are split into finding, checking and rewriting.
+   Measure after each kind: as at the checkpoint.
+   Measure at the end as well: the IDE's check of a solution (CCPPSemanticPass), its time and memory, since
+   checking now takes this path; and error messages against stage 0's.
+   Ends when: no Unsupported exit is left; the front end never calls TypeOf or asks the unit a question; the
+   expression walks are one; compile CPU is lower than stage 0's front end share by about what the second walk
+   cost, and peak memory is no higher.
 
-7. The builder is four classes.  (M)
+Stage 7.  The back ends are the same parts.  (L)
+
+   One record for each temporary (its place, slot, folded base, offset and index, uses, whether it is in X) in
+   place of nine arrays.  CIR816Backend becomes its parts: CIR816Places (PackTemporaries, PlaceTemporaries,
+   GroupTemporaries, AllocateX), CIR816Folds, CIR816Fusion, CIR816Calls (PushArguments, LoadRegisterArguments,
+   the register stub, Forwarder), CIR816Selector (an IR instruction to machine instructions) and
+   CIR816Runtime.  CIR65Backend becomes the same parts with the same names, which finishes the reshaping
+   IR65Reshape.txt began.
+   Measure before: the back ends' shares of the compile, by function (on 2026-11-04 the W65C816's was nearly
+   half of generation).
+   Ends when: the listings are the same (this stage only moves code); compile CPU is within the spread.
+
+Stage 8.  The back ends' code is instructions.  (L-XL)
+
+   The selector adds instructions (mnemonic, operand, source position) to the back end's code instead of
+   text.  The passes are classes over the instructions, run from a list; nothing is decoded; a source
+   position is a field of an instruction; aligning a frame changes operands.  One printer writes the text
+   at the end.  The W65C816 first, the 65C64 after.  The passes then see every instruction: today
+   CIR65Code gives up on a function with a line it doesn't know, and the passes leave that function as it
+   is.  A pass that does one job on both processors is written once over what their instructions share,
+   as the branch passes already are (CIRBranchCode).
+   Measure before: the time spent turning text into lines and back (IR816Decode, CIR816Code's and CIR65Code's
+   Load and Write, CIRSourceMarkers' Take and Put), and how many times a function's code makes the trip; how
+   many 65C64 functions CIR65Code refuses, and their share of the suites' cycles (a profile): that is the
+   most the 65C64 can gain here.
+   Measure after: that time (it should be gone, several seconds of the serial compile); each machine pass's
+   time, from the list, as stage 2 gave for the IR's; the suites' cycles and sizes on each processor, as the
+   output will change here; the listings read where they differ.
+   Ends when: no text is decoded; the suites pass; cycles and size on each processor are no worse, and the
+   65C64's are better by some part of what was measured before.
+
+Stage 9.  The builder is four classes.  (M)
 
    CCPPBuild is what is being built and its options (a struct, in place of Generate's 14 parameters).
    CCPPUnitCompiler is one unit from source to object, with its stage as its state.  CCPPUnitSchedule is the
    turns, the jobs and compiling again.  CCPPProgramLinker is the objects, the libraries, the missing labels'
    stubs, the lazy image and the listings.
+   Measure before and after: wall time on 1, 4 and 16 threads; units compiled again, stale and parked; peak
+   memory with the jobs running.  A schedule is easy to make slower without making it wrong.
+   Ends when: the listings are the same serial and parallel, as now; wall time and memory are within the
+   spread on each thread count.
 
-8. The parser and the preprocessor.  (M and M)
+Stage 10.  The parser and the preprocessor.  (M and M)
 
    The parser: CCPPTokenCursor (where it is, the half '>', Peek, Is, Expect), a tentative parse as an object,
    and the parsing split into declarations, expressions, statements and lazy headers round one shared context.
@@ -238,31 +355,51 @@ don't depend on them or on each other, and can be done between them.  Sizes are 
    PreprocessorLineTokeniser, PreprocessorParser, PreprocessorTokenParser) need reading first: I haven't read
    them closely enough to say which should be one.  This is to be done before raw strings (A1 in
    CppParserTodo.txt), which change how lines are read anyway.
+   Measure before and after: parsing's and preprocessing's times (about 20s and 8s of 100 on 2026-11-04);
+   tentative parses; lazy declarations skipped, loaded and read; header cache hits; tokens preprocessed; the
+   syntax trees' memory.  The highlighter's and the index's times on the IDE's solution, as they read the
+   same tree.
+   Ends when: the syntax tree is the same node for node (the syntax blocks' dump compares it); the counts are
+   the same; the times are within the spread.
+
+Stage 11.  Faster code, with what has been built.  (as long as it is worth it)
+
+   Not reshaping: this is where "ideally faster" is spent, and each change is one commit with its cycles and
+   sizes.
+   - The pipeline's order, for each target, from stage 2's table: a pass that only tidies after another run
+     straight after it; passes that never change anything dropped or moved; fewer rounds if the later ones
+     do little.
+   - The W65C816's passes tried on the 65C64 and the other way (constant divisions, narrowed counters and
+     multiplies, biased indices; the machine passes of stage 8).
+   - What the suites' profiles (TEST_PROJECT65_PROFILE_REPORT) show is hot and badly written.
+   Measure: the suites' cycles and sizes on both processors and the soft float count, before and after each
+   change, and the compile's time, as a pass costs time for every function.
+   Ends when the user says it does.
 
 
-How a step is proved
---------------------
-
-Before anything: TestCppCompilerLib must pass.  On Windows it stops today at TestCppParser.cpp line 268 (see the
-note at the end), so nothing after TestCppParser is run.
+How a stage is proved
+---------------------
 
 That the code works is proved by running it, not by comparing it:
   - Release x64 builds with no warnings and TestCppCompilerLib passes.
   - TestBaseLib65, TestStandardLib65, TestSupportLib65 and TestLibc65 pass on both processors: they compile the
     libraries' own tests and run them on the emulators, which is the widest check there is that compiled code
-    does what the C++ says.  TestHCP65Lib (the kernal and drivers) at the end of each step.
-  - Error messages and their positions don't get worse (TestCppErrors and the CPP65 error tests).  Step 4 moves
-    where errors are found, so this matters most there.
+    does what the C++ says.  TestHCP65Lib (the kernal and drivers) at the end of each stage.
+  - Error messages and their positions don't get worse (TestCppErrors and the CPP65 error tests).  Stages 5
+    and 6 move where errors are found, so this matters most there.
 
 That it is no slower is measured for each commit that changes what is written, and the numbers go in the
 commit: the Lib65 suites' cycles and the soft float cycle count on each processor, and the size of the linked
 programs (the W65C816's banks and a ROM's kernal are tight).  A commit that makes something slower or bigger
 says why it is worth it, or isn't made.
 
+That the compiler is no slower and no bigger is measured at the end of each stage, and inside a stage whenever
+a commit touches something the profile says is hot.
+
 The listings (TEST_PROJECT65_LISTINGS, compared section by section with local labels renumbered) are still the
-quickest way to see what a commit changed.  A commit meant only to move code should change none, and when one
-does the difference is read before it is accepted: it is either a bug or something to say in the commit.  They
-are a way of looking, not a gate.
+quickest way to see what a commit changed.  Stages 1, 2, 3, 7, 9 and 10 only move code and should change none;
+when one does, the difference is read before it is accepted: it is either a bug or something to say in the
+commit.  They are a way of looking, not a gate.
 
 Some tests expect exact assembly (TestIR65Backend, TestIR816Backend, TestCPP816Assembly, TestCPP65IR,
 TestCPP65ListingIndex).  When the output changes on purpose their expected text is read and updated in the same
@@ -270,29 +407,40 @@ commit; a test that only pinned the old text, and not something the code must do
 does (its result, its cycles, that a call became a jump).
 
 A class that can be tested alone gets tests of its own when it is made: CCPPOverloads, CCPPDeduction,
-CCPPClassLayout, the back ends' printers and CIRPipeline.  A commit that moves code and one that changes what is
-written are still better apart, so that when a suite fails it is clear which kind did it.
+CCPPClassLayout, CCPPBoundCall's resolution, the back ends' printers and CIRPipeline.  A commit that moves code
+and one that changes what is written are still better apart, so that when a suite fails it is clear which kind
+did it.
 
 
 What this makes easier
 ----------------------
 
-The C++14 list (CppParserTodo.txt section 6) is mostly work in the Meaning layer, so steps 1 to 4 are better
+The C++14 list (CppParserTodo.txt section 6) is mostly work in the Meaning layer, so stages 1 to 6 are better
 done before it: overload resolution to the standard (B8) is CCPPOverloads; rvalue references (B10) are a bound
 node's kind of value; auto and decltype (B11) are a bound node's type; a lambda (B12) is a CCPPClass the binder
-makes; constexpr (B13) is evaluating bound nodes or IR; range-for (B16) is a bound statement.
+makes; constexpr (B13) is evaluating bound nodes or IR; more kinds of pack expansion (B14) have the bound call's
+argument list to go into; range-for (B16) is a bound statement.
 
 
-Decisions for the user
-----------------------
+Decisions
+---------
 
-  - Step 4: bound nodes, as above (suggested), or a lighter form: the two walkers stay and share a record of
-    what was resolved, kept on the syntax node.  The lighter form removes the repeated cascades but keeps both
-    walks and the front end's Unsupported exits.
-  - Step 5b: the back ends' code as instructions (suggested), or stop at 5a.  With the output free to change it
-    is no longer the risky step it was: the printer doesn't have to write today's text, only text that
-    assembles to code that passes the suites.
+Made:
+  - The assembly may change; it must work and ideally be faster (the user, 2026-11-11).
+  - Resolving an expression once: bound nodes, reached in stages, with a checkpoint after calls, names and
+    members (2026-11-11).
+
+For the user:
+  - TestCppParser.cpp line 268: is the test wrong, or should __inline not be a macro on Windows?  Stage 0
+    needs it.
+  - Stage 8: the back ends' code as instructions (suggested), or stop at stage 7.
   - CPP65 to CPP in the Meaning layer's names as classes are reworked (suggested), or the names stay.
+  - Is the compiler's own time and memory a gate, as this plan makes it, or only watched?
+  - When a change makes code faster and bigger, or smaller and slower, which wins: and is it the same answer
+    for a ROM's kernal as for a program?
+  - Does the 65C64 get its half of stage 8, or is it left at stage 7?
+  - Stages 3 to 6 rewrite the generator, the type checker and the IR front end: other sessions' work in those
+    files has to wait or be finished first.
 
 
 Left alone
@@ -300,7 +448,6 @@ Left alone
 
 The syntax node classes (already a class each), CIRModule, CIRFunction and CIRBlock, the syntax block disk
 format, the highlighter and the index, CIRParser, CIRPrinter and CIRVerifier, and JavaParserLib.  No new C++.
-Faster code is welcome where a step's simpler design gives it, and is measured; it isn't what a step is for.
 
 
 Note: TestCppParser.cpp line 268
@@ -310,3 +457,11 @@ Found 2026-11-11 while checking the rename, and there before it (the build of 20
 line).  The test (added 2026-11-08, fcf59e901) expects "__inline int g(void);" to print with __inline, but
 Preprocessor_Windows.cpp defines __inline as inline, so on Windows it prints "inline".  Preprocessor_Linux.cpp
 has no such define, so it probably passes on Linux; that wasn't checked.
+
+
+Progress
+--------
+
+Nothing is started.  Stage 0's baseline goes here, then a row for each stage: the date, the suites' totals, the
+Lib65 suites' cycles and sizes on each processor, compile CPU, wall and peak memory, and what the stage's own
+counters were before and after.
