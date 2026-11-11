@@ -1,5 +1,5 @@
 ; FatInfoSectorCache.cpp for the W65C816 (all but CFatInfoSectorCache::Dump, which stays C++), with the same names
-; and the compiler's calling convention (CppParserLib/W65C816.txt): arguments from S + 4 after the jsl in 16 bit units,
+; and the compiler's calling convention (CppCompilerLib/W65C816.txt): arguments from S + 4 after the jsl in 16 bit units,
 ; this first then a hidden result pointer for an object result, results in A (and X), m and x 16 bit, D kept.
 ;
 ; A function with a frame of N bytes makes it on the stack and points D at it (phd, tsc, sbc N, tcs, tcd): its locals

@@ -1,4 +1,4 @@
-# Linux build of TestBaseLib65 (BaseLib + TestLib + StandardLib + CppParserLib +
+# Linux build of TestBaseLib65 (BaseLib + TestLib + StandardLib + CppCompilerLib +
 # MicroprocessorLib + Assembler65Lib + TestBaseLib65).  BaseLib, TestLib and the
 # TestBaseLib tests (read from their .vcxproj files) are compiled with the 65C64
 # generator together with Libc65 and each test is run on the 65C64 (CFast65C64).
@@ -38,7 +38,7 @@ set(COMMON_DIR "${CODAPHELA_ROOT}/commonlibraries/Libraries")
 set(BASELIB_DIR "${COMMON_DIR}/BaseLib")
 set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(STANDARDLIB_DIR "${COMMON_DIR}/StandardLib")
-set(CPPPARSERLIB_DIR "${COMMON_DIR}/CppParserLib")
+set(CPPCOMPILERLIB_DIR "${COMMON_DIR}/CppCompilerLib")
 set(MICROPROCESSORLIB_DIR "${COMMON_DIR}/MicroprocessorLib")
 set(THREADLIB_DIR "${COMMON_DIR}/ThreadLib")
 # Assembler65Lib (and Libc65) are in the HCP65 repository, beside CommonLibraries.
@@ -95,7 +95,7 @@ vcxproj_sources(TESTLIB_SOURCES "${TESTLIB_DIR}/TestLib.vcxproj")
 
 vcxproj_sources(STANDARDLIB_SOURCES "${STANDARDLIB_DIR}/StandardLib.vcxproj")
 
-vcxproj_sources(CPPPARSERLIB_SOURCES "${CPPPARSERLIB_DIR}/CppParserLib.vcxproj")
+vcxproj_sources(CPPCOMPILERLIB_SOURCES "${CPPCOMPILERLIB_DIR}/CppCompilerLib.vcxproj")
 
 vcxproj_sources(MICROPROCESSORLIB_SOURCES "${MICROPROCESSORLIB_DIR}/MicroprocessorLib.vcxproj")
 
@@ -190,8 +190,8 @@ target_link_libraries(StandardLib PUBLIC BaseLib)
 # The Debug configurations of StandardLib (only) define DEBUG_POINTER.
 target_compile_definitions(StandardLib PRIVATE $<$<CONFIG:Debug>:DEBUG_POINTER>)
 
-add_library(CppParserLib STATIC ${CPPPARSERLIB_SOURCES})
-target_link_libraries(CppParserLib PUBLIC Assembler65Lib MicroprocessorLib ThreadLib StandardLib BaseLib)
+add_library(CppCompilerLib STATIC ${CPPCOMPILERLIB_SOURCES})
+target_link_libraries(CppCompilerLib PUBLIC Assembler65Lib MicroprocessorLib ThreadLib StandardLib BaseLib)
 
 # CPP65Builder compiles units on worker threads (CWorkerThreadJobs).
 add_library(ThreadLib STATIC ${THREADLIB_SOURCES})
@@ -205,7 +205,7 @@ target_link_libraries(Assembler65Lib PUBLIC MicroprocessorLib StandardLib BaseLi
 
 add_executable(TestBaseLib65 ${TESTBASELIB65_SOURCES})
 
-target_link_libraries(TestBaseLib65 PRIVATE TestLib CppParserLib Assembler65Lib MicroprocessorLib StandardLib BaseLib)
+target_link_libraries(TestBaseLib65 PRIVATE TestLib CppCompilerLib Assembler65Lib MicroprocessorLib StandardLib BaseLib)
 
 # The tests read their input (Input/ ...) relative to the project directory,
 # as Visual Studio does.

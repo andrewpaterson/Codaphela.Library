@@ -5,7 +5,7 @@
 #include "BaseLib/Chars.h"
 #include "Assembler65Lib/Asm65Memory.h"
 #include "MicroprocessorLib/Fast65C816.h"
-#include "CppParserLib/CPP65Builder.h"
+#include "CppCompilerLib/CPP65Builder.h"
 #include "TestLib/Assert.h"
 
 

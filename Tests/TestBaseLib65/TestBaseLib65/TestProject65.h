@@ -1,7 +1,7 @@
 #ifndef __TEST_PROJECT_65_H__
 #define __TEST_PROJECT_65_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "CppParserLib/CPPTarget.h"
+#include "CppCompilerLib/CPPTarget.h"
 
 
 //A test project (such as TestBaseLib) whose tests are compiled with the 65C64 generator and each run on the 65C64, or

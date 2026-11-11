@@ -111,7 +111,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Compiled by CppParserLib for the 65C64 or the W65C816, with the Libc65 headers.
+// Compiled by CppCompilerLib for the 65C64 or the W65C816, with the Libc65 headers.
 //
 //////////////////////////////////////////////////////////////////////////
 #ifdef __LIBC65__

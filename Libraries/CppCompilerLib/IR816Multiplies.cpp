@@ -1,0 +1,444 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppCompilerLib
+
+Codaphela CppCompilerLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppCompilerLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "IR816BackendInternal.h"
+
+
+//The W65C816 back end's multiplies, divides and remainders: runtime calls (pushed or scratch operands), and
+//the wide, byte and table forms.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether RuntimeCall calls a scratch routine (IR816ScratchRoutine) for
+// psInstruction, of two or more words: its operands are copied a word at a
+// time to the scratch bytes, the first then the second.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsScratchCall(SIRInstruction* psInstruction)
+{
+	CChars	szName;
+	bool	bScratch;
+
+	if (psInstruction->sType.IsFloat() || (Words(psInstruction->sType) < 2))
+	{
+		return false;
+	}
+	RuntimeName(&szName, psInstruction);
+	bScratch = IR816ScratchRoutine(szName.Text());
+	szName.Kill();
+	return bScratch;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// mul, udiv, sdiv, urem and srem call R816_<operation><bits>, an i8 as 16 bits (sign extended for sdiv and srem).
+// The scratch routines get their operands at IR816_SCRATCH_ARGUMENT_A and _B, the others pushed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
+{
+	CChars		szName;
+	SIRType		sType;
+	int32		iBytes;
+	bool		bSigned;
+	int			i;
+
+	sType = psInstruction->sType;
+	if (sType.IsFloat() || sType.Is(IRTK_I1))
+	{
+		return Error("Multiply and divide are for i8 to i64");
+	}
+	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
+	if (TableDivide(psInstruction, bSigned) || ByteMultiply(psInstruction) || WideMultiply(psInstruction))
+	{
+		return true;
+	}
+
+	if (RemainderLeft(psInstruction))
+	{
+		for (i = 0; i < Words(sType); i++)
+		{
+			Frame("lda", IR816_SCRATCH_REMAINDER + 2 * i);
+			Store(psInstruction->sResult, i);
+		}
+		return true;
+	}
+
+	RuntimeName(&szName, psInstruction);
+
+	iBytes = 0;
+	if (IR816ScratchRoutine(szName.Text()))
+	{
+		if (bSigned && sType.Is(IRTK_I8))
+		{
+			//R816_SDiv16 and R816_SRem16 take the bytes sign extended.
+			for (i = 0; i < 2; i++)
+			{
+				Operand("lda", psInstruction->asArguments[i], 0);
+				Line("and 0xFF");
+				SignExtendInA(7);
+				Frame("sta", (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
+			}
+		}
+		else
+		{
+			CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], Words(sType));
+			CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], Words(sType));
+		}
+	}
+	else
+	{
+		iBytes = 2 * ValueBytes(sType);
+		for (i = 1; i >= 0; i--)
+		{
+			if (bSigned && sType.Is(IRTK_I8))
+			{
+				Operand("lda", psInstruction->asArguments[i], 0);
+				SignExtendInA(7);
+				Line("pha");
+			}
+			else
+			{
+				PushValue(psInstruction->asArguments[i], sType);
+			}
+		}
+		if (IsHiddenResult(sType))
+		{
+			PushFrameAddress(OffsetOf(psInstruction->sResult));
+			iBytes += 4;
+		}
+	}
+	if (InlineMultiply16(psInstruction))
+	{
+		szName.Kill();
+		mpsDivided = NULL;
+		CallerCleanUp(0, psInstruction);
+		return true;
+	}
+	UseRuntime(szName.Text());
+	mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) ? psInstruction : NULL;
+	szName.Insert(0, "jsl ");
+	Line(szName.Text());
+	szName.Kill();
+	CallerCleanUp(iBytes, psInstruction);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A byte product from Garth Wilson's table: A (16 bits wide) is the index
+// (x << 8) | y, the product x * y is left in A.  Bit 7 of x picks the bank.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::TableProduct(void)
+{
+	int32	iHigh;
+	int32	iGot;
+
+	iHigh = NewLabel();
+	iGot = NewLabel();
+	Line("asl A");
+	Line("tax");
+	Branch("bcs", iHigh);
+	Line("lda [MathMult + X]:24");
+	Branch("bra", iGot);
+	Label(iHigh);
+	Line("lda [MathMult + 0x10000 + X]:24");
+	Label(iGot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An i16 multiply in a loop, with the table (SetMathTables), as
+// R816_Mul16 in IR816Runtime-MathTables.asm is, in place instead of
+// called: its operands are in the scratch arguments already (RuntimeCall),
+// the product is left in A.  aL * bL, plus (aL * bH + aH * bL) << 8, each
+// skipped when its high byte is 0.  It saves the jsl and rtl (14 cycles);
+// outside loops the call is kept, as it is shorter.  False, with nothing
+// written, for any other multiply.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::InlineMultiply16(SIRInstruction* psInstruction)
+{
+	int32	iNoHighB;
+	int32	iDone;
+
+	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I16) || !mbMathTables || (miBlock < 0) ||
+		(mcLoops.Depth(mpcFunction->GetBlock((size)miBlock)) == 0))
+	{
+		return false;
+	}
+	//The high bytes are tested with m at 16 bits, so both labels are reached with it (as every label is, W65C816.txt).
+	iNoHighB = NewLabel();
+	iDone = NewLabel();
+	Line("sep m");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
+	Line("xba");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Line("rep m");
+	TableProduct();
+	Frame("sta", IR816_SCRATCH_RESULT);
+	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
+	Line("and 0xFF00");
+	Branch("beq", iNoHighB);
+	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_B + 1, IR816_SCRATCH_ARGUMENT_A);
+	Label(iNoHighB);
+	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Line("and 0xFF00");
+	Branch("beq", iDone);
+	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_A + 1, IR816_SCRATCH_ARGUMENT_B);
+	Label(iDone);
+	Frame("lda", IR816_SCRATCH_RESULT);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// InlineMultiply16's cross product: the bytes at iHigh and iLow multiplied
+// (the table), shifted up 8 and added to the scratch result.  m is 16 bits
+// before and after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
+{
+	Line("sep m");
+	Frame("lda", iHigh);
+	Line("xba");
+	Frame("lda", iLow);
+	Line("rep m");
+	TableProduct();
+	Line("xba");
+	Line("and 0xFF00");
+	Line("clc");
+	Frame("adc", IR816_SCRATCH_RESULT);
+	Frame("sta", IR816_SCRATCH_RESULT);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psInstruction is a urem (srem) of 16, 32 or 64 bits written
+// straight after the runtime call for the udiv (sdiv) of the same operands
+// (CIROptimiser::SetDivideRemainders puts it there): every divide routine
+// leaves the remainder at IR816_SCRATCH_REMAINDER (the 64 bit ones in the
+// caller's scratch bytes), which nothing has written since.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
+{
+	SIRInstruction*	psDivide;
+
+	psDivide = mpsWritten;
+	if (!psDivide || (psDivide != mpsDivided) || (miFused != 0))
+	{
+		return false;
+	}
+	if (!((psInstruction->uiOpcode == IRO_URem) && (psDivide->uiOpcode == IRO_UDiv)) && !((psInstruction->uiOpcode == IRO_SRem) && (psDivide->uiOpcode == IRO_SDiv)))
+	{
+		return false;
+	}
+	if (!psInstruction->sType.Is(IRTK_I16) && !psInstruction->sType.Is(IRTK_I32) && !psInstruction->sType.Is(IRTK_I64))
+	{
+		return false;
+	}
+	return psDivide->sType.Equals(psInstruction->sType) && psDivide->asArguments[0].Equals(psInstruction->asArguments[0]) && psDivide->asArguments[1].Equals(psInstruction->asArguments[1]) &&
+		   !psInstruction->asArguments[1].IsConstant();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction that works out the temporary sValue, or NULL (a
+// parameter, a phi, or not a temporary).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIR816Backend::FindDefinition(SIRReference sValue)
+{
+	size			uiBlock;
+	size			ui;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+
+	if (!sValue.IsTemporary())
+	{
+		return NULL;
+	}
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (psInstruction->sResult.Equals(sValue))
+			{
+				return psInstruction;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the 64 bit sValue's high 32 bits are known to be 0: a constant
+// under 2^32, a zext of 32 bits or fewer, an and with one, or an lshr by
+// 32 or more.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
+{
+	SIRInstruction*	psDefinition;
+	uint64			ulliAmount;
+
+	if (sValue.IsConstant())
+	{
+		return (mpcFunction->GetConstant(sValue)->ulliBits >> 32) == 0;
+	}
+	psDefinition = FindDefinition(sValue);
+	if ((psDefinition == NULL) || (iDepth > 2))
+	{
+		return false;
+	}
+	switch (psDefinition->uiOpcode)
+	{
+	case IRO_ZExt:
+		return !psDefinition->asArguments[0].IsTemporary() || (mpcFunction->GetTemporaryType(psDefinition->asArguments[0]).Bits() <= 32);
+	case IRO_And:
+		return IsHighHalfZero(psDefinition->asArguments[0], iDepth + 1) || IsHighHalfZero(psDefinition->asArguments[1], iDepth + 1);
+	case IRO_LShr:
+		if (!psDefinition->asArguments[1].IsConstant())
+		{
+			return false;
+		}
+		ulliAmount = mpcFunction->GetConstant(psDefinition->asArguments[1])->ulliBits & 63;
+		return ulliAmount >= 32;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 64 bit multiply of two values whose high halves are 0 (IsHighHalfZero:
+// softfloat's 32 bit halves of a fraction) is R816_UMulWide32 of their low
+// halves, much faster than R816_Mul64.  False, with nothing written, for
+// any other multiply.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::WideMultiply(SIRInstruction* psInstruction)
+{
+	int		i;
+
+	if ((psInstruction->uiOpcode != IRO_Mul) || (Words(psInstruction->sType) != 4) ||
+		!IsHighHalfZero(psInstruction->asArguments[0], 0) || !IsHighHalfZero(psInstruction->asArguments[1], 0))
+	{
+		return false;
+	}
+	CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], 2);
+	CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], 2);
+	UseRuntime(IR816_RUNTIME_PREFIX "UMulWide32");
+	Line("jsl " IR816_RUNTIME_PREFIX "UMulWide32");
+	if (!psInstruction->sResult.IsNone())
+	{
+		for (i = 0; i < 4; i++)
+		{
+			Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
+			Store(psInstruction->sResult, i);
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hot i8 divide or remainder by a constant (IRF_Hot, CIROptimiser::
+// ConstantDivisions) looked up in R816_STable<c> or R816_UTable<c>: a word
+// per byte value, q in its low byte and the remainder in its high byte.
+// False, with nothing written, for any other.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
+{
+	CChars	szName;
+	uint64	ulliDivisor;
+
+	if (!(psInstruction->uiFlags & IRF_Hot) || !psInstruction->sType.Is(IRTK_I8) || !psInstruction->asArguments[1].IsConstant())
+	{
+		return false;
+	}
+	ulliDivisor = mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits & 0xFF;
+	if ((ulliDivisor < 3) || (bSigned && (ulliDivisor >= 0x80)))
+	{
+		return false;
+	}
+	szName.Init(bSigned ? IR816_SIGNED_TABLE : IR816_UNSIGNED_TABLE);
+	szName.Append((int)ulliDivisor);
+	UseRuntime(szName.Text());
+	Operand("lda", psInstruction->asArguments[0], 0);
+	Line("asl A");
+	Line("tax");
+	mpszOut->Append("\t\tlda [")->Append(szName)->Append(" + X]:24\n");
+	szName.Kill();
+	if ((psInstruction->uiOpcode == IRO_SRem) || (psInstruction->uiOpcode == IRO_URem))
+	{
+		Line("xba");
+	}
+	Line("and 0xFF");
+	if (!psInstruction->sResult.IsNone())
+	{
+		Store(psInstruction->sResult, 0);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An i8 multiply: the low byte of the product in MathMult (the word at
+// (a * 256 + b) * 2 is a * b, as R816_Mul16 reads it), looked up in place.
+// False, with nothing written, for any other multiply, and without the
+// table (SetMathTables): R816_Mul16 is called instead.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
+{
+	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8) || !mbMathTables)
+	{
+		return false;
+	}
+	Operand("lda", psInstruction->asArguments[1], 0);
+	Line("xba");
+	Operand("ora", psInstruction->asArguments[0], 0);
+	TableProduct();
+	Line("and 0xFF");
+	if (!psInstruction->sResult.IsNone())
+	{
+		Store(psInstruction->sResult, 0);
+	}
+	return true;
+}

@@ -1,0 +1,133 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppCompilerLib
+
+Codaphela CppCompilerLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppCompilerLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#ifndef __I_R_INLINER_H__
+#define __I_R_INLINER_H__
+#include "BaseLib/ArrayChars.h"
+#include "IRModule.h"
+#include "IRImports.h"
+
+
+//A return of the function being inlined: the copy of its block and the value it returns.
+struct SIRInlineReturn
+{
+	CIRBlock*		pcBlock;
+	SIRReference	sValue;
+};
+
+
+typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
+
+
+#define IR_INLINE_CONSTANT_BONUS	8		//More instructions inlined for each constant argument the callee compares.
+#define IR_INLINE_HOT_SAVING		30		//About the cycles a call costs that inlining it saves (a W65C816's jsl, frame and rtl)...
+#define IR_INLINE_HOT_SHARE			2000	//...a call site is hot when that, times the calls, is 1/IR_INLINE_HOT_SHARE of the profiled run.
+#define IR_INLINE_UNKNOWN			((uint64)-1)
+#define IR_INLINE_THUNK_INSTRUCTIONS	2	//A callee no bigger than a forwarder (its arguments, a 'this' moved and the call, or a load).
+#define IR_INLINE_MAX_CALLER		4096	//No function grows past this many instructions by inlining (a W65C816 function
+										//must fit in a 64KB bank).
+
+
+//How often calls were made, from a profile of the program (CAsm65816Profile): what a profile guided inliner asks.
+class CIRInlineProfile
+{
+public:
+	virtual uint64	CallCount(CIRFunction* pcCaller, SIRInstruction* psCall) =0;	//IR_INLINE_UNKNOWN if the profile doesn't say.
+	virtual uint64	ProfileCycles(void) =0;
+};
+
+
+//Inlining (IR.txt Passes): a call of a small function of the same module is replaced by a copy of the function's
+//blocks.  The block the call is in is split after it; the arguments become the copy's parameters, its returns
+//jump to the rest of the block, and the call's result is a phi there of the values returned.  A function is
+//small if it has at most muiMaxInstructions instructions (muiMaxLoopInstructions for a call in a loop, and
+//IR_INLINE_CONSTANT_BONUS more for each constant argument whose parameter it compares or branches on); variadic
+//functions and calls of the function itself aren't inlined.  A callee that takes its parameters' addresses (argaddr:
+//an object passed by value as pieces) gets a slot in the caller laid out as its parameters, with the arguments
+//stored to it.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
+//again afterwards.  A callee with no body in the module may be another unit's, from SetImports' CIRImports.  With a
+//profile (SetProfile) the hottest calls are inlined first, and a hot call (IR_INLINE_HOT_SHARE) may inline a callee
+//of up to muiHotInstructions.  Where a function that only passes a call on is a jump (SetForwardersJump: the
+//W65C816's CIR816Backend::Forwarder), it takes only a callee no bigger than itself (IR_INLINE_THUNK_INSTRUCTIONS),
+//unless the call is hot or passes a constant the callee compares: inlining another would save only the jump, and
+//copy the work the layers share into each.
+class CIRInliner
+{
+protected:
+	CIRModule*				mpcModule;
+	CIRFunction*			mpcCaller;
+	size					muiMaxInstructions;
+	size					muiMaxLoopInstructions;		//For a call in a loop.
+	size					muiMaxInlines;
+	CArrayIRReferences		masMap;						//Per callee temporary: what it is in the caller, IRNone until it is made.
+	CArrayIRBlocks			mapcCopies;					//Per callee block index: its copy.
+	CArrayIRInlineReturns	masReturns;
+	CArrayTemplate<bool>	mabInLoop;					//Per caller block index.
+	CIRImports*				mpcImports;					//Other units' functions, NULL for none.
+	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
+	CArrayChars*			mpaszNotImported;			//Every name looked for in mpcImports and not found, NULL to not keep.
+	CIRModule*				mpcCalleeModule;			//The module of the callee being inlined when it isn't this one (its symbols are mapped by name).
+	uint32					muiImportSource;			//The call's source when the callee is another unit's: its sources are that unit's tokens.
+	SIRReference			msArguments;				//The slot the callee's parameters are in (argaddr), IRNone if it takes none's address.
+	CArrayTemplate<int32>	maiArgumentOffsets;			//Per callee parameter: its offset in msArguments.
+	CArrayIRReferences		masArguments;				//The call's arguments, in order.
+	CIRInlineProfile*		mpcProfile;					//NULL for none.
+	size					muiHotInstructions;
+	bool					mbForwardersJump;			//A function that only passes a call on is a jump (SetForwardersJump).
+	bool					mbCallerForwards;			//mbForwardersJump, and mpcCaller was a forwarder when its inlining began.
+	CArrayTemplate<CIRFunction*>	mapcRecursiveCallers;	//A function that calls itself is inlined once into a caller: the
+	CArrayTemplate<CIRFunction*>	mapcRecursiveCallees;	//callers and callees done (its copies' calls of it aren't).
+
+public:
+	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines);
+	void			Kill(void);
+
+	static size		NumInstructions(CIRFunction* pcFunction);
+	static bool		CallsItself(CIRFunction* pcFunction);
+	bool			InlinedRecursive(CIRFunction* pcCallee);
+	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0, size uiHotLimit = 0);
+	bool			InlineCalls(CIRFunction* pcCaller);
+	void			SetImports(CIRImports* pcImports, CArrayChars* paszMissing, CArrayChars* paszNotImported = NULL);
+	void			SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions);
+	void			SetForwardersJump(bool bForwardersJump);
+	static bool		IsForwarder(CIRFunction* pcFunction);
+	static bool		IsThunk(CIRFunction* pcFunction);
+	static bool		IsParameter(CIRFunction* pcFunction, SIRReference sValue);
+
+protected:
+	bool			InlineCallsReading(CIRFunction* pcCaller);
+	void			FindLoops(void);
+	CIRFunction*	Callee(SIRReference sSymbol, bool bMissing);
+	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);
+	bool			HasLoopCandidate(void);
+	bool			InlineHottest(void);
+	CIRFunction*	DirectCallee(SIRInstruction* psInstruction);
+	bool			InlineAt(size uiBlock, size uiInstruction, CIRFunction* pcCallee);
+	size			HotLimit(uint64 ulliCount);
+	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
+	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
+	void			CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pcRest);
+	bool			TakesArgumentAddress(CIRFunction* pcCallee);
+	void			StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee);
+	int32			TypeBytes(SIRType sType);
+};
+
+
+#endif // __I_R_INLINER_H__

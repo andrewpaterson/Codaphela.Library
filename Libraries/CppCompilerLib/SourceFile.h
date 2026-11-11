@@ -1,0 +1,81 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2022 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppCompilerLib
+
+Codaphela CppCompilerLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppCompilerLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#ifndef __SOURCE_FILE_H__
+#define __SOURCE_FILE_H__
+#include "BaseLib/Chars.h"
+#include "BaseLib/ArrayInt.h"
+#include "BaseLib/Mutex.h"
+#include "PPBlockSetArray.h"
+#include "PPTokenMemory.h"
+#include "PreprocessorParser.h"
+
+
+class CSourceFile
+{
+protected:
+	CChars				mszContents;
+	CChars				mszFullName;
+	bool				mbLoaded;
+	bool				mbContentsSet;		//The contents were given (SetContents), not read from the file.
+	CPPTokenMemory		mcTokenMemory;
+	CPPBlockSetArray	macBlockSets;
+	bool				mbBlockSetsKilled;
+	CArrayPPComments	macComments;		//Filled when the file is tokenised.
+	CArrayInt			maiLineStarts;		//Offset of the start of each line, made when first needed.
+	CMutex				mcMutex;			//Held while the file is loaded and tokenised (Lock).
+
+public:
+			void				Init(char* pszFullName);
+	virtual void				Kill(void);
+
+			void				KillBlockSets(void);
+			void				Lock(void);
+			void				Unlock(void);
+			bool				Load(void);
+			void				Unload(void);
+			void				ClearContents(void);
+			void				SetContents(const char* sz);
+			bool				IsLoaded(void);
+			bool				IsNamed(char* szName);
+	virtual bool				IsTranslationUnit(void) =0;
+	virtual bool				IsHeader(void) =0;
+			char*				ShortName(void);
+			char*				FullName(void);
+	virtual bool				IsSystemFile(void) =0;
+			void				Path(CChars* pszPath);
+			char*				GetContents(void);
+			size					GetContentsLength(void);
+			size_t				GetTokenMemoryUsed(void);
+			CPPBlockSetArray*	GetBlockSets(void);
+			CPPTokenMemory*		GetTokenMemory(void);
+			CArrayPPComments*	GetComments(void);
+			size				NumLines(void);
+			bool				GetLineAndColumn(size iOffset, int* piLine, int* piColumn);
+			size				GetOffset(int iLine, int iColumn);
+			void				DumpBlockSets(void);
+
+protected:
+			void				CalculateLineStarts(void);
+};
+
+
+#endif // !__SOURCE_FILE_H__
+

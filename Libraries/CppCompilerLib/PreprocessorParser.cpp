@@ -1,0 +1,477 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2025 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppCompilerLib
+
+Codaphela CppCompilerLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppCompilerLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include <string.h>
+#include "BaseLib/ErrorHandler.h"
+#include "BaseLib/ExternalString.h"
+#include "BaseLib/Chars.h"
+#include "PreprocessorParser.h"
+#include "CPPNameCharacters.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::Init(char* szStart, char* szEnd, char* szFileName)
+{
+	int		iLen;
+
+	mszParserPos = szStart;
+	mszStartOfText = mszParserPos;
+	if (!szEnd)
+	{
+		iLen = (int)strlen(szStart);
+		mszEndOfText = szStart+iLen-1;
+	}
+	else
+	{
+		mszEndOfText = szEnd;
+	}
+	TestEnd();
+	miLine = 0;
+	miColumn = 0;
+	mszFileName = szFileName;
+	mpacComments = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::SetComments(CArrayPPComments* pacComments)
+{
+	mpacComments = pacComments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::StepRight(void)
+{
+	if (IsNewLine())
+	{
+		SkipNewLine();
+	}
+	else
+	{
+		miColumn++;
+		mszParserPos++;
+	}
+	TestEnd();
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::StepLeft(void)
+{
+	if (IsNewLine())
+	{
+		BackupNewLine();
+	}
+	else
+	{
+		miColumn--;
+		mszParserPos--;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::StepRight(int iDist)
+{
+	int  i;
+
+	for (i = 0; i < iDist; i++)
+	{
+		StepRight();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::SkipWhitespace(void)
+{
+	char	cCurrent;		
+
+	for (;;)
+	{
+		if (mbEndOfFile)
+		{
+			return;
+		}
+
+		cCurrent = mszParserPos[0];
+
+		//Nice clean white space...
+		if (IsWhitespace())
+		{
+			StepRight();
+		}
+
+		//Possibly nasty comments...
+		else if (cCurrent == '/')
+		{
+			StepRight();
+
+			if (!mbEndOfFile)
+			{
+				cCurrent = mszParserPos[0];
+				if (cCurrent == '*')
+				{
+					StepRight();
+					SkipCStyleComment();
+				}
+				else if (cCurrent == '/')
+				{
+					StepRight();
+					SkipCPPStyleComment();
+				}
+				else
+				{
+					mszParserPos--;
+					break;
+				}
+			}
+		}
+		else
+		{
+			//Was not white-space at all.
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::SkipCStyleComment(void)
+{
+	char	cCurrent;		
+	char*	szStart;
+
+	//It's assumed that the initial /* has already been consumed.  Comments do not nest.
+	szStart = mszParserPos - 2;
+	for (;;)
+	{
+		if (mbEndOfFile)
+		{
+			break;
+		}
+
+		cCurrent = mszParserPos[0];
+		if (cCurrent == '*')
+		{
+			StepRight();
+			TestEnd();
+			if ((!mbEndOfFile) && (mszParserPos[0] == '/'))
+			{
+				StepRight();
+				break;
+			}
+		}
+		else
+		{
+			StepRight();
+		}
+	}
+	AddComment(szStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::AddComment(char* szStart)
+{
+	SPPComment*		psComment;
+
+	if (mpacComments)
+	{
+		psComment = mpacComments->Add();
+		psComment->iStart = (int32)(szStart - mszStartOfText);
+		psComment->iLength = (int32)(mszParserPos - szStart);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::SkipCPPStyleComment(void)
+{
+	char	cCurrent;
+	int		iCharNum;
+
+	char*	szStart;
+
+	//It's assumed that the initial // has already been consumed.
+	szStart = mszParserPos - 2;
+	if (mbEndOfFile)
+	{
+		AddComment(szStart);
+		return;
+	}
+
+	cCurrent = mszParserPos[0];
+	iCharNum = 0;
+	while (!mbEndOfFile)
+	{
+		cCurrent = mszParserPos[0];
+
+		if ((cCurrent == '\n') || (cCurrent == '\r'))
+		{
+			if ((iCharNum > 0) && (mszParserPos[-1] == '\\'))
+			{
+				//A line splice continues the comment onto the next line.
+				SkipNewLine();
+				TestEnd();
+				continue;
+			}
+
+			//Don't consume the newline.
+			break;
+		}
+
+		StepRight();
+		iCharNum++;
+	}
+	AddComment(szStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::TestEnd(void)
+{
+	if (mszParserPos <= mszEndOfText)
+	{
+		mbEndOfFile = false;
+	}
+	else
+	{
+		mbEndOfFile = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorParser::IsWhitespace(void)
+{
+	char c;
+	c = *mszParserPos;
+	return (c == ' ') || ((unsigned char)c >= 128) || (c >= 1 && c <= 9) || (c == 11) || (c == 12);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorParser::IsFirstIdentifier(void)
+{
+	return IsCPPNameStart(*mszParserPos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorParser::IsDigit(void)
+{
+	if (((*mszParserPos) >= '0') && ((*mszParserPos) <= '9'))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::SkipNewLine(void)
+{
+	if (!mbEndOfFile)
+	{
+		if ((*mszParserPos) == '\n')
+		{
+			mszParserPos++;
+			if ((*mszParserPos) == '\r')
+			{
+				mszParserPos++;
+			}
+			miLine++;
+			miColumn = 0;
+		}
+		else if ((*mszParserPos) == '\r')
+		{
+			mszParserPos++;
+			if ((*mszParserPos) == '\n')
+			{
+				mszParserPos++;
+			}
+			miLine++;
+			miColumn = 0;
+		}
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CPreprocessorParser::CalculateColumn(void)
+{
+	char*	sz;
+	int		iCount;
+	bool	bAny;
+
+	iCount = 0;
+	sz = mszParserPos;
+	bAny = false;
+	while ((*sz != '\r') && (*sz != '\n') && (sz != mszStartOfText))
+	{
+		sz--;
+		iCount++;
+		bAny = true;
+	}
+
+	if (bAny)
+	{
+		iCount--;
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::BackupNewLine(void)
+{
+	if ((*mszParserPos) == '\n')
+	{
+		mszParserPos--;
+		if ((*mszParserPos) == '\r')
+		{
+			mszParserPos--;
+		}
+		miLine--;
+		miColumn = CalculateColumn();
+	}
+	else if ((*mszParserPos) == '\r')
+	{
+		mszParserPos--;
+		if ((*mszParserPos) == '\n')
+		{
+			mszParserPos--;
+		}
+		miLine--;
+		miColumn = CalculateColumn();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorParser::IsNewLine(void)
+{
+	if (((*mszParserPos) == '\n') || ((*mszParserPos) == '\r'))
+	{
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPreprocessorParser::GetPos(void)
+{
+	return mszParserPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPreprocessorParser::GetEnd(void)
+{
+	return mszEndOfText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::Dump(void)
+{
+	CChars				sz;
+	CExternalString		pac;
+	int					iBefore;
+
+	pac.Init(mszStartOfText, mszEndOfText);
+	sz.Init(&pac);
+
+	iBefore = (int)(mszParserPos - mszStartOfText);
+	sz.AppendNewLine();
+	sz.Append(' ', iBefore);
+	sz.Append('^');
+	sz.AppendNewLine();
+
+	sz.DumpKill();
+}
+

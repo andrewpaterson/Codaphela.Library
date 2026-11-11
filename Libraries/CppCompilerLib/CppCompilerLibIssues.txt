@@ -1,0 +1,20 @@
+CppCompilerLib: issues left
+=========================
+
+What is left of the sweep of CppCompilerLib for code smells, duplication and anything wrong
+or inelegant.  Updated 2026-11-08.
+
+
+101. class X; and enum X; leave one node out of the tree: the specifier made before it's known to be elaborated.
+102. An error in an uncalled template instance doesn't fail CCPPSemanticPass::Check, and #define with nothing after it
+     is reported with no position.
+103. Rvalue references (B10 in CppParserTodo.txt) aren't a type of their own: && is made a & (GetDeclaratorType).
+     Rechecked 2026-11-08 on the 65C64.  Works: passing through T&& (ForwardedType), and a temporary by value.  Wrong
+     with no error: int&& binds a variable; F(const int&) and F(int&&) are one function, so F(3) calls the first; T&&
+     never deduces T as int&, so T u = t copies; && and & ref-qualified members are the same (s.F() calls the && one).
+     Errors: int&& taking a temporary; F(int&) with F(int&&) ("defined twice"); int&& locals, returns and fields; (S&&)
+     and static_cast<S&&>, so no move constructor or move assignment is chosen; R<T&&> as a specialisation; perfect
+     forwarding and the shape of std::move; T&& for a value is const, so changing a copy of it is an error.  A pack that
+     calls itself (S(A&&, B&&...)) doesn't find the template either.  There are no implicit move constructors or xvalues.
+97.  std:: and its library: a separate job, for the end.  The generator has what it needs of namespaces and
+     argument-dependent lookup; std::move and std::forward need 103.

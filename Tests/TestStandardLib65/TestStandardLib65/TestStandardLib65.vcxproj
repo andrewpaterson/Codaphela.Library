@@ -252,7 +252,7 @@
       <Project>{7269d64f-994a-4233-9add-bad415a07b64}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Libraries\CppParserLib\CppParserLib.vcxproj">
+    <ProjectReference Include="..\..\..\Libraries\CppCompilerLib\CppCompilerLib.vcxproj">
       <Project>{4d010c1e-4dce-4271-9b1c-87bbf0bc761c}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

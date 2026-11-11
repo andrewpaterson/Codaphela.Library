@@ -11,7 +11,7 @@ void TestSupportLib65Tests(void);
 
 //////////////////////////////////////////////////////////////////////////
 //
-// SupportLib's own tests (TestSupportLib), compiled from their real source with CppParserLib's 65C64 generator
+// SupportLib's own tests (TestSupportLib), compiled from their real source with CppCompilerLib's 65C64 generator
 // and run on MicroprocessorLib's 65C64, or with "816" compiled for the W65C816 and run on its fast core.
 //
 //////////////////////////////////////////////////////////////////////////
