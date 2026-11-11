@@ -28,6 +28,8 @@ class CTestGoToSearcher : public CGoToSearcher
 public:
 	size	muiSearches;
 
+	void Open(void) {}
+
 	void GoToSearch(size uiTab, CNameMatcher* pcMatcher, CGoToItems* pcDest) override
 	{
 		SNameMatch	sMatch;
@@ -99,6 +101,7 @@ void TestGoToDialogSearch(void)
 		Ptr<CGoToDialog>			pDialog;
 		Ptr<CWindow>				pDialogWindow;
 		CTestGoToSearcher			cSearcher;
+		Ptr<CCommandSet>			pCommands;
 		CChars						szResults;
 		size						i;
 
@@ -114,8 +117,11 @@ void TestGoToDialogSearch(void)
 
 		pDialog = OMalloc<CGoToDialog>(pTestWindow, &sLook, "Go to", &cSearcher, pTheme->GetFont());
 		ORoot()->Add(pDialog);
-		AssertSize(0, pDialog->AddTab("Classes"));
-		AssertSize(1, pDialog->AddTab("Files"));
+		pCommands = OMalloc<CCommandSet>();
+		pCommands->Add("Go.Class", "Class...", "Control+N", Ptr<CImageCel>(), &cSearcher, &CTestGoToSearcher::Open);
+		pCommands->Add("Go.File", "File...", "Control+Shift+N", Ptr<CImageCel>(), &cSearcher, &CTestGoToSearcher::Open)->AddKeys("Control+Alt+Shift+N");
+		AssertSize(0, pDialog->AddTab("Classes", pCommands->Find("Go.Class")));
+		AssertSize(1, pDialog->AddTab("Files", pCommands->Find("Go.File")));
 		pDialogWindow = pDialog->GetDialog()->GetWindow();
 
 		//Started on Classes with what was typed last, selected; everything it matches is found, the best first.
@@ -158,6 +164,23 @@ void TestGoToDialogSearch(void)
 		pDialogWindow->InputCommand(CIC_BackTab, true);
 		AssertSize(0, pDialog->GetTab());
 
+		//The keys that open the dialog on a tab go to it while it is open, searching for the text typed; any of a
+		//command's keys do, and other keys do nothing.
+		pDialog->SetText("tf");
+		AssertTrue(pDialogWindow->InputKeys("Control+Shift+N"));
+		AssertSize(1, pDialog->GetTab());
+		AssertString("tf", pDialog->GetPattern());
+		AssertString("TextField.h,TextFile.cpp", PrintGoToResults(pDialog, &szResults));
+		AssertTrue(pDialogWindow->GetFocus()->GetFocussedComponent() == pDialog->GetField());
+		AssertTrue(pDialogWindow->InputKeys("Control+N"));
+		AssertSize(0, pDialog->GetTab());
+		AssertString("CTextField", PrintGoToResults(pDialog, &szResults));
+		AssertTrue(pDialogWindow->InputKeys("Control+Alt+Shift+N"));
+		AssertSize(1, pDialog->GetTab());
+		AssertFalse(pDialogWindow->InputKeys("Control+B"));
+		AssertSize(1, pDialog->GetTab());
+		AssertTrue(pDialogWindow->InputKeys("Control+N"));
+
 		//A line after the name.
 		pDialog->SetText("CListContainer:42");
 		AssertString("CListContainer", PrintGoToResults(pDialog, &szResults));
@@ -196,6 +219,7 @@ void TestGoToDialogSearch(void)
 		ORoot()->Remove(pDialog);
 		pDialog = NULL;
 		pDialogWindow = NULL;
+		pCommands = NULL;
 		sLook.Kill();
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;

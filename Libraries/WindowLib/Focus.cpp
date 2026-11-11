@@ -719,6 +719,29 @@ bool CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Keys bound to an application's command ("Control+Shift+N"), not from
+// the input, as a test gives them: what is focussed is asked first, then
+// they run the command (DispatchUnhandledCommand).  False if nothing
+// took them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::Keys(const char* szKeys)
+{
+	SComponentInputEvent	sEvent;
+
+	if (!mbActive)
+	{
+		return false;
+	}
+	InitEvent(&sEvent, CIET_Command, true);
+	sEvent.eCommand = CIC_Command;
+	sEvent.szName = (char*)szKeys;
+	return DispatchEvents(&sEvent, 1) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Printable(char c, bool bInsert)

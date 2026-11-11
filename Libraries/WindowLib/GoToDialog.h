@@ -28,6 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Label.h"
 #include "IconComponent.h"
 #include "Dialog.h"
+#include "CommandSet.h"
 
 
 #define GO_TO_DIALOG_ROWS		100		//The most results shown; IntelliJ shows a page and "more".
@@ -79,7 +80,8 @@ public:
 //them, as each character is typed, for the tab chosen.
 //
 //Up, down, page up and page down move through the results while typing; tab and shift tab go to the next and previous
-//tab.  Enter, or a double click, chooses the selected result and closes the dialog; escape closes it.  A pattern
+//tab, and the keys of the application's command that opens the dialog on a tab (AddTab) go to that tab, as IntelliJ's do.
+//A tab chosen searches for the text already typed.  Enter, or a double click, chooses the selected result and closes the dialog; escape closes it.  A pattern
 //ending in a colon and a number, "TextArea.cpp:120", finds what the rest does and chooses the line too.
 //
 //It is shown in its own window, without buttons.  A Go to dialog is an object: make it with OMalloc and keep it in the
@@ -95,6 +97,7 @@ protected:
 	Ptr<CScrollPane>		mpScrollPane;
 	Ptr<CListContainer>		mpList;
 	Ptr<CFont>				mpMatchFont;
+	Ptr<CCommandSet>		mpCommands;  //The dialog window's: a command for each tab that has keys, named by its index.
 	CArray<CImageCel>		maIcons;
 	CGoToSearcher*			mpcSearcher;
 	CGoToItems				mcItems;
@@ -109,7 +112,7 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	size			AddTab(const char* szName);
+	size			AddTab(const char* szName, Ptr<CCommand> pOpener = NULL);
 	int32			AddIcon(Ptr<CImageCel> pIcon);
 	void			Start(size uiTab, const char* szText);
 	bool			Show(void);
@@ -131,6 +134,7 @@ public:
 	bool			Approve(void);
 	void			ResultActivated(void);
 	void			TabSelected(void);
+	void			TabCommand(CCommand* pcCommand);
 	void			Up(void);
 	void			Down(void);
 	void			PageUp(void);

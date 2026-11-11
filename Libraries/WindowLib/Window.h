@@ -161,6 +161,7 @@ public:
 	void						PointerLeft(void);
 	void						Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
 	void						InputCommand(EComponentInputCommand eCommand, bool bInsert);
+	bool						InputKeys(const char* szKeys);
 	void						InputPrintable(char c, bool bInsert);
 	void						Activate(void);
 	CComponentEvent<CWindow>*	GetActivationEvent(void);

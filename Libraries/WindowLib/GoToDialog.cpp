@@ -158,6 +158,8 @@ void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szT
 	mpDialog->SetResizable(GetMetric(TM_GoToWidth) / 2, GetMetric(TM_GoToHeight) / 2);
 	mpDialog->SetApprover(this, &CGoToDialog::Approve);
 	mpDialog->SetBody(CreateBody(), mpField);
+	mpCommands = OMalloc<CCommandSet>();
+	mpDialog->GetWindow()->SetCommands(mpCommands);
 
 	mpTabs->GetSelectionEvent()->Add(this, &CGoToDialog::TabSelected);
 	mpField->GetChangeEvent()->Add(this, &CGoToDialog::Search);
@@ -187,6 +189,7 @@ void CGoToDialog::Class(void)
 	M_Pointer(mpScrollPane);
 	M_Pointer(mpList);
 	M_Pointer(mpMatchFont);
+	M_Pointer(mpCommands);
 	M_Embedded(maIcons);
 	U_Pointer(mpcSearcher);
 	U_Unknown(CGoToItems, mcItems);
@@ -207,6 +210,10 @@ void CGoToDialog::Free(void)
 	if (mpDialog.IsNotNull())
 	{
 		mpDialog->ClearApprover();
+		if (mpDialog->GetWindow().IsNotNull())
+		{
+			mpDialog->GetWindow()->SetCommands(NULL);  //Their function is the dialog's.
+		}
 	}
 	if (mpTabs.IsNotNull())
 	{
@@ -297,17 +304,37 @@ Ptr<CComponent> CGoToDialog::CreateBody(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A tab for the searcher's uiTab, the index returned.  Tabs are added
-// before the dialog is started.
+// before the dialog is started.  pOpener is the application's command
+// that opens the dialog on this tab, NULL for none: while the dialog is
+// open its keys (which the application has bound; a modal dialog doesn't
+// run its owner's commands) choose the tab instead.
 //
 //////////////////////////////////////////////////////////////////////////
-size CGoToDialog::AddTab(const char* szName)
+size CGoToDialog::AddTab(const char* szName, Ptr<CCommand> pOpener)
 {
 	Ptr<CFillContainer>	pPage;
+	Ptr<CCommand>		pCommand;
+	CChars				szIndex;
+	size				uiTab;
+	size				i;
 
 	pPage = OMalloc<CFillContainer>(mpDialog->GetWindow());
 	pPage->SetDesiredSize(1, 0);
 	mpTabs->AddTab(szName, pPage);
-	return mpTabs->NumTabs() - 1;
+	uiTab = mpTabs->NumTabs() - 1;
+
+	if (pOpener.IsNotNull() && (pOpener->NumKeys() > 0))
+	{
+		szIndex.Init();
+		szIndex.Append((uint32)uiTab);
+		pCommand = mpCommands->Add(szIndex.Text(), szName, NULL, Ptr<CImageCel>(), this, &CGoToDialog::TabCommand);
+		szIndex.Kill();
+		for (i = 0; i < pOpener->NumKeys(); i++)
+		{
+			pCommand->AddKeys(pOpener->GetKeys(i));
+		}
+	}
+	return uiTab;
 }
 
 
@@ -609,6 +636,18 @@ void CGoToDialog::TabSelected(void)
 {
 	Search();
 	mpDialog->GetWindow()->GetFocus()->SetFocus(mpField);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys of a tab's opener: the tab is chosen, which searches for the
+// text typed (TabSelected).
+//
+//////////////////////////////////////////////////////////////////////////
+void CGoToDialog::TabCommand(CCommand* pcCommand)
+{
+	mpTabs->Select((size)atoi(pcCommand->GetName()));
 }
 
 

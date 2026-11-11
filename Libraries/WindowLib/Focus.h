@@ -91,6 +91,7 @@ public:
 	void				SetFocus(Ptr<CComponent> pComponent);
 	bool				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
 	bool				Command(EComponentInputCommand eCommand, bool bInsert);
+	bool				Keys(const char* szKeys);
 	void				Printable(char c, bool bInsert);
 	void				Activate(void);
 	void				Deactivate(void);

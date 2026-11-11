@@ -1012,6 +1012,7 @@ void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); if (mpToolTips.IsNotNull()) { mpToolTips->PointerMoved(mcFocus.GetMouseOverComponent(), GetDebugTickCount()); } RequestPaint(); }
 void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); if (mpToolTips.IsNotNull()) { mpToolTips->PointerLeft(); } RequestPaint(); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { DismissToolTip(); if (mcFocus.Command(eCommand, bInsert)) { RequestPaint(); } else { InvalidateLayout(); } }
+bool CWindow::InputKeys(const char* szKeys) { bool bTaken; DismissToolTip(); bTaken = mcFocus.Keys(szKeys); InvalidateLayout(); return bTaken; }  //A command's keys, as a test gives them.
 void CWindow::InputPrintable(char c, bool bInsert) { DismissToolTip(); mcFocus.Printable(c, bInsert); RequestPaint(); }
 
 
