@@ -120,8 +120,10 @@ Measuring
 ---------
 
 Two things are measured all the way through: the code the compiler writes (does it work, how fast, how big)
-and the compiler itself (how long it takes, how much memory).  Neither may get worse without a reason given in
-the commit.
+and the compiler itself (how long it takes, how much memory).  The code may not get worse without a reason
+given in the commit.  The compiler's own time and memory are only watched for now (the user, 2026-11-11): they
+are taken at each stage's end and written in Progress, and where a stage's end says they are within the spread,
+a miss is written there with its cause and doesn't hold the stage.
 
 What there is already (TestProject65 and the suites):
   - TEST_PROJECT65_CYCLES: each test program's cycles on its emulator.  TEST_SOFT_FLOAT_CYCLES and
@@ -160,13 +162,18 @@ end's share is the first thing to take again.
 The order of work
 -----------------
 
-Twelve stages, 0 to 11, in the order they are done.  Each says what is done, what is measured before it starts, and
-what must be true when it ends.  After every stage: the whole proof (below) and a row in Progress at the end of
+Twelve stages, 0 to 11, in the order they are done.  Each says what is done, what is measured before it
+starts, and what must be true when it ends.  The plan is run to the end of stage 5, its checkpoint (the
+user, 2026-11-11).
+Stages 6 to 11 wait: the user comes back then to whether the back ends' code becomes instructions (stage 8) and
+whether the 65C64 gets its half of it.  After every stage: the whole proof (below) and a row in Progress at the end of
 this file.  Sizes are relative: S, M, L, XL.
 
 Stage 0.  Ground.  (S)
 
-   - TestCppParser.cpp line 268 passes on Windows (the note at the end), so the whole suite runs.
+   - TestCppParser.cpp line 268 passes on Windows (the note at the end), so the whole suite runs.  __inline is
+     to be a macro on Windows (the user, 2026-11-11), so it is the test that changes: what it expects there is
+     "inline".
    - The measuring kit above: the phase times and counters in the compiler behind TEST_PROJECT65_COMPILE_STATS,
      the size and memory figures, and the script.
    - The baseline, written into Progress: the suites' totals; each Lib65 suite's cycles and sizes on both
@@ -184,12 +191,21 @@ Stage 1.  The target is a class.  (S-M)
    the questions now asked as "is it the W65C816": are zeroed globals bss, are indices narrowed, are units
    compiled again after inlining.  What a back end keeps about a function it wrote (the W65C816's frame) is the
    back end's own, and finishing a function's code (AlignFrame) is a CIRBackend virtual.  The globals become a
-   CCPPCompileOptions the builder owns and hands down.  Stage 0's times and counters become a
+   CCPPCompileOptions the builder owns and hands down.  It has a new option: whether speed or size is
+   preferred (the user, 2026-11-11: "Start adding an option to prefer speed or size").  Speed is what the
+   compiler does today.  Here the option is made, reaches the target, the pipeline and the back ends, and is
+   settable from CCPP65Builder, an .hcp65build configuration and hcp65build's command line; its first users are
+   the limits that are already numbers: how big a function is inlined (GetInlineLimits) and how many bytes
+   memcpy copies in place.  The places that trade one for the other are listed as they are met (multiplies as
+   shifts and adds, divisions by constants as multiplies, unswitched and rotated loops, the register entry
+   beside each function's stack entry, aligned frames, the table routines) and each is given to the option in
+   the stage that reworks it, or in stage 11.  Stage 0's times and counters become a
    CCPPCompileStatistics, one for each unit and added up under the builder's mutex, so they are exact in a
    parallel build too.
    Measure: nothing new before.  The sizes stay fields, not virtual calls: they are read for every type.
-   Ends when: CPPT_W65C816 is named only where a target is chosen; the listings are the same (this stage only
-   moves code); compile CPU and memory are within the spread.
+   Ends when: CPPT_W65C816 is named only where a target is chosen; preferring speed, the listings are the same
+   (this stage only moves code); preferring size, the suites pass and every linked program is smaller or the
+   same; compile CPU and memory are within the spread.
 
 Stage 2.  A pass is a class.  (L, mostly moving code)
 
@@ -276,10 +292,10 @@ Stage 5.  A call, a name and a member are resolved once; then the checkpoint.  (
    Measure at the checkpoint: the same, and the bound nodes made for a function (the most and the average),
    peak memory, compile CPU, the suites' cycles (a call resolved differently can change them) and the
    disagreements found.
-   The checkpoint: if the front end's call and member functions are short and decide nothing, and memory and
-   compile time are within the spread or better, stage 6 goes ahead.  If they haven't shrunk much, stage 6 is
-   dropped: what is there is the lighter form, and nothing made is wasted.  The decision and its numbers go in
-   Progress.
+   The checkpoint: the plan stops here and the numbers go to the user.  If the front end's call and member
+   functions are short and decide nothing, the suggestion will be that stage 6 goes ahead; if they haven't
+   shrunk much, that it is dropped: what is there is the lighter form, and nothing made is wasted.  Memory and
+   compile time are part of what is shown, not a condition.  The decision and its numbers go in Progress.
 
 Stage 6.  The rest of an expression is resolved once.  (XL)
 
@@ -372,8 +388,10 @@ Stage 11.  Faster code, with what has been built.  (as long as it is worth it)
    - The W65C816's passes tried on the 65C64 and the other way (constant divisions, narrowed counters and
      multiplies, biased indices; the machine passes of stage 8).
    - What the suites' profiles (TEST_PROJECT65_PROFILE_REPORT) show is hot and badly written.
+   - The rest of the places that trade speed for size given to the option.
    Measure: the suites' cycles and sizes on both processors and the soft float count, before and after each
-   change, and the compile's time, as a pass costs time for every function.
+   change, preferring speed and preferring size, and the compile's time, as a pass costs time for every
+   function.
    Ends when the user says it does.
 
 
@@ -390,11 +408,12 @@ That the code works is proved by running it, not by comparing it:
 
 That it is no slower is measured for each commit that changes what is written, and the numbers go in the
 commit: the Lib65 suites' cycles and the soft float cycle count on each processor, and the size of the linked
-programs (the W65C816's banks and a ROM's kernal are tight).  A commit that makes something slower or bigger
-says why it is worth it, or isn't made.
+programs (the W65C816's banks and a ROM's kernal are tight).  Preferring speed, a commit may not make code
+slower; preferring size, it may not make it bigger; one that does says why it is worth it, or isn't made.
+From stage 1 the suites are run preferring size as well at each stage's end.
 
-That the compiler is no slower and no bigger is measured at the end of each stage, and inside a stage whenever
-a commit touches something the profile says is hot.
+The compiler's own time and memory are measured at the end of each stage, and inside a stage whenever a commit
+touches something the profile says is hot.  They are watched, not a gate.
 
 The listings (TEST_PROJECT65_LISTINGS, compared section by section with local labels renumbered) are still the
 quickest way to see what a commit changed.  Stages 1, 2, 3, 7, 9 and 10 only move code and should change none;
@@ -425,22 +444,23 @@ argument list to go into; range-for (B16) is a bound statement.
 Decisions
 ---------
 
-Made:
-  - The assembly may change; it must work and ideally be faster (the user, 2026-11-11).
+Made by the user, 2026-11-11:
+  - The assembly may change; it must work and ideally be faster.
   - Resolving an expression once: bound nodes, reached in stages, with a checkpoint after calls, names and
-    members (2026-11-11).
+    members.
+  - The plan is run to the end of stage 5.  Then the user comes back to stage 8's question (the back ends'
+    code as instructions, or stop at stage 7) and to whether the 65C64 gets its half of it.
+  - __inline is a macro on Windows, so TestCppParser.cpp line 268's expected text is what changes.
+  - CPP65 becomes CPP in the Meaning layer's names as its classes are reworked.
+  - The compiler's own time and memory are only watched for now, not a gate.
+  - Speed against size is an option, not a rule: stage 1 starts it.
+  - Stages 3 to 6 have the generator, the type checker and the IR front end to themselves: there is no other
+    session in them.
 
-For the user:
-  - TestCppParser.cpp line 268: is the test wrong, or should __inline not be a macro on Windows?  Stage 0
-    needs it.
-  - Stage 8: the back ends' code as instructions (suggested), or stop at stage 7.
-  - CPP65 to CPP in the Meaning layer's names as classes are reworked (suggested), or the names stay.
-  - Is the compiler's own time and memory a gate, as this plan makes it, or only watched?
-  - When a change makes code faster and bigger, or smaller and slower, which wins: and is it the same answer
-    for a ROM's kernal as for a program?
-  - Does the 65C64 get its half of stage 8, or is it left at stage 7?
-  - Stages 3 to 6 rewrite the generator, the type checker and the IR front end: other sessions' work in those
-    files has to wait or be finished first.
+For the user, when stage 5 is done:
+  - Stage 6: the rest of an expression as bound nodes, on the checkpoint's numbers.
+  - Stage 8: the back ends' code as instructions, and the 65C64's half of it.
+  - Whether the compiler's own time and memory become a gate.
 
 
 Left alone
@@ -456,7 +476,8 @@ Note: TestCppParser.cpp line 268
 Found 2026-11-11 while checking the rename, and there before it (the build of 2026-11-10 stops at the same
 line).  The test (added 2026-11-08, fcf59e901) expects "__inline int g(void);" to print with __inline, but
 Preprocessor_Windows.cpp defines __inline as inline, so on Windows it prints "inline".  Preprocessor_Linux.cpp
-has no such define, so it probably passes on Linux; that wasn't checked.
+has no such define, so it probably passes on Linux; that wasn't checked.  The user, 2026-11-11: __inline should
+be a macro on Windows, so the test is what is wrong.  Stage 0 makes its expected text "inline" there.
 
 
 Progress
