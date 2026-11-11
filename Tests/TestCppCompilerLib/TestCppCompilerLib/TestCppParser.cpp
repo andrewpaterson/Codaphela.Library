@@ -258,6 +258,17 @@ void TestCppParserDeclarationStatements(void)
 	AssertTrue(sParsed.Init("int f(void) { __unaligned int* p = 0; __w64 int n = 1; __inline int g(void); return n; }\n"));
 	AssertInt(0, sParsed.iErrors);
 	sz.Init();
+#ifdef _WIN32
+	//On Windows __inline is a macro for inline (CPreprocessor::InitPlatformSpecific), so the parser never sees it.
+	AssertString("\
+int f(void)\n\
+{\n\
+	__unaligned int *p = 0;\n\
+	__w64 int n = 1;\n\
+	inline int g(void);\n\
+	return n;\n\
+}\n", sParsed.Print(&sz));
+#else
 	AssertString("\
 int f(void)\n\
 {\n\
@@ -266,6 +277,7 @@ int f(void)\n\
 	__inline int g(void);\n\
 	return n;\n\
 }\n", sParsed.Print(&sz));
+#endif
 	sz.Kill();
 	sParsed.Kill();
 }
