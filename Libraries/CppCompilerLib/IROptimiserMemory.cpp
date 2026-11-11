@@ -437,10 +437,9 @@ bool CIRMemoryPasses::RemoveRedundantLoads(void)
 	bool							bChanged;
 	bool							bFound;
 
-	mpcFunction->Renumber();
+	Renumber();
 	mpcFunction->ComputePredecessors();
-	mpcModule->Count(CPPCC_Dominators);
-	mpcContext->mcDominators.Compute(mpcFunction);
+	ComputeDominators();
 	ClearReplacements();
 	FindDefinitions();
 
@@ -646,7 +645,7 @@ bool CIRMemoryPasses::UnifySlotTypes(void)
 	size			uj;
 	bool			bChanged;
 
-	FindDefinitions();
+	NeedDefinitions();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{

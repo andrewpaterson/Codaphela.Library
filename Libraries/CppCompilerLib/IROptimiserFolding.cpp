@@ -172,7 +172,7 @@ bool CIRFoldingPasses::FoldConstants(void)
 	int				iShift;
 
 	ClearReplacements();
-	FindDefinitions();
+	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	mpcFunction->CountUses(&mpcContext->mauiUses);
 	bChanged = false;
@@ -866,10 +866,9 @@ bool CIRFoldingPasses::RemoveCommonSubexpressions(void)
 	bool			bChanged;
 	bool			bFound;
 
-	mpcFunction->Renumber();
+	Renumber();
 	mpcFunction->ComputePredecessors();
-	mpcModule->Count(CPPCC_Dominators);
-	mpcContext->mcDominators.Compute(mpcFunction);
+	ComputeDominators();
 	ClearReplacements();
 	bChanged = false;
 	for (ui = 0; ui < mpcContext->mcDominators.NumReachable(); ui++)

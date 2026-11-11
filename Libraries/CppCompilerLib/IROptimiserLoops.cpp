@@ -133,7 +133,7 @@ bool CIRLoopPasses::LessLoopTests(void)
 	uint32					uiSource;
 	bool					bStepB;
 
-	ComputeLoops();
+	NeedLoops();
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
@@ -555,7 +555,7 @@ bool CIRLoopPasses::ReplaceExitValues(void)
 	bool			bRoundOnTrue;
 	bool			bChanged;
 
-	ComputeLoops();
+	NeedLoops();
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
@@ -714,7 +714,7 @@ bool CIRLoopPasses::DeleteDeadLoops(void)
 	SIRPhiArgument*	psArgument;
 	bool			bDead;
 
-	ComputeLoops();
+	NeedLoops();
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
 		if (!SingleExit(uiLoop, &pcFrom, &pcTo))
@@ -795,7 +795,7 @@ bool CIRLoopPasses::HoistCommon(void)
 	bool			bOutside;
 	bool			bChanged;
 
-	FindDefinitions();
+	NeedDefinitions();
 	ClearReplacements();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -884,7 +884,7 @@ bool CIRLoopPasses::SinkLoads(void)
 	bool						bChanged;
 	int							iSinks;
 
-	ComputeLoops();
+	NeedLoops();
 	apcUseBlock.Init();
 	auiUseIndex.Init();
 	bChanged = false;
@@ -974,7 +974,7 @@ bool CIRLoopPasses::HoistInvariants(void)
 	bool					bChanged;
 	bool					bPreheader;
 
-	ComputeLoops();
+	NeedLoops();
 	asStores.Init();
 	bChanged = false;
 
@@ -1261,7 +1261,7 @@ bool CIRLoopPasses::RotateLoops(void)
 	asValues.Init();
 	cUpdater.Init(mpcFunction);
 	bChanged = false;
-	ComputeLoops();
+	NeedLoops();
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
 		if (!CanRotate(uiLoop, &pcBody, &pcExit))
@@ -1441,7 +1441,7 @@ bool CIRLoopPasses::UnswitchLoops(void)
 	{
 		return false;
 	}
-	ComputeLoops();
+	NeedLoops();
 	for (uiLoop = mpcContext->mcLoops.NumLoops(); uiLoop > 0; uiLoop--)
 	{
 		psLoop = mpcContext->mcLoops.GetLoop(uiLoop - 1);
@@ -1571,13 +1571,12 @@ bool CIRLoopPasses::UnswitchLoops(void)
 		pcSwitchCopy->Jump(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcElse));
 		mpcContext->mpcBlockPasses->RemovePhiArguments(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcThen), pcSwitchCopy);
 		pcPreheader->Branch(sCondition, psLoop->pcHead, IROptimiserCopyOf(&apcBlocks, &apcCopies, psLoop->pcHead));
-		mpcFunction->Renumber();
+		Renumber();
 		mpcFunction->ComputePredecessors();
 
 		//The values the loop defines (with their blocks, and whether each block and its copy can still be reached),
 		//before the blocks the branch no longer reaches go: an unreachable cycle would send the updater round it.
-		mpcModule->Count(CPPCC_Dominators);
-		mpcContext->mcDominators.Compute(mpcFunction);
+		ComputeDominators();
 		asValues.Init();
 		for (ui = 0; ui < apcBlocks.NumElements(); ui++)
 		{
@@ -1596,7 +1595,7 @@ bool CIRLoopPasses::UnswitchLoops(void)
 			}
 		}
 		mpcContext->mpcBlockPasses->RemoveUnreachable();
-		mpcFunction->Renumber();
+		Renumber();
 		mpcFunction->ComputePredecessors();
 
 		//Values used after the loop come from the loop or the copy.

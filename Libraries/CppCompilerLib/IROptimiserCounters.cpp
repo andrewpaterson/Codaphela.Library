@@ -217,7 +217,7 @@ bool CIRCounterPasses::NarrowCounters(void)
 	size		uiBlock;
 	bool		bChanged;
 
-	ComputeLoops();
+	NeedLoops();
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
@@ -575,7 +575,7 @@ bool CIRCounterPasses::ReplaceLoopCounters(void)
 	bool			bRoundOnTrue;
 	bool			bChanged;
 
-	ComputeLoops();
+	NeedLoops();
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
@@ -763,7 +763,7 @@ bool CIRCounterPasses::ReduceMultiplies(void)
 	int				iArgument;
 	int32			iIndex;
 
-	ComputeLoops();
+	NeedLoops();
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
 		if (mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering == NULL)
@@ -1118,7 +1118,7 @@ bool CIRCounterPasses::ReduceStrength(void)
 	bool					bExtended;
 	bool					bZeroExtends;
 
-	ComputeLoops();
+	NeedLoops();
 	ClearReplacements();
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)

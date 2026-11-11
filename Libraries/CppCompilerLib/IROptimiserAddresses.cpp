@@ -133,10 +133,9 @@ bool CIRAddressPasses::MergeAddressPhis(void)
 	bool					bChanged;
 	bool					bAll;
 
-	mpcFunction->Renumber();
+	Renumber();
 	mpcFunction->ComputePredecessors();
-	mpcModule->Count(CPPCC_Dominators);
-	mpcContext->mcDominators.Compute(mpcFunction);
+	ComputeDominators();
 	mpcFunction->CountUses(&mpcContext->mauiUses);
 	FindDefinitions();
 	auiAddressUses.Init();
@@ -264,7 +263,7 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 	bool					bChanged;
 
 	mpcFunction->CountUses(&mpcContext->mauiUses);
-	FindDefinitions();
+	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	auiAddressUses.Init();
 	CountAddressUses(&auiAddressUses);
@@ -414,7 +413,7 @@ bool CIRAddressPasses::SplitLoopAddresses(void)
 	bool							bChanged;
 
 	//Found first: the inserts move the definitions IsInvariant reads.
-	ComputeLoops();
+	NeedLoops();
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{

@@ -124,6 +124,7 @@ public:
 	void			SetBlockOrder(CArrayIRBlocks* papcBlocks);
 	void			RemoveBlock(CIRBlock* pcBlock);
 	void			Renumber(void);
+	bool			IsNumbered(void);
 	void			ComputePredecessors(void);
 	void			CountUses(CArrayTemplate<uint32>* pauiUses);
 

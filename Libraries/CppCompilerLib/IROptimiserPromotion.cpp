@@ -66,7 +66,7 @@ void CIRPromotionPasses::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIRPromotionPasses::PromoteSlots(void)
 {
-	mpcFunction->Renumber();
+	Renumber();
 	mpcFunction->ComputePredecessors();
 	FindPromotions();
 	if (masPromotions.NumElements() == 0)
@@ -74,8 +74,7 @@ bool CIRPromotionPasses::PromoteSlots(void)
 		return false;
 	}
 	ClearReplacements();
-	mpcModule->Count(CPPCC_Dominators);
-	mpcContext->mcDominators.Compute(mpcFunction);
+	ComputeDominators();
 	mpcContext->mcDominators.ComputeFrontiers();
 	PlacePhis();
 	Rename();

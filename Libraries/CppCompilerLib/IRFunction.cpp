@@ -666,6 +666,27 @@ void CIRFunction::Renumber(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether each block's index is its place already (Renumber would change
+// nothing).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFunction::IsNumbered(void)
+{
+	size	ui;
+
+	for (ui = 0; ui < mapcBlocks.NumElements(); ui++)
+	{
+		if (mapcBlocks.GetPtr(ui)->muiIndex != ui)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Each block's predecessors from the jumps, in block order.  A brif to one
 // block twice makes it a predecessor once.
 //

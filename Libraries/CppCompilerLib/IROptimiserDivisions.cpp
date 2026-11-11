@@ -125,7 +125,7 @@ bool CIRDivisionPasses::BoundDivisions(void)
 	bool								bChanged;
 
 	//Found first: the inserts move the definitions UpperBound reads.
-	FindDefinitions();
+	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	mpcContext->mbBranchRanges = true;
 	asFound.Init();
@@ -345,7 +345,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 	bool			bChanged;
 	bool			bSigned;
 
-	FindDefinitions();
+	NeedDefinitions();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -460,7 +460,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 	bool								bSigned;
 	uint16								uiOpcode;
 
-	FindDefinitions();
+	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	mpcContext->mbBranchRanges = true;
 	asFound.Init();

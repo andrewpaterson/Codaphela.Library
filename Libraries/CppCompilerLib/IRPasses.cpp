@@ -56,6 +56,9 @@ void CIRPassContext::Init(CIRModule* pcModule)
 	mpcMemoryPasses = NULL;
 	mpcPromotionPasses = NULL;
 	mpcRangePasses = NULL;
+	mbDominatorsFresh = false;
+	mbDefinitionsFresh = false;
+	mbLoopsFresh = false;
 }
 
 
@@ -71,6 +74,20 @@ void CIRPassContext::Kill(void)
 	mcLoops.Kill();
 	mcDefinitions.Kill();
 	mcDominators.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function has changed (a pass says it changed it, or another function
+// is being optimised): the analyses no longer describe it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPassContext::Changed(void)
+{
+	mbDominatorsFresh = false;
+	mbDefinitionsFresh = false;
+	mbLoopsFresh = false;
 }
 
 
@@ -104,6 +121,66 @@ void CIRPasses::Kill(void)
 void CIRPasses::Begin(CIRFunction* pcFunction)
 {
 	mpcFunction = pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each block's index is its place in the function.  When that changes any,
+// what was worked out by the old indices is no longer good.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPasses::Renumber(void)
+{
+	if (!mpcFunction->IsNumbered())
+	{
+		mpcFunction->Renumber();
+		mpcContext->Changed();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Works the dominators out (the blocks numbered, with their predecessors).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPasses::ComputeDominators(void)
+{
+	mpcModule->Count(CPPCC_Dominators);
+	mpcContext->mcDominators.Compute(mpcFunction);
+	mpcContext->mbDominatorsFresh = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The definitions as they are, if nothing has changed the function since
+// they were found; else found (FindDefinitions).  For the start of a pass.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPasses::NeedDefinitions(void)
+{
+	if (!mpcContext->mbDefinitionsFresh)
+	{
+		FindDefinitions();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The loops (and the blocks' numbers and predecessors, the dominators and
+// the definitions) as they are, if nothing has changed the function since
+// ComputeLoops worked them out; else worked out.  For the start of a pass.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPasses::NeedLoops(void)
+{
+	if (!mpcContext->mbLoopsFresh)
+	{
+		ComputeLoops();
+	}
 }
 
 
@@ -404,6 +481,7 @@ void CIRPasses::FindDefinitions(void)
 	size			uiParameter;
 
 	mpcContext->mcDefinitions.Compute(mpcFunction);
+	mpcContext->mbDefinitionsFresh = true;
 	mpcContext->masArgAddresses.FakeSetUsedElements(0);
 	mpcContext->masArgAddresses.GrowToAtLeastNumElements(mpcFunction->masParameters.NumElements(), true, 0);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -430,12 +508,12 @@ void CIRPasses::FindDefinitions(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRPasses::ComputeLoops(void)
 {
-	mpcFunction->Renumber();
+	Renumber();
 	mpcFunction->ComputePredecessors();
-	mpcModule->Count(CPPCC_Dominators);
-	mpcContext->mcDominators.Compute(mpcFunction);
+	ComputeDominators();
 	FindDefinitions();
 	mpcContext->mcLoops.Compute(mpcFunction, &mpcContext->mcDominators);
+	mpcContext->mbLoopsFresh = true;
 }
 
 

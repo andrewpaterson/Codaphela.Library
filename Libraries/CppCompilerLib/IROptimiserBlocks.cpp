@@ -62,7 +62,7 @@ bool CIRBlockPasses::SimplifyCFG(void)
 	bAny = false;
 	do
 	{
-		mpcFunction->Renumber();
+		Renumber();
 		mpcFunction->ComputePredecessors();
 		bChanged = RemoveUnreachable() || FoldBranches() || SkipEmptyBlocks() || ThreadBranches() || ThreadPhis() || DuplicateReturns() || JoinBlocks();
 		bAny |= bChanged;
@@ -934,7 +934,7 @@ bool CIRBlockPasses::SinkComparisons(void)
 	bool			bDeeper;
 	int32			iIndex;
 
-	ComputeLoops();
+	NeedLoops();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -990,7 +990,7 @@ bool CIRBlockPasses::RemoveDeadCode(void)
 	SIRPhi*					psPhi;
 	bool					bChanged;
 
-	FindDefinitions();
+	NeedDefinitions();
 	abLive.Init();
 	abLive.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
 	asWork.Init();

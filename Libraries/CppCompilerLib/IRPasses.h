@@ -277,8 +277,13 @@ public:
 	CIRPromotionPasses*		mpcPromotionPasses;
 	CIRRangePasses*			mpcRangePasses;
 
+	bool					mbDominatorsFresh;	//Nothing has changed the function since the dominators were worked out...
+	bool					mbDefinitionsFresh;	//...or the definitions...
+	bool					mbLoopsFresh;		//...or the loops (and the dominators and definitions with them: ComputeLoops).
+
 	void			Init(CIRModule* pcModule);
 	void			Kill(void);
+	void			Changed(void);
 };
 
 
@@ -286,6 +291,11 @@ public:
 //changed the function; they find what they share in the context, and these are the tools they all use: the
 //replacements of one value by another, the walks of a value's uses, the definitions and the loops, and what may write
 //memory.
+//
+//An analysis is worked out again by FindDefinitions, ComputeDominators and ComputeLoops, which a pass calls after it
+//has changed the function.  NeedDefinitions and NeedLoops are for the start of a pass, before it has changed
+//anything: they leave the analysis as it is when no pass has changed the function since it was worked out (a pass
+//says so by what it returns; the optimiser tells the context, CIRPassContext::Changed).
 class CIRPasses
 {
 protected:
@@ -298,6 +308,10 @@ public:
 	virtual void	Kill(void);
 	void			Begin(CIRFunction* pcFunction);
 	bool			WritesMemory(void);
+	void			Renumber(void);
+	void			ComputeDominators(void);
+	void			NeedDefinitions(void);
+	void			NeedLoops(void);
 
 	bool			IsHot(SIRInstruction* psInstruction, uint64 ulliSaving);
 	void			ClearReplacements(void);

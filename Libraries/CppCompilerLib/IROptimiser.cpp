@@ -153,6 +153,7 @@ void CIROptimiser::Kill(void)
 void CIROptimiser::Begin(CIRFunction* pcFunction)
 {
 	mcContext.mpcFunction = pcFunction;
+	mcContext.Changed();
 	mcAddressPasses.Begin(pcFunction);
 	mcBlockPasses.Begin(pcFunction);
 	mcCounterPasses.Begin(pcFunction);
@@ -313,7 +314,8 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 //
 // Runs a pass, and counts it (and times it, when times are kept) in the
-// unit's statistics.  True if it changed the function.
+// unit's statistics.  True if it changed the function: the context is told,
+// as its analyses then no longer describe it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::RunPass(EIRPass ePass, int iRound)
@@ -325,11 +327,20 @@ bool CIROptimiser::RunPass(EIRPass ePass, int iRound)
 	pcStatistics = mcContext.mpcModule->mpcStatistics;
 	if (!pcStatistics)
 	{
-		return macPasses[ePass].Run();
+		bChanged = macPasses[ePass].Run();
+		if (bChanged)
+		{
+			mcContext.Changed();
+		}
+		return bChanged;
 	}
 	lliStart = pcStatistics->Now();
 	bChanged = macPasses[ePass].Run();
 	pcStatistics->CountPass(ePass, macPasses[ePass].GetPassName(), bChanged, iRound, pcStatistics->Now() - lliStart);
+	if (bChanged)
+	{
+		mcContext.Changed();
+	}
 	return bChanged;
 }
 

@@ -845,7 +845,7 @@ bool CIRRangePasses::FoldNullTests(void)
 	size			uj;
 	bool			bChanged;
 
-	FindDefinitions();
+	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	ClearReplacements();
 	bChanged = false;
@@ -1002,7 +1002,7 @@ bool CIRRangePasses::NarrowMultiplies(void)
 	bool								bChanged;
 
 	//Found first: the inserts move the definitions DominatingRange reads.
-	FindDefinitions();
+	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	sShort = IRType(IRTK_I16);
 	asFound.Init();
@@ -1096,7 +1096,7 @@ bool CIRRangePasses::NarrowTruncations(void)
 	bool					bChanged;
 	bool					bBlockChanged;
 
-	FindDefinitions();
+	NeedDefinitions();
 	asNew.Init();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
