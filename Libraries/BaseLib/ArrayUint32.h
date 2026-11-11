@@ -32,5 +32,9 @@ public:
 };
 
 
+//Uint32s that can pass 64KB with a 16 bit size (one per face of a mesh).
+typedef CArrayLargeTemplatePrimitive<uint32>	CArrayLargeUint32;
+
+
 #endif // __ARRAY_UINT32_H__
 

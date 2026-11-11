@@ -76,7 +76,7 @@ void TestMeshVRMLReaderFile(void)
 	AssertVRMLFaceCorners(12, 13, 14, cMesh.GetFace(6));
 
 	//A flat normal for each of the seven faces, then the corner normals of the three shapes that have them.
-	AssertSize(7 + 4 + 4 + 4, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(7 + 4 + 4 + 4, cMesh.mcNormals.mcNormals.NumElements());
 	AssertVRMLVec3(0.0f, 0.0f, 1.0f, cMesh.mcNormals.GetFaceNormal(0));
 	AssertVRMLVec3(0.0f, 0.0f, 1.0f, cMesh.mcNormals.GetFaceNormal(4));
 
@@ -108,7 +108,7 @@ void TestMeshVRMLReaderFile(void)
 	AssertVRMLVec3(0.0f, 0.0f, 1.0f, cMesh.mcNormals.GetFaceNormal(6));
 
 	//One material used by USE and a shape without one.
-	AssertSize(1, cMesh.mcColours.mcColours.NumElements());
+	AssertLSize(1, cMesh.mcColours.mcColours.NumElements());
 	uiColour = cMesh.mcColours.mcColours.GetValue(0);
 	AssertInt(255, Get8BitRedColour(uiColour));
 	AssertInt(0, Get8BitGreenColour(uiColour));

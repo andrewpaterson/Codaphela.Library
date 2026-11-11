@@ -100,8 +100,8 @@ void CMeshConnectivity::Class(void)
 	U_Unknown(CArrayEdge, mcEdges);
 	U_Unknown(CArrayFace, mcFaces);
 	U_Unknown(CArrayCornerEdgesMap, mcCornerEdgesMap);
-	U_Size(muiNumCorners);
-	U_Size(muiGeneratedFaces);
+	U_LSize(muiNumCorners);
+	U_LSize(muiGeneratedFaces);
 }
 
 
@@ -131,9 +131,9 @@ void CMeshConnectivity::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::KillCorners(void)
 {
-	size			i;
+	lsize			i;
 	CMeshCorner*	psCorner;
-	size			uiNumElements;
+	lsize			uiNumElements;
 
 	uiNumElements = mcCorners.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -152,9 +152,9 @@ void CMeshConnectivity::KillCorners(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::KillCornerEdgesMap(void)
 {
-	size				i;
+	lsize				i;
 	CCornerEdgesMap*	pcCornerEdgeMap;
-	size				uiNumElements;
+	lsize				uiNumElements;
 
 	uiNumElements = mcCornerEdgesMap.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -231,7 +231,7 @@ CMeshFace* CMeshConnectivity::AddFace(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMeshConnectivity::NumCorners(void)
+lsize CMeshConnectivity::NumCorners(void)
 {
 	return muiNumCorners;
 }
@@ -241,7 +241,7 @@ size CMeshConnectivity::NumCorners(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshConnectivity::NumFaces(void)
+lsize CMeshConnectivity::NumFaces(void)
 {
 	return mcFaces.NumElements();
 }
@@ -251,7 +251,7 @@ size CMeshConnectivity::NumFaces(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshConnectivity::NumEdges(void)
+lsize CMeshConnectivity::NumEdges(void)
 {
 	GenerateConnectivity();
 	return mcEdges.NumElements();
@@ -262,7 +262,7 @@ size CMeshConnectivity::NumEdges(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshConnectivity::FaceChunkSize(void)
+lsize CMeshConnectivity::FaceChunkSize(void)
 {
 	return mcFaces.ChunkSize();
 }
@@ -272,7 +272,7 @@ size CMeshConnectivity::FaceChunkSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshConnectivity::CornerChunkSize(void)
+lsize CMeshConnectivity::CornerChunkSize(void)
 {
 	return mcCorners.ChunkSize();
 }
@@ -338,8 +338,8 @@ CCornerEdgesMap* CMeshConnectivity::GetCornerEdgesMap(int iElementNum)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConnectivity::Load(CObjectReader* pcFile)
 {
-	size		i;
-	size		uiNumFaces;
+	lsize		i;
+	lsize		uiNumFaces;
 	CMeshFace*	pcFace;
 
 	ReturnOnFalse(CMeshDetail::Load(pcFile));
@@ -420,7 +420,7 @@ SAdjFaces CMeshConnectivity::GetAdjacentFaces(int iFaceNum)
 //////////////////////////////////////////////////////////////////////////
 int CMeshConnectivity::GenerateConnectivity(void)
 {
-	size		uiNumFaces;
+	lsize		uiNumFaces;
 	int			iNewEdges;
 	CMeshFace*	pcFace;
 

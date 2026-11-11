@@ -95,9 +95,9 @@ void CMeshPolygons::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::KillPolygons(void)
 {
-	size			i;
+	lsize			i;
 	CMeshPolygon*	pcPolygon;
-	size			uiNumElements;
+	lsize			uiNumElements;
 
 	uiNumElements = mcPolygons.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -220,9 +220,9 @@ void CMeshPolygons::GetFaceEdges(CMeshConnectivity* pcConn, int iFace, bool* pab
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygons::Save(CObjectWriter* pcFile)
 {
-	size			i;
+	lsize			i;
 	CMeshPolygon*	psPolygon;
-	size			uiNumElements;
+	lsize			uiNumElements;
 
 	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));	
 
@@ -244,9 +244,9 @@ bool CMeshPolygons::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygons::Load(CObjectReader* pcFile)
 {
-	size			i;
+	lsize			i;
 	CMeshPolygon*	psPolygon;
-	size			uiNumElements;
+	lsize			uiNumElements;
 
 	ReturnOnFalse(mcPolygons.ReadAllocatorAndHeader(pcFile));
 
@@ -292,8 +292,8 @@ CMeshPolygon* CMeshPolygons::Get(int iPolygonNum)
 //////////////////////////////////////////////////////////////////////////
 CMeshPolygon* CMeshPolygons::GrowToNumPolygons(int iNumPolygons, int iName)
 {
-	size			iOldNum;
-	size			i;
+	lsize			iOldNum;
+	lsize			i;
 	CMeshPolygon*		psPolygon;
 
 	iOldNum = mcPolygons.Resize(iNumPolygons);
@@ -314,8 +314,8 @@ CMeshPolygon* CMeshPolygons::GrowToNumPolygons(int iNumPolygons, int iName)
 //////////////////////////////////////////////////////////////////////////
 int CMeshPolygons::GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStartFaceIndex)
 {
-	size	i;
-	size	iNumFaces;
+	lsize	i;
+	lsize	iNumFaces;
 	int		iPolygonIndex;
 
 	if (pcConn->mcFaces.NumElements() != maiFacesToPolygons.NumElements())
@@ -632,8 +632,8 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::GetUniqueNames(CArrayInt* paiNames)
 {
-	size			i;
-	size			iNumPolygons;
+	lsize			i;
+	lsize			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
 
 	iNumPolygons = mcPolygons.NumElements();
@@ -671,10 +671,10 @@ int CMeshPolygons::NumUniqueNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNormals)
+void CMeshPolygons::GetNormals(CArrayLargeFloat32Vec3* pasNormals, CMeshNormals* pcNormals)
 {
-	size			i;
-	size			iNumPolygons;
+	lsize			i;
+	lsize			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
 	size			iNumFaces;
 	size			j;
@@ -715,11 +715,12 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 {
 	CMeshPolygon*	pcDestPolygon;
 	CMeshPolygon*	pcSourcePolygon;
-	size			i;
+	lsize			i;
+	size			j;
 	int*			piPolygon;
 	int				iFace;
 	int				iLastPolygon;
-	size			uiNumElements;
+	lsize			uiNumElements;
 
 	pcDestPolygon = mcPolygons.Get(iDestPolygon);
 	pcSourcePolygon = mcPolygons.Get(iSource);
@@ -736,9 +737,9 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 		}
 	}
 
-	for (i = 0; i < pcSourcePolygon->maiFaces.NumElements(); i++)
+	for (j = 0; j < pcSourcePolygon->maiFaces.NumElements(); j++)
 	{
-		iFace = pcSourcePolygon->maiFaces.GetValue(i);
+		iFace = pcSourcePolygon->maiFaces.GetValue(j);
 		pcDestPolygon->maiFaces.Add(iFace);
 	}
 

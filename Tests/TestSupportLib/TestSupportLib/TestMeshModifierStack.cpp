@@ -351,7 +351,7 @@ void TestMeshEditorScale(void)
 	pEditor->GetOutput();
 	AssertInt(1, pcAdd->miCalls);
 
-	AssertSize(1, pEditor->mpMesh->mcNormals.mcNormals.NumElements());
+	AssertLSize(1, pEditor->mpMesh->mcNormals.mcNormals.NumElements());
 	sNormal = *pEditor->mpMesh->mcNormals.mcNormals.Get(0);
 
 	uiStructure = pEditor->NumStructureChanges();

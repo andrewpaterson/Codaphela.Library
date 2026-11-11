@@ -42,7 +42,7 @@ public:
 	bool	 	Load(CFileReader* pcFile);
 };
 
-typedef CArrayTemplate<CMeshPolygon> CArrayMeshPolygon;
+typedef CArrayLargeTemplate<CMeshPolygon> CArrayMeshPolygon;
 
 
 //Every face in a mesh should be referred to by a polygon (mcPolygons).
@@ -59,7 +59,7 @@ CONSTRUCTABLE(CMeshPolygons);
 DESTRUCTABLE(CMeshPolygons);
 public:
 	CArrayMeshPolygon	mcPolygons;
-	CArrayInt			maiFacesToPolygons;
+	CArrayLargeInt		maiFacesToPolygons;
 
 	void 			Init(void);
 	void 			Free(void) override;
@@ -85,7 +85,7 @@ public:
 	void			AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, bool bEdge12, bool bEdge23, bool bEdge31);
 	int				NumUniqueNames(void);
 	void			GetUniqueNames(CArrayInt* paiNames);
-	void			GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNormals);
+	void			GetNormals(CArrayLargeFloat32Vec3* pasNormals, CMeshNormals* pcNormals);
 	void			MergePolygon(int iDestPolygon, int iSource);
 	void			GetAdjacentPolygons(CMeshConnectivity* pcConn, int iPolygon, CArrayInt* paiAdj);
 };

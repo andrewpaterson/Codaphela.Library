@@ -151,8 +151,8 @@ void CMeshSkin::Free(void)
 void CMeshSkin::KillSkinVerts(void)
 {
 	CMeshSkinVert*	psSkinVert;
-	size			i;
-	size			uiNumElements;
+	lsize			i;
+	lsize			uiNumElements;
 
 	uiNumElements = mcSkinVerts.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -197,8 +197,8 @@ void CMeshSkin::Clear(void)
 bool CMeshSkin::Load(CObjectReader* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
-	size			i;
-	size			uiNumElements;
+	lsize			i;
+	lsize			uiNumElements;
 
 	Init();
 
@@ -225,8 +225,8 @@ bool CMeshSkin::Load(CObjectReader* pcFile)
 bool CMeshSkin::Save(CObjectWriter* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
-	size			i;
-	size			uiNumElements;
+	lsize			i;
+	lsize			uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
@@ -254,8 +254,12 @@ void CMeshSkin::AddCorner(void)
 
 	if (mbInUse)
 	{
+		//Add gives NULL when out of memory: the skin is then shorter than the corners.
 		pcSkinVert = mcSkinVerts.Add();
-		pcSkinVert->Init();
+		if (pcSkinVert)
+		{
+			pcSkinVert->Init();
+		}
 	}
 }
 

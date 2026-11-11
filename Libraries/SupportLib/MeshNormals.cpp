@@ -117,11 +117,11 @@ bool CMeshNormals::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn)
 {
-	size				iFaceNum;
+	lsize				iFaceNum;
 	SFloat32Vec3				sVec1;
 	SFloat32Vec3				sVec2;
 	SFloat32Vec3				sNormal;
-	size				iNumFaces;
+	lsize				iNumFaces;
 
 	if (mbInUse)
 	{

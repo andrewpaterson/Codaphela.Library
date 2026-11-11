@@ -27,8 +27,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SceneFileMesh.h"
 
 
-typedef CArrayTemplatePrimitive<float32>	CArraySceneFileFloat;
-typedef CArrayTemplatePrimitive<uint32>		CArraySceneFileUint;
+typedef CArrayLargeTemplatePrimitive<float32>	CArraySceneFileFloat;
+typedef CArrayLargeTemplatePrimitive<uint32>	CArraySceneFileUint;
 
 
 //A corner of a polygon being written, as a corner of one of the mesh's faces.
@@ -39,7 +39,7 @@ struct SSceneFileCorner
 };
 
 
-typedef CArrayTemplate<SSceneFileCorner>	CArraySceneFileCorner;
+typedef CArrayLargeTemplate<SSceneFileCorner>	CArraySceneFileCorner;
 
 
 //How a mesh's faces came from a file's polygons: which of the file's corners each corner of each face is, and which polygon each face is of.
@@ -69,7 +69,7 @@ static bool ReadSceneFileFaces(CSceneFileReader* pcReader, CMeshEditor* pcEditor
 	CArraySceneFileIndex		aiSizes;
 	CArraySceneFileIndex		aiPositions;
 	CArrayMeshPolygonCorners	aiFaceCorners;
-	size						uiNumPolygons;
+	lsize						uiNumPolygons;
 	size						uiCorner;
 	size						i;
 	size						j;

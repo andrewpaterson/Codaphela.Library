@@ -142,11 +142,11 @@ char CMeshEdgeVisibility::GetEdge(int iEdge)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
+lsize CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
 {
-	size	i;
-	size	iCount;
-	size	uiNumElements;
+	lsize	i;
+	lsize	iCount;
+	lsize	uiNumElements;
 
 	iCount = 0;
 	uiNumElements = mcEdges.NumElements();

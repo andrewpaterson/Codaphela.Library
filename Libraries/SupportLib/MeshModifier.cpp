@@ -90,9 +90,9 @@ Ptr<CMesh> CMeshModifier::CopyWithNormals(CMesh* pcMesh)
 Ptr<CMesh> CMeshModifier::BuildFromFaces(CMesh* pcMesh, SFloat32Vec3* pasCorners, int iNumCorners, int* paiFaceCorners)
 {
 	Ptr<CMesh>			pOutput;
-	CArrayInt			aiOutputCorners;
-	CArrayInt			aiOutputNormals;
-	CArrayInt			aiNormalOrder;
+	CArrayLargeInt		aiOutputCorners;
+	CArrayLargeInt		aiOutputNormals;
+	CArrayLargeInt		aiNormalOrder;
 	SMeshNormalFace*	psNormalFace;
 	SMeshNormalFace*	psOutputNormalFace;
 	SFloat32Vec3*		psNormal;
@@ -109,7 +109,7 @@ Ptr<CMesh> CMeshModifier::BuildFromFaces(CMesh* pcMesh, SFloat32Vec3* pasCorners
 	int					iNormal;
 	bool				bNormals;
 	bool				bColours;
-	size				u;
+	lsize				u;
 
 	bNormals = pcMesh->mcNormals.InUse();
 	bColours = pcMesh->mcColours.InUse();

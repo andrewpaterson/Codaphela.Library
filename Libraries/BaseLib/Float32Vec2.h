@@ -48,6 +48,7 @@ public:
 
 
 typedef CArrayTemplate<SFloat32Vec2>		CArrayFloat32Vec2;
+typedef CArrayLargeTemplate<SFloat32Vec2>	CArrayLargeFloat32Vec2;  //Can pass 64KB with a 16 bit size (a mesh's UVs).
 
 
 float32 		Float32Vec2Dot(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);

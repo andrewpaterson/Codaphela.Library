@@ -27,7 +27,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SceneFileWriter.h"
 
 
-typedef CArrayTemplatePrimitive<int32>	CArraySceneFileIndex;
+//Large: a mesh's corners and faces can pass 64KB with a 16 bit size (W65C816).
+typedef CArrayLargeTemplatePrimitive<int32>	CArraySceneFileIndex;
 
 
 //Fills an empty editor, and its mesh, from a mesh in a scene file.  A polygon is cut into faces with the edges inside it hidden, so that the

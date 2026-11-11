@@ -71,7 +71,7 @@ void CSceneParticles::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSceneParticles::NumParticles(void)
+lsize CSceneParticles::NumParticles(void)
 {
 	return mafPositions.NumElements() / 3;
 }

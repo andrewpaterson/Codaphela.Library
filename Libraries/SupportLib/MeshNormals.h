@@ -36,7 +36,7 @@ struct SMeshNormalFace
 };
 
 
-typedef CArrayTemplate<SMeshNormalFace>	CArrayMeshFaceNormal;
+typedef CArrayLargeTemplate<SMeshNormalFace>	CArrayMeshFaceNormal;
 
 
 class CMeshSmoothGroups;
@@ -48,7 +48,7 @@ class CMeshNormals : public CMeshDetail
 CONSTRUCTABLE(CMeshNormals);
 DESTRUCTABLE(CMeshNormals);
 public:
-	CArrayFloat32Vec3			mcNormals;  //0 .. Flats, Flats+1 .. End
+	CArrayLargeFloat32Vec3		mcNormals;  //0 .. Flats, Flats+1 .. End
 	CArrayMeshFaceNormal	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
 	void 		Init(void);

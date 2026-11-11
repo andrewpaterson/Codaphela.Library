@@ -134,9 +134,9 @@ void CMeshSmoothGroups::GenerateGroupsFromNames(CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::GenerateGroupsFromAngles(CMesh* pcMesh)
 {
-	size			i;
-	size			iNumPolygons;
-	CArrayFloat32Vec3	asNormals;
+	lsize			i;
+	lsize			iNumPolygons;
+	CArrayLargeFloat32Vec3	asNormals;
 	CArrayInt		aiAdjPolys;
 	SFloat32Vec3*		psThisNormal;
 	SFloat32Vec3*		psOtherNormal;

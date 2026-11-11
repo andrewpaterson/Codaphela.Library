@@ -302,7 +302,7 @@ bool CMeshLeaves::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshLeaves::PrivateAddLeafSphere(size iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres)
+void CMeshLeaves::PrivateAddLeafSphere(lsize iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres)
 {
 	CTriangleIndexed*		pcTriangle;
 	size					j;
@@ -421,9 +421,9 @@ void CMeshLeaves::PrivateAddContainedLeafSpheres(int iCentralFaceNum, int iFaceN
 //////////////////////////////////////////////////////////////////////////
 void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions* pcPositions, CMeshTriangles* pcTriangles)
 {
-	size						i;
+	lsize						i;
 	CTriangleIndexed*			pcTriangle;
-	size						iNumFaces;
+	lsize						iNumFaces;
 	SFloat32Vec3						cCenter;
 	CRelativeSphereVolume*		psVolume;
 	SAdjFaces					sAdjFaces;

@@ -193,72 +193,72 @@ static void AssertSampleMesh(CSceneFileReader* pcReader)
 
 	AssertName(pcReader, "Pyramid");
 
-	AssertSize(5, pcReader->NumPositions());
+	AssertLSize(5, pcReader->NumPositions());
 	AssertTrue(pcReader->ReadPositions(af));
 	AssertFloats(gafPositions, af, ArrayCount(gafPositions));
 
-	AssertSize(2, pcReader->NumNormals());
+	AssertLSize(2, pcReader->NumNormals());
 	AssertTrue(pcReader->ReadNormals(af));
 	AssertFloats(gafNormals, af, ArrayCount(gafNormals));
 
-	AssertSize(2, pcReader->NumColours());
+	AssertLSize(2, pcReader->NumColours());
 	AssertTrue(pcReader->ReadColours(aui));
 	AssertTrue(memcmp(gauiColours, aui, sizeof(gauiColours)) == 0);
 
-	AssertSize(2, pcReader->NumPolygons());
+	AssertLSize(2, pcReader->NumPolygons());
 	AssertTrue(pcReader->ReadPolygonSizes(ai));
 	AssertInts(gaiPolygonSizes, ai, 2);
 
-	AssertSize(7, pcReader->NumCorners());
+	AssertLSize(7, pcReader->NumCorners());
 	AssertTrue(pcReader->ReadCornerPositions(ai));
 	AssertInts(gaiCornerPositions, ai, 7);
 
-	AssertSize(7, pcReader->NumCornerNormals());
+	AssertLSize(7, pcReader->NumCornerNormals());
 	AssertTrue(pcReader->ReadCornerNormals(ai));
 	AssertInts(gaiCornerNormals, ai, 7);
 
-	AssertSize(7, pcReader->NumCornerColours());
+	AssertLSize(7, pcReader->NumCornerColours());
 	AssertTrue(pcReader->ReadCornerColours(ai));
 	AssertInts(gaiCornerColours, ai, 7);
 
 	AssertSize(2, pcReader->NumUVLayers());
 	AssertTrue(pcReader->BeginUVLayer(0));
-	AssertSize(4, pcReader->NumUVs());
+	AssertLSize(4, pcReader->NumUVs());
 	AssertTrue(pcReader->ReadUVs(af));
 	AssertFloats(gafUVs, af, ArrayCount(gafUVs));
-	AssertSize(7, pcReader->NumCornerUVs());
+	AssertLSize(7, pcReader->NumCornerUVs());
 	AssertTrue(pcReader->ReadCornerUVs(ai));
 	AssertInts(gaiCornerUVs, ai, 7);
 	AssertTrue(pcReader->End());
 	AssertTrue(pcReader->BeginUVLayer(1));
-	AssertSize(1, pcReader->NumUVs());
+	AssertLSize(1, pcReader->NumUVs());
 	AssertTrue(pcReader->ReadUVs(af));
 	AssertFloats(gafSecondUVs, af, 2);
 	AssertTrue(pcReader->End());
 	AssertFalse(pcReader->BeginUVLayer(2));
 
-	AssertSize(2, pcReader->NumMaterialSlots());
+	AssertLSize(2, pcReader->NumMaterialSlots());
 	AssertTrue(pcReader->ReadMaterialSlots(ai));
 	AssertInts(gaiMaterialSlots, ai, 2);
 
-	AssertSize(2, pcReader->NumPolygonSlots());
+	AssertLSize(2, pcReader->NumPolygonSlots());
 	AssertTrue(pcReader->ReadPolygonSlots(ai));
 	AssertInts(gaiPolygonSlots, ai, 2);
 
-	AssertSize(2, pcReader->NumSmoothGroups());
+	AssertLSize(2, pcReader->NumSmoothGroups());
 	AssertTrue(pcReader->ReadSmoothGroups(aui));
 	AssertTrue(memcmp(gauiSmoothGroups, aui, sizeof(gauiSmoothGroups)) == 0);
 
-	AssertSize(5, pcReader->NumSkinCounts());
+	AssertLSize(5, pcReader->NumSkinCounts());
 	AssertTrue(pcReader->ReadSkinCounts(ai));
 	AssertInts(gaiSkinCounts, ai, 5);
-	AssertSize(6, pcReader->NumSkinWeights());
+	AssertLSize(6, pcReader->NumSkinWeights());
 	AssertTrue(pcReader->ReadSkinMatrices(ai));
 	AssertInts(gaiSkinMatrices, ai, 6);
 	AssertTrue(pcReader->ReadSkinWeights(af));
 	AssertFloats(gafSkinWeights, af, 6);
 
-	AssertSize(2, pcReader->NumInverseMatrices());
+	AssertLSize(2, pcReader->NumInverseMatrices());
 	AssertTrue(pcReader->ReadInverseMatrices(af4x4s));
 	AssertFloats(gafIdentity, af4x4s, 16);
 	AssertFloats(gafMoved, &af4x4s[16], 16);
@@ -274,11 +274,11 @@ static void AssertSampleEmptyMesh(CSceneFileReader* pcReader)
 	float32	af[16];
 
 	AssertName(pcReader, "Empty");
-	AssertSize(0, pcReader->NumPositions());
-	AssertSize(0, pcReader->NumPolygons());
-	AssertSize(0, pcReader->NumCorners());
+	AssertLSize(0, pcReader->NumPositions());
+	AssertLSize(0, pcReader->NumPolygons());
+	AssertLSize(0, pcReader->NumCorners());
 	AssertSize(0, pcReader->NumUVLayers());
-	AssertSize(0, pcReader->NumSkinWeights());
+	AssertLSize(0, pcReader->NumSkinWeights());
 	AssertFalse(pcReader->ReadPositions(af));
 	AssertFalse(pcReader->Failed());
 }
@@ -303,7 +303,7 @@ static void AssertSampleImage(CSceneFileReader* pcReader)
 	AssertTrue(pcReader->ReadChannels(&szChannels));
 	AssertString("RGB", szChannels.Text());
 	szChannels.Kill();
-	AssertSize(12, pcReader->NumPixelBytes());
+	AssertLSize(12, pcReader->NumPixelBytes());
 	AssertTrue(pcReader->ReadPixels(auiPixels));
 	AssertTrue(memcmp(gauiPixels, auiPixels, 12) == 0);
 }
@@ -428,7 +428,7 @@ static void AssertSampleAnimation(CSceneFileReader* pcReader)
 
 	AssertTrue(pcReader->BeginTrack(0));
 	AssertInt((int32)0, pcReader->GetAttached());
-	AssertSize(2, pcReader->NumKeys());
+	AssertLSize(2, pcReader->NumKeys());
 	AssertTrue(pcReader->ReadKeyTimes(afTimes));
 	AssertFloats(gafKeyTimes, afTimes, 2);
 	AssertTrue(pcReader->ReadKeyMatrices(af4x4s));
@@ -438,7 +438,7 @@ static void AssertSampleAnimation(CSceneFileReader* pcReader)
 
 	AssertTrue(pcReader->BeginTrack(1));
 	AssertInt((int32)1, pcReader->GetAttached());
-	AssertSize(1, pcReader->NumKeys());
+	AssertLSize(1, pcReader->NumKeys());
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->End());
@@ -456,25 +456,25 @@ static void AssertSampleInstance(CSceneFileReader* pcReader)
 	AssertSize(1, pcReader->NumInstances());
 	AssertTrue(pcReader->BeginInstance(0));
 	AssertName(pcReader, "Thing");
-	AssertSize(2, pcReader->NumInstanceConnections());
+	AssertLSize(2, pcReader->NumInstanceConnections());
 	AssertTrue(pcReader->ReadInstanceConnections(ai));
 	AssertInts(gaiInstanceConnections, ai, 2);
 	AssertSize(2, pcReader->NumInstanceMeshes());
 
 	AssertTrue(pcReader->BeginInstanceMesh(0));
 	AssertInt((int32)0, pcReader->GetInstanceMesh());
-	AssertSize(2, pcReader->NumConnectionSlots());
+	AssertLSize(2, pcReader->NumConnectionSlots());
 	AssertTrue(pcReader->ReadConnectionSlots(ai));
 	AssertInts(gaiConnectionSlots, ai, 2);
-	AssertSize(1, pcReader->NumInstanceMaterials());
+	AssertLSize(1, pcReader->NumInstanceMaterials());
 	AssertTrue(pcReader->ReadInstanceMaterials(ai));
 	AssertInt((int32)1, ai[0]);
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->BeginInstanceMesh(1));
 	AssertInt((int32)1, pcReader->GetInstanceMesh());
-	AssertSize(1, pcReader->NumConnectionSlots());
-	AssertSize(0, pcReader->NumInstanceMaterials());
+	AssertLSize(1, pcReader->NumConnectionSlots());
+	AssertLSize(0, pcReader->NumInstanceMaterials());
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->End());
@@ -493,7 +493,7 @@ static void AssertSampleParticles(CSceneFileReader* pcReader)
 
 	AssertTrue(pcReader->BeginParticles(0));
 	AssertName(pcReader, "Stars");
-	AssertSize(2, pcReader->NumParticles());
+	AssertLSize(2, pcReader->NumParticles());
 	AssertTrue(pcReader->ReadParticlePositions(af));
 	AssertFloats(gafParticlePositions, af, 6);
 	AssertTrue(pcReader->ReadParticleColours(af));
@@ -506,7 +506,7 @@ static void AssertSampleParticles(CSceneFileReader* pcReader)
 
 	AssertTrue(pcReader->BeginParticles(1));
 	AssertName(pcReader, "Dust");
-	AssertSize(2, pcReader->NumParticles());
+	AssertLSize(2, pcReader->NumParticles());
 	AssertFalse(pcReader->ReadParticleColours(af));
 	AssertTrue(pcReader->End());
 }
@@ -944,10 +944,10 @@ void TestSceneFileReaderUnknownAndMissing(void)
 	AssertSize(1, cReader.NumMeshes());
 	AssertSize(0, cReader.NumImages());
 	AssertTrue(cReader.BeginMesh(0));
-	AssertSize(1, cReader.NumPositions());
+	AssertLSize(1, cReader.NumPositions());
 	AssertTrue(cReader.ReadPositions(afPositions));
 	AssertFloats(gafPositions, afPositions, 3);
-	AssertSize(0, cReader.NumNormals());
+	AssertLSize(0, cReader.NumNormals());
 	AssertTrue(cReader.End());
 	AssertFalse(cReader.Failed());
 	AssertTrue(cReader.Close());
@@ -1032,7 +1032,7 @@ void TestSceneFileReaderFailures(void)
 	AssertTrue(cReader.Open());
 	AssertTrue(cReader.BeginMesh(0));
 	AssertFalse(cReader.Failed());
-	AssertSize(0, cReader.NumPositions());
+	AssertLSize(0, cReader.NumPositions());
 	AssertTrue(cReader.Failed());
 	AssertFalse(cReader.ReadPositions(af));
 	AssertTrue(cReader.End());

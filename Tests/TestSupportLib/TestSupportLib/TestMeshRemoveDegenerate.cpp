@@ -106,7 +106,7 @@ void TestMeshRemoveDegenerateRemovesFaces(void)
 	AssertInt(8, pOutput->GetFaceName(1));
 
 	//The corner normal is numbered after the two faces' flat normals.
-	AssertSize(3, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(3, pOutput->mcNormals.mcNormals.NumElements());
 	psNormalFace = pOutput->mcNormals.mcFaces.Get(1);
 	for (k = 0; k < NUM_FACE_CORNERS; k++)
 	{

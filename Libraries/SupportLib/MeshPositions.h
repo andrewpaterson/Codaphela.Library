@@ -35,7 +35,7 @@ class CMeshPositions : public CMeshDetail
 CONSTRUCTABLE(CMeshPositions);
 DESTRUCTABLE(CMeshPositions);
 public:
-	CArrayFloat32Vec3	mcPositions;
+	CArrayLargeFloat32Vec3	mcPositions;
 
 	void 	Init(void);
 	void 	Free(void) override;

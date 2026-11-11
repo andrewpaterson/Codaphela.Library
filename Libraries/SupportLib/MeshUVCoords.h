@@ -35,13 +35,13 @@ struct SMeshUVFace
 };
 
 
-typedef CArrayTemplate<SMeshUVFace>	CArrayMeshFaceUV;
+typedef CArrayLargeTemplate<SMeshUVFace>	CArrayMeshFaceUV;
 
 
 class CMeshUVLayer
 {
 public:
-	CArrayFloat32Vec2	mcUVs;
+	CArrayLargeFloat32Vec2	mcUVs;
 	CArrayMeshFaceUV	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 	
 	void	Init(void);

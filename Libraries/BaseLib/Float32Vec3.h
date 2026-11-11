@@ -54,6 +54,7 @@ public:
 
 
 typedef CArrayTemplate<SFloat32Vec3>		CArrayFloat32Vec3;
+typedef CArrayLargeTemplate<SFloat32Vec3>	CArrayLargeFloat32Vec3;  //Can pass 64KB with a 16 bit size (a mesh's positions and normals).
 
 
 float32 		Float32Vec3Dot(const SFloat32Vec3* pV1, const SFloat32Vec3* pV2);

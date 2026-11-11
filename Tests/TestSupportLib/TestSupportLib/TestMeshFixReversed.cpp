@@ -117,7 +117,7 @@ void TestMeshFixReversedTurnsFaces(void)
 	AssertInt(1, piColours[2]);
 
 	//Corner normals and colours are at the same indices, and flat normals face as the face now winds.
-	AssertSize(6, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(6, pOutput->mcNormals.mcNormals.NumElements());
 	AssertFloat(0.8f, pOutput->mcNormals.mcNormals.Get(5)->z, 3);
 	AssertFloat(1.0f, pOutput->mcNormals.mcNormals.Get(1)->z, 3);
 	AssertFloat(-1.0f, pOutput->mcNormals.mcNormals.Get(2)->z, 3);

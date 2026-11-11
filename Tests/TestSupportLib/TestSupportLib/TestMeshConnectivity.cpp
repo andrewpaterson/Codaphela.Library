@@ -45,9 +45,9 @@ void TestMeshEdgeConnectivity(void)
 	cMeshEditor.Collapse();
 
 	pcConn = cMesh.GetConnectivity();
-	AssertSize(9, pcConn->NumEdges());
-	AssertSize(6, pcConn->NumCorners());
-	AssertSize(4, pcConn->mcFaces.NumElements());
+	AssertLSize(9, pcConn->NumEdges());
+	AssertLSize(6, pcConn->NumCorners());
+	AssertLSize(4, pcConn->mcFaces.NumElements());
 
 	AssertCornerFaces(pcConn->GetCorner(0),  1,  0);
 	AssertCornerFaces(pcConn->GetCorner(1),  2,  0, 1);
@@ -241,19 +241,19 @@ void TestMeshConnectivitySaveLoad(void)
 	cMemory.Kill();
 
 	AssertFalse(cLoaded.IsGenerated());
-	AssertSize(4, cLoaded.NumCorners());
-	AssertSize(2, cLoaded.NumFaces());
+	AssertLSize(4, cLoaded.NumCorners());
+	AssertLSize(2, cLoaded.NumFaces());
 	AssertInt(3, cLoaded.GetFaceCorners(1)[2]);
 	AssertFalse(cLoaded.IsGenerated());
 
-	AssertSize(5, cLoaded.NumEdges());
+	AssertLSize(5, cLoaded.NumEdges());
 	AssertTrue(cLoaded.IsGenerated());
 	AssertCornerFaces(cLoaded.GetCorner(1),  2,  0, 1);
 	AssertCornerEdges(cLoaded.GetCorner(1),  3,  0, 1, 3);
 	AssertEdgeFaces(cLoaded.GetEdge(1), 0, 1);
 
 	cLoaded.AddFace(0, 3, 1);
-	AssertSize(6, cLoaded.NumEdges());
+	AssertLSize(6, cLoaded.NumEdges());
 	AssertCornerFaces(cLoaded.GetCorner(3),  2,  1, 2);
 
 	cLoaded.Free();

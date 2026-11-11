@@ -209,7 +209,7 @@ bool CSceneFileWriter::End(ESceneFileBlock eBlock, const char* szChunk)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteChunk(const char* szChunk, const void* pvData, size uiElementSize, size uiNumElements)
+bool CSceneFileWriter::WriteChunk(const char* szChunk, const void* pvData, size uiElementSize, lsize uiNumElements)
 {
 	if (mbFailed)
 	{
@@ -250,9 +250,9 @@ bool CSceneFileWriter::WriteInt32Chunk(const char* szChunk, int32 iValue)
 // is wrong.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::CheckIndices(const int32* paiIndices, size uiNumIndices, int32* piMax)
+bool CSceneFileWriter::CheckIndices(const int32* paiIndices, lsize uiNumIndices, int32* piMax)
 {
-	size	i;
+	lsize	i;
 
 	if ((paiIndices == NULL) && (uiNumIndices > 0))
 	{
@@ -280,9 +280,9 @@ bool CSceneFileWriter::CheckIndices(const int32* paiIndices, size uiNumIndices, 
 // attached leaves out being attached.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::CheckRequiredIndices(const int32* paiIndices, size uiNumIndices, int32* piMax)
+bool CSceneFileWriter::CheckRequiredIndices(const int32* paiIndices, lsize uiNumIndices, int32* piMax)
 {
-	size	i;
+	lsize	i;
 
 	ReturnOnFalse(CheckIndices(paiIndices, uiNumIndices, piMax));
 	for (i = 0; i < uiNumIndices; i++)
@@ -318,7 +318,7 @@ bool CSceneFileWriter::BeginMesh(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WritePositions(const float32* pafXYZ, size uiNumPositions)
+bool CSceneFileWriter::WritePositions(const float32* pafXYZ, lsize uiNumPositions)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	msMesh.uiPositions = uiNumPositions;
@@ -330,7 +330,7 @@ bool CSceneFileWriter::WritePositions(const float32* pafXYZ, size uiNumPositions
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteNormals(const float32* pafXYZ, size uiNumNormals)
+bool CSceneFileWriter::WriteNormals(const float32* pafXYZ, lsize uiNumNormals)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	msMesh.uiNormals = uiNumNormals;
@@ -342,7 +342,7 @@ bool CSceneFileWriter::WriteNormals(const float32* pafXYZ, size uiNumNormals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteColours(const uint32* pauiColours, size uiNumColours)
+bool CSceneFileWriter::WriteColours(const uint32* pauiColours, lsize uiNumColours)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	msMesh.uiColours = uiNumColours;
@@ -354,10 +354,10 @@ bool CSceneFileWriter::WriteColours(const uint32* pauiColours, size uiNumColours
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WritePolygons(const int32* paiSizes, size uiNumPolygons, const int32* paiCornerPositions, size uiNumCorners)
+bool CSceneFileWriter::WritePolygons(const int32* paiSizes, lsize uiNumPolygons, const int32* paiCornerPositions, lsize uiNumCorners)
 {
-	size	i;
-	size	uiTotal;
+	lsize	i;
+	lsize	uiTotal;
 
 	ReturnOnFalse(InBlock(SFB_Mesh));
 
@@ -387,7 +387,7 @@ bool CSceneFileWriter::WritePolygons(const int32* paiSizes, size uiNumPolygons, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteCornerNormals(const int32* paiNormals, size uiNumCorners)
+bool CSceneFileWriter::WriteCornerNormals(const int32* paiNormals, lsize uiNumCorners)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	ReturnOnFalse(CheckIndices(paiNormals, uiNumCorners, &msMesh.iMaxNormal));
@@ -400,7 +400,7 @@ bool CSceneFileWriter::WriteCornerNormals(const int32* paiNormals, size uiNumCor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteCornerColours(const int32* paiColours, size uiNumCorners)
+bool CSceneFileWriter::WriteCornerColours(const int32* paiColours, lsize uiNumCorners)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	ReturnOnFalse(CheckIndices(paiColours, uiNumCorners, &msMesh.iMaxColour));
@@ -416,7 +416,7 @@ bool CSceneFileWriter::WriteCornerColours(const int32* paiColours, size uiNumCor
 // first.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteUVLayer(const float32* pafUVs, size uiNumUVs, const int32* paiCornerUVs, size uiNumCorners)
+bool CSceneFileWriter::WriteUVLayer(const float32* pafUVs, lsize uiNumUVs, const int32* paiCornerUVs, lsize uiNumCorners)
 {
 	int32	iMaxUV;
 
@@ -451,7 +451,7 @@ bool CSceneFileWriter::WriteUVLayer(const float32* pafUVs, size uiNumUVs, const 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteMaterialSlots(const int32* paiMaterials, size uiNumSlots)
+bool CSceneFileWriter::WriteMaterialSlots(const int32* paiMaterials, lsize uiNumSlots)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	ReturnOnFalse(CheckRequiredIndices(paiMaterials, uiNumSlots, &miMaxMaterial));
@@ -464,7 +464,7 @@ bool CSceneFileWriter::WriteMaterialSlots(const int32* paiMaterials, size uiNumS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WritePolygonSlots(const int32* paiSlots, size uiNumPolygons)
+bool CSceneFileWriter::WritePolygonSlots(const int32* paiSlots, lsize uiNumPolygons)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	ReturnOnFalse(CheckIndices(paiSlots, uiNumPolygons, &msMesh.iMaxSlot));
@@ -477,7 +477,7 @@ bool CSceneFileWriter::WritePolygonSlots(const int32* paiSlots, size uiNumPolygo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteSmoothGroups(const uint32* pauiGroups, size uiNumPolygons)
+bool CSceneFileWriter::WriteSmoothGroups(const uint32* pauiGroups, lsize uiNumPolygons)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	msMesh.uiSmoothGroups = uiNumPolygons;
@@ -489,10 +489,10 @@ bool CSceneFileWriter::WriteSmoothGroups(const uint32* pauiGroups, size uiNumPol
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteSkin(const int32* paiCounts, size uiNumPositions, const int32* paiMatrices, const float32* pafWeights, size uiNumWeights)
+bool CSceneFileWriter::WriteSkin(const int32* paiCounts, lsize uiNumPositions, const int32* paiMatrices, const float32* pafWeights, lsize uiNumWeights)
 {
-	size	i;
-	size	uiTotal;
+	lsize	i;
+	lsize	uiTotal;
 
 	ReturnOnFalse(InBlock(SFB_Mesh));
 
@@ -522,7 +522,7 @@ bool CSceneFileWriter::WriteSkin(const int32* paiCounts, size uiNumPositions, co
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteInverseMatrices(const float32* paf4x4s, size uiNumMatrices)
+bool CSceneFileWriter::WriteInverseMatrices(const float32* paf4x4s, lsize uiNumMatrices)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	msMesh.uiInverseMatrices = uiNumMatrices;
@@ -625,7 +625,7 @@ bool CSceneFileWriter::WritePixels(int32 iWidth, int32 iHeight, const char* szCh
 
 	ReturnOnFalse(WriteChunk(SCENE_CHUNK_SIZE, aiSize, sizeof(int32), 2));
 	ReturnOnFalse(WriteChunk(SCENE_CHUNK_CHANNELS, szChannels, sizeof(char), uiNumChannels));
-	return WriteChunk(SCENE_CHUNK_PIXELS, puiPixels, uiNumChannels, (size)iWidth * (size)iHeight);
+	return WriteChunk(SCENE_CHUNK_PIXELS, puiPixels, uiNumChannels, (lsize)iWidth * (lsize)iHeight);
 }
 
 
@@ -928,9 +928,9 @@ bool CSceneFileWriter::BeginAnimation(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteTrack(int32 iConnection, const float32* pafTimes, const float32* paf4x4s, size uiNumKeys)
+bool CSceneFileWriter::WriteTrack(int32 iConnection, const float32* pafTimes, const float32* paf4x4s, lsize uiNumKeys)
 {
-	size	i;
+	lsize	i;
 
 	ReturnOnFalse(InBlock(SFB_Animation));
 	ReturnOnFalse(CheckRequiredIndices(&iConnection, 1, &miMaxConnection));
@@ -984,7 +984,7 @@ bool CSceneFileWriter::BeginInstance(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteConnections(const int32* paiConnections, size uiNumConnections)
+bool CSceneFileWriter::WriteConnections(const int32* paiConnections, lsize uiNumConnections)
 {
 	ReturnOnFalse(InBlock(SFB_Instance));
 	ReturnOnFalse(CheckRequiredIndices(paiConnections, uiNumConnections, &miMaxConnection));
@@ -997,7 +997,7 @@ bool CSceneFileWriter::WriteConnections(const int32* paiConnections, size uiNumC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteInstanceMesh(int32 iMesh, const int32* paiConnectionSlots, size uiNumSlots, const int32* paiMaterials, size uiNumMaterials)
+bool CSceneFileWriter::WriteInstanceMesh(int32 iMesh, const int32* paiConnectionSlots, lsize uiNumSlots, const int32* paiMaterials, lsize uiNumMaterials)
 {
 	int32	iMaxSlot;
 
@@ -1044,7 +1044,7 @@ bool CSceneFileWriter::EndInstance(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteParticles(const char* szName, const float32* pafXYZ, const float32* pafRGB, const float32* pafRadii, const float32* pafIntensities, size uiNumParticles)
+bool CSceneFileWriter::WriteParticles(const char* szName, const float32* pafXYZ, const float32* pafRGB, const float32* pafRadii, const float32* pafIntensities, lsize uiNumParticles)
 {
 	ReturnOnFalse(Begin(SFB_Particles, SCENE_CHUNK_PARTICLES, szName));
 	ReturnOnFalse(WriteChunk(SCENE_CHUNK_POSITIONS, pafXYZ, sizeof(float32) * 3, uiNumParticles));

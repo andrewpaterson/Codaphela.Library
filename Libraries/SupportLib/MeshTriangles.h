@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ShapesIndexed.h"
 
 
-typedef CArrayTemplate<CTriangleIndexed>	CArrayTriangleIndexed;
+typedef CArrayLargeTemplate<CTriangleIndexed>	CArrayTriangleIndexed;
 
 
 class CMeshNormals;

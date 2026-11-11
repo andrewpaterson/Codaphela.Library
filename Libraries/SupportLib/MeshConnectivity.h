@@ -28,9 +28,10 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshDetail.h"
 
 
-typedef	CArrayTemplate<CMeshCorner>		CArrayCorner;
-typedef CArrayTemplate<CMeshEdge>		CArrayEdge;
-typedef CArrayTemplate<CMeshFace>		CArrayFace;
+//Large: a mesh's corners, edges and faces can pass 64KB with a 16 bit size (W65C816).
+typedef	CArrayLargeTemplate<CMeshCorner>	CArrayCorner;
+typedef CArrayLargeTemplate<CMeshEdge>		CArrayEdge;
+typedef CArrayLargeTemplate<CMeshFace>		CArrayFace;
 
 
 //This is an intermediate struct for generating connectivity.
@@ -44,7 +45,7 @@ struct CCornerEdgesMap
 	void Kill(void);
 };
 
-typedef	CArrayTemplate<CCornerEdgesMap>		CArrayCornerEdgesMap;
+typedef	CArrayLargeTemplate<CCornerEdgesMap>	CArrayCornerEdgesMap;
 
 
 //Positions belongs in here, not separate.
@@ -63,8 +64,8 @@ protected:
 	CArrayEdge				mcEdges;
 	CArrayCornerEdgesMap	mcCornerEdgesMap;
 
-	size					muiNumCorners;
-	size					muiGeneratedFaces;
+	lsize					muiNumCorners;
+	lsize					muiGeneratedFaces;
 
 public:
 	void 			Init(void);
@@ -78,14 +79,14 @@ public:
 	void			AddCorner(void);
 	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);  //NewEdges is zero, GenerateConnectivity returns it.
 
-	size			NumCorners(void);
-	size			NumFaces(void);
+	lsize			NumCorners(void);
+	lsize			NumFaces(void);
 	int*			GetFaceCorners(int iElementNum);
-	size			FaceChunkSize(void);
-	size			CornerChunkSize(void);
+	lsize			FaceChunkSize(void);
+	lsize			CornerChunkSize(void);
 
 	//These generate what they need.
-	size			NumEdges(void);
+	lsize			NumEdges(void);
 	CMeshCorner*	GetCorner(int iElementNum);
 	CMeshEdge*		GetEdge(int iElementNum);
 	CMeshFace*		GetFace(int iElementNum);

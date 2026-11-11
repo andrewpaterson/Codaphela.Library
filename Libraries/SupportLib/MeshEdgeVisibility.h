@@ -34,7 +34,7 @@ CONSTRUCTABLE(CMeshEdgeVisibility);
 DESTRUCTABLE(CMeshEdgeVisibility);
 public:
 	//0 if not visible, > 0 if visible.  Char value is supposed to represent visible style.  Larger numbers are more visible.
-	CArrayChar	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
+	CArrayLargeChar	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
 
 	void	Init(void);
 	void 	Free(void) override;
@@ -47,7 +47,7 @@ public:
 
 	void	AddFace(CMeshFace* pcFace, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
 	char	GetEdge(int iEdge);
-	size	NumVisibleEdges(char cEdge);
+	lsize	NumVisibleEdges(char cEdge);
 };
 
 

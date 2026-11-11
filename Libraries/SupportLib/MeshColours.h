@@ -34,7 +34,7 @@ struct SMeshFaceColour
 };
 
 
-typedef CArrayTemplate<SMeshFaceColour>	CArrayMeshFaceColours;
+typedef CArrayLargeTemplate<SMeshFaceColour>	CArrayMeshFaceColours;
 
 
 class CMeshColours : public CMeshDetail
@@ -42,7 +42,7 @@ class CMeshColours : public CMeshDetail
 CONSTRUCTABLE(CMeshColours);
 DESTRUCTABLE(CMeshColours);
 public:
-	CArrayUint32			mcColours;
+	CArrayLargeUint32		mcColours;
 	CArrayMeshFaceColours	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.
 
 	void 	Init(void);

@@ -284,7 +284,7 @@ static void AddOBJFaceLine(SOBJFaces* psFaces, int iFace)
 //////////////////////////////////////////////////////////////////////////
 static void AddOBJLines(SOBJFaces* psFaces, CMeshPolygons* pcPolygons)
 {
-	CArrayInt	aiPolygonLines;  //-1 for not looked at yet, 1 if it's a line, 0 if it's left to its faces.
+	CArrayLargeInt	aiPolygonLines;  //-1 for not looked at yet, 1 if it's a line, 0 if it's left to its faces.
 	int			iNumFaces;
 	int			iPolygon;
 	int			i;
@@ -401,9 +401,9 @@ static void AddOBJNormals(SOBJFaces* psFaces, CLargeChars* psz)
 //////////////////////////////////////////////////////////////////////////
 static void AddOBJTextureCoords(CMeshUVLayer* pcUVLayer, CLargeChars* psz)
 {
-	size			i;
+	lsize			i;
 	SFloat32Vec2	sUV;
-	size			uiNumUVs;
+	lsize			uiNumUVs;
 
 	if (!pcUVLayer)
 	{

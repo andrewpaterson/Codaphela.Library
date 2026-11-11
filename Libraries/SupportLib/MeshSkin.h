@@ -56,7 +56,7 @@ public:
 };
 
 
-typedef CArrayTemplate<CMeshSkinVert> CArrayMeshSkinVert;
+typedef CArrayLargeTemplate<CMeshSkinVert> CArrayMeshSkinVert;
 
 
 //This class can be applied to both positions and normals because the postion/normal index is implicit.

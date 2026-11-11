@@ -219,8 +219,8 @@ bool CMeshUVCoords::Save(CObjectWriter* pcFile)
 int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 {
 	CMeshUVLayer*	pcUVLayer;
-	size			i;
-	size			uiNumFaces;
+	lsize			i;
+	lsize			uiNumFaces;
 
 	if (mbInUse)
 	{
@@ -299,7 +299,7 @@ int CMeshUVCoords::NumUVs(void)
 {
 	CMeshUVLayer*	pcUVLayer;
 	size			i;
-	size			iNumUVs;
+	lsize			iNumUVs;
 	size			uiNumElements;
 
 	if (mbInUse)

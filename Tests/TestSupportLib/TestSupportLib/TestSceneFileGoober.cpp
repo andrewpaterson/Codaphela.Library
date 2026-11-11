@@ -47,15 +47,15 @@ static void TestSceneFileGooberContents(void)
 	AssertSize(1, cReader.NumMeshes());
 	AssertTrue(cReader.BeginMesh(0));
 	AssertGooberName(&cReader, "goober_");
-	AssertSize(3241, cReader.NumPositions());
-	AssertSize(6134, cReader.NumPolygons());
-	AssertSize(6134 * 3, cReader.NumCorners());
-	AssertSize(0, cReader.NumNormals());
-	AssertSize(6134, cReader.NumSmoothGroups());
+	AssertLSize(3241, cReader.NumPositions());
+	AssertLSize(6134, cReader.NumPolygons());
+	AssertLSize(6134 * 3, cReader.NumCorners());
+	AssertLSize(0, cReader.NumNormals());
+	AssertLSize(6134, cReader.NumSmoothGroups());
 	AssertSize(1, cReader.NumUVLayers());
-	AssertSize(3241, cReader.NumSkinCounts());
-	AssertSize(8124, cReader.NumSkinWeights());
-	AssertSize(67, cReader.NumInverseMatrices());
+	AssertLSize(3241, cReader.NumSkinCounts());
+	AssertLSize(8124, cReader.NumSkinWeights());
+	AssertLSize(67, cReader.NumInverseMatrices());
 	AssertTrue(cReader.End());
 
 	AssertSize(3, cReader.NumImages());
@@ -95,7 +95,7 @@ static void TestSceneFileGooberContents(void)
 	{
 		AssertTrue(cReader.BeginTrack(i));
 		AssertInt((int32)i + 1, cReader.GetAttached());
-		AssertSize(80, cReader.NumKeys());
+		AssertLSize(80, cReader.NumKeys());
 		AssertTrue(cReader.ReadKeyTimes(afTimes));
 		AssertTrue(cReader.ReadKeyMatrices(afKeys));
 		AssertTrue(cReader.End());
@@ -110,17 +110,17 @@ static void TestSceneFileGooberContents(void)
 
 	AssertSize(1, cReader.NumInstances());
 	AssertTrue(cReader.BeginInstance(0));
-	AssertSize(67, cReader.NumInstanceConnections());
+	AssertLSize(67, cReader.NumInstanceConnections());
 	AssertSize(1, cReader.NumInstanceMeshes());
 	AssertTrue(cReader.BeginInstanceMesh(0));
 	AssertInt((int32)0, cReader.GetInstanceMesh());
-	AssertSize(67, cReader.NumConnectionSlots());
+	AssertLSize(67, cReader.NumConnectionSlots());
 	AssertTrue(cReader.End());
 	AssertTrue(cReader.End());
 
 	AssertSize(1, cReader.NumParticleSets());
 	AssertTrue(cReader.BeginParticles(0));
-	AssertSize(1105, cReader.NumParticles());
+	AssertLSize(1105, cReader.NumParticles());
 	AssertTrue(cReader.End());
 
 	AssertFalse(cReader.Failed());

@@ -155,7 +155,7 @@ void TestMeshOBJReaderRoundTrip(void)
 		MakeSmoothedBox(&cMesh, &cMeshEditor);
 		AssertInt(26, cMesh.NumCorners());
 		AssertInt(48, cMesh.NumFaces());
-		AssertSize(48 + 54, cMesh.mcNormals.mcNormals.NumElements());
+		AssertLSize(48 + 54, cMesh.mcNormals.mcNormals.NumElements());
 
 		AssertTrue(WriteMesh(&cMesh, "Output/Shape/Smoothing.OBJ"));
 		AssertFile("Input/Shape/Smoothing.OBJ", "Output/Shape/Smoothing.OBJ");
@@ -164,7 +164,7 @@ void TestMeshOBJReaderRoundTrip(void)
 		AssertTrue(ReadMesh(&cRead, "Input/Shape/Smoothing.OBJ"));
 		AssertInt(26, cRead.NumCorners());
 		AssertInt(48, cRead.NumFaces());
-		AssertSize(48 + 54, cRead.mcNormals.mcNormals.NumElements());
+		AssertLSize(48 + 54, cRead.mcNormals.mcNormals.NumElements());
 		AssertInt(26, cRead.mcUVs.NumUVs());
 
 		for (i = 0; i < cMesh.NumCorners(); i++)
@@ -226,14 +226,14 @@ void TestMeshOBJReaderFlatNormals(void)
 		cMesh.AddCorner(0, 0, 1);
 		cMesh.AddFace(0, 1, 2);
 		cMesh.AddFace(0, 3, 1);
-		AssertSize(2, cMesh.mcNormals.mcNormals.NumElements());
+		AssertLSize(2, cMesh.mcNormals.mcNormals.NumElements());
 
 		AssertTrue(WriteMesh(&cMesh, "Output/Shape/Flat.OBJ"));
 
 		cRead.Init();
 		AssertTrue(ReadMesh(&cRead, "Output/Shape/Flat.OBJ"));
 		AssertInt(2, cRead.NumFaces());
-		AssertSize(2 + 2, cRead.mcNormals.mcNormals.NumElements());
+		AssertLSize(2 + 2, cRead.mcNormals.mcNormals.NumElements());
 		AssertVec3(cMesh.mcNormals.GetFaceNormal(0)->x, cMesh.mcNormals.GetFaceNormal(0)->y, cMesh.mcNormals.GetFaceNormal(0)->z, GetFaceCornerNormal(&cRead, 0, 2));
 		AssertVec3(cMesh.mcNormals.GetFaceNormal(1)->x, cMesh.mcNormals.GetFaceNormal(1)->y, cMesh.mcNormals.GetFaceNormal(1)->z, GetFaceCornerNormal(&cRead, 1, 0));
 
@@ -277,7 +277,7 @@ static void AssertOBJReaderMesh(CMesh* pcMesh)
 	AssertFaceUVs(pcMesh, 3, -1, -1, -1);
 	AssertInt(-1, pcMesh->mcNormals.mcFaces.Get(3)->aiCornerNormals[0]);
 
-	AssertSize(4 + 3, pcMesh->mcNormals.mcNormals.NumElements());
+	AssertLSize(4 + 3, pcMesh->mcNormals.mcNormals.NumElements());
 	AssertInt(4, pcMesh->mcUVs.NumUVs());
 }
 

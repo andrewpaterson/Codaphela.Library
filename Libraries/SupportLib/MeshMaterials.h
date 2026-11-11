@@ -36,7 +36,7 @@ CONSTRUCTABLE(CMeshMaterials);
 DESTRUCTABLE(CMeshMaterials);
 public:
 	CArrayMaterial	mapMaterials;
-	CArrayInt		mcFaces;
+	CArrayLargeInt	mcFaces;
 
 	void 	Init(void);
 	void	Class(void) override;

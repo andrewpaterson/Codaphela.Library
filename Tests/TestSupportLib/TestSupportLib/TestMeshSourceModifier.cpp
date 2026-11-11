@@ -234,7 +234,7 @@ void TestMeshSourceEditorAddsToCollapsed(void)
 		pOutput = cEditor.GetOutput();
 		AssertInt(9 + 4, pOutput->NumCorners());
 		AssertInt(8 + 3, pOutput->NumFaces());
-		AssertSize(4 + 3, pOutput->mcPolygons.mcPolygons.NumElements());
+		AssertLSize(4 + 3, pOutput->mcPolygons.mcPolygons.NumElements());
 		AssertInt(3, pOutput->GetFaceName(7));
 		AssertInt(0, pOutput->GetFaceName(8));
 		AssertInt(9, pOutput->GetFaceCorners(8)[0]);
@@ -282,13 +282,13 @@ void TestMeshSourceEditorKeepsNormals(void)
 	cEditor.AddModifier<CMeshPlaneEditor>()->Init(&sX, &sY, &sStart, 2, 2);
 	cEditor.AddModifier<CMeshSmoothFaces>()->Init();
 	cEditor.Collapse();
-	AssertSize(8 + 9, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(8 + 9, cMesh.mcNormals.mcNormals.NumElements());
 
 	TestMeshSourceAddShape(&cEditor.mcModifiers, TMS_Disc);
 	for (i = 0; i < 2; i++)
 	{
 		pOutput = cEditor.GetOutput();
-		AssertSize(8 + 3 + 9, pOutput->mcNormals.mcNormals.NumElements());
+		AssertLSize(8 + 3 + 9, pOutput->mcNormals.mcNormals.NumElements());
 		psNormalFace = pOutput->mcNormals.mcFaces.Get(0);
 		AssertTrue(psNormalFace->aiCornerNormals[0] >= 8 + 3);
 		AssertFloat(1.0f, pOutput->mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[0])->z, 3);

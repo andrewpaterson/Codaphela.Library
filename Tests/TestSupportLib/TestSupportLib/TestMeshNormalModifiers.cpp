@@ -95,7 +95,7 @@ void TestMeshNormalModifiersMakeNewMeshes(void)
 	AssertFalse(pOutput == pSource);
 	AssertFalse(pSource->mcNormals.InUse());
 	AssertTrue(pOutput->mcNormals.InUse());
-	AssertSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2, pOutput->mcNormals.mcNormals.NumElements());
 	psNormalFace = pOutput->mcNormals.mcFaces.Get(1);
 	AssertInt(1, psNormalFace->aiCornerNormals[0]);
 	AssertInt(1, psNormalFace->aiCornerNormals[2]);
@@ -106,7 +106,7 @@ void TestMeshNormalModifiersMakeNewMeshes(void)
 	cStack.Init(pSource);
 	cStack.AddModifier<CMeshSmoothFaces>()->Init();
 	pOutput = cStack.GetOutput();
-	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	psNormalFace = pOutput->mcNormals.mcFaces.Get(0);
 	AssertInt(2, psNormalFace->aiCornerNormals[0]);
 	AssertFloat(1.0f, pOutput->mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[1])->z, 3);
@@ -133,14 +133,14 @@ void TestMeshSmoothGroupsModify(void)
 	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
 	pcSmoothing->Init(1);
 	pOutput = cStack.GetOutput();
-	AssertSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
-	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 
 	//Again gives the same.
 	cStack.Touch();
 	pOutput = cStack.GetOutput();
-	AssertSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
-	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
 	cStack.Init(TestMeshNormalTwoFaces(1, 2));
@@ -150,14 +150,14 @@ void TestMeshSmoothGroupsModify(void)
 	pOutput = cStack.GetOutput();
 	AssertTrue(pOutput->mcSmoothing.mauiGroups.GetValue(0) == 1);
 	AssertTrue(pOutput->mcSmoothing.mauiGroups.GetValue(1) == 2);
-	AssertSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
 	cStack.Init(TestMeshNormalTwoFaces(1, 1));
 	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
 	pcSmoothing->Init(0);
 	pOutput = cStack.GetOutput();
-	AssertSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2, pOutput->mcNormals.mcNormals.NumElements());
 	AssertInt(1, pOutput->mcNormals.mcFaces.Get(1)->aiCornerNormals[0]);
 	cStack.Kill();
 
@@ -166,7 +166,7 @@ void TestMeshSmoothGroupsModify(void)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
-	AssertSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
 	cStack.Init();
@@ -198,7 +198,7 @@ void TestMeshNormalModifiersAfterShape(void)
 	cStack.AddModifier<CMeshSmoothFaces>()->Init();
 	pOutput = cStack.GetOutput();
 	AssertInt(8, pOutput->NumFaces());
-	AssertSize(8 + 9, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(8 + 9, pOutput->mcNormals.mcNormals.NumElements());
 	AssertSize(2, CountMeshMemoryObjects("CMesh"));
 	cStack.Kill();
 }
@@ -219,23 +219,23 @@ void TestMeshNormalModifiersInEditorAgain(void)
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
 	cMesh.CopyFrom(&TestMeshNormalTwoFaces(1, 1));
-	AssertSize(2, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(2, cMesh.mcNormals.mcNormals.NumElements());
 
 	cEditor.Init(&cMesh);
 	cEditor.AddModifier<CMeshSmoothGroups>()->Init(1);
 	pOutput = cEditor.GetOutput();
-	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
-	AssertSize(2, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2, cMesh.mcNormals.mcNormals.NumElements());
 	pOutput = NULL;
 
 	cEditor.Collapse();
-	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
-	AssertSize(2, cMesh.mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(2, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(0, cEditor.mcModifiers.NumEditors());
 
 	cEditor.AddModifier<CMeshSmoothGroups>()->Init(1);
 	cEditor.Collapse();
-	AssertSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
 	AssertInt(2, cMesh.NumFaces());
 	AssertInt(4, cMesh.NumCorners());
 	cEditor.Kill();
@@ -284,7 +284,7 @@ void TestMeshNormalModifiersKeepDetails(void)
 	cStack.AddModifier<CMeshSmoothGroups>()->Init(1);
 	pOutput = cStack.GetOutput();
 	AssertFalse(pOutput == pSource);
-	AssertSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 
 	AssertTrue(pOutput->mcUVs.InUse());
 	AssertSize(1, pOutput->mcUVs.mcLayers.NumElements());
@@ -298,7 +298,7 @@ void TestMeshNormalModifiersKeepDetails(void)
 	AssertInt(0, pOutput->mcMaterials.mcFaces.GetValue(1));
 
 	AssertTrue(pOutput->mcSkin.InUse());
-	AssertSize(4, pOutput->mcSkin.mcSkinVerts.NumElements());
+	AssertLSize(4, pOutput->mcSkin.mcSkinVerts.NumElements());
 	pcVert = pOutput->mcSkin.mcSkinVerts.Get(2);
 	AssertSize(1, pcVert->mcWeights.NumElements());
 	AssertFloat(1.0f, pcVert->mcWeights.Get(0)->fWeight, 3);
@@ -306,7 +306,7 @@ void TestMeshNormalModifiersKeepDetails(void)
 	AssertSize(1, pOutput->mcSkin.mcInverseSkinMatricies.NumElements());
 
 	//What it was made from is as it was.
-	AssertSize(0, pSource->mcNormals.mcNormals.NumElements());
+	AssertLSize(0, pSource->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 }
 

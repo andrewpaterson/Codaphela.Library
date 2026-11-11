@@ -43,18 +43,18 @@ enum ESceneFileBlock
 //What has been written of the mesh being written, to check at EndMesh that it agrees with itself.
 struct SSceneFileMeshCounts
 {
-	size	uiPositions;
-	size	uiNormals;
-	size	uiColours;
-	size	uiPolygons;
-	size	uiCorners;
-	size	uiCornerNormals;
-	size	uiCornerColours;
-	size	uiMaterialSlots;
-	size	uiPolygonSlots;
-	size	uiSmoothGroups;
-	size	uiSkinCounts;
-	size	uiInverseMatrices;
+	lsize	uiPositions;
+	lsize	uiNormals;
+	lsize	uiColours;
+	lsize	uiPolygons;
+	lsize	uiCorners;
+	lsize	uiCornerNormals;
+	lsize	uiCornerColours;
+	lsize	uiMaterialSlots;
+	lsize	uiPolygonSlots;
+	lsize	uiSmoothGroups;
+	lsize	uiSkinCounts;
+	lsize	uiInverseMatrices;
 	int32	iMaxPosition;
 	int32	iMaxNormal;
 	int32	iMaxColour;
@@ -81,7 +81,7 @@ protected:
 	size					muiNumImages;
 	size					muiNumMaterials;
 	size					muiNumConnections;
-	size					muiNumInstanceConnections;
+	lsize					muiNumInstanceConnections;
 	int32					miMaxMesh;
 	int32					miMaxImage;
 	int32					miMaxMaterial;
@@ -95,18 +95,18 @@ public:
 	bool	Close(void);
 
 	bool	BeginMesh(const char* szName);
-	bool	WritePositions(const float32* pafXYZ, size uiNumPositions);
-	bool	WriteNormals(const float32* pafXYZ, size uiNumNormals);
-	bool	WriteColours(const uint32* pauiColours, size uiNumColours);
-	bool	WritePolygons(const int32* paiSizes, size uiNumPolygons, const int32* paiCornerPositions, size uiNumCorners);
-	bool	WriteCornerNormals(const int32* paiNormals, size uiNumCorners);
-	bool	WriteCornerColours(const int32* paiColours, size uiNumCorners);
-	bool	WriteUVLayer(const float32* pafUVs, size uiNumUVs, const int32* paiCornerUVs, size uiNumCorners);
-	bool	WriteMaterialSlots(const int32* paiMaterials, size uiNumSlots);
-	bool	WritePolygonSlots(const int32* paiSlots, size uiNumPolygons);
-	bool	WriteSmoothGroups(const uint32* pauiGroups, size uiNumPolygons);
-	bool	WriteSkin(const int32* paiCounts, size uiNumPositions, const int32* paiMatrices, const float32* pafWeights, size uiNumWeights);
-	bool	WriteInverseMatrices(const float32* paf4x4s, size uiNumMatrices);
+	bool	WritePositions(const float32* pafXYZ, lsize uiNumPositions);
+	bool	WriteNormals(const float32* pafXYZ, lsize uiNumNormals);
+	bool	WriteColours(const uint32* pauiColours, lsize uiNumColours);
+	bool	WritePolygons(const int32* paiSizes, lsize uiNumPolygons, const int32* paiCornerPositions, lsize uiNumCorners);
+	bool	WriteCornerNormals(const int32* paiNormals, lsize uiNumCorners);
+	bool	WriteCornerColours(const int32* paiColours, lsize uiNumCorners);
+	bool	WriteUVLayer(const float32* pafUVs, lsize uiNumUVs, const int32* paiCornerUVs, lsize uiNumCorners);
+	bool	WriteMaterialSlots(const int32* paiMaterials, lsize uiNumSlots);
+	bool	WritePolygonSlots(const int32* paiSlots, lsize uiNumPolygons);
+	bool	WriteSmoothGroups(const uint32* pauiGroups, lsize uiNumPolygons);
+	bool	WriteSkin(const int32* paiCounts, lsize uiNumPositions, const int32* paiMatrices, const float32* pafWeights, lsize uiNumWeights);
+	bool	WriteInverseMatrices(const float32* paf4x4s, lsize uiNumMatrices);
 	bool	EndMesh(void);
 
 	bool	BeginImage(const char* szName);
@@ -142,25 +142,25 @@ public:
 	bool	WriteAttached(int32 iConnection);  //For a light or a camera.
 
 	bool	BeginAnimation(const char* szName);
-	bool	WriteTrack(int32 iConnection, const float32* pafTimes, const float32* paf4x4s, size uiNumKeys);  //Times must go up.
+	bool	WriteTrack(int32 iConnection, const float32* pafTimes, const float32* paf4x4s, lsize uiNumKeys);  //Times must go up.
 	bool	EndAnimation(void);
 
 	bool	BeginInstance(const char* szName);
-	bool	WriteConnections(const int32* paiConnections, size uiNumConnections);  //Before the meshes, whose slots index them.
-	bool	WriteInstanceMesh(int32 iMesh, const int32* paiConnectionSlots, size uiNumSlots, const int32* paiMaterials, size uiNumMaterials);  //paiMaterials can be NULL.
+	bool	WriteConnections(const int32* paiConnections, lsize uiNumConnections);  //Before the meshes, whose slots index them.
+	bool	WriteInstanceMesh(int32 iMesh, const int32* paiConnectionSlots, lsize uiNumSlots, const int32* paiMaterials, lsize uiNumMaterials);  //paiMaterials can be NULL.
 	bool	EndInstance(void);
 
-	bool	WriteParticles(const char* szName, const float32* pafXYZ, const float32* pafRGB, const float32* pafRadii, const float32* pafIntensities, size uiNumParticles);  //All but pafXYZ can be NULL.
+	bool	WriteParticles(const char* szName, const float32* pafXYZ, const float32* pafRGB, const float32* pafRadii, const float32* pafIntensities, lsize uiNumParticles);  //All but pafXYZ can be NULL.
 
 protected:
 	bool	Fail(const char* szMessage);
 	bool	InBlock(ESceneFileBlock eBlock);
 	bool	Begin(ESceneFileBlock eBlock, const char* szChunk, const char* szName);
 	bool	End(ESceneFileBlock eBlock, const char* szChunk);
-	bool	WriteChunk(const char* szChunk, const void* pvData, size uiElementSize, size uiNumElements);
+	bool	WriteChunk(const char* szChunk, const void* pvData, size uiElementSize, lsize uiNumElements);
 	bool	WriteInt32Chunk(const char* szChunk, int32 iValue);
-	bool	CheckIndices(const int32* paiIndices, size uiNumIndices, int32* piMax);
-	bool	CheckRequiredIndices(const int32* paiIndices, size uiNumIndices, int32* piMax);
+	bool	CheckIndices(const int32* paiIndices, lsize uiNumIndices, int32* piMax);
+	bool	CheckRequiredIndices(const int32* paiIndices, lsize uiNumIndices, int32* piMax);
 	bool	CheckMesh(void);
 };
 

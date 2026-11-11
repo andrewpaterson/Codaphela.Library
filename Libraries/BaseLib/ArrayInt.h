@@ -33,5 +33,9 @@ public:
 };
 
 
+//Ints that can pass 64KB with a 16 bit size (one per face of a mesh).
+typedef CArrayLargeTemplatePrimitive<int>	CArrayLargeInt;
+
+
 #endif // __ARRAY_INT_H__
 

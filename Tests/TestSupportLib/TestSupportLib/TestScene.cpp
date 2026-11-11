@@ -56,18 +56,18 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 	//The file's normals, after a flat one for each face.
 	iNumFlat = pcMesh->NumFaces();
 	AssertTrue(pcMesh->mcNormals.InUse());
-	AssertSize((size)iNumFlat + 2, pcMesh->mcNormals.mcNormals.NumElements());
+	AssertLSize((size)iNumFlat + 2, pcMesh->mcNormals.mcNormals.NumElements());
 	AssertInt(iNumFlat, pcMesh->mcNormals.mcFaces.Get(0)->aiCornerNormals[0]);
 	AssertInt(iNumFlat + 1, pcMesh->mcNormals.mcFaces.Get(2)->aiCornerNormals[0]);
 	AssertInt(-1, pcMesh->mcNormals.mcFaces.Get(2)->aiCornerNormals[2]);
 
 	AssertSize(2, pcMesh->mcUVs.mcLayers.NumElements());
-	AssertSize(4, pcMesh->mcUVs.mcLayers.Get(0)->mcUVs.NumElements());
-	AssertSize(1, pcMesh->mcUVs.mcLayers.Get(1)->mcUVs.NumElements());
+	AssertLSize(4, pcMesh->mcUVs.mcLayers.Get(0)->mcUVs.NumElements());
+	AssertLSize(1, pcMesh->mcUVs.mcLayers.Get(1)->mcUVs.NumElements());
 	AssertInt(-1, pcMesh->mcUVs.mcLayers.Get(0)->mcFaces.Get(2)->aiUVs[2]);
 
 	AssertTrue(pcMesh->mcColours.InUse());
-	AssertSize(2, pcMesh->mcColours.mcColours.NumElements());
+	AssertLSize(2, pcMesh->mcColours.mcColours.NumElements());
 	AssertInt(1, pcMesh->mcColours.mcFaces.Get(2)->aiCornerColours[0]);
 
 	//Slots in the mesh's own materials, which are the file's second then first.
@@ -86,7 +86,7 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 	AssertTrue(pcMesh->mcSmoothing.mauiGroups.GetValue(2) == 0x80000002);
 
 	AssertTrue(pcMesh->mcSkin.InUse());
-	AssertSize(5, pcMesh->mcSkin.mcSkinVerts.NumElements());
+	AssertLSize(5, pcMesh->mcSkin.mcSkinVerts.NumElements());
 	AssertSize(2, pcMesh->mcSkin.mcInverseSkinMatricies.NumElements());
 	pcVert = pcMesh->mcSkin.mcSkinVerts.Get(4);
 	AssertSize(2, pcVert->mcWeights.NumElements());
@@ -211,7 +211,7 @@ static void TestSceneReadParticles(Ptr<CScene> pScene)
 	AssertSize(2, pScene->mapParticles.NumElements());
 	pStars = pScene->mapParticles.Get(0);
 	AssertString("Stars", pStars->mszName.Text());
-	AssertSize(2, pStars->NumParticles());
+	AssertLSize(2, pStars->NumParticles());
 	AssertFloat(6.0f, *pStars->mafPositions.Get(5), 3);
 	AssertFloat(0.5f, *pStars->mafColours.Get(4), 3);
 	AssertFloat(2.0f, *pStars->mafRadii.Get(1), 3);
@@ -219,9 +219,9 @@ static void TestSceneReadParticles(Ptr<CScene> pScene)
 
 	pDust = pScene->mapParticles.Get(1);
 	AssertString("Dust", pDust->mszName.Text());
-	AssertSize(2, pDust->NumParticles());
-	AssertSize(0, pDust->mafColours.NumElements());
-	AssertSize(0, pDust->mafRadii.NumElements());
+	AssertLSize(2, pDust->NumParticles());
+	AssertLSize(0, pDust->mafColours.NumElements());
+	AssertLSize(0, pDust->mafRadii.NumElements());
 }
 
 
@@ -275,11 +275,11 @@ void TestSceneWrite(void)
 	AssertSize(1, cReader.NumInstances());
 
 	AssertTrue(cReader.BeginMesh(0));
-	AssertSize(2, cReader.NumPolygons());
+	AssertLSize(2, cReader.NumPolygons());
 	AssertTrue(cReader.ReadPolygonSizes(aiSizes));
 	AssertInt((int32)4, aiSizes[0]);
 	AssertInt((int32)3, aiSizes[1]);
-	AssertSize(7, cReader.NumCorners());
+	AssertLSize(7, cReader.NumCorners());
 	AssertTrue(cReader.ReadCornerPositions(aiCorners));
 	AssertInt((int32)0, aiCorners[0]);
 	AssertInt((int32)3, aiCorners[1]);
@@ -288,16 +288,16 @@ void TestSceneWrite(void)
 	AssertInt((int32)0, aiCorners[4]);
 	AssertInt((int32)1, aiCorners[5]);
 	AssertInt((int32)4, aiCorners[6]);
-	AssertSize(2, cReader.NumNormals());
+	AssertLSize(2, cReader.NumNormals());
 	AssertSize(2, cReader.NumUVLayers());
-	AssertSize(2, cReader.NumColours());
-	AssertSize(2, cReader.NumMaterialSlots());
-	AssertSize(2, cReader.NumSmoothGroups());
+	AssertLSize(2, cReader.NumColours());
+	AssertLSize(2, cReader.NumMaterialSlots());
+	AssertLSize(2, cReader.NumSmoothGroups());
 	AssertTrue(cReader.ReadSmoothGroups(auiGroups));
 	AssertTrue(auiGroups[0] == 1);
 	AssertTrue(auiGroups[1] == 0x80000002);
-	AssertSize(5, cReader.NumSkinCounts());
-	AssertSize(2, cReader.NumInverseMatrices());
+	AssertLSize(5, cReader.NumSkinCounts());
+	AssertLSize(2, cReader.NumInverseMatrices());
 	AssertTrue(cReader.End());
 	cReader.Kill();
 
@@ -502,9 +502,9 @@ void TestSceneSmoothGroups(void)
 	cReader.Init(SCENE_OUTPUT_B);
 	AssertTrue(cReader.Open());
 	AssertTrue(cReader.BeginMesh(0));
-	AssertSize(2, cReader.NumPolygons());
-	AssertSize(2, cReader.NumSmoothGroups());
-	AssertSize(6, cReader.NumCornerNormals());
+	AssertLSize(2, cReader.NumPolygons());
+	AssertLSize(2, cReader.NumSmoothGroups());
+	AssertLSize(6, cReader.NumCornerNormals());
 	AssertTrue(cReader.ReadCornerNormals(aiRead));
 	AssertInt((int32)SCENE_FILE_NONE, aiRead[0]);
 	AssertInt((int32)SCENE_FILE_NONE, aiRead[1]);
@@ -786,20 +786,20 @@ void TestSceneGooberRead(void)
 	pcMesh = &pInstanceMesh->mpEditor->mpMesh;
 	AssertInt(3241, pcMesh->NumCorners());
 	AssertInt(6134, pcMesh->NumFaces());
-	AssertSize(3241, pcMesh->mcSkin.mcSkinVerts.NumElements());
+	AssertLSize(3241, pcMesh->mcSkin.mcSkinVerts.NumElements());
 	AssertSize(67, pcMesh->mcSkin.mcInverseSkinMatricies.NumElements());
 	AssertSize(1, pcMesh->mcUVs.mcLayers.NumElements());
 
 	//It has no normals in its file: they come from its smoothing groups.
 	AssertTrue(pcMesh->mcNormals.mcNormals.NumElements() > (size)pcMesh->NumFaces());
 	AssertTrue(pcMesh->mcSmoothing.InUse());
-	AssertSize(6134, pcMesh->mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(6134, pcMesh->mcSmoothing.mauiGroups.NumElements());
 
 	AssertSize(1, pScene->mapAnimations.NumElements());
 	AssertSize(140, pScene->mapAnimations.Get(0)->mapTracks.NumElements());
 	AssertSize(80, pScene->mapAnimations.Get(0)->mapTracks.Get(0)->masKeys.NumElements());
 	AssertSize(1, pScene->mapParticles.NumElements());
-	AssertSize(1105, pScene->mapParticles.Get(0)->NumParticles());
+	AssertLSize(1105, pScene->mapParticles.Get(0)->NumParticles());
 
 	AssertTrue(pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mpImage.IsNotNull());
 	AssertString("Goober_D.tga", pcMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mszImageName.Text());

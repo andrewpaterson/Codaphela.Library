@@ -25,7 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Object.h"
 
 
-typedef CArrayTemplate<float32>	CArrayParticleFloat;
+typedef CArrayLargeTemplate<float32>	CArrayParticleFloat;  //Large: can pass 64KB with a 16 bit size (W65C816).
 
 
 //Points, as a field of stars is.  mafPositions and mafColours have three floats for each of them.  Any but mafPositions can be empty.
@@ -44,7 +44,7 @@ public:
 	void 	Free(void) override;
 	void	Class(void) override;
 
-	size	NumParticles(void);
+	lsize	NumParticles(void);
 };
 
 

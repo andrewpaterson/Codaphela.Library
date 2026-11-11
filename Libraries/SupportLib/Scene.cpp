@@ -489,8 +489,8 @@ bool CSceneFileLoad::ReadAnimations(CScene* pcScene)
 {
 	Ptr<CSceneAnimation>		pAnimation;
 	Ptr<CConnectionAnimation>	pTrack;
-	CArrayTemplatePrimitive<float32>	afTimes;
-	CArrayTemplatePrimitive<float32>	af4x4s;
+	CArrayLargeTemplatePrimitive<float32>	afTimes;
+	CArrayLargeTemplatePrimitive<float32>	af4x4s;
 	size						i;
 	size						j;
 	size						k;
@@ -637,7 +637,7 @@ bool CSceneFileLoad::ReadInstances(CScene* pcScene)
 bool CSceneFileLoad::ReadParticles(CScene* pcScene)
 {
 	Ptr<CSceneParticles>	pParticles;
-	size					uiNum;
+	lsize					uiNum;
 	size					i;
 
 	for (i = 0; i < mcReader.NumParticleSets(); i++)
@@ -1033,8 +1033,8 @@ void CSceneFileSave::WriteAnimations(CScene* pcScene)
 	Ptr<CSceneAnimation>				pAnimation;
 	Ptr<CConnectionAnimation>			pTrack;
 	SConnectionKey*						psKey;
-	CArrayTemplatePrimitive<float32>	afTimes;
-	CArrayTemplatePrimitive<float32>	af4x4s;
+	CArrayLargeTemplatePrimitive<float32>	afTimes;
+	CArrayLargeTemplatePrimitive<float32>	af4x4s;
 	size								i;
 	size								j;
 	size								k;

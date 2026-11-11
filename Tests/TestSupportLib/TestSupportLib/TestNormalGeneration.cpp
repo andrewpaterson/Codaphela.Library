@@ -47,9 +47,9 @@ void TestMeshSmoothGroupsOneAndZero(void)
 	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
-	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(26, cMesh.NumCorners());
-	AssertSize(48 + 26, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(48 + 26, cMesh.mcNormals.mcNormals.NumElements());
 
 	for (i = 0; i < 48; i++)
 	{
@@ -71,9 +71,9 @@ void TestMeshSmoothGroupsOneAndZero(void)
 	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
-	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(26, cMesh.NumCorners());
-	AssertSize(48, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(48, cMesh.mcNormals.mcNormals.NumElements());
 
 	for (i = 0; i < 48; i++)
 	{
@@ -133,12 +133,12 @@ void TestMeshSmoothGroupsNamed(void)
 	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
-	AssertSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
+	AssertLSize(48, cMesh.mcSmoothing.mauiGroups.NumElements());
 	AssertInt(26, cMesh.NumCorners());
 	AssertInt(72, cMesh.NumEdges());
 	AssertInt(48, cMeshEditor.NumVisibleEdges(1));
 	AssertInt(6, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
-	AssertSize(48 + 54, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(48 + 54, cMesh.mcNormals.mcNormals.NumElements());
 
 	WriteMesh(&cMesh, "Output/NormalsNamed2x2x2.OBJ");
 
@@ -190,7 +190,7 @@ void TestMeshSmoothFaces(void)
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertInt(26, cMesh.NumCorners());
-	AssertSize(48 + 26, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(48 + 26, cMesh.mcNormals.mcNormals.NumElements());
 
 	for (i = 0; i < 48; i++)
 	{
@@ -253,7 +253,7 @@ void TestMeshFlatFaces(void)
 
 	AssertInt(48, cMesh.NumFaces());
 	AssertInt(26, cMesh.NumCorners());
-	AssertSize(48, cMesh.mcNormals.mcNormals.NumElements());
+	AssertLSize(48, cMesh.mcNormals.mcNormals.NumElements());
 
 	for (i = 0; i < 48; i++)
 	{
