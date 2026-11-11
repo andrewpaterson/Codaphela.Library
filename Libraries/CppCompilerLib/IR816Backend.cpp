@@ -168,37 +168,7 @@ bool CIR816Backend::IsHiddenResult(SIRType sType)
 }
 
 
-bool	gbIR816RegisterArguments = true;		//SetRegisterArguments.
-bool	gbIR816SoftFloatInFrame = true;			//SetSoftFloatInFrame.
 thread_local CMallocator*	gpcIR816Scratch = NULL;	//SetScratch: this thread's, else NULL.
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the soft float is softfloat816.asm (true, the default), whose
-// frame operand entries (FrameOperandCall) the float instructions call, or
-// softfloat.cpp compiled, called as a function with its arguments pushed.
-// CCPP65Generator::SetW65C816Assembly sets it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SetSoftFloatInFrame(bool bInFrame)
-{
-	gbIR816SoftFloatInFrame = bInFrame;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether register functions (CIRModule::SetRegisterCall) take their
-// arguments in registers (true, the default), or every call pushes them as
-// before, to compare the two.  Every unit of a program must be compiled
-// the same way.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SetRegisterArguments(bool bRegisterArguments)
-{
-	gbIR816RegisterArguments = bRegisterArguments;
-}
 
 
 //////////////////////////////////////////////////////////////////////////

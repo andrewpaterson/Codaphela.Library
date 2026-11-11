@@ -408,7 +408,7 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 			//The W65C816's own assembly for a 65C64 assembly unit (X816.asm for X.asm, and X816_16.asm with 16 bit
 			//counts), if it has some.  softfloat.cpp and math.cpp compile softfloat816.asm's functions themselves
 			//when the C++ is used instead of the assembly (TEST_PROJECT65_CPP).
-			if (!CCPP65Generator::IsW65C816Assembly() && (strcmp(gaszTestProject65Libc65[i], "softfloat.asm") == 0))
+			if (!pcBuilder->GetOptions()->mbAssemblyUnits && (strcmp(gaszTestProject65Libc65[i], "softfloat.asm") == 0))
 			{
 				continue;
 			}
@@ -777,9 +777,14 @@ void TestProject65RunTests(STestProject65* psProject)
 	//TEST_PROJECT65_NO_HEADER_CACHE=1: every unit preprocesses every header it includes (it builds the same).
 	cBuilder.SetHeaderCache(getenv("TEST_PROJECT65_NO_HEADER_CACHE") == NULL);
 	//TEST_PROJECT65_CPP=1: the W65C816 build compiles the C++ of units that have X816.asm, not the assembly.
-	CCPP65Generator::SetW65C816Assembly(getenv("TEST_PROJECT65_CPP") == NULL);
+	cBuilder.GetOptions()->SetAssemblyUnits(getenv("TEST_PROJECT65_CPP") == NULL);
 	//TEST_PROJECT65_STACK_ARGUMENTS=1: every W65C816 call pushes its arguments (no register arguments), to compare.
-	CIR816Backend::SetRegisterArguments(getenv("TEST_PROJECT65_STACK_ARGUMENTS") == NULL);
+	cBuilder.GetOptions()->mbRegisterArguments = getenv("TEST_PROJECT65_STACK_ARGUMENTS") == NULL;
+	//TEST_PROJECT65_PREFER_SIZE=1: the compiler prefers size to speed (CCPPCompileOptions::mePrefer).
+	if (getenv("TEST_PROJECT65_PREFER_SIZE"))
+	{
+		cBuilder.GetOptions()->mePrefer = CPPP_Size;
+	}
 	if (getenv("TEST_PROJECT65_LISTINGS"))
 	{
 		//TEST_PROJECT65_LISTINGS=directory: each unit's assembly with its C++ source lines as comments (Unit.lst).

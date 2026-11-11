@@ -93,6 +93,7 @@ void CCPP65Builder::Init(void)
 	mapcWorkspaces.Init();
 	mbUnitReports = false;
 	mcStatistics.Init();
+	mcOptions.Init();
 	masUnitReports.Init();
 }
 
@@ -183,7 +184,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	if (!pcLibrary)
 	{
 		pcLibrary = mcProject.AddLibrary((char*)szLibrary, (char*)szDirectory, false);
-		CCPP65Generator::AddDefines(pcLibrary->AddConfiguration((char*)mpcTarget->GetConfigurationName()), mpcTarget->GetTarget());
+		mpcTarget->AddDefines(pcLibrary->AddConfiguration((char*)mpcTarget->GetConfigurationName()), mcOptions.mbAssemblyUnits);
 		if (bLinkAsLibrary)
 		{
 			psLinkLibrary = macLinkLibraries.Add();
@@ -493,7 +494,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 // W65C816's X816.asm, CCPPTarget::GetAssemblyUnitSuffix), with the functions
 // X.cpp leaves out on the target (#ifndef __W65C816_ASSEMBLY__).  It is
 // added with it, unless the C++ is used instead
-// (CCPP65Generator::SetW65C816Assembly(false)).
+// (CCPPCompileOptions::SetAssemblyUnits(false)).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddAssemblyUnit(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary)
@@ -503,7 +504,7 @@ void CCPP65Builder::AddAssemblyUnit(const char* szLibrary, const char* szDirecto
 	CChars		szPath;
 	const char*	szExtension;
 
-	if (!mpcTarget->HasAssemblyUnits() || !CCPP65Generator::IsW65C816Assembly())
+	if (!mpcTarget->HasAssemblyUnits() || !mcOptions.mbAssemblyUnits)
 	{
 		return;
 	}
@@ -692,6 +693,19 @@ void CCPP65Builder::SetTimes(bool bTimes)
 CCPPCompileStatistics* CCPP65Builder::GetStatistics(void)
 {
 	return &mcStatistics;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How the units are compiled where there is a choice: speed or size, what is
+// inlined, whether the target's assembly units are built.  Set them before
+// anything is added to the builder: a unit's macros are fixed when it is.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPCompileOptions* CCPP65Builder::GetOptions(void)
+{
+	return &mcOptions;
 }
 
 
@@ -1071,7 +1085,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mbMathTables);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mbMathTables, &mcOptions);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
@@ -1378,7 +1392,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // (CCPP65Generator::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics)
 {
 	CTranslationUnit				cFile;
 	CPreprocessor					cPreprocessor;
@@ -1409,7 +1423,11 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	}
 
 	cConfig.Init((char*)GetCPPTarget(eTarget)->GetConfigurationName());
-	CCPP65Generator::AddDefines(&cConfig, eTarget);
+	if (!pcOptions)
+	{
+		pcOptions = GetDefaultCPPCompileOptions();
+	}
+	GetCPPTarget(eTarget)->AddDefines(&cConfig, pcOptions->mbAssemblyUnits);
 	cFile.Init((char*)szName, NULL, false);
 	cFile.SetContents((char*)szSource);
 	cPreprocessor.Init(&cConfig);
@@ -1436,6 +1454,8 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cParser.Kill();
 
 	cGenerator.Init(&cTree, eTarget);
+	cGenerator.SetOptions(pcOptions);
+	cGenerator.SetStatistics(pcStatistics);
 	cGenerator.SetFrameProfile(pcFrameProfile);
 	cGenerator.SetListing(bListing);
 	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
@@ -1816,7 +1836,7 @@ CJobs* CCPP65Builder::UnitJobs(CSerialJobs* pcSerialJobs)
 	{
 		return pcSerialJobs;
 	}
-	if ((mpcSpillStore == &mcIndexTreeSpillStore) || CCPP65IRFrontEnd::sbPrint || (CCPP65IRFrontEnd::suiLimit != SIZE_MAX))
+	if ((mpcSpillStore == &mcIndexTreeSpillStore) || mcOptions.mbPrintIR || (mcOptions.muiFunctionLimit != CPP_NO_FUNCTION_LIMIT))
 	{
 		return pcSerialJobs;
 	}
@@ -2198,6 +2218,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cAssembly.Init(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	psCompile->cGenerator.Init(&psCompile->cTree, mpcTarget->GetTarget());
 	psCompile->cGenerator.SetStatistics(&psUnit->cStatistics);
+	psCompile->cGenerator.SetOptions(&mcOptions);
 	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	if (mpcTarget->InlinesAcrossUnits())
 	{

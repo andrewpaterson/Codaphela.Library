@@ -232,6 +232,7 @@
     <ClCompile Include="IR816Places.cpp" />
     <ClCompile Include="IR816Runtime.cpp" />
     <ClCompile Include="CPPTarget.cpp" />
+    <ClCompile Include="CPPCompileOptions.cpp" />
     <ClCompile Include="CPPTargetHost.cpp" />
     <ClCompile Include="CPPTargetW65C816.cpp" />
     <ClCompile Include="CPPTarget65C64.cpp" />
@@ -469,6 +470,7 @@
     <ClInclude Include="IR816Code.h" />
     <ClInclude Include="IR816BackendInternal.h" />
     <ClInclude Include="CPPTarget.h" />
+    <ClInclude Include="CPPCompileOptions.h" />
     <ClInclude Include="CPPTargetHost.h" />
     <ClInclude Include="CPPTargetW65C816.h" />
     <ClInclude Include="CPPTarget65C64.h" />

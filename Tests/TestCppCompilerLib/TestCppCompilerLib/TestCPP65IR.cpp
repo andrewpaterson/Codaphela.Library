@@ -21,16 +21,12 @@ int32 TestCPP65IRMain(const char* szSource, size uiWritten, bool bFloat = false)
 	size	uiBefore;
 	int32	iResult;
 
-	CCPP65IRFrontEnd::sbPrint = getenv("CPP65_PRINT_IR") != NULL;
-	uiBefore = CCPP65IRFrontEnd::suiWritten;
+	TestCPP65Options()->mbPrintIR = getenv("CPP65_PRINT_IR") != NULL;
+	uiBefore = TestCPP65NumWritten();
 	iResult = bFloat ? TestCPP65MainFloat(szSource) : TestCPP65Main(szSource);
 	if (!bFloat)
 	{
-		if (uiWritten != CCPP65IRFrontEnd::suiWritten - uiBefore)
-		{
-			fprintf(stderr, "Left at %s line %d %s in %.80s\n", CCPP65IRFrontEnd::sszLastUnsupportedFile, CCPP65IRFrontEnd::siLastUnsupportedLine, CCPP65IRFrontEnd::sszLastUnsupported, szSource);
-		}
-		AssertSize(uiWritten, CCPP65IRFrontEnd::suiWritten - uiBefore);
+		AssertSize(uiWritten, TestCPP65NumWritten() - uiBefore);
 	}
 	return iResult;
 }

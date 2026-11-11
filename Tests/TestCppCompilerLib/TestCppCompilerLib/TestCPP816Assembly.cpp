@@ -47,7 +47,6 @@ static void TestCPP816AssemblyBaseName(CChars* psz, const char* szName)
 static void TestCPP816AssemblyLabels(STestCPP816Labels* psLabels, const char** aszUnits, bool bAssembly, bool bAllCalls)
 {
 	CCPP65Builder		cBuilder;
-	bool				bWasAssembly;
 	size				i;
 	size				j;
 	CAsm65Object*		pcObject;
@@ -61,9 +60,8 @@ static void TestCPP816AssemblyLabels(STestCPP816Labels* psLabels, const char** a
 	psLabels->aszUsed.Init();
 	psLabels->szErrors.Init();
 
-	bWasAssembly = CCPP65Generator::IsW65C816Assembly();
-	CCPP65Generator::SetW65C816Assembly(bAssembly);
 	cBuilder.Init();
+	cBuilder.GetOptions()->SetAssemblyUnits(bAssembly);
 	cBuilder.SetTarget(CPPT_W65C816);
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	TestCPP65AddUnits(&cBuilder, aszUnits, false);
@@ -99,7 +97,6 @@ static void TestCPP816AssemblyLabels(STestCPP816Labels* psLabels, const char** a
 	psLabels->aszCalled.QuickSort();
 
 	cBuilder.Kill();
-	CCPP65Generator::SetW65C816Assembly(bWasAssembly);
 }
 
 

@@ -37,23 +37,13 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //Operators, Conversions, Calls and Objects.
 
 
-size	CCPP65IRFrontEnd::suiWritten = 0;
-const char*	CCPP65IRFrontEnd::sszLastUnsupportedFile = "";
-int		CCPP65IRFrontEnd::siLastUnsupportedLine = 0;
-char	CCPP65IRFrontEnd::sszLastUnsupported[1024] = "";
-bool	CCPP65IRFrontEnd::sbPrint = false;
-bool	CCPP65IRFrontEnd::sbOptimise = true;
-bool	CCPP65IRFrontEnd::sbInline = true;
-size	CCPP65IRFrontEnd::suiAttempts = 0;
-size	CCPP65IRFrontEnd::suiLimit = SIZE_MAX;
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 {
+	muiAttempts = 0;
 	mpcGenerator = pcGenerator;
 	mpcTypes = &pcGenerator->mcTypes;
 	mpcFunction = NULL;
@@ -153,8 +143,8 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 	CChars					szLabel;
 	bool					bResult;
 
-	suiAttempts++;
-	if (suiAttempts > suiLimit)
+	muiAttempts++;
+	if (muiAttempts > mpcGenerator->mpcOptions->muiFunctionLimit)
 	{
 		return false;
 	}
@@ -302,7 +292,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		{
 			uiFingerprint = Fingerprint(mpcFunction);
 		}
-		if (sbOptimise)
+		if (mpcGenerator->mpcOptions->mbOptimise)
 		{
 			InitOptimiser(&cOptimiser);
 			if (InliningProfile())
@@ -323,9 +313,9 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			szWarnings.Kill();
 		}
 		bResult = VerifyIR(mpcFunction, __FILE__, __LINE__);
-		if (sbPrint)
+		if (mpcGenerator->mpcOptions->mbPrintIR)
 		{
-			fprintf(stderr, "Function %d\n", (int)suiAttempts);
+			fprintf(stderr, "Function %d\n", (int)muiAttempts);
 			PrintIR(mpcFunction);
 		}
 	}
@@ -381,7 +371,6 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	mpsFunction = NULL;
 	if (bResult)
 	{
-		suiWritten++;
 		mcModule.Count(CPPCC_Functions);
 	}
 	return bResult;
@@ -882,6 +871,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		//The back end's errors (a frame too big ...) are why the function wasn't written.
 		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
+		cBackend816.SetOptions(mpcGenerator->mpcOptions);
 		cBackend816.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
 		cBackend816.SetMathTables(mpcGenerator->mbMathTables);
 		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
@@ -907,6 +897,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 	}
 
 	cBackend.Init(&mcModule, &mpcGenerator->miLabels);
+	cBackend.SetOptions(mpcGenerator->mpcOptions);
 	cBackend.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
 	bResult = cBackend.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
 	paszRuntime = cBackend.GetRuntime();
@@ -1179,7 +1170,7 @@ void CCPP65IRFrontEnd::PrintFunction(CIRFunction* pcFunction, CChars* pszText, b
 //////////////////////////////////////////////////////////////////////////
 //
 // The function's IR (with its source lines as comments) to stderr, for
-// debugging (sbPrint).
+// debugging (CCPPCompileOptions::mbPrintIR).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
@@ -1336,9 +1327,6 @@ void CCPP65IRFrontEnd::SetUnsupported(const char* szFile, int iLine, const char*
 	{
 		StrCpySafe(mszUnsupported, szReason, sizeof(mszUnsupported));
 	}
-	sszLastUnsupportedFile = mszUnsupportedFile;
-	siLastUnsupportedLine = miUnsupportedLine;
-	StrCpySafe(sszLastUnsupported, mszUnsupported, sizeof(sszLastUnsupported));
 }
 
 

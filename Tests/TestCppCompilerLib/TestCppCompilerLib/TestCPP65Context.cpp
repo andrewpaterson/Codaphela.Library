@@ -45,6 +45,32 @@ void TestCPP65AddIncludeDirectories(CCPP65Builder* pcBuilder)
 }
 
 
+//How TestCPP65Generate compiles (TestCPP65Options), and how many function bodies its compiles have written as IR
+//(TestCPP65NumWritten).
+static CCPPCompileOptions	gcTestCPP65Options = *GetDefaultCPPCompileOptions();
+static size					guiTestCPP65Written = 0;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPCompileOptions* TestCPP65Options(void)
+{
+	return &gcTestCPP65Options;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size TestCPP65NumWritten(void)
+{
+	return guiTestCPP65Written;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Preprocesses, parses and generates szSource, as a whole program with its start up if bProgram, otherwise as
@@ -54,12 +80,16 @@ void TestCPP65AddIncludeDirectories(CCPP65Builder* pcBuilder)
 //////////////////////////////////////////////////////////////////////////
 bool TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSource, bool bProgram, CArrayChars* paszExternals)
 {
-	CCPP65Builder	cBuilder;
-	bool			bResult;
+	CCPP65Builder			cBuilder;
+	CCPPCompileStatistics	cStatistics;
+	bool					bResult;
 
 	cBuilder.Init();
 	TestCPP65AddIncludeDirectories(&cBuilder);
-	bResult = CCPP65Builder::Generate(pszAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, bProgram, paszExternals);
+	cStatistics.Init();
+	bResult = CCPP65Builder::Generate(pszAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, bProgram, paszExternals, CPPT_65C64, NULL, NULL, false, false, false, true, &gcTestCPP65Options, &cStatistics);
+	guiTestCPP65Written += (size)cStatistics.GetCount(CPPCC_Functions);
+	cStatistics.Kill();
 	cBuilder.Kill();
 	return bResult;
 }

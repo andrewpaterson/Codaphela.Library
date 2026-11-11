@@ -31,6 +31,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+//How the programs the helpers below build are compiled: the defaults, but for what a test sets for the builds it makes
+//(and sets back).
+static CCPPCompileOptions	gcTestCPP816Options = *GetDefaultCPPCompileOptions();
+
+
 //The native results TestCPP65Generator.cpp's FloatHelper and Quaternion tests check against.
 extern CArrayInt	gaiFloatHelperResults;
 extern CArrayInt	gaiQuaternionResults;
@@ -2595,6 +2600,7 @@ int32 TestCPP816RunProfiled(const char* szSource, CAsm65816Profile* pcProfile, C
 
 	iResult = -1000000;
 	cBuilder.Init();
+	*cBuilder.GetOptions() = gcTestCPP816Options;
 	cBuilder.SetTarget(CPPT_W65C816);
 	cBuilder.SetFrameProfile(pcProfile);
 	cBuilder.SetLineTable(pcMeasure != NULL);
@@ -3999,7 +4005,7 @@ int TestCPP816CountWarnings(const char* szSource, const char* szWarning, ECPPTar
 	szAssembly.Init();
 	szErrors.Init();
 	szWarnings.Init();
-	AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, &szWarnings));
+	AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, &szWarnings, NULL, false, false, false, true, &gcTestCPP816Options));
 	AssertString("", szErrors.Text());
 
 	iCount = 0;
@@ -4416,7 +4422,7 @@ void TestCPP816LoopCounterWarnings(void)
 //
 // A comparison with a constant outside the other side's range is always true
 // or always false (a 16 bit size compared with a 32 bit "not found").  With
-// SetDefaultWarnNarrowing a non constant integer implicitly converted to a narrower
+// CCPPCompileOptions::mbWarnNarrowing a non constant integer implicitly converted to a narrower
 // type is warned about (a 32 bit index stored in a 16 bit one).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4458,7 +4464,7 @@ void TestCPP816RangeWarnings(void)
 	//Narrowing is off by default.
 	AssertInt(0, TestCPP816CountWarnings("int F(long l) { int i = l; return i; }\n", "narrows"));
 
-	CCPP65Generator::SetDefaultWarnNarrowing(true);
+	gcTestCPP816Options.mbWarnNarrowing = true;
 	AssertInt(1, TestCPP816CountWarnings("int F(long l) { int i = l; return i; }\n", "Integer conversion narrows"));
 	AssertInt(1, TestCPP816CountWarnings("int F(long l) { int i; i = l; return i; }\n", "Integer conversion narrows"));
 	AssertInt(1, TestCPP816CountWarnings("int F(long l) { return l; }\n", "Integer conversion narrows"));
@@ -4471,7 +4477,7 @@ void TestCPP816RangeWarnings(void)
 	AssertInt(0, TestCPP816CountWarnings("unsigned F(int i) { return i; }\n", "narrows"));
 	AssertInt(0, TestCPP816CountWarnings("int F(void) { int i = 7L; return i; }\n", "narrows"));
 	AssertInt(0, TestCPP816CountWarnings("int F(long l) { return l; }\n", "narrows", CPPT_65C64));
-	CCPP65Generator::SetDefaultWarnNarrowing(false);
+	gcTestCPP816Options.mbWarnNarrowing = false;
 }
 
 
@@ -4658,14 +4664,12 @@ void TestCPP816ProfileRegisterEntries(void)
 	SAsm65816FunctionProfile*	psTwice;
 	SAsm65816FunctionProfile*	psDown;
 	uint64						uiCycles;
-	bool						bInline;
 
 	//Not inlined: the calls are what is counted.
-	bInline = CCPP65IRFrontEnd::sbInline;
-	CCPP65IRFrontEnd::sbInline = false;
+	gcTestCPP816Options.mbInline = false;
 	cProfile.Init();
 	TestCPP816RunProfiled(szSource, NULL, &cProfile, &uiCycles);
-	CCPP65IRFrontEnd::sbInline = bInline;
+	gcTestCPP816Options.mbInline = true;
 	psTwice = cProfile.Get("_Twice__Fss");
 	psDown = cProfile.Get("_Down__Fs");
 	AssertNotNull((void*)psTwice);
@@ -4703,6 +4707,7 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	iResult = -1000000;
 	cFileUtil.RemoveDir("Output" _FS_ "CPP816Listing");
 	cBuilder.Init();
+	*cBuilder.GetOptions() = gcTestCPP816Options;
 	cBuilder.SetTarget(CPPT_W65C816);
 	cBuilder.SetListingDirectory("Output" _FS_ "CPP816Listing");
 	TestCPP65AddIncludeDirectories(&cBuilder);
@@ -4853,13 +4858,13 @@ void TestCPP816RegisterArguments(void)
 	AssertFalse(TestCPP816Calls(szListing.Text(), "_Sum__", ".a"));
 	szListing.Kill();
 
-	//Every argument pushed (CIR816Backend::SetRegisterArguments(false), TestProject65's TEST_PROJECT65_STACK_ARGUMENTS):
+	//Every argument pushed (CCPPCompileOptions::mbRegisterArguments false, TestProject65's TEST_PROJECT65_STACK_ARGUMENTS):
 	//no register labels, and the assembly's are called at their plain labels (the stack entries).
-	CIR816Backend::SetRegisterArguments(false);
+	gcTestCPP816Options.mbRegisterArguments = false;
 	AssertInt(0, TestCPP816RunListed(szSource, aszUnits, &szListing, NULL, 0));
 	AssertFalse(szListing.Contains(".axy"));
 	AssertFalse(szListing.Contains(".ax\n"));
-	CIR816Backend::SetRegisterArguments(true);
+	gcTestCPP816Options.mbRegisterArguments = true;
 	szListing.Kill();
 }
 
@@ -4975,7 +4980,7 @@ void TestCPP816FrameOperandFloats(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // With softfloat.cpp compiled in place of softfloat816.asm (CCPP65Generator
-// ::SetW65C816Assembly(false)) the float instructions call its functions'
+// ::SetAssemblyUnits(false)) the float instructions call its functions'
 // register entries (CIR816Backend::SoftFloatCall), not their stubs: every
 // result the same, bit for bit, as natively.  _SoftDoubleCompare takes
 // nothing in registers (its plain label), _SoftFloatFromInt's int would
@@ -4989,7 +4994,6 @@ void TestCPP816RegisterFloats(void)
 	CChars				szListing;
 	uint32				auiResults[256];
 	int					i;
-	bool				bWasAssembly;
 
 	TestCPP816FloatNative::giResults = 0;
 	TestCPP816FloatNative::Run();
@@ -5004,11 +5008,10 @@ void TestCPP816RegisterFloats(void)
 	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_FLOAT_BODY));
 	szSource.Append("\n\treturn (int)(gpuiResult - (unsigned long*)0x100000);\n}\n");
 
-	bWasAssembly = CCPP65Generator::IsW65C816Assembly();
-	CCPP65Generator::SetW65C816Assembly(false);
+	gcTestCPP816Options.SetAssemblyUnits(false);
 	szListing.Init();
 	AssertInt(TestCPP816FloatNative::giResults, TestCPP816RunListed(szSource.Text(), aszUnits, &szListing, auiResults, TestCPP816FloatNative::giResults));
-	CCPP65Generator::SetW65C816Assembly(bWasAssembly);
+	gcTestCPP816Options.SetAssemblyUnits(true);
 	for (i = 0; i < TestCPP816FloatNative::giResults; i++)
 	{
 		AssertIntHex(TestCPP816FloatNative::gauiResults[i], auiResults[i]);
@@ -5061,15 +5064,13 @@ void TestCPP816ObjectArguments(void)
 		"}\n";
 	CChars				szListing;
 	int					iBig;
-	bool				bInline;
 
 	//1 + 4 + 9 + 65 + 20 + 6 + 121 * 7 + 9 + 66 = 1027; 300 + 70 + 8 = 378; 1000 + 7 + 8 + 5 = 1020; 5.
 	iBig = 1 + 2 * 2 + 3 * 3 + 'A' + 4 * 5 + 6 + 'y' * 7 + 9 + 'B';
 	//Not inlined: the calls are what is tested.
-	bInline = CCPP65IRFrontEnd::sbInline;
-	CCPP65IRFrontEnd::sbInline = false;
+	gcTestCPP816Options.mbInline = false;
 	AssertInt(iBig + 378 + 1020 + 5, TestCPP816RunListed(szSource, aszNone, &szListing, NULL, 0));
-	CCPP65IRFrontEnd::sbInline = bInline;
+	gcTestCPP816Options.mbInline = true;
 	AssertTrue(szListing.Contains("jsl _Big__FC4SBigC4SBigPKctPKc\n"));
 	AssertTrue(szListing.Contains("jsl _Six__FsC4SSix\n"));
 	AssertTrue(szListing.Contains("jsl _Plain__Fss.ax"));

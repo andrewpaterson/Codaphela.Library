@@ -30,6 +30,8 @@ struct STestCPP65Run
 
 
 void		TestCPP65AddIncludeDirectories(CCPP65Builder* pcBuilder);
+CCPPCompileOptions*	TestCPP65Options(void);
+size		TestCPP65NumWritten(void);
 bool		TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSource, bool bProgram = false, CArrayChars* paszExternals = NULL);
 int			TestCPP65Assemble(const char* szSource, bool bProgram = true);
 int			TestCPP65AssembleLibraryFile(const char* szFilename);

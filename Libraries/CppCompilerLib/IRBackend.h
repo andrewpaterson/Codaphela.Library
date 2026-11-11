@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPErrors.h"
 #include "IRModule.h"
 #include "IRSourceMarkers.h"
+#include "CPPCompileOptions.h"
 
 
 //A phi's copy on a jump (ParallelCopy): the phi, the value it takes, its type, and whether it reads the saved value.
@@ -74,6 +75,7 @@ protected:
 	bool					mbResult;
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
 	CArrayChars				maszRuntime;		//The runtime routines' labels the code calls (UseRuntime), once each.
+	CCPPCompileOptions*		mpcOptions;			//How the code is to be written where there is a choice (SetOptions); the defaults unless set.
 
 public:
 	virtual bool	GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) = 0;
@@ -81,6 +83,7 @@ public:
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	void			SetSourceMarkers(bool bSourceMarkers);
+	void			SetOptions(CCPPCompileOptions* pcOptions);
 	CArrayChars*	GetRuntime(void);
 
 	static void		AppendSoftFloatName(CChars* psz, SIRInstruction* psInstruction, SIRType sFrom);

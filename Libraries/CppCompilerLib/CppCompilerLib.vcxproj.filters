@@ -111,6 +111,9 @@
     <ClCompile Include="CPPTarget.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPCompileOptions.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPTargetHost.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -909,6 +912,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPTarget.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPCompileOptions.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPTargetHost.h">

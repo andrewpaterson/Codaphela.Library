@@ -182,20 +182,9 @@ protected:
 	const char*				mszUnsupportedFile;	//The front end's file (no directory) and line that last left a function to the generator.
 	int						miUnsupportedLine;
 	char					mszUnsupported[1024];	//The verifier's errors when that was IR that didn't verify.
+	size					muiAttempts;		//Bodies asked for; only the first CCPPCompileOptions::muiFunctionLimit may be written.
 
 public:
-	//For tests and debugging.  The counters are only exact when the units are compiled one at a time
-	//(CCPP65Builder::SetJobs).
-	static size		suiWritten;				//Functions written as IR by every front end.
-	static const char*	sszLastUnsupportedFile;	//The last front end's mszUnsupportedFile, miUnsupportedLine and mszUnsupported.
-	static int		siLastUnsupportedLine;
-	static char		sszLastUnsupported[1024];
-	static bool		sbPrint;				//Print each function's IR to stderr, for debugging.
-	static bool		sbOptimise;				//Run the mid level passes (CIROptimiser).
-	static bool		sbInline;				//Inline small functions across the unit (CIRInliner).
-	static size		suiAttempts;			//Bodies asked for; only the first suiLimit may be written (to bisect a
-	static size		suiLimit;				//wrong one).
-
 	void			Init(CCPP65Generator* pcGenerator);
 	void			Kill(void);
 	void			SetStatistics(CCPPCompileStatistics* pcStatistics);

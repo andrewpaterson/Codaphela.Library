@@ -27,7 +27,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_MAX_ASSOCIATED_DEPTH	16		//How deep a type's bases and template arguments are followed for associated namespaces.
 #define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place.
-#define CPP65_W65C816_ASSEMBLY		1		//1: a W65C816 build links X816.asm in place of the parts of X.cpp it replaces (they are left out with #ifndef __W65C816_ASSEMBLY__); 0: the C++ (SetW65C816Assembly changes it at run time).
 #define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 #define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The W65C816 back end's arena (CCPP65Generator::GetBackendScratch) grows by chunks this big...
 #define CPP65_BACKEND_SCRATCH_KEPT	(1 MB)		//...and keeps this much of them from one function to the next.
@@ -50,6 +49,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Assembly.h"
 #include "CPP65TypeChecker.h"
 #include "CPPCompileStatistics.h"
+#include "CPPCompileOptions.h"
 
 
 enum ECPP65Storage
@@ -445,7 +445,6 @@ protected:
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
 	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
-	bool					mbWarnNarrowing;	//Implicit conversions of non constant integers to a narrower type are warned about.
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
 	int						miStartUps;			//R_Initialise and R_Finalise routines written.
@@ -481,18 +480,15 @@ protected:
 	CCPPSemanticPass*		mpcSemanticPass;	//Check only: what names resolved to goes here.  NULL when generating.
 	CCPPCompileStatistics*	mpcStatistics;		//What compiling the unit is counted and timed in (SetStatistics): the builder's for the unit...
 	CCPPCompileStatistics	mcOwnStatistics;	//...or the generator's own when none is set.
+	CCPPCompileOptions*		mpcOptions;			//How the unit is compiled where there is a choice (SetOptions): the builder's, or the defaults.
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
 	void					Kill(void);
-	static void				SetDefaultWarnNarrowing(bool bWarnNarrowing);
 
 	bool					Generate(CChars* pszDest);
 	bool					Generate(CCPP65Assembly* pcDest);
 	bool					GenerateProgram(CChars* pszDest);
-	static void				AddDefines(CConfig* pcConfig, ECPPTarget eTarget = CPPT_65C64);
-	static void				SetW65C816Assembly(bool bAssembly);
-	static bool				IsW65C816Assembly(void);
 	CCPPErrors*				GetErrors(void);
 	CCPPErrors*				GetWarnings(void);
 	int						NumErrors(void);
@@ -509,6 +505,8 @@ public:
 	void					SetMathTables(bool bMathTables);
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
+	void					SetOptions(CCPPCompileOptions* pcOptions);
+	CCPPCompileOptions*		GetOptions(void);
 	CCPPCompileStatistics*	GetStatistics(void);
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);

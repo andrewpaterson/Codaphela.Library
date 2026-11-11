@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator)
 {
+	mpcOptions = GetDefaultCPPCompileOptions();
 	mpcModule = pcModule;
 	mpiLabels = piLabels;
 	mpcFunction = NULL;
@@ -392,6 +393,18 @@ void CIRBackend::Source(uint32 uiSource)
 void CIRBackend::SetSourceMarkers(bool bSourceMarkers)
 {
 	mbSourceMarkers = bSourceMarkers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How the code is to be written where there is a choice (the defaults for
+// NULL).  After Init.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::SetOptions(CCPPCompileOptions* pcOptions)
+{
+	mpcOptions = pcOptions ? pcOptions : GetDefaultCPPCompileOptions();
 }
 
 

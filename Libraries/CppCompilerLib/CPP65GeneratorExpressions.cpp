@@ -1475,7 +1475,7 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	if (!bConstant)
 	{
 		WideningArithmetic(pcExpression, psFrom, psTo);
-		if (mbWarnNarrowing && (psFrom->eKind == CPP65TK_Integer) && (psFrom->iBytes > psTo->iBytes))
+		if (mpcOptions->mbWarnNarrowing && (psFrom->eKind == CPP65TK_Integer) && (psFrom->iBytes > psTo->iBytes))
 		{
 			szMessage.Init("Integer conversion narrows: a ");
 			szMessage.Append(psFrom->iBytes * 8)->Append(" bit value is converted to the ")->Append(psTo->iBytes * 8)->Append(" bit type and may be truncated.");

@@ -399,5 +399,5 @@ void CIR816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int iWo
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::IsRegisterCall(SIRReference sCallee)
 {
-	return gbIR816RegisterArguments && sCallee.IsSymbol() && mpcModule->IsRegisterCall(sCallee.Index());
+	return mpcOptions->mbRegisterArguments && sCallee.IsSymbol() && mpcModule->IsRegisterCall(sCallee.Index());
 }

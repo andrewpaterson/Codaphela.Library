@@ -43,7 +43,7 @@ void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 
 	szName.Init("_");
 	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
-	if (gbIR816SoftFloatInFrame)
+	if (mpcOptions->mbSoftFloatInFrame)
 	{
 		iFirst = FrameOperand(psInstruction->asArguments[0], psInstruction->sType, IR816_SCRATCH_RESULT);
 		iSecond = FrameOperand(psInstruction->asArguments[1], psInstruction->sType, IR816_SCRATCH_ARGUMENT_A);
@@ -126,7 +126,7 @@ void CIR816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstr
 // first when bHidden; it points at the frame's iHiddenOffset), the pushed
 // ones pushed, the others loaded (LoadRegisters), then a jsl to its
 // suffixed label, so not through its stub.  When registers aren't used
-// (SetRegisterArguments) or the extended value would go in them, all are
+// (CCPPCompileOptions::mbRegisterArguments) or the extended value would go in them, all are
 // pushed and the plain label is called.  Returns the bytes pushed, for the
 // caller to remove.
 //
@@ -159,7 +159,7 @@ int32 CIR816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, S
 		psArgument->iRegister = -1;
 	}
 	iFirst = bHidden ? 1 : 0;
-	iRegisters = gbIR816RegisterArguments ? IR816AssignRegisters(&asArguments) : 0;
+	iRegisters = mpcOptions->mbRegisterArguments ? IR816AssignRegisters(&asArguments) : 0;
 	if ((iExtended >= 0) && (asArguments.Get(iFirst + iExtended)->iRegister >= 0))
 	{
 		iRegisters = 0;
@@ -261,7 +261,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	szName.Init(CIR816Backend::GetScratch());
 	szName.Append('_');
 	AppendSoftFloatName(&szName, psInstruction, sType);
-	if (gbIR816SoftFloatInFrame)
+	if (mpcOptions->mbSoftFloatInFrame)
 	{
 		Line("ldx ", FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT));
 		Line("ldy ", FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A));
@@ -357,7 +357,7 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 			iExtended = 0;
 		}
 	}
-	if (gbIR816SoftFloatInFrame)
+	if (mpcOptions->mbSoftFloatInFrame)
 	{
 		if (((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF)) && (Words(sFrom) < 2))
 		{

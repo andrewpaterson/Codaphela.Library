@@ -213,11 +213,6 @@ struct SIR816Held
 };
 
 
-//The back end's settings (IR816Backend.cpp: SetRegisterArguments, SetSoftFloatInFrame).
-extern bool	gbIR816RegisterArguments;
-extern bool	gbIR816SoftFloatInFrame;
-
-
 class CIR816Code;
 
 

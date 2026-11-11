@@ -172,10 +172,8 @@ public:
 	void			Init(CIRModule* pcModule, int* piLabels);
 
 	static void		IndexMnemonics(void);
-	static void		SetRegisterArguments(bool bRegisterArguments);
 	static CMallocator*	SetScratch(CMallocator* pcScratch);
 	static CMallocator*	GetScratch(void);
-	static void		SetSoftFloatInFrame(bool bInFrame);
 	void			SetMathTables(bool bMathTables);
 	void			GetFrame(SIR816Frame* psFrame);
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);

@@ -81,13 +81,13 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		cInliner.SetProfile(this, (mpcGenerator->mpcTarget->GetTarget() == CPPT_W65C816) ? IR816_INLINE_HOT_INSTRUCTIONS : IR65_INLINE_HOT_INSTRUCTIONS);
 	}
 	cInterprocedural.Init(&mcModule, this);
-	if (sbInline && sbOptimise)
+	if (mpcGenerator->mpcOptions->mbInline && mpcGenerator->mpcOptions->mbOptimise)
 	{
 		cInterprocedural.SpecialiseConstantArguments();
 		cInterprocedural.RemoveDeadArguments();
 		cInterprocedural.MarkNoWrites();
 	}
-	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
+	for (ui = masWritten.NumElements(); mpcGenerator->mpcOptions->mbInline && (ui > 0); ui--)
 	{
 		psWritten = masWritten.Get(ui - 1);
 		if (!psWritten->pcFunction)
@@ -116,7 +116,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		{
 			continue;
 		}
-		if (sbPrint)
+		if (mpcGenerator->mpcOptions->mbPrintIR)
 		{
 			fprintf(stderr, "Inlined\n");
 			PrintIR(psWritten->pcFunction);
@@ -215,7 +215,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 			szCode.Append(mpcGenerator->mlliCompileTime);
 			szCode.AppendNewLine();
 		}
-		if (sbPrint)
+		if (mpcGenerator->mpcOptions->mbPrintIR)
 		{
 			fprintf(stderr, "%s\n", szCode.Text());
 		}

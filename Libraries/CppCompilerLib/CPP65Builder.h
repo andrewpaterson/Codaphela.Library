@@ -222,6 +222,7 @@ protected:
 	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
 	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
 	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
+	CCPPCompileOptions				mcOptions;				//How the units are compiled where there is a choice (GetOptions).
 
 public:
 	void			Init(void);
@@ -235,6 +236,7 @@ public:
 	void			SetUnitReports(bool bUnitReports);
 	void			SetTimes(bool bTimes);
 	CCPPCompileStatistics*	GetStatistics(void);
+	CCPPCompileOptions*		GetOptions(void);
 	void			TakeUnitReports(CArrayCPP65UnitReports* pasDest);
 	static void		KillUnitReports(CArrayCPP65UnitReports* pasReports);
 	size			NumLazySkipped(void);
@@ -287,7 +289,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
