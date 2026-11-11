@@ -126,3 +126,18 @@ void CSharedMemoryCoordinator::Invalidate(void)
 	mpsDescriptor->iValidSharedMemoryIndex = -1;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The resizable memories attached to this coordinator, in every process.
+//
+//////////////////////////////////////////////////////////////////////////
+int CSharedMemoryCoordinator::NumClients(void)
+{
+	if (mpsDescriptor == NULL)
+	{
+		return 0;
+	}
+	return mpsDescriptor->miClients.Get();
+}
+

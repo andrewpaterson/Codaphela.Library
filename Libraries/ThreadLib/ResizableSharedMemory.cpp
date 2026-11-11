@@ -3,6 +3,8 @@
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/StackMemory.h"
+#include "BaseLib/Timer.h"
+#include "BaseLib/NativeThread.h"
 #include "InterProcessName.h"
 #include "ResizableSharedMemory.h"
 
@@ -10,6 +12,9 @@
 //The longest name the files are named after.  Each file is that name, a ':' and
 //an index of up to three digits (the coordinator holds about a hundred).
 #define RESIZABLE_SHARED_MEMORY_NAME_LENGTH	(SHARED_MEMORY_NAME_LENGTH - 4)
+
+//How long a client that is leaving waits for another to take the memory only it still holds.
+#define RESIZABLE_SHARED_MEMORY_HAND_OVER_MILLISECONDS	5000
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,8 +92,26 @@ bool CResizableSharedMemory::ReinitCoordinator(void)
 //////////////////////////////////////////////////////////////////////////
 void CResizableSharedMemory::Kill(void)
 {
+    Kill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// bHandOver is true when what the memory holds still matters to the other
+// clients (a queue with elements in it).  It is not the default: a client
+// can't tell another that is idle, or waiting on this one in the same
+// thread, from one that will soon map the memory.
+//
+//////////////////////////////////////////////////////////////////////////
+void CResizableSharedMemory::Kill(bool bHandOver)
+{
     if (mpsHoldingDescriptor)
     {
+        if (bHandOver)
+        {
+            HandOver();
+        }
         mcHoldingMappedFile.Unmap(mpsHoldingDescriptor);
         mcHoldingMappedFile.Close();
         mpsHoldingDescriptor = NULL;
@@ -314,6 +337,41 @@ void CResizableSharedMemory::TouchHolding(void)
             mpsHoldingDescriptor = NULL;
         }
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The memory can be in a file only this client still has open: a Resize
+// makes the new file and the other clients only open it when they next
+// Touch.  The last handle closing removes the file, and the memory with it,
+// so while other clients are attached this waits for one of them to map it
+// (or for it to move to another file) before Kill lets go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CResizableSharedMemory::HandOver(void)
+{
+    volatile SSharedMemoryDescriptor*   psDescriptor;
+    CTimer                              cTimer;
+
+    psDescriptor = mpsHoldingDescriptor;
+    if ((psDescriptor->iInvalid != SHARED_MEMORY_VALID) || (psDescriptor->iMapCount != 0) || (mcCoordinator.NumClients() <= 1))
+    {
+        return;
+    }
+
+    cTimer.Init();
+    while ((psDescriptor->iInvalid == SHARED_MEMORY_VALID) && (psDescriptor->iMapCount == 0) && (mcCoordinator.NumClients() > 1))
+    {
+        cTimer.Update();
+        if (cTimer.GetTotalTimeInMillieconds() >= RESIZABLE_SHARED_MEMORY_HAND_OVER_MILLISECONDS)
+        {
+            gcLogger.Error2(__METHOD__, " Could not hand over shared memory [", mcHoldingMappedFile.GetName(), "].  No other client took it, so it is lost.", NULL);
+            break;
+        }
+        ThreadYield();
+    }
+    cTimer.Kill();
 }
 
 

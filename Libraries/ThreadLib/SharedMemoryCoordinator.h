@@ -37,6 +37,7 @@ public:
 	SSharedMemoryFileName*	GetCurrent(void);
 
 	void							Invalidate(void);
+	int								NumClients(void);
 };
 
 

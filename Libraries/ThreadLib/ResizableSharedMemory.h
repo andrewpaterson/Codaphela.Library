@@ -26,6 +26,7 @@ private:
 public:
 	bool				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
 	void				Kill(void);
+	void				Kill(bool bHandOver);
 
 	SSharedMemoryMap	Touch(void);
 
@@ -51,6 +52,7 @@ protected:
 
 	void	HoldValid(void);
 	void	TouchHolding(void);
+	void	HandOver(void);
 };
 
 
