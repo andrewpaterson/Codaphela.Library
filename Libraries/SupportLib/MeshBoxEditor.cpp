@@ -153,6 +153,13 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 	int					iNameFront = 5;
 	int					iNameBack = 6;
 
+	bool				bLeftRight;
+	bool				bFrontBack;
+
+	//Worked out once: the corners a side starts at are only set, and only used, when it has its own plane.
+	bLeftRight = (miZSegments > 1);
+	bFrontBack = (miYSegments > 1) && (miZSegments > 1);
+
 	//Top
 	iFirstTop = pcMeshEditor->NumCorners();
 	cPlaneEditor.Init(&msXDirection, &msYDirection, &msStart, miXSegments, miYSegments);
@@ -171,7 +178,7 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 	cPlaneEditor.Generate(pcMeshEditor);
 	cPlaneEditor.Kill();
 
-	if (miZSegments > 1)
+	if (bLeftRight)
 	{
 		//Left
 		iFirstLeft = pcMeshEditor->NumCorners();
@@ -193,7 +200,7 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 		cPlaneEditor.Generate(pcMeshEditor);
 		cPlaneEditor.Kill();
 	}
-	if ((miYSegments > 1) && (miZSegments > 1))
+	if (bFrontBack)
 	{
 		//Front
 		iFirstFront = pcMeshEditor->NumCorners();
@@ -219,7 +226,7 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 	}
 	iIndex1 = iFirstTop + ((miXSegments+1) * (miYSegments));
 	iIndex2 = iFirstBottom + ((miXSegments+1) * (miYSegments));
-	if (miZSegments > 1)
+	if (bLeftRight)
 	{
 		iIndex7 = iFirstLeft + ((miXSegments+1) * (miZSegments-2));
 		iIndex10 = iFirstRight + ((miXSegments+1) * (miZSegments-2));
@@ -229,7 +236,7 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 	}
 	iIndex3 = iFirstTop + miXSegments;
 	iIndex4 = iFirstBottom + miXSegments;
-	if ((miYSegments > 1) && (miZSegments > 1))
+	if (bFrontBack)
 	{
 		iIndex5 = iFirstLeft + miXSegments;
 		iIndex6 = iFirstRight + miXSegments;
@@ -255,7 +262,7 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 		pcMeshEditor->AddQuad(iIndex7 + miXSegments, iFirstBottom + miXSegments, iFirstBottom + miXSegments+1 + miXSegments, iIndex11, iNameBack, true);
 		pcMeshEditor->AddQuad(iIndex2 + miXSegments, iIndex10 + miXSegments, iFirstBack + ((miYSegments-1) * (miZSegments-1))-1, iFirstBottom + ((miXSegments+1) * (miYSegments-1)) + miXSegments, iNameBack, true);
 	}
-	if ((miZSegments > 1) && (miYSegments == 1))
+	if (bLeftRight && (miYSegments == 1))
 	{
 		iIndex5 = iFirstLeft + miXSegments;
 		iIndex6 = iFirstRight + miXSegments;
