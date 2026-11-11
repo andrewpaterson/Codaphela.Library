@@ -469,10 +469,10 @@ void TestSharedMemoryResizeMultiThread(void)
 	cThreadD.Init(szSharedMemoryName, szMutexName, "D", iChunkSize);
 
 	cHold.Init(szSharedMemoryName, ":H");
-	cHold.Start();
+	AssertTrue(cHold.Start());
 
 	cDone.Init(szSharedMemoryName, ":D");
-	cDone.Start();
+	AssertTrue(cDone.Start());
 
 	cThreadA.Start();
 	cThreadB.Start();
@@ -574,10 +574,10 @@ void TestSharedMemoryResizeMultiProcess(void)
 	*puiPosition = sizeof(int);
 
 	cHold.Init(szSharedMemoryName, ":H");
-	cHold.Start();
+	AssertTrue(cHold.Start());
 
 	cDone.Init(szSharedMemoryName, ":D");
-	cDone.Start();
+	AssertTrue(cDone.Start());
 
 	ForkProcess("--test-shared-memory", szSharedMemoryName, szMutexName, "A", szChunkSize, false);
 	ForkProcess("--test-shared-memory", szSharedMemoryName, szMutexName, "B", szChunkSize, false);

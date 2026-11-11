@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessHold::Start(void)
+bool CInterProcessHold::Start(void)
 {
-	Create();
+	return Create();
 }
 
 

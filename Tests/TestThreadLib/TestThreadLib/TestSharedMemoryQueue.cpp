@@ -437,7 +437,7 @@ void TestSharedMemoryQueueMultiProcessForkDuring(void)
 	memset(psResult, 0, sizeof(SProcessSharedQueueResult));
 
 	cProcessesDone.Init(szDoneName);
-	cProcessesDone.Start();
+	AssertTrue(cProcessesDone.Start());
 	iProcess = 0;
 
 	cQueue.Init(szQueueName, 0);
@@ -493,7 +493,7 @@ void TestSharedMemoryQueueMultiProcessForkEarly(void)
 	memset(psResult, 0, sizeof(SProcessSharedQueueResult));
 
 	cProcessesDone.Init(szDoneName);
-	cProcessesDone.Start();
+	AssertTrue(cProcessesDone.Start());
 
 	cQueue.Init(szQueueName, 0);
 	ForkProcess("--test-shared-queue", szQueueName, szSharedResultName, szDoneName, "0", false);
