@@ -593,20 +593,17 @@ void CCPPTargetW65C816::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOp
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816 has no indexed addresses, so they are not made for it; its
-// multiplies and counters are narrowed, divisions by constants are multiplies
-// and signed indices are biased.  Its divide routines leave the remainder at
-// D + 5.
+// The W65C816 runs every pass (CCPPTarget::BuildPipeline): its multiplies and
+// counters are narrowed, divisions by constants are multiplies and signed
+// indices are biased.  It has no indexed addresses, so they are not made for
+// it, and its divide routines leave the remainder at D + 5.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTargetW65C816::ConfigureOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->SetIndexedAddresses(false);
-	pcOptimiser->SetNarrowMultiplies(true);
 	pcOptimiser->SetConstantDivisions(true);
 	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32 | IR_DIVIDE_REMAINDERS_64 | IR_DIVIDE_REMAINDERS_SIGNED);
-	pcOptimiser->SetNarrowCounters(true);
-	pcOptimiser->SetBiasedIndices(true);
 }
 
 

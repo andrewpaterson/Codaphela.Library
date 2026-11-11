@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "Config.h"
 #include "IRInliner.h"
+#include "IRPipeline.h"
 #include "CPPTarget65C64.h"
 #include "CPPTargetW65C816.h"
 #include "CPPTargetHost.h"
@@ -329,5 +330,16 @@ bool CCPPTarget::Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const 
 void CCPPTarget::PrepareForThreads(void)
 {
 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every pass, in the standard order, unless the target has its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget::BuildPipeline(CIRPipeline* pcPipeline)
+{
+	pcPipeline->SetStandard();
 }
 

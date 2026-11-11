@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRBackend.h"
 #include "IRInliner.h"
 #include "IRInterprocedural.h"
+#include "IRPipeline.h"
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
 
@@ -144,6 +145,7 @@ protected:
 	CCPP65Types*			mpcTypes;
 
 	CIRModule				mcModule;			//The unit's functions written as IR.
+	CIRPipeline				mcPipeline;			//The optimiser's passes and their order, as the target builds them (CCPPTarget::BuildPipeline).
 	CIRBackend*				mpcBackend;			//The target's back end (CCPPTarget::NewBackend), which writes their code; NULL for a target nothing is generated for.
 	CArrayCPP65IRWritten	masWritten;			//The same, in the order written.
 	bool					mbCodeGiven;		//The written functions' code is the unit's assembly's (FinishUnit), which takes it out of the store.

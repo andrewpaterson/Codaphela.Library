@@ -57,6 +57,8 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mcModule.Init();
 	mcModule.AddDefaultSpace(pcGenerator->mpcTarget->GetPointerBytes());
 	mpcBackend = pcGenerator->mpcTarget->NewBackend();
+	mcPipeline.Init();
+	pcGenerator->mpcTarget->BuildPipeline(&mcPipeline);
 	masWritten.Init();
 	masJumps.Init();
 	masCases.Init();
@@ -1274,13 +1276,15 @@ void CCPP65IRFrontEnd::EndCountedLoop(SCPP65IRCountedLoop* psLoop, SIRReference 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Inits pcOptimiser with the target's settings (CCPPTarget::ConfigureOptimiser),
-// the target's int and, when the target is guided by one, the profile.
+// Inits pcOptimiser with the target's pipeline and settings (CCPPTarget::
+// BuildPipeline and ConfigureOptimiser), the target's int and, when the
+// target is guided by one, the profile.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->Init(&mcModule);
+	pcOptimiser->SetPipeline(&mcPipeline);
 	mpcGenerator->mpcTarget->ConfigureOptimiser(pcOptimiser);
 	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 	if (InliningProfile())

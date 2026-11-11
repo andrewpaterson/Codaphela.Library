@@ -845,9 +845,9 @@ void TestIRLoops(void)
 
 #define IR_TEST_INDEXED_ADDRESSES	0x01	//SetIndexedAddresses (the 65C64's [R1 + R2]).
 #define IR_TEST_LIBRARY				0x02	//SetLibraryInt(i16): loops made memset and memmove calls.
-#define IR_TEST_NARROW_MULTIPLIES	0x04	//SetNarrowMultiplies (the W65C816's).
-#define IR_TEST_NARROW_COUNTERS		0x08	//SetNarrowCounters (the W65C816's).
-#define IR_TEST_BIASED_INDICES		0x10	//SetBiasedIndices (the W65C816's [p],Y).
+#define IR_TEST_NARROW_MULTIPLIES	0x04	//NarrowMultiplies is in the pipeline (the W65C816's).
+#define IR_TEST_NARROW_COUNTERS		0x08	//NarrowCounters is (the W65C816's).
+#define IR_TEST_BIASED_INDICES		0x10	//MergeAddressPhis and BiasSignedIndices are (the W65C816's [p],Y).
 #define IR_TEST_CONSTANT_DIVISIONS	0x20	//SetConstantDivisions (the W65C816's).
 #define IR_TEST_DIVIDE_REMAINDERS	0x40	//SetDivideRemainders of the 65C64's divides (unsigned, 8 to 32 bits).
 
@@ -883,10 +883,31 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	cParser.Kill();
 	cOptimiser.Init(&cModule);
 	cOptimiser.SetIndexedAddresses((uiOptions & IR_TEST_INDEXED_ADDRESSES) != 0);
-	cOptimiser.SetNarrowMultiplies((uiOptions & IR_TEST_NARROW_MULTIPLIES) != 0);
-	cOptimiser.SetNarrowCounters((uiOptions & IR_TEST_NARROW_COUNTERS) != 0);
-	cOptimiser.SetBiasedIndices((uiOptions & IR_TEST_BIASED_INDICES) != 0);
 	cOptimiser.SetConstantDivisions((uiOptions & IR_TEST_CONSTANT_DIVISIONS) != 0);
+
+	//The standard pipeline, without the passes a target chooses that the test doesn't ask for.
+	if (!(uiOptions & IR_TEST_NARROW_MULTIPLIES))
+	{
+		cOptimiser.GetPipeline()->Remove(IRP_NarrowMultiplies);
+	}
+	if (!(uiOptions & IR_TEST_NARROW_COUNTERS))
+	{
+		cOptimiser.GetPipeline()->Remove(IRP_NarrowCounters);
+	}
+	if (!(uiOptions & IR_TEST_BIASED_INDICES))
+	{
+		cOptimiser.GetPipeline()->Remove(IRP_MergeAddressPhis);
+		cOptimiser.GetPipeline()->Remove(IRP_BiasSignedIndices);
+	}
+	if (!(uiOptions & IR_TEST_CONSTANT_DIVISIONS))
+	{
+		cOptimiser.GetPipeline()->Remove(IRP_DivisibilityTests);
+		cOptimiser.GetPipeline()->Remove(IRP_ConstantDivisions);
+		if (!(uiOptions & IR_TEST_DIVIDE_REMAINDERS))
+		{
+			cOptimiser.GetPipeline()->Remove(IRP_ShareDivisions);
+		}
+	}
 	if (uiOptions & IR_TEST_DIVIDE_REMAINDERS)
 	{
 		cOptimiser.SetDivideRemainders(IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32);

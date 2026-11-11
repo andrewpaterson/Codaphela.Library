@@ -257,6 +257,7 @@
     <ClCompile Include="IRModule.cpp" />
     <ClCompile Include="IROptimiser.cpp" />
     <ClCompile Include="IRPasses.cpp" />
+    <ClCompile Include="IRPipeline.cpp" />
     <ClCompile Include="IROptimiserAddresses.cpp" />
     <ClCompile Include="IROptimiserBlocks.cpp" />
     <ClCompile Include="IROptimiserCounters.cpp" />
@@ -506,6 +507,7 @@
     <ClInclude Include="IROptimiserBlocks.h" />
     <ClInclude Include="IROptimiserAddresses.h" />
     <ClInclude Include="IRPasses.h" />
+    <ClInclude Include="IRPipeline.h" />
     <ClInclude Include="IROptimiserInternal.h" />
     <ClInclude Include="IROpcode.h" />
     <ClInclude Include="IRParser.h" />

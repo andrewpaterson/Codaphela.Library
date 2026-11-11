@@ -309,19 +309,35 @@ void CCPPTarget65C64::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOpti
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The 65C64 has indexed addresses, a multiply and a divide, so nothing is
-// narrowed or made of shifts for it.  Its div leaves an unsigned remainder in
-// B.
+// The standard passes, without those that don't pay on the 65C64: it has a
+// multiply and a divide, 32 bit registers and indexed addresses, so divisions
+// by constants aren't made multiplies, and counters, multiplies and indices
+// aren't narrowed or biased.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget65C64::BuildPipeline(CIRPipeline* pcPipeline)
+{
+	pcPipeline->SetStandard();
+	pcPipeline->Remove(IRP_DivisibilityTests);
+	pcPipeline->Remove(IRP_ConstantDivisions);
+	pcPipeline->Remove(IRP_MergeAddressPhis);
+	pcPipeline->Remove(IRP_NarrowCounters);
+	pcPipeline->Remove(IRP_NarrowMultiplies);
+	pcPipeline->Remove(IRP_BiasSignedIndices);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The 65C64's loads and stores add a pointer and an index for nothing, and
+// its div leaves an unsigned remainder in B.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget65C64::ConfigureOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->SetIndexedAddresses(true);
-	pcOptimiser->SetNarrowMultiplies(false);
 	pcOptimiser->SetConstantDivisions(false);
 	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32);
-	pcOptimiser->SetNarrowCounters(false);
-	pcOptimiser->SetBiasedIndices(false);
 }
 
 

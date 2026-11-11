@@ -50,6 +50,77 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mcContext.mpcPromotionPasses = &mcPromotionPasses;
 	mcRangePasses.Init(&mcContext);
 	mcContext.mpcRangePasses = &mcRangePasses;
+	InitPasses();
+	mcOwnPipeline.SetStandard();
+	mpcPipeline = &mcOwnPipeline;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each pass: its name and the function of its group that runs it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::InitPasses(void)
+{
+	macPasses[IRP_SimplifyCFG].Init(CIRPipeline::GetPassName(IRP_SimplifyCFG), &mcBlockPasses, (FIRPass)&CIRBlockPasses::SimplifyCFG);
+	macPasses[IRP_UnifySlotTypes].Init(CIRPipeline::GetPassName(IRP_UnifySlotTypes), &mcMemoryPasses, (FIRPass)&CIRMemoryPasses::UnifySlotTypes);
+	macPasses[IRP_SplitSlots].Init(CIRPipeline::GetPassName(IRP_SplitSlots), &mcMemoryPasses, (FIRPass)&CIRMemoryPasses::SplitSlots);
+	macPasses[IRP_PromoteSlots].Init(CIRPipeline::GetPassName(IRP_PromoteSlots), &mcPromotionPasses, (FIRPass)&CIRPromotionPasses::PromoteSlots);
+	macPasses[IRP_RemoveTrivialPhis].Init(CIRPipeline::GetPassName(IRP_RemoveTrivialPhis), &mcBlockPasses, (FIRPass)&CIRBlockPasses::RemoveTrivialPhis);
+	macPasses[IRP_FoldConstants].Init(CIRPipeline::GetPassName(IRP_FoldConstants), &mcFoldingPasses, (FIRPass)&CIRFoldingPasses::FoldConstants);
+	macPasses[IRP_FoldNullTests].Init(CIRPipeline::GetPassName(IRP_FoldNullTests), &mcRangePasses, (FIRPass)&CIRRangePasses::FoldNullTests);
+	macPasses[IRP_NarrowTruncations].Init(CIRPipeline::GetPassName(IRP_NarrowTruncations), &mcRangePasses, (FIRPass)&CIRRangePasses::NarrowTruncations);
+	macPasses[IRP_BoundDivisions].Init(CIRPipeline::GetPassName(IRP_BoundDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::BoundDivisions);
+	macPasses[IRP_SignedPowerDivisions].Init(CIRPipeline::GetPassName(IRP_SignedPowerDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::SignedPowerDivisions);
+	macPasses[IRP_DivisibilityTests].Init(CIRPipeline::GetPassName(IRP_DivisibilityTests), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::DivisibilityTests);
+	macPasses[IRP_ConstantDivisions].Init(CIRPipeline::GetPassName(IRP_ConstantDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::ConstantDivisions);
+	macPasses[IRP_ShareDivisions].Init(CIRPipeline::GetPassName(IRP_ShareDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::ShareDivisions);
+	macPasses[IRP_RemoveCommonSubexpressions].Init(CIRPipeline::GetPassName(IRP_RemoveCommonSubexpressions), &mcFoldingPasses, (FIRPass)&CIRFoldingPasses::RemoveCommonSubexpressions);
+	macPasses[IRP_RemoveRedundantLoads].Init(CIRPipeline::GetPassName(IRP_RemoveRedundantLoads), &mcMemoryPasses, (FIRPass)&CIRMemoryPasses::RemoveRedundantLoads);
+	macPasses[IRP_MergeAddressPhis].Init(CIRPipeline::GetPassName(IRP_MergeAddressPhis), &mcAddressPasses, (FIRPass)&CIRAddressPasses::MergeAddressPhis);
+	macPasses[IRP_RotateLoops].Init(CIRPipeline::GetPassName(IRP_RotateLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::RotateLoops);
+	macPasses[IRP_LessLoopTests].Init(CIRPipeline::GetPassName(IRP_LessLoopTests), &mcLoopPasses, (FIRPass)&CIRLoopPasses::LessLoopTests);
+	macPasses[IRP_ReplaceLoopCounters].Init(CIRPipeline::GetPassName(IRP_ReplaceLoopCounters), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReplaceLoopCounters);
+	macPasses[IRP_NarrowCounters].Init(CIRPipeline::GetPassName(IRP_NarrowCounters), &mcCounterPasses, (FIRPass)&CIRCounterPasses::NarrowCounters);
+	macPasses[IRP_ReduceMultiplies].Init(CIRPipeline::GetPassName(IRP_ReduceMultiplies), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceMultiplies);
+	macPasses[IRP_ReplaceExitValues].Init(CIRPipeline::GetPassName(IRP_ReplaceExitValues), &mcLoopPasses, (FIRPass)&CIRLoopPasses::ReplaceExitValues);
+	macPasses[IRP_DeleteDeadLoops].Init(CIRPipeline::GetPassName(IRP_DeleteDeadLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::DeleteDeadLoops);
+	macPasses[IRP_ReduceStrength].Init(CIRPipeline::GetPassName(IRP_ReduceStrength), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceStrength);
+	macPasses[IRP_SplitLoopAddresses].Init(CIRPipeline::GetPassName(IRP_SplitLoopAddresses), &mcAddressPasses, (FIRPass)&CIRAddressPasses::SplitLoopAddresses);
+	macPasses[IRP_HoistInvariants].Init(CIRPipeline::GetPassName(IRP_HoistInvariants), &mcLoopPasses, (FIRPass)&CIRLoopPasses::HoistInvariants);
+	macPasses[IRP_SinkLoads].Init(CIRPipeline::GetPassName(IRP_SinkLoads), &mcLoopPasses, (FIRPass)&CIRLoopPasses::SinkLoads);
+	macPasses[IRP_HoistCommon].Init(CIRPipeline::GetPassName(IRP_HoistCommon), &mcLoopPasses, (FIRPass)&CIRLoopPasses::HoistCommon);
+	macPasses[IRP_UnswitchLoops].Init(CIRPipeline::GetPassName(IRP_UnswitchLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::UnswitchLoops);
+	macPasses[IRP_ReplaceLoopIdioms].Init(CIRPipeline::GetPassName(IRP_ReplaceLoopIdioms), &mcIdiomPasses, (FIRPass)&CIRIdiomPasses::ReplaceLoopIdioms);
+	macPasses[IRP_RemoveDeadCode].Init(CIRPipeline::GetPassName(IRP_RemoveDeadCode), &mcBlockPasses, (FIRPass)&CIRBlockPasses::RemoveDeadCode);
+	macPasses[IRP_SinkComparisons].Init(CIRPipeline::GetPassName(IRP_SinkComparisons), &mcBlockPasses, (FIRPass)&CIRBlockPasses::SinkComparisons);
+	macPasses[IRP_NarrowMultiplies].Init(CIRPipeline::GetPassName(IRP_NarrowMultiplies), &mcRangePasses, (FIRPass)&CIRRangePasses::NarrowMultiplies);
+	macPasses[IRP_BiasSignedIndices].Init(CIRPipeline::GetPassName(IRP_BiasSignedIndices), &mcAddressPasses, (FIRPass)&CIRAddressPasses::BiasSignedIndices);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The passes run and their order (the target's: CCPPTarget::BuildPipeline),
+// in place of the optimiser's own, which is the standard one.  pcPipeline
+// must outlive the optimiser.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetPipeline(CIRPipeline* pcPipeline)
+{
+	mpcPipeline = pcPipeline ? pcPipeline : &mcOwnPipeline;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pipeline the optimiser runs: its own unless one was set.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRPipeline* CIROptimiser::GetPipeline(void)
+{
+	return mpcPipeline;
 }
 
 
@@ -138,18 +209,6 @@ void CIROptimiser::SetWarnings(CChars* pszWarnings)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether NarrowMultiplies runs (for a target whose multiplies cost more
-// the wider they are: the W65C816's are shifts and adds or calls).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SetNarrowMultiplies(bool bNarrowMultiplies)
-{
-	mcContext.mbNarrowMultiplies = bNarrowMultiplies;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether ConstantDivisions runs (for a target whose divides are calls:
 // the W65C816's).
 //
@@ -190,101 +249,88 @@ void CIROptimiser::SetProfile(CIRInlineProfile* pcProfile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether NarrowCounters runs (for a target whose 32 bit arithmetic takes
-// more instructions than 16 bit: the W65C816's).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SetNarrowCounters(bool bNarrowCounters)
-{
-	mcContext.mbNarrowCounters = bNarrowCounters;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether BiasSignedIndices runs (for a target that adds an unsigned 16
-// bit index to a pointer for nothing: the W65C816's [p],Y).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SetBiasedIndices(bool bBiasedIndices)
-{
-	mcContext.mbBiasedIndices = bBiasedIndices;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Runs the passes until none changes the function.  Returns true if any did.
+// Runs the pipeline's passes on the function: the steps of a round, in order,
+// over and over until a round changes nothing (IR_OPTIMISE_ROUNDS at most),
+// then each step that runs after the rounds, with the steps that follow it if
+// it changed the function.  Returns true if any pass changed it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 {
-	bool	bChanged;
-	bool	bAny;
-	int		iRound;
+	SIRPipelineStep*	psStep;
+	int					iSteps;
+	int					iStep;
+	int					iRound;
+	bool				bChanged;
+	bool				bFollow;
+	bool				bAny;
 
 	Begin(pcFunction);
 	mcContext.mbRestrict = mcContext.mpcModule->HasRestrict() || (pcFunction->muiRestrictParameters != 0);
 	mcContext.miUnswitched = 0;
 	bAny = false;
+	iSteps = mpcPipeline->NumSteps();
 	mcContext.mpcModule->Count(CPPCC_OptimisedFunctions);
 	for (iRound = 0; iRound < IR_OPTIMISE_ROUNDS; iRound++)
 	{
 		mcContext.mpcModule->Count(CPPCC_OptimiserRounds);
-		bChanged = mcBlockPasses.SimplifyCFG();
-		bChanged |= mcMemoryPasses.UnifySlotTypes();
-		bChanged |= mcMemoryPasses.SplitSlots();
-		bChanged |= mcPromotionPasses.PromoteSlots();
-		bChanged |= mcBlockPasses.RemoveTrivialPhis();
-		bChanged |= mcFoldingPasses.FoldConstants();
-		bChanged |= mcRangePasses.FoldNullTests();
-		bChanged |= mcRangePasses.NarrowTruncations();
-		bChanged |= mcDivisionPasses.BoundDivisions();
-		bChanged |= mcDivisionPasses.SignedPowerDivisions();
-		bChanged |= mcContext.mbConstantDivisions && mcDivisionPasses.DivisibilityTests();
-		bChanged |= mcContext.mbConstantDivisions && mcDivisionPasses.ConstantDivisions();
-		bChanged |= (mcContext.mbConstantDivisions || (mcContext.muiDivideRemainders != 0)) && mcDivisionPasses.ShareDivisions();
-		bChanged |= mcFoldingPasses.RemoveCommonSubexpressions();
-		bChanged |= mcMemoryPasses.RemoveRedundantLoads();
-		bChanged |= mcContext.mbBiasedIndices && mcAddressPasses.MergeAddressPhis();
-		bChanged |= mcLoopPasses.RotateLoops();
-		bChanged |= mcLoopPasses.LessLoopTests();
-		bChanged |= mcCounterPasses.ReplaceLoopCounters();
-		bChanged |= mcContext.mbNarrowCounters && mcCounterPasses.NarrowCounters();
-		bChanged |= mcCounterPasses.ReduceMultiplies();
-		bChanged |= mcLoopPasses.ReplaceExitValues();
-		bChanged |= mcLoopPasses.DeleteDeadLoops();
-		bChanged |= mcCounterPasses.ReduceStrength();
-		bChanged |= mcAddressPasses.SplitLoopAddresses();
-		bChanged |= mcLoopPasses.HoistInvariants();
-		bChanged |= mcLoopPasses.SinkLoads();
-		bChanged |= mcLoopPasses.HoistCommon();
-		bChanged |= mcLoopPasses.UnswitchLoops();
-		bChanged |= mcIdiomPasses.ReplaceLoopIdioms();
-		bChanged |= mcBlockPasses.RemoveDeadCode();
-		bChanged |= mcBlockPasses.SinkComparisons();
+		bChanged = false;
+		for (iStep = 0; iStep < iSteps; iStep++)
+		{
+			psStep = mpcPipeline->GetStep(iStep);
+			if (psStep->eStep == IRPS_Round)
+			{
+				bChanged |= RunPass(psStep->ePass, iRound);
+			}
+		}
 		if (!bChanged)
 		{
 			break;
 		}
 		bAny = true;
 	}
-	if (mcContext.mbNarrowMultiplies && mcRangePasses.NarrowMultiplies())
+
+	bFollow = false;
+	for (iStep = 0; iStep < iSteps; iStep++)
 	{
-		mcFoldingPasses.FoldConstants();
-		mcBlockPasses.RemoveDeadCode();
-		bAny = true;
-	}
-	if (mcContext.mbBiasedIndices && mcAddressPasses.BiasSignedIndices())
-	{
-		mcFoldingPasses.RemoveCommonSubexpressions();
-		mcLoopPasses.HoistInvariants();
-		mcBlockPasses.RemoveDeadCode();
-		bAny = true;
+		psStep = mpcPipeline->GetStep(iStep);
+		if (psStep->eStep == IRPS_After)
+		{
+			bFollow = RunPass(psStep->ePass, CPP_NO_ROUND);
+			bAny |= bFollow;
+		}
+		else if ((psStep->eStep == IRPS_Following) && bFollow)
+		{
+			RunPass(psStep->ePass, CPP_NO_ROUND);
+		}
 	}
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
 	return bAny;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a pass, and counts it (and times it, when times are kept) in the
+// unit's statistics.  True if it changed the function.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::RunPass(EIRPass ePass, int iRound)
+{
+	CCPPCompileStatistics*	pcStatistics;
+	int64					lliStart;
+	bool					bChanged;
+
+	pcStatistics = mcContext.mpcModule->mpcStatistics;
+	if (!pcStatistics)
+	{
+		return macPasses[ePass].Run();
+	}
+	lliStart = pcStatistics->Now();
+	bChanged = macPasses[ePass].Run();
+	pcStatistics->CountPass(ePass, macPasses[ePass].GetPassName(), bChanged, iRound, pcStatistics->Now() - lliStart);
+	return bChanged;
 }
 
 

@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_OPTIMISER_H__
 #define __I_R_OPTIMISER_H__
 #include "IRPasses.h"
+#include "IRPipeline.h"
 #include "IROptimiserAddresses.h"
 #include "IROptimiserBlocks.h"
 #include "IROptimiserCounters.h"
@@ -85,7 +86,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //	sunk comparisons	an integer comparison only its block's brif uses moves to the block's end
 //
 //The passes are in groups, a class each (CIRBlockPasses, CIRLoopPasses ...: the IROptimiser*.h files), which share
-//what is in a CIRPassContext.  The optimiser owns them and runs them.
+//what is in a CIRPassContext.  The optimiser owns them, has each pass as a CIRPass (a name and a group's function),
+//and runs them as its pipeline says (SetPipeline: the target's; the standard one, every pass, unless one is set).
 class CIROptimiser
 {
 protected:
@@ -100,6 +102,9 @@ protected:
 	CIRMemoryPasses			mcMemoryPasses;
 	CIRPromotionPasses		mcPromotionPasses;
 	CIRRangePasses			mcRangePasses;
+	CIRPass					macPasses[IRP_NumPasses];
+	CIRPipeline				mcOwnPipeline;		//The standard pipeline (GetPipeline, to change it)...
+	CIRPipeline*			mpcPipeline;		//...or the one set.
 
 public:
 	void			Init(CIRModule* pcModule);
@@ -107,17 +112,18 @@ public:
 	void			SetLibraryInt(SIRType sInt);
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetWarnings(CChars* pszWarnings);
-	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetConstantDivisions(bool bConstantDivisions);
 	void			SetDivideRemainders(uint32 uiDivideRemainders);
 	void			SetProfile(CIRInlineProfile* pcProfile);
-	void			SetNarrowCounters(bool bNarrowCounters);
-	void			SetBiasedIndices(bool bBiasedIndices);
+	void			SetPipeline(CIRPipeline* pcPipeline);
+	CIRPipeline*	GetPipeline(void);
 	bool			Optimise(CIRFunction* pcFunction);
 	bool			WritesMemory(CIRFunction* pcFunction);
 
 protected:
 	void			Begin(CIRFunction* pcFunction);
+	void			InitPasses(void);
+	bool			RunPass(EIRPass ePass, int iRound);
 };
 
 

@@ -354,6 +354,9 @@
     <ClCompile Include="IRPasses.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRPipeline.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IROptimiserAddresses.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1071,6 +1074,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRPasses.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRPipeline.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IROptimiserInternal.h">

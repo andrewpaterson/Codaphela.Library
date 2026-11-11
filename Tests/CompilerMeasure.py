@@ -67,12 +67,14 @@ def run(suite, processor, arguments, options):
     if options.serial:
         environment['TEST_PROJECT65_SERIAL'] = '1'
     if options.size:
+        # Smaller code is slower code: a program gets more of the emulator's instructions before it is given up on.
         environment['TEST_PROJECT65_PREFER_SIZE'] = '1'
+        environment.setdefault('TEST_PROJECT65_STEPS', '20000')
     started = time.time()
     process = subprocess.Popen([executable] + arguments, cwd=directory, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = process.communicate()[0].decode('latin-1')
     result = {'suite': suite, 'processor': processor, 'seconds': time.time() - started, 'exit': process.returncode,
-              'memory': peak_memory(process), 'cycles': 0, 'size': 0, 'programs': 0, 'asserts': 0, 'times': {}, 'counts': {}}
+              'memory': peak_memory(process), 'cycles': 0, 'size': 0, 'programs': 0, 'asserts': 0, 'times': {}, 'counts': {}, 'passes': {}}
     for line in output.split('\n'):
         line = line.rstrip('\r')
         m = re.match(r'CYCLES (\d+)', line)
@@ -91,6 +93,9 @@ def run(suite, processor, arguments, options):
         m = re.match(r'COUNT (.+) (\d+)$', line)
         if m:
             result['counts'][m.group(1)] = int(m.group(2))
+        m = re.match(r'PASS (\w+) (\d+) (\d+) (\d+) (\d+) (\d+)$', line)
+        if m:
+            result['passes'][m.group(1)] = [int(m.group(i)) for i in range(2, 7)]
     log = os.path.join(directory, 'Log.txt')
     result['passed'] = False
     if process.returncode == 0 and os.path.isfile(log) and os.path.getmtime(log) >= started - 1:
@@ -122,6 +127,14 @@ def table(results, options):
         lines.append('%-24s' % '' + ''.join('%16s' % (r['suite'][4:-2] + ' ' + ('816' if r['processor'] == 'W65C816' else '65')) for r in good))
         for name in names:
             lines.append('%-24s' % name + ''.join('%16d' % r[kind].get(name, 0) for r in good))
+    for r in good:
+        if not r['passes']:
+            continue
+        lines.append('')
+        lines.append("The optimiser's passes, %s %s: runs, the runs that changed their function, those of them in its first round," % (r['suite'], r['processor']))
+        lines.append('those in its third round or later, and milliseconds (added over the threads)')
+        for name, numbers in r['passes'].items():
+            lines.append('%-28s %9d %9d %9d %9d %9d' % tuple([name] + numbers))
     return '\n'.join(lines) + '\n'
 
 

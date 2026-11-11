@@ -42,6 +42,7 @@ class CCPPCompileOptions;
 class CAsm65Source;
 class CAsm65Object;
 struct SIRInlineLimits;
+class CIRPipeline;
 
 
 //What a target writes its runtime routines through (CCPPTarget::AppendRuntime): the unit's code, as the generator has
@@ -89,7 +90,8 @@ public:
 
 	//The IR: how much is inlined, the optimiser's settings and the back end.
 	virtual void		GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions);
-	virtual void		ConfigureOptimiser(CIROptimiser* pcOptimiser);
+	virtual void		BuildPipeline(CIRPipeline* pcPipeline);	//The optimiser's passes and their order.
+	virtual void		ConfigureOptimiser(CIROptimiser* pcOptimiser);	//What its passes need to know of the processor.
 	virtual bool		UsesProfile(void);				//The inliner and the optimiser are guided by a measured run's profile when there is one.
 	virtual CIRBackend*	NewBackend(void);				//A back end for a unit, the caller's to free, or NULL for a target nothing is generated for.
 	virtual void		PrepareForThreads(void);		//What the back end and the assembler make when first needed is made, before units are compiled at the same time.

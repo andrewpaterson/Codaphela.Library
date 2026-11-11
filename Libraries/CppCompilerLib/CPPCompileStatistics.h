@@ -76,6 +76,22 @@ enum ECPPCompileCount
 };
 
 
+//What a pass did (CountPass), for a pass that has a number and a name: the optimiser's.
+struct SCPPPassStatistics
+{
+	const char*		szName;				//NULL for a pass that hasn't run.
+	uint64			uiRuns;
+	uint64			uiChanged;			//The runs that changed their function...
+	uint64			uiChangedFirst;		//...of them, those in the function's first round of passes...
+	uint64			uiChangedLate;		//...and those in its third round or a later one.
+	int64			lliMicroseconds;	//When the times are kept.
+};
+
+
+#define CPP_MAX_PASSES		64
+#define CPP_NO_ROUND		(-1)		//CountPass: the pass didn't run in a round.
+
+
 //The times and counts of compiling a unit, or of a build (Add).  One is used by one thread at a time.  The counts are
 //always kept; the times only when SetTimes(true), as reading the clock costs more than counting.
 class CCPPCompileStatistics
@@ -83,6 +99,7 @@ class CCPPCompileStatistics
 protected:
 	int64				malliMicroseconds[CPPCP_NumPhases];
 	uint64				mauiCounts[CPPCC_NumCounts];
+	SCPPPassStatistics	masPasses[CPP_MAX_PASSES];
 	ECPPCompilePhase	maePhases[16];		//The phases begun and not ended, the last begun last.
 	int					miDepth;
 	int64				mlliSince;			//When the last of them began, or the one begun in it ended.
@@ -97,6 +114,9 @@ public:
 	void		Begin(ECPPCompilePhase ePhase);
 	void		End(ECPPCompilePhase ePhase);
 	void		Count(ECPPCompileCount eCount, uint64 uiCount = 1);
+	int64		Now(void);
+	void		CountPass(int iPass, const char* szName, bool bChanged, int iRound, int64 lliMicroseconds);
+	SCPPPassStatistics*	GetPass(int iPass);
 
 	void		Add(CCPPCompileStatistics* pcOther);
 	void		Clear(void);

@@ -99,6 +99,7 @@ void CCPPCompileStatistics::Clear(void)
 {
 	memset(malliMicroseconds, 0, sizeof(malliMicroseconds));
 	memset(mauiCounts, 0, sizeof(mauiCounts));
+	memset(masPasses, 0, sizeof(masPasses));
 	miDepth = 0;
 	mlliSince = 0;
 }
@@ -186,6 +187,58 @@ void CCPPCompileStatistics::Count(ECPPCompileCount eCount, uint64 uiCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The clock, in microseconds, when the times are kept; 0 when they aren't
+// (so a pass's time is 0 without the clock being read).
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPPCompileStatistics::Now(void)
+{
+	return mbTimes ? GetDebugMicroseconds() : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pass numbered iPass (below CPP_MAX_PASSES) and named szName ran:
+// whether it changed its function, the round of passes it ran in (from 0, or
+// CPP_NO_ROUND) and how long it took.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCompileStatistics::CountPass(int iPass, const char* szName, bool bChanged, int iRound, int64 lliMicroseconds)
+{
+	SCPPPassStatistics*	psPass;
+
+	psPass = &masPasses[iPass];
+	psPass->szName = szName;
+	psPass->uiRuns++;
+	psPass->lliMicroseconds += lliMicroseconds;
+	if (bChanged)
+	{
+		psPass->uiChanged++;
+		if (iRound == 0)
+		{
+			psPass->uiChangedFirst++;
+		}
+		else if (iRound >= 2)
+		{
+			psPass->uiChangedLate++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPPassStatistics* CCPPCompileStatistics::GetPass(int iPass)
+{
+	return &masPasses[iPass];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // pcOther's times and counts are added to these.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -200,6 +253,18 @@ void CCPPCompileStatistics::Add(CCPPCompileStatistics* pcOther)
 	for (i = 0; i < CPPCC_NumCounts; i++)
 	{
 		mauiCounts[i] += pcOther->mauiCounts[i];
+	}
+	for (i = 0; i < CPP_MAX_PASSES; i++)
+	{
+		if (pcOther->masPasses[i].szName)
+		{
+			masPasses[i].szName = pcOther->masPasses[i].szName;
+			masPasses[i].uiRuns += pcOther->masPasses[i].uiRuns;
+			masPasses[i].uiChanged += pcOther->masPasses[i].uiChanged;
+			masPasses[i].uiChangedFirst += pcOther->masPasses[i].uiChangedFirst;
+			masPasses[i].uiChangedLate += pcOther->masPasses[i].uiChangedLate;
+			masPasses[i].lliMicroseconds += pcOther->masPasses[i].lliMicroseconds;
+		}
 	}
 }
 
@@ -226,8 +291,9 @@ uint64 CCPPCompileStatistics::GetCount(ECPPCompileCount eCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A line for each phase's milliseconds (when they were timed) and each
-// count: "TIME parse 1234" and "COUNT TypeOf 5678".
+// A line for each phase's milliseconds (when they were timed), each count
+// and each pass that ran: "TIME parse 1234", "COUNT TypeOf 5678" and "PASS
+// FoldConstants runs changed changed-first changed-late milliseconds".
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPCompileStatistics::Print(CChars* pszDest)
@@ -249,6 +315,25 @@ void CCPPCompileStatistics::Print(CChars* pszDest)
 		pszDest->Append(" ");
 		pszDest->Append((int64)mauiCounts[i]);
 		pszDest->AppendNewLine();
+	}
+	for (i = 0; i < CPP_MAX_PASSES; i++)
+	{
+		if (masPasses[i].szName)
+		{
+			pszDest->Append("PASS ");
+			pszDest->Append(masPasses[i].szName);
+			pszDest->Append(" ");
+			pszDest->Append((int64)masPasses[i].uiRuns);
+			pszDest->Append(" ");
+			pszDest->Append((int64)masPasses[i].uiChanged);
+			pszDest->Append(" ");
+			pszDest->Append((int64)masPasses[i].uiChangedFirst);
+			pszDest->Append(" ");
+			pszDest->Append((int64)masPasses[i].uiChangedLate);
+			pszDest->Append(" ");
+			pszDest->Append(masPasses[i].lliMicroseconds / 1000);
+			pszDest->AppendNewLine();
+		}
 	}
 }
 

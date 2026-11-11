@@ -252,11 +252,8 @@ public:
 	CIRFunction*			mpcFunction;
 	bool					mbIndexedAddresses;	//Loads and stores add a pointer and an index for nothing (the 65C64's [R1 + R2]).
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
-	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
 	uint32					muiDivideRemainders;	//The IR_DIVIDE_REMAINDERS_ divides that leave their remainder for a urem or srem right after them.
-	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
-	bool					mbBiasedIndices;	//Signed i16 indices are biased unsigned ones (SetBiasedIndices).
 	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
