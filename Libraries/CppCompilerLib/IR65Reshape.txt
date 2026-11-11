@@ -54,7 +54,7 @@ What belongs in shared code
 
 - Block order and loop tests.  OrderBlocks and the back end's RotateLoops (block layout: a
   loop's test moved after its body) don't depend on the target, and the W65C816 has nothing
-  like them.  (Not CIROptimiser::RotateLoops: that copies a loop's head, up to 8
+  like them.  (Not CIRLoopPasses::RotateLoops: that copies a loop's head, up to 8
   instructions; the back end's moves blocks, and catches the loops the optimiser leaves.)
 - Loop steps.  CIR65Backend::SinkToEnd and CIR816Backend::SinkSteps both moved a loop's step
   (p + 1 a phi takes) down past the instructions reading p so the two can share a place,

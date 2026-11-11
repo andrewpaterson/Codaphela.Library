@@ -24,39 +24,32 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The context, and the groups of passes, which find each other in it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::Init(CIRModule* pcModule)
 {
-	mpcModule = pcModule;
-	mpcFunction = NULL;
-	mbIndexedAddresses = true;
-	mbNarrowMultiplies = false;
-	mbConstantDivisions = false;
-	muiDivideRemainders = 0;
-	mbNarrowCounters = false;
-	mbBiasedIndices = false;
-	mbBranchRanges = false;
-	mpszWarnings = NULL;
-	mbRestrict = false;
-	miUnswitched = 0;
-	msLibraryInt = IRType(IRTK_None);
-	mpcProfile = NULL;
-	mcDominators.Init();
-	mcDefinitions.Init();
-	mcLoops.Init();
-	mabReached.Init();
-	maiReachSearch.Init();
-	masReplacements.Init();
-	mauiUses.Init();
-	masPromotions.Init();
-	maiPromotion.Init();
-	maiPhiPromotion.Init();
-	masValues.Init();
-	maiValueLinks.Init();
-	maiTops.Init();
-	maiPushedPromotions.Init();
-	masArgAddresses.Init();
+	mcContext.Init(pcModule);
+	mcAddressPasses.Init(&mcContext);
+	mcContext.mpcAddressPasses = &mcAddressPasses;
+	mcBlockPasses.Init(&mcContext);
+	mcContext.mpcBlockPasses = &mcBlockPasses;
+	mcCounterPasses.Init(&mcContext);
+	mcContext.mpcCounterPasses = &mcCounterPasses;
+	mcDivisionPasses.Init(&mcContext);
+	mcContext.mpcDivisionPasses = &mcDivisionPasses;
+	mcFoldingPasses.Init(&mcContext);
+	mcContext.mpcFoldingPasses = &mcFoldingPasses;
+	mcIdiomPasses.Init(&mcContext);
+	mcContext.mpcIdiomPasses = &mcIdiomPasses;
+	mcLoopPasses.Init(&mcContext);
+	mcContext.mpcLoopPasses = &mcLoopPasses;
+	mcMemoryPasses.Init(&mcContext);
+	mcContext.mpcMemoryPasses = &mcMemoryPasses;
+	mcPromotionPasses.Init(&mcContext);
+	mcContext.mpcPromotionPasses = &mcPromotionPasses;
+	mcRangePasses.Init(&mcContext);
+	mcContext.mpcRangePasses = &mcRangePasses;
 }
 
 
@@ -66,21 +59,39 @@ void CIROptimiser::Init(CIRModule* pcModule)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::Kill(void)
 {
-	masArgAddresses.Kill();
-	maiPushedPromotions.Kill();
-	maiTops.Kill();
-	maiValueLinks.Kill();
-	masValues.Kill();
-	maiPhiPromotion.Kill();
-	maiPromotion.Kill();
-	masPromotions.Kill();
-	mauiUses.Kill();
-	masReplacements.Kill();
-	maiReachSearch.Kill();
-	mabReached.Kill();
-	mcLoops.Kill();
-	mcDefinitions.Kill();
-	mcDominators.Kill();
+	mcRangePasses.Kill();
+	mcPromotionPasses.Kill();
+	mcMemoryPasses.Kill();
+	mcLoopPasses.Kill();
+	mcIdiomPasses.Kill();
+	mcFoldingPasses.Kill();
+	mcDivisionPasses.Kill();
+	mcCounterPasses.Kill();
+	mcBlockPasses.Kill();
+	mcAddressPasses.Kill();
+	mcContext.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function the passes are run on from now (NULL for none): the
+// context's and each group's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::Begin(CIRFunction* pcFunction)
+{
+	mcContext.mpcFunction = pcFunction;
+	mcAddressPasses.Begin(pcFunction);
+	mcBlockPasses.Begin(pcFunction);
+	mcCounterPasses.Begin(pcFunction);
+	mcDivisionPasses.Begin(pcFunction);
+	mcFoldingPasses.Begin(pcFunction);
+	mcIdiomPasses.Begin(pcFunction);
+	mcLoopPasses.Begin(pcFunction);
+	mcMemoryPasses.Begin(pcFunction);
+	mcPromotionPasses.Begin(pcFunction);
+	mcRangePasses.Begin(pcFunction);
 }
 
 
@@ -93,7 +104,7 @@ void CIROptimiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetLibraryInt(SIRType sInt)
 {
-	msLibraryInt = sInt;
+	mcContext.msLibraryInt = sInt;
 }
 
 
@@ -106,7 +117,7 @@ void CIROptimiser::SetLibraryInt(SIRType sInt)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetIndexedAddresses(bool bIndexedAddresses)
 {
-	mbIndexedAddresses = bIndexedAddresses;
+	mcContext.mbIndexedAddresses = bIndexedAddresses;
 }
 
 
@@ -121,7 +132,7 @@ void CIROptimiser::SetIndexedAddresses(bool bIndexedAddresses)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetWarnings(CChars* pszWarnings)
 {
-	mpszWarnings = pszWarnings;
+	mcContext.mpszWarnings = pszWarnings;
 }
 
 
@@ -133,7 +144,7 @@ void CIROptimiser::SetWarnings(CChars* pszWarnings)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetNarrowMultiplies(bool bNarrowMultiplies)
 {
-	mbNarrowMultiplies = bNarrowMultiplies;
+	mcContext.mbNarrowMultiplies = bNarrowMultiplies;
 }
 
 
@@ -145,7 +156,7 @@ void CIROptimiser::SetNarrowMultiplies(bool bNarrowMultiplies)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 {
-	mbConstantDivisions = bConstantDivisions;
+	mcContext.mbConstantDivisions = bConstantDivisions;
 }
 
 
@@ -160,7 +171,7 @@ void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetDivideRemainders(uint32 uiDivideRemainders)
 {
-	muiDivideRemainders = uiDivideRemainders;
+	mcContext.muiDivideRemainders = uiDivideRemainders;
 }
 
 
@@ -173,26 +184,7 @@ void CIROptimiser::SetDivideRemainders(uint32 uiDivideRemainders)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetProfile(CIRInlineProfile* pcProfile)
 {
-	mpcProfile = pcProfile;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the profile has the instruction's line run often enough that
-// saving ulliSaving cycles each time is 1/IR_INLINE_HOT_SHARE of the run.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::IsHot(SIRInstruction* psInstruction, uint64 ulliSaving)
-{
-	uint64	ulliCount;
-
-	if (!mpcProfile || (mpcProfile->ProfileCycles() == 0))
-	{
-		return false;
-	}
-	ulliCount = mpcProfile->CallCount(mpcFunction, psInstruction);
-	return (ulliCount != IR_INLINE_UNKNOWN) && (ulliCount * ulliSaving * IR_INLINE_HOT_SHARE >= mpcProfile->ProfileCycles());
+	mcContext.mpcProfile = pcProfile;
 }
 
 
@@ -204,7 +196,7 @@ bool CIROptimiser::IsHot(SIRInstruction* psInstruction, uint64 ulliSaving)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetNarrowCounters(bool bNarrowCounters)
 {
-	mbNarrowCounters = bNarrowCounters;
+	mcContext.mbNarrowCounters = bNarrowCounters;
 }
 
 
@@ -216,7 +208,7 @@ void CIROptimiser::SetNarrowCounters(bool bNarrowCounters)
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::SetBiasedIndices(bool bBiasedIndices)
 {
-	mbBiasedIndices = bBiasedIndices;
+	mcContext.mbBiasedIndices = bBiasedIndices;
 }
 
 
@@ -231,463 +223,85 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 	bool	bAny;
 	int		iRound;
 
-	mpcFunction = pcFunction;
-	mbRestrict = mpcModule->HasRestrict() || (pcFunction->muiRestrictParameters != 0);
-	miUnswitched = 0;
+	Begin(pcFunction);
+	mcContext.mbRestrict = mcContext.mpcModule->HasRestrict() || (pcFunction->muiRestrictParameters != 0);
+	mcContext.miUnswitched = 0;
 	bAny = false;
-	mpcModule->Count(CPPCC_OptimisedFunctions);
+	mcContext.mpcModule->Count(CPPCC_OptimisedFunctions);
 	for (iRound = 0; iRound < IR_OPTIMISE_ROUNDS; iRound++)
 	{
-		mpcModule->Count(CPPCC_OptimiserRounds);
-		bChanged = SimplifyCFG();
-		bChanged |= UnifySlotTypes();
-		bChanged |= SplitSlots();
-		bChanged |= PromoteSlots();
-		bChanged |= RemoveTrivialPhis();
-		bChanged |= FoldConstants();
-		bChanged |= FoldNullTests();
-		bChanged |= NarrowTruncations();
-		bChanged |= BoundDivisions();
-		bChanged |= SignedPowerDivisions();
-		bChanged |= mbConstantDivisions && DivisibilityTests();
-		bChanged |= mbConstantDivisions && ConstantDivisions();
-		bChanged |= (mbConstantDivisions || (muiDivideRemainders != 0)) && ShareDivisions();
-		bChanged |= RemoveCommonSubexpressions();
-		bChanged |= RemoveRedundantLoads();
-		bChanged |= mbBiasedIndices && MergeAddressPhis();
-		bChanged |= RotateLoops();
-		bChanged |= LessLoopTests();
-		bChanged |= ReplaceLoopCounters();
-		bChanged |= mbNarrowCounters && NarrowCounters();
-		bChanged |= ReduceMultiplies();
-		bChanged |= ReplaceExitValues();
-		bChanged |= DeleteDeadLoops();
-		bChanged |= ReduceStrength();
-		bChanged |= SplitLoopAddresses();
-		bChanged |= HoistInvariants();
-		bChanged |= SinkLoads();
-		bChanged |= HoistCommon();
-		bChanged |= UnswitchLoops();
-		bChanged |= ReplaceLoopIdioms();
-		bChanged |= RemoveDeadCode();
-		bChanged |= SinkComparisons();
+		mcContext.mpcModule->Count(CPPCC_OptimiserRounds);
+		bChanged = mcBlockPasses.SimplifyCFG();
+		bChanged |= mcMemoryPasses.UnifySlotTypes();
+		bChanged |= mcMemoryPasses.SplitSlots();
+		bChanged |= mcPromotionPasses.PromoteSlots();
+		bChanged |= mcBlockPasses.RemoveTrivialPhis();
+		bChanged |= mcFoldingPasses.FoldConstants();
+		bChanged |= mcRangePasses.FoldNullTests();
+		bChanged |= mcRangePasses.NarrowTruncations();
+		bChanged |= mcDivisionPasses.BoundDivisions();
+		bChanged |= mcDivisionPasses.SignedPowerDivisions();
+		bChanged |= mcContext.mbConstantDivisions && mcDivisionPasses.DivisibilityTests();
+		bChanged |= mcContext.mbConstantDivisions && mcDivisionPasses.ConstantDivisions();
+		bChanged |= (mcContext.mbConstantDivisions || (mcContext.muiDivideRemainders != 0)) && mcDivisionPasses.ShareDivisions();
+		bChanged |= mcFoldingPasses.RemoveCommonSubexpressions();
+		bChanged |= mcMemoryPasses.RemoveRedundantLoads();
+		bChanged |= mcContext.mbBiasedIndices && mcAddressPasses.MergeAddressPhis();
+		bChanged |= mcLoopPasses.RotateLoops();
+		bChanged |= mcLoopPasses.LessLoopTests();
+		bChanged |= mcCounterPasses.ReplaceLoopCounters();
+		bChanged |= mcContext.mbNarrowCounters && mcCounterPasses.NarrowCounters();
+		bChanged |= mcCounterPasses.ReduceMultiplies();
+		bChanged |= mcLoopPasses.ReplaceExitValues();
+		bChanged |= mcLoopPasses.DeleteDeadLoops();
+		bChanged |= mcCounterPasses.ReduceStrength();
+		bChanged |= mcAddressPasses.SplitLoopAddresses();
+		bChanged |= mcLoopPasses.HoistInvariants();
+		bChanged |= mcLoopPasses.SinkLoads();
+		bChanged |= mcLoopPasses.HoistCommon();
+		bChanged |= mcLoopPasses.UnswitchLoops();
+		bChanged |= mcIdiomPasses.ReplaceLoopIdioms();
+		bChanged |= mcBlockPasses.RemoveDeadCode();
+		bChanged |= mcBlockPasses.SinkComparisons();
 		if (!bChanged)
 		{
 			break;
 		}
 		bAny = true;
 	}
-	if (mbNarrowMultiplies && NarrowMultiplies())
+	if (mcContext.mbNarrowMultiplies && mcRangePasses.NarrowMultiplies())
 	{
-		FoldConstants();
-		RemoveDeadCode();
+		mcFoldingPasses.FoldConstants();
+		mcBlockPasses.RemoveDeadCode();
 		bAny = true;
 	}
-	if (mbBiasedIndices && BiasSignedIndices())
+	if (mcContext.mbBiasedIndices && mcAddressPasses.BiasSignedIndices())
 	{
-		RemoveCommonSubexpressions();
-		HoistInvariants();
-		RemoveDeadCode();
+		mcFoldingPasses.RemoveCommonSubexpressions();
+		mcLoopPasses.HoistInvariants();
+		mcBlockPasses.RemoveDeadCode();
 		bAny = true;
 	}
-	mpcFunction->Renumber();
-	mpcFunction->ComputePredecessors();
+	pcFunction->Renumber();
+	pcFunction->ComputePredecessors();
 	return bAny;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::ClearReplacements(void)
-{
-	masReplacements.FakeSetUsedElements(0);
-	masReplacements.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Uses of the temporary sOld are to be sNew.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::Replace(SIRReference sOld, SIRReference sNew)
-{
-	masReplacements.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
-	*masReplacements.Get(sOld.Index()) = sNew;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What sReference is after the replacements (following replaced
-// replacements).
-//
-//////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::Replacement(SIRReference sReference)
-{
-	SIRReference*	psReplacement;
-
-	while (sReference.IsTemporary())
-	{
-		psReplacement = masReplacements.SafeGet(sReference.Index());
-		if (!psReplacement || psReplacement->IsNone() || psReplacement->Equals(sReference))
-		{
-			break;
-		}
-		sReference = *psReplacement;
-	}
-	return sReference;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Every use of a temporary is what the replacements make it (Replacement;
-// anything else stays as it is).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::ApplyReplacements(void)
-{
-	SIRUse	sUse;
-	bool	bUse;
-
-	for (bUse = FirstTemporaryUse(&sUse); bUse; bUse = NextUse(&sUse))
-	{
-		*sUse.psSlot = Replacement(*sUse.psSlot);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starts a walk of sValue's uses (of every temporary with bTemporaries)
-// in papcBlocks (NULL for all the function's blocks) at the first; false
-// if there is none.  NextUse goes on to the next.  One walk serves the
-// passes that look for, count or rewrite the uses of a value, each with its
-// own filter on the blocks.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::FirstUse(SIRUse* psUse, SIRReference sValue, CArrayIRBlocks* papcBlocks, bool bTemporaries)
-{
-	psUse->sValue = sValue;
-	psUse->bTemporaries = bTemporaries;
-	psUse->papcBlocks = papcBlocks;
-	psUse->uiBlock = 0;
-	psUse->eKind = IRUK_Phi;
-	psUse->uiIndex = 0;
-	psUse->uiArgument = (size)-1;
-	return NextUse(psUse);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// FirstUse of every temporary instead of one value: each operand that is a
-// temporary.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::FirstTemporaryUse(SIRUse* psUse, CArrayIRBlocks* papcBlocks)
-{
-	return FirstUse(psUse, IRNone(), papcBlocks, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The walk's next use after the one it is at (block by block: the phis'
-// arguments, the instructions' operands, then the jump); false when there
-// are no more.  The block, phi and instruction are fetched again by their
-// indices each step, and the counts read again, so the walker may add
-// phis and instructions to the ends of blocks between steps (those added
-// to the block it is in, after where it is, are walked too).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::NextUse(SIRUse* psUse)
-{
-	size			uiBlocks;
-	SIRReference*	psSlot;
-
-	psUse->uiArgument++;
-	for (;;)
-	{
-		uiBlocks = psUse->papcBlocks ? psUse->papcBlocks->NumElements() : mpcFunction->NumBlocks();
-		if (psUse->uiBlock >= uiBlocks)
-		{
-			return false;
-		}
-		psUse->pcBlock = psUse->papcBlocks ? psUse->papcBlocks->GetPtr(psUse->uiBlock) : mpcFunction->GetBlock(psUse->uiBlock);
-		if (psUse->eKind == IRUK_Phi)
-		{
-			if (psUse->uiIndex >= psUse->pcBlock->masPhis.NumElements())
-			{
-				psUse->eKind = IRUK_Instruction;
-				psUse->uiIndex = 0;
-				psUse->uiArgument = 0;
-				continue;
-			}
-			psUse->psPhi = psUse->pcBlock->masPhis.Get(psUse->uiIndex);
-			if (psUse->uiArgument >= psUse->psPhi->asArguments.NumElements())
-			{
-				psUse->uiIndex++;
-				psUse->uiArgument = 0;
-				continue;
-			}
-			psUse->psArgument = psUse->psPhi->asArguments.Get(psUse->uiArgument);
-			psSlot = &psUse->psArgument->sValue;
-		}
-		else if (psUse->eKind == IRUK_Instruction)
-		{
-			if (psUse->uiIndex >= psUse->pcBlock->masInstructions.NumElements())
-			{
-				psUse->eKind = IRUK_Jump;
-				psUse->uiIndex = 0;
-				psUse->uiArgument = 0;
-				continue;
-			}
-			if (psUse->uiArgument >= 2)
-			{
-				psUse->uiIndex++;
-				psUse->uiArgument = 0;
-				continue;
-			}
-			psUse->psInstruction = psUse->pcBlock->masInstructions.Get(psUse->uiIndex);
-			psSlot = &psUse->psInstruction->asArguments[psUse->uiArgument];
-		}
-		else
-		{
-			if (psUse->uiArgument >= 1)
-			{
-				psUse->uiBlock++;
-				psUse->eKind = IRUK_Phi;
-				psUse->uiIndex = 0;
-				psUse->uiArgument = 0;
-				continue;
-			}
-			psSlot = &psUse->pcBlock->msJump.sArgument;
-		}
-		if (psUse->bTemporaries ? psSlot->IsTemporary() : psSlot->Equals(psUse->sValue))
-		{
-			psUse->psSlot = psSlot;
-			return true;
-		}
-		psUse->uiArgument++;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The use the walk is at reads sNew.  It is found again by its indices: a
-// walk that worked sNew out may have added phis (CIRSSAUpdater), moving the
-// block's phis.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SetUse(SIRUse* psUse, SIRReference sNew)
-{
-	CIRBlock*	pcBlock;
-
-	pcBlock = psUse->papcBlocks ? psUse->papcBlocks->GetPtr(psUse->uiBlock) : mpcFunction->GetBlock(psUse->uiBlock);
-	if (psUse->eKind == IRUK_Phi)
-	{
-		psUse->psPhi = pcBlock->masPhis.Get(psUse->uiIndex);
-		psUse->psArgument = psUse->psPhi->asArguments.Get(psUse->uiArgument);
-		psUse->psSlot = &psUse->psArgument->sValue;
-	}
-	else if (psUse->eKind == IRUK_Instruction)
-	{
-		psUse->psInstruction = pcBlock->masInstructions.Get(psUse->uiIndex);
-		psUse->psSlot = &psUse->psInstruction->asArguments[psUse->uiArgument];
-	}
-	else
-	{
-		psUse->psSlot = &pcBlock->msJump.sArgument;
-	}
-	*psUse->psSlot = sNew;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// IRHasEffect, except a call to a function that writes no memory its callers
-// can see (CIRModule::IsNoWrites): what is known to be in memory is still
-// so after it.  (Stores are the caller's to look at: this says only that
-// the instruction isn't some other write.)
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::MayWriteMemory(SIRInstruction* psInstruction)
-{
-	if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol() && mpcModule->IsNoWrites(psInstruction->asArguments[0].Index()))
-	{
-		return false;
-	}
-	return IRHasEffect(psInstruction);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether sAddress (through ptradds, any offset) is in the function's own
-// frame: a slot or a parameter's argaddr, gone when it returns.  Needs
-// FindDefinitions.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::IsOwnFrame(SIRReference sAddress)
-{
-	SIRInstruction*	psDefinition;
-	int				iSteps;
-
-	for (iSteps = 0; iSteps < 64; iSteps++)
-	{
-		psDefinition = mcDefinitions.Instruction(sAddress);
-		if (psDefinition == NULL)
-		{
-			return false;
-		}
-		if ((psDefinition->uiOpcode == IRO_Slot) || (psDefinition->uiOpcode == IRO_ArgAddress))
-		{
-			return true;
-		}
-		if (psDefinition->uiOpcode != IRO_PtrAdd)
-		{
-			return false;
-		}
-		sAddress = psDefinition->asArguments[0];
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether pcFunction may write memory its callers can see: a store not to
-// its own frame, a volatile load or store, a call to a function not known
-// to write nothing (CIRModule::IsNoWrites), an indirect call, or anything
-// else with an effect.  CIRInterprocedural::MarkNoWrites works the unit's
-// functions out with it, together.
+// Whether pcFunction may write memory its callers can see (CIRPasses::
+// WritesMemory).  CIRInterprocedural::MarkNoWrites works the unit's functions
+// out with it, together.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::WritesMemory(CIRFunction* pcFunction)
 {
-	size			uiBlock;
-	size			uiInstruction;
-	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
-	bool			bWrites;
+	bool	bWrites;
 
-	mpcFunction = pcFunction;
-	FindDefinitions();
-	bWrites = false;
-	for (uiBlock = 0; (uiBlock < pcFunction->NumBlocks()) && !bWrites; uiBlock++)
-	{
-		pcBlock = pcFunction->GetBlock(uiBlock);
-		for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bWrites; uiInstruction++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if (psInstruction->uiOpcode == IRO_Store)
-			{
-				bWrites = (psInstruction->uiFlags & IRF_Volatile) || !IsOwnFrame(psInstruction->asArguments[1]);
-			}
-			else if (psInstruction->uiOpcode != IRO_Arg)
-			{
-				bWrites = MayWriteMemory(psInstruction);
-			}
-		}
-	}
-	mpcFunction = NULL;
+	Begin(pcFunction);
+	bWrites = mcMemoryPasses.WritesMemory();
+	Begin(NULL);
 	return bWrites;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Each temporary's definition (mcDefinitions) and each parameter's first
-// argaddr.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::FindDefinitions(void)
-{
-	size			ui;
-	size			uiInstruction;
-	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
-	size			uiParameter;
-
-	mcDefinitions.Compute(mpcFunction);
-	masArgAddresses.FakeSetUsedElements(0);
-	masArgAddresses.GrowToAtLeastNumElements(mpcFunction->masParameters.NumElements(), true, 0);
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			uiParameter = (psInstruction->uiOpcode == IRO_ArgAddress) ? (size)mpcFunction->GetSigned(psInstruction->asArguments[0]) : SIZE_MAX;
-			if ((uiParameter < masArgAddresses.NumElements()) && masArgAddresses.Get(uiParameter)->IsNone())
-			{
-				*masArgAddresses.Get(uiParameter) = psInstruction->sResult;
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The blocks numbered with their predecessors, the dominators, the
-// definitions and the loops.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::ComputeLoops(void)
-{
-	mpcFunction->Renumber();
-	mpcFunction->ComputePredecessors();
-	mpcModule->Count(CPPCC_Dominators);
-	mcDominators.Compute(mpcFunction);
-	FindDefinitions();
-	mcLoops.Compute(mpcFunction, &mcDominators);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Moves pcBlock's instruction at uiFrom to uiTo (an index in the
-// instructions without it).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::MoveInstruction(CIRBlock* pcBlock, size uiFrom, size uiTo)
-{
-	SIRInstruction	sMoved;
-
-	sMoved = *pcBlock->masInstructions.Get(uiFrom);
-	pcBlock->masInstructions.RemoveAt(uiFrom, true);
-	pcBlock->masInstructions.InsertAt(&sMoved, uiTo);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A new instruction at uiIndex in pcBlock's instructions; sType is as
-// CIRFunction::Add takes it.  It has the source line of the instruction it
-// goes before.
-//
-//////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond)
-{
-	SIRInstruction	sMoved;
-	SIRReference	sResult;
-	size			uiLast;
-
-	sResult = mpcFunction->Add(pcBlock, uiOpcode, sType, sFirst, sSecond);
-	uiLast = pcBlock->masInstructions.NumElements() - 1;
-	sMoved = *pcBlock->masInstructions.Get(uiLast);
-	if ((sMoved.uiSource == 0) && (uiIndex < uiLast))
-	{
-		//Part of the work of the instruction it goes before: its source line too (for listings and profiles).
-		sMoved.uiSource = pcBlock->masInstructions.Get(uiIndex)->uiSource;
-	}
-	pcBlock->masInstructions.RemoveAt(uiLast, true);
-	pcBlock->masInstructions.InsertAt(&sMoved, uiIndex);
-	return sResult;
-}

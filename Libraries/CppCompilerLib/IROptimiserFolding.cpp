@@ -33,7 +33,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // divide by zero, floats, an instruction with an effect).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
+bool CIRFoldingPasses::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 {
 	SIROpcode*	psOpcode;
 	SIRType		sType;
@@ -159,7 +159,7 @@ bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 // constant offsets are added together (PointerOffsets).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::FoldConstants(void)
+bool CIRFoldingPasses::FoldConstants(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -174,7 +174,7 @@ bool CIROptimiser::FoldConstants(void)
 	ClearReplacements();
 	FindDefinitions();
 	mpcFunction->ComputePredecessors();
-	mpcFunction->CountUses(&mauiUses);
+	mpcFunction->CountUses(&mpcContext->mauiUses);
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -192,7 +192,7 @@ bool CIROptimiser::FoldConstants(void)
 				psInstruction->asArguments[1] = sValue;
 				bChanged = true;
 			}
-			if (NarrowComparison(psInstruction))
+			if (mpcContext->mpcRangePasses->NarrowComparison(psInstruction))
 			{
 				bChanged = true;
 			}
@@ -208,7 +208,7 @@ bool CIROptimiser::FoldConstants(void)
 				Replace(psInstruction->sResult, sValue);
 				if (sValue.IsTemporary() && psInstruction->sResult.IsTemporary())
 				{
-					*mauiUses.Get(sValue.Index()) += *mauiUses.Get(psInstruction->sResult.Index());
+					*mpcContext->mauiUses.Get(sValue.Index()) += *mpcContext->mauiUses.Get(psInstruction->sResult.Index());
 				}
 				bChanged = true;
 			}
@@ -218,7 +218,7 @@ bool CIROptimiser::FoldConstants(void)
 			}
 			else if ((psInstruction->uiOpcode == IRO_SExt) && (mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() > 1) &&
 					 (Extended(psInstruction->asArguments[0], mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() - 1, false, 0) ||
-					  NotNegative(pcBlock, psInstruction->asArguments[0])))
+					  mpcContext->mpcRangePasses->NotNegative(pcBlock, psInstruction->asArguments[0])))
 			{
 				//A sext of a value whose top bit is 0 (or that the branches to here keep 0 or more) is a zext (cheaper
 				//where a sign must be worked out).
@@ -227,7 +227,7 @@ bool CIROptimiser::FoldConstants(void)
 			}
 			else if (((psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem)) && psInstruction->asArguments[1].IsConstant() &&
 					 (IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) > 0) &&
-					 NotNegative(pcBlock, psInstruction->asArguments[0]))
+					 mpcContext->mpcRangePasses->NotNegative(pcBlock, psInstruction->asArguments[0]))
 			{
 				//A signed x / c or x % c is unsigned when x is never negative (and c is more than 0).
 				psInstruction->uiOpcode = (psInstruction->uiOpcode == IRO_SDiv) ? IRO_UDiv : IRO_URem;
@@ -276,7 +276,7 @@ bool CIROptimiser::FoldConstants(void)
 // needs no conversions: the W65C816 masks an itoptr's top byte).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::PointerOffset(SIRInstruction* psInstruction)
+bool CIRFoldingPasses::PointerOffset(SIRInstruction* psInstruction)
 {
 	SIRInstruction*	psAdd;
 	SIRInstruction*	psToInteger;
@@ -289,14 +289,14 @@ bool CIROptimiser::PointerOffset(SIRInstruction* psInstruction)
 		return false;
 	}
 	sType = mpcFunction->GetTemporaryType(psInstruction->sResult);
-	psAdd = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
+	psAdd = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
 	if (!psAdd || (psAdd->uiOpcode != IRO_Add) || !psAdd->sType.Equals(IRIntegerType(mpcModule->GetPointerSize(sType.uiSpace))))
 	{
 		return false;
 	}
 	for (i = 0; i < 2; i++)
 	{
-		psToInteger = mcDefinitions.Instruction(Replacement(psAdd->asArguments[i]));
+		psToInteger = mpcContext->mcDefinitions.Instruction(Replacement(psAdd->asArguments[i]));
 		if (psToInteger && (psToInteger->uiOpcode == IRO_PtrToI))
 		{
 			sPointer = Replacement(psToInteger->asArguments[0]);
@@ -322,7 +322,7 @@ bool CIROptimiser::PointerOffset(SIRInstruction* psInstruction)
 // pointer.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::PointerOffsets(SIRInstruction* psInstruction)
+bool CIRFoldingPasses::PointerOffsets(SIRInstruction* psInstruction)
 {
 	SIRInstruction*	psInner;
 	SIRType			sOffsetType;
@@ -331,7 +331,7 @@ bool CIROptimiser::PointerOffsets(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	psInner = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+	psInner = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
 	if (!psInner || (psInner->uiOpcode != IRO_PtrAdd) || !psInner->asArguments[1].IsConstant())
 	{
 		return false;
@@ -351,7 +351,7 @@ bool CIROptimiser::PointerOffsets(SIRInstruction* psInstruction)
 // *psValue is that value.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::UndoesExtension(SIRInstruction* psInstruction, SIRReference* psValue)
+bool CIRFoldingPasses::UndoesExtension(SIRInstruction* psInstruction, SIRReference* psValue)
 {
 	SIRInstruction*	psDefinition;
 	SIRType			sResultType;
@@ -361,7 +361,7 @@ bool CIROptimiser::UndoesExtension(SIRInstruction* psInstruction, SIRReference* 
 	{
 		return false;
 	}
-	psDefinition = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+	psDefinition = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
 	if (psDefinition == NULL)
 	{
 		return false;
@@ -395,7 +395,7 @@ bool CIROptimiser::UndoesExtension(SIRInstruction* psInstruction, SIRReference* 
 // and the like for a commutative op), or the constant: x * 0, x & 0.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psValue)
+bool CIRFoldingPasses::IsIdentity(SIRInstruction* psInstruction, SIRReference* psValue)
 {
 	uint64			ulliBits;
 	SIRReference	sValue;
@@ -466,7 +466,7 @@ bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psVal
 // The arithmetic wraps, so it is exact.  *psValue is what is left.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
+bool CIRFoldingPasses::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 {
 	SIRInstruction*	psDefinition;
 	SIRInstruction*	psTo;
@@ -484,7 +484,7 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 	{
 	case IRO_Sub:
 		//x - (x - y).
-		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[1]));
+		psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[1]));
 		if (psDefinition && (psDefinition->uiOpcode == IRO_Sub) && psDefinition->sType.Equals(psInstruction->sType) &&
 			Replacement(psDefinition->asArguments[0]).Equals(psInstruction->asArguments[0]))
 		{
@@ -497,7 +497,7 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 		}
 
 		//(x + y) - y or (y + x) - y.
-		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
+		psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
 		if (psDefinition && (psDefinition->uiOpcode == IRO_Add) && psDefinition->sType.Equals(psInstruction->sType))
 		{
 			for (i = 0; i < 2; i++)
@@ -519,7 +519,7 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 		//x + (y - x) or (y - x) + x.
 		for (i = 0; i < 2; i++)
 		{
-			psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[i]));
+			psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[i]));
 			if (psDefinition && (psDefinition->uiOpcode == IRO_Sub) && psDefinition->sType.Equals(psInstruction->sType) &&
 				Replacement(psDefinition->asArguments[1]).Equals(psInstruction->asArguments[1 - i]))
 			{
@@ -535,7 +535,7 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 
 	case IRO_IToPtr:
 		//A pointer turned into an integer and back.
-		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
+		psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
 		if (!psDefinition || (psDefinition->uiOpcode != IRO_PtrToI))
 		{
 			return false;
@@ -550,13 +550,13 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 
 	case IRO_PtrAdd:
 		//p + (q - p).
-		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[1]));
+		psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[1]));
 		if (!psDefinition || (psDefinition->uiOpcode != IRO_Sub))
 		{
 			return false;
 		}
-		psTo = mcDefinitions.Instruction(Replacement(psDefinition->asArguments[0]));
-		psFrom = mcDefinitions.Instruction(Replacement(psDefinition->asArguments[1]));
+		psTo = mpcContext->mcDefinitions.Instruction(Replacement(psDefinition->asArguments[0]));
+		psFrom = mpcContext->mcDefinitions.Instruction(Replacement(psDefinition->asArguments[1]));
 		if (!psTo || !psFrom || (psTo->uiOpcode != IRO_PtrToI) || (psFrom->uiOpcode != IRO_PtrToI) ||
 			!Replacement(psFrom->asArguments[0]).Equals(psInstruction->asArguments[0]))
 		{
@@ -583,7 +583,7 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 // go to each predecessor: DuplicateReturns).  *psValue is the phi.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ConvertPhi(SIRInstruction* psInstruction, SIRReference* psValue)
+bool CIRFoldingPasses::ConvertPhi(SIRInstruction* psInstruction, SIRReference* psValue)
 {
 	SIRPhi*			psPhi;
 	SIRPhiArgument*	psArgument;
@@ -596,9 +596,9 @@ bool CIROptimiser::ConvertPhi(SIRInstruction* psInstruction, SIRReference* psVal
 	{
 		return false;
 	}
-	psPhi = mcDefinitions.Phi(psInstruction->asArguments[0]);
+	psPhi = mpcContext->mcDefinitions.Phi(psInstruction->asArguments[0]);
 	sResultType = mpcFunction->GetTemporaryType(psInstruction->sResult);
-	if ((psPhi == NULL) || !psPhi->sType.IsInteger() || !sResultType.IsInteger() || (*mauiUses.Get(psPhi->sResult.Index()) != 1))
+	if ((psPhi == NULL) || !psPhi->sType.IsInteger() || !sResultType.IsInteger() || (*mpcContext->mauiUses.Get(psPhi->sResult.Index()) != 1))
 	{
 		return false;
 	}
@@ -619,7 +619,7 @@ bool CIROptimiser::ConvertPhi(SIRInstruction* psInstruction, SIRReference* psVal
 	}
 	psPhi->sType = sResultType;
 	mpcFunction->SetTemporaryType(psPhi->sResult, sResultType);
-	*mauiUses.Get(psPhi->sResult.Index()) = 0;
+	*mpcContext->mauiUses.Get(psPhi->sResult.Index()) = 0;
 	*psValue = psPhi->sResult;
 	return true;
 }
@@ -632,7 +632,7 @@ bool CIROptimiser::ConvertPhi(SIRInstruction* psInstruction, SIRReference* psVal
 // for signed), an and with a mask that fits, or a phi of such.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::Extended(SIRReference sValue, int iBits, bool bSigned, int iDepth)
+bool CIRFoldingPasses::Extended(SIRReference sValue, int iBits, bool bSigned, int iDepth)
 {
 	SIRConstant*	psConstant;
 	SIRInstruction*	psDefinition;
@@ -659,7 +659,7 @@ bool CIROptimiser::Extended(SIRReference sValue, int iBits, bool bSigned, int iD
 	{
 		return false;
 	}
-	psDefinition = mcDefinitions.Instruction(sValue);
+	psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psDefinition)
 	{
 		iFrom = mpcFunction->TypeOf(psDefinition->asArguments[0]).IntegerBits();
@@ -675,7 +675,7 @@ bool CIROptimiser::Extended(SIRReference sValue, int iBits, bool bSigned, int iD
 			return false;
 		}
 	}
-	psPhi = mcDefinitions.Phi(sValue);
+	psPhi = mpcContext->mcDefinitions.Phi(sValue);
 	if (psPhi == NULL)
 	{
 		return false;
@@ -721,7 +721,7 @@ static int IROptimiserSwapRelations(int iRelations)
 // and signedness; -1 if it doesn't.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIROptimiser::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction)
+int CIRFoldingPasses::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
 	SIRJump*			psJump;
 	SIRInstruction*		psKnown;
@@ -730,7 +730,7 @@ int CIROptimiser::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIR
 	int					iKnownSigned;
 
 	psJump = &pcPredecessor->msJump;
-	psKnown = ((psJump->uiKind == IRJ_Branch) && (psJump->pcThen != psJump->pcElse)) ? mcDefinitions.Instruction(psJump->sArgument) : NULL;
+	psKnown = ((psJump->uiKind == IRJ_Branch) && (psJump->pcThen != psJump->pcElse)) ? mpcContext->mcDefinitions.Instruction(psJump->sArgument) : NULL;
 	if (!psKnown || !IsIRIntegerComparison(psKnown->uiOpcode) || !psKnown->sType.Equals(psInstruction->sType))
 	{
 		return -1;
@@ -766,7 +766,7 @@ int CIROptimiser::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIR
 // set): after !(a < b), a > b is a != b.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged)
+bool CIRFoldingPasses::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged)
 {
 	size				ui;
 	CIRBlock*			pcPredecessor;
@@ -852,7 +852,7 @@ bool IROptimiserSameInstruction(CIRFunction* pcFunction, SIRInstruction* psEarli
 // The search is cut short in very large functions.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::RemoveCommonSubexpressions(void)
+bool CIRFoldingPasses::RemoveCommonSubexpressions(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -869,13 +869,13 @@ bool CIROptimiser::RemoveCommonSubexpressions(void)
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
 	mpcModule->Count(CPPCC_Dominators);
-	mcDominators.Compute(mpcFunction);
+	mpcContext->mcDominators.Compute(mpcFunction);
 	ClearReplacements();
 	bChanged = false;
-	for (ui = 0; ui < mcDominators.NumReachable(); ui++)
+	for (ui = 0; ui < mpcContext->mcDominators.NumReachable(); ui++)
 	{
 		//Reverse post order: dominators' instructions are already replaced.
-		pcBlock = mcDominators.GetReversePostOrder(ui);
+		pcBlock = mpcContext->mcDominators.GetReversePostOrder(ui);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -888,7 +888,7 @@ bool CIROptimiser::RemoveCommonSubexpressions(void)
 			bFound = false;
 			uiSearched = 0;
 			uiEnd = uiInstruction;
-			for (pcDominator = pcBlock; pcDominator && !bFound && (uiSearched < IR_CSE_SEARCH_LIMIT); pcDominator = mcDominators.GetImmediate(pcDominator))
+			for (pcDominator = pcBlock; pcDominator && !bFound && (uiSearched < IR_CSE_SEARCH_LIMIT); pcDominator = mpcContext->mcDominators.GetImmediate(pcDominator))
 			{
 				for (uiEarlier = 0; (uiEarlier < uiEnd) && (uiSearched < IR_CSE_SEARCH_LIMIT); uiEarlier++)
 				{
@@ -902,9 +902,9 @@ bool CIROptimiser::RemoveCommonSubexpressions(void)
 						break;
 					}
 				}
-				if (mcDominators.GetImmediate(pcDominator))
+				if (mpcContext->mcDominators.GetImmediate(pcDominator))
 				{
-					uiEnd = mcDominators.GetImmediate(pcDominator)->masInstructions.NumElements();
+					uiEnd = mpcContext->mcDominators.GetImmediate(pcDominator)->masInstructions.NumElements();
 				}
 			}
 		}

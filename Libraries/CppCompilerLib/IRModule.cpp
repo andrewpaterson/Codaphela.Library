@@ -538,7 +538,7 @@ bool CIRModule::IsRegisterCall(uint32 uiSymbol)
 // see: only its own frame, no volatile access, and it calls only such
 // functions (CIRInterprocedural::MarkNoWrites works it out for the unit's
 // functions).  A call to it is no barrier to what the optimiser knows is
-// in memory (CIROptimiser::MayWriteMemory).
+// in memory (CIRPasses::MayWriteMemory).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRModule::SetNoWrites(uint32 uiSymbol, bool bNoWrites)

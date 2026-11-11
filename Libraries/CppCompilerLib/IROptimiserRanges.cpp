@@ -33,11 +33,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // not.  *psType is set from the first extension found.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType)
+SIRReference CIRRangePasses::Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType)
 {
 	SIRInstruction*	psDefinition;
 
-	psDefinition = mcDefinitions.Instruction(sValue);
+	psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psDefinition)
 	{
 		if ((psDefinition->uiOpcode == uiOpcode) && (psType->IsNone() || mpcFunction->TypeOf(psDefinition->asArguments[0]).Equals(*psType)))
@@ -47,7 +47,7 @@ SIRReference CIROptimiser::Unextended(SIRReference sValue, uint16 uiOpcode, SIRT
 		}
 		return IRNone();
 	}
-	if (sValue.IsConstant() && !psType->IsNone() && Extended(sValue, psType->IntegerBits(), uiOpcode == IRO_SExt, 0))
+	if (sValue.IsConstant() && !psType->IsNone() && mpcContext->mpcFoldingPasses->Extended(sValue, psType->IntegerBits(), uiOpcode == IRO_SExt, 0))
 	{
 		return mpcFunction->AddConstant(*psType, IRTruncate(*psType, mpcFunction->GetConstant(sValue)->ulliBits));
 	}
@@ -63,7 +63,7 @@ SIRReference CIROptimiser::Unextended(SIRReference sValue, uint16 uiOpcode, SIRT
 // unsigned).  The extensions are then often dead.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::NarrowComparison(SIRInstruction* psInstruction)
+bool CIRRangePasses::NarrowComparison(SIRInstruction* psInstruction)
 {
 	uint16			uiExtension;
 	SIRType			sNarrow;
@@ -114,7 +114,7 @@ bool CIROptimiser::NarrowComparison(SIRInstruction* psInstruction)
 // (MAX_LSIZE) is never equal.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::ComparisonRange(SIRInstruction* psInstruction)
+void CIRRangePasses::ComparisonRange(SIRInstruction* psInstruction)
 {
 	SIRType		sNarrow;
 	int			iConstant;
@@ -122,7 +122,7 @@ void CIROptimiser::ComparisonRange(SIRInstruction* psInstruction)
 	bool		bTrue;
 	CChars		szLine;
 
-	if (!mpszWarnings)
+	if (!mpcContext->mpszWarnings)
 	{
 		return;
 	}
@@ -130,7 +130,7 @@ void CIROptimiser::ComparisonRange(SIRInstruction* psInstruction)
 	{
 		sNarrow = IRType(IRTK_None);
 		if (psInstruction->asArguments[iConstant].IsConstant() && !Unextended(psInstruction->asArguments[1 - iConstant], IRO_ZExt, &sNarrow).IsNone() &&
-			!Extended(psInstruction->asArguments[iConstant], sNarrow.IntegerBits(), false, 0))
+			!mpcContext->mpcFoldingPasses->Extended(psInstruction->asArguments[iConstant], sNarrow.IntegerBits(), false, 0))
 		{
 			break;
 		}
@@ -156,9 +156,9 @@ void CIROptimiser::ComparisonRange(SIRInstruction* psInstruction)
 	szLine.Init("Comparison is always ");
 	szLine.Append(bTrue ? "true" : "false")->Append(": a ")->Append(sNarrow.IntegerBits())->Append(" bit value, zero extended, is compared with ");
 	szLine.Append((uint64)IRTruncate(psInstruction->sType, ulliConstant))->Append(".\n");
-	if (!strstr(mpszWarnings->Text(), szLine.Text()))
+	if (!strstr(mpcContext->mpszWarnings->Text(), szLine.Text()))
 	{
-		mpszWarnings->Append(szLine);
+		mpcContext->mpszWarnings->Append(szLine);
 	}
 	szLine.Kill();
 }
@@ -196,7 +196,7 @@ static bool IROptimiserNarrows(CIRFunction* pcFunction, SIRInstruction* psInstru
 // when it takes one.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::FreeNarrow(SIRReference sValue, SIRType sType)
+SIRReference CIRRangePasses::FreeNarrow(SIRReference sValue, SIRType sType)
 {
 	SIRInstruction*	psDefinition;
 
@@ -204,7 +204,7 @@ SIRReference CIROptimiser::FreeNarrow(SIRReference sValue, SIRType sType)
 	{
 		return mpcFunction->AddConstant(sType, IRTruncate(sType, mpcFunction->GetConstant(sValue)->ulliBits));
 	}
-	psDefinition = mcDefinitions.Instruction(sValue);
+	psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psDefinition && ((psDefinition->uiOpcode == IRO_SExt) || (psDefinition->uiOpcode == IRO_ZExt)) && mpcFunction->TypeOf(psDefinition->asArguments[0]).Equals(sType))
 	{
 		return psDefinition->asArguments[0];
@@ -220,7 +220,7 @@ SIRReference CIROptimiser::FreeNarrow(SIRReference sValue, SIRType sType)
 // narrowed uses it, or else a trunc.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth)
+SIRReference CIRRangePasses::Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth)
 {
 	SIRInstruction*	psDefinition;
 	SIRInstruction	sNew;
@@ -231,9 +231,9 @@ SIRReference CIROptimiser::Narrowed(SIRReference sValue, SIRType sType, CArrayIR
 	{
 		return sNarrow;
 	}
-	psDefinition = mcDefinitions.Instruction(sValue);
+	psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
 	memset(&sNew, 0, sizeof(SIRInstruction));
-	if (psDefinition && (iDepth < IR_NARROW_DEPTH) && (mcDefinitions.NumUses(sValue) == 1) && IROptimiserNarrows(mpcFunction, psDefinition, sType.IntegerBits()))
+	if (psDefinition && (iDepth < IR_NARROW_DEPTH) && (mpcContext->mcDefinitions.NumUses(sValue) == 1) && IROptimiserNarrows(mpcFunction, psDefinition, sType.IntegerBits()))
 	{
 		sNew = *psDefinition;
 		sNew.asArguments[0] = Narrowed(sNew.asArguments[0], sType, pasNew, iDepth + 1);
@@ -258,10 +258,10 @@ SIRReference CIROptimiser::Narrowed(SIRReference sValue, SIRType sType, CArrayIR
 // zext; the smaller of an and's; x >> c, x % c and x / c of x's; the sum of
 // an add's that can't wrap; the most of a phi's arguments, each as the
 // branch to the phi bounds it (EdgeBound) or as it is.  Else all ones of its
-// type.  mcDefinitions must be found.
+// type.  mpcContext->mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CIROptimiser::UpperBound(SIRReference sValue, int iDepth)
+uint64 CIRRangePasses::UpperBound(SIRReference sValue, int iDepth)
 {
 	SIRInstruction*	psInstruction;
 	SIRPhi*			psPhi;
@@ -289,7 +289,7 @@ uint64 CIROptimiser::UpperBound(SIRReference sValue, int iDepth)
 		return ulliMost;
 	}
 
-	psInstruction = mcDefinitions.Instruction(sValue);
+	psInstruction = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psInstruction)
 	{
 		ulliConstant = psInstruction->asArguments[1].IsConstant() ? IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) : 0;
@@ -333,10 +333,10 @@ uint64 CIROptimiser::UpperBound(SIRReference sValue, int iDepth)
 		}
 	}
 
-	psPhi = mcDefinitions.Phi(sValue);
+	psPhi = mpcContext->mcDefinitions.Phi(sValue);
 	if (psPhi)
 	{
-		pcBlock = mcDefinitions.Block(sValue);
+		pcBlock = mpcContext->mcDefinitions.Block(sValue);
 		ulliFirst = 0;
 		for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
 		{
@@ -367,7 +367,7 @@ uint64 CIROptimiser::UpperBound(SIRReference sValue, int iDepth)
 // anything else, such as xor i1 %x, 1, says nothing this way).
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIROptimiser::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther)
+SIRInstruction* CIRRangePasses::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther)
 {
 	SIRInstruction*	psCompare;
 
@@ -375,7 +375,7 @@ SIRInstruction* CIROptimiser::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, S
 	{
 		return NULL;
 	}
-	psCompare = mcDefinitions.Instruction(pcFrom->msJump.sArgument);
+	psCompare = mpcContext->mcDefinitions.Instruction(pcFrom->msJump.sArgument);
 	if (!psCompare || !IsIRIntegerComparison(psCompare->uiOpcode))
 	{
 		return NULL;
@@ -413,7 +413,7 @@ SIRInstruction* CIROptimiser::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, S
 // (v < n, v <= n, or not v >= n and the like), else all ones.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CIROptimiser::EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue)
+uint64 CIRRangePasses::EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue)
 {
 	SIRInstruction*	psCompare;
 	SIRReference	sConstant;
@@ -446,13 +446,13 @@ uint64 CIROptimiser::EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sV
 // (DivisionRange); x + y's, x - y's, x * c's and shifts' by a constant
 // (ArithmeticRange); a phi's of all its values (up to iDepth definitions
 // back); else from 0 to UpperBound when that is below the type's sign bit
-// (a zext, an and).  With mbBranchRanges an operand's range is narrowed by
+// (a zext, an and).  With mpcContext->mbBranchRanges an operand's range is narrowed by
 // the branches to the instruction's block (RangeAt) and a phi's values by
 // the branches to the phi on their way.  False if nothing narrower than the
-// type is known.  mcDefinitions must be found.
+// type is known.  mpcContext->mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth)
+bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth)
 {
 	SIRInstruction*	psInstruction;
 	SIRType			sType;
@@ -477,13 +477,13 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 		*plliMax = *plliMin;
 		return true;
 	}
-	psInstruction = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+	psInstruction = sValue.IsTemporary() ? mpcContext->mcDefinitions.Instruction(sValue) : NULL;
 	if (psInstruction && (psInstruction->uiOpcode == IRO_Add) && psInstruction->asArguments[1].IsConstant())
 	{
 		//x + c: x's range moved, when it can't wrap.  ArithmeticRange's would be the same, but one that may wrap isn't
 		//then the UpperBound below (x - c and c - x are ArithmeticRange's: UpperBound knows nothing of a sub).
 		lliConstant = IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-		if ((iDepth > 0) && RangeAt(mcDefinitions.Block(sValue), psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
+		if ((iDepth > 0) && RangeAt(mpcContext->mcDefinitions.Block(sValue), psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
 		{
 			*plliMin += lliConstant;
 			*plliMax += lliConstant;
@@ -498,13 +498,13 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 	{
 		return true;
 	}
-	psPhi = sValue.IsTemporary() ? mcDefinitions.Phi(sValue) : NULL;
+	psPhi = sValue.IsTemporary() ? mpcContext->mcDefinitions.Phi(sValue) : NULL;
 	if (psPhi && (iDepth > 0))
 	{
 		//A phi: the range of all its values (each narrowed by the branches on its way).
 		for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
 		{
-			if (!RangeAt(psPhi->asArguments.Get(ui)->pcBlock, psPhi->asArguments.Get(ui)->sValue, &lliArgumentMin, &lliArgumentMax, iDepth - 1, mcDefinitions.Block(sValue)))
+			if (!RangeAt(psPhi->asArguments.Get(ui)->pcBlock, psPhi->asArguments.Get(ui)->sValue, &lliArgumentMin, &lliArgumentMax, iDepth - 1, mpcContext->mcDefinitions.Block(sValue)))
 			{
 				return false;
 			}
@@ -542,10 +542,10 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 // The signed range of sValue where pcBlock runs (on its way to pcTo when
 // pcTo isn't NULL): SignedRange's, or the type's when that isn't known,
 // narrowed by the branches there (BranchRange, DominatingRange) when
-// mbBranchRanges.  False if nothing narrower than the type is known.
+// mpcContext->mbBranchRanges.  False if nothing narrower than the type is known.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth, CIRBlock* pcTo)
+bool CIRRangePasses::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth, CIRBlock* pcTo)
 {
 	SIRType	sType;
 	int64	lliLeast;
@@ -553,7 +553,7 @@ bool CIROptimiser::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMi
 	bool	bKnown;
 
 	bKnown = SignedRange(sValue, plliMin, plliMax, iDepth);
-	if (!mbBranchRanges || !pcBlock)
+	if (!mpcContext->mbBranchRanges || !pcBlock)
 	{
 		return bKnown;
 	}
@@ -591,7 +591,7 @@ bool CIROptimiser::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMi
 // can't wrap.  False for anything else.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
+bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
 {
 	CIRBlock*	pcBlock;
 	SIRType		sType;
@@ -611,7 +611,7 @@ bool CIROptimiser::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin
 		return false;
 	}
 	iBits = sType.IntegerBits();
-	pcBlock = mcDefinitions.Block(psInstruction->sResult);
+	pcBlock = mpcContext->mcDefinitions.Block(psInstruction->sResult);
 	if (!RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
 	{
 		//A shift right narrows any value: x is any of its type's (as signed for ashr, unsigned for lshr).
@@ -683,7 +683,7 @@ bool CIROptimiser::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin
 // unsigned values.  False for anything else.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
+bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
 {
 	SIRType	sType;
 	uint16	uiOpcode;
@@ -708,7 +708,7 @@ bool CIROptimiser::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, 
 	{
 		return false;
 	}
-	if (!RangeAt(mcDefinitions.Block(psInstruction->sResult), psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
+	if (!RangeAt(mpcContext->mcDefinitions.Block(psInstruction->sResult), psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
 	{
 		lliMin = IRSignedMin(iBits);
 		lliMax = IRSignedMax(iBits);
@@ -747,7 +747,7 @@ bool CIROptimiser::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, 
 // (a brif on sValue != 0 to its then, or on sValue == 0 to its else).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue)
+bool CIRRangePasses::BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue)
 {
 	SIRReference	sOther;
 	uint16			uiOpcode;
@@ -763,11 +763,11 @@ bool CIROptimiser::BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference 
 // address, a slot, a constant other than 0; tested not null on the way to
 // pcBlock (while blocks have one predecessor); a pointer added to one that
 // isn't null (C++'s pointer arithmetic stays in an object); a phi whose
-// every value isn't null on its way in.  mcDefinitions and the
+// every value isn't null on its way in.  mpcContext->mcDefinitions and the
 // predecessors must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth)
+bool CIRRangePasses::NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth)
 {
 	SIRInstruction*	psInstruction;
 	SIRPhi*			psPhi;
@@ -799,8 +799,8 @@ bool CIROptimiser::NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth)
 		pcTo = pcTo->mapcPredecessors.GetPtr(0);
 	}
 
-	pcDefinition = mcDefinitions.Block(sValue);
-	psInstruction = mcDefinitions.Instruction(sValue);
+	pcDefinition = mpcContext->mcDefinitions.Block(sValue);
+	psInstruction = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psInstruction)
 	{
 		if (psInstruction->uiOpcode == IRO_Slot)
@@ -813,7 +813,7 @@ bool CIROptimiser::NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth)
 		}
 		return false;
 	}
-	psPhi = mcDefinitions.Phi(sValue);
+	psPhi = mpcContext->mcDefinitions.Phi(sValue);
 	if (!psPhi || (psPhi->asArguments.NumElements() == 0))
 	{
 		return false;
@@ -836,7 +836,7 @@ bool CIROptimiser::NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth)
 // false and true.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::FoldNullTests(void)
+bool CIRRangePasses::FoldNullTests(void)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
@@ -895,7 +895,7 @@ bool CIROptimiser::FoldNullTests(void)
 // (the way to the block), up to IR_RANGE_DEPTH blocks up.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax)
+void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax)
 {
 	CIRBlock*		pcTo;
 	CIRBlock*		pcFrom;
@@ -918,7 +918,7 @@ void CIROptimiser::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64
 // (EdgeComparison).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax)
+void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax)
 {
 	SIRReference	sConstant;
 	uint16			uiOpcode;
@@ -957,7 +957,7 @@ void CIROptimiser::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sV
 // or more (DominatingRange).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::NotNegative(CIRBlock* pcBlock, SIRReference sValue)
+bool CIRRangePasses::NotNegative(CIRBlock* pcBlock, SIRReference sValue)
 {
 	int		iBits;
 	int64	lliMin;
@@ -983,7 +983,7 @@ bool CIROptimiser::NotNegative(CIRBlock* pcBlock, SIRReference sValue)
 // zero extended: (long)y * 320 with y from 0 to 199 is a 16 bit y * 320.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::NarrowMultiplies(void)
+bool CIRRangePasses::NarrowMultiplies(void)
 {
 	CArrayTemplate<SIRNarrowMultiply>	asFound;
 	SIRNarrowMultiply*					psFound;
@@ -1019,7 +1019,7 @@ bool CIROptimiser::NarrowMultiplies(void)
 				continue;
 			}
 			ulliConstant = IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-			psExtension = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+			psExtension = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
 			if ((ulliConstant == 0) || (ulliConstant > 0xFFFF) || !psExtension || ((psExtension->uiOpcode != IRO_SExt) && (psExtension->uiOpcode != IRO_ZExt)))
 			{
 				continue;
@@ -1084,7 +1084,7 @@ bool CIROptimiser::NarrowMultiplies(void)
 // and short arithmetic).  Operands are narrowed the same way, or truncated.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::NarrowTruncations(void)
+bool CIRRangePasses::NarrowTruncations(void)
 {
 	CArrayIRInstructions	asNew;
 	SIRInstruction			sInstruction;
@@ -1108,8 +1108,8 @@ bool CIROptimiser::NarrowTruncations(void)
 		{
 			sInstruction = *pcBlock->masInstructions.Get(uiInstruction);
 			sType = sInstruction.sType;
-			psWide = (sInstruction.uiOpcode == IRO_Trunc) && sInstruction.sResult.IsTemporary() && sType.IsInteger() && !sType.Is(IRTK_I1) ? mcDefinitions.Instruction(sInstruction.asArguments[0]) : NULL;
-			if (psWide && (mcDefinitions.NumUses(sInstruction.asArguments[0]) == 1) && IROptimiserNarrows(mpcFunction, psWide, sType.IntegerBits()) &&
+			psWide = (sInstruction.uiOpcode == IRO_Trunc) && sInstruction.sResult.IsTemporary() && sType.IsInteger() && !sType.Is(IRTK_I1) ? mpcContext->mcDefinitions.Instruction(sInstruction.asArguments[0]) : NULL;
+			if (psWide && (mpcContext->mcDefinitions.NumUses(sInstruction.asArguments[0]) == 1) && IROptimiserNarrows(mpcFunction, psWide, sType.IntegerBits()) &&
 				(!FreeNarrow(psWide->asArguments[0], sType).IsNone() || !FreeNarrow(psWide->asArguments[1], sType).IsNone()))
 			{
 				sInstruction.uiOpcode = psWide->uiOpcode;

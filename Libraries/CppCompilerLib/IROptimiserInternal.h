@@ -23,7 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IROptimiser.h"
 
 
-//What the optimiser's files (IROptimiser.cpp and the other IROptimiser*.cpp of CIROptimiser) share.
+//What the optimiser's files (IROptimiser.cpp, IRPasses.cpp and the groups of passes' IROptimiser*.cpp) share.
 
 
 //The optimiser's limits: how far its searches look, and how much it does at a time, so a large function stays

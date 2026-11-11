@@ -27,10 +27,44 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPromotionPasses::Init(CIRPassContext* pcContext)
+{
+	CIRPasses::Init(pcContext);
+	masPromotions.Init();
+	maiPromotion.Init();
+	maiPhiPromotion.Init();
+	masValues.Init();
+	maiValueLinks.Init();
+	maiTops.Init();
+	maiPushedPromotions.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPromotionPasses::Kill(void)
+{
+	maiPushedPromotions.Kill();
+	maiTops.Kill();
+	maiValueLinks.Kill();
+	masValues.Kill();
+	maiPhiPromotion.Kill();
+	maiPromotion.Kill();
+	masPromotions.Kill();
+	CIRPasses::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Slots and argaddrs whose address is only loaded from and stored to.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::PromoteSlots(void)
+bool CIRPromotionPasses::PromoteSlots(void)
 {
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
@@ -41,8 +75,8 @@ bool CIROptimiser::PromoteSlots(void)
 	}
 	ClearReplacements();
 	mpcModule->Count(CPPCC_Dominators);
-	mcDominators.Compute(mpcFunction);
-	mcDominators.ComputeFrontiers();
+	mpcContext->mcDominators.Compute(mpcFunction);
+	mpcContext->mcDominators.ComputeFrontiers();
 	PlacePhis();
 	Rename();
 	RemovePromoted();
@@ -56,7 +90,7 @@ bool CIROptimiser::PromoteSlots(void)
 // The promotion sAddress is, -1 if it isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIROptimiser::PromotionOf(SIRReference sAddress)
+int32 CIRPromotionPasses::PromotionOf(SIRReference sAddress)
 {
 	int32*	piPromotion;
 
@@ -92,7 +126,7 @@ static bool IROptimiserCandidateUse(SIRInstruction* psInstruction, int iArgument
 // a store is its parameter's; a slot's is zero (C++ says it isn't known).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::FindPromotions(void)
+void CIRPromotionPasses::FindPromotions(void)
 {
 	size					ui;
 	size					uiInstruction;
@@ -228,7 +262,7 @@ void CIROptimiser::FindPromotions(void)
 // that store to it.  Their arguments are filled in by Rename.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::PlacePhis(void)
+void CIRPromotionPasses::PlacePhis(void)
 {
 	size					ui;
 	size					uiInstruction;
@@ -277,9 +311,9 @@ void CIROptimiser::PlacePhis(void)
 		while (apcWork.NumElements() > 0)
 		{
 			pcBlock = apcWork.Pop();
-			for (uiFrontier = 0; uiFrontier < mcDominators.NumFrontiers(pcBlock); uiFrontier++)
+			for (uiFrontier = 0; uiFrontier < mpcContext->mcDominators.NumFrontiers(pcBlock); uiFrontier++)
 			{
-				pcFrontier = mcDominators.GetFrontier(pcBlock, uiFrontier);
+				pcFrontier = mpcContext->mcDominators.GetFrontier(pcBlock, uiFrontier);
 				if (*aiHasPhi.Get(pcFrontier->muiIndex) == iPromotion)
 				{
 					continue;
@@ -307,7 +341,7 @@ void CIROptimiser::PlacePhis(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::PushValue(int32 iPromotion, SIRReference sValue)
+void CIRPromotionPasses::PushValue(int32 iPromotion, SIRReference sValue)
 {
 	int32	iIndex;
 
@@ -323,7 +357,7 @@ void CIROptimiser::PushValue(int32 iPromotion, SIRReference sValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::PopValue(void)
+void CIRPromotionPasses::PopValue(void)
 {
 	int32	iPromotion;
 	int32	iIndex;
@@ -341,7 +375,7 @@ void CIROptimiser::PopValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::CurrentValue(int32 iPromotion)
+SIRReference CIRPromotionPasses::CurrentValue(int32 iPromotion)
 {
 	int32	iTop;
 
@@ -357,7 +391,7 @@ SIRReference CIROptimiser::CurrentValue(int32 iPromotion)
 // its successors' phis their arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::Rename(void)
+void CIRPromotionPasses::Rename(void)
 {
 	CArrayIRRenameFrames	asStack;
 	SIRRenameFrame*			psFrame;
@@ -381,9 +415,9 @@ void CIROptimiser::Rename(void)
 	while (asStack.NumElements() > 0)
 	{
 		psFrame = asStack.Tail();
-		if (psFrame->uiNextChild < mcDominators.NumChildren(psFrame->pcBlock))
+		if (psFrame->uiNextChild < mpcContext->mcDominators.NumChildren(psFrame->pcBlock))
 		{
-			pcChild = mcDominators.GetChild(psFrame->pcBlock, psFrame->uiNextChild);
+			pcChild = mpcContext->mcDominators.GetChild(psFrame->pcBlock, psFrame->uiNextChild);
 			psFrame->uiNextChild++;
 			RenameBlock(pcChild, &uiPushed);
 			psNew = asStack.Add();
@@ -408,7 +442,7 @@ void CIROptimiser::Rename(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::RenameBlock(CIRBlock* pcBlock, size* puiPushed)
+void CIRPromotionPasses::RenameBlock(CIRBlock* pcBlock, size* puiPushed)
 {
 	size			ui;
 	SIRPhi*			psPhi;
@@ -457,7 +491,7 @@ void CIROptimiser::RenameBlock(CIRBlock* pcBlock, size* puiPushed)
 // pcBlock's successors' promotion phis get pcBlock's current values.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::FillSuccessorPhis(CIRBlock* pcBlock)
+void CIRPromotionPasses::FillSuccessorPhis(CIRBlock* pcBlock)
 {
 	size			uiSuccessor;
 	size			ui;
@@ -490,7 +524,7 @@ void CIROptimiser::FillSuccessorPhis(CIRBlock* pcBlock)
 // The promoted slots, argaddrs and their loads and stores go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::RemovePromoted(void)
+void CIRPromotionPasses::RemovePromoted(void)
 {
 	size			ui;
 	size			uiInstruction;

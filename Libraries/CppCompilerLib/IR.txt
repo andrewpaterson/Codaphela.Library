@@ -291,7 +291,7 @@ then keeps the code Body generated for it.
 
 Indirect calls (2026-10-25): a load from a constant global, or from known data (CIRModule::
 AddKnownData: read only data defined outside the module, never written out), at a constant
-offset is what is there (CIROptimiser::ConstantData), so a call through it is direct.  The
+offset is what is there (CIRMemoryPasses::ConstantData), so a call through it is direct.  The
 front end describes each vtable it stores as known data (DescribeVtable, as
 EnsureVtable writes it), and writes implicit default constructors and destructors as IR too
 (the generator falls back to its own), so a virtual call on an object whose vtable store

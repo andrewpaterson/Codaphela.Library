@@ -29,7 +29,31 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SimplifyCFG(void)
+void CIRBlockPasses::Init(CIRPassContext* pcContext)
+{
+	CIRPasses::Init(pcContext);
+	mabReached.Init();
+	maiReachSearch.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlockPasses::Kill(void)
+{
+	maiReachSearch.Kill();
+	mabReached.Kill();
+	CIRPasses::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBlockPasses::SimplifyCFG(void)
 {
 	bool	bChanged;
 	bool	bAny;
@@ -54,7 +78,7 @@ bool CIROptimiser::SimplifyCFG(void)
 // Removes pcPredecessor's arguments from pcBlock's phis.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor)
+void CIRBlockPasses::RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor)
 {
 	size			ui;
 	size			uiArgument;
@@ -78,7 +102,7 @@ void CIROptimiser::RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew)
+void CIRBlockPasses::RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew)
 {
 	size			ui;
 	size			uiArgument;
@@ -106,7 +130,7 @@ void CIROptimiser::RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlo
 // twice becomes a jmp.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew)
+void CIRBlockPasses::RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew)
 {
 	if (pcBlock->msJump.pcThen == pcOld)
 	{
@@ -129,7 +153,7 @@ void CIROptimiser::RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pc
 // passing pcTarget's phis what pcBlock did.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* pcTarget)
+void CIRBlockPasses::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* pcTarget)
 {
 	size			uiPhi;
 	SIRPhiArgument*	psArgument;
@@ -162,7 +186,7 @@ void CIROptimiser::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* 
 // dominators aren't needed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::RemoveUnreachable(void)
+bool CIRBlockPasses::RemoveUnreachable(void)
 {
 	size			ui;
 	size			uiSuccessor;
@@ -236,7 +260,7 @@ bool CIROptimiser::RemoveUnreachable(void)
 // brif on a constant is a jmp.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::FoldBranches(void)
+bool CIRBlockPasses::FoldBranches(void)
 {
 	size			ui;
 	CIRBlock*		pcBlock;
@@ -276,7 +300,7 @@ bool CIROptimiser::FoldBranches(void)
 // block).  Returns true after the first block that changes.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SkipEmptyBlocks(void)
+bool CIRBlockPasses::SkipEmptyBlocks(void)
 {
 	size			ui;
 	size			uiPredecessor;
@@ -327,7 +351,7 @@ bool CIROptimiser::SkipEmptyBlocks(void)
 // along single predecessors from a block that does.  Returns -1 if unknown.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIROptimiser::KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition)
+int CIRBlockPasses::KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition)
 {
 	size		ui;
 	SIRJump*	psJump;
@@ -359,7 +383,7 @@ int CIROptimiser::KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIR
 // block that changes.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ThreadBranches(void)
+bool CIRBlockPasses::ThreadBranches(void)
 {
 	size			ui;
 	size			uiPredecessor;
@@ -415,7 +439,7 @@ bool CIROptimiser::ThreadBranches(void)
 // counted with its phis).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSuccessor, CArrayTemplate<uint32>* pauiInside)
+void CIRBlockPasses::CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSuccessor, CArrayTemplate<uint32>* pauiInside)
 {
 	SIRPhiArgument*	psArgument;
 	size			ui;
@@ -441,10 +465,10 @@ void CIROptimiser::CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSuccesso
 // instructions, jump or phis; so a predecessor can go round it without
 // them).  With bSuccessorPhis its phis may also be the values its
 // successors' phis take from it (Bypass gives those what the predecessor
-// gave).  mauiUses must be counted.
+// gave).  mpcContext->mauiUses must be counted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis)
+bool CIRBlockPasses::OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis)
 {
 	CArrayIRBlocks	apcBlocks;
 	bool			bOnly;
@@ -460,13 +484,13 @@ bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis)
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the phis and results of papcBlocks are only used in them (by
-// their instructions, jumps or phis): every use mauiUses counts of each is
+// their instructions, jumps or phis): every use mpcContext->mauiUses counts of each is
 // one of theirs.  With bSuccessorPhis a block's phis may also be the values
-// its successors' phis take from it (CountSuccessorPhiUses).  mauiUses must
+// its successors' phis take from it (CountSuccessorPhiUses).  mpcContext->mauiUses must
 // be counted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
+bool CIRBlockPasses::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
 {
 	CArrayTemplate<uint32>	auiInside;
 	CIRBlock*				pcBlock;
@@ -500,12 +524,12 @@ bool CIROptimiser::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
 		for (uiIndex = 0; bOnly && (uiIndex < pcBlock->masPhis.NumElements()); uiIndex++)
 		{
 			sValue = pcBlock->masPhis.Get(uiIndex)->sResult;
-			bOnly = *mauiUses.Get(sValue.Index()) == *auiInside.Get(sValue.Index());
+			bOnly = *mpcContext->mauiUses.Get(sValue.Index()) == *auiInside.Get(sValue.Index());
 		}
 		for (uiIndex = 0; bOnly && (uiIndex < pcBlock->masInstructions.NumElements()); uiIndex++)
 		{
 			sValue = pcBlock->masInstructions.Get(uiIndex)->sResult;
-			bOnly = !sValue.IsTemporary() || (*mauiUses.Get(sValue.Index()) == *auiInside.Get(sValue.Index()));
+			bOnly = !sValue.IsTemporary() || (*mpcContext->mauiUses.Get(sValue.Index()) == *auiInside.Get(sValue.Index()));
 		}
 	}
 	auiInside.Kill();
@@ -520,7 +544,7 @@ bool CIROptimiser::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
 // if they don't.
 //
 //////////////////////////////////////////////////////////////////////////
-CIRBlock* CIROptimiser::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock)
+CIRBlock* CIRBlockPasses::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock)
 {
 	CArrayIRReferences	asKnown;		//Per temporary: its constant coming from pcPredecessor, IRNone if not known.
 	SIRInstruction		sCopy;
@@ -549,9 +573,9 @@ CIRBlock* CIROptimiser::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock)
 			(mpcFunction->GetConstant(sCopy.asArguments[1])->ulliBits == 0) && sCopy.asArguments[0].IsTemporary() && mpcFunction->TypeOf(sCopy.asArguments[0]).IsPointer())
 		{
 			//A pointer phi that isn't null coming from pcPredecessor (NonNullAt): p == 0 is false, p != 0 true.
-			psPhi = mcDefinitions.Phi(sCopy.asArguments[0]);
-			psArgument = (psPhi && (mcDefinitions.Block(sCopy.asArguments[0]) == pcBlock)) ? pcBlock->FindPhiArgument(psPhi, pcPredecessor) : NULL;
-			if (psArgument && (BranchNonNull(pcPredecessor, pcBlock, psArgument->sValue) || NonNullAt(pcPredecessor, psArgument->sValue, IR_NON_NULL_DEPTH)))
+			psPhi = mpcContext->mcDefinitions.Phi(sCopy.asArguments[0]);
+			psArgument = (psPhi && (mpcContext->mcDefinitions.Block(sCopy.asArguments[0]) == pcBlock)) ? pcBlock->FindPhiArgument(psPhi, pcPredecessor) : NULL;
+			if (psArgument && (mpcContext->mpcRangePasses->BranchNonNull(pcPredecessor, pcBlock, psArgument->sValue) || mpcContext->mpcRangePasses->NonNullAt(pcPredecessor, psArgument->sValue, IR_NON_NULL_DEPTH)))
 			{
 				*asKnown.Get(sCopy.sResult.Index()) = mpcFunction->AddConstant(mpcFunction->GetTemporaryType(sCopy.sResult), (sCopy.uiOpcode == IRO_Ne) ? 1 : 0);
 				continue;
@@ -564,7 +588,7 @@ CIRBlock* CIROptimiser::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock)
 				sCopy.asArguments[iArgument] = *asKnown.Get(sCopy.asArguments[iArgument].Index());
 			}
 		}
-		if (sCopy.sResult.IsTemporary() && Fold(&sCopy, &ulliBits))
+		if (sCopy.sResult.IsTemporary() && mpcContext->mpcFoldingPasses->Fold(&sCopy, &ulliBits))
 		{
 			*asKnown.Get(sCopy.sResult.Index()) = mpcFunction->AddConstant(mpcFunction->GetTemporaryType(sCopy.sResult), ulliBits);
 		}
@@ -593,7 +617,7 @@ CIRBlock* CIROptimiser::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock)
 // straight to where the brif would go (unless it already jumps there).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ThreadPhis(void)
+bool CIRBlockPasses::ThreadPhis(void)
 {
 	CArrayIRBlocks	apcPredecessors;
 	size			ui;
@@ -604,7 +628,7 @@ bool CIROptimiser::ThreadPhis(void)
 	bool			bChanged;
 	bool			bPure;
 
-	mpcFunction->CountUses(&mauiUses);
+	mpcFunction->CountUses(&mpcContext->mauiUses);
 	FindDefinitions();
 	apcPredecessors.Init();
 	bChanged = false;
@@ -658,7 +682,7 @@ bool CIROptimiser::ThreadPhis(void)
 // Returns true after the first block that changes.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::DuplicateReturns(void)
+bool CIRBlockPasses::DuplicateReturns(void)
 {
 	size			ui;
 	size			uiPredecessor;
@@ -715,7 +739,7 @@ bool CIROptimiser::DuplicateReturns(void)
 // Returns true after the first join.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::JoinBlocks(void)
+bool CIRBlockPasses::JoinBlocks(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -771,7 +795,7 @@ bool CIROptimiser::JoinBlocks(void)
 // phi.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::RemoveTrivialPhis(void)
+bool CIRBlockPasses::RemoveTrivialPhis(void)
 {
 	size			ui;
 	size			uiPhi;
@@ -837,7 +861,7 @@ bool CIROptimiser::RemoveTrivialPhis(void)
 // phi uiPhi does; IRNone for none.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::SamePhi(CIRBlock* pcBlock, size uiPhi)
+SIRReference CIRBlockPasses::SamePhi(CIRBlock* pcBlock, size uiPhi)
 {
 	SIRPhi*			psPhi;
 	SIRPhi*			psOther;
@@ -898,7 +922,7 @@ static void IROptimiserMarkLive(CArrayTemplate<uint8>* pabLive, CArrayIRReferenc
 // they don't change; it isn't moved into a loop it wasn't in.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SinkComparisons(void)
+bool CIRBlockPasses::SinkComparisons(void)
 {
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcFrom;
@@ -915,25 +939,25 @@ bool CIROptimiser::SinkComparisons(void)
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		if ((pcBlock->msJump.uiKind != IRJ_Branch) || !pcBlock->msJump.sArgument.IsTemporary() || (mcDefinitions.NumUses(pcBlock->msJump.sArgument) != 1))
+		if ((pcBlock->msJump.uiKind != IRJ_Branch) || !pcBlock->msJump.sArgument.IsTemporary() || (mpcContext->mcDefinitions.NumUses(pcBlock->msJump.sArgument) != 1))
 		{
 			continue;
 		}
-		psCompare = mcDefinitions.Instruction(pcBlock->msJump.sArgument);
-		pcFrom = mcDefinitions.Block(pcBlock->msJump.sArgument);
+		psCompare = mpcContext->mcDefinitions.Instruction(pcBlock->msJump.sArgument);
+		pcFrom = mpcContext->mcDefinitions.Block(pcBlock->msJump.sArgument);
 		if (!psCompare || !pcFrom || !IsIRIntegerComparison(psCompare->uiOpcode))
 		{
 			continue;
 		}
-		iIndex = mcDefinitions.Index(pcBlock->msJump.sArgument);
+		iIndex = mpcContext->mcDefinitions.Index(pcBlock->msJump.sArgument);
 		if ((iIndex < 0) || ((pcFrom == pcBlock) && ((size)iIndex == pcBlock->masInstructions.NumElements() - 1)))
 		{
 			continue;
 		}
 		bDeeper = false;
-		for (uiLoop = 0; !bDeeper && (uiLoop < mcLoops.NumLoops()); uiLoop++)
+		for (uiLoop = 0; !bDeeper && (uiLoop < mpcContext->mcLoops.NumLoops()); uiLoop++)
 		{
-			bDeeper = mcLoops.Contains(uiLoop, pcBlock) && !mcLoops.Contains(uiLoop, pcFrom);
+			bDeeper = mpcContext->mcLoops.Contains(uiLoop, pcBlock) && !mpcContext->mcLoops.Contains(uiLoop, pcFrom);
 		}
 		if (bDeeper)
 		{
@@ -953,7 +977,7 @@ bool CIROptimiser::SinkComparisons(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::RemoveDeadCode(void)
+bool CIRBlockPasses::RemoveDeadCode(void)
 {
 	CArrayTemplate<uint8>	abLive;		//Per temporary.
 	CArrayIRReferences		asWork;
@@ -988,8 +1012,8 @@ bool CIROptimiser::RemoveDeadCode(void)
 	while (asWork.NumElements() > 0)
 	{
 		asWork.Pop(&sValue);
-		psInstruction = mcDefinitions.Instruction(sValue);
-		psPhi = mcDefinitions.Phi(sValue);
+		psInstruction = mpcContext->mcDefinitions.Instruction(sValue);
+		psPhi = mpcContext->mcDefinitions.Phi(sValue);
 		if (psInstruction)
 		{
 			IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[0]);

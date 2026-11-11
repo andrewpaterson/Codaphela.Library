@@ -35,7 +35,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //   x % 2^n = x - (t & -2^n)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SignedPowerDivisions(void)
+bool CIRDivisionPasses::SignedPowerDivisions(void)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
@@ -105,7 +105,7 @@ bool CIROptimiser::SignedPowerDivisions(void)
 // or its signed range's narrowed by the branches to the divide (RangeAt).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::BoundDivisions(void)
+bool CIRDivisionPasses::BoundDivisions(void)
 {
 	CArrayTemplate<SIRBoundDivision>	asFound;
 	SIRBoundDivision*					psFound;
@@ -127,7 +127,7 @@ bool CIROptimiser::BoundDivisions(void)
 	//Found first: the inserts move the definitions UpperBound reads.
 	FindDefinitions();
 	mpcFunction->ComputePredecessors();
-	mbBranchRanges = true;
+	mpcContext->mbBranchRanges = true;
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -146,8 +146,8 @@ bool CIROptimiser::BoundDivisions(void)
 			{
 				continue;
 			}
-			ulliBound = ((uiOpcode == IRO_UDiv) || (uiOpcode == IRO_URem)) ? UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
-			if ((ulliBound >= ulliDivisor * 2) && RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0))
+			ulliBound = ((uiOpcode == IRO_UDiv) || (uiOpcode == IRO_URem)) ? mpcContext->mpcRangePasses->UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
+			if ((ulliBound >= ulliDivisor * 2) && mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0))
 			{
 				ulliBound = (uint64)lliMax;
 			}
@@ -160,7 +160,7 @@ bool CIROptimiser::BoundDivisions(void)
 			}
 		}
 	}
-	mbBranchRanges = false;
+	mpcContext->mbBranchRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.
 	ClearReplacements();
@@ -214,7 +214,7 @@ bool CIROptimiser::BoundDivisions(void)
 // signed byte (or an unsigned one when it is never negative).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor)
+bool CIRDivisionPasses::IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor)
 {
 	if (lliMin < 0)
 	{
@@ -233,7 +233,7 @@ bool CIROptimiser::IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivi
 // (ranges of at most IR_DIVISION_RANGE values).  False if none fits.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift)
+bool CIRDivisionPasses::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift)
 {
 	int64	lliMost;
 	int64	lliLeast;
@@ -283,7 +283,7 @@ bool CIROptimiser::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivis
 // (*piPreShift is k, else 0): its smaller products fit where x's don't.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift, int* piBits, int* piPreShift)
+bool CIRDivisionPasses::FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift, int* piBits, int* piPreShift)
 {
 	int		iPreShift;
 	int		iWork;
@@ -322,7 +322,7 @@ bool CIROptimiser::FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, 
 // runtime calls.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::DivisibilityTests(void)
+bool CIRDivisionPasses::DivisibilityTests(void)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
@@ -359,7 +359,7 @@ bool CIROptimiser::DivisibilityTests(void)
 			{
 				continue;
 			}
-			psRemainder = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+			psRemainder = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
 			if (!psRemainder || ((psRemainder->uiOpcode != IRO_SRem) && (psRemainder->uiOpcode != IRO_URem)) || !psRemainder->asArguments[1].IsConstant() ||
 				!(psRemainder->sType.Is(IRTK_I16) || psRemainder->sType.Is(IRTK_I32)))
 			{
@@ -392,7 +392,7 @@ bool CIROptimiser::DivisibilityTests(void)
 			}
 
 			sValue = psRemainder->asArguments[0];
-			if (bSigned && (!SignedRange(sValue, &lliMin, &lliMax) || (lliMin < 0)))
+			if (bSigned && (!mpcContext->mpcRangePasses->SignedRange(sValue, &lliMin, &lliMax) || (lliMin < 0)))
 			{
 				//|x|: (x ^ s) - s with s the sign (-2^(n-1) stays itself, which is its size unsigned).
 				sSign = InsertInstruction(pcBlock, uj++, IRO_AShr, sType, sValue, mpcFunction->AddInteger(sType, iBits - 1));
@@ -429,11 +429,11 @@ bool CIROptimiser::DivisibilityTests(void)
 // x get the same q, which common subexpressions make one.  An i8 one the
 // profile finds hot (IsHot) is marked IRF_Hot and left for the target to
 // look up in a table.  x's range is narrowed by the branches to the divide
-// (mbBranchRanges).  A 32 bit divide by a wide c = 2^k * m (m under 65536)
+// (mpcContext->mbBranchRanges).  A 32 bit divide by a wide c = 2^k * m (m under 65536)
 // that isn't made a multiply is split (SplitDivisor).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ConstantDivisions(void)
+bool CIRDivisionPasses::ConstantDivisions(void)
 {
 	CArrayTemplate<SIRBoundDivision>	asFound;
 	SIRBoundDivision*					psFound;
@@ -462,7 +462,7 @@ bool CIROptimiser::ConstantDivisions(void)
 
 	FindDefinitions();
 	mpcFunction->ComputePredecessors();
-	mbBranchRanges = true;
+	mpcContext->mbBranchRanges = true;
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -490,7 +490,7 @@ bool CIROptimiser::ConstantDivisions(void)
 				psInstruction->uiFlags |= IRF_Hot;
 				continue;
 			}
-			if (!RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
+			if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
 			{
 				lliMin = 1;
 				lliMax = 0;
@@ -531,7 +531,7 @@ bool CIROptimiser::ConstantDivisions(void)
 			}
 		}
 	}
-	mbBranchRanges = false;
+	mpcContext->mbBranchRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.
 	for (ui = asFound.NumElements(); ui > 0; ui--)
@@ -668,7 +668,7 @@ bool CIROptimiser::ConstantDivisions(void)
 // when x is known to be below c (BoundDivisions' then).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int64 lliMax)
+bool CIRDivisionPasses::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int64 lliMax)
 {
 	int64	lliDivisor;
 	bool	bSigned;
@@ -710,7 +710,7 @@ bool CIROptimiser::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int
 // only that is done.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::ShareDivisions(void)
+bool CIRDivisionPasses::ShareDivisions(void)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psRemainder;
@@ -734,7 +734,7 @@ bool CIROptimiser::ShareDivisions(void)
 		for (uiRemainder = 0; uiRemainder < pcBlock->masInstructions.NumElements(); uiRemainder++)
 		{
 			psRemainder = pcBlock->masInstructions.Get(uiRemainder);
-			if (((psRemainder->uiOpcode != IRO_URem) && (psRemainder->uiOpcode != IRO_SRem)) || (mbConstantDivisions && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
+			if (((psRemainder->uiOpcode != IRO_URem) && (psRemainder->uiOpcode != IRO_SRem)) || (mpcContext->mbConstantDivisions && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
 			{
 				continue;
 			}
@@ -772,7 +772,7 @@ bool CIROptimiser::ShareDivisions(void)
 				bChanged = true;
 				continue;
 			}
-			if (!mbConstantDivisions)
+			if (!mpcContext->mbConstantDivisions)
 			{
 				continue;
 			}
@@ -804,11 +804,11 @@ bool CIROptimiser::ShareDivisions(void)
 // remainder for it (SetDivideRemainders).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::LeavesRemainder(SIRInstruction* psRemainder)
+bool CIRDivisionPasses::LeavesRemainder(SIRInstruction* psRemainder)
 {
 	uint32	uiWidth;
 
-	if ((psRemainder->uiOpcode == IRO_SRem) && !(muiDivideRemainders & IR_DIVIDE_REMAINDERS_SIGNED))
+	if ((psRemainder->uiOpcode == IRO_SRem) && !(mpcContext->muiDivideRemainders & IR_DIVIDE_REMAINDERS_SIGNED))
 	{
 		return false;
 	}
@@ -820,7 +820,7 @@ bool CIROptimiser::LeavesRemainder(SIRInstruction* psRemainder)
 	case 64:	uiWidth = IR_DIVIDE_REMAINDERS_64;	break;
 	default:	return false;
 	}
-	return (muiDivideRemainders & uiWidth) != 0;
+	return (mpcContext->muiDivideRemainders & uiWidth) != 0;
 }
 
 
@@ -829,7 +829,7 @@ bool CIROptimiser::LeavesRemainder(SIRInstruction* psRemainder)
 // Whether pcBlock has a uiOpcode of sValue by sDivisor.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor)
+bool CIRDivisionPasses::HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor)
 {
 	SIRInstruction*	psInstruction;
 	size			ui;

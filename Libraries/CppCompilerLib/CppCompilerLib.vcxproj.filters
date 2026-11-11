@@ -351,6 +351,9 @@
     <ClCompile Include="IROptimiser.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRPasses.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IROptimiserAddresses.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1035,6 +1038,39 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IROptimiser.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserRanges.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserPromotion.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserMemory.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserLoops.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserIdioms.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserFolding.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserDivisions.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserCounters.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserBlocks.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserAddresses.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRPasses.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IROptimiserInternal.h">

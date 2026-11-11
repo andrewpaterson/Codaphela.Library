@@ -649,7 +649,7 @@ void TestCPP816SignedToFloat(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // x / d and x % d of a d that isn't a constant share one divide (the
-// remainder is x - q * d, CIROptimiser::ShareDivisions), either way round,
+// remainder is x - q * d, CIRDivisionPasses::ShareDivisions), either way round,
 // signed and unsigned, 16 and 32 bits.
 //
 //////////////////////////////////////////////////////////////////////////

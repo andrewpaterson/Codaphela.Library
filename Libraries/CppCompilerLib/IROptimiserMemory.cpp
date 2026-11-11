@@ -33,7 +33,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // IRNone when it isn't known.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::ConstantData(SIRReference sRoot, int64 lliOffset, SIRType sType)
+SIRReference CIRMemoryPasses::ConstantData(SIRReference sRoot, int64 lliOffset, SIRType sType)
 {
 	CIRGlobal*		pcData;
 	SIRDataItem*	psItem;
@@ -111,7 +111,7 @@ SIRReference CIROptimiser::ConstantData(SIRReference sRoot, int64 lliOffset, SIR
 // constant) and a constant offset from it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset)
+void CIRMemoryPasses::SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset)
 {
 	SIRInstruction*	psDefinition;
 	int				iSteps;
@@ -121,7 +121,7 @@ void CIROptimiser::SplitAddress(SIRReference sAddress, SIRReference* psRoot, int
 	*plliOffset = 0;
 	for (iSteps = 0; iSteps < 16; iSteps++)
 	{
-		psDefinition = mcDefinitions.Instruction(*psRoot);
+		psDefinition = mpcContext->mcDefinitions.Instruction(*psRoot);
 		if ((psDefinition == NULL) || (psDefinition->uiOpcode != IRO_PtrAdd) || !psDefinition->asArguments[1].IsConstant())
 		{
 			break;
@@ -131,13 +131,13 @@ void CIROptimiser::SplitAddress(SIRReference sAddress, SIRReference* psRoot, int
 	}
 
 	//Every argaddr of a parameter is the same memory: the first is its root.
-	psDefinition = mcDefinitions.Instruction(*psRoot);
+	psDefinition = mpcContext->mcDefinitions.Instruction(*psRoot);
 	if (psDefinition && (psDefinition->uiOpcode == IRO_ArgAddress))
 	{
 		uiParameter = (size)mpcFunction->GetSigned(psDefinition->asArguments[0]);
-		if (uiParameter < masArgAddresses.NumElements())
+		if (uiParameter < mpcContext->masArgAddresses.NumElements())
 		{
-			*psRoot = *masArgAddresses.Get(uiParameter);
+			*psRoot = *mpcContext->masArgAddresses.Get(uiParameter);
 		}
 	}
 }
@@ -148,11 +148,11 @@ void CIROptimiser::SplitAddress(SIRReference sAddress, SIRReference* psRoot, int
 // True if a root is a slot or an argaddr: memory no other root names.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::IsFrameRoot(SIRReference sRoot)
+bool CIRMemoryPasses::IsFrameRoot(SIRReference sRoot)
 {
 	SIRInstruction*	psDefinition;
 
-	psDefinition = mcDefinitions.Instruction(sRoot);
+	psDefinition = mpcContext->mcDefinitions.Instruction(sRoot);
 	return psDefinition && ((psDefinition->uiOpcode == IRO_Slot) || (psDefinition->uiOpcode == IRO_ArgAddress));
 }
 
@@ -164,7 +164,7 @@ bool CIROptimiser::IsFrameRoot(SIRReference sRoot)
 // values are all based on the same.  Else IRPB_Unknown.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
+void CIRMemoryPasses::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 {
 	SIRReference	asWork[IR_BASE_VALUES];
 	SIRReference	asSeen[IR_BASE_VALUES];
@@ -180,7 +180,7 @@ void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 	int				iParameter;
 
 	psBase->eKind = IRPB_Unknown;
-	if (!mbRestrict)
+	if (!mpcContext->mbRestrict)
 	{
 		return;
 	}
@@ -194,7 +194,7 @@ void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 		sValue = asWork[--uiWork];
 		for (iSteps = 0; iSteps < 16; iSteps++)
 		{
-			psDefinition = mcDefinitions.Instruction(sValue);
+			psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
 			if ((psDefinition == NULL) || (psDefinition->uiOpcode != IRO_PtrAdd))
 			{
 				break;
@@ -219,7 +219,7 @@ void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 		}
 		asSeen[uiSeen++] = sValue;
 
-		psPhi = mcDefinitions.Phi(sValue);
+		psPhi = mpcContext->mcDefinitions.Phi(sValue);
 		if (psPhi)
 		{
 			for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
@@ -235,7 +235,7 @@ void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 		}
 
 		iParameter = mpcFunction->FindParameter(sValue);
-		psDefinition = mcDefinitions.Instruction(sValue);
+		psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
 		if (iParameter >= 0)
 		{
 			sBase.eKind = IRPB_Parameter;
@@ -280,7 +280,7 @@ void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 // the caller may have passed the symbol's value.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes)
+bool CIRMemoryPasses::MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes)
 {
 	bool			bFrame1;
 	bool			bFrame2;
@@ -338,7 +338,7 @@ bool CIROptimiser::MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64
 // noted already.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue)
+void CIRMemoryPasses::AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue)
 {
 	SIRAvailable*	psAvailable;
 
@@ -360,7 +360,7 @@ void CIROptimiser::AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference s
 // not walked yet).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds)
+void CIRMemoryPasses::MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds)
 {
 	size			uiPredecessor;
 	size			uiFirst;
@@ -419,7 +419,7 @@ void CIROptimiser::MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvai
 // that may touch it between.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::RemoveRedundantLoads(void)
+bool CIRMemoryPasses::RemoveRedundantLoads(void)
 {
 	CArrayIRAvailables				asAvailable;
 	CArrayIRAvailables				asEnds;			//What each block leaves known, from asBlockEnds.
@@ -440,7 +440,7 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 	mpcFunction->Renumber();
 	mpcFunction->ComputePredecessors();
 	mpcModule->Count(CPPCC_Dominators);
-	mcDominators.Compute(mpcFunction);
+	mpcContext->mcDominators.Compute(mpcFunction);
 	ClearReplacements();
 	FindDefinitions();
 
@@ -449,9 +449,9 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 	asBlockEnds.Init();
 	asBlockEnds.GrowToAtLeastNumElements(mpcFunction->NumBlocks(), true, 0xFF);
 	bChanged = false;
-	for (ui = 0; ui < mcDominators.NumReachable(); ui++)
+	for (ui = 0; ui < mpcContext->mcDominators.NumReachable(); ui++)
 	{
-		pcBlock = mcDominators.GetReversePostOrder(ui);
+		pcBlock = mpcContext->mcDominators.GetReversePostOrder(ui);
 		asAvailable.FakeSetUsedElements(0);
 		if (pcBlock->mapcPredecessors.NumElements() == 1)
 		{
@@ -544,15 +544,15 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 // and a constant); false if it is neither.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset)
+bool CIRMemoryPasses::SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset)
 {
 	SIRInstruction*	psDefinition;
 
-	psDefinition = mcDefinitions.Instruction(sAddress);
+	psDefinition = mpcContext->mcDefinitions.Instruction(sAddress);
 	if (psDefinition && (psDefinition->uiOpcode == IRO_PtrAdd) && psDefinition->asArguments[1].IsConstant())
 	{
 		*plliOffset = mpcFunction->GetSigned(psDefinition->asArguments[1]);
-		psDefinition = mcDefinitions.Instruction(psDefinition->asArguments[0]);
+		psDefinition = mpcContext->mcDefinitions.Instruction(psDefinition->asArguments[0]);
 		if (psDefinition && (psDefinition->uiOpcode == IRO_Slot))
 		{
 			*psSlot = psDefinition->sResult;
@@ -576,10 +576,10 @@ bool CIROptimiser::SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64
 // one type, or a pointer and an integer of a pointer's size (a pointer
 // field copied as an integer: an object returned by value): the pointer.
 // IRTK_None for anything else (or a slot with an access that isn't a load
-// or store).  mcDefinitions must be found.
+// or store).  mpcContext->mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRType CIROptimiser::SlotOffsetType(SIRReference sSlot, int64 lliOffset)
+SIRType CIRMemoryPasses::SlotOffsetType(SIRReference sSlot, int64 lliOffset)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
@@ -634,7 +634,7 @@ SIRType CIROptimiser::SlotOffsetType(SIRReference sSlot, int64 lliOffset)
 // and promoted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::UnifySlotTypes(void)
+bool CIRMemoryPasses::UnifySlotTypes(void)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
@@ -699,7 +699,7 @@ bool CIROptimiser::UnifySlotTypes(void)
 // per offset, which slot promotion can make temporaries.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SplitSlots(void)
+bool CIRMemoryPasses::SplitSlots(void)
 {
 	CArrayTemplate<SIRSlotAccess>	asAccesses;
 	CArrayTemplate<uint8>			auiInvalid;		//Per temporary (a slot's): 1 if it can't be split.
@@ -802,7 +802,7 @@ bool CIROptimiser::SplitSlots(void)
 		{
 			continue;
 		}
-		if ((psAccess->lliOffset < 0) || (psAccess->lliOffset + mpcModule->GetSize(psAccess->sType) > mpcFunction->GetSigned(mcDefinitions.Instruction(psAccess->sSlot)->asArguments[0])))
+		if ((psAccess->lliOffset < 0) || (psAccess->lliOffset + mpcModule->GetSize(psAccess->sType) > mpcFunction->GetSigned(mpcContext->mcDefinitions.Instruction(psAccess->sSlot)->asArguments[0])))
 		{
 			*auiInvalid.Get(psAccess->sSlot.Index()) = 1;
 			continue;
