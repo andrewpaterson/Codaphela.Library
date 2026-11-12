@@ -42,6 +42,7 @@ public:
 
 	void	AddBackgrounds(Ptr<CGeometryMap> pMap, CTextBackgrounds* pcBackgrounds, int32 iWidth);
 	void	AddRange(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour);
+	void	AddBox(Ptr<CGeometryMap> pMap, size uiTopRow, size uiBottomRow, int32 iLeft, int32 iRight, ARGB32 sColour);
 	void	AddLine(Ptr<CGeometryMap> pMap, size uiLine, ARGB32 sColour, int32 iWidth);
 
 protected:

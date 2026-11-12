@@ -58,9 +58,10 @@ enum ETextEditingDragUnit
 //enabled (SetTextDragEnabled), a press in the selection of an editable text that moves more than TEXT_DRAG_DISTANCE
 //pixels drags the selected text: a drop caret follows the pointer (GetDropPosition) and the release moves the text
 //there, or with control held copies it, as one undo step.  Dropped in the selection or at its ends nothing changes,
-//Escape cancels it, and a press in the selection released without dragging puts the caret there.  A single line
-//text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a text
-//that can't be selected), so its presses go on to the parent.
+//Escape cancels it, and a press in the selection released without dragging puts the caret there.  Shift+Alt (or Alt)
+//and button one drag a box selection (StartDragBox); Shift+Alt and the arrows, Home and End move its corner.  A single
+//line text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a
+//text that can't be selected), so its presses go on to the parent.
 class CTextEditingInput
 {
 protected:
@@ -78,6 +79,9 @@ protected:
 	int32					miPressY;
 	size					muiDrop;  //Where the dragged text would be dropped.
 	bool					mbDropRowEnd;
+	bool					mbBoxDrag;  //The drag is a box selection's (StartDragBox).
+	size					muiBoxAnchorRow;  //Where it was pressed.
+	int32					miBoxAnchorX;
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
@@ -104,6 +108,7 @@ public:
 	void	ContDragSelect(int x, int y);
 	void	StopDragSelect(int x, int y);
 	void	StartLineDrag(int x, int y, bool bExtend);
+	void	StartDragBox(int x, int y);
 	void	ClearSelectionAction(void);
 
 protected:
@@ -115,6 +120,8 @@ protected:
 	void	DropText(int x, int y);
 	void	CancelTextDrag(void);
 	bool	IsCopyHeld(void);
+	void	DragBox(int x, int y);
+	int32	FindBoxX(size uiRow, int x);
 };
 
 

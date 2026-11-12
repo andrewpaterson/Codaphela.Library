@@ -661,7 +661,7 @@ bool CFocus::IsClick(SComponentInputEvent* psEvent)
 	{
 		return false;
 	}
-	return (psEvent->eCommand == CIC_ActivateComponent) || (psEvent->eCommand == CIC_ContextMenu) || (psEvent->eCommand == CIC_StartDragSelect) || (psEvent->eCommand == CIC_StartDragScroll);
+	return (psEvent->eCommand == CIC_ActivateComponent) || (psEvent->eCommand == CIC_ContextMenu) || (psEvent->eCommand == CIC_StartDragSelect) || (psEvent->eCommand == CIC_StartDragBox) || (psEvent->eCommand == CIC_StartDragScroll);
 }
 
 

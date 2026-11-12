@@ -684,6 +684,97 @@ void TestTextEditingInputExtendSelection(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The rows' ranges of the box selection, as start, end pairs.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertEditingInputBox(STestEditingInput* ps, size uiNumRanges, size* auiExpected)
+{
+	CArrayTextRange	asRanges;
+	size			i;
+
+	AssertTrue(ps->cEditing.IsBox());
+	asRanges.Init();
+	ps->cEditing.GetBoxRanges(&asRanges);
+	AssertSize(uiNumRanges, asRanges.NumElements());
+	for (i = 0; (i < uiNumRanges) && (i < asRanges.NumElements()); i++)
+	{
+		AssertSize(auiExpected[i * 2], asRanges.Get(i)->uiStart);
+		AssertSize(auiExpected[i * 2 + 1], asRanges.Get(i)->uiEnd);
+	}
+	asRanges.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shift+Alt and the arrows, Home and End move a box's corner; Shift+Alt
+// (or Alt) and button one drag a box from the press, past a short row's
+// end as far as the pointer goes.  The release ends the drag and a plain
+// press ends the box.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputBox(void)
+{
+	STestEditingInput	s;
+	size				auiKeys[] = { 1, 2, 8, 9 };
+	size				auiDragged[] = { 1, 4, 8, 9, 11, 14 };
+	size				auiPastEnd[] = { 9, 9, 15, 15 };
+
+	ObjectsInit();
+	//abcdef 0, LF 6, ab 7, LF 9, abcdefgh 10, end 18.  The view's x is a row's column.
+	s.Init("abcdef\nab\nabcdefgh", true);
+	s.pWindow->GetFocus()->SetFocus(s.pCanvas);
+
+	s.cEditing.SetCaretPosition(1);
+	AssertTrue(s.Command(CIC_BoxSelectDown));
+	AssertTrue(s.Command(CIC_BoxSelectRight));
+	AssertEditingInputBox(&s, 2, auiKeys);
+	AssertTrue(s.Command(CIC_BoxSelectUp));
+	AssertTrue(s.Command(CIC_BoxSelectLeft));
+	AssertTrue(s.Command(CIC_BoxSelectEnd));
+	AssertTrue(s.Command(CIC_BoxSelectHome));
+	AssertTrue(s.cEditing.IsBox());
+
+	//A press ends the box; it would make the press after the box's a double click if the box's press didn't forget it.
+	s.Click(2, 0);
+	AssertFalse(s.cEditing.IsBox());
+
+	//Dragged from column 1 of the first row to column 4 of the last.
+	s.pWindow->PointerMoved(1, 0);
+	AssertTrue(s.Command(CIC_StartDragBox, 1, 0));
+	s.pWindow->PointerMoved(4, 2);
+	AssertEditingInputBox(&s, 3, auiDragged);
+	s.Release(4, 2);
+	s.pWindow->PointerMoved(6, 2);
+	AssertEditingInputBox(&s, 3, auiDragged);
+
+	//Past the short row's end the box is where the pointer is.
+	s.pWindow->PointerMoved(5, 1);
+	s.Command(CIC_StartDragBox, 5, 1);
+	s.pWindow->PointerMoved(5, 2);
+	AssertEditingInputBox(&s, 2, auiPastEnd);
+	s.Release(5, 2);
+
+	//A plain press ends it, and moving after it selects as before (the box's press isn't counted for a double click).
+	s.pWindow->PointerMoved(2, 0);
+	s.Command(CIC_ActivateComponent, 2, 0);
+	AssertFalse(s.cEditing.IsBox());
+	s.pWindow->PointerMoved(4, 0);
+	s.Release(4, 0);
+	s.AssertSelection(2, 4, 4);
+
+	//Not selectable, the press isn't taken.
+	s.cInput.SetPointerEnabled(false);
+	AssertFalse(s.Command(CIC_StartDragBox, 1, 0));
+
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditingInput(void)
@@ -698,6 +789,7 @@ void TestTextEditingInput(void)
 	TestTextEditingInputSingleLineClicks();
 	TestTextEditingInputDragText();
 	TestTextEditingInputExtendSelection();
+	TestTextEditingInputBox();
 	TestTextEditingInputKeepsLayout();
 
 	TestStatistics();

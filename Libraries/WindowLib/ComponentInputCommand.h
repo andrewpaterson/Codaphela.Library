@@ -60,6 +60,12 @@ enum EComponentInputCommand
 	CIC_SelectPageDown,
 	CIC_ExtendSelection,
 	CIC_ShrinkSelection,
+	CIC_BoxSelectUp,
+	CIC_BoxSelectDown,
+	CIC_BoxSelectLeft,
+	CIC_BoxSelectRight,
+	CIC_BoxSelectHome,
+	CIC_BoxSelectEnd,
 	CIC_SelectAll,
 	CIC_ClearSelection,
 
@@ -102,6 +108,7 @@ enum EComponentInputCommand
 	CIC_ContDragScroll,  //The pointer moved during a drag; only CFocus gives these, to the drag component.
 	CIC_StopDragScroll,
 	CIC_StartDragSelect,
+	CIC_StartDragBox,		//A press that drags a box selection (stopped as CIC_StopDragSelect).
 	CIC_ContDragSelect,
 	CIC_StopDragSelect,
 	CIC_Hover,

@@ -2155,6 +2155,110 @@ void TestTextAreaEditOccurrenceRanges(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window's painted pixel x pixels into the text area on the bottom of
+// line uiLine, as 0xRRGGBB.  The window is 24 bit RGB.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 TextAreaPixelAt(Ptr<CTextArea> pTextArea, size uiLine, int32 x)
+{
+	CInt32Rect		cLine;
+	uint8*			puiPixel;
+	Ptr<CWindow>	pWindow;
+	int32			iX;
+	int32			iY;
+
+	pWindow = pTextArea->GetWindow();
+	pTextArea->GetLineBounds(uiLine, &cLine);
+	iX = pTextArea->GetPosition().x + x;
+	iY = pTextArea->GetPosition().y + cLine.GetBottom() - 1;
+	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(iY * pWindow->GetCanvas()->GetActualSize().x + iX) * 3];
+	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box selection is drawn as a rectangle on each of its rows, past a
+// short row's text; one with no width as a line in the caret's colour on
+// each row.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditBox(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		uint32						uiBackground;
+		int32						iLeft;
+		int32						iRight;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		//The middle row is short.
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abcdef\nab\nabcdefgh");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pTextArea->SetMarkColours(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20), Set32BitColour((uint8)0x20, (uint8)0x80, (uint8)0x20));
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Show();
+		pTestWindow->Paint();
+		iLeft = pTextArea->GetPositionX(1, false);
+		iRight = pTextArea->GetPositionX(5, false);
+		uiBackground = TextAreaPixelAt(pTextArea, 1, iRight - 2);
+
+		//Columns 1 to 5: the short row's rectangle goes past its text.
+		pTextArea->BoxSelect(0, iLeft, 2, iRight);
+		AssertTrue(pTextArea->IsBox());
+		pTestWindow->Paint();
+		AssertInt(0x802020, TextAreaPixelAt(pTextArea, 1, iRight - 2));
+		AssertInt(0x802020, TextAreaPixelAt(pTextArea, 0, iLeft + 1));
+		AssertTrue(TextAreaPixelAt(pTextArea, 1, iRight + 2) == uiBackground);
+
+		//A box press through the window focusses the text area under it, as a press does, and starts a box there.
+		pTextArea->SetCaretPosition(0);
+		pTestWindow->GetFocus()->SetFocus(Ptr<CComponent>());
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + iLeft, pTextArea->GetPosition().y + 2);
+		pTestWindow->InputCommand(CIC_StartDragBox, true);
+		AssertTrue(pTextArea->IsFocussed());
+		AssertTrue(pTextArea->IsBox());
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+
+		//No width: a line in the caret's colour on each row.
+		pTextArea->BoxSelect(0, iRight, 2, iRight);
+		pTestWindow->Paint();
+		AssertInt(0x208020, TextAreaPixelAt(pTextArea, 1, iRight));
+		AssertTrue(TextAreaPixelAt(pTextArea, 1, iRight - 2) == uiBackground);
+
+		//Ended, it isn't drawn.
+		pTextArea->SetCaretPosition(0);
+		pTestWindow->Paint();
+		AssertFalse(pTextArea->IsBox());
+		AssertTrue(TextAreaPixelAt(pTextArea, 1, iRight) == uiBackground);
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -2172,6 +2276,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditDragText();
 	TestTextAreaEditOccurrences();
 	TestTextAreaEditOccurrenceRanges();
+	TestTextAreaEditBox();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();

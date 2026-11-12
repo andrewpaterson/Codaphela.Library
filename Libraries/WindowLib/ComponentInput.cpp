@@ -61,6 +61,12 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ false, true,  false, "Page Down",	CIC_SelectPageDown,				CIC_Ignored },
 	{ true,  false, false, "W",			CIC_ExtendSelection,			CIC_Ignored },
 	{ true,  true,  false, "W",			CIC_ShrinkSelection,			CIC_Ignored },
+	{ false, true,  true,  "Cursor Up",	CIC_BoxSelectUp,				CIC_Ignored },
+	{ false, true,  true,  "Cursor Down",	CIC_BoxSelectDown,				CIC_Ignored },
+	{ false, true,  true,  "Cursor Left",	CIC_BoxSelectLeft,				CIC_Ignored },
+	{ false, true,  true,  "Cursor Right",	CIC_BoxSelectRight,				CIC_Ignored },
+	{ false, true,  true,  "Home",			CIC_BoxSelectHome,				CIC_Ignored },
+	{ false, true,  true,  "End",			CIC_BoxSelectEnd,				CIC_Ignored },
 	{ true,  false, false, "A",			CIC_SelectAll,					CIC_Ignored },
 	{ false, true,  false, "Space",		CIC_Space,						CIC_Ignored },
 	{ false, true,  false, "Tab",			CIC_BackTab,					CIC_Ignored },
@@ -93,6 +99,8 @@ static SComponentInputChordRow	gasMouseChordRows[] =
 	{ false, true,  false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
 	{ true,  false, false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
 	{ true,  true,  false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ false, true,  true,  "Button 1",			CIC_StartDragBox,		CIC_StopDragSelect },
+	{ false, false, true,  "Button 1",			CIC_StartDragBox,		CIC_StopDragSelect },
 	{ false, true,  false, "Wheel Forward",	CIC_WheelLeft,			CIC_Ignored },
 	{ false, true,  false, "Wheel Backward",	CIC_WheelRight,			CIC_Ignored },
 };
@@ -835,6 +843,12 @@ bool CComponentInput::IsWidgetCommand(EComponentInputCommand eCommand)
 	case CIC_SelectAll:
 	case CIC_ExtendSelection:
 	case CIC_ShrinkSelection:
+	case CIC_BoxSelectUp:
+	case CIC_BoxSelectDown:
+	case CIC_BoxSelectLeft:
+	case CIC_BoxSelectRight:
+	case CIC_BoxSelectHome:
+	case CIC_BoxSelectEnd:
 	case CIC_ClearSelection:
 	case CIC_Space:
 	case CIC_Tab:

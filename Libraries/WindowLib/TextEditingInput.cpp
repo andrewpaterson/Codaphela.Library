@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //The pointer's commands that select (SetPointerEnabled).  The context menu's press isn't one: it goes on to the parent
 //anyway.
-static EComponentInputCommand	gaeTextEditingPointerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect };
+static EComponentInputCommand	gaeTextEditingPointerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_StartDragBox, CIC_ContDragSelect, CIC_StopDragSelect };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,6 +56,9 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	miPressY = 0;
 	muiDrop = 0;
 	mbDropRowEnd = false;
+	mbBoxDrag = false;
+	muiBoxAnchorRow = 0;
+	miBoxAnchorX = 0;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -75,6 +78,7 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_ExecuteComponent, this, &CTextEditingInput::ExecuteComponent);
 	pcComponent->AddInputAction(CIC_ContextMenu, this, &CTextEditingInput::ContextMenuClick);
 	pcComponent->AddInputAction(CIC_StartDragSelect, this, &CTextEditingInput::StartDragSelect);
+	pcComponent->AddInputAction(CIC_StartDragBox, this, &CTextEditingInput::StartDragBox);
 	pcComponent->AddInputAction(CIC_ContDragSelect, this, &CTextEditingInput::ContDragSelect);
 	pcComponent->AddInputAction(CIC_StopDragSelect, this, &CTextEditingInput::StopDragSelect);
 
@@ -96,6 +100,12 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_SelectDocumentEnd, pcEditing, &CTextEditing::SelectDocumentEnd);
 	pcComponent->AddInputAction(CIC_ExtendSelection, pcEditing, &CTextEditing::ExtendSelection);
 	pcComponent->AddInputAction(CIC_ShrinkSelection, pcEditing, &CTextEditing::ShrinkSelection);
+	pcComponent->AddInputAction(CIC_BoxSelectUp, pcEditing, &CTextEditing::BoxSelectUp);
+	pcComponent->AddInputAction(CIC_BoxSelectDown, pcEditing, &CTextEditing::BoxSelectDown);
+	pcComponent->AddInputAction(CIC_BoxSelectLeft, pcEditing, &CTextEditing::BoxSelectLeft);
+	pcComponent->AddInputAction(CIC_BoxSelectRight, pcEditing, &CTextEditing::BoxSelectRight);
+	pcComponent->AddInputAction(CIC_BoxSelectHome, pcEditing, &CTextEditing::BoxSelectHome);
+	pcComponent->AddInputAction(CIC_BoxSelectEnd, pcEditing, &CTextEditing::BoxSelectEnd);
 	pcComponent->AddInputAction(CIC_SelectAll, pcEditing, &CTextEditing::SelectAll);
 	pcComponent->AddInputAction(CIC_ClearSelection, this, &CTextEditingInput::ClearSelectionAction);
 
@@ -172,6 +182,7 @@ void CTextEditingInput::SetPointerEnabled(bool bEnabled)
 void CTextEditingInput::FocusLost(void)
 {
 	mbDragging = false;
+	mbBoxDrag = false;
 	meTextDrag = TETD_None;
 	msClicks.Forget();
 }
@@ -343,7 +354,11 @@ void CTextEditingInput::ContDragSelect(int x, int y)
 		return;
 	}
 
-	if (meTextDrag != TETD_None)
+	if (mbBoxDrag)
+	{
+		DragBox(x, y);
+	}
+	else if (meTextDrag != TETD_None)
 	{
 		DragText(x, y);
 	}
@@ -373,6 +388,7 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 		ContDragSelect(x, y);
 	}
 	mbDragging = false;
+	mbBoxDrag = false;
 }
 
 
@@ -403,6 +419,73 @@ void CTextEditingInput::StartLineDrag(int x, int y, bool bExtend)
 	mbUnitPress = true;
 	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
 	mbUnitPress = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shift+Alt (or Alt) and button one, as Visual Studio's: a box selection
+// is dragged from the press.  The press has given the component focus.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::StartDragBox(int x, int y)
+{
+	CTextEditingView*	pcView;
+
+	pcView = mpcEditing->GetView();
+	if (!pcView->HasRows())
+	{
+		return;
+	}
+	msClicks.Forget();
+	mbBoxDrag = true;
+	muiBoxAnchorRow = pcView->FindRowAt(y);
+	miBoxAnchorX = FindBoxX(muiBoxAnchorRow, x);
+	mpcEditing->BoxSelect(muiBoxAnchorRow, miBoxAnchorX, muiBoxAnchorRow, miBoxAnchorX);
+
+	mbUnitPress = true;
+	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
+	mbUnitPress = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box goes from where it was pressed to the row and x the pointer is
+// at now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::DragBox(int x, int y)
+{
+	size	uiRow;
+
+	uiRow = mpcEditing->GetView()->FindRowAt(y);
+	mpcEditing->BoxSelect(muiBoxAnchorRow, miBoxAnchorX, uiRow, FindBoxX(uiRow, x));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box's x for the pointer at x on a row: the gap nearest it, or past
+// the row's end the pointer's own x, so a box can be wider than the rows
+// it is dragged over.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTextEditingInput::FindBoxX(size uiRow, int x)
+{
+	CTextEditingView*	pcView;
+	size				uiPosition;
+	bool				bRowEnd;
+	int32				iGapX;
+
+	pcView = mpcEditing->GetView();
+	uiPosition = pcView->FindPositionInRow(uiRow, x, &bRowEnd);
+	iGapX = pcView->GetPositionX(uiPosition, bRowEnd);
+	if ((uiPosition >= pcView->GetRowEnd(uiRow, &bRowEnd)) && (x > iGapX))
+	{
+		return x;
+	}
+	return iGapX;
 }
 
 

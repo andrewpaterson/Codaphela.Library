@@ -218,3 +218,23 @@ void CTextAreaShapes::AddRange(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd,
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box selection: a rectangle on each of its rows from iLeft to iRight,
+// past the rows' text where they are short.  One with no width is a line
+// a pixel wide, a caret on every row.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextAreaShapes::AddBox(Ptr<CGeometryMap> pMap, size uiTopRow, size uiBottomRow, int32 iLeft, int32 iRight, ARGB32 sColour)
+{
+	size				uiRow;
+	STextLayoutLine*	psLine;
+
+	for (uiRow = uiTopRow; uiRow <= uiBottomRow; uiRow++)
+	{
+		psLine = mpcLayout->GetLayoutLine(uiRow);
+		pMap->AddRectangle(iLeft, psLine->iTop, (iRight > iLeft) ? iRight - iLeft : 1, psLine->iHeight, sColour);
+	}
+}
+

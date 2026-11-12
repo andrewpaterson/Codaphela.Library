@@ -260,6 +260,9 @@ public:
 	void				ExtendSelection(void);
 	void				ShrinkSelection(void);
 	void				SetSelectionRanges(CTextSelectionRanges* pcRanges);
+	void				BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int32 iCaretX);
+	bool				IsBox(void);
+	void				GetBoxRanges(CArrayTextRange* pasDest);
 	void				SelectAll(void);
 	void				ClearSelection(void);
 	void				Printable(char c, bool bInsert);

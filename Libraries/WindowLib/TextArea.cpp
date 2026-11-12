@@ -1233,6 +1233,25 @@ void CTextArea::SetSelectionRanges(CTextSelectionRanges* pcRanges)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A box (column) selection from row uiAnchorRow at x iAnchorX to row
+// uiCaretRow at x iCaretX, relative to the text area (see
+// CTextEditing::BoxSelect).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int32 iCaretX)
+{
+	UpdateText();
+	mcEditing.BoxSelect(uiAnchorRow, iAnchorX, uiCaretRow, iCaretX);
+	LayoutChanged();
+}
+
+
+bool CTextArea::IsBox(void) { return mcEditing.IsBox(); }
+void CTextArea::GetBoxRanges(CArrayTextRange* pasDest) { mcEditing.GetBoxRanges(pasDest); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Scrolls a line without moving the caret.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1680,6 +1699,10 @@ void CTextArea::UpdateMarks(void)
 	size					uiEnd;
 	size					i;
 	STextOccurrenceRange*	psRange;
+	size					uiTopRow;
+	size					uiBottomRow;
+	int32					iLeft;
+	int32					iRight;
 
 	//The selection is drawn with the text: the rows it changed are drawn again.
 	RowsChanged();
@@ -1704,6 +1727,14 @@ void CTextArea::UpdateMarks(void)
 	if (GetSelection(&uiStart, &uiEnd))
 	{
 		mcShapes.AddRange(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
+		return;
+	}
+
+	//A box selection, with no width a line in the caret's colour on each row.
+	if (mcEditing.IsBox())
+	{
+		mcEditing.GetBox(&uiTopRow, &uiBottomRow, &iLeft, &iRight);
+		mcShapes.AddBox(mpSelectionMap, uiTopRow, uiBottomRow, iLeft, iRight, (iRight > iLeft) ? msSelectionColour : msCaretColour);
 		return;
 	}
 
