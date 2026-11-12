@@ -54,6 +54,18 @@ enum ETextEditingMove
 };
 
 
+//Where the keys move a box selection's caret corner (CTextEditing::BoxSelectUp ...).
+enum ETextBoxMove
+{
+	TBM_RowUp,
+	TBM_RowDown,
+	TBM_Left,
+	TBM_Right,
+	TBM_RowStart,
+	TBM_RowEnd,
+};
+
+
 //What shows a text being edited (a CTextEditing): the rows its text is laid out in, and what it does when the caret
 //moves or the text is edited.  Rows are numbered from 0, and x and y are the view's.  A position at the start of a
 //wrapped row can be drawn at the end of the row above (bRowEnd).  A view with no rows (HasRows false, no text laid out
@@ -273,6 +285,7 @@ protected:
 	void		GetAnchorAndCaret(STextSelection* psDest);
 	bool		IsExtended(void);
 	bool		StartBox(void);
+	void		MoveBoxCorner(ETextBoxMove eMove);
 	void		PlaceBoxCaret(void);
 	void		EndBox(void);
 	void		SelectBoxLines(void);

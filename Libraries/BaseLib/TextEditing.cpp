@@ -659,87 +659,70 @@ void CTextEditing::MoveBoxCaret(size uiRow, int32 x)
 // selection's anchor.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditing::BoxSelectUp(void)
+void CTextEditing::BoxSelectUp(void) { MoveBoxCorner(TBM_RowUp); }
+void CTextEditing::BoxSelectDown(void) { MoveBoxCorner(TBM_RowDown); }
+void CTextEditing::BoxSelectLeft(void) { MoveBoxCorner(TBM_Left); }
+void CTextEditing::BoxSelectRight(void) { MoveBoxCorner(TBM_Right); }
+void CTextEditing::BoxSelectHome(void) { MoveBoxCorner(TBM_RowStart); }
+void CTextEditing::BoxSelectEnd(void) { MoveBoxCorner(TBM_RowEnd); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box's caret corner moves as eMove says, staying in the text: not
+// above the first row or below the last, nor past its row's ends.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::MoveBoxCorner(ETextBoxMove eMove)
 {
-	if (StartBox())
+	size	uiRow;
+	size	uiPosition;
+	size	uiRowEnd;
+	bool	bRowEnd;
+	bool	bAtRowEnd;
+
+	if (!StartBox())
 	{
-		if (msBox.uiCaretRow > 0)
+		return;
+	}
+
+	uiRow = msBox.uiCaretRow;
+	uiPosition = mpcView->FindPositionInRow(uiRow, msBox.iCaretX, &bRowEnd);
+	uiRowEnd = mpcView->GetRowEnd(uiRow, &bAtRowEnd);
+	switch (eMove)
+	{
+	case TBM_RowUp:
+		if (uiRow > 0)
 		{
 			msBox.uiCaretRow--;
 		}
-		PlaceBoxCaret();
-	}
-}
-
-
-void CTextEditing::BoxSelectDown(void)
-{
-	if (StartBox())
-	{
-		if (msBox.uiCaretRow + 1 < mpcView->NumRows())
+		break;
+	case TBM_RowDown:
+		if (uiRow + 1 < mpcView->NumRows())
 		{
 			msBox.uiCaretRow++;
 		}
-		PlaceBoxCaret();
-	}
-}
-
-
-void CTextEditing::BoxSelectLeft(void)
-{
-	size	uiPosition;
-	bool	bRowEnd;
-
-	if (StartBox())
-	{
-		uiPosition = mpcView->FindPositionInRow(msBox.uiCaretRow, msBox.iCaretX, &bRowEnd);
-		if (uiPosition > mpcView->GetRowStart(msBox.uiCaretRow))
+		break;
+	case TBM_Left:
+		if (uiPosition > mpcView->GetRowStart(uiRow))
 		{
 			msBox.iCaretX = mpcView->GetPositionX(mpcNavigation->PreviousPosition(uiPosition), false);
 		}
-		PlaceBoxCaret();
-	}
-}
-
-
-void CTextEditing::BoxSelectRight(void)
-{
-	size	uiPosition;
-	bool	bRowEnd;
-
-	if (StartBox())
-	{
-		uiPosition = mpcView->FindPositionInRow(msBox.uiCaretRow, msBox.iCaretX, &bRowEnd);
-		if (uiPosition < mpcView->GetRowEnd(msBox.uiCaretRow, &bRowEnd))
+		break;
+	case TBM_Right:
+		if (uiPosition < uiRowEnd)
 		{
 			msBox.iCaretX = mpcView->GetPositionX(mpcNavigation->NextPosition(uiPosition), false);
 		}
-		PlaceBoxCaret();
+		break;
+	case TBM_RowStart:
+		msBox.iCaretX = mpcView->GetPositionX(mpcView->GetRowStart(uiRow), false);
+		break;
+	case TBM_RowEnd:
+		msBox.iCaretX = mpcView->GetPositionX(uiRowEnd, bAtRowEnd);
+		break;
 	}
-}
-
-
-void CTextEditing::BoxSelectHome(void)
-{
-	if (StartBox())
-	{
-		msBox.iCaretX = mpcView->GetPositionX(mpcView->GetRowStart(msBox.uiCaretRow), false);
-		PlaceBoxCaret();
-	}
-}
-
-
-void CTextEditing::BoxSelectEnd(void)
-{
-	size	uiEnd;
-	bool	bRowEnd;
-
-	if (StartBox())
-	{
-		uiEnd = mpcView->GetRowEnd(msBox.uiCaretRow, &bRowEnd);
-		msBox.iCaretX = mpcView->GetPositionX(uiEnd, bRowEnd);
-		PlaceBoxCaret();
-	}
+	PlaceBoxCaret();
 }
 
 
