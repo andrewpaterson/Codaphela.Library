@@ -71,6 +71,20 @@ struct SCPPHighlight
 typedef CArrayTemplate<SCPPHighlight>	CArrayHighlights;
 
 
+//What a node of the syntax tree was parsed from in one source file: its first token's start to its last token's end
+//(exclusive), lines and columns from 0.
+struct SCPPSyntaxRange
+{
+	int32	iLine;
+	int32	iColumn;
+	int32	iEndLine;
+	int32	iEndColumn;
+};
+
+
+typedef CArrayTemplate<SCPPSyntaxRange>	CArrayCPPSyntaxRanges;
+
+
 //Highlights one source file of a parsed translation unit: what each token is, and the comments, directives, macros and
 //skipped lines.  Spans are sorted by line then column and don't cross lines.
 //
@@ -86,6 +100,9 @@ public:
 	void				Init(void);
 	void				Kill(void);
 	void				Highlight(CSourceFile* pcFile, CPreprocessedTokens* pcPreprocessed, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
+	void				FindSyntaxRanges(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CArrayCPPSyntaxRanges* pasDest);
+	void				AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeniser, CArrayCPPSyntaxRanges* pasDest);
+	static char*		PrintSyntaxRanges(CArrayCPPSyntaxRanges* pasRanges, CChars* psz);
 
 	SCPPHighlight*		Get(size iIndex);
 	size				NumHighlights(void);

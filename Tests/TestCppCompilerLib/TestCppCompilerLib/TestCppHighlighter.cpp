@@ -447,6 +447,78 @@ int x;\n");
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Preprocesses and parses szSource, and prints the syntax ranges of its
+// file.
+//
+//////////////////////////////////////////////////////////////////////////
+static char* SyntaxRangesOf(char* szSource, CChars* psz)
+{
+	CTranslationUnit		cFile;
+	CPreprocessor			cPreprocessor;
+	CCPPTokeniser			cTokeniser;
+	CCPPSyntaxTree			cTree;
+	CCPPParser				cParser;
+	CCPPHighlighter			cHighlighter;
+	CArrayCPPSyntaxRanges	asRanges;
+
+	cFile.Init("Ranges.cpp", NULL, false);
+	cFile.SetContents(szSource);
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+	cHighlighter.Init();
+	asRanges.Init();
+	cHighlighter.FindSyntaxRanges(&cFile, &cTokeniser, &cTree, &asRanges);
+	CCPPHighlighter::PrintSyntaxRanges(&asRanges, psz);
+	asRanges.Kill();
+	cHighlighter.Kill();
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+	return psz->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The syntax ranges of a file: what each node was parsed from, sorted,
+// each once; a node made by a macro has none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppHighlighterSyntaxRanges(void)
+{
+	CChars	sz;
+
+	//g(a + 1) * TWO ends in a token TWO's body made, so it has no range; g(a + 1) and a + 1 do.
+	sz.Init();
+	AssertString("\
+2:1-2:4\n\
+2:1-5:2\n\
+2:5-2:6\n\
+2:5-2:13\n\
+2:6-2:13\n\
+2:7-2:10\n\
+2:7-2:12\n\
+2:11-2:12\n\
+3:1-5:2\n\
+4:2-4:24\n\
+4:9-4:10\n\
+4:9-4:17\n\
+4:11-4:12\n\
+4:11-4:16\n\
+4:15-4:16\n", SyntaxRangesOf((char*)"#define TWO (1 + 1)\nint f(int a)\n{\n\treturn g(a + 1) * TWO;\n}\n", &sz));
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppHighlighter(void)
@@ -461,6 +533,7 @@ void TestCppHighlighter(void)
 	TestCppHighlighterSplices();
 	TestCppHighlighterInactiveGroups();
 	TestCppHighlighterHeaderIncludedTwice();
+	TestCppHighlighterSyntaxRanges();
 	TestCppHighlighterNames();
 
 	NumberKill();

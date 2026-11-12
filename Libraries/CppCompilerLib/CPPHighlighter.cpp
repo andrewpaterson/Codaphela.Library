@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "SourceFile.h"
 #include "CTIdentifier.h"
 #include "CTReservedWord.h"
+#include "CPPSyntaxTranslationUnit.h"
 #include "CPPHighlighter.h"
 
 
@@ -435,6 +436,158 @@ static int CompareHighlights(const void* pv1, const void* pv2)
 		return (ps1->iLength > ps2->iLength) ? -1 : 1;
 	}
 	return (ps1->uiKind < ps2->uiKind) ? -1 : ((ps1->uiKind > ps2->uiKind) ? 1 : 0);
+}
+
+
+//Gives the highlighter each node under a node, for its syntax ranges.
+class CCPPHighlighterRangeVisitor : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPHighlighter*		mpcHighlighter;
+	CCPPTokeniser*			mpcTokeniser;
+	CArrayCPPSyntaxRanges*	mpasDest;
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		mpcHighlighter->AddSyntaxRange(pcChild, mpcTokeniser, mpasDest);
+		pcChild->VisitFields(this);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int CompareSyntaxRanges(const void* pv1, const void* pv2)
+{
+	SCPPSyntaxRange*	ps1;
+	SCPPSyntaxRange*	ps2;
+
+	ps1 = (SCPPSyntaxRange*)pv1;
+	ps2 = (SCPPSyntaxRange*)pv2;
+	if (ps1->iLine != ps2->iLine)
+	{
+		return (ps1->iLine < ps2->iLine) ? -1 : 1;
+	}
+	if (ps1->iColumn != ps2->iColumn)
+	{
+		return (ps1->iColumn < ps2->iColumn) ? -1 : 1;
+	}
+	if (ps1->iEndLine != ps2->iEndLine)
+	{
+		return (ps1->iEndLine < ps2->iEndLine) ? -1 : 1;
+	}
+	if (ps1->iEndColumn != ps2->iEndColumn)
+	{
+		return (ps1->iEndColumn < ps2->iEndColumn) ? -1 : 1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What each node of the tree was parsed from in pcFile, for an editor's
+// Extend Selection to grow through: a node whose first and last tokens
+// are written in pcFile (not made by a macro, not from another file) has
+// a range from the first's start to the last's end.  They are sorted by
+// start then end, each once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPHighlighter::FindSyntaxRanges(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CArrayCPPSyntaxRanges* pasDest)
+{
+	CCPPHighlighterRangeVisitor	cVisitor;
+	size						i;
+	size						iKept;
+
+	mpcFile = pcFile;
+	if (pcTree->GetRoot() == NULL)
+	{
+		return;
+	}
+	cVisitor.mpcHighlighter = this;
+	cVisitor.mpcTokeniser = pcTokeniser;
+	cVisitor.mpasDest = pasDest;
+	cVisitor.Visit(pcTree->GetRoot());
+
+	if (pasDest->NumElements() <= 1)
+	{
+		return;
+	}
+	pasDest->QuickSort(&CompareSyntaxRanges);
+	iKept = 0;
+	for (i = 1; i < pasDest->NumElements(); i++)
+	{
+		if (CompareSyntaxRanges(pasDest->Get(i), pasDest->Get(iKept)) != 0)
+		{
+			iKept++;
+			*pasDest->Get(iKept) = *pasDest->Get(i);
+		}
+	}
+	pasDest->SetUsedElements(iKept + 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcNode's range in the file, if its first and last tokens are written in
+// it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPHighlighter::AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeniser, CArrayCPPSyntaxRanges* pasDest)
+{
+	SPreprocessedToken*	psFirst;
+	SPreprocessedToken*	psLast;
+	SCPPSyntaxRange		sRange;
+	int					iOffset;
+
+	if ((pcNode->miFirstToken < 0) || (pcNode->miLastToken < pcNode->miFirstToken) || ((size)pcNode->miLastToken >= pcTokeniser->NumTokens()))
+	{
+		return;
+	}
+	psFirst = pcTokeniser->GetSource(pcTokeniser->Get(pcNode->miFirstToken));
+	psLast = pcTokeniser->GetSource(pcTokeniser->Get(pcNode->miLastToken));
+	if ((psFirst->pcFile != mpcFile) || (psFirst->iExpansion != -1) || (psLast->pcFile != mpcFile) || (psLast->iExpansion != -1))
+	{
+		return;
+	}
+
+	iOffset = (int)mpcFile->GetOffset(psLast->iLine, psLast->iColumn);
+	iOffset += SourceLength(iOffset, (int)psLast->uiLength);
+	if (!mpcFile->GetLineAndColumn(iOffset, &sRange.iEndLine, &sRange.iEndColumn))
+	{
+		return;
+	}
+	sRange.iLine = psFirst->iLine;
+	sRange.iColumn = psFirst->iColumn;
+	*pasDest->Add() = sRange;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The ranges as "line:column-line:column" from 1, one to a line.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCPPHighlighter::PrintSyntaxRanges(CArrayCPPSyntaxRanges* pasRanges, CChars* psz)
+{
+	SCPPSyntaxRange*	psRange;
+	size				i;
+
+	for (i = 0; i < pasRanges->NumElements(); i++)
+	{
+		psRange = pasRanges->Get(i);
+		psz->Append(psRange->iLine + 1);
+		psz->Append(':');
+		psz->Append(psRange->iColumn + 1);
+		psz->Append('-');
+		psz->Append(psRange->iEndLine + 1);
+		psz->Append(':');
+		psz->Append(psRange->iEndColumn + 1);
+		psz->Append('\n');
+	}
+	return psz->Text();
 }
 
 

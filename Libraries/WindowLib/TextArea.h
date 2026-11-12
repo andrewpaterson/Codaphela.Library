@@ -259,6 +259,7 @@ public:
 	void				SelectPageDown(void);
 	void				ExtendSelection(void);
 	void				ShrinkSelection(void);
+	void				SetSelectionRanges(CTextSelectionRanges* pcRanges);
 	void				SelectAll(void);
 	void				ClearSelection(void);
 	void				Printable(char c, bool bInsert);
