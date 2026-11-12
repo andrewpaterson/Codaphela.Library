@@ -101,7 +101,7 @@ Steps (a commit each; tests named are new or extended)
   2. BUILT (TakeText is the paste's read; the test's other program is a second window with a history of its own).
      Sync: the system's text into the history at activation, before paste and on request.  The reference window's
      clipboard (WinRefLib) can have its text set behind the CClipboard's back for the test.
-  3. CListContainer multi selection (off by default): Shift and Control with keys and pointer, GetSelectedRows, the
+  3. BUILT (the selected rows are drawn by one canvas, a CBandsCanvasDraw).  CListContainer multi selection (off by default): Shift and Control with keys and pointer, GetSelectedRows, the
      selection event told once.  TestList.
   4. CPasteHistoryDialog without filter or digits: list, preview, OK, Cancel, enter, double click, delete, several
      selected.  TestPasteHistoryDialog drives it through the window as TestGoToDialog does.

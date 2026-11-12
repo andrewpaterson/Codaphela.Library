@@ -198,6 +198,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonBar.h" />
     <ClInclude Include="ListContainer.h" />
+    <ClInclude Include="BandsCanvasDraw.h" />
     <ClInclude Include="TreeContainer.h" />
     <ClInclude Include="IconComponent.h" />
     <ClInclude Include="Popup.h" />
@@ -384,6 +385,7 @@
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonBar.cpp" />
     <ClCompile Include="ListContainer.cpp" />
+    <ClCompile Include="BandsCanvasDraw.cpp" />
     <ClCompile Include="TreeContainer.cpp" />
     <ClCompile Include="IconComponent.cpp" />
     <ClCompile Include="Popup.cpp" />

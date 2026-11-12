@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GridContainer.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
+#include "BandsCanvasDraw.h"
 #include "DoubleClick.h"
 #include "WindowTheme.h"
 #include "ComponentEvent.h"
@@ -44,6 +45,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //pressing, dragging to a row and releasing activates that row.  A list can instead be activated by a double click,
 //pressing and releasing the same row twice quickly, as a file chooser's is; enter and space still activate the selected
 //row.
+//
+//A list can let several rows be selected (SetMultiSelect), as a list box does.  One row is still the selected row,
+//the one the keys move from (GetSelected); the rows selected with it are asked for one by one (IsRowSelected).  Shift
+//with up, down, page up, page down, home and end, or with a press, selects the rows from where the selection started
+//to the row moved to; Control with a press selects or unselects that row and keeps the others; Control+A selects them
+//all.  A plain move or press selects one row again.
 //
 //Like a button, a list keeps the size its rows need unless a desired size is set on an axis, so in a scroll pane it is
 //its rows' height.
@@ -67,6 +74,10 @@ protected:
 	bool							mbDoubleClickActivates;
 	bool							mbWrapAround;
 	SDoubleClick					msDoubleClick;  //Keyed by row, positions relative to the list.
+	bool							mbMultiSelect;  //Several rows can be selected.
+	CArrayBit						mabSelected;  //One for each row, used when several can be selected.
+	int32							miAnchor;  //The row a selection of several started at, -1 for none.
+	Ptr<CBandsCanvasDraw>			mpSelectedBands;  //Draws the selected rows when several can be; NULL until then.
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -86,6 +97,13 @@ public:
 
 	bool			Select(int32 iRow);
 	int32			GetSelected(void);
+	void			SetMultiSelect(bool bMultiSelect);
+	bool			IsMultiSelect(void);
+	bool			IsRowSelected(int32 iRow);
+	int32			NumSelected(void);
+	void			SelectRange(int32 iFrom, int32 iTo);
+	void			ToggleRow(int32 iRow);
+	void			SelectAll(void);
 	int32			GetHover(void);
 	void			Activate(void);
 	int32			FindRowAt(int x, int y);
@@ -124,6 +142,9 @@ public:
 	void			DocumentEnd(void);
 	void			PageUp(void);
 	void			PageDown(void);
+	void			SelectMove(SComponentInputEvent* psEvent);
+	void			SelectPress(SComponentInputEvent* psEvent);
+	void			SelectAllAction(SComponentInputEvent* psEvent);
 
 protected:
 	virtual void	RowSelected(int32 iRow);  //Called before the listeners are told, iRow is -1 when the selection is cleared.
@@ -136,6 +157,9 @@ protected:
 	void			LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow);
 	int32			FindEnabled(int32 iFrom, int32 iStep);
 	void			SelectEnabled(int32 iRow);
+	int32			FindMove(EComponentInputCommand eMove);
+	void			SelectionChanged(void);
+	void			ClearSelected(void);
 	int32			GetPageRows(void);
 	void			SetHover(int32 iRow);
 };

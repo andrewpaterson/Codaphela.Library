@@ -50,6 +50,9 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mbSelectOnHover = false;
 	mbDoubleClickActivates = false;
 	msDoubleClick.Init();
+	mbMultiSelect = false;
+	mabSelected.Init();
+	miAnchor = -1;
 	SetCanGetFocus(true);
 
 	mpSelectedDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_ListSelected));
@@ -99,6 +102,10 @@ void CListContainer::Class(void)
 	U_Bool(mbDoubleClickActivates);
 	U_Bool(mbWrapAround);
 	U_Data(SDoubleClick, msDoubleClick);
+	U_Bool(mbMultiSelect);
+	U_Unknown(CArrayBit, mabSelected);
+	U_Int32(miAnchor);
+	M_Pointer(mpSelectedBands);
 }
 
 
@@ -110,6 +117,7 @@ void CListContainer::Free(void)
 {
 	mcActivated.Kill();
 	mcSelectionChanged.Kill();
+	mabSelected.Kill();
 	mabEnabled.Kill();
 	CGridContainer::Free();
 }
@@ -173,6 +181,7 @@ Ptr<CCanvas> CListContainer::CreateHighlight(Ptr<CClearCanvasDraw> pDraw)
 int32 CListContainer::AddRow(bool bEnabled)
 {
 	mabEnabled.Add(bEnabled);
+	mabSelected.Add(false);
 	return NumRows() - 1;
 }
 
@@ -222,6 +231,7 @@ bool CListContainer::RemoveAllComponents(void)
 	msDoubleClick.Forget();
 	bResult = CGridContainer::RemoveAllComponents();
 	mabEnabled.ReInit();
+	mabSelected.ReInit();
 	AddHighlights();
 	return bResult;
 }
@@ -279,14 +289,215 @@ bool CListContainer::Select(int32 iRow)
 		return false;
 	}
 
-	if (iRow != miSelected)
+	if ((iRow != miSelected) || (mbMultiSelect && (NumSelected() != ((iRow >= 0) ? 1 : 0))))
 	{
+		ClearSelected();
 		miSelected = iRow;
-		UpdateHighlights();
-		RowSelected(iRow);
-		mcSelectionChanged.Call(this);
+		miAnchor = iRow;
+		if (iRow >= 0)
+		{
+			mabSelected.Set(iRow, true);
+		}
+		SelectionChanged();
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether several rows can be selected.  Turned off, only the selected
+// row stays selected.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SetMultiSelect(bool bMultiSelect)
+{
+	int32	iSelected;
+
+	if (bMultiSelect == mbMultiSelect)
+	{
+		return;
+	}
+	mbMultiSelect = bMultiSelect;
+	if (mbMultiSelect)
+	{
+		//One canvas over the whole list draws every selected row's band.  The keys and presses that select several
+		//are the list's from the first time it can: a list that never can (a menu) leaves them to whatever has them,
+		//the edit commands' target say.
+		if (mpSelectedBands.IsNull())
+		{
+			mpSelectedBands = OMalloc<CBandsCanvasDraw>(mpSelectedDraw->GetColour());
+			AddInputAction(CIC_SelectUp, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectDown, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectPageUp, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectPageDown, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectHome, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectEnd, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectDocumentHome, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_SelectDocumentEnd, this, &CListContainer::SelectMove);
+			AddInputAction(CIC_StartDragSelect, this, &CListContainer::SelectPress);
+			AddInputAction(CIC_SelectAll, this, &CListContainer::SelectAllAction);
+		}
+		mpSelectedHighlight->SetCanvasDraw(mpSelectedBands);
+		mpSelectedHighlight->SetTransparent(true);
+		UpdateHighlights();
+	}
+	else
+	{
+		mpSelectedHighlight->SetCanvasDraw(mpSelectedDraw);
+		mpSelectedHighlight->SetTransparent(false);
+		iSelected = IsRowSelected(miSelected) ? miSelected : -1;
+		miSelected = -2;
+		Select(iSelected);
+	}
+}
+
+
+bool CListContainer::IsMultiSelect(void) { return mbMultiSelect; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With several selectable, the selected row itself may not be: Control
+// with a press unselects it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::IsRowSelected(int32 iRow)
+{
+	if ((iRow < 0) || (iRow >= NumRows()))
+	{
+		return false;
+	}
+	return mabSelected.Get(iRow);
+}
+
+
+int32 CListContainer::NumSelected(void)
+{
+	int32	i;
+	int32	iNum;
+
+	iNum = 0;
+	for (i = 0; i < NumRows(); i++)
+	{
+		if (mabSelected.Get(i))
+		{
+			iNum++;
+		}
+	}
+	return iNum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enabled rows from iFrom to iTo, either way round, are the ones
+// selected, iTo the selected row and iFrom where a further range starts.
+// Only when several can be selected: otherwise iTo is selected.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SelectRange(int32 iFrom, int32 iTo)
+{
+	int32	i;
+	int32	iFirst;
+	int32	iLast;
+
+	if (!mbMultiSelect || (iFrom < 0) || (iFrom >= NumRows()))
+	{
+		Select(iTo);
+		return;
+	}
+	if ((iTo < 0) || (iTo >= NumRows()))
+	{
+		return;
+	}
+
+	iFirst = (iFrom < iTo) ? iFrom : iTo;
+	iLast = (iFrom < iTo) ? iTo : iFrom;
+	ClearSelected();
+	for (i = iFirst; i <= iLast; i++)
+	{
+		mabSelected.Set(i, IsRowEnabled(i));
+	}
+	miSelected = iTo;
+	miAnchor = iFrom;
+	SelectionChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row is selected if it wasn't and unselected if it was, the others
+// staying as they are, and it is the selected row a range would start
+// from.  Only when several can be selected: otherwise it is selected.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::ToggleRow(int32 iRow)
+{
+	if (!mbMultiSelect)
+	{
+		Select(iRow);
+		return;
+	}
+	if (!IsRowEnabled(iRow))
+	{
+		return;
+	}
+	mabSelected.Set(iRow, !mabSelected.Get(iRow));
+	miSelected = iRow;
+	miAnchor = iRow;
+	SelectionChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every enabled row, when several can be selected.  The selected row
+// stays the one it was, or is the first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SelectAll(void)
+{
+	int32	i;
+
+	if (!mbMultiSelect || (NumRows() == 0))
+	{
+		return;
+	}
+	for (i = 0; i < NumRows(); i++)
+	{
+		mabSelected.Set(i, IsRowEnabled(i));
+	}
+	if (miSelected < 0)
+	{
+		miSelected = FindEnabled(0, 1);
+	}
+	miAnchor = miSelected;
+	SelectionChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selection changed: it is drawn and the listeners are told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SelectionChanged(void)
+{
+	UpdateHighlights();
+	RowSelected(miSelected);
+	mcSelectionChanged.Call(this);
+}
+
+
+void CListContainer::ClearSelected(void)
+{
+	int32	i;
+
+	for (i = 0; i < NumRows(); i++)
+	{
+		mabSelected.Set(i, false);
+	}
 }
 
 
@@ -344,6 +555,10 @@ int32 CListContainer::FindRowAt(int x, int y)
 void CListContainer::SetHighlightColours(ARGB32 sSelected, ARGB32 sHover)
 {
 	mpSelectedDraw->SetColour(sSelected);
+	if (mpSelectedBands.IsNotNull())
+	{
+		mpSelectedBands->SetColour(sSelected);
+	}
 	mpHoverDraw->SetColour(sHover);
 }
 
@@ -410,7 +625,7 @@ bool CListContainer::IsChildDrawn(Ptr<CComponent> pChild)
 {
 	if (pChild == mpSelectedHighlight)
 	{
-		return miSelected >= 0;
+		return mbMultiSelect ? (NumSelected() > 0) : (miSelected >= 0);
 	}
 	if (pChild == mpHoverHighlight)
 	{
@@ -565,125 +780,160 @@ void CListContainer::ExecuteComponent(int x, int y)
 // first.
 //
 //////////////////////////////////////////////////////////////////////////
-void CListContainer::Up(void)
-{
-	int32	iRow;
-
-	iRow = FindEnabled(miSelected < 0 ? NumRows() - 1 : miSelected - 1, -1);
-	if ((iRow < 0) && mbWrapAround)
-	{
-		iRow = FindEnabled(NumRows() - 1, -1);
-	}
-	SelectEnabled(iRow);
-}
+void CListContainer::Up(void) { SelectEnabled(FindMove(CIC_Up)); }
+void CListContainer::Down(void) { SelectEnabled(FindMove(CIC_Down)); }
+void CListContainer::Home(void) { SelectEnabled(FindMove(CIC_Home)); }
+void CListContainer::End(void) { SelectEnabled(FindMove(CIC_End)); }
+void CListContainer::DocumentHome(void) { SelectEnabled(FindMove(CIC_Home)); }
+void CListContainer::DocumentEnd(void) { SelectEnabled(FindMove(CIC_End)); }
+void CListContainer::PageUp(void) { SelectEnabled(FindMove(CIC_PageUp)); }
+void CListContainer::PageDown(void) { SelectEnabled(FindMove(CIC_PageDown)); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The enabled row a key moves the selection to from the selected row:
+// CIC_Up, CIC_Down, CIC_Home, CIC_End, CIC_PageUp or CIC_PageDown.  -1 if
+// there is none that way.  A page moves by the rows a scroll pane shows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CListContainer::Down(void)
-{
-	int32	iRow;
-
-	iRow = FindEnabled(miSelected + 1, 1);
-	if ((iRow < 0) && mbWrapAround)
-	{
-		iRow = FindEnabled(0, 1);
-	}
-	SelectEnabled(iRow);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::Home(void)
-{
-	SelectEnabled(FindEnabled(0, 1));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::End(void)
-{
-	SelectEnabled(FindEnabled(NumRows() - 1, -1));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::DocumentHome(void)
-{
-	Home();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::DocumentEnd(void)
-{
-	End();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Moves the page rows up to the nearest enabled row at or below there, or
-// above there if none is between there and the selected row.
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::PageUp(void)
+int32 CListContainer::FindMove(EComponentInputCommand eMove)
 {
 	int32	iTarget;
 	int32	iRow;
 
-	iTarget = (miSelected < 0 ? NumRows() - 1 : miSelected) - GetPageRows();
-	if (iTarget < 0)
+	switch (eMove)
 	{
-		iTarget = 0;
-	}
-
-	iRow = FindEnabled(iTarget, 1);
-	if ((iRow < 0) || ((miSelected >= 0) && (iRow >= miSelected)))
-	{
-		iRow = FindEnabled(iTarget, -1);
-	}
-	SelectEnabled(iRow);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Moves the page rows down to the nearest enabled row at or above there,
-// or below there if none is between the selected row and there.
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::PageDown(void)
-{
-	int32	iTarget;
-	int32	iRow;
-
-	iTarget = (miSelected < 0 ? 0 : miSelected) + GetPageRows();
-	if (iTarget > NumRows() - 1)
-	{
-		iTarget = NumRows() - 1;
-	}
-
-	iRow = FindEnabled(iTarget, -1);
-	if (iRow <= miSelected)
-	{
+	case CIC_Up:
+		iRow = FindEnabled(miSelected < 0 ? NumRows() - 1 : miSelected - 1, -1);
+		if ((iRow < 0) && mbWrapAround)
+		{
+			iRow = FindEnabled(NumRows() - 1, -1);
+		}
+		return iRow;
+	case CIC_Down:
+		iRow = FindEnabled(miSelected + 1, 1);
+		if ((iRow < 0) && mbWrapAround)
+		{
+			iRow = FindEnabled(0, 1);
+		}
+		return iRow;
+	case CIC_Home:
+		return FindEnabled(0, 1);
+	case CIC_End:
+		return FindEnabled(NumRows() - 1, -1);
+	case CIC_PageUp:
+		iTarget = (miSelected < 0 ? NumRows() - 1 : miSelected) - GetPageRows();
+		if (iTarget < 0)
+		{
+			iTarget = 0;
+		}
 		iRow = FindEnabled(iTarget, 1);
+		if ((iRow < 0) || ((miSelected >= 0) && (iRow >= miSelected)))
+		{
+			iRow = FindEnabled(iTarget, -1);
+		}
+		return iRow;
+	case CIC_PageDown:
+		iTarget = (miSelected < 0 ? 0 : miSelected) + GetPageRows();
+		if (iTarget > NumRows() - 1)
+		{
+			iTarget = NumRows() - 1;
+		}
+		iRow = FindEnabled(iTarget, -1);
+		if (iRow <= miSelected)
+		{
+			iRow = FindEnabled(iTarget, 1);
+		}
+		return iRow;
+	default:
+		return -1;
 	}
-	SelectEnabled(iRow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shift with a key that moves the selection: with several selectable, the
+// rows from where the selection started to the row moved to are selected.
+// Otherwise the key goes on to the parent.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SelectMove(SComponentInputEvent* psEvent)
+{
+	EComponentInputCommand	eMove;
+	int32					iRow;
+
+	if (!mbMultiSelect)
+	{
+		psEvent->bPass = true;
+		return;
+	}
+	switch (psEvent->eCommand)
+	{
+	case CIC_SelectUp:				eMove = CIC_Up;			break;
+	case CIC_SelectDown:			eMove = CIC_Down;		break;
+	case CIC_SelectPageUp:			eMove = CIC_PageUp;		break;
+	case CIC_SelectPageDown:		eMove = CIC_PageDown;	break;
+	case CIC_SelectHome:
+	case CIC_SelectDocumentHome:	eMove = CIC_Home;		break;
+	default:						eMove = CIC_End;		break;
+	}
+	iRow = FindMove(eMove);
+	if (iRow >= 0)
+	{
+		SelectRange((miAnchor >= 0) ? miAnchor : iRow, iRow);
+		ShowRow(iRow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shift or Control with a press: with several selectable, Control selects
+// or unselects the row pressed and Shift selects from where the selection
+// started to it.  Otherwise the press goes on to the parent.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SelectPress(SComponentInputEvent* psEvent)
+{
+	SInt32Vec2	sPosition;
+	int32		iRow;
+
+	if (!mbMultiSelect)
+	{
+		psEvent->bPass = true;
+		return;
+	}
+	sPosition = GetPosition();
+	iRow = FindRowAt(psEvent->x + sPosition.x, psEvent->y + sPosition.y);
+	if (iRow < 0)
+	{
+		return;
+	}
+	if (psEvent->bControl && !psEvent->bShift)
+	{
+		ToggleRow(iRow);
+	}
+	else
+	{
+		SelectRange((miAnchor >= 0) ? miAnchor : iRow, iRow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SelectAllAction(SComponentInputEvent* psEvent)
+{
+	if (!mbMultiSelect)
+	{
+		psEvent->bPass = true;
+		return;
+	}
+	SelectAll();
 }
 
 
@@ -705,7 +955,28 @@ bool CListContainer::IsHoverShown(void)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::UpdateHighlights(void)
 {
-	LayoutHighlight(mpSelectedHighlight, miSelected);
+	int32	i;
+	int32	iTop;
+	int32	iHeight;
+
+	if (mbMultiSelect)
+	{
+		//The selected highlight is over the whole list and draws a band for each selected row.
+		mpSelectedBands->ClearBands();
+		for (i = 0; i < NumRows(); i++)
+		{
+			if (mabSelected.Get(i) && GetTrackBounds(false, (size)i, &iTop, &iHeight))
+			{
+				mpSelectedBands->AddBand(iTop - GetPosition().y, iHeight);
+			}
+		}
+		LayoutComponentInArea(mpSelectedHighlight, GetPosition(), GetActualSize());
+		mpSelectedHighlight->Invalidate();
+	}
+	else
+	{
+		LayoutHighlight(mpSelectedHighlight, miSelected);
+	}
 	LayoutHighlight(mpHoverHighlight, IsHoverShown() ? miHover : -1);
 }
 

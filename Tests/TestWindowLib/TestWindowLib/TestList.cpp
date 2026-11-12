@@ -10,6 +10,7 @@
 #include "TestLib/AssertGeometric.h"
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
+#include "TestWindow.h"
 
 
 Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
@@ -522,6 +523,199 @@ void TestListKeysScroll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The rows selected, as "1,2,4 lead 4".
+//
+//////////////////////////////////////////////////////////////////////////
+static char* PrintListSelection(Ptr<CListContainer> pList, CChars* psz)
+{
+	int32	i;
+	bool	bFirst;
+
+	psz->Clear();
+	bFirst = true;
+	for (i = 0; i < pList->NumRows(); i++)
+	{
+		if (pList->IsRowSelected(i))
+		{
+			psz->Append(bFirst ? "" : ",");
+			psz->Append(i);
+			bFirst = false;
+		}
+	}
+	psz->Append(" lead ");
+	psz->Append(pList->GetSelected());
+	return psz->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window's painted pixel as 0xRRGGBB.  The window is 24 bit RGB.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 ListWindowPixel(Ptr<CWindow> pWindow, int32 x, int32 y)
+{
+	uint8*	puiPixel;
+
+	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(y * pWindow->GetCanvas()->GetActualSize().x + x) * 3];
+	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A list that lets several rows be selected: Shift with the keys or a
+// press selects from where the selection started, Control with a press
+// selects or unselects a row, Control+A selects them all, and a plain move
+// selects one again.  Every selected row is drawn selected.  A list that
+// doesn't selects one row whatever it is asked.
+//
+// Six rows of 40x10 at the list's left, centred down it (the first is 20
+// down); row 3 is disabled.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestListMultiSelect(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CListContainer>		pList;
+		Ptr<CCanvas>			pItem;
+		CTestListListener		cListener;
+		SComponentInputEvent	sEvent;
+		CChars					szLog;
+		CChars					sz;
+		int32					i;
+
+		szLog.Init();
+		sz.Init();
+		cListener.Init(&szLog);
+		//The window clears behind the list, whose selected rows are drawn on a transparent canvas.
+		cWindow.Init("List Multi Window", 100, 100, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, (uint8)0, (uint8)0)));
+		pTestWindow = cWindow.pWindow;
+		pList = OMalloc<CListContainer>(pTestWindow, CreateTestTheme(Ptr<CFont>()));
+		pList->SetAlignment(CSH_Stretch, CSV_Top);
+		pList->SetHighlightColours(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20), Set32BitColour((uint8)0x20, (uint8)0x80, (uint8)0x20));
+		pTestWindow->SetContainer(pList);
+		for (i = 0; i < 6; i++)
+		{
+			pItem = CreateListItem(pTestWindow, 40, 10, Set32BitColour((uint8)0x10, (uint8)0x20, (uint8)0x30));
+			pItem->SetAlignment(CSH_Left, CSV_Top);
+			pList->AddItem(pItem, i != 3);
+		}
+		pList->GetSelectionEvent()->Add(&cListener, &CTestListListener::SelectionChanged);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pList);
+
+		//One row at a time: a range, a toggle and all select one row or nothing, and Shift's keys aren't the list's.
+		AssertFalse(pList->IsMultiSelect());
+		pList->SelectRange(1, 2);
+		AssertString("2 lead 2", PrintListSelection(pList, &sz));
+		pList->ToggleRow(1);
+		AssertString("1 lead 1", PrintListSelection(pList, &sz));
+		pList->SelectAll();
+		AssertString("1 lead 1", PrintListSelection(pList, &sz));
+		AssertInt(1, pList->NumSelected());
+		pTestWindow->InputCommand(CIC_SelectDown, true);
+		AssertString("1 lead 1", PrintListSelection(pList, &sz));
+		AssertLog("Selected:2;Selected:1;");
+
+		//Several: Shift and down selects on from where the selection started, over the disabled row but not it.
+		pList->SetMultiSelect(true);
+		AssertTrue(pList->IsMultiSelect());
+		AssertString("1 lead 1", PrintListSelection(pList, &sz));
+		pTestWindow->InputCommand(CIC_SelectDown, true);
+		AssertString("1,2 lead 2", PrintListSelection(pList, &sz));
+		pTestWindow->InputCommand(CIC_SelectDown, true);
+		AssertString("1,2,4 lead 4", PrintListSelection(pList, &sz));
+		AssertInt(3, pList->NumSelected());
+		AssertLog("Selected:2;Selected:4;");
+
+		//Each selected row is drawn selected, right of its item; the disabled row between them isn't.
+		pTestWindow->Paint();
+		AssertInt(0x802020, ListWindowPixel(pTestWindow, 60, 35));
+		AssertInt(0x802020, ListWindowPixel(pTestWindow, 60, 45));
+		AssertInt(0x802020, ListWindowPixel(pTestWindow, 60, 65));
+		AssertTrue(ListWindowPixel(pTestWindow, 60, 55) != 0x802020);
+		AssertTrue(ListWindowPixel(pTestWindow, 60, 25) != 0x802020);
+
+		//Back up shortens it; past where it started it goes the other way.
+		pTestWindow->InputCommand(CIC_SelectUp, true);
+		AssertString("1,2 lead 2", PrintListSelection(pList, &sz));
+		pTestWindow->InputCommand(CIC_SelectDocumentHome, true);
+		AssertString("0,1 lead 0", PrintListSelection(pList, &sz));
+		pTestWindow->InputCommand(CIC_SelectDocumentEnd, true);
+		AssertString("1,2,4,5 lead 5", PrintListSelection(pList, &sz));
+		szLog.Clear();
+
+		//A plain move selects one row again.
+		pTestWindow->InputCommand(CIC_Up, true);
+		AssertString("4 lead 4", PrintListSelection(pList, &sz));
+		pTestWindow->Paint();
+		AssertTrue(ListWindowPixel(pTestWindow, 60, 35) != 0x802020);
+		AssertInt(0x802020, ListWindowPixel(pTestWindow, 60, 65));
+
+		//Control with a press adds a row, or takes it away: the row pressed is the selected row either way.
+		memset(&sEvent, 0, sizeof(SComponentInputEvent));
+		sEvent.eType = CIET_Command;
+		sEvent.eCommand = CIC_StartDragSelect;
+		sEvent.bControl = true;
+		sEvent.x = 20;
+		sEvent.y = 25;
+		pList->SelectPress(&sEvent);
+		AssertString("0,4 lead 0", PrintListSelection(pList, &sz));
+		sEvent.y = 65;
+		pList->SelectPress(&sEvent);
+		AssertString("0 lead 4", PrintListSelection(pList, &sz));
+		AssertFalse(pList->IsRowSelected(4));
+
+		//Shift with a press, through the window, selects from there to the row pressed.
+		pTestWindow->PointerMoved(20, 45);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		AssertString("2,4 lead 2", PrintListSelection(pList, &sz));
+
+		//All of them that are enabled; the selected row stays.
+		pTestWindow->InputCommand(CIC_SelectAll, true);
+		AssertString("0,1,2,4,5 lead 2", PrintListSelection(pList, &sz));
+		szLog.Clear();
+
+		//A plain press selects one.
+		pTestWindow->PointerMoved(20, 35);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertString("1 lead 1", PrintListSelection(pList, &sz));
+		AssertLog("Selected:1;");
+
+		//One at a time again: only the selected row stays selected.
+		pList->SelectRange(1, 4);
+		pList->SetMultiSelect(false);
+		AssertString("4 lead 4", PrintListSelection(pList, &sz));
+		pTestWindow->Paint();
+		AssertInt(0x802020, ListWindowPixel(pTestWindow, 60, 65));
+		AssertTrue(ListWindowPixel(pTestWindow, 60, 35) != 0x802020);
+
+		//Emptied, nothing is selected.
+		pList->SetMultiSelect(true);
+		pList->SelectAll();
+		pList->RemoveAllComponents();
+		AssertInt(0, pList->NumSelected());
+		AssertInt(-1, pList->GetSelected());
+
+		sz.Kill();
+		szLog.Kill();
+		pItem = NULL;
+		pList = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestList(void)
@@ -532,6 +726,7 @@ void TestList(void)
 	TestListInput();
 	TestListDraw();
 	TestListKeysScroll();
+	TestListMultiSelect();
 
 	ObjectsFlush();
 	ObjectsKill();
