@@ -56,6 +56,7 @@ struct SWindowInputEvent;
 class CComponentInput;
 //How long a caret is shown, then hidden, for (IntelliJ's default), see CFocus::SetCaretBlinkPeriod.
 #define FOCUS_CARET_BLINK_PERIOD	500
+#define FOCUS_DRAG_REPEAT_PERIOD	50	//Milliseconds between the moves a select drag held still outside its view is given.
 
 
 class CFocus : public CObject
@@ -75,6 +76,7 @@ protected:
 	int32					miCaretBlinkPeriod;  //Milliseconds the caret is shown, then hidden, for; 0 for always shown.
 	int64					miCaretBlinkTime;  //When the caret was last shown or hidden (GetDebugTickCount).
 	bool					mbCaretOn;  //The focussed component's caret is shown.
+	int64					miDragRepeatTime;  //When the drag component was last told where the pointer is (GetDebugTickCount).
 
 public:
 	void				Init(Ptr<CWindow> pWindow);
@@ -109,6 +111,8 @@ public:
 	void						StopDrag(EFocusDrag eDrag);
 	void						HandOverDrag(Ptr<CComponent> pComponent);
 	Ptr<CComponent>				GetDragComponent(void);
+	int64						GetDragRepeatWait(int64 iNow);
+	bool						RepeatDrag(int64 iNow);
 	EFocusDrag					GetDrag(void);
 	CComponentEvent<CFocus>*	GetFocusChangeEvent(void);
 
@@ -123,6 +127,7 @@ public:
 
 protected:
 	void				SetMouseOver(Ptr<CComponent> pComponent);
+	void				ContinueDrag(void);
 	SComponentInputEvent*	DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents);
 	bool				DispatchEvent(SComponentInputEvent* psEvent);
 	bool				Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);

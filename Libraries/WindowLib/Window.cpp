@@ -303,6 +303,7 @@ bool CWindow::Show(void)
 		}
 		PaintOwned(bContinuous);
 		BlinkCaret(GetDebugTickCount());
+		mcFocus.RepeatDrag(GetDebugTickCount());
 		ShowToolTip(GetDebugTickCount());
 		miTickDelay = -1;
 		RunPosted();
@@ -357,6 +358,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 	}
 	iWait = ShorterWait(iWait, miTickDelay);
 	iWait = ShorterWait(iWait, mcFocus.GetCaretBlinkWait(GetDebugTickCount()));
+	iWait = ShorterWait(iWait, mcFocus.GetDragRepeatWait(GetDebugTickCount()));
 	if (mpToolTips.IsNotNull())
 	{
 		iWait = ShorterWait(iWait, mpToolTips->GetWait(GetDebugTickCount()));
@@ -374,6 +376,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 			iWait = ShorterWait(iWait, (iFrameWait > 0) ? iFrameWait : 0);
 		}
 		iWait = ShorterWait(iWait, pOwned->mcFocus.GetCaretBlinkWait(GetDebugTickCount()));
+		iWait = ShorterWait(iWait, pOwned->mcFocus.GetDragRepeatWait(GetDebugTickCount()));
 	}
 	return iWait;
 }
@@ -1706,6 +1709,7 @@ void CWindow::PaintOwned(bool bContinuous)
 			pOwned->Paint();
 		}
 		pOwned->BlinkCaret(GetDebugTickCount());
+		pOwned->mcFocus.RepeatDrag(GetDebugTickCount());
 		i++;
 	}
 }

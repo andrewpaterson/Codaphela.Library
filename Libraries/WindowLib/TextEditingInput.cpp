@@ -51,6 +51,7 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	muiOriginEnd = 0;
 	mbTextDragEnabled = false;
 	msPress.Init(0, 0);
+	meCursor = NC_Arrow;
 	muiDrop = 0;
 	mbDropRowEnd = false;
 
@@ -175,7 +176,7 @@ void CTextEditingInput::SetPointerEnabled(bool bEnabled)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::FocusLost(void)
 {
-	meDrag = TED_None;
+	SetDrag(TED_None);
 	msClicks.Forget();
 }
 
@@ -382,7 +383,29 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 	{
 		ContDragSelect(x, y);
 	}
-	meDrag = TED_None;
+	SetDrag(TED_None);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is being dragged changes.  While it is the selected text the
+// pointer is NC_Move over the component, whose own shape is put back
+// after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::SetDrag(ETextEditingDrag eDrag)
+{
+	if ((eDrag == TED_Text) && (meDrag != TED_Text))
+	{
+		meCursor = mpcComponent->GetCursor();
+		mpcComponent->SetCursor(NC_Move);
+	}
+	else if ((eDrag != TED_Text) && (meDrag == TED_Text))
+	{
+		mpcComponent->SetCursor(meCursor);
+	}
+	meDrag = eDrag;
 }
 
 
@@ -393,7 +416,7 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::CancelDrag(void)
 {
-	meDrag = TED_None;
+	SetDrag(TED_None);
 	mpcComponent->GetWindow()->GetFocus()->StopDrag(FD_Select);
 	mpcComponent->GetWindow()->RequestPaint();
 }
@@ -550,7 +573,7 @@ void CTextEditingInput::DragText(int x, int y)
 	}
 	if ((meDrag != TED_Text) || (uiDrop != muiDrop) || (bRowEnd != mbDropRowEnd))
 	{
-		meDrag = TED_Text;
+		SetDrag(TED_Text);
 		muiDrop = uiDrop;
 		mbDropRowEnd = bRowEnd;
 		mpcEditing->GetView()->ShowCaret();
@@ -579,7 +602,7 @@ void CTextEditingInput::DropText(int x, int y)
 		return;
 	}
 
-	meDrag = TED_None;
+	SetDrag(TED_None);
 	mpcEditing->GetSelection(&uiStart, &uiEnd);
 	mpcEditing->MoveText(uiStart, uiEnd, muiDrop, IsCopyHeld());
 	mpcComponent->GetWindow()->RequestPaint();

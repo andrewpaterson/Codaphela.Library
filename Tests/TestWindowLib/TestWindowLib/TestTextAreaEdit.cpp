@@ -1763,7 +1763,8 @@ void TextAreaPointerAt(Ptr<CTextArea> pTextArea, size uiPosition, bool bGap)
 // Dragging a text area's selected text: the caret is drawn where it would
 // be dropped, the release moves it there, or copies it with control held,
 // Escape cancels it, and dragging past the view scrolls to the drop
-// caret.
+// caret, on and on while the pointer is held still outside the view.  The
+// pointer is NC_Move while the text is dragged.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditDragText(void)
@@ -1785,6 +1786,7 @@ void TestTextAreaEditDragText(void)
 		ARGB32						sColour;
 		CChars						szText;
 		int32						i;
+		int32						iScrolled;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -1862,7 +1864,31 @@ void TestTextAreaEditDragText(void)
 		pTestWindow->PointerMoved(pTextArea->GetPosition().x + 10, 99);
 		pTestWindow->Layout();
 		AssertInt(5 * 24 - 100, pScroll->GetScrollPosition().y);
+
+		//While the text is dragged the pointer is NC_Move.  In the view, holding it still does nothing more.
+		AssertInt(NC_Move, pTextArea->GetCursor());
+		AssertTrue(pTestWindow->GetFocus()->GetDragRepeatWait(GetDebugTickCount() + 1000) == -1);
+		AssertFalse(pTestWindow->GetFocus()->RepeatDrag(GetDebugTickCount() + 1000));
+
+		//Held still below the view, the drag is told where the pointer is again and again: each scrolls further, by as
+		//many rows as the pointer is past the view (30 pixels, two rows of 24).
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + 10, 130);
+		pTestWindow->Layout();
+		iScrolled = pScroll->GetScrollPosition().y;
+		AssertTrue(iScrolled > 5 * 24 - 100);
+		AssertFalse(pTestWindow->GetFocus()->RepeatDrag(GetDebugTickCount()));
+		AssertTrue(pTestWindow->GetFocus()->GetDragRepeatWait(GetDebugTickCount() + 1000) == 0);
+		AssertTrue(pTestWindow->GetFocus()->RepeatDrag(GetDebugTickCount() + 1000));
+		pTestWindow->Layout();
+		AssertInt(iScrolled + 48, pScroll->GetScrollPosition().y);
+		AssertTrue(pTestWindow->GetFocus()->RepeatDrag(GetDebugTickCount() + 1000));
+		pTestWindow->Layout();
+		AssertInt(iScrolled + 96, pScroll->GetScrollPosition().y);
+
+		//Escape ends the drag: the pointer is the text area's own again and nothing repeats.
 		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertInt(NC_Arrow, pTextArea->GetCursor());
+		AssertTrue(pTestWindow->GetFocus()->GetDragRepeatWait(GetDebugTickCount() + 1000) == -1);
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
 
 		pTestWindow->SetComponentInput(NULL);

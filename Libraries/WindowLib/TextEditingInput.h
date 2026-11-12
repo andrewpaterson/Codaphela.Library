@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TextEditing.h"
 #include "ComponentInputEvent.h"
 #include "DoubleClick.h"
+#include "NativeCursor.h"
 
 
 class CComponent;
@@ -50,7 +51,7 @@ enum ETextEditingDrag
 //by whole words or lines, keeping the first selected.  A shift press extends the selection by characters.  A line drag
 //(StartLineDrag, from a code editor's gutter) selects by whole lines from a press beside the text.  With text drags
 //enabled (SetTextDragEnabled), a press in the selection of an editable text that moves more than TEXT_DRAG_DISTANCE
-//pixels drags the selected text: a drop caret follows the pointer (GetDropPosition) and the release moves the text
+//pixels drags the selected text: the pointer is NC_Move, a drop caret follows it (GetDropPosition) and the release moves the text
 //there, or with control held copies it, as one undo step.  Dropped in the selection or at its ends nothing changes,
 //and a press in the selection released without dragging puts the caret there.  Escape ends a drag: the text being
 //dragged stays where it is, selected; any other drag's selection is cleared.  Shift+Alt (or Alt)
@@ -69,6 +70,7 @@ protected:
 	size					muiOriginEnd;
 	bool					mbTextDragEnabled;
 	SInt32Vec2				msPress;  //Where the press in the selection was.
+	ENativeCursor			meCursor;  //The component's pointer shape, put back when the selected text stops being dragged.
 	size					muiDrop;  //Where the dragged text would be dropped.
 	bool					mbDropRowEnd;
 
@@ -103,6 +105,7 @@ public:
 protected:
 	void	AddActions(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
 	void	StartDrag(ETextEditingDrag eDrag, int x, int y);
+	void	SetDrag(ETextEditingDrag eDrag);
 	void	CancelDrag(void);
 	bool	IsTextDrag(void);
 	bool	FindUnitAt(ETextEditingDrag eUnit, int x, int y, size* puiStart, size* puiEnd);

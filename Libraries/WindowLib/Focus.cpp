@@ -74,6 +74,7 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 	mcFocusChanged.Init();
 	miCaretBlinkPeriod = FOCUS_CARET_BLINK_PERIOD;
 	miCaretBlinkTime = 0;
+	miDragRepeatTime = 0;
 	mbCaretOn = true;
 }
 
@@ -105,6 +106,7 @@ void CFocus::Class(void)
 	U_Unknown(CComponentEvent<CFocus>, mcFocusChanged);
 	U_Int32(miCaretBlinkPeriod);
 	U_Int64(miCaretBlinkTime);
+	U_Int64(miDragRepeatTime);
 	U_Bool(mbCaretOn);
 }
 
@@ -138,9 +140,8 @@ bool CFocus::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::PointerMoved(int x, int y)
 {
-	int						lx;
-	int						ly;
-	SComponentInputEvent	sEvent;
+	int		lx;
+	int		ly;
 
 	msPointer.Init(x, y);
 	mbPointerIn = true;
@@ -154,17 +155,71 @@ void CFocus::PointerMoved(int x, int y)
 
 	if (mpDragComponent)
 	{
-		InitEvent(&sEvent, CIET_Command, true);
-		sEvent.eCommand = GetDragCommand(meDrag, FDS_Continue);
-		Deliver(mpDragComponent, &sEvent);
-
-		//A drag is a command like any other: selecting and scrolling move what is laid out, unless the dragged
-		//component's action keeps the layout.
-		if (!sEvent.bLayoutKept)
-		{
-			mpWindow->InvalidateLayout();
-		}
+		ContinueDrag();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component dragging is told where the pointer is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::ContinueDrag(void)
+{
+	SComponentInputEvent	sEvent;
+
+	miDragRepeatTime = GetDebugTickCount();
+	InitEvent(&sEvent, CIET_Command, true);
+	sEvent.eCommand = GetDragCommand(meDrag, FDS_Continue);
+	Deliver(mpDragComponent, &sEvent);
+
+	//A drag is a command like any other: selecting and scrolling move what is laid out, unless the dragged
+	//component's action keeps the layout.
+	if (!sEvent.bLayoutKept)
+	{
+		mpWindow->InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How long until a select drag is told where the pointer is again though
+// it hasn't moved (RepeatDrag): while the pointer is outside the view the
+// component dragging is scrolled in, so a selection dragged past the
+// view's edge and held there goes on scrolling, as editors do.  -1 if
+// there is no such drag.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CFocus::GetDragRepeatWait(int64 iNow)
+{
+	CInt32Rect	cView;
+	int64		iWait;
+
+	if (mpDragComponent.IsNull() || (meDrag != FD_Select) || !mpDragComponent->GetScrollView(&cView) || cView.ContainsPoint(msPointer.x, msPointer.y))
+	{
+		return -1;
+	}
+	iWait = miDragRepeatTime + FOCUS_DRAG_REPEAT_PERIOD - iNow;
+	return (iWait > 0) ? iWait : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tells the component dragging where the pointer is again if it is time
+// to (GetDragRepeatWait).  True if it did.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::RepeatDrag(int64 iNow)
+{
+	if (GetDragRepeatWait(iNow) != 0)
+	{
+		return false;
+	}
+	ContinueDrag();
+	return true;
 }
 
 
