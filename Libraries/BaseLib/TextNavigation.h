@@ -41,6 +41,12 @@ typedef CArrayTemplate<STextRange>	CArrayTextRange;
 //Positions are bytes, always at the start of a character: a code point, or code points joined by ZWJs.  A carriage
 //return and line feed are one character.  Words are runs of letters, digits and underscores (any character that isn't
 //ASCII counts as a letter), or of spaces; any other character is a word by itself.
+//
+//A word is found two ways, on purpose.  FindWordAround is the word the character at a position is in by the rule
+//above, as a double click selects it: a run of spaces or a single punctuation character is one.  FindWordOver is the
+//word a caret or selection is in or next to, as Extend Selection grows to it: only a run of letters, digits and
+//underscores is one, so from spaces or punctuation Extend Selection goes on to the next thing around them (the quotes,
+//the brackets, the line).  FindWordLeft and FindWordRight are where the caret goes by words, by the rule above.
 class CTextNavigation
 {
 protected:
