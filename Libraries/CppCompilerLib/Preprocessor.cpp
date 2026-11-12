@@ -2957,9 +2957,11 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 
 	if (pcDirective->IsConditional())
 	{
-		mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), true);
+		//A conditional is obeyed if the code before it or after it is compiled: one nested in a skipped group is skipped
+		//with it.
 		bParsing = mcConditionalStack.IsParsing();
 		bResult = ProcessConditional(pcDirective);
+		mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), bParsing || mcConditionalStack.IsParsing());
 		NoteSkipping(pcDirective, bParsing);
 		return bResult;
 	}
