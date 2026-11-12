@@ -76,6 +76,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont
 	//A press on the gutter (or what isn't the code's) focuses the code editor, which gives the focus to its code.
 	SetCanGetFocus(true);
 	AddInputAction(CIC_ActivateComponent, this, &CCodeEditor::ClickAction);
+	AddInputAction(CIC_StartDragSelect, this, &CCodeEditor::StartDragSelectAction);
 
 	PostInit();
 }
@@ -996,42 +997,116 @@ SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChange
 //////////////////////////////////////////////////////////////////////////
 //
 // A press that came to the code editor (it focussed it) gives the focus to
-// the code, so what is typed goes there.  A press in the gutter calls the
-// gutter click event with the line it was next to.
+// the code, so what is typed goes there.  A press on a line's number
+// selects the line and drags by lines from it; the glyph, mark and change
+// bar columns call their click events with the line.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 {
 	size	uiLine;
-	size	uiPosition;
-	int32	x;
-	int32	y;
 
 	mpWindow->GetFocus()->SetFocus(mpTextArea);
 
+	switch (FindGutterColumn(psEvent->x, psEvent->y, &uiLine))
+	{
+	case CEGC_Glyph:
+		mcGlyphClicked.Call(this, uiLine);
+		break;
+	case CEGC_ChangeBar:
+		mcChangeBarClicked.Call(this, uiLine);
+		break;
+	case CEGC_Mark:
+		mcGutterClicked.Call(this, uiLine);
+		break;
+	case CEGC_Number:
+		StartLineDrag(psEvent, false);
+		break;
+	default:
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A shift or control press that came to the code editor: on a line's
+// number it extends the code's selection to the whole line.  Elsewhere it
+// only gives the code the focus.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::StartDragSelectAction(SComponentInputEvent* psEvent)
+{
+	size	uiLine;
+
+	mpWindow->GetFocus()->SetFocus(mpTextArea);
+	if (FindGutterColumn(psEvent->x, psEvent->y, &uiLine) == CEGC_Number)
+	{
+		StartLineDrag(psEvent, true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code's text area, which has the focus, drags by lines from the
+// press.  The drag that came to the code editor is stopped for it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::StartLineDrag(SComponentInputEvent* psEvent, bool bExtend)
+{
+	int32	x;
+	int32	y;
+
+	x = GetPosition().x + psEvent->x - mpTextArea->GetPosition().x;
+	y = GetPosition().y + psEvent->y - mpTextArea->GetPosition().y;
+	mpTextArea->StartLineDrag(x, y, bExtend);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gutter's column the press at x, y (relative to the code editor) is
+// in, and the line it is next to.  The gutter's rows are the code's, and
+// so are its lines.  The first column is the glyphs' when there are
+// glyphs, then the marks', the number and last the change bars'.  Past a
+// row's end is its last column.
+//
+//////////////////////////////////////////////////////////////////////////
+ECodeEditorGutterColumn CCodeEditor::FindGutterColumn(int32 x, int32 y, size* puiLine)
+{
+	size	uiPosition;
+	size	uiColumn;
+	size	uiBarColumn;
+	bool	bCharacter;
+
 	//The press is relative to the code editor; the gutter can be scrolled along it.
-	x = GetPosition().x + psEvent->x;
-	y = GetPosition().y + psEvent->y;
+	*puiLine = 0;
+	x += GetPosition().x;
+	y += GetPosition().y;
 	if (!mpGutter->IsPointIn(x, y))
 	{
-		return;
+		return CEGC_None;
 	}
 
-	//The gutter's rows are the code's, and so are its lines.  The first column is the glyphs' when there are glyphs,
-	//and the last (after the number) is the change bars'.
-	uiPosition = mpGutter->FindPositionAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y);
-	uiLine = mpGutter->FindLine(uiPosition);
-	if (mbGlyphColumn && (uiPosition == mpGutter->GetLineStart(uiLine)))
+	uiBarColumn = GetMarkColumn() + 1 + CountDigits(mpTextArea->NumLines());
+	bCharacter = mpGutter->FindCharacterAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y, &uiPosition);
+	*puiLine = mpGutter->FindLine(uiPosition);
+	uiColumn = bCharacter ? uiPosition - mpGutter->GetLineStart(*puiLine) : uiBarColumn;
+
+	if (mbGlyphColumn && (uiColumn == 0))
 	{
-		mcGlyphClicked.Call(this, uiLine);
-		return;
+		return CEGC_Glyph;
 	}
-	if (((uiPosition - mpGutter->GetLineStart(uiLine)) >= GetMarkColumn() + 1 + CountDigits(mpTextArea->NumLines())) && IsChangeBarAt(uiLine))
+	if (uiColumn == GetMarkColumn())
 	{
-		mcChangeBarClicked.Call(this, uiLine);
-		return;
+		return CEGC_Mark;
 	}
-	mcGutterClicked.Call(this, uiLine);
+	if ((uiColumn >= uiBarColumn) && IsChangeBarAt(*puiLine))
+	{
+		return CEGC_ChangeBar;
+	}
+	return CEGC_Number;
 }
 
 

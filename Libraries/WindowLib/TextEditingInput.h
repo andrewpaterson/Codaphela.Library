@@ -41,7 +41,8 @@ enum ETextEditingDragUnit
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
 //CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  A double click
 //selects the word under the pointer and a triple click its line (with its line feed); dragging on from either selects
-//by whole words or lines, keeping the first selected.  A shift press extends the selection by characters.  A single line
+//by whole words or lines, keeping the first selected.  A shift press extends the selection by characters.  A line drag
+//(StartLineDrag, from a code editor's gutter) selects by whole lines from a press beside the text.  A single line
 //text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a text
 //that can't be selected), so its presses go on to the parent.
 class CTextEditingInput
@@ -78,6 +79,7 @@ public:
 	void	StartDragSelect(int x, int y);
 	void	ContDragSelect(int x, int y);
 	void	StopDragSelect(int x, int y);
+	void	StartLineDrag(int x, int y, bool bExtend);
 
 protected:
 	void	AddActions(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);

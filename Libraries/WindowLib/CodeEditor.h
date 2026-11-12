@@ -66,6 +66,17 @@ typedef CArrayTemplate<SCodeEditorGlyph>	CArrayCodeEditorGlyphs;
 #define CODE_EDITOR_REMOVED_THICKNESS	2
 
 
+//The gutter's columns a press can be in.
+enum ECodeEditorGutterColumn
+{
+	CEGC_None,		//Not in the gutter.
+	CEGC_Glyph,
+	CEGC_Mark,
+	CEGC_Number,	//The line's number, or the change bar column on a line without a change bar.
+	CEGC_ChangeBar,
+};
+
+
 //A press in the gutter, and the line it was next to.
 class CCodeEditor;
 typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
@@ -82,12 +93,15 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //Change bands (AddChangeBand) colour the gutter's whole rows instead, with their numbers brighter so they can be read
 //(SetBandNumberColour).
 //Clicking a change bar (in the gutter's last column, on a changed line or either side of removed ones) calls the change
-//bar click event with its line, as IntelliJ IDEA shows a change's old lines.  Clicking the rest of the gutter calls the
-//gutter click event with the line it was next to, and an edit calls the change event.  The code editor is meant to be
-//the content of a CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.
-//Scrolled sideways the gutter stays at the view's left, on its own background over the code, which goes under it; the
-//caret is kept in view right of it.  Changing marks, glyphs, bars or line components lays the editor out again without
-//drawing all of it (LayoutChanged): its text areas draw again only the rows that changed.
+//bar click event with its line, as IntelliJ IDEA shows a change's old lines.  Clicking the mark column calls the gutter
+//click event with the line it was next to.  Pressing a line's number selects the line with its line feed and dragging
+//on, in the gutter or into the code, selects by whole lines; a shift (or control) press there extends the selection
+//from its anchor to the whole line.  The gutter's columns are found by the character under the pointer.  An edit calls
+//the change event.  The code editor is meant to be the content of a CScrollPane: it is as big as the gutter and code
+//need, and the text area keeps its caret in view.  Scrolled sideways the gutter stays at the view's left, on its own
+//background over the code, which goes under it; the caret is kept in view right of it.  Changing marks, glyphs, bars
+//or line components lays the editor out again without drawing all of it (LayoutChanged): its text areas draw again
+//only the rows that changed.
 //
 //With a glyph column (SetGlyphColumn) the gutter's first column is a glyph for each line (SetLineGlyph), as Visual
 //Studio's margin shows breakpoints and the current line, and the marks are the second.  Glyphs are by line number too.
@@ -160,6 +174,7 @@ public:
 	CGutterClickEvent*				GetGlyphClickEvent(void);
 	CComponentEvent<CCodeEditor>*	GetChangeEvent(void);
 	void							ClickAction(SComponentInputEvent* psEvent);
+	void							StartDragSelectAction(SComponentInputEvent* psEvent);
 
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
@@ -182,6 +197,8 @@ protected:
 	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground, bool bBackground);
 	size				GetMarkColumn(void);
 	bool				IsChangeBarAt(size uiLine);
+	ECodeEditorGutterColumn	FindGutterColumn(int32 x, int32 y, size* puiLine);
+	void				StartLineDrag(SComponentInputEvent* psEvent, bool bExtend);
 	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour, bool bBand);
 	size				CountDigits(size uiNumber);
 };

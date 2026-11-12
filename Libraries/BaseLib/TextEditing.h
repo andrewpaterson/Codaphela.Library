@@ -118,6 +118,7 @@ public:
 	CTextNavigation*	GetNavigation(void);
 
 	size		GetCaretPosition(void);
+	size		GetAnchorPosition(void);
 	bool		IsCaretAtRowEnd(void);
 	size		GetCaretRow(void);
 	int32		GetCaretX(void);

@@ -65,6 +65,23 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The code's selection, and its caret.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertCodeEditorSelection(Ptr<CCodeEditor> pEditor, size uiExpectedStart, size uiExpectedEnd, size uiExpectedCaret)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	pEditor->GetTextArea()->GetSelection(&uiStart, &uiEnd);
+	AssertSize(uiExpectedStart, uiStart);
+	AssertSize(uiExpectedEnd, uiEnd);
+	AssertSize(uiExpectedCaret, pEditor->GetTextArea()->GetCaretPosition());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The top of line uiLine of pTextArea, relative to the window.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -808,8 +825,13 @@ void TestCodeEditorChangeBarClicks(void)
 		AssertSize(1, cBars.muiLine);
 		AssertSize(0, cGutter.muiClicks);
 
-		//The number beside it.
+		//The number beside it selects its line; the mark column calls the gutter click event.
 		pTestWindow->PointerMoved(iLeft + iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(0, cGutter.muiClicks);
+		AssertCodeEditorSelection(pEditor, 2, 4, 4);
+		pTestWindow->PointerMoved(iLeft + iCell / 2, iTop + iLine + iLine / 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertSize(1, cGutter.muiClicks);
 		AssertSize(1, cGutter.muiLine);
@@ -823,11 +845,13 @@ void TestCodeEditorChangeBarClicks(void)
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertSize(3, cBars.muiClicks);
 		AssertSize(3, cBars.muiLine);
+		//The bar column without a bar is the number's: it selects the line.
 		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + 2 * iLine + iLine / 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
 		AssertSize(3, cBars.muiClicks);
-		AssertSize(2, cGutter.muiClicks);
-		AssertSize(2, cGutter.muiLine);
+		AssertSize(1, cGutter.muiClicks);
+		AssertCodeEditorSelection(pEditor, 4, 6, 6);
 
 		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cGutter));
 		AssertTrue(pEditor->GetChangeBarClickEvent()->Remove(&cBars));
@@ -926,15 +950,25 @@ void TestCodeEditorGlyphs(void)
 		AssertSize(1, cGlyphs.muiClicks);
 		AssertSize(2, cGlyphs.muiLine);
 		AssertSize(0, cGutter.muiClicks);
-		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + iLine + iLine / 2);
+		//The glyph's whole cell is the glyph's, its right half too.
+		pTestWindow->PointerMoved(iLeft + iCell - 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(2, cGlyphs.muiClicks);
+		AssertSize(1, cGlyphs.muiLine);
+		pTestWindow->PointerMoved(iLeft + iCell + iCell / 2, iTop + iLine + iLine / 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertSize(1, cGutter.muiClicks);
 		AssertSize(1, cGutter.muiLine);
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(1, cGutter.muiClicks);
+		AssertCodeEditorSelection(pEditor, 2, 4, 4);
 		pTestWindow->PointerMoved(iLeft + 3 * iCell + iCell / 2, iTop + iLine + iLine / 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertSize(1, cBars.muiClicks);
 		AssertSize(1, cBars.muiLine);
-		AssertSize(1, cGlyphs.muiClicks);
+		AssertSize(2, cGlyphs.muiClicks);
 
 		pEditor->SetLineGlyph(2, '\0', 0);
 		pTestWindow->Layout();
@@ -1096,6 +1130,175 @@ void TestCodeEditorClickBeyondText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Pressing a line's number selects the line with its line feed and
+// dragging on selects by whole lines, in the gutter or into the code.  A
+// shift press extends the selection from its anchor to the whole line.
+// The mark column calls the gutter click event instead, and a text that
+// can't be selected isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorLineSelection(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pTextArea;
+		CTestCodeEditorListener		cGutter;
+		CInt32Rect					cGap;
+		int32						iLine;
+		int32						iCell;
+		int32						iTop;
+		int32						iNumber;
+		int32						iCode;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		//Lines at 0, 3, 6 and 9; the text ends at 11.
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "ab\ncd\nef\ngh");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pTestWindow->Layout();
+		pTextArea = pEditor->GetTextArea();
+		AssertString(" 1 \n 2 \n 3 \n 4 ", pEditor->GetGutter()->GetText());
+		iLine = pTextArea->GetFont()->GetLineHeight();
+		iCell = (int32)pTextArea->GetFont()->GetAverageWidth();
+		iTop = pEditor->GetPosition().y;
+		iNumber = pEditor->GetPosition().x + iCell + iCell / 2;
+		iCode = pTextArea->GetPosition().x + iCell / 2;
+		cGutter.Init();
+		pEditor->GetGutterClickEvent()->Add(&cGutter, &CTestCodeEditorListener::GutterClicked);
+
+		//Line 2 with its line feed, the caret after it; the code has the focus.
+		pTestWindow->PointerMoved(iNumber, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertCodeEditorSelection(pEditor, 3, 6, 6);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 3, 6, 6);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pTextArea);
+		AssertSize(0, cGutter.muiClicks);
+
+		//The last line to the text's end.
+		pTestWindow->PointerMoved(iNumber, iTop + 3 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 9, 11, 11);
+
+		//Dragging down and up the gutter: line 2 stays selected.
+		pTestWindow->PointerMoved(iNumber, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->PointerMoved(iNumber, iTop + 2 * iLine + iLine / 2);
+		AssertCodeEditorSelection(pEditor, 3, 9, 9);
+		pTestWindow->PointerMoved(iNumber, iTop + 3 * iLine + iLine / 2);
+		AssertCodeEditorSelection(pEditor, 3, 11, 11);
+		pTestWindow->PointerMoved(iNumber, iTop + iLine / 2);
+		AssertCodeEditorSelection(pEditor, 0, 6, 0);
+		pTestWindow->PointerMoved(iNumber, iTop + iLine + iLine / 2);
+		AssertCodeEditorSelection(pEditor, 3, 6, 6);
+		pTestWindow->PointerMoved(iNumber, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 3, 9, 9);
+
+		//Released, moving the pointer selects nothing more.
+		pTestWindow->PointerMoved(iNumber, iTop + 3 * iLine + iLine / 2);
+		AssertCodeEditorSelection(pEditor, 3, 9, 9);
+
+		//On into the code, still by lines.
+		pTestWindow->PointerMoved(iNumber, iTop + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->PointerMoved(iCode, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 0, 9, 9);
+
+		//A shift press extends from the anchor, mid-line, to the whole line below or above it.
+		pTextArea->Select(4, 5);
+		pTestWindow->PointerMoved(iNumber, iTop + 3 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		AssertCodeEditorSelection(pEditor, 4, 11, 11);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pTextArea);
+		pTestWindow->PointerMoved(iNumber, iTop + iLine / 2);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		AssertCodeEditorSelection(pEditor, 0, 4, 0);
+		pTestWindow->PointerMoved(iNumber, iTop + 2 * iLine + iLine / 2);
+		AssertCodeEditorSelection(pEditor, 4, 9, 9);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+
+		//With nothing selected, from the caret.
+		pTextArea->SetCaretPosition(7);
+		pTestWindow->PointerMoved(iNumber, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		AssertCodeEditorSelection(pEditor, 3, 7, 3);
+
+		//A press in the code after a press in the gutter is a single click, wherever the press before them was.
+		pTestWindow->PointerMoved(iCode, iTop + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		pTestWindow->PointerMoved(iNumber, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 6, 9, 9);
+		pTestWindow->PointerMoved(iCode, iTop + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 0, 0, 0);
+
+		//The mark column calls the gutter click event and selects nothing.
+		pTestWindow->PointerMoved(pEditor->GetPosition().x + iCell / 2, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(1, cGutter.muiClicks);
+		AssertSize(2, cGutter.muiLine);
+		AssertCodeEditorSelection(pEditor, 0, 0, 0);
+
+		//In the gap under line 1, beside its line component: line 1.
+		AssertTrue(pEditor->AddLineComponent(0, CreateCodeEditorLineComponent(pTestWindow, 2 * iLine)));
+		pTestWindow->Layout();
+		AssertTrue(pTextArea->GetLineGapBounds(0, &cGap));
+		pTestWindow->PointerMoved(iNumber, pTextArea->GetPosition().y + cGap.GetTop() + cGap.GetHeight() / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertCodeEditorSelection(pEditor, 0, 3, 3);
+
+		//A text that can't be selected gets the focus only.
+		pTextArea->SetCaretPosition(1);
+		pTextArea->SetSelectable(false);
+		pTestWindow->PointerMoved(iNumber, iTop + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		AssertCodeEditorSelection(pEditor, 1, 1, 1);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pTextArea);
+
+		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cGutter));
+		pTextArea = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditor(void)
@@ -1114,6 +1317,7 @@ void TestCodeEditor(void)
 	TestCodeEditorChangeBarsPainted();
 	TestCodeEditorChangeBarClicks();
 	TestCodeEditorGlyphs();
+	TestCodeEditorLineSelection();
 	TestCodeEditorChangeBarsDrawn();
 
 	ObjectsFlush();

@@ -175,6 +175,8 @@ public:
 	bool				GetSelection(size* puiStart, size* puiEnd);
 	void				Select(size uiStart, size uiEnd);
 	size				FindPositionAt(int x, int y);
+	bool				FindCharacterAt(int x, int y, size* puiPosition);
+	bool				StartLineDrag(int x, int y, bool bExtend);
 	void				GetCaretBounds(CInt32Rect* pcDest);
 	bool				GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour) override;
 

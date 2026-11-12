@@ -321,6 +321,36 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A press beside the text, in a code editor's gutter, on the row y is in:
+// its line is selected with its line feed, and dragging on selects by
+// whole lines from it.  Extending (a shift press), the selection's anchor
+// stays where it is and the selection goes to the whole line under the
+// pointer.  The component must have the focus, as the drag goes to it;
+// the focus coming to it from the gutter forgot the presses counted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::StartLineDrag(int x, int y, bool bExtend)
+{
+	meUnit = TEDU_Line;
+	if (bExtend)
+	{
+		muiOriginStart = mpcEditing->GetAnchorPosition();
+		muiOriginEnd = muiOriginStart;
+	}
+	else
+	{
+		FindUnitAt(x, y, &muiOriginStart, &muiOriginEnd);
+		mpcEditing->Select(muiOriginStart, muiOriginEnd);
+	}
+
+	mbUnitPress = true;
+	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
+	mbUnitPress = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The word (TEDU_Word) or line (TEDU_Line) under x, y.  Past a line's
 // end there is no word: the start and end are the gap nearest x, y and
 // false is returned.

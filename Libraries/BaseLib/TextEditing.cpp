@@ -118,6 +118,7 @@ bool CTextEditing::IsEditable(void) { return mbEditable; }
 bool CTextEditing::IsSingleLine(void) { return mbSingleLine; }
 size CTextEditing::GetTabWidth(void) { return muiTabWidth; }
 size CTextEditing::GetCaretPosition(void) { return muiCaret; }
+size CTextEditing::GetAnchorPosition(void) { return IsSelected() ? muiAnchor : muiCaret; }  //Where the selection started, the caret if nothing is selected.
 bool CTextEditing::IsCaretAtRowEnd(void) { return mbCaretAtRowEnd; }
 size CTextEditing::GetCaretRow(void) { return mpcView->FindRow(muiCaret, mbCaretAtRowEnd); }  //Only when the view has rows.
 int32 CTextEditing::GetCaretX(void) { return mpcView->GetPositionX(muiCaret, mbCaretAtRowEnd); }  //Only when the view has rows.

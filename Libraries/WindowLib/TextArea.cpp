@@ -850,6 +850,40 @@ size CTextArea::FindPositionAt(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The character x, y (relative to the text area) is over, not the gap
+// nearest it.  Returns false past its row's end, with the gap there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::FindCharacterAt(int x, int y, size* puiPosition)
+{
+	UpdateText();
+	return mcEditing.FindCharacterAt(x, y, puiPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A press beside the text (x, y relative to the text area, as a code
+// editor's gutter press is) selects the line of the row y is in and drags
+// by whole lines from it; extending, from the selection's anchor.  The
+// text area must have the focus.  Returns false if the text can't be
+// selected.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::StartLineDrag(int x, int y, bool bExtend)
+{
+	if (!mbSelectable)
+	{
+		return false;
+	}
+	UpdateText();
+	mcInput.StartLineDrag(x, y, bExtend);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The caret's pixels relative to the text area's top left, as it would be
 // drawn.  It is a pixel wide and as high as its row.
 //
