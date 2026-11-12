@@ -144,10 +144,8 @@ void CFindInFilesDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const ch
 	mpMatchFont = pMatchFont;
 	mpCodeFamily = pCodeFamily;
 	mcItems.Init();
-	mszPreviewTitle.Init();
 	mbSearching = false;
 	mbMore = false;
-	mbCentred = true;
 	miChosen = -1;
 	meResult = FIFR_Cancelled;
 	maScopeContents.Init();
@@ -195,19 +193,15 @@ void CFindInFilesDialog::Class(void)
 	M_Pointer(mpDirectory);
 	M_Pointer(mpScrollPane);
 	M_Pointer(mpList);
-	M_Pointer(mpPreviewTitle);
 	M_Pointer(mpPreview);
-	M_Pointer(mpPreviewPane);
 	M_Pointer(mpStatus);
 	M_Pointer(mpFindWindow);
 	M_Pointer(mpMatchFont);
 	M_Pointer(mpCodeFamily);
 	U_Pointer(mpcSearcher);
 	U_Unknown(CFindInFilesItems, mcItems);
-	U_String(mszPreviewTitle);
 	U_Bool(mbSearching);
 	U_Bool(mbMore);
-	U_Bool(mbCentred);
 	U_Int32(miChosen);
 	U_Enum(meResult);
 }
@@ -259,7 +253,6 @@ void CFindInFilesDialog::Free(void)
 	{
 		mpFindWindow->GetClickEvent()->Remove(this);
 	}
-	mszPreviewTitle.Kill();
 	mcItems.Kill();
 }
 
@@ -317,7 +310,6 @@ Ptr<CComponent> CFindInFilesDialog::CreateBody(void)
 	Ptr<CGridContainer>		pBody;
 	Ptr<CGridContainer>		pFind;
 	Ptr<CGridContainer>		pBottom;
-	Ptr<CTextArea>			pCode;
 	SInsets					sInsets;
 
 	pWindow = mpDialog->GetWindow();
@@ -366,21 +358,10 @@ Ptr<CComponent> CFindInFilesDialog::CreateBody(void)
 	pBody->AddComponent(CreateGap(), 0, 5);
 
 	//The selected result's file, and its code.
-	mpPreviewTitle = OMalloc<CLabel>(pWindow, psLook->pcDimFont, " ");  //Never empty, so its row keeps its height.
-	mpPreviewTitle->SetAlignment(CSH_Left, CSV_Center);
-	pBody->AddComponent(mpPreviewTitle, 0, 6, 1, 1, 1, 0);
-	mpPreview = OMalloc<CCodeEditor>(pWindow, pTheme, mpCodeFamily, "");
+	mpPreview = OMalloc<CCodePreview>(pWindow, pTheme, psLook->pcDimFont, mpCodeFamily);
 	mpPreview->SetAlignment(CSH_Stretch, CSV_Stretch);
-	pCode = mpPreview->GetTextArea();
-	pCode->SetTiledText(true);
-	pCode->SetColour(pTheme->GetColour(TC_Text));
-	pCode->SetEditable(false);
-	pCode->SetCaretLine(true, pTheme->GetColour(TC_CaretLine));
-	mpPreviewPane = OMalloc<CScrollPane>(pWindow, pTheme);
-	mpPreviewPane->SetContent(mpPreview);
-	mpPreviewPane->SetAlignment(CSH_Stretch, CSV_Stretch);
-	pBody->AddComponent(mpPreviewPane, 0, 7, 1, 1, 1, 1);
-	pBody->AddComponent(CreateGap(), 0, 8);
+	pBody->AddComponent(mpPreview, 0, 6, 1, 1, 1, 1);
+	pBody->AddComponent(CreateGap(), 0, 7);
 
 	//How many were found, and Open in Find Window.
 	pBottom = OMalloc<CGridContainer>(pWindow);
@@ -391,7 +372,7 @@ Ptr<CComponent> CFindInFilesDialog::CreateBody(void)
 	mpFindWindow = OMalloc<CButton>(pWindow, pTheme, "Open in Find Window");
 	mpFindWindow->SetAlignment(CSH_Right, CSV_Center);
 	pBottom->AddComponent(mpFindWindow, 1, 0);
-	pBody->AddComponent(pBottom, 0, 9, 1, 1, 1, 0);
+	pBody->AddComponent(pBottom, 0, 8, 1, 1, 1, 0);
 	return pBody;
 }
 
@@ -861,12 +842,10 @@ Ptr<CComponent> CFindInFilesDialog::CreateLine(SFindInFilesItem* psItem, int32* 
 void CFindInFilesDialog::ShowPreview(void)
 {
 	SFindInFilesItem*	psItem;
-	Ptr<CTextArea>		pCode;
 	CChars				szTitle;
 	CChars				szText;
 	size				uiStart;
 	size				uiLength;
-	size				uiEnd;
 	int32				iRow;
 	bool				bNewText;
 
@@ -887,74 +866,18 @@ void CFindInFilesDialog::ShowPreview(void)
 		return;
 	}
 
-	pCode = mpPreview->GetTextArea();
-	bNewText = !szTitle.Equals(mszPreviewTitle);
+	bNewText = !mpPreview->IsShowing(szTitle.Text());
 	if (bNewText)
 	{
 		szText.Init();
 		mpcSearcher->FindPreviewText(psItem, &szText);
-		pCode->ClearSpans();
-		pCode->SetText(szText.Text());
+		mpPreview->SetCode(szTitle.Text(), szText.Text());
 		szText.Kill();
-		mszPreviewTitle.Set(szTitle);
-		mpPreviewTitle->SetText(szTitle.Text());
 	}
 	szTitle.Kill();
+	mpPreview->ShowPlace(uiStart, uiLength);
 
-	uiEnd = strlen(pCode->GetText());
-	uiStart = (uiStart < uiEnd) ? uiStart : uiEnd;
-	uiEnd = (uiLength < uiEnd - uiStart) ? uiStart + uiLength : uiEnd;
-	pCode->ClearBackgrounds();
-	if (uiEnd > uiStart)
-	{
-		pCode->AddBackground(uiStart, uiEnd, mpDialog->GetLook()->pcTheme->GetColour(TC_SearchMatch));
-	}
-
-	pCode->SetCaretPosition(uiStart);
-	mbCentred = false;
-	CentrePreview();
-
-	mpcSearcher->FindPreviewShown(psItem, pCode, bNewText);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The preview is scrolled so the text found, where its caret is, is in
-// the middle of the view, and only sideways if it is past the right of
-// the view.  A dialog not shown yet has no size: it is done at a later
-// tick, once it has.
-//
-//////////////////////////////////////////////////////////////////////////
-void CFindInFilesDialog::CentrePreview(void)
-{
-	Ptr<CWindow>	pWindow;
-	CInt32Rect		cCaret;
-	SInt32Vec2		sView;
-	int32			iRight;
-	int32			x;
-	int32			y;
-
-	if (mbCentred)
-	{
-		return;
-	}
-	//A window without a size isn't laid out: its tab bar, with no room, would put the chosen scope's tab first.
-	pWindow = mpDialog->GetWindow();
-	sView = mpPreviewPane->GetActualSize();
-	if ((sView.x <= 0) || (sView.y <= 0))
-	{
-		pWindow->Post(this, &CFindInFilesDialog::CentrePreview);
-		return;
-	}
-	pWindow->Layout();
-	sView = mpPreviewPane->GetActualSize();
-	mbCentred = true;
-	mpPreview->GetTextArea()->GetCaretBounds(&cCaret);
-	iRight = mpPreview->GetGutterWidth() + cCaret.GetRight();
-	x = (iRight < sView.x - sView.x / 4) ? 0 : iRight - sView.x / 2;
-	y = cCaret.GetTop() - (sView.y - cCaret.GetHeight()) / 2;
-	mpPreviewPane->SetScrollPosition((x > 0) ? x : 0, (y > 0) ? y : 0);
+	mpcSearcher->FindPreviewShown(psItem, mpPreview->GetTextArea(), bNewText);
 }
 
 
@@ -965,18 +888,7 @@ void CFindInFilesDialog::CentrePreview(void)
 //////////////////////////////////////////////////////////////////////////
 void CFindInFilesDialog::ClearPreview(void)
 {
-	Ptr<CTextArea>	pCode;
-
-	if (mszPreviewTitle.Empty())
-	{
-		return;
-	}
-	pCode = mpPreview->GetTextArea();
-	pCode->ClearBackgrounds();
-	pCode->ClearSpans();
-	pCode->SetText("");
-	mszPreviewTitle.Set("");
-	mpPreviewTitle->SetText(" ");
+	mpPreview->Clear();
 }
 
 
@@ -1116,14 +1028,15 @@ bool CFindInFilesDialog::HasMore(void) { return mbMore; }
 size CFindInFilesDialog::NumResults(void) { return mcItems.NumItems(); }
 SFindInFilesItem* CFindInFilesDialog::GetResult(size uiIndex) { return mcItems.Get(uiIndex); }
 int32 CFindInFilesDialog::GetSelected(void) { return mpList->GetSelected(); }
-char* CFindInFilesDialog::GetPreviewTitle(void) { return mszPreviewTitle.Text(); }
+char* CFindInFilesDialog::GetPreviewTitle(void) { return mpPreview->GetTitle(); }
 char* CFindInFilesDialog::GetStatus(void) { return mpStatus->GetText(); }
 Ptr<CTextField> CFindInFilesDialog::GetField(void) { return mpField; }
 Ptr<CTextField> CFindInFilesDialog::GetDirectoryField(void) { return mpDirectory; }
 Ptr<CCheckBox> CFindInFilesDialog::GetMatchCaseBox(void) { return mpMatchCase; }
 Ptr<CCheckBox> CFindInFilesDialog::GetWholeWordsBox(void) { return mpWholeWords; }
 Ptr<CListContainer> CFindInFilesDialog::GetList(void) { return mpList; }
-Ptr<CCodeEditor> CFindInFilesDialog::GetPreview(void) { return mpPreview; }
+Ptr<CCodeEditor> CFindInFilesDialog::GetPreview(void) { return mpPreview->GetEditor(); }
+Ptr<CCodePreview> CFindInFilesDialog::GetCodePreview(void) { return mpPreview; }
 Ptr<CButton> CFindInFilesDialog::GetFindWindowButton(void) { return mpFindWindow; }
 Ptr<CDialog> CFindInFilesDialog::GetDialog(void) { return mpDialog; }
 

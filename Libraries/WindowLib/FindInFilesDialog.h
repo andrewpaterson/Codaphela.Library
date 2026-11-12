@@ -25,7 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScrollPane.h"
 #include "TabbedContainer.h"
 #include "Label.h"
-#include "CodeEditor.h"
+#include "CodePreview.h"
 #include "Dialog.h"
 
 
@@ -115,7 +115,7 @@ enum EFindInFilesResult
 //result's two parts are sized by what they hold: when both don't fit each gets its share of the row in proportion to
 //its own width, so a short line doesn't crowd a long file name nor a long line a short one (each row is its own grid:
 //they aren't the columns of a table).  Under the results the selected one's file is shown, as code, at the line it is
-//on, the text found coloured.  Only the first FIND_IN_FILES_DIALOG_ROWS results are listed.
+//on, the text found coloured (a CCodePreview).  Only the first FIND_IN_FILES_DIALOG_ROWS results are listed.
 //
 //The searcher finds the results a step at a time (see CFindInFilesSearcher) between the dialog's ticks, starting again
 //with each character typed, so typing never waits for a search of every file.
@@ -142,19 +142,15 @@ protected:
 	Ptr<CTextField>			mpDirectory;  //On the page of the scope that has one, NULL if none does.
 	Ptr<CScrollPane>		mpScrollPane;
 	Ptr<CListContainer>		mpList;
-	Ptr<CLabel>				mpPreviewTitle;
-	Ptr<CCodeEditor>		mpPreview;
-	Ptr<CScrollPane>		mpPreviewPane;
+	Ptr<CCodePreview>		mpPreview;
 	Ptr<CLabel>				mpStatus;
 	Ptr<CButton>			mpFindWindow;
 	Ptr<CFont>				mpMatchFont;
 	Ptr<CFontFamily>		mpCodeFamily;
 	CFindInFilesSearcher*	mpcSearcher;
 	CFindInFilesItems		mcItems;
-	CChars					mszPreviewTitle;  //The file the preview shows, empty if none.
 	bool					mbSearching;  //The searcher has more to search.
 	bool					mbMore;  //There may be more results than are listed.
-	bool					mbCentred;  //The preview has been scrolled to the text found since it was last shown.
 	int32					miChosen;  //The result chosen, -1 until one is.
 	EFindInFilesResult		meResult;
 
@@ -194,6 +190,7 @@ public:
 	Ptr<CCheckBox>		GetWholeWordsBox(void);
 	Ptr<CListContainer>	GetList(void);
 	Ptr<CCodeEditor>	GetPreview(void);
+	Ptr<CCodePreview>	GetCodePreview(void);
 	Ptr<CButton>		GetFindWindowButton(void);
 	Ptr<CDialog>		GetDialog(void);
 
@@ -216,7 +213,6 @@ protected:
 	Ptr<CComponent>	CreateGap(void);
 	size			AddScopePage(const char* szName, Ptr<CComponent> pContent);
 	void			ShowScopeContent(void);
-	void			CentrePreview(void);
 	void			AddRow(SFindInFilesItem* psItem);
 	Ptr<CComponent>	CreateLine(SFindInFilesItem* psItem, int32* piWidth);
 	void			ShowPreview(void);
