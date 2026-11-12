@@ -186,8 +186,7 @@ public:
 	size				NumOccurrenceRanges(void);
 	STextOccurrenceRange*	GetOccurrenceRange(size uiIndex);
 	size				NumOccurrences(void);
-	size				GetOccurrenceStart(size uiIndex);
-	size				GetOccurrenceLength(void);
+	STextRange*			GetOccurrence(size uiIndex);
 	void				FindOccurrences(void);
 	size				GetCaretLine(void);
 	CTextEditing*		GetEditing(void);

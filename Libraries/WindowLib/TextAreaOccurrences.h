@@ -33,10 +33,8 @@ class CTextAreaShapes;
 
 //A range of a text area's text drawn as an occurrence (CTextArea::SetOccurrenceRanges): a symbol's usage, or with
 //bWrite where it is declared.
-struct STextOccurrenceRange
+struct STextOccurrenceRange : public STextRange
 {
-	size	uiStart;
-	size	uiEnd;
 	bool	bWrite;
 };
 
@@ -57,7 +55,7 @@ class CTextAreaOccurrences : public CTextDocumentListener
 protected:
 	CTextDocument*				mpcDocument;  //Not held.
 	bool						mbHighlighting;  //The selected text's other occurrences are found.
-	CArrayTextOccurrence		mauiFound;  //Their starts, each as long as the selection they were found for.
+	CArrayTextRange				masFound;  //Where they are.
 	STextRange					msFoundFor;  //That selection, empty with nothing selected.
 	bool						mbStale;  //The text changed since they were found.
 	CArrayTextOccurrenceRange	masRanges;  //Given (SetRanges).
@@ -75,8 +73,7 @@ public:
 	bool					Request(size uiStart, size uiEnd);
 	bool					Find(size uiStart, size uiEnd);
 	size					NumFound(void);
-	size					GetFoundStart(size uiIndex);
-	size					GetFoundLength(void);
+	STextRange*				GetFound(size uiIndex);
 	void					AddFound(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap, ARGB32 sColour);
 
 	void					SetRanges(STextOccurrenceRange* asRanges, size uiNumRanges);

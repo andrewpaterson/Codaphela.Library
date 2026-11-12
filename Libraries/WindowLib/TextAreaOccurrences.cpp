@@ -31,7 +31,7 @@ void CTextAreaOccurrences::Init(CTextDocument* pcDocument)
 {
 	mpcDocument = pcDocument;
 	mbHighlighting = false;
-	mauiFound.Init();
+	masFound.Init();
 	msFoundFor.uiStart = 0;
 	msFoundFor.uiEnd = 0;
 	mbStale = false;
@@ -48,7 +48,7 @@ void CTextAreaOccurrences::Kill(void)
 {
 	mpcDocument->RemoveListener(this);
 	masRanges.Kill();
-	mauiFound.Kill();
+	masFound.Kill();
 	mpcDocument = NULL;
 }
 
@@ -113,7 +113,7 @@ bool CTextAreaOccurrences::Request(size uiStart, size uiEnd)
 	{
 		return false;
 	}
-	if ((uiStart == uiEnd) && (mauiFound.NumElements() == 0))
+	if ((uiStart == uiEnd) && (masFound.NumElements() == 0))
 	{
 		msFoundFor.uiStart = uiStart;
 		msFoundFor.uiEnd = uiEnd;
@@ -134,22 +134,21 @@ bool CTextAreaOccurrences::Find(size uiStart, size uiEnd)
 {
 	bool	bHadFound;
 
-	bHadFound = mauiFound.NumElements() > 0;
-	mauiFound.ReInit();
+	bHadFound = masFound.NumElements() > 0;
+	masFound.ReInit();
 	msFoundFor.uiStart = uiStart;
 	msFoundFor.uiEnd = uiEnd;
 	mbStale = false;
 	if (mbHighlighting && mpcDocument->GetNavigation()->IsOccurrenceText(uiStart, uiEnd))
 	{
-		mpcDocument->GetNavigation()->FindOccurrences(uiStart, uiEnd, TEXT_AREA_MAX_OCCURRENCES, &mauiFound);
+		mpcDocument->GetNavigation()->FindOccurrences(uiStart, uiEnd, TEXT_AREA_MAX_OCCURRENCES, &masFound);
 	}
-	return bHadFound || (mauiFound.NumElements() > 0);
+	return bHadFound || (masFound.NumElements() > 0);
 }
 
 
-size CTextAreaOccurrences::NumFound(void) { return mauiFound.NumElements(); }
-size CTextAreaOccurrences::GetFoundStart(size uiIndex) { return *mauiFound.Get(uiIndex); }
-size CTextAreaOccurrences::GetFoundLength(void) { return msFoundFor.uiEnd - msFoundFor.uiStart; }
+size CTextAreaOccurrences::NumFound(void) { return masFound.NumElements(); }
+STextRange* CTextAreaOccurrences::GetFound(size uiIndex) { return masFound.Get(uiIndex); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -159,13 +158,13 @@ size CTextAreaOccurrences::GetFoundLength(void) { return msFoundFor.uiEnd - msFo
 //////////////////////////////////////////////////////////////////////////
 void CTextAreaOccurrences::AddFound(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap, ARGB32 sColour)
 {
-	size	i;
-	size	uiStart;
+	STextRange*	psRange;
+	size		i;
 
-	for (i = 0; i < mauiFound.NumElements(); i++)
+	for (i = 0; i < masFound.NumElements(); i++)
 	{
-		uiStart = *mauiFound.Get(i);
-		pcShapes->AddRange(pMap, uiStart, uiStart + GetFoundLength(), sColour);
+		psRange = masFound.Get(i);
+		pcShapes->AddRange(pMap, psRange->uiStart, psRange->uiEnd, sColour);
 	}
 }
 

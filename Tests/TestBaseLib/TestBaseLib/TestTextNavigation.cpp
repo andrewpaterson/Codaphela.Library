@@ -210,12 +210,12 @@ void TestTextNavigationOccurrences(void)
 {
 	CChars				szText;
 	CTextNavigation		cNavigation;
-	CArrayTextOccurrence	auiStarts;
+	CArrayTextRange		asFound;
 
 	//foo 4, 17, 23, 31 and in food 39; LF 8 and 27; spaces and a tab 28..31; FOO 35; end 43.
 	szText.Init("int foo;\nint x = foo + foo;\n  \tfoo FOO food");
 	cNavigation.Init(&szText);
-	auiStarts.Init();
+	asFound.Init();
 
 	AssertTrue(cNavigation.IsOccurrenceText(4, 7));
 	AssertTrue(cNavigation.IsOccurrenceText(7, 8));
@@ -226,38 +226,39 @@ void TestTextNavigationOccurrences(void)
 	AssertFalse(cNavigation.IsOccurrenceText(4, 4));
 	AssertFalse(cNavigation.IsOccurrenceText(40, 44));
 
-	cNavigation.FindOccurrences(4, 7, 1000, &auiStarts);
-	AssertSize(4, auiStarts.NumElements());
-	AssertSize(17, *auiStarts.Get(0));
-	AssertSize(23, *auiStarts.Get(1));
-	AssertSize(31, *auiStarts.Get(2));
-	AssertSize(39, *auiStarts.Get(3));
+	cNavigation.FindOccurrences(4, 7, 1000, &asFound);
+	AssertSize(4, asFound.NumElements());
+	AssertSize(17, asFound.Get(0)->uiStart);
+	AssertSize(23, asFound.Get(1)->uiStart);
+	AssertSize(31, asFound.Get(2)->uiStart);
+	AssertSize(39, asFound.Get(3)->uiStart);
+	AssertSize(42, asFound.Get(3)->uiEnd);
 
 	//From another of them, the first is found; at most two.
-	auiStarts.ReInit();
-	cNavigation.FindOccurrences(23, 26, 2, &auiStarts);
-	AssertSize(2, auiStarts.NumElements());
-	AssertSize(4, *auiStarts.Get(0));
-	AssertSize(17, *auiStarts.Get(1));
+	asFound.ReInit();
+	cNavigation.FindOccurrences(23, 26, 2, &asFound);
+	AssertSize(2, asFound.NumElements());
+	AssertSize(4, asFound.Get(0)->uiStart);
+	AssertSize(17, asFound.Get(1)->uiStart);
 
 	//Case matters: FOO has no others.
-	auiStarts.ReInit();
-	cNavigation.FindOccurrences(35, 38, 1000, &auiStarts);
-	AssertSize(0, auiStarts.NumElements());
+	asFound.ReInit();
+	cNavigation.FindOccurrences(35, 38, 1000, &asFound);
+	AssertSize(0, asFound.NumElements());
 
 	//Matches don't overlap: "aa" in "aaaaa" is at 0 and 2.
 	szText.Set("aaaaa");
-	auiStarts.ReInit();
-	cNavigation.FindOccurrences(3, 5, 1000, &auiStarts);
-	AssertSize(2, auiStarts.NumElements());
-	AssertSize(0, *auiStarts.Get(0));
-	AssertSize(2, *auiStarts.Get(1));
-	auiStarts.ReInit();
-	cNavigation.FindOccurrences(0, 2, 1000, &auiStarts);
-	AssertSize(1, auiStarts.NumElements());
-	AssertSize(2, *auiStarts.Get(0));
+	asFound.ReInit();
+	cNavigation.FindOccurrences(3, 5, 1000, &asFound);
+	AssertSize(2, asFound.NumElements());
+	AssertSize(0, asFound.Get(0)->uiStart);
+	AssertSize(2, asFound.Get(1)->uiStart);
+	asFound.ReInit();
+	cNavigation.FindOccurrences(0, 2, 1000, &asFound);
+	AssertSize(1, asFound.NumElements());
+	AssertSize(2, asFound.Get(0)->uiStart);
 
-	auiStarts.Kill();
+	asFound.Kill();
 	szText.Kill();
 }
 

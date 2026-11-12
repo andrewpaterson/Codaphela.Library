@@ -342,19 +342,20 @@ bool CTextNavigation::IsOccurrenceText(size uiStart, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The starts of the other places the text from uiStart to uiEnd is in the
-// text, exactly, case and all, are added to pauiStarts in order, up to
+// The other places the text from uiStart to uiEnd is in the text,
+// exactly, case and all, are added to pasDest in order, up to
 // uiMaxOccurrences of them.  They are found from the start and don't
 // overlap each other; uiStart itself isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextOccurrence* pauiStarts)
+void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextRange* pasDest)
 {
-	char*	szText;
-	size	uiLength;
-	size	uiTextLength;
-	size	i;
-	size	uiFound;
+	char*		szText;
+	STextRange*	psRange;
+	size		uiLength;
+	size		uiTextLength;
+	size		i;
+	size		uiFound;
 
 	uiTextLength = mpszText->Length();
 	if ((uiEnd <= uiStart) || (uiEnd > uiTextLength))
@@ -371,7 +372,9 @@ void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurr
 		{
 			if (i != uiStart)
 			{
-				*pauiStarts->Add() = i;
+				psRange = pasDest->Add();
+				psRange->uiStart = i;
+				psRange->uiEnd = i + uiLength;
 				uiFound++;
 			}
 			i += uiLength;

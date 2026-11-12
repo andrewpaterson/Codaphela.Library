@@ -1876,9 +1876,9 @@ void TestTextAreaEditOccurrences(void)
 		AssertSize(0, pTextArea->NumOccurrences());
 		pTestWindow->RunPosted();
 		AssertSize(2, pTextArea->NumOccurrences());
-		AssertSize(17, pTextArea->GetOccurrenceStart(0));
-		AssertSize(23, pTextArea->GetOccurrenceStart(1));
-		AssertSize(3, pTextArea->GetOccurrenceLength());
+		AssertSize(17, pTextArea->GetOccurrence(0)->uiStart);
+		AssertSize(23, pTextArea->GetOccurrence(1)->uiStart);
+		AssertSize(20, pTextArea->GetOccurrence(0)->uiEnd);
 		pTestWindow->Paint();
 		AssertTrue(TextAreaPixelUnder(pTextArea, 18) != uiBackground);
 		AssertTrue(TextAreaPixelUnder(pTextArea, 24) == TextAreaPixelUnder(pTextArea, 18));
@@ -1889,7 +1889,7 @@ void TestTextAreaEditOccurrences(void)
 		AssertSize(0, pTextArea->NumOccurrences());
 		pTestWindow->RunPosted();
 		AssertSize(1, pTextArea->NumOccurrences());
-		AssertSize(9, pTextArea->GetOccurrenceStart(0));
+		AssertSize(9, pTextArea->GetOccurrence(0)->uiStart);
 		pTestWindow->Paint();
 		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
 		AssertTrue(TextAreaPixelUnder(pTextArea, 10) != uiBackground);
@@ -1918,7 +1918,7 @@ void TestTextAreaEditOccurrences(void)
 		AssertSize(0, pTextArea->NumOccurrences());
 		pTestWindow->RunPosted();
 		AssertSize(3, pTextArea->NumOccurrences());
-		AssertSize(28, pTextArea->GetOccurrenceStart(2));
+		AssertSize(28, pTextArea->GetOccurrence(2)->uiStart);
 
 		//An undo puts the same selection back on a changed text: none until the tick.  (Appending isn't kept for undo.)
 		pTextArea->ClearUndo();
@@ -1969,7 +1969,7 @@ void TestTextAreaEditOccurrences(void)
 		pTextArea->Select(0, 2);
 		pTestWindow->RunPosted();
 		AssertSize(TEXT_AREA_MAX_OCCURRENCES, pTextArea->NumOccurrences());
-		AssertSize(3, pTextArea->GetOccurrenceStart(0));
+		AssertSize(3, pTextArea->GetOccurrence(0)->uiStart);
 
 		pTextArea = NULL;
 		pFill = NULL;
@@ -1996,7 +1996,9 @@ void TestTextAreaEditOccurrenceRanges(void)
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		uint32						uiBackground;
-		STextOccurrenceRange		asRanges[3] = { { 4, 7, true }, { 17, 20, false }, { 23, 26, false } };
+		STextOccurrenceRange		asRanges[3];
+		size						auiStarts[3] = { 4, 17, 23 };
+		size						i;
 
 		cWindow.Init("Text Area Window", 300, 200, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)));
 		pTestWindow = cWindow.pWindow;
@@ -2012,6 +2014,13 @@ void TestTextAreaEditOccurrenceRanges(void)
 		pTestWindow->Paint();
 		uiBackground = TextAreaPixelUnder(pTextArea, 16);
 
+		//Each "foo"; the first is where it is declared.
+		for (i = 0; i < 3; i++)
+		{
+			asRanges[i].uiStart = auiStarts[i];
+			asRanges[i].uiEnd = auiStarts[i] + 3;
+			asRanges[i].bWrite = (i == 0);
+		}
 		pTextArea->SetOccurrenceRanges(asRanges, 3);
 		AssertSize(3, pTextArea->NumOccurrenceRanges());
 		AssertSize(17, pTextArea->GetOccurrenceRange(1)->uiStart);

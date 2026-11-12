@@ -78,17 +78,6 @@ public:
 };
 
 
-//A range of a text, uiStart to uiEnd (exclusive).
-struct STextRange
-{
-	size	uiStart;
-	size	uiEnd;
-};
-
-
-typedef CArrayTemplate<STextRange>	CArrayTextRange;
-
-
 //A caret and where its selection started, MAX_SIZE for nothing selected.
 struct STextSelection
 {

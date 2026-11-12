@@ -26,7 +26,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplate.h"
 
 
-typedef CArrayTemplate<size>	CArrayTextOccurrence;
+//A range of a text, uiStart to uiEnd (exclusive).
+struct STextRange
+{
+	size	uiStart;
+	size	uiEnd;
+};
+
+
+typedef CArrayTemplate<STextRange>	CArrayTextRange;
 
 
 //Moving through a UTF8 text by characters, lines and words, as text editors do (CTextEditing).
@@ -54,7 +62,7 @@ public:
 	bool		FindWordAround(size uiPosition, size* puiStart, size* puiEnd);
 	void		FindLineAround(size uiPosition, size* puiStart, size* puiEnd);
 	bool		IsOccurrenceText(size uiStart, size uiEnd);
-	void		FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextOccurrence* pauiStarts);
+	void		FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextRange* pasDest);
 	bool		FindWordOver(size uiStart, size uiEnd, size* puiStart, size* puiEnd);
 	bool		FindQuotesAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose);
 	bool		FindBracketsAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose);

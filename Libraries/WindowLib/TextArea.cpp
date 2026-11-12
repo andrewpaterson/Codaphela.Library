@@ -1749,8 +1749,7 @@ void CTextArea::SetHighlightOccurrences(bool bHighlight)
 
 
 bool CTextArea::IsHighlightingOccurrences(void) { return mcOccurrences.IsHighlighting(); }
-size CTextArea::GetOccurrenceStart(size uiIndex) { return mcOccurrences.GetFoundStart(uiIndex); }
-size CTextArea::GetOccurrenceLength(void) { return mcOccurrences.GetFoundLength(); }
+STextRange* CTextArea::GetOccurrence(size uiIndex) { return mcOccurrences.GetFound(uiIndex); }
 
 
 //////////////////////////////////////////////////////////////////////////
