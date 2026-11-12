@@ -239,6 +239,7 @@ void CTextEditing::Select(size uiStart, size uiEnd)
 //
 //////////////////////////////////////////////////////////////////////////
 CTextNavigation* CTextEditing::GetNavigation(void) { return mpcNavigation; }
+CTextEditingView* CTextEditing::GetView(void) { return mpcView; }  //What shows the text, for an input to ask it to show its caret.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -900,6 +901,52 @@ void CTextEditing::Paste(char* szSource)
 	ReplaceSelection(szText.Text());
 	szText.Kill();
 	EditDone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text from uiStart to uiEnd is moved to uiTo, or with bCopy copied
+// there, as one edit: one undo puts it back, with the selection before
+// it.  The text at uiTo is selected after, the caret at its end, as a
+// dropped drag leaves it.  uiTo inside the text, or at either end of it,
+// moves nothing.  False if nothing was moved: the text can't be edited, or
+// the range is empty or past the end.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy)
+{
+	CChars	szText;
+	size	uiLength;
+
+	if (!mbEditable || (uiEnd <= uiStart) || (uiEnd > mpcDocument->Length()) || (uiTo > mpcDocument->Length()) || ((uiTo >= uiStart) && (uiTo <= uiEnd)))
+	{
+		return false;
+	}
+
+	BeginEdit();
+	uiLength = uiEnd - uiStart;
+	szText.Init();
+	szText.AppendSubString(mpcDocument->Text(), uiStart, uiEnd);
+	InsertText(uiTo, szText.Text());
+	szText.Kill();
+	if (!bCopy)
+	{
+		if (uiTo < uiStart)
+		{
+			uiStart += uiLength;
+			uiEnd += uiLength;
+		}
+		RemoveText(uiStart, uiEnd);
+		if (uiTo > uiStart)
+		{
+			uiTo -= uiLength;
+		}
+	}
+	muiAnchor = uiTo;
+	muiCaret = uiTo + uiLength;
+	EditDone();
+	return true;
 }
 
 

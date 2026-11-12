@@ -116,6 +116,7 @@ public:
 	void		SetSingleLine(bool bSingleLine);
 	bool		IsSingleLine(void);
 	CTextNavigation*	GetNavigation(void);
+	CTextEditingView*	GetView(void);
 
 	size		GetCaretPosition(void);
 	size		GetAnchorPosition(void);
@@ -176,6 +177,7 @@ public:
 	void		Copy(CChars* pszDest);
 	void		Paste(char* szSource);
 	bool		ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText);
+	bool		MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy);
 	void		ReplaceText(const char* szText);
 	void		MakeInsertable(CChars* pszText);
 

@@ -5,11 +5,14 @@
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/ScrollPane.h"
 #include "WindowLib/JewelTheme.h"
+#include "InputLib/Input.h"
 #include "WindowLib/TextArea.h"
+#include "WindowLib/ComponentInput.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
+#include "ComponentInputTestDevices.h"
 
 
 Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
@@ -1720,6 +1723,168 @@ void TestTextAreaEditReplaceRanges(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text area's text starts with szExpected.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTextAreaStart(const char* szExpected, Ptr<CTextArea> pTextArea)
+{
+	CChars	sz;
+
+	sz.Init();
+	sz.AppendSubString(pTextArea->GetText(), 0, strlen(szExpected));
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer over the middle of the character at uiPosition, or over
+// the gap before it, in the window.
+//
+//////////////////////////////////////////////////////////////////////////
+void TextAreaPointerAt(Ptr<CTextArea> pTextArea, size uiPosition, bool bGap)
+{
+	CInt32Rect	cLine;
+	int32		x;
+
+	AssertTrue(pTextArea->GetLineBounds(pTextArea->FindLine(uiPosition), &cLine));
+	x = pTextArea->GetPositionX(uiPosition, false);
+	if (!bGap)
+	{
+		x = (x + pTextArea->GetPositionX(uiPosition + 1, false)) / 2;
+	}
+	pTextArea->GetWindow()->PointerMoved(pTextArea->GetPosition().x + x, pTextArea->GetPosition().y + (cLine.GetTop() + cLine.GetBottom()) / 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Dragging a text area's selected text: the caret is drawn where it would
+// be dropped, the release moves it there, or copies it with control held,
+// Escape cancels it, and dragging past the view scrolls to the drop
+// caret.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditDragText(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CScrollPane>			pScroll;
+		Ptr<CTextArea>				pTextArea;
+		Ptr<CComponent>				pNoFocus;
+		CComponentInputTestDevices	cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		CInt32Rect					cCaret;
+		ARGB32						sColour;
+		CChars						szText;
+		int32						i;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
+		pTestWindow->SetContainer(pScroll);
+
+		//"int foo;" then nineteen lines of "line N", 24 pixels each in a view 100 high.
+		szText.Init("int foo;");
+		for (i = 1; i < 20; i++)
+		{
+			szText.Append("\nline ");
+			szText.Append(i);
+		}
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), szText.Text());
+		pScroll->SetContent(pTextArea);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		pTestWindow->SetComponentInput(&cComponentInput);
+
+		//"foo" dragged to the end of line 2 ("line 1", 9 to 15): the caret is drawn there until the release moves it.
+		pTextArea->Select(4, 7);
+		TextAreaPointerAt(pTextArea, 5, false);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		TextAreaPointerAt(pTextArea, 15, true);
+		AssertTrue(pTextArea->GetCaretRect(&cCaret, &sColour));
+		AssertInt(pTextArea->GetPosition().x + pTextArea->GetPositionX(15, false), cCaret.GetLeft());
+		AssertInt(pTextArea->GetPosition().y + 24, cCaret.GetTop());
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertTextAreaStart("int ;\nline 1foo", pTextArea);
+		AssertTextAreaSelection(12, 15, pTextArea);
+		AssertTrue(pTextArea->Undo());
+		AssertTextAreaSelection(4, 7, pTextArea);
+
+		//With control held at the release it is copied.
+		TextAreaPointerAt(pTextArea, 6, false);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		TextAreaPointerAt(pTextArea, 0, true);
+		cDevices.Press((char*)"Left Control");
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		cDevices.Release((char*)"Left Control");
+		AssertTextAreaStart("fooint foo;\nline 1", pTextArea);
+		AssertTextAreaSelection(0, 3, pTextArea);
+		AssertTrue(pTextArea->Undo());
+		AssertTextAreaSelection(4, 7, pTextArea);
+
+		//Escape cancels: the caret is drawn as it was and the release changes nothing.
+		//(Focus going and coming back forgets the presses, so the next isn't a double click.)
+		pTestWindow->GetFocus()->SetFocus(pNoFocus);
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+		TextAreaPointerAt(pTextArea, 5, false);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		TextAreaPointerAt(pTextArea, 15, true);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertTrue(pTextArea->GetCaretRect(&cCaret, &sColour));
+		AssertInt(pTextArea->GetPosition().x + pTextArea->GetPositionX(7, false), cCaret.GetLeft());
+		AssertInt(pTextArea->GetPosition().y, cCaret.GetTop());
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertTextAreaStart("int foo;\nline 1", pTextArea);
+		AssertTextAreaSelection(4, 7, pTextArea);
+
+		//Dragged to the bottom of the view, onto line 5 which isn't all in it: the view scrolls to the drop caret.
+		AssertInt(0, pScroll->GetScrollPosition().y);
+		pTestWindow->GetFocus()->SetFocus(pNoFocus);
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+		TextAreaPointerAt(pTextArea, 5, false);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + 10, 99);
+		pTestWindow->Layout();
+		AssertInt(5 * 24 - 100, pScroll->GetScrollPosition().y);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+
+		pTestWindow->SetComponentInput(NULL);
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+		szText.Kill();
+		pTextArea = NULL;
+		pScroll = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -1734,6 +1899,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditUndo();
 	TestTextAreaEditUndoEvent();
 	TestTextAreaEditReplaceRanges();
+	TestTextAreaEditDragText();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();

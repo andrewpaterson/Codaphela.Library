@@ -510,6 +510,152 @@ void TestTextEditingInputKeepsLayout(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A press in the selection that moves more than TEXT_DRAG_DISTANCE drags
+// the selected text: the drop position follows the pointer and the
+// release moves the text there as one undo step.  Released without
+// dragging, the caret goes where it was pressed.  Dropped in the
+// selection nothing changes, and Escape cancels the drag.  A text that
+// isn't editable, or without text drags, selects by dragging as before.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputDragText(void)
+{
+	STestEditingInput	s;
+	size				uiDrop;
+	bool				bRowEnd;
+
+	ObjectsInit();
+	//one 0, two 4, three 8, LF 13, four 14, five 19.  The view's x is a row's column.
+	s.Init("one two three\nfour five", true);
+	s.cInput.SetTextDragEnabled(true);
+	s.pWindow->GetFocus()->SetFocus(s.pCanvas);
+
+	//Pressed on 'w', not dragged until the pointer is more than the distance away.
+	s.cEditing.Select(4, 7);
+	s.pWindow->PointerMoved(5, 0);
+	AssertTrue(s.Command(CIC_ActivateComponent, 5, 0));
+	s.AssertSelection(4, 7, 7);
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.pWindow->PointerMoved(5 + TEXT_DRAG_DISTANCE, 0);
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.AssertSelection(4, 7, 7);
+	s.pWindow->PointerMoved(13, 0);
+	AssertTrue(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	AssertSize(13, uiDrop);
+	s.AssertSelection(4, 7, 7);
+	AssertString("one two three\nfour five", s.Text());
+	s.Release(13, 0);
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	AssertString("one  threetwo\nfour five", s.Text());
+	s.AssertSelection(10, 13, 13);
+	AssertTrue(s.Command(CIC_Undo));
+	AssertString("one two three\nfour five", s.Text());
+	s.AssertSelection(4, 7, 7);
+
+	//To the next line, below it the last (rows are 1 high).
+	s.cInput.FocusLost();
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(4, 1 + TEXT_DRAG_DISTANCE);
+	s.Release(4, 1 + TEXT_DRAG_DISTANCE);
+	AssertString("one  three\nfourtwo five", s.Text());
+	s.AssertSelection(15, 18, 18);
+	AssertTrue(s.Command(CIC_Undo));
+	s.AssertSelection(4, 7, 7);
+
+	//Released where it was pressed: the caret goes there.
+	s.cInput.FocusLost();
+	s.Click(6, 0);
+	AssertSize(6, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+
+	//The character after the selection isn't in it: a press there is a plain press.
+	s.cInput.FocusLost();
+	s.cEditing.Select(4, 7);
+	s.pWindow->PointerMoved(7, 0);
+	s.Command(CIC_ActivateComponent, 7, 0);
+	s.pWindow->PointerMoved(13, 0);
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.Release(13, 0);
+	s.AssertSelection(7, 13, 13);
+
+	//Losing the focus ends the drag.
+	s.cEditing.Select(4, 7);
+	s.cInput.FocusLost();
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(13, 0);
+	AssertTrue(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.cInput.FocusLost();
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.Release(13, 0);
+	AssertString("one two three\nfour five", s.Text());
+	s.AssertSelection(4, 7, 7);
+
+	//Dragged away and back into the selection: nothing changes.
+	s.cInput.FocusLost();
+	s.cEditing.Select(4, 7);
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(11, 0);
+	AssertTrue(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	AssertSize(11, uiDrop);
+	s.pWindow->PointerMoved(6, 0);
+	AssertTrue(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	AssertSize(6, uiDrop);
+	s.Release(6, 0);
+	AssertString("one two three\nfour five", s.Text());
+	s.AssertSelection(4, 7, 7);
+
+	//Escape cancels the drag; the release after it does nothing.  Then Escape clears the selection.
+	s.cInput.FocusLost();
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(13, 0);
+	AssertTrue(s.Command(CIC_ClearSelection));
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.Release(13, 0);
+	AssertString("one two three\nfour five", s.Text());
+	s.AssertSelection(4, 7, 7);
+	AssertTrue(s.Command(CIC_ClearSelection));
+	AssertFalse(s.cEditing.IsSelected());
+
+	//A double click in the selection selects the word.
+	s.cInput.FocusLost();
+	s.cEditing.Select(0, 13);
+	s.Click(9, 0);
+	s.Click(9, 0);
+	s.AssertSelection(8, 13, 13);
+
+	//Not editable, or without text drags, the press selects from where it was.
+	s.cInput.FocusLost();
+	s.cEditing.SetEditable(false);
+	s.cEditing.Select(4, 7);
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(13, 0);
+	AssertFalse(s.cInput.GetDropPosition(&uiDrop, &bRowEnd));
+	s.Release(13, 0);
+	s.AssertSelection(5, 13, 13);
+	s.cInput.FocusLost();
+	s.cEditing.SetEditable(true);
+	s.cInput.SetTextDragEnabled(false);
+	s.cEditing.Select(4, 7);
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(13, 0);
+	s.Release(13, 0);
+	s.AssertSelection(5, 13, 13);
+	AssertString("one two three\nfour five", s.Text());
+
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditingInput(void)
@@ -522,6 +668,7 @@ void TestTextEditingInput(void)
 	TestTextEditingInputClickCount();
 	TestTextEditingInputClicks();
 	TestTextEditingInputSingleLineClicks();
+	TestTextEditingInputDragText();
 	TestTextEditingInputKeepsLayout();
 
 	TestStatistics();

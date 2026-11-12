@@ -103,6 +103,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	Relayout();
 
 	mcInput.Init(this, &mcEditing, true);
+	mcInput.SetTextDragEnabled(true);
 	AddInputAction(CIC_LineUp, this, &CTextArea::LineUp);
 	AddInputAction(CIC_LineDown, this, &CTextArea::LineDown);
 
@@ -885,13 +886,16 @@ bool CTextArea::StartLineDrag(int x, int y, bool bExtend)
 //////////////////////////////////////////////////////////////////////////
 //
 // The caret's pixels relative to the text area's top left, as it would be
-// drawn.  It is a pixel wide and as high as its row.
+// drawn.  It is a pixel wide and as high as its row.  While the selected
+// text is dragged it is the drop caret.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 {
 	STextLayoutLine*	psLine;
 	int32				x;
+	size				uiPosition;
+	bool				bRowEnd;
 
 	UpdateText();
 	if (!HasRows())
@@ -900,8 +904,17 @@ void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 		return;
 	}
 
-	psLine = mpLayout->GetLayoutLine(mcEditing.GetCaretRow());
-	x = mcEditing.GetCaretX();
+	//Dragging the selected text, the caret is drawn where it would be dropped.
+	if (mcInput.GetDropPosition(&uiPosition, &bRowEnd))
+	{
+		psLine = mpLayout->GetLayoutLine(FindRow(uiPosition, bRowEnd));
+		x = GetPositionX(uiPosition, bRowEnd);
+	}
+	else
+	{
+		psLine = mpLayout->GetLayoutLine(mcEditing.GetCaretRow());
+		x = mcEditing.GetCaretX();
+	}
 	if ((mcActualBounds.GetWidth() > 0) && (x > mcActualBounds.GetWidth() - 1))
 	{
 		x = mcActualBounds.GetWidth() - 1;

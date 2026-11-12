@@ -530,6 +530,95 @@ void TestTextEditingUndo(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Moving or copying a range to another place is one edit: the text there
+// is selected after, and one undo puts the text and the selection back.
+// Into the range itself, or at its ends, nothing is moved.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingMoveText(void)
+{
+	STestTextEditing	s;
+	size				uiStart;
+	size				uiEnd;
+
+	//one 0, two 4, three 8, end 13.
+	s.Init("one two three");
+
+	//Right, to the end.
+	s.cEditing.Select(4, 7);
+	AssertTrue(s.cEditing.MoveText(4, 7, 13, false));
+	AssertString("one  threetwo", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(10, uiStart);
+	AssertSize(13, uiEnd);
+	AssertSize(13, s.Caret());
+	AssertInt(1, s.cView.miTextEdited);
+	AssertTrue(s.cEditing.Undo());
+	AssertString("one two three", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(4, uiStart);
+	AssertSize(7, uiEnd);
+	AssertSize(7, s.Caret());
+	AssertTrue(s.cEditing.Redo());
+	AssertString("one  threetwo", s.Text());
+	AssertTrue(s.cEditing.Undo());
+
+	//Right, just past the range's end.
+	AssertTrue(s.cEditing.MoveText(4, 7, 8, false));
+	AssertString("one  twothree", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(5, uiStart);
+	AssertSize(8, uiEnd);
+	AssertTrue(s.cEditing.Undo());
+
+	//Left, to the start.
+	AssertTrue(s.cEditing.MoveText(8, 13, 0, false));
+	AssertString("threeone two ", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(0, uiStart);
+	AssertSize(5, uiEnd);
+	AssertSize(5, s.Caret());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("one two three", s.Text());
+
+	//Copied, the range stays.
+	AssertTrue(s.cEditing.MoveText(4, 7, 0, true));
+	AssertString("twoone two three", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(0, uiStart);
+	AssertSize(3, uiEnd);
+	AssertTrue(s.cEditing.Undo());
+	AssertString("one two three", s.Text());
+	AssertTrue(s.cEditing.MoveText(4, 7, 13, true));
+	AssertString("one two threetwo", s.Text());
+	AssertTrue(s.cEditing.Undo());
+
+	//Into itself, empty, or past the end: nothing.
+	s.cView.miTextEdited = 0;
+	s.cEditing.Select(4, 7);
+	AssertFalse(s.cEditing.MoveText(4, 7, 4, false));
+	AssertFalse(s.cEditing.MoveText(4, 7, 5, false));
+	AssertFalse(s.cEditing.MoveText(4, 7, 7, true));
+	AssertFalse(s.cEditing.MoveText(4, 4, 0, false));
+	AssertFalse(s.cEditing.MoveText(4, 14, 0, false));
+	AssertFalse(s.cEditing.MoveText(4, 7, 14, false));
+	AssertString("one two three", s.Text());
+	AssertInt(0, s.cView.miTextEdited);
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(4, uiStart);
+	AssertSize(7, uiEnd);
+
+	//Not editable.
+	s.cEditing.SetEditable(false);
+	AssertFalse(s.cEditing.MoveText(4, 7, 0, false));
+	AssertString("one two three", s.Text());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A text that isn't editable can be moved in, selected and copied from,
 // and cut copies what it would cut, but nothing changes it.
 //
@@ -721,6 +810,7 @@ void TestTextEditing(void)
 	TestTextEditingTabs();
 	TestTextEditingLines();
 	TestTextEditingUndo();
+	TestTextEditingMoveText();
 	TestTextEditingNotEditable();
 	TestTextEditingFollowsDocument();
 	TestTextEditingNothingChanged();

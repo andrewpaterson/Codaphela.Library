@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Window.h"
 #include "Focus.h"
 #include "Clipboard.h"
+#include "ComponentInput.h"
 #include "TextEditingInput.h"
 
 
@@ -49,6 +50,12 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	muiOriginStart = 0;
 	muiOriginEnd = 0;
 	mbUnitPress = false;
+	mbTextDragEnabled = false;
+	meTextDrag = TETD_None;
+	miPressX = 0;
+	miPressY = 0;
+	muiDrop = 0;
+	mbDropRowEnd = false;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -89,7 +96,7 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_SelectDocumentEnd, pcEditing, &CTextEditing::SelectDocumentEnd);
 	pcComponent->AddInputAction(CIC_SelectWholeWord, pcEditing, &CTextEditing::SelectWholeWord);
 	pcComponent->AddInputAction(CIC_SelectAll, pcEditing, &CTextEditing::SelectAll);
-	pcComponent->AddInputAction(CIC_ClearSelection, pcEditing, &CTextEditing::ClearSelection);
+	pcComponent->AddInputAction(CIC_ClearSelection, this, &CTextEditingInput::ClearSelectionAction);
 
 	pcComponent->AddInputAction(CIC_Space, this, &CTextEditingInput::SpaceAction);
 	pcComponent->AddInputAction(CIC_Delete, pcEditing, &CTextEditing::Delete);
@@ -164,7 +171,38 @@ void CTextEditingInput::SetPointerEnabled(bool bEnabled)
 void CTextEditingInput::FocusLost(void)
 {
 	mbDragging = false;
+	meTextDrag = TETD_None;
 	msClicks.Forget();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a press in the selection drags the selected text (a text area's
+// does; a text field's doesn't, as it shows no drop caret).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::SetTextDragEnabled(bool bEnabled)
+{
+	mbTextDragEnabled = bEnabled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the text being dragged would be dropped, for the view to draw the
+// drop caret there.  False if no text is being dragged.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditingInput::GetDropPosition(size* puiPosition, bool* pbRowEnd)
+{
+	if (meTextDrag != TETD_Dragging)
+	{
+		return false;
+	}
+	*puiPosition = muiDrop;
+	*pbRowEnd = mbDropRowEnd;
+	return true;
 }
 
 
@@ -196,7 +234,8 @@ void CTextEditingInput::PasteFromClipboard(void) { mpcComponent->GetWindow()->Ge
 // The press has already given the component focus.  A single press puts
 // the caret in the gap nearest the pointer; a double click selects the
 // word under it and a triple click its line.  Dragging selects from
-// there.  A double click past a line's end selects nothing.
+// there.  A double click past a line's end selects nothing.  A single
+// press in the selection may drag the selected text instead (DragText).
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ActivateComponent(int x, int y)
@@ -207,7 +246,13 @@ void CTextEditingInput::ActivateComponent(int x, int y)
 
 	iClicks = msClicks.Pressed(x, y);
 	meUnit = (iClicks == 3) ? TEDU_Line : ((iClicks == 2) ? TEDU_Word : TEDU_Character);
-	if (meUnit == TEDU_Character)
+	if ((meUnit == TEDU_Character) && IsInSelection(x, y))
+	{
+		meTextDrag = TETD_Pressed;
+		miPressX = x;
+		miPressY = y;
+	}
+	else if (meUnit == TEDU_Character)
 	{
 		mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd);
 		mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
@@ -297,7 +342,11 @@ void CTextEditingInput::ContDragSelect(int x, int y)
 		return;
 	}
 
-	if (meUnit != TEDU_Character)
+	if (meTextDrag != TETD_None)
+	{
+		DragText(x, y);
+	}
+	else if (meUnit != TEDU_Character)
 	{
 		DragByUnit(x, y);
 	}
@@ -314,7 +363,14 @@ void CTextEditingInput::ContDragSelect(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::StopDragSelect(int x, int y)
 {
-	ContDragSelect(x, y);
+	if (mbDragging && (meTextDrag != TETD_None))
+	{
+		DropText(x, y);
+	}
+	else
+	{
+		ContDragSelect(x, y);
+	}
 	mbDragging = false;
 }
 
@@ -346,6 +402,139 @@ void CTextEditingInput::StartLineDrag(int x, int y, bool bExtend)
 	mbUnitPress = true;
 	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
 	mbUnitPress = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Escape cancels dragging the selected text, which stays where it is;
+// otherwise it clears the selection.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::ClearSelectionAction(void)
+{
+	if (meTextDrag != TETD_None)
+	{
+		CancelTextDrag();
+		return;
+	}
+	mpcEditing->ClearSelection();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The press at x, y is on a selected character of an editable text that
+// drags its selected text.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditingInput::IsInSelection(int x, int y)
+{
+	size	uiStart;
+	size	uiEnd;
+	size	uiPosition;
+
+	if (!mbTextDragEnabled || !mpcEditing->IsEditable() || !mpcEditing->GetSelection(&uiStart, &uiEnd))
+	{
+		return false;
+	}
+	if (!mpcEditing->FindCharacterAt(x, y, &uiPosition))
+	{
+		return false;
+	}
+	return (uiPosition >= uiStart) && (uiPosition < uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer moved, pressed in the selection: once it is more than
+// TEXT_DRAG_DISTANCE from the press the selected text is dragged, and the
+// drop caret follows it.  The view shows the drop caret as its caret, so
+// showing it scrolls to it as a selection's drag scrolls to the caret.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::DragText(int x, int y)
+{
+	size	uiDrop;
+	bool	bRowEnd;
+
+	if ((meTextDrag == TETD_Pressed) && (abs(x - miPressX) <= TEXT_DRAG_DISTANCE) && (abs(y - miPressY) <= TEXT_DRAG_DISTANCE))
+	{
+		return;
+	}
+	if (!mpcEditing->FindPositionAt(x, y, &uiDrop, &bRowEnd))
+	{
+		return;
+	}
+	if ((meTextDrag != TETD_Dragging) || (uiDrop != muiDrop) || (bRowEnd != mbDropRowEnd))
+	{
+		meTextDrag = TETD_Dragging;
+		muiDrop = uiDrop;
+		mbDropRowEnd = bRowEnd;
+		mpcEditing->GetView()->ShowCaret();
+		mpcComponent->GetWindow()->GetFocus()->ResetCaretBlink();
+		mpcComponent->GetWindow()->RequestPaint();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The release of a press in the selection.  Dragged, the selected text is
+// moved to where it was dropped, or copied there with control held.  Not
+// dragged, the caret goes where it was pressed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::DropText(int x, int y)
+{
+	size	uiStart;
+	size	uiEnd;
+	size	uiPosition;
+	bool	bRowEnd;
+
+	DragText(x, y);
+	if (meTextDrag == TETD_Pressed)
+	{
+		meTextDrag = TETD_None;
+		mpcEditing->FindPositionAt(miPressX, miPressY, &uiPosition, &bRowEnd);
+		mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
+		return;
+	}
+
+	meTextDrag = TETD_None;
+	mpcEditing->GetSelection(&uiStart, &uiEnd);
+	mpcEditing->MoveText(uiStart, uiEnd, muiDrop, IsCopyHeld());
+	mpcComponent->GetWindow()->RequestPaint();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text being dragged stays where it is and the drag ends; the release
+// still to come does nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::CancelTextDrag(void)
+{
+	meTextDrag = TETD_None;
+	mbDragging = false;
+	mpcComponent->GetWindow()->GetFocus()->StopDrag(FD_Select);
+	mpcComponent->GetWindow()->RequestPaint();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Control is held, so a drop copies the text rather than moving it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditingInput::IsCopyHeld(void)
+{
+	CComponentInput*	pcInput;
+
+	pcInput = mpcComponent->GetWindow()->GetComponentInput();
+	return (pcInput != NULL) && pcInput->IsControl();
 }
 
 
