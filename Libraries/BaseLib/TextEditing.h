@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_EDITING_H__
 #define __TEXT_EDITING_H__
+#include "ArrayChars.h"
 #include "TextDocument.h"
 
 
@@ -112,6 +113,13 @@ public:
 //text, and the ranges a CTextSelectionRanges adds.  Shrink Selection goes back through the selections it grew from,
 //until the selection is changed any other way or the text is edited.
 //
+//A box (column) selection, as Visual Studio's, is the rows between its anchor's and its caret's, each from the box's
+//left x to its right x (BoxSelect, BoxSelectUp ...): a row shorter than the left edge has an empty range at its end.
+//Typing, tab, backspace, delete, paste and cut act on every row's range as one edit; a box with no width is a caret on
+//every row.  Copy gives the rows' ranges joined by line feeds; pasting as many lines as the box has rows puts one on
+//each, any other text goes on every row.  While there is a box nothing else is selected and the caret is its caret
+//corner.  Moving the caret any other way, clearing the selection, or an edit made otherwise (undo too) ends it.
+//
 //Each edit begins with the caret and selection as they are (BeginEdit, for undo to put back), changes the document and
 //ends (EditDone): it is kept in the document's history, the view is told what was kept (UndoChanged) and that the text
 //was edited (TextEdited).  An edit that didn't change the text (backspace at its start) isn't kept or told.
@@ -132,6 +140,12 @@ protected:
 	CTextSelectionRanges*	mpcSelectionRanges;  //Not held: more ranges to extend to, NULL for none.
 	CArrayTextRange		masShrinks;  //The selections Extend grew from, the last last: an anchor (MAX_SIZE for none) and a caret.
 	STextRange			msExtended;  //The anchor and caret Extend or Shrink last left; the shrinks are for it only.
+	bool				mbBox;  //A box is selected (see BoxSelect).
+	size				muiBoxAnchorRow;
+	int32				miBoxAnchorX;
+	size				muiBoxCaretRow;
+	int32				miBoxCaretX;
+	bool				mbBoxEditing;  //The box's own edit is changing the document: it doesn't end the box.
 
 public:
 	void		Init(CTextDocument* pcDocument, CTextEditingView* pcView);
@@ -188,6 +202,17 @@ public:
 	void		ExtendSelection(void);
 	void		ShrinkSelection(void);
 	void		SetSelectionRanges(CTextSelectionRanges* pcRanges);
+
+	void		BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int32 iCaretX);
+	void		BoxSelectUp(void);
+	void		BoxSelectDown(void);
+	void		BoxSelectLeft(void);
+	void		BoxSelectRight(void);
+	void		BoxSelectHome(void);
+	void		BoxSelectEnd(void);
+	bool		IsBox(void);
+	void		GetBox(size* puiTopRow, size* puiBottomRow, int32* piLeft, int32* piRight);
+	void		GetBoxRanges(CArrayTextRange* pasDest);
 	void		SelectAll(void);
 	void		ClearSelection(void);
 
@@ -227,6 +252,14 @@ protected:
 	void		AddTextRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest);
 	bool		IsExtended(void);
 	void		SetExtended(void);
+	bool		StartBox(void);
+	void		PlaceBoxCaret(void);
+	void		TypeInBox(const char* szText);
+	void		DeleteInBox(bool bBackwards);
+	void		PasteInBox(char* szSource);
+	void		CopyBox(CChars* pszDest);
+	void		ReplaceBoxRanges(CArrayTextRange* pasRanges, CArrayChars* paszTexts, size uiReferenceRow);
+	size		FindBoxReferenceRow(CArrayTextRange* pasRanges);
 
 	void		InsertText(size uiPosition, const char* szText);
 	void		RemoveText(size uiStart, size uiEnd);

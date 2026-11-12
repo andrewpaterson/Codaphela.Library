@@ -770,6 +770,202 @@ void TestTextEditingExtendSelection(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Asserts the box's rows' ranges, given as start, end pairs.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTextEditingBox(STestTextEditing* ps, size uiNumRanges, size* auiExpected)
+{
+	CArrayTextRange	asRanges;
+	size			i;
+
+	AssertTrue(ps->cEditing.IsBox());
+	asRanges.Init();
+	ps->cEditing.GetBoxRanges(&asRanges);
+	AssertSize(uiNumRanges, asRanges.NumElements());
+	for (i = 0; (i < uiNumRanges) && (i < asRanges.NumElements()); i++)
+	{
+		AssertSize(auiExpected[i * 2], asRanges.Get(i)->uiStart);
+		AssertSize(auiExpected[i * 2 + 1], asRanges.Get(i)->uiEnd);
+	}
+	asRanges.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box selection: each row from the box's left x to its right, a short
+// row's range empty at its end.  Typing, backspace, delete, tab, paste
+// and cut act on every row as one edit, the box left with no width;
+// copy joins the rows' ranges with line feeds.  Moving the caret another
+// way, clearing the selection or undoing ends it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingBox(void)
+{
+	STestTextEditing	s;
+	CChars				sz;
+	size				uiTop;
+	size				uiBottom;
+	int32				iLeft;
+	int32				iRight;
+	size				auiBox[] = { 1, 4, 8, 9, 11, 14 };
+	size				auiShort[] = { 4, 6, 9, 9, 14, 16 };
+	size				auiCaret[] = { 1, 1, 8, 8 };
+	size				auiNarrow[] = { 1, 2, 8, 9 };
+	size				auiFromSelection[] = { 1, 3, 8, 9 };
+
+	//abcdef 0..6, LF 6, ab 7..9, LF 9, abcdefgh 10..18.  The view's x is a row's column.
+	sz.Init();
+	s.Init("abcdef\nab\nabcdefgh");
+
+	//Columns 1 to 4 of rows 0 to 2: the short row's is its b.
+	s.cEditing.BoxSelect(0, 1, 2, 4);
+	AssertTextEditingBox(&s, 3, auiBox);
+	AssertFalse(s.cEditing.IsSelected());
+	AssertSize(14, s.Caret());
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertSize(0, uiTop);
+	AssertSize(2, uiBottom);
+	AssertInt((int32)1, iLeft);
+	AssertInt((int32)4, iRight);
+	s.cEditing.Copy(&sz);
+	AssertString("bcd\nb\nbcd", sz.Text());
+
+	//Typed on every row, as one edit; the box is then a caret on every row after it.
+	s.cEditing.Printable('X', true);
+	AssertString("aXef\naX\naXefgh", s.Text());
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertInt((int32)2, iLeft);
+	AssertInt((int32)2, iRight);
+	s.cEditing.Printable('Y', true);
+	AssertString("aXYef\naXY\naXYefgh", s.Text());
+	s.cEditing.Backspace();
+	AssertString("aXef\naX\naXefgh", s.Text());
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertInt((int32)2, iLeft);
+
+	//Delete takes the character after each, but not the short row's line feed.
+	s.cEditing.Delete();
+	AssertString("aXf\naX\naXfgh", s.Text());
+	AssertTrue(s.cEditing.IsBox());
+
+	//Undo puts the text back as it was before the delete and ends the box.
+	AssertTrue(s.cEditing.Undo());
+	AssertString("aXef\naX\naXefgh", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+
+	//Pasted: as many lines as rows, one on each; anything else on every row.
+	s.cEditing.BoxSelect(0, 0, 2, 0);
+	s.cEditing.Paste((char*)"1\n2\n3\n");
+	AssertString("1aXef\n2aX\n3aXefgh", s.Text());
+	s.cEditing.Paste((char*)"Z");
+	AssertString("1ZaXef\n2ZaX\n3ZaXefgh", s.Text());
+	s.cEditing.Paste((char*)"p\nq");
+	AssertString("1Zp\nqaXef\n2Zp\nqaX\n3Zp\nqaXefgh", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertSize(23, s.Caret());
+
+	//A box past a short row: its range is empty at its end, and what is typed goes there.
+	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
+	s.cEditing.BoxSelect(0, 4, 2, 6);
+	AssertTextEditingBox(&s, 3, auiShort);
+	s.cEditing.Printable('-', true);
+	AssertString("abcd-\nab-\nabcd-gh", s.Text());
+
+	//The caret's row short: the box goes after what was typed on a row that reaches it.
+	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
+	s.cEditing.BoxSelect(2, 4, 1, 6);
+	s.cEditing.Printable('-', true);
+	AssertString("abcdef\nab-\nabcd-gh", s.Text());
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertInt((int32)5, iLeft);
+	AssertInt((int32)5, iRight);
+
+	//Backspace with no width: a row that doesn't reach the box keeps its characters, and rows don't join.
+	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
+	s.cEditing.BoxSelect(0, 5, 2, 5);
+	s.cEditing.Backspace();
+	AssertString("abcdf\nab\nabcdfgh", s.Text());
+	s.cEditing.BoxSelect(1, 0, 2, 0);
+	s.cEditing.Backspace();
+	AssertString("abcdf\nab\nabcdfgh", s.Text());
+
+	//Backspace on a box with width deletes the ranges; a reset ends the box.
+	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
+	s.cEditing.BoxSelect(0, 1, 2, 3);
+	s.cEditing.Backspace();
+	AssertString("adef\na\nadefgh", s.Text());
+	s.cEditing.Reset();
+	AssertFalse(s.cEditing.IsBox());
+
+	//Cut copies the rows and leaves a caret on each; tab goes to the next stop from the left edge.
+	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
+	s.cEditing.BoxSelect(0, 1, 2, 3);
+	sz.Clear();
+	s.cEditing.Cut(&sz);
+	AssertString("bc\nb\nbc", sz.Text());
+	AssertString("adef\na\nadefgh", s.Text());
+	s.cEditing.Tab(true);
+	AssertString("a   def\na   \na   defgh", s.Text());
+
+	//Moved with the box keys from the caret: down, right, left, end and home on the caret's row.
+	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
+	s.cEditing.SetCaretPosition(1);
+	s.cEditing.BoxSelectDown();
+	AssertTextEditingBox(&s, 2, auiCaret);
+	s.cEditing.BoxSelectRight();
+	AssertTextEditingBox(&s, 2, auiNarrow);
+	s.cEditing.BoxSelectRight();
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertInt((int32)2, iRight);
+	s.cEditing.BoxSelectLeft();
+	s.cEditing.BoxSelectLeft();
+	s.cEditing.BoxSelectLeft();
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertInt((int32)0, iLeft);
+	AssertInt((int32)1, iRight);
+	s.cEditing.BoxSelectEnd();
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertInt((int32)2, iRight);
+	s.cEditing.BoxSelectHome();
+	s.cEditing.BoxSelectUp();
+	s.cEditing.BoxSelectUp();
+	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	AssertSize(0, uiTop);
+	AssertSize(0, uiBottom);
+	AssertInt((int32)0, iLeft);
+	AssertInt((int32)1, iRight);
+
+	//From a selection, the box's anchor is the selection's.
+	s.cEditing.Select(1, 3);
+	s.cEditing.BoxSelectDown();
+	AssertTextEditingBox(&s, 2, auiFromSelection);
+
+	//Another move, or clearing the selection, ends it with the caret where it was.
+	s.cEditing.Left();
+	AssertFalse(s.cEditing.IsBox());
+	AssertSize(8, s.Caret());
+	s.cEditing.BoxSelect(0, 1, 1, 2);
+	s.cEditing.ClearSelection();
+	AssertFalse(s.cEditing.IsBox());
+	AssertSize(9, s.Caret());
+
+	//Not editable: copied from, not changed.
+	s.cEditing.SetEditable(false);
+	s.cEditing.BoxSelect(0, 1, 1, 2);
+	s.cEditing.Printable('Q', true);
+	AssertString("abcdef\nab\nabcdefgh", s.Text());
+	sz.Clear();
+	s.cEditing.Copy(&sz);
+	AssertString("b\nb", sz.Text());
+
+	sz.Kill();
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A text that isn't editable can be moved in, selected and copied from,
 // and cut copies what it would cut, but nothing changes it.
 //
@@ -963,6 +1159,7 @@ void TestTextEditing(void)
 	TestTextEditingUndo();
 	TestTextEditingMoveText();
 	TestTextEditingExtendSelection();
+	TestTextEditingBox();
 	TestTextEditingNotEditable();
 	TestTextEditingFollowsDocument();
 	TestTextEditingNothingChanged();

@@ -46,6 +46,12 @@ void CTextEditing::Init(CTextDocument* pcDocument, CTextEditingView* pcView)
 	masShrinks.Init();
 	msExtended.uiStart = MAX_SIZE;
 	msExtended.uiEnd = MAX_SIZE;
+	mbBox = false;
+	muiBoxAnchorRow = 0;
+	miBoxAnchorX = 0;
+	muiBoxCaretRow = 0;
+	miBoxCaretX = 0;
+	mbBoxEditing = false;
 	mpcDocument->AddListener(this);
 }
 
@@ -74,6 +80,7 @@ void CTextEditing::Reset(void)
 {
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
+	mbBox = false;
 	mbCaretAtRowEnd = false;
 	miUpDownX = -1;
 }
@@ -154,6 +161,7 @@ void CTextEditing::SetCaretPosition(size uiPosition)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::MoveCaret(size uiPosition, bool bSelect, bool bRowEnd, bool bKeepUpDown)
 {
+	mbBox = false;
 	if (bSelect)
 	{
 		AnchorSelection();
@@ -536,11 +544,479 @@ void CTextEditing::SetExtended(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A box from row uiAnchorRow at x iAnchorX to row uiCaretRow at x iCaretX
+// (the view's), the caret at the second.  Rows past the last are the
+// last.  Nothing without rows.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int32 iCaretX)
+{
+	size	uiLastRow;
+
+	if (!mpcView->HasRows())
+	{
+		return;
+	}
+	uiLastRow = mpcView->NumRows() - 1;
+	mbBox = true;
+	muiBoxAnchorRow = (uiAnchorRow < uiLastRow) ? uiAnchorRow : uiLastRow;
+	miBoxAnchorX = (iAnchorX > 0) ? iAnchorX : 0;
+	muiBoxCaretRow = (uiCaretRow < uiLastRow) ? uiCaretRow : uiLastRow;
+	miBoxCaretX = (iCaretX > 0) ? iCaretX : 0;
+	PlaceBoxCaret();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box's caret corner moves a row up or down, a character left or
+// right along its row, or to its row's start or end, as Visual Studio's
+// Shift+Alt keys move it.  Without a box one starts at the caret, or at a
+// selection's anchor.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::BoxSelectUp(void)
+{
+	if (StartBox())
+	{
+		if (muiBoxCaretRow > 0)
+		{
+			muiBoxCaretRow--;
+		}
+		PlaceBoxCaret();
+	}
+}
+
+
+void CTextEditing::BoxSelectDown(void)
+{
+	if (StartBox())
+	{
+		if (muiBoxCaretRow + 1 < mpcView->NumRows())
+		{
+			muiBoxCaretRow++;
+		}
+		PlaceBoxCaret();
+	}
+}
+
+
+void CTextEditing::BoxSelectLeft(void)
+{
+	size	uiPosition;
+	bool	bRowEnd;
+
+	if (StartBox())
+	{
+		uiPosition = mpcView->FindPositionInRow(muiBoxCaretRow, miBoxCaretX, &bRowEnd);
+		if (uiPosition > mpcView->GetRowStart(muiBoxCaretRow))
+		{
+			miBoxCaretX = mpcView->GetPositionX(mpcNavigation->PreviousPosition(uiPosition), false);
+		}
+		PlaceBoxCaret();
+	}
+}
+
+
+void CTextEditing::BoxSelectRight(void)
+{
+	size	uiPosition;
+	bool	bRowEnd;
+
+	if (StartBox())
+	{
+		uiPosition = mpcView->FindPositionInRow(muiBoxCaretRow, miBoxCaretX, &bRowEnd);
+		if (uiPosition < mpcView->GetRowEnd(muiBoxCaretRow, &bRowEnd))
+		{
+			miBoxCaretX = mpcView->GetPositionX(mpcNavigation->NextPosition(uiPosition), false);
+		}
+		PlaceBoxCaret();
+	}
+}
+
+
+void CTextEditing::BoxSelectHome(void)
+{
+	if (StartBox())
+	{
+		miBoxCaretX = mpcView->GetPositionX(mpcView->GetRowStart(muiBoxCaretRow), false);
+		PlaceBoxCaret();
+	}
+}
+
+
+void CTextEditing::BoxSelectEnd(void)
+{
+	size	uiEnd;
+	bool	bRowEnd;
+
+	if (StartBox())
+	{
+		uiEnd = mpcView->GetRowEnd(muiBoxCaretRow, &bRowEnd);
+		miBoxCaretX = mpcView->GetPositionX(uiEnd, bRowEnd);
+		PlaceBoxCaret();
+	}
+}
+
+
+bool CTextEditing::IsBox(void) { return mbBox; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box's rows, top and bottom, and its left and right x.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::GetBox(size* puiTopRow, size* puiBottomRow, int32* piLeft, int32* piRight)
+{
+	*puiTopRow = (muiBoxAnchorRow < muiBoxCaretRow) ? muiBoxAnchorRow : muiBoxCaretRow;
+	*puiBottomRow = (muiBoxAnchorRow < muiBoxCaretRow) ? muiBoxCaretRow : muiBoxAnchorRow;
+	*piLeft = (miBoxAnchorX < miBoxCaretX) ? miBoxAnchorX : miBoxCaretX;
+	*piRight = (miBoxAnchorX < miBoxCaretX) ? miBoxCaretX : miBoxAnchorX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of the box's rows' ranges, top to bottom: its characters from the
+// box's left x to its right x.  A row shorter than the left edge has an
+// empty range at its end.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::GetBoxRanges(CArrayTextRange* pasDest)
+{
+	size		uiTop;
+	size		uiBottom;
+	int32		iLeft;
+	int32		iRight;
+	size		uiRow;
+	bool		bRowEnd;
+	STextRange*	psRange;
+
+	if (!mbBox)
+	{
+		return;
+	}
+	GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	for (uiRow = uiTop; uiRow <= uiBottom; uiRow++)
+	{
+		psRange = pasDest->Add();
+		psRange->uiStart = mpcView->FindPositionInRow(uiRow, iLeft, &bRowEnd);
+		psRange->uiEnd = mpcView->FindPositionInRow(uiRow, iRight, &bRowEnd);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box to move the caret corner of: the one there is, or a new one with
+// both corners at the caret, or the anchor at a selection's anchor.
+// False if the view has no rows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::StartBox(void)
+{
+	bool	bAnchorRowEnd;
+
+	if (!mpcView->HasRows())
+	{
+		return false;
+	}
+	if (mbBox)
+	{
+		return true;
+	}
+	bAnchorRowEnd = IsSelected() ? false : mbCaretAtRowEnd;
+	muiBoxAnchorRow = mpcView->FindRow(GetAnchorPosition(), bAnchorRowEnd);
+	miBoxAnchorX = mpcView->GetPositionX(GetAnchorPosition(), bAnchorRowEnd);
+	muiBoxCaretRow = mpcView->FindRow(muiCaret, mbCaretAtRowEnd);
+	miBoxCaretX = mpcView->GetPositionX(muiCaret, mbCaretAtRowEnd);
+	mbBox = true;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caret goes to the box's caret corner, nothing else selected, and
+// the view is told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::PlaceBoxCaret(void)
+{
+	bool	bRowEnd;
+
+	muiAnchor = MAX_SIZE;
+	muiCaret = mpcView->FindPositionInRow(muiBoxCaretRow, miBoxCaretX, &bRowEnd);
+	mbCaretAtRowEnd = bRowEnd;
+	miUpDownX = -1;
+	mpcView->MarksChanged();
+	mpcView->ShowCaret();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szText replaces each of the box's rows' ranges.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::TypeInBox(const char* szText)
+{
+	CArrayTextRange	asRanges;
+	CArrayChars		aszTexts;
+	size			i;
+
+	asRanges.Init();
+	aszTexts.Init();
+	GetBoxRanges(&asRanges);
+	for (i = 0; i < asRanges.NumElements(); i++)
+	{
+		aszTexts.Add(szText);
+	}
+	ReplaceBoxRanges(&asRanges, &aszTexts, FindBoxReferenceRow(&asRanges));
+	aszTexts.Kill();
+	asRanges.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Backspace or delete in the box: a box with width has its ranges
+// deleted.  One without is a caret on every row: the character before it
+// (bBackwards) or after it goes on each row that reaches the box, not
+// joining lines.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::DeleteInBox(bool bBackwards)
+{
+	CArrayTextRange	asRanges;
+	CArrayChars		aszTexts;
+	STextRange*		psRange;
+	size			uiTop;
+	size			uiBottom;
+	int32			iLeft;
+	int32			iRight;
+	size			uiReference;
+	size			i;
+	bool			bRowEnd;
+
+	GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	if (iLeft != iRight)
+	{
+		TypeInBox("");
+		return;
+	}
+
+	asRanges.Init();
+	aszTexts.Init();
+	GetBoxRanges(&asRanges);
+	uiReference = FindBoxReferenceRow(&asRanges);
+	for (i = 0; i < asRanges.NumElements(); i++)
+	{
+		psRange = asRanges.Get(i);
+		aszTexts.Add("");
+		if (mpcView->GetPositionX(psRange->uiStart, false) != iLeft)
+		{
+			continue;
+		}
+		if (bBackwards && (psRange->uiStart > mpcView->GetRowStart(uiTop + i)))
+		{
+			psRange->uiStart = mpcNavigation->PreviousPosition(psRange->uiStart);
+		}
+		else if (!bBackwards && (psRange->uiEnd < mpcView->GetRowEnd(uiTop + i, &bRowEnd)))
+		{
+			psRange->uiEnd = mpcNavigation->NextPosition(psRange->uiEnd);
+		}
+	}
+	ReplaceBoxRanges(&asRanges, &aszTexts, uiReference);
+	aszTexts.Kill();
+	asRanges.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pasting in the box: as many lines as it has rows go one to a row,
+// anything else goes on every row.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::PasteInBox(char* szSource)
+{
+	CArrayTextRange	asRanges;
+	CArrayChars		aszTexts;
+	CChars			szText;
+	size			i;
+
+	if ((szSource == NULL) || (szSource[0] == '\0'))
+	{
+		return;
+	}
+	szText.Init(szSource);
+	MakeInsertable(&szText);
+	asRanges.Init();
+	aszTexts.Init();
+	GetBoxRanges(&asRanges);
+	if (!mbSingleLine)
+	{
+		if (szText.EndsWith("\n"))
+		{
+			szText.RemoveFromEnd(1);
+		}
+		szText.Split(&aszTexts, '\n');
+	}
+	if (aszTexts.NumElements() != asRanges.NumElements())
+	{
+		aszTexts.ReInit();
+		szText.Set(szSource);
+		MakeInsertable(&szText);
+		for (i = 0; i < asRanges.NumElements(); i++)
+		{
+			aszTexts.Add(szText.Text());
+		}
+	}
+	ReplaceBoxRanges(&asRanges, &aszTexts, FindBoxReferenceRow(&asRanges));
+	aszTexts.Kill();
+	asRanges.Kill();
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box's rows' ranges appended to pszDest, joined by line feeds.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::CopyBox(CChars* pszDest)
+{
+	CArrayTextRange	asRanges;
+	STextRange*		psRange;
+	size			i;
+
+	asRanges.Init();
+	GetBoxRanges(&asRanges);
+	for (i = 0; i < asRanges.NumElements(); i++)
+	{
+		psRange = asRanges.Get(i);
+		if (i > 0)
+		{
+			pszDest->Append('\n');
+		}
+		pszDest->AppendSubString(mpcDocument->Text(), psRange->uiStart, psRange->uiEnd);
+	}
+	asRanges.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row (from the box's top) whose edit says where the box goes after
+// it: the caret's row if it reaches the box's left edge, else the first
+// that does, else the caret's.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextEditing::FindBoxReferenceRow(CArrayTextRange* pasRanges)
+{
+	size	uiTop;
+	size	uiBottom;
+	int32	iLeft;
+	int32	iRight;
+	size	i;
+
+	GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
+	if (mpcView->GetPositionX(pasRanges->Get(muiBoxCaretRow - uiTop)->uiStart, false) == iLeft)
+	{
+		return muiBoxCaretRow - uiTop;
+	}
+	for (i = 0; i < pasRanges->NumElements(); i++)
+	{
+		if (mpcView->GetPositionX(pasRanges->Get(i)->uiStart, false) == iLeft)
+		{
+			return i;
+		}
+	}
+	return muiBoxCaretRow - uiTop;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of the rows' ranges replaced by its text, as one edit: one undo
+// puts them all back (and ends the box).  The box is left with no width,
+// after the reference row's text.  Text with line feeds in moves the rows:
+// the box ends, the caret after the last row's text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::ReplaceBoxRanges(CArrayTextRange* pasRanges, CArrayChars* paszTexts, size uiReferenceRow)
+{
+	STextRange*	psRange;
+	size		i;
+	size		uiShift;
+	size		uiReference;
+	size		uiLast;
+	size		uiLength;
+	bool		bLineFeeds;
+	char*		szText;
+
+	if (!BeginEditIfEditable())
+	{
+		return;
+	}
+
+	//Bottom up, so the ranges above don't move; where the reference row's and last row's texts end once all are in.
+	bLineFeeds = false;
+	uiShift = 0;
+	uiReference = 0;
+	uiLast = 0;
+	mbBoxEditing = true;
+	for (i = 0; i < pasRanges->NumElements(); i++)
+	{
+		psRange = pasRanges->Get(i);
+		szText = paszTexts->GetText(i);
+		uiLength = (size)strlen(szText);
+		if (strchr(szText, '\n'))
+		{
+			bLineFeeds = true;
+		}
+		if (i == uiReferenceRow)
+		{
+			uiReference = psRange->uiStart + uiShift + uiLength;
+		}
+		uiLast = psRange->uiStart + uiShift + uiLength;
+		uiShift = uiShift + uiLength - (psRange->uiEnd - psRange->uiStart);
+	}
+	for (i = pasRanges->NumElements(); i > 0; i--)
+	{
+		psRange = pasRanges->Get(i - 1);
+		RemoveText(psRange->uiStart, psRange->uiEnd);
+		InsertText(psRange->uiStart, paszTexts->GetText(i - 1));
+	}
+	mbBoxEditing = false;
+
+	if (bLineFeeds)
+	{
+		mbBox = false;
+		muiAnchor = MAX_SIZE;
+		muiCaret = uiLast;
+		EditDone();
+		mpcView->ShowCaret();
+		return;
+	}
+	muiCaret = uiReference;
+	EditDone();
+	miBoxAnchorX = mpcView->GetPositionX(uiReference, false);
+	miBoxCaretX = miBoxAnchorX;
+	PlaceBoxCaret();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::ClearSelection(void)
 {
 	muiAnchor = MAX_SIZE;
+	mbBox = false;
 	mpcView->MarksChanged();
 }
 
@@ -666,13 +1142,18 @@ void CTextEditing::Printable(char c, bool bInsert)
 	char	sz[2];
 	char*	szText;
 
+	sz[0] = c;
+	sz[1] = '\0';
+	if (mbBox)
+	{
+		TypeInBox(sz);
+		return;
+	}
 	if (!BeginEditIfEditable())
 	{
 		return;
 	}
 
-	sz[0] = c;
-	sz[1] = '\0';
 	mpcDocument->GetUndo()->Typed(c, IsSelected() ? MAX_SIZE : muiCaret);
 	szText = mpcDocument->Text();
 	if (!IsSelected() && !bInsert && (muiCaret < mpcDocument->Length()) && (szText[muiCaret] != '\n') && (szText[muiCaret] != '\r'))
@@ -695,9 +1176,21 @@ void CTextEditing::Tab(bool bInsert)
 {
 	size	uiStart;
 	size	uiEnd;
+	bool	bRowEnd;
 	size	uiColumns;
 	CChars	szSpaces;
 
+	if (mbBox)
+	{
+		//To the next tab stop from the box's left edge on its caret row.
+		uiStart = mpcView->FindPositionInRow(muiBoxCaretRow, (miBoxAnchorX < miBoxCaretX) ? miBoxAnchorX : miBoxCaretX, &bRowEnd);
+		uiColumns = mpcNavigation->CountColumns(mpcNavigation->FindLineStart(uiStart), uiStart);
+		szSpaces.Init();
+		szSpaces.Append(' ', muiTabWidth - (uiColumns % muiTabWidth));
+		TypeInBox(szSpaces.Text());
+		szSpaces.Kill();
+		return;
+	}
 	if (!BeginEditIfEditable())
 	{
 		return;
@@ -808,6 +1301,11 @@ void CTextEditing::EndEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Delete(void)
 {
+	if (mbBox)
+	{
+		DeleteInBox(false);
+		return;
+	}
 	if (!BeginEditIfEditable())
 	{
 		return;
@@ -828,6 +1326,11 @@ void CTextEditing::Delete(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Backspace(void)
 {
+	if (mbBox)
+	{
+		DeleteInBox(true);
+		return;
+	}
 	if (!BeginEditIfEditable())
 	{
 		return;
@@ -978,6 +1481,12 @@ void CTextEditing::Duplicate(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Cut(CChars* pszDest)
 {
+	if (mbBox)
+	{
+		CopyBox(pszDest);
+		TypeInBox("");
+		return;
+	}
 	BeginEdit();
 	if (!IsSelected())
 	{
@@ -1042,7 +1551,11 @@ void CTextEditing::Copy(CChars* pszDest)
 	size	uiStart;
 	size	uiEnd;
 
-	if (GetSelection(&uiStart, &uiEnd))
+	if (mbBox)
+	{
+		CopyBox(pszDest);
+	}
+	else if (GetSelection(&uiStart, &uiEnd))
 	{
 		pszDest->AppendSubString(mpcDocument->Text(), uiStart, uiEnd);
 	}
@@ -1060,6 +1573,11 @@ void CTextEditing::Paste(char* szSource)
 {
 	CChars	szText;
 
+	if (mbBox)
+	{
+		PasteInBox(szSource);
+		return;
+	}
 	if (!BeginEditIfEditable() || (szSource == NULL) || (szSource[0] == '\0'))
 	{
 		return;
@@ -1196,6 +1714,10 @@ void CTextEditing::DocumentChanged(STextDocumentChange* psChange)
 
 	mbEdited = true;
 	masShrinks.ReInit();
+	if (!mbBoxEditing)
+	{
+		mbBox = false;
+	}
 	uiLength = psChange->Length();
 	if (psChange->eChange == TDC_Inserted)
 	{
