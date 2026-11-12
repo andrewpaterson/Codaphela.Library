@@ -8,6 +8,7 @@
 #include "InputLib/Input.h"
 #include "WindowLib/TextArea.h"
 #include "WindowLib/ComponentInput.h"
+#include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
@@ -1885,6 +1886,192 @@ void TestTextAreaEditDragText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window's painted pixel under the bottom of the character at
+// uiPosition, below the glyphs, as 0xRRGGBB.  The window is 24 bit RGB.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 TextAreaPixelUnder(Ptr<CTextArea> pTextArea, size uiPosition)
+{
+	CInt32Rect	cLine;
+	int32		x;
+	int32		y;
+	uint8*		puiPixel;
+	Ptr<CWindow>	pWindow;
+
+	pWindow = pTextArea->GetWindow();
+	pTextArea->GetLineBounds(pTextArea->FindLine(uiPosition), &cLine);
+	x = pTextArea->GetPosition().x + (pTextArea->GetPositionX(uiPosition, false) + pTextArea->GetPositionX(uiPosition + 1, false)) / 2;
+	y = pTextArea->GetPosition().y + cLine.GetBottom() - 1;
+	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(y * pWindow->GetCanvas()->GetActualSize().x + x) * 3];
+	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Highlighting occurrences, the selected text's other places in the text
+// are found at the next tick (RunPosted) and drawn under it: again after
+// the selection or the text changes, none for a selection over lines or
+// of spaces, at most TEXT_AREA_MAX_OCCURRENCES.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditOccurrences(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		uint32						uiBackground;
+		size						uiBar;
+		size						uiBarEnd;
+		CChars						szText;
+		int32						i;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		//The window clears behind the text area, which is transparent, so what it no longer draws goes.
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		//foo 4, 17 and 23; int 0 and 9; the space before 17 is 16; LF 8; end 27.
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "int foo;\nint x = foo + foo;");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pTextArea->SetOccurrenceColour(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20));
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Show();
+		pTestWindow->Paint();
+		uiBackground = TextAreaPixelUnder(pTextArea, 16);
+		uiBar = 28;
+		uiBarEnd = 31;
+
+		//Not highlighting, none are found.
+		AssertFalse(pTextArea->IsHighlightingOccurrences());
+		pTextArea->Select(4, 7);
+		pTestWindow->RunPosted();
+		AssertSize(0, pTextArea->NumOccurrences());
+
+		//Found at the tick, then drawn.
+		pTextArea->SetHighlightOccurrences(true);
+		AssertTrue(pTextArea->IsHighlightingOccurrences());
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTestWindow->RunPosted();
+		AssertSize(2, pTextArea->NumOccurrences());
+		AssertSize(17, pTextArea->GetOccurrenceStart(0));
+		AssertSize(23, pTextArea->GetOccurrenceStart(1));
+		AssertSize(3, pTextArea->GetOccurrenceLength());
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) != uiBackground);
+		AssertTrue(TextAreaPixelUnder(pTextArea, 24) == TextAreaPixelUnder(pTextArea, 18));
+		AssertTrue(TextAreaPixelUnder(pTextArea, 10) == uiBackground);
+
+		//The selection changed: none until the tick, then int's.
+		pTextArea->Select(0, 3);
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTestWindow->RunPosted();
+		AssertSize(1, pTextArea->NumOccurrences());
+		AssertSize(9, pTextArea->GetOccurrenceStart(0));
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+		AssertTrue(TextAreaPixelUnder(pTextArea, 10) != uiBackground);
+
+		//Over lines, spaces only, or nothing selected: none.
+		pTextArea->Select(4, 12);
+		pTestWindow->RunPosted();
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTextArea->Select(12, 13);
+		pTestWindow->RunPosted();
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTextArea->SetCaretPosition(2);
+		pTestWindow->RunPosted();
+		AssertSize(0, pTextArea->NumOccurrences());
+		//With nothing selected and none shown, moving the caret finds nothing: nothing is posted.
+		pTextArea->SetCaretPosition(3);
+		AssertSize(0, pTestWindow->NumPosted());
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 10) == uiBackground);
+
+		//The text changed: none until the tick, then found in it as it is.
+		pTextArea->Select(4, 7);
+		pTestWindow->RunPosted();
+		AssertSize(2, pTextArea->NumOccurrences());
+		pTextArea->AppendText(" foo", Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF));
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTestWindow->RunPosted();
+		AssertSize(3, pTextArea->NumOccurrences());
+		AssertSize(28, pTextArea->GetOccurrenceStart(2));
+
+		//An undo puts the same selection back on a changed text: none until the tick.  (Appending isn't kept for undo.)
+		pTextArea->ClearUndo();
+		pTextArea->Select(17, 20);
+		pTestWindow->RunPosted();
+		AssertSize(3, pTextArea->NumOccurrences());
+		pTextArea->Paste((char*)"bar");
+		pTestWindow->RunPosted();
+		AssertSize(0, pTextArea->NumOccurrences());
+		AssertTrue(pTextArea->Undo());
+		AssertTextAreaSelection(17, 20, pTextArea);
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTestWindow->RunPosted();
+		AssertSize(3, pTextArea->NumOccurrences());
+
+		//An edit that leaves the selection where it is: none until the tick.  foo at 28 becomes bar.
+		pTextArea->Select(4, 7);
+		pTestWindow->RunPosted();
+		AssertSize(3, pTextArea->NumOccurrences());
+		AssertTrue(pTextArea->ReplaceRanges(&uiBar, &uiBarEnd, 1, "bar"));
+		AssertTextAreaSelection(4, 7, pTextArea);
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTestWindow->RunPosted();
+		AssertSize(2, pTextArea->NumOccurrences());
+		AssertTrue(pTextArea->Undo());
+
+		//Not highlighting, they go.
+		pTextArea->Select(4, 7);
+		pTestWindow->RunPosted();
+		AssertSize(3, pTextArea->NumOccurrences());
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 24) != uiBackground);
+		pTextArea->SetHighlightOccurrences(false);
+		AssertSize(0, pTextArea->NumOccurrences());
+		pTestWindow->RunPosted();
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 24) == uiBackground);
+
+		//At most a thousand.
+		szText.Init();
+		for (i = 0; i < 1100; i++)
+		{
+			szText.Append("ab ");
+		}
+		pTextArea->SetText(szText.Text());
+		szText.Kill();
+		pTextArea->SetHighlightOccurrences(true);
+		pTextArea->Select(0, 2);
+		pTestWindow->RunPosted();
+		AssertSize(TEXT_AREA_MAX_OCCURRENCES, pTextArea->NumOccurrences());
+		AssertSize(3, pTextArea->GetOccurrenceStart(0));
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -1900,6 +2087,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditUndoEvent();
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
+	TestTextAreaEditOccurrences();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();

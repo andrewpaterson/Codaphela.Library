@@ -201,6 +201,69 @@ void TestTextNavigationAround(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A selection's other occurrences: text on one line that isn't only
+// spaces and tabs is looked for, case and all, from the start, matches
+// not overlapping, up to a most.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextNavigationOccurrences(void)
+{
+	CChars				szText;
+	CTextNavigation		cNavigation;
+	CArrayTextOccurrence	auiStarts;
+
+	//foo 4, 17, 23, 31 and in food 39; LF 8 and 27; spaces and a tab 28..31; FOO 35; end 43.
+	szText.Init("int foo;\nint x = foo + foo;\n  \tfoo FOO food");
+	cNavigation.Init(&szText);
+	auiStarts.Init();
+
+	AssertTrue(cNavigation.IsOccurrenceText(4, 7));
+	AssertTrue(cNavigation.IsOccurrenceText(7, 8));
+	AssertTrue(cNavigation.IsOccurrenceText(28, 32));
+	AssertFalse(cNavigation.IsOccurrenceText(28, 31));
+	AssertFalse(cNavigation.IsOccurrenceText(4, 10));
+	AssertFalse(cNavigation.IsOccurrenceText(8, 9));
+	AssertFalse(cNavigation.IsOccurrenceText(4, 4));
+	AssertFalse(cNavigation.IsOccurrenceText(40, 44));
+
+	cNavigation.FindOccurrences(4, 7, 1000, &auiStarts);
+	AssertSize(4, auiStarts.NumElements());
+	AssertSize(17, *auiStarts.Get(0));
+	AssertSize(23, *auiStarts.Get(1));
+	AssertSize(31, *auiStarts.Get(2));
+	AssertSize(39, *auiStarts.Get(3));
+
+	//From another of them, the first is found; at most two.
+	auiStarts.ReInit();
+	cNavigation.FindOccurrences(23, 26, 2, &auiStarts);
+	AssertSize(2, auiStarts.NumElements());
+	AssertSize(4, *auiStarts.Get(0));
+	AssertSize(17, *auiStarts.Get(1));
+
+	//Case matters: FOO has no others.
+	auiStarts.ReInit();
+	cNavigation.FindOccurrences(35, 38, 1000, &auiStarts);
+	AssertSize(0, auiStarts.NumElements());
+
+	//Matches don't overlap: "aa" in "aaaaa" is at 0 and 2.
+	szText.Set("aaaaa");
+	auiStarts.ReInit();
+	cNavigation.FindOccurrences(3, 5, 1000, &auiStarts);
+	AssertSize(2, auiStarts.NumElements());
+	AssertSize(0, *auiStarts.Get(0));
+	AssertSize(2, *auiStarts.Get(1));
+	auiStarts.ReInit();
+	cNavigation.FindOccurrences(0, 2, 1000, &auiStarts);
+	AssertSize(1, auiStarts.NumElements());
+	AssertSize(2, *auiStarts.Get(0));
+
+	auiStarts.Kill();
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextNavigation(void)
@@ -211,6 +274,7 @@ void TestTextNavigation(void)
 	TestTextNavigationLines();
 	TestTextNavigationWords();
 	TestTextNavigationAround();
+	TestTextNavigationOccurrences();
 
 	TestStatistics();
 }

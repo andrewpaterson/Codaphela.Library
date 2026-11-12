@@ -39,6 +39,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CTextArea;
+
+
+#define TEXT_AREA_MAX_OCCURRENCES	1000	//The most occurrences of the selected text found (SetHighlightOccurrences).
 typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  //What happened to the undo history.
 
 
@@ -95,6 +98,13 @@ protected:
 	bool					mbCaretLine;  //The caret's line is drawn under the other backgrounds, in msCaretLineColour.
 	ARGB32					msCaretLineColour;
 	size					muiCaretLine;  //The line it was drawn on.
+	bool					mbHighlightOccurrences;  //The selected text's other occurrences are drawn under the text.
+	ARGB32					msOccurrenceColour;
+	CArrayTextOccurrence	mauiOccurrences;  //Their starts, each muiOccurrenceLength long, found at a tick.
+	size					muiOccurrenceLength;
+	size					muiOccurrencesStart;  //The selection they were found for (equal with nothing selected).
+	size					muiOccurrencesEnd;
+	bool					mbOccurrencesStale;  //The text changed since they were found.
 	CTextEditing			mcEditing;  //The caret, the selection and the edits of mcDocument.
 	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	CTextEditingInput		mcInput;  //The input actions that reach mcEditing.
@@ -169,6 +179,13 @@ public:
 	void				SetMarkColours(ARGB32 sSelection, ARGB32 sCaret);
 	void				SetCaretLine(bool bShown, ARGB32 sColour);
 	bool				IsCaretLineShown(void);
+	void				SetHighlightOccurrences(bool bHighlight);
+	bool				IsHighlightingOccurrences(void);
+	void				SetOccurrenceColour(ARGB32 sColour);
+	size				NumOccurrences(void);
+	size				GetOccurrenceStart(size uiIndex);
+	size				GetOccurrenceLength(void);
+	void				FindOccurrences(void);
 	size				GetCaretLine(void);
 	size				GetCaretPosition(void);
 	void				SetCaretPosition(size uiPosition);
@@ -296,6 +313,8 @@ protected:
 	void				ScrollBy(int32 iDown);
 
 	void				UpdateMarks(void);
+	bool				AreOccurrencesFound(void);
+	void				RequestOccurrences(void);
 	void				RowsChanged(void);
 	void				BackgroundsChanged(void);
 	bool				SummariseBands(CTextAreaBands* pcBands);

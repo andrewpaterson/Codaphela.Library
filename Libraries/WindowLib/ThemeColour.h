@@ -42,6 +42,7 @@ enum EThemeColour
 
 	//The widgets'.
 	TC_TextSelection,			//Behind selected text.
+	TC_TextOccurrence,			//Behind the selected text's other occurrences.
 	TC_Caret,
 	TC_CaretLine,				//Behind the line an editor's caret is on.
 	TC_SearchMatch,				//Behind the text a search found.

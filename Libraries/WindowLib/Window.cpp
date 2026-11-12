@@ -1345,6 +1345,9 @@ void CWindow::ClearCloseApprover(void)
 }
 
 
+size CWindow::NumPosted(void) { return masPosted.NumElements(); }  //The calls posted and not yet made.
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The calls posted (see Post), in the order they were.  One may post

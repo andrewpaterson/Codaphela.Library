@@ -23,6 +23,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __TEXT_NAVIGATION_H__
 #define __TEXT_NAVIGATION_H__
 #include "Chars.h"
+#include "ArrayTemplate.h"
+
+
+typedef CArrayTemplate<size>	CArrayTextOccurrence;
 
 
 //Moving through a UTF8 text by characters, lines and words, as text editors do (CTextEditing).
@@ -49,6 +53,8 @@ public:
 	size		FindWordRight(size uiPosition);
 	bool		FindWordAround(size uiPosition, size* puiStart, size* puiEnd);
 	void		FindLineAround(size uiPosition, size* puiStart, size* puiEnd);
+	bool		IsOccurrenceText(size uiStart, size uiEnd);
+	void		FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextOccurrence* pauiStarts);
 
 	static bool	IsSpaceOrTab(char c);
 	static bool	IsWhitespace(char c);

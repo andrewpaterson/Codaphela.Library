@@ -88,6 +88,13 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mbCaretLine = false;
 	msCaretLineColour = 0;
 	muiCaretLine = 0;
+	mbHighlightOccurrences = false;
+	msOccurrenceColour = pTheme->GetColour(TC_TextOccurrence);
+	mauiOccurrences.Init();
+	muiOccurrenceLength = 0;
+	muiOccurrencesStart = 0;
+	muiOccurrencesEnd = 0;
+	mbOccurrencesStale = false;
 	mcDocument.AddListener(&mcBackgrounds);
 	mcEditing.Init(&mcDocument, this);
 	mcUndoEvent.Init();
@@ -120,6 +127,11 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Free(void)
 {
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->CancelPosted(this);
+	}
+	mauiOccurrences.Kill();
 	mcBands.Kill();
 	mcShapes.Kill();
 	mcBackgrounds.Kill();
@@ -158,6 +170,13 @@ void CTextArea::Class(void)
 	U_Bool(mbCaretLine);
 	U_UInt32(msCaretLineColour);
 	U_Size(muiCaretLine);
+	U_Bool(mbHighlightOccurrences);
+	U_UInt32(msOccurrenceColour);
+	U_Unknown(CArrayTextOccurrence, mauiOccurrences);
+	U_Size(muiOccurrenceLength);
+	U_Size(muiOccurrencesStart);
+	U_Size(muiOccurrencesEnd);
+	U_Bool(mbOccurrencesStale);
 	U_Unknown(CTextEditing, mcEditing);
 	U_Bool(mbSelectable);
 	U_Unknown(CTextEditingInput, mcInput);
@@ -219,6 +238,7 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 		return;
 	}
 	mpLayout->Append(szText, sColour);
+	mbOccurrencesStale = true;
 	LaidOut();
 
 	//What it is laid out from has changed.
@@ -1509,6 +1529,7 @@ void CTextArea::TextEdited(void)
 {
 	SInt32Vec2	sTextSize;
 
+	mbOccurrencesStale = true;
 	sTextSize = mpLayout->GetTextSize();
 	Relayout();
 	if (sTextSize != mpLayout->GetTextSize())
@@ -1632,6 +1653,7 @@ void CTextArea::UpdateMarks(void)
 {
 	size		uiStart;
 	size		uiEnd;
+	size		i;
 
 	//The selection is drawn with the text: the rows it changed are drawn again.
 	RowsChanged();
@@ -1642,10 +1664,136 @@ void CTextArea::UpdateMarks(void)
 		return;
 	}
 
+	//The selected text's other occurrences, once found for it, under the selection.
+	if (AreOccurrencesFound())
+	{
+		for (i = 0; i < mauiOccurrences.NumElements(); i++)
+		{
+			uiStart = *mauiOccurrences.Get(i);
+			mcShapes.AddRange(mpSelectionMap, uiStart, uiStart + muiOccurrenceLength, msOccurrenceColour);
+		}
+	}
+	RequestOccurrences();
+
 	if (GetSelection(&uiStart, &uiEnd))
 	{
 		mcShapes.AddRange(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The occurrences found are of the text as it is, and of the selection as
+// it is: they can be drawn.  (Turning highlighting off makes them stale;
+// they aren't found again until it is turned on.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::AreOccurrencesFound(void)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	if (mbOccurrencesStale)
+	{
+		return false;
+	}
+	GetSelection(&uiStart, &uiEnd);
+	return (uiStart == muiOccurrencesStart) && (uiEnd == muiOccurrencesEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selection or the text changed since the occurrences were found:
+// they are found again at the next tick (FindOccurrences), once however
+// many keys or moves come before it.  With nothing selected and none
+// found there is nothing to find.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::RequestOccurrences(void)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	if (!mbHighlightOccurrences || AreOccurrencesFound())
+	{
+		return;
+	}
+	GetSelection(&uiStart, &uiEnd);
+	if ((uiStart == uiEnd) && (mauiOccurrences.NumElements() == 0))
+	{
+		muiOccurrencesStart = uiStart;
+		muiOccurrencesEnd = uiEnd;
+		mbOccurrencesStale = false;
+		return;
+	}
+	mpWindow->Post(this, &CTextArea::FindOccurrences);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Finds the selected text's other occurrences in the text, exactly, case
+// and all, up to TEXT_AREA_MAX_OCCURRENCES of them, and draws them.  A
+// selection over more than one line, or of only spaces and tabs, has
+// none.  Posted at a tick by RequestOccurrences.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::FindOccurrences(void)
+{
+	size	uiStart;
+	size	uiEnd;
+	bool	bHadOccurrences;
+
+	bHadOccurrences = mauiOccurrences.NumElements() > 0;
+	mauiOccurrences.ReInit();
+	GetSelection(&uiStart, &uiEnd);
+	muiOccurrencesStart = uiStart;
+	muiOccurrencesEnd = uiEnd;
+	muiOccurrenceLength = uiEnd - uiStart;
+	mbOccurrencesStale = false;
+	if (mbHighlightOccurrences && mcDocument.GetNavigation()->IsOccurrenceText(uiStart, uiEnd))
+	{
+		mcDocument.GetNavigation()->FindOccurrences(uiStart, uiEnd, TEXT_AREA_MAX_OCCURRENCES, &mauiOccurrences);
+	}
+	if (bHadOccurrences || (mauiOccurrences.NumElements() > 0))
+	{
+		UpdateMarks();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selected text's other occurrences in the text are drawn under it in
+// the occurrence colour (the theme's TC_TextOccurrence), as IntelliJ
+// IDEA's editor shows them, found again at a tick after the selection or
+// the text changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetHighlightOccurrences(bool bHighlight)
+{
+	mbHighlightOccurrences = bHighlight;
+	mbOccurrencesStale = true;
+	UpdateMarks();
+}
+
+
+bool CTextArea::IsHighlightingOccurrences(void) { return mbHighlightOccurrences; }
+size CTextArea::NumOccurrences(void) { return AreOccurrencesFound() ? mauiOccurrences.NumElements() : 0; }  //Of the selection as it is; 0 until they are found.
+size CTextArea::GetOccurrenceStart(size uiIndex) { return *mauiOccurrences.Get(uiIndex); }
+size CTextArea::GetOccurrenceLength(void) { return muiOccurrenceLength; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetOccurrenceColour(ARGB32 sColour)
+{
+	msOccurrenceColour = sColour;
+	UpdateMarks();
 }
 
 

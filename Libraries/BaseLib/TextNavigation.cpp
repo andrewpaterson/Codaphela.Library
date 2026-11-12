@@ -308,6 +308,84 @@ size CTextNavigation::FindWordRight(size uiPosition)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text from uiStart to uiEnd is worth finding the occurrences of, as
+// a selection's are shown: it is on one line and isn't only spaces and
+// tabs.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::IsOccurrenceText(size uiStart, size uiEnd)
+{
+	char*	szText;
+	size	i;
+	bool	bSpaces;
+
+	if ((uiEnd <= uiStart) || (uiEnd > mpszText->Length()))
+	{
+		return false;
+	}
+	szText = mpszText->Text();
+	bSpaces = true;
+	for (i = uiStart; i < uiEnd; i++)
+	{
+		if ((szText[i] == '\n') || (szText[i] == '\r'))
+		{
+			return false;
+		}
+		if (!IsSpaceOrTab(szText[i]))
+		{
+			bSpaces = false;
+		}
+	}
+	return !bSpaces;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The starts of the other places the text from uiStart to uiEnd is in the
+// text, exactly, case and all, are added to pauiStarts in order, up to
+// uiMaxOccurrences of them.  They are found from the start and don't
+// overlap each other; uiStart itself isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextOccurrence* pauiStarts)
+{
+	char*	szText;
+	size	uiLength;
+	size	uiTextLength;
+	size	i;
+	size	uiFound;
+
+	uiTextLength = mpszText->Length();
+	if ((uiEnd <= uiStart) || (uiEnd > uiTextLength))
+	{
+		return;
+	}
+	szText = mpszText->Text();
+	uiLength = uiEnd - uiStart;
+	uiFound = 0;
+	i = 0;
+	while ((i + uiLength <= uiTextLength) && (uiFound < uiMaxOccurrences))
+	{
+		if ((szText[i] == szText[uiStart]) && (memcmp(&szText[i], &szText[uiStart], uiLength) == 0))
+		{
+			if (i != uiStart)
+			{
+				*pauiStarts->Add() = i;
+				uiFound++;
+			}
+			i += uiLength;
+		}
+		else
+		{
+			i++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The word the character at uiPosition is in, as a double click selects
 // it: a run of letters, digits and underscores, a run of spaces and tabs,
 // or one other character.  Words don't go past the line.  Returns false,

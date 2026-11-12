@@ -151,6 +151,7 @@ public:
 	void					Post(O* pcObject, void(M::*fFunction)(void));
 	void					CancelPosted(void* pvObject);
 	void					RunPosted(void);
+	size					NumPosted(void);
 	void					ClearCloseApprover(void);
 	bool					ApproveClose(void);
 	void					Layout(void);
