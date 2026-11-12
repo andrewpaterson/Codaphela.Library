@@ -1081,7 +1081,7 @@ void CX11Window::Activated(void)
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::Deactivated(void)
 {
-    mpcWindow->Deactivate();
+    mpcWindow->PlatformDeactivated();
 }
 
 

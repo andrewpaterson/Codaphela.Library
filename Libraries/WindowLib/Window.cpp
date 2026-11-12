@@ -108,6 +108,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	AddComponent(mpCanvas);
 	mbTicking = false;
 	mbModal = false;
+	mbKeepsActive = false;
 	mpcComponentInput = NULL;
 	mpCommands = NULL;
 	mpToolTips = NULL;
@@ -186,6 +187,7 @@ void CWindow::Class(void)
 	U_UInt32(msCaretColour);
 	U_Bool(mbCaretPainted);
 	U_Bool(mbModal);
+	U_Bool(mbKeepsActive);
 	U_Data(CDamageArea, mcDamage);
 	U_Data(CDamageArea, mcPaintedDamage);
 	U_Bool(mbPartialRedraw);
@@ -811,6 +813,7 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	}
 	pOwner->CloseAllPopups();
 	pOwner->Deactivate();
+	mbKeepsActive = pOwner->mbKeepsActive;
 	pcOwnerNative = pOwner->GetNativeWindow();
 	pRoot->GetNativeWindow()->SetEnabled(false);
 	pRoot->SetOwnedEnabled(false);
@@ -1078,6 +1081,47 @@ void CWindow::Deactivate(void)
 		mpcComponentInput->ReleaseAll();
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The platform says its focus has left the window, for another window or
+// another program's.  The window is deactivated, unless it keeps active
+// (SetKeepsActive).
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PlatformDeactivated(void)
+{
+	if (!mbKeepsActive)
+	{
+		Deactivate();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A window that keeps active is active whatever has the platform's focus:
+// it is activated now and the platform's focus leaving it doesn't
+// deactivate it, nor the windows it comes to own (its dialogs and tool
+// windows).  For a window driven by a script rather than a person: the
+// commands it is given are taken though another program's window is in
+// front of it.  The window deactivating itself, as an owner does while
+// its dialog is shown, is as ever.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetKeepsActive(bool bKeepsActive)
+{
+	mbKeepsActive = bKeepsActive;
+	if (mbKeepsActive)
+	{
+		mcFocus.Activate();
+		InvalidateLayout();
+	}
+}
+
+
+bool CWindow::KeepsActive(void) { return mbKeepsActive; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1477,6 +1521,7 @@ bool CWindow::ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle)
 		return false;
 	}
 	mpOwner = pOwner;
+	mbKeepsActive = pOwner->mbKeepsActive;
 	pOwner->maOwned.Add(this);
 	SetComponentInput(pOwner->GetComponentInput());
 	mbTicking = true;

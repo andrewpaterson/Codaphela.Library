@@ -229,6 +229,20 @@ void TestButtonInput(void)
 		AssertFalse(pCancel->IsMouseOver());
 		//Focus comes back but the pointer isn't known until it moves.
 		pTestWindow->Activate();
+		AssertTrue(pTestWindow->GetFocus()->IsActive());
+
+		//The platform's focus leaving the window deactivates it too, unless it keeps active, as a scripted window does:
+		//then only the window itself deactivates it.
+		pTestWindow->PlatformDeactivated();
+		AssertFalse(pTestWindow->GetFocus()->IsActive());
+		pTestWindow->SetKeepsActive(true);
+		AssertTrue(pTestWindow->GetFocus()->IsActive());
+		pTestWindow->PlatformDeactivated();
+		AssertTrue(pTestWindow->GetFocus()->IsActive());
+		pTestWindow->Deactivate();
+		AssertFalse(pTestWindow->GetFocus()->IsActive());
+		pTestWindow->SetKeepsActive(false);
+		pTestWindow->Activate();
 		AssertInt(BS_Focussed, pCancel->GetState());
 		AssertTrue(pCancel->HasFocus());
 		AssertFalse(pCancel->IsMouseOver());

@@ -704,7 +704,7 @@ void CWinGDIWindow::Activated(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::Deactivated(void)
 {
-    mpcWindow->Deactivate();
+    mpcWindow->PlatformDeactivated();
 }
 
 
