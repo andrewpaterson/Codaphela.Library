@@ -47,6 +47,8 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mszTexts.Init();
 	maIcons.Init();
 	maFonts.Init();
+	masRanges.Init();
+	maRangeFonts.Init();
 	maiRowNodes.Init();
 	maiTopNodes.Init();
 	miIndent = pTheme->GetMetric(TM_TreeIndent);
@@ -73,6 +75,8 @@ void CTreeContainer::Class(void)
 	U_String(mszTexts);
 	M_Embedded(maIcons);
 	M_Embedded(maFonts);
+	U_Unknown(CArrayTreeNodeRange, masRanges);
+	M_Embedded(maRangeFonts);
 	U_Unknown(CArrayInt, maiRowNodes);
 	U_Unknown(CArrayInt, maiTopNodes);
 	U_Int32(miIndent);
@@ -89,6 +93,7 @@ void CTreeContainer::Free(void)
 {
 	maiTopNodes.Kill();
 	maiRowNodes.Kill();
+	masRanges.Kill();
 	mszTexts.Kill();
 	masNodes.Kill();
 	CListContainer::Free();
@@ -142,6 +147,8 @@ int32 CTreeContainer::AddNode(int32 iParent, const char* szText, Ptr<CImageCel> 
 	psNode->iData = iData;
 	psNode->uiTextStart = mszTexts.Length();
 	psNode->uiTextLength = strlen(szText);
+	psNode->uiFirstRange = 0;
+	psNode->uiNumRanges = 0;
 	psNode->bExpanded = false;
 	mszTexts.Append(szText);
 	maIcons.Add(pIcon);
@@ -186,6 +193,8 @@ void CTreeContainer::RemoveAllNodes(void)
 	mszTexts.Clear();
 	maIcons.RemoveAll();
 	maFonts.RemoveAll();
+	masRanges.ReInit();
+	maRangeFonts.RemoveAll();
 	maiTopNodes.ReInit();
 	mbRowsDirty = true;
 	UpdateRows();
@@ -276,6 +285,21 @@ void CTreeContainer::SetNodeFont(int32 iNode, Ptr<CFont> pFont)
 Ptr<CFont> CTreeContainer::GetNodeFont(int32 iNode)
 {
 	return maFonts.Get(iNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the node has no icon, or isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CTreeContainer::GetNodeIcon(int32 iNode)
+{
+	if ((iNode < 0) || (iNode >= NumNodes()))
+	{
+		return NULL;
+	}
+	return maIcons.Get(iNode);
 }
 
 
@@ -549,10 +573,7 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 	Ptr<CGridContainer>		pRow;
 	Ptr<CFillContainer>		pGap;
 	Ptr<CIconComponent>		pIcon;
-	Ptr<CLabel>				pLabel;
 	Ptr<CImageCel>			pCel;
-	Ptr<CFont>				pFont;
-	CChars					szText;
 	int32					iListRow;
 	int						iColumn;
 	int32					iWidth;
@@ -589,25 +610,180 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 		iWidth += mpTheme->GetMetric(TM_TreeIconWidth);
 	}
 
-	pFont = maFonts.Get(iNode);
-	if (pFont.IsNull())
-	{
-		pFont = mpTheme->GetFont();
-	}
-	szText.Init();
-	GetNodeText(iNode, &szText);
-	pLabel = OMalloc<CLabel>(mpWindow, pFont, szText.Text());
-	szText.Kill();
-	pLabel->SetAlignment(CSH_Left, CSV_Center);
-	pRow->AddComponent(pLabel, iColumn, 0, 1, 1, 1, 0);
-
 	//A grid in a grid isn't measured by its parent, so the row says how big it is.
-	iWidth += pLabel->GetDesiredSize().x;
+	iWidth += AddNodeLabels(pRow, iColumn, iNode);
 	pRow->SetDesiredSize(iWidth, miRowHeight);
 
 	iListRow = AddRow(true);
 	AddToRow(iListRow, pRow, 0, 1, 1);
 	maiRowNodes.Add(iNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node's name added to its row from iColumn: one label in its font,
+// or with ranges a label for each range, in its font, and for each run
+// of the text between them, in the node's.  The last takes what is left
+// of the row.  How wide they are together.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTreeContainer::AddNodeLabels(Ptr<CGridContainer> pRow, int iColumn, int32 iNode)
+{
+	STreeNode*			psNode;
+	STreeNodeRange*		psRange;
+	Ptr<CLabel>			pLabel;
+	Ptr<CFont>			pFont;
+	Ptr<CFont>			pNodeFont;
+	CChars				szPiece;
+	const char*			szText;
+	size				uiPosition;
+	size				uiEnd;
+	size				uiRange;
+	int32				iWidth;
+
+	psNode = masNodes.Get(iNode);
+	pNodeFont = maFonts.Get(iNode);
+	if (pNodeFont.IsNull())
+	{
+		pNodeFont = mpTheme->GetFont();
+	}
+
+	szText = mszTexts.Text() + psNode->uiTextStart;
+	uiPosition = 0;
+	uiRange = 0;
+	iWidth = 0;
+	do
+	{
+		psRange = (uiRange < psNode->uiNumRanges) ? masRanges.Get(psNode->uiFirstRange + uiRange) : NULL;
+		if (psRange && (psRange->uiStart == uiPosition))
+		{
+			uiEnd = uiPosition + psRange->uiLength;
+			pFont = maRangeFonts.Get(psRange->uiFont);
+			uiRange++;
+		}
+		else
+		{
+			uiEnd = psRange ? psRange->uiStart : psNode->uiTextLength;
+			pFont = pNodeFont;
+		}
+		szPiece.Init();
+		szPiece.AppendSubString(szText, uiPosition, uiEnd);
+		pLabel = OMalloc<CLabel>(mpWindow, pFont, szPiece.Text());
+		szPiece.Kill();
+		pLabel->SetAlignment(CSH_Left, CSV_Center);
+		pRow->AddComponent(pLabel, iColumn, 0, 1, 1, (uiEnd >= psNode->uiTextLength) ? 1 : 0, 0);
+		iWidth += pLabel->GetDesiredSize().x;
+		iColumn++;
+		uiPosition = uiEnd;
+	}
+	while (uiPosition < psNode->uiTextLength);
+	return iWidth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part of the node's name, uiLength of it from uiStart, is drawn in
+// pFont.  A node's ranges are added together, before another node's, in
+// the order of its text, and don't overlap.  False if it isn't in the
+// name, isn't after the node's last or another node's were added since.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTreeContainer::AddNodeRange(int32 iNode, size uiStart, size uiLength, Ptr<CFont> pFont)
+{
+	STreeNode*		psNode;
+	STreeNodeRange*	psRange;
+	size			uiFont;
+
+	if ((iNode < 0) || (iNode >= NumNodes()) || (uiLength == 0) || pFont.IsNull())
+	{
+		return false;
+	}
+	psNode = masNodes.Get(iNode);
+	if ((uiStart >= psNode->uiTextLength) || (uiLength > psNode->uiTextLength - uiStart))
+	{
+		return false;
+	}
+	if (psNode->uiNumRanges > 0)
+	{
+		psRange = masRanges.Get(psNode->uiFirstRange + psNode->uiNumRanges - 1);
+		if ((psNode->uiFirstRange + psNode->uiNumRanges != masRanges.NumElements()) || (uiStart < psRange->uiStart + psRange->uiLength))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		psNode->uiFirstRange = masRanges.NumElements();
+	}
+
+	for (uiFont = 0; uiFont < maRangeFonts.NumElements(); uiFont++)
+	{
+		if (maRangeFonts.Get(uiFont) == pFont)
+		{
+			break;
+		}
+	}
+	if (uiFont == maRangeFonts.NumElements())
+	{
+		maRangeFonts.Add(pFont);
+	}
+
+	psRange = masRanges.Add();
+	psRange->uiStart = uiStart;
+	psRange->uiLength = uiLength;
+	psRange->uiFont = uiFont;
+	psNode->uiNumRanges++;
+	if (IsNodeVisible(iNode))
+	{
+		mbRowsDirty = true;
+		LayoutChanged();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTreeContainer::NumNodeRanges(int32 iNode)
+{
+	return ((iNode >= 0) && (iNode < NumNodes())) ? masNodes.Get(iNode)->uiNumRanges : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTreeContainer::GetNodeRange(int32 iNode, size uiIndex, size* puiStart, size* puiLength)
+{
+	STreeNodeRange*	psRange;
+
+	if (uiIndex >= NumNodeRanges(iNode))
+	{
+		return false;
+	}
+	psRange = masRanges.Get(masNodes.Get(iNode)->uiFirstRange + uiIndex);
+	*puiStart = psRange->uiStart;
+	*puiLength = psRange->uiLength;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFont> CTreeContainer::GetNodeRangeFont(int32 iNode, size uiIndex)
+{
+	if (uiIndex >= NumNodeRanges(iNode))
+	{
+		return NULL;
+	}
+	return maRangeFonts.Get(masRanges.Get(masNodes.Get(iNode)->uiFirstRange + uiIndex)->uiFont);
 }
 
 

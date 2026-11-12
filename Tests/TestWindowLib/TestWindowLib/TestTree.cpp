@@ -80,6 +80,8 @@ void TestTreeNodes(void)
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTreeContainer>		pTree;
 		Ptr<CFont>				pFont;
+		size					uiStart;
+		size					uiLength;
 		Ptr<CTickTestRefWindow>	pTick;
 		SDataTestRefWindow		cData;
 		CTestTreeListener		cListener;
@@ -148,6 +150,33 @@ void TestTreeNodes(void)
 		pTree->SetNodeFont(iMain, NULL);
 		AssertTrue(pTree->GetNodeFont(iMain).IsNull());
 		pTree->SetNodeFont(42, pFont);
+
+		//Parts of a node's name can have fonts of their own: a node's ranges are added together, in the order of its
+		//text, without overlapping, and must be in the name.  (Main.cpp's name is 8 characters.)
+		AssertSize(0, pTree->NumNodeRanges(iMain));
+		AssertFalse(pTree->GetNodeRange(iMain, 0, &uiStart, &uiLength));
+		AssertFalse(pTree->AddNodeRange(iMain, 0, 0, pFont));
+		AssertFalse(pTree->AddNodeRange(iMain, 0, 9, pFont));
+		AssertFalse(pTree->AddNodeRange(iMain, 8, 1, pFont));
+		AssertFalse(pTree->AddNodeRange(iMain, 0, 4, NULL));
+		AssertFalse(pTree->AddNodeRange(42, 0, 4, pFont));
+		AssertTrue(pTree->AddNodeRange(iMain, 0, 4, pFont));
+		AssertFalse(pTree->AddNodeRange(iMain, 3, 2, pFont));
+		AssertTrue(pTree->AddNodeRange(iMain, 5, 3, pFont));
+		AssertSize(2, pTree->NumNodeRanges(iMain));
+		AssertTrue(pTree->GetNodeRange(iMain, 1, &uiStart, &uiLength));
+		AssertSize(5, uiStart);
+		AssertSize(3, uiLength);
+		AssertTrue(pTree->GetNodeRangeFont(iMain, 1) == pFont);
+		AssertTrue(pTree->GetNodeRangeFont(iMain, 2).IsNull());
+		AssertFalse(pTree->GetNodeRange(iMain, 2, &uiStart, &uiLength));
+
+		//Another node's ranges; after them the first's can't be added to.
+		AssertTrue(pTree->AddNodeRange(iTile, 0, 1, pFont));
+		AssertFalse(pTree->AddNodeRange(iMain, 4, 1, pFont));
+		AssertSize(1, pTree->NumNodeRanges(iTile));
+		AssertSize(2, pTree->NumNodeRanges(iMain));
+		AssertSize(0, pTree->NumNodeRanges(iProject));
 		pFont = NULL;
 
 		//Closed, only the nodes at the top are rows.

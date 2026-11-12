@@ -40,16 +40,29 @@ struct STreeNode
 	int64	iData;			//The user's, to find what the node is of.
 	size	uiTextStart;	//In mszTexts.
 	size	uiTextLength;
+	size	uiFirstRange;	//In masRanges, if uiNumRanges isn't 0.
+	size	uiNumRanges;
 	bool	bExpanded;
 };
 
 
-typedef CArrayTemplate<STreeNode>	CArrayTreeNode;
+//A part of a node's text in a font of its own (AddNodeRange): its start in the text, its length and its font's index.
+struct STreeNodeRange
+{
+	size	uiStart;
+	size	uiLength;
+	size	uiFont;
+};
+
+
+typedef CArrayTemplate<STreeNode>			CArrayTreeNode;
+typedef CArrayTemplate<STreeNodeRange>	CArrayTreeNodeRange;
 
 
 //A tree, as Solution Explorer's: nodes with a chevron that opens and closes them when they have children, an icon and
 //a name, each indented by its depth.  A node's name is in the theme's font unless it is given its own (SetNodeFont),
-//like a file's in its version control status's colour.  The rows of the list are the nodes that can be seen: those at the top and those
+//like a file's in its version control status's colour.  Parts of a name can each have a font of their own
+//(AddNodeRange), as a found line's has its line number dim and the text found bold.  The rows of the list are the nodes that can be seen: those at the top and those
 //in open nodes.  A double click (or enter) on a node with children opens or closes it; on one without, the listeners
 //are told it was activated.  A press on the chevron opens or closes its node.
 class CTreeContainer : public CListContainer
@@ -62,6 +75,8 @@ protected:
 	CChars				mszTexts;
 	CArray<CImageCel>	maIcons;		//One for each node, NULL for none.
 	CArray<CFont>		maFonts;		//One for each node, NULL for the theme's.
+	CArrayTreeNodeRange	masRanges;		//The nodes' ranges, each node's together in the order of its text.
+	CArray<CFont>		maRangeFonts;	//The ranges' fonts, each once.
 	CArrayInt			maiRowNodes;	//The node of each row.
 	CArrayInt			maiTopNodes;	//The nodes at the top, in order.
 	int32				miIndent;		//How far each depth is in.
@@ -83,6 +98,11 @@ public:
 	int64			GetNodeData(int32 iNode);
 	void			SetNodeFont(int32 iNode, Ptr<CFont> pFont);
 	Ptr<CFont>		GetNodeFont(int32 iNode);
+	Ptr<CImageCel>	GetNodeIcon(int32 iNode);
+	bool			AddNodeRange(int32 iNode, size uiStart, size uiLength, Ptr<CFont> pFont);
+	size			NumNodeRanges(int32 iNode);
+	bool			GetNodeRange(int32 iNode, size uiIndex, size* puiStart, size* puiLength);
+	Ptr<CFont>		GetNodeRangeFont(int32 iNode, size uiIndex);
 	int32			GetNodeParent(int32 iNode);
 	int32			GetNodeDepth(int32 iNode);
 	int32			GetFirstChild(int32 iNode);
@@ -113,6 +133,7 @@ protected:
 	void			RowActivated(int32 iRow) override;
 	void			AddVisibleRows(int32 iNode);
 	void			AddNodeRow(int32 iNode);
+	int32			AddNodeLabels(Ptr<CGridContainer> pRow, int iColumn, int32 iNode);
 	bool			IsNodeVisible(int32 iNode);
 };
 
