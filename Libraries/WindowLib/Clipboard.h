@@ -23,11 +23,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
+#include "ClipboardHistory.h"
 
 
 //The system's clipboard, for cutting, copying and pasting text.  Each window has one (see CWindow::GetClipboard), all
 //of them the same system clipboard, so text copied in one window, or another program, can be pasted in any.  The text
 //is UTF8 and lines end in line feeds whatever the system uses.  Its CNativeClipboard is made by the window's factory.
+//
+//What is put on it is kept in its history (GetHistory, a CClipboardHistory), for Paste from History.  A window shown
+//over or owned by another shares its owner's history (ShareHistory), so there is one for the application.  A history
+//is made when it is first wanted.
 class CWindow;
 class CNativeClipboard;
 class CClipboard : public CObject
@@ -37,6 +42,8 @@ DESTRUCTABLE(CClipboard);
 protected:
 	CNativeClipboard*	mpcNativeClipboard;  //NULL if the factory couldn't make one, then nothing is copied or pasted.
 	Ptr<CWindow>		mpWindow;
+	Ptr<CClipboardHistory>	mpHistory;  //Its own, NULL until it is wanted or while it shares another's.
+	Ptr<CClipboard>			mpShared;  //The clipboard whose history it shares, NULL for its own.
 
 public:
 	void				Init(Ptr<CWindow> pWindow);
@@ -53,6 +60,9 @@ public:
 	void				CopyFrom(C* pcFrom, void (C::*fTake)(CChars* pszDest));
 	template<class C>
 	void				PasteInto(C* pcInto, void (C::*fPaste)(char* szSource));
+
+	void				ShareHistory(Ptr<CClipboard> pClipboard);
+	Ptr<CClipboardHistory>	GetHistory(void);
 
 	Ptr<CWindow>		GetWindow(void);
 	CNativeClipboard*	GetNativeClipboard(void);

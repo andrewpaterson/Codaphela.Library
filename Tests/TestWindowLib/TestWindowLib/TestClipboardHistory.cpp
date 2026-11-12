@@ -1,0 +1,180 @@
+#include "WindowLib/Clipboard.h"
+#include "WindowLib/ClipboardHistory.h"
+#include "WindowLib/FillContainer.h"
+#include "WindowLib/TextArea.h"
+#include "TestWindow.h"
+
+
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+Ptr<CFont> ReadLabelFont(void);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A history keeps its texts newest first: one added again moves to the
+// front, the oldest goes past the limit, and empty or too big texts
+// aren't kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestClipboardHistoryEntries(void)
+{
+	Ptr<CClipboardHistory>	pHistory;
+	size					uiIndex;
+
+	pHistory = OMalloc<CClipboardHistory>();
+	AssertSize(0, pHistory->NumEntries());
+	AssertSize(CLIPBOARD_HISTORY_LIMIT, pHistory->GetLimit());
+	AssertFalse(pHistory->IsNewest("one"));
+
+	AssertTrue(pHistory->Add("one"));
+	AssertTrue(pHistory->Add("two"));
+	AssertTrue(pHistory->Add("three"));
+	AssertSize(3, pHistory->NumEntries());
+	AssertString("three", pHistory->GetText(0));
+	AssertString("two", pHistory->GetText(1));
+	AssertString("one", pHistory->GetText(2));
+	AssertTrue(pHistory->IsNewest("three"));
+	AssertFalse(pHistory->IsNewest("two"));
+
+	//Added again, it moves to the front.
+	AssertTrue(pHistory->Add("one"));
+	AssertSize(3, pHistory->NumEntries());
+	AssertString("one", pHistory->GetText(0));
+	AssertString("three", pHistory->GetText(1));
+	AssertString("two", pHistory->GetText(2));
+	AssertTrue(pHistory->Find("two", &uiIndex));
+	AssertSize(2, uiIndex);
+	AssertFalse(pHistory->Find("Two", &uiIndex));
+
+	//Not kept: nothing, and more than the biggest entry.
+	AssertFalse(pHistory->Add(""));
+	AssertFalse(pHistory->Add(NULL));
+	pHistory->SetMaxEntryBytes(4);
+	AssertFalse(pHistory->Add("fives"));
+	AssertTrue(pHistory->Add("four"));
+	AssertSize(4, pHistory->NumEntries());
+	AssertString("four", pHistory->GetText(0));
+
+	pHistory->MoveToFront(3);
+	AssertString("two", pHistory->GetText(0));
+	AssertString("four", pHistory->GetText(1));
+	pHistory->MoveToFront(0);
+	AssertString("two", pHistory->GetText(0));
+
+	pHistory->Remove(1);
+	AssertSize(3, pHistory->NumEntries());
+	AssertString("two", pHistory->GetText(0));
+	AssertString("one", pHistory->GetText(1));
+	AssertString("three", pHistory->GetText(2));
+
+	//Past the limit the oldest goes; a smaller limit drops the oldest at once.
+	pHistory->SetLimit(3);
+	AssertTrue(pHistory->Add("new"));
+	AssertSize(3, pHistory->NumEntries());
+	AssertString("new", pHistory->GetText(0));
+	AssertString("one", pHistory->GetText(2));
+	pHistory->SetLimit(2);
+	AssertSize(2, pHistory->NumEntries());
+	AssertString("two", pHistory->GetText(1));
+	pHistory->SetLimit(0);
+	AssertSize(1, pHistory->GetLimit());
+	AssertSize(1, pHistory->NumEntries());
+
+	pHistory->Clear();
+	AssertSize(0, pHistory->NumEntries());
+	pHistory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a window's clipboard is given goes into its history, a text area's
+// copy and cut too.  Another window has a history of its own until it is
+// shares the first's, as a dialog shares its owner's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestClipboardHistoryClipboard(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindow>			pOtherWindow;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CTextArea>			pTextArea;
+		Ptr<CClipboardHistory>	pHistory;
+		CPointer				pNull;
+
+		cWindow.Init("Clipboard Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "one two three");
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+
+		pHistory = pTestWindow->GetClipboard()->GetHistory();
+		AssertTrue(pHistory.IsNotNull());
+		AssertSize(0, pHistory->NumEntries());
+
+		AssertTrue(pTestWindow->GetClipboard()->SetText("set"));
+		AssertSize(1, pHistory->NumEntries());
+		AssertString("set", pHistory->GetText(0));
+
+		//Copying nothing leaves it as it was.
+		pTextArea->CopyToClipboard();
+		AssertSize(1, pHistory->NumEntries());
+		pTextArea->Select(0, 3);
+		pTextArea->CopyToClipboard();
+		pTextArea->Select(4, 7);
+		pTextArea->CutToClipboard();
+		AssertString("one  three", pTextArea->GetText());
+		AssertSize(3, pHistory->NumEntries());
+		AssertString("two", pHistory->GetText(0));
+		AssertString("one", pHistory->GetText(1));
+		AssertString("set", pHistory->GetText(2));
+
+		//Another window: the same system clipboard, its own history.
+		pOtherWindow = OMalloc<CWindow>("Other Window", &cWindow.cFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pOtherWindow);
+		AssertTrue(pOtherWindow->GetClipboard()->GetHistory() != pHistory);
+		pOtherWindow->GetClipboard()->SetText("other");
+		AssertSize(3, pHistory->NumEntries());
+		AssertSize(1, pOtherWindow->GetClipboard()->GetHistory()->NumEntries());
+
+		//Sharing the first's, what it copies is in the first's.
+		pOtherWindow->GetClipboard()->ShareHistory(pTestWindow->GetClipboard());
+		AssertTrue(pOtherWindow->GetClipboard()->GetHistory() == pHistory);
+		pOtherWindow->GetClipboard()->SetText("shared");
+		AssertSize(4, pHistory->NumEntries());
+		AssertString("shared", pHistory->GetText(0));
+		ORoot()->Remove(pOtherWindow);
+		pOtherWindow = NULL;
+
+		pHistory = NULL;
+		pTextArea = NULL;
+		pFill = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestClipboardHistory(void)
+{
+	BeginTests();
+	ObjectsInit();
+
+	TestClipboardHistoryEntries();
+	TestClipboardHistoryClipboard();
+
+	ObjectsFlush();
+	ObjectsKill();
+	TestStatistics();
+}
+

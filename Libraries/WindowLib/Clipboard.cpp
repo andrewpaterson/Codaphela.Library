@@ -64,8 +64,10 @@ void CClipboard::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CClipboard::Class(void)
 {
-		U_Pointer(mpcNativeClipboard);
+	U_Pointer(mpcNativeClipboard);
 	Nes(M_Pointer(mpWindow));
+	M_Pointer(mpHistory);
+	M_Pointer(mpShared);
 }
 
 
@@ -91,12 +93,14 @@ bool CClipboard::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Replaces what is on the clipboard with szText (UTF8).  Returns false if
-// the clipboard couldn't be written, as when another program has it open.
+// Replaces what is on the clipboard with szText (UTF8), which becomes the
+// newest entry of the history.  Returns false if the clipboard couldn't be
+// written, as when another program has it open: the history has it still.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CClipboard::SetText(const char* szText)
 {
+	GetHistory()->Add(szText);
 	if (mpcNativeClipboard == NULL)
 	{
 		return false;
@@ -118,6 +122,44 @@ bool CClipboard::GetText(CChars* pszDest)
 		return false;
 	}
 	return mpcNativeClipboard->GetText(pszDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+// The history what is put on the clipboard is kept in: the one of the
+// clipboard it shares with, else its own, made when it is first wanted.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CClipboardHistory> CClipboard::GetHistory(void)
+{
+	if (mpShared.IsNotNull())
+	{
+		return mpShared->GetHistory();
+	}
+	if (mpHistory.IsNull())
+	{
+		mpHistory = OMalloc<CClipboardHistory>();
+	}
+	return mpHistory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The clipboard's history is pClipboard's from now, as a dialog's is its
+// owner's; NULL for its own again.  Its own, if it had one, is let go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CClipboard::ShareHistory(Ptr<CClipboard> pClipboard)
+{
+	mpShared = (pClipboard == this) ? Ptr<CClipboard>() : pClipboard;
+	if (mpShared.IsNotNull())
+	{
+		mpHistory = NULL;
+	}
 }
 
 

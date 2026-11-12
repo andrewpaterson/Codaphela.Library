@@ -281,6 +281,7 @@
     <ClCompile Include="TickTestCanvas.cpp" />
     <ClCompile Include="TickTestRefWindow.cpp" />
     <ClCompile Include="TestTextField.cpp" />
+    <ClCompile Include="TestClipboardHistory.cpp" />
     <ClCompile Include="TestSoundMixer.cpp" />
     <ClCompile Include="TestWindowRedraw.cpp" />
     <ClCompile Include="TestWinGDICanvas.cpp" />

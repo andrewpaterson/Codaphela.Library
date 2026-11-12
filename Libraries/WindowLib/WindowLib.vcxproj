@@ -229,6 +229,7 @@
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
     <ClInclude Include="Clipboard.h" />
+    <ClInclude Include="ClipboardHistory.h" />
     <ClInclude Include="ComponentInput.h" />
     <ClInclude Include="ComponentInputDevice.h" />
     <ClInclude Include="ComponentInputKey.h" />
@@ -366,6 +367,7 @@
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CanvasDraw.cpp" />
     <ClCompile Include="Clipboard.cpp" />
+    <ClCompile Include="ClipboardHistory.cpp" />
     <ClCompile Include="Container.cpp" />
     <ClCompile Include="ContainerStyle.cpp" />
     <ClCompile Include="FillContainer.cpp" />

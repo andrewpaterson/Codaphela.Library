@@ -51,6 +51,7 @@ void TestList(void);
 void TestTree(void);
 void TestMenu(void);
 void TestTextField(void);
+void TestClipboardHistory(void);
 void TestCheckBox(void);
 void TestComboBox(void);
 void TestDialog(void);
@@ -116,6 +117,7 @@ void RunWindowTests(void)
 	TestTree();
 	TestMenu();
 	TestTextField();
+	TestClipboardHistory();
 	TestCheckBox();
 	TestComboBox();
 	TestDialog();

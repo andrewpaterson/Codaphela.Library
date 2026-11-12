@@ -814,6 +814,7 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	pOwner->CloseAllPopups();
 	pOwner->Deactivate();
 	mbKeepsActive = pOwner->mbKeepsActive;
+	mpClipboard->ShareHistory(pOwner->GetClipboard());
 	pcOwnerNative = pOwner->GetNativeWindow();
 	pRoot->GetNativeWindow()->SetEnabled(false);
 	pRoot->SetOwnedEnabled(false);
@@ -1522,6 +1523,7 @@ bool CWindow::ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle)
 	}
 	mpOwner = pOwner;
 	mbKeepsActive = pOwner->mbKeepsActive;
+	mpClipboard->ShareHistory(pOwner->GetClipboard());
 	pOwner->maOwned.Add(this);
 	SetComponentInput(pOwner->GetComponentInput());
 	mbTicking = true;

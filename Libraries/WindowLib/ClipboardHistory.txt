@@ -1,0 +1,130 @@
+Clipboard history, as IntelliJ IDEA's (Edit, Paste, Paste from History..., Control+Shift+V).  The plan; each step
+says when it is built.
+
+
+What IntelliJ does (from memory of it, not checked against a running copy; "?" marks what I am unsure of)
+
+  - One history for the application.  Every cut or copy in any of its text components (editors, search fields, rename
+    boxes, commit messages, consoles) adds to it, and Control+Shift+V in any of them opens "Choose Content to Paste".
+  - Newest first.  Text copied in another program is its newest entry when the IDE next looks at the system clipboard.
+  - Copying text that is already in it moves that entry to the top; it isn't added twice.
+  - It keeps at most a number of entries (Settings, Editor, General: "Maximum number of contents to keep in clipboard",
+    20 by default ?).  It is for the session: not kept across restarts.
+  - The dialog: a list of the entries, each row its number and the start of its text on one line (line breaks shown
+    as a mark, the rest cut off), over a read-only preview of the selected entry's whole text.  OK and Cancel.
+  - Enter, OK or a double click pastes the selected entry at the caret, over the selection, and makes it the system
+    clipboard's text and the newest entry, so a plain Control+V after it pastes the same.
+  - Several rows can be selected (Shift and Control with the arrows or the pointer): they are pasted together, in the
+    list's order, a line break between them ?.
+  - Delete removes the selected entries from the history.
+  - Typing filters as a speed search does: the rows that don't contain what is typed go, what is typed shows in a
+    small box at the list's top, backspace takes a character off it, escape clears it first and closes the dialog
+    second.
+  - The first nine rows have their digit as a shortcut: pressing it pastes that row ?.  (Assumed: only while nothing
+    has been typed to filter; a digit typed after a letter is part of the filter.)
+  - A single line field takes a multi line entry as it takes a multi line paste (ours: line breaks become spaces).
+  - A block (column) copy is remembered as one, so pasting it at a plain caret puts it in as a column ?.  See step 7.
+
+
+What there is now
+
+  - CClipboard (WindowLib): each CWindow has one, all of them the system's clipboard through a CNativeClipboard
+    (X11Clipboard, WinGDI's).  SetText, GetText, CopyFrom, PasteInto.  No history.
+  - Every text component cuts, copies and pastes through CTextEditingInput (CutToClipboard, CopyToClipboard,
+    PasteFromClipboard), CTextArea and CTextField alike, so one change there reaches them all.
+  - A dialog is its own CWindow with its own CClipboard; ShowModal hands it the owner's component input.  A dialog
+    can only be shown from a tick (CWindow::Post), not from an input action.
+  - CGoToDialog is the nearest thing to copy from: a CDialog with a body, a list in a scroll pane, keys that move the
+    list while something else has the focus.  CListContainer selects one row only.
+  - Control+Shift+V is bound to nothing in WindowLib, the IDE or LogiCim.
+  - X11Clipboard already hears when another program takes the selection (SelectionClear).
+
+
+Design
+
+  CClipboardHistory (WindowLib, a CObject)
+    - The entries, newest first: each a text.  Add(text) puts it first, or moves it first if it is there already; past
+      the limit the oldest goes.  Remove(index), Clear, NumEntries, GetText(index), SetLimit (20), MoveToTop(index).
+    - Empty text is never added.  An entry bigger than a limit (SetMaxEntryBytes, 1 MB ?) is not kept: it is still
+      copied to the system, as now.
+    - One for the application: a window's CClipboard makes its own when it is first wanted, and a window shown over
+      or owned by another (ShowModal, the tool windows' ShowOwned) shares its owner's clipboard's
+      (CClipboard::ShareHistory), as it is given the owner's component input.  CClipboard::GetHistory.
+    - Not saved (Save and Load return false, as the other session-only objects do).
+
+  CClipboard
+    - SetText adds what it sets to the history (so does CopyFrom, which calls it).
+    - Sync(): reads the system's text and, if it isn't the newest entry, adds it: how text copied in another program
+      gets in.  Called when a window is activated (CWindow::Activate), before a plain paste (so GetText's text is in
+      the history too) and before the chooser is shown.  On X11 it is cheap to skip when we still own the selection.
+    - PasteEntry(index, pcInto, fPaste): MoveToTop, SetText of it to the system, then as PasteInto.
+
+  Choosing (the dialog is the application's to give, as every dialog's look is)
+    - CClipboardChooser: an interface, bool ChooseContent(Ptr<CWindow> pOwner, CClipboardHistory* pcHistory,
+      CChars* pszDest), set on the history (SetChooser).  None set: Control+Shift+V does nothing, as in a program
+      that has made no dialog look.
+    - CPasteHistoryDialog (WindowLib): the chooser WindowLib gives, made with an SDialogLook and a font for the
+      preview.  The IDE makes one from its dialog look and code font; LogiCim and WindowInputTester can too.
+
+  The command
+    - CIC_PasteFromHistory; chord Control+Shift+V; keymap row "Edit.PasteFromHistory", "Paste from History...",
+      CKS_Editor, so it can be rebound and shows in menus with its keys.
+    - CTextEditingInput::PasteFromHistory: posts ShowPasteHistory to the next tick (cancelled in Kill).  At the tick:
+      Sync, the chooser's ChooseContent over the component's window, then the text chosen is pasted with
+      CTextEditing::Paste, which already does selections, boxes and single line texts.  Nothing if the text can't be
+      edited or the history is empty after Sync.
+    - CEditCommands gets PasteFromHistory and CanPasteFromHistory (editable text focussed, a chooser set, history
+      not empty), for the Edit menu and context menus.
+
+  CPasteHistoryDialog, "Choose Content to Paste"
+    - A CDialog with a body, OK and Cancel, sized about 600 by 450, remembered for the session.
+    - Body: a split, the list above and the preview below.
+      List: a CListContainer in a scroll pane; a row is "<n>" for the first nine and a blank after, then the entry's
+      text up to its first 100 or so characters with line breaks drawn as a dim mark and "..." if cut.
+      Preview: a read-only CTextArea in a scroll pane with the selected entry's text; with several selected, the text
+      that would be pasted.
+    - The list has the focus.  Up, down, page up, page down, home, end; Shift with them and Control+click, Shift+click
+      for several rows (CListContainer multi selection, step 3).
+    - Enter, OK, double click: the selected entries' texts, in the list's order, joined by line feeds, are the
+      content chosen.  Escape, Cancel: nothing chosen.
+    - Delete: the selected entries leave the history and the list; the row after them is selected.
+    - Typed characters filter (case not mattering, the rows whose text contains what is typed), shown in a small
+      label over the list's top left; backspace shortens it; escape clears it if there is one, else cancels.
+    - 1 to 9 with nothing typed to filter: that row is chosen at once.
+
+
+Steps (a commit each; tests named are new or extended)
+
+  1. BUILT.  CClipboardHistory, and CClipboard adding to it.  The history shared by ShowModal and ShowOwned windows.
+     TestClipboardHistory (order, duplicate moves up, limit, remove, too big not kept); TestClipboard: a copy in a
+     text field of a dialog is in its owner's history.
+  2. Sync: the system's text into the history at activation, before paste and on request.  The reference window's
+     clipboard (WinRefLib) can have its text set behind the CClipboard's back for the test.
+  3. CListContainer multi selection (off by default): Shift and Control with keys and pointer, GetSelectedRows, the
+     selection event told once.  TestList.
+  4. CPasteHistoryDialog without filter or digits: list, preview, OK, Cancel, enter, double click, delete, several
+     selected.  TestPasteHistoryDialog drives it through the window as TestGoToDialog does.
+  5. CIC_PasteFromHistory, the chord, the keymap row, CTextEditingInput::PasteFromHistory through the history's
+     chooser, CEditCommands.  TestTextEditingInput with a chooser that answers from the test; TestTextField in a
+     dialog (a chooser dialog over a dialog).
+  6. The dialog's speed search and the digits.
+  7. The IDE: its chooser made in CIDEContent from the dialog look and code font; Edit menu item after Paste and in
+     the editor's context menu; script steps (pastehistory, printclipboardhistory, a way to choose a row); checks
+     editor-paste-history (copy three things, choose the second, paste, then Control+V pastes it again) and
+     field-paste-history (the same into Find in Files' field).  Selection.txt and the docs site's keys page.
+  8. Block copies (only if wanted, see the questions): the history entry made by a box copy is marked, and pasting a
+     marked entry at a plain caret puts its lines in as a column from the caret down.  The mark can't cross to
+     another program, so a block copied elsewhere pastes as lines.
+
+  After each step: TestBaseLib, TestWindowLib, the IDE checks.  WinGDI's clipboard gets the same changes as X11's
+  and is compiled with MinGW, not run.
+
+
+Questions for the user
+
+  a. The limit: 20 entries, and where it is set (a constant for now, or an IDE setting)?
+  b. Digits: paste at once on 1 to 9 as assumed above, or leave digits to the filter?
+  c. Step 8, block copies pasting as a column at a plain caret: wanted now, later, or not?
+  d. The preview in the IDE: plain text in the code font, or syntax coloured when the entry was copied from a C++
+     editor (IntelliJ colours it by the file it came from; it needs the entry to remember that)?
+  e. LogiCim and WindowInputTester: give them the chooser too in this work, or the IDE only?
