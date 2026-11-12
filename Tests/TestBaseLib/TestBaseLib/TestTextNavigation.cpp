@@ -264,6 +264,98 @@ void TestTextNavigationOccurrences(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The ranges Extend Selection grows through: the word over a selection,
+// the quotes and brackets around it, and its comment.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextNavigationRanges(void)
+{
+	CChars			szText;
+	CTextNavigation	cNavigation;
+	size			uiStart;
+	size			uiEnd;
+
+	//f 4, ( 5, "b c" 13..18, ) 18, // note 20..27, LF 27, { 28, LF 29, tab 30, g 31, ( 32, x 33, [ 34, i 35, ] 36, ) 37,
+	//; 38, LF 39, } 40, LF 41, /* one 42..48, LF 48, two */ 49..55, end 56..59.
+	szText.Init("int f(int a, \"b c\") // note\n{\n\tg(x[i]);\n}\n/* one\ntwo */ end");
+	cNavigation.Init(&szText);
+
+	AssertTrue(cNavigation.FindWordOver(35, 35, &uiStart, &uiEnd));
+	AssertSize(35, uiStart);
+	AssertSize(36, uiEnd);
+	AssertTrue(cNavigation.FindWordOver(57, 58, &uiStart, &uiEnd));
+	AssertSize(56, uiStart);
+	AssertSize(59, uiEnd);
+	AssertTrue(cNavigation.FindWordOver(59, 59, &uiStart, &uiEnd));
+	AssertSize(56, uiStart);
+	AssertFalse(cNavigation.FindWordOver(34, 35, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindWordOver(37, 37, &uiStart, &uiEnd));
+
+	AssertTrue(cNavigation.FindBracketsAround(35, 35, &uiStart, &uiEnd));
+	AssertSize(34, uiStart);
+	AssertSize(36, uiEnd);
+	AssertTrue(cNavigation.FindBracketsAround(34, 37, &uiStart, &uiEnd));
+	AssertSize(32, uiStart);
+	AssertSize(37, uiEnd);
+	AssertTrue(cNavigation.FindBracketsAround(13, 18, &uiStart, &uiEnd));
+	AssertSize(5, uiStart);
+	AssertSize(18, uiEnd);
+	AssertTrue(cNavigation.FindBracketsAround(28, 40, &uiStart, &uiEnd));
+	AssertSize(28, uiStart);
+	AssertSize(40, uiEnd);
+	//The brackets themselves selected are no bigger: the ones around them, if any.
+	AssertFalse(cNavigation.FindBracketsAround(28, 41, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindBracketsAround(27, 41, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindBracketsAround(2, 2, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindBracketsAround(50, 50, &uiStart, &uiEnd));
+
+	AssertTrue(cNavigation.FindCommentAround(24, 24, &uiStart, &uiEnd));
+	AssertSize(20, uiStart);
+	AssertSize(27, uiEnd);
+	AssertTrue(cNavigation.FindCommentAround(46, 46, &uiStart, &uiEnd));
+	AssertSize(42, uiStart);
+	AssertSize(55, uiEnd);
+	AssertTrue(cNavigation.FindCommentAround(42, 55, &uiStart, &uiEnd));
+	AssertSize(42, uiStart);
+	AssertSize(55, uiEnd);
+	AssertFalse(cNavigation.FindCommentAround(46, 57, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindCommentAround(57, 57, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindCommentAround(10, 10, &uiStart, &uiEnd));
+
+	AssertTrue(cNavigation.FindQuotesAround(15, 15, &uiStart, &uiEnd));
+	AssertSize(13, uiStart);
+	AssertSize(17, uiEnd);
+	AssertFalse(cNavigation.FindQuotesAround(13, 14, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindQuotesAround(15, 30, &uiStart, &uiEnd));
+
+	//" 4, a\"b, " 9, ' 13, c, ' 15, " 22, //y, " 26.  An escaped quote doesn't close; a // in quotes isn't a comment.
+	szText.Set("x = \"a\\\"b\" + 'c'; s = \"//y\"; z");
+	AssertTrue(cNavigation.FindQuotesAround(8, 8, &uiStart, &uiEnd));
+	AssertSize(4, uiStart);
+	AssertSize(9, uiEnd);
+	AssertTrue(cNavigation.FindQuotesAround(14, 15, &uiStart, &uiEnd));
+	AssertSize(13, uiStart);
+	AssertSize(15, uiEnd);
+	AssertTrue(cNavigation.FindQuotesAround(25, 25, &uiStart, &uiEnd));
+	AssertSize(22, uiStart);
+	AssertSize(26, uiEnd);
+	AssertFalse(cNavigation.FindQuotesAround(10, 10, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindCommentAround(25, 25, &uiStart, &uiEnd));
+
+	//A quote not closed on its line pairs with nothing.
+	szText.Set("x = \"abc\ny\"");
+	AssertFalse(cNavigation.FindQuotesAround(6, 6, &uiStart, &uiEnd));
+
+	//Brackets closed by another kind aren't around anything.
+	szText.Set("(a]");
+	AssertFalse(cNavigation.FindBracketsAround(1, 1, &uiStart, &uiEnd));
+
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextNavigation(void)
@@ -275,6 +367,7 @@ void TestTextNavigation(void)
 	TestTextNavigationWords();
 	TestTextNavigationAround();
 	TestTextNavigationOccurrences();
+	TestTextNavigationRanges();
 
 	TestStatistics();
 }

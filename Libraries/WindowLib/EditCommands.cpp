@@ -76,7 +76,8 @@ static SEditKeymapRow gasEditKeymapRows[] =
 	{ "Editor.SelectDocumentEnd",		"Select to Document End",	CIC_SelectDocumentEnd,			CKS_Editor,	"Control+Shift+End",		NULL },
 	{ "Editor.SelectPageUp",			"Select Page Up",			CIC_SelectPageUp,				CKS_Editor,	"Shift+Page Up",			NULL },
 	{ "Editor.SelectPageDown",			"Select Page Down",			CIC_SelectPageDown,				CKS_Editor,	"Shift+Page Down",			NULL },
-	{ "Editor.SelectWord",				"Select Word",				CIC_SelectWholeWord,			CKS_Editor,	"Control+W",				NULL },
+	{ "Editor.ExtendSelection",			"Extend Selection",			CIC_ExtendSelection,			CKS_Editor,	"Control+W",				NULL },
+	{ "Editor.ShrinkSelection",			"Shrink Selection",			CIC_ShrinkSelection,			CKS_Editor,	"Control+Shift+W",			NULL },
 	{ "Editor.Escape",					"Escape",					CIC_ClearSelection,				CKS_Editor,	"Escape",					NULL },
 
 	{ "Editor.Enter",					"Enter",					CIC_Enter,						CKS_Editor,	"Enter",					"Numpad Enter" },

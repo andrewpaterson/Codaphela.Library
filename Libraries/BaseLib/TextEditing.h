@@ -77,6 +77,27 @@ public:
 };
 
 
+//A range of a text, uiStart to uiEnd (exclusive).
+struct STextRange
+{
+	size	uiStart;
+	size	uiEnd;
+};
+
+
+typedef CArrayTemplate<STextRange>	CArrayTextRange;
+
+
+//More ranges Extend Selection can grow a selection to than the text's own (CTextEditing::SetSelectionRanges): a
+//parse's syntax, say.  AddSelectionRanges adds those around uiStart to uiEnd, or all it has; the ones that aren't
+//around the selection, or are no bigger, aren't used.
+class CTextSelectionRanges
+{
+public:
+	virtual void	AddSelectionRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest) = 0;
+};
+
+
 //The caret, the selection and the edits of a text document, as IntelliJ's editor has them, shown by a view.  Positions
 //are bytes of the UTF8 text, always at the start of a character, and the caret and selection follow the document's
 //edits.  Up, down, home and end work on the view's rows, so on wrapped lines too; up and down keep the caret's x and
@@ -85,6 +106,11 @@ public:
 //over more than one line indents its lines; back tab removes a tab's worth of spaces from them.  A text that isn't
 //editable can still be navigated, selected and copied from.  A single line text (SetSingleLine) gets no line feeds:
 //enters do nothing, line breaks pasted become spaces, and cutting with nothing selected cuts nothing.
+//
+//Extend Selection, as IntelliJ's, grows the selection to the smallest range around it that is bigger: the word, inside
+//quotes then with them, inside brackets then with them, the line without its indent, whole lines, a comment, the whole
+//text, and the ranges a CTextSelectionRanges adds.  Shrink Selection goes back through the selections it grew from,
+//until the selection is changed any other way or the text is edited.
 //
 //Each edit begins with the caret and selection as they are (BeginEdit, for undo to put back), changes the document and
 //ends (EditDone): it is kept in the document's history, the view is told what was kept (UndoChanged) and that the text
@@ -103,6 +129,9 @@ protected:
 	bool				mbEditable;
 	bool				mbSingleLine;
 	bool				mbEdited;  //The document changed since the edit began.
+	CTextSelectionRanges*	mpcSelectionRanges;  //Not held: more ranges to extend to, NULL for none.
+	CArrayTextRange		masShrinks;  //The selections Extend grew from, the last last: an anchor (MAX_SIZE for none) and a caret.
+	STextRange			msExtended;  //The anchor and caret Extend or Shrink last left; the shrinks are for it only.
 
 public:
 	void		Init(CTextDocument* pcDocument, CTextEditingView* pcView);
@@ -156,7 +185,9 @@ public:
 	void		SelectDocumentEnd(void);
 	void		SelectPageUp(void);
 	void		SelectPageDown(void);
-	void		SelectWholeWord(void);
+	void		ExtendSelection(void);
+	void		ShrinkSelection(void);
+	void		SetSelectionRanges(CTextSelectionRanges* pcRanges);
 	void		SelectAll(void);
 	void		ClearSelection(void);
 
@@ -192,6 +223,10 @@ protected:
 	void		MoveUpDown(ETextEditingMove eMove, bool bSelect);
 	void		MoveHome(bool bSelect);
 	void		MoveEnd(bool bSelect);
+	bool		FindExtension(size uiStart, size uiEnd, STextRange* psDest);
+	void		AddTextRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest);
+	bool		IsExtended(void);
+	void		SetExtended(void);
 
 	void		InsertText(size uiPosition, const char* szText);
 	void		RemoveText(size uiStart, size uiEnd);

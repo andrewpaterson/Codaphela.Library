@@ -1199,15 +1199,22 @@ bool CTextArea::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Selects the word the caret is in or next to.  Not next to a word,
-// nothing is selected.
+// The selection grows to the smallest range around it that is bigger, or
+// goes back to what it grew from (see CTextEditing::ExtendSelection).
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::SelectWholeWord(void)
+void CTextArea::ExtendSelection(void)
 {
-	mcEditing.SelectWholeWord();
+	mcEditing.ExtendSelection();
 
 	//The caret is shown where the window lays the text area out; the marks redraw what of it they change.
+	LayoutChanged();
+}
+
+
+void CTextArea::ShrinkSelection(void)
+{
+	mcEditing.ShrinkSelection();
 	LayoutChanged();
 }
 

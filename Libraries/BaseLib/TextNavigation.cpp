@@ -386,6 +386,261 @@ void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The run of word characters that uiStart to uiEnd is in: uiStart to
+// uiEnd are all word characters, or with nothing between them they are
+// at or next to one.  False if they aren't in a word.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindWordOver(size uiStart, size uiEnd, size* puiStart, size* puiEnd)
+{
+	char*	szText;
+	size	uiLength;
+	size	i;
+
+	szText = mpszText->Text();
+	uiLength = mpszText->Length();
+	if ((uiStart > uiEnd) || (uiEnd > uiLength))
+	{
+		return false;
+	}
+	for (i = uiStart; i < uiEnd; i++)
+	{
+		if (!IsWordChar(szText[i]))
+		{
+			return false;
+		}
+	}
+	while ((uiStart > 0) && IsWordChar(szText[uiStart - 1]))
+	{
+		uiStart--;
+	}
+	while ((uiEnd < uiLength) && IsWordChar(szText[uiEnd]))
+	{
+		uiEnd++;
+	}
+	*puiStart = uiStart;
+	*puiEnd = uiEnd;
+	return uiStart < uiEnd;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The quotes, ' or ", on uiStart's line whose inside has uiStart to uiEnd
+// in it: *puiOpen is the opening quote and *puiClose the closing one.
+// The line's quotes are paired from its start, a backslash escaping the
+// character after it.  False if there are none around them, or they go
+// past the line.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindQuotesAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose)
+{
+	char*	szText;
+	size	uiLineEnd;
+	size	i;
+	size	uiClose;
+
+	if ((uiStart > uiEnd) || (uiEnd > mpszText->Length()))
+	{
+		return false;
+	}
+	szText = mpszText->Text();
+	uiLineEnd = FindLineEnd(uiStart);
+	for (i = FindLineStart(uiStart); i < uiLineEnd; i++)
+	{
+		if ((szText[i] != '"') && (szText[i] != '\''))
+		{
+			continue;
+		}
+		for (uiClose = i + 1; (uiClose < uiLineEnd) && (szText[uiClose] != szText[i]); uiClose++)
+		{
+			if ((szText[uiClose] == '\\') && (uiClose + 1 < uiLineEnd))
+			{
+				uiClose++;
+			}
+		}
+		if (uiClose >= uiLineEnd)
+		{
+			return false;
+		}
+		if ((i < uiStart) && (uiEnd <= uiClose))
+		{
+			*puiOpen = i;
+			*puiClose = uiClose;
+			return true;
+		}
+		i = uiClose;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The brackets, ( [ or {, nearest around uiStart to uiEnd: *puiOpen the
+// opening bracket at or before uiStart, *puiClose the bracket that closes
+// it, at or after uiEnd - 1, the brackets and what is in them more than
+// uiStart to uiEnd.  Brackets between are paired as they nest; strings
+// and comments aren't looked past.  False if there are none around them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindBracketsAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose)
+{
+	char*	szText;
+	size	i;
+	size	uiDepth;
+	size	uiClose;
+	char	c;
+
+	szText = mpszText->Text();
+	if ((uiStart > uiEnd) || (uiEnd > mpszText->Length()))
+	{
+		return false;
+	}
+
+	//Back from the selection's first character (none for a caret) to an opening bracket not closed before it.
+	uiDepth = 0;
+	for (i = (uiStart < uiEnd) ? uiStart + 1 : uiStart; i > 0; i--)
+	{
+		c = szText[i - 1];
+		if ((c == ')') || (c == ']') || (c == '}'))
+		{
+			uiDepth++;
+		}
+		else if ((c == '(') || (c == '[') || (c == '{'))
+		{
+			if (uiDepth > 0)
+			{
+				uiDepth--;
+			}
+			else if (FindClosingBracket(i - 1, &uiClose) && (uiClose + 1 >= uiEnd) && ((i - 1 < uiStart) || (uiClose + 1 > uiEnd)))
+			{
+				*puiOpen = i - 1;
+				*puiClose = uiClose;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bracket that closes the opening bracket at uiOpen, the brackets
+// after it paired as they nest.  False if it isn't closed, or is closed
+// by another kind.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindClosingBracket(size uiOpen, size* puiClose)
+{
+	char*	szText;
+	size	uiLength;
+	size	i;
+	size	uiDepth;
+	char	cClose;
+
+	szText = mpszText->Text();
+	uiLength = mpszText->Length();
+	cClose = (szText[uiOpen] == '(') ? ')' : ((szText[uiOpen] == '[') ? ']' : '}');
+	uiDepth = 0;
+	for (i = uiOpen + 1; i < uiLength; i++)
+	{
+		if ((szText[i] == '(') || (szText[i] == '[') || (szText[i] == '{'))
+		{
+			uiDepth++;
+		}
+		else if ((szText[i] == ')') || (szText[i] == ']') || (szText[i] == '}'))
+		{
+			if (uiDepth == 0)
+			{
+				*puiClose = i;
+				return szText[i] == cClose;
+			}
+			uiDepth--;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The comment uiStart to uiEnd is in: a // comment to its line's end
+// (not one in quotes), or a /* */ comment with its ends.  False if they
+// aren't in one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindCommentAround(size uiStart, size uiEnd, size* puiStart, size* puiEnd)
+{
+	char*	szText;
+	size	uiLength;
+	size	uiLineEnd;
+	size	uiOpen;
+	size	uiClose;
+	size	i;
+
+	szText = mpszText->Text();
+	uiLength = mpszText->Length();
+	if ((uiStart > uiEnd) || (uiEnd > uiLength))
+	{
+		return false;
+	}
+
+	//A line comment starts before uiStart on its line, outside quotes.
+	uiLineEnd = FindLineEnd(uiStart);
+	if (uiEnd <= uiLineEnd)
+	{
+		for (i = FindLineStart(uiStart); (i + 1 < uiLineEnd) && (i <= uiStart); i++)
+		{
+			if ((szText[i] == '/') && (szText[i + 1] == '/'))
+			{
+				if (!FindQuotesAround(i, i + 2, &uiOpen, &uiClose))
+				{
+					*puiStart = i;
+					*puiEnd = uiLineEnd;
+					return true;
+				}
+			}
+		}
+	}
+
+	//A block comment opens at or before uiStart and first closes at or after uiEnd.
+	for (i = uiStart + 1; i > 0; i--)
+	{
+		if (i >= uiLength)
+		{
+			continue;
+		}
+		if ((szText[i - 1] == '/') && (szText[i] == '*'))
+		{
+			break;
+		}
+	}
+	if (i == 0)
+	{
+		return false;
+	}
+	uiOpen = i - 1;
+	for (i = uiOpen + 3; i < uiLength; i++)
+	{
+		if ((szText[i - 1] == '*') && (szText[i] == '/'))
+		{
+			if (i + 1 < uiEnd)
+			{
+				return false;
+			}
+			*puiStart = uiOpen;
+			*puiEnd = i + 1;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The word the character at uiPosition is in, as a double click selects
 // it: a run of letters, digits and underscores, a run of spaces and tabs,
 // or one other character.  Words don't go past the line.  Returns false,

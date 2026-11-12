@@ -257,7 +257,8 @@ public:
 	void				SelectDocumentEnd(void);
 	void				SelectPageUp(void);
 	void				SelectPageDown(void);
-	void				SelectWholeWord(void);
+	void				ExtendSelection(void);
+	void				ShrinkSelection(void);
 	void				SelectAll(void);
 	void				ClearSelection(void);
 	void				Printable(char c, bool bInsert);

@@ -94,7 +94,8 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_SelectEnd, pcEditing, &CTextEditing::SelectEnd);
 	pcComponent->AddInputAction(CIC_SelectDocumentHome, pcEditing, &CTextEditing::SelectDocumentHome);
 	pcComponent->AddInputAction(CIC_SelectDocumentEnd, pcEditing, &CTextEditing::SelectDocumentEnd);
-	pcComponent->AddInputAction(CIC_SelectWholeWord, pcEditing, &CTextEditing::SelectWholeWord);
+	pcComponent->AddInputAction(CIC_ExtendSelection, pcEditing, &CTextEditing::ExtendSelection);
+	pcComponent->AddInputAction(CIC_ShrinkSelection, pcEditing, &CTextEditing::ShrinkSelection);
 	pcComponent->AddInputAction(CIC_SelectAll, pcEditing, &CTextEditing::SelectAll);
 	pcComponent->AddInputAction(CIC_ClearSelection, this, &CTextEditingInput::ClearSelectionAction);
 

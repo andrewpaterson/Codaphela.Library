@@ -656,6 +656,34 @@ void TestTextEditingInputDragText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Extend Selection (Control+W) and Shrink Selection (Control+Shift+W)
+// reach the text's editing, a single line text's too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputExtendSelection(void)
+{
+	STestEditingInput	s;
+
+	ObjectsInit();
+	s.Init("f(ab, c)", false);
+	s.cEditing.SetCaretPosition(3);
+	AssertTrue(s.Command(CIC_ExtendSelection));
+	s.AssertSelection(2, 4, 4);
+	AssertTrue(s.Command(CIC_ExtendSelection));
+	s.AssertSelection(2, 7, 7);
+	AssertTrue(s.Command(CIC_ShrinkSelection));
+	s.AssertSelection(2, 4, 4);
+	AssertTrue(s.Command(CIC_ShrinkSelection));
+	AssertFalse(s.cEditing.IsSelected());
+	AssertSize(3, s.Caret());
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditingInput(void)
@@ -669,6 +697,7 @@ void TestTextEditingInput(void)
 	TestTextEditingInputClicks();
 	TestTextEditingInputSingleLineClicks();
 	TestTextEditingInputDragText();
+	TestTextEditingInputExtendSelection();
 	TestTextEditingInputKeepsLayout();
 
 	TestStatistics();

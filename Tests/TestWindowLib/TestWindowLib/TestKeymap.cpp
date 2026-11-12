@@ -38,7 +38,7 @@ struct SKeymapTestCommand
 static SKeymapTestCommand	gasKeymapTestCommands[] =
 {
 	{ CIC_Up, "Up" }, { CIC_Enter, "Enter" }, { CIC_Space, "Space" }, { CIC_Tab, "Tab" }, { CIC_Copy, "Copy" }, { CIC_Cut, "Cut" }, { CIC_Paste, "Paste" },
-	{ CIC_Undo, "Undo" }, { CIC_Redo, "Redo" }, { CIC_SelectAll, "SelectAll" }, { CIC_SelectWholeWord, "SelectWord" }, { CIC_Duplicate, "Duplicate" },
+	{ CIC_Undo, "Undo" }, { CIC_Redo, "Redo" }, { CIC_SelectAll, "SelectAll" }, { CIC_ExtendSelection, "ExtendSelection" }, { CIC_Duplicate, "Duplicate" },
 	{ CIC_ClearSelection, "Escape" }, { CIC_NextDifference, "NextDifference" }, { CIC_CloseDocument, "CloseDocument" }, { CIC_JumpToSource, "JumpToSource" },
 };
 
@@ -635,7 +635,7 @@ void TestKeymapCommands(void)
 	cTest.cDevices.Tap("F5");
 	cTest.cDevices.Control("Q");
 	cTest.cDevices.Control("W");
-	AssertLog("First;Second;SelectWord;");
+	AssertLog("First;Second;ExtendSelection;");
 
 	//No keys at all.
 	pSecond->ClearKeys();
@@ -795,7 +795,7 @@ void TestKeymapEditCommands(void)
 	cTest.cDevices.Control("F4");
 	cTest.cDevices.Tap("F4");
 	cTest.cDevices.Tap("A");
-	AssertLog("Copy;Copy;Cut;Cut;Undo;Redo;SelectAll;SelectWord;Duplicate;Up;Enter;Tab;Escape;Space;NextDifference;CloseDocument;JumpToSource;a;");
+	AssertLog("Copy;Copy;Cut;Cut;Undo;Redo;SelectAll;ExtendSelection;Duplicate;Up;Enter;Tab;Escape;Space;NextDifference;CloseDocument;JumpToSource;a;");
 	AssertTrue(cTest.cInput.IsInsert());
 	cTest.cDevices.Tap("Insert");
 	AssertFalse(cTest.cInput.IsInsert());

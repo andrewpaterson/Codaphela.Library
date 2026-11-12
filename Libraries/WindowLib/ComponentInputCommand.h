@@ -58,7 +58,8 @@ enum EComponentInputCommand
 	CIC_SelectDocumentEnd,
 	CIC_SelectPageUp,
 	CIC_SelectPageDown,
-	CIC_SelectWholeWord,
+	CIC_ExtendSelection,
+	CIC_ShrinkSelection,
 	CIC_SelectAll,
 	CIC_ClearSelection,
 

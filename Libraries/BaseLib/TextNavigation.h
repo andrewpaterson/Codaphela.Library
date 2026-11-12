@@ -55,6 +55,11 @@ public:
 	void		FindLineAround(size uiPosition, size* puiStart, size* puiEnd);
 	bool		IsOccurrenceText(size uiStart, size uiEnd);
 	void		FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurrences, CArrayTextOccurrence* pauiStarts);
+	bool		FindWordOver(size uiStart, size uiEnd, size* puiStart, size* puiEnd);
+	bool		FindQuotesAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose);
+	bool		FindBracketsAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose);
+	bool		FindClosingBracket(size uiOpen, size* puiClose);
+	bool		FindCommentAround(size uiStart, size uiEnd, size* puiStart, size* puiEnd);
 
 	static bool	IsSpaceOrTab(char c);
 	static bool	IsWhitespace(char c);

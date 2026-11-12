@@ -42,6 +42,10 @@ void CTextEditing::Init(CTextDocument* pcDocument, CTextEditingView* pcView)
 	mbEditable = true;
 	mbSingleLine = false;
 	mbEdited = false;
+	mpcSelectionRanges = NULL;
+	masShrinks.Init();
+	msExtended.uiStart = MAX_SIZE;
+	msExtended.uiEnd = MAX_SIZE;
 	mpcDocument->AddListener(this);
 }
 
@@ -53,6 +57,7 @@ void CTextEditing::Init(CTextDocument* pcDocument, CTextEditingView* pcView)
 void CTextEditing::Kill(void)
 {
 	mpcDocument->RemoveListener(this);
+	masShrinks.Kill();
 	mpcDocument = NULL;
 	mpcNavigation = NULL;
 	mpcView = NULL;
@@ -340,28 +345,192 @@ void CTextEditing::SelectAll(void) { Select(0, mpcDocument->Length()); }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Selects the word the caret is in or next to.  Not next to a word,
-// nothing is selected.
+// The selection (or the caret) grows to the smallest range around it that
+// is bigger (FindExtension), as IntelliJ's Extend Selection: the first
+// from a caret is the word it is in or next to.  What it grew from is kept
+// for ShrinkSelection.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditing::SelectWholeWord(void)
+void CTextEditing::ExtendSelection(void)
 {
-	size	uiStart;
-	size	uiEnd;
-	char*	szText;
+	size		uiStart;
+	size		uiEnd;
+	STextRange	sRange;
+	STextRange*	psShrink;
 
-	szText = mpcDocument->Text();
-	uiStart = muiCaret;
-	if ((muiCaret > 0) && CTextNavigation::IsWordChar(szText[mpcNavigation->PreviousPosition(muiCaret)]))
+	if (!IsExtended())
 	{
-		uiStart = mpcNavigation->FindWordLeft(muiCaret);
+		masShrinks.ReInit();
 	}
-	uiEnd = muiCaret;
-	if ((muiCaret < mpcDocument->Length()) && CTextNavigation::IsWordChar(szText[muiCaret]))
+	GetSelection(&uiStart, &uiEnd);
+	if (!FindExtension(uiStart, uiEnd, &sRange))
 	{
-		uiEnd = mpcNavigation->FindWordRight(muiCaret);
+		return;
 	}
-	Select(uiStart, uiEnd);
+	psShrink = masShrinks.Add();
+	psShrink->uiStart = IsSelected() ? muiAnchor : MAX_SIZE;
+	psShrink->uiEnd = muiCaret;
+	Select(sRange.uiStart, sRange.uiEnd);
+	SetExtended();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selection goes back to what ExtendSelection grew it from, as long
+// as it hasn't been changed any other way since and the text hasn't been
+// edited.  Otherwise nothing changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::ShrinkSelection(void)
+{
+	STextRange	sShrink;
+
+	if (!IsExtended() || (masShrinks.NumElements() == 0))
+	{
+		masShrinks.ReInit();
+		return;
+	}
+	masShrinks.Pop(&sShrink);
+	if (sShrink.uiStart == MAX_SIZE)
+	{
+		MoveCaret(sShrink.uiEnd, false);
+	}
+	else
+	{
+		Select(sShrink.uiStart, sShrink.uiEnd);
+	}
+	SetExtended();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcRanges adds ranges Extend Selection can grow to, NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::SetSelectionRanges(CTextSelectionRanges* pcRanges)
+{
+	mpcSelectionRanges = pcRanges;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The smallest of the text's ranges, and the ones added, that is around
+// uiStart to uiEnd and bigger.  False if there is none: all the text is
+// selected.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::FindExtension(size uiStart, size uiEnd, STextRange* psDest)
+{
+	CArrayTextRange	asRanges;
+	STextRange*		psRange;
+	size			i;
+	bool			bFound;
+
+	asRanges.Init();
+	AddTextRanges(uiStart, uiEnd, &asRanges);
+	if (mpcSelectionRanges)
+	{
+		mpcSelectionRanges->AddSelectionRanges(uiStart, uiEnd, &asRanges);
+	}
+
+	bFound = false;
+	for (i = 0; i < asRanges.NumElements(); i++)
+	{
+		psRange = asRanges.Get(i);
+		if ((psRange->uiStart <= uiStart) && (psRange->uiEnd >= uiEnd) && (psRange->uiEnd <= mpcDocument->Length()) && (psRange->uiEnd - psRange->uiStart > uiEnd - uiStart))
+		{
+			if (!bFound || (psRange->uiEnd - psRange->uiStart < psDest->uiEnd - psDest->uiStart))
+			{
+				*psDest = *psRange;
+				bFound = true;
+			}
+		}
+	}
+	asRanges.Kill();
+	return bFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text's own ranges around uiStart to uiEnd (FindExtension picks from
+// them): its word, the inside of its quotes and the quotes with it, the
+// inside of its brackets and the brackets with it, its line without the
+// indent, its whole lines with their line feeds, its comment, and all the
+// text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::AddTextRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest)
+{
+	STextRange	sRange;
+	size		uiOpen;
+	size		uiClose;
+	size		uiLineStart;
+
+	if (mpcNavigation->FindWordOver(uiStart, uiEnd, &sRange.uiStart, &sRange.uiEnd))
+	{
+		*pasDest->Add() = sRange;
+	}
+	if (mpcNavigation->FindQuotesAround(uiStart, uiEnd, &uiOpen, &uiClose))
+	{
+		sRange.uiStart = uiOpen + 1;
+		sRange.uiEnd = uiClose;
+		*pasDest->Add() = sRange;
+		sRange.uiStart = uiOpen;
+		sRange.uiEnd = uiClose + 1;
+		*pasDest->Add() = sRange;
+	}
+	if (mpcNavigation->FindBracketsAround(uiStart, uiEnd, &uiOpen, &uiClose))
+	{
+		sRange.uiStart = uiOpen + 1;
+		sRange.uiEnd = uiClose;
+		*pasDest->Add() = sRange;
+		sRange.uiStart = uiOpen;
+		sRange.uiEnd = uiClose + 1;
+		*pasDest->Add() = sRange;
+	}
+
+	uiLineStart = mpcNavigation->FindLineStart(uiStart);
+	sRange.uiStart = mpcNavigation->FindLineIndent(uiLineStart);
+	sRange.uiEnd = mpcNavigation->FindLineEnd(uiStart);
+	*pasDest->Add() = sRange;
+	sRange.uiStart = uiLineStart;
+	sRange.uiEnd = mpcNavigation->NextPosition(mpcNavigation->FindLineEnd(((uiEnd > uiStart) && (mpcNavigation->FindLineStart(uiEnd) == uiEnd)) ? uiEnd - 1 : uiEnd));
+	*pasDest->Add() = sRange;
+
+	if (mpcNavigation->FindCommentAround(uiStart, uiEnd, &sRange.uiStart, &sRange.uiEnd))
+	{
+		*pasDest->Add() = sRange;
+	}
+	sRange.uiStart = 0;
+	sRange.uiEnd = mpcDocument->Length();
+	*pasDest->Add() = sRange;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selection is as Extend or Shrink last left it, so the selections it
+// grew from can still be gone back to.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::IsExtended(void)
+{
+	return (msExtended.uiStart == (IsSelected() ? muiAnchor : MAX_SIZE)) && (msExtended.uiEnd == muiCaret);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::SetExtended(void)
+{
+	msExtended.uiStart = IsSelected() ? muiAnchor : MAX_SIZE;
+	msExtended.uiEnd = muiCaret;
 }
 
 
@@ -1026,6 +1195,7 @@ void CTextEditing::DocumentChanged(STextDocumentChange* psChange)
 	size	uiLength;
 
 	mbEdited = true;
+	masShrinks.ReInit();
 	uiLength = psChange->Length();
 	if (psChange->eChange == TDC_Inserted)
 	{

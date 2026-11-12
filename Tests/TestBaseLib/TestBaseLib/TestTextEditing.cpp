@@ -302,7 +302,7 @@ void TestTextEditingSelection(void)
 	AssertFalse(s.cEditing.IsSelected());
 
 	s.cEditing.SetCaretPosition(9);
-	s.cEditing.SelectWholeWord();
+	s.cEditing.ExtendSelection();
 	s.cEditing.GetSelection(&uiStart, &uiEnd);
 	AssertSize(8, uiStart);
 	AssertSize(13, uiEnd);
@@ -617,6 +617,157 @@ void TestTextEditingMoveText(void)
 }
 
 
+//The syntax a parse might add: a call's range.
+class CTestSelectionRanges : public CTextSelectionRanges
+{
+public:
+	void	AddSelectionRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest) override
+	{
+		STextRange*	psRange;
+
+		psRange = pasDest->Add();
+		psRange->uiStart = 31;
+		psRange->uiEnd = 38;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Extends the selection and asserts what it became.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTextEditingExtends(STestTextEditing* ps, size uiExpectedStart, size uiExpectedEnd)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	ps->cEditing.ExtendSelection();
+	AssertTrue(ps->cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(uiExpectedStart, uiStart);
+	AssertSize(uiExpectedEnd, uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shrinks the selection and asserts what it became.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTextEditingShrinks(STestTextEditing* ps, size uiExpectedStart, size uiExpectedEnd)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	ps->cEditing.ShrinkSelection();
+	AssertTrue(ps->cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(uiExpectedStart, uiStart);
+	AssertSize(uiExpectedEnd, uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Extend Selection grows to the smallest range around the selection that
+// is bigger: the word, brackets' inside then the brackets, the line
+// without its indent, the line, quotes, comments, whole lines, the whole
+// text, and ranges added.  Shrink goes back through them, until the
+// selection changes another way or the text is edited.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingExtendSelection(void)
+{
+	STestTextEditing		s;
+	CTestSelectionRanges	cRanges;
+	size					uiEnd;
+
+	//f 4, ( 5, "b c" 13..18, ) 18, // note 20..27, LF 27, { 28, LF 29, tab 30, g 31, ( 32, x 33, [ 34, i 35, ] 36, ) 37,
+	//; 38, LF 39, } 40, LF 41, /* one 42..48, LF 48, two */ 49..55, end 56..59.
+	s.Init("int f(int a, \"b c\") // note\n{\n\tg(x[i]);\n}\n/* one\ntwo */ end");
+
+	s.cEditing.SetCaretPosition(35);
+	AssertTextEditingExtends(&s, 35, 36);
+	AssertTextEditingExtends(&s, 34, 37);
+	AssertTextEditingExtends(&s, 33, 37);
+	AssertTextEditingExtends(&s, 32, 38);
+	AssertTextEditingExtends(&s, 31, 39);
+	AssertTextEditingExtends(&s, 30, 40);
+	AssertTextEditingExtends(&s, 29, 40);
+	AssertTextEditingExtends(&s, 28, 40);
+	AssertTextEditingExtends(&s, 28, 41);
+	AssertTextEditingExtends(&s, 28, 42);
+	AssertTextEditingExtends(&s, 0, 59);
+	AssertTextEditingExtends(&s, 0, 59);
+
+	AssertTextEditingShrinks(&s, 28, 42);
+	AssertTextEditingShrinks(&s, 28, 41);
+	AssertTextEditingShrinks(&s, 28, 40);
+	AssertTextEditingShrinks(&s, 29, 40);
+	AssertTextEditingShrinks(&s, 30, 40);
+	AssertTextEditingShrinks(&s, 31, 39);
+	AssertTextEditingShrinks(&s, 32, 38);
+	AssertTextEditingShrinks(&s, 33, 37);
+	AssertTextEditingShrinks(&s, 34, 37);
+	AssertTextEditingShrinks(&s, 35, 36);
+	s.cEditing.ShrinkSelection();
+	AssertFalse(s.cEditing.IsSelected());
+	AssertSize(35, s.Caret());
+	s.cEditing.ShrinkSelection();
+	AssertFalse(s.cEditing.IsSelected());
+
+	//Quotes, then the brackets, the line without its indent and the line with its line feed.
+	s.cEditing.SetCaretPosition(14);
+	AssertTextEditingExtends(&s, 14, 15);
+	AssertTextEditingExtends(&s, 14, 17);
+	AssertTextEditingExtends(&s, 13, 18);
+	AssertTextEditingExtends(&s, 6, 18);
+	AssertTextEditingExtends(&s, 5, 19);
+	AssertTextEditingExtends(&s, 0, 27);
+	AssertTextEditingExtends(&s, 0, 28);
+
+	//A comment is its own range.
+	s.cEditing.SetCaretPosition(24);
+	AssertTextEditingExtends(&s, 23, 27);
+	AssertTextEditingExtends(&s, 20, 27);
+	AssertTextEditingExtends(&s, 0, 27);
+	s.cEditing.SetCaretPosition(46);
+	AssertTextEditingExtends(&s, 45, 48);
+	AssertTextEditingExtends(&s, 42, 48);
+	AssertTextEditingExtends(&s, 42, 49);
+	AssertTextEditingExtends(&s, 42, 55);
+	AssertTextEditingExtends(&s, 42, 59);
+
+	//Ranges added are grown to too.
+	s.cEditing.SetSelectionRanges(&cRanges);
+	s.cEditing.Select(32, 38);
+	AssertTextEditingExtends(&s, 31, 38);
+	AssertTextEditingExtends(&s, 31, 39);
+	s.cEditing.SetSelectionRanges(NULL);
+
+	//Changed another way, or the text edited, the shrinks are forgotten.
+	s.cEditing.SetCaretPosition(35);
+	AssertTextEditingExtends(&s, 35, 36);
+	AssertTextEditingExtends(&s, 34, 37);
+	s.cEditing.SelectRight();
+	AssertTextEditingShrinks(&s, 34, 38);
+	s.cEditing.SetCaretPosition(35);
+	AssertTextEditingExtends(&s, 35, 36);
+	AssertTextEditingExtends(&s, 34, 37);
+	s.cEditing.SelectRight();
+	AssertTextEditingExtends(&s, 32, 38);
+	AssertTextEditingShrinks(&s, 34, 38);
+	AssertTextEditingShrinks(&s, 34, 38);
+	s.cEditing.SetCaretPosition(35);
+	AssertTextEditingExtends(&s, 35, 36);
+	AssertTextEditingExtends(&s, 34, 37);
+	uiEnd = 59;
+	AssertTrue(s.cEditing.ReplaceRanges(&uiEnd, &uiEnd, 1, "!"));
+	AssertTextEditingShrinks(&s, 34, 37);
+
+	s.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A text that isn't editable can be moved in, selected and copied from,
@@ -811,6 +962,7 @@ void TestTextEditing(void)
 	TestTextEditingLines();
 	TestTextEditingUndo();
 	TestTextEditingMoveText();
+	TestTextEditingExtendSelection();
 	TestTextEditingNotEditable();
 	TestTextEditingFollowsDocument();
 	TestTextEditingNothingChanged();

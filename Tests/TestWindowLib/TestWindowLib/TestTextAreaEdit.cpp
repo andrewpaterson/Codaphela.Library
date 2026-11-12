@@ -504,7 +504,7 @@ void TestTextAreaEditModification(void)
 		//Select words and everything.
 		pTextArea->SetText("foo bar_baz qux");
 		pTextArea->SetCaretPosition(6);
-		pTextArea->SelectWholeWord();
+		pTextArea->ExtendSelection();
 		AssertTextAreaSelection(4, 11, pTextArea);
 		pTextArea->SelectAll();
 		AssertTextAreaSelection(0, 15, pTextArea);
