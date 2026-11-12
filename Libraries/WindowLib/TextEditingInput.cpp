@@ -22,7 +22,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Window.h"
 #include "Focus.h"
 #include "Clipboard.h"
-#include "ComponentInput.h"
 #include "TextEditingInput.h"
 
 
@@ -370,18 +369,19 @@ void CTextEditingInput::ContDragSelect(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Button one was released at x, y: the drag ends there.
+// Button one was released: the drag ends where the pointer is.  The
+// selected text is dropped there, copied if control is held.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditingInput::StopDragSelect(int x, int y)
+void CTextEditingInput::StopDragSelect(SComponentInputEvent* psEvent)
 {
 	if (IsTextDrag())
 	{
-		DropText(x, y);
+		DropText(psEvent->x, psEvent->y, psEvent->bControl);
 	}
 	else
 	{
-		ContDragSelect(x, y);
+		ContDragSelect(psEvent->x, psEvent->y);
 	}
 	SetDrag(TED_None);
 }
@@ -586,11 +586,11 @@ void CTextEditingInput::DragText(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 //
 // The release of a press in the selection.  Dragged, the selected text is
-// moved to where it was dropped, or copied there with control held.  Not
+// moved to where it was dropped, or with bCopy copied there.  Not
 // dragged, the caret goes where it was pressed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditingInput::DropText(int x, int y)
+void CTextEditingInput::DropText(int x, int y, bool bCopy)
 {
 	size	uiStart;
 	size	uiEnd;
@@ -604,22 +604,8 @@ void CTextEditingInput::DropText(int x, int y)
 
 	SetDrag(TED_None);
 	mpcEditing->GetSelection(&uiStart, &uiEnd);
-	mpcEditing->MoveText(uiStart, uiEnd, muiDrop, IsCopyHeld());
+	mpcEditing->MoveText(uiStart, uiEnd, muiDrop, bCopy);
 	mpcComponent->GetWindow()->RequestPaint();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Control is held, so a drop copies the text rather than moving it.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextEditingInput::IsCopyHeld(void)
-{
-	CComponentInput*	pcInput;
-
-	pcInput = mpcComponent->GetWindow()->GetComponentInput();
-	return (pcInput != NULL) && pcInput->IsControl();
 }
 
 

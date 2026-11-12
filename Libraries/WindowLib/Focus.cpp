@@ -694,14 +694,27 @@ bool CFocus::Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An event the focus makes itself (a drag's, a command run by name): the
+// modifier keys held are the window's component input's, if it has one,
+// as they are on the events that come from it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, bool bInsert)
 {
+	CComponentInput*	pcInput;
+
 	memset(psEvent, 0, sizeof(SComponentInputEvent));
 	psEvent->eType = eType;
 	psEvent->eCommand = CIC_Ignored;
 	psEvent->bInsert = bInsert;
+
+	pcInput = mpWindow.IsNotNull() ? mpWindow->GetComponentInput() : NULL;
+	if (pcInput)
+	{
+		psEvent->bShift = pcInput->IsShift();
+		psEvent->bControl = pcInput->IsControl();
+		psEvent->bAlt = pcInput->IsAlt();
+	}
 }
 
 

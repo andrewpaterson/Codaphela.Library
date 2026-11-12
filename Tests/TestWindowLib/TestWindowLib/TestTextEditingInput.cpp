@@ -85,7 +85,7 @@ struct STestEditingInput
 		cFactory.Kill();
 	}
 
-	bool	Command(EComponentInputCommand eCommand, int x = 0, int y = 0)
+	bool	Command(EComponentInputCommand eCommand, int x = 0, int y = 0, bool bControl = false)
 	{
 		SComponentInputEvent	sEvent;
 
@@ -93,6 +93,7 @@ struct STestEditingInput
 		sEvent.eCommand = eCommand;
 		sEvent.x = x;
 		sEvent.y = y;
+		sEvent.bControl = bControl;
 		return pCanvas->CallInputActions(&sEvent);
 	}
 
@@ -619,6 +620,20 @@ void TestTextEditingInputDragText(void)
 	s.AssertSelection(4, 7, 7);
 	AssertTrue(s.Command(CIC_ClearSelection));
 	AssertFalse(s.cEditing.IsSelected());
+
+	//Released with control held, which the release's event says, the text is copied.
+	s.cInput.FocusLost();
+	s.cEditing.Select(4, 7);
+	s.pWindow->PointerMoved(5, 0);
+	s.Command(CIC_ActivateComponent, 5, 0);
+	s.pWindow->PointerMoved(13, 0);
+	s.Command(CIC_StopDragSelect, 13, 0, true);
+	AssertString("one two threetwo\nfour five", s.Text());
+	s.AssertSelection(13, 16, 16);
+	s.Release(13, 0);
+	AssertString("one two threetwo\nfour five", s.Text());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("one two three\nfour five", s.Text());
 
 	//A double click in the selection selects the word.
 	s.cInput.FocusLost();

@@ -1406,6 +1406,8 @@ void CComponentInput::InitEvent(SComponentInputEvent* psEvent, EComponentInputEv
 	psEvent->eCommand = CIC_Ignored;
 	psEvent->bInsert = mbInsert;
 	psEvent->bShift = IsShift();
+	psEvent->bControl = IsControl();
+	psEvent->bAlt = IsAlt();
 	psEvent->bCapsLock = mbCapsLock;
 	psEvent->bNumLock = mbNumLock;
 	psEvent->uiTime = psWindowEvent->uiTime;

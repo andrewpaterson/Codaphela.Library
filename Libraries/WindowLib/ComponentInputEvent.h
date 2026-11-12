@@ -52,6 +52,8 @@ struct SComponentInputEvent
 	int							iRight;		//Of a movement or the wheel.
 	int							iDown;
 	bool						bShift;		//Shift is held; shift and caps lock are only used for printables.
+	bool						bControl;	//Control is held.
+	bool						bAlt;		//Alt is held.
 	bool						bCapsLock;
 	bool						bNumLock;
 	uint32						uiTime;		//Milliseconds, from the input source.

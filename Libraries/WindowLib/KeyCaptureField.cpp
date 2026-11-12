@@ -112,7 +112,6 @@ void CKeyCaptureField::SetKeys(const char* szKeys)
 //////////////////////////////////////////////////////////////////////////
 void CKeyCaptureField::KeyDownAction(SComponentInputEvent* psEvent)
 {
-	CComponentInput*	pcInput;
 	CChars				szKeys;
 	size				i;
 	bool				bControl;
@@ -127,10 +126,9 @@ void CKeyCaptureField::KeyDownAction(SComponentInputEvent* psEvent)
 		}
 	}
 
-	pcInput = mpWindow->GetComponentInput();
-	bControl = (pcInput != NULL) && pcInput->IsControl();
-	bAlt = (pcInput != NULL) && pcInput->IsAlt();
-	bShift = (pcInput != NULL) && pcInput->IsShift();
+	bControl = psEvent->bControl;
+	bAlt = psEvent->bAlt;
+	bShift = psEvent->bShift;
 	if (!bControl && !bAlt && !bShift && ((StringCompare(psEvent->szName, "Escape") == 0) || (StringCompare(psEvent->szName, "Enter") == 0) || (StringCompare(psEvent->szName, "Numpad Enter") == 0)))
 	{
 		psEvent->bPass = true;

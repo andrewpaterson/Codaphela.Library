@@ -97,7 +97,7 @@ public:
 	void	ContextMenuClick(SComponentInputEvent* psEvent);
 	void	StartDragSelect(int x, int y);
 	void	ContDragSelect(int x, int y);
-	void	StopDragSelect(int x, int y);
+	void	StopDragSelect(SComponentInputEvent* psEvent);
 	void	StartLineDrag(int x, int y, bool bExtend);
 	void	StartDragBox(int x, int y);
 	void	ClearSelectionAction(void);
@@ -112,8 +112,7 @@ protected:
 	void	DragByUnit(int x, int y);
 	bool	IsInSelection(int x, int y);
 	void	DragText(int x, int y);
-	void	DropText(int x, int y);
-	bool	IsCopyHeld(void);
+	void	DropText(int x, int y, bool bCopy);
 	void	DragBox(int x, int y);
 	int32	FindBoxX(size uiRow, int x);
 };
