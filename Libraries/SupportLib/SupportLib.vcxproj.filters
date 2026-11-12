@@ -849,6 +849,9 @@
     <ClInclude Include="ImagePremultipliedBlend.h">
       <Filter>Source\Image\Copier</Filter>
     </ClInclude>
+    <ClInclude Include="PixelDifference.h">
+      <Filter>Source\Image\Copier</Filter>
+    </ClInclude>
     <ClInclude Include="ImageBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
@@ -1623,6 +1626,9 @@
       <Filter>Source\Image\Copier</Filter>
     </ClCompile>
     <ClCompile Include="ImagePremultipliedBlend.cpp">
+      <Filter>Source\Image\Copier</Filter>
+    </ClCompile>
+    <ClCompile Include="PixelDifference.cpp">
       <Filter>Source\Image\Copier</Filter>
     </ClCompile>
     <ClCompile Include="ImageBlitter.cpp">

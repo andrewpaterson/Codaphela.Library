@@ -270,6 +270,7 @@
     <ClInclude Include="ImageChannel.h" />
     <ClInclude Include="ImageCopier.h" />
     <ClInclude Include="ImagePremultipliedBlend.h" />
+    <ClInclude Include="PixelDifference.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontColours.h" />
     <ClInclude Include="FontDescription.h" />
@@ -516,6 +517,7 @@
     <ClCompile Include="ImageChannel.cpp" />
     <ClCompile Include="ImageCopier.cpp" />
     <ClCompile Include="ImagePremultipliedBlend.cpp" />
+    <ClCompile Include="PixelDifference.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontColours.cpp" />
     <ClCompile Include="FontDescription.cpp" />

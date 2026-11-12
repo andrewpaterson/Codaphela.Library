@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "SupportLib/PixelDifference.h"
 #include "NativeWindowFactory.h"
 #include "WindowTick.h"
 #include "ComponentInput.h"
@@ -485,13 +486,10 @@ void CWindow::VerifyRedraw(void)
 	size		uiBytes;
 	size		uiPixelBytes;
 	uint8*		puiPartial;
-	uint8*		puiFull;
-	int32		x;
-	int32		y;
 	int32		iWidth;
 	int32		iHeight;
 	CInt32Rect	cDiffers;
-	size		uiPixels;
+	lsize		uiPixels;
 	CChars		sz;
 	CDamageArea	cPartial;
 
@@ -516,24 +514,7 @@ void CWindow::VerifyRedraw(void)
 	mcDamage.AddAll();
 	Composite();
 
-	puiFull = (uint8*)pImage->GetData();
-	uiPixels = 0;
-	cDiffers.Init(iWidth, iHeight, 0, 0);
-	for (y = 0; y < iHeight; y++)
-	{
-		if (memcmp(&puiPartial[(size)y * iWidth * uiPixelBytes], &puiFull[(size)y * iWidth * uiPixelBytes], iWidth * uiPixelBytes) == 0)
-		{
-			continue;
-		}
-		for (x = 0; x < iWidth; x++)
-		{
-			if (memcmp(&puiPartial[((size)y * iWidth + x) * uiPixelBytes], &puiFull[((size)y * iWidth + x) * uiPixelBytes], uiPixelBytes) != 0)
-			{
-				uiPixels++;
-				cDiffers.GrowToContain(x, y);
-			}
-		}
-	}
+	uiPixels = FindPixelDifference(puiPartial, (lsize)iWidth * uiPixelBytes, (uint8*)pImage->GetData(), (lsize)iWidth * uiPixelBytes, uiPixelBytes, iWidth, iHeight, &cDiffers);
 	SafeFree(puiPartial);
 
 	if (uiPixels > 0)
