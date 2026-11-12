@@ -280,6 +280,7 @@ protected:
 	void				ScrollBy(int32 iDown);
 
 	void				UpdateMarks(void);
+	void				RequestOccurrences(void);
 	void				RowsChanged(void);
 	void				BackgroundsChanged(void);
 	bool				SummariseBands(CTextAreaBands* pcBands);

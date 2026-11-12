@@ -1554,6 +1554,7 @@ void CTextArea::UndoChanged(STextUndoChange* psChange)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::MarksChanged(void)
 {
+	RequestOccurrences();
 	UpdateMarks();
 	UpdateCaretLine();
 }
@@ -1654,15 +1655,11 @@ void CTextArea::UpdateMarks(void)
 		return;
 	}
 
-	//The selected text's other occurrences, once found for it, under the selection; found at a tick if they aren't.
+	//The selected text's other occurrences, once found for it, under the selection.
 	bSelected = GetSelection(&uiStart, &uiEnd);
 	if (mcOccurrences.IsFoundFor(uiStart, uiEnd))
 	{
 		mcOccurrences.AddFound(&mcShapes, mpSelectionMap, msOccurrenceColour);
-	}
-	else if (mcOccurrences.Request(uiStart, uiEnd))
-	{
-		mpWindow->Post(this, &CTextArea::FindOccurrences);
 	}
 
 	if (bSelected)
@@ -1715,9 +1712,30 @@ STextOccurrenceRange* CTextArea::GetOccurrenceRange(size uiIndex) { return mcOcc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The selection or the text may have changed, or highlighting been turned
+// on: if the selected text's occurrences aren't the ones found, they are
+// found at the next tick (FindOccurrences), once however many keys or
+// moves come before it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::RequestOccurrences(void)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	GetSelection(&uiStart, &uiEnd);
+	if (HasRows() && mcOccurrences.Request(uiStart, uiEnd))
+	{
+		mpWindow->Post(this, &CTextArea::FindOccurrences);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Finds the selected text's other occurrences in the text (see
-// CTextAreaOccurrences) and draws them.  Posted at a tick by UpdateMarks
-// when the selection or the text has changed since they were found.
+// CTextAreaOccurrences) and draws them.  Posted at a tick by
+// RequestOccurrences.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::FindOccurrences(void)
@@ -1744,6 +1762,7 @@ void CTextArea::FindOccurrences(void)
 void CTextArea::SetHighlightOccurrences(bool bHighlight)
 {
 	mcOccurrences.SetHighlighting(bHighlight);
+	RequestOccurrences();
 	UpdateMarks();
 }
 
@@ -1949,6 +1968,7 @@ void CTextArea::UpdateSize(void)
 void CTextArea::LaidOut(void)
 {
 	mbBackgroundsDirty = true;
+	RequestOccurrences();
 	UpdateMarks();
 }
 
