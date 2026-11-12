@@ -11,8 +11,7 @@
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
-#include "TickTestRefWindow.h"
-#include "DataTestRefWindow.h"
+#include "TestWindow.h"
 #include "ComponentInputTestDevices.h"
 
 
@@ -132,21 +131,16 @@ void TestTextAreaEditLayoutStops(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditNavigation(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CFont>					pFont;
 		Ptr<CTextArea>				pTextArea;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFont = ReadLabelFont();
@@ -239,14 +233,10 @@ void TestTextAreaEditNavigation(void)
 		pTextArea = NULL;
 		pFont = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -257,7 +247,7 @@ void TestTextAreaEditNavigation(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditWrapped(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 	Ptr<CFont>				pFont;
 	int32					iWidth;
 
@@ -266,17 +256,12 @@ void TestTextAreaEditWrapped(void)
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		CInt32Rect					cCaret;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", iWidth, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb ccc");
@@ -324,15 +309,11 @@ void TestTextAreaEditWrapped(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
 	pFont = NULL;
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -343,21 +324,16 @@ void TestTextAreaEditWrapped(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditModification(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		CChars						sz;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
@@ -553,14 +529,10 @@ void TestTextAreaEditModification(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -572,22 +544,17 @@ void TestTextAreaEditModification(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditSpans(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		ARGB32						sRed;
 		ARGB32						sPlain;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
@@ -627,14 +594,10 @@ void TestTextAreaEditSpans(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -646,13 +609,10 @@ void TestTextAreaEditSpans(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditScrollPane(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CWindowTheme>			pTheme;
 		Ptr<CScrollPane>			pScroll;
 		Ptr<CTextArea>				pTextArea;
@@ -662,10 +622,8 @@ void TestTextAreaEditScrollPane(void)
 		int32						iCaretTop;
 		int32						iLeft;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 200, 100);
+		pTestWindow = cWindow.pWindow;
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont());
 		pScroll = OMalloc<CScrollPane>(pTestWindow, pTheme);
 		pTestWindow->SetContainer(pScroll);
@@ -763,14 +721,10 @@ void TestTextAreaEditScrollPane(void)
 		pTextArea = NULL;
 		pScroll = NULL;
 		pTheme = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -787,13 +741,10 @@ void TestTextAreaEditScrollPane(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditTiles(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CFontFamily>			pFamily;
 		Ptr<CTextArea>				pTextArea;
@@ -803,10 +754,8 @@ void TestTextAreaEditTiles(void)
 		int32						iCell;
 		int32						iLine;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFamily = CreateMonoTextAreaFamily(15.0f);
@@ -918,14 +867,10 @@ void TestTextAreaEditTiles(void)
 		pTextArea = NULL;
 		pFamily = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -1024,13 +969,10 @@ void TestTextAreaEditLayoutGaps(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditLineGaps(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CFont>					pFont;
 		Ptr<CTextArea>				pTextArea;
@@ -1040,10 +982,8 @@ void TestTextAreaEditLineGaps(void)
 		CArrayTextLayoutGap			asGaps;
 		STextLayoutGap*				psGap;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFont = ReadLabelFont();
@@ -1267,14 +1207,10 @@ void TestTextAreaEditLineGaps(void)
 		pTextArea = NULL;
 		pFont = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -1285,7 +1221,7 @@ void TestTextAreaEditLineGaps(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditLineGapsWrapped(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 	Ptr<CFont>				pFont;
 	int32					iWidth;
 
@@ -1294,17 +1230,12 @@ void TestTextAreaEditLineGapsWrapped(void)
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		CInt32Rect					cRect;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", iWidth, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pFont, "aaa bbb ccc\nd");
@@ -1334,15 +1265,11 @@ void TestTextAreaEditLineGapsWrapped(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
 	pFont = NULL;
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -1353,23 +1280,18 @@ void TestTextAreaEditLineGapsWrapped(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditLineGapsTiles(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CFontFamily>			pFamily;
 		Ptr<CTextArea>				pTextArea;
 		CInt32Rect					cRect;
 		int32						iLine;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pFamily = CreateMonoTextAreaFamily(15.0f);
@@ -1408,14 +1330,10 @@ void TestTextAreaEditLineGapsTiles(void)
 		pTextArea = NULL;
 		pFamily = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -1430,22 +1348,17 @@ void TestTextAreaEditLineGapsTiles(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditUndo(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		size						uiLoaded;
 		size						uiTyped;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
@@ -1563,14 +1476,10 @@ void TestTextAreaEditUndo(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -1605,22 +1514,17 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditUndoEvent(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		CTestUndoListener			cListener;
 		size						uiLoaded;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc");
@@ -1650,14 +1554,10 @@ void TestTextAreaEditUndoEvent(void)
 		cListener.Kill();
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1669,22 +1569,17 @@ void TestTextAreaEditUndoEvent(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditReplaceRanges(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		STextRange					asRanges[3] = { { 4, 7 }, { 17, 20 }, { 23, 26 } };
 		STextRange					asBad[2] = { { 17, 20 }, { 4, 7 } };
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "int foo;\nint x = foo + foo;");
@@ -1710,14 +1605,10 @@ void TestTextAreaEditReplaceRanges(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -1769,13 +1660,10 @@ void TextAreaPointerAt(Ptr<CTextArea> pTextArea, size uiPosition, bool bGap)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditDragText(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
-		CPointer					pNull;
 		Ptr<CScrollPane>			pScroll;
 		Ptr<CTextArea>				pTextArea;
 		Ptr<CComponent>				pNoFocus;
@@ -1788,10 +1676,8 @@ void TestTextAreaEditDragText(void)
 		int32						i;
 		int32						iScrolled;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 200, 100);
+		pTestWindow = cWindow.pWindow;
 		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
 		pTestWindow->SetContainer(pScroll);
 
@@ -1898,37 +1784,45 @@ void TestTextAreaEditDragText(void)
 		szText.Kill();
 		pTextArea = NULL;
 		pScroll = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window's painted pixel x pixels into the text area on the bottom of
+// line uiLine, as 0xRRGGBB.  The window is 24 bit RGB.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 TextAreaPixelAt(Ptr<CTextArea> pTextArea, size uiLine, int32 x)
+{
+	CInt32Rect		cLine;
+	uint8*			puiPixel;
+	Ptr<CWindow>	pWindow;
+	int32			iX;
+	int32			iY;
+
+	pWindow = pTextArea->GetWindow();
+	pTextArea->GetLineBounds(uiLine, &cLine);
+	iX = pTextArea->GetPosition().x + x;
+	iY = pTextArea->GetPosition().y + cLine.GetBottom() - 1;
+	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(iY * pWindow->GetCanvas()->GetActualSize().x + iX) * 3];
+	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The window's painted pixel under the bottom of the character at
-// uiPosition, below the glyphs, as 0xRRGGBB.  The window is 24 bit RGB.
+// uiPosition, below the glyphs, as 0xRRGGBB.
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 TextAreaPixelUnder(Ptr<CTextArea> pTextArea, size uiPosition)
 {
-	CInt32Rect	cLine;
-	int32		x;
-	int32		y;
-	uint8*		puiPixel;
-	Ptr<CWindow>	pWindow;
-
-	pWindow = pTextArea->GetWindow();
-	pTextArea->GetLineBounds(pTextArea->FindLine(uiPosition), &cLine);
-	x = pTextArea->GetPosition().x + (pTextArea->GetPositionX(uiPosition, false) + pTextArea->GetPositionX(uiPosition + 1, false)) / 2;
-	y = pTextArea->GetPosition().y + cLine.GetBottom() - 1;
-	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(y * pWindow->GetCanvas()->GetActualSize().x + x) * 3];
-	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+	return TextAreaPixelAt(pTextArea, pTextArea->FindLine(uiPosition), (pTextArea->GetPositionX(uiPosition, false) + pTextArea->GetPositionX(uiPosition + 1, false)) / 2);
 }
 
 
@@ -1942,12 +1836,10 @@ uint32 TextAreaPixelUnder(Ptr<CTextArea> pTextArea, size uiPosition)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditOccurrences(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		uint32						uiBackground;
@@ -1955,11 +1847,9 @@ void TestTextAreaEditOccurrences(void)
 		CChars						szText;
 		int32						i;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		//The window clears behind the text area, which is transparent, so what it no longer draws goes.
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)));
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 
@@ -2083,14 +1973,10 @@ void TestTextAreaEditOccurrences(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 
@@ -2103,21 +1989,17 @@ void TestTextAreaEditOccurrences(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditOccurrenceRanges(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		uint32						uiBackground;
 		STextOccurrenceRange		asRanges[3] = { { 4, 7, true }, { 17, 20, false }, { 23, 26, false } };
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)));
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 
@@ -2169,37 +2051,10 @@ void TestTextAreaEditOccurrenceRanges(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The window's painted pixel x pixels into the text area on the bottom of
-// line uiLine, as 0xRRGGBB.  The window is 24 bit RGB.
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 TextAreaPixelAt(Ptr<CTextArea> pTextArea, size uiLine, int32 x)
-{
-	CInt32Rect		cLine;
-	uint8*			puiPixel;
-	Ptr<CWindow>	pWindow;
-	int32			iX;
-	int32			iY;
-
-	pWindow = pTextArea->GetWindow();
-	pTextArea->GetLineBounds(uiLine, &cLine);
-	iX = pTextArea->GetPosition().x + x;
-	iY = pTextArea->GetPosition().y + cLine.GetBottom() - 1;
-	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(iY * pWindow->GetCanvas()->GetActualSize().x + iX) * 3];
-	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+	cWindow.Kill();
 }
 
 
@@ -2213,12 +2068,10 @@ uint32 TextAreaPixelAt(Ptr<CTextArea> pTextArea, size uiLine, int32 x)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditBox(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	STestWindow		cWindow;
 
 	{
 		Ptr<CWindow>				pTestWindow;
-		Ptr<CTickTestRefWindow>		pTick;
-		SDataTestRefWindow			cData;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		uint32						uiBackground;
@@ -2227,10 +2080,8 @@ void TestTextAreaEditBox(void)
 		size						uiStart;
 		size						uiEnd;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		ORoot()->Add(pTestWindow);
+		cWindow.Init("Text Area Window", 300, 200, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)));
+		pTestWindow = cWindow.pWindow;
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 
@@ -2303,14 +2154,10 @@ void TestTextAreaEditBox(void)
 
 		pTextArea = NULL;
 		pFill = NULL;
-		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
-		pTick = NULL;
 	}
 
-	AssertSize(0, gcObjects.NumFreeObjects());
-	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	cWindow.Kill();
 }
 
 

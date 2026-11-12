@@ -327,6 +327,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataTestRefWindow.h" />
+    <ClInclude Include="TestWindow.h" />
     <ClInclude Include="BorderCanvasDraw.h" />
     <ClInclude Include="BoxFillCanvasDraw.h" />
     <ClInclude Include="DarkForest.h" />

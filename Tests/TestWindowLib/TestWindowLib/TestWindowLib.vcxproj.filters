@@ -222,6 +222,9 @@
     <ClInclude Include="DataTestRefWindow.h">
       <Filter>Source\TestCommon</Filter>
     </ClInclude>
+    <ClInclude Include="TestWindow.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
     <ClInclude Include="BorderCanvasDraw.h">
       <Filter>Source\TestCommon</Filter>
     </ClInclude>

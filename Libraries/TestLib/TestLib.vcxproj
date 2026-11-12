@@ -203,6 +203,7 @@
     <ClInclude Include="AssertGeometric.h" />
     <ClInclude Include="AssertStatistics.h" />
     <ClInclude Include="AssertStringHelper.h" />
+    <ClInclude Include="TextEditingTest.h" />
     <ClInclude Include="Words.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
