@@ -86,12 +86,14 @@ typedef CArrayTemplate<SCPPSyntaxRange>	CArrayCPPSyntaxRanges;
 
 
 //Highlights one source file of a parsed translation unit: what each token is, and the comments, directives, macros and
-//skipped lines.  Spans are sorted by line then column and don't cross lines.
+//skipped lines.  Spans are sorted by line then column and don't cross lines.  It also gives what each node of the
+//syntax tree was parsed from in the file (FindSyntaxRanges), which is worked out from the file's tokens the same way.
 //
 //A header's lines are only skipped lines if no inclusion of it in the unit compiled them: one included again, its
 //include guard skipping all of it the second time, is in use.
 class CCPPHighlighter
 {
+friend class CCPPHighlighterRangeVisitor;
 protected:
 	CArrayHighlights	macHighlights;
 	CSourceFile*		mpcFile;
@@ -101,7 +103,6 @@ public:
 	void				Kill(void);
 	void				Highlight(CSourceFile* pcFile, CPreprocessedTokens* pcPreprocessed, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
 	void				FindSyntaxRanges(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CArrayCPPSyntaxRanges* pasDest);
-	void				AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeniser, CArrayCPPSyntaxRanges* pasDest);
 	static char*		PrintSyntaxRanges(CArrayCPPSyntaxRanges* pasRanges, CChars* psz);
 
 	SCPPHighlight*		Get(size iIndex);
@@ -120,6 +121,8 @@ protected:
 	void				AddSpan(int iOffset, int iLength, ECPPHighlight eKind, uint8 uiFlags);
 	void				Add(int iLine, int iColumn, int iLength, ECPPHighlight eKind, uint8 uiFlags);
 	void				Sort(void);
+	void				AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeniser, CArrayCPPSyntaxRanges* pasDest);
+	bool				IsWrittenInFile(SPreprocessedToken* psSource);
 	int					SourceLength(int iOffset, int iLength);
 	int					LineLength(int iLine);
 };

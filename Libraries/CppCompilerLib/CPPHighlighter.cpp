@@ -240,7 +240,7 @@ void CCPPHighlighter::AddTokens(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTr
 		psSource = pcTokeniser->GetSource(pcToken);
 
 		//Only tokens written in this file.  Tokens from macro bodies are highlighted as the macro's name.
-		if ((psSource->pcFile != mpcFile) || (psSource->iExpansion != -1))
+		if (!IsWrittenInFile(psSource))
 		{
 			continue;
 		}
@@ -457,6 +457,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// By start, then by end.
 //
 //////////////////////////////////////////////////////////////////////////
 static int CompareSyntaxRanges(const void* pv1, const void* pv2)
@@ -548,7 +549,7 @@ void CCPPHighlighter::AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeni
 	}
 	psFirst = pcTokeniser->GetSource(pcTokeniser->Get(pcNode->miFirstToken));
 	psLast = pcTokeniser->GetSource(pcTokeniser->Get(pcNode->miLastToken));
-	if ((psFirst->pcFile != mpcFile) || (psFirst->iExpansion != -1) || (psLast->pcFile != mpcFile) || (psLast->iExpansion != -1))
+	if (!IsWrittenInFile(psFirst) || !IsWrittenInFile(psLast))
 	{
 		return;
 	}
@@ -629,6 +630,18 @@ void CCPPHighlighter::Sort(void)
 		}
 	}
 	macHighlights.SetUsedElements(iKept + 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The token is written in the file being highlighted: it isn't from
+// another file, nor made by a macro.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPHighlighter::IsWrittenInFile(SPreprocessedToken* psSource)
+{
+	return (psSource->pcFile == mpcFile) && (psSource->iExpansion == -1);
 }
 
 
