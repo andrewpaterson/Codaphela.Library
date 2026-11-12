@@ -23,6 +23,14 @@ public:
 
 	void Build(void) { mpszLog->Append("Build;"); }
 	void Run(void) { mpszLog->Append("Run;"); }
+
+	bool	mbOn;
+	bool	mbCanStep;
+
+	void Toggle(void) { mbOn = !mbOn; }
+	bool IsOn(void) { return mbOn; }
+	void Step(void) { mpszLog->Append("Step;"); mbCanStep = false; }
+	bool CanStep(void) { return mbCanStep; }
 };
 
 
@@ -296,6 +304,96 @@ void TestToolbarCommandToolTips(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A command's button looks as its command is: on while a command that is
+// on or off is on, and with its disabled icon while the command can't
+// run.  A click of any of the toolbar's buttons shows them again, as does
+// Refresh.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestToolbarCommandStates(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pWindow;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CToolbar>			pToolbar;
+		Ptr<CCommandSet>		pCommands;
+		Ptr<CButton>			pToggle;
+		Ptr<CButton>			pStep;
+		CTestToolbarCommands	cCommands;
+		CPointer				pNull;
+		CChars					szLog;
+
+		szLog.Init();
+		cCommands.mpszLog = &szLog;
+		cCommands.mbOn = false;
+		cCommands.mbCanStep = true;
+		cNativeFactory.Init(&gcMemoryAllocator, 400, 100, NULL);
+		pWindow = OMalloc<CWindow>("Toolbar Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
+
+		pCommands = OMalloc<CCommandSet>();
+		pCommands->Add("Toggle", "Toggle", "", pTheme->GetImage(TI_NextArrow), &cCommands, &CTestToolbarCommands::Toggle)->SetCheckedCheck(&cCommands, &CTestToolbarCommands::IsOn);
+		pCommands->Add("Step", "Step", "", pTheme->GetImage(TI_NextArrow), &cCommands, &CTestToolbarCommands::Step)->SetEnabledCheck(&cCommands, &CTestToolbarCommands::CanStep);
+		AssertTrue(pCommands->Find("Toggle")->IsCheckable());
+		AssertFalse(pCommands->Find("Toggle")->IsChecked());
+		AssertFalse(pCommands->Find("Step")->IsCheckable());
+		AssertFalse(pCommands->Find("Step")->IsChecked());
+
+		pToolbar = OMalloc<CToolbar>(pWindow, pTheme, false);
+		pToggle = pToolbar->AddCommand(pCommands->Find("Toggle"));
+		pStep = pToolbar->AddCommand(pCommands->Find("Step"), pTheme->GetImage(TI_Chevron));
+		AssertSize(2, pToolbar->NumCommandButtons());
+		AssertTrue(pToolbar->GetCommandButton(1) == pStep);
+		AssertFalse(pToggle->IsHighlighted());
+		AssertFalse(pToolbar->IsShownDisabled(0));
+		AssertFalse(pToolbar->IsShownDisabled(1));
+		AssertTrue(pStep->GetIcon() == pTheme->GetImage(TI_NextArrow));
+
+		//Clicked on, then off.
+		pToggle->Click();
+		AssertTrue(pCommands->Find("Toggle")->IsChecked());
+		AssertTrue(pToggle->IsHighlighted());
+		pToggle->Click();
+		AssertFalse(pToggle->IsHighlighted());
+
+		//Step can't be run again once it has: its button has its disabled icon, and clicking it does nothing.
+		pStep->Click();
+		AssertString("Step;", szLog.Text());
+		AssertTrue(pToolbar->IsShownDisabled(1));
+		AssertTrue(pStep->GetIcon() == pTheme->GetImage(TI_Chevron));
+		pStep->Click();
+		AssertString("Step;", szLog.Text());
+
+		//What changes elsewhere is shown by Refresh.
+		cCommands.mbCanStep = true;
+		cCommands.mbOn = true;
+		AssertTrue(pToolbar->IsShownDisabled(1));
+		pToolbar->Refresh();
+		AssertFalse(pToolbar->IsShownDisabled(1));
+		AssertTrue(pStep->GetIcon() == pTheme->GetImage(TI_NextArrow));
+		AssertTrue(pToggle->IsHighlighted());
+
+		pStep = NULL;
+		pToggle = NULL;
+		pToolbar = NULL;
+		pCommands = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestToolbar(void)
@@ -306,6 +404,7 @@ void TestToolbar(void)
 	TestToolbarLayout();
 	TestToolbarVertical();
 	TestToolbarCommandToolTips();
+	TestToolbarCommandStates();
 
 	ObjectsFlush();
 	ObjectsKill();

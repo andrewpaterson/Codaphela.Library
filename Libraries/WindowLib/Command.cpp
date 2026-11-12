@@ -42,6 +42,7 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 	msRun = *psRun;
 	mbRunAsks = bRunAsks;
 	msEnabled.Clear();
+	msChecked.Clear();
 	meStandard = CIC_Ignored;
 	PostInit();
 }
@@ -62,6 +63,7 @@ void CCommand::Class(void)
 	M_Pointer(mpIcon);
 	U_Unknown(SMemberCall, msRun);
 	U_Unknown(SMemberCall, msEnabled);
+	U_Unknown(SMemberCall, msChecked);
 	U_Enum(meStandard);
 	U_Bool(mbRunAsks);
 }
@@ -98,6 +100,15 @@ bool CCommand::IsEnabled(void)
 {
 	return !msEnabled.IsSet() || msEnabled.Ask();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the command turns something on and off, and whether it is on.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommand::IsCheckable(void) { return msChecked.IsSet(); }
+bool CCommand::IsChecked(void) { return msChecked.IsSet() && msChecked.Ask(); }
 
 
 //////////////////////////////////////////////////////////////////////////

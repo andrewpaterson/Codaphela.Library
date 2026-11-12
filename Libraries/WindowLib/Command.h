@@ -49,6 +49,9 @@ enum ECommandKeyScope
 //
 //A command can have several keys, the first being those a menu shows.  It remembers those it started with, so a user's
 //changes can be told from them and undone, and those it last bound, so they can be unbound.
+//
+//A command that turns something on and off (Group by Project) says which it is (SetCheckedCheck): a toolbar shows its
+//button on while it is.
 class CCommand : public CObject
 {
 CONSTRUCTABLE(CCommand);
@@ -63,6 +66,7 @@ protected:
 	Ptr<CImageCel>			mpIcon;  //NULL for none.
 	SMemberCall				msRun;
 	SMemberCall				msEnabled;  //Not set: the command can always run.
+	SMemberCall				msChecked;  //Not set: the command isn't one that is on or off.
 	EComponentInputCommand	meStandard;  //The component command it stands for (an Edit menu's copy), whose keys it shows; CIC_Ignored if none.
 	bool					mbRunAsks;  //msRun returns whether it did anything, which isn't needed.
 
@@ -81,6 +85,10 @@ public:
 	template<class M, class O>
 	void					SetEnabledCheck(O* pcObject, bool(M::*fIsEnabled)(void));
 	bool					IsEnabled(void);
+	template<class M, class O>
+	void					SetCheckedCheck(O* pcObject, bool(M::*fIsChecked)(void));
+	bool					IsCheckable(void);
+	bool					IsChecked(void);
 	bool					Run(void);
 	void					SetStandardCommand(EComponentInputCommand eStandard);
 	EComponentInputCommand	GetStandardCommand(void);
@@ -169,6 +177,19 @@ template<class M, class O>
 void CCommand::SetEnabledCheck(O* pcObject, bool(M::*fIsEnabled)(void))
 {
 	msEnabled.Init(pcObject, fIsEnabled);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fIsChecked says whether what the command turns on and off is on.  The
+// object isn't held by the command; it must outlive it.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CCommand::SetCheckedCheck(O* pcObject, bool(M::*fIsChecked)(void))
+{
+	msChecked.Init(pcObject, fIsChecked);
 }
 
 
