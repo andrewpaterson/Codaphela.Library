@@ -2130,6 +2130,9 @@ void TestTextAreaEditOccurrenceRanges(void)
 		pTextArea->Printable('x', true);
 		AssertSize(0, pTextArea->NumOccurrenceRanges());
 		pTextArea->SetOccurrenceRanges(asRanges, 3);
+		AssertTrue(pTextArea->Undo());
+		AssertSize(0, pTextArea->NumOccurrenceRanges());
+		pTextArea->SetOccurrenceRanges(asRanges, 3);
 		pTextArea->AppendText(" ", Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF));
 		AssertSize(0, pTextArea->NumOccurrenceRanges());
 		pTextArea->SetOccurrenceRanges(asRanges, 3);

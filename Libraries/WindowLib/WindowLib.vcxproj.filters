@@ -294,6 +294,9 @@
     <ClInclude Include="TextAreaBands.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
+    <ClInclude Include="TextAreaOccurrences.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="TextAreaShapes.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
@@ -678,6 +681,9 @@
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="TextAreaBands.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClCompile>
+    <ClCompile Include="TextAreaOccurrences.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="TextAreaShapes.cpp">

@@ -310,6 +310,7 @@
     <ClInclude Include="TextAreaTiles.h" />
     <ClInclude Include="TextAreaLayout.h" />
     <ClInclude Include="TextAreaBands.h" />
+    <ClInclude Include="TextAreaOccurrences.h" />
     <ClInclude Include="TextAreaShapes.h" />
     <ClInclude Include="TextLineGaps.h" />
     <ClInclude Include="TextMarksCanvasDraw.h" />
@@ -435,6 +436,7 @@
     <ClCompile Include="TextAreaTiles.cpp" />
     <ClCompile Include="TextAreaLayout.cpp" />
     <ClCompile Include="TextAreaBands.cpp" />
+    <ClCompile Include="TextAreaOccurrences.cpp" />
     <ClCompile Include="TextAreaShapes.cpp" />
     <ClCompile Include="TextLineGaps.cpp" />
     <ClCompile Include="TextMarksCanvasDraw.cpp" />
