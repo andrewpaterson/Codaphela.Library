@@ -882,10 +882,10 @@ void TestMenuContextMenu(void)
 
 		//Pressed in the selection ("The quick") the selection is kept, so the menu acts on it.  Escape closes the menu
 		//and leaves the selection.
-		pText->DocumentHome();
+		pText->GetEditing()->DocumentHome();
 		for (i = 0; i < 9; i++)
 		{
-			pText->SelectRight();
+			pText->GetEditing()->SelectRight();
 		}
 		MoveTo(pTestWindow, SInt32Vec2(3, 5));
 		AssertTrue(pText->FindPositionAt(3, 5) < 9);
@@ -947,7 +947,7 @@ void TestMenuContextMenu(void)
 		AssertTrue(pFocus->GetFocussedComponent() == pText);
 
 		//The Menu key (or Shift+F10) opens it under the text area's caret, not at the pointer.
-		pText->DocumentEnd();
+		pText->GetEditing()->DocumentEnd();
 		pTestWindow->Layout();
 		pTestWindow->InputCommand(CIC_ContextMenuKey, true);
 		AssertTrue(pMenu->IsOpen());

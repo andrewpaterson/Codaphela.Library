@@ -753,24 +753,24 @@ void TestPartialRedrawTextArea(void)
 		sPosition = pTextArea->GetPosition();
 		uiUnselected = GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1);
 
-		pTextArea->SelectRight();
-		pTextArea->SelectRight();
+		pTextArea->GetEditing()->SelectRight();
+		pTextArea->GetEditing()->SelectRight();
 		pWindow->Paint();
 		AssertTrue(uiUnselected != GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
 		AssertSize(0, pWindow->GetRedrawMismatches());
 
-		pTextArea->ClearSelection();
+		pTextArea->GetEditing()->ClearSelection();
 		pWindow->Paint();
 		AssertInt(uiUnselected, GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
 		AssertSize(0, pWindow->GetRedrawMismatches());
 
-		pTextArea->SelectDocumentHome();
+		pTextArea->GetEditing()->SelectDocumentHome();
 		pWindow->Paint();
 		AssertTrue(uiUnselected != GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
 		AssertSize(0, pWindow->GetRedrawMismatches());
 
 		//The edit, not from input, narrows the text: the text area is laid out to its new width.
-		pTextArea->Printable('x', true);
+		pTextArea->GetEditing()->Printable('x', true);
 		pWindow->Paint();
 		AssertInt(uiUnselected, GetWindowPixel(pWindow, pTextArea->GetPosition().x + 1, sPosition.y + 1));
 		AssertInt(pTextArea->GetTextSize().x, pTextArea->GetActualSize().x);
@@ -893,7 +893,7 @@ void TestPartialRedrawTextAreaRows(void)
 		AssertTrue(pcNative->GetPresented()->IsEmpty());
 
 		pTextArea->SetCaretPosition(pTextArea->GetLineStart(1) + 2);
-		pTextArea->Printable('x', true);
+		pTextArea->GetEditing()->Printable('x', true);
 		pWindow->Paint();
 		AssertPresentedLines(pWindow, pTextArea, 1, 1);
 
@@ -922,14 +922,14 @@ void TestPartialRedrawTextAreaRows(void)
 		pcNative->ClearPresented();
 		AssertTrue(pWindow->BlinkCaret(GetDebugTickCount() + 10000));
 		AssertFalse(pWindow->GetFocus()->IsCaretOn());
-		pTextArea->Printable('y', true);
+		pTextArea->GetEditing()->Printable('y', true);
 		pWindow->Paint();
 		AssertTrue(pWindow->GetFocus()->IsCaretOn());
 		AssertPresentedLines(pWindow, pTextArea, 2, 2);
 
 		//A line feed in line 0: it and everything below it moved, to the bottom of the text area.
 		pTextArea->SetCaretPosition(3);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		pWindow->Paint();
 		AssertPresentedLines(pWindow, pTextArea, 0, MAX_SIZE);
 

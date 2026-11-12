@@ -234,7 +234,7 @@ void TestTextAreaBackgroundsEdit(void)
 
 		//Inside the range it grows; no lines are put in.
 		pTextArea->SetCaretPosition(6);
-		pTextArea->Paste("XY");
+		pTextArea->GetEditing()->Paste("XY");
 		AssertString("aaa\nbbXYb\nccc\nddd", pTextArea->GetText());
 		AssertTextAreaBackground(TAB_Range, 5, 12, pTextArea->GetBackground(0));
 		AssertTextAreaBackground(TAB_Lines, 1, 3, pTextArea->GetBackground(1));
@@ -242,15 +242,15 @@ void TestTextAreaBackgroundsEdit(void)
 
 		//At the range's start and end it doesn't.
 		pTextArea->SetCaretPosition(5);
-		pTextArea->Paste("<");
+		pTextArea->GetEditing()->Paste("<");
 		pTextArea->SetCaretPosition(13);
-		pTextArea->Paste(">");
+		pTextArea->GetEditing()->Paste(">");
 		AssertString("aaa\nb<bXYb\ncc>c\nddd", pTextArea->GetText());
 		AssertTextAreaBackground(TAB_Range, 6, 13, pTextArea->GetBackground(0));
 
 		//A line put in at the start of line 1 pushes the lines down.
 		pTextArea->SetCaretPosition(4);
-		pTextArea->Paste("Z\n");
+		pTextArea->GetEditing()->Paste("Z\n");
 		AssertString("aaa\nZ\nb<bXYb\ncc>c\nddd", pTextArea->GetText());
 		AssertTextAreaBackground(TAB_Range, 8, 15, pTextArea->GetBackground(0));
 		AssertTextAreaBackground(TAB_Lines, 2, 4, pTextArea->GetBackground(1));
@@ -258,7 +258,7 @@ void TestTextAreaBackgroundsEdit(void)
 
 		//A line put in inside the line background grows it.
 		pTextArea->SetCaretPosition(9);
-		pTextArea->Paste("\n");
+		pTextArea->GetEditing()->Paste("\n");
 		AssertString("aaa\nZ\nb<b\nXYb\ncc>c\nddd", pTextArea->GetText());
 		AssertTextAreaBackground(TAB_Range, 8, 16, pTextArea->GetBackground(0));
 		AssertTextAreaBackground(TAB_Lines, 2, 5, pTextArea->GetBackground(1));
@@ -266,7 +266,7 @@ void TestTextAreaBackgroundsEdit(void)
 
 		//Deleting line 1 whole moves everything back up.
 		pTextArea->Select(4, 6);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("aaa\nb<b\nXYb\ncc>c\nddd", pTextArea->GetText());
 		AssertTextAreaBackground(TAB_Range, 6, 14, pTextArea->GetBackground(0));
 		AssertTextAreaBackground(TAB_Lines, 1, 4, pTextArea->GetBackground(1));
@@ -274,7 +274,7 @@ void TestTextAreaBackgroundsEdit(void)
 
 		//Joining line 2 onto line 1 shrinks the line background, and the boundary above line 3 stays above it.
 		pTextArea->SetCaretPosition(7);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("aaa\nb<bXYb\ncc>c\nddd", pTextArea->GetText());
 		AssertTextAreaBackground(TAB_Range, 6, 13, pTextArea->GetBackground(0));
 		AssertTextAreaBackground(TAB_Lines, 1, 3, pTextArea->GetBackground(1));
@@ -282,7 +282,7 @@ void TestTextAreaBackgroundsEdit(void)
 
 		//Deleting the lines a line background is on removes it, and the range in them goes too.
 		pTextArea->Select(4, 16);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("aaa\nddd", pTextArea->GetText());
 		AssertSize(1, pTextArea->NumBackgrounds());
 		AssertTextAreaBackground(TAB_Boundary, 1, 1, pTextArea->GetBackground(0));
@@ -290,7 +290,7 @@ void TestTextAreaBackgroundsEdit(void)
 		//A boundary below the last line moves down with lines put in at the end.
 		AssertTrue(pTextArea->AddLineBoundary(2, 1, 0));
 		pTextArea->SetCaretPosition(7);
-		pTextArea->Paste("\neee");
+		pTextArea->GetEditing()->Paste("\neee");
 		AssertTextAreaBackground(TAB_Boundary, 1, 1, pTextArea->GetBackground(0));
 		AssertTextAreaBackground(TAB_Boundary, 3, 3, pTextArea->GetBackground(1));
 		pTestWindow->Layout();
@@ -344,17 +344,17 @@ void TestTextAreaBackgroundsCaretLine(void)
 		pTextArea->Select(2, 13);
 		AssertSize(3, pTextArea->GetCaretLine());
 		pTextArea->SetCaretPosition(5);
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(2, pTextArea->GetCaretLine());
 
 		//A line put in above moves it down; taking it out moves it back.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Paste("Z\n");
+		pTextArea->GetEditing()->Paste("Z\n");
 		AssertSize(1, pTextArea->GetCaretLine());
 		pTextArea->SetCaretPosition(11);
 		AssertSize(3, pTextArea->GetCaretLine());
 		pTextArea->Select(0, 2);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertSize(0, pTextArea->GetCaretLine());
 		pTestWindow->Layout();
 
@@ -427,9 +427,9 @@ void TestTextAreaBackgroundsDocumentListener(void)
 		pTextArea->AddDocumentListener(&cListener);
 
 		pTextArea->SetCaretPosition(4);
-		pTextArea->Paste("Z\n");
+		pTextArea->GetEditing()->Paste("Z\n");
 		pTextArea->Select(0, 4);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertSize(1, cListener.muiInserted);
 		AssertSize(1, cListener.muiRemoved);
 		AssertSize(2, cListener.muiLines);
@@ -440,7 +440,7 @@ void TestTextAreaBackgroundsDocumentListener(void)
 
 		pTextArea->RemoveDocumentListener(&cListener);
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Paste("\n");
+		pTextArea->GetEditing()->Paste("\n");
 		AssertSize(1, cListener.muiInserted);
 		pTestWindow->Layout();
 

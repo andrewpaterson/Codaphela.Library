@@ -1139,48 +1139,7 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 // The moves and edits of the text area's editing (see CTextEditing).
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Up(void) { mcEditing.Up(); }
-void CTextArea::Down(void) { mcEditing.Down(); }
-void CTextArea::Left(void) { mcEditing.Left(); }
-void CTextArea::Right(void) { mcEditing.Right(); }
-void CTextArea::WordLeft(void) { mcEditing.WordLeft(); }
-void CTextArea::WordRight(void) { mcEditing.WordRight(); }
-void CTextArea::Home(void) { mcEditing.Home(); }
-void CTextArea::End(void) { mcEditing.End(); }
-void CTextArea::DocumentHome(void) { mcEditing.DocumentHome(); }
-void CTextArea::DocumentEnd(void) { mcEditing.DocumentEnd(); }
-void CTextArea::PageUp(void) { mcEditing.PageUp(); }
-void CTextArea::PageDown(void) { mcEditing.PageDown(); }
-void CTextArea::SelectUp(void) { mcEditing.SelectUp(); }
-void CTextArea::SelectDown(void) { mcEditing.SelectDown(); }
-void CTextArea::SelectLeft(void) { mcEditing.SelectLeft(); }
-void CTextArea::SelectRight(void) { mcEditing.SelectRight(); }
-void CTextArea::SelectWordLeft(void) { mcEditing.SelectWordLeft(); }
-void CTextArea::SelectWordRight(void) { mcEditing.SelectWordRight(); }
-void CTextArea::SelectHome(void) { mcEditing.SelectHome(); }
-void CTextArea::SelectEnd(void) { mcEditing.SelectEnd(); }
-void CTextArea::SelectDocumentHome(void) { mcEditing.SelectDocumentHome(); }
-void CTextArea::SelectDocumentEnd(void) { mcEditing.SelectDocumentEnd(); }
-void CTextArea::SelectPageUp(void) { mcEditing.SelectPageUp(); }
-void CTextArea::SelectPageDown(void) { mcEditing.SelectPageDown(); }
 void CTextArea::SelectAll(void) { Select(0, mcDocument.Length()); }
-void CTextArea::ClearSelection(void) { mcEditing.ClearSelection(); }
-void CTextArea::Printable(char c, bool bInsert) { mcEditing.Printable(c, bInsert); }
-void CTextArea::Tab(bool bInsert) { mcEditing.Tab(bInsert); }
-void CTextArea::BackTab(void) { mcEditing.BackTab(); }
-void CTextArea::Enter(void) { mcEditing.Enter(); }
-void CTextArea::HomeEnter(void) { mcEditing.HomeEnter(); }
-void CTextArea::EndEnter(void) { mcEditing.EndEnter(); }
-void CTextArea::Delete(void) { mcEditing.Delete(); }
-void CTextArea::Backspace(void) { mcEditing.Backspace(); }
-void CTextArea::Copy(CChars* pszDest) { mcEditing.Copy(pszDest); }
-void CTextArea::Cut(CChars* pszDest) { mcEditing.Cut(pszDest); }
-void CTextArea::CutLine(CChars* pszDest) { mcEditing.CutLine(pszDest); }
-void CTextArea::Paste(char* szSource) { mcEditing.Paste(szSource); }
-void CTextArea::Duplicate(void) { mcEditing.Duplicate(); }
-void CTextArea::DeleteWordRemainingRight(void) { mcEditing.DeleteWordRemainingRight(); }
-void CTextArea::DeleteWordRemainingLeft(void) { mcEditing.DeleteWordRemainingLeft(); }
-void CTextArea::DeleteLine(void) { mcEditing.DeleteLine(); }
 bool CTextArea::ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText) { return mcEditing.ReplaceRanges(asRanges, uiNumRanges, szText); }
 
 
@@ -1886,6 +1845,7 @@ int32 CTextArea::GetFullWidth(void)
 
 bool CTextArea::IsEditable(void) { return mcEditing.IsEditable(); }
 bool CTextArea::IsSelectable(void) { return mbSelectable; }
+CTextEditing* CTextArea::GetEditing(void) { return &mcEditing; }  //The caret, the selection and the edits: its moves and edits are made through it.
 size CTextArea::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
 
 

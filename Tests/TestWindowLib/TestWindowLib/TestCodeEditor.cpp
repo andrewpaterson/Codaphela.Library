@@ -148,7 +148,7 @@ void TestCodeEditorGutter(void)
 
 		//Back to one digit when lines are deleted.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		pTestWindow->Layout();
 		AssertSize(9, pTextArea->NumLines());
 		AssertInt(3 * iCell, pEditor->GetGutterWidth());
@@ -244,7 +244,7 @@ void TestCodeEditorLineComponents(bool bTiles)
 
 		//A line feed at the start of line 0 pushes it, and the component, down.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		pTestWindow->Layout();
 		AssertString("\nab\ncd\nef", pTextArea->GetText());
 		AssertSize(1, pEditor->GetLineOf(pZone));
@@ -262,7 +262,7 @@ void TestCodeEditorLineComponents(bool bTiles)
 
 		//Deleting its line removes it.
 		pTextArea->SetCaretPosition(1);
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		pTestWindow->Layout();
 		AssertString("\ncd\nef", pTextArea->GetText());
 		AssertSize(0, pEditor->NumLineComponents());
@@ -360,7 +360,7 @@ void TestCodeEditorScrollPane(void)
 		AssertInt(20 * iLine + ((30 + iLine - 1) / iLine) * iLine - 100, pScroll->GetMaximumScrollPosition().y);
 
 		//The end of the code is scrolled into view.
-		pTextArea->DocumentEnd();
+		pTextArea->GetEditing()->DocumentEnd();
 		pTestWindow->Layout();
 		AssertInt(pScroll->GetMaximumScrollPosition().y, pScroll->GetScrollPosition().y);
 		pTextArea->GetCaretBounds(&cCaret);
@@ -368,7 +368,7 @@ void TestCodeEditorScrollPane(void)
 		AssertTrue(iCaretTop >= 0);
 		AssertTrue(iCaretTop + cCaret.GetHeight() <= 100);
 
-		pTextArea->DocumentHome();
+		pTextArea->GetEditing()->DocumentHome();
 		pTestWindow->Layout();
 		AssertInt(0, pScroll->GetScrollPosition().y);
 

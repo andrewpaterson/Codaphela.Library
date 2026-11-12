@@ -150,75 +150,75 @@ void TestTextAreaEditNavigation(void)
 		pTestWindow->Layout();
 
 		AssertSize(0, pTextArea->GetCaretPosition());
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(1, pTextArea->GetCaretPosition());
-		pTextArea->End();
+		pTextArea->GetEditing()->End();
 		AssertSize(9, pTextArea->GetCaretPosition());
 
 		//Home goes to the first character that isn't a space, then the start of the line, and back.
-		pTextArea->Home();
+		pTextArea->GetEditing()->Home();
 		AssertSize(2, pTextArea->GetCaretPosition());
-		pTextArea->Home();
+		pTextArea->GetEditing()->Home();
 		AssertSize(0, pTextArea->GetCaretPosition());
-		pTextArea->Home();
+		pTextArea->GetEditing()->Home();
 		AssertSize(2, pTextArea->GetCaretPosition());
 
-		pTextArea->WordRight();
+		pTextArea->GetEditing()->WordRight();
 		AssertSize(5, pTextArea->GetCaretPosition());
-		pTextArea->WordRight();
+		pTextArea->GetEditing()->WordRight();
 		AssertSize(6, pTextArea->GetCaretPosition());
-		pTextArea->WordLeft();
+		pTextArea->GetEditing()->WordLeft();
 		AssertSize(5, pTextArea->GetCaretPosition());
-		pTextArea->WordLeft();
+		pTextArea->GetEditing()->WordLeft();
 		AssertSize(2, pTextArea->GetCaretPosition());
-		pTextArea->DocumentEnd();
+		pTextArea->GetEditing()->DocumentEnd();
 		AssertSize(12, pTextArea->GetCaretPosition());
-		pTextArea->DocumentHome();
+		pTextArea->GetEditing()->DocumentHome();
 		AssertSize(0, pTextArea->GetCaretPosition());
 
 		//Down onto a shorter line goes to its end; up goes back to the same x.
 		pTextArea->SetCaretPosition(5);
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(12, pTextArea->GetCaretPosition());
-		pTextArea->Up();
+		pTextArea->GetEditing()->Up();
 		AssertSize(5, pTextArea->GetCaretPosition());
-		pTextArea->Up();
+		pTextArea->GetEditing()->Up();
 		AssertSize(0, pTextArea->GetCaretPosition());
-		pTextArea->Down();
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(12, pTextArea->GetCaretPosition());
 
 		//Characters of UTF8 are stepped over whole.
 		pTextArea->SetText("a\xC3\xA9\xE2\x82\xAC" "b");
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(1, pTextArea->GetCaretPosition());
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(3, pTextArea->GetCaretPosition());
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(6, pTextArea->GetCaretPosition());
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(7, pTextArea->GetCaretPosition());
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(7, pTextArea->GetCaretPosition());
-		pTextArea->Left();
-		pTextArea->Left();
+		pTextArea->GetEditing()->Left();
+		pTextArea->GetEditing()->Left();
 		AssertSize(3, pTextArea->GetCaretPosition());
-		pTextArea->Left();
+		pTextArea->GetEditing()->Left();
 		AssertSize(1, pTextArea->GetCaretPosition());
 		pTextArea->SetCaretPosition(6);
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("a\xC3\xA9" "b", pTextArea->GetText());
 		AssertSize(3, pTextArea->GetCaretPosition());
 
 		//A carriage return and line feed are one character, and the end of the line is before them.
 		pTextArea->SetText("ab\r\ncd");
-		pTextArea->End();
+		pTextArea->GetEditing()->End();
 		AssertSize(2, pTextArea->GetCaretPosition());
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertSize(4, pTextArea->GetCaretPosition());
-		pTextArea->Left();
+		pTextArea->GetEditing()->Left();
 		AssertSize(2, pTextArea->GetCaretPosition());
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(6, pTextArea->GetCaretPosition());
 
 		//The pointer finds the nearest gap.
@@ -272,35 +272,35 @@ void TestTextAreaEditWrapped(void)
 		AssertInt(48, pTextArea->GetTextSize().y);
 
 		//End goes to the end of the row, after its space; the caret is drawn on the row, not the next.
-		pTextArea->End();
+		pTextArea->GetEditing()->End();
 		AssertSize(8, pTextArea->GetCaretPosition());
 		pTextArea->GetCaretBounds(&cCaret);
 		AssertInt(0, cCaret.GetTop());
 		AssertInt(iWidth - 1, cCaret.GetLeft());
 
 		//Again goes to the end of the line.
-		pTextArea->End();
+		pTextArea->GetEditing()->End();
 		AssertSize(11, pTextArea->GetCaretPosition());
 		pTextArea->GetCaretBounds(&cCaret);
 		AssertInt(24, cCaret.GetTop());
 		AssertInt(TextAreaWidth(pFont, "ccc"), cCaret.GetLeft());
 
 		//Home goes to the start of the row, then the start of the line.
-		pTextArea->Home();
+		pTextArea->GetEditing()->Home();
 		AssertSize(8, pTextArea->GetCaretPosition());
 		pTextArea->GetCaretBounds(&cCaret);
 		AssertInt(24, cCaret.GetTop());
 		AssertInt(0, cCaret.GetLeft());
-		pTextArea->Home();
+		pTextArea->GetEditing()->Home();
 		AssertSize(0, pTextArea->GetCaretPosition());
 
 		//Up and down go between the rows.
 		pTextArea->SetCaretPosition(1);
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(pTextArea->FindPositionAt(TextAreaWidth(pFont, "a"), 30), pTextArea->GetCaretPosition());
 		pTextArea->GetCaretBounds(&cCaret);
 		AssertInt(24, cCaret.GetTop());
-		pTextArea->Up();
+		pTextArea->GetEditing()->Up();
 		AssertSize(1, pTextArea->GetCaretPosition());
 
 		//Past the end of a wrapped row is its end.
@@ -342,51 +342,51 @@ void TestTextAreaEditModification(void)
 		pTestWindow->Layout();
 
 		//Typing inserts, or overwrites.
-		pTextArea->DocumentEnd();
-		pTextArea->Printable('d', true);
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->Printable('d', true);
 		AssertString("abcd", pTextArea->GetText());
-		pTextArea->Left();
-		pTextArea->Printable('X', false);
+		pTextArea->GetEditing()->Left();
+		pTextArea->GetEditing()->Printable('X', false);
 		AssertString("abcX", pTextArea->GetText());
 		AssertSize(4, pTextArea->GetCaretPosition());
-		pTextArea->Printable('Y', false);
+		pTextArea->GetEditing()->Printable('Y', false);
 		AssertString("abcXY", pTextArea->GetText());
 
 		//Tab inserts spaces to the next stop.
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		AssertString("abcXY\n", pTextArea->GetText());
-		pTextArea->Tab(true);
-		pTextArea->Printable('y', true);
-		pTextArea->Tab(true);
+		pTextArea->GetEditing()->Tab(true);
+		pTextArea->GetEditing()->Printable('y', true);
+		pTextArea->GetEditing()->Tab(true);
 		AssertString("abcXY\n    y   ", pTextArea->GetText());
 		AssertSize(14, pTextArea->GetCaretPosition());
 
 		//Tab indents the lines of a selection over more than one, and back tab removes it.
 		pTextArea->SetText("one\ntwo\nthree");
 		pTextArea->Select(0, 6);
-		pTextArea->Tab(true);
+		pTextArea->GetEditing()->Tab(true);
 		AssertString("    one\n    two\nthree", pTextArea->GetText());
 		AssertTextAreaSelection(0, 14, pTextArea);
-		pTextArea->BackTab();
+		pTextArea->GetEditing()->BackTab();
 		AssertString("one\ntwo\nthree", pTextArea->GetText());
 		AssertTextAreaSelection(0, 6, pTextArea);
 		pTextArea->Select(4, 8);
-		pTextArea->Tab(true);
+		pTextArea->GetEditing()->Tab(true);
 		AssertString("one\n    two\nthree", pTextArea->GetText());
 		pTextArea->SetCaretPosition(5);
-		pTextArea->BackTab();
+		pTextArea->GetEditing()->BackTab();
 		AssertString("one\ntwo\nthree", pTextArea->GetText());
 
 		//A selection is replaced.
 		pTextArea->Select(4, 7);
-		pTextArea->Printable('2', true);
+		pTextArea->GetEditing()->Printable('2', true);
 		AssertString("one\n2\nthree", pTextArea->GetText());
 		AssertTextAreaNoSelection(pTextArea);
 
 		//Pasted carriage returns become line feeds.
 		pTextArea->SetText("xy");
 		pTextArea->SetCaretPosition(1);
-		pTextArea->Paste((char*)"a\r\nb\rc");
+		pTextArea->GetEditing()->Paste((char*)"a\r\nb\rc");
 		AssertString("xa\nb\ncy", pTextArea->GetText());
 		AssertSize(6, pTextArea->GetCaretPosition());
 
@@ -394,11 +394,11 @@ void TestTextAreaEditModification(void)
 		pTextArea->SetText("hello world");
 		pTextArea->Select(0, 5);
 		sz.Init();
-		pTextArea->Copy(&sz);
+		pTextArea->GetEditing()->Copy(&sz);
 		AssertString("hello", sz.Text());
 		sz.Kill();
 		sz.Init();
-		pTextArea->Cut(&sz);
+		pTextArea->GetEditing()->Cut(&sz);
 		AssertString("hello", sz.Text());
 		AssertString(" world", pTextArea->GetText());
 		AssertSize(0, pTextArea->GetCaretPosition());
@@ -408,9 +408,9 @@ void TestTextAreaEditModification(void)
 		pTextArea->SetText("l1\nl2\nl3");
 		pTextArea->SetCaretPosition(4);
 		sz.Init();
-		pTextArea->Copy(&sz);
+		pTextArea->GetEditing()->Copy(&sz);
 		AssertString("", sz.Text());
-		pTextArea->Cut(&sz);
+		pTextArea->GetEditing()->Cut(&sz);
 		AssertString("l2\n", sz.Text());
 		AssertString("l1\nl3", pTextArea->GetText());
 		AssertSize(4, pTextArea->GetCaretPosition());
@@ -419,62 +419,62 @@ void TestTextAreaEditModification(void)
 		//Duplicate a line or the selection.
 		pTextArea->SetText("ab\ncd");
 		pTextArea->SetCaretPosition(1);
-		pTextArea->Duplicate();
+		pTextArea->GetEditing()->Duplicate();
 		AssertString("ab\nab\ncd", pTextArea->GetText());
 		AssertSize(4, pTextArea->GetCaretPosition());
 		pTextArea->Select(6, 8);
-		pTextArea->Duplicate();
+		pTextArea->GetEditing()->Duplicate();
 		AssertString("ab\nab\ncdcd", pTextArea->GetText());
 		AssertTextAreaSelection(8, 10, pTextArea);
 
 		//Delete lines.
 		pTextArea->SetText("l1\nl2\nl3");
 		pTextArea->SetCaretPosition(4);
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		AssertString("l1\nl3", pTextArea->GetText());
 		AssertSize(4, pTextArea->GetCaretPosition());
-		pTextArea->DocumentEnd();
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->DeleteLine();
 		AssertString("l1", pTextArea->GetText());
 		AssertSize(2, pTextArea->GetCaretPosition());
 		pTextArea->SetText("l1\nl2\nl3");
 		pTextArea->Select(1, 6);
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		AssertString("l3", pTextArea->GetText());
 
 		//Delete the rest of a word.
 		pTextArea->SetText("foo bar");
-		pTextArea->DocumentEnd();
-		pTextArea->DeleteWordRemainingLeft();
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->DeleteWordRemainingLeft();
 		AssertString("foo ", pTextArea->GetText());
 		AssertSize(4, pTextArea->GetCaretPosition());
-		pTextArea->DocumentHome();
-		pTextArea->DeleteWordRemainingRight();
+		pTextArea->GetEditing()->DocumentHome();
+		pTextArea->GetEditing()->DeleteWordRemainingRight();
 		AssertString(" ", pTextArea->GetText());
 		AssertSize(0, pTextArea->GetCaretPosition());
 
 		//New lines before and after the caret's line.
 		pTextArea->SetText("ab");
 		pTextArea->SetCaretPosition(1);
-		pTextArea->HomeEnter();
+		pTextArea->GetEditing()->HomeEnter();
 		AssertString("\nab", pTextArea->GetText());
 		AssertSize(0, pTextArea->GetCaretPosition());
 		pTextArea->SetText("ab\ncd");
-		pTextArea->EndEnter();
+		pTextArea->GetEditing()->EndEnter();
 		AssertString("ab\n\ncd", pTextArea->GetText());
 		AssertSize(3, pTextArea->GetCaretPosition());
 
 		//Delete and backspace remove the selection, or a character.
 		pTextArea->SetText("abcd");
 		pTextArea->Select(1, 3);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("ad", pTextArea->GetText());
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("a", pTextArea->GetText());
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("", pTextArea->GetText());
-		pTextArea->Backspace();
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Backspace();
+		pTextArea->GetEditing()->Delete();
 		AssertString("", pTextArea->GetText());
 
 		//Select words and everything.
@@ -485,27 +485,27 @@ void TestTextAreaEditModification(void)
 		pTextArea->SelectAll();
 		AssertTextAreaSelection(0, 15, pTextArea);
 		pTextArea->SetCaretPosition(4);
-		pTextArea->SelectRight();
-		pTextArea->SelectRight();
+		pTextArea->GetEditing()->SelectRight();
+		pTextArea->GetEditing()->SelectRight();
 		AssertTextAreaSelection(4, 6, pTextArea);
-		pTextArea->SelectWordLeft();
+		pTextArea->GetEditing()->SelectWordLeft();
 		AssertTextAreaNoSelection(pTextArea);
-		pTextArea->SelectWordLeft();
+		pTextArea->GetEditing()->SelectWordLeft();
 		AssertTextAreaSelection(3, 4, pTextArea);
-		pTextArea->SelectDocumentEnd();
+		pTextArea->GetEditing()->SelectDocumentEnd();
 		AssertTextAreaSelection(4, 15, pTextArea);
-		pTextArea->Right();
+		pTextArea->GetEditing()->Right();
 		AssertTextAreaNoSelection(pTextArea);
 
 		//A text area that isn't editable can still be selected and copied.
 		pTextArea->SetEditable(false);
 		pTextArea->SelectAll();
-		pTextArea->Printable('z', true);
-		pTextArea->Delete();
-		pTextArea->Paste((char*)"x");
+		pTextArea->GetEditing()->Printable('z', true);
+		pTextArea->GetEditing()->Delete();
+		pTextArea->GetEditing()->Paste((char*)"x");
 		AssertString("foo bar_baz qux", pTextArea->GetText());
 		sz.Init();
-		pTextArea->Cut(&sz);
+		pTextArea->GetEditing()->Cut(&sz);
 		AssertString("foo bar_baz qux", sz.Text());
 		AssertString("foo bar_baz qux", pTextArea->GetText());
 		sz.Kill();
@@ -515,14 +515,14 @@ void TestTextAreaEditModification(void)
 		pTextArea->SetText("one\ntwo\n");
 		pTextArea->SetCaretPosition(5);
 		sz.Init();
-		pTextArea->Cut(&sz);
+		pTextArea->GetEditing()->Cut(&sz);
 		AssertString("two\n", sz.Text());
 		sz.Clear();
-		pTextArea->CutLine(&sz);
+		pTextArea->GetEditing()->CutLine(&sz);
 		AssertString("two\n", sz.Text());
 		sz.Clear();
 		pTextArea->Select(0, 2);
-		pTextArea->CutLine(&sz);
+		pTextArea->GetEditing()->CutLine(&sz);
 		AssertString("on", sz.Text());
 		AssertString("one\ntwo\n", pTextArea->GetText());
 		sz.Kill();
@@ -568,7 +568,7 @@ void TestTextAreaEditSpans(void)
 
 		//Typed after the b it is red too.
 		pTextArea->SetCaretPosition(2);
-		pTextArea->Printable('x', true);
+		pTextArea->GetEditing()->Printable('x', true);
 		AssertString("abxc", pTextArea->GetText());
 		AssertTrue(sRed == pTextArea->GetColourAt(1));
 		AssertTrue(sRed == pTextArea->GetColourAt(2));
@@ -576,7 +576,7 @@ void TestTextAreaEditSpans(void)
 
 		//Typed before the span it moves the span.
 		pTextArea->SetCaretPosition(1);
-		pTextArea->Printable('y', true);
+		pTextArea->GetEditing()->Printable('y', true);
 		AssertString("aybxc", pTextArea->GetText());
 		AssertTrue(sPlain == pTextArea->GetColourAt(1));
 		AssertTrue(sRed == pTextArea->GetColourAt(2));
@@ -584,11 +584,11 @@ void TestTextAreaEditSpans(void)
 
 		//Deleting part shrinks it, deleting all removes it.
 		pTextArea->Select(3, 5);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("ayb", pTextArea->GetText());
 		AssertSize(1, pTextArea->NumSpans());
 		AssertTrue(sRed == pTextArea->GetColourAt(2));
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("ay", pTextArea->GetText());
 		AssertSize(0, pTextArea->NumSpans());
 
@@ -647,7 +647,7 @@ void TestTextAreaEditScrollPane(void)
 		AssertInt(380, pScroll->GetMaximumScrollPosition().y);
 
 		//The end of the text is scrolled into view.
-		pTextArea->DocumentEnd();
+		pTextArea->GetEditing()->DocumentEnd();
 		pTestWindow->Layout();
 		AssertInt(380, pScroll->GetScrollPosition().y);
 		pTextArea->GetCaretBounds(&cCaret);
@@ -655,35 +655,35 @@ void TestTextAreaEditScrollPane(void)
 		AssertTrue(iCaretTop >= 0);
 		AssertTrue(iCaretTop + cCaret.GetHeight() <= 100);
 
-		pTextArea->DocumentHome();
+		pTextArea->GetEditing()->DocumentHome();
 		pTestWindow->Layout();
 		AssertInt(0, pScroll->GetScrollPosition().y);
 
 		//Down past the view scrolls just enough.
-		pTextArea->Down();
-		pTextArea->Down();
-		pTextArea->Down();
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
+		pTextArea->GetEditing()->Down();
+		pTextArea->GetEditing()->Down();
+		pTextArea->GetEditing()->Down();
 		pTestWindow->Layout();
 		AssertInt(5 * 24 - 100, pScroll->GetScrollPosition().y);
 
 		//A page down moves the caret about a view's height and the view as far, so the caret stays in its place.
-		pTextArea->DocumentHome();
+		pTextArea->GetEditing()->DocumentHome();
 		pTestWindow->Layout();
-		pTextArea->PageDown();
+		pTextArea->GetEditing()->PageDown();
 		pTestWindow->Layout();
 		AssertSize(28, pTextArea->GetCaretPosition());
 		AssertInt(96, pScroll->GetScrollPosition().y);
-		pTextArea->PageUp();
+		pTextArea->GetEditing()->PageUp();
 		pTestWindow->Layout();
 		AssertSize(0, pTextArea->GetCaretPosition());
 		AssertInt(0, pScroll->GetScrollPosition().y);
-		pTextArea->SelectPageDown();
+		pTextArea->GetEditing()->SelectPageDown();
 		pTestWindow->Layout();
 		AssertTextAreaSelection(0, 28, pTextArea);
 
 		//Line down scrolls without moving the caret.
-		pTextArea->DocumentHome();
+		pTextArea->GetEditing()->DocumentHome();
 		pTestWindow->Layout();
 		pTextArea->LineDown();
 		pTestWindow->Layout();
@@ -821,10 +821,10 @@ void TestTextAreaEditTiles(void)
 		//Down and up keep the column across a tab.
 		pTextArea->SetText("\tx\nabcdefgh");
 		pTextArea->SetCaretPosition(1);
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(3 + 4, pTextArea->GetCaretPosition());
-		pTextArea->Right();
-		pTextArea->Up();
+		pTextArea->GetEditing()->Right();
+		pTextArea->GetEditing()->Up();
 		AssertSize(2, pTextArea->GetCaretPosition());
 
 		//A character the font hasn't got is a column, like the others.
@@ -836,18 +836,18 @@ void TestTextAreaEditTiles(void)
 
 		//Editing as tiles.
 		pTextArea->SetText("ab");
-		pTextArea->DocumentEnd();
-		pTextArea->Printable('c', true);
-		pTextArea->Enter();
-		pTextArea->Printable('d', true);
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->Printable('c', true);
+		pTextArea->GetEditing()->Enter();
+		pTextArea->GetEditing()->Printable('d', true);
 		AssertString("abc\nd", pTextArea->GetText());
 		pTextArea->GetCaretBounds(&cCaret);
 		AssertInt(iCell, cCaret.GetLeft());
 		AssertInt(iLine, cCaret.GetTop());
 		AssertInt(3 * iCell, pTextArea->GetTextSize().x);
 		AssertInt(2 * iLine, pTextArea->GetTextSize().y);
-		pTextArea->Backspace();
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("abc", pTextArea->GetText());
 		AssertInt(iLine, pTextArea->GetTextSize().y);
 
@@ -1018,11 +1018,11 @@ void TestTextAreaEditLineGaps(void)
 
 		//The caret is drawn below the gap, and down goes over it.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(3, pTextArea->GetCaretPosition());
 		pTextArea->GetCaretBounds(&cRect);
 		AssertInt(24 + 50, cRect.GetTop());
-		pTextArea->Up();
+		pTextArea->GetEditing()->Up();
 		AssertSize(0, pTextArea->GetCaretPosition());
 
 		//The pointer in a gap is on the line above it.
@@ -1050,16 +1050,16 @@ void TestTextAreaEditLineGaps(void)
 		//A line feed at the end of a line leaves the gap under it; at its start the line and its gap go down.
 		pTextArea->SetLineGap(1, 30);
 		pTextArea->SetCaretPosition(5);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		AssertString("ab\ncd\n\nef", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(30, pTextArea->GetLineGap(1));
 		AssertSize(1, pTextArea->NumLineGaps());
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("ab\ncd\nef", pTextArea->GetText());
 		AssertInt(30, pTextArea->GetLineGap(1));
 		pTextArea->SetCaretPosition(3);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		AssertString("ab\n\ncd\nef", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(0, pTextArea->GetLineGap(1));
@@ -1068,21 +1068,21 @@ void TestTextAreaEditLineGaps(void)
 		AssertInt(3 * 24, cRect.GetTop());
 
 		//Removing the empty line before it brings it back up.
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("ab\ncd\nef", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(30, pTextArea->GetLineGap(1));
 
 		//Typing on the line keeps its gap.
 		pTextArea->SetCaretPosition(4);
-		pTextArea->Printable('x', true);
+		pTextArea->GetEditing()->Printable('x', true);
 		AssertString("ab\ncxd\nef", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(30, pTextArea->GetLineGap(1));
 
 		//Deleting the line before it moves it up a line.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		AssertString("cxd\nef", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(30, pTextArea->GetLineGap(0));
@@ -1091,7 +1091,7 @@ void TestTextAreaEditLineGaps(void)
 		//Joining a line onto the one above loses its gap; the line above keeps its own.
 		pTextArea->SetLineGap(1, 20);
 		pTextArea->SetCaretPosition(3);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("cxdef", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(30, pTextArea->GetLineGap(0));
@@ -1102,7 +1102,7 @@ void TestTextAreaEditLineGaps(void)
 		pTextArea->SetText("x\ny\nz");
 		pTextArea->SetLineGap(1, 10);
 		pTextArea->SetCaretPosition(2);
-		pTextArea->CutLine(&szCut);
+		pTextArea->GetEditing()->CutLine(&szCut);
 		AssertString("y\n", szCut.Text());
 		AssertString("x\nz", pTextArea->GetText());
 		AssertSize(0, pTextArea->NumLineGaps());
@@ -1112,7 +1112,7 @@ void TestTextAreaEditLineGaps(void)
 		pTextArea->SetText("x\ny");
 		pTextArea->SetLineGap(1, 10);
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Paste((char*)"1\n2\n");
+		pTextArea->GetEditing()->Paste((char*)"1\n2\n");
 		AssertString("1\n2\nx\ny", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(10, pTextArea->GetLineGap(3));
@@ -1126,7 +1126,7 @@ void TestTextAreaEditLineGaps(void)
 		pTextArea->SetLineGap(2, 7);
 		pTextArea->SetLineGap(3, 8);
 		pTextArea->Select(1, 5);
-		pTextArea->Delete();
+		pTextArea->GetEditing()->Delete();
 		AssertString("a\nd", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertSize(2, pTextArea->NumLineGaps());
@@ -1135,7 +1135,7 @@ void TestTextAreaEditLineGaps(void)
 
 		//Indenting lines (no line feeds) moves no gaps.
 		pTextArea->SelectAll();
-		pTextArea->Tab(true);
+		pTextArea->GetEditing()->Tab(true);
 		AssertString("    a\n    d", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(5, pTextArea->GetLineGap(0));
@@ -1157,7 +1157,7 @@ void TestTextAreaEditLineGaps(void)
 		AssertTrue(pTextArea->SetLineGap(1, 20));
 		AssertInt(uiId, pTextArea->GetLineGapId(1));
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		AssertSize(2, pTextArea->FindLineGap(uiId));
 		AssertTrue(pTextArea->GetLineGapBounds(2, &cRect));
 		AssertInt(3 * 24, cRect.GetTop());
@@ -1165,7 +1165,7 @@ void TestTextAreaEditLineGaps(void)
 		AssertTrue(pTextArea->SetLineGap(0, 5));
 		AssertTrue(pTextArea->GetLineGapId(0) > uiId);
 		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2));
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		AssertString("\na\r\nc", pTextArea->GetText());
 		AssertSize(MAX_SIZE, pTextArea->FindLineGap(uiId));
 		AssertSize(1, pTextArea->NumLineGaps());
@@ -1258,9 +1258,9 @@ void TestTextAreaEditLineGapsWrapped(void)
 
 		//Down from the first row goes to the second, not over the gap.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(8, pTextArea->GetCaretPosition());
-		pTextArea->Down();
+		pTextArea->GetEditing()->Down();
 		AssertSize(12, pTextArea->GetCaretPosition());
 
 		pTextArea = NULL;
@@ -1371,15 +1371,15 @@ void TestTextAreaEditUndo(void)
 		AssertFalse(pTextArea->CanRedo());
 
 		//A word typed, with its space, is one edit; the next word another.
-		pTextArea->DocumentEnd();
-		pTextArea->Printable(' ', true);
-		pTextArea->Printable('d', true);
-		pTextArea->Printable('e', true);
-		pTextArea->Printable('f', true);
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->Printable(' ', true);
+		pTextArea->GetEditing()->Printable('d', true);
+		pTextArea->GetEditing()->Printable('e', true);
+		pTextArea->GetEditing()->Printable('f', true);
 		uiTyped = pTextArea->GetUndoId();
 		AssertFalse(uiTyped == uiLoaded);
-		pTextArea->Printable(' ', true);
-		pTextArea->Printable('g', true);
+		pTextArea->GetEditing()->Printable(' ', true);
+		pTextArea->GetEditing()->Printable('g', true);
 		AssertString("abc def g", pTextArea->GetText());
 		AssertTrue(pTextArea->Undo());
 		AssertString("abc def", pTextArea->GetText());
@@ -1401,10 +1401,10 @@ void TestTextAreaEditUndo(void)
 		AssertFalse(pTextArea->CanRedo());
 
 		//Moving the caret starts another edit; the change is in the middle.
-		pTextArea->Left();
-		pTextArea->Left();
-		pTextArea->Printable('X', true);
-		pTextArea->Printable('Y', true);
+		pTextArea->GetEditing()->Left();
+		pTextArea->GetEditing()->Left();
+		pTextArea->GetEditing()->Printable('X', true);
+		pTextArea->GetEditing()->Printable('Y', true);
 		AssertString("abc defXY g", pTextArea->GetText());
 		AssertTrue(pTextArea->Undo());
 		AssertString("abc def g", pTextArea->GetText());
@@ -1412,10 +1412,10 @@ void TestTextAreaEditUndo(void)
 
 		//An edit after an undo drops the redo.  Pasting and deleting are each an edit.
 		AssertTrue(pTextArea->CanRedo());
-		pTextArea->Paste((char*)"Z");
+		pTextArea->GetEditing()->Paste((char*)"Z");
 		AssertFalse(pTextArea->CanRedo());
-		pTextArea->Backspace();
-		pTextArea->Backspace();
+		pTextArea->GetEditing()->Backspace();
+		pTextArea->GetEditing()->Backspace();
 		AssertString("abc de g", pTextArea->GetText());
 		AssertTrue(pTextArea->Undo());
 		AssertString("abc def g", pTextArea->GetText());
@@ -1433,9 +1433,9 @@ void TestTextAreaEditUndo(void)
 
 		//A pause between characters starts another edit.
 		pTextArea->SetTypingPause(0);
-		pTextArea->DocumentEnd();
-		pTextArea->Printable('h', true);
-		pTextArea->Printable('i', true);
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->Printable('h', true);
+		pTextArea->GetEditing()->Printable('i', true);
 		AssertString("abc def ghi", pTextArea->GetText());
 		AssertTrue(pTextArea->Undo());
 		AssertString("abc def gh", pTextArea->GetText());
@@ -1445,7 +1445,7 @@ void TestTextAreaEditUndo(void)
 
 		//The selection a paste replaced comes back selected; redone, the caret is after the paste.
 		pTextArea->Select(4, 7);
-		pTextArea->Paste((char*)"XYZW");
+		pTextArea->GetEditing()->Paste((char*)"XYZW");
 		AssertString("abc XYZW g", pTextArea->GetText());
 		AssertTrue(pTextArea->Undo());
 		AssertString("abc def g", pTextArea->GetText());
@@ -1534,9 +1534,9 @@ void TestTextAreaEditUndoEvent(void)
 		pTextArea->GetUndoEvent()->Add(&cListener, &CTestUndoListener::UndoChanged);
 		uiLoaded = pTextArea->GetUndoId();
 
-		pTextArea->DocumentEnd();
-		pTextArea->Printable('d', true);
-		pTextArea->Printable('e', true);
+		pTextArea->GetEditing()->DocumentEnd();
+		pTextArea->GetEditing()->Printable('d', true);
+		pTextArea->GetEditing()->Printable('e', true);
 		pTextArea->Undo();
 		pTextArea->Redo();
 		AssertInt(4, (int)cListener.maiChanges.NumElements());
@@ -1925,7 +1925,7 @@ void TestTextAreaEditOccurrences(void)
 		pTextArea->Select(17, 20);
 		pTestWindow->RunPosted();
 		AssertSize(3, pTextArea->NumOccurrences());
-		pTextArea->Paste((char*)"bar");
+		pTextArea->GetEditing()->Paste((char*)"bar");
 		pTestWindow->RunPosted();
 		AssertSize(0, pTextArea->NumOccurrences());
 		AssertTrue(pTextArea->Undo());
@@ -2035,7 +2035,7 @@ void TestTextAreaEditOccurrenceRanges(void)
 		pTestWindow->Paint();
 		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
 		pTextArea->SetOccurrenceRanges(asRanges, 3);
-		pTextArea->Printable('x', true);
+		pTextArea->GetEditing()->Printable('x', true);
 		AssertSize(0, pTextArea->NumOccurrenceRanges());
 		pTextArea->SetOccurrenceRanges(asRanges, 3);
 		AssertTrue(pTextArea->Undo());

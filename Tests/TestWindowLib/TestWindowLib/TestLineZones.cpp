@@ -268,7 +268,7 @@ void TestLineZonesOutOfDate(void)
 
 		//A line put in at the top: everything moves down a line, out of date.
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		pTestWindow->Layout();
 		AssertTrue(pZones->IsOutOfDate());
 		AssertString(" 1 \n 2 \n 3 \n 4 \n 5 \n 6 ", pEditor->GetGutter()->GetText());
@@ -314,7 +314,7 @@ void TestLineZonesOutOfDate(void)
 
 		//Deleting the zone's line takes the zone with it.
 		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2));
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		pTestWindow->Layout();
 		AssertTrue(pZones->IsOutOfDate());
 		AssertSize(0, pEditor->NumLineComponents());
@@ -385,12 +385,12 @@ void TestLineZonesFollowEditsAtOnce(void)
 		AssertSize(2, pZones->NumZones());
 
 		pTextArea->SetCaretPosition(0);
-		pTextArea->Enter();
+		pTextArea->GetEditing()->Enter();
 		AssertTrue(pZones->IsOutOfDate());
 
 		//The zone that was under line 2 is under line 3 now.
 		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2));
-		pTextArea->DeleteLine();
+		pTextArea->GetEditing()->DeleteLine();
 		AssertSize(1, pZones->NumZones());
 		AssertTrue(pZones->FindZone(2).IsNull());
 		AssertTrue(pZones->FindZone(3).IsNotNull());

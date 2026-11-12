@@ -77,6 +77,9 @@ typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  /
 //ones added before it.  Line backgrounds don't cover the gaps below lines.  Ranges move with the text and grow with
 //text put strictly inside them; line backgrounds and boundaries stay with their lines as gaps do.  Setting the text
 //removes them.
+//
+//The moves and edits themselves (Up, SelectRight, Printable, Paste ...) are the editing's: GetEditing gives it, and the
+//input actions reach it directly.  The text area has only what it adds to them: the text, its layout and what is drawn.
 class CTextArea : public CCanvas, public CTextEditingView
 {
 CONSTRUCTABLE(CTextArea);
@@ -187,6 +190,7 @@ public:
 	size				GetOccurrenceLength(void);
 	void				FindOccurrences(void);
 	size				GetCaretLine(void);
+	CTextEditing*		GetEditing(void);
 	size				GetCaretPosition(void);
 	void				SetCaretPosition(size uiPosition);
 	bool				GetSelection(size* puiStart, size* puiEnd);
@@ -214,30 +218,6 @@ public:
 	void					SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
 	//The edits and moves of the text area's CTextEditing.
-	void				Up(void);
-	void				Down(void);
-	void				Left(void);
-	void				Right(void);
-	void				WordLeft(void);
-	void				WordRight(void);
-	void				Home(void);
-	void				End(void);
-	void				DocumentHome(void);
-	void				DocumentEnd(void);
-	void				PageUp(void);
-	void				PageDown(void);
-	void				SelectUp(void);
-	void				SelectDown(void);
-	void				SelectLeft(void);
-	void				SelectRight(void);
-	void				SelectWordLeft(void);
-	void				SelectWordRight(void);
-	void				SelectHome(void);
-	void				SelectEnd(void);
-	void				SelectDocumentHome(void);
-	void				SelectDocumentEnd(void);
-	void				SelectPageUp(void);
-	void				SelectPageDown(void);
 	void				ExtendSelection(void);
 	void				ShrinkSelection(void);
 	void				SetSelectionRanges(CTextSelectionRanges* pcRanges);
@@ -245,24 +225,7 @@ public:
 	bool				IsBox(void);
 	void				GetBoxRanges(CArrayTextRange* pasDest);
 	void				SelectAll(void);
-	void				ClearSelection(void);
-	void				Printable(char c, bool bInsert);
-	void				Tab(bool bInsert);
-	void				BackTab(void);
-	void				Enter(void);
-	void				HomeEnter(void);
-	void				EndEnter(void);
-	void				Delete(void);
-	void				Backspace(void);
-	void				Cut(CChars* pszDest);
-	void				Copy(CChars* pszDest);
-	void				Paste(char* szSource);
 	bool				ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
-	void				CutLine(CChars* pszDest);
-	void				Duplicate(void);
-	void				DeleteWordRemainingRight(void);
-	void				DeleteWordRemainingLeft(void);
-	void				DeleteLine(void);
 
 	void				LineUp(void);
 	void				LineDown(void);

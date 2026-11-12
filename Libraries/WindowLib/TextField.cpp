@@ -511,19 +511,12 @@ void CTextField::UpdateLook(void)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CTextField::GetText(void) { return mcDocument.Text(); }
+CTextEditing* CTextField::GetEditing(void) { return &mcEditing; }  //The caret, the selection and the edits: its moves and edits are made through it.
 size CTextField::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
 void CTextField::SetCaretPosition(size uiPosition) { mcEditing.SetCaretPosition(uiPosition); }
 bool CTextField::GetSelection(size* puiStart, size* puiEnd) { return mcEditing.GetSelection(puiStart, puiEnd); }
 void CTextField::Select(size uiStart, size uiEnd) { mcEditing.Select(uiStart, uiEnd); }
 void CTextField::SelectAll(void) { mcEditing.SelectAll(); }
-void CTextField::Printable(char c, bool bInsert) { mcEditing.Printable(c, bInsert); }
-void CTextField::Delete(void) { mcEditing.Delete(); }
-void CTextField::Backspace(void) { mcEditing.Backspace(); }
-void CTextField::Cut(CChars* pszDest) { mcEditing.Cut(pszDest); }
-void CTextField::Copy(CChars* pszDest) { mcEditing.Copy(pszDest); }
-void CTextField::Paste(char* szSource) { mcEditing.Paste(szSource); }
-void CTextField::DeleteWordRemainingRight(void) { mcEditing.DeleteWordRemainingRight(); }
-void CTextField::DeleteWordRemainingLeft(void) { mcEditing.DeleteWordRemainingLeft(); }
 void CTextField::CutToClipboard(void) { mcInput.CutToClipboard(); }
 void CTextField::CopyToClipboard(void) { mcInput.CopyToClipboard(); }
 void CTextField::PasteFromClipboard(void) { mcInput.PasteFromClipboard(); }

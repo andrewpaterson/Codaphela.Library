@@ -711,7 +711,7 @@ void TestTextFieldSharedEditing(void)
 		pField->SetText("x\ny");
 		AssertString("x y", pField->GetText());
 		AssertSize(3, pField->GetCaretPosition());
-		pField->Paste((char*)"\r\nz");
+		pField->GetEditing()->Paste((char*)"\r\nz");
 		AssertString("x y z", pField->GetText());
 
 		pField = NULL;

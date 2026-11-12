@@ -72,6 +72,7 @@ public:
 
 	void						SetText(const char* szText);
 	char*						GetText(void);
+	CTextEditing*				GetEditing(void);
 	size						GetCaretPosition(void);
 	void						SetCaretPosition(size uiPosition);
 	bool						GetSelection(size* puiStart, size* puiEnd);
@@ -99,14 +100,6 @@ public:
 	bool						GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour) override;
 	void						FocusOrMouseOverChanged(void) override;
 
-	void						Printable(char c, bool bInsert);
-	void						Delete(void);
-	void						Backspace(void);
-	void						Cut(CChars* pszDest);
-	void						Copy(CChars* pszDest);
-	void						Paste(char* szSource);
-	void						DeleteWordRemainingRight(void);
-	void						DeleteWordRemainingLeft(void);
 	void						CutToClipboard(void);
 	void						CopyToClipboard(void);
 	void						PasteFromClipboard(void);
