@@ -1,7 +1,7 @@
 65C64 simulator
 ===============
 
-Source: 658-Computer/W65C64/65C64 Instruction Architecture.xlsx (V0.1 Prelim).
+Source: HCP65/W65C64/65C64 Instruction Architecture.xlsx (V0.1 Prelim).
 The pinout, user bank remapping, the internal "cache" SRAM and the programmable
 CPLD are ignored.
 
