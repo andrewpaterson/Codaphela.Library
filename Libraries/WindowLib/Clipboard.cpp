@@ -127,6 +127,49 @@ bool CClipboard::GetText(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// As GetText, to paste it: the text is made the newest entry of the
+// history if it isn't, as it isn't when another program put it there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClipboard::TakeText(CChars* pszDest)
+{
+	size	uiLength;
+	char*	szText;
+
+	uiLength = pszDest->Length();
+	if (!GetText(pszDest))
+	{
+		return false;
+	}
+	szText = &pszDest->Text()[uiLength];
+	if ((szText[0] != '\0') && !GetHistory()->IsNewest(szText))
+	{
+		GetHistory()->Add(szText);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Looks at the system's clipboard: its text is made the newest entry of
+// the history if it isn't.  True if it had text.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClipboard::Sync(void)
+{
+	CChars	szText;
+	bool	bText;
+
+	szText.Init();
+	bText = TakeText(&szText);
+	szText.Kill();
+	return bText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 // The history what is put on the clipboard is kept in: the one of the

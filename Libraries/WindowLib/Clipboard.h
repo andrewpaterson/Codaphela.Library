@@ -32,7 +32,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //What is put on it is kept in its history (GetHistory, a CClipboardHistory), for Paste from History.  A window shown
 //over or owned by another shares its owner's history (ShareHistory), so there is one for the application.  A history
-//is made when it is first wanted.
+//is made when it is first wanted.  Text another program put on the system's clipboard gets into the history when the
+//clipboard is next looked at: when it is pasted from (TakeText) and when asked (Sync), as a window is when it is
+//activated.
 class CWindow;
 class CNativeClipboard;
 class CClipboard : public CObject
@@ -55,6 +57,8 @@ public:
 
 	bool				SetText(const char* szText);
 	bool				GetText(CChars* pszDest);
+	bool				TakeText(CChars* pszDest);
+	bool				Sync(void);
 
 	template<class C>
 	void				CopyFrom(C* pcFrom, void (C::*fTake)(CChars* pszDest));
@@ -101,7 +105,7 @@ void CClipboard::PasteInto(C* pcInto, void (C::*fPaste)(char* szSource))
 	CChars	szText;
 
 	szText.Init();
-	GetText(&szText);
+	TakeText(&szText);
 	(pcInto->*fPaste)(szText.Text());
 	szText.Kill();
 }

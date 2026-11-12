@@ -98,7 +98,8 @@ Steps (a commit each; tests named are new or extended)
   1. BUILT.  CClipboardHistory, and CClipboard adding to it.  The history shared by ShowModal and ShowOwned windows.
      TestClipboardHistory (order, duplicate moves up, limit, remove, too big not kept); TestClipboard: a copy in a
      text field of a dialog is in its owner's history.
-  2. Sync: the system's text into the history at activation, before paste and on request.  The reference window's
+  2. BUILT (TakeText is the paste's read; the test's other program is a second window with a history of its own).
+     Sync: the system's text into the history at activation, before paste and on request.  The reference window's
      clipboard (WinRefLib) can have its text set behind the CClipboard's back for the test.
   3. CListContainer multi selection (off by default): Shift and Control with keys and pointer, GetSelectedRows, the
      selection event told once.  TestList.

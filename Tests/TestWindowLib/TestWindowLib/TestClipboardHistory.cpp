@@ -90,7 +90,9 @@ void TestClipboardHistoryEntries(void)
 //
 // What a window's clipboard is given goes into its history, a text area's
 // copy and cut too.  Another window has a history of its own until it is
-// shares the first's, as a dialog shares its owner's.
+// shares the first's, as a dialog shares its owner's.  What another
+// program copies gets into a history when its clipboard is looked at:
+// when its window is activated and when it is pasted from.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestClipboardHistoryClipboard(void)
@@ -148,6 +150,31 @@ void TestClipboardHistoryClipboard(void)
 		pOtherWindow->GetClipboard()->SetText("shared");
 		AssertSize(4, pHistory->NumEntries());
 		AssertString("shared", pHistory->GetText(0));
+
+		//Its own again, it stands for another program: what it copies isn't in the first's history until the first
+		//looks at the system's clipboard, as it does when it is activated.
+		pOtherWindow->GetClipboard()->ShareHistory(Ptr<CClipboard>());
+		pOtherWindow->GetClipboard()->SetText("elsewhere");
+		AssertSize(4, pHistory->NumEntries());
+		pTestWindow->Activate();
+		AssertSize(5, pHistory->NumEntries());
+		AssertString("elsewhere", pHistory->GetText(0));
+		pTestWindow->Activate();
+		AssertTrue(pTestWindow->GetClipboard()->Sync());
+		AssertSize(5, pHistory->NumEntries());
+
+		//And when it pastes it.  What is there that the history has already moves to the front.
+		pOtherWindow->GetClipboard()->SetText("pasted");
+		pTextArea->SetCaretPosition(0);
+		pTextArea->PasteFromClipboard();
+		AssertString("pastedone  three", pTextArea->GetText());
+		AssertSize(6, pHistory->NumEntries());
+		AssertString("pasted", pHistory->GetText(0));
+		pOtherWindow->GetClipboard()->SetText("one");
+		AssertTrue(pTestWindow->GetClipboard()->Sync());
+		AssertSize(6, pHistory->NumEntries());
+		AssertString("one", pHistory->GetText(0));
+		AssertString("pasted", pHistory->GetText(1));
 		ORoot()->Remove(pOtherWindow);
 		pOtherWindow = NULL;
 

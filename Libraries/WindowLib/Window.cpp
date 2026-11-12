@@ -1026,13 +1026,15 @@ void CWindow::InputPrintable(char c, bool bInsert) { DismissToolTip(); mcFocus.P
 //////////////////////////////////////////////////////////////////////////
 //
 // The window became the active window (the platform's focus came to it):
-// the activation event is called, as for an IDE to see whether its files
-// were changed while it wasn't.
+// what another program copied meanwhile goes into the clipboard's history,
+// and the activation event is called, as for an IDE to see whether its
+// files were changed while it wasn't.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Activate(void)
 {
 	ClaimInput();
+	mpClipboard->Sync();
 	mcFocus.Activate();
 	InvalidateLayout();
 	mcActivated.Call(this);
