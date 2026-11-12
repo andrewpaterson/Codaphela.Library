@@ -48,6 +48,8 @@ void CPasteHistoryDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFo
 
 void CPasteHistoryDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFontFamily> pPreviewFamily, Ptr<CFont> pPreviewFont)
 {
+	Ptr<CComponent>	pBody;
+
 	PreInit();
 
 	mauiRows.Init();
@@ -58,7 +60,9 @@ void CPasteHistoryDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFo
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, "Choose Content to Paste");
 	mpDialog->SetResizable(GetMetric(TM_GoToWidth) / 2, GetMetric(TM_GoToHeight) / 2);
 	mpDialog->SetApprover(this, &CPasteHistoryDialog::Approve);
-	mpDialog->SetBody(CreateBody(pPreviewFamily, pPreviewFont), mpList);
+	//The body is made first: it makes the component that has the keys when the dialog opens.
+	pBody = CreateBody(pPreviewFamily, pPreviewFont);
+	mpDialog->SetBody(pBody, mpList);
 
 	mpList->GetActivationEvent()->Add(this, &CPasteHistoryDialog::RowActivated);
 	mpList->GetSelectionEvent()->Add(this, &CPasteHistoryDialog::SelectionChanged);

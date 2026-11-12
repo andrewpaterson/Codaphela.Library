@@ -3,7 +3,9 @@
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/Clipboard.h"
 #include "WindowLib/PasteHistoryDialog.h"
+#include "WindowLib/TextField.h"
 #include "TestWindow.h"
+#include "ScriptFramesTick.h"
 
 
 Ptr<CFont> GenerateMenuFont(Ptr<CWindow> pWindow);
@@ -206,6 +208,141 @@ void TestPasteHistoryDialogChoose(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A form with a text field, shown over the test's window, whose field
+// pastes from the history: the chooser is shown over the form.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestPasteOverDialog
+{
+public:
+	SDialogLook					sLook;
+	Ptr<CWindowTheme>			pTheme;
+	Ptr<CWindow>				pOwner;
+	Ptr<CDialog>				pForm;
+	Ptr<CTextField>				pField;
+	Ptr<CPasteHistoryDialog>	pChooser;
+	int32						iFormTicks;
+	int32						iChooserTicks;
+	CChars						szPasted;
+
+	//The form's first tick copies the field's text, which is all selected, and asks to paste from the history; the
+	//chooser is shown before its second, which reads what was pasted and closes the form.
+	void FormTick(void)
+	{
+		iFormTicks++;
+		if (iFormTicks == 1)
+		{
+			AssertTrue(pForm->GetWindow()->GetFocus()->GetFocussedComponent() == pField);
+			pForm->GetWindow()->InputCommand(CIC_Copy, true);
+			AssertString("form text", pOwner->GetClipboard()->GetHistory()->GetText(0));
+			AssertTrue(pForm->GetWindow()->GetClipboard()->GetHistory() == pOwner->GetClipboard()->GetHistory());
+			pForm->GetWindow()->InputCommand(CIC_PasteFromHistory, true);
+			AssertSize(1, pForm->GetWindow()->NumPosted());
+			pForm->GetWindow()->RequestTick(0);
+		}
+		else
+		{
+			szPasted.Set(pField->GetText());
+			pForm->Close("OK");
+		}
+	}
+
+	//The chooser's first tick chooses its second row.
+	void ChooserTick(void)
+	{
+		iChooserTicks++;
+		AssertInt(2, pChooser->GetList()->NumRows());
+		pChooser->GetDialog()->GetWindow()->InputPrintable('2', true);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PasteOverDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
+{
+	CTestPasteOverDialog*	pcTest;
+
+	if (iFrame != 0)
+	{
+		return false;
+	}
+	pcTest = (CTestPasteOverDialog*)pvContext;
+	pWindow->GetClipboard()->SetText("owner text");
+	pcTest->pChooser = OMalloc<CPasteHistoryDialog>(pWindow, &pcTest->sLook, pcTest->pTheme->GetFont());
+	pcTest->pChooser->GetDialog()->SetTicker(pcTest, &CTestPasteOverDialog::ChooserTick);
+	pWindow->GetClipboard()->GetHistory()->SetChooser(&pcTest->pChooser);
+
+	pcTest->pForm = OMalloc<CDialog>(pWindow, &pcTest->sLook, "Form");
+	pcTest->pField = pcTest->pForm->AddTextField("Name:", "form text");
+	pcTest->pForm->SetTicker(pcTest, &CTestPasteOverDialog::FormTick);
+	AssertTrue(pcTest->pForm->Show());
+
+	//The chooser was shown once, over the form; what it chose replaced the field's selected text and is the newest.
+	AssertInt(2, pcTest->iFormTicks);
+	AssertInt(1, pcTest->iChooserTicks);
+	AssertString("owner text", pcTest->szPasted.Text());
+	AssertString("owner text", pWindow->GetClipboard()->GetHistory()->GetText(0));
+	AssertString("form text", pWindow->GetClipboard()->GetHistory()->GetText(1));
+
+	pWindow->GetClipboard()->GetHistory()->SetChooser(NULL);
+	pcTest->pChooser->GetDialog()->ClearTicker();
+	pcTest->pForm->ClearTicker();
+	pcTest->pChooser = NULL;
+	pcTest->pField = NULL;
+	pcTest->pForm = NULL;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Paste from History in a dialog's text field: the dialog shares its
+// owner's history, and the chooser is shown over the dialog.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPasteHistoryDialogOverDialog(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CScriptFramesTick>	pTick;
+		CTestPasteOverDialog	cTest;
+
+		cTest.iFormTicks = 0;
+		cTest.iChooserTicks = 0;
+		cTest.szPasted.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CScriptFramesTick>(PasteOverDialogOwnerFrames, &cTest);
+		pTestWindow = OMalloc<CWindow>("Paste Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		cTest.pOwner = pTestWindow;
+		cTest.pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		cTest.sLook.pcTheme = &cTest.pTheme;
+		cTest.sLook.pcDimFont = &cTest.pTheme->GetFont();
+
+		pTestWindow->Show();
+
+		cTest.szPasted.Kill();
+		cTest.sLook.Kill();
+		cTest.pTheme = NULL;
+		cTest.pOwner = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPasteHistoryDialog(void)
@@ -214,6 +351,7 @@ void TestPasteHistoryDialog(void)
 	ObjectsInit();
 
 	TestPasteHistoryDialogChoose();
+	TestPasteHistoryDialogOverDialog();
 
 	ObjectsFlush();
 	ObjectsKill();

@@ -143,6 +143,8 @@ SGoToItem* CGoToItems::Get(size uiIndex) { return masItems.Get(uiIndex); }
 //////////////////////////////////////////////////////////////////////////
 void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle, CGoToSearcher* pcSearcher, Ptr<CFont> pMatchFont)
 {
+	Ptr<CComponent>	pBody;
+
 	PreInit();
 
 	mpcSearcher = pcSearcher;
@@ -157,7 +159,9 @@ void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szT
 	mpDialog->RemoveButtons();
 	mpDialog->SetResizable(GetMetric(TM_GoToWidth) / 2, GetMetric(TM_GoToHeight) / 2);
 	mpDialog->SetApprover(this, &CGoToDialog::Approve);
-	mpDialog->SetBody(CreateBody(), mpField);
+	//The body is made first: it makes the component that has the keys when the dialog opens.
+	pBody = CreateBody();
+	mpDialog->SetBody(pBody, mpField);
 	mpCommands = OMalloc<CCommandSet>();
 	mpDialog->GetWindow()->SetCommands(mpCommands);
 

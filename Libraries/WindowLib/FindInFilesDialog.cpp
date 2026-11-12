@@ -138,6 +138,8 @@ void CFindInFilesSearcher::FindPreviewShown(SFindInFilesItem* psItem, Ptr<CTextA
 //////////////////////////////////////////////////////////////////////////
 void CFindInFilesDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle, CFindInFilesSearcher* pcSearcher, Ptr<CFont> pMatchFont, Ptr<CFontFamily> pCodeFamily)
 {
+	Ptr<CComponent>	pBody;
+
 	PreInit();
 
 	mpcSearcher = pcSearcher;
@@ -155,7 +157,9 @@ void CFindInFilesDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const ch
 	mpDialog->RemoveButtons();
 	mpDialog->SetResizable(GetMetric(TM_FindWidth) / 2, GetMetric(TM_FindHeight) / 2);
 	mpDialog->SetApprover(this, &CFindInFilesDialog::Approve);
-	mpDialog->SetBody(CreateBody(), mpField);
+	//The body is made first: it makes the component that has the keys when the dialog opens.
+	pBody = CreateBody();
+	mpDialog->SetBody(pBody, mpField);
 
 	mpTabs->GetSelectionEvent()->Add(this, &CFindInFilesDialog::ScopeSelected);
 	mpField->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
