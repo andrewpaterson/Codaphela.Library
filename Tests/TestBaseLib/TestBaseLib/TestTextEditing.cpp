@@ -945,6 +945,76 @@ void TestTextEditingBoxLines(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A block, the rows a box selection copied, pasted at a caret goes in as
+// a column: each line at the caret's column of the next line down, short
+// lines filled out with spaces and lines added past the text's end.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingPasteBlock(void)
+{
+	STestTextEditing	s;
+
+	//abcdef 0..6, ab 7..9, abcdefgh 10..18: at column 2 of the first line.
+	s.Init("abcdef\nab\nabcdefgh");
+	s.cEditing.SetCaretPosition(2);
+	s.cEditing.PasteBlock((char*)"X\nY\nZ");
+	AssertString("abXcdef\nabY\nabZcdefgh", s.Text());
+	AssertSize(15, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+
+	//One edit.
+	AssertTrue(s.cEditing.Undo());
+	AssertString("abcdef\nab\nabcdefgh", s.Text());
+	AssertSize(2, s.Caret());
+
+	//A line that doesn't reach the column is filled out to it; a line feed ending the block isn't another row.
+	s.cEditing.SetCaretPosition(4);
+	s.cEditing.PasteBlock((char*)"12\n34\n");
+	AssertString("abcd12ef\nab  34\nabcdefgh", s.Text());
+	AssertSize(15, s.Caret());
+	AssertTrue(s.cEditing.Undo());
+
+	//Past the last line, lines are added.
+	s.cEditing.SetCaretPosition(11);
+	s.cEditing.PasteBlock((char*)"X\nY\nZ");
+	AssertString("abcdef\nab\naXbcdefgh\n Y\n Z", s.Text());
+	AssertTrue(s.cEditing.Undo());
+
+	//Over a selection: it goes first, and the column is where it started.
+	s.cEditing.Select(1, 3);
+	s.cEditing.PasteBlock((char*)"-\n+");
+	AssertString("a-def\na+b\nabcdefgh", s.Text());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("abcdef\nab\nabcdefgh", s.Text());
+
+	//In a box it is pasted as any text is: a line to each row.
+	s.cEditing.BoxSelect(0, 1, 1, 1);
+	s.cEditing.PasteBlock((char*)"X\nY");
+	AssertString("aXbcdef\naYb\nabcdefgh", s.Text());
+	AssertTrue(s.cEditing.IsBox());
+	AssertTrue(s.cEditing.Undo());
+
+	//Nothing, or a text that can't be edited: nothing.
+	s.cEditing.SetCaretPosition(0);
+	s.cEditing.PasteBlock((char*)"");
+	s.cEditing.PasteBlock(NULL);
+	s.cEditing.SetEditable(false);
+	s.cEditing.PasteBlock((char*)"X\nY");
+	AssertString("abcdef\nab\nabcdefgh", s.Text());
+	s.Kill();
+
+	//A single line text takes it as it takes any paste: on its one line.
+	s.Init("ab");
+	s.cEditing.SetSingleLine(true);
+	s.cEditing.SetCaretPosition(1);
+	s.cEditing.PasteBlock((char*)"X\nY");
+	AssertString("aX Yb", s.Text());
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A text that isn't editable can be moved in, selected and copied from,
 // and cut copies what it would cut, but nothing changes it.
 //
@@ -1140,6 +1210,7 @@ void TestTextEditing(void)
 	TestTextEditingExtendSelection();
 	TestTextEditingBox();
 	TestTextEditingBoxLines();
+	TestTextEditingPasteBlock();
 	TestTextEditingNotEditable();
 	TestTextEditingFollowsDocument();
 	TestTextEditingNothingChanged();

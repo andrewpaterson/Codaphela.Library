@@ -99,15 +99,16 @@ bool CClipboard::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 //
 // Replaces what is on the clipboard with szText (UTF8), which becomes the
-// newest entry of the history.  Returns false if the clipboard couldn't be
+// newest entry of the history, a block if bBlock (copied from a box
+// selection).  Returns false if the clipboard couldn't be
 // written, as when another program has it open: the history has it still.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClipboard::SetText(const char* szText)
+bool CClipboard::SetText(const char* szText, bool bBlock)
 {
 	CClipboard*	pcDetached;
 
-	GetHistory()->Add(szText);
+	GetHistory()->Add(szText, bBlock);
 	pcDetached = FindDetached();
 	if (pcDetached)
 	{
@@ -186,6 +187,23 @@ bool CClipboard::Sync(void)
 	bText = TakeText(&szText);
 	szText.Kill();
 	return bText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szText, read from the clipboard, was put there as a block: it is the
+// history's newest entry and that is one.  The system's clipboard doesn't
+// say, so only what was copied here can be.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClipboard::IsBlockText(const char* szText)
+{
+	if (mpShared.IsNotNull())
+	{
+		return mpShared->IsBlockText(szText);
+	}
+	return mpHistory.IsNotNull() && mpHistory->IsBlockText(szText);
 }
 
 

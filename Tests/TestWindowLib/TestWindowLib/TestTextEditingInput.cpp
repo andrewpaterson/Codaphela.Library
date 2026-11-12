@@ -855,6 +855,44 @@ void TestTextEditingInputPasteFromHistory(void)
 	AssertSize(3, cChooser.muiAsked);
 	AssertString("oneoneab", s.Text());
 
+	//What a box copies is a block: pasted at a caret it goes in as a column, from the clipboard or chosen from the
+	//history.  Copied again from a plain selection the same text is plain.
+	s.cEditing.ReplaceText("abc\ndef\nxyz");
+	s.cEditing.BoxSelect(0, 1, 1, 2);
+	AssertTrue(s.Command(CIC_Copy));
+	AssertString("b\ne", pHistory->GetText(0));
+	AssertTrue(pClipboard->IsBlockText("b\ne"));
+	s.cEditing.SetCaretPosition(0);
+	AssertTrue(s.Command(CIC_Paste));
+	AssertString("babc\nedef\nxyz", s.Text());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("abc\ndef\nxyz", s.Text());
+
+	pClipboard->SetText("other");
+	AssertFalse(pClipboard->IsBlockText("b\ne"));
+	cChooser.mszAnswer = "b\ne";
+	s.cEditing.SetCaretPosition(7);
+	s.Command(CIC_PasteFromHistory);
+	s.pWindow->RunPosted();
+	AssertString("abc\ndefb\nxyze", s.Text());
+	AssertTrue(pClipboard->IsBlockText("b\ne"));
+	AssertTrue(s.cEditing.Undo());
+
+	s.cEditing.Select(1, 6);
+	AssertTrue(s.Command(CIC_Copy));
+	AssertString("bc\nde", pHistory->GetText(0));
+	AssertFalse(pClipboard->IsBlockText("bc\nde"));
+	s.cEditing.SetCaretPosition(0);
+	AssertTrue(s.Command(CIC_Paste));
+	AssertString("bc\ndeabc\ndef\nxyz", s.Text());
+
+	//A box cut is a block too.
+	s.cEditing.ReplaceText("abc\ndef");
+	s.cEditing.BoxSelect(0, 0, 1, 1);
+	AssertTrue(s.Command(CIC_Cut));
+	AssertString("bc\nef", s.Text());
+	AssertTrue(pClipboard->IsBlockText("a\nd"));
+
 	pHistory->SetChooser(NULL);
 	pHistory = NULL;
 	pClipboard = NULL;

@@ -1671,6 +1671,85 @@ void CTextEditing::Paste(char* szSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szSource, the rows a box selection copied, is pasted as a column: its
+// first line goes in at the caret (over the selection, if there is one)
+// and each line after it at the same column of the next line down.  A
+// line that doesn't reach the column is filled out to it with spaces and
+// lines are added after the text's last for the rows past it.  The caret
+// is left after the last row's text.  It is one edit.  In a box, or in a
+// single line text, it is pasted as Paste pastes it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::PasteBlock(char* szSource)
+{
+	CChars		szText;
+	CArrayChars	aszLines;
+	CChars		szSpaces;
+	size		uiLineStart;
+	size		uiLineEnd;
+	size		uiPosition;
+	size		uiColumn;
+	size		uiColumns;
+	size		i;
+
+	if (mbBox || mbSingleLine)
+	{
+		Paste(szSource);
+		return;
+	}
+	if (!BeginEditIfEditable() || (szSource == NULL) || (szSource[0] == '\0'))
+	{
+		return;
+	}
+
+	szText.Init(szSource);
+	MakeInsertable(&szText);
+	if (szText.EndsWith("\n"))
+	{
+		szText.RemoveFromEnd(1);
+	}
+	aszLines.Init();
+	szText.Split(&aszLines, '\n');
+	DeleteSelection();
+	muiAnchor = MAX_SIZE;
+
+	uiLineStart = mpcNavigation->FindLineStart(muiCaret);
+	uiColumn = mpcNavigation->CountColumns(uiLineStart, muiCaret);
+	uiPosition = muiCaret;
+	for (i = 0; i < aszLines.NumElements(); i++)
+	{
+		if (i > 0)
+		{
+			//The next line down, added if the text ends here; the column there, filled out to if the line is short.
+			uiLineEnd = mpcNavigation->FindLineEnd(uiLineStart);
+			if (uiLineEnd >= mpcDocument->Length())
+			{
+				InsertText(mpcDocument->Length(), "\n");
+			}
+			uiLineStart = mpcNavigation->NextPosition(uiLineEnd);
+			uiPosition = mpcNavigation->FindColumn(uiLineStart, uiColumn);
+			uiColumns = mpcNavigation->CountColumns(uiLineStart, uiPosition);
+			if (uiColumns < uiColumn)
+			{
+				szSpaces.Init();
+				szSpaces.Append(' ', uiColumn - uiColumns);
+				InsertText(uiPosition, szSpaces.Text());
+				uiPosition += szSpaces.Length();
+				szSpaces.Kill();
+			}
+		}
+		InsertText(uiPosition, aszLines.GetText(i));
+		uiPosition += aszLines.Get(i)->Length();
+	}
+	muiCaret = uiPosition;
+	aszLines.Kill();
+	szText.Kill();
+	EditDone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The text from uiStart to uiEnd is moved to uiTo, or with bCopy copied
 // there, as one edit: one undo puts it back, with the selection before
 // it.  The text at uiTo is selected after, the caret at its end, as a

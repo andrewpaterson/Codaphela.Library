@@ -148,7 +148,9 @@ public:
 //Typing, tab, backspace, delete, paste and cut act on every row's range as one edit; a box with no width is a caret on
 //every row.  Copy gives the rows' ranges joined by line feeds; pasting as many lines as the box has rows puts one on
 //each, any other text goes on every row.  While there is a box nothing else is selected and the caret is its caret
-//corner.  The commands that work on whole lines (back tab, delete line, duplicate, cut line) work on the lines of the
+//corner.  What a box copies is a block: pasted back at a plain caret with PasteBlock its lines go in as a column from
+//the caret down, each at the caret's column of its line (a shorter line is filled out with spaces, and lines are
+//added past the text's end).  The commands that work on whole lines (back tab, delete line, duplicate, cut line) work on the lines of the
 //box's rows: the box becomes a selection of them first.  Moving the caret any other way, clearing the selection, or
 //any other edit (enter, deleting a word, undo) ends it, the caret at its caret corner.
 //
@@ -264,6 +266,7 @@ public:
 	void		CutLine(CChars* pszDest);
 	void		Copy(CChars* pszDest);
 	void		Paste(char* szSource);
+	void		PasteBlock(char* szSource);
 	bool		ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
 	bool		MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy);
 	void		ReplaceText(const char* szText);

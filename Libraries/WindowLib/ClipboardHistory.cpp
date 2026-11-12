@@ -30,6 +30,7 @@ void CClipboardHistory::Init(void)
 {
 	PreInit();
 	maszEntries.Init();
+	mauiBlocks.Init();
 	muiLimit = CLIPBOARD_HISTORY_LIMIT;
 	muiMaxEntryBytes = CLIPBOARD_HISTORY_MAX_ENTRY_BYTES;
 	mpcChooser = NULL;
@@ -44,6 +45,7 @@ void CClipboardHistory::Init(void)
 void CClipboardHistory::Class(void)
 {
 	U_Unknown(CArrayChars, maszEntries);
+	U_Unknown(CArrayTemplate<uint8>, mauiBlocks);
 	U_Size(muiLimit);
 	U_Size(muiMaxEntryBytes);
 	U_Pointer(mpcChooser);
@@ -56,6 +58,7 @@ void CClipboardHistory::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CClipboardHistory::Free(void)
 {
+	mauiBlocks.Kill();
 	maszEntries.Kill();
 }
 
@@ -80,7 +83,7 @@ void CClipboardHistory::SetLimit(size uiLimit)
 	muiLimit = (uiLimit > 0) ? uiLimit : 1;
 	while (maszEntries.NumElements() > muiLimit)
 	{
-		maszEntries.Remove((size)0);
+		Remove(maszEntries.NumElements() - 1);
 	}
 }
 
@@ -94,11 +97,12 @@ CClipboardChooser* CClipboardHistory::GetChooser(void) { return mpcChooser; }
 //////////////////////////////////////////////////////////////////////////
 //
 // szText becomes the newest entry: added, or if it is already an entry
-// that one moved to the front.  The oldest goes if that is more than the
-// limit.  False if it isn't kept: it is empty or too big.
+// that one moved to the front.  It is a block (copied from a box) or not
+// as bBlock says, whatever it was before.  The oldest goes if that is
+// more than the limit.  False if it isn't kept: it is empty or too big.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClipboardHistory::Add(const char* szText)
+bool CClipboardHistory::Add(const char* szText, bool bBlock)
 {
 	size	uiIndex;
 
@@ -108,16 +112,33 @@ bool CClipboardHistory::Add(const char* szText)
 	}
 	if (Find(szText, &uiIndex))
 	{
-		MoveToFront(uiIndex);
-		return true;
+		Remove(uiIndex);
 	}
 	maszEntries.Add(szText);
+	*mauiBlocks.Add() = bBlock ? 1 : 0;
 	if (maszEntries.NumElements() > muiLimit)
 	{
-		maszEntries.Remove((size)0);
+		Remove(maszEntries.NumElements() - 1);
 	}
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entry was copied from a box selection: its lines are a column.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClipboardHistory::IsBlock(size uiIndex) { return *mauiBlocks.Get(IndexOf(uiIndex)) != 0; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szText is the newest entry and a block: what is on the clipboard, if
+// szText is, was copied here from a box.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClipboardHistory::IsBlockText(const char* szText) { return IsNewest(szText) && IsBlock(0); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,11 +148,18 @@ bool CClipboardHistory::Add(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CClipboardHistory::Remove(size uiIndex)
 {
+	size	i;
+
+	for (i = IndexOf(uiIndex); i + 1 < mauiBlocks.NumElements(); i++)
+	{
+		*mauiBlocks.Get(i) = *mauiBlocks.Get(i + 1);
+	}
 	maszEntries.Remove(IndexOf(uiIndex));
+	mauiBlocks.SetUsedElements(mauiBlocks.NumElements() - 1);
 }
 
 
-void CClipboardHistory::Clear(void) { maszEntries.ReInit(); }
+void CClipboardHistory::Clear(void) { maszEntries.ReInit(); mauiBlocks.ReInit(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -142,14 +170,17 @@ void CClipboardHistory::Clear(void) { maszEntries.ReInit(); }
 void CClipboardHistory::MoveToFront(size uiIndex)
 {
 	CChars	szText;
+	bool	bBlock;
 
 	if (uiIndex == 0)
 	{
 		return;
 	}
 	szText.Init(GetText(uiIndex));
-	maszEntries.Remove(IndexOf(uiIndex));
+	bBlock = IsBlock(uiIndex);
+	Remove(uiIndex);
 	maszEntries.Add(szText.Text());
+	*mauiBlocks.Add() = bBlock ? 1 : 0;
 	szText.Kill();
 }
 

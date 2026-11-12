@@ -48,7 +48,9 @@ enum ETextEditingDrag
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
 //CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  Paste from
 //History (Control+Shift+V, as IntelliJ IDEA's) asks the clipboard's history's chooser which of the texts copied
-//before to paste, at the next tick as that shows a dialog; what is chosen is the clipboard's text after.  A double click
+//before to paste, at the next tick as that shows a dialog; what is chosen is the clipboard's text after.  What a box
+//selection cuts or copies is put on the clipboard as a block, and a block pasted goes in as a column
+//(CTextEditing::PasteBlock).  A double click
 //selects the word under the pointer and a triple click its line (with its line feed); dragging on from either selects
 //by whole words or lines, keeping the first selected.  A shift press extends the selection by characters.  A line drag
 //(StartLineDrag, from a code editor's gutter) selects by whole lines from a press beside the text.  With text drags
@@ -96,6 +98,12 @@ public:
 	void	PasteFromHistory(void);
 	void	ChooseAndPaste(void);
 	bool	CanPasteFromHistory(void);
+
+protected:
+	void	TakeToClipboard(void (CTextEditing::*fTake)(CChars* pszDest));
+	void	PasteText(char* szText);
+
+public:
 
 	void	ActivateComponent(int x, int y);
 	void	ExecuteComponent(int x, int y);

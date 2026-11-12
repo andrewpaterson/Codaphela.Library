@@ -82,6 +82,33 @@ void TestClipboardHistoryEntries(void)
 
 	pHistory->Clear();
 	AssertSize(0, pHistory->NumEntries());
+
+	//An entry copied from a box selection is a block, and stays one as the entries move; added again as plain text it
+	//is plain.
+	pHistory->SetLimit(3);
+	pHistory->SetMaxEntryBytes(CLIPBOARD_HISTORY_MAX_ENTRY_BYTES);
+	AssertTrue(pHistory->Add("a\nb", true));
+	AssertTrue(pHistory->Add("plain"));
+	AssertTrue(pHistory->IsBlock(1));
+	AssertFalse(pHistory->IsBlock(0));
+	AssertFalse(pHistory->IsBlockText("a\nb"));
+	pHistory->MoveToFront(1);
+	AssertString("a\nb", pHistory->GetText(0));
+	AssertTrue(pHistory->IsBlock(0));
+	AssertTrue(pHistory->IsBlockText("a\nb"));
+	AssertFalse(pHistory->IsBlock(1));
+	AssertTrue(pHistory->Add("c\nd", true));
+	AssertTrue(pHistory->Add("more"));
+	AssertSize(3, pHistory->NumEntries());
+	AssertString("a\nb", pHistory->GetText(2));
+	AssertTrue(pHistory->IsBlock(2));
+	AssertTrue(pHistory->IsBlock(1));
+	pHistory->Remove(1);
+	AssertTrue(pHistory->IsBlock(1));
+	AssertFalse(pHistory->IsBlock(0));
+	AssertTrue(pHistory->Add("a\nb"));
+	AssertFalse(pHistory->IsBlock(0));
+	AssertSize(2, pHistory->NumEntries());
 	pHistory = NULL;
 }
 

@@ -113,16 +113,27 @@ Steps (a commit each; tests named are new or extended)
   6. BUILT (what is typed shows as "Search for: ..." over the list; a space activates the selected row, as in every
      list, so it isn't part of a filter; escape reaches the list through CComponent::WantsEscape, as enter does
      through WantsEnter).  The dialog's speed search and the digits.
-  7. The IDE: its chooser made in CIDEContent from the dialog look and code font; Edit menu item after Paste and in
-     the editor's context menu; script steps (pastehistory, printclipboardhistory, a way to choose a row); checks
-     editor-paste-history (copy three things, choose the second, paste, then Control+V pastes it again) and
-     field-paste-history (the same into Find in Files' field).  Selection.txt and the docs site's keys page.
-  8. Block copies (only if wanted, see the questions): the history entry made by a box copy is marked, and pasting a
-     marked entry at a plain caret puts its lines in as a column from the caret down.  The mark can't cross to
-     another program, so a block copied elsewhere pastes as lines.
+  7. BUILT.  The IDE: CIDEPasteHistory is its chooser (it shows a CPasteHistoryDialog with the code font and lets the
+     script watch it); Edit menu item after Paste; Cut, Copy, Paste and Paste from History in the editor's context
+     menu; script step printclipboardhistory, and the dialog keys down, up, selectdown, delete, backspace and
+     type:<text>, with the chooser's rows printed after each; check editor-paste-history.  A scripted run's clipboard
+     is detached from the system's (CClipboard::SetDetached), so the checks don't replace what the person has copied.
+     LogiCim and WindowInputTester have the chooser too.  The dialog over a dialog isn't an IDE check (the script
+     answers one dialog at a time): TestPasteHistoryDialogOverDialog in TestWindowLib shows it through the modal
+     loops.  The docs site has no page of keys to add it to.
+  8. BUILT.  Block copies: what a box selection cuts or copies is a block in the history (CClipboardHistory::IsBlock),
+     and a block pasted, from the clipboard or chosen from the history, goes in as a column
+     (CTextEditing::PasteBlock): each line at the caret's column of the next line down, short lines filled out with
+     spaces, lines added past the text's end.  The mark can't cross to another program, so the same lines copied
+     elsewhere paste as lines.
 
   After each step: TestBaseLib, TestWindowLib, the IDE checks.  WinGDI's clipboard gets the same changes as X11's
   and is compiled with MinGW, not run.
+
+
+The user's answers, 2026-11-12: (c) block copies paste as a column; (d) the preview isn't coloured; (e) the other
+applications get the chooser too.  (a) and (b) weren't answered: the limit is 20, a constant
+(CLIPBOARD_HISTORY_LIMIT, CClipboardHistory::SetLimit), and 1 to 9 choose a row while nothing is typed.
 
 
 Questions for the user

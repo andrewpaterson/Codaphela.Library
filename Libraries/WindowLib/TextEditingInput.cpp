@@ -233,9 +233,66 @@ void CTextEditingInput::RedoAction(void) { mpcEditing->Redo(); }
 // nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditingInput::CutToClipboard(void) { mpcComponent->GetWindow()->GetClipboard()->CopyFrom(mpcEditing, &CTextEditing::Cut); }
-void CTextEditingInput::CopyToClipboard(void) { mpcComponent->GetWindow()->GetClipboard()->CopyFrom(mpcEditing, &CTextEditing::Copy); }
-void CTextEditingInput::PasteFromClipboard(void) { mpcComponent->GetWindow()->GetClipboard()->PasteInto(mpcEditing, &CTextEditing::Paste); }
+void CTextEditingInput::CutToClipboard(void) { TakeToClipboard(&CTextEditing::Cut); }
+void CTextEditingInput::CopyToClipboard(void) { TakeToClipboard(&CTextEditing::Copy); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What fTake (the text's cut or copy) takes is put on the clipboard, if
+// it takes anything: as a block if it is taken from a box selection.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::TakeToClipboard(void (CTextEditing::*fTake)(CChars* pszDest))
+{
+	CChars	szText;
+	bool	bBlock;
+
+	szText.Init();
+	bBlock = mpcEditing->IsBox();
+	(mpcEditing->*fTake)(&szText);
+	if (!szText.Empty())
+	{
+		mpcComponent->GetWindow()->GetClipboard()->SetText(szText.Text(), bBlock);
+	}
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The clipboard's text is pasted, and is in its history from then if
+// another program put it there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::PasteFromClipboard(void)
+{
+	CChars	szText;
+
+	szText.Init();
+	mpcComponent->GetWindow()->GetClipboard()->TakeText(&szText);
+	PasteText(szText.Text());
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szText, the clipboard's, is pasted: as a column if it was put there as
+// a block.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::PasteText(char* szText)
+{
+	if (mpcComponent->GetWindow()->GetClipboard()->IsBlockText(szText))
+	{
+		mpcEditing->PasteBlock(szText);
+	}
+	else
+	{
+		mpcEditing->Paste(szText);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -281,6 +338,8 @@ void CTextEditingInput::ChooseAndPaste(void)
 	Ptr<CClipboard>			pClipboard;
 	Ptr<CClipboardHistory>	pHistory;
 	CChars					szText;
+	size					uiEntry;
+	bool					bBlock;
 
 	if (!CanPasteFromHistory())
 	{
@@ -298,8 +357,10 @@ void CTextEditingInput::ChooseAndPaste(void)
 	szText.Init();
 	if (pHistory->GetChooser()->ChooseContent(pWindow, pHistory, &szText) && !szText.Empty())
 	{
-		pClipboard->SetText(szText.Text());
-		mpcEditing->Paste(szText.Text());
+		//An entry that is a block is put back on the clipboard as one, and so is pasted as a column.
+		bBlock = pHistory->Find(szText.Text(), &uiEntry) && pHistory->IsBlock(uiEntry);
+		pClipboard->SetText(szText.Text(), bBlock);
+		PasteText(szText.Text());
 		pWindow->RequestPaint();
 	}
 	szText.Kill();

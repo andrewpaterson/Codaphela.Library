@@ -61,15 +61,11 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	bool				SetText(const char* szText);
+	bool				SetText(const char* szText, bool bBlock = false);
+	bool				IsBlockText(const char* szText);
 	bool				GetText(CChars* pszDest);
 	bool				TakeText(CChars* pszDest);
 	bool				Sync(void);
-
-	template<class C>
-	void				CopyFrom(C* pcFrom, void (C::*fTake)(CChars* pszDest));
-	template<class C>
-	void				PasteInto(C* pcInto, void (C::*fPaste)(char* szSource));
 
 	void				ShareHistory(Ptr<CClipboard> pClipboard);
 	void				SetDetached(bool bDetached);
@@ -83,44 +79,6 @@ public:
 protected:
 	CClipboard*			FindDetached(void);
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What fTake (a text's cut or copy) takes from pcFrom put on the
-// clipboard, if it takes anything.
-//
-//////////////////////////////////////////////////////////////////////////
-template<class C>
-void CClipboard::CopyFrom(C* pcFrom, void (C::*fTake)(CChars* pszDest))
-{
-	CChars	szText;
-
-	szText.Init();
-	(pcFrom->*fTake)(&szText);
-	if (!szText.Empty())
-	{
-		SetText(szText.Text());
-	}
-	szText.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The clipboard's text given to pcInto's fPaste.
-//
-//////////////////////////////////////////////////////////////////////////
-template<class C>
-void CClipboard::PasteInto(C* pcInto, void (C::*fPaste)(char* szSource))
-{
-	CChars	szText;
-
-	szText.Init();
-	TakeText(&szText);
-	(pcInto->*fPaste)(szText.Text());
-	szText.Kill();
-}
 
 
 #endif // __CLIPBOARD_H__
