@@ -546,12 +546,12 @@ void CScrollPane::ScrollToShow(CInt32Rect* pcRect)
 		sScroll.y = 0;
 	}
 
-	//The content moves when the pane is next laid out: now, if it is being (another pass), or before the next paint.
-	//Whatever asked may keep the layout, as a key that moves a text's caret does, so the pane asks for it itself.
+	//The content moves when the pane is next laid out: now, if it is being (another pass), or before the next paint
+	//(CWindow::LayoutAgain asks for either).  Whatever asked may keep the layout, as a key that moves a text's caret
+	//does, so the pane asks itself.
 	if ((sScroll.x != msScrollPosition.x) || (sScroll.y != msScrollPosition.y))
 	{
 		msScrollPosition = sScroll;
-		LayoutChanged();
 		mpWindow->LayoutAgain();
 	}
 

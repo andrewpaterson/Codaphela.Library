@@ -115,6 +115,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mpDefaultButton = NULL;
 	mpCancelButton = NULL;
 	mbLayoutAgain = false;
+	mbLayingOut = false;
 	maPopups.Init();
 	if (pcSoundFactory)
 	{
@@ -200,6 +201,7 @@ void CWindow::Class(void)
 	M_Pointer(mpDefaultButton);
 	M_Pointer(mpCancelButton);
 	U_Bool(mbLayoutAgain);
+	U_Bool(mbLayingOut);
 	M_Embedded(maPopups);
 	M_Pointer(mpSoundMixer);
 	M_Pointer(mpClipboard);
@@ -644,6 +646,7 @@ void CWindow::SetRedrawLike(Ptr<CWindow> pWindow)
 {
 	SetPartialRedraw(pWindow->mbPartialRedraw);
 	SetVerifyRedraw(pWindow->mbVerifyRedraw);
+	SetCheckLayoutCache(pWindow->mbCheckLayoutCache);
 }
 
 
@@ -938,6 +941,7 @@ void CWindow::Layout(void)
 	//Some components only know their required size once they have been given a width, a word wrapped text area needs
 	//more lines when it is narrower.  They ask for the components to be laid out again with their new size.  The
 	//passes are limited in case components keep changing each other's sizes.
+	mbLayingOut = true;
 	for (iPass = 0; iPass < 3; iPass++)
 	{
 		mbLayoutAgain = false;
@@ -947,6 +951,7 @@ void CWindow::Layout(void)
 			break;
 		}
 	}
+	mbLayingOut = false;
 	mbLayoutAgain = false;
 
 	//Components invalidating their layout while they were laid out were laid out.
@@ -1008,7 +1013,16 @@ void CWindow::CheckLayoutCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
+void CWindow::LayoutAgain(void)
+{
+	//Another pass of the layout going on; or, asked for outside one (by an input action that keeps the layout, say),
+	//a layout before the next paint.  Either way what asked is laid out again before it is drawn.
+	mbLayoutAgain = true;
+	if (!mbLayingOut)
+	{
+		InvalidateLayout();
+	}
+}
 //Input can change anything, so the window is painted again after it.  Keys, buttons and the wheel can change what
 //the window looks like, so it is laid out again too, but not for a key typing a character (that only changes text,
 //and what shows it lays itself out again if its size changed, as a text area does), for input taken by actions that
