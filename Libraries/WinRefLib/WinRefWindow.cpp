@@ -18,13 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Define.h"
-#include "BaseLib/Logger.h"
-#include "BaseLib/LogString.h"
-#include "BaseLib/Chars.h"
-#include "BaseLib/DebugOutput.h"
+#include "BaseLib/NativeThread.h"
+#include "BaseLib/FileUtil.h"
 #include "SupportLib/PNGWriter.h"
-#include "SupportLib/Int32Rect.h"
 #include "WindowLib/Window.h"
 #include "WinRefWindowFactory.h"
 #include "WinRefWindow.h"
@@ -42,6 +38,8 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 	mszImagePath = szImagePath;
 	muiFrame = 0;
 	mcPresented.Init();
+	mcPresenting.Init();
+	mcShown.Init();
 }
 
 
@@ -51,7 +49,8 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Kill(void)
 {
-	muiFrame = -1;
+	GetFactory()->GetScreen()->Remove(this);
+	mcShown.Kill();
 	mszImagePath = NULL;
 	mbCreated = false;
 	CNativeWindow::Kill();
@@ -60,6 +59,7 @@ void CWinRefWindow::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window goes on top of the screen's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::CreateNativeWindow(void)
@@ -68,6 +68,7 @@ bool CWinRefWindow::CreateNativeWindow(void)
 	{
 		mcWindowBounds.Init(mcWindowBounds.GetLeft(), mcWindowBounds.GetTop(), mcWindowBounds.GetLeft() + msRequestedSize.x, mcWindowBounds.GetTop() + msRequestedSize.y);
 	}
+	GetFactory()->GetScreen()->Add(this);
 	mbCreated = true;
 	return true;
 }
@@ -79,12 +80,14 @@ bool CWinRefWindow::CreateNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::DestroyNativeWindow(void)
 {
+	GetFactory()->GetScreen()->Remove(this);
 	mbCreated = false;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Nothing outside the program sends a reference window events.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::ExecuteNativeWindow(void)
@@ -95,27 +98,89 @@ bool CWinRefWindow::ExecuteNativeWindow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only if the factory says (CWinRefWindowFactory::SetWaitForEvents):
+// otherwise the window is ticked and painted continuously.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefWindow::CanWaitForEvents(void)
+{
+	return GetFactory()->GetMaxWait() >= 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No event will come, so the window sleeps until something is due, but
+// no longer than the factory's longest wait: nothing in the program can
+// wake it, and a wait for ever (-1) would never end.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::WaitForEvents(int64 iMilliseconds)
+{
+	int64	iMaxWait;
+
+	iMaxWait = GetFactory()->GetMaxWait();
+	if ((iMilliseconds < 0) || (iMilliseconds > iMaxWait))
+	{
+		iMilliseconds = iMaxWait;
+	}
+	if (iMilliseconds > 0)
+	{
+		ThreadSleep((int)iMilliseconds);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::Raise(void)
+{
+	GetFactory()->GetScreen()->Raise(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What was asked to be shown since the last present goes to the screen,
+// and the frame is saved if the factory saves it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
 {
-	CWinRefCanvas*	pcRefCanvas;
-	CFileUtil		cFileUtil;
-	CChars			szFileName;
+	CWinRefCanvas*			pcRefCanvas;
+	CWinRefWindowFactory*	pcFactory;
+	Ptr<CImage>				pImage;
+	CWinRefPixels			cCanvas;
+	size					uiPixelBytes;
+	CFileUtil				cFileUtil;
+	CChars					szFileName;
 
 	pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
-
-	//No image path means the frames are not wanted; don't write them into the working directory.
-	if ((mszImagePath != NULL) && (mszImagePath[0] != '\0'))
+	pcFactory = GetFactory();
+	pImage = pcRefCanvas->GetNativeImage();
+	if (pcFactory->GetScreen()->IsWatching() && pImage.IsNotNull())
 	{
-		//A dialog's frames are kept apart from its owner's.
+		//The canvas's image can be bigger than the canvas; what is past it isn't shown.
+		uiPixelBytes = pImage->GetPixelByteStride();
+		iWidth = (iWidth < (int32)pImage->GetWidth()) ? iWidth : (int32)pImage->GetWidth();
+		iHeight = (iHeight < (int32)pImage->GetHeight()) ? iHeight : (int32)pImage->GetHeight();
+		cCanvas.Init(pImage->GetData(), iWidth, iHeight, uiPixelBytes, (lsize)pImage->GetWidth() * uiPixelBytes);
+		pcFactory->GetScreen()->Present(this, &cCanvas, &mcPresenting);
+		cCanvas.Kill();
+	}
+	mcPresenting.Clear();
+
+	//No image path means the frames are not wanted; don't write them into the working directory.  A dialog's frames are
+	//kept apart from its owner's.
+	if ((mszImagePath != NULL) && (mszImagePath[0] != '\0') && pcFactory->IsFrameSaved(muiFrame))
+	{
 		szFileName.Init(mszImagePath);
 		cFileUtil.AppendToPath(&szFileName, mpcOwner ? (mbTool ? "ToolFrame" : "DialogFrame") : "Frame");
 		szFileName.Append(muiFrame);
 		szFileName.Append(".png");
-
-		//You should create a new image here and size to iWidth and iHeight before calling Save.
-		SavePNG(pcRefCanvas->GetNativeImage(), szFileName.Text());
+		SavePNG(pImage, szFileName.Text());
 		szFileName.Kill();
 	}
 
@@ -130,27 +195,28 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 void CWinRefWindow::SignalPresent(void)
 {
 	mcPresented.AddAll();
+	mcPresenting.AddAll();
 	CNativeWindow::Present();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Only pcArea changed.  The reference window still saves all of it, but
-// notes what it was asked to show.
+// Only pcArea changed.  A saved frame is still all of the window.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SignalPresentArea(CInt32Rect* pcArea)
 {
 	mcPresented.Add(pcArea);
+	mcPresenting.Add(pcArea);
 	CNativeWindow::Present();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A paint's damage, however many areas or none, is saved as one frame, as
-// when all of the window is shown, so tests see a frame per paint.
+// A paint's damage, however many areas or none, is one present, as when
+// all of the window is shown, so tests see a frame per paint.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SignalPresentDamage(CDamageArea* pcDamage)
@@ -160,10 +226,12 @@ void CWinRefWindow::SignalPresentDamage(CDamageArea* pcDamage)
 	if (pcDamage->IsAll())
 	{
 		mcPresented.AddAll();
+		mcPresenting.AddAll();
 	}
 	for (i = 0; i < pcDamage->NumRectangles(); i++)
 	{
 		mcPresented.Add(pcDamage->GetRectangle(i));
+		mcPresenting.Add(pcDamage->GetRectangle(i));
 	}
 	CNativeWindow::Present();
 }
@@ -227,6 +295,20 @@ bool CWinRefWindow::IsCreated(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::GetScreenArea(CInt32Rect* pcDest)
 {
-	return ((CWinRefWindowFactory*)mpcWindowFactory)->GetScreenArea(pcDest);
+	return GetFactory()->GetScreenArea(pcDest);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CWinRefWindow::GetTitle(void)
+{
+	return mpcWindow->GetWindowTitle();
+}
+
+
+CWinRefPixels* CWinRefWindow::GetShown(void) { return &mcShown; }
+CWinRefWindowFactory* CWinRefWindow::GetFactory(void) { return (CWinRefWindowFactory*)mpcWindowFactory; }
 

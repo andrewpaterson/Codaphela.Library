@@ -277,6 +277,7 @@
     <ClCompile Include="TestNestedContainers.cpp" />
     <ClCompile Include="TestMenu.cpp" />
     <ClCompile Include="TestRefWindow.cpp" />
+    <ClCompile Include="TestRefWindowScreen.cpp" />
     <ClCompile Include="TestWindowLib.cpp" />
     <ClCompile Include="TickTestCanvas.cpp" />
     <ClCompile Include="TickTestRefWindow.cpp" />

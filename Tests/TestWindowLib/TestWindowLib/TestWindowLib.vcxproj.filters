@@ -31,6 +31,9 @@
     <ClCompile Include="TestRefWindow.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
+    <ClCompile Include="TestRefWindowScreen.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
     <ClCompile Include="TestFillContainer.cpp">
       <Filter>Source\Component\Container</Filter>
     </ClCompile>

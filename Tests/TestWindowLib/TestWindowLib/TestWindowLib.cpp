@@ -11,6 +11,7 @@
 
 
 void TestRefWindow(void);
+void TestRefWindowScreen(void);
 void TestFlowContainer(void);
 void TestFillContainer(void);
 void TestGridContainer(void);
@@ -78,6 +79,7 @@ void TestWinGDICanvas(void);
 void RunWindowTests(void)
 {
 	TestRefWindow();
+	TestRefWindowScreen();
 	TestFlowContainer();
 	TestFillContainer();
 	TestGridContainer();

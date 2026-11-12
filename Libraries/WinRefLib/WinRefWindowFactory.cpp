@@ -34,7 +34,9 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
 	mcWindowBounds.Init(iWidth, iHeight);
 	mszImagePath.Init(szImagePath);
 	mszClipboardText.Init();
-	mcScreenArea.Init(0, 0, 0, 0);
+	mcScreen.Init();
+	miMaxWait = -1;
+	muiFrameInterval = 1;
 }
 
 
@@ -44,6 +46,7 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindowFactory::Kill(void)
 {
+	mcScreen.Kill();
 	mszClipboardText.Kill();
 	mszImagePath.Kill();
 	CNativeWindowFactory::Kill();
@@ -138,12 +141,12 @@ int32 CWinRefWindowFactory::GetHeight(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The screen the reference windows are on, for floating windows to be
-// kept on.  Without one it isn't known.
+// kept on and for the screen's hash.  Without one it isn't known.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindowFactory::SetScreenArea(CInt32Rect* pcArea)
 {
-	mcScreenArea.Init(pcArea);
+	mcScreen.SetArea(pcArea);
 }
 
 
@@ -153,7 +156,69 @@ void CWinRefWindowFactory::SetScreenArea(CInt32Rect* pcArea)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindowFactory::GetScreenArea(CInt32Rect* pcDest)
 {
-	pcDest->Init(&mcScreenArea);
-	return (mcScreenArea.GetWidth() > 0) && (mcScreenArea.GetHeight() > 0);
+	return mcScreen.GetArea(pcDest);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set before a window is shown.  Waiting, a window sleeps until its next
+// frame, tick, caret blink or the like is due, but never longer than
+// iMaxWait milliseconds: no event can wake it.  Not waiting, it is ticked
+// and painted as fast as it can be.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindowFactory::SetWaitForEvents(bool bWait, int64 iMaxWait)
+{
+	miMaxWait = bWait ? iMaxWait : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each present is checked against what the window drew, see
+// CWinRefScreen::SetCheck.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindowFactory::SetCheckPresents(bool bCheck)
+{
+	mcScreen.SetCheck(bCheck);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each present is hashed to szFileName, see CWinRefScreen::SetHash.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefWindowFactory::SetHashPresents(const char* szFileName, EWinRefHashArea eArea)
+{
+	return mcScreen.SetHash(szFileName, eArea);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With an image path, every uiInterval'th frame is saved, from the
+// first; 1 saves them all.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindowFactory::SetFrameInterval(uint32 uiInterval)
+{
+	muiFrameInterval = (uiInterval > 0) ? uiInterval : 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefWindowFactory::IsFrameSaved(uint64 uiFrame)
+{
+	return (uiFrame % muiFrameInterval) == 0;
+}
+
+
+int64 CWinRefWindowFactory::GetMaxWait(void) { return miMaxWait; }
+CWinRefScreen* CWinRefWindowFactory::GetScreen(void) { return &mcScreen; }
 
