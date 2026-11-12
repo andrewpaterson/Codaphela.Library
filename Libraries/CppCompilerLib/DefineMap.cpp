@@ -20,7 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Numbers.h"
 #include "DefineMap.h"
-#include "FNVHash.h"
+#include "BaseLib/FNVHash.h"
 
 
 #define DEFINE_MAP_FIRST_CAPACITY	256

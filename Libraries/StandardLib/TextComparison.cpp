@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/FNVHash.h"
 #include "TextComparison.h"
 
 
@@ -67,13 +68,12 @@ void STextToken::Init(const char* sz, lsize uiLength, lsize uiStart, lsize uiEnd
 	this->bSkipWhitespace = bSkipWhitespace;
 	this->bUnterminated = bUnterminated;
 
-	uiHash = 2166136261u;
+	uiHash = FNV_HASH32_START;
 	for (ui = 0; ui < uiLength; ui++)
 	{
 		if (!bSkipWhitespace || !IsTextDiffWhitespace(sz[ui]))
 		{
-			uiHash ^= (uint8)sz[ui];
-			uiHash *= 16777619u;
+			uiHash = FNVHash32(&sz[ui], 1, uiHash);
 		}
 	}
 	if (bUnterminated)

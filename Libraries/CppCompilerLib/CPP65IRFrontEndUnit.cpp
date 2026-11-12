@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IROptimiser.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPNameCharacters.h"
-#include "FNVHash.h"
+#include "BaseLib/FNVHash.h"
 
 
 //The IR front end's work over a whole unit: inlining and the passes before it (InlineUnit, CIRInterprocedural), writing

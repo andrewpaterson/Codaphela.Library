@@ -18,12 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/FNVHash.h"
 #include "TextAreaLayout.h"
 #include "TextAreaBands.h"
-
-
-#define TEXT_AREA_BAND_HASH_START	2166136261u	//FNV-1a's offset basis.
-#define TEXT_AREA_BAND_HASH_PRIME	16777619u
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,7 +78,7 @@ void CTextAreaBands::Add(int32 iTop, int32 iBottom)
 	psBand = masBands.Add();
 	psBand->iTop = iTop;
 	psBand->iBottom = iBottom;
-	psBand->uiHash = TEXT_AREA_BAND_HASH_START;
+	psBand->uiHash = FNV_HASH32_START;
 }
 
 
@@ -123,18 +120,9 @@ size CTextAreaBands::FindBand(int32 y)
 void CTextAreaBands::Mix(size uiBand, const void* pvData, size uiBytes)
 {
 	STextAreaBand*	psBand;
-	const uint8*	puiData;
-	size			i;
-	uint32			uiHash;
 
 	psBand = masBands.Get(uiBand);
-	puiData = (const uint8*)pvData;
-	uiHash = psBand->uiHash;
-	for (i = 0; i < uiBytes; i++)
-	{
-		uiHash = (uiHash ^ puiData[i]) * TEXT_AREA_BAND_HASH_PRIME;
-	}
-	psBand->uiHash = uiHash;
+	psBand->uiHash = FNVHash32(pvData, uiBytes, psBand->uiHash);
 }
 
 

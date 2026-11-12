@@ -20,7 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "ASCIIIndex.h"
-#include "FNVHash.h"
+#include "BaseLib/FNVHash.h"
 
 
 #define ASCII_INDEX_FIRST_TABLE		256

@@ -241,6 +241,7 @@
     <ClInclude Include="ExternalString.h" />
     <ClInclude Include="Float64Vec2.h" />
     <ClInclude Include="FloatPrinter.h" />
+    <ClInclude Include="FNVHash.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="HexString.h" />
     <ClInclude Include="IndexPtr.h" />

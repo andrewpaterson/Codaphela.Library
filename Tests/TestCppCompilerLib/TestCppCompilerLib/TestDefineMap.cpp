@@ -1,6 +1,6 @@
 #include "BaseLib/Chars.h"
 #include "CppCompilerLib/DefineMap.h"
-#include "CppCompilerLib/FNVHash.h"
+#include "BaseLib/FNVHash.h"
 #include "TestLib/Assert.h"
 
 

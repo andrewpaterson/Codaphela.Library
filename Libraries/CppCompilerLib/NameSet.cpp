@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "NameSet.h"
-#include "FNVHash.h"
+#include "BaseLib/FNVHash.h"
 
 
 #define NAME_SET_FIRST_CAPACITY	64

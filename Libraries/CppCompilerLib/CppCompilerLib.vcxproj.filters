@@ -1583,9 +1583,6 @@
     <ClInclude Include="CPPPunctuatorList.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
-    <ClInclude Include="FNVHash.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
     <ClInclude Include="SpecialOperatorMap.h">
       <Filter>Source\Preprocessor\Define</Filter>
     </ClInclude>
