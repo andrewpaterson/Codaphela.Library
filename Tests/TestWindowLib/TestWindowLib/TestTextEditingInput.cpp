@@ -3,6 +3,7 @@
 #include "WindowLib/Window.h"
 #include "WindowLib/Canvas.h"
 #include "WindowLib/TextEditingInput.h"
+#include "WindowLib/Clipboard.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TestLib/TextEditingTest.h"
@@ -737,6 +738,134 @@ void TestTextEditingInputBox(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Answers with a text it is given, or with nothing, and counts.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestClipboardChooser : public CClipboardChooser
+{
+public:
+	const char*	mszAnswer;  //NULL to choose nothing.
+	size		muiAsked;
+	size		muiEntries;  //The history's when it was last asked.
+
+	bool	ChooseContent(Ptr<CWindow> pOwner, Ptr<CClipboardHistory> pHistory, CChars* pszDest) override
+	{
+		muiAsked++;
+		muiEntries = pHistory->NumEntries();
+		if (mszAnswer == NULL)
+		{
+			return false;
+		}
+		pszDest->Append(mszAnswer);
+		return true;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Paste from History asks the clipboard history's chooser, at the next
+// tick, which entry to paste: what it answers is pasted and is the
+// clipboard's text and the history's newest entry after.  Without a
+// chooser, in a text that can't be edited, or with an empty history
+// nothing is asked.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputPasteFromHistory(void)
+{
+	STestEditingInput		s;
+	CTestClipboardChooser	cChooser;
+	Ptr<CClipboard>			pClipboard;
+	Ptr<CClipboardHistory>	pHistory;
+	CChars					sz;
+
+	ObjectsInit();
+	s.Init("ab", true);
+	s.pWindow->GetFocus()->SetFocus(s.pCanvas);
+	cChooser.mszAnswer = "one";
+	cChooser.muiAsked = 0;
+	cChooser.muiEntries = 0;
+	pClipboard = s.pWindow->GetClipboard();
+
+	//Nothing to choose with: the keys are taken and nothing happens.
+	AssertFalse(s.cInput.CanPasteFromHistory());
+	AssertTrue(s.Command(CIC_PasteFromHistory));
+	AssertSize(0, s.pWindow->NumPosted());
+
+	pClipboard->SetText("one");
+	pClipboard->SetText("two");
+	pHistory = pClipboard->GetHistory();
+	pHistory->SetChooser(&cChooser);
+	AssertTrue(s.cInput.CanPasteFromHistory());
+
+	//Asked at the next tick; what is chosen is pasted and becomes the newest.
+	AssertTrue(s.Command(CIC_PasteFromHistory));
+	AssertSize(1, s.pWindow->NumPosted());
+	AssertSize(0, cChooser.muiAsked);
+	AssertString("ab", s.Text());
+	s.pWindow->RunPosted();
+	AssertSize(1, cChooser.muiAsked);
+	AssertSize(2, cChooser.muiEntries);
+	AssertString("oneab", s.Text());
+	AssertSize(3, s.Caret());
+	AssertSize(2, pHistory->NumEntries());
+	AssertString("one", pHistory->GetText(0));
+	AssertString("two", pHistory->GetText(1));
+	sz.Init();
+	AssertTrue(pClipboard->GetText(&sz));
+	AssertString("one", sz.Text());
+	sz.Kill();
+
+	//A plain paste after it pastes the same.
+	AssertTrue(s.Command(CIC_Paste));
+	AssertString("oneoneab", s.Text());
+
+	//Over a selection, and undone as one edit.
+	cChooser.mszAnswer = "two";
+	s.cEditing.Select(0, 6);
+	s.Command(CIC_PasteFromHistory);
+	s.pWindow->RunPosted();
+	AssertString("twoab", s.Text());
+	AssertString("two", pHistory->GetText(0));
+	AssertTrue(s.cEditing.Undo());
+	AssertString("oneoneab", s.Text());
+
+	//Nothing chosen, nothing changes.
+	cChooser.mszAnswer = NULL;
+	s.Command(CIC_PasteFromHistory);
+	s.pWindow->RunPosted();
+	AssertSize(3, cChooser.muiAsked);
+	AssertString("oneoneab", s.Text());
+	AssertString("two", pHistory->GetText(0));
+
+	//A text that can't be edited doesn't ask.
+	cChooser.mszAnswer = "one";
+	s.cEditing.SetEditable(false);
+	AssertFalse(s.cInput.CanPasteFromHistory());
+	s.Command(CIC_PasteFromHistory);
+	AssertSize(0, s.pWindow->NumPosted());
+	s.cEditing.SetEditable(true);
+
+	//Nor does an empty history, the system's clipboard empty too.
+	pHistory->Clear();
+	pClipboard->SetText("");
+	pHistory->Clear();
+	s.Command(CIC_PasteFromHistory);
+	s.pWindow->RunPosted();
+	AssertSize(3, cChooser.muiAsked);
+	AssertString("oneoneab", s.Text());
+
+	pHistory->SetChooser(NULL);
+	pHistory = NULL;
+	pClipboard = NULL;
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditingInput(void)
@@ -750,6 +879,7 @@ void TestTextEditingInput(void)
 	TestTextEditingInputClicks();
 	TestTextEditingInputSingleLineClicks();
 	TestTextEditingInputDragText();
+	TestTextEditingInputPasteFromHistory();
 	TestTextEditingInputExtendSelection();
 	TestTextEditingInputBox();
 	TestTextEditingInputKeepsLayout();

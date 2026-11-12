@@ -67,6 +67,7 @@ public:
 
 	void				ShareHistory(Ptr<CClipboard> pClipboard);
 	Ptr<CClipboardHistory>	GetHistory(void);
+	CClipboardChooser*	GetChooser(void);
 
 	Ptr<CWindow>		GetWindow(void);
 	CNativeClipboard*	GetNativeClipboard(void);

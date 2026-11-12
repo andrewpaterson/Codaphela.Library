@@ -113,6 +113,7 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_Cut, this, &CTextEditingInput::CutToClipboard);
 	pcComponent->AddInputAction(CIC_Copy, this, &CTextEditingInput::CopyToClipboard);
 	pcComponent->AddInputAction(CIC_Paste, this, &CTextEditingInput::PasteFromClipboard);
+	pcComponent->AddInputAction(CIC_PasteFromHistory, this, &CTextEditingInput::PasteFromHistory);
 	pcComponent->AddInputAction(IAF_Printable, NULL, this, &CTextEditingInput::PrintableAction);
 
 	if (!bMultiLine)
@@ -146,6 +147,10 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::Kill(void)
 {
+	if (mpcComponent->GetWindow().IsNotNull())
+	{
+		mpcComponent->GetWindow()->CancelPosted(this);
+	}
 	mpcComponent = NULL;
 	mpcEditing = NULL;
 }
@@ -231,6 +236,74 @@ void CTextEditingInput::RedoAction(void) { mpcEditing->Redo(); }
 void CTextEditingInput::CutToClipboard(void) { mpcComponent->GetWindow()->GetClipboard()->CopyFrom(mpcEditing, &CTextEditing::Cut); }
 void CTextEditingInput::CopyToClipboard(void) { mpcComponent->GetWindow()->GetClipboard()->CopyFrom(mpcEditing, &CTextEditing::Copy); }
 void CTextEditingInput::PasteFromClipboard(void) { mpcComponent->GetWindow()->GetClipboard()->PasteInto(mpcEditing, &CTextEditing::Paste); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Paste from History: what to paste is chosen at the next tick, as the
+// choosing shows a dialog, which an input action can't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::PasteFromHistory(void)
+{
+	if (CanPasteFromHistory())
+	{
+		mpcComponent->GetWindow()->Post(this, &CTextEditingInput::ChooseAndPaste);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// There is something to choose with and somewhere to paste: the
+// clipboard's history has a chooser and the text can be edited.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditingInput::CanPasteFromHistory(void)
+{
+	return mpcEditing->IsEditable() && (mpcComponent->GetWindow()->GetClipboard()->GetChooser() != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The history's chooser is asked which of its entries to paste, after
+// the system's clipboard has been looked at for what another program
+// copied.  What is chosen is pasted and is the clipboard's text and the
+// history's newest entry from then, so a plain paste after it pastes the
+// same.  Nothing if nothing is chosen, or there is nothing to choose
+// from.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::ChooseAndPaste(void)
+{
+	Ptr<CWindow>			pWindow;
+	Ptr<CClipboard>			pClipboard;
+	Ptr<CClipboardHistory>	pHistory;
+	CChars					szText;
+
+	if (!CanPasteFromHistory())
+	{
+		return;
+	}
+	pWindow = mpcComponent->GetWindow();
+	pClipboard = pWindow->GetClipboard();
+	pClipboard->Sync();
+	pHistory = pClipboard->GetHistory();
+	if (pHistory->NumEntries() == 0)
+	{
+		return;
+	}
+
+	szText.Init();
+	if (pHistory->GetChooser()->ChooseContent(pWindow, pHistory, &szText) && !szText.Empty())
+	{
+		pClipboard->SetText(szText.Text());
+		mpcEditing->Paste(szText.Text());
+		pWindow->RequestPaint();
+	}
+	szText.Kill();
+}
 
 
 //////////////////////////////////////////////////////////////////////////

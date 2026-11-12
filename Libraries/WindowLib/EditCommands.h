@@ -27,8 +27,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CWindow;
 class CComponent;
 class CFocus;
-//An Edit menu's commands (Undo, Redo, Cut, Copy, Paste and Select All, named Edit.Undo and so on) for a window's
-//command set.  They act on the component the keys last went to that can take them (a text area or field, say), not
+//An Edit menu's commands (Undo, Redo, Cut, Copy, Paste, Paste from History and Select All, named Edit.Undo and so on)
+//for a window's command set.  They act on the component the keys last went to that can take them (a text area or field, say), not
 //on the menu holding the keys while it is open: running one gives that component the keys again and the standard
 //command (CIC_Undo ...), and each can run while it would do something there (CComponent::CanDoCommand).  Once that
 //component has gone from the window, they act on GetDefaultTarget's (an IDE's active document, say).  Their keys are
@@ -62,12 +62,14 @@ public:
 	void				Cut(void);
 	void				Copy(void);
 	void				Paste(void);
+	void				PasteFromHistory(void);
 	void				SelectAll(void);
 	bool				CanUndo(void);
 	bool				CanRedo(void);
 	bool				CanCut(void);
 	bool				CanCopy(void);
 	bool				CanPaste(void);
+	bool				CanPasteFromHistory(void);
 	bool				CanSelectAll(void);
 
 protected:

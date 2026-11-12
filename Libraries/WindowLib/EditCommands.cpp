@@ -24,7 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //The standard commands an Edit menu acts with.
-static EComponentInputCommand gaeEditCommands[] = { CIC_Undo, CIC_Redo, CIC_Cut, CIC_Copy, CIC_Paste, CIC_SelectAll };
+static EComponentInputCommand gaeEditCommands[] = { CIC_Undo, CIC_Redo, CIC_Cut, CIC_Copy, CIC_Paste, CIC_PasteFromHistory, CIC_SelectAll };
 
 
 //A standard action as a command whose keys can be changed, with the keys it has until they are.
@@ -47,6 +47,7 @@ static SEditKeymapRow gasEditKeymapRows[] =
 	{ "Edit.Cut",						"Cut",						CIC_Cut,						CKS_Editor,	"Control+X",				"Shift+Delete" },
 	{ "Edit.Copy",						"Copy",						CIC_Copy,						CKS_Editor,	"Control+C",				"Control+Insert" },
 	{ "Edit.Paste",						"Paste",					CIC_Paste,						CKS_Editor,	"Control+V",				"Shift+Insert" },
+	{ "Edit.PasteFromHistory",			"Paste from History...",	CIC_PasteFromHistory,			CKS_Editor,	"Control+Shift+V",			NULL },
 	{ "Edit.SelectAll",					"Select All",				CIC_SelectAll,					CKS_Editor,	"Control+A",				NULL },
 
 	{ "Editor.Up",						"Up",						CIC_Up,							CKS_Editor,	"Cursor Up",				NULL },
@@ -124,6 +125,7 @@ void CEditCommands::Init(Ptr<CWindow> pWindow, Ptr<CCommandSet> pCommands)
 	AddCommand(pCommands, "Edit.Cut", "Cut", CIC_Cut, &CEditCommands::Cut, &CEditCommands::CanCut);
 	AddCommand(pCommands, "Edit.Copy", "Copy", CIC_Copy, &CEditCommands::Copy, &CEditCommands::CanCopy);
 	AddCommand(pCommands, "Edit.Paste", "Paste", CIC_Paste, &CEditCommands::Paste, &CEditCommands::CanPaste);
+	AddCommand(pCommands, "Edit.PasteFromHistory", "Paste from History...", CIC_PasteFromHistory, &CEditCommands::PasteFromHistory, &CEditCommands::CanPasteFromHistory);
 	AddCommand(pCommands, "Edit.SelectAll", "Select All", CIC_SelectAll, &CEditCommands::SelectAll, &CEditCommands::CanSelectAll);
 	mpWindow->GetFocus()->GetFocusChangeEvent()->Add(this, &CEditCommands::FocusChanged);
 	PostInit();
@@ -333,11 +335,13 @@ void CEditCommands::Redo(void) { Run(CIC_Redo); }
 void CEditCommands::Cut(void) { Run(CIC_Cut); }
 void CEditCommands::Copy(void) { Run(CIC_Copy); }
 void CEditCommands::Paste(void) { Run(CIC_Paste); }
+void CEditCommands::PasteFromHistory(void) { Run(CIC_PasteFromHistory); }
 void CEditCommands::SelectAll(void) { Run(CIC_SelectAll); }
 bool CEditCommands::CanUndo(void) { return Can(CIC_Undo); }
 bool CEditCommands::CanRedo(void) { return Can(CIC_Redo); }
 bool CEditCommands::CanCut(void) { return Can(CIC_Cut); }
 bool CEditCommands::CanCopy(void) { return Can(CIC_Copy); }
 bool CEditCommands::CanPaste(void) { return Can(CIC_Paste); }
+bool CEditCommands::CanPasteFromHistory(void) { return Can(CIC_PasteFromHistory); }
 bool CEditCommands::CanSelectAll(void) { return Can(CIC_SelectAll); }
 

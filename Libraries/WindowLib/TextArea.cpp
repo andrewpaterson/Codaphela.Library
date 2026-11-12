@@ -1240,7 +1240,8 @@ bool CTextArea::UsesEditorKeys(void) { return true; }
 //////////////////////////////////////////////////////////////////////////
 //
 // Undo and redo only with something to undo or redo; cut and paste only
-// in editable text.
+// in editable text; paste from history only with something to choose
+// with, too.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::CanDoCommand(EComponentInputCommand eCommand)
@@ -1254,6 +1255,8 @@ bool CTextArea::CanDoCommand(EComponentInputCommand eCommand)
 	case CIC_Cut:
 	case CIC_Paste:
 		return IsEditable() && CComponent::CanDoCommand(eCommand);
+	case CIC_PasteFromHistory:
+		return mcInput.CanPasteFromHistory();
 	default:
 		return CComponent::CanDoCommand(eCommand);
 	}

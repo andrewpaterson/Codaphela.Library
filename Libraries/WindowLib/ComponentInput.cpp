@@ -80,6 +80,7 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ true,  false, false, "Insert",		CIC_Copy,						CIC_Ignored },
 	{ true,  false, false, "V",			CIC_Paste,						CIC_Ignored },
 	{ false, true,  false, "Insert",		CIC_Paste,						CIC_Ignored },
+	{ true,  true,  false, "V",			CIC_PasteFromHistory,			CIC_Ignored },
 	{ true,  false, false, "D",			CIC_Duplicate,					CIC_Ignored },
 	{ true,  false, false, "Backspace",	CIC_DeleteWordRemainingLeft,	CIC_Ignored },
 	{ true,  false, false, "Delete",		CIC_DeleteWordRemainingRight,	CIC_Ignored },
@@ -859,6 +860,7 @@ bool CComponentInput::IsWidgetCommand(EComponentInputCommand eCommand)
 	case CIC_Cut:
 	case CIC_Copy:
 	case CIC_Paste:
+	case CIC_PasteFromHistory:
 	case CIC_DeleteWordRemainingLeft:
 	case CIC_DeleteWordRemainingRight:
 	case CIC_Undo:

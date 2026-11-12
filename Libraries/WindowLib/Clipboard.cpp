@@ -208,6 +208,22 @@ void CClipboard::ShareHistory(Ptr<CClipboard> pClipboard)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What asks which of the history's entries to paste, NULL if there is
+// nothing to ask: no history has been wanted yet, or it has no chooser.
+//
+//////////////////////////////////////////////////////////////////////////
+CClipboardChooser* CClipboard::GetChooser(void)
+{
+	if (mpShared.IsNotNull())
+	{
+		return mpShared->GetChooser();
+	}
+	return mpHistory.IsNotNull() ? mpHistory->GetChooser() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CWindow> CClipboard::GetWindow(void) { return mpWindow; }

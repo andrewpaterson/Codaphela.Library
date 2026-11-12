@@ -83,6 +83,7 @@ enum EComponentInputCommand
 	CIC_Cut,
 	CIC_Copy,
 	CIC_Paste,
+	CIC_PasteFromHistory,	//Choose what to paste from the clipboard's history (CClipboardHistory).
 	CIC_Duplicate,
 	CIC_DeleteWordRemainingLeft,
 	CIC_DeleteWordRemainingRight,

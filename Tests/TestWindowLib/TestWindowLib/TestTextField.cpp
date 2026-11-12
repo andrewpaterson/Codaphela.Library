@@ -7,6 +7,7 @@
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/TextField.h"
+#include "WindowLib/Clipboard.h"
 #include "WindowLib/EditCommands.h"
 #include "WindowLib/MenuContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
@@ -572,6 +573,18 @@ void TestTextFieldFrames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Chooses nothing from a clipboard's history.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestNoClipboardChooser : public CClipboardChooser
+{
+public:
+	bool	ChooseContent(Ptr<CWindow> pOwner, Ptr<CClipboardHistory> pHistory, CChars* pszDest) override { return false; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The Edit commands act on the field the keys last went to, even while a
 // menu holds the keys, and can only run while they would do something.
 //
@@ -587,6 +600,7 @@ void TestTextFieldEditCommands(void)
 		Ptr<CEditCommands>		pEdit;
 		Ptr<CTestEditCommands>	pDefaulted;
 		Ptr<CMenuContainer>		pMenu;
+		CTestNoClipboardChooser	cChooser;
 		CPointer				pNull;
 		size					uiStart;
 		size					uiEnd;
@@ -599,7 +613,7 @@ void TestTextFieldEditCommands(void)
 		pCommands = OMalloc<CCommandSet>();
 		pEdit = OMalloc<CEditCommands>(pTestWindow, pCommands);
 		pTestWindow->SetCommands(pCommands);
-		AssertSize(6, pCommands->NumCommands());
+		AssertSize(7, pCommands->NumCommands());
 		AssertInt(CIC_Copy, pCommands->Find("Edit.Copy")->GetStandardCommand());
 		pTestWindow->Layout();
 
@@ -619,6 +633,13 @@ void TestTextFieldEditCommands(void)
 		AssertTrue(pCommands->Find("Edit.Copy")->IsEnabled());
 		AssertTrue(pCommands->Find("Edit.Paste")->IsEnabled());
 		AssertFalse(pCommands->Find("Edit.Undo")->IsEnabled());
+
+		//Paste from History needs something to choose with: the clipboard history's chooser.
+		AssertFalse(pCommands->Find("Edit.PasteFromHistory")->IsEnabled());
+		pTestWindow->GetClipboard()->GetHistory()->SetChooser(&cChooser);
+		AssertTrue(pCommands->Find("Edit.PasteFromHistory")->IsEnabled());
+		pTestWindow->GetClipboard()->GetHistory()->SetChooser(NULL);
+		AssertFalse(pCommands->Find("Edit.PasteFromHistory")->IsEnabled());
 
 		pTestWindow->InputPrintable('a', true);
 		pTestWindow->InputPrintable('b', true);

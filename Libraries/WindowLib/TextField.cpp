@@ -488,6 +488,8 @@ bool CTextField::CanDoCommand(EComponentInputCommand eCommand)
 		return CanUndo();
 	case CIC_Redo:
 		return CanRedo();
+	case CIC_PasteFromHistory:
+		return mcInput.CanPasteFromHistory();
 	default:
 		return CImageBorderContainer::CanDoCommand(eCommand);
 	}
