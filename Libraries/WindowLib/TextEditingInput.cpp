@@ -53,8 +53,6 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	msPress.Init(0, 0);
 	muiDrop = 0;
 	mbDropRowEnd = false;
-	muiBoxAnchorRow = 0;
-	miBoxAnchorX = 0;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -433,12 +431,15 @@ void CTextEditingInput::StartLineDrag(int x, int y, bool bExtend)
 //////////////////////////////////////////////////////////////////////////
 //
 // Shift+Alt (or Alt) and button one, as Visual Studio's: a box selection
-// is dragged from the press.  The press has given the component focus.
+// starts at the press and is dragged from it.  The press has given the
+// component focus.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::StartDragBox(int x, int y)
 {
 	CTextEditingView*	pcView;
+	size				uiRow;
+	int32				iBoxX;
 
 	pcView = mpcEditing->GetView();
 	if (!pcView->HasRows())
@@ -446,16 +447,16 @@ void CTextEditingInput::StartDragBox(int x, int y)
 		return;
 	}
 	msClicks.Forget();
-	muiBoxAnchorRow = pcView->FindRowAt(y);
-	miBoxAnchorX = FindBoxX(muiBoxAnchorRow, x);
+	uiRow = pcView->FindRowAt(y);
+	iBoxX = FindBoxX(uiRow, x);
+	mpcEditing->BoxSelect(uiRow, iBoxX, uiRow, iBoxX);
 	StartDrag(TED_Box, x, y);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The box goes from where it was pressed to the row and x the pointer is
-// at now.
+// The box's caret corner goes to the row and x the pointer is at now.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::DragBox(int x, int y)
@@ -463,7 +464,7 @@ void CTextEditingInput::DragBox(int x, int y)
 	size	uiRow;
 
 	uiRow = mpcEditing->GetView()->FindRowAt(y);
-	mpcEditing->BoxSelect(muiBoxAnchorRow, miBoxAnchorX, uiRow, FindBoxX(uiRow, x));
+	mpcEditing->MoveBoxCaret(uiRow, FindBoxX(uiRow, x));
 }
 
 

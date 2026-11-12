@@ -89,6 +89,35 @@ struct STextRange
 typedef CArrayTemplate<STextRange>	CArrayTextRange;
 
 
+//A caret and where its selection started, MAX_SIZE for nothing selected.
+struct STextSelection
+{
+	size	uiAnchor;
+	size	uiCaret;
+};
+
+
+typedef CArrayTemplate<STextSelection>	CArrayTextSelection;
+
+
+//A box (column) selection's corners, each a row and an x of the view: where it started and where its caret is.
+struct STextBox
+{
+	size	uiAnchorRow;
+	int32	iAnchorX;
+	size	uiCaretRow;
+	int32	iCaretX;
+
+	void	Init(void);
+	size	TopRow(void);
+	size	BottomRow(void);
+	size	NumRows(void);
+	int32	Left(void);
+	int32	Right(void);
+	bool	HasWidth(void);
+};
+
+
 //More ranges Extend Selection can grow a selection to than the text's own (CTextEditing::SetSelectionRanges): a
 //parse's syntax, say.  AddSelectionRanges adds those around uiStart to uiEnd, or all it has; the ones that aren't
 //around the selection, or are no bigger, aren't used.
@@ -138,13 +167,10 @@ protected:
 	bool				mbSingleLine;
 	bool				mbEdited;  //The document changed since the edit began.
 	CTextSelectionRanges*	mpcSelectionRanges;  //Not held: more ranges to extend to, NULL for none.
-	CArrayTextRange		masShrinks;  //The selections Extend grew from, the last last: an anchor (MAX_SIZE for none) and a caret.
-	STextRange			msExtended;  //The anchor and caret Extend or Shrink last left; the shrinks are for it only.
+	CArrayTextSelection	masShrinks;  //The selections Extend grew from, the last last.
+	STextSelection		msExtended;  //The selection Extend or Shrink last left; the shrinks are for it only.
 	bool				mbBox;  //A box is selected (see BoxSelect).
-	size				muiBoxAnchorRow;
-	int32				miBoxAnchorX;
-	size				muiBoxCaretRow;
-	int32				miBoxCaretX;
+	STextBox			msBox;  //Its corners, while mbBox.
 	bool				mbBoxEditing;  //The box's own edit is changing the document: it doesn't end the box.
 
 public:
@@ -212,8 +238,9 @@ public:
 	void		BoxSelectRight(void);
 	void		BoxSelectHome(void);
 	void		BoxSelectEnd(void);
+	void		MoveBoxCaret(size uiRow, int32 x);
 	bool		IsBox(void);
-	void		GetBox(size* puiTopRow, size* puiBottomRow, int32* piLeft, int32* piRight);
+	STextBox*	GetBox(void);
 	void		GetBoxRanges(CArrayTextRange* pasDest);
 	void		SelectAll(void);
 	void		ClearSelection(void);
@@ -234,7 +261,7 @@ public:
 	void		CutLine(CChars* pszDest);
 	void		Copy(CChars* pszDest);
 	void		Paste(char* szSource);
-	bool		ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText);
+	bool		ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
 	bool		MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy);
 	void		ReplaceText(const char* szText);
 	void		MakeInsertable(CChars* pszText);
@@ -252,20 +279,22 @@ protected:
 	void		MoveEnd(bool bSelect);
 	bool		FindExtension(size uiStart, size uiEnd, STextRange* psDest);
 	void		AddTextRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest);
+	void		GetAnchorAndCaret(STextSelection* psDest);
 	bool		IsExtended(void);
-	void		SetExtended(void);
 	bool		StartBox(void);
 	void		PlaceBoxCaret(void);
+	bool		IsBoxRowReached(size uiRow);
+	size		FindBoxReferenceRow(void);
 	void		TypeInBox(const char* szText);
 	void		DeleteInBox(bool bBackwards);
 	void		PasteInBox(char* szSource);
 	void		CopyBox(CChars* pszDest);
-	void		ReplaceBoxRanges(CArrayTextRange* pasRanges, CArrayChars* paszTexts, size uiReferenceRow);
-	size		FindBoxReferenceRow(CArrayTextRange* pasRanges);
+	void		ReplaceBoxRanges(CArrayTextRange* pasRanges, CArrayChars* paszTexts, const char* szText);
 
 	void		InsertText(size uiPosition, const char* szText);
 	void		RemoveText(size uiStart, size uiEnd);
 	void		ReplaceSelection(const char* szText);
+	void		ReplaceEachRange(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts, const char* szText);
 	bool		DeleteSelection(void);
 	void		FindLines(size uiStart, size uiEnd, CArrayTextLineStart* pauiLineStarts);
 	void		IndentLines(size uiStart, size uiEnd);

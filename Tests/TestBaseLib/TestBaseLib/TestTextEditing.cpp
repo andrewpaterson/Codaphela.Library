@@ -485,8 +485,7 @@ void TestTextEditingLines(void)
 void TestTextEditingUndo(void)
 {
 	STestTextEditing	s;
-	size				auiStarts[2];
-	size				auiEnds[2];
+	STextRange			asRanges[2];
 	size				uiId;
 
 	s.Init("x y");
@@ -510,13 +509,17 @@ void TestTextEditingUndo(void)
 	AssertInt(TUC_Redone, s.cView.maiUndoChanges.GetValue(3));
 
 	//Replacing ranges is one edit.
-	auiStarts[0] = 0;
-	auiEnds[0] = 1;
-	auiStarts[1] = 2;
-	auiEnds[1] = 5;
-	AssertTrue(s.cEditing.ReplaceRanges(auiStarts, auiEnds, 2, "zz"));
+	asRanges[0].uiStart = 0;
+	asRanges[0].uiEnd = 1;
+	asRanges[1].uiStart = 2;
+	asRanges[1].uiEnd = 5;
+	AssertTrue(s.cEditing.ReplaceRanges(asRanges, 2, "zz"));
 	AssertString("zz zz", s.Text());
-	AssertFalse(s.cEditing.ReplaceRanges(auiEnds, auiStarts, 2, "q"));
+	asRanges[0].uiStart = 2;
+	AssertFalse(s.cEditing.ReplaceRanges(asRanges, 2, "q"));
+	asRanges[0].uiStart = 0;
+	asRanges[0].uiEnd = 6;
+	AssertFalse(s.cEditing.ReplaceRanges(asRanges, 1, "q"));
 
 	AssertTrue(s.cEditing.UndoTo(uiId));
 	AssertString("x yab", s.Text());
@@ -679,7 +682,7 @@ void TestTextEditingExtendSelection(void)
 {
 	STestTextEditing		s;
 	CTestSelectionRanges	cRanges;
-	size					uiEnd;
+	STextRange				sAtEnd;
 
 	//f 4, ( 5, "b c" 13..18, ) 18, // note 20..27, LF 27, { 28, LF 29, tab 30, g 31, ( 32, x 33, [ 34, i 35, ] 36, ) 37,
 	//; 38, LF 39, } 40, LF 41, /* one 42..48, LF 48, two */ 49..55, end 56..59.
@@ -760,8 +763,9 @@ void TestTextEditingExtendSelection(void)
 	s.cEditing.SetCaretPosition(35);
 	AssertTextEditingExtends(&s, 35, 36);
 	AssertTextEditingExtends(&s, 34, 37);
-	uiEnd = 59;
-	AssertTrue(s.cEditing.ReplaceRanges(&uiEnd, &uiEnd, 1, "!"));
+	sAtEnd.uiStart = 59;
+	sAtEnd.uiEnd = 59;
+	AssertTrue(s.cEditing.ReplaceRanges(&sAtEnd, 1, "!"));
 	AssertTextEditingShrinks(&s, 34, 37);
 
 	s.Kill();
@@ -804,10 +808,6 @@ void TestTextEditingBox(void)
 {
 	STestTextEditing	s;
 	CChars				sz;
-	size				uiTop;
-	size				uiBottom;
-	int32				iLeft;
-	int32				iRight;
 	size				auiBox[] = { 1, 4, 8, 9, 11, 14 };
 	size				auiShort[] = { 4, 6, 9, 9, 14, 16 };
 	size				auiCaret[] = { 1, 1, 8, 8 };
@@ -823,26 +823,23 @@ void TestTextEditingBox(void)
 	AssertTextEditingBox(&s, 3, auiBox);
 	AssertFalse(s.cEditing.IsSelected());
 	AssertSize(14, s.Caret());
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertSize(0, uiTop);
-	AssertSize(2, uiBottom);
-	AssertInt((int32)1, iLeft);
-	AssertInt((int32)4, iRight);
+	AssertSize(0, s.cEditing.GetBox()->TopRow());
+	AssertSize(2, s.cEditing.GetBox()->BottomRow());
+	AssertInt((int32)1, s.cEditing.GetBox()->Left());
+	AssertInt((int32)4, s.cEditing.GetBox()->Right());
 	s.cEditing.Copy(&sz);
 	AssertString("bcd\nb\nbcd", sz.Text());
 
 	//Typed on every row, as one edit; the box is then a caret on every row after it.
 	s.cEditing.Printable('X', true);
 	AssertString("aXef\naX\naXefgh", s.Text());
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertInt((int32)2, iLeft);
-	AssertInt((int32)2, iRight);
+	AssertInt((int32)2, s.cEditing.GetBox()->Left());
+	AssertInt((int32)2, s.cEditing.GetBox()->Right());
 	s.cEditing.Printable('Y', true);
 	AssertString("aXYef\naXY\naXYefgh", s.Text());
 	s.cEditing.Backspace();
 	AssertString("aXef\naX\naXefgh", s.Text());
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertInt((int32)2, iLeft);
+	AssertInt((int32)2, s.cEditing.GetBox()->Left());
 
 	//Delete takes the character after each, but not the short row's line feed.
 	s.cEditing.Delete();
@@ -877,9 +874,8 @@ void TestTextEditingBox(void)
 	s.cEditing.BoxSelect(2, 4, 1, 6);
 	s.cEditing.Printable('-', true);
 	AssertString("abcdef\nab-\nabcd-gh", s.Text());
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertInt((int32)5, iLeft);
-	AssertInt((int32)5, iRight);
+	AssertInt((int32)5, s.cEditing.GetBox()->Left());
+	AssertInt((int32)5, s.cEditing.GetBox()->Right());
 
 	//Backspace with no width: a row that doesn't reach the box keeps its characters, and rows don't join.
 	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
@@ -916,25 +912,21 @@ void TestTextEditingBox(void)
 	s.cEditing.BoxSelectRight();
 	AssertTextEditingBox(&s, 2, auiNarrow);
 	s.cEditing.BoxSelectRight();
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertInt((int32)2, iRight);
+	AssertInt((int32)2, s.cEditing.GetBox()->Right());
 	s.cEditing.BoxSelectLeft();
 	s.cEditing.BoxSelectLeft();
 	s.cEditing.BoxSelectLeft();
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertInt((int32)0, iLeft);
-	AssertInt((int32)1, iRight);
+	AssertInt((int32)0, s.cEditing.GetBox()->Left());
+	AssertInt((int32)1, s.cEditing.GetBox()->Right());
 	s.cEditing.BoxSelectEnd();
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertInt((int32)2, iRight);
+	AssertInt((int32)2, s.cEditing.GetBox()->Right());
 	s.cEditing.BoxSelectHome();
 	s.cEditing.BoxSelectUp();
 	s.cEditing.BoxSelectUp();
-	s.cEditing.GetBox(&uiTop, &uiBottom, &iLeft, &iRight);
-	AssertSize(0, uiTop);
-	AssertSize(0, uiBottom);
-	AssertInt((int32)0, iLeft);
-	AssertInt((int32)1, iRight);
+	AssertSize(0, s.cEditing.GetBox()->TopRow());
+	AssertSize(0, s.cEditing.GetBox()->BottomRow());
+	AssertInt((int32)0, s.cEditing.GetBox()->Left());
+	AssertInt((int32)1, s.cEditing.GetBox()->Right());
 
 	//From a selection, the box's anchor is the selection's.
 	s.cEditing.Select(1, 3);
@@ -958,6 +950,26 @@ void TestTextEditingBox(void)
 	sz.Clear();
 	s.cEditing.Copy(&sz);
 	AssertString("b\nb", sz.Text());
+
+	//The caret corner goes where a drag takes it: a row past the last is the last.
+	s.cEditing.MoveBoxCaret(9, 3);
+	AssertSize(0, s.cEditing.GetBox()->TopRow());
+	AssertSize(2, s.cEditing.GetBox()->BottomRow());
+	AssertSize(3, s.cEditing.GetBox()->NumRows());
+	AssertInt((int32)1, s.cEditing.GetBox()->Left());
+	AssertInt((int32)3, s.cEditing.GetBox()->Right());
+	AssertTrue(s.cEditing.GetBox()->HasWidth());
+	AssertSize(13, s.Caret());
+
+	//Without a box, one starts at the caret.
+	s.cEditing.SetCaretPosition(7);
+	AssertFalse(s.cEditing.IsBox());
+	s.cEditing.MoveBoxCaret(0, 0);
+	AssertTrue(s.cEditing.IsBox());
+	AssertSize(0, s.cEditing.GetBox()->TopRow());
+	AssertSize(1, s.cEditing.GetBox()->BottomRow());
+	AssertFalse(s.cEditing.GetBox()->HasWidth());
+	AssertSize(0, s.Caret());
 
 	sz.Kill();
 	s.Kill();

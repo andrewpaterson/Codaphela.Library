@@ -1194,7 +1194,7 @@ void CTextArea::Duplicate(void) { mcEditing.Duplicate(); }
 void CTextArea::DeleteWordRemainingRight(void) { mcEditing.DeleteWordRemainingRight(); }
 void CTextArea::DeleteWordRemainingLeft(void) { mcEditing.DeleteWordRemainingLeft(); }
 void CTextArea::DeleteLine(void) { mcEditing.DeleteLine(); }
-bool CTextArea::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText) { return mcEditing.ReplaceRanges(auiStarts, auiEnds, uiNumRanges, szText); }
+bool CTextArea::ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText) { return mcEditing.ReplaceRanges(asRanges, uiNumRanges, szText); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1699,10 +1699,7 @@ void CTextArea::UpdateMarks(void)
 	size					uiEnd;
 	size					i;
 	STextOccurrenceRange*	psRange;
-	size					uiTopRow;
-	size					uiBottomRow;
-	int32					iLeft;
-	int32					iRight;
+	STextBox*				psBox;
 
 	//The selection is drawn with the text: the rows it changed are drawn again.
 	RowsChanged();
@@ -1733,8 +1730,8 @@ void CTextArea::UpdateMarks(void)
 	//A box selection, with no width a line in the caret's colour on each row.
 	if (mcEditing.IsBox())
 	{
-		mcEditing.GetBox(&uiTopRow, &uiBottomRow, &iLeft, &iRight);
-		mcShapes.AddBox(mpSelectionMap, uiTopRow, uiBottomRow, iLeft, iRight, (iRight > iLeft) ? msSelectionColour : msCaretColour);
+		psBox = mcEditing.GetBox();
+		mcShapes.AddBox(mpSelectionMap, psBox->TopRow(), psBox->BottomRow(), psBox->Left(), psBox->Right(), psBox->HasWidth() ? msSelectionColour : msCaretColour);
 		return;
 	}
 

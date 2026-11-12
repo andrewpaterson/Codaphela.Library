@@ -1678,9 +1678,8 @@ void TestTextAreaEditReplaceRanges(void)
 		CPointer					pNull;
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
-		size						auiStarts[3] = { 4, 17, 23 };
-		size						auiEnds[3] = { 7, 20, 26 };
-		size						auiBad[2] = { 17, 4 };
+		STextRange					asRanges[3] = { { 4, 7 }, { 17, 20 }, { 23, 26 } };
+		STextRange					asBad[2] = { { 17, 20 }, { 4, 7 } };
 
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -1694,13 +1693,13 @@ void TestTextAreaEditReplaceRanges(void)
 		pTestWindow->Layout();
 
 		pTextArea->SetEditable(false);
-		AssertFalse(pTextArea->ReplaceRanges(auiStarts, auiEnds, 3, "count"));
+		AssertFalse(pTextArea->ReplaceRanges(asRanges, 3, "count"));
 		pTextArea->SetEditable(true);
-		AssertFalse(pTextArea->ReplaceRanges(auiBad, auiEnds, 2, "count"));
+		AssertFalse(pTextArea->ReplaceRanges(asBad, 2, "count"));
 		AssertString("int foo;\nint x = foo + foo;", pTextArea->GetText());
 
 		pTextArea->SetCaretPosition(27);
-		AssertTrue(pTextArea->ReplaceRanges(auiStarts, auiEnds, 3, "count"));
+		AssertTrue(pTextArea->ReplaceRanges(asRanges, 3, "count"));
 		AssertString("int count;\nint x = count + count;", pTextArea->GetText());
 		AssertSize(33, pTextArea->GetCaretPosition());
 		AssertTrue(pTextArea->Undo());
@@ -1926,8 +1925,7 @@ void TestTextAreaEditOccurrences(void)
 		Ptr<CFillContainer>			pFill;
 		Ptr<CTextArea>				pTextArea;
 		uint32						uiBackground;
-		size						uiBar;
-		size						uiBarEnd;
+		STextRange					sBar;
 		CChars						szText;
 		int32						i;
 
@@ -1947,8 +1945,8 @@ void TestTextAreaEditOccurrences(void)
 		pTestWindow->Show();
 		pTestWindow->Paint();
 		uiBackground = TextAreaPixelUnder(pTextArea, 16);
-		uiBar = 28;
-		uiBarEnd = 31;
+		sBar.uiStart = 28;
+		sBar.uiEnd = 31;
 
 		//Not highlighting, none are found.
 		AssertFalse(pTextArea->IsHighlightingOccurrences());
@@ -2024,7 +2022,7 @@ void TestTextAreaEditOccurrences(void)
 		pTextArea->Select(4, 7);
 		pTestWindow->RunPosted();
 		AssertSize(3, pTextArea->NumOccurrences());
-		AssertTrue(pTextArea->ReplaceRanges(&uiBar, &uiBarEnd, 1, "bar"));
+		AssertTrue(pTextArea->ReplaceRanges(&sBar, 1, "bar"));
 		AssertTextAreaSelection(4, 7, pTextArea);
 		AssertSize(0, pTextArea->NumOccurrences());
 		pTestWindow->RunPosted();

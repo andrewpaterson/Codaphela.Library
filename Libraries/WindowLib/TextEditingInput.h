@@ -71,8 +71,6 @@ protected:
 	SInt32Vec2				msPress;  //Where the press in the selection was.
 	size					muiDrop;  //Where the dragged text would be dropped.
 	bool					mbDropRowEnd;
-	size					muiBoxAnchorRow;  //Where a box was pressed.
-	int32					miBoxAnchorX;
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);

@@ -386,6 +386,42 @@ void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// uiStart to uiEnd is a range of the text: in order and not past its end.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::IsRange(size uiStart, size uiEnd)
+{
+	return (uiStart <= uiEnd) && (uiEnd <= mpszText->Length());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// *puiStart to *puiEnd grows over the characters before and after it that
+// fIsInRun is true of.  By bytes: a character's bytes past 0x7F are all
+// in a run or all out of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextNavigation::ExpandRun(bool (*fIsInRun)(char), size* puiStart, size* puiEnd)
+{
+	char*	szText;
+	size	uiLength;
+
+	szText = mpszText->Text();
+	uiLength = mpszText->Length();
+	while ((*puiStart > 0) && fIsInRun(szText[*puiStart - 1]))
+	{
+		(*puiStart)--;
+	}
+	while ((*puiEnd < uiLength) && fIsInRun(szText[*puiEnd]))
+	{
+		(*puiEnd)++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The run of word characters that uiStart to uiEnd is in: uiStart to
 // uiEnd are all word characters, or with nothing between them they are
 // at or next to one.  False if they aren't in a word.
@@ -394,15 +430,13 @@ void CTextNavigation::FindOccurrences(size uiStart, size uiEnd, size uiMaxOccurr
 bool CTextNavigation::FindWordOver(size uiStart, size uiEnd, size* puiStart, size* puiEnd)
 {
 	char*	szText;
-	size	uiLength;
 	size	i;
 
-	szText = mpszText->Text();
-	uiLength = mpszText->Length();
-	if ((uiStart > uiEnd) || (uiEnd > uiLength))
+	if (!IsRange(uiStart, uiEnd))
 	{
 		return false;
 	}
+	szText = mpszText->Text();
 	for (i = uiStart; i < uiEnd; i++)
 	{
 		if (!IsWordChar(szText[i]))
@@ -410,14 +444,7 @@ bool CTextNavigation::FindWordOver(size uiStart, size uiEnd, size* puiStart, siz
 			return false;
 		}
 	}
-	while ((uiStart > 0) && IsWordChar(szText[uiStart - 1]))
-	{
-		uiStart--;
-	}
-	while ((uiEnd < uiLength) && IsWordChar(szText[uiEnd]))
-	{
-		uiEnd++;
-	}
+	ExpandRun(&IsWordChar, &uiStart, &uiEnd);
 	*puiStart = uiStart;
 	*puiEnd = uiEnd;
 	return uiStart < uiEnd;
@@ -440,7 +467,7 @@ bool CTextNavigation::FindQuotesAround(size uiStart, size uiEnd, size* puiOpen, 
 	size	i;
 	size	uiClose;
 
-	if ((uiStart > uiEnd) || (uiEnd > mpszText->Length()))
+	if (!IsRange(uiStart, uiEnd))
 	{
 		return false;
 	}
@@ -493,7 +520,7 @@ bool CTextNavigation::FindBracketsAround(size uiStart, size uiEnd, size* puiOpen
 	char	c;
 
 	szText = mpszText->Text();
-	if ((uiStart > uiEnd) || (uiEnd > mpszText->Length()))
+	if (!IsRange(uiStart, uiEnd))
 	{
 		return false;
 	}
@@ -503,11 +530,11 @@ bool CTextNavigation::FindBracketsAround(size uiStart, size uiEnd, size* puiOpen
 	for (i = (uiStart < uiEnd) ? uiStart + 1 : uiStart; i > 0; i--)
 	{
 		c = szText[i - 1];
-		if ((c == ')') || (c == ']') || (c == '}'))
+		if (IsClosingBracket(c))
 		{
 			uiDepth++;
 		}
-		else if ((c == '(') || (c == '[') || (c == '{'))
+		else if (IsOpeningBracket(c))
 		{
 			if (uiDepth > 0)
 			{
@@ -546,11 +573,11 @@ bool CTextNavigation::FindClosingBracket(size uiOpen, size* puiClose)
 	uiDepth = 0;
 	for (i = uiOpen + 1; i < uiLength; i++)
 	{
-		if ((szText[i] == '(') || (szText[i] == '[') || (szText[i] == '{'))
+		if (IsOpeningBracket(szText[i]))
 		{
 			uiDepth++;
 		}
-		else if ((szText[i] == ')') || (szText[i] == ']') || (szText[i] == '}'))
+		else if (IsClosingBracket(szText[i]))
 		{
 			if (uiDepth == 0)
 			{
@@ -582,7 +609,7 @@ bool CTextNavigation::FindCommentAround(size uiStart, size uiEnd, size* puiStart
 
 	szText = mpszText->Text();
 	uiLength = mpszText->Length();
-	if ((uiStart > uiEnd) || (uiEnd > uiLength))
+	if (!IsRange(uiStart, uiEnd) || (uiLength < 2))
 	{
 		return false;
 	}
@@ -606,22 +633,15 @@ bool CTextNavigation::FindCommentAround(size uiStart, size uiEnd, size* puiStart
 	}
 
 	//A block comment opens at or before uiStart and first closes at or after uiEnd.
-	for (i = uiStart + 1; i > 0; i--)
+	uiOpen = (uiStart < uiLength - 1) ? uiStart : uiLength - 2;
+	while ((szText[uiOpen] != '/') || (szText[uiOpen + 1] != '*'))
 	{
-		if (i >= uiLength)
+		if (uiOpen == 0)
 		{
-			continue;
+			return false;
 		}
-		if ((szText[i - 1] == '/') && (szText[i] == '*'))
-		{
-			break;
-		}
+		uiOpen--;
 	}
-	if (i == 0)
-	{
-		return false;
-	}
-	uiOpen = i - 1;
 	for (i = uiOpen + 3; i < uiLength; i++)
 	{
 		if ((szText[i - 1] == '*') && (szText[i] == '/'))
@@ -652,7 +672,6 @@ bool CTextNavigation::FindWordAround(size uiPosition, size* puiStart, size* puiE
 	size	uiLength;
 	size	uiStart;
 	size	uiEnd;
-	size	uiPrevious;
 	char*	szText;
 	bool	bSpaces;
 
@@ -678,22 +697,8 @@ bool CTextNavigation::FindWordAround(size uiPosition, size* puiStart, size* puiE
 	}
 
 	uiStart = uiPosition;
-	while (uiStart > 0)
-	{
-		uiPrevious = PreviousPosition(uiStart);
-		if (bSpaces ? !IsSpaceOrTab(szText[uiPrevious]) : !IsWordChar(szText[uiPrevious]))
-		{
-			break;
-		}
-		uiStart = uiPrevious;
-	}
-
 	uiEnd = uiPosition;
-	while ((uiEnd < uiLength) && (bSpaces ? IsSpaceOrTab(szText[uiEnd]) : IsWordChar(szText[uiEnd])))
-	{
-		uiEnd = NextPosition(uiEnd);
-	}
-
+	ExpandRun(bSpaces ? &IsSpaceOrTab : &IsWordChar, &uiStart, &uiEnd);
 	*puiStart = uiStart;
 	*puiEnd = uiEnd;
 	return true;
@@ -722,6 +727,15 @@ bool CTextNavigation::IsSpaceOrTab(char c)
 {
 	return (c == ' ') || (c == '\t');
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The brackets that pair: ( [ and {, and what closes them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::IsOpeningBracket(char c) { return (c == '(') || (c == '[') || (c == '{'); }
+bool CTextNavigation::IsClosingBracket(char c) { return (c == ')') || (c == ']') || (c == '}'); }
 
 
 //////////////////////////////////////////////////////////////////////////

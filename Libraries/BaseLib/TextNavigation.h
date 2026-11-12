@@ -62,8 +62,14 @@ public:
 	bool		FindCommentAround(size uiStart, size uiEnd, size* puiStart, size* puiEnd);
 
 	static bool	IsSpaceOrTab(char c);
+	static bool	IsOpeningBracket(char c);
+	static bool	IsClosingBracket(char c);
 	static bool	IsWhitespace(char c);
 	static bool	IsWordChar(char c);
+
+protected:
+	bool		IsRange(size uiStart, size uiEnd);
+	void		ExpandRun(bool (*fIsInRun)(char), size* puiStart, size* puiEnd);
 };
 
 

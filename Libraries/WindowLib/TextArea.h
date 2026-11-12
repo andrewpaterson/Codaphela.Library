@@ -276,7 +276,7 @@ public:
 	void				Cut(CChars* pszDest);
 	void				Copy(CChars* pszDest);
 	void				Paste(char* szSource);
-	bool				ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText);
+	bool				ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
 	void				CutLine(CChars* pszDest);
 	void				Duplicate(void);
 	void				DeleteWordRemainingRight(void);
