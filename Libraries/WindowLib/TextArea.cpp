@@ -90,6 +90,8 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	muiCaretLine = 0;
 	mbHighlightOccurrences = false;
 	msOccurrenceColour = pTheme->GetColour(TC_TextOccurrence);
+	msWriteOccurrenceColour = pTheme->GetColour(TC_TextWriteOccurrence);
+	masOccurrenceRanges.Init();
 	mauiOccurrences.Init();
 	muiOccurrenceLength = 0;
 	muiOccurrencesStart = 0;
@@ -131,6 +133,7 @@ void CTextArea::Free(void)
 	{
 		mpWindow->CancelPosted(this);
 	}
+	masOccurrenceRanges.Kill();
 	mauiOccurrences.Kill();
 	mcBands.Kill();
 	mcShapes.Kill();
@@ -172,6 +175,8 @@ void CTextArea::Class(void)
 	U_Size(muiCaretLine);
 	U_Bool(mbHighlightOccurrences);
 	U_UInt32(msOccurrenceColour);
+	U_UInt32(msWriteOccurrenceColour);
+	U_Unknown(CArrayTextOccurrenceRange, masOccurrenceRanges);
 	U_Unknown(CArrayTextOccurrence, mauiOccurrences);
 	U_Size(muiOccurrenceLength);
 	U_Size(muiOccurrencesStart);
@@ -212,6 +217,7 @@ bool CTextArea::Load(CObjectReader* pcFile)
 void CTextArea::SetText(const char* szText)
 {
 	mcDocument.SetText(szText);
+	TextChanged();
 	mcBackgrounds.Clear();
 	mcEditing.Reset();
 	mpLayout->TextSet();
@@ -238,7 +244,7 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 		return;
 	}
 	mpLayout->Append(szText, sColour);
-	mbOccurrencesStale = true;
+	TextChanged();
 	LaidOut();
 
 	//What it is laid out from has changed.
@@ -1529,7 +1535,7 @@ void CTextArea::TextEdited(void)
 {
 	SInt32Vec2	sTextSize;
 
-	mbOccurrencesStale = true;
+	TextChanged();
 	sTextSize = mpLayout->GetTextSize();
 	Relayout();
 	if (sTextSize != mpLayout->GetTextSize())
@@ -1651,9 +1657,10 @@ bool CTextArea::GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::UpdateMarks(void)
 {
-	size		uiStart;
-	size		uiEnd;
-	size		i;
+	size					uiStart;
+	size					uiEnd;
+	size					i;
+	STextOccurrenceRange*	psRange;
 
 	//The selection is drawn with the text: the rows it changed are drawn again.
 	RowsChanged();
@@ -1678,8 +1685,69 @@ void CTextArea::UpdateMarks(void)
 	if (GetSelection(&uiStart, &uiEnd))
 	{
 		mcShapes.AddRange(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
+		return;
+	}
+
+	//The ranges given, a symbol's usages say, only while nothing is selected.
+	for (i = 0; i < masOccurrenceRanges.NumElements(); i++)
+	{
+		psRange = masOccurrenceRanges.Get(i);
+		mcShapes.AddRange(mpSelectionMap, psRange->uiStart, psRange->uiEnd, psRange->bWrite ? msWriteOccurrenceColour : msOccurrenceColour);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text changed: the selected text's occurrences are found again, and
+// the ranges given are dropped, as they were of the text before.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::TextChanged(void)
+{
+	mbOccurrencesStale = true;
+	masOccurrenceRanges.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ranges of the text drawn as occurrences while nothing is selected, as
+// IntelliJ IDEA shows the usages of the symbol at the caret: in the
+// occurrence colour, or with bWrite (a declaration) the write occurrence
+// colour.  They replace the ones given before, and go when the text
+// changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetOccurrenceRanges(STextOccurrenceRange* asRanges, size uiNumRanges)
+{
+	size	i;
+
+	masOccurrenceRanges.ReInit();
+	for (i = 0; i < uiNumRanges; i++)
+	{
+		memcpy(masOccurrenceRanges.Add(), &asRanges[i], sizeof(STextOccurrenceRange));
+	}
+	UpdateMarks();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ClearOccurrenceRanges(void)
+{
+	if (masOccurrenceRanges.NumElements() > 0)
+	{
+		masOccurrenceRanges.ReInit();
+		UpdateMarks();
+	}
+}
+
+
+size CTextArea::NumOccurrenceRanges(void) { return masOccurrenceRanges.NumElements(); }
+STextOccurrenceRange* CTextArea::GetOccurrenceRange(size uiIndex) { return masOccurrenceRanges.Get(uiIndex); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1790,9 +1858,10 @@ size CTextArea::GetOccurrenceLength(void) { return muiOccurrenceLength; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::SetOccurrenceColour(ARGB32 sColour)
+void CTextArea::SetOccurrenceColours(ARGB32 sOccurrence, ARGB32 sWrite)
 {
-	msOccurrenceColour = sColour;
+	msOccurrenceColour = sOccurrence;
+	msWriteOccurrenceColour = sWrite;
 	UpdateMarks();
 }
 

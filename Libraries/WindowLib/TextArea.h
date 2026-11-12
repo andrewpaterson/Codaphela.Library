@@ -42,6 +42,19 @@ class CTextArea;
 
 
 #define TEXT_AREA_MAX_OCCURRENCES	1000	//The most occurrences of the selected text found (SetHighlightOccurrences).
+
+
+//A range of a text area's text drawn as an occurrence (SetOccurrenceRanges): a symbol's usage, or with bWrite where it
+//is declared.
+struct STextOccurrenceRange
+{
+	size	uiStart;
+	size	uiEnd;
+	bool	bWrite;
+};
+
+
+typedef CArrayTemplate<STextOccurrenceRange>	CArrayTextOccurrenceRange;
 typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  //What happened to the undo history.
 
 
@@ -100,6 +113,8 @@ protected:
 	size					muiCaretLine;  //The line it was drawn on.
 	bool					mbHighlightOccurrences;  //The selected text's other occurrences are drawn under the text.
 	ARGB32					msOccurrenceColour;
+	ARGB32					msWriteOccurrenceColour;
+	CArrayTextOccurrenceRange	masOccurrenceRanges;  //Given (SetOccurrenceRanges), drawn while nothing is selected.
 	CArrayTextOccurrence	mauiOccurrences;  //Their starts, each muiOccurrenceLength long, found at a tick.
 	size					muiOccurrenceLength;
 	size					muiOccurrencesStart;  //The selection they were found for (equal with nothing selected).
@@ -181,7 +196,11 @@ public:
 	bool				IsCaretLineShown(void);
 	void				SetHighlightOccurrences(bool bHighlight);
 	bool				IsHighlightingOccurrences(void);
-	void				SetOccurrenceColour(ARGB32 sColour);
+	void				SetOccurrenceColours(ARGB32 sOccurrence, ARGB32 sWrite);
+	void				SetOccurrenceRanges(STextOccurrenceRange* asRanges, size uiNumRanges);
+	void				ClearOccurrenceRanges(void);
+	size				NumOccurrenceRanges(void);
+	STextOccurrenceRange*	GetOccurrenceRange(size uiIndex);
 	size				NumOccurrences(void);
 	size				GetOccurrenceStart(size uiIndex);
 	size				GetOccurrenceLength(void);
@@ -315,6 +334,7 @@ protected:
 	void				UpdateMarks(void);
 	bool				AreOccurrencesFound(void);
 	void				RequestOccurrences(void);
+	void				TextChanged(void);
 	void				RowsChanged(void);
 	void				BackgroundsChanged(void);
 	bool				SummariseBands(CTextAreaBands* pcBands);

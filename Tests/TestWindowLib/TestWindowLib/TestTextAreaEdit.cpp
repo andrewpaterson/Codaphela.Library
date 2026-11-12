@@ -1942,7 +1942,7 @@ void TestTextAreaEditOccurrences(void)
 		//foo 4, 17 and 23; int 0 and 9; the space before 17 is 16; LF 8; end 27.
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "int foo;\nint x = foo + foo;");
 		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
-		pTextArea->SetOccurrenceColour(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20));
+		pTextArea->SetOccurrenceColours(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20), Set32BitColour((uint8)0x20, (uint8)0x80, (uint8)0x20));
 		pFill->AddComponent(pTextArea);
 		pTestWindow->Show();
 		pTestWindow->Paint();
@@ -2072,6 +2072,89 @@ void TestTextAreaEditOccurrences(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Ranges given as occurrences, a symbol's usages and its declaration, are
+// drawn in their colours while nothing is selected, and go when the text
+// changes or they are cleared.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditOccurrenceRanges(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		uint32						uiBackground;
+		STextOccurrenceRange		asRanges[3] = { { 4, 7, true }, { 17, 20, false }, { 23, 26, false } };
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		//foo 4, 17 and 23; the space before 17 is 16.
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "int foo;\nint x = foo + foo;");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pTextArea->SetOccurrenceColours(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20), Set32BitColour((uint8)0x20, (uint8)0x80, (uint8)0x20));
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Show();
+		pTestWindow->Paint();
+		uiBackground = TextAreaPixelUnder(pTextArea, 16);
+
+		pTextArea->SetOccurrenceRanges(asRanges, 3);
+		AssertSize(3, pTextArea->NumOccurrenceRanges());
+		AssertSize(17, pTextArea->GetOccurrenceRange(1)->uiStart);
+		pTestWindow->Paint();
+		AssertInt(0x208020, TextAreaPixelUnder(pTextArea, 5));
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 18));
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 24));
+		AssertTrue(TextAreaPixelUnder(pTextArea, 16) == uiBackground);
+
+		//Not while something is selected.
+		pTextArea->Select(0, 3);
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+		pTextArea->SetCaretPosition(1);
+		pTestWindow->Paint();
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 18));
+
+		//Cleared, or the text changed: they go.
+		pTextArea->ClearOccurrenceRanges();
+		AssertSize(0, pTextArea->NumOccurrenceRanges());
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+		pTextArea->SetOccurrenceRanges(asRanges, 3);
+		pTextArea->Printable('x', true);
+		AssertSize(0, pTextArea->NumOccurrenceRanges());
+		pTextArea->SetOccurrenceRanges(asRanges, 3);
+		pTextArea->AppendText(" ", Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF));
+		AssertSize(0, pTextArea->NumOccurrenceRanges());
+		pTextArea->SetOccurrenceRanges(asRanges, 3);
+		pTextArea->SetText("int foo;\nint x = foo + foo;");
+		AssertSize(0, pTextArea->NumOccurrenceRanges());
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -2088,6 +2171,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
 	TestTextAreaEditOccurrences();
+	TestTextAreaEditOccurrenceRanges();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();
