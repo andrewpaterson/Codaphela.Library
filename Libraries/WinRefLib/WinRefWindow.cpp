@@ -36,12 +36,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CInt32Rect* pcBounds, char* szImagePath)
 {
-    CNativeWindow::Init(pcWindow, pcWindowFactory);
-    mbCreated = false;
-    mcWindowBounds.Init(pcBounds);
-    mszImagePath = szImagePath;
-    muiFrame = 0;
-    mcPresented.Init();
+	CNativeWindow::Init(pcWindow, pcWindowFactory);
+	mbCreated = false;
+	mcWindowBounds.Init(pcBounds);
+	mszImagePath = szImagePath;
+	muiFrame = 0;
+	mcPresented.Init();
 }
 
 
@@ -51,10 +51,10 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Kill(void)
 {
-    muiFrame = -1;
-    mszImagePath = NULL;
-    mbCreated = false;
-    CNativeWindow::Kill();
+	muiFrame = -1;
+	mszImagePath = NULL;
+	mbCreated = false;
+	CNativeWindow::Kill();
 }
 
 
@@ -64,12 +64,12 @@ void CWinRefWindow::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::CreateNativeWindow(void)
 {
-    if ((msRequestedSize.x > 0) && (msRequestedSize.y > 0))
-    {
-        mcWindowBounds.Init(mcWindowBounds.GetLeft(), mcWindowBounds.GetTop(), mcWindowBounds.GetLeft() + msRequestedSize.x, mcWindowBounds.GetTop() + msRequestedSize.y);
-    }
-    mbCreated = true;
-    return true;
+	if ((msRequestedSize.x > 0) && (msRequestedSize.y > 0))
+	{
+		mcWindowBounds.Init(mcWindowBounds.GetLeft(), mcWindowBounds.GetTop(), mcWindowBounds.GetLeft() + msRequestedSize.x, mcWindowBounds.GetTop() + msRequestedSize.y);
+	}
+	mbCreated = true;
+	return true;
 }
 
 
@@ -79,7 +79,7 @@ bool CWinRefWindow::CreateNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::DestroyNativeWindow(void)
 {
-    mbCreated = false;
+	mbCreated = false;
 }
 
 
@@ -89,7 +89,7 @@ void CWinRefWindow::DestroyNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::ExecuteNativeWindow(void)
 {
-    return true;
+	return true;
 }
 
 
@@ -99,27 +99,27 @@ bool CWinRefWindow::ExecuteNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
 {
-    CWinRefCanvas*  pcRefCanvas;
-    CFileUtil       cFileUtil;
-    CChars          szFileName;
+	CWinRefCanvas*	pcRefCanvas;
+	CFileUtil		cFileUtil;
+	CChars			szFileName;
 
-    pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
+	pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
 
-    //No image path means the frames are not wanted; don't write them into the working directory.
-    if ((mszImagePath != NULL) && (mszImagePath[0] != '\0'))
-    {
-        //A dialog's frames are kept apart from its owner's.
-        szFileName.Init(mszImagePath);
-        cFileUtil.AppendToPath(&szFileName, mpcOwner ? (mbTool ? "ToolFrame" : "DialogFrame") : "Frame");
-        szFileName.Append(muiFrame);
-        szFileName.Append(".png");
+	//No image path means the frames are not wanted; don't write them into the working directory.
+	if ((mszImagePath != NULL) && (mszImagePath[0] != '\0'))
+	{
+		//A dialog's frames are kept apart from its owner's.
+		szFileName.Init(mszImagePath);
+		cFileUtil.AppendToPath(&szFileName, mpcOwner ? (mbTool ? "ToolFrame" : "DialogFrame") : "Frame");
+		szFileName.Append(muiFrame);
+		szFileName.Append(".png");
 
-        //You should create a new image here and size to iWidth and iHeight before calling Save.
-        SavePNG(pcRefCanvas->GetNativeImage(), szFileName.Text());
-        szFileName.Kill();
-    }
+		//You should create a new image here and size to iWidth and iHeight before calling Save.
+		SavePNG(pcRefCanvas->GetNativeImage(), szFileName.Text());
+		szFileName.Kill();
+	}
 
-    muiFrame++;
+	muiFrame++;
 }
 
 
@@ -129,8 +129,8 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SignalPresent(void)
 {
-    mcPresented.AddAll();
-    CNativeWindow::Present();
+	mcPresented.AddAll();
+	CNativeWindow::Present();
 }
 
 
@@ -142,8 +142,8 @@ void CWinRefWindow::SignalPresent(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SignalPresentArea(CInt32Rect* pcArea)
 {
-    mcPresented.Add(pcArea);
-    CNativeWindow::Present();
+	mcPresented.Add(pcArea);
+	CNativeWindow::Present();
 }
 
 
@@ -155,17 +155,17 @@ void CWinRefWindow::SignalPresentArea(CInt32Rect* pcArea)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SignalPresentDamage(CDamageArea* pcDamage)
 {
-    size    i;
+	size	i;
 
-    if (pcDamage->IsAll())
-    {
-        mcPresented.AddAll();
-    }
-    for (i = 0; i < pcDamage->NumRectangles(); i++)
-    {
-        mcPresented.Add(pcDamage->GetRectangle(i));
-    }
-    CNativeWindow::Present();
+	if (pcDamage->IsAll())
+	{
+		mcPresented.AddAll();
+	}
+	for (i = 0; i < pcDamage->NumRectangles(); i++)
+	{
+		mcPresented.Add(pcDamage->GetRectangle(i));
+	}
+	CNativeWindow::Present();
 }
 
 
@@ -175,7 +175,7 @@ void CWinRefWindow::SignalPresentDamage(CDamageArea* pcDamage)
 //////////////////////////////////////////////////////////////////////////
 CDamageArea* CWinRefWindow::GetPresented(void)
 {
-    return &mcPresented;
+	return &mcPresented;
 }
 
 
@@ -185,7 +185,7 @@ CDamageArea* CWinRefWindow::GetPresented(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::ClearPresented(void)
 {
-    mcPresented.Clear();
+	mcPresented.Clear();
 }
 
 
@@ -195,7 +195,7 @@ void CWinRefWindow::ClearPresented(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::GetRectangle(CInt32Rect* pcDest)
 {
-    pcDest->Init(&mcWindowBounds);
+	pcDest->Init(&mcWindowBounds);
 }
 
 
@@ -206,8 +206,8 @@ void CWinRefWindow::GetRectangle(CInt32Rect* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
 {
-    CNativeWindow::SetScreenRectangle(pcRectangle);
-    mcWindowBounds.Init(0, 0, pcRectangle->GetWidth(), pcRectangle->GetHeight());
+	CNativeWindow::SetScreenRectangle(pcRectangle);
+	mcWindowBounds.Init(0, 0, pcRectangle->GetWidth(), pcRectangle->GetHeight());
 }
 
 
@@ -217,7 +217,7 @@ void CWinRefWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::IsCreated(void)
 {
-    return mbCreated;
+	return mbCreated;
 }
 
 
@@ -227,6 +227,6 @@ bool CWinRefWindow::IsCreated(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::GetScreenArea(CInt32Rect* pcDest)
 {
-    return ((CWinRefWindowFactory*)mpcWindowFactory)->GetScreenArea(pcDest);
+	return ((CWinRefWindowFactory*)mpcWindowFactory)->GetScreenArea(pcDest);
 }
 

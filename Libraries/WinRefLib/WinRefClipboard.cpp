@@ -28,11 +28,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefClipboard::SetText(const char* szText)
 {
-    CWinRefWindowFactory*   pcFactory;
+	CWinRefWindowFactory*	pcFactory;
 
-    pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
-    pcFactory->GetClipboardText()->Set(szText);
-    return true;
+	pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
+	pcFactory->GetClipboardText()->Set(szText);
+	return true;
 }
 
 
@@ -43,16 +43,16 @@ bool CWinRefClipboard::SetText(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefClipboard::GetText(CChars* pszDest)
 {
-    CWinRefWindowFactory*   pcFactory;
-    CChars*                 pszText;
+	CWinRefWindowFactory*	pcFactory;
+	CChars*					pszText;
 
-    pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
-    pszText = pcFactory->GetClipboardText();
-    if (pszText->Empty())
-    {
-        return false;
-    }
-    pszDest->Append(pszText);
-    return true;
+	pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
+	pszText = pcFactory->GetClipboardText();
+	if (pszText->Empty())
+	{
+		return false;
+	}
+	pszDest->Append(pszText);
+	return true;
 }
 

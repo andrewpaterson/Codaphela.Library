@@ -1,5 +1,3 @@
-#ifndef __WIN_Ref_CANVAS_H__
-#define __WIN_Ref_CANVAS_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __WIN_REF_CANVAS_H__
+#define __WIN_REF_CANVAS_H__
 #include "StandardLib/Pointer.h"
 #include "SupportLib/Image.h"
 #include "SupportLib/ImageDraw.h"
@@ -57,5 +57,5 @@ protected:
 };
 
 
-#endif // __WIN_Ref_CANVAS_H__
+#endif // __WIN_REF_CANVAS_H__
 
