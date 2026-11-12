@@ -47,7 +47,10 @@ public:
 	size		FindColumn(size uiLineStart, size uiColumn);
 	size		FindWordLeft(size uiPosition);
 	size		FindWordRight(size uiPosition);
+	bool		FindWordAround(size uiPosition, size* puiStart, size* puiEnd);
+	void		FindLineAround(size uiPosition, size* puiStart, size* puiEnd);
 
+	static bool	IsSpaceOrTab(char c);
 	static bool	IsWhitespace(char c);
 	static bool	IsWordChar(char c);
 };

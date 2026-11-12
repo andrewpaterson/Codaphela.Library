@@ -19,10 +19,12 @@ public:
 	int				miTextEdited;
 	CArrayInt		maiUndoChanges;
 	size			muiLastIdAfter;
+	int32			miColumnWidth;  //Each character's width in x.
 
 	void	Init(CTextDocument* pcDocument)
 	{
 		mpcDocument = pcDocument;
+		miColumnWidth = 1;
 		miMarksChanged = 0;
 		miCaretShown = 0;
 		miTextEdited = 0;
@@ -55,12 +57,16 @@ public:
 	size	FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) override
 	{
 		*pbRowEnd = false;
-		return mpcDocument->GetNavigation()->FindColumn(mpcDocument->GetLineStart(uiRow), (size)x);
+		if (x < 0)
+		{
+			x = 0;
+		}
+		return mpcDocument->GetNavigation()->FindColumn(mpcDocument->GetLineStart(uiRow), (size)((x + miColumnWidth / 2) / miColumnWidth));
 	}
 
 	int32	GetPositionX(size uiPosition, bool bRowEnd) override
 	{
-		return (int32)mpcDocument->GetNavigation()->CountColumns(mpcDocument->GetNavigation()->FindLineStart(uiPosition), uiPosition);
+		return (int32)mpcDocument->GetNavigation()->CountColumns(mpcDocument->GetNavigation()->FindLineStart(uiPosition), uiPosition) * miColumnWidth;
 	}
 
 	size	ScrollPage(size uiRow, bool bDown) override
@@ -327,6 +333,51 @@ void TestTextEditingSelection(void)
 
 	s.Kill();
 	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The character under the pointer, as a double click finds it, is the one
+// x is over, not the gap nearest x: x on a character's right half is on
+// it, not on the next.  Left of a row is its first character; past its
+// end there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingCharacterAt(void)
+{
+	STestTextEditing	s;
+	size				uiPosition;
+
+	s.Init("ab\n\ncd");
+	s.cView.miColumnWidth = 10;
+
+	AssertTrue(s.cEditing.FindCharacterAt(2, 0, &uiPosition));
+	AssertSize(0, uiPosition);
+	AssertTrue(s.cEditing.FindCharacterAt(8, 0, &uiPosition));
+	AssertSize(0, uiPosition);
+	AssertTrue(s.cEditing.FindCharacterAt(10, 0, &uiPosition));
+	AssertSize(1, uiPosition);
+	AssertTrue(s.cEditing.FindCharacterAt(17, 0, &uiPosition));
+	AssertSize(1, uiPosition);
+	AssertTrue(s.cEditing.FindCharacterAt(-5, 0, &uiPosition));
+	AssertSize(0, uiPosition);
+
+	AssertFalse(s.cEditing.FindCharacterAt(20, 0, &uiPosition));
+	AssertSize(2, uiPosition);
+	AssertFalse(s.cEditing.FindCharacterAt(55, 0, &uiPosition));
+	AssertSize(2, uiPosition);
+	AssertFalse(s.cEditing.FindCharacterAt(3, 1, &uiPosition));
+	AssertSize(3, uiPosition);
+
+	AssertTrue(s.cEditing.FindCharacterAt(16, 2, &uiPosition));
+	AssertSize(5, uiPosition);
+	AssertTrue(s.cEditing.FindCharacterAt(16, 9, &uiPosition));
+	AssertSize(5, uiPosition);
+	AssertFalse(s.cEditing.FindCharacterAt(26, 2, &uiPosition));
+	AssertSize(6, uiPosition);
+
+	s.Kill();
 }
 
 
@@ -666,6 +717,7 @@ void TestTextEditing(void)
 	TestTextEditingMoving();
 	TestTextEditingUpDown();
 	TestTextEditingSelection();
+	TestTextEditingCharacterAt();
 	TestTextEditingTabs();
 	TestTextEditingLines();
 	TestTextEditingUndo();

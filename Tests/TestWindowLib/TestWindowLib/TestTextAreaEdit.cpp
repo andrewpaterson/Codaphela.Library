@@ -740,6 +740,22 @@ void TestTextAreaEditScrollPane(void)
 		AssertTextAreaSelection(3 * 7, 4 * 7, pTextArea);
 		AssertSize(4 * 7, pTextArea->GetCaretPosition());
 
+		//A double click on line 3 selects its first word, a triple click the line with its line feed.  The press on
+		//the first visible row is a single click, too far from the drag's.
+		pTestWindow->PointerMoved(iLeft, 5);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		pTestWindow->PointerMoved(iLeft, 2 * 24 + 5);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(3 * 7, pTextArea->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertTextAreaSelection(3 * 7, 3 * 7 + 4, pTextArea);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertTextAreaSelection(3 * 7, 4 * 7, pTextArea);
+
 		pTextArea = NULL;
 		pScroll = NULL;
 		pTheme = NULL;

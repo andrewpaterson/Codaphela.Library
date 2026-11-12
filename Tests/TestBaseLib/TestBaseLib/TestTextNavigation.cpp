@@ -114,6 +114,93 @@ void TestTextNavigationWords(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The word around a character, as a double click selects it: a run of
+// word characters, a run of spaces and tabs (not past the line), or one
+// other character; nothing at a line's end.  The line around a position
+// has its line feed, a carriage return and line feed being one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextNavigationAround(void)
+{
+	CChars			szText;
+	CTextNavigation	cNavigation;
+	size			uiStart;
+	size			uiEnd;
+
+	//p 0, - 1, > 2, cafe 3..8 (e accented: 6, 7), spaces 8..11, x 11, CR LF 12, LF 14, spaces 15, ab 17, end 19.
+	szText.Init("p->caf\xC3\xA9 \t x\r\n\n  ab");
+	cNavigation.Init(&szText);
+
+	AssertTrue(cNavigation.FindWordAround(0, &uiStart, &uiEnd));
+	AssertSize(0, uiStart);
+	AssertSize(1, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(1, &uiStart, &uiEnd));
+	AssertSize(1, uiStart);
+	AssertSize(2, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(2, &uiStart, &uiEnd));
+	AssertSize(2, uiStart);
+	AssertSize(3, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(3, &uiStart, &uiEnd));
+	AssertSize(3, uiStart);
+	AssertSize(8, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(6, &uiStart, &uiEnd));
+	AssertSize(3, uiStart);
+	AssertSize(8, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(9, &uiStart, &uiEnd));
+	AssertSize(8, uiStart);
+	AssertSize(11, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(11, &uiStart, &uiEnd));
+	AssertSize(11, uiStart);
+	AssertSize(12, uiEnd);
+
+	//A line's end: its carriage return, line feed or an empty line.
+	AssertFalse(cNavigation.FindWordAround(12, &uiStart, &uiEnd));
+	AssertSize(12, uiStart);
+	AssertSize(12, uiEnd);
+	AssertFalse(cNavigation.FindWordAround(14, &uiStart, &uiEnd));
+	AssertSize(14, uiStart);
+
+	//Spaces at a line's start don't reach back over the line feed.
+	AssertTrue(cNavigation.FindWordAround(15, &uiStart, &uiEnd));
+	AssertSize(15, uiStart);
+	AssertSize(17, uiEnd);
+	AssertTrue(cNavigation.FindWordAround(18, &uiStart, &uiEnd));
+	AssertSize(17, uiStart);
+	AssertSize(19, uiEnd);
+	AssertFalse(cNavigation.FindWordAround(19, &uiStart, &uiEnd));
+	AssertSize(19, uiStart);
+	AssertSize(19, uiEnd);
+
+	cNavigation.FindLineAround(5, &uiStart, &uiEnd);
+	AssertSize(0, uiStart);
+	AssertSize(14, uiEnd);
+	cNavigation.FindLineAround(12, &uiStart, &uiEnd);
+	AssertSize(0, uiStart);
+	AssertSize(14, uiEnd);
+	cNavigation.FindLineAround(14, &uiStart, &uiEnd);
+	AssertSize(14, uiStart);
+	AssertSize(15, uiEnd);
+	cNavigation.FindLineAround(16, &uiStart, &uiEnd);
+	AssertSize(15, uiStart);
+	AssertSize(19, uiEnd);
+	cNavigation.FindLineAround(19, &uiStart, &uiEnd);
+	AssertSize(15, uiStart);
+	AssertSize(19, uiEnd);
+
+	szText.Set("");
+	AssertFalse(cNavigation.FindWordAround(0, &uiStart, &uiEnd));
+	cNavigation.FindLineAround(0, &uiStart, &uiEnd);
+	AssertSize(0, uiStart);
+	AssertSize(0, uiEnd);
+
+	AssertTrue(CTextNavigation::IsSpaceOrTab('\t'));
+	AssertFalse(CTextNavigation::IsSpaceOrTab('\n'));
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextNavigation(void)
@@ -123,6 +210,7 @@ void TestTextNavigation(void)
 	TestTextNavigationCharacters();
 	TestTextNavigationLines();
 	TestTextNavigationWords();
+	TestTextNavigationAround();
 
 	TestStatistics();
 }

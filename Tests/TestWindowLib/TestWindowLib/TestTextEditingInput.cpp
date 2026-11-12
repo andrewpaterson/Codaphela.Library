@@ -115,6 +115,35 @@ struct STestEditingInput
 
 	char*	Text(void) { return cDocument.Text(); }
 	size	Caret(void) { return cEditing.GetCaretPosition(); }
+
+	//A press and release of button one at x, y, the canvas focussed so the press starts a drag.  The drag's end is
+	//where the window's pointer is.
+	bool	Click(int x, int y)
+	{
+		bool	bTaken;
+
+		pWindow->PointerMoved(x, y);
+		bTaken = Command(CIC_ActivateComponent, x, y);
+		Release(x, y);
+		return bTaken;
+	}
+
+	void	Release(int x, int y)
+	{
+		pWindow->PointerMoved(x, y);
+		Command(CIC_ExecuteComponent, x, y);
+	}
+
+	void	AssertSelection(size uiExpectedStart, size uiExpectedEnd, size uiExpectedCaret)
+	{
+		size	uiStart;
+		size	uiEnd;
+
+		AssertTrue(cEditing.GetSelection(&uiStart, &uiEnd));
+		AssertSize(uiExpectedStart, uiStart);
+		AssertSize(uiExpectedEnd, uiEnd);
+		AssertSize(uiExpectedCaret, Caret());
+	}
 };
 
 
@@ -261,6 +290,168 @@ void TestTextEditingInputPointer(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Presses within half a second and four pixels of the last count on from
+// it, up to three; a fourth is a single click again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputClickCount(void)
+{
+	SClickCount	sClicks;
+
+	sClicks.Init();
+	AssertInt(1, sClicks.Pressed(10, 10, 1000));
+	AssertInt(2, sClicks.Pressed(10, 10, 1500));
+	AssertInt(3, sClicks.Pressed(11, 9, 1600));
+	AssertInt(1, sClicks.Pressed(11, 9, 1700));
+	AssertInt(1, sClicks.Pressed(11, 9, 2201));
+	AssertInt(2, sClicks.Pressed(15, 9, 2300));
+	AssertInt(1, sClicks.Pressed(20, 9, 2350));
+	AssertInt(1, sClicks.Pressed(20, 14, 2400));
+	sClicks.Forget();
+	AssertInt(1, sClicks.Pressed(20, 14, 2450));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A double click selects the word under the pointer, a triple click its
+// line with its line feed; a fourth click is a single one.  Dragging on
+// selects by whole words or lines and keeps the first.  A shift press
+// extends by characters.  Losing focus forgets the clicks.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputClicks(void)
+{
+	STestEditingInput	s;
+
+	ObjectsInit();
+	//int 0, abc_d 4, ; 9, LF 10, line 11, two 16, LF 19, end 20, end of text 23.  The view's x is a row's column.
+	s.Init("int abc_d;\nline two\nend", true);
+	s.pWindow->GetFocus()->SetFocus(s.pCanvas);
+
+	AssertTrue(s.Click(5, 0));
+	AssertSize(5, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+	s.Click(5, 0);
+	s.AssertSelection(4, 9, 9);
+	s.Click(5, 0);
+	s.AssertSelection(0, 11, 11);
+	s.Click(5, 0);
+	AssertSize(5, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+
+	//Losing focus, or a press too far from the last, starts again.
+	s.Click(5, 0);
+	s.cInput.FocusLost();
+	s.Click(5, 0);
+	AssertFalse(s.cEditing.IsSelected());
+	s.Click(1, 1);
+	s.Click(6, 1);
+	AssertSize(17, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+	s.Click(6, 1);
+	s.AssertSelection(16, 19, 19);
+
+	//Punctuation is a word by itself; past a line's end there is no word.
+	s.cInput.FocusLost();
+	s.Click(9, 0);
+	s.Click(9, 0);
+	s.AssertSelection(9, 10, 10);
+	s.cInput.FocusLost();
+	s.Click(15, 0);
+	s.Click(15, 0);
+	AssertFalse(s.cEditing.IsSelected());
+	AssertSize(10, s.Caret());
+
+	//Dragging after a double click goes by words, keeping the first.
+	s.cInput.FocusLost();
+	s.Click(2, 1);
+	s.pWindow->PointerMoved(2, 1);
+	AssertTrue(s.Command(CIC_ActivateComponent, 2, 1));
+	s.AssertSelection(11, 15, 15);
+	s.Command(CIC_ContDragSelect, 6, 1);
+	s.AssertSelection(11, 19, 19);
+	s.Command(CIC_ContDragSelect, 4, 1);
+	s.AssertSelection(11, 16, 16);
+	s.Command(CIC_ContDragSelect, 1, 1);
+	s.AssertSelection(11, 15, 15);
+	s.Command(CIC_ContDragSelect, 5, 0);
+	s.AssertSelection(4, 15, 4);
+	s.Release(5, 0);
+	s.AssertSelection(4, 15, 4);
+	s.Command(CIC_ContDragSelect, 1, 2);
+	s.AssertSelection(4, 15, 4);
+
+	//And after a triple click by lines.
+	s.cInput.FocusLost();
+	s.Click(1, 1);
+	s.Click(1, 1);
+	s.pWindow->PointerMoved(1, 1);
+	AssertTrue(s.Command(CIC_ActivateComponent, 1, 1));
+	s.AssertSelection(11, 20, 20);
+	s.Command(CIC_ContDragSelect, 0, 2);
+	s.AssertSelection(11, 23, 23);
+	s.Command(CIC_ContDragSelect, 0, 0);
+	s.AssertSelection(0, 20, 0);
+	s.Release(0, 0);
+	s.AssertSelection(0, 20, 0);
+
+	//A shift press after a double click extends from the word's start by characters, and the press after it is a
+	//single click.
+	s.cInput.FocusLost();
+	s.Click(5, 0);
+	s.Click(5, 0);
+	s.AssertSelection(4, 9, 9);
+	AssertTrue(s.Command(CIC_StartDragSelect, 1, 0));
+	s.AssertSelection(1, 4, 1);
+	s.Command(CIC_ContDragSelect, 2, 0);
+	s.AssertSelection(2, 4, 2);
+	s.Command(CIC_StopDragSelect, 2, 0);
+	s.Click(2, 0);
+	AssertSize(2, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+
+	//Pointer actions turned off take no clicks.
+	s.cInput.FocusLost();
+	s.cInput.SetPointerEnabled(false);
+	AssertFalse(s.Click(5, 0));
+	AssertFalse(s.Click(5, 0));
+	AssertFalse(s.cEditing.IsSelected());
+	AssertSize(2, s.Caret());
+
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A single line's triple click selects all of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputSingleLineClicks(void)
+{
+	STestEditingInput	s;
+
+	ObjectsInit();
+	s.Init("ab cd", false);
+	s.pWindow->GetFocus()->SetFocus(s.pCanvas);
+
+	s.Click(4, 0);
+	s.Click(4, 0);
+	s.AssertSelection(3, 5, 5);
+	s.Click(4, 0);
+	s.AssertSelection(0, 5, 5);
+
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
 //Counts the calls of an action that doesn't keep the layout.
 struct STestEditingCounter
 {
@@ -328,6 +519,9 @@ void TestTextEditingInput(void)
 	TestTextEditingInputSingleLine();
 	TestTextEditingInputMultiLine();
 	TestTextEditingInputPointer();
+	TestTextEditingInputClickCount();
+	TestTextEditingInputClicks();
+	TestTextEditingInputSingleLineClicks();
 	TestTextEditingInputKeepsLayout();
 
 	TestStatistics();

@@ -44,6 +44,11 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	mpcComponent = pcComponent;
 	mpcEditing = pcEditing;
 	mbDragging = false;
+	msClicks.Init();
+	meUnit = TEDU_Character;
+	muiOriginStart = 0;
+	muiOriginEnd = 0;
+	mbUnitPress = false;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -152,12 +157,14 @@ void CTextEditingInput::SetPointerEnabled(bool bEnabled)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Losing focus, as when the window is deactivated, ends a drag.
+// Losing focus, as when the window is deactivated, ends a drag, and the
+// next press is a single click.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::FocusLost(void)
 {
 	mbDragging = false;
+	msClicks.Forget();
 }
 
 
@@ -186,18 +193,34 @@ void CTextEditingInput::PasteFromClipboard(void) { mpcComponent->GetWindow()->Ge
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The press has already given the component focus.  The caret goes to
-// the gap nearest the pointer and dragging selects from there.
+// The press has already given the component focus.  A single press puts
+// the caret in the gap nearest the pointer; a double click selects the
+// word under it and a triple click its line.  Dragging selects from
+// there.  A double click past a line's end selects nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ActivateComponent(int x, int y)
 {
 	size	uiPosition;
 	bool	bRowEnd;
+	int32	iClicks;
 
-	mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd);
-	mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
+	iClicks = msClicks.Pressed(x, y);
+	meUnit = (iClicks == 3) ? TEDU_Line : ((iClicks == 2) ? TEDU_Word : TEDU_Character);
+	if (meUnit == TEDU_Character)
+	{
+		mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd);
+		mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
+	}
+	else
+	{
+		FindUnitAt(x, y, &muiOriginStart, &muiOriginEnd);
+		mpcEditing->Select(muiOriginStart, muiOriginEnd);
+	}
+
+	mbUnitPress = true;
 	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
+	mbUnitPress = false;
 }
 
 
@@ -239,13 +262,22 @@ void CTextEditingInput::ContextMenuClick(SComponentInputEvent* psEvent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A shift press extends the selection from where it started, or from the
-// caret.
+// A drag started by a press selects by its unit from what the press
+// selected.  A shift press extends the selection from where it started,
+// or from the caret, by characters.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::StartDragSelect(int x, int y)
 {
-	mpcEditing->AnchorSelection();
+	if (!mbUnitPress)
+	{
+		meUnit = TEDU_Character;
+		msClicks.Forget();
+	}
+	if (meUnit == TEDU_Character)
+	{
+		mpcEditing->AnchorSelection();
+	}
 	mbDragging = true;
 	ContDragSelect(x, y);
 }
@@ -260,7 +292,16 @@ void CTextEditingInput::ContDragSelect(int x, int y)
 	size	uiPosition;
 	bool	bRowEnd;
 
-	if (mbDragging && mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd))
+	if (!mbDragging)
+	{
+		return;
+	}
+
+	if (meUnit != TEDU_Character)
+	{
+		DragByUnit(x, y);
+	}
+	else if (mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd))
 	{
 		mpcEditing->MoveCaret(uiPosition, true, bRowEnd);
 	}
@@ -275,5 +316,62 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 {
 	ContDragSelect(x, y);
 	mbDragging = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The word (TEDU_Word) or line (TEDU_Line) under x, y.  Past a line's
+// end there is no word: the start and end are the gap nearest x, y and
+// false is returned.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditingInput::FindUnitAt(int x, int y, size* puiStart, size* puiEnd)
+{
+	size	uiPosition;
+	bool	bRowEnd;
+
+	if (meUnit == TEDU_Line)
+	{
+		mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd);
+		mpcEditing->GetNavigation()->FindLineAround(uiPosition, puiStart, puiEnd);
+		return true;
+	}
+
+	if (!mpcEditing->FindCharacterAt(x, y, &uiPosition))
+	{
+		*puiStart = uiPosition;
+		*puiEnd = uiPosition;
+		return false;
+	}
+	return mpcEditing->GetNavigation()->FindWordAround(uiPosition, puiStart, puiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Dragging after a double or triple click: the first word or line stays
+// selected and the selection grows by whole words or lines to the one
+// under the pointer, the caret at its far side.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::DragByUnit(int x, int y)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	FindUnitAt(x, y, &uiStart, &uiEnd);
+	if (uiStart < muiOriginStart)
+	{
+		mpcEditing->Select(muiOriginEnd, uiStart);
+	}
+	else if (uiEnd > muiOriginEnd)
+	{
+		mpcEditing->Select(muiOriginStart, uiEnd);
+	}
+	else
+	{
+		mpcEditing->Select(muiOriginStart, muiOriginEnd);
+	}
 }
 

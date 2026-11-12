@@ -23,10 +23,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DoubleClick.h"
 
 
-#define DOUBLE_CLICK_MILLISECONDS	500
-#define DOUBLE_CLICK_PIXELS			4
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Nothing has been released on yet.
@@ -74,5 +70,63 @@ bool SDoubleClick::Released(int32 iKey, int x, int y)
 void SDoubleClick::Forget(void)
 {
 	iLastKey = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No press yet.
+//
+//////////////////////////////////////////////////////////////////////////
+void SClickCount::Init(void)
+{
+	iCount = 0;
+	iLastTime = 0;
+	sLastPosition.Init(0, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Button one was pressed at x, y.  Returns 1 for a single click, 2 for a
+// double, 3 for a triple; a fourth press starts again at 1.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 SClickCount::Pressed(int x, int y)
+{
+	return Pressed(x, y, GetDebugTickCount());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Pressed(x, y) at iMilliseconds, for tests.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 SClickCount::Pressed(int x, int y, int64 iMilliseconds)
+{
+	if ((iCount > 0) && (iCount < 3) && (iMilliseconds - iLastTime <= DOUBLE_CLICK_MILLISECONDS) && (abs(x - sLastPosition.x) <= DOUBLE_CLICK_PIXELS) && (abs(y - sLastPosition.y) <= DOUBLE_CLICK_PIXELS))
+	{
+		iCount++;
+	}
+	else
+	{
+		iCount = 1;
+	}
+
+	iLastTime = iMilliseconds;
+	sLastPosition.Init(x, y);
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The next press is a single click, as after focus is lost.
+//
+//////////////////////////////////////////////////////////////////////////
+void SClickCount::Forget(void)
+{
+	iCount = 0;
 }
 

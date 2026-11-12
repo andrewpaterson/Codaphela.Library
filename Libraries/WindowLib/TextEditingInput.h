@@ -22,21 +22,39 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TEXT_EDITING_INPUT_H__
 #include "BaseLib/TextEditing.h"
 #include "ComponentInputEvent.h"
+#include "DoubleClick.h"
 
 
 class CComponent;
 
 
+//What a drag selects by: characters after a single press, whole words after a double click, whole lines after a
+//triple.
+enum ETextEditingDragUnit
+{
+	TEDU_Character,
+	TEDU_Word,
+	TEDU_Line,
+};
+
+
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
-//CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  A single line
+//CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  A double click
+//selects the word under the pointer and a triple click its line (with its line feed); dragging on from either selects
+//by whole words or lines, keeping the first selected.  A shift press extends the selection by characters.  A single line
 //text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a text
 //that can't be selected), so its presses go on to the parent.
 class CTextEditingInput
 {
 protected:
-	CComponent*		mpcComponent;  //Not held: the text area or field the input reaches.
-	CTextEditing*	mpcEditing;  //Not held.
-	bool			mbDragging;
+	CComponent*				mpcComponent;  //Not held: the text area or field the input reaches.
+	CTextEditing*			mpcEditing;  //Not held.
+	bool					mbDragging;
+	SClickCount				msClicks;
+	ETextEditingDragUnit	meUnit;
+	size					muiOriginStart;  //What the double or triple click selected, kept as a drag goes on.
+	size					muiOriginEnd;
+	bool					mbUnitPress;  //The drag being started was started by a press that selected by meUnit.
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
@@ -63,6 +81,8 @@ public:
 
 protected:
 	void	AddActions(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
+	bool	FindUnitAt(int x, int y, size* puiStart, size* puiEnd);
+	void	DragByUnit(int x, int y);
 };
 
 

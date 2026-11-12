@@ -24,6 +24,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Int32Vec2.h"
 
 
+#define DOUBLE_CLICK_MILLISECONDS	500
+#define DOUBLE_CLICK_PIXELS			4
+
+
 //Tells a double click from two clicks: button one released twice on the same thing in half a second within a few
 //pixels.  The thing is a key the caller chooses, like a list's row or a tab's index, so nothing is held.
 struct SDoubleClick
@@ -34,6 +38,21 @@ struct SDoubleClick
 
 	void	Init(void);
 	bool	Released(int32 iKey, int x, int y);
+	void	Forget(void);
+};
+
+
+//Counts the presses of button one that make a double or triple click, as a text's word and line selection does: each
+//press within half a second and a few pixels of the last counts on from it, up to three.
+struct SClickCount
+{
+	int32		iCount;  //The last press's count, 0 for none.
+	int64		iLastTime;  //When, in milliseconds.
+	SInt32Vec2	sLastPosition;  //Where, relative to whatever the caller measures from.
+
+	void	Init(void);
+	int32	Pressed(int x, int y);
+	int32	Pressed(int x, int y, int64 iMilliseconds);
 	void	Forget(void);
 };
 

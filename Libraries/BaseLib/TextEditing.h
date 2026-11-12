@@ -115,6 +115,7 @@ public:
 	size		GetTabWidth(void);
 	void		SetSingleLine(bool bSingleLine);
 	bool		IsSingleLine(void);
+	CTextNavigation*	GetNavigation(void);
 
 	size		GetCaretPosition(void);
 	bool		IsCaretAtRowEnd(void);
@@ -127,6 +128,7 @@ public:
 	void		AnchorSelection(void);
 	void		Select(size uiStart, size uiEnd);
 	bool		FindPositionAt(int32 x, int32 y, size* puiPosition, bool* pbRowEnd);
+	bool		FindCharacterAt(int32 x, int32 y, size* puiPosition);
 
 	void		Up(void);
 	void		Down(void);

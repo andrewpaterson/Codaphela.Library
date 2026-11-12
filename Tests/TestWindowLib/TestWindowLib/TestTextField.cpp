@@ -367,7 +367,8 @@ void TestTextFieldUndo(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Pressing puts the caret in the nearest gap, dragging selects and the
-// text scrolls to keep the caret in view.
+// text scrolls to keep the caret in view.  A double click selects a word
+// and a triple click the text.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldPointer(void)
@@ -442,6 +443,27 @@ void TestTextFieldPointer(void)
 		pTestWindow->InputCommand(CIC_Paste, true);
 		AssertString("Hello", pField->GetText());
 		AssertTrue(pField->GetSelection(&uiStart, &uiEnd));
+
+		//A double click on the right half of the 'o' of "Hello" selects "Hello", not the space after the gap nearest the
+		//pointer; a triple click selects all of the text.  The press before them, at the start, is far from the last
+		//press, the drag's, so it isn't counted on from it.
+		pField->SetText("Hello World");
+		MoveTo(pTestWindow, SInt32Vec2(iTextLeft + 1, iY));
+		Click(pTestWindow);
+		MoveTo(pTestWindow, SInt32Vec2(iTextLeft + pField->GetCharacterX(5) - 1, iY));
+		Click(pTestWindow);
+		AssertFalse(pField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(5, pField->GetCaretPosition());
+		Click(pTestWindow);
+		AssertTrue(pField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(0, uiStart);
+		AssertSize(5, uiEnd);
+		Click(pTestWindow);
+		AssertTrue(pField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(0, uiStart);
+		AssertSize(11, uiEnd);
+		Click(pTestWindow);
+		AssertFalse(pField->GetSelection(&uiStart, &uiEnd));
 
 		//Text wider than the field scrolls so the caret is in view.
 		pField->SetText("The quick brown fox jumps over the lazy dog and keeps on running");

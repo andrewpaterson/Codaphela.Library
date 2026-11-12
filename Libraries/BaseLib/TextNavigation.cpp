@@ -188,7 +188,7 @@ size CTextNavigation::FindLineIndent(size uiLineStart)
 
 	szText = mpszText->Text();
 	uiLineEnd = FindLineEnd(uiLineStart);
-	while ((uiLineStart < uiLineEnd) && ((szText[uiLineStart] == ' ') || (szText[uiLineStart] == '\t')))
+	while ((uiLineStart < uiLineEnd) && IsSpaceOrTab(szText[uiLineStart]))
 	{
 		uiLineStart++;
 	}
@@ -303,6 +303,91 @@ size CTextNavigation::FindWordRight(size uiPosition)
 		uiPosition = NextPosition(uiPosition);
 	}
 	return uiPosition;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The word the character at uiPosition is in, as a double click selects
+// it: a run of letters, digits and underscores, a run of spaces and tabs,
+// or one other character.  Words don't go past the line.  Returns false,
+// with the start and end at uiPosition, at a line's end or the text's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindWordAround(size uiPosition, size* puiStart, size* puiEnd)
+{
+	size	uiLength;
+	size	uiStart;
+	size	uiEnd;
+	size	uiPrevious;
+	char*	szText;
+	bool	bSpaces;
+
+	*puiStart = uiPosition;
+	*puiEnd = uiPosition;
+	uiLength = mpszText->Length();
+	if (uiPosition >= uiLength)
+	{
+		return false;
+	}
+
+	szText = mpszText->Text();
+	if ((szText[uiPosition] == '\n') || (szText[uiPosition] == '\r'))
+	{
+		return false;
+	}
+
+	bSpaces = IsSpaceOrTab(szText[uiPosition]);
+	if (!bSpaces && !IsWordChar(szText[uiPosition]))
+	{
+		*puiEnd = NextPosition(uiPosition);
+		return true;
+	}
+
+	uiStart = uiPosition;
+	while (uiStart > 0)
+	{
+		uiPrevious = PreviousPosition(uiStart);
+		if (bSpaces ? !IsSpaceOrTab(szText[uiPrevious]) : !IsWordChar(szText[uiPrevious]))
+		{
+			break;
+		}
+		uiStart = uiPrevious;
+	}
+
+	uiEnd = uiPosition;
+	while ((uiEnd < uiLength) && (bSpaces ? IsSpaceOrTab(szText[uiEnd]) : IsWordChar(szText[uiEnd])))
+	{
+		uiEnd = NextPosition(uiEnd);
+	}
+
+	*puiStart = uiStart;
+	*puiEnd = uiEnd;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line uiPosition is on with its line feed (and carriage return), as
+// a triple click selects it.  The last line ends at the text's end.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextNavigation::FindLineAround(size uiPosition, size* puiStart, size* puiEnd)
+{
+	*puiStart = FindLineStart(uiPosition);
+	*puiEnd = NextPosition(FindLineEnd(uiPosition));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Spaces and tabs: the spaces a line has, not the ones that end it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::IsSpaceOrTab(char c)
+{
+	return (c == ' ') || (c == '\t');
 }
 
 

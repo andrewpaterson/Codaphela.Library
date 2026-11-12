@@ -234,6 +234,14 @@ void CTextEditing::Select(size uiStart, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The document's, for finding words and lines in its text.
+//
+//////////////////////////////////////////////////////////////////////////
+CTextNavigation* CTextEditing::GetNavigation(void) { return mpcNavigation; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The position nearest x, y in the view, as a pointer puts the caret:
 // on the row y is in, or the nearest row, the gap between characters
 // nearest x.  False, and the start of the text, if the view has no rows.
@@ -249,6 +257,43 @@ bool CTextEditing::FindPositionAt(int32 x, int32 y, size* puiPosition, bool* pbR
 	}
 	*puiPosition = mpcView->FindPositionInRow(mpcView->FindRowAt(y), x, pbRowEnd);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The character under x, y in the view, as a double click finds it: on
+// the row y is in, or the nearest row, the character x is over, not the
+// gap nearest it.  Left of the row it is the row's first.  Returns false
+// past the row's end, or with no rows, with the position the gap nearest
+// x, y.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::FindCharacterAt(int32 x, int32 y, size* puiPosition)
+{
+	size	uiRow;
+	size	uiRowStart;
+	size	uiRowEnd;
+	size	uiGap;
+	bool	bRowEnd;
+	bool	bEndOfRow;
+
+	if (!FindPositionAt(x, y, &uiGap, &bRowEnd))
+	{
+		*puiPosition = uiGap;
+		return false;
+	}
+
+	uiRow = mpcView->FindRowAt(y);
+	uiRowStart = mpcView->GetRowStart(uiRow);
+	uiRowEnd = mpcView->GetRowEnd(uiRow, &bEndOfRow);
+	*puiPosition = uiGap;
+	if ((uiGap > uiRowStart) && (mpcView->GetPositionX(uiGap, bRowEnd) > x))
+	{
+		*puiPosition = mpcNavigation->PreviousPosition(uiGap);
+		return true;
+	}
+	return uiGap < uiRowEnd;
 }
 
 
