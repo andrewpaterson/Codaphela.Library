@@ -12,6 +12,9 @@
     <ClInclude Include="WinRefClipboard.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="WinRefInput.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="WinRefPixels.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -30,6 +33,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="WinRefClipboard.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinRefInput.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="WinRefPixels.cpp">

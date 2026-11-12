@@ -10,6 +10,8 @@
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "WinRefLib/WinRefWindow.h"
+#include "WinRefLib/WinRefInput.h"
+#include "InputLib/Input.h"
 #include "TestLib/Assert.h"
 #include "BoxFillCanvasDraw.h"
 #include "TickTestRefWindow.h"
@@ -411,6 +413,50 @@ void TestRefWindowScreenFrameInterval(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The reference input adds the standard keyboard and mouse, as a real
+// platform's does, and never presses anything on them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRefWindowScreenInput(void)
+{
+	ObjectsInit();
+	{
+		CWinRefInput			cInput;
+		Ptr<CInput>				pInput;
+		CArrayInputDevicePtr	apcBefore;
+		CArrayInputDevicePtr	apcAfter;
+		CInputDeviceDesc*		pcKeyboard;
+
+		cInput.Init();
+		pInput = OMalloc<CInput>((CNativeInput*)NULL);
+		AssertTrue(pInput->Read("../../../Libraries/WinInputLib/xml"));
+		apcBefore.Init();
+		pInput->GetDevices()->GetDevices(&apcBefore);
+
+		cInput.AddDevicesTo(pInput->GetDevices());
+		apcAfter.Init();
+		pInput->GetDevices()->GetDevices(&apcAfter);
+		AssertSize(apcBefore.NumElements() + 2, apcAfter.NumElements());
+
+		pcKeyboard = pInput->GetDevices()->GetDescription("WinRAW Keyboard: Standard 104 Button Keyboard");
+		AssertNotNull(pcKeyboard);
+		apcAfter.Kill();
+		apcAfter.Init();
+		pInput->GetDevices()->GetDevicesForDeviceDesc(&apcAfter, pcKeyboard);
+		AssertSize(1, apcAfter.NumElements());
+
+		apcAfter.Kill();
+		apcBefore.Kill();
+		pInput = NULL;
+		cInput.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRefWindowScreen(void)
@@ -422,6 +468,7 @@ void TestRefWindowScreen(void)
 	TestRefWindowScreenStacking();
 	TestRefWindowScreenWait();
 	TestRefWindowScreenFrameInterval();
+	TestRefWindowScreenInput();
 
 	TestStatistics();
 }
