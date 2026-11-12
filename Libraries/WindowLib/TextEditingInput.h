@@ -31,22 +31,16 @@ class CComponent;
 #define TEXT_DRAG_DISTANCE	4	//Pixels a press in the selection moves before it drags the selected text.
 
 
-//Where dragging the selected text is (SetTextDragEnabled).
-enum ETextEditingTextDrag
+//What the pointer is dragging, from button one's press to its release.
+enum ETextEditingDrag
 {
-	TETD_None,
-	TETD_Pressed,	//Pressed in the selection; not moved far enough to drag it yet.
-	TETD_Dragging,	//The text is being dragged, a drop caret where it would go.
-};
-
-
-//What a drag selects by: characters after a single press, whole words after a double click, whole lines after a
-//triple.
-enum ETextEditingDragUnit
-{
-	TEDU_Character,
-	TEDU_Word,
-	TEDU_Line,
+	TED_None,
+	TED_Characters,		//Selecting by characters, after a single press or a shift press.
+	TED_Words,			//Selecting by whole words, after a double click.
+	TED_Lines,			//Selecting by whole lines, after a triple click or a press beside the text (StartLineDrag).
+	TED_TextPressed,	//Pressed in the selection; not moved far enough to drag the selected text yet.
+	TED_Text,			//The selected text is being dragged, a drop caret where it would go.
+	TED_Box,			//A box selection, from where it was pressed (StartDragBox).
 };
 
 
@@ -58,7 +52,8 @@ enum ETextEditingDragUnit
 //enabled (SetTextDragEnabled), a press in the selection of an editable text that moves more than TEXT_DRAG_DISTANCE
 //pixels drags the selected text: a drop caret follows the pointer (GetDropPosition) and the release moves the text
 //there, or with control held copies it, as one undo step.  Dropped in the selection or at its ends nothing changes,
-//Escape cancels it, and a press in the selection released without dragging puts the caret there.  Shift+Alt (or Alt)
+//and a press in the selection released without dragging puts the caret there.  Escape ends a drag: the text being
+//dragged stays where it is, selected; any other drag's selection is cleared.  Shift+Alt (or Alt)
 //and button one drag a box selection (StartDragBox); Shift+Alt and the arrows, Home and End move its corner.  A single
 //line text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a
 //text that can't be selected), so its presses go on to the parent.
@@ -67,20 +62,16 @@ class CTextEditingInput
 protected:
 	CComponent*				mpcComponent;  //Not held: the text area or field the input reaches.
 	CTextEditing*			mpcEditing;  //Not held.
-	bool					mbDragging;
+	ETextEditingDrag		meDrag;  //What is being dragged, TED_None when button one isn't held on the text.
+	ETextEditingDrag		meStarting;  //What the press that is starting a drag drags (StartDrag); TED_None for a shift press.
 	SClickCount				msClicks;
-	ETextEditingDragUnit	meUnit;
 	size					muiOriginStart;  //What the double or triple click selected, kept as a drag goes on.
 	size					muiOriginEnd;
-	bool					mbUnitPress;  //The drag being started was started by a press that selected by meUnit.
 	bool					mbTextDragEnabled;
-	ETextEditingTextDrag	meTextDrag;
-	int32					miPressX;  //Where the press in the selection was.
-	int32					miPressY;
+	SInt32Vec2				msPress;  //Where the press in the selection was.
 	size					muiDrop;  //Where the dragged text would be dropped.
 	bool					mbDropRowEnd;
-	bool					mbBoxDrag;  //The drag is a box selection's (StartDragBox).
-	size					muiBoxAnchorRow;  //Where it was pressed.
+	size					muiBoxAnchorRow;  //Where a box was pressed.
 	int32					miBoxAnchorX;
 
 public:
@@ -113,12 +104,14 @@ public:
 
 protected:
 	void	AddActions(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
-	bool	FindUnitAt(int x, int y, size* puiStart, size* puiEnd);
+	void	StartDrag(ETextEditingDrag eDrag, int x, int y);
+	void	CancelDrag(void);
+	bool	IsTextDrag(void);
+	bool	FindUnitAt(ETextEditingDrag eUnit, int x, int y, size* puiStart, size* puiEnd);
 	void	DragByUnit(int x, int y);
 	bool	IsInSelection(int x, int y);
 	void	DragText(int x, int y);
 	void	DropText(int x, int y);
-	void	CancelTextDrag(void);
 	bool	IsCopyHeld(void);
 	void	DragBox(int x, int y);
 	int32	FindBoxX(size uiRow, int x);

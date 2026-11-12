@@ -174,6 +174,8 @@ public:
 	void		Select(size uiStart, size uiEnd);
 	bool		FindPositionAt(int32 x, int32 y, size* puiPosition, bool* pbRowEnd);
 	bool		FindCharacterAt(int32 x, int32 y, size* puiPosition);
+	bool		IsSelectedAt(int32 x, int32 y);
+	bool		MoveCaretTo(int32 x, int32 y, bool bSelect);
 
 	void		Up(void);
 	void		Down(void);

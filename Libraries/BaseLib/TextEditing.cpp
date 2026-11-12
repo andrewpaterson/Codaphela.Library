@@ -314,6 +314,45 @@ bool CTextEditing::FindCharacterAt(int32 x, int32 y, size* puiPosition)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The character under x, y in the view is selected: a press there is on
+// the selection.  The gap after the selection's last character isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::IsSelectedAt(int32 x, int32 y)
+{
+	size	uiStart;
+	size	uiEnd;
+	size	uiPosition;
+
+	if (!GetSelection(&uiStart, &uiEnd) || !FindCharacterAt(x, y, &uiPosition))
+	{
+		return false;
+	}
+	return (uiPosition >= uiStart) && (uiPosition < uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caret goes to the position nearest x, y in the view, as a pointer
+// puts it (FindPositionAt), selecting from where it was with bSelect.
+// False if the view has no rows: it goes to the start of the text.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::MoveCaretTo(int32 x, int32 y, bool bSelect)
+{
+	size	uiPosition;
+	bool	bRowEnd;
+	bool	bRows;
+
+	bRows = FindPositionAt(x, y, &uiPosition, &bRowEnd);
+	MoveCaret(uiPosition, bSelect, bRowEnd);
+	return bRows;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Moving the caret.
 //
 //////////////////////////////////////////////////////////////////////////

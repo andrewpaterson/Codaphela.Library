@@ -25,14 +25,23 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsPointerNear(int x, int y, SInt32Vec2* psPosition, int32 iPixels)
+{
+	return (abs(x - psPosition->x) <= iPixels) && (abs(y - psPosition->y) <= iPixels);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Nothing has been released on yet.
 //
 //////////////////////////////////////////////////////////////////////////
 void SDoubleClick::Init(void)
 {
 	iLastKey = -1;
-	iLastTime = 0;
-	sLastPosition.Init(0, 0);
+	sClicks.Init();
 }
 
 
@@ -45,18 +54,16 @@ void SDoubleClick::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool SDoubleClick::Released(int32 iKey, int x, int y)
 {
-	int64	iNow;
-
-	iNow = GetDebugTickCount();
-	if ((iLastKey == iKey) && (iNow - iLastTime <= DOUBLE_CLICK_MILLISECONDS) && (abs(x - sLastPosition.x) <= DOUBLE_CLICK_PIXELS) && (abs(y - sLastPosition.y) <= DOUBLE_CLICK_PIXELS))
+	if (iKey != iLastKey)
 	{
-		iLastKey = -1;
+		sClicks.Forget();
+	}
+	iLastKey = iKey;
+	if (sClicks.Pressed(x, y) == 2)
+	{
+		Forget();
 		return true;
 	}
-
-	iLastKey = iKey;
-	iLastTime = iNow;
-	sLastPosition.Init(x, y);
 	return false;
 }
 
@@ -70,6 +77,7 @@ bool SDoubleClick::Released(int32 iKey, int x, int y)
 void SDoubleClick::Forget(void)
 {
 	iLastKey = -1;
+	sClicks.Forget();
 }
 
 
@@ -105,7 +113,7 @@ int32 SClickCount::Pressed(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 int32 SClickCount::Pressed(int x, int y, int64 iMilliseconds)
 {
-	if ((iCount > 0) && (iCount < 3) && (iMilliseconds - iLastTime <= DOUBLE_CLICK_MILLISECONDS) && (abs(x - sLastPosition.x) <= DOUBLE_CLICK_PIXELS) && (abs(y - sLastPosition.y) <= DOUBLE_CLICK_PIXELS))
+	if ((iCount > 0) && (iCount < 3) && (iMilliseconds - iLastTime <= DOUBLE_CLICK_MILLISECONDS) && IsPointerNear(x, y, &sLastPosition, DOUBLE_CLICK_PIXELS))
 	{
 		iCount++;
 	}

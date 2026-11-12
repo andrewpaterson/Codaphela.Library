@@ -2180,7 +2180,8 @@ uint32 TextAreaPixelAt(Ptr<CTextArea> pTextArea, size uiLine, int32 x)
 //
 // A box selection is drawn as a rectangle on each of its rows, past a
 // short row's text; one with no width as a line in the caret's colour on
-// each row.
+// each row.  Escape ends one being dragged.  The right button keeps the
+// selection only on a selected character.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEditBox(void)
@@ -2196,6 +2197,8 @@ void TestTextAreaEditBox(void)
 		uint32						uiBackground;
 		int32						iLeft;
 		int32						iRight;
+		size						uiStart;
+		size						uiEnd;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -2243,6 +2246,33 @@ void TestTextAreaEditBox(void)
 		pTestWindow->Paint();
 		AssertFalse(pTextArea->IsBox());
 		AssertTrue(TextAreaPixelAt(pTextArea, 1, iRight) == uiBackground);
+
+		//Escape ends a box being dragged: the pointer moving on doesn't bring it back.
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + iLeft, pTextArea->GetPosition().y + 2);
+		pTestWindow->InputCommand(CIC_StartDragBox, true);
+		AssertTrue(pTextArea->IsBox());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pTextArea->IsBox());
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + iRight, pTextArea->GetPosition().y + 2);
+		AssertFalse(pTextArea->IsBox());
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		AssertFalse(pTextArea->IsBox());
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+
+		//The right button on a selected character keeps the selection, on the right half of its last one too, where
+		//the gap nearest the pointer is the selection's end.
+		pTextArea->Select(1, 3);
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + pTextArea->GetPositionX(3, false) - 1, pTextArea->GetPosition().y + 2);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pTextArea->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, uiStart);
+		AssertSize(3, uiEnd);
+
+		//On the character before the selection it moves the caret there, though the gap nearest is the selection's start.
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + pTextArea->GetPositionX(1, false) - 1, pTextArea->GetPosition().y + 2);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, pTextArea->GetCaretPosition());
 
 		pTextArea = NULL;
 		pFill = NULL;

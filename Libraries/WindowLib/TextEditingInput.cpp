@@ -44,19 +44,15 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 
 	mpcComponent = pcComponent;
 	mpcEditing = pcEditing;
-	mbDragging = false;
+	meDrag = TED_None;
+	meStarting = TED_None;
 	msClicks.Init();
-	meUnit = TEDU_Character;
 	muiOriginStart = 0;
 	muiOriginEnd = 0;
-	mbUnitPress = false;
 	mbTextDragEnabled = false;
-	meTextDrag = TETD_None;
-	miPressX = 0;
-	miPressY = 0;
+	msPress.Init(0, 0);
 	muiDrop = 0;
 	mbDropRowEnd = false;
-	mbBoxDrag = false;
 	muiBoxAnchorRow = 0;
 	miBoxAnchorX = 0;
 
@@ -181,9 +177,7 @@ void CTextEditingInput::SetPointerEnabled(bool bEnabled)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::FocusLost(void)
 {
-	mbDragging = false;
-	mbBoxDrag = false;
-	meTextDrag = TETD_None;
+	meDrag = TED_None;
 	msClicks.Forget();
 }
 
@@ -208,7 +202,7 @@ void CTextEditingInput::SetTextDragEnabled(bool bEnabled)
 //////////////////////////////////////////////////////////////////////////
 bool CTextEditingInput::GetDropPosition(size* puiPosition, bool* pbRowEnd)
 {
-	if (meTextDrag != TETD_Dragging)
+	if (meDrag != TED_Text)
 	{
 		return false;
 	}
@@ -252,32 +246,29 @@ void CTextEditingInput::PasteFromClipboard(void) { mpcComponent->GetWindow()->Ge
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ActivateComponent(int x, int y)
 {
-	size	uiPosition;
-	bool	bRowEnd;
-	int32	iClicks;
+	ETextEditingDrag	eUnit;
 
-	iClicks = msClicks.Pressed(x, y);
-	meUnit = (iClicks == 3) ? TEDU_Line : ((iClicks == 2) ? TEDU_Word : TEDU_Character);
-	if ((meUnit == TEDU_Character) && IsInSelection(x, y))
+	switch (msClicks.Pressed(x, y))
 	{
-		meTextDrag = TETD_Pressed;
-		miPressX = x;
-		miPressY = y;
-	}
-	else if (meUnit == TEDU_Character)
-	{
-		mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd);
-		mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
-	}
-	else
-	{
-		FindUnitAt(x, y, &muiOriginStart, &muiOriginEnd);
+	case 1:
+		if (IsInSelection(x, y))
+		{
+			msPress.Init(x, y);
+			StartDrag(TED_TextPressed, x, y);
+		}
+		else
+		{
+			mpcEditing->MoveCaretTo(x, y, false);
+			StartDrag(TED_Characters, x, y);
+		}
+		break;
+	default:
+		eUnit = (msClicks.iCount == 2) ? TED_Words : TED_Lines;
+		FindUnitAt(eUnit, x, y, &muiOriginStart, &muiOriginEnd);
 		mpcEditing->Select(muiOriginStart, muiOriginEnd);
+		StartDrag(eUnit, x, y);
+		break;
 	}
-
-	mbUnitPress = true;
-	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
-	mbUnitPress = false;
 }
 
 
@@ -293,93 +284,99 @@ void CTextEditingInput::ExecuteComponent(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The right button, as in Visual Studio: pressed in the selection it is
-// kept, so the context menu acts on it; anywhere else the caret moves
-// there and nothing is selected.  The press goes on up to the component
-// with the context menu.
+// The right button, as in Visual Studio: pressed on a selected character
+// the selection is kept, so the context menu acts on it; anywhere else
+// the caret moves there and nothing is selected.  The press goes on up to
+// the component with the context menu.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ContextMenuClick(SComponentInputEvent* psEvent)
 {
-	size	uiPosition;
-	size	uiStart;
-	size	uiEnd;
-	bool	bRowEnd;
-
 	psEvent->bPass = true;
 
-	mpcEditing->FindPositionAt(psEvent->x, psEvent->y, &uiPosition, &bRowEnd);
-	if (mpcEditing->GetSelection(&uiStart, &uiEnd) && (uiPosition >= uiStart) && (uiPosition < uiEnd))
+	if (!mpcEditing->IsSelectedAt(psEvent->x, psEvent->y))
 	{
-		return;
+		mpcEditing->MoveCaretTo(psEvent->x, psEvent->y, false);
 	}
-	mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A drag started by a press selects by its unit from what the press
-// selected.  A shift press extends the selection from where it started,
-// or from the caret, by characters.
+// A press starts dragging eDrag from x, y: the focus starts the drag,
+// which comes back as StartDragSelect, where eDrag is what it finds being
+// started.  A drag the focus doesn't start (nothing has it) isn't begun.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::StartDrag(ETextEditingDrag eDrag, int x, int y)
+{
+	meStarting = eDrag;
+	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
+	meStarting = TED_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A drag begins: the one a press here is starting (StartDrag), which
+// selects from what the press selected.  Otherwise it is a shift press:
+// it extends the selection from where it started, or from the caret, by
+// characters.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::StartDragSelect(int x, int y)
 {
-	if (!mbUnitPress)
+	meDrag = meStarting;
+	if (meDrag == TED_None)
 	{
-		meUnit = TEDU_Character;
+		meDrag = TED_Characters;
 		msClicks.Forget();
 	}
-	if (meUnit == TEDU_Character)
+	if (meDrag == TED_Characters)
 	{
 		mpcEditing->AnchorSelection();
 	}
-	mbDragging = true;
 	ContDragSelect(x, y);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pointer moved to x, y during the drag.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ContDragSelect(int x, int y)
 {
-	size	uiPosition;
-	bool	bRowEnd;
-
-	if (!mbDragging)
+	switch (meDrag)
 	{
-		return;
-	}
-
-	if (mbBoxDrag)
-	{
-		DragBox(x, y);
-	}
-	else if (meTextDrag != TETD_None)
-	{
-		DragText(x, y);
-	}
-	else if (meUnit != TEDU_Character)
-	{
+	case TED_Characters:
+		mpcEditing->MoveCaretTo(x, y, true);
+		break;
+	case TED_Words:
+	case TED_Lines:
 		DragByUnit(x, y);
-	}
-	else if (mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd))
-	{
-		mpcEditing->MoveCaret(uiPosition, true, bRowEnd);
+		break;
+	case TED_TextPressed:
+	case TED_Text:
+		DragText(x, y);
+		break;
+	case TED_Box:
+		DragBox(x, y);
+		break;
+	default:
+		break;
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Button one was released at x, y: the drag ends there.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::StopDragSelect(int x, int y)
 {
-	if (mbDragging && (meTextDrag != TETD_None))
+	if (IsTextDrag())
 	{
 		DropText(x, y);
 	}
@@ -387,9 +384,24 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 	{
 		ContDragSelect(x, y);
 	}
-	mbDragging = false;
-	mbBoxDrag = false;
+	meDrag = TED_None;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The drag ends where it is; the release still to come does nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::CancelDrag(void)
+{
+	meDrag = TED_None;
+	mpcComponent->GetWindow()->GetFocus()->StopDrag(FD_Select);
+	mpcComponent->GetWindow()->RequestPaint();
+}
+
+
+bool CTextEditingInput::IsTextDrag(void) { return (meDrag == TED_TextPressed) || (meDrag == TED_Text); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -404,7 +416,6 @@ void CTextEditingInput::StopDragSelect(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::StartLineDrag(int x, int y, bool bExtend)
 {
-	meUnit = TEDU_Line;
 	if (bExtend)
 	{
 		muiOriginStart = mpcEditing->GetAnchorPosition();
@@ -412,13 +423,10 @@ void CTextEditingInput::StartLineDrag(int x, int y, bool bExtend)
 	}
 	else
 	{
-		FindUnitAt(x, y, &muiOriginStart, &muiOriginEnd);
+		FindUnitAt(TED_Lines, x, y, &muiOriginStart, &muiOriginEnd);
 		mpcEditing->Select(muiOriginStart, muiOriginEnd);
 	}
-
-	mbUnitPress = true;
-	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
-	mbUnitPress = false;
+	StartDrag(TED_Lines, x, y);
 }
 
 
@@ -438,14 +446,9 @@ void CTextEditingInput::StartDragBox(int x, int y)
 		return;
 	}
 	msClicks.Forget();
-	mbBoxDrag = true;
 	muiBoxAnchorRow = pcView->FindRowAt(y);
 	miBoxAnchorX = FindBoxX(muiBoxAnchorRow, x);
-	mpcEditing->BoxSelect(muiBoxAnchorRow, miBoxAnchorX, muiBoxAnchorRow, miBoxAnchorX);
-
-	mbUnitPress = true;
-	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
-	mbUnitPress = false;
+	StartDrag(TED_Box, x, y);
 }
 
 
@@ -491,18 +494,23 @@ int32 CTextEditingInput::FindBoxX(size uiRow, int x)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Escape cancels dragging the selected text, which stays where it is;
-// otherwise it clears the selection.
+// Escape ends a drag.  The selected text being dragged stays where it is,
+// still selected; otherwise the selection is cleared, a box too.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ClearSelectionAction(void)
 {
-	if (meTextDrag != TETD_None)
+	bool	bTextDrag;
+
+	bTextDrag = IsTextDrag();
+	if (meDrag != TED_None)
 	{
-		CancelTextDrag();
-		return;
+		CancelDrag();
 	}
-	mpcEditing->ClearSelection();
+	if (!bTextDrag)
+	{
+		mpcEditing->ClearSelection();
+	}
 }
 
 
@@ -514,19 +522,7 @@ void CTextEditingInput::ClearSelectionAction(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextEditingInput::IsInSelection(int x, int y)
 {
-	size	uiStart;
-	size	uiEnd;
-	size	uiPosition;
-
-	if (!mbTextDragEnabled || !mpcEditing->IsEditable() || !mpcEditing->GetSelection(&uiStart, &uiEnd))
-	{
-		return false;
-	}
-	if (!mpcEditing->FindCharacterAt(x, y, &uiPosition))
-	{
-		return false;
-	}
-	return (uiPosition >= uiStart) && (uiPosition < uiEnd);
+	return mbTextDragEnabled && mpcEditing->IsEditable() && mpcEditing->IsSelectedAt(x, y);
 }
 
 
@@ -543,7 +539,7 @@ void CTextEditingInput::DragText(int x, int y)
 	size	uiDrop;
 	bool	bRowEnd;
 
-	if ((meTextDrag == TETD_Pressed) && (abs(x - miPressX) <= TEXT_DRAG_DISTANCE) && (abs(y - miPressY) <= TEXT_DRAG_DISTANCE))
+	if ((meDrag == TED_TextPressed) && IsPointerNear(x, y, &msPress, TEXT_DRAG_DISTANCE))
 	{
 		return;
 	}
@@ -551,9 +547,9 @@ void CTextEditingInput::DragText(int x, int y)
 	{
 		return;
 	}
-	if ((meTextDrag != TETD_Dragging) || (uiDrop != muiDrop) || (bRowEnd != mbDropRowEnd))
+	if ((meDrag != TED_Text) || (uiDrop != muiDrop) || (bRowEnd != mbDropRowEnd))
 	{
-		meTextDrag = TETD_Dragging;
+		meDrag = TED_Text;
 		muiDrop = uiDrop;
 		mbDropRowEnd = bRowEnd;
 		mpcEditing->GetView()->ShowCaret();
@@ -574,36 +570,17 @@ void CTextEditingInput::DropText(int x, int y)
 {
 	size	uiStart;
 	size	uiEnd;
-	size	uiPosition;
-	bool	bRowEnd;
 
 	DragText(x, y);
-	if (meTextDrag == TETD_Pressed)
+	if (meDrag == TED_TextPressed)
 	{
-		meTextDrag = TETD_None;
-		mpcEditing->FindPositionAt(miPressX, miPressY, &uiPosition, &bRowEnd);
-		mpcEditing->MoveCaret(uiPosition, false, bRowEnd);
+		mpcEditing->MoveCaretTo(msPress.x, msPress.y, false);
 		return;
 	}
 
-	meTextDrag = TETD_None;
+	meDrag = TED_None;
 	mpcEditing->GetSelection(&uiStart, &uiEnd);
 	mpcEditing->MoveText(uiStart, uiEnd, muiDrop, IsCopyHeld());
-	mpcComponent->GetWindow()->RequestPaint();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text being dragged stays where it is and the drag ends; the release
-// still to come does nothing.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextEditingInput::CancelTextDrag(void)
-{
-	meTextDrag = TETD_None;
-	mbDragging = false;
-	mpcComponent->GetWindow()->GetFocus()->StopDrag(FD_Select);
 	mpcComponent->GetWindow()->RequestPaint();
 }
 
@@ -624,17 +601,17 @@ bool CTextEditingInput::IsCopyHeld(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The word (TEDU_Word) or line (TEDU_Line) under x, y.  Past a line's
-// end there is no word: the start and end are the gap nearest x, y and
-// false is returned.
+// The word (TED_Words) or line (TED_Lines) under x, y.  Past a line's end
+// there is no word: the start and end are the gap nearest x, y and false
+// is returned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextEditingInput::FindUnitAt(int x, int y, size* puiStart, size* puiEnd)
+bool CTextEditingInput::FindUnitAt(ETextEditingDrag eUnit, int x, int y, size* puiStart, size* puiEnd)
 {
 	size	uiPosition;
 	bool	bRowEnd;
 
-	if (meUnit == TEDU_Line)
+	if (eUnit == TED_Lines)
 	{
 		mpcEditing->FindPositionAt(x, y, &uiPosition, &bRowEnd);
 		mpcEditing->GetNavigation()->FindLineAround(uiPosition, puiStart, puiEnd);
@@ -663,7 +640,7 @@ void CTextEditingInput::DragByUnit(int x, int y)
 	size	uiStart;
 	size	uiEnd;
 
-	FindUnitAt(x, y, &uiStart, &uiEnd);
+	FindUnitAt(meDrag, x, y, &uiStart, &uiEnd);
 	if (uiStart < muiOriginStart)
 	{
 		mpcEditing->Select(muiOriginEnd, uiStart);
