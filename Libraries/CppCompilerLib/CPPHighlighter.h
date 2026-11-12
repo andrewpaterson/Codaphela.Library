@@ -73,6 +73,9 @@ typedef CArrayTemplate<SCPPHighlight>	CArrayHighlights;
 
 //Highlights one source file of a parsed translation unit: what each token is, and the comments, directives, macros and
 //skipped lines.  Spans are sorted by line then column and don't cross lines.
+//
+//A header's lines are only skipped lines if no inclusion of it in the unit compiled them: one included again, its
+//include guard skipping all of it the second time, is in use.
 class CCPPHighlighter
 {
 protected:
@@ -92,6 +95,7 @@ public:
 protected:
 	void				AddComments(void);
 	void				AddInactiveLines(CPreprocessedTokens* pcPreprocessed);
+	bool				IsCompiledElsewhere(CPreprocessedTokens* pcPreprocessed, SInactiveRegion* psRegion);
 	void				AddDirectives(CPreprocessedTokens* pcPreprocessed);
 	void				AddMacros(CPreprocessedTokens* pcPreprocessed);
 	void				AddTokens(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);

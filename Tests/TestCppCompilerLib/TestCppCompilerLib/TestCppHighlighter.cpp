@@ -1,6 +1,8 @@
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "CppCompilerLib/Preprocessor.h"
+#include "CppCompilerLib/HeaderFileMap.h"
 #include "CppCompilerLib/CppTokeniser.h"
 #include "CppCompilerLib/CppParser.h"
 #include "CppCompilerLib/CPPHighlighter.h"
@@ -365,6 +367,86 @@ int override = 1;\n", &sz));
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A header included twice: its include guard skips all of it the second
+// time, but what the first inclusion compiled isn't shown as skipped.
+// Lines no inclusion compiled are.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppHighlighterHeaderIncludedTwice(void)
+{
+	CHeaderFileMap		cHeaderFiles;
+	CHeaderFiles		cHeaders;
+	CSourceFile*		pcHeader;
+	CTranslationUnit	cFile;
+	CPreprocessor		cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPHighlighter		cHighlighter;
+	CFileUtil			cFileUtil;
+	CChars				szDirectory;
+	CChars				sz;
+
+	szDirectory.Init();
+	cFileUtil.CurrentDirectory(&szDirectory);
+	cFileUtil.AppendToPath(&szDirectory, "Input");
+	cFileUtil.AppendToPath(&szDirectory, "SFT");
+	cHeaderFiles.Init();
+	cHeaders.Init(szDirectory.Text(), &cHeaderFiles, false, false);
+	szDirectory.Kill();
+	pcHeader = cHeaders.AddFile("Guarded.h");
+	pcHeader->SetContents("\
+#ifndef __GUARDED_H__\n\
+#define __GUARDED_H__\n\
+int giGuarded;\n\
+#if 0\n\
+int giNever;\n\
+#endif\n\
+#endif\n");
+
+	cFile.Init("Twice.cpp", NULL, false);
+	cFile.SetContents("\
+#include \"Guarded.h\"\n\
+#include \"Guarded.h\"\n\
+int x;\n");
+	cPreprocessor.Init(NULL);
+	cPreprocessor.AddIncludeDirectory(&cHeaders);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	sz.Init();
+	cHighlighter.Init();
+	cHighlighter.Highlight(pcHeader, cFile.GetTokens(), &cTokeniser, &cTree);
+	cHighlighter.Print(&sz);
+	cHighlighter.Kill();
+	AssertString("\
+1:1 21 directive\n\
+2:1 21 directive\n\
+3:1 3 keyword\n\
+3:5 9 variable declaration\n\
+3:14 1 operator\n\
+4:1 5 directive\n\
+5:1 12 inactive\n\
+6:1 6 directive\n\
+7:1 6 directive\n", sz.Text());
+	sz.Kill();
+
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+	cHeaders.Kill();
+	cHeaderFiles.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppHighlighter(void)
@@ -378,6 +460,7 @@ void TestCppHighlighter(void)
 	TestCppHighlighterSource();
 	TestCppHighlighterSplices();
 	TestCppHighlighterInactiveGroups();
+	TestCppHighlighterHeaderIncludedTwice();
 	TestCppHighlighterNames();
 
 	NumberKill();

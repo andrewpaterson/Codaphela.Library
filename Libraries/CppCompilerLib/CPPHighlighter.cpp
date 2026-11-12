@@ -118,6 +118,10 @@ void CCPPHighlighter::AddComments(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The lines conditional compilation skipped.  A file included more than
+// once in the unit has the lines each inclusion skipped: a header's
+// include guard skips all of it every time but the first, so lines
+// another inclusion compiled aren't shown as skipped.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPHighlighter::AddInactiveLines(CPreprocessedTokens* pcPreprocessed)
@@ -129,7 +133,7 @@ void CCPPHighlighter::AddInactiveLines(CPreprocessedTokens* pcPreprocessed)
 	for (i = 0; i < pcPreprocessed->NumInactiveRegions(); i++)
 	{
 		psRegion = pcPreprocessed->GetInactiveRegion(i);
-		if (psRegion->pcFile == mpcFile)
+		if ((psRegion->pcFile == mpcFile) && !IsCompiledElsewhere(pcPreprocessed, psRegion))
 		{
 			for (iLine = psRegion->iStartLine; iLine <= psRegion->iEndLine; iLine++)
 			{
@@ -137,6 +141,39 @@ void CCPPHighlighter::AddInactiveLines(CPreprocessedTokens* pcPreprocessed)
 			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether any of a skipped region's lines was compiled by another
+// inclusion of its file: a token, or a directive that was obeyed, is on
+// one of them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPHighlighter::IsCompiledElsewhere(CPreprocessedTokens* pcPreprocessed, SInactiveRegion* psRegion)
+{
+	SPreprocessedToken*	psToken;
+	SDirectiveLine*		psDirective;
+	size				i;
+
+	for (i = 0; i < pcPreprocessed->NumDirectiveLines(); i++)
+	{
+		psDirective = pcPreprocessed->GetDirectiveLine(i);
+		if (psDirective->bActive && (psDirective->pcFile == psRegion->pcFile) && (psDirective->iLine >= psRegion->iStartLine) && (psDirective->iLine <= psRegion->iEndLine))
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < pcPreprocessed->NumTokens(); i++)
+	{
+		psToken = pcPreprocessed->Get(i);
+		if ((psToken->pcFile == psRegion->pcFile) && (psToken->iLine >= psRegion->iStartLine) && (psToken->iLine <= psRegion->iEndLine))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
