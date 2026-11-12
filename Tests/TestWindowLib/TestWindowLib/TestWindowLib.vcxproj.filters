@@ -208,6 +208,9 @@
     <ClCompile Include="TestGoToDialog.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestSplitContainer.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestFindInFilesDialog.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>

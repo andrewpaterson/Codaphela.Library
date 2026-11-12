@@ -266,6 +266,7 @@
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="FileChooser.h" />
     <ClInclude Include="GoToDialog.h" />
+    <ClInclude Include="SplitContainer.h" />
     <ClInclude Include="FindInFilesDialog.h" />
     <ClInclude Include="ComponentInputNumKey.h" />
     <ClInclude Include="ComponentInputPrintable.h" />
@@ -354,6 +355,7 @@
     <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="FileChooser.cpp" />
     <ClCompile Include="GoToDialog.cpp" />
+    <ClCompile Include="SplitContainer.cpp" />
     <ClCompile Include="FindInFilesDialog.cpp" />
     <ClCompile Include="ComponentInputNumKey.cpp" />
     <ClCompile Include="ComponentInputPrintable.cpp" />

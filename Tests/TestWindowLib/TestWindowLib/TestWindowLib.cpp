@@ -33,6 +33,7 @@ void TestDiffView(void);
 void TestLineZones(void);
 void TestScrollPane(void);
 void TestProgressBar(void);
+void TestSplitContainer(void);
 void TestToolbar(void);
 void TestStatusBar(void);
 void TestToolTips(void);
@@ -97,6 +98,7 @@ void RunWindowTests(void)
 	TestLineZones();
 	TestScrollPane();
 	TestProgressBar();
+	TestSplitContainer();
 	TestToolbar();
 	TestStatusBar();
 	TestToolTips();

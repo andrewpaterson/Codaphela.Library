@@ -290,6 +290,7 @@
     <ClCompile Include="TestDialog.cpp" />
     <ClCompile Include="TestFileChooser.cpp" />
     <ClCompile Include="TestGoToDialog.cpp" />
+    <ClCompile Include="TestSplitContainer.cpp" />
     <ClCompile Include="TestFindInFilesDialog.cpp" />
     <ClCompile Include="TestCaretBlink.cpp" />
   </ItemGroup>
