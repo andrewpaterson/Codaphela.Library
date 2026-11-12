@@ -823,6 +823,43 @@ void CTextEditing::PlaceBoxCaret(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The box ends, the caret left at its caret corner and nothing selected:
+// before an edit that is made at the caret alone.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::EndBox(void)
+{
+	if (mbBox)
+	{
+		mbBox = false;
+		mpcView->MarksChanged();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box of a text that can be edited becomes a selection of its rows'
+// whole lines, with the last one's line feed: before an edit that works
+// on lines, which then works on the box's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::SelectBoxLines(void)
+{
+	size	uiStart;
+	size	uiEnd;
+
+	if (mbBox && mbEditable)
+	{
+		uiStart = mpcNavigation->FindLineStart(mpcView->GetRowStart(msBox.TopRow()));
+		uiEnd = mpcNavigation->NextPosition(mpcNavigation->FindLineEnd(mpcView->GetRowStart(msBox.BottomRow())));
+		Select(uiStart, uiEnd);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Row uiRow's text reaches the box's left edge: it has a position there,
 // where what is typed in the box goes.  A shorter row's goes at its end.
 //
@@ -1273,6 +1310,7 @@ void CTextEditing::BackTab(void)
 	size	uiStart;
 	size	uiEnd;
 
+	SelectBoxLines();
 	if (!BeginEditIfEditable())
 	{
 		return;
@@ -1296,6 +1334,7 @@ void CTextEditing::Enter(void)
 	{
 		return;
 	}
+	EndBox();
 
 	ReplaceSelection("\n");
 	EditDone();
@@ -1315,6 +1354,7 @@ void CTextEditing::HomeEnter(void)
 	{
 		return;
 	}
+	EndBox();
 
 	muiAnchor = MAX_SIZE;
 	uiLineStart = mpcNavigation->FindLineStart(muiCaret);
@@ -1335,6 +1375,7 @@ void CTextEditing::EndEnter(void)
 	{
 		return;
 	}
+	EndBox();
 
 	muiAnchor = MAX_SIZE;
 	muiCaret = mpcNavigation->FindLineEnd(muiCaret);
@@ -1405,6 +1446,7 @@ void CTextEditing::DeleteWordRemainingRight(void)
 	{
 		return;
 	}
+	EndBox();
 
 	if (!DeleteSelection())
 	{
@@ -1426,6 +1468,7 @@ void CTextEditing::DeleteWordRemainingLeft(void)
 	{
 		return;
 	}
+	EndBox();
 
 	if (!DeleteSelection())
 	{
@@ -1449,6 +1492,7 @@ void CTextEditing::DeleteLine(void)
 	size	uiColumn;
 	bool	bSelected;
 
+	SelectBoxLines();
 	if (!BeginEditIfEditable())
 	{
 		return;
@@ -1492,6 +1536,7 @@ void CTextEditing::Duplicate(void)
 	size	uiEnd;
 	CChars	szCopy;
 
+	SelectBoxLines();
 	if (!BeginEditIfEditable())
 	{
 		return;
@@ -1569,6 +1614,7 @@ void CTextEditing::CutLine(CChars* pszDest)
 	size	uiEnd;
 	size	uiColumn;
 
+	SelectBoxLines();
 	BeginEdit();
 	if (IsSelected())
 	{

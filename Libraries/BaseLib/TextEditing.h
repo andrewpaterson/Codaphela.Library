@@ -147,7 +147,9 @@ public:
 //Typing, tab, backspace, delete, paste and cut act on every row's range as one edit; a box with no width is a caret on
 //every row.  Copy gives the rows' ranges joined by line feeds; pasting as many lines as the box has rows puts one on
 //each, any other text goes on every row.  While there is a box nothing else is selected and the caret is its caret
-//corner.  Moving the caret any other way, clearing the selection, or an edit made otherwise (undo too) ends it.
+//corner.  The commands that work on whole lines (back tab, delete line, duplicate, cut line) work on the lines of the
+//box's rows: the box becomes a selection of them first.  Moving the caret any other way, clearing the selection, or
+//any other edit (enter, deleting a word, undo) ends it, the caret at its caret corner.
 //
 //Each edit begins with the caret and selection as they are (BeginEdit, for undo to put back), changes the document and
 //ends (EditDone): it is kept in the document's history, the view is told what was kept (UndoChanged) and that the text
@@ -283,6 +285,8 @@ protected:
 	bool		IsExtended(void);
 	bool		StartBox(void);
 	void		PlaceBoxCaret(void);
+	void		EndBox(void);
+	void		SelectBoxLines(void);
 	bool		IsBoxRowReached(size uiRow);
 	size		FindBoxReferenceRow(void);
 	void		TypeInBox(const char* szText);

@@ -978,6 +978,79 @@ void TestTextEditingBox(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The commands that work on whole lines work on the lines of a box's
+// rows; the other edits end the box and are made at its caret corner.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingBoxLines(void)
+{
+	STestTextEditing	s;
+	CChars				sz;
+
+	//Back tab outdents every row's line.
+	s.Init("  ab\n  cd\nef");
+	s.cEditing.BoxSelect(0, 3, 1, 4);
+	s.cEditing.BackTab();
+	AssertString("ab\ncd\nef", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("  ab\n  cd\nef", s.Text());
+
+	//Not editable, nothing changes and the box stays.
+	s.cEditing.SetEditable(false);
+	s.cEditing.BoxSelect(0, 3, 1, 4);
+	s.cEditing.BackTab();
+	s.cEditing.DeleteLine();
+	s.cEditing.Enter();
+	AssertString("  ab\n  cd\nef", s.Text());
+	AssertTrue(s.cEditing.IsBox());
+	s.Kill();
+
+	//Delete line takes them all.
+	s.Init("ab\ncd\nef");
+	s.cEditing.BoxSelect(0, 0, 1, 1);
+	s.cEditing.DeleteLine();
+	AssertString("ef", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertTrue(s.cEditing.Undo());
+
+	//Duplicate copies them above themselves.
+	s.cEditing.BoxSelect(1, 1, 0, 1);
+	s.cEditing.Duplicate();
+	AssertString("ab\ncd\nab\ncd\nef", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertTrue(s.cEditing.Undo());
+
+	//Cut line cuts them with their line feeds.
+	sz.Init();
+	s.cEditing.BoxSelect(0, 1, 1, 1);
+	s.cEditing.CutLine(&sz);
+	AssertString("ab\ncd\n", sz.Text());
+	AssertString("ef", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertTrue(s.cEditing.Undo());
+	sz.Kill();
+
+	//Enter and deleting a word end the box and are made at its caret corner.
+	s.cEditing.BoxSelect(0, 1, 1, 1);
+	s.cEditing.Enter();
+	AssertString("ab\nc\nd\nef", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertFalse(s.cEditing.IsSelected());
+	AssertSize(5, s.Caret());
+	AssertTrue(s.cEditing.Undo());
+	s.cEditing.BoxSelect(0, 1, 1, 1);
+	s.cEditing.DeleteWordRemainingRight();
+	AssertString("ab\nc\nef", s.Text());
+	AssertFalse(s.cEditing.IsBox());
+	AssertSize(4, s.Caret());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A text that isn't editable can be moved in, selected and copied from,
 // and cut copies what it would cut, but nothing changes it.
 //
@@ -1172,6 +1245,7 @@ void TestTextEditing(void)
 	TestTextEditingMoveText();
 	TestTextEditingExtendSelection();
 	TestTextEditingBox();
+	TestTextEditingBoxLines();
 	TestTextEditingNotEditable();
 	TestTextEditingFollowsDocument();
 	TestTextEditingNothingChanged();
