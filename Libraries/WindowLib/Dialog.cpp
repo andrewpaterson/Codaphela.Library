@@ -627,5 +627,6 @@ char* CDialog::GetClicked(void)
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CWindow> CDialog::GetWindow(void) { return mpDialog; }
+void CDialog::SetOwner(Ptr<CWindow> pOwner) { mpOwner = pOwner; }  //The window it is next shown over: a dialog asked for from more than one window is shown over the one that asks.
 SDialogLook* CDialog::GetLook(void) { return mpsLook; }
 

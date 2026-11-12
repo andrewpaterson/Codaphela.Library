@@ -357,6 +357,9 @@
     <ClInclude Include="GoToDialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="PasteHistoryDialog.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="CodePreview.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
@@ -750,6 +753,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="GoToDialog.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="PasteHistoryDialog.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="CodePreview.cpp">

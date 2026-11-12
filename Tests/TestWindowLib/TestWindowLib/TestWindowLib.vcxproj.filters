@@ -196,6 +196,9 @@
     <ClCompile Include="TestClipboardHistory.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestPasteHistoryDialog.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestCheckBox.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>

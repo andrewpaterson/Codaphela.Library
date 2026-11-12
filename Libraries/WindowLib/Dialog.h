@@ -127,6 +127,7 @@ public:
 	void				Close(const char* szClicked);
 	char*				GetClicked(void);
 	Ptr<CWindow>		GetWindow(void);
+	void				SetOwner(Ptr<CWindow> pOwner);
 	SDialogLook*		GetLook(void);
 
 	void				OKClicked(void);

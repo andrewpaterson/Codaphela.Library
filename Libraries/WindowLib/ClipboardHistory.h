@@ -29,6 +29,20 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CLIPBOARD_HISTORY_MAX_ENTRY_BYTES	(1024 * 1024)	//A text bigger than this is copied but not kept.
 
 
+class CWindow;
+class CClipboardHistory;
+
+
+//Asks which of a history's entries to paste, as IntelliJ IDEA's Choose Content to Paste does (CPasteHistoryDialog is
+//WindowLib's).  ChooseContent shows the choice over pOwner and appends the text chosen to pszDest; false if nothing
+//was chosen.  Several entries chosen are one text, a line feed between them.
+class CClipboardChooser
+{
+public:
+	virtual bool	ChooseContent(Ptr<CWindow> pOwner, Ptr<CClipboardHistory> pHistory, CChars* pszDest) = 0;
+};
+
+
 //The texts cut and copied in an application, newest first, as IntelliJ IDEA keeps them for Paste from History
 //(Control+Shift+V): every text component's cut and copy adds to it, through its window's CClipboard, and so does text
 //copied in another program when the clipboard is next looked at (CClipboard::Sync).  A text that is already in it
@@ -36,7 +50,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //text bigger than its biggest entry.
 //
 //There is one for an application: a window's clipboard makes its own, and a window shown over or owned by another (a
-//dialog, a tool window) is given its owner's (CClipboard::SetHistory).  It is for the session: it isn't saved.
+//dialog, a tool window) shares its owner's (CClipboard::ShareHistory).  It is for the session: it isn't saved.
+//
+//Its chooser (SetChooser) is what Paste from History asks which entry to paste; the application gives it, as it gives
+//every dialog its look.  With none, there is nothing to choose with and Paste from History does nothing.
 class CClipboardHistory : public CObject
 {
 CONSTRUCTABLE(CClipboardHistory);
@@ -45,6 +62,7 @@ protected:
 	CArrayChars		maszEntries;  //Oldest first.
 	size			muiLimit;
 	size			muiMaxEntryBytes;
+	CClipboardChooser*	mpcChooser;  //Not held: whoever sets it clears it before it goes.  NULL for none.
 
 public:
 	void	Init(void);
@@ -56,6 +74,8 @@ public:
 	void	SetLimit(size uiLimit);
 	size	GetLimit(void);
 	void	SetMaxEntryBytes(size uiBytes);
+	void	SetChooser(CClipboardChooser* pcChooser);
+	CClipboardChooser*	GetChooser(void);
 
 	bool	Add(const char* szText);
 	void	Remove(size uiIndex);

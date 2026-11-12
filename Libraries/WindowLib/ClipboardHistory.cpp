@@ -32,6 +32,7 @@ void CClipboardHistory::Init(void)
 	maszEntries.Init();
 	muiLimit = CLIPBOARD_HISTORY_LIMIT;
 	muiMaxEntryBytes = CLIPBOARD_HISTORY_MAX_ENTRY_BYTES;
+	mpcChooser = NULL;
 	PostInit();
 }
 
@@ -45,6 +46,7 @@ void CClipboardHistory::Class(void)
 	U_Unknown(CArrayChars, maszEntries);
 	U_Size(muiLimit);
 	U_Size(muiMaxEntryBytes);
+	U_Pointer(mpcChooser);
 }
 
 
@@ -85,6 +87,8 @@ void CClipboardHistory::SetLimit(size uiLimit)
 
 size CClipboardHistory::GetLimit(void) { return muiLimit; }
 void CClipboardHistory::SetMaxEntryBytes(size uiBytes) { muiMaxEntryBytes = uiBytes; }  //A text bigger than this isn't kept.
+void CClipboardHistory::SetChooser(CClipboardChooser* pcChooser) { mpcChooser = pcChooser; }  //What asks which entry to paste, NULL for nothing.
+CClipboardChooser* CClipboardHistory::GetChooser(void) { return mpcChooser; }
 
 
 //////////////////////////////////////////////////////////////////////////

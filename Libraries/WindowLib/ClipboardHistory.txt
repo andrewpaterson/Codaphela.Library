@@ -103,7 +103,8 @@ Steps (a commit each; tests named are new or extended)
      clipboard (WinRefLib) can have its text set behind the CClipboard's back for the test.
   3. BUILT (the selected rows are drawn by one canvas, a CBandsCanvasDraw).  CListContainer multi selection (off by default): Shift and Control with keys and pointer, GetSelectedRows, the
      selection event told once.  TestList.
-  4. CPasteHistoryDialog without filter or digits: list, preview, OK, Cancel, enter, double click, delete, several
+  4. BUILT (a row shows line breaks and tabs as spaces, not a mark, so no font needs a glyph for one; the chooser
+     interface, CClipboardChooser, and CDialog::SetOwner came with it).  CPasteHistoryDialog without filter or digits: list, preview, OK, Cancel, enter, double click, delete, several
      selected.  TestPasteHistoryDialog drives it through the window as TestGoToDialog does.
   5. CIC_PasteFromHistory, the chord, the keymap row, CTextEditingInput::PasteFromHistory through the history's
      chooser, CEditCommands.  TestTextEditingInput with a chooser that answers from the test; TestTextField in a
