@@ -74,6 +74,7 @@ protected:
 	bool							mbDoubleClickActivates;
 	bool							mbWrapAround;
 	SDoubleClick					msDoubleClick;  //Keyed by row, positions relative to the list.
+	bool							mbWantsEscape;  //Escape is the list's, not the window's cancel button's (SetWantsEscape).
 	bool							mbMultiSelect;  //Several rows can be selected.
 	CArrayBit						mabSelected;  //One for each row, used when several can be selected.
 	int32							miAnchor;  //The row a selection of several started at, -1 for none.
@@ -126,6 +127,8 @@ public:
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool			IsChildDrawn(Ptr<CComponent> pChild) override;
 	bool			WantsEnter(void) override;
+	bool			WantsEscape(void) override;
+	void			SetWantsEscape(bool bWantsEscape);
 
 	void			FocusLost(void) override;
 	void			MovedOutof(void) override;

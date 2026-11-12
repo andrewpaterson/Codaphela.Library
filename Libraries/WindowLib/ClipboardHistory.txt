@@ -110,7 +110,9 @@ Steps (a commit each; tests named are new or extended)
      step 7, as it needs a modal loop).  CIC_PasteFromHistory, the chord, the keymap row, CTextEditingInput::PasteFromHistory through the history's
      chooser, CEditCommands.  TestTextEditingInput with a chooser that answers from the test; TestTextField in a
      dialog (a chooser dialog over a dialog).
-  6. The dialog's speed search and the digits.
+  6. BUILT (what is typed shows as "Search for: ..." over the list; a space activates the selected row, as in every
+     list, so it isn't part of a filter; escape reaches the list through CComponent::WantsEscape, as enter does
+     through WantsEnter).  The dialog's speed search and the digits.
   7. The IDE: its chooser made in CIDEContent from the dialog look and code font; Edit menu item after Paste and in
      the editor's context menu; script steps (pastehistory, printclipboardhistory, a way to choose a row); checks
      editor-paste-history (copy three things, choose the second, paste, then Control+V pastes it again) and

@@ -106,6 +106,7 @@ public:
 			void				SetCanGetFocus(bool bCanGetFocus);
 			void				SetHitAsWhole(bool bHitAsWhole);
 	virtual	bool				WantsEnter(void);
+	virtual	bool				WantsEscape(void);
 	virtual	bool				UsesEditorKeys(void);
 	virtual	bool				IsTabStop(void);
 	virtual	bool				CanDoCommand(EComponentInputCommand eCommand);

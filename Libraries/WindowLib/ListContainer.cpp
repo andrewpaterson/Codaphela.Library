@@ -50,6 +50,7 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mbSelectOnHover = false;
 	mbDoubleClickActivates = false;
 	msDoubleClick.Init();
+	mbWantsEscape = false;
 	mbMultiSelect = false;
 	mabSelected.Init();
 	miAnchor = -1;
@@ -102,6 +103,7 @@ void CListContainer::Class(void)
 	U_Bool(mbDoubleClickActivates);
 	U_Bool(mbWrapAround);
 	U_Data(SDoubleClick, msDoubleClick);
+	U_Bool(mbWantsEscape);
 	U_Bool(mbMultiSelect);
 	U_Unknown(CArrayBit, mabSelected);
 	U_Int32(miAnchor);
@@ -645,6 +647,17 @@ bool CListContainer::WantsEnter(void)
 {
 	return miSelected >= 0;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Escape comes to the list's input actions instead of clicking the
+// window's cancel button while the list has something of its own to
+// escape from, as a dialog's list has while what was typed filters it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::WantsEscape(void) { return mbWantsEscape; }
+void CListContainer::SetWantsEscape(bool bWantsEscape) { mbWantsEscape = bWantsEscape; }
 
 
 //////////////////////////////////////////////////////////////////////////

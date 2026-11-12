@@ -46,6 +46,11 @@ typedef CArrayTemplate<size>	CArrayPasteHistoryRows;
 //closes it with nothing chosen.  Shift with the moves, or with a press, and Control with a press select several rows.
 //Delete takes the selected entries out of the history.
 //
+//What is typed filters the list, as a speed search does: only the entries whose text has what was typed in it, case
+//not mattering, are listed, and what was typed shows over the list.  Backspace takes a character off it and escape
+//clears it; escape with nothing typed closes the dialog.  The first nine rows have their number before them, and
+//with nothing typed 1 to 9 chooses that row at once (typed after something else, a digit is part of the filter).
+//
 //It is a CClipboardChooser: a history it is set on (CClipboardHistory::SetChooser) asks it which entry to paste.  It
 //is shown in its own window over whichever window asks.  A paste history dialog is an object: make it with OMalloc
 //and keep it in the root, or an object that is, while it's the chooser.
@@ -55,6 +60,7 @@ CONSTRUCTABLE(CPasteHistoryDialog);
 DESTRUCTABLE(CPasteHistoryDialog);
 protected:
 	Ptr<CDialog>			mpDialog;
+	Ptr<CLabel>				mpFilter;  //What was typed to filter the list, over it.
 	Ptr<CSplitContainer>	mpSplit;
 	Ptr<CScrollPane>		mpListPane;
 	Ptr<CListContainer>		mpList;
@@ -62,6 +68,7 @@ protected:
 	Ptr<CTextArea>			mpPreview;
 	Ptr<CClipboardHistory>	mpHistory;  //What is being chosen from, NULL when nothing is.
 	CArrayPasteHistoryRows	mauiRows;  //Each row's entry in the history.
+	CChars					mszFilter;  //Only the entries with it in them are listed; empty for all.
 	CChars					mszChosen;
 	bool					mbChosen;
 
@@ -81,6 +88,7 @@ public:
 
 	Ptr<CListContainer>	GetList(void);
 	Ptr<CTextArea>		GetPreview(void);
+	Ptr<CLabel>			GetFilterLabel(void);
 	Ptr<CDialog>		GetDialog(void);
 	size				GetRowEntry(int32 iRow);
 	void				GetRowText(int32 iRow, CChars* pszDest);
@@ -89,6 +97,11 @@ public:
 	void			RowActivated(void);
 	void			SelectionChanged(void);
 	void			DeleteSelected(void);
+	void			Typed(SComponentInputEvent* psEvent);
+	void			Backspace(void);
+	void			Escape(void);
+	void			SetFilter(const char* szFilter);
+	char*			GetFilter(void);
 
 protected:
 	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFontFamily> pPreviewFamily, Ptr<CFont> pPreviewFont);
@@ -96,6 +109,7 @@ protected:
 	Ptr<CComponent>	CreateBody(Ptr<CFontFamily> pPreviewFamily, Ptr<CFont> pPreviewFont);
 	void			FillList(int32 iSelect);
 	void			AddRow(size uiEntry);
+	bool			IsListed(size uiEntry);
 	void			AppendRowText(CChars* pszDest, const char* szText);
 	void			AppendSelected(CChars* pszDest);
 };

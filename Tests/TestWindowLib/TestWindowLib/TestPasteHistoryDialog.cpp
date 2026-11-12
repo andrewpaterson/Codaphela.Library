@@ -33,7 +33,8 @@ static char* PrintPasteHistoryRows(Ptr<CPasteHistoryDialog> pDialog, CChars* psz
 // Choose Content to Paste lists the history newest first, each entry's
 // start on one line, and previews what is selected.  Enter chooses it,
 // several rows together in the list's order; Delete takes entries out of
-// the history.
+// the history.  Typing filters the list, escape clearing it first, and
+// 1 to 9 choose a row when nothing is typed.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPasteHistoryDialogChoose(void)
@@ -108,6 +109,64 @@ void TestPasteHistoryDialogChoose(void)
 		AssertString("second\nfirst", pDialog->GetPreview()->GetText());
 		AssertTrue(pDialog->Approve());
 		AssertString("second\nfirst", pDialog->GetChosen());
+
+		//What is typed filters the list, case not mattering, and shows over it; the first row left is selected.
+		pDialog->Start(pHistory);
+		pDialogWindow->SetWindowSize(600, 400);
+		pDialogWindow->Layout();
+		AssertString("", pDialog->GetFilter());
+		AssertInt(0, pDialog->GetFilterLabel()->GetActualSize().y);
+		pDialogWindow->InputPrintable('i', true);
+		pDialogWindow->InputPrintable('N', true);
+		AssertString("iN", pDialog->GetFilter());
+		AssertString("Search for: iN", pDialog->GetFilterLabel()->GetText());
+		pDialogWindow->Layout();
+		AssertTrue(pDialog->GetFilterLabel()->GetActualSize().y > 0);
+		AssertString("int x; int y;", PrintPasteHistoryRows(pDialog, &sz));
+		AssertSize(2, pDialog->GetRowEntry(0));
+		AssertInt(0, pDialog->GetList()->GetSelected());
+		AssertString("  int x;\n\tint y;\n", pDialog->GetPreview()->GetText());
+
+		//Backspace takes a character off; a digit typed after something is part of the filter.
+		pDialogWindow->InputCommand(CIC_Backspace, true);
+		AssertString("i", pDialog->GetFilter());
+		AssertString("first|int x; int y;", PrintPasteHistoryRows(pDialog, &sz));
+		pDialogWindow->InputPrintable('1', true);
+		AssertString("i1", pDialog->GetFilter());
+		AssertInt(0, pDialog->GetList()->NumRows());
+		AssertFalse(pDialog->Approve());
+		AssertFalse(pDialog->IsChosen());
+		pDialogWindow->InputCommand(CIC_Backspace, true);
+
+		//Enter chooses from what is listed.
+		pDialogWindow->InputCommand(CIC_Down, true);
+		pDialogWindow->InputCommand(CIC_Enter, true);
+		AssertTrue(pDialog->IsChosen());
+		AssertString("  int x;\n\tint y;\n", pDialog->GetChosen());
+
+		//Escape clears what was typed, and only with nothing typed cancels the dialog.
+		pDialog->Start(pHistory);
+		pDialogWindow->InputPrintable('f', true);
+		AssertInt(1, pDialog->GetList()->NumRows());
+		pDialog->GetDialog()->Close("");
+		pDialogWindow->InputCommand(CIC_ClearSelection, true);
+		AssertString("", pDialog->GetFilter());
+		AssertInt(4, pDialog->GetList()->NumRows());
+		AssertString("", pDialog->GetDialog()->GetClicked());
+		pDialogWindow->Layout();
+		AssertInt(0, pDialog->GetFilterLabel()->GetActualSize().y);
+		pDialogWindow->InputCommand(CIC_ClearSelection, true);
+		AssertString("Cancel", pDialog->GetDialog()->GetClicked());
+		AssertFalse(pDialog->IsChosen());
+
+		//With nothing typed, 1 to 9 chooses that row at once; a digit past the rows does nothing.
+		pDialog->Start(pHistory);
+		pDialogWindow->InputPrintable('9', true);
+		AssertFalse(pDialog->IsChosen());
+		AssertString("", pDialog->GetFilter());
+		pDialogWindow->InputPrintable('2', true);
+		AssertTrue(pDialog->IsChosen());
+		AssertString("first", pDialog->GetChosen());
 
 		//Delete takes the selected entries out of the history; the row that comes up to their place is selected.
 		pDialog->Start(pHistory);

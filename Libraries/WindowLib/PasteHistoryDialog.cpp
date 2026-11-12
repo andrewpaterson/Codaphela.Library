@@ -20,7 +20,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "BaseLib/StringHelper.h"
 #include "FillContainer.h"
+#include "GridContainer.h"
 #include "PasteHistoryDialog.h"
 
 
@@ -50,6 +52,7 @@ void CPasteHistoryDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFo
 
 	mauiRows.Init();
 	mszChosen.Init();
+	mszFilter.Init();
 	mbChosen = false;
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, "Choose Content to Paste");
@@ -60,6 +63,9 @@ void CPasteHistoryDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFo
 	mpList->GetActivationEvent()->Add(this, &CPasteHistoryDialog::RowActivated);
 	mpList->GetSelectionEvent()->Add(this, &CPasteHistoryDialog::SelectionChanged);
 	mpList->AddInputAction(CIC_Delete, this, &CPasteHistoryDialog::DeleteSelected);
+	mpList->AddInputAction(IAF_Printable, NULL, this, &CPasteHistoryDialog::Typed);
+	mpList->AddInputAction(CIC_Backspace, this, &CPasteHistoryDialog::Backspace);
+	mpList->AddInputAction(CIC_ClearSelection, this, &CPasteHistoryDialog::Escape);
 
 	PostInit();
 }
@@ -72,6 +78,7 @@ void CPasteHistoryDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFo
 void CPasteHistoryDialog::Class(void)
 {
 	M_Pointer(mpDialog);
+	M_Pointer(mpFilter);
 	M_Pointer(mpSplit);
 	M_Pointer(mpListPane);
 	M_Pointer(mpList);
@@ -79,6 +86,7 @@ void CPasteHistoryDialog::Class(void)
 	M_Pointer(mpPreview);
 	M_Pointer(mpHistory);
 	U_Unknown(CArrayPasteHistoryRows, mauiRows);
+	U_Unknown(CChars, mszFilter);
 	U_Unknown(CChars, mszChosen);
 	U_Bool(mbChosen);
 }
@@ -99,6 +107,7 @@ void CPasteHistoryDialog::Free(void)
 		mpList->GetActivationEvent()->Remove(this);
 		mpList->GetSelectionEvent()->Remove(this);
 	}
+	mszFilter.Kill();
 	mszChosen.Kill();
 	mauiRows.Kill();
 }
@@ -115,13 +124,15 @@ bool CPasteHistoryDialog::Load(CObjectReader* pcFile) { return false; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The list above the preview, a sash between them.
+// The list above the preview, a sash between them, and over them what was
+// typed to filter the list, which takes no room while nothing is.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CComponent> CPasteHistoryDialog::CreateBody(Ptr<CFontFamily> pPreviewFamily, Ptr<CFont> pPreviewFont)
 {
-	Ptr<CWindow>	pWindow;
-	SDialogLook*	psLook;
+	Ptr<CWindow>		pWindow;
+	SDialogLook*		psLook;
+	Ptr<CGridContainer>	pBody;
 
 	pWindow = mpDialog->GetWindow();
 	psLook = mpDialog->GetLook();
@@ -150,7 +161,14 @@ Ptr<CComponent> CPasteHistoryDialog::CreateBody(Ptr<CFontFamily> pPreviewFamily,
 	mpSplit = OMalloc<CSplitContainer>(pWindow, psLook->pcTheme, false);
 	mpSplit->SetComponents(mpListPane, mpPreviewPane);
 	mpSplit->SetAlignment(CSH_Stretch, CSV_Stretch);
-	return mpSplit;
+
+	mpFilter = OMalloc<CLabel>(pWindow, psLook->pcDimFont, "");
+	mpFilter->SetAlignment(CSH_Left, CSV_Top);
+	mpFilter->SetDesiredSize(-1, 0);
+	pBody = OMalloc<CGridContainer>(pWindow);
+	pBody->AddComponent(mpFilter, 0, 0, 1, 1, 1, 0);
+	pBody->AddComponent(mpSplit, 0, 1, 1, 1, 1, 1);
+	return pBody;
 }
 
 
@@ -191,7 +209,7 @@ void CPasteHistoryDialog::Start(Ptr<CClipboardHistory> pHistory)
 	mpHistory = pHistory;
 	mbChosen = false;
 	mszChosen.Clear();
-	FillList(0);
+	SetFilter("");
 }
 
 
@@ -210,6 +228,7 @@ bool CPasteHistoryDialog::IsChosen(void) { return mbChosen; }
 char* CPasteHistoryDialog::GetChosen(void) { return mszChosen.Text(); }
 Ptr<CListContainer> CPasteHistoryDialog::GetList(void) { return mpList; }
 Ptr<CTextArea> CPasteHistoryDialog::GetPreview(void) { return mpPreview; }
+Ptr<CLabel> CPasteHistoryDialog::GetFilterLabel(void) { return mpFilter; }
 Ptr<CDialog> CPasteHistoryDialog::GetDialog(void) { return mpDialog; }
 size CPasteHistoryDialog::GetRowEntry(int32 iRow) { return *mauiRows.Get((size)iRow); }  //The history's entry row iRow shows.
 void CPasteHistoryDialog::GetRowText(int32 iRow, CChars* pszDest) { AppendRowText(pszDest, mpHistory->GetText(GetRowEntry(iRow))); }  //What row iRow shows of it, appended.
@@ -296,7 +315,10 @@ void CPasteHistoryDialog::FillList(int32 iSelect)
 	mauiRows.ReInit();
 	for (i = 0; i < mpHistory->NumEntries(); i++)
 	{
-		AddRow(i);
+		if (IsListed(i))
+		{
+			AddRow(i);
+		}
 	}
 	if (iSelect >= mpList->NumRows())
 	{
@@ -311,13 +333,15 @@ void CPasteHistoryDialog::FillList(int32 iSelect)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A row for the history's entry uiEntry: the start of its text on one
-// line.
+// A row for the history's entry uiEntry: the row's number, for the first
+// nine while nothing filters the list (the digit that chooses it), and
+// the start of the entry's text on one line.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPasteHistoryDialog::AddRow(size uiEntry)
 {
 	Ptr<CWindow>	pWindow;
+	Ptr<CLabel>		pNumber;
 	Ptr<CLabel>		pText;
 	CChars			szRow;
 	int32			iRow;
@@ -327,13 +351,130 @@ void CPasteHistoryDialog::AddRow(size uiEntry)
 	*mauiRows.Add() = uiEntry;
 
 	szRow.Init();
+	if ((iRow < 9) && mszFilter.Empty())
+	{
+		szRow.Append(iRow + 1);
+	}
+	pNumber = OMalloc<CLabel>(pWindow, mpDialog->GetLook()->pcDimFont, szRow.Text());
+	pNumber->SetAlignment(CSH_Center, CSV_Center);
+	pNumber->SetDesiredSize(GetMetric(TM_GoToIconWidth), GetMetric(TM_GoToRowHeight));
+	mpList->AddToRow(iRow, pNumber, 0);
+
+	szRow.Clear();
 	AppendRowText(&szRow, mpHistory->GetText(uiEntry));
 	pText = OMalloc<CLabel>(pWindow, mpDialog->GetLook()->pcTheme->GetFont(), szRow.Text());
 	pText->SetAlignment(CSH_Left, CSV_Center);
-	pText->SetDesiredSize(-1, GetMetric(TM_GoToRowHeight));
-	mpList->AddToRow(iRow, pText, 0, 1, 1);
+	mpList->AddToRow(iRow, pText, 1, 1, 1);
 	szRow.Kill();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entry is listed: nothing filters the list, or its text has what was
+// typed in it, case not mattering.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPasteHistoryDialog::IsListed(size uiEntry)
+{
+	return mszFilter.Empty() || (StrIStr(mpHistory->GetText(uiEntry), mszFilter.Text()) != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A character typed in the list.  With nothing typed yet, 1 to 9 chooses
+// that row at once; anything else is added to what filters the list.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPasteHistoryDialog::Typed(SComponentInputEvent* psEvent)
+{
+	CChars	szFilter;
+	char	c;
+
+	c = psEvent->cPrintable;
+	if (mszFilter.Empty() && (c >= '1') && (c <= '9'))
+	{
+		if ((c - '1') < mpList->NumRows())
+		{
+			mpList->Select(c - '1');
+			mpDialog->OKClicked();
+		}
+		return;
+	}
+	szFilter.Init(mszFilter.Text());
+	szFilter.Append(c);
+	SetFilter(szFilter.Text());
+	szFilter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Backspace takes the last character typed off the filter.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPasteHistoryDialog::Backspace(void)
+{
+	CChars	szFilter;
+	size	uiLength;
+
+	if (mszFilter.Empty())
+	{
+		return;
+	}
+	//Back to the start of its last character.
+	uiLength = mszFilter.Length() - 1;
+	while ((uiLength > 0) && (((uint8)mszFilter.Text()[uiLength] & 0xC0) == 0x80))
+	{
+		uiLength--;
+	}
+	szFilter.Init();
+	szFilter.AppendSubString(mszFilter.Text(), 0, uiLength);
+	SetFilter(szFilter.Text());
+	szFilter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Escape with something typed (the list wants it then): the filter is
+// cleared.  With nothing typed it is the dialog's and cancels it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPasteHistoryDialog::Escape(void)
+{
+	SetFilter("");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only the entries with szFilter in them are listed, all of them for "";
+// the first is selected.  It is shown over the list.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPasteHistoryDialog::SetFilter(const char* szFilter)
+{
+	CChars	szShown;
+
+	mszFilter.Set(szFilter);
+	szShown.Init();
+	if (!mszFilter.Empty())
+	{
+		szShown.Append("Search for: ");
+		szShown.Append(mszFilter);
+	}
+	mpFilter->SetText(szShown.Text());
+	mpFilter->SetDesiredSize(-1, mszFilter.Empty() ? 0 : -1);
+	szShown.Kill();
+	mpList->SetWantsEscape(!mszFilter.Empty());
+	FillList(0);
+	mpDialog->GetWindow()->InvalidateLayout();
+}
+
+
+char* CPasteHistoryDialog::GetFilter(void) { return mszFilter.Text(); }
 
 
 //////////////////////////////////////////////////////////////////////////

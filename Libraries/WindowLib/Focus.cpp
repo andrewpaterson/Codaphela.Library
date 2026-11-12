@@ -453,7 +453,7 @@ bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
 				return true;
 			}
 			pCancel = mpWindow->GetCancelButton();
-			if (pCancel)
+			if (pCancel && !(mpFocussedComponent && mpFocussedComponent->WantsEscape()))
 			{
 				pCancel->Click();
 				return true;
