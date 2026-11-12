@@ -2172,6 +2172,99 @@ void TestTextAreaEditBox(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The keys, as the keyboard gives them through the component input, move
+// the caret and the view with it: a text area in a scroll pane is scrolled
+// to its caret by the next paint, though the keys' actions keep the
+// layout.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditKeysScroll(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CScrollPane>			pScroll;
+		Ptr<CTextArea>				pTextArea;
+		CComponentInputTestDevices	cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		CChars						szText;
+		int32						i;
+
+		cWindow.Init("Text Area Window", 200, 100);
+		pTestWindow = cWindow.pWindow;
+		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
+		pTestWindow->SetContainer(pScroll);
+
+		//Twenty lines, 24 pixels each, in a view 100 high.
+		szText.Init("line 0");
+		for (i = 1; i < 20; i++)
+		{
+			szText.Append("\nline ");
+			szText.Append(i);
+		}
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), szText.Text());
+		pScroll->SetContent(pTextArea);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		pTestWindow->SetComponentInput(&cComponentInput);
+		pTestWindow->Paint();
+		AssertInt(0, pScroll->GetScrollPosition().y);
+
+		//Control+End: the caret is at the end and the view shows it.
+		cDevices.Press((char*)"Left Control");
+		cDevices.Tap((char*)"End");
+		cDevices.Release((char*)"Left Control");
+		AssertSize(szText.Length(), pTextArea->GetCaretPosition());
+		pTestWindow->Paint();
+		AssertInt(20 * 24 - 100, pScroll->GetScrollPosition().y);
+
+		//Up, a line at a time: the view follows once the caret is above it.
+		for (i = 0; i < 6; i++)
+		{
+			cDevices.Tap((char*)"Cursor Up");
+			pTestWindow->Paint();
+		}
+		AssertSize(13, pTextArea->FindLine(pTextArea->GetCaretPosition()));
+		AssertInt(13 * 24, pScroll->GetScrollPosition().y);
+
+		//The scroll pane asks for the layout that moves its content itself: a move made with nothing else to lay the
+		//window out (the editing's, which tells only its view) still scrolls at the next paint.
+		pTestWindow->Layout();
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		pTextArea->GetEditing()->DocumentHome();
+		AssertTrue(pTestWindow->IsLayoutDirty());
+		pTestWindow->Paint();
+		AssertInt(0, pScroll->GetScrollPosition().y);
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		pTextArea->GetEditing()->DocumentEnd();
+		AssertTrue(pTestWindow->IsLayoutDirty());
+		pTestWindow->Paint();
+		AssertInt(20 * 24 - 100, pScroll->GetScrollPosition().y);
+
+		pTestWindow->SetComponentInput(NULL);
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+		szText.Kill();
+		pTextArea = NULL;
+		pScroll = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -2187,6 +2280,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditUndoEvent();
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
+	TestTextAreaEditKeysScroll();
 	TestTextAreaEditOccurrences();
 	TestTextAreaEditOccurrenceRanges();
 	TestTextAreaEditBox();
