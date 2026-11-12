@@ -36,6 +36,8 @@ void CClipboard::Init(Ptr<CWindow> pWindow)
 
 	mpWindow = pWindow;
 	mpcNativeClipboard = pWindow->GetFactory()->CreateNativeClipboard(this);
+	mbDetached = false;
+	mszText.Init();
 
 	PostInit();
 }
@@ -55,6 +57,7 @@ void CClipboard::Free(void)
 		pcFactory->DestroyNativeClipboard(mpcNativeClipboard);
 		mpcNativeClipboard = NULL;
 	}
+	mszText.Kill();
 }
 
 
@@ -68,6 +71,8 @@ void CClipboard::Class(void)
 	Nes(M_Pointer(mpWindow));
 	M_Pointer(mpHistory);
 	M_Pointer(mpShared);
+	U_Bool(mbDetached);
+	U_Unknown(CChars, mszText);
 }
 
 
@@ -100,7 +105,15 @@ bool CClipboard::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CClipboard::SetText(const char* szText)
 {
+	CClipboard*	pcDetached;
+
 	GetHistory()->Add(szText);
+	pcDetached = FindDetached();
+	if (pcDetached)
+	{
+		pcDetached->mszText.Set(szText == NULL ? "" : szText);
+		return true;
+	}
 	if (mpcNativeClipboard == NULL)
 	{
 		return false;
@@ -117,6 +130,14 @@ bool CClipboard::SetText(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CClipboard::GetText(CChars* pszDest)
 {
+	CClipboard*	pcDetached;
+
+	pcDetached = FindDetached();
+	if (pcDetached)
+	{
+		pszDest->Append(pcDetached->mszText);
+		return !pcDetached->mszText.Empty();
+	}
 	if (mpcNativeClipboard == NULL)
 	{
 		return false;
@@ -219,6 +240,39 @@ CClipboardChooser* CClipboard::GetChooser(void)
 		return mpShared->GetChooser();
 	}
 	return mpHistory.IsNotNull() ? mpHistory->GetChooser() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Detached, the clipboard's text is its own, not the system's: nothing
+// it is given reaches other programs and nothing they copy reaches it.
+// The clipboards that share its history have its text too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CClipboard::SetDetached(bool bDetached)
+{
+	mbDetached = bDetached;
+	mszText.Clear();
+}
+
+
+bool CClipboard::IsDetached(void) { return FindDetached() != NULL; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The clipboard whose own text is this one's: itself or the one it shares
+// with, if detached.  NULL if its text is the system's.
+//
+//////////////////////////////////////////////////////////////////////////
+CClipboard* CClipboard::FindDetached(void)
+{
+	if (mbDetached)
+	{
+		return this;
+	}
+	return mpShared.IsNotNull() ? mpShared->FindDetached() : NULL;
 }
 
 

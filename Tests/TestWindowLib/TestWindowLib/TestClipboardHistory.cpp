@@ -106,6 +106,7 @@ void TestClipboardHistoryClipboard(void)
 		Ptr<CTextArea>			pTextArea;
 		Ptr<CClipboardHistory>	pHistory;
 		CPointer				pNull;
+		CChars					sz;
 
 		cWindow.Init("Clipboard Window", 300, 200);
 		pTestWindow = cWindow.pWindow;
@@ -175,6 +176,37 @@ void TestClipboardHistoryClipboard(void)
 		AssertSize(6, pHistory->NumEntries());
 		AssertString("one", pHistory->GetText(0));
 		AssertString("pasted", pHistory->GetText(1));
+
+		//Detached, the first's text is its own: what it copies doesn't reach the other, nor the other's it, though the
+		//history keeps on.  A clipboard that shares its history has its text.
+		sz.Init();
+		pOtherWindow->GetClipboard()->SetText("system");
+		pTestWindow->GetClipboard()->SetDetached(true);
+		AssertTrue(pTestWindow->GetClipboard()->IsDetached());
+		AssertFalse(pTestWindow->GetClipboard()->GetText(&sz));
+		pTestWindow->GetClipboard()->SetText("private");
+		AssertString("private", pHistory->GetText(0));
+		AssertTrue(pTestWindow->GetClipboard()->GetText(&sz));
+		AssertString("private", sz.Text());
+		sz.Clear();
+		AssertTrue(pOtherWindow->GetClipboard()->GetText(&sz));
+		AssertString("system", sz.Text());
+		pTestWindow->Activate();
+		AssertString("private", pHistory->GetText(0));
+		pOtherWindow->GetClipboard()->ShareHistory(pTestWindow->GetClipboard());
+		AssertTrue(pOtherWindow->GetClipboard()->IsDetached());
+		sz.Clear();
+		AssertTrue(pOtherWindow->GetClipboard()->GetText(&sz));
+		AssertString("private", sz.Text());
+		pOtherWindow->GetClipboard()->SetText("shared too");
+		sz.Clear();
+		AssertTrue(pTestWindow->GetClipboard()->GetText(&sz));
+		AssertString("shared too", sz.Text());
+		pTestWindow->GetClipboard()->SetDetached(false);
+		sz.Clear();
+		AssertTrue(pTestWindow->GetClipboard()->GetText(&sz));
+		AssertString("system", sz.Text());
+		sz.Kill();
 		ORoot()->Remove(pOtherWindow);
 		pOtherWindow = NULL;
 

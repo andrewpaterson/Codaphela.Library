@@ -35,6 +35,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //is made when it is first wanted.  Text another program put on the system's clipboard gets into the history when the
 //clipboard is next looked at: when it is pasted from (TakeText) and when asked (Sync), as a window is when it is
 //activated.
+//
+//A clipboard can be detached from the system's (SetDetached): it holds its text itself, and so do the clipboards that
+//share its history.  For a window driven by a script, whose cuts and copies shouldn't replace what the person at the
+//machine has on their clipboard, nor depend on it.
 class CWindow;
 class CNativeClipboard;
 class CClipboard : public CObject
@@ -46,6 +50,8 @@ protected:
 	Ptr<CWindow>		mpWindow;
 	Ptr<CClipboardHistory>	mpHistory;  //Its own, NULL until it is wanted or while it shares another's.
 	Ptr<CClipboard>			mpShared;  //The clipboard whose history it shares, NULL for its own.
+	bool					mbDetached;  //Its text is mszText, not the system's.
+	CChars					mszText;
 
 public:
 	void				Init(Ptr<CWindow> pWindow);
@@ -66,11 +72,16 @@ public:
 	void				PasteInto(C* pcInto, void (C::*fPaste)(char* szSource));
 
 	void				ShareHistory(Ptr<CClipboard> pClipboard);
+	void				SetDetached(bool bDetached);
+	bool				IsDetached(void);
 	Ptr<CClipboardHistory>	GetHistory(void);
 	CClipboardChooser*	GetChooser(void);
 
 	Ptr<CWindow>		GetWindow(void);
 	CNativeClipboard*	GetNativeClipboard(void);
+
+protected:
+	CClipboard*			FindDetached(void);
 };
 
 
