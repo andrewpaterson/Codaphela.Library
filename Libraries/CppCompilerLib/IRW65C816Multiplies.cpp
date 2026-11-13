@@ -171,7 +171,7 @@ void CIRW65C816Backend::TableProduct(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // An i16 multiply in a loop, with the table (SetMathTables), as
-// R816_Mul16 in IR816Runtime-MathTables.asm is, in place instead of
+// R816_Mul16 in IRW65C816Runtime-MathTables.asm is, in place instead of
 // called: its operands are in the scratch arguments already (RuntimeCall),
 // the product is left in A.  aL * bL, plus (aL * bH + aH * bL) << 8, each
 // skipped when its high byte is 0.  It saves the jsl and rtl (14 cycles);

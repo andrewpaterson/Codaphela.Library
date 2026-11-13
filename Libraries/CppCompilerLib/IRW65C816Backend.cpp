@@ -446,7 +446,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 //
 // Whether Garth Wilson's product table (MathMult) is in memory: an i8
 // multiply is then a lookup in place (ByteMultiply).  Without it the
-// program is linked with IR816Runtime-MathSafe.asm, which doesn't read it
+// program is linked with IRW65C816Runtime-MathSafe.asm, which doesn't read it
 // (CCPP65Builder::SetMathTables).
 //
 //////////////////////////////////////////////////////////////////////////

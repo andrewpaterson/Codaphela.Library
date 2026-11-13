@@ -84,8 +84,8 @@ static bool TestIR816Assemble(CAsm65Object* pcObject, const char* szName, const 
 }
 
 
-//The runtime (Libc65's IR816Runtime-*.asm) and the maths tables, assembled once and linked when used: [0] with the
-//tables (IR816Runtime-MathTables.asm, MathMult and MathInvert), [1] without them (IR816Runtime-MathSafe.asm).
+//The runtime (Libc65's IRW65C816Runtime-*.asm) and the maths tables, assembled once and linked when used: [0] with the
+//tables (IRW65C816Runtime-MathTables.asm, MathMult and MathInvert), [1] without them (IRW65C816Runtime-MathSafe.asm).
 static CAsm65Library*	gapcTestIR816Runtime[2] = { NULL, NULL };
 static bool				gbTestIR816MathSafe = false;	//TestIR816Run links [1] and the back end reads no table.
 
@@ -131,14 +131,14 @@ static CAsm65Library* TestIR816Runtime(bool bMathSafe)
 	}
 	pcLibrary = NewMalloc<CAsm65Library>();
 	pcLibrary->Init("Runtime816");
-	TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IR816Runtime-Common.asm");
+	TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IRW65C816Runtime-Common.asm");
 	if (bMathSafe)
 	{
-		TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IR816Runtime-MathSafe.asm");
+		TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IRW65C816Runtime-MathSafe.asm");
 	}
 	else
 	{
-		TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IR816Runtime-MathTables.asm");
+		TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IRW65C816Runtime-MathTables.asm");
 		TestIR816AssembleFile(pcLibrary, TEST_IR816_MATH_TABLES, "MathMult.asm");
 		TestIR816AssembleFile(pcLibrary, TEST_IR816_MATH_TABLES, "MathInvert.asm");
 	}
@@ -2362,7 +2362,7 @@ void TestIR816BackendInlineMultiply(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Without the maths tables (CCPP65Builder::SetMathTables(false)): the
-// runtime's multiplies are IR816Runtime-MathSafe.asm's and an i8 multiply
+// runtime's multiplies are IRW65C816Runtime-MathSafe.asm's and an i8 multiply
 // calls R816_Mul16 instead of reading MathMult.  The multiply and divide
 // tests again, linked with no table (a read of one is a link error).
 //

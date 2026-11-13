@@ -336,10 +336,10 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	assembly routines are no longer text in IR816Runtime.cpp but Libc65 files, linked as a
 	library by CCPP65Builder::AddRuntime816 (from AddMathTables or AddLibc65; a link that
 	misses an R816_ routine is an error, not a stp stub):
-	- IR816Runtime-Common.asm: UDiv16/URem16, UDiv32/URem32, UDiv64/URem64, Mul64, the 32
+	- IRW65C816Runtime-Common.asm: UDiv16/URem16, UDiv32/URem32, UDiv64/URem64, Mul64, the 32
 	  and 64 bit shifts, BcdAdd/BcdSubtract.  No table.
-	- IR816Runtime-MathTables.asm: Mul16, Mul32, UMulWide32 with MathMult.
-	- IR816Runtime-MathSafe.asm: the same without it (CCPP65Builder::SetMathTables(false),
+	- IRW65C816Runtime-MathTables.asm: Mul16, Mul32, UMulWide32 with MathMult.
+	- IRW65C816Runtime-MathSafe.asm: the same without it (CCPP65Builder::SetMathTables(false),
 	  .hcp65build MathTables="false"): Mul16 shift and add from the top bit (a byte
 	  multiplier 8 steps; aH * bL's low byte in 8 bit mode starts A), and a 16 x 16 -> 32
 	  helper R816_UMul16 (shift and add through A down into the multiplier's word, 8 steps
@@ -365,7 +365,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	and stores instead of a multiply (137 cycles with the table, 245 without) and a
 	subtract.  Test: TestCPP816SharedDivisions.
 	2026-11-06, the signed divides R816_SDiv16/SRem16/SDiv32/SRem32 are assembly scratch
-	routines in IR816Runtime-Common.asm instead of IR wrappers with pushed operands: the
+	routines in IRW65C816Runtime-Common.asm instead of IR wrappers with pushed operands: the
 	magnitudes in place, R816_UDiv16/32 on the same D, then the signs (the remainder
 	takes the dividend's).  They leave the signed remainder at D + 5 too, so a signed
 	pair shares one divide as an unsigned one does.  An i8 sdiv/srem is sign extended

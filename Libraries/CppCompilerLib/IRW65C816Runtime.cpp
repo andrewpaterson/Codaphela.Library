@@ -28,8 +28,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //take their operands; the small tables the compiled code reads are written here (GenerateRuntime).
 
 
-//The runtime routines in assembly are Libc65's IR816Runtime-Common.asm (divides, shifts, the 64 bit multiply and
-//BCD) and IR816Runtime-MathTables.asm or IR816Runtime-MathSafe.asm (the 16 and 32 bit multiplies, with Garth
+//The runtime routines in assembly are Libc65's IRW65C816Runtime-Common.asm (divides, shifts, the 64 bit multiply and
+//BCD) and IRW65C816Runtime-MathTables.asm or IRW65C816Runtime-MathSafe.asm (the 16 and 32 bit multiplies, with Garth
 //Wilson's product table MathMult or without it), linked as libraries by CCPP65Builder::AddRuntime.  The
 //multiplies and the 16 and 32 bit unsigned divides run on the caller's D with a at D + 15 and b at D + 19
 //(IR816ScratchRoutine), using the caller's D + 5 to D + 22; the 64 bit ones' arguments are pushed (last first, after

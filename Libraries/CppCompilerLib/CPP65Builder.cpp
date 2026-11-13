@@ -966,7 +966,7 @@ void CCPP65Builder::SetNoFloats(bool bNoFloats)
 //
 // Whether Garth Wilson's product table (MathMult) is in memory when the
 // W65C816 program runs (true unless set).  Without it the runtime's
-// multiplies are IR816Runtime-MathSafe.asm's and an i8 multiply calls
+// multiplies are IRW65C816Runtime-MathSafe.asm's and an i8 multiply calls
 // R816_Mul16 instead of reading the table in place: for a program that
 // runs before the tables are loaded (the HCP65's kernal and operating
 // system).  The divides read no table either way.  Call before

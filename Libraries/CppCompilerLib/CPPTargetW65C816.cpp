@@ -241,8 +241,8 @@ const char** CCPPTargetW65C816::GetLibc65Units(void)
 //////////////////////////////////////////////////////////////////////////
 const char** CCPPTargetW65C816::GetRuntimeUnits(bool bMathTables)
 {
-	static const char*	aszTables[] = { "IR816Runtime-Common.asm", "IR816Runtime-MathTables.asm", NULL };
-	static const char*	aszSafe[] = { "IR816Runtime-Common.asm", "IR816Runtime-MathSafe.asm", NULL };
+	static const char*	aszTables[] = { "IRW65C816Runtime-Common.asm", "IRW65C816Runtime-MathTables.asm", NULL };
+	static const char*	aszSafe[] = { "IRW65C816Runtime-Common.asm", "IRW65C816Runtime-MathSafe.asm", NULL };
 
 	return bMathTables ? aszTables : aszSafe;
 }

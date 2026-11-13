@@ -139,7 +139,7 @@ public:
 //the caller removes them.  A result of up to 16 bits is in A, of 32 bits in A (low) and X (high); a 64 bit result
 //is written through a hidden pointer the caller pushes after the arguments (the function's first parameter).  A
 //call through a pointer pushes the return address and the target then rtl's.  Multiply, divide and remainder are
-//calls to runtime routines (R816_Mul16 ...): Libc65's IR816Runtime-*.asm, linked as a library
+//calls to runtime routines (R816_Mul16 ...): Libc65's IRW65C816Runtime-*.asm, linked as a library
 //(CCPP65Builder::AddRuntime).  The 16 and 32 bit
 //multiply and unsigned divide and remainder take their operands in the caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A
 //and _B) and run on the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
