@@ -225,7 +225,8 @@ static bool IR816CarryReadLater(CIRW65C816Code* pcCode, size uiLine)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether the "and 0xFF" before line uiFrom is done for nothing: A's low
-// byte is all that is used before the next "and 0xFF" masks it again, as only
+// byte is all that is used before the next "and 0xFF" (or an and with a
+// constant of a byte) masks it again, as only
 // clc, sec, adc, sbc, ora, eor, and and asl A come between (their low bytes
 // don't depend on the high bytes), and the carry those leave isn't read after
 // it (IR816CarryReadLater).
@@ -244,8 +245,9 @@ static bool IR816MaskRedone(CIRW65C816Code* pcCode, size uiFrom)
 		{
 			return false;
 		}
-		if ((sLine.uiMnemonic == IR816M_And) && IR816OperandIs(&sLine, "0xFF", 4))
+		if ((sLine.uiMnemonic == IR816M_And) && (IR816OperandIs(&sLine, "0xFF", 4) || (IR816IsDecimal(sLine.szOperand) && (sLine.uiOperand <= 3) && (atoi(sLine.szOperand) <= 0xFF))))
 		{
+			//Masked again, or by a constant that leaves no more than a byte.
 			return !bCarry || !IR816CarryReadLater(pcCode, ui);
 		}
 		if ((sLine.uiMnemonic == IR816M_Adc) || (sLine.uiMnemonic == IR816M_Sbc) || ((sLine.uiMnemonic == IR816M_Asl) && IR816OperandIsA(&sLine)))

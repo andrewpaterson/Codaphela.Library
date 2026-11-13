@@ -179,14 +179,18 @@ void CIRW65C816Backend::Store(SIRReference sResult, int iWord)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Keeps an i8 or i1 in A zero extended.
+// Keeps an i8 or i1 in A zero extended.  Not an i8 nothing reads but the
+// low byte of (mbUnmasked, FindLowByteUses).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Mask(SIRType sType)
 {
 	if (sType.Is(IRTK_I8))
 	{
-		Line("and 0xFF");
+		if (!mbUnmasked)
+		{
+			Line("and 0xFF");
+		}
 	}
 	else if (sType.Is(IRTK_I1))
 	{
@@ -641,6 +645,15 @@ void CIRW65C816Backend::Logic(SIRInstruction* psInstruction)
 		if (psInstruction->uiOpcode == IRO_Not)
 		{
 			Mask(psInstruction->sType);
+		}
+		else if (IsLowByteOnly(psInstruction->asArguments[0]) || IsLowByteOnly(psInstruction->asArguments[1]))
+		{
+			//An operand left unmasked (FindLowByteUses): the result's high byte is cleared here, but by an and with a
+			//constant byte, which clears it itself.
+			if (!((psInstruction->uiOpcode == IRO_And) && (ConstantWord(psInstruction->asArguments[1], i, &uiWord) || ConstantWord(psInstruction->asArguments[0], i, &uiWord)) && (uiWord <= 0xFF)))
+			{
+				Mask(psInstruction->sType);
+			}
 		}
 		Store(psInstruction->sResult, i);
 	}

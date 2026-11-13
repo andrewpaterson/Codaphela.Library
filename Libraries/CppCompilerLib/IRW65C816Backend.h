@@ -172,6 +172,8 @@ protected:
 	CArrayTemplate<int32>	maiCountUses;		//Per temporary: how many of those are as the count of a shift by a count known when it runs.
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	CArrayTemplate<uint8>	mauiZeroWords;		//Per temporary: a bit for each of its words that is always 0 (FindZeroWords).
+	CArrayTemplate<uint8>	mabLowByteOnly;		//Per temporary: an i8 whose every use reads its low byte alone (FindLowByteUses): not masked.
+	bool					mbUnmasked;			//The instruction being written leaves such a result: Mask does nothing for an i8.
 	int32					miBlock;			//The block being written.
 	CIRDominators			mcDominators;		//The function's, worked out once (GenerateFunction)...
 	CIRLoops				mcLoops;			//...and its loops: each block's depth (PackTemporaries, AllocateX, GenerateBody).
@@ -205,6 +207,8 @@ public:
 	bool			ReturnsNothingInA(void);
 	void			FindSingleUses(void);
 	void			FindZeroWords(void);
+	void			FindLowByteUses(void);
+	bool			IsLowByteOnly(SIRReference sValue);
 	uint8			ZeroWords(SIRReference sValue);
 	bool			IsZeroWord(SIRReference sValue, int iWord);
 	int				MultiplyCost(SIRType sType, uint64 ulliMultiplier) override;
@@ -306,14 +310,16 @@ protected:
 	bool			IsScratchCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);
 	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);
-	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown);
+	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown, bool bSubtract);
+	bool			EqualityFollows(CIRBlock* pcBlock);
+	bool			SubtractsSigned(CIRBlock* pcBlock);
 	bool			FlagsKnown(CIRBlock* pcBlock);
 	bool			LeavesEqualityInZ(SIRInstruction* psInstruction);
 	void			Branch(const char* szMnemonic, int32 iLabel);
 	bool			HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
 	void			CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned);
-	void			SignedLessFlags(SIRReference* psArguments, bool bSwapped);
+	void			SignedLessFlags(SIRReference* psArguments, int iWords, bool bSwapped);
 	bool			TableDivide(SIRInstruction* psInstruction, bool bSigned);
 	bool			ByteMultiply(SIRInstruction* psInstruction);
 	void			Extend(SIRInstruction* psInstruction);

@@ -626,6 +626,101 @@ void TestCPP816NarrowSubscripts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Bytes that only byte arithmetic, logic and byte stores read aren't masked
+// when they are worked out (CIRW65C816Backend::FindLowByteUses): the bytes
+// stored are right, with the destination one of the sources too, and the
+// sums of them (which read whole words) are.  Signed 32 bit comparisons of
+// two values are a subtraction's sign (SignedLessFlags), right at both ends
+// of the range, where it overflows; if (a < b) ... else if (a > b) keeps
+// the compare whose Z the second reads.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ByteMasksAndSignedCompares(void)
+{
+	AssertInt(255, TestCPP816Run(
+		"typedef unsigned char uint8;\n"
+		"typedef unsigned int uint16;\n"
+		"typedef long int32;\n"
+		"uint8 gauiSource[64];\n"
+		"uint8 gauiDest[64];\n"
+		"void Mix(uint8* puiDest, const uint8* puiSource, uint16 uiCount, uint8 uiKey)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tfor (i = 0; i < uiCount; i++)\n"
+		"\t{\n"
+		"\t\tpuiDest[i] = (uint8)((puiSource[i] * 7 + (i / 3)) & 0xFF) ^ uiKey;\n"
+		"\t}\n"
+		"}\n"
+		"void Blend(uint8* puiDest, const uint8* puiA, const uint8* puiB, uint16 uiCount)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tfor (i = 0; i < uiCount; i++)\n"
+		"\t{\n"
+		"\t\tpuiDest[i] = (uint8)(puiA[i] + puiB[i] - 3);\n"
+		"\t\tpuiDest[i] = (uint8)(~puiDest[i] | (puiA[i] & puiB[i]));\n"
+		"\t}\n"
+		"}\n"
+		"uint16 Sum(const uint8* pui, uint16 uiCount)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tuint16\tuiSum;\n"
+		"\tuiSum = 0;\n"
+		"\tfor (i = 0; i < uiCount; i++) { uiSum += pui[i]; }\n"
+		"\treturn uiSum;\n"
+		"}\n"
+		"int Less(int32 a, int32 b) { if (a < b) { return 1; } return 0; }\n"
+		"int NotMore(int32 a, int32 b) { if (a <= b) { return 1; } return 0; }\n"
+		"int More(int32 a, int32 b) { return (a > b) ? 5 : 2; }\n"
+		"int Order(int32 a, int32 b) { if (a < b) { return -1; } if (a > b) { return 1; } return 0; }\n"
+		"int32 Largest(const int32* pl, uint16 uiCount)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tint32\tlMost;\n"
+		"\tlMost = pl[0];\n"
+		"\tfor (i = 1; i < uiCount; i++) { if (pl[i] > lMost) { lMost = pl[i]; } }\n"
+		"\treturn lMost;\n"
+		"}\n"
+		"int32 gal[8] = { 5, -7, 0x7FFFFFFF, -0x7FFFFFFF - 1, 70000, -70000, 65536, -1 };\n"
+		"int main(void)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tuint16\tj;\n"
+		"\tint\t\tiResult;\n"
+		"\tint\t\tiLess;\n"
+		"\tint\t\tiNotMore;\n"
+		"\tint\t\tiMore;\n"
+		"\tint\t\tiOrder;\n"
+		"\n"
+		"\tfor (i = 0; i < 64; i++) { gauiSource[i] = (uint8)(i * 37 + 11); }\n"
+		"\tMix(gauiDest, gauiSource, 64, 0x5A);\n"
+		"\tiResult = 0;\n"
+		"\tif (Sum(gauiDest, 64) == 8619) { iResult += 1; }\n"
+		"\tBlend(gauiDest, gauiSource, gauiDest, 64);\n"
+		"\tif (Sum(gauiDest, 64) == 12513) { iResult += 2; }\n"
+		"\tiLess = 0; iNotMore = 0; iMore = 0; iOrder = 0;\n"
+		"\tfor (i = 0; i < 8; i++)\n"
+		"\t{\n"
+		"\t\tfor (j = 0; j < 8; j++)\n"
+		"\t\t{\n"
+		"\t\t\tiLess += Less(gal[i], gal[j]);\n"
+		"\t\t\tiNotMore += NotMore(gal[i], gal[j]);\n"
+		"\t\t\tiMore += More(gal[i], gal[j]);\n"
+		"\t\t\tiOrder += Order(gal[i], gal[j]) * (int)(i + 1);\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\tif (iLess == 28) { iResult += 4; }\n"
+		"\tif (iNotMore == 36) { iResult += 8; }\n"
+		"\tif (iMore == 28 * 5 + 36 * 2) { iResult += 16; }\n"
+		"\tif (iOrder == -4) { iResult += 32; }\n"
+		"\tif (Largest(gal, 8) == 0x7FFFFFFF) { iResult += 64; }\n"
+		"\tif (Largest(gal + 3, 5) == 70000) { iResult += 128; }\n"
+		"\treturn iResult;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The words of a value that are always 0 (a zext's high word, an and's with
 // a constant, a shift right's: CIRW65C816Backend::FindZeroWords) are read
 // as the constant, not from the frame: 32 bit adds, subs either way round,
@@ -5900,6 +5995,7 @@ void TestCPP816(void)
 	TestCPP816NarrowSubscripts();
 	TestCPP816GuardedIndices();
 	TestCPP816ZeroWords();
+	TestCPP816ByteMasksAndSignedCompares();
 	TestCPP816SharedDivisions();
 	TestCPP816Divide64();
 	TestCPP816BitTables();

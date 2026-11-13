@@ -57,6 +57,8 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	maiCountUses.Init(CIRW65C816Backend::GetScratch());
 	maiUseBlock.Init(CIRW65C816Backend::GetScratch());
 	mauiZeroWords.Init(CIRW65C816Backend::GetScratch());
+	mabLowByteOnly.Init(CIRW65C816Backend::GetScratch());
+	mbUnmasked = false;
 	mabInX.Init(CIRW65C816Backend::GetScratch());
 	masArguments.Init(CIRW65C816Backend::GetScratch());
 	msFrame.Init(0, false);
@@ -80,6 +82,7 @@ void CIRW65C816Backend::Kill(void)
 	masCopySteps.Kill();
 	masCopies.Kill();
 	mabInX.Kill();
+	mabLowByteOnly.Kill();
 	mauiZeroWords.Kill();
 	maiUseBlock.Kill();
 	maiCountUses.Kill();
@@ -659,6 +662,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 
 	FindSingleUses();
 	FindZeroWords();
+	FindLowByteUses();
 	mpcDominators = &mcDominators;
 	Prologue(szLabel);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -686,7 +690,9 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 				continue;
 			}
 			Source(pcBlock->masInstructions.Get(uiInstruction)->uiSource);
+			mbUnmasked = IsLowByteOnly(pcBlock->masInstructions.Get(uiInstruction)->sResult);
 			Instruction(pcBlock, uiInstruction);
+			mbUnmasked = false;
 			mpsWritten = pcBlock->masInstructions.Get(uiInstruction);
 			miFused = 0;
 		}
@@ -810,6 +816,115 @@ void CIRW65C816Backend::FindZeroWords(void)
 			*mauiZeroWords.Get(psInstruction->sResult.Index()) = (uint8)(uiZero & uiAll);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The i8 values an instruction works out whose every use reads the low
+// byte of their word alone (mabLowByteOnly): an operand of an i8 add, sub,
+// and, or, xor or not (16 bit operations whose low byte depends on the
+// operands' low bytes only), or the value of a byte's store (written under
+// sep m).  Such a value isn't masked to its byte when it is worked out
+// (Mask, mbUnmasked), so its word's high byte may be anything; the add,
+// sub and not mask their own results as ever, and the logic ones do when an
+// operand is one of these (Logic).  A compare, an extension, a shift, a
+// multiply or divide, an argument, a phi, a branch and a return all read
+// the whole word, so a value any of them uses is masked.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::FindLowByteUses(void)
+{
+	size			uiBlock;
+	size			ui;
+	size			uiArgument;
+	int				i;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRReference	sValue;
+	bool			bLowByte;
+
+	mabLowByteOnly.FakeSetUsedElements(0);
+	mabLowByteOnly.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+
+	//The i8s instructions work out, until a use says otherwise.
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (psInstruction->sResult.IsTemporary() && psInstruction->sType.Is(IRTK_I8) && mpcFunction->GetTemporaryType(psInstruction->sResult).Is(IRTK_I8))
+			{
+				*mabLowByteOnly.Get(psInstruction->sResult.Index()) = 1;
+			}
+		}
+	}
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+		{
+			psPhi = pcBlock->masPhis.Get(ui);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				sValue = psPhi->asArguments.Get(uiArgument)->sValue;
+				if (sValue.IsTemporary())
+				{
+					*mabLowByteOnly.Get(sValue.Index()) = 0;
+				}
+			}
+		}
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			for (i = 0; i < IR_INSTRUCTION_ARGUMENTS; i++)
+			{
+				sValue = psInstruction->asArguments[i];
+				if (!sValue.IsTemporary())
+				{
+					continue;
+				}
+				switch (psInstruction->uiOpcode)
+				{
+				case IRO_Add:
+				case IRO_Sub:
+				case IRO_And:
+				case IRO_Or:
+				case IRO_Xor:
+				case IRO_Not:
+					bLowByte = psInstruction->sType.Is(IRTK_I8);
+					break;
+				case IRO_Store:
+					bLowByte = (i == 0) && psInstruction->sType.Is(IRTK_I8) && !(psInstruction->uiFlags & IRF_Volatile);
+					break;
+				default:
+					bLowByte = false;
+					break;
+				}
+				if (!bLowByte)
+				{
+					*mabLowByteOnly.Get(sValue.Index()) = 0;
+				}
+			}
+		}
+		if (pcBlock->msJump.sArgument.IsTemporary())
+		{
+			*mabLowByteOnly.Get(pcBlock->msJump.sArgument.Index()) = 0;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sValue is an i8 left unmasked (FindLowByteUses).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Backend::IsLowByteOnly(SIRReference sValue)
+{
+	return sValue.IsTemporary() && (sValue.Index() < mabLowByteOnly.NumElements()) && (*mabLowByteOnly.Get(sValue.Index()) != 0);
 }
 
 
@@ -1761,7 +1876,7 @@ void CIRW65C816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 {
 	if ((pcBlock->masInstructions.NumElements() > 0) && IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
 	{
-		FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel, FlagsKnown(pcBlock));
+		FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel, FlagsKnown(pcBlock), SubtractsSigned(pcBlock));
 	}
 	else
 	{

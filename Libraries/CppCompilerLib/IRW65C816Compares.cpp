@@ -84,22 +84,97 @@ void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SI
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Leaves N set when the first of two 16 bit signed values is less than the
-// second (the second less than the first when bSwapped): the subtraction's
-// sign, flipped when it overflowed.
+// Leaves N set when the first of two signed values of 1 or 2 words is less
+// than the second (the second less than the first when bSwapped): the
+// subtraction's sign, flipped when it overflowed.  Of 2 words the low
+// words are compared (the borrow is all that is wanted of them) and the
+// high ones subtracted with it: no scratch word, and nothing flipped but
+// after an overflow.  Z says nothing after it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::SignedLessFlags(SIRReference* psArguments, bool bSwapped)
+void CIRW65C816Backend::SignedLessFlags(SIRReference* psArguments, int iWords, bool bSwapped)
 {
 	int32	iNoOverflow;
 
 	iNoOverflow = NewLabel();
-	Line("sec");
-	Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
-	Operand("sbc", psArguments[bSwapped ? 0 : 1], 0);
+	if (iWords == 1)
+	{
+		Line("sec");
+		Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
+		Operand("sbc", psArguments[bSwapped ? 0 : 1], 0);
+	}
+	else
+	{
+		Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
+		Operand("cmp", psArguments[bSwapped ? 0 : 1], 0);
+		Operand("lda", psArguments[bSwapped ? 1 : 0], 1);
+		Operand("sbc", psArguments[bSwapped ? 0 : 1], 1);
+	}
 	Branch("bvc", iNoOverflow);
 	Line("eor 0x8000");
 	Label(iNoOverflow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a block pcBlock branches to answers its own eq or ne from the
+// flags pcBlock's fused comparison leaves (FlagsKnown says so of it): if
+// (a < b) ... else if (a > b), the second a != b by then.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Backend::EqualityFollows(CIRBlock* pcBlock)
+{
+	SIRInstruction*	psCompare;
+	SIRInstruction*	psAfter;
+	CIRBlock*		pcAfter;
+	int				i;
+
+	if ((pcBlock->msJump.uiKind != IRJ_Branch) || (pcBlock->masInstructions.NumElements() == 0))
+	{
+		return false;
+	}
+	psCompare = pcBlock->masInstructions.Tail();
+	for (i = 0; i < 2; i++)
+	{
+		pcAfter = (i == 0) ? pcBlock->msJump.pcThen : pcBlock->msJump.pcElse;
+		if (!pcAfter || (pcAfter == pcBlock) || (pcAfter->masPhis.NumElements() != 0) || (pcAfter->masInstructions.NumElements() != 1) ||
+			(pcAfter->mapcPredecessors.NumElements() != 1) || !IsFusedCompare(pcAfter, 0))
+		{
+			continue;
+		}
+		psAfter = pcAfter->masInstructions.Get(0);
+		if (((psAfter->uiOpcode == IRO_Eq) || (psAfter->uiOpcode == IRO_Ne)) && psAfter->sType.Equals(psCompare->sType) && SameOperands(psCompare, psAfter))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the block's fused comparison is answered by a subtraction's sign
+// (SignedLessFlags): a signed one of two values (not a constant), of 16
+// bits, or of 2 words when no block after it wants the Z a compare would
+// leave (EqualityFollows).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Backend::SubtractsSigned(CIRBlock* pcBlock)
+{
+	SIRInstruction*	psCompare;
+
+	psCompare = pcBlock->masInstructions.Tail();
+	if (!IsIRSignedComparison(psCompare->uiOpcode) || psCompare->asArguments[1].IsConstant() || !psCompare->sType.IsInteger())
+	{
+		return false;
+	}
+	if (psCompare->sType.Is(IRTK_I16))
+	{
+		return true;
+	}
+	return (Words(psCompare->sType) == 2) && !InX(psCompare->asArguments[0]) && !InX(psCompare->asArguments[1]) && !EqualityFollows(pcBlock);
 }
 
 
@@ -147,7 +222,8 @@ bool CIRW65C816Backend::FlagsKnown(CIRBlock* pcBlock)
 // cmp only reached while the ones before were equal; a signed one flips
 // both sign bits), as does an lda of a value against 0.  Not a 16 bit
 // signed comparison of two values (SignedLessFlags): its eor 0x8000 after
-// an overflow can leave 0.
+// an overflow can leave 0.  (A 2 word one subtracts only when no block
+// asks this of it: SubtractsSigned, EqualityFollows.)
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRW65C816Backend::LeavesEqualityInZ(SIRInstruction* psInstruction)
@@ -199,7 +275,7 @@ bool CIRW65C816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 // leaves them).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown)
+void CIRW65C816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown, bool bSubtract)
 {
 	int32	iSkip;
 	uint16	uiOpcode;
@@ -231,11 +307,11 @@ void CIRW65C816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, i
 		}
 		return;
 	}
-	if (IsIRSignedComparison(uiOpcode) && psInstruction->sType.Is(IRTK_I16) && !psInstruction->asArguments[1].IsConstant())
+	if (bSubtract)
 	{
 		//Two values: one subtraction with its overflow folded into the sign answers lt and ge; gt and le subtract the
 		//other way around (a > b is b < a).
-		SignedLessFlags(psInstruction->asArguments, (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe));
+		SignedLessFlags(psInstruction->asArguments, Words(psInstruction->sType), (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe));
 		Branch(((uiOpcode == IRO_SLt) || (uiOpcode == IRO_SGt)) ? "bmi" : "bpl", iLabel);
 		return;
 	}

@@ -2178,6 +2178,12 @@ void TestIR816BackendPeepholeMasks(void)
 		"\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tclc\n\t\tadc 3\n\t\tand 0xFF\n\t\tsta [D + 5]\n\t\tclc\n\t\tadc [D + 7]\n\t\trtl\n", fPass);
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tora 4\n\t\tand 0xFF\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tora 4\n\t\tand 0xFF\n\t\trtl\n", fPass);
 
+	//An and with a constant of a byte masks as well as and 0xFF does: the mask before it goes.  Not before a wider constant.
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tand 64\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tand 64\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tora 4\n\t\tand 255\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tora 4\n\t\tand 255\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tand 256\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tand 256\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tand [D + 5]\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tand [D + 5]\n\t\trtl\n", fPass);
+
 	//Kept: the adc's carry is read after the second mask (bcs; and rtl might), or xba, lsr A or sta comes between.
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tclc\n\t\tadc 3\n\t\tand 0xFF\n\t\tbcs L1\n\t\trtl\nL1:\n\t\trtl\n",
 		"\t\tlda [D + 3]\n\t\tand 0xFF\n\t\tclc\n\t\tadc 3\n\t\tand 0xFF\n\t\tbcs L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
