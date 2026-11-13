@@ -29,18 +29,20 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR_SWAP_LT	IROP_SwappedLess
 
 
-#define IR_INTEGER_OP(name, properties)		{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0, properties }
-#define IR_INTEGER_UNARY(name)				{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_None }, IRRS_Same, 0, IR_PURE }
+//Every column but an integer comparison's, which are 0: IR_INTEGER_COMPARE has them.
+#define IR_OPCODE(name, shape, types, sourcetypes, first, second, result, flags, properties)	{ name, shape, types, sourcetypes, { first, second }, result, flags, properties, 0, 0, 0 }
+#define IR_INTEGER_OP(name, properties)		IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_Same, IRRS_Same, 0, properties)
+#define IR_INTEGER_UNARY(name)				IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_None, IRRS_Same, 0, IR_PURE)
 #define IR_INTEGER_COMPARE(name, properties, inverted, swapped, holds)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, (properties) | IROP_IntegerComparison, inverted, swapped, holds }
-#define IR_FLOAT_OP(name, properties)		{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0, properties }
-#define IR_FLOAT_COMPARE(name, properties)	{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, properties }
-#define IR_DIVIDE_OP(name)					{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, IRF_Hot, IR_TRAPS }
-#define IR_CONVERSION(name, to, from)		{ name, IRSH_Conversion, to, from, { IROK_Source, IROK_None }, IRRS_Same, 0, IR_PURE }
+#define IR_FLOAT_OP(name, properties)		IR_OPCODE(name, IRSH_Operands, IRTM_Float, 0, IROK_Same, IROK_Same, IRRS_Same, 0, properties)
+#define IR_FLOAT_COMPARE(name, properties)	IR_OPCODE(name, IRSH_Operands, IRTM_Float, 0, IROK_Same, IROK_Same, IRRS_I1, 0, properties)
+#define IR_DIVIDE_OP(name)					IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_Same, IRRS_Same, IRF_Hot, IR_TRAPS)
+#define IR_CONVERSION(name, to, from)		IR_OPCODE(name, IRSH_Conversion, to, from, IROK_Source, IROK_None, IRRS_Same, 0, IR_PURE)
 
 
 SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 {
-	{ "", IRSH_Operands, 0, 0, { IROK_None, IROK_None }, IRRS_None, 0, 0 },
+	IR_OPCODE("", IRSH_Operands, 0, 0, IROK_None, IROK_None, IRRS_None, 0, 0),
 
 	IR_INTEGER_OP("add", IR_SWAPS),
 	IR_INTEGER_OP("sub", IR_PURE),
@@ -57,7 +59,7 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_INTEGER_OP("ashr", IR_PURE),
 	IR_INTEGER_UNARY("neg"),
 	IR_INTEGER_UNARY("not"),
-	{ "copy", IRSH_Operands, IRTM_I1 | IRTM_Memory, 0, { IROK_Same, IROK_None }, IRRS_Same, 0, IR_PURE },
+	IR_OPCODE("copy", IRSH_Operands, IRTM_I1 | IRTM_Memory, 0, IROK_Same, IROK_None, IRRS_Same, 0, IR_PURE),
 	IR_CONVERSION("sext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
 	IR_CONVERSION("zext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
 	IR_CONVERSION("trunc", IRTM_I1 | IRTM_Integer, IRTM_Integer),
@@ -78,7 +80,7 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_FLOAT_OP("fsub", IR_PURE),
 	IR_FLOAT_OP("fmul", IR_SWAPS),
 	IR_FLOAT_OP("fdiv", IR_PURE),
-	{ "fneg", IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_None }, IRRS_Same, 0, IR_PURE },
+	IR_OPCODE("fneg", IRSH_Operands, IRTM_Float, 0, IROK_Same, IROK_None, IRRS_Same, 0, IR_PURE),
 	IR_FLOAT_COMPARE("feq", IR_SWAPS),
 	IR_FLOAT_COMPARE("fne", IR_SWAPS),
 	IR_FLOAT_COMPARE("flt", IR_PURE),
@@ -94,16 +96,16 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_CONVERSION("fext", IRTM_Float, IRTM_Float),
 	IR_CONVERSION("ftrunc", IRTM_Float, IRTM_Float),
 
-	{ "slot", IRSH_Operands, IRTM_Pointer, 0, { IROK_Constant, IROK_Constant }, IRRS_Same, 0, IR_PURE },
-	{ "argaddr", IRSH_Operands, IRTM_Pointer, 0, { IROK_Constant, IROK_None }, IRRS_Same, 0, IR_PURE },
-	{ "ptradd", IRSH_Operands, IRTM_Pointer, 0, { IROK_Same, IROK_Offset }, IRRS_Same, IRF_InBank | IRF_InArray, IR_PURE },
+	IR_OPCODE("slot", IRSH_Operands, IRTM_Pointer, 0, IROK_Constant, IROK_Constant, IRRS_Same, 0, IR_PURE),
+	IR_OPCODE("argaddr", IRSH_Operands, IRTM_Pointer, 0, IROK_Constant, IROK_None, IRRS_Same, 0, IR_PURE),
+	IR_OPCODE("ptradd", IRSH_Operands, IRTM_Pointer, 0, IROK_Same, IROK_Offset, IRRS_Same, IRF_InBank | IRF_InArray, IR_PURE),
 	IR_CONVERSION("ptrtoi", IRTM_Integer, IRTM_Pointer),
 	IR_CONVERSION("itoptr", IRTM_Pointer, IRTM_Integer),
 	IR_CONVERSION("spacecast", IRTM_Pointer, IRTM_Pointer),
-	{ "load", IRSH_Operands, IRTM_Memory, 0, { IROK_Pointer, IROK_None }, IRRS_Same, IRF_Volatile, 0 },
-	{ "store", IRSH_Operands, IRTM_Memory, 0, { IROK_Same, IROK_Pointer }, IRRS_None, IRF_Volatile, 0 },
-	{ "arg", IRSH_Operands, IRTM_Memory, 0, { IROK_Same, IROK_None }, IRRS_None, 0, 0 },
-	{ "call", IRSH_Call, IRTM_Memory | IRTM_Void, 0, { IROK_Pointer, IROK_None }, IRRS_Optional, IRF_ThisCall | IRF_Variadic, 0 },
+	IR_OPCODE("load", IRSH_Operands, IRTM_Memory, 0, IROK_Pointer, IROK_None, IRRS_Same, IRF_Volatile, 0),
+	IR_OPCODE("store", IRSH_Operands, IRTM_Memory, 0, IROK_Same, IROK_Pointer, IRRS_None, IRF_Volatile, 0),
+	IR_OPCODE("arg", IRSH_Operands, IRTM_Memory, 0, IROK_Same, IROK_None, IRRS_None, 0, 0),
+	IR_OPCODE("call", IRSH_Call, IRTM_Memory | IRTM_Void, 0, IROK_Pointer, IROK_None, IRRS_Optional, IRF_ThisCall | IRF_Variadic, 0),
 };
 
 
