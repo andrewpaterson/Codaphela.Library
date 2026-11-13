@@ -1,4 +1,4 @@
-; FatVolume.cpp for the W65C816, with the compiler's calling convention (see FatInfoSectorCache816.asm).  The public
+; FatVolume.cpp for the W65C816, with the compiler's calling convention (see FatInfoSectorCacheW65C816.asm).  The public
 ; functions keep their names; the protected ones are local labels here, called with jsl as the C++ calls them (only
 ; CFatVolume calls them).  FAT12 isn't supported (as in the C++): only FAT16 and FAT32 volumes are mounted.
 ;
@@ -18,7 +18,7 @@
 ; bytes, 16 bit values, bools and enums 2).  Sector, cluster and offset arithmetic is shifts and masks: Mount only
 ; mounts volumes whose sector and cluster sizes are powers of two.
 
-		.include "Fat816.inc"
+		.include "FatW65C816.inc"
 
 VTABLE_ERASE		= 20					; CFileDrive's virtual functions: Kill, Read, Read (sectors), Write,
 VTABLE_PAGE_SIZE	= 24					; Write (sectors), Erase, GetPageSize.

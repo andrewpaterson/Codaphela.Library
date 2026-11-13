@@ -233,7 +233,7 @@
   <ItemGroup>
     <ClCompile Include="TestBaseLib65.cpp" />
     <ClCompile Include="TestBaseLib65Tests.cpp" />
-    <ClCompile Include="TestFat816Layout.cpp" />
+    <ClCompile Include="TestFatW65C816Layout.cpp" />
     <ClCompile Include="TestProject65.cpp" />
   </ItemGroup>
   <ItemGroup>

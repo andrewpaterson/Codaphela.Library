@@ -100,7 +100,7 @@ public:
 	virtual bool		Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors);
 	virtual bool		InlinesAcrossUnits(void);		//Units import each other's small functions, in turns, and may be compiled again.
 	virtual bool		HasAssemblyUnits(void);			//A unit X.cpp may have the target's assembly beside it.
-	virtual const char*	GetAssemblyUnitSuffix(void);	//What that unit is called after X: "816.asm".
+	virtual const char*	GetAssemblyUnitSuffix(void);	//What that unit is called after X: "W65C816.asm".
 	virtual const char**	GetLibc65Units(void);			//Libc65's units for the target, ended by NULL, or NULL for none.
 	virtual const char**	GetRuntimeUnits(bool bMathTables);	//The back end's runtime routines' units in Libc65, or NULL.
 	virtual const char**	GetMathTableUnits(void);		//The maths tables' units in Libc65/MathTbls, or NULL.

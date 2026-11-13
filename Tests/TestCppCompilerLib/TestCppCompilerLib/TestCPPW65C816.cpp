@@ -53,7 +53,7 @@ uint64	TestCPP65FloatUlps(uint32 uiActual, uint32 uiExpected);
 
 
 //Libc65's units for the W65C816 (no 65C64 assembly).
-static const char* gaszTestCPP816Libc65[] = { "string.cpp", "string816.asm", "string816_16.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat816.asm", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
+static const char* gaszTestCPP816Libc65[] = { "string.cpp", "stringW65C816.asm", "stringW65C816_16.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloatW65C816.asm", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -282,7 +282,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816Run(const char* szSource, bool bLockstep = false)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 
 	return TestCPP816RunProject(aszUnits, "", szSource, bLockstep);
 }
@@ -752,7 +752,7 @@ void TestCPP816OverloadedComma(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816SignedToFloat(void)
 {
-	static const char*	aszFloats[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", NULL };
+	static const char*	aszFloats[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", NULL };
 	CChars				szListing;
 
 	szListing.Init();
@@ -1477,7 +1477,7 @@ void TestCPP816Builtins(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816LoopIdioms(void)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 
 	AssertInt(0, TestCPP816RunProject(aszUnits, "",
 		"unsigned char	gauc[300];\n"
@@ -1649,14 +1649,14 @@ void TestCPP816LoopIdioms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// MemSwp in string816.asm (BaseLib's is left out for the W65C816): every
+// MemSwp in stringW65C816.asm (BaseLib's is left out for the W65C816): every
 // length from 0 to 40 and 255 to 257, both buffers swapped and the bytes
 // after them unchanged.  Returns the bytes wrong.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816MemSwp(void)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 
 	AssertInt(0, TestCPP816RunProject(aszUnits, "",
 		"void MemSwp(const void* pv1, const void* pv2, unsigned long uiLength);\n"
@@ -1708,10 +1708,10 @@ void TestCPP816MemSwp(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816BaseLib(void)
 {
-	static const char*	aszMD5[] = { "BaseLib/MD5.cpp", "Libc65/string.cpp", "Libc65/string816.asm", "Input/CPP65/MD5Project/Main.cpp", NULL };
+	static const char*	aszMD5[] = { "BaseLib/MD5.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/MD5Project/Main.cpp", NULL };
 	static const char*	aszMersenneTwister[] = { "BaseLib/MersenneTwister.cpp", "Libc65/time.cpp", "Input/CPP65/MersenneTwisterProject/Main.cpp", NULL };
 	static const char*	aszSort[] = { "BaseLib/QuickSort.cpp", "BaseLib/BubbleSort.cpp", "BaseLib/BinarySearch.cpp", "Input/CPP65/SortProject/MemSwpStub.cpp", "Input/CPP65/SortProject/Main.cpp", NULL };
-	static const char*	aszRedBlackTree[] = { "BaseLib/RedBlackTree.cpp", "Libc65/string.cpp", "Libc65/string816.asm", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/ctype.cpp", "Input/CPP65/RedBlackTreeProject/FreeListStub.cpp", "Input/CPP65/RedBlackTreeProject/Main.cpp", NULL };
+	static const char*	aszRedBlackTree[] = { "BaseLib/RedBlackTree.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/ctype.cpp", "Input/CPP65/RedBlackTreeProject/FreeListStub.cpp", "Input/CPP65/RedBlackTreeProject/Main.cpp", NULL };
 	static const char*	aszStatic[] = { "Input/CPP65/StaticProject/Other.cpp", NULL };
 
 	AssertInt(0x3F, TestCPP816RunProject(aszMD5, "", NULL));
@@ -1751,7 +1751,7 @@ void TestCPP816CompiledAgain(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Sprites(void)
 {
-	static const char*	aszSprites[] = { "Input/CPP65/SpriteProject/Sprite.cpp", "Input/CPP65/SpriteProject/Image.cpp", "Libc65/string816.asm", "Input/CPP65/SpriteProject/Main.cpp", NULL };
+	static const char*	aszSprites[] = { "Input/CPP65/SpriteProject/Sprite.cpp", "Input/CPP65/SpriteProject/Image.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/SpriteProject/Main.cpp", NULL };
 	uint32				auiResults[2];
 
 	CCPP65Builder		cBuilder;
@@ -1791,7 +1791,7 @@ void TestCPP816Sprites(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816LocalSymbols(void)
 {
-	static const char*	aszUnits[] = { "Input/CPP65/LocalSymbolsProject/Name.cpp", "Libc65/string816.asm", "Input/CPP65/LocalSymbolsProject/Main.cpp", NULL };
+	static const char*	aszUnits[] = { "Input/CPP65/LocalSymbolsProject/Name.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/LocalSymbolsProject/Main.cpp", NULL };
 
 	AssertInt(7, TestCPP816RunProject(aszUnits, "", NULL));
 }
@@ -1944,7 +1944,7 @@ void TestCPP816RestrictParameter(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816TideVideo(void)
 {
-	static const char*	aszUnits[] = { "Input/CPP65/TideVideoProject/Image.c", "Input/CPP65/TideVideoProject/Sprite.c", "Libc65/string816.asm", "Input/CPP65/TideVideoProject/Main.c", NULL };
+	static const char*	aszUnits[] = { "Input/CPP65/TideVideoProject/Image.c", "Input/CPP65/TideVideoProject/Sprite.c", "Libc65/stringW65C816.asm", "Input/CPP65/TideVideoProject/Main.c", NULL };
 	STestCPP816Memory	sMemory;
 	CFileBasic			cFile;
 	CFileUtil			cFileUtil;
@@ -2013,8 +2013,8 @@ void TestCPP816TideVideo(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Floats(void)
 {
-	static const char*	aszFloatHelper[] = { "BaseLib/FloatHelper.cpp", "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", "Libc65/math.cpp", "Libc65/string816.asm", "Input/CPP65/FloatHelperProject/Main.cpp", NULL };
-	static const char*	aszQuaternion[] = { "BaseLib/Quaternion.cpp", "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", "Libc65/string816.asm", "Input/CPP65/QuaternionProject/Main.cpp", NULL };
+	static const char*	aszFloatHelper[] = { "BaseLib/FloatHelper.cpp", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/FloatHelperProject/Main.cpp", NULL };
+	static const char*	aszQuaternion[] = { "BaseLib/Quaternion.cpp", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/stringW65C816.asm", "Input/CPP65/QuaternionProject/Main.cpp", NULL };
 	uint32				auiResults[256];
 	size				i;
 	uint32				uiExpected;
@@ -2112,14 +2112,14 @@ void TestCPP816NoFloats(void)
 	TestCPP816NoFloatsBuilder(&cBuilder, false);
 	AssertTrue(cBuilder.AddSource("Test.cpp", "int Half(int i);\nint main() { return Half(8); }\n"));
 	cBuilder.AddUnit("NoFloats", szDirectory.Text(), "Half.cpp", true);
-	cBuilder.AddUnit("Libc65", szLibc65.Text(), "softfloat816.asm", true);
+	cBuilder.AddUnit("Libc65", szLibc65.Text(), "softfloatW65C816.asm", true);
 	AssertTrue(cBuilder.Link());
 	cBuilder.Kill();
 
 	TestCPP816NoFloatsBuilder(&cBuilder, true);
 	AssertTrue(cBuilder.AddSource("Test.cpp", "int Half(int i);\nint main() { return Half(8); }\n"));
 	cBuilder.AddUnit("NoFloats", szDirectory.Text(), "Half.cpp", true);
-	cBuilder.AddUnit("Libc65", szLibc65.Text(), "softfloat816.asm", true);
+	cBuilder.AddUnit("Libc65", szLibc65.Text(), "softfloatW65C816.asm", true);
 	bLinked = cBuilder.Link();
 	AssertFalse(bLinked);
 	AssertTrue(strstr(cBuilder.GetErrors(), "Floating point is used, and this build has none") != NULL);
@@ -2139,7 +2139,7 @@ void TestCPP816NoFloats(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816NewDelete(void)
 {
-	static const char*	aszUnits[] = { "Libc65/new.cpp", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/string.cpp", "Libc65/string816.asm", "Libc65/ctype.cpp", NULL };
+	static const char*	aszUnits[] = { "Libc65/new.cpp", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/ctype.cpp", NULL };
 
 	AssertInt(7, TestCPP816RunProject(aszUnits, "", "int main() { int* p = new int(7); int r = *p; delete p; return r; }\n"));
 
@@ -2355,7 +2355,7 @@ void TestCPP816TestBaseLibBugs(void)
 		"\treturn (a.Equals(&b) ? 0 : 1) + (b.IsNegative() ? 20 : 0) + ((b.IntValue() == -1) ? 300 : 0);\n"
 		"}\n", false, NULL, 0, TEST_CPP816_SLOW_STEPS, true));
 
-	static const char*	aszFloat[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", NULL };
+	static const char*	aszFloat[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", NULL };
 
 	AssertInt(0x407, TestCPP816RunProject(aszFloat, "",
 		"int Exponent(double f, int iShift)\n"
@@ -2726,7 +2726,7 @@ void TestCPP816OverloadedFunctionPointers(void)
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816RunProfiled(const char* szSource, CAsmW65C816Profile* pcProfile, CAsmW65C816Profile* pcMeasure, uint64* puiCycles, CChars* pszMap = NULL)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
@@ -4252,7 +4252,7 @@ bool TestCPP816IsAligned(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816RunFrames(const char* szSource, CAsmW65C816Profile* pcProfile, CAsmW65C816Profile* pcMeasure, uint64* puiCycles, const char** aszPrefixes, bool* abAligned)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
@@ -4418,7 +4418,7 @@ void TestCPP816AlignedFrameUnreadArguments(void)
 		"	int c = gpAll(v, 2, 20);\n"
 		"	return ((a == 1225) && (b == 45) && (c == 380)) ? 7 : 1;\n"
 		"}\n";
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
@@ -4620,7 +4620,7 @@ void TestCPP816RangeWarnings(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // What making BaseLib's size 16 bits on the W65C816 (with a 32 bit lsize)
-// turned up.  Libc65's printf read %ld as a 16 bit int.  MemSwp is string816.asm's (lsize length): when BaseLib
+// turned up.  Libc65's printf read %ld as a 16 bit int.  MemSwp is stringW65C816.asm's (lsize length): when BaseLib
 // declared it with a size length the call named a label nothing defined, and
 // its stub was the 65C64's stp, which the W65C816 ran as something else: the
 // sorts called address 0.  A missing name's stub now stops the W65C816.  A
@@ -4934,7 +4934,7 @@ bool TestCPP816Calls(const char* szListing, const char* szPrefix, const char* sz
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816RegisterArguments(void)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	static const char*	szSource =
 		"#include <stdarg.h>\n"
 		"extern \"C\" long CAdd(long a, int b) { return a + b; }\n"
@@ -5070,7 +5070,7 @@ namespace TestCPP816FloatNative
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The compiler's float instructions call softfloat816.asm's frame operand
+// The compiler's float instructions call softfloatW65C816.asm's frame operand
 // entries (name.dp: the operands' places in X and Y, a 64 bit result's in
 // A): every result the same, bit for bit, as natively.  A function whose
 // only frame use is through those places keeps its frame (DropFrame).
@@ -5078,7 +5078,7 @@ namespace TestCPP816FloatNative
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816FrameOperandFloats(void)
 {
-	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", "Libc65/math.cpp", "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint32				auiResults[256];
@@ -5115,7 +5115,7 @@ void TestCPP816FrameOperandFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// With softfloat.cpp compiled in place of softfloat816.asm (CCPP65Generator
+// With softfloat.cpp compiled in place of softfloatW65C816.asm (CCPP65Generator
 // ::SetAssemblyUnits(false)) the float instructions call its functions'
 // register entries (CIRW65C816Backend::SoftFloatCall), not their stubs: every
 // result the same, bit for bit, as natively.  _SoftDoubleCompare takes
@@ -5125,7 +5125,7 @@ void TestCPP816FrameOperandFloats(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816RegisterFloats(void)
 {
-	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/stringW65C816.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint32				auiResults[256];
@@ -5281,7 +5281,7 @@ void TestCPP816AlignedBigFrameArguments(void)
 	szSource.Kill();
 }
 
-//The C string functions (string816.asm's register entries, and through function pointers their stack entries),
+//The C string functions (stringW65C816.asm's register entries, and through function pointers their stack entries),
 //compiled natively for the expected results and for the W65C816 (TestCPP816StringRegisters).
 #define TEST_CPP816_STRING_GLOBALS \
 	volatile int gi = 'w'; \
@@ -5338,7 +5338,7 @@ namespace TestCPP816StringNative
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The C string functions in string816.asm and string816_16.asm with C
+// The C string functions in stringW65C816.asm and stringW65C816_16.asm with C
 // linkage taking register arguments: each called straight (its register
 // entry, name.ax or name.axy) and through a function pointer (its stack
 // entry, which loads the registers), the same as natively.  Then the 16 bit
@@ -5349,7 +5349,7 @@ namespace TestCPP816StringNative
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816StringRegisters(void)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", "Libc65/string816_16.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	static const char*	szSixteen =
 		"#include <string.h>\n"
 		"void MemSwp16(const void* pv1, const void* pv2, unsigned short uiLength);\n"
@@ -5446,7 +5446,7 @@ void TestCPP816StringRegisters(void)
 }
 
 
-//The math functions softfloat816.asm has (register entries; through function pointers, the stack entries), compiled
+//The math functions softfloatW65C816.asm has (register entries; through function pointers, the stack entries), compiled
 //natively for the expected results and for the W65C816 (TestCPP816MathRegisters).
 #define TEST_CPP816_MATH_GLOBALS \
 	volatile double gd[4] = { 2.5, -7.75, 1e20, 0.3 }; \
@@ -5492,14 +5492,14 @@ namespace TestCPP816MathNative
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The math functions in softfloat816.asm, with C linkage taking register
+// The math functions in softfloatW65C816.asm, with C linkage taking register
 // arguments (the result pointer in A and X): straight and through function
 // pointers (their stack entries), the same as natively.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816MathRegisters(void)
 {
-	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", "Libc65/math.cpp", "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint32				auiResults[256];
@@ -5645,7 +5645,7 @@ bool TestCPP816Within(const char* szStart, const char* szEnd, const char* szFind
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816ConstantArguments(void)
 {
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint64				ulliExpected;
@@ -5693,7 +5693,7 @@ void TestCPP816WideMultiplies(void)
 		"	}\n"
 		"	return (int)((h ^ (h >> 16) ^ (h >> 32) ^ (h >> 48)) & 0x7FFF);\n"
 		"}\n";
-	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	uint64	x;
 	uint64	y;
 	uint64	h;

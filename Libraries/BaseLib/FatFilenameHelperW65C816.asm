@@ -1,11 +1,11 @@
-; FatFilenameHelper.cpp for the W65C816, with the compiler's calling convention (see FatInfoSectorCache816.asm): the
+; FatFilenameHelper.cpp for the W65C816, with the compiler's calling convention (see FatInfoSectorCacheW65C816.asm): the
 ; same functions with the same names.  Characters are chars (signed, as the compiler's): one with its top bit set
 ; widens to 0xFFxx and is never upper or lower case.
 ;
 ; Every function here has the same frame (F_FRAME bytes); its arguments start at F_ARGUMENT (pointers take 4 bytes,
 ; uint16s, bools and chars 2).
 
-		.include "Fat816.inc"
+		.include "FatW65C816.inc"
 
 F_STRING		= 1				; StringLength's and FindDot's string.
 F_DEST			= 5				; PutByte's and PutWord's destination.

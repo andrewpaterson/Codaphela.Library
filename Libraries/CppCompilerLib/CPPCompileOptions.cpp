@@ -60,10 +60,10 @@ void CCPPCompileOptions::Init(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the target's assembly beside a unit (the W65C816's X816.asm) is
+// Whether the target's assembly beside a unit (the W65C816's XW65C816.asm) is
 // built, with __W65C816_ASSEMBLY__ defined to leave out the C++ it
 // replaces, or the C++ is compiled.  The W65C816's soft float is one of
-// them: softfloat816.asm takes its operands in the caller's frame, and
+// them: softfloatW65C816.asm takes its operands in the caller's frame, and
 // softfloat.cpp compiled is called as a function with its arguments pushed.
 //
 //////////////////////////////////////////////////////////////////////////

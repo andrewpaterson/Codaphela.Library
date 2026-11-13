@@ -1,11 +1,11 @@
 ; FatClusterCache.cpp for the W65C816, with the same names and the compiler's calling convention (see
-; FatInfoSectorCache816.asm).  Every function here has the same frame (F_FRAME bytes), so the helpers (jsr, within
+; FatInfoSectorCacheW65C816.asm).  Every function here has the same frame (F_FRAME bytes), so the helpers (jsr, within
 ; this one section) find this, the cluster being worked on and their scratch in the same places.
 ;
 ; A sector's bit in pbCachedSectors and pbDirtySectors is bit (i & 7) of byte i >> 3, as IntegerHelper's GetBit and
 ; SetBit have it.
 
-		.include "Fat816.inc"
+		.include "FatW65C816.inc"
 
 NOT_FOUND		= 0xFFFF								; ARRAY_ELEMENT_NOT_FOUND: size is 16 bits on the W65C816.
 VTABLE_READ		= 4										; CFileDrive's virtual functions: Kill, Read, Read (sectors),

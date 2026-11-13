@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define ARRAY_SIZE_MAX				MAX_SIZE
 #define ARRAY_NOT_FOUND				ARRAY_ELEMENT_NOT_FOUND
 
-//At most MAX_SIZE bytes are moved, so on 16 bit targets the moves take 16 bit counts (Libc65's string816_16.asm).
+//At most MAX_SIZE bytes are moved, so on 16 bit targets the moves take 16 bit counts (Libc65's stringW65C816_16.asm).
 #if defined(__W65C816__)
 #define ARRAY_MEMCPY				memcpy16
 #define ARRAY_MEMMOVE				memmove16

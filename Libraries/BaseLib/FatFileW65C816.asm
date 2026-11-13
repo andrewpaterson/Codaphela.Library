@@ -1,4 +1,4 @@
-; FatFile.cpp for the W65C816, with the compiler's calling convention (see FatInfoSectorCache816.asm).  The public
+; FatFile.cpp for the W65C816, with the compiler's calling convention (see FatInfoSectorCacheW65C816.asm).  The public
 ; functions (and FindBackslash) keep their names; the protected ones are helpers here (only CFatFile calls them).
 ;
 ; Every function here has the same frame (F_FRAME bytes), so the helpers (jsr, within this one section) find this,
@@ -6,7 +6,7 @@
 ; offset: pointers and 32 bit values take 4 bytes, 16 bit values, bools, uint8s and enums 2).  F_VOLUME is a copy of
 ; mpcVolume.  Cluster arithmetic is shifts and masks (the volume's sizes are powers of two: Mount checks).
 
-		.include "Fat816.inc"
+		.include "FatW65C816.inc"
 
 F_VOLUME		= 1				; mpcVolume.
 F_ADDRESS		= 5				; A pointer argument (FrameAddress, ThisAddress).

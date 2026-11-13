@@ -2966,22 +2966,22 @@
     <None Include="CodabaseLayers.txt">
       <Filter>Source\Database\Codabase</Filter>
     </None>
-    <None Include="Fat816.inc">
+    <None Include="FatW65C816.inc">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
-    <None Include="FatClusterCache816.asm">
+    <None Include="FatClusterCacheW65C816.asm">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
-    <None Include="FatFile816.asm">
+    <None Include="FatFileW65C816.asm">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
-    <None Include="FatFilenameHelper816.asm">
+    <None Include="FatFilenameHelperW65C816.asm">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
-    <None Include="FatInfoSectorCache816.asm">
+    <None Include="FatInfoSectorCacheW65C816.asm">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
-    <None Include="FatVolume816.asm">
+    <None Include="FatVolumeW65C816.asm">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
     <None Include="ArrayBlockClass.inl">

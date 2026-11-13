@@ -498,7 +498,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 //////////////////////////////////////////////////////////////////////////
 //
 // A project's unit X.cpp may have the target's assembly next to it (the
-// W65C816's X816.asm, CCPPTarget::GetAssemblyUnitSuffix), with the functions
+// W65C816's XW65C816.asm, CCPPTarget::GetAssemblyUnitSuffix), with the functions
 // X.cpp leaves out on the target (#ifndef __W65C816_ASSEMBLY__).  It is
 // added with it, unless the C++ is used instead
 // (CCPPCompileOptions::SetAssemblyUnits(false)).
@@ -989,7 +989,7 @@ void CCPP65Builder::SetMathTables(bool bMathTables)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::ForbidFloats(void)
 {
-	static const char*	aszFloatUnits[] = { "softfloat816.asm", "softfloat.asm", "softfloat.cpp", "math.cpp", NULL };
+	static const char*	aszFloatUnits[] = { "softfloatW65C816.asm", "softfloat.asm", "softfloat.cpp", "math.cpp", NULL };
 	size				i;
 
 	for (i = 0; aszFloatUnits[i]; i++)

@@ -277,7 +277,7 @@ int TestCPP65Assemble(const char* szSource, bool bProgram)
 // after it: Libc65 and Assembler65Lib are the HCP65 repository's, the rest are CommonLibraries'.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestCPP65LibrariesDirectory(CChars* pszDest, const char* szLibrary)
+void TestCPP65LibrariesDirectory(CChars* pszDest, const char* szLibrary)
 {
 	if ((strncmp(szLibrary, "Libc65", 6) == 0) || (strncmp(szLibrary, "Assembler65Lib", 14) == 0))
 	{
@@ -403,7 +403,7 @@ size TestCPP65CompileLibrary(const char* szLibrary, CChars* pszErrors)
 // Adds the units (paths under commonlibraries, or under this test's directory when they start with "Input"), each
 // to be compiled into an object.  The units in a directory share a CLibrary (their include settings).  Units in
 // 65C64 assembly (.asm) are left out unless bAssembly, and units in W65C816 assembly (.asm with 816 in the name:
-// string816.asm, string816_16.asm) when it is.
+// stringW65C816.asm, stringW65C816_16.asm) when it is.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65AddUnits(CCPP65Builder* pcBuilder, const char** aszUnits, bool bAssembly)

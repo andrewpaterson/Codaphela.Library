@@ -22,7 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //The W65C816 back end's floating point instructions: arithmetic, compares and conversions, as calls of the soft
-//float runtime (pushed operands, or the frame operand entries of softfloat816.asm).
+//float runtime (pushed operands, or the frame operand entries of softfloatW65C816.asm).
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ int32 CIRW65C816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 
 //////////////////////////////////////////////////////////////////////////
 //
 // A call of the soft float assembly's frame operand entry (szName.dp,
-// Libc65's softfloat816.asm): the operands stay in the frame (FrameOperand)
+// Libc65's softfloatW65C816.asm): the operands stay in the frame (FrameOperand)
 // and their places (from D) are in X and Y (iSecond is -1 for none); a 64
 // bit result's place is in A and the routine writes it there, any other
 // result comes back in A (and X).  Nothing is pushed or removed.

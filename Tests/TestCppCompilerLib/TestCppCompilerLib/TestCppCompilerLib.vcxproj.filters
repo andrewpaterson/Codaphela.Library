@@ -52,13 +52,13 @@
     <ClCompile Include="TestIRW65C816Backend.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="TestCPP816.cpp">
+    <ClCompile Include="TestCPPW65C816.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="TestCPP816Assembly.cpp">
+    <ClCompile Include="TestCPPW65C816Assembly.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="TestCPP816Interprocedural.cpp">
+    <ClCompile Include="TestCPPW65C816Interprocedural.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
     <ClCompile Include="TestCPP65ListingIndex.cpp">
@@ -67,7 +67,7 @@
     <ClCompile Include="TestCPP65ForwardingReferences.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="TestCPP816Volatile.cpp">
+    <ClCompile Include="TestCPPW65C816Volatile.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
     <ClCompile Include="TestCPP65IR.cpp">

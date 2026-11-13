@@ -1067,12 +1067,12 @@
     <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt" />
     <None Include="CodabaseLayers.txt" />
-    <None Include="Fat816.inc" />
-    <None Include="FatClusterCache816.asm" />
-    <None Include="FatFile816.asm" />
-    <None Include="FatFilenameHelper816.asm" />
-    <None Include="FatInfoSectorCache816.asm" />
-    <None Include="FatVolume816.asm" />
+    <None Include="FatW65C816.inc" />
+    <None Include="FatClusterCacheW65C816.asm" />
+    <None Include="FatFileW65C816.asm" />
+    <None Include="FatFilenameHelperW65C816.asm" />
+    <None Include="FatInfoSectorCacheW65C816.asm" />
+    <None Include="FatVolumeW65C816.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

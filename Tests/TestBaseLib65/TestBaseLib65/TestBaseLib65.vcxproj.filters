@@ -13,7 +13,7 @@
     <ClCompile Include="TestBaseLib65Tests.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="TestFat816Layout.cpp">
+    <ClCompile Include="TestFatW65C816Layout.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="TestProject65.cpp">

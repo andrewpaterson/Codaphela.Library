@@ -118,7 +118,7 @@ uint32 CCPPTargetW65C816::GetStackTop(void)
 //
 // __W65C816__ is the processor, __LIBC65__ the Libc65 headers and devices
 // (as the 65C64's), and __W65C816_ASSEMBLY__ leaves out the C++ that a
-// unit's X816.asm replaces when those are built (bAssemblyUnits).
+// unit's XW65C816.asm replaces when those are built (bAssemblyUnits).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTargetW65C816::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
@@ -215,7 +215,7 @@ bool CCPPTargetW65C816::InlinesAcrossUnits(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CCPPTargetW65C816::GetAssemblyUnitSuffix(void)
 {
-	return "816.asm";
+	return "W65C816.asm";
 }
 
 
@@ -226,7 +226,7 @@ const char* CCPPTargetW65C816::GetAssemblyUnitSuffix(void)
 //////////////////////////////////////////////////////////////////////////
 const char** CCPPTargetW65C816::GetLibc65Units(void)
 {
-	static const char*	aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "string816.asm", "string816_16.asm", "softfloat816.asm", NULL };
+	static const char*	aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "stringW65C816.asm", "stringW65C816_16.asm", "softfloatW65C816.asm", NULL };
 
 	return aszUnits;
 }

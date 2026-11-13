@@ -40,7 +40,7 @@ static void TestCPP816AssemblyBaseName(CChars* psz, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 //
 // Compiles aszUnits (TestCPP65AddUnits' paths) for the W65C816, the units'
-// X816.asm functions left out of their C++ when bAssembly, and gets the
+// XW65C816.asm functions left out of their C++ when bAssembly, and gets the
 // labels their objects define and use.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ static bool TestCPP816AssemblyHasBase(CArrayChars* pasz, const char* szBase)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each label X816.asm (with what's left of X.cpp) defines is one X.cpp
+// Each label XW65C816.asm (with what's left of X.cpp) defines is one X.cpp
 // compiled from C++ defines, register suffix and all: an entry whose suffix
 // went stale when the rule or a declaration changed, or whose function is
 // gone, is listed (a caller would fail to link, but nothing may call it
@@ -200,7 +200,7 @@ static void TestCPP816AssemblyReplaces(const char** aszCPlusPlus, const char** a
 
 //////////////////////////////////////////////////////////////////////////
 //
-// BaseLib's FAT (Fat*816.asm) and Libc65's soft float (softfloat816.asm,
+// BaseLib's FAT (Fat*816.asm) and Libc65's soft float (softfloatW65C816.asm,
 // for softfloat.cpp and math.cpp) against the C++ they replace.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ void TestCPP816AssemblyReplacesCPlusPlus(void)
 		szCPlusPlus.Init("BaseLib/");
 		szCPlusPlus.Append(aszNames[i])->Append(".cpp");
 		szAssembly.Init("BaseLib/");
-		szAssembly.Append(aszNames[i])->Append("816.asm");
+		szAssembly.Append(aszNames[i])->Append("W65C816.asm");
 		aszCPlusPlus[0] = szCPlusPlus.Text();
 		aszCPlusPlus[1] = NULL;
 		aszAssembly[0] = szCPlusPlus.Text();
@@ -230,14 +230,14 @@ void TestCPP816AssemblyReplacesCPlusPlus(void)
 	}
 
 	static const char*	aszFloatCPlusPlus[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", NULL };
-	static const char*	aszFloatAssembly[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/softfloat816.asm", NULL };
+	static const char*	aszFloatAssembly[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/softfloatW65C816.asm", NULL };
 	TestCPP816AssemblyReplaces(aszFloatCPlusPlus, aszFloatAssembly);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Libc65's string816.asm and string816_16.asm have no C++ on the W65C816:
+// Libc65's stringW65C816.asm and stringW65C816_16.asm have no C++ on the W65C816:
 // a unit calling each of their functions as declared uses each register
 // entry the assembly defines, by the same name (the suffix the fixed rule
 // gives the declaration).  An entry gone stale, or one this unit doesn't
@@ -247,7 +247,7 @@ void TestCPP816AssemblyReplacesCPlusPlus(void)
 void TestCPP816AssemblyStringEntries(void)
 {
 	static const char*	aszCalls[] = { "Input/CPP65/AssemblyEntries/StringCalls.cpp", NULL };
-	static const char*	aszAssembly[] = { "Libc65/string816.asm", "Libc65/string816_16.asm", NULL };
+	static const char*	aszAssembly[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	STestCPP816Labels	sCalls;
 	STestCPP816Labels	sAssembly;
 	CChars				szStale;
@@ -279,7 +279,7 @@ void TestCPP816AssemblyStringEntries(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// string816.asm's large bit array finders, run on the W65C816 directly
+// stringW65C816.asm's large bit array finders, run on the W65C816 directly
 // (their register entries) and through function pointers (their stack
 // entries), against BaseLib's natively: an entry's argument offsets gone
 // stale give the wrong bit.  (The others are run by TestCPP816's string
@@ -322,7 +322,7 @@ void TestCPP816AssemblyLargeBitFinders(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// string816.asm's memcpy copies up to 32 bytes itself and more with the
+// stringW65C816.asm's memcpy copies up to 32 bytes itself and more with the
 // block move: every size either side of that, odd and even, from odd and
 // even addresses, with the bytes either side of the destination left; one
 // through its stack entry (a pointer), one across a bank (the small copy
@@ -379,6 +379,72 @@ void TestCPP816AssemblyMemcpySizes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A project's unit X.cpp brings the W65C816 assembly beside it,
+// XW65C816.asm, by its name (CCPPTarget::GetAssemblyUnitSuffix, as
+// AddProjectSources adds a Visual Studio project's or an hcp65build's
+// sources): each of BaseLib's FAT units and Libc65's string.cpp and
+// softfloat.cpp has its assembly object.  The suffix and the files' names
+// must agree, or the C++ is built in their place without a word.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816AssemblyUnitsAdd(CCPP65Builder* pcBuilder, const char* szLibrary, const char** aszSources)
+{
+	CFileUtil	cFileUtil;
+	CChars		szDirectory;
+	CArrayChars	aszFiles;
+	size		i;
+
+	szDirectory.Init();
+	TestCPP65LibrariesDirectory(&szDirectory, szLibrary);
+	szDirectory.Append(szLibrary);
+	szDirectory.Replace('/', FILE_SEPARATOR[0]);
+	cFileUtil.FullPath(&szDirectory);
+	aszFiles.Init();
+	for (i = 0; aszSources[i]; i++)
+	{
+		aszFiles.Add(aszSources[i]);
+	}
+	pcBuilder->AddProjectSources(szLibrary, szDirectory.Text(), &aszFiles, false);
+	aszFiles.Kill();
+	szDirectory.Kill();
+}
+
+
+void TestCPP816AssemblyUnitsFound(void)
+{
+	static const char*	aszBaseLib[] = { "FatClusterCache.cpp", "FatFile.cpp", "FatFilenameHelper.cpp", "FatInfoSectorCache.cpp", "FatVolume.cpp", NULL };
+	static const char*	aszLibc65[] = { "string.cpp", "softfloat.cpp", NULL };
+	static const char*	aszAssembly[] = { "FatClusterCacheW65C816.asm", "FatFileW65C816.asm", "FatFilenameHelperW65C816.asm", "FatInfoSectorCacheW65C816.asm", "FatVolumeW65C816.asm", "stringW65C816.asm", "softfloatW65C816.asm", NULL };
+	CCPP65Builder		cBuilder;
+	CChars				szObjects;
+	size				i;
+
+	cBuilder.Init();
+	cBuilder.GetOptions()->SetAssemblyUnits(true);
+	cBuilder.SetTarget(CPPT_W65C816);
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	TestCPP816AssemblyUnitsAdd(&cBuilder, "BaseLib", aszBaseLib);
+	TestCPP816AssemblyUnitsAdd(&cBuilder, "Libc65", aszLibc65);
+	cBuilder.Compile();
+	AssertString("", cBuilder.GetErrors());
+
+	szObjects.Init();
+	for (i = 0; i < cBuilder.NumUnitObjects(); i++)
+	{
+		szObjects.Append(cBuilder.GetUnitObject(i)->GetName())->Append(" ");
+	}
+	for (i = 0; aszAssembly[i]; i++)
+	{
+		AssertTrue(szObjects.Contains(aszAssembly[i]));
+	}
+	AssertSize(14, cBuilder.NumUnitObjects());
+	szObjects.Kill();
+	cBuilder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The W65C816 assembly that stands in for C++ against the compiler: its
 // names compared without running anything, and the entries no other test
 // runs run once, so it's quick, where TestSupportLib65 and TestBaseLib65
@@ -389,6 +455,7 @@ void TestCPP816Assembly(void)
 {
 	BeginTests();
 
+	TestCPP816AssemblyUnitsFound();
 	TestCPP816AssemblyStringEntries();
 	TestCPP816AssemblyReplacesCPlusPlus();
 	TestCPP816AssemblyLargeBitFinders();

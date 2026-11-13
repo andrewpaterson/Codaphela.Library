@@ -539,7 +539,7 @@ void TestIntegerHelperEndianness(void)
 //
 // The bit finders checked against GetBit, for each count of bits from 0
 // to 96 and patterns of bits: the size ones, the Large ones and the Next
-// ones (Libc65's string816_16.asm and string816.asm on the W65C816).
+// ones (Libc65's stringW65C816_16.asm and stringW65C816.asm on the W65C816).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIntegerHelperFindBitsAgainstGetBit(void)

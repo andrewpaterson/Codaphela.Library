@@ -6,7 +6,7 @@
 #include "FatClusterCache.h"
 
 
-//The W65C816 has these in FatClusterCache816.asm.
+//The W65C816 has these in FatClusterCacheW65C816.asm.
 #ifndef __W65C816_ASSEMBLY__
 
 

@@ -10,7 +10,7 @@
 #include "TestCPP65Context.h"
 
 
-int32 TestCPP816Run(const char* szSource, bool bLockstep);  //TestCPP816.cpp
+int32 TestCPP816Run(const char* szSource, bool bLockstep);  //TestCPPW65C816.cpp
 
 
 struct STestForwardingReference

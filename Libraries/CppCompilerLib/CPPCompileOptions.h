@@ -47,7 +47,7 @@ public:
 	bool		mbPrintIR;				//Each function's IR is printed to stderr, for debugging.
 	size		muiFunctionLimit;		//Only the first so many of a unit's function bodies are written (to find a wrong one), or CPP_NO_FUNCTION_LIMIT.
 	bool		mbWarnNarrowing;		//An implicit conversion of a non constant integer to a narrower type is warned about.
-	bool		mbAssemblyUnits;		//The target's assembly beside a unit (X816.asm) is built in place of the C++ it replaces.
+	bool		mbAssemblyUnits;		//The target's assembly beside a unit (XW65C816.asm) is built in place of the C++ it replaces.
 	bool		mbSoftFloatInFrame;		//The W65C816's soft float routines take their operands in the caller's frame: the assembly ones do.
 	bool		mbRegisterArguments;	//The W65C816 passes a call's first arguments in registers.
 	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.

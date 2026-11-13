@@ -228,7 +228,7 @@ void MemSwp(const void* pv1, const void* pv2, lsize uiLength)
 		((char*)pv2)[iCharIndex + i] = cTemp;
 	}
 }
-#endif // __W65C816__ (Libc65's string816.asm and string816_16.asm have it)
+#endif // __W65C816__ (Libc65's stringW65C816.asm and stringW65C816_16.asm have it)
 
 
 //////////////////////////////////////////////////////////////////////////

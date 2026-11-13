@@ -8,7 +8,7 @@
 #include "PointerFunctions.h"
 
 
-//The W65C816 has FatVolume816.asm instead.
+//The W65C816 has FatVolumeW65C816.asm instead.
 #ifndef __W65C816_ASSEMBLY__
 
 

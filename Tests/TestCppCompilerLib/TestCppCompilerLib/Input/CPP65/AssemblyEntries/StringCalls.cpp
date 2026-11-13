@@ -1,4 +1,4 @@
-//Calls each function Libc65's string816.asm and string816_16.asm define on the W65C816, as declared, so the compiled
+//Calls each function Libc65's stringW65C816.asm and stringW65C816_16.asm define on the W65C816, as declared, so the compiled
 //object uses each register entry by the name the fixed rule gives its declaration (TestCPP816AssemblyStringEntries).
 //It is only compiled, never run.  The counts aren't constants so no call is made into inline code.
 #include <string.h>

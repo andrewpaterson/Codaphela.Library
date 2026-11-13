@@ -28,7 +28,7 @@
 #include "FatFile.h"
 
 
-//The W65C816 has FatFile816.asm instead.
+//The W65C816 has FatFileW65C816.asm instead.
 #ifndef __W65C816_ASSEMBLY__
 
 

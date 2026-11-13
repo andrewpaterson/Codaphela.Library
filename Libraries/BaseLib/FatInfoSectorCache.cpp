@@ -3,7 +3,7 @@
 #include "FatInfoSectorCache.h"
 
 
-//The W65C816 has these in FatInfoSectorCache816.asm (all but Dump).
+//The W65C816 has these in FatInfoSectorCacheW65C816.asm (all but Dump).
 #ifndef __W65C816_ASSEMBLY__
 
 

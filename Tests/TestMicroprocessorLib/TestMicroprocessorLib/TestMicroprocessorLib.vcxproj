@@ -259,7 +259,7 @@
     <ClCompile Include="Test65C64Block.cpp" />
     <ClCompile Include="Test65C64Vector.cpp" />
     <ClCompile Include="TestFast65C64.cpp" />
-    <ClCompile Include="TestFast65C816.cpp" />
+    <ClCompile Include="TestFastW65C816.cpp" />
     <ClCompile Include="TestTimeline.cpp" />
     <ClCompile Include="TestVoltageConfiguration.cpp" />
     <ClCompile Include="TestLogicPort.cpp" />

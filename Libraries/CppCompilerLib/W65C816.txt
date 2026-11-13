@@ -156,16 +156,16 @@ see this source is this one", so extern "C" functions take them too):
   called through a pointer: 1220702 cycles pushing again, 1177778 moving down; 1087842 with every argument pushed.)
 - Assembly defines the suffixed labels too, its plain labels being stack entries (load the
   registers from the stack and call or go on to the register entries):
-  - Libc65's string816.asm and string816_16.asm: the register entries are the real code
+  - Libc65's stringW65C816.asm and stringW65C816_16.asm: the register entries are the real code
     (memcpy, memset, strlen, strcmp ... memcpy16 ..., MemSwp, the bit array finders),
     pushing the register words where the code wants them in memory.
-  - softfloat816.asm's <math.h> functions: fabs's are real; trunc, floor, ceil, round and
+  - softfloatW65C816.asm's <math.h> functions: fabs's are real; trunc, floor, ceil, round and
     frexp push A and X before D (only the result pointer, or a float's x, moves); sqrt,
     ldexp (its exponent in Y), modf and fmod start on the soft float frame through
     FramedAX (the result pointer from A and X) or FramedAXValue (a float in A and X).
     SoftFloatAdd ... by name (only TestLibc65's programs call them so) push the words
     again and call the stack entries.
-  - BaseLib's Fat*816.asm, small rather than fast (it must fit in ROM): each entry saves Y
+  - BaseLib's Fat*W65C816.asm, small rather than fast (it must fit in ROM): each entry saves Y
     if it holds an argument, loads its stack entry's address into Y and goes to a helper
     for its shape (one per suffix and pushed words, per file), which pushes the words again
     and calls it (rts into the same bank).  The entries were made from the compiled C++'s
@@ -178,7 +178,7 @@ see this source is this one", so extern "C" functions take them too):
 - Cost: a register word is a load by the caller and a push by the callee (8 cycles, a pei
   is 6), but the caller removes nothing after the call (10 to 13 cycles).
 - The compiler's float instructions don't call the soft float by its C functions' rule: with
-  softfloat816.asm (CCPPCompileOptions::SetAssemblyUnits sets mbSoftFloatInFrame with
+  softfloatW65C816.asm (CCPPCompileOptions::SetAssemblyUnits sets mbSoftFloatInFrame with
   it) they call its frame operand entries (name.dp: FrameOperandCall).
   The operands stay in the caller's frame and their places (from D) are in X and Y (a
   constant or a value without a place is copied to the scratch bytes first, a narrow
@@ -220,7 +220,7 @@ Runtime (W65C816 assembly, R_ names as now): 16 and 32 bit multiply, unsigned an
 divide and remainder, 32 bit shifts by a variable, 64 bit operations, R_CallFar, memcpy
 and memset (mvn needs its banks in the instruction: a byte loop through [d],y first, mvn
 from code written into RAM later).  Floats: softfloat.cpp compiled for the W65C816 first
-(correct, slow); a hand written softfloat816.asm later, as softfloat.asm was for the
+(correct, slow); a hand written softfloatW65C816.asm later, as softfloat.asm was for the
 65C64.
 
 
@@ -256,7 +256,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	A; the init and fini tables aren't walked yet.  The runtime: R_Pure and the R816_
 	routines the unit used, as COMDAT sections (AppendRuntime816).  Libc65: the 32 bit
 	types (int32_t, size_t, ptrdiff_t ...) are long on both targets, limits.h's int is
-	per target.  Tests: TestCPP816.cpp (C++ programs built for the W65C816 and run on
+	per target.  Tests: TestCPPW65C816.cpp (C++ programs built for the W65C816 and run on
 	CFast65C816, some in lockstep).
 
 2.	A W65C816 assembler (Assembler65Lib, CAsm65816Assembler: WDC's syntax, QUESTION 4)
@@ -639,10 +639,10 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	- near calls inside an object (jsr), DBR relative globals, near and zero pointers
 	  where a pass can prove them, inbank ptradds
 	- inc/dec/asl/lsr/rol/ror and stz on memory, pei/pea, bit, trb/tsb, mvn
-	- softfloat816.asm and string816.asm
+	- softfloatW65C816.asm and stringW65C816.asm
 	- a fixed page for leaf functions without a prologue
 	QUESTION 2 decides the order.
-	Done so far (2026-10-29), TestBaseLib65 816 from 108G cycles to 48G: string816.asm
+	Done so far (2026-10-29), TestBaseLib65 816 from 108G cycles to 48G: stringW65C816.asm
 	(mvn/mvp patched at run time) and runtime fast paths for multiply and divide;
 	temporaries packed into shared places by live ranges with holes; 1 word values kept
 	in A from their store to their one load in a block, and some in X (AllocateX); dead

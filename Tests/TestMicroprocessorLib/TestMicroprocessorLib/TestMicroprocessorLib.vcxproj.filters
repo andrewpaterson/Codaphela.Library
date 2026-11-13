@@ -58,7 +58,7 @@
     <ClCompile Include="TestW65C816SingleStep.cpp">
       <Filter>Source\wdc\W65C816</Filter>
     </ClCompile>
-    <ClCompile Include="TestFast65C816.cpp">
+    <ClCompile Include="TestFastW65C816.cpp">
       <Filter>Source\wdc\W65C816</Filter>
     </ClCompile>
     <ClCompile Include="TestW65C816Timing.cpp">

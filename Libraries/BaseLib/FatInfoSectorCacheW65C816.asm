@@ -14,7 +14,7 @@
 ; followed by the sector's bytes.  The list is walked through the nodes here, as CLinkedListBlock's GetHead and
 ; GetNext do.
 
-		.include "Fat816.inc"
+		.include "FatW65C816.inc"
 
 CACHE			= SIZEOF_SLLBlockNode							; A node's CFatSectorCache.
 SECTOR			= SIZEOF_CFatSectorCache						; A CFatSectorCache's sector bytes.

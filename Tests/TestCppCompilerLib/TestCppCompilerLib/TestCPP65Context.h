@@ -44,6 +44,7 @@ void		TestCPP65End(STestCPP65Run* psRun);
 int32		TestCPP65Main(const char* szSource);
 int32		TestCPP65MainFile(const char* szFilename);
 void		TestCPP65AddUnits(CCPP65Builder* pcBuilder, const char** aszUnits, bool bAssembly);
+void		TestCPP65LibrariesDirectory(CChars* pszDest, const char* szLibrary);
 bool		TestCPP65BeginProject(STestCPP65Run* psRun, const char** aszUnits, const char* szStubs, const char* szSource = NULL, CChars* pszMap = NULL, bool bLazy = false);
 int32		TestCPP65RunProject(const char** aszUnits, const char* szStubs, size uiMaxInstructions = 20000000, const char* szSource = NULL);
 int32		TestCPP65RunProjectLockstep(const char** aszUnits, const char* szStubs, size uiMaxInstructions, size* puiInstructions);

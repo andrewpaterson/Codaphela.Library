@@ -238,12 +238,12 @@
     <ClCompile Include="TestIRInterprocedural.cpp" />
     <ClCompile Include="TestIR65Backend.cpp" />
     <ClCompile Include="TestIRW65C816Backend.cpp" />
-    <ClCompile Include="TestCPP816.cpp" />
-    <ClCompile Include="TestCPP816Assembly.cpp" />
-    <ClCompile Include="TestCPP816Interprocedural.cpp" />
+    <ClCompile Include="TestCPPW65C816.cpp" />
+    <ClCompile Include="TestCPPW65C816Assembly.cpp" />
+    <ClCompile Include="TestCPPW65C816Interprocedural.cpp" />
     <ClCompile Include="TestCPP65ListingIndex.cpp" />
     <ClCompile Include="TestCPP65ForwardingReferences.cpp" />
-    <ClCompile Include="TestCPP816Volatile.cpp" />
+    <ClCompile Include="TestCPPW65C816Volatile.cpp" />
     <ClCompile Include="TestCPP65IR.cpp" />
     <ClCompile Include="TestCPP65LazyHeaders.cpp" />
     <ClCompile Include="TestCPP65HeaderCache.cpp" />

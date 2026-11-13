@@ -697,7 +697,7 @@ size FindFirstSetBit(uint64 uiBits)
 	return __builtin_ctzll(uiBits);
 #endif // _MSC_VER
 }
-#endif // __W65C816__ (Libc65's string816_16.asm has them)
+#endif // __W65C816__ (Libc65's stringW65C816_16.asm has them)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -873,7 +873,7 @@ size FindLastSetBit(void* pvArray, size iArraySize)
 
 	return ARRAY_ELEMENT_NOT_FOUND;
 }
-#endif // __W65C816__ (Libc65's string816_16.asm has them)
+#endif // __W65C816__ (Libc65's stringW65C816_16.asm has them)
 
 
 #ifndef __W65C816__
@@ -1000,7 +1000,7 @@ lsize FindLastClearBitLarge(void* pvArray, lsize iArraySize)
 {
 	return FindLastBitLarge(pvArray, iArraySize, 0xff);
 }
-#endif // __W65C816__ (Libc65's string816.asm has them)
+#endif // __W65C816__ (Libc65's stringW65C816.asm has them)
 
 
 //////////////////////////////////////////////////////////////////////////

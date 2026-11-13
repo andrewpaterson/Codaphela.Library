@@ -73,7 +73,7 @@ static const char* TestProject65ProfileFile(void)
 
 
 static const char* gaszTestProject65Libc65[] = { "string.cpp", "string.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat.asm", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
-static const char* gaszTestProject816Suffixes[] = { "816.asm", "816_16.asm", NULL };
+static const char* gaszTestProject816Suffixes[] = { "W65C816.asm", "W65C816_16.asm", NULL };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -405,8 +405,8 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 		}
 		else
 		{
-			//The W65C816's own assembly for a 65C64 assembly unit (X816.asm for X.asm, and X816_16.asm with 16 bit
-			//counts), if it has some.  softfloat.cpp and math.cpp compile softfloat816.asm's functions themselves
+			//The W65C816's own assembly for a 65C64 assembly unit (XW65C816.asm for X.asm, and XW65C816_16.asm with 16 bit
+			//counts), if it has some.  softfloat.cpp and math.cpp compile softfloatW65C816.asm's functions themselves
 			//when the C++ is used instead of the assembly (TEST_PROJECT65_CPP).
 			if (!pcBuilder->GetOptions()->mbAssemblyUnits && (strcmp(gaszTestProject65Libc65[i], "softfloat.asm") == 0))
 			{
@@ -776,7 +776,7 @@ void TestProject65RunTests(STestProject65* psProject)
 	cBuilder.SetForceImportsMissed(getenv("TEST_PROJECT65_FORCE_MISSES") != NULL);
 	//TEST_PROJECT65_NO_HEADER_CACHE=1: every unit preprocesses every header it includes (it builds the same).
 	cBuilder.SetHeaderCache(getenv("TEST_PROJECT65_NO_HEADER_CACHE") == NULL);
-	//TEST_PROJECT65_CPP=1: the W65C816 build compiles the C++ of units that have X816.asm, not the assembly.
+	//TEST_PROJECT65_CPP=1: the W65C816 build compiles the C++ of units that have XW65C816.asm, not the assembly.
 	cBuilder.GetOptions()->SetAssemblyUnits(getenv("TEST_PROJECT65_CPP") == NULL);
 	//TEST_PROJECT65_STACK_ARGUMENTS=1: every W65C816 call pushes its arguments (no register arguments), to compare.
 	cBuilder.GetOptions()->mbRegisterArguments = getenv("TEST_PROJECT65_STACK_ARGUMENTS") == NULL;
