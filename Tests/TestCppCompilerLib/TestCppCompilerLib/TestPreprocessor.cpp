@@ -873,6 +873,41 @@ void TestPreprocessorOutsideIncludes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An #include can name a file that isn't a header (TestLibc65 includes
+// "Libc65/softfloat.cpp"): an include directory finds it on the disk,
+// in it or a sub directory, whether it was added with its sub
+// directories or without.  One that isn't there still can't be included.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorNonHeaderIncludes(void)
+{
+	static const char*	aszLib[] = { "Lib", NULL };
+	CChars				szDest;
+	CChars				szErrors;
+	size				i;
+
+	for (i = 0; i < 2; i++)
+	{
+		TestPreprocessorIncludeUnit("Tool/Tool.cpp", "\
+#include \"Sub/Impl.cpp\"\n\
+#include <Body.cpp>\n\
+#include \"Tool.h\"\n", aszLib, i == 0, &szDest, &szErrors);
+		AssertString("", szErrors.Text());
+		AssertString("int giImpl;\nint giBody;\nint giTool;\n", szDest.Text());
+		szErrors.Kill();
+		szDest.Kill();
+
+		TestPreprocessorIncludeUnit("Tool/Tool.cpp", "\
+#include \"Sub/Missing.cpp\"\n", aszLib, i == 0, &szDest, &szErrors);
+		AssertTrue(szErrors.Contains("Could not include file \"Sub/Missing.cpp\""));
+		szErrors.Kill();
+		szDest.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPreprocessorDefineEvaluateToZero(void)
@@ -2350,8 +2385,9 @@ static void WriteHeader(CChars* pszDirectory, const char* szName, const char* sz
 //////////////////////////////////////////////////////////////////////////
 //
 // An include directory's headers are its files with no extension (<new>,
-// <vector>) and those ending .h, .hh, .hpp, .hxx, .inl or .rh.  Their names
-// ignore case only on Windows.
+// <vector>) and those ending .h, .hh, .hpp, .hxx, .inl or .rh.  Another
+// file (Notes.txt) is found too when an #include names it, as compilers
+// find it.  Their names ignore case only on Windows.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPreprocessorHeaderNames(void)
@@ -2381,7 +2417,14 @@ void TestPreprocessorHeaderNames(void)
 	AssertString("int giVector;\nint giList;\nint giMixed;\n", szDest.Text());
 	szLog.Kill();
 	szDest.Kill();
-	AssertNull(cDirectory.GetFile("Notes.txt"));
+	AssertNotNull(cDirectory.GetFile("Notes.txt"));
+	szDest.Init();
+	szLog.Init();
+	AssertTrue(PreprocessFile("Notes.cpp", "#include <Notes.txt>\n", NULL, &cDirectory, NULL, &szDest, &szLog));
+	AssertString("int giNotes;\n", szDest.Text());
+	szLog.Kill();
+	szDest.Kill();
+	AssertNull(cDirectory.GetFile("Missing.txt"));
 #ifdef _WIN32
 	AssertNotNull(cDirectory.GetFile("mixed.h"));
 #else
@@ -2463,6 +2506,7 @@ void TestPreprocessor(void)
 	TestPreprocessorHasInclude();
 	TestPreprocessorCollapseIncludePath();
 	TestPreprocessorParentIncludes();
+	TestPreprocessorNonHeaderIncludes();
 	TestPreprocessorOutsideIncludes();
 	TestPreprocessorSimpleVariadic();
 	TestPreprocessorComplexVariadic();

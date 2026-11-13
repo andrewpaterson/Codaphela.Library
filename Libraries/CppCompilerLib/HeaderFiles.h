@@ -41,7 +41,8 @@ typedef CMapStringTemplate<CHeaderFile*>	CHeaderFilePtrMap;
 
 //An include directory: its headers by their names relative to it ("BaseLib/Chars.h").  One with its sub directories
 //lists them all when it is made.  One without lists the headers in it, and finds one in a sub directory when it is
-//first asked for, as a C++ compiler's -I does (GetFile).
+//first asked for, as a C++ compiler's -I does (GetFile).  A file that isn't a header ("Libc65/softfloat.cpp") is found
+//on the disk when an #include names it, in either.
 class CHeaderFileMap;
 class CHeaderFiles
 {
@@ -70,6 +71,7 @@ public:
 
 protected:
 	CHeaderFile*	FindInSubDirectory(char* szRelativeFileName);
+	CHeaderFile*	FindNonHeader(char* szRelativeFileName);
 };
 
 

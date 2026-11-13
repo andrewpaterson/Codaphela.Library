@@ -187,9 +187,14 @@ CHeaderFile* CHeaderFiles::GetFile(char* szRelativeFileName)
 
 	if (mbSubDirectories)
 	{
-		//Every header it can have was listed when it was made, and isn't changed after.
+		//Every header it can have was listed when it was made, and isn't changed after.  Another file an #include names
+		//("Libc65/softfloat.cpp") is looked for on the disk.
 		ppcHeaderFile = mcFileNames.Get(szRelativeFileName);
-		return ppcHeaderFile ? *ppcHeaderFile : NULL;
+		if (ppcHeaderFile)
+		{
+			return *ppcHeaderFile;
+		}
+		return IsHeaderName(szRelativeFileName) ? NULL : FindNonHeader(szRelativeFileName);
 	}
 	return FindInSubDirectory(szRelativeFileName);
 }
@@ -199,8 +204,10 @@ CHeaderFile* CHeaderFiles::GetFile(char* szRelativeFileName)
 //
 // szRelativeFileName in a directory added without its sub directories.  A
 // header in it was listed when it was made; one in a sub directory
-// ("BaseLib/Chars.h") is the header if the file is there, remembered
-// either way so the disk is looked at once for each name.  Units compiled
+// ("BaseLib/Chars.h"), or a file that isn't a header ("Libc65/
+// softfloat.cpp", an #include can name any file), is the file if it is
+// there, remembered either way so the disk is looked at once for each
+// name.  Units compiled
 // at the same time ask, so the project's header map's lock is held.  A
 // name that leaves the directory ("../x.h", "/x.h") isn't looked for.
 //
@@ -226,7 +233,7 @@ CHeaderFile* CHeaderFiles::FindInSubDirectory(char* szRelativeFileName)
 	else
 	{
 		pcHeaderFile = NULL;
-		if ((strchr(szRelativeFileName, '/') != NULL) && IsHeaderName(szRelativeFileName))
+		if ((strchr(szRelativeFileName, '/') != NULL) || !IsHeaderName(szRelativeFileName))
 		{
 			szFullName.Init(mszBaseDirectory);
 			cFileUtil.AppendToPath(&szFullName, szRelativeFileName);
@@ -242,6 +249,33 @@ CHeaderFile* CHeaderFiles::FindInSubDirectory(char* szRelativeFileName)
 		}
 	}
 	mpcFileMap->Unlock();
+	return pcHeaderFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A file that isn't a header (IsHeaderName) by its name in a directory
+// added with its sub directories, which only listed its headers: the
+// file if it is there (FindOutside), else NULL.  Not remembered: the
+// directory's names aren't changed after it is made, and such includes
+// are rare.
+//
+//////////////////////////////////////////////////////////////////////////
+CHeaderFile* CHeaderFiles::FindNonHeader(char* szRelativeFileName)
+{
+	CHeaderFile*	pcHeaderFile;
+	CFileUtil		cFileUtil;
+	CChars			szFullName;
+
+	if ((szRelativeFileName[0] == '/') || (strstr(szRelativeFileName, "..") != NULL) || (strchr(szRelativeFileName, ':') != NULL))
+	{
+		return NULL;
+	}
+	szFullName.Init(mszBaseDirectory);
+	cFileUtil.AppendToPath(&szFullName, szRelativeFileName);
+	pcHeaderFile = FindOutside(szFullName.Text());
+	szFullName.Kill();
 	return pcHeaderFile;
 }
 
