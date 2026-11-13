@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
-#include "IR816BackendInternal.h"
+#include "IRW65C816BackendInternal.h"
 #include "IRW65C816Code.h"
 
 
@@ -27,7 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //(the register rule, FunctionArguments), its entry and exit (Prologue, RegisterStub, Forwarder, Epilogue) and its
 //blocks' jumps and phis.  The rest is in IR816Places, IR816Instructions (with IR816Floats, IR816Shifts,
 //IR816Multiplies, IR816Compares, IR816Fusion and IR816Calls), IR816Frames, IR816Lines, IR816Branches, IR816Peephole,
-//IR816DeadStores, IR816Flow and IR816Runtime, and what they share in IR816BackendInternal.h.
+//IR816DeadStores, IR816Flow and IR816Runtime, and what they share in IRW65C816BackendInternal.h.
 
 
 //////////////////////////////////////////////////////////////////////////

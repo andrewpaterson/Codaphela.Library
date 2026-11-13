@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "IR816BackendInternal.h"
+#include "IRW65C816BackendInternal.h"
 
 
 //The W65C816 back end's floating point instructions: arithmetic, compares and conversions, as calls of the soft

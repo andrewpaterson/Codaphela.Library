@@ -249,52 +249,52 @@
     <ClCompile Include="IRW65C816Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Branches.cpp">
+    <ClCompile Include="IRW65C816Branches.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IRW65C816Code.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816DeadStores.cpp">
+    <ClCompile Include="IRW65C816DeadStores.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Flow.cpp">
+    <ClCompile Include="IRW65C816Flow.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Frames.cpp">
+    <ClCompile Include="IRW65C816Frames.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Instructions.cpp">
+    <ClCompile Include="IRW65C816Instructions.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Floats.cpp">
+    <ClCompile Include="IRW65C816Floats.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Shifts.cpp">
+    <ClCompile Include="IRW65C816Shifts.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Multiplies.cpp">
+    <ClCompile Include="IRW65C816Multiplies.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Compares.cpp">
+    <ClCompile Include="IRW65C816Compares.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Fusion.cpp">
+    <ClCompile Include="IRW65C816Fusion.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Calls.cpp">
+    <ClCompile Include="IRW65C816Calls.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Lines.cpp">
+    <ClCompile Include="IRW65C816Lines.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Peephole.cpp">
+    <ClCompile Include="IRW65C816Peephole.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Places.cpp">
+    <ClCompile Include="IRW65C816Places.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IR816Runtime.cpp">
+    <ClCompile Include="IRW65C816Runtime.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IR65Code.cpp">
@@ -986,7 +986,7 @@
     <ClInclude Include="IRW65C816Code.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
-    <ClInclude Include="IR816BackendInternal.h">
+    <ClInclude Include="IRW65C816BackendInternal.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Code.h">

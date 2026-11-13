@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "IR816BackendInternal.h"
+#include "IRW65C816BackendInternal.h"
 
 
 //The W65C816 back end's runtime routines (R816_...): they are all in assembly, this says how calls find them and

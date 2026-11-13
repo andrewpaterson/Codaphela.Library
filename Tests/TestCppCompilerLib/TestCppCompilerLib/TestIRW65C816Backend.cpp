@@ -17,7 +17,7 @@
 #include "CppCompilerLib/IRParser.h"
 #include "CppCompilerLib/IRVerifier.h"
 #include "CppCompilerLib/IRW65C816Backend.h"
-#include "CppCompilerLib/IR816BackendInternal.h"
+#include "CppCompilerLib/IRW65C816BackendInternal.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 

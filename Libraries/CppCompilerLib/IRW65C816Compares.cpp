@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "IR816BackendInternal.h"
+#include "IRW65C816BackendInternal.h"
 
 
 //The W65C816 back end's compares: the flags of a comparison, and its value or a branch fused with it.

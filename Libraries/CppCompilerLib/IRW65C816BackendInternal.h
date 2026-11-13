@@ -220,19 +220,19 @@ class CIRW65C816Code;
 int			IR816AssignRegisters(CArrayIR816Arguments* pasArguments);
 void		IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments);
 
-//IR816Frames.cpp: a frame's entry and exit, as Prologue and Epilogue write them.
+//IRW65C816Frames.cpp: a frame's entry and exit, as Prologue and Epilogue write them.
 void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 
-//IR816Places.cpp: what the direct page reaches, and how X serves an instruction (AllocateX).
+//IRW65C816Places.cpp: what the direct page reaches, and how X serves an instruction (AllocateX).
 bool		IR816OnDirectPage(int32 iOffset);
 bool		IR816PointerOnDirectPage(int32 iOffset);
 int32		IR816XUse(uint16 uiOpcode, int iArgument);
 bool		IR816XResult(SIRInstruction* psInstruction);
 bool		IR816ClobbersX(SIRInstruction* psInstruction);
 
-//IR816Lines.cpp: assembly lines decoded, and what A, X and Y are known to hold.
+//IRW65C816Lines.cpp: assembly lines decoded, and what A, X and Y are known to hold.
 bool		IR816IsInstruction(const char* szLine);
 void		IR816Decode(const char* szLine, SIRW65C816Line* psLine);
 bool		IR816OperandIs(SIRW65C816Line* psLine, const char* szOperand, size uiOperand);
@@ -244,13 +244,13 @@ void		IR816ForgetHeld(SIRW65C816Held* asHeld, int iFirst, int iLast);
 bool		IR816Holds(SIRW65C816Held* asHeld, int iRegister, SIRW65C816Line* psLine);
 void		IR816UpdateHeld(SIRW65C816Held* asHeld, SIRW65C816Line* psLine);
 
-//IR816DeadStores.cpp: stores nothing reads, and what the code reads of the frame.
+//IRW65C816DeadStores.cpp: stores nothing reads, and what the code reads of the frame.
 bool		IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset);
 bool		IR816DeadStore(CIRW65C816Code* pcCode, size uiFrom, const char* szWord, size uiWord);
 bool		IR816MovesS(CIRW65C816Code* pcCode, size uiLine);
 bool		IR816FindReads(CIRW65C816Code* pcCode, size uiFrom, uint8* abRead);
 
-//IR816Runtime.cpp: how a runtime routine (in Libc65's IR816Runtime-*.asm) takes its operands.
+//IRW65C816Runtime.cpp: how a runtime routine (in Libc65's IR816Runtime-*.asm) takes its operands.
 bool		IR816IndexedRoutine(const char* szOperand, size uiOperand);
 bool		IR816ScratchRoutine(const char* szName);
 

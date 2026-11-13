@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "IR816BackendInternal.h"
+#include "IRW65C816BackendInternal.h"
 #include "IRW65C816Code.h"
 #include "IRBranchPasses.h"
 #include "CPPNameCharacters.h"

@@ -22,7 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __I_R_816_CODE_H__
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Chars.h"
-#include "IR816BackendInternal.h"
+#include "IRW65C816BackendInternal.h"
 
 
 //What a line of a W65C816 function's code is.
