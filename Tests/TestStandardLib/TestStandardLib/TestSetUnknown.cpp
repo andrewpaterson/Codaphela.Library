@@ -519,6 +519,66 @@ void TestSetUnknownAddAllWithNulls(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A set that ignores NULLs has one where an element was removed.  It isn't
+// an element of the set, so an array that keeps NULLs isn't given it by
+// AddAll, whether the array takes any element or only those it hasn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetUnknownAddAllFromRemoved(bool bUnique)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetUnknown		cSet;
+	CArrayUnknown	cArray;
+	CTestUnknown*	apcTests[3];
+	size			i;
+
+	cSet.Init(false);
+	cSet.KillElements(false);
+	for (i = 0; i < 3; i++)
+	{
+		apcTests[i] = cSet.Add<CTestUnknown>();
+		apcTests[i]->Init((int)i);
+	}
+	AssertSize(1, cSet.Remove(apcTests[1]));
+	AssertSize(2, cSet.NumElements());
+
+	if (bUnique)
+	{
+		cArray.CArrayCommonUnknown::Init(ARRAY_COMMON_KILL_ELEMENT | ARRAY_COMMON_PRESERVE_ORDER | ARRAY_COMMON_UNIQUE_ONLY);
+	}
+	else
+	{
+		cArray.Init();
+	}
+	AssertTrue(cArray.AddAll(&cSet));
+	AssertSize(2, cArray.NumElements());
+	AssertPointer(apcTests[0], cArray.Get(0));
+	AssertPointer(apcTests[2], cArray.Get(1));
+
+	//And again: the unique array has them already, the other takes them twice.
+	AssertTrue(cArray.AddAll(&cSet));
+	AssertSize(bUnique ? 2 : 4, cArray.NumElements());
+	for (i = 0; i < cArray.NumElements(); i++)
+	{
+		AssertNotNull(cArray.Get(i));
+	}
+
+	cArray.KillElements(false);
+	cArray.Kill();
+	cSet.KillElements(true);
+	cSet.Kill();
+	apcTests[1]->Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Set replaces the element at its index even when replacing it leaves
 // enough NULLs that they are cleaned, moving the elements.
 //
@@ -710,6 +770,8 @@ void TestSetUnknown(void)
 	TestSetUnknownCleanNulls();
 	TestSetUnknownLoadAfterRemove();
 	TestSetUnknownAddAllWithNulls();
+	TestSetUnknownAddAllFromRemoved(false);
+	TestSetUnknownAddAllFromRemoved(true);
 	TestSetUnknownSetCleansNulls();
 	TestSetUnknownUniqueAddTwice(true);
 	TestSetUnknownUniqueAddTwice(false);

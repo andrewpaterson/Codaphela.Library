@@ -564,6 +564,8 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 {
 	size		i;
 	CUnknown*	pcUnknown;
+	size		uiNumElements;
+	bool		bSkipNulls;
 
 	if ((muiFlags & ARRAY_COMMON_KILL_ELEMENT) && (pcSource->muiFlags & ARRAY_COMMON_KILL_ELEMENT))
 	{
@@ -572,20 +574,42 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 		return false;
 	}
 
+	//A source that ignores NULLs has them where elements were removed: they aren't its elements, so an array that keeps
+	//NULLs as elements isn't given them.  (One that ignores them too takes them as its own removed elements.)
+	bSkipNulls = (pcSource->muiFlags & ARRAY_COMMON_IGNORE_NULL) && !(muiFlags & ARRAY_COMMON_IGNORE_NULL);
+	uiNumElements = pcSource->mcArray.NumElements();
 	if (muiFlags & ARRAY_COMMON_UNIQUE_ONLY)
 	{
-		for (i = 0; i < pcSource->mcArray.NumElements(); i++)
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcUnknown = *pcSource->mcArray.Get(i);
-			Add(pcUnknown, false);
+			if ((pcUnknown != NULL) || !bSkipNulls)
+			{
+				Add(pcUnknown, false);
+			}
 		}
+		CleanNullsIfNecessary();
+		return true;
+	}
+	else if (bSkipNulls && (pcSource->miNonNullElements != uiNumElements))
+	{
+		for (i = 0; i < uiNumElements; i++)
+		{
+			pcUnknown = *pcSource->mcArray.Get(i);
+			if (pcUnknown != NULL)
+			{
+				mcArray.Add(pcUnknown);
+				miNonNullElements++;
+			}
+		}
+		SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, false);
 		CleanNullsIfNecessary();
 		return true;
 	}
 	else
 	{
-		//NULLs are copied too, but only the elements that aren't NULL are counted.  The appended elements aren't
-		//in pointer order.
+		//A source that keeps its NULLs has them copied too, but only the elements that aren't NULL are counted.  The
+		//appended elements aren't in pointer order.
 		mcArray.InsertArrayAfterEnd(&pcSource->mcArray);
 		miNonNullElements += pcSource->miNonNullElements;
 		SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, false);
