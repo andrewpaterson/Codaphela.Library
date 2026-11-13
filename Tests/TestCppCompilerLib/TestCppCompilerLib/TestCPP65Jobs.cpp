@@ -254,6 +254,62 @@ void TestCPP65JobsUnitReports(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A project's sources given as full paths, and as a path out of the
+// project's directory and back, are the same units as the names relative
+// to it (CCPP65Builder::AddProjectSources): hcp65build's plain command
+// line passes them as they were typed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65JobsFullPathSources(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/JobsProject/First.cpp", "Input/CPP65/JobsProject/Middle.cpp", "Input/CPP65/JobsProject/Last.cpp", "Input/CPP65/JobsProject/Main.cpp", NULL };
+	CCPP65Builder		cRelative;
+	CCPP65Builder		cFull;
+	CArrayChars			aszSources;
+	CFileUtil			cFileUtil;
+	CChars				szDirectory;
+	CChars				szPath;
+	bool				bResult;
+
+	bResult = TestCPP65JobsBegin(&cRelative, CPPT_65C64, NULL, aszUnits);
+	bResult &= cRelative.Link();
+	AssertString("", cRelative.GetErrors());
+	AssertTrue(bResult);
+
+	szDirectory.Init("Input" _FS_ "CPP65" _FS_ "JobsProject");
+	cFileUtil.FullPath(&szDirectory);
+	aszSources.Init();
+	aszSources.Add("First.cpp");
+	szPath.Init(szDirectory);
+	cFileUtil.AppendToPath(&szPath, "Middle.cpp");
+	aszSources.Add(szPath.Text());
+	szPath.Kill();
+	aszSources.Add(".." _FS_ "JobsProject" _FS_ "Last.cpp");
+	szPath.Init(szDirectory);
+	cFileUtil.AppendToPath(&szPath, "Main.cpp");
+	aszSources.Add(szPath.Text());
+	szPath.Kill();
+
+	cFull.Init();
+	cFull.SetTarget(CPPT_65C64);
+	TestCPP65AddIncludeDirectories(&cFull);
+	bResult = cFull.AddStartUp();
+	cFull.AddProjectSources("JobsProject", szDirectory.Text(), &aszSources, false);
+	AssertSize(4, cFull.NumUnitsToCompile());
+	bResult &= cFull.Link();
+	AssertString("", cFull.GetErrors());
+	AssertTrue(bResult);
+	TestCPP65JobsAssertSame(&cRelative, &cFull);
+
+	cFull.Kill();
+	aszSources.Kill();
+	szDirectory.Kill();
+	cRelative.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Jobs(void)
@@ -263,6 +319,7 @@ void TestCPP65Jobs(void)
 	TestCPP65JobsProject();
 	TestCPP65JobsBaseLib();
 	TestCPP65JobsUnitReports();
+	TestCPP65JobsFullPathSources();
 
 	TestStatistics();
 }

@@ -395,8 +395,9 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 //////////////////////////////////////////////////////////////////////////
 //
 // A project's sources (paths relative to its directory, szDirectory, a full path) as units of the library szLibrary
-// (AddUnit), with their W65C816 assembly.  A source outside the project's directory (..\Other\File.cpp) is a unit of
-// a library of its own directory, szLibrary.Other, linked as szLibrary is and given szLibrary's defines (AddDefine):
+// (AddUnit), with their W65C816 assembly.  A source outside the project's directory (..\Other\File.cpp, or a full
+// path, /Work/Other/File.cpp) is a unit of a library of its own directory, szLibrary.Other, linked as szLibrary is and
+// given szLibrary's defines (AddDefine):
 // a library's units are found, and their listings named, from the library's directory.  A Visual Studio project's
 // sources are added this way (AddVisualStudioProject), and a project described some other way (hcp65build's plain
 // command line) gets exactly the same units.
@@ -417,10 +418,17 @@ void CCPP65Builder::AddProjectSources(const char* szLibrary, const char* szDirec
 		szFile.Init(paszSources->GetText(i));
 		szFile.Replace('\\', FILE_SEPARATOR[0]);
 		szUnitLibrary.Init(szLibrary);
-		if (strstr(szFile.Text(), "..") != NULL)
+		if (cFileUtil.IsAbsolutePath(szFile.Text()) || (strstr(szFile.Text(), "..") != NULL))
 		{
-			szPath.Init(szUnitDirectory);
-			cFileUtil.AppendToPath(&szPath, szFile.Text());
+			if (cFileUtil.IsAbsolutePath(szFile.Text()))
+			{
+				szPath.Init(szFile);
+			}
+			else
+			{
+				szPath.Init(szUnitDirectory);
+				cFileUtil.AppendToPath(&szPath, szFile.Text());
+			}
 			cFileUtil.CollapsePath(&szPath);
 			szFile.Kill();
 			szUnitDirectory.Kill();
