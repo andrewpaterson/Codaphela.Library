@@ -58,6 +58,7 @@ static const char*	gaszIRPasses[IRP_NumPasses] =
 	"SinkComparisons",
 	"NarrowMultiplies",
 	"BiasSignedIndices",
+	"ReduceDivisions",
 };
 
 
@@ -111,7 +112,9 @@ void CIRPipeline::Init(void)
 // the blocks, promotes slots, folds, takes out what is worked out twice,
 // then works on the loops, and ends by removing what is dead.  After the
 // rounds multiplies are narrowed and signed indices biased, each followed
-// by the passes that tidy up after it.
+// by the passes that tidy up after it.  (ReduceDivisions, the last pass
+// added, runs among the divisions' passes, before a division by a constant
+// is made a multiply.)
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRPipeline::SetStandard(void)
@@ -127,6 +130,7 @@ void CIRPipeline::SetStandard(void)
 	AddRound(IRP_NarrowTruncations);
 	AddRound(IRP_BoundDivisions);
 	AddRound(IRP_SignedPowerDivisions);
+	AddRound(IRP_ReduceDivisions);
 	AddRound(IRP_DivisibilityTests);
 	AddRound(IRP_ConstantDivisions);
 	AddRound(IRP_ShareDivisions);

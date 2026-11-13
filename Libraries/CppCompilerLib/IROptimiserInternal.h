@@ -32,6 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR_ROTATE_LIMIT				8		//The most instructions a loop's head may have for RotateLoops to copy it.
 #define IR_THREAD_LIMIT				8		//The most instructions a block may have for ThreadPhis to work out.
 #define IR_IN_ARRAY_MOST			0xFFF7	//The most a ptradd's 16 bit offset may be for IRF_InArray: 8 bytes (the widest value) then end under 64KB.
+#define IR_COUNTER_DIVISORS			4		//The most divisors of one counter ReduceDivisions keeps a quotient and remainder for.
 #define IR_MULTIPLE_DEPTH			6		//How many instructions deep ExtendedMultiple follows shifts, adds and subs to an extension.
 #define IR_KNOWN_DEPTH				8		//How many single predecessors back KnownCondition and ImpliedComparison look for a branch.
 #define IR_EXTENDED_DEPTH			6		//How many definitions back Extended looks.

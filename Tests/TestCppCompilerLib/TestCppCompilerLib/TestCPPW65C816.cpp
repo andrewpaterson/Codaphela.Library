@@ -721,6 +721,80 @@ void TestCPP816ByteMasksAndSignedCompares(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Loops that divide their counter by constants (CIRCounterPasses::
+// ReduceDivisions keeps the quotients and remainders as counters): a 32 bit
+// counter from 0, a 16 bit one from a start that isn't known (divided once
+// before the loop) and up to the top of its range, a loop that doesn't go
+// round, and a step of 5 with a divide that only some ways round do.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816CounterDivisions(void)
+{
+	AssertInt(127, TestCPP816Run(
+		"typedef unsigned long uint32;\n"
+		"typedef unsigned int uint16;\n"
+		"unsigned char gauc[4000];\n"
+		"uint32 Fill(uint32 ulSize)\n"
+		"{\n"
+		"\tuint32\ti;\n"
+		"\tuint32\tulSum;\n"
+		"\tulSum = 0;\n"
+		"\tfor (i = 0; i < ulSize; i++)\n"
+		"\t{\n"
+		"\t\tgauc[i] = (unsigned char)((i * 7 + i / 251) & 0xff);\n"
+		"\t\tif (i % 3 == 2) { ulSum += i / 251; }\n"
+		"\t}\n"
+		"\treturn ulSum;\n"
+		"}\n"
+		"uint16 Count(uint16 uiFrom, uint16 uiTo)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tuint16\tuiCount;\n"
+		"\tuiCount = 0;\n"
+		"\tfor (i = uiFrom; i < uiTo; i++)\n"
+		"\t{\n"
+		"\t\tif (i % 7 == 3) { uiCount++; }\n"
+		"\t\tuiCount += i / 1000;\n"
+		"\t}\n"
+		"\treturn uiCount;\n"
+		"}\n"
+		"uint16 Step(uint16 uiFrom)\n"
+		"{\n"
+		"\tuint16\ti;\n"
+		"\tuint16\tuiCount;\n"
+		"\tuiCount = 0;\n"
+		"\tfor (i = uiFrom; i < 60000; i += 5)\n"
+		"\t{\n"
+		"\t\tuiCount += i % 13;\n"
+		"\t\tif (i & 64) { uiCount += i / 13; }\n"
+		"\t}\n"
+		"\treturn uiCount;\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"\tuint32\tulSum;\n"
+		"\tuint32\tulBytes;\n"
+		"\tuint16\ti;\n"
+		"\tint\t\tiResult;\n"
+		"\n"
+		"\tulSum = Fill(4000);\n"
+		"\tulBytes = 0;\n"
+		"\tfor (i = 0; i < 4000; i++) { ulBytes += gauc[i]; }\n"
+		"\tiResult = 0;\n"
+		"\tif (ulSum == 9960) { iResult += 1; }\n"
+		"\tif (ulBytes == 508936) { iResult += 2; }\n"
+		"\tif (Count(3, 3000) == 3429) { iResult += 4; }\n"
+		"\tif (Count(64000, 65535) == 33458) { iResult += 8; }\n"
+		"\tif (Count(9, 9) == 0) { iResult += 16; }\n"
+		"\tif (Step(7) == 21519) { iResult += 32; }\n"
+		"\tif (Step(59999) == 4619) { iResult += 64; }\n"
+		"\treturn iResult;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The words of a value that are always 0 (a zext's high word, an and's with
 // a constant, a shift right's: CIRW65C816Backend::FindZeroWords) are read
 // as the constant, not from the frame: 32 bit adds, subs either way round,
@@ -5995,6 +6069,7 @@ void TestCPP816(void)
 	TestCPP816NarrowSubscripts();
 	TestCPP816GuardedIndices();
 	TestCPP816ZeroWords();
+	TestCPP816CounterDivisions();
 	TestCPP816ByteMasksAndSignedCompares();
 	TestCPP816SharedDivisions();
 	TestCPP816Divide64();

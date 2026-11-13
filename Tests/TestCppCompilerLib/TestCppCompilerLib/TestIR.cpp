@@ -850,6 +850,7 @@ void TestIRLoops(void)
 #define IR_TEST_BIASED_INDICES		0x10	//MergeAddressPhis and BiasSignedIndices are (the W65C816's [p],Y).
 #define IR_TEST_CONSTANT_DIVISIONS	0x20	//SetConstantDivisions (the W65C816's).
 #define IR_TEST_DIVIDE_REMAINDERS	0x40	//SetDivideRemainders of the 65C64's divides (unsigned, 8 to 32 bits).
+#define IR_TEST_COUNTER_DIVISIONS	0x80	//ReduceDivisions is (the W65C816's).
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -893,6 +894,10 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	if (!(uiOptions & IR_TEST_NARROW_COUNTERS))
 	{
 		cOptimiser.GetPipeline()->Remove(IRP_NarrowCounters);
+	}
+	if (!(uiOptions & IR_TEST_COUNTER_DIVISIONS))
+	{
+		cOptimiser.GetPipeline()->Remove(IRP_ReduceDivisions);
 	}
 	if (!(uiOptions & IR_TEST_BIASED_INDICES))
 	{
@@ -4583,6 +4588,110 @@ void TestIROptimiserGuardedMultiples(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// ReduceDivisions (the W65C816's): a counter that can't wrap divided by constants each time round has its remainders,
+// and the quotient a udiv wants, kept as counters of their own (16 bits wide for these divisors), stepped in the
+// latch; nothing is divided going round.  A counter stepped by 5 up to a bound that isn't known may wrap, and is
+// left.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserCounterDivisions(void)
+{
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fj(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%e = ult i32 0, %n\n"
+		"\tbrif %e, loop, out\n"
+		"loop:\n"
+		"\t%i = phi i32 [loop, %i2], [entry, 0]\n"
+		"\t%s = phi i32 [loop, %s2], [entry, 0]\n"
+		"\t%0 = phi i16 [loop, %9], [entry, 0]\n"
+		"\t%1 = phi i32 [loop, %11], [entry, 0]\n"
+		"\t%2 = phi i16 [loop, %17], [entry, 0]\n"
+		"\t%3 = zext i16 %2 to i32\n"
+		"\t%t = add i32 %s, %1\n"
+		"\t%s2 = add i32 %t, %3\n"
+		"\t%i2 = add i32 %i, 1\n"
+		"\t%4 = add i16 %0, 1\n"
+		"\t%5 = uge i16 %4, 251\n"
+		"\t%6 = zext i1 %5 to i16\n"
+		"\t%7 = neg i16 %6\n"
+		"\t%8 = and i16 %7, 251\n"
+		"\t%9 = sub i16 %4, %8\n"
+		"\t%10 = zext i1 %5 to i32\n"
+		"\t%11 = add i32 %1, %10\n"
+		"\t%12 = add i16 %2, 1\n"
+		"\t%13 = uge i16 %12, 3\n"
+		"\t%14 = zext i1 %13 to i16\n"
+		"\t%15 = neg i16 %14\n"
+		"\t%16 = and i16 %15, 3\n"
+		"\t%17 = sub i16 %12, %16\n"
+		"\t%c = ult i32 %i2, %n\n"
+		"\tbrif %c, loop, out\n"
+		"out:\n"
+		"\t%x = phi i32 [entry, 0], [loop, %s2]\n"
+		"\tret i32 %x\n"
+		"}\n",
+		"function i32 @_D__Fj(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%e = ult i32 0, %n\n"
+		"\tbrif %e, loop, out\n"
+		"loop:\n"
+		"\t%i = phi i32 [entry, 0], [loop, %i2]\n"
+		"\t%s = phi i32 [entry, 0], [loop, %s2]\n"
+		"\t%q = udiv i32 %i, 251\n"
+		"\t%r = urem i32 %i, 3\n"
+		"\t%t = add i32 %s, %q\n"
+		"\t%s2 = add i32 %t, %r\n"
+		"\t%i2 = add i32 %i, 1\n"
+		"\t%c = ult i32 %i2, %n\n"
+		"\tbrif %c, loop, out\n"
+		"out:\n"
+		"\t%x = phi i32 [entry, 0], [loop, %s2]\n"
+		"\tret i32 %x\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_COUNTER_DIVISIONS);
+
+	AssertIROptimisedOptions(
+		"function i16 @_D__Ftt(i16 %a, i16 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%e = ult i16 %a, %n\n"
+		"\tbrif %e, loop, out\n"
+		"loop:\n"
+		"\t%i = phi i16 [entry, %a], [loop, %i2]\n"
+		"\t%s = phi i16 [entry, 0], [loop, %s2]\n"
+		"\t%r = urem i16 %i, 7\n"
+		"\t%s2 = add i16 %s, %r\n"
+		"\t%i2 = add i16 %i, 5\n"
+		"\t%c = ult i16 %i2, %n\n"
+		"\tbrif %c, loop, out\n"
+		"out:\n"
+		"\t%x = phi i16 [entry, 0], [loop, %s2]\n"
+		"\tret i16 %x\n"
+		"}\n",
+		"function i16 @_D__Ftt(i16 %a, i16 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%e = ult i16 %a, %n\n"
+		"\tbrif %e, loop, out\n"
+		"loop:\n"
+		"\t%i = phi i16 [entry, %a], [loop, %i2]\n"
+		"\t%s = phi i16 [entry, 0], [loop, %s2]\n"
+		"\t%r = urem i16 %i, 7\n"
+		"\t%s2 = add i16 %s, %r\n"
+		"\t%i2 = add i16 %i, 5\n"
+		"\t%c = ult i16 %i2, %n\n"
+		"\tbrif %c, loop, out\n"
+		"out:\n"
+		"\t%x = phi i16 [entry, 0], [loop, %s2]\n"
+		"\tret i16 %x\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_COUNTER_DIVISIONS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // NarrowTruncations: trunc(zext(a) + zext(b)) to i8 is an i8 add.  Not when
 // the i32 add is also stored.
 //
@@ -5172,6 +5281,7 @@ void TestIR(void)
 	TestIROptimiserFoldNullTests();
 	TestIROptimiserKnownBranches();
 	TestIROptimiserGuardedMultiples();
+	TestIROptimiserCounterDivisions();
 	TestIROptimiserNarrowTruncations();
 	TestIROptimiserUnifySlotTypes();
 	TestIROptimiserRotateLoops();

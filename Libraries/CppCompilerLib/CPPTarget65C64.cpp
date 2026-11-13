@@ -311,8 +311,8 @@ void CCPPTarget65C64::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOpti
 //
 // The standard passes, without those that don't pay on the 65C64: it has a
 // multiply and a divide, 32 bit registers and indexed addresses, so divisions
-// by constants aren't made multiplies, and counters, multiplies and indices
-// aren't narrowed or biased.
+// by constants aren't made multiplies or kept as counters, and counters,
+// multiplies and indices aren't narrowed or biased.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget65C64::BuildPipeline(CIRPipeline* pcPipeline)
@@ -323,6 +323,7 @@ void CCPPTarget65C64::BuildPipeline(CIRPipeline* pcPipeline)
 	pcPipeline->Remove(IRP_MergeAddressPhis);
 	pcPipeline->Remove(IRP_NarrowCounters);
 	pcPipeline->Remove(IRP_NarrowMultiplies);
+	pcPipeline->Remove(IRP_ReduceDivisions);
 	pcPipeline->Remove(IRP_BiasSignedIndices);
 }
 

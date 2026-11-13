@@ -60,6 +60,7 @@ enum EIRPass
 	IRP_SinkComparisons,
 	IRP_NarrowMultiplies,
 	IRP_BiasSignedIndices,
+	IRP_ReduceDivisions,
 	IRP_NumPasses
 };
 

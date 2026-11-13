@@ -83,6 +83,7 @@ void CIROptimiser::InitPasses(void)
 	macPasses[IRP_LessLoopTests].Init(CIRPipeline::GetPassName(IRP_LessLoopTests), &mcLoopPasses, (FIRPass)&CIRLoopPasses::LessLoopTests);
 	macPasses[IRP_ReplaceLoopCounters].Init(CIRPipeline::GetPassName(IRP_ReplaceLoopCounters), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReplaceLoopCounters);
 	macPasses[IRP_NarrowCounters].Init(CIRPipeline::GetPassName(IRP_NarrowCounters), &mcCounterPasses, (FIRPass)&CIRCounterPasses::NarrowCounters);
+	macPasses[IRP_ReduceDivisions].Init(CIRPipeline::GetPassName(IRP_ReduceDivisions), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceDivisions);
 	macPasses[IRP_ReduceMultiplies].Init(CIRPipeline::GetPassName(IRP_ReduceMultiplies), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceMultiplies);
 	macPasses[IRP_ReplaceExitValues].Init(CIRPipeline::GetPassName(IRP_ReplaceExitValues), &mcLoopPasses, (FIRPass)&CIRLoopPasses::ReplaceExitValues);
 	macPasses[IRP_DeleteDeadLoops].Init(CIRPipeline::GetPassName(IRP_DeleteDeadLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::DeleteDeadLoops);

@@ -1069,6 +1069,230 @@ bool CIRCounterPasses::CounterUnwrapped(size uiLoop, CIRBlock* pcLatch, SIRRefer
 }
 
 
+//A divisor of a counter ReduceDivisions keeps a quotient and remainder for.
+struct SIRCounterDivisor
+{
+	uint64			ulliDivisor;
+	SIRReference	sQuotient;		//The quotient's phi, IRNone() until a udiv wants it.
+	SIRReference	sRemainder;		//The remainder's phi (of the narrow type when the divisor fits it).
+	SIRReference	sWideRemainder;	//...zero extended to the counter's type in the head, IRNone() until a urem wants it.
+	SIRReference	sCarry;			//In the latch: 1 (of the counter's type) when the remainder passed the divisor this time round.
+	bool			bDivide;		//A udiv of the counter by it is in the loop.
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a loop with one way in and one block going round to its head, a
+// counter i (a phi of init, then i + s, s a constant above 0) that never
+// wraps (CounterUnwrapped) divided by a constant c each time round (a udiv
+// or urem in a block every way round passes, c not a power of 2 and at
+// least s) has its remainder, and its quotient when such a udiv wants it,
+// kept as counters of their own (which a divide by c anywhere in the loop
+// then takes): init % c and init / c before the loop (once),
+// and going round r + s, less c when that reaches it, with the quotient one
+// more then.  for (i = 0; i < n; i++) ... i / 251 ... i % 3 divides nothing
+// while it goes round.  For a target whose divide is a routine (the
+// W65C816: some 300 cycles a divide against a few dozen).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRCounterPasses::ReduceDivisions(void)
+{
+	SIRCounterDivisor	asDivisors[IR_COUNTER_DIVISORS];
+	SIRCounterDivisor*	psDivisor;
+	SIRLoopCounter		sCounter;
+	size				uiLoop;
+	size				uiPhi;
+	size				uiBlock;
+	size				uiInstruction;
+	size				uiDivisors;
+	size				ui;
+	CIRBlock*			pcHead;
+	CIRBlock*			pcBlock;
+	CIRBlock*			pcEntering;
+	CIRBlock*			pcLatch;
+	SIRPhi*				psPhi;
+	SIRPhi*				psNewPhi;
+	SIRInstruction*		psInstruction;
+	SIRReference		sValue;
+	SIRReference		sStart;
+	SIRReference		sStepped;
+	SIRReference		sTest;
+	SIRReference		sTaken;
+	SIRType				sType;
+	SIRType				sNarrow;
+	uint64				ulliDivisor;
+	uint64				ulliInit;
+	uint64				ulliMask;
+	int					iPass;
+	bool				bChanged;
+
+	NeedLoops();
+	ClearReplacements();
+	bChanged = false;
+	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
+	{
+		//One way in and one way round.
+		pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
+		pcEntering = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering;
+		if (!pcEntering || (pcHead->mapcPredecessors.NumElements() != 2))
+		{
+			continue;
+		}
+		pcLatch = mpcContext->mcLoops.GetLatch(uiLoop, 0);
+
+		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
+		{
+			//The counter: i = phi [entering, init], [latch, i + s], never wrapping.
+			psPhi = pcHead->masPhis.Get(uiPhi);
+			sType = psPhi->sType;
+			if ((!sType.Is(IRTK_I16) && !sType.Is(IRTK_I32)) || !MatchCounter(uiLoop, psPhi, IR_COUNTER_INSIDE, &sCounter) || (sCounter.lliStep <= 0) ||
+				(psPhi->asArguments.Get(sCounter.uiOutside)->pcBlock != pcEntering) || (psPhi->asArguments.Get(1 - sCounter.uiOutside)->pcBlock != pcLatch))
+			{
+				continue;
+			}
+			ulliMask = (uint64)IRUnsignedMax(sType.Bits());
+			if (!CounterUnwrapped(uiLoop, pcLatch, psPhi->sResult, sCounter.sInit, sCounter.sNext, sCounter.lliStep, ulliMask))
+			{
+				continue;
+			}
+
+			//Found first (which divisors, and whether a quotient is wanted), then replaced.
+			uiDivisors = 0;
+			for (iPass = 0; iPass < 2; iPass++)
+			{
+				for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+				{
+					pcBlock = mpcFunction->GetBlock(uiBlock);
+					//Kept for a divide every way round passes; then a divide anywhere in the loop takes what is kept.
+					if (!mpcContext->mcLoops.Contains(uiLoop, pcBlock) || ((iPass == 0) && !mpcContext->mcDominators.Dominates(pcBlock, pcLatch)))
+					{
+						continue;
+					}
+					for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+					{
+						psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+						if (((psInstruction->uiOpcode != IRO_UDiv) && (psInstruction->uiOpcode != IRO_URem)) || !psInstruction->asArguments[0].Equals(psPhi->sResult) ||
+							!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary() || !psInstruction->sType.Equals(sType) ||
+							!Replacement(psInstruction->sResult).Equals(psInstruction->sResult))
+						{
+							continue;
+						}
+						ulliDivisor = (uint64)mpcFunction->GetSigned(psInstruction->asArguments[1]) & ulliMask;
+						if ((ulliDivisor < 3) || ((ulliDivisor & (ulliDivisor - 1)) == 0) || ((uint64)sCounter.lliStep > ulliDivisor) || (ulliDivisor > (ulliMask >> 1)))
+						{
+							continue;
+						}
+						psDivisor = NULL;
+						for (ui = 0; ui < uiDivisors; ui++)
+						{
+							if (asDivisors[ui].ulliDivisor == ulliDivisor)
+							{
+								psDivisor = &asDivisors[ui];
+							}
+						}
+						if (iPass == 0)
+						{
+							if (!psDivisor && (uiDivisors < IR_COUNTER_DIVISORS))
+							{
+								psDivisor = &asDivisors[uiDivisors];
+								uiDivisors++;
+								psDivisor->ulliDivisor = ulliDivisor;
+								psDivisor->sQuotient = IRNone();
+								psDivisor->sRemainder = IRNone();
+								psDivisor->sWideRemainder = IRNone();
+								psDivisor->sCarry = IRNone();
+								psDivisor->bDivide = false;
+							}
+							if (psDivisor && (psInstruction->uiOpcode == IRO_UDiv))
+							{
+								psDivisor->bDivide = true;
+							}
+						}
+						else if (psDivisor && ((psInstruction->uiOpcode == IRO_URem) || !psDivisor->sQuotient.IsNone()))
+						{
+							Replace(psInstruction->sResult, (psInstruction->uiOpcode == IRO_UDiv) ? psDivisor->sQuotient : psDivisor->sWideRemainder);
+							bChanged = true;
+						}
+					}
+				}
+				if ((iPass == 1) || (uiDivisors == 0))
+				{
+					break;
+				}
+
+				//The counters: init % c (and init / c) before the loop, stepped in the latch.
+				if (pcEntering->msJump.uiKind != IRJ_Jump)
+				{
+					pcEntering = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+				}
+				for (ui = 0; ui < uiDivisors; ui++)
+				{
+					psDivisor = &asDivisors[ui];
+					ulliDivisor = psDivisor->ulliDivisor;
+
+					//The remainder is 16 bits wide when twice the divisor fits them.
+					sNarrow = (ulliDivisor <= 0x7FFF) ? IRType(IRTK_I16) : sType;
+					ulliInit = sCounter.sInit.IsConstant() ? ((uint64)mpcFunction->GetSigned(sCounter.sInit) & ulliMask) : 0;
+					if (sCounter.sInit.IsConstant())
+					{
+						sStart = mpcFunction->AddInteger(sNarrow, (int64)(ulliInit % ulliDivisor));
+					}
+					else
+					{
+						sStart = mpcFunction->Add(pcEntering, IRO_URem, sType, sCounter.sInit, mpcFunction->AddInteger(sType, (int64)ulliDivisor));
+						if (!sNarrow.Equals(sType))
+						{
+							sStart = mpcFunction->Add(pcEntering, IRO_Trunc, sNarrow, sStart);
+						}
+					}
+					psDivisor->sRemainder = mpcFunction->AddTemporary(sNarrow);
+
+					//r + s, less c when it reaches c: less c & -(r + s >= c).
+					sStepped = mpcFunction->Add(pcLatch, IRO_Add, sNarrow, psDivisor->sRemainder, mpcFunction->AddInteger(sNarrow, sCounter.lliStep));
+					sTest = mpcFunction->Add(pcLatch, IRO_UGe, sNarrow, sStepped, mpcFunction->AddInteger(sNarrow, (int64)ulliDivisor));
+					sTaken = mpcFunction->Add(pcLatch, IRO_ZExt, sNarrow, sTest);
+					sTaken = mpcFunction->Add(pcLatch, IRO_Neg, sNarrow, sTaken);
+					sTaken = mpcFunction->Add(pcLatch, IRO_And, sNarrow, sTaken, mpcFunction->AddInteger(sNarrow, (int64)ulliDivisor));
+					sStepped = mpcFunction->Add(pcLatch, IRO_Sub, sNarrow, sStepped, sTaken);
+					psNewPhi = pcHead->AddPhi(sNarrow, psDivisor->sRemainder);
+					pcHead->AddPhiArgument(psNewPhi, pcEntering, sStart);
+					pcHead->AddPhiArgument(psNewPhi, pcLatch, sStepped);
+					psDivisor->sWideRemainder = sNarrow.Equals(sType) ? psDivisor->sRemainder : InsertInstruction(pcHead, 0, IRO_ZExt, sType, psDivisor->sRemainder, IRNone());
+
+					if (psDivisor->bDivide)
+					{
+						if (sCounter.sInit.IsConstant())
+						{
+							sStart = mpcFunction->AddInteger(sType, (int64)(ulliInit / ulliDivisor));
+						}
+						else
+						{
+							sStart = mpcFunction->Add(pcEntering, IRO_UDiv, sType, sCounter.sInit, mpcFunction->AddInteger(sType, (int64)ulliDivisor));
+						}
+						psDivisor->sQuotient = mpcFunction->AddTemporary(sType);
+						sValue = mpcFunction->Add(pcLatch, IRO_ZExt, sType, sTest);
+						sStepped = mpcFunction->Add(pcLatch, IRO_Add, sType, psDivisor->sQuotient, sValue);
+						psNewPhi = pcHead->AddPhi(sType, psDivisor->sQuotient);
+						pcHead->AddPhiArgument(psNewPhi, pcEntering, sStart);
+						pcHead->AddPhiArgument(psNewPhi, pcLatch, sStepped);
+					}
+				}
+
+				//AddPhi may have moved the head's phis.
+				psPhi = pcHead->masPhis.Get(uiPhi);
+				FindDefinitions();
+			}
+		}
+	}
+	if (bChanged)
+	{
+		ApplyReplacements();
+	}
+	return bChanged;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Strength reduction: in a loop with one block going round to its head and
