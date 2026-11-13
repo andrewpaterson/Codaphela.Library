@@ -77,7 +77,7 @@ CArrayChars* CCPP65Generator::GetNotImported(void)
 // measured worth it page aligned frames (CIRW65C816Backend::AlignFrame).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetFrameProfile(CAsmW65C816Profile* pcProfile)
+void CCPP65Generator::SetFrameProfile(CAsm65Profile* pcProfile)
 {
 	mpcFrameProfile = pcProfile;
 }

@@ -42,7 +42,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
 #include "IRImports.h"
-#include "Assembler65Lib/AsmW65C816Profile.h"
+#include "Assembler65Lib/Asm65Profile.h"
 #include "CPPTarget.h"
 #include "CPPErrors.h"
 #include "Config.h"
@@ -489,7 +489,7 @@ protected:
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 	size					muiImportsTurn;		//The unit's turn with them (CIRImports::BeginTurn).
 	bool					mbMissedImports;	//The unit must be generated again (MissedImports).
-	CAsmW65C816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
+	CAsm65Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
@@ -520,7 +520,7 @@ public:
 	bool					GenerateBeforeTurn(void);
 	bool					GenerateAfterTurn(CCPP65Assembly* pcDest);
 	CArrayChars*			GetNotImported(void);
-	void					SetFrameProfile(CAsmW65C816Profile* pcProfile);
+	void					SetFrameProfile(CAsm65Profile* pcProfile);
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);

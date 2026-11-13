@@ -57,7 +57,7 @@ typedef CArrayTemplate<SIRCopyStep>	CArrayIRCopySteps;
 
 
 class CScratchPadAllocator;
-class CAsmW65C816Profile;
+class CAsm65Profile;
 
 
 //What a back end keeps about a function it wrote (TakeWritten), for FinishFunction: its own to make sense of.  The
@@ -99,7 +99,7 @@ public:
 	virtual void	SetOptions(CCPPCompileOptions* pcOptions);
 	virtual bool	GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) = 0;
 	virtual CIRWrittenFunction*	TakeWritten(void);
-	virtual void	FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile);
+	virtual void	FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile);
 
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);

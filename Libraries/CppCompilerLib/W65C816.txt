@@ -411,7 +411,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	TestStandardLib65 816 31.487G -> 30.675G (-2.58%).  Tests: TestTrueMallocatorMapping
 	(host and 816), TestCPP816CountZeros (every 16 bit value, random 32 and 64 bit).
 	2026-11-06, MemMove816 (13.8% of TestStandardLib65 816): the profiler now has call sites
-	(CAsm65816Profile::GetCallSite, the report's "Call sites": the cycles inside the calls
+	(CAsm65Profile::GetCallSite, the report's "Call sites": the cycles inside the calls
 	of a function from each line, with all they called; any global label in a function is
 	a call of it, so Libc65's _memcpy and _memmove count as MemMove816's).  They showed
 	CCircularMemoryList::Clear's memset of the whole cache (258 calls, 3.77G cycles, 12.2%
@@ -661,7 +661,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	a function that may recurse (in a cycle of calls its unit can see, or calling
 	itself).  By default estimated: a function with loops whose direct page accesses,
 	weighted 8 for each loop they are in, are more than 3 times what aligning costs a
-	call.  Optionally measured (profile guided): CAsm65816Profile runs the programs and
+	call.  Optionally measured (profile guided): CAsm65Profile runs the programs and
 	counts each function's direct page accesses (on its D, so its runtime routines'
 	too), calls and whether it was entered again while running;
 	CCPP65Builder::SetFrameProfile gives that to the back end, which then aligns a

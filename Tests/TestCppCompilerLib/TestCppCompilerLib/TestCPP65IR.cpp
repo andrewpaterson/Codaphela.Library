@@ -6,6 +6,8 @@
 #include "BaseLib/NumberControl.h"
 #include "MicroprocessorLib/65C64InstructionFactory.h"
 #include "CppCompilerLib/CPP65IRFrontEnd.h"
+#include "CppCompilerLib/CPP65Builder.h"
+#include "Assembler65Lib/Asm65Profile.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -1813,6 +1815,108 @@ void TestCPP65IRConstErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A 65C64 program profiled (CAsm65Profile on CAsm65Profiled65C64, as the
+// W65C816's are): a function's calls counted, a call from itself seen as
+// recursion, each line's entries and cycles with the program's line table,
+// and the cycles added up being the processor's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65Profile(void)
+{
+	CCPP65Builder			cBuilder;
+	CAsm65Memory			cMemory;
+	CFast65C64				cMPU;
+	CAsm65Profiled65C64		cProfiled;
+	CAsm65Profile			cProfile;
+	SAsm65FunctionProfile*	psFunction;
+	SAsm65LineProfile*		psLine;
+	uint64					uiSteps;
+	uint64					uiReset;
+
+	cBuilder.Init();
+	cBuilder.SetLineTable(true);
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	AssertTrue(cBuilder.AddStartUp());
+	AssertTrue(cBuilder.AddSource("Test.cpp",
+		"int Mix(int a, int b)\n"
+		"{\n"
+		"\tint x = a * 3 + b;\n"
+		"\tx ^= (x >> 2); x += a & 7; x -= b | 5; x ^= x << 1;\n"
+		"\tx += a * b; x ^= (b >> 3); x += 11; x -= a; x ^= 0x55;\n"
+		"\tx += b * 5; x ^= (a >> 1); x += (b & 3) * 9; x ^= (x >> 4);\n"
+		"\tx += a ^ b; x -= (a | b) >> 2; x ^= (b << 2); x += (a & b) * 7;\n"
+		"\tx ^= (x >> 3); x += a & 5; x -= b | 9; x ^= x << 2; x += a * 5;\n"
+		"\tx ^= (b >> 2); x += 13; x -= b; x ^= 0x33; x += a * 9; x ^= (b >> 1);\n"
+		"\tx += (a & 7) * 3; x ^= (x >> 5); x += a | b; x -= (a ^ b) >> 3; x ^= (a << 3);\n"
+		"\tx ^= (x >> 1); x += a * 3; x -= b | 5; x ^= x << 1; x += (a & b) * 7; x ^= (b >> 1); x += a ^ 11;\n"
+		"\tx ^= (x >> 2); x += a * 4; x -= b | 6; x ^= x << 2; x += (a & b) * 8; x ^= (b >> 2); x += a ^ 12;\n"
+		"\tx ^= (x >> 3); x += a * 5; x -= b | 7; x ^= x << 3; x += (a & b) * 9; x ^= (b >> 3); x += a ^ 13;\n"
+		"\tx ^= (x >> 4); x += a * 6; x -= b | 8; x ^= x << 1; x += (a & b) * 10; x ^= (b >> 4); x += a ^ 14;\n"
+		"\tx ^= (x >> 5); x += a * 7; x -= b | 9; x ^= x << 2; x += (a & b) * 11; x ^= (b >> 1); x += a ^ 15;\n"
+		"\treturn x;\n"
+		"}\n"
+		"int Down(int i)\n"
+		"{\n"
+		"\tif (i == 0) { return 1; }\n"
+		"\treturn Down(i - 1) + Mix(i, 2);\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"\tint\ti;\n"
+		"\tint\tiSum;\n"
+		"\tiSum = 0;\n"
+		"\tfor (i = 0; i < 500; i++)\n"
+		"\t{\n"
+		"\t\tiSum += Mix(i, iSum & 255);\n"
+		"\t}\n"
+		"\treturn iSum + Down(5);\n"
+		"}\n"));
+	AssertTrue(cBuilder.Link());
+	AssertString("", cBuilder.GetErrors());
+
+	cMemory.Init();
+	cMemory.LoadProgram(cBuilder.GetOutput(), CPP65_PROGRAM_ADDRESS);
+	cMemory.InitFast65C64(&cMPU);
+	cMPU.Reset();
+	cProfile.Init();
+	cProfiled.Init(&cMemory, &cMPU);
+	uiReset = cMPU.NumCycles();
+	uiSteps = cProfile.Run(&cProfiled, cBuilder.GetMap(), 10000000, cBuilder.GetLineTable());
+	AssertTrue(cMPU.IsStopped());
+	AssertTrue(uiSteps < 10000000);
+	AssertLong((int64)(cMPU.NumCycles() - uiReset), (int64)cProfile.NumCycles());
+
+	psFunction = cProfile.Get("_Mix__Fii");
+	AssertNotNull(psFunction);
+	AssertLong(505, psFunction ? (int64)psFunction->ulliCalls : 0);
+	AssertFalse(psFunction ? psFunction->bRecursive : true);
+	AssertTrue(psFunction ? psFunction->ulliCycles > 0 : false);
+	psFunction = cProfile.Get("_Down__Fi");
+	AssertNotNull(psFunction);
+	AssertTrue(psFunction ? psFunction->ulliCalls >= 1 : false);
+	AssertTrue(psFunction ? psFunction->bRecursive : false);
+	psFunction = cProfile.Get("_main");
+	AssertNotNull(psFunction);
+	AssertLong(1, psFunction ? (int64)psFunction->ulliCalls : 0);
+
+	//The call's line in main is entered each time round; Mix's first line each call.
+	psLine = cProfile.GetLine("_main", "Test.cpp", 30);
+	AssertNotNull(psLine);
+	AssertLong(500, psLine ? (int64)psLine->ulliEntries : 0);
+	psLine = cProfile.GetLine("_Mix__Fii", "Test.cpp", 3);
+	AssertNotNull(psLine);
+	AssertLong(505, psLine ? (int64)psLine->ulliEntries : 0);
+	AssertTrue(psLine ? psLine->ulliCycles > 0 : false);
+
+	cProfile.Kill();
+	cMPU.Kill();
+	cMemory.Kill();
+	cBuilder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -1824,6 +1928,7 @@ void TestCPP65IR(void)
 	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
+	TestCPP65Profile();
 	TestCPP65IRArithmetic();
 	TestCPP65IRControl();
 	TestCPP65IRMemory();

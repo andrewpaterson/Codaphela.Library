@@ -406,7 +406,7 @@ void CIRW65C816Backend::DropFrame(size uiStart)
 // it was aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsmW65C816Profile* pcProfile)
+bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile)
 {
 	CIRW65C816Code				cCode;
 	CChars					sz;
@@ -425,7 +425,7 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	int32					iCopied;
 	int32					i;
 	uint64					ulliCost;
-	SAsmW65C816FunctionProfile*	psProfile;
+	SAsm65FunctionProfile*	psProfile;
 	bool					bBig;
 	bool					bWorth;
 	bool					bAllRead;

@@ -607,13 +607,13 @@ void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A profile of the program's functions (CAsmW65C816Profile, from a run): on the
+// A profile of the program's functions (CAsm65Profile, from a run): on the
 // W65C816 those it measured worth it get page aligned frames (without one
 // none do), and its hottest calls are inlined first, bigger callees for
 // hot ones (CIRInliner::SetProfile).  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::SetFrameProfile(CAsmW65C816Profile* pcProfile)
+void CCPP65Builder::SetFrameProfile(CAsm65Profile* pcProfile)
 {
 	mpcFrameProfile = pcProfile;
 }
@@ -1399,7 +1399,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // (CCPP65Generator::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsmW65C816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics)
 {
 	CTranslationUnit				cFile;
 	CCPPPreprocessor					cPreprocessor;

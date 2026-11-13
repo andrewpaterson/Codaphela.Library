@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "Project.h"
 #include "CPPTarget.h"
 #include "IRImports.h"
-#include "Assembler65Lib/AsmW65C816Profile.h"
+#include "Assembler65Lib/Asm65Profile.h"
 #include "CPP65Assembly.h"
 #include "CPPHeaderIndex.h"
 #include "CPP65UnitWorkspace.h"
@@ -193,7 +193,7 @@ protected:
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
-	CAsmW65C816Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
+	CAsm65Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
 	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
 	CArrayChars						maszOutsideProjects;	//A project with a source outside its directory, and that
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
@@ -227,7 +227,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 	void			SetTarget(ECPPTarget eTarget);
-	void			SetFrameProfile(CAsmW65C816Profile* pcProfile);
+	void			SetFrameProfile(CAsm65Profile* pcProfile);
 	void			SetListingDirectory(const char* szDirectory);
 	bool			SetSpillDirectory(const char* szDirectory, lsize uiCacheSize);
 	void			SetLazyHeaders(bool bLazyHeaders);
@@ -288,7 +288,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsmW65C816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:

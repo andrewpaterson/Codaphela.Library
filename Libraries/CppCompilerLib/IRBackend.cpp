@@ -431,7 +431,7 @@ CIRWrittenFunction* CIRBackend::TakeWritten(void)
 // initialised.  Nothing, unless the back end has something to do.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile)
+void CIRBackend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile)
 {
 
 }

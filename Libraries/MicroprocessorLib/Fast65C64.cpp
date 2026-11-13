@@ -567,6 +567,22 @@ bool CFast65C64::IsReturn(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The instruction whose first word is uiOpcode calls a subroutine or jumps
+// (jsr, brsr, jmp): at a function's start, a call of it (a profiler's
+// count; a jmp there is a call that returns for its caller).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFast65C64::IsCallOrJump(uint16 uiOpcode)
+{
+	SFast65C64Op*	psOp;
+
+	psOp = GetFast65C64Op(uiOpcode);
+	return (psOp->uiInstruction == I65_Jsr) || (psOp->uiInstruction == I65_Brsr) || (psOp->uiInstruction == I65_Jmp);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Edge interrupts are latched when their input falls.
 //
 //////////////////////////////////////////////////////////////////////////

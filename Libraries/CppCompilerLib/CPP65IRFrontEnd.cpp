@@ -278,7 +278,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	CChars					szWarnings;
 	SCPP65IRWritten*		psWritten;
 	CIRWrittenFunction*		pcWritten;
-	SAsmW65C816FunctionProfile*	psProfiled;
+	SAsm65FunctionProfile*	psProfiled;
 	size					ui;
 	size					uiStart;
 	size					uiLength;

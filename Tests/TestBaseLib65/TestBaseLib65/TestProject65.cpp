@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "Assembler65Lib/AsmW65C816FrameCheck.h"
-#include "Assembler65Lib/AsmW65C816Profile.h"
+#include "Assembler65Lib/Asm65Profile.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/ArrayChars.h"
@@ -55,7 +55,7 @@
 
 
 ECPPTarget	geTestProject65Target = CPPT_65C64;
-static CAsmW65C816Profile*	gpcTestProject65Measure = NULL;
+static CAsm65Profile*	gpcTestProject65Measure = NULL;
 
 #define TEST_PROJECT65_REPORT_LINES		60		//The most lines and functions a profile report lists.
 
@@ -579,6 +579,8 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	CAsm65HostFiles		cHostFiles;
 	CFast65C64			cMPU;
 	CFastW65C816			cMPU816;
+	CAsm65Profiled65C64		cProfiled65C64;
+	CAsm65ProfiledW65C816	cProfiled816;
 	CChars				szOutput;
 	uint64				uiSteps;
 	uint64				uiMaxSteps;
@@ -617,8 +619,9 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		if (gpcTestProject65Measure)
 		{
 			//TEST_PROJECT65_PROFILE: each function's direct page accesses, calls and recursion, and its lines' cycles
-			//(CAsmW65C816Profile).
-			uiSteps = gpcTestProject65Measure->Run(pcMemory, &cMPU816, pcBuilder->GetMap(), uiMaxSteps, pcBuilder->GetLineTable());
+			//(CAsm65Profile).
+			cProfiled816.Init(pcMemory, &cMPU816);
+			uiSteps = gpcTestProject65Measure->Run(&cProfiled816, pcBuilder->GetMap(), uiMaxSteps, pcBuilder->GetLineTable());
 		}
 		else if (getenv("TEST_PROJECT65_TRACE"))
 		{
@@ -666,7 +669,13 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	{
 		pcMemory->InitFast65C64(&cMPU);
 		cMPU.Reset();
-		if (getenv("TEST_PROJECT65_TRACE"))
+		if (gpcTestProject65Measure)
+		{
+			//TEST_PROJECT65_PROFILE: each function's calls and recursion, and its lines' cycles (CAsm65Profile).
+			cProfiled65C64.Init(pcMemory, &cMPU);
+			uiSteps = gpcTestProject65Measure->Run(&cProfiled65C64, pcBuilder->GetMap(), uiMaxSteps, pcBuilder->GetLineTable());
+		}
+		else if (getenv("TEST_PROJECT65_TRACE"))
 		{
 			//TEST_PROJECT65_TRACE: one instruction at a time, stopping when the program counter leaves the program; the
 			//last addresses it was at are printed.
@@ -693,9 +702,12 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 			}
 			uiSteps *= 1000000;
 		}
-		for (uiSteps = 0; (uiSteps < uiMaxSteps) && !cMPU.IsStopped() && !getenv("TEST_PROJECT65_TRACE"); uiSteps += 1000000)
+		else
 		{
-			cMPU.Run(1000000);
+			for (uiSteps = 0; (uiSteps < uiMaxSteps) && !cMPU.IsStopped(); uiSteps += 1000000)
+			{
+				cMPU.Run(1000000);
+			}
 		}
 		bReturned = cMPU.IsStopped() && (cMPU.GetS() == CPP65_STACK_TOP);
 		if (getenv("TEST_PROJECT65_CYCLES"))
@@ -731,8 +743,8 @@ void TestProject65RunTests(STestProject65* psProject)
 {
 	CCPP65Builder	cBuilder;
 	CWorkerThreadJobs	cJobs;
-	CAsmW65C816Profile	cFrameProfile;
-	CAsmW65C816Profile	cMeasure;
+	CAsm65Profile	cFrameProfile;
+	CAsm65Profile	cMeasure;
 	CTextFile		cFile;
 	CArrayChars		aszLines;
 	CArrayChars		aszTests;

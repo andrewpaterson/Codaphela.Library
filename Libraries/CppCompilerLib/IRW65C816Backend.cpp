@@ -525,7 +525,7 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 // frame.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile)
+void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile)
 {
 	CIRSourceMarkers	cMarkers;
 	SIRW65C816Frame			sFrame;

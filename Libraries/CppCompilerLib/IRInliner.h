@@ -45,7 +45,7 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 										//must fit in a 64KB bank).
 
 
-//How often calls were made, from a profile of the program (CAsmW65C816Profile): what a profile guided inliner asks.
+//How often calls were made, from a profile of the program (CAsm65Profile): what a profile guided inliner asks.
 class CIRInlineProfile
 {
 public:

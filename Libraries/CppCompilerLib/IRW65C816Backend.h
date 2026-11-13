@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_816_BACKEND_H__
 #define __I_R_816_BACKEND_H__
 #include "BaseLib/ArrayChars.h"
-#include "Assembler65Lib/AsmW65C816Profile.h"
+#include "Assembler65Lib/Asm65Profile.h"
 #include "BaseLib/Numbers.h"
 #include "BaseLib/ScratchPadAllocator.h"
 #include "IRBackend.h"
@@ -59,7 +59,7 @@ class CIRW65C816Groups;
 //IR816_ALIGN_BIG_CYCLES more for a frame past the page, and up to 255 bytes of stack.  It never does if it may recurse.
 //By default the estimate decides (the user: only when really worth it): it has a loop, and its direct page accesses,
 //each weighted 8 times for each loop it is in (CIRLoops::Weight, up to IR816_ALIGN_MAX_DEPTH), are more than
-//IR816_ALIGN_GAIN times the cost.  With a profile (CAsmW65C816Profile, CCPP65Builder::SetFrameProfile) the measure
+//IR816_ALIGN_GAIN times the cost.  With a profile (CAsm65Profile, CCPP65Builder::SetFrameProfile) the measure
 //decides: it was never seen recursing, its accesses are more than IR816_ALIGN_GAIN times the cost of its calls and
 //they save at least one IR816_ALIGN_SHARE'th of the profiled cycles.
 #define IR816_ALIGN_GAIN		3
@@ -198,8 +198,8 @@ public:
 	void			SetMathTables(bool bMathTables);
 	void			GetFrame(SIRW65C816Frame* psFrame);
 	CIRWrittenFunction*	TakeWritten(void) override;
-	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile) override;
-	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsmW65C816Profile* pcProfile);
+	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile) override;
+	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile);
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel, size uiStart);

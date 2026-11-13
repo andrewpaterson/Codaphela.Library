@@ -204,9 +204,9 @@ public:
 	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);
-	uint64			InlinedEntries(CAsmW65C816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
+	uint64			InlinedEntries(CAsm65Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
 	uint64			ProfileCycles(void);
-	CAsmW65C816Profile*	InliningProfile(void);
+	CAsm65Profile*	InliningProfile(void);
 	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
 	CArrayChars*	GetMissingCallees(void);
 

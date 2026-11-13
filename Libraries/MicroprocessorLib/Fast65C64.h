@@ -90,6 +90,7 @@ public:
 	static size		InstructionLength(uint16 uiOpcode);
 	static size		CallLength(uint16 uiOpcode);
 	static bool		IsReturn(uint16 uiOpcode);
+	static bool		IsCallOrJump(uint16 uiOpcode);
 	size		Run(size uiMaxInstructions);
 
 	void		SetEdgeInterrupt(size uiInterrupt, bool bLow);

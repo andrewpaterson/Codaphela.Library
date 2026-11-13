@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "Assembler65Lib/AsmW65C816Profile.h"
+#include "Assembler65Lib/Asm65Profile.h"
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
@@ -3120,12 +3120,13 @@ void TestCPP816OverloadedFunctionPointers(void)
 // program's map in pszMap (when not NULL).
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TestCPP816RunProfiled(const char* szSource, CAsmW65C816Profile* pcProfile, CAsmW65C816Profile* pcMeasure, uint64* puiCycles, CChars* pszMap = NULL)
+int32 TestCPP816RunProfiled(const char* szSource, CAsm65Profile* pcProfile, CAsm65Profile* pcMeasure, uint64* puiCycles, CChars* pszMap = NULL)
 {
 	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
+	CAsm65ProfiledW65C816	cProfiled;
 	CChars				szProject;
 	CFileUtil			cFileUtil;
 	int32				iResult;
@@ -3157,7 +3158,8 @@ int32 TestCPP816RunProfiled(const char* szSource, CAsmW65C816Profile* pcProfile,
 	cFast.Reset();
 	if (pcMeasure)
 	{
-		pcMeasure->Run(&cMemory, &cFast, cBuilder.GetMap(), TEST_CPP816_STEPS, cBuilder.GetLineTable());
+		cProfiled.Init(&cMemory, &cFast);
+		pcMeasure->Run(&cProfiled, cBuilder.GetMap(), TEST_CPP816_STEPS, cBuilder.GetLineTable());
 	}
 	else
 	{
@@ -3220,16 +3222,16 @@ void TestCPP816ProfileGuidedInlining(void)
 		"\tr += Mix(r, 3);\n"
 		"\treturn r;\n"
 		"}\n";
-	CAsmW65C816Profile			cProfile;
-	CAsmW65C816Profile			cGuided;
-	CAsmW65C816Profile			cAgain;
-	CAsmW65C816Profile			cRead;
+	CAsm65Profile			cProfile;
+	CAsm65Profile			cGuided;
+	CAsm65Profile			cAgain;
+	CAsm65Profile			cRead;
 	CChars					szChanged;
-	SAsmW65C816CallSiteProfile*	psCallSite;
-	SAsmW65C816CallSiteProfile*	psOnce;
-	SAsmW65C816CallSiteProfile*	psRead;
-	SAsmW65C816FunctionProfile*	psMix;
-	SAsmW65C816FunctionProfile*	psMain;
+	SAsm65CallSiteProfile*	psCallSite;
+	SAsm65CallSiteProfile*	psOnce;
+	SAsm65CallSiteProfile*	psRead;
+	SAsm65FunctionProfile*	psMix;
+	SAsm65FunctionProfile*	psMain;
 	int32					iResult;
 	uint64					uiPlain;
 	uint64					uiGuided;
@@ -3324,7 +3326,7 @@ void TestCPP816ProfileGuidedDivisionTables(void)
 		"\t}\n"
 		"\treturn (int)(short)h;\n"
 		"}\n";
-	CAsmW65C816Profile	cProfile;
+	CAsm65Profile	cProfile;
 	CChars			szPlainMap;
 	CChars			szGuidedMap;
 	uint64			uiPlain;
@@ -4470,8 +4472,8 @@ void TestCPP816InlineObjectParameters(void)
 		"\t}\n"
 		"\treturn (p.a == 1) ? r : -1;\n"
 		"}\n";
-	CAsmW65C816Profile			cProfile;
-	SAsmW65C816FunctionProfile*	psWeigh;
+	CAsm65Profile			cProfile;
+	SAsm65FunctionProfile*	psWeigh;
 	uint64					uiCycles;
 
 	cProfile.Init();
@@ -4646,12 +4648,13 @@ bool TestCPP816IsAligned(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const
 // of the aszPrefixes' functions) whether it has an aligned frame.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TestCPP816RunFrames(const char* szSource, CAsmW65C816Profile* pcProfile, CAsmW65C816Profile* pcMeasure, uint64* puiCycles, const char** aszPrefixes, bool* abAligned)
+int32 TestCPP816RunFrames(const char* szSource, CAsm65Profile* pcProfile, CAsm65Profile* pcMeasure, uint64* puiCycles, const char** aszPrefixes, bool* abAligned)
 {
 	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
+	CAsm65ProfiledW65C816	cProfiled;
 	CChars				szProject;
 	CFileUtil			cFileUtil;
 	size				i;
@@ -4682,7 +4685,8 @@ int32 TestCPP816RunFrames(const char* szSource, CAsmW65C816Profile* pcProfile, C
 	cFast.Reset();
 	if (pcMeasure)
 	{
-		pcMeasure->Run(&cMemory, &cFast, cBuilder.GetMap(), TEST_CPP816_STEPS);
+		cProfiled.Init(&cMemory, &cFast);
+		pcMeasure->Run(&cProfiled, cBuilder.GetMap(), TEST_CPP816_STEPS);
 	}
 	else
 	{
@@ -4706,7 +4710,7 @@ int32 TestCPP816RunFrames(const char* szSource, CAsmW65C816Profile* pcProfile, C
 //
 // A function gets D on a page (a cycle less each direct page access) when
 // it's worth it and it can't recurse: by default when its loops' accesses
-// are estimated to be well past the cost; with a profile (CAsmW65C816Profile,
+// are estimated to be well past the cost; with a profile (CAsm65Profile,
 // CCPP65Builder::SetFrameProfile) when they were measured to be.  Its
 // arguments are copied up to the aligned frame (stored, or pushed when the
 // frame passes the page) and S as it was is kept for the epilogue.  (The
@@ -4737,7 +4741,7 @@ void TestCPP816AlignedFrames(void)
 		"	return ((r == 24750) && (w == 436020L) && (c == 2) && (b == 122412L)) ? 7 : 1;\n"
 		"}\n";
 	static const char*	aszPrefixes[] = { "_Sum", "_Wide", "_Cold", "_Big", NULL };
-	CAsmW65C816Profile		cProfile;
+	CAsm65Profile		cProfile;
 	uint64				uiEstimated;
 	uint64				uiMeasured;
 	bool				abAligned[4];
@@ -5192,9 +5196,9 @@ void TestCPP816ProfileRegisterEntries(void)
 		"\tfor (int i = 0; i < 3; i++) { r += gpTwice(i, 1); }\n"
 		"\treturn r + Down(4);\n"
 		"}\n";
-	CAsmW65C816Profile			cProfile;
-	SAsmW65C816FunctionProfile*	psTwice;
-	SAsmW65C816FunctionProfile*	psDown;
+	CAsm65Profile			cProfile;
+	SAsm65FunctionProfile*	psTwice;
+	SAsm65FunctionProfile*	psDown;
 	uint64						uiCycles;
 
 	//Not inlined: the calls are what is counted.
@@ -5658,7 +5662,7 @@ void TestCPP816AlignedBigFrameArguments(void)
 {
 	static const char*	aszPrefixes[] = { "_Spread", "_Pushed", NULL };
 	CChars				szSource;
-	CAsmW65C816Profile	cProfile;
+	CAsm65Profile	cProfile;
 	uint64				uiCycles;
 	bool				abAligned[2];
 	long				lExpected;
