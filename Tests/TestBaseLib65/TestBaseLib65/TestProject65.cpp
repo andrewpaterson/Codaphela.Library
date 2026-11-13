@@ -783,7 +783,7 @@ void TestProject65RunTests(STestProject65* psProject)
 	{
 		cBuilder.SetJobs(&cJobs);
 	}
-	//TEST_PROJECT65_FORCE_MISSES=1: every W65C816 unit is generated a second time in its turn, as if it had missed an
+	//TEST_PROJECT65_FORCE_MISSES=1: every unit is generated a second time in its turn, as if it had missed an
 	//imported function inlining before it (it builds the same).
 	cBuilder.SetForceImportsMissed(getenv("TEST_PROJECT65_FORCE_MISSES") != NULL);
 	//TEST_PROJECT65_NO_HEADER_CACHE=1: every unit preprocesses every header it includes (it builds the same).
@@ -829,7 +829,7 @@ void TestProject65RunTests(STestProject65* psProject)
 	printf("%s", cBuilder.GetWarnings());
 	if (getenv("TEST_PROJECT65_COMPILE_STATS"))
 	{
-		//TEST_PROJECT65_COMPILE_STATS: the W65C816 units generated again for a missed import, and compiled again.
+		//TEST_PROJECT65_COMPILE_STATS: the units generated again for a missed import, and compiled again.
 		printf("%d imports stale, %d missed, %d compiled again; headers: %d kept, %d replayed (%d tokens); lazy declarations: %d skipped, %d loaded (%d read)\n", (int)cBuilder.NumImportsStale(), (int)cBuilder.NumImportsMissed(), (int)cBuilder.NumCompiledAgain(),
 			(int)cBuilder.GetHeaderCache()->NumHeaders(), (int)cBuilder.GetHeaderCache()->NumHits(), (int)cBuilder.GetHeaderCache()->NumReplayedTokens(), (int)cBuilder.NumLazySkipped(), (int)cBuilder.NumLazyLoaded(), (int)cBuilder.NumLazyRead());
 		szText.Init();

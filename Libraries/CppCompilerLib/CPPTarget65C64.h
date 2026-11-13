@@ -44,6 +44,7 @@ public:
 	void		BuildPipeline(CIRPipeline* pcPipeline) override;
 	void		ConfigureOptimiser(CIROptimiser* pcOptimiser) override;
 	CIRBackend*	NewBackend(void) override;
+	bool		InlinesAcrossUnits(void) override;
 	bool		Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors) override;
 
 protected:

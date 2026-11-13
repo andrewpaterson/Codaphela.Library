@@ -30,10 +30,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTarget65C64.h"
 
 
-#define CPP65_INLINE_INSTRUCTIONS		16		//The most instructions a function inlined may have...
-#define CPP65_INLINE_LOOP_INSTRUCTIONS	32		//...or where the call is in a loop...
-#define CPP65_INLINE_HOT_INSTRUCTIONS	64		//...or, with a profile, where the call is hot (CIRInliner::SetProfile)...
-#define CPP65_INLINE_CALLS				24		//...and the most calls inlined into one function at a time.
+//Measured on TestBaseLib65 with units inlining each other's functions (InlinesAcrossUnits), 2026-11-13, against none
+//across units and 16, 32, 64 and 24: these 16.8% fewer cycles for programs 18.0% bigger.  16/32/64/24 gave 14.7% for
+//8.2%, 32/64/128/48 17.7% for 23.9%, 48/96/144/64 18.4% for 39.1% and the W65C816's 64/128/192/64 19.1% for 42.9%:
+//past these each percent of size buys less than a seventh of a percent of cycles.
+#define CPP65_INLINE_INSTRUCTIONS		24		//The most instructions a function inlined may have...
+#define CPP65_INLINE_LOOP_INSTRUCTIONS	48		//...or where the call is in a loop...
+#define CPP65_INLINE_HOT_INSTRUCTIONS	96		//...or, with a profile, where the call is hot (CIRInliner::SetProfile)...
+#define CPP65_INLINE_CALLS				32		//...and the most calls inlined into one function at a time.
 #define CPP65_INLINE_SIZE_INSTRUCTIONS	4		//Preferring size: the most instructions a function inlined may have, wherever its call is.
 
 
@@ -304,6 +308,18 @@ void CCPPTarget65C64::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOpti
 		psLimits->uiLoopInstructions = CPP65_INLINE_SIZE_INSTRUCTIONS;
 		psLimits->uiHotInstructions = CPP65_INLINE_SIZE_INSTRUCTIONS;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Units inline each other's small functions (a getter in another unit is
+// no call), as the W65C816's do: most of what inlining gains on the 65C64.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTarget65C64::InlinesAcrossUnits(void)
+{
+	return true;
 }
 
 

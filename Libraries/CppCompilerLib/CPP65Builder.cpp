@@ -860,7 +860,7 @@ CPPHeaderCache* CCPP65Builder::GetHeaderCache(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many times a W65C816 unit, inlining before its turn, missed a
+// How many times a unit, inlining before its turn, missed a
 // function another unit exported meanwhile, and was generated again in its
 // turn (CIRImports::Missed).
 //
@@ -873,7 +873,7 @@ size CCPP65Builder::NumImportsMissed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many times a W65C816 unit found before its turn that it had missed
+// How many times a unit found before its turn that it had missed
 // a function another unit exported while it inlined, and was generated
 // again then (CIRImports::Arrive).
 //
@@ -886,7 +886,7 @@ size CCPP65Builder::NumImportsStale(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// For testing: every W65C816 unit is generated twice, as if it missed an
+// For testing: every unit is generated twice, as if it missed an
 // imported function the first time.  The code is the same.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1686,7 +1686,7 @@ bool CCPP65Builder::ListingName(const char* szUnit, CChars* pszPath)
 // small functions are found and exported in each unit's turn (mcImports);
 // the header declarations they parse can't change what any of them is
 // compiled to (mcHeaderIndex); and their errors and warnings are added in
-// order at the end.  A W65C816 unit that called one of those functions
+// order at the end.  A unit that called one of those functions
 // before it was exported is compiled again after them all, in another turn.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2093,7 +2093,7 @@ void CCPP65Builder::UnitFinished(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // How many times a unit has finished compiling, for showing progress from
-// another thread while Compile runs.  A W65C816 unit compiled again counts
+// another thread while Compile runs.  A unit compiled again counts
 // twice, so it can pass NumUnitsToCompile.
 //
 //////////////////////////////////////////////////////////////////////////

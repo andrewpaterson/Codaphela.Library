@@ -41,7 +41,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPCompileStatistics.h"
 
 
-//How many times a W65C816 unit is generated again before its turn, having missed a function exported while it inlined
+//How many times a unit is generated again before its turn, having missed a function exported while it inlined
 //(after that it only waits for its turn).
 #define CPP65_STALE_ATTEMPTS	3
 
@@ -150,7 +150,7 @@ struct SCPP65UnitReport
 	CChars	szName;		//The unit's file name, without its directory.
 	CChars	szErrors;
 	CChars	szWarnings;
-	bool	bAgain;		//A W65C816 unit compiled a second time; it was reported the first time too.
+	bool	bAgain;		//A unit compiled a second time; it was reported the first time too.
 };
 
 
@@ -217,7 +217,7 @@ protected:
 	size							muiCompiling;			//Units given to mpcJobs that haven't finished.
 	size							muiUnitsFinished;		//Units that have finished compiling (NumUnitsFinished).
 	CArrayTemplatePtr<CCPP65UnitWorkspace>	mapcWorkspaces;	//Those no unit is being compiled with (TakeWorkspace).
-	size							muiCompiledAgain;		//W65C816 units compiled a second time.
+	size							muiCompiledAgain;		//Units compiled a second time.
 	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
 	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
 	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
