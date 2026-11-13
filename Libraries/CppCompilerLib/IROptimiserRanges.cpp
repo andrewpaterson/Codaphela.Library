@@ -1282,21 +1282,34 @@ bool CIRRangePasses::NarrowMultiplies(void)
 // the block is reached through, RangeAt) is IRF_InArray: the offset and
 // the bytes of anything read or written through it stay under 64KB, so a
 // back end may add to the offset in 16 bits (the W65C816's 2 word loads
-// and stores through Y).  The definitions and the dominators must be found.
+// and stores through Y).  A constant its pointer was just given, in the
+// same block and for nothing else ((p + 12) + x, a member array's element),
+// then goes into the offset while that still fits: p + (x + 12), one 16 bit
+// add in place of a pointer's.  The definitions and the dominators must be
+// found.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRRangePasses::BoundIndices(void)
 {
 	SIRInstruction*	psInstruction;
 	SIRInstruction*	psExtension;
+	SIRInstruction*	psBase;
 	CIRBlock*		pcBlock;
+	SIRReference	sOffset;
+	SIRReference	sPointer;
+	SIRReference	sNarrow;
+	SIRType			sWide;
+	SIRType			sShort;
 	int64			lliMin;
 	int64			lliMax;
+	int64			lliConstant;
+	uint16			uiBaseFlags;
 	size			ui;
 	size			uiInstruction;
 	bool			bChanged;
 
 	bChanged = false;
+	sShort = IRType(IRTK_I16);
 	mpcContext->mbBranchRanges = true;
 	mpcContext->mbDominatorRanges = true;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -1305,7 +1318,7 @@ bool CIRRangePasses::BoundIndices(void)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode != IRO_PtrAdd) || (psInstruction->uiFlags & IRF_InArray) || !psInstruction->asArguments[1].IsTemporary())
+			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->asArguments[1].IsTemporary())
 			{
 				continue;
 			}
@@ -1314,11 +1327,48 @@ bool CIRRangePasses::BoundIndices(void)
 			{
 				continue;
 			}
-			if (RangeAt(pcBlock, psExtension->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0) && (lliMax <= IR_IN_ARRAY_MOST))
+			sNarrow = psExtension->asArguments[0];
+			if (!RangeAt(pcBlock, sNarrow, &lliMin, &lliMax) || (lliMin < 0) || (lliMax > IR_IN_ARRAY_MOST))
+			{
+				continue;
+			}
+			if (!(psInstruction->uiFlags & IRF_InArray))
 			{
 				psInstruction->uiFlags |= IRF_InArray;
 				bChanged = true;
 			}
+
+			//(p + c) + x, the p + c worked out here for this alone.
+			sPointer = psInstruction->asArguments[0];
+			psBase = sPointer.IsTemporary() ? mpcContext->mcDefinitions.Instruction(sPointer) : NULL;
+			if (!psBase || (psBase->uiOpcode != IRO_PtrAdd) || !psBase->asArguments[1].IsConstant() || (mpcContext->mcDefinitions.Block(sPointer) != pcBlock) ||
+				(mpcContext->mcDefinitions.NumUses(sPointer) != 1))
+			{
+				continue;
+			}
+			lliConstant = mpcFunction->GetSigned(psBase->asArguments[1]);
+			if ((lliConstant <= 0) || (lliMax + lliConstant > IR_IN_ARRAY_MOST))
+			{
+				continue;
+			}
+			sPointer = psBase->asArguments[0];
+			uiBaseFlags = psBase->uiFlags;
+			sWide = mpcFunction->TypeOf(psInstruction->asArguments[1]);
+			sOffset = InsertInstruction(pcBlock, uiInstruction, IRO_Add, sShort, sNarrow, mpcFunction->AddInteger(sShort, lliConstant));
+			uiInstruction++;
+			sOffset = InsertInstruction(pcBlock, uiInstruction, IRO_ZExt, sWide, sOffset, IRNone());
+			uiInstruction++;
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			psInstruction->asArguments[0] = sPointer;
+			psInstruction->asArguments[1] = sOffset;
+			if (!(uiBaseFlags & IRF_InBank))
+			{
+				psInstruction->uiFlags &= ~IRF_InBank;
+			}
+			bChanged = true;
+
+			//The inserts moved the block's instructions.
+			FindDefinitions();
 		}
 	}
 	mpcContext->mbBranchRanges = false;

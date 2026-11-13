@@ -95,7 +95,16 @@ void CIRW65C816Backend::Operand(const char* szMnemonic, SIRReference sValue, int
 			}
 			return;
 		}
-		if (iWord < Words(mpcFunction->GetTemporaryType(sValue)))
+		if (IsZeroWord(sValue, iWord))
+		{
+			//A word that is 0 whatever the value is (FindZeroWords): the constant, not what was stored.
+			if (strcmp(szMnemonic, "pei") == 0)
+			{
+				Line("pea 0");
+				return;
+			}
+		}
+		else if (iWord < Words(mpcFunction->GetTemporaryType(sValue)))
 		{
 			Frame(szMnemonic, OffsetOf(sValue) + 2 * iWord);
 			return;
@@ -211,7 +220,8 @@ void CIRW65C816Backend::CopyWords(int32 iDestination, SIRReference sValue, int i
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether word iWord of sValue is a constant known now (*puiWord): a
-// constant's word, or 0 past the end of a temporary or a constant.
+// constant's word, 0 past the end of a temporary or a constant, or a
+// temporary's word that is always 0 (IsZeroWord).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRW65C816Backend::ConstantWord(SIRReference sValue, int iWord, uint16* puiWord)
@@ -221,7 +231,7 @@ bool CIRW65C816Backend::ConstantWord(SIRReference sValue, int iWord, uint16* pui
 		*puiWord = (iWord < 4) ? (uint16)(mpcFunction->GetConstant(sValue)->ulliBits >> (16 * iWord)) : 0;
 		return true;
 	}
-	if (sValue.IsTemporary() && (iWord >= Words(mpcFunction->GetTemporaryType(sValue))))
+	if (sValue.IsTemporary() && ((iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || IsZeroWord(sValue, iWord)))
 	{
 		*puiWord = 0;
 		return true;

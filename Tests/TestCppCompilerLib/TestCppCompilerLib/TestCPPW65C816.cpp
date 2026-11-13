@@ -626,6 +626,61 @@ void TestCPP816NarrowSubscripts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The words of a value that are always 0 (a zext's high word, an and's with
+// a constant, a shift right's: CIRW65C816Backend::FindZeroWords) are read
+// as the constant, not from the frame: 32 bit adds, subs either way round,
+// logic, compares, a pushed argument and shifts of such values give what
+// they should.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ZeroWords(void)
+{
+	AssertInt(8191, TestCPP816Run(
+		"typedef unsigned long uint32;\n"
+		"typedef unsigned int uint16;\n"
+		"uint32 Pass(uint32 ul) { return ul + 1; }\n"
+		"uint32 Add(uint32 ul, uint16 ui) { return ul + ui; }\n"
+		"uint32 Sub(uint32 ul, uint16 ui) { return ul - ui; }\n"
+		"uint32 SubFrom(uint32 ul, uint16 ui) { return (uint32)ui - ul; }\n"
+		"uint32 Or(uint32 ul, uint16 ui) { return ul | ui; }\n"
+		"uint32 Xor(uint32 ul, uint16 ui) { return ul ^ ui; }\n"
+		"uint32 And(uint32 ul, uint16 ui) { return ul & ui; }\n"
+		"int Above(uint32 ul, uint16 ui) { return ul > (uint32)ui; }\n"
+		"int Same(uint32 ul, uint16 ui) { return ul == (uint32)ui; }\n"
+		"uint32 Masked(uint32 ul, uint32 ul2) { return (ul & 0xFFFF) + ul2; }\n"
+		"uint32 High(uint32 ul, uint32 ul2) { return (ul >> 16) + ul2; }\n"
+		"uint32 Pushed(uint16 ui) { return Pass((uint32)ui); }\n"
+		"uint32 Shifted(uint16 ui) { return ((uint32)ui << 3) + ((uint32)ui << 1); }\n"
+		"uint32 gaul[16];\n"
+		"int main(void)\n"
+		"{\n"
+		"\tvolatile uint32\tul;\n"
+		"\tvolatile uint16\tui;\n"
+		"\tint\t\t\t\tiResult;\n"
+		"\n"
+		"\tul = 0x1234FFF0;\n"
+		"\tui = 0x0011;\n"
+		"\tiResult = 0;\n"
+		"\tif (Add(ul, ui) == 0x12350001) { iResult += 1; }\n"
+		"\tif (Sub(0x12340005, ui) == 0x1233FFF4) { iResult += 2; }\n"
+		"\tif (SubFrom(5, ui) == 12) { iResult += 4; }\n"
+		"\tif (SubFrom(ul, ui) == 0xEDCB0021) { iResult += 8; }\n"
+		"\tif (Or(ul, 0x000F) == 0x1234FFFF) { iResult += 16; }\n"
+		"\tif (Xor(ul, 0xFFFF) == 0x1234000F) { iResult += 32; }\n"
+		"\tif (And(ul, 0xFF0F) == 0x0000FF00) { iResult += 64; }\n"
+		"\tif (Above(ul, ui) && !Above(0x10, ui) && Above(0x10000, 0xFFFF)) { iResult += 128; }\n"
+		"\tif (Same(0x11, ui) && !Same(0x10011, ui)) { iResult += 256; }\n"
+		"\tif (Masked(ul, 0x10000010) == 0x10010000) { iResult += 512; }\n"
+		"\tif (High(ul, 0xFFFFF000) == 0x00000234) { iResult += 1024; }\n"
+		"\tif (Pushed(0xFFFF) == 0x10000) { iResult += 2048; }\n"
+		"\tif (Shifted(0xFFFF) == 0x9FFF6) { iResult += 4096; }\n"
+		"\treturn iResult;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An index the branches keep between two bytes (first <= index <= last):
 // (index - first) * 12 is worked out in 16 bits (NarrowMultiplies with the
 // branches' ranges), at both ends of the range and outside it; and a loop
@@ -5844,6 +5899,7 @@ void TestCPP816(void)
 	TestCPP816Statements();
 	TestCPP816NarrowSubscripts();
 	TestCPP816GuardedIndices();
+	TestCPP816ZeroWords();
 	TestCPP816SharedDivisions();
 	TestCPP816Divide64();
 	TestCPP816BitTables();

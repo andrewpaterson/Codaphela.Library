@@ -171,6 +171,7 @@ bool CIRW65C816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 	int32			iResult;
 	int				iAmount;
 	int				i;
+	uint16			uiHigh;
 
 	if ((Words(psInstruction->sType) != 2) || !psInstruction->asArguments[1].IsConstant() || psInstruction->sResult.IsNone() ||
 		((psInstruction->uiOpcode != IRO_Shl) && (psInstruction->uiOpcode != IRO_LShr)))
@@ -206,8 +207,16 @@ bool CIRW65C816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 		}
 		return true;
 	}
-	Operand("lda", sValue, 1);
-	Frame("sta", iResult + 2);
+	if (ConstantWord(sValue, 1, &uiHigh) && (uiHigh == 0))
+	{
+		//A high word that is 0 (a zext's) needs no A: the low word may still be there.
+		Frame("stz", iResult + 2);
+	}
+	else
+	{
+		Operand("lda", sValue, 1);
+		Frame("sta", iResult + 2);
+	}
 	Operand("lda", sValue, 0);
 	for (i = 0; i < iAmount; i++)
 	{

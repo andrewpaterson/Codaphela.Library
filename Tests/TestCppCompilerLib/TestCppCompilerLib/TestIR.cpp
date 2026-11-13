@@ -4327,7 +4327,8 @@ void TestIROptimiserKnownBranches(void)
 //
 // NarrowMultiplies (the W65C816's) with what the branches on the way say of an index against values that aren't
 // constants: after first <= index <= last, both bytes, index - first is 0 to 255, so (index - first) * 12 is a 16 bit
-// multiply and the ptradd of it IRF_InArray.  The shifts, adds and subs a back end made of a multiply are still one
+// multiply and the ptradd of it IRF_InArray (BoundIndices, which also puts a constant just added to the pointer into
+// the offset).  The shifts, adds and subs a back end made of a multiply are still one
 // (ExtendedMultiple); branches above an if and else joined still hold (the dominators); without first <= index, or
 // with a last that isn't a byte, nothing is known.
 //
@@ -4459,6 +4460,96 @@ void TestIROptimiserGuardedMultiples(void)
 		"\t%b = ule i16 %i, %last\n\tbrif %b, in, out\n"
 		"in:\n\t%d = sub i16 %i, %first\n\t%w = zext i16 %d to i32\n\t%m = mul i32 %w, 12\n\t%q = ptradd ptr %p, %m\n\tret ptr %q\n"
 		"out:\n\tret ptr 0\n}\n", true, false, true);
+
+	//A constant the pointer was given just before, for this alone, goes into the 16 bit offset: p + ((index - first) * 12 + 12).
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%0 = mul i16 %d, 12\n"
+		"\t%1 = add i16 %0, 12\n"
+		"\t%2 = zext i16 %1 to i32\n"
+		"\t%q = ptradd inarray ptr %p, %2\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n",
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%base = ptradd ptr %p, 12\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%w = zext i16 %d to i32\n"
+		"\t%m = mul i32 %w, 12\n"
+		"\t%q = ptradd ptr %base, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n", true, false, true);
+
+	//Not one worked out in another block, or used for something else too.
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%base = ptradd ptr %p, 12\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%0 = mul i16 %d, 12\n"
+		"\t%m = zext i16 %0 to i32\n"
+		"\t%q = ptradd inarray ptr %base, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr %base\n"
+		"}\n",
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%base = ptradd ptr %p, 12\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%w = zext i16 %d to i32\n"
+		"\t%m = mul i32 %w, 12\n"
+		"\t%q = ptradd ptr %base, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr %base\n"
+		"}\n", true, false, true);
 
 	//A last of 16 bits bounds nothing.
 	AssertIROptimised(

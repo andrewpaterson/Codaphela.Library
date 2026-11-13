@@ -56,6 +56,7 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	maiUses.Init(CIRW65C816Backend::GetScratch());
 	maiCountUses.Init(CIRW65C816Backend::GetScratch());
 	maiUseBlock.Init(CIRW65C816Backend::GetScratch());
+	mauiZeroWords.Init(CIRW65C816Backend::GetScratch());
 	mabInX.Init(CIRW65C816Backend::GetScratch());
 	masArguments.Init(CIRW65C816Backend::GetScratch());
 	msFrame.Init(0, false);
@@ -79,6 +80,7 @@ void CIRW65C816Backend::Kill(void)
 	masCopySteps.Kill();
 	masCopies.Kill();
 	mabInX.Kill();
+	mauiZeroWords.Kill();
 	maiUseBlock.Kill();
 	maiCountUses.Kill();
 	maiUses.Kill();
@@ -656,6 +658,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	}
 
 	FindSingleUses();
+	FindZeroWords();
 	mpcDominators = &mcDominators;
 	Prologue(szLabel);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -733,6 +736,124 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	cCode.Write(mpszOut, uiStart);
 	cCode.Kill();
 	mpcModule->End(CPPCP_CodePasses);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The words of each temporary that are 0 whatever it is (mauiZeroWords, a
+// bit a word): those a zext adds, those an and with a constant or with a
+// value whose word is 0 clears, and those a shift right by a constant
+// empties.  The instructions read them as the constant (Operand,
+// ConstantWord), not from the frame: adc 0, not adc of a word stz put
+// there, which then is often not stored at all (RemoveUnreadStores).  A
+// value worked out after its use in block order (round a loop) has none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::FindZeroWords(void)
+{
+	size			uiBlock;
+	size			ui;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	int				iWords;
+	int				iNarrow;
+	uint8			uiZero;
+	uint8			uiAll;
+	uint64			ulliConstant;
+
+	mauiZeroWords.FakeSetUsedElements(0);
+	mauiZeroWords.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (!psInstruction->sResult.IsTemporary() || !psInstruction->sType.IsInteger())
+			{
+				continue;
+			}
+			iWords = Words(psInstruction->sType);
+			if ((iWords < 2) || (iWords > 4))
+			{
+				continue;
+			}
+			uiAll = (uint8)((1 << iWords) - 1);
+			uiZero = 0;
+			switch (psInstruction->uiOpcode)
+			{
+			case IRO_ZExt:
+				if (psInstruction->asArguments[0].IsTemporary())
+				{
+					iNarrow = Words(mpcFunction->GetTemporaryType(psInstruction->asArguments[0]));
+					uiZero = (uint8)(uiAll & ~((1 << iNarrow) - 1)) | ZeroWords(psInstruction->asArguments[0]);
+				}
+				break;
+			case IRO_And:
+				uiZero = ZeroWords(psInstruction->asArguments[0]) | ZeroWords(psInstruction->asArguments[1]);
+				break;
+			case IRO_LShr:
+				if (psInstruction->asArguments[1].IsConstant())
+				{
+					//The top words a shift of 16 or more empties.
+					ulliConstant = mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
+					if (ulliConstant < (uint64)(16 * iWords))
+					{
+						uiZero = (uint8)(uiAll & ~((1 << (iWords - (int)(ulliConstant / 16))) - 1));
+					}
+				}
+				break;
+			default:
+				break;
+			}
+			*mauiZeroWords.Get(psInstruction->sResult.Index()) = (uint8)(uiZero & uiAll);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit for each word of sValue that is always 0: a constant's zero words,
+// a temporary's as FindZeroWords found them.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CIRW65C816Backend::ZeroWords(SIRReference sValue)
+{
+	uint64	ulliBits;
+	uint8	uiZero;
+	int		i;
+
+	if (sValue.IsConstant())
+	{
+		ulliBits = mpcFunction->GetConstant(sValue)->ulliBits;
+		uiZero = 0;
+		for (i = 0; i < 4; i++)
+		{
+			if (((ulliBits >> (16 * i)) & 0xFFFF) == 0)
+			{
+				uiZero |= (uint8)(1 << i);
+			}
+		}
+		return uiZero;
+	}
+	if (sValue.IsTemporary() && (sValue.Index() < mauiZeroWords.NumElements()))
+	{
+		return *mauiZeroWords.Get(sValue.Index());
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether word iWord of the temporary sValue (not its first) is always 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Backend::IsZeroWord(SIRReference sValue, int iWord)
+{
+	return sValue.IsTemporary() && (iWord >= 1) && (iWord < 4) && ((ZeroWords(sValue) >> iWord) & 1);
 }
 
 
