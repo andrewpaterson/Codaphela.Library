@@ -50,6 +50,7 @@ enum EIR65Register
 {
 	IR65R_X,
 	IR65R_Y,
+	IR65R_V,				//Only in a function that needs no frame (SIR65Frame::bHomeV); 32 bit values.
 	IR65R_Count
 };
 
@@ -141,6 +142,7 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 #define IR65_PSEUDO_UNIT_BYTES	4
 #define IR65_PSEUDO_SAVED		0x80	//The units from here are callee saved: the prologue pushes those used.
 #define IR65_SAVED_UNIT(iUnit)	(IR65_PSEUDO_SAVED + IR65_PSEUDO_UNIT_BYTES * (iUnit))
+#define IR65_V_WEIGHT			3			//The least weight of a class not live across a call that is worth saving V for.
 #define IR65_HOME_PSEUDO		IR65R_Count
 #define IR65_HOME_SAVED			(IR65_HOME_PSEUDO + IR65_PSEUDO_UNITS)
 #define IR65_HOME_FRAME			(IR65_HOME_SAVED + IR65_PSEUDO_UNITS)
@@ -160,9 +162,10 @@ struct SIR65Frame
 	int32	iFrameBytes;
 	int32	iThisOffset;	//A thiscall's this in the frame, for an argaddr of it; -1 for none.
 	uint32	uiSaved;		//The [$80 + W] units used, a bit each: the prologue pushes them.
+	bool	bHomeV;		//V is a home (IR65R_V) and not the frame's register: the function has no frame and saves V (CanUseV).
 	bool	bFrameless;		//No frame: V isn't set up, the arguments are from S...
 	char	cRegister;		//...so the frame register is S, otherwise V.
-	int32	iArguments;		//Where the arguments start: 1 + frame + 8, or from S 1 + 4 + 4 per saved unit.
+	int32	iArguments;		//Where the arguments start: 1 + frame + 8, or from S 1 + 4 + 4 per saved unit (and 4 for a saved V).
 	int32	aiRegisterOffset[IR65_ARGUMENT_REGISTERS];	//A register parameter in the frame, for an argaddr of it; -1 for none.
 
 	void	Init(void);
@@ -173,8 +176,9 @@ struct SIR65Frame
 
 
 //Writes 65C64 assembly for IR functions.  Temporaries are given homes by register allocation (IR.txt 65C64 back
-//end): X or Y, a pseudo register ([$00 + W] to [$7F + W] if no call is made while it is live, [$80 + W] to
-//[$FF + W] if one is: the function keeps those), or the frame.  A phi shares its home with the values it takes
+//end): X or Y, V in a function that needs no frame (CanUseV: calls keep it), a pseudo register ([$00 + W] to
+//[$7F + W] if no call is made while it is live, [$80 + W] to [$FF + W] if one is: the function keeps those), or
+//the frame.  A phi shares its home with the values it takes
 //when their live ranges allow, and a jump copies the others.  Instructions work in A (and B), or in a result's
 //register or pseudo register when that is shorter.  The calling convention is the generator's
 //(CPP65Generator.txt): a function called by name gets its first three arguments of 32 bits or less in A, B and Y
@@ -224,7 +228,7 @@ public:
 	void				Kill(void) override;
 
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
-	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels);
+	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
 
 protected:
 	void				AdjustComparisons(void);
@@ -269,7 +273,11 @@ protected:
 	void				TakeHome(int32 iHome, int32 iLeader);
 	void				PlaceClass(int32 iLeader, uint8 uiKind, int32 iOffset, int32 iBytes);
 	bool				TakeHomes(int32 iHome, int32 iUnits, int32 iLeader);
-	void				AllocateClass(int32 iLeader, uint32 uiWeight);
+	bool				AllocateClass(int32 iLeader, uint32 uiWeight);
+	bool				AllocateClasses(CArrayIR65Weights* pasWeights);
+	void				ClearHomes(void);
+	bool				CanUseV(void);
+	bool				FitsV(int32 iLeader);
 	int32				FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader);
 	SIR65Place*			PlaceOf(SIRReference sValue);
 	bool				IsHome(SIR65Place* psPlace);
@@ -290,6 +298,7 @@ protected:
 	void				AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Extend eExtend);
 	bool				Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend);
 	bool				SmallImmediate(SIRReference sValue, int iMin, int iMax);
+	const char*			WidthRegister(const char* szRegister);
 	const char*			WorkRegister(SIRInstruction* psInstruction);
 	bool				IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex);
 	const char*			FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, const char* szPrefer);

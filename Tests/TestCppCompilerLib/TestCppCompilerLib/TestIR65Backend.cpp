@@ -602,7 +602,7 @@ void TestIR65BackendCalls(void)
 		"\t%r = call i32 %f(i32 6)\n"
 		"\tret i32 %r\n}\n"));
 
-	//The pointer is called through where it was pushed, twice.
+	//The pointer is live across its own calls, so it is kept in V (which every function keeps) and called through it, twice.
 	szAssembly.Init();
 	AssertInt(6 + 7, (int32)TestIR65Run(
 		"function i32 @_Increment__Fi(i32 %x)\n{\nb:\n\t%r = add i32 %x, 1\n\tret i32 %r\n}\n\n"
@@ -615,7 +615,9 @@ void TestIR65BackendCalls(void)
 		"\t%f = copy ptr @_Increment__Fi\n"
 		"\t%r = call i32 @_Twice(ptr %f, i32 5)\n"
 		"\tret i32 %r\n}\n", false, &szAssembly));
-	AssertTrue(szAssembly.Contains("jsr [13 + V]"));
+	AssertTrue(szAssembly.Contains("\t\tpsh V\n\t\tpsh [128 + W]\n\t\tcpy V, [13 + S]\n"));
+	AssertTrue(szAssembly.Contains("\t\tjsr V\n\t\tadd S, 4\n\t\tcpy [128 + W], A\n\t\tpsh A\n\t\tjsr V\n"));
+	AssertTrue(szAssembly.Contains("\t\tpul [128 + W]\n\t\tpul V\n\t\tret\n"));
 	AssertFalse(szAssembly.Contains("jsr A"));
 	szAssembly.Kill();
 
@@ -709,10 +711,10 @@ void TestIR65BackendAllocation(void)
 	AssertString(
 		"\t\t.section text._Sum__FPii\n"
 		"_Sum__FPii:\n"
-		"\t\tcpy A, [5 + S]\n"
+		"\t\tpsh V\n"
+		"\t\tcpy V, [9 + S]\n"
+		"\t\tcpy A, [13 + S]\n"
 		"\t\tcpy [0 + W], A\n"
-		"\t\tcpy A, [9 + S]\n"
-		"\t\tcpy [4 + W], A\n"
 		"L1:\n"
 		"\t\tcpy Y, 0\n"
 		"\t\tcpy X, 0\n"
@@ -720,16 +722,17 @@ void TestIR65BackendAllocation(void)
 		"L2:\n"
 		"\t\tcpy A, X\n"
 		"\t\tshl A, 2\n"
-		"\t\tadd A, [0]\n"
+		"\t\tadd A, V\n"
 		"\t\tcpy A, [A]\n"
 		"\t\tadd Y, A\n"
 		"\t\tadd X, 1\n"
 		"L3:\n"
-		"\t\tcmp X, [4]\n"
+		"\t\tcmp X, [0]\n"
 		"\t\tbraso (n, v), L2\n"
 		"L4:\n"
 		"\t\tcpy A, Y\n"
 		"L5:\n"
+		"\t\tpul V\n"
 		"\t\tret\n"
 		"\n", szSum.Text());
 	szSum.Kill();
@@ -887,9 +890,9 @@ void TestIR65BackendAllocation(void)
 		"\t%v = call i64 @_Seven__F()\n"
 		"\t%r = add i64 %s2, %v\n"
 		"\tret i64 %r\n}\n"));
-	//A string compare's pointers are only addresses and steps, so the bytes get X and Y and the pointers are read through
-	//([[n + W]]): "abc" against "abd" is -1.  The bytes are only compared, so they are read narrow (cpy, not cpyx): X and
-	//Y stay 8 bits wide across the loop.
+	//A string compare's pointers are only addresses and steps, so the bytes get X and Y; one pointer gets V and the other
+	//is read through ([[n + W]]): "abc" against "abd" is -1.  The bytes are only compared, so they are read narrow (cpy,
+	//not cpyx): X and Y stay 8 bits wide across the loop.
 	szAssembly.Init();
 	AssertLong(-1, (int32)TestIR65Run(
 		"function i32 @_Compare__FPcPc(ptr %a, ptr %b), local\n{\n"
@@ -906,7 +909,7 @@ void TestIR65BackendAllocation(void)
 		"function i32 @_main()\n{\nb:\n"
 		"\t%s = slot ptr 4, 4\n\tstore i32 6513249, %s\n\t%t = slot ptr 4, 4\n\tstore i32 6578785, %t\n"
 		"\t%r = call i32 @_Compare__FPcPc(ptr %s, ptr %t)\n\tret i32 %r\n}\n", false, &szAssembly));
-	AssertTrue(szAssembly.Contains("cpy X, [[") && szAssembly.Contains("cpy Y, [[") && !szAssembly.Contains("cpyx"));
+	AssertTrue(szAssembly.Contains("\t\tcpy X, [V]\n\t\tadd V, 1\n") && szAssembly.Contains("cpy Y, [[") && !szAssembly.Contains("cpyx"));
 	szAssembly.Kill();
 }
 
@@ -1458,7 +1461,7 @@ void TestIR65BackendPeepholeWidths(void)
 	aiBlockLabels.Add(&iLabel);
 
 	sz.Init("_F:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\nL3:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\nL7:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\n\t\tret\n");
-	CIR65Backend::PeepholeCode(&sz, 0, &aiBlockLabels);
+	CIR65Backend::PeepholeCode(&sz, 0, &aiBlockLabels, false);
 	AssertString("_F:\n\t\tcpy [4 + W], A\n\t\tcpy X, A\nL3:\n\t\tcpy [4 + W], A\n\t\tcpy X, A\nL7:\n\t\tcpy [4 + W], A\n\t\tcpy X, [4 + W]\n\t\tret\n", sz.Text());
 	sz.Kill();
 	aiBlockLabels.Kill();
@@ -1467,20 +1470,147 @@ void TestIR65BackendPeepholeWidths(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// CIR65Peephole on szCode, as a whole function.
+// CIR65Peephole on szCode, as a whole function; bHomeV: V is a value's
+// home in it.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestIR65PeepholeOptimise(const char* szExpected, const char* szCode)
+void TestIR65PeepholeOptimise(const char* szExpected, const char* szCode, bool bHomeV = false)
 {
 	CIR65Peephole	cPeephole;
 	CChars			sz;
 
 	sz.Init(szCode);
 	cPeephole.Init();
-	cPeephole.Optimise(&sz, 0);
+	cPeephole.Optimise(&sz, 0, bHomeV);
 	cPeephole.Kill();
 	AssertString(szExpected, sz.Text());
 	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// V as a third register (CIR65Backend::CanUseV) in a function that needs
+// no frame: it holds 32 bit values and is kept by calls.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendHomeV(void)
+{
+	CArrayTemplate<int32>	aiBlockLabels;
+	CChars					szAssembly;
+	CChars					sz;
+
+	//A list walked with a call for each node: the node is live across the calls, in V.
+	szAssembly.Init();
+	AssertInt(5 + 7 + 9, (int32)TestIR65Run(
+		"global @_gThird, align 4 { i32 0, i32 9 }\n"
+		"global @_gSecond, align 4 { ptr @_gThird, i32 7 }\n"
+		"global @_gFirst, align 4 { ptr @_gSecond, i32 5 }\n\n"
+		"function i32 @_Value__FP5SNode(ptr %n)\n{\nb:\n\t%a = ptradd ptr %n, 4\n\t%v = load i32 %a\n\tret i32 %v\n}\n\n"
+		"function i32 @_Sum__FP5SNode(ptr %first)\n{\n"
+		"entry:\n\tjmp loop\n"
+		"loop:\n"
+		"\t%n = phi ptr [entry, %first], [loop, %next]\n"
+		"\t%s = phi i32 [entry, 0], [loop, %s2]\n"
+		"\t%v = call i32 @_Value__FP5SNode(ptr %n)\n"
+		"\t%s2 = add i32 %s, %v\n"
+		"\t%next = load ptr %n\n"
+		"\t%c = ne ptr %next, 0\n"
+		"\tbrif %c, loop, exit\n"
+		"exit:\n\tret i32 %s2\n}\n\n"
+		"function i32 @_main()\n{\nb:\n"
+		"\t%r = call i32 @_Sum__FP5SNode(ptr @_gFirst)\n"
+		"\tret i32 %r\n}\n", false, &szAssembly));
+	AssertTrue(szAssembly.Contains("\t\tpsh V\n"));
+	AssertTrue(szAssembly.Contains("\t\tcpy V, [V]\n"));
+	AssertTrue(szAssembly.Contains("\t\tpul V\n\t\tret\n"));
+	szAssembly.Kill();
+
+	//An i32 in V: stored as a byte, pushed as a byte and made from a sign extended byte, all through A (V has no other
+	//width).  200 as a byte is -56; the sum's low byte is stored and read back.
+	szAssembly.Init();
+	AssertInt(-56 + 3 + ((-56 + 3) & 0xFF) + 144, (int32)TestIR65Run(
+		"global @_gBytes, align 1 { i8 200, i8 0 }\n\n"
+		"function i32 @_Three__F()\n{\nb:\n\tret i32 3\n}\n\n"
+		"function i32 @_Byte__Fc(i8 %b)\n{\nb:\n\t%r = zext i8 %b to i32\n\tret i32 %r\n}\n\n"
+		"function i32 @_Work__FPc(ptr %p)\n{\nb:\n"
+		"\t%1 = load i8 %p\n\t%x = sext i8 %1 to i32\n"
+		"\t%t = call i32 @_Three__F()\n"
+		"\t%y = add i32 %x, %t\n"
+		"\t%q = ptradd ptr %p, 1\n"
+		"\t%yb = trunc i32 %y to i8\n\tstore i8 %yb, %q\n"
+		"\t%u = call i32 @_Byte__Fc(i8 %yb)\n"
+		"\t%2 = load i8 %q\n\t%z = zext i8 %2 to i32\n"
+		"\t%s = add i32 %y, %z\n\t%r = add i32 %s, %u\n"
+		"\tret i32 %r\n}\n\n"
+		"function i32 @_main()\n{\nb:\n"
+		"\t%r = call i32 @_Work__FPc(ptr @_gBytes)\n"
+		"\t%d = sub i32 %r, 59\n"
+		"\tret i32 %d\n}\n", false, &szAssembly));
+	AssertTrue(szAssembly.Contains("\t\tpsh V\n"));
+	AssertFalse(szAssembly.Contains("wth V") || szAssembly.Contains("wthx V") || szAssembly.Contains("cpyx V") || szAssembly.Contains(", V\n\t\twth"));
+	szAssembly.Kill();
+
+	//A function with a slot has a frame: V is its register, and the pointer live across the calls is in a kept pseudo
+	//register.
+	szAssembly.Init();
+	AssertInt(8 + 9, (int32)TestIR65Run(
+		"function i32 @_Next__Fi(i32 %x)\n{\nb:\n\t%r = add i32 %x, 1\n\tret i32 %r\n}\n\n"
+		"function i32 @_Twice__FPFiiE(ptr %f)\n{\nb:\n"
+		"\t%s = slot ptr 4, 4\n\tstore i32 7, %s\n"
+		"\t%v = load i32 %s\n"
+		"\t%a = call i32 %f(i32 %v)\n"
+		"\tstore i32 %a, %s\n"
+		"\t%b = call i32 %f(i32 %a)\n"
+		"\t%w = load i32 %s\n"
+		"\t%r = add i32 %w, %b\n"
+		"\tret i32 %r\n}\n\n"
+		"function i32 @_main()\n{\nb:\n"
+		"\t%f = copy ptr @_Next__Fi\n"
+		"\t%r = call i32 @_Twice__FPFiiE(ptr %f)\n"
+		"\tret i32 %r\n}\n", false, &szAssembly));
+	AssertTrue(szAssembly.Contains("\t\tcpy V, S\n"));
+	AssertFalse(szAssembly.Contains("jsr V"));
+	szAssembly.Kill();
+
+	//Where V is a value's home, [n + V] is anyone's memory (a device's register, say): a store to it read straight
+	//back stays a read, and two reads of it stay two.
+	aiBlockLabels.Init();
+	sz.Init("_F:\n\t\tcpy [4 + V], A\n\t\tcpy X, [4 + V]\n\t\tret\n");
+	CIR65Backend::PeepholeCode(&sz, 0, &aiBlockLabels, true);
+	AssertString("_F:\n\t\tcpy [4 + V], A\n\t\tcpy X, [4 + V]\n\t\tret\n", sz.Text());
+	sz.Kill();
+	sz.Init("_F:\n\t\tcpy [4 + V], A\n\t\tcpy X, [4 + V]\n\t\tret\n");
+	CIR65Backend::PeepholeCode(&sz, 0, &aiBlockLabels, false);
+	AssertString("_F:\n\t\tcpy [4 + V], A\n\t\tcpy X, A\n\t\tret\n", sz.Text());
+	sz.Kill();
+	aiBlockLabels.Kill();
+
+	TestIR65PeepholeOptimise(
+		"_F:\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tcpy X, A\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tadd A, X\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tcpy X, A\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tadd A, X\n"
+		"\t\tret\n", true);
+	TestIR65PeepholeOptimise(
+		"_F:\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tcpy X, A\n"
+		"\t\tadd A, X\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tcpy X, A\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tadd A, X\n"
+		"\t\tret\n", false);
 }
 
 
@@ -1928,6 +2058,7 @@ void TestIR65Backend(void)
 	TestIR65BackendSignedDigits();
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
+	TestIR65BackendHomeV();
 	TestIRSourceMarkers();
 	TestIRSourceMarkersMovedBlock();
 

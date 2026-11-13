@@ -142,7 +142,7 @@ void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* p
 	{
 		pszCallee->Append(mpcModule->GetSymbolName(sCallee.Index()));
 	}
-	else if (InRegister(sCallee) && ((PlaceOf(sCallee)->iOffset == IR65R_Y) || !bThisCall))
+	else if (InRegister(sCallee) && ((PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
 	{
 		AppendPlace(pszCallee, PlaceOf(sCallee));
 	}
@@ -161,7 +161,8 @@ void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* p
 //////////////////////////////////////////////////////////////////////////
 //
 // The registers loading sValue reads (a bit each: 1 A, 2 X, 4 Y): A when it
-// is what A holds, else its home when that is X or Y.
+// is what A holds, else its home when that is X or Y (V is never an
+// argument's register).
 //
 //////////////////////////////////////////////////////////////////////////
 uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
@@ -172,7 +173,15 @@ uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
 	}
 	if (InRegister(sValue))
 	{
-		return (PlaceOf(sValue)->iOffset == IR65R_X) ? 2 : 4;
+		switch (PlaceOf(sValue)->iOffset)
+		{
+		case IR65R_X:
+			return 2;
+		case IR65R_Y:
+			return 4;
+		default:
+			return 0;
+		}
 	}
 	return 0;
 }

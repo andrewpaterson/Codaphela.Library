@@ -792,6 +792,8 @@ void TestProject65RunTests(STestProject65* psProject)
 	cBuilder.GetOptions()->SetAssemblyUnits(getenv("TEST_PROJECT65_CPP") == NULL);
 	//TEST_PROJECT65_STACK_ARGUMENTS=1: every W65C816 call pushes its arguments (no register arguments), to compare.
 	cBuilder.GetOptions()->mbRegisterArguments = getenv("TEST_PROJECT65_STACK_ARGUMENTS") == NULL;
+	//TEST_PROJECT65_FRAME_V=1: the 65C64's V is only ever the frame's register (CCPPCompileOptions::mbHomeV off), to compare.
+	cBuilder.GetOptions()->mbHomeV = getenv("TEST_PROJECT65_FRAME_V") == NULL;
 	//TEST_PROJECT65_PREFER_SIZE=1: the compiler prefers size to speed (CCPPCompileOptions::mePrefer).
 	if (getenv("TEST_PROJECT65_PREFER_SIZE"))
 	{

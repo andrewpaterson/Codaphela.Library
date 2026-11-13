@@ -550,10 +550,11 @@ int CIR65Code::RegisterIndex(const char* sz, size uiLength)
 // The function's own memory, [n + W], [n + V] or [n + S] (a pseudo
 // register or the frame, which only the function's own code touches, so
 // never volatile): its base register ('W', 'V' or 'S') and offset.  False
-// for any other operand.
+// for any other operand, and for [n + V] where V is a value's home
+// (bHomeV: SIR65Frame::bHomeV), which is anyone's memory.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Code::IsOwnMemory(const char* szOperand, size uiLength, uint8* puiBase, int32* piOffset)
+bool CIR65Code::IsOwnMemory(const char* szOperand, size uiLength, bool bHomeV, uint8* puiBase, int32* piOffset)
 {
 	size	ui;
 	char	cBase;
@@ -563,7 +564,7 @@ bool CIR65Code::IsOwnMemory(const char* szOperand, size uiLength, uint8* puiBase
 		return false;
 	}
 	cBase = szOperand[uiLength - 2];
-	if (((cBase != 'W') && (cBase != 'V') && (cBase != 'S')) || (memcmp(&szOperand[uiLength - 5], " + ", 3) != 0))
+	if (((cBase != 'W') && (cBase != 'V') && (cBase != 'S')) || (memcmp(&szOperand[uiLength - 5], " + ", 3) != 0) || (bHomeV && (cBase == 'V')))
 	{
 		return false;
 	}

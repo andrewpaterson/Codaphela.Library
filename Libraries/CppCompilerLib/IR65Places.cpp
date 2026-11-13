@@ -99,6 +99,7 @@ void SIR65Frame::Init(void)
 	iFrameBytes = 0;
 	iThisOffset = -1;
 	uiSaved = 0;
+	bHomeV = false;
 	bFrameless = false;
 	cRegister = 'V';
 	iArguments = 0;
@@ -128,14 +129,14 @@ int32 SIR65Frame::Add(int32 iBytes)
 //
 // Whether V is set up (GenerateFunction decides), and so the frame register
 // and where the arguments start: past the frame and the link, or from S past
-// the return address and the saved pseudo registers.
+// the return address, the saved pseudo registers and a saved V.
 //
 //////////////////////////////////////////////////////////////////////////
 void SIR65Frame::SetFrameless(bool bFramelessIn)
 {
 	bFrameless = bFramelessIn;
 	cRegister = bFrameless ? 'S' : 'V';
-	iArguments = bFrameless ? (1 + 4 + 4 * NumSaved()) : (1 + iFrameBytes + 8);
+	iArguments = bFrameless ? (1 + 4 + 4 * NumSaved() + (bHomeV ? 4 : 0)) : (1 + iFrameBytes + 8);
 }
 
 
@@ -433,30 +434,23 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // a low pseudo register if no call is made.  A parameter used at most once,
 // or that gets none of those, stays where it was pushed.  Then a kept
 // pseudo register if the class weighs 8 or more (it costs a push and a
-// pull), then the frame.
+// pull), then the frame.  A function that needs V for nothing (CanUseV)
+// first tries with V as a third register, for pointers and i32s (FitsV):
+// calls keep it (every function keeps V), so it is where one live across
+// calls goes; that stands if V was taken and nothing had to go in the
+// frame.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Allocate(void)
 {
 	CArrayIR65Weights			asWeights;
 	SIR65Weight*				psWeight;
-	SIR65Home*					psHome;
 	size						ui;
 	int32						iTemporary;
 	int32						iMember;
 	int32						iNumTemporaries;
 
-	for (ui = 0; ui < masHomes.NumElements(); ui++)
-	{
-		masHomes.Get(ui)->asRanges.Kill();
-	}
-	masHomes.FakeSetUsedElements(0);
-	for (ui = 0; ui < IR65_HOME_FRAME; ui++)
-	{
-		psHome = masHomes.Add();
-		psHome->asRanges.Init();
-		psHome->iOffset = -1;
-	}
+	ClearHomes();
 	FindChanges();
 
 	iNumTemporaries = (int32)mpcFunction->NumTemporaries();
@@ -487,12 +481,121 @@ void CIR65Backend::Allocate(void)
 	}
 	DiscountAddresses(&asWeights);
 	asWeights.QuickSort(CompareIR65Weights);
-	for (ui = 0; ui < asWeights.NumElements(); ui++)
+	msFrame.bHomeV = CanUseV();
+	if (!AllocateClasses(&asWeights) || (msFrame.bHomeV && (masHomes.Get(IR65R_V)->asRanges.NumElements() == 0)))
 	{
-		psWeight = asWeights.Get(ui);
-		AllocateClass(psWeight->iLeader, psWeight->uiWeight);
+		//With V the frame's register after all.
+		ClearHomes();
+		for (ui = 0; ui < asWeights.NumElements(); ui++)
+		{
+			PlaceClass(asWeights.Get(ui)->iLeader, IR65P_None, 0, 0);
+		}
+		msFrame.uiSaved = 0;
+		msFrame.bHomeV = false;
+		AllocateClasses(&asWeights);
 	}
 	asWeights.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives each class a home, most weighted first.  False if one had to go in
+// the frame while V is a home (it can't be both).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::AllocateClasses(CArrayIR65Weights* pasWeights)
+{
+	SIR65Weight*	psWeight;
+	size			ui;
+
+	for (ui = 0; ui < pasWeights->NumElements(); ui++)
+	{
+		psWeight = pasWeights->Get(ui);
+		if (!AllocateClass(psWeight->iLeader, psWeight->uiWeight))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No home is taken: the registers and the pseudo registers, and no frame
+// homes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::ClearHomes(void)
+{
+	SIR65Home*	psHome;
+	size		ui;
+
+	for (ui = 0; ui < masHomes.NumElements(); ui++)
+	{
+		masHomes.Get(ui)->asRanges.Kill();
+	}
+	masHomes.FakeSetUsedElements(0);
+	for (ui = 0; ui < IR65_HOME_FRAME; ui++)
+	{
+		psHome = masHomes.Add();
+		psHome->asRanges.Init();
+		psHome->iOffset = -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the function needs V for nothing, so V can be a home
+// (CCPPCompileOptions::mbHomeV): Layout put nothing in the frame (no
+// slot, no parameter whose address is taken) and it isn't variadic.  Its
+// pushed parameters are then all read by the prologue, from S, into homes
+// (AllocateClass leaves none where it was pushed).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::CanUseV(void)
+{
+	size	ui;
+
+	if (!mpcOptions->mbHomeV || (msFrame.iFrameBytes != 0) || (msFrame.iThisOffset >= 0) || (mpcFunction->muiAttributes & IRA_Variadic))
+	{
+		return false;
+	}
+	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	{
+		if (*mauiAddressed.Get(ui))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if every temporary of the class is a pointer or an i32: V holds
+// those.  It is always 32 bits wide (wth, wthx and cpyx don't take it:
+// WidthRegister), so not a narrow value, which is compared at its own
+// width in its register.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::FitsV(int32 iLeader)
+{
+	int32	iMember;
+	SIRType	sType;
+
+	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	{
+		sType = mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iMember));
+		if (!sType.IsPointer() && !sType.Is(IRTK_I32))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -894,15 +997,16 @@ bool CIR65Backend::TakeHomes(int32 iHome, int32 iUnits, int32 iLeader)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// See Allocate.
+// See Allocate.  False if the class needs the frame while V is a home.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
+bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 {
 	SIRType		sType;
 	bool		bCall;
 	bool		bChangesXY;
 	bool		bChangesY;
+	bool		bV;
 	int32		iParameter;
 	int32		iUnits;
 	int32		iUnit;
@@ -917,6 +1021,10 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	bChangesXY = bCall || Crosses(iLeader, &maiChangesXY);
 	bChangesY = bChangesXY || Crosses(iLeader, &maiChangesY);
 	iUnits = IsWide(sType) ? 2 : 1;
+
+	//V, where it is a home: a value live across a call (X and Y are changed by it, and a kept pseudo register costs
+	//more to save than V does), or one worth V's push and pull (or they are paid for already).
+	bV = msFrame.bHomeV && (iUnits == 1) && FitsV(iLeader) && (bCall || (uiWeight >= IR65_V_WEIGHT) || (masHomes.Get(IR65R_V)->asRanges.NumElements() > 0));
 
 	//A pushed parameter alone in its class (not a thiscall's this, which comes in X, nor one that comes in A, B or Y),
 	//whose arrival place nothing stores to through an argaddr.
@@ -934,38 +1042,47 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		}
 	}
 
-	//A parameter used at most once isn't worth copying.
-	if ((iParameter < 0) || (uiWeight > 2))
+	//A parameter used at most once isn't worth copying (but is, where V is a home: the prologue reads it from S).
+	if ((iParameter < 0) || (uiWeight > 2) || msFrame.bHomeV)
 	{
 		if ((iUnits == 1) && !bChangesXY && TakeHomes(IR65R_X, 1, iLeader))
 		{
 			PlaceClass(iLeader, IR65P_Register, IR65R_X, 4);
-			return;
+			return true;
 		}
 		if ((iUnits == 1) && !bChangesY && TakeHomes(IR65R_Y, 1, iLeader))
 		{
 			PlaceClass(iLeader, IR65P_Register, IR65R_Y, 4);
-			return;
+			return true;
+		}
+		if (bV && TakeHomes(IR65R_V, 1, iLeader))
+		{
+			PlaceClass(iLeader, IR65P_Register, IR65R_V, 4);
+			return true;
 		}
 		iUnit = bCall ? -1 : FindUnits(IR65_HOME_PSEUDO, iUnits, iLeader);
 		if (iUnit >= 0)
 		{
 			PlaceClass(iLeader, IR65P_Pseudo, IR65_PSEUDO_UNIT_BYTES * iUnit, IR65_PSEUDO_UNIT_BYTES * iUnits);
-			return;
+			return true;
 		}
 	}
-	if (iParameter >= 0)
+	if ((iParameter >= 0) && !msFrame.bHomeV)
 	{
 		ArrivalPlace((size)iParameter, &sArrival);
 		PlaceClass(iLeader, sArrival.uiKind, sArrival.iOffset, sArrival.iBytes);
-		return;
+		return true;
 	}
-	iUnit = (uiWeight >= 8) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
+	iUnit = ((uiWeight >= 8) || msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
 	if (iUnit >= 0)
 	{
 		msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;
 		PlaceClass(iLeader, IR65P_Pseudo, IR65_SAVED_UNIT(iUnit), IR65_PSEUDO_UNIT_BYTES * iUnits);
-		return;
+		return true;
+	}
+	if (msFrame.bHomeV)
+	{
+		return false;
 	}
 
 	for (iHome = IR65_HOME_FRAME; iHome + iUnits <= (int32)masHomes.NumElements(); iHome++)
@@ -977,7 +1094,7 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		if (TakeHomes(iHome, iUnits, iLeader))
 		{
 			PlaceClass(iLeader, IR65P_Frame, masHomes.Get(iHome)->iOffset, IR65_PSEUDO_UNIT_BYTES * iUnits);
-			return;
+			return true;
 		}
 	}
 	iOffset = msFrame.Add(IR65_PSEUDO_UNIT_BYTES * iUnits);
@@ -990,6 +1107,7 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	}
 	TakeHomes(iHome, iUnits, iLeader);
 	PlaceClass(iLeader, IR65P_Frame, iOffset, IR65_PSEUDO_UNIT_BYTES * iUnits);
+	return true;
 }
 
 
@@ -1221,7 +1339,9 @@ void CIR65Backend::FindNarrowOnly(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 {
-	return (psPlace->iOffset == IR65R_X) ? "X" : "Y";
+	static const char*	aszNames[IR65R_Count] = { "X", "Y", "V" };
+
+	return aszNames[psPlace->iOffset];
 }
 
 

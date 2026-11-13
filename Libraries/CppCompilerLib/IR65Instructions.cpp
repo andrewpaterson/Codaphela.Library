@@ -643,6 +643,10 @@ bool CIR65Backend::Conversion(SIRInstruction* psInstruction)
 	sFrom = mpcFunction->TypeOf(psInstruction->asArguments[0]);
 	bSigned = psInstruction->uiOpcode == IRO_SExt;
 	szWork = WorkRegister(psInstruction);
+	if (ValueBytes(sFrom) != 4)
+	{
+		szWork = WidthRegister(szWork);
+	}
 	LoadValue(psInstruction->asArguments[0], szWork, bSigned ? IR65E_Sign : IR65E_Zero);
 	if (IsWide(psInstruction->sType) && !IsWide(sFrom))
 	{
@@ -673,6 +677,10 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExten
 	psInstruction = pcBlock->masInstructions.Get(uiIndex);
 	iBytes = ValueBytes(psInstruction->sType);
 	szWork = WorkRegister(psExtend ? psExtend : psInstruction);
+	if (iBytes != 4)
+	{
+		szWork = WidthRegister(szWork);
+	}
 	szOperand.Init();
 	bCopyExtend = false;
 	if ((iBytes < 4) && !NarrowOnly(psInstruction->sResult))
@@ -753,7 +761,7 @@ bool CIR65Backend::Store(CIRBlock* pcBlock, size uiIndex)
 	{
 		szValueRegister = "A";
 	}
-	else if ((iBytes != 8) && InRegister(sValue))
+	else if ((iBytes != 8) && InRegister(sValue) && ((iBytes == 4) || (PlaceOf(sValue)->iOffset != IR65R_V)))
 	{
 		szValueRegister = RegisterName(PlaceOf(sValue));
 	}

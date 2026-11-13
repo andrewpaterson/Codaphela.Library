@@ -171,7 +171,7 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Peephole(size uiStart)
 {
-	PeepholeCode(mpszOut, uiStart, &maiBlockLabels);
+	PeepholeCode(mpszOut, uiStart, &maiBlockLabels, msFrame.bHomeV);
 }
 
 
@@ -206,9 +206,10 @@ static bool IR65IsBlockLabel(CChars* pszLine, CArrayTemplate<int32>* paiBlockLab
 //////////////////////////////////////////////////////////////////////////
 //
 // Peephole on pszCode from uiStart, whose block labels are paiBlockLabels.
+// bHomeV: V is a home there (SIR65Frame::bHomeV).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels)
+void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV)
 {
 	CChars			szText;
 	CArrayChars		aszLines;
@@ -258,7 +259,7 @@ void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<in
 			szFrom.Init();
 			szTo.Init();
 			szLoaded.Init();
-			if (IR65CopyOperands(pszLine, &szStored, &szFrom) && IR65CopyOperands(pszNext, &szTo, &szLoaded) && CIR65Code::IsOwnMemory(szStored.Text(), szStored.Length(), &uiBase, &iOffset) && szLoaded.Equals(szStored))
+			if (IR65CopyOperands(pszLine, &szStored, &szFrom) && IR65CopyOperands(pszNext, &szTo, &szLoaded) && CIR65Code::IsOwnMemory(szStored.Text(), szStored.Length(), bHomeV, &uiBase, &iOffset) && szLoaded.Equals(szStored))
 			{
 				iFrom = CIR65Code::RegisterIndex(szFrom.Text(), szFrom.Length());
 				iTo = CIR65Code::RegisterIndex(szTo.Text(), szTo.Length());

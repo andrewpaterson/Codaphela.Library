@@ -66,12 +66,13 @@ protected:
 	CArrayIR65Values		masStates;		//Per line: what the registers hold as it starts.
 	CArrayTemplate<int16>	maiCopied;		//Per line: the value a cpy to a register (or a store from one) copies.
 	CArrayTemplate<uint8>	mauiDemand;		//Per line: the flags read after it before they are set.
+	bool					mbHomeV;		//V is a value's home in the function (SIR65Frame::bHomeV): [n + V] isn't its own memory.
 
 public:
 	void	Init(void);
 	void	Kill(void);
 
-	void	Optimise(CChars* pszCode, size uiStart);
+	void	Optimise(CChars* pszCode, size uiStart, bool bHomeV);
 	bool	IsLoaded(void);
 
 protected:

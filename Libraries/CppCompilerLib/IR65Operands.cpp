@@ -270,8 +270,20 @@ bool CIR65Backend::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szRegister where a value is read or written at another width than 32
+// bits (wth, wthx and cpyx): A for V, which has only the one.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIR65Backend::WidthRegister(const char* szRegister)
+{
+	return (szRegister[0] == 'V') ? "A" : szRegister;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The register to work out an instruction's result in: its own if it is
-// kept in X or Y, otherwise A.
+// kept in X, Y or V, otherwise A.
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CIR65Backend::WorkRegister(SIRInstruction* psInstruction)
@@ -729,7 +741,7 @@ void CIR65Backend::Push(SIRReference sValue, SIRType sType)
 	{
 		szRegister = "A";
 	}
-	else if (InRegister(sValue))
+	else if (InRegister(sValue) && ((iBytes == 4) || (PlaceOf(sValue)->iOffset != IR65R_V)))
 	{
 		szRegister = RegisterName(PlaceOf(sValue));
 	}

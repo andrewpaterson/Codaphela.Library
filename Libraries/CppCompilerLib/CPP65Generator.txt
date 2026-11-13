@@ -315,6 +315,10 @@ suites, and both are slower:
 
 The code they gave was 1.2% and 0.5% smaller.
 
+V is the frame's register only in a function that has a frame.  One that needs none may
+keep a value in V instead (IR.txt, V as a third register): it pushes V first and pulls it
+before it returns, so V is kept for its caller either way.
+
 Places from V (they don't move when values are pushed):
 
 	[1 + local + V]						a local

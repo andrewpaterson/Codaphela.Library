@@ -149,13 +149,14 @@ void CIR65Peephole::Kill(void)
 // it is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Peephole::Optimise(CChars* pszCode, size uiStart)
+void CIR65Peephole::Optimise(CChars* pszCode, size uiStart, bool bHomeV)
 {
 	size	ui;
 	int		iRound;
 	bool	bChanged;
 	bool	bAny;
 
+	mbHomeV = bHomeV;
 	if (!mcCode.Load(pszCode, uiStart, true))
 	{
 		return;
@@ -274,7 +275,7 @@ int16 CIR65Peephole::AddValue(const char* szOperand, size uiLength)
 			return IR65_VALUE_UNKNOWN;
 		}
 	}
-	else if (!CIR65Code::IsOwnMemory(szOperand, uiLength, &sValue.uiBase, &sValue.iOffset))
+	else if (!CIR65Code::IsOwnMemory(szOperand, uiLength, mbHomeV, &sValue.uiBase, &sValue.iOffset))
 	{
 		//A number or a symbol: letters, digits, _ and a leading -.
 		for (ui = 0; ui < uiLength; ui++)
@@ -346,7 +347,7 @@ void CIR65Peephole::ComputeCopied(void)
 			{
 				iCopied = AddValue(szSecond, uiSecond);
 			}
-			else if (psLine->bFirstMemory && (psLine->iSecond >= 0) && (psWidths->auiRegisters[psLine->iSecond] == 32) && CIR65Code::IsOwnMemory(szFirst, uiFirst, &uiBase, &iOffset))
+			else if (psLine->bFirstMemory && (psLine->iSecond >= 0) && (psWidths->auiRegisters[psLine->iSecond] == 32) && CIR65Code::IsOwnMemory(szFirst, uiFirst, mbHomeV, &uiBase, &iOffset))
 			{
 				iCopied = AddValue(szFirst, uiFirst);
 			}
@@ -578,7 +579,7 @@ void CIR65Peephole::ForgetMemory(SIR65Values* psState, const char* szOperand, si
 	int32		iOffset;
 	bool		bOwn;
 
-	bOwn = CIR65Code::IsOwnMemory(szOperand, uiLength, &uiBase, &iOffset);
+	bOwn = CIR65Code::IsOwnMemory(szOperand, uiLength, mbHomeV, &uiBase, &iOffset);
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		iValue = psState->aiValues[i];

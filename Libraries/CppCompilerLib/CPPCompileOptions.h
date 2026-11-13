@@ -50,6 +50,7 @@ public:
 	bool		mbAssemblyUnits;		//The target's assembly beside a unit (XW65C816.asm) is built in place of the C++ it replaces.
 	bool		mbSoftFloatInFrame;		//The W65C816's soft float routines take their operands in the caller's frame: the assembly ones do.
 	bool		mbRegisterArguments;	//A call's first arguments are passed in registers (the W65C816's A, X and Y, the 65C64's A, B and Y).
+	bool		mbHomeV;				//The 65C64's V is a third register for values in a function that needs no frame (CIR65Backend::CanUseV).
 	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.
 
 	void		Init(void);

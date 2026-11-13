@@ -149,7 +149,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 
 	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S doesn't
 	//move) or one that reads them before pushing anything.  Otherwise V points at the frame.
-	msFrame.SetFrameless((msFrame.iFrameBytes == 0) && (msFrame.iThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst()));
+	msFrame.SetFrameless(msFrame.bHomeV || ((msFrame.iFrameBytes == 0) && (msFrame.iThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst())));
 
 	maiBlockLabels.FakeSetUsedElements(0);
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
@@ -183,7 +183,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	CountLoaded(mcFlags.IsLoaded());
 	mcWidths.Optimise(pszDest, muiBodyStart);
 	CountLoaded(mcWidths.IsLoaded());
-	mcPeephole.Optimise(pszDest, muiBodyStart);
+	mcPeephole.Optimise(pszDest, muiBodyStart, msFrame.bHomeV);
 	CountLoaded(mcPeephole.IsLoaded());
 	IR65PseudoWithoutW(pszDest, muiBodyStart);
 	mpcModule->End(CPPCP_CodePasses);
@@ -212,7 +212,7 @@ void CIR65Backend::CountLoaded(bool bLoaded)
 //			...					; (RegisterStub), then label.aby:
 //			psh V
 //			sub S, frame
-//			cpy V, S
+//			cpy V, S			; only psh V where V is a home (SIR65Frame::bHomeV)
 //			psh [n + W]			; each [$80 + W] to [$FF + W] unit used
 //			...					; parameters copied to their homes
 //
@@ -249,6 +249,10 @@ void CIR65Backend::Prologue(const char* szLabel)
 		mpszOut->Append(':');
 		mpszOut->AppendNewLine();
 		szBody.Kill();
+	}
+	if (msFrame.bHomeV)
+	{
+		Line("psh V")->AppendNewLine();
 	}
 	if (!msFrame.bFrameless)
 	{
@@ -519,6 +523,10 @@ void CIR65Backend::Epilogue(void)
 		{
 			Line("add S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
 		}
+		Line("pul V")->AppendNewLine();
+	}
+	if (msFrame.bHomeV)
+	{
 		Line("pul V")->AppendNewLine();
 	}
 	Line("ret")->AppendNewLine();
