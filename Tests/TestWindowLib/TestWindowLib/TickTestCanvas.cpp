@@ -10,15 +10,15 @@
 //////////////////////////////////////////////////////////////////////////
 void CTickTestCanvas::Init(SDataTestRefWindow* pcData, Ptr<CMaps> pMaps, int32 iStop)
 {
-    PreInit();
+	PreInit();
 
-    CWindowTick::Init();
-    mpcData = pcData;
-    mpcData->iTick = 0;
-    mpcData->iStop = iStop;
-    mpMaps = pMaps;
+	CWindowTick::Init();
+	mpcData = pcData;
+	mpcData->iTick = 0;
+	mpcData->iStop = iStop;
+	mpMaps = pMaps;
 
-    PostInit();
+	PostInit();
 }
 
 
@@ -28,9 +28,9 @@ void CTickTestCanvas::Init(SDataTestRefWindow* pcData, Ptr<CMaps> pMaps, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CTickTestCanvas::Class(void)
 {
-    CWindowTick::Class();
-    U_Pointer(mpcData);
-    M_Pointer(mpMaps);
+	CWindowTick::Class();
+	U_Pointer(mpcData);
+	M_Pointer(mpMaps);
 }
 
 
@@ -40,20 +40,20 @@ void CTickTestCanvas::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTickTestCanvas::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
-    SInt32Vec2  sPos;
+	SInt32Vec2	sPos;
 
-    sPos = mpMaps->GetViewportPosition();
-    sPos.x += 13;
-    sPos.y += 9;
-    mpMaps->SetViewportPosition(sPos);
+	sPos = mpMaps->GetViewportPosition();
+	sPos.x += 13;
+	sPos.y += 9;
+	mpMaps->SetViewportPosition(sPos);
 
-    //What the window shows moved; a window drawing only what changed wouldn't otherwise draw it again.
-    pWindow->Invalidate();
+	//What the window shows moved; a window drawing only what changed wouldn't otherwise draw it again.
+	pWindow->Invalidate();
 
-    mpcData->iTick++;
-    if (mpcData->iTick == mpcData->iStop)
-    {
-        pWindow->Stop();
-    }
+	mpcData->iTick++;
+	if (mpcData->iTick == mpcData->iStop)
+	{
+		pWindow->Stop();
+	}
 }
 

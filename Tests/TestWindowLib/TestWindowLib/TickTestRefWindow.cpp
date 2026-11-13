@@ -10,14 +10,14 @@
 //////////////////////////////////////////////////////////////////////////
 void CTickTestRefWindow::Init(SDataTestRefWindow* pcData, int32 iStop)
 {
-    PreInit();
+	PreInit();
 
-    CWindowTick::Init();
-    mpcData = pcData;
-    mpcData->iTick = 0;
-    mpcData->iStop = iStop;
+	CWindowTick::Init();
+	mpcData = pcData;
+	mpcData->iTick = 0;
+	mpcData->iStop = iStop;
 
-    PostInit();
+	PostInit();
 }
 
 
@@ -27,10 +27,10 @@ void CTickTestRefWindow::Init(SDataTestRefWindow* pcData, int32 iStop)
 //////////////////////////////////////////////////////////////////////////
 void CTickTestRefWindow::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
-    mpcData->iTick++;
-    if (mpcData->iTick == mpcData->iStop)
-    {
-        pWindow->Stop();
-    }
+	mpcData->iTick++;
+	if (mpcData->iTick == mpcData->iStop)
+	{
+		pWindow->Stop();
+	}
 }
 

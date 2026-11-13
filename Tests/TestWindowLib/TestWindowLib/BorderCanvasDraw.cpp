@@ -9,10 +9,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CBorderCanvasDraw::Init(ARGB32 sColour)
 {
-    PreInit();
-    CCanvasDraw::Init();
-    msColour = sColour;
-    PostInit();
+	PreInit();
+	CCanvasDraw::Init();
+	msColour = sColour;
+	PostInit();
 }
 
 
@@ -22,30 +22,30 @@ void CBorderCanvasDraw::Init(ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 bool CBorderCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
-    CInt32Rect      cRect;
-    ARGB32	        sBlack;
-    ARGB32	        sGrey;
-    SInt32Vec2      sSize;
+	CInt32Rect	cRect;
+	ARGB32		sBlack;
+	ARGB32		sGrey;
+	SInt32Vec2	sSize;
 
-    if (pCanvas->IsValid())
-    {
-        sGrey = Set32BitColour((uint8)64, 64, 64);
-        sBlack = Set32BitColour((uint8)0, 0, 0);
+	if (pCanvas->IsValid())
+	{
+		sGrey = Set32BitColour((uint8)64, 64, 64);
+		sBlack = Set32BitColour((uint8)0, 0, 0);
 
-        sSize = pCanvas->GetActualSize();
-        sSize.x--;
-        sSize.y--;
-        cRect.Init(sSize);
+		sSize = pCanvas->GetActualSize();
+		sSize.x--;
+		sSize.y--;
+		cRect.Init(sSize);
 
-        pCanvas->DrawBox(&cRect, true, sBlack);
-        pCanvas->DrawBox(&cRect, false, msColour);
-        cRect.Shrink(1, 1, 1, 1);
-        if (cRect.IsValid())
-        {
-            pCanvas->DrawBox(&cRect, false, sGrey);
-        }
-    }
+		pCanvas->DrawBox(&cRect, true, sBlack);
+		pCanvas->DrawBox(&cRect, false, msColour);
+		cRect.Shrink(1, 1, 1, 1);
+		if (cRect.IsValid())
+		{
+			pCanvas->DrawBox(&cRect, false, sGrey);
+		}
+	}
 
-    return true;
+	return true;
 }
 
