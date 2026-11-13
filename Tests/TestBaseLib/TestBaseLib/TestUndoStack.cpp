@@ -267,6 +267,72 @@ void TestUndoLogRenameDocument(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A rename is a step of its own in the group it was made in (Rename
+// File's #include edits and its renames are one group).  It isn't an
+// edit: its document's own undo doesn't find it, RenameDocument and
+// RemoveDocument leave it, and a new step of either name drops it once
+// it is undone.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUndoLogRenamed(void)
+{
+	CUndoLog	cLog;
+	size		uiGroup;
+
+	cLog.Init();
+	cLog.BeginGroup();
+	cLog.Kept("User.cpp", 0, 1);
+	cLog.Kept("Engine.cpp", 0, 1);
+	cLog.Renamed("Engine.h", "CPPEngine.h");
+	cLog.RenameDocument("Engine.cpp", "CPPEngine.cpp");
+	cLog.Renamed("Engine.cpp", "CPPEngine.cpp");
+	cLog.EndGroup();
+
+	AssertSize(4, cLog.NumSteps());
+	uiGroup = cLog.Get(0)->uiGroup;
+	AssertSize(uiGroup, cLog.Get(3)->uiGroup);
+	AssertSize(uiGroup, cLog.FindUndoGroup());
+	AssertFalse(cLog.IsRename(1));
+	AssertString("CPPEngine.cpp", cLog.Get(1)->szDocument.Text());
+	AssertTrue(cLog.IsRename(2));
+	AssertString("Engine.h", cLog.Get(2)->szDocument.Text());
+	AssertString("CPPEngine.h", cLog.Get(2)->szRenamed.Text());
+	AssertTrue(cLog.IsRename(3));
+	AssertString("Engine.cpp", cLog.Get(3)->szDocument.Text());
+
+	//Undone, newest first: each rename renamed back, then the edits.
+	cLog.MarkUndone(3);
+	cLog.RenameDocument("CPPEngine.cpp", "Engine.cpp");
+	cLog.MarkUndone(2);
+	AssertString("Engine.cpp", cLog.Get(1)->szDocument.Text());
+	AssertString("Engine.cpp", cLog.Get(3)->szDocument.Text());
+	AssertSize(uiGroup, cLog.Undone("Engine.cpp", 1, 0));
+	AssertSize(uiGroup, cLog.Undone("User.cpp", 1, 0));
+	AssertSize(uiGroup, cLog.FindRedoGroup());
+	AssertSize(MAX_SIZE, cLog.FindUndoGroup());
+
+	//A rename's ids aren't an edit's.
+	AssertSize(MAX_SIZE, cLog.Undone("Engine.h", 0, 0));
+
+	//Closing a document keeps its renames.
+	cLog.RemoveDocument("Engine.h");
+	AssertSize(4, cLog.NumSteps());
+
+	//A new edit of Engine.h: its undone rename can't be redone.
+	cLog.Kept("Engine.h", 0, 1);
+	AssertSize(4, cLog.NumSteps());
+	AssertFalse(cLog.IsRename(3));
+	AssertString("Engine.h", cLog.Get(3)->szDocument.Text());
+	AssertString("Engine.cpp", cLog.Get(2)->szDocument.Text());
+	AssertTrue(cLog.IsRename(2));
+
+	cLog.Clear();
+	cLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Past the maximum the oldest steps are dropped.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -299,6 +365,7 @@ void TestUndoStack(void)
 	TestUndoStackMaximum();
 	TestUndoLogAcrossDocuments();
 	TestUndoLogRenameDocument();
+	TestUndoLogRenamed();
 	TestUndoLogMaximum();
 
 	TestStatistics();

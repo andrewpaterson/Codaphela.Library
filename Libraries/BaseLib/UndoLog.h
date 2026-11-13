@@ -31,14 +31,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //An edit of one document, its undo stack's snapshot ids before and after it, the group it was made in and, if it has
-//been undone, when (the log's count of undos when it was, 0 if it hasn't been).
+//been undone, when (the log's count of undos when it was, 0 if it hasn't been).  Or a document renamed (a file
+//renamed): szDocument its old name and szRenamed its new one, its ids 0; the log's user renames it back to undo it.
 struct SUndoLogStep
 {
 	CChars	szDocument;
+	CChars	szRenamed;		//Empty for an edit.
 	size	uiIdBefore;
 	size	uiIdAfter;
 	size	uiGroup;
 	size	uiUndone;
+	bool	bRename;
 };
 
 
@@ -75,6 +78,7 @@ public:
 
 	void			Kept(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			Merged(char* szDocument, size uiIdBefore, size uiIdAfter);
+	void			Renamed(char* szOldDocument, char* szNewDocument);
 	size			Undone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	size			Redone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			RemoveDocument(char* szDocument);
@@ -88,10 +92,13 @@ public:
 	size			NumSteps(void);
 	SUndoLogStep*	Get(size uiIndex);
 	bool			IsUndone(size uiIndex);
+	bool			IsRename(size uiIndex);
 
 protected:
 	size			FindStep(char* szDocument, size uiIdBefore, size uiIdAfter, bool bUndone);
 	void			RemoveAt(size uiIndex);
+	SUndoLogStep*	AddStep(char* szDocument, size uiIdBefore, size uiIdAfter);
+	void			DropUndone(char* szDocument);
 };
 
 
