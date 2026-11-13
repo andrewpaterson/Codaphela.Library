@@ -50,7 +50,7 @@ Right now the highlighting is only spans checked by tests.
 6. C++ compliance: preprocessor and tokeniser to C++17, code generators to C++14
 -----------------------------------------------------------------------------------
 
-Notes only (2026-11-07), not started.  Found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIR816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
+Notes only (2026-11-07), not started.  Found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
 
 Already done in the preprocessor and tokeniser: __has_include and __has_include_next, _Pragma, __VA_ARGS__ (with the ", ##" comma rule), digit separators, binary literals, hex floats (0x1p-3 pp-numbers, read by strtold), u8 character literals, digraphs and alternative tokens, and no trigraphs (C++17 removed them).
 

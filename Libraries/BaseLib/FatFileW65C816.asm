@@ -44,7 +44,7 @@ OPEN_PATH_SIZE	= (FAT_MAX_PATH + 2) & 0xFFFE
 OPEN_LOCALS		= OPEN_PATH_SIZE + SIZEOF_SFatDirectoryEntry
 
 
-		.section text.FatFile816
+		.section text.FatFileW65C816
 		.relax
 
 

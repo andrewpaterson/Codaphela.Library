@@ -25,7 +25,7 @@ NOT_FOUND		= 0xFFFF		; ARRAY_ELEMENT_NOT_FOUND (MAX_SIZE).
 BACKSLASH		= 0x5C
 
 
-		.section text.FatFilenameHelper816
+		.section text.FatFilenameHelperW65C816
 		.relax
 
 

@@ -51,7 +51,7 @@ C_SECTOR		= C_FRAME + 10
 C_STAMP			= C_FRAME + 14
 
 
-		.section text.FatInfoSectorCache816
+		.section text.FatInfoSectorCacheW65C816
 
 
 ; void CFatSectorCache::Init(uint32 uiInfoSector, uint64 uiCreationStamp)

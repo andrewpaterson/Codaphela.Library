@@ -44,7 +44,7 @@ Files
   Indexed data: index tree files, evicting caches, descriptors, named indexes
 
 File systems
-  FAT32 (also hand-written as W65C816 assembly in Fat*816.asm / FatW65C816.inc)
+  FAT32 (also hand-written as W65C816 assembly in Fat*W65C816.asm / FatW65C816.inc)
   Underlying drives: file and memory
 
 Database

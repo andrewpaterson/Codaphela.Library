@@ -20,7 +20,7 @@ the lines are those inside the class's functions.
 	Class                Functions   Lines   ifs   What it is
 	CCPP65Generator         314      8,909   865   Everything about the C++: 65 fields, 3 friend classes
 	CIROptimiser            173      8,438   782   Every pass, 29 fields, the order written out in Optimise
-	CIR816Backend           158      6,137   492   Frame, places, instructions, calls, peepholes, runtime
+	CIRW65C816Backend       158      6,137   492   Frame, places, instructions, calls, peepholes, runtime
 	CCPP65IRFrontEnd        187      5,811   624   Function bodies to IR
 	CCPPParser              159      5,496   619   The parser
 	CIR65Backend            131      3,484   325   The 65C64's, 30 fields
@@ -69,7 +69,7 @@ What makes the special cases
    CPPT_W65C816 in eight files (ten in the builder), InitOptimiser's seven "bW65C816 ?" settings, pairs of
    IR65_INLINE_ and IR816_INLINE_ #defines, szW65C816Only on a builtin, the W65C816's frame in a struct the
    shared front end keeps, and globals: gbIR816RegisterArguments, gbIR816SoftFloatInFrame, gbW65C816Assembly,
-   CIR816Backend's static scratch allocator and nine statics on CCPP65IRFrontEnd ("only exact when the units
+   CIRW65C816Backend's static scratch allocator and nine statics on CCPP65IRFrontEnd ("only exact when the units
    are compiled one at a time").
 
 5. Kinds are told apart with GetKind and a cast.
@@ -79,10 +79,10 @@ What makes the special cases
 
 6. The back ends write text and read it back.
 
-   About 300 places append assembly as text.  The passes after them need to know what a line is, so CIR816Code
+   About 300 places append assembly as text.  The passes after them need to know what a line is, so CIRW65C816Code
    and CIR65Code decode the text again; source positions travel as marker bytes that are taken out and put back
-   (CIRSourceMarkers); AlignFrame (254 lines) edits the text a third time.  CIR816Backend has nine passes each
-   declared twice (for a CChars and for a CIR816Code), and nine arrays indexed by temporary.
+   (CIRSourceMarkers); AlignFrame (254 lines) edits the text a third time.  CIRW65C816Backend has nine passes each
+   declared twice (for a CChars and for a CIRW65C816Code), and nine arrays indexed by temporary.
 
 7. The optimiser's passes are functions of one class.
 
@@ -105,7 +105,7 @@ see; the 65C64's and the W65C816's own classes make their back ends and pipeline
 	           CCPPOverloads, CCPPDeduction, CCPPDeclarators, CCPPMangler, CCPPWarnings
 	Lowering   CCPPLowering (bound nodes to IR), CCPPUnitData (globals, strings, vtables, start up tables)
 	IR         CIRModule, CIRFunction; CIRPass and the passes, CIRPipeline; CIRInliner, CIRInterprocedural
-	Machine    CIRBackend: CIR65Backend and CIR816Backend, each a frame, places, a selector, calls, its code as
+	Machine    CIRBackend: CIR65Backend and CIRW65C816Backend, each a frame, places, a selector, calls, its code as
 	           instructions, passes over them and a printer
 	Build      CCPPBuild, CCPPUnitCompiler, CCPPUnitSchedule, CCPPProgramLinker, CCPPCompileOptions
 
@@ -322,10 +322,10 @@ Stage 6.  The rest of an expression is resolved once.  (XL)
 Stage 7.  The back ends are the same parts.  (L)
 
    One record for each temporary (its place, slot, folded base, offset and index, uses, whether it is in X) in
-   place of nine arrays.  CIR816Backend becomes its parts: CIR816Places (PackTemporaries, PlaceTemporaries,
-   GroupTemporaries, AllocateX), CIR816Folds, CIR816Fusion, CIR816Calls (PushArguments, LoadRegisterArguments,
-   the register stub, Forwarder), CIR816Selector (an IR instruction to machine instructions) and
-   CIR816Runtime.  CIR65Backend becomes the same parts with the same names, which finishes the reshaping
+   place of nine arrays.  CIRW65C816Backend becomes its parts: CIRW65C816Places (PackTemporaries, PlaceTemporaries,
+   GroupTemporaries, AllocateX), CIRW65C816Folds, CIRW65C816Fusion, CIRW65C816Calls (PushArguments, LoadRegisterArguments,
+   the register stub, Forwarder), CIRW65C816Selector (an IR instruction to machine instructions) and
+   CIRW65C816Runtime.  CIR65Backend becomes the same parts with the same names, which finishes the reshaping
    IR65Reshape.txt began.
    Measure before: the back ends' shares of the compile, by function (on 2026-11-04 the W65C816's was nearly
    half of generation).
@@ -340,7 +340,7 @@ Stage 8.  The back ends' code is instructions.  (L-XL)
    CIR65Code gives up on a function with a line it doesn't know, and the passes leave that function as it
    is.  A pass that does one job on both processors is written once over what their instructions share,
    as the branch passes already are (CIRBranchCode).
-   Measure before: the time spent turning text into lines and back (IR816Decode, CIR816Code's and CIR65Code's
+   Measure before: the time spent turning text into lines and back (IR816Decode, CIRW65C816Code's and CIR65Code's
    Load and Write, CIRSourceMarkers' Take and Put), and how many times a function's code makes the trip; how
    many 65C64 functions CIR65Code refuses, and their share of the suites' cycles (a profile): that is the
    most the 65C64 can gain here.

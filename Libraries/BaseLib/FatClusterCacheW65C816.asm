@@ -38,7 +38,7 @@ F_ARGUMENT5		= F_FRAME + 24	; a pointer, then
 F_ARGUMENT6		= F_FRAME + 28	; a uint16 (Read and Write).
 
 
-		.section text.FatClusterCache816
+		.section text.FatClusterCacheW65C816
 
 
 ; The frame (F_FRAME bytes) for a function called with jsl: jsr'd straight after its label.  The return address (the

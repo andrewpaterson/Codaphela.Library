@@ -5,11 +5,11 @@ Source: HCP65/W65C64/65C64 Instruction Architecture.xlsx (V0.1 Prelim).
 The pinout, user bank remapping, the internal "cache" SRAM and the programmable
 CPLD are ignored.
 
-The 65C64 classes start with C65 and share no code with the CW65 classes.  The
-structure follows the W65C816S simulator: instructions are lists of bus cycles,
-a bus cycle is a list of address offsets and operations, operations run on the
-initial side (after PHI2 falls, before the address is written) or the trailing
-side (when PHI2 falls at the end of the cycle).
+The 65C64 classes start with C65C64 and share no code with the CW65C816 classes.
+The structure follows the W65C816S simulator: instructions are lists of bus
+cycles, a bus cycle is a list of address offsets and operations, operations run
+on the initial side (after PHI2 falls, before the address is written) or the
+trailing side (when PHI2 falls at the end of the cycle).
 
 
 Bus

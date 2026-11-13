@@ -40,7 +40,7 @@ F_THIS			= F_FRAME + 6
 F_ARGUMENT		= F_FRAME + 10
 
 
-		.section text.FatVolume816
+		.section text.FatVolumeW65C816
 
 
 ; The frame (F_FRAME bytes) for a function called with jsl: jsr'd straight after its label.  The return address (the

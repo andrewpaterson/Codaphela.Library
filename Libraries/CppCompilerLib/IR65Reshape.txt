@@ -1,7 +1,7 @@
 Reshaping the 65C64 back end toward the W65C816's
 ==================================================
 
-The 65C64 back end (CIR65Backend) and the W65C816 back end (CIR816Backend) share almost no
+The 65C64 back end (CIR65Backend) and the W65C816 back end (CIRW65C816Backend) share almost no
 code line for line, but they do the same jobs: the duplication is in behaviour.  The 65C64
 one grew as one 5,346 line file whose stages talk through member state; the W65C816 one is
 split by concern (IR816Places, Instructions, Flow, Frames, Runtime, Lines, Peephole,
@@ -19,7 +19,7 @@ IR rewrites before code     ExpandMultiplies, SinkSteps             ExpandMultip
                                                                     PreferSingleBranches, OrderBlocks,
                                                                     RotateLoops, SinkLoads, CopyAddresses,
                                                                     FindNarrowOnly
-Frame layout                SIR816Frame (Add, Link, Arguments,      miFrameBytes, miArguments, miThisOffset,
+Frame layout                SIRW65C816Frame (Add, Link, Arguments,  miFrameBytes, miArguments, miThisOffset,
                             Top), filled by Layout                  mbFrameless, mcFrame; AddFrame,
                                                                     ParameterOffset, ArrivalPlace
 Values' places              PackTemporaries, AllocateX              Allocate, Coalesce/Find/Join/Interferes,
@@ -45,7 +45,7 @@ Passes over the text        IR816Lines decodes; IR816Flow,          CIR65Code de
 
 The text passes are the one place the W65C816's shape isn't clearly the better one: the
 65C64's decoded CIR65Code with its label table is arguably tidier than static functions over
-the raw text.  Both follow what A, X and Y hold (CIR65Peephole's values, SIR816Held) and both
+the raw text.  Both follow what A, X and Y hold (CIR65Peephole's values, SIRW65C816Held) and both
 thread jumps.
 
 
@@ -56,18 +56,18 @@ What belongs in shared code
   loop's test moved after its body) don't depend on the target, and the W65C816 has nothing
   like them.  (Not CIRLoopPasses::RotateLoops: that copies a loop's head, up to 8
   instructions; the back end's moves blocks, and catches the loops the optimiser leaves.)
-- Loop steps.  CIR65Backend::SinkToEnd and CIR816Backend::SinkSteps both moved a loop's step
+- Loop steps.  CIR65Backend::SinkToEnd and CIRW65C816Backend::SinkSteps both moved a loop's step
   (p + 1 a phi takes) down past the instructions reading p so the two can share a place,
   with different rules.  Done 2026-11-05: one CIRBackendPasses::SinkSteps (below).
-- Use counts.  CIR816Backend::FoldPointers counted uses by hand.  Done 2026-11-05: it takes them
+- Use counts.  CIRW65C816Backend::FoldPointers counted uses by hand.  Done 2026-11-05: it takes them
   from CIRFunction::CountUses, keeping its address and shift count tallies.
-- Liveness.  CIR816Backend::PackTemporaries ran its own liveness dataflow.  Done 2026-11-05: the
+- Liveness.  CIRW65C816Backend::PackTemporaries ran its own liveness dataflow.  Done 2026-11-05: the
   dataflow is CIRLiveSets (IRLiveSets.h/.cpp), which CIRLiveness and PackTemporaries both fill and
   solve.  The live ranges stay each back end's: the 65C64 defines a result one position after its
   operands (an operand dying there can always share with it: add Y, 1), the W65C816 at the same
   position, sharing only explicit pairs, as it writes multi-word results a word at a time.
 - Loop weights.  "8 times more per loop" was CIRLiveness::LoopWeight (depth capped at 5), and
-  again inline in CIR816Backend::AllocateX (capped at 4) and the W65C816's align estimate
+  again inline in CIRW65C816Backend::AllocateX (capped at 4) and the W65C816's align estimate
   (IR816_ALIGN_LOOP_WEIGHT, capped at 3).  Done 2026-11-05: CIRLoops::Weight(depth, cap), each
   caller keeping its cap (AllocateX's 4 keeps a use under IR816_X_BAD's veto).
 
@@ -77,7 +77,7 @@ Steps
 
 1. Split IR65Backend.cpp into files as the W65C816's is split, with an IR65BackendInternal.h
    for what the files share.  Mechanical: the code written is the same.
-2. The frame's members into one SIR65Frame, as SIR816Frame.  The code written is the same.
+2. The frame's members into one SIR65Frame, as SIRW65C816Frame.  The code written is the same.
 3. The instructions not written in their turn written by their consumer, as the W65C816's
    fused ones are (the user chose the full W65C816 shape over a same-output tidy up,
    2026-11-05).  Reading both back ends showed the W65C816 also decides in the writing loop
@@ -138,12 +138,12 @@ below (the W65C816 runs OrderBlocks and SinkSteps, not MoveLoopTests or SinkLoad
 Step 5: done 2026-11-05.  CIR65Backend::Call is CallArguments (the arg instructions before it),
 PushArguments, CalleeOperand (where it jumps to, or loaded into A), LoadRegisterArguments (a
 thiscall's this in X), jsr and CallerCleanUp (RemoveArguments, then the result kept), as
-CIR816Backend's Call, PushArguments, LoadRegisterArguments and CallerCleanUp; CallRuntime removes
+CIRW65C816Backend's Call, PushArguments, LoadRegisterArguments and CallerCleanUp; CallRuntime removes
 its arguments with RemoveArguments too.  Listings identical to step 4's (66k jsr), TestCppCompilerLib
 83262/83262.
 
 Loop steps: done 2026-11-05.  CIRBackendPasses::SinkSteps replaces CIR65Backend::SinkToEnd and
-CIR816Backend::SinkSteps.  A step p2 = p + q (add, sub, ptradd; p the phi taking p2, either operand
+CIRW65C816Backend::SinkSteps.  A step p2 = p + q (add, sub, ptradd; p the phi taking p2, either operand
 of an add) moves past the readers of p after it: not past a use of p2, not among a call's args (a
 read of p there is at the call, so after the call), past the brif's comparison of p.  First tried:
 any operand's readers (an 816 test showed it: moving s2 = s + i past i2 = i + 1 keeps i alive, so i
@@ -206,7 +206,7 @@ The jobs left in two shapes (2026-11-05):
   W65C816 does) was tried on the 65C64 and dropped: TestBaseLib65 +0.03%, the intermediate kept in a register
   being cheaper than reloading the base from memory at each access.
 
-Passes over the text, the W65C816's toward the 65C64's shape: done 2026-11-05.  CIR816Code (IR816Code.h/.cpp) is a
+Passes over the text, the W65C816's toward the 65C64's shape: done 2026-11-05.  CIRW65C816Code (IRW65C816Code.h/.cpp) is a
 function's code a line at a time, each line decoded once (IR816Decode), with its kind (label, tabbed, other); lines
 are changed (Set), taken out (Remove, RemoveMarked), put in (Insert, Append) through it.  The lines stay where they
 are made and the code is their order, so taking lines out moves only the order.  GenerateBody loads it once after
