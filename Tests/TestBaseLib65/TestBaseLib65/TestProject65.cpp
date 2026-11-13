@@ -794,6 +794,10 @@ void TestProject65RunTests(STestProject65* psProject)
 	cBuilder.GetOptions()->mbRegisterArguments = getenv("TEST_PROJECT65_STACK_ARGUMENTS") == NULL;
 	//TEST_PROJECT65_FRAME_V=1: the 65C64's V is only ever the frame's register (CCPPCompileOptions::mbHomeV off), to compare.
 	cBuilder.GetOptions()->mbHomeV = getenv("TEST_PROJECT65_FRAME_V") == NULL;
+	//TEST_PROJECT65_ZERO_W=1: the 65C64's W is always 0 (CCPPCompileOptions::mbHomeW off), to compare.
+	cBuilder.GetOptions()->mbHomeW = getenv("TEST_PROJECT65_ZERO_W") == NULL;
+	//TEST_PROJECT65_ZERO_W=1: the 65C64's W is always 0 (CCPPCompileOptions::mbHomeW off), to compare.
+	cBuilder.GetOptions()->mbHomeW = getenv("TEST_PROJECT65_ZERO_W") == NULL;
 	//TEST_PROJECT65_PREFER_SIZE=1: the compiler prefers size to speed (CCPPCompileOptions::mePrefer).
 	if (getenv("TEST_PROJECT65_PREFER_SIZE"))
 	{

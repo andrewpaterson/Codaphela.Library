@@ -35,10 +35,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // add, sub, cmp, shl, shr and cpyx can't address memory with W (the user,
 // 2026-10-28), so their pseudo registers are written [n] instead of [n + W] (W
 // is 0 by the calling convention).  The passes before see [n + W] everywhere, so
-// it is done last.
+// it is done last.  bAll: W is a value's home in the function
+// (SIR65Frame::bHomeW), so every instruction's are.
 //
 //////////////////////////////////////////////////////////////////////////
-void IR65PseudoWithoutW(CChars* pszCode, size uiStart)
+void IR65PseudoWithoutW(CChars* pszCode, size uiStart, bool bAll)
 {
 	static const char*	aszArithmetic[] = { "\t\tadd ", "\t\tsub ", "\t\tcmp ", "\t\tshl ", "\t\tshr ", "\t\tcpyx ", NULL };
 	CChars				szOut;
@@ -58,7 +59,7 @@ void IR65PseudoWithoutW(CChars* pszCode, size uiStart)
 		szLine.Append(szText, uiLength);
 		for (i = 0; aszArithmetic[i]; i++)
 		{
-			if (szLine.StartsWith(aszArithmetic[i]))
+			if (bAll || szLine.StartsWith(aszArithmetic[i]))
 			{
 				szLine.Replace(" + W]", "]");
 				break;

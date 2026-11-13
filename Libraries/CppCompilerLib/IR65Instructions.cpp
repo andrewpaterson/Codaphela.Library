@@ -761,7 +761,7 @@ bool CIR65Backend::Store(CIRBlock* pcBlock, size uiIndex)
 	{
 		szValueRegister = "A";
 	}
-	else if ((iBytes != 8) && InRegister(sValue) && ((iBytes == 4) || (PlaceOf(sValue)->iOffset != IR65R_V)))
+	else if ((iBytes != 8) && InRegister(sValue) && ((iBytes == 4) || HasWidth(PlaceOf(sValue))))
 	{
 		szValueRegister = RegisterName(PlaceOf(sValue));
 	}

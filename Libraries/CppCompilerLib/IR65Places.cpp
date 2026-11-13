@@ -100,6 +100,7 @@ void SIR65Frame::Init(void)
 	iThisOffset = -1;
 	uiSaved = 0;
 	bHomeV = false;
+	bHomeW = false;
 	bFrameless = false;
 	cRegister = 'V';
 	iArguments = 0;
@@ -439,7 +440,9 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // first tries with V as a third register, for pointers and i32s (FitsV):
 // calls keep it (every function keeps V), so it is where one live across
 // calls goes; that stands if V was taken and nothing had to go in the
-// frame.
+// frame.  W is a fourth for those between calls, multiplies and divides,
+// which want it 0: the function sets it back before each and before it
+// returns (ClearW).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Allocate(void)
@@ -496,6 +499,7 @@ void CIR65Backend::Allocate(void)
 			PlaceClass(asWeights.Get(ui)->iLeader, IR65P_None, 0, 0);
 		}
 		msFrame.uiSaved = 0;
+		msFrame.bHomeW = false;
 		msFrame.bHomeV = false;
 		AllocateClasses(&asWeights);
 	}
@@ -602,10 +606,10 @@ bool CIR65Backend::CanUseV(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if every temporary of the class is a pointer or an i32: V holds
-// those.  It is always 32 bits wide (wth, wthx and cpyx don't take it:
-// WidthRegister), so not a narrow value, which is compared at its own
-// width in its register.
+// True if every temporary of the class is a pointer or an i32: V and W
+// hold those.  They are always 32 bits wide (wth, wthx and cpyx don't take
+// them: WidthRegister), so not a narrow value, which is compared at its
+// own width in its register.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::FitsV(int32 iLeader)
@@ -1081,6 +1085,14 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 			PlaceClass(iLeader, IR65P_Register, IR65R_Y, 4);
 			return true;
 		}
+		//W, where nothing that wants it 0 is done while the class is live (calls, mul and div: what changes Y).  Before
+		//V, which costs more to have and is the only register for a class live across calls.
+		if (mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && FitsV(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
+		{
+			msFrame.bHomeW = true;
+			PlaceClass(iLeader, IR65P_Register, IR65R_W, 4);
+			return true;
+		}
 		if (bV && TakeHomes(IR65R_V, 1, iLeader))
 		{
 			muiWeightV += uiWeight;
@@ -1368,9 +1380,34 @@ void CIR65Backend::FindNarrowOnly(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 {
-	static const char*	aszNames[IR65R_Count] = { "X", "Y", "V" };
+	static const char*	aszNames[IR65R_Count] = { "X", "Y", "V", "W" };
 
 	return aszNames[psPlace->iOffset];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a register home can be written as an address ([X], [4 + V]):
+// not W, which add, sub, cmp, shl, shr and cpyx can't address with, and
+// whose [n + W] is how the pseudo registers are written.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::IsAddressRegister(SIR65Place* psPlace)
+{
+	return (psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_W);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a register home can be given another width (wth, wthx, cpyx): X
+// and Y; V and W are always 32 bits wide.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::HasWidth(SIR65Place* psPlace)
+{
+	return (psPlace->uiKind == IR65P_Register) && ((psPlace->iOffset == IR65R_X) || (psPlace->iOffset == IR65R_Y));
 }
 
 

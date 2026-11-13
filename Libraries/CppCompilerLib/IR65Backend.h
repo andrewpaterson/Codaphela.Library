@@ -51,6 +51,7 @@ enum EIR65Register
 	IR65R_X,
 	IR65R_Y,
 	IR65R_V,				//Only in a function that needs no frame (SIR65Frame::bHomeV); 32 bit values.
+	IR65R_W,				//Between calls, multiplies and divides, which want it 0 (SIR65Frame::bHomeW); 32 bit values, never an address.
 	IR65R_Count
 };
 
@@ -167,6 +168,7 @@ struct SIR65Frame
 	int32	iThisOffset;	//A thiscall's this in the frame, for an argaddr of it; -1 for none.
 	uint32	uiSaved;		//The [$80 + W] units used, a bit each: the prologue pushes them.
 	bool	bHomeV;		//V is a home (IR65R_V) and not the frame's register: the function has no frame and saves V (CanUseV).
+	bool	bHomeW;			//W is a home (IR65R_W): it is set back to 0 where it must be (ClearW) and the pseudo registers are all written [n].
 	bool	bFrameless;		//No frame: V isn't set up, the arguments are from S...
 	char	cRegister;		//...so the frame register is S, otherwise V.
 	int32	iArguments;		//Where the arguments start: 1 + frame + 8, or from S 1 + 4 + 4 per saved unit (and 4 for a saved V).
@@ -180,7 +182,7 @@ struct SIR65Frame
 
 
 //Writes 65C64 assembly for IR functions.  Temporaries are given homes by register allocation (IR.txt 65C64 back
-//end): X or Y, V in a function that needs no frame (CanUseV: calls keep it), a pseudo register ([$00 + W] to
+//end): X or Y, W between calls (ClearW), V in a function that needs no frame (CanUseV: calls keep it), a pseudo register ([$00 + W] to
 //[$7F + W] if no call is made while it is live, [$80 + W] to [$FF + W] if one is: the function keeps those), or
 //the frame.  A phi shares its home with the values it takes
 //when their live ranges allow, and a jump copies the others.  Instructions work in A (and B), or in a result's
@@ -284,6 +286,9 @@ protected:
 	void				ClearHomes(void);
 	bool				CanUseV(void);
 	bool				PaysV(void);
+	void				ClearW(void);
+	bool				IsAddressRegister(SIR65Place* psPlace);
+	bool				HasWidth(SIR65Place* psPlace);
 	bool				FitsV(int32 iLeader);
 	int32				FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader);
 	SIR65Place*			PlaceOf(SIRReference sValue);

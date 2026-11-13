@@ -41,7 +41,7 @@ uint8	IR65OpcodeFlags(uint16 uiOpcode);
 const char*	IR65IntegerMnemonic(uint16 uiOpcode);
 
 //IR65BackendPeephole.cpp: [n + W] written [n] where the instruction can't address memory with W.
-void	IR65PseudoWithoutW(CChars* pszCode, size uiStart);
+void	IR65PseudoWithoutW(CChars* pszCode, size uiStart, bool bAll);
 
 
 #endif // __I_R_65_BACKEND_INTERNAL_H__

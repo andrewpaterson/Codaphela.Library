@@ -226,6 +226,11 @@ straight after:
 		mul
 		cpy W, 0
 
+Between calls a function may keep a value of its own in W in the same way (IR.txt, W as a
+fourth register): it sets W back to 0 before every call, mul and div and before it
+returns, and writes its pseudo registers as [n] throughout, so W is still 0 wherever the
+convention says it is.
+
 When neither operand of a binary operator is simple (a constant or a variable), the
 right is worked out first and kept in the next free pseudo register while the left is:
 

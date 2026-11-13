@@ -271,12 +271,12 @@ bool CIR65Backend::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, 
 //////////////////////////////////////////////////////////////////////////
 //
 // szRegister where a value is read or written at another width than 32
-// bits (wth, wthx and cpyx): A for V, which has only the one.
+// bits (wth, wthx and cpyx): A for V and W, which have only the one.
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CIR65Backend::WidthRegister(const char* szRegister)
 {
-	return (szRegister[0] == 'V') ? "A" : szRegister;
+	return ((szRegister[0] == 'V') || (szRegister[0] == 'W')) ? "A" : szRegister;
 }
 
 
@@ -623,7 +623,7 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 				AppendPlace(pszOperand, psPlace);
 				return;
 			case IR65P_Register:
-				if ((szWidened == NULL) || (StringCompare(szWidened, RegisterName(psPlace)) != 0))
+				if (IsAddressRegister(psPlace) && ((szWidened == NULL) || (StringCompare(szWidened, RegisterName(psPlace)) != 0)))
 				{
 					pszOperand->Append('[')->Append(RegisterName(psPlace))->Append(']');
 					return;
@@ -691,7 +691,7 @@ void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const
 			AppendPlace(pszOperand, &sAddress);
 			return;
 		}
-		if (psBase->uiKind == IR65P_Register)
+		if (IsAddressRegister(psBase))
 		{
 			szRegister = RegisterName(psBase);
 		}
@@ -741,7 +741,7 @@ void CIR65Backend::Push(SIRReference sValue, SIRType sType)
 	{
 		szRegister = "A";
 	}
-	else if (InRegister(sValue) && ((iBytes == 4) || (PlaceOf(sValue)->iOffset != IR65R_V)))
+	else if (InRegister(sValue) && ((iBytes == 4) || HasWidth(PlaceOf(sValue))))
 	{
 		szRegister = RegisterName(PlaceOf(sValue));
 	}
@@ -806,7 +806,7 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 				return false;
 			}
 			psBase = PlaceOf(sBase);
-			if (psBase->uiKind == IR65P_Register)
+			if (IsAddressRegister(psBase))
 			{
 				*pcRegister = RegisterName(psBase)[0];
 			}
@@ -818,6 +818,10 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 		FoldedOperand(psPlace, pszOperand, NULL);
 		return true;
 	case IR65P_Register:
+		if (!IsAddressRegister(psPlace))
+		{
+			return false;
+		}
 		*pcRegister = RegisterName(psPlace)[0];
 		MemoryOperand(sAddress, pszOperand, NULL);
 		return true;

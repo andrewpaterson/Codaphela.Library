@@ -535,6 +535,20 @@ twice is read twice).  BaseLib, StandardLib and SupportLib on the 65C64: 4.7%, 4
 3.8% fewer cycles, 166 of 168, 66 of 66 and 66 of 67 programs faster, 1.7% to 2.3% less
 code.  CCPPCompileOptions::mbHomeV false keeps V for the frame, to compare.
 
+W as a fourth register (2026-11-13).  W is 0 at every call and return, and code that
+changes it sets it back (CPP65Generator.txt: mul and div count in it).  Nothing reads it
+between: the pseudo registers can be written [n], which add, sub, cmp, shl, shr and cpyx
+already need.  So W is a home (IR65R_W) for a class of pointers or i32s that isn't live
+across a call, a mul, a div or a runtime routine (what changes Y), taken after X and Y and
+before V (it costs less to have).  A function that uses it sets it back to 0 before each of
+those and before it returns (CIR65Backend::ClearW, a cycle each), and its last text pass
+writes every pseudo register as [n] (IR65PseudoWithoutW with bAll), so no [n + W] is
+left to mean anything else.  W is never written as an address ([W], [4 + W]:
+IsAddressRegister; a pointer in it is copied to B, 1 cycle more than [X] and 2 less than
+[[n + W]]) and has only the one width, as V.  BaseLib, StandardLib and SupportLib on the
+65C64: 4.3%, 2.9% and 3.6% fewer cycles.  CCPPCompileOptions::mbHomeW false keeps W 0
+throughout, to compare.
+
 A parameter used at most once, or that gets no X, Y or low pseudo register, stays where
 it was pushed; others are copied to their home by the prologue (this from X).  64 bit values only get memory (two units).  Narrow
 integers are held zero extended everywhere.

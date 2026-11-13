@@ -712,9 +712,8 @@ void TestIR65BackendAllocation(void)
 		"\t\t.section text._Sum__FPii\n"
 		"_Sum__FPii:\n"
 		"\t\tpsh V\n"
-		"\t\tcpy V, [9 + S]\n"
-		"\t\tcpy A, [13 + S]\n"
-		"\t\tcpy [0 + W], A\n"
+		"\t\tcpy W, [9 + S]\n"
+		"\t\tcpy V, [13 + S]\n"
 		"L1:\n"
 		"\t\tcpy Y, 0\n"
 		"\t\tcpy X, 0\n"
@@ -722,16 +721,17 @@ void TestIR65BackendAllocation(void)
 		"L2:\n"
 		"\t\tcpy A, X\n"
 		"\t\tshl A, 2\n"
-		"\t\tadd A, V\n"
+		"\t\tadd A, W\n"
 		"\t\tcpy A, [A]\n"
 		"\t\tadd Y, A\n"
 		"\t\tadd X, 1\n"
 		"L3:\n"
-		"\t\tcmp X, [0]\n"
+		"\t\tcmp X, V\n"
 		"\t\tbraso (n, v), L2\n"
 		"L4:\n"
 		"\t\tcpy A, Y\n"
 		"L5:\n"
+		"\t\tcpy W, 0\n"
 		"\t\tpul V\n"
 		"\t\tret\n"
 		"\n", szSum.Text());
@@ -890,9 +890,10 @@ void TestIR65BackendAllocation(void)
 		"\t%v = call i64 @_Seven__F()\n"
 		"\t%r = add i64 %s2, %v\n"
 		"\tret i64 %r\n}\n"));
-	//A string compare's pointers are only addresses and steps, so the bytes get X and Y; one pointer gets V and the other
-	//is read through ([[n + W]]): "abc" against "abd" is -1.  The bytes are only compared, so they are read narrow (cpy,
-	//not cpyx): X and Y stay 8 bits wide across the loop.
+	//A string compare's pointers are only addresses and steps, so the bytes get X and Y; one pointer gets W and the other
+	//V.  W is no address register (it is copied to B) and is set back to 0 before the function returns: "abc" against
+	//"abd" is -1.  The bytes are only compared, so they are read narrow (cpy, not cpyx): X and Y stay 8 bits wide across
+	//the loop.
 	szAssembly.Init();
 	AssertLong(-1, (int32)TestIR65Run(
 		"function i32 @_Compare__FPcPc(ptr %a, ptr %b), local\n{\n"
@@ -909,7 +910,8 @@ void TestIR65BackendAllocation(void)
 		"function i32 @_main()\n{\nb:\n"
 		"\t%s = slot ptr 4, 4\n\tstore i32 6513249, %s\n\t%t = slot ptr 4, 4\n\tstore i32 6578785, %t\n"
 		"\t%r = call i32 @_Compare__FPcPc(ptr %s, ptr %t)\n\tret i32 %r\n}\n", false, &szAssembly));
-	AssertTrue(szAssembly.Contains("\t\tcpy X, [V]\n\t\tadd V, 1\n") && szAssembly.Contains("cpy Y, [[") && !szAssembly.Contains("cpyx"));
+	AssertTrue(szAssembly.Contains("\t\tcpy B, W\n\t\tcpy X, [B]\n\t\tadd W, 1\n\t\tcpy Y, [V]\n\t\tadd V, 1\n") && !szAssembly.Contains("cpyx"));
+	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tpul V\n\t\tret\n"));
 	szAssembly.Kill();
 }
 
@@ -1571,6 +1573,40 @@ void TestIR65BackendHomeV(void)
 		"\tret i32 %r\n}\n", false, &szAssembly));
 	AssertTrue(szAssembly.Contains("\t\tcpy V, S\n"));
 	AssertFalse(szAssembly.Contains("jsr V"));
+	szAssembly.Kill();
+
+	//W as a fourth register between calls, multiplies and divides: it is set back to 0 before each (they want it so) and
+	//before the function returns, and the pseudo registers are written [n] (not [n + W]) by every instruction.  The
+	//loop's four values have X, Y, W and V; after it comes a multiply and a call.
+	szAssembly.Init();
+	AssertInt((1 + 2 + 3 + 4) * (1 ^ 2 ^ 3 ^ 4) + 1, (int32)TestIR65Run(
+		"function i32 @_Next__Fi(i32 %x)\n{\nb:\n\t%r = add i32 %x, 1\n\tret i32 %r\n}\n\n"
+		"function i32 @_Work__Fi(i32 %d)\n{\n"
+		"entry:\n\tjmp loop\n"
+		"loop:\n"
+		"\t%i = phi i32 [entry, 0], [loop, %i2]\n"
+		"\t%s = phi i32 [entry, 0], [loop, %s2]\n"
+		"\t%x = phi i32 [entry, 0], [loop, %x2]\n"
+		"\t%i2 = add i32 %i, 1\n"
+		"\t%s2 = add i32 %s, %i2\n"
+		"\t%x2 = xor i32 %x, %i2\n"
+		"\t%c1 = slt i32 %i2, %d\n"
+		"\tbrif %c1, loop, exit\n"
+		"exit:\n"
+		"\t%m = mul i32 %s2, %x2\n"
+		"\t%n = call i32 @_Next__Fi(i32 %m)\n"
+		"\tret i32 %n\n}\n\n"
+		"function i32 @_main()\n{\nb:\n"
+		"\t%r = call i32 @_Work__Fi(i32 4)\n"
+		"\tret i32 %r\n}\n", false, &szAssembly));
+	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tmul\n\t\tcpy W, 0\n"));
+	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tjsr _Next__Fi\n"));
+	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tpul V\n\t\tret\n"));
+	sz.Init();
+	sz.AppendSubString(szAssembly, szAssembly.Find("_Work__Fi:"), szAssembly.Find("\t\t.section text._main"));
+	AssertTrue(sz.Contains(" W, "));
+	AssertFalse(sz.Contains(" + W]"));
+	sz.Kill();
 	szAssembly.Kill();
 
 	//Where V is a value's home, [n + V] is anyone's memory (a device's register, say): a store to it read straight

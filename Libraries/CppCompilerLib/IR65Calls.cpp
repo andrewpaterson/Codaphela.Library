@@ -74,6 +74,7 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 	{
 		LoadRegisterArguments(pcBlock, uiFirst, bThisCall, &asArguments);
 	}
+	ClearW();
 	Line("jsr ")->Append(szCallee)->AppendNewLine();
 	szCallee.Kill();
 	asArguments.Kill();
@@ -132,8 +133,9 @@ int32 CIR65Backend::PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, C
 //////////////////////////////////////////////////////////////////////////
 //
 // The callee is jumped to where it is: a register (X only when this doesn't
-// go there), or through a pointer in a pseudo register or the frame (jsr
-// [n + W]); else it is loaded into A.  Appends it to pszCallee.
+// go there; not W, which is 0 by then), or through a pointer in a pseudo
+// register or the frame (jsr [n + W]); else it is loaded into A.  Appends
+// it to pszCallee.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* pszCallee)
@@ -142,7 +144,7 @@ void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* p
 	{
 		pszCallee->Append(mpcModule->GetSymbolName(sCallee.Index()));
 	}
-	else if (InRegister(sCallee) && ((PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
+	else if (InRegister(sCallee) && (PlaceOf(sCallee)->iOffset != IR65R_W) && ((PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
 	{
 		AppendPlace(pszCallee, PlaceOf(sCallee));
 	}

@@ -34,6 +34,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	true,						//mbSoftFloatInFrame
 	true,						//mbRegisterArguments
 	true,						//mbHomeV
+	true,						//mbHomeW
 	true,						//mbMathTables
 };
 

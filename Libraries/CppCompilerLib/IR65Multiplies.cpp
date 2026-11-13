@@ -28,12 +28,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// mul and div count their steps in W, from 0.  W is always 0 (the calling
-// convention, CPP65Generator.txt), so it is only set back afterwards.
+// mul and div count their steps in W, from 0.  W is 0 (the calling
+// convention, CPP65Generator.txt) unless the function keeps a value in it
+// (ClearW), so it is only set back afterwards.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Multiply(const char* szInstruction)
 {
+	ClearW();
 	Line(szInstruction)->AppendNewLine();
 	Line("cpy W, 0")->AppendNewLine();
 }
@@ -168,6 +170,7 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 		}
 		if (bSigned)
 		{
+			ClearW();
 			Line(bWide ? "jsr R_DivideSigned64" : "jsr R_DivideSigned")->AppendNewLine();
 			UseRuntime(bWide ? "R_DivideSigned64" : "R_DivideSigned");
 		}
