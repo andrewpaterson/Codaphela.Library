@@ -18,25 +18,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <stdio.h>
-#include <string.h>
 #include "DebugFormat.h"
+
+
+static const char	gszDebugHexDigits[] = "0123456789ABCDEF";
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// uiValue in upper case hex: at least iDigits digits, more if it needs
+// them, never more than the sixteen a uint64 has.
 //
 //////////////////////////////////////////////////////////////////////////
 static void AppendDebugHex(CChars* psz, uint64 uiValue, int iDigits)
 {
-	char	sz[32];
+	int	iShift;
 
 	if (iDigits < 1)
 	{
 		iDigits = 1;
 	}
-	sprintf(sz, "%0*llX", iDigits, (unsigned long long)uiValue);
-	psz->Append(sz);
+	else if (iDigits > 16)
+	{
+		iDigits = 16;
+	}
+	while ((iDigits < 16) && ((uiValue >> (iDigits * 4)) != 0))
+	{
+		iDigits++;
+	}
+	for (iShift = (iDigits - 1) * 4; iShift >= 0; iShift -= 4)
+	{
+		psz->Append(gszDebugHexDigits[(uiValue >> iShift) & 0xF]);
+	}
 }
 
 
