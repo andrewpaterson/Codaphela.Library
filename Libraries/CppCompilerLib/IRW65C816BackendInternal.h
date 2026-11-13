@@ -216,10 +216,6 @@ struct SIRW65C816Held
 class CIRW65C816Code;
 
 
-//IRW65C816Backend.cpp: the register rule: which arguments go in A, X and Y, and a register function's label suffix.
-int			IR816AssignRegisters(CArrayIR816Arguments* pasArguments);
-void		IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments);
-
 //IRW65C816Frames.cpp: a frame's entry and exit, as Prologue and Epilogue write them.
 void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);

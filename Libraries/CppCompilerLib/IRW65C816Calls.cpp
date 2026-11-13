@@ -102,8 +102,8 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	int32					iCallee;
 	int						iRegisters;
 	CChars					sz;
-	CArrayIR816Arguments	asArguments;
-	SIRW65C816Argument*			psPlaced;
+	CArrayIRRegisterArguments	asArguments;
+	SIRRegisterArgument*			psPlaced;
 
 	//The arguments as passed: the hidden result pointer first, each pushed unless a register function takes it in
 	//registers.
@@ -112,17 +112,17 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
 	{
 		psPlaced = asArguments.Add();
-		psPlaced->iWords = 2;
+		psPlaced->iUnits = 2;
 		psPlaced->iRegister = -1;
 	}
 	for (ui = 0; ui < mauiPendingArguments.NumElements(); ui++)
 	{
 		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui));
 		psPlaced = asArguments.Add();
-		psPlaced->iWords = Words(psArgument->sType);
+		psPlaced->iUnits = Words(psArgument->sType);
 		psPlaced->iRegister = -1;
 	}
-	iRegisters = IsRegisterCall(sCallee) ? IR816AssignRegisters(&asArguments) : 0;
+	iRegisters = IsRegisterCall(sCallee) ? AssignRegisters(&asArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
 
 	iBytes = PushArguments(pcBlock, psInstruction, &asArguments);
 	if (iRegisters > 0)
@@ -138,7 +138,7 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 		sz.Append(mpcModule->GetSymbolName(sCallee.Index()));
 		if (iRegisters > 0)
 		{
-			IR816AppendRegisterSuffix(&sz, &asArguments);
+			AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
 		}
 		Line(sz.Text());
 	}
@@ -188,7 +188,7 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 // isn't.  Returns the bytes pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
+int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments)
 {
 	int32			iBytes;
 	size			ui;
@@ -223,11 +223,11 @@ int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInst
 // offset, else -1).
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayTemplate<size>* pauiPending, CArrayIR816Arguments* pasArguments, int iRegister, int32 iHiddenOffset, SIRReference* psValue, int* piWord, int32* piHiddenResult)
+static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayTemplate<size>* pauiPending, CArrayIRRegisterArguments* pasArguments, int iRegister, int32 iHiddenOffset, SIRReference* psValue, int* piWord, int32* piHiddenResult)
 {
 	size			ui;
 	size			uiFirst;
-	SIRW65C816Argument*	psArgument;
+	SIRRegisterArgument*	psArgument;
 
 	uiFirst = pasArguments->NumElements() - pauiPending->NumElements();
 	*psValue = IRNone();
@@ -236,7 +236,7 @@ static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction
 	for (ui = 0; ui < pasArguments->NumElements(); ui++)
 	{
 		psArgument = pasArguments->Get(ui);
-		if ((psArgument->iRegister >= 0) && (iRegister >= psArgument->iRegister) && (iRegister < psArgument->iRegister + psArgument->iWords))
+		if ((psArgument->iRegister >= 0) && (iRegister >= psArgument->iRegister) && (iRegister < psArgument->iRegister + psArgument->iUnits))
 		{
 			*piWord = iRegister - psArgument->iRegister;
 			if (ui < uiFirst)
@@ -259,7 +259,7 @@ static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction
 // pushed the others): LoadRegisters.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
+void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments)
 {
 	SIRReference	asValues[IR816_ARGUMENT_REGISTERS];
 	int				aiWords[IR816_ARGUMENT_REGISTERS];

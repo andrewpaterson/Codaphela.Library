@@ -222,79 +222,6 @@ CMallocator* CIRW65C816Backend::GetScratch(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The register arguments' fixed rule (W65C816.txt): the arguments in order
-// (the hidden result pointer first) each take the next of A, X and Y when
-// all their words fit, else they are pushed; a later, smaller one may still
-// fit.  Sets each one's iRegister and returns the register words used
-// (always A, then X, then Y).
-//
-//////////////////////////////////////////////////////////////////////////
-int IR816AssignRegisters(CArrayIR816Arguments* pasArguments)
-{
-	size			ui;
-	int				iNext;
-	SIRW65C816Argument*	psArgument;
-
-	iNext = 0;
-	for (ui = 0; ui < pasArguments->NumElements(); ui++)
-	{
-		psArgument = pasArguments->Get(ui);
-		if ((psArgument->iWords > 0) && (iNext + psArgument->iWords <= IR816_ARGUMENT_REGISTERS))
-		{
-			psArgument->iRegister = iNext;
-			iNext += psArgument->iWords;
-		}
-		else
-		{
-			psArgument->iRegister = -1;
-		}
-	}
-	return iNext;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Appends a register function's label suffix: a dot, then for each argument
-// word in order (the hidden result pointer's first) the register it is in
-// (a, x or y) or s when it is pushed, without the pushed words at the end.
-// Nothing when no word is in a register.  C++ names have no dot, so it
-// can't clash: _Add__Fii.ax, _Fill__FPcic.axy.
-//
-//////////////////////////////////////////////////////////////////////////
-void IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
-{
-	size			ui;
-	size			uiStart;
-	size			uiEnd;
-	int				i;
-	SIRW65C816Argument*	psArgument;
-
-	uiStart = psz->Length();
-	uiEnd = uiStart;
-	psz->Append('.');
-	for (ui = 0; ui < pasArguments->NumElements(); ui++)
-	{
-		psArgument = pasArguments->Get(ui);
-		for (i = 0; i < psArgument->iWords; i++)
-		{
-			if (psArgument->iRegister >= 0)
-			{
-				psz->Append(IR816_REGISTER_LETTERS[psArgument->iRegister + i]);
-				uiEnd = psz->Length();
-			}
-			else
-			{
-				psz->Append('s');
-			}
-		}
-	}
-	psz->SetLength(uiEnd);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The function's hidden result pointer (when it returns 64 bits) and
 // parameters as its callers pass them (masArguments, the frame's register
 // words): in registers when its symbol is marked for them and it isn't
@@ -303,7 +230,7 @@ void IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FunctionArguments(void)
 {
-	SIRW65C816Argument*	psArgument;
+	SIRRegisterArgument*	psArgument;
 	size			ui;
 	int32			iRegisterWords;
 	bool			bVariadic;
@@ -312,17 +239,17 @@ void CIRW65C816Backend::FunctionArguments(void)
 	if (IsHiddenResult(mpcFunction->msReturnType))
 	{
 		psArgument = masArguments.Add();
-		psArgument->iWords = 2;
+		psArgument->iUnits = 2;
 		psArgument->iRegister = -1;
 	}
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
 	{
 		psArgument = masArguments.Add();
-		psArgument->iWords = Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+		psArgument->iUnits = Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
 		psArgument->iRegister = -1;
 	}
 	bVariadic = (mpcFunction->muiAttributes & IRA_Variadic) != 0;
-	iRegisterWords = (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !bVariadic) ? IR816AssignRegisters(&masArguments) : 0;
+	iRegisterWords = (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !bVariadic) ? AssignRegisters(&masArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
 	msFrame.Init(iRegisterWords, bVariadic);
 }
 
@@ -369,7 +296,7 @@ int32 SIRW65C816Frame::Add(int32 iBytes)
 // pushed one (*piPushed, moved past it).
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::ArgumentPlace(SIRW65C816Argument* psArgument, int32* piPushed)
+int32 CIRW65C816Backend::ArgumentPlace(SIRRegisterArgument* psArgument, int32* piPushed)
 {
 	int32	iPlace;
 
@@ -378,7 +305,7 @@ int32 CIRW65C816Backend::ArgumentPlace(SIRW65C816Argument* psArgument, int32* pi
 		return msFrame.RegisterWord(psArgument->iRegister);
 	}
 	iPlace = *piPushed;
-	*piPushed += 2 * psArgument->iWords;
+	*piPushed += 2 * psArgument->iUnits;
 	return iPlace;
 }
 
@@ -1074,7 +1001,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 	SIRInstruction*			psCall;
 	SIRInstruction*			psArgument;
 	SIRReference			sCallee;
-	CArrayIR816Arguments	asCallee;
+	CArrayIRRegisterArguments	asCallee;
 	CArrayTemplate<int>		aiSource;		//Per callee argument: -1 the hidden result pointer, -2 a constant, else the parameter's index.
 	CArrayTemplate<int>		aiPushed;		//The callee's pushed arguments' sources, in order.
 	CArrayTemplate<SIRInstruction*>	apsArguments;	//The block's args, in order.
@@ -1085,8 +1012,8 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 	size					uiAdjustedArgument;	//The callee's argument it is, or ARRAY_ELEMENT_NOT_FOUND.
 	CChars					szAdjust;
 	int32					iLabel;
-	SIRW65C816Argument*			psPlaced;
-	SIRW65C816Argument*			psOwn;
+	SIRRegisterArgument*			psPlaced;
+	SIRRegisterArgument*			psOwn;
 	size					ui;
 	size					uj;
 	size					uiFirst;
@@ -1174,7 +1101,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 	if (!psCall->sResult.IsNone() && IsHiddenResult(psCall->sType))
 	{
 		psPlaced = asCallee.Add();
-		psPlaced->iWords = 2;
+		psPlaced->iUnits = 2;
 		psPlaced->iRegister = -1;
 		iSource = -1;
 		aiSource.Add(&iSource);
@@ -1183,7 +1110,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 	{
 		psArgument = *apsArguments.Get(ui);
 		psPlaced = asCallee.Add();
-		psPlaced->iWords = Words(psArgument->sType);
+		psPlaced->iUnits = Words(psArgument->sType);
 		psPlaced->iRegister = -1;
 		iSource = -3;
 		if (psArgument->asArguments[0].IsConstant())
@@ -1193,14 +1120,14 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 		for (uj = 0; uj < mpcFunction->masParameters.NumElements(); uj++)
 		{
 			if (psArgument->asArguments[0].Equals(*mpcFunction->masParameters.Get(uj)) &&
-				(Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uj))) == psPlaced->iWords))
+				(Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uj))) == psPlaced->iUnits))
 			{
 				iSource = (int)uj;
 			}
 		}
 		if (!sAdjusted.IsNone() && psArgument->asArguments[0].Equals(sAdjusted))
 		{
-			if ((uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND) || (Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uiAdjustedFrom))) != psPlaced->iWords))
+			if ((uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND) || (Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uiAdjustedFrom))) != psPlaced->iUnits))
 			{
 				bResult = false;
 				break;
@@ -1211,7 +1138,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 		bResult = iSource != -3;
 		aiSource.Add(&iSource);
 	}
-	iRegisters = (bResult && IsRegisterCall(sCallee)) ? IR816AssignRegisters(&asCallee) : 0;
+	iRegisters = (bResult && IsRegisterCall(sCallee)) ? AssignRegisters(&asCallee, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
 
 	//The pushed words line up: the callee's pushed arguments are this function's pushed ones, in order.
 	uiOwnFirst = IsHiddenResult(mpcFunction->msReturnType) ? 1 : 0;
@@ -1255,7 +1182,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 		if (iSource == -2)
 		{
 			ulliBits = mpcFunction->GetConstant((*apsArguments.Get(ui - uiFirst))->asArguments[0])->ulliBits;
-			for (i = 0; i < psPlaced->iWords; i++)
+			for (i = 0; i < psPlaced->iUnits; i++)
 			{
 				szLoads.Append("\t\t");
 				szLoads.Append(aszLoads[psPlaced->iRegister + i]);
@@ -1271,7 +1198,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 			break;
 		}
 		psOwn = masArguments.Get((iSource == -1) ? 0 : (uiOwnFirst + (size)iSource));
-		bResult = (psOwn->iRegister == psPlaced->iRegister) && (psOwn->iWords == psPlaced->iWords);
+		bResult = (psOwn->iRegister == psPlaced->iRegister) && (psOwn->iUnits == psPlaced->iUnits);
 	}
 
 	//The adjusted argument is in A (and X): the constant, at the argument's width, added to its low word and the
@@ -1280,14 +1207,14 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 	if (bResult && (uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		psPlaced = asCallee.Get(uiAdjustedArgument);
-		ulliAdjust &= (psPlaced->iWords == 1) ? 0xFFFFULL : 0xFFFFFFFFULL;
-		bResult = (psPlaced->iRegister == 0) && (psPlaced->iWords <= 2) && ((ulliAdjust >> 16) == 0);
+		ulliAdjust &= (psPlaced->iUnits == 1) ? 0xFFFFULL : 0xFFFFFFFFULL;
+		bResult = (psPlaced->iRegister == 0) && (psPlaced->iUnits <= 2) && ((ulliAdjust >> 16) == 0);
 		if (bResult && ((ulliAdjust & 0xFFFF) != 0))
 		{
 			szAdjust.Append("\t\tclc\n\t\tadc ");
 			szAdjust.Append((int)(ulliAdjust & 0xFFFF));
 			szAdjust.AppendNewLine();
-			if (psPlaced->iWords == 2)
+			if (psPlaced->iUnits == 2)
 			{
 				iLabel = NewLabel();
 				szAdjust.Append("\t\tbcc L");
@@ -1308,7 +1235,7 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 		pszJump->Append(mpcModule->GetSymbolName(sCallee.Index()));
 		if (iRegisters > 0)
 		{
-			IR816AppendRegisterSuffix(pszJump, &asCallee);
+			AppendRegisterSuffix(pszJump, &asCallee, IR816_REGISTER_LETTERS);
 		}
 		pszJump->AppendNewLine();
 	}
@@ -1342,7 +1269,7 @@ void CIRW65C816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
 	if (msFrame.iRegisterWords > 0)
 	{
 		szBody.Init(szLabel);
-		IR816AppendRegisterSuffix(&szBody, &masArguments);
+		AppendRegisterSuffix(&szBody, &masArguments, IR816_REGISTER_LETTERS);
 		RegisterStub(&szBody);
 		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 		{
@@ -1382,7 +1309,7 @@ void CIRW65C816Backend::Prologue(const char* szLabel)
 	//A register function: the plain label is the stub for callers that push everything, then the body's own label
 	//(visible to other objects when the plain one is).
 	szBody.Init(szLabel);
-	IR816AppendRegisterSuffix(&szBody, &masArguments);
+	AppendRegisterSuffix(&szBody, &masArguments, IR816_REGISTER_LETTERS);
 	RegisterStub(&szBody);
 	if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 	{
@@ -1423,7 +1350,7 @@ void CIRW65C816Backend::RegisterStub(CChars* pszBodyLabel)
 	int				iMoved;
 	int				i;
 	size			ui;
-	SIRW65C816Argument*	psArgument;
+	SIRRegisterArgument*	psArgument;
 	bool			bKeepA;
 
 	//Each register's word, the pushed words, and how many of those aren't already where the body wants them.
@@ -1433,7 +1360,7 @@ void CIRW65C816Backend::RegisterStub(CChars* pszBodyLabel)
 	for (ui = 0; ui < masArguments.NumElements(); ui++)
 	{
 		psArgument = masArguments.Get(ui);
-		for (i = 0; i < psArgument->iWords; i++)
+		for (i = 0; i < psArgument->iUnits; i++)
 		{
 			if (psArgument->iRegister >= 0)
 			{
@@ -1473,7 +1400,7 @@ void CIRW65C816Backend::RegisterStub(CChars* pszBodyLabel)
 	for (ui = 0; ui < masArguments.NumElements(); ui++)
 	{
 		psArgument = masArguments.Get(ui);
-		for (i = 0; i < psArgument->iWords; i++)
+		for (i = 0; i < psArgument->iUnits; i++)
 		{
 			if (psArgument->iRegister < 0)
 			{
@@ -1542,14 +1469,14 @@ void CIRW65C816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, in
 	int				iWord;
 	int				i;
 	size			ui;
-	SIRW65C816Argument*	psArgument;
+	SIRRegisterArgument*	psArgument;
 
 	iPushed = 0;
 	iWord = iWords;
 	for (ui = masArguments.NumElements(); ui > 0; ui--)
 	{
 		psArgument = masArguments.Get(ui - 1);
-		for (i = psArgument->iWords - 1; i >= 0; i--)
+		for (i = psArgument->iUnits - 1; i >= 0; i--)
 		{
 			iWord--;
 			if (psArgument->iRegister < 0)

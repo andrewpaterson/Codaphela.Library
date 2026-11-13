@@ -71,22 +71,10 @@ class CIRW65C816Groups;
 
 
 //The registers arguments may be passed in (A, X and Y), and what a word in a register is called in a function's
-//register label (IR816AppendRegisterSuffix).
+//register label (CIRBackend::AppendRegisterSuffix).  An argument's units (SIRRegisterArgument) are its words, and
+//any that fits the registers left goes in them (CIRBackend::AssignRegisters).
 #define IR816_ARGUMENT_REGISTERS	3
 #define IR816_REGISTER_LETTERS		"axy"
-
-
-//One argument of a call or parameter of a function (the hidden result pointer first) as the register arguments place
-//it: its words and the register of its first word (0 A, 1 X, 2 Y; its other words take the next ones), or -1 when it
-//is pushed.
-struct SIRW65C816Argument
-{
-	int		iWords;
-	int		iRegister;
-};
-
-
-typedef CArrayTemplate<SIRW65C816Argument>	CArrayIR816Arguments;
 
 
 //A function's frame (D + offset), as Layout lays it out, lowest first: the temporaries from IR816_FIRST_TEMPORARY;
@@ -150,14 +138,14 @@ public:
 //Register arguments (W65C816.txt): a function whose symbol is marked (CIRModule::SetRegisterCall: C++ linkage, not
 //variadic) takes its arguments, the hidden result pointer first, in A, X and Y by a fixed rule from their sizes
 //alone: each takes the next registers when all its words fit, else it is pushed as before.  Its code is at its label
-//and a suffix naming each argument word's place (_Add__Fii.ax; IR816AppendRegisterSuffix), so a caller and a
+//and a suffix naming each argument word's place (_Add__Fii.ax; AppendRegisterSuffix), so a caller and a
 //definition that don't agree don't link.  The prologue pushes the registers into the top of the frame.  The plain
 //label is a stub for callers that push everything (function pointers, vtables, thunks, assembly): it loads the
 //registers from the stack and goes on to the body.
 class CIRW65C816Backend : public CIRBackend
 {
 protected:
-	CArrayIR816Arguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
+	CArrayIRRegisterArguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
 	SIRW65C816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
 	CArrayIRCopies			masCopies;			//A jump's phi copies (EdgeCopies)...
@@ -271,7 +259,7 @@ protected:
 	void			FillSign(int32 iDestination, int iFirst, int iWords);
 	void			PushValue(SIRReference sValue, SIRType sType);
 	void			PushWord(SIRReference sValue, int iWord);
-	int32			ArgumentPlace(SIRW65C816Argument* psArgument, int32* piPushed);
+	int32			ArgumentPlace(SIRRegisterArgument* psArgument, int32* piPushed);
 	void			PushFrameAddress(int32 iOffset);
 	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
 	void			FoldPointers(void);
@@ -334,8 +322,8 @@ protected:
 	void			WordInA(SIRInstruction* psInstruction, int iWord);
 	void			StoreMemory(SIRInstruction* psInstruction);
 	void			Call(CIRBlock* pcBlock, SIRInstruction* psInstruction);
-	int32			PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments);
-	void			LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments);
+	int32			PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments);
+	void			LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments);
 	void			LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters);
 	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
 	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);

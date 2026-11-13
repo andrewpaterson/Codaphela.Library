@@ -1096,7 +1096,7 @@ static bool IR816CanShareArgument(uint16 uiOpcode, int iArgument)
 void CIRW65C816Backend::AddRegions(CIRW65C816LiveRanges* pcRanges)
 {
 	CIRBlock*		pcBlock;
-	SIRW65C816Argument*	psArgument;
+	SIRRegisterArgument*	psArgument;
 	SIRReference	sParameter;
 	size			ui;
 	size			uj;
@@ -1140,7 +1140,7 @@ void CIRW65C816Backend::AddRegions(CIRW65C816LiveRanges* pcRanges)
 			psArgument = masArguments.Get(uiArgument);
 			if ((psArgument->iRegister < 0) && (pcRanges->Start((int32)sParameter.Index()) >= 0))
 			{
-				pcRanges->Take((int32)sParameter.Index(), *maiOffsets.Get(sParameter.Index()), 2 * psArgument->iWords);
+				pcRanges->Take((int32)sParameter.Index(), *maiOffsets.Get(sParameter.Index()), 2 * psArgument->iUnits);
 			}
 		}
 	}

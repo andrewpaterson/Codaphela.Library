@@ -410,6 +410,82 @@ void CIRBackend::SetOptions(CCPPCompileOptions* pcOptions)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The register arguments' fixed rule (W65C816.txt, CPP65Generator.txt): the
+// arguments in order (the hidden result pointer first) each take the next
+// of the target's iRegisters registers when all their units fit and they
+// have no more than iMostUnits, else they are pushed; a later, smaller one
+// may still fit.  Sets each one's iRegister and returns the registers used
+// (always from the first).
+//
+//////////////////////////////////////////////////////////////////////////
+int CIRBackend::AssignRegisters(CArrayIRRegisterArguments* pasArguments, int iRegisters, int iMostUnits)
+{
+	size					ui;
+	int						iNext;
+	SIRRegisterArgument*	psArgument;
+
+	iNext = 0;
+	for (ui = 0; ui < pasArguments->NumElements(); ui++)
+	{
+		psArgument = pasArguments->Get(ui);
+		if ((psArgument->iUnits > 0) && (psArgument->iUnits <= iMostUnits) && (iNext + psArgument->iUnits <= iRegisters))
+		{
+			psArgument->iRegister = iNext;
+			iNext += psArgument->iUnits;
+		}
+		else
+		{
+			psArgument->iRegister = -1;
+		}
+	}
+	return iNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends a register function's label suffix: a dot, then for each unit of
+// each argument in order (the hidden result pointer's first) the letter of
+// the register it is in (szLetters, a register each: "axy") or s when it is
+// pushed, without the pushed units at the end.  Nothing when no unit is in
+// a register.  C++ names have no dot, so it can't clash: _Add__Fii.ax,
+// _Fill__FPcic.axy.  A caller and a definition that don't agree on it don't
+// link.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::AppendRegisterSuffix(CChars* psz, CArrayIRRegisterArguments* pasArguments, const char* szLetters)
+{
+	size					ui;
+	size					uiStart;
+	size					uiEnd;
+	int						i;
+	SIRRegisterArgument*	psArgument;
+
+	uiStart = psz->Length();
+	uiEnd = uiStart;
+	psz->Append('.');
+	for (ui = 0; ui < pasArguments->NumElements(); ui++)
+	{
+		psArgument = pasArguments->Get(ui);
+		for (i = 0; i < psArgument->iUnits; i++)
+		{
+			if (psArgument->iRegister >= 0)
+			{
+				psz->Append(szLetters[psArgument->iRegister + i]);
+				uiEnd = psz->Length();
+			}
+			else
+			{
+				psz->Append('s');
+			}
+		}
+	}
+	psz->SetLength(uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What FinishFunction needs of the function GenerateFunction just wrote: a
 // new record the caller kills and frees, or NULL when the back end keeps
 // nothing.

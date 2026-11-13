@@ -122,7 +122,7 @@ void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psI
 // Calls softfloat.cpp's (compiled) szName with asValues (of asTypes; the
 // one at iExtended, if not -1, extended to 32 bits as PushInt32 does) where
 // its register entry takes them: placed as Call places a register
-// function's arguments (IR816AssignRegisters, the hidden result pointer
+// function's arguments (AssignRegisters, the hidden result pointer
 // first when bHidden; it points at the frame's iHiddenOffset), the pushed
 // ones pushed, the others loaded (LoadRegisters), then a jsl to its
 // suffixed label, so not through its stub.  When registers aren't used
@@ -133,8 +133,8 @@ void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psI
 //////////////////////////////////////////////////////////////////////////
 int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
 {
-	CArrayIR816Arguments	asArguments;
-	SIRW65C816Argument*			psArgument;
+	CArrayIRRegisterArguments	asArguments;
+	SIRRegisterArgument*			psArgument;
 	SIRReference			asRegisters[IR816_ARGUMENT_REGISTERS];
 	int						aiWords[IR816_ARGUMENT_REGISTERS];
 	int32					aiHidden[IR816_ARGUMENT_REGISTERS];
@@ -149,17 +149,17 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 	if (bHidden)
 	{
 		psArgument = asArguments.Add();
-		psArgument->iWords = 2;
+		psArgument->iUnits = 2;
 		psArgument->iRegister = -1;
 	}
 	for (i = 0; i < iValues; i++)
 	{
 		psArgument = asArguments.Add();
-		psArgument->iWords = (i == iExtended) ? 2 : Words(asTypes[i]);
+		psArgument->iUnits = (i == iExtended) ? 2 : Words(asTypes[i]);
 		psArgument->iRegister = -1;
 	}
 	iFirst = bHidden ? 1 : 0;
-	iRegisters = mpcOptions->mbRegisterArguments ? IR816AssignRegisters(&asArguments) : 0;
+	iRegisters = mpcOptions->mbRegisterArguments ? AssignRegisters(&asArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
 	if ((iExtended >= 0) && (asArguments.Get(iFirst + iExtended)->iRegister >= 0))
 	{
 		iRegisters = 0;
@@ -186,7 +186,7 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 		{
 			PushValue(asValues[i], asTypes[i]);
 		}
-		iBytes += 2 * psArgument->iWords;
+		iBytes += 2 * psArgument->iUnits;
 	}
 	if (bHidden && (asArguments.Get(0)->iRegister < 0))
 	{
@@ -203,7 +203,7 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 		for (ui = 0; ui < asArguments.NumElements(); ui++)
 		{
 			psArgument = asArguments.Get(ui);
-			if ((psArgument->iRegister >= 0) && (i >= psArgument->iRegister) && (i < psArgument->iRegister + psArgument->iWords))
+			if ((psArgument->iRegister >= 0) && (i >= psArgument->iRegister) && (i < psArgument->iRegister + psArgument->iUnits))
 			{
 				aiWords[i] = i - psArgument->iRegister;
 				if ((int)ui < iFirst)
@@ -227,7 +227,7 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 	sz.Append(szName);
 	if (iRegisters > 0)
 	{
-		IR816AppendRegisterSuffix(&sz, &asArguments);
+		AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
 	}
 	Line(sz.Text());
 	sz.Kill();

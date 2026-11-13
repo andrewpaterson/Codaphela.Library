@@ -69,6 +69,20 @@ public:
 };
 
 
+//One argument of a call or parameter of a function (the hidden result pointer first) as register arguments place it
+//(CIRBackend::AssignRegisters): the register units it takes (the W65C816's words; the 65C64's registers, one for 32
+//bits or less) and the register of its first unit (0 the first register; its other units take the next ones), or -1
+//when it is pushed.
+struct SIRRegisterArgument
+{
+	int		iUnits;
+	int		iRegister;
+};
+
+
+typedef CArrayTemplate<SIRRegisterArgument>	CArrayIRRegisterArguments;
+
+
 //What the 65C64 (CIR65Backend) and W65C816 (CIRW65C816Backend) back ends share: the module and the label counter, the
 //function being written and the text it goes to, its source markers, errors and block labels, the runtime routines
 //its code calls, the order of the phis' copies on a jump (ParallelCopy), multiplies by constants as shifts and adds
@@ -110,6 +124,8 @@ public:
 	static int		FloatCompareValues(uint16 uiOpcode, int* aiValues, bool* pbNot);
 	static bool		SameOperands(SIRInstruction* psFirst, SIRInstruction* psSecond);
 	static int		SignedDigits(uint64 ulliMultiplier, int iBits, int* aiPlaces, int* aiSigns);
+	static int		AssignRegisters(CArrayIRRegisterArguments* pasArguments, int iRegisters, int iMostUnits);
+	static void		AppendRegisterSuffix(CChars* psz, CArrayIRRegisterArguments* pasArguments, const char* szLetters);
 
 protected:
 	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
