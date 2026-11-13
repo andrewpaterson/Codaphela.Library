@@ -684,6 +684,142 @@ Nope\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An include path's "." parts and "dir/.." pairs are taken out; one
+// going above where it starts is left as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorCollapseIncludePath(void)
+{
+	static const char*	aszCases[][2] = {
+		{ "Engine.h", "Engine.h" },
+		{ "Sub/../Engine.h", "Engine.h" },
+		{ "./Engine.h", "Engine.h" },
+		{ "Sub/./Deep/../../Engine.h", "Engine.h" },
+		{ "Sub//Engine.h", "Sub/Engine.h" },
+		{ "A/B/../C/Engine.h", "A/C/Engine.h" } };
+	static const char*	aszOutside[] = { "../Engine.h", "Sub/../../Engine.h", "./../Engine.h" };
+	CChars				sz;
+	size				i;
+
+	for (i = 0; i < sizeof(aszCases) / sizeof(aszCases[0]); i++)
+	{
+		sz.Init(aszCases[i][0]);
+		AssertTrue(CollapseIncludePath(&sz));
+		AssertString(aszCases[i][1], sz.Text());
+		sz.Kill();
+	}
+	for (i = 0; i < sizeof(aszOutside) / sizeof(aszOutside[0]); i++)
+	{
+		sz.Init(aszOutside[i]);
+		AssertFalse(CollapseIncludePath(&sz));
+		AssertString(aszOutside[i], sz.Text());
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szUnit, a file in Input/ParentIncludes with szText, preprocessed with
+// the include directories aszDirectories (in Input/ParentIncludes, NULL
+// terminated; with their subdirectories if bSubDirectories): its text
+// into pszDest, its errors into pszErrors.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestPreprocessorIncludeUnit(const char* szUnit, const char* szText, const char** aszDirectories, bool bSubDirectories, CChars* pszDest, CChars* pszErrors)
+{
+	CTranslationUnit	cFile;
+	CCPPPreprocessor	cPreprocessor;
+	CConfig				cConfig;
+	CChars				szBase;
+	CChars				szName;
+	CChars				szDirectory;
+	CHeaderFileMap		cHeaderFiles;
+	CHeaderFiles		acHeaderNames[4];
+	CFileUtil			cFileUtil;
+	size				i;
+
+	szBase.Init();
+	cFileUtil.CurrentDirectory(&szBase);
+	cFileUtil.AppendToPath(&szBase, "Input");
+	cFileUtil.AppendToPath(&szBase, "ParentIncludes");
+	cHeaderFiles.Init();
+	for (i = 0; aszDirectories[i]; i++)
+	{
+		szDirectory.Init(szBase);
+		cFileUtil.AppendToPath(&szDirectory, aszDirectories[i]);
+		AssertTrue(acHeaderNames[i].Init(szDirectory.Text(), &cHeaderFiles, bSubDirectories, false));
+		szDirectory.Kill();
+	}
+
+	szName.Init(szBase);
+	cFileUtil.AppendToPath(&szName, szUnit);
+	cFile.Init(szName.Text(), NULL, false);
+	cFile.SetContents((char*)szText);
+	cConfig.Init("");
+	cPreprocessor.Init(&cConfig);
+	for (i = 0; aszDirectories[i]; i++)
+	{
+		cPreprocessor.AddIncludeDirectory(&acHeaderNames[i]);
+	}
+	cPreprocessor.PreprocessTranslationUnit(&cFile);
+	pszDest->Init();
+	cFile.Print(pszDest);
+	pszErrors->Init(cPreprocessor.GetErrors()->Text());
+
+	cPreprocessor.Kill();
+	cConfig.Kill();
+	cFile.Kill();
+	for (i = 0; aszDirectories[i]; i++)
+	{
+		acHeaderNames[i].Kill();
+	}
+	cHeaderFiles.Kill();
+	szName.Kill();
+	szBase.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A quoted #include going up from the including file's directory
+// ("../Engine.h" from Lib/Sub), with either separator and with "." and
+// "dir/.." parts, finds the header in the include directory it is in,
+// whether the directory was added with its subdirectories or without.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorParentIncludes(void)
+{
+	static const char*	aszLib[] = { "Lib", NULL };
+	CChars				szDest;
+	CChars				szErrors;
+	size				i;
+
+	for (i = 0; i < 2; i++)
+	{
+		TestPreprocessorIncludeUnit("Lib/Sub/User.cpp", "\
+#include \"../Engine.h\"\n\
+#include \"User.h\"\n", aszLib, i == 0, &szDest, &szErrors);
+		AssertString("", szErrors.Text());
+		AssertString("int giEngine;\nint giUser;\n", szDest.Text());
+		szErrors.Kill();
+		szDest.Kill();
+
+		TestPreprocessorIncludeUnit("Lib/Sub/User.cpp", "\
+#include \"..\\Engine.h\"\n\
+#include \"./../Engine.h\"\n\
+#include \"Deep/../../Engine.h\"\n\
+#include <Sub/../Engine.h>\n", aszLib, i == 0, &szDest, &szErrors);
+		AssertString("", szErrors.Text());
+		AssertString("int giEngine;\nint giEngine;\nint giEngine;\nint giEngine;\n", szDest.Text());
+		szErrors.Kill();
+		szDest.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPreprocessorDefineEvaluateToZero(void)
@@ -2272,6 +2408,8 @@ void TestPreprocessor(void)
 	TestPreprocessorOperatorPrecedence();
 	TestPreprocessorBlockSkipping();
 	TestPreprocessorHasInclude();
+	TestPreprocessorCollapseIncludePath();
+	TestPreprocessorParentIncludes();
 	TestPreprocessorSimpleVariadic();
 	TestPreprocessorComplexVariadic();
 	TestPreprocessorRedefinedVariadic();

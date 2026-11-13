@@ -282,5 +282,8 @@ protected:
 };
 
 
+bool CollapseIncludePath(CChars* pszPath);
+
+
 #endif //__PREPROCESSOR_H__
 

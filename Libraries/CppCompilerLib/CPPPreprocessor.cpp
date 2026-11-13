@@ -1338,6 +1338,64 @@ static bool IsPathPrefix(char* szPath, char* szBase, size iBaseLength)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// A relative include path ("/" separated) with its "." parts and its
+// "dir/.." pairs taken out: "Sub/../Engine.h" is "Engine.h".  False if it
+// goes above where it starts ("../Engine.h"), when it is left as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CollapseIncludePath(CChars* pszPath)
+{
+	CArrayChars	aszParts;
+	CArrayChars	aszKept;
+	CChars*		pszPart;
+	size		i;
+	bool		bInside;
+
+	aszParts.Init();
+	aszParts.Split(pszPath->Text(), '/');
+	aszKept.Init();
+	bInside = true;
+	for (i = 0; (i < aszParts.NumElements()) && bInside; i++)
+	{
+		pszPart = aszParts.Get(i);
+		if (pszPart->Empty() || pszPart->Equals("."))
+		{
+			continue;
+		}
+		if (pszPart->Equals(".."))
+		{
+			if (aszKept.NumElements() == 0)
+			{
+				bInside = false;
+			}
+			else
+			{
+				aszKept.RemoveTail();
+			}
+			continue;
+		}
+		aszKept.Add(pszPart->Text());
+	}
+	if (bInside)
+	{
+		pszPath->Clear();
+		for (i = 0; i < aszKept.NumElements(); i++)
+		{
+			if (i > 0)
+			{
+				pszPath->Append('/');
+			}
+			pszPath->Append(aszKept.GetText(i));
+		}
+	}
+	aszKept.Kill();
+	aszParts.Kill();
+	return bInside;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -1390,7 +1448,9 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 						szRelative.Append('/');
 					}
 					szRelative.Append(szInclude);
-					pcHeaderFile = pcHeaderNameMap->GetFile(szRelative.Text());
+
+					//"../Engine.h" from Sub/User.cpp is Engine.h in the same include directory.
+					pcHeaderFile = CollapseIncludePath(&szRelative) ? pcHeaderNameMap->GetFile(szRelative.Text()) : NULL;
 					szRelative.Kill();
 					if (pcHeaderFile)
 					{
@@ -1424,6 +1484,8 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 		}
 	}
 
+	//"./Engine.h" and "Sub/../Engine.h" are Engine.h in an include directory too.
+	CollapseIncludePath(&szInclude);
 	for (i = iFirst; i < mcHeaderNames.NumElements(); i++)
 	{
 		pcHeaderNameMap = *mcHeaderNames.Get(i);
