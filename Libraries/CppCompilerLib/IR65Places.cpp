@@ -436,13 +436,13 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // or that gets none of those, stays where it was pushed.  Then a kept
 // pseudo register if the class weighs 8 or more and there is no frame yet
 // (it costs a push and a pull, the frame's place nothing more), then the
-// frame.  A function that needs V for nothing (CanUseV)
-// first tries with V as a third register, for pointers and i32s (FitsV):
-// calls keep it (every function keeps V), so it is where one live across
-// calls goes; that stands if V was taken and nothing had to go in the
-// frame.  W is a fourth for those between calls, multiplies and divides,
-// which want it 0: the function sets it back before each and before it
-// returns (ClearW).
+// frame.  A function that needs V for nothing (CanUseV) first tries with
+// V as a third register, for pointers and i32s (Fits32BitRegister): calls
+// keep it (every function keeps V), so it is where one live across calls
+// goes; that stands if V was taken and nothing had to go in the frame.  W
+// is a fourth for those between calls, multiplies and divides, which want
+// it 0: the function sets it back before each and before it returns
+// (ClearW).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Allocate(void)
@@ -612,7 +612,7 @@ bool CIR65Backend::CanUseV(void)
 // own width in its register.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::FitsV(int32 iLeader)
+bool CIR65Backend::Fits32BitRegister(int32 iLeader)
 {
 	int32	iMember;
 	SIRType	sType;
@@ -1054,7 +1054,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 
 	//V, where it is a home: a value live across a call (X and Y are changed by it, and a kept pseudo register costs
 	//more to save than V does), or one worth V's push and pull (or they are paid for already).
-	bV = msFrame.bHomeV && (iUnits == 1) && FitsV(iLeader) && (bCall || (uiWeight >= IR65_V_WEIGHT) || (masHomes.Get(IR65R_V)->asRanges.NumElements() > 0));
+	bV = msFrame.bHomeV && (iUnits == 1) && Fits32BitRegister(iLeader) && (bCall || (uiWeight >= IR65_V_WEIGHT) || (masHomes.Get(IR65R_V)->asRanges.NumElements() > 0));
 
 	//A pushed parameter alone in its class (not a thiscall's this, which comes in X, nor one that comes in A, B or Y),
 	//whose arrival place nothing stores to through an argaddr.
@@ -1087,7 +1087,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		}
 		//W, where nothing that wants it 0 is done while the class is live (calls, mul and div: what changes Y).  Before
 		//V, which costs more to have and is the only register for a class live across calls.
-		if (mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && FitsV(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
+		if (mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && Fits32BitRegister(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
 		{
 			msFrame.bHomeW = true;
 			PlaceClass(iLeader, IR65P_Register, IR65R_W, 4);

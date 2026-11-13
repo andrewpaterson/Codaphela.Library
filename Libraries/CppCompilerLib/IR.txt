@@ -518,7 +518,7 @@ is a general register in cpy, add, sub, cmp, and, or and xor and addresses memor
 Y do; it is always 32 bits wide (no wth, wthx or cpyx: CIR65Backend::WidthRegister) and
 every function keeps it.  So in a function that needs no frame (CIR65Backend::CanUseV:
 no slot, no parameter whose address is taken, not variadic) V is a home (IR65R_V) for a
-class of pointers or i32s (FitsV), after X and Y: one live across a call (X and Y can't
+class of pointers or i32s (Fits32BitRegister), after X and Y: one live across a call (X and Y can't
 hold it), or one that weighs 3 or more (IR65_V_WEIGHT: V costs a push and a pull, 6
 cycles), or any once V is taken.  The function pushes V first and pulls it last, has no
 frame (bFrameless), reads every pushed parameter into a home in its prologue (from S,

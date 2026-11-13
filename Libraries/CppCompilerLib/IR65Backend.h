@@ -289,7 +289,7 @@ protected:
 	void				ClearW(void);
 	bool				IsAddressRegister(SIR65Place* psPlace);
 	bool				HasWidth(SIR65Place* psPlace);
-	bool				FitsV(int32 iLeader);
+	bool				Fits32BitRegister(int32 iLeader);
 	int32				FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader);
 	SIR65Place*			PlaceOf(SIRReference sValue);
 	bool				IsHome(SIR65Place* psPlace);
