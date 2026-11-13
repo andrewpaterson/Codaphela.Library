@@ -795,6 +795,98 @@ void TestCPP816CounterDivisions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Calls through pointers (the target's bank and high byte pushed as a word,
+// the target - 1 written over a byte's room and the high byte: no sep m),
+// with 32 bit, 16 bit and no results and arguments in registers and on the
+// stack; and signed comparisons of two values whose C and Z a second test
+// reads (if (a < b) ... else if (a > b), and a < b as a value): the top
+// words compared as they are, C put right where the signs differ.  16 and
+// 32 bits, at both ends of their ranges; a sort through a pointer's order.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816PointerCallsAndOrder(void)
+{
+	AssertInt(255, TestCPP816Run(
+		"typedef long int32;\n"
+		"typedef unsigned long uint32;\n"
+		"int Order(int32 a, int32 b) { if (a < b) { return -1; } if (a > b) { return 1; } return 0; }\n"
+		"int Order16(int a, int b) { if (a < b) { return -1; } if (a > b) { return 1; } return 0; }\n"
+		"bool Less(int a, int b) { return a < b; }\n"
+		"bool NotLess(int32 a, int32 b) { return a >= b; }\n"
+		"int32 Add3(int32 a, int32 b, int32 c) { return a + b + c; }\n"
+		"int Twice(int i) { return i * 2; }\n"
+		"void Bump(int* pi) { (*pi) += 5; }\n"
+		"int32 gal[8] = { 5, -7, 0x7FFFFFFF, -0x7FFFFFFF - 1, 70000, -70000, 65536, -1 };\n"
+		"int gai[6] = { 3, -3, 32767, -32767 - 1, 0, 256 };\n"
+		"typedef int (*FOrder)(int32, int32);\n"
+		"typedef int32 (*FAdd3)(int32, int32, int32);\n"
+		"typedef int (*FTwice)(int);\n"
+		"typedef void (*FBump)(int*);\n"
+		"struct SCalls { FOrder fOrder; FAdd3 fAdd3; FTwice fTwice; FBump fBump; };\n"
+		"SCalls gsCalls = { Order, Add3, Twice, Bump };\n"
+		"int Sorted(int32* pl, int iCount, FOrder fOrder)\n"
+		"{\n"
+		"\tint\t\ti;\n"
+		"\tint\t\tj;\n"
+		"\tint32\tlSwap;\n"
+		"\tfor (i = 1; i < iCount; i++)\n"
+		"\t{\n"
+		"\t\tfor (j = i; (j > 0) && (fOrder(pl[j - 1], pl[j]) > 0); j--)\n"
+		"\t\t{\n"
+		"\t\t\tlSwap = pl[j]; pl[j] = pl[j - 1]; pl[j - 1] = lSwap;\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\tfor (i = 1; i < iCount; i++) { if (pl[i - 1] > pl[i]) { return 0; } }\n"
+		"\treturn 1;\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"\tvolatile SCalls*\tpsCalls;\n"
+		"\tint\t\ti;\n"
+		"\tint\t\tj;\n"
+		"\tint\t\tiResult;\n"
+		"\tint\t\tiOrder;\n"
+		"\tint\t\tiOrder16;\n"
+		"\tint\t\tiLess;\n"
+		"\tint\t\tiNotLess;\n"
+		"\tint\t\tiBumped;\n"
+		"\n"
+		"\tpsCalls = &gsCalls;\n"
+		"\tiOrder = 0; iOrder16 = 0; iLess = 0; iNotLess = 0;\n"
+		"\tfor (i = 0; i < 8; i++)\n"
+		"\t{\n"
+		"\t\tfor (j = 0; j < 8; j++)\n"
+		"\t\t{\n"
+		"\t\t\tiOrder += psCalls->fOrder(gal[i], gal[j]) * (i + 1);\n"
+		"\t\t\tiNotLess += NotLess(gal[i], gal[j]) ? 1 : 0;\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\tfor (i = 0; i < 6; i++)\n"
+		"\t{\n"
+		"\t\tfor (j = 0; j < 6; j++)\n"
+		"\t\t{\n"
+		"\t\t\tiOrder16 += Order16(gai[i], gai[j]) * (i + 1);\n"
+		"\t\t\tiLess += Less(gai[i], gai[j]) ? 1 : 0;\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\tiResult = 0;\n"
+		"\tif (iOrder == -4) { iResult += 1; }\n"
+		"\tif (iNotLess == 36) { iResult += 2; }\n"
+		"\tif (iOrder16 == 3) { iResult += 4; }\n"
+		"\tif (iLess == 15) { iResult += 8; }\n"
+		"\tif (psCalls->fAdd3(100000, 200000, -50000) == 250000) { iResult += 16; }\n"
+		"\tif (psCalls->fTwice(21) == 42) { iResult += 32; }\n"
+		"\tiBumped = 7;\n"
+		"\tpsCalls->fBump(&iBumped);\n"
+		"\tif (iBumped == 12) { iResult += 64; }\n"
+		"\tif (Sorted(gal, 8, psCalls->fOrder) && (gal[0] == -0x7FFFFFFF - 1) && (gal[7] == 0x7FFFFFFF) && (gal[3] == -1)) { iResult += 128; }\n"
+		"\treturn iResult;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The words of a value that are always 0 (a zext's high word, an and's with
 // a constant, a shift right's: CIRW65C816Backend::FindZeroWords) are read
 // as the constant, not from the frame: 32 bit adds, subs either way round,
@@ -6069,6 +6161,7 @@ void TestCPP816(void)
 	TestCPP816NarrowSubscripts();
 	TestCPP816GuardedIndices();
 	TestCPP816ZeroWords();
+	TestCPP816PointerCallsAndOrder();
 	TestCPP816CounterDivisions();
 	TestCPP816ByteMasksAndSignedCompares();
 	TestCPP816SharedDivisions();

@@ -151,13 +151,27 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 		sz.Append(iReturn);
 		sz.Append(" - 1");
 		Line(sz.Text());
-		Line("sep m");
-		Frame("lda", iCallee + 2);
-		Line("pha");
-		Line("rep m");
-		Frame("lda", iCallee);
-		Line("dec A");
-		Line("pha");
+		if (IR816PointerOnDirectPage(iCallee))
+		{
+			//The target's bank and high byte pushed as one word and a byte's room below them (phb: any byte), then the
+			//target - 1 written over that byte and the high byte (which the - 1 may have borrowed from): no change of
+			//A's width for the bank's byte.
+			Frame("pei", iCallee + 1);
+			Line("phb");
+			Frame("lda", iCallee);
+			Line("dec A");
+			Line("sta [S + 1]");
+		}
+		else
+		{
+			Line("sep m");
+			Frame("lda", iCallee + 2);
+			Line("pha");
+			Line("rep m");
+			Frame("lda", iCallee);
+			Line("dec A");
+			Line("pha");
+		}
 		Line("rtl");
 		Label(iReturn);
 	}

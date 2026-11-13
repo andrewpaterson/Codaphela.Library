@@ -27,7 +27,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 //
 // Leaves C and Z as an unsigned compare of the left with the right leaves them, high words first.  A signed compare
-// flips the sign bits so it can compare unsigned (a constant's as it is written).
+// with a constant, or of bytes, flips the sign bits so it can compare unsigned (a constant's as it is written); one
+// of two values of 16 bits or more compares their top words as they are and puts C right where their signs differ.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned)
@@ -35,6 +36,7 @@ void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SI
 	int		iWords;
 	int		i;
 	int32	iDone;
+	int32	iLower;
 	const char*	szFlip;
 	uint64	uiFlip;
 	CChars	sz;
@@ -51,6 +53,34 @@ void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SI
 			Operand("lda", sLeft, i);
 			Line(szFlip);
 			Line("cmp ", (int64)((((i < 4) ? (mpcFunction->GetConstant(sRight)->ulliBits >> (16 * i)) : 0) ^ uiFlip) & 0xFFFF));
+		}
+		else if (bSigned && (i == iWords - 1) && !sType.Is(IRTK_I1) && !sType.Is(IRTK_I8) && !((iWords == 1) && (InX(sLeft) || InX(sRight))))
+		{
+			//Two values whose sign is their top word's top bit.  With the top words equal the rest compare unsigned;
+			//with them different but of one sign their own unsigned compare is right; with different signs the
+			//left is less when the right isn't negative: C is the right's sign, and lda 1 clears Z without
+			//changing it.  No scratch word, and nothing flipped where the top words are equal.
+			iLower = NewLabel();
+			Operand("lda", sLeft, i);
+			Operand("cmp", sRight, i);
+			sz.Init("beq L");
+			sz.Append(iLower);
+			Line(sz.Text());
+			sz.Kill();
+			Operand("eor", sRight, i);
+			sz.Init("bpl L");
+			sz.Append(iDone);
+			Line(sz.Text());
+			sz.Kill();
+			Operand("lda", sRight, i);
+			Line("asl A");
+			Line("lda 1");
+			sz.Init("bra L");
+			sz.Append(iDone);
+			Line(sz.Text());
+			sz.Kill();
+			Label(iLower);
+			continue;
 		}
 		else if (bSigned && (i == iWords - 1))
 		{
