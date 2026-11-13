@@ -185,7 +185,7 @@ static void AssertHashLine(CChars* pszLine, const char* szTitle, CChars* pszHash
 	pszLine->Split(&aszParts, ' ');
 	AssertSize(3, aszParts.NumElements());
 	AssertString(szTitle, aszParts.GetText(1));
-	AssertInt(16, aszParts.Get(2)->Length());
+	AssertSize(16, aszParts.Get(2)->Length());
 	pszHash->Init(aszParts.Get(2));
 	aszParts.Kill();
 }
