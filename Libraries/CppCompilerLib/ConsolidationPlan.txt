@@ -483,6 +483,68 @@ be a macro on Windows, so the test is what is wrong.  Stage 0 makes its expected
 Progress
 --------
 
-Nothing is started.  Stage 0's baseline goes here, then a row for each stage: the date, the suites' totals, the
-Lib65 suites' cycles and sizes on each processor, compile CPU, wall and peak memory, and what the stage's own
-counters were before and after.
+Stage 0's baseline goes here, then a row for each stage: the date, the suites' totals, the Lib65 suites' cycles
+and sizes on each processor, compile CPU, wall and peak memory, and what the stage's own counters were before and
+after.
+
+Written 2026-11-13 from the commits and the code.  Stages 0 to 3 were begun on 2026-11-11 and nothing has been
+done to them since.  No stage has its row of numbers yet: the baseline was never taken, so there is nothing to
+compare a stage with.  Each commit below says only that TestSupportLib65's listings are the same on both
+processors; whether the whole proof was run at a stage's end isn't recorded.
+
+	Stage   State                   Commits
+	0       Mostly done             92a2f3511 6a8463f4d
+	1       Done, one gap           907ea497b f6bda54a9 66361baa7
+	2       Mostly done             45a0b88cd 3ead06eff 7134b3000
+	3       Only the names          cf550eee6
+	4-11    Not started
+
+Stage 0.
+   Done: TestCppParser.cpp line 268 expects "inline" on Windows, where __inline is a macro (92a2f3511), so the
+   note at the end is settled.  CCPPCompileStatistics counts the things the plan removes (TypeOf calls, quiet
+   trials and their failures, each of the twelve ways in, pack expansions, Unsupported exits, dominators, the
+   optimiser's rounds) and times each phase when asked (CCPP65Builder::SetTimes); TEST_PROJECT65_COMPILE_STATS
+   prints them and TEST_PROJECT65_CYCLES each program's size with its cycles (6a8463f4d).  CompilerMeasure.py
+   is the script.
+   Left: the baseline itself (suites, cycles, sizes, compile CPU, wall and peak memory, counters, the VTune
+   profile) and the spread between two runs of the same build.  This is the first thing to do before stage 4.
+
+Stage 1.
+   Done: CCPPTarget with CCPPTarget65C64, CCPPTargetW65C816 and CCPPTargetHost, holding the sizes and asked for
+   the rest: macros, start up, runtime, thunks, bss, narrowed subscripts, decimal mode, the zero counting
+   routines, inlining across units, assembly units, Libc65's, the runtime's and the maths tables' units, the
+   stub and the runtime prefix (907ea497b).  The globals are a CCPPCompileOptions the builder owns, with speed
+   or size (f6bda54a9).  CIRBackend is the interface the IR front end drives, made by the target (NewBackend),
+   and the target gives the optimiser's settings, the inlining limits, the profile, the assembler and
+   PrepareForThreads.  CPPT_W65C816 is named only where a target is chosen (66361baa7).  Preferring size, a
+   function of at most 4 instructions is inlined and memcpy copies at most 8 bytes in place.  .hcp65build
+   configurations have PreferSize (HCP65-IDE's BuildLib).  Compiling a unit is counted in its own statistics,
+   added up by the builder.
+   Left: hcp65build's command line has no switch for speed or size.  "Preferring size, the suites pass and every
+   linked program is smaller or the same" is not recorded as checked: the commit says only that TestSupportLib65's
+   project compiles.  The places that trade speed for size aren't listed here yet.
+
+Stage 2.
+   Done: the passes are in ten groups, CIRAddressPasses to CIRRangePasses, on a base CIRPasses, sharing a
+   CIRPassContext (45a0b88cd).  A pass is a CIRPass and the optimiser runs a CIRPipeline the target builds; the
+   65C64's leaves out the six passes that don't pay on it, and the mb flags that chose them are gone.  Each
+   pass's runs, changes, rounds and time are counted, and CompilerMeasure.py prints the table (3ead06eff).
+   Dominators, definitions and loops are kept while no pass changes the function: compiling TestSupportLib65's
+   project the dominators are worked out 1,269,039 times for the W65C816, where they were 4,017,980, and 426,682
+   for the 65C64, where they were 1,350,765 (7134b3000).
+   Left: liveness, ranges and use counts are not yet kept analyses.  The four byte loop idioms don't share one
+   matcher, and the longest passes aren't split into finding, checking and rewriting.  The table of each pass on
+   each processor isn't written here.  The optimiser's time before and after isn't recorded.
+
+Stage 3.
+   Done: the structs are classes with the Meaning layer's names, CCPPClass, CCPPFunction, CCPPVariable,
+   CCPPTemplate and CCPPTemplateArguments, and the structs and enums beside them lost the 65 (cf550eee6).  Only
+   names changed.  SCPP65Type and CCPP65Types keep theirs.
+   Left: nearly all of it.  The classes are still in CPP65Generator.h with only fields; IsPolymorphic,
+   NeedsDestructor, FindField and the rest are still the generator's, and it has 312 functions where it had 314.
+   mbComplete, mbLayingOut and mbBases are not yet one state.  CCPPVtable, CCPPClassLayout and CCPPMangler
+   don't exist.
+
+The figures in "Where it is now" are those of 2026-11-11, before stage 2 split CIROptimiser into its groups; on
+2026-11-13 the library is 502 source files and about 131,000 lines.  Of "What makes the special cases", 4 (the
+target an enum) and 7 (the passes one class) are what stages 1 and 2 removed.
