@@ -35,6 +35,7 @@ void CIRPassContext::Init(CIRModule* pcModule)
 	mbConstantDivisions = false;
 	muiDivideRemainders = 0;
 	mbBranchRanges = false;
+	mbDominatorRanges = false;
 	mpszWarnings = NULL;
 	mbRestrict = false;
 	miUnswitched = 0;

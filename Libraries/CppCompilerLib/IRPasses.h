@@ -124,12 +124,13 @@ struct SIRSplitAddress
 };
 
 
-//A mul NarrowMultiplies makes narrow: where it is and its narrow operand.
+//A multiple NarrowMultiplies makes narrow: where it is, its narrow operand and what that is multiplied by.
 struct SIRNarrowMultiply
 {
 	CIRBlock*		pcBlock;
 	size			uiInstruction;
 	SIRReference	sNarrow;
+	uint16			uiMultiple;		//What it is multiplied by.
 };
 
 
@@ -255,6 +256,7 @@ public:
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
 	uint32					muiDivideRemainders;	//The IR_DIVIDE_REMAINDERS_ divides that leave their remainder for a urem or srem right after them.
 	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
+	bool					mbDominatorRanges;	//...and by those above a block with several predecessors, from its dominators (worked out).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	CIRInlineProfile*		mpcProfile;			//How often lines ran (SetProfile), NULL for none.

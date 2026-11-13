@@ -624,6 +624,86 @@ void TestCPP816NarrowSubscripts(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// An index the branches keep between two bytes (first <= index <= last):
+// (index - first) * 12 is worked out in 16 bits (NarrowMultiplies with the
+// branches' ranges), at both ends of the range and outside it; and a loop
+// whose count is a byte indexes 4 byte elements through Y.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816GuardedIndices(void)
+{
+	AssertInt(1 + 20 + 300 + 4000, TestCPP816Run(
+		"typedef unsigned int size;\n"
+		"typedef unsigned char uint8;\n"
+		"struct SChild { long lType; long lA; long lB; };\n"
+		"class CNode\n"
+		"{\n"
+		"public:\n"
+		"\tuint8\tmuiFirstIndex;\n"
+		"\tuint8\tmuiLastIndex;\n"
+		"\tuint8\tmuiFlags;\n"
+		"\tuint8\tmuiPad;\n"
+		"\tSChild*\tGetChildren(void) { if (muiFlags & 1) { return (SChild*)((char*)this + sizeof(CNode)); } return 0; }\n"
+		"\tlong**\tGetNodes(void) { return (long**)((char*)this + sizeof(CNode)); }\n"
+		"\tbool\tContainsIndex(size uiIndex) { return (uiIndex >= muiFirstIndex) && (uiIndex <= muiLastIndex); }\n"
+		"\tSChild*\tGet(size uiIndex);\n"
+		"\tsize\tFindIndex(long* pl);\n"
+		"};\n"
+		"SChild* CNode::Get(size uiIndex)\n"
+		"{\n"
+		"\tif (ContainsIndex(uiIndex))\n"
+		"\t{\n"
+		"\t\treturn &(GetChildren()[uiIndex - muiFirstIndex]);\n"
+		"\t}\n"
+		"\treturn 0;\n"
+		"}\n"
+		"size CNode::FindIndex(long* pl)\n"
+		"{\n"
+		"\tsize\ti;\n"
+		"\tsize\tuiNumIndices;\n"
+		"\tlong**\tapl;\n"
+		"\tuiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);\n"
+		"\tapl = GetNodes();\n"
+		"\tfor (i = 0; i <= uiNumIndices; i++)\n"
+		"\t{\n"
+		"\t\tif (apl[i] == pl)\n"
+		"\t\t{\n"
+		"\t\t\treturn i + muiFirstIndex;\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\treturn 0xFFFF;\n"
+		"}\n"
+		"char gacMemory[3200];\n"
+		"long gal[256];\n"
+		"int main(void)\n"
+		"{\n"
+		"\tCNode*\tpcNode;\n"
+		"\tlong**\tapl;\n"
+		"\tint\t\ti;\n"
+		"\tint\t\tiResult;\n"
+		"\tpcNode = (CNode*)gacMemory;\n"
+		"\tpcNode->muiFirstIndex = 0;\n"
+		"\tpcNode->muiLastIndex = 255;\n"
+		"\tpcNode->muiFlags = 1;\n"
+		"\tiResult = 0;\n"
+		"\tif (((char*)pcNode->Get(0) == gacMemory + 4) && ((char*)pcNode->Get(255) == gacMemory + 4 + 255 * 12) && (pcNode->Get(256) == 0)) { iResult += 1; }\n"
+		"\tpcNode->muiFirstIndex = 200;\n"
+		"\tif (((char*)pcNode->Get(200) == gacMemory + 4) && ((char*)pcNode->Get(255) == gacMemory + 4 + 55 * 12) && (pcNode->Get(199) == 0) && (pcNode->Get(0xFFFF) == 0)) { iResult += 20; }\n"
+		"\tpcNode->muiFirstIndex = 3;\n"
+		"\tpcNode->muiLastIndex = 3;\n"
+		"\tif (((char*)pcNode->Get(3) == gacMemory + 4) && (pcNode->Get(2) == 0) && (pcNode->Get(4) == 0)) { iResult += 300; }\n"
+		"\tpcNode->muiFirstIndex = 0;\n"
+		"\tpcNode->muiLastIndex = 255;\n"
+		"\tapl = pcNode->GetNodes();\n"
+		"\tfor (i = 0; i < 256; i++) { apl[i] = &gal[i]; }\n"
+		"\tif ((pcNode->FindIndex(&gal[0]) == 0) && (pcNode->FindIndex(&gal[255]) == 255) && (pcNode->FindIndex(&gal[77]) == 77) && (pcNode->FindIndex(0) == 0xFFFF)) { iResult += 4000; }\n"
+		"\treturn iResult;\n"
+		"}\n"));
+}
+
+
 int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults, bool bReturns);
 
 
@@ -5763,6 +5843,7 @@ void TestCPP816(void)
 	TestCPP816SharedTables();
 	TestCPP816Statements();
 	TestCPP816NarrowSubscripts();
+	TestCPP816GuardedIndices();
 	TestCPP816SharedDivisions();
 	TestCPP816Divide64();
 	TestCPP816BitTables();

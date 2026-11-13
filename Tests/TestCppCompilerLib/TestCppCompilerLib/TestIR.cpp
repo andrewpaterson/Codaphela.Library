@@ -4325,6 +4325,173 @@ void TestIROptimiserKnownBranches(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// NarrowMultiplies (the W65C816's) with what the branches on the way say of an index against values that aren't
+// constants: after first <= index <= last, both bytes, index - first is 0 to 255, so (index - first) * 12 is a 16 bit
+// multiply and the ptradd of it IRF_InArray.  The shifts, adds and subs a back end made of a multiply are still one
+// (ExtendedMultiple); branches above an if and else joined still hold (the dominators); without first <= index, or
+// with a last that isn't a byte, nothing is known.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserGuardedMultiples(void)
+{
+	static const char*	szGuards =
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n{\nentry:\n\t%first = zext i8 %f to i16\n\t%last = zext i8 %l to i16\n"
+		"\t%a = uge i16 %i, %first\n\tbrif %a, upper, out\n"
+		"upper:\n\t%b = ule i16 %i, %last\n\tbrif %b, in, out\n";
+
+	CChars	szText;
+
+	//(index - first) * 12.
+	szText.Init(szGuards);
+	szText.Append("in:\n\t%d = sub i16 %i, %first\n\t%w = zext i16 %d to i32\n\t%m = mul i32 %w, 12\n\t%q = ptradd ptr %p, %m\n\tret ptr %q\n"
+		"out:\n\tret ptr 0\n}\n");
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%0 = mul i16 %d, 12\n"
+		"\t%m = zext i16 %0 to i32\n"
+		"\t%q = ptradd inarray ptr %p, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n", szText.Text(), true, false, true);
+	szText.Kill();
+
+	//((index - first) * 4 - (index - first)) * 4, as the W65C816's back end makes it.
+	szText.Init(szGuards);
+	szText.Append("in:\n\t%d = sub i16 %i, %first\n\t%w = zext i16 %d to i32\n\t%s = shl i32 %w, 2\n\t%t = sub i32 %s, %w\n\t%m = shl i32 %t, 2\n"
+		"\t%q = ptradd ptr %p, %m\n\tret ptr %q\n"
+		"out:\n\tret ptr 0\n}\n");
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%0 = mul i16 %d, 12\n"
+		"\t%m = zext i16 %0 to i32\n"
+		"\t%q = ptradd inarray ptr %p, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n", szText.Text(), true, false, true);
+	szText.Kill();
+
+	//The multiply after an if and else that join.
+	szText.Init(szGuards);
+	szText.Append("in:\n\t%c = eq i8 %f, 3\n\tbrif %c, yes, no\n"
+		"yes:\n\tcall void @_Use__Fv()\n\tjmp join\n"
+		"no:\n\tjmp join\n"
+		"join:\n\t%d = sub i16 %i, %first\n\t%w = zext i16 %d to i32\n\t%m = mul i32 %w, 12\n\t%q = ptradd ptr %p, %m\n\tret ptr %q\n"
+		"out:\n\tret ptr 0\n}\n");
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%c = eq i8 %f, 3\n"
+		"\tbrif %c, yes, join\n"
+		"yes:\n"
+		"\tcall void @_Use__Fv()\n"
+		"\tjmp join\n"
+		"join:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%0 = mul i16 %d, 12\n"
+		"\t%m = zext i16 %0 to i32\n"
+		"\t%q = ptradd inarray ptr %p, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n", szText.Text(), true, false, true);
+	szText.Kill();
+
+	//Without first <= index the difference may be negative: 65535 * 12 doesn't fit.
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%last = zext i8 %l to i16\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%w = zext i16 %d to i32\n"
+		"\t%m = mul i32 %w, 12\n"
+		"\t%q = ptradd ptr %p, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n",
+		"function ptr @_G__FPcjhh(ptr %p, i16 %i, i8 %f, i8 %l)\n{\nentry:\n\t%first = zext i8 %f to i16\n\t%last = zext i8 %l to i16\n"
+		"\t%b = ule i16 %i, %last\n\tbrif %b, in, out\n"
+		"in:\n\t%d = sub i16 %i, %first\n\t%w = zext i16 %d to i32\n\t%m = mul i32 %w, 12\n\t%q = ptradd ptr %p, %m\n\tret ptr %q\n"
+		"out:\n\tret ptr 0\n}\n", true, false, true);
+
+	//A last of 16 bits bounds nothing.
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function ptr @_G__FPcjhj(ptr %p, i16 %i, i8 %f, i16 %last)\n"
+		"{\n"
+		"entry:\n"
+		"\t%first = zext i8 %f to i16\n"
+		"\t%a = uge i16 %i, %first\n"
+		"\tbrif %a, upper, out\n"
+		"upper:\n"
+		"\t%b = ule i16 %i, %last\n"
+		"\tbrif %b, in, out\n"
+		"in:\n"
+		"\t%d = sub i16 %i, %first\n"
+		"\t%w = zext i16 %d to i32\n"
+		"\t%m = mul i32 %w, 12\n"
+		"\t%q = ptradd ptr %p, %m\n"
+		"\tret ptr %q\n"
+		"out:\n"
+		"\tret ptr 0\n"
+		"}\n",
+		"function ptr @_G__FPcjhj(ptr %p, i16 %i, i8 %f, i16 %last)\n{\nentry:\n\t%first = zext i8 %f to i16\n"
+		"\t%a = uge i16 %i, %first\n\tbrif %a, upper, out\n"
+		"upper:\n\t%b = ule i16 %i, %last\n\tbrif %b, in, out\n"
+		"in:\n\t%d = sub i16 %i, %first\n\t%w = zext i16 %d to i32\n\t%m = mul i32 %w, 12\n\t%q = ptradd ptr %p, %m\n\tret ptr %q\n"
+		"out:\n\tret ptr 0\n}\n", true, false, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // NarrowTruncations: trunc(zext(a) + zext(b)) to i8 is an i8 add.  Not when
 // the i32 add is also stored.
 //
@@ -4913,6 +5080,7 @@ void TestIR(void)
 	TestIROptimiserConstantDivisions();
 	TestIROptimiserFoldNullTests();
 	TestIROptimiserKnownBranches();
+	TestIROptimiserGuardedMultiples();
 	TestIROptimiserNarrowTruncations();
 	TestIROptimiserUnifySlotTypes();
 	TestIROptimiserRotateLoops();

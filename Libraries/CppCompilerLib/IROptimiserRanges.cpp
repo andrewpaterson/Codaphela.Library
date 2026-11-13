@@ -585,7 +585,9 @@ bool CIRRangePasses::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plli
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The signed range of x + y, x - y (both ranges known), x * c, x << c,
+// The signed range of x + y, x - y (both ranges known; x - y is 0 or more
+// when neither is negative and a branch on the way says x >= y,
+// DominatingNotLess), x * c, x << c,
 // x >> c (arithmetic, or logical of an x never negative; of any x when its
 // range isn't known) and a trunc of x that fits the narrower type, when it
 // can't wrap.  False for anything else.
@@ -635,6 +637,12 @@ bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliM
 		}
 		*plliMin = (uiOpcode == IRO_Add) ? lliMin + lliOtherMin : lliMin - lliOtherMax;
 		*plliMax = (uiOpcode == IRO_Add) ? lliMax + lliOtherMax : lliMax - lliOtherMin;
+		if ((uiOpcode == IRO_Sub) && (*plliMin < 0) && (lliMin >= 0) && (lliOtherMin >= 0) && mpcContext->mbBranchRanges &&
+			DominatingNotLess(pcBlock, psInstruction->asArguments[0], psInstruction->asArguments[1]))
+		{
+			//x - y where a branch on the way says x >= y (index - first, after index >= first): never negative.
+			*plliMin = 0;
+		}
 	}
 	else
 	{
@@ -889,10 +897,36 @@ bool CIRRangePasses::FoldNullTests(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The block above pcTo on the way every run takes to it: its one
+// predecessor (*pbBranch true: that block's branch to pcTo holds in pcTo and
+// everything pcTo dominates), or with mpcContext->mbDominatorRanges and
+// several predecessors (an if and else joined, a loop's head) its immediate
+// dominator (*pbBranch false: nothing is known of how it got from there).
+// NULL when there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRRangePasses::RangeStep(CIRBlock* pcTo, bool* pbBranch)
+{
+	*pbBranch = pcTo->mapcPredecessors.NumElements() == 1;
+	if (*pbBranch)
+	{
+		return pcTo->mapcPredecessors.GetPtr(0);
+	}
+	if (!mpcContext->mbDominatorRanges || (pcTo->mapcPredecessors.NumElements() == 0))
+	{
+		return NULL;
+	}
+	return mpcContext->mcDominators.GetImmediate(pcTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Narrows the signed range [*plliMin, *plliMax] of sValue in pcBlock by the
 // branches pcBlock is reached through: while a block has one predecessor,
 // that predecessor's branch on a compare of sValue with a constant holds
-// (the way to the block), up to IR_RANGE_DEPTH blocks up.
+// (the way to the block), up to IR_RANGE_DEPTH blocks up (RangeStep: with
+// mpcContext->mbDominatorRanges on up past blocks with several).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax)
@@ -900,12 +934,20 @@ void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int
 	CIRBlock*		pcTo;
 	CIRBlock*		pcFrom;
 	int				iDepth;
+	bool			bBranch;
 
 	pcTo = pcBlock;
-	for (iDepth = 0; (iDepth < IR_RANGE_DEPTH) && (pcTo->mapcPredecessors.NumElements() == 1); iDepth++)
+	for (iDepth = 0; iDepth < IR_RANGE_DEPTH; iDepth++)
 	{
-		pcFrom = pcTo->mapcPredecessors.GetPtr(0);
-		BranchRange(pcFrom, pcTo, sValue, plliMin, plliMax);
+		pcFrom = RangeStep(pcTo, &bBranch);
+		if (!pcFrom)
+		{
+			break;
+		}
+		if (bBranch)
+		{
+			BranchRange(pcFrom, pcTo, sValue, plliMin, plliMax);
+		}
 		pcTo = pcFrom;
 	}
 }
@@ -915,17 +957,42 @@ void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int
 //
 // Narrows the signed range [*plliMin, *plliMax] of sValue by pcFrom's
 // branch to pcTo, when it is on a compare of sValue with a constant
-// (EdgeComparison).
+// (EdgeComparison), or below (or not above) a value that is never more than
+// a bound positive as signed (UpperBound: a zext, an and; index <= last
+// with last a byte): then sValue is no more than the bound either.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax)
 {
 	SIRReference	sConstant;
+	SIRType			sType;
 	uint16			uiOpcode;
 	int64			lliConstant;
+	uint64			ulliBound;
 
-	if (!EdgeComparison(pcFrom, pcTo, sValue, &uiOpcode, &sConstant) || !sConstant.IsConstant())
+	if (!EdgeComparison(pcFrom, pcTo, sValue, &uiOpcode, &sConstant))
 	{
+		return;
+	}
+	if (!sConstant.IsConstant())
+	{
+		sType = mpcFunction->TypeOf(sValue);
+		if (!sType.IsInteger() || (sType.IntegerBits() > 32) || ((uiOpcode != IRO_ULt) && (uiOpcode != IRO_ULe) && (uiOpcode != IRO_SLt) && (uiOpcode != IRO_SLe)))
+		{
+			return;
+		}
+		ulliBound = UpperBound(sConstant, IR_BOUND_DEPTH);
+		if (ulliBound > (uint64)IRSignedMax(sType.IntegerBits()))
+		{
+			return;
+		}
+		//Below it: one less than the most it can be (it is at least 1 then).
+		lliConstant = (int64)ulliBound - ((((uiOpcode == IRO_ULt) || (uiOpcode == IRO_SLt)) && (ulliBound > 0)) ? 1 : 0);
+		if ((uiOpcode == IRO_ULt) || (uiOpcode == IRO_ULe))
+		{
+			*plliMin = (*plliMin < 0) ? 0 : *plliMin;
+		}
+		*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
 		return;
 	}
 	lliConstant = mpcFunction->GetSigned(sConstant);
@@ -948,6 +1015,45 @@ void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference 
 	default:
 		break;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a branch pcBlock is reached through (as DominatingRange finds
+// them) says sLeft >= sRight or sLeft > sRight, signed or
+// unsigned.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRRangePasses::DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight)
+{
+	CIRBlock*		pcTo;
+	CIRBlock*		pcFrom;
+	SIRReference	sOther;
+	uint16			uiOpcode;
+	int				iDepth;
+	bool			bBranch;
+
+	if (!pcBlock || !sLeft.IsTemporary())
+	{
+		return false;
+	}
+	pcTo = pcBlock;
+	for (iDepth = 0; iDepth < IR_RANGE_DEPTH; iDepth++)
+	{
+		pcFrom = RangeStep(pcTo, &bBranch);
+		if (!pcFrom)
+		{
+			break;
+		}
+		if (bBranch && EdgeComparison(pcFrom, pcTo, sLeft, &uiOpcode, &sOther) && sOther.Equals(sRight) &&
+			((uiOpcode == IRO_UGe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_SGe) || (uiOpcode == IRO_SGt)))
+		{
+			return true;
+		}
+		pcTo = pcFrom;
+	}
+	return false;
 }
 
 
@@ -977,10 +1083,87 @@ bool CIRRangePasses::NotNegative(CIRBlock* pcBlock, SIRReference sValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A mul of an extended i8 or i16 value by a constant whose product fits 16
-// bits unsigned (the value 0 or more, its range from the branches the block
-// is reached through, DominatingRange, or a zext's bits) is a 16 bit mul,
-// zero extended: (long)y * 320 with y from 0 to 199 is a 16 bit y * 320.
+// sValue as a multiple of an extended i8 or i16 value: the sext or zext
+// itself (*pllMultiple 1), or a mul or shl of such a multiple by a constant,
+// or an add or sub of two multiples of the same extension ((x << 2) - x is
+// 3 x: a multiply by a constant a back end made shifts and adds is still
+// one), all of sValue's type.  Returns the extension, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIRRangePasses::ExtendedMultiple(SIRReference sValue, int64* plliMultiple, int iDepth)
+{
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psExtension;
+	SIRInstruction*	psOther;
+	SIRType			sNarrow;
+	int64			lliConstant;
+	int64			lliOther;
+
+	psInstruction = sValue.IsTemporary() ? mpcContext->mcDefinitions.Instruction(sValue) : NULL;
+	if (!psInstruction || (iDepth == 0))
+	{
+		return NULL;
+	}
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_ZExt:
+	case IRO_SExt:
+		sNarrow = mpcFunction->TypeOf(psInstruction->asArguments[0]);
+		if (!sNarrow.IsInteger() || ((sNarrow.IntegerBits() != 8) && (sNarrow.IntegerBits() != 16)))
+		{
+			return NULL;
+		}
+		*plliMultiple = 1;
+		return psInstruction;
+	case IRO_Mul:
+	case IRO_Shl:
+		if (!psInstruction->asArguments[1].IsConstant())
+		{
+			return NULL;
+		}
+		lliConstant = (int64)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+		if (psInstruction->uiOpcode == IRO_Shl)
+		{
+			if (lliConstant > 15)
+			{
+				return NULL;
+			}
+			lliConstant = (int64)1 << lliConstant;
+		}
+		psExtension = ExtendedMultiple(psInstruction->asArguments[0], plliMultiple, iDepth - 1);
+		if (!psExtension || (lliConstant > 0xFFFF))
+		{
+			return NULL;
+		}
+		*plliMultiple *= lliConstant;
+		break;
+	case IRO_Add:
+	case IRO_Sub:
+		psExtension = ExtendedMultiple(psInstruction->asArguments[0], plliMultiple, iDepth - 1);
+		psOther = psExtension ? ExtendedMultiple(psInstruction->asArguments[1], &lliOther, iDepth - 1) : NULL;
+		if (!psExtension || (psOther != psExtension))
+		{
+			return NULL;
+		}
+		*plliMultiple += (psInstruction->uiOpcode == IRO_Add) ? lliOther : -lliOther;
+		break;
+	default:
+		return NULL;
+	}
+	//Small enough that nothing above overflows.
+	return ((*plliMultiple >= -0x100000) && (*plliMultiple <= 0x100000)) ? psExtension : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A multiple of an extended i8 or i16 value (ExtendedMultiple: a mul or shl
+// by a constant, or the shifts, adds and subs a multiply was made) that
+// fits 16 bits unsigned (the value 0 or more, its range as it is worked out
+// and from the branches the block is reached through, RangeAt, or a zext's
+// bits) is a 16 bit mul, zero extended: (long)y * 320 with y from 0 to 199
+// is a 16 bit y * 320, and (index - first) * 12 after first <= index <=
+// last, both bytes, is a 16 bit one.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRRangePasses::NarrowMultiplies(void)
@@ -996,14 +1179,19 @@ bool CIRRangePasses::NarrowMultiplies(void)
 	uint64								ulliConstant;
 	int64								lliMin;
 	int64								lliMax;
+	int64								lliMultiple;
 	int									iBits;
 	size								ui;
 	size								uiInstruction;
 	bool								bChanged;
 
-	//Found first: the inserts move the definitions DominatingRange reads.
+	//Found first: the inserts move the definitions RangeAt reads.
+	Renumber();
 	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
+	ComputeDominators();
+	mpcContext->mbBranchRanges = true;
+	mpcContext->mbDominatorRanges = true;
 	sShort = IRType(IRTK_I16);
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -1013,17 +1201,17 @@ bool CIRRangePasses::NarrowMultiplies(void)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			sType = psInstruction->sType;
-			if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sResult.IsTemporary() || !sType.IsInteger() || (sType.IntegerBits() <= 16) ||
-				!psInstruction->asArguments[1].IsConstant())
+			if (((psInstruction->uiOpcode != IRO_Mul) && (psInstruction->uiOpcode != IRO_Shl) && (psInstruction->uiOpcode != IRO_Add) && (psInstruction->uiOpcode != IRO_Sub)) ||
+				!psInstruction->sResult.IsTemporary() || !sType.IsInteger() || (sType.IntegerBits() <= 16) || (sType.IntegerBits() > 32))
 			{
 				continue;
 			}
-			ulliConstant = IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-			psExtension = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
-			if ((ulliConstant == 0) || (ulliConstant > 0xFFFF) || !psExtension || ((psExtension->uiOpcode != IRO_SExt) && (psExtension->uiOpcode != IRO_ZExt)))
+			psExtension = ExtendedMultiple(psInstruction->sResult, &lliMultiple, IR_MULTIPLE_DEPTH);
+			if (!psExtension || (lliMultiple < 2) || (lliMultiple > 0xFFFF))
 			{
 				continue;
 			}
+			ulliConstant = (uint64)lliMultiple;
 			sNarrow = psExtension->asArguments[0];
 			iBits = mpcFunction->TypeOf(sNarrow).IntegerBits();
 			if ((iBits != 8) && (iBits != 16))
@@ -1032,9 +1220,11 @@ bool CIRRangePasses::NarrowMultiplies(void)
 			}
 			//The compares are of the narrow value as it is (a signed compare sees it signed); a zext of one that may be
 			//negative is up to all its bits.
-			lliMin = IRSignedMin(iBits);
-			lliMax = IRSignedMax(iBits);
-			DominatingRange(pcBlock, sNarrow, &lliMin, &lliMax);
+			if (!RangeAt(pcBlock, sNarrow, &lliMin, &lliMax))
+			{
+				lliMin = IRSignedMin(iBits);
+				lliMax = IRSignedMax(iBits);
+			}
 			if ((lliMin < 0) && (psExtension->uiOpcode == IRO_ZExt))
 			{
 				lliMin = 0;
@@ -1048,17 +1238,22 @@ bool CIRRangePasses::NarrowMultiplies(void)
 			psFound->pcBlock = pcBlock;
 			psFound->uiInstruction = uiInstruction;
 			psFound->sNarrow = sNarrow;
+			psFound->uiMultiple = (uint16)ulliConstant;
 		}
 	}
 
-	//Last first, so each instruction's index is still where it was found.
+	mpcContext->mbBranchRanges = false;
+	mpcContext->mbDominatorRanges = false;
+
+	//Last first, so each instruction's index is still where it was found.  (The inserts leave the blocks, and so their
+	//dominators, as they are.)
 	bChanged = asFound.NumElements() > 0;
 	for (ui = asFound.NumElements(); ui > 0; ui--)
 	{
 		psFound = asFound.Get(ui - 1);
 		pcBlock = psFound->pcBlock;
 		uiInstruction = psFound->uiInstruction;
-		ulliConstant = mpcFunction->GetConstant(pcBlock->masInstructions.Get(uiInstruction)->asArguments[1])->ulliBits;
+		ulliConstant = psFound->uiMultiple;
 		sNarrow = psFound->sNarrow;
 		if (mpcFunction->TypeOf(sNarrow).IntegerBits() == 8)
 		{
@@ -1072,6 +1267,62 @@ bool CIRRangePasses::NarrowMultiplies(void)
 		psInstruction->asArguments[1] = IRNone();
 	}
 	asFound.Kill();
+	if (bChanged)
+	{
+		FindDefinitions();
+	}
+	return BoundIndices() || bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A ptradd of a zero extended i16 offset that is never more than
+// IR_IN_ARRAY_MOST (its range as it is worked out and from the branches
+// the block is reached through, RangeAt) is IRF_InArray: the offset and
+// the bytes of anything read or written through it stay under 64KB, so a
+// back end may add to the offset in 16 bits (the W65C816's 2 word loads
+// and stores through Y).  The definitions and the dominators must be found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRRangePasses::BoundIndices(void)
+{
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psExtension;
+	CIRBlock*		pcBlock;
+	int64			lliMin;
+	int64			lliMax;
+	size			ui;
+	size			uiInstruction;
+	bool			bChanged;
+
+	bChanged = false;
+	mpcContext->mbBranchRanges = true;
+	mpcContext->mbDominatorRanges = true;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode != IRO_PtrAdd) || (psInstruction->uiFlags & IRF_InArray) || !psInstruction->asArguments[1].IsTemporary())
+			{
+				continue;
+			}
+			psExtension = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[1]);
+			if (!psExtension || (psExtension->uiOpcode != IRO_ZExt) || !mpcFunction->TypeOf(psExtension->asArguments[0]).Is(IRTK_I16))
+			{
+				continue;
+			}
+			if (RangeAt(pcBlock, psExtension->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0) && (lliMax <= IR_IN_ARRAY_MOST))
+			{
+				psInstruction->uiFlags |= IRF_InArray;
+				bChanged = true;
+			}
+		}
+	}
+	mpcContext->mbBranchRanges = false;
+	mpcContext->mbDominatorRanges = false;
 	return bChanged;
 }
 

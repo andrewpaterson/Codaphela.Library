@@ -42,6 +42,10 @@ public:
 protected:
 	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax);
 	void			BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax);
+	bool			DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight);
+	SIRInstruction*	ExtendedMultiple(SIRReference sValue, int64* plliMultiple, int iDepth);
+	bool			BoundIndices(void);
+	CIRBlock*		RangeStep(CIRBlock* pcTo, bool* pbBranch);
 	bool			DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
 	bool			ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
