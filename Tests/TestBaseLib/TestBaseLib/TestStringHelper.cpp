@@ -231,6 +231,33 @@ void TestIToA(void)
 
     IntToString(sz, 256, -32456, 10);
     AssertString("-32456", sz);
+
+	//The smallest of each width, other bases, and too long for the destination: the most significant characters that
+	//fit, as StrCpySafe truncates, never past the destination's length.
+	IntToString(sz, 256, (int32)MIN_INT32, 10);
+	AssertString("-2147483648", sz);
+	ShortToString(sz, 256, (int16)-32768, 10);
+	AssertString("-32768", sz);
+	LongToString(sz, 256, (int64)0x8000000000000000ULL, 10);
+	AssertString("-9223372036854775808", sz);
+	IntToString(sz, 256, (uint32)0xFFFFFFFF, 2);
+	AssertString("11111111111111111111111111111111", sz);
+	IntToString(sz, 256, (int32)-1, 16);
+	AssertString("ffffffff", sz);
+	IntToString(sz, 256, (uint32)12, 17);
+	AssertString("", sz);
+
+	memset(sz, 'x', 8);
+	IntToString(sz, 5, (int32)-123456, 10);
+	AssertString("-123", sz);
+	AssertChar('x', sz[5]);
+	IntToString(sz, 4, (uint32)7, 10);
+	AssertString("7", sz);
+	LongToString(sz, 3, (uint64)123456789012ULL, 10);
+	AssertString("12", sz);
+	sz[0] = 'x';
+	IntToString(sz, 1, (uint32)7, 10);
+	AssertString("", sz);
 }
 
 

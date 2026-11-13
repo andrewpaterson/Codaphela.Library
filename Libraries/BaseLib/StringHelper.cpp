@@ -231,6 +231,43 @@ void MemSwp(const void* pv1, const void* pv2, lsize uiLength)
 #endif // __W65C816__ (Libc65's string816.asm and string816_16.asm have it)
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// uiValue's digits in iBase (2 to 16), after a '-' if bNegative, in
+// szDest: truncated to iDestLength (its end included), the most
+// significant digits kept, as StrCpySafe truncates.  A base that can't be
+// is an empty string.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class U>
+static char* UnsignedToString(char* szDest, size iDestLength, U uiValue, bool bNegative, uint16 iBase)
+{
+	char	szDigits[sizeof(U) * 8 + 2];  //Base 2's digits, a sign and the end.
+	size	iPos;
+
+	if ((iBase < 2) || (iBase > 16))
+	{
+		return StrCpySafe(szDest, "", iDestLength);
+	}
+
+	iPos = sizeof(szDigits) - 1;
+	szDigits[iPos] = '\0';
+	do
+	{
+		iPos--;
+		szDigits[iPos] = gszDigits[uiValue % iBase];
+		uiValue /= iBase;
+	}
+	while (uiValue != 0);
+	if (bNegative)
+	{
+		iPos--;
+		szDigits[iPos] = '-';
+	}
+	return StrCpySafe(szDest, &szDigits[iPos], iDestLength);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -257,52 +294,11 @@ char* ByteToString(char* szDest, size iDestLength, uint8 iValue, uint16 iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase)
 {
-	int16	iQuotient;
-	uint16  iDigit;
-	size	iPos;
-	bool	bNegative;
-
 	if (iBase != 10)
 	{
 		return ShortToString(szDest, iDestLength, (uint16)iValue, iBase);
 	}
-
-	bNegative = iValue < 0;
-	if (bNegative)
-	{
-		if (iValue == (int16)MIN_INT16)
-		{
-			StrCpySafe(szDest, "-32768", iDestLength);
-			return szDest;
-		}
-		iValue *= -1;
-	}
-	iQuotient = iValue;
-	iPos = 0;
-
-	do
-	{
-		iDigit = iQuotient % iBase;
-		iQuotient /= iBase;
-
-		szDest[iPos] = gszDigits[iDigit];
-		iPos++;
-
-	}
-	while (iQuotient != 0);
-
-	if (bNegative)
-	{
-		szDest[iPos] = '-';
-		iPos++;
-	}
-
-	szDest[iPos] = '\0';
-
-	//Reverse the string.
-	StrRev(szDest, iPos);
-
-	return szDest;
+	return UnsignedToString(szDest, iDestLength, (iValue < 0) ? (uint16)(0 - (uint16)iValue) : (uint16)iValue, iValue < 0, iBase);
 }
 
 
@@ -312,37 +308,7 @@ char* ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* ShortToString(char* szDest, size iDestLength, uint16 iValue, uint16 iBase)
 {
-	uint16	iQuotient;
-	uint16	iDigit;
-	size	iPos;
-
-	if (iBase < 2 || iBase > 16)
-	{
-		szDest[0] = 0;
-		return szDest;
-	}
-
-	iQuotient = iValue;
-	iPos = 0;
-
-	do
-	{
-		iDigit = iQuotient % iBase;
-		iQuotient /= iBase;
-
-		szDest[iPos] = gszDigits[iDigit];
-		iPos++;
-
-	}
-	while (iQuotient != 0);
-
-
-	szDest[iPos] = '\0';
-
-	//Reverse the string.
-	StrRev(szDest, iPos);
-
-	return szDest;
+	return UnsignedToString(szDest, iDestLength, iValue, false, iBase);
 }
 
 
@@ -352,52 +318,11 @@ char* ShortToString(char* szDest, size iDestLength, uint16 iValue, uint16 iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 {
-	int32	iQuotient;
-	uint16  iDigit;
-	size	iPos;
-	bool	bNegative;
-
 	if (iBase != 10)
 	{
 		return IntToString(szDest, iDestLength, (uint32)iValue, iBase);
 	}
-
-	bNegative = iValue < 0;
-	if (bNegative)
-	{
-		if (iValue == (int32)MIN_INT32)
-		{
-			StrCpySafe(szDest, "-2147483648", iDestLength);
-			return szDest;
-		}
-		iValue *= -1;
-	}
-	iQuotient = iValue;
-	iPos = 0;
-
-	do
-	{
-		iDigit = iQuotient % iBase;
-		iQuotient /= iBase;
-
-		szDest[iPos] = gszDigits[iDigit];
-		iPos++;
-
-	} 
-	while (iQuotient != 0);
-
-	if (bNegative)
-	{
-		szDest[iPos] = '-';
-		iPos++;
-	}
-
-	szDest[iPos] = '\0';
-
-	//Reverse the string.
-	StrRev(szDest, iPos);
-
-	return szDest;
+	return UnsignedToString(szDest, iDestLength, (iValue < 0) ? (uint32)0 - (uint32)iValue : (uint32)iValue, iValue < 0, iBase);
 }
 
 
@@ -407,37 +332,7 @@ char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* IntToString(char* szDest, size iDestLength, uint32 iValue, uint16 iBase)
 {
-	uint32	iQuotient;
-	uint16	iDigit;
-	size	iPos;
-
-	if (iBase < 2 || iBase > 16)
-	{
-		szDest[0] = 0;
-		return szDest;
-	}
-
-	iQuotient = iValue;
-	iPos = 0;
-
-	do
-	{
-		iDigit = iQuotient % iBase;
-		iQuotient /= iBase;
-
-		szDest[iPos] = gszDigits[iDigit];
-		iPos++;
-
-	} 
-	while (iQuotient != 0);
-
-
-	szDest[iPos] = '\0';
-
-	//Reverse the string.
-	StrRev(szDest, iPos);
-
-	return szDest;
+	return UnsignedToString(szDest, iDestLength, iValue, false, iBase);
 }
 
 
@@ -491,36 +386,7 @@ char* SizeToString(char* szDest, size iDestLength, size iValue, uint16 iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* LongToString(char* szDest, size iDestLength, uint64 ulliValue, uint16 iBase)
 {
-	uint64	ulliQuotient;
-	uint16	iDigit;
-	size	iPos;
-
-	if (iBase < 2 || iBase > 16)
-	{
-		szDest[0] = 0;
-		return szDest;
-	}
-
-	ulliQuotient = ulliValue;
-	iPos = 0;
-
-	do
-	{
-		iDigit = (uint32)(ulliQuotient % iBase);
-		ulliQuotient /= iBase;
-
-		szDest[iPos] = gszDigits[iDigit];
-		iPos++;
-
-	} 
-	while (ulliQuotient != 0);
-
-	szDest[iPos] = '\0';
-
-	//Reverse the string.
-	StrRev(szDest, iPos);
-
-	return szDest;
+	return UnsignedToString(szDest, iDestLength, ulliValue, false, iBase);
 }
 
 
@@ -530,54 +396,11 @@ char* LongToString(char* szDest, size iDestLength, uint64 ulliValue, uint16 iBas
 ////////////////////////////////////////////////////////////////////////////////////
 char* LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase)
 {
-	int64	lliQuotient;
-	uint16	iDigit;
-	size	iPos;
-	bool	bNegative;
-
 	if (iBase != 10)
 	{
 		return LongToString(szDest, iDestLength, (uint64)lliValue, iBase);
 	}
-
-	bNegative = lliValue < 0;
-	if (bNegative && (iBase == 10))
-	{
-		if (lliValue == (int64)MIN_INT64)
-		{
-			StrCpySafe(szDest, "-9223372036854775808", iDestLength);
-			return szDest;
-		}
-		lliValue *= -1;
-	}
-	lliQuotient = lliValue;
-	iPos = 0;
-
-	do
-	{
-		iDigit = (int)(lliQuotient % iBase);
-		lliQuotient /= iBase;
-
-		szDest[iPos] = gszDigits[iDigit];
-		iPos++;
-
-	} 
-	while (lliQuotient != 0);
-
-
-	// Only apply negative sign for iBase 10
-	if (bNegative && (iBase == 10))
-	{
-		szDest[iPos] = '-';
-		iPos++;
-	}
-
-	szDest[iPos] = '\0';
-
-	//Reverse the string.
-	StrRev(szDest, iPos);
-
-	return szDest;
+	return UnsignedToString(szDest, iDestLength, (lliValue < 0) ? (uint64)0 - (uint64)lliValue : (uint64)lliValue, lliValue < 0, iBase);
 }
 
 

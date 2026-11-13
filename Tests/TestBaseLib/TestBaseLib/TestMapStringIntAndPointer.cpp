@@ -67,7 +67,7 @@ bool TestNumberMatchesIndex(CMapStringIntAndPointer* pcMap, CArrayInt* paiKeys)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		uiKey = paiKeys->GetValue(ui);
-		IntToString(szKey, 5, uiKey, 10);
+		IntToString(szKey, sizeof(szKey), uiKey, 10);
 		pcNumber = (CNumber*)pcMap->Get(szKey, &uiType);
 		iValue = pcNumber->IntValue();
 		if (iValue != (int32)uiKey)
@@ -117,7 +117,7 @@ void TestMapStringIntAndPointerRemove(void)
 	for (ui = 0; ui < 1152; ui++)
 	{
 		uiKey = aiKeys.GetValue(ui);
-		IntToString(szKey, 5, uiKey, 10);
+		IntToString(szKey, sizeof(szKey), uiKey, 10);
 		pcNumber = (CNumber*)cFreeNumbers.Add();
 		pcNumber->Init((int)uiKey);
 		cMap.Put(szKey, PT_Number, pcNumber);
@@ -137,7 +137,7 @@ void TestMapStringIntAndPointerRemove(void)
 	do
 	{
 		uiKey = aiKeys.GetValue(ui);
-		IntToString(szKey, 5, uiKey, 10);
+		IntToString(szKey, sizeof(szKey), uiKey, 10);
 
 		bRemoved = cMap.Remove(szKey);
 		AssertTrue(bRemoved);
@@ -199,7 +199,7 @@ void TestMapStringIntAndPointerIterate(void)
 	for (ui = 0; ui < 32; ui++)
 	{
 		uiKey = aiKeys.GetValue(ui);
-		IntToString(szKey, 5, uiKey, 10);
+		IntToString(szKey, sizeof(szKey), uiKey, 10);
 		pcNumber = (CNumber*)cFreeNumbers.Add();
 		pcNumber->Init((int)uiKey);
 		cMap.Put(szKey, PT_Number, pcNumber);
