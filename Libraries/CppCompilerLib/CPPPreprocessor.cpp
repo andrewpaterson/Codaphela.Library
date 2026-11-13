@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "PreprocessorExpression.h"
 #include "Punctuators.h"
 #include "Project.h"
-#include "Preprocessor.h"
+#include "CPPPreprocessor.h"
 #include "PPText.h"
 #include "PPReplacement.h"
 #include "PPConditional.h"

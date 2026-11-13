@@ -23,7 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/TextParser.h"
 #include "BaseLib/Chars.h"
 #include "Library.h"
-#include "Preprocessor.h"
+#include "CPPPreprocessor.h"
 #include "CppTokeniser.h"
 #include "SourceFile.h"
 #include "TranslationUnit.h"

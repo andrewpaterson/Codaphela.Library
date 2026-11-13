@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #ifdef LINUX_GNU
-#include "Preprocessor.h"
+#include "CPPPreprocessor.h"
 
 
 //////////////////////////////////////////////////////////////////////////

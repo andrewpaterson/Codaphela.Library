@@ -705,16 +705,16 @@
     <ClCompile Include="PPHeaderCache.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="Preprocessor.cpp">
+    <ClCompile Include="CPPPreprocessor.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessorHeaderCache.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="Preprocessor_Linux.cpp">
+    <ClCompile Include="CPPPreprocessor_Linux.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="Preprocessor_Windows.cpp">
+    <ClCompile Include="CPPPreprocessor_Windows.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessorParser.cpp">
@@ -1400,7 +1400,7 @@
     <ClInclude Include="PPHeaderCache.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
-    <ClInclude Include="Preprocessor.h">
+    <ClInclude Include="CPPPreprocessor.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorParser.h">

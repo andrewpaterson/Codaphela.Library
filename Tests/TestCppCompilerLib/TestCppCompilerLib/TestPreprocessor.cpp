@@ -4,7 +4,7 @@
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/TextFile.h"
 #include "CppCompilerLib/DirectiveMap.h"
-#include "CppCompilerLib/Preprocessor.h"
+#include "CppCompilerLib/CPPPreprocessor.h"
 #include "CppCompilerLib/PPLine.h"
 #include "CppCompilerLib/PPDirective.h"
 #include "CppCompilerLib/HeaderFileMap.h"

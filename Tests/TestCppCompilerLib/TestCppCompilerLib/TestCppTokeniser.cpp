@@ -2,7 +2,7 @@
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/Logger.h"
-#include "CppCompilerLib/Preprocessor.h"
+#include "CppCompilerLib/CPPPreprocessor.h"
 #include "CppCompilerLib/CppTokeniser.h"
 #include "CppCompilerLib/ASCIIIndex.h"
 #include "CppCompilerLib/CTReservedWord.h"

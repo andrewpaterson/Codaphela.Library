@@ -395,7 +395,7 @@
     <ClCompile Include="PreprocessorLineTokeniser.cpp" />
     <ClCompile Include="NameSet.cpp" />
     <ClCompile Include="PPHeaderCache.cpp" />
-    <ClCompile Include="Preprocessor.cpp" />
+    <ClCompile Include="CPPPreprocessor.cpp" />
     <ClCompile Include="PreprocessorHeaderCache.cpp" />
     <ClCompile Include="PreprocessorDirective.cpp" />
     <ClCompile Include="PreprocessorExpression.cpp" />
@@ -403,8 +403,8 @@
     <ClCompile Include="PreprocessedTokens.cpp" />
     <ClCompile Include="Punctuators.cpp" />
     <ClCompile Include="PreprocessorPosition.cpp" />
-    <ClCompile Include="Preprocessor_Linux.cpp" />
-    <ClCompile Include="Preprocessor_Windows.cpp" />
+    <ClCompile Include="CPPPreprocessor_Linux.cpp" />
+    <ClCompile Include="CPPPreprocessor_Windows.cpp" />
     <ClCompile Include="PreprocessorParser.cpp" />
     <ClCompile Include="PreprocessorTokeniser.cpp" />
     <ClCompile Include="PreprocessorTokenParser.cpp" />
@@ -637,7 +637,7 @@
     <ClInclude Include="PreprocessorLineTokeniser.h" />
     <ClInclude Include="NameSet.h" />
     <ClInclude Include="PPHeaderCache.h" />
-    <ClInclude Include="Preprocessor.h" />
+    <ClInclude Include="CPPPreprocessor.h" />
     <ClInclude Include="PreprocessorParser.h" />
     <ClInclude Include="PreprocessorTokeniser.h" />
     <ClInclude Include="PreprocessorTokenParser.h" />

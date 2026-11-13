@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FNVHash.h"
-#include "Preprocessor.h"
+#include "CPPPreprocessor.h"
 
 
 //The most headers kept for one file and context that are compared with the macros (a header included with ever

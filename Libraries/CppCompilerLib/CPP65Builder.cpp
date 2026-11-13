@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "Assembler65Lib/Asm65C64Assembler.h"
 #include "Assembler65Lib/Asm65816Assembler.h"
 #include "CPP65IRFrontEnd.h"
-#include "Preprocessor.h"
+#include "CPPPreprocessor.h"
 #include "HeaderFileMap.h"
 #include "HeaderFiles.h"
 #include "CppTokeniser.h"

@@ -2,7 +2,7 @@
 #include "BaseLib/TextFile.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPP65Assembly.h"
-#include "CppCompilerLib/Preprocessor.h"
+#include "CppCompilerLib/CPPPreprocessor.h"
 #include "CppCompilerLib/CppParser.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"

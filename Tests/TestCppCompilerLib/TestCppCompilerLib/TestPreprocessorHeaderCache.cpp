@@ -1,5 +1,5 @@
 #include "BaseLib/FileUtil.h"
-#include "CppCompilerLib/Preprocessor.h"
+#include "CppCompilerLib/CPPPreprocessor.h"
 #include "CppCompilerLib/HeaderFileMap.h"
 #include "CppCompilerLib/HeaderFiles.h"
 #include "CppCompilerLib/PPHeaderCache.h"
