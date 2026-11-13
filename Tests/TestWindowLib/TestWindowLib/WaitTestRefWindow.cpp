@@ -1,4 +1,4 @@
-#include "BaseLib/Timer.h"
+#include "BaseLib/NativeThread.h"
 #include "StandardLib/ClassDefines.h"
 #include "WindowLib/Window.h"
 #include "WaitTestRefWindow.h"
@@ -49,7 +49,6 @@ void CWaitTestRefWindow::WaitForEvents(int64 iMilliseconds)
 {
 	size	uiWait;
 	bool	bHappened;
-	int64	iEnd;
 
 	uiWait = maiWaits.NumElements();
 	maiWaits.Add(&iMilliseconds);
@@ -71,10 +70,7 @@ void CWaitTestRefWindow::WaitForEvents(int64 iMilliseconds)
 		return;
 	}
 
-	iEnd = GetDebugTickCount() + iMilliseconds;
-	while (GetDebugTickCount() < iEnd)
-	{
-	}
+	ThreadSleep((int)iMilliseconds);
 }
 
 
