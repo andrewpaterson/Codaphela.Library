@@ -218,6 +218,39 @@ void TestArrayBitLarge(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A bit past the end is false and setting it does nothing, in the bits
+// kept in the array and in those it allocates.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayBitPastEnd(void)
+{
+	CArrayBit	cArrayBit;
+
+	cArrayBit.Init();
+	cArrayBit.GrowTo(10);
+	cArrayBit.Zero();
+	AssertFalse(cArrayBit.IsLarge());
+	cArrayBit.Set(10, true);
+	cArrayBit.Set(95, true);
+	AssertFalse(cArrayBit.Get(10));
+	AssertFalse(cArrayBit.Get(95));
+	cArrayBit.GrowTo(11);
+	AssertFalse(cArrayBit.Get(10));
+
+	cArrayBit.GrowTo(200);
+	cArrayBit.Zero();
+	AssertTrue(cArrayBit.IsLarge());
+	cArrayBit.Set(200, true);
+	AssertFalse(cArrayBit.Get(200));
+	cArrayBit.Set(199, true);
+	AssertTrue(cArrayBit.Get(199));
+
+	cArrayBit.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayBit(void)
@@ -228,6 +261,7 @@ void TestArrayBit(void)
 	TestArrayBitAdd();
 	TestArrayBitReadWrite();
 	TestArrayBitLarge();
+	TestArrayBitPastEnd();
 
 	MemoryKill();
 	TestStatistics();

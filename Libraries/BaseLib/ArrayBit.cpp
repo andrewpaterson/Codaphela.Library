@@ -151,21 +151,33 @@ void CArrayBit::GrowTo(lsize iNumBits)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// A bit past the end is false.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBit::Get(lsize iBit)
 {
+	if (iBit >= miNumBits)
+	{
+		return false;
+	}
 	return GetBitLarge(iBit, GetData());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// A bit past the end isn't set.  Up to 96 bits are kept in the array
+// itself (u.aSmall); checking the bit is in the array also shows the
+// compiler that a bit set there is in those 12 bytes.
+//
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Set(lsize iBit, bool bBit)
 {
+	if (iBit >= miNumBits)
+	{
+		return;
+	}
 	SetBitLarge(iBit, GetData(), bBit);
 }
 
