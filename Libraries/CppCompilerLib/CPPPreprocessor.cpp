@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
 #include <time.h>
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/Logger.h"
 #include <string.h>
@@ -1413,6 +1414,9 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
 	SPPSource*					psSource;
 	char*						szBase;
+	bool						bCovered;
+	bool						bLeaves;
+	CFileUtil					cFileUtil;
 
 	*ppcCFile = NULL;
 	*ppcHeaderNameMap = NULL;
@@ -1434,6 +1438,8 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 
 			psSource->pcFile->Path(&szPath);
 			szPath.Replace('\\', '/');
+			bCovered = false;
+			bLeaves = false;
 			for (j = 0; j < mcHeaderNames.NumElements(); j++)
 			{
 				pcHeaderNameMap = *mcHeaderNames.Get(j);
@@ -1441,6 +1447,7 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 				iBaseLength = pcHeaderNameMap->GetBaseDirectoryLength();
 				if ((szPath.Length() >= iBaseLength) && IsPathPrefix(szPath.Text(), szBase, iBaseLength) && ((szPath.Length() == iBaseLength) || (szPath.GetChar(iBaseLength) == '/') || (szPath.GetChar(iBaseLength) == '\\')))
 				{
+					bCovered = true;
 					szRelative.Init();
 					if (szPath.Length() > iBaseLength)
 					{
@@ -1450,7 +1457,15 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 					szRelative.Append(szInclude);
 
 					//"../Engine.h" from Sub/User.cpp is Engine.h in the same include directory.
-					pcHeaderFile = CollapseIncludePath(&szRelative) ? pcHeaderNameMap->GetFile(szRelative.Text()) : NULL;
+					if (CollapseIncludePath(&szRelative))
+					{
+						pcHeaderFile = pcHeaderNameMap->GetFile(szRelative.Text());
+					}
+					else
+					{
+						bLeaves = true;
+						pcHeaderFile = NULL;
+					}
 					szRelative.Kill();
 					if (pcHeaderFile)
 					{
@@ -1460,6 +1475,27 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 						szInclude.Kill();
 						return;
 					}
+				}
+			}
+
+			//Going up out of every include directory ("../Engine.h" from Tool/Tool.cpp), or from a file in none of them,
+			//it is looked for on the disk from the file's directory, as MSVC looks for it.
+			if ((bLeaves || !bCovered) && (mcHeaderNames.NumElements() > 0))
+			{
+				szRelative.Init(szPath);
+				szRelative.Append('/');
+				szRelative.Append(szInclude);
+				szRelative.Replace('/', FILE_SEPARATOR[0]);
+				cFileUtil.CollapsePath(&szRelative);
+				pcHeaderFile = (*mcHeaderNames.Get(0))->FindOutside(szRelative.Text());
+				szRelative.Kill();
+				if (pcHeaderFile)
+				{
+					*ppcCFile = pcHeaderFile;
+					*ppcHeaderNameMap = *mcHeaderNames.Get(0);
+					szPath.Kill();
+					szInclude.Kill();
+					return;
 				}
 			}
 			szPath.Kill();

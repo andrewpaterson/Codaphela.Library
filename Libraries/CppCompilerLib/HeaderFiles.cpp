@@ -248,6 +248,31 @@ CHeaderFile* CHeaderFiles::FindInSubDirectory(char* szRelativeFileName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A header by its full path, wherever it is (a quoted #include going up
+// out of every include directory, found as MSVC finds it from the
+// including file's directory): the file map's header for it, the same as
+// a directory's if one has it, added if the file is there.  NULL if it
+// isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+CHeaderFile* CHeaderFiles::FindOutside(char* szAbsoluteFileName)
+{
+	CHeaderFile*	pcHeaderFile;
+	CFileUtil		cFileUtil;
+
+	if (!cFileUtil.Exists(szAbsoluteFileName) || cFileUtil.IsDirectory(szAbsoluteFileName))
+	{
+		return NULL;
+	}
+	mpcFileMap->Lock();
+	pcHeaderFile = mpcFileMap->AddFile(szAbsoluteFileName, mbSystem);
+	mpcFileMap->Unlock();
+	return pcHeaderFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CHeaderFiles::HasSubDirectories(void)

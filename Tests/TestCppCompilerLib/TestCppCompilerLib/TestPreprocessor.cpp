@@ -820,6 +820,59 @@ void TestPreprocessorParentIncludes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A quoted #include going up out of every include directory ("../Lib/
+// Engine.h" from Tool, with only Tool an include directory), or from a
+// file in none of them, is found on the disk from the including file's
+// directory, as MSVC finds it.  It is the same header as an include
+// directory's (#pragma once holds across both), and one that isn't there
+// still can't be included.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorOutsideIncludes(void)
+{
+	static const char*	aszTool[] = { "Tool", NULL };
+	static const char*	aszToolAndLib[] = { "Tool", "Lib", NULL };
+	CChars				szDest;
+	CChars				szErrors;
+
+	TestPreprocessorIncludeUnit("Tool/Tool.cpp", "\
+#include \"../Lib/Engine.h\"\n\
+#include \"..\\Lib\\Sub\\User.h\"\n\
+#include \"Tool.h\"\n", aszTool, false, &szDest, &szErrors);
+	AssertString("", szErrors.Text());
+	AssertString("int giEngine;\nint giUser;\nint giTool;\n", szDest.Text());
+	szErrors.Kill();
+	szDest.Kill();
+
+	//A file in no include directory finds the files beside and above it.
+	TestPreprocessorIncludeUnit("Lib/Sub/User.cpp", "\
+#include \"User.h\"\n\
+#include \"../Engine.h\"\n", aszTool, false, &szDest, &szErrors);
+	AssertString("", szErrors.Text());
+	AssertString("int giUser;\nint giEngine;\n", szDest.Text());
+	szErrors.Kill();
+	szDest.Kill();
+
+	//Once.h from outside and from the Lib include directory is one header.
+	TestPreprocessorIncludeUnit("Tool/Tool.cpp", "\
+#include \"../Lib/Once.h\"\n\
+#include <Once.h>\n\
+#include \"Once.h\"\n", aszToolAndLib, false, &szDest, &szErrors);
+	AssertString("", szErrors.Text());
+	AssertString("int giOnce;\n", szDest.Text());
+	szErrors.Kill();
+	szDest.Kill();
+
+	TestPreprocessorIncludeUnit("Tool/Tool.cpp", "\
+#include \"../Lib/Missing.h\"\n", aszTool, false, &szDest, &szErrors);
+	AssertTrue(szErrors.Contains("Could not include file \"../Lib/Missing.h\""));
+	szErrors.Kill();
+	szDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPreprocessorDefineEvaluateToZero(void)
@@ -2410,6 +2463,7 @@ void TestPreprocessor(void)
 	TestPreprocessorHasInclude();
 	TestPreprocessorCollapseIncludePath();
 	TestPreprocessorParentIncludes();
+	TestPreprocessorOutsideIncludes();
 	TestPreprocessorSimpleVariadic();
 	TestPreprocessorComplexVariadic();
 	TestPreprocessorRedefinedVariadic();

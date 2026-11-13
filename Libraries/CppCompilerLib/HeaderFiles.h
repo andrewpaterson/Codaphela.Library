@@ -60,6 +60,7 @@ public:
 	void			AddFiles(bool bIncludeSubDirectories);
 
 	CHeaderFile*	GetFile(char* szRelativeFileName);
+	CHeaderFile*	FindOutside(char* szAbsoluteFileName);
 	bool			HasSubDirectories(void);
 	
 	char*			GetBaseDirectory(void);

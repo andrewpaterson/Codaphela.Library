@@ -320,7 +320,8 @@ void TestVisualStudioProjectCase(void)
 // An include directory added without its sub directories finds a header
 // in one when a unit names it ("Sub/Deep.h"), as a C++ compiler's -I
 // does, and the same header for every unit.  A name that isn't there, or
-// leaves the directory, is not found.
+// leaves the directory (<Sub/../../Outside.h>), is not found in it; quoted,
+// that name is found from the unit's directory, as MSVC finds it.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIncludeDirectorySubDirectory(void)
@@ -350,7 +351,8 @@ void TestIncludeDirectorySubDirectory(void)
 	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Unit1.cpp", "#include \"Top.h\"\n#include \"Sub/Deep.h\"\n");
 	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Unit2.cpp", "#include <Sub/Deep.h>\n");
 	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Missing.cpp", "#include \"Sub/Missing.h\"\n");
-	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Leaves.cpp", "#include \"Sub/../../Outside.h\"\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Leaves.cpp", "#include <Sub/../../Outside.h>\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Beside.cpp", "#include \"Sub/../../Outside.h\"\n");
 
 	cProject.Init(true);
 	AssertTrue(cProject.AddIncludeDirectory("Output" _FS_ "IncludeSub" _FS_ "Base", false, false));
@@ -398,6 +400,20 @@ void TestIncludeDirectorySubDirectory(void)
 	pcConfig->AddDefines("_DEBUG");
 	szErrors.Init();
 	AssertFalse(cProject.Process("Debug", &szErrors));
+	szErrors.Kill();
+	cProject.Kill();
+
+	//Quoted, it is looked for from the unit's directory first, as MSVC looks for it: Unit/Sub/../../Outside.h is there.
+	cProject.Init(true);
+	AssertTrue(cProject.AddIncludeDirectory("Output" _FS_ "IncludeSub" _FS_ "Base", false, false));
+	pcLibrary = cProject.AddLibrary("Test", "Output" _FS_ "IncludeSub" _FS_ "Unit", false);
+	pcLibrary->AddTranslationUnit("Beside.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_DEBUG");
+	szErrors.Init();
+	bResult = cProject.Process("Debug", &szErrors);
+	AssertString("", szErrors.Text());
+	AssertTrue(bResult);
 	szErrors.Kill();
 	cProject.Kill();
 
