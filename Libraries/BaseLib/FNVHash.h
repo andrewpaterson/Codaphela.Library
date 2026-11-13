@@ -59,5 +59,13 @@ inline uint64 FNVHash64(const void* pv, lsize uiLength, uint64 ulliHash = FNV_HA
 }
 
 
+//A whole word mixed in at once, as a key made of pointers or numbers is: one FNV-1a step on the word rather than on
+//each of its bytes.
+inline uint64 FNVMix64(uint64 ulliHash, uint64 ulliWord)
+{
+	return (ulliHash ^ ulliWord) * FNV_HASH64_PRIME;
+}
+
+
 #endif // __F_N_V_HASH_H__
 

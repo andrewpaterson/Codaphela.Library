@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/FNVHash.h"
 #include "BaseLib/Numbers.h"
 #include "PPHeaderCache.h"
 
@@ -279,9 +280,8 @@ int64 CPPHeaderCache::Key(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, ui
 {
 	uint64	uiKey;
 
-	uiKey = uiContext;
-	uiKey = (uiKey ^ (uint64)(size)pcFile) * 0x100000001B3ULL;
-	uiKey = (uiKey ^ (uint64)(size)pcHeaderNameMap) * 0x100000001B3ULL;
+	uiKey = FNVMix64(uiContext, (uint64)(size)pcFile);
+	uiKey = FNVMix64(uiKey, (uint64)(size)pcHeaderNameMap);
 	return (int64)uiKey;
 }
 

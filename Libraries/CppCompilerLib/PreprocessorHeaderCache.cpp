@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/FNVHash.h"
 #include "Preprocessor.h"
 
 
@@ -78,15 +79,15 @@ uint64 CPreprocessor::HeaderContext(void)
 
 	if (muiIncludeDirectories == 0)
 	{
-		uiHash = 0xCBF29CE484222325ULL;
+		uiHash = FNV_HASH64_START;
 		for (i = 0; i < mcHeaderNames.NumElements(); i++)
 		{
-			uiHash = (uiHash ^ (uint64)(size)*mcHeaderNames.Get(i)) * 0x100000001B3ULL;
+			uiHash = FNVMix64(uiHash, (uint64)(size)*mcHeaderNames.Get(i));
 		}
 		muiIncludeDirectories = (uiHash == 0) ? 1 : uiHash;
 	}
 	psSource = GetCurrentFileSource();
-	return (muiIncludeDirectories ^ (psSource ? psSource->uiDirectories : 0)) * 0x100000001B3ULL;
+	return FNVMix64(muiIncludeDirectories, psSource ? psSource->uiDirectories : 0);
 }
 
 
@@ -105,7 +106,7 @@ uint64 CPreprocessor::DirectoriesHash(CSourceFile* pcFile, uint64 uiIncluding)
 	szPath.Replace('\\', '/');
 	uiHash = CNameSet::Hash(szPath.Text(), szPath.Length());
 	szPath.Kill();
-	return (uiIncluding ^ uiHash) * 0x100000001B3ULL;
+	return FNVMix64(uiIncluding, uiHash);
 }
 
 

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/FNVHash.h"
 #include "CppParser.h"
 #include "CPPSyntaxes.h"
 #include "CPPSyntaxBlock.h"
@@ -86,10 +87,9 @@ bool CCPPParser::HeaderTokens(int iFirst, int iLast, CSourceFile** ppcFile, uint
 	CSourceFile*		pcFile;
 	uint64				uiHash;
 	int					i;
-	size				j;
 
 	pcFile = NULL;
-	uiHash = 1469598103934665603ULL;
+	uiHash = FNV_HASH64_START;
 	for (i = iFirst; i <= iLast; i++)
 	{
 		psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(i));
@@ -120,11 +120,8 @@ bool CCPPParser::HeaderTokens(int iFirst, int iLast, CSourceFile** ppcFile, uint
 		{
 			return false;
 		}
-		for (j = 0; j < psSource->uiLength; j++)
-		{
-			uiHash = (uiHash ^ (uint8)psSource->szText[j]) * 1099511628211ULL;
-		}
-		uiHash = (uiHash ^ ' ') * 1099511628211ULL;
+		uiHash = FNVHash64(psSource->szText, psSource->uiLength, uiHash);
+		uiHash = FNVMix64(uiHash, ' ');
 	}
 	*ppcFile = pcFile;
 	*puiHash = uiHash;

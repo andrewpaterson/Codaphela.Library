@@ -19,6 +19,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include <string.h>
+#include "BaseLib/FNVHash.h"
 #include "BaseLib/PointerFunctions.h"
 #include "CPPHeaderIndex.h"
 
@@ -178,15 +180,9 @@ size CCPPHeaderIndex::NumDeclarations(void)
 //////////////////////////////////////////////////////////////////////////
 uint64 CCPPHeaderIndex::Key(const char* szFile, int iLine, int iColumn)
 {
-	uint64		uiHash;
-	const char*	sz;
+	uint64	uiHash;
 
-	uiHash = 1469598103934665603ULL;
-	for (sz = szFile; *sz; sz++)
-	{
-		uiHash = (uiHash ^ (uint8)*sz) * 1099511628211ULL;
-	}
-	uiHash = (uiHash ^ (uint32)iLine) * 1099511628211ULL;
-	uiHash = (uiHash ^ (uint32)iColumn) * 1099511628211ULL;
-	return uiHash;
+	uiHash = FNVHash64(szFile, strlen(szFile));
+	uiHash = FNVMix64(uiHash, (uint32)iLine);
+	return FNVMix64(uiHash, (uint32)iColumn);
 }

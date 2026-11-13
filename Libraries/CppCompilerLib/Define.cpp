@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/FNVHash.h"
 #include "BaseLib/IntegerHelper.h"
 #include "DefineMap.h"
 #include "Define.h"
@@ -167,8 +168,6 @@ uint64 CDefine::ContentHash(void)
 	CChars	sz;
 	size	i;
 	uint64	uiHash;
-	size	uiLength;
-	char*	szText;
 
 	if (muiContentHash != 0)
 	{
@@ -185,15 +184,7 @@ uint64 CDefine::ContentHash(void)
 	sz.Append(')');
 	mcReplacement.Print(&sz);
 
-	//FNV-1a.
-	uiHash = 0xCBF29CE484222325ULL;
-	szText = sz.Text();
-	uiLength = sz.Length();
-	for (i = 0; i < uiLength; i++)
-	{
-		uiHash ^= (uint8)szText[i];
-		uiHash *= 0x100000001B3ULL;
-	}
+	uiHash = FNVHash64(sz.Text(), sz.Length());
 	sz.Kill();
 	muiContentHash = (uiHash == 0) ? 1 : uiHash;
 	return muiContentHash;
