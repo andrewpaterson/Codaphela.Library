@@ -247,7 +247,7 @@ bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
 	}
 
 	cAccess.Init(&mcMemoryNames);
-	bResult = cAccess.PutStringLong(szName, oi) != NULL;
+	bResult = cAccess.PutStringLong(szName, oi);
 	cAccess.Kill();
 	if (!bResult)
 	{
