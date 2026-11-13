@@ -494,7 +494,7 @@ processors; whether the whole proof was run at a stage's end isn't recorded.
 
 	Stage   State                   Commits
 	0       Mostly done             92a2f3511 6a8463f4d
-	1       Done, one gap           907ea497b f6bda54a9 66361baa7
+	1       Done but the size check 907ea497b f6bda54a9 66361baa7
 	2       Mostly done             45a0b88cd 3ead06eff 7134b3000
 	3       Only the names          cf550eee6
 	4-11    Not started
@@ -518,11 +518,12 @@ Stage 1.
    and the target gives the optimiser's settings, the inlining limits, the profile, the assembler and
    PrepareForThreads.  CPPT_W65C816 is named only where a target is chosen (66361baa7).  Preferring size, a
    function of at most 4 instructions is inlined and memcpy copies at most 8 bytes in place.  .hcp65build
-   configurations have PreferSize (HCP65-IDE's BuildLib).  Compiling a unit is counted in its own statistics,
+   configurations have PreferSize and hcp65build's plain command line -prefer-size (HCP65-IDE 2499ac0);
+   TEST_PROJECT65_PREFER_SIZE sets it for the Lib65 suites.  Compiling a unit is counted in its own statistics,
    added up by the builder.
-   Left: hcp65build's command line has no switch for speed or size.  "Preferring size, the suites pass and every
-   linked program is smaller or the same" is not recorded as checked: the commit says only that TestSupportLib65's
-   project compiles.  The places that trade speed for size aren't listed here yet.
+   Left: "preferring size, the suites pass and every linked program is smaller or the same" is not recorded as
+   checked: the commit says only that TestSupportLib65's project compiles.  The places that trade speed for size
+   aren't listed here yet.
 
 Stage 2.
    Done: the passes are in ten groups, CIRAddressPasses to CIRRangePasses, on a base CIRPasses, sharing a
