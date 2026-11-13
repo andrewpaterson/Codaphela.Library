@@ -156,7 +156,8 @@ bool CIRFoldingPasses::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 // extended values are narrowed (NarrowComparison), extensions that are
 // undone go (UndoesExtension, ConvertPhi) and so do x + 0 and the like
 // (IsIdentity) and sums that cancel ((x + y) - y, Cancels); a pointer's
-// constant offsets are added together (PointerOffsets).
+// constant offsets are added together (PointerOffsets), and an integer's
+// (IntegerOffsets).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRFoldingPasses::FoldConstants(void)
@@ -212,7 +213,7 @@ bool CIRFoldingPasses::FoldConstants(void)
 				}
 				bChanged = true;
 			}
-			else if (PointerOffset(psInstruction) || PointerOffsets(psInstruction))
+			else if (PointerOffset(psInstruction) || PointerOffsets(psInstruction) || IntegerOffsets(psInstruction))
 			{
 				bChanged = true;
 			}
@@ -338,6 +339,60 @@ bool CIRFoldingPasses::PointerOffsets(SIRInstruction* psInstruction)
 	}
 	sOffsetType = mpcFunction->TypeOf(psInstruction->asArguments[1]);
 	psInstruction->asArguments[1] = mpcFunction->AddInteger(sOffsetType, mpcFunction->GetSigned(psInner->asArguments[1]) + mpcFunction->GetSigned(psInstruction->asArguments[1]));
+	psInstruction->asArguments[0] = Replacement(psInner->asArguments[0]);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An add or sub of a constant to an add or sub of a constant
+// ((x + 8) + 8 - 1, as macros of sizes add up) becomes one add or sub of
+// what they come to, to the inner's value: x + 15.  Integers wrap, so the
+// sum is the same whatever the order.  Only when nothing else uses the
+// inner sum: one still wanted would keep x alive past it for the outer,
+// where the outer could have stepped the inner in its place (the 65C64 was
+// slower for that).  (One that comes to 0 is taken out by IsIdentity the
+// next time round.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFoldingPasses::IntegerOffsets(SIRInstruction* psInstruction)
+{
+	SIRInstruction*	psInner;
+	SIRType			sType;
+	int64			lliOffset;
+	int64			lliInner;
+
+	sType = psInstruction->sType;
+	if (((psInstruction->uiOpcode != IRO_Add) && (psInstruction->uiOpcode != IRO_Sub)) || !psInstruction->asArguments[1].IsConstant() ||
+		!psInstruction->asArguments[0].IsTemporary() || !sType.IsInteger() || (sType.IntegerBits() > 32))
+	{
+		return false;
+	}
+	psInner = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
+	if (!psInner || ((psInner->uiOpcode != IRO_Add) && (psInner->uiOpcode != IRO_Sub)) || !psInner->asArguments[1].IsConstant() || !psInner->sType.Equals(sType) ||
+		(*mpcContext->mauiUses.Get(psInstruction->asArguments[0].Index()) != 1))
+	{
+		return false;
+	}
+	lliOffset = mpcFunction->GetSigned(psInstruction->asArguments[1]);
+	lliOffset = (psInstruction->uiOpcode == IRO_Sub) ? -lliOffset : lliOffset;
+	lliInner = mpcFunction->GetSigned(psInner->asArguments[1]);
+	lliOffset += (psInner->uiOpcode == IRO_Sub) ? -lliInner : lliInner;
+
+	//As the type's signed value: a sum that is negative is a sub of what it is below 0 (but the least value, which
+	//has none).
+	lliOffset = IRSignExtend(sType, IRTruncate(sType, (uint64)lliOffset));
+	if ((lliOffset < 0) && (lliOffset != IRSignedMin(sType.IntegerBits())))
+	{
+		psInstruction->uiOpcode = IRO_Sub;
+		lliOffset = -lliOffset;
+	}
+	else
+	{
+		psInstruction->uiOpcode = IRO_Add;
+	}
+	psInstruction->asArguments[1] = mpcFunction->AddInteger(sType, lliOffset);
 	psInstruction->asArguments[0] = Replacement(psInner->asArguments[0]);
 	return true;
 }

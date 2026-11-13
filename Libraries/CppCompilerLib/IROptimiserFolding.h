@@ -39,6 +39,7 @@ protected:
 	bool			Cancels(SIRInstruction* psInstruction, SIRReference* psValue);
 	bool			PointerOffset(SIRInstruction* psInstruction);
 	bool			PointerOffsets(SIRInstruction* psInstruction);
+	bool			IntegerOffsets(SIRInstruction* psInstruction);
 	int				EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
 };

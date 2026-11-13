@@ -4692,6 +4692,71 @@ void TestIROptimiserCounterDivisions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Constants added to and taken from a value one after another come to one add or sub (CIRFoldingPasses::
+// IntegerOffsets): (x + 8) + 8 - 1 is x + 15; ones that come to nothing leave the value, and to the least value an
+// add of it.  Not through a sum something else uses too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserIntegerOffsets(void)
+{
+	AssertIROptimised(
+		"function i32 @_R__Fj(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%c = add i32 %x, 15\n"
+		"\t%d = and i32 %c, -8\n"
+		"\tret i32 %d\n"
+		"}\n",
+		"function i32 @_R__Fj(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = add i32 %x, 8\n"
+		"\t%b = add i32 %a, 8\n"
+		"\t%c = sub i32 %b, 1\n"
+		"\t%d = and i32 %c, -8\n"
+		"\tret i32 %d\n"
+		"}\n");
+	AssertIROptimised(
+		"function i16 @_R__Fs(i16 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%e = add i16 %x, -32768\n"
+		"\t%f = add i16 %x, %e\n"
+		"\tret i16 %f\n"
+		"}\n",
+		"function i16 @_R__Fs(i16 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = sub i16 %x, 5\n"
+		"\t%b = add i16 %a, 2\n"
+		"\t%c = add i16 %b, 3\n"
+		"\t%d = sub i16 %x, 32767\n"
+		"\t%e = sub i16 %d, 1\n"
+		"\t%f = add i16 %c, %e\n"
+		"\tret i16 %f\n"
+		"}\n");
+	AssertIROptimised(
+		"function i32 @_R__Fj(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = add i32 %x, 8\n"
+		"\t%b = add i32 %a, 8\n"
+		"\t%c = mul i32 %a, %b\n"
+		"\tret i32 %c\n"
+		"}\n",
+		"function i32 @_R__Fj(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = add i32 %x, 8\n"
+		"\t%b = add i32 %a, 8\n"
+		"\t%c = mul i32 %a, %b\n"
+		"\tret i32 %c\n"
+		"}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // NarrowTruncations: trunc(zext(a) + zext(b)) to i8 is an i8 add.  Not when
 // the i32 add is also stored.
 //
@@ -5282,6 +5347,7 @@ void TestIR(void)
 	TestIROptimiserKnownBranches();
 	TestIROptimiserGuardedMultiples();
 	TestIROptimiserCounterDivisions();
+	TestIROptimiserIntegerOffsets();
 	TestIROptimiserNarrowTruncations();
 	TestIROptimiserUnifySlotTypes();
 	TestIROptimiserRotateLoops();
