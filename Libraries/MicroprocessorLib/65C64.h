@@ -76,9 +76,9 @@ struct S65C64Transfer
 
 //The 65C64 from "65C64 Instruction Architecture.xlsx".  See 65C64Simulator.txt for the
 //assumptions made where the spreadsheet is silent.
-class C65Instruction;
-class C65BusCycle;
-class C65DataOperation;
+class C65C64Instruction;
+class C65C64BusCycle;
+class C65C64DataOperation;
 
 
 //Which instruction a core is running: the opcode's, one of the factory's own sequences or none yet.
@@ -160,7 +160,7 @@ class C65C64
 protected:
 	S65C64CoreState		msState;
 	S65C64Decoded		msDecoded;
-	C65Instruction*		mpcInstruction;
+	C65C64Instruction*		mpcInstruction;
 	C65C64Pins*			mpcPins;
 
 public:
@@ -179,9 +179,9 @@ public:
 	void				DoneInstruction(void);
 	void				ResetPulled(void);
 
-	C65Instruction*		GetInstruction(void);
-	C65BusCycle*		GetBusCycle(void);
-	C65DataOperation*	GetDataOperation(void);
+	C65C64Instruction*		GetInstruction(void);
+	C65C64BusCycle*		GetBusCycle(void);
+	C65C64DataOperation*	GetDataOperation(void);
 	S65C64Decoded*		GetDecoded(void);
 	int16				GetCycle(void);
 	uint16				GetOpcode(void);
@@ -319,7 +319,7 @@ protected:
 	void				SetFlagCode(uint8 uiFlag, bool bValue);
 	uint64				GetBitIndex(void);
 	void				BlockStep(uint64 uiData, size uiTransfer, bool bWrite, bool bSetNegativeAndZero);
-	void				WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65DataOperation* pcDataOperation, C65BusCycle* pcBusCycle);
+	void				WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65C64DataOperation* pcDataOperation, C65C64BusCycle* pcBusCycle);
 };
 
 

@@ -32,10 +32,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65InstructionCycles* C65C64InstructionCycleFactory::InstructionCycles(C65BusCycle* pcBusCycle, ...)
+C65C64InstructionCycles* C65C64InstructionCycleFactory::InstructionCycles(C65C64BusCycle* pcBusCycle, ...)
 {
 	va_list					vaMarker;
-	C65InstructionCycles*	pcInstructionCycles;
+	C65C64InstructionCycles*	pcInstructionCycles;
 	C65BusCycleArray*		papcBusCycles;
 	size					iCount;
 
@@ -55,11 +55,11 @@ C65InstructionCycles* C65C64InstructionCycleFactory::InstructionCycles(C65BusCyc
 		papcBusCycles->Add(pcBusCycle);
 
 		iCount++;
-		pcBusCycle = va_arg(vaMarker, C65BusCycle*);
+		pcBusCycle = va_arg(vaMarker, C65C64BusCycle*);
 	}
 	va_end(vaMarker);
 
-	pcInstructionCycles = NewMalloc<C65InstructionCycles>();
+	pcInstructionCycles = NewMalloc<C65C64InstructionCycles>();
 	pcInstructionCycles->Init(papcBusCycles);
 	return pcInstructionCycles;
 }
@@ -69,11 +69,11 @@ C65InstructionCycles* C65C64InstructionCycleFactory::InstructionCycles(C65BusCyc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65BusCycle* C65C64InstructionCycleFactory::BusCycle(C65AddressOffsetArray* papcAddressOffsets, C65OperationArray* papcOperations)
+C65C64BusCycle* C65C64InstructionCycleFactory::BusCycle(C65C64AddressOffsetArray* papcAddressOffsets, C65OperationArray* papcOperations)
 {
-	C65BusCycle*	pcBusCycle;
+	C65C64BusCycle*	pcBusCycle;
 
-	pcBusCycle = NewMalloc<C65BusCycle>();
+	pcBusCycle = NewMalloc<C65C64BusCycle>();
 	pcBusCycle->Init(papcAddressOffsets, papcOperations);
 	return pcBusCycle;
 }
@@ -83,13 +83,13 @@ C65BusCycle* C65C64InstructionCycleFactory::BusCycle(C65AddressOffsetArray* papc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65AddressOffsetArray* C65C64InstructionCycleFactory::Address(C65AddressOffset* pcOffset, ...)
+C65C64AddressOffsetArray* C65C64InstructionCycleFactory::Address(C65C64AddressOffset* pcOffset, ...)
 {
 	va_list					vaMarker;
-	C65AddressOffsetArray*	papcOffsets;
+	C65C64AddressOffsetArray*	papcOffsets;
 	size					iCount;
 
-	papcOffsets = NewMalloc<C65AddressOffsetArray>();
+	papcOffsets = NewMalloc<C65C64AddressOffsetArray>();
 	papcOffsets->Init();
 
 	iCount = 0;
@@ -105,7 +105,7 @@ C65AddressOffsetArray* C65C64InstructionCycleFactory::Address(C65AddressOffset* 
 		papcOffsets->Add(pcOffset);
 
 		iCount++;
-		pcOffset = va_arg(vaMarker, C65AddressOffset*);
+		pcOffset = va_arg(vaMarker, C65C64AddressOffset*);
 	}
 	va_end(vaMarker);
 
@@ -117,7 +117,7 @@ C65AddressOffsetArray* C65C64InstructionCycleFactory::Address(C65AddressOffset* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65OperationArray* C65C64InstructionCycleFactory::Operation(C65Operation* pcOperation, ...)
+C65OperationArray* C65C64InstructionCycleFactory::Operation(C65C64Operation* pcOperation, ...)
 {
 	va_list				vaMarker;
 	C65OperationArray*	papcOperations;
@@ -139,7 +139,7 @@ C65OperationArray* C65C64InstructionCycleFactory::Operation(C65Operation* pcOper
 		papcOperations->Add(pcOperation);
 
 		iCount++;
-		pcOperation = va_arg(vaMarker, C65Operation*);
+		pcOperation = va_arg(vaMarker, C65C64Operation*);
 	}
 	va_end(vaMarker);
 
@@ -154,33 +154,33 @@ C65OperationArray* C65C64InstructionCycleFactory::Operation(C65Operation* pcOper
 	return pcType;
 
 
-C65ProgramCounterOffset*		C65C64InstructionCycleFactory::PC(void)										{ NEW_65(C65ProgramCounterOffset, Init()) }
-C65PointerAddressOffset*		C65C64InstructionCycleFactory::PA(void)										{ NEW_65(C65PointerAddressOffset, Init()) }
-C65VectorAddressOffset*			C65C64InstructionCycleFactory::VA(void)										{ NEW_65(C65VectorAddressOffset, Init()) }
-C65TransferWordOffset*			C65C64InstructionCycleFactory::R(uint8 uiWord)								{ NEW_65(C65TransferWordOffset, Init(uiWord, false)) }
-C65TransferWordOffset*			C65C64InstructionCycleFactory::W(uint8 uiWord)								{ NEW_65(C65TransferWordOffset, Init(uiWord, true)) }
-C65ConstantOffset*				C65C64InstructionCycleFactory::o(int32 iOffset)								{ NEW_65(C65ConstantOffset, Init(iOffset)) }
-C65OpcodeCycle*					C65C64InstructionCycleFactory::Opcode(void)									{ NEW_65(C65OpcodeCycle, Init()) }
-C65ReadOpcode*					C65C64InstructionCycleFactory::Read_Opcode(void)							{ NEW_65(C65ReadOpcode, Init()) }
-C65IncrementProgramCounter*		C65C64InstructionCycleFactory::C_inc(void)									{ NEW_65(C65IncrementProgramCounter, Init()) }
-C65ReadOperandWord*				C65C64InstructionCycleFactory::Read_Operand(uint8 uiWord)					{ NEW_65(C65ReadOperandWord, Init(uiWord)) }
-C65ReadPointerWord*				C65C64InstructionCycleFactory::Read_Pointer(uint8 uiWord)					{ NEW_65(C65ReadPointerWord, Init(uiWord)) }
-C65ReadTransferWord*			C65C64InstructionCycleFactory::Read_Transfer(uint8 uiWord)					{ NEW_65(C65ReadTransferWord, Init(uiWord)) }
-C65WriteTransferWord*			C65C64InstructionCycleFactory::Write_Transfer(uint8 uiWord)					{ NEW_65(C65WriteTransferWord, Init(uiWord)) }
-C65ReadVectorWord*				C65C64InstructionCycleFactory::Read_Vector(uint8 uiWord)					{ NEW_65(C65ReadVectorWord, Init(uiWord)) }
-C65InternalOperation*			C65C64InstructionCycleFactory::IO(void)										{ NEW_65(C65InternalOperation, Init()) }
-C65WaitOperation*				C65C64InstructionCycleFactory::Wait(uint8 uiWait)							{ NEW_65(C65WaitOperation, Init(uiWait)) }
-C65Execute*						C65C64InstructionCycleFactory::E(C65C64Func fFunction, bool bInitialSide)	{ NEW_65(C65Execute, Init(fFunction, bInitialSide)) }
-C65ExecuteIfLastPointerWord*	C65C64InstructionCycleFactory::E_LastPointer(uint8 uiWord, C65C64Func fFunction)	{ NEW_65(C65ExecuteIfLastPointerWord, Init(uiWord, fFunction)) }
-C65ExecuteIfLastTransferWord*	C65C64InstructionCycleFactory::E_LastTransfer(uint8 uiWord, C65C64Func fFunction)	{ NEW_65(C65ExecuteIfLastTransferWord, Init(uiWord, fFunction)) }
-C65DoneInstruction*				C65C64InstructionCycleFactory::DONE(void)									{ NEW_65(C65DoneInstruction, Init()) }
+C65C64ProgramCounterOffset*		C65C64InstructionCycleFactory::PC(void)										{ NEW_65(C65C64ProgramCounterOffset, Init()) }
+C65C64PointerAddressOffset*		C65C64InstructionCycleFactory::PA(void)										{ NEW_65(C65C64PointerAddressOffset, Init()) }
+C65C64VectorAddressOffset*			C65C64InstructionCycleFactory::VA(void)										{ NEW_65(C65C64VectorAddressOffset, Init()) }
+C65C64TransferWordOffset*			C65C64InstructionCycleFactory::R(uint8 uiWord)								{ NEW_65(C65C64TransferWordOffset, Init(uiWord, false)) }
+C65C64TransferWordOffset*			C65C64InstructionCycleFactory::W(uint8 uiWord)								{ NEW_65(C65C64TransferWordOffset, Init(uiWord, true)) }
+C65C64ConstantOffset*				C65C64InstructionCycleFactory::o(int32 iOffset)								{ NEW_65(C65C64ConstantOffset, Init(iOffset)) }
+C65C64OpcodeCycle*					C65C64InstructionCycleFactory::Opcode(void)									{ NEW_65(C65C64OpcodeCycle, Init()) }
+C65C64ReadOpcode*					C65C64InstructionCycleFactory::Read_Opcode(void)							{ NEW_65(C65C64ReadOpcode, Init()) }
+C65C64IncrementProgramCounter*		C65C64InstructionCycleFactory::C_inc(void)									{ NEW_65(C65C64IncrementProgramCounter, Init()) }
+C65C64ReadOperandWord*				C65C64InstructionCycleFactory::Read_Operand(uint8 uiWord)					{ NEW_65(C65C64ReadOperandWord, Init(uiWord)) }
+C65C64ReadPointerWord*				C65C64InstructionCycleFactory::Read_Pointer(uint8 uiWord)					{ NEW_65(C65C64ReadPointerWord, Init(uiWord)) }
+C65C64ReadTransferWord*			C65C64InstructionCycleFactory::Read_Transfer(uint8 uiWord)					{ NEW_65(C65C64ReadTransferWord, Init(uiWord)) }
+C65C64WriteTransferWord*			C65C64InstructionCycleFactory::Write_Transfer(uint8 uiWord)					{ NEW_65(C65C64WriteTransferWord, Init(uiWord)) }
+C65C64ReadVectorWord*				C65C64InstructionCycleFactory::Read_Vector(uint8 uiWord)					{ NEW_65(C65C64ReadVectorWord, Init(uiWord)) }
+C65C64InternalOperation*			C65C64InstructionCycleFactory::IO(void)										{ NEW_65(C65C64InternalOperation, Init()) }
+C65C64WaitOperation*				C65C64InstructionCycleFactory::Wait(uint8 uiWait)							{ NEW_65(C65C64WaitOperation, Init(uiWait)) }
+C65C64Execute*						C65C64InstructionCycleFactory::E(C65C64Func fFunction, bool bInitialSide)	{ NEW_65(C65C64Execute, Init(fFunction, bInitialSide)) }
+C65C64ExecuteIfLastPointerWord*	C65C64InstructionCycleFactory::E_LastPointer(uint8 uiWord, C65C64Func fFunction)	{ NEW_65(C65C64ExecuteIfLastPointerWord, Init(uiWord, fFunction)) }
+C65C64ExecuteIfLastTransferWord*	C65C64InstructionCycleFactory::E_LastTransfer(uint8 uiWord, C65C64Func fFunction)	{ NEW_65(C65C64ExecuteIfLastTransferWord, Init(uiWord, fFunction)) }
+C65C64DoneInstruction*				C65C64InstructionCycleFactory::DONE(void)									{ NEW_65(C65C64DoneInstruction, Init()) }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65InstructionCycles* C65C64InstructionCycleFactory::CreateFetchNextCycles(void)
+C65C64InstructionCycles* C65C64InstructionCycleFactory::CreateFetchNextCycles(void)
 {
 	return InstructionCycles(
 		BusCycle(	Address(PC(), NULL),	Operation(Read_Opcode(), NULL)),
@@ -192,7 +192,7 @@ C65InstructionCycles* C65C64InstructionCycleFactory::CreateFetchNextCycles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65InstructionCycles* C65C64InstructionCycleFactory::CreateResetCycles(void)
+C65C64InstructionCycles* C65C64InstructionCycleFactory::CreateResetCycles(void)
 {
 	return InstructionCycles(
 		BusCycle(	Address(PC(), NULL),			Operation(IO(), E(&C65C64::Reset, true), NULL)),
@@ -208,10 +208,10 @@ C65InstructionCycles* C65C64InstructionCycleFactory::CreateResetCycles(void)
 // Taken instead of an opcode fetch.  C and P were pushed when the interrupt was taken.
 //
 //////////////////////////////////////////////////////////////////////////
-C65InstructionCycles* C65C64InstructionCycleFactory::CreateInterruptCycles(void)
+C65C64InstructionCycles* C65C64InstructionCycleFactory::CreateInterruptCycles(void)
 {
 	C65BusCycleArray*		papcBusCycles;
-	C65InstructionCycles*	pcInstructionCycles;
+	C65C64InstructionCycles*	pcInstructionCycles;
 	uint8					i;
 
 	papcBusCycles = NewMalloc<C65BusCycleArray>();
@@ -225,7 +225,7 @@ C65InstructionCycles* C65C64InstructionCycleFactory::CreateInterruptCycles(void)
 	papcBusCycles->Add(BusCycle(Address(VA(), NULL), Operation(Read_Vector(0), NULL)));
 	papcBusCycles->Add(BusCycle(Address(VA(), o(2), NULL), Operation(Read_Vector(1), E(&C65C64::LoadVector, false), NULL)));
 
-	pcInstructionCycles = NewMalloc<C65InstructionCycles>();
+	pcInstructionCycles = NewMalloc<C65C64InstructionCycles>();
 	pcInstructionCycles->Init(papcBusCycles);
 	return pcInstructionCycles;
 }
@@ -236,7 +236,7 @@ C65InstructionCycles* C65C64InstructionCycleFactory::CreateInterruptCycles(void)
 // An internal cycle repeated (the clock edges are ignored) until an interrupt wakes the processor.
 //
 //////////////////////////////////////////////////////////////////////////
-C65InstructionCycles* C65C64InstructionCycleFactory::CreateWaitCycles(void)
+C65C64InstructionCycles* C65C64InstructionCycleFactory::CreateWaitCycles(void)
 {
 	return InstructionCycles(
 		BusCycle(	Address(PC(), NULL),	Operation(IO(), NULL)),
@@ -248,7 +248,7 @@ C65InstructionCycles* C65C64InstructionCycleFactory::CreateWaitCycles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void AddOperation(C65OperationArray* papcOperations, C65Operation* pcOperation)
+static void AddOperation(C65OperationArray* papcOperations, C65C64Operation* pcOperation)
 {
 	if (pcOperation)
 	{
@@ -261,10 +261,10 @@ static void AddOperation(C65OperationArray* papcOperations, C65Operation* pcOper
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65InstructionCycles* C65C64InstructionCycleFactory::CreateCycles(S65C64Form* psForm)
+C65C64InstructionCycles* C65C64InstructionCycleFactory::CreateCycles(S65C64Form* psForm)
 {
 	C65BusCycleArray*		papcBusCycles;
-	C65InstructionCycles*	pcInstructionCycles;
+	C65C64InstructionCycles*	pcInstructionCycles;
 	C65OperationArray*		papcOperations;
 	bool					bReads;
 	bool					bWrites;
@@ -348,7 +348,7 @@ C65InstructionCycles* C65C64InstructionCycleFactory::CreateCycles(S65C64Form* ps
 		papcBusCycles->Add(BusCycle(Address(PC(), NULL), Operation(Wait(i), NULL)));
 	}
 
-	pcInstructionCycles = NewMalloc<C65InstructionCycles>();
+	pcInstructionCycles = NewMalloc<C65C64InstructionCycles>();
 	pcInstructionCycles->Init(papcBusCycles);
 	return pcInstructionCycles;
 }

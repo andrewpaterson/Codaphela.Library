@@ -201,7 +201,7 @@ void C65C64InstructionFactory::Init(void)
 void C65C64InstructionFactory::Kill(void)
 {
 	size			i;
-	C65Instruction*	pcInstruction;
+	C65C64Instruction*	pcInstruction;
 
 	if (muiUsers == 0)
 	{
@@ -233,7 +233,7 @@ void C65C64InstructionFactory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::GetInstruction(uint16 uiOpcode)
+C65C64Instruction* C65C64InstructionFactory::GetInstruction(uint16 uiOpcode)
 {
 	return mapcInstructions[uiOpcode];
 }
@@ -243,7 +243,7 @@ C65Instruction* C65C64InstructionFactory::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::GetReset(void)
+C65C64Instruction* C65C64InstructionFactory::GetReset(void)
 {
 	return mpcReset;
 }
@@ -253,7 +253,7 @@ C65Instruction* C65C64InstructionFactory::GetReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::GetFetchNext(void)
+C65C64Instruction* C65C64InstructionFactory::GetFetchNext(void)
 {
 	return mpcFetchNext;
 }
@@ -263,7 +263,7 @@ C65Instruction* C65C64InstructionFactory::GetFetchNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::GetInterrupt(void)
+C65C64Instruction* C65C64InstructionFactory::GetInterrupt(void)
 {
 	return mpcInterrupt;
 }
@@ -273,7 +273,7 @@ C65Instruction* C65C64InstructionFactory::GetInterrupt(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::GetWait(void)
+C65C64Instruction* C65C64InstructionFactory::GetWait(void)
 {
 	return mpcWait;
 }
@@ -526,12 +526,12 @@ uint32 C65C64InstructionFactory::GetFormKey(S65C64Form* psForm)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::GetOrCreateInstruction(S65C64Form* psForm)
+C65C64Instruction* C65C64InstructionFactory::GetOrCreateInstruction(S65C64Form* psForm)
 {
 	uint32			uiKey;
 	uint32			uiSlot;
 	size			i;
-	C65Instruction*	pcInstruction;
+	C65C64Instruction*	pcInstruction;
 
 	uiKey = GetFormKey(psForm);
 	uiSlot = (uiKey * 2654435761U) >> 20;
@@ -561,11 +561,11 @@ C65Instruction* C65C64InstructionFactory::GetOrCreateInstruction(S65C64Form* psF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64InstructionFactory::CreateInstruction(uint32 uiKey, C65InstructionCycles* pcCycles, E65Instruction eInstruction)
+C65C64Instruction* C65C64InstructionFactory::CreateInstruction(uint32 uiKey, C65C64InstructionCycles* pcCycles, E65Instruction eInstruction)
 {
-	C65Instruction*	pcInstruction;
+	C65C64Instruction*	pcInstruction;
 
-	pcInstruction = NewMalloc<C65Instruction>();
+	pcInstruction = NewMalloc<C65C64Instruction>();
 	pcInstruction->Init(uiKey, pcCycles, gasInstructionNames[eInstruction].szName, gasInstructionNames[eInstruction].szDescription);
 	return pcInstruction;
 }

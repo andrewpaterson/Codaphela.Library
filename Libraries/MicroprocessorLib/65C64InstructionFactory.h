@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __65C64_INSTRUCTION_FACTORY_H__
 #define __65C64_INSTRUCTION_FACTORY_H__
-#include "65Instruction.h"
+#include "65C64Instruction.h"
 #include "65C64InstructionCycleFactory.h"
 
 
@@ -35,14 +35,14 @@ class C65C64InstructionFactory
 {
 protected:
 	size				muiUsers;
-	C65Instruction*		mapcInstructions[NUM_65C64_OPCODES];
+	C65C64Instruction*		mapcInstructions[NUM_65C64_OPCODES];
 	uint32				mauiFormKeys[FORM_65C64_HASH_SIZE];
-	C65Instruction*		mapcForms[FORM_65C64_HASH_SIZE];
+	C65C64Instruction*		mapcForms[FORM_65C64_HASH_SIZE];
 	size				muiNumForms;
-	C65Instruction*		mpcReset;
-	C65Instruction*		mpcFetchNext;
-	C65Instruction*		mpcInterrupt;
-	C65Instruction*		mpcWait;
+	C65C64Instruction*		mpcReset;
+	C65C64Instruction*		mpcFetchNext;
+	C65C64Instruction*		mpcInterrupt;
+	C65C64Instruction*		mpcWait;
 
 public:
 	static	C65C64InstructionFactory*	GetInstance(void);
@@ -50,18 +50,18 @@ public:
 			void				Init(void);
 			void				Kill(void);
 
-			C65Instruction*		GetInstruction(uint16 uiOpcode);
-			C65Instruction*		GetReset(void);
-			C65Instruction*		GetFetchNext(void);
-			C65Instruction*		GetInterrupt(void);
-			C65Instruction*		GetWait(void);
+			C65C64Instruction*		GetInstruction(uint16 uiOpcode);
+			C65C64Instruction*		GetReset(void);
+			C65C64Instruction*		GetFetchNext(void);
+			C65C64Instruction*		GetInterrupt(void);
+			C65C64Instruction*		GetWait(void);
 			size				NumForms(void);
 
 protected:
 			void				GetForm(S65C64Decoded* psDecoded, S65C64Form* psForm);
 			uint32				GetFormKey(S65C64Form* psForm);
-			C65Instruction*		GetOrCreateInstruction(S65C64Form* psForm);
-			C65Instruction*		CreateInstruction(uint32 uiKey, C65InstructionCycles* pcCycles, E65Instruction eInstruction);
+			C65C64Instruction*		GetOrCreateInstruction(S65C64Form* psForm);
+			C65C64Instruction*		CreateInstruction(uint32 uiKey, C65C64InstructionCycles* pcCycles, E65Instruction eInstruction);
 };
 
 

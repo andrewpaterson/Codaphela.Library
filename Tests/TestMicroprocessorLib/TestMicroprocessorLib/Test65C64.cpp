@@ -1251,7 +1251,7 @@ void Test65C64BlockCopy(void)
 void Test65C64FactoryUsers(void)
 {
 	C65C64InstructionFactory*	pcFactory;
-	C65Instruction*				pcReset;
+	C65C64Instruction*				pcReset;
 	size						uiNumForms;
 
 	pcFactory = C65C64InstructionFactory::GetInstance();

@@ -22,31 +22,31 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __65C64_INSTRUCTION_CYCLE_FACTORY_H__
 #include "65C64Func.h"
 #include "65C64Decoded.h"
-#include "65InstructionCycles.h"
-#include "65BusCycle.h"
+#include "65C64InstructionCycles.h"
+#include "65C64BusCycle.h"
 
 //Addressing
-#include "65ConstantOffset.h"
-#include "65PointerAddressOffset.h"
-#include "65ProgramCounterOffset.h"
-#include "65TransferWordOffset.h"
-#include "65VectorAddressOffset.h"
+#include "65C64ConstantOffset.h"
+#include "65C64PointerAddressOffset.h"
+#include "65C64ProgramCounterOffset.h"
+#include "65C64TransferWordOffset.h"
+#include "65C64VectorAddressOffset.h"
 
 //Operations
-#include "65DoneInstruction.h"
-#include "65Execute.h"
-#include "65ExecuteIfLastPointerWord.h"
-#include "65ExecuteIfLastTransferWord.h"
-#include "65IncrementProgramCounter.h"
-#include "65InternalOperation.h"
-#include "65OpcodeCycle.h"
-#include "65ReadOpcode.h"
-#include "65ReadOperandWord.h"
-#include "65ReadPointerWord.h"
-#include "65ReadTransferWord.h"
-#include "65ReadVectorWord.h"
-#include "65WaitOperation.h"
-#include "65WriteTransferWord.h"
+#include "65C64DoneInstruction.h"
+#include "65C64Execute.h"
+#include "65C64ExecuteIfLastPointerWord.h"
+#include "65C64ExecuteIfLastTransferWord.h"
+#include "65C64IncrementProgramCounter.h"
+#include "65C64InternalOperation.h"
+#include "65C64OpcodeCycle.h"
+#include "65C64ReadOpcode.h"
+#include "65C64ReadOperandWord.h"
+#include "65C64ReadPointerWord.h"
+#include "65C64ReadTransferWord.h"
+#include "65C64ReadVectorWord.h"
+#include "65C64WaitOperation.h"
+#include "65C64WriteTransferWord.h"
 
 
 //The bus cycles an instruction form needs.  Instructions with the same form share the same cycles.
@@ -67,39 +67,39 @@ struct S65C64Form
 class C65C64InstructionCycleFactory
 {
 public:
-	static C65InstructionCycles*	CreateFetchNextCycles(void);
-	static C65InstructionCycles*	CreateResetCycles(void);
-	static C65InstructionCycles*	CreateInterruptCycles(void);
-	static C65InstructionCycles*	CreateWaitCycles(void);
-	static C65InstructionCycles*	CreateCycles(S65C64Form* psForm);
+	static C65C64InstructionCycles*	CreateFetchNextCycles(void);
+	static C65C64InstructionCycles*	CreateResetCycles(void);
+	static C65C64InstructionCycles*	CreateInterruptCycles(void);
+	static C65C64InstructionCycles*	CreateWaitCycles(void);
+	static C65C64InstructionCycles*	CreateCycles(S65C64Form* psForm);
 
 protected:
-	static C65InstructionCycles*	InstructionCycles(C65BusCycle* pcBusCycle, ...);
-	static C65BusCycle*				BusCycle(C65AddressOffsetArray* papcAddressOffsets, C65OperationArray* papcOperations);
-	static C65AddressOffsetArray*	Address(C65AddressOffset* pcOffset, ...);
-	static C65OperationArray*		Operation(C65Operation* pcOperation, ...);
+	static C65C64InstructionCycles*	InstructionCycles(C65C64BusCycle* pcBusCycle, ...);
+	static C65C64BusCycle*				BusCycle(C65C64AddressOffsetArray* papcAddressOffsets, C65OperationArray* papcOperations);
+	static C65C64AddressOffsetArray*	Address(C65C64AddressOffset* pcOffset, ...);
+	static C65OperationArray*		Operation(C65C64Operation* pcOperation, ...);
 
-	static C65ProgramCounterOffset*		PC(void);
-	static C65PointerAddressOffset*		PA(void);
-	static C65VectorAddressOffset*		VA(void);
-	static C65TransferWordOffset*		R(uint8 uiWord);
-	static C65TransferWordOffset*		W(uint8 uiWord);
-	static C65ConstantOffset*			o(int32 iOffset);
+	static C65C64ProgramCounterOffset*		PC(void);
+	static C65C64PointerAddressOffset*		PA(void);
+	static C65C64VectorAddressOffset*		VA(void);
+	static C65C64TransferWordOffset*		R(uint8 uiWord);
+	static C65C64TransferWordOffset*		W(uint8 uiWord);
+	static C65C64ConstantOffset*			o(int32 iOffset);
 
-	static C65OpcodeCycle*				Opcode(void);
-	static C65ReadOpcode*				Read_Opcode(void);
-	static C65IncrementProgramCounter*	C_inc(void);
-	static C65ReadOperandWord*			Read_Operand(uint8 uiWord);
-	static C65ReadPointerWord*			Read_Pointer(uint8 uiWord);
-	static C65ReadTransferWord*			Read_Transfer(uint8 uiWord);
-	static C65WriteTransferWord*		Write_Transfer(uint8 uiWord);
-	static C65ReadVectorWord*			Read_Vector(uint8 uiWord);
-	static C65InternalOperation*		IO(void);
-	static C65WaitOperation*			Wait(uint8 uiWait);
-	static C65Execute*					E(C65C64Func fFunction, bool bInitialSide);
-	static C65ExecuteIfLastPointerWord*	E_LastPointer(uint8 uiWord, C65C64Func fFunction);
-	static C65ExecuteIfLastTransferWord*	E_LastTransfer(uint8 uiWord, C65C64Func fFunction);
-	static C65DoneInstruction*			DONE(void);
+	static C65C64OpcodeCycle*				Opcode(void);
+	static C65C64ReadOpcode*				Read_Opcode(void);
+	static C65C64IncrementProgramCounter*	C_inc(void);
+	static C65C64ReadOperandWord*			Read_Operand(uint8 uiWord);
+	static C65C64ReadPointerWord*			Read_Pointer(uint8 uiWord);
+	static C65C64ReadTransferWord*			Read_Transfer(uint8 uiWord);
+	static C65C64WriteTransferWord*		Write_Transfer(uint8 uiWord);
+	static C65C64ReadVectorWord*			Read_Vector(uint8 uiWord);
+	static C65C64InternalOperation*		IO(void);
+	static C65C64WaitOperation*			Wait(uint8 uiWait);
+	static C65C64Execute*					E(C65C64Func fFunction, bool bInitialSide);
+	static C65C64ExecuteIfLastPointerWord*	E_LastPointer(uint8 uiWord, C65C64Func fFunction);
+	static C65C64ExecuteIfLastTransferWord*	E_LastTransfer(uint8 uiWord, C65C64Func fFunction);
+	static C65C64DoneInstruction*			DONE(void);
 };
 
 

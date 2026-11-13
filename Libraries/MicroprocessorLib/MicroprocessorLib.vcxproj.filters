@@ -411,13 +411,13 @@
     <ClCompile Include="MetaSignal.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
-    <ClCompile Include="65AddressOffset.cpp">
+    <ClCompile Include="65C64AddressOffset.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="65AddressOffsetArray.cpp">
+    <ClCompile Include="65C64AddressOffsetArray.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
-    <ClCompile Include="65BusCycle.cpp">
+    <ClCompile Include="65C64BusCycle.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65C64.cpp">
@@ -441,73 +441,73 @@
     <ClCompile Include="65C64Pins.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClCompile>
-    <ClCompile Include="65ConstantOffset.cpp">
+    <ClCompile Include="65C64ConstantOffset.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="65DataOperation.cpp">
+    <ClCompile Include="65C64DataOperation.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65DoneInstruction.cpp">
+    <ClCompile Include="65C64DoneInstruction.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65Execute.cpp">
+    <ClCompile Include="65C64Execute.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65ExecuteIfLastPointerWord.cpp">
+    <ClCompile Include="65C64ExecuteIfLastPointerWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65ExecuteIfLastTransferWord.cpp">
+    <ClCompile Include="65C64ExecuteIfLastTransferWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65IncrementProgramCounter.cpp">
+    <ClCompile Include="65C64IncrementProgramCounter.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65Instruction.cpp">
+    <ClCompile Include="65C64Instruction.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
-    <ClCompile Include="65InstructionCycles.cpp">
+    <ClCompile Include="65C64InstructionCycles.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
-    <ClCompile Include="65InternalOperation.cpp">
+    <ClCompile Include="65C64InternalOperation.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65OpcodeCycle.cpp">
+    <ClCompile Include="65C64OpcodeCycle.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65Operation.cpp">
+    <ClCompile Include="65C64Operation.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65PointerAddressOffset.cpp">
+    <ClCompile Include="65C64PointerAddressOffset.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="65ProgramCounterOffset.cpp">
+    <ClCompile Include="65C64ProgramCounterOffset.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="65ReadOpcode.cpp">
+    <ClCompile Include="65C64ReadOpcode.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65ReadOperandWord.cpp">
+    <ClCompile Include="65C64ReadOperandWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65ReadPointerWord.cpp">
+    <ClCompile Include="65C64ReadPointerWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65ReadTransferWord.cpp">
+    <ClCompile Include="65C64ReadTransferWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65ReadVectorWord.cpp">
+    <ClCompile Include="65C64ReadVectorWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65TransferWordOffset.cpp">
+    <ClCompile Include="65C64TransferWordOffset.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="65VectorAddressOffset.cpp">
+    <ClCompile Include="65C64VectorAddressOffset.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="65WaitOperation.cpp">
+    <ClCompile Include="65C64WaitOperation.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65WriteTransferWord.cpp">
+    <ClCompile Include="65C64WriteTransferWord.cpp">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="LongTime.cpp">
@@ -1079,16 +1079,16 @@
     <ClInclude Include="MetaSignal.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
-    <ClInclude Include="65AddressOffset.h">
+    <ClInclude Include="65C64AddressOffset.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="65AddressOffsetArray.h">
+    <ClInclude Include="65C64AddressOffsetArray.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
-    <ClInclude Include="65BusCycle.h">
+    <ClInclude Include="65C64BusCycle.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
-    <ClInclude Include="65BusCycleParameter.h">
+    <ClInclude Include="65C64BusCycleParameter.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64.h">
@@ -1115,73 +1115,73 @@
     <ClInclude Include="65C64Pins.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClInclude>
-    <ClInclude Include="65ConstantOffset.h">
+    <ClInclude Include="65C64ConstantOffset.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="65DataOperation.h">
+    <ClInclude Include="65C64DataOperation.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65DoneInstruction.h">
+    <ClInclude Include="65C64DoneInstruction.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65Execute.h">
+    <ClInclude Include="65C64Execute.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65ExecuteIfLastPointerWord.h">
+    <ClInclude Include="65C64ExecuteIfLastPointerWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65ExecuteIfLastTransferWord.h">
+    <ClInclude Include="65C64ExecuteIfLastTransferWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65IncrementProgramCounter.h">
+    <ClInclude Include="65C64IncrementProgramCounter.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65Instruction.h">
+    <ClInclude Include="65C64Instruction.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
-    <ClInclude Include="65InstructionCycles.h">
+    <ClInclude Include="65C64InstructionCycles.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
-    <ClInclude Include="65InternalOperation.h">
+    <ClInclude Include="65C64InternalOperation.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65OpcodeCycle.h">
+    <ClInclude Include="65C64OpcodeCycle.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65Operation.h">
+    <ClInclude Include="65C64Operation.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65PointerAddressOffset.h">
+    <ClInclude Include="65C64PointerAddressOffset.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="65ProgramCounterOffset.h">
+    <ClInclude Include="65C64ProgramCounterOffset.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="65ReadOpcode.h">
+    <ClInclude Include="65C64ReadOpcode.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65ReadOperandWord.h">
+    <ClInclude Include="65C64ReadOperandWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65ReadPointerWord.h">
+    <ClInclude Include="65C64ReadPointerWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65ReadTransferWord.h">
+    <ClInclude Include="65C64ReadTransferWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65ReadVectorWord.h">
+    <ClInclude Include="65C64ReadVectorWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65TransferWordOffset.h">
+    <ClInclude Include="65C64TransferWordOffset.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="65VectorAddressOffset.h">
+    <ClInclude Include="65C64VectorAddressOffset.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="65WaitOperation.h">
+    <ClInclude Include="65C64WaitOperation.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65WriteTransferWord.h">
+    <ClInclude Include="65C64WriteTransferWord.h">
       <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="LongTime.h">

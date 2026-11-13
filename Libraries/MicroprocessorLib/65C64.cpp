@@ -20,9 +20,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "BaseLib/Logger.h"
-#include "65Instruction.h"
-#include "65BusCycle.h"
-#include "65DataOperation.h"
+#include "65C64Instruction.h"
+#include "65C64BusCycle.h"
+#include "65C64DataOperation.h"
 #include "65C64InstructionFactory.h"
 #include "65C64.h"
 
@@ -444,8 +444,8 @@ void C65C64::InputTransition(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::ExecutePhi2Falling(CTimeline* pcTimeline)
 {
-	C65BusCycle*		pcBusCycle;
-	C65DataOperation*	pcDataOperation;
+	C65C64BusCycle*		pcBusCycle;
+	C65C64DataOperation*	pcDataOperation;
 
 	pcDataOperation = GetDataOperation();
 	if (pcDataOperation)
@@ -480,7 +480,7 @@ void C65C64::ExecutePhi2Falling(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65DataOperation* pcDataOperation, C65BusCycle* pcBusCycle)
+void C65C64::WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65C64DataOperation* pcDataOperation, C65C64BusCycle* pcBusCycle)
 {
 	uint8	uiLanes;
 	bool	bInternal;
@@ -504,7 +504,7 @@ void C65C64::WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65DataOperation* pc
 //////////////////////////////////////////////////////////////////////////
 void C65C64::ExecutePhi2Rising(CTimeline* pcTimeline)
 {
-	C65DataOperation*	pcDataOperation;
+	C65C64DataOperation*	pcDataOperation;
 
 	pcDataOperation = GetDataOperation();
 	if (pcDataOperation)
@@ -523,7 +523,7 @@ void C65C64::ExecutePhi2Rising(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::Cycle(void)
 {
-	C65BusCycle*	pcBusCycle;
+	C65C64BusCycle*	pcBusCycle;
 
 	if (msState.bStopped)
 	{
@@ -708,7 +708,7 @@ void C65C64::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65Instruction* C65C64::GetInstruction(void)
+C65C64Instruction* C65C64::GetInstruction(void)
 {
 	return mpcInstruction;
 }
@@ -718,7 +718,7 @@ C65Instruction* C65C64::GetInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65BusCycle* C65C64::GetBusCycle(void)
+C65C64BusCycle* C65C64::GetBusCycle(void)
 {
 	if ((mpcInstruction != NULL) && (msState.iCycle >= 0))
 	{
@@ -732,9 +732,9 @@ C65BusCycle* C65C64::GetBusCycle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65DataOperation* C65C64::GetDataOperation(void)
+C65C64DataOperation* C65C64::GetDataOperation(void)
 {
-	C65BusCycle*	pcBusCycle;
+	C65C64BusCycle*	pcBusCycle;
 
 	pcBusCycle = GetBusCycle();
 	if (pcBusCycle)
@@ -811,7 +811,7 @@ uint8 C65C64::GetPendingEdges(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::ReadOpcode(void)
 {
-	C65BusCycle*	pcBusCycle;
+	C65C64BusCycle*	pcBusCycle;
 
 	msState.uiOpcode = msState.uiIOData;
 	Decode65C64(msState.uiOpcode, &msDecoded);
@@ -3015,7 +3015,7 @@ void C65C64::GetMnemonicString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::GetCycleOperationString(CChars* psz)
 {
-	C65BusCycle*	pcBusCycle;
+	C65C64BusCycle*	pcBusCycle;
 
 	pcBusCycle = GetBusCycle();
 	if (pcBusCycle)
