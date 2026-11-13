@@ -4282,6 +4282,49 @@ void TestIROptimiserFoldNullTests(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A brif on a value a branch on the way to its block already decided is a
+// jmp, though the block does other things first (CIRBlockPasses::
+// FoldBranches).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserKnownBranches(void)
+{
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function i32 @_K__Fbi(i1 %c, i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\tbrif %c, yes, no\n"
+		"yes:\n"
+		"\tcall void @_Use__Fi(i32 %x)\n"
+		"\tret i32 1\n"
+		"no:\n"
+		"\tcall void @_Use__Fi(i32 3)\n"
+		"\tret i32 2\n"
+		"}\n",
+		"space default 4\n"
+		"\n"
+		"function i32 @_K__Fbi(i1 %c, i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\tbrif %c, yes, no\n"
+		"yes:\n"
+		"\tcall void @_Use__Fi(i32 %x)\n"
+		"\tbrif %c, a, b\n"
+		"a:\n"
+		"\tret i32 1\n"
+		"b:\n"
+		"\tret i32 2\n"
+		"no:\n"
+		"\tcall void @_Use__Fi(i32 3)\n"
+		"\tbrif %c, a, b\n"
+		"}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // NarrowTruncations: trunc(zext(a) + zext(b)) to i8 is an i8 add.  Not when
 // the i32 add is also stored.
 //
@@ -4869,6 +4912,7 @@ void TestIR(void)
 	TestIROptimiserMergeAddressPhis();
 	TestIROptimiserConstantDivisions();
 	TestIROptimiserFoldNullTests();
+	TestIROptimiserKnownBranches();
 	TestIROptimiserNarrowTruncations();
 	TestIROptimiserUnifySlotTypes();
 	TestIROptimiserRotateLoops();

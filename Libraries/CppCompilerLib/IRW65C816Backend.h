@@ -104,6 +104,7 @@ struct SIRW65C816Frame
 	int32	iDirectPageWeight;	//The direct page accesses, weighted by the loops they are in.
 	bool	bLoops;
 	bool	bVariadic;
+	bool	bNoResult;			//Nothing is returned in A (void, or through the hidden result pointer): its exits needn't keep A.
 
 	void	Init(int32 iRegisterWordsIn, bool bVariadicIn);
 	int32	Add(int32 iBytes);
@@ -200,6 +201,7 @@ public:
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel, size uiStart);
 	void			DropFrame(size uiStart);
+	bool			ReturnsNothingInA(void);
 	void			FindSingleUses(void);
 	int				MultiplyCost(SIRType sType, uint64 ulliMultiplier) override;
 	int				ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits) override;

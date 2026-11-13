@@ -1963,11 +1963,23 @@ void TestIR816BackendPeephole(void)
 
 	fPass = CIRW65C816Backend::Peephole;
 
-	//A marked store and its lda both go, the value kept in A.  Not when a branch reads the lda's Z (the mark goes).
+	//A marked store and its lda both go, the value kept in A.  Before a branch on the lda's Z the store stays (the mark goes),
+	//and the lda goes when N and Z are A's already (the adc's); after cpx they aren't, and it stays.
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tsta [D + 5]\n\t\trtl\n",
 		"\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tsta [D + 23] ;A\n\t\tlda [D + 23]\n\t\tsta [D + 5]\n\t\trtl\n", fPass);
-	AssertIR816Pass("\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tsta [D + 23]\n\t\tlda [D + 23]\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n",
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tsta [D + 23]\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n",
 		"\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tsta [D + 23] ;A\n\t\tlda [D + 23]\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
+
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tsta [D + 23]\n\t\tcpx 5\n\t\tlda [D + 23]\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n",
+		"\t\tlda [D + 3]\n\t\tsta [D + 23]\n\t\tcpx 5\n\t\tlda [D + 23]\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
+
+	//cpx 0 and cpy 0 after an instruction that set N and Z from X or Y, before a branch on them: not before a branch on the
+	//carry, nor when something else set the flags since.
+	AssertIR816Pass("\t\tand 64\n\t\ttax\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", "\t\tand 64\n\t\ttax\n\t\tcpx 0\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\tldy [D + 3]\n\t\tbne L1\n\t\trtl\nL1:\n\t\trtl\n", "\t\tldy [D + 3]\n\t\tcpy 0\n\t\tbne L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\ttax\n\t\tcpx 0\n\t\tbcs L1\n\t\trtl\nL1:\n\t\trtl\n", "\t\ttax\n\t\tcpx 0\n\t\tbcs L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\ttax\n\t\tlda [D + 5]\n\t\tcpx 0\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", "\t\ttax\n\t\tlda [D + 5]\n\t\tcpx 0\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
+	AssertIR816Pass("\t\ttax\n\t\tcpy 0\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", "\t\ttax\n\t\tcpy 0\n\t\tbeq L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
 
 	//A marked store pushed by pei: pha.
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tpha\n\t\tjsl _F\n\t\trtl\n",
@@ -1983,10 +1995,11 @@ void TestIR816BackendPeephole(void)
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tpha\n\t\tjsl _F\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tpei [D + 3]\n\t\tjsl _F\n\t\trtl\n", fPass);
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tpei [D + 5]\n\t\tjsl _F\n\t\trtl\n", "\t\tlda [D + 3]\n\t\tpei [D + 5]\n\t\tjsl _F\n\t\trtl\n", fPass);
 
-	//An lda of the word A holds goes.  Kept before bne; and after an inc of the word (then the first lda is dead).
+	//An lda of the word A holds goes: before bne too, N and Z being A's from the first lda.  Kept after an inc of the word
+	//(then the first lda is dead).
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tsta [D + 5]\n\t\tsta [D + 7]\n\t\trtl\n",
 		"\t\tlda [D + 3]\n\t\tsta [D + 5]\n\t\tlda [D + 5]\n\t\tsta [D + 7]\n\t\trtl\n", fPass);
-	AssertIR816Pass("\t\tlda [D + 3]\n\t\tsta [D + 5]\n\t\tlda [D + 5]\n\t\tbne L1\n\t\trtl\nL1:\n\t\trtl\n",
+	AssertIR816Pass("\t\tlda [D + 3]\n\t\tsta [D + 5]\n\t\tbne L1\n\t\trtl\nL1:\n\t\trtl\n",
 		"\t\tlda [D + 3]\n\t\tsta [D + 5]\n\t\tlda [D + 5]\n\t\tbne L1\n\t\trtl\nL1:\n\t\trtl\n", fPass);
 	AssertIR816Pass("\t\tinc [D + 3]\n\t\tlda [D + 3]\n\t\tsta [D + 7]\n\t\trtl\n",
 		"\t\tlda [D + 3]\n\t\tinc [D + 3]\n\t\tlda [D + 3]\n\t\tsta [D + 7]\n\t\trtl\n", fPass);
@@ -2250,6 +2263,58 @@ void TestIR816BackendPeepholeTransfers(void)
 		"\t\ttax\n\t\tlda [D + X]\n\t\ttxy\n\t\tlda [[D + 5]:24 + Y]\n\t\tldx 2\n\t\trtl\n", fPass);
 	AssertIR816Pass("\t\ttax\n\t\tlda [D + 3]\n\t\ttxy\n\t\tlda [[D + 5]:24 + Y]\n\t\tstx [D + 7]\n\t\trtl\n",
 		"\t\ttax\n\t\tlda [D + 3]\n\t\ttxy\n\t\tlda [[D + 5]:24 + Y]\n\t\tstx [D + 7]\n\t\trtl\n", fPass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What IR816TidyExits makes of szCode.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertIR816TidyExits(const char* szExpected, const char* szCode, bool bNoResult)
+{
+	CChars	sz;
+
+	sz.Init(szCode);
+	IR816TidyExits(&sz, bNoResult);
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function's exits keep A in Y while S moves back only when they must
+// (IR816TidyExits).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendTidyExits(void)
+{
+	//Nothing returned in A: the tay and tya go, from every exit; with the frame on a page too.
+	AssertIR816TidyExits("_F:\n\t\tsta [D + 3]\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\tpld\n\t\trtl\nL1:\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\tpld\n\t\trtl\n",
+		"_F:\n\t\tsta [D + 3]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\nL1:\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", true);
+	AssertIR816TidyExits("\t\tlda [D + 41]\n\t\ttcs\n\t\tpld\n\t\trtl\n", "\t\ttay\n\t\tlda [D + 41]\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", true);
+
+	//A constant result is loaded once S is back (X's word stays where it is).
+	AssertIR816TidyExits("\t\tldx 0\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\tlda 65535\n\t\tpld\n\t\trtl\n",
+		"\t\tldx 0\n\t\tlda 65535\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+	AssertIR816TidyExits("\t\tlda [D + 41]\n\t\ttcs\n\t\tlda 1\n\t\tpld\n\t\trtl\n", "\t\tlda 1\n\t\ttay\n\t\tlda [D + 41]\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+
+	//A direct page word can't be read once S is back (an interrupt may push over it): it is loaded into Y.
+	AssertIR816TidyExits("\t\tldx [D + 25]\n\t\tldy [D + 23]\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
+		"\t\tldx [D + 25]\n\t\tlda [D + 23]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+	AssertIR816TidyExits("\t\tldy [D + 23]\n\t\tlda [D + 41]\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
+		"\t\tlda [D + 23]\n\t\ttay\n\t\tlda [D + 41]\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+
+	//Left alone: a result worked out in A, one loaded through a pointer or behind a label, and a tay that isn't an exit's.
+	AssertIR816TidyExits("\t\tadc [D + 23]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
+		"\t\tadc [D + 23]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+	AssertIR816TidyExits("\t\tlda [[D + 23]:24 + Y]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
+		"\t\tlda [[D + 23]:24 + Y]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+	AssertIR816TidyExits("\t\tlda 1\nL1:\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
+		"\t\tlda 1\nL1:\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+	AssertIR816TidyExits("\t\tlda 1\n\t\ttay\n\t\ttsc\n\t\tclc\n\t\tadc 8\n\t\ttcs\n\t\ttya\n\t\trtl\n",
+		"\t\tlda 1\n\t\ttay\n\t\ttsc\n\t\tclc\n\t\tadc 8\n\t\ttcs\n\t\ttya\n\t\trtl\n", true);
 }
 
 
@@ -2943,6 +3008,7 @@ void TestIR816Backend(void)
 	TestIR816BackendPeepholeMasks();
 	TestIR816BackendPeepholeStores();
 	TestIR816BackendPeepholeTransfers();
+	TestIR816BackendTidyExits();
 	TestIR816BackendBigFrame();
 	TestIR816BackendMathSafe();
 	TestIR816BackendInlineMultiply();

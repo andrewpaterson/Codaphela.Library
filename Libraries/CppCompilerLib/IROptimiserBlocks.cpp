@@ -257,7 +257,10 @@ bool CIRBlockPasses::RemoveUnreachable(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// brif on a constant is a jmp.
+// brif on a constant is a jmp.  So is a brif on a value a branch on the
+// way to the block already decided (KnownCondition: the block has one
+// predecessor, which branches on it or is reached along single predecessors
+// from a block that does), whatever else the block does first.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRBlockPasses::FoldBranches(void)
@@ -266,15 +269,30 @@ bool CIRBlockPasses::FoldBranches(void)
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcTaken;
 	CIRBlock*		pcDropped;
+	int				iKnown;
 	bool			bChanged;
 
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		if ((pcBlock->msJump.uiKind == IRJ_Branch) && pcBlock->msJump.sArgument.IsConstant())
+		if (pcBlock->msJump.uiKind != IRJ_Branch)
 		{
-			if (mpcFunction->GetConstant(pcBlock->msJump.sArgument)->ulliBits & 1)
+			continue;
+		}
+		iKnown = -1;
+		if (pcBlock->msJump.sArgument.IsConstant())
+		{
+			iKnown = (int)(mpcFunction->GetConstant(pcBlock->msJump.sArgument)->ulliBits & 1);
+		}
+		else if (pcBlock->msJump.sArgument.IsTemporary() && (pcBlock != mpcFunction->GetEntry()) && (pcBlock->mapcPredecessors.NumElements() == 1) &&
+				 (pcBlock->mapcPredecessors.GetPtr(0) != pcBlock) && !pcBlock->Defines(pcBlock->msJump.sArgument))
+		{
+			iKnown = KnownCondition(pcBlock->mapcPredecessors.GetPtr(0), pcBlock, pcBlock->msJump.sArgument);
+		}
+		if (iKnown >= 0)
+		{
+			if (iKnown)
 			{
 				pcTaken = pcBlock->msJump.pcThen;
 				pcDropped = pcBlock->msJump.pcElse;

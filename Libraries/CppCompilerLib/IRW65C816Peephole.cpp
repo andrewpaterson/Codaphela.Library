@@ -796,12 +796,14 @@ static bool IR816ChangesYConstant(SIRW65C816Line* psLine)
 // forgets what is known): a value's store and its one load when A keeps it
 // between them (IR816KeepsInA, for a store Store marked), an lda of the
 // direct page word A already has (but
-// not before a branch on its Z or N), an sta of it back to that word, an lda
+// not before a branch on its Z or N, unless N and Z are already A's), an sta
+// of it back to that word, an lda
 // of a direct page word or a constant that the next lda replaces, an ldy of
 // the constant Y already has, adc 0 after clc and an lda (the carry stays
 // clear), and cmp 0 after an instruction that set N and Z from A when only a
 // branch on Z or N follows (not a branch on the carry it sets, after the
-// branch or where it goes).
+// branch or where it goes); cpx 0 and cpy 0 after one that set them from X
+// or Y (tax, ldx, inx...) the same.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Peephole(CChars* pszDest, size uiStart)
@@ -836,6 +838,8 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 	size		uiDeadLoad;		//cOut's last line if it is an lda of a direct page word or a constant, else IR816_NO_LINE.
 	bool		bClearCarry;
 	bool		bZNFromA;		//The last instruction kept set N and Z from A.
+	bool		bZNFromX;		//...from X...
+	bool		bZNFromY;		//...from Y.
 	bool		bKeep;
 	CChars		sz;
 
@@ -847,6 +851,8 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 	uiSwapUse = IR816_NO_LINE;
 	bClearCarry = false;
 	bZNFromA = false;
+	bZNFromX = false;
+	bZNFromY = false;
 	uiDeadLoad = IR816_NO_LINE;
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
@@ -861,6 +867,8 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 			szY[0] = '\0';
 			bClearCarry = false;
 			bZNFromA = false;
+			bZNFromX = false;
+			bZNFromY = false;
 			uiDeadLoad = IR816_NO_LINE;
 			cOut.Append(psz->Text(), uiLength);
 			continue;
@@ -904,6 +912,8 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 			szA[0] = '\0';
 			bClearCarry = false;
 			bZNFromA = true;
+			bZNFromX = false;
+			bZNFromY = false;
 			uiDeadLoad = IR816_NO_LINE;
 			continue;
 		}
@@ -925,8 +935,9 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 			continue;
 		}
 
-		if ((sLine.uiMnemonic == IR816M_Lda) && sLine.bDirect && IR816OperandIs(&sLine, szA, StrLen(szA)) && !IR816BranchesOnZN(pcCode, ui))
+		if ((sLine.uiMnemonic == IR816M_Lda) && sLine.bDirect && IR816OperandIs(&sLine, szA, StrLen(szA)) && (bZNFromA || !IR816BranchesOnZN(pcCode, ui)))
 		{
+			//A holds the word, and a branch after it finds N and Z as the lda would leave them.
 			bKeep = false;
 		}
 		else if ((sLine.uiMnemonic == IR816M_Ldy) && (sLine.uiOperand < 30) && IR816OperandIs(&sLine, szY, StrLen(szY)))
@@ -947,6 +958,11 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 		{
 			bKeep = false;
 		}
+		else if ((((sLine.uiMnemonic == IR816M_Cpx) && bZNFromX) || ((sLine.uiMnemonic == IR816M_Cpy) && bZNFromY)) && IR816OperandIs(&sLine, "0", 1) &&
+				 IR816BranchesOnZN(pcCode, ui) && !IR816CarryReadAfterBranch(pcCode, ui))
+		{
+			bKeep = false;
+		}
 		if (!bKeep)
 		{
 			continue;
@@ -962,6 +978,8 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 		{
 			//Stores change neither A nor the flags.
 			bZNFromA = IR816SetsZNFromA(&sLine);
+			bZNFromX = (sLine.uiMnemonic == IR816M_Tax) || (sLine.uiMnemonic == IR816M_Ldx) || (sLine.uiMnemonic == IR816M_Inx) || (sLine.uiMnemonic == IR816M_Dex);
+			bZNFromY = (sLine.uiMnemonic == IR816M_Tay) || (sLine.uiMnemonic == IR816M_Ldy) || (sLine.uiMnemonic == IR816M_Iny) || (sLine.uiMnemonic == IR816M_Dey);
 		}
 
 		//What A and Y hold after it.

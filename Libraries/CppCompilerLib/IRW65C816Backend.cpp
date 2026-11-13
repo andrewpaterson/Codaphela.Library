@@ -338,6 +338,7 @@ void SIRW65C816Frame::Init(int32 iRegisterWordsIn, bool bVariadicIn)
 	iDirectPageWeight = 0;
 	bLoops = false;
 	bVariadic = bVariadicIn;
+	bNoResult = false;
 }
 
 
@@ -421,6 +422,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	szJump.Kill();
 
 	Layout();
+	msFrame.bNoResult = ReturnsNothingInA();
 	if (msFrame.iFrameBytes > IR816_MAX_FRAME_BYTES)
 	{
 		CChars	szBytes;
@@ -439,6 +441,33 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	}
 	pszDest->AppendNewLine();
 	return mbResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether no return leaves a result in A: the function returns nothing, or
+// its result through the hidden result pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Backend::ReturnsNothingInA(void)
+{
+	size		ui;
+	SIRJump*	psJump;
+
+	if (msFrame.iHiddenResult >= 0)
+	{
+		return true;
+	}
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		psJump = &mpcFunction->GetBlock(ui)->msJump;
+		if ((psJump->uiKind == IRJ_Return) && !psJump->sType.IsNone())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -486,8 +515,9 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 //
 // The function's frame is put on a page if that is worth it, now that the
 // unit's calls are known (AlignFrame; a listing's source markers are taken
-// out while it looks at the code).  A function nothing was kept for has an
-// empty frame.
+// out while it looks at the code), and then its exits keep A in Y only when
+// they must (IR816TidyExits).  A function nothing was kept for has an empty
+// frame.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile)
@@ -506,6 +536,7 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	cMarkers.Init();
 	cMarkers.Take(pszCode, 0);
 	AlignFrame(pszCode, szLabel, &sFrame, bRecursive, pcProfile);
+	IR816TidyExits(pszCode, sFrame.bNoResult);
 	cMarkers.Put(pszCode, 0);
 	cMarkers.Kill();
 }

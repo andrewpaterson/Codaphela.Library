@@ -224,6 +224,7 @@ void		IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
 void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
+void		IR816TidyExits(CChars* pszCode, bool bNoResult);
 
 //IRW65C816Places.cpp: what the direct page reaches, and how X serves an instruction (AllocateX).
 bool		IR816OnDirectPage(int32 iOffset);

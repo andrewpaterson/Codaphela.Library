@@ -90,6 +90,187 @@ void IR816AppendFrameExit(CChars* psz, int32 iFrameBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The line starting at szLine (to its new line) is the instruction szText
+// (without its tabs or new line).  Returns the line after it, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816ExitLine(const char* szLine, const char* szText)
+{
+	size	uiText;
+
+	uiText = strlen(szText);
+	if ((szLine[0] != '\t') || (szLine[1] != '\t') || (strncmp(szLine + 2, szText, uiText) != 0) || (szLine[2 + uiText] != '\n'))
+	{
+		return NULL;
+	}
+	return szLine + 2 + uiText + 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line starting at szLine is szMnemonic and a decimal number ("adc 36"),
+// or with szOpen and szClose a number between them ("lda [D + 33]").
+// Returns the line after it, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816ExitNumberLine(const char* szLine, const char* szMnemonic, const char* szOpen, const char* szClose)
+{
+	size	uiMnemonic;
+	size	uiOpen;
+	size	uiClose;
+
+	uiMnemonic = strlen(szMnemonic);
+	uiOpen = strlen(szOpen);
+	uiClose = strlen(szClose);
+	if ((szLine[0] != '\t') || (szLine[1] != '\t') || (strncmp(szLine + 2, szMnemonic, uiMnemonic) != 0) || (strncmp(szLine + 2 + uiMnemonic, szOpen, uiOpen) != 0))
+	{
+		return NULL;
+	}
+	szLine += 2 + uiMnemonic + uiOpen;
+	if ((*szLine < '0') || (*szLine > '9'))
+	{
+		return NULL;
+	}
+	while ((*szLine >= '0') && (*szLine <= '9'))
+	{
+		szLine++;
+	}
+	if ((strncmp(szLine, szClose, uiClose) != 0) || (szLine[uiClose] != '\n'))
+	{
+		return NULL;
+	}
+	return szLine + uiClose + 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The exits of the function in pszCode (after AlignFrame) keep A in Y while
+// S moves back only when they must.  An exit is
+//
+//		tay / tdc / clc / adc n / tcs / tya / pld / rtl
+//
+// or, with the frame on a page, tay / lda [D + n] / tcs / tya / pld / rtl.
+// With nothing returned in A (bNoResult) the tay and tya go.  After an lda
+// of a constant the lda is done once S is back instead; after an lda of a
+// direct page word it is an ldy (the word can't be read once S is back: an
+// interrupt may have pushed over it), and the tay goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816TidyExits(CChars* pszCode, bool bNoResult)
+{
+	CChars		sz;
+	const char*	szCode;
+	const char*	szStart;
+	const char*	szAt;
+	const char*	szMove;
+	const char*	szMoved;
+	const char*	szEnd;
+	const char*	szLoad;
+	const char*	szCopied;
+	bool		bConstant;
+	bool		bDirect;
+	bool		bAny;
+
+	szStart = pszCode->Text();
+	if (strstr(szStart, "\t\ttay\n") == NULL)
+	{
+		return;
+	}
+	sz.Init(CIRW65C816Backend::GetScratch());
+	szCopied = szStart;
+	bAny = false;
+	for (szCode = strstr(szStart, "\t\ttay\n"); szCode; szCode = strstr(szCode + 1, "\t\ttay\n"))
+	{
+		if ((szCode != szStart) && (szCode[-1] != '\n'))
+		{
+			continue;
+		}
+		if (szCode < szCopied)
+		{
+			continue;
+		}
+
+		//S's move back: tdc / clc / adc n / tcs, or lda [D + n] / tcs.
+		szMove = szCode + 6;
+		szAt = IR816ExitLine(szMove, "tdc");
+		if (szAt)
+		{
+			szAt = IR816ExitLine(szAt, "clc");
+			szAt = szAt ? IR816ExitNumberLine(szAt, "adc ", "", "") : NULL;
+		}
+		else
+		{
+			szAt = IR816ExitNumberLine(szMove, "lda ", "[D + ", "]");
+		}
+		szAt = szAt ? IR816ExitLine(szAt, "tcs") : NULL;
+		szMoved = szAt;
+		szAt = szAt ? IR816ExitLine(szAt, "tya") : NULL;
+		szEnd = szAt;
+		szAt = szAt ? IR816ExitLine(szAt, "pld") : NULL;
+		szAt = szAt ? IR816ExitLine(szAt, "rtl") : NULL;
+		if (!szAt)
+		{
+			continue;
+		}
+
+		//The line before the tay.
+		szLoad = NULL;
+		bConstant = false;
+		bDirect = false;
+		if (!bNoResult && (szCode - szCopied >= 2))
+		{
+			for (szLoad = szCode - 1; (szLoad > szCopied) && (szLoad[-1] != '\n'); szLoad--)
+			{
+			}
+			if (IR816ExitNumberLine(szLoad, "lda ", "", "") == szCode)
+			{
+				bConstant = true;
+			}
+			else if (IR816ExitNumberLine(szLoad, "lda ", "[D + ", "]") == szCode)
+			{
+				bDirect = true;
+			}
+		}
+		if (!bNoResult && !bConstant && !bDirect)
+		{
+			continue;
+		}
+
+		bAny = true;
+		if (bNoResult)
+		{
+			sz.Append(szCopied, (size)(szCode - szCopied));
+			sz.Append(szMove, (size)(szMoved - szMove));
+		}
+		else if (bConstant)
+		{
+			sz.Append(szCopied, (size)(szLoad - szCopied));
+			sz.Append(szMove, (size)(szMoved - szMove));
+			sz.Append(szLoad, (size)(szCode - szLoad));
+		}
+		else
+		{
+			sz.Append(szCopied, (size)(szLoad - szCopied));
+			sz.Append("\t\tldy ");
+			sz.Append(szLoad + 6, (size)(szCode - (szLoad + 6)));
+			sz.Append(szMove, (size)(szEnd - szMove));
+		}
+		szCopied = szEnd;
+	}
+	if (bAny)
+	{
+		sz.Append(szCopied);
+		pszCode->Kill();
+		pszCode->Init(sz);
+	}
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the code calls a routine given places in the frame as numbers
 // (a 64 bit shift routine's in X, a soft float frame operand entry's in X,
 // Y and A), which DropFrame can't move.
