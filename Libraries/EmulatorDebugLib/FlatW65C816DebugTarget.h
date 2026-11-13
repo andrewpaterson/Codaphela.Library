@@ -20,18 +20,18 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 ** ------------------------------------------------------------------------ **/
 #ifndef __FLAT_65C816_DEBUG_TARGET_H__
 #define __FLAT_65C816_DEBUG_TARGET_H__
-#include "MicroprocessorLib/Fast65C816.h"
+#include "MicroprocessorLib/FastW65C816.h"
 #include "DebugTarget.h"
 #include "W65C816DebugRegisters.h"
 
 
-//A CFast65C816 with nothing but memory: a flat block at 00:0000, uiMemorySize bytes.  Reads past it are $FF and
+//A CFastW65C816 with nothing but memory: a flat block at 00:0000, uiMemorySize bytes.  Reads past it are $FF and
 //writes are ignored.  Run's budget is instructions.  It has no decoder unless it is given one (SetDecoder): the
 //W65C816's instructions are known where its assembler is.
-class CFlat65C816DebugTarget : public CDebugTarget
+class CFlatW65C816DebugTarget : public CDebugTarget
 {
 protected:
-	CFast65C816		mcMPU;
+	CFastW65C816		mcMPU;
 	uint8*			mpuiMemory;
 	uint32			muiMemorySize;
 	CDebugDecoder*	mpcDecoder;
@@ -40,7 +40,7 @@ public:
 	void			Init(uint32 uiMemorySize);
 	void			Kill(void);
 
-	CFast65C816*	GetMPU(void);
+	CFastW65C816*	GetMPU(void);
 	uint8*			GetMemory(void);
 	void			SetDecoder(CDebugDecoder* pcDecoder);
 

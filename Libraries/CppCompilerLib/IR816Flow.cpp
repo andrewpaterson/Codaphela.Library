@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
-#include "IR816Code.h"
+#include "IRW65C816Code.h"
 
 
 //The W65C816 back end's passes over a function's blocks of assembly text (IR816BuildFlow): stores dead on every
@@ -46,7 +46,7 @@ struct SIR816FlowLine
 {
 	const char*	szLine;
 	const char*	szEnd;
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	int			iKind;		//IR816FL_.
 	int			iBytes;		//A direct page store's bytes: 2, 1, or 0 when the width isn't known here.
 	bool		bRuntime;	//A call to a runtime routine: it reads the scratch bytes.
@@ -301,9 +301,9 @@ static int IR816FindFlowLabel(CArrayTemplate<SIR816FlowLabel>* pasLabels, const 
 // with no tcs after: not IR816MovesS), with n in *piFrame.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816FrameAddress(CIR816Code* pcCode, size uiLine, int32* piFrame)
+static bool IR816FrameAddress(CIRW65C816Code* pcCode, size uiLine, int32* piFrame)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 
 	if ((uiLine + 1 >= pcCode->NumLines()) || !pcCode->Instruction(uiLine + 1, &sLine))
 	{
@@ -419,7 +419,7 @@ static void IR816DirectiveWidths(const char* szLine, SIR816FlowWidths* psWidths)
 // The widths after an instruction.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816InstructionWidths(SIR816Line* psLine, SIR816FlowWidths* psWidths)
+static void IR816InstructionWidths(SIRW65C816Line* psLine, SIR816FlowWidths* psWidths)
 {
 	size	ui;
 	char	c;
@@ -457,7 +457,7 @@ static void IR816InstructionWidths(SIR816Line* psLine, SIR816FlowWidths* psWidth
 // A direct page store's bytes (SIR816FlowLine::iBytes) at these widths.
 //
 //////////////////////////////////////////////////////////////////////////
-static int IR816StoreBytes(SIR816Line* psLine, SIR816FlowWidths* psWidths)
+static int IR816StoreBytes(SIRW65C816Line* psLine, SIR816FlowWidths* psWidths)
 {
 	int		iWidth;
 
@@ -578,7 +578,7 @@ static bool IR816FlowOperand(SIR816FlowLine* psLine, SIR816FlowLine* psBefore, b
 // followed (IR816BuildFlowLabelled).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816ReadFlowLines(CIR816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, bool* pbFrame)
+static bool IR816ReadFlowLines(CIRW65C816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, bool* pbFrame)
 {
 	SIR816FlowLine*		psLine;
 	SIR816FlowLine*		psBefore;
@@ -892,7 +892,7 @@ static bool IR816LinkFlowBlock(size uiBlock, bool bFrame, CArrayTemplate<SIR816F
 // gets the code's labels, sorted to find where a branch goes.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BuildFlowLabelled(CIR816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf, CArrayTemplate<SIR816FlowLabel>* pasLabels)
+static bool IR816BuildFlowLabelled(CIRW65C816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf, CArrayTemplate<SIR816FlowLabel>* pasLabels)
 {
 	size	ui;
 	bool	bFrame;
@@ -923,12 +923,12 @@ static bool IR816BuildFlowLabelled(CIR816Code* pcCode, bool bStores, CArrayTempl
 // IR816BuildFlowLabelled with a table of the labels of its own.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BuildFlow(CIR816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
+static bool IR816BuildFlow(CIRW65C816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
 {
 	CArrayTemplate<SIR816FlowLabel>	asLabels;
 	bool							bResult;
 
-	asLabels.Init(CIR816Backend::GetScratch());
+	asLabels.Init(CIRW65C816Backend::GetScratch());
 	bResult = IR816BuildFlowLabelled(pcCode, bStores, pasLines, pasBlocks, paiBlockOf, &asLabels);
 	asLabels.Kill();
 	return bResult;
@@ -941,7 +941,7 @@ static bool IR816BuildFlow(CIR816Code* pcCode, bool bStores, CArrayTemplate<SIR8
 // point into them, aren't used after).
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816WriteFlow(CIR816Code* pcCode, CArrayTemplate<bool>* pabRemove)
+static void IR816WriteFlow(CIRW65C816Code* pcCode, CArrayTemplate<bool>* pabRemove)
 {
 	pcCode->RemoveMarked(pabRemove);
 }
@@ -959,9 +959,9 @@ static void IR816WriteFlow(CIR816Code* pcCode, CArrayTemplate<bool>* pabRemove)
 // True if any went.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
+bool CIRW65C816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 {
-	CIR816Code	cCode;
+	CIRW65C816Code	cCode;
 	bool		bRemoved;
 
 	cCode.Init();
@@ -980,7 +980,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::RemoveFlowDeadStores(CIR816Code* pcCode)
+bool CIRW65C816Backend::RemoveFlowDeadStores(CIRW65C816Code* pcCode)
 {
 	CArrayTemplate<SIR816FlowLine>	asLines;
 	CArrayTemplate<SIR816FlowBlock>	asBlocks;
@@ -998,9 +998,9 @@ bool CIR816Backend::RemoveFlowDeadStores(CIR816Code* pcCode)
 	bool							bFalse;
 	int32							iReached;	//The lowest byte a pointer into the frame may reach (bFrameAddress).
 
-	asLines.Init(CIR816Backend::GetScratch());
-	asBlocks.Init(CIR816Backend::GetScratch());
-	aiBlockOf.Init(CIR816Backend::GetScratch());
+	asLines.Init(CIRW65C816Backend::GetScratch());
+	asBlocks.Init(CIRW65C816Backend::GetScratch());
+	aiBlockOf.Init(CIRW65C816Backend::GetScratch());
 	if (!IR816BuildFlow(pcCode, true, &asLines, &asBlocks, &aiBlockOf))
 	{
 		aiBlockOf.Kill();
@@ -1061,7 +1061,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CIR816Code* pcCode)
 	}
 
 	//The stores none of whose bytes are live after them.
-	abRemove.Init(CIR816Backend::GetScratch());
+	abRemove.Init(CIRW65C816Backend::GetScratch());
 	bFalse = false;
 	for (ui = 0; ui < asLines.NumElements(); ui++)
 	{
@@ -1104,7 +1104,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CIR816Code* pcCode)
 // is known there), and a label or a directive forgets all.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816FlowHeld(SIR816FlowLine* psLine, SIR816Held* asHeld)
+static void IR816FlowHeld(SIR816FlowLine* psLine, SIRW65C816Held* asHeld)
 {
 	if (psLine->iKind == IR816FL_INSTRUCTION)
 	{
@@ -1126,7 +1126,7 @@ static void IR816FlowHeld(SIR816FlowLine* psLine, SIR816Held* asHeld)
 // knows it holds too.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816MeetHeld(SIR816Held* asHeld, SIR816Held* asOther)
+static void IR816MeetHeld(SIRW65C816Held* asHeld, SIRW65C816Held* asOther)
 {
 	int		i;
 	int		j;
@@ -1161,7 +1161,7 @@ static void IR816MeetHeld(SIR816Held* asHeld, SIR816Held* asOther)
 // Whether every register holds the same operands in both (in any order).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816SameHeld(SIR816Held* asHeld, SIR816Held* asOther)
+static bool IR816SameHeld(SIRW65C816Held* asHeld, SIRW65C816Held* asOther)
 {
 	int		i;
 	int		j;
@@ -1212,22 +1212,22 @@ static bool IR816SameHeld(SIR816Held* asHeld, SIR816Held* asOther)
 // (but before something reads the N and Z they set).  True if any went.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
+bool CIRW65C816Backend::PeepholeFlowRegisters(CIRW65C816Code* pcCode)
 {
 	CArrayTemplate<SIR816FlowLine>	asLines;
 	CArrayTemplate<SIR816FlowBlock>	asBlocks;
 	CArrayTemplate<int>				aiBlockOf;
 	CArrayTemplate<bool>			abRemove;
-	CArrayTemplate<SIR816Held>		asIn;		//Three per block: what A, X and Y hold at its start.
-	CArrayTemplate<SIR816Held>		asOut;		//And at its end.
+	CArrayTemplate<SIRW65C816Held>		asIn;		//Three per block: what A, X and Y hold at its start.
+	CArrayTemplate<SIRW65C816Held>		asOut;		//And at its end.
 	CArrayTemplate<bool>			abDone;		//Whether its end is worked out yet.
 	CArrayTemplate<int>				aiFromStart;	//Per block (and one more): where its blocks gone to from start in aiFrom.
 	CArrayTemplate<int>				aiFrom;
 	CArrayTemplate<int>				aiFill;
 	SIR816FlowLine*					psLine;
 	SIR816FlowBlock*				psBlock;
-	SIR816Held						asHeld[3];
-	SIR816Held						asNone[3];
+	SIRW65C816Held						asHeld[3];
+	SIRW65C816Held						asNone[3];
 	size							ui;
 	size							uj;
 	int								i;
@@ -1239,9 +1239,9 @@ bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
 	bool							bFalse;
 	bool							bFirst;
 
-	asLines.Init(CIR816Backend::GetScratch());
-	asBlocks.Init(CIR816Backend::GetScratch());
-	aiBlockOf.Init(CIR816Backend::GetScratch());
+	asLines.Init(CIRW65C816Backend::GetScratch());
+	asBlocks.Init(CIRW65C816Backend::GetScratch());
+	aiBlockOf.Init(CIRW65C816Backend::GetScratch());
 	if (!IR816BuildFlow(pcCode, false, &asLines, &asBlocks, &aiBlockOf))
 	{
 		aiBlockOf.Kill();
@@ -1252,9 +1252,9 @@ bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
 
 	memset(asNone, 0, sizeof(asNone));
 	IR816ForgetHeld(asNone, 0, 2);
-	asIn.Init(CIR816Backend::GetScratch());
-	asOut.Init(CIR816Backend::GetScratch());
-	abDone.Init(CIR816Backend::GetScratch());
+	asIn.Init(CIRW65C816Backend::GetScratch());
+	asOut.Init(CIRW65C816Backend::GetScratch());
+	abDone.Init(CIRW65C816Backend::GetScratch());
 	bFalse = false;
 	for (ui = 0; ui < asBlocks.NumElements(); ui++)
 	{
@@ -1267,8 +1267,8 @@ bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
 	}
 
 	//The blocks going to each block, in block order: block ui's are aiFrom[aiFromStart[ui]] up to aiFromStart[ui + 1].
-	aiFromStart.Init(CIR816Backend::GetScratch());
-	aiFrom.Init(CIR816Backend::GetScratch());
+	aiFromStart.Init(CIRW65C816Backend::GetScratch());
+	aiFrom.Init(CIRW65C816Backend::GetScratch());
 	aiFromStart.GrowToAtLeastNumElements(asBlocks.NumElements() + 1, true, 0);
 	for (ui = 0; ui < asBlocks.NumElements(); ui++)
 	{
@@ -1286,7 +1286,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
 		*aiFromStart.Get(ui + 1) += *aiFromStart.Get(ui);
 	}
 	aiFrom.GrowToAtLeastNumElements(*aiFromStart.Get(asBlocks.NumElements()), true, 0);
-	aiFill.Init(CIR816Backend::GetScratch());
+	aiFill.Init(CIRW65C816Backend::GetScratch());
 	aiFill.GrowToAtLeastNumElements(asBlocks.NumElements(), true, 0);
 	for (ui = 0; ui < asBlocks.NumElements(); ui++)
 	{
@@ -1365,7 +1365,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
 	while (bChanged);
 
 	//The loads of what the register holds.
-	abRemove.Init(CIR816Backend::GetScratch());
+	abRemove.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < asLines.NumElements(); ui++)
 	{
 		abRemove.Add(&bFalse);

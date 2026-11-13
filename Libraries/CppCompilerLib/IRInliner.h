@@ -45,7 +45,7 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 										//must fit in a 64KB bank).
 
 
-//How often calls were made, from a profile of the program (CAsm65816Profile): what a profile guided inliner asks.
+//How often calls were made, from a profile of the program (CAsmW65C816Profile): what a profile guided inliner asks.
 class CIRInlineProfile
 {
 public:
@@ -65,7 +65,7 @@ public:
 //again afterwards.  A callee with no body in the module may be another unit's, from SetImports' CIRImports.  With a
 //profile (SetProfile) the hottest calls are inlined first, and a hot call (IR_INLINE_HOT_SHARE) may inline a callee
 //of up to muiHotInstructions.  Where a function that only passes a call on is a jump (SetForwardersJump: the
-//W65C816's CIR816Backend::Forwarder), it takes only a callee no bigger than itself (IR_INLINE_THUNK_INSTRUCTIONS),
+//W65C816's CIRW65C816Backend::Forwarder), it takes only a callee no bigger than itself (IR_INLINE_THUNK_INSTRUCTIONS),
 //unless the call is hot or passes a constant the callee compares: inlining another would save only the jump, and
 //copy the work the layers share into each.
 //How much the inliner may inline (CCPPTarget::GetInlineLimits): the most instructions a function inlined may have,

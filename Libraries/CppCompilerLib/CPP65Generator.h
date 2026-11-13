@@ -42,7 +42,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
 #include "IRImports.h"
-#include "Assembler65Lib/Asm65816Profile.h"
+#include "Assembler65Lib/AsmW65C816Profile.h"
 #include "CPPTarget.h"
 #include "CPPErrors.h"
 #include "Config.h"
@@ -489,7 +489,7 @@ protected:
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 	size					muiImportsTurn;		//The unit's turn with them (CIRImports::BeginTurn).
 	bool					mbMissedImports;	//The unit must be generated again (MissedImports).
-	CAsm65816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
+	CAsmW65C816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
@@ -497,7 +497,7 @@ protected:
 	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore),
 	uint32					muiSpillUnit;		//by the unit's number.
 	CMemorySpillStore		mcMemorySpillStore;	//The spill store when none is set.
-	CScratchPadAllocator	mcBackendScratch;	//The W65C816 back end's working arrays and strings, for one function at a time (CIR816Backend::SetScratch).
+	CScratchPadAllocator	mcBackendScratch;	//The W65C816 back end's working arrays and strings, for one function at a time (CIRW65C816Backend::SetScratch).
 	CArrayLargeTemplate<uint16>	mauiCodePieces;	//Per function written by the IR front end: how many pieces its code is in.
 	CCPPSemanticPass*		mpcSemanticPass;	//Check only: what names resolved to goes here.  NULL when generating.
 	CCPPCompileStatistics*	mpcStatistics;		//What compiling the unit is counted and timed in (SetStatistics): the builder's for the unit...
@@ -520,7 +520,7 @@ public:
 	bool					GenerateBeforeTurn(void);
 	bool					GenerateAfterTurn(CCPP65Assembly* pcDest);
 	CArrayChars*			GetNotImported(void);
-	void					SetFrameProfile(CAsm65816Profile* pcProfile);
+	void					SetFrameProfile(CAsmW65C816Profile* pcProfile);
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);

@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // and X for 32 bits) goes to its place.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
+void CIRW65C816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
 {
 	bool	bResult;
 	int		iWords;
@@ -92,7 +92,7 @@ void CIR816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
 // pushes the return address and the target - 1, and rtl's to it (rtl adds 1 to the low 16 bits only).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
+void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
 	int32					iBytes;
 	size					ui;
@@ -103,12 +103,12 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	int						iRegisters;
 	CChars					sz;
 	CArrayIR816Arguments	asArguments;
-	SIR816Argument*			psPlaced;
+	SIRW65C816Argument*			psPlaced;
 
 	//The arguments as passed: the hidden result pointer first, each pushed unless a register function takes it in
 	//registers.
 	sCallee = psInstruction->asArguments[0];
-	asArguments.Init(CIR816Backend::GetScratch());
+	asArguments.Init(CIRW65C816Backend::GetScratch());
 	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
 	{
 		psPlaced = asArguments.Add();
@@ -131,7 +131,7 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	}
 	mauiPendingArguments.FakeSetUsedElements(0);
 
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	if (sCallee.IsSymbol())
 	{
 		sz.Append("jsl ");
@@ -174,7 +174,7 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 // isn't.  Returns the bytes pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
+int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
 {
 	int32			iBytes;
 	size			ui;
@@ -213,7 +213,7 @@ static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction
 {
 	size			ui;
 	size			uiFirst;
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 
 	uiFirst = pasArguments->NumElements() - pauiPending->NumElements();
 	*psValue = IRNone();
@@ -245,7 +245,7 @@ static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction
 // pushed the others): LoadRegisters.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
+void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
 {
 	SIRReference	asValues[IR816_ARGUMENT_REGISTERS];
 	int				aiWords[IR816_ARGUMENT_REGISTERS];
@@ -279,7 +279,7 @@ void CIR816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psI
 // and pulled.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters)
+void CIRW65C816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters)
 {
 	int		i;
 	bool	bDirect;
@@ -347,7 +347,7 @@ void CIR816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int32* a
 // value kept in X, or a word in the direct page.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
+bool CIRW65C816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 {
 	if (!sValue.IsTemporary())
 	{
@@ -368,7 +368,7 @@ bool CIR816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 // frame offset; the high word is 0), else of sValue.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult)
+void CIRW65C816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult)
 {
 	static const char*	aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
 	static const char*	aszZeros[IR816_ARGUMENT_REGISTERS] = { "lda 0", "ldx 0", "ldy 0" };
@@ -397,7 +397,7 @@ void CIR816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int iWo
 // front end marked (CIRModule::SetRegisterCall).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsRegisterCall(SIRReference sCallee)
+bool CIRW65C816Backend::IsRegisterCall(SIRReference sCallee)
 {
 	return mpcOptions->mbRegisterArguments && sCallee.IsSymbol() && mpcModule->IsRegisterCall(sCallee.Index());
 }

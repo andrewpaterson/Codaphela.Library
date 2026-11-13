@@ -57,7 +57,7 @@ typedef CArrayTemplate<SIRCopyStep>	CArrayIRCopySteps;
 
 
 class CScratchPadAllocator;
-class CAsm65816Profile;
+class CAsmW65C816Profile;
 
 
 //What a back end keeps about a function it wrote (TakeWritten), for FinishFunction: its own to make sense of.  The
@@ -69,7 +69,7 @@ public:
 };
 
 
-//What the 65C64 (CIR65Backend) and W65C816 (CIR816Backend) back ends share: the module and the label counter, the
+//What the 65C64 (CIR65Backend) and W65C816 (CIRW65C816Backend) back ends share: the module and the label counter, the
 //function being written and the text it goes to, its source markers, errors and block labels, the runtime routines
 //its code calls, the order of the phis' copies on a jump (ParallelCopy), multiplies by constants as shifts and adds
 //when the target says they cost less (ExpandMultiplies), and writing a module as sections (each function and global a section of its own), its globals'
@@ -99,7 +99,7 @@ public:
 	virtual void	SetOptions(CCPPCompileOptions* pcOptions);
 	virtual bool	GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) = 0;
 	virtual CIRWrittenFunction*	TakeWritten(void);
-	virtual void	FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile);
+	virtual void	FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile);
 
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);

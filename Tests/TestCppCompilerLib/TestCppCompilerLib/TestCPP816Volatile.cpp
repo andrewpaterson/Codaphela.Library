@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/PrimitiveTypes.h"
-#include "MicroprocessorLib/Fast65C816.h"
+#include "MicroprocessorLib/FastW65C816.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
@@ -89,7 +89,7 @@ static void TestVolatileWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
 static int32 TestVolatileRun(const char* szSource, STestVolatileDevice* psDevice, uint32 uiReadyOn)
 {
 	CCPP65Builder		cBuilder;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	CAsm65Output*		pcOutput;
 	SAsm65Segment*		psSegment;
 	size				i;

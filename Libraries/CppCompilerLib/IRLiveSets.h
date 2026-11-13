@@ -25,7 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //Which temporaries are live into and out of each block of a function, the dataflow both back ends' register
-//allocation starts from (CIRLiveness for the 65C64, CIR816Backend::PackTemporaries).  The caller says what each block
+//allocation starts from (CIRLiveness for the 65C64, CIRW65C816Backend::PackTemporaries).  The caller says what each block
 //uses and defines, in order (Use, Define), and the phi arguments it passes on (PassOut), then Solve works out
 //in = used | (out & ~defined) and out = the successors' ins until nothing changes.
 class CIRLiveSets

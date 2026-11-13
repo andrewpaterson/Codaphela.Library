@@ -194,7 +194,7 @@
     <ClCompile Include="DebugTarget.cpp" />
     <ClCompile Include="DebugLaunch.cpp" />
     <ClCompile Include="Flat65C64DebugTarget.cpp" />
-    <ClCompile Include="Flat65C816DebugTarget.cpp" />
+    <ClCompile Include="FlatW65C816DebugTarget.cpp" />
     <ClCompile Include="W65C816DebugRegisters.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -206,7 +206,7 @@
     <ClInclude Include="DebugServer.h" />
     <ClInclude Include="DebugTarget.h" />
     <ClInclude Include="Flat65C64DebugTarget.h" />
-    <ClInclude Include="Flat65C816DebugTarget.h" />
+    <ClInclude Include="FlatW65C816DebugTarget.h" />
     <ClInclude Include="W65C816DebugRegisters.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

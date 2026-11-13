@@ -27,7 +27,7 @@
     <ClCompile Include="Flat65C64DebugTarget.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Flat65C816DebugTarget.cpp">
+    <ClCompile Include="FlatW65C816DebugTarget.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="W65C816DebugRegisters.cpp">
@@ -59,7 +59,7 @@
     <ClInclude Include="Flat65C64DebugTarget.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Flat65C816DebugTarget.h">
+    <ClInclude Include="FlatW65C816DebugTarget.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="W65C816DebugRegisters.h">

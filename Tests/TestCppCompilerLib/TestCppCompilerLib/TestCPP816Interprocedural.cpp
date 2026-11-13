@@ -249,7 +249,7 @@ static bool TestCPP816JumpsTo(const char* szListing, const char* szLabel, const 
 //////////////////////////////////////////////////////////////////////////
 //
 // A function that only passes its arguments on to another (a wrapper,
-// CIR816Backend::Forwarder) jumps to it: those whose arguments are already
+// CIRW65C816Backend::Forwarder) jumps to it: those whose arguments are already
 // where the callee wants them, with constants the callee takes in Y loaded
 // (FwdMul's 5, FwdAdd's false, FwdSub's true), or none (FwdSame).  Not
 // when the arguments swap (FwdSwap) or a constant must be pushed

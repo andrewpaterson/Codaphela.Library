@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_816_BACKEND_H__
 #define __I_R_816_BACKEND_H__
 #include "BaseLib/ArrayChars.h"
-#include "Assembler65Lib/Asm65816Profile.h"
+#include "Assembler65Lib/AsmW65C816Profile.h"
 #include "BaseLib/Numbers.h"
 #include "BaseLib/ScratchPadAllocator.h"
 #include "IRBackend.h"
@@ -30,9 +30,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRLoops.h"
 
 
-class CIR816LiveRanges;
-class CIR816Code;
-class CIR816Groups;
+class CIRW65C816LiveRanges;
+class CIRW65C816Code;
+class CIRW65C816Groups;
 
 
 //The frame's first bytes (direct page offsets) are scratch: a pointer loads and stores go through, a call's result,
@@ -59,7 +59,7 @@ class CIR816Groups;
 //IR816_ALIGN_BIG_CYCLES more for a frame past the page, and up to 255 bytes of stack.  It never does if it may recurse.
 //By default the estimate decides (the user: only when really worth it): it has a loop, and its direct page accesses,
 //each weighted 8 times for each loop it is in (CIRLoops::Weight, up to IR816_ALIGN_MAX_DEPTH), are more than
-//IR816_ALIGN_GAIN times the cost.  With a profile (CAsm65816Profile, CCPP65Builder::SetFrameProfile) the measure
+//IR816_ALIGN_GAIN times the cost.  With a profile (CAsmW65C816Profile, CCPP65Builder::SetFrameProfile) the measure
 //decides: it was never seen recursing, its accesses are more than IR816_ALIGN_GAIN times the cost of its calls and
 //they save at least one IR816_ALIGN_SHARE'th of the profiled cycles.
 #define IR816_ALIGN_GAIN		3
@@ -79,21 +79,21 @@ class CIR816Groups;
 //One argument of a call or parameter of a function (the hidden result pointer first) as the register arguments place
 //it: its words and the register of its first word (0 A, 1 X, 2 Y; its other words take the next ones), or -1 when it
 //is pushed.
-struct SIR816Argument
+struct SIRW65C816Argument
 {
 	int		iWords;
 	int		iRegister;
 };
 
 
-typedef CArrayTemplate<SIR816Argument>	CArrayIR816Arguments;
+typedef CArrayTemplate<SIRW65C816Argument>	CArrayIR816Arguments;
 
 
 //A function's frame (D + offset), as Layout lays it out, lowest first: the temporaries from IR816_FIRST_TEMPORARY;
 //where an aligned frame past the page keeps S; the slots; the register words, at the frame's
 //top.  Above it the link (the caller's D and the return address), then the pushed arguments, the hidden result
 //pointer first.  AlignFrame gets it from GenerateFunction (GetFrame), with how the function uses the direct page.
-struct SIR816Frame
+struct SIRW65C816Frame
 {
 	int32	iFrameBytes;		//D + 1 to D + iFrameBytes.
 	int32	iSavedS;			//Where an aligned frame past the page keeps S, or -1.
@@ -116,10 +116,10 @@ struct SIR816Frame
 
 
 //What the W65C816 back end keeps about a function it wrote: its frame, for AlignFrame.
-class CIR816Written : public CIRWrittenFunction
+class CIRW65C816Written : public CIRWrittenFunction
 {
 public:
-	SIR816Frame		msFrame;
+	SIRW65C816Frame		msFrame;
 };
 
 
@@ -153,11 +153,11 @@ public:
 //definition that don't agree don't link.  The prologue pushes the registers into the top of the frame.  The plain
 //label is a stub for callers that push everything (function pointers, vtables, thunks, assembly): it loads the
 //registers from the stack and goes on to the body.
-class CIR816Backend : public CIRBackend
+class CIRW65C816Backend : public CIRBackend
 {
 protected:
 	CArrayIR816Arguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
-	SIR816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
+	SIRW65C816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
 	CArrayIRCopies			masCopies;			//A jump's phi copies (EdgeCopies)...
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
@@ -192,10 +192,10 @@ public:
 	static CMallocator*	SetScratch(CMallocator* pcScratch);
 	static CMallocator*	GetScratch(void);
 	void			SetMathTables(bool bMathTables);
-	void			GetFrame(SIR816Frame* psFrame);
+	void			GetFrame(SIRW65C816Frame* psFrame);
 	CIRWrittenFunction*	TakeWritten(void) override;
-	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile) override;
-	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
+	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile) override;
+	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsmW65C816Profile* pcProfile);
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel, size uiStart);
@@ -208,24 +208,24 @@ public:
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);
 	static void		AppendBitsTable(CChars* pszDest, const char* szName);
 	static void		Peephole(CChars* pszDest, size uiStart);
-	static void		Peephole(CIR816Code* pcCode);
+	static void		Peephole(CIRW65C816Code* pcCode);
 	static void		RemoveDeadStores(CChars* pszDest, size uiStart);
-	static void		RemoveDeadStores(CIR816Code* pcCode);
+	static void		RemoveDeadStores(CIRW65C816Code* pcCode);
 	static bool		RemoveFlowDeadStores(CChars* pszDest, size uiStart);
-	static bool		RemoveFlowDeadStores(CIR816Code* pcCode);
-	static bool		PeepholeFlowRegisters(CIR816Code* pcCode);
+	static bool		RemoveFlowDeadStores(CIRW65C816Code* pcCode);
+	static bool		PeepholeFlowRegisters(CIRW65C816Code* pcCode);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
-	static void		PeepholeBranches(CIR816Code* pcCode);
+	static void		PeepholeBranches(CIRW65C816Code* pcCode);
 	static void		PeepholeMasks(CChars* pszDest, size uiStart);
-	static void		PeepholeMasks(CIR816Code* pcCode);
+	static void		PeepholeMasks(CIRW65C816Code* pcCode);
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
-	static void		PeepholeStores(CIR816Code* pcCode);
+	static void		PeepholeStores(CIRW65C816Code* pcCode);
 	static void		PeepholeTransfers(CChars* pszDest, size uiStart);
-	static void		PeepholeTransfers(CIR816Code* pcCode);
+	static void		PeepholeTransfers(CIRW65C816Code* pcCode);
 	static void		PeepholeRegisters(CChars* pszDest, size uiStart);
-	static void		PeepholeRegisters(CIR816Code* pcCode);
+	static void		PeepholeRegisters(CIRW65C816Code* pcCode);
 	static void		RemoveUnreadStores(CChars* pszDest, size uiStart);
-	static void		RemoveUnreadStores(CIR816Code* pcCode);
+	static void		RemoveUnreadStores(CIRW65C816Code* pcCode);
 
 protected:
 	void			Line(const char* szText);
@@ -235,19 +235,19 @@ protected:
 	int				Words(SIRType sType);
 	bool			IsHiddenResult(SIRType sType);
 	void			Layout(void);
-	void			AddRegions(CIR816LiveRanges* pcRanges);
+	void			AddRegions(CIRW65C816LiveRanges* pcRanges);
 	int32			PackTemporaries(void);
-	void			AddPackEvents(CIR816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents);
-	void			AddInstructionPackEvents(CIR816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight);
-	void			AddSuccessorPackEvents(CIR816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition);
-	void			OrderTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder);
+	void			AddPackEvents(CIRW65C816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents);
+	void			AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight);
+	void			AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition);
+	void			OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder);
 	int32			SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo);
-	int32			PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
-	void			GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
-	bool			IsGroupFree(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter);
-	void			PlaceTemporary(CIR816LiveRanges* pcRanges, int32 iTemporary);
+	int32			PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
+	void			GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
+	bool			IsGroupFree(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter);
+	void			PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTemporary);
 	int32			PlaceBytes(int32 iTemporary);
-	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
+	void			AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
 	bool			InX(SIRReference sValue);
 	int32			OffsetOf(SIRReference sTemporary);
 
@@ -261,7 +261,7 @@ protected:
 	void			FillSign(int32 iDestination, int iFirst, int iWords);
 	void			PushValue(SIRReference sValue, SIRType sType);
 	void			PushWord(SIRReference sValue, int iWord);
-	int32			ArgumentPlace(SIR816Argument* psArgument, int32* piPushed);
+	int32			ArgumentPlace(SIRW65C816Argument* psArgument, int32* piPushed);
 	void			PushFrameAddress(int32 iOffset);
 	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
 	void			FoldPointers(void);

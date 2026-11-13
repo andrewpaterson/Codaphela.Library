@@ -23,7 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //The passes over a function's branches that the 65C64's and the W65C816's text passes share (CIR65Peephole,
-//CIR816Backend::PeepholeBranches), over the code as a CIRBranchCode.  Target is the label line a branch, a jump
+//CIRW65C816Backend::PeepholeBranches), over the code as a CIRBranchCode.  Target is the label line a branch, a jump
 //(or a W65C816 brl) goes to, IR_NO_LINE for none.  IsEntry is a line run however the lines before it end: the
 //function's label, a label something other than a branch names (a jump table), data.  Retarget sends a branch or
 //jump to another label with its condition; Invert sends a branch there with the opposite condition, false if it

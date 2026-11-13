@@ -9,14 +9,14 @@
 #include "BaseLib/PointerFunctions.h"
 #include "MicroprocessorLib/W65C816InstructionFactory.h"
 #include "MicroprocessorLib/65C64InstructionFactory.h"
-#include "Assembler65Lib/Asm65816Assembler.h"
-#include "Assembler65Lib/Asm65816FrameCheck.h"
+#include "Assembler65Lib/AsmW65C816Assembler.h"
+#include "Assembler65Lib/AsmW65C816FrameCheck.h"
 #include "Assembler65Lib/Asm65Linker.h"
 #include "Assembler65Lib/Asm65Library.h"
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppCompilerLib/IRParser.h"
 #include "CppCompilerLib/IRVerifier.h"
-#include "CppCompilerLib/IR816Backend.h"
+#include "CppCompilerLib/IRW65C816Backend.h"
 #include "CppCompilerLib/IR816BackendInternal.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816 back end (CIR816Backend), on IR programs: each runs on CFast65C816 (some in lockstep with the
+// The W65C816 back end (CIRW65C816Backend), on IR programs: each runs on CFastW65C816 (some in lockstep with the
 // CW65C816 simulator too) and must give the result expected and the 65C64 back end's.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ static const char* gszTestIR816StartUp =
 //////////////////////////////////////////////////////////////////////////
 static bool TestIR816Assemble(CAsm65Object* pcObject, const char* szName, const char* szSource)
 {
-	CAsm65816Assembler	cAssembler;
+	CAsmW65C816Assembler	cAssembler;
 	bool				bResult;
 
 	pcObject->Init(szName);
@@ -98,7 +98,7 @@ static void TestIR816AssembleFile(CAsm65Library* pcLibrary, const char* szDirect
 {
 	CTextFile			cFile;
 	CChars				szPath;
-	CAsm65816Assembler	cAssembler;
+	CAsmW65C816Assembler	cAssembler;
 
 	szPath.Init(szDirectory);
 	szPath.Append(_FS_);
@@ -150,7 +150,7 @@ static CAsm65Library* TestIR816Runtime(bool bMathSafe)
 //////////////////////////////////////////////////////////////////////////
 //
 // Assembles szCode (which has _main) with the start up, runs it with the
-// frame check (CAsm65816FrameCheck) and gives the stores to callers' frames
+// frame check (CAsmW65C816FrameCheck) and gives the stores to callers' frames
 // it found in pszWrites.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -160,8 +160,8 @@ static void TestIR816FrameWrites(const char* szCode, CChars* pszWrites)
 	CAsm65Object		acObjects[2];
 	CAsm65Linker		cLinker;
 	CAsm65Memory		cMemory;
-	CFast65C816			cFast;
-	CAsm65816FrameCheck	cCheck;
+	CFastW65C816			cFast;
+	CAsmW65C816FrameCheck	cCheck;
 	int					i;
 
 	szStartUp.Init(gszTestIR816StartUp);
@@ -210,7 +210,7 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 	CCPPErrors		cErrors;
 	CIRParser		cParser;
 	CIRVerifier		cVerifier;
-	CIR816Backend	cBackend;
+	CIRW65C816Backend	cBackend;
 	CChars			szCode;
 	CChars			szRuntime;
 	CChars			szStartUp;
@@ -218,7 +218,7 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 	CAsm65Object	acObjects[3];
 	CAsm65Linker	cLinker;
 	CAsm65Memory	cMemory;
-	CFast65C816		cFast;
+	CFastW65C816		cFast;
 	CIRFunction*	pcMain;
 	SIRType			sReturn;
 	int64			iResult;
@@ -248,7 +248,7 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 	cBackend.Init(&cModule, &iLabels);
 	cBackend.SetMathTables(!gbTestIR816MathSafe);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
-	AssertTrue(CIR816Backend::GenerateRuntime(cBackend.GetRuntime(), &szRuntime, &cErrors));
+	AssertTrue(CIRW65C816Backend::GenerateRuntime(cBackend.GetRuntime(), &szRuntime, &cErrors));
 	AssertString("", cErrors.Text());
 	cBackend.Kill();
 	if (pszAssembly)
@@ -526,7 +526,7 @@ void TestIR816BackendDivide(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The runtime divide's paths (R816_UDiv32 and R816_UDiv64 in IR816Backend.cpp), with values passed in so they aren't
+// The runtime divide's paths (R816_UDiv32 and R816_UDiv64 in IRW65C816Backend.cpp), with values passed in so they aren't
 // worked out when compiled: both under 65536, a divisor under 65536 with a dividend's high word below it and not
 // (and a divisor of 65535, which carries out of A), a dividend below the divisor, a divisor of 1, a dividend under 256,
 // a wide divisor with a narrow dividend and with a wide one; 64
@@ -1251,7 +1251,7 @@ void TestIR816BackendWide(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A pushed parameter's place, once the parameter is dead, may be a
-// temporary's (CIR816Backend::PackTemporaries): a 64 bit field masked out
+// temporary's (CIRW65C816Backend::PackTemporaries): a 64 bit field masked out
 // of it and set again (a soft float's significand) is worked out in the
 // parameter's place (its top word), no copy of it made.  A
 // temporary wider than the last pushed parameter it pairs with (an i1's
@@ -1295,7 +1295,7 @@ void TestIR816BackendParameterPlaces(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The frame check (CAsm65816FrameCheck, which TestIR816Run and the C++
+// The frame check (CAsmW65C816FrameCheck, which TestIR816Run and the C++
 // tests run their programs with): _main pushes an argument for _Bad, which
 // has a frame of 4 bytes, so its argument is D + 10 and D + 11 (past its
 // frame, the saved D and the return address) and D + 12 is main's frame.
@@ -1741,7 +1741,7 @@ static void AssertPeepholeRegisters(const char* szExpected, const char* szCode)
 	CChars	sz;
 
 	sz.Init(szCode);
-	CIR816Backend::PeepholeRegisters(&sz, 0);
+	CIRW65C816Backend::PeepholeRegisters(&sz, 0);
 	AssertString(szExpected, sz.Text());
 	sz.Kill();
 }
@@ -1800,7 +1800,7 @@ static void AssertPeepholeBranches(const char* szExpected, const char* szCode)
 	CChars	sz;
 
 	sz.Init(szCode);
-	CIR816Backend::PeepholeBranches(&sz, 0);
+	CIRW65C816Backend::PeepholeBranches(&sz, 0);
 	AssertString(szExpected, sz.Text());
 	sz.Kill();
 }
@@ -1927,7 +1927,7 @@ void TestIR816BackendRemoveUnreadStores(void)
 {
 	TestIR816TextPass	fPass;
 
-	fPass = CIR816Backend::RemoveUnreadStores;
+	fPass = CIRW65C816Backend::RemoveUnreadStores;
 	AssertIR816Pass("\t\tlda 1\n\t\tsta [D + 7]\n\t\tlda [D + 7]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 20\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
 		"\t\tlda 1\n\t\tsta [D + 35]\n\t\tsta [D + 7]\n\t\tlda [D + 7]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 20\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", fPass);
 
@@ -1961,7 +1961,7 @@ void TestIR816BackendPeephole(void)
 {
 	TestIR816TextPass	fPass;
 
-	fPass = CIR816Backend::Peephole;
+	fPass = CIRW65C816Backend::Peephole;
 
 	//A marked store and its lda both go, the value kept in A.  Not when a branch reads the lda's Z (the mark goes).
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tclc\n\t\tadc 4\n\t\tsta [D + 5]\n\t\trtl\n",
@@ -2033,7 +2033,7 @@ void TestIR816BackendRemoveDeadStores(void)
 {
 	TestIR816TextPass	fPass;
 
-	fPass = CIR816Backend::RemoveDeadStores;
+	fPass = CIRW65C816Backend::RemoveDeadStores;
 
 	//The first store is overwritten unread, past a store to the word next to it.
 	AssertIR816Pass("\t\tsta [D + 25]\n\t\tstz [D + 23]\n\t\trtl\n", "\t\tsta [D + 23]\n\t\tsta [D + 25]\n\t\tstz [D + 23]\n\t\trtl\n", fPass);
@@ -2062,7 +2062,7 @@ void TestIR816BackendRemoveDeadStores(void)
 //////////////////////////////////////////////////////////////////////////
 static void TestIR816RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 {
-	CIR816Backend::RemoveFlowDeadStores(pszDest, uiStart);
+	CIRW65C816Backend::RemoveFlowDeadStores(pszDest, uiStart);
 }
 
 
@@ -2158,7 +2158,7 @@ void TestIR816BackendPeepholeMasks(void)
 {
 	TestIR816TextPass	fPass;
 
-	fPass = CIR816Backend::PeepholeMasks;
+	fPass = CIRW65C816Backend::PeepholeMasks;
 
 	//The first mask goes: the clc after the second sets the carry before it is read.  With ora between, no carry.
 	AssertIR816Pass("\t\tlda [D + 3]\n\t\tclc\n\t\tadc 3\n\t\tand 0xFF\n\t\tsta [D + 5]\n\t\tclc\n\t\tadc [D + 7]\n\t\trtl\n",
@@ -2189,7 +2189,7 @@ void TestIR816BackendPeepholeStores(void)
 {
 	TestIR816TextPass	fPass;
 
-	fPass = CIR816Backend::PeepholeStores;
+	fPass = CIRW65C816Backend::PeepholeStores;
 
 	//dec and inc in A; the sta goes too when stz overwrites it.
 	AssertIR816Pass("\t\tdec A\n\t\tsta [D + 5]\n\t\tsta [D + 7]\n\t\trtl\n", "\t\tsta [D + 5]\n\t\tdec [D + 5]\n\t\tlda [D + 5]\n\t\tsta [D + 7]\n\t\trtl\n", fPass);
@@ -2238,7 +2238,7 @@ void TestIR816BackendPeepholeTransfers(void)
 {
 	TestIR816TextPass	fPass;
 
-	fPass = CIR816Backend::PeepholeTransfers;
+	fPass = CIRW65C816Backend::PeepholeTransfers;
 
 	AssertIR816Pass("\t\ttay\n\t\tlda [D + 3]\n\t\tlda [[D + 5]:24 + Y]\n\t\tldx 2\n\t\trtl\n",
 		"\t\ttax\n\t\tlda [D + 3]\n\t\ttxy\n\t\tlda [[D + 5]:24 + Y]\n\t\tldx 2\n\t\trtl\n", fPass);
@@ -2503,7 +2503,7 @@ static void TestIR816RuntimeRoutines(bool bMathSafe, int iCalls)
 	CAsm65Object		cStartUp;
 	CAsm65Linker		cLinker;
 	CAsm65Memory		cMemory;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	uint8*				puiMemory;
 	int64				iAddress;
 	uint64				uiSeed;
@@ -2707,7 +2707,7 @@ static void TestIR816RuntimeCycles(bool bMathSafe)
 	CAsm65Object		cStartUp;
 	CAsm65Linker		cLinker;
 	CAsm65Memory		cMemory;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	uint8*				puiMemory;
 	int64				iAddress;
 	int64				iNothing;

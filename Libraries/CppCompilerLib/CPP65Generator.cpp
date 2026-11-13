@@ -74,10 +74,10 @@ CArrayChars* CCPP65Generator::GetNotImported(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A profile of the program's functions: the W65C816 back end gives those it
-// measured worth it page aligned frames (CIR816Backend::AlignFrame).
+// measured worth it page aligned frames (CIRW65C816Backend::AlignFrame).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetFrameProfile(CAsm65816Profile* pcProfile)
+void CCPP65Generator::SetFrameProfile(CAsmW65C816Profile* pcProfile)
 {
 	mpcFrameProfile = pcProfile;
 }
@@ -98,7 +98,7 @@ void CCPP65Generator::SetListing(bool bListing)
 //////////////////////////////////////////////////////////////////////////
 //
 // The arena the W65C816 back end's working arrays and strings are in while
-// it writes a function (CCPP65IRFrontEnd::GenerateCode, CIR816Backend::
+// it writes a function (CCPP65IRFrontEnd::GenerateCode, CIRW65C816Backend::
 // SetScratch).
 //
 //////////////////////////////////////////////////////////////////////////

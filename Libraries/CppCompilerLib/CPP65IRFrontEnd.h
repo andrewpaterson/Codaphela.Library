@@ -134,7 +134,7 @@ typedef CArrayTemplate<SCPP65IRTemporary>	CArrayCPP65IRTemporaries;
 typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 
 
-//Writes every function body as IR and generates it with the target's back end (CIR65Backend or CIR816Backend).
+//Writes every function body as IR and generates it with the target's back end (CIR65Backend or CIRW65C816Backend).
 //The generator works out everything about the C++ (types with CCPP65TypeChecker, names, overloads, layouts) and
 //sets up the function; Body then writes the function as IR if it supports everything in it, or returns false
 //(having changed nothing) and the function is an error (CCPP65Generator::GenerateDefinition).  Locals are slots,
@@ -204,9 +204,9 @@ public:
 	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);
-	uint64			InlinedEntries(CAsm65816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
+	uint64			InlinedEntries(CAsmW65C816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
 	uint64			ProfileCycles(void);
-	CAsm65816Profile*	InliningProfile(void);
+	CAsmW65C816Profile*	InliningProfile(void);
 	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
 	CArrayChars*	GetMissingCallees(void);
 

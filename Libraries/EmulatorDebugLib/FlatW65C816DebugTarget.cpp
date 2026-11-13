@@ -20,7 +20,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
-#include "Flat65C816DebugTarget.h"
+#include "FlatW65C816DebugTarget.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 // The memory starts as NOPs.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlat65C816DebugTarget::Init(uint32 uiMemorySize)
+void CFlatW65C816DebugTarget::Init(uint32 uiMemorySize)
 {
 	mpcDecoder = NULL;
 	muiMemorySize = uiMemorySize;
@@ -42,7 +42,7 @@ void CFlat65C816DebugTarget::Init(uint32 uiMemorySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlat65C816DebugTarget::Kill(void)
+void CFlatW65C816DebugTarget::Kill(void)
 {
 	mcMPU.Kill();
 	free(mpuiMemory);
@@ -54,35 +54,35 @@ void CFlat65C816DebugTarget::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFast65C816* CFlat65C816DebugTarget::GetMPU(void)	{ return &mcMPU; }
-uint8* CFlat65C816DebugTarget::GetMemory(void)		{ return mpuiMemory; }
-const char* CFlat65C816DebugTarget::GetProcessorName(void)	{ return "W65C816"; }
-size CFlat65C816DebugTarget::NumAddressBits(void)	{ return 24; }
-size CFlat65C816DebugTarget::NumRegisters(void)		{ return D816R_NumRegisters; }
-uint32 CFlat65C816DebugTarget::GetProgramAddress(void)	{ return mcMPU.GetProgramAddress(); }
-uint32 CFlat65C816DebugTarget::GetStackPointer(void)	{ return mcMPU.GetS(); }
-CBreakpoints* CFlat65C816DebugTarget::GetBreakpoints(void)	{ return mcMPU.GetBreakpoints(); }
-bool CFlat65C816DebugTarget::IsAtBreakpoint(void)	{ return mcMPU.IsAtBreakpoint(); }
-bool CFlat65C816DebugTarget::IsStopped(void)		{ return mcMPU.IsStopped(); }
-void CFlat65C816DebugTarget::Run(uint64 uiBudget)	{ mcMPU.Run((size)uiBudget); }
-bool CFlat65C816DebugTarget::Step(void)				{ return mcMPU.Step(); }
-void CFlat65C816DebugTarget::Reset(void)			{ mcMPU.Reset(); }
+CFastW65C816* CFlatW65C816DebugTarget::GetMPU(void)	{ return &mcMPU; }
+uint8* CFlatW65C816DebugTarget::GetMemory(void)		{ return mpuiMemory; }
+const char* CFlatW65C816DebugTarget::GetProcessorName(void)	{ return "W65C816"; }
+size CFlatW65C816DebugTarget::NumAddressBits(void)	{ return 24; }
+size CFlatW65C816DebugTarget::NumRegisters(void)		{ return D816R_NumRegisters; }
+uint32 CFlatW65C816DebugTarget::GetProgramAddress(void)	{ return mcMPU.GetProgramAddress(); }
+uint32 CFlatW65C816DebugTarget::GetStackPointer(void)	{ return mcMPU.GetS(); }
+CBreakpoints* CFlatW65C816DebugTarget::GetBreakpoints(void)	{ return mcMPU.GetBreakpoints(); }
+bool CFlatW65C816DebugTarget::IsAtBreakpoint(void)	{ return mcMPU.IsAtBreakpoint(); }
+bool CFlatW65C816DebugTarget::IsStopped(void)		{ return mcMPU.IsStopped(); }
+void CFlatW65C816DebugTarget::Run(uint64 uiBudget)	{ mcMPU.Run((size)uiBudget); }
+bool CFlatW65C816DebugTarget::Step(void)				{ return mcMPU.Step(); }
+void CFlatW65C816DebugTarget::Reset(void)			{ mcMPU.Reset(); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlat65C816DebugTarget::GetRegister(size uiRegister, SDebugRegister* psDest)	{ Get65C816DebugRegister(uiRegister, psDest); }
-uint64 CFlat65C816DebugTarget::GetRegisterValue(size uiRegister)	{ return Get65C816DebugRegisterValue(&mcMPU, uiRegister); }
-bool CFlat65C816DebugTarget::SetRegisterValue(size uiRegister, uint64 uiValue)	{ return Set65C816DebugRegisterValue(&mcMPU, uiRegister, uiValue); }
+void CFlatW65C816DebugTarget::GetRegister(size uiRegister, SDebugRegister* psDest)	{ Get65C816DebugRegister(uiRegister, psDest); }
+uint64 CFlatW65C816DebugTarget::GetRegisterValue(size uiRegister)	{ return Get65C816DebugRegisterValue(&mcMPU, uiRegister); }
+bool CFlatW65C816DebugTarget::SetRegisterValue(size uiRegister, uint64 uiValue)	{ return Set65C816DebugRegisterValue(&mcMPU, uiRegister, uiValue); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlat65C816DebugTarget::SetProgramAddress(uint32 uiAddress)
+void CFlatW65C816DebugTarget::SetProgramAddress(uint32 uiAddress)
 {
 	mcMPU.TestSetProgramCounter((uint8)(uiAddress >> 16), (uint16)uiAddress);
 }
@@ -92,7 +92,7 @@ void CFlat65C816DebugTarget::SetProgramAddress(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFlat65C816DebugTarget::PeekMemory(uint32 uiAddress, void* pvDest, size uiSize)
+size CFlatW65C816DebugTarget::PeekMemory(uint32 uiAddress, void* pvDest, size uiSize)
 {
 	uiSize = ClampDebugMemory(uiAddress, uiSize, muiMemorySize);
 	memcpy(pvDest, &mpuiMemory[uiAddress], uiSize);
@@ -104,7 +104,7 @@ size CFlat65C816DebugTarget::PeekMemory(uint32 uiAddress, void* pvDest, size uiS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFlat65C816DebugTarget::PokeMemory(uint32 uiAddress, void* pvSource, size uiSize)
+size CFlatW65C816DebugTarget::PokeMemory(uint32 uiAddress, void* pvSource, size uiSize)
 {
 	uiSize = ClampDebugMemory(uiAddress, uiSize, muiMemorySize);
 	memcpy(&mpuiMemory[uiAddress], pvSource, uiSize);
@@ -117,7 +117,7 @@ size CFlat65C816DebugTarget::PokeMemory(uint32 uiAddress, void* pvSource, size u
 // Only past the flat block.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CFlat65C816DebugTarget::ReadByte(void* pvContext, uint32 uiAddress)
+uint8 CFlatW65C816DebugTarget::ReadByte(void* pvContext, uint32 uiAddress)
 {
 	return 0xFF;
 }
@@ -127,7 +127,7 @@ uint8 CFlat65C816DebugTarget::ReadByte(void* pvContext, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlat65C816DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 uiValue)
+void CFlatW65C816DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
 }
 
@@ -136,11 +136,11 @@ void CFlat65C816DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlat65C816DebugTarget::SetDecoder(CDebugDecoder* pcDecoder)
+void CFlatW65C816DebugTarget::SetDecoder(CDebugDecoder* pcDecoder)
 {
 	mpcDecoder = pcDecoder;
 }
 
 
-CDebugDecoder* CFlat65C816DebugTarget::GetDecoder(void)				{ return mpcDecoder; }
-EDebugAddressFormat CFlat65C816DebugTarget::GetAddressFormat(void)	{ return DAF_Bank; }
+CDebugDecoder* CFlatW65C816DebugTarget::GetDecoder(void)				{ return mpcDecoder; }
+EDebugAddressFormat CFlatW65C816DebugTarget::GetAddressFormat(void)	{ return DAF_Bank; }

@@ -22,7 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
-#include "IR816Code.h"
+#include "IRW65C816Code.h"
 #include "IRBranchPasses.h"
 #include "CPPNameCharacters.h"
 
@@ -40,7 +40,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // line decoded and its label (without the colon).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BranchLine(CIR816Code* pcCode, size uiLine, SIR816Line* psLine, char* szLabel)
+static bool IR816BranchLine(CIRW65C816Code* pcCode, size uiLine, SIRW65C816Line* psLine, char* szLabel)
 {
 	size	ui;
 
@@ -67,7 +67,7 @@ static bool IR816BranchLine(CIR816Code* pcCode, size uiLine, SIR816Line* psLine,
 // with szLabel among them.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816LabelFollows(CIR816Code* pcCode, size uiFrom, const char* szLabel)
+static bool IR816LabelFollows(CIRW65C816Code* pcCode, size uiFrom, const char* szLabel)
 {
 	size	ui;
 	size	uiLength;
@@ -117,7 +117,7 @@ static int64 IR816LocalLabelNumber(const char* szLabel, bool bColon)
 // Labels are defined once.  Returns the line, or -1.
 //
 //////////////////////////////////////////////////////////////////////////
-static size IR816LocalLabelLine(CIR816Code* pcCode, CArrayTemplate<size>* pauiLines, int64 lliNumber, const char* szLabel)
+static size IR816LocalLabelLine(CIRW65C816Code* pcCode, CArrayTemplate<size>* pauiLines, int64 lliNumber, const char* szLabel)
 {
 	size	ui;
 	size	uiLine;
@@ -165,7 +165,7 @@ static size IR816LocalLabelLine(CIR816Code* pcCode, CArrayTemplate<size>* pauiLi
 // defined (IR816LocalLabelLine), so they aren't searched for.
 //
 //////////////////////////////////////////////////////////////////////////
-static size IR816LabelledInstruction(CIR816Code* pcCode, const char* szLabel, CArrayTemplate<size>* pauiLabelLines)
+static size IR816LabelledInstruction(CIRW65C816Code* pcCode, const char* szLabel, CArrayTemplate<size>* pauiLabelLines)
 {
 	size	ui;
 	size	uiLength;
@@ -251,12 +251,12 @@ static void IR816MarkMentions(const char* szLine, CArrayTemplate<uint8>* pabMent
 // IR816LabelledInstruction.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816SetsAFirst(CIR816Code* pcCode, size uiFrom, CArrayTemplate<size>* pauiLabelLines)
+static bool IR816SetsAFirst(CIRW65C816Code* pcCode, size uiFrom, CArrayTemplate<size>* pauiLabelLines)
 {
 	size		ui;
 	size		uiTarget;
 	int			iSteps;
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	char		szLabel[32];
 
 	ui = uiFrom;
@@ -296,11 +296,11 @@ static bool IR816SetsAFirst(CIR816Code* pcCode, size uiFrom, CArrayTemplate<size
 // no label, branch, call or return.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816SetsXFirst(CIR816Code* pcCode, size uiFrom)
+static bool IR816SetsXFirst(CIRW65C816Code* pcCode, size uiFrom)
 {
 	size		ui;
 	CChars*		psz;
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 
 	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
 	{
@@ -329,7 +329,7 @@ static bool IR816SetsXFirst(CIR816Code* pcCode, size uiFrom)
 // number in pabUsed.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816FindUsedLabels(CIR816Code* pcCode, CArrayTemplate<uint8>* pabUsed)
+static void IR816FindUsedLabels(CIRW65C816Code* pcCode, CArrayTemplate<uint8>* pabUsed)
 {
 	const char*	szText;
 	size		ui;
@@ -398,11 +398,11 @@ static bool IR816LabelUsed(CChars* psz, CArrayTemplate<uint8>* pabUsed)
 // Writes a branch line, "\t\tszMnemonic szLabel", over line uiLine.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816SetBranch(CIR816Code* pcCode, size uiLine, const char* szMnemonic, const char* szLabel)
+static void IR816SetBranch(CIRW65C816Code* pcCode, size uiLine, const char* szMnemonic, const char* szLabel)
 {
 	CChars	sz;
 
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	sz.Append("\t\t");
 	sz.Append(szMnemonic);
 	sz.Append(" ");
@@ -418,11 +418,11 @@ static void IR816SetBranch(CIR816Code* pcCode, size uiLine, const char* szMnemon
 // X:.  Before the shared passes, which would make beq X, bra Y, X: bne Y.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816CarryOrEqual(CIR816Code* pcCode)
+static bool IR816CarryOrEqual(CIRW65C816Code* pcCode)
 {
-	SIR816Line	sLine;
-	SIR816Line	sLine2;
-	SIR816Line	sLine3;
+	SIRW65C816Line	sLine;
+	SIRW65C816Line	sLine2;
+	SIRW65C816Line	sLine3;
 	char		szLabel[32];
 	char		szLabel2[32];
 	char		szLabel3[32];
@@ -455,14 +455,14 @@ static bool IR816CarryOrEqual(CIR816Code* pcCode)
 class CIR816BranchCode : public CIRBranchCode
 {
 protected:
-	CIR816Code*				mpcCode;
+	CIRW65C816Code*				mpcCode;
 	CArrayTemplate<size>	mauiLabelLines;		//Per local label number: its line + 1, 0 for none.
 	CArrayTemplate<uint8>	mabRemoved;			//Per line.
 	CArrayTemplate<uint8>	mabNamed;			//Per local label number: named by a line that isn't a branch to it.
 	bool					mbRemoved;
 
 public:
-	void		Init(CIR816Code* pcCode);
+	void		Init(CIRW65C816Code* pcCode);
 	void		Kill(void);
 	void		Commit(void);
 
@@ -483,23 +483,23 @@ protected:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816BranchCode::Init(CIR816Code* pcCode)
+void CIR816BranchCode::Init(CIRW65C816Code* pcCode)
 {
 	size		ui;
 	size		uiZero;
 	size		uiLine;
 	uint8		uiFalse;
 	int64		lliNumber;
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	char		szLabel[32];
 
 	mpcCode = pcCode;
 	mbRemoved = false;
 	uiZero = 0;
 	uiFalse = 0;
-	mauiLabelLines.Init(CIR816Backend::GetScratch());
-	mabRemoved.Init(CIR816Backend::GetScratch());
-	mabNamed.Init(CIR816Backend::GetScratch());
+	mauiLabelLines.Init(CIRW65C816Backend::GetScratch());
+	mabRemoved.Init(CIRW65C816Backend::GetScratch());
+	mabNamed.Init(CIRW65C816Backend::GetScratch());
 	mabRemoved.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
@@ -575,7 +575,7 @@ size CIR816BranchCode::NumLines(void)
 //////////////////////////////////////////////////////////////////////////
 EIRCodeFlow CIR816BranchCode::Flow(size uiLine)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	char		szLabel[32];
 
 	if (*mabRemoved.Get(uiLine))
@@ -608,7 +608,7 @@ EIRCodeFlow CIR816BranchCode::Flow(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 size CIR816BranchCode::Target(size uiLine)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	char		szLabel[32];
 	int64		lliNumber;
 	size		uiLabel;
@@ -656,7 +656,7 @@ bool CIR816BranchCode::IsEntry(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 bool CIR816BranchCode::Retarget(size uiLine, size uiLabel)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	char		szLabel[32];
 
 	if (!IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
@@ -674,7 +674,7 @@ bool CIR816BranchCode::Retarget(size uiLine, size uiLabel)
 //////////////////////////////////////////////////////////////////////////
 bool CIR816BranchCode::Invert(size uiLine, size uiLabel)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	char		szLabel[32];
 	const char*	szInverted;
 
@@ -712,7 +712,7 @@ void CIR816BranchCode::SetBranch(size uiLine, const char* szMnemonic, size uiLab
 {
 	CChars	szLabel;
 
-	szLabel.Init(CIR816Backend::GetScratch());
+	szLabel.Init(CIRW65C816Backend::GetScratch());
 	szLabel.AppendSubString(mpcCode->Text(uiLabel), mpcCode->GetText(uiLabel)->Length() - 1);
 	IR816SetBranch(mpcCode, uiLine, szMnemonic, szLabel.Text());
 	szLabel.Kill();
@@ -735,9 +735,9 @@ void CIR816BranchCode::SetBranch(size uiLine, const char* szMnemonic, size uiLab
 // instruction that changes neither X nor Y.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
+void CIRW65C816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 {
-	CIR816Code	cCode;
+	CIRW65C816Code	cCode;
 
 	cCode.Init();
 	cCode.Load(pszDest, uiStart);
@@ -751,15 +751,15 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
+void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 {
 	CIR816BranchCode		cBranches;
 	CArrayTemplate<uint8>	abUsed;
 	CArrayTemplate<size>	auiLabelLines;
 	CChars*					psz;
 	CChars					szRound;
-	SIR816Line				sLine;
-	SIR816Line				sLine2;
+	SIRW65C816Line				sLine;
+	SIRW65C816Line				sLine2;
 	char					szLabel[32];
 	char					szLabel2[32];
 	size					ui;
@@ -767,8 +767,8 @@ void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 	int						iPass;
 	bool					bChanged;
 
-	abUsed.Init(CIR816Backend::GetScratch());
-	auiLabelLines.Init(CIR816Backend::GetScratch());
+	abUsed.Init(CIRW65C816Backend::GetScratch());
+	auiLabelLines.Init(CIRW65C816Backend::GetScratch());
 	for (iPass = 0; iPass < IR816_BRANCH_PASSES; iPass++)
 	{
 		//Jumps threaded, branches round a bra inverted and branches to the next label taken out (IRBranchPasses.h).
@@ -870,7 +870,7 @@ void CIR816Backend::PeepholeBranches(CIR816Code* pcCode)
 		psz = pcCode->GetText(ui);
 		if (psz->EndsWith(IR816_ROUND))
 		{
-			szRound.Init(CIR816Backend::GetScratch());
+			szRound.Init(CIRW65C816Backend::GetScratch());
 			szRound.AppendSubString(psz->Text(), psz->Length() - StrLen(IR816_ROUND));
 			pcCode->Set(ui, szRound.Text());
 			szRound.Kill();

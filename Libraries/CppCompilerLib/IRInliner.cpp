@@ -414,7 +414,7 @@ void CIRInliner::SetForwardersJump(bool bForwardersJump)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcFunction only passes a call on, as a back end's jump would
-// (CIR816Backend::Forwarder): one block of a named call whose arguments
+// (CIRW65C816Backend::Forwarder): one block of a named call whose arguments
 // are parameters, constants or a parameter plus or minus a constant
 // ('this' moved to a member, at most one), returning nothing or what the call returns.
 //

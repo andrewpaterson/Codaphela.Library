@@ -18,18 +18,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "IR816Backend.h"
-#include "IR816Code.h"
+#include "IRW65C816Backend.h"
+#include "IRW65C816Code.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Init(void)
+void CIRW65C816Code::Init(void)
 {
-	masLines.Init(CIR816Backend::GetScratch());
-	maiOrder.Init(CIR816Backend::GetScratch());
+	masLines.Init(CIRW65C816Backend::GetScratch());
+	maiOrder.Init(CIRW65C816Backend::GetScratch());
 }
 
 
@@ -37,7 +37,7 @@ void CIR816Code::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Kill(void)
+void CIRW65C816Code::Kill(void)
 {
 	Clear();
 	maiOrder.Kill();
@@ -50,7 +50,7 @@ void CIR816Code::Kill(void)
 // Every line gone (their texts freed).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Clear(void)
+void CIRW65C816Code::Clear(void)
 {
 	size	ui;
 
@@ -68,12 +68,12 @@ void CIR816Code::Clear(void)
 // A new line, decoded, not yet in the code's order.
 //
 //////////////////////////////////////////////////////////////////////////
-SIR816CodeLine* CIR816Code::AddLine(const char* szText, size uiLength)
+SIRW65C816CodeLine* CIRW65C816Code::AddLine(const char* szText, size uiLength)
 {
-	SIR816CodeLine*	psCode;
+	SIRW65C816CodeLine*	psCode;
 
 	psCode = masLines.Add();
-	psCode->szText.Init(CIR816Backend::GetScratch());
+	psCode->szText.Init(CIRW65C816Backend::GetScratch());
 	psCode->szText.AppendSubString(szText, uiLength);
 	Decode(psCode);
 	return psCode;
@@ -85,7 +85,7 @@ SIR816CodeLine* CIR816Code::AddLine(const char* szText, size uiLength)
 // The line at uiLine in the code's order.
 //
 //////////////////////////////////////////////////////////////////////////
-SIR816CodeLine* CIR816Code::Line(size uiLine)
+SIRW65C816CodeLine* CIRW65C816Code::Line(size uiLine)
 {
 	return masLines.Get(*maiOrder.Get(uiLine));
 }
@@ -97,7 +97,7 @@ SIR816CodeLine* CIR816Code::Line(size uiLine)
 // isn't a line), each decoded.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Load(CChars* pszCode, size uiStart)
+void CIRW65C816Code::Load(CChars* pszCode, size uiStart)
 {
 	const char*	szLine;
 	const char*	szEnd;
@@ -121,7 +121,7 @@ void CIR816Code::Load(CChars* pszCode, size uiStart)
 // new line.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Write(CChars* pszCode, size uiStart)
+void CIRW65C816Code::Write(CChars* pszCode, size uiStart)
 {
 	size	ui;
 
@@ -138,7 +138,7 @@ void CIR816Code::Write(CChars* pszCode, size uiStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIR816Code::NumLines(void)
+size CIRW65C816Code::NumLines(void)
 {
 	return maiOrder.NumElements();
 }
@@ -149,7 +149,7 @@ size CIR816Code::NumLines(void)
 // A line's text, to read (change it with Set).
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CIR816Code::GetText(size uiLine)
+CChars* CIRW65C816Code::GetText(size uiLine)
 {
 	return &Line(uiLine)->szText;
 }
@@ -159,7 +159,7 @@ CChars* CIR816Code::GetText(size uiLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIR816Code::Text(size uiLine)
+const char* CIRW65C816Code::Text(size uiLine)
 {
 	return Line(uiLine)->szText.Text();
 }
@@ -170,7 +170,7 @@ const char* CIR816Code::Text(size uiLine)
 // Whether a line is a label ("L12:" or a function's).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Code::IsLabel(size uiLine)
+bool CIRW65C816Code::IsLabel(size uiLine)
 {
 	return Line(uiLine)->uiKind == IR816CL_LABEL;
 }
@@ -182,7 +182,7 @@ bool CIR816Code::IsLabel(size uiLine)
 // mnemonic's room.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Code::IsTabbed(size uiLine)
+bool CIRW65C816Code::IsTabbed(size uiLine)
 {
 	return Line(uiLine)->uiKind == IR816CL_TABBED;
 }
@@ -194,9 +194,9 @@ bool CIR816Code::IsTabbed(size uiLine)
 // false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Code::Decoded(size uiLine, SIR816Line* psLine)
+bool CIRW65C816Code::Decoded(size uiLine, SIRW65C816Line* psLine)
 {
-	SIR816CodeLine*	psCode;
+	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
 	if (psCode->uiKind != IR816CL_TABBED)
@@ -215,9 +215,9 @@ bool CIR816Code::Decoded(size uiLine, SIR816Line* psLine)
 // uiFlags.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Code::Has(size uiLine, uint32 uiFlags)
+bool CIRW65C816Code::Has(size uiLine, uint32 uiFlags)
 {
-	SIR816CodeLine*	psCode;
+	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
 	return (psCode->uiKind == IR816CL_TABBED) && ((psCode->sLine.uiFlags & uiFlags) != 0);
@@ -230,9 +230,9 @@ bool CIR816Code::Has(size uiLine, uint32 uiFlags)
 // directive), decoded in *psLine.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Code::Instruction(size uiLine, SIR816Line* psLine)
+bool CIRW65C816Code::Instruction(size uiLine, SIRW65C816Line* psLine)
 {
-	SIR816CodeLine*	psCode;
+	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
 	if (!IR816IsInstruction(psCode->szText.Text()))
@@ -252,9 +252,9 @@ bool CIR816Code::Instruction(size uiLine, SIR816Line* psLine)
 // A line's text replaced, and decoded again.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Set(size uiLine, const char* szText)
+void CIRW65C816Code::Set(size uiLine, const char* szText)
 {
-	SIR816CodeLine*	psCode;
+	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
 	psCode->szText.Clear();
@@ -269,7 +269,7 @@ void CIR816Code::Set(size uiLine, const char* szText)
 // as lines don't move).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Remove(size uiLine)
+void CIRW65C816Code::Remove(size uiLine)
 {
 	maiOrder.RemoveAt(uiLine, true);
 }
@@ -280,7 +280,7 @@ void CIR816Code::Remove(size uiLine)
 // The lines pabRemove marks (per line, 1 to take out) taken out at once.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::RemoveMarked(CArrayTemplate<uint8>* pabRemove)
+void CIRW65C816Code::RemoveMarked(CArrayTemplate<uint8>* pabRemove)
 {
 	size	ui;
 	size	uiKept;
@@ -302,7 +302,7 @@ void CIR816Code::RemoveMarked(CArrayTemplate<uint8>* pabRemove)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::RemoveMarked(CArrayTemplate<bool>* pabRemove)
+void CIRW65C816Code::RemoveMarked(CArrayTemplate<bool>* pabRemove)
 {
 	size	ui;
 	size	uiKept;
@@ -324,7 +324,7 @@ void CIR816Code::RemoveMarked(CArrayTemplate<bool>* pabRemove)
 // A line inserted before line uiLine (after the last for NumLines).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Insert(size uiLine, const char* szText)
+void CIRW65C816Code::Insert(size uiLine, const char* szText)
 {
 	size	uiIndex;
 
@@ -337,10 +337,10 @@ void CIR816Code::Insert(size uiLine, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 //
 // A line added after the last: uiLength characters of szText (a pass
-// building the code again, CIR816Code::Take).
+// building the code again, CIRW65C816Code::Take).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Append(const char* szText, size uiLength)
+void CIRW65C816Code::Append(const char* szText, size uiLength)
 {
 	size	uiIndex;
 
@@ -354,7 +354,7 @@ void CIR816Code::Append(const char* szText, size uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Append(const char* szText)
+void CIRW65C816Code::Append(const char* szText)
 {
 	Append(szText, StrLen(szText));
 }
@@ -365,7 +365,7 @@ void CIR816Code::Append(const char* szText)
 // The lines from uiLines on taken out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Truncate(size uiLines)
+void CIRW65C816Code::Truncate(size uiLines)
 {
 	if (maiOrder.NumElements() > uiLines)
 	{
@@ -381,7 +381,7 @@ void CIR816Code::Truncate(size uiLines)
 // hold nothing that points at themselves.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Take(CIR816Code* pcFrom)
+void CIRW65C816Code::Take(CIRW65C816Code* pcFrom)
 {
 	CArrayIR816CodeLines	asLines;
 	CArrayIR816LineOrder	aiOrder;
@@ -400,12 +400,12 @@ void CIR816Code::Take(CIR816Code* pcFrom)
 // A line's kind and, when tabbed, its decoding.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Code::Decode(SIR816CodeLine* psCode)
+void CIRW65C816Code::Decode(SIRW65C816CodeLine* psCode)
 {
 	CChars*	psz;
 
 	psz = &psCode->szText;
-	memset(&psCode->sLine, 0, sizeof(SIR816Line));
+	memset(&psCode->sLine, 0, sizeof(SIRW65C816Line));
 	psCode->uiOperand = 0;
 	if ((psz->Length() > 1) && (psz->Text()[0] != '\t') && (psz->Text()[psz->Length() - 1] == ':'))
 	{

@@ -62,7 +62,7 @@ bool IR816PointerOnDirectPage(int32 iOffset)
 // the hidden result pointer first, then the parameters in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Layout(void)
+void CIRW65C816Backend::Layout(void)
 {
 	size				ui;
 	size				uiBlock;
@@ -177,7 +177,7 @@ void CIR816Backend::Layout(void)
 // pointers plus zero extended 16 bit values are folded too (FoldIndices).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FoldPointers(void)
+void CIRW65C816Backend::FoldPointers(void)
 {
 	CArrayTemplate<int32>	aiAddressUses;
 	CArrayTemplate<int32>	aiUses;
@@ -199,9 +199,9 @@ void CIR816Backend::FoldPointers(void)
 	masFoldBase.FakeSetUsedElements(0);
 	maiFoldOffset.FakeSetUsedElements(0);
 	masFoldIndex.FakeSetUsedElements(0);
-	aiAddressUses.Init(CIR816Backend::GetScratch());
-	aiUses.Init(CIR816Backend::GetScratch());
-	auiCounted.Init(CIR816Backend::GetScratch());
+	aiAddressUses.Init(CIRW65C816Backend::GetScratch());
+	aiUses.Init(CIRW65C816Backend::GetScratch());
+	auiCounted.Init(CIRW65C816Backend::GetScratch());
 	mpcFunction->CountUses(&auiCounted);
 	maiCountUses.FakeSetUsedElements(0);
 	for (ui = 0; ui < uiTemporaries; ui++)
@@ -299,7 +299,7 @@ void CIR816Backend::FoldPointers(void)
 // it is folded to x (FoldedBase), so x lives to the loads and stores.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
+void CIRW65C816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 {
 	CArrayTemplate<SIRInstruction*>	apsDefinitions;
 	CArrayTemplate<int32>			aiWordUses;		//Per temporary: its uses as a 1 word load's or store's address.
@@ -321,11 +321,11 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 	psNull = NULL;
 	iZero = 0;
 	uiFalse = 0;
-	apsDefinitions.Init(CIR816Backend::GetScratch());
-	aiWordUses.Init(CIR816Backend::GetScratch());
-	aiPairUses.Init(CIR816Backend::GetScratch());
-	aiFoldedUses.Init(CIR816Backend::GetScratch());
-	abBase.Init(CIR816Backend::GetScratch());
+	apsDefinitions.Init(CIRW65C816Backend::GetScratch());
+	aiWordUses.Init(CIRW65C816Backend::GetScratch());
+	aiPairUses.Init(CIRW65C816Backend::GetScratch());
+	aiFoldedUses.Init(CIRW65C816Backend::GetScratch());
+	abBase.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		apsDefinitions.Add(&psNull);
@@ -424,7 +424,7 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 // The i16 a folded pointer adds in Y (FoldIndices), else none.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIR816Backend::FoldedIndex(SIRReference sValue)
+SIRReference CIRW65C816Backend::FoldedIndex(SIRReference sValue)
 {
 	if (sValue.IsTemporary() && (sValue.Index() < masFoldIndex.NumElements()))
 	{
@@ -441,7 +441,7 @@ SIRReference CIR816Backend::FoldedIndex(SIRReference sValue)
 // (FoldIndices).  It writes no code.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsFolded(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::IsFolded(SIRInstruction* psInstruction)
 {
 	return ((psInstruction->uiOpcode == IRO_PtrAdd) || (psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_ZExt)) &&
 		psInstruction->sResult.IsTemporary() && !FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult);
@@ -456,7 +456,7 @@ bool CIR816Backend::IsFolded(SIRInstruction* psInstruction)
 // ([[D + p]:24]): returns whether Y was loaded.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
+bool CIRW65C816Backend::LoadY(SIRReference sPointer, int32 iOffset)
 {
 	SIRReference	sIndex;
 
@@ -484,7 +484,7 @@ bool CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
 // A value, or the base pointer a folded pointer adds to.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIR816Backend::FoldedBase(SIRReference sValue)
+SIRReference CIRW65C816Backend::FoldedBase(SIRReference sValue)
 {
 	if (sValue.IsTemporary() && (sValue.Index() < masFoldBase.NumElements()) && !masFoldBase.Get(sValue.Index())->IsNone())
 	{
@@ -536,7 +536,7 @@ struct SIR816PackEvents
 };
 
 
-//A run of places temporaries may have (CIR816Backend::AddRegions): the pushed arguments' (at their stand-in places
+//A run of places temporaries may have (CIRW65C816Backend::AddRegions): the pushed arguments' (at their stand-in places
 //until Layout knows the frame's size) or the frame's own.  Its words follow the regions' before it in the
 //occupants' lists (maiWordFirst), so places far apart cost nothing.
 struct SIR816Region
@@ -557,7 +557,7 @@ struct SIR816Region
 // And the regions a temporary's place must lie wholly inside (IsFree).
 //
 //////////////////////////////////////////////////////////////////////////
-class CIR816LiveRanges
+class CIRW65C816LiveRanges
 {
 public:
 	CArrayTemplate<int32>	maiFirst;		//Per temporary: its first range (or -1), a list through maiNext.
@@ -597,32 +597,32 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::Init(size uiTemporaries)
+void CIRW65C816LiveRanges::Init(size uiTemporaries)
 {
 	size	ui;
 	int32	iNone;
 
 	iNone = -1;
-	maiFirst.Init(CIR816Backend::GetScratch());
-	maiLast.Init(CIR816Backend::GetScratch());
-	maiPairFirst.Init(CIR816Backend::GetScratch());
+	maiFirst.Init(CIRW65C816Backend::GetScratch());
+	maiLast.Init(CIRW65C816Backend::GetScratch());
+	maiPairFirst.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		maiFirst.Add(&iNone);
 		maiLast.Add(&iNone);
 		maiPairFirst.Add(&iNone);
 	}
-	maiStart.Init(CIR816Backend::GetScratch());
-	maiEnd.Init(CIR816Backend::GetScratch());
-	maiNext.Init(CIR816Backend::GetScratch());
-	maiPairNext.Init(CIR816Backend::GetScratch());
-	maiPairOther.Init(CIR816Backend::GetScratch());
-	maiPairPosition.Init(CIR816Backend::GetScratch());
-	maiPairWeight.Init(CIR816Backend::GetScratch());
-	maiWordFirst.Init(CIR816Backend::GetScratch());
-	maiOccupantNext.Init(CIR816Backend::GetScratch());
-	maiOccupant.Init(CIR816Backend::GetScratch());
-	masRegions.Init(CIR816Backend::GetScratch());
+	maiStart.Init(CIRW65C816Backend::GetScratch());
+	maiEnd.Init(CIRW65C816Backend::GetScratch());
+	maiNext.Init(CIRW65C816Backend::GetScratch());
+	maiPairNext.Init(CIRW65C816Backend::GetScratch());
+	maiPairOther.Init(CIRW65C816Backend::GetScratch());
+	maiPairPosition.Init(CIRW65C816Backend::GetScratch());
+	maiPairWeight.Init(CIRW65C816Backend::GetScratch());
+	maiWordFirst.Init(CIRW65C816Backend::GetScratch());
+	maiOccupantNext.Init(CIRW65C816Backend::GetScratch());
+	maiOccupant.Init(CIRW65C816Backend::GetScratch());
+	masRegions.Init(CIRW65C816Backend::GetScratch());
 }
 
 
@@ -630,7 +630,7 @@ void CIR816LiveRanges::Init(size uiTemporaries)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::Kill(void)
+void CIRW65C816LiveRanges::Kill(void)
 {
 	masRegions.Kill();
 	maiOccupant.Kill();
@@ -654,7 +654,7 @@ void CIR816LiveRanges::Kill(void)
 // Ranges are added in position order; one that overlaps the last is merged into it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::Add(int32 iTemporary, int32 iStart, int32 iEnd)
+void CIRW65C816LiveRanges::Add(int32 iTemporary, int32 iStart, int32 iEnd)
 {
 	int32	iLast;
 	int32	iRange;
@@ -690,7 +690,7 @@ void CIR816LiveRanges::Add(int32 iTemporary, int32 iStart, int32 iEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition, int32 iWeight)
+void CIRW65C816LiveRanges::AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition, int32 iWeight)
 {
 	int32	iPair;
 	int32	iOne;
@@ -723,7 +723,7 @@ void CIR816LiveRanges::AddPair(SIRReference sOne, SIRReference sOther, int32 iPo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816LiveRanges::IsPair(int32 iOne, int32 iOther, int32 iPosition)
+bool CIRW65C816LiveRanges::IsPair(int32 iOne, int32 iOther, int32 iPosition)
 {
 	int32	iPair;
 
@@ -743,7 +743,7 @@ bool CIR816LiveRanges::IsPair(int32 iOne, int32 iOther, int32 iPosition)
 // Whether two temporaries are a pair anywhere.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816LiveRanges::IsPaired(int32 iOne, int32 iOther)
+bool CIRW65C816LiveRanges::IsPaired(int32 iOne, int32 iOther)
 {
 	int32	iPair;
 
@@ -765,7 +765,7 @@ bool CIR816LiveRanges::IsPaired(int32 iOne, int32 iOther)
 // and the other's starts.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816LiveRanges::Interferes(int32 iOne, int32 iOther, bool bSamePlace)
+bool CIRW65C816LiveRanges::Interferes(int32 iOne, int32 iOther, bool bSamePlace)
 {
 	int32	iA;
 	int32	iB;
@@ -806,7 +806,7 @@ bool CIR816LiveRanges::Interferes(int32 iOne, int32 iOther, bool bSamePlace)
 // The first position a temporary is live at, or -1 when it never is.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816LiveRanges::Start(int32 iTemporary)
+int32 CIRW65C816LiveRanges::Start(int32 iTemporary)
 {
 	int32	iRange;
 
@@ -820,7 +820,7 @@ int32 CIR816LiveRanges::Start(int32 iTemporary)
 // The last position a temporary is live at, or -1 when it never is.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816LiveRanges::End(int32 iTemporary)
+int32 CIRW65C816LiveRanges::End(int32 iTemporary)
 {
 	int32	iRange;
 
@@ -835,7 +835,7 @@ int32 CIR816LiveRanges::End(int32 iTemporary)
 // written there).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816LiveRanges::LiveAcross(int32 iTemporary, int32 iPosition)
+bool CIRW65C816LiveRanges::LiveAcross(int32 iTemporary, int32 iPosition)
 {
 	int32	iRange;
 
@@ -857,7 +857,7 @@ bool CIR816LiveRanges::LiveAcross(int32 iTemporary, int32 iPosition)
 // filled far (the frame's).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::AddRegion(int32 iStart, int32 iEnd)
+void CIRW65C816LiveRanges::AddRegion(int32 iStart, int32 iEnd)
 {
 	SIR816Region*	psRegion;
 	SIR816Region*	psLast;
@@ -878,7 +878,7 @@ void CIR816LiveRanges::AddRegion(int32 iStart, int32 iEnd)
 // Whether iBytes from iOffset lie wholly inside one region.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816LiveRanges::Fits(int32 iOffset, int32 iBytes)
+bool CIRW65C816LiveRanges::Fits(int32 iOffset, int32 iBytes)
 {
 	size			ui;
 	SIR816Region*	psRegion;
@@ -901,7 +901,7 @@ bool CIR816LiveRanges::Fits(int32 iOffset, int32 iBytes)
 // region, or -1 when it is in none.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816LiveRanges::WordOf(int32 iOffset)
+int32 CIRW65C816LiveRanges::WordOf(int32 iOffset)
 {
 	size			ui;
 	SIR816Region*	psRegion;
@@ -925,7 +925,7 @@ int32 CIR816LiveRanges::WordOf(int32 iOffset)
 // meeting in the same place).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816LiveRanges::IsFree(int32 iTemporary, int32 iOffset, int32 iBytes, CArrayTemplate<int32>* paiOffsets)
+bool CIRW65C816LiveRanges::IsFree(int32 iTemporary, int32 iOffset, int32 iBytes, CArrayTemplate<int32>* paiOffsets)
 {
 	int32	iFirst;
 	int32	iWord;
@@ -962,7 +962,7 @@ bool CIR816LiveRanges::IsFree(int32 iTemporary, int32 iOffset, int32 iBytes, CAr
 // them).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::Take(int32 iTemporary, int32 iOffset, int32 iBytes)
+void CIRW65C816LiveRanges::Take(int32 iTemporary, int32 iOffset, int32 iBytes)
 {
 	int32	iFirst;
 	int32	iWord;
@@ -1093,10 +1093,10 @@ static bool IR816CanShareArgument(uint16 uiOpcode, int iArgument)
 // fills far.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AddRegions(CIR816LiveRanges* pcRanges)
+void CIRW65C816Backend::AddRegions(CIRW65C816LiveRanges* pcRanges)
 {
 	CIRBlock*		pcBlock;
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 	SIRReference	sParameter;
 	size			ui;
 	size			uj;
@@ -1154,7 +1154,7 @@ void CIR816Backend::AddRegions(CIR816LiveRanges* pcRanges)
 // or with it but with a lighter pair there.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816PlacedAfter(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiStartWeights, int32 iOne, int32 iOther)
+static bool IR816PlacedAfter(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiStartWeights, int32 iOne, int32 iOther)
 {
 	if (pcRanges->Start(iOne) != pcRanges->Start(iOther))
 	{
@@ -1170,7 +1170,7 @@ static bool IR816PlacedAfter(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* 
 // none: how often a jump from one to the other is made.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
+int32 CIRW65C816Backend::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
 {
 	int32	iLoop;
 
@@ -1191,11 +1191,11 @@ int32 CIR816Backend::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
 //////////////////////////////////////////////////////////////////////////
 void SIR816PackEvents::Init(void)
 {
-	asEvents.Init(CIR816Backend::GetScratch());
-	asLoadPairs.Init(CIR816Backend::GetScratch());
-	aiBlockEvents.Init(CIR816Backend::GetScratch());
-	aiBlockStart.Init(CIR816Backend::GetScratch());
-	aiBlockEnd.Init(CIR816Backend::GetScratch());
+	asEvents.Init(CIRW65C816Backend::GetScratch());
+	asLoadPairs.Init(CIRW65C816Backend::GetScratch());
+	aiBlockEvents.Init(CIRW65C816Backend::GetScratch());
+	aiBlockStart.Init(CIRW65C816Backend::GetScratch());
+	aiBlockEnd.Init(CIRW65C816Backend::GetScratch());
 }
 
 
@@ -1248,7 +1248,7 @@ static void IR816AddLiveEvents(SIR816PackEvents* psEvents, size uiBlocks, CIRLiv
 // the end (live out) or the last use.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTemporaries, CIRLiveSets* pcSets, CIR816LiveRanges* pcRanges)
+static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTemporaries, CIRLiveSets* pcSets, CIRW65C816LiveRanges* pcRanges)
 {
 	CArrayTemplate<int32>	aiOpen;			//Per temporary: where its range in the block being scanned starts, or -1.
 	CArrayTemplate<int32>	aiLastUse;		//Per temporary: its last use or definition in that block.
@@ -1262,9 +1262,9 @@ static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTem
 	int32					iEnd;
 
 	iNone = -1;
-	aiOpen.Init(CIR816Backend::GetScratch());
-	aiLastUse.Init(CIR816Backend::GetScratch());
-	aiOpened.Init(CIR816Backend::GetScratch());
+	aiOpen.Init(CIRW65C816Backend::GetScratch());
+	aiLastUse.Init(CIRW65C816Backend::GetScratch());
+	aiOpened.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		aiOpen.Add(&iNone);
@@ -1330,7 +1330,7 @@ static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTem
 // phis, instructions, jump and end of each block in the order the blocks
 // are written.  A temporary is live from its definition, or the start of a
 // block it is live into, to its last use, or the end of a block it is live
-// out of (CIR816LiveRanges).  An argument is used where its call pushes it; a
+// out of (CIRW65C816LiveRanges).  An argument is used where its call pushes it; a
 // phi's arguments at the end of their blocks (after the jump's argument: a
 // brif tests it before the copies) and its result there too, as the jumps
 // put the values straight in its place (EdgeCopies, one parallel copy).  Uses of an instruction's
@@ -1346,9 +1346,9 @@ static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTem
 // temporaries in the frame.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::PackTemporaries(void)
+int32 CIRW65C816Backend::PackTemporaries(void)
 {
-	CIR816LiveRanges		cRanges;
+	CIRW65C816LiveRanges		cRanges;
 	CIRLiveSets				cSets;
 	SIR816PackEvents		sEvents;
 	CArrayTemplate<int32>	aiOrder;
@@ -1363,19 +1363,19 @@ int32 CIR816Backend::PackTemporaries(void)
 	AddPackEvents(&cRanges, &sEvents);
 
 	//What is live into and out of each block, then the ranges.
-	cSets.Init(CIR816Backend::GetScratch());
+	cSets.Init(CIRW65C816Backend::GetScratch());
 	cSets.Start(mpcFunction);
 	IR816AddLiveEvents(&sEvents, mpcFunction->NumBlocks(), &cSets);
 	cSets.Solve();
 	IR816AddRanges(&sEvents, mpcFunction->NumBlocks(), uiTemporaries, &cSets, &cRanges);
 
-	abParameter.Init(CIR816Backend::GetScratch());
+	abParameter.Init(CIRW65C816Backend::GetScratch());
 	abParameter.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
 	{
 		*abParameter.Get(mpcFunction->masParameters.Get(ui)->Index()) = true;
 	}
-	aiOrder.Init(CIR816Backend::GetScratch());
+	aiOrder.Init(CIRW65C816Backend::GetScratch());
 	OrderTemporaries(&cRanges, &abParameter, &aiOrder);
 
 	AddRegions(&cRanges);
@@ -1406,7 +1406,7 @@ int32 CIR816Backend::PackTemporaries(void)
 // positions (PackTemporaries), and the pairs.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AddPackEvents(CIR816LiveRanges* pcRanges, SIR816PackEvents* psEvents)
+void CIRW65C816Backend::AddPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents)
 {
 	CIRBlock*		pcBlock;
 	SIR816LoadPair*	psLoadPair;
@@ -1462,7 +1462,7 @@ void CIR816Backend::AddPackEvents(CIR816LiveRanges* pcRanges, SIR816PackEvents* 
 // iWeight is a pair's in the block.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AddInstructionPackEvents(CIR816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight)
+void CIRW65C816Backend::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight)
 {
 	SIRInstruction*	psInstruction;
 	SIR816LoadPair*	psLoadPair;
@@ -1525,7 +1525,7 @@ void CIR816Backend::AddInstructionPackEvents(CIR816LiveRanges* pcRanges, SIR816P
 // arguments used and their results written, on the way out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AddSuccessorPackEvents(CIR816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition)
+void CIRW65C816Backend::AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition)
 {
 	CIRBlock*		pcSuccessor;
 	SIRPhi*			psPhi;
@@ -1566,7 +1566,7 @@ void CIR816Backend::AddSuccessorPackEvents(CIR816LiveRanges* pcRanges, SIR816Pac
 // round a loop takes its place).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::OrderTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder)
+void CIRW65C816Backend::OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder)
 {
 	CArrayTemplate<int32>	aiStartWeights;	//Per temporary: the weight of its heaviest pair where it starts, or -1.
 	size					uiTemporaries;
@@ -1577,7 +1577,7 @@ void CIR816Backend::OrderTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<
 	int32					iTemporary;
 
 	uiTemporaries = mpcFunction->NumTemporaries();
-	aiStartWeights.Init(CIR816Backend::GetScratch());
+	aiStartWeights.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		iWeight = -1;
@@ -1649,7 +1649,7 @@ static int CompareIR816MergePair(const void* pvLeft, const void* pvRight)
 
 
 //The temporaries PlaceTemporaries puts at one place, merged before any is placed (GroupTemporaries).
-class CIR816Groups
+class CIRW65C816Groups
 {
 public:
 	CArrayTemplate<int32>	maiParent;		//Per temporary: its group (union-find), or -1 when it isn't grouped.
@@ -1669,18 +1669,18 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Groups::Init(size uiTemporaries)
+void CIRW65C816Groups::Init(size uiTemporaries)
 {
 	size	ui;
 	int32	iNone;
 
 	iNone = -1;
-	maiParent.Init(CIR816Backend::GetScratch());
-	maiNext.Init(CIR816Backend::GetScratch());
-	maiLast.Init(CIR816Backend::GetScratch());
-	maiStart.Init(CIR816Backend::GetScratch());
-	maiEnd.Init(CIR816Backend::GetScratch());
-	maiFixed.Init(CIR816Backend::GetScratch());
+	maiParent.Init(CIRW65C816Backend::GetScratch());
+	maiNext.Init(CIRW65C816Backend::GetScratch());
+	maiLast.Init(CIRW65C816Backend::GetScratch());
+	maiStart.Init(CIRW65C816Backend::GetScratch());
+	maiEnd.Init(CIRW65C816Backend::GetScratch());
+	maiFixed.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		maiParent.Add(&iNone);
@@ -1697,7 +1697,7 @@ void CIR816Groups::Init(size uiTemporaries)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Groups::Kill(void)
+void CIRW65C816Groups::Kill(void)
 {
 	maiFixed.Kill();
 	maiEnd.Kill();
@@ -1713,7 +1713,7 @@ void CIR816Groups::Kill(void)
 // The group a grouped temporary is in (its first temporary).
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Groups::Find(int32 iTemporary)
+int32 CIRW65C816Groups::Find(int32 iTemporary)
 {
 	int32	iParent;
 
@@ -1738,7 +1738,7 @@ int32 CIR816Groups::Find(int32 iTemporary)
 // stand-in places (AddRegions) are grouped, each alone to start with.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
+void CIRW65C816Backend::GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
 {
 	CArrayTemplate<SIR816MergePair>	asPairs;
 	SIR816MergePair*		psMerge;
@@ -1777,7 +1777,7 @@ void CIR816Backend::GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* p
 		}
 	}
 
-	asPairs.Init(CIR816Backend::GetScratch());
+	asPairs.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < pcGroups->maiParent.NumElements(); ui++)
 	{
 		iTemporary = (int32)ui;
@@ -1866,7 +1866,7 @@ void CIR816Backend::GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* p
 // The bytes a temporary's place takes: its value's, in whole words.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::PlaceBytes(int32 iTemporary)
+int32 CIRW65C816Backend::PlaceBytes(int32 iTemporary)
 {
 	return (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
 }
@@ -1878,7 +1878,7 @@ int32 CIR816Backend::PlaceBytes(int32 iTemporary)
 // may be at iOffset.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsGroupFree(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter)
+bool CIRW65C816Backend::IsGroupFree(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter)
 {
 	int32	iTemporary;
 
@@ -1901,7 +1901,7 @@ bool CIR816Backend::IsGroupFree(CIR816LiveRanges* pcRanges, CIR816Groups* pcGrou
 // arguments is the caller's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PlaceTemporary(CIR816LiveRanges* pcRanges, int32 iTemporary)
+void CIRW65C816Backend::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTemporary)
 {
 	int32	iBytes;
 	int32	iPair;
@@ -1950,9 +1950,9 @@ void CIR816Backend::PlaceTemporary(CIR816LiveRanges* pcRanges, int32 iTemporary)
 // after the temporaries in the frame.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
+int32 CIRW65C816Backend::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
 {
-	CIR816Groups			cGroups;
+	CIRW65C816Groups			cGroups;
 	CArrayTemplate<bool>	abPlaced;		//Per group.
 	size					ui;
 	int32					iTemporary;
@@ -1968,7 +1968,7 @@ int32 CIR816Backend::PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate
 
 	cGroups.Init(mpcFunction->NumTemporaries());
 	GroupTemporaries(pcRanges, &cGroups, paiOrder, pabParameter);
-	abPlaced.Init(CIR816Backend::GetScratch());
+	abPlaced.Init(CIRW65C816Backend::GetScratch());
 	abPlaced.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
 
 	for (ui = 0; ui < paiOrder->NumElements(); ui++)
@@ -2233,7 +2233,7 @@ bool IR816ClobbersX(SIRInstruction* psInstruction)
 // page (Frame reaches it through X).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter)
+void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter)
 {
 	CArrayTemplate<int32>	aiScore;		//Per temporary.
 	CArrayTemplate<uint8>	abCandidate;	//Per temporary.
@@ -2262,13 +2262,13 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	uiTemporaries = mpcFunction->NumTemporaries();
 	mabInX.FakeSetUsedElements(0);
 	mabInX.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	aiScore.Init(CIR816Backend::GetScratch());
+	aiScore.Init(CIRW65C816Backend::GetScratch());
 	aiScore.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	abCandidate.Init(CIR816Backend::GetScratch());
+	abCandidate.Init(CIRW65C816Backend::GetScratch());
 	abCandidate.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	abBad.Init(CIR816Backend::GetScratch());
+	abBad.Init(CIRW65C816Backend::GetScratch());
 	abBad.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	aiClobbers.Init(CIR816Backend::GetScratch());
+	aiClobbers.Init(CIRW65C816Backend::GetScratch());
 
 	//The scores and the positions that change X, numbered as PackTemporaries numbers them.
 	iPosition = 0;
@@ -2356,7 +2356,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	}
 
 	//The candidates, best first.
-	aiOrder.Init(CIR816Backend::GetScratch());
+	aiOrder.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		iTemporary = (int32)ui;
@@ -2376,7 +2376,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 		*aiOrder.Get(uj) = iTemporary;
 	}
 
-	aiInX.Init(CIR816Backend::GetScratch());
+	aiInX.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < aiOrder.NumElements(); ui++)
 	{
 		iTemporary = *aiOrder.Get(ui);
@@ -2409,7 +2409,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::InX(SIRReference sValue)
+bool CIRW65C816Backend::InX(SIRReference sValue)
 {
 	return sValue.IsTemporary() && (sValue.Index() < mabInX.NumElements()) && *mabInX.Get(sValue.Index());
 }
@@ -2419,7 +2419,7 @@ bool CIR816Backend::InX(SIRReference sValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::OffsetOf(SIRReference sTemporary)
+int32 CIRW65C816Backend::OffsetOf(SIRReference sTemporary)
 {
 	return *maiOffsets.Get(sTemporary.Index());
 }

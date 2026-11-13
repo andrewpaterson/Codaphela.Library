@@ -20,10 +20,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __IR816_BACKEND_INTERNAL_H__
 #define __IR816_BACKEND_INTERNAL_H__
-#include "IR816Backend.h"
+#include "IRW65C816Backend.h"
 
 
-//What the W65C816 back end's files (IR816Backend.cpp and the others IR816*.cpp) share: definitions, the
+//What the W65C816 back end's files (IRW65C816Backend.cpp and the others IR816*.cpp) share: definitions, the
 //assembly text's decoded lines, and the functions one uses of another's.
 
 
@@ -187,7 +187,7 @@ enum EIR816Mnemonic
 
 
 //An instruction line ("\t\tmnemonic operand"), decoded by IR816Decode.
-struct SIR816Line
+struct SIRW65C816Line
 {
 	char		szMnemonic[8];
 	uint16		uiMnemonic;		//EIR816Mnemonic.
@@ -206,17 +206,17 @@ struct SIR816Line
 #define IR816_HELD_LENGTH	32
 
 
-struct SIR816Held
+struct SIRW65C816Held
 {
 	char	aszOperand[IR816_HELD][IR816_HELD_LENGTH];
 	int32	aiOffset[IR816_HELD];
 };
 
 
-class CIR816Code;
+class CIRW65C816Code;
 
 
-//IR816Backend.cpp: the register rule: which arguments go in A, X and Y, and a register function's label suffix.
+//IRW65C816Backend.cpp: the register rule: which arguments go in A, X and Y, and a register function's label suffix.
 int			IR816AssignRegisters(CArrayIR816Arguments* pasArguments);
 void		IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments);
 
@@ -234,21 +234,21 @@ bool		IR816ClobbersX(SIRInstruction* psInstruction);
 
 //IR816Lines.cpp: assembly lines decoded, and what A, X and Y are known to hold.
 bool		IR816IsInstruction(const char* szLine);
-void		IR816Decode(const char* szLine, SIR816Line* psLine);
-bool		IR816OperandIs(SIR816Line* psLine, const char* szOperand, size uiOperand);
-bool		IR816LeavesA(SIR816Line* psLine);
+void		IR816Decode(const char* szLine, SIRW65C816Line* psLine);
+bool		IR816OperandIs(SIRW65C816Line* psLine, const char* szOperand, size uiOperand);
+bool		IR816LeavesA(SIRW65C816Line* psLine);
 const char*	IR816InvertedBranch(uint16 uiMnemonic);
 bool		IR816IsDecimal(const char* szOperand);
-bool		IR816ZNReadAfter(CIR816Code* pcCode, size uiLine);
-void		IR816ForgetHeld(SIR816Held* asHeld, int iFirst, int iLast);
-bool		IR816Holds(SIR816Held* asHeld, int iRegister, SIR816Line* psLine);
-void		IR816UpdateHeld(SIR816Held* asHeld, SIR816Line* psLine);
+bool		IR816ZNReadAfter(CIRW65C816Code* pcCode, size uiLine);
+void		IR816ForgetHeld(SIRW65C816Held* asHeld, int iFirst, int iLast);
+bool		IR816Holds(SIRW65C816Held* asHeld, int iRegister, SIRW65C816Line* psLine);
+void		IR816UpdateHeld(SIRW65C816Held* asHeld, SIRW65C816Line* psLine);
 
 //IR816DeadStores.cpp: stores nothing reads, and what the code reads of the frame.
 bool		IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset);
-bool		IR816DeadStore(CIR816Code* pcCode, size uiFrom, const char* szWord, size uiWord);
-bool		IR816MovesS(CIR816Code* pcCode, size uiLine);
-bool		IR816FindReads(CIR816Code* pcCode, size uiFrom, uint8* abRead);
+bool		IR816DeadStore(CIRW65C816Code* pcCode, size uiFrom, const char* szWord, size uiWord);
+bool		IR816MovesS(CIRW65C816Code* pcCode, size uiLine);
+bool		IR816FindReads(CIRW65C816Code* pcCode, size uiFrom, uint8* abRead);
 
 //IR816Runtime.cpp: how a runtime routine (in Libc65's IR816Runtime-*.asm) takes its operands.
 bool		IR816IndexedRoutine(const char* szOperand, size uiOperand);

@@ -7,7 +7,7 @@
 #include "ThreadLib/SharedMemoryChannel.h"
 #include "EmulatorDebugLib/DebugServer.h"
 #include "EmulatorDebugLib/DebugClient.h"
-#include "EmulatorDebugLib/Flat65C816DebugTarget.h"
+#include "EmulatorDebugLib/FlatW65C816DebugTarget.h"
 #include "EmulatorDebugLib/Flat65C64DebugTarget.h"
 #include "EmulatorDebugLib/DebugFormat.h"
 #include "TestLib/Assert.h"
@@ -248,7 +248,7 @@ static void TestDebugSync(STestDebugLink* psLink)
 //////////////////////////////////////////////////////////////////////////
 static void TestDebugServer65C816(ETestDebugTransport eTransport)
 {
-	CFlat65C816DebugTarget	cTarget;
+	CFlatW65C816DebugTarget	cTarget;
 	CTestDebug816Decoder	cDecoder;
 	STestDebugLink			sLink;
 	STestDebugLink*			psLink;
@@ -646,7 +646,7 @@ static void TestDebugServer65C64(ETestDebugTransport eTransport)
 //////////////////////////////////////////////////////////////////////////
 static void TestDebugServerHello(void)
 {
-	CFlat65C816DebugTarget	cTarget;
+	CFlatW65C816DebugTarget	cTarget;
 	STestDebugLink			sLink;
 	STestDebugLink*			psLink;
 	CDebugClient*			pcClient;
@@ -701,7 +701,7 @@ static void TestDebugServerHello(void)
 //////////////////////////////////////////////////////////////////////////
 static void TestDebugServerAttach(void)
 {
-	CFlat65C816DebugTarget	cTarget;
+	CFlatW65C816DebugTarget	cTarget;
 	STestDebugLink			sLink;
 	STestDebugLink*			psLink;
 	CSharedMemoryChannel	cServerShared;
@@ -782,7 +782,7 @@ static void TestDebugServerAttach(void)
 //////////////////////////////////////////////////////////////////////////
 static void TestDebugServerResetTarget(void)
 {
-	CFlat65C816DebugTarget	cTarget;
+	CFlatW65C816DebugTarget	cTarget;
 	STestDebugLink			sLink;
 	STestDebugLink*			psLink;
 	size					uiStops;

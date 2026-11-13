@@ -48,7 +48,7 @@ void Get65C816DebugRegister(size uiRegister, SDebugRegister* psDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 Get65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister)
+uint64 Get65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister)
 {
 	switch (uiRegister)
 	{
@@ -71,7 +71,7 @@ uint64 Get65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool Set65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister, uint64 uiValue)
+bool Set65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister, uint64 uiValue)
 {
 	switch (uiRegister)
 	{

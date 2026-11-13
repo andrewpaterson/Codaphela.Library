@@ -30,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // flips the sign bits so it can compare unsigned (a constant's as it is written).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned)
+void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned)
 {
 	int		iWords;
 	int		i;
@@ -89,7 +89,7 @@ void CIR816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SIRTyp
 // sign, flipped when it overflowed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SignedLessFlags(SIRReference* psArguments, bool bSwapped)
+void CIRW65C816Backend::SignedLessFlags(SIRReference* psArguments, bool bSwapped)
 {
 	int32	iNoOverflow;
 
@@ -113,7 +113,7 @@ void CIR816Backend::SignedLessFlags(SIRReference* psArguments, bool bSwapped)
 // The branches between change no flags.  As the 65C64's FlagsKnown.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::FlagsKnown(CIRBlock* pcBlock)
+bool CIRW65C816Backend::FlagsKnown(CIRBlock* pcBlock)
 {
 	SIRInstruction*	psCompare;
 	SIRInstruction*	psBefore;
@@ -150,7 +150,7 @@ bool CIR816Backend::FlagsKnown(CIRBlock* pcBlock)
 // an overflow can leave 0.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::LeavesEqualityInZ(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::LeavesEqualityInZ(SIRInstruction* psInstruction)
 {
 	return !(IsIRSignedComparison(psInstruction->uiOpcode) && psInstruction->sType.Is(IRTK_I16) && !psInstruction->asArguments[1].IsConstant());
 }
@@ -163,7 +163,7 @@ bool CIR816Backend::LeavesEqualityInZ(SIRInstruction* psInstruction)
 // the branch uses.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
+bool CIRW65C816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
 
@@ -199,7 +199,7 @@ bool CIR816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 // leaves them).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown)
+void CIRW65C816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown)
 {
 	int32	iSkip;
 	uint16	uiOpcode;
@@ -281,7 +281,7 @@ void CIR816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32
 // The comparison's i1 (0 or 1).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Compare(SIRInstruction* psInstruction)
+void CIRW65C816Backend::Compare(SIRInstruction* psInstruction)
 {
 	int32	iTrue;
 	int32	iFalse;
@@ -294,7 +294,7 @@ void CIR816Backend::Compare(SIRInstruction* psInstruction)
 	iTrue = NewLabel();
 	iFalse = NewLabel();
 	iEnd = NewLabel();
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	switch (uiOpcode)
 	{
 	case IRO_Eq:

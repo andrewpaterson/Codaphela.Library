@@ -399,7 +399,7 @@
     <ClCompile Include="W65C816Meta.cpp">
       <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClCompile>
-    <ClCompile Include="Fast65C816.cpp">
+    <ClCompile Include="FastW65C816.cpp">
       <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClCompile>
     <ClCompile Include="Breakpoints.cpp">
@@ -1067,7 +1067,7 @@
     <ClInclude Include="W65C816Meta.h">
       <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClInclude>
-    <ClInclude Include="Fast65C816.h">
+    <ClInclude Include="FastW65C816.h">
       <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClInclude>
     <ClInclude Include="Breakpoints.h">

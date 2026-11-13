@@ -33,14 +33,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //A line of the code: its text and, when tabbed, its decoding (IR816Decode), the operand kept as an offset into the
 //text so the line can move.
-struct SIR816CodeLine
+struct SIRW65C816CodeLine
 {
 	CChars		szText;
 	uint8		uiKind;			//IR816CL_.
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	size		uiOperand;		//sLine.szOperand's offset in szText.
 };
-typedef CArrayLargeTemplate<SIR816CodeLine>	CArrayIR816CodeLines;
+typedef CArrayLargeTemplate<SIRW65C816CodeLine>	CArrayIR816CodeLines;
 
 
 typedef CArrayLargeTemplate<size>				CArrayIR816LineOrder;
@@ -50,7 +50,7 @@ typedef CArrayLargeTemplate<size>				CArrayIR816LineOrder;
 //for the passes over the text.  Lines are changed (Set), removed and inserted through it so their decoding is kept
 //with them.  The lines stay where they are made (masLines) and the code is their order (maiOrder), so taking lines
 //out and putting them in moves only the order.  As the 65C64's CIR65Code.
-class CIR816Code
+class CIRW65C816Code
 {
 protected:
 	CArrayIR816CodeLines	masLines;
@@ -67,9 +67,9 @@ public:
 	const char*	Text(size uiLine);
 	bool		IsLabel(size uiLine);
 	bool		IsTabbed(size uiLine);
-	bool		Decoded(size uiLine, SIR816Line* psLine);
+	bool		Decoded(size uiLine, SIRW65C816Line* psLine);
 	bool		Has(size uiLine, uint32 uiFlags);
-	bool		Instruction(size uiLine, SIR816Line* psLine);
+	bool		Instruction(size uiLine, SIRW65C816Line* psLine);
 
 	void		Set(size uiLine, const char* szText);
 	void		Remove(size uiLine);
@@ -79,13 +79,13 @@ public:
 	void		Append(const char* szText, size uiLength);
 	void		Append(const char* szText);
 	void		Truncate(size uiLines);
-	void		Take(CIR816Code* pcFrom);
+	void		Take(CIRW65C816Code* pcFrom);
 
 protected:
 	void			Clear(void);
-	SIR816CodeLine*	Line(size uiLine);
-	SIR816CodeLine*	AddLine(const char* szText, size uiLength);
-	void			Decode(SIR816CodeLine* psCode);
+	SIRW65C816CodeLine*	Line(size uiLine);
+	SIRW65C816CodeLine*	AddLine(const char* szText, size uiLength);
+	void			Decode(SIRW65C816CodeLine* psCode);
 };
 
 

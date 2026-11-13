@@ -22,7 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
-#include "IR816Code.h"
+#include "IRW65C816Code.h"
 
 
 //The W65C816 back end's assembly text as its passes read it: the lines decoded (IR816Decode), and what A, X and Y
@@ -201,7 +201,7 @@ static int IR816MnemonicKey(const char* szMnemonic)
 // made when first needed otherwise).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::IndexMnemonics(void)
+void CIRW65C816Backend::IndexMnemonics(void)
 {
 	int		i;
 
@@ -227,7 +227,7 @@ static uint16 IR816FindMnemonic(const char* szMnemonic)
 {
 	int		iKey;
 
-	CIR816Backend::IndexMnemonics();
+	CIRW65C816Backend::IndexMnemonics();
 	iKey = IR816MnemonicKey(szMnemonic);
 	return (iKey < 0) ? (uint16)IR816M_Unknown : gauiIR816MnemonicByKey[iKey];
 }
@@ -269,7 +269,7 @@ bool IR816IsInstruction(const char* szLine)
 // operand (less a IR816_KEEP_IN_A mark).
 //
 //////////////////////////////////////////////////////////////////////////
-void IR816Decode(const char* szLine, SIR816Line* psLine)
+void IR816Decode(const char* szLine, SIRW65C816Line* psLine)
 {
 	const char*	szEnd;
 	size		uiLength;
@@ -303,7 +303,7 @@ void IR816Decode(const char* szLine, SIR816Line* psLine)
 // Whether the instruction's operand is exactly szOperand (uiOperand long).
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816OperandIs(SIR816Line* psLine, const char* szOperand, size uiOperand)
+bool IR816OperandIs(SIRW65C816Line* psLine, const char* szOperand, size uiOperand)
 {
 	return (psLine->uiOperand == uiOperand) && (strncmp(psLine->szOperand, szOperand, uiOperand) == 0);
 }
@@ -317,7 +317,7 @@ bool IR816OperandIs(SIR816Line* psLine, const char* szOperand, size uiOperand)
 // memory.  An lda followed only by these and then a load of A is dead.
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816LeavesA(SIR816Line* psLine)
+bool IR816LeavesA(SIRW65C816Line* psLine)
 {
 	bool	bMemory;
 
@@ -377,9 +377,9 @@ bool IR816IsDecimal(const char* szOperand)
 // end might lead to a read).
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816ZNReadAfter(CIR816Code* pcCode, size uiLine)
+bool IR816ZNReadAfter(CIRW65C816Code* pcCode, size uiLine)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	size		ui;
 
 	for (ui = uiLine + 1; ui < pcCode->NumLines(); ui++)
@@ -406,7 +406,7 @@ bool IR816ZNReadAfter(CIR816Code* pcCode, size uiLine)
 // Nothing known of what registers iFirst to iLast (0 A, 1 X, 2 Y) hold.
 //
 //////////////////////////////////////////////////////////////////////////
-void IR816ForgetHeld(SIR816Held* asHeld, int iFirst, int iLast)
+void IR816ForgetHeld(SIRW65C816Held* asHeld, int iFirst, int iLast)
 {
 	int	i;
 	int	j;
@@ -429,7 +429,7 @@ void IR816ForgetHeld(SIR816Held* asHeld, int iFirst, int iLast)
 // through a pointer or an index, which may reach the frame), of any word.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816ForgetWritten(SIR816Held* asHeld, int32 iOffset)
+static void IR816ForgetWritten(SIRW65C816Held* asHeld, int32 iOffset)
 {
 	int	i;
 	int	j;
@@ -454,7 +454,7 @@ static void IR816ForgetWritten(SIR816Held* asHeld, int32 iOffset)
 // as: a direct page word or a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816IsHeldOperand(SIR816Line* psLine)
+static bool IR816IsHeldOperand(SIRW65C816Line* psLine)
 {
 	size	ui;
 
@@ -482,7 +482,7 @@ static bool IR816IsHeldOperand(SIR816Line* psLine)
 // Whether register iRegister holds the instruction's operand.
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816Holds(SIR816Held* asHeld, int iRegister, SIR816Line* psLine)
+bool IR816Holds(SIRW65C816Held* asHeld, int iRegister, SIRW65C816Line* psLine)
 {
 	int	j;
 
@@ -505,9 +505,9 @@ bool IR816Holds(SIR816Held* asHeld, int iRegister, SIR816Line* psLine)
 // is known after a load of anything but a direct page word or a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816Hold(SIR816Held* asHeld, int iRegister, SIR816Line* psLine, bool bAlso)
+static void IR816Hold(SIRW65C816Held* asHeld, int iRegister, SIRW65C816Line* psLine, bool bAlso)
 {
-	SIR816Held*	psHeld;
+	SIRW65C816Held*	psHeld;
 
 	psHeld = &asHeld[iRegister];
 	if (!bAlso)
@@ -532,7 +532,7 @@ static void IR816Hold(SIR816Held* asHeld, int iRegister, SIR816Line* psLine, boo
 // What A, X and Y hold after the instruction (PeepholeRegisters).
 //
 //////////////////////////////////////////////////////////////////////////
-void IR816UpdateHeld(SIR816Held* asHeld, SIR816Line* psLine)
+void IR816UpdateHeld(SIRW65C816Held* asHeld, SIRW65C816Line* psLine)
 {
 	bool	bOfA;
 

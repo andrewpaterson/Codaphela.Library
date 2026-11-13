@@ -30,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //are written (OrderBlocks), loops' tests moved after their bodies (MoveLoopTests: block layout only, unlike
 //CIROptimiser's RotateLoops, which copies a loop's head), loads moved down to their only use (SinkLoads) and loop
 //steps moved past their phi's last reads (SinkSteps).  The 65C64 back end (CIR65Backend) uses them all, the W65C816's
-//(CIR816Backend) OrderBlocks (with each loop's blocks together) and SinkSteps.
+//(CIRW65C816Backend) OrderBlocks (with each loop's blocks together) and SinkSteps.
 class CIRBackendPasses
 {
 protected:

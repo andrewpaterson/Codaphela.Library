@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
-#include "IR816Code.h"
+#include "IRW65C816Code.h"
 
 
 //The W65C816 back end's frames: the text of a function's frame entry and exit, taken out when nothing uses the
@@ -125,7 +125,7 @@ static bool IR816PassesFrameOffsets(const char* szCode)
 // D + n, D isn't saved and set either.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::DropFrame(size uiStart)
+void CIRW65C816Backend::DropFrame(size uiStart)
 {
 	CChars		sz;
 	CChars		szPrologue;
@@ -149,9 +149,9 @@ void CIR816Backend::DropFrame(size uiStart)
 			return;
 		}
 	}
-	szPrologue.Init(CIR816Backend::GetScratch());
+	szPrologue.Init(CIRW65C816Backend::GetScratch());
 	IR816AppendFrameEntry(&szPrologue, msFrame.iFrameBytes);
-	szEpilogue.Init(CIR816Backend::GetScratch());
+	szEpilogue.Init(CIRW65C816Backend::GetScratch());
 	IR816AppendFrameExit(&szEpilogue, msFrame.iFrameBytes);
 	iEpilogues = 0;
 	for (szAt = strstr(szCode, szEpilogue.Text()); szAt; szAt = strstr(szAt + 1, szEpilogue.Text()))
@@ -172,7 +172,7 @@ void CIR816Backend::DropFrame(size uiStart)
 
 	//Without D + anything it needn't set D either.
 	bUsesD = strstr(szCode, "D + ") != NULL;
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	while (*szCode)
 	{
 		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)
@@ -212,7 +212,7 @@ void CIR816Backend::DropFrame(size uiStart)
 //
 // Gives the function in pszCode (as GenerateFunction wrote it, psFrame from
 // GetFrame) D on a page, where its direct page accesses cost a cycle less,
-// when it's worth it: estimated, or measured by pcProfile (IR816Backend.h).
+// when it's worth it: estimated, or measured by pcProfile (IRW65C816Backend.h).
 // Never when it may recurse (bRecursive: in a cycle of calls the unit can
 // see; or calling itself), nor when variadic (its arguments are walked past
 // the named ones).  D (and S) go down to the page below the frame, the
@@ -225,9 +225,9 @@ void CIR816Backend::DropFrame(size uiStart)
 // it was aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile)
+bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsmW65C816Profile* pcProfile)
 {
-	CIR816Code				cCode;
+	CIRW65C816Code				cCode;
 	CChars					sz;
 	CChars					szPrologue;
 	CChars					szEpilogue;
@@ -244,7 +244,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR81
 	int32					iCopied;
 	int32					i;
 	uint64					ulliCost;
-	SAsm65816FunctionProfile*	psProfile;
+	SAsmW65C816FunctionProfile*	psProfile;
 	bool					bBig;
 	bool					bWorth;
 	bool					bAllRead;
@@ -348,7 +348,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR81
 	}
 
 	iSavedS = bBig ? psFrame->iSavedS : psFrame->Link();
-	szPrologue.Init(CIR816Backend::GetScratch());
+	szPrologue.Init(CIRW65C816Backend::GetScratch());
 	if (iRegisterWords > 0)
 	{
 		IR816AppendRegisterFrameEntry(&szPrologue, iRegisterWords, psFrame->iFrameBytes);
@@ -357,7 +357,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR81
 	{
 		IR816AppendFrameEntry(&szPrologue, psFrame->iFrameBytes);
 	}
-	szEpilogue.Init(CIR816Backend::GetScratch());
+	szEpilogue.Init(CIRW65C816Backend::GetScratch());
 	IR816AppendFrameExit(&szEpilogue, psFrame->iFrameBytes);
 	if (strstr(szCode, szPrologue.Text()) == NULL)
 	{
@@ -453,7 +453,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR81
 	szAlignedEpilogue.Append(iSavedS);
 	szAlignedEpilogue.Append("]\n\t\ttcs\n\t\ttya\n\t\tpld\n");
 
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	while (*szCode)
 	{
 		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)

@@ -22,7 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
-#include "IR816Code.h"
+#include "IRW65C816Code.h"
 
 
 //The W65C816 back end's stores nothing reads taken out (RemoveUnreadStores, RemoveDeadStores), and what the
@@ -77,9 +77,9 @@ bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset)
 // than a store to another direct page word, stores a word to it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816DeadStore(CIR816Code* pcCode, size uiFrom, const char* szWord, size uiWord)
+bool IR816DeadStore(CIRW65C816Code* pcCode, size uiFrom, const char* szWord, size uiWord)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	int32		iOffset;
 	bool		bStore;
 	size		ui;
@@ -121,9 +121,9 @@ bool IR816DeadStore(CIR816Code* pcCode, size uiFrom, const char* szWord, size ui
 // sets A again (only IR816LeavesA instructions come between).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816DeadLoad(CIR816Code* pcCode, size uiFrom)
+static bool IR816DeadLoad(CIRW65C816Code* pcCode, size uiFrom)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	size		ui;
 
 	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
@@ -151,9 +151,9 @@ static bool IR816DeadLoad(CIR816Code* pcCode, size uiFrom)
 // but a clc and an adc of a constant (a frame's exit).
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816MovesS(CIR816Code* pcCode, size uiLine)
+bool IR816MovesS(CIRW65C816Code* pcCode, size uiLine)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	int			i;
 	size		ui;
 
@@ -183,9 +183,9 @@ bool IR816MovesS(CIR816Code* pcCode, size uiLine)
 // address may be passed on), unless only to move S (IR816MovesS).
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816FindReads(CIR816Code* pcCode, size uiFrom, uint8* abRead)
+bool IR816FindReads(CIRW65C816Code* pcCode, size uiFrom, uint8* abRead)
 {
-	SIR816Line	sLine;
+	SIRW65C816Line	sLine;
 	const char*	szOperand;
 	int32		iOffset;
 	int			iBytes;
@@ -264,9 +264,9 @@ bool IR816FindReads(CIR816Code* pcCode, size uiFrom, uint8* abRead)
 // count), and values worked out for nothing.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
+void CIRW65C816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 {
-	CIR816Code	cCode;
+	CIRW65C816Code	cCode;
 
 	cCode.Init();
 	cCode.Load(pszDest, uiStart);
@@ -280,9 +280,9 @@ void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RemoveUnreadStores(CIR816Code* pcCode)
+void CIRW65C816Backend::RemoveUnreadStores(CIRW65C816Code* pcCode)
 {
-	SIR816Line				sLine;
+	SIRW65C816Line				sLine;
 	uint8					abRead[IR816_DIRECT_PAGE];
 	size					ui;
 	CArrayTemplate<uint8>	abRemove;
@@ -291,7 +291,7 @@ void CIR816Backend::RemoveUnreadStores(CIR816Code* pcCode)
 	{
 		return;
 	}
-	abRemove.Init(CIR816Backend::GetScratch());
+	abRemove.Init(CIRW65C816Backend::GetScratch());
 	abRemove.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
@@ -318,9 +318,9 @@ void CIR816Backend::RemoveUnreadStores(CIR816Code* pcCode)
 // each.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
+void CIRW65C816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 {
-	CIR816Code	cCode;
+	CIRW65C816Code	cCode;
 
 	cCode.Init();
 	cCode.Load(pszDest, uiStart);
@@ -337,15 +337,15 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 // lines out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RemoveDeadStores(CIR816Code* pcCode)
+void CIRW65C816Backend::RemoveDeadStores(CIRW65C816Code* pcCode)
 {
 	CArrayTemplate<uint8>	abRemove;
-	SIR816Line				sLine;
+	SIRW65C816Line				sLine;
 	size					ui;
 	bool					bRemoved;
 
 	//Again while any went: the lda that fed a store that went is loaded over unread now.
-	abRemove.Init(CIR816Backend::GetScratch());
+	abRemove.Init(CIRW65C816Backend::GetScratch());
 	do
 	{
 		bRemoved = false;

@@ -22,12 +22,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayChars.h"
 #include "Config.h"
 #include "BaseLib/ConstructorCall.h"
-#include "Assembler65Lib/Asm65816Assembler.h"
+#include "Assembler65Lib/AsmW65C816Assembler.h"
 #include "CPPErrors.h"
 #include "CPPCompileOptions.h"
 #include "IRInliner.h"
 #include "IROptimiser.h"
-#include "IR816Backend.h"
+#include "IRW65C816Backend.h"
 #include "CPPTargetW65C816.h"
 
 
@@ -470,7 +470,7 @@ void CCPPTargetW65C816::AppendRuntime(CCPPRuntimeWriter* pcWriter)
 	if (aszRoutines.NumElements() != 0)
 	{
 		cErrors.Init();
-		if (!CIR816Backend::GenerateRuntime(&aszRoutines, pcWriter->GetRuntimeCode(), &cErrors))
+		if (!CIRW65C816Backend::GenerateRuntime(&aszRoutines, pcWriter->GetRuntimeCode(), &cErrors))
 		{
 			pcWriter->RuntimeError(cErrors.Text());
 		}
@@ -624,7 +624,7 @@ bool CCPPTargetW65C816::UsesProfile(void)
 //////////////////////////////////////////////////////////////////////////
 CIRBackend* CCPPTargetW65C816::NewBackend(void)
 {
-	return NewMalloc<CIR816Backend>();
+	return NewMalloc<CIRW65C816Backend>();
 }
 
 
@@ -634,7 +634,7 @@ CIRBackend* CCPPTargetW65C816::NewBackend(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTargetW65C816::Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject, const char* szDirectory, const char* szSourceFile, CChars* pszErrors)
 {
-	CAsm65816Assembler	cAssembler;
+	CAsmW65C816Assembler	cAssembler;
 	bool				bResult;
 
 	cAssembler.Init();
@@ -661,7 +661,7 @@ bool CCPPTargetW65C816::Assemble(CAsm65Source* pcSource, CAsm65Object* pcObject,
 //////////////////////////////////////////////////////////////////////////
 void CCPPTargetW65C816::PrepareForThreads(void)
 {
-	CIR816Backend::IndexMnemonics();
-	CAsm65816Assembler::IndexMnemonics();
+	CIRW65C816Backend::IndexMnemonics();
+	CAsmW65C816Assembler::IndexMnemonics();
 }
 

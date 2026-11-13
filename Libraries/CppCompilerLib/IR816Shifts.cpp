@@ -35,7 +35,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // X with a word in A (ShiftInA), or for 64 bits or a frame past the direct page in memory (ShiftInMemory).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Shift(SIRInstruction* psInstruction)
+void CIRW65C816Backend::Shift(SIRInstruction* psInstruction)
 {
 	int32			iResult;
 	int				iWords;
@@ -114,7 +114,7 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 // written, for any other shift.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::ShiftCall(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::ShiftCall(SIRInstruction* psInstruction)
 {
 	CChars	szName;
 	int		iWords;
@@ -165,7 +165,7 @@ bool CIR816Backend::ShiftCall(SIRInstruction* psInstruction)
 // any other shift, or a result past the direct page.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 {
 	SIRReference	sValue;
 	int32			iResult;
@@ -237,7 +237,7 @@ bool CIR816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 // X).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::BitShift(SIRInstruction* psInstruction)
 {
 	CChars	szTable;
 	int32	iResult;
@@ -292,7 +292,7 @@ bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
 // into an unrolled run of seven one bit steps.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
+void CIRW65C816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
 {
 	int32	iSmall;
 	int32	iSmallLoop;
@@ -404,7 +404,7 @@ void CIR816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRRefe
 // in memory at iOther).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
+void CIRW65C816Backend::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
 {
 	if (uiOpcode == IRO_Shl)
 	{
@@ -436,7 +436,7 @@ void CIR816Backend::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
 // m (IR816SignExtend); by 1 or 2 a ror with the sign in the carry.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
+void CIRW65C816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 {
 	int		iBits;
 
@@ -484,7 +484,7 @@ void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 // 15: (x ^ m) - m with m the sign bit.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SignExtendInA(int iSignBit)
+void CIRW65C816Backend::SignExtendInA(int iSignBit)
 {
 	char	szLine[32];
 
@@ -503,7 +503,7 @@ void CIR816Backend::SignExtendInA(int iSignBit)
 // flow passes).  Carry and the flags are changed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SignWordInA(void)
+void CIRW65C816Backend::SignWordInA(void)
 {
 	Line("asl A");
 	Line("lda 0");
@@ -522,7 +522,7 @@ void CIR816Backend::SignWordInA(void)
 // to 7 bits left are shifted a bit at a time.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
+void CIRW65C816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
 {
 	static const int	aiSteps[] = { 32, 16, 8 };
 	CChars				sz;
@@ -614,7 +614,7 @@ void CIR816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SI
 // memory; ashr's bits as lshr's, then the top word's sign extended.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount)
+void CIRW65C816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount)
 {
 	int		iWordShift;
 	int		iBits;
@@ -797,7 +797,7 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 // ShiftInA, ShiftInMemory, ShiftCall).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::OnlyCounts(SIRReference sValue)
+bool CIRW65C816Backend::OnlyCounts(SIRReference sValue)
 {
 	size	ui;
 

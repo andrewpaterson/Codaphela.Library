@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "Assembler65Lib/Asm65816FrameCheck.h"
-#include "Assembler65Lib/Asm65816Profile.h"
+#include "Assembler65Lib/AsmW65C816FrameCheck.h"
+#include "Assembler65Lib/AsmW65C816Profile.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/ArrayChars.h"
@@ -13,10 +13,10 @@
 #include "Assembler65Lib/Asm65Memory.h"
 #include "Assembler65Lib/Asm65HostFiles.h"
 #include "MicroprocessorLib/Fast65C64.h"
-#include "MicroprocessorLib/Fast65C816.h"
+#include "MicroprocessorLib/FastW65C816.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPP65Generator.h"
-#include "CppCompilerLib/IR816Backend.h"
+#include "CppCompilerLib/IRW65C816Backend.h"
 #include "ThreadLib/WorkerThreadJobs.h"
 #include "TestLib/Assert.h"
 #include "TestProject65.h"
@@ -30,7 +30,7 @@
 // file with only that test's call left in its main (a whole test project does not fit below the 65C64's stack), and
 // run on a CFast65C64.  The programs read and write a copy of the test project's directory through the host file
 // device.  For the W65C816 (geTestProject65Target) the units in 65C64 assembly are left out, the memory is 16MB (24
-// bit addresses) and the programs run on a CFast65C816.
+// bit addresses) and the programs run on a CFastW65C816.
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -55,7 +55,7 @@
 
 
 ECPPTarget	geTestProject65Target = CPPT_65C64;
-static CAsm65816Profile*	gpcTestProject65Measure = NULL;
+static CAsmW65C816Profile*	gpcTestProject65Measure = NULL;
 
 #define TEST_PROJECT65_REPORT_LINES		60		//The most lines and functions a profile report lists.
 
@@ -526,14 +526,14 @@ static void TestProject65AppendStop(CCPP65Builder* pcBuilder, uint32 uiAddress, 
 // Runs a W65C816 program (pcMPU reset on pcMemory) up to uiMaxSteps
 // instructions, a million at a time (Run takes a size, which is 32 bits in
 // a 32 bit build).  With pszFaults, every function's direct page stores are
-// checked (CAsm65816FrameCheck) and pszFaults gets those to a caller's
+// checked (CAsmW65C816FrameCheck) and pszFaults gets those to a caller's
 // stack, each at its function (pcBuilder's map).  Returns the steps run, to
 // the million.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, CFast65C816* pcMPU, uint64 uiMaxSteps, CChars* pszFaults)
+static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, CFastW65C816* pcMPU, uint64 uiMaxSteps, CChars* pszFaults)
 {
-	CAsm65816FrameCheck	cCheck;
+	CAsmW65C816FrameCheck	cCheck;
 	uint64				uiSteps;
 	size				ui;
 
@@ -557,7 +557,7 @@ static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pc
 		for (ui = 0; ui < cCheck.NumWrites(); ui++)
 		{
 			TestProject65AppendSymbol(pcBuilder, cCheck.GetWrite(ui)->uiAddress, pszFaults);
-			CAsm65816FrameCheck::AppendWrite(cCheck.GetWrite(ui), pszFaults);
+			CAsmW65C816FrameCheck::AppendWrite(cCheck.GetWrite(ui), pszFaults);
 		}
 		cCheck.Kill();
 	}
@@ -578,7 +578,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	CAsm65Memory*		pcMemory;
 	CAsm65HostFiles		cHostFiles;
 	CFast65C64			cMPU;
-	CFast65C816			cMPU816;
+	CFastW65C816			cMPU816;
 	CChars				szOutput;
 	uint64				uiSteps;
 	uint64				uiMaxSteps;
@@ -617,7 +617,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		if (gpcTestProject65Measure)
 		{
 			//TEST_PROJECT65_PROFILE: each function's direct page accesses, calls and recursion, and its lines' cycles
-			//(CAsm65816Profile).
+			//(CAsmW65C816Profile).
 			uiSteps = gpcTestProject65Measure->Run(pcMemory, &cMPU816, pcBuilder->GetMap(), uiMaxSteps, pcBuilder->GetLineTable());
 		}
 		else if (getenv("TEST_PROJECT65_TRACE"))
@@ -731,8 +731,8 @@ void TestProject65RunTests(STestProject65* psProject)
 {
 	CCPP65Builder	cBuilder;
 	CWorkerThreadJobs	cJobs;
-	CAsm65816Profile	cFrameProfile;
-	CAsm65816Profile	cMeasure;
+	CAsmW65C816Profile	cFrameProfile;
+	CAsmW65C816Profile	cMeasure;
 	CTextFile		cFile;
 	CArrayChars		aszLines;
 	CArrayChars		aszTests;

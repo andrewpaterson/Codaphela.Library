@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // _SoftDouble<operation> for f64.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
+void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 {
 	CChars			szName;
 	int32			iFirst;
@@ -69,7 +69,7 @@ void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 // when it is a temporary with one, else it is copied to iScratch.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
+int32 CIRW65C816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
 {
 	if (sValue.IsTemporary() && !InX(sValue) && !Fused(sValue) && (OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
 	{
@@ -89,7 +89,7 @@ int32 CIR816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScr
 // result comes back in A (and X).  Nothing is pushed or removed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond)
+void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond)
 {
 	CChars	sz;
 	bool	bHidden;
@@ -131,10 +131,10 @@ void CIR816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstr
 // caller to remove.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
+int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
 {
 	CArrayIR816Arguments	asArguments;
-	SIR816Argument*			psArgument;
+	SIRW65C816Argument*			psArgument;
 	SIRReference			asRegisters[IR816_ARGUMENT_REGISTERS];
 	int						aiWords[IR816_ARGUMENT_REGISTERS];
 	int32					aiHidden[IR816_ARGUMENT_REGISTERS];
@@ -145,7 +145,7 @@ int32 CIR816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, S
 	int32					iBytes;
 	CChars					sz;
 
-	asArguments.Init(CIR816Backend::GetScratch());
+	asArguments.Init(CIRW65C816Backend::GetScratch());
 	if (bHidden)
 	{
 		psArgument = asArguments.Add();
@@ -241,7 +241,7 @@ int32 CIR816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, S
 // _SoftFloatCompare gives -1, 0 or 1, or 2 when either is a NaN, in A: each comparison is true for some of those.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
+void CIRW65C816Backend::FloatCompare(SIRInstruction* psInstruction)
 {
 	int					aiValues[2];
 	int					iValues;
@@ -258,7 +258,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	SIRType				sType;
 
 	sType = psInstruction->sType;
-	szName.Init(CIR816Backend::GetScratch());
+	szName.Init(CIRW65C816Backend::GetScratch());
 	szName.Append('_');
 	AppendSoftFloatName(&szName, psInstruction, sType);
 	if (mpcOptions->mbSoftFloatInFrame)
@@ -294,7 +294,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	iTrue = NewLabel();
 	iFalse = NewLabel();
 	iEnd = NewLabel();
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	Frame("lda", IR816_SCRATCH_RESULT);
 	for (i = 0; i < iValues; i++)
 	{
@@ -329,7 +329,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 // bit one as a long long.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
+void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 {
 	SIRType			sFrom;
 	SIRType			sTo;
@@ -346,7 +346,7 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	bSigned = false;
 	sFrom = mpcFunction->TypeOf(sValue);
 	sTo = psInstruction->sType;
-	szName.Init(CIR816Backend::GetScratch());
+	szName.Init(CIRW65C816Backend::GetScratch());
 	szName.Append('_');
 	AppendSoftFloatName(&szName, psInstruction, sFrom);
 	if ((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF))
@@ -404,7 +404,7 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 // Pushes an integer of up to 32 bits as 32 bits, sign or zero extended.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
+void CIRW65C816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 {
 	if (Words(sType) == 2)
 	{

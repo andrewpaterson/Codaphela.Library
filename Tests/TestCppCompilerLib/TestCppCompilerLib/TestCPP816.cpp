@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "Assembler65Lib/Asm65816Profile.h"
+#include "Assembler65Lib/AsmW65C816Profile.h"
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
@@ -16,7 +16,7 @@
 #include "MicroprocessorLib/W65C816InstructionFactory.h"
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppCompilerLib/CPP65Builder.h"
-#include "CppCompilerLib/IR816Backend.h"
+#include "CppCompilerLib/IRW65C816Backend.h"
 #include "CppCompilerLib/CPP65IRFrontEnd.h"
 #include "CppCompilerLib/CPP65Generator.h"
 #include "TestLib/Assert.h"
@@ -26,7 +26,7 @@
 //////////////////////////////////////////////////////////////////////////
 //
 // C++ compiled for the W65C816 (CCPP65Builder with CPPT_W65C816): the generator's C++, the IR front end and
-// CIR816Backend, linked with the W65C816's start up and runtime routines and run on CFast65C816.
+// CIRW65C816Backend, linked with the W65C816's start up and runtime routines and run on CFastW65C816.
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ static const char* gaszTestCPP816Libc65[] = { "string.cpp", "string816.asm", "st
 // 7).  Returns how many instructions ran.
 //
 //////////////////////////////////////////////////////////////////////////
-size TestCPP816Profile(CCPP65Builder* pcBuilder, CFast65C816* pcFast, size uiMaxSteps)
+size TestCPP816Profile(CCPP65Builder* pcBuilder, CFastW65C816* pcFast, size uiMaxSteps)
 {
 	CArrayTemplate<uint32>	auiAddresses;
 	CArrayTemplate<int32>	aiCounts;
@@ -172,7 +172,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 {
 	CCPP65Builder	cBuilder;
 	CAsm65Memory	cMemory;
-	CFast65C816		cFast;
+	CFastW65C816		cFast;
 	CChars			szMissing;
 	CChars			szProject;
 	CFileUtil		cFileUtil;
@@ -792,7 +792,7 @@ void TestCPP816SharedDivisions(void)
 		"}\n"));
 
 	//16, 32 and 64 bits, unsigned and signed, either way round: the urem or srem takes the remainder the divide left at
-	//D + 5 (CIROptimiser::SetDivideRemainders, CIR816Backend::RemainderLeft), with no call and no multiply.
+	//D + 5 (CIROptimiser::SetDivideRemainders, CIRW65C816Backend::RemainderLeft), with no call and no multiply.
 	szListing.Init();
 	AssertInt(1, TestCPP816RunListed(
 		"unsigned int gauiX[] = { 50000, 7, 65535, 3, 1234 };\n"
@@ -873,7 +873,7 @@ void TestCPP816Divide64(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 1 << n looked up in R816_Bits16 and R816_Bits32 (CIR816Backend::
+// 1 << n looked up in R816_Bits16 and R816_Bits32 (CIRW65C816Backend::
 // BitShift), and __builtin_clz and ctz (the runtime's R816_Clz16 ...),
 // against loops, for every count and bit.
 //
@@ -966,7 +966,7 @@ void TestCPP816CountZeros(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 64 bit 1 << n looked up in R816_Bits64 (CIR816Backend::BitShift), and the
+// 64 bit 1 << n looked up in R816_Bits64 (CIRW65C816Backend::BitShift), and the
 // masks soft float rounds with ((1 << n) - 1, 1 << (n - 1)), for every
 // count, against doubling; nothing calls R816_Shl64.
 //
@@ -1006,7 +1006,7 @@ void TestCPP816BitTable64(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // An int count of 64 bit shifts, extended to 64 bits for the IR, has only
-// its low word worked out (CIR816Backend::Extend, OnlyCounts): the shift
+// its low word worked out (CIRW65C816Backend::Extend, OnlyCounts): the shift
 // routines read only its 6 bits.  Its sign words aren't, here or in the
 // shifts by a signed count, and the results are as natively.
 //
@@ -2724,12 +2724,12 @@ void TestCPP816OverloadedFunctionPointers(void)
 // program's map in pszMap (when not NULL).
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TestCPP816RunProfiled(const char* szSource, CAsm65816Profile* pcProfile, CAsm65816Profile* pcMeasure, uint64* puiCycles, CChars* pszMap = NULL)
+int32 TestCPP816RunProfiled(const char* szSource, CAsmW65C816Profile* pcProfile, CAsmW65C816Profile* pcMeasure, uint64* puiCycles, CChars* pszMap = NULL)
 {
 	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	CChars				szProject;
 	CFileUtil			cFileUtil;
 	int32				iResult;
@@ -2824,16 +2824,16 @@ void TestCPP816ProfileGuidedInlining(void)
 		"\tr += Mix(r, 3);\n"
 		"\treturn r;\n"
 		"}\n";
-	CAsm65816Profile			cProfile;
-	CAsm65816Profile			cGuided;
-	CAsm65816Profile			cAgain;
-	CAsm65816Profile			cRead;
+	CAsmW65C816Profile			cProfile;
+	CAsmW65C816Profile			cGuided;
+	CAsmW65C816Profile			cAgain;
+	CAsmW65C816Profile			cRead;
 	CChars					szChanged;
-	SAsm65816CallSiteProfile*	psCallSite;
-	SAsm65816CallSiteProfile*	psOnce;
-	SAsm65816CallSiteProfile*	psRead;
-	SAsm65816FunctionProfile*	psMix;
-	SAsm65816FunctionProfile*	psMain;
+	SAsmW65C816CallSiteProfile*	psCallSite;
+	SAsmW65C816CallSiteProfile*	psOnce;
+	SAsmW65C816CallSiteProfile*	psRead;
+	SAsmW65C816FunctionProfile*	psMix;
+	SAsmW65C816FunctionProfile*	psMain;
 	int32					iResult;
 	uint64					uiPlain;
 	uint64					uiGuided;
@@ -2928,7 +2928,7 @@ void TestCPP816ProfileGuidedDivisionTables(void)
 		"\t}\n"
 		"\treturn (int)(short)h;\n"
 		"}\n";
-	CAsm65816Profile	cProfile;
+	CAsmW65C816Profile	cProfile;
 	CChars			szPlainMap;
 	CChars			szGuidedMap;
 	uint64			uiPlain;
@@ -4074,8 +4074,8 @@ void TestCPP816InlineObjectParameters(void)
 		"\t}\n"
 		"\treturn (p.a == 1) ? r : -1;\n"
 		"}\n";
-	CAsm65816Profile			cProfile;
-	SAsm65816FunctionProfile*	psWeigh;
+	CAsmW65C816Profile			cProfile;
+	SAsmW65C816FunctionProfile*	psWeigh;
 	uint64					uiCycles;
 
 	cProfile.Init();
@@ -4250,12 +4250,12 @@ bool TestCPP816IsAligned(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const
 // of the aszPrefixes' functions) whether it has an aligned frame.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TestCPP816RunFrames(const char* szSource, CAsm65816Profile* pcProfile, CAsm65816Profile* pcMeasure, uint64* puiCycles, const char** aszPrefixes, bool* abAligned)
+int32 TestCPP816RunFrames(const char* szSource, CAsmW65C816Profile* pcProfile, CAsmW65C816Profile* pcMeasure, uint64* puiCycles, const char** aszPrefixes, bool* abAligned)
 {
 	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	CChars				szProject;
 	CFileUtil			cFileUtil;
 	size				i;
@@ -4310,7 +4310,7 @@ int32 TestCPP816RunFrames(const char* szSource, CAsm65816Profile* pcProfile, CAs
 //
 // A function gets D on a page (a cycle less each direct page access) when
 // it's worth it and it can't recurse: by default when its loops' accesses
-// are estimated to be well past the cost; with a profile (CAsm65816Profile,
+// are estimated to be well past the cost; with a profile (CAsmW65C816Profile,
 // CCPP65Builder::SetFrameProfile) when they were measured to be.  Its
 // arguments are copied up to the aligned frame (stored, or pushed when the
 // frame passes the page) and S as it was is kept for the epilogue.  (The
@@ -4341,7 +4341,7 @@ void TestCPP816AlignedFrames(void)
 		"	return ((r == 24750) && (w == 436020L) && (c == 2) && (b == 122412L)) ? 7 : 1;\n"
 		"}\n";
 	static const char*	aszPrefixes[] = { "_Sum", "_Wide", "_Cold", "_Big", NULL };
-	CAsm65816Profile		cProfile;
+	CAsmW65C816Profile		cProfile;
 	uint64				uiEstimated;
 	uint64				uiMeasured;
 	bool				abAligned[4];
@@ -4421,7 +4421,7 @@ void TestCPP816AlignedFrameUnreadArguments(void)
 	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	CChars				szProject;
 	CFileUtil			cFileUtil;
 
@@ -4796,9 +4796,9 @@ void TestCPP816ProfileRegisterEntries(void)
 		"\tfor (int i = 0; i < 3; i++) { r += gpTwice(i, 1); }\n"
 		"\treturn r + Down(4);\n"
 		"}\n";
-	CAsm65816Profile			cProfile;
-	SAsm65816FunctionProfile*	psTwice;
-	SAsm65816FunctionProfile*	psDown;
+	CAsmW65C816Profile			cProfile;
+	SAsmW65C816FunctionProfile*	psTwice;
+	SAsmW65C816FunctionProfile*	psDown;
 	uint64						uiCycles;
 
 	//Not inlined: the calls are what is counted.
@@ -4833,7 +4833,7 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	CChars				szMissing;
 	CCPP65Builder	cBuilder;
 	CAsm65Memory	cMemory;
-	CFast65C816		cFast;
+	CFastW65C816		cFast;
 	CChars			szProject;
 	CFileUtil		cFileUtil;
 	CTextFile		cFile;
@@ -5117,7 +5117,7 @@ void TestCPP816FrameOperandFloats(void)
 //
 // With softfloat.cpp compiled in place of softfloat816.asm (CCPP65Generator
 // ::SetAssemblyUnits(false)) the float instructions call its functions'
-// register entries (CIR816Backend::SoftFloatCall), not their stubs: every
+// register entries (CIRW65C816Backend::SoftFloatCall), not their stubs: every
 // result the same, bit for bit, as natively.  _SoftDoubleCompare takes
 // nothing in registers (its plain label), _SoftFloatFromInt's int would
 // (it is pushed, extended to 32 bits, to the plain label).
@@ -5253,7 +5253,7 @@ namespace TestCPP816AlignedBigFrameNative
 //
 // A frame past the page with register arguments and pushed ones gets D on a
 // page: the pushed arguments, then (below the link bytes) the register words
-// at the frame's top, are pushed into place (CIR816Backend::AlignFrame).
+// at the frame's top, are pushed into place (CIRW65C816Backend::AlignFrame).
 // Spread takes A, X and Y and has two words pushed; Pushed has only its
 // first argument in registers.  The results are as natively.
 //
@@ -5262,7 +5262,7 @@ void TestCPP816AlignedBigFrameArguments(void)
 {
 	static const char*	aszPrefixes[] = { "_Spread", "_Pushed", NULL };
 	CChars				szSource;
-	CAsm65816Profile	cProfile;
+	CAsmW65C816Profile	cProfile;
 	uint64				uiCycles;
 	bool				abAligned[2];
 	long				lExpected;

@@ -4,7 +4,7 @@
 #include "BaseLib/TextFile.h"
 #include "BaseLib/Chars.h"
 #include "Assembler65Lib/Asm65Memory.h"
-#include "MicroprocessorLib/Fast65C816.h"
+#include "MicroprocessorLib/FastW65C816.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "TestLib/Assert.h"
 
@@ -346,7 +346,7 @@ void TestFat816Layout(void)
 {
 	CCPP65Builder	cBuilder;
 	CAsm65Memory	cMemory;
-	CFast65C816		cMPU;
+	CFastW65C816		cMPU;
 	CFileUtil		cFileUtil;
 	CTextFile		cExpected;
 	CChars			szSource;

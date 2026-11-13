@@ -33,7 +33,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // szMnemonic on the frame's word at iOffset: [D + offset], or through X past the direct page's 256 bytes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Frame(const char* szMnemonic, int32 iOffset)
+void CIRW65C816Backend::Frame(const char* szMnemonic, int32 iOffset)
 {
 	mpszOut->Append("\t\t");
 	if (IR816OnDirectPage(iOffset))
@@ -61,7 +61,7 @@ void CIR816Backend::Frame(const char* szMnemonic, int32 iOffset)
 // szMnemonic with word iWord of a temporary, constant or symbol.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWord)
+void CIRW65C816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWord)
 {
 	uint16	uiWord;
 	char*	szName;
@@ -146,7 +146,7 @@ void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Store(SIRReference sResult, int iWord)
+void CIRW65C816Backend::Store(SIRReference sResult, int iWord)
 {
 	if (InX(sResult))
 	{
@@ -173,7 +173,7 @@ void CIR816Backend::Store(SIRReference sResult, int iWord)
 // Keeps an i8 or i1 in A zero extended.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Mask(SIRType sType)
+void CIRW65C816Backend::Mask(SIRType sType)
 {
 	if (sType.Is(IRTK_I8))
 	{
@@ -190,7 +190,7 @@ void CIR816Backend::Mask(SIRType sType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::CopyWords(int32 iDestination, SIRReference sValue, int iWords)
+void CIRW65C816Backend::CopyWords(int32 iDestination, SIRReference sValue, int iWords)
 {
 	int		i;
 	uint16	uiWord;
@@ -214,7 +214,7 @@ void CIR816Backend::CopyWords(int32 iDestination, SIRReference sValue, int iWord
 // constant's word, or 0 past the end of a temporary or a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::ConstantWord(SIRReference sValue, int iWord, uint16* puiWord)
+bool CIRW65C816Backend::ConstantWord(SIRReference sValue, int iWord, uint16* puiWord)
 {
 	if (sValue.IsConstant())
 	{
@@ -234,7 +234,7 @@ bool CIR816Backend::ConstantWord(SIRReference sValue, int iWord, uint16* puiWord
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ZeroWords(int32 iDestination, int iFirst, int iWords)
+void CIRW65C816Backend::ZeroWords(int32 iDestination, int iFirst, int iWords)
 {
 	int		i;
 
@@ -250,7 +250,7 @@ void CIR816Backend::ZeroWords(int32 iDestination, int iFirst, int iWords)
 // Fills iWords words from iFirst with the sign of the word before them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FillSign(int32 iDestination, int iFirst, int iWords)
+void CIRW65C816Backend::FillSign(int32 iDestination, int iFirst, int iWords)
 {
 	int		i;
 
@@ -272,7 +272,7 @@ void CIR816Backend::FillSign(int32 iDestination, int iFirst, int iWords)
 // Pushes a value's words, the high word first so it is little endian on the stack.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PushValue(SIRReference sValue, SIRType sType)
+void CIRW65C816Backend::PushValue(SIRReference sValue, SIRType sType)
 {
 	int		i;
 
@@ -288,7 +288,7 @@ void CIR816Backend::PushValue(SIRReference sValue, SIRType sType)
 // Pushes word iWord of a temporary, constant or symbol.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PushWord(SIRReference sValue, int iWord)
+void CIRW65C816Backend::PushWord(SIRReference sValue, int iWord)
 {
 	if (sValue.IsTemporary() && (iWord < Words(mpcFunction->GetTemporaryType(sValue))) && (IR816OnDirectPage(OffsetOf(sValue) + 2 * iWord) || InX(sValue)))
 	{
@@ -312,7 +312,7 @@ void CIR816Backend::PushWord(SIRReference sValue, int iWord)
 // Pushes the 24 bit address (in bank 0) of the frame's byte at iOffset.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PushFrameAddress(int32 iOffset)
+void CIRW65C816Backend::PushFrameAddress(int32 iOffset)
 {
 	Line("pea 0");
 	Line("tdc");
@@ -328,7 +328,7 @@ void CIR816Backend::PushFrameAddress(int32 iOffset)
 // the first 256 bytes, else it is copied to the scratch pointer), and the constant a folded pointer adds to it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset)
+void CIRW65C816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset)
 {
 	*piOffset = 0;
 	if (!FoldedBase(sPointer).Equals(sPointer))
@@ -356,7 +356,7 @@ void CIR816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
+bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
 	int				i;
@@ -507,7 +507,7 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 // (WordInA), or an i16 kept in X stepped by 1 or 2.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Arithmetic(SIRInstruction* psInstruction)
+void CIRW65C816Backend::Arithmetic(SIRInstruction* psInstruction)
 {
 	int		i;
 	int		iWords;
@@ -547,7 +547,7 @@ void CIR816Backend::Arithmetic(SIRInstruction* psInstruction)
 // inc or dec.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::StepInPlace(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::StepInPlace(SIRInstruction* psInstruction)
 {
 	SIRReference	sValue;
 	uint32			uiStep;
@@ -608,7 +608,7 @@ bool CIR816Backend::StepInPlace(SIRInstruction* psInstruction)
 // word 0 is 0 without reading the other.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Logic(SIRInstruction* psInstruction)
+void CIRW65C816Backend::Logic(SIRInstruction* psInstruction)
 {
 	int		i;
 	uint16	uiWord;
@@ -644,7 +644,7 @@ void CIR816Backend::Logic(SIRInstruction* psInstruction)
 // zero extension or trunc to 16 bits is ldx of the word).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::ExtendInX(SIRInstruction* psInstruction)
+void CIRW65C816Backend::ExtendInX(SIRInstruction* psInstruction)
 {
 	SIRReference	sValue;
 	SIRType			sSource;
@@ -685,7 +685,7 @@ void CIR816Backend::ExtendInX(SIRInstruction* psInstruction)
 // zext, sext, trunc and the pointer conversions.  Narrow values are already zero extended in their word.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Extend(SIRInstruction* psInstruction)
+void CIRW65C816Backend::Extend(SIRInstruction* psInstruction)
 {
 	SIRType			sSource;
 	SIRType			sType;
@@ -764,7 +764,7 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 // A slot's or argument's address: D + offset, in bank 0.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Address(SIRInstruction* psInstruction, int32 iOffset)
+void CIRW65C816Backend::Address(SIRInstruction* psInstruction, int32 iOffset)
 {
 	Line("tdc");
 	Line("clc");
@@ -781,7 +781,7 @@ void CIR816Backend::Address(SIRInstruction* psInstruction, int32 iOffset)
 // its words past the pointer read first, then its second word is kept on the stack while the first is read.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Load(SIRInstruction* psInstruction)
+void CIRW65C816Backend::Load(SIRInstruction* psInstruction)
 {
 	int		i;
 	bool	bByte;
@@ -840,7 +840,7 @@ static uint16 IR816AllOnes(SIRType sType)
 // are read.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
+void CIRW65C816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 {
 	int32			iPlace;
 	int32			iOffset;
@@ -864,7 +864,7 @@ void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 	{
 	case IRO_Load:
 		PointerPlace(sFirst, &iPlace, &szSymbol, &iOffset);
-		sz.Init(CIR816Backend::GetScratch());
+		sz.Init(CIRW65C816Backend::GetScratch());
 		if (szSymbol)
 		{
 			sz.Append("lda [");
@@ -924,7 +924,7 @@ void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
+void CIRW65C816Backend::StoreMemory(SIRInstruction* psInstruction)
 {
 	int32	iPlace;
 	int32	iOffset;
@@ -933,7 +933,7 @@ void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
 	CChars	sz;
 
 	PointerPlace(psInstruction->asArguments[1], &iPlace, &szSymbol, &iOffset);
-	sz.Init(CIR816Backend::GetScratch());
+	sz.Init(CIRW65C816Backend::GetScratch());
 	if (psInstruction->sType.Is(IRTK_I8))
 	{
 		Line("sep m");

@@ -229,7 +229,7 @@ bool CIRAddressPasses::MergeAddressPhis(void)
 //
 // p + sext(x), x an i16, used only as the address of loads and stores of
 // at most 2 bytes, is (p - 32768) + zext(x ^ 32768): the target adds the
-// zero extended index in a register as it loads (CIR816Backend::
+// zero extended index in a register as it loads (CIRW65C816Backend::
 // FoldIndices), and p - 32768 is worked out once (outside the loop, when p
 // doesn't change in it).  A scaled index p + sext(x) * s (a shl or mul by
 // a constant) with x from lo to hi, (hi - lo) * s under 65536, is

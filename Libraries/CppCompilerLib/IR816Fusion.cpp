@@ -32,7 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // bAnyOverlap (a pointer read for each word), else one not at the same place.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap)
+bool CIRW65C816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap)
 {
 	int32	iResult;
 	int32	iInput;
@@ -57,7 +57,7 @@ bool CIR816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput, boo
 // sValue, else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIR816Backend::Fused(SIRReference sValue)
+SIRInstruction* CIRW65C816Backend::Fused(SIRReference sValue)
 {
 	int		i;
 
@@ -80,7 +80,7 @@ SIRInstruction* CIR816Backend::Fused(SIRReference sValue)
 // partly overlapped.  The fused values it reads aren't written.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult)
+bool CIRW65C816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult)
 {
 	SIRReference	sPointer;
 	SIRReference	sIndex;
@@ -135,7 +135,7 @@ static bool IR816AndsConstant(SIRInstruction* psInstruction)
 // store could change a word still to be loaded).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
+bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
 	SIRInstruction*	psNext;
@@ -291,7 +291,7 @@ bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 // chain can't have an add or sub's carry).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction)
+bool CIRW65C816Backend::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
 	SIRInstruction*	psChained;
 	int				i;

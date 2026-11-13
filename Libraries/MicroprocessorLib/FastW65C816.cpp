@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Define.h"
 #include "CPUFlags.h"
-#include "Fast65C816.h"
+#include "FastW65C816.h"
 
 
 #define FAST_816_C		STATUS_CARRY
@@ -56,7 +56,7 @@ enum EFast65C816Modify
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize)
+void CFastW65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize)
 {
 	muiC = 0;
 	muiX = 0;
@@ -102,7 +102,7 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Kill(void)
+void CFastW65C816::Kill(void)
 {
 	mcBreakpoints.Kill();
 	mfReadByte = NULL;
@@ -120,7 +120,7 @@ void CFast65C816::Kill(void)
 // Addresses uiStart to uiEnd - 1 in the flat block go to the callbacks (memory mapped devices).
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::SetHole(uint32 uiStart, uint32 uiEnd)
+void CFastW65C816::SetHole(uint32 uiStart, uint32 uiEnd)
 {
 	muiHoleStart = uiStart;
 	muiHoleSize = uiEnd - uiStart;
@@ -134,7 +134,7 @@ void CFast65C816::SetHole(uint32 uiStart, uint32 uiEnd)
 // and Fetch use it directly), else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::SetBanks(void)
+void CFastW65C816::SetBanks(void)
 {
 	uint32	uiBank;
 	uint32	uiStart;
@@ -160,7 +160,7 @@ void CFast65C816::SetBanks(void)
 // PBR, and mpuiProgramBank: its bank if Fetch can read it directly (mapuiBanks), else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE void CFast65C816::SetProgramBank(uint8 uiBank)
+FORCE_INLINE void CFastW65C816::SetProgramBank(uint8 uiBank)
 {
 	muiPBR = uiBank;
 	mpuiProgramBank = mapuiBanks[uiBank];
@@ -172,7 +172,7 @@ FORCE_INLINE void CFast65C816::SetProgramBank(uint8 uiBank)
 // fSignal is called with the FAST_65C816_SIGNAL_* events, with the context given to Init.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::SetSignal(CFast65C816Signal fSignal)
+void CFastW65C816::SetSignal(CFast65C816Signal fSignal)
 {
 	mfSignal = fSignal;
 }
@@ -183,7 +183,7 @@ void CFast65C816::SetSignal(CFast65C816Signal fSignal)
 // Emulation mode, two internal cycles, three with S counting down, then the reset vector.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Reset(void)
+void CFastW65C816::Reset(void)
 {
 	uint8	uiLow;
 	uint8	uiHigh;
@@ -221,7 +221,7 @@ void CFast65C816::Reset(void)
 // block move (MVN and MVP execute again for each byte).
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE bool CFast65C816::IsBreakpointNext(void)
+FORCE_INLINE bool CFastW65C816::IsBreakpointNext(void)
 {
 	return AnyBreakpoints() && !mbMoving && IsBreakpointAt(((uint32)muiPBR << 16) | muiPC);
 }
@@ -232,7 +232,7 @@ FORCE_INLINE bool CFast65C816::IsBreakpointNext(void)
 // Whether any of the breakpoints looked at are enabled.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE bool CFast65C816::AnyBreakpoints(void)
+FORCE_INLINE bool CFastW65C816::AnyBreakpoints(void)
 {
 	return mpcBreakpoints->AnyEnabled() || ((mpcMoreBreakpoints != NULL) && mpcMoreBreakpoints->AnyEnabled());
 }
@@ -244,7 +244,7 @@ FORCE_INLINE bool CFast65C816::AnyBreakpoints(void)
 // while it has any: only then has it banks to look in).
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE bool CFast65C816::IsBreakpointAt(uint32 uiAddress)
+FORCE_INLINE bool CFastW65C816::IsBreakpointAt(uint32 uiAddress)
 {
 	if (mpcBreakpoints->AnyEnabled() && mpcBreakpoints->IsEnabledNext(uiAddress))
 	{
@@ -260,7 +260,7 @@ FORCE_INLINE bool CFast65C816::IsBreakpointAt(uint32 uiAddress)
 // the last Step or Run returned there (it's executed now).
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE bool CFast65C816::Breaks(void)
+FORCE_INLINE bool CFastW65C816::Breaks(void)
 {
 	if (mbAtBreakpoint)
 	{
@@ -280,7 +280,7 @@ FORCE_INLINE bool CFast65C816::Breaks(void)
 // executes it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFast65C816::Step(void)
+bool CFastW65C816::Step(void)
 {
 	if (mbStopped)
 	{
@@ -342,7 +342,7 @@ bool CFast65C816::Step(void)
 // low or pending.  (IRQB low with I set needs nothing, but is rare enough to leave to Step.)
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE bool CFast65C816::NeedsDeciding(void)
+FORCE_INLINE bool CFastW65C816::NeedsDeciding(void)
 {
 	return (mbStopped | mbWaiting | mbIrq | mbNmiPending) != 0;
 }
@@ -365,7 +365,7 @@ FORCE_INLINE bool CFast65C816::NeedsDeciding(void)
 // callback, as a machine changing mode does) count from the next instruction.
 //
 //////////////////////////////////////////////////////////////////////////
-size CFast65C816::Run(size uiMaxInstructions)
+size CFastW65C816::Run(size uiMaxInstructions)
 {
 	size	i;
 
@@ -438,7 +438,7 @@ size CFast65C816::Run(size uiMaxInstructions)
 // IRQB is level sensitive.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::SetIRQ(bool bLow)
+void CFastW65C816::SetIRQ(bool bLow)
 {
 	mbIrq = bLow;
 }
@@ -449,7 +449,7 @@ void CFast65C816::SetIRQ(bool bLow)
 // NMIB is latched when it falls.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::SetNMI(bool bLow)
+void CFastW65C816::SetNMI(bool bLow)
 {
 	if (bLow && !mbNmi)
 	{
@@ -467,7 +467,7 @@ void CFast65C816::SetNMI(bool bLow)
 // stop, or the next Run.
 //
 //////////////////////////////////////////////////////////////////////////
-CBreakpoints* CFast65C816::GetBreakpoints(void)
+CBreakpoints* CFastW65C816::GetBreakpoints(void)
 {
 	return &mcBreakpoints;
 }
@@ -482,7 +482,7 @@ CBreakpoints* CFast65C816::GetBreakpoints(void)
 // well as its mode's).
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints)
+void CFastW65C816::UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints)
 {
 	pcBreakpoints = pcBreakpoints ? pcBreakpoints : &mcBreakpoints;
 	if ((pcBreakpoints != mpcBreakpoints) || (pcMoreBreakpoints != mpcMoreBreakpoints))
@@ -498,7 +498,7 @@ void CFast65C816::UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBreakpoints* CFast65C816::GetUsedBreakpoints(void)
+CBreakpoints* CFastW65C816::GetUsedBreakpoints(void)
 {
 	return mpcBreakpoints;
 }
@@ -508,7 +508,7 @@ CBreakpoints* CFast65C816::GetUsedBreakpoints(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBreakpoints* CFast65C816::GetMoreUsedBreakpoints(void)
+CBreakpoints* CFastW65C816::GetMoreUsedBreakpoints(void)
 {
 	return mpcMoreBreakpoints;
 }
@@ -520,7 +520,7 @@ CBreakpoints* CFast65C816::GetMoreUsedBreakpoints(void)
 // (GetProgramAddress).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFast65C816::IsAtBreakpoint(void)
+bool CFastW65C816::IsAtBreakpoint(void)
 {
 	return mbAtBreakpoint;
 }
@@ -531,7 +531,7 @@ bool CFast65C816::IsAtBreakpoint(void)
 // What the next Step does, from the inputs at the end of this one.  NMI before IRQ.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::Decide(void)
+inline void CFastW65C816::Decide(void)
 {
 	if (mbNmiPending)
 	{
@@ -554,7 +554,7 @@ inline void CFast65C816::Decide(void)
 // In emulation mode the pushed P has B (bit 4) clear for a hardware interrupt and set for BRK and COP.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bool bHardware)
+void CFastW65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bool bHardware)
 {
 	uint8	uiP;
 	uint8	uiLow;
@@ -608,7 +608,7 @@ void CFast65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, boo
 // A bus cycle with VDA or VPA high.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint8 CFast65C816::Read(uint32 uiAddress)
+FORCE_INLINE uint8 CFastW65C816::Read(uint32 uiAddress)
 {
 	uint8*	puiBank;
 
@@ -630,7 +630,7 @@ FORCE_INLINE uint8 CFast65C816::Read(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE void CFast65C816::Write(uint32 uiAddress, uint8 uiValue)
+FORCE_INLINE void CFastW65C816::Write(uint32 uiAddress, uint8 uiValue)
 {
 	uint8*	puiBank;
 
@@ -655,7 +655,7 @@ FORCE_INLINE void CFast65C816::Write(uint32 uiAddress, uint8 uiValue)
 // The byte at PBR:PC.  PC wraps within the bank.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint8 CFast65C816::Fetch(void)
+FORCE_INLINE uint8 CFastW65C816::Fetch(void)
 {
 	uint8	uiValue;
 
@@ -677,7 +677,7 @@ FORCE_INLINE uint8 CFast65C816::Fetch(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint16 CFast65C816::Fetch16(void)
+FORCE_INLINE uint16 CFastW65C816::Fetch16(void)
 {
 	uint8	uiLow;
 	uint8	uiHigh;
@@ -693,7 +693,7 @@ FORCE_INLINE uint16 CFast65C816::Fetch16(void)
 // The address of the byte after uiAddress, wrapped as muiWrap says.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint32 CFast65C816::Next(uint32 uiAddress)
+FORCE_INLINE uint32 CFastW65C816::Next(uint32 uiAddress)
 {
 	return (uiAddress & ~muiWrap) | ((uiAddress + 1) & muiWrap);
 }
@@ -704,7 +704,7 @@ FORCE_INLINE uint32 CFast65C816::Next(uint32 uiAddress)
 // The 6502 instructions' stack stays in page 1 in emulation mode.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::Push(uint8 uiValue)
+inline void CFastW65C816::Push(uint8 uiValue)
 {
 	Write(muiS, uiValue);
 	if (mbE)
@@ -723,7 +723,7 @@ inline void CFast65C816::Push(uint8 uiValue)
 // The W65C816S instructions' stack uses all 16 bits of S (caveat 7.1).
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::Push16(uint8 uiValue)
+inline void CFastW65C816::Push16(uint8 uiValue)
 {
 	Write(muiS, uiValue);
 	muiS--;
@@ -734,7 +734,7 @@ inline void CFast65C816::Push16(uint8 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint8 CFast65C816::Pull(void)
+inline uint8 CFastW65C816::Pull(void)
 {
 	if (mbE)
 	{
@@ -752,7 +752,7 @@ inline uint8 CFast65C816::Pull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint8 CFast65C816::Pull16(void)
+inline uint8 CFastW65C816::Pull16(void)
 {
 	muiS++;
 	return Read(muiS);
@@ -764,7 +764,7 @@ inline uint8 CFast65C816::Pull16(void)
 // M and X are always set in emulation mode.  Setting X clears XH and YH.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::SetP(uint8 uiP)
+inline void CFastW65C816::SetP(uint8 uiP)
 {
 	if (mbE)
 	{
@@ -783,7 +783,7 @@ inline void CFast65C816::SetP(uint8 uiP)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::SetNZ8(uint8 uiValue)
+inline void CFastW65C816::SetNZ8(uint8 uiValue)
 {
 	muiP = (uint8)((muiP & ~(FAST_816_N | FAST_816_Z)) | (uiValue & FAST_816_N) | (uiValue == 0 ? FAST_816_Z : 0));
 }
@@ -793,7 +793,7 @@ inline void CFast65C816::SetNZ8(uint8 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::SetNZ16(uint16 uiValue)
+inline void CFastW65C816::SetNZ16(uint16 uiValue)
 {
 	muiP = (uint8)((muiP & ~(FAST_816_N | FAST_816_Z)) | ((uiValue >> 8) & FAST_816_N) | (uiValue == 0 ? FAST_816_Z : 0));
 }
@@ -803,7 +803,7 @@ inline void CFast65C816::SetNZ16(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::SetNZM(uint16 uiValue)
+inline void CFastW65C816::SetNZM(uint16 uiValue)
 {
 	if (IsM16())
 	{
@@ -820,7 +820,7 @@ inline void CFast65C816::SetNZM(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::SetNZX(uint16 uiValue)
+inline void CFastW65C816::SetNZX(uint16 uiValue)
 {
 	if (IsX16())
 	{
@@ -837,7 +837,7 @@ inline void CFast65C816::SetNZX(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline bool CFast65C816::IsM16(void)
+inline bool CFastW65C816::IsM16(void)
 {
 	return !(muiP & FAST_816_M);
 }
@@ -847,7 +847,7 @@ inline bool CFast65C816::IsM16(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline bool CFast65C816::IsX16(void)
+inline bool CFastW65C816::IsX16(void)
 {
 	return !(muiP & FAST_816_X);
 }
@@ -858,7 +858,7 @@ inline bool CFast65C816::IsX16(void)
 // The memory operand in the accumulator's width, low byte first.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint16 CFast65C816::ReadM(uint32 uiAddress)
+FORCE_INLINE uint16 CFastW65C816::ReadM(uint32 uiAddress)
 {
 	uint8	uiLow;
 
@@ -875,7 +875,7 @@ FORCE_INLINE uint16 CFast65C816::ReadM(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint16 CFast65C816::ReadX(uint32 uiAddress)
+FORCE_INLINE uint16 CFastW65C816::ReadX(uint32 uiAddress)
 {
 	uint8	uiLow;
 
@@ -892,7 +892,7 @@ FORCE_INLINE uint16 CFast65C816::ReadX(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE void CFast65C816::WriteM(uint32 uiAddress, uint16 uiValue)
+FORCE_INLINE void CFastW65C816::WriteM(uint32 uiAddress, uint16 uiValue)
 {
 	Write(uiAddress, (uint8)uiValue);
 	if (IsM16())
@@ -906,7 +906,7 @@ FORCE_INLINE void CFast65C816::WriteM(uint32 uiAddress, uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE void CFast65C816::WriteX(uint32 uiAddress, uint16 uiValue)
+FORCE_INLINE void CFastW65C816::WriteX(uint32 uiAddress, uint16 uiValue)
 {
 	Write(uiAddress, (uint8)uiValue);
 	if (IsX16())
@@ -920,7 +920,7 @@ FORCE_INLINE void CFast65C816::WriteX(uint32 uiAddress, uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint16 CFast65C816::ImmediateM(void)
+FORCE_INLINE uint16 CFastW65C816::ImmediateM(void)
 {
 	if (IsM16())
 	{
@@ -934,7 +934,7 @@ FORCE_INLINE uint16 CFast65C816::ImmediateM(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint16 CFast65C816::ImmediateX(void)
+FORCE_INLINE uint16 CFastW65C816::ImmediateX(void)
 {
 	if (IsX16())
 	{
@@ -950,7 +950,7 @@ FORCE_INLINE uint16 CFast65C816::ImmediateX(void)
 // within bank 0.  Sets muiWrap to match.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint32 CFast65C816::Direct(uint32 uiOffset)
+FORCE_INLINE uint32 CFastW65C816::Direct(uint32 uiOffset)
 {
 	if (mbE && ((muiD & 0xFF) == 0))
 	{
@@ -967,7 +967,7 @@ FORCE_INLINE uint32 CFast65C816::Direct(uint32 uiOffset)
 // a
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint32 CFast65C816::AddressAbsolute(void)
+FORCE_INLINE uint32 CFastW65C816::AddressAbsolute(void)
 {
 	muiWrap = FAST_816_WRAP_LONG;
 	return ((uint32)muiDBR << 16) | Fetch16();
@@ -980,7 +980,7 @@ FORCE_INLINE uint32 CFast65C816::AddressAbsolute(void)
 // instruction writes (bAlways).
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressAbsoluteIndexed(uint16 uiIndex, bool bAlways)
+inline uint32 CFastW65C816::AddressAbsoluteIndexed(uint16 uiIndex, bool bAlways)
 {
 	uint16	uiAddress;
 
@@ -999,7 +999,7 @@ inline uint32 CFast65C816::AddressAbsoluteIndexed(uint16 uiIndex, bool bAlways)
 // al
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressLong(void)
+inline uint32 CFastW65C816::AddressLong(void)
 {
 	uint16	uiAddress;
 
@@ -1014,7 +1014,7 @@ inline uint32 CFast65C816::AddressLong(void)
 // al,x
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressLongX(void)
+inline uint32 CFastW65C816::AddressLongX(void)
 {
 	return (AddressLong() + muiX) & 0xFFFFFF;
 }
@@ -1025,7 +1025,7 @@ inline uint32 CFast65C816::AddressLongX(void)
 // d.  An internal cycle when DL is not zero (note 2).
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE uint32 CFast65C816::AddressDirect(void)
+FORCE_INLINE uint32 CFastW65C816::AddressDirect(void)
 {
 	uint8	uiOffset;
 
@@ -1043,7 +1043,7 @@ FORCE_INLINE uint32 CFast65C816::AddressDirect(void)
 // d,x and d,y
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressDirectIndexed(uint16 uiIndex)
+inline uint32 CFastW65C816::AddressDirectIndexed(uint16 uiIndex)
 {
 	uint8	uiOffset;
 
@@ -1058,7 +1058,7 @@ inline uint32 CFast65C816::AddressDirectIndexed(uint16 uiIndex)
 // (d)
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressIndirect(void)
+inline uint32 CFastW65C816::AddressIndirect(void)
 {
 	uint8	uiOffset;
 	uint8	uiLow;
@@ -1081,7 +1081,7 @@ inline uint32 CFast65C816::AddressIndirect(void)
 // (d,x)
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressIndirectX(void)
+inline uint32 CFastW65C816::AddressIndirectX(void)
 {
 	uint8	uiOffset;
 	uint8	uiLow;
@@ -1101,7 +1101,7 @@ inline uint32 CFast65C816::AddressIndirectX(void)
 // (d),y.  The internal cycle as for a,y.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressIndirectY(bool bAlways)
+inline uint32 CFastW65C816::AddressIndirectY(bool bAlways)
 {
 	uint8	uiOffset;
 	uint8	uiLow;
@@ -1128,7 +1128,7 @@ inline uint32 CFast65C816::AddressIndirectY(bool bAlways)
 // [d].  The pointer never wraps within the page.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressIndirectLong(void)
+inline uint32 CFastW65C816::AddressIndirectLong(void)
 {
 	uint8	uiOffset;
 	uint32	uiPointer;
@@ -1155,7 +1155,7 @@ inline uint32 CFast65C816::AddressIndirectLong(void)
 // [d],y
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressIndirectLongY(void)
+inline uint32 CFastW65C816::AddressIndirectLongY(void)
 {
 	return (AddressIndirectLong() + muiY) & 0xFFFFFF;
 }
@@ -1166,7 +1166,7 @@ inline uint32 CFast65C816::AddressIndirectLongY(void)
 // d,s
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressStack(void)
+inline uint32 CFastW65C816::AddressStack(void)
 {
 	uint8	uiOffset;
 
@@ -1182,7 +1182,7 @@ inline uint32 CFast65C816::AddressStack(void)
 // (d,s),y
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressStackY(void)
+inline uint32 CFastW65C816::AddressStackY(void)
 {
 	uint32	uiPointer;
 	uint8	uiLow;
@@ -1201,7 +1201,7 @@ inline uint32 CFast65C816::AddressStackY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::LDA(uint16 uiValue)
+inline void CFastW65C816::LDA(uint16 uiValue)
 {
 	if (IsM16())
 	{
@@ -1220,7 +1220,7 @@ inline void CFast65C816::LDA(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::LDX(uint16 uiValue)
+inline void CFastW65C816::LDX(uint16 uiValue)
 {
 	muiX = uiValue;
 	SetNZX(uiValue);
@@ -1231,7 +1231,7 @@ inline void CFast65C816::LDX(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::LDY(uint16 uiValue)
+inline void CFastW65C816::LDY(uint16 uiValue)
 {
 	muiY = uiValue;
 	SetNZX(uiValue);
@@ -1242,7 +1242,7 @@ inline void CFast65C816::LDY(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::ORA(uint16 uiValue)
+inline void CFastW65C816::ORA(uint16 uiValue)
 {
 	LDA(muiC | uiValue);
 }
@@ -1252,7 +1252,7 @@ inline void CFast65C816::ORA(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::AND(uint16 uiValue)
+inline void CFastW65C816::AND(uint16 uiValue)
 {
 	LDA(muiC & uiValue);
 }
@@ -1262,7 +1262,7 @@ inline void CFast65C816::AND(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::EOR(uint16 uiValue)
+inline void CFastW65C816::EOR(uint16 uiValue)
 {
 	LDA(muiC ^ uiValue);
 }
@@ -1272,7 +1272,7 @@ inline void CFast65C816::EOR(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::ADC(uint16 uiValue)
+void CFastW65C816::ADC(uint16 uiValue)
 {
 	uint32	uiResult;
 	uint32	uiAccumulator;
@@ -1311,7 +1311,7 @@ void CFast65C816::ADC(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::SBC(uint16 uiValue)
+void CFastW65C816::SBC(uint16 uiValue)
 {
 	if (muiP & FAST_816_D)
 	{
@@ -1329,7 +1329,7 @@ void CFast65C816::SBC(uint16 uiValue)
 // nibble is adjusted.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Decimal(uint16 uiValue, bool bSubtract)
+void CFastW65C816::Decimal(uint16 uiValue, bool bSubtract)
 {
 	int32	iNibbles;
 	int32	iAccumulator;
@@ -1398,7 +1398,7 @@ void CFast65C816::Decimal(uint16 uiValue, bool bSubtract)
 // CMP, CPX and CPY.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::Compare(uint16 uiRegister, uint16 uiValue, bool b16)
+inline void CFastW65C816::Compare(uint16 uiRegister, uint16 uiValue, bool b16)
 {
 	if (b16)
 	{
@@ -1420,7 +1420,7 @@ inline void CFast65C816::Compare(uint16 uiRegister, uint16 uiValue, bool b16)
 // BIT other than immediate: N and V from the operand, Z from A AND the operand.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::BIT(uint16 uiValue)
+inline void CFastW65C816::BIT(uint16 uiValue)
 {
 	uint16	uiTop;
 
@@ -1437,7 +1437,7 @@ inline void CFast65C816::BIT(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ASL(uint16 uiValue)
+inline uint16 CFastW65C816::ASL(uint16 uiValue)
 {
 	if (IsM16())
 	{
@@ -1458,7 +1458,7 @@ inline uint16 CFast65C816::ASL(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::LSR(uint16 uiValue)
+inline uint16 CFastW65C816::LSR(uint16 uiValue)
 {
 	muiP = (uint8)((muiP & ~FAST_816_C) | (uiValue & 1));
 	uiValue >>= 1;
@@ -1471,7 +1471,7 @@ inline uint16 CFast65C816::LSR(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ROL(uint16 uiValue)
+inline uint16 CFastW65C816::ROL(uint16 uiValue)
 {
 	uint16	uiCarry;
 
@@ -1495,7 +1495,7 @@ inline uint16 CFast65C816::ROL(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ROR(uint16 uiValue)
+inline uint16 CFastW65C816::ROR(uint16 uiValue)
 {
 	uint16	uiCarry;
 
@@ -1511,7 +1511,7 @@ inline uint16 CFast65C816::ROR(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::INC(uint16 uiValue)
+inline uint16 CFastW65C816::INC(uint16 uiValue)
 {
 	uiValue = IsM16() ? (uint16)(uiValue + 1) : (uint16)((uiValue + 1) & 0xFF);
 	SetNZM(uiValue);
@@ -1523,7 +1523,7 @@ inline uint16 CFast65C816::INC(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::DEC(uint16 uiValue)
+inline uint16 CFastW65C816::DEC(uint16 uiValue)
 {
 	uiValue = IsM16() ? (uint16)(uiValue - 1) : (uint16)((uiValue - 1) & 0xFF);
 	SetNZM(uiValue);
@@ -1535,7 +1535,7 @@ inline uint16 CFast65C816::DEC(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::TSB(uint16 uiValue)
+inline uint16 CFastW65C816::TSB(uint16 uiValue)
 {
 	uint16	uiMask;
 
@@ -1549,7 +1549,7 @@ inline uint16 CFast65C816::TSB(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::TRB(uint16 uiValue)
+inline uint16 CFastW65C816::TRB(uint16 uiValue)
 {
 	uint16	uiMask;
 
@@ -1563,7 +1563,7 @@ inline uint16 CFast65C816::TRB(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::Operate(uint8 uiOperation, uint16 uiValue)
+inline uint16 CFastW65C816::Operate(uint8 uiOperation, uint16 uiValue)
 {
 	switch (uiOperation)
 	{
@@ -1591,7 +1591,7 @@ inline uint16 CFast65C816::Operate(uint8 uiOperation, uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::ModifyAccumulator(uint8 uiOperation)
+inline void CFastW65C816::ModifyAccumulator(uint8 uiOperation)
 {
 	muiCycles++;
 	if (IsM16())
@@ -1611,7 +1611,7 @@ inline void CFast65C816::ModifyAccumulator(uint8 uiOperation)
 // but neither VDA nor VPA, so it is not an access.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Modify(uint32 uiAddress, uint8 uiOperation)
+void CFastW65C816::Modify(uint32 uiAddress, uint8 uiOperation)
 {
 	uint16	uiValue;
 	uint32	uiHighAddress;
@@ -1640,7 +1640,7 @@ void CFast65C816::Modify(uint32 uiAddress, uint8 uiOperation)
 // Taken: an internal cycle, and another in emulation mode when the target is on another page (note 6).
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::Branch(bool bTaken)
+inline void CFastW65C816::Branch(bool bTaken)
 {
 	int8	iOffset;
 	uint16	uiTarget;
@@ -1664,7 +1664,7 @@ inline void CFast65C816::Branch(bool bTaken)
 // TAX, TAY, TSX, TXY and TYX: all 16 bits of the source when the index registers are 16 bit.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::SetIndex(uint16* puiIndex, uint16 uiValue)
+inline void CFastW65C816::SetIndex(uint16* puiIndex, uint16 uiValue)
 {
 	muiCycles++;
 	if (IsX16())
@@ -1685,7 +1685,7 @@ inline void CFast65C816::SetIndex(uint16* puiIndex, uint16 uiValue)
 // TXA and TYA.
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::TransferToA(uint16 uiValue)
+inline void CFastW65C816::TransferToA(uint16 uiValue)
 {
 	muiCycles++;
 	LDA(uiValue);
@@ -1697,7 +1697,7 @@ inline void CFast65C816::TransferToA(uint16 uiValue)
 // One byte of MVN (iStep 1) or MVP (iStep -1).  The instruction repeats until C counts down to FFFF.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::BlockMove(int iStep)
+void CFastW65C816::BlockMove(int iStep)
 {
 	uint8	uiSourceBank;
 	uint8	uiValue;
@@ -1754,7 +1754,7 @@ void CFast65C816::BlockMove(int iStep)
 // fifth of the time an instruction took.
 //
 //////////////////////////////////////////////////////////////////////////
-FORCE_INLINE void CFast65C816::Execute(void)
+FORCE_INLINE void CFastW65C816::Execute(void)
 {
 	uint8	uiOpcode;
 	uint8	uiLow;
@@ -2217,39 +2217,39 @@ FORCE_INLINE void CFast65C816::Execute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFast65C816::GetC(void)				{ return muiC; }
-uint16 CFast65C816::GetX(void)				{ return muiX; }
-uint16 CFast65C816::GetY(void)				{ return muiY; }
-uint16 CFast65C816::GetS(void)				{ return muiS; }
-uint16 CFast65C816::GetD(void)				{ return muiD; }
-uint8 CFast65C816::GetDataBank(void)		{ return muiDBR; }
-uint8 CFast65C816::GetProgramBank(void)		{ return muiPBR; }
-uint16 CFast65C816::GetProgramCounter(void)	{ return muiPC; }
-uint32 CFast65C816::GetProgramAddress(void)	{ return ((uint32)muiPBR << 16) | muiPC; }
-uint8 CFast65C816::GetP(void)				{ return muiP; }
-bool CFast65C816::IsEmulation(void)			{ return mbE; }
-bool CFast65C816::IsStopped(void)			{ return mbStopped; }
-bool CFast65C816::IsWaiting(void)			{ return mbWaiting; }
-uint64 CFast65C816::NumCycles(void)			{ return muiCycles; }
+uint16 CFastW65C816::GetC(void)				{ return muiC; }
+uint16 CFastW65C816::GetX(void)				{ return muiX; }
+uint16 CFastW65C816::GetY(void)				{ return muiY; }
+uint16 CFastW65C816::GetS(void)				{ return muiS; }
+uint16 CFastW65C816::GetD(void)				{ return muiD; }
+uint8 CFastW65C816::GetDataBank(void)		{ return muiDBR; }
+uint8 CFastW65C816::GetProgramBank(void)		{ return muiPBR; }
+uint16 CFastW65C816::GetProgramCounter(void)	{ return muiPC; }
+uint32 CFastW65C816::GetProgramAddress(void)	{ return ((uint32)muiPBR << 16) | muiPC; }
+uint8 CFastW65C816::GetP(void)				{ return muiP; }
+bool CFastW65C816::IsEmulation(void)			{ return mbE; }
+bool CFastW65C816::IsStopped(void)			{ return mbStopped; }
+bool CFastW65C816::IsWaiting(void)			{ return mbWaiting; }
+uint64 CFastW65C816::NumCycles(void)			{ return muiCycles; }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::TestSetC(uint16 uiC)				{ muiC = uiC; }
-void CFast65C816::TestSetX(uint16 uiX)				{ muiX = uiX; }
-void CFast65C816::TestSetY(uint16 uiY)				{ muiY = uiY; }
-void CFast65C816::TestSetS(uint16 uiS)				{ muiS = mbE ? (uint16)(0x100 | (uiS & 0xFF)) : uiS; }
-void CFast65C816::TestSetD(uint16 uiD)				{ muiD = uiD; }
-void CFast65C816::TestSetDataBank(uint8 uiDataBank)	{ muiDBR = uiDataBank; }
+void CFastW65C816::TestSetC(uint16 uiC)				{ muiC = uiC; }
+void CFastW65C816::TestSetX(uint16 uiX)				{ muiX = uiX; }
+void CFastW65C816::TestSetY(uint16 uiY)				{ muiY = uiY; }
+void CFastW65C816::TestSetS(uint16 uiS)				{ muiS = mbE ? (uint16)(0x100 | (uiS & 0xFF)) : uiS; }
+void CFastW65C816::TestSetD(uint16 uiD)				{ muiD = uiD; }
+void CFastW65C816::TestSetDataBank(uint8 uiDataBank)	{ muiDBR = uiDataBank; }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCounter)
+void CFastW65C816::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCounter)
 {
 	SetProgramBank(uiProgramBank);
 	muiPC = uiProgramCounter;
@@ -2262,7 +2262,7 @@ void CFast65C816::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCou
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::TestSetP(uint8 uiP, bool bEmulation)
+void CFastW65C816::TestSetP(uint8 uiP, bool bEmulation)
 {
 	mbE = bEmulation;
 	SetP(uiP);
@@ -2278,7 +2278,7 @@ void CFast65C816::TestSetP(uint8 uiP, bool bEmulation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::AppendDifference(CChars* psz, const char* szName, uint64 uiOther, uint64 uiThis)
+void CFastW65C816::AppendDifference(CChars* psz, const char* szName, uint64 uiOther, uint64 uiThis)
 {
 	if (uiOther != uiThis)
 	{
@@ -2297,7 +2297,7 @@ void CFast65C816::AppendDifference(CChars* psz, const char* szName, uint64 uiOth
 // Appends each register that differs from the simulator's.  Returns true if any did.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFast65C816::AppendDifferences(CW65C816* pcMPU, CChars* psz)
+bool CFastW65C816::AppendDifferences(CW65C816* pcMPU, CChars* psz)
 {
 	size	uiLength;
 

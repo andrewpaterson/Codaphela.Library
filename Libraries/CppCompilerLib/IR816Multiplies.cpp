@@ -32,7 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // time to the scratch bytes, the first then the second.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsScratchCall(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::IsScratchCall(SIRInstruction* psInstruction)
 {
 	CChars	szName;
 	bool	bScratch;
@@ -54,7 +54,7 @@ bool CIR816Backend::IsScratchCall(SIRInstruction* psInstruction)
 // The scratch routines get their operands at IR816_SCRATCH_ARGUMENT_A and _B, the others pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 {
 	CChars		szName;
 	SIRType		sType;
@@ -150,7 +150,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 // (x << 8) | y, the product x * y is left in A.  Bit 7 of x picks the bank.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::TableProduct(void)
+void CIRW65C816Backend::TableProduct(void)
 {
 	int32	iHigh;
 	int32	iGot;
@@ -179,7 +179,7 @@ void CIR816Backend::TableProduct(void)
 // written, for any other multiply.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::InlineMultiply16(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::InlineMultiply16(SIRInstruction* psInstruction)
 {
 	int32	iNoHighB;
 	int32	iDone;
@@ -221,7 +221,7 @@ bool CIR816Backend::InlineMultiply16(SIRInstruction* psInstruction)
 // before and after.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
+void CIRW65C816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
 {
 	Line("sep m");
 	Frame("lda", iHigh);
@@ -246,7 +246,7 @@ void CIR816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
 // caller's scratch bytes), which nothing has written since.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::RemainderLeft(SIRInstruction* psInstruction)
 {
 	SIRInstruction*	psDivide;
 
@@ -274,7 +274,7 @@ bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
 // parameter, a phi, or not a temporary).
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIR816Backend::FindDefinition(SIRReference sValue)
+SIRInstruction* CIRW65C816Backend::FindDefinition(SIRReference sValue)
 {
 	size			uiBlock;
 	size			ui;
@@ -308,7 +308,7 @@ SIRInstruction* CIR816Backend::FindDefinition(SIRReference sValue)
 // 32 or more.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
+bool CIRW65C816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
 {
 	SIRInstruction*	psDefinition;
 	uint64			ulliAmount;
@@ -349,7 +349,7 @@ bool CIR816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
 // any other multiply.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::WideMultiply(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::WideMultiply(SIRInstruction* psInstruction)
 {
 	int		i;
 
@@ -382,7 +382,7 @@ bool CIR816Backend::WideMultiply(SIRInstruction* psInstruction)
 // False, with nothing written, for any other.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
+bool CIRW65C816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 {
 	CChars	szName;
 	uint64	ulliDivisor;
@@ -425,7 +425,7 @@ bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 // table (SetMathTables): R816_Mul16 is called instead.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
+bool CIRW65C816Backend::ByteMultiply(SIRInstruction* psInstruction)
 {
 	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8) || !mbMathTables)
 	{

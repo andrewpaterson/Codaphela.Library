@@ -168,7 +168,7 @@ bool IR816ScratchRoutine(const char* szName)
 // urem or srem), into pszName (Init'd here).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
+void CIRW65C816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
 {
 	pszName->Init(IR816_RUNTIME_PREFIX);
 	switch (psInstruction->uiOpcode)
@@ -189,7 +189,7 @@ void CIR816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
 // n bits): 1 << k in n / 16 words for each k from 0 to 63, 0 past the width.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
+void CIRW65C816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
 {
 	int		iBits;
 	int		i;
@@ -223,7 +223,7 @@ void CIR816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
 // its low byte.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
+void CIRW65C816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 {
 	int		iDivisor;
 	int		iValue;
@@ -259,7 +259,7 @@ void CIR816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 // IR816FindRoutine); any other name is an error.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors)
+bool CIRW65C816Backend::GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors)
 {
 	size	i;
 	char*	szName;

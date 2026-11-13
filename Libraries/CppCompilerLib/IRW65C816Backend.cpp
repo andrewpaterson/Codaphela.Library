@@ -20,7 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "IR816BackendInternal.h"
-#include "IR816Code.h"
+#include "IRW65C816Code.h"
 
 
 //The W65C816 back end: a function's code from its IR (GenerateFunction, GenerateBody), its arguments' places
@@ -34,30 +34,30 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena)
+void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena)
 {
 	//The working arrays and strings are in the arena, which is this thread's scratch until Kill.
 	mpcArena = pcArena;
 	mpcOldScratch = pcArena ? SetScratch(pcArena) : NULL;
-	InitBackend(pcModule, piLabels, CIR816Backend::GetScratch());
-	maiOffsets.Init(CIR816Backend::GetScratch());
-	masCopies.Init(CIR816Backend::GetScratch());
-	masCopySteps.Init(CIR816Backend::GetScratch());
-	maiSlots.Init(CIR816Backend::GetScratch());
-	maiParameters.Init(CIR816Backend::GetScratch());
-	mauiPendingArguments.Init(CIR816Backend::GetScratch());
-	masFoldBase.Init(CIR816Backend::GetScratch());
-	maiFoldOffset.Init(CIR816Backend::GetScratch());
-	masFoldIndex.Init(CIR816Backend::GetScratch());
+	InitBackend(pcModule, piLabels, CIRW65C816Backend::GetScratch());
+	maiOffsets.Init(CIRW65C816Backend::GetScratch());
+	masCopies.Init(CIRW65C816Backend::GetScratch());
+	masCopySteps.Init(CIRW65C816Backend::GetScratch());
+	maiSlots.Init(CIRW65C816Backend::GetScratch());
+	maiParameters.Init(CIRW65C816Backend::GetScratch());
+	mauiPendingArguments.Init(CIRW65C816Backend::GetScratch());
+	masFoldBase.Init(CIRW65C816Backend::GetScratch());
+	maiFoldOffset.Init(CIRW65C816Backend::GetScratch());
+	masFoldIndex.Init(CIRW65C816Backend::GetScratch());
 	mcDominators.Init();
 	mcLoops.Init();
 	mcBackendPasses.Init();
 	mpcDominators = NULL;
-	maiUses.Init(CIR816Backend::GetScratch());
-	maiCountUses.Init(CIR816Backend::GetScratch());
-	maiUseBlock.Init(CIR816Backend::GetScratch());
-	mabInX.Init(CIR816Backend::GetScratch());
-	masArguments.Init(CIR816Backend::GetScratch());
+	maiUses.Init(CIRW65C816Backend::GetScratch());
+	maiCountUses.Init(CIRW65C816Backend::GetScratch());
+	maiUseBlock.Init(CIRW65C816Backend::GetScratch());
+	mabInX.Init(CIRW65C816Backend::GetScratch());
+	masArguments.Init(CIRW65C816Backend::GetScratch());
 	msFrame.Init(0, false);
 	miFused = 0;
 	mpsWritten = NULL;
@@ -70,7 +70,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocato
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Kill(void)
+void CIRW65C816Backend::Kill(void)
 {
 	masArguments.Kill();
 	mauiPendingArguments.Kill();
@@ -108,7 +108,7 @@ void CIR816Backend::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Line(const char* szText)
+void CIRW65C816Backend::Line(const char* szText)
 {
 	mpszOut->Append("\t\t");
 	mpszOut->Append(szText);
@@ -121,7 +121,7 @@ void CIR816Backend::Line(const char* szText)
 // szText followed by a number.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Line(const char* szText, int64 lliValue)
+void CIRW65C816Backend::Line(const char* szText, int64 lliValue)
 {
 	mpszOut->Append("\t\t");
 	mpszOut->Append(szText);
@@ -135,7 +135,7 @@ void CIR816Backend::Line(const char* szText, int64 lliValue)
 // A value's place in the frame: a word for i1 to i16 (zero extended), two for 32 bits, four for 64.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR816Backend::ValueBytes(SIRType sType)
+int CIRW65C816Backend::ValueBytes(SIRType sType)
 {
 	switch (sType.uiKind)
 	{
@@ -165,7 +165,7 @@ int CIR816Backend::ValueBytes(SIRType sType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR816Backend::Words(SIRType sType)
+int CIRW65C816Backend::Words(SIRType sType)
 {
 	return ValueBytes(sType) / 2;
 }
@@ -176,7 +176,7 @@ int CIR816Backend::Words(SIRType sType)
 // A 64 bit result is written through a hidden pointer.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsHiddenResult(SIRType sType)
+bool CIRW65C816Backend::IsHiddenResult(SIRType sType)
 {
 	return ValueBytes(sType) == 8;
 }
@@ -194,7 +194,7 @@ thread_local CMallocator*	gpcIR816Scratch = NULL;	//SetScratch: this thread's, e
 // set again after.
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CIR816Backend::SetScratch(CMallocator* pcScratch)
+CMallocator* CIRW65C816Backend::SetScratch(CMallocator* pcScratch)
 {
 	CMallocator*	pcOld;
 
@@ -209,7 +209,7 @@ CMallocator* CIR816Backend::SetScratch(CMallocator* pcScratch)
 // The mallocator for the back end's working arrays and strings (SetScratch).
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CIR816Backend::GetScratch(void)
+CMallocator* CIRW65C816Backend::GetScratch(void)
 {
 	return gpcIR816Scratch ? gpcIR816Scratch : &gcSystemAllocator;
 }
@@ -228,7 +228,7 @@ int IR816AssignRegisters(CArrayIR816Arguments* pasArguments)
 {
 	size			ui;
 	int				iNext;
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 
 	iNext = 0;
 	for (ui = 0; ui < pasArguments->NumElements(); ui++)
@@ -263,7 +263,7 @@ void IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
 	size			uiStart;
 	size			uiEnd;
 	int				i;
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 
 	uiStart = psz->Length();
 	uiEnd = uiStart;
@@ -296,9 +296,9 @@ void IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
 // variadic.  The frame starts empty.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FunctionArguments(void)
+void CIRW65C816Backend::FunctionArguments(void)
 {
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 	size			ui;
 	int32			iRegisterWords;
 	bool			bVariadic;
@@ -327,7 +327,7 @@ void CIR816Backend::FunctionArguments(void)
 // An empty frame: none of its parts placed.
 //
 //////////////////////////////////////////////////////////////////////////
-void SIR816Frame::Init(int32 iRegisterWordsIn, bool bVariadicIn)
+void SIRW65C816Frame::Init(int32 iRegisterWordsIn, bool bVariadicIn)
 {
 	iFrameBytes = 0;
 	iSavedS = -1;
@@ -346,7 +346,7 @@ void SIR816Frame::Init(int32 iRegisterWordsIn, bool bVariadicIn)
 // A part of iBytes (in whole words) on the frame's top.  Returns its place.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 SIR816Frame::Add(int32 iBytes)
+int32 SIRW65C816Frame::Add(int32 iBytes)
 {
 	int32	iPlace;
 
@@ -363,7 +363,7 @@ int32 SIR816Frame::Add(int32 iBytes)
 // pushed one (*piPushed, moved past it).
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::ArgumentPlace(SIR816Argument* psArgument, int32* piPushed)
+int32 CIRW65C816Backend::ArgumentPlace(SIRW65C816Argument* psArgument, int32* piPushed)
 {
 	int32	iPlace;
 
@@ -381,7 +381,7 @@ int32 CIR816Backend::ArgumentPlace(SIR816Argument* psArgument, int32* piPushed)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors)
+bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors)
 {
 	size		uiStart;
 
@@ -410,7 +410,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	//A function that only passes its arguments on to another (a wrapper) jumps to it.
 	CChars	szJump;
 
-	szJump.Init(CIR816Backend::GetScratch());
+	szJump.Init(CIRW65C816Backend::GetScratch());
 	if (Forwarder(&szJump))
 	{
 		GenerateForwarder(szLabel, &szJump);
@@ -425,7 +425,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	{
 		CChars	szBytes;
 
-		szBytes.Init(CIR816Backend::GetScratch());
+		szBytes.Init(CIRW65C816Backend::GetScratch());
 		szBytes.Append(msFrame.iFrameBytes);
 		Error("The frame is too big for the W65C816's stack (bytes)", szBytes.Text());
 		szBytes.Kill();
@@ -450,7 +450,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 // (CCPP65Builder::SetMathTables).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SetMathTables(bool bMathTables)
+void CIRW65C816Backend::SetMathTables(bool bMathTables)
 {
 	mbMathTables = bMathTables;
 }
@@ -461,7 +461,7 @@ void CIR816Backend::SetMathTables(bool bMathTables)
 // What AlignFrame needs of the function GenerateFunction just wrote.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::GetFrame(SIR816Frame* psFrame)
+void CIRW65C816Backend::GetFrame(SIRW65C816Frame* psFrame)
 {
 	*psFrame = msFrame;
 }
@@ -472,11 +472,11 @@ void CIR816Backend::GetFrame(SIR816Frame* psFrame)
 // The function's frame, for FinishFunction.
 //
 //////////////////////////////////////////////////////////////////////////
-CIRWrittenFunction* CIR816Backend::TakeWritten(void)
+CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 {
-	CIR816Written*	pcWritten;
+	CIRW65C816Written*	pcWritten;
 
-	pcWritten = NewMalloc<CIR816Written>();
+	pcWritten = NewMalloc<CIRW65C816Written>();
 	pcWritten->msFrame = msFrame;
 	return pcWritten;
 }
@@ -490,14 +490,14 @@ CIRWrittenFunction* CIR816Backend::TakeWritten(void)
 // empty frame.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65816Profile* pcProfile)
+void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsmW65C816Profile* pcProfile)
 {
 	CIRSourceMarkers	cMarkers;
-	SIR816Frame			sFrame;
+	SIRW65C816Frame			sFrame;
 
 	if (pcWritten)
 	{
-		sFrame = ((CIR816Written*)pcWritten)->msFrame;
+		sFrame = ((CIRW65C816Written*)pcWritten)->msFrame;
 	}
 	else
 	{
@@ -517,7 +517,7 @@ void CIR816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrit
 // (SetMathTables changes it for this back end alone).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SetOptions(CCPPCompileOptions* pcOptions)
+void CIRW65C816Backend::SetOptions(CCPPCompileOptions* pcOptions)
 {
 	CIRBackend::SetOptions(pcOptions);
 	mbMathTables = mpcOptions->mbMathTables;
@@ -555,7 +555,7 @@ static int IR816ShiftCycles(int iWords, int iShift, int iAdds)
 // A mul by a constant is a runtime call (ExpandMultiplies).
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR816Backend::MultiplyCost(SIRType sType, uint64 ulliMultiplier)
+int CIRW65C816Backend::MultiplyCost(SIRType sType, uint64 ulliMultiplier)
 {
 	int	iWords;
 
@@ -571,7 +571,7 @@ int CIR816Backend::MultiplyCost(SIRType sType, uint64 ulliMultiplier)
 // digit of -1 is a neg.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR816Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits)
+int CIRW65C816Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits)
 {
 	int	iWords;
 
@@ -605,9 +605,9 @@ static int32 IR816CountDirectPage(const char* szCode)
 // then Peephole from uiStart.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
+void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 {
-	CIR816Code		cCode;
+	CIRW65C816Code		cCode;
 	size			ui;
 	size			uiInstruction;
 	CIRBlock*		pcBlock;
@@ -676,7 +676,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		mcSourceMarkers.Take(mpszOut, uiStart);
 	}
 
-	//The passes over the code, decoded once (CIR816Code).
+	//The passes over the code, decoded once (CIRW65C816Code).
 	mpcModule->Begin(CPPCP_CodePasses);
 	cCode.Init();
 	cCode.Load(mpszOut, uiStart);
@@ -727,7 +727,7 @@ static void IR816UseIn(CArrayTemplate<int32>* paiUseBlock, CArrayTemplate<int32>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FindSingleUses(void)
+void CIRW65C816Backend::FindSingleUses(void)
 {
 	CArrayTemplate<int32>	aiCount;
 	CIRBlock*				pcBlock;
@@ -737,7 +737,7 @@ void CIR816Backend::FindSingleUses(void)
 	size					uiIndex;
 	size					uiArgument;
 
-	aiCount.Init(CIR816Backend::GetScratch());
+	aiCount.Init(CIRW65C816Backend::GetScratch());
 	aiCount.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
 	maiUseBlock.FakeSetUsedElements(0);
 	maiUseBlock.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0xFF);
@@ -800,7 +800,7 @@ void CIR816Backend::FindSingleUses(void)
 // for any other function.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::Forwarder(CChars* pszJump)
+bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 {
 	static const char*		aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
 	CIRBlock*				pcBlock;
@@ -818,8 +818,8 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	size					uiAdjustedArgument;	//The callee's argument it is, or ARRAY_ELEMENT_NOT_FOUND.
 	CChars					szAdjust;
 	int32					iLabel;
-	SIR816Argument*			psPlaced;
-	SIR816Argument*			psOwn;
+	SIRW65C816Argument*			psPlaced;
+	SIRW65C816Argument*			psOwn;
 	size					ui;
 	size					uj;
 	size					uiFirst;
@@ -862,7 +862,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	}
 
 	//The args, and at most one parameter plus a constant ahead of the arg that passes it.
-	apsArguments.Init(CIR816Backend::GetScratch());
+	apsArguments.Init(CIRW65C816Backend::GetScratch());
 	sAdjusted.uiValue = 0;
 	uiAdjustedFrom = 0;
 	ulliAdjust = 0;
@@ -901,8 +901,8 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	}
 
 	//The callee's arguments as Call places them, and where each comes from.
-	asCallee.Init(CIR816Backend::GetScratch());
-	aiSource.Init(CIR816Backend::GetScratch());
+	asCallee.Init(CIRW65C816Backend::GetScratch());
+	aiSource.Init(CIRW65C816Backend::GetScratch());
 	uiAdjustedArgument = ARRAY_ELEMENT_NOT_FOUND;
 	if (!psCall->sResult.IsNone() && IsHiddenResult(psCall->sType))
 	{
@@ -949,7 +949,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	//The pushed words line up: the callee's pushed arguments are this function's pushed ones, in order.
 	uiOwnFirst = IsHiddenResult(mpcFunction->msReturnType) ? 1 : 0;
 	uiFirst = asCallee.NumElements() - apsArguments.NumElements();
-	aiPushed.Init(CIR816Backend::GetScratch());
+	aiPushed.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
 	{
 		if (asCallee.Get(ui)->iRegister < 0)
@@ -976,7 +976,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	bResult = bResult && (uiPushed == aiPushed.NumElements());
 
 	//The register ones: in the same register here, or a constant loaded.
-	szLoads.Init(CIR816Backend::GetScratch());
+	szLoads.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
 	{
 		psPlaced = asCallee.Get(ui);
@@ -1009,7 +1009,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 
 	//The adjusted argument is in A (and X): the constant, at the argument's width, added to its low word and the
 	//carry into X.  One that would change X otherwise (a pointer moved back) isn't a jump.
-	szAdjust.Init(CIR816Backend::GetScratch());
+	szAdjust.Init(CIRW65C816Backend::GetScratch());
 	if (bResult && (uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		psPlaced = asCallee.Get(uiAdjustedArgument);
@@ -1063,7 +1063,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 // AlignFrame leaves).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
+void CIRW65C816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
 {
 	CChars	szBody;
 
@@ -1097,7 +1097,7 @@ void CIR816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
 // D is pointed at the frame: the frame is D + 1 to D + frame size.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Prologue(const char* szLabel)
+void CIRW65C816Backend::Prologue(const char* szLabel)
 {
 	CChars	szBody;
 
@@ -1148,7 +1148,7 @@ void CIR816Backend::Prologue(const char* szLabel)
 // is called, they are removed (A kept in Y, X kept) and it returns.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
+void CIRW65C816Backend::RegisterStub(CChars* pszBodyLabel)
 {
 	int				aiWordOf[IR816_ARGUMENT_REGISTERS];
 	int				iWords;
@@ -1156,7 +1156,7 @@ void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 	int				iMoved;
 	int				i;
 	size			ui;
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 	bool			bKeepA;
 
 	//Each register's word, the pushed words, and how many of those aren't already where the body wants them.
@@ -1240,7 +1240,7 @@ void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 // and X's through A.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed)
+void CIRW65C816Backend::RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed)
 {
 	int		k;
 
@@ -1268,14 +1268,14 @@ void CIR816Backend::RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPu
 // in Y, X kept) and it returns.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked)
+void CIRW65C816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked)
 {
 	CChars			sz;
 	int				iPushed;
 	int				iWord;
 	int				i;
 	size			ui;
-	SIR816Argument*	psArgument;
+	SIRW65C816Argument*	psArgument;
 
 	iPushed = 0;
 	iWord = iWords;
@@ -1315,7 +1315,7 @@ void CIR816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iW
 // szInstruction [S + iOffset]: a stack relative load or store.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::StackLine(const char* szInstruction, int iOffset)
+void CIRW65C816Backend::StackLine(const char* szInstruction, int iOffset)
 {
 	CChars	sz;
 
@@ -1333,7 +1333,7 @@ void CIR816Backend::StackLine(const char* szInstruction, int iOffset)
 // The result is in A (and X); Y keeps A while S is moved back.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Epilogue(void)
+void CIRW65C816Backend::Epilogue(void)
 {
 	IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
 	Line("rtl");
@@ -1344,7 +1344,7 @@ void CIR816Backend::Epilogue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Return(CIRBlock* pcBlock)
+void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 {
 	SIRJump*	psJump;
 	int			i;
@@ -1406,7 +1406,7 @@ void CIR816Backend::Return(CIRBlock* pcBlock)
 // copies before it can still read a value in X.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
+void CIRW65C816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 {
 	size			ui;
 	int				i;
@@ -1480,7 +1480,7 @@ void CIR816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 // A phi's copy on a jump, for EdgeCopies.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::AddCopy(SIRPhi* psPhi, SIRPhiArgument* psArgument)
+void CIRW65C816Backend::AddCopy(SIRPhi* psPhi, SIRPhiArgument* psArgument)
 {
 	SIRCopy*	psCopy;
 
@@ -1498,7 +1498,7 @@ void CIR816Backend::AddCopy(SIRPhi* psPhi, SIRPhiArgument* psArgument)
 // for a value kept in X, else the frame words.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestination)
+bool CIRW65C816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestination)
 {
 	int32	iSource;
 	int32	iDestination;
@@ -1522,7 +1522,7 @@ bool CIR816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestination
 // True if the two values are at one place (ParallelCopy).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2)
+bool CIRW65C816Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2)
 {
 	if (!sValue1.IsTemporary() || !sValue2.IsTemporary() || !FoldedBase(sValue1).Equals(sValue1) || !FoldedBase(sValue2).Equals(sValue2))
 	{
@@ -1540,7 +1540,7 @@ bool CIR816Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNext)
+void CIRW65C816Backend::JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNext)
 {
 	CChars	sz;
 
@@ -1567,7 +1567,7 @@ void CIR816Backend::JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNext)
 // szMnemonic to label iLabel; the assembler makes it reach (.relax).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Branch(const char* szMnemonic, int32 iLabel)
+void CIRW65C816Backend::Branch(const char* szMnemonic, int32 iLabel)
 {
 	CChars	sz;
 
@@ -1584,7 +1584,7 @@ void CIR816Backend::Branch(const char* szMnemonic, int32 iLabel)
 // Whether the jump from pcFrom to pcTo has phi values to copy.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
+bool CIRW65C816Backend::HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 {
 	size	ui;
 
@@ -1605,7 +1605,7 @@ bool CIR816Backend::HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 // comparison's flags (FusedBranch) or the condition's word.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
+void CIRW65C816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 {
 	if ((pcBlock->masInstructions.NumElements() > 0) && IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
 	{
@@ -1624,7 +1624,7 @@ void CIR816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 // A brif skips a brl to its else edge when the condition isn't 0, so neither edge is limited to a short branch.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
+void CIRW65C816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 {
 	SIRJump*	psJump;
 	int32		iThen;

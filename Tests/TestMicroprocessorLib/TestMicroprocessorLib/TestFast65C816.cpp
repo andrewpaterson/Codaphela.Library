@@ -7,14 +7,14 @@
 #include "MicroprocessorLib/W65C816InstructionFactory.h"
 #include "MicroprocessorLib/W65C816InstructionCodes.h"
 #include "MicroprocessorLib/W65C816Meta.h"
-#include "MicroprocessorLib/Fast65C816.h"
+#include "MicroprocessorLib/FastW65C816.h"
 #include "TestLib/Assert.h"
 #include "TestSingleStep.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// CFast65C816 against the SingleStepTests (every access with VDA, VPA or VPB, the cycle count and the
+// CFastW65C816 against the SingleStepTests (every access with VDA, VPA or VPB, the cycle count and the
 // final state) and against CW65C816 (random instructions and interrupts run in lockstep: registers, the
 // cycles taken and memory after every step).
 //
@@ -36,7 +36,7 @@ struct STestFast65C816Access
 };
 
 
-//The single step memory, and the accesses CFast65C816 made.
+//The single step memory, and the accesses CFastW65C816 made.
 class CTestFast65C816StepContext : public CTestSingleStepContext
 {
 public:
@@ -189,7 +189,7 @@ static bool TestFast65C816StepCompareAccesses(CChars* pszError, SSingleStepCycle
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816StepCompareState(CChars* pszError, SSingleStepState* psExpected, CFast65C816* pcFast, CTestFast65C816StepContext* pcContext)
+static bool TestFast65C816StepCompareState(CChars* pszError, SSingleStepState* psExpected, CFastW65C816* pcFast, CTestFast65C816StepContext* pcContext)
 {
 	CSingleStepReader	cReader;
 	uint16				i;
@@ -238,7 +238,7 @@ static bool TestFast65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszEr
 	SSingleStepCycle	asExpected[SINGLE_STEP_MAX_CYCLES];
 	uint16				uiCycles;
 	uint16				i;
-	CFast65C816			cFast;
+	CFastW65C816			cFast;
 	CSingleStepReader	cRam;
 	uint32				uiAddress;
 	uint64				uiFastCycles;
@@ -603,7 +603,7 @@ static void TestFast65C816AppendState(CChars* psz, CW65C816* pcSim)
 // Both start an instruction at the same random state.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816SetState(CW65C816Meta* pcMeta, CFast65C816* pcFast, uint64* puiSeed, bool bEmulation, uint8 uiProgramBank, uint16 uiCode)
+static void TestFast65C816SetState(CW65C816Meta* pcMeta, CFastW65C816* pcFast, uint64* puiSeed, bool bEmulation, uint8 uiProgramBank, uint16 uiCode)
 {
 	CW65C816*	pcSim;
 	uint8		uiP;
@@ -664,7 +664,7 @@ static void TestFast65C816SetState(CW65C816Meta* pcMeta, CFast65C816* pcFast, ui
 //////////////////////////////////////////////////////////////////////////
 //
 // Every opcode in native and emulation mode from random states, for a few steps (the instructions after
-// it are random too).  With bFlat CFast65C816 reads and writes bank 0 directly, otherwise it goes through
+// it are random too).  With bFlat CFastW65C816 reads and writes bank 0 directly, otherwise it goes through
 // the callbacks for everything.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -673,7 +673,7 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 	STestFast65C816FuzzMemory*	psSimMemory;
 	STestFast65C816FuzzMemory*	psFastMemory;
 	CW65C816Meta				cMeta;
-	CFast65C816					cFast;
+	CFastW65C816					cFast;
 	CW65C816*					pcSim;
 	uint32						uiOpcode;
 	uint32						uiTrial;
@@ -786,7 +786,7 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 // One step on both, with IRQB and NMIB as given before it.  Returns false if they differ.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816InterruptStep(CW65C816Meta* pcMeta, CFast65C816* pcFast, STestFast65C816FuzzMemory* psSimMemory, STestFast65C816FuzzMemory* psFastMemory, bool bIrqLow, bool bNmiLow, size uiStep)
+static bool TestFast65C816InterruptStep(CW65C816Meta* pcMeta, CFastW65C816* pcFast, STestFast65C816FuzzMemory* psSimMemory, STestFast65C816FuzzMemory* psFastMemory, bool bIrqLow, bool bNmiLow, size uiStep)
 {
 	bool	bSim;
 	bool	bFast;
@@ -837,7 +837,7 @@ static void TestFast65C816Interrupts(bool bEmulation)
 	STestFast65C816FuzzMemory*	psSimMemory;
 	STestFast65C816FuzzMemory*	psFastMemory;
 	CW65C816Meta				cMeta;
-	CFast65C816					cFast;
+	CFastW65C816					cFast;
 	uint8*						puiCode;
 	uint8*						puiHandler;
 	size						uiStep;
@@ -920,7 +920,7 @@ static void TestFast65C816Interrupts(bool bEmulation)
 struct STestFast65C816RunContext
 {
 	uint8*			puiMemory;
-	CFast65C816*	pcFast;
+	CFastW65C816*	pcFast;
 };
 
 
@@ -966,7 +966,7 @@ static void TestFast65C816RunWrite(void* pvContext, uint32 uiAddress, uint8 uiVa
 // pcRun (after a Run) and pcStep (after as many Steps) are the same.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816RunSame(CFast65C816* pcStep, CFast65C816* pcRun, uint8* puiStepMemory, uint8* puiRunMemory, size uiStepped, size uiRun, size uiChunk)
+static bool TestFast65C816RunSame(CFastW65C816* pcStep, CFastW65C816* pcRun, uint8* puiStepMemory, uint8* puiRunMemory, size uiStepped, size uiRun, size uiChunk)
 {
 	CChars	sz;
 	CChars	szWhere;
@@ -1019,8 +1019,8 @@ static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 	uint8*						puiRunMemory;
 	STestFast65C816RunContext	sStepContext;
 	STestFast65C816RunContext	sRunContext;
-	CFast65C816					cStep;
-	CFast65C816					cRun;
+	CFastW65C816					cStep;
+	CFastW65C816					cRun;
 	size						uiChunk;
 	size						uiLength;
 	size						uiStepped;
@@ -1247,7 +1247,7 @@ static void TestFast65C816BreakpointRun(void)
 {
 	uint8*						puiMemory;
 	STestFast65C816RunContext	sContext;
-	CFast65C816					cFast;
+	CFastW65C816					cFast;
 	CBreakpoints*				pcBreakpoints;
 	uint64						uiCycles;
 	size						i;
@@ -1342,7 +1342,7 @@ static void TestFast65C816BreakpointBlockMove(void)
 {
 	uint8*						puiMemory;
 	STestFast65C816RunContext	sContext;
-	CFast65C816					cFast;
+	CFastW65C816					cFast;
 	size						i;
 	static uint8				auiMove[] = {
 		0x54, 0x00, 0x00,	//MVN 00,00: the breakpoint
@@ -1410,7 +1410,7 @@ static void TestFast65C816BreakpointBlockMove(void)
 struct STestFast65C816SwitchContext
 {
 	uint8*			puiMemory;
-	CFast65C816*	pcFast;
+	CFastW65C816*	pcFast;
 	CBreakpoints*	pcOther;
 };
 
@@ -1454,7 +1454,7 @@ static void TestFast65C816BreakpointSwitch(void)
 {
 	uint8*							puiMemory;
 	STestFast65C816SwitchContext	sContext;
-	CFast65C816						cFast;
+	CFastW65C816						cFast;
 	CBreakpoints					cOther;
 	static uint8					auiSwitch[] = {
 		0xA9, 0x01,			//$1000 LDA #1
@@ -1535,7 +1535,7 @@ static void TestFast65C816BreakpointSwitch(void)
 
 struct STestFast65C816WDMContext
 {
-	CFast65C816*	pcFast;
+	CFastW65C816*	pcFast;
 	uint8*			puiMemory;
 	size			uiNumWDMs;
 	uint8			auiSignatures[TEST_FAST_65C816_MAX_WDMS];
@@ -1574,7 +1574,7 @@ static void TestFast65C816WDMSignal(void* pvContext, uint8 uiSignal)
 // without the signal callback.  The cycles it took.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 TestFast65C816WDMRun(CFast65C816* pcFast, bool bStep, bool bSignal)
+static uint64 TestFast65C816WDMRun(CFastW65C816* pcFast, bool bStep, bool bSignal)
 {
 	uint64	uiStart;
 	int		i;
@@ -1612,7 +1612,7 @@ static void TestFast65C816WDM(void)
 {
 	uint8*						puiMemory;
 	STestFast65C816WDMContext	sContext;
-	CFast65C816					cFast;
+	CFastW65C816					cFast;
 	uint64						uiQuietCycles;
 	int							iStep;
 	static uint8				auiWDM[] = {

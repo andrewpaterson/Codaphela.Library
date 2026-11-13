@@ -394,7 +394,7 @@ uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 // is guided by one (CCPPTarget::UsesProfile).  NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
-CAsm65816Profile* CCPP65IRFrontEnd::InliningProfile(void)
+CAsmW65C816Profile* CCPP65IRFrontEnd::InliningProfile(void)
 {
 	return mpcGenerator->mpcTarget->UsesProfile() ? mpcGenerator->mpcFrameProfile : NULL;
 }
@@ -423,9 +423,9 @@ uint64 CCPP65IRFrontEnd::ProfileCycles(void)
 //////////////////////////////////////////////////////////////////////////
 uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall)
 {
-	CAsm65816Profile*			pcProfile;
-	SAsm65816FunctionProfile*	psFunction;
-	SAsm65816LineProfile*		psLine;
+	CAsmW65C816Profile*			pcProfile;
+	SAsmW65C816FunctionProfile*	psFunction;
+	SAsmW65C816LineProfile*		psLine;
 	SCPP65IRWritten*		psWritten;
 	CSourceFile*			pcFile;
 	const char*				szLabel;
@@ -489,11 +489,11 @@ uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall
 // function's, inlined into the callee).  0 if not known.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CCPP65IRFrontEnd::InlinedEntries(CAsm65816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall)
+uint64 CCPP65IRFrontEnd::InlinedEntries(CAsmW65C816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall)
 {
 	CIRFunction*			pcCallee;
 	CIRBlock*				pcEntry;
-	SAsm65816LineProfile*		psLine;
+	SAsmW65C816LineProfile*		psLine;
 	CSourceFile*			pcFile;
 	uint32					uiSource;
 	uint64					ulliMost;
