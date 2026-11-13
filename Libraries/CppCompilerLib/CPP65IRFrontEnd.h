@@ -50,10 +50,14 @@ struct SCPP65IRValue
 
 
 //Where a C++ lvalue is: its address (an IR pointer) and its type.
+struct SCPPField;
 struct SCPP65IRPlace
 {
 	SIRReference	sAddress;
 	SCPP65Type*		psType;
+	SCPPField*		psBitField;		//The bit-field the place is (bits of the unit of psType at sAddress), or NULL.
+
+	SCPP65IRPlace(void) : psBitField(NULL) {}
 };
 
 
@@ -213,6 +217,7 @@ protected:
 	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, CIRWrittenFunction** ppcWritten);
 	void			FreeWritten(SCPP65IRWritten* psWritten);
 	bool			Unsupported(const char* szFile, int iLine);
+	bool			BitFieldAddress(const char* szFile, int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);
 	void			NoFloats(void);
 	SIRType			ReturnIRType(SCPP65Type* psType);
@@ -269,6 +274,8 @@ protected:
 	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);
 	bool			Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
+	SIRReference	BitFieldValue(SCPP65Type* psType, int iOffset, int iWidth, SIRReference sUnit);
+	void			BitFieldResult(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	bool			ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValue);
 	bool			ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruct, SCPP65IRValue* psValue);
@@ -338,6 +345,7 @@ protected:
 	void			PrintIR(CIRFunction* pcFunction);
 	void			PrintFunction(CIRFunction* pcFunction, CChars* pszText, bool bSources);
 	bool			ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction);
+	bool			DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMemberInitializer* pcMember);
 	bool			DestructorEnd(void);
 	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass);
 	void			DescribeVtable(CArrayTemplate<SCPPVtableEntry>* pasEntries, CCPPClass* pcClass, uint32 uiSymbol);

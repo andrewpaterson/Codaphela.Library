@@ -434,6 +434,22 @@ bool CCPP65IRFrontEnd::Unsupported(const char* szFile, int iLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A bit-field's address was wanted (&s.iBits, or a reference that isn't
+// const bound to it): it has none.  [expr.unary.op] 5, [dcl.init.ref] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::BitFieldAddress(const char* szFile, int iLine)
+{
+	if (!mbUnsupported)
+	{
+		SetUnsupported(szFile, iLine, "A bit-field has no address: it can't be pointed to or bound to a reference that isn't const");
+	}
+	return Unsupported(szFile, iLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The IR type of a C++ value's type.  bool is a byte, an enum its integer,
 // pointers, references, arrays and functions are pointers.
 //
@@ -582,6 +598,19 @@ bool CCPP65IRFrontEnd::IsLocalType(SCPP65Type* psType)
 bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress)
 {
 	SCPP65IRValue	sPointer;
+	SCPP65IRValue	sValue;
+
+	if (psPlace->psBitField)
+	{
+		//A const reference to a bit-field refers to a temporary holding its value.  [dcl.init.ref] 5
+		if (!psReference->psBase->bConst || psReference->psBase->bVolatile || !Load(psPlace, &sValue))
+		{
+			return BitFieldAddress(__FILE__, __LINE__);
+		}
+		*psAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psPlace->psType->iBytes, (uint32)psPlace->psType->iBytes);
+		mpcFunction->Store(mpcBlock, IRTypeOf(psPlace->psType), sValue.sValue, *psAddress);
+		return true;
+	}
 
 	sPointer.sValue = psPlace->sAddress;
 	sPointer.psType = mpcTypes->Pointer(psPlace->psType);

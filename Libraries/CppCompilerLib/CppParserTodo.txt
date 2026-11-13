@@ -66,7 +66,7 @@ A. Preprocessor and tokeniser to C++17
 B. Code generators to C++14
 
 B-1. C++98/03 still missing
-  - B9a (S-M, do first: it is silently wrong) Bit-fields.  The parser keeps the width (CCPPSyntaxInitDeclarator::mpcBitField) but nothing in the generator reads it, so bit-fields are probably full fields with no truncation.
+  - B9a Done 2026-11-13.  Bit-fields: laid out as MSVC does (CCPP65Generator::LayoutBitField: a unit of the type's size, a new one for another size, when the bits run out or after a zero width one), read and written through their place (SCPP65IRPlace::psBitField: CCPP65IRFrontEnd::Load and Store), unnamed ones left out of aggregate initialisers, a const reference bound to a copy, no address.  TestCPP816BitFields.
   - B2 (XL) Exceptions: throw, try / catch, function-try-blocks, unwinding through destructors and temporaries, noexcept calling std::terminate, new throwing bad_alloc, dynamic_cast<T&> throwing bad_cast.  try is parsed but not a case in CCPP65IRFrontEnd::StatementOf, and throw is not lowered.  Needs exceptional edges in the IR, the optimiser respecting them (SSA, inliner, dead stores), and unwinding in both back ends.  setjmp-style unwinding chained through V is probably cheaper to build on these processors than tables, at a cost for each try.
   - B3 (S-M) typeid and std::type_info.  dynamic_cast<T*> already finds an object's type info.
   - B4 (L) Virtual inheritance.
@@ -75,7 +75,7 @@ B-1. C++98/03 still missing
   - B7 (L) Templates: SFINAE, template template parameters (also an error in the parser, CppParserClasses.cpp:722), dependent names looked up at the point of instantiation, partial ordering of function templates, constructor templates, member class templates, explicit specialisations of members.
   - B8 (M) Overload resolution to [over.match].  It is a simplified ranking now.  = delete is parsed (CPPFB_Delete) but does not make a call an error.
   - B9 (M, many small items) Class operator new and delete, placement new with more than an address, new[] with more than one dimension or an initialiser list, postfix ++ and -- on objects, operator-> that returns an object, conversion functions to classes and references, pointers to overloaded member functions, reference variables and fields bound to temporaries (and the temporary's lifetime; const reference parameters take them), wide strings.
-  - Delegating constructors: CCPP65IRFrontEnd::ConstructorStart has no case for a member initialiser naming the constructor's own class.  It may be skipped silently rather than reported.  Test it.
+  - Done 2026-11-13.  Delegating constructors (CCPP65IRFrontEnd::DelegatedConstructor): they were skipped silently.  TestCPP816DelegatingConstructors.
 
 B-2. C++11
   - B10 (L) Rvalue references as a type of their own: && is made a & now (GetDeclaratorType; rechecked 2026-11-08: item 103 of CppCompilerLibIssues.txt says what works), with T&& deduced so arguments can be passed through (ForwardedType).  Reference collapsing, deducing forwarding references as the standard does, & and && overloads, implicit move constructors and assignment (and when they are deleted), xvalues, ref-qualified members.
@@ -85,7 +85,7 @@ B-2. C++11
   - B14 (M) Packs everywhere: base lists, initialisers, template arguments and member initialisers, sizeof..., nested packs.  Only args... in a call's arguments works now.
   - B15 (M) std::initializer_list and list initialisation: a constructor taking one is preferred, narrowing is an error.
   - B16 (S) Range-for lowering.  It is parsed but not a case in StatementOf.  Free begin and end need B1.
-  - B17 (M, many small items) Alias templates (CPP65Generator's TemplateDeclaration handles classes and functions only), delegating constructors, nullptr_t, unions with members that have constructors, the noexcept operator and specifications, operator "" functions, raw and Unicode strings in generated code, thread_local (static storage on a single threaded target), extern locals.
+  - B17 (M, many small items) Alias templates (CPP65Generator's TemplateDeclaration handles classes and functions only), nullptr_t, unions with members that have constructors, the noexcept operator and specifications, operator "" functions, raw and Unicode strings in generated code, thread_local (static storage on a single threaded target), extern locals.
   - B18 (S) Check enum class: scoped lookup and no implicit conversion to int.
 
 B-3. C++14 (small once B-2 is done)
@@ -96,7 +96,7 @@ B-4. Language support headers
 
 Order
   1. A4, A5 and A7, then A3, then A1.
-  2. B9a.
+  2. B9a (done).
   3. B6.
   4. B1.
   5. B11, B16 and B18, then B10.

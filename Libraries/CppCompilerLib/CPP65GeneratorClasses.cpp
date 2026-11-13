@@ -526,6 +526,57 @@ bool CCPP65Generator::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Places the bit-field psField as MSVC does (BaseLib lays classes out its
+// way).  Bit-fields share a unit the size of their type, aligned as it is,
+// from its lowest bit up: one goes in the open unit (*piUnitBytes at
+// *piUnitOffset, *piUnitBits used) when its type is the same size and its
+// bits fit, otherwise it opens a unit after *piBytes.  A width of 0 closes
+// the unit.  In a union each is at bit 0 of offset 0.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::LayoutBitField(CCPPClass* pcClass, SCPPField* psField, int iPack, int* piBytes, int* piAlign, int* piUnitBytes, int* piUnitOffset, int* piUnitBits)
+{
+	int		iTypeBytes;
+	int		iFieldAlign;
+
+	iTypeBytes = psField->psType->iBytes;
+	if (psField->iBitWidth == 0)
+	{
+		psField->iOffset = *piBytes;
+		*piUnitBytes = 0;
+		return;
+	}
+	iFieldAlign = PackAlignment(TypeAlignment(psField->psType), iPack);
+	*piAlign = (iFieldAlign > *piAlign) ? iFieldAlign : *piAlign;
+	if (pcClass->mbUnion)
+	{
+		psField->iOffset = 0;
+		psField->iBitOffset = 0;
+		if (iTypeBytes > pcClass->mpsType->iBytes)
+		{
+			pcClass->mpsType->iBytes = iTypeBytes;
+		}
+		return;
+	}
+	if ((*piUnitBytes == iTypeBytes) && (*piUnitBits + psField->iBitWidth <= iTypeBytes * 8))
+	{
+		psField->iOffset = *piUnitOffset;
+		psField->iBitOffset = *piUnitBits;
+		*piUnitBits += psField->iBitWidth;
+		return;
+	}
+	*piBytes = (*piBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
+	psField->iOffset = *piBytes;
+	psField->iBitOffset = 0;
+	*piUnitBytes = iTypeBytes;
+	*piUnitOffset = *piBytes;
+	*piUnitBits = psField->iBitWidth;
+	*piBytes += iTypeBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Lays out a class: the bases in order (an empty base takes no space), the vtable
 // pointer if no base has one, then the fields.  Members are read first: functions
 // are declared (in class definitions are generated when called) and fields are
@@ -551,6 +602,9 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	int								iAlign;
 	int								iPack;
 	int								iFieldAlign;
+	int								iUnitBytes;
+	int								iUnitOffset;
+	int								iUnitBits;
 	int								iClassAlign;
 	bool							bResult;
 
@@ -654,9 +708,18 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
 	}
 	LayoutSecondaryVtables(pcClass);
+	iUnitBytes = 0;
+	iUnitOffset = 0;
+	iUnitBits = 0;
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
 		psField = pcClass->macFields.Get(i);
+		if (psField->IsBitField())
+		{
+			LayoutBitField(pcClass, psField, iPack, &iBytes, &iAlign, &iUnitBytes, &iUnitOffset, &iUnitBits);
+			continue;
+		}
+		iUnitBytes = 0;
 		iFieldAlign = PackAlignment(TypeAlignment(psField->psType), iPack);
 		iFieldAlign = (psField->iAlign > iFieldAlign) ? psField->iAlign : iFieldAlign;
 		iBytes = pcClass->mbUnion ? 0 : (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
@@ -1005,6 +1068,8 @@ bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				psField->iAlign = 0;
 				psField->pcInitialiser = NULL;
 				psField->bMutable = false;
+				psField->iBitWidth = -1;
+				psField->iBitOffset = 0;
 				return true;
 			}
 		}
@@ -1038,6 +1103,11 @@ bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				{
 					pcFunction->mbImplicit = true;
 				}
+				continue;
+			}
+			if (pcInit->mpcBitField)
+			{
+				bResult &= ClassBitField(pcClass, pcSpecifiers, pcInit);
 				continue;
 			}
 			if (!pcInit->mpcSymbol)
@@ -1077,12 +1147,131 @@ bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			psField->iAlign = iAlign;
 			psField->pcInitialiser = pcInit->mpcInitializer;
 			psField->bMutable = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_MUTABLE);
+			psField->iBitWidth = -1;
+			psField->iBitOffset = 0;
 		}
 		return bResult;
 
 	default:
 		return Error(pcMember, "This member is not supported by the compiler yet");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error in a class's declaration at iToken, found laying it out: kept
+// to report when the unit ends (ReportClassErrors), as a class is laid out
+// once and that is often quietly.  Returns false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ClassError(int iToken, const char* szMessage)
+{
+	SCPPClassError*	psError;
+
+	psError = masClassErrors.Add();
+	psError->iToken = iToken;
+	psError->szMessage = szMessage;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The errors laying out classes (ClassError) added to the unit's errors.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ReportClassErrors(void)
+{
+	size	i;
+
+	for (i = 0; i < masClassErrors.NumElements(); i++)
+	{
+		ErrorAt(masClassErrors.Get(i)->iToken, masClassErrors.Get(i)->szMessage);
+	}
+	masClassErrors.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit-field (int iFlags : 3;), or an unnamed one (int : 3;, int : 0;),
+// of an integer, bool or enum type, its width a constant no wider than its
+// type.  LayoutClass places it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit)
+{
+	SCPP65Type*		psType;
+	SCPPField*		psField;
+	int64			lliWidth;
+	bool			bResult;
+
+	//A class is laid out once, often first asked about quietly (TypeOf) or by the IR front end, so its own errors are
+	//kept to report when the unit ends.
+	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_STATIC))
+	{
+		return ClassError(pcInit->miFirstToken, "A bit-field can't be static");
+	}
+	psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
+	if (!psType)
+	{
+		return false;
+	}
+	if (!psType->IsInteger())
+	{
+		return ClassError(pcInit->miFirstToken, "A bit-field must be an integer, bool or enum");
+	}
+	bResult = true;
+	if (!Constant(pcInit->mpcBitField, &lliWidth) || (lliWidth < 0))
+	{
+		bResult = ClassError(pcInit->mpcBitField->miFirstToken, "A bit-field's width must be a constant of 0 or more");
+		lliWidth = 1;
+	}
+	if (lliWidth > (int64)psType->iBytes * 8)
+	{
+		bResult = ClassError(pcInit->mpcBitField->miFirstToken, "A bit-field can't be wider than its type");
+		lliWidth = psType->iBytes * 8;
+	}
+	if ((lliWidth == 0) && pcInit->mpcSymbol)
+	{
+		bResult = ClassError(pcInit->mpcBitField->miFirstToken, "A named bit-field can't have a width of 0");
+		lliWidth = 1;
+	}
+	psField = pcClass->macFields.Add();
+	psField->pcSymbol = pcInit->mpcSymbol;
+	psField->lliName = pcInit->mpcSymbol ? pcInit->mpcSymbol->mlliName : -1;
+	psField->psType = psType;
+	psField->iOffset = 0;
+	psField->iAlign = 0;
+	psField->pcInitialiser = pcInit->mpcInitializer;
+	psField->bMutable = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_MUTABLE);
+	psField->iBitWidth = (int)lliWidth;
+	psField->iBitOffset = 0;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of the class's fields an aggregate initialiser ({1, 2}) can
+// give values to: all but its unnamed bit-fields.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Generator::NumAggregateFields(CCPPClass* pcClass)
+{
+	size	i;
+	size	uiFields;
+
+	uiFields = 0;
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		if (!pcClass->macFields.Get(i)->IsUnnamedBitField())
+		{
+			uiFields++;
+		}
+	}
+	return uiFields;
 }
 
 

@@ -85,6 +85,10 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			return false;
 		}
+		if (sPlace.psBitField)
+		{
+			return BitFieldAddress(__FILE__, __LINE__);
+		}
 		psValue->sValue = sPlace.sAddress;
 		psValue->psType = mpcTypes->Pointer(sPlace.psType);
 		return true;
@@ -176,6 +180,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 		return false;
 	}
 	Store(&sPlace, &sNew);
+	BitFieldResult(&sPlace, &sNew);
 	*psValue = pcUnary->mbPostfix ? sOld : sNew;
 	return true;
 }
@@ -303,6 +308,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 			return false;
 		}
 		Store(&sPlace, &sRight);
+		BitFieldResult(&sPlace, &sRight);
 		*psValue = sRight;
 		return true;
 	}
@@ -325,6 +331,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		return false;
 	}
 	Store(&sPlace, psValue);
+	BitFieldResult(&sPlace, psValue);
 	return true;
 }
 

@@ -198,10 +198,27 @@ struct SCPPField
 	int				iAlign;				//Its alignas, 0 for none.
 	CCPPSyntax*		pcInitialiser;		//The default member initialiser, or NULL.
 	bool			bMutable;			//Declared mutable: not const in a const object.
+	int				iBitWidth;			//A bit-field's width, -1 for a field that isn't one.  An unnamed bit-field (int : 3;) has no symbol.
+	int				iBitOffset;			//A bit-field's first bit in the unit of its type at iOffset, 0 the lowest.
+
+	bool			IsBitField(void) { return iBitWidth >= 0; }
+	bool			IsUnnamedBitField(void) { return (iBitWidth >= 0) && (pcSymbol == NULL); }
 };
 
 
 typedef CArrayTemplate<SCPPField>		CArrayCPPFields;
+
+
+//An error in a class's own declaration (a bit-field's width), found when it is laid out: kept apart from mcErrors,
+//which quiet trials and the IR front end truncate, and reported when the unit ends (ReportClassErrors).
+struct SCPPClassError
+{
+	int				iToken;
+	const char*		szMessage;
+};
+
+
+typedef CArrayTemplate<SCPPClassError>	CArrayCPPClassErrors;
 
 
 //A base class and where it is in the derived class.
@@ -429,6 +446,7 @@ protected:
 	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
 	CArrayChars				maszRuntime;		//The runtime routines' labels the unit calls: linked (soft float), or written into the unit (AppendRuntime).
 	CCPPErrors				mcErrors;
+	CArrayCPPClassErrors	masClassErrors;		//Errors laying out classes, reported by ReportClassErrors.
 	CCPPErrors				mcWarnings;			//Each at most once (by token); they don't fail the unit.
 
 	CArrayCPPVariables	mapcGlobals;
@@ -657,7 +675,11 @@ protected:
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	void					LayoutBitField(CCPPClass* pcClass, SCPPField* psField, int iPack, int* piBytes, int* piAlign, int* piUnitBytes, int* piUnitOffset, int* piUnitBits);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
+	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
+	bool					ClassError(int iToken, const char* szMessage);
+	void					ReportClassErrors(void);
 	bool					LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					Overrides(CCPPFunction* pcVirtual, CCPPFunction* pcFunction);
 	bool					OverridesBase(CCPPClass* pcClass, CCPPFunction* pcFunction);
@@ -676,6 +698,7 @@ protected:
 	void					VtableEntries(CCPPClass* pcClass, CArrayCPPVtableEntries* pasEntries);
 	void					AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust);
 	SCPPField*			FindField(CCPPClass* pcClass, int64 lliName, int* piOffset);
+	size				NumAggregateFields(CCPPClass* pcClass);
 	SCPPField*			FindFieldSymbol(CCPPClass* pcClass, CCPPSymbol* pcSymbol, int* piOffset);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);

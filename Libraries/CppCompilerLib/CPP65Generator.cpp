@@ -255,6 +255,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcIRFrontEnd->Init(this);
 	mcTypeChecker.Init(this);
 	mcErrors.Init();
+	masClassErrors.Init();
 	mcWarnings.Init();
 
 	mapcGlobals.Init();
@@ -383,6 +384,7 @@ void CCPP65Generator::Kill(void)
 	mapcGlobals.Kill();
 
 	mcWarnings.Kill();
+	masClassErrors.Kill();
 	mcErrors.Kill();
 	maszRuntime.Kill();
 	mszThunks.Kill();
@@ -452,6 +454,7 @@ bool CCPP65Generator::GenerateBeforeTurn(void)
 
 	//Functions generated when they are first called, which may call others.
 	GenerateQueued();
+	ReportClassErrors();
 	mpcStatistics->End(CPPCP_Declarations);
 
 	//The IR front end inlines across the unit.
@@ -3019,6 +3022,10 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		if (!psField->pcSymbol)
 		{
 			return Error(pcSpecifier, "Anonymous classes in anonymous local classes are not supported by the compiler yet");
+		}
+		if (psField->IsBitField())
+		{
+			return Error(pcSpecifier, "Bit-fields in anonymous local classes are not supported by the compiler yet");
 		}
 		pcVariable = AddVariable(&mapcLocals, psField->pcSymbol, psField->psType, CPPVS_Local, psField->iOffset);
 		pcVariable->mpcAnonymous = pcClass;

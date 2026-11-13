@@ -218,7 +218,52 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 	}
 	psValue->sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psPlace->psType), psPlace->sAddress, psPlace->psType->bVolatile);
 	psValue->psType = psPlace->psType->Unqualified();
+	if (psPlace->psBitField)
+	{
+		psValue->sValue = BitFieldValue(psPlace->psType, psPlace->psBitField->iBitOffset, psPlace->psBitField->iBitWidth, psValue->sValue);
+	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of the iWidth bits from iOffset of sUnit, of psType: shifted
+// down and masked, or for a signed type shifted to the top and back down
+// so its top bit is extended.  A bit-field's value from its unit, or (with
+// an offset of 0) a value assigned to it as the bit-field keeps it.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::BitFieldValue(SCPP65Type* psType, int iOffset, int iWidth, SIRReference sUnit)
+{
+	SIRType		sType;
+	int			iBits;
+	int			iAbove;
+
+	sType = IRTypeOf(psType);
+	iBits = psType->iBytes * 8;
+	if (psType->bSigned && (psType->eKind != CPP65TK_Bool))
+	{
+		iAbove = iBits - iOffset - iWidth;
+		if (iAbove > 0)
+		{
+			sUnit = mpcFunction->Add(mpcBlock, IRO_Shl, sType, sUnit, mpcFunction->AddInteger(sType, iAbove));
+		}
+		if (iWidth < iBits)
+		{
+			sUnit = mpcFunction->Add(mpcBlock, IRO_AShr, sType, sUnit, mpcFunction->AddInteger(sType, iBits - iWidth));
+		}
+		return sUnit;
+	}
+	if (iOffset > 0)
+	{
+		sUnit = mpcFunction->Add(mpcBlock, IRO_LShr, sType, sUnit, mpcFunction->AddInteger(sType, iOffset));
+	}
+	if (iWidth < iBits)
+	{
+		sUnit = mpcFunction->Add(mpcBlock, IRO_And, sType, sUnit, mpcFunction->AddInteger(sType, (int64)(((uint64)1 << iWidth) - 1)));
+	}
+	return sUnit;
 }
 
 
@@ -229,7 +274,54 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 {
-	mpcFunction->Store(mpcBlock, IRTypeOf(psPlace->psType), psValue->sValue, psPlace->sAddress, psPlace->psType->bVolatile);
+	SIRType			sType;
+	SIRReference	sUnit;
+	SIRReference	sBits;
+	uint64			ulliMask;
+	int				iBits;
+
+	sType = IRTypeOf(psPlace->psType);
+	if (!psPlace->psBitField)
+	{
+		mpcFunction->Store(mpcBlock, sType, psValue->sValue, psPlace->sAddress, psPlace->psType->bVolatile);
+		return;
+	}
+
+	//A bit-field: its bits of the unit replaced, the others kept.
+	iBits = psPlace->psType->iBytes * 8;
+	ulliMask = ((psPlace->psBitField->iBitWidth < 64) ? (((uint64)1 << psPlace->psBitField->iBitWidth) - 1) : ~(uint64)0) << psPlace->psBitField->iBitOffset;
+	if (iBits < 64)
+	{
+		ulliMask &= ((uint64)1 << iBits) - 1;
+	}
+	sBits = psValue->sValue;
+	if (psPlace->psBitField->iBitOffset > 0)
+	{
+		sBits = mpcFunction->Add(mpcBlock, IRO_Shl, sType, sBits, mpcFunction->AddInteger(sType, psPlace->psBitField->iBitOffset));
+	}
+	if (psPlace->psBitField->iBitWidth < iBits)
+	{
+		sBits = mpcFunction->Add(mpcBlock, IRO_And, sType, sBits, mpcFunction->AddInteger(sType, (int64)ulliMask));
+		sUnit = mpcFunction->Load(mpcBlock, sType, psPlace->sAddress, psPlace->psType->bVolatile);
+		sUnit = mpcFunction->Add(mpcBlock, IRO_And, sType, sUnit, mpcFunction->AddInteger(sType, (int64)(~ulliMask & ((iBits < 64) ? (((uint64)1 << iBits) - 1) : ~(uint64)0))));
+		sBits = mpcFunction->Add(mpcBlock, IRO_Or, sType, sUnit, sBits);
+	}
+	mpcFunction->Store(mpcBlock, sType, sBits, psPlace->sAddress, psPlace->psType->bVolatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value an assignment to psPlace gives when it is a bit-field: what
+// was stored, cut to the bit-field's width, as reading it back would give.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::BitFieldResult(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
+{
+	if (psPlace->psBitField)
+	{
+		psValue->sValue = BitFieldValue(psPlace->psType, 0, psPlace->psBitField->iBitWidth, psValue->sValue);
+	}
 }
 
 
@@ -576,6 +668,8 @@ bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, 
 	SCPP65IRValue	sOffset;
 	SIRReference	sObject;
 
+	psPlace->psBitField = NULL;
+
 	if (!MemberPointerObject(pcBinary, &sObject, &psMember))
 	{
 		return false;
@@ -635,6 +729,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	SCPP65IRValue					sAddress;
 	SCPP65Type*						psType;
 	SCPP65Type*						psArray;
+
+	psPlace->psBitField = NULL;
 
 	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
@@ -809,6 +905,8 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 	SIRReference*	psAddress;
 	CChars			szLabel;
 
+	psPlace->psBitField = NULL;
+
 	if (!IsPlaceType(pcVariable->mpsType))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -874,6 +972,8 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	SCPP65Type*		psType;
 	SIRReference	sObject;
 
+	psPlace->psBitField = NULL;
+
 	psType = mpcGenerator->TypeOf(pcMember->mpcObject);
 	if (!psType)
 	{
@@ -918,6 +1018,8 @@ bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, CCPPClass* pcClass, int6
 	CCPPVariable*	pcVariable;
 	int				iOffset;
 
+	psPlace->psBitField = NULL;
+
 	if (!pcClass || !mpcGenerator->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -938,6 +1040,7 @@ bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, CCPPClass* pcClass, int6
 	}
 	psPlace->sAddress = AddressAt(sObject, iOffset);
 	psPlace->psType = psField->psType;
+	psPlace->psBitField = psField->IsBitField() ? psField : NULL;
 	if (psPlace->psType->IsReference())
 	{
 		psPlace->sAddress = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), psPlace->sAddress);

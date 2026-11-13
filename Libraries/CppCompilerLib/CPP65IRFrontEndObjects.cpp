@@ -332,6 +332,22 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		return Unsupported(__FILE__, __LINE__);
 	}
 
+	//A delegating constructor (C() : C(7) {}) has the other constructor make the whole object, the bases, vtable
+	//pointers and fields included; its own member initialiser must be its only one ([class.base.init] 6).
+	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
+	{
+		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcGenerator->GetNameClass(pcMember->mpcName, pcMember);
+		if (pcNamed == pcClass)
+		{
+			if (papcInitialisers->NumElements() != 1)
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
+			return DelegatedConstructor(pcClass, pcMember);
+		}
+	}
+
 	//The bases, in order.
 	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
 	{
@@ -360,6 +376,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		}
 		sPlace.sAddress = AddressAt(msThis, psBase->iOffset);
 		sPlace.psType = psBase->pcClass->mpsType;
+		sPlace.psBitField = NULL;
 		if (mpcCPPFunction->mpcInherited && (mpcCPPFunction->mpcInherited->mpcClass == psBase->pcClass))
 		{
 			//An inherited constructor (using Base::Base) passes its parameters to the base's.
@@ -397,6 +414,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		{
 			sPlace.sAddress = AddressAt(msThis, psField->iOffset);
 			sPlace.psType = psField->psType;
+			sPlace.psBitField = psField->IsBitField() ? psField : NULL;
 			if (!Construct(&sPlace, NULL, pcInitialiser))
 			{
 				return false;
@@ -415,6 +433,35 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A delegating constructor's start: the constructor its member initialiser
+// pcMember chooses from its arguments (C(7)) makes the object at this.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMemberInitializer* pcMember)
+{
+	CArraySyntax*	papcArguments;
+	SCPP65IRPlace	sPlace;
+
+	papcArguments = &mapcNone;
+	if (pcMember->mpcInitializer)
+	{
+		if (pcMember->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer)
+		{
+			papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcMember->mpcInitializer)->macpElements;
+		}
+		else if (pcMember->mpcInitializer->GetKind() == CPPS_InitializerList)
+		{
+			papcArguments = &((CCPPSyntaxInitializerList*)pcMember->mpcInitializer)->macpElements;
+		}
+	}
+	sPlace.sAddress = msThis;
+	sPlace.psType = pcClass->mpsType;
+	return ConstructClass(&sPlace, pcClass, papcArguments);
 }
 
 
@@ -733,6 +780,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	SCPPField*	psField;
 	SCPP65IRPlace	sField;
 	size			ui;
+	size			uiArgument;
 
 	if (!mpcGenerator->CompleteClass(pcClass, NULL))
 	{
@@ -749,19 +797,26 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	}
 
 	//An aggregate: the fields in order, the rest zero.
-	if ((pcClass->macBases.NumElements() > 0) || mpcGenerator->IsPolymorphic(pcClass) || (papcArguments->NumElements() > pcClass->macFields.NumElements()))
+	if ((pcClass->macBases.NumElements() > 0) || mpcGenerator->IsPolymorphic(pcClass) || (papcArguments->NumElements() > mpcGenerator->NumAggregateFields(pcClass)))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	uiArgument = 0;
 	for (ui = 0; ui < pcClass->macFields.NumElements(); ui++)
 	{
 		psField = pcClass->macFields.Get(ui);
+		if (psField->IsUnnamedBitField())
+		{
+			continue;
+		}
 		sField.sAddress = AddressAt(psPlace->sAddress, psField->iOffset);
 		sField.psType = psField->psType;
-		if (!Construct(&sField, NULL, (ui < papcArguments->NumElements()) ? papcArguments->GetPtr(ui) : NULL))
+		sField.psBitField = psField->IsBitField() ? psField : NULL;
+		if (!Construct(&sField, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : NULL))
 		{
 			return false;
 		}
+		uiArgument++;
 	}
 	return true;
 }

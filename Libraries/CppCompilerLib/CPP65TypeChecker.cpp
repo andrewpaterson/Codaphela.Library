@@ -2517,6 +2517,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 {
 	CCPPFunction*	pcConstructor;
 	size			i;
+	size			uiArgument;
 	bool			bResult;
 
 	if (!mpcGenerator->CompleteClass(pcClass, pcNode))
@@ -2539,14 +2540,20 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 		return !pcConstructor || (Call(pcConstructor, papcArguments, pcNode) != NULL);
 	}
 
-	if ((pcClass->macBases.NumElements() > 0) || mpcGenerator->IsPolymorphic(pcClass) || (papcArguments->NumElements() > pcClass->macFields.NumElements()))
+	if ((pcClass->macBases.NumElements() > 0) || mpcGenerator->IsPolymorphic(pcClass) || (papcArguments->NumElements() > mpcGenerator->NumAggregateFields(pcClass)))
 	{
 		return Error(pcNode, "These initialisers do not match the class");
 	}
 	bResult = true;
+	uiArgument = 0;
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
-		bResult &= Construct(pcClass->macFields.Get(i)->psType, NULL, (i < papcArguments->NumElements()) ? papcArguments->GetPtr(i) : NULL, pcNode);
+		if (pcClass->macFields.Get(i)->IsUnnamedBitField())
+		{
+			continue;
+		}
+		bResult &= Construct(pcClass->macFields.Get(i)->psType, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : NULL, pcNode);
+		uiArgument++;
 	}
 	return bResult;
 }

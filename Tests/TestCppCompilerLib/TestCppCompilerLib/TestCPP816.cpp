@@ -466,6 +466,125 @@ void TestCPP816Classes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A delegating constructor (C() : C(7)) has the constructor it names make
+// the object, base, vtable pointer and fields included, then runs its own
+// body; on both processors.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DelegatingConstructors(void)
+{
+	const char*	szSource;
+
+	szSource =
+		"class CBase\n"
+		"{\n"
+		"public:\n"
+		"\tint\tmiBase;\n"
+		"\tCBase(int i) : miBase(i) {}\n"
+		"\tvirtual int Get(void) { return miBase; }\n"
+		"};\n"
+		"class CDerived : public CBase\n"
+		"{\n"
+		"public:\n"
+		"\tint\tmiA;\n"
+		"\tint\tmiB = 5;\n"
+		"\tCDerived(int a) : CBase(a * 10), miA(a) {}\n"
+		"\tCDerived() : CDerived(7) { miA += 1; }\n"
+		"\tCDerived(int a, int b) : CDerived(a + b) {}\n"
+		"\tint Get(void) override { return miBase + miA + miB; }\n"
+		"};\n"
+		"int main(void)\n"
+		"{\n"
+		"\tCDerived\tc;\n"
+		"\tCDerived\td(1, 2);\n"
+		"\tCBase*\t\tp;\n"
+		"\tp = &c;\n"
+		"\treturn p->Get() * 100 + d.Get();\n"
+		"}\n";
+	AssertInt((70 + 8 + 5) * 100 + (30 + 3 + 5), TestCPP816Run(szSource, true));
+	AssertInt((70 + 8 + 5) * 100 + (30 + 3 + 5), TestCPP65Main(szSource));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Bit-fields share a unit of their type's size, from its lowest bit, as
+// MSVC lays them out: a new unit for another size or when the bits run out
+// or after a zero width one.  Reads extend a signed one's top bit; writes
+// keep the unit's other bits; an assignment's value is what the bit-field
+// keeps.  An aggregate initialiser leaves out unnamed ones, and a const
+// reference binds to a copy.  A bit-field has no address.  On both
+// processors (S is 6 bytes on the W65C816, 12 on the 65C64).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816BitFields(void)
+{
+	const char*	szSource;
+	CChars		szAssembly;
+	CChars		szErrors;
+
+	szSource =
+		"struct S\n"
+		"{\n"
+		"\tunsigned\ta : 3;\n"
+		"\tunsigned\tb : 5;\n"
+		"\tint\t\t\tc : 4;\n"
+		"\tunsigned\t: 0;\n"
+		"\tunsigned\td : 2;\n"
+		"\tbool\t\te : 1;\n"
+		"};\n"
+		"struct T\n"
+		"{\n"
+		"\tunsigned char\tx : 4;\n"
+		"\tunsigned char\ty : 4;\n"
+		"};\n"
+		"int main(void)\n"
+		"{\n"
+		"\tS\t\t\t\ts = { 9, 31, 7, 3, true };\n"
+		"\tT\t\t\t\tt;\n"
+		"\tint\t\t\t\tr;\n"
+		"\tint\t\t\t\tx;\n"
+		"\tunsigned char*\tpc;\n"
+		"\tr = 0;\n"
+		"\ts.c += 2;\n"
+		"\tr += s.a;\n"
+		"\tr += s.b * 10;\n"
+		"\tr += s.c * 100;\n"
+		"\ts.d++;\n"
+		"\tr += s.d * 1000;\n"
+		"\tr += s.e ? 2000 : 0;\n"
+		"\tx = (s.b = 33);\n"
+		"\tr += x * 4000;\n"
+		"\tt.x = 5;\n"
+		"\tt.y = 12;\n"
+		"\tpc = (unsigned char*)&t;\n"
+		"\tr += (*pc == 0xC5) ? 8000 : 0;\n"
+		"\tconst int& rc = s.c;\n"
+		"\tr += rc;\n"
+		"\treturn r + (int)sizeof(S);\n"
+		"}\n";
+	AssertInt(1 + 310 - 700 + 0 + 2000 + 4000 + 8000 - 7 + 6, TestCPP816Run(szSource, true));
+	AssertInt(1 + 310 - 700 + 0 + 2000 + 4000 + 8000 - 7 + 12, TestCPP65Main(szSource));
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "struct S { unsigned a : 3; };\nunsigned* F(S* p) { return &p->a; }\n"));
+	AssertTrue(szErrors.Contains("A bit-field has no address"));
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "struct S { unsigned a : 40; unsigned b : 0; };\n int F(S* p) { return p->a; }\n"));
+	AssertTrue(szErrors.Contains("A bit-field can't be wider than its type"));
+	AssertTrue(szErrors.Contains("A named bit-field can't have a width of 0"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // array[index] of an array (not a pointer) under 64KB has its offset worked
 // out in 16 bits (CCPP65IRFrontEnd::NarrowSubscript): 2D member arrays, local
 // and global arrays, 6 byte elements and char, int and 32 bit indices; a
@@ -5635,6 +5754,8 @@ void TestCPP816(void)
 	TestCPP816SignedToFloat();
 	TestCPP816Functions();
 	TestCPP816Classes();
+	TestCPP816DelegatingConstructors();
+	TestCPP816BitFields();
 	TestCPP816Thunks();
 	TestCPP816OverloadedComma();
 	TestCPP816WideStrings();
