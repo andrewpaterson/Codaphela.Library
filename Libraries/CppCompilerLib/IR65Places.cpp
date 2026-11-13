@@ -483,9 +483,13 @@ void CIR65Backend::Allocate(void)
 	DiscountAddresses(&asWeights);
 	asWeights.QuickSort(CompareIR65Weights);
 	msFrame.bHomeV = CanUseV();
-	if (!AllocateClasses(&asWeights) || (msFrame.bHomeV && (masHomes.Get(IR65R_V)->asRanges.NumElements() == 0)))
+	muiWeightV = 0;
+	mbFrameOnly = false;
+	if (!AllocateClasses(&asWeights) || (msFrame.bHomeV && !PaysV()))
 	{
-		//With V the frame's register after all.
+		//With V the frame's register after all.  If it kept anything in a kept pseudo register there will be a frame:
+		//that is where those go.
+		mbFrameOnly = msFrame.bHomeV && (msFrame.uiSaved != 0);
 		ClearHomes();
 		for (ui = 0; ui < asWeights.NumElements(); ui++)
 		{
@@ -496,6 +500,27 @@ void CIR65Backend::Allocate(void)
 		AllocateClasses(&asWeights);
 	}
 	asWeights.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether V as a home was worth it, once every class has one: something
+// took it, and what it saves there (IR65_REGISTER_GAIN a use: muiWeightV)
+// is more than keeping what a frame would hold in kept pseudo registers
+// costs (IR65_KEPT_COST each, against the frame's 9 cycles less V's 6).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::PaysV(void)
+{
+	int		iSaved;
+
+	if (masHomes.Get(IR65R_V)->asRanges.NumElements() == 0)
+	{
+		return false;
+	}
+	iSaved = msFrame.NumSaved();
+	return (iSaved == 0) || (IR65_REGISTER_GAIN * (int64)muiWeightV > (int64)IR65_KEPT_COST * iSaved - 3);
 }
 
 
@@ -1058,6 +1083,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		}
 		if (bV && TakeHomes(IR65R_V, 1, iLeader))
 		{
+			muiWeightV += uiWeight;
 			PlaceClass(iLeader, IR65P_Register, IR65R_V, 4);
 			return true;
 		}
@@ -1076,7 +1102,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	}
 	//A kept pseudo register costs a push and a pull (10 cycles) and the frame's place costs the same to use: so only
 	//where there is no frame yet.
-	iUnit = (((uiWeight >= 8) && (msFrame.iFrameBytes == 0)) || msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
+	iUnit = (((uiWeight >= 8) && (msFrame.iFrameBytes == 0) && !mbFrameOnly) || msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
 	if (iUnit >= 0)
 	{
 		msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;

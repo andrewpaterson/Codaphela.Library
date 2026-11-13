@@ -602,7 +602,8 @@ void TestIR65BackendCalls(void)
 		"\t%r = call i32 %f(i32 6)\n"
 		"\tret i32 %r\n}\n"));
 
-	//The pointer is live across its own calls, so it is kept in V (which every function keeps) and called through it, twice.
+	//The pointer is called through where it was pushed, twice: it and the first result are live across calls, and V for
+	//one with a kept pseudo register for the other would cost more than the frame (CIR65Backend::PaysV).
 	szAssembly.Init();
 	AssertInt(6 + 7, (int32)TestIR65Run(
 		"function i32 @_Increment__Fi(i32 %x)\n{\nb:\n\t%r = add i32 %x, 1\n\tret i32 %r\n}\n\n"
@@ -615,9 +616,8 @@ void TestIR65BackendCalls(void)
 		"\t%f = copy ptr @_Increment__Fi\n"
 		"\t%r = call i32 @_Twice(ptr %f, i32 5)\n"
 		"\tret i32 %r\n}\n", false, &szAssembly));
-	AssertTrue(szAssembly.Contains("\t\tpsh V\n\t\tpsh [128 + W]\n\t\tcpy V, [13 + S]\n"));
-	AssertTrue(szAssembly.Contains("\t\tjsr V\n\t\tadd S, 4\n\t\tcpy [128 + W], A\n\t\tpsh A\n\t\tjsr V\n"));
-	AssertTrue(szAssembly.Contains("\t\tpul [128 + W]\n\t\tpul V\n\t\tret\n"));
+	AssertTrue(szAssembly.Contains("jsr [13 + V]"));
+	AssertFalse(szAssembly.Contains("[128 + W]"));
 	AssertFalse(szAssembly.Contains("jsr A"));
 	szAssembly.Kill();
 

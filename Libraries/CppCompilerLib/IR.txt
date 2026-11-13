@@ -524,7 +524,11 @@ cycles), or any once V is taken.  The function pushes V first and pulls it last,
 frame (bFrameless), reads every pushed parameter into a home in its prologue (from S,
 which hasn't moved yet) and keeps what would have gone in the frame in the kept pseudo
 registers whatever it weighs.  If something still needs the frame, or nothing took V, the
-classes are given homes again with V as the frame's register (Allocate).  [n + V] is then
+classes are given homes again with V as the frame's register (Allocate).  So they are
+when what V saves doesn't pay for the kept pseudo registers it forces (PaysV: a function
+with calls in a loop and many values live across them, CArrayBlock::BinarySearch, is
+better off with a frame), and then everything live across calls goes in the frame
+(mbFrameOnly): 1.9%, 1.6% and 0.3% fewer cycles on the three suites.  [n + V] is then
 a pointer's memory, not the function's own: CIR65Code::IsOwnMemory is told
 (SIR65Frame::bHomeV), so the text passes don't keep its values (a device's register read
 twice is read twice).  BaseLib, StandardLib and SupportLib on the 65C64: 4.7%, 4.6% and

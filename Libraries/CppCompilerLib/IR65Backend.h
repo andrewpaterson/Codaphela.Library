@@ -142,6 +142,10 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 #define IR65_PSEUDO_UNIT_BYTES	4
 #define IR65_PSEUDO_SAVED		0x80	//The units from here are callee saved: the prologue pushes those used.
 #define IR65_SAVED_UNIT(iUnit)	(IR65_PSEUDO_SAVED + IR65_PSEUDO_UNIT_BYTES * (iUnit))
+#define IR65_REGISTER_GAIN		3			//The cycles a use of a value in a register saves over one in a pseudo register or the frame.
+#define IR65_KEPT_COST			40			//What a kept pseudo register costs in a function with V as a home, as weight (PaysV): its push and
+										//pull are 10 cycles, but a weight counts a loop as 8 passes and the loops that hold such values (calls
+										//in them) make far fewer; 40 is the measured best across the three suites, 2026-11-13.
 #define IR65_V_WEIGHT			3			//The least weight of a class not live across a call that is worth saving V for.
 #define IR65_HOME_PSEUDO		IR65R_Count
 #define IR65_HOME_SAVED			(IR65_HOME_PSEUDO + IR65_PSEUDO_UNITS)
@@ -208,6 +212,8 @@ protected:
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
 	CArrayIR65Stubs			masStubs;
 	SIR65Frame				msFrame;			//The function's frame (Layout, Allocate and GenerateFunction).
+	uint32					muiWeightV;			//The weights of the classes whose home is V (PaysV).
+	bool					mbFrameOnly;		//The function will have a frame: no kept pseudo registers (Allocate).
 	int32					miReturnLabel;
 	SIRReference			msInA;				//The temporary the last instruction left in A (or IRNone).
 	SIRReference			msAvailable;		//What A holds as the current instruction starts.
@@ -277,6 +283,7 @@ protected:
 	bool				AllocateClasses(CArrayIR65Weights* pasWeights);
 	void				ClearHomes(void);
 	bool				CanUseV(void);
+	bool				PaysV(void);
 	bool				FitsV(int32 iLeader);
 	int32				FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader);
 	SIR65Place*			PlaceOf(SIRReference sValue);
