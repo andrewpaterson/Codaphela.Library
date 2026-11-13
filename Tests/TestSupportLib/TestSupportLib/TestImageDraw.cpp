@@ -1289,6 +1289,11 @@ Ptr<CImage> CreateDrawCelTranslucentImage(int32 iWidth, int32 iHeight)
 	//Opaque, transparent and translucent runs of different lengths in every row.
 	pImage = CreateDrawCelImage(iWidth, iHeight, CFT_RGBA, ARGB_8bit, 4, false);
 	puiData = (uint8*)pImage->GetData();
+	AssertNotNull(puiData);
+	if (puiData == NULL)
+	{
+		return pImage;
+	}
 	for (y = 0; y < iHeight; y++)
 	{
 		for (x = 0; x < iWidth; x++)
