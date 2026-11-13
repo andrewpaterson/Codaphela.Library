@@ -61,7 +61,7 @@ public:
 template<class M, class O>
 void CAction::Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext))
 {
-	mcCalls.Add()->Init(pcObject, fFunction);
+	mcCalls.Add(pcObject, fFunction);
 }
 
 

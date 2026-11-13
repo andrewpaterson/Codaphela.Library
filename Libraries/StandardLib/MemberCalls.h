@@ -39,6 +39,8 @@ public:
 	void			Kill(void);
 
 	SMemberCall*	Add(void);
+	template<class O, class F>
+	void			Add(O* pcObject, F fFunction);
 	bool			Remove(void* pvObject);
 	size			NumCalls(void);
 
@@ -47,6 +49,25 @@ public:
 protected:
 	void			RemoveCleared(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fFunction on pcObject called after those added before.  Nothing is
+// added if there is no room for it.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class O, class F>
+void CMemberCalls::Add(O* pcObject, F fFunction)
+{
+	SMemberCall*	psCall;
+
+	psCall = Add();
+	if (psCall)
+	{
+		psCall->Init(pcObject, fFunction);
+	}
+}
 
 
 #endif // __MEMBER_CALLS_H__

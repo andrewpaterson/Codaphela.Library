@@ -93,7 +93,7 @@ template<class S>
 template<class M, class O>
 void CComponentEvent<S>::Add(O* pcObject, void(M::*fFunction)(S* pcSource))
 {
-	mcCalls.Add()->Init(pcObject, fFunction);
+	mcCalls.Add(pcObject, fFunction);
 }
 
 
@@ -105,7 +105,7 @@ template<class S>
 template<class M, class O>
 void CComponentEvent<S>::Add(O* pcObject, void(M::*fFunction)(void))
 {
-	mcCalls.Add()->Init(pcObject, fFunction);
+	mcCalls.Add(pcObject, fFunction);
 }
 
 
@@ -154,7 +154,7 @@ template<class S, class V>
 template<class M, class O>
 void CComponentValueEvent<S, V>::Add(O* pcObject, void(M::*fFunction)(S* pcSource, V xValue))
 {
-	this->mcCalls.Add()->Init(pcObject, fFunction);
+	this->mcCalls.Add(pcObject, fFunction);
 }
 
 

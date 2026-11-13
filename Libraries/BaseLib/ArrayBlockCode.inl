@@ -355,7 +355,7 @@ void* ARRAY_BLOCK::Add(void)
 	{
 		SetArraySize(miUsedElements);
 	}
-	return Tail();
+	return Get(miUsedElements - 1);
 }
 
 
