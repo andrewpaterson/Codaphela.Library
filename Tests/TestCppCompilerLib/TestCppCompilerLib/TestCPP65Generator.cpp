@@ -310,6 +310,9 @@ static void AssertCPP65Operator64(const char* szOperator, const char* szType, bo
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function's assembly: its plain label is the entry for callers that
+// pushed its arguments (it loads them into A and B), its register label
+// (.ab) the body, which takes them there (CIR65Backend::Prologue).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorAssembly(void)
@@ -325,10 +328,14 @@ void TestCPP65GeneratorAssembly(void)
 		"\t\t.section text._Add__Fii\n"
 		"\t\t.global _Add__Fii\n"
 		"_Add__Fii:\n"
-		"L1:\n"
-		"\t\tcpy A, [5 + S]\n"
 		"\t\tcpy B, [9 + S]\n"
-		"\t\tadd A, B\n"
+		"\t\tcpy A, [5 + S]\n"
+		"\t\t.global _Add__Fii.ab\n"
+		"_Add__Fii.ab:\n"
+		"\t\tcpy X, A\n"
+		"\t\tcpy Y, B\n"
+		"L1:\n"
+		"\t\tadd A, Y\n"
 		"L2:\n"
 		"\t\tret\n"
 		"\n", szAssembly.Text());

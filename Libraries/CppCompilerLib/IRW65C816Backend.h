@@ -327,7 +327,6 @@ protected:
 	void			LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters);
 	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
 	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);
-	bool			IsRegisterCall(SIRReference sCallee);
 	void			FunctionArguments(void);
 	void			RegisterStub(CChars* pszBodyLabel);
 	bool			Forwarder(CChars* pszJump);

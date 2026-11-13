@@ -136,6 +136,7 @@ protected:
 	int32			NewLabel(void);
 	void			UseRuntime(const char* szName);
 	SIRInstruction*	BranchComparison(CIRBlock* pcBlock);
+	bool			IsRegisterCall(SIRReference sCallee);
 	bool			ParallelCopy(CArrayIRCopies* pasCopies, CArrayIRCopySteps* pasSteps);
 	void			ExpandMultiplies(void);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);

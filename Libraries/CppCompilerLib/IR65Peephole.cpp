@@ -203,7 +203,8 @@ bool CIR65Peephole::IsLoaded(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Takes out each cpy into A, B, X or Y (at 32 bits) of the value it
-// already holds, when the n and z it sets aren't read.
+// already holds, or of a register that was copied from it and that it
+// hasn't changed since, when the n and z it sets aren't read.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Peephole::RemoveCopies(void)
@@ -230,8 +231,12 @@ bool CIR65Peephole::RemoveCopies(void)
 		{
 			continue;
 		}
-		if ((psState->aiValues[psLine->iFirst] >= 0) && (psState->aiValues[psLine->iFirst] == Canonical(psState, iCopied)))
+		iCopied = Canonical(psState, iCopied);
+		if (((psState->aiValues[psLine->iFirst] >= 0) && (psState->aiValues[psLine->iFirst] == iCopied)) ||
+			((maszValues.Get(iCopied)->Length() == 1) && (masValues.Get(iCopied)->uiNames == (uint8)(1 << psLine->iFirst))))
 		{
+			//The register holds the value already; or the value is one copied from the register itself, which
+			//hasn't changed since (cpy X, A then cpy A, X: a parameter that came in A, kept in X).
 			mcCode.Remove(ui);
 			bChanged = true;
 		}

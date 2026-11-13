@@ -266,6 +266,37 @@ Calling convention
 - V, W and S are kept by a call; A, B, X, Y and the pseudo registers may change.  W is 0
   at every call and return (code that changes it, like mul and div, sets it back).
 
+Register arguments (the user, 2026-11-13: this stays in X; the first three arguments of 32
+bits or less go in A, B and Y; function pointers and vtables keep the stack entry), by the
+W65C816's rule (W65C816.txt, Register arguments; CIRBackend::AssignRegisters):
+
+- A function that isn't variadic and takes no object by value takes its arguments in
+  order (not a member function's this, which is in X as before), each of 32 bits or less
+  in the next of A, B and Y, zero extended to 32 bits; a 64 bit one, and those after the
+  third, are pushed as before (a later, smaller one may still get a register).
+- The function's code is at its label plus a suffix naming each argument's place: a dot,
+  then a, b or y for a register or s for 32 bits pushed (ss for 64), without the pushed
+  ones at the end (_Add__Fii.ab; _Wide__FPcybt.assby).  No suffix when nothing is in a
+  register.  A caller and a definition that don't agree don't link.
+- The prologue copies the registers to the parameters' homes (CIR65Backend::
+  StoreRegisterParameters): a parameter that came in a register is given a home as any
+  value is (X, Y, a pseudo register or the frame), and one whose address is taken a place
+  in the frame.
+- The plain label is a stub for callers that push everything (function pointers, vtables,
+  thunks, assembly): it loads the registers from the stack and goes on into the body;
+  when the body also takes arguments on the stack it pushes those again, calls the body,
+  removes them and returns (CIR65Backend::RegisterStub).
+- A call loads each register once no argument still to be loaded reads it (one kept in Y
+  for X before another is put in Y), and pushes and pulls one of two that would take each
+  other's (CIR65Backend::LoadRegisterArguments).
+- Assembly defines the suffixed labels too.  Libc65's string.asm: memcpy, memmove, memset,
+  memcmp and strlen work from the registers (their plain labels load them and go on in);
+  the others, and softfloat.asm's routines called by name, push the registers and call
+  their stack entries.  The start up's __Exit.a stops with the status already in A.
+- The compiler's own float instructions still push their operands and call softfloat.asm's
+  plain labels, and the runtime routines (R_...) keep their own conventions.
+- CCPPCompileOptions::mbRegisterArguments false pushes every argument, to compare.
+
 Places from V (they don't move when values are pushed):
 
 	[1 + local + V]						a local

@@ -405,13 +405,3 @@ void CIRW65C816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a call of sCallee passes its arguments in registers: a symbol the
-// front end marked (CIRModule::SetRegisterCall).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::IsRegisterCall(SIRReference sCallee)
-{
-	return mpcOptions->mbRegisterArguments && sCallee.IsSymbol() && mpcModule->IsRegisterCall(sCallee.Index());
-}

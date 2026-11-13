@@ -146,6 +146,13 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 #define IR65_HOME_FRAME			(IR65_HOME_SAVED + IR65_PSEUDO_UNITS)
 
 
+//The registers a function's first arguments are passed in (A, B and Y; a thiscall's this is in X besides), and what
+//each is called in its register label (CIRBackend::AppendRegisterSuffix).  An argument's unit (SIRRegisterArgument)
+//is 32 bits, and only an argument of one unit goes in a register (CIRBackend::AssignRegisters).
+#define IR65_ARGUMENT_REGISTERS	3
+#define IR65_REGISTER_LETTERS		"aby"
+
+
 //A function's frame: [1 + offset + V] for offset from 0 to iFrameBytes - 1, then the link (8 bytes), then the
 //arguments.  A frameless function (no frame bytes, no this kept) doesn't set V up and finds its arguments from S.
 struct SIR65Frame
@@ -156,6 +163,7 @@ struct SIR65Frame
 	bool	bFrameless;		//No frame: V isn't set up, the arguments are from S...
 	char	cRegister;		//...so the frame register is S, otherwise V.
 	int32	iArguments;		//Where the arguments start: 1 + frame + 8, or from S 1 + 4 + 4 per saved unit.
+	int32	aiRegisterOffset[IR65_ARGUMENT_REGISTERS];	//A register parameter in the frame, for an argaddr of it; -1 for none.
 
 	void	Init(void);
 	int32	Add(int32 iBytes);
@@ -169,8 +177,10 @@ struct SIR65Frame
 //[$FF + W] if one is: the function keeps those), or the frame.  A phi shares its home with the values it takes
 //when their live ranges allow, and a jump copies the others.  Instructions work in A (and B), or in a result's
 //register or pseudo register when that is shorter.  The calling convention is the generator's
-//(CPP65Generator.txt): arguments pushed last first at their own size, the caller removes them, this in X for a
-//thiscall, the result in A (all 8 bytes of a 64 bit one).  Labels are L and a number from the generator's
+//(CPP65Generator.txt): a function called by name gets its first three arguments of 32 bits or less in A, B and Y
+//at its register label (FunctionArguments, Call), the rest and every argument of a call through a pointer are
+//pushed last first at their own size and the caller removes them, this in X for a thiscall, the result in A (all 8
+//bytes of a 64 bit one).  Labels are L and a number from the generator's
 //counter; the soft float routines called are added to its runtime list.
 class CIR65Backend : public CIRBackend
 {
@@ -179,6 +189,9 @@ protected:
 	CIRLiveness				mcLiveness;
 	CArrayIR65Places		masPlaces;			//Per temporary.
 	CArrayTemplate<uint8>	mauiAddressed;		//Per parameter: 1 if an argaddr of it is taken.
+	CArrayIRRegisterArguments	masArguments;	//The function's parameters as its callers pass them, less a thiscall's this (FunctionArguments).
+	int						miRegisterArguments;	//How many of them arrive in A, B and Y.
+	size					muiBodyStart;		//Where the function's body starts in the text: its label, after a register function's stub.
 	CArrayTemplate<int32>	maiClasses;			//Per temporary: the temporaries sharing a home are a list through this...
 	CArrayTemplate<int32>	maiLeaders;			//...and per temporary the first of its list.
 	CArrayIR65Homes			masHomes;			//X, Y, the pseudo registers, the saved pseudo registers, the frame.
@@ -235,6 +248,12 @@ protected:
 	bool				FoldedBase(SIRInstruction* psNext, SIRReference sValue);
 	int32				ParameterOffset(size uiParameter);
 	void				ArrivalPlace(size uiParameter, SIR65Place* psPlace);
+	void				FunctionArguments(void);
+	int					ParameterRegister(size uiParameter);
+	void				RegisterStub(const char* szBody);
+	void				StoreRegisterParameters(void);
+	void				StoreArrivedRegister(const char* szRegister, SIR65Place* psPlace, SIRType sType, const char** aszSources, SIR65Place** apsPlaces, int* piMoves);
+	int					ArgumentUnits(SIRType sType);
 	void				Layout(void);
 	bool				NeedsHome(int32 iTemporary);
 	void				Allocate(void);
@@ -328,9 +347,10 @@ protected:
 	bool				Store(CIRBlock* pcBlock, size uiIndex);
 	bool				Call(CIRBlock* pcBlock, size uiIndex);
 	size				CallArguments(CIRBlock* pcBlock, size uiCall);
-	int32				PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd);
+	int32				PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, CArrayIRRegisterArguments* pasArguments);
 	void				CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* pszCallee);
-	void				LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst);
+	void				LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool bThisCall, CArrayIRRegisterArguments* pasArguments);
+	uint8				ReadsRegisters(SIRReference sValue);
 	void				CallerCleanUp(int32 iBytes, SIRInstruction* psCall);
 	void				RemoveArguments(int32 iBytes);
 	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);

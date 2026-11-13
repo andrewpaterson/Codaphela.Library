@@ -130,7 +130,8 @@ void CCPPTarget65C64::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
 // After main it calls Libc65's __RunAtExit (the atexit functions, last first) when
 // stdlib.cpp is linked: the reference is weak, so it doesn't pull stdlib.cpp in.
 //
-// It also defines C's _Exit(int iStatus), which stops at once with iStatus in A.
+// It also defines C's _Exit(int iStatus), which stops at once with iStatus in A: at
+// its register label (__Exit.a, where compiled code calls it) it is there already.
 // Libc65's exit runs the atexit functions and the fini table and then calls it.
 //
 // It is kept, and everything it reaches, when the linker leaves out what is unused, and
@@ -174,6 +175,9 @@ void CCPPTarget65C64::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tbra StartFinalise")->AppendNewLine();
 	pszDest->Append("StartStop:")->AppendNewLine();
 	pszDest->Append("\t\tpul A")->AppendNewLine();
+	pszDest->Append("\t\tstp")->AppendNewLine();
+	pszDest->Append("\t\t.global __Exit.a")->AppendNewLine();
+	pszDest->Append("__Exit.a:")->AppendNewLine();
 	pszDest->Append("\t\tstp")->AppendNewLine();
 	pszDest->Append("\t\t.global __Exit")->AppendNewLine();
 	pszDest->Append("__Exit:")->AppendNewLine();

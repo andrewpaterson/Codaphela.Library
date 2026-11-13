@@ -1815,6 +1815,94 @@ void TestCPP65IRConstErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Register arguments on the 65C64 (CIR65Backend::Call, Prologue,
+// RegisterStub): a function's first three arguments of 32 bits or less in
+// A, B and Y at its register label, the rest pushed; a 64 bit one pushed
+// between them; narrow ones; a static function; arguments given from the
+// registers other arguments go to (Turn, Keep); a parameter whose address
+// is taken; a variadic function (all pushed); a member function (this in X
+// besides) and a virtual one (through its stub); a call through a pointer
+// (the plain label's stub loads the registers and pushes the rest again).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65RegisterArguments(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	AssertInt(1023, TestCPP65Main(
+		"#include <stdarg.h>\n"
+		"typedef unsigned long long uint64;\n"
+		"int Five(int a, int b, int c, int d, int e) { return a + b * 2 + c * 3 + d * 4 + e * 5; }\n"
+		"static int Six(char a, short b, int c, unsigned char d, int e, int f) { return a + b * 2 + c * 3 + d * 4 + e * 5 + f * 6; }\n"
+		"int Wide(char* p, uint64 y, bool b, unsigned short t) { return (int)(y >> 32) + (int)y + (b ? 100 : 0) + t + (p ? 1000 : 0); }\n"
+		"int Turn(int a, int b, int c) { return Five(c, a, b, a, c); }\n"
+		"int Keep(int a, int b) { return Five(a, b, 1, 2, 3) + Five(b, a, 3, 2, 1) + a - b; }\n"
+		"int AddressOf(int a, int b) { int* p = &b; *p += a; return b * 2; }\n"
+		"int Sum(int n, ...)\n"
+		"{\n"
+		"\tva_list\targs;\n"
+		"\tint\t\ti;\n"
+		"\tint\t\tiSum;\n"
+		"\n"
+		"\tva_start(args, n);\n"
+		"\tiSum = 0;\n"
+		"\tfor (i = 0; i < n; i++) { iSum += va_arg(args, int); }\n"
+		"\tva_end(args);\n"
+		"\treturn iSum;\n"
+		"}\n"
+		"class CPoint\n"
+		"{\n"
+		"public:\n"
+		"\tint\t\tx;\n"
+		"\tint\t\ty;\n"
+		"\tint\t\t\t\tScale(int a, int b, int c, int d);\n"
+		"\tvirtual int\t\tPlus(int a, int b) { return x + y + a * 2 + b; }\n"
+		"};\n"
+		"int CPoint::Scale(int a, int b, int c, int d) { return x * a + y * b + c - d; }\n"
+		"typedef int (*FFive)(int, int, int, int, int);\n"
+		"FFive gfFive = Five;\n"
+		"int main(void)\n"
+		"{\n"
+		"\tvolatile int\tv;\n"
+		"\tCPoint\t\t\tcPoint;\n"
+		"\tCPoint*\t\t\tpcPoint;\n"
+		"\tint\t\t\t\tiResult;\n"
+		"\n"
+		"\tv = 3;\n"
+		"\tcPoint.x = 5;\n"
+		"\tcPoint.y = 7;\n"
+		"\tpcPoint = &cPoint;\n"
+		"\tiResult = 0;\n"
+		"\tif (Five(v, v + 1, v + 2, v + 3, v + 4) == 3 + 8 + 15 + 24 + 35) { iResult += 1; }\n"
+		"\tif (gfFive(1, 2, 3, 4, 5) == 1 + 4 + 9 + 16 + 25) { iResult += 2; }\n"
+		"\tif (Six((char)(v - 5), (short)(v * 100), v, 200, -v, 9) == -2 + 600 + 9 + 800 - 15 + 54) { iResult += 4; }\n"
+		"\tif (Wide((char*)&v, 0x0000000700000009ULL, true, 20) == 7 + 9 + 100 + 20 + 1000) { iResult += 8; }\n"
+		"\tif (Turn(v, v + 10, v + 20) == 23 + 6 + 39 + 12 + 115) { iResult += 16; }\n"
+		"\tif (Keep(v, v + 4) == (3 + 14 + 3 + 8 + 15) + (7 + 6 + 9 + 8 + 5) + 3 - 7) { iResult += 32; }\n"
+		"\tif (AddressOf(v, 10) == 26) { iResult += 64; }\n"
+		"\tif (Sum(4, v, 10, 20, 30) == 63) { iResult += 128; }\n"
+		"\tif (cPoint.Scale(v, 2, 100, 1) == 15 + 14 + 100 - 1) { iResult += 256; }\n"
+		"\tif (pcPoint->Plus(v, 4) == 5 + 7 + 6 + 4) { iResult += 512; }\n"
+		"\treturn iResult;\n"
+		"}\n"));
+
+	//A call by name loads the registers and calls the register label; nothing is pushed or removed.
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int Add(int a, int b);\nint Twice(int a) { return Add(a, a) + 1; }"));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Contains("\t\tjsr _Add__Fii.ab\n"));
+	AssertTrue(szAssembly.Contains("_Twice__Fi.a:\n"));
+	AssertFalse(szAssembly.Contains("psh "));
+	AssertFalse(szAssembly.Contains("add S, "));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A 65C64 program profiled (CAsm65Profile on CAsm65Profiled65C64, as the
 // W65C816's are): a function's calls counted, a call from itself seen as
 // recursion, each line's entries and cycles with the program's line table,
@@ -1928,6 +2016,7 @@ void TestCPP65IR(void)
 	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
+	TestCPP65RegisterArguments();
 	TestCPP65Profile();
 	TestCPP65IRArithmetic();
 	TestCPP65IRControl();

@@ -410,6 +410,19 @@ void CIRBackend::SetOptions(CCPPCompileOptions* pcOptions)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a call of sCallee passes its arguments in registers: a symbol the
+// front end marked (CIRModule::SetRegisterCall), unless every argument is
+// to be pushed (CCPPCompileOptions::mbRegisterArguments).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBackend::IsRegisterCall(SIRReference sCallee)
+{
+	return mpcOptions->mbRegisterArguments && sCallee.IsSymbol() && mpcModule->IsRegisterCall(sCallee.Index());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The register arguments' fixed rule (W65C816.txt, CPP65Generator.txt): the
 // arguments in order (the hidden result pointer first) each take the next
 // of the target's iRegisters registers when all their units fit and they

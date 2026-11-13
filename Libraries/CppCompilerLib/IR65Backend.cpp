@@ -37,6 +37,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mcLiveness.Init();
 	masPlaces.Init();
 	mauiAddressed.Init();
+	masArguments.Init();
+	miRegisterArguments = 0;
 	maiClasses.Init();
 	maiLeaders.Init();
 	masHomes.Init();
@@ -95,6 +97,7 @@ void CIR65Backend::Kill(void)
 	masHomes.Kill();
 	maiLeaders.Kill();
 	maiClasses.Kill();
+	masArguments.Kill();
 	mauiAddressed.Kill();
 	masPlaces.Kill();
 	mcLiveness.Kill();
@@ -140,6 +143,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(pcFunction);
 	mcLiveness.Compute(pcFunction, &mcDominators);
+	FunctionArguments();
 	Layout();
 	Allocate();
 
@@ -171,15 +175,17 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	{
 		mcSourceMarkers.Take(pszDest, uiStart);
 	}
+	//The passes over the body's code: a register function's stub before it (RegisterStub) is as it must be, and
+	//the body's label is theirs to start from (the stub's jsr of it is no branch they know).
 	mpcModule->Begin(CPPCP_CodePasses);
-	Peephole(uiStart);
-	mcFlags.Optimise(pszDest, uiStart);
+	Peephole(muiBodyStart);
+	mcFlags.Optimise(pszDest, muiBodyStart);
 	CountLoaded(mcFlags.IsLoaded());
-	mcWidths.Optimise(pszDest, uiStart);
+	mcWidths.Optimise(pszDest, muiBodyStart);
 	CountLoaded(mcWidths.IsLoaded());
-	mcPeephole.Optimise(pszDest, uiStart);
+	mcPeephole.Optimise(pszDest, muiBodyStart);
 	CountLoaded(mcPeephole.IsLoaded());
-	IR65PseudoWithoutW(pszDest, uiStart);
+	IR65PseudoWithoutW(pszDest, muiBodyStart);
 	mpcModule->End(CPPCP_CodePasses);
 	if (mbSourceMarkers)
 	{
@@ -202,7 +208,8 @@ void CIR65Backend::CountLoaded(bool bLoaded)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//	label:
+//	label:						; with arguments in registers the stub for callers that push them all
+//			...					; (RegisterStub), then label.aby:
 //			psh V
 //			sub S, frame
 //			cpy V, S
@@ -218,10 +225,31 @@ void CIR65Backend::Prologue(const char* szLabel)
 	SIRType			sType;
 	SIR65Place*		psPlace;
 	SIR65Place		sArrival;
+	CChars			szBody;
 
+	muiBodyStart = mpszOut->Length();
 	mpszOut->Append(szLabel);
 	mpszOut->Append(':');
 	mpszOut->AppendNewLine();
+	if (miRegisterArguments > 0)
+	{
+		//A register function: the plain label is the stub for callers that push everything, then the body's own label
+		//(visible to other objects when the plain one is).
+		szBody.Init(szLabel);
+		AppendRegisterSuffix(&szBody, &masArguments, IR65_REGISTER_LETTERS);
+		RegisterStub(szBody.Text());
+		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
+		{
+			mpszOut->Append("\t\t.global ");
+			mpszOut->Append(szBody);
+			mpszOut->AppendNewLine();
+		}
+		muiBodyStart = mpszOut->Length();
+		mpszOut->Append(szBody);
+		mpszOut->Append(':');
+		mpszOut->AppendNewLine();
+		szBody.Kill();
+	}
 	if (!msFrame.bFrameless)
 	{
 		Line("psh V")->AppendNewLine();
@@ -239,26 +267,15 @@ void CIR65Backend::Prologue(const char* szLabel)
 		}
 	}
 
+	//The parameters that came in registers first (the pushed ones are read through A).
+	StoreRegisterParameters();
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
 	{
 		sParameter = *mpcFunction->masParameters.Get(ui);
 		sType = mpcFunction->GetTemporaryType(sParameter);
 		psPlace = PlaceOf(sParameter);
-		if ((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall))
+		if (((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall)) || (ParameterRegister(ui) >= 0))
 		{
-			//this, in X.
-			if (msFrame.iThisOffset >= 0)
-			{
-				Line("cpy [")->Append(1 + msFrame.iThisOffset)->Append(" + V], X")->AppendNewLine();
-			}
-			if ((psPlace->uiKind == IR65P_Register) && (psPlace->iOffset == IR65R_Y))
-			{
-				Line("cpy Y, X")->AppendNewLine();
-			}
-			else if ((psPlace->uiKind == IR65P_Pseudo) || (psPlace->uiKind == IR65P_Frame))
-			{
-				StorePlace(psPlace, sType, "X");
-			}
 			continue;
 		}
 		if ((psPlace->uiKind == IR65P_Register) || (psPlace->uiKind == IR65P_Pseudo) || (psPlace->uiKind == IR65P_Frame))
@@ -274,6 +291,201 @@ void CIR65Backend::Prologue(const char* szLabel)
 				StorePlace(psPlace, sType, "A");
 			}
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A parameter that arrived in szRegister goes to its home psPlace: to a
+// pseudo register or the frame now; to X or Y later (StoreRegisterParameters
+// orders those), noted in aszSources and apsPlaces.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::StoreArrivedRegister(const char* szRegister, SIR65Place* psPlace, SIRType sType, const char** aszSources, SIR65Place** apsPlaces, int* piMoves)
+{
+	if ((psPlace->uiKind == IR65P_Pseudo) || (psPlace->uiKind == IR65P_Frame))
+	{
+		StorePlace(psPlace, sType, szRegister);
+	}
+	else if ((psPlace->uiKind == IR65P_Register) && (StringCompare(RegisterName(psPlace), szRegister) != 0))
+	{
+		aszSources[*piMoves] = szRegister;
+		apsPlaces[*piMoves] = psPlace;
+		(*piMoves)++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameters that arrived in registers (a thiscall's this in X, the
+// others in A, B and Y: FunctionArguments) are copied to their homes, and
+// to the frame when an argaddr wants their address: those kept in memory
+// first, then those kept in X and Y, a register read before it is written
+// (this from X to Y before a parameter into X), and two that swap X and Y
+// through A, which by then has nothing left to give.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::StoreRegisterParameters(void)
+{
+	static const char*	aszRegisters[IR65_ARGUMENT_REGISTERS] = { "A", "B", "Y" };
+	const char*			aszSources[IR65_ARGUMENT_REGISTERS + 1];
+	SIR65Place*			apsPlaces[IR65_ARGUMENT_REGISTERS + 1];
+	const char*			szRegister;
+	SIRReference		sParameter;
+	size				ui;
+	int					iMoves;
+	int					iRegister;
+	int					i;
+	int					j;
+	bool				bRead;
+
+	iMoves = 0;
+	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	{
+		sParameter = *mpcFunction->masParameters.Get(ui);
+		if ((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall))
+		{
+			szRegister = "X";
+			if (msFrame.iThisOffset >= 0)
+			{
+				Line("cpy [")->Append(1 + msFrame.iThisOffset)->Append(" + V], X")->AppendNewLine();
+			}
+		}
+		else
+		{
+			iRegister = ParameterRegister(ui);
+			if (iRegister < 0)
+			{
+				continue;
+			}
+			szRegister = aszRegisters[iRegister];
+			if (msFrame.aiRegisterOffset[iRegister] >= 0)
+			{
+				Line("cpy [")->Append(1 + msFrame.aiRegisterOffset[iRegister])->Append(" + V], ")->Append(szRegister)->AppendNewLine();
+			}
+		}
+		StoreArrivedRegister(szRegister, PlaceOf(sParameter), mpcFunction->GetTemporaryType(sParameter), aszSources, apsPlaces, &iMoves);
+	}
+
+	//Into X and Y: one nothing still to be copied reads goes first.
+	while (iMoves > 0)
+	{
+		for (i = 0; i < iMoves; i++)
+		{
+			bRead = false;
+			for (j = 0; j < iMoves; j++)
+			{
+				bRead |= (j != i) && (StringCompare(aszSources[j], RegisterName(apsPlaces[i])) == 0);
+			}
+			if (!bRead)
+			{
+				break;
+			}
+		}
+		if (i == iMoves)
+		{
+			//X and Y take each other's.
+			Line("cpy A, X")->AppendNewLine();
+			Line("cpy X, Y")->AppendNewLine();
+			Line("cpy Y, A")->AppendNewLine();
+			return;
+		}
+		Line("cpy ")->Append(RegisterName(apsPlaces[i]))->Append(", ")->Append(aszSources[i])->AppendNewLine();
+		iMoves--;
+		aszSources[i] = aszSources[iMoves];
+		apsPlaces[i] = apsPlaces[iMoves];
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A register function's plain label, for callers that push every argument
+// (function pointers, vtables, thunks, assembly): on entry the arguments
+// are at [5 + S] on, as they were pushed (a thiscall's this is in X either
+// way).  Those the body wants in A, B and Y are loaded from there and it
+// goes straight on to the body (szBody), which follows.  When it also takes
+// arguments on the stack they must be just above its return address: they
+// are pushed again (through A, before it is loaded), the body is called,
+// they are removed and it returns.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::RegisterStub(const char* szBody)
+{
+	static const char*	aszRegisters[IR65_ARGUMENT_REGISTERS] = { "A", "B", "Y" };
+	SIR65Frame			sFrame;
+	SIR65Place			sArrival;
+	SIRType				sType;
+	size				ui;
+	size				uiFirst;
+	int32				iOffset;
+	int32				iPushed;
+	int					iBytes;
+	int					i;
+
+	//The arguments as they were all pushed, from S.
+	sFrame = msFrame;
+	msFrame.cRegister = 'S';
+	msFrame.iArguments = 1 + 4;
+	uiFirst = (mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0;
+	sArrival.uiKind = IR65P_Argument;
+	sArrival.bInA = false;
+
+	//The pushed ones again, last first.
+	iPushed = 0;
+	for (ui = mpcFunction->masParameters.NumElements(); ui > uiFirst; ui--)
+	{
+		if (ParameterRegister(ui - 1) >= 0)
+		{
+			continue;
+		}
+		sType = mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui - 1));
+		iBytes = ValueBytes(sType);
+		iOffset = 0;
+		for (i = (int)uiFirst; i < (int)(ui - 1); i++)
+		{
+			iOffset += ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(i)));
+		}
+		sArrival.iOffset = iOffset + iPushed;
+		sArrival.iBytes = iBytes;
+		LoadPlace(&sArrival, sType, "A", IR65E_Zero);
+		if (iBytes != 4)
+		{
+			Line("wth A, ")->Append(8 * iBytes)->AppendNewLine();
+		}
+		Line("psh A")->AppendNewLine();
+		if (iBytes != 4)
+		{
+			Line("wth A, 32")->AppendNewLine();
+		}
+		iPushed += iBytes;
+	}
+
+	//The registers, A last.
+	for (i = IR65_ARGUMENT_REGISTERS - 1; i >= 0; i--)
+	{
+		iOffset = 0;
+		for (ui = uiFirst; ui < mpcFunction->masParameters.NumElements(); ui++)
+		{
+			sType = mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui));
+			if (ParameterRegister(ui) == i)
+			{
+				sArrival.iOffset = iOffset + iPushed;
+				sArrival.iBytes = ValueBytes(sType);
+				LoadPlace(&sArrival, sType, aszRegisters[i], IR65E_Zero);
+			}
+			iOffset += ValueBytes(sType);
+		}
+	}
+	msFrame = sFrame;
+
+	if (iPushed > 0)
+	{
+		Line("jsr ")->Append(szBody)->AppendNewLine();
+		Line("add S, ")->Append(iPushed)->AppendNewLine();
+		Line("ret")->AppendNewLine();
 	}
 }
 

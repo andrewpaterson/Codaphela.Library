@@ -94,12 +94,18 @@ void CIR65Backend::MarkFolded(void)
 //////////////////////////////////////////////////////////////////////////
 void SIR65Frame::Init(void)
 {
+	int		i;
+
 	iFrameBytes = 0;
 	iThisOffset = -1;
 	uiSaved = 0;
 	bFrameless = false;
 	cRegister = 'V';
 	iArguments = 0;
+	for (i = 0; i < IR65_ARGUMENT_REGISTERS; i++)
+	{
+		aiRegisterOffset[i] = -1;
+	}
 }
 
 
@@ -236,13 +242,72 @@ int32 CIR65Backend::ParameterOffset(size uiParameter)
 	iOffset = 0;
 	for (ui = 0; ui < uiParameter; ui++)
 	{
-		if ((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall))
+		if (((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall)) || (ParameterRegister(ui) >= 0))
 		{
 			continue;
 		}
 		iOffset += ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
 	}
 	return iOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The register units an argument of sType takes: one for 32 bits or less,
+// two for 64 (which are pushed: only one unit goes in a register).
+//
+//////////////////////////////////////////////////////////////////////////
+int CIR65Backend::ArgumentUnits(SIRType sType)
+{
+	return (ValueBytes(sType) + 3) / 4;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's parameters as its callers pass them (masArguments, less a
+// thiscall's this, which is in X): the first three of 32 bits or less in A,
+// B and Y when its symbol is marked for register arguments and it isn't
+// variadic (CIRBackend::AssignRegisters), the rest pushed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::FunctionArguments(void)
+{
+	SIRRegisterArgument*	psArgument;
+	size					ui;
+
+	masArguments.FakeSetUsedElements(0);
+	for (ui = (mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	{
+		psArgument = masArguments.Add();
+		psArgument->iUnits = ArgumentUnits(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+		psArgument->iRegister = -1;
+	}
+	miRegisterArguments = 0;
+	if (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !(mpcFunction->muiAttributes & IRA_Variadic))
+	{
+		miRegisterArguments = AssignRegisters(&masArguments, IR65_ARGUMENT_REGISTERS, 1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The register a parameter arrives in (0 A, 1 B, 2 Y), or -1 when it was
+// pushed (or is a thiscall's this, in X).
+//
+//////////////////////////////////////////////////////////////////////////
+int CIR65Backend::ParameterRegister(size uiParameter)
+{
+	size	uiFirst;
+
+	uiFirst = (mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0;
+	if ((uiParameter < uiFirst) || (uiParameter - uiFirst >= masArguments.NumElements()))
+	{
+		return -1;
+	}
+	return masArguments.Get(uiParameter - uiFirst)->iRegister;
 }
 
 
@@ -263,8 +328,9 @@ void CIR65Backend::ArrivalPlace(size uiParameter, SIR65Place* psPlace)
 //////////////////////////////////////////////////////////////////////////
 //
 // Slots get frame space (their temporary is its address) and an argaddr is
-// where the caller pushed its parameter (a thiscall's this gets a frame
-// place, stored from X, for it).  Results left in A are marked.
+// where the caller pushed its parameter (a thiscall's this, and a parameter
+// that came in a register, get a frame place, stored from the register, for
+// it).  Results left in A are marked.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Layout(void)
@@ -272,6 +338,7 @@ void CIR65Backend::Layout(void)
 	size			ui;
 	size			uiInstruction;
 	int32			iParameter;
+	int				iRegister;
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
 	SIR65Place*		psPlace;
@@ -316,6 +383,17 @@ void CIR65Backend::Layout(void)
 					}
 					psPlace->uiKind = IR65P_FrameAddress;
 					psPlace->iOffset = msFrame.iThisOffset;
+				}
+				else if (ParameterRegister((size)iParameter) >= 0)
+				{
+					//A parameter that came in a register is kept in the frame for its address (the prologue stores it).
+					iRegister = ParameterRegister((size)iParameter);
+					if (msFrame.aiRegisterOffset[iRegister] < 0)
+					{
+						msFrame.aiRegisterOffset[iRegister] = msFrame.Add(4);
+					}
+					psPlace->uiKind = IR65P_FrameAddress;
+					psPlace->iOffset = msFrame.aiRegisterOffset[iRegister];
 				}
 				else
 				{
@@ -840,14 +918,15 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	bChangesY = bChangesXY || Crosses(iLeader, &maiChangesY);
 	iUnits = IsWide(sType) ? 2 : 1;
 
-	//A parameter alone in its class (not a thiscall's this, which comes in X), whose arrival place nothing stores to
-	//through an argaddr.
+	//A pushed parameter alone in its class (not a thiscall's this, which comes in X, nor one that comes in A, B or Y),
+	//whose arrival place nothing stores to through an argaddr.
 	iParameter = -1;
 	if (*maiClasses.Get(iLeader) < 0)
 	{
 		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
 		{
-			if ((mpcFunction->masParameters.Get(ui)->Index() == (uint32)iLeader) && !((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall)) && !*mauiAddressed.Get(ui))
+			if ((mpcFunction->masParameters.Get(ui)->Index() == (uint32)iLeader) && !((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall)) && (ParameterRegister(ui) < 0) &&
+				!*mauiAddressed.Get(ui))
 			{
 				iParameter = (int32)ui;
 				break;
