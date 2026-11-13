@@ -17,7 +17,7 @@
 static char* HighlightText(char* szSource, CChars* psz)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
@@ -378,7 +378,7 @@ void TestCppHighlighterHeaderIncludedTwice(void)
 	CHeaderFiles		cHeaders;
 	CSourceFile*		pcHeader;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
@@ -454,7 +454,7 @@ int x;\n");
 static char* SyntaxRangesOf(char* szSource, CChars* psz)
 {
 	CTranslationUnit		cFile;
-	CPreprocessor			cPreprocessor;
+	CCPPPreprocessor			cPreprocessor;
 	CCPPTokeniser			cTokeniser;
 	CCPPSyntaxTree			cTree;
 	CCPPParser				cParser;

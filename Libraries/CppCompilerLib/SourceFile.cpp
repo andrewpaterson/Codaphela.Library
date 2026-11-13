@@ -80,7 +80,7 @@ void CSourceFile::Kill(void)
 //
 // Units preprocessed at the same time include the same headers: the first
 // to include one loads and tokenises it while it is locked, and the others
-// wait (CPreprocessor::TokeniseFile).
+// wait (CCPPPreprocessor::TokeniseFile).
 //
 //////////////////////////////////////////////////////////////////////////
 void CSourceFile::Lock(void)

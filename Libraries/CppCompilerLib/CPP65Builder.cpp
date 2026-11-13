@@ -837,7 +837,7 @@ size CCPP65Builder::NumCompiledAgain(void)
 //
 // A header a unit preprocessed is kept, and the units after that include
 // it with the same macros get its output without preprocessing it
-// (CPreprocessor::SetHeaderCache).  The code is the same.  On by default;
+// (CCPPPreprocessor::SetHeaderCache).  The code is the same.  On by default;
 // false preprocesses every header in every unit.  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1402,7 +1402,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics)
 {
 	CTranslationUnit				cFile;
-	CPreprocessor					cPreprocessor;
+	CCPPPreprocessor					cPreprocessor;
 	CCPPTokeniser					cTokeniser;
 	CCPPSyntaxTree					cTree;
 	CCPPParser						cParser;
@@ -1681,7 +1681,7 @@ bool CCPP65Builder::ListingName(const char* szUnit, CChars* pszPath)
 //
 // The units are preprocessed and compiled by the jobs (SetJobs), several at
 // once.  What they share is used as if they were compiled one after
-// another: a header is tokenised by the first to include it (CPreprocessor::
+// another: a header is tokenised by the first to include it (CCPPPreprocessor::
 // TokeniseFile); their objects are added in order, here; the W65C816's
 // small functions are found and exported in each unit's turn (mcImports);
 // the header declarations they parse can't change what any of them is

@@ -45,7 +45,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // once) is done again when it is replayed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::SetHeaderCache(CPPHeaderCache* pcHeaderCache)
+void CCPPPreprocessor::SetHeaderCache(CPPHeaderCache* pcHeaderCache)
 {
 	mpcHeaderCache = pcHeaderCache;
 }
@@ -58,7 +58,7 @@ void CPreprocessor::SetHeaderCache(CPPHeaderCache* pcHeaderCache)
 // expansion).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::CanUseHeaderCache(void)
+bool CCPPPreprocessor::CanUseHeaderCache(void)
 {
 	return mpcHeaderCache && !mbLogIncludes && !mbReplaying && !mbError && !mbInCondition && (miLookAhead == 0) &&
 		(macPushedBack.NumElements() == 0) && (maiDisabledDefines.NumElements() == 0) && (muiPendingFlags == 0);
@@ -71,7 +71,7 @@ bool CPreprocessor::CanUseHeaderCache(void)
 // include directories and the directories of the files including it.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CPreprocessor::HeaderContext(void)
+uint64 CCPPPreprocessor::HeaderContext(void)
 {
 	size		i;
 	uint64		uiHash;
@@ -97,7 +97,7 @@ uint64 CPreprocessor::HeaderContext(void)
 // including it).
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CPreprocessor::DirectoriesHash(CSourceFile* pcFile, uint64 uiIncluding)
+uint64 CCPPPreprocessor::DirectoriesHash(CSourceFile* pcFile, uint64 uiIncluding)
 {
 	CChars	szPath;
 	uint64	uiHash;
@@ -116,7 +116,7 @@ uint64 CPreprocessor::DirectoriesHash(CSourceFile* pcFile, uint64 uiIncluding)
 // the macros it has now.  False if none did.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ReplayCachedHeader(CHeaderFile* pcFile, CHeaderFiles* pcHeaderNameMap)
+bool CCPPPreprocessor::ReplayCachedHeader(CHeaderFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 {
 	uint64				uiContext;
 	SPPCachedHeader*	psHeader;
@@ -179,7 +179,7 @@ bool CPreprocessor::ReplayCachedHeader(CHeaderFile* pcFile, CHeaderFiles* pcHead
 // were when it was kept.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::CachedHeaderMatches(SPPCachedHeader* psHeader)
+bool CCPPPreprocessor::CachedHeaderMatches(SPPCachedHeader* psHeader)
 {
 	size					i;
 	SPPHeaderQuery*			psQuery;
@@ -215,7 +215,7 @@ bool CPreprocessor::CachedHeaderMatches(SPPCachedHeader* psHeader)
 // #pragma onces done.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ReplayHeader(SPPCachedHeader* psHeader)
+void CCPPPreprocessor::ReplayHeader(SPPCachedHeader* psHeader)
 {
 	size				uiSegment;
 	SPPHeaderSegment*	psSegment;
@@ -274,7 +274,7 @@ void CPreprocessor::ReplayHeader(SPPCachedHeader* psHeader)
 // file), a #pragma once is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ReplayEvent(SPPHeaderEvent* psEvent)
+void CCPPPreprocessor::ReplayEvent(SPPHeaderEvent* psEvent)
 {
 	CPreprocessorTokenParser	cParser;
 	CSourceFile*				pcCurrentFile;
@@ -307,7 +307,7 @@ void CPreprocessor::ReplayEvent(SPPHeaderEvent* psEvent)
 // preprocessed, until it ends (EndRecording).
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::BeginRecording(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext)
+void CCPPPreprocessor::BeginRecording(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext)
 {
 	SPPRecorder*	psRecorder;
 
@@ -333,7 +333,7 @@ void CPreprocessor::BeginRecording(CSourceFile* pcFile, CHeaderFiles* pcHeaderNa
 // published if it can be kept, and is part of the header including it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::EndRecording(void)
+void CCPPPreprocessor::EndRecording(void)
 {
 	SPPRecorder*		psRecorder;
 	SPPCachedHeader*	psHeader;
@@ -383,7 +383,7 @@ void CPreprocessor::EndRecording(void)
 // A run of the header's own output starts.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::StartSegment(SPPRecorder* psRecorder)
+void CCPPPreprocessor::StartSegment(SPPRecorder* psRecorder)
 {
 	SInactiveRegion*	psTail;
 
@@ -406,7 +406,7 @@ void CPreprocessor::StartSegment(SPPRecorder* psRecorder)
 // from the run's first.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::EndSegment(SPPRecorder* psRecorder, size uiToken, size uiExpansion, size uiInactive, size uiDirective)
+void CCPPPreprocessor::EndSegment(SPPRecorder* psRecorder, size uiToken, size uiExpansion, size uiInactive, size uiDirective)
 {
 	SPPCachedHeader*	psHeader;
 	SPPHeaderSegment	sSegment;
@@ -512,7 +512,7 @@ void CPreprocessor::EndSegment(SPPRecorder* psRecorder, size uiToken, size uiExp
 // the header didn't define first) the header does.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddChildSegment(SPPRecorder* psRecorder, SPPCachedHeader* psChild, size uiToken, size uiExpansion, size uiInactive, size uiDirective)
+void CCPPPreprocessor::AddChildSegment(SPPRecorder* psRecorder, SPPCachedHeader* psChild, size uiToken, size uiExpansion, size uiInactive, size uiDirective)
 {
 	SPPCachedHeader*		psHeader;
 	SPPHeaderSegment		sSegment;
@@ -577,7 +577,7 @@ void CPreprocessor::AddChildSegment(SPPRecorder* psRecorder, SPPCachedHeader* ps
 // published).
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::KillRecorder(SPPRecorder* psRecorder, bool bKeep)
+void CCPPPreprocessor::KillRecorder(SPPRecorder* psRecorder, bool bKeep)
 {
 	psRecorder->apcPragmaSeen.Kill();
 	psRecorder->cSeen.Kill();
@@ -594,7 +594,7 @@ void CPreprocessor::KillRecorder(SPPRecorder* psRecorder, bool bKeep)
 // None of the headers being kept can be.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::InvalidateRecordings(void)
+void CCPPPreprocessor::InvalidateRecordings(void)
 {
 	size	i;
 
@@ -611,7 +611,7 @@ void CPreprocessor::InvalidateRecordings(void)
 // or a kept header is being replayed).
 //
 //////////////////////////////////////////////////////////////////////////
-SPPRecorder* CPreprocessor::Recording(void)
+SPPRecorder* CCPPPreprocessor::Recording(void)
 {
 	SPPRecorder*	psRecorder;
 
@@ -629,7 +629,7 @@ SPPRecorder* CPreprocessor::Recording(void)
 // The macro szName was looked up and was pcDefine (or none).
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::NoteLookUp(const char* szName, size uiLength, CDefine* pcDefine)
+void CCPPPreprocessor::NoteLookUp(const char* szName, size uiLength, CDefine* pcDefine)
 {
 	SPPRecorder*	psRecorder;
 	SPPHeaderQuery	sQuery;
@@ -652,7 +652,7 @@ void CPreprocessor::NoteLookUp(const char* szName, size uiLength, CDefine* pcDef
 // The macro szName was defined or undefined.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::NoteDefined(const char* szName, size uiLength)
+void CCPPPreprocessor::NoteDefined(const char* szName, size uiLength)
 {
 	SPPRecorder*	psRecorder;
 	SPPHeaderName	sName;
@@ -674,7 +674,7 @@ void CPreprocessor::NoteDefined(const char* szName, size uiLength)
 // pcFile was #included, and was skipped if bOnce (it had #pragma once).
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::NotePragmaQuery(CSourceFile* pcFile, bool bOnce)
+void CCPPPreprocessor::NotePragmaQuery(CSourceFile* pcFile, bool bOnce)
 {
 	SPPRecorder*			psRecorder;
 	SPPHeaderPragmaQuery	sQuery;
@@ -697,7 +697,7 @@ void CPreprocessor::NotePragmaQuery(CSourceFile* pcFile, bool bOnce)
 // replayed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::NoteEvent(EPPHeaderEvent eType, CSourceFile* pcFile, CPPDirective* pcDirective)
+void CCPPPreprocessor::NoteEvent(EPPHeaderEvent eType, CSourceFile* pcFile, CPPDirective* pcDirective)
 {
 	SPPRecorder*	psRecorder;
 	SPPHeaderEvent	sEvent;
@@ -727,7 +727,7 @@ void CPreprocessor::NoteEvent(EPPHeaderEvent eType, CSourceFile* pcFile, CPPDire
 // Which macro pcDefine is (SPPDefineIdentity), none if it is NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::DefineIdentity(CDefine* pcDefine, SPPDefineIdentity* psIdentity)
+void CCPPPreprocessor::DefineIdentity(CDefine* pcDefine, SPPDefineIdentity* psIdentity)
 {
 	psIdentity->Init();
 	if (!pcDefine)

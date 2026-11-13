@@ -178,7 +178,7 @@ static void TestCPP65SpillUnits(void)
 static void TestCPP65SpillRestart(bool bWhole)
 {
 	CTranslationUnit		cFile;
-	CPreprocessor			cPreprocessor;
+	CCPPPreprocessor			cPreprocessor;
 	CCPPTokeniser			cTokeniser;
 	CCPPSyntaxTree			cTree;
 	CCPPParser				cParser;

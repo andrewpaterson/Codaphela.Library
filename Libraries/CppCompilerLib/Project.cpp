@@ -47,7 +47,7 @@ void CProject::Init(bool bDumpLogs, bool bWritePostFile)
 //
 // With bSkip a unit's directive that fails (an #include that can't be
 // found) is skipped and the rest of the unit preprocessed, as a code model
-// wants (CPreprocessor::SetSkipFailedDirectives).  The unit still fails.
+// wants (CCPPPreprocessor::SetSkipFailedDirectives).  The unit still fails.
 //
 //////////////////////////////////////////////////////////////////////////
 void CProject::SetSkipFailedDirectives(bool bSkip)
@@ -60,7 +60,7 @@ void CProject::SetSkipFailedDirectives(bool bSkip)
 //
 // The units' preprocessors keep headers' output in pcHeaderCache, and a
 // unit that includes a header with the macros another unit did gets it
-// from there (CPreprocessor::SetHeaderCache).  The output is the same.
+// from there (CCPPPreprocessor::SetHeaderCache).  The output is the same.
 // NULL preprocesses every header in every unit.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -252,14 +252,14 @@ bool CProject::Process(char* szConfiguration, CChars* pszErrors, CChars* pszWarn
 // unit can be preprocessed just before it is compiled, and its tokens
 // cleared (GetTokens()->Clear()) once it is: CreatePost first.  Units can
 // be preprocessed at the same time, on other threads (the headers they
-// share are tokenised once, locked: CPreprocessor::TokeniseFile).
+// share are tokenised once, locked: CCPPPreprocessor::TokeniseFile).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors, CChars* pszWarnings)
 {
 	CConfig*			pcConfig;
 	bool				bResult;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 
 	DumpProcessedCPPFileName(pcFile);
 

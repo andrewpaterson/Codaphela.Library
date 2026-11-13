@@ -37,7 +37,7 @@ struct SParsedText
 //////////////////////////////////////////////////////////////////////////
 bool SParsedText::Init(char* szSource, CCPP65UnitWorkspace* pcWorkspace)
 {
-	CPreprocessor	cPreprocessor;
+	CCPPPreprocessor	cPreprocessor;
 	CCPPParser		cParser;
 	bool			bResult;
 
@@ -259,7 +259,7 @@ void TestCppParserDeclarationStatements(void)
 	AssertInt(0, sParsed.iErrors);
 	sz.Init();
 #ifdef _WIN32
-	//On Windows __inline is a macro for inline (CPreprocessor::InitPlatformSpecific), so the parser never sees it.
+	//On Windows __inline is a macro for inline (CCPPPreprocessor::InitPlatformSpecific), so the parser never sees it.
 	AssertString("\
 int f(void)\n\
 {\n\
@@ -1243,7 +1243,7 @@ Parsed.cpp (6, 14): Expected a type after new. [3]\n", sz.Text());
 static void ParseWithSystemHeader(bool bReport, int* piErrors, int* piSkimmed, CChars* pszErrors, CChars* pszPrint)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;

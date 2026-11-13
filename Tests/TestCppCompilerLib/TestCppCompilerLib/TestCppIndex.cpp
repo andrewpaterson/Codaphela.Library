@@ -15,7 +15,7 @@ static void IndexText(CCPPIndex* pcIndex, char* szFileName, char* szSource, bool
 {
 	CCPPSemanticPass	cPass;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
@@ -312,7 +312,7 @@ int Use(CFoo* pc, CFoo& c)\n\
 static bool TestCppSemanticPassCheck(const char* szSource)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
@@ -371,7 +371,7 @@ void TestCppSemanticPassQueued(void)
 void TestCppSemanticPassHost(void)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;

@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // doesn't set them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::InitPlatformSpecific(void)
+void CCPPPreprocessor::InitPlatformSpecific(void)
 {
 	AddSpecialDefine("__FUNCSIG__");
 	AddSpecialDefine("__FUNCDNAME__");

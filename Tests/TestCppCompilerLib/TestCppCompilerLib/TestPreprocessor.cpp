@@ -20,13 +20,13 @@ void TestPreprocessorSimple(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("char sz;", &szDest);
+	CCPPPreprocessor::Preprocess("char sz;", &szDest);
 
 	AssertString("char sz;\n", szDest.Text());
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define XACT 3\n\
 int x = XACT + 2;", &szDest);
 
@@ -44,7 +44,7 @@ void TestPreprocessorSimpleReplacement(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define D5( X ) X \n\
 #define D9(P,Q)  D5(P)  D5(Q) \n\
 D9(Hello, World)", &szDest);
@@ -67,7 +67,7 @@ void TestPreprocessorStringReplacement(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define D8(P,Q) P \" \" Q\n\
 D8(char sz[] =,;)\
 ", &szDest);
@@ -87,7 +87,7 @@ void TestPreprocessorReplacement(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define D3(X) #X\n\
 #define D7(P,Q) D3(P) D3(Q)\n\
 #define D4() " "\n\
@@ -128,7 +128,7 @@ char sz2[] = \"Hello\"\"World\";\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 int x = ++y / z;\n\
 ", &szDest);
 
@@ -136,7 +136,7 @@ int x = ++y / z;\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define SOME_FOO_1(ARG1, ARG2)          0xDE + ARG1 - ARG2 +ARG1 //  \'\'\"\' for US\n\
 #define SOME_FOO_2        0xE2  //  \"<>\" or \"\\|\" on RT 102-key kbd.\n\
 #define SOME_FOO_3         0x00000080L /* Don't do \"&\" character translation */\n\
@@ -147,7 +147,7 @@ int dufi = SOME_FOO_1(1, 2), dasf = SOME_FOO_2, ewqr = SOME_FOO_3;\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 char gsz[] = (\"//@  Don't Collapse me please     ! /*     \");\n\
 char g_Char = \'\\n\';\n\
 char g_Char2 = \'\"\';\n\
@@ -161,7 +161,7 @@ char g_Char2 = \'\"\';\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 # define __nothrow __declspec(nothrow)\n\
 __nothrow;\n\
 ", &szDest);
@@ -180,7 +180,7 @@ void TestPreprocessorExactDefine(void)
 		CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define floa	int giJoe;\n\
 float	gFriend;\n\
 ", &szDest);
@@ -199,7 +199,7 @@ void TestPreprocessorConditionals(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1\n\
 Passed\n\
 #else\n\
@@ -210,7 +210,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 0\n\
 Failed\n\
 #else\n\
@@ -221,7 +221,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1\n\
 #define Fred Quintin\n\
 #else\n\
@@ -246,7 +246,7 @@ void TestPreprocessorOperatorPrecedence(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1 || 0 && 0\n\
 Passed\n\
 #else\n\
@@ -257,7 +257,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 0 && 1 || 0\n\
 Failed\n\
 #else\n\
@@ -268,7 +268,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 0 && 0 | 1\n\
 Failed\n\
 #else\n\
@@ -279,7 +279,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1 | 0 ^ 1\n\
 Passed\n\
 #else\n\
@@ -290,7 +290,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1 ^ 0 & 0\n\
 Passed\n\
 #else\n\
@@ -301,7 +301,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 0 & 0 == 0\n\
 Failed\n\
 #else\n\
@@ -312,7 +312,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 0 == 0 < 0\n\
 Passed\n\
 #else\n\
@@ -323,7 +323,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1 < 1 << 1\n\
 Passed\n\
 #else\n\
@@ -334,7 +334,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 0 << 0 + 1\n\
 Failed\n\
 #else\n\
@@ -345,7 +345,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if 1 + 0 * 0\n\
 Passed\n\
 #else\n\
@@ -356,7 +356,7 @@ Failed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if ~1 * 0\n\
 Failed\n\
 #else\n\
@@ -367,7 +367,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if -(1 - 1)\n\
 Failed\n\
 #else\n\
@@ -378,7 +378,7 @@ Passed\n\
 	szDest.Kill();
 
 	szDest.Init();
-CPreprocessor::Preprocess("\
+CCPPPreprocessor::Preprocess("\
 #if +(0 + 0)\n\
 Failed\n\
 #else\n\
@@ -398,7 +398,7 @@ void TestPreprocessorBlockSkipping(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CListLibraries		cLibraries;
 	CConfig				cConfig;
 	CChars				szName;
@@ -472,7 +472,7 @@ void TestPreprocessorParentheses(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 
@@ -522,7 +522,7 @@ void TestPreprocessorSimpleVariadic(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 
@@ -558,7 +558,7 @@ void TestPreprocessorComplexVariadic(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 
@@ -594,7 +594,7 @@ void TestPreprocessorRedefinedVariadic(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 
@@ -632,7 +632,7 @@ void TestPreprocessorHasInclude(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 	CHeaderFileMap		cHeaderFiles;
@@ -691,7 +691,7 @@ void TestPreprocessorDefineEvaluateToZero(void)
 	CChars				szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if NOT_DEFINED > 1\n\
 Should not get here\n\
 #else\n\
@@ -712,7 +712,7 @@ void TestPreprocessorExistingEmpty(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 
@@ -752,7 +752,7 @@ void TestPreprocessorRedefinedEmpty(void)
 {
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 	CDefine*			pcDefine;
@@ -821,7 +821,7 @@ void TestPreprocessorSimpleEmpty(void)
 	CChars				szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if EMPTY(1)\n\
 Nope, not good.\n\
 #else\n\
@@ -846,7 +846,7 @@ void TestPreprocessorBrackettedEmpty(void)
 	CChars				szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if FUNC(X_TOKE | Y_TOKE)\n\
 Nope, not good.\n\
 #else\n\
@@ -871,7 +871,7 @@ void TestPreprocessorDefineBrackettedOmmitted(void)
 	CChars				szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define F(X) \n\
 F Surfe();\n\
 ", &szDest);
@@ -894,7 +894,7 @@ void TestPreprocessorHashedArgumentExpansion()
 	CChars				szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #define D3(X) #X\n\
 #define F1(X) X##__##X\n\
 char	gszF1[] = D3(F1(H));\
@@ -918,7 +918,7 @@ void TestPreprocessorHasCPPNameSpaceAttribute()
 
 	CChars				szDest;
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 	CDefine* pcDefine;
@@ -973,7 +973,7 @@ void TestPreprocessorNegativeExpression()
 	CChars				szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if (1 == -1)\n\
 You broke maths\n\
 #else\n\
@@ -998,7 +998,7 @@ void TestPreprocessorStandardExample3(void)
 
 	//C++14 [cpp.scope] / C11 6.10.3.5 EXAMPLE 3: rescanning and nested replacement.
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define x 3\n"
 		"#define f(a) f(x * (a))\n"
 		"#undef x\n"
@@ -1038,7 +1038,7 @@ void TestPreprocessorStandardExample4(void)
 
 	//C11 6.10.3.5 EXAMPLE 4: # and ##.
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define str(s) # s\n"
 		"#define xstr(s) str(s)\n"
 		"#define debug(s, t) printf(\"x\" # s \"= %d, x\" # t \"= %s\", \\\n"
@@ -1075,7 +1075,7 @@ void TestPreprocessorStandardExample5(void)
 
 	//C11 6.10.3.5 EXAMPLE 5: placemarkers.
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define t(x,y,z) x ## y ## z\n"
 		"int j[] = { t(1,2,3), t(,4,5), t(6,,7), t(8,9,),\n"
 		" t(10,,), t(,11,), t(,,12), t(,,) };\n", &szDest);
@@ -1101,7 +1101,7 @@ void TestPreprocessorMacroSubstitution(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define CAT(a, b) a ## b\n"
 		"#define V 3\n"
 		"#define RAW(a) a a ## 1\n"
@@ -1135,7 +1135,7 @@ void TestPreprocessorStandardExample7(void)
 
 	//C11 6.10.3.5 EXAMPLE 7: variadic macros, and the GNU , ## __VA_ARGS__.
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define debug(...) fprintf(stderr, __VA_ARGS__)\n"
 		"#define showlist(...) puts(#__VA_ARGS__)\n"
 		"#define report(test, ...) ((test)?puts(#test):\\\n"
@@ -1175,7 +1175,7 @@ void TestPreprocessorConditionalArithmetic(void)
 
 	//#if is evaluated in intmax_t and uintmax_t.  [cpp.cond]
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define V 0x700\n"
 		"#if (V >= 0x1400) || (V >= 0xE00 && V < 0x1000)\n"
 		"bad1\n"
@@ -1205,7 +1205,7 @@ void TestPreprocessorConditionalArithmetic(void)
 	//A character literal is the value it has in code: a char (signed) for one narrow character, char16_t for L and u
 	//(wchar_t is 16 bits, as on Windows), char32_t for U, and an int with the characters packed in for several.
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#if '\\xFF' == -1 && u8'a' == 97 && L'\\xFFFF' == 65535 && u'\\x8000' > 0 && U'\\xFFFFFFFF' == 4294967295 && 'AB' == 0x4142\n"
 		"good\n"
 		"#endif\n", &szDest);
@@ -1225,7 +1225,7 @@ void TestPreprocessorConditionalUniversalCharacterNames(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#if '\\u0041' == 65 && '\\U00000042' == 66 && u'\\u00E9' == 0xE9\n"
 		"good\n"
 		"#endif\n", &szDest);
@@ -1246,7 +1246,7 @@ void TestPreprocessorConditionalIntegerSuffixes(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#if 7i64 == 7 && 0x10ui64 == 16 && 3i32 == 3 && 2i8 == 2 && 5LLU == 5\n"
 		"good\n"
 		"#endif\n", &szDest);
@@ -1266,7 +1266,7 @@ void TestPreprocessorSkippedConditionals(void)
 
 	//Conditionals in skipped groups are not evaluated, and unknown directives in them are ignored.  [cpp.cond] 6
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#ifdef UNDEFINED\n"
 		"#if NOT_A_MACRO (1) +\n"
 		"#warning not here\n"
@@ -1300,7 +1300,7 @@ void TestPreprocessorNumbersAndPunctuators(void)
 
 	//pp-numbers include letters, '.', exponent signs and digit separators.  [lex.ppnumber]
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define CAT(a, b) a ## b\n"
 		"int a = 0x10'0000 + 201402L + .5f + 1.5e+3 + 0x1p-3 + 0b1010;\n"
 		"a<<=b->*c; x = y ... z; CAT(<, <=) CAT(-, >) CAT(x, 1) CAT(1, e) CAT(L, \"s\")\n"
@@ -1324,7 +1324,7 @@ void TestPreprocessorMultiLineArguments(void)
 
 	//Macro arguments can cover lines, and directives in them are processed (as g++ and MSVC do).
 	szDest.Init();
-	CPreprocessor::Preprocess(
+	CCPPPreprocessor::Preprocess(
 		"#define F(a, b) [a|b]\n"
 		"#define G F\n"
 		"x F(1,\n"
@@ -1350,7 +1350,7 @@ void TestPreprocessorMultiLineArguments(void)
 void TestPreprocessorLocations(void)
 {
 	CTranslationUnit		cFile;
-	CPreprocessor			cPreprocessor;
+	CCPPPreprocessor			cPreprocessor;
 	CConfig					cConfig;
 	CPreprocessedTokens*	pcTokens;
 	SPreprocessedToken*		psToken;
@@ -1455,7 +1455,7 @@ void TestPreprocessorLocations(void)
 static bool PreprocessErrors(char* szSource, CChars* pszErrors, CChars* pszWarnings = NULL)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	bool				bResult;
 
 	cFile.Init("Errors.cpp", NULL, false);
@@ -1563,7 +1563,7 @@ void TestPreprocessorErrors(void)
 static bool PreprocessSkippingFailures(char* szSource, CChars* pszOutput, CChars* pszErrors)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	bool				bResult;
 
 	cFile.Init("Skip.cpp", NULL, false);
@@ -1626,7 +1626,7 @@ void TestPreprocessorSkipFailedDirectives(void)
 void TestPreprocessorUnreadableFile(void)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 
 	cFile.Init("NoSuchFile.cpp", NULL, false);
 	cPreprocessor.Init(NULL);
@@ -1668,12 +1668,12 @@ void TestPreprocessorLineContinuation(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("int ab\\\ncd = 1;", &szDest);
+	CCPPPreprocessor::Preprocess("int ab\\\ncd = 1;", &szDest);
 	AssertString("int abcd = 1;\n", szDest.Text());
 	szDest.Kill();
 
 	szDest.Init();
-	CPreprocessor::Preprocess("char* sz = \"x\\\ny\";", &szDest);
+	CCPPPreprocessor::Preprocess("char* sz = \"x\\\ny\";", &szDest);
 	AssertString("char* sz = \"xy\";\n", szDest.Text());
 	szDest.Kill();
 }
@@ -1689,7 +1689,7 @@ void TestPreprocessorLineContinuation(void)
 static bool PreprocessFile(char* szFileName, char* szSource, CConfig* pcConfig, CHeaderFiles* pcFirst, CHeaderFiles* pcSecond, CChars* pszDest, CChars* pszLog)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	bool				bResult;
 
 	cFile.Init(szFileName, NULL, false);
@@ -1721,7 +1721,7 @@ static bool PreprocessFile(char* szFileName, char* szSource, CConfig* pcConfig, 
 void TestPreprocessorPragmaPack(void)
 {
 	CTranslationUnit		cFile;
-	CPreprocessor			cPreprocessor;
+	CCPPPreprocessor			cPreprocessor;
 	CConfig					cConfig;
 	CPreprocessedTokens*	pcTokens;
 	CChars					szDest;
@@ -1944,7 +1944,7 @@ void TestPreprocessorHasOperators(void)
 	CChars	szDest;
 
 	szDest.Init();
-	CPreprocessor::Preprocess("\
+	CCPPPreprocessor::Preprocess("\
 #if __has_builtin(__builtin_expect)\n\
 builtin\n\
 #endif\n\

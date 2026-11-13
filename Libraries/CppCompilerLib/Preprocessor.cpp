@@ -82,9 +82,9 @@ void SPPSource::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
+bool CCPPPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 {
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CTranslationUnit	cFile;
 	bool				bResult;
 
@@ -109,7 +109,7 @@ bool CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Kill(void)
+void CCPPPreprocessor::Kill(void)
 {
 	size	i;
 
@@ -151,7 +151,7 @@ void CPreprocessor::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
+bool CCPPPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 {
 	bool				bResult;
 	SPreprocessedToken	sToken;
@@ -196,7 +196,7 @@ bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 // Without it (as a compiler wants) the unit ends there.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::SetSkipFailedDirectives(bool bSkip)
+void CCPPPreprocessor::SetSkipFailedDirectives(bool bSkip)
 {
 	mbSkipFailedDirectives = bSkip;
 }
@@ -206,7 +206,7 @@ void CPreprocessor::SetSkipFailedDirectives(bool bSkip)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
+bool CCPPPreprocessor::TokeniseFile(CSourceFile* pcFile)
 {
 	CPreprocessorTokeniser	cTokeniser;
 	bool					bResult;
@@ -242,7 +242,7 @@ bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
+bool CCPPPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 {
 	SPPSource*					psSource;
 	CHeaderNameMapDirectory*	pcNewDirectory;
@@ -313,7 +313,7 @@ bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::PushTokens(EPPSourceType eType, CArrayPreprocessedTokens* pacTokens, int64 lliDefineID)
+void CCPPPreprocessor::PushTokens(EPPSourceType eType, CArrayPreprocessedTokens* pacTokens, int64 lliDefineID)
 {
 	SPPSource*	psSource;
 
@@ -336,7 +336,7 @@ void CPreprocessor::PushTokens(EPPSourceType eType, CArrayPreprocessedTokens* pa
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PopSource(void)
+bool CCPPPreprocessor::PopSource(void)
 {
 	SPPSource*					psSource;
 	CHeaderNameMapDirectory*	pcDirectory;
@@ -399,7 +399,7 @@ bool CPreprocessor::PopSource(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::PushBack(SPreprocessedToken* psToken)
+void CCPPPreprocessor::PushBack(SPreprocessedToken* psToken)
 {
 	macPushedBack.Push(psToken);
 }
@@ -409,7 +409,7 @@ void CPreprocessor::PushBack(SPreprocessedToken* psToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::NextRaw(SPreprocessedToken* psToken)
+bool CCPPPreprocessor::NextRaw(SPreprocessedToken* psToken)
 {
 	SPPSource*	psSource;
 	bool		bChanged;
@@ -479,7 +479,7 @@ bool CPreprocessor::NextRaw(SPreprocessedToken* psToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psToken, bool* pbChanged)
+bool CCPPPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psToken, bool* pbChanged)
 {
 	CPPBlockSetArray*	pacBlockSets;
 	CPPBlockSet*		pcBlockSet;
@@ -574,7 +574,7 @@ bool CPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psTok
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPSource* CPreprocessor::GetCurrentFileSource(void)
+SPPSource* CCPPPreprocessor::GetCurrentFileSource(void)
 {
 	size		i;
 	SPPSource*	psSource;
@@ -617,7 +617,7 @@ static bool IsStringPrefix(const char* sz, size uiLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, CDefine* pcDefine, bool bStartOfLine, CArrayPreprocessedTokens* pacDest)
+void CCPPPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, CDefine* pcDefine, bool bStartOfLine, CArrayPreprocessedTokens* pacDest)
 {
 	size				i;
 	size				iNumTokens;
@@ -758,7 +758,7 @@ void CPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, C
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::ConvertDecorators(CPPTokenList* pcTokens, size* piIndex, CSourceFile* pcFile, uint8 uiFlags, CArrayPreprocessedTokens* pacDest)
+CPPToken* CCPPPreprocessor::ConvertDecorators(CPPTokenList* pcTokens, size* piIndex, CSourceFile* pcFile, uint8 uiFlags, CArrayPreprocessedTokens* pacDest)
 {
 	char				szChars[4];
 	CPPText*			apcTexts[4];
@@ -846,7 +846,7 @@ CPPToken* CPreprocessor::ConvertDecorators(CPPTokenList* pcTokens, size* piIndex
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Init(CConfig* pcConfig)
+void CCPPPreprocessor::Init(CConfig* pcConfig)
 {
 	mcDefines.Init();
 	mcDefineReplacementMemory.Init();
@@ -922,7 +922,7 @@ void CPreprocessor::Init(CConfig* pcConfig)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
+void CCPPPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
 {
 	CHeaderFiles*		pcHeaderNameMap;
 	size				i;
@@ -939,7 +939,7 @@ void CPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
+void CCPPPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
 {
 	mcHeaderNames.Add(pcHeaderMapName);
 }
@@ -949,7 +949,7 @@ void CPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::GetDefine(CExternalString* pcString)
+CDefine* CCPPPreprocessor::GetDefine(CExternalString* pcString)
 {
 	return mcDefines.Get(pcString);
 }
@@ -959,7 +959,7 @@ CDefine* CPreprocessor::GetDefine(CExternalString* pcString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::GetDefine(char* szName)
+CDefine* CCPPPreprocessor::GetDefine(char* szName)
 {
 	return mcDefines.Get(szName);
 }
@@ -969,7 +969,7 @@ CDefine* CPreprocessor::GetDefine(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddSpecialDefine(char* szDefine)
+CDefine* CCPPPreprocessor::AddSpecialDefine(char* szDefine)
 {
 	CDefine* pcDefine;
 
@@ -992,7 +992,7 @@ CDefine* CPreprocessor::AddSpecialDefine(char* szDefine)
 // _MSC_VER).
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddNumberDefine(char* szDefine, int64 lliValue)
+CDefine* CCPPPreprocessor::AddNumberDefine(char* szDefine, int64 lliValue)
 {
 	CChars		sz;
 	CDefine*	pcDefine;
@@ -1009,7 +1009,7 @@ CDefine* CPreprocessor::AddNumberDefine(char* szDefine, int64 lliValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddDefine(char* szDefine)
+CDefine* CCPPPreprocessor::AddDefine(char* szDefine)
 {
 	return mcDefines.AddDefine(szDefine);
 }
@@ -1019,7 +1019,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CPreprocessor::AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType)
+CSpecialOperator* CCPPPreprocessor::AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType)
 {
 	return mcSpecialOperators.AddSpecialOperator(szSpecialOperator, eType);
 }
@@ -1029,7 +1029,7 @@ CSpecialOperator* CPreprocessor::AddSpecialOperator(char* szSpecialOperator, EPr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory)
+CDefine* CCPPPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory)
 {
 	CDefine*				pcDefine;
 	size						iLen;
@@ -1054,7 +1054,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenM
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
+bool CCPPPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
 {
 	CExternalString			cIdentifier;
 	bool					bResult;
@@ -1158,7 +1158,7 @@ bool CPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine)
+bool CCPPPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine)
 {
 	CExternalString			cArgument;
 	bool					bVariadicFound;
@@ -1221,7 +1221,7 @@ bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 // (its lines depend on it).  [cpp.line]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
+bool CCPPPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
 {
 	SPreprocessorPosition	sPos;
 	CExternalString			cNumber;
@@ -1279,7 +1279,7 @@ bool CPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorToke
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashUndef(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
+bool CCPPPreprocessor::ProcessHashUndef(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
 {
 	bool				bResult;
 	CExternalString		cIdentifier;
@@ -1341,7 +1341,7 @@ static bool IsPathPrefix(char* szPath, char* szBase, size iBaseLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap, bool bNext)
+void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap, bool bNext)
 {
 	CChars						szInclude;
 	CChars						szPath;
@@ -1443,7 +1443,7 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemFile
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogInclude(CSourceFile* pcFile)
+void CCPPPreprocessor::LogInclude(CSourceFile* pcFile)
 {
 	CChars			sz;
 
@@ -1474,7 +1474,7 @@ void CPreprocessor::LogInclude(CSourceFile* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessor::GetFileName(void)
+char* CCPPPreprocessor::GetFileName(void)
 {
 	if (mpcCurrentFile)
 	{
@@ -1491,7 +1491,7 @@ char* CPreprocessor::GetFileName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogIncludes(CChars* pszIncludesLog)
+void CCPPPreprocessor::LogIncludes(CChars* pszIncludesLog)
 {
 	if (pszIncludesLog)
 	{
@@ -1510,7 +1510,7 @@ void CPreprocessor::LogIncludes(CChars* pszIncludesLog)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogDumping(bool bDumpLogs)
+void CCPPPreprocessor::LogDumping(bool bDumpLogs)
 {
 	mbDumpLogs = bDumpLogs;
 }
@@ -1520,7 +1520,7 @@ void CPreprocessor::LogDumping(bool bDumpLogs)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning)
+bool CCPPPreprocessor::ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning)
 {
 	CChars					szMessage;
 	CPPToken*				pcToken;
@@ -1553,7 +1553,7 @@ bool CPreprocessor::ProcessHashError(CPPDirective* pcDirective, CPreprocessorTok
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
+bool CCPPPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 {
 	bool			bResult;
 
@@ -1636,7 +1636,7 @@ static size PPNumberLength(const char* sz, size uiLength)
 // takes as the packing of the classes defined after it.					//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::EmitPragmaPack(CPreprocessorTokenParser* pcParser)
+void CCPPPreprocessor::EmitPragmaPack(CPreprocessorTokenParser* pcParser)
 {
 	CChars					szArguments;
 	SPreprocessedToken		sToken;
@@ -1698,7 +1698,7 @@ void CPreprocessor::EmitPragmaPack(CPreprocessorTokenParser* pcParser)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashUnknown(CPPDirective* pcDirective)
+bool CCPPPreprocessor::ProcessHashUnknown(CPPDirective* pcDirective)
 {
 	CChars					szError;
 	SPreprocessorPosition	sPos;
@@ -1718,7 +1718,7 @@ bool CPreprocessor::ProcessHashUnknown(CPPDirective* pcDirective)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError)
+TRISTATE CCPPPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError)
 {
 	return CPreprocessorExpression::Evaluate(szText, szCalculatorError);
 }
@@ -1728,7 +1728,7 @@ TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
+void CCPPPreprocessor::AddConfigDefines(CConfig* pcConfig)
 {
 	size		i;
 	CChars*		pszText;
@@ -1771,7 +1771,7 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos)
+void CCPPPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos)
 {
 	char* szShortFileName;
 
@@ -1786,7 +1786,7 @@ void CPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, SPr
 // end of the line (an error there is reported at the last token seen).
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::MarkNextPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos)
+void CCPPPreprocessor::MarkNextPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos)
 {
 	pcParser->SkipWhitespace();
 	if (pcParser->HasToken())
@@ -1800,7 +1800,7 @@ void CPreprocessor::MarkNextPositionForError(CPreprocessorTokenParser* pcParser,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos)
+void CCPPPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos)
 {
 	char* szShortFileName;
 
@@ -1813,7 +1813,7 @@ void CPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreprocessor
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
+void CCPPPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
 {
 	if (pcFile->LogIncludes())
 	{
@@ -1826,7 +1826,7 @@ void CPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::DuplicatePPToken(CPPToken* pcSource)
+CPPToken* CCPPPreprocessor::DuplicatePPToken(CPPToken* pcSource)
 {
 	CPPTokenMemory*		pcTokenMemory;
 
@@ -1839,7 +1839,7 @@ CPPToken* CPreprocessor::DuplicatePPToken(CPPToken* pcSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::Next(SPreprocessedToken* psToken)
+bool CCPPPreprocessor::Next(SPreprocessedToken* psToken)
 {
 	CDefine*						pcDefine;
 	CArrayPreprocessedTokenArrays	acArguments;
@@ -1965,7 +1965,7 @@ bool CPreprocessor::Next(SPreprocessedToken* psToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PeekOpenParenthesis(void)
+bool CCPPPreprocessor::PeekOpenParenthesis(void)
 {
 	SPreprocessedToken	sToken;
 
@@ -1988,7 +1988,7 @@ bool CPreprocessor::PeekOpenParenthesis(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::CollectArguments(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
+bool CCPPPreprocessor::CollectArguments(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
 {
 	SPreprocessedToken			sToken;
 	CArrayPreprocessedTokens*	pacArgument;
@@ -2090,7 +2090,7 @@ bool CPreprocessor::CollectArguments(CDefine* pcDefine, SPreprocessedToken* psNa
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
+bool CCPPPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
 {
 	CArrayPreprocessedTokens	acResult;
 	CArrayPreprocessedTokens	acFinal;
@@ -2163,7 +2163,7 @@ static void AppendArgumentTokens(CArrayPreprocessedTokens* pacArgument, uint32 u
 // if expanding an argument failed.  [cpp.subst]						//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::SubstituteParameters(CDefine* pcDefine, CArrayPreprocessedTokenArrays* pacArguments, int iExpansion, CArrayPreprocessedTokens* pacResult)
+bool CCPPPreprocessor::SubstituteParameters(CDefine* pcDefine, CArrayPreprocessedTokenArrays* pacArguments, int iExpansion, CArrayPreprocessedTokens* pacResult)
 {
 	CArrayPreprocessedTokens*		pacBody;
 	CArrayPreprocessedTokenArrays	acExpanded;
@@ -2277,7 +2277,7 @@ bool CPreprocessor::SubstituteParameters(CDefine* pcDefine, CArrayPreprocessedTo
 // ## is only an operator if it came from the body.  [cpp.concat]		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPreprocessedTokens* pacFinal)
+void CCPPPreprocessor::PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPreprocessedTokens* pacFinal)
 {
 	CArrayPreprocessedTokens	acPasted;
 	SPreprocessedToken*			psToken;
@@ -2328,7 +2328,7 @@ void CPreprocessor::PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPrepr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPreprocessedTokens* pacExpanded)
+void CCPPPreprocessor::ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPreprocessedTokens* pacExpanded)
 {
 	CArrayPreprocessedTokens	acCopy;
 
@@ -2343,7 +2343,7 @@ void CPreprocessor::ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPrepr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest)
+void CCPPPreprocessor::ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest)
 {
 	CArrayPreprocessedTokens	acPushedBack;
 	SPreprocessedToken			sToken;
@@ -2383,7 +2383,7 @@ void CPreprocessor::ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPrep
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreprocessedToken* psResult)
+void CCPPPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreprocessedToken* psResult)
 {
 	CChars				sz;
 	size				i;
@@ -2513,7 +2513,7 @@ static int LexSingleToken(const char* sz, size uiLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::Paste(SPreprocessedToken* psLeft, SPreprocessedToken* psRight, SPreprocessedToken* psResult)
+bool CCPPPreprocessor::Paste(SPreprocessedToken* psLeft, SPreprocessedToken* psRight, SPreprocessedToken* psResult)
 {
 	CChars	sz;
 	int		iKind;
@@ -2556,7 +2556,7 @@ bool CPreprocessor::Paste(SPreprocessedToken* psLeft, SPreprocessedToken* psRigh
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken)
+void CCPPPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken)
 {
 	SPPSource*		psSource;
 	CChars			sz;
@@ -2667,7 +2667,7 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::SkipPragmaOperator(void)
+bool CCPPPreprocessor::SkipPragmaOperator(void)
 {
 	SPreprocessedToken	sToken;
 	int					iDepth;
@@ -2702,7 +2702,7 @@ bool CPreprocessor::SkipPragmaOperator(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CArrayPreprocessedTokens* CPreprocessor::GetBody(CDefine* pcDefine)
+CArrayPreprocessedTokens* CCPPPreprocessor::GetBody(CDefine* pcDefine)
 {
 	if (!pcDefine->IsBodyConverted())
 	{
@@ -2717,7 +2717,7 @@ CArrayPreprocessedTokens* CPreprocessor::GetBody(CDefine* pcDefine)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::GetDefine(SPreprocessedToken* psToken)
+CDefine* CCPPPreprocessor::GetDefine(SPreprocessedToken* psToken)
 {
 	return LookUpDefine(psToken->szText, psToken->uiLength);
 }
@@ -2729,7 +2729,7 @@ CDefine* CPreprocessor::GetDefine(SPreprocessedToken* psToken)
 // A header being kept depends on what it is (NoteLookUp).
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::LookUpDefine(const char* szName, size uiLength)
+CDefine* CCPPPreprocessor::LookUpDefine(const char* szName, size uiLength)
 {
 	CExternalString		cName;
 	CDefine*			pcDefine;
@@ -2748,7 +2748,7 @@ CDefine* CPreprocessor::LookUpDefine(const char* szName, size uiLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::IsDisabled(int64 lliDefineID)
+bool CCPPPreprocessor::IsDisabled(int64 lliDefineID)
 {
 	size	i;
 
@@ -2767,7 +2767,7 @@ bool CPreprocessor::IsDisabled(int64 lliDefineID)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::IsDefined(SPreprocessedToken* psToken)
+bool CCPPPreprocessor::IsDefined(SPreprocessedToken* psToken)
 {
 	CExternalString		cName;
 
@@ -2785,7 +2785,7 @@ bool CPreprocessor::IsDefined(SPreprocessedToken* psToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CArrayPreprocessedTokens* pacDest)
+void CCPPPreprocessor::AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CArrayPreprocessedTokens* pacDest)
 {
 	SPreprocessedToken	sToken;
 	CChars				sz;
@@ -2807,7 +2807,7 @@ void CPreprocessor::AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CA
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
+bool CCPPPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
 {
 	CChars	szDetail;
 
@@ -2840,7 +2840,7 @@ bool CPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::Error(SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
+bool CCPPPreprocessor::Error(SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
 {
 	AddPositioned(&mcErrors, psPosition, szMessage, szDetail);
 	mbError = true;
@@ -2854,7 +2854,7 @@ bool CPreprocessor::Error(SPreprocessorPosition* psPosition, char* szMessage, ch
 // that is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddPositioned(CCPPErrors* pcErrors, SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
+void CCPPPreprocessor::AddPositioned(CCPPErrors* pcErrors, SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
 {
 	const char*	szFile;
 	int			iLine;
@@ -2873,7 +2873,7 @@ void CPreprocessor::AddPositioned(CCPPErrors* pcErrors, SPreprocessorPosition* p
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CCPPErrors* CPreprocessor::GetErrors(void)
+CCPPErrors* CCPPPreprocessor::GetErrors(void)
 {
 	//The errors in all the translation units preprocessed so far.
 	return &mcErrors;
@@ -2885,7 +2885,7 @@ CCPPErrors* CPreprocessor::GetErrors(void)
 // The #warning messages in all the translation units preprocessed so far.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPErrors* CPreprocessor::GetWarnings(void)
+CCPPErrors* CCPPPreprocessor::GetWarnings(void)
 {
 	return &mcWarnings;
 }
@@ -2895,7 +2895,7 @@ CCPPErrors* CPreprocessor::GetWarnings(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::EmitToken(SPreprocessedToken* psToken)
+void CCPPPreprocessor::EmitToken(SPreprocessedToken* psToken)
 {
 	char*	szContents;
 	size	iLength;
@@ -2920,7 +2920,7 @@ void CPreprocessor::EmitToken(SPreprocessedToken* psToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessor::AddString(const char* szText, size uiLength)
+char* CCPPPreprocessor::AddString(const char* szText, size uiLength)
 {
 	char*	sz;
 
@@ -2939,7 +2939,7 @@ char* CPreprocessor::AddString(const char* szText, size uiLength)
 // are this unit's).
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenMemory* CPreprocessor::GetTokenMemory(void)
+CPPTokenMemory* CCPPPreprocessor::GetTokenMemory(void)
 {
 	return &mcDefineReplacementMemory;
 }
@@ -2949,7 +2949,7 @@ CPPTokenMemory* CPreprocessor::GetTokenMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
+bool CCPPPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 {
 	CPreprocessorTokenParser	cParser;
 	bool						bResult;
@@ -3020,7 +3020,7 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 // only ever added after the others, as the header cache records them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddInactiveLine(CSourceFile* pcFile, int iLine)
+void CCPPPreprocessor::AddInactiveLine(CSourceFile* pcFile, int iLine)
 {
 	if ((mpcSkipFile == pcFile) && (iLine >= miSkipStartLine))
 	{
@@ -3038,7 +3038,7 @@ void CPreprocessor::AddInactiveLine(CSourceFile* pcFile, int iLine)
 // stack was before pcDirective.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::NoteSkipping(CPPDirective* pcDirective, bool bWasParsing)
+void CCPPPreprocessor::NoteSkipping(CPPDirective* pcDirective, bool bWasParsing)
 {
 	bool	bParsing;
 
@@ -3063,7 +3063,7 @@ void CPreprocessor::NoteSkipping(CPPDirective* pcDirective, bool bWasParsing)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
+bool CCPPPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 {
 	CPreprocessorTokenParser	cParser;
 	CExternalString				cIdentifier;
@@ -3186,7 +3186,7 @@ bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CPreprocessor::EvaluateCondition(CPPDirective* pcDirective)
+TRISTATE CCPPPreprocessor::EvaluateCondition(CPPDirective* pcDirective)
 {
 	CArrayPreprocessedTokens	acRaw;
 	CArrayPreprocessedTokens	acReplaced;
@@ -3298,7 +3298,7 @@ static bool SkipParenthesised(CArrayPreprocessedTokens* pacTokens, size* piIndex
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest)
+bool CCPPPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest)
 {
 	size					i;
 	size					iNumTokens;
@@ -3419,7 +3419,7 @@ bool CPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSourc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::GetIncludeName(CArrayPreprocessedTokens* pacTokens, size* piIndex, CChars* pszName, bool* pbSystem)
+bool CCPPPreprocessor::GetIncludeName(CArrayPreprocessedTokens* pacTokens, size* piIndex, CChars* pszName, bool* pbSystem)
 {
 	SPreprocessedToken*		psToken;
 	size					i;
@@ -3465,7 +3465,7 @@ bool CPreprocessor::GetIncludeName(CArrayPreprocessedTokens* pacTokens, size* pi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
+bool CCPPPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 {
 	CArrayPreprocessedTokens	acRaw;
 	CArrayPreprocessedTokens	acExpanded;

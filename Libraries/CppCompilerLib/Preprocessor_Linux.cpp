@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::InitPlatformSpecific(void)
+void CCPPPreprocessor::InitPlatformSpecific(void)
 {
 }
 

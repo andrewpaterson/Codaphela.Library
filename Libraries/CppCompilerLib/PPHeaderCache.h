@@ -119,7 +119,7 @@ typedef CArrayTemplate<CSourceFile*>			CArrayPPHeaderFiles;
 
 
 //A header's preprocessed output, as one unit made it (with what it included), which another unit that includes the
-//header with the same macros (asQueries, asPragmaQueries) gets without preprocessing it (CPreprocessor's
+//header with the same macros (asQueries, asPragmaQueries) gets without preprocessing it (CCPPPreprocessor's
 //ReplayHeader).  The tokens' and expansions' text that isn't in a source file is in mcStrings; expansion indices are
 //relative to the segment's first expansion.
 struct SPPCachedHeader

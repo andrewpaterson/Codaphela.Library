@@ -77,7 +77,7 @@ struct SPPSource
 	CChars						szLineFile;				//#line's file name, as its string literal (__FILE__), or empty.
 	uint64						uiDirectory;			//The file's directory, hashed.
 	uint64						uiDirectories;			//The directories of the file and the files including it, hashed (a quoted #include looks in them).
-	bool						bRecorded;				//The file's output is being kept (CPreprocessor's BeginRecording).
+	bool						bRecorded;				//The file's output is being kept (CCPPPreprocessor's BeginRecording).
 
 	//PPST_Macro.
 	int64						lliDefineID;			//The macro is not expanded again while this source is read.
@@ -116,7 +116,7 @@ struct SPPRecorder
 typedef CArrayTemplate<SPPRecorder> CArrayPPRecorders;
 
 
-class CPreprocessor
+class CCPPPreprocessor
 {
 protected:
 	CConditionalStack				mcConditionalStack;

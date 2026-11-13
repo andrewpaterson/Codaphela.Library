@@ -154,7 +154,7 @@ static void TestPPHeaderCacheDump(CTranslationUnit* pcFile, CChars* psz)
 static void TestPPHeaderCacheUnits(STestPPHeaderCacheHeaders* psHeaders, const char** aszNames, const char** aszUnits, CPPHeaderCache* pcCache, CArrayChars* paszDumps, CArrayChars* paszTexts)
 {
 	CTranslationUnit	cFile;
-	CPreprocessor		cPreprocessor;
+	CCPPPreprocessor		cPreprocessor;
 	CConfig				cConfig;
 	CChars				szName;
 	CChars				sz;

@@ -25,7 +25,7 @@
 //////////////////////////////////////////////////////////////////////////
 static bool TokeniseText(CTranslationUnit* pcFile, CCPPTokeniser* pcTokeniser, char* szSource)
 {
-	CPreprocessor	cPreprocessor;
+	CCPPPreprocessor	cPreprocessor;
 	bool			bResult;
 
 	pcFile->Init("Tokens.cpp", NULL, false);

@@ -25,7 +25,7 @@ struct STestSyntaxBlock
 //////////////////////////////////////////////////////////////////////////
 bool STestSyntaxBlock::Init(char* szSource)
 {
-	CPreprocessor	cPreprocessor;
+	CCPPPreprocessor	cPreprocessor;
 	CCPPParser		cParser;
 	bool			bResult;
 
