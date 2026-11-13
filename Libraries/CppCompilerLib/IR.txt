@@ -496,7 +496,9 @@ copies.  Classes are given homes most weighted first:
 							(calls, the soft float routines and R_DivideSigned change X
 							and Y; mul and div change Y)
 	[0x00 + W] to [0x7F + W]	if no call is made while it is live (calls may change them)
-	[0x80 + W] to [0xFF + W]	if the class weighs 8 or more (used in a loop, say): the
+	[0x80 + W] to [0xFF + W]	if the class weighs 8 or more (used in a loop, say) and the
+							function has no frame yet (a place in a frame costs the same
+							to use and nothing to keep: 0.68% fewer cycles, 2026-11-13): the
 							function pushes those it uses after setting V up and pulls
 							them before returning (the user's callee saved pseudo
 							registers, 2026-10-24)

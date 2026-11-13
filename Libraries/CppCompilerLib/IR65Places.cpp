@@ -433,8 +433,9 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // or Y if nothing that changes them is done while the class is live, then
 // a low pseudo register if no call is made.  A parameter used at most once,
 // or that gets none of those, stays where it was pushed.  Then a kept
-// pseudo register if the class weighs 8 or more (it costs a push and a
-// pull), then the frame.  A function that needs V for nothing (CanUseV)
+// pseudo register if the class weighs 8 or more and there is no frame yet
+// (it costs a push and a pull, the frame's place nothing more), then the
+// frame.  A function that needs V for nothing (CanUseV)
 // first tries with V as a third register, for pointers and i32s (FitsV):
 // calls keep it (every function keeps V), so it is where one live across
 // calls goes; that stands if V was taken and nothing had to go in the
@@ -1073,7 +1074,9 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		PlaceClass(iLeader, sArrival.uiKind, sArrival.iOffset, sArrival.iBytes);
 		return true;
 	}
-	iUnit = ((uiWeight >= 8) || msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
+	//A kept pseudo register costs a push and a pull (10 cycles) and the frame's place costs the same to use: so only
+	//where there is no frame yet.
+	iUnit = (((uiWeight >= 8) && (msFrame.iFrameBytes == 0)) || msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
 	if (iUnit >= 0)
 	{
 		msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;
