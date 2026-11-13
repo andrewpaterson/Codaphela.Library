@@ -305,7 +305,7 @@ bool CIndexBlock::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, si
 	bool				bResult;
 	SIndexBlockNode		sNode;
 
-	bResult = mcIndex.Iterate(psIterator, (uint8*)pvKey, piKeySize, iMaxKeySize, (void*)&sNode, puiDataSize, uiMaxDataSize);
+	bResult = mcIndex.Iterate(psIterator, (uint8*)pvKey, piKeySize, iMaxKeySize, (void*)&sNode, NULL, sizeof(SIndexBlockNode));
 	if (bResult)
 	{
 		if (sNode.pvData)
