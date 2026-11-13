@@ -485,8 +485,7 @@ bool CX11Window::CreateNativeWindow(void)
                              KeyPressMask | KeyReleaseMask |
                              ButtonPressMask | ButtonReleaseMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask;
 
-    iWidth = (msRequestedSize.x > 0) ? msRequestedSize.x : X11_WINDOW_WIDTH;
-    iHeight = (msRequestedSize.y > 0) ? msRequestedSize.y : X11_WINDOW_HEIGHT;
+    GetCreatedSize(&iWidth, &iHeight);
     mulWindow = XCreateWindow(psDisplay,
                               RootWindow(psDisplay, iScreen),
                               mbScreenRectangle ? mcScreenRectangle.GetLeft() : 0,  // Position, the window manager places it
@@ -951,7 +950,31 @@ void CX11Window::SignalPresentArea(CInt32Rect* pcArea)
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::GetRectangle(CInt32Rect* pcDest)
 {
+    int     iWidth;
+    int     iHeight;
+
+    //Before the X window is made (or after it is gone) its client area is what it will be made at, so the window can
+    //be laid out before it is shown, as it is on the other platforms.
+    if (mulWindow == 0)
+    {
+        GetCreatedSize(&iWidth, &iHeight);
+        pcDest->Init(0, 0, iWidth, iHeight);
+        return;
+    }
     pcDest->Init(0, 0, miWidth, miHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size the X window is made at: as asked for (SetRequestedSize or
+// SetScreenRectangle), or X11_WINDOW_WIDTH by X11_WINDOW_HEIGHT.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::GetCreatedSize(int* piWidth, int* piHeight)
+{
+    *piWidth = (msRequestedSize.x > 0) ? msRequestedSize.x : X11_WINDOW_WIDTH;
+    *piHeight = (msRequestedSize.y > 0) ? msRequestedSize.y : X11_WINDOW_HEIGHT;
 }
 
 

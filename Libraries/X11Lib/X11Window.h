@@ -84,6 +84,7 @@ protected:
 	bool	PrepareSharedImage(int32 iWidth, int32 iHeight);
 	void	FreeSharedImage(void);
 	void	WaitForSharedPresent(void);
+	void	GetCreatedSize(int* piWidth, int* piHeight);
 	void	SetDialogHints(int iWidth, int iHeight);
 	void	SetToolHints(void);
 	void	SetMainHints(void);
