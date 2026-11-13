@@ -31,6 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSemanticPass.h"
 
 
+class CCPPSyntaxLinkageSpecification;
 class CSourceFile;
 
 
@@ -67,6 +68,7 @@ enum ECPPUsageType
 #define CPPIF_AMBIGUOUS		0x01	//A call the parser can't tell the overload of: it is a reference of each it could be.
 #define CPPIF_MACRO			0x02	//A name a macro made, where the macro was used: the text there is the macro's name,
 									//ARRAY_BLOCK, not the symbol's, CArrayBlock.
+#define CPPIF_C_LINKAGE		0x04	//A declaration inside extern "C": a function's or variable's label is only its name.
 
 
 //Where a symbol is named in a file.
@@ -94,6 +96,7 @@ struct SCPPIndexToken
 	bool					bDefinition;	//It names what a definition defines.
 	CCPPSyntax*				pcContainer;	//The innermost class or function definition the token is in, NULL if none.
 	uint8					uiUsage;		//ECPPUsageType (FindUsageTypes).
+	bool					bCLinkage;		//It names what a declaration inside extern "C" declares.
 };
 
 
@@ -262,7 +265,8 @@ protected:
 	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
 	static int			GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator, CCPPIndexUnit* pcDest);
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
-	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
+	static void			FindNames(CCPPTokeniser* pcTokeniser, CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition, bool bCLinkage);
+	static bool			IsCLinkage(CCPPTokeniser* pcTokeniser, CCPPSyntaxLinkageSpecification* pcLinkage);
 	static void			FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens);
 	static void			FindUsageTypes(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, SCPPUsageContext* psContext);
 	static void			FillUsageType(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, ECPPUsageType eUsage);

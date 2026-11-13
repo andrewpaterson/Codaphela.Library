@@ -545,6 +545,76 @@ gcBlock\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function or variable declared inside extern "C" (braced or not, in a
+// namespace too) is flagged CPPIF_C_LINKAGE where it is declared: its
+// label is only its name.  Not extern "C++", a class's members, or the
+// definition outside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexCLinkage(void)
+{
+	CCPPIndex			cIndex;
+	CChars				sz;
+
+	cIndex.Init();
+	IndexText(&cIndex, "L.cpp", "\
+namespace NOs\n\
+{\n\
+	extern \"C\"\n\
+	{\n\
+		int Read(char* sz);\n\
+		extern int giCount;\n\
+		struct SFile\n\
+		{\n\
+			void Close(void);\n\
+		};\n\
+	}\n\
+	extern \"C\" void Write(int i);\n\
+	extern \"C++\" void Seek(int i);\n\
+	void Tell(void);\n\
+}\n\
+int NOs::Read(char* sz) { return NOs::giCount; }\n");
+
+	sz.Init();
+	cIndex.Print(&sz);
+	AssertString("\
+NOs\n\
+  L.cpp:1:11 declaration\n\
+  L.cpp:16:5 reference\n\
+  L.cpp:16:34 reference\n\
+NOs::Read(char*)\n\
+  L.cpp:5:7 declaration extern-C\n\
+  L.cpp:16:10 definition\n\
+@L.cpp:5:12:sz\n\
+  L.cpp:5:18 declaration\n\
+NOs::giCount\n\
+  L.cpp:6:14 declaration extern-C\n\
+  L.cpp:16:39 reference\n\
+NOs::SFile\n\
+  L.cpp:7:10 definition\n\
+NOs::SFile::Close()\n\
+  L.cpp:9:9 declaration\n\
+NOs::Write(int)\n\
+  L.cpp:12:18 declaration extern-C\n\
+@L.cpp:12:24:i\n\
+  L.cpp:12:28 declaration\n\
+NOs::Seek(int)\n\
+  L.cpp:13:20 declaration\n\
+@L.cpp:13:25:i\n\
+  L.cpp:13:29 declaration\n\
+NOs::Tell()\n\
+  L.cpp:14:7 declaration\n\
+@L.cpp:16:15:sz\n\
+  L.cpp:16:21 declaration\n\
+", sz.Text());
+	sz.Kill();
+
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Each place records the class or function definition it is in, where
 // Find Usages groups it: a member declared in its class, used in a member
 // function and in a free function.
@@ -954,6 +1024,7 @@ void TestCppIndex(void)
 	TestCppSemanticPassHost();
 	TestCppSemanticPassEnumeratorChain();
 	TestCppIndexMacroNames();
+	TestCppIndexCLinkage();
 	TestCppIndexContainers();
 	TestCppIndexUsageTypes();
 	TestCppIndexOverrides();

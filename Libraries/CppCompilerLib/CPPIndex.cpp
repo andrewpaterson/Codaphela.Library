@@ -31,6 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxDeclSpecifiers.h"
 #include "CPPSyntaxClassSpecifier.h"
 #include "CPPSyntaxEnumSpecifier.h"
+#include "CPPSyntaxLinkageSpecification.h"
 #include "CPPSyntaxCallExpression.h"
 #include "CPPSyntaxIdExpression.h"
 #include "CPPSyntaxMemberExpression.h"
@@ -396,7 +397,7 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	asTokens.GrowToAtLeastNumElements(uiNumTokens, true, 0);
 	if (pcTree->GetRoot())
 	{
-		FindNames(pcTree->GetRoot(), &asTokens, false);
+		FindNames(pcTokeniser, pcTree->GetRoot(), &asTokens, false, false);
 		FindContainers(pcTree->GetRoot(), &asTokens);
 		sContext.eScope = CPPUS_Namespace;
 		sContext.bExpression = false;
@@ -478,6 +479,10 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 		}
 		else
 		{
+			if (asTokens.Get(i)->bCLinkage && (psSymbol->uiRole == CPPTR_Declaration))
+			{
+				uiFlags |= CPPIF_C_LINKAGE;
+			}
 			GatherToken(&cKeys, psSymbol, asTokens.Get(i), psSource, uiFlags, pcDest);
 		}
 	}
@@ -551,10 +556,12 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 class CCPPIndexNameChildren : public CCPPSyntaxChildVisitor
 {
 public:
+	CCPPTokeniser*		mpcTokeniser;
 	CArrayIndexTokens*	mpasTokens;
 	bool				mbInDefinition;
+	bool				mbCLinkage;
 
-	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindNames(pcChild, mpasTokens, mbInDefinition); }
+	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindNames(mpcTokeniser, pcChild, mpasTokens, mbInDefinition, mbCLinkage); }
 };
 
 
@@ -1235,12 +1242,56 @@ bool CCPPIndex::GetContainerKey(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, C
 
 //////////////////////////////////////////////////////////////////////////
 //
+// If pcLinkage is extern "C" (any language but C++): what it declares is
+// labelled by its name alone.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPIndex::IsCLinkage(CCPPTokeniser* pcTokeniser, CCPPSyntaxLinkageSpecification* pcLinkage)
+{
+	CChars		szLanguage;
+	CCPPToken*	pcToken;
+	bool		bC;
+
+	szLanguage.Init();
+	pcToken = pcTokeniser->Get(pcLinkage->miLanguage);
+	if (pcToken)
+	{
+		pcToken->Append(&szLanguage, pcTokeniser);
+	}
+	bC = !szLanguage.Contains("C++");
+	szLanguage.Kill();
+	return bC;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The token of pcName's last part names a declaration inside extern "C".
+//
+//////////////////////////////////////////////////////////////////////////
+static void MarkCLinkage(CCPPSyntaxName* pcName, CArrayIndexTokens* pasTokens)
+{
+	SCPPIndexToken*	psToken;
+
+	if (pcName && pcName->GetLast() && (pcName->GetLast()->miName >= 0))
+	{
+		psToken = pasTokens->SafeGet((size)pcName->GetLast()->miName);
+		if (psToken)
+		{
+			psToken->bCLinkage = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the tree says about name tokens: the function declarators they
 // name, the number of arguments a call passes the callee they name and
 // whether they name what a definition defines.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition)
+void CCPPIndex::FindNames(CCPPTokeniser* pcTokeniser, CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition, bool bCLinkage)
 {
 	CCPPSyntaxName*			pcName;
 	CCPPSyntaxDeclarator*	pcDeclarator;
@@ -1264,6 +1315,14 @@ void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool
 		{
 			pcName = pcDeclarator->GetName();
 		}
+		else if (bCLinkage)
+		{
+			//A variable declared inside extern "C".
+			MarkCLinkage(pcDeclarator->GetName(), pasTokens);
+		}
+		break;
+	case CPPS_LinkageSpecification:
+		bCLinkage = IsCLinkage(pcTokeniser, (CCPPSyntaxLinkageSpecification*)pcNode);
 		break;
 	case CPPS_ClassSpecifier:
 		pcName = ((CCPPSyntaxClassSpecifier*)pcNode)->mpcName;
@@ -1308,6 +1367,7 @@ void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool
 					}
 				}
 				psToken->bDefinition = psToken->bDefinition || bInDefinition;
+				psToken->bCLinkage = psToken->bCLinkage || (bCLinkage && (iArguments == 0) && (pcNode->GetKind() != CPPS_ClassSpecifier) && (pcNode->GetKind() != CPPS_EnumSpecifier));
 			}
 		}
 	}
@@ -1317,8 +1377,12 @@ void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool
 	{
 		bInDefinition = false;
 	}
+	cChildren.mpcTokeniser = pcTokeniser;
 	cChildren.mpasTokens = pasTokens;
 	cChildren.mbInDefinition = (pcNode->GetKind() == CPPS_ClassSpecifier) || (pcNode->GetKind() == CPPS_EnumSpecifier) ? false : bInDefinition;
+	//A class's members, a function's parameters and what its body declares aren't the linkage's.
+	cChildren.mbCLinkage = bCLinkage && (pcNode->GetKind() != CPPS_ClassSpecifier) && (pcNode->GetKind() != CPPS_FunctionDefinition) &&
+						   (pcNode->GetKind() != CPPS_Parameter) && !((pcNode->GetKind() == CPPS_Declarator) && ((CCPPSyntaxDeclarator*)pcNode)->IsFunction());
 	pcNode->VisitFields(&cChildren);
 }
 
@@ -1845,6 +1909,10 @@ char* CCPPIndex::Print(CChars* pszDest)
 			if (psLocation->uiFlags & CPPIF_MACRO)
 			{
 				pszDest->Append(" macro");
+			}
+			if (psLocation->uiFlags & CPPIF_C_LINKAGE)
+			{
+				pszDest->Append(" extern-C");
 			}
 			pszDest->AppendNewLine();
 			szFile.Kill();
