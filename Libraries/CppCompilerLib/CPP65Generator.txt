@@ -297,6 +297,24 @@ W65C816's rule (W65C816.txt, Register arguments; CIRBackend::AssignRegisters):
   plain labels, and the runtime routines (R_...) keep their own conventions.
 - CCPPCompileOptions::mbRegisterArguments false pushes every argument, to compare.
 
+Registers kept by calls (measured 2026-11-13, not adopted): a call changes X and Y, so a
+value live across one is kept in a pseudo register the function saves ([$80 + W] on) or in
+the frame.  Both alternatives were built and run on the BaseLib, StandardLib and SupportLib
+suites, and both are slower:
+
+- X kept by every function (one that changes it pushes and pulls it; this stays in X across
+  calls on the same object or of functions that aren't members): +0.3%, +1.3% and +1.4%
+  cycles (+0.0%, +1.1% and +1.3% without the pushes string.asm and softfloat.asm then need).
+  A thiscall on another object puts that in X, as does a this adjusting thunk, so X is
+  rarely kept for long, while every function that makes such a call or uses X for anything
+  else (small hot leaves such as CFreeList::FindNextAllocatedElement, a compare function)
+  pays the push and pull.
+- Y kept by every function that takes no argument in it: +1.5%, +1.3% and +1.0%.  mul, div,
+  a call with a third register argument and a call through a pointer (its stub loads Y)
+  all change Y, and the leaves pay as with X.
+
+The code they gave was 1.2% and 0.5% smaller.
+
 Places from V (they don't move when values are pushed):
 
 	[1 + local + V]						a local
