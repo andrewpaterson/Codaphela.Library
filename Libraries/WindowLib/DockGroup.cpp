@@ -260,6 +260,10 @@ bool CDockGroup::TakePane(Ptr<CDockPane> pPane)
 	{
 		mpMenuPane = NULL;
 	}
+	if (mpManager->GetState()->GetMenuPane() == pPane)
+	{
+		mpManager->GetState()->SetMenuPane(NULL);
+	}
 	maPanes.RemoveAt(uiSlot);
 	mpTabs->TakeTab(pTab);
 	if (pPane->GetGroup() == this)
@@ -457,6 +461,10 @@ Ptr<CMenuContainer> CDockGroup::CreateMenu(bool bDocuments)
 		AddMenuItem(pClose, DMI_CloseRight);
 		pClose->GetOpeningEvent()->Add(this, &CDockGroup::CloseMenuOpening);
 		pMenu->AddItem(gaszDockMenuItems[DMI_CloseMultiple], NULL, pClose)->SetTag(DMI_CloseMultiple);
+		if (mpManager->GetState()->GetListener())
+		{
+			mpManager->GetState()->GetListener()->DocumentMenuCreated(pMenu);
+		}
 	}
 	else
 	{
@@ -540,6 +548,7 @@ Ptr<CMenuContainer> CDockGroup::GetMenu(Ptr<CDockPane> pPane)
 void CDockGroup::OpenMenu(Ptr<CDockPane> pPane, SInt32Vec2 sPosition)
 {
 	mpMenuPane = pPane;
+	mpManager->GetState()->SetMenuPane(pPane);
 	GetMenu(pPane)->Open(sPosition, this, true);
 }
 
@@ -559,6 +568,7 @@ void CDockGroup::MenuOpening(CMenuContainer* pcMenu)
 		if ((CComponent*)&GetTab(GetPane(i)) == &pcMenu->GetOpener())
 		{
 			mpMenuPane = GetPane(i);
+			mpManager->GetState()->SetMenuPane(mpMenuPane);
 			return;
 		}
 	}

@@ -69,6 +69,7 @@ void			CDockManagerListener::DocumentSelected(CDockPane* pcPane) {}
 Ptr<CDockPane>	CDockManagerListener::CreatePane(const char* szID) { return NULL; }
 void			CDockManagerListener::LayoutChanged(void) {}
 bool			CDockManagerListener::IsPaneModified(CDockPane* pcPane) { return false; }
+void			CDockManagerListener::DocumentMenuCreated(Ptr<CMenuContainer> pMenu) {}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -987,6 +988,7 @@ Ptr<CWindow>				CDockManager::GetWindow(void) { return mpState->GetWindow(); }
 void						CDockManager::SetListener(CDockManagerListener* pcListener) { mpState->SetListener(pcListener); }
 Ptr<CWindowTheme>			CDockManager::GetTheme(void) { return mpTheme; }
 Ptr<CDockState>				CDockManager::GetState(void) { return mpState; }
+Ptr<CDockPane>				CDockManager::GetMenuPane(void) { return mpState->GetMenuPane(); }  //The pane a tab or title bar menu was opened for last: what its items are for.
 Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
 Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
 ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }

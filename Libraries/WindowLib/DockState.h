@@ -62,6 +62,7 @@ protected:
 
 	Ptr<CDockDrag>				mpDrag;
 	Ptr<CDockFocus>				mpFocus;  //The active pane and document, and the flyout.
+	Ptr<CDockPane>				mpMenuPane;  //The pane a tab or title bar menu was opened for last.
 	CDockTree					mcTree;  //The trees' edits.
 	CDockRestorer				mcRestorer;  //Where panes go back to.
 	CDockMover					mcMover;  //Floating, docking and auto hiding.
@@ -92,6 +93,8 @@ public:
 
 	Ptr<CDockDrag>				GetDrag(void);
 	Ptr<CDockFocus>				GetFocus(void);
+	Ptr<CDockPane>				GetMenuPane(void);
+	void						SetMenuPane(Ptr<CDockPane> pPane);
 	CDockTree*					GetTree(void);
 	CDockRestorer*				GetRestorer(void);
 	CDockMover*					GetMover(void);

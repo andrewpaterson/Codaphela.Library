@@ -49,6 +49,7 @@ void CDockState::Init(Ptr<CWindow> pWindow)
 	mbLayoutWindow = false;
 	mpDrag = NULL;
 	mpFocus = NULL;
+	mpMenuPane = NULL;
 
 	PostInit();
 }
@@ -72,6 +73,7 @@ void CDockState::Class(void)
 	U_Bool(mbLayoutWindow);
 	M_Pointer(mpDrag);
 	M_Pointer(mpFocus);
+	M_Pointer(mpMenuPane);
 	U_Unknown(CDockTree, mcTree);
 	U_Unknown(CDockRestorer, mcRestorer);
 	U_Unknown(CDockMover, mcMover);
@@ -177,6 +179,8 @@ CDockManagerListener*			CDockState::GetListener(void) { return mpcListener; }
 void							CDockState::SetListener(CDockManagerListener* pcListener) { mpcListener = pcListener; }
 Ptr<CDockDrag>					CDockState::GetDrag(void) { return mpDrag; }
 Ptr<CDockFocus>					CDockState::GetFocus(void) { return mpFocus; }
+Ptr<CDockPane>					CDockState::GetMenuPane(void) { return mpMenuPane; }
+void							CDockState::SetMenuPane(Ptr<CDockPane> pPane) { mpMenuPane = pPane; }
 CDockTree*						CDockState::GetTree(void) { return &mcTree; }
 CDockRestorer*					CDockState::GetRestorer(void) { return &mcRestorer; }
 CDockMover*						CDockState::GetMover(void) { return &mcMover; }

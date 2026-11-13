@@ -43,6 +43,7 @@ public:
 	int				miClosed;
 	int				miActiveChanges;
 	int				miLayoutChanges;
+	int				miDocumentMenus;  //Document menus made, each given an item of the application's.
 	CDockPane*		mpcActive;
 	CDockPane*		mpcDocument;
 	CDockManager*	mpcManager;
@@ -56,6 +57,7 @@ public:
 		miClosed = 0;
 		miActiveChanges = 0;
 		miLayoutChanges = 0;
+		miDocumentMenus = 0;
 		mpcActive = NULL;
 		mpcDocument = NULL;
 		mpcManager = pcManager;
@@ -94,6 +96,11 @@ public:
 	void LayoutChanged(void) override
 	{
 		miLayoutChanges++;
+	}
+	void DocumentMenuCreated(Ptr<CMenuContainer> pMenu) override
+	{
+		miDocumentMenus++;
+		pMenu->AddItem("Rename File...")->SetTag(-1);
 	}
 };
 
@@ -1495,6 +1502,56 @@ void TestDockingMenus(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The application adds its own items to the documents' menu
+// (DocumentMenuCreated), not to the tools'; the manager says which pane
+// a menu was opened for (GetMenuPane), and forgets it when it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingDocumentMenuItems(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		Ptr<CDockGroup>			pGroup;
+		Ptr<CMenuContainer>		pMenu;
+
+		sTest.Init(&cNativeFactory);
+		AssertTrue(sTest.pManager->GetMenuPane().IsNull());
+
+		pGroup = sTest.pFirstDoc->GetGroup();
+		pMenu = pGroup->GetMenu(sTest.pFirstDoc);
+		AssertInt(1, sTest.cListener.miDocumentMenus);
+		AssertString("Rename File...", pMenu->GetItem(pMenu->NumItems() - 1)->GetText());
+		AssertInt(-1, pMenu->GetItem(pMenu->NumItems() - 1)->GetTag());
+		pMenu = sTest.pOutput->GetGroup()->GetMenu(sTest.pOutput);
+		AssertInt(1, sTest.cListener.miDocumentMenus);
+
+		//Opened as the second document's context menu, it is that document's.
+		AssertTrue(pGroup->GetTab(sTest.pSecondDoc)->OpenContextMenu(SInt32Vec2(300, 200)));
+		AssertTrue(sTest.pManager->GetMenuPane() == sTest.pSecondDoc);
+		pGroup->GetMenu(sTest.pSecondDoc)->Close();
+		pGroup->OpenMenu(sTest.pFirstDoc, SInt32Vec2(300, 200));
+		AssertTrue(sTest.pManager->GetMenuPane() == sTest.pFirstDoc);
+		pGroup->GetMenu(sTest.pFirstDoc)->Close();
+
+		//Its pane gone, it is forgotten.
+		sTest.pManager->RemovePane(sTest.pFirstDoc);
+		AssertTrue(sTest.pManager->GetMenuPane().IsNull());
+
+		pGroup = NULL;
+		pMenu = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Control+F4 closes the active document and Shift+Escape hides the active
 // tool window, from anywhere in the dock area.
 //
@@ -2291,6 +2348,7 @@ void TestDocking(void)
 	TestDockingKeys();
 	TestDockingCloseMultiple();
 	TestDockingMenus();
+	TestDockingDocumentMenuItems();
 	TestDockingBehaviour();
 	TestDockingScreen();
 	TestDockingDialogOverFloating();

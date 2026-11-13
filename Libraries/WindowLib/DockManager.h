@@ -81,6 +81,7 @@ public:
 	virtual Ptr<CDockPane>	CreatePane(const char* szID);  //A layout names a pane that isn't added; NULL drops it.
 	virtual void			LayoutChanged(void);
 	virtual bool			IsPaneModified(CDockPane* pcPane);  //A document with changes, kept by Close Unmodified.
+	virtual void			DocumentMenuCreated(Ptr<CMenuContainer> pMenu);  //A group's documents' menu, for the application's own items (see GetMenuPane).
 };
 
 
@@ -116,6 +117,7 @@ public:
 	void						SetListener(CDockManagerListener* pcListener);
 	Ptr<CWindowTheme>			GetTheme(void);
 	Ptr<CDockState>				GetState(void);
+	Ptr<CDockPane>				GetMenuPane(void);
 	Ptr<CFont>					GetFont(void);
 	Ptr<CFont>					GetTurnedFont(void);
 	ARGB32						GetColour(EThemeColour eColour);
