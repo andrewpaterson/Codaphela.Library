@@ -205,7 +205,10 @@ bool CIR65Peephole::IsLoaded(void)
 //
 // Takes out each cpy into A, B, X or Y (at 32 bits) of the value it
 // already holds, or of a register that was copied from it and that it
-// hasn't changed since, when the n and z it sets aren't read.
+// hasn't changed since, when the n and z it sets aren't read.  And each
+// cpy W, 0 where W is 0 already (a function that keeps a value in W sets
+// it back before every call, whether it has used it since the last or not:
+// CIR65Backend::ClearW).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Peephole::RemoveCopies(void)
@@ -228,6 +231,12 @@ bool CIR65Peephole::RemoveCopies(void)
 		psLine = mcCode.GetLine(ui);
 		psState = masStates.Get(ui);
 		iCopied = *maiCopied.Get(ui);
+		if ((psState->aiValues[0] != IR65_VALUE_UNSET) && psState->bZeroW && !(*mauiDemand.Get(ui) & (IR65_FLAG_N | IR65_FLAG_Z)) && mcCode.GetText(ui)->Equals("\t\tcpy W, 0"))
+		{
+			mcCode.Remove(ui);
+			bChanged = true;
+			continue;
+		}
 		if ((iCopied < 0) || (psLine->iFirst < 0) || (psState->aiValues[0] == IR65_VALUE_UNSET) || (*mauiDemand.Get(ui) & (IR65_FLAG_N | IR65_FLAG_Z)))
 		{
 			continue;
@@ -386,6 +395,7 @@ void CIR65Peephole::ComputeStates(void)
 		{
 			psTo->aiValues[i] = (ui == 0) ? IR65_VALUE_UNKNOWN : IR65_VALUE_UNSET;
 		}
+		psTo->bZeroW = true;
 	}
 
 	do
@@ -400,6 +410,7 @@ void CIR65Peephole::ComputeStates(void)
 			psLine = mcCode.GetLine(ui);
 			sState = *masStates.Get(ui);
 			Transfer(ui, &sState);
+			TransferW(ui, &sState);
 
 			auiTo[0] = (mcCode.FallsThrough(ui) && (ui + 1 < uiNum)) ? ui + 1 : uiNum;
 			auiTo[1] = (psLine->iTarget >= 0) ? (size)psLine->iTarget : uiNum;
@@ -424,6 +435,11 @@ void CIR65Peephole::ComputeStates(void)
 						psTo->aiValues[i] = IR65_VALUE_UNKNOWN;
 						bChanged = true;
 					}
+				}
+				if (psTo->bZeroW && !sState.bZeroW)
+				{
+					psTo->bZeroW = false;
+					bChanged = true;
 				}
 			}
 		}
@@ -537,6 +553,60 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 	{
 		//cpy [n + W], R.
 		psState->aiValues[psLine->iSecond] = iCopied;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether W is known to be 0 after the line: a call returns with it 0 (the
+// calling convention) and cpy W, 0 makes it so; mul and div count in it,
+// and anything else that writes it (its first operand, or a pul of it)
+// leaves it unknown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Peephole::TransferW(size uiLine, SIR65Values* psState)
+{
+	SIR65CodeLine*	psLine;
+	CChars*			pszLine;
+	const char*		szFirst;
+	const char*		szSecond;
+	size			uiFirst;
+	size			uiSecond;
+
+	psLine = mcCode.GetLine(uiLine);
+	switch (psLine->uiKind)
+	{
+	case IR65CK_Other:
+	case IR65CK_Label:
+	case IR65CK_Push:
+		break;
+	case IR65CK_Call:
+		psState->bZeroW = true;
+		break;
+	case IR65CK_Multiply:
+	case IR65CK_Divide:
+		psState->bZeroW = false;
+		break;
+	default:
+		pszLine = mcCode.GetText(uiLine);
+		if (pszLine->Equals("\t\tcpy W, 0"))
+		{
+			psState->bZeroW = true;
+		}
+		else if ((psLine->uiKind == IR65CK_Pull) && pszLine->Contains("W"))
+		{
+			psState->bZeroW = false;
+		}
+		else if ((psLine->uiKind != IR65CK_Alu) || psLine->bWritesFirst)
+		{
+			IR65PeepholeOperands(pszLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
+			if ((uiFirst == 1) && (szFirst[0] == 'W'))
+			{
+				psState->bZeroW = false;
+			}
+		}
+		break;
 	}
 }
 

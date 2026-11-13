@@ -28,10 +28,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR65_VALUE_UNSET		-2		//A line not reached yet.
 
 
-//What A, B, X and Y hold (32 bits of): an index into CIR65Peephole's values, or IR65_VALUE_.
+//What A, B, X and Y hold (32 bits of): an index into CIR65Peephole's values, or IR65_VALUE_.  bZeroW: W is known to
+//be 0 (as it is at the function's label and after a call: the calling convention).
 struct SIR65Values
 {
 	int16	aiValues[IR65_CODE_REGISTERS];
+	bool	bZeroW;
 };
 
 
@@ -52,7 +54,7 @@ typedef CArrayTemplate<SIR65Value>	CArrayIR65Value;
 
 //The last clean up of a function's finished 65C64 code (IR.txt 65C64 back end, Peephole), after the Flags and
 //Widths passes have added their own code: a cpy of a value the register already holds goes (registers,
-//constants, and the function's own memory, which is never volatile), a jump to a jump goes straight to where
+//constants, and the function's own memory, which is never volatile; and a cpy W, 0 where W is 0 already), a jump to a jump goes straight to where
 //that one goes, a bra to a ret is a ret, a branch round a bra is the opposite branch to the bra's label, a branch
 //to the next line goes and so does code nothing reaches.  The passes over branches are the ones both back ends
 //share (IRBranchPasses.h), over mcCode; ReturnDirectly is the 65C64's own.
@@ -79,6 +81,7 @@ protected:
 	bool	RemoveCopies(void);
 	int16	AddValue(const char* szOperand, size uiLength);
 	void	ComputeCopied(void);
+	void	TransferW(size uiLine, SIR65Values* psState);
 	void	ComputeStates(void);
 	void	Transfer(size uiLine, SIR65Values* psState);
 	void	Forget(SIR65Values* psState, uint8 uiNames);

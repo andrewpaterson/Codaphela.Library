@@ -1577,7 +1577,9 @@ void TestIR65BackendHomeV(void)
 
 	//W as a fourth register between calls, multiplies and divides: it is set back to 0 before each (they want it so) and
 	//before the function returns, and the pseudo registers are written [n] (not [n + W]) by every instruction.  The
-	//loop's four values have X, Y, W and V; after it comes a multiply and a call.
+	//loop's four values have X, Y, W and V; after it comes a multiply and a call.  W is 0 when the function starts, so
+	//the value in it that starts at 0 isn't set; it is set back before the mul, and is still 0 after it for the call and
+	//the return (CIR65Peephole takes those out).
 	szAssembly.Init();
 	AssertInt((1 + 2 + 3 + 4) * (1 ^ 2 ^ 3 ^ 4) + 1, (int32)TestIR65Run(
 		"function i32 @_Next__Fi(i32 %x)\n{\nb:\n\t%r = add i32 %x, 1\n\tret i32 %r\n}\n\n"
@@ -1599,15 +1601,52 @@ void TestIR65BackendHomeV(void)
 		"function i32 @_main()\n{\nb:\n"
 		"\t%r = call i32 @_Work__Fi(i32 4)\n"
 		"\tret i32 %r\n}\n", false, &szAssembly));
-	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tmul\n\t\tcpy W, 0\n"));
-	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tjsr _Next__Fi\n"));
-	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tpul V\n\t\tret\n"));
 	sz.Init();
 	sz.AppendSubString(szAssembly, szAssembly.Find("_Work__Fi:"), szAssembly.Find("\t\t.section text._main"));
-	AssertTrue(sz.Contains(" W, "));
+	AssertTrue(sz.Contains("\t\txor W, X\n"));
+	AssertTrue(sz.Contains("\t\tcpy B, W\n\t\tcpy W, 0\n\t\tmul\n\t\tcpy W, 0\n"));
+	AssertFalse(sz.Contains("\t\tcpy W, 0\n\t\tjsr") || sz.Contains("\t\tcpy W, 0\n\t\tpul V\n"));
 	AssertFalse(sz.Contains(" + W]"));
 	sz.Kill();
 	szAssembly.Kill();
+
+	//A cpy W, 0 where W is 0 already goes: at the function's start, after a call and after another; one after W is
+	//written, after a mul, or where a way in leaves W unknown stays.
+	TestIR65PeepholeOptimise(
+		"_F:\n"
+		"\t\tjsr _G\n"
+		"\t\tcpy W, A\n"
+		"\t\tadd W, 1\n"
+		"\t\tcpy B, W\n"
+		"\t\tcpy W, 0\n"
+		"\t\tmul\n"
+		"\t\tcpy W, 0\n"
+		"\t\tjsr _G\n"
+		"\t\tcmp A, 0\n"
+		"\t\tbras z, L1\n"
+		"\t\tcpy W, A\n"
+		"L1:\n"
+		"\t\tcpy W, 0\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcpy W, 0\n"
+		"\t\tjsr _G\n"
+		"\t\tcpy W, 0\n"
+		"\t\tcpy W, A\n"
+		"\t\tadd W, 1\n"
+		"\t\tcpy B, W\n"
+		"\t\tcpy W, 0\n"
+		"\t\tcpy W, 0\n"
+		"\t\tmul\n"
+		"\t\tcpy W, 0\n"
+		"\t\tcpy W, 0\n"
+		"\t\tjsr _G\n"
+		"\t\tcmp A, 0\n"
+		"\t\tbras z, L1\n"
+		"\t\tcpy W, A\n"
+		"L1:\n"
+		"\t\tcpy W, 0\n"
+		"\t\tret\n");
 
 	//Where V is a value's home, [n + V] is anyone's memory (a device's register, say): a store to it read straight
 	//back stays a read, and two reads of it stay two.

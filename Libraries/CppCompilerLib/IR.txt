@@ -547,7 +547,8 @@ left to mean anything else.  W is never written as an address ([W], [4 + W]:
 IsAddressRegister; a pointer in it is copied to B, 1 cycle more than [X] and 2 less than
 [[n + W]]) and has only the one width, as V.  BaseLib, StandardLib and SupportLib on the
 65C64: 4.3%, 2.9% and 3.6% fewer cycles.  CCPPCompileOptions::mbHomeW false keeps W 0
-throughout, to compare.
+throughout, to compare.  CIR65Peephole then takes out each cpy W, 0 where W is 0 already
+(it is at the function's label and after a call; TransferW): 0.5%, 0.5% and 0.2% more.
 
 A parameter used at most once, or that gets no X, Y or low pseudo register, stays where
 it was pushed; others are copied to their home by the prologue (this from X).  64 bit values only get memory (two units).  Narrow
