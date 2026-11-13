@@ -39,14 +39,18 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 typedef CMapStringTemplate<CHeaderFile*>	CHeaderFilePtrMap;
 
 
+//An include directory: its headers by their names relative to it ("BaseLib/Chars.h").  One with its sub directories
+//lists them all when it is made.  One without lists the headers in it, and finds one in a sub directory when it is
+//first asked for, as a C++ compiler's -I does (GetFile).
 class CHeaderFileMap;
 class CHeaderFiles
 {
 protected:
 	CHeaderFileMap*		mpcFileMap;  //Relative names
-	CHeaderFilePtrMap	mcFileNames;
+	CHeaderFilePtrMap	mcFileNames;		//NULL for a name looked for in a sub directory and not there.
 	CChars				mszBaseDirectory;
 	bool				mbSystem;
+	bool				mbSubDirectories;
 
 public:
 	bool			Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool bIncludeSubDirectories, bool bSystem);
@@ -56,11 +60,15 @@ public:
 	void			AddFiles(bool bIncludeSubDirectories);
 
 	CHeaderFile*	GetFile(char* szRelativeFileName);
+	bool			HasSubDirectories(void);
 	
 	char*			GetBaseDirectory(void);
 	size			GetBaseDirectoryLength(void);
 
 	void			Dump(void);
+
+protected:
+	CHeaderFile*	FindInSubDirectory(char* szRelativeFileName);
 };
 
 

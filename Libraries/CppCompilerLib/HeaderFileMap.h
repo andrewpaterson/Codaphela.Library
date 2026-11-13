@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __HEADER_FILE_MAP_H__
 #include "BaseLib/MapStringTemplate.h"
 #include "BaseLib/LinkedListTemplate.h"
+#include "BaseLib/Mutex.h"
 #include "HeaderFile.h"
 
 
@@ -29,11 +30,15 @@ typedef CMapStringTemplate<CHeaderFile*>	CHeaderFilePtrMap;
 typedef CLinkedListTemplate<CHeaderFile>	CHeadFileList;
 
 
+//Every header the project's include directories have, by its full name.  The directories list their headers before
+//any unit is compiled, but one without its sub directories adds a header in a sub directory when a unit first
+//includes it (CHeaderFiles::GetFile), while other units are compiled: those additions and GetFile hold mcMutex.
 class CHeaderFileMap
 {
 protected:
 	CHeaderFilePtrMap	mcFileMap;
 	CHeadFileList		mcFileList;
+	CMutex				mcMutex;
 
 public:
 	void 			Init(void);
@@ -43,6 +48,9 @@ public:
 	CHeaderFile*	GetFile(char* szAbsoluteFileName);
 	CHeaderFile*	StartIteration(SMapIterator* psIter);
 	CHeaderFile*	Iterate(SMapIterator* psIter);
+
+	void			Lock(void);
+	void			Unlock(void);
 };
 
 

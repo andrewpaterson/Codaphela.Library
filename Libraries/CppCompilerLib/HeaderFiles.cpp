@@ -35,11 +35,14 @@ bool CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool b
 	CChars		sz;
 
 	//Initialised even for a directory that doesn't exist: it is searched and killed like any other, and has no files.
+	//The directory is a full path, as the files found in it are (AddFiles) and the files including them are.
 	mszBaseDirectory.Init(szBaseDirectory);
+	cFileUtil.FullPath(&mszBaseDirectory);
 	//Include names are not case sensitive on Windows (CPP_HEADER_NAMES_CASE_SENSITIVE).
 	mcFileNames.Init(CPP_HEADER_NAMES_CASE_SENSITIVE, false);
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
+	mbSubDirectories = bIncludeSubDirectories;
 
 	if (!cFileUtil.Exists(szBaseDirectory))
 	{
@@ -90,21 +93,44 @@ static const char* FileNamePart(const char* szPath)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The directory's headers: files with no extension (as C++'s own, <new>)
-// and those with a header's (CPP_HEADER_EXTENSIONS).
+// A header's name: a file with no extension (as C++'s own, <new>) or with
+// a header's (CPP_HEADER_EXTENSIONS).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsHeaderName(const char* szName)
+{
+	static const char*	aszExtensions[] = { CPP_HEADER_EXTENSIONS, NULL };
+	CFileUtil			cFileUtil;
+	size				i;
+
+	if (strchr(FileNamePart(szName), '.') == NULL)
+	{
+		return true;
+	}
+	for (i = 0; aszExtensions[i]; i++)
+	{
+		if (cFileUtil.IsExtension((char*)szName, (char*)aszExtensions[i]))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The directory's headers (IsHeaderName).
 //
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFiles::AddFiles(bool bIncludeSubDirectories)
 {
-	static const char*	aszExtensions[] = { CPP_HEADER_EXTENSIONS, NULL };
 	CArrayChars			aszFileNames;
 	CFileUtil			cFileUtil;
 	char*				szFile;
 	const char*			szName;
 	size				iBaseDirLen;
-	size				i;
 	size				j;
-	bool				bHeader;
 
 	iBaseDirLen = mszBaseDirectory.Length();
 	aszFileNames.Init();
@@ -113,12 +139,7 @@ void CHeaderFiles::AddFiles(bool bIncludeSubDirectories)
 	{
 		szFile = aszFileNames.Get(j)->Text();
 		szName = &szFile[iBaseDirLen + 1];
-		bHeader = strchr(FileNamePart(szName), '.') == NULL;
-		for (i = 0; !bHeader && aszExtensions[i]; i++)
-		{
-			bHeader = cFileUtil.IsExtension(szFile, aszExtensions[i]);
-		}
-		if (bHeader)
+		if (IsHeaderName(szName))
 		{
 			AddFile((char*)szName);
 		}
@@ -162,18 +183,76 @@ CHeaderFile* CHeaderFiles::AddFile(char* szRelativeFileName)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFiles::GetFile(char* szRelativeFileName)
 {
-	CHeaderFile** ppcHeaderFile;
+	CHeaderFile**	ppcHeaderFile;
 
-	ppcHeaderFile = mcFileNames.Get(szRelativeFileName);
-	if (ppcHeaderFile)
+	if (mbSubDirectories)
 	{
-		return *ppcHeaderFile;
+		//Every header it can have was listed when it was made, and isn't changed after.
+		ppcHeaderFile = mcFileNames.Get(szRelativeFileName);
+		return ppcHeaderFile ? *ppcHeaderFile : NULL;
 	}
+	return FindInSubDirectory(szRelativeFileName);
+}
 
-	else
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szRelativeFileName in a directory added without its sub directories.  A
+// header in it was listed when it was made; one in a sub directory
+// ("BaseLib/Chars.h") is the header if the file is there, remembered
+// either way so the disk is looked at once for each name.  Units compiled
+// at the same time ask, so the project's header map's lock is held.  A
+// name that leaves the directory ("../x.h", "/x.h") isn't looked for.
+//
+//////////////////////////////////////////////////////////////////////////
+CHeaderFile* CHeaderFiles::FindInSubDirectory(char* szRelativeFileName)
+{
+	CHeaderFile**	ppcHeaderFile;
+	CHeaderFile*	pcHeaderFile;
+	CFileUtil		cFileUtil;
+	CChars			szFullName;
+
+	if ((szRelativeFileName[0] == '/') || (strstr(szRelativeFileName, "..") != NULL) || (strchr(szRelativeFileName, ':') != NULL))
 	{
 		return NULL;
 	}
+
+	mpcFileMap->Lock();
+	ppcHeaderFile = mcFileNames.Get(szRelativeFileName);
+	if (ppcHeaderFile)
+	{
+		pcHeaderFile = *ppcHeaderFile;
+	}
+	else
+	{
+		pcHeaderFile = NULL;
+		if ((strchr(szRelativeFileName, '/') != NULL) && IsHeaderName(szRelativeFileName))
+		{
+			szFullName.Init(mszBaseDirectory);
+			cFileUtil.AppendToPath(&szFullName, szRelativeFileName);
+			if (cFileUtil.Exists(szFullName.Text()) && !cFileUtil.IsDirectory(szFullName.Text()))
+			{
+				pcHeaderFile = AddFile(szRelativeFileName);
+			}
+			szFullName.Kill();
+		}
+		if (!pcHeaderFile)
+		{
+			mcFileNames.Put(szRelativeFileName, &pcHeaderFile);
+		}
+	}
+	mpcFileMap->Unlock();
+	return pcHeaderFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CHeaderFiles::HasSubDirectories(void)
+{
+	return mbSubDirectories;
 }
 
 

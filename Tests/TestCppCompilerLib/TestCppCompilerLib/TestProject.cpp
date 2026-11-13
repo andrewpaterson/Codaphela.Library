@@ -317,6 +317,100 @@ void TestVisualStudioProjectCase(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An include directory added without its sub directories finds a header
+// in one when a unit names it ("Sub/Deep.h"), as a C++ compiler's -I
+// does, and the same header for every unit.  A name that isn't there, or
+// leaves the directory, is not found.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIncludeDirectorySubDirectory(void)
+{
+	CFileUtil			cFileUtil;
+	CProject			cProject;
+	CLibrary*			pcLibrary;
+	CConfig*			pcConfig;
+	CTranslationUnit*	pcTU1;
+	CTranslationUnit*	pcTU2;
+	CChars				szErrors;
+	CChars				szDeep;
+	bool				bResult;
+
+	TypesInit();
+	TypeConverterInit();
+	NumberInit();
+
+	cFileUtil.RemoveDir("Output" _FS_ "IncludeSub");
+	cFileUtil.TouchDir("Output" _FS_ "IncludeSub" _FS_ "Base" _FS_ "Sub");
+	cFileUtil.TouchDir("Output" _FS_ "IncludeSub" _FS_ "Unit");
+	AssertTrue(cFileUtil.IsDirectory("Output" _FS_ "IncludeSub" _FS_ "Base" _FS_ "Sub"));
+	AssertTrue(cFileUtil.IsDirectory("Output" _FS_ "IncludeSub" _FS_ "Unit"));
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Base" _FS_ "Top.h", "int giTop;\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Base" _FS_ "Sub" _FS_ "Deep.h", "#pragma once\nint giDeep;\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Outside.h", "int giOutside;\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Unit1.cpp", "#include \"Top.h\"\n#include \"Sub/Deep.h\"\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Unit2.cpp", "#include <Sub/Deep.h>\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Missing.cpp", "#include \"Sub/Missing.h\"\n");
+	WriteProjectFile("Output" _FS_ "IncludeSub" _FS_ "Unit" _FS_ "Leaves.cpp", "#include \"Sub/../../Outside.h\"\n");
+
+	cProject.Init(true);
+	AssertTrue(cProject.AddIncludeDirectory("Output" _FS_ "IncludeSub" _FS_ "Base", false, false));
+	pcLibrary = cProject.AddLibrary("Test", "Output" _FS_ "IncludeSub" _FS_ "Unit", false);
+	pcTU1 = pcLibrary->AddTranslationUnit("Unit1.cpp", true);
+	pcTU2 = pcLibrary->AddTranslationUnit("Unit2.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_DEBUG");
+
+	szErrors.Init();
+	bResult = cProject.Process("Debug", &szErrors);
+	AssertString("", szErrors.Text());
+	AssertTrue(bResult);
+	szErrors.Kill();
+	AssertString("\
+     Unit1.cpp (Included)\n\
+         Top.h (Included)\n\
+         Deep.h (Included)\n", pcTU1->GetLogs()->szIncludesLog.Text());
+	AssertString("\
+     Unit2.cpp (Included)\n\
+         Deep.h (Included)\n", pcTU2->GetLogs()->szIncludesLog.Text());
+	szDeep.Init("Output" _FS_ "IncludeSub" _FS_ "Base" _FS_ "Sub" _FS_ "Deep.h");
+	cFileUtil.FullPath(&szDeep);
+	AssertNotNull(cProject.GetIncludeFile(szDeep.Text()));
+	szDeep.Kill();
+	cProject.Kill();
+
+	cProject.Init(true);
+	AssertTrue(cProject.AddIncludeDirectory("Output" _FS_ "IncludeSub" _FS_ "Base", false, false));
+	pcLibrary = cProject.AddLibrary("Test", "Output" _FS_ "IncludeSub" _FS_ "Unit", false);
+	pcLibrary->AddTranslationUnit("Missing.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_DEBUG");
+	szErrors.Init();
+	AssertFalse(cProject.Process("Debug", &szErrors));
+	AssertTrue(szErrors.Contains("Sub/Missing.h"));
+	szErrors.Kill();
+	cProject.Kill();
+
+	cProject.Init(true);
+	AssertTrue(cProject.AddIncludeDirectory("Output" _FS_ "IncludeSub" _FS_ "Base", false, false));
+	pcLibrary = cProject.AddLibrary("Test", "Output" _FS_ "IncludeSub" _FS_ "Unit", false);
+	pcLibrary->AddTranslationUnit("Leaves.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_DEBUG");
+	szErrors.Init();
+	AssertFalse(cProject.Process("Debug", &szErrors));
+	szErrors.Kill();
+	cProject.Kill();
+
+	cFileUtil.RemoveDir("Output" _FS_ "IncludeSub");
+
+	NumberKill();
+	TypeConverterKill();
+	TypesKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestProject(void)
@@ -330,6 +424,7 @@ void TestProject(void)
 	TestNoPostFile();
 	TestMissingIncludeDirectory();
 	TestVisualStudioProjectCase();
+	TestIncludeDirectorySubDirectory();
 
 	TestStatistics();
 }

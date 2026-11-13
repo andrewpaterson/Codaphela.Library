@@ -29,6 +29,7 @@ void CHeaderFileMap::Init(void)
 {
 	mcFileMap.Init(true, false);
 	mcFileList.Init();
+	mcMutex.Init();
 }
 
 
@@ -56,12 +57,15 @@ void CHeaderFileMap::Kill(void)
 
 	mcFileMap.Kill();
 	mcFileList.Kill();
+	mcMutex.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The header at szAbsoluteFileName, added if it isn't here yet.  Called
+// while units are compiled, the caller holds the lock (Lock).
+//
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, bool bSystem)
 {
@@ -102,17 +106,14 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, bool bSystem)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::GetFile(char* szAbsoluteFileName)
 {
-	CHeaderFile**	pcHeader;
+	CHeaderFile**	ppcHeader;
+	CHeaderFile*	pcHeader;
 
-	pcHeader = mcFileMap.Get(szAbsoluteFileName);
-	if (pcHeader)
-	{
-		return *pcHeader;
-	}
-	else
-	{
-		return NULL;
-	}
+	mcMutex.LockShared();
+	ppcHeader = mcFileMap.Get(szAbsoluteFileName);
+	pcHeader = ppcHeader ? *ppcHeader : NULL;
+	mcMutex.UnlockShared();
+	return pcHeader;
 }
 
 
@@ -155,5 +156,26 @@ CHeaderFile* CHeaderFileMap::Iterate(SMapIterator* psIter)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Held while a header is added as units are compiled (AddFile).
+//
+//////////////////////////////////////////////////////////////////////////
+void CHeaderFileMap::Lock(void)
+{
+	mcMutex.Lock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHeaderFileMap::Unlock(void)
+{
+	mcMutex.Unlock();
 }
 
