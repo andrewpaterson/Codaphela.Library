@@ -78,6 +78,7 @@ public:
 	size			Undone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	size			Redone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			RemoveDocument(char* szDocument);
+	void			RenameDocument(char* szOldDocument, char* szNewDocument);
 
 	size			FindUndoGroup(void);
 	size			FindRedoGroup(void);

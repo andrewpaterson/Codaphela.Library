@@ -208,6 +208,26 @@ size CUndoLog::Redone(char* szDocument, size uiIdBefore, size uiIdAfter)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The document is called szNewDocument now (its file was renamed): its
+// steps are kept under its new name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CUndoLog::RenameDocument(char* szOldDocument, char* szNewDocument)
+{
+	size	i;
+
+	for (i = 0; i < masSteps.NumElements(); i++)
+	{
+		if (StringCompare(masSteps.Get(i)->szDocument.Text(), szOldDocument) == 0)
+		{
+			masSteps.Get(i)->szDocument.Set(szNewDocument);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The document closed, its undo stack with it.
 //
 //////////////////////////////////////////////////////////////////////////

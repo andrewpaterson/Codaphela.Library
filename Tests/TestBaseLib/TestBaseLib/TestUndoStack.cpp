@@ -230,6 +230,43 @@ void TestUndoLogAcrossDocuments(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A document renamed (its file was) keeps its steps under its new name:
+// its own undo finds them by it, and the other documents' are left as
+// they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUndoLogRenameDocument(void)
+{
+	CUndoLog	cLog;
+	size		uiGroup;
+
+	cLog.Init();
+	cLog.Kept("a.h", 0, 1);
+	cLog.BeginGroup();
+	cLog.Kept("b.cpp", 0, 1);
+	cLog.Kept("a.h", 1, 2);
+	cLog.EndGroup();
+	uiGroup = cLog.Get(1)->uiGroup;
+
+	cLog.RenameDocument("a.h", "c.h");
+	AssertSize(3, cLog.NumSteps());
+	AssertString("c.h", cLog.Get(0)->szDocument.Text());
+	AssertString("b.cpp", cLog.Get(1)->szDocument.Text());
+	AssertString("c.h", cLog.Get(2)->szDocument.Text());
+	AssertSize(uiGroup, cLog.Get(2)->uiGroup);
+	AssertSize(MAX_SIZE, cLog.Undone("a.h", 2, 1));
+	AssertSize(uiGroup, cLog.Undone("c.h", 2, 1));
+
+	//A name nothing has changes nothing.
+	cLog.RenameDocument("d.h", "e.h");
+	AssertString("b.cpp", cLog.Get(1)->szDocument.Text());
+	AssertString("c.h", cLog.Get(0)->szDocument.Text());
+	cLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Past the maximum the oldest steps are dropped.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -261,6 +298,7 @@ void TestUndoStack(void)
 	TestUndoStackStates();
 	TestUndoStackMaximum();
 	TestUndoLogAcrossDocuments();
+	TestUndoLogRenameDocument();
 	TestUndoLogMaximum();
 
 	TestStatistics();

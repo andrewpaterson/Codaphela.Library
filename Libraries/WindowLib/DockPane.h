@@ -128,6 +128,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	const char*			GetID(void);
+	void				SetID(const char* szID);
 	const char*			GetTitle(void);
 	void				SetTitle(const char* szTitle);
 	Ptr<CImageCel>		GetIcon(void);

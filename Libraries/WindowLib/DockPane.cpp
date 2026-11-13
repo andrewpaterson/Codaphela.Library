@@ -391,6 +391,18 @@ void CDockPane::SetAutoHide(EDockSide eSide, int32 iSize)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The pane's id changed, as a document's is when its file is renamed.
+// The layout written after has the new id.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockPane::SetID(const char* szID)
+{
+	mszID.Set(szID);
+}
+
+
 const char*			CDockPane::GetID(void) { return mszID.Text(); }
 const char*			CDockPane::GetTitle(void) { return mszTitle.Text(); }
 Ptr<CImageCel>		CDockPane::GetIcon(void) { return mpIcon; }
