@@ -224,7 +224,7 @@ What is left
 
 In the order I would do it.
 
-1. Done 2026-11-14: the full sweep (/home/r2d2/CodaphelaSweep/2026-11-14) on 8ec7fe07f and HCP65 9a504ea,
+1. Done 2026-11-14: the full sweep (/home/r2d2/CodaphelaSweep/2026-11-14) on 8ec7fe07f (a commit later rebased away) and HCP65 9a504ea,
    116 builds and 114 runs, all passed.
 
 2. Done 2026-11-14: the run-time tests on both processors.  TestIR65Run runs each 65C64 program on the
@@ -262,7 +262,7 @@ Part 1, the 65C64:
 	    goes here; it replaces the 2026-11-13 figures (copies 10%, constants 9%, branches 5%, width changes 5%,
 	    before W was ordinary) and every step after is chosen and sized from it.
 
-	    Done 2026-11-14, on d5fe6e700 and HCP65 ab45db0.  Exact, not by source line: a build made only to measure
+	    Done 2026-11-14, on 8060b5fe7 and HCP65 ab45db0.  Exact, not by source line: a build made only to measure
 	    gave each instruction a .line of its own and wrote each function's instructions out, so the profile's
 	    lines are instructions (cycles of the three suites 6.173G, 15.664G, 30.794G; 94.7% of them in compiled
 	    code, the rest in assembly).  Percentages are of all cycles:
@@ -307,7 +307,7 @@ Part 1, the 65C64:
 	    instruction works out in a 32 bit register before truncating (and: the fewer; or, xor: the more; add:
 	    one more; mul: the sum; lshr by a constant: fewer; shl by one: more; zext, trunc, copy, udiv, urem;
 	    sext of a value whose sign bit is 0; comparisons 1; sub, neg, not, calls and the rest: all).
-	    CIR65Backend::StoreResult doesn't mask a result that fits its type (FitsType).  Against 49096040f, all
+	    CIR65Backend::StoreResult doesn't mask a result that fits its type (FitsType).  Against eb1cdd3c4, all
 	    304 programs faster: TestBaseLib65 6.173G -> 6.096G (-1.26%), TestStandardLib65 15.664G -> 15.355G
 	    (-1.98%), TestSupportLib65 30.794G -> 30.320G (-1.54%); code 0.5% smaller.  More than the 0.79%
 	    estimate, which counted only facts local to a block; what the rest is wasn't looked into.  Not yet: ranges from loop tests (add X, 1 / and X, 65535 of a
@@ -316,7 +316,7 @@ Part 1, the 65C64:
 	    Ranges: CIRKnownBits keeps each value's largest, not its bits; a use below a branch on a comparison
 	    (through single predecessor blocks) and a phi's value on a branch's edge are bounded by it (i < n, so
 	    i + 1 <= n); a phi that keeps rising is widened to its type's largest, then four narrowing rounds.
-	    Against 0d8029fe4: -0.08%, -0.04%, -0.20%, no program slower.
+	    Against da1304e66: -0.08%, -0.04%, -0.20%, no program slower.
 	    (The commit said TestLibc65 fails on the W65C816: it was run from the wrong folder.  From its own it passes,
 	    154781 checks, before and after.)
 
@@ -328,7 +328,7 @@ Part 1, the 65C64:
 	    is read for the last time, or defined part way through); those positions go in maiLosesB and it is
 	    written again, at most IR65_HOME_B_TRIES times, then without B.  WorkRegister never works in B, the call
 	    argument loader knows B can hold one, a callee isn't jumped to through B, and B is no address register
-	    (MemoryOperand's [B] is its own).  Against 1e2cdecd3, all 304 programs faster: TestBaseLib65
+	    (MemoryOperand's [B] is its own).  Against ba38a3d05, all 304 programs faster: TestBaseLib65
 	    6.096G -> 6.014G (-1.34%), TestStandardLib65 15.355G -> 15.058G (-1.93%), TestSupportLib65 30.320G ->
 	    28.990G (-4.39%); code 0.2% smaller.  32 bit values only was -1.15%, -1.53%, -3.49% (narrow ones added
 	    -0.18%, -0.42%, -0.93%; against the 32 bit only build TestIntelHex +1.7% and TestMemoryManager +0.1%).
@@ -338,7 +338,7 @@ Part 1, the 65C64:
 	    pointer in a pseudo register: the destination could be the address register), cpy B, A for an address
 	    worked out in A (a free X or Y could take it), and compares that load their second operand into B.
 	    Writing the code twice costs compile time (not measured).
-	    Then, against 81eb75ce2: a narrow compare with its second operand in memory is wth A, n / cmp A, [mem] /
+	    Then, against 8be21d080: a narrow compare with its second operand in memory is wth A, n / cmp A, [mem] /
 	    wth A, 32, not through B (NarrowMemoryOperand): -0.05%, -0.01%, -0.87%, no program slower; kept.  An
 	    address put in the load's own X or Y (32 bit loads) or a free X or Y (narrow ones) rather than B: +0.19% on
 	    TestBaseLib65, 160 of 170 programs slower; dropped.
@@ -354,14 +354,14 @@ Part 1, the 65C64:
 	and hurts most) and committed, with the unit tests and the four 65 suites on both processors after it.
 
 Re-profile and E to F (2026-11-14, user: "fix loop-counter ranges first then re-profile, then plan and run E
-through F").  Profile on 834438df8 with the step A tools (scratchpad mx2; 49.74G cycles, 94.4% compiled), as % of
+through F").  Profile on 38de9650a with the step A tools (scratchpad mx2; 49.74G cycles, 94.4% compiled), as % of
 all cycles: loads and stores of [n] and [n + V] 24.8; width changes (wth 2.2, wthx 0.5, wtth 0.3; cpyx loads 2.8
 and stores 1.2 are only narrow accesses) 3.0; register copies 6.1 (other 4.8); masks 1.8; bra 1.3 (forward 0.71,
 to a return 0.34, back edge 0.27); constants 1.25.  Each step's candidates grouped by their code around them:
 
 	E  widths: spread thin, the largest pattern 0.05%; most are signed narrow values (a sign extending copy,
 	   a signed narrow compare).  wth / cpy / wthx loads cpyx could do are 0.04%.  Dropped (under the stop rule).
-	G  copies: spread thin, but cpy A, R / and A, value / bras z is 0.30%: tst R, value (9fbbe269e, -0.33%,
+	G  copies: spread thin, but cpy A, R / and A, value / bras z is 0.30%: tst R, value (9375d4611, -0.33%,
 	   -0.62%, -0.16%).  The rest dropped.
 	D  branches: a bra to an epilogue of three instructions or fewer (add S, n / pul V / ret, or pul V / ret)
 	   is 0.34%: the epilogue is written at each return instead, when not optimising for size (below: -0.25%,
