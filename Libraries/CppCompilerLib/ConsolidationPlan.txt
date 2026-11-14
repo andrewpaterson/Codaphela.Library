@@ -487,10 +487,11 @@ Stage 0's baseline goes here, then a row for each stage: the date, the suites' t
 and sizes on each processor, compile CPU, wall and peak memory, and what the stage's own counters were before and
 after.
 
-Written 2026-11-13 from the commits and the code.  Stages 0 to 3 were begun on 2026-11-11 and nothing has been
-done to them since.  No stage has its row of numbers yet: the baseline was never taken, so there is nothing to
-compare a stage with.  Each commit below says only that TestSupportLib65's listings are the same on both
-processors; whether the whole proof was run at a stage's end isn't recorded.
+Written 2026-11-13 from the commits and the code, and corrected 2026-11-14 by the session that did the work
+on 2026-11-11: the baseline was taken then, and the size check and the passes' table were run, but none of it
+was written here.  The numbers are below ("The numbers of 2026-11-11").  They are of the compiler as it was that
+day: the 65C64's back end has had a hundred commits since, so its cycles and bytes are history, not something
+to compare today's build with.  A new baseline is needed before stage 4 measures anything.
 
 	Stage   State                   Commits
 	0       Mostly done             92a2f3511 6a8463f4d
@@ -506,8 +507,11 @@ Stage 0.
    optimiser's rounds) and times each phase when asked (CCPP65Builder::SetTimes); TEST_PROJECT65_COMPILE_STATS
    prints them and TEST_PROJECT65_CYCLES each program's size with its cycles (6a8463f4d).  CompilerMeasure.py
    is the script.
-   Left: the baseline itself (suites, cycles, sizes, compile CPU, wall and peak memory, counters, the VTune
-   profile) and the spread between two runs of the same build.  This is the first thing to do before stage 4.
+   The baseline was taken on 2026-11-11 (below).
+   Left: the workspaces' high water marks (the process's peak memory is measured), the W65C816's fullest bank
+   (each program's image bytes are), where an Unsupported exit is taken (they are counted: none is, in the
+   suites), the VTune profile (the phase times say where the time goes) and the spread between two runs of the
+   same build, which was seen (a tenth or so on the times) but not measured alone on a quiet machine.
 
 Stage 1.
    Done: CCPPTarget with CCPPTarget65C64, CCPPTargetW65C816 and CCPPTargetHost, holding the sizes and asked for
@@ -521,9 +525,13 @@ Stage 1.
    configurations have PreferSize and hcp65build's plain command line -prefer-size (HCP65-IDE 2499ac0);
    TEST_PROJECT65_PREFER_SIZE sets it for the Lib65 suites.  Compiling a unit is counted in its own statistics,
    added up by the builder.
-   Left: "preferring size, the suites pass and every linked program is smaller or the same" is not recorded as
-   checked: the commit says only that TestSupportLib65's project compiles.  The places that trade speed for size
-   aren't listed here yet.
+   Preferring size, the three Lib65 suites pass on both processors (2026-11-11, on ec1ec1644; the table is
+   below).  The first run found a real bug that preferring speed hid: a unit compiled again lost the functions
+   a header defines that aren't inline (ec1ec1644, TestCPP816CompiledAgain).  Programs compiled for size are
+   slower, so the suites give them more of the emulator's instructions (TEST_PROJECT65_STEPS, which
+   CompilerMeasure.py --size sets).
+   Left: the totals are smaller on every suite and processor, but "every linked program is smaller or the same"
+   was not checked program by program.  The places that trade speed for size aren't listed here yet.
 
 Stage 2.
    Done: the passes are in ten groups, CIRAddressPasses to CIRRangePasses, on a base CIRPasses, sharing a
@@ -533,9 +541,12 @@ Stage 2.
    Dominators, definitions and loops are kept while no pass changes the function: compiling TestSupportLib65's
    project the dominators are worked out 1,269,039 times for the W65C816, where they were 4,017,980, and 426,682
    for the 65C64, where they were 1,350,765 (7134b3000).
+   The table of each pass on each processor is below.  The passes' times added up (W65C816, TestSupportLib65's
+   project, over the threads) were 38.9s before the analyses were kept and 28.7s after, taken on a machine
+   that was running other suites, so the size of the gain is rough; the dominators' counts are exact.
+   TestCppCompilerLib passes on 7134b3000 with ec1ec1644 (259,791 checks) and on cf550eee6.
    Left: liveness, ranges and use counts are not yet kept analyses.  The four byte loop idioms don't share one
-   matcher, and the longest passes aren't split into finding, checking and rewriting.  The table of each pass on
-   each processor isn't written here.  The optimiser's time before and after isn't recorded.
+   matcher, and the longest passes aren't split into finding, checking and rewriting.
 
 Stage 3.
    Done: the structs are classes with the Meaning layer's names, CCPPClass, CCPPFunction, CCPPVariable,
@@ -545,6 +556,133 @@ Stage 3.
    NeedsDestructor, FindField and the rest are still the generator's, and it has 312 functions where it had 314.
    mbComplete, mbLayingOut and mbBases are not yet one state.  CCPPVtable, CCPPClassLayout and CCPPMangler
    don't exist.
+
+The numbers of 2026-11-11.
+
+How a commit was checked: TestSupportLib65's project compiled without running a test, every unit's listing
+written (837 for the W65C816, 838 for the 65C64) and compared with the listings of the compiler before the
+plan.  Two builds of one compiler give the same listings, so a commit that only moves code must too.
+
+The baseline, the compiler at stage 0 (Release x64, 16 threads, Tests\CompilerMeasure.py).  Cycles are the
+programs' on the emulator, added up; bytes are their linked images', added up:
+
+	Suite              Processor  Programs  Asserts          Cycles       Bytes  Seconds  Peak MB
+	TestBaseLib65      65C64           167   159990      8404908806    18329273      132     1611
+	TestBaseLib65      W65C816         165   153509     18286299999    80353209      170     2024
+	TestStandardLib65  65C64            66    11034     23968878726    26183642      274     1862
+	TestStandardLib65  W65C816          64    10505     25571326318    72725377      228     2802
+	TestSupportLib65   65C64            67    29567     43179501776    27179447      487     2122
+	TestSupportLib65   W65C816          63    21074     64165613058    70703586      473     2432
+
+The same preferring size (ec1ec1644).  Every suite passes with the same programs and asserts:
+
+	Suite              Processor          Cycles       Bytes    Cycles    Bytes
+	TestBaseLib65      65C64          9679643203    17552913      +15%      -4%
+	TestBaseLib65      W65C816       25476758807    63730343      +39%     -21%
+	TestStandardLib65  65C64         27273555972    24400905      +14%      -7%
+	TestStandardLib65  W65C816       35858400223    48663434      +40%     -33%
+	TestSupportLib65   65C64         50649507498    25423107      +17%      -6%
+	TestSupportLib65   W65C816       93335142452    47516619      +45%     -33%
+
+What compiling TestSupportLib65's project took and counted at the baseline (milliseconds are added over the
+threads and move by a tenth or so from run to run; the counts are exact, but for the quiet trials, which differ
+by a few hundred between runs):
+
+	                         65C64   W65C816
+	preprocess               11308     16018
+	tokenise                  3952      5971
+	parse                    36742     45518
+	declarations              3887      7638
+	types                     4922      9671
+	front end                 3200      5958
+	inline                    3854     29898
+	optimise                  3448      7270
+	back end                  3862     12866
+	code passes              12826     45135
+	assemble                 11089     34192
+
+	functions                29444     72729
+	TypeOf                 2014581   4731134
+	TypeOf worked out       485061   1146041
+	quiet trials            651522   1680953
+	quiet trials failed         51       128
+	FindFunction            252142    608793
+	FindNamedFunction        38538     85888
+	FindAddressedFunction     1267      1944
+	FindAssociatedFunction       0         0
+	FindOperator             24324     54928
+	FindFreeOperator             0         0
+	FindStaticFunction        2093      4272
+	FindConversion           23017     54927
+	FindMemberTemplate       28268     64727
+	ChooseMemberTemplate    130741    325128
+	ChooseTemplate          161786    396282
+	GetCallTemplate           2777      6427
+	pack expansions            633      1468
+	pack expansion nodes      5583     12876
+	unsupported exits            0         0
+	65C64 code loaded       121235         0
+	65C64 code refused          34         0
+	dominators             1350765   4017980
+	optimised functions      40881    109297
+	optimiser rounds         83043    226748
+
+What the baseline says about the plan:
+  - Parsing is the biggest single phase on both processors, and the passes over the code the back ends wrote
+    (decoding their own text) are next: more than the optimiser, the front end and the types together.
+  - A quarter of TypeOf's calls work the type out; the rest are remembered.  A unit makes 1.7 million quiet
+    trials on the W65C816, of which 128 fail: nearly all of quiet mode's uses are not trials of anything that
+    can fail.
+  - Dominators were worked out 37 times for each function optimised (12 since 7134b3000).
+  - The 65C64's passes refused 34 functions' code out of 121,235: there was almost nothing for stage 8 to win
+    for the 65C64 by reading every function.
+  - No Unsupported exit is taken in a build that succeeds: they are all errors.
+
+Each pass compiling TestSupportLib65's project (cf550eee6): how often it ran, how often it changed its
+function, how many of those were in the first round and in the third or later, and its milliseconds.  A dash
+is a pass the 65C64's pipeline leaves out:
+
+	                               65C64                                      W65C816
+	                                runs  changed   first third+     ms       runs  changed   first third+     ms
+	SimplifyCFG                    83043    35846   31891   1005   1367     227127   101194   87125   3465  11588
+	UnifySlotTypes                 83043       80      80      0    225     227127      375     276      0   1067
+	SplitSlots                     83043     1248    1224      0    222     227127     7565    7367      0   1009
+	PromoteSlots                   83043    15551   15516      0    401     227127    39556   39145      0   1187
+	RemoveTrivialPhis              83043     1890     462    164    121     227127     8201    5314    514    454
+	FoldConstants                  83043    11859   10763    170    386     227129    34738   30925    985   1407
+	FoldNullTests                  83043       99      79      0     71     227127     1466    1333     16    231
+	NarrowTruncations              83043      258     247      0    160     227127      475     464      0    575
+	BoundDivisions                 83043       13      12      0     43     227127       26      24      0    142
+	SignedPowerDivisions           83043       58      58      0     29     227127      173     167      0     80
+	DivisibilityTests                  -        -       -      -      -     227127       11      11      0     93
+	ConstantDivisions                  -        -       -      -      -     227127      133     117      0    435
+	ShareDivisions                 83043        3       2      0     28     227127        9       2      1     97
+	RemoveCommonSubexpressions     83043    10957    9536     79    584     227176    31570   26004    453   2954
+	RemoveRedundantLoads           83043     2651    2541     21    389     227127     9750    8846    111   1447
+	MergeAddressPhis                   -        -       -      -      -     227127       58       4      0   1282
+	RotateLoops                    83043     2140    1966     11    276     227127     5631    5148     24    688
+	LessLoopTests                  83043       74      72      0     26     227127      169     160      0    116
+	ReplaceLoopCounters            83043        2       2      0     18     227127       18      15      2     57
+	NarrowCounters                     -        -       -      -      -     227127       34      12      0     55
+	ReduceMultiplies               83043      216     137     24     31     227127      796     191    201    111
+	ReplaceExitValues              83043        0       0      0     20     227127        0       0      0    124
+	DeleteDeadLoops                83043       53       0     36    212     227127      196       9    110   2187
+	ReduceStrength                 83043      304     146      6     27     227127     1331    1019     14    123
+	SplitLoopAddresses             83043       14       4      2     22     227127       17       0      2     69
+	HoistInvariants                83043     2396    2258      9     90     227176     8493    7991     70    657
+	SinkLoads                      83043       53      35      0    142     227127      289     259     10    476
+	HoistCommon                    83043     1353    1252     29     47     227127     3841    3379    155    183
+	UnswitchLoops                  83043      258     112     47     62     227127      931     435    198    186
+	ReplaceLoopIdioms              83043       13      10      1    220     227127       18      11      2    920
+	RemoveDeadCode                 83043    18958   16337    258    351     227178    51550   41426   1472   1291
+	SinkComparisons                83043      356     185     16     76     227127     1709    1296     65    296
+	NarrowMultiplies                   -        -       -      -      -     109576        2       0      0     72
+	BiasSignedIndices                  -        -       -      -      -     109576       49       0      0    311
+
+What the table says: ReplaceExitValues never changes a function in this project, and ReplaceLoopCounters,
+ShareDivisions, NarrowMultiplies, DivisibilityTests and BoundDivisions hardly ever do; SimplifyCFG is a third
+of the W65C816's pass time, and DeleteDeadLoops and MergeAddressPhis cost far more than they change: for
+the stage that looks at the passes' order and at what a pass can skip.
 
 The figures in "Where it is now" are those of 2026-11-11, before stage 2 split CIROptimiser into its groups; on
 2026-11-13 the library is 502 source files and about 131,000 lines.  Of "What makes the special cases", 4 (the
