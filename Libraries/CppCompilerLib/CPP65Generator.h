@@ -165,6 +165,7 @@ friend class CCPP65IRFrontEnd;
 friend class CCPP65TypeChecker;
 friend class CCPPDeclarators;
 friend class CCPPDeduction;
+friend class CCPPSpecialisationMatch;
 protected:
 	CCPPSyntaxTree*			mpcTree;
 	CCPPTokeniser*			mpcTokeniser;
@@ -372,8 +373,6 @@ protected:
 	CCPPTemplate*			Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, CCPPSyntaxNameComponent* pcPattern);
 	CCPPTemplate*			OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPSyntaxNameComponent* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	CCPPTemplate*			FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode);
-	bool					MatchPattern(CCPPTemplate* pcSpecialisation, CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments* pcDeduced, int* piScore);
-	bool					MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument, CCPPTemplateArguments* pcDeduced, int* piScore);
 	CCPPTemplate*			FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode);
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);

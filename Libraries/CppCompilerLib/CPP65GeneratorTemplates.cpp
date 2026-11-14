@@ -659,17 +659,16 @@ CCPPClass* CCPP65Generator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPP65Generator::FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode)
 {
-	CCPPTemplate*	pcTemplate;
-	CCPPTemplate*	pcBest;
+	CCPPSpecialisationMatch	cMatch;
+	CCPPTemplate*			pcTemplate;
+	CCPPTemplate*			pcBest;
 	CCPPTemplateArguments*	pcDeduced;
 	CCPPTemplateArguments*	pcBestDeduced;
-	SCPPBinding*	psBinding;
-	CCPPSyntax*		pcParameter;
-	size			i;
-	size			j;
-	int				iScore;
-	int				iBest;
-	bool			bAmbiguous;
+	size					i;
+	int						iScore;
+	int						iBest;
+	bool					bMatches;
+	bool					bAmbiguous;
 
 	pcBest = NULL;
 	pcBestDeduced = NULL;
@@ -683,20 +682,12 @@ CCPPTemplate* CCPP65Generator::FindClassSpecialisation(CCPPTemplate* pcPrimary, 
 			continue;
 		}
 
-		//The specialisation's parameters, deduced as its arguments are matched.
-		pcDeduced = NewBindings();
-		for (j = 0; j < pcTemplate->mpcDeclaration->macpParameters.NumElements(); j++)
-		{
-			pcParameter = pcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-			psBinding = pcDeduced->macBindings.Add();
-			psBinding->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
-			psBinding->psType = NULL;
-			psBinding->lliValue = 0;
-			psBinding->papsPack = NULL;
-		}
-
-		iScore = (pcTemplate->mpcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
-		if (!MatchPattern(pcTemplate, &pcTemplate->mpcPattern->macpTemplateArguments, pcArguments, pcDeduced, &iScore))
+		cMatch.Init(this, pcTemplate);
+		bMatches = cMatch.Match(pcArguments);
+		pcDeduced = cMatch.GetDeduced();
+		iScore = cMatch.GetScore();
+		cMatch.Kill();
+		if (!bMatches)
 		{
 			continue;
 		}
@@ -718,164 +709,6 @@ CCPPTemplate* CCPP65Generator::FindClassSpecialisation(CCPPTemplate* pcPrimary, 
 	}
 	*ppcBindings = pcBestDeduced;
 	return pcBest;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a specialisation's template arguments (papcPattern) match an instance's
-// arguments.  Its parameters are deduced into psDeduced.  *piScore counts how much
-// of the arguments' structure the pattern names.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::MatchPattern(CCPPTemplate* pcSpecialisation, CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments* pcDeduced, int* piScore)
-{
-	CCPPSyntax*		pcPattern;
-	SCPPBinding*	psArgument;
-	SCPPBinding*	psBinding;
-	CCPPSymbol*		pcSymbol;
-	size			i;
-	int64			lliValue;
-
-	if (papcPattern->NumElements() != pcArguments->macBindings.NumElements())
-	{
-		return false;
-	}
-	for (i = 0; i < papcPattern->NumElements(); i++)
-	{
-		pcPattern = papcPattern->GetPtr(i);
-		psArgument = pcArguments->macBindings.Get(i);
-		if (psArgument->psType)
-		{
-			if ((pcPattern->GetKind() != CPPS_TypeId) || !MatchType(pcSpecialisation, (CCPPSyntaxTypeId*)pcPattern, psArgument, pcDeduced, piScore))
-			{
-				return false;
-			}
-			continue;
-		}
-
-		//A non-type argument: a parameter of the specialisation takes it, a constant must equal it.
-		pcSymbol = (pcPattern->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol : NULL;
-		psBinding = pcSymbol ? pcDeduced->FindOwn(pcSymbol) : NULL;
-		if (psBinding)
-		{
-			psBinding->lliValue = psArgument->lliValue;
-			psBinding->psType = NULL;
-			continue;
-		}
-		if (!Constant(pcPattern, &lliValue) || (lliValue != psArgument->lliValue))
-		{
-			return false;
-		}
-		(*piScore)++;
-	}
-
-	//Every parameter must be deduced.
-	for (i = 0; i < pcDeduced->macBindings.NumElements(); i++)
-	{
-		pcSymbol = pcDeduced->macBindings.Get(i)->pcParameter;
-		if (pcSymbol && (pcSymbol->meKind != CPPSK_ValueParameter) && !pcDeduced->macBindings.Get(i)->psType)
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a type pattern (T, T*, const T, T&, a class template instance X<T>, or a
-// type naming none of the specialisation's parameters) matches a type argument.
-// Pointers and references are matched outside in, then const at the top level, then
-// the type named.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument, CCPPTemplateArguments* pcDeduced, int* piScore)
-{
-	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
-	CCPPSyntaxDeclarator*			pcDeclarator;
-	CCPPSyntaxPointerOperator*		pcOperator;
-	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
-	CCPPSyntaxNameComponent*		pcComponent;
-	SCPPBinding*					psBinding;
-	CCPPTemplate*					pcTemplate;
-	SCPP65Type*						psType;
-	SCPP65Type*						psNamed;
-	size							i;
-	bool							bResult;
-
-	pcSpecifiers = pcPattern->mpcSpecifiers;
-	pcDeclarator = pcPattern->mpcDeclarator;
-	if (!pcSpecifiers || (pcDeclarator && (pcDeclarator->macpSuffixes.NumElements() > 0 || pcDeclarator->mpcNested)))
-	{
-		return false;
-	}
-
-	psType = psArgument->psType;
-	for (i = pcDeclarator ? pcDeclarator->NumPointers() : 0; i > 0; i--)
-	{
-		pcOperator = pcDeclarator->GetPointer(i - 1);
-		if ((pcOperator->meKind == CPPP_Pointer) && psType->IsPointer())
-		{
-			psType = psType->psBase;
-		}
-		else if (((pcOperator->meKind == CPPP_Reference) || (pcOperator->meKind == CPPP_RValueReference)) && psType->IsReference())
-		{
-			psType = psType->psBase;
-		}
-		else
-		{
-			return false;
-		}
-		(*piScore)++;
-	}
-	if (pcSpecifiers->muiFlags & CPPDS_CONST)
-	{
-		//const T matches a const type, T the type without its const.
-		if (!psType->bConst)
-		{
-			return false;
-		}
-		psType = mcTypes.Qualified(psType, false, psType->bVolatile);
-		(*piScore)++;
-	}
-
-	//T takes the type.
-	pcNamed = (pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier)) ? (CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType : NULL;
-	psBinding = pcNamed ? pcDeduced->FindOwn(pcNamed->mpcName->mpcSymbol) : NULL;
-	if (psBinding)
-	{
-		if (psBinding->psType)
-		{
-			return psBinding->psType->Same(psType);
-		}
-		psBinding->psType = psType;
-		return true;
-	}
-
-	//X<T> matches an instance of X with matching arguments.
-	pcComponent = pcNamed ? pcNamed->mpcName->GetLast() : NULL;
-	if (pcComponent && pcComponent->mbTemplateArguments)
-	{
-		pcTemplate = pcComponent->mpcSymbol ? GetTemplate(pcComponent->mpcSymbol) : GetComponentTemplate(pcComponent);
-		if (!pcTemplate || !psType->IsClass() || !psType->pcClass->mpcTemplate || (psType->pcClass->mpcTemplate->mpcPrimary != pcTemplate))
-		{
-			return false;
-		}
-		(*piScore)++;
-		return MatchPattern(pcSpecialisation, &pcComponent->macpTemplateArguments, psType->pcClass->mpcBindings, pcDeduced, piScore);
-	}
-
-	//A type naming none of the parameters must be the same type.
-	mcContext.EnterBindings(NULL);
-	BeginQuiet();
-	psNamed = mcDeclarators.GetTypeIdType(pcPattern);
-	EndQuiet();
-	mcContext.LeaveBindings();
-	bResult = psNamed && psNamed->Same(psArgument->psType);
-	*piScore += 2;
-	return bResult;
 }
 
 

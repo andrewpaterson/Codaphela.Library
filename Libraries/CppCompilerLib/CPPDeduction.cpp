@@ -432,3 +432,212 @@ CCPPSymbol* CCPPDeduction::GetArgumentSymbol(CCPPSyntax* pcArgument)
 	return ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// None of the specialisation's parameters is deduced yet.  A full specialisation (template <>) is more special
+// than any partial one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSpecialisationMatch::Init(CCPP65Generator* pcUnit, CCPPTemplate* pcSpecialisation)
+{
+	CCPPSyntax*		pcParameter;
+	SCPPBinding*	psBinding;
+	size			i;
+
+	mpcUnit = pcUnit;
+	mpcSpecialisation = pcSpecialisation;
+	mpcDeduced = pcUnit->NewBindings();
+	for (i = 0; i < pcSpecialisation->mpcDeclaration->macpParameters.NumElements(); i++)
+	{
+		pcParameter = pcSpecialisation->mpcDeclaration->macpParameters.GetPtr(i);
+		psBinding = mpcDeduced->macBindings.Add();
+		psBinding->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
+		psBinding->psType = NULL;
+		psBinding->lliValue = 0;
+		psBinding->papsPack = NULL;
+	}
+	miScore = (pcSpecialisation->mpcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSpecialisationMatch::Kill(void)
+{
+	mpcDeduced = NULL;
+	mpcSpecialisation = NULL;
+	mpcUnit = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the specialisation's pattern matches pcArguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSpecialisationMatch::Match(CCPPTemplateArguments* pcArguments)
+{
+	return MatchPattern(&mpcSpecialisation->mpcPattern->macpTemplateArguments, pcArguments);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a specialisation's template arguments (papcPattern) match an instance's
+// arguments.  The specialisation's parameters are deduced as they are met.  The score counts how much
+// of the arguments' structure the pattern names.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSpecialisationMatch::MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments)
+{
+	CCPPSyntax*		pcPattern;
+	SCPPBinding*	psArgument;
+	SCPPBinding*	psBinding;
+	CCPPSymbol*		pcSymbol;
+	size			i;
+	int64			lliValue;
+
+	if (papcPattern->NumElements() != pcArguments->macBindings.NumElements())
+	{
+		return false;
+	}
+	for (i = 0; i < papcPattern->NumElements(); i++)
+	{
+		pcPattern = papcPattern->GetPtr(i);
+		psArgument = pcArguments->macBindings.Get(i);
+		if (psArgument->psType)
+		{
+			if ((pcPattern->GetKind() != CPPS_TypeId) || !MatchType((CCPPSyntaxTypeId*)pcPattern, psArgument))
+			{
+				return false;
+			}
+			continue;
+		}
+
+		//A non-type argument: a parameter of the specialisation takes it, a constant must equal it.
+		pcSymbol = (pcPattern->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol : NULL;
+		psBinding = pcSymbol ? mpcDeduced->FindOwn(pcSymbol) : NULL;
+		if (psBinding)
+		{
+			psBinding->lliValue = psArgument->lliValue;
+			psBinding->psType = NULL;
+			continue;
+		}
+		if (!mpcUnit->Constant(pcPattern, &lliValue) || (lliValue != psArgument->lliValue))
+		{
+			return false;
+		}
+		miScore++;
+	}
+
+	//Every parameter must be deduced.
+	for (i = 0; i < mpcDeduced->macBindings.NumElements(); i++)
+	{
+		pcSymbol = mpcDeduced->macBindings.Get(i)->pcParameter;
+		if (pcSymbol && (pcSymbol->meKind != CPPSK_ValueParameter) && !mpcDeduced->macBindings.Get(i)->psType)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type pattern (T, T*, const T, T&, a class template instance X<T>, or a
+// type naming none of the specialisation's parameters) matches a type argument.
+// Pointers and references are matched outside in, then const at the top level, then
+// the type named.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument)
+{
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	CCPPSyntaxDeclarator*			pcDeclarator;
+	CCPPSyntaxPointerOperator*		pcOperator;
+	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
+	CCPPSyntaxNameComponent*		pcComponent;
+	SCPPBinding*					psBinding;
+	CCPPTemplate*					pcTemplate;
+	SCPP65Type*						psType;
+	SCPP65Type*						psNamed;
+	size							i;
+	bool							bResult;
+
+	pcSpecifiers = pcPattern->mpcSpecifiers;
+	pcDeclarator = pcPattern->mpcDeclarator;
+	if (!pcSpecifiers || (pcDeclarator && (pcDeclarator->macpSuffixes.NumElements() > 0 || pcDeclarator->mpcNested)))
+	{
+		return false;
+	}
+
+	psType = psArgument->psType;
+	for (i = pcDeclarator ? pcDeclarator->NumPointers() : 0; i > 0; i--)
+	{
+		pcOperator = pcDeclarator->GetPointer(i - 1);
+		if ((pcOperator->meKind == CPPP_Pointer) && psType->IsPointer())
+		{
+			psType = psType->psBase;
+		}
+		else if (((pcOperator->meKind == CPPP_Reference) || (pcOperator->meKind == CPPP_RValueReference)) && psType->IsReference())
+		{
+			psType = psType->psBase;
+		}
+		else
+		{
+			return false;
+		}
+		miScore++;
+	}
+	if (pcSpecifiers->muiFlags & CPPDS_CONST)
+	{
+		//const T matches a const type, T the type without its const.
+		if (!psType->bConst)
+		{
+			return false;
+		}
+		psType = mpcUnit->mcTypes.Qualified(psType, false, psType->bVolatile);
+		miScore++;
+	}
+
+	//T takes the type.
+	pcNamed = (pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier)) ? (CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType : NULL;
+	psBinding = pcNamed ? mpcDeduced->FindOwn(pcNamed->mpcName->mpcSymbol) : NULL;
+	if (psBinding)
+	{
+		if (psBinding->psType)
+		{
+			return psBinding->psType->Same(psType);
+		}
+		psBinding->psType = psType;
+		return true;
+	}
+
+	//X<T> matches an instance of X with matching arguments.
+	pcComponent = pcNamed ? pcNamed->mpcName->GetLast() : NULL;
+	if (pcComponent && pcComponent->mbTemplateArguments)
+	{
+		pcTemplate = pcComponent->mpcSymbol ? mpcUnit->GetTemplate(pcComponent->mpcSymbol) : mpcUnit->GetComponentTemplate(pcComponent);
+		if (!pcTemplate || !psType->IsClass() || !psType->pcClass->mpcTemplate || (psType->pcClass->mpcTemplate->mpcPrimary != pcTemplate))
+		{
+			return false;
+		}
+		miScore++;
+		return MatchPattern(&pcComponent->macpTemplateArguments, psType->pcClass->mpcBindings);
+	}
+
+	//A type naming none of the parameters must be the same type.
+	mpcUnit->mcContext.EnterBindings(NULL);
+	mpcUnit->BeginQuiet();
+	psNamed = mpcUnit->mcDeclarators.GetTypeIdType(pcPattern);
+	mpcUnit->EndQuiet();
+	mpcUnit->mcContext.LeaveBindings();
+	bResult = psNamed && psNamed->Same(psArgument->psType);
+	miScore += 2;
+	return bResult;
+}
+

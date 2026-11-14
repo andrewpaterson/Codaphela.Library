@@ -64,4 +64,29 @@ protected:
 };
 
 
+//One try at a class template's specialisation: whether its pattern (X<T*, int>) matches the arguments an
+//instance is wanted for, and if so what its own parameters are (GetDeduced) and how special it is (GetScore: the
+//specialisation with the highest score that matches is the one used).  [temp.class.spec.match]
+class CCPPSpecialisationMatch
+{
+protected:
+	CCPP65Generator*		mpcUnit;
+	CCPPTemplate*			mpcSpecialisation;
+	CCPPTemplateArguments*	mpcDeduced;		//The specialisation's parameters, deduced as its pattern is matched.  The unit's.
+	int						miScore;
+
+public:
+	void					Init(CCPP65Generator* pcUnit, CCPPTemplate* pcSpecialisation);
+	void					Kill(void);
+
+	bool					Match(CCPPTemplateArguments* pcArguments);
+	CCPPTemplateArguments*	GetDeduced(void) { return mpcDeduced; }
+	int						GetScore(void) { return miScore; }
+
+protected:
+	bool					MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);
+	bool					MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument);
+};
+
+
 #endif // __C_P_P_DEDUCTION_H__
