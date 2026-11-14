@@ -43,14 +43,16 @@ static SKeymapTestCommand	gasKeymapTestCommands[] =
 };
 
 
-//Logs the commands and characters it is given.  It's an editor to the keys, or isn't.
+//Logs the commands and characters it is given, and the context the last command's keys were bound in.  It's an
+//editor to the keys, or isn't.
 class CKeymapTestComponent : public CComponent
 {
 CONSTRUCTABLE(CKeymapTestComponent);
 DESTRUCTABLE(CKeymapTestComponent);
-protected:
+public:
 	CChars*		mpszLog;
 	bool		mbEditor;
+	char*		mszLastContext;
 
 public:
 	void Init(Ptr<CWindow> pWindow, CChars* pszLog, bool bEditor)
@@ -61,6 +63,7 @@ public:
 		CComponent::Init(pWindow);
 		mpszLog = pszLog;
 		mbEditor = bEditor;
+		mszLastContext = NULL;
 		SetCanGetFocus(true);
 		for (i = 0; i < sizeof(gasKeymapTestCommands) / sizeof(gasKeymapTestCommands[0]); i++)
 		{
@@ -75,6 +78,7 @@ public:
 		CComponent::Class();
 		U_Pointer(mpszLog);
 		U_Bool(mbEditor);
+		U_Pointer(mszLastContext);
 	}
 
 	bool UsesEditorKeys(void) override { return mbEditor; }
@@ -83,6 +87,7 @@ public:
 	{
 		size	i;
 
+		mszLastContext = (char*)psEvent->szContext;
 		for (i = 0; i < sizeof(gasKeymapTestCommands) / sizeof(gasKeymapTestCommands[0]); i++)
 		{
 			if (gasKeymapTestCommands[i].eCommand == psEvent->eCommand)
@@ -248,6 +253,76 @@ public:
 		mpszLog->Append(';');
 	}
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Contexts: one is added inside the global keys or another, not inside
+// one that isn't there; keys are bound in one that is, and in one that
+// isn't a typing context a key that types isn't.  A command's event says
+// the context its keys were bound in, and a standard key's none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapContexts(void)
+{
+	CChars				szLog;
+	CKeymapTestWindow	cTest;
+	SLogConfig			sLogConfig;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+
+	AssertTrue(cTest.cInput.HasContext(COMPONENT_INPUT_GLOBAL_CONTEXT));
+	AssertTrue(cTest.cInput.HasContext(NULL));
+	AssertFalse(cTest.cInput.HasContext(COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.AddContext("Outer", NULL, false));
+	AssertTrue(cTest.cInput.AddContext("Inner", "Outer", true));
+	AssertTrue(cTest.cInput.HasContext("Inner"));
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cTest.cInput.AddContext("Lost", "Nowhere", false));
+	AssertFalse(cTest.cInput.BindKeys("F5", CIC_Copy, "Nowhere"));
+	AssertFalse(cTest.cInput.BindKeys("A", CIC_Copy, "Outer"));
+	AssertFalse(cTest.cInput.BindKeys("Shift+A", CIC_Copy, "Outer"));
+	AssertFalse(cTest.cInput.BindEditorKeys("A", CIC_Copy));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertFalse(cTest.cInput.HasContext("Lost"));
+	AssertFalse(cTest.cInput.IsBound("A", "Outer"));
+
+	AssertTrue(cTest.cInput.BindKeys("A", CIC_Copy, "Inner"));
+	AssertTrue(cTest.cInput.BindKeys("Shift+A", CIC_Paste, "Inner"));
+	AssertTrue(cTest.cInput.BindKeys("F5", CIC_Copy, "Outer"));
+	AssertTrue(cTest.cInput.IsBound("A", "Inner"));
+	AssertTrue(cTest.cInput.IsBound("Shift+A", "Inner"));
+	AssertTrue(cTest.cInput.IsBound("F5", "Outer"));
+	AssertFalse(cTest.cInput.IsBound("F5", "Inner"));
+	AssertFalse(cTest.cInput.IsBound("F5"));
+
+	//Keys bound in a context mean nothing elsewhere: the field still types A and a, and F5 does nothing.
+	cTest.FocusField();
+	cTest.cDevices.Tap("A");
+	cTest.cDevices.Shift("A");
+	cTest.cDevices.Tap("F5");
+	AssertLog("a;A;");
+
+	//The editor's keys say which context they're from; a standard key's say none.
+	AssertTrue(cTest.cInput.BindEditorKeys("F6", CIC_Up));
+	cTest.FocusEditor();
+	cTest.cDevices.Tap("F6");
+	AssertLog("Up;");
+	AssertString(COMPONENT_INPUT_EDITOR_CONTEXT, cTest.pEditor->mszLastContext);
+	cTest.FocusField();
+	cTest.cDevices.Control("C");
+	AssertLog("Copy;");
+	AssertNull(cTest.pField->mszLastContext);
+
+	AssertTrue(cTest.cInput.UnbindKeys("A", "Inner"));
+	AssertFalse(cTest.cInput.UnbindKeys("A", "Inner"));
+	AssertFalse(cTest.cInput.IsBound("A", "Inner"));
+
+	cTest.Kill();
+	szLog.Kill();
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1159,6 +1234,7 @@ void TestKeymap(void)
 	ObjectsInit();
 
 	TestKeymapUnbindKeys();
+	TestKeymapContexts();
 	TestKeymapEditorKeys();
 	TestKeymapInsert();
 	TestKeymapDialog();

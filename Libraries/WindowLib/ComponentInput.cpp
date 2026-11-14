@@ -121,8 +121,7 @@ void CComponentInput::Init(CWindowInputSource* pcSource, CWindow* pcWindow)
 	masPressed.Init();
 	masChordCommands.Init();
 	masBindings.Init();
-	masEditorBindings.Init();
-	mbEditorKeys = false;
+	masContexts.Init();
 
 	mbCapsLock = false;
 	mbNumLock = false;
@@ -154,12 +153,12 @@ void CComponentInput::Kill(void)
 	}
 	masBindings.Kill();
 
-	uiNumElements = masEditorBindings.NumElements();
+	uiNumElements = masContexts.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		KillBinding(masEditorBindings.Get(i));
+		KillContext(masContexts.Get(i));
 	}
-	masEditorBindings.Kill();
+	masContexts.Kill();
 
 	uiNumElements = macDevices.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -236,6 +235,7 @@ bool CComponentInput::AddKeyboard(CInputDevice* pcDevice)
 	CComponentInputDevice*	pcInputDevice;
 	CComponentInputDevice*	pcMouse;
 	size					i;
+	size					j;
 	size					uiNumElements;
 
 	pcInputDevice = AddDevice(pcDevice);
@@ -250,9 +250,12 @@ bool CComponentInput::AddKeyboard(CInputDevice* pcDevice)
 	{
 		ApplyBinding(pcInputDevice, masBindings.Get(i));
 	}
-	for (i = 0; i < masEditorBindings.NumElements(); i++)
+	for (i = 0; i < masContexts.NumElements(); i++)
 	{
-		ApplyEditorBinding(pcInputDevice, masEditorBindings.Get(i));
+		for (j = 0; j < masContexts.Get(i)->asBindings.NumElements(); j++)
+		{
+			ApplyContextBinding(pcInputDevice, masContexts.Get(i)->asBindings.Get(j));
+		}
 	}
 
 	//The keyboard was added last, the array may have moved.
@@ -557,14 +560,39 @@ void CComponentInput::SetChordCommand(const char* szName, EComponentInputCommand
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The application's keys for eCommand, instead of any standard command on
-// the same keys: one key ("F5"), a chord of control, alt and shift with a
-// key ("Control+Shift+B", "Alt+Backspace"), or a key after a control and
+// The application's keys for eCommand in szContext (NULL or "Global" for
+// the global keys, instead of any standard command on the same keys): one
+// key ("F5"), a chord of control, alt and shift with a key
+// ("Control+Shift+B", "Alt+Backspace"), or a key after a control and
 // shift chord ("Control+Shift+F, H").  Every keyboard has them, those
-// added later too.  False, logged, if szKeys can't be read.
+// added later too.  False, logged, if szKeys can't be read, the context
+// isn't there, or they type a character and the context isn't a typing
+// one.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::BindKeys(const char* szKeys, EComponentInputCommand eCommand)
+bool CComponentInput::BindKeys(const char* szKeys, EComponentInputCommand eCommand, const char* szContext)
+{
+	SComponentInputContext*	psContext;
+
+	if (StrEmpty(szContext) || (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0))
+	{
+		return BindGlobalKeys(szKeys, eCommand);
+	}
+	psContext = GetContext(szContext);
+	if (psContext == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: there's no context [", szContext, "].", NULL);
+	}
+	return BindContextKeys(szKeys, eCommand, psContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// See BindKeys.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::BindGlobalKeys(const char* szKeys, EComponentInputCommand eCommand)
 {
 	SComponentInputBinding	sParsed;
 	SComponentInputBinding*	psBinding;
@@ -606,12 +634,42 @@ bool CComponentInput::BindKeys(const char* szKeys, EComponentInputCommand eComma
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The keys BindKeys bound give what they gave before: moved off Control+D,
+// The keys BindKeys bound in szContext mean nothing of their own there
+// any more; global keys give what they gave before: moved off Control+D,
 // a command leaves it as Duplicate again.  A chord that only existed for
 // them stays on the keyboard, giving nothing.  False if they aren't bound.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::UnbindKeys(const char* szKeys)
+bool CComponentInput::UnbindKeys(const char* szKeys, const char* szContext)
+{
+	CChars					szName;
+	SComponentInputContext*	psContext;
+	SComponentInputBinding*	psBinding;
+
+	if (StrEmpty(szContext) || (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0))
+	{
+		return UnbindGlobalKeys(szKeys);
+	}
+	psContext = GetContext(szContext);
+	szName.Init();
+	psBinding = ((psContext != NULL) && NameKeys(szKeys, &szName)) ? GetContextBinding(psContext, szName.Text()) : NULL;
+	szName.Kill();
+	if (!psBinding)
+	{
+		return false;
+	}
+	KillBinding(psBinding);
+	psContext->asBindings.Remove(psBinding);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// See UnbindKeys.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::UnbindGlobalKeys(const char* szKeys)
 {
 	CChars					szName;
 	SComponentInputBinding*	psBinding;
@@ -654,14 +712,13 @@ bool CComponentInput::UnbindKeys(const char* szKeys)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szKeys mean eCommand to a component that uses editor keys, and nothing
-// changes for anything else.  Once any are bound the keys of every editor
-// command are those bound: an editor command's standard keys no longer
-// give it in an editor unless they are bound too.  Every keyboard has them,
-// those added later too.  False, logged, if szKeys can't be read.
+// szKeys mean eCommand in psContext (see BindKeys).  A chord is made on
+// each keyboard that hasn't it, giving nothing elsewhere; a key that types
+// (alone or with shift, in a typing context) is looked for as it's typed,
+// so nothing is made and it still types everywhere else.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand eCommand)
+bool CComponentInput::BindContextKeys(const char* szKeys, EComponentInputCommand eCommand, SComponentInputContext* psContext)
 {
 	SComponentInputBinding	sParsed;
 	SComponentInputBinding*	psBinding;
@@ -672,9 +729,13 @@ bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand 
 	{
 		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or Control+Shift+F, H.", NULL);
 	}
+	if (!psContext->bTyping && IsTypingKeys(sParsed.szKeys.Text()))
+	{
+		KillBinding(&sParsed);
+		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] type a character and can't be bound in context [", psContext->szName.Text(), "].", NULL);
+	}
 
-	mbEditorKeys = true;
-	psBinding = GetEditorBinding(sParsed.szKeys.Text());
+	psBinding = GetContextBinding(psContext, sParsed.szKeys.Text());
 	if (psBinding)
 	{
 		psBinding->eCommand = eCommand;
@@ -686,7 +747,7 @@ bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand 
 		sParsed.eReplaced = CIC_Ignored;
 		sParsed.bReplacedKnown = true;
 		sParsed.bReplacedKey = false;
-		psBinding = masEditorBindings.Add();
+		psBinding = psContext->asBindings.Add();
 		*psBinding = sParsed;
 	}
 
@@ -695,7 +756,7 @@ bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand 
 		pcDevice = macDevices.Get(i);
 		if (!pcDevice->IsMouse())
 		{
-			ApplyEditorBinding(pcDevice, psBinding);
+			ApplyContextBinding(pcDevice, psBinding);
 		}
 	}
 	return true;
@@ -704,26 +765,66 @@ bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szKeys mean nothing of their own to an editor.  False if they weren't
-// bound with BindEditorKeys.
+// A part of the window with keys of its own (see SComponentInputContext),
+// inside szParent (NULL or "Global" for the global keys).  Its keys are
+// read when a key is read in it (Translate).  Adding one that's there
+// changes how it types and its editor commands.  False, logged, if the
+// parent isn't there.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::UnbindEditorKeys(const char* szKeys)
+bool CComponentInput::AddContext(const char* szName, const char* szParent, bool bTyping, bool bEditorCommands)
 {
-	CChars					szName;
-	SComponentInputBinding*	psBinding;
+	SComponentInputContext*	psContext;
+	bool					bGlobalParent;
 
-	szName.Init();
-	psBinding = NameKeys(szKeys, &szName) ? GetEditorBinding(szName.Text()) : NULL;
-	szName.Kill();
-	if (!psBinding)
+	bGlobalParent = StrEmpty(szParent) || (StringCompare(szParent, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0);
+	if (!bGlobalParent && (GetContext(szParent) == NULL))
 	{
-		return false;
+		return gcLogger.Error2(__METHOD__, " Context [", szName, "] can't be added: there's no context [", szParent, "].", NULL);
 	}
-	KillBinding(psBinding);
-	masEditorBindings.Remove(psBinding);
+	psContext = GetContext(szName);
+	if (psContext == NULL)
+	{
+		psContext = masContexts.Add();
+		psContext->szName.Init(szName);
+		psContext->szParent.Init(bGlobalParent ? "" : szParent);
+		psContext->asBindings.Init();
+	}
+	psContext->bTyping = bTyping;
+	psContext->bEditorCommands = bEditorCommands;
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the context has been added (the global keys always are).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::HasContext(const char* szName)
+{
+	return StrEmpty(szName) || (StringCompare(szName, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0) || (GetContext(szName) != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The Editor context's keys (see BindKeys): an editor command's standard
+// keys no longer give it in an editor unless they are bound too.  The
+// context is added by the first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand eCommand)
+{
+	if (GetContext(COMPONENT_INPUT_EDITOR_CONTEXT) == NULL)
+	{
+		AddContext(COMPONENT_INPUT_EDITOR_CONTEXT, NULL, false, true);
+	}
+	return BindKeys(szKeys, eCommand, COMPONENT_INPUT_EDITOR_CONTEXT);
+}
+
+
+bool CComponentInput::UnbindEditorKeys(const char* szKeys) { return UnbindKeys(szKeys, COMPONENT_INPUT_EDITOR_CONTEXT); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -765,31 +866,41 @@ void CComponentInput::RemoveStandardKeys(EComponentInputCommand eCommand)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether keys given with BindEditorKeys work: a keyboard gives them.
+// Whether keys bound in szContext work: a keyboard gives them (a chord,
+// or a key it has).  The global keys' are IsGloballyBound's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::IsEditorBound(const char* szKeys)
+bool CComponentInput::IsBound(const char* szKeys, const char* szContext)
 {
 	CChars					szName;
+	SComponentInputContext*	psContext;
 	SComponentInputBinding*	psBinding;
 	CComponentInputDevice*	pcDevice;
 	size					i;
 	bool					bBound;
 
+	if (StrEmpty(szContext) || (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0))
+	{
+		return IsGloballyBound(szKeys);
+	}
+	psContext = GetContext(szContext);
 	szName.Init();
-	psBinding = NameKeys(szKeys, &szName) ? GetEditorBinding(szName.Text()) : NULL;
+	psBinding = ((psContext != NULL) && NameKeys(szKeys, &szName)) ? GetContextBinding(psContext, szName.Text()) : NULL;
 	bBound = false;
 	for (i = 0; (psBinding != NULL) && !bBound && (i < macDevices.NumElements()); i++)
 	{
 		pcDevice = macDevices.Get(i);
 		if (!pcDevice->IsMouse())
 		{
-			bBound = (psBinding->bControl || psBinding->bAlt || psBinding->bShift) ? pcDevice->HasChord(szName.Text()) : (pcDevice->GetSource(psBinding->szKey.Text()) != NULL);
+			bBound = ((psBinding->bControl || psBinding->bAlt || psBinding->bShift) && !IsTypingBinding(psBinding)) ? pcDevice->HasChord(szName.Text()) : (pcDevice->GetSource(psBinding->szKey.Text()) != NULL);
 		}
 	}
 	szName.Kill();
 	return bBound;
 }
+
+
+bool CComponentInput::IsEditorBound(const char* szKeys) { return IsBound(szKeys, COMPONENT_INPUT_EDITOR_CONTEXT); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -965,21 +1076,24 @@ bool CComponentInput::IsTypingKeys(const char* szKeys)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What keys mean in an editor: what they're bound to; otherwise nothing,
-// if what they normally mean is an editor command they've been moved off;
-// otherwise what they normally mean.
+// What keys mean read in szContext: what the innermost context out from
+// it binds them to (psDest is told which context); otherwise nothing, if
+// what they normally mean is an editor command an editor context's keys
+// have moved them off; otherwise what they normally mean (eStandard).
 //
 //////////////////////////////////////////////////////////////////////////
-EComponentInputCommand CComponentInput::GetEditorCommand(const char* szKeys, EComponentInputCommand eStandard)
+EComponentInputCommand CComponentInput::GetContextCommand(const char* szContext, const char* szKeys, EComponentInputCommand eStandard, SComponentInputEvent* psDest)
 {
 	SComponentInputBinding*	psBinding;
+	SComponentInputContext*	psFound;
 
-	psBinding = GetEditorBinding(szKeys);
+	psBinding = FindContextBinding(szContext, szKeys, &psFound);
 	if (psBinding)
 	{
+		psDest->szContext = psFound->szName.Text();
 		return psBinding->eCommand;
 	}
-	return IsEditorCommand(eStandard) ? CIC_Ignored : eStandard;
+	return (HasEditorCommands(szContext) && IsEditorCommand(eStandard)) ? CIC_Ignored : eStandard;
 }
 
 
@@ -992,6 +1106,24 @@ void CComponentInput::KillBinding(SComponentInputBinding* psBinding)
 	psBinding->szKeys.Kill();
 	psBinding->szKey.Kill();
 	psBinding->szSecondKey.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::KillContext(SComponentInputContext* psContext)
+{
+	size	i;
+
+	for (i = 0; i < psContext->asBindings.NumElements(); i++)
+	{
+		KillBinding(psContext->asBindings.Get(i));
+	}
+	psContext->asBindings.Kill();
+	psContext->szParent.Kill();
+	psContext->szName.Kill();
 }
 
 
@@ -1084,7 +1216,7 @@ bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBi
 // key no keyboard has (F13, say) does nothing.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::IsBound(const char* szKeys)
+bool CComponentInput::IsGloballyBound(const char* szKeys)
 {
 	CChars							szName;
 	SComponentInputBinding*			psBinding;
@@ -1172,15 +1304,15 @@ SComponentInputBinding* CComponentInput::GetBinding(const char* szKeys)
 // NULL if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-SComponentInputBinding* CComponentInput::GetEditorBinding(const char* szKeys)
+SComponentInputBinding* CComponentInput::GetContextBinding(SComponentInputContext* psContext, const char* szKeys)
 {
 	size	i;
 
-	for (i = 0; i < masEditorBindings.NumElements(); i++)
+	for (i = 0; i < psContext->asBindings.NumElements(); i++)
 	{
-		if (masEditorBindings.Get(i)->szKeys.Equals(szKeys))
+		if (psContext->asBindings.Get(i)->szKeys.Equals(szKeys))
 		{
-			return masEditorBindings.Get(i);
+			return psContext->asBindings.Get(i);
 		}
 	}
 	return NULL;
@@ -1189,14 +1321,105 @@ SComponentInputBinding* CComponentInput::GetEditorBinding(const char* szKeys)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A chord has to be there for a keyboard to say it was pressed, so one
-// only an editor means anything by is made, giving nothing elsewhere.
-// One key needs nothing made: it's looked for as it is pressed.
+// The context named szName, NULL for the global keys or one that isn't
+// there.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::ApplyEditorBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding)
+SComponentInputContext* CComponentInput::GetContext(const char* szName)
 {
-	if (!psBinding->bControl && !psBinding->bAlt && !psBinding->bShift)
+	size	i;
+
+	if (StrEmpty(szName))
+	{
+		return NULL;
+	}
+	for (i = 0; i < masContexts.NumElements(); i++)
+	{
+		if (masContexts.Get(i)->szName.Equals(szName))
+		{
+			return masContexts.Get(i);
+		}
+	}
+	return NULL;
+}
+
+
+SComponentInputContext* CComponentInput::GetParentContext(SComponentInputContext* psContext) { return GetContext(psContext->szParent.Text()); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The binding of szKeys (a name as ParseKeys makes) in szContext or the
+// innermost context around it that has one, not the global keys', which
+// the keyboards give themselves; the context it's in in ppsFound.  NULL
+// if none has one.
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentInputBinding* CComponentInput::FindContextBinding(const char* szContext, const char* szKeys, SComponentInputContext** ppsFound)
+{
+	SComponentInputContext*	psContext;
+	SComponentInputBinding*	psBinding;
+	size					uiDepth;
+
+	for (psContext = GetContext(szContext), uiDepth = 0; (psContext != NULL) && (uiDepth < masContexts.NumElements()); psContext = GetParentContext(psContext), uiDepth++)
+	{
+		psBinding = GetContextBinding(psContext, szKeys);
+		if (psBinding)
+		{
+			*ppsFound = psContext;
+			return psBinding;
+		}
+	}
+	*ppsFound = NULL;
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a key read in szContext is in an editor context (it or one
+// around it), whose keys say what the editor commands are.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::HasEditorCommands(const char* szContext)
+{
+	SComponentInputContext*	psContext;
+	size					uiDepth;
+
+	for (psContext = GetContext(szContext), uiDepth = 0; (psContext != NULL) && (uiDepth < masContexts.NumElements()); psContext = GetParentContext(psContext), uiDepth++)
+	{
+		if (psContext->bEditorCommands)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the binding is of a key that types a character, alone or with
+// shift, so it's looked for as it's typed rather than as a chord.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::IsTypingBinding(SComponentInputBinding* psBinding)
+{
+	return IsTypingKeys(psBinding->szKeys.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chord has to be there for a keyboard to say it was pressed, so one
+// only a context means anything by is made, giving nothing elsewhere.
+// One key, or a key that types with shift, needs nothing made: it's looked
+// for as it is pressed, and still types everywhere else.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::ApplyContextBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding)
+{
+	if ((!psBinding->bControl && !psBinding->bAlt && !psBinding->bShift) || IsTypingBinding(psBinding))
 	{
 		return;
 	}
@@ -1429,7 +1652,7 @@ void CComponentInput::InitEvent(SComponentInputEvent* psEvent, EComponentInputEv
 // Returns how many were written.  The pointer position is set by the focus.
 //
 //////////////////////////////////////////////////////////////////////////
-size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest, bool bEditorKeys)
+size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest, const char* szContext)
 {
 	SComponentInputChordCommand*	psChordCommand;
 	CComponentInputDevice*			pcDevice;
@@ -1437,7 +1660,6 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 	char*							szName;
 	bool							bDown;
 
-	bEditorKeys = bEditorKeys && mbEditorKeys;
 	pcDevice = GetDevice(psWindowEvent->pcDevice);
 	if (psWindowEvent->eType == WIET_Chord)
 	{
@@ -1454,13 +1676,13 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 		{
 			AddPressed(psWindowEvent->pcSource, psChordCommand->eReleased);
 		}
-		eCommand = bEditorKeys ? GetEditorCommand(psWindowEvent->szChord, psChordCommand->ePressed) : psChordCommand->ePressed;
+		InitEvent(&asDest[1], CIET_Command, psWindowEvent);
+		eCommand = GetContextCommand(szContext, psWindowEvent->szChord, psChordCommand->ePressed, &asDest[1]);
 		if (eCommand == CIC_ToggleInsert)
 		{
 			mbInsert = !mbInsert;
 			return 1;
 		}
-		InitEvent(&asDest[1], CIET_Command, psWindowEvent);
 		asDest[1].szName = psWindowEvent->szChord;
 		asDest[1].eCommand = eCommand;
 		return 2;
@@ -1504,7 +1726,7 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 
 	if (bDown)
 	{
-		return Pressed(psWindowEvent, &asDest[1], bEditorKeys) ? 2 : 1;
+		return Pressed(psWindowEvent, &asDest[1], szContext) ? 2 : 1;
 	}
 	else
 	{
@@ -1540,12 +1762,16 @@ bool CComponentInput::IsTyping(SWindowInputEvent* psWindowEvent, SComponentInput
 // A pressed source is, in order: a lock or insert, a numpad key standing
 // in for another source, then nothing if control or alt is held (it would
 // have been a chord), the lock or insert the numpad key stands in for, a
-// command or a printable character.  Returns true if
-// psDest is set.
+// command, its binding in szContext (or one around it: a key that types,
+// with shift if it's held, in a typing context) or a printable character.
+// Returns true if psDest is set.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest, bool bEditorKeys)
+bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest, const char* szContext)
 {
+	bool						bEditorKeys;
+	CChars						szKeys;
+	SComponentInputContext*		psFound;
 	CComponentInputKey*			psKey;
 	CComponentInputNumKey*		psNumKey;
 	CComponentInputCommand*		psCommand;
@@ -1556,6 +1782,7 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 	EComponentInputCommand		eCommand;
 	SComponentInputBinding*		psBinding;
 
+	bEditorKeys = HasEditorCommands(szContext);
 	pcSource = psWindowEvent->pcSource;
 	psKey = GetKey(pcSource);
 	if (psKey && !(bEditorKeys && (psKey->meKey == CIK_Insert)))  //An editor's keys say what insert does.
@@ -1599,12 +1826,30 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 	AddPressed(pcSource, psReleased ? psReleased->meCommand : CIC_Ignored);
 
 	psCommand = GetCommand(pcRemapped, true);
-	if (bEditorKeys)
+	if (GetContext(szContext) != NULL)
 	{
-		psBinding = GetEditorBinding(pcRemapped->GetFriendlyName());
-		if (psBinding || psCommand)
+		//A key that types with shift held is bound as "Shift+A" (a typing context's); any other key by its name.
+		szKeys.Init();
+		if (IsShift() && GetPrintable(pcRemapped))
 		{
-			eCommand = GetEditorCommand(pcRemapped->GetFriendlyName(), psCommand ? psCommand->meCommand : CIC_Ignored);
+			szKeys.Append("Shift+");
+		}
+		szKeys.Append(pcRemapped->GetFriendlyName());
+		psBinding = FindContextBinding(szContext, szKeys.Text(), &psFound);
+		szKeys.Kill();
+		if (psBinding || (psCommand && bEditorKeys))
+		{
+			InitEvent(psDest, CIET_Command, psWindowEvent);
+			psDest->szName = psBinding ? psBinding->szKeys.Text() : pcRemapped->GetFriendlyName();
+			if (psBinding)
+			{
+				psDest->szContext = psFound->szName.Text();
+				eCommand = psBinding->eCommand;
+			}
+			else
+			{
+				eCommand = IsEditorCommand(psCommand->meCommand) ? CIC_Ignored : psCommand->meCommand;
+			}
 			if (eCommand == CIC_ToggleInsert)
 			{
 				mbInsert = !mbInsert;
@@ -1614,12 +1859,10 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 			{
 				return false;
 			}
-			InitEvent(psDest, CIET_Command, psWindowEvent);
-			psDest->szName = pcRemapped->GetFriendlyName();
 			psDest->eCommand = eCommand;
 			return true;
 		}
-		if (GetKey(pcRemapped))
+		if (bEditorKeys && GetKey(pcRemapped))
 		{
 			return false;  //Insert, moved off: it does nothing here.
 		}

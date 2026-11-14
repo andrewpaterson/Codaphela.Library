@@ -70,6 +70,28 @@ struct SComponentInputBinding
 typedef CArrayTemplate<SComponentInputBinding>	CArrayComponentInputBinding;
 
 
+//The contexts every application has: the global keys, which work anywhere nothing else binds them, and an editor's.
+#define COMPONENT_INPUT_GLOBAL_CONTEXT	"Global"
+#define COMPONENT_INPUT_EDITOR_CONTEXT	"Editor"
+
+
+//An application's keys for a part of its window (CComponentInput::AddContext): a code editor, a circuit.  A key read
+//in a context is looked for in its bindings, then its parent's, out to the global keys, and the innermost binding
+//wins.  A typing context can have keys that type a character, which then give their command there instead.  An
+//editor context's standard editor commands (caret, selection, editing) are its own: one it doesn't bind gives nothing.
+struct SComponentInputContext
+{
+	CChars						szName;
+	CChars						szParent;	//Empty for a context inside the global keys.
+	CArrayComponentInputBinding	asBindings;
+	bool						bTyping;
+	bool						bEditorCommands;
+};
+
+
+typedef CArrayTemplate<SComponentInputContext>	CArrayComponentInputContext;
+
+
 #define COMPONENT_INPUT_MAX_EVENTS	2	//Translate's most events for one queued event.
 #define COMPONENT_INPUT_SEQUENCE_MILLISECONDS	500	//How long after the chord a bound sequence's second key may come.
 
@@ -80,9 +102,10 @@ typedef CArrayTemplate<SComponentInputBinding>	CArrayComponentInputBinding;
 //copy).  Shift and caps lock still choose a printable's case.  The pointer's position is not read here, the native
 //window gives it to CWindow::PointerMoved.
 //
-//An application can give editors keys of their own (BindEditorKeys).  They are read only for a component that uses
-//them (CComponent::UsesEditorKeys) in a window that isn't a dialog; everything else keeps the standard keys, so what
-//is done to an editor's keys can't stop a dialog working.
+//An application's keys (BindKeys) are global, given to every keyboard in place of the standard keys, or in a context
+//(AddContext), read only when a key is read in that context (Translate's szContext).  The focus reads a key in the
+//context of the component it's for (CComponent::UsesEditorKeys: the Editor context) in a window that isn't a dialog;
+//everything else keeps the global and standard keys, so what is done to a context's keys can't stop a dialog working.
 //
 //Kill a CComponentInput before the CWindowInputSource it was given.
 class CWindow;
@@ -92,9 +115,8 @@ protected:
 	CArrayComponentInputDevice			macDevices;
 	CArrayComponentInputPressed			masPressed;
 	CArrayComponentInputChordCommand	masChordCommands;
-	CArrayComponentInputBinding			masBindings;  //An application's keys, given every keyboard after the standard ones.
-	CArrayComponentInputBinding			masEditorBindings;  //What keys mean to a component that uses editor keys.
-	bool								mbEditorKeys;  //BindEditorKeys has been called.  Until then editors have the standard keys.
+	CArrayComponentInputBinding			masBindings;  //An application's global keys, given every keyboard after the standard ones.
+	CArrayComponentInputContext			masContexts;  //Its keys for parts of the window, looked for before the global keys.
 	CWindowInputSource*					mpcSource;
 	CWindow*							mpcWindow;
 
@@ -113,7 +135,7 @@ public:
 
 	void		Update(void);
 	bool		GetEvictionDelay(uint32* puiMilliseconds);
-	size		Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest, bool bEditorKeys = false);
+	size		Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest, const char* szContext = NULL);
 	bool		IsTyping(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asEvents, size uiNumEvents);
 	void		ReleaseAll(void);
 	void		SetLocks(bool bCapsLock, bool bNumLock);
@@ -129,12 +151,14 @@ public:
 	bool				IsSourceDown(const char* szFriendlyName);
 	CWindowInputSource*	GetSource(void);
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
-	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand);
-	bool				UnbindKeys(const char* szKeys);
+	bool				AddContext(const char* szName, const char* szParent, bool bTyping, bool bEditorCommands = false);
+	bool				HasContext(const char* szName);
+	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand, const char* szContext = NULL);
+	bool				UnbindKeys(const char* szKeys, const char* szContext = NULL);
 	bool				BindEditorKeys(const char* szKeys, EComponentInputCommand eCommand);
 	bool				UnbindEditorKeys(const char* szKeys);
 	void				RemoveStandardKeys(EComponentInputCommand eCommand);
-	bool				IsBound(const char* szKeys);
+	bool				IsBound(const char* szKeys, const char* szContext = NULL);
 	bool				IsEditorBound(const char* szKeys);
 	EComponentInputCommand	GetStandardCommand(const char* szKeys);
 	bool				IsTypingKeys(const char* szKeys);
@@ -155,15 +179,25 @@ protected:
 	void							SetChordCommand(const char* szName, EComponentInputCommand ePressed);
 	static bool						ParseKeys(const char* szKeys, SComponentInputBinding* psBinding);
 	SComponentInputBinding*			GetBinding(const char* szKeys);
-	SComponentInputBinding*			GetEditorBinding(const char* szKeys);
+	SComponentInputContext*			GetContext(const char* szName);
+	SComponentInputContext*			GetParentContext(SComponentInputContext* psContext);
+	SComponentInputBinding*			GetContextBinding(SComponentInputContext* psContext, const char* szKeys);
+	SComponentInputBinding*			FindContextBinding(const char* szContext, const char* szKeys, SComponentInputContext** ppsFound);
+	bool							HasEditorCommands(const char* szContext);
+	bool							BindGlobalKeys(const char* szKeys, EComponentInputCommand eCommand);
+	bool							BindContextKeys(const char* szKeys, EComponentInputCommand eCommand, SComponentInputContext* psContext);
+	bool							UnbindGlobalKeys(const char* szKeys);
+	bool							IsGloballyBound(const char* szKeys);
+	bool							IsTypingBinding(SComponentInputBinding* psBinding);
 	void							ApplyBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
-	void							ApplyEditorBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
+	void							ApplyContextBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
 	void							KillBinding(SComponentInputBinding* psBinding);
-	EComponentInputCommand			GetEditorCommand(const char* szKeys, EComponentInputCommand eStandard);
+	void							KillContext(SComponentInputContext* psContext);
+	EComponentInputCommand			GetContextCommand(const char* szContext, const char* szKeys, EComponentInputCommand eStandard, SComponentInputEvent* psDest);
 	SComponentInputChordCommand*	GetChordCommand(const char* szName);
 	bool							IsKeyDown(EComponentInputKey eKey);
 	void							InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent);
-	bool							Pressed(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest, bool bEditorKeys);
+	bool							Pressed(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest, const char* szContext);
 	bool							Released(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest);
 	bool							PressedKey(CComponentInputKey* psKey);
 	CComponentInputCommand*			GetCommand(CInputSourceDesc* pcSource, bool bPressed);
