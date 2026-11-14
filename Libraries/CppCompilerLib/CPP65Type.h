@@ -82,6 +82,7 @@ struct SCPP65Type
 	bool	IsSupported(void);
 	bool	IsWide(void);
 	bool	Equals(SCPP65Type* psOther);
+	bool	HasQualifiersOf(SCPP65Type* psFrom);
 	bool	Same(SCPP65Type* psOther);
 	SCPP65Type*	Unqualified(void);
 	SCPP65Type*	WithoutReference(void);

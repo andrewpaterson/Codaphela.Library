@@ -155,8 +155,38 @@ bool CCPPFunction::IsUnitFunction(void)
 	pcClass = mpcClass;
 	if (pcClass)
 	{
-		return (pcClass->mlliName < 0) || (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcScope->IsInUnnamedNamespace());
+		return (pcClass->IsUnnamed()) || (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcScope->IsInUnnamedNamespace());
 	}
 	return mbStatic || (mpcNamespace && mpcNamespace->IsInUnnamedNamespace());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Records the function's definition.  Functions defined in classes, inline,
+// constexpr and template functions are generated when they are first called.
+// Bodies that were skipped (in system headers) are not definitions; = default
+// makes the generator write a constructor or destructor.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPFunction::SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	if ((pcDefinition->meBody == CPPFB_Default) && (meKind != CPPFK_Function))
+	{
+		mbImplicit = true;
+		mbDefined = true;
+		return;
+	}
+	if (pcDefinition->meBody != CPPFB_Body)
+	{
+		return;
+	}
+	mpcDefinition = pcDefinition;
+	mbDefined = true;
+	mbInline = true;
+	if (!mpcBindings && mpcClass)
+	{
+		mpcBindings = mpcClass->mpcBindings;
+	}
 }
 

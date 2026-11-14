@@ -151,6 +151,18 @@ bool SCPP65Type::IsSupported(void)
 // An 8 byte integer: worked on with the registers 64 bits wide.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// Whether the type has every qualifier psFrom has (const T from T or const T,
+// not T from const T).
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::HasQualifiersOf(SCPP65Type* psFrom)
+{
+	return (bConst || !psFrom->bConst) && (bVolatile || !psFrom->bVolatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsWide(void)
 {
 	return (eKind == CPP65TK_Integer) && (iBytes == 8);

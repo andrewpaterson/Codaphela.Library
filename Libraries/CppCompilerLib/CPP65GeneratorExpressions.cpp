@@ -161,7 +161,7 @@ bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
 			pszText->Append(szName, iLength);
 			pszText->Append("::");
 		}
-		if (mpcFunction->mlliName >= 0)
+		if (!mpcFunction->IsOperator())
 		{
 			szName = mpcTokeniser->GetIdentifier(mpcFunction->mlliName, &iLength);
 			pszText->Append(szName, iLength);
@@ -564,37 +564,6 @@ CCPPFunction* CCPP65Generator::FindOperator(CCPPClass* pcClass, int64 lliName, C
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The member of the kind eKind named lliName of pcClass or of a base, and in ppsClass the class that declares it.  A
-// specialisation has its own members: its symbol is its primary template's, whose members they aren't.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPP65Generator::ClassMember(CCPPClass* pcClass, int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass)
-{
-	CCPPScope*	pcMembers;
-	CCPPSymbol*	pcSymbol;
-	size		i;
-
-	pcMembers = pcClass->mpcSpecifier ? pcClass->mpcSpecifier->mpcScope : (pcClass->mpcSymbol ? pcClass->mpcSymbol->mpcMembers : NULL);
-	pcSymbol = pcMembers ? pcMembers->FindHere(lliName) : NULL;
-	if (pcSymbol && (pcSymbol->meKind == eKind))
-	{
-		*ppcClass = pcClass;
-		return pcSymbol;
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		pcSymbol = ClassMember(pcClass->macBases.Get(i)->pcClass, lliName, eKind, ppcClass);
-		if (pcSymbol)
-		{
-			return pcSymbol;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The enumerator Class::Name names.  See QualifiedMember.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -641,7 +610,7 @@ CCPPSymbol* CCPP65Generator::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolK
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
 	pcClass = GetComponentClass(pcQualifier, NULL, pcNode);
-	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? ClassMember(pcClass, GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
+	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
 	return pcSymbol;

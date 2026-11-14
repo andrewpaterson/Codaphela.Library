@@ -1349,7 +1349,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 	}
 
 	psReturn = &mcTypes.msVoid;
-	if (lliName == CPP65_CONVERSION_NAME)
+	if (lliName == CPP_CONVERSION_NAME)
 	{
 		//operator T () returns T.
 		psReturn = pcComponent->mpcConversionType ? GetTypeIdType(pcComponent->mpcConversionType) : NULL;
@@ -1444,7 +1444,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 		{
 			continue;
 		}
-		if (((lliName == CPP65_CONVERSION_NAME) && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis))
+		if ((pcOther->IsConversion() && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis))
 		{
 			continue;
 		}
@@ -2544,7 +2544,7 @@ bool CCPP65Generator::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPC
 	{
 		return Error(pcDefinition, "The function is defined twice");
 	}
-	SetDefinition(pcFunction, pcDefinition);
+	pcFunction->SetDefinition(pcDefinition);
 	if (!pcFunction->mpcDefinition && !pcFunction->mbImplicit)
 	{
 		//A body skipped in a system header.

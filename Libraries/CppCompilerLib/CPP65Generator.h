@@ -425,12 +425,10 @@ protected:
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
 	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
-	static bool				AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
-	void					SetDefinition(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	CCPPFunction*			FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);
@@ -469,7 +467,6 @@ protected:
 	CCPPFunction*			FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject);
 	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
-	CCPPSymbol*				ClassMember(CCPPClass* pcClass, int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass);
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);

@@ -569,7 +569,7 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer())
 	{
-		if (AddsQualifiers(psParameter->psBase, psArgument->psBase) &&
+		if (psParameter->psBase->HasQualifiersOf(psArgument->psBase) &&
 			(psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && IsDerived(psArgument->psBase->pcClass, psParameter->psBase->pcClass, NULL))))
 		{
 			return CPPCR_Conversion;
@@ -595,7 +595,7 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 	}
 	if (psParameter->IsClass() && psArgument->IsClass() && IsDerived(psArgument->pcClass, psParameter->pcClass, NULL))
 	{
-		return (!bReference || AddsQualifiers(psParameter, psArgument)) ? CPPCR_Conversion : CPPCR_None;
+		return (!bReference || psParameter->HasQualifiersOf(psArgument)) ? CPPCR_Conversion : CPPCR_None;
 	}
 	if (bUserDefined && psParameter->IsClass() && HasConvertingConstructor(psParameter->pcClass, psArgument, pcArgument))
 	{
@@ -642,7 +642,7 @@ int CCPP65Generator::QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, boo
 	}
 	for (;;)
 	{
-		if (!AddsQualifiers(psTo, psFrom))
+		if (!psTo->HasQualifiersOf(psFrom))
 		{
 			return CPPCR_None;
 		}
@@ -662,18 +662,6 @@ int CCPP65Generator::QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, boo
 		psTo = psTo->psBase;
 		psFrom = psFrom->psBase;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether psTo has every qualifier psFrom has (const T from T or const T,
-// not T from const T).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
-{
-	return (psTo->bConst || !psFrom->bConst) && (psTo->bVolatile || !psFrom->bVolatile);
 }
 
 

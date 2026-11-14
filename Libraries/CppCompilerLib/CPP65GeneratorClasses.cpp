@@ -813,7 +813,7 @@ bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			mapcFailed.Add(pcDefinition->mpcDeclarator);
 			return true;
 		}
-		SetDefinition(pcFunction, pcDefinition);
+		pcFunction->SetDefinition(pcDefinition);
 		return true;
 
 	case CPPS_SimpleDeclaration:
@@ -1082,36 +1082,6 @@ CCPPVariable* CCPP65Generator::FindStatic(CCPPClass* pcClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Records a function's definition.  Functions defined in classes, inline,
-// constexpr and template functions are generated when they are first called.
-// Bodies that were skipped (in system headers) are not definitions; = default
-// makes the generator write a constructor or destructor.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetDefinition(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition)
-{
-	if ((pcDefinition->meBody == CPPFB_Default) && (pcFunction->meKind != CPPFK_Function))
-	{
-		pcFunction->mbImplicit = true;
-		pcFunction->mbDefined = true;
-		return;
-	}
-	if (pcDefinition->meBody != CPPFB_Body)
-	{
-		return;
-	}
-	pcFunction->mpcDefinition = pcDefinition;
-	pcFunction->mbDefined = true;
-	pcFunction->mbInline = true;
-	if (!pcFunction->mpcBindings && pcFunction->mpcClass)
-	{
-		pcFunction->mpcBindings = pcFunction->mpcClass->mpcBindings;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The conversion function (operator T, its class's own or a base's) that converts
 // an object of pcClass to psTo best: by its result's conversion to psTo (see
 // ConversionRank; a condition is a conversion to bool).  explicit ones only when
@@ -1132,7 +1102,7 @@ CCPPFunction* CCPP65Generator::FindConversion(CCPPClass* pcClass, SCPP65Type* ps
 	}
 	pcBest = NULL;
 	iBest = CPPCR_None;
-	for (pcFunction = FirstFunctionOfName(CPP65_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	for (pcFunction = FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
 		if (pcFunction->mpcTemplate || (pcFunction->mbExplicit && !bExplicit) || !IsDerived(pcClass, pcFunction->mpcClass, NULL))
 		{

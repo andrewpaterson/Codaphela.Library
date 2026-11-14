@@ -528,7 +528,7 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 	mpcGenerator->mcMangler.AppendVtableLabel(&szLabel, pcClass);
 	sLabel = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
-	if (pcClass->mlliName < 0)
+	if (pcClass->IsUnnamed())
 	{
 		mcModule.SetLocal(sLabel.Index());
 	}

@@ -205,7 +205,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	mpcGenerator->mcMangler.AppendTypeInfoLabel(&szLabel, pcTo);
 	sTarget = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
-	if (pcTo->mlliName < 0)
+	if (pcTo->IsUnnamed())
 	{
 		mcModule.SetLocal(sTarget.Index());
 	}

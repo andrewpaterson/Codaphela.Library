@@ -39,7 +39,7 @@ int64 CCPP65Generator::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
 
 	if (pcComponent && (pcComponent->meKind == CPPNC_Conversion))
 	{
-		return CPP65_CONVERSION_NAME;
+		return CPP_CONVERSION_NAME;
 	}
 	if (!pcComponent || (pcComponent->meKind != CPPNC_Operator))
 	{

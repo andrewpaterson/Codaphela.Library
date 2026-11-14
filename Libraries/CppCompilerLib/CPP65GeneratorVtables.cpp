@@ -53,7 +53,7 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 		szLabel.Kill();
 		return;
 	}
-	if (pcClass->mlliName < 0)
+	if (pcClass->IsUnnamed())
 	{
 		AppendSection(&mszData, "rodata", &szLabel, NULL);
 	}
@@ -138,7 +138,7 @@ void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
 		szLabel.Kill();
 		return;
 	}
-	if (pcClass->mlliName < 0)
+	if (pcClass->IsUnnamed())
 	{
 		AppendSection(&mszData, "rodata", &szLabel, NULL);
 	}

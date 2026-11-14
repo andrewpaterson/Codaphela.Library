@@ -410,3 +410,34 @@ int CCPPClass::GetVtablePointerOffset(void)
 	return mcVtable.GetPointerOffset();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member of the kind eKind named lliName of the class or of a base, and in ppcClass the class that declares it.  A
+// specialisation has its own members: its symbol is its primary template's, whose members they aren't.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPClass::FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass)
+{
+	CCPPScope*	pcMembers;
+	CCPPSymbol*	pcSymbol;
+	size		i;
+
+	pcMembers = mpcSpecifier ? mpcSpecifier->mpcScope : (mpcSymbol ? mpcSymbol->mpcMembers : NULL);
+	pcSymbol = pcMembers ? pcMembers->FindHere(lliName) : NULL;
+	if (pcSymbol && (pcSymbol->meKind == eKind))
+	{
+		*ppcClass = this;
+		return pcSymbol;
+	}
+	for (i = 0; i < macBases.NumElements(); i++)
+	{
+		pcSymbol = macBases.Get(i)->pcClass->FindMemberSymbol(lliName, eKind, ppcClass);
+		if (pcSymbol)
+		{
+			return pcSymbol;
+		}
+	}
+	return NULL;
+}
+

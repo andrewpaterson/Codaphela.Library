@@ -29,7 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Type.h"
 
 
-#define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
+#define CPP_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 
 
 enum ECPPFunctionKind
@@ -82,11 +82,15 @@ public:
 	void	Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	void	Kill(void);
 
+	bool	IsConversion(void) { return mlliName == CPP_CONVERSION_NAME; }	//operator T.
+	bool	IsOperator(void) { return mlliName < 0; }						//An operator or a conversion: its name is no identifier.
+
 	size	RequiredParameters(void);
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(int iConstObject);
 	bool	IsUnitFunction(void);
+	void	SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition);
 };
 
 

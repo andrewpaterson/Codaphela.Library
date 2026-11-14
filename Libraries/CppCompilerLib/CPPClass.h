@@ -116,6 +116,7 @@ public:
 	void			Init(CCPPSymbol* pcSymbol, int64 lliName);
 	void			Kill(void);
 
+	bool			IsUnnamed(void) { return mlliName < 0; }	//Its labels are the unit's own.
 	bool			IsComplete(void) { return meState == CPPCS_Complete; }
 	bool			IsBeingMade(void) { return (meState == CPPCS_ResolvingBases) || (meState == CPPCS_LayingOut); }
 	bool			HasBases(void) { return meState >= CPPCS_ResolvingBases; }
@@ -123,6 +124,7 @@ public:
 	bool			IsInstanceNamed(CCPPSymbol* pcSymbol);
 	SCPPField*		FindField(int64 lliName, int* piOffset);
 	SCPPField*		FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset);
+	CCPPSymbol*		FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass);
 	size			NumAggregateFields(void);
 	bool			NeedsConstructor(void);
 	bool			NeedsDestructor(void);

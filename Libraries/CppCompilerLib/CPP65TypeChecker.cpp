@@ -2779,7 +2779,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 	{
 		return true;
 	}
-	bKept = psFrom->psBase->Equals(psTo->psBase) ? (mpcGenerator->QualificationRank(psTo, psFrom, false) != CPPCR_None) : mpcGenerator->AddsQualifiers(psTo->psBase, psFrom->psBase);
+	bKept = psFrom->psBase->Equals(psTo->psBase) ? (mpcGenerator->QualificationRank(psTo, psFrom, false) != CPPCR_None) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
 	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
 }
 
@@ -2807,7 +2807,7 @@ bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CC
 	{
 		return Error(pcNode, "An array cannot be bound to a reference to a pointer that isn't const");
 	}
-	return mpcGenerator->AddsQualifiers(psReference->psBase, psPlace) || Error(pcNode, "A const object cannot be bound to a reference that is not const");
+	return psReference->psBase->HasQualifiersOf(psPlace) || Error(pcNode, "A const object cannot be bound to a reference that is not const");
 }
 
 

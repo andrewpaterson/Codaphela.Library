@@ -262,7 +262,7 @@ void CCPPMangler::AppendClassName(CChars* psz, CCPPClass* pcClass)
 	char*	szName;
 	int		iLength;
 
-	if (pcClass->mlliName < 0)
+	if (pcClass->IsUnnamed())
 	{
 		//A class without a name is the unit's own (its labels are local to the object).
 		psz->Append("Unnamed");
@@ -336,7 +336,7 @@ void CCPPMangler::AppendFunctionName(CChars* psz, int64 lliName)
 	char*	szName;
 	int		iLength;
 
-	if (lliName == CPP65_CONVERSION_NAME)
+	if (lliName == CPP_CONVERSION_NAME)
 	{
 		psz->Append("opConvert");
 		return;
