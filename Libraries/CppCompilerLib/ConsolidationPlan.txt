@@ -287,6 +287,15 @@ Stage 5, a call, a name and a member are resolved once; then the checkpoint.
       what is suggested for stages 6 to 11 and for stage 2's leftovers.  The plan stops and the numbers go to
       the user.
    All ten are done (2026-11-14): Progress has the checkpoint.  The binder is CCPPBinder since step 9.
+   Decided at the checkpoint (the user, 2026-11-14: "I'll go with your recommendation then stage 7"): stage 6
+   as written is dropped.  Two steps are taken from it, as steps of stage 5's size, and then stage 7:
+  11. Conversions are bound once: how an expression becomes a type (as it is, a built in conversion, the
+      class's conversion function, a converting constructor) is the binder's answer, read by both walkers.
+  12. Making an object is bound once: which constructor, the default one that may not be there, or an
+      aggregate's fields in order.
+   What stage 6 would also have given is given up: the two walks stay two, TypeOf and its map stay, the
+   front end keeps its Unsupported exits (none is taken in any suite), and the IDE's check stays the type
+   checker's.
    Old and new are compared without a debug build that runs both: the listings of TestSupportLib65's project
    on both processors, made by the compiler before a step and after it, are the front end's choices side by
    side, and TestCppCompilerLib is the type checker's.  A listing that differs is read; where the two walkers
@@ -630,7 +639,8 @@ to compare today's build with.  A new baseline is needed before stage 4 measures
 	                                f945ff482 b70675dbb f00de6c59 b856fded1
 	5       Done: the checkpoint    9d3684ca3 1ebcd76da cf306ce4d 5d923f2fd a91247def 1018d00d0 0e844a0e3 8c592e37c
 	                                2f958ec73 7bb4745b6 1be9f6d69
-	6-11    Waiting for the user
+	6       Dropped (the user, 2026-11-14): two steps of it are stage 5's steps 11 and 12
+	7-11    Not started; 7 follows steps 11 and 12
 	(Commits are named as they were when each row was written: the history has been rebased since, more than once.)
 
 The baseline of 2026-11-14 (68476daf2 with the #include fixes; Release x64, 16 threads, CompilerMeasure.py).
