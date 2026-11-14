@@ -46,11 +46,13 @@ enum ETextEditingDrag
 
 
 //What undo and redo keys go to instead of the editing, if it's set (CTextEditingInput::SetUndoPresser): a text area
-//that shows a change out of view before undoing it (see CRevealingUndo).
+//that shows a change out of view before undoing it (see CRevealingUndo), or an application whose undo goes across its
+//texts.  It says when there's something to undo, for the keys and Edit's Undo to be on.
 class CTextUndoPresser
 {
 public:
 	virtual void	PressUndo(bool bRedo) = 0;
+	virtual bool	CanPressUndo(bool bRedo) = 0;
 };
 
 

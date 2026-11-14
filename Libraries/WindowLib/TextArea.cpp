@@ -96,7 +96,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcEditing.Init(&mcDocument, this);
 	mcUndoEvent.Init();
 	mcRevealingUndo.Init(this);
-	mbRevealsUndo = false;
+	mpcUndoPresser = NULL;
 	mcUndoMessageEvent.Init();
 	mcChanged.Init();
 	mbSelectable = true;
@@ -157,7 +157,7 @@ void CTextArea::Class(void)
 	U_Unknown(CTextDocument, mcDocument);
 	U_Unknown(CTextAreaUndoEvent, mcUndoEvent);
 	U_Unknown(CRevealingUndo, mcRevealingUndo);
-	U_Bool(mbRevealsUndo);
+	U_Pointer(mpcUndoPresser);
 	U_Unknown(CTextAreaMessageEvent, mcUndoMessageEvent);
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
 	M_Pointer(mpLayout);
@@ -1259,9 +1259,9 @@ bool CTextArea::CanDoCommand(EComponentInputCommand eCommand)
 	switch (eCommand)
 	{
 	case CIC_Undo:
-		return CanUndo();
+		return (mpcUndoPresser != NULL) ? mpcUndoPresser->CanPressUndo(false) : CanUndo();
 	case CIC_Redo:
-		return CanRedo();
+		return (mpcUndoPresser != NULL) ? mpcUndoPresser->CanPressUndo(true) : CanRedo();
 	case CIC_Cut:
 	case CIC_Paste:
 		return IsEditable() && CComponent::CanDoCommand(eCommand);
@@ -1487,9 +1487,25 @@ CTextAreaUndoEvent* CTextArea::GetUndoEvent(void) { return &mcUndoEvent; }
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetRevealsUndo(bool bReveals)
 {
-	mbRevealsUndo = bReveals;
-	mcInput.SetUndoPresser(bReveals ? this : NULL);
+	SetUndoPresser(bReveals ? this : NULL);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The undo and redo keys (and Edit's Undo and Redo) go to pcPresser (not
+// held), an application's undo across its texts say, and are on when it
+// says; NULL, to the text area's own editing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetUndoPresser(CTextUndoPresser* pcPresser)
+{
+	mpcUndoPresser = pcPresser;
+	mcInput.SetUndoPresser(pcPresser);
+}
+
+
+bool CTextArea::CanPressUndo(bool bRedo) { return bRedo ? CanRedo() : CanUndo(); }
 
 
 CTextAreaMessageEvent* CTextArea::GetUndoMessageEvent(void) { return &mcUndoMessageEvent; }

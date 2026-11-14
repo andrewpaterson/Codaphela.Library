@@ -115,7 +115,7 @@ protected:
 	//CTextDocument::Load).
 	CTextAreaUndoEvent			mcUndoEvent;
 	CRevealingUndo				mcRevealingUndo;  //Used if SetRevealsUndo: a change out of view is shown before it's undone.
-	bool						mbRevealsUndo;
+	CTextUndoPresser*			mpcUndoPresser;  //Not held: what the undo keys go to, NULL for the editing.
 	CTextAreaMessageEvent		mcUndoMessageEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 
@@ -143,8 +143,10 @@ public:
 	void						SetTypingPause(int32 iMilliseconds);
 	CTextAreaUndoEvent*			GetUndoEvent(void);
 	void						SetRevealsUndo(bool bReveals);
+	void						SetUndoPresser(CTextUndoPresser* pcPresser);
 	CTextAreaMessageEvent*		GetUndoMessageEvent(void);
 	void						PressUndo(bool bRedo) override;
+	bool						CanPressUndo(bool bRedo) override;
 	bool						IsUndoShown(bool bRedo) override;
 	bool						ShowUndo(bool bRedo) override;
 	bool						DoUndo(bool bRedo) override;
