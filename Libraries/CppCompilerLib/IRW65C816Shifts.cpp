@@ -815,5 +815,5 @@ bool CIRW65C816Backend::OnlyCounts(SIRReference sValue)
 		return false;
 	}
 	ui = sValue.Index();
-	return (ui < maiCountUses.NumElements()) && (ui < maiUses.NumElements()) && (*maiCountUses.Get(ui) > 0) && (*maiCountUses.Get(ui) == *maiUses.Get(ui));
+	return (ui < masTemporaries.NumElements()) && (ui < masTemporaries.NumElements()) && (masTemporaries.Get(ui)->iCountUses > 0) && (masTemporaries.Get(ui)->iCountUses == masTemporaries.Get(ui)->iUses);
 }

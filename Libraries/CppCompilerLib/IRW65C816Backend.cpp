@@ -40,26 +40,17 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	mpcArena = pcArena;
 	mpcOldScratch = pcArena ? SetScratch(pcArena) : NULL;
 	InitBackend(pcModule, piLabels, CIRW65C816Backend::GetScratch());
-	maiOffsets.Init(CIRW65C816Backend::GetScratch());
+	masTemporaries.Init(CIRW65C816Backend::GetScratch());
+	mpcTemporariesOf = NULL;
 	masCopies.Init(CIRW65C816Backend::GetScratch());
 	masCopySteps.Init(CIRW65C816Backend::GetScratch());
-	maiSlots.Init(CIRW65C816Backend::GetScratch());
 	maiParameters.Init(CIRW65C816Backend::GetScratch());
 	mauiPendingArguments.Init(CIRW65C816Backend::GetScratch());
-	masFoldBase.Init(CIRW65C816Backend::GetScratch());
-	maiFoldOffset.Init(CIRW65C816Backend::GetScratch());
-	masFoldIndex.Init(CIRW65C816Backend::GetScratch());
 	mcDominators.Init();
 	mcLoops.Init();
 	mcBackendPasses.Init();
 	mpcDominators = NULL;
-	maiUses.Init(CIRW65C816Backend::GetScratch());
-	maiCountUses.Init(CIRW65C816Backend::GetScratch());
-	maiUseBlock.Init(CIRW65C816Backend::GetScratch());
-	mauiZeroWords.Init(CIRW65C816Backend::GetScratch());
-	mabLowByteOnly.Init(CIRW65C816Backend::GetScratch());
 	mbUnmasked = false;
-	mabInX.Init(CIRW65C816Backend::GetScratch());
 	masArguments.Init(CIRW65C816Backend::GetScratch());
 	msFrame.Init(0, false);
 	miFused = 0;
@@ -78,19 +69,9 @@ void CIRW65C816Backend::Kill(void)
 	masArguments.Kill();
 	mauiPendingArguments.Kill();
 	maiParameters.Kill();
-	maiSlots.Kill();
 	masCopySteps.Kill();
 	masCopies.Kill();
-	mabInX.Kill();
-	mabLowByteOnly.Kill();
-	mauiZeroWords.Kill();
-	maiUseBlock.Kill();
-	maiCountUses.Kill();
-	maiUses.Kill();
-	masFoldIndex.Kill();
-	maiFoldOffset.Kill();
-	masFoldBase.Kill();
-	maiOffsets.Kill();
+	masTemporaries.Kill();
 	mcLoops.Kill();
 	mcBackendPasses.Kill();
 	mcDominators.Kill();
@@ -772,7 +753,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The words of each temporary that are 0 whatever it is (mauiZeroWords, a
+// The words of each temporary that are 0 whatever it is (a temporary's uiZeroWords, a
 // bit a word): those a zext adds, those an and with a constant or with a
 // value whose word is 0 clears, and those a shift right by a constant
 // empties.  The instructions read them as the constant (Operand,
@@ -783,6 +764,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FindZeroWords(void)
 {
+	size				uiTemporary;
 	size			uiBlock;
 	size			ui;
 	CIRBlock*		pcBlock;
@@ -793,8 +775,11 @@ void CIRW65C816Backend::FindZeroWords(void)
 	uint8			uiAll;
 	uint64			ulliConstant;
 
-	mauiZeroWords.FakeSetUsedElements(0);
-	mauiZeroWords.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	GrowTemporaries();
+	for (uiTemporary = 0; uiTemporary < masTemporaries.NumElements(); uiTemporary++)
+	{
+		masTemporaries.Get(uiTemporary)->uiZeroWords = 0;
+	}
 	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 	{
 		pcBlock = mpcFunction->GetBlock(uiBlock);
@@ -838,7 +823,7 @@ void CIRW65C816Backend::FindZeroWords(void)
 			default:
 				break;
 			}
-			*mauiZeroWords.Get(psInstruction->sResult.Index()) = (uint8)(uiZero & uiAll);
+			masTemporaries.Get(psInstruction->sResult.Index())->uiZeroWords = (uint8)(uiZero & uiAll);
 		}
 	}
 }
@@ -847,7 +832,7 @@ void CIRW65C816Backend::FindZeroWords(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The i8 values an instruction works out whose every use reads the low
-// byte of their word alone (mabLowByteOnly): an operand of an i8 add, sub,
+// byte of their word alone (a temporary's bLowByteOnly): an operand of an i8 add, sub,
 // and, or, xor or not (16 bit operations whose low byte depends on the
 // operands' low bytes only), or the value of a byte's store (written under
 // sep m).  Such a value isn't masked to its byte when it is worked out
@@ -860,6 +845,7 @@ void CIRW65C816Backend::FindZeroWords(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FindLowByteUses(void)
 {
+	size				uiTemporary;
 	size			uiBlock;
 	size			ui;
 	size			uiArgument;
@@ -870,8 +856,11 @@ void CIRW65C816Backend::FindLowByteUses(void)
 	SIRReference	sValue;
 	bool			bLowByte;
 
-	mabLowByteOnly.FakeSetUsedElements(0);
-	mabLowByteOnly.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	GrowTemporaries();
+	for (uiTemporary = 0; uiTemporary < masTemporaries.NumElements(); uiTemporary++)
+	{
+		masTemporaries.Get(uiTemporary)->bLowByteOnly = false;
+	}
 
 	//The i8s instructions work out, until a use says otherwise.
 	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
@@ -882,7 +871,7 @@ void CIRW65C816Backend::FindLowByteUses(void)
 			psInstruction = pcBlock->masInstructions.Get(ui);
 			if (psInstruction->sResult.IsTemporary() && psInstruction->sType.Is(IRTK_I8) && mpcFunction->GetTemporaryType(psInstruction->sResult).Is(IRTK_I8))
 			{
-				*mabLowByteOnly.Get(psInstruction->sResult.Index()) = 1;
+				masTemporaries.Get(psInstruction->sResult.Index())->bLowByteOnly = 1;
 			}
 		}
 	}
@@ -897,7 +886,7 @@ void CIRW65C816Backend::FindLowByteUses(void)
 				sValue = psPhi->asArguments.Get(uiArgument)->sValue;
 				if (sValue.IsTemporary())
 				{
-					*mabLowByteOnly.Get(sValue.Index()) = 0;
+					masTemporaries.Get(sValue.Index())->bLowByteOnly = 0;
 				}
 			}
 		}
@@ -930,13 +919,13 @@ void CIRW65C816Backend::FindLowByteUses(void)
 				}
 				if (!bLowByte)
 				{
-					*mabLowByteOnly.Get(sValue.Index()) = 0;
+					masTemporaries.Get(sValue.Index())->bLowByteOnly = 0;
 				}
 			}
 		}
 		if (pcBlock->msJump.sArgument.IsTemporary())
 		{
-			*mabLowByteOnly.Get(pcBlock->msJump.sArgument.Index()) = 0;
+			masTemporaries.Get(pcBlock->msJump.sArgument.Index())->bLowByteOnly = 0;
 		}
 	}
 }
@@ -949,7 +938,7 @@ void CIRW65C816Backend::FindLowByteUses(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIRW65C816Backend::IsLowByteOnly(SIRReference sValue)
 {
-	return sValue.IsTemporary() && (sValue.Index() < mabLowByteOnly.NumElements()) && (*mabLowByteOnly.Get(sValue.Index()) != 0);
+	return sValue.IsTemporary() && (sValue.Index() < masTemporaries.NumElements()) && (masTemporaries.Get(sValue.Index())->bLowByteOnly != 0);
 }
 
 
@@ -978,9 +967,9 @@ uint8 CIRW65C816Backend::ZeroWords(SIRReference sValue)
 		}
 		return uiZero;
 	}
-	if (sValue.IsTemporary() && (sValue.Index() < mauiZeroWords.NumElements()))
+	if (sValue.IsTemporary() && (sValue.Index() < masTemporaries.NumElements()))
 	{
-		return *mauiZeroWords.Get(sValue.Index());
+		return masTemporaries.Get(sValue.Index())->uiZeroWords;
 	}
 	return 0;
 }
@@ -1000,18 +989,52 @@ bool CIRW65C816Backend::IsZeroWord(SIRReference sValue, int iWord)
 //////////////////////////////////////////////////////////////////////////
 //
 // The temporaries used once, by an instruction or a jump (not a phi): the
-// block of that use (maiUseBlock).  A folded load's or store's index counts
+// block of that use (a temporary's iUseBlock).  A folded load's or store's index counts
 // as a use.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816UseIn(CArrayTemplate<int32>* paiUseBlock, CArrayTemplate<int32>* paiCount, SIRReference sValue, int32 iBlock)
+static void IR816UseIn(CArrayIRW65C816Temporaries* pasTemporaries, CArrayTemplate<int32>* paiCount, SIRReference sValue, int32 iBlock)
 {
 	if (!sValue.IsTemporary())
 	{
 		return;
 	}
 	(*paiCount->Get(sValue.Index()))++;
-	*paiUseBlock->Get(sValue.Index()) = iBlock;
+	pasTemporaries->Get(sValue.Index())->iUseBlock = iBlock;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A record for each of the function's temporaries, and one more.  For a function
+// it hasn't been asked about, every one starts as nothing is known of it; for the
+// same function again, only the ones made since are new.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::GrowTemporaries(void)
+{
+	SIRW65C816Temporary	sNew;
+
+	if (mpcTemporariesOf != mpcFunction)
+	{
+		masTemporaries.FakeSetUsedElements(0);
+		mpcTemporariesOf = mpcFunction;
+	}
+	sNew.iOffset = -1;
+	sNew.iSlot = -1;
+	sNew.sFoldBase = IRNone();
+	sNew.iFoldOffset = 0;
+	sNew.sFoldIndex = IRNone();
+	sNew.iUses = 0;
+	sNew.iCountUses = 0;
+	sNew.iUseBlock = -1;
+	sNew.uiZeroWords = 0;
+	sNew.bLowByteOnly = false;
+	sNew.bInX = false;
+	while (masTemporaries.NumElements() < mpcFunction->NumTemporaries() + 1)
+	{
+		masTemporaries.Add(&sNew);
+	}
 }
 
 
@@ -1021,6 +1044,7 @@ static void IR816UseIn(CArrayTemplate<int32>* paiUseBlock, CArrayTemplate<int32>
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FindSingleUses(void)
 {
+	size				uiTemporary;
 	CArrayTemplate<int32>	aiCount;
 	CIRBlock*				pcBlock;
 	SIRPhi*					psPhi;
@@ -1031,8 +1055,11 @@ void CIRW65C816Backend::FindSingleUses(void)
 
 	aiCount.Init(CIRW65C816Backend::GetScratch());
 	aiCount.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
-	maiUseBlock.FakeSetUsedElements(0);
-	maiUseBlock.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0xFF);
+	GrowTemporaries();
+	for (uiTemporary = 0; uiTemporary < masTemporaries.NumElements(); uiTemporary++)
+	{
+		masTemporaries.Get(uiTemporary)->iUseBlock = -1;
+	}
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
@@ -1042,33 +1069,33 @@ void CIRW65C816Backend::FindSingleUses(void)
 			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
 			{
 				//Twice: a phi's use isn't in a block's straight line code.
-				IR816UseIn(&maiUseBlock, &aiCount, psPhi->asArguments.Get(uiArgument)->sValue, -1);
-				IR816UseIn(&maiUseBlock, &aiCount, psPhi->asArguments.Get(uiArgument)->sValue, -1);
+				IR816UseIn(&masTemporaries, &aiCount, psPhi->asArguments.Get(uiArgument)->sValue, -1);
+				IR816UseIn(&masTemporaries, &aiCount, psPhi->asArguments.Get(uiArgument)->sValue, -1);
 			}
 		}
 		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiIndex);
-			IR816UseIn(&maiUseBlock, &aiCount, psInstruction->asArguments[0], (int32)ui);
-			IR816UseIn(&maiUseBlock, &aiCount, psInstruction->asArguments[1], (int32)ui);
+			IR816UseIn(&masTemporaries, &aiCount, psInstruction->asArguments[0], (int32)ui);
+			IR816UseIn(&masTemporaries, &aiCount, psInstruction->asArguments[1], (int32)ui);
 
 			//A folded index (FoldIndices) is read by the load or store too (ldy), not only by its zext.
 			if (psInstruction->uiOpcode == IRO_Load)
 			{
-				IR816UseIn(&maiUseBlock, &aiCount, FoldedIndex(psInstruction->asArguments[0]), (int32)ui);
+				IR816UseIn(&masTemporaries, &aiCount, FoldedIndex(psInstruction->asArguments[0]), (int32)ui);
 			}
 			else if (psInstruction->uiOpcode == IRO_Store)
 			{
-				IR816UseIn(&maiUseBlock, &aiCount, FoldedIndex(psInstruction->asArguments[1]), (int32)ui);
+				IR816UseIn(&masTemporaries, &aiCount, FoldedIndex(psInstruction->asArguments[1]), (int32)ui);
 			}
 		}
-		IR816UseIn(&maiUseBlock, &aiCount, pcBlock->msJump.sArgument, (int32)ui);
+		IR816UseIn(&masTemporaries, &aiCount, pcBlock->msJump.sArgument, (int32)ui);
 	}
 	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
 	{
 		if (*aiCount.Get(ui) != 1)
 		{
-			*maiUseBlock.Get(ui) = -1;
+			masTemporaries.Get(ui)->iUseBlock = -1;
 		}
 	}
 	aiCount.Kill();

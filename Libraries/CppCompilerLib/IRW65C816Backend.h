@@ -116,6 +116,28 @@ public:
 #define IR816_ARENA_KEPT	(1 MB)
 
 
+
+//What the W65C816 back end knows of one temporary of the function it is writing.  Each part is found by its own
+//pass over the function, which sets it for every temporary first.
+struct SIRW65C816Temporary
+{
+	int32			iOffset;		//Its place in the frame (D + offset), or -1.
+	int32			iSlot;			//Made by a slot: the slot's place, else -1.
+	SIRReference	sFoldBase;		//The pointer a folded pointer adds a constant to, else none...
+	int32			iFoldOffset;	//...and that constant.
+	SIRReference	sFoldIndex;		//The i16 a folded pointer adds in Y instead (its offset is 0), else none.
+	int32			iUses;			//How many times it is used...
+	int32			iCountUses;		//...and how many of those are as the count of a shift by a count known when it runs.
+	int32			iUseBlock;		//The block of its one use by an instruction or a jump, else -1.
+	uint8			uiZeroWords;	//A bit for each of its words that is always 0 (FindZeroWords).
+	bool			bLowByteOnly;	//An i8 whose every use reads its low byte alone (FindLowByteUses): not masked.
+	bool			bInX;			//Kept in X instead of its frame place (AllocateX).
+};
+
+
+typedef CArrayTemplate<SIRW65C816Temporary>	CArrayIRW65C816Temporaries;
+
+
 //Writes W65C816 assembly (Assembler65816Syntax.txt) for IR functions, without optimising (W65C816.txt step 4).
 //
 //The direct page is the frame: the prologue saves D, makes room on the stack and points D at it, so every
@@ -147,27 +169,18 @@ class CIRW65C816Backend : public CIRBackend
 protected:
 	CArrayIRRegisterArguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
 	SIRW65C816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
-	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
+	CArrayIRW65C816Temporaries	masTemporaries;	//What is known of each temporary of the function being written (GrowTemporaries)...
+	CIRFunction*				mpcTemporariesOf;	//...which is this one.
 	CArrayIRCopies			masCopies;			//A jump's phi copies (EdgeCopies)...
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
-	CArrayTemplate<int32>	maiSlots;			//Per temporary made by slot: the slot's place, else -1.
 	CArrayTemplate<int32>	maiParameters;		//Per parameter: its place (D + offset).
 	CArrayTemplate<size>	mauiPendingArguments;	//Instruction indices of the args before a call.
-	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
-	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
-	CArrayTemplate<SIRReference>	masFoldIndex;	//Per temporary: the i16 a folded pointer adds in Y instead (its offset is 0), else none.
-	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
-	CArrayTemplate<int32>	maiCountUses;		//Per temporary: how many of those are as the count of a shift by a count known when it runs.
-	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
-	CArrayTemplate<uint8>	mauiZeroWords;		//Per temporary: a bit for each of its words that is always 0 (FindZeroWords).
-	CArrayTemplate<uint8>	mabLowByteOnly;		//Per temporary: an i8 whose every use reads its low byte alone (FindLowByteUses): not masked.
 	bool					mbUnmasked;			//The instruction being written leaves such a result: Mask does nothing for an i8.
 	int32					miBlock;			//The block being written.
 	CIRDominators			mcDominators;		//The function's, worked out once (GenerateFunction)...
 	CIRLoops				mcLoops;			//...and its loops: each block's depth (PackTemporaries, AllocateX, GenerateBody).
 	CIRBackendPasses		mcBackendPasses;	//SinkSteps.
 	CIRDominators*			mpcDominators;		//While the body is written: which jumps go round loops (JumpTo).
-	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
 	int						miFused;
 	SIRInstruction*			mpsDivided;			//The last udiv or sdiv that called a divide routine (RemainderLeft).
@@ -193,6 +206,7 @@ public:
 	void			GenerateBody(const char* szLabel, size uiStart);
 	void			DropFrame(size uiStart);
 	bool			ReturnsNothingInA(void);
+	void			GrowTemporaries(void);
 	void			FindSingleUses(void);
 	void			FindZeroWords(void);
 	void			FindLowByteUses(void);

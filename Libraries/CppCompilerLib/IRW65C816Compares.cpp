@@ -294,7 +294,7 @@ bool CIRW65C816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 	default:
 		return false;
 	}
-	return (psInstruction->sResult.Index() < maiUses.NumElements()) && (*maiUses.Get(psInstruction->sResult.Index()) == 1);
+	return (psInstruction->sResult.Index() < masTemporaries.NumElements()) && (masTemporaries.Get(psInstruction->sResult.Index())->iUses == 1);
 }
 
 

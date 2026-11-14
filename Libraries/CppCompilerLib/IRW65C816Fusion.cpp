@@ -171,7 +171,7 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	bWordCopy = (miFused == 0) && (psInstruction->uiOpcode == IRO_Load) && (Words(psInstruction->sType) == 1) && (psNext->uiOpcode == IRO_Store) &&
 		psNext->sType.Equals(psInstruction->sType) && psNext->asArguments[0].Equals(sResult) && !psNext->asArguments[1].Equals(sResult);
 	if (!sResult.IsTemporary() || ((Words(psInstruction->sType) < 2) && !bWordCopy) || psInstruction->sType.IsFloat() ||
-		(*maiUseBlock.Get(sResult.Index()) != miBlock))
+		(masTemporaries.Get(sResult.Index())->iUseBlock != miBlock))
 	{
 		return false;
 	}
@@ -298,7 +298,7 @@ bool CIRW65C816Backend::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstr
 
 	if ((pcBlock->msJump.uiKind != IRJ_Return) || !pcBlock->msJump.sArgument.Equals(psInstruction->sResult) || (msFrame.iHiddenResult >= 0) ||
 		!psInstruction->sResult.IsTemporary() || (Words(psInstruction->sType) != 2) || psInstruction->sType.IsFloat() ||
-		(*maiUseBlock.Get(psInstruction->sResult.Index()) != miBlock))
+		(masTemporaries.Get(psInstruction->sResult.Index())->iUseBlock != miBlock))
 	{
 		return false;
 	}

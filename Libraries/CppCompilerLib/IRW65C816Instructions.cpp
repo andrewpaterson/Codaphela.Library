@@ -163,7 +163,7 @@ void CIRW65C816Backend::Store(SIRReference sResult, int iWord)
 		return;
 	}
 	if ((miBlock >= 0) && (Words(mpcFunction->GetTemporaryType(sResult)) == 1) && IR816OnDirectPage(OffsetOf(sResult)) &&
-		(sResult.Index() < maiUseBlock.NumElements()) && (*maiUseBlock.Get(sResult.Index()) == miBlock))
+		(sResult.Index() < masTemporaries.NumElements()) && (masTemporaries.Get(sResult.Index())->iUseBlock == miBlock))
 	{
 		//Its one use is later in the block: the store is marked for Peephole, which leaves the value in A when that
 		//use is the next lda of it with A not changed before it.
@@ -347,7 +347,7 @@ void CIRW65C816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char
 	*piOffset = 0;
 	if (!FoldedBase(sPointer).Equals(sPointer))
 	{
-		*piOffset = *maiFoldOffset.Get(sPointer.Index());
+		*piOffset = masTemporaries.Get(sPointer.Index())->iFoldOffset;
 		sPointer = FoldedBase(sPointer);
 	}
 	*pszSymbol = NULL;
@@ -462,7 +462,7 @@ bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		}
 		return true;
 	case IRO_Slot:
-		Address(psInstruction, *maiSlots.Get(psInstruction->sResult.Index()));
+		Address(psInstruction, masTemporaries.Get(psInstruction->sResult.Index())->iSlot);
 		return true;
 	case IRO_ArgAddress:
 		Address(psInstruction, *maiParameters.Get((size)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits));
