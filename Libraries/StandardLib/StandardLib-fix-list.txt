@@ -9,7 +9,6 @@ F. Hygiene: names, comments, typos, dead code
 F27. [228] if ((char*)this < CORRUPT_MEMORY) return; silently ignores a corrupt pointer.
 F28. [234] CPointer::This()'s "should only *ever* be called whilst in the Load method" comment is stale.
 F33. [257] for (...; bResult && ...) loops whose bodies already return; the "Could not save object" error logs GetName() (empty for unnamed) instead of the index.
-F36. [291] CIndexGenerator is only #included (Objects.h, DependentReadObjects.h), never used.
 F49. [387] Validation messages: "should have ObjectsThisIn [NULL] set" reads backwards; the OBJECT_FLAGS_CALLED_ALLOCATE message is hard to parse.
 F50. [388] EmbeddedObjectValidate's two "does not have a from pointing to" messages are for opposite failures.
 F54. [410] CChannels::Dump loops to uiLine <= uiNum: when the data is a whole number of lines (or empty) the last pass prints an empty line and calls mabData.Get one past the end with a length of 0.  Stop after the last partial line.

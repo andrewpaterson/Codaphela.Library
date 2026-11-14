@@ -241,7 +241,6 @@
     <ClInclude Include="HollowEmbeddedObject.h" />
     <ClInclude Include="InternalObjectDeserialiser.h" />
     <ClInclude Include="Null.h" />
-    <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="IndexNewOld.h" />
     <ClInclude Include="NamedIndexedObjects.h" />
     <ClInclude Include="ObjectConverter.h" />
@@ -373,7 +372,6 @@
     <ClCompile Include="HollowEmbeddedObject.cpp" />
     <ClCompile Include="InternalObjectDeserialiser.cpp" />
     <ClCompile Include="Null.cpp" />
-    <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="IndexNewOld.cpp" />
     <ClCompile Include="NamedIndexedObjects.cpp" />
     <ClCompile Include="ObjectIO.cpp" />

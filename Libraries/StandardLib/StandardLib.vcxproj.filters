@@ -318,9 +318,6 @@
     <ClInclude Include="ObjectIO.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClInclude>
-    <ClInclude Include="IndexGenerator.h">
-      <Filter>Source\Object\Object</Filter>
-    </ClInclude>
     <ClInclude Include="IndexNewOld.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
@@ -727,9 +724,6 @@
     </ClCompile>
     <ClCompile Include="ObjectIO.cpp">
       <Filter>Source\Object\Object\IO\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexGenerator.cpp">
-      <Filter>Source\Object\Object</Filter>
     </ClCompile>
     <ClCompile Include="IndexNewOld.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
