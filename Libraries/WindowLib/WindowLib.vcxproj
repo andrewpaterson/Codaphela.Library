@@ -324,6 +324,7 @@
     <ClInclude Include="ComboBox.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandSet.h" />
+    <ClInclude Include="KeyGiver.h" />
     <ClInclude Include="EditCommands.h" />
     <ClInclude Include="WindowTheme.h" />
     <ClInclude Include="JewelTheme.h" />
@@ -455,6 +456,7 @@
     <ClCompile Include="ComboBox.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandSet.cpp" />
+    <ClCompile Include="KeyGiver.cpp" />
     <ClCompile Include="EditCommands.cpp" />
     <ClCompile Include="WindowTheme.cpp" />
     <ClCompile Include="JewelTheme.cpp" />

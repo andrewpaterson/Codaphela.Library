@@ -12,6 +12,7 @@
 #include "WindowLib/CommandSet.h"
 #include "WindowLib/EditCommands.h"
 #include "WindowLib/KeyCaptureField.h"
+#include "WindowLib/KeyGiver.h"
 #include "WindowLib/JewelTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
@@ -504,6 +505,111 @@ void TestKeymapCommandContexts(void)
 	pBoard = NULL;
 	cFileUtil.RemoveDir(TEST_KEYMAP_DIRECTORY);
 	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keys given to a command through a key giver: refused for a context it
+// can't have, keys it has, keys that type outside a typing context, and
+// keys dialogs need; moved from another command in the same context
+// unless the answer is cancel; shadowing a Global command's keys in
+// another context, which is said but allowed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapGiver(void)
+{
+	CChars				szLog;
+	CChars				szMessage;
+	CKeymapTestWindow	cTest;
+	CKeymapTestCommands	cRun;
+	Ptr<CCommandSet>	pCommands;
+	Ptr<CCommand>		pOpen;
+	Ptr<CCommand>		pAnd;
+	Ptr<CCommand>		pOr;
+	CCommandSetKeys		cKeys;
+	CKeyGiver			cGiver;
+	size				uiOpen;
+	size				uiAnd;
+	size				uiOr;
+
+	szLog.Init();
+	szMessage.Init();
+	cTest.Init(&szLog);
+	AssertTrue(cTest.cInput.AddContext("Circuit", NULL, true));
+
+	pCommands = OMalloc<CCommandSet>();
+	pOpen = pCommands->Add("File.Open", "Open Project", NULL, Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pOpen->AddDefaultKeys("Control+Alt+A");
+	pAnd = pCommands->Add("Place.AndGate", "AND Gate", NULL, Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pAnd->SetContext("Circuit");
+	pAnd->AllowContext(COMPONENT_INPUT_GLOBAL_CONTEXT);
+	pAnd->AddDefaultKeys("Shift+A");
+	pOr = pCommands->Add("Place.OrGate", "OR Gate", NULL, Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pOr->SetContext("Circuit");
+	pOr->AddDefaultKeys("Shift+O");
+	cKeys.Init(&pCommands);
+	cGiver.Init(&cKeys, &cTest.cInput);
+	uiOpen = cKeys.Find(&pOpen);
+	uiAnd = cKeys.Find(&pAnd);
+	uiOr = cKeys.Find(&pOr);
+	AssertSize(0, uiOpen);
+	AssertSize(2, uiOr);
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cKeys.Find(NULL));
+
+	//Refused.
+	AssertFalse(cGiver.Give(uiOr, "Circuit", "", &szMessage));
+	AssertString("Press the keys.", szMessage.Text());
+	AssertFalse(cGiver.Give(uiOr, COMPONENT_INPUT_GLOBAL_CONTEXT, "Control+Alt+O", &szMessage));
+	AssertString("Ctrl+Alt+O can't be its shortcut.", szMessage.Text());
+	AssertFalse(cGiver.Give(uiOpen, "Circuit", "F7", &szMessage));
+	AssertString("F7 can't be its shortcut over the Circuit.", szMessage.Text());
+	AssertFalse(cGiver.Give(uiOr, "Circuit", "Shift+O", &szMessage));
+	AssertString("Shift+O is already its shortcut.", szMessage.Text());
+	AssertFalse(cGiver.Give(uiAnd, COMPONENT_INPUT_GLOBAL_CONTEXT, "Q", &szMessage));
+	AssertString("Q types a character: add Ctrl or Alt.", szMessage.Text());
+	AssertFalse(cGiver.Give(uiOpen, COMPONENT_INPUT_GLOBAL_CONTEXT, "Control+C", &szMessage));
+	AssertString("Ctrl+C is needed by dialogs and text fields.", szMessage.Text());
+
+	//Free, and bare keys over a typing context.
+	AssertTrue(cGiver.Describe(uiOr, "Circuit", "Q", &szMessage));
+	AssertString("Q is free.", szMessage.Text());
+	AssertTrue(cGiver.Give(uiOr, "Circuit", "Q", &szMessage));
+	AssertTrue(pOr->HasKeys("Q", "Circuit"));
+
+	//Moved, unless cancelled; with no dialog it gives.
+	AssertTrue(cGiver.Describe(uiAnd, "Circuit", "Shift+O", &szMessage));
+	AssertString("Shift+O moves here from OR Gate.", szMessage.Text());
+	cGiver.SetAnswer(KGA_Cancel);
+	AssertFalse(cGiver.Give(uiAnd, "Circuit", "Shift+O", &szMessage));
+	AssertString("Kept Shift+O on OR Gate.", szMessage.Text());
+	AssertTrue(pOr->HasKeys("Shift+O", "Circuit"));
+	AssertFalse(pAnd->HasKeys("Shift+O"));
+	cGiver.SetAnswer(KGA_Ask);
+	AssertTrue(cGiver.Give(uiAnd, "Circuit", "Shift+O", &szMessage));
+	AssertTrue(pAnd->HasKeys("Shift+O", "Circuit"));
+	AssertFalse(pOr->HasKeys("Shift+O"));
+
+	//Shadowing: the Global key stays where it is.
+	AssertTrue(cGiver.Give(uiOr, "Circuit", "Control+Alt+A", &szMessage));
+	AssertString("Ctrl+Alt+A is free.  It shadows Open Project there.", szMessage.Text());
+	AssertTrue(pOr->HasKeys("Control+Alt+A", "Circuit"));
+	AssertTrue(pOpen->HasKeys("Control+Alt+A", COMPONENT_INPUT_GLOBAL_CONTEXT));
+
+	//The same keys in another context don't clash.
+	AssertTrue(cGiver.Give(uiAnd, COMPONENT_INPUT_GLOBAL_CONTEXT, "Control+Alt+N", &szMessage));
+	AssertString("Ctrl+Alt+N is free.", szMessage.Text());
+	AssertTrue(cGiver.Give(uiOr, "Circuit", "Control+Alt+N", &szMessage));
+	AssertString("Ctrl+Alt+N is free.  It shadows AND Gate there.", szMessage.Text());
+
+	cGiver.Kill();
+	pCommands = NULL;
+	pOpen = NULL;
+	pAnd = NULL;
+	pOr = NULL;
+	cTest.Kill();
+	szMessage.Kill();
 	szLog.Kill();
 }
 
@@ -1421,6 +1527,7 @@ void TestKeymap(void)
 	TestKeymapContexts();
 	TestKeymapContextFocus();
 	TestKeymapCommandContexts();
+	TestKeymapGiver();
 	TestKeymapEditorKeys();
 	TestKeymapInsert();
 	TestKeymapDialog();

@@ -180,6 +180,9 @@
     <ClInclude Include="CommandSet.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="KeyGiver.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="EditCommands.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
@@ -576,6 +579,9 @@
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="CommandSet.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyGiver.cpp">
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="EditCommands.cpp">

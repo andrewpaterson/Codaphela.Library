@@ -80,17 +80,37 @@ static bool ContainsIgnoringCase(const char* szText, const char* szFilter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKeyCaptureDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, CKeymapPage* pcPage, size uiRow)
+void CKeyCaptureDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, CKeyCaptureDescriber* pcDescriber, CCommand* pcCommand, const char* szContext)
 {
+	size	i;
+
 	PreInit();
-	mpcPage = pcPage;
-	muiRow = uiRow;
+	mpcDescriber = pcDescriber;
+	mpcCommand = pcCommand;
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, "Add Shortcut");
 	mpField = OMalloc<CKeyCaptureField>(mpDialog->GetWindow(), psLook->pcTheme);
 	mpField->SetAlignment(CSH_Stretch, CSV_Center);
 	mpMessage = OMalloc<CLabel>(mpDialog->GetWindow(), psLook->pcTheme->GetFont(), "Press the keys.");
 	mpMessage->SetAlignment(CSH_Left, CSV_Center);
 	mpDialog->AddEditor("Shortcut", mpField);
+	if (pcCommand->NumContexts() > 1)
+	{
+		mpWhere = OMalloc<CComboBox>(mpDialog->GetWindow(), psLook->pcTheme);
+		for (i = 0; i < pcCommand->NumContexts(); i++)
+		{
+			mpWhere->AddItem(GetContextCaption(pcCommand->GetContext(i)));
+			if (StringCompare(pcCommand->GetContext(i), szContext) == 0)
+			{
+				mpWhere->Select((int32)i);
+			}
+		}
+		if (mpWhere->GetSelected() < 0)
+		{
+			mpWhere->Select(0);
+		}
+		mpWhere->GetSelectionEvent()->Add(this, &CKeyCaptureDialog::KeysCaptured);
+		mpDialog->AddEditor("Where", mpWhere);
+	}
 	mpDialog->AddEditor("", mpMessage);
 	mpDialog->SetApprover(this, &CKeyCaptureDialog::Approve);
 	mpField->GetCapturedEvent()->Add(this, &CKeyCaptureDialog::KeysCaptured);
@@ -106,9 +126,10 @@ void CKeyCaptureDialog::Class(void)
 {
 	M_Pointer(mpDialog);
 	M_Pointer(mpField);
+	M_Pointer(mpWhere);
 	M_Pointer(mpMessage);
-	U_Pointer(mpcPage);
-	U_Size(muiRow);
+	U_Pointer(mpcDescriber);
+	U_Pointer(mpcCommand);
 }
 
 
@@ -126,6 +147,10 @@ void CKeyCaptureDialog::Free(void)
 	{
 		mpField->GetCapturedEvent()->Remove(this);
 	}
+	if (mpWhere.IsNotNull())
+	{
+		mpWhere->GetSelectionEvent()->Remove(this);
+	}
 }
 
 
@@ -139,6 +164,32 @@ Ptr<CDialog> CKeyCaptureDialog::GetDialog(void) { return mpDialog; }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The context the keys are for: Where's, or the command's only one.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CKeyCaptureDialog::GetContext(void)
+{
+	if (mpWhere.IsNotNull() && (mpWhere->GetSelected() >= 0))
+	{
+		return mpcCommand->GetContext((size)mpWhere->GetSelected());
+	}
+	return mpcCommand->GetFirstContext();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How a context is named to a user: Global keys work "Everywhere".
+//
+//////////////////////////////////////////////////////////////////////////
+const char* GetContextCaption(const char* szContext)
+{
+	return (StrEmpty(szContext) || (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0)) ? "Everywhere" : szContext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CKeyCaptureDialog::KeysCaptured(void)
@@ -146,7 +197,7 @@ void CKeyCaptureDialog::KeysCaptured(void)
 	CChars	szMessage;
 
 	szMessage.Init();
-	mpcPage->DescribeKeys(muiRow, mpField->GetKeys(), &szMessage);
+	mpcDescriber->DescribeCapturedKeys(GetContext(), mpField->GetKeys(), &szMessage);
 	mpMessage->SetText(szMessage.Text());
 	szMessage.Kill();
 }
@@ -163,7 +214,7 @@ bool CKeyCaptureDialog::Approve(void)
 	bool	bResult;
 
 	szMessage.Init();
-	bResult = mpcPage->DescribeKeys(muiRow, mpField->GetKeys(), &szMessage);
+	bResult = mpcDescriber->DescribeCapturedKeys(GetContext(), mpField->GetKeys(), &szMessage);
 	szMessage.Kill();
 	return bResult;
 }
@@ -188,7 +239,10 @@ void CKeymapPage::Init(Ptr<CDialog> pDialog, Ptr<CCommandSet> pCommands, CCompon
 	mbUpdating = false;
 	masRows.Init();
 	maiListRows.Init();
+	muiCaptureRow = 0;
 	AddRows();
+	mcGiver.Init(this, pcInput);
+	mcGiver.SetDialog(pDialog->GetWindow(), pDialog->GetLook(), pcWatcher);
 	mpBody = CreateBody();
 
 	mpFilter->GetChangeEvent()->Add(this, &CKeymapPage::FilterChanged);
@@ -229,6 +283,8 @@ void CKeymapPage::Class(void)
 	M_Pointer(mpCapture);
 	U_Unknown(CArrayKeymapRows, masRows);
 	U_Unknown(CArrayInt, maiListRows);
+	U_Unknown(CKeyGiver, mcGiver);
+	U_Size(muiCaptureRow);
 	U_Bool(mbUpdating);
 }
 
@@ -262,9 +318,10 @@ void CKeymapPage::Free(void)
 		mpReset->GetClickEvent()->Remove(this);
 		mpResetAll->GetClickEvent()->Remove(this);
 	}
+	mcGiver.Kill();
 	for (i = 0; i < masRows.NumElements(); i++)
 	{
-		masRows.Get(i)->aszKeys.Kill();
+		masRows.Get(i)->cKeys.Kill();
 	}
 	masRows.Kill();
 	maiListRows.Kill();
@@ -318,11 +375,8 @@ void CKeymapPage::AddRows(void)
 			{
 				psRow = masRows.Add();
 				psRow->pcCommand = &pCommand;
-				psRow->aszKeys.Init();
-				for (j = 0; j < pCommand->NumKeys(); j++)
-				{
-					psRow->aszKeys.Add(pCommand->GetKeys(j));
-				}
+				psRow->cKeys.Init();
+				psRow->cKeys.Copy(pCommand->GetKeyList());
 			}
 		}
 	}
@@ -440,13 +494,13 @@ void CKeymapPage::ShowKeys(size uiRow, CChars* pszDest)
 	size			i;
 
 	psRow = masRows.Get(uiRow);
-	for (i = 0; i < psRow->aszKeys.NumElements(); i++)
+	for (i = 0; i < psRow->cKeys.NumKeys(); i++)
 	{
 		if (i > 0)
 		{
 			pszDest->Append(", ");
 		}
-		CComponentInput::AppendShortcutText(pszDest, psRow->aszKeys.GetText(i));
+		CComponentInput::AppendShortcutText(pszDest, psRow->cKeys.GetKeys(i));
 	}
 }
 
@@ -582,99 +636,52 @@ void CKeymapPage::SelectRow(size uiRow)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What giving szKeys to the row's command would mean, for saying so, and
-// false if it can't have them.
+// The rows as the key giver gives to them: each row's keys, captioned
+// with its group ("Debug: Start Debugging").
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKeymapPage::DescribeKeys(size uiRow, const char* szKeys, CChars* pszMessage)
+size CKeymapPage::NumKeyLists(void) { return masRows.NumElements(); }
+CCommand* CKeymapPage::GetKeyListCommand(size uiIndex) { return masRows.Get(uiIndex)->pcCommand; }
+CCommandKeyList* CKeymapPage::GetKeyList(size uiIndex) { return &masRows.Get(uiIndex)->cKeys; }
+
+
+void CKeymapPage::AppendKeyListCaption(size uiIndex, CChars* pszDest)
 {
-	SKeymapRow*	psRow;
-	CChars			szShown;
-	CChars			szName;
-	size			i;
-	bool			bResult;
-
-	pszMessage->Clear();
-	if (StrEmpty(szKeys))
-	{
-		pszMessage->Append("Press the keys.");
-		return false;
-	}
-
-	psRow = masRows.Get(uiRow);
-	szShown.Init();
-	szName.Init();
-	CComponentInput::AppendShortcutText(&szShown, szKeys);
-	CComponentInput::NameKeys(szKeys, &szName);
-	pszMessage->Append(szShown.Text());
-	bResult = false;
-	if (psRow->aszKeys.Contains(szName.Text()))
-	{
-		pszMessage->Append(" is already its shortcut.");
-	}
-	else if (mpcInput->IsTypingKeys(szName.Text()))
-	{
-		pszMessage->Append(" types a character: add Ctrl or Alt.");
-	}
-	else if ((StringCompare(psRow->pcCommand->GetFirstContext(), COMPONENT_INPUT_EDITOR_CONTEXT) != 0) && CComponentInput::IsWidgetCommand(mpcInput->GetStandardCommand(szName.Text())))
-	{
-		pszMessage->Append(" is needed by dialogs and text fields.");
-	}
-	else
-	{
-		bResult = true;
-		pszMessage->Append(" is free.");
-		for (i = 0; i < masRows.NumElements(); i++)
-		{
-			if ((i != uiRow) && masRows.Get(i)->aszKeys.Contains(szName.Text()))
-			{
-				pszMessage->Clear();
-				pszMessage->Append(szShown.Text());
-				pszMessage->Append(" moves here from ");
-				pszMessage->Append(GetGroupCaption(masRows.Get(i)->pcCommand));
-				pszMessage->Append(": ");
-				pszMessage->Append(masRows.Get(i)->pcCommand->GetCaption());
-				pszMessage->Append(".");
-				break;
-			}
-		}
-	}
-	szName.Kill();
-	szShown.Kill();
-	return bResult;
+	pszDest->Append(GetGroupCaption(masRows.Get(uiIndex)->pcCommand));
+	pszDest->Append(": ");
+	pszDest->Append(masRows.Get(uiIndex)->pcCommand->GetCaption());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szKeys go to the row's command, from whichever had them.  False, with
-// why under the list, if it can't have them.
+// Add Shortcut's keys for the row it's for.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKeymapPage::AddKeys(size uiRow, const char* szKeys)
+bool CKeymapPage::DescribeCapturedKeys(const char* szContext, const char* szKeys, CChars* pszMessage)
+{
+	return mcGiver.Describe(muiCaptureRow, szContext, szKeys, pszMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szKeys go to the row's command in szContext (NULL for its first), from
+// whichever had them there, asking first (see CKeyGiver).  False, with
+// why under the list, if it can't have them or moving them was cancelled.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKeymapPage::AddKeys(size uiRow, const char* szKeys, const char* szContext)
 {
 	CChars	szMessage;
-	CChars	szName;
-	size	i;
 	bool	bResult;
 
 	szMessage.Init();
-	bResult = DescribeKeys(uiRow, szKeys, &szMessage);
+	bResult = mcGiver.Give(uiRow, StrEmpty(szContext) ? masRows.Get(uiRow)->pcCommand->GetFirstContext() : szContext, szKeys, &szMessage);
 	mpStatus->SetText(szMessage.Text());
 	szMessage.Kill();
 	if (bResult)
 	{
-		szName.Init();
-		CComponentInput::NameKeys(szKeys, &szName);
-		for (i = 0; i < masRows.NumElements(); i++)
-		{
-			if (masRows.Get(i)->aszKeys.Contains(szName.Text()))
-			{
-				masRows.Get(i)->aszKeys.Remove(szName.Text());
-			}
-		}
-		masRows.Get(uiRow)->aszKeys.Add(szName.Text());
-		szName.Kill();
 		ShowList();
 	}
 	return bResult;
@@ -687,7 +694,7 @@ bool CKeymapPage::AddKeys(size uiRow, const char* szKeys)
 //////////////////////////////////////////////////////////////////////////
 void CKeymapPage::RemoveKeys(size uiRow)
 {
-	masRows.Get(uiRow)->aszKeys.ReInit();
+	masRows.Get(uiRow)->cKeys.Clear();
 	mpStatus->SetText("");
 	ShowList();
 }
@@ -696,29 +703,27 @@ void CKeymapPage::RemoveKeys(size uiRow)
 //////////////////////////////////////////////////////////////////////////
 //
 // The command has the keys it was made with, taking them from any other
-// that has them now.
+// that has them now in the same context.
 //
 //////////////////////////////////////////////////////////////////////////
 void CKeymapPage::ResetKeys(size uiRow)
 {
-	SKeymapRow*	psRow;
-	size			i;
-	size			j;
-	char*			szKeys;
+	CCommand*	pcCommand;
+	size		i;
+	size		j;
 
-	psRow = masRows.Get(uiRow);
-	psRow->aszKeys.ReInit();
-	for (i = 0; i < psRow->pcCommand->NumDefaultKeys(); i++)
+	pcCommand = masRows.Get(uiRow)->pcCommand;
+	for (i = 0; i < pcCommand->NumDefaultKeys(); i++)
 	{
-		szKeys = psRow->pcCommand->GetDefaultKeys(i);
 		for (j = 0; j < masRows.NumElements(); j++)
 		{
-			if (masRows.Get(j)->aszKeys.Contains(szKeys))
-			{
-				masRows.Get(j)->aszKeys.Remove(szKeys);
-			}
+			masRows.Get(j)->cKeys.Remove(pcCommand->GetDefaultKeysContext(i), pcCommand->GetDefaultKeys(i));
 		}
-		psRow->aszKeys.Add(szKeys);
+	}
+	masRows.Get(uiRow)->cKeys.Clear();
+	for (i = 0; i < pcCommand->NumDefaultKeys(); i++)
+	{
+		masRows.Get(uiRow)->cKeys.Add(pcCommand->GetDefaultKeysContext(i), pcCommand->GetDefaultKeys(i));
 	}
 	mpStatus->SetText("");
 	ShowList();
@@ -732,16 +737,16 @@ void CKeymapPage::ResetKeys(size uiRow)
 void CKeymapPage::ResetAllKeys(void)
 {
 	SKeymapRow*	psRow;
-	size			i;
-	size			j;
+	size		i;
+	size		j;
 
 	for (i = 0; i < masRows.NumElements(); i++)
 	{
 		psRow = masRows.Get(i);
-		psRow->aszKeys.ReInit();
+		psRow->cKeys.Clear();
 		for (j = 0; j < psRow->pcCommand->NumDefaultKeys(); j++)
 		{
-			psRow->aszKeys.Add(psRow->pcCommand->GetDefaultKeys(j));
+			psRow->cKeys.Add(psRow->pcCommand->GetDefaultKeysContext(j), psRow->pcCommand->GetDefaultKeys(j));
 		}
 	}
 	mpStatus->SetText("");
@@ -751,8 +756,7 @@ void CKeymapPage::ResetAllKeys(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// OK closed the dialog: the commands have what's here, to be bound and
-// written by whoever showed it.
+// OK: each command has the keys its row has.
 //
 //////////////////////////////////////////////////////////////////////////
 void CKeymapPage::Keep(void)
@@ -761,7 +765,7 @@ void CKeymapPage::Keep(void)
 
 	for (i = 0; i < masRows.NumElements(); i++)
 	{
-		masRows.Get(i)->pcCommand->SetKeys(&masRows.Get(i)->aszKeys);
+		masRows.Get(i)->pcCommand->SetKeys(&masRows.Get(i)->cKeys);
 	}
 }
 
@@ -784,7 +788,8 @@ void CKeymapPage::ShowCapture(void)
 		mpStatus->SetText("Select a command first.");
 		return;
 	}
-	mpCapture = OMalloc<CKeyCaptureDialog>(mpDialog->GetWindow(), mpDialog->GetLook(), this, (size)iRow);
+	muiCaptureRow = (size)iRow;
+	mpCapture = OMalloc<CKeyCaptureDialog>(mpDialog->GetWindow(), mpDialog->GetLook(), this, masRows.Get(muiCaptureRow)->pcCommand, masRows.Get(muiCaptureRow)->pcCommand->GetFirstContext());
 	if (!mszScriptedKeys.Empty())
 	{
 		mpCapture->SetKeys(mszScriptedKeys.Text());
@@ -801,7 +806,7 @@ void CKeymapPage::ShowCapture(void)
 	if (bOK)
 	{
 		szKeys.Init(mpCapture->GetKeys());
-		AddKeys((size)iRow, szKeys.Text());
+		AddKeys((size)iRow, szKeys.Text(), mpCapture->GetContext());
 		szKeys.Kill();
 	}
 	mpCapture = NULL;
@@ -865,6 +870,7 @@ void CKeymapPage::ApplyEdits(const char* szEdits)
 
 	aszEdits.Init();
 	aszEdits.Split(szEdits, ';');
+	mcGiver.SetAnswer(KGA_Give);
 	for (i = 0; i < aszEdits.NumElements(); i++)
 	{
 		sz = aszEdits.GetText(i);
@@ -924,6 +930,7 @@ void CKeymapPage::ApplyEdits(const char* szEdits)
 		}
 		fflush(stdout);
 	}
+	mcGiver.SetAnswer(KGA_Ask);
 	aszEdits.Kill();
 }
 

@@ -31,6 +31,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScrollPane.h"
 #include "TextField.h"
 #include "SettingsDialog.h"
+#include "ComboBox.h"
+#include "KeyGiver.h"
 
 
 class CKeymapPage;
@@ -48,17 +50,25 @@ struct SKeymapGroup
 //What watches the page's dialogs for an application's scripted checks (the HCP65 IDE's CIDEScript): Add Shortcut, as
 //it's shown, and the settings dialog again after.  ShowCaptureWhenDrawn asks for Add Shortcut to be shown once the
 //settings dialog is drawn (CKeymapPage::ApplyEdits's capture:<keys>).  None is needed otherwise.
-class CKeymapPageWatcher
+class CKeymapPageWatcher : public CDialogWatcher
 {
 public:
-	virtual void	WatchDialog(Ptr<CDialog> pDialog) = 0;
-	virtual void	StopWatchingDialog(void) = 0;
 	virtual void	ShowCaptureWhenDrawn(CKeymapPage* pcPage) = 0;
 };
 
 
-//Add Shortcut: the keys pressed, and what giving them to the command would mean.  OK isn't allowed for keys that can't
-//be given to it.
+//What says whether keys captured by Add Shortcut can be given in a context (CKeyCaptureDialog): the keymap page for its
+//selected command, or another place a command's keys are changed (LogiCim's component chooser).  True if they can;
+//pszMessage says why or why not.
+class CKeyCaptureDescriber
+{
+public:
+	virtual bool	DescribeCapturedKeys(const char* szContext, const char* szKeys, CChars* pszMessage) = 0;
+};
+
+
+//Add Shortcut: the keys pressed, where they're for (Where, for a command with keys in more than one context) and what
+//giving them to the command would mean, its describer says.  OK isn't allowed for keys that can't be given to it.
 class CKeyCaptureDialog : public CObject
 {
 CONSTRUCTABLE(CKeyCaptureDialog);
@@ -66,12 +76,13 @@ DESTRUCTABLE(CKeyCaptureDialog);
 protected:
 	Ptr<CDialog>			mpDialog;
 	Ptr<CKeyCaptureField>	mpField;
+	Ptr<CComboBox>			mpWhere;  //NULL for a command with keys in one context.
 	Ptr<CLabel>				mpMessage;
-	CKeymapPage*			mpcPage;  //Not held: it holds this dialog.
-	size					muiRow;
+	CKeyCaptureDescriber*	mpcDescriber;  //Not held: it holds this dialog.
+	CCommand*				mpcCommand;  //Not held.
 
 public:
-	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook, CKeymapPage* pcPage, size uiRow);
+	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook, CKeyCaptureDescriber* pcDescriber, CCommand* pcCommand, const char* szContext);
 	void			Class(void) override;
 	void			Free(void) override;
 	bool			Save(CObjectWriter* pcFile) override;
@@ -81,6 +92,7 @@ public:
 	char*			GetKeys(void);
 	void			SetKeys(const char* szKeys);
 	Ptr<CDialog>	GetDialog(void);
+	const char*		GetContext(void);
 	bool			Approve(void);
 
 protected:
@@ -88,11 +100,14 @@ protected:
 };
 
 
+const char*	GetContextCaption(const char* szContext);
+
+
 //A command and the keys it will have if OK closes the dialog.
 struct SKeymapRow
 {
-	CCommand*	pcCommand;
-	CArrayChars	aszKeys;
+	CCommand*		pcCommand;
+	CCommandKeyList	cKeys;
 };
 
 
@@ -102,7 +117,7 @@ typedef CArrayTemplate<SKeymapRow>	CArrayKeymapRows;
 //Settings' Keymap, as IntelliJ IDEA's: every command in the groups a user knows them by, with a filter, and the keys
 //each has.  A key belongs to one command, so giving it to another moves it.  Refused are keys that type a character, and
 //for a command that works everywhere keys a dialog or text field needs, as they don't have the keys of an editor's.
-class CKeymapPage : public CSettingsPage
+class CKeymapPage : public CSettingsPage, public CKeyListSource, public CKeyCaptureDescriber
 {
 CONSTRUCTABLE(CKeymapPage);
 DESTRUCTABLE(CKeymapPage);
@@ -126,6 +141,8 @@ protected:
 	Ptr<CKeyCaptureDialog>	mpCapture;  //Add Shortcut, while it's shown.
 	CArrayKeymapRows			masRows;
 	CArrayInt					maiListRows;  //The row in masRows of each row of the list, -1 for a group's heading.
+	CKeyGiver					mcGiver;  //Gives the rows keys, asking over the dialog when they move.
+	size						muiCaptureRow;  //The row Add Shortcut is giving keys to.
 	bool						mbUpdating;  //The list is being remade, not selected in by the user.
 
 public:
@@ -141,8 +158,13 @@ public:
 	void			Keep(void) override;
 
 	void			ApplyEdits(const char* szEdits);
-	bool			DescribeKeys(size uiRow, const char* szKeys, CChars* pszMessage);
 	void			ShowCapture(void);
+
+	size				NumKeyLists(void) override;
+	CCommand*			GetKeyListCommand(size uiIndex) override;
+	CCommandKeyList*	GetKeyList(size uiIndex) override;
+	void				AppendKeyListCaption(size uiIndex, CChars* pszDest) override;
+	bool				DescribeCapturedKeys(const char* szContext, const char* szKeys, CChars* pszMessage) override;
 
 protected:
 	Ptr<CComponent>	CreateBody(void);
@@ -154,7 +176,7 @@ protected:
 	const char*		GetGroupCaption(CCommand* pcCommand);
 	int32			GetSelectedRow(void);
 	void			SelectRow(size uiRow);
-	bool			AddKeys(size uiRow, const char* szKeys);
+	bool			AddKeys(size uiRow, const char* szKeys, const char* szContext = NULL);
 	void			RemoveKeys(size uiRow);
 	void			ResetKeys(size uiRow);
 	void			ResetAllKeys(void);
