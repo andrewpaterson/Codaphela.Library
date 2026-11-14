@@ -923,3 +923,44 @@ void CCPPCallBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBou
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object.name and pointer->name, once the object's class is known: the class's field
+// of the name, or a base's, with where it is in the object (CPPBN_Field), or else its
+// static member (CPPBN_Variable).  False if it has neither (CPPBN_Nothing), or the
+// class can't be completed, which is reported at pcNode.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound)
+{
+	int64	lliName;
+
+	pcBound->meWhat = CPPBN_Nothing;
+	pcBound->mpcSymbol = NULL;
+	pcBound->mpcVariable = NULL;
+	pcBound->mpcClass = pcClass;
+	pcBound->mpsField = NULL;
+	pcBound->miOffset = 0;
+	if (!pcClass || !mpcUnit->CompleteClass(pcClass, pcNode))
+	{
+		return false;
+	}
+	lliName = mpcUnit->GetComponentName(pcName->GetLast());
+	pcBound->mpsField = pcClass->FindField(lliName, &pcBound->miOffset);
+	if (pcBound->mpsField)
+	{
+		pcBound->meWhat = CPPBN_Field;
+		pcBound->mpcSymbol = pcBound->mpsField->pcSymbol;
+		return true;
+	}
+	pcBound->mpcVariable = mpcUnit->FindStatic(pcClass, lliName);
+	if (pcBound->mpcVariable)
+	{
+		pcBound->meWhat = CPPBN_Variable;
+		pcBound->mpcSymbol = pcBound->mpcVariable->mpcSymbol;
+		return true;
+	}
+	return false;
+}
+

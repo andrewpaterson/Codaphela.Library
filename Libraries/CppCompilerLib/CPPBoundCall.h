@@ -93,15 +93,15 @@ enum ECPPBoundName
 };
 
 
-//What an id-expression means (CCPPCallBinder::BindName): which of the things a name can be, and the symbol, the
-//variable or the field it is.  The type checker gives its type from this and the IR front end its value and place.
+//What an id-expression means (CCPPCallBinder::BindName), or the name after . or -> for an object of a class
+//(BindMember): which of the things a name can be, and the symbol, the variable or the field it is.  The type checker gives its type from this and the IR front end its value and place.
 class CCPPBoundName
 {
 public:
 	ECPPBoundName	meWhat;
 	CCPPSymbol*		mpcSymbol;		//The name's symbol; a qualified enumerator's (Enum::Value) is found here.
 	CCPPVariable*	mpcVariable;	//CPPBN_Variable.
-	CCPPClass*		mpcClass;		//CPPBN_Field: this's class...
+	CCPPClass*		mpcClass;		//CPPBN_Field: the object's class (this's for a name alone)...
 	SCPPField*		mpsField;		//...its field (or a base's)...
 	int				miOffset;		//...and where it is in the object.
 };
@@ -135,6 +135,7 @@ public:
 	bool	BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 
 	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
+	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
 
 	//What isn't a call expression's: these choose a function and remember nothing.
 	CCPPFunction*	FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);

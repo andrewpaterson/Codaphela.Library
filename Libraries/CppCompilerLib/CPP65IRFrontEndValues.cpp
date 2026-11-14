@@ -961,6 +961,7 @@ SCPP65Type* CCPP65IRFrontEnd::ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psTyp
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65IRPlace* psPlace)
 {
+	CCPPBoundName	cBound;
 	SCPP65Type*		psType;
 	SIRReference	sObject;
 
@@ -983,7 +984,11 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!FieldPlace(sObject, psType->pcClass, mpcUnit->GetComponentName(pcMember->mpcName->GetLast()), NULL, psPlace))
+	if (!mpcUnit->GetCalls()->BindMember(psType->pcClass, pcMember->mpcName, NULL, &cBound))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!((cBound.meWhat == CPPBN_Field) ? FieldAt(sObject, cBound.mpsField, cBound.miOffset, psPlace) : VariablePlace(cBound.mpcVariable, psPlace)))
 	{
 		return false;
 	}
@@ -994,39 +999,6 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 		psPlace->psType = mpcTypes->Volatile(psPlace->psType);
 	}
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The field lliName (or pcSymbol's) of the object of pcClass at sObject; a
-// reference field's place is what it refers to.  A static member is its
-// variable.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, CCPPClass* pcClass, int64 lliName, CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace)
-{
-	SCPPField*	psField;
-	CCPPVariable*	pcVariable;
-	int				iOffset;
-
-	psPlace->psBitField = NULL;
-
-	if (!pcClass || !mpcUnit->CompleteClass(pcClass, NULL))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-	psField = pcSymbol ? pcClass->FindFieldSymbol(pcSymbol, &iOffset) : pcClass->FindField(lliName, &iOffset);
-	if (!psField)
-	{
-		pcVariable = mpcUnit->FindStatic(pcClass, lliName);
-		if (!pcVariable)
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		return VariablePlace(pcVariable, psPlace);
-	}
-	return FieldAt(sObject, psField, iOffset, psPlace);
 }
 
 

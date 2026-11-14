@@ -1611,12 +1611,9 @@ SCPP65Type* CCPP65TypeChecker::FieldType(SCPPField* psField, bool bConst, bool b
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 {
+	CCPPBoundName	cBound;
 	SCPP65Type*		psType;
-	SCPPField*	psField;
-	CCPPVariable*	pcVariable;
-	CCPPClass*	pcClass;
-	int64			lliName;
-	int				iOffset;
+	size			uiErrors;
 
 	if (pcMember->mbArrow)
 	{
@@ -1646,26 +1643,17 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 		}
 	}
 
-	pcClass = psType->pcClass;
-	if (!mpcUnit->CompleteClass(pcClass, pcMember))
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	if (!mpcUnit->GetCalls()->BindMember(psType->pcClass, pcMember->mpcName, pcMember, &cBound))
 	{
+		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		{
+			Error(pcMember, "The class has no member of that name");
+		}
 		return NULL;
 	}
-	lliName = mpcUnit->GetComponentName(pcMember->mpcName->GetLast());
-	psField = pcClass->FindField(lliName, &iOffset);
-	if (psField)
-	{
-		mpcUnit->Resolved(pcMember->mpcName, psField->pcSymbol);
-		return FieldType(psField, psType->bConst, psType->bVolatile);
-	}
-	pcVariable = mpcUnit->FindStatic(pcClass, lliName);
-	if (pcVariable)
-	{
-		mpcUnit->Resolved(pcMember->mpcName, pcVariable->mpcSymbol);
-		return pcVariable->mpsType;
-	}
-	Error(pcMember, "The class has no member of that name");
-	return NULL;
+	mpcUnit->Resolved(pcMember->mpcName, cBound.mpcSymbol);
+	return (cBound.meWhat == CPPBN_Field) ? FieldType(cBound.mpsField, psType->bConst, psType->bVolatile) : cBound.mpcVariable->mpsType;
 }
 
 
