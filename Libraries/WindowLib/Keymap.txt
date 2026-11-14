@@ -55,20 +55,265 @@ Bare key    A key without Ctrl or Alt, which types a character in a text field. 
             canvas) can bind them.
 
 
-Still to work out in the design
--------------------------------
+How keys work now
+-----------------
 
-- How a context is named, declared by a component and found from the focus and the pointer (CComponentInput's key
-  path); the canvas taking bare keys only while no text field is focused.
-- How a command declares its contexts and default keys per context, and how Keymap.xml records them (it records keys
-  by command now, which stays readable).
-- The keymap page's list with contexts: a column for where each key works, or a key per context.
-- Subcircuit commands in the project file: made and removed as subcircuits are, named by circuit not by the user's
-  name for them, and how they reach the command set and the keymap while the project is open.
-- LogiCim's canvas keys moved from CCircuitCanvas::Printable onto commands: placing each library component, rotate,
-  flip, properties and move.
-- The component chooser's Shortcut line above the preview: the selected component's keys, with Add Shortcut and
-  Remove, through the shared rules.
+What the design changes, as it is in WindowLib today:
+
+- CComponentInput turns a key press into events.  Its standard keys (CIC_Copy for Control+C, CIC_Tab, the
+  printables) come from the keyboards' input files; an application's keys (BindKeys) are a table, masBindings, given
+  to every keyboard after the standard ones, so a bound key gives its command (CIC_Command, named by the keys) in
+  place of what it gave before.  That's why a key that types can't be bound: it would stop typing everywhere.
+- Editors have a second table, masEditorBindings (BindEditorKeys), read instead of the standard keys when the focused
+  component uses editor keys (CComponent::UsesEditorKeys: CTextArea) and the window isn't a dialog
+  (CFocus::Input passes Translate's bEditorKeys).  A key not in it falls back to the standard keys unless that's an
+  editor command (GetEditorCommand).  This is a context with a parent already, wired in as a special case.
+- CFocus gives the events to the focused component and up its parents; a CIC_Command nothing took runs the command
+  with those keys from the window's CCommandSet, then its owner's (DispatchUnhandledCommand, RunCommand, FindKeys).
+- A CCommand has one key scope (ECommandKeyScope: CKS_Application runs it, CKS_Window and CKS_Editor give its standard
+  command) and one list of keys, written to Keymap.xml only where they differ from its defaults.
+- LogiCim's canvas keys don't go through any of this: a printable reaching the focused CCircuitCanvas is looked up in
+  CCircuitCanvas::Printable's switch.
+
+
+Technical design
+----------------
+
+Contexts in CComponentInput
+
+- A context is a named table of bindings with a parent: SComponentInputContext { szName, szParent, asBindings,
+  bTyping }.  "Global" is the root (masBindings now); "Editor" is the IDE's editor keys (masEditorBindings now, parent
+  Global); LogiCim adds "Circuit" (parent Global, bTyping).  AddContext(szName, szParent, bTyping) makes one;
+  BindKeys(szKeys, eCommand, szContext = "Global") and UnbindKeys take the context.
+- Translate(psWindowEvent, asDest, szContext) replaces bEditorKeys: it looks the key up in the context, then its
+  parent, out to Global, then the standard keys, and the innermost binding wins.  The Editor rule that an editor
+  command not bound in Editor gives nothing stays: a context can say its standard commands are its own
+  (SetOwnsStandard(CIC_... ) as Editor does for the caret commands), so they don't fall through.
+- Only a context with bTyping can bind a key that types.  In it, a bound bare key gives its command instead of the
+  printable; an unbound one still types (or reaches the canvas as a printable, as now).
+- A binding gives CIC_Command (run a command) or a standard command (CIC_CloseDocument, CIC_Copy), as now, and its
+  event carries the context it came from, so the command run is the one bound there.
+
+Which context a key is read in (CFocus)
+
+- A component says its context: virtual const char* CComponent::GetKeyContext(), NULL for its parent's (Global at the
+  top).  CTextArea returns "Editor" (UsesEditorKeys goes), CCircuitCanvas "Circuit".
+- A component says it takes typing: virtual bool CComponent::TakesTyping() (CTextField, CTextArea, a combo box being
+  edited).
+- CFocus::Input picks the context, as decided: if the component under the pointer is in a typing context (bTyping)
+  and the focused component doesn't take typing, the hovered component's context; otherwise the focused component's.
+  In a dialog (modal) it's always Global, so a remap can't break a dialog.
+- A key that comes from the hovered context runs its command (CIC_Command) or gives its standard command to the
+  hovered component, not the focused one, so A over the circuit places there while the Subcircuits list has the
+  focus.
+
+Commands with keys in contexts
+
+- A CCommand's keys each have a context: SCommandKeys { szContext, szKeys }, for its keys, its default keys and its
+  bound keys.  ECommandKeyScope goes: a command runs itself, or gives its standard command (SetStandardCommand) in
+  whatever context it's bound; CKS_Application is Global and running, CKS_Window Global with a standard command,
+  CKS_Editor Editor with one.
+- A command says the contexts it may have keys in (AllowContext): LogiCim's placing commands allow Circuit and Global,
+  the IDE's caret commands only Editor.  Its keys are given with a context: AddDefaultKeys("R", "Circuit").
+- Shown keys (menus, tool tips): the first Global key if it has one, else its first key in any context, plain.
+  CCommand::GetShownKeys() does it, and AppendKeysText uses it.
+- CCommandSet::FindKeys(szKeys, szContext) finds the command with those keys in that context; RunCommand passes the
+  event's context.  A key belongs to one command in each context; giving it to another in the same context moves it.
+
+Keymap.xml
+
+- A <Keys> keeps its text and gains a Context attribute where it isn't the command's first allowed context:
+
+	<Keymap>
+		<Command Name="Edit.RotateLeft"><Keys Context="Circuit">R</Keys><Keys>Control+R</Keys></Command>
+	</Keymap>
+
+  So today's files (no Context) read as they were written: an IDE command's keys were for its only scope.
+- Commands whose keys aren't the user's (a subcircuit's, kept by the project) are never written to it
+  (CCommand::SetKeptByKeymap(false)), and a file naming one is ignored for it.
+
+The keymap page
+
+- The keys column shows each key with where it works when it isn't Global: "R (Circuit), Ctrl+R".
+- Add Shortcut has a Where choice (a combo box) listing the command's allowed contexts, Global first unless the
+  command's first allowed context is another; the keys are checked in the chosen context.
+- The rules (CheckCommandKeys, shared): a key that types only in a typing context; a key dialogs and text fields need
+  only in Editor; a key the command already has there refused.  A key another command has in the same context: the
+  clash pop up (below).  A key a Global command has, given in a context: allowed, and said ("R shadows Global's
+  ... over the Circuit").
+- Its rows are its copies, as now; OK applies them through the key giver (below) so the clash pop ups and saving are
+  the same as the chooser's.
+
+Giving keys: one path
+
+- CKeyGiver (WindowLib) is what every place that changes keys uses: Give(pcCommand, szContext, szKeys, pOwner window)
+  checks the rules, shows the clash pop up when another command has the keys there ("Ctrl+Alt+A is File: Open
+  Project.  Give it to AND Gate instead?", Give and Cancel), moves them, binds, and tells the application which
+  commands changed (a listener) so it saves their homes: Keymap.xml for the user's, the project for a subcircuit's.
+  Remove(pcCommand, szContext, szKeys) and Reset likewise.
+- The keymap page gathers its changes until OK, then gives them; the chooser gives each straight away.
+
+Subcircuit commands and the project file (LogiCim)
+
+- Each subcircuit that can go in the circuit being edited is a command, Place.Subcircuit.<type name>, caption "Place
+  <type name>", allowing Circuit and Global, kept by the project (SetKeptByKeymap(false)), in the keymap's
+  Subcircuits group.  They're made, renamed and removed as the circuits are (when the subcircuits are listed), and
+  rebuilt when a project is loaded, made new or imported.
+- Their keys are the circuit's: <Circuit type="Selector 12bit" placeKeys="Circuit:Shift+Q">, written with the
+  circuit, so they follow a rename and undo, and changing one is a change to the project (it has to be saved).
+- Loading a project gives each its keys, silently dropping any that clash with a command the user's keymap gives
+  them to in the same context.
+
+LogiCim's canvas keys
+
+- CCircuitCanvas::GetKeyContext() is "Circuit"; the context is added with bTyping.  Printable's switch goes.
+- Commands for every library component, Place.<XML name> ("Place.AndGate"), caption the library's name, allowing
+  Circuit and Global; the toolbar's Add Splitter, Add Tunnel, Add Power and Add Label are those commands for their
+  components.  Their defaults are Logicim's: A (Shift+A) AND, O OR, X XOR, N inverter, C clock, P probe, S splitter,
+  T tunnel, L label, F D flip flop, and p pin, c constant, g ground, v power.
+- Edit.RotateLeft (r), RotateRight (R), FlipHorizontally (x, and its Control+Shift+F, H stays Global), FlipVertically
+  (y) and Properties (e and E) get those as Circuit keys, and a new Edit.Move has m.
+
+The component chooser's Shortcut line (LogiCim)
+
+- Above the preview: the selected component's keys as the keymap shows them ("Shift+A (Circuit)", or "None"), with
+  Add Shortcut... (the keymap's Add Shortcut, its Where defaulting to Circuit) and Remove, both through the key giver.
+  A library's row shows nothing and the buttons are off.
+
+The HCP65 IDE
+
+- Its editor keys are the Editor context; UsesEditorKeys becomes GetKeyContext; its commands' CKS_ scopes become
+  contexts as above.  Nothing changes for its users and its keymap checks (keymap-*) must pass as they are.
+
+Plan
+----
+
+Each numbered step is built, checked and committed on its own (CommonLibraries on master, HCP65-IDE and LogiCim on
+main), so the IDE and LogiCim work after every one.  "Checks" are: TestWindowLib (32-bit Release), the IDE's checks
+that touch keys (IDEChecks.py keymap-*, menus, commands; Release x64), and LogiCim's (LogicimChecks.py).  A step that
+changes behaviour adds its own tests or checks.
+
+0. Clean up
+   0.1 Drop the stashed CKS_Canvas attempt (git stash drop in CommonLibraries); the design replaces it.
+   0.2 Commit this plan with the technical design.
+
+1. Contexts in CComponentInput (WindowLib; no behaviour change)
+   1.1 SComponentInputContext { szName, szParent, asBindings, bTyping } and an array of them in CComponentInput, with
+       "Global" made by Init and holding what masBindings holds now.
+   1.2 AddContext(szName, szParent, bTyping), FindContext(szName); "Editor" (parent Global, its standard caret and
+       editing commands its own) added by the first BindEditorKeys, holding what masEditorBindings holds now.
+   1.3 BindKeys, UnbindKeys and IsBound take a context (default "Global"); BindEditorKeys, UnbindEditorKeys and
+       IsEditorBound stay as wrappers for "Editor" until step 3 removes them.
+   1.4 Translate and Pressed take the context to read keys in, in place of bEditorKeys: the context's bindings, then
+       each parent's, then the standard keys; a context's own standard commands don't fall through (as
+       GetEditorCommand does for Editor now).
+   1.5 In a context with bTyping, a bound key that types gives its binding; unbound it still types.  A context
+       without bTyping refuses to bind one (BindKeys returns false, logged), as the keymap does now.
+   1.6 The event a binding gives says which context it came from (SComponentInputEvent::szContext).
+   1.7 TestWindowLib: TestKeymap's existing editor tests pass unchanged; new tests for a nested context's fallback,
+       innermost wins, a typing context's bare key and an unbound bare key still typing.
+   1.8 Checks; commit.
+
+2. Which context a key is read in (WindowLib)
+   2.1 CComponent::GetKeyContext() (NULL: its parent's, Global at the top) and CComponent::TakesTyping() (false).
+   2.2 CTextArea::GetKeyContext() "Editor"; CTextArea, CTextField and an editable CComboBox TakesTyping() true.
+   2.3 CFocus::GetKeyContext(): in a dialog, Global; else, if the component under the pointer is in a typing context
+       and the focused component doesn't take typing, the hovered component's context; else the focused component's.
+   2.4 CFocus::Input passes it to Translate.  An event from the hovered component's context goes to that component
+       (and up its parents) and, if nothing takes it, runs its command; otherwise to the focused one, as now.
+   2.5 UsesEditorKeys goes (GetKeyContext replaces it); CTextArea and Component.cpp changed.
+   2.6 TestWindowLib: the focus picks Editor in a text area, Global in a dialog, and the hovered typing context over
+       a focused list but not over a focused text field.
+   2.7 Checks (the IDE's editor keys still work through the Editor context); commit.
+
+3. Commands with keys in contexts (WindowLib, then the IDE)
+   3.1 SCommandKeys { szContext, szKeys }: CCommand's keys, default keys and bound keys hold them.  AllowContext,
+       IsContextAllowed and GetFirstContext; a command allows Global until told otherwise.
+   3.2 AddDefaultKeys, AddKeys, RemoveKeys, HasKeys, GetKeys(i) and NumKeys take or report the context (each has an
+       overload for Global, so callers giving Global keys don't change).
+   3.3 Bind and Unbind bind each key in its context, giving CIC_Command or the command's standard command.
+   3.4 ECommandKeyScope and SetKeyScope/GetKeyScope go: EditCommands.cpp's rows say their context (Editor or
+       Global) and standard command instead; IDEScript.cpp's printkeys reads the key's context.
+   3.5 GetShownKeys(): the first Global key, else the first key in any context; AppendKeysText (menus, tool tips)
+       shows it plain.
+   3.6 CCommandSet::FindKeys(szKeys, szContext) and RunKeys(szKeys, szContext); CFocus::RunCommand passes the event's
+       context.  A key in a context belongs to one command (moving it there takes it from the other).
+   3.7 CCommandSet::ReadKeys and WriteKeys: <Keys Context="..."> where it isn't the command's first allowed context;
+       a <Keys> without one is in that context, so today's files read as written.  SetKeptByKeymap(false) commands
+       are left out of WriteKeys and ignored by ReadKeys.
+   3.8 BindEditorKeys, UnbindEditorKeys, IsEditorBound and GetEditorCommand go (their callers use the context forms).
+   3.9 TestWindowLib's TestKeymap: keys in two contexts, FindKeys by context, shown keys, a keymap file with and
+       without Context read and written, a kept-elsewhere command left out.
+   3.10 Checks, the IDE's keymap-* above all (the IDE built against the new CCommand); commit CommonLibraries, then
+       the IDE's IDEScript.cpp.
+
+4. The key giver and the clash pop up (WindowLib)
+   4.1 CheckCommandKeys(pcCommand, szContext, paszKeys, szKeys, pcInput, pszMessage): the rules (a typing key only
+       in a typing context, a key dialogs and text fields need only in Editor, not a key it has there), shared by
+       everything that gives keys.
+   4.2 CKeyGiver: Give(pcCommand, szContext, szKeys), Remove(pcCommand, szContext, szKeys), Reset(pcCommand),
+       ResetAll(); it finds the command that has the keys there and, if there is one, asks with a CMessageDialog
+       ("Ctrl+Alt+A is File: Open Project.  Give it to AND Gate instead?", Give and Cancel), moves them, binds, and
+       tells its CKeyGiverListener which commands changed.
+   4.3 A shadow note: a key given in a context that a Global command has is allowed, and said ("R shadows Undo over
+       the Circuit").
+   4.4 The Add Shortcut dialog (CKeyCaptureDialog) takes a describer (CKeyCaptureDescriber) instead of the keymap
+       page, and has a Where combo box when the command allows more than one context.
+   4.5 TestWindowLib: the giver's moves, refusals, shadows and the pop up's answers (a scripted answer, as the
+       dialog tests do).
+   4.6 Checks; commit.
+
+5. The keymap page with contexts (WindowLib, then the IDE and LogiCim)
+   5.1 SKeymapRow's keys carry their contexts; the keys column shows "R (Circuit), Ctrl+R".
+   5.2 Add Shortcut's Where; Remove and Reset as now, per command.
+   5.3 OK gives the page's changes through a CKeyGiver (so a clash on OK asks too) and the application saves through
+       its listener: CIDESettings and LogiCim's content write Keymap.xml for the commands kept by it.
+   5.4 ApplyEdits gains add:<context>:<keys> (add:<keys> stays Global) for the checks.
+   5.5 Checks: the IDE's keymap-* pass unchanged; a TestWindowLib page test with a context; commit CommonLibraries,
+       then the IDE (its listener), then LogiCim (its listener).
+
+6. LogiCim's Circuit context and canvas keys (LogiCim)
+   6.1 The content adds the Circuit context (parent Global, typing) before the keys are bound; CCircuitCanvas::
+       GetKeyContext() is "Circuit".
+   6.2 Commands Place.<XML name> for every library component, caption the library's name, allowing Circuit and
+       Global, in the keymap's Place group; Add Splitter, Add Tunnel, Add Power and Add Label are their components'
+       commands.  Defaults, in Circuit: Shift+A AND, Shift+O OR, Shift+X XOR, Shift+N inverter, Shift+C clock,
+       Shift+P probe, Shift+S splitter, Shift+T tunnel, Shift+L label, Shift+F D flip flop, P pin, C constant,
+       G ground, V power.
+   6.3 Edit.RotateLeft R, Edit.RotateRight Shift+R, Edit.FlipHorizontally X (with its Global Control+Shift+F, H),
+       Edit.FlipVertically Y, Edit.Properties E and Shift+E, and a new Edit.Move M, all in Circuit.
+   6.4 CCircuitCanvas::Printable's switch goes.
+   6.5 Checks: a check step that gives a key over the canvas (as the hovered context) and prints what's being
+       placed; checks that each default places or edits as before, that a key given in the keymap moves it, and
+       that typing in a text field isn't taken while the pointer is over the canvas; the commands check's count.
+   6.6 Commit.
+
+7. The component chooser's Shortcut line (LogiCim)
+   7.1 A line above the preview: the selected component's keys as the keymap shows them, or "None"; nothing, and
+       the buttons off, on a library's row.
+   7.2 Add Shortcut... (the keymap's dialog, Where defaulting to Circuit) and Remove, through the content's
+       CKeyGiver, saving Keymap.xml.
+   7.3 Checked by hand on the isolated X server (the chooser is modal); a check step for the chooser's giving, as
+       keymap's ApplyKeymapEdits does, for the scripted checks.
+   7.4 Commit.
+
+8. Subcircuits placed by keys (LogicimLib, LogiCim)
+   8.1 CCircuitView keeps its placing keys (context and keys) and writes them as <Circuit placeKeys="Circuit:Shift+Q">
+       (LogicimLib), read back by LoadXML; TestLogicimLib round trips them, and through undo.
+   8.2 The content makes a command Place.Subcircuit.<type name> for each subcircuit that can go in the circuit being
+       edited, allowing Circuit and Global, SetKeptByKeymap(false), in a Subcircuits keymap group; remade when the
+       subcircuits are listed (added, renamed, removed) and when a project is loaded, made new or imported.
+   8.3 A command's keys are its circuit's; giving or removing one (keymap or chooser) sets the circuit's and pushes
+       an undo snapshot, so the project has changes to save.
+   8.4 Loading a project drops, silently, any subcircuit key a command kept by the user's keymap has in the same
+       context.
+   8.5 The chooser's Shortcut line works for a subcircuit's row (7 shows nothing for it until now).
+   8.6 Checks: a subcircuit key given, saved in the project, read back, followed through a rename, dropped on a
+       clash when loaded, and placing by it over the canvas; commit LogicimLib and LogiCim.
+
+9. Finish
+   9.1 Keymap.txt's status: what was built, what differs from the design, and anything left open.
+   9.2 The IDE's and LogiCim's full checks, TestWindowLib, TestLogicimLib and the KiCad importer tests, all passing.
 
 
 Where it stands
@@ -76,4 +321,4 @@ Where it stands
 
 A first attempt at a canvas scope (CKS_Canvas, the keymap allowing bare keys for it, and the Add Shortcut dialog taking
 a describer instead of the keymap page) is in CommonLibraries' git stash, "Partial CKS_Canvas key scope, set aside for
-the keymap contexts design".  It hasn't been built.
+the keymap contexts design".  It hasn't been built; the design above replaces it, so it can be dropped.
