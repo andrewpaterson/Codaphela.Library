@@ -4,6 +4,4 @@ StandardLib fix list (2026-11-07)
 Everything still to fix in StandardLib after the code review, numbered for reference. [n] is the line of the review note it came from (StandardLib-review.md, section 4). Forwarder layers (refactor 4) are left out, as asked.
 
 
-F. Hygiene: names, comments, typos, dead code
----------------------------------------------
-F54. [410] CChannels::Dump loops to uiLine <= uiNum: when the data is a whole number of lines (or empty) the last pass prints an empty line and calls mabData.Get one past the end with a length of 0.  Stop after the last partial line.
+Nothing is left: the last items were done on 2026-11-14.

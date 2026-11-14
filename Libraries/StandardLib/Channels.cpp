@@ -1635,14 +1635,13 @@ void CChannels::SetBitStrideFromByteStride(void)
 void CChannels::Dump(lsize iLineLength)
 {
 	size		i;
-	lsize		uiLine;
+	lsize		uiStart;
 	CChannel*	psChannel;
 	const char*	szTypeName;
 	CChars		c;
 	lsize		iRemain;
 	lsize		uiData;
 	size		uiOffsets;
-	lsize		uiNum;
 
 	uiOffsets = masChannelOffsets.NumElements();
 
@@ -1679,18 +1678,14 @@ void CChannels::Dump(lsize iLineLength)
 	if (iLineLength != 0)
 	{
 		uiData = mabData.NumElements();
-		uiNum = uiData / iLineLength;
-		for (uiLine = 0; uiLine <= uiNum; uiLine++)
+		for (uiStart = 0; uiStart < uiData; uiStart += iLineLength)
 		{
-			if ((uiData - (iLineLength * uiLine)) < iLineLength)
-			{
-				iRemain = uiData - iLineLength * uiLine;
-			}
-			else
+			iRemain = uiData - uiStart;
+			if (iRemain > iLineLength)
 			{
 				iRemain = iLineLength;
 			}
-			c.AppendHexLoHi(mabData.Get(uiLine * iLineLength), (size)iRemain);
+			c.AppendHexLoHi(mabData.Get(uiStart), (size)iRemain);
 			c.AppendNewLine();
 		}
 	}
