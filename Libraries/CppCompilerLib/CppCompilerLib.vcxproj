@@ -288,6 +288,10 @@
     <ClCompile Include="CPP65GeneratorObjects.cpp" />
     <ClCompile Include="CPP65GeneratorCheck.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
+    <ClCompile Include="CPPClass.cpp" />
+    <ClCompile Include="CPPTemplate.cpp" />
+    <ClCompile Include="CPPFunction.cpp" />
+    <ClCompile Include="CPPVariable.cpp" />
     <ClCompile Include="CPP65TypeChecker.cpp" />
     <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp" />
     <ClCompile Include="CppParserStatements.cpp" />
@@ -520,6 +524,10 @@
     <ClInclude Include="VisualStudioProject.h" />
     <ClInclude Include="CPP65Generator.h" />
     <ClInclude Include="CPP65Type.h" />
+    <ClInclude Include="CPPClass.h" />
+    <ClInclude Include="CPPTemplate.h" />
+    <ClInclude Include="CPPFunction.h" />
+    <ClInclude Include="CPPVariable.h" />
     <ClInclude Include="CPP65TypeChecker.h" />
     <ClInclude Include="CPPSyntaxExtensionDeclaration.h" />
     <ClInclude Include="CppParser.h" />

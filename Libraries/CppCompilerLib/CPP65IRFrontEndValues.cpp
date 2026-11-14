@@ -524,7 +524,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 		return true;
 	}
 
-	psField = mpcGenerator->FindField(pcClass, lliName, &iOffset);
+	psField = pcClass->FindField(lliName, &iOffset);
 	if (!psField)
 	{
 		return false;
@@ -1024,7 +1024,7 @@ bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, CCPPClass* pcClass, int6
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psField = pcSymbol ? mpcGenerator->FindFieldSymbol(pcClass, pcSymbol, &iOffset) : mpcGenerator->FindField(pcClass, lliName, &iOffset);
+	psField = pcSymbol ? pcClass->FindFieldSymbol(pcSymbol, &iOffset) : pcClass->FindField(lliName, &iOffset);
 	if (!psField)
 	{
 		pcVariable = mpcGenerator->FindStatic(pcClass, lliName);
@@ -1222,7 +1222,7 @@ void CCPP65IRFrontEnd::MarkFunctionSymbol(CCPPFunction* pcFunction, uint32 uiSym
 	size	ui;
 	bool	bPieces;
 
-	if (mpcGenerator->IsUnitFunction(pcFunction))
+	if (pcFunction->IsUnitFunction())
 	{
 		mcModule.SetLocal(uiSymbol);
 	}

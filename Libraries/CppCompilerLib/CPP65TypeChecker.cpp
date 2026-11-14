@@ -420,7 +420,7 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type**
 		return true;
 	}
 
-	psField = mpcGenerator->FindField(pcClass, lliName, &iOffset);
+	psField = pcClass->FindField(lliName, &iOffset);
 	if (!psField)
 	{
 		return false;
@@ -1404,8 +1404,8 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 	case CPPB_Unreachable:
 	case CPPB_Pause:
 		return &mpcTypes->msVoid;
-	case CPP65B_BCDAdd:
-	case CPP65B_BCDSubtract:
+	case CPPB_BCDAdd:
+	case CPPB_BCDSubtract:
 		return &mpcTypes->msUnsignedInt;
 	case CPPB_Expect:
 		psType = Value(papcArguments->GetPtr(0));
@@ -1550,7 +1550,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		}
 	}
 	//object.pf() calls through a field that points to a function.
-	if (pcObject && !mpcGenerator->HasMember(pcLookup, lliName) && mpcGenerator->FindField(pcLookup, lliName, &iOffset))
+	if (pcObject && !mpcGenerator->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
 	{
 		psType = mpcGenerator->TypeOf(pcCallee);
 		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
@@ -1815,7 +1815,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 		return NULL;
 	}
 	lliName = mpcGenerator->GetComponentName(pcMember->mpcName->GetLast());
-	psField = mpcGenerator->FindField(pcClass, lliName, &iOffset);
+	psField = pcClass->FindField(lliName, &iOffset);
 	if (psField)
 	{
 		mpcGenerator->Resolved(pcMember->mpcName, psField->pcSymbol);
@@ -1976,11 +1976,11 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			return pcVariable->mpsType->WithoutReference();
 		}
 		pcClass = mpcGenerator->mpcFunction ? mpcGenerator->mpcFunction->mpcClass : NULL;
-		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass) ? mpcGenerator->FindFieldSymbol(pcClass, pcSymbol, &iOffset) : NULL;
+		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass) ? pcClass->FindFieldSymbol(pcSymbol, &iOffset) : NULL;
 		if (!psField && !pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
 		{
 			//A name in a template the parser could not resolve.
-			psField = mpcGenerator->FindField(pcClass, mpcGenerator->GetComponentName(pcId->mpcName->GetLast()), &iOffset);
+			psField = pcClass->FindField(mpcGenerator->GetComponentName(pcId->mpcName->GetLast()), &iOffset);
 		}
 		if (!psField)
 		{
@@ -2328,7 +2328,7 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 	{
 		return NULL;
 	}
-	if (psType->IsClass() && mpcGenerator->NeedsConstructor(psType->pcClass) && !Construct(psType, NULL, NULL, pcNew))
+	if (psType->IsClass() && psType->pcClass->NeedsConstructor() && !Construct(psType, NULL, NULL, pcNew))
 	{
 		return NULL;
 	}
@@ -2540,7 +2540,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 		return !pcConstructor || (Call(pcConstructor, papcArguments, pcNode) != NULL);
 	}
 
-	if ((pcClass->macBases.NumElements() > 0) || mpcGenerator->IsPolymorphic(pcClass) || (papcArguments->NumElements() > mpcGenerator->NumAggregateFields(pcClass)))
+	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()))
 	{
 		return Error(pcNode, "These initialisers do not match the class");
 	}
@@ -2570,7 +2570,7 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 	CArraySyntax	apcArguments;
 	bool			bResult;
 
-	if (mpcGenerator->HasCopyConstructor(pcClass))
+	if (pcClass->HasCopyConstructor())
 	{
 		apcArguments.Init();
 		apcArguments.Add(pcSource);
@@ -2578,7 +2578,7 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 		apcArguments.Kill();
 		return bResult;
 	}
-	if (!mpcGenerator->IsTriviallyCopyable(pcClass))
+	if (!pcClass->IsTriviallyCopyable())
 	{
 		return Place(pcSource) != NULL;
 	}

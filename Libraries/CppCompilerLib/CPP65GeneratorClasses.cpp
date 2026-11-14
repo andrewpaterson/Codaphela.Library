@@ -34,32 +34,8 @@ CCPPClass* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 	CCPPClass*	pcClass;
 
 	pcClass = NewMalloc<CCPPClass>();
-	pcClass->mpcSymbol = pcSymbol;
-	pcClass->mlliName = lliName;
+	pcClass->Init(pcSymbol, lliName);
 	pcClass->mpsType = mcTypes.Class(pcClass);
-	pcClass->mpcBase = NULL;
-	pcClass->macBases.Init();
-	pcClass->macUsings.Init();
-	pcClass->macFields.Init();
-	pcClass->mapcMembers.Init();
-	pcClass->mapcVirtuals.Init();
-	pcClass->miVtableOffset = -1;
-	pcClass->macVtables.Init();
-	pcClass->mbComplete = false;
-	pcClass->mbLayingOut = false;
-	pcClass->mbBases = false;
-	pcClass->mbEmpty = false;
-	pcClass->miAlign = 1;
-	pcClass->mbUnion = false;
-	pcClass->mbVtable = false;
-	pcClass->mbTypeInfo = false;
-	pcClass->mbConstructors = false;
-	pcClass->mpcInheritedBase = NULL;
-	pcClass->mpcDestructor = NULL;
-	pcClass->mpcSpecifier = NULL;
-	pcClass->mpcTemplate = NULL;
-	pcClass->mpcBindings = NULL;
-	pcClass->mszArguments.Init();
 	mapcClasses.Add(pcClass);
 	return pcClass;
 }
@@ -155,18 +131,6 @@ CCPPClass* CCPP65Generator::FindClass(int64 lliName, CCPPScope* pcLookup)
 		}
 	}
 	return pcFound;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether pcClass is an instance (of any arguments) of the class template
-// pcSymbol names, and not one of the same name in another scope.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsInstanceNamed(CCPPClass* pcClass, CCPPSymbol* pcSymbol)
-{
-	return !pcClass->mpcTemplate && (pcClass->mlliName == pcSymbol->mlliName) && (!pcClass->mpcSymbol || (pcClass->mpcSymbol->mpcScope == pcSymbol->mpcScope));
 }
 
 
@@ -669,7 +633,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 
 	//A destructor is needed to destroy the bases or the fields.
-	if (!pcClass->mpcDestructor && NeedsDestructor(pcClass))
+	if (!pcClass->mpcDestructor && pcClass->NeedsDestructor())
 	{
 		pcFunction = AddFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid);
 		pcFunction->mbImplicit = true;
@@ -759,7 +723,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 
 	//A class that needs one but declares none gets a constructor written for it when it is called.
-	if (!pcClass->mbConstructors && NeedsConstructor(pcClass))
+	if (!pcClass->mbConstructors && pcClass->NeedsConstructor())
 	{
 		pcFunction = AddFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid);
 		pcFunction->mbImplicit = true;
@@ -1254,125 +1218,6 @@ bool CCPP65Generator::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many of the class's fields an aggregate initialiser ({1, 2}) can
-// give values to: all but its unnamed bit-fields.
-//
-//////////////////////////////////////////////////////////////////////////
-size CCPP65Generator::NumAggregateFields(CCPPClass* pcClass)
-{
-	size	i;
-	size	uiFields;
-
-	uiFields = 0;
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		if (!pcClass->macFields.Get(i)->IsUnnamedBitField())
-		{
-			uiFields++;
-		}
-	}
-	return uiFields;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A field of the class, of an anonymous union or struct in it, or of its bases.
-// *piOffset is set to its offset in pcClass.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPPField* CCPP65Generator::FindField(CCPPClass* pcClass, int64 lliName, int* piOffset)
-{
-	SCPPField*	psField;
-	SCPPField*	psMember;
-	SCPPBase*		psBase;
-	size			i;
-	int				iOffset;
-
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (psField->lliName == lliName)
-		{
-			*piOffset = psField->iOffset;
-			return psField;
-		}
-		if (!psField->pcSymbol && psField->psType->IsClass())
-		{
-			psMember = FindField(psField->psType->pcClass, lliName, &iOffset);
-			if (psMember)
-			{
-				*piOffset = psField->iOffset + iOffset;
-				return psMember;
-			}
-		}
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		psBase = pcClass->macBases.Get(i);
-		psField = FindField(psBase->pcClass, lliName, &iOffset);
-		if (psField)
-		{
-			*piOffset = psBase->iOffset + iOffset;
-			return psField;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SCPPField* CCPP65Generator::FindFieldSymbol(CCPPClass* pcClass, CCPPSymbol* pcSymbol, int* piOffset)
-{
-	SCPPField*	psField;
-	SCPPField*	psMember;
-	SCPPBase*		psBase;
-	size			i;
-	int				iOffset;
-
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (psField->pcSymbol == pcSymbol)
-		{
-			*piOffset = psField->iOffset;
-			return psField;
-		}
-		if (!psField->pcSymbol && psField->psType->IsClass())
-		{
-			psMember = FindFieldSymbol(psField->psType->pcClass, pcSymbol, &iOffset);
-			if (psMember)
-			{
-				*piOffset = psField->iOffset + iOffset;
-				return psMember;
-			}
-		}
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		psBase = pcClass->macBases.Get(i);
-		psField = FindFieldSymbol(psBase->pcClass, pcSymbol, &iOffset);
-		if (psField)
-		{
-			*piOffset = psBase->iOffset + iOffset;
-			return psField;
-		}
-	}
-
-	//Names in templates are not always resolved to the instance's fields.
-	if (pcClass->mpcTemplate)
-	{
-		return FindField(pcClass, pcSymbol->mlliName, piOffset);
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A static data member of the class or of its bases.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1398,82 +1243,6 @@ CCPPVariable* CCPP65Generator::FindStatic(CCPPClass* pcClass, int64 lliName)
 		}
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether making an object of the class runs code: a constructor, a vtable pointer
-// to set, a base or a field that needs it, or a default member initialiser.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::NeedsConstructor(CCPPClass* pcClass)
-{
-	SCPPField*	psField;
-	SCPP65Type*		psType;
-	size			i;
-
-	if (pcClass->mbConstructors || IsPolymorphic(pcClass))
-	{
-		return true;
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		if (NeedsConstructor(pcClass->macBases.Get(i)->pcClass))
-		{
-			return true;
-		}
-	}
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (psField->pcInitialiser)
-		{
-			return true;
-		}
-		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
-		if (psType->IsClass() && NeedsConstructor(psType->pcClass))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether destroying an object of the class runs code.  While the class is being
-// laid out this asks whether its bases or fields need destroying.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::NeedsDestructor(CCPPClass* pcClass)
-{
-	SCPPField*	psField;
-	SCPP65Type*		psType;
-	size			i;
-
-	if (pcClass->mpcDestructor)
-	{
-		return true;
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		if (pcClass->macBases.Get(i)->pcClass->mpcDestructor)
-		{
-			return true;
-		}
-	}
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
-		if (psType->IsClass() && psType->pcClass->mpcDestructor)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 

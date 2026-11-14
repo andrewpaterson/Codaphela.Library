@@ -385,8 +385,8 @@ static const SCPPBuiltin gasCPP65Builtins[] =
 	{ "expect",			CPPB_Expect,		2, CPPBO_None,				NULL },
 	{ "memcpy",			CPPB_Memcpy,		3, CPPBO_None,				NULL },
 	{ "alloca",			CPPB_Alloca,		1, CPPBO_None,				NULL },
-	{ "bcd_add",		CPP65B_BCDAdd,		4, CPPBO_None,				CPP65_BCD_ONLY },
-	{ "bcd_subtract",	CPP65B_BCDSubtract,	4, CPPBO_None,				CPP65_BCD_ONLY },
+	{ "bcd_add",		CPPB_BCDAdd,		4, CPPBO_None,				CPP65_BCD_ONLY },
+	{ "bcd_subtract",	CPPB_BCDSubtract,	4, CPPBO_None,				CPP65_BCD_ONLY },
 	{ "ctz",			CPPB_Ctz,			1, CPPBO_UnsignedInt,			NULL },
 	{ "ctzl",			CPPB_Ctz,			1, CPPBO_UnsignedLong,		NULL },
 	{ "ctzll",			CPPB_Ctz,			1, CPPBO_UnsignedLongLong,	NULL },
@@ -2091,12 +2091,12 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 	case CPP65TT_Union:					*plliValue = pcClass && pcClass->mbUnion;					return true;
 	case CPP65TT_Enum:					*plliValue = psType->pcEnum != NULL;						return true;
 	case CPP65TT_Empty:					*plliValue = pcClass && pcClass->mbEmpty;					return true;
-	case CPP65TT_Polymorphic:			*plliValue = pcClass && IsPolymorphic(pcClass);				return true;
-	case CPP65TT_Abstract:				*plliValue = pcClass && IsAbstract(pcClass);				return true;
-	case CPP65TT_TrivialConstructor:	*plliValue = !pcClass || !NeedsConstructor(pcClass);		return true;
+	case CPP65TT_Polymorphic:			*plliValue = pcClass && pcClass->IsPolymorphic();				return true;
+	case CPP65TT_Abstract:				*plliValue = pcClass && pcClass->IsAbstract();				return true;
+	case CPP65TT_TrivialConstructor:	*plliValue = !pcClass || !pcClass->NeedsConstructor();		return true;
 	case CPP65TT_TrivialDestructor:		*plliValue = !pcClass || !pcClass->mpcDestructor;			return true;
 	case CPP65TT_Trivial:
-		*plliValue = !pcClass || (!NeedsConstructor(pcClass) && !pcClass->mpcDestructor && !HasCopyConstructor(pcClass) && !IsPolymorphic(pcClass));
+		*plliValue = !pcClass || (!pcClass->NeedsConstructor() && !pcClass->mpcDestructor && !pcClass->HasCopyConstructor() && !pcClass->IsPolymorphic());
 		return true;
 	default:
 		return false;

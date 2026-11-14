@@ -59,7 +59,7 @@ bool CCPP65Generator::LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		for (j = 0; j < pcClass->mapcVirtuals.NumElements(); j++)
 		{
 			pcVirtual = pcClass->mapcVirtuals.GetPtr(j);
-			if (Overrides(pcVirtual, pcFunction))
+			if (pcFunction->Overrides(pcVirtual))
 			{
 				pcClass->mapcVirtuals.SetPtr(j, pcFunction);
 				pcFunction->mbVirtual = true;
@@ -69,7 +69,7 @@ bool CCPP65Generator::LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode)
 			}
 		}
 		//A function that overrides one in a secondary vtable also gets a place in the class's own.
-		if (!bOverride && (pcFunction->mbVirtual || OverridesBase(pcClass, pcFunction)))
+		if (!bOverride && (pcFunction->mbVirtual || pcClass->OverridesBase(pcFunction)))
 		{
 			pcFunction->mbVirtual = true;
 			pcFunction->miSlot = (int)pcClass->mapcVirtuals.NumElements();
@@ -77,58 +77,6 @@ bool CCPP65Generator::LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		}
 	}
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if pcFunction overrides pcVirtual: destructors override destructors, other
-// functions need the same name and parameters.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Overrides(CCPPFunction* pcVirtual, CCPPFunction* pcFunction)
-{
-	return (pcVirtual->meKind == pcFunction->meKind) && ((pcFunction->meKind == CPPFK_Destructor) || ((pcVirtual->mlliName == pcFunction->mlliName) && SameParameters(pcVirtual, pcFunction)));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if pcFunction overrides a virtual function in any of pcClass's bases'
-// vtables.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::OverridesBase(CCPPClass* pcClass, CCPPFunction* pcFunction)
-{
-	CCPPClass*	pcBase;
-	SCPPSecondaryVtable*	psVtable;
-	size			i;
-	size			j;
-	size			k;
-
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		pcBase = pcClass->macBases.Get(i)->pcClass;
-		for (j = 0; j < pcBase->mapcVirtuals.NumElements(); j++)
-		{
-			if (Overrides(pcBase->mapcVirtuals.GetPtr(j), pcFunction))
-			{
-				return true;
-			}
-		}
-		for (j = 0; j < pcBase->macVtables.NumElements(); j++)
-		{
-			psVtable = pcBase->macVtables.Get(j);
-			for (k = 0; k < psVtable->mapcFunctions.NumElements(); k++)
-			{
-				if (Overrides(psVtable->mapcFunctions.GetPtr(k), pcFunction))
-				{
-					return true;
-				}
-			}
-		}
-	}
-	return false;
 }
 
 
@@ -198,58 +146,13 @@ void CCPP65Generator::AddSecondaryVtable(CCPPClass* pcClass, int iOffset, CCPPCl
 		}
 		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
 		{
-			if (Overrides(psVtable->mapcFunctions.GetPtr(j), pcFunction))
+			if (pcFunction->Overrides(psVtable->mapcFunctions.GetPtr(j)))
 			{
 				psVtable->mapcFunctions.SetPtr(j, pcFunction);
 				psVtable->maiAdjust.SetValue(j, -iOffset);
 			}
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if objects of the class have a vtable pointer, its own or a base's.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsPolymorphic(CCPPClass* pcClass)
-{
-	return (pcClass->miVtableOffset != -1) || (pcClass->macVtables.NumElements() > 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a function in the class's vtables (its final overriders) is pure
-// virtual: no object of the class can be made.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsAbstract(CCPPClass* pcClass)
-{
-	SCPPSecondaryVtable*	psVtable;
-	size			i;
-	size			j;
-
-	for (i = 0; i < pcClass->mapcVirtuals.NumElements(); i++)
-	{
-		if (pcClass->mapcVirtuals.GetPtr(i)->mbPure)
-		{
-			return true;
-		}
-	}
-	for (i = 0; i < pcClass->macVtables.NumElements(); i++)
-	{
-		psVtable = pcClass->macVtables.Get(i);
-		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
-		{
-			if (psVtable->mapcFunctions.GetPtr(j)->mbPure)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
 }
 
 
@@ -468,25 +371,6 @@ void CCPP65Generator::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Where a vtable pointer is in an object of a polymorphic class: its own, else
-// the first secondary one's.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::VtablePointerOffset(CCPPClass* pcClass)
-{
-	SCPPSecondaryVtable*	psVtable;
-
-	if (pcClass->miVtableOffset != -1)
-	{
-		return pcClass->miVtableOffset;
-	}
-	psVtable = pcClass->macVtables.Get(0);
-	return psVtable->iOffset + psVtable->pcOwner->miVtableOffset;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A vtable entry: the function, or a thunk that adds iAdjust to this and jumps to
 // it.  Each thunk is written once.  Pure virtual functions are R_Pure.
 //
@@ -512,7 +396,7 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 	{
 		if (Emit(&szLabel))
 		{
-			AppendThunkLabel(&szLabel, !IsUnitFunction(pcFunction));
+			AppendThunkLabel(&szLabel, !pcFunction->IsUnitFunction());
 			szFunction.Init();
 			AppendFunctionLabel(&szFunction, pcFunction);
 			mpcTarget->AppendAdjustThunk(&mszThunks, iAdjust, szFunction.Text());

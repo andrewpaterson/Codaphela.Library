@@ -162,6 +162,18 @@
     <ClCompile Include="CPP65Type.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPClass.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPTemplate.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPFunction.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPVariable.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65TypeChecker.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -942,6 +954,18 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65Type.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPClass.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPTemplate.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPFunction.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPVariable.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65TypeChecker.h">

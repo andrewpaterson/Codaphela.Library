@@ -250,23 +250,7 @@ CCPPTemplate* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTempl
 	CCPPTemplate*	pcTemplate;
 
 	pcTemplate = NewMalloc<CCPPTemplate>();
-	pcTemplate->mpcSymbol = pcSymbol;
-	pcTemplate->mpcDeclaration = pcDeclaration;
-	pcTemplate->mpcDefinition = pcDefinition;
-	pcTemplate->mbMember = bMember;
-	pcTemplate->mbMemberTemplate = false;
-	pcTemplate->mpcClass = NULL;
-	pcTemplate->mlliName = -1;
-	pcTemplate->mpcClassDeclaration = NULL;
-	pcTemplate->mpcDeclarator = NULL;
-	pcTemplate->mbStatic = false;
-	pcTemplate->mpcPrimary = pcTemplate;
-	pcTemplate->mpcPattern = NULL;
-	pcTemplate->mpcOwner = NULL;
-	pcTemplate->mbArguments = false;
-	pcTemplate->mszArguments.Init();
-	pcTemplate->mapcInstances.Init();
-	pcTemplate->mpcNamespace = mpcDeclaringNamespace;
+	pcTemplate->Init(pcSymbol, pcDeclaration, pcDefinition, bMember, mpcDeclaringNamespace);
 	mapcTemplates.Add(pcTemplate);
 	return pcTemplate;
 }
@@ -525,22 +509,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 //////////////////////////////////////////////////////////////////////////
 SCPPBinding* CCPP65Generator::FindBinding(CCPPSymbol* pcParameter)
 {
-	CCPPTemplateArguments*	pcBindings;
-	SCPPBinding*	psBinding;
-	size			i;
-
-	for (pcBindings = mpcBindings; pcBindings; pcBindings = pcBindings->mpcOuter)
-	{
-		for (i = 0; i < pcBindings->macBindings.NumElements(); i++)
-		{
-			psBinding = pcBindings->macBindings.Get(i);
-			if (psBinding->pcParameter == pcParameter)
-			{
-				return psBinding;
-			}
-		}
-	}
-	return NULL;
+	return mpcBindings ? mpcBindings->Find(pcParameter) : NULL;
 }
 
 
@@ -614,7 +583,7 @@ CCPPClass* CCPP65Generator::InstantiateClass(CCPPTemplate* pcTemplate, CArraySyn
 	pcClass = NULL;
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
-		if (IsInstanceNamed(mapcClasses.GetPtr(i), pcTemplate->mpcSymbol) && mapcClasses.GetPtr(i)->mszArguments.Equals(&szArguments))
+		if (mapcClasses.GetPtr(i)->IsInstanceNamed(pcTemplate->mpcSymbol) && mapcClasses.GetPtr(i)->mszArguments.Equals(&szArguments))
 		{
 			pcClass = mapcClasses.GetPtr(i);
 			pcClass->mpcSymbol = pcTemplate->mpcSymbol;
@@ -669,7 +638,7 @@ CCPPClass* CCPP65Generator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClass = mapcClasses.GetPtr(i);
-		if (IsInstanceNamed(pcClass, pcSymbol) && pcClass->mszArguments.Equals(&szArguments))
+		if (pcClass->IsInstanceNamed(pcSymbol) && pcClass->mszArguments.Equals(&szArguments))
 		{
 			szArguments.Kill();
 			return pcClass;
@@ -789,7 +758,7 @@ bool CCPP65Generator::MatchPattern(CCPPTemplate* pcSpecialisation, CArraySyntax*
 
 		//A non-type argument: a parameter of the specialisation takes it, a constant must equal it.
 		pcSymbol = (pcPattern->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol : NULL;
-		psBinding = pcSymbol ? DeducedBinding(pcDeduced, pcSymbol) : NULL;
+		psBinding = pcSymbol ? pcDeduced->FindOwn(pcSymbol) : NULL;
 		if (psBinding)
 		{
 			psBinding->lliValue = psArgument->lliValue;
@@ -877,7 +846,7 @@ bool CCPP65Generator::MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId
 
 	//T takes the type.
 	pcNamed = (pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier)) ? (CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType : NULL;
-	psBinding = pcNamed ? DeducedBinding(pcDeduced, pcNamed->mpcName->mpcSymbol) : NULL;
+	psBinding = pcNamed ? pcDeduced->FindOwn(pcNamed->mpcName->mpcSymbol) : NULL;
 	if (psBinding)
 	{
 		if (psBinding->psType)
@@ -916,33 +885,6 @@ bool CCPP65Generator::MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The binding of one of a specialisation's parameters, or NULL if pcParameter is
-// not one.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPPBinding* CCPP65Generator::DeducedBinding(CCPPTemplateArguments* pcDeduced, CCPPSymbol* pcParameter)
-{
-	SCPPBinding*	psBinding;
-	size			i;
-
-	if (!pcParameter)
-	{
-		return NULL;
-	}
-	for (i = 0; i < pcDeduced->macBindings.NumElements(); i++)
-	{
-		psBinding = pcDeduced->macBindings.Get(i);
-		if (psBinding->pcParameter == pcParameter)
-		{
-			return psBinding;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // New empty bindings, kept until the generator is killed.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -951,9 +893,7 @@ CCPPTemplateArguments* CCPP65Generator::NewBindings(void)
 	CCPPTemplateArguments*	pcBindings;
 
 	pcBindings = NewMalloc<CCPPTemplateArguments>();
-	pcBindings->macBindings.Init();
-	pcBindings->mpcOuter = NULL;
-	pcBindings->mpcClass = NULL;
+	pcBindings->Init();
 	mapcAllBindings.Add(pcBindings);
 	return pcBindings;
 }

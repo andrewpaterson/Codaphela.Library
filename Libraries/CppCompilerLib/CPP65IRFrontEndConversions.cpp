@@ -128,7 +128,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 			return Convert(psValue, psTo);
 		}
 	}
-	if (!mpcGenerator->IsPolymorphic(pcFrom))
+	if (!pcFrom->IsPolymorphic())
 	{
 		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
@@ -189,7 +189,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 
 	//The start of the whole object.
 	StartBlock(pcLook);
-	sVtablePointer = AddressAt(sAddress, mpcGenerator->VtablePointerOffset(pcFrom));
+	sVtablePointer = AddressAt(sAddress, pcFrom->GetVtablePointerOffset());
 	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
 	sTop = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), sOffset, true);
 	sTop = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);

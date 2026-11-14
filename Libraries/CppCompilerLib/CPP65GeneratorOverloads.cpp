@@ -142,7 +142,7 @@ CCPPFunction* CCPP65Generator::FindFunction(CCPPClass* pcClass, int64 lliName, E
 			continue;
 		}
 		bFound = true;
-		if (!TakesObject(pcFunction, iConstObject) || !RankArguments(pcFunction, apsArguments, papcArguments, aiRanks))
+		if (!pcFunction->TakesObject(iConstObject) || !RankArguments(pcFunction, apsArguments, papcArguments, aiRanks))
 		{
 			continue;
 		}
@@ -159,7 +159,7 @@ CCPPFunction* CCPP65Generator::FindFunction(CCPPClass* pcClass, int64 lliName, E
 		{
 			continue;
 		}
-		if (TakesObject(pcFunction, iConstObject) && RankArguments(pcFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
+		if (pcFunction->TakesObject(iConstObject) && RankArguments(pcFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
 		{
 			if ((CompareRanks(aiBest, aiRanks, uiArguments) < 0) || (CompareQualifiers(pcBest, pcFunction, papcArguments, iConstObject) <= 0))
 			{
@@ -611,19 +611,6 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 		}
 	}
 	return CPPCR_None;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a function can be called on the object (iConstObject 1 if it is
-// const, 0 if not, -1 for none): a const object takes only const and static
-// member functions.  [over.match.funcs] 4
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::TakesObject(CCPPFunction* pcFunction, int iConstObject)
-{
-	return (iConstObject != 1) || !pcFunction->mpcClass || pcFunction->mbStatic || pcFunction->mbConstThis;
 }
 
 

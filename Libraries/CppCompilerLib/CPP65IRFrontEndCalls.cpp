@@ -327,9 +327,9 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 			return InlineMemcpy(&pcCall->macpArguments, mpcGenerator->TypeOf(pcCall), psValue);
 		}
 		return BuiltinMemcpy(pcCall, psValue);
-	case CPP65B_BCDAdd:
-	case CPP65B_BCDSubtract:
-		return BuiltinBCD(pcCall, psBuiltin->eBuiltin == CPP65B_BCDSubtract, psValue);
+	case CPPB_BCDAdd:
+	case CPPB_BCDSubtract:
+		return BuiltinBCD(pcCall, psBuiltin->eBuiltin == CPPB_BCDSubtract, psValue);
 	case CPPB_Alloca:
 		//Frames are fixed in size (and the W65C816's stack is small); malloc instead.
 		mpcGenerator->ReportError(pcCall, "__builtin_alloca is not supported");
@@ -758,7 +758,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 			continue;
 		}
 		if (!pcArgument || psParameter->IsArray() || (!IsSupportedType(psParameter) && !psParameter->IsClass()) ||
-			(psParameter->IsClass() && (bVariadic || !mpcGenerator->CompleteClass(psParameter->pcClass, NULL) || !mpcGenerator->IsTriviallyCopyable(psParameter->pcClass))))
+			(psParameter->IsClass() && (bVariadic || !mpcGenerator->CompleteClass(psParameter->pcClass, NULL) || !psParameter->pcClass->IsTriviallyCopyable())))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -791,7 +791,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 
 			//It is copied as it is worked out (the generator constructs it on the stack then), through a temporary for a
 			//class with vtables so the copy has its own class's.
-			if (mpcGenerator->IsPolymorphic(psParameter->pcClass))
+			if (psParameter->pcClass->IsPolymorphic())
 			{
 				if (!Temporary(psParameter, &sCopy, false) || !CopyBytes(&sCopy, &sArgument))
 				{
@@ -939,7 +939,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 		}
 		bVirtual = false;
 	}
-	if (pcObject && !mpcGenerator->HasMember(pcLookup, lliName) && mpcGenerator->FindField(pcLookup, lliName, &iOffset))
+	if (pcObject && !mpcGenerator->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
 	{
 		//object.pf() calls through a field that points to a function.
 		return CallThroughPointer(pcCall, pcCallee, psValue);

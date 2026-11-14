@@ -302,12 +302,11 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Kill(void)
 {
-	size				i;
-	size				j;
-	CCPPFunction*		pcFunction;
-	CCPPClass*		pcClass;
-	CCPPTemplateArguments*		pcBindings;
-	CArrayCPP65Types*	papsPack;
+	size					i;
+	CCPPFunction*			pcFunction;
+	CCPPClass*				pcClass;
+	CCPPTemplateArguments*	pcBindings;
+	CArrayCPP65Types*		papsPack;
 
 	mcTypeChecker.Kill();
 	SafeKill(mpcIRFrontEnd);
@@ -323,27 +322,14 @@ void CCPP65Generator::Kill(void)
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClass = mapcClasses.GetPtr(i);
-		pcClass->mszArguments.Kill();
-		for (j = 0; j < pcClass->macVtables.NumElements(); j++)
-		{
-			pcClass->macVtables.Get(j)->maiAdjust.Kill();
-			pcClass->macVtables.Get(j)->mapcFunctions.Kill();
-		}
-		pcClass->macVtables.Kill();
-		pcClass->mapcVirtuals.Kill();
-		pcClass->mapcMembers.Kill();
-		pcClass->macFields.Kill();
-		pcClass->macUsings.Kill();
-		pcClass->macBases.Kill();
+		pcClass->Kill();
 		SafeFree(pcClass);
 	}
 	mapcClasses.Kill();
 	for (i = 0; i < mapcFunctions.NumElements(); i++)
 	{
 		pcFunction = mapcFunctions.GetPtr(i);
-		pcFunction->mszArguments.Kill();
-		pcFunction->mapcDefaults.Kill();
-		pcFunction->mapsParameters.Kill();
+		pcFunction->Kill();
 		SafeFree(pcFunction);
 	}
 	mapcUnnamedNamespaces.Kill();
@@ -351,15 +337,14 @@ void CCPP65Generator::Kill(void)
 	mapcFunctions.Kill();
 	for (i = 0; i < mapcTemplates.NumElements(); i++)
 	{
-		mapcTemplates.GetPtr(i)->mapcInstances.Kill();
-		mapcTemplates.GetPtr(i)->mszArguments.Kill();
+		mapcTemplates.GetPtr(i)->Kill();
 		free(mapcTemplates.GetPtr(i));
 	}
 	mapcTemplates.Kill();
 	for (i = 0; i < mapcAllBindings.NumElements(); i++)
 	{
 		pcBindings = mapcAllBindings.GetPtr(i);
-		pcBindings->macBindings.Kill();
+		pcBindings->Kill();
 		SafeFree(pcBindings);
 	}
 	mapcAllBindings.Kill();
@@ -784,25 +769,6 @@ void CCPP65Generator::AppendGlobal(CChars* psz, CChars* pszLabel)
 	psz->Append("\t\t.global ");
 	psz->Append(pszLabel);
 	psz->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A static function, a member of a class without a name, or what is in a
-// namespace without a name is the unit's own: its label is local to the object.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsUnitFunction(CCPPFunction* pcFunction)
-{
-	CCPPClass*	pcClass;
-
-	pcClass = pcFunction->mpcClass;
-	if (pcClass)
-	{
-		return (pcClass->mlliName < 0) || (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcScope->IsInUnnamedNamespace());
-	}
-	return pcFunction->mbStatic || (pcFunction->mpcNamespace && pcFunction->mpcNamespace->IsInUnnamedNamespace());
 }
 
 
@@ -1579,34 +1545,7 @@ CCPPFunction* CCPP65Generator::AddFunction(CCPPClass* pcClass, int64 lliName, EC
 	SCPPFunctionsOfName	sOfName;
 
 	pcFunction = NewMalloc<CCPPFunction>();
-	pcFunction->mlliName = lliName;
-	pcFunction->mpsReturn = psReturn;
-	pcFunction->mapsParameters.Init();
-	pcFunction->mbDefined = false;
-	pcFunction->mpcClass = pcClass;
-	pcFunction->mpcNamespace = NULL;
-	pcFunction->meKind = eKind;
-	pcFunction->mbStatic = false;
-	pcFunction->mbVirtual = false;
-	pcFunction->mbPure = false;
-	pcFunction->miSlot = -1;
-	pcFunction->mbCLinkage = false;
-	pcFunction->mbExplicit = false;
-	pcFunction->mbConstThis = false;
-	pcFunction->mbImplicit = false;
-	pcFunction->mpcInherited = NULL;
-	pcFunction->mapcDefaults.Init();
-	pcFunction->mbVariadic = false;
-	pcFunction->mpcDefinition = NULL;
-	pcFunction->mpcDeclarator = NULL;
-	pcFunction->mpcBindings = pcClass ? pcClass->mpcBindings : NULL;
-	pcFunction->mbInline = false;
-	pcFunction->mbQueued = false;
-	pcFunction->mbGenerated = false;
-	pcFunction->mbCalled = false;
-	pcFunction->mpcTemplate = NULL;
-	pcFunction->mszArguments.Init();
-	pcFunction->mpcNextOfName = NULL;
+	pcFunction->Init(pcClass, lliName, eKind, psReturn);
 	mapcFunctions.Add(pcFunction);
 	if (pcClass)
 	{
@@ -1698,31 +1637,6 @@ bool CCPP65Generator::Emit(CChars* pszLabel)
 	maszEmitted.Add(pszLabel);
 	return true;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::SameParameters(CCPPFunction* pcFunction, CCPPFunction* pcOther)
-{
-	size	i;
-
-	if ((pcFunction->mapsParameters.NumElements() != pcOther->mapsParameters.NumElements()) || (pcFunction->mbVariadic != pcOther->mbVariadic))
-	{
-		return false;
-	}
-	for (i = 0; i < pcFunction->mapsParameters.NumElements(); i++)
-	{
-		if (!pcFunction->mapsParameters.GetPtr(i)->Same(pcOther->mapsParameters.GetPtr(i)))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2098,18 +2012,7 @@ CCPPVariable* CCPP65Generator::AddVariable(CArrayCPPVariables* papcVariables, CC
 	CCPPVariable*	pcVariable;
 
 	pcVariable = NewMalloc<CCPPVariable>();
-	pcVariable->mpcSymbol = pcSymbol;
-	pcVariable->mpsType = psType;
-	pcVariable->meStorage = eStorage;
-	pcVariable->miOffset = iOffset;
-	pcVariable->mpcClass = NULL;
-	pcVariable->mpcInClassInitialiser = NULL;
-	pcVariable->mbDefined = false;
-	pcVariable->mbUsed = false;
-	pcVariable->mbInternal = pcSymbol && pcSymbol->mpcScope && pcSymbol->mpcScope->IsInUnnamedNamespace();
-	pcVariable->mbCLinkage = mbCLinkage;
-	pcVariable->mbRestrict = false;
-	pcVariable->mpcAnonymous = NULL;
+	pcVariable->Init(pcSymbol, psType, eStorage, iOffset, mbCLinkage);
 	papcVariables->Add(pcVariable);
 	return pcVariable;
 }
@@ -2738,14 +2641,14 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 	//that needs them, each in a COMDAT section the linker keeps one of.
 	szLabel.Init();
 	AppendFunctionLabel(&szLabel, pcFunction);
-	bShared = !IsUnitFunction(pcFunction) && (pcFunction->mbInline || pcFunction->mbImplicit || pcFunction->mpcTemplate);
+	bShared = !pcFunction->IsUnitFunction() && (pcFunction->mbInline || pcFunction->mbImplicit || pcFunction->mpcTemplate);
 	if (bShared && !Emit(&szLabel))
 	{
 		szLabel.Kill();
 		return;
 	}
 	AppendSection(&mszCode, "text", &szLabel, bShared ? ", comdat" : NULL);
-	if (!IsUnitFunction(pcFunction))
+	if (!pcFunction->IsUnitFunction())
 	{
 		AppendGlobal(&mszCode, &szLabel);
 	}

@@ -823,7 +823,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::IsPassedByAddress(SCPP65Type* psType)
 {
-	return psType->IsClass() && !mpcGenerator->IsTriviallyCopyable(psType->pcClass);
+	return psType->IsClass() && !psType->pcClass->IsTriviallyCopyable();
 }
 
 

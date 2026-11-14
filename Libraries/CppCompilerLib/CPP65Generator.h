@@ -41,6 +41,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
+#include "CPPVariable.h"
+#include "CPPFunction.h"
+#include "CPPTemplate.h"
+#include "CPPClass.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
 #include "CPPTarget.h"
@@ -52,127 +56,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPCompileOptions.h"
 
 
-enum ECPPStorage
-{
-	CPPVS_Local,
-	CPPVS_Parameter,
-	CPPVS_Global,
-	CPPVS_Static,		//A static local: data, numbered in the unit by iOffset.
-};
-
-
-class CCPPClass;
-class CCPPFunction;
 class CCTString;
-class CCPPTemplate;
-
-
-//A template parameter's value in an instantiation: a type, or a constant for a non-type parameter.
-struct SCPPBinding
-{
-	CCPPSymbol*		pcParameter;
-	SCPP65Type*		psType;
-	int64			lliValue;
-	CArrayTemplatePtr<SCPP65Type>*	papsPack;	//A parameter pack's types.
-};
-
-
-typedef CArrayTemplate<SCPPBinding>	CArrayCPPBindings;
-
-
-//The template arguments of an instantiation.  pcOuter is the class instance a member template is in.  pcClass
-//is the instance the bindings belong to, for the class's own name used without arguments inside it.
-class CCPPTemplateArguments
-{
-public:
-	CArrayCPPBindings		macBindings;
-	CCPPTemplateArguments*			mpcOuter;
-	CCPPClass*			mpcClass;
-};
-
-
-typedef CArrayTemplatePtr<CCPPTemplateArguments>	CArrayCPPTemplateArguments;
-
-
-//A variable the generator has given storage.
-class CCPPVariable
-{
-public:
-	CCPPSymbol*		mpcSymbol;
-	SCPP65Type*		mpsType;
-	ECPPStorage	meStorage;
-	int				miOffset;		//Parameters: the index in the function's parameters.  Static locals: the number (the label's S<n>_).  Members of an anonymous union or struct (pcAnonymous): the offset in it.
-	CCPPClass*	mpcClass;		//The class of a static data member.
-	CCPPSyntax*		mpcInClassInitialiser;	//static const int k = 5; in the class: what its definition has if it has none.
-	bool			mbInternal;		//A static global, or one in a namespace without a name: the unit's own.
-	bool			mbCLinkage;		//Declared in extern "C": its label is only its name.
-	bool			mbDefined;		//A global's data has been written.
-	bool			mbUsed;
-	bool			mbRestrict;		//A global or parameter pointer declared __restrict.
-	CCPPClass*	mpcAnonymous;	//The anonymous union or struct declared in a function that this local is a member of.
-};
-
-
-enum ECPPFunctionKind
-{
-	CPPFK_Function,
-	CPPFK_Constructor,
-	CPPFK_Destructor,
-};
-
-
-//A function's signature, from its definition or a declaration, and its definition.  Inline, in class and
-//template functions are generated when they are first called; others when their definition is reached.
-class CCPPFunction
-{
-public:
-	int64							mlliName;		//An identifier, or an operator (see GetOperatorName).
-	SCPP65Type*						mpsReturn;
-	CArrayCPP65Types				mapsParameters;
-	CArraySyntax					mapcDefaults;	//Each parameter's default argument, or NULL.
-	bool							mbVariadic;
-	bool							mbDefined;
-	CCPPClass*					mpcClass;		//NULL for a function that is not a member.
-	CCPPScope*						mpcNamespace;	//The namespace of a function that is not a member, NULL for the global one.
-	ECPPFunctionKind				meKind;
-	bool							mbStatic;
-	bool							mbVirtual;
-	bool							mbPure;
-	int								miSlot;			//A virtual function's place in the vtable.
-	bool							mbCLinkage;		//Declared in extern "C": its label is only its name.
-	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
-	bool							mbConstThis;		//A const member function: an overload of the same function without const.
-	bool							mbImplicit;		//A constructor or destructor the generator wrote.
-	CCPPFunction*					mpcInherited;	//The base's constructor an inherited constructor calls (using Base::Base).
-	CCPPSyntaxFunctionDefinition*	mpcDefinition;
-	CCPPSyntaxDeclarator*			mpcDeclarator;	//The first declaration's declarator (a template's, for an instance).
-	CCPPTemplateArguments*					mpcBindings;		//The template arguments the definition is generated with.
-	bool							mbInline;		//Generated when used.
-	bool							mbQueued;
-	bool							mbGenerated;
-	bool							mbCalled;
-	CCPPTemplate*					mpcTemplate;		//The function template this is an instance of.
-	CChars							mszArguments;	//The instance's template arguments, mangled for its label.
-	CCPPFunction*					mpcNextOfName;	//The next function added with the same lliName (see FirstFunctionOfName).
-
-	size	RequiredParameters(void);
-};
-
-
-typedef CArrayTemplatePtr<CCPPFunction>	CArrayCPPFunctions;
-
-
-//The functions of a name, in the order they were added: pcFirst then each pcNextOfName.
-struct SCPPFunctionsOfName
-{
-	CCPPFunction*	pcFirst;
-	CCPPFunction*	pcLast;
-};
-
-
-typedef CMapLongTemplate<SCPPFunctionsOfName>	CMapCPPFunctionsOfNames;
-
-
 //How well an argument converts to a parameter, best last.
 enum ECPPConversionRank
 {
@@ -188,27 +72,6 @@ enum ECPPConversionRank
 };
 
 
-//A non-static data member.  Offsets include the base class's.
-struct SCPPField
-{
-	CCPPSymbol*		pcSymbol;
-	int64			lliName;
-	SCPP65Type*		psType;
-	int				iOffset;
-	int				iAlign;				//Its alignas, 0 for none.
-	CCPPSyntax*		pcInitialiser;		//The default member initialiser, or NULL.
-	bool			bMutable;			//Declared mutable: not const in a const object.
-	int				iBitWidth;			//A bit-field's width, -1 for a field that isn't one.  An unnamed bit-field (int : 3;) has no symbol.
-	int				iBitOffset;			//A bit-field's first bit in the unit of its type at iOffset, 0 the lowest.
-
-	bool			IsBitField(void) { return iBitWidth >= 0; }
-	bool			IsUnnamedBitField(void) { return (iBitWidth >= 0) && (pcSymbol == NULL); }
-};
-
-
-typedef CArrayTemplate<SCPPField>		CArrayCPPFields;
-
-
 //An error in a class's own declaration (a bit-field's width), found when it is laid out: kept apart from mcErrors,
 //which quiet trials and the IR front end truncate, and reported when the unit ends (ReportClassErrors).
 struct SCPPClassError
@@ -221,76 +84,6 @@ struct SCPPClassError
 typedef CArrayTemplate<SCPPClassError>	CArrayCPPClassErrors;
 
 
-//A base class and where it is in the derived class.
-struct SCPPBase
-{
-	CCPPClass*	pcClass;
-	int				iOffset;
-};
-
-
-typedef CArrayTemplate<SCPPBase>		CArrayCPPBases;
-
-
-//using Base::f; in a class: Base's functions named f are overloads of the class's own.
-struct SCPPUsing
-{
-	CCPPClass*	pcBase;
-	int64			lliName;
-};
-
-
-typedef CArrayTemplate<SCPPUsing>		CArrayCPPUsings;
-
-
-//A secondary vtable: the one for the polymorphic base subobject at iOffset that does not share the class's
-//vtable pointer.  It is laid out like pcOwner's vtable.  A function whose object is not that subobject is
-//called through a thunk that adds maiAdjust's entry to this first.
-struct SCPPSecondaryVtable
-{
-	int							iOffset;
-	CCPPClass*				pcOwner;
-	CArrayCPPFunctions		mapcFunctions;
-	CArrayInt					maiAdjust;
-};
-
-
-typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
-
-
-//A vtable (CCPP65Generator::VtableEntries): before each part (the class's own, then each secondary vtable) a header of
-//two words, the distance from the part's vtable pointer to the object's start and the class's type info, then the
-//part's functions.  A vtable pointer points at its part's first function, and the label (_Class__2) at the first part's.
-//The type info (_Class__3) is an entry per subobject, its class's type info and its offset, and a zero.
-#define CPP65_VTABLE_ENTRY_BYTES		4
-#define CPP65_VTABLE_HEADER_ENTRIES		2
-#define CPP65_VTABLE_TOP_OFFSET			(-CPP65_VTABLE_HEADER_ENTRIES * CPP65_VTABLE_ENTRY_BYTES)	//From a vtable pointer: the distance to the object's start.
-#define CPP65_VTABLE_TYPE_INFO_OFFSET	(-CPP65_VTABLE_ENTRY_BYTES)			//From a vtable pointer: the class's type info.
-#define CPP65_TYPE_INFO_ENTRY_BYTES		(2 * CPP65_VTABLE_ENTRY_BYTES)
-#define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//In a type info entry: the subobject's offset.
-#define CPP65_VTABLE_LABEL				"2"
-#define CPP65_TYPE_INFO_LABEL			"3"
-
-
-enum ECPPVtableEntry
-{
-	CPPVE_Header,		//A part's header: iVtablePointer is where the part's vtable pointer is in the object.
-	CPPVE_Function,	//pcFunction, through a thunk that adds iAdjust to this if it isn't 0.
-};
-
-
-struct SCPPVtableEntry
-{
-	ECPPVtableEntry	eKind;
-	int					iVtablePointer;
-	CCPPFunction*		pcFunction;
-	int					iAdjust;
-};
-
-
-typedef CArrayTemplate<SCPPVtableEntry>	CArrayCPPVtableEntries;
-
-
 //GCC's builtin functions the compiler does (CCPP65Generator::FindBuiltin), for the type checker and the IR front end.
 enum ECPPBuiltin
 {
@@ -299,8 +92,8 @@ enum ECPPBuiltin
 	CPPB_Expect,
 	CPPB_Memcpy,
 	CPPB_Alloca,			//An error: frames are fixed in size.
-	CPP65B_BCDAdd,			//The W65C816's decimal mode.
-	CPP65B_BCDSubtract,
+	CPPB_BCDAdd,			//The W65C816's decimal mode.
+	CPPB_BCDSubtract,
 	CPPB_Ctz,
 	CPPB_Clz,
 	CPPB_Popcount,
@@ -327,76 +120,8 @@ struct SCPPBuiltin
 };
 
 
-//A class's layout: the bases in order (an empty base takes no space), then the vtable pointer if no base has
-//one, then the fields.  A class is laid out when it is first needed whole.  pcBase is the first base.
-class CCPPClass
-{
-public:
-	CCPPSymbol*					mpcSymbol;
-	int64						mlliName;
-	SCPP65Type*					mpsType;
-	CCPPClass*				mpcBase;
-	CArrayCPPBases			macBases;
-	CArrayCPPUsings			macUsings;
-	CArrayCPPFields			macFields;
-	CArrayCPPFunctions		mapcMembers;		//Its functions, in the order they were added.
-	CArrayCPPFunctions		mapcVirtuals;		//The vtable.
-	int							miVtableOffset;		//-1 if the class has no vtable of its own.
-	CArrayCPPSecondaryVtables			macVtables;			//The secondary vtables, written after the vtable.
-	bool						mbComplete;
-	bool						mbLayingOut;
-	bool						mbBases;				//macBases is filled in (their offsets only once it is complete).
-	bool						mbEmpty;				//No fields, no vtable pointer and empty bases.
-	int							miAlign;
-	bool						mbUnion;
-	bool						mbVtable;			//The vtable has been written.
-	bool						mbTypeInfo;			//The type info (for dynamic_cast) has been written.
-	bool						mbConstructors;		//The class declares a constructor.
-	CCPPClass*				mpcInheritedBase;	//The base whose constructors are inherited (using Base::Base), or NULL.
-	CCPPFunction*				mpcDestructor;
-	CCPPSyntaxClassSpecifier*	mpcSpecifier;		//The definition, NULL until it is seen.
-	CCPPTemplate*				mpcTemplate;			//The class template this is an instance of.
-	CCPPTemplateArguments*				mpcBindings;
-	CChars						mszArguments;		//The instance's template arguments, mangled for its label.
-};
-
-
-//A class or function template, a member function of a class template defined outside the class, or a member
-//template.  A member template is kept for each class (or class template instance) it is in (pcClass).  One
-//defined outside its class is kept once, with pcClass NULL, and found by the class's name (pcSymbol) and its
-//own name (lliName); mpcClassDeclaration is the class template's parameters if the class is a template.  An
-//explicit or partial specialisation has the template it specialises as pcPrimary (a template is its own
-//primary otherwise) and its template arguments in pcPattern.  An outside member function's class template is
-//pcOwner, the primary or a partial specialisation.
-class CCPPTemplate
-{
-public:
-	CCPPSymbol*						mpcSymbol;		//The template's name; for an outside member, the class's.
-	CCPPSyntaxTemplateDeclaration*	mpcDeclaration;
-	CCPPSyntax*						mpcDefinition;	//A class specifier or a function definition.
-	bool							mbMember;
-	bool							mbMemberTemplate;
-	CCPPClass*					mpcClass;
-	int64							mlliName;
-	CCPPSyntaxTemplateDeclaration*	mpcClassDeclaration;
-	CCPPSyntaxDeclarator*			mpcDeclarator;	//A member template's declarator in its class.
-	bool							mbStatic;
-	CCPPTemplate*					mpcPrimary;
-	CCPPSyntaxNameComponent*		mpcPattern;
-	CCPPTemplate*					mpcOwner;
-	bool							mbArguments;		//mszArguments is worked out (a function specialisation's).
-	CCPPScope*						mpcNamespace;	//The namespace it was declared in, NULL for the global one: of an instance with no symbol (an operator).
-	CChars							mszArguments;
-	CArrayCPPFunctions			mapcInstances;	//A function template's instances.
-};
-
-
-typedef CArrayTemplatePtr<CCPPTemplate>	CArrayCPPTemplates;
 typedef CArrayTemplatePtr<CArrayCPP65Types>	CArrayCPPPacks;
 typedef CArrayTemplatePtr<CCPPSymbol>		CArrayCPPSymbols;
-
-
-typedef CArrayTemplatePtr<CCPPClass>		CArrayCPPClasses;
 
 
 //A remembered TypeOf: the type of an expression with some template arguments.
@@ -408,7 +133,6 @@ struct SCPPTypeOf
 };
 
 
-typedef CArrayTemplatePtr<CCPPVariable>	CArrayCPPVariables;
 typedef CMapLongTemplate<SCPPTypeOf>		CMapCPPTypeOfs;
 
 
@@ -550,7 +274,6 @@ protected:
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
 	bool					IsOverloaded(CCPPFunction* pcFunction);
-	bool					SameParameters(CCPPFunction* pcFunction, CCPPFunction* pcOther);
 	void					RequireFunction(CCPPFunction* pcFunction);
 	bool					Emit(CChars* pszLabel);
 	bool					Declarations(CArraySyntax* papcDeclarations);
@@ -607,7 +330,6 @@ protected:
 	void					AppendSpace(int iBytes);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
 	void					AppendGlobal(CChars* psz, CChars* pszLabel);
-	bool					IsUnitFunction(CCPPFunction* pcFunction);
 
 	void					ReportTypeOf(CCPPSyntax* pcExpression);
 	bool					ReportError(CCPPSyntax* pcNode, const char* szMessage);
@@ -621,7 +343,6 @@ protected:
 	CCPPClass*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
 	CCPPClass*			FindClass(int64 lliName, CCPPScope* pcLookup);
 	CCPPScope*				ComponentLookup(CCPPSyntaxNameComponent* pcComponent);
-	static bool				IsInstanceNamed(CCPPClass* pcClass, CCPPSymbol* pcSymbol);
 	CCPPClass*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext = NULL);
 	CCPPClass*			FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate);
 	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
@@ -661,7 +382,6 @@ protected:
 	CCPPTemplate*			FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode);
 	bool					MatchPattern(CCPPTemplate* pcSpecialisation, CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments* pcDeduced, int* piScore);
 	bool					MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument, CCPPTemplateArguments* pcDeduced, int* piScore);
-	SCPPBinding*			DeducedBinding(CCPPTemplateArguments* pcDeduced, CCPPSymbol* pcParameter);
 	void					DeduceArguments(CCPPTemplate* pcTemplate, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced);
 	void					DeduceParameters(CCPPTemplate* pcTemplate, CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced);
 	bool					DeduceParameter(CCPPTemplate* pcTemplate, CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, size i, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced);
@@ -681,25 +401,17 @@ protected:
 	bool					ClassError(int iToken, const char* szMessage);
 	void					ReportClassErrors(void);
 	bool					LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	bool					Overrides(CCPPFunction* pcVirtual, CCPPFunction* pcFunction);
-	bool					OverridesBase(CCPPClass* pcClass, CCPPFunction* pcFunction);
 	void					LayoutSecondaryVtables(CCPPClass* pcClass);
 	void					AddSecondaryVtable(CCPPClass* pcClass, int iOffset, CCPPClass* pcOwner, CArrayCPPFunctions* papcFunctions, CArrayInt* paiAdjust);
-	bool					IsPolymorphic(CCPPClass* pcClass);
-	bool					IsAbstract(CCPPClass* pcClass);
 	void					EnsureVtable(CCPPClass* pcClass);
 	void					EnsureTypeInfo(CCPPClass* pcClass);
 	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset);
 	void					AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer);
-	int						VtablePointerOffset(CCPPClass* pcClass);
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
 	void					AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust);
 	void					VtableEntries(CCPPClass* pcClass, CArrayCPPVtableEntries* pasEntries);
 	void					AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust);
-	SCPPField*			FindField(CCPPClass* pcClass, int64 lliName, int* piOffset);
-	size				NumAggregateFields(CCPPClass* pcClass);
-	SCPPField*			FindFieldSymbol(CCPPClass* pcClass, CCPPSymbol* pcSymbol, int* piOffset);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
 	void					InheritConstructors(CCPPClass* pcClass);
@@ -723,11 +435,8 @@ protected:
 	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
 	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
 	static bool				AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
-	static bool				TakesObject(CCPPFunction* pcFunction, int iConstObject);
 	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
-	bool					NeedsConstructor(CCPPClass* pcClass);
-	bool					NeedsDestructor(CCPPClass* pcClass);
 	void					AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendClassLabel(CChars* psz, CCPPClass* pcClass, const char* szPart);
 	void					AppendVtableLabel(CChars* psz, CCPPClass* pcClass);
@@ -817,9 +526,6 @@ protected:
 	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);
 
 	//Objects and copies.  CPP65GeneratorObjects.cpp
-	bool					HasCopyConstructor(CCPPClass* pcClass);
-	CCPPFunction*			GetCopyConstructor(CCPPClass* pcClass);
-	bool					IsTriviallyCopyable(CCPPClass* pcClass);
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
