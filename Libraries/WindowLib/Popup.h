@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __POPUP_H__
 #include "SupportLib/ColourARGB32.h"
 #include "Container.h"
+#include "ComponentEvent.h"
 #include "ScrollPane.h"
 
 
@@ -35,7 +36,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //The owner is the component that opened it.  A press on the owner, or in any popup, leaves the popups open; a press
 //anywhere else closes them.  A popup whose owner is large, like a context menu's page, closes on a press on its owner
-//too (SetOwnerPressKeepsOpen).  The owner is told when its popup closes.
+//too (SetOwnerPressKeepsOpen).  The owner is told when its popup closes, and so is anything listening to the popup's
+//closed event (GetClosedEvent), for one that opened it but isn't its owner.
 //
 //Given a maximum height (SetMaximumHeight) the popup is no taller: content taller than that scrolls up and down in
 //a scroll pane inside it, as a list's selection moved by the keys scrolls into view.
@@ -55,10 +57,12 @@ protected:
 	bool				mbPointerPasses;  //The pointer finds what is under the popup, as for a tool tip.
 	Ptr<CScrollPane>	mpScrollPane;  //Between the popup and its content, once it has a maximum height.
 	int32				miMaximumHeight;  //-1 for none.
+	CComponentEvent<CPopup>	mcClosed;  //Called once it has been taken out of the window, before its owner is told.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
 	void				Class(void) override;
+	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
@@ -67,6 +71,7 @@ public:
 	void				SetOpenPosition(SInt32Vec2 sPosition);
 	void				SetOwnerPressKeepsOpen(bool bKeepsOpen);
 	bool				IsOwnerPressKeepsOpen(void);
+	CComponentEvent<CPopup>*	GetClosedEvent(void);
 	void				SetPointerPasses(bool bPasses);
 	void				SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme);
 	int32				GetMaximumHeight(void);

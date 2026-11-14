@@ -47,6 +47,7 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	mbPointerPasses = false;
 	mpScrollPane = NULL;
 	miMaximumHeight = -1;
+	mcClosed.Init();
 	AddComponent(pContent);
 
 	PostInit();
@@ -72,6 +73,18 @@ void CPopup::Class(void)
 	U_Bool(mbPointerPasses);
 	M_Pointer(mpScrollPane);
 	U_Int32(miMaximumHeight);
+	U_Unknown(CComponentEvent<CPopup>, mcClosed);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPopup::Free(void)
+{
+	mcClosed.Kill();
+	CContainer::Free();
 }
 
 
@@ -333,6 +346,7 @@ Ptr<CComponent> CPopup::GetContent(void) { return mpContent; }
 Ptr<CComponent> CPopup::GetOwner(void) { return mpOwner; }
 void CPopup::SetOwnerPressKeepsOpen(bool bKeepsOpen) { mbOwnerPressKeepsOpen = bKeepsOpen; }  //True, as it starts, for a small owner like a combo box: pressing it again toggles the popup itself.
 bool CPopup::IsOwnerPressKeepsOpen(void) { return mbOwnerPressKeepsOpen; }
+CComponentEvent<CPopup>* CPopup::GetClosedEvent(void) { return &mcClosed; }
 void CPopup::SetPointerPasses(bool bPasses) { mbPointerPasses = bPasses; }
 
 

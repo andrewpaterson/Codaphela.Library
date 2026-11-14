@@ -1211,7 +1211,8 @@ Ptr<CPopup> CWindow::OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, P
 //////////////////////////////////////////////////////////////////////////
 //
 // Closes the popup holding pContent and every popup opened after it, the
-// last opened first.  Each popup's owner is told once its popup is gone.
+// last opened first.  Each popup's closed event is called, then its owner
+// is told, once it is gone.
 // Returns false if pContent isn't in an open popup.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1238,6 +1239,7 @@ bool CWindow::ClosePopup(Ptr<CComponent> pContent)
 		mpCanvas->RemoveComponent(pPopup);
 		pPopup->RemoveAllComponents();
 		maPopups.RemoveAt(maPopups.NumElements() - 1);
+		pPopup->GetClosedEvent()->Call(&pPopup);
 		pPopup = NULL;
 		if (pOwner.IsNotNull())
 		{
