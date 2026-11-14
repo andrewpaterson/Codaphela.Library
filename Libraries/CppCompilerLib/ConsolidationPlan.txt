@@ -260,20 +260,36 @@ one step that may change the code that is written.
 
 Stage 5, a call, a name and a member are resolved once; then the checkpoint.
 
-  15. Measured before: the type checker's and the front end's shares of the compile (the phase times, "types"
-      and "front end", and VTune by class if they don't say enough), TypeOf's calls and those worked out, pack
-      expansions and their nodes, and the lines in the two walkers' call, name and member functions.
-  16. CCPPSyntaxVisitor: a virtual for each kind of node (241 GetKind tests today), and the small questions
-      onto the nodes.
-  17. Calls: one ResolveCall with the cascade, making a CCPPBoundCall that the type checker and the front end
-      both read; a pack's expanded arguments are the bound call's.  It is also where CCPPOverloads' twelve
-      ways in become one (stage 4 left them twelve: Progress says why), and where the three things stage 4's
-      tests found about choosing are put right, each with its listings read.  While old and new live together a debug
-      build runs both and compares them over every test and the three Lib65 projects.
-  18. Names and members, the same way.
-  19. The checkpoint: step 15's numbers again, the bound nodes made for a function, peak memory, compile
-      time, the suites' cycles and sizes, the disagreements found, and what is suggested for stages 6 to 11
-      and for stage 2's leftovers.  The plan stops and the numbers go to the user.
+   Its steps are numbered from 1 (the user, 2026-11-14).  They were 15 to 19 of this list, and Progress and
+   the commits before that day say so: 15 is step 1, 16 is step 2, 17 is steps 3 to 7, 18 is steps 8 and 9,
+   and 19 is step 10.
+
+   1. Measured before: the type checker's and the front end's shares of the compile (the phase times, "types"
+      and "front end"), TypeOf's calls and those worked out, pack expansions and their nodes, and the lines in
+      the two walkers' call, name and member functions.  Done: the numbers are in stage 4's row in Progress.
+   2. CCPPSyntaxVisitor: a virtual for each kind of node, and the small questions onto the nodes.  Done: the
+      type checker's Result is its first user.
+   3. Calls that aren't on an object are bound once: CCPPCallBinder has the one cascade and makes a
+      CCPPBoundCall that the type checker and the front end both read.  Written; being proven.
+   4. Calls on an object, the same way: the object, its class and whether it is const, destructor calls, a
+      field that points to a function, and whether the call goes through the vtable.
+   5. Operator and conversion calls through the binder, and CCPPOverloads' twelve ways in become one (stage 4
+      left them twelve: Progress says why).
+   6. What stage 4's tests found about choosing is put right, each with its listings read and a test: F(S())
+      binding to S& before const S&, a template chosen before a function that isn't one, and the error lost
+      when two specialisations match equally and the instance is only named.
+   7. A pack's expanded arguments are the bound call's: the syntax tree is not rewritten and put back.
+   8. Names are bound once: what an identifier is (a local, a parameter, a global, a field of this, an
+      enumerator, a function's address).
+   9. Members are bound once: which field at which offset.
+  10. The checkpoint: step 1's numbers again, the FindFunction calls asked a second time, the bound nodes made
+      for a function, peak memory, compile time, the suites' cycles and sizes, the disagreements found, and
+      what is suggested for stages 6 to 11 and for stage 2's leftovers.  The plan stops and the numbers go to
+      the user.
+   Old and new are compared without a debug build that runs both: the listings of TestSupportLib65's project
+   on both processors, made by the compiler before a step and after it, are the front end's choices side by
+   side, and TestCppCompilerLib is the type checker's.  A listing that differs is read; where the two walkers
+   disagreed, the step's commit says which rule was kept.
 
 One thing the baseline found that isn't in a stage: on the W65C816 TestFatCache is twice as fast preferring
 size as preferring speed (202 million cycles against 430), TestRedirectPrintf a third faster and TestArraySizer
