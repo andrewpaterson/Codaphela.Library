@@ -23,17 +23,27 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRFunction.h"
 
 
-//How many low bits of each integer temporary may be set, read as unsigned (the bits above are always 0), and how
-//many the instruction that defines it works out before its result is truncated to its type: an operation done in
-//a 32 bit register (64 for i64) on operands held zero extended.  A back end that keeps narrow values zero extended
-//needn't mask a result whose RawBits fit its type.  Phis are worked out to a fixed point, so a value carried round
-//a loop is bounded too, where the loop doesn't grow it.
+#define IR_KNOWN_BITS_GROWTH		4		//A phi that rises more often than this goes to its type's largest (then narrows).
+#define IR_KNOWN_BITS_NARROWING		4		//The rounds that narrow what the widened phis allow.
+#define IR_KNOWN_BITS_DEPTH			8		//The most blocks a bound from a branch is looked for above a use.
+
+
+//The largest each integer temporary can be, read as unsigned (so how many low bits may be set), and the largest the
+//instruction that defines it works out before its result is truncated to its type: an operation done in a 32 bit
+//register (64 for i64) on operands held zero extended.  A back end that keeps narrow values zero extended needn't
+//mask a result whose raw largest fits its type.  A use below a branch on a comparison (through blocks that have
+//only the one predecessor) is bounded by it, and so is a phi's value on the edge of a branch (a loop's counter
+//below its bound: i < n, so i + 1 <= n).  Phis are worked to a fixed point: one that keeps rising (a counter) is
+//widened to its type's largest, then each value is worked out again a few times, which only lowers them.
 class CIRKnownBits
 {
 protected:
-	CIRFunction*			mpcFunction;
-	CArrayTemplate<uint8>	mauiBits;			//Per temporary.
-	CArrayTemplate<uint8>	mauiRawBits;		//Per temporary defined by an instruction.
+	CIRFunction*					mpcFunction;
+	CArrayTemplate<uint64>			maulliMost;			//Per temporary.
+	CArrayTemplate<uint64>			maulliRawMost;		//Per temporary defined by an instruction.
+	CArrayTemplate<uint8>			mauiGrowth;			//Per temporary: the times a phi rose.
+	CArrayTemplate<SIRInstruction*>	mapsDefinitions;	//Per temporary: the instruction that defines it, or NULL.
+	CArrayTemplate<CIRBlock*>		mapcBlocks;			//Per temporary: the block of its instruction.
 
 public:
 	void	Init(void);
@@ -41,13 +51,19 @@ public:
 
 	void	Compute(CIRFunction* pcFunction);
 
+	uint64	Most(SIRReference sValue);
 	int		Bits(SIRReference sValue);
-	int		RawBits(SIRReference sTemporary);
+	uint64	RawMost(SIRReference sTemporary);
 	bool	FitsType(SIRReference sTemporary);
 
 protected:
-	int		InstructionBits(SIRInstruction* psInstruction);
-	int		FullBits(SIRType sType);
+	bool	Round(bool bNarrowing);
+	uint64	InstructionMost(SIRInstruction* psInstruction, CIRBlock* pcBlock);
+	uint64	FullMost(SIRType sType);
+	uint64	MostAt(SIRReference sValue, CIRBlock* pcBlock);
+	uint64	MostOnEdge(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* pcTo);
+	uint64	EdgeBound(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* pcTo, uint64 ulliMost);
+	bool	Names(SIRReference sOperand, SIRReference sValue);
 };
 
 

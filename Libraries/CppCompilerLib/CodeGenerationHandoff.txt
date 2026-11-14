@@ -311,7 +311,12 @@ Part 1, the 65C64:
 	    304 programs faster: TestBaseLib65 6.173G -> 6.096G (-1.26%), TestStandardLib65 15.664G -> 15.355G
 	    (-1.98%), TestSupportLib65 30.794G -> 30.320G (-1.54%); code 0.5% smaller.  More than the 0.79%
 	    estimate, which counted only facts local to a block; what the rest is wasn't looked into.  Not yet: ranges from loop tests (add X, 1 / and X, 65535 of a
-	    counter below a 16 bit bound) and the W65C816 reading it in place of FindZeroWords (Part 2).
+	    counter below a 16 bit bound: done later the same day, below) and the W65C816 reading it in place of
+	    FindZeroWords (Part 2).
+	    Ranges: CIRKnownBits keeps each value's largest, not its bits; a use below a branch on a comparison
+	    (through single predecessor blocks) and a phi's value on a branch's edge are bounded by it (i < n, so
+	    i + 1 <= n); a phi that keeps rising is widened to its type's largest, then four narrowing rounds.
+	    Against 0d8029fe4: -0.08%, -0.04%, -0.20%, no program slower.
 	    (The commit said TestLibc65 fails on the W65C816: it was run from the wrong folder.  From its own it passes,
 	    154781 checks, before and after.)
 

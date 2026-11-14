@@ -41,13 +41,47 @@ static int IRBitLength(uint64 ulliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The largest value of iBits bits (all of them set).
+//
+//////////////////////////////////////////////////////////////////////////
+static uint64 IRAllOnes(int iBits)
+{
+	return (iBits >= 64) ? (uint64)-1 : ((((uint64)1) << iBits) - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint64 IRLeast(uint64 ulli1, uint64 ulli2)
+{
+	return (ulli1 < ulli2) ? ulli1 : ulli2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint64 IRGreatest(uint64 ulli1, uint64 ulli2)
+{
+	return (ulli1 > ulli2) ? ulli1 : ulli2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRKnownBits::Init(void)
 {
 	mpcFunction = NULL;
-	mauiBits.Init();
-	mauiRawBits.Init();
+	maulliMost.Init();
+	maulliRawMost.Init();
+	mauiGrowth.Init();
+	mapsDefinitions.Init();
+	mapcBlocks.Init();
 }
 
 
@@ -57,33 +91,36 @@ void CIRKnownBits::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRKnownBits::Kill(void)
 {
-	mauiRawBits.Kill();
-	mauiBits.Kill();
+	mapcBlocks.Kill();
+	mapsDefinitions.Kill();
+	mauiGrowth.Kill();
+	maulliRawMost.Kill();
+	maulliMost.Kill();
 	mpcFunction = NULL;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bits a value of the type may have: its own for an integer, 64 for
+// The largest value of the type: its own for an integer, all 64 bits for
 // anything else (nothing is known).
 //
 //////////////////////////////////////////////////////////////////////////
-int CIRKnownBits::FullBits(SIRType sType)
+uint64 CIRKnownBits::FullMost(SIRType sType)
 {
 	int	iBits;
 
 	iBits = sType.IntegerBits();
-	return ((iBits > 0) && (iBits <= 64)) ? iBits : 64;
+	return IRAllOnes(((iBits > 0) && (iBits <= 64)) ? iBits : 64);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts every defined temporary at 0 bits and raises each to what its
-// definition can give until nothing changes (each only ever rises, so this
-// ends).  A parameter, or a temporary nothing defines, may be anything its
-// type holds.
+// Starts every defined temporary at 0 and raises each to what its
+// definition can give until nothing changes, a phi that keeps rising
+// widened to its type's largest; then narrows.  A parameter, or a
+// temporary nothing defines, may be anything its type holds.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRKnownBits::Compute(CIRFunction* pcFunction)
@@ -91,26 +128,32 @@ void CIRKnownBits::Compute(CIRFunction* pcFunction)
 	size			uiTemporaries;
 	size			uiBlock;
 	size			ui;
-	size			uiArgument;
 	size			uiTemporary;
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
 	SIRPhi*			psPhi;
 	CArrayTemplate<uint8>	auiDefined;
-	bool			bChanged;
-	int				iBits;
-	int				iFull;
-	int				iArgument;
-	uint8*			puiBits;
+	int				iRound;
 
 	mpcFunction = pcFunction;
-	uiTemporaries = pcFunction->NumTemporaries() + 1;
-	mauiBits.FakeSetUsedElements(0);
-	mauiBits.GrowToAtLeastNumElements(uiTemporaries, true, 0);
-	mauiRawBits.FakeSetUsedElements(0);
-	mauiRawBits.GrowToAtLeastNumElements(uiTemporaries, true, 64);
+	pcFunction->ComputePredecessors();
+	uiTemporaries = pcFunction->NumTemporaries();
+	maulliMost.FakeSetUsedElements(0);
+	maulliMost.GrowToAtLeastNumElements(uiTemporaries, true, 0);
+	maulliRawMost.FakeSetUsedElements(0);
+	maulliRawMost.GrowToAtLeastNumElements(uiTemporaries, true, 0xFF);
+	mauiGrowth.FakeSetUsedElements(0);
+	mauiGrowth.GrowToAtLeastNumElements(uiTemporaries, true, 0);
+	mapsDefinitions.FakeSetUsedElements(0);
+	mapsDefinitions.GrowToAtLeastNumElements(uiTemporaries, true, 0);
+	mapcBlocks.FakeSetUsedElements(0);
+	mapcBlocks.GrowToAtLeastNumElements(uiTemporaries, true, 0);
 	auiDefined.Init();
 	auiDefined.GrowToAtLeastNumElements(uiTemporaries, true, 0);
+	for (uiTemporary = 0; uiTemporary < uiTemporaries; uiTemporary++)
+	{
+		*maulliRawMost.Get(uiTemporary) = (uint64)-1;
+	}
 
 	for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
 	{
@@ -129,78 +172,121 @@ void CIRKnownBits::Compute(CIRFunction* pcFunction)
 			if (psInstruction->sResult.IsTemporary() && (psInstruction->sResult.Index() < uiTemporaries))
 			{
 				*auiDefined.Get(psInstruction->sResult.Index()) = 1;
+				*mapsDefinitions.Get(psInstruction->sResult.Index()) = psInstruction;
+				*mapcBlocks.Get(psInstruction->sResult.Index()) = pcBlock;
 			}
 		}
 	}
-	for (uiTemporary = 0; uiTemporary < pcFunction->NumTemporaries(); uiTemporary++)
+	for (uiTemporary = 0; uiTemporary < uiTemporaries; uiTemporary++)
 	{
 		if (!*auiDefined.Get(uiTemporary))
 		{
-			*mauiBits.Get(uiTemporary) = (uint8)FullBits(pcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)uiTemporary)));
+			*maulliMost.Get(uiTemporary) = FullMost(pcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)uiTemporary)));
 		}
 	}
 	auiDefined.Kill();
 
-	do
+	while (Round(false))
 	{
-		bChanged = false;
-		for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
+	}
+	for (iRound = 0; iRound < IR_KNOWN_BITS_NARROWING; iRound++)
+	{
+		if (!Round(true))
 		{
-			pcBlock = pcFunction->GetBlock(uiBlock);
-			for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-			{
-				psPhi = pcBlock->masPhis.Get(ui);
-				if (!psPhi->sResult.IsTemporary() || (psPhi->sResult.Index() >= uiTemporaries))
-				{
-					continue;
-				}
-				iBits = 0;
-				for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
-				{
-					iArgument = Bits(psPhi->asArguments.Get(uiArgument)->sValue);
-					iBits = (iArgument > iBits) ? iArgument : iBits;
-				}
-				iFull = FullBits(psPhi->sType);
-				iBits = (iBits < iFull) ? iBits : iFull;
-				puiBits = mauiBits.Get(psPhi->sResult.Index());
-				if (iBits > *puiBits)
-				{
-					*puiBits = (uint8)iBits;
-					bChanged = true;
-				}
-			}
-			for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
-			{
-				psInstruction = pcBlock->masInstructions.Get(ui);
-				if (!psInstruction->sResult.IsTemporary() || (psInstruction->sResult.Index() >= uiTemporaries))
-				{
-					continue;
-				}
-				iBits = InstructionBits(psInstruction);
-				*mauiRawBits.Get(psInstruction->sResult.Index()) = (uint8)iBits;
-				iFull = FullBits(mpcFunction->GetTemporaryType(psInstruction->sResult));
-				iBits = (iBits < iFull) ? iBits : iFull;
-				puiBits = mauiBits.Get(psInstruction->sResult.Index());
-				if (iBits > *puiBits)
-				{
-					*puiBits = (uint8)iBits;
-					bChanged = true;
-				}
-			}
+			break;
 		}
 	}
-	while (bChanged);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bits a value may have: a constant's own as it is held (narrow and 32
-// bit constants are written as their low 32 bits), a temporary's as Compute
-// found them, anything else (a symbol's address) all of them.
+// Works out each phi and instruction once.  Rising (bNarrowing false):
+// each only rises, and a phi that has risen IR_KNOWN_BITS_GROWTH times goes
+// to its type's largest.  Narrowing: each takes what it works out, which
+// is no more than it had.  True if any changed.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIRKnownBits::Bits(SIRReference sValue)
+bool CIRKnownBits::Round(bool bNarrowing)
+{
+	size			uiBlock;
+	size			ui;
+	size			uiArgument;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	uint64			ulliMost;
+	uint64			ulliFull;
+	uint64*			pulliMost;
+	uint8*			puiGrowth;
+	bool			bChanged;
+
+	bChanged = false;
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+		{
+			psPhi = pcBlock->masPhis.Get(ui);
+			if (!psPhi->sResult.IsTemporary() || (psPhi->sResult.Index() >= maulliMost.NumElements()))
+			{
+				continue;
+			}
+			ulliMost = 0;
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				psArgument = psPhi->asArguments.Get(uiArgument);
+				ulliMost = IRGreatest(ulliMost, MostOnEdge(psArgument->sValue, psArgument->pcBlock, pcBlock));
+			}
+			ulliFull = FullMost(psPhi->sType);
+			ulliMost = IRLeast(ulliMost, ulliFull);
+			pulliMost = maulliMost.Get(psPhi->sResult.Index());
+			if (bNarrowing ? (ulliMost < *pulliMost) : (ulliMost > *pulliMost))
+			{
+				if (!bNarrowing)
+				{
+					puiGrowth = mauiGrowth.Get(psPhi->sResult.Index());
+					(*puiGrowth)++;
+					if (*puiGrowth > IR_KNOWN_BITS_GROWTH)
+					{
+						ulliMost = ulliFull;
+					}
+				}
+				*pulliMost = ulliMost;
+				bChanged = true;
+			}
+		}
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (!psInstruction->sResult.IsTemporary() || (psInstruction->sResult.Index() >= maulliMost.NumElements()))
+			{
+				continue;
+			}
+			ulliMost = InstructionMost(psInstruction, pcBlock);
+			*maulliRawMost.Get(psInstruction->sResult.Index()) = ulliMost;
+			ulliMost = IRLeast(ulliMost, FullMost(mpcFunction->GetTemporaryType(psInstruction->sResult)));
+			pulliMost = maulliMost.Get(psInstruction->sResult.Index());
+			if (bNarrowing ? (ulliMost < *pulliMost) : (ulliMost > *pulliMost))
+			{
+				*pulliMost = ulliMost;
+				bChanged = true;
+			}
+		}
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The largest a value can be: a constant's own as it is held (narrow and 32
+// bit constants are written as their low 32 bits), a temporary's as Compute
+// found it, anything else (a symbol's address) all 64 bits.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CIRKnownBits::Most(SIRReference sValue)
 {
 	SIRConstant*	psConstant;
 
@@ -209,35 +295,46 @@ int CIRKnownBits::Bits(SIRReference sValue)
 		psConstant = mpcFunction->GetConstant(sValue);
 		if (!psConstant->sType.IsInteger())
 		{
-			return 64;
+			return (uint64)-1;
 		}
 		if (psConstant->sType.IntegerBits() <= 32)
 		{
-			return IRBitLength((uint32)psConstant->ulliBits);
+			return (uint32)psConstant->ulliBits;
 		}
-		return IRBitLength(psConstant->ulliBits);
+		return psConstant->ulliBits;
 	}
-	if (sValue.IsTemporary() && (sValue.Index() < mauiBits.NumElements()))
+	if (sValue.IsTemporary() && (sValue.Index() < maulliMost.NumElements()))
 	{
-		return *mauiBits.Get(sValue.Index());
+		return *maulliMost.Get(sValue.Index());
 	}
-	return 64;
+	return (uint64)-1;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bits the instruction defining sTemporary works out before it is
+// How many low bits of a value may be set.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIRKnownBits::Bits(SIRReference sValue)
+{
+	return IRBitLength(Most(sValue));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The largest the instruction defining sTemporary works out before it is
 // truncated to its type.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIRKnownBits::RawBits(SIRReference sTemporary)
+uint64 CIRKnownBits::RawMost(SIRReference sTemporary)
 {
-	if (sTemporary.IsTemporary() && (sTemporary.Index() < mauiRawBits.NumElements()))
+	if (sTemporary.IsTemporary() && (sTemporary.Index() < maulliRawMost.NumElements()))
 	{
-		return *mauiRawBits.Get(sTemporary.Index());
+		return *maulliRawMost.Get(sTemporary.Index());
 	}
-	return 64;
+	return (uint64)-1;
 }
 
 
@@ -260,34 +357,225 @@ bool CIRKnownBits::FitsType(SIRReference sTemporary)
 	{
 		return false;
 	}
-	return RawBits(sTemporary) <= sType.IntegerBits();
+	return RawMost(sTemporary) <= FullMost(sType);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bits an instruction works out from its operands' bits, in a register
-// of 32 bits (64 for an i64 result), before truncating it to its type.
-// Operations that may borrow, sign extend or bring in high bits from
-// elsewhere give the whole register.
+// True if sOperand is sValue, or sValue zero extended or copied (a bound
+// on it is a bound on sValue).
 //
 //////////////////////////////////////////////////////////////////////////
-int CIRKnownBits::InstructionBits(SIRInstruction* psInstruction)
+bool CIRKnownBits::Names(SIRReference sOperand, SIRReference sValue)
 {
-	int				iRegister;
-	int				iLeft;
-	int				iRight;
-	int				iBits;
-	int				iFrom;
+	SIRInstruction*	psDefinition;
+
+	if (sOperand.Equals(sValue))
+	{
+		return true;
+	}
+	if (!sOperand.IsTemporary() || (sOperand.Index() >= mapsDefinitions.NumElements()))
+	{
+		return false;
+	}
+	psDefinition = *mapsDefinitions.Get(sOperand.Index());
+	return psDefinition && ((psDefinition->uiOpcode == IRO_ZExt) || (psDefinition->uiOpcode == IRO_Copy)) && psDefinition->asArguments[0].Equals(sValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ulliMost lowered by the branch from pcFrom to pcTo (one side of it only):
+// its condition, a comparison taken one way on this edge, may say sValue is
+// below or at most the other operand.  Signed orderings count only for
+// operands whose sign bits are 0.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CIRKnownBits::EdgeBound(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* pcTo, uint64 ulliMost)
+{
+	SIRJump*		psJump;
+	SIRInstruction*	psCompare;
+	SIRReference	sLess;
+	SIRReference	sMore;
+	SIRReference	sTemp;
+	uint16			uiOpcode;
+	bool			bTrue;
+	bool			bStrict;
+	uint64			ulliSign;
+	uint64			ulliOther;
+
+	psJump = &pcFrom->msJump;
+	if ((psJump->uiKind != IRJ_Branch) || (psJump->pcThen == psJump->pcElse) || !psJump->sArgument.IsTemporary() || (psJump->sArgument.Index() >= mapsDefinitions.NumElements()))
+	{
+		return ulliMost;
+	}
+	if (psJump->pcThen == pcTo)
+	{
+		bTrue = true;
+	}
+	else if (psJump->pcElse == pcTo)
+	{
+		bTrue = false;
+	}
+	else
+	{
+		return ulliMost;
+	}
+	psCompare = *mapsDefinitions.Get(psJump->sArgument.Index());
+	if ((psCompare == NULL) || !IsIRIntegerComparison(psCompare->uiOpcode))
+	{
+		return ulliMost;
+	}
+
+	uiOpcode = bTrue ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
+	if (IsIRSignedComparison(uiOpcode))
+	{
+		ulliSign = ((uint64)1) << (psCompare->sType.IntegerBits() - 1);
+		if ((Most(psCompare->asArguments[0]) >= ulliSign) || (Most(psCompare->asArguments[1]) >= ulliSign))
+		{
+			return ulliMost;
+		}
+	}
+
+	//As sLess < sMore (bStrict) or sLess <= sMore.
+	switch (uiOpcode)
+	{
+	case IRO_ULt:
+	case IRO_SLt:
+		sLess = psCompare->asArguments[0];
+		sMore = psCompare->asArguments[1];
+		bStrict = true;
+		break;
+	case IRO_ULe:
+	case IRO_SLe:
+		sLess = psCompare->asArguments[0];
+		sMore = psCompare->asArguments[1];
+		bStrict = false;
+		break;
+	case IRO_UGt:
+	case IRO_SGt:
+		sLess = psCompare->asArguments[1];
+		sMore = psCompare->asArguments[0];
+		bStrict = true;
+		break;
+	case IRO_UGe:
+	case IRO_SGe:
+		sLess = psCompare->asArguments[1];
+		sMore = psCompare->asArguments[0];
+		bStrict = false;
+		break;
+	case IRO_Eq:
+		if (Names(psCompare->asArguments[1], sValue))
+		{
+			sTemp = psCompare->asArguments[0];
+		}
+		else if (Names(psCompare->asArguments[0], sValue))
+		{
+			sTemp = psCompare->asArguments[1];
+		}
+		else
+		{
+			return ulliMost;
+		}
+		return IRLeast(ulliMost, Most(sTemp));
+	default:
+		return ulliMost;
+	}
+	if (!Names(sLess, sValue))
+	{
+		return ulliMost;
+	}
+	ulliOther = Most(sMore);
+	if (bStrict)
+	{
+		if (ulliOther == 0)
+		{
+			return ulliMost;
+		}
+		ulliOther--;
+	}
+	return IRLeast(ulliMost, ulliOther);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The largest sValue can be where it is used in pcBlock: lowered by the
+// branches above it, through blocks with only one predecessor each (so the
+// branch's edge is the only way in).
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CIRKnownBits::MostAt(SIRReference sValue, CIRBlock* pcBlock)
+{
+	uint64		ulliMost;
+	CIRBlock*	pcFrom;
+	int			iDepth;
+
+	ulliMost = Most(sValue);
+	if (!sValue.IsTemporary())
+	{
+		return ulliMost;
+	}
+	for (iDepth = 0; iDepth < IR_KNOWN_BITS_DEPTH; iDepth++)
+	{
+		if (pcBlock->mapcPredecessors.NumElements() != 1)
+		{
+			break;
+		}
+		pcFrom = pcBlock->mapcPredecessors.GetPtr(0);
+		if (pcFrom == pcBlock)
+		{
+			break;
+		}
+		ulliMost = EdgeBound(sValue, pcFrom, pcBlock, ulliMost);
+		pcBlock = pcFrom;
+	}
+	return ulliMost;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The largest sValue can be when pcFrom jumps to pcTo (a phi's argument):
+// lowered by the jump's own branch, and by those above pcFrom.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CIRKnownBits::MostOnEdge(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* pcTo)
+{
+	if (!sValue.IsTemporary() || (pcFrom == NULL))
+	{
+		return Most(sValue);
+	}
+	return EdgeBound(sValue, pcFrom, pcTo, MostAt(sValue, pcFrom));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The largest an instruction in pcBlock works out from its operands'
+// largest there, in a register of 32 bits (64 for an i64 result), before
+// truncating it to its type.  Operations that may borrow, sign extend,
+// overflow the register or bring in high bits from elsewhere give the whole
+// register.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CIRKnownBits::InstructionMost(SIRInstruction* psInstruction, CIRBlock* pcBlock)
+{
+	uint64			ulliRegister;
+	uint64			ulliLeft;
+	uint64			ulliRight;
+	uint64			ulliMost;
 	uint64			ulliAmount;
+	int				iRegister;
 	SIRReference	sRight;
 
+	if (IsIRIntegerComparison(psInstruction->uiOpcode))
+	{
+		return 1;
+	}
 	if (!psInstruction->sType.IsInteger())
 	{
-		if (IsIRIntegerComparison(psInstruction->uiOpcode))
-		{
-			return 1;
-		}
 		switch (psInstruction->uiOpcode)
 		{
 		case IRO_FEq:
@@ -300,75 +588,82 @@ int CIRKnownBits::InstructionBits(SIRInstruction* psInstruction)
 		case IRO_FUnordered:
 			return 1;
 		default:
-			return 64;
+			return (uint64)-1;
 		}
 	}
 	iRegister = (psInstruction->sType.IntegerBits() > 32) ? 64 : 32;
-	if (IsIRIntegerComparison(psInstruction->uiOpcode))
-	{
-		return 1;
-	}
+	ulliRegister = IRAllOnes(iRegister);
 
-	iLeft = Bits(psInstruction->asArguments[0]);
+	ulliLeft = MostAt(psInstruction->asArguments[0], pcBlock);
 	sRight = psInstruction->asArguments[1];
-	iRight = sRight.IsNone() ? 0 : Bits(sRight);
+	ulliRight = sRight.IsNone() ? 0 : MostAt(sRight, pcBlock);
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_And:
-		iBits = (iLeft < iRight) ? iLeft : iRight;
+		ulliMost = IRLeast(ulliLeft, ulliRight);
 		break;
 	case IRO_Or:
 	case IRO_Xor:
-		iBits = (iLeft > iRight) ? iLeft : iRight;
+		ulliMost = IRAllOnes(IRBitLength(IRGreatest(ulliLeft, ulliRight)));
 		break;
 	case IRO_Add:
-		iBits = ((iLeft > iRight) ? iLeft : iRight) + 1;
+		ulliMost = ulliLeft + ulliRight;
+		if ((ulliMost < ulliLeft) || (ulliMost > ulliRegister))
+		{
+			ulliMost = ulliRegister;
+		}
 		break;
 	case IRO_Mul:
-		iBits = iLeft + iRight;
+		if ((IRBitLength(ulliLeft) + IRBitLength(ulliRight)) > iRegister)
+		{
+			ulliMost = ulliRegister;
+		}
+		else
+		{
+			ulliMost = ulliLeft * ulliRight;
+		}
 		break;
 	case IRO_UDiv:
-		iBits = iLeft;
+		ulliMost = ulliLeft;
 		break;
 	case IRO_URem:
-		iBits = (iLeft < iRight) ? iLeft : iRight;
+		ulliMost = (ulliRight == 0) ? ulliLeft : IRLeast(ulliLeft, ulliRight - 1);
 		break;
 	case IRO_LShr:
-		iBits = iLeft;
+		ulliMost = ulliLeft;
 		if (sRight.IsConstant())
 		{
 			ulliAmount = mpcFunction->GetConstant(sRight)->ulliBits;
-			iBits = (ulliAmount >= (uint64)iLeft) ? 0 : (iLeft - (int)ulliAmount);
+			ulliMost = (ulliAmount >= 64) ? 0 : (ulliLeft >> ulliAmount);
 		}
 		break;
 	case IRO_Shl:
-		iBits = iRegister;
+		ulliMost = ulliRegister;
 		if (sRight.IsConstant())
 		{
 			ulliAmount = mpcFunction->GetConstant(sRight)->ulliBits;
-			if (ulliAmount < (uint64)iRegister)
+			if ((ulliAmount < (uint64)iRegister) && ((IRBitLength(ulliLeft) + (int)ulliAmount) <= iRegister))
 			{
-				iBits = iLeft + (int)ulliAmount;
+				ulliMost = ulliLeft << ulliAmount;
 			}
 		}
 		break;
 	case IRO_Copy:
 	case IRO_ZExt:
 	case IRO_Trunc:
-		iBits = iLeft;
+		ulliMost = ulliLeft;
 		break;
 	case IRO_SExt:
 		//A value whose sign bit is known 0 extends as it is.
-		iFrom = FullBits(mpcFunction->TypeOf(psInstruction->asArguments[0]));
-		iBits = (iLeft < iFrom) ? iLeft : iRegister;
+		ulliMost = (ulliLeft <= (FullMost(mpcFunction->TypeOf(psInstruction->asArguments[0])) >> 1)) ? ulliLeft : ulliRegister;
 		break;
 	case IRO_Load:
-		iBits = psInstruction->sType.IntegerBits();
+		ulliMost = FullMost(psInstruction->sType);
 		break;
 	default:
-		iBits = iRegister;
+		ulliMost = ulliRegister;
 		break;
 	}
-	return (iBits < iRegister) ? iBits : iRegister;
+	return IRLeast(ulliMost, ulliRegister);
 }
 
