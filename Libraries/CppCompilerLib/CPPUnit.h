@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __C_P_P_65_GENERATOR_H__
-#define __C_P_P_65_GENERATOR_H__
+#ifndef __C_P_P_UNIT_H__
+#define __C_P_P_UNIT_H__
 //The memory map (the user, 2026-10-23): 0000:0000 to 0000:FFFF are pseudo registers and
 //scratch memory, programs start at 0001:0000 and the stack works down from 001F:FFFC.
 #define CPP65_PROGRAM_ADDRESS		0x10000
@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP65_MAX_ASSOCIATED_DEPTH	16		//How deep a type's bases and template arguments are followed for associated namespaces.
 #define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place...
 #define CPP65_INLINE_MEMCPY_SIZE	8		//...or, preferring size (CCPPCompileOptions::mePrefer), this many: about what the call's own code is.
-#define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The back end's arena (CCPP65Generator::GetBackendScratch) grows by chunks this big.
+#define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The back end's arena (CCPPUnit::GetBackendScratch) grows by chunks this big.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint8.h"
@@ -90,7 +90,7 @@ struct SCPPClassError
 typedef CArrayTemplate<SCPPClassError>	CArrayCPPClassErrors;
 
 
-//GCC's builtin functions the compiler does (CCPP65Generator::FindBuiltin), for the type checker and the IR front end.
+//GCC's builtin functions the compiler does (CCPPUnit::FindBuiltin), for the type checker and the IR front end.
 enum ECPPBuiltin
 {
 	CPPB_Unreachable,		//unreachable and trap.
@@ -158,8 +158,8 @@ class CCPPSemanticPass;
 //target's IR back end.  The calling convention and the parts of C++ that are supported are in CPP65Generator.txt.
 //
 //Check only works out the types of the unit's expressions, for CCPPSemanticPass: no code is generated and it keeps
-//going past what it can't type (CPP65GeneratorCheck.cpp).
-class CCPP65Generator : public CCPPRuntimeWriter
+//going past what it can't type (CPPUnitCheck.cpp).
+class CCPPUnit : public CCPPRuntimeWriter
 {
 protected:
 	CCPPSyntaxTree*			mpcTree;
@@ -276,7 +276,7 @@ public:
 	void					GetMissingCallees(CArrayChars* paszNames);
 	bool					Check(CCPPSemanticPass* pcPass);
 
-	//Declarations, functions and statements.  CPP65Generator.cpp
+	//Declarations, functions and statements.  CPPUnit.cpp
 	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
 	void					Warning(CCPPSyntax* pcNode, const char* szMessage);
 
@@ -341,8 +341,8 @@ public:
 	bool					ReportErrorAt(int iToken, const char* szMessage);
 	bool					HasWarning(CCPPSyntax* pcNode, const char* szText);
 
-	//Classes, templates, virtual functions, overloads and labels.  CPP65GeneratorClasses.cpp, CPP65GeneratorTemplates.cpp,
-	//CPP65GeneratorVtables.cpp, CPP65GeneratorOverloads.cpp and CPP65GeneratorLabels.cpp
+	//Classes, templates, virtual functions, overloads and labels.  CPPUnitClasses.cpp, CPPUnitTemplates.cpp,
+	//CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
 	CCPPClass*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	CCPPClass*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
@@ -403,7 +403,7 @@ public:
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);
 
 
-	//Literals, constants, warnings and TypeOf.  CPP65GeneratorExpressions.cpp
+	//Literals, constants, warnings and TypeOf.  CPPUnitExpressions.cpp
 	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 
 	CCPPSymbol*				NewPackElement(CCPPSymbol* pcPack);
@@ -467,7 +467,7 @@ public:
 	SCPP65Type*				StringElementType(CCPPSyntax* pcString);
 	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);
 
-	//Objects and copies.  CPP65GeneratorObjects.cpp
+	//Objects and copies.  CPPUnitObjects.cpp
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
@@ -477,7 +477,7 @@ public:
 	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
 	bool					MakesObject(CCPPSyntax* pcExpression);
 
-	//Check only.  CPP65GeneratorCheck.cpp
+	//Check only.  CPPUnitCheck.cpp
 	bool					CheckDefinitions(void);
 	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);
 	void					DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
@@ -491,7 +491,7 @@ public:
 	void					Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction);
 	void					Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol);
 
-	//Floating point.  CPP65GeneratorFloat.cpp
+	//Floating point.  CPPUnitFloat.cpp
 	int64					FloatBits(SCPP65Type* psType, double dValue);
 	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
 	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
@@ -499,4 +499,4 @@ public:
 };
 
 
-#endif // __C_P_P_65_GENERATOR_H__
+#endif // __C_P_P_UNIT_H__

@@ -37,7 +37,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65UnitWorkspace.h"
 #include "CppTokeniser.h"
 #include "CppParser.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPPCompileStatistics.h"
 
 
@@ -106,7 +106,7 @@ struct SCPP65UnitCompile
 	CCPPTokeniser			cTokeniser;
 	CCPPSyntaxTree			cTree;
 	CCPPParser				cParser;
-	CCPP65Generator			cGenerator;
+	CCPPUnit			cGenerator;
 	CCPP65Assembly			cAssembly;
 	CCPP65UnitWorkspace*	pcWorkspace;
 	bool					bResult;		//Preprocessed, tokenised and parsed.

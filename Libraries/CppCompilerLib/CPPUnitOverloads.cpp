@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //The generator's overload resolution: finding the functions a call may mean, argument dependent lookup and ranking conversions.
@@ -29,7 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // Whether an expression is an object that is const.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsConstObject(CCPPSyntax* pcExpression)
+bool CCPPUnit::IsConstObject(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
@@ -43,7 +43,7 @@ bool CCPP65Generator::IsConstObject(CCPPSyntax* pcExpression)
 // Whether an expression is a pointer to const.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsConstPointer(CCPPSyntax* pcExpression)
+bool CCPPUnit::IsConstPointer(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
@@ -57,7 +57,7 @@ bool CCPP65Generator::IsConstPointer(CCPPSyntax* pcExpression)
 // Whether the function being generated is a const member function.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsConstThis(void)
+bool CCPPUnit::IsConstThis(void)
 {
 	return mcContext.GetFunction() && mcContext.GetFunction()->mbConstThis;
 }
@@ -69,7 +69,7 @@ bool CCPP65Generator::IsConstThis(void)
 // where psBase is in pcClass.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 {
 	SCPPBase*	psDirect;
 	size		i;

@@ -217,7 +217,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 
 	//A function defined in a header that isn't inline (or constexpr, or a template) is defined by every unit that
 	//includes it, whether the unit uses it or not: it is always parsed.  The generator's rule is the same
-	//(CCPP65Generator::Function: inline functions are generated when first called, the others where they are defined).
+	//(CCPPUnit::Function: inline functions are generated when first called, the others where they are defined).
 	if (bLazy && (eKind == CPPS_FunctionDefinition))
 	{
 		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;

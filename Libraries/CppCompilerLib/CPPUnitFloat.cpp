@@ -25,7 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTLongDouble.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // The bits of a floating point value of psType (as a 32 bit value for a float).
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCPP65Generator::FloatBits(SCPP65Type* psType, double dValue)
+int64 CCPPUnit::FloatBits(SCPP65Type* psType, double dValue)
 {
 	float	fValue;
 	uint32	uiBits;
@@ -67,7 +67,7 @@ int64 CCPP65Generator::FloatBits(SCPP65Type* psType, double dValue)
 // as a double has more than twice a float's precision.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::FloatConstant(CCPPSyntax* pcExpression, double* pdValue)
+bool CCPPUnit::FloatConstant(CCPPSyntax* pcExpression, double* pdValue)
 {
 	SCPP65Type*		psType;
 
@@ -81,7 +81,7 @@ bool CCPP65Generator::FloatConstant(CCPPSyntax* pcExpression, double* pdValue)
 // for an integer.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
+bool CCPPUnit::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
 {
 	CCPPToken*						pcToken;
 	CCPPSyntaxUnaryExpression*		pcUnary;
@@ -208,7 +208,7 @@ bool CCPP65Generator::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP
 // forms float.  NaNs are quiet and positive; a payload string is ignored.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
+bool CCPPUnit::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
 {
 	CCPPSyntaxCallExpression*	pcCall;
 	CCPPSyntax*					pcCallee;

@@ -25,7 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Type.h"
 
 
-class CCPP65Generator;
+class CCPPUnit;
 
 
 //Turns what a declaration says into a type: the specifiers give the type it starts from (int, a class, a
@@ -34,10 +34,10 @@ class CCPP65Generator;
 class CCPPDeclarators
 {
 protected:
-	CCPP65Generator*		mpcUnit;
+	CCPPUnit*		mpcUnit;
 
 public:
-	void					Init(CCPP65Generator* pcUnit);
+	void					Init(CCPPUnit* pcUnit);
 	void					Kill(void);
 
 	SCPP65Type*				GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser = NULL);

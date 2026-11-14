@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //The generator's virtual functions: laying them out, the vtables and type info, and the thunks.
@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // functions are R_Pure, which stops.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
+void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
 {
 	CArrayCPPVtableEntries	asEntries;
 	SCPPVtableEntry*			psEntry;
@@ -100,7 +100,7 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 // where that pointer is in the object), then the class's type info.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
+void CCPPUnit::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 {
 	mcData.GetText()->Append("\t\t.long ");
 	mcData.GetText()->Append(-iVtablePointer);
@@ -120,7 +120,7 @@ void CCPP65Generator::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 // class.  The type infos of the bases are written too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
+void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 {
 	CChars	szLabel;
 	size	i;
@@ -169,7 +169,7 @@ void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
 // The type info entries for the class's subobject at iOffset and all its bases'.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
+void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 {
 	SCPPBase*	psBase;
 	size		i;
@@ -194,7 +194,7 @@ void CCPP65Generator::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 // it.  Each thunk is written once.  Pure virtual functions are R_Pure.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
+void CCPPUnit::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 {
 	CChars	szLabel;
 	CChars	szFunction;
@@ -237,7 +237,7 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 // them (comdat).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
+void CCPPUnit::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
 {
 	CChars	szLabel;
 
@@ -261,7 +261,7 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFuncti
 // may write is global, and comdat so the linker keeps one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendThunkLabel(CChars* pszLabel, bool bComdat)
+void CCPPUnit::AppendThunkLabel(CChars* pszLabel, bool bComdat)
 {
 	if (bComdat)
 	{

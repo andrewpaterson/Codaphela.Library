@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPPSemanticPass.h"
 
 
@@ -54,7 +54,7 @@ void CCPPSemanticPass::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSemanticPass::Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 {
-	CCPP65Generator	cGenerator;
+	CCPPUnit	cGenerator;
 	bool			bResult;
 
 	cGenerator.Init(pcTree, eTarget);

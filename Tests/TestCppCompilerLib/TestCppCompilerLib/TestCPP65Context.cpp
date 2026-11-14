@@ -9,7 +9,7 @@
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
-#include "CppCompilerLib/CPP65Generator.h"
+#include "CppCompilerLib/CPPUnit.h"
 #include "TestLib/Assert.h"
 
 

@@ -66,7 +66,7 @@ class CCPPTemplateArguments;
 class CCPPFunction
 {
 public:
-	int64							mlliName;		//An identifier, or an operator (see CCPP65Generator::GetOperatorName).
+	int64							mlliName;		//An identifier, or an operator (see CCPPUnit::GetOperatorName).
 	SCPP65Type*						mpsReturn;
 	CArrayCPP65Types				mapsParameters;
 	CArraySyntax					mapcDefaults;	//Each parameter's default argument, or NULL.
@@ -93,7 +93,7 @@ public:
 	bool							mbCalled;
 	CCPPTemplate*					mpcTemplate;	//The function template this is an instance of.
 	CChars							mszArguments;	//The instance's template arguments, mangled for its label.
-	CCPPFunction*					mpcNextOfName;	//The next function added with the same mlliName (see CCPP65Generator::FirstFunctionOfName).
+	CCPPFunction*					mpcNextOfName;	//The next function added with the same mlliName (see CCPPUnit::FirstFunctionOfName).
 
 	void	Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	void	Kill(void);

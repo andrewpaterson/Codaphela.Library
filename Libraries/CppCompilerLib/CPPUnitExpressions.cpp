@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTIdentifier.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "LiteralHelper.h"
 
 
@@ -37,7 +37,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // Numbers, characters, true, false and nullptr.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
+SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 {
 	CCPPToken*		pcToken;
 
@@ -82,7 +82,7 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 // int if it fits one ([lex.icon]).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::IntegerLiteralType(CCTInt* pcInt)
+SCPP65Type* CCPPUnit::IntegerLiteralType(CCTInt* pcInt)
 {
 	int64	lliValue;
 	bool	bLong;
@@ -110,7 +110,7 @@ SCPP65Type* CCPP65Generator::IntegerLiteralType(CCTInt* pcInt)
 // Returns false if lliName is not one of them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
+bool CCPPUnit::FunctionNameText(int64 lliName, CChars* pszText)
 {
 	char*	szName;
 	int		iLength;
@@ -159,7 +159,7 @@ bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
 // declares as globals.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsFunctionName(CCPPSyntaxIdExpression* pcId)
+bool CCPPUnit::IsFunctionName(CCPPSyntaxIdExpression* pcId)
 {
 	CCPPSymbol*	pcSymbol;
 	CChars		szName;
@@ -184,7 +184,7 @@ bool CCPP65Generator::IsFunctionName(CCPPSyntaxIdExpression* pcId)
 // for any other expression or type.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+CCPPSyntaxIdExpression* CCPPUnit::FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 {
 	if (!pcExpression || !psTo || !psTo->IsPointer() || !psTo->psBase || !psTo->psBase->IsFunction() || psTo->IsMemberPointer())
 	{
@@ -199,7 +199,7 @@ CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameFor(CCPPSyntax* pcExpressio
 // f or &f: the name of a function (overloaded or not), else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression)
+CCPPSyntaxIdExpression* CCPPUnit::FunctionNameOf(CCPPSyntax* pcExpression)
 {
 	CCPPSyntax*				pcFunction;
 	CCPPSyntaxIdExpression*	pcId;
@@ -230,7 +230,7 @@ CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression
 // intrinsics, which no header declares.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsIntrinsic(int64 lliName)
+bool CCPPUnit::IsIntrinsic(int64 lliName)
 {
 	char*	szName;
 	int		iLength;
@@ -249,7 +249,7 @@ bool CCPP65Generator::IsIntrinsic(int64 lliName)
 // True for the names of GCC's builtin functions, which are not declared.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsBuiltin(int64 lliName)
+bool CCPPUnit::IsBuiltin(int64 lliName)
 {
 	char*	szName;
 	int		iLength;
@@ -270,7 +270,7 @@ bool CCPP65Generator::IsBuiltin(int64 lliName)
 // earlier quiet evaluation failed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::QuietConstant(CCPPSyntax* pcExpression, int64* plliValue)
+bool CCPPUnit::QuietConstant(CCPPSyntax* pcExpression, int64* plliValue)
 {
 	bool	bConstant;
 
@@ -314,7 +314,7 @@ static const SCPPBuiltin gasCPP65Builtins[] =
 // NULL for one the compiler doesn't do (or a name that isn't a builtin's).
 //
 //////////////////////////////////////////////////////////////////////////
-const SCPPBuiltin* CCPP65Generator::FindBuiltin(int64 lliName)
+const SCPPBuiltin* CCPPUnit::FindBuiltin(int64 lliName)
 {
 	char*	szName;
 	int		iLength;
@@ -341,7 +341,7 @@ const SCPPBuiltin* CCPP65Generator::FindBuiltin(int64 lliName)
 // The type ctz, clz or popcount counts the bits of (NULL for the others).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::BuiltinOperandType(const SCPPBuiltin* psBuiltin)
+SCPP65Type* CCPPUnit::BuiltinOperandType(const SCPPBuiltin* psBuiltin)
 {
 	switch (psBuiltin->eOperand)
 	{
@@ -358,7 +358,7 @@ SCPP65Type* CCPP65Generator::BuiltinOperandType(const SCPPBuiltin* psBuiltin)
 // A builtin's name without "__builtin_" (IsBuiltin) and its length.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPP65Generator::BuiltinName(int64 lliName, int* piLength)
+char* CCPPUnit::BuiltinName(int64 lliName, int* piLength)
 {
 	char*	szName;
 
@@ -375,7 +375,7 @@ char* CCPP65Generator::BuiltinName(int64 lliName, int* piLength)
 // place.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
+bool CCPPUnit::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
 {
 	char*	szName;
 	int		iLength;
@@ -399,7 +399,7 @@ bool CCPP65Generator::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
 // Whether the class or a base has a member function of the name.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasMember(CCPPClass* pcClass, int64 lliName)
+bool CCPPUnit::HasMember(CCPPClass* pcClass, int64 lliName)
 {
 	CCPPFunction*	pcFunction;
 	size			i;
@@ -432,7 +432,7 @@ bool CCPP65Generator::HasMember(CCPPClass* pcClass, int64 lliName)
 // uiArguments.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
+bool CCPPUnit::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 {
 	return HasMember(pcClass, lliName) || mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments);
 }
@@ -443,7 +443,7 @@ bool CCPP65Generator::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArgu
 // The enumerator Class::Name names.  See QualifiedMember.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPP65Generator::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass)
+CCPPSymbol* CCPPUnit::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass)
 {
 	return QualifiedMember(pcName, CPPSK_Enumerator, pcNode, ppcClass);
 }
@@ -456,7 +456,7 @@ CCPPSymbol* CCPP65Generator::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyn
 // template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPP65Generator::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass)
+CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass)
 {
 	CCPPSyntaxNameComponent*	pcQualifier;
 	CCPPClass*				pcClass;
@@ -498,7 +498,7 @@ CCPPSymbol* CCPP65Generator::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolK
 // Whether an expression is object.*member or pointer->*member.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsMemberPointerOperator(CCPPSyntax* pcExpression)
+bool CCPPUnit::IsMemberPointerOperator(CCPPSyntax* pcExpression)
 {
 	ECppTokens	eOperator;
 
@@ -517,7 +517,7 @@ bool CCPP65Generator::IsMemberPointerOperator(CCPPSyntax* pcExpression)
 // variable with the pack's name, kept until the generator is killed.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPP65Generator::NewPackElement(CCPPSymbol* pcPack)
+CCPPSymbol* CCPPUnit::NewPackElement(CCPPSymbol* pcPack)
 {
 	CCPPSymbol*	pcSymbol;
 
@@ -534,7 +534,7 @@ CCPPSymbol* CCPP65Generator::NewPackElement(CCPPSymbol* pcPack)
 // Whether a call's arguments expand a pack (f(args...)).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasPackExpansion(CArraySyntax* papcArguments)
+bool CCPPUnit::HasPackExpansion(CArraySyntax* papcArguments)
 {
 	size	i;
 
@@ -558,7 +558,7 @@ bool CCPP65Generator::HasPackExpansion(CArraySyntax* papcArguments)
 // the arguments are given back and the expansion is returned.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPP65Generator::ExpandPackArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
+CCPPSyntax* CCPPUnit::ExpandPackArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
 {
 	CCPPSyntax*					pcArgument;
 	CCPPSyntax*					pcPattern;
@@ -616,7 +616,7 @@ CCPPSyntax* CCPP65Generator::ExpandPackArguments(CCPPSyntaxCallExpression* pcCal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::RestoreArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
+void CCPPUnit::RestoreArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
 {
 	pcCall->macpArguments.ReInit();
 	pcCall->macpArguments.Copy(papcArguments);
@@ -630,7 +630,7 @@ void CCPP65Generator::RestoreArguments(CCPPSyntaxCallExpression* pcCall, CArrayS
 // errors are reported now.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ReportFailedDeclaration(int64 lliName)
+void CCPPUnit::ReportFailedDeclaration(int64 lliName)
 {
 	CCPPSyntaxDeclarator*		pcDeclarator;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
@@ -665,7 +665,7 @@ void CCPP65Generator::ReportFailedDeclaration(int64 lliName)
 // TypeOf, a reference as the type it refers to (NULL if it is wrong).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ValueTypeOf(CCPPSyntax* pcExpression)
+SCPP65Type* CCPPUnit::ValueTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
@@ -682,7 +682,7 @@ SCPP65Type* CCPP65Generator::ValueTypeOf(CCPPSyntax* pcExpression)
 // arguments and the function it is in, so it is remembered.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
+SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*		psType;
 	SCPPTypeOf*	psTypeOf;
@@ -716,7 +716,7 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 // The type of the place an lvalue is (an array stays an array), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::PlaceTypeOf(CCPPSyntax* pcExpression)
+SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
@@ -738,7 +738,7 @@ SCPP65Type* CCPP65Generator::PlaceTypeOf(CCPPSyntax* pcExpression)
 // long*), not only "doesn't support yet".
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
+void CCPPUnit::ReportTypeOf(CCPPSyntax* pcExpression)
 {
 	BeginLoud();
 	mpcStatistics->Begin(CPPCP_Types);
@@ -755,7 +755,7 @@ void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
 // and returns.  It is an error where it is, in quiet mode too, as ReportTypeOf's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
+bool CCPPUnit::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
 {
 	bool	bKept;
 
@@ -771,7 +771,7 @@ bool CCPP65Generator::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
 // = and the compound assignments (+= ...).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsAssignmentOperator(ECppTokens eOperator)
+bool CCPPUnit::IsAssignmentOperator(ECppTokens eOperator)
 {
 	switch (eOperator)
 	{
@@ -797,7 +797,7 @@ bool CCPP65Generator::IsAssignmentOperator(ECppTokens eOperator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
+bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 {
 	if (psType->IsScalar() && (psType->iBytes > 8))
 	{
@@ -813,7 +813,7 @@ bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 // type keeps it (ConstantOfType): unsigned and narrow arithmetic wraps.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
+bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 {
 	CCPPToken*						pcToken;
 	CCPPSyntaxUnaryExpression*		pcUnary;
@@ -1055,7 +1055,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 // NULL if it isn't either.
 //
 //////////////////////////////////////////////////////////////////////////
-CArraySyntax* CCPP65Generator::ConstructElements(CCPPSyntaxConstructExpression* pcConstruct)
+CArraySyntax* CCPPUnit::ConstructElements(CCPPSyntaxConstructExpression* pcConstruct)
 {
 	CCPPSyntax*	pcInitialiser;
 
@@ -1079,7 +1079,7 @@ CArraySyntax* CCPP65Generator::ConstructElements(CCPPSyntaxConstructExpression* 
 // finding.  Other constants on the way have their own types.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ConstantTypeOf(CCPPSyntax* pcExpression)
+SCPP65Type* CCPPUnit::ConstantTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
@@ -1100,7 +1100,7 @@ SCPP65Type* CCPP65Generator::ConstantTypeOf(CCPPSyntax* pcExpression)
 // then sign or zero extended.  Unchanged for other types and NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCPP65Generator::ConstantOfType(SCPP65Type* psType, int64 lliValue)
+int64 CCPPUnit::ConstantOfType(SCPP65Type* psType, int64 lliValue)
 {
 	if (!psType || !(psType->IsInteger() || psType->IsPointer()))
 	{
@@ -1127,7 +1127,7 @@ int64 CCPP65Generator::ConstantOfType(SCPP65Type* psType, int64 lliValue)
 // negative 64 bit value divided by -1.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue)
+bool CCPPUnit::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue)
 {
 	SCPP65Type*	psResult;
 	SCPP65Type*	psOperands;
@@ -1226,7 +1226,7 @@ bool CCPP65Generator::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64
 // taken as a mistake).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps)
+void CCPPUnit::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps)
 {
 	SCPP65Type*	psType;
 	int			iBits;
@@ -1283,7 +1283,7 @@ void CCPP65Generator::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue,
 // left shift converted to a wider type is warned about (WideningArithmetic).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+void CCPPUnit::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 {
 	SCPP65Type*	psFrom;
 	int64		lliValue;
@@ -1346,7 +1346,7 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 // it doesn't make the multiply wider.  Constants are ConstantOverflow's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo)
+void CCPPUnit::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo)
 {
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CChars						szMessage;
@@ -1386,7 +1386,7 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 // Converting the operand first ((uint32)b << 16) shifts in the wider type.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits)
+void CCPPUnit::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits)
 {
 	CChars	szMessage;
 	int64	lliCount;
@@ -1418,7 +1418,7 @@ void CCPP65Generator::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits
 // ptrdiff.  NULL if there isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxBinaryExpression* CCPP65Generator::NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType)
+CCPPSyntaxBinaryExpression* CCPPUnit::NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
 	CCPPSyntax*					pcInner;
 	CCPPSyntaxBinaryExpression*	pcBinary;
@@ -1472,7 +1472,7 @@ CCPPSyntaxBinaryExpression* CCPP65Generator::NarrowMultiply(CCPPSyntax* pcExpres
 // it fits.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::LoopCounterWidth(CCPPSyntaxForStatement* pcFor)
+void CCPPUnit::LoopCounterWidth(CCPPSyntaxForStatement* pcFor)
 {
 	CArrayVoidPtr	apcCounters;
 
@@ -1495,7 +1495,7 @@ void CCPP65Generator::LoopCounterWidth(CCPPSyntaxForStatement* pcFor)
 // The variables pcIncrement steps (through commas): i++, --i, i += 2.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters)
+void CCPPUnit::LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters)
 {
 	CCPPSyntax*					pcInner;
 	CCPPSyntaxBinaryExpression*	pcBinary;
@@ -1542,7 +1542,7 @@ void CCPP65Generator::LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcC
 // wider integer that isn't a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters)
+void CCPPUnit::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters)
 {
 	CCPPSyntax*					pcInner;
 	CCPPSyntaxBinaryExpression*	pcBinary;
@@ -1632,7 +1632,7 @@ void CCPP65Generator::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoid
 // The variable pcExpression names (i, or a member m), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPP65Generator::LoopCounterSymbol(CCPPSyntax* pcExpression)
+CCPPSymbol* CCPPUnit::LoopCounterSymbol(CCPPSyntax* pcExpression)
 {
 	CCPPSyntax*				pcInner;
 	CCPPSyntaxIdExpression*	pcId;
@@ -1662,7 +1662,7 @@ CCPPSymbol* CCPP65Generator::LoopCounterSymbol(CCPPSyntax* pcExpression)
 // compared as a 32 bit long) wraps, so it isn't looked at.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
+void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	SCPP65Type*		psLeft;
 	SCPP65Type*		psRight;
@@ -1773,7 +1773,7 @@ void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 // is expected) aren't warned about.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CCPPSyntax* pcConstant, SCPP65Type* psVariable, int64 lliValue, int64 lliMin, int64 lliMax)
+void CCPPUnit::ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CCPPSyntax* pcConstant, SCPP65Type* psVariable, int64 lliValue, int64 lliMin, int64 lliMax)
 {
 	ECppTokens	eOperator;
 	bool		bAlways;
@@ -1884,7 +1884,7 @@ static ECPP65TypeTrait CPP65FindTypeTrait(CChars* pszName)
 // constructor, copy constructor, destructor or vtable.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
+bool CCPPUnit::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
 {
 	SCPP65Type*		psType;
 	CCPPClass*	pcClass;
@@ -1935,7 +1935,7 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 // An enumerator's type: its enum's (an unnamed enum's is its underlying type).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::EnumeratorType(CCPPSymbol* pcSymbol)
+SCPP65Type* CCPPUnit::EnumeratorType(CCPPSymbol* pcSymbol)
 {
 	CCPPSyntax*					pcEnumerator;
 	CCPPSyntaxEnumSpecifier*	pcSpecifier;
@@ -1960,7 +1960,7 @@ SCPP65Type* CCPP65Generator::EnumeratorType(CCPPSymbol* pcSymbol)
 // pcSpecifier can be NULL or a forward declaration.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier)
+SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier)
 {
 	SCPP65Type*				psType;
 	SCPP65Type*				psBase;
@@ -2074,7 +2074,7 @@ SCPP65Type* CCPP65Generator::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifie
 // + 1) and so on 78 times), doubled the work with each enumerator.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
+bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 {
 	CCPPSyntaxEnumerator*		pcEnumerator;
 	CCPPSyntaxEnumerator*		pcOther;
@@ -2130,7 +2130,7 @@ bool CCPP65Generator::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPP65Generator::SkipParentheses(CCPPSyntax* pcExpression)
+CCPPSyntax* CCPPUnit::SkipParentheses(CCPPSyntax* pcExpression)
 {
 	while (pcExpression && (pcExpression->GetKind() == CPPS_ParenthesisedExpression))
 	{
@@ -2147,7 +2147,7 @@ CCPPSyntax* CCPP65Generator::SkipParentheses(CCPPSyntax* pcExpression)
 // parts; they are the function's name, its class and name, and its label.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
+bool CCPPUnit::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 {
 	CCPPToken*	pcToken;
 	int			iToken;
@@ -2268,7 +2268,7 @@ static uint32 DecodeUTF8(const char** psz, const char* szEnd)
 // adjacent literals take the prefix any of them has.  [lex.string]
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::StringElementBytes(CCPPSyntax* pcString)
+int CCPPUnit::StringElementBytes(CCPPSyntax* pcString)
 {
 	CCPPToken*	pcToken;
 	int			iToken;
@@ -2297,7 +2297,7 @@ int CCPP65Generator::StringElementBytes(CCPPSyntax* pcString)
 // wchar_t, char16_t or char32_t (the same unsigned integers of their widths).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::StringElementType(CCPPSyntax* pcString)
+SCPP65Type* CCPPUnit::StringElementType(CCPPSyntax* pcString)
 {
 	int		iBytes;
 
@@ -2311,7 +2311,7 @@ SCPP65Type* CCPP65Generator::StringElementType(CCPPSyntax* pcString)
 // A decoded string's element uiElement.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CCPP65Generator::StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement)
+uint32 CCPPUnit::StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement)
 {
 	uint32	uiValue;
 	int		i;
@@ -2363,7 +2363,7 @@ static void AppendUTF8(CArrayUint8* pauiBytes, uint32 uiCharacter)
 // the tokeniser decodes them, DecodeEscape).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes)
+bool CCPPUnit::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes)
 {
 	const char*		sz;
 	const char*		szEnd;

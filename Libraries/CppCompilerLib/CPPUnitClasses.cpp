@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTIdentifier.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //The generator's classes: finding and making them, laying them out, their members and what making or destroying one needs.
@@ -29,7 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
+CCPPClass* CCPPUnit::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 {
 	CCPPClass*	pcClass;
 
@@ -47,7 +47,7 @@ CCPPClass* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 // defined, or only through pointers, is laid out when it is first needed whole.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
+CCPPClass* CCPPUnit::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 {
 	CCPPClass*	pcClass;
 	size			i;
@@ -70,7 +70,7 @@ CCPPClass* CCPP65Generator::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 // One in a class template is a different class in each instance (its bindings).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier)
+CCPPClass* CCPPUnit::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	CCPPClass*	pcClass;
 	CCPPTemplateArguments*	pcBindings;
@@ -111,7 +111,7 @@ CCPPClass* CCPP65Generator::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifie
 // couldn't resolve: one visible from pcLookup, else any.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::FindClass(int64 lliName, CCPPScope* pcLookup)
+CCPPClass* CCPPUnit::FindClass(int64 lliName, CCPPScope* pcLookup)
 {
 	CCPPClass*	pcClass;
 	CCPPClass*	pcFound;
@@ -140,7 +140,7 @@ CCPPClass* CCPP65Generator::FindClass(int64 lliName, CCPPScope* pcLookup)
 // the name was looked up: what to choose between things of its name with.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPScope* CCPP65Generator::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
+CCPPScope* CCPPUnit::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
 {
 	if (pcComponent->mpcSymbol)
 	{
@@ -157,7 +157,7 @@ CCPPScope* CCPP65Generator::ComponentLookup(CCPPSyntaxNameComponent* pcComponent
 // an error.  It is kept whatever #pragma pack says, as MSVC does.  [dcl.align]
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::AlignasAlignment(CArraySyntax* papcSpecifiers)
+int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers)
 {
 	CCPPSyntax*		pcSpecifier;
 	CCPPSyntax*		pcAlignment;
@@ -211,7 +211,7 @@ int CCPP65Generator::AlignasAlignment(CArraySyntax* papcSpecifiers)
 // function's class's) base instance of it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext)
+CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext)
 {
 	CCPPTemplate*	pcTemplate;
 	CCPPTemplateArguments*	pcBindings;
@@ -305,7 +305,7 @@ CCPPClass* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompone
 // The instance of a class template that is pcClass or one of its bases, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate)
+CCPPClass* CCPPUnit::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate)
 {
 	CCPPClass*	pcBase;
 	size			i;
@@ -335,7 +335,7 @@ CCPPClass* CCPP65Generator::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* p
 // template's name without arguments is pcClass's base instance of it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
+CCPPClass* CCPPUnit::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
 {
 	CCPPClass*	pcQualifier;
 
@@ -354,7 +354,7 @@ CCPPClass* CCPP65Generator::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameCom
 // The class a (possibly qualified) name's last component names.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 {
 	return GetComponentClass(pcName->GetLast(), pcName->mpcSymbol, pcNode);
 }
@@ -366,7 +366,7 @@ CCPPClass* CCPP65Generator::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcN
 // converted to a pointer to a base.  Offsets are worked out by LayoutClass.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
+bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxBaseSpecifier*	pcBaseSpecifier;
 	CCPPClass*				pcBaseClass;
@@ -421,7 +421,7 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 // Lays out a class the first time it is needed whole.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
+bool CCPPUnit::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
 	if (pcClass->IsComplete())
 	{
@@ -452,7 +452,7 @@ bool CCPP65Generator::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 // worked out with its template arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
+bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxClassSpecifier*		pcSpecifier;
 	CCPPSyntaxBaseSpecifier*		pcBaseSpecifier;
@@ -566,7 +566,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 // Other using declarations (of types) are left out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing)
+void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing)
 {
 	CCPPSyntaxName*	pcName;
 	CCPPClass*	pcBase;
@@ -610,7 +610,7 @@ void CCPP65Generator::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration*
 // constructor of its own keeps its default constructor.  [class.inhctor.init]
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::InheritConstructors(CCPPClass* pcClass)
+void CCPPUnit::InheritConstructors(CCPPClass* pcClass)
 {
 	CCPPClass*	pcBase;
 	CCPPFunction*	pcInherited;
@@ -690,7 +690,7 @@ void CCPP65Generator::InheritConstructors(CCPPClass* pcClass)
 // generated when they are called.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
+bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 {
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
@@ -895,7 +895,7 @@ bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 // once and that is often quietly.  Returns false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ClassError(int iToken, const char* szMessage)
+bool CCPPUnit::ClassError(int iToken, const char* szMessage)
 {
 	SCPPClassError*	psError;
 
@@ -911,7 +911,7 @@ bool CCPP65Generator::ClassError(int iToken, const char* szMessage)
 // The errors laying out classes (ClassError) added to the unit's errors.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::ReportClassErrors(void)
+void CCPPUnit::ReportClassErrors(void)
 {
 	size	i;
 
@@ -930,7 +930,7 @@ void CCPP65Generator::ReportClassErrors(void)
 // type.  LayoutClass places it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit)
+bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit)
 {
 	SCPP65Type*		psType;
 	SCPPField*		psField;
@@ -987,7 +987,7 @@ bool CCPP65Generator::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers
 // A static data member of the class or of its bases.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPVariable* CCPP65Generator::FindStatic(CCPPClass* pcClass, int64 lliName)
+CCPPVariable* CCPPUnit::FindStatic(CCPPClass* pcClass, int64 lliName)
 {
 	CCPPVariable*	pcVariable;
 	size			i;
@@ -1018,7 +1018,7 @@ CCPPVariable* CCPP65Generator::FindStatic(CCPPClass* pcClass, int64 lliName)
 // it is an object of a class.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
+SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 {
 	SCPP65Type*		psType;
 	CCPPFunction*	pcFunction;
@@ -1045,7 +1045,7 @@ SCPP65Type* CCPP65Generator::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 // The identifier of a name component, or -1.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCPP65Generator::GetComponentName(CCPPSyntaxNameComponent* pcComponent)
+int64 CCPPUnit::GetComponentName(CCPPSyntaxNameComponent* pcComponent)
 {
 	CCPPToken*	pcToken;
 

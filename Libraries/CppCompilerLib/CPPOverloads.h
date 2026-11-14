@@ -29,7 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTemplate.h"
 
 
-class CCPP65Generator;
+class CCPPUnit;
 
 
 //One of the functions a call could mean, or one of the templates.
@@ -74,10 +74,10 @@ public:
 class CCPPOverloads
 {
 protected:
-	CCPP65Generator*		mpcUnit;
+	CCPPUnit*		mpcUnit;
 
 public:
-	void					Init(CCPP65Generator* pcUnit);
+	void					Init(CCPPUnit* pcUnit);
 	void					Kill(void);
 
 	CCPPTemplate*			FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, ECPPCalledObject eObject = CPPCO_None);

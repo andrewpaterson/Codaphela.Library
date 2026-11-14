@@ -182,7 +182,7 @@ static void TestCPP65SpillRestart(bool bWhole)
 	CCPPTokeniser			cTokeniser;
 	CCPPSyntaxTree			cTree;
 	CCPPParser				cParser;
-	CCPP65Generator			cGenerator;
+	CCPPUnit			cGenerator;
 	CTestCountedSpillStore	cStore;
 	CChars					szAssembly;
 

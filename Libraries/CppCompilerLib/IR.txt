@@ -10,7 +10,7 @@ CppCompilerLib; phi instructions; callee saved pseudo registers; signed overflow
 around; on the W65C816 near inside a linker object and far calls at its boundaries;
 LLVM like text.  "The IR will be a black box to me": the rest are my choices.
 
-Before the IR, CCPP65Generator walked the syntax tree and wrote 65C64 assembly as it
+Before the IR, CCPPUnit walked the syntax tree and wrote 65C64 assembly as it
 went: every value ended in A, every local had its own place from V and nothing saw
 further than one expression.  With the IR the generator keeps all of its C++ work
 (overloads, conversions, templates, temporaries, destructors, this adjustments, class
@@ -18,7 +18,7 @@ layout, mangled names) but writes IR instead of assembly (an expression's type i
 CCPP65TypeChecker's: see CPP65Generator.txt):
 
 	syntax tree
-	  -> front end (CCPP65Generator's C++ semantics)		writes IR, already in SSA
+	  -> front end (CCPPUnit's C++ semantics)		writes IR, already in SSA
 	  -> mid level passes									target independent
 	  -> legalisation										types and operations the target has
 	  -> instruction selection								machine IR (the same structures)
@@ -290,7 +290,7 @@ not taking its parameters' addresses, not itself) is replaced by a copy of its b
 block is split after the call, the arguments are the parameters, returns jump to the rest
 and the result is a phi there.  Calls in the copies are inlined too, up to 24 in a function
 a round.  The front end keeps each unit's functions as IR until the generator has written
-them all (CCPP65IRFrontEnd::FinishUnit, called from CCPP65Generator::Generate), inlines
+them all (CCPP65IRFrontEnd::FinishUnit, called from CCPPUnit::Generate), inlines
 (callees first: they are written after their callers), optimises, and inlines again what
 optimising made direct (up to 4 rounds), then generates them again; a function that fails
 then keeps the code Body generated for it.
@@ -379,7 +379,7 @@ to what is left (Cancels): memchr's found pointer, worked out as start + (found 
 Front end
 ---------
 
-CCPP65IRFrontEnd (CPP65IRFrontEnd.h/.cpp, a friend of CCPP65Generator) writes function
+CCPP65IRFrontEnd (CPP65IRFrontEnd.h/.cpp, a friend of CCPPUnit) writes function
 bodies as IR.  The generator still does everything about the C++: declarations, types,
 classes, templates, overloads, labels, data, vtables, the start up and the runtime
 routines.  GenerateDefinition sets a function up as for its own code (parameters,

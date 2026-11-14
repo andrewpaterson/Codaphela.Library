@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTemplate.h"
 
 
-class CCPP65Generator;
+class CCPPUnit;
 
 
 //One deduction of a function template's arguments from a call's.  [temp.deduct.call]  It is made for the
@@ -39,13 +39,13 @@ class CCPP65Generator;
 class CCPPDeduction
 {
 protected:
-	CCPP65Generator*	mpcUnit;
+	CCPPUnit*	mpcUnit;
 	CCPPTemplate*		mpcTemplate;
 	CArrayCPP65Types	mapsDeduced;
 	CArrayInt64			malliDeduced;
 
 public:
-	void				Init(CCPP65Generator* pcUnit, CCPPTemplate* pcTemplate);
+	void				Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate);
 	void				Kill(void);
 
 	void				Deduce(CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
@@ -70,13 +70,13 @@ protected:
 class CCPPSpecialisationMatch
 {
 protected:
-	CCPP65Generator*		mpcUnit;
+	CCPPUnit*		mpcUnit;
 	CCPPTemplate*			mpcSpecialisation;
 	CCPPTemplateArguments*	mpcDeduced;		//The specialisation's parameters, deduced as its pattern is matched.  The unit's.
 	int						miScore;
 
 public:
-	void					Init(CCPP65Generator* pcUnit, CCPPTemplate* pcSpecialisation);
+	void					Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisation);
 	void					Kill(void);
 
 	bool					Match(CCPPTemplateArguments* pcArguments);

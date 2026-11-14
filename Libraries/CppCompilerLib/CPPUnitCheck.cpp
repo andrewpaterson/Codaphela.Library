@@ -20,7 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CPPSyntaxTree.h"
 #include "CPPSemanticPass.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // couldn't be (GetErrors).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Check(CCPPSemanticPass* pcPass)
+bool CCPPUnit::Check(CCPPSemanticPass* pcPass)
 {
 	CCPPSyntaxTranslationUnit*	pcRoot;
 
@@ -65,7 +65,7 @@ bool CCPP65Generator::Check(CCPPSemanticPass* pcPass)
 // checked quietly, only for its names.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::CheckDefinitions(void)
+bool CCPPUnit::CheckDefinitions(void)
 {
 	CCPPFunction*	pcFunction;
 	size			i;
@@ -101,7 +101,7 @@ bool CCPP65Generator::CheckDefinitions(void)
 // defined in the class are checked, whether or not the unit uses them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckClasses(CArraySyntax* papcDeclarations)
+void CCPPUnit::CheckClasses(CArraySyntax* papcDeclarations)
 {
 	size							i;
 	CCPPSyntax*						pcDeclaration;
@@ -149,7 +149,7 @@ void CCPP65Generator::CheckClasses(CArraySyntax* papcDeclarations)
 // isn't supported is an error; the rest of the function is still checked.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckFunction(CCPPFunction* pcFunction)
+void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	size							i;
@@ -179,7 +179,7 @@ void CCPP65Generator::CheckFunction(CCPPFunction* pcFunction)
 // declared in a function aren't looked into.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckNode(CCPPSyntax* pcNode)
+void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 {
 	if (!pcNode)
 	{
@@ -213,13 +213,13 @@ void CCPP65Generator::CheckNode(CCPPSyntax* pcNode)
 }
 
 
-//Checks each of a node's children (CCPP65Generator::CheckChildren).
+//Checks each of a node's children (CCPPUnit::CheckChildren).
 class CCPP65CheckChildren : public CCPPSyntaxChildVisitor
 {
 public:
-	CCPP65Generator*	mpcGenerator;
+	CCPPUnit*	mpcUnit;
 
-	void	Visit(CCPPSyntax* pcChild) override	{ mpcGenerator->CheckNode(pcChild); }
+	void	Visit(CCPPSyntax* pcChild) override	{ mpcUnit->CheckNode(pcChild); }
 };
 
 
@@ -227,11 +227,11 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckChildren(CCPPSyntax* pcNode)
+void CCPPUnit::CheckChildren(CCPPSyntax* pcNode)
 {
 	CCPP65CheckChildren	cChildren;
 
-	cChildren.mpcGenerator = this;
+	cChildren.mpcUnit = this;
 	pcNode->VisitFields(&cChildren);
 }
 
@@ -243,7 +243,7 @@ void CCPP65Generator::CheckChildren(CCPPSyntax* pcNode)
 // still resolved: in f(a.Get(), x) with no f that fits, a.Get() still is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckExpression(CCPPSyntax* pcExpression)
+void CCPPUnit::CheckExpression(CCPPSyntax* pcExpression)
 {
 	if (mcTypeChecker.Value(pcExpression))
 	{
@@ -261,7 +261,7 @@ void CCPP65Generator::CheckExpression(CCPPSyntax* pcExpression)
 // initialises it.  If it can't be, its expressions are typed on their own.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
+void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 {
 	CCPPVariable*	pcVariable;
 
@@ -290,7 +290,7 @@ void CCPP65Generator::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 // are only typed for what they initialise).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsCheckedExpression(CCPPSyntax* pcNode)
+bool CCPPUnit::IsCheckedExpression(CCPPSyntax* pcNode)
 {
 	ECPPSyntax	eKind;
 
@@ -309,7 +309,7 @@ bool CCPP65Generator::IsCheckedExpression(CCPPSyntax* pcNode)
 // semantic pass is told, when checking.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
+void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 {
 	CCPPSyntaxName*	pcDeclared;
 	CCPPSymbol*		pcSymbol;
@@ -338,7 +338,7 @@ void CCPP65Generator::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 // names.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
+void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
 {
 	if (!mpcSemanticPass || !pcName || !pcName->GetLast())
 	{

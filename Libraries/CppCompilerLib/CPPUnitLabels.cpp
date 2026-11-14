@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTReservedWord.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //The generator's labels: mangled names of functions, classes and types.
@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // operator (see GetOperatorLabel).  -1 if it is neither.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCPP65Generator::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
+int64 CCPPUnit::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
 {
 	CCPPToken*	pcToken;
 	ECppTokens	eToken;
@@ -62,7 +62,7 @@ int64 CCPP65Generator::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
 // for new[] and delete[].
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCPP65Generator::GetOperatorName(ECppTokens eToken, bool bArray)
+int64 CCPPUnit::GetOperatorName(ECppTokens eToken, bool bArray)
 {
 	return bArray ? (-1 - NUM_CPP_TOKENS - (int64)eToken) : (-1 - (int64)eToken);
 }

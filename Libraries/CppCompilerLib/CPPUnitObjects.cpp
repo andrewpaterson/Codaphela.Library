@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTIdentifier.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // returns one): it can be made where the object it initialises is.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
+bool CCPPUnit::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
@@ -60,7 +60,7 @@ bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
 // with object operands.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::MakesObject(CCPPSyntax* pcExpression)
+bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxBinaryExpression*			pcBinary;
 	CCPPSyntaxUnaryExpression*			pcUnary;
@@ -98,7 +98,7 @@ bool CCPP65Generator::MakesObject(CCPPSyntax* pcExpression)
 // or NULL for any other expression.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::CastClassType(CCPPSyntax* pcExpression)
+SCPP65Type* CCPPUnit::CastClassType(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxTypeId*	pcType;
 	SCPP65Type*			psType;
@@ -128,7 +128,7 @@ SCPP65Type* CCPP65Generator::CastClassType(CCPPSyntax* pcExpression)
 // NULL if it is a value with no address (a literal, a sum, a call's int).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::PlaceOf(CCPPSyntax* pcExpression)
+SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psPlace;
 
@@ -150,7 +150,7 @@ SCPP65Type* CCPP65Generator::PlaceOf(CCPPSyntax* pcExpression)
 // of a char, const char* const& of an array).  [dcl.init.ref]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
+bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 {
 	SCPP65Type*	psPlace;
 
@@ -170,7 +170,7 @@ bool CCPP65Generator::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcAr
 // without one is the built in comma.  [over.match.oper] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
+bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	CArraySyntax	apcArguments;
 	SCPP65Type*		psType;
@@ -212,7 +212,7 @@ bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 // True if the expression is an object (or a reference to one).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsObject(CCPPSyntax* pcExpression)
+bool CCPPUnit::IsObject(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
@@ -226,7 +226,7 @@ bool CCPP65Generator::IsObject(CCPPSyntax* pcExpression)
 // The class of an object expression (see IsObject).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
+CCPPClass* CCPPUnit::ObjectClass(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 

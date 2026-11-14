@@ -24,7 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Type.h"
 
 
-class CCPP65Generator;
+class CCPPUnit;
 struct SCPPField;
 class CCPPClass;
 class CCPPFunction;
@@ -38,12 +38,12 @@ class CCPPFunction;
 class CCPP65TypeChecker
 {
 protected:
-	CCPP65Generator*	mpcGenerator;
+	CCPPUnit*	mpcUnit;
 	CCPP65Types*		mpcTypes;
 	CArraySyntax		mapcNone;		//No arguments.
 
 public:
-	void			Init(CCPP65Generator* pcGenerator);
+	void			Init(CCPPUnit* pcUnit);
 	void			Kill(void);
 
 	SCPP65Type*		Value(CCPPSyntax* pcExpression);

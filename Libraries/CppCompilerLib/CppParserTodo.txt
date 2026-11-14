@@ -3,7 +3,7 @@ C++ Parser To Do
 
 What is left after the preprocessor, tokeniser, parser and highlighter were written (2026-10-21).  In order of priority.  Goal: highlighting first, then refactoring, then compiling to a VM that is not written yet.
 
-The first back end, a 65C64 code generator (CCPP65Generator), was started on 2026-10-23.  What it supports, its calling convention and what is left are in CPP65Generator.txt.  It works out the types it needs itself; item 2 below would let it share them with the highlighter.
+The first back end, a 65C64 code generator (CCPPUnit), was started on 2026-10-23.  What it supports, its calling convention and what is left are in CPP65Generator.txt.  It works out the types it needs itself; item 2 below would let it share them with the highlighter.
 
 
 2. Expression types and member resolution
@@ -66,7 +66,7 @@ A. Preprocessor and tokeniser to C++17
 B. Code generators to C++14
 
 B-1. C++98/03 still missing
-  - B9a Done 2026-11-13.  Bit-fields: laid out as MSVC does (CCPP65Generator::LayoutBitField: a unit of the type's size, a new one for another size, when the bits run out or after a zero width one), read and written through their place (SCPP65IRPlace::psBitField: CCPP65IRFrontEnd::Load and Store), unnamed ones left out of aggregate initialisers, a const reference bound to a copy, no address.  TestCPP816BitFields.
+  - B9a Done 2026-11-13.  Bit-fields: laid out as MSVC does (CCPPUnit::LayoutBitField: a unit of the type's size, a new one for another size, when the bits run out or after a zero width one), read and written through their place (SCPP65IRPlace::psBitField: CCPP65IRFrontEnd::Load and Store), unnamed ones left out of aggregate initialisers, a const reference bound to a copy, no address.  TestCPP816BitFields.
   - B2 (XL) Exceptions: throw, try / catch, function-try-blocks, unwinding through destructors and temporaries, noexcept calling std::terminate, new throwing bad_alloc, dynamic_cast<T&> throwing bad_cast.  try is parsed but not a case in CCPP65IRFrontEnd::StatementOf, and throw is not lowered.  Needs exceptional edges in the IR, the optimiser respecting them (SSA, inliner, dead stores), and unwinding in both back ends.  setjmp-style unwinding chained through V is probably cheaper to build on these processors than tables, at a cost for each try.
   - B3 (S-M) typeid and std::type_info.  dynamic_cast<T*> already finds an object's type info.
   - B4 (L) Virtual inheritance.
@@ -79,9 +79,9 @@ B-1. C++98/03 still missing
 
 B-2. C++11
   - B10 (L) Rvalue references as a type of their own: && is made a & now (GetDeclaratorType; rechecked 2026-11-08: item 103 of CppCompilerLibIssues.txt says what works), with T&& deduced so arguments can be passed through (ForwardedType).  Reference collapsing, deducing forwarding references as the standard does, & and && overloads, implicit move constructors and assignment (and when they are deleted), xvalues, ref-qualified members.
-  - B11 (M) auto variables (an error at CPP65Generator.cpp:2636) and decltype (its specifier is never made a type).
+  - B11 (M) auto variables (an error at CPPUnit.cpp:2636) and decltype (its specifier is never made a type).
   - B12 (L) Lambdas: the parser (CppParserExpressions.cpp:665), closure classes, captures by value and by reference and this, and the conversion to a function pointer when nothing is captured.  A closure is a class, which the back ends already do well.
-  - B13 (L) constexpr functions and literal classes.  constexpr is only inline now, and Constant (CPP65GeneratorExpressions.cpp:781) does integers without calls.  C++14's relaxed constexpr allows loops and assignment, so running the IR at compile time (an IR interpreter) may be better than growing the tree folder.
+  - B13 (L) constexpr functions and literal classes.  constexpr is only inline now, and Constant (CPPUnitExpressions.cpp:781) does integers without calls.  C++14's relaxed constexpr allows loops and assignment, so running the IR at compile time (an IR interpreter) may be better than growing the tree folder.
   - B14 (M) Packs everywhere: base lists, initialisers, template arguments and member initialisers, sizeof..., nested packs.  Only args... in a call's arguments works now.
   - B15 (M) std::initializer_list and list initialisation: a constructor taking one is preferred, narrowing is an error.
   - B16 (S) Range-for lowering.  It is parsed but not a case in StatementOf.  Free begin and end need B1.

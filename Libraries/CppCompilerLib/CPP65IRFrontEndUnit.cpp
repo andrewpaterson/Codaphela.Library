@@ -20,7 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
 #include "SourceFile.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "IRInliner.h"
 #include "IRInterprocedural.h"
 #include "IROptimiser.h"
@@ -41,14 +41,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // generated again, and each function's code replaces its marker in the
 // generator's code.  A function that then fails keeps the code Body
 // generated (and isn't inlined into others).  Functions of other units are
-// inlined too when the generator has imports (CCPP65Generator::SetImports),
+// inlined too when the generator has imports (CCPPUnit::SetImports),
 // and the unit's small functions are added to them at the end.
 //
 // The functions are inlined (InlineUnit) before the unit's turn with the
 // imports, with those exported so far.  In its turn (FinishUnit) it checks
 // none it didn't find has been exported since: if one has, it returns
 // false, keeping its turn, and the unit must be generated again
-// (CCPP65Generator::MissedImports).
+// (CCPPUnit::MissedImports).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::InlineUnit(void)
@@ -65,24 +65,24 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 
 	//The inliner's and optimiser's instructions have no source of their own.
 	mcModule.muiSource = 0;
-	mpcGenerator->GetTarget()->GetInlineLimits(&sLimits, mpcGenerator->GetOptions());
+	mpcUnit->GetTarget()->GetInlineLimits(&sLimits, mpcUnit->GetOptions());
 	cInliner.Init(&mcModule, sLimits.uiInstructions, sLimits.uiLoopInstructions, sLimits.uiCalls);
 	cInliner.SetForwardersJump(sLimits.bForwardersJump);
 	//Other units' functions are found before the unit's turn, and checked in it (CIRImports::Missed).
-	cInliner.SetImports(mpcGenerator->GetImports(), &maszMissing, &maszNotImported);
+	cInliner.SetImports(mpcUnit->GetImports(), &maszMissing, &maszNotImported);
 	mpcProfiledCaller = NULL;
 	if (InliningProfile())
 	{
 		cInliner.SetProfile(this, sLimits.uiHotInstructions);
 	}
 	cInterprocedural.Init(&mcModule, this);
-	if (mpcGenerator->GetOptions()->mbInline && mpcGenerator->GetOptions()->mbOptimise)
+	if (mpcUnit->GetOptions()->mbInline && mpcUnit->GetOptions()->mbOptimise)
 	{
 		cInterprocedural.SpecialiseConstantArguments();
 		cInterprocedural.RemoveDeadArguments();
 		cInterprocedural.MarkNoWrites();
 	}
-	for (ui = masWritten.NumElements(); mpcGenerator->GetOptions()->mbInline && (ui > 0); ui--)
+	for (ui = masWritten.NumElements(); mpcUnit->GetOptions()->mbInline && (ui > 0); ui--)
 	{
 		psWritten = masWritten.Get(ui - 1);
 		if (!psWritten->pcFunction)
@@ -111,7 +111,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		{
 			continue;
 		}
-		if (mpcGenerator->GetOptions()->mbPrintIR)
+		if (mpcUnit->GetOptions()->mbPrintIR)
 		{
 			fprintf(stderr, "Inlined\n");
 			PrintIR(psWritten->pcFunction);
@@ -131,7 +131,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 			//What the back end kept is the new code's (a function that fails keeps its old code, and what was kept for it).
 			FreeWritten(psWritten);
 			psWritten->pcBackend = pcWritten;
-			CCPP65Assembly::PutCode(mpcGenerator->GetSpillStore(), mpcGenerator->GetSpillUnit(), ui - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+			CCPP65Assembly::PutCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), ui - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 		}
 		else
 		{
@@ -161,62 +161,62 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 
 	//In its turn the unit has found what it would have, as if the units were compiled one after another, unless a
 	//function it didn't find was exported since.
-	if (mpcGenerator->GetImports())
+	if (mpcUnit->GetImports())
 	{
-		mpcGenerator->GetImports()->BeginTurn(mpcGenerator->GetImportsTurn());
-		if (mpcGenerator->GetImports()->Missed(&maszNotImported))
+		mpcUnit->GetImports()->BeginTurn(mpcUnit->GetImportsTurn());
+		if (mpcUnit->GetImports()->Missed(&maszNotImported))
 		{
 			return false;
 		}
 	}
 
 	//The unit's small functions, as finished, for the units compiled after it.
-	for (ui = 0; mpcGenerator->GetImports() && (ui < masWritten.NumElements()); ui++)
+	for (ui = 0; mpcUnit->GetImports() && (ui < masWritten.NumElements()); ui++)
 	{
 		psWritten = masWritten.Get(ui);
 		if (psWritten->pcFunction)
 		{
-			mpcGenerator->GetImports()->Export(&mcModule, psWritten->pcFunction);
+			mpcUnit->GetImports()->Export(&mcModule, psWritten->pcFunction);
 		}
 	}
-	if (mpcGenerator->GetImports())
+	if (mpcUnit->GetImports())
 	{
-		mpcGenerator->GetImports()->EndTurn(mpcGenerator->GetImportsTurn());
+		mpcUnit->GetImports()->EndTurn(mpcUnit->GetImportsTurn());
 	}
 
 	//Each function's code is finished: the back end has a last look at it now that the unit's calls are known
 	//(CIRBackend::FinishFunction: the W65C816's frames worth it are put on a page), then the source markers become
 	//comments or .line directives.  The generator's code keeps the markers (the code stays
 	//in the spill store until the unit is assembled, CCPP65Assembly).
-	mpcGenerator->GetCodePieces()->Kill();
-	mpcGenerator->GetCodePieces()->Init();
+	mpcUnit->GetCodePieces()->Kill();
+	mpcUnit->GetCodePieces()->Init();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
 		psWritten = masWritten.Get(ui);
 		szCode.Init();
-		CCPP65Assembly::GetCode(mpcGenerator->GetSpillStore(), mpcGenerator->GetSpillUnit(), ui, psWritten->uiPieces, &szCode);
+		CCPP65Assembly::GetCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), ui, psWritten->uiPieces, &szCode);
 		if (mpcBackend)
 		{
-			mpcBackend->FinishFunction(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcGenerator->GetFrameProfile());
+			mpcBackend->FinishFunction(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcUnit->GetFrameProfile());
 		}
 		FreeWritten(psWritten);
-		SourceComments(&szCode, mpcGenerator->HasListing(), mpcGenerator->HasLineTable());
-		if (mpcGenerator->HasLineTable())
+		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());
+		if (mpcUnit->HasLineTable())
 		{
 			szCode.Append("\t\t.fingerprint \"");
 			szCode.Append(psWritten->szLabel);
 			szCode.Append("\", ");
 			szCode.Append((int64)psWritten->uiFingerprint);
 			szCode.Append(", ");
-			szCode.Append(mpcGenerator->GetCompileTime());
+			szCode.Append(mpcUnit->GetCompileTime());
 			szCode.AppendNewLine();
 		}
-		if (mpcGenerator->GetOptions()->mbPrintIR)
+		if (mpcUnit->GetOptions()->mbPrintIR)
 		{
 			fprintf(stderr, "%s\n", szCode.Text());
 		}
-		CCPP65Assembly::PutCode(mpcGenerator->GetSpillStore(), mpcGenerator->GetSpillUnit(), ui, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
-		mpcGenerator->GetCodePieces()->Add(&psWritten->uiPieces);
+		CCPP65Assembly::PutCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), ui, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+		mpcUnit->GetCodePieces()->Add(&psWritten->uiPieces);
 		szCode.Kill();
 	}
 	mbCodeGiven = true;
@@ -256,7 +256,7 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	szMarker.Init(IR65_FRONT_END_MARKER);
 	szMarker.Append((int)uiFunction);
 	szMarker.Append(IR65_FRONT_END_MARKER);
-	uiMarker = mpcGenerator->GetCode()->Find(0, szMarker.Text());
+	uiMarker = mpcUnit->GetCode()->Find(0, szMarker.Text());
 	uiMarkerLength = szMarker.Length();
 	szMarker.Kill();
 	szMarker.Init();
@@ -266,11 +266,11 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	szMarker.Append(IR65_FRONT_END_MARKER);
 	if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		mpcGenerator->GetCode()->Insert(uiMarker + uiMarkerLength, szMarker.Text());
+		mpcUnit->GetCode()->Insert(uiMarker + uiMarkerLength, szMarker.Text());
 	}
 	else
 	{
-		mpcGenerator->GetCode()->Append(szMarker);
+		mpcUnit->GetCode()->Append(szMarker);
 	}
 	szMarker.Kill();
 	szName.Kill();
@@ -323,25 +323,25 @@ bool CCPP65IRFrontEnd::RemoveSpecialised(size uiFunction)
 	szSection.Append(IR65_FRONT_END_MARKER);
 	szSection.Append((int)uiFunction);
 	szSection.Append(IR65_FRONT_END_MARKER);
-	uiMarker = mpcGenerator->GetCode()->Find(0, szSection.Text());
+	uiMarker = mpcUnit->GetCode()->Find(0, szSection.Text());
 	if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		mpcGenerator->GetCode()->Remove(uiMarker, uiMarker + uiSectionLength);
+		mpcUnit->GetCode()->Remove(uiMarker, uiMarker + uiSectionLength);
 	}
-	bNamed = IRLabelNamed(mpcGenerator->GetCode()->Text(), psWritten->szLabel.Text());
+	bNamed = IRLabelNamed(mpcUnit->GetCode()->Text(), psWritten->szLabel.Text());
 	if (bNamed)
 	{
 		if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			szSection.SetLength(uiSectionLength);
-			mpcGenerator->GetCode()->Insert(uiMarker, szSection.Text());
+			mpcUnit->GetCode()->Insert(uiMarker, szSection.Text());
 		}
 	}
 	else
 	{
 		mcModule.RemoveFunction(psWritten->pcFunction);
 		psWritten->pcFunction = NULL;
-		CCPP65Assembly::PutCode(mpcGenerator->GetSpillStore(), mpcGenerator->GetSpillUnit(), uiFunction, "", 0, &psWritten->uiPieces);
+		CCPP65Assembly::PutCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), uiFunction, "", 0, &psWritten->uiPieces);
 	}
 	szSection.Kill();
 	return !bNamed;
@@ -396,7 +396,7 @@ uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 CAsm65Profile* CCPP65IRFrontEnd::InliningProfile(void)
 {
-	return mpcGenerator->GetTarget()->UsesProfile() ? mpcGenerator->GetFrameProfile() : NULL;
+	return mpcUnit->GetTarget()->UsesProfile() ? mpcUnit->GetFrameProfile() : NULL;
 }
 
 

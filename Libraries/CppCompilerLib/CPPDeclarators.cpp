@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPPDeclarators.h"
 
 
@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPDeclarators::Init(CCPP65Generator* pcUnit)
+void CCPPDeclarators::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 }

@@ -35,7 +35,7 @@ class CSourceFile;
 class CIROptimiser;
 
 
-class CCPP65Generator;
+class CCPPUnit;
 class CCPPFunction;
 class CCPPVariable;
 struct SCPPVtableEntry;
@@ -137,7 +137,7 @@ typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 //Writes every function body as IR and generates it with the target's back end (CIR65Backend or CIRW65C816Backend).
 //The generator works out everything about the C++ (types with CCPP65TypeChecker, names, overloads, layouts) and
 //sets up the function; Body then writes the function as IR if it supports everything in it, or returns false
-//(having changed nothing) and the function is an error (CCPP65Generator::GenerateDefinition).  Locals are slots,
+//(having changed nothing) and the function is an error (CCPPUnit::GenerateDefinition).  Locals are slots,
 //read and written with load and store; parameters are where their caller pushed them (argaddr).  What is
 //supported is in IR.txt (Front end).
 class CCPP65IRFrontEnd : public CIRInlineProfile, public CIRUnitFunctions
@@ -145,7 +145,7 @@ class CCPP65IRFrontEnd : public CIRInlineProfile, public CIRUnitFunctions
 protected:
 	CIRFunction*			mpcProfiledCaller;	//The caller CallCount last looked at...
 	bool					mbProfiledCaller;	//...and whether the profile has it, as it is now (its fingerprint).
-	CCPP65Generator*		mpcGenerator;
+	CCPPUnit*		mpcUnit;
 	CCPP65Types*			mpcTypes;
 
 	CIRModule				mcModule;			//The unit's functions written as IR.
@@ -177,14 +177,14 @@ protected:
 	CArrayTemplate<size>	mauiStringLengths;
 	size					muiFirstString;		//The generator's number for the first of them.
 	bool					mbUnsupported;		//Something the front end can't write yet: the function is an error.
-	bool					mbFloatReported;	//The function's floating point (CCPP65Generator::SetNoFloats) has been reported.
+	bool					mbFloatReported;	//The function's floating point (CCPPUnit::SetNoFloats) has been reported.
 	const char*				mszUnsupportedFile;	//The front end's file (no directory) and line that last left a function to the generator.
 	int						miUnsupportedLine;
 	char					mszUnsupported[1024];	//The verifier's errors when that was IR that didn't verify.
 	size					muiAttempts;		//Bodies asked for; only the first CCPPCompileOptions::muiFunctionLimit may be written.
 
 public:
-	void			Init(CCPP65Generator* pcGenerator);
+	void			Init(CCPPUnit* pcUnit);
 	void			Kill(void);
 	void			SetStatistics(CCPPCompileStatistics* pcStatistics);
 

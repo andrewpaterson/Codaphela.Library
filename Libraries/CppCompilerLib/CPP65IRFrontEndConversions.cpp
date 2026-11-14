@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -36,12 +36,12 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	SCPP65Type*		psTo;
 	CCPPSyntax*		pcFunction;
 
-	psTo = mpcGenerator->GetDeclarators()->GetTypeIdType(pcTypeId);
+	psTo = mpcUnit->GetDeclarators()->GetTypeIdType(pcTypeId);
 	if (!psTo || psTo->IsClass() || psTo->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	pcFunction = mpcGenerator->FunctionNameFor(pcOperand, psTo);
+	pcFunction = mpcUnit->FunctionNameFor(pcOperand, psTo);
 	if (pcFunction)
 	{
 		//(FPointer)&f chooses the overload of f with the pointer's type.  (MPointer)&Class::f is a member pointer
@@ -66,7 +66,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	//(int32)((ui + 1) * 7) still multiplies in ui's width.
 	if (psTo->IsInteger() && psValue->psType && psValue->psType->IsInteger())
 	{
-		mpcGenerator->WideningArithmetic(pcOperand, psValue->psType, psTo);
+		mpcUnit->WideningArithmetic(pcOperand, psValue->psType, psTo);
 	}
 	return psTo->IsScalar() ? Convert(psValue, psTo) : Unsupported(__FILE__, __LINE__);
 }
@@ -85,19 +85,19 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	CCPPClass*	pcFrom;
 	CCPPClass*	pcTarget;
 
-	psTo = mpcGenerator->GetDeclarators()->GetTypeIdType(pcCast->mpcType);
+	psTo = mpcUnit->GetDeclarators()->GetTypeIdType(pcCast->mpcType);
 	if (!psTo)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psTo->IsReference())
 	{
-		mpcGenerator->ReportError(pcCast, "dynamic_cast to a reference is not supported");
+		mpcUnit->ReportError(pcCast, "dynamic_cast to a reference is not supported");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!psTo->IsPointer() || !(psTo->psBase->IsClass() || psTo->psBase->IsVoid()))
 	{
-		mpcGenerator->ReportError(pcCast, "dynamic_cast needs a pointer to a class or to void");
+		mpcUnit->ReportError(pcCast, "dynamic_cast needs a pointer to a class or to void");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcCast->mpcOperand, psValue))
@@ -106,12 +106,12 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (!psValue->psType->IsPointer() || !psValue->psType->psBase->IsClass())
 	{
-		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast must be a pointer to a class");
+		mpcUnit->ReportError(pcCast, "The operand of dynamic_cast must be a pointer to a class");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
 	pcFrom = psValue->psType->psBase->pcClass;
-	if (!mpcGenerator->CompleteClass(pcFrom, pcCast))
+	if (!mpcUnit->CompleteClass(pcFrom, pcCast))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -119,18 +119,18 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	if (psTo->psBase->IsClass())
 	{
 		pcTarget = psTo->psBase->pcClass;
-		if (!mpcGenerator->CompleteClass(pcTarget, pcCast))
+		if (!mpcUnit->CompleteClass(pcTarget, pcCast))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (mpcGenerator->IsDerived(pcFrom, pcTarget, NULL))
+		if (mpcUnit->IsDerived(pcFrom, pcTarget, NULL))
 		{
 			return Convert(psValue, psTo);
 		}
 	}
 	if (!pcFrom->IsPolymorphic())
 	{
-		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
+		mpcUnit->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
@@ -200,9 +200,9 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 		return Phi(pcEnd, sPointer, pcStart, sNullPointer, pcLook, sTop);
 	}
 
-	mpcGenerator->EnsureTypeInfo(pcTo);
+	mpcUnit->EnsureTypeInfo(pcTo);
 	szLabel.Init();
-	mpcGenerator->GetMangler()->AppendTypeInfoLabel(&szLabel, pcTo);
+	mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcTo);
 	sTarget = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	if (pcTo->IsUnnamed())
@@ -291,8 +291,8 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	//A pointer to a derived class points at its base, which may be further on (a null pointer stays null).  The
 	//derived class is laid out to know where its base is, even if nothing else has needed it whole yet.
 	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) &&
-		mpcGenerator->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcGenerator->CompleteClass(psFrom->psBase->pcClass, NULL) &&
-		mpcGenerator->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
+		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcUnit->CompleteClass(psFrom->psBase->pcClass, NULL) &&
+		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
 	{
 		psValue->sValue = BaseAddress(psValue->sValue, iOffset);
 		psValue->psType = psTo;

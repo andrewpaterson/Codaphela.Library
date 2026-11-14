@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPPOverloads.h"
 
 
@@ -113,7 +113,7 @@ int CCPPCandidates::Compare(size uiFirst, size uiSecond)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::Init(CCPP65Generator* pcUnit)
+void CCPPOverloads::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 }

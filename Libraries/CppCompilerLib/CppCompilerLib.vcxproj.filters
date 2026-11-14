@@ -129,34 +129,34 @@
     <ClCompile Include="VisualStudioProject.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65Generator.cpp">
+    <ClCompile Include="CPPUnit.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorClasses.cpp">
+    <ClCompile Include="CPPUnitClasses.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorTemplates.cpp">
+    <ClCompile Include="CPPUnitTemplates.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorVtables.cpp">
+    <ClCompile Include="CPPUnitVtables.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorOverloads.cpp">
+    <ClCompile Include="CPPUnitOverloads.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorLabels.cpp">
+    <ClCompile Include="CPPUnitLabels.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorExpressions.cpp">
+    <ClCompile Include="CPPUnitExpressions.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorFloat.cpp">
+    <ClCompile Include="CPPUnitFloat.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorObjects.cpp">
+    <ClCompile Include="CPPUnitObjects.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPP65GeneratorCheck.cpp">
+    <ClCompile Include="CPPUnitCheck.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPP65Type.cpp">
@@ -974,7 +974,7 @@
     <ClInclude Include="VisualStudioProject.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
-    <ClInclude Include="CPP65Generator.h">
+    <ClInclude Include="CPPUnit.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65Type.h">

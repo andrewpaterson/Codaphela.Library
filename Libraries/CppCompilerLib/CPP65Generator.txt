@@ -1,11 +1,11 @@
 65C64 code generator
 ====================
 
-CCPP65Generator turns a parsed translation unit (CCPPSyntaxTree) into 65C64 assembly
+CCPPUnit turns a parsed translation unit (CCPPSyntaxTree) into 65C64 assembly
 for Assembler65Lib (syntax in Assembler65Lib/Assembler65C64Syntax.txt).  It is the first
 back end of the C++ parser.  Usage:
 
-	CCPP65Generator	cGenerator;
+	CCPPUnit	cGenerator;
 
 	cGenerator.Init(&cTree);
 	if (cGenerator.Generate(&szAssembly))		//Appends the functions, runtime routines and data.
@@ -33,7 +33,7 @@ exit calls the atexit functions (at most 32, last first) and the fini table, the
 _Exit, which stops at once with the status in A; abort is _Exit(EXIT_FAILURE).
 
 The preprocessor's configuration gets the target's macros from
-CCPP65Generator::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput.h use
+CCPPUnit::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput.h use
 for the platform (FILE_SEPARATOR, __ENGINE_PRETTY_FUNCTION__, EngineOutput ...).
 
 Generate writes the translation unit as the assembly of an object, for
@@ -47,11 +47,11 @@ processor stops.  The start up also defines _Exit.  The
 start up's object is linked first so it is at the start of the text, 0001:0000; the
 reset vector is left to the loader.
 
-Files: CPP65Generator.cpp (declarations, globals, functions), CPP65GeneratorClasses.cpp
-(classes), CPP65GeneratorTemplates.cpp, CPP65GeneratorVtables.cpp (virtual functions, type
-info and thunks), CPP65GeneratorOverloads.cpp, CPP65GeneratorLabels.cpp (mangled names),
-CPP65GeneratorExpressions.cpp (constants, warnings and
-TypeOf), CPP65GeneratorObjects.cpp and CPP65GeneratorFloat.cpp, CPP65Type.cpp (types and
+Files: CPPUnit.cpp (declarations, globals, functions), CPPUnitClasses.cpp
+(classes), CPPUnitTemplates.cpp, CPPUnitVtables.cpp (virtual functions, type
+info and thunks), CPPUnitOverloads.cpp, CPPUnitLabels.cpp (mangled names),
+CPPUnitExpressions.cpp (constants, warnings and
+TypeOf), CPPUnitObjects.cpp and CPPUnitFloat.cpp, CPP65Type.cpp (types and
 the rules for the types of operators), CPP65TypeChecker.cpp (expressions' types and
 errors) and CPP65IRFrontEnd.cpp (every function body, as IR).
 
@@ -569,7 +569,7 @@ CProject's, after Process):
 	cGenerator.Init(&cTree);
 	cGenerator.Generate(&szAssembly);				//One object's assembly.
 
-and one more object for CCPP65Generator::AppendStartUp, linked first (it is a keep
+and one more object for CCPPUnit::AppendStartUp, linked first (it is a keep
 section).  Each function, global, static local, temporary and string literal is a
 section of its own named after its label (text._f, data._gTotal, data.S0_siCalls,
 data.T0, rodata.Str0) so the linker can leave out what nothing uses

@@ -33,7 +33,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "HeaderFiles.h"
 #include "CppTokeniser.h"
 #include "CppParser.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPP65Builder.h"
 
 
@@ -947,7 +947,7 @@ void CCPP65Builder::SetLineTable(bool bLineTable)
 //
 // A program with no floating point (the HCP65's kernal): floating point
 // in the code of a unit not linked as a library is an error at its
-// statement (CCPP65Generator::SetNoFloats), and a used function of any
+// statement (CCPPUnit::SetNoFloats), and a used function of any
 // unit (a library's too) that uses the soft float or math.h is an error
 // naming the function (CAsm65Linker::ForbidObject).  Call before Link.
 //
@@ -1395,8 +1395,8 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // bProgram, otherwise as an object.  The assembly is appended to pszAssembly and every stage's errors to
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
 // pcFrameProfile's measured functions get aligned frames (NULL for none).  bListing gives the code comments with the
-// C++ source lines it is for (CCPP65Generator::SetListing), bLineTable .line and .fingerprint directives
-// (CCPP65Generator::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
+// C++ source lines it is for (CCPPUnit::SetListing), bLineTable .line and .fingerprint directives
+// (CCPPUnit::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics)
@@ -1406,7 +1406,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	CCPPTokeniser					cTokeniser;
 	CCPPSyntaxTree					cTree;
 	CCPPParser						cParser;
-	CCPP65Generator					cGenerator;
+	CCPPUnit					cGenerator;
 	CHeaderFileMap					cHeaderFileMap;
 	CArrayTemplate<CHeaderFiles>	acHeaderFiles;
 	SCPP65IncludeDirectory*			psInclude;
@@ -2208,7 +2208,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Generates psUnit up to its turn with the imports (CCPP65Generator::
+// Generates psUnit up to its turn with the imports (CCPPUnit::
 // GenerateBeforeTurn), then arrives at its turn: in it, generation goes on
 // (ContinueGenerating).  Before it the unit waits without a thread, and is
 // resumed in its turn, or as soon as a function it looked for and didn't
@@ -2265,7 +2265,7 @@ void CCPP65Builder::RestartGenerating(SCPP65CompiledUnit* psUnit)
 //////////////////////////////////////////////////////////////////////////
 //
 // In psUnit's turn (or with no turns): the rest of its generation
-// (CCPP65Generator::GenerateAfterTurn), then FinishCompile.  If it missed
+// (CCPPUnit::GenerateAfterTurn), then FinishCompile.  If it missed
 // a function exported since it inlined it is generated again, in its turn,
 // which it keeps (then it finds everything it would have).
 //

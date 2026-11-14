@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPP65IRFrontEnd.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // FinishUnit), in its turn uiTurn (CIRImports::BeginTurn).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetImports(CIRImports* pcImports, size uiTurn)
+void CCPPUnit::SetImports(CIRImports* pcImports, size uiTurn)
 {
 	mpcImports = pcImports;
 	muiImportsTurn = uiTurn;
@@ -53,7 +53,7 @@ void CCPP65Generator::SetImports(CIRImports* pcImports, size uiTurn)
 // still has its turn, so then it finds everything it would have.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::MissedImports(void)
+bool CCPPUnit::MissedImports(void)
 {
 	return mbMissedImports;
 }
@@ -65,7 +65,7 @@ bool CCPP65Generator::MissedImports(void)
 // the imports and didn't find, NULL if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayChars* CCPP65Generator::GetNotImported(void)
+CArrayChars* CCPPUnit::GetNotImported(void)
 {
 	return mpcIRFrontEnd->GetNotImported();
 }
@@ -77,7 +77,7 @@ CArrayChars* CCPP65Generator::GetNotImported(void)
 // measured worth it page aligned frames (CIRW65C816Backend::AlignFrame).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetFrameProfile(CAsm65Profile* pcProfile)
+void CCPPUnit::SetFrameProfile(CAsm65Profile* pcProfile)
 {
 	mpcFrameProfile = pcProfile;
 }
@@ -89,7 +89,7 @@ void CCPP65Generator::SetFrameProfile(CAsm65Profile* pcProfile)
 // before the code for it ("; File.cpp(12): text"), for a listing.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetListing(bool bListing)
+void CCPPUnit::SetListing(bool bListing)
 {
 	mbListing = bListing;
 }
@@ -102,7 +102,7 @@ void CCPP65Generator::SetListing(bool bListing)
 // SetScratch).
 //
 //////////////////////////////////////////////////////////////////////////
-CScratchPadAllocator* CCPP65Generator::GetBackendScratch(void)
+CScratchPadAllocator* CCPPUnit::GetBackendScratch(void)
 {
 	return &mcBackendScratch;
 }
@@ -116,7 +116,7 @@ CScratchPadAllocator* CCPP65Generator::GetBackendScratch(void)
 // generating; the unit's assembly is initialised with the same.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetSpillStore(CSpillStore* pcStore, uint32 uiUnit)
+void CCPPUnit::SetSpillStore(CSpillStore* pcStore, uint32 uiUnit)
 {
 	mpcSpillStore = pcStore ? pcStore : &mcMemorySpillStore;
 	muiSpillUnit = uiUnit;
@@ -130,7 +130,7 @@ void CCPP65Generator::SetSpillStore(CSpillStore* pcStore, uint32 uiUnit)
 // it too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetStatistics(CCPPCompileStatistics* pcStatistics)
+void CCPPUnit::SetStatistics(CCPPCompileStatistics* pcStatistics)
 {
 	mpcStatistics = pcStatistics ? pcStatistics : &mcOwnStatistics;
 	mpcIRFrontEnd->SetStatistics(mpcStatistics);
@@ -141,7 +141,7 @@ void CCPP65Generator::SetStatistics(CCPPCompileStatistics* pcStatistics)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPCompileStatistics* CCPP65Generator::GetStatistics(void)
+CCPPCompileStatistics* CCPPUnit::GetStatistics(void)
 {
 	return mpcStatistics;
 }
@@ -153,7 +153,7 @@ CCPPCompileStatistics* CCPP65Generator::GetStatistics(void)
 // the defaults for NULL.  Before anything is generated.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetOptions(CCPPCompileOptions* pcOptions)
+void CCPPUnit::SetOptions(CCPPCompileOptions* pcOptions)
 {
 	mpcOptions = pcOptions ? pcOptions : GetDefaultCPPCompileOptions();
 }
@@ -163,7 +163,7 @@ void CCPP65Generator::SetOptions(CCPPCompileOptions* pcOptions)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPCompileOptions* CCPP65Generator::GetOptions(void)
+CCPPCompileOptions* CCPPUnit::GetOptions(void)
 {
 	return mpcOptions;
 }
@@ -177,7 +177,7 @@ CCPPCompileOptions* CCPP65Generator::GetOptions(void)
 // line that knows which code it is for.  The code is the same as without.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetLineTable(bool bLineTable, int64 lliCompileTime)
+void CCPPUnit::SetLineTable(bool bLineTable, int64 lliCompileTime)
 {
 	mbLineTable = bLineTable;
 	mlliCompileTime = lliCompileTime;
@@ -192,7 +192,7 @@ void CCPP65Generator::SetLineTable(bool bLineTable, int64 lliCompileTime)
 // function) is not.  See CCPP65Builder::SetNoFloats.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetNoFloats(bool bNoFloats)
+void CCPPUnit::SetNoFloats(bool bNoFloats)
 {
 	mbNoFloats = bNoFloats;
 }
@@ -204,7 +204,7 @@ void CCPP65Generator::SetNoFloats(bool bNoFloats)
 // imports when it was finished (a later unit may export them).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::GetMissingCallees(CArrayChars* paszNames)
+void CCPPUnit::GetMissingCallees(CArrayChars* paszNames)
 {
 	CArrayChars*	paszMissing;
 	size			i;
@@ -221,7 +221,7 @@ void CCPP65Generator::GetMissingCallees(CArrayChars* paszNames)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
+void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 {
 	mpcTree = pcTree;
 	mpcTokeniser = pcTree->GetTokeniser();
@@ -290,7 +290,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Kill(void)
+void CCPPUnit::Kill(void)
 {
 	size					i;
 	CCPPFunction*			pcFunction;
@@ -379,7 +379,7 @@ void CCPP65Generator::Kill(void)
 // says what.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Generate(CChars* pszDest)
+bool CCPPUnit::Generate(CChars* pszDest)
 {
 	CCPP65Assembly	cAssembly;
 	bool			bResult;
@@ -399,7 +399,7 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 // functions' code goes, and is read a line at a time by the assembler.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Generate(CCPP65Assembly* pcDest)
+bool CCPPUnit::Generate(CCPP65Assembly* pcDest)
 {
 	GenerateBeforeTurn();
 	return GenerateAfterTurn(pcDest);
@@ -412,7 +412,7 @@ bool CCPP65Generator::Generate(CCPP65Assembly* pcDest)
 // in order.  If not, the compiler has a mistake in it, and what it wrote can't be trusted.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::CheckContext(void)
+void CCPPUnit::CheckContext(void)
 {
 	if (mcContext.IsBroken())
 	{
@@ -429,7 +429,7 @@ void CCPP65Generator::CheckContext(void)
 // unit's turn.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GenerateBeforeTurn(void)
+bool CCPPUnit::GenerateBeforeTurn(void)
 {
 	CCPPSyntaxTranslationUnit*	pcRoot;
 
@@ -463,7 +463,7 @@ bool CCPP65Generator::GenerateBeforeTurn(void)
 // unit exported since it inlined (it must be generated again).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GenerateAfterTurn(CCPP65Assembly* pcDest)
+bool CCPPUnit::GenerateAfterTurn(CCPP65Assembly* pcDest)
 {
 	CChars			szStrings;
 	CLargeChars*	pszText;
@@ -500,7 +500,7 @@ bool CCPP65Generator::GenerateAfterTurn(CCPP65Assembly* pcDest)
 // destroying.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy)
+bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy)
 {
 	CChars	szLabel;
 	bool	bResult;
@@ -536,7 +536,7 @@ bool CCPP65Generator::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcIn
 // (CCPPTarget::AppendStartUp), then the translation unit.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GenerateProgram(CChars* pszDest)
+bool CCPPUnit::GenerateProgram(CChars* pszDest)
 {
 	mpcTarget->AppendStartUp(pszDest);
 	return Generate(pszDest);
@@ -551,7 +551,7 @@ bool CCPP65Generator::GenerateProgram(CChars* pszDest)
 // there too, before its constructor runs from the init table.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
+bool CCPPUnit::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
 {
 	return mpcTarget->HasZeroedBss() && !pcInitialiser && !psType->IsReference() && (psType->iBytes > 0);
 }
@@ -562,7 +562,7 @@ bool CCPP65Generator::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
 // 4 for objects and data of 4 bytes or more, 2 for 2 bytes, otherwise 1.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::DataAlignment(SCPP65Type* psType, bool bClass)
+int CCPPUnit::DataAlignment(SCPP65Type* psType, bool bClass)
 {
 	if ((psType->iBytes >= 4) || bClass)
 	{
@@ -582,7 +582,7 @@ int CCPP65Generator::DataAlignment(SCPP65Type* psType, bool bClass)
 // (T* __restrict p): its outermost pointer is qualified.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
+bool CCPPUnit::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 {
 	CCPPSyntaxPointerOperator*	pcPointer;
 	CCPPSyntax*					pcQualifier;
@@ -620,7 +620,7 @@ bool CCPP65Generator::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 // the pointer itself is const or volatile.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer)
+SCPP65Type* CCPPUnit::QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer)
 {
 	CCPPSyntax*	pcQualifier;
 	ECppTokens	eKeyword;
@@ -650,7 +650,7 @@ SCPP65Type* CCPP65Generator::QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPoin
 // nothing uses it (its constructor may register it somewhere).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
+bool CCPPUnit::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
 {
 	size		i;
 	int32		iToken;
@@ -683,7 +683,7 @@ bool CCPP65Generator::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPErrors* CCPP65Generator::GetErrors(void)
+CCPPErrors* CCPPUnit::GetErrors(void)
 {
 	//Their tokens are C++ token indices.
 	return &mcErrors;
@@ -694,7 +694,7 @@ CCPPErrors* CCPP65Generator::GetErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPErrors* CCPP65Generator::GetWarnings(void)
+CCPPErrors* CCPPUnit::GetWarnings(void)
 {
 	return &mcWarnings;
 }
@@ -704,7 +704,7 @@ CCPPErrors* CCPP65Generator::GetWarnings(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::NumErrors(void)
+int CCPPUnit::NumErrors(void)
 {
 	return (int)mcErrors.NumErrors();
 }
@@ -716,7 +716,7 @@ int CCPP65Generator::NumErrors(void)
 // the translation unit.  They must come from somewhere else.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
+void CCPPUnit::GetExternals(CArrayChars* paszLabels)
 {
 	CCPPFunction*	pcFunction;
 	CCPPVariable*	pcVariable;
@@ -766,7 +766,7 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 // are only noted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Error(CCPPSyntax* pcNode, const char* szMessage)
+bool CCPPUnit::Error(CCPPSyntax* pcNode, const char* szMessage)
 {
 	if (mcContext.IsQuiet())
 	{
@@ -783,7 +783,7 @@ bool CCPP65Generator::Error(CCPPSyntax* pcNode, const char* szMessage)
 // same expression is often looked at more than once).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Warning(CCPPSyntax* pcNode, const char* szMessage)
+void CCPPUnit::Warning(CCPPSyntax* pcNode, const char* szMessage)
 {
 	SPreprocessedToken*	psSource;
 	CChars				szMessageText;
@@ -821,7 +821,7 @@ void CCPP65Generator::Warning(CCPPSyntax* pcNode, const char* szMessage)
 // Whether a warning containing szText is at one of pcNode's tokens.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasWarning(CCPPSyntax* pcNode, const char* szText)
+bool CCPPUnit::HasWarning(CCPPSyntax* pcNode, const char* szText)
 {
 	size	i;
 	int		iToken;
@@ -842,7 +842,7 @@ bool CCPP65Generator::HasWarning(CCPPSyntax* pcNode, const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
+bool CCPPUnit::ErrorAt(int iToken, const char* szMessage)
 {
 	SPreprocessedToken*	psSource;
 	CChars				szDetail;
@@ -872,7 +872,7 @@ bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
 // macro was used is added: " (in AssertInt at TestImage.cpp (12, 2))".
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage)
+void CCPPUnit::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage)
 {
 	SMacroExpansion*		psExpansion;
 	CPreprocessedTokens*	pcSource;
@@ -914,7 +914,7 @@ void CCPP65Generator::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMe
 // in quiet mode too.  Returns false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ReportError(CCPPSyntax* pcNode, const char* szMessage)
+bool CCPPUnit::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 {
 	BeginLoud();
 	Error(pcNode, szMessage);
@@ -928,7 +928,7 @@ bool CCPP65Generator::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 // ReportError at a token.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ReportErrorAt(int iToken, const char* szMessage)
+bool CCPPUnit::ReportErrorAt(int iToken, const char* szMessage)
 {
 	BeginLoud();
 	ErrorAt(iToken, szMessage);
@@ -943,7 +943,7 @@ bool CCPP65Generator::ReportErrorAt(int iToken, const char* szMessage)
 // are used.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::BeginQuiet(void)
+void CCPPUnit::BeginQuiet(void)
 {
 	if (mcContext.BeginQuiet())
 	{
@@ -957,7 +957,7 @@ void CCPP65Generator::BeginQuiet(void)
 // Returns false if an error happened since BeginQuiet.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::EndQuiet(void)
+bool CCPPUnit::EndQuiet(void)
 {
 	bool	bPassed;
 
@@ -977,7 +977,7 @@ bool CCPP65Generator::EndQuiet(void)
 // because it did.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::BeginTrial(void)
+void CCPPUnit::BeginTrial(void)
 {
 	if (mcContext.BeginTrial())
 	{
@@ -990,7 +990,7 @@ void CCPP65Generator::BeginTrial(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::EndTrial(void)
+bool CCPPUnit::EndTrial(void)
 {
 	bool	bPassed;
 
@@ -1010,7 +1010,7 @@ bool CCPP65Generator::EndTrial(void)
 // had.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::BeginLoud(void)
+void CCPPUnit::BeginLoud(void)
 {
 	mcContext.BeginLoud();
 }
@@ -1020,7 +1020,7 @@ void CCPP65Generator::BeginLoud(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::EndLoud(void)
+void CCPPUnit::EndLoud(void)
 {
 	mcContext.EndLoud();
 }
@@ -1031,7 +1031,7 @@ void CCPP65Generator::EndLoud(void)
 // Starts an instruction line.  The caller appends the rest and the new line.
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CCPP65Generator::Line(const char* szText)
+CChars* CCPPUnit::Line(const char* szText)
 {
 	mszCode.Append("\t\t");
 	return mszCode.Append(szText);
@@ -1042,7 +1042,7 @@ CChars* CCPP65Generator::Line(const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendName(CChars* psz, int64 lliName)
+void CCPPUnit::AppendName(CChars* psz, int64 lliName)
 {
 	char*	szName;
 	int		iLength;
@@ -1059,7 +1059,7 @@ void CCPP65Generator::AppendName(CChars* psz, int64 lliName)
 // no name.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCPP65Generator::GetName(CCPPSyntaxDeclarator* pcDeclarator)
+int64 CCPPUnit::GetName(CCPPSyntaxDeclarator* pcDeclarator)
 {
 	CCPPSyntaxName*				pcName;
 	CCPPSyntaxNameComponent*	pcComponent;
@@ -1090,7 +1090,7 @@ int64 CCPP65Generator::GetName(CCPPSyntaxDeclarator* pcDeclarator)
 // template) outside it: template<class T> int CValue::Size(T* p) { ... }.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
+bool CCPPUnit::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
 {
 	CCPPSyntaxTemplateDeclaration*	pcTemplate;
 	CCPPSyntaxName*					pcName;
@@ -1122,7 +1122,7 @@ bool CCPP65Generator::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
 // and its instance needs its definition.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
+bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 {
 	size								i;
 	CCPPSyntax*							pcDeclaration;
@@ -1191,7 +1191,7 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 // only skipped declaration that isn't left out, as asm is).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsScopeDeclaration(CCPPSyntax* pcDeclaration)
+bool CCPPUnit::IsScopeDeclaration(CCPPSyntax* pcDeclaration)
 {
 	switch (pcDeclaration->GetKind())
 	{
@@ -1212,7 +1212,7 @@ bool CCPP65Generator::IsScopeDeclaration(CCPPSyntax* pcDeclaration)
 // extern "C" (anything but extern "C++").
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage)
+bool CCPPUnit::IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage)
 {
 	CChars		szLanguage;
 	CCPPToken*	pcToken;
@@ -1238,7 +1238,7 @@ bool CCPP65Generator::IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage)
 // overloads.  Returns NULL after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
+CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
 {
 	int64						lliName;
 	CCPPFunction*				pcFunction;
@@ -1465,7 +1465,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 // block, as if it was declared there.  [basic.link] 6
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
+void CCPPUnit::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
 {
 	BeginQuiet();
 	if (!DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false))
@@ -1481,7 +1481,7 @@ void CCPP65Generator::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifier
 // A new function.  Its overload number counts the functions with its name before it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn)
+CCPPFunction* CCPPUnit::AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn)
 {
 	CCPPFunction*			pcFunction;
 	SCPPFunctionsOfName*	psOfName;
@@ -1517,7 +1517,7 @@ CCPPFunction* CCPP65Generator::AddFunction(CCPPClass* pcClass, int64 lliName, EC
 // were added, as in mapcFunctions.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::FirstFunctionOfName(int64 lliName)
+CCPPFunction* CCPPUnit::FirstFunctionOfName(int64 lliName)
 {
 	SCPPFunctionsOfName*	psOfName;
 
@@ -1532,7 +1532,7 @@ CCPPFunction* CCPP65Generator::FirstFunctionOfName(int64 lliName)
 // generating them queues after them.  True if there were any.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GenerateQueued(void)
+bool CCPPUnit::GenerateQueued(void)
 {
 	bool	bGenerated;
 
@@ -1554,7 +1554,7 @@ bool CCPP65Generator::GenerateQueued(void)
 // yet.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::RequireFunction(CCPPFunction* pcFunction)
+void CCPPUnit::RequireFunction(CCPPFunction* pcFunction)
 {
 	pcFunction->mbCalled = true;
 	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit))
@@ -1571,7 +1571,7 @@ void CCPP65Generator::RequireFunction(CCPPFunction* pcFunction)
 // already.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Emit(CChars* pszLabel)
+bool CCPPUnit::Emit(CChars* pszLabel)
 {
 	if (maszEmitted.GetIndex(pszLabel) != ARRAY_ELEMENT_NOT_FOUND)
 	{
@@ -1591,7 +1591,7 @@ bool CCPP65Generator::Emit(CChars* pszLabel)
 // and extern declarations the generator cannot do are only errors when used.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
+bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 {
 	size						i;
 	CCPPSyntaxInitDeclarator*	pcInit;
@@ -1746,7 +1746,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 // R_Initialise: *pbInitialise is set when there is one.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise)
+bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise)
 {
 	int64						lliValue;
 	CCPPSyntaxInitializerList*	pcList;
@@ -1864,7 +1864,7 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPVariable* CCPP65Generator::AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset)
+CCPPVariable* CCPPUnit::AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset)
 {
 	CCPPVariable*	pcVariable;
 
@@ -1879,7 +1879,7 @@ CCPPVariable* CCPP65Generator::AddVariable(CArrayCPPVariables* papcVariables, CC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::FreeVariables(CArrayCPPVariables* papcVariables)
+void CCPPUnit::FreeVariables(CArrayCPPVariables* papcVariables)
 {
 	size	i;
 
@@ -1896,7 +1896,7 @@ void CCPP65Generator::FreeVariables(CArrayCPPVariables* papcVariables)
 // The local, parameter or global a symbol names.  Locals are searched first.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPVariable* CCPP65Generator::GetVariable(CCPPSymbol* pcSymbol)
+CCPPVariable* CCPPUnit::GetVariable(CCPPSymbol* pcSymbol)
 {
 	size			i;
 	CCPPVariable*	pcVariable;
@@ -1928,7 +1928,7 @@ CCPPVariable* CCPP65Generator::GetVariable(CCPPSymbol* pcSymbol)
 // parameter itself go (f(const int) is f(int)).  [dcl.fct] 5
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ParameterType(SCPP65Type* psType)
+SCPP65Type* CCPPUnit::ParameterType(SCPP65Type* psType)
 {
 	if (psType->IsArray())
 	{
@@ -1949,7 +1949,7 @@ SCPP65Type* CCPP65Generator::ParameterType(SCPP65Type* psType)
 // don't count there (void f(const int i), void f(char* const p)).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter)
+SCPP65Type* CCPPUnit::ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter)
 {
 	CCPPSyntaxDeclarator*		pcDeclarator;
 	CCPPSyntaxPointerOperator*	pcPointer;
@@ -1976,7 +1976,7 @@ SCPP65Type* CCPP65Generator::ParameterVariableType(SCPP65Type* psType, CCPPSynta
 // list of just a string and the elements are characters.  Otherwise pcInitialiser.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPP65Generator::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement)
+CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement)
 {
 	CArraySyntax*	papcElements;
 
@@ -1999,7 +1999,7 @@ CCPPSyntax* CCPP65Generator::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65
 // generated when they are called; others now.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* pcClass)
+bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* pcClass)
 {
 	CCPPSyntaxName*		pcName;
 	CCPPFunction*		pcFunction;
@@ -2060,7 +2060,7 @@ bool CCPP65Generator::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPC
 // as the front end's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::WriteBody(CCPPFunction* pcFunction)
+bool CCPPUnit::WriteBody(CCPPFunction* pcFunction)
 {
 	bool	bWritten;
 
@@ -2077,7 +2077,7 @@ bool CCPP65Generator::WriteBody(CCPPFunction* pcFunction)
 // generator writes, with the template arguments it was made with.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
+void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 {
 	CChars			szLabel;
 	bool			bShared;
@@ -2147,7 +2147,7 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 // pointer first (EndFunction destroys its fields and bases), then the body.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GenerateDefinition(CCPPFunction* pcFunction)
+bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	size							uiErrors;
@@ -2202,7 +2202,7 @@ bool CCPP65Generator::GenerateDefinition(CCPPFunction* pcFunction)
 // ExpandPackCall).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AddParameters(CCPPFunction* pcFunction)
+void CCPPUnit::AddParameters(CCPPFunction* pcFunction)
 {
 	CCPPSyntaxFunctionSuffix*		pcSuffix;
 	CCPPSyntaxParameter*			pcParameter;
@@ -2252,7 +2252,7 @@ void CCPP65Generator::AddParameters(CCPPFunction* pcFunction)
 // AppendUnsupported).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendUnsupported(CChars* psz)
+void CCPPUnit::AppendUnsupported(CChars* psz)
 {
 	mpcIRFrontEnd->AppendUnsupported(psz);
 }
@@ -2263,7 +2263,7 @@ void CCPP65Generator::AppendUnsupported(CChars* psz)
 // Starts generating a function's body.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::BeginFunction(CCPPFunction* pcFunction)
+void CCPPUnit::BeginFunction(CCPPFunction* pcFunction)
 {
 	mcContext.BeginFunction(pcFunction);
 	FreeVariables(&mapcLocals);
@@ -2277,7 +2277,7 @@ void CCPP65Generator::BeginFunction(CCPPFunction* pcFunction)
 // function it writes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::EndFunction(CCPPFunction* pcFunction)
+void CCPPUnit::EndFunction(CCPPFunction* pcFunction)
 {
 	//Only a function the IR front end couldn't write ends here (it ends the ones it writes itself): nothing is written.
 	mcContext.EndFunction();
@@ -2291,7 +2291,7 @@ void CCPP65Generator::EndFunction(CCPPFunction* pcFunction)
 // blocks yet.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
+bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 {
 	CCPPSyntaxInitDeclarator*	pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
@@ -2361,7 +2361,7 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 // is a local variable at its offset in it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
+bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	CCPPClass*	pcClass;
 	SCPPField*	psField;
@@ -2399,7 +2399,7 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 // time the declaration is reached) is not supported yet, nor are objects.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
 {
 	CCPPVariable*		pcVariable;
 	SCPP65Type*			psType;
@@ -2443,7 +2443,7 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 // number, _ and its name).  A global is used once its label is written.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
+void CCPPUnit::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
 {
 	char*	szName;
 	int		iLength;
@@ -2468,7 +2468,7 @@ void CCPP65Generator::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
 // (sizeof a member function pointer ...) is ignored.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
+bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 {
 	int64	lliValue;
 	size	uiErrors;
@@ -2493,7 +2493,7 @@ bool CCPP65Generator::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 // own (CCPPTarget::AppendRuntime).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendRuntime(void)
+void CCPPUnit::AppendRuntime(void)
 {
 	if (mbPureVirtual && BeginRuntime("R_Pure"))
 	{
@@ -2510,7 +2510,7 @@ void CCPP65Generator::AppendRuntime(void)
 // The runtime routines' labels the unit's code calls (CCPPRuntimeWriter).
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayChars* CCPP65Generator::GetRuntimeCalls(void)
+CArrayChars* CCPPUnit::GetRuntimeCalls(void)
 {
 	return &maszRuntime;
 }
@@ -2522,7 +2522,7 @@ CArrayChars* CCPP65Generator::GetRuntimeCalls(void)
 // the unit has written it already: then false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::BeginRuntime(const char* szName)
+bool CCPPUnit::BeginRuntime(const char* szName)
 {
 	CChars	szLabel;
 
@@ -2551,7 +2551,7 @@ bool CCPP65Generator::BeginRuntime(const char* szName)
 // Where a runtime routine's code goes (CCPPRuntimeWriter).
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CCPP65Generator::GetRuntimeCode(void)
+CChars* CCPPUnit::GetRuntimeCode(void)
 {
 	return &mszCode;
 }
@@ -2561,7 +2561,7 @@ CChars* CCPP65Generator::GetRuntimeCode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::RuntimeError(const char* szMessage)
+void CCPPUnit::RuntimeError(const char* szMessage)
 {
 	ErrorAt(-1, szMessage);
 }

@@ -3,7 +3,7 @@
 #include "BaseLib/IntegerHelper.h"
 #include "Assembler65Lib/Asm65Object.h"
 #include "CppCompilerLib/CPP65Builder.h"
-#include "CppCompilerLib/CPP65Generator.h"
+#include "CppCompilerLib/CPPUnit.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 

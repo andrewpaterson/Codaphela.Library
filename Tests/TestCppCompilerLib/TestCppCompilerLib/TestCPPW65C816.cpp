@@ -18,7 +18,7 @@
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/IRW65C816Backend.h"
 #include "CppCompilerLib/CPP65IRFrontEnd.h"
-#include "CppCompilerLib/CPP65Generator.h"
+#include "CppCompilerLib/CPPUnit.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -5515,7 +5515,7 @@ void TestCPP816FrameOperandFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// With softfloat.cpp compiled in place of softfloatW65C816.asm (CCPP65Generator
+// With softfloat.cpp compiled in place of softfloatW65C816.asm (CCPPUnit
 // ::SetAssemblyUnits(false)) the float instructions call its functions'
 // register entries (CIRW65C816Backend::SoftFloatCall), not their stubs: every
 // result the same, bit for bit, as natively.  _SoftDoubleCompare takes

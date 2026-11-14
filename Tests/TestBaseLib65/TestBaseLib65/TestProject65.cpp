@@ -15,7 +15,7 @@
 #include "MicroprocessorLib/Fast65C64.h"
 #include "MicroprocessorLib/FastW65C816.h"
 #include "CppCompilerLib/CPP65Builder.h"
-#include "CppCompilerLib/CPP65Generator.h"
+#include "CppCompilerLib/CPPUnit.h"
 #include "CppCompilerLib/IRW65C816Backend.h"
 #include "ThreadLib/WorkerThreadJobs.h"
 #include "TestLib/Assert.h"

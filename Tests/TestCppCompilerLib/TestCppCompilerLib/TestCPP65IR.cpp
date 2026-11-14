@@ -659,7 +659,7 @@ void TestCPP65IRDynamicCast(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A vtable as CPP65Generator.h lays it out: a header (the distance to the
+// A vtable as CPPUnit.h lays it out: a header (the distance to the
 // object's start, the type info) before each part, the label after the
 // first header, a secondary part's entries through a thunk that adjusts
 // this.  Virtual calls through either part's pointer, and dynamic_cast

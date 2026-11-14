@@ -38,7 +38,7 @@ target independent, and everything above is the back end's (and the linker's) pr
 What is kept
 ------------
 
-- The parser, preprocessor and all of the generator's C++ (CCPP65Generator: types,
+- The parser, preprocessor and all of the generator's C++ (CCPPUnit: types,
   classes, templates, overloads, conversions, temporaries, destructors, vtables,
   mangling, init/fini tables).
 - The IR (IR*.cpp): types already include i8 and i16, address spaces (far, near, zero)
@@ -241,7 +241,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	whether results widen to 32 bits, whether the generator may write functions itself,
 	the bank size and the stack top.  CCPP65Builder::SetTarget (before anything is
 	added) picks the configuration, the defines, the generator's target, the assembler
-	(CAsm65816Assembler) and the linker's bank size; CCPP65Generator::Init takes the
+	(CAsm65816Assembler) and the linker's bank size; CCPPUnit::Init takes the
 	target.  Types: int is the target's (2 bytes), long a 4 byte type of its own
 	(CCPP65Types::Long), the usual arithmetic conversions take the wider type, and an
 	int literal that doesn't fit int is long.  int and short are the same type on the

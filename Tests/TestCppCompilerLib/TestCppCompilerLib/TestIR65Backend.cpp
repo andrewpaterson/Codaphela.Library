@@ -18,7 +18,7 @@
 #define TEST_IR65_STEPS		20000000		//The most steps a test program may take.
 
 
-//The generator's R_DivideSigned and R_DivideSigned64 (CCPP65Generator::AppendDivideSigned), for programs that
+//The generator's R_DivideSigned and R_DivideSigned64 (CCPPUnit::AppendDivideSigned), for programs that
 //are only IR.
 const char*	gszTestIR65DivideSigned =
 	"\t\t.section text.R_DivideSigned\n"

@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTIdentifier.h"
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -330,9 +330,9 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	if (pcStatement->mpcDeclaration && (pcStatement->mpcDeclaration->GetKind() == CPPS_StaticAssert))
 	{
 		//Checked when it is compiled; nothing is written.
-		return mpcGenerator->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__FILE__, __LINE__);
+		return mpcUnit->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__FILE__, __LINE__);
 	}
-	if (pcStatement->mpcDeclaration && mpcGenerator->IsScopeDeclaration(pcStatement->mpcDeclaration))
+	if (pcStatement->mpcDeclaration && mpcUnit->IsScopeDeclaration(pcStatement->mpcDeclaration))
 	{
 		return true;
 	}
@@ -367,10 +367,10 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(ui);
 		if (pcInit->mpcDeclarator->IsFunction())
 		{
-			mpcGenerator->DeclareBlockFunction(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator);
+			mpcUnit->DeclareBlockFunction(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator);
 			continue;
 		}
-		pcVariable = pcInit->mpcSymbol ? mpcGenerator->GetVariable(pcInit->mpcSymbol) : NULL;
+		pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 		if (!pcVariable)
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -449,7 +449,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		return ArrayInitialiser(psPlace, pcInitialiser);
 	}
-	if ((pcInitialiser->GetKind() != CPPS_InitializerList) && !mpcGenerator->CheckInitialiser(pcInitialiser, psPlace->psType))
+	if ((pcInitialiser->GetKind() != CPPS_InitializerList) && !mpcUnit->CheckInitialiser(pcInitialiser, psPlace->psType))
 	{
 		return false;
 	}
@@ -480,7 +480,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sValue.sValue, psPlace->sAddress);
 		return true;
 	}
-	mpcGenerator->ConversionOverflow(pcInitialiser, psPlace->psType);
+	mpcUnit->ConversionOverflow(pcInitialiser, psPlace->psType);
 	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue) || !Convert(&sValue, psPlace->psType))
 	{
 		return false;
@@ -507,11 +507,11 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	SCPP65IRValue	sValue;
 
 	psElement = psPlace->psType->psBase;
-	pcInitialiser = mpcGenerator->StringInitialiser(pcInitialiser, psElement);
-	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && psElement->IsScalar() && (psElement->iBytes == mpcGenerator->StringElementBytes(pcInitialiser)))
+	pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psElement);
+	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
-		if (!mpcGenerator->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() / psElement->iBytes > (size)psPlace->psType->iCount))
+		if (!mpcUnit->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() / psElement->iBytes > (size)psPlace->psType->iCount))
 		{
 			auiBytes.Kill();
 			return Unsupported(__FILE__, __LINE__);
@@ -520,7 +520,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		{
 			sPlace.sAddress = AddressAt(psPlace->sAddress, (int)ui * psElement->iBytes);
 			sPlace.psType = psElement;
-			sValue.sValue = Integer(psElement, mpcGenerator->StringElement(&auiBytes, psElement->iBytes, ui));
+			sValue.sValue = Integer(psElement, mpcUnit->StringElement(&auiBytes, psElement->iBytes, ui));
 			sValue.psType = psElement;
 			Store(&sPlace, &sValue);
 		}
@@ -599,7 +599,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			}
 			pcElement = papcOne->GetPtr(0);
 		}
-		mpcGenerator->ConversionOverflow(pcElement, psElement);
+		mpcUnit->ConversionOverflow(pcElement, psElement);
 		if (!ValueFor(pcElement, psElement, &sValue) || !Convert(&sValue, psElement))
 		{
 			return false;
@@ -764,7 +764,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	{
 		return false;
 	}
-	mpcGenerator->LoopCounterWidth(pcFor);
+	mpcUnit->LoopCounterWidth(pcFor);
 	pcTest = NewBlock();
 	pcBody = NewBlock();
 	pcNext = NewBlock();
@@ -852,7 +852,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		{
 			continue;
 		}
-		if (!mpcGenerator->Constant(psCase->pcCase->mpcValue, &lliValue))
+		if (!mpcUnit->Constant(psCase->pcCase->mpcValue, &lliValue))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -996,7 +996,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!mpcGenerator->CheckInitialiser(pcReturn->mpcValue, psReturn))
+	if (!mpcUnit->CheckInitialiser(pcReturn->mpcValue, psReturn))
 	{
 		return false;
 	}
@@ -1009,7 +1009,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	}
 	else
 	{
-		mpcGenerator->ConversionOverflow(pcReturn->mpcValue, psReturn);
+		mpcUnit->ConversionOverflow(pcReturn->mpcValue, psReturn);
 		if (!ValueFor(pcReturn->mpcValue, psReturn, &sValue) || !Convert(&sValue, psReturn))
 		{
 			return false;
@@ -1047,7 +1047,7 @@ bool CCPP65IRFrontEnd::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 			return Terminated();
 		}
 	}
-	mpcGenerator->ReportError(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+	mpcUnit->ReportError(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 	return Unsupported(__FILE__, __LINE__);
 }
 
@@ -1103,7 +1103,7 @@ CIRBlock* CCPP65IRFrontEnd::GotoBlock(int iToken)
 	int64			lliName;
 	size			ui;
 
-	pcToken = mpcGenerator->GetTokeniser()->Get(iToken);
+	pcToken = mpcUnit->GetTokeniser()->Get(iToken);
 	if (!pcToken || !pcToken->IsIdentifier())
 	{
 		return NULL;

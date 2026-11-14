@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -47,8 +47,8 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	SCPP65IRPlace	sPlace;
 	bool			bLvalue;
 
-	psTrue = mpcGenerator->ValueTypeOf(pcConditional->mpcTrue);
-	psFalse = mpcGenerator->ValueTypeOf(pcConditional->mpcFalse);
+	psTrue = mpcUnit->ValueTypeOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->ValueTypeOf(pcConditional->mpcFalse);
 	if (!psTrue || (psTrue != psFalse) || !psTrue->IsClass())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -113,8 +113,8 @@ bool CCPP65IRFrontEnd::IsObjectLvalue(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
-	psType = mpcGenerator->TypeOf(pcExpression);
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	psType = mpcUnit->TypeOf(pcExpression);
 	if (psType && psType->IsReference())
 	{
 		return true;
@@ -142,7 +142,7 @@ bool CCPP65IRFrontEnd::IsObjectExpression(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcGenerator->ValueTypeOf(pcExpression);
+	psType = mpcUnit->ValueTypeOf(pcExpression);
 	return psType && psType->IsClass();
 }
 
@@ -158,14 +158,14 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	ECppTokens					eOperator;
 
-	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_CallExpression:
 		return true;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		return !mpcGenerator->IsAssignmentOperator(pcBinary->meOperator) && !mpcGenerator->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcGenerator->IsOverloadedComma(pcBinary));
+		return !mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary));
 	case CPPS_UnaryExpression:
 		eOperator = ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator;
 		return (eOperator == CT_Subtract) || (eOperator == CT_Add) || (eOperator == CT_BitwiseNot);
@@ -203,12 +203,12 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	SCPP65IRValue	sResult;
 
 	pcClass = psValue->psType->WithoutReference()->pcClass;
-	pcFunction = mpcGenerator->GetOverloads()->FindConversion(pcClass, psTo, true, NULL);
+	pcFunction = mpcUnit->GetOverloads()->FindConversion(pcClass, psTo, true, NULL);
 	if (!pcFunction)
 	{
 		if (mpcValue)
 		{
-			mpcGenerator->ReportError(mpcValue, "The object has no conversion to the type it is used as");
+			mpcUnit->ReportError(mpcValue, "The object has no conversion to the type it is used as");
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -236,7 +236,7 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 	if (bArrow)
 	{
 		//An object's operator-> gives the pointer.
-		psType = mpcGenerator->ValueTypeOf(pcObject);
+		psType = mpcUnit->ValueTypeOf(pcObject);
 		if (psType && psType->IsClass())
 		{
 			if (!OperatorCall(pcObject, CT_MemberByPointer, NULL, &sPointer))
@@ -281,7 +281,7 @@ bool CCPP65IRFrontEnd::InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psR
 	SCPP65IRValue	sSource;
 	int64			lliBytes;
 
-	if (!psResult || !mpcGenerator->Constant(papcArguments->GetPtr(2), &lliBytes))
+	if (!psResult || !mpcUnit->Constant(papcArguments->GetPtr(2), &lliBytes))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -327,7 +327,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	//An implicit constructor has no definition, so no member initialisers.
 	papcInitialisers = pcFunction ? &pcFunction->macpMemberInitializers : &mapcNone;
 	pcClass = mpcCPPFunction->mpcClass;
-	if (msThis.IsNone() || !mpcGenerator->CompleteClass(pcClass, NULL))
+	if (msThis.IsNone() || !mpcUnit->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -337,7 +337,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 	{
 		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcGenerator->GetNameClass(pcMember->mpcName, pcMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
 		if (pcNamed == pcClass)
 		{
 			if (papcInitialisers->NumElements() != 1)
@@ -356,7 +356,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 		{
 			pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-			pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcGenerator->GetNameClass(pcMember->mpcName, pcMember);
+			pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
 			if (pcNamed == psBase->pcClass)
 			{
 				pcFound = pcMember;
@@ -404,7 +404,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 		{
 			pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-			if ((pcMember->mpcName->mpcSymbol == psField->pcSymbol) || (!pcMember->mpcName->mpcSymbol && (mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()) == psField->lliName)))
+			if ((pcMember->mpcName->mpcSymbol == psField->pcSymbol) || (!pcMember->mpcName->mpcSymbol && (mpcUnit->GetComponentName(pcMember->mpcName->GetLast()) == psField->lliName)))
 			{
 				pcFound = pcMember;
 			}
@@ -426,8 +426,8 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 	{
 		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcGenerator->GetNameClass(pcMember->mpcName, pcMember);
-		if (!(pcNamed && mpcGenerator->IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()), &iOffset))
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
+		if (!(pcNamed && mpcUnit->IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(mpcUnit->GetComponentName(pcMember->mpcName->GetLast()), &iOffset))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -523,9 +523,9 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	mpcGenerator->EnsureVtable(pcClass);
+	mpcUnit->EnsureVtable(pcClass);
 	szLabel.Init();
-	mpcGenerator->GetMangler()->AppendVtableLabel(&szLabel, pcClass);
+	mpcUnit->GetMangler()->AppendVtableLabel(&szLabel, pcClass);
 	sLabel = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	if (pcClass->IsUnnamed())
@@ -587,11 +587,11 @@ void CCPP65IRFrontEnd::DescribeVtable(CArrayCPPVtableEntries* pasEntries, CCPPCl
 		if (psEntry->eKind == CPPVE_Header)
 		{
 			pcVtable->AddValue(IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), (uint64)(int64)(-psEntry->iVtablePointer));
-			mpcGenerator->GetMangler()->AppendTypeInfoLabel(&szLabel, pcClass);
+			mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcClass);
 		}
 		else
 		{
-			mpcGenerator->GetMangler()->AppendVtableEntryLabel(&szLabel, psEntry->pcFunction, psEntry->iAdjust);
+			mpcUnit->GetMangler()->AppendVtableEntryLabel(&szLabel, psEntry->pcFunction, psEntry->iAdjust);
 		}
 		pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
 		szLabel.Kill();
@@ -701,7 +701,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	}
 
 	pcClass = psType->pcClass;
-	if (!mpcGenerator->CompleteClass(pcClass, NULL))
+	if (!mpcUnit->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -709,8 +709,8 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	//(object) and = object copy an object.
 	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->mbConstructors)
 	{
-		psSource = mpcGenerator->ValueTypeOf(papcArguments->GetPtr(0));
-		if (psSource && psSource->IsClass() && mpcGenerator->IsDerived(psSource->pcClass, pcClass, NULL))
+		psSource = mpcUnit->ValueTypeOf(papcArguments->GetPtr(0));
+		if (psSource && psSource->IsClass() && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
 			return CopyConstruct(psPlace, papcArguments->GetPtr(0));
 		}
@@ -721,16 +721,16 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		if (pcInitialiser->GetKind() == CPPS_ConstructExpression)
 		{
 			pcConstruct = (CCPPSyntaxConstructExpression*)pcInitialiser;
-			if ((mpcGenerator->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
+			if ((mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
 			{
 				return ConstructClass(psPlace, pcClass, &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements);
 			}
 		}
-		psSource = mpcGenerator->TypeOf(pcInitialiser);
-		if (psSource && (psSource == psType) && (mpcGenerator->SkipParentheses(pcInitialiser)->GetKind() == CPPS_ConditionalExpression))
+		psSource = mpcUnit->TypeOf(pcInitialiser);
+		if (psSource && (psSource == psType) && (mpcUnit->SkipParentheses(pcInitialiser)->GetKind() == CPPS_ConditionalExpression))
 		{
 			//= c ? x : y makes the object here from whichever is worked out.
-			return ObjectConditional((CCPPSyntaxConditionalExpression*)mpcGenerator->SkipParentheses(pcInitialiser), psPlace, &sMade);
+			return ObjectConditional((CCPPSyntaxConditionalExpression*)mpcUnit->SkipParentheses(pcInitialiser), psPlace, &sMade);
 		}
 		if (psSource && psSource->IsClass() && (psSource->pcClass == pcClass) && IsObjectCall(pcInitialiser))
 		{
@@ -753,7 +753,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 			return CopyBytes(psPlace, &sMade);
 		}
 		psSource = psSource ? psSource->WithoutReference() : NULL;
-		if (psSource && psSource->IsClass() && mpcGenerator->IsDerived(psSource->pcClass, pcClass, NULL))
+		if (psSource && psSource->IsClass() && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
 			return CopyConstruct(psPlace, pcInitialiser);
 		}
@@ -782,13 +782,13 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	size			ui;
 	size			uiArgument;
 
-	if (!mpcGenerator->CompleteClass(pcClass, NULL))
+	if (!mpcUnit->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{
-		pcConstructor = mpcGenerator->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, mpcCPPFunction->mpcDefinition);
+		pcConstructor = mpcUnit->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, mpcCPPFunction->mpcDefinition);
 		if (pcConstructor)
 		{
 			return CallObject(pcConstructor, psPlace->sAddress, pcClass, papcArguments, false);
@@ -872,7 +872,7 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psType = mpcGenerator->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
+	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
 	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsArray() || psType->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -934,7 +934,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (psType->IsClass() && !mpcGenerator->CompleteClass(psType->pcClass, NULL))
+	if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1034,7 +1034,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psType = sPointer.psType->psBase;
-	if (psType->IsClass() && !mpcGenerator->CompleteClass(psType->pcClass, NULL))
+	if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1116,14 +1116,14 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_ConditionalExpression:
 		return ObjectConditional((CCPPSyntaxConditionalExpression*)pcExpression, NULL, psValue);
 	case CPPS_BinaryExpression:
-		if (!mpcGenerator->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
+		if (!mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
 		{
 			return OperatorExpression(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
 		}
 		return Assignment((CCPPSyntaxBinaryExpression*)pcExpression, psValue);
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
-		psType = mpcGenerator->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
+		psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -1152,11 +1152,11 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		{
 			if (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)
 			{
-				mpcGenerator->ReportError(pcExpression, "dynamic_cast to a reference is not supported");
+				mpcUnit->ReportError(pcExpression, "dynamic_cast to a reference is not supported");
 			}
 			return Unsupported(__FILE__, __LINE__);
 		}
-		psType = mpcGenerator->GetDeclarators()->GetTypeIdType(pcType);
+		psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcType);
 		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -1226,7 +1226,7 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 	CIRBlock*			pcEntry;
 	SIRType				sFlag;
 
-	if (!mpcGenerator->CompleteClass(psType->pcClass, NULL))
+	if (!mpcUnit->CompleteClass(psType->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1519,7 +1519,7 @@ bool CCPP65IRFrontEnd::CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress)
 {
-	if (!psSource->psType->IsClass() || !mpcGenerator->IsDerived(psSource->psType->pcClass, psPlace->psType->pcClass, NULL) ||
+	if (!psSource->psType->IsClass() || !mpcUnit->IsDerived(psSource->psType->pcClass, psPlace->psType->pcClass, NULL) ||
 		!ReferenceAddress(psSource, mpcTypes->Pointer(psPlace->psType), psAddress))
 	{
 		return Unsupported(__FILE__, __LINE__);

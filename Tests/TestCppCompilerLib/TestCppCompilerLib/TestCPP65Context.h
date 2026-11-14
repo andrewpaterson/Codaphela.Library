@@ -7,7 +7,7 @@
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/MemoryDrive.h"
 #include "Assembler65Lib/Asm65Memory.h"
-#include "CppCompilerLib/CPP65Generator.h"
+#include "CppCompilerLib/CPPUnit.h"
 #include "CppCompilerLib/CPP65Builder.h"
 
 

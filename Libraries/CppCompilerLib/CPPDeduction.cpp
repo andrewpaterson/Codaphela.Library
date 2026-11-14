@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPPDeduction.h"
 
 
@@ -27,7 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // Nothing is deduced yet for any of the template's parameters.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPDeduction::Init(CCPP65Generator* pcUnit, CCPPTemplate* pcTemplate)
+void CCPPDeduction::Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate)
 {
 	size	i;
 
@@ -439,7 +439,7 @@ CCPPSymbol* CCPPDeduction::GetArgumentSymbol(CCPPSyntax* pcArgument)
 // than any partial one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSpecialisationMatch::Init(CCPP65Generator* pcUnit, CCPPTemplate* pcSpecialisation)
+void CCPPSpecialisationMatch::Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisation)
 {
 	CCPPSyntax*		pcParameter;
 	SCPPBinding*	psBinding;

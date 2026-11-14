@@ -43,7 +43,7 @@ typedef CMapLongTemplate<SCPPResolvedName>	CMapResolvedNames;
 
 
 //Works out the types of a parsed translation unit's expressions without generating any code, with the C++
-//compiler's type checker (CCPP65Generator::Check), so names the parser alone can't resolve are: what o.Init() and
+//compiler's type checker (CCPPUnit::Check), so names the parser alone can't resolve are: what o.Init() and
 //p->miCount name, and which overload f(x) calls.  It keeps going past what it can't type (C++ the compiler doesn't
 //support, or that is wrong): the rest of the statement, and the rest of the function, are still checked.  For the
 //IDE's index (CCPPIndex::Gather) and refactorings.

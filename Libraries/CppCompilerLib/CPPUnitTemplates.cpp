@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CPP65Generator.h"
+#include "CPPUnit.h"
 #include "CPPSymbolKey.h"
 
 
@@ -34,7 +34,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // specialisations of members are ignored until used.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration)
+bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration)
 {
 	CCPPTemplate*					pcTemplate;
 	CCPPSyntax*						pcDeclaration;
@@ -143,7 +143,7 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 // may have none: they are deduced from its parameters).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, CCPPSyntaxNameComponent* pcPattern)
+CCPPTemplate* CCPPUnit::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, CCPPSyntaxNameComponent* pcPattern)
 {
 	CCPPTemplate*	pcPrimary;
 	CCPPTemplate*	pcTemplate;
@@ -175,7 +175,7 @@ CCPPTemplate* CCPP65Generator::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTe
 // written the same way (SAlign<T*>).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPSyntaxNameComponent* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
+CCPPTemplate* CCPPUnit::OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPSyntaxNameComponent* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
 {
 	CCPPTemplate*		pcTemplate;
 	CCPPSyntax*			pcArgument;
@@ -245,7 +245,7 @@ CCPPTemplate* CCPP65Generator::OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPS
 // A new template, kept until the generator is killed.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember)
+CCPPTemplate* CCPPUnit::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember)
 {
 	CCPPTemplate*	pcTemplate;
 
@@ -262,7 +262,7 @@ CCPPTemplate* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTempl
 // that has a definition.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
+bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
 {
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPSyntaxTypeSpecifier*		pcType;
@@ -306,7 +306,7 @@ bool CCPP65Generator::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
 // recorded under the definition's.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::GetTemplate(CCPPSymbol* pcSymbol)
+CCPPTemplate* CCPPUnit::GetTemplate(CCPPSymbol* pcSymbol)
 {
 	CCPPTemplate*	pcTemplate;
 	CCPPSymbol*		pcDeclaration;
@@ -337,7 +337,7 @@ CCPPTemplate* CCPP65Generator::GetTemplate(CCPPSymbol* pcSymbol)
 // visible from pcLookup, else any.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup)
+CCPPTemplate* CCPPUnit::GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup)
 {
 	CCPPTemplate*	pcTemplate;
 	CCPPTemplate*	pcFound;
@@ -365,7 +365,7 @@ CCPPTemplate* CCPP65Generator::GetTemplateByName(int64 lliName, ECPPSyntax eDefi
 // The class template a name's component names.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent)
+CCPPTemplate* CCPPUnit::GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent)
 {
 	int64	lliName;
 
@@ -383,7 +383,7 @@ CCPPTemplate* CCPP65Generator::GetComponentTemplate(CCPPSyntaxNameComponent* pcC
 // pszArguments.  Returns NULL after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced)
+CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced)
 {
 	CCPPTemplateArguments*			pcBindings;
 	SCPPBinding*			psBinding;
@@ -505,7 +505,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 // The value of a template parameter in what is being generated.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPBinding* CCPP65Generator::FindBinding(CCPPSymbol* pcParameter)
+SCPPBinding* CCPPUnit::FindBinding(CCPPSymbol* pcParameter)
 {
 	return mcContext.GetBindings() ? mcContext.GetBindings()->Find(pcParameter) : NULL;
 }
@@ -517,7 +517,7 @@ SCPPBinding* CCPP65Generator::FindBinding(CCPPSymbol* pcParameter)
 // args) is declared with, or NULL if the parameter is not a pack.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPBinding* CCPP65Generator::PackBinding(CCPPSyntaxParameter* pcParameter)
+SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
 {
 	CCPPSyntaxTypeSpecifier*	pcType;
 	SCPPBinding*				psBinding;
@@ -543,7 +543,7 @@ SCPPBinding* CCPP65Generator::PackBinding(CCPPSyntaxParameter* pcParameter)
 // that matches the arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::InstantiateClass(CCPPTemplate* pcTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPClass* CCPPUnit::InstantiateClass(CCPPTemplate* pcTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPTemplateArguments*	pcBindings;
 	CCPPTemplateArguments*	pcSpecialised;
@@ -610,7 +610,7 @@ CCPPClass* CCPP65Generator::InstantiateClass(CCPPTemplate* pcTemplate, CArraySyn
 // instance's name.  It becomes the instance if the template is defined later (InstantiateClass).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPClass* CCPPUnit::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPSyntax*		pcDeclaration;
 	CCPPTemplateArguments*	pcBindings;
@@ -657,7 +657,7 @@ CCPPClass* CCPP65Generator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax
 // arguments match more of the types' structure.  NULL if none matches.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode)
+CCPPTemplate* CCPPUnit::FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode)
 {
 	CCPPSpecialisationMatch	cMatch;
 	CCPPTemplate*			pcTemplate;
@@ -717,7 +717,7 @@ CCPPTemplate* CCPP65Generator::FindClassSpecialisation(CCPPTemplate* pcPrimary, 
 // New empty bindings, kept until the generator is killed.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplateArguments* CCPP65Generator::NewBindings(void)
+CCPPTemplateArguments* CCPPUnit::NewBindings(void)
 {
 	CCPPTemplateArguments*	pcBindings;
 
@@ -733,7 +733,7 @@ CCPPTemplateArguments* CCPP65Generator::NewBindings(void)
 // A new empty list of a pack's types, kept until the generator is killed.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayCPP65Types* CCPP65Generator::NewPack(void)
+CArrayCPP65Types* CCPPUnit::NewPack(void)
 {
 	CArrayCPP65Types*	papsPack;
 
@@ -752,7 +752,7 @@ CArrayCPP65Types* CCPP65Generator::NewPack(void)
 // of the template's definition.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPFunction* CCPPUnit::InstantiateFunction(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPTemplate*					pcSpecialisation;
@@ -856,7 +856,7 @@ CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CAr
 // those deduced from its parameters' types (Size(short)), worked out once.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode)
+CCPPTemplate* CCPPUnit::FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode)
 {
 	CCPPTemplate*				pcTemplate;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
@@ -913,7 +913,7 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 // outside the class (template<class N> ... CArrayTemplate<N>::...).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplateArguments* CCPP65Generator::RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
+CCPPTemplateArguments* CCPPUnit::RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
 {
 	CCPPTemplateArguments*	pcBindings;
 	CCPPSyntax*		pcParameter;
@@ -939,7 +939,7 @@ CCPPTemplateArguments* CCPP65Generator::RenameBindings(CCPPClass* pcClass, CCPPS
 // constructor templates are left out.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration)
+bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration)
 {
 	CCPPSyntax*						pcDeclaration;
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
@@ -996,7 +996,7 @@ bool CCPP65Generator::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDecla
 // Whether a function's parameters are followed by const: int Get(void) const.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix)
+bool CCPPUnit::IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix)
 {
 	CCPPSyntax*	pcQualifier;
 	size		i;
@@ -1021,7 +1021,7 @@ bool CCPP65Generator::IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix)
 // that differ only in their parameters' types are, or else the first with as many.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode)
+bool CCPPUnit::DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode)
 {
 	CCPPTemplate*				pcOutside;
 	CCPPTemplate*				pcFound;
