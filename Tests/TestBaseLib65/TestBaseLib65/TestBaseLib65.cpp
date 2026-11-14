@@ -7,7 +7,7 @@
 
 
 void TestBaseLib65Tests(void);
-void TestFat816Layout(void);
+void TestFatW65C816Layout(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ int __cdecl main(int argc, char** argv)
 	TypeConverterInit();
 	NumberInit();
 
-	TestFat816Layout();
+	TestFatW65C816Layout();
 	TestBaseLib65Tests();
 
 	NumberKill();
