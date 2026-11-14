@@ -2226,6 +2226,32 @@ bool CTextEditing::UndoTo(size uiId) { return LoadUndo(mpcDocument->GetUndo()->F
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where the edit the next undo (or with bRedo, redo) would undo was made,
+// kept to the text as it is now.  False if there's nothing to undo.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::GetUndoCaret(bool bRedo, size* puiCaret)
+{
+	CTextUndo*	pcUndo;
+	size		uiIndex;
+
+	pcUndo = mpcDocument->GetUndo();
+	uiIndex = bRedo ? pcUndo->FindRedo() : pcUndo->FindUndo();
+	if (!mpcDocument->IsUndoable() || !pcUndo->CanLoad(uiIndex))
+	{
+		return false;
+	}
+	*puiCaret = pcUndo->GetLoadCaret(uiIndex);
+	if (*puiCaret > mpcDocument->Length())
+	{
+		*puiCaret = mpcDocument->Length();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The history starts again with the text, caret and selection as they
 // are.
 //

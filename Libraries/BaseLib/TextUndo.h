@@ -79,6 +79,7 @@ public:
 	bool			CanLoad(size uiIndex);
 	bool			IsUndo(size uiIndex);
 	char*			GetLoadText(size uiIndex, size* puiCaret, size* puiAnchor);
+	size			GetLoadCaret(size uiIndex);
 	void			Loading(size uiIndex);
 	void			Loaded(size uiCaret);
 

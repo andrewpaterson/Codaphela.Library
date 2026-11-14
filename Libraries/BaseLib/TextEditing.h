@@ -275,6 +275,7 @@ public:
 	bool		Undo(void);
 	bool		Redo(void);
 	bool		UndoTo(size uiId);
+	bool		GetUndoCaret(bool bRedo, size* puiCaret);
 	void		ClearUndo(void);
 
 	void		DocumentChanged(STextDocumentChange* psChange) override;

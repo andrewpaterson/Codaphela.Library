@@ -290,6 +290,18 @@ char* CTextUndo::GetLoadText(size uiIndex, size* puiCaret, size* puiAnchor)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where the caret goes when state uiIndex is loaded (as GetLoadText says,
+// without making its text): where the edit undone or redone was made.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextUndo::GetLoadCaret(size uiIndex)
+{
+	return IsUndo(uiIndex) ? mcStack.GetMarks(uiIndex + 1)[0] : mcStack.GetMarks(uiIndex)[2];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // State uiIndex's text is the editor's: the history is at it, and edits
 // aren't kept until Loaded.
 //
