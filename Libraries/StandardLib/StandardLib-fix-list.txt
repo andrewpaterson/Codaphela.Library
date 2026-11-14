@@ -6,7 +6,6 @@ Everything still to fix in StandardLib after the code review, numbered for refer
 
 F. Hygiene: names, comments, typos, dead code
 ---------------------------------------------
-F19. [203] CClass::ComputeSize stub returns 0.
 F27. [228] if ((char*)this < CORRUPT_MEMORY) return; silently ignores a corrupt pointer.
 F28. [234] CPointer::This()'s "should only *ever* be called whilst in the Load method" comment is stale.
 F33. [257] for (...; bResult && ...) loops whose bodies already return; the "Could not save object" error logs GetName() (empty for unnamed) instead of the index.
