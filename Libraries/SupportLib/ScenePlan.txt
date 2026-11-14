@@ -362,7 +362,24 @@ Vulkan.
    mesh is bound in another pose than its walk's first key, so posed at that key its edges are 0.09 to 4.4 times their length in
    the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
 10. In-place updates, if dragging plain meshes is slow.
-11. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
+11. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.  Not started.
+   The user's decisions:
+     The raster renderer needn't draw the same bytes once it's built from cooked data: cooking may split vertices at UV seams and
+     colour a triangle by its submesh's material.
+     The LunarG Vulkan SDK, on D:, for its headers, glslc and validation layers, and VulkanLib loads vulkan-1.dll itself, so that
+     a built app runs with only the driver.  The Linux box needs libvulkan-dev, glslc and the validation layers.
+     Vulkan draws offscreen for now, and the frame is read back into a CCanvas, so it works in any window or dialog and in tests.
+     A swapchain on a native window is a step of its own later, with the WindowLib design it needs (see Open).
+     Skinning is in the vertex shader, with each vertex's first weight and count, its weights and the palette in storage buffers,
+     so a vertex keeps any number of weights.  What needs a posed mesh in main memory, physics say, poses it in the scene, in
+     floats on demand (a SupportLib pose of an instance mesh, from its connections), not from the renderer: the same weights and
+     inverse times world matrices, for the frame it's simulating, with or without a renderer.
+     Vulkan lights as the rasteriser does (ambient, directional, point lights with a reach), so the two can be compared within a
+     tolerance, and draws a material's diffuse texture.  Other textures wait.  Transparent triangles go after opaque, unsorted.
+     It's proved by a test suite, TestVulkanLib, of offscreen frames compared with the raster renderer's.  A test scene in
+     WindowInputTester comes later.
+   The order: the cook stage with the raster renderer built from it; VulkanLib's device, offscreen target, a rigid mesh, camera
+   and lights; textures; skinning (Goober walking); the SupportLib pose.
 
 
 Test scenes
