@@ -85,6 +85,7 @@ protected:
 	Ptr<CWindow>			mpDialog;
 	Ptr<CDialogTick>		mpTick;
 	Ptr<CGridContainer>		mpForm;
+	Ptr<CComponent>			mpBody;  //The form's only component (SetBody), NULL for a form of rows.
 	Ptr<CButtonBar>			mpButtons;
 	Ptr<CButton>			mpOK;
 	Ptr<CButton>			mpCancel;
@@ -124,6 +125,7 @@ public:
 	bool				Show(void);
 	bool				Show(int32 iWidth);
 	bool				Show(int32 iWidth, int32 iHeight);
+	SInt32Vec2			GetFormSize(void);
 	void				Close(const char* szClicked);
 	char*				GetClicked(void);
 	Ptr<CWindow>		GetWindow(void);

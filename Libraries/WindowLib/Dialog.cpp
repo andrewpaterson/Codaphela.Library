@@ -160,6 +160,7 @@ void CDialog::Class(void)
 	M_Pointer(mpDialog);
 	M_Pointer(mpTick);
 	M_Pointer(mpForm);
+	M_Pointer(mpBody);
 	M_Pointer(mpButtons);
 	M_Pointer(mpOK);
 	M_Pointer(mpCancel);
@@ -386,6 +387,7 @@ void CDialog::SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor)
 	mpForm->SetAlignment(CSH_Stretch, CSV_Stretch);
 	pBody->SetAlignment(CSH_Stretch, CSV_Stretch);
 	mpForm->AddComponent(pBody, 0, 0, 1, 1, 1, 1);
+	mpBody = pBody;
 	mpFirstEditor = pFirstEditor;
 }
 
@@ -527,9 +529,9 @@ bool CDialog::Show(void)
 {
 	int32	iWidth;
 
-	mpForm->SetRequiredSize();
 	mpButtons->SetRequiredSize();
-	iWidth = (mpForm->GetRequiredSize().x > mpButtons->GetRequiredSize().x) ? mpForm->GetRequiredSize().x : mpButtons->GetRequiredSize().x;
+	iWidth = GetFormSize().x;
+	iWidth = (iWidth > mpButtons->GetRequiredSize().x) ? iWidth : mpButtons->GetRequiredSize().x;
 	iWidth += mpsLook->pcTheme->GetMetric(TM_DialogInset) * 2;
 	return Show((iWidth > mpsLook->pcTheme->GetMetric(TM_DialogMinWidth)) ? iWidth : mpsLook->pcTheme->GetMetric(TM_DialogMinWidth));
 }
@@ -543,8 +545,31 @@ bool CDialog::Show(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDialog::Show(int32 iWidth)
 {
+	return Show(iWidth, mpsLook->pcTheme->GetMetric(TM_DialogInset) + GetFormSize().y + mpsLook->pcTheme->GetMetric(TM_DialogButtonGap) + mpOK->GetDesiredSize().y + mpsLook->pcTheme->GetMetric(TM_DialogInset));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the form needs: its rows', or its body's.  The body fills the
+// form's one weighted cell, so the form alone would say it needs nothing
+// (see CGridContainer), and a message dialog would be cut off.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CDialog::GetFormSize(void)
+{
+	SInt32Vec2	sSize;
+	SInt32Vec2	sBody;
+
 	mpForm->SetRequiredSize();
-	return Show(iWidth, mpsLook->pcTheme->GetMetric(TM_DialogInset) + mpForm->GetRequiredSize().y + mpsLook->pcTheme->GetMetric(TM_DialogButtonGap) + mpOK->GetDesiredSize().y + mpsLook->pcTheme->GetMetric(TM_DialogInset));
+	sSize = mpForm->GetRequiredSize();
+	if (mpBody.IsNotNull())
+	{
+		sBody = CContainer::GetMeasuredSize(mpBody);
+		sSize.x = (sBody.x > sSize.x) ? sBody.x : sSize.x;
+		sSize.y = (sBody.y > sSize.y) ? sBody.y : sSize.y;
+	}
+	return sSize;
 }
 
 
