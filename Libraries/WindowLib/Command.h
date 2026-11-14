@@ -70,7 +70,9 @@ public:
 //one a window's or an editor's parts take (SetGivesStandard: Copy, Close Document).  A command can have several keys,
 //the first Global one being what a menu shows.  It remembers those it started with, so a user's changes can be told
 //from them and undone, and those it last bound, so they can be unbound.  Keys a project keeps rather than the user's
-//keymap (a subcircuit's, in LogiCim) are SetKeptByKeymap(false).
+//keymap (a subcircuit's, in LogiCim) are SetKeptByKeymap(false).  A command whose keys are given somewhere else (a
+//component's, in LogiCim's component chooser) is SetListedInKeymap(false): Settings' Keymap doesn't list it, but still
+//knows its keys, so a key given there that it has moves from it.
 //
 //A command that turns something on and off (Group by Project) says which it is (SetCheckedCheck): a toolbar shows its
 //button on while it is.
@@ -87,6 +89,7 @@ protected:
 	CCommandKeyList			mcBoundKeys;  //The keys given to a CComponentInput by Bind.
 	bool					mbGivesStandard;  //Its keys give meStandard rather than running it.
 	bool					mbKeptByKeymap;  //Its keys are the user's keymap's (CCommandSet::ReadKeys and WriteKeys).
+	bool					mbListedInKeymap;  //Settings' Keymap lists it.
 	Ptr<CImageCel>			mpIcon;  //NULL for none.
 	SMemberCall				msRun;
 	SMemberCall				msEnabled;  //Not set: the command can always run.
@@ -129,6 +132,8 @@ public:
 	char*				GetFirstContext(void);
 	void				SetKeptByKeymap(bool bKept);
 	bool				IsKeptByKeymap(void);
+	void				SetListedInKeymap(bool bListed);
+	bool				IsListedInKeymap(void);
 
 	char*				GetKeys(void);
 	size				NumKeys(void);

@@ -508,6 +508,10 @@ bool CKeymapPage::IsShown(size uiRow)
 	bool			bResult;
 
 	psRow = masRows.Get(uiRow);
+	if (!psRow->pcCommand->IsListedInKeymap())
+	{
+		return false;
+	}
 	szFilter = mpFilter->GetText();
 	szKeys.Init();
 	ShowKeys(uiRow, &szKeys);
@@ -728,14 +732,37 @@ void CKeymapPage::ResetAllKeys(void)
 	SKeymapRow*	psRow;
 	size		i;
 	size		j;
+	size		k;
 
 	for (i = 0; i < masRows.NumElements(); i++)
 	{
 		psRow = masRows.Get(i);
-		psRow->cKeys.Clear();
-		for (j = 0; j < psRow->pcCommand->NumDefaultKeys(); j++)
+		if (psRow->pcCommand->IsListedInKeymap())
 		{
-			psRow->cKeys.Add(psRow->pcCommand->GetDefaultKeysContext(j), psRow->pcCommand->GetDefaultKeys(j));
+			psRow->cKeys.Clear();
+			for (j = 0; j < psRow->pcCommand->NumDefaultKeys(); j++)
+			{
+				psRow->cKeys.Add(psRow->pcCommand->GetDefaultKeysContext(j), psRow->pcCommand->GetDefaultKeys(j));
+			}
+		}
+	}
+
+	//An unlisted command keeps its keys, but not one a listed command now has there.
+	for (i = 0; i < masRows.NumElements(); i++)
+	{
+		psRow = masRows.Get(i);
+		if (psRow->pcCommand->IsListedInKeymap())
+		{
+			for (j = 0; j < psRow->cKeys.NumKeys(); j++)
+			{
+				for (k = 0; k < masRows.NumElements(); k++)
+				{
+					if (!masRows.Get(k)->pcCommand->IsListedInKeymap())
+					{
+						masRows.Get(k)->cKeys.Remove(psRow->cKeys.GetContext(j), psRow->cKeys.GetKeys(j));
+					}
+				}
+			}
 		}
 	}
 	mpStatus->SetText("");

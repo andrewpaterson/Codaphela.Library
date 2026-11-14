@@ -180,6 +180,7 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 	mcBoundKeys.Init();
 	mbGivesStandard = false;
 	mbKeptByKeymap = true;
+	mbListedInKeymap = true;
 	AddDefaultKeys(szKeys);
 	mpIcon = pIcon;
 	msRun = *psRun;
@@ -205,6 +206,7 @@ void CCommand::Class(void)
 	U_Unknown(CCommandKeyList, mcBoundKeys);
 	U_Bool(mbGivesStandard);
 	U_Bool(mbKeptByKeymap);
+	U_Bool(mbListedInKeymap);
 	M_Pointer(mpIcon);
 	U_Unknown(SMemberCall, msRun);
 	U_Unknown(SMemberCall, msEnabled);
@@ -291,6 +293,8 @@ char* CCommand::GetContext(size uiIndex) { return maszContexts.GetText(uiIndex);
 char* CCommand::GetFirstContext(void) { return maszContexts.GetText(0); }
 void CCommand::SetKeptByKeymap(bool bKept) { mbKeptByKeymap = bKept; }
 bool CCommand::IsKeptByKeymap(void) { return mbKeptByKeymap; }
+void CCommand::SetListedInKeymap(bool bListed) { mbListedInKeymap = bListed; }
+bool CCommand::IsListedInKeymap(void) { return mbListedInKeymap; }
 size CCommand::NumKeys(void) { return mcKeys.NumKeys(); }
 char* CCommand::GetKeys(size uiIndex) { return mcKeys.GetKeys(uiIndex); }
 char* CCommand::GetKeysContext(size uiIndex) { return mcKeys.GetContext(uiIndex); }
