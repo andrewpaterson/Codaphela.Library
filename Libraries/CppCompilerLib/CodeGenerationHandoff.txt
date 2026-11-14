@@ -160,16 +160,17 @@ The user's, in order.  The W65C816's are also in W65C816.txt and the memory note
 - "W is 0 in every call was a misunderstanding around calling the mul instruction" (2026-11-14): W is an
   ordinary register a call may change.  The pseudo registers are $0000 to $00FF and are written [n].
 - W65C816 function pointers and vtables stay on the stack entry "for now" (a note was asked for and made).
+- "We're not doing frameless leaves or 816 function pointers and vtables at the register entry" (2026-11-14).
+  Both are closed, not waiting.  Frameless leaves were a leaf running on its caller's scratch direct page words
+  (about 33 cycles a call): every caller's scratch would have to be free at a call, which callers with D = S,
+  interrupt stubs and assembly with its own D don't promise.  The register entry for pointers would have taken
+  the stub off a call through a pointer, but changes what &f, vtables, thunks and assembly that takes a function
+  pointer mean.  Don't build or offer either again.
 
 Still waiting for the user (W65C816):
 
-- Frameless leaves: a leaf that runs on its caller's scratch direct page words (about 33 cycles a call).  Every
-  caller's scratch would have to be free at a call, which callers with D = S, interrupt stubs and assembly with
-  its own D don't promise.
 - 8 bit results returned zero extended: about 4,000 masks after calls would go; assembly that returns bytes
   would have to comply.
-- Function pointers and vtables at the register entry: no stub on a call through a pointer, but it changes what
-  &f, vtables, thunks and assembly that takes a function pointer mean.
 - uint8 counts elsewhere in the index tree: IndexTreeFile.cpp line 3970's loop works from size locals filled by
   getters and was left; it needs its own look.
 
