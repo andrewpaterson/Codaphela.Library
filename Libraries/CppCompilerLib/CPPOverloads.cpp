@@ -1425,9 +1425,12 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 			apcChosen.Add(cTaken.GetTemplate(i));
 		}
 	}
-	for (i = 0; (apcChosen.NumElements() == 0) && (i < cTaken.NumElements()); i++)
+	if (apcChosen.NumElements() == 0)
 	{
-		apcChosen.Add(cTaken.GetTemplate(i));
+		for (i = 0; i < cTaken.NumElements(); i++)
+		{
+			apcChosen.Add(cTaken.GetTemplate(i));
+		}
 	}
 	papcChosen = (apcChosen.NumElements() > 0) ? &apcChosen : papcCandidates;
 

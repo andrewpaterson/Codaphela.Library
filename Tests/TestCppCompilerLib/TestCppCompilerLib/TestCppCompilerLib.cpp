@@ -29,6 +29,7 @@ void TestCPP65HeaderCache(void);
 void TestIRImportsTurns(void);
 void TestDefineMap(void);
 void TestCPPClassLayout(void);
+void TestCPPOverloads(void);
 void TestPreprocessorHeaderCache(void);
 
 
@@ -47,6 +48,7 @@ int __cdecl main(void)
 	TestPreprocessor();
 	TestDefineMap();
 	TestCPPClassLayout();
+	TestCPPOverloads();
 	TestPreprocessorHeaderCache();
 	TestProject();
 	TestCppTokeniser();

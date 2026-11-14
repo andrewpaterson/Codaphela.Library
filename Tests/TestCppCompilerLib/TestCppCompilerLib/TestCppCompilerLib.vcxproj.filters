@@ -88,6 +88,9 @@
     <ClCompile Include="TestCPPClassLayout.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPPOverloads.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestPreprocessorHeaderCache.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
