@@ -26,18 +26,18 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 
 enum E65C816DebugRegister
 {
-	D816R_C,
-	D816R_X,
-	D816R_Y,
-	D816R_S,
-	D816R_D,
-	D816R_DBR,
-	D816R_PBR,
-	D816R_PC,
-	D816R_P,
-	D816R_E,
+	DW65C816R_C,
+	DW65C816R_X,
+	DW65C816R_Y,
+	DW65C816R_S,
+	DW65C816R_D,
+	DW65C816R_DBR,
+	DW65C816R_PBR,
+	DW65C816R_PC,
+	DW65C816R_P,
+	DW65C816R_E,
 
-	D816R_NumRegisters
+	DW65C816R_NumRegisters
 };
 
 

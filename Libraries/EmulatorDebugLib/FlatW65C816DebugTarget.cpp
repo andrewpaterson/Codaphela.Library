@@ -58,7 +58,7 @@ CFastW65C816* CFlatW65C816DebugTarget::GetMPU(void)	{ return &mcMPU; }
 uint8* CFlatW65C816DebugTarget::GetMemory(void)		{ return mpuiMemory; }
 const char* CFlatW65C816DebugTarget::GetProcessorName(void)	{ return "W65C816"; }
 size CFlatW65C816DebugTarget::NumAddressBits(void)	{ return 24; }
-size CFlatW65C816DebugTarget::NumRegisters(void)		{ return D816R_NumRegisters; }
+size CFlatW65C816DebugTarget::NumRegisters(void)		{ return DW65C816R_NumRegisters; }
 uint32 CFlatW65C816DebugTarget::GetProgramAddress(void)	{ return mcMPU.GetProgramAddress(); }
 uint32 CFlatW65C816DebugTarget::GetStackPointer(void)	{ return mcMPU.GetS(); }
 CBreakpoints* CFlatW65C816DebugTarget::GetBreakpoints(void)	{ return mcMPU.GetBreakpoints(); }

@@ -14,9 +14,9 @@
 #include "../../TestMicroprocessorLib/TestMicroprocessorLib/Test65C64Context.h"
 
 
-#define TEST_DEBUG_TIMEOUT		5000	//Milliseconds to wait for the server's answer.
-#define TEST_DEBUG_BUDGET		1000	//Instructions the target runs each Tick.
-#define TEST_DEBUG_816_MEMORY	0x20000
+#define TEST_DEBUG_TIMEOUT			5000	//Milliseconds to wait for the server's answer.
+#define TEST_DEBUG_BUDGET			1000	//Instructions the target runs each Tick.
+#define TEST_DEBUG_W65C816_MEMORY	0x20000
 
 
 enum ETestDebugTransport
@@ -46,7 +46,7 @@ static int	giTestDebugChannels = 0;
 
 //The few W65C816 instructions the tests' programs use.  The real decoder is with the W65C816's assembler, in the
 //HCP65 repository; EmulatorDebugLib has none of its own.
-class CTestDebug816Decoder : public CDebugDecoder
+class CTestDebugW65C816Decoder : public CDebugDecoder
 {
 public:
 	size Decode(CDebugTarget* pcTarget, uint32 uiAddress, size uiCount, SDebugInstruction* asDest) override
@@ -248,24 +248,24 @@ static void TestDebugSync(STestDebugLink* psLink)
 //////////////////////////////////////////////////////////////////////////
 static void TestDebugServer65C816(ETestDebugTransport eTransport)
 {
-	CFlatW65C816DebugTarget	cTarget;
-	CTestDebug816Decoder	cDecoder;
-	STestDebugLink			sLink;
-	STestDebugLink*			psLink;
-	CDebugClient*			pcClient;
-	SDebugBreakpoint		sBreakpoint;
-	SDebugInstruction*		psInstruction;
-	uint32					uiRequest;
-	CChars					sz;
-	SDebugRange				sLine;
-	SDebugRange				sFunction;
-	SDebugRegister*			psRegister;
-	static uint8			auiMain[] = { 0xE8, 0xE8, 0x20, 0x00, 0x20, 0xC8, 0x80, 0xF8 };
-	static uint8			auiFunction[] = { 0xE8, 0x48, 0x68, 0x60 };
-	static uint8			auiText[] = { 'a', 'b', 'c' };
-	static uint8			auiStop[] = { 0xDB };
+	CFlatW65C816DebugTarget		cTarget;
+	CTestDebugW65C816Decoder	cDecoder;
+	STestDebugLink				sLink;
+	STestDebugLink*				psLink;
+	CDebugClient*				pcClient;
+	SDebugBreakpoint			sBreakpoint;
+	SDebugInstruction*			psInstruction;
+	uint32						uiRequest;
+	CChars						sz;
+	SDebugRange					sLine;
+	SDebugRange					sFunction;
+	SDebugRegister*				psRegister;
+	static uint8				auiMain[] = { 0xE8, 0xE8, 0x20, 0x00, 0x20, 0xC8, 0x80, 0xF8 };
+	static uint8				auiFunction[] = { 0xE8, 0x48, 0x68, 0x60 };
+	static uint8				auiText[] = { 'a', 'b', 'c' };
+	static uint8				auiStop[] = { 0xDB };
 
-	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	cTarget.Init(TEST_DEBUG_W65C816_MEMORY);
 	cTarget.SetDecoder(&cDecoder);
 	psLink = &sLink;
 	AssertTrue(TestDebugLinkInit(psLink, eTransport, &cTarget));
@@ -285,21 +285,21 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertSize(24, pcClient->NumAddressBits());
 	AssertInt(DAF_Bank, pcClient->GetAddressFormat());
 	AssertTrue(pcClient->CanDecode());
-	AssertString("NVMXDIZC", pcClient->GetRegister(D816R_P)->szFlags);
-	AssertString("", pcClient->GetRegister(D816R_C)->szFlags);
-	AssertSize(D816R_NumRegisters, pcClient->NumRegisters());
-	psRegister = pcClient->GetRegister(D816R_PC);
+	AssertString("NVMXDIZC", pcClient->GetRegister(DW65C816R_P)->szFlags);
+	AssertString("", pcClient->GetRegister(DW65C816R_C)->szFlags);
+	AssertSize(DW65C816R_NumRegisters, pcClient->NumRegisters());
+	psRegister = pcClient->GetRegister(DW65C816R_PC);
 	AssertString("PC", psRegister->szName);
 	AssertInt(16, psRegister->uiBits);
-	AssertInt(DRK_Flags, pcClient->GetRegister(D816R_P)->uiKind);
-	AssertNull(pcClient->GetRegister(D816R_NumRegisters));
+	AssertInt(DRK_Flags, pcClient->GetRegister(DW65C816R_P)->uiKind);
+	AssertNull(pcClient->GetRegister(DW65C816R_NumRegisters));
 
 	//Loaded and started at $1000.
 	AssertTrue(pcClient->Load(0x1000, auiMain, sizeof(auiMain)));
 	AssertTrue(pcClient->Load(0x2000, auiFunction, sizeof(auiFunction)));
 	AssertTrue(pcClient->SetProgramAddress(0x1000));
 	TestDebugSync(psLink);
-	AssertLongLongIntHex(0x1000, pcClient->GetRegisterValue(D816R_PC));
+	AssertLongLongIntHex(0x1000, pcClient->GetRegisterValue(DW65C816R_PC));
 	AssertTrue(pcClient->ReadMemory(0x1000, sizeof(auiMain)));
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 1));
 	AssertIntHex(0x1000, pcClient->GetMemoryAddress());
@@ -310,19 +310,19 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertTrue(pcClient->AddBreakpoint(0x1005, true));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, 0x1005);
-	AssertLongLongIntHex(3, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(3, pcClient->GetRegisterValue(DW65C816R_X));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, 0x1005);
-	AssertLongLongIntHex(6, pcClient->GetRegisterValue(D816R_X));
-	AssertLongLongIntHex(1, pcClient->GetRegisterValue(D816R_Y));
+	AssertLongLongIntHex(6, pcClient->GetRegisterValue(DW65C816R_X));
+	AssertLongLongIntHex(1, pcClient->GetRegisterValue(DW65C816R_Y));
 
 	//One instruction, then Continue goes on from there.
 	AssertTrue(pcClient->Step(1));
 	TestDebugWaitForStop(psLink, DS_Step, 0x1006);
-	AssertLongLongIntHex(2, pcClient->GetRegisterValue(D816R_Y));
+	AssertLongLongIntHex(2, pcClient->GetRegisterValue(DW65C816R_Y));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, 0x1005);
-	AssertLongLongIntHex(9, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(9, pcClient->GetRegisterValue(DW65C816R_X));
 
 	//Step over the line $1000 to $1004 (the call is stepped over), stopping at INY where the breakpoint is.
 	sLine.uiStart = 0x1000;
@@ -331,7 +331,7 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	TestDebugWaitForStop(psLink, DS_Step, 0x1000);
 	AssertTrue(pcClient->StepRange(&sLine, 1, true));
 	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
-	AssertLongLongIntHex(12, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(12, pcClient->GetRegisterValue(DW65C816R_X));
 
 	//Step into it: the call stops at the function.
 	AssertTrue(pcClient->Step(2));
@@ -344,14 +344,14 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	sFunction.uiEnd = 0x2004;
 	AssertTrue(pcClient->StepRange(&sFunction, 1, true));
 	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
-	AssertLongLongIntHex(15, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(15, pcClient->GetRegisterValue(DW65C816R_X));
 
 	//Step over the JSR: the instruction after it.
 	AssertTrue(pcClient->Step(4));
 	TestDebugWaitForStop(psLink, DS_Step, 0x1002);
 	AssertTrue(pcClient->StepOver());
 	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
-	AssertLongLongIntHex(18, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(18, pcClient->GetRegisterValue(DW65C816R_X));
 
 	//Into it; over an INX and a PHA (one instruction each, though PHA moves the stack), then out of it.
 	AssertTrue(pcClient->Step(5));
@@ -362,7 +362,7 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	TestDebugWaitForStop(psLink, DS_Step, 0x2002);
 	AssertTrue(pcClient->StepOut());
 	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
-	AssertLongLongIntHex(21, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(21, pcClient->GetRegisterValue(DW65C816R_X));
 
 	//The emulator's decoder disassembles: the call's and the branch's targets, and the flow they make.
 	uiRequest = pcClient->Disassemble(0x1000, 5);
@@ -411,7 +411,7 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertString("$01:6590", sz.Text());
 	sz.Kill();
 	sz.Init();
-	AppendDebugRegisterValue(&sz, pcClient->GetRegister(D816R_P), 0x34);
+	AppendDebugRegisterValue(&sz, pcClient->GetRegister(DW65C816R_P), 0x34);
 	AssertString("$34 nvMXdIzc", sz.Text());
 	sz.Kill();
 	AssertTrue(pcClient->Step(8));
@@ -440,9 +440,9 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertSize(2, cTarget.GetBreakpoints()->NumEnabled());
 
 	//Registers and memory written.
-	AssertTrue(pcClient->WriteRegister(D816R_X, 0x55));
+	AssertTrue(pcClient->WriteRegister(DW65C816R_X, 0x55));
 	TestDebugSync(psLink);
-	AssertLongLongIntHex(0x55, pcClient->GetRegisterValue(D816R_X));
+	AssertLongLongIntHex(0x55, pcClient->GetRegisterValue(DW65C816R_X));
 	AssertTrue(pcClient->WriteMemory(0x3000, auiText, sizeof(auiText)));
 	AssertTrue(pcClient->ReadMemory(0x2FFF, 5));
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 2));
@@ -450,7 +450,7 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertMemory(auiText, &pcClient->GetMemory()[1], sizeof(auiText));
 
 	//Past the memory there is nothing; a missing breakpoint is an error.
-	AssertTrue(pcClient->ReadMemory(TEST_DEBUG_816_MEMORY - 2, 16));
+	AssertTrue(pcClient->ReadMemory(TEST_DEBUG_W65C816_MEMORY - 2, 16));
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 3));
 	AssertSize(2, pcClient->GetMemorySize());
 	uiRequest = pcClient->RemoveBreakpoint(0x9999);
@@ -658,7 +658,7 @@ static void TestDebugServerHello(void)
 		SDebugHello		sHello;
 	}						sOldHello;
 
-	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	cTarget.Init(TEST_DEBUG_W65C816_MEMORY);
 	psLink = &sLink;
 	AssertTrue(TestDebugLinkInit(psLink, TDT_SharedMemory, &cTarget));
 	pcClient = &psLink->cClient;
@@ -711,7 +711,7 @@ static void TestDebugServerAttach(void)
 	static uint8			auiMain[] = { 0xE8, 0xE8, 0x20, 0x00, 0x20, 0xC8, 0x80, 0xF8 };
 	static uint8			auiFunction[] = { 0xE8, 0x48, 0x68, 0x60 };
 
-	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	cTarget.Init(TEST_DEBUG_W65C816_MEMORY);
 	memcpy(&cTarget.GetMemory()[0x1000], auiMain, sizeof(auiMain));
 	memcpy(&cTarget.GetMemory()[0x2000], auiFunction, sizeof(auiFunction));
 	cTarget.SetProgramAddress(0x1000);
@@ -788,7 +788,7 @@ static void TestDebugServerResetTarget(void)
 	size					uiStops;
 	uint8*					puiMemory;
 
-	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	cTarget.Init(TEST_DEBUG_W65C816_MEMORY);
 	puiMemory = cTarget.GetMemory();
 	puiMemory[0x1000] = 0x80;
 	puiMemory[0x1001] = 0xFE;
