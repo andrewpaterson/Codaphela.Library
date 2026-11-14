@@ -44,9 +44,7 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mapcVirtuals.Init();
 	miVtableOffset = -1;
 	macVtables.Init();
-	mbComplete = false;
-	mbLayingOut = false;
-	mbBases = false;
+	meState = CPPCS_Declared;
 	mbEmpty = false;
 	miAlign = 1;
 	mbUnion = false;

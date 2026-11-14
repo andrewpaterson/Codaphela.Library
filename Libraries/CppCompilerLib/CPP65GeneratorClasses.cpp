@@ -419,7 +419,7 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	size						i;
 	bool						bResult;
 
-	if (pcClass->mbBases)
+	if (pcClass->HasBases())
 	{
 		return true;
 	}
@@ -432,7 +432,7 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		return Error(pcNode, "The class has not been defined");
 	}
 
-	pcClass->mbBases = true;
+	pcClass->meState = CPPCS_ResolvingBases;
 	pcSaved = mpcBindings;
 	mpcBindings = pcClass->mpcBindings;
 	bResult = true;
@@ -456,6 +456,7 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		psBase->iOffset = 0;
 	}
 	pcClass->mpcBase = (pcClass->macBases.NumElements() > 0) ? pcClass->macBases.Get(0)->pcClass : NULL;
+	pcClass->meState = CPPCS_BasesKnown;
 	mpcBindings = pcSaved;
 	return bResult;
 }
@@ -468,11 +469,11 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
-	if (pcClass->mbComplete)
+	if (pcClass->IsComplete())
 	{
 		return true;
 	}
-	if (pcClass->mbLayingOut)
+	if (pcClass->IsBeingMade())
 	{
 		return Error(pcNode, "A class cannot contain itself");
 	}
@@ -573,7 +574,6 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	bool							bResult;
 
 	pcSpecifier = pcClass->mpcSpecifier;
-	pcClass->mbLayingOut = true;
 	pcSaved = mpcBindings;
 	mpcBindings = pcClass->mpcBindings;
 	bResult = true;
@@ -586,6 +586,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 
 	bResult &= ResolveBases(pcClass, pcSpecifier);
+	pcClass->meState = CPPCS_LayingOut;
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		pcBaseSpecifier = (CCPPSyntaxBaseSpecifier*)pcSpecifier->macpBases.GetPtr(i);
@@ -714,8 +715,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	pcClass->miAlign = iAlign;
 	mcTypes.SetClassBytes(pcClass->mpsType, (iBytes > 0) ? iBytes : 1);
-	pcClass->mbComplete = true;
-	pcClass->mbLayingOut = false;
+	pcClass->meState = CPPCS_Complete;
 
 	if (pcClass->mpcInheritedBase)
 	{

@@ -864,7 +864,7 @@ bool CCPP65Generator::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOf
 	size		i;
 	int			iOffset;
 
-	if ((pcClass != pcBase) && !pcClass->mbComplete)
+	if ((pcClass != pcBase) && !pcClass->IsComplete())
 	{
 		//The bases are enough to know; their offsets need the class laid out.
 		BeginQuiet();

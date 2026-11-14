@@ -122,6 +122,17 @@ struct SCPPVtableEntry
 typedef CArrayTemplate<SCPPVtableEntry>	CArrayCPPVtableEntries;
 
 
+//How far a class has come.  Each state has all that the ones before it have.
+enum ECPPClassState
+{
+	CPPCS_Declared,			//Named, and perhaps defined: nothing is known of it yet.
+	CPPCS_ResolvingBases,	//macBases is being filled in.
+	CPPCS_BasesKnown,		//macBases is filled in, without the bases' offsets.
+	CPPCS_LayingOut,		//Its bases and fields are being placed.
+	CPPCS_Complete,			//Laid out: its size, its fields' and its bases' offsets and its vtable are known.
+};
+
+
 //A class and its layout: the bases in order (an empty base takes no space), then the vtable pointer if no base
 //has one, then the fields.  A class is laid out when it is first needed whole.  mpcBase is the first base.
 class CCPPClass
@@ -138,9 +149,7 @@ public:
 	CArrayCPPFunctions			mapcVirtuals;		//The vtable.
 	int							miVtableOffset;		//-1 if the class has no vtable of its own.
 	CArrayCPPSecondaryVtables	macVtables;			//The secondary vtables, written after the vtable.
-	bool						mbComplete;
-	bool						mbLayingOut;
-	bool						mbBases;			//macBases is filled in (their offsets only once it is complete).
+	ECPPClassState				meState;
 	bool						mbEmpty;			//No fields, no vtable pointer and empty bases.
 	int							miAlign;
 	bool						mbUnion;
@@ -156,6 +165,10 @@ public:
 
 	void			Init(CCPPSymbol* pcSymbol, int64 lliName);
 	void			Kill(void);
+
+	bool			IsComplete(void) { return meState == CPPCS_Complete; }
+	bool			IsBeingMade(void) { return (meState == CPPCS_ResolvingBases) || (meState == CPPCS_LayingOut); }
+	bool			HasBases(void) { return meState >= CPPCS_ResolvingBases; }
 
 	bool			IsInstanceNamed(CCPPSymbol* pcSymbol);
 	SCPPField*		FindField(int64 lliName, int* piOffset);

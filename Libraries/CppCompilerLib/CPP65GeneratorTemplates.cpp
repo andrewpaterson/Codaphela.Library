@@ -1361,7 +1361,7 @@ CCPPClass* CCPP65Generator::FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcT
 	{
 		return pcClass;
 	}
-	if (!pcClass->mbBases)
+	if (!pcClass->HasBases())
 	{
 		BeginQuiet();
 		ResolveBases(pcClass, NULL);
