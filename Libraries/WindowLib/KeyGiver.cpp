@@ -128,6 +128,22 @@ size CKeyGiver::FindOwner(size uiExcept, const char* szContext, const char* szKe
 
 //////////////////////////////////////////////////////////////////////////
 //
+// List uiIndex's caption in a sentence: "Settings", not "Settings...".
+//
+//////////////////////////////////////////////////////////////////////////
+void CKeyGiver::AppendCaption(size uiIndex, CChars* pszDest)
+{
+	CChars	szCaption;
+
+	szCaption.Init();
+	mpcSource->AppendKeyListCaption(uiIndex, &szCaption);
+	AppendWithoutEllipsis(pszDest, szCaption.Text());
+	szCaption.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether list uiIndex's command can be given szKeys in szContext, and
 // what giving them would mean, in pszMessage: refused (see
 // CheckCommandKeys), free, moved from another command, shadowing a Global
@@ -156,7 +172,7 @@ bool CKeyGiver::Describe(size uiIndex, const char* szContext, const char* szKeys
 		pszMessage->Clear();
 		pszMessage->Append(szShown);
 		pszMessage->Append(" moves here from ");
-		mpcSource->AppendKeyListCaption(uiOwner, pszMessage);
+		AppendCaption(uiOwner, pszMessage);
 		pszMessage->Append(".");
 	}
 	if (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0)
@@ -169,7 +185,7 @@ bool CKeyGiver::Describe(size uiIndex, const char* szContext, const char* szKeys
 		if (uiOwner != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			pszMessage->Append("  It shadows ");
-			mpcSource->AppendKeyListCaption(uiOwner, pszMessage);
+			AppendCaption(uiOwner, pszMessage);
 			pszMessage->Append(" there.");
 		}
 	}
@@ -204,7 +220,7 @@ void CKeyGiver::AppendShadowers(size uiIndex, const char* szKeys, CChars* pszMes
 			if ((StringCompare(pcKeys->GetKeys(j), szKeys) == 0) && (StringCompare(pcKeys->GetContext(j), COMPONENT_INPUT_GLOBAL_CONTEXT) != 0))
 			{
 				pszMessage->Append("  ");
-				mpcSource->AppendKeyListCaption(i, pszMessage);
+				AppendCaption(i, pszMessage);
 				pszMessage->Append(" keeps it");
 				AppendContextText(pszMessage, pcKeys->GetContext(j));
 				pszMessage->Append(".");
@@ -250,7 +266,7 @@ bool CKeyGiver::Give(size uiIndex, const char* szContext, const char* szKeys, CC
 		pszMessage->Append("Kept ");
 		CComponentInput::AppendShortcutText(pszMessage, szKeys);
 		pszMessage->Append(" on ");
-		mpcSource->AppendKeyListCaption(uiOwner, pszMessage);
+		AppendCaption(uiOwner, pszMessage);
 		pszMessage->Append(".");
 	}
 	szName.Kill();
@@ -283,9 +299,9 @@ bool CKeyGiver::AskToMove(size uiIndex, size uiOwner, const char* szKeys)
 	szMessage.Init();
 	CComponentInput::AppendShortcutText(&szMessage, szKeys);
 	szMessage.Append(" is ");
-	mpcSource->AppendKeyListCaption(uiOwner, &szMessage);
+	AppendCaption(uiOwner, &szMessage);
 	szMessage.Append(".  Give it to ");
-	szMessage.Append(mpcSource->GetKeyListCommand(uiIndex)->GetCaption());
+	AppendWithoutEllipsis(&szMessage, mpcSource->GetKeyListCommand(uiIndex)->GetCaption());
 	szMessage.Append(" instead?");
 	pAsk = OMalloc<CMessageDialog>(mpOwner, mpsLook, "Shortcut in Use", szMessage.Text());
 	szMessage.Kill();
@@ -373,5 +389,52 @@ void AppendContextText(CChars* pszDest, const char* szContext)
 		pszDest->Append(" over the ");
 		pszDest->Append(szContext);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keys as a menu shows them, separated by commas, each followed by where
+// it works unless that's everywhere or an editor: "R (Circuit), Ctrl+R".
+//
+//////////////////////////////////////////////////////////////////////////
+void AppendKeyListText(CChars* pszDest, CCommandKeyList* pcKeys)
+{
+	size		i;
+	const char*	szContext;
+
+	for (i = 0; i < pcKeys->NumKeys(); i++)
+	{
+		if (i > 0)
+		{
+			pszDest->Append(", ");
+		}
+		CComponentInput::AppendShortcutText(pszDest, pcKeys->GetKeys(i));
+		szContext = pcKeys->GetContext(i);
+		if ((StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) != 0) && (StringCompare(szContext, COMPONENT_INPUT_EDITOR_CONTEXT) != 0))
+		{
+			pszDest->Append(" (");
+			pszDest->Append(szContext);
+			pszDest->Append(")");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szText without the "..." a caption that opens a dialog ends with.
+//
+//////////////////////////////////////////////////////////////////////////
+void AppendWithoutEllipsis(CChars* pszDest, const char* szText)
+{
+	size	uiLength;
+
+	uiLength = strlen(szText);
+	if ((uiLength >= 3) && (strcmp(&szText[uiLength - 3], "...") == 0))
+	{
+		uiLength -= 3;
+	}
+	pszDest->Append(szText, uiLength);
 }
 

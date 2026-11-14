@@ -105,11 +105,14 @@ public:
 protected:
 	bool	AskToMove(size uiIndex, size uiOwner, const char* szKeys);
 	void	AppendShadowers(size uiIndex, const char* szKeys, CChars* pszMessage);
+	void	AppendCaption(size uiIndex, CChars* pszDest);
 };
 
 
 bool	CheckCommandKeys(CCommand* pcCommand, const char* szContext, CCommandKeyList* pcKeys, const char* szKeys, CComponentInput* pcInput, CChars* pszMessage);
 void	AppendContextText(CChars* pszDest, const char* szContext);
+void	AppendKeyListText(CChars* pszDest, CCommandKeyList* pcKeys);
+void	AppendWithoutEllipsis(CChars* pszDest, const char* szText);
 
 
 #endif // __KEY_GIVER_H__

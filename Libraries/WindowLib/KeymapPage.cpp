@@ -485,33 +485,12 @@ const char* CKeymapPage::GetGroupCaption(CCommand* pcCommand)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The row's keys as a menu shows them, separated by commas, each followed
-// by where it works unless that's everywhere or an editor: "R (Circuit),
-// Ctrl+R".
+// The row's keys (see AppendKeyListText).
 //
 //////////////////////////////////////////////////////////////////////////
 void CKeymapPage::ShowKeys(size uiRow, CChars* pszDest)
 {
-	SKeymapRow*	psRow;
-	size		i;
-	const char*	szContext;
-
-	psRow = masRows.Get(uiRow);
-	for (i = 0; i < psRow->cKeys.NumKeys(); i++)
-	{
-		if (i > 0)
-		{
-			pszDest->Append(", ");
-		}
-		CComponentInput::AppendShortcutText(pszDest, psRow->cKeys.GetKeys(i));
-		szContext = psRow->cKeys.GetContext(i);
-		if ((StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) != 0) && (StringCompare(szContext, COMPONENT_INPUT_EDITOR_CONTEXT) != 0))
-		{
-			pszDest->Append(" (");
-			pszDest->Append(szContext);
-			pszDest->Append(")");
-		}
-	}
+	AppendKeyListText(pszDest, &masRows.Get(uiRow)->cKeys);
 }
 
 
