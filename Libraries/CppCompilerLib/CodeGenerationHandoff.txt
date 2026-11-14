@@ -394,6 +394,22 @@ copies before a jump, but much has changed since, so nothing is chosen before th
 
 At the end: the full sweep, and what was built and measured written here.
 
+Done 2026-11-14: the full sweep (/home/r2d2/CodaphelaSweep/2026-11-14b, classify its logs with classify.py
+there: gdb's exit code is 1 even on a clean exit) on CommonLibraries db9c9ef32, HCP65 ab45db00f, HCP65-IDE
+38fee6c2c, LogiCim dab322e32 and WindowInputTester 30771b088.  121 builds and 119 runs: the last sweep's 116
+and 114 plus TestEmulatorDebugLib's five.  Everything this work touches passes: TestCppCompilerLib 267073/0,
+TestBaseLib65 421/0 (65C64) and 419/0 (816), TestStandardLib65 181/0 and 179/0, TestSupportLib65 170/0 and
+166/0, TestLibc65 816 154781/0 and on the host 154765/0, TestAssembler65Lib, TestHCP65Lib, TestEmulatorDebugLib
+and the host's BaseLib, StandardLib and SupportLib in every configuration.  Two failures, neither from this work
+and neither fixed:
+- TestLogicimLib 64Asan: heap-use-after-free in TestCircuitEditorEnterInstance (TestCircuitEditor.cpp:1467).
+  CCircuitEditor::DeleteViews (CircuitEditorChanges.cpp:635) frees a CPinView, then its Rewire reaches it
+  through CSubcircuitInstanceView::GetPinPortJoins (SubcircuitInstanceView.cpp:1089).  The other four
+  configurations pass, 17963/0.  It was 17857/0 and clean on LogiCim a474353; the 40 LogiCim commits since
+  (the instance paths and undo places) are where it came from.
+- WindowInputTesterRelease doesn't configure: WindowInputTester f748dbc puts VulkanLib in the CMake build, and
+  this machine has no vulkan/vulkan.h (libvulkan-dev).  It built on the last sweep.
+
 
 How this meets ConsolidationPlan.txt
 ------------------------------------
