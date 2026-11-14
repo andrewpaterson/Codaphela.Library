@@ -16,9 +16,15 @@
     <ClCompile Include="..\..\TestBaseLib65\TestBaseLib65\TestProject65.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\TestBaseLib65\TestBaseLib65\TestTarget65.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\TestBaseLib65\TestBaseLib65\TestProject65.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\TestBaseLib65\TestBaseLib65\TestTarget65.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,6 +19,7 @@
 #include "CppCompilerLib/IRW65C816Backend.h"
 #include "ThreadLib/WorkerThreadJobs.h"
 #include "TestLib/Assert.h"
+#include "TestTarget65.h"
 #include "TestProject65.h"
 
 
@@ -262,12 +263,15 @@ static void TestProject65TestDirectory(STestProject65* psProject, CChars* pszDes
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The directory the programs read and write, Output/<name>.
+// The directory the programs read and write, Output/<target>/<name>: the
+// 65C64's and the W65C816's runs of a test can go at once.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestProject65OutputDirectory(STestProject65* psProject, CChars* pszDest)
 {
 	pszDest->Init("Output" _FS_);
+	pszDest->Append(TestTarget65Name(geTestProject65Target));
+	pszDest->Append(_FS_);
 	pszDest->Append(psProject->szTestProject);
 }
 
@@ -290,8 +294,7 @@ static void TestProject65CopyDirectory(STestProject65* psProject)
 	TestProject65TestDirectory(psProject, &szTestDirectory);
 	TestProject65OutputDirectory(psProject, &szOutput);
 	cFileUtil.RemoveDir(szOutput.Text());
-	cFileUtil.MakeDir("Output");
-	AssertTrue(cFileUtil.MakeDir(szOutput.Text()));
+	AssertTrue(cFileUtil.TouchDir(szOutput.Text()));
 
 	aszEntries.Init();
 	cFileUtil.FindAllDirectories(szTestDirectory.Text(), &aszEntries, true);
@@ -968,30 +971,12 @@ void TestProject65RunTests(STestProject65* psProject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The target the test's command line names: "W65C816" (or "816" for
-// short), or "65C64" or nothing for the 65C64.  False, having said what
-// it takes, for anything else: the tests aren't run on a target that
-// wasn't asked for.
+// The target the test's command line names (TestTarget65Choose).  False,
+// having said what it takes, for an argument it doesn't know.
 //
 //////////////////////////////////////////////////////////////////////////
 bool TestProject65ChooseTarget(int argc, char** argv)
 {
-	if (argc <= 1)
-	{
-		geTestProject65Target = CPPT_65C64;
-		return true;
-	}
-	if ((argc == 2) && ((strcmp(argv[1], "W65C816") == 0) || (strcmp(argv[1], "816") == 0)))
-	{
-		geTestProject65Target = CPPT_W65C816;
-		return true;
-	}
-	if ((argc == 2) && (strcmp(argv[1], "65C64") == 0))
-	{
-		geTestProject65Target = CPPT_65C64;
-		return true;
-	}
-	fprintf(stderr, "%s: unknown argument \"%s\".  Give W65C816 (or 816) for the W65C816, or 65C64 or nothing for the 65C64.\n", argv[0], (argc == 2) ? argv[1] : argv[2]);
-	return false;
+	return TestTarget65Choose(argc, argv, &geTestProject65Target);
 }
 

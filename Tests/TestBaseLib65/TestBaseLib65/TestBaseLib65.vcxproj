@@ -235,6 +235,7 @@
     <ClCompile Include="TestBaseLib65Tests.cpp" />
     <ClCompile Include="TestFatW65C816Layout.cpp" />
     <ClCompile Include="TestProject65.cpp" />
+    <ClCompile Include="TestTarget65.cpp" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
@@ -243,6 +244,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestProject65.h" />
+    <ClInclude Include="TestTarget65.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\BaseLib\BaseLib.vcxproj">

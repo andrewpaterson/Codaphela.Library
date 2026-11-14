@@ -234,6 +234,7 @@
     <ClCompile Include="TestStandardLib65.cpp" />
     <ClCompile Include="TestStandardLib65Tests.cpp" />
     <ClCompile Include="..\..\TestBaseLib65\TestBaseLib65\TestProject65.cpp" />
+    <ClCompile Include="..\..\TestBaseLib65\TestBaseLib65\TestTarget65.cpp" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
@@ -242,6 +243,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\TestBaseLib65\TestBaseLib65\TestProject65.h" />
+    <ClInclude Include="..\..\TestBaseLib65\TestBaseLib65\TestTarget65.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\BaseLib\BaseLib.vcxproj">
