@@ -35,6 +35,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	true,						//mbRegisterArguments
 	true,						//mbHomeV
 	true,						//mbHomeW
+	true,						//mbHomeB
 	true,						//mbMathTables
 };
 

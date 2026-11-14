@@ -40,7 +40,7 @@ enum EIR65PlaceKind
 	IR65P_Argument,			//A parameter where the caller pushed it: [1 + frame + 8 + offset + V].
 	IR65P_FrameAddress,		//A slot's address, V + 1 + offset; not stored.
 	IR65P_ArgumentAddress,	//An argaddr's address, V + 1 + frame + 8 + offset; not stored.
-	IR65P_Register,			//X or Y (offset is IR65R_X or IR65R_Y).
+	IR65P_Register,			//A register (offset is IR65R_X, IR65R_Y, IR65R_V, IR65R_W or IR65R_B).
 	IR65P_Pseudo,			//A pseudo register: [offset + W].
 	IR65P_Folded,			//A ptradd of sBase and offset only the next instruction uses, as its address.
 };
@@ -53,8 +53,23 @@ enum EIR65Register
 	IR65R_Y,
 	IR65R_V,				//Only in a function that needs no frame (SIR65Frame::bHomeV); 32 bit values.
 	IR65R_W,				//Between calls, multiplies and divides, which change it; 32 bit values, never an address.
+	IR65R_B,				//Where the code written doesn't work in B (CheckHomeB); 32 bits or less, not a parameter.
 	IR65R_Count
 };
+
+
+//The code written for one or more of a block's instructions (or its jump and copies): the liveness positions of the
+//first and last, and where the text is.  For checking that a value kept in B isn't lost (CheckHomeB).
+struct SIR65Chunk
+{
+	int32	iFrom;
+	int32	iTo;
+	size	uiStart;
+	size	uiEnd;
+};
+
+
+typedef CArrayTemplate<SIR65Chunk>	CArrayIR65Chunks;
 
 
 //A temporary's home (or, for a slot or argaddr, the address it is), from register allocation.
@@ -149,6 +164,7 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 										//pull are 10 cycles, but a weight counts a loop as 8 passes and the loops that hold such values (calls
 										//in them) make far fewer; 40 is the measured best across the three suites, 2026-11-13.
 #define IR65_V_WEIGHT			3			//The least weight of a class not live across a call that is worth saving V for.
+#define IR65_HOME_B_TRIES		3			//The most times a function's code is written again with B as a home (GenerateFunction).
 #define IR65_HOME_PSEUDO		IR65R_Count
 #define IR65_HOME_SAVED			(IR65_HOME_PSEUDO + IR65_PSEUDO_UNITS)
 #define IR65_HOME_FRAME			(IR65_HOME_SAVED + IR65_PSEUDO_UNITS)
@@ -182,7 +198,8 @@ struct SIR65Frame
 
 
 //Writes 65C64 assembly for IR functions.  Temporaries are given homes by register allocation (IR.txt 65C64 back
-//end): X or Y, W between calls, V in a function that needs no frame (CanUseV: calls keep it), a pseudo register ([$00 + W] to
+//end): X or Y, W between calls, B between calls where the code doesn't work in it (CheckHomeB), V in a function that
+//needs no frame (CanUseV: calls keep it), a pseudo register ([$00 + W] to
 //[$7F + W] if no call is made while it is live, [$80 + W] to [$FF + W] if one is: the function keeps those), or
 //the frame.  A phi shares its home with the values it takes
 //when their live ranges allow, and a jump copies the others.  Instructions work in A (and B), or in a result's
@@ -198,6 +215,7 @@ protected:
 	CIRDominators			mcDominators;
 	CIRLiveness				mcLiveness;
 	CArrayIR65Places		masPlaces;			//Per temporary.
+	CArrayIR65Places		masLaidOut;			//Per temporary: its place as Layout left it, for Allocate again (GenerateFunction).
 	CArrayTemplate<uint8>	mauiAddressed;		//Per parameter: 1 if an argaddr of it is taken.
 	CArrayIRRegisterArguments	masArguments;	//The function's parameters as its callers pass them, less a thiscall's this (FunctionArguments).
 	int						miRegisterArguments;	//How many of them arrive in A, B and Y.
@@ -208,6 +226,10 @@ protected:
 	CArrayTemplate<int32>	maiCalls;			//Positions of instructions that change X, Y and [$00 + W] to [$7F + W]...
 	CArrayTemplate<int32>	maiChangesXY;		//...that change X and Y...
 	CArrayTemplate<int32>	maiChangesY;		//...and that change Y.
+	CArrayTemplate<int32>	maiChangesB;		//Positions whose code wrote B when the function was last written: a class live across one isn't kept in B...
+	CArrayTemplate<int32>	maiLosesB;			//...nor one live at a position whose code lost a value kept in B (CheckHomeB).
+	CArrayIR65Chunks		masChunks;			//The code of each instruction or jump, as it is written (Block).
+	bool					mbHomeB;			//B may be a home in this Allocate.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
 	CIRKnownBits			mcKnownBits;		//How many low bits each temporary may have: a result that fits its type isn't masked.
 	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
@@ -278,6 +300,12 @@ protected:
 	bool				Interferes(int32 iLeader1, int32 iLeader2);
 	void				Join(int32 iLeader1, int32 iLeader2);
 	bool				Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions);
+	bool				LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions);
+	bool				HasParameter(int32 iLeader);
+	bool				WriteBody(const char* szLabel, size uiStart);
+	void				Reallocate(SIR65Frame* psLaidOut, bool bHomeB);
+	void				AddChunk(int32 iFrom, int32 iTo, size uiStart);
+	bool				CheckHomeB(bool bChanges);
 	bool				HomeFree(int32 iHome, int32 iLeader);
 	int32				FindRange(CArrayIRRanges* pasRanges, SIRRange* psRange);
 	void				TakeHome(int32 iHome, int32 iLeader);

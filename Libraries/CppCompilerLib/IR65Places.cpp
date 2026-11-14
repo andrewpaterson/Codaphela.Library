@@ -440,7 +440,9 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // keep it (every function keeps V), so it is where one live across calls
 // goes; that stands if V was taken and nothing had to go in the frame.  W
 // is a fourth for those between calls, multiplies and divides, which
-// change it as they do Y.
+// change it as they do Y.  B is a fifth (mbHomeB, after W) for one live
+// across no code that works in B (maiChangesB, from the code written
+// without it) nor where B was lost the last time (maiLosesB; CheckHomeB).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Allocate(void)
@@ -880,6 +882,451 @@ bool CIR65Backend::Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if a temporary of the class is live at one of the positions (sorted):
+// read there, or live across it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions)
+{
+	int32			iMember;
+	SIRRange*		psRanges;
+	size			uiNumRanges;
+	size			ui;
+	size			uiLow;
+	size			uiHigh;
+	size			uiMiddle;
+
+	if (paiPositions->NumElements() == 0)
+	{
+		return false;
+	}
+	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	{
+		psRanges = mcLiveness.GetRanges(IRReference(IRRK_Temporary, (uint32)iMember));
+		uiNumRanges = mcLiveness.NumRanges(IRReference(IRRK_Temporary, (uint32)iMember));
+		for (ui = 0; ui < uiNumRanges; ui++)
+		{
+			uiLow = 0;
+			uiHigh = paiPositions->NumElements();
+			while (uiLow < uiHigh)
+			{
+				uiMiddle = (uiLow + uiHigh) / 2;
+				if (*paiPositions->Get(uiMiddle) < psRanges[ui].iFrom)
+				{
+					uiLow = uiMiddle + 1;
+				}
+				else
+				{
+					uiHigh = uiMiddle;
+				}
+			}
+			if ((uiLow < paiPositions->NumElements()) && (*paiPositions->Get(uiLow) < psRanges[ui].iTo))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a temporary of the class is one of the function's parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::HasParameter(int32 iLeader)
+{
+	int32	iMember;
+	size	ui;
+
+	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	{
+		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+		{
+			if (mpcFunction->masParameters.Get(ui)->Index() == (uint32)iMember)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Notes the code written from uiStart to now as that of the instructions
+// at positions iFrom to iTo (a jump's copies at the jump's position).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::AddChunk(int32 iFrom, int32 iTo, size uiStart)
+{
+	SIR65Chunk*	psChunk;
+
+	psChunk = masChunks.Add();
+	psChunk->iFrom = iFrom;
+	psChunk->iTo = iTo;
+	psChunk->uiStart = uiStart;
+	psChunk->uiEnd = mpszOut->Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the identifier character c can't be part of a name, so a B
+// beside it is the register.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65NotNameCharacter(char c)
+{
+	return !(((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '_') || (c == '.') || (c == '$') || (c == '@'));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the register B is named in the uiLength characters at sz.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65NamesB(const char* sz, size uiLength)
+{
+	size	ui;
+
+	for (ui = 0; ui < uiLength; ui++)
+	{
+		if ((sz[ui] == 'B') && ((ui == 0) || IR65NotNameCharacter(sz[ui - 1])) && ((ui + 1 == uiLength) || IR65NotNameCharacter(sz[ui + 1])))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a line of code does with B: reads it (*pbReads), writes it
+// (*pbWrites), and whether the write is all it does to it (*pbOverwrites: a
+// cpy, cpyx or pul into B that doesn't read it).  A call reads and writes it;
+// so does any width change of it.  Labels and directives do nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR65LineUsesB(const char* szLine, size uiLength, bool* pbReads, bool* pbWrites, bool* pbOverwrites)
+{
+	const char*	szEnd;
+	const char*	szMnemonic;
+	size		uiMnemonic;
+	const char*	szFirst;
+	size		uiFirst;
+	const char*	szSecond;
+	size		uiSecond;
+	const char*	sz;
+	int			iDepth;
+	bool		bFirstB;
+
+	*pbReads = false;
+	*pbWrites = false;
+	*pbOverwrites = false;
+	szEnd = szLine + uiLength;
+	while ((szLine < szEnd) && ((*szLine == '\t') || (*szLine == ' ')))
+	{
+		szLine++;
+	}
+	if ((szLine == szEnd) || (*szLine == '.') || (*szLine == ';') || (szEnd[-1] == ':'))
+	{
+		return;
+	}
+	for (sz = szLine; sz < szEnd; sz++)
+	{
+		if (*sz == ';')
+		{
+			szEnd = sz;
+			break;
+		}
+	}
+	szMnemonic = szLine;
+	for (sz = szLine; (sz < szEnd) && (*sz != ' ') && (*sz != '\t'); sz++)
+	{
+	}
+	uiMnemonic = sz - szMnemonic;
+	while ((sz < szEnd) && ((*sz == ' ') || (*sz == '\t')))
+	{
+		sz++;
+	}
+
+	//The operands: split at the first comma outside brackets.
+	szFirst = sz;
+	szSecond = szEnd;
+	iDepth = 0;
+	for (; sz < szEnd; sz++)
+	{
+		if ((*sz == '[') || (*sz == '('))
+		{
+			iDepth++;
+		}
+		else if ((*sz == ']') || (*sz == ')'))
+		{
+			iDepth--;
+		}
+		else if ((*sz == ',') && (iDepth == 0))
+		{
+			szSecond = sz + 1;
+			break;
+		}
+	}
+	uiFirst = sz - szFirst;
+	while ((szSecond < szEnd) && (*szSecond == ' '))
+	{
+		szSecond++;
+	}
+	uiSecond = szEnd - szSecond;
+
+	if (((uiMnemonic == 3) && (memcmp(szMnemonic, "jsr", 3) == 0)) || ((uiMnemonic == 3) && (memcmp(szMnemonic, "div", 3) == 0)))
+	{
+		*pbReads = true;
+		*pbWrites = true;
+		return;
+	}
+	if ((uiMnemonic == 3) && (memcmp(szMnemonic, "mul", 3) == 0))
+	{
+		*pbReads = true;
+		return;
+	}
+	if ((uiMnemonic == 3) && ((memcmp(szMnemonic, "ret", 3) == 0) || (memcmp(szMnemonic, "stp", 3) == 0)))
+	{
+		return;
+	}
+	if ((uiMnemonic >= 3) && (memcmp(szMnemonic, "bra", 3) == 0))
+	{
+		*pbReads = IR65NamesB(szFirst, szEnd - szFirst);
+		return;
+	}
+	if ((uiMnemonic == 3) && (memcmp(szMnemonic, "psh", 3) == 0))
+	{
+		*pbReads = IR65NamesB(szFirst, szEnd - szFirst);
+		return;
+	}
+	if ((uiMnemonic == 3) && (memcmp(szMnemonic, "pul", 3) == 0))
+	{
+		*pbWrites = IR65NamesB(szFirst, szEnd - szFirst);
+		*pbOverwrites = *pbWrites;
+		return;
+	}
+	if ((uiMnemonic >= 3) && (memcmp(szMnemonic, "wth", 3) == 0))
+	{
+		*pbReads = IR65NamesB(szFirst, szEnd - szFirst);
+		*pbWrites = *pbReads;
+		return;
+	}
+
+	//An operation: first, second.
+	bFirstB = (uiFirst == 1) && (szFirst[0] == 'B');
+	*pbReads = IR65NamesB(szSecond, uiSecond) || (!bFirstB && IR65NamesB(szFirst, uiFirst));
+	if (bFirstB)
+	{
+		if ((uiMnemonic == 3) && (memcmp(szMnemonic, "cmp", 3) == 0))
+		{
+			*pbReads = true;
+		}
+		else if (((uiMnemonic == 3) && (memcmp(szMnemonic, "cpy", 3) == 0)) || ((uiMnemonic == 4) && (memcmp(szMnemonic, "cpyx", 4) == 0)))
+		{
+			*pbWrites = true;
+			*pbOverwrites = !*pbReads;
+		}
+		else
+		{
+			*pbReads = true;
+			*pbWrites = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds iPosition to the sorted positions, once.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR65AddPosition(CArrayTemplate<int32>* paiPositions, int32 iPosition)
+{
+	size	uiLow;
+	size	uiHigh;
+	size	uiMiddle;
+
+	uiLow = 0;
+	uiHigh = paiPositions->NumElements();
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = (uiLow + uiHigh) / 2;
+		if (*paiPositions->Get(uiMiddle) < iPosition)
+		{
+			uiLow = uiMiddle + 1;
+		}
+		else
+		{
+			uiHigh = uiMiddle;
+		}
+	}
+	if ((uiLow < paiPositions->NumElements()) && (*paiPositions->Get(uiLow) == iPosition))
+	{
+		return;
+	}
+	paiPositions->InsertAt(&iPosition, uiLow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With bChanges, notes the positions of each chunk of code just written
+// that writes B (maiChangesB): a class kept in B must not be live across
+// them.  Otherwise checks the code just written with B as a home: in each
+// chunk, a value kept in B that is live across it must not be written
+// there; one read there for the last time must not be read after B is
+// written (unless the chunk's own result, kept in B, is worked out in it in
+// place: add B, 1); and one defined part way through the chunk isn't
+// allowed.  A chunk that loses a value so has its positions noted
+// (maiLosesB) for the next Allocate, and the check fails.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::CheckHomeB(bool bChanges)
+{
+	size				uiChunk;
+	SIR65Chunk*			psChunk;
+	CArrayIRRanges*		pasRanges;
+	SIRRange*			psRange;
+	size				ui;
+	const char*			szText;
+	size				uiLine;
+	size				uiEnd;
+	bool				bReads;
+	bool				bWrites;
+	bool				bOverwrites;
+	bool				bThrough;
+	bool				bDies;
+	bool				bEarly;
+	bool				bResult;
+	bool				bLost;
+	bool				bWritten;
+	bool				bInPlace;
+	bool				bReadSince;
+	bool				bAnyWrite;
+	bool				bAllRight;
+	int32				iPosition;
+
+	bAllRight = true;
+	pasRanges = &masHomes.Get(IR65R_B)->asRanges;
+	szText = mpszOut->Text();
+	for (uiChunk = 0; uiChunk < masChunks.NumElements(); uiChunk++)
+	{
+		psChunk = masChunks.Get(uiChunk);
+		bThrough = false;
+		bDies = false;
+		bEarly = false;
+		bResult = false;
+		if (!bChanges)
+		{
+			for (ui = 0; ui < pasRanges->NumElements(); ui++)
+			{
+				psRange = pasRanges->Get(ui);
+				if ((psRange->iFrom <= psChunk->iFrom) && (psRange->iTo > psChunk->iTo + 1))
+				{
+					bThrough = true;
+				}
+				else if ((psRange->iFrom <= psChunk->iFrom) && (psRange->iTo > psChunk->iFrom))
+				{
+					bDies = true;
+				}
+				else if ((psRange->iFrom > psChunk->iFrom) && (psRange->iFrom < psChunk->iTo + 1))
+				{
+					bEarly = true;
+				}
+				else if (psRange->iFrom == psChunk->iTo + 1)
+				{
+					bResult = true;
+				}
+			}
+			if (!bThrough && !bDies && !bEarly && !bResult)
+			{
+				continue;
+			}
+		}
+
+		bLost = false;
+		bWritten = false;
+		bInPlace = false;
+		bReadSince = true;
+		bAnyWrite = false;
+		uiLine = psChunk->uiStart;
+		while (uiLine < psChunk->uiEnd)
+		{
+			for (uiEnd = uiLine; (uiEnd < psChunk->uiEnd) && (szText[uiEnd] != '\n') && (szText[uiEnd] != '\r'); uiEnd++)
+			{
+			}
+			IR65LineUsesB(&szText[uiLine], uiEnd - uiLine, &bReads, &bWrites, &bOverwrites);
+			if (bReads && bWritten && bDies && !bInPlace)
+			{
+				//The value read for the last time here was written over first.
+				bLost = true;
+			}
+			if (bWrites)
+			{
+				if (bOverwrites && bWritten && !bReadSince && bResult)
+				{
+					//Written twice with no read between: the result worked out in B over its own operand.
+					bLost = true;
+				}
+				if (!bWritten && bReads && bResult)
+				{
+					bInPlace = true;
+				}
+				else if (bOverwrites && bInPlace)
+				{
+					bInPlace = false;
+				}
+				bWritten = true;
+				bAnyWrite = true;
+				bReadSince = false;
+			}
+			if (bReads)
+			{
+				bReadSince = true;
+			}
+			for (uiLine = uiEnd; (uiLine < psChunk->uiEnd) && ((szText[uiLine] == '\n') || (szText[uiLine] == '\r')); uiLine++)
+			{
+			}
+		}
+
+		if (bChanges)
+		{
+			if (bAnyWrite)
+			{
+				for (iPosition = psChunk->iFrom; iPosition <= psChunk->iTo; iPosition += 2)
+				{
+					IR65AddPosition(&maiChangesB, iPosition);
+				}
+			}
+			continue;
+		}
+		if ((bThrough || bEarly) && bAnyWrite)
+		{
+			bLost = true;
+		}
+		if (bLost)
+		{
+			for (iPosition = psChunk->iFrom; iPosition <= psChunk->iTo; iPosition += 2)
+			{
+				IR65AddPosition(&maiLosesB, iPosition);
+			}
+			bAllRight = false;
+		}
+	}
+	return bAllRight;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if none of the class's ranges overlap those given the home already.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1087,6 +1534,12 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		if (mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && Fits32BitRegister(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
 		{
 			PlaceClass(iLeader, IR65P_Register, IR65R_W, 4);
+			return true;
+		}
+		//B, where the code doesn't work in it while the class is live (CheckHomeB): not across what changes Y either.
+		if (mbHomeB && (iUnits == 1) && !bChangesY && !HasParameter(iLeader) && !Crosses(iLeader, &maiChangesB) && !LiveAt(iLeader, &maiLosesB) && TakeHomes(IR65R_B, 1, iLeader))
+		{
+			PlaceClass(iLeader, IR65P_Register, IR65R_B, 4);
 			return true;
 		}
 		if (bV && TakeHomes(IR65R_V, 1, iLeader))
@@ -1376,7 +1829,7 @@ void CIR65Backend::FindNarrowOnly(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 {
-	static const char*	aszNames[IR65R_Count] = { "X", "Y", "V", "W" };
+	static const char*	aszNames[IR65R_Count] = { "X", "Y", "V", "W", "B" };
 
 	return aszNames[psPlace->iOffset];
 }
@@ -1387,12 +1840,13 @@ const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 // True if a register home can be written as an address ([X], [4 + V]) by
 // any instruction: not W, which add, sub, cmp, shl, shr and cpyx can't
 // address with, and whose [n + W] is how the pseudo registers are written
-// (a cpy's [W] is MemoryOperand's own case).
+// (a cpy's [W] is MemoryOperand's own case); nor B, which cpyx can't, and
+// which MemoryOperand uses as [B] when an address is nowhere else.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IsAddressRegister(SIR65Place* psPlace)
 {
-	return (psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_W);
+	return (psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_W) && (psPlace->iOffset != IR65R_B);
 }
 
 

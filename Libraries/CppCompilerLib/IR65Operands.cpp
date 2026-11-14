@@ -283,7 +283,7 @@ const char* CIR65Backend::WidthRegister(const char* szRegister)
 //////////////////////////////////////////////////////////////////////////
 //
 // The register to work out an instruction's result in: its own if it is
-// kept in X, Y or V, otherwise A.
+// kept in X, Y, V or W, otherwise A (B is what the code works in besides A).
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CIR65Backend::WorkRegister(SIRInstruction* psInstruction)
@@ -295,7 +295,7 @@ const char* CIR65Backend::WorkRegister(SIRInstruction* psInstruction)
 		return "A";
 	}
 	psPlace = PlaceOf(psInstruction->sResult);
-	return (psPlace->uiKind == IR65P_Register) ? RegisterName(psPlace) : "A";
+	return ((psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_B)) ? RegisterName(psPlace) : "A";
 }
 
 

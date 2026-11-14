@@ -143,7 +143,7 @@ void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* p
 	{
 		pszCallee->Append(mpcModule->GetSymbolName(sCallee.Index()));
 	}
-	else if (InRegister(sCallee) && (PlaceOf(sCallee)->iOffset != IR65R_W) && ((PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
+	else if (InRegister(sCallee) && (PlaceOf(sCallee)->iOffset != IR65R_W) && (PlaceOf(sCallee)->iOffset != IR65R_B) && ((PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
 	{
 		AppendPlace(pszCallee, PlaceOf(sCallee));
 	}
@@ -161,9 +161,9 @@ void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The registers loading sValue reads (a bit each: 1 A, 2 X, 4 Y): A when it
-// is what A holds, else its home when that is X or Y (V is never an
-// argument's register).
+// The registers loading sValue reads (a bit each: 1 A, 2 X, 4 Y, 8 B): A
+// when it is what A holds, else its home when that is X, Y or B (V is never
+// an argument's register).
 //
 //////////////////////////////////////////////////////////////////////////
 uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
@@ -180,6 +180,8 @@ uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
 			return 2;
 		case IR65R_Y:
 			return 4;
+		case IR65R_B:
+			return 8;
 		default:
 			return 0;
 		}
@@ -195,14 +197,13 @@ uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
 // arg instructions after this, one for each).  A register is loaded once
 // no argument still to be loaded reads it (one kept in Y for X before
 // another is put in Y); arguments that read each other's registers (a swap
-// of X and Y) are pushed and pulled.  B is nobody's home, so it is always
-// free.
+// of X and Y) are pushed and pulled.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool bThisCall, CArrayIRRegisterArguments* pasArguments)
 {
 	static const char*	aszRegisters[IR65_ARGUMENT_REGISTERS + 1] = { "A", "B", "Y", "X" };
-	static const uint8	auiWrites[IR65_ARGUMENT_REGISTERS + 1] = { 1, 0, 4, 2 };
+	static const uint8	auiWrites[IR65_ARGUMENT_REGISTERS + 1] = { 1, 8, 4, 2 };
 	SIRReference		asValues[IR65_ARGUMENT_REGISTERS + 1];
 	bool				abPending[IR65_ARGUMENT_REGISTERS + 1];
 	bool				abPull[IR65_ARGUMENT_REGISTERS + 1];

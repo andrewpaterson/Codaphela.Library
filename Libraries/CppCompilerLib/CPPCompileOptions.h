@@ -52,6 +52,7 @@ public:
 	bool		mbRegisterArguments;	//A call's first arguments are passed in registers (the W65C816's A, X and Y, the 65C64's A, B and Y).
 	bool		mbHomeV;				//The 65C64's V is a third register for values in a function that needs no frame (CIR65Backend::CanUseV).
 	bool		mbHomeW;				//The 65C64's W is a fourth register for values between calls, multiplies and divides (IR65R_W).
+	bool		mbHomeB;				//The 65C64's B is a fifth register, for values whose code doesn't work in B while they are live (IR65R_B).
 	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.
 
 	void		Init(void);

@@ -36,6 +36,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mcDominators.Init();
 	mcLiveness.Init();
 	masPlaces.Init();
+	masLaidOut.Init();
 	mauiAddressed.Init();
 	masArguments.Init();
 	miRegisterArguments = 0;
@@ -67,6 +68,10 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mcBackendPasses.Init();
 	mauiNarrowOnly.Init();
 	mcKnownBits.Init();
+	maiChangesB.Init();
+	maiLosesB.Init();
+	masChunks.Init();
+	mbHomeB = false;
 }
 
 
@@ -78,6 +83,9 @@ void CIR65Backend::Kill(void)
 {
 	size	ui;
 
+	masChunks.Kill();
+	maiLosesB.Kill();
+	maiChangesB.Kill();
 	mcKnownBits.Kill();
 	mauiNarrowOnly.Kill();
 	mcPeephole.Kill();
@@ -102,6 +110,7 @@ void CIR65Backend::Kill(void)
 	maiClasses.Kill();
 	masArguments.Kill();
 	mauiAddressed.Kill();
+	masLaidOut.Kill();
 	masPlaces.Kill();
 	mcLiveness.Kill();
 	mcDominators.Kill();
@@ -117,10 +126,13 @@ void CIR65Backend::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors)
 {
-	size		ui;
-	CIRBlock*	pcBlock;
-	int32		iLabel;
 	size		uiStart;
+	int			iTry;
+	bool		bHomeB;
+	size		uiErrors;
+	size		ui;
+	SIR65Frame	sLaidOut;
+	SIR65Frame	sWritten;
 
 	mpcFunction = pcFunction;
 	mpszOut = pszDest;
@@ -148,33 +160,65 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcLiveness.Compute(pcFunction, &mcDominators);
 	FunctionArguments();
 	Layout();
-	Allocate();
 	mcKnownBits.Compute(pcFunction);
-
-	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S doesn't
-	//move) or one that reads them before pushing anything.  Otherwise V points at the frame.
-	msFrame.SetFrameless(msFrame.bHomeV || ((msFrame.iFrameBytes == 0) && (msFrame.iThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst())));
-
-	maiBlockLabels.FakeSetUsedElements(0);
-	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	sLaidOut = msFrame;
+	masLaidOut.FakeSetUsedElements(0);
+	for (ui = 0; ui < masPlaces.NumElements(); ui++)
 	{
-		iLabel = NewLabel();
-		maiBlockLabels.Add(&iLabel);
+		masLaidOut.Add(masPlaces.Get(ui));
 	}
-	miReturnLabel = NewLabel();
+	maiChangesB.FakeSetUsedElements(0);
+	maiLosesB.FakeSetUsedElements(0);
+	mbHomeB = false;
+	Allocate();
+	WriteBody(szLabel, uiStart);
 
-	Prologue(szLabel);
-	mpsFlags = NULL;
-	mpcFlags = NULL;
-	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	//B as a home: the code just written says where B is worked in, which a class kept in B must not be live across.
+	//The code is written again with B given to such classes and checked (CheckHomeB); where it lost a value kept in
+	//B the classes live there are kept elsewhere and it is written again, and after IR65_HOME_B_TRIES without B.
+	if (mpcOptions->mbHomeB && mbResult)
 	{
-		pcBlock = pcFunction->GetBlock(ui);
-		if (!Block(pcBlock, (ui + 1 < pcFunction->NumBlocks()) ? pcFunction->GetBlock(ui + 1) : NULL))
+		uiErrors = mpcErrors ? mpcErrors->NumErrors() : 0;
+		sWritten = msFrame;
+		CheckHomeB(true);
+		bHomeB = false;
+		for (iTry = 0; iTry < IR65_HOME_B_TRIES; iTry++)
 		{
-			mbResult = false;
+			Reallocate(&sLaidOut, true);
+			if (masHomes.Get(IR65R_B)->asRanges.NumElements() == 0)
+			{
+				if (iTry == 0)
+				{
+					//The same homes as the code written.
+					msFrame = sWritten;
+					bHomeB = true;
+				}
+				break;
+			}
+			pszDest->SetLength(uiStart);
+			if (!WriteBody(szLabel, uiStart))
+			{
+				//Kept from the code without B, which has none.
+				if (mpcErrors)
+				{
+					mpcErrors->Truncate(uiErrors);
+				}
+				mbResult = true;
+				break;
+			}
+			if (CheckHomeB(false))
+			{
+				bHomeB = true;
+				break;
+			}
+		}
+		if (!bHomeB)
+		{
+			Reallocate(&sLaidOut, false);
+			pszDest->SetLength(uiStart);
+			WriteBody(szLabel, uiStart);
 		}
 	}
-	Epilogue();
 	if (mbSourceMarkers)
 	{
 		mcSourceMarkers.Take(pszDest, uiStart);
@@ -195,6 +239,69 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	{
 		mcSourceMarkers.Put(pszDest, uiStart);
 	}
+	return mbResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Homes given again, from the frame and places Layout left (psLaidOut,
+// masLaidOut), with B one of them or not.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Reallocate(SIR65Frame* psLaidOut, bool bHomeB)
+{
+	size	ui;
+
+	msFrame = *psLaidOut;
+	for (ui = 0; ui < masPlaces.NumElements(); ui++)
+	{
+		*masPlaces.Get(ui) = *masLaidOut.Get(ui);
+	}
+	mbHomeB = bHomeB;
+	Allocate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's code from its homes (Allocate): the prologue, the blocks
+// and the epilogue, appended to the text from uiStart on, each block's
+// instructions and jump noted in masChunks.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::WriteBody(const char* szLabel, size uiStart)
+{
+	size		ui;
+	CIRBlock*	pcBlock;
+	int32		iLabel;
+
+	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S doesn't
+	//move) or one that reads them before pushing anything.  Otherwise V points at the frame.
+	msFrame.SetFrameless(msFrame.bHomeV || ((msFrame.iFrameBytes == 0) && (msFrame.iThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst())));
+
+	maiBlockLabels.FakeSetUsedElements(0);
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		iLabel = NewLabel();
+		maiBlockLabels.Add(&iLabel);
+	}
+	miReturnLabel = NewLabel();
+	masChunks.FakeSetUsedElements(0);
+	muiSource = 0;
+
+	Prologue(szLabel);
+	mpsFlags = NULL;
+	mpcFlags = NULL;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		if (!Block(pcBlock, (ui + 1 < mpcFunction->NumBlocks()) ? mpcFunction->GetBlock(ui + 1) : NULL))
+		{
+			mbResult = false;
+		}
+	}
+	Epilogue();
 	return mbResult;
 }
 
@@ -511,6 +618,7 @@ void CIR65Backend::Epilogue(void)
 {
 	int32		iUnit;
 	size		ui;
+	size		uiText;
 	SIR65Stub*	psStub;
 
 	Label(miReturnLabel);
@@ -539,9 +647,11 @@ void CIR65Backend::Epilogue(void)
 	for (ui = 0; ui < masStubs.NumElements(); ui++)
 	{
 		psStub = masStubs.Get(ui);
+		uiText = mpszOut->Length();
 		Label(psStub->iLabel);
 		Edge(psStub->pcFrom, psStub->pcTo);
 		Branch("bra ", *maiBlockLabels.Get(psStub->pcTo->muiIndex));
+		AddChunk(mcLiveness.Jump(psStub->pcFrom), mcLiveness.Jump(psStub->pcFrom), uiText);
 	}
 	masStubs.FakeSetUsedElements(0);
 	mpszOut->AppendNewLine();
@@ -713,6 +823,8 @@ size CIR65Backend::NextWritten(CIRBlock* pcBlock, size uiAfter, size uiEnd)
 bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 {
 	size			ui;
+	size			uiFirst;
+	size			uiText;
 	size			uiNumInstructions;
 	SIRInstruction*	psFused;
 	bool			bResult;
@@ -731,6 +843,7 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	mbFlagsKnown = (uiNumInstructions == 0) && FlagsKnown(pcBlock, psFused);
 
 	bResult = true;
+	uiFirst = 0;
 	for (ui = 0; ui < uiNumInstructions; ui++)
 	{
 		if (Skipped(pcBlock->masInstructions.Get(ui)) || CanFuse(pcBlock, ui))
@@ -738,12 +851,17 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 			//Writes nothing, or its consumer writes it.
 			continue;
 		}
+		uiText = mpszOut->Length();
 		bResult &= WriteInstruction(pcBlock, ui);
+		AddChunk(mcLiveness.Position(pcBlock, uiFirst), mcLiveness.Position(pcBlock, ui), uiText);
+		uiFirst = ui + 1;
 	}
+	uiText = mpszOut->Length();
 	bResult &= WriteFused(pcBlock, masFused.NumElements());
 	NextInstruction();
 	Source(psFused ? psFused->uiSource : pcBlock->msJump.uiSource);
 	bResult &= Jump(pcBlock, pcNext, psFused);
+	AddChunk(mcLiveness.Position(pcBlock, uiFirst), mcLiveness.Jump(pcBlock), uiText);
 	masFused.FakeSetUsedElements(0);
 	mbFlagsKnown = false;
 	if (psFused && !psFused->sType.IsFloat())
