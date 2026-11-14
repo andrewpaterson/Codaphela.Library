@@ -73,3 +73,15 @@ void CLight::Class(void)
 	M_Pointer(mpConnection);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A colour's brightness is as the eye sees it, green the most and blue
+// the least.
+//
+//////////////////////////////////////////////////////////////////////////
+float64 CLight::GetStrength(void)
+{
+	return mfIntensity * (0.299 * msColour.mfRed + 0.587 * msColour.mfGreen + 0.114 * msColour.mfBlue);
+}
+

@@ -45,7 +45,8 @@ enum ELightType
 
 
 //Shines along its connection's -z.  mpConnection is NULL if it isn't placed anywhere.  An ambient light lights everything the
-//same, so it needs no connection.
+//same, so it needs no connection.  GetStrength is how much it lights, its intensity times its colour's brightness: 1 for a
+//white light of intensity 1.
 class CLight : public CObject
 {
 CONSTRUCTABLE(CLight);
@@ -64,6 +65,8 @@ public:
 	void 	Init(void);
 	void	Free(void) override;
 	void	Class(void) override;
+
+	float64	GetStrength(void);
 };
 
 

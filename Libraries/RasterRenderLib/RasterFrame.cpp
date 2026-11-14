@@ -153,17 +153,6 @@ static void RasterPlace(SRasterInstance* psInstance, CRasterMesh* pcMesh, SFloat
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How bright a light's colour is, 0 .. 1.
-//
-//////////////////////////////////////////////////////////////////////////
-static float64 RasterBrightness(CImageColourARGB* psColour)
-{
-	return 0.299 * psColour->mfRed + 0.587 * psColour->mfGreen + 0.114 * psColour->mfBlue;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasterFrame::Init(Ptr<CRenderScene> pRenderScene, Ptr<CCamera> pCamera)
@@ -653,7 +642,7 @@ void CRasterFrame::ExtractLights(CRasterLights* pcLights, int32 iScale)
 	for (i = 0; i < pScene->mapLights.NumElements(); i++)
 	{
 		pLight = pScene->mapLights.Get(i);
-		iAmount = (int32)floor(RASTER_MAX_SHADE * pLight->mfIntensity * RasterBrightness(&pLight->msColour) + 0.5);
+		iAmount = (int32)floor(RASTER_MAX_SHADE * pLight->GetStrength() + 0.5);
 		if (iAmount <= 0)
 		{
 			continue;
