@@ -79,7 +79,8 @@ enum EKeyGiverAnswer
 //Gives a command keys in one of its contexts, as Settings' Keymap and LogiCim's component chooser both do, so the rules
 //and what's said are the same everywhere (see CheckCommandKeys).  A key belongs to one command in each context: given
 //keys another command has there, it asks first ("Ctrl+Alt+A is File: Open Project.  Give it to AND Gate instead?") and
-//moves them.  A key a Global command has, given in another context, shadows it there, which is said but allowed.  It
+//moves them.  A key a Global command has, given in another context, shadows it there, and Global keys another command
+//has in an inner context are shadowed by it there, which are said but allowed.  It
 //only changes the key lists: binding them and saving them is for whoever gave them.
 class CKeyGiver
 {
@@ -103,6 +104,7 @@ public:
 
 protected:
 	bool	AskToMove(size uiIndex, size uiOwner, const char* szKeys);
+	void	AppendShadowers(size uiIndex, const char* szKeys, CChars* pszMessage);
 };
 
 

@@ -515,7 +515,8 @@ void TestKeymapCommandContexts(void)
 // can't have, keys it has, keys that type outside a typing context, and
 // keys dialogs need; moved from another command in the same context
 // unless the answer is cancel; shadowing a Global command's keys in
-// another context, which is said but allowed.
+// another context, or shadowed by another context's, which are said but
+// allowed.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestKeymapGiver(void)
@@ -602,6 +603,14 @@ void TestKeymapGiver(void)
 	AssertString("Ctrl+Alt+N is free.", szMessage.Text());
 	AssertTrue(cGiver.Give(uiOr, "Circuit", "Control+Alt+N", &szMessage));
 	AssertString("Ctrl+Alt+N is free.  It shadows AND Gate there.", szMessage.Text());
+
+	//Global keys a command has over the circuit are shadowed there, moved or not.
+	AssertTrue(cGiver.Describe(uiOpen, COMPONENT_INPUT_GLOBAL_CONTEXT, "Control+Alt+N", &szMessage));
+	AssertString("Ctrl+Alt+N moves here from AND Gate.  OR Gate keeps it over the Circuit.", szMessage.Text());
+	AssertTrue(cGiver.Describe(uiAnd, COMPONENT_INPUT_GLOBAL_CONTEXT, "Control+Alt+A", &szMessage));
+	AssertString("Ctrl+Alt+A moves here from Open Project.  OR Gate keeps it over the Circuit.", szMessage.Text());
+	AssertTrue(cGiver.Describe(uiOpen, COMPONENT_INPUT_GLOBAL_CONTEXT, "F8", &szMessage));
+	AssertString("F8 is free.", szMessage.Text());
 
 	cGiver.Kill();
 	pCommands = NULL;

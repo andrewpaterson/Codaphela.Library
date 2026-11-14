@@ -130,8 +130,9 @@ size CKeyGiver::FindOwner(size uiExcept, const char* szContext, const char* szKe
 //
 // Whether list uiIndex's command can be given szKeys in szContext, and
 // what giving them would mean, in pszMessage: refused (see
-// CheckCommandKeys), free, moved from another command, or shadowing a
-// Global command's keys there.
+// CheckCommandKeys), free, moved from another command, shadowing a Global
+// command's keys there, or, given Global keys, shadowed by a command that
+// has them in another context.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CKeyGiver::Describe(size uiIndex, const char* szContext, const char* szKeys, CChars* pszMessage)
@@ -158,7 +159,11 @@ bool CKeyGiver::Describe(size uiIndex, const char* szContext, const char* szKeys
 		mpcSource->AppendKeyListCaption(uiOwner, pszMessage);
 		pszMessage->Append(".");
 	}
-	else if (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) != 0)
+	if (StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) == 0)
+	{
+		AppendShadowers(uiIndex, szName.Text(), pszMessage);
+	}
+	else if (uiOwner == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		uiOwner = FindOwner(uiIndex, COMPONENT_INPUT_GLOBAL_CONTEXT, szName.Text());
 		if (uiOwner != ARRAY_ELEMENT_NOT_FOUND)
@@ -171,6 +176,41 @@ bool CKeyGiver::Describe(size uiIndex, const char* szContext, const char* szKeys
 	szShown.Kill();
 	szName.Kill();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Global keys given to list uiIndex's command don't reach it where
+// another command has them in an inner context: "  Editor Actions:
+// Duplicate keeps it over the Editor." for each.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKeyGiver::AppendShadowers(size uiIndex, const char* szKeys, CChars* pszMessage)
+{
+	CCommandKeyList*	pcKeys;
+	size				i;
+	size				j;
+
+	for (i = 0; i < mpcSource->NumKeyLists(); i++)
+	{
+		if (i == uiIndex)
+		{
+			continue;
+		}
+		pcKeys = mpcSource->GetKeyList(i);
+		for (j = 0; j < pcKeys->NumKeys(); j++)
+		{
+			if ((StringCompare(pcKeys->GetKeys(j), szKeys) == 0) && (StringCompare(pcKeys->GetContext(j), COMPONENT_INPUT_GLOBAL_CONTEXT) != 0))
+			{
+				pszMessage->Append("  ");
+				mpcSource->AppendKeyListCaption(i, pszMessage);
+				pszMessage->Append(" keeps it");
+				AppendContextText(pszMessage, pcKeys->GetContext(j));
+				pszMessage->Append(".");
+			}
+		}
+	}
 }
 
 
