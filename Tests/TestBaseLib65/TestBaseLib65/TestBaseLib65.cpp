@@ -12,8 +12,8 @@ void TestFatW65C816Layout(void);
 
 //////////////////////////////////////////////////////////////////////////
 //
-// BaseLib's own tests (TestBaseLib), compiled from their real source with CppCompilerLib's 65C64 generator and
-// run on MicroprocessorLib's 65C64, or with "816" compiled for the W65C816 and run on its fast core.
+// BaseLib's own tests (TestBaseLib), compiled from their real source with CppCompilerLib's 65C64 generator and run on
+// MicroprocessorLib's 65C64, or with "W65C816" ("816" for short) compiled for the W65C816 and run on its fast core.
 //
 //////////////////////////////////////////////////////////////////////////
 int __cdecl main(int argc, char** argv)

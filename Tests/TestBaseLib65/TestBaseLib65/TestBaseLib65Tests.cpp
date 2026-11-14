@@ -67,11 +67,11 @@ void TestBaseLib65Tests(void)
 	sProject.szTestProject = "TestBaseLib";
 	sProject.aszLibraries = gaszTestBaseLib65Libraries;
 	sProject.aszExcluded = gaszTestBaseLib65Excluded;
-	sProject.aszExcluded816 = gaszTestBaseLib65Excluded816;
+	sProject.aszExcludedW65C816 = gaszTestBaseLib65Excluded816;
 	sProject.uiMinPrograms = 101;
 	sProject.iMinTestsRun = 30001;
-	sProject.uiMinPrograms816 = 155;
-	sProject.iMinTestsRun816 = 30001;
+	sProject.uiMinProgramsW65C816 = 155;
+	sProject.iMinTestsRunW65C816 = 30001;
 	TestProject65RunTests(&sProject);
 
 	TestStatistics();

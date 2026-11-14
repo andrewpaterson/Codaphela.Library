@@ -42,14 +42,14 @@
 
 //64MB, so the heap is from 0100:0000 (past the devices) to 0400:0000.  The W65C816's 16MB has it from 0020:0000 to
 //the devices.
-#define TEST_PROJECT65_MEMORY_SIZE		0x4000000
-#define TEST_PROJECT816_MEMORY_SIZE		0x1000000
+#define TEST_PROJECT65_MEMORY_SIZE			0x4000000
+#define TEST_PROJECT_W65C816_MEMORY_SIZE	0x1000000
 
 //The program ends below the stack (001F:FFFF down): its heap is above 2MB.
 #define TEST_PROJECT65_PROGRAM_LIMIT	0x1C0000
 
 //The W65C816's code is bigger: its program may go to 0080:0000, and Libc65's heap starts after it.
-#define TEST_PROJECT816_PROGRAM_LIMIT	0x800000
+#define TEST_PROJECT_W65C816_PROGRAM_LIMIT	0x800000
 
 #define TEST_PROJECT65_MAX_STEPS		4000000000ULL
 
@@ -73,7 +73,7 @@ static const char* TestProject65ProfileFile(void)
 
 
 static const char* gaszTestProject65Libc65[] = { "string.cpp", "string.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat.asm", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
-static const char* gaszTestProject816Suffixes[] = { "W65C816.asm", "W65C816_16.asm", NULL };
+static const char* gaszTestProjectW65C816Suffixes[] = { "W65C816.asm", "W65C816_16.asm", NULL };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,9 +91,9 @@ static bool TestProject65IsExcluded(STestProject65* psProject, const char* szTes
 			return true;
 		}
 	}
-	for (i = 0; (geTestProject65Target == CPPT_W65C816) && psProject->aszExcluded816 && psProject->aszExcluded816[i]; i++)
+	for (i = 0; (geTestProject65Target == CPPT_W65C816) && psProject->aszExcludedW65C816 && psProject->aszExcludedW65C816[i]; i++)
 	{
-		if (StringCompare(psProject->aszExcluded816[i], szTest) == 0)
+		if (StringCompare(psProject->aszExcludedW65C816[i], szTest) == 0)
 		{
 			return true;
 		}
@@ -412,11 +412,11 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 			{
 				continue;
 			}
-			for (j = 0; gaszTestProject816Suffixes[j]; j++)
+			for (j = 0; gaszTestProjectW65C816Suffixes[j]; j++)
 			{
 				szUnit.Init();
 				szUnit.Append(gaszTestProject65Libc65[i], (size)(strrchr(gaszTestProject65Libc65[i], '.') - gaszTestProject65Libc65[i]));
-				szUnit.Append(gaszTestProject816Suffixes[j]);
+				szUnit.Append(gaszTestProjectW65C816Suffixes[j]);
 				szUnitPath.Init(szPath);
 				szUnitPath.Append(_FS_);
 				szUnitPath.Append(szUnit);
@@ -431,7 +431,7 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 	}
 	pcBuilder->AddMathTables(szPath.Text());
 	szPath.Kill();
-	pcBuilder->SetLimit((geTestProject65Target == CPPT_W65C816) ? TEST_PROJECT816_PROGRAM_LIMIT : TEST_PROJECT65_PROGRAM_LIMIT);
+	pcBuilder->SetLimit((geTestProject65Target == CPPT_W65C816) ? TEST_PROJECT_W65C816_PROGRAM_LIMIT : TEST_PROJECT65_PROGRAM_LIMIT);
 	szTestDirectory.Kill();
 }
 
@@ -578,9 +578,9 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	CAsm65Memory*		pcMemory;
 	CAsm65HostFiles		cHostFiles;
 	CFast65C64			cMPU;
-	CFastW65C816			cMPU816;
+	CFastW65C816			cMPUW65C816;
 	CAsm65Profiled65C64		cProfiled65C64;
-	CAsm65ProfiledW65C816	cProfiled816;
+	CAsm65ProfiledW65C816	cProfiledW65C816;
 	CChars				szOutput;
 	uint64				uiSteps;
 	uint64				uiMaxSteps;
@@ -594,7 +594,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	pcMemory = NewMalloc<CAsm65Memory>();
 	if (bW65C816)
 	{
-		pcMemory->Init(TEST_PROJECT816_MEMORY_SIZE);
+		pcMemory->Init(TEST_PROJECT_W65C816_MEMORY_SIZE);
 		pcMemory->Load(pcBuilder->GetOutput());
 	}
 	else
@@ -614,14 +614,14 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 
 	if (bW65C816)
 	{
-		pcMemory->InitFast65816(&cMPU816);
-		cMPU816.Reset();
+		pcMemory->InitFast65816(&cMPUW65C816);
+		cMPUW65C816.Reset();
 		if (gpcTestProject65Measure)
 		{
 			//TEST_PROJECT65_PROFILE: each function's direct page accesses, calls and recursion, and its lines' cycles
 			//(CAsm65Profile).
-			cProfiled816.Init(pcMemory, &cMPU816);
-			uiSteps = gpcTestProject65Measure->Run(&cProfiled816, pcBuilder->GetMap(), uiMaxSteps, pcBuilder->GetLineTable());
+			cProfiledW65C816.Init(pcMemory, &cMPUW65C816);
+			uiSteps = gpcTestProject65Measure->Run(&cProfiledW65C816, pcBuilder->GetMap(), uiMaxSteps, pcBuilder->GetLineTable());
 		}
 		else if (getenv("TEST_PROJECT65_TRACE"))
 		{
@@ -633,12 +633,12 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 			size	ui;
 
 			uiTrace = 0;
-			for (uiSteps = 0; (uiSteps < uiMaxSteps) && !cMPU816.IsStopped() && (cMPU816.GetProgramAddress() >= 0xFF00); uiSteps++)
+			for (uiSteps = 0; (uiSteps < uiMaxSteps) && !cMPUW65C816.IsStopped() && (cMPUW65C816.GetProgramAddress() >= 0xFF00); uiSteps++)
 			{
-				auiTrace[uiTrace % 64] = cMPU816.GetProgramAddress();
-				auiTraceS[uiTrace % 64] = cMPU816.GetS();
+				auiTrace[uiTrace % 64] = cMPUW65C816.GetProgramAddress();
+				auiTraceS[uiTrace % 64] = cMPUW65C816.GetS();
 				uiTrace++;
-				cMPU816.Step();
+				cMPUW65C816.Step();
 			}
 			for (ui = (uiTrace > 64) ? uiTrace - 64 : 0; ui < uiTrace; ui++)
 			{
@@ -651,19 +651,19 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		}
 		else
 		{
-			uiSteps = TestProject65RunW65C816(pcBuilder, pcMemory, &cMPU816, uiMaxSteps, getenv("TEST_PROJECT65_RUN_TIME") ? NULL : pszFaults);
+			uiSteps = TestProject65RunW65C816(pcBuilder, pcMemory, &cMPUW65C816, uiMaxSteps, getenv("TEST_PROJECT65_RUN_TIME") ? NULL : pszFaults);
 		}
-		bReturned = cMPU816.IsStopped() && (cMPU816.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop());
+		bReturned = cMPUW65C816.IsStopped() && (cMPUW65C816.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop());
 		if (getenv("TEST_PROJECT65_CYCLES"))
 		{
-			printf("CYCLES %llu\n", (unsigned long long)cMPU816.NumCycles());
+			printf("CYCLES %llu\n", (unsigned long long)cMPUW65C816.NumCycles());
 			fflush(stdout);
 		}
 		if (!bReturned)
 		{
-			TestProject65AppendStop(pcBuilder, cMPU816.GetProgramAddress(), cMPU816.GetS(), uiSteps / 1000000, pszConsole, pcMemory);
+			TestProject65AppendStop(pcBuilder, cMPUW65C816.GetProgramAddress(), cMPUW65C816.GetS(), uiSteps / 1000000, pszConsole, pcMemory);
 		}
-		cMPU816.Kill();
+		cMPUW65C816.Kill();
 	}
 	else
 	{
@@ -937,8 +937,8 @@ void TestProject65RunTests(STestProject65* psProject)
 	{
 		if (geTestProject65Target == CPPT_W65C816)
 		{
-			AssertTrue(uiPrograms >= psProject->uiMinPrograms816);
-			AssertTrue(iTotalRun >= psProject->iMinTestsRun816);
+			AssertTrue(uiPrograms >= psProject->uiMinProgramsW65C816);
+			AssertTrue(iTotalRun >= psProject->iMinTestsRunW65C816);
 		}
 		else
 		{
@@ -968,11 +968,12 @@ void TestProject65RunTests(STestProject65* psProject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The 65C64 unless the test's command line is "816".
+// The 65C64 unless the test's command line is "W65C816" (or "816" for
+// short).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestProject65ChooseTarget(int argc, char** argv)
 {
-	geTestProject65Target = ((argc > 1) && (strcmp(argv[1], "816") == 0)) ? CPPT_W65C816 : CPPT_65C64;
+	geTestProject65Target = ((argc > 1) && ((strcmp(argv[1], "W65C816") == 0) || (strcmp(argv[1], "816") == 0))) ? CPPT_W65C816 : CPPT_65C64;
 }
 

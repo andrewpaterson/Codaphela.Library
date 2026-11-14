@@ -11,11 +11,11 @@ struct STestProject65
 	const char*		szTestProject;		//The test project's name: its directory is ../../<name>/<name> and its main is in <name>.cpp.
 	const char**	aszLibraries;		//The CommonLibraries projects it uses, in link order, NULL ended.
 	const char**	aszExcluded;		//The tests that are not run, NULL ended.
-	const char**	aszExcluded816;		//And the tests that are not run on the W65C816, NULL ended (or NULL).
+	const char**	aszExcludedW65C816;		//And the tests that are not run on the W65C816, NULL ended (or NULL).
 	size			uiMinPrograms;		//At least this many tests are run,
 	int				iMinTestsRun;		//and between them at least this many of their asserts.
-	size			uiMinPrograms816;	//The same on the W65C816 (which does not run aszExcluded816).
-	int				iMinTestsRun816;
+	size			uiMinProgramsW65C816;	//The same on the W65C816 (which does not run aszExcludedW65C816).
+	int				iMinTestsRunW65C816;
 };
 
 
