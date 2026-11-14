@@ -550,6 +550,21 @@ void CWinGDIWindow::SignalPresent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The invalidated window is painted now (UpdateWindow sends WM_PAINT
+// straight to it), not when the messages are next handled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::PresentPending(void)
+{
+    if (mhWnd)
+    {
+        UpdateWindow(mhWnd);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Only pcArea changed (client space, right and bottom exclusive, as a
 // RECT is).  Windows adds it to the window's update region; WM_PAINT's
 // BeginPaint clips the canvas's painting to that region, so only what

@@ -124,6 +124,7 @@ public:
 	void						SetMinimumWindowSize(int32 iWidth, int32 iHeight);
 	CNativeWindow*				GetNativeWindow(void);
 	void						Paint(void);
+	void						PaintNow(void);
 	bool						BlinkCaret(int64 iNow);
 	bool						GetPaintedCaret(CInt32Rect* pcDest);
 	void						Invalidate(void) override;

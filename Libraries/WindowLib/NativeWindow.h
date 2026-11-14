@@ -89,6 +89,7 @@ protected:
 	virtual void	SignalPresent(void) =0;
 	virtual void	SignalPresentArea(CInt32Rect* pcArea);
 	virtual void	SignalPresentDamage(CDamageArea* pcDamage);
+	virtual void	PresentPending(void);
 	virtual void	GetRectangle(CInt32Rect* pcDest) =0;
 };
 
