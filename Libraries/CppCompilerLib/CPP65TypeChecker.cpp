@@ -441,44 +441,35 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 {
-	CCPPSymbol*				pcSymbol;
+	CCPPBoundName			cBound;
 	CCPPSyntaxParameter*	pcParameter;
 	SCPP65Type*				psType;
-	CCPPClass*			pcClass;
 
-	pcSymbol = pcId->mpcName->mpcSymbol;
-	if (mpcUnit->IsFunctionName(pcId))
+	mpcUnit->GetCalls()->BindName(pcId, &cBound);
+	switch (cBound.meWhat)
 	{
+	case CPPBN_FunctionName:
 		return mpcTypes->Pointer(&mpcTypes->msChar);
-	}
-	if (!pcSymbol)
-	{
-		pcSymbol = mpcUnit->QualifiedEnumerator(pcId->mpcName, pcId, &pcClass);
-	}
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator))
-	{
-		return ConstantValue(pcId);
-	}
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_ValueParameter))
-	{
-		if (!mpcUnit->FindBinding(pcSymbol))
+	case CPPBN_Constant:
+		if (cBound.mpcSymbol->meKind == CPPSK_Enumerator)
+		{
+			return ConstantValue(pcId);
+		}
+		if (!mpcUnit->FindBinding(cBound.mpcSymbol))
 		{
 			Error(pcId, "A template parameter used outside an instantiation");
 			return NULL;
 		}
-		pcParameter = (CCPPSyntaxParameter*)pcSymbol->mpcDeclaration;
+		pcParameter = (CCPPSyntaxParameter*)cBound.mpcSymbol->mpcDeclaration;
 		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? mpcUnit->GetDeclarators()->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
 		return (psType && psType->IsInteger()) ? psType : &mpcTypes->msInt;
-	}
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
-	{
-		return FunctionAddress(pcId, pcSymbol->mlliName, NULL);
-	}
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
-	{
+	case CPPBN_Function:
+		return FunctionAddress(pcId, cBound.mpcSymbol->mlliName, NULL);
+	case CPPBN_FunctionTemplate:
 		return FunctionTemplateAddress(pcId);
+	default:
+		return Load(Place(pcId), pcId);
 	}
-	return Load(Place(pcId), pcId);
 }
 
 
@@ -1799,15 +1790,11 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxIdExpression*		pcId;
+	CCPPBoundName					cBound;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	CCPPSyntaxBinaryExpression*	pcBinary;
-	CCPPVariable*				pcVariable;
-	SCPPField*				psField;
-	CCPPSymbol*					pcSymbol;
 	SCPP65Type*					psType;
-	CCPPClass*				pcClass;
 	CCPPSyntax*					pcLeft;
-	int							iOffset;
 
 	pcExpression = mpcUnit->SkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
@@ -1815,22 +1802,14 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		//A variable, or a field of this.
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
-		pcSymbol = pcId->mpcName->mpcSymbol;
-		pcVariable = pcSymbol ? mpcUnit->GetVariable(pcSymbol) : NULL;
-		if (pcVariable)
+		mpcUnit->GetCalls()->BindName(pcId, &cBound);
+		if (cBound.meWhat == CPPBN_Variable)
 		{
-			return pcVariable->mpsType->WithoutReference();
+			return cBound.mpcVariable->mpsType->WithoutReference();
 		}
-		pcClass = mpcUnit->GetContext()->GetFunction() ? mpcUnit->GetContext()->GetFunction()->mpcClass : NULL;
-		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass) ? pcClass->FindFieldSymbol(pcSymbol, &iOffset) : NULL;
-		if (!psField && !pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
+		if (cBound.meWhat != CPPBN_Field)
 		{
-			//A name in a template the parser could not resolve.
-			psField = pcClass->FindField(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &iOffset);
-		}
-		if (!psField)
-		{
-			if (mpcUnit->IsFunctionName(pcId))
+			if (cBound.meWhat == CPPBN_FunctionName)
 			{
 				Error(pcExpression, "This is not an lvalue");
 				return NULL;
@@ -1843,7 +1822,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			Error(pcExpression, "A field needs an object");
 			return NULL;
 		}
-		return FieldType(psField, mpcUnit->IsConstThis(), false);
+		return FieldType(cBound.mpsField, mpcUnit->IsConstThis(), false);
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression);

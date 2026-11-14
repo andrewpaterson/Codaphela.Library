@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSymbol.h"
 #include "CPPFunction.h"
 #include "CPPClass.h"
+#include "CPPVariable.h"
 #include "CPPTemplate.h"
 #include "CPPOverloads.h"
 
@@ -79,6 +80,33 @@ public:
 };
 
 
+//What a name used as an expression is.
+enum ECPPBoundName
+{
+	CPPBN_Nothing,			//Nothing an expression can be.
+	CPPBN_FunctionName,		//__func__ and its like: the name of the function it is in, a string.
+	CPPBN_Constant,			//An enumerator, or a template's parameter that is a value.
+	CPPBN_Function,			//A function: its address.
+	CPPBN_FunctionTemplate,	//A function template: the address of an instance.
+	CPPBN_Variable,			//A local, a parameter, a global or a static member.
+	CPPBN_Field,			//A field of this.
+};
+
+
+//What an id-expression means (CCPPCallBinder::BindName): which of the things a name can be, and the symbol, the
+//variable or the field it is.  The type checker gives its type from this and the IR front end its value and place.
+class CCPPBoundName
+{
+public:
+	ECPPBoundName	meWhat;
+	CCPPSymbol*		mpcSymbol;		//The name's symbol; a qualified enumerator's (Enum::Value) is found here.
+	CCPPVariable*	mpcVariable;	//CPPBN_Variable.
+	CCPPClass*		mpcClass;		//CPPBN_Field: this's class...
+	SCPPField*		mpsField;		//...its field (or a base's)...
+	int				miOffset;		//...and where it is in the object.
+};
+
+
 typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 
@@ -105,6 +133,8 @@ public:
 	bool	Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport);
 	bool	BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 	bool	BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
+
+	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 
 	//What isn't a call expression's: these choose a function and remember nothing.
 	CCPPFunction*	FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);

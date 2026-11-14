@@ -848,3 +848,78 @@ CArraySyntax* CCPPCallBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
 	return papcArguments;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the name is, in *pcBound: the one cascade, in the order a name is looked at.
+// It reports nothing and remembers nothing (a local's variable is made again each
+// time its function is written): what a name can't be used as is its user's error.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCallBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
+{
+	CCPPSymbol*		pcSymbol;
+	CCPPFunction*	pcIn;
+	CCPPClass*		pcClass;
+	CCPPClass*		pcEnumeratorClass;
+
+	pcBound->meWhat = CPPBN_Nothing;
+	pcBound->mpcVariable = NULL;
+	pcBound->mpcClass = NULL;
+	pcBound->mpsField = NULL;
+	pcBound->miOffset = 0;
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	pcBound->mpcSymbol = pcSymbol;
+	if (mpcUnit->IsFunctionName(pcId))
+	{
+		pcBound->meWhat = CPPBN_FunctionName;
+		return;
+	}
+
+	//A local, a parameter, a global or a static member.
+	pcBound->mpcVariable = pcSymbol ? mpcUnit->GetVariable(pcSymbol) : NULL;
+	if (pcBound->mpcVariable)
+	{
+		pcBound->meWhat = CPPBN_Variable;
+		return;
+	}
+
+	if (!pcSymbol)
+	{
+		pcSymbol = mpcUnit->QualifiedEnumerator(pcId->mpcName, pcId, &pcEnumeratorClass);
+		pcBound->mpcSymbol = pcSymbol;
+	}
+	if (pcSymbol && ((pcSymbol->meKind == CPPSK_Enumerator) || (pcSymbol->meKind == CPPSK_ValueParameter)))
+	{
+		pcBound->meWhat = CPPBN_Constant;
+		return;
+	}
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
+	{
+		pcBound->meWhat = CPPBN_Function;
+		return;
+	}
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
+	{
+		pcBound->meWhat = CPPBN_FunctionTemplate;
+		return;
+	}
+
+	//A field of this; a name in a template that the parser could not resolve may be one too.
+	pcIn = mpcUnit->GetContext()->GetFunction();
+	pcClass = pcIn ? pcIn->mpcClass : NULL;
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
+	{
+		pcBound->mpsField = pcClass->FindFieldSymbol(pcSymbol, &pcBound->miOffset);
+	}
+	else if (!pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
+	{
+		pcBound->mpsField = pcClass->FindField(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &pcBound->miOffset);
+	}
+	if (pcBound->mpsField)
+	{
+		pcBound->meWhat = CPPBN_Field;
+		pcBound->mpcClass = pcClass;
+	}
+}
+

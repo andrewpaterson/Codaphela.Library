@@ -70,11 +70,10 @@ bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
-	CCPPClass*	pcEnumeratorClass;
+	CCPPBoundName					cBound;
 	SCPP65Type*						psType;
 	SCPP65IRPlace					sPlace;
 	CCPPSyntaxNamedCastExpression*	pcNamedCast;
-	CCPPSymbol*						pcSymbol;
 
 	pcExpression = mpcUnit->SkipParentheses(pcExpression);
 	if (!pcExpression || mbUnsupported)
@@ -107,27 +106,20 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_StringExpression:
 		return StringLiteral(pcExpression, psValue);
 	case CPPS_IdExpression:
-		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
-		if (mpcUnit->IsFunctionName((CCPPSyntaxIdExpression*)pcExpression))
+		mpcUnit->GetCalls()->BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+		switch (cBound.meWhat)
 		{
+		case CPPBN_FunctionName:
 			return FunctionName((CCPPSyntaxIdExpression*)pcExpression, psValue);
-		}
-		if (!pcSymbol)
-		{
-			pcSymbol = mpcUnit->QualifiedEnumerator(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression, &pcEnumeratorClass);
-		}
-		if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
-		{
+		case CPPBN_Function:
 			return FunctionAddress((CCPPSyntaxIdExpression*)pcExpression, NULL, psValue);
-		}
-		if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
-		{
+		case CPPBN_FunctionTemplate:
 			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcExpression, psValue);
-		}
-		//A name without a symbol (a member in a template the parser could not resolve) is a place.
-		if (pcSymbol && ((pcSymbol->meKind == CPPSK_Enumerator) || (pcSymbol->meKind == CPPSK_ValueParameter)))
-		{
+		case CPPBN_Constant:
 			return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
+		default:
+			//A variable or a field: a place, which is loaded.
+			break;
 		}
 		break;
 	case CPPS_UnaryExpression:
@@ -720,10 +712,10 @@ void CCPP65IRFrontEnd::StringData(char* pcBytes, size uiLength, SCPP65IRValue* p
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 {
+	CCPPBoundName					cBound;
 	CCPPSyntaxIdExpression*			pcId;
 	CCPPSyntaxUnaryExpression*		pcUnary;
 	CCPPSyntaxSubscriptExpression*	pcSubscript;
-	CCPPVariable*					pcVariable;
 	SCPP65IRValue					sPointer;
 	SCPP65IRValue					sIndex;
 	SCPP65IRValue					sAddress;
@@ -737,17 +729,17 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	{
 	case CPPS_IdExpression:
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
-		pcVariable = pcId->mpcName->mpcSymbol ? mpcUnit->GetVariable(pcId->mpcName->mpcSymbol) : NULL;
-		if (pcVariable)
+		mpcUnit->GetCalls()->BindName(pcId, &cBound);
+		if (cBound.meWhat == CPPBN_Variable)
 		{
-			return VariablePlace(pcVariable, psPlace);
+			return VariablePlace(cBound.mpcVariable, psPlace);
 		}
-		//A member of this (a name in a template the parser could not resolve too).
-		if (msThis.IsNone() || (pcId->mpcName->macpComponents.NumElements() != 1) || (pcId->mpcName->mpcSymbol && (pcId->mpcName->mpcSymbol->meKind != CPPSK_Field)))
+		//A field of this, where there is one.
+		if ((cBound.meWhat != CPPBN_Field) || msThis.IsNone() || (pcId->mpcName->macpComponents.NumElements() != 1) || !mpcUnit->CompleteClass(cBound.mpcClass, NULL))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		return FieldPlace(msThis, mpcCPPFunction->mpcClass, mpcUnit->GetComponentName(pcId->mpcName->GetLast()), pcId->mpcName->mpcSymbol, psPlace);
+		return FieldAt(msThis, cBound.mpsField, cBound.miOffset, psPlace);
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression, psPlace);
@@ -1034,6 +1026,19 @@ bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, CCPPClass* pcClass, int6
 		}
 		return VariablePlace(pcVariable, psPlace);
 	}
+	return FieldAt(sObject, psField, iOffset, psPlace);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The place of a field at iOffset in the object at sObject: what a reference field
+// refers to.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FieldAt(SIRReference sObject, SCPPField* psField, int iOffset, SCPP65IRPlace* psPlace)
+{
+	psPlace->psBitField = NULL;
 	if (!IsSupportedType(psField->psType) && !ElementType(psField->psType)->IsClass())
 	{
 		return Unsupported(__FILE__, __LINE__);
