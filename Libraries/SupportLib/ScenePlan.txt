@@ -268,8 +268,8 @@ Vulkan.
    has the one scene-wide scale, and CRasterRenderMeshes built where their mesh is at that scale.  The tests are in
    TestRasterLib.  Step 5's CRasterFrame is the first to call CRenderScene.
 5. Extract.  Done: RasterRenderLib's CRasterFrame, whose Extract updates the render scene and makes what CRasteriser draws.
-   Connections become SRasterInstances, one for each rigid mesh of each instance, at the renderer's scale.  A skinned mesh waits
-   for step 9.  The user's decisions:
+   Connections become SRasterInstances, one for each rigid mesh of each instance, at the renderer's scale.  A skinned mesh is
+   posed since step 9.  The user's decisions:
      An instance's axes may scale and mirror.  Its light axes are their rotation alone, which the light is turned into the mesh
      by, and a mirrored instance's triangles are wound the other way.  The shade is clamped at 256, so it can't carry into the
      next colour channel.  An uneven scale shades as if the normals were only turned, which is very nearly right for the small
@@ -344,10 +344,23 @@ Vulkan.
      RenderSceneFile draws every converted file, posed at several keys, to the same bytes as before.  TestSceneGooberTwo makes a
      second Goober from the first's skeleton, ten along, sharing its mesh and walk at another time: the first is where it would be
      alone, no bone of either changes length, and at the same time they're ten apart.
-9. Skinning, in software on the raster renderer: per-instance vertices, using each instance mesh's connections.  The fixed point
-   skinning goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from
-   its converted file, proves it.  Its mesh is bound in another pose than its walk's first key, so posed at that key its edges are
-   0.09 to 4.4 times their length in the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
+9. Skinning, in software on the raster renderer.  Done.  BuildRasterMesh gives a skinned CRasterMesh's vertices their weights, and
+   RasterLib's CRasterPosed poses them with integers only, from SRasterBones that RasterRenderLib's CRasterFrame makes each frame:
+   each the skin's inverse matrix times the world matrix of the instance mesh's connection for it, placed as a rigid mesh is.  An
+   SRasterInstance with pcPosed draws those vertices with the mesh's triangles, with no axes of its own.  The user's decisions:
+     The posing is a pass of its own, into vertices of the instance's that the frame keeps from frame to frame (by the instance
+     mesh's object index), and their bounds light it.  Not in the rasteriser's project jobs.
+     A vertex has any number of weights, most first: integers of RASTER_SKIN_ONE (15 bits) adding up to exactly it, what rounding
+     leaves over going to the largest.  Not at most four, which Vulkan may want.
+     A normal is turned by each bone's rotation, blended, and made a unit again, by an integer square root.
+     A bone the instance hasn't got: the mesh isn't drawn, and binding it logs that once (CInstanceMesh::BindBones).
+     A bone whose matrix mirrors is an error: the mesh isn't drawn while it does, logged the first frame and not again while the
+     instance mesh is drawn or tried.  That's a flag on the frame's record of it, as CLogger has no "once".  A CLogger::ErrorOnce
+     taking such a flag was offered, and not added.
+   Goober, loaded from its converted file and walked, poses at eight times to within 47 units of floats in 6 million: the axes'
+   16 bits of fraction, as a rigid mesh has.  It draws in its material's colour, white, as RasterLib has no textures yet.  Its
+   mesh is bound in another pose than its walk's first key, so posed at that key its edges are 0.09 to 4.4 times their length in
+   the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
 10. In-place updates, if dragging plain meshes is slow.
 11. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
 
