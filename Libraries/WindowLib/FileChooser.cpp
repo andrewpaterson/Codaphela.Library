@@ -428,17 +428,24 @@ bool CFileChooser::Open(const char* szDirectory, const char* szSelect)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The root first and the folder shown last, as JFileChooser's combo box
-// has them.  Each is its whole path rather than its name indented, which
-// reads oddly with the list closed.
+// Every drive's root, as JFileChooser's combo box has them on Windows, so
+// another drive can be chosen, and under the shown folder's drive the
+// folders down to it, the folder shown selected.  Each is its whole path
+// rather than its name indented, which reads oddly with the list closed.
+// A shown folder whose root isn't a drive's, a network share's say, comes
+// after the drives.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::FillLookIn(void)
 {
 	CFileUtil		cFileUtil;
 	CArrayChars		aszUp;  //The folder shown first, the root last.
+	CArrayChars		aszRoots;
 	CChars			szPath;
+	CChars			szRoot;
 	size			i;
+	size			j;
+	int32			iShown;
 
 	aszUp.Init();
 	szPath.Init(mszDirectory);
@@ -454,14 +461,36 @@ void CFileChooser::FillLookIn(void)
 	}
 	szPath.Kill();
 
+	aszRoots.Init();
+	cFileUtil.FindRootDirectories(&aszRoots);
 	maszLookIn.ReInit();
 	mpLookIn->RemoveAllItems();
-	for (i = aszUp.NumElements(); i > 0; i--)
+	iShown = -1;
+	for (i = 0; i <= aszRoots.NumElements(); i++)
 	{
-		maszLookIn.Add(aszUp.GetText(i - 1));
-		mpLookIn->AddItem(aszUp.GetText(i - 1));
+		szRoot.Init(i < aszRoots.NumElements() ? aszRoots.GetText(i) : "");
+		if (i < aszRoots.NumElements())
+		{
+			NormaliseDirectory(&szRoot);
+		}
+		if ((iShown < 0) && ((i == aszRoots.NumElements()) || (StringInsensitiveCompare(szRoot.Text(), aszUp.GetText(aszUp.NumElements() - 1)) == 0)))
+		{
+			for (j = aszUp.NumElements(); j > 0; j--)
+			{
+				maszLookIn.Add(aszUp.GetText(j - 1));
+				mpLookIn->AddItem(aszUp.GetText(j - 1));
+			}
+			iShown = (int32)maszLookIn.NumElements() - 1;
+		}
+		else if (i < aszRoots.NumElements())
+		{
+			maszLookIn.Add(szRoot.Text());
+			mpLookIn->AddItem(szRoot.Text());
+		}
+		szRoot.Kill();
 	}
-	mpLookIn->Select((int32)maszLookIn.NumElements() - 1);
+	mpLookIn->Select(iShown);
+	aszRoots.Kill();
 	aszUp.Kill();
 }
 
@@ -734,7 +763,11 @@ void CFileChooser::LookInChosen(void)
 	iIndex = mpLookIn->GetSelected();
 	if ((iIndex >= 0) && (iIndex < (int32)maszLookIn.NumElements()))
 	{
-		Open(maszLookIn.GetText(iIndex), NULL);
+		//A drive with nothing in it can't be opened: Look In goes back to the folder shown.
+		if (!Open(maszLookIn.GetText(iIndex), NULL))
+		{
+			FillLookIn();
+		}
 	}
 }
 

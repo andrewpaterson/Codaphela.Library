@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/StringHelper.h"
 #include "BaseLib/TextFile.h"
 #ifdef _WIN32
 #include "BaseLib/WindowsHeaders.h"
@@ -52,6 +53,8 @@ public:
 	void				ClearDeletePending(void) { mbDeletePending = false; }
 	Ptr<CButton>		GetShowHidden(void) { return mpShowHidden; }
 	bool				OpenFolder(const char* szDirectory) { return Open(szDirectory, NULL); }
+	size				NumLookIn(void) { return maszLookIn.NumElements(); }
+	char*				GetLookInPath(size uiIndex) { return maszLookIn.GetText(uiIndex); }
 	char*				GetRowPath(int32 iRow) { return maszRows.GetText(iRow); }
 	char*				GetClicked(void) { return mpDialog->GetClicked(); }
 };
@@ -180,6 +183,11 @@ void TestFileChooserBrowse(void)
 		Ptr<CTestFileChooser>		pChooser;
 		CChars						szDesktop;
 		int32						iRow;
+		CArrayChars					aszRoots;
+		CChars						szRoot;
+		size						uiRoot;
+		size						uiLookIn;
+		bool						bFound;
 		Ptr<CFocus>					pFocus;
 		CColourFormatHelper			cFormat;
 		Ptr<CImageCel>				pFolderIcon;
@@ -319,6 +327,25 @@ void TestFileChooserBrowse(void)
 		}
 		szDesktop.Kill();
 		AssertString(szFull.Text(), pChooser->GetDirectory());
+
+		//Look In has every drive's root, so another can be chosen, and the folder shown is selected.
+		aszRoots.Init();
+		cFileUtil.FindRootDirectories(&aszRoots);
+		AssertTrue(pChooser->NumLookIn() > aszRoots.NumElements() || aszRoots.NumElements() == 0);
+		for (uiRoot = 0; uiRoot < aszRoots.NumElements(); uiRoot++)
+		{
+			szRoot.Init(aszRoots.GetText(uiRoot));
+			NormaliseDirectory(&szRoot);
+			bFound = false;
+			for (uiLookIn = 0; uiLookIn < pChooser->NumLookIn(); uiLookIn++)
+			{
+				bFound |= StringInsensitiveCompare(pChooser->GetLookInPath(uiLookIn), szRoot.Text()) == 0;
+			}
+			AssertTrue(bFound);
+			szRoot.Kill();
+		}
+		aszRoots.Kill();
+		AssertString(szFull.Text(), pChooser->GetLookInPath(pChooser->GetLookIn()->GetSelected()));
 		pChooser->GetList()->Select(0);
 		pChooser->ItemActivated();
 		AssertString(szFullSub.Text(), pChooser->GetDirectory());

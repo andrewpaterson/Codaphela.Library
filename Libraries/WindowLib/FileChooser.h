@@ -44,6 +44,9 @@ struct SFileChooserType
 //the folder's folders then its files under it; and File Name and Files of Type along the bottom.  Open (or Save)
 //and Cancel are the buttons.
 //
+//Look In has every drive, and the folders down to the one shown under its drive; a drive that can't be opened leaves
+//it where it was.
+//
 //Selecting a file puts its name in File Name.  A double click on a folder (or enter) opens it; on a file it chooses
 //it.  Backspace, the keymap's Backspace command, goes up a folder as Up One Level does, whatever has focus, the list or
 //a button, but in File Name it deletes as ever; the Delete command deletes what's selected in the list the same way.
