@@ -167,14 +167,14 @@ The user's, in order.  The W65C816's are also in W65C816.txt and the memory note
   the stub off a call through a pointer, but changes what &f, vtables, thunks and assembly that takes a function
   pointer mean.  Don't build or offer either again.
 
-Still waiting for the user (W65C816):
+Nothing is waiting for the user.  Closed (2026-11-14), don't offer again:
 
-- 8 bit results returned zero extended: about 4,000 masks after calls would go; assembly that returns bytes
-  would have to comply.
-
-Closed (2026-11-14): uint8 counts elsewhere in the index tree.  The one loop left, in
-CIndexTreeFile::PrintChildFileIndexes, is debug printing; its size counter is correct (the span is 0 to 255) and
-its cost is lost in the appends.  Left as it is.
+- 8 bit results returned zero extended.  The 4,000 was a static count of masks after calls, never weighed in a
+  profile.  The callee would have to mask whatever it didn't already know was clean, so only calls to callees
+  returning constants, compares or known zero high bytes would gain; assembly returning bytes would have to
+  comply.  Not built.
+- uint8 counts elsewhere in the index tree.  The one loop left, in CIndexTreeFile::PrintChildFileIndexes, is
+  debug printing; its size counter is correct (the span is 0 to 255) and its cost is lost in the appends.
 
 
 How to measure
