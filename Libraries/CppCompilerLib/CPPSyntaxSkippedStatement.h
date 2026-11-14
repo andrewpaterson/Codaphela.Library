@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCPPSyntaxSkippedStatement : public CCPPSyntaxStatement
 {
 public:
-	CPP_SYNTAX_GET_KIND(SkippedStatement)
+	CPP_SYNTAX_NODE(SkippedStatement)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 };
 

@@ -2132,11 +2132,7 @@ bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPUnit::SkipParentheses(CCPPSyntax* pcExpression)
 {
-	while (pcExpression && (pcExpression->GetKind() == CPPS_ParenthesisedExpression))
-	{
-		pcExpression = ((CCPPSyntaxParenthesisedExpression*)pcExpression)->mpcExpression;
-	}
-	return pcExpression;
+	return pcExpression ? pcExpression->WithoutParentheses() : NULL;
 }
 
 

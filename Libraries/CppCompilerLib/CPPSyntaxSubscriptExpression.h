@@ -30,7 +30,7 @@ public:
 	CCPPSyntax*				mpcIndex;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(SubscriptExpression)
+	CPP_SYNTAX_NODE(SubscriptExpression)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

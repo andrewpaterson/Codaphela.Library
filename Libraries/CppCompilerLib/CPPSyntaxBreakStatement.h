@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCPPSyntaxBreakStatement : public CCPPSyntaxStatement
 {
 public:
-	CPP_SYNTAX_GET_KIND(BreakStatement)
+	CPP_SYNTAX_NODE(BreakStatement)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 };
 

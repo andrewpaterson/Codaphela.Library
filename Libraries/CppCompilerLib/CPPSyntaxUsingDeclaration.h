@@ -33,7 +33,7 @@ public:
 	CCPPSyntaxName*			mpcName;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(UsingDeclaration)
+	CPP_SYNTAX_NODE(UsingDeclaration)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCPPSyntaxContinueStatement : public CCPPSyntaxStatement
 {
 public:
-	CPP_SYNTAX_GET_KIND(ContinueStatement)
+	CPP_SYNTAX_NODE(ContinueStatement)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 };
 

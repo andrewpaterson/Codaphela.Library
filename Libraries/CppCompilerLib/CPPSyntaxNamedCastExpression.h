@@ -34,7 +34,7 @@ public:
 	CCPPSyntaxExpression*	mpcOperand;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(NamedCastExpression)
+	CPP_SYNTAX_NODE(NamedCastExpression)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

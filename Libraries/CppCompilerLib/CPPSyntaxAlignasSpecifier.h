@@ -29,7 +29,7 @@ public:
 	CCPPSyntax*				mpcAlignment;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(AlignasSpecifier)
+	CPP_SYNTAX_NODE(AlignasSpecifier)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

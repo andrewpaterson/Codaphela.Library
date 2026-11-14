@@ -29,7 +29,8 @@ public:
 	CCPPSyntaxExpression*	mpcExpression;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(ParenthesisedExpression)
+	CPP_SYNTAX_NODE(ParenthesisedExpression)
+	CCPPSyntax*				WithoutParentheses(void) override { return mpcExpression ? mpcExpression->WithoutParentheses() : NULL; }
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

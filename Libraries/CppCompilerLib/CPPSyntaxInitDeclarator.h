@@ -37,7 +37,7 @@ public:
 	CCPPSymbol*				mpcSymbol;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(InitDeclarator)
+	CPP_SYNTAX_NODE(InitDeclarator)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

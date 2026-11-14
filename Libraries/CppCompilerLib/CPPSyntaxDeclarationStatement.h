@@ -32,7 +32,7 @@ public:
 	CCPPSyntaxDeclaration*	mpcDeclaration;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(DeclarationStatement)
+	CPP_SYNTAX_NODE(DeclarationStatement)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

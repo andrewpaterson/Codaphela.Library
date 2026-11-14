@@ -483,6 +483,9 @@
     <ClCompile Include="CPPSyntaxTree.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="CPPSyntaxVisitor.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
     <ClCompile Include="CPPSyntaxMemory.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
@@ -1194,6 +1197,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxTree.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxVisitor.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxStatement.h">

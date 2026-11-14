@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCPPSyntaxAttribute : public CCPPSyntax
 {
 public:
-	CPP_SYNTAX_GET_KIND(Attribute)
+	CPP_SYNTAX_NODE(Attribute)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 };
 

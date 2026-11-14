@@ -31,7 +31,7 @@ public:
 	CCPPSyntax*				mpcRight;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(BinaryExpression)
+	CPP_SYNTAX_NODE(BinaryExpression)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

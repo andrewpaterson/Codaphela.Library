@@ -30,7 +30,7 @@ public:
 	CCPPSyntax*				mpcOperand;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(DecltypeSpecifier)
+	CPP_SYNTAX_NODE(DecltypeSpecifier)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

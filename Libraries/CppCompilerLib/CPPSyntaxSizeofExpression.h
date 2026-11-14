@@ -36,7 +36,7 @@ public:
 	CCPPSyntaxExpression*	mpcOperand;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(SizeofExpression)
+	CPP_SYNTAX_NODE(SizeofExpression)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

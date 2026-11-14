@@ -35,7 +35,7 @@ public:
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void					Kill(void) override;
-	CPP_SYNTAX_GET_KIND(PointerOperator)
+	CPP_SYNTAX_NODE(PointerOperator)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

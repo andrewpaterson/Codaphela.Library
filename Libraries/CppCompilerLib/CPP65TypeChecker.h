@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_65_TYPE_CHECKER_H__
 #define __C_P_P_65_TYPE_CHECKER_H__
+#include "CPPSyntaxVisitor.h"
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
 
@@ -35,14 +36,35 @@ class CCPPFunction;
 //have the IR front end's names (Value, Place, CallExpression, Construct ...), so an expression's type and its code are
 //found in the same place in both.  An error is reported with the generator's Error (in quiet mode it is only noted),
 //and the function that found it returns NULL (or false); so do the functions that called it.
-class CCPP65TypeChecker
+class CCPP65TypeChecker : public CCPPSyntaxVisitor
 {
 protected:
-	CCPPUnit*	mpcUnit;
+	CCPPUnit*			mpcUnit;
 	CCPP65Types*		mpcTypes;
 	CArraySyntax		mapcNone;		//No arguments.
+	SCPP65Type*			mpsResult;		//What the Visit function of the expression Result was asked for found.
 
 public:
+	void			VisitDefault(CCPPSyntax* pcNode) override;
+	void			VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNode) override;
+	void			VisitStringExpression(CCPPSyntaxStringExpression* pcNode) override;
+	void			VisitIdExpression(CCPPSyntaxIdExpression* pcNode) override;
+	void			VisitParenthesisedExpression(CCPPSyntaxParenthesisedExpression* pcNode) override;
+	void			VisitUnaryExpression(CCPPSyntaxUnaryExpression* pcNode) override;
+	void			VisitBinaryExpression(CCPPSyntaxBinaryExpression* pcNode) override;
+	void			VisitConditionalExpression(CCPPSyntaxConditionalExpression* pcNode) override;
+	void			VisitCallExpression(CCPPSyntaxCallExpression* pcNode) override;
+	void			VisitSubscriptExpression(CCPPSyntaxSubscriptExpression* pcNode) override;
+	void			VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode) override;
+	void			VisitThisExpression(CCPPSyntaxThisExpression* pcNode) override;
+	void			VisitCastExpression(CCPPSyntaxCastExpression* pcNode) override;
+	void			VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* pcNode) override;
+	void			VisitConstructExpression(CCPPSyntaxConstructExpression* pcNode) override;
+	void			VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode) override;
+	void			VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode) override;
+	void			VisitNewExpression(CCPPSyntaxNewExpression* pcNode) override;
+	void			VisitDeleteExpression(CCPPSyntaxDeleteExpression* pcNode) override;
+
 	void			Init(CCPPUnit* pcUnit);
 	void			Kill(void);
 

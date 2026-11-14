@@ -32,7 +32,7 @@ public:
 	CCPPScope*				mpcScope;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(IfStatement)
+	CPP_SYNTAX_NODE(IfStatement)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

@@ -313,6 +313,7 @@
     <ClCompile Include="CPPSymbolTable.cpp" />
     <ClCompile Include="CPPSymbol.cpp" />
     <ClCompile Include="CPPSyntaxTree.cpp" />
+    <ClCompile Include="CPPSyntaxVisitor.cpp" />
     <ClCompile Include="CPPSyntaxMemory.cpp" />
     <ClCompile Include="CPPSyntax.cpp" />
     <ClCompile Include="CPPSyntaxWhileStatement.cpp" />
@@ -552,6 +553,7 @@
     <ClInclude Include="CPPSymbol.h" />
     <ClInclude Include="CPPSyntaxTypeSpecifier.h" />
     <ClInclude Include="CPPSyntaxTree.h" />
+    <ClInclude Include="CPPSyntaxVisitor.h" />
     <ClInclude Include="CPPSyntaxStatement.h" />
     <ClInclude Include="CPPSyntaxMemory.h" />
     <ClInclude Include="CPPSyntaxExpression.h" />

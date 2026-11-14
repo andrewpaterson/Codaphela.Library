@@ -116,8 +116,9 @@ enum ECPPSyntax
 #undef CPP_SYNTAX_ENUM
 
 
-//A node class's kind (CCPPSyntax::GetKind), in its declaration: CPP_SYNTAX_GET_KIND(N) in class CCPPSyntaxN.
-#define CPP_SYNTAX_GET_KIND(N)	ECPPSyntax GetKind(void) override { return CPPS_##N; }
+//What a node class has for being its kind, in its declaration (CPP_SYNTAX_NODE(N) in class CCPPSyntaxN): its kind
+//(CCPPSyntax::GetKind) and Accept, which gives the node to a visitor's VisitN (CPPSyntaxVisitor.cpp has them all).
+#define CPP_SYNTAX_NODE(N)	ECPPSyntax GetKind(void) override { return CPPS_##N; } void Accept(CCPPSyntaxVisitor* pcVisitor) override;
 
 
 #endif // __C_P_P_SYNTAX_KIND_H__

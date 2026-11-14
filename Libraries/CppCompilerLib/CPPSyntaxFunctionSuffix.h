@@ -41,7 +41,7 @@ public:
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void					Kill(void) override;
-	CPP_SYNTAX_GET_KIND(FunctionSuffix)
+	CPP_SYNTAX_NODE(FunctionSuffix)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 

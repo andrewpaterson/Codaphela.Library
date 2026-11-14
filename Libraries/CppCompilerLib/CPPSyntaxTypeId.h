@@ -35,7 +35,7 @@ public:
 	bool						mbPack;
 
 	void						Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(TypeId)
+	CPP_SYNTAX_NODE(TypeId)
 	void						PrettyPrint(CChars* pszDest, int iDepth) override;
 	void						VisitFields(CCPPSyntaxFields* pcFields) override;
 };

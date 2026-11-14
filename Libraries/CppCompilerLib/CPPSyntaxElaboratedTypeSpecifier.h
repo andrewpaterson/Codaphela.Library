@@ -35,7 +35,7 @@ public:
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void					Kill(void) override;
-	CPP_SYNTAX_GET_KIND(ElaboratedTypeSpecifier)
+	CPP_SYNTAX_NODE(ElaboratedTypeSpecifier)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

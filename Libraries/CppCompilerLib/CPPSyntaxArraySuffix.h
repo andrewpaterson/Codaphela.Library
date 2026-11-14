@@ -32,7 +32,7 @@ public:
 	CCPPSyntaxExpression*	mpcSize;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(ArraySuffix)
+	CPP_SYNTAX_NODE(ArraySuffix)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

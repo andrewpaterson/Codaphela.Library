@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 class CCPPSyntax;
 class CCPPSyntaxTree;
+class CCPPSyntaxVisitor;
 class CCPPScope;
 class CCPPSymbol;
 
@@ -110,6 +111,8 @@ public:
 	virtual void		Kill(void);
 
 	virtual ECPPSyntax	GetKind(void) =0;
+	virtual void		Accept(CCPPSyntaxVisitor* pcVisitor) =0;
+	virtual CCPPSyntax*	WithoutParentheses(void) { return this; }
 	virtual void		PrettyPrint(CChars* pszDest, int iDepth) =0;
 	virtual void		TypePrint(CChars* pszDest, int iDepth);
 	virtual void		VisitFields(CCPPSyntaxFields* pcFields);

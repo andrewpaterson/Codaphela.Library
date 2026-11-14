@@ -31,7 +31,7 @@ public:
 	CCPPSyntaxExpression*	mpcFalse;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	CPP_SYNTAX_GET_KIND(ConditionalExpression)
+	CPP_SYNTAX_NODE(ConditionalExpression)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCPPSyntaxStringExpression : public CCPPSyntaxExpression
 {
 public:
-	CPP_SYNTAX_GET_KIND(StringExpression)
+	CPP_SYNTAX_NODE(StringExpression)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 };
 

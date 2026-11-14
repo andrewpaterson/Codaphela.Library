@@ -111,74 +111,228 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::Result(CCPPSyntax* pcExpression)
 {
-	CCPPSyntaxNamedCastExpression*	pcNamedCast;
-	CCPPSyntaxSubscriptExpression*	pcSubscript;
-	CArraySyntax					apcIndex;
-	SCPP65Type*						psType;
-
 	if (!pcExpression)
 	{
 		return NULL;
 	}
 
-	switch (pcExpression->GetKind())
+	//The node's own Visit works its type out, the types of what is in it on the way, and leaves it here last.
+	mpsResult = NULL;
+	pcExpression->Accept(this);
+	return mpsResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What Result gives for each kind of expression.  A kind that has no function here isn't an expression the
+// compiler does.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitDefault(CCPPSyntax* pcNode)
+{
+	Error(pcNode, "This expression is not supported by the compiler yet");
+	mpsResult = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object[index] is a call to the object's operator[], which may return a value.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitSubscriptExpression(CCPPSyntaxSubscriptExpression* pcNode)
+{
+	CArraySyntax	apcIndex;
+	SCPP65Type*		psType;
+
+	psType = mpcUnit->TypeOf(pcNode->mpcArray);
+	if (psType && psType->IsClass())
 	{
-	case CPPS_LiteralExpression:
-		return ConstantValue(pcExpression);
-	case CPPS_StringExpression:
-		return StringLiteral((CCPPSyntaxStringExpression*)pcExpression);
-	case CPPS_IdExpression:
-		return IdExpression((CCPPSyntaxIdExpression*)pcExpression);
-	case CPPS_ParenthesisedExpression:
-		return Result(((CCPPSyntaxParenthesisedExpression*)pcExpression)->mpcExpression);
-	case CPPS_UnaryExpression:
-		return UnaryExpression((CCPPSyntaxUnaryExpression*)pcExpression);
-	case CPPS_BinaryExpression:
-		return BinaryExpression((CCPPSyntaxBinaryExpression*)pcExpression);
-	case CPPS_ConditionalExpression:
-		return ConditionalExpression((CCPPSyntaxConditionalExpression*)pcExpression);
-	case CPPS_CallExpression:
-		return CallExpression((CCPPSyntaxCallExpression*)pcExpression);
-	case CPPS_SubscriptExpression:
-		//object[index] is a call to the object's operator[], which may return a value.
-		pcSubscript = (CCPPSyntaxSubscriptExpression*)pcExpression;
-		psType = mpcUnit->TypeOf(pcSubscript->mpcArray);
-		if (psType && psType->IsClass())
-		{
-			apcIndex.Init();
-			apcIndex.Add(pcSubscript->mpcIndex);
-			psType = OperatorCall(pcSubscript->mpcArray, CT_OpenSquareBracket, &apcIndex, pcExpression);
-			apcIndex.Kill();
-			return psType;
-		}
-		return Load(Place(pcExpression), pcExpression);
-	case CPPS_MemberExpression:
-		return Load(Place(pcExpression), pcExpression);
-	case CPPS_ThisExpression:
-		return ThisExpression(pcExpression);
-	case CPPS_CastExpression:
-		return CastExpression(((CCPPSyntaxCastExpression*)pcExpression)->mpcType, ((CCPPSyntaxCastExpression*)pcExpression)->mpcOperand, pcExpression);
-	case CPPS_NamedCastExpression:
-		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
-		if (pcNamedCast->meCast == CT_dynamic_cast)
-		{
-			//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
-			return mpcUnit->GetDeclarators()->GetTypeIdType(pcNamedCast->mpcType);
-		}
-		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, pcExpression);
-	case CPPS_ConstructExpression:
-		return ConstructExpression((CCPPSyntaxConstructExpression*)pcExpression);
-	case CPPS_SizeofExpression:
-	case CPPS_TypeTraitExpression:
-		return SizeofExpression(pcExpression);
-	case CPPS_NewExpression:
-		return NewExpression((CCPPSyntaxNewExpression*)pcExpression);
-	case CPPS_DeleteExpression:
-		return DeleteExpression((CCPPSyntaxDeleteExpression*)pcExpression);
-	default:
-		Error(pcExpression, "This expression is not supported by the compiler yet");
-		return NULL;
+		apcIndex.Init();
+		apcIndex.Add(pcNode->mpcIndex);
+		psType = OperatorCall(pcNode->mpcArray, CT_OpenSquareBracket, &apcIndex, pcNode);
+		apcIndex.Kill();
+		mpsResult = psType;
+		return;
 	}
+	mpsResult = Load(Place(pcNode), pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNode)
+{
+	mpsResult = ConstantValue(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitStringExpression(CCPPSyntaxStringExpression* pcNode)
+{
+	mpsResult = StringLiteral(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitIdExpression(CCPPSyntaxIdExpression* pcNode)
+{
+	mpsResult = IdExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitParenthesisedExpression(CCPPSyntaxParenthesisedExpression* pcNode)
+{
+	mpsResult = Result(pcNode->mpcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitUnaryExpression(CCPPSyntaxUnaryExpression* pcNode)
+{
+	mpsResult = UnaryExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitBinaryExpression(CCPPSyntaxBinaryExpression* pcNode)
+{
+	mpsResult = BinaryExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitConditionalExpression(CCPPSyntaxConditionalExpression* pcNode)
+{
+	mpsResult = ConditionalExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitCallExpression(CCPPSyntaxCallExpression* pcNode)
+{
+	mpsResult = CallExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode)
+{
+	mpsResult = Load(Place(pcNode), pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitThisExpression(CCPPSyntaxThisExpression* pcNode)
+{
+	mpsResult = ThisExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitCastExpression(CCPPSyntaxCastExpression* pcNode)
+{
+	mpsResult = CastExpression(pcNode->mpcType, pcNode->mpcOperand, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* pcNode)
+{
+	if (pcNode->meCast == CT_dynamic_cast)
+	{
+		//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
+		mpsResult = mpcUnit->GetDeclarators()->GetTypeIdType(pcNode->mpcType);
+		return;
+	}
+	mpsResult = CastExpression(pcNode->mpcType, pcNode->mpcOperand, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitConstructExpression(CCPPSyntaxConstructExpression* pcNode)
+{
+	mpsResult = ConstructExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode)
+{
+	mpsResult = SizeofExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode)
+{
+	mpsResult = SizeofExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitNewExpression(CCPPSyntaxNewExpression* pcNode)
+{
+	mpsResult = NewExpression(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitDeleteExpression(CCPPSyntaxDeleteExpression* pcNode)
+{
+	mpsResult = DeleteExpression(pcNode);
 }
 
 
