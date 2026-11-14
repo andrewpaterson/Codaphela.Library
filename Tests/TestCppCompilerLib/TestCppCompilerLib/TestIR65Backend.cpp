@@ -890,7 +890,7 @@ void TestIR65BackendAllocation(void)
 		"\t%r = add i64 %s2, %v\n"
 		"\tret i64 %r\n}\n"));
 	//A string compare's pointers are only addresses and steps, so the bytes get X and Y; one pointer gets W and the other
-	//V.  W is no address register (it is copied to B): "abc" against "abd" is -1.  The bytes are only compared, so they are read narrow (cpy, not cpyx): X and Y stay 8 bits wide across
+	//V.  A cpy reads through either ([W]; an add, cmp or cpyx would have W copied to B first): "abc" against "abd" is -1.  The bytes are only compared, so they are read narrow (cpy, not cpyx): X and Y stay 8 bits wide across
 	//the loop.
 	szAssembly.Init();
 	AssertLong(-1, (int32)TestIR65Run(
@@ -908,7 +908,7 @@ void TestIR65BackendAllocation(void)
 		"function i32 @_main()\n{\nb:\n"
 		"\t%s = slot ptr 4, 4\n\tstore i32 6513249, %s\n\t%t = slot ptr 4, 4\n\tstore i32 6578785, %t\n"
 		"\t%r = call i32 @_Compare__FPcPc(ptr %s, ptr %t)\n\tret i32 %r\n}\n", false, &szAssembly));
-	AssertTrue(szAssembly.Contains("\t\tcpy B, W\n\t\tcpy X, [B]\n\t\tadd W, 1\n\t\tcpy Y, [V]\n\t\tadd V, 1\n") && !szAssembly.Contains("cpyx"));
+	AssertTrue(szAssembly.Contains("\t\tcpy X, [W]\n\t\tadd W, 1\n\t\tcpy Y, [V]\n\t\tadd V, 1\n") && !szAssembly.Contains("cpyx"));
 	szAssembly.Kill();
 }
 

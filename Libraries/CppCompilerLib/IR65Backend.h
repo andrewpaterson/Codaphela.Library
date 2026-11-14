@@ -213,6 +213,7 @@ protected:
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
 	CArrayIR65Stubs			masStubs;
 	SIR65Frame				msFrame;			//The function's frame (Layout, Allocate and GenerateFunction).
+	bool					mbCopyAddress;		//The memory operand being written is a cpy's, which may address with W ([W]): MemoryOperand.
 	uint32					muiWeightV;			//The weights of the classes whose home is V (PaysV).
 	bool					mbFrameOnly;		//The function will have a frame: no kept pseudo registers (Allocate).
 	int32					miReturnLabel;

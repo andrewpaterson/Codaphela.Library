@@ -691,7 +691,10 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExten
 	}
 	else
 	{
+		//Read with cpy, whatever the width.
+		mbCopyAddress = true;
 		MemoryOperand(psInstruction->asArguments[0], &szOperand, (iBytes == 4) ? NULL : szWork);
+		mbCopyAddress = false;
 	}
 	if (StringCompare(szWork, "A") == 0)
 	{
@@ -779,7 +782,10 @@ bool CIR65Backend::Store(CIRBlock* pcBlock, size uiIndex)
 	}
 	else
 	{
+		//Written with cpy, whatever the width.
+		mbCopyAddress = true;
 		MemoryOperand(psInstruction->asArguments[1], &szOperand, (bLoad || (iBytes != 4)) ? szValueRegister : NULL);
+		mbCopyAddress = false;
 	}
 	if (bLoad)
 	{

@@ -623,7 +623,9 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 				AppendPlace(pszOperand, psPlace);
 				return;
 			case IR65P_Register:
-				if (IsAddressRegister(psPlace) && ((szWidened == NULL) || (StringCompare(szWidened, RegisterName(psPlace)) != 0)))
+				//[W] too for a cpy (mbCopyAddress): cpy addresses memory with any register, and [W] with no offset
+				//isn't how a pseudo register is written.
+				if ((IsAddressRegister(psPlace) || mbCopyAddress) && ((szWidened == NULL) || (StringCompare(szWidened, RegisterName(psPlace)) != 0)))
 				{
 					pszOperand->Append('[')->Append(RegisterName(psPlace))->Append(']');
 					return;

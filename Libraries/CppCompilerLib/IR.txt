@@ -542,9 +542,11 @@ registers are $0000 to $00FF whatever it holds (CPP65Generator.txt).  So W is a 
 a runtime routine (what changes Y), taken after X and Y and before V (it costs nothing to
 have).  The lowering and the text passes write and read the pseudo registers as [n + W]
 (how they tell them from other memory) and the last pass writes every one as [n]
-(IR65PseudoWithoutW), so no [n + W] is left to mean anything else.  W is never written
-as an address ([W], [4 + W]: IsAddressRegister; a pointer in it is copied to B, 1 cycle
-more than [X] and 2 less than [[n]]) and has only the one width, as V.  A mul or div is
+(IR65PseudoWithoutW), so no [n + W] is left to mean anything else.  W is only written
+as an address by a load's or store's cpy and with no offset ([W]: mbCopyAddress; cpy
+addresses memory with any register, 0.3%, 0.2% and 0.1% fewer cycles); anywhere else
+(IsAddressRegister) a pointer in it is copied to B, 1 cycle more than [X] and 2 less than
+[[n]].  It has only the one width, as V.  A mul or div is
 written with cpy W, 0 before it, which CIR65Peephole takes out where W is 0 already
 (TransferW).  BaseLib, StandardLib and SupportLib on the 65C64: 4.3%, 2.9% and 3.6% fewer
 cycles with W kept 0 at every call and return (the convention as it was first

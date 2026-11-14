@@ -60,6 +60,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mbFlagsKnown = false;
 	mbRightImmediate = false;
 	mszAddress = "B";
+	mbCopyAddress = false;
 	mcFlags.Init();
 	mcWidths.Init();
 	mcPeephole.Init();

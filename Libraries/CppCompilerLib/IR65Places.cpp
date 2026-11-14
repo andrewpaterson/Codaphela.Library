@@ -1384,9 +1384,10 @@ const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if a register home can be written as an address ([X], [4 + V]):
-// not W, which add, sub, cmp, shl, shr and cpyx can't address with, and
-// whose [n + W] is how the pseudo registers are written.
+// True if a register home can be written as an address ([X], [4 + V]) by
+// any instruction: not W, which add, sub, cmp, shl, shr and cpyx can't
+// address with, and whose [n + W] is how the pseudo registers are written
+// (a cpy's [W] is MemoryOperand's own case).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IsAddressRegister(SIR65Place* psPlace)
