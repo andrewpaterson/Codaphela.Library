@@ -977,7 +977,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	}
 	if (psParameter->Equals(psArgument))
 	{
-		if (bReference && psArgument->IsClass() && !psArgument->bConst && pcArgument && mpcUnit->IsMadeObject(pcArgument, psArgument->pcClass))
+		if (bReference && psArgument->IsClass() && !psArgument->bConst && pcArgument && IsTemporary(pcArgument, psArgument->pcClass))
 		{
 			//An object made for the call binds best to a const reference (T& takes it too, as MSVC lets it).
 			return psParameter->bConst ? CPPCR_Exact : CPPCR_Qualification;
@@ -1153,6 +1153,32 @@ bool CCPPOverloads::HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psA
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether an argument is an object of the class made for the call: what a call or an
+// operator returns (IsMadeObject), or one constructed where it is passed, S() and
+// S(1).  It has no name to change it by afterwards, so it binds better to a const
+// reference.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass)
+{
+	SCPP65Type*	psType;
+
+	if (mpcUnit->IsMadeObject(pcArgument, pcClass))
+	{
+		return true;
+	}
+	pcArgument = pcArgument->WithoutParentheses();
+	if (!pcArgument || (pcArgument->GetKind() != CPPS_ConstructExpression))
+	{
+		return false;
+	}
+	psType = mpcUnit->TypeOf(pcArgument);
+	return psType && psType->IsClass() && (psType->pcClass == pcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Between two functions whose arguments convert equally well, which qualifies them
 // less: of T* and const T*, or T& and const T&, the one without const, but an object
 // made by the argument (a temporary) or a const object binds better to a const
@@ -1191,7 +1217,7 @@ int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 		{
 			continue;
 		}
-		bConstBetter = psParameter->IsReference() && ((psParameter->psBase->IsClass() && mpcUnit->IsMadeObject(papcArguments->GetPtr(i), psParameter->psBase->pcClass)) || mpcUnit->IsConstObject(papcArguments->GetPtr(i)));
+		bConstBetter = psParameter->IsReference() && ((psParameter->psBase->IsClass() && IsTemporary(papcArguments->GetPtr(i), psParameter->psBase->pcClass)) || mpcUnit->IsConstObject(papcArguments->GetPtr(i)));
 		if (psParameter->psBase->bConst == bConstBetter)
 		{
 			bFirst = true;

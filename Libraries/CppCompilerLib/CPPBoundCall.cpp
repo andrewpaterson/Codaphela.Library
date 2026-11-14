@@ -126,6 +126,8 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	CCPPSymbol*					pcSymbol;
 	CCPPFunction*				pcFunction;
 	CCPPFunction*				pcMember;
+	CCPPFunction*				pcInstance;
+	CCPPSymbol*					pcDeclaration;
 	CCPPTemplate*				pcTemplate;
 	size						uiErrors;
 	int64						lliName;
@@ -169,6 +171,24 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 			return;
 		}
 		papcExplicit = (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL;
+
+		//A function of the name that isn't a template's, and takes the arguments as they are, is the better match
+		//than any template's instance.  [over.match.best] 2.4
+		if (!papcExplicit)
+		{
+			uiErrors = mpcUnit->GetErrors()->NumErrors();
+			mpcUnit->BeginTrial();
+			pcFunction = mcOverloads.FindNamedFunction(pcName, pcSymbol->mlliName, &pcCall->macpArguments, pcCall);
+			mpcUnit->EndTrial();
+			mpcUnit->GetErrors()->Truncate(uiErrors);
+			if (pcFunction && TakesAsTheyAre(pcFunction, &pcCall->macpArguments))
+			{
+				mpcUnit->Resolved(pcName, pcFunction);
+				pcBound->meHow = CPPBC_Function;
+				pcBound->mpcFunction = pcFunction;
+				return;
+			}
+		}
 		pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, papcExplicit);
 		if (!pcTemplate)
 		{
@@ -236,6 +256,33 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 		//A variable, or an expression: a pointer to a function if it is anything.
 		pcBound->meHow = CPPBC_Pointer;
 		return;
+	}
+
+	//The name may be a template's as well (declared after the function the name was first): its instance is the
+	//better match unless a function takes the arguments as they are.
+	for (pcDeclaration = pcSymbol->mpcNext; pcDeclaration && (pcDeclaration->meKind != CPPSK_FunctionTemplate); pcDeclaration = pcDeclaration->mpcNext)
+	{
+	}
+	if (pcDeclaration)
+	{
+		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		mpcUnit->BeginTrial();
+		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+		if (!pcFunction || !TakesAsTheyAre(pcFunction, &pcCall->macpArguments))
+		{
+			pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, lliName, pcCall, NULL);
+			pcInstance = pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, &pcCall->macpArguments, pcCall) : NULL;
+			pcFunction = pcInstance ? pcInstance : pcFunction;
+		}
+		mpcUnit->EndTrial();
+		mpcUnit->GetErrors()->Truncate(uiErrors);
+		if (pcFunction)
+		{
+			mpcUnit->Resolved(pcName, pcFunction);
+			pcBound->meHow = CPPBC_Function;
+			pcBound->mpcFunction = pcFunction;
+			return;
+		}
 	}
 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
@@ -693,5 +740,32 @@ bool CCPPCallBinder::HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size u
 bool CCPPCallBinder::KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
 {
 	return mcOverloads.QualificationRank(psTo, psFrom, false) != CPPCR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the function takes each of the arguments as its parameter's own type, but
+// for const and a reference: no argument is converted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArguments)
+{
+	SCPP65Type*	psArgument;
+	size		i;
+
+	if (pcFunction->mbVariadic || (pcFunction->mapsParameters.NumElements() != papcArguments->NumElements()))
+	{
+		return false;
+	}
+	for (i = 0; i < papcArguments->NumElements(); i++)
+	{
+		psArgument = mpcUnit->ValueTypeOf(papcArguments->GetPtr(i));
+		if (!psArgument || !pcFunction->mapsParameters.GetPtr(i)->WithoutReference()->Unqualified()->Equals(psArgument->Unqualified()))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 

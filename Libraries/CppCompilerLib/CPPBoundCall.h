@@ -117,6 +117,7 @@ protected:
 	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);
 	void	ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);
 	void	ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);
+	bool	TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArguments);
 };
 
 

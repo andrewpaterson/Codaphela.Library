@@ -705,7 +705,8 @@ CCPPTemplate* CCPPUnit::FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTem
 	}
 	if (bAmbiguous)
 	{
-		Error(pcNode, "More than one specialisation of the class template matches equally");
+		//Kept (ClassError): an instance is made once, and often where errors are dropped.
+		ClassError(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the class template matches equally");
 	}
 	*ppcBindings = pcBestDeduced;
 	return pcBest;

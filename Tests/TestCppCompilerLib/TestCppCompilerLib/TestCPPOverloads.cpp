@@ -68,6 +68,8 @@ void TestCPPOverloadsQualifiers(void)
 	AssertInt(12, TestCPP65Main("int F(const int* p) { return 2; }\nint F(int* p) { return 1; }\nint main() { int a = 1; const int b = 2; return F(&a) * 10 + F(&b); }"));
 	AssertInt(12, TestCPP65Main("struct S { int i; };\nint F(S& r) { return 1; }\nint F(const S& r) { return 2; }\nint main() { S a; a.i = 1; const S& b = a; return F(a) * 10 + F(b); }"));
 	AssertInt(2, TestCPP65Main("struct S { int i; };\nS Make() { S s; s.i = 1; return s; }\nint F(S& r) { return 1; }\nint F(const S& r) { return 2; }\nint main() { return F(Make()); }"));
+	AssertInt(2, TestCPP65Main("struct S { int i; S() { i = 1; } };\nint F(S& r) { return 1; }\nint F(const S& r) { return 2; }\nint main() { return F(S()); }"));
+	AssertInt(21, TestCPP65Main("struct S { int i; S(int a) { i = a; } };\nint F(const S& r) { return 2; }\nint F(S& r) { return 1; }\nint main() { S s(3); return F(S(4)) * 10 + F(s); }"));
 }
 
 
@@ -119,6 +121,12 @@ void TestCPPOverloadsTemplates(void)
 	AssertInt(12, TestCPP65Main("struct S { int i; template <class T> int G(T t) { return 1; } template <class T> int G(T t) const { return 2; } };\nint main() { S s; s.i = 0; const S& c = s; return s.G(1) * 10 + c.G(1); }"));
 	AssertInt(21, TestCPP65Main("struct S { int i; template <class T> int G(T t) const { return 2; } template <class T> int G(T t) { return 1; } };\nint main() { S s; s.i = 0; const S& c = s; return c.G(1) * 10 + s.G(1); }"));
 	AssertInt(12, TestCPP65Main("template <class T> int F(T t, int a) { return 1; }\ntemplate <class T> int F(T t, const char* sz) { return 2; }\nint main() { return F(1, 1) * 10 + F(1, \"a\"); }"));
+
+	//A function that isn't a template's and takes the arguments as they are is chosen before a template's instance;
+	//one that would convert them is not.
+	AssertInt(2, TestCPP65Main("template <class T> int F(T t) { return 1; }\nint F(int a) { return 2; }\nint main() { return F(1); }"));
+	AssertInt(21, TestCPP65Main("int F(int a) { return 2; }\ntemplate <class T> int F(T t) { return 1; }\nint main() { char c = 1; return F(1) * 10 + F(c); }"));
+	AssertInt(1, TestCPP65Main("template <class T> int F(T t) { return 1; }\nint F(int a) { return 2; }\nint main() { return F<int>(1); }"));
 }
 
 
@@ -162,6 +170,7 @@ void TestCPPSpecialisationMatch(void)
 	AssertInt(23, TestCPP65Main("template <class T> struct K { enum { V = 1 }; };\ntemplate <class T> struct K<T*> { enum { V = 2 }; };\ntemplate <class T> struct K<const T*> { enum { V = 3 }; };\nint main() { return K<char*>::V * 10 + K<const char*>::V; }"));
 
 	AssertOverloadError("More than one specialisation of the class template matches equally", "template <class T, class U> struct P { enum { V = 1 }; };\ntemplate <class T> struct P<T, int> { enum { V = 2 }; };\ntemplate <class T> struct P<int, T> { enum { V = 3 }; };\nint main() { P<int, int> p; return sizeof(p); }");
+	AssertOverloadError("More than one specialisation of the class template matches equally", "template <class T, class U> struct P { enum { V = 1 }; };\ntemplate <class T> struct P<T, int> { enum { V = 2 }; };\ntemplate <class T> struct P<int, T> { enum { V = 3 }; };\nint main() { return P<int, int>::V; }");
 }
 
 
