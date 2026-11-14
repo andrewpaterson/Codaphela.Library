@@ -12,6 +12,9 @@
     <ClCompile Include="TestRasterMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestRasterPosed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TestRasterCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

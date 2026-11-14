@@ -36,6 +36,9 @@ class CRasterMesh;
 //
 //Both leave out the triangles with no area once their corners are rounded to the raster mesh's units, which depends on the
 //scale, so it's done here.  A face with no area in the CMesh is the mesh's to take out (see CMeshRemoveDegenerate).
+//
+//A skinned mesh's vertices get its weights, in integers that add up to exactly RASTER_SKIN_ONE, most first (see CRasterMesh),
+//and it has a matrix for each of its inverse matrices.  The vertices stay where the mesh was bound.
 void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh);
 void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale);
 

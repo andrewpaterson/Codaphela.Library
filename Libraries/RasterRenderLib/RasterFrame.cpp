@@ -127,7 +127,7 @@ static void RasterPlace(SRasterInstance* psInstance, CRasterMesh* pcMesh, SFloat
 	int			k;
 
 	RasterRotation(&sRotation, psWorld);
-	psInstance->pcMesh = pcMesh;
+	psInstance->Init(pcMesh);
 	for (k = 0; k < 3; k++)
 	{
 		psInstance->asAxes[k].Init(SRasterAxis::FromFloat(RasterRow(psWorld, 0)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(psWorld, 1)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(psWorld, 2)[k]).miRaw);

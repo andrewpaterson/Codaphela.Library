@@ -91,6 +91,85 @@ static bool FindRasterBounds(CRasterMesh* pcRaster, CMesh* pcMesh, SFloat32Vec3*
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A raster vertex's weights, from its position's.  Each is its share of
+// RASTER_SKIN_ONE, rounded, and what the rounding leaves over goes to the
+// largest, so they add up to exactly that.  They're most first, and one
+// that rounds to nothing is left out.  A position with no weight, or whose
+// weights add up to nothing, has none.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddRasterSkinVertex(CRasterMesh* pcRaster, CMeshSkinVert* pcSkinVert)
+{
+	SRasterSkinVertex*	psSkin;
+	SRasterSkinWeight*	psWeight;
+	SRasterSkinWeight	sSwap;
+	SSkinWeight*		psFrom;
+	float64				fTotal;
+	int32				iTotal;
+	int32				iWeight;
+	size				uiFirst;
+	size				uiCount;
+	size				uiLargest;
+	size				i;
+	size				j;
+
+	psSkin = pcRaster->masSkinVertices.Add();
+	uiFirst = pcRaster->masSkinWeights.NumElements();
+	psSkin->uiFirst = (uint32)uiFirst;
+	psSkin->uiCount = 0;
+
+	fTotal = 0.0;
+	for (i = 0; i < pcSkinVert->mcWeights.NumElements(); i++)
+	{
+		fTotal += pcSkinVert->mcWeights.Get(i)->fWeight;
+	}
+	if (fTotal <= 0.0)
+	{
+		return;
+	}
+
+	iTotal = 0;
+	for (i = 0; i < pcSkinVert->mcWeights.NumElements(); i++)
+	{
+		psFrom = pcSkinVert->mcWeights.Get(i);
+		iWeight = (int32)floor(psFrom->fWeight / fTotal * RASTER_SKIN_ONE + 0.5);
+		if (iWeight <= 0)
+		{
+			continue;
+		}
+		psWeight = pcRaster->masSkinWeights.Add();
+		psWeight->uiMatrix = (uint16)psFrom->iMatrix;
+		psWeight->uiWeight = (uint16)iWeight;
+		iTotal += iWeight;
+	}
+	uiCount = pcRaster->masSkinWeights.NumElements() - uiFirst;
+	if (uiCount == 0)
+	{
+		return;
+	}
+
+	psWeight = pcRaster->masSkinWeights.Get(uiFirst);
+	uiLargest = 0;
+	for (i = 1; i < uiCount; i++)
+	{
+		uiLargest = (psWeight[i].uiWeight > psWeight[uiLargest].uiWeight) ? i : uiLargest;
+	}
+	psWeight[uiLargest].uiWeight = (uint16)(psWeight[uiLargest].uiWeight + RASTER_SKIN_ONE - iTotal);
+	for (i = 1; i < uiCount; i++)
+	{
+		for (j = i; (j > 0) && (psWeight[j].uiWeight > psWeight[j - 1].uiWeight); j--)
+		{
+			sSwap = psWeight[j];
+			psWeight[j] = psWeight[j - 1];
+			psWeight[j - 1] = sSwap;
+		}
+	}
+	psSkin->uiCount = (uint32)uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Corners are shared between faces if they use the same normal.  Only each corner's latest vertex is checked: a corner
 // whose faces alternate normals gets extra vertices but they look the same.
 //
@@ -116,10 +195,12 @@ static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CMesh* pcMesh, SFloat32Ve
 	int					aiVertex[3];
 	uint32				uiColour;
 	bool				bNormals;
+	bool				bSkinned;
 
 	iNumCorners = pcMesh->NumCorners();
 	iNumFaces = pcMesh->NumFaces();
 	bNormals = pcMesh->mcNormals.InUse();
+	bSkinned = pcMesh->mcSkin.InUse() && (pcMesh->mcSkin.mcSkinVerts.NumElements() >= (size)iNumCorners);
 
 	aiCornerVertex.Init();
 	aiVertexNormal.Init();
@@ -164,6 +245,10 @@ static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CMesh* pcMesh, SFloat32Ve
 					psNormal = pcMesh->mcNormals.mcNormals.Get(iNormal);
 					psVertex->sNormal.Init(SRasterUnit::FromFloat(psNormal->x), SRasterUnit::FromFloat(psNormal->y), SRasterUnit::FromFloat(psNormal->z));
 				}
+				if (bSkinned)
+				{
+					AddRasterSkinVertex(pcRaster, pcMesh->mcSkin.mcSkinVerts.Get(iCorner));
+				}
 			}
 			aiVertex[k] = iVertex;
 		}
@@ -178,6 +263,10 @@ static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CMesh* pcMesh, SFloat32Ve
 
 	aiVertexNormal.Kill();
 	aiCornerVertex.Kill();
+	if (bSkinned)
+	{
+		pcRaster->muiNumMatrices = (uint32)pcMesh->mcSkin.mcInverseSkinMatricies.NumElements();
+	}
 
 	pcRaster->RemoveDegenerate();
 	pcRaster->UpdateBounds();

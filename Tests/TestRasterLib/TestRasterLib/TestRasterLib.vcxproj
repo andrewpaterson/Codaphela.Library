@@ -225,6 +225,7 @@
   <ItemGroup>
     <ClCompile Include="TestRasterLib.cpp" />
     <ClCompile Include="TestRasterMesh.cpp" />
+    <ClCompile Include="TestRasterPosed.cpp" />
     <ClCompile Include="TestRasterCamera.cpp" />
     <ClCompile Include="TestRasteriser.cpp" />
     <ClCompile Include="TestRasterLights.cpp" />

@@ -65,6 +65,25 @@ typedef SFixed<int64, int64, 4>		SRasterWideSubpixel;
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void SRasterInstance::Init(CRasterMesh* pcRasterMesh)
+{
+	int32	iOne;
+
+	iOne = 1 << RASTER_AXIS_BITS;
+	pcMesh = pcRasterMesh;
+	pcPosed = NULL;
+	asAxes[0].Init(iOne, 0, 0);
+	asAxes[1].Init(0, iOne, 0);
+	asAxes[2].Init(0, 0, iOne);
+	sOffset.Init(0, 0, 0);
+	OnlyTurns();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void SRasterInstance::OnlyTurns(void)
 {
 	asLightAxes[0] = asAxes[0];
@@ -72,6 +91,16 @@ void SRasterInstance::OnlyTurns(void)
 	asLightAxes[2] = asAxes[2];
 	bMirrored = false;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The vertices drawn, and their bounds before they're turned and moved.
+//
+//////////////////////////////////////////////////////////////////////////
+SRasterVertex* SRasterInstance::GetVertices(void) { return pcPosed ? pcPosed->masVertices.GetData() : pcMesh->masVertices.GetData(); }
+SInt32Vec3* SRasterInstance::GetMin(void) { return pcPosed ? &pcPosed->msMin : &pcMesh->msMin; }
+SInt32Vec3* SRasterInstance::GetMax(void) { return pcPosed ? &pcPosed->msMax : &pcMesh->msMax; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -194,7 +223,8 @@ uint64 CRasteriser::FindPointLights(SRasterInstance* psInstance)
 	int64				aiLight[3];
 	uint64				uiPointLights;
 	uint64				uiSquared;
-	CRasterMesh*		pcMesh;
+	SInt32Vec3*			psMeshMin;
+	SInt32Vec3*			psMeshMax;
 	size				uiNumLights;
 	size				i;
 	int					iCorner;
@@ -206,12 +236,13 @@ uint64 CRasteriser::FindPointLights(SRasterInstance* psInstance)
 		return 0;
 	}
 
-	pcMesh = psInstance->pcMesh;
+	psMeshMin = psInstance->GetMin();
+	psMeshMax = psInstance->GetMax();
 	sMin.Init(0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL);
 	sMax.Init(-0x7FFFFFFFFFFFFFFFLL, -0x7FFFFFFFFFFFFFFFLL, -0x7FFFFFFFFFFFFFFFLL);
 	for (iCorner = 0; iCorner < 8; iCorner++)
 	{
-		sCorner.Init((iCorner & 1) ? pcMesh->msMax.x : pcMesh->msMin.x, (iCorner & 2) ? pcMesh->msMax.y : pcMesh->msMin.y, (iCorner & 4) ? pcMesh->msMax.z : pcMesh->msMin.z);
+		sCorner.Init((iCorner & 1) ? psMeshMax->x : psMeshMin->x, (iCorner & 2) ? psMeshMax->y : psMeshMin->y, (iCorner & 4) ? psMeshMax->z : psMeshMin->z);
 		for (iAxis = 0; iAxis < 3; iAxis++)
 		{
 			aiMoved[iAxis] = ((sCorner.x * psInstance->asAxes[iAxis].x + sCorner.y * psInstance->asAxes[iAxis].y + sCorner.z * psInstance->asAxes[iAxis].z) >> RASTER_AXIS_BITS) + (&psInstance->sOffset.x)[iAxis];
@@ -600,7 +631,7 @@ void CRasteriser::ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pc
 						  (sLightAxes[0].z * masTowards[j].x.miRaw + sLightAxes[1].z * masTowards[j].y.miRaw + sLightAxes[2].z * masTowards[j].z.miRaw) >> RASTER_AXIS_BITS);
 	}
 
-	psVertex = psInstance->pcMesh->masVertices.GetData();
+	psVertex = psInstance->GetVertices();
 	for (i = uiFirst; i < uiFirst + uiNumVertices; i++)
 	{
 		if (bQuarterTurns)

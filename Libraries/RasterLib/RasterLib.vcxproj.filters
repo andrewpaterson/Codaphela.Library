@@ -9,6 +9,9 @@
     <ClCompile Include="RasterMesh.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="RasterPosed.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="RasterCamera.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -24,6 +27,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RasterMesh.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterPosed.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="RasterCamera.h">

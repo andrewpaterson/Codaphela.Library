@@ -144,7 +144,7 @@ static int32 TestRasterLightsShade(CRasteriser* pcRasteriser, int32 iOffsetZ)
 	pcRasteriser->Draw(&pRaster, &cCamera, &cTarget);
 	uiMesh = puiPixels[32 * 64 + 32];
 
-	sInstance.pcMesh = &pRaster;
+	sInstance.Init(&pRaster);
 	sInstance.asAxes[0].Init(1 << RASTER_AXIS_BITS, 0, 0);
 	sInstance.asAxes[1].Init(0, 1 << RASTER_AXIS_BITS, 0);
 	sInstance.asAxes[2].Init(0, 0, 1 << RASTER_AXIS_BITS);

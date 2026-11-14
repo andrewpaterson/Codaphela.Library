@@ -50,8 +50,31 @@ struct SRasterTriangle
 };
 
 
-typedef CArrayTemplate<SRasterVertex>	CArrayRasterVertex;
-typedef CArrayTemplate<SRasterTriangle>	CArrayRasterTriangle;
+//How much of a skinned vertex a matrix moves: RASTER_SKIN_ONE is all of it.
+#define RASTER_SKIN_WEIGHT_BITS	15
+#define RASTER_SKIN_ONE			(1 << RASTER_SKIN_WEIGHT_BITS)
+
+
+//One of a skinned vertex's matrices, and how much of it that moves.
+struct SRasterSkinWeight
+{
+	uint16	uiMatrix;
+	uint16	uiWeight;
+};
+
+
+//A skinned vertex's weights: uiCount of them in the mesh's masSkinWeights from uiFirst.
+struct SRasterSkinVertex
+{
+	uint32	uiFirst;
+	uint32	uiCount;
+};
+
+
+typedef CArrayTemplate<SRasterVertex>		CArrayRasterVertex;
+typedef CArrayTemplate<SRasterTriangle>		CArrayRasterTriangle;
+typedef CArrayTemplate<SRasterSkinVertex>	CArrayRasterSkinVertex;
+typedef CArrayTemplate<SRasterSkinWeight>	CArrayRasterSkinWeight;
 
 
 //The integer copy of a mesh that CRasteriser draws.  RasterRenderLib's BuildRasterMesh makes one from a CMesh, as RasterLib
@@ -65,6 +88,9 @@ typedef CArrayTemplate<SRasterTriangle>	CArrayRasterTriangle;
 //
 //Building one from a big mesh takes seconds and WriteFile and ReadFile take none: uiSource is whatever says which source it
 //was built from, and ReadFile refuses a file built from another.
+//
+//A skinned mesh's vertices are where it was bound, and each has its weights in masSkinVertices: most first, adding up to
+//exactly RASTER_SKIN_ONE.  muiNumMatrices is how many matrices pose it (see CRasterPosed).  A rigid mesh has none of these.
 class CRasterMesh : public CObject
 {
 CONSTRUCTABLE(CRasterMesh);
@@ -73,6 +99,9 @@ public:
 	CArrayRasterVertex		masVertices;
 	CArrayRasterTriangle	masOpaque;
 	CArrayRasterTriangle	masTransparent;
+	CArrayRasterSkinVertex	masSkinVertices;  //One for each vertex if it's skinned.
+	CArrayRasterSkinWeight	masSkinWeights;
+	uint32					muiNumMatrices;
 	SInt32Vec3				msMin;  //The bounds of its vertices.
 	SInt32Vec3				msMax;
 
@@ -89,6 +118,7 @@ public:
 	bool	ReadFile(const char* szFilename, uint64 uiSource);
 
 	size	NumTriangles(void);
+	bool	IsSkinned(void);
 };
 
 

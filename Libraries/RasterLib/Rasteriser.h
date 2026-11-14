@@ -26,6 +26,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "RasterCamera.h"
 #include "RasterLights.h"
 #include "RasterMesh.h"
+#include "RasterPosed.h"
 #include "RasterTarget.h"
 
 
@@ -37,15 +38,23 @@ typedef CArrayTemplate<SRasterScreenVertex>	CArrayRasterScreenVertex;
 //asLightAxes are their rotation alone, a mirror included, which the light is turned into the mesh by, as turning the light by
 //axes that scale would shade it brighter or darker.  bMirrored is whether asAxes mirror, and its triangles are then wound the
 //other way, so that they still face the way they did.  OnlyTurns says asAxes only turn: they're the light axes too.
+//
+//A skinned mesh's instance has its own vertices, pcPosed, which are drawn in place of the mesh's, its triangles being the
+//mesh's.  They're already where they go, so its axes are none, and its bounds are its own.  Init puts a mesh where it is.
 struct SRasterInstance
 {
 	CRasterMesh*	pcMesh;
+	CRasterPosed*	pcPosed;  //NULL for a rigid mesh.
 	SInt32Vec3		asAxes[3];
 	SInt32Vec3		asLightAxes[3];
 	SInt32Vec3		sOffset;
 	bool			bMirrored;
 
-	void	OnlyTurns(void);
+	void			Init(CRasterMesh* pcRasterMesh);
+	void			OnlyTurns(void);
+	SRasterVertex*	GetVertices(void);
+	SInt32Vec3*		GetMin(void);
+	SInt32Vec3*		GetMax(void);
 };
 
 

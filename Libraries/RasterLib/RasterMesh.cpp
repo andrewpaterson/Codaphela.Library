@@ -24,7 +24,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define RASTER_MESH_FILE_MAGIC		0x48534D52  //RMSH.
-#define RASTER_MESH_FILE_VERSION	1
+#define RASTER_MESH_FILE_VERSION	2  //Version 2 added skins.
 
 
 struct SRasterMeshFileHeader
@@ -35,7 +35,9 @@ struct SRasterMeshFileHeader
 	uint32		uiNumVertices;
 	uint32		uiNumOpaque;
 	uint32		uiNumTransparent;
-	uint32		uiPad;
+	uint32		uiNumSkinVertices;
+	uint32		uiNumSkinWeights;
+	uint32		uiNumMatrices;
 	SInt32Vec3	sMin;
 	SInt32Vec3	sMax;
 };
@@ -52,6 +54,9 @@ void CRasterMesh::Init(void)
 	masVertices.Init();
 	masOpaque.Init();
 	masTransparent.Init();
+	masSkinVertices.Init();
+	masSkinWeights.Init();
+	muiNumMatrices = 0;
 	msMin.Init(0, 0, 0);
 	msMax.Init(0, 0, 0);
 
@@ -65,6 +70,8 @@ void CRasterMesh::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRasterMesh::Free(void)
 {
+	masSkinWeights.Kill();
+	masSkinVertices.Kill();
 	masTransparent.Kill();
 	masOpaque.Kill();
 	masVertices.Kill();
@@ -81,6 +88,9 @@ void CRasterMesh::Class(void)
 	U_Unknown(CArrayRasterVertex, masVertices);
 	U_Unknown(CArrayRasterTriangle, masOpaque);
 	U_Unknown(CArrayRasterTriangle, masTransparent);
+	U_Unknown(CArrayRasterSkinVertex, masSkinVertices);
+	U_Unknown(CArrayRasterSkinWeight, masSkinWeights);
+	U_UInt32(muiNumMatrices);
 	U_3Int32(msMin);
 	U_3Int32(msMax);
 }
@@ -95,6 +105,9 @@ void CRasterMesh::Clear(void)
 	masVertices.ReInit();
 	masOpaque.ReInit();
 	masTransparent.ReInit();
+	masSkinVertices.ReInit();
+	masSkinWeights.ReInit();
+	muiNumMatrices = 0;
 	msMin.Init(0, 0, 0);
 	msMax.Init(0, 0, 0);
 }
@@ -131,6 +144,16 @@ void CRasterMesh::UpdateBounds(void)
 size CRasterMesh::NumTriangles(void)
 {
 	return masOpaque.NumElements() + masTransparent.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRasterMesh::IsSkinned(void)
+{
+	return masSkinVertices.NumElements() > 0;
 }
 
 
@@ -233,6 +256,9 @@ bool CRasterMesh::WriteFile(const char* szFilename, uint64 uiSource)
 	sHeader.uiNumVertices = (uint32)masVertices.NumElements();
 	sHeader.uiNumOpaque = (uint32)masOpaque.NumElements();
 	sHeader.uiNumTransparent = (uint32)masTransparent.NumElements();
+	sHeader.uiNumSkinVertices = (uint32)masSkinVertices.NumElements();
+	sHeader.uiNumSkinWeights = (uint32)masSkinWeights.NumElements();
+	sHeader.uiNumMatrices = muiNumMatrices;
 	sHeader.sMin = msMin;
 	sHeader.sMax = msMax;
 
@@ -246,6 +272,8 @@ bool CRasterMesh::WriteFile(const char* szFilename, uint64 uiSource)
 	bResult = bResult && ((sHeader.uiNumVertices == 0) || (cFile.Write(masVertices.GetData(), sizeof(SRasterVertex), sHeader.uiNumVertices) == sHeader.uiNumVertices));
 	bResult = bResult && ((sHeader.uiNumOpaque == 0) || (cFile.Write(masOpaque.GetData(), sizeof(SRasterTriangle), sHeader.uiNumOpaque) == sHeader.uiNumOpaque));
 	bResult = bResult && ((sHeader.uiNumTransparent == 0) || (cFile.Write(masTransparent.GetData(), sizeof(SRasterTriangle), sHeader.uiNumTransparent) == sHeader.uiNumTransparent));
+	bResult = bResult && ((sHeader.uiNumSkinVertices == 0) || (cFile.Write(masSkinVertices.GetData(), sizeof(SRasterSkinVertex), sHeader.uiNumSkinVertices) == sHeader.uiNumSkinVertices));
+	bResult = bResult && ((sHeader.uiNumSkinWeights == 0) || (cFile.Write(masSkinWeights.GetData(), sizeof(SRasterSkinWeight), sHeader.uiNumSkinWeights) == sHeader.uiNumSkinWeights));
 	cFile.Close();
 	cFile.Kill();
 	return bResult;
@@ -278,9 +306,14 @@ bool CRasterMesh::ReadFile(const char* szFilename, uint64 uiSource)
 		masVertices.Resize(sHeader.uiNumVertices);
 		masOpaque.Resize(sHeader.uiNumOpaque);
 		masTransparent.Resize(sHeader.uiNumTransparent);
+		masSkinVertices.Resize(sHeader.uiNumSkinVertices);
+		masSkinWeights.Resize(sHeader.uiNumSkinWeights);
+		muiNumMatrices = sHeader.uiNumMatrices;
 		bResult = (sHeader.uiNumVertices == 0) || (cFile.Read(masVertices.GetData(), sizeof(SRasterVertex), sHeader.uiNumVertices) == sHeader.uiNumVertices);
 		bResult = bResult && ((sHeader.uiNumOpaque == 0) || (cFile.Read(masOpaque.GetData(), sizeof(SRasterTriangle), sHeader.uiNumOpaque) == sHeader.uiNumOpaque));
 		bResult = bResult && ((sHeader.uiNumTransparent == 0) || (cFile.Read(masTransparent.GetData(), sizeof(SRasterTriangle), sHeader.uiNumTransparent) == sHeader.uiNumTransparent));
+		bResult = bResult && ((sHeader.uiNumSkinVertices == 0) || (cFile.Read(masSkinVertices.GetData(), sizeof(SRasterSkinVertex), sHeader.uiNumSkinVertices) == sHeader.uiNumSkinVertices));
+		bResult = bResult && ((sHeader.uiNumSkinWeights == 0) || (cFile.Read(masSkinWeights.GetData(), sizeof(SRasterSkinWeight), sHeader.uiNumSkinWeights) == sHeader.uiNumSkinWeights));
 		msMin = sHeader.sMin;
 		msMax = sHeader.sMax;
 	}

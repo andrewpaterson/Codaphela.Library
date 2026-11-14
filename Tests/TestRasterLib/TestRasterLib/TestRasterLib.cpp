@@ -11,6 +11,7 @@
 
 
 void TestRasterMesh(void);
+void TestRasterPosed(void);
 void TestRasterCamera(void);
 void TestRasteriser(void);
 void TestRasterLights(void);
@@ -30,6 +31,7 @@ int __cdecl main(void)
 	MemoryInit();
 
 	TestRasterMesh();
+	TestRasterPosed();
 	TestRasterCamera();
 	TestRasteriser();
 	TestRasterLights();
