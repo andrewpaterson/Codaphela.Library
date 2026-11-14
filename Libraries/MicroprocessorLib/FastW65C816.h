@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __FAST_65C816_H__
-#define __FAST_65C816_H__
+#ifndef __FAST_W65C816_H__
+#define __FAST_W65C816_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/Chars.h"
 #include "W65C816.h"
@@ -27,25 +27,25 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Memory outside the flat block.  Each is one bus cycle the W65C816S drives with VDA or VPA high.
-typedef uint8(*CFast65C816ReadByte)(void* pvContext, uint32 uiAddress);
-typedef void(*CFast65C816WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiValue);
+typedef uint8(*CFastW65C816ReadByte)(void* pvContext, uint32 uiAddress);
+typedef void(*CFastW65C816WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiValue);
 
 //Bus events a computer around the processor may need to see, for example to switch memory maps.
-typedef void(*CFast65C816Signal)(void* pvContext, uint8 uiSignal);
+typedef void(*CFastW65C816Signal)(void* pvContext, uint8 uiSignal);
 
 
 #define FAST_W65C816_BANKS					0x100	//The 24 bit address space's 64KB banks.
 
 
-#define FAST_65C816_NEXT_INSTRUCTION	0
-#define FAST_65C816_NEXT_IRQ			1
-#define FAST_65C816_NEXT_NMI			2
+#define FAST_W65C816_NEXT_INSTRUCTION	0
+#define FAST_W65C816_NEXT_IRQ			1
+#define FAST_W65C816_NEXT_NMI			2
 
 
-#define FAST_65C816_SIGNAL_VECTOR_PULL	0	//VPB is about to go low: an interrupt, BRK, COP or reset vector is read next.
-#define FAST_65C816_SIGNAL_RTI			1	//An RTI opcode has been fetched; its pulls come next.
-#define FAST_65C816_SIGNAL_NATIVE		2	//XCE has just cleared E.
-#define FAST_65C816_SIGNAL_WDM			3	//WDM has run (a no-op): its signature byte is the one before PC.
+#define FAST_W65C816_SIGNAL_VECTOR_PULL	0	//VPB is about to go low: an interrupt, BRK, COP or reset vector is read next.
+#define FAST_W65C816_SIGNAL_RTI			1	//An RTI opcode has been fetched; its pulls come next.
+#define FAST_W65C816_SIGNAL_NATIVE		2	//XCE has just cleared E.
+#define FAST_W65C816_SIGNAL_WDM			3	//WDM has run (a no-op): its signature byte is the one before PC.
 
 
 //An instruction level W65C816S.  It does what CW65C816 does an instruction at a time, without pins, bus
@@ -82,7 +82,7 @@ protected:
 	bool					mbIrq;
 	bool					mbNmi;
 	bool					mbNmiPending;
-	uint8					muiNext;	//FAST_65C816_NEXT_*, decided at the end of each Step.
+	uint8					muiNext;	//FAST_W65C816_NEXT_*, decided at the end of each Step.
 
 	uint64					muiCycles;
 	uint32					muiWrap;	//How the byte after an operand's address wraps, see Next.
@@ -93,10 +93,10 @@ protected:
 	uint32					muiMemorySize;
 	uint32					muiHoleStart;
 	uint32					muiHoleSize;
-	CFast65C816ReadByte		mfReadByte;
-	CFast65C816WriteByte	mfWriteByte;
+	CFastW65C816ReadByte	mfReadByte;
+	CFastW65C816WriteByte	mfWriteByte;
 	void*					mpvContext;
-	CFast65C816Signal		mfSignal;	//NULL if no one is listening.
+	CFastW65C816Signal		mfSignal;	//NULL if no one is listening.
 
 	CBreakpoints			mcBreakpoints;
 	CBreakpoints*			mpcBreakpoints;		//The ones looked at: mcBreakpoints unless UseBreakpoints chose others.
@@ -106,11 +106,11 @@ protected:
 	bool					mbMoving;			//The next instruction is the rest of a block move.
 
 public:
-	void		Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
+	void		Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
 	void		Kill(void);
 
 	void		SetHole(uint32 uiStart, uint32 uiEnd);
-	void		SetSignal(CFast65C816Signal fSignal);
+	void		SetSignal(CFastW65C816Signal fSignal);
 	void		Reset(void);
 	bool		Step(void);
 	size		Run(size uiMaxInstructions);
@@ -235,5 +235,5 @@ protected:
 };
 
 
-#endif // __FAST_65C816_H__
+#endif // __FAST_W65C816_H__
 

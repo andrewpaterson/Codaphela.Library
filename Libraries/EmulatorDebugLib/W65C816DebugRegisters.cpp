@@ -25,7 +25,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Get65C816DebugRegister(size uiRegister, SDebugRegister* psDest)
+void GetW65C816DebugRegister(size uiRegister, SDebugRegister* psDest)
 {
 	switch (uiRegister)
 	{
@@ -48,7 +48,7 @@ void Get65C816DebugRegister(size uiRegister, SDebugRegister* psDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 Get65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister)
+uint64 GetW65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister)
 {
 	switch (uiRegister)
 	{
@@ -71,7 +71,7 @@ uint64 Get65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool Set65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister, uint64 uiValue)
+bool SetW65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister, uint64 uiValue)
 {
 	switch (uiRegister)
 	{

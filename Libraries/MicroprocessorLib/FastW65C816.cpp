@@ -39,7 +39,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Read-modify-write operations.
-enum EFast65C816Modify
+enum EFastW65C816Modify
 {
 	FW65C816M_ASL,
 	FW65C816M_LSR,
@@ -56,7 +56,7 @@ enum EFast65C816Modify
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFastW65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize)
+void CFastW65C816::Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize)
 {
 	muiC = 0;
 	muiX = 0;
@@ -73,7 +73,7 @@ void CFastW65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWri
 	mbIrq = false;
 	mbNmi = false;
 	mbNmiPending = false;
-	muiNext = FAST_65C816_NEXT_INSTRUCTION;
+	muiNext = FAST_W65C816_NEXT_INSTRUCTION;
 
 	muiCycles = 0;
 	muiWrap = FAST_W65C816_WRAP_LONG;
@@ -169,10 +169,10 @@ FORCE_INLINE void CFastW65C816::SetProgramBank(uint8 uiBank)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// fSignal is called with the FAST_65C816_SIGNAL_* events, with the context given to Init.
+// fSignal is called with the FAST_W65C816_SIGNAL_* events, with the context given to Init.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFastW65C816::SetSignal(CFast65C816Signal fSignal)
+void CFastW65C816::SetSignal(CFastW65C816Signal fSignal)
 {
 	mfSignal = fSignal;
 }
@@ -206,7 +206,7 @@ void CFastW65C816::Reset(void)
 
 	if (mfSignal)
 	{
-		mfSignal(mpvContext, FAST_65C816_SIGNAL_VECTOR_PULL);
+		mfSignal(mpvContext, FAST_W65C816_SIGNAL_VECTOR_PULL);
 	}
 	uiLow = Read(0xFFFC);
 	uiHigh = Read(0xFFFD);
@@ -300,7 +300,7 @@ bool CFastW65C816::Step(void)
 		Decide();
 	}
 
-	if (muiNext == FAST_65C816_NEXT_INSTRUCTION)
+	if (muiNext == FAST_W65C816_NEXT_INSTRUCTION)
 	{
 		if (Breaks())
 		{
@@ -308,7 +308,7 @@ bool CFastW65C816::Step(void)
 		}
 		Execute();
 	}
-	else if (muiNext == FAST_65C816_NEXT_NMI)
+	else if (muiNext == FAST_W65C816_NEXT_NMI)
 	{
 		mbNmiPending = false;
 		Interrupt(0xFFEA, 0xFFFA, true);
@@ -373,7 +373,7 @@ size CFastW65C816::Run(size uiMaxInstructions)
 	while (i < uiMaxInstructions)
 	{
 		mbBreakpointsChanged = false;
-		if (NeedsDeciding() || (muiNext != FAST_65C816_NEXT_INSTRUCTION) || mbAtBreakpoint)
+		if (NeedsDeciding() || (muiNext != FAST_W65C816_NEXT_INSTRUCTION) || mbAtBreakpoint)
 		{
 			if (!Step())
 			{
@@ -535,15 +535,15 @@ inline void CFastW65C816::Decide(void)
 {
 	if (mbNmiPending)
 	{
-		muiNext = FAST_65C816_NEXT_NMI;
+		muiNext = FAST_W65C816_NEXT_NMI;
 	}
 	else if (mbIrq && !(muiP & FAST_W65C816_I))
 	{
-		muiNext = FAST_65C816_NEXT_IRQ;
+		muiNext = FAST_W65C816_NEXT_IRQ;
 	}
 	else
 	{
-		muiNext = FAST_65C816_NEXT_INSTRUCTION;
+		muiNext = FAST_W65C816_NEXT_INSTRUCTION;
 	}
 }
 
@@ -595,7 +595,7 @@ void CFastW65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bo
 	uiVector = mbE ? uiEmulationVector : uiNativeVector;
 	if (mfSignal)
 	{
-		mfSignal(mpvContext, FAST_65C816_SIGNAL_VECTOR_PULL);
+		mfSignal(mpvContext, FAST_W65C816_SIGNAL_VECTOR_PULL);
 	}
 	uiLow = Read(uiVector);
 	uiHigh = Read(uiVector + 1);
@@ -1913,7 +1913,7 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 		}
 		else if (mfSignal)
 		{
-			mfSignal(mpvContext, FAST_65C816_SIGNAL_NATIVE);
+			mfSignal(mpvContext, FAST_W65C816_SIGNAL_NATIVE);
 		}
 		break;
 
@@ -1931,7 +1931,7 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 		muiPC++;
 		if (mfSignal)
 		{
-			mfSignal(mpvContext, FAST_65C816_SIGNAL_WDM);
+			mfSignal(mpvContext, FAST_W65C816_SIGNAL_WDM);
 		}
 		break;
 
@@ -2049,7 +2049,7 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 		//RTI.  The pulled P takes effect at the end.
 		if (mfSignal)
 		{
-			mfSignal(mpvContext, FAST_65C816_SIGNAL_RTI);
+			mfSignal(mpvContext, FAST_W65C816_SIGNAL_RTI);
 		}
 		muiCycles += 2;
 		uiValue = Pull();

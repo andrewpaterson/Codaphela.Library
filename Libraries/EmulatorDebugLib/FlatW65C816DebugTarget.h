@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __FLAT_65C816_DEBUG_TARGET_H__
-#define __FLAT_65C816_DEBUG_TARGET_H__
+#ifndef __FLAT_W65C816_DEBUG_TARGET_H__
+#define __FLAT_W65C816_DEBUG_TARGET_H__
 #include "MicroprocessorLib/FastW65C816.h"
 #include "DebugTarget.h"
 #include "W65C816DebugRegisters.h"
@@ -74,4 +74,4 @@ protected:
 };
 
 
-#endif // __FLAT_65C816_DEBUG_TARGET_H__
+#endif // __FLAT_W65C816_DEBUG_TARGET_H__

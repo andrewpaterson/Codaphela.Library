@@ -73,9 +73,9 @@ void CFlatW65C816DebugTarget::Reset(void)			{ mcMPU.Reset(); }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlatW65C816DebugTarget::GetRegister(size uiRegister, SDebugRegister* psDest)	{ Get65C816DebugRegister(uiRegister, psDest); }
-uint64 CFlatW65C816DebugTarget::GetRegisterValue(size uiRegister)	{ return Get65C816DebugRegisterValue(&mcMPU, uiRegister); }
-bool CFlatW65C816DebugTarget::SetRegisterValue(size uiRegister, uint64 uiValue)	{ return Set65C816DebugRegisterValue(&mcMPU, uiRegister, uiValue); }
+void CFlatW65C816DebugTarget::GetRegister(size uiRegister, SDebugRegister* psDest)	{ GetW65C816DebugRegister(uiRegister, psDest); }
+uint64 CFlatW65C816DebugTarget::GetRegisterValue(size uiRegister)	{ return GetW65C816DebugRegisterValue(&mcMPU, uiRegister); }
+bool CFlatW65C816DebugTarget::SetRegisterValue(size uiRegister, uint64 uiValue)	{ return SetW65C816DebugRegisterValue(&mcMPU, uiRegister, uiValue); }
 
 
 //////////////////////////////////////////////////////////////////////////

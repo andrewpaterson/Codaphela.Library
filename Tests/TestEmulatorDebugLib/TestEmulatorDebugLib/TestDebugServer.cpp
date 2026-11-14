@@ -246,7 +246,7 @@ static void TestDebugSync(STestDebugLink* psLink)
 //	$2003	RTS
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestDebugServer65C816(ETestDebugTransport eTransport)
+static void TestDebugServerW65C816(ETestDebugTransport eTransport)
 {
 	CFlatW65C816DebugTarget		cTarget;
 	CTestDebugW65C816Decoder	cDecoder;
@@ -853,8 +853,8 @@ void TestDebugServer(void)
 	BeginTests();
 
 	TestDebugServerHello();
-	TestDebugServer65C816(TDT_SharedMemory);
-	TestDebugServer65C816(TDT_Network);
+	TestDebugServerW65C816(TDT_SharedMemory);
+	TestDebugServerW65C816(TDT_Network);
 	TestDebugServer65C64(TDT_SharedMemory);
 	TestDebugServer65C64(TDT_Network);
 	TestDebugServerAttach();

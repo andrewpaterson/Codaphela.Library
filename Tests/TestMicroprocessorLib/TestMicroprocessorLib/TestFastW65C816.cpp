@@ -21,14 +21,14 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#define TEST_FAST_65C816_FUZZ_SIZE		0x10000
-#define TEST_FAST_65C816_FUZZ_TRIALS	48
-#define TEST_FAST_65C816_FUZZ_STEPS		3
-#define TEST_FAST_65C816_MAX_FAILURES	8
-#define TEST_FAST_65C816_MAX_ACCESSES	SINGLE_STEP_MAX_CYCLES
+#define TEST_FAST_W65C816_FUZZ_SIZE		0x10000
+#define TEST_FAST_W65C816_FUZZ_TRIALS	48
+#define TEST_FAST_W65C816_FUZZ_STEPS	3
+#define TEST_FAST_W65C816_MAX_FAILURES	8
+#define TEST_FAST_W65C816_MAX_ACCESSES	SINGLE_STEP_MAX_CYCLES
 
 
-struct STestFast65C816Access
+struct STestFastW65C816Access
 {
 	uint32	uiAddress;
 	uint8	uiValue;
@@ -37,23 +37,23 @@ struct STestFast65C816Access
 
 
 //The single step memory, and the accesses CFastW65C816 made.
-class CTestFast65C816StepContext : public CTestSingleStepContext
+class CTestFastW65C816StepContext : public CTestSingleStepContext
 {
 public:
-	STestFast65C816Access	masAccesses[TEST_FAST_65C816_MAX_ACCESSES];
+	STestFastW65C816Access	masAccesses[TEST_FAST_W65C816_MAX_ACCESSES];
 	size					muiAccesses;
 };
 
 
 //64KB repeated through the whole address space, so every address is memory.
-struct STestFast65C816FuzzMemory
+struct STestFastW65C816FuzzMemory
 {
-	uint8	mauiBytes[TEST_FAST_65C816_FUZZ_SIZE];
+	uint8	mauiBytes[TEST_FAST_W65C816_FUZZ_SIZE];
 	size	muiCycles;
 };
 
 
-static size	gsTestFast65C816Failures;
+static size	gsTestFastW65C816Failures;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,15 +61,15 @@ static size	gsTestFast65C816Failures;
 // The first few differences fail the test.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816Failed(CChars* psz)
+static bool TestFastW65C816Failed(CChars* psz)
 {
 	if (psz->Empty())
 	{
 		return false;
 	}
 
-	gsTestFast65C816Failures++;
-	if (gsTestFast65C816Failures <= TEST_FAST_65C816_MAX_FAILURES)
+	gsTestFastW65C816Failures++;
+	if (gsTestFastW65C816Failures <= TEST_FAST_W65C816_MAX_FAILURES)
 	{
 		AssertString("", psz->Text());
 	}
@@ -81,15 +81,15 @@ static bool TestFast65C816Failed(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static uint8 TestFast65C816StepRead(void* pvContext, uint32 uiAddress)
+static uint8 TestFastW65C816StepRead(void* pvContext, uint32 uiAddress)
 {
-	CTestFast65C816StepContext*		pcContext;
-	STestFast65C816Access*			psAccess;
+	CTestFastW65C816StepContext*	pcContext;
+	STestFastW65C816Access*			psAccess;
 	uint8							uiValue;
 
-	pcContext = (CTestFast65C816StepContext*)pvContext;
+	pcContext = (CTestFastW65C816StepContext*)pvContext;
 	uiValue = pcContext->GetByte(uiAddress);
-	if (pcContext->muiAccesses < TEST_FAST_65C816_MAX_ACCESSES)
+	if (pcContext->muiAccesses < TEST_FAST_W65C816_MAX_ACCESSES)
 	{
 		psAccess = &pcContext->masAccesses[pcContext->muiAccesses];
 		psAccess->uiAddress = uiAddress;
@@ -105,14 +105,14 @@ static uint8 TestFast65C816StepRead(void* pvContext, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816StepWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+static void TestFastW65C816StepWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
-	CTestFast65C816StepContext*		pcContext;
-	STestFast65C816Access*			psAccess;
+	CTestFastW65C816StepContext*	pcContext;
+	STestFastW65C816Access*			psAccess;
 
-	pcContext = (CTestFast65C816StepContext*)pvContext;
+	pcContext = (CTestFastW65C816StepContext*)pvContext;
 	pcContext->SetByte(uiAddress, uiValue);
-	if (pcContext->muiAccesses < TEST_FAST_65C816_MAX_ACCESSES)
+	if (pcContext->muiAccesses < TEST_FAST_W65C816_MAX_ACCESSES)
 	{
 		psAccess = &pcContext->masAccesses[pcContext->muiAccesses];
 		psAccess->uiAddress = uiAddress;
@@ -128,12 +128,12 @@ static void TestFast65C816StepWrite(void* pvContext, uint32 uiAddress, uint8 uiV
 // The expected cycles with VDA, VPA or VPB against the accesses made.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816StepCompareAccesses(CChars* pszError, SSingleStepCycle* pasExpected, size uiExpected, CTestFast65C816StepContext* pcContext)
+static bool TestFastW65C816StepCompareAccesses(CChars* pszError, SSingleStepCycle* pasExpected, size uiExpected, CTestFastW65C816StepContext* pcContext)
 {
 	size					i;
 	size					uiAccess;
 	SSingleStepCycle*		psExpected;
-	STestFast65C816Access*	psActual;
+	STestFastW65C816Access*	psActual;
 	bool					bRead;
 
 	uiAccess = 0;
@@ -189,7 +189,7 @@ static bool TestFast65C816StepCompareAccesses(CChars* pszError, SSingleStepCycle
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816StepCompareState(CChars* pszError, SSingleStepState* psExpected, CFastW65C816* pcFast, CTestFast65C816StepContext* pcContext)
+static bool TestFastW65C816StepCompareState(CChars* pszError, SSingleStepState* psExpected, CFastW65C816* pcFast, CTestFastW65C816StepContext* pcContext)
 {
 	CSingleStepReader	cReader;
 	uint16				i;
@@ -231,7 +231,7 @@ static bool TestFast65C816StepCompareState(CChars* pszError, SSingleStepState* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszError, uint8 uiOpcode, CTestFast65C816StepContext* pcContext)
+static bool TestFastW65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszError, uint8 uiOpcode, CTestFastW65C816StepContext* pcContext)
 {
 	SSingleStepState	sInitial;
 	SSingleStepState	sFinal;
@@ -278,7 +278,7 @@ static bool TestFast65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszEr
 		pcContext->SetByte(uiAddress, cRam.ReadByte());
 	}
 
-	cFast.Init(TestFast65C816StepRead, TestFast65C816StepWrite, pcContext, NULL, 0);
+	cFast.Init(TestFastW65C816StepRead, TestFastW65C816StepWrite, pcContext, NULL, 0);
 	cFast.TestSetP(sInitial.uiP, sInitial.uiE != 0);
 	cFast.TestSetC(sInitial.uiA);
 	cFast.TestSetX(sInitial.uiX);
@@ -297,7 +297,7 @@ static bool TestFast65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszEr
 	while (((uiOpcode == MVN_BlockMove) || (uiOpcode == MVP_BlockMove)) && (cFast.GetProgramCounter() == sInitial.uiPC) && (cFast.NumCycles() - uiFastCycles < uiCycles));
 	uiFastCycles = cFast.NumCycles() - uiFastCycles;
 
-	bPassed = TestFast65C816StepCompareAccesses(pszError, asExpected, uiCycles, pcContext);
+	bPassed = TestFastW65C816StepCompareAccesses(pszError, asExpected, uiCycles, pcContext);
 	if (bPassed && !bWaitOrStop && (uiFastCycles != uiCycles))
 	{
 		pszError->Append("cycles expected ");
@@ -308,7 +308,7 @@ static bool TestFast65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszEr
 	}
 	if (bPassed)
 	{
-		bPassed = TestFast65C816StepCompareState(pszError, &sFinal, &cFast, pcContext);
+		bPassed = TestFastW65C816StepCompareState(pszError, &sFinal, &cFast, pcContext);
 	}
 
 	if (!bPassed)
@@ -342,7 +342,7 @@ static bool TestFast65C816StepRunTest(CSingleStepReader* pcReader, CChars* pszEr
 // One assert per file: "xx.n: 200/200" or the first failure.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816StepFile(char* szName, uint8 uiOpcode, CTestFast65C816StepContext* pcContext)
+static void TestFastW65C816StepFile(char* szName, uint8 uiOpcode, CTestFastW65C816StepContext* pcContext)
 {
 	CChars				szFilename;
 	CChars				szExpected;
@@ -401,7 +401,7 @@ static void TestFast65C816StepFile(char* szName, uint8 uiOpcode, CTestFast65C816
 	for (i = 0; i < uiTests; i++)
 	{
 		szTestError.Clear();
-		if (TestFast65C816StepRunTest(&cReader, &szTestError, uiOpcode, pcContext))
+		if (TestFastW65C816StepRunTest(&cReader, &szTestError, uiOpcode, pcContext))
 		{
 			uiPassed++;
 		}
@@ -445,19 +445,19 @@ static void TestFast65C816StepFile(char* szName, uint8 uiOpcode, CTestFast65C816
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void TestFast65C816SingleStep(void)
+void TestFastW65C816SingleStep(void)
 {
-	int							iOpcode;
-	char						szName[8];
-	CTestFast65C816StepContext*	pcContext;
+	int								iOpcode;
+	char							szName[8];
+	CTestFastW65C816StepContext*	pcContext;
 
-	pcContext = (CTestFast65C816StepContext*)malloc(sizeof(CTestFast65C816StepContext));
+	pcContext = (CTestFastW65C816StepContext*)malloc(sizeof(CTestFastW65C816StepContext));
 	for (iOpcode = 0; iOpcode < 256; iOpcode++)
 	{
 		snprintf(szName, sizeof(szName), "%02x.n", iOpcode);
-		TestFast65C816StepFile(szName, (uint8)iOpcode, pcContext);
+		TestFastW65C816StepFile(szName, (uint8)iOpcode, pcContext);
 		snprintf(szName, sizeof(szName), "%02x.e", iOpcode);
-		TestFast65C816StepFile(szName, (uint8)iOpcode, pcContext);
+		TestFastW65C816StepFile(szName, (uint8)iOpcode, pcContext);
 	}
 	free(pcContext);
 }
@@ -467,7 +467,7 @@ void TestFast65C816SingleStep(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 TestFast65C816Random(uint64* puiSeed)
+static uint64 TestFastW65C816Random(uint64* puiSeed)
 {
 	//xorshift64*.
 	*puiSeed ^= *puiSeed >> 12;
@@ -482,12 +482,12 @@ static uint64 TestFast65C816Random(uint64* puiSeed)
 // Any value, small values or edge values.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint16 TestFast65C816RandomRegister(uint64* puiSeed)
+static uint16 TestFastW65C816RandomRegister(uint64* puiSeed)
 {
 	static uint16	auiEdges[8] = { 0, 0xFFFF, 0x8000, 0x7FFF, 0x80, 0xFF, 0x7F, 0x100 };
 	uint64			uiRandom;
 
-	uiRandom = TestFast65C816Random(puiSeed);
+	uiRandom = TestFastW65C816Random(puiSeed);
 	switch (uiRandom & 3)
 	{
 	case 0:
@@ -506,19 +506,19 @@ static uint16 TestFast65C816RandomRegister(uint64* puiSeed)
 // The simulator's memory.  Every cycle is counted, memory only answers VDA, VPA or VPB.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816FuzzTickHigh(CW65C816Meta* pcMPU, void* pvMemory)
+static void TestFastW65C816FuzzTickHigh(CW65C816Meta* pcMPU, void* pvMemory)
 {
-	STestFast65C816FuzzMemory*	psMemory;
+	STestFastW65C816FuzzMemory*	psMemory;
 	uint32						uiAddress;
 
-	psMemory = (STestFast65C816FuzzMemory*)pvMemory;
+	psMemory = (STestFastW65C816FuzzMemory*)pvMemory;
 	psMemory->muiCycles++;
 	if (!pcMPU->GetVPA()->IsHigh() && !pcMPU->GetVDA()->IsHigh() && !pcMPU->GetVPB()->IsLow())
 	{
 		return;
 	}
 
-	uiAddress = pcMPU->GetAddress()->Get() & (TEST_FAST_65C816_FUZZ_SIZE - 1);
+	uiAddress = pcMPU->GetAddress()->Get() & (TEST_FAST_W65C816_FUZZ_SIZE - 1);
 	if (pcMPU->GetRWB()->IsHigh())
 	{
 		pcMPU->GetData()->Set(psMemory->mauiBytes[uiAddress]);
@@ -534,7 +534,7 @@ static void TestFast65C816FuzzTickHigh(CW65C816Meta* pcMPU, void* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816FuzzTickLow(CW65C816Meta* pcMPU, void* pvMemory)
+static void TestFastW65C816FuzzTickLow(CW65C816Meta* pcMPU, void* pvMemory)
 {
 }
 
@@ -543,9 +543,9 @@ static void TestFast65C816FuzzTickLow(CW65C816Meta* pcMPU, void* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static uint8 TestFast65C816FuzzRead(void* pvMemory, uint32 uiAddress)
+static uint8 TestFastW65C816FuzzRead(void* pvMemory, uint32 uiAddress)
 {
-	return ((STestFast65C816FuzzMemory*)pvMemory)->mauiBytes[uiAddress & (TEST_FAST_65C816_FUZZ_SIZE - 1)];
+	return ((STestFastW65C816FuzzMemory*)pvMemory)->mauiBytes[uiAddress & (TEST_FAST_W65C816_FUZZ_SIZE - 1)];
 }
 
 
@@ -553,9 +553,9 @@ static uint8 TestFast65C816FuzzRead(void* pvMemory, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816FuzzWrite(void* pvMemory, uint32 uiAddress, uint8 uiValue)
+static void TestFastW65C816FuzzWrite(void* pvMemory, uint32 uiAddress, uint8 uiValue)
 {
-	((STestFast65C816FuzzMemory*)pvMemory)->mauiBytes[uiAddress & (TEST_FAST_65C816_FUZZ_SIZE - 1)] = uiValue;
+	((STestFastW65C816FuzzMemory*)pvMemory)->mauiBytes[uiAddress & (TEST_FAST_W65C816_FUZZ_SIZE - 1)] = uiValue;
 }
 
 
@@ -563,7 +563,7 @@ static void TestFast65C816FuzzWrite(void* pvMemory, uint32 uiAddress, uint8 uiVa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816AppendState(CChars* psz, CW65C816* pcSim)
+static void TestFastW65C816AppendState(CChars* psz, CW65C816* pcSim)
 {
 	uint64	uiValue;
 
@@ -603,7 +603,7 @@ static void TestFast65C816AppendState(CChars* psz, CW65C816* pcSim)
 // Both start an instruction at the same random state.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816SetState(CW65C816Meta* pcMeta, CFastW65C816* pcFast, uint64* puiSeed, bool bEmulation, uint8 uiProgramBank, uint16 uiCode)
+static void TestFastW65C816SetState(CW65C816Meta* pcMeta, CFastW65C816* pcFast, uint64* puiSeed, bool bEmulation, uint8 uiProgramBank, uint16 uiCode)
 {
 	CW65C816*	pcSim;
 	uint8		uiP;
@@ -616,14 +616,14 @@ static void TestFast65C816SetState(CW65C816Meta* pcMeta, CFastW65C816* pcFast, u
 	uint64		uiRandom;
 
 	pcSim = pcMeta->GetMPU();
-	uiRandom = TestFast65C816Random(puiSeed);
+	uiRandom = TestFastW65C816Random(puiSeed);
 	uiP = (uint8)uiRandom;
 	uiDataBank = (uint8)(uiRandom >> 8);
-	uiC = TestFast65C816RandomRegister(puiSeed);
-	uiX = TestFast65C816RandomRegister(puiSeed);
-	uiY = TestFast65C816RandomRegister(puiSeed);
-	uiS = TestFast65C816RandomRegister(puiSeed);
-	uiD = TestFast65C816RandomRegister(puiSeed);
+	uiC = TestFastW65C816RandomRegister(puiSeed);
+	uiX = TestFastW65C816RandomRegister(puiSeed);
+	uiY = TestFastW65C816RandomRegister(puiSeed);
+	uiS = TestFastW65C816RandomRegister(puiSeed);
+	uiD = TestFastW65C816RandomRegister(puiSeed);
 	if ((uiRandom >> 16) & 1)
 	{
 		uiD &= 0xFF00;
@@ -668,10 +668,10 @@ static void TestFast65C816SetState(CW65C816Meta* pcMeta, CFastW65C816* pcFast, u
 // the callbacks for everything.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
+static void TestFastW65C816Fuzz(bool bFlat, uint64 uiSeed)
 {
-	STestFast65C816FuzzMemory*	psSimMemory;
-	STestFast65C816FuzzMemory*	psFastMemory;
+	STestFastW65C816FuzzMemory*	psSimMemory;
+	STestFastW65C816FuzzMemory*	psFastMemory;
 	CW65C816Meta				cMeta;
 	CFastW65C816					cFast;
 	CW65C816*					pcSim;
@@ -691,44 +691,44 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 	uint64						uiFastCycles;
 	size						uiSteps;
 
-	psSimMemory = (STestFast65C816FuzzMemory*)malloc(sizeof(STestFast65C816FuzzMemory));
-	psFastMemory = (STestFast65C816FuzzMemory*)malloc(sizeof(STestFast65C816FuzzMemory));
+	psSimMemory = (STestFastW65C816FuzzMemory*)malloc(sizeof(STestFastW65C816FuzzMemory));
+	psFastMemory = (STestFastW65C816FuzzMemory*)malloc(sizeof(STestFastW65C816FuzzMemory));
 
 	uiSteps = 0;
 	for (uiOpcode = 0; uiOpcode < 0x200; uiOpcode++)
 	{
 		bEmulation = (uiOpcode & 0x100) != 0;
-		for (uiTrial = 0; uiTrial < TEST_FAST_65C816_FUZZ_TRIALS; uiTrial++)
+		for (uiTrial = 0; uiTrial < TEST_FAST_W65C816_FUZZ_TRIALS; uiTrial++)
 		{
-			for (i = 0; i < TEST_FAST_65C816_FUZZ_SIZE; i += 8)
+			for (i = 0; i < TEST_FAST_W65C816_FUZZ_SIZE; i += 8)
 			{
-				*((uint64*)&psSimMemory->mauiBytes[i]) = TestFast65C816Random(&uiSeed);
+				*((uint64*)&psSimMemory->mauiBytes[i]) = TestFastW65C816Random(&uiSeed);
 			}
-			uiCode = (uint16)TestFast65C816Random(&uiSeed);
-			uiProgramBank = (uiTrial & 1) ? (uint8)TestFast65C816Random(&uiSeed) : 0;
+			uiCode = (uint16)TestFastW65C816Random(&uiSeed);
+			uiProgramBank = (uiTrial & 1) ? (uint8)TestFastW65C816Random(&uiSeed) : 0;
 			psSimMemory->mauiBytes[uiCode] = (uint8)uiOpcode;
-			memcpy(psFastMemory->mauiBytes, psSimMemory->mauiBytes, TEST_FAST_65C816_FUZZ_SIZE);
+			memcpy(psFastMemory->mauiBytes, psSimMemory->mauiBytes, TEST_FAST_W65C816_FUZZ_SIZE);
 
 			//New processors for each trial, the simulator starts between instructions.
 			if (bFlat)
 			{
-				cFast.Init(TestFast65C816FuzzRead, TestFast65C816FuzzWrite, psFastMemory, psFastMemory->mauiBytes, TEST_FAST_65C816_FUZZ_SIZE);
+				cFast.Init(TestFastW65C816FuzzRead, TestFastW65C816FuzzWrite, psFastMemory, psFastMemory->mauiBytes, TEST_FAST_W65C816_FUZZ_SIZE);
 			}
 			else
 			{
-				cFast.Init(TestFast65C816FuzzRead, TestFast65C816FuzzWrite, psFastMemory, NULL, 0);
+				cFast.Init(TestFastW65C816FuzzRead, TestFastW65C816FuzzWrite, psFastMemory, NULL, 0);
 			}
-			cMeta.Init(TestFast65C816FuzzTickHigh, TestFast65C816FuzzTickLow, psSimMemory);
+			cMeta.Init(TestFastW65C816FuzzTickHigh, TestFastW65C816FuzzTickLow, psSimMemory);
 			cMeta.GetRESB()->Set(true);
 			pcSim = cMeta.GetMPU();
-			TestFast65C816SetState(&cMeta, &cFast, &uiSeed, bEmulation, uiProgramBank, uiCode);
+			TestFastW65C816SetState(&cMeta, &cFast, &uiSeed, bEmulation, uiProgramBank, uiCode);
 
-			for (uiStep = 0; uiStep < TEST_FAST_65C816_FUZZ_STEPS; uiStep++)
+			for (uiStep = 0; uiStep < TEST_FAST_W65C816_FUZZ_STEPS; uiStep++)
 			{
 				psSimMemory->muiCycles = 0;
 				uiExecuted = psSimMemory->mauiBytes[pcSim->GetProgramCounter()->GetOffset()];
 				szBefore.Init(" before:");
-				TestFast65C816AppendState(&szBefore, pcSim);
+				TestFastW65C816AppendState(&szBefore, pcSim);
 				uiFastCycles = cFast.NumCycles();
 				bSim = cMeta.TickInstruction();
 				bFast = cFast.Step();
@@ -739,7 +739,7 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 				cFast.AppendDifferences(pcSim, &sz);
 				cFast.AppendDifference(&sz, "Running", bSim, bFast);
 				cFast.AppendDifference(&sz, "Cycles", psSimMemory->muiCycles, uiFastCycles);
-				if (memcmp(psSimMemory->mauiBytes, psFastMemory->mauiBytes, TEST_FAST_65C816_FUZZ_SIZE) != 0)
+				if (memcmp(psSimMemory->mauiBytes, psFastMemory->mauiBytes, TEST_FAST_W65C816_FUZZ_SIZE) != 0)
 				{
 					sz.Append(" Memory differs");
 				}
@@ -757,9 +757,9 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 					sz.Append(szBefore);
 					szWhere.Kill();
 				}
-				if (TestFast65C816Failed(&sz))
+				if (TestFastW65C816Failed(&sz))
 				{
-					uiStep = TEST_FAST_65C816_FUZZ_STEPS;
+					uiStep = TEST_FAST_W65C816_FUZZ_STEPS;
 				}
 				sz.Kill();
 				szBefore.Kill();
@@ -773,8 +773,8 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 			cFast.Kill();
 		}
 	}
-	AssertSize(0, gsTestFast65C816Failures);
-	AssertTrue(uiSteps > 0x200 * TEST_FAST_65C816_FUZZ_TRIALS);
+	AssertSize(0, gsTestFastW65C816Failures);
+	AssertTrue(uiSteps > 0x200 * TEST_FAST_W65C816_FUZZ_TRIALS);
 
 	free(psFastMemory);
 	free(psSimMemory);
@@ -786,7 +786,7 @@ static void TestFast65C816Fuzz(bool bFlat, uint64 uiSeed)
 // One step on both, with IRQB and NMIB as given before it.  Returns false if they differ.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816InterruptStep(CW65C816Meta* pcMeta, CFastW65C816* pcFast, STestFast65C816FuzzMemory* psSimMemory, STestFast65C816FuzzMemory* psFastMemory, bool bIrqLow, bool bNmiLow, size uiStep)
+static bool TestFastW65C816InterruptStep(CW65C816Meta* pcMeta, CFastW65C816* pcFast, STestFastW65C816FuzzMemory* psSimMemory, STestFastW65C816FuzzMemory* psFastMemory, bool bIrqLow, bool bNmiLow, size uiStep)
 {
 	bool	bSim;
 	bool	bFast;
@@ -810,7 +810,7 @@ static bool TestFast65C816InterruptStep(CW65C816Meta* pcMeta, CFastW65C816* pcFa
 	pcFast->AppendDifferences(pcMeta->GetMPU(), &sz);
 	pcFast->AppendDifference(&sz, "Running", bSim, bFast);
 	pcFast->AppendDifference(&sz, "Cycles", psSimMemory->muiCycles, uiFastCycles);
-	if (memcmp(psSimMemory->mauiBytes, psFastMemory->mauiBytes, TEST_FAST_65C816_FUZZ_SIZE) != 0)
+	if (memcmp(psSimMemory->mauiBytes, psFastMemory->mauiBytes, TEST_FAST_W65C816_FUZZ_SIZE) != 0)
 	{
 		sz.Append(" Memory differs");
 	}
@@ -821,7 +821,7 @@ static bool TestFast65C816InterruptStep(CW65C816Meta* pcMeta, CFastW65C816* pcFa
 		sz.Insert(0, &szWhere);
 		szWhere.Kill();
 	}
-	bFailed = TestFast65C816Failed(&sz);
+	bFailed = TestFastW65C816Failed(&sz);
 	sz.Kill();
 	return !bFailed;
 }
@@ -832,10 +832,10 @@ static bool TestFast65C816InterruptStep(CW65C816Meta* pcMeta, CFastW65C816* pcFa
 // IRQ, NMI, BRK, COP, RTI and WAI in native and emulation mode, with the inputs changed between steps.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816Interrupts(bool bEmulation)
+static void TestFastW65C816Interrupts(bool bEmulation)
 {
-	STestFast65C816FuzzMemory*	psSimMemory;
-	STestFast65C816FuzzMemory*	psFastMemory;
+	STestFastW65C816FuzzMemory*	psSimMemory;
+	STestFastW65C816FuzzMemory*	psFastMemory;
 	CW65C816Meta				cMeta;
 	CFastW65C816					cFast;
 	uint8*						puiCode;
@@ -867,9 +867,9 @@ static void TestFast65C816Interrupts(bool bEmulation)
 		0x68,				//PLA
 		0x40 };				//RTI
 
-	psSimMemory = (STestFast65C816FuzzMemory*)malloc(sizeof(STestFast65C816FuzzMemory));
-	psFastMemory = (STestFast65C816FuzzMemory*)malloc(sizeof(STestFast65C816FuzzMemory));
-	memset(psSimMemory->mauiBytes, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	psSimMemory = (STestFastW65C816FuzzMemory*)malloc(sizeof(STestFastW65C816FuzzMemory));
+	psFastMemory = (STestFastW65C816FuzzMemory*)malloc(sizeof(STestFastW65C816FuzzMemory));
+	memset(psSimMemory->mauiBytes, 0xEA, TEST_FAST_W65C816_FUZZ_SIZE);
 	puiCode = &psSimMemory->mauiBytes[0x1000];
 	puiHandler = &psSimMemory->mauiBytes[0x2000];
 	memcpy(puiCode, auiProgram, sizeof(auiProgram));
@@ -879,11 +879,11 @@ static void TestFast65C816Interrupts(bool bEmulation)
 		psSimMemory->mauiBytes[i] = 0x00;
 		psSimMemory->mauiBytes[i + 1] = 0x20;
 	}
-	memcpy(psFastMemory->mauiBytes, psSimMemory->mauiBytes, TEST_FAST_65C816_FUZZ_SIZE);
+	memcpy(psFastMemory->mauiBytes, psSimMemory->mauiBytes, TEST_FAST_W65C816_FUZZ_SIZE);
 
-	cMeta.Init(TestFast65C816FuzzTickHigh, TestFast65C816FuzzTickLow, psSimMemory);
+	cMeta.Init(TestFastW65C816FuzzTickHigh, TestFastW65C816FuzzTickLow, psSimMemory);
 	cMeta.GetRESB()->Set(true);
-	cFast.Init(TestFast65C816FuzzRead, TestFast65C816FuzzWrite, psFastMemory, psFastMemory->mauiBytes, TEST_FAST_65C816_FUZZ_SIZE);
+	cFast.Init(TestFastW65C816FuzzRead, TestFastW65C816FuzzWrite, psFastMemory, psFastMemory->mauiBytes, TEST_FAST_W65C816_FUZZ_SIZE);
 
 	cMeta.GetMPU()->TestSetProcessorStatus(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, bEmulation);
 	cMeta.GetMPU()->TestSetStackPointer(0x1F0);
@@ -901,7 +901,7 @@ static void TestFast65C816Interrupts(bool bEmulation)
 	{
 		bIrq = ((uiStep >= 2) && (uiStep < 4)) || ((uiStep >= 14) && (uiStep < 16)) || ((uiStep >= 24) && (uiStep < 26)) || ((uiStep >= 40) && (uiStep < 41));
 		bNmi = (uiStep == 8) || (uiStep == 30) || ((uiStep >= 50) && (uiStep < 62)) || ((uiStep >= 80) && (uiStep < 100)) || ((uiStep >= 110) && (uiStep < 113));
-		if (!TestFast65C816InterruptStep(&cMeta, &cFast, psSimMemory, psFastMemory, bIrq, bNmi, uiStep))
+		if (!TestFastW65C816InterruptStep(&cMeta, &cFast, psSimMemory, psFastMemory, bIrq, bNmi, uiStep))
 		{
 			break;
 		}
@@ -914,10 +914,10 @@ static void TestFast65C816Interrupts(bool bEmulation)
 }
 
 
-//Run's memory: the flat block, with a write to TEST_FAST_65C816_RUN_IRQ (a hole) setting IRQB from inside an
+//Run's memory: the flat block, with a write to TEST_FAST_W65C816_RUN_IRQ (a hole) setting IRQB from inside an
 //instruction (low for a non-zero byte).
-#define TEST_FAST_65C816_RUN_IRQ	0x3000
-struct STestFast65C816RunContext
+#define TEST_FAST_W65C816_RUN_IRQ	0x3000
+struct STestFastW65C816RunContext
 {
 	uint8*			puiMemory;
 	CFastW65C816*	pcFast;
@@ -928,12 +928,12 @@ struct STestFast65C816RunContext
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static uint8 TestFast65C816RunRead(void* pvContext, uint32 uiAddress)
+static uint8 TestFastW65C816RunRead(void* pvContext, uint32 uiAddress)
 {
-	STestFast65C816RunContext*	psContext;
+	STestFastW65C816RunContext*	psContext;
 
-	psContext = (STestFast65C816RunContext*)pvContext;
-	if (uiAddress < TEST_FAST_65C816_FUZZ_SIZE)
+	psContext = (STestFastW65C816RunContext*)pvContext;
+	if (uiAddress < TEST_FAST_W65C816_FUZZ_SIZE)
 	{
 		return psContext->puiMemory[uiAddress];
 	}
@@ -945,16 +945,16 @@ static uint8 TestFast65C816RunRead(void* pvContext, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816RunWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+static void TestFastW65C816RunWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
-	STestFast65C816RunContext*	psContext;
+	STestFastW65C816RunContext*	psContext;
 
-	psContext = (STestFast65C816RunContext*)pvContext;
-	if (uiAddress == TEST_FAST_65C816_RUN_IRQ)
+	psContext = (STestFastW65C816RunContext*)pvContext;
+	if (uiAddress == TEST_FAST_W65C816_RUN_IRQ)
 	{
 		psContext->pcFast->SetIRQ(uiValue != 0);
 	}
-	else if (uiAddress < TEST_FAST_65C816_FUZZ_SIZE)
+	else if (uiAddress < TEST_FAST_W65C816_FUZZ_SIZE)
 	{
 		psContext->puiMemory[uiAddress] = uiValue;
 	}
@@ -966,7 +966,7 @@ static void TestFast65C816RunWrite(void* pvContext, uint32 uiAddress, uint8 uiVa
 // pcRun (after a Run) and pcStep (after as many Steps) are the same.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestFast65C816RunSame(CFastW65C816* pcStep, CFastW65C816* pcRun, uint8* puiStepMemory, uint8* puiRunMemory, size uiStepped, size uiRun, size uiChunk)
+static bool TestFastW65C816RunSame(CFastW65C816* pcStep, CFastW65C816* pcRun, uint8* puiStepMemory, uint8* puiRunMemory, size uiStepped, size uiRun, size uiChunk)
 {
 	CChars	sz;
 	CChars	szWhere;
@@ -987,7 +987,7 @@ static bool TestFast65C816RunSame(CFastW65C816* pcStep, CFastW65C816* pcRun, uin
 	pcRun->AppendDifference(&sz, "Waiting", pcStep->IsWaiting(), pcRun->IsWaiting());
 	pcRun->AppendDifference(&sz, "Cycles", pcStep->NumCycles(), pcRun->NumCycles());
 	pcRun->AppendDifference(&sz, "AtBreakpoint", pcStep->IsAtBreakpoint(), pcRun->IsAtBreakpoint());
-	if (memcmp(puiStepMemory, puiRunMemory, TEST_FAST_65C816_FUZZ_SIZE) != 0)
+	if (memcmp(puiStepMemory, puiRunMemory, TEST_FAST_W65C816_FUZZ_SIZE) != 0)
 	{
 		sz.Append(" Memory differs");
 	}
@@ -999,7 +999,7 @@ static bool TestFast65C816RunSame(CFastW65C816* pcStep, CFastW65C816* pcRun, uin
 		sz.Insert(0, &szWhere);
 		szWhere.Kill();
 	}
-	bFailed = TestFast65C816Failed(&sz);
+	bFailed = TestFastW65C816Failed(&sz);
 	sz.Kill();
 	return !bFailed;
 }
@@ -1013,12 +1013,12 @@ static bool TestFast65C816RunSame(CFastW65C816* pcStep, CFastW65C816* pcRun, uin
 // interrupt handler (a disabled one is passed).
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
+static void TestFastW65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 {
 	uint8*						puiStepMemory;
 	uint8*						puiRunMemory;
-	STestFast65C816RunContext	sStepContext;
-	STestFast65C816RunContext	sRunContext;
+	STestFastW65C816RunContext	sStepContext;
+	STestFastW65C816RunContext	sRunContext;
 	CFastW65C816					cStep;
 	CFastW65C816					cRun;
 	size						uiChunk;
@@ -1057,9 +1057,9 @@ static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 		0xE8,				//INX
 		0xDB };				//STP
 
-	puiStepMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
-	puiRunMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
-	memset(puiStepMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	puiStepMemory = (uint8*)malloc(TEST_FAST_W65C816_FUZZ_SIZE);
+	puiRunMemory = (uint8*)malloc(TEST_FAST_W65C816_FUZZ_SIZE);
+	memset(puiStepMemory, 0xEA, TEST_FAST_W65C816_FUZZ_SIZE);
 	if (bStop)
 	{
 		memcpy(&puiStepMemory[0x1000], auiStop, sizeof(auiStop));
@@ -1074,16 +1074,16 @@ static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 		puiStepMemory[i] = 0x00;
 		puiStepMemory[i + 1] = 0x20;
 	}
-	memcpy(puiRunMemory, puiStepMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	memcpy(puiRunMemory, puiStepMemory, TEST_FAST_W65C816_FUZZ_SIZE);
 
 	sStepContext.puiMemory = puiStepMemory;
 	sStepContext.pcFast = &cStep;
 	sRunContext.puiMemory = puiRunMemory;
 	sRunContext.pcFast = &cRun;
-	cStep.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sStepContext, puiStepMemory, TEST_FAST_65C816_FUZZ_SIZE);
-	cRun.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sRunContext, puiRunMemory, TEST_FAST_65C816_FUZZ_SIZE);
-	cStep.SetHole(TEST_FAST_65C816_RUN_IRQ, TEST_FAST_65C816_RUN_IRQ + 1);
-	cRun.SetHole(TEST_FAST_65C816_RUN_IRQ, TEST_FAST_65C816_RUN_IRQ + 1);
+	cStep.Init(TestFastW65C816RunRead, TestFastW65C816RunWrite, &sStepContext, puiStepMemory, TEST_FAST_W65C816_FUZZ_SIZE);
+	cRun.Init(TestFastW65C816RunRead, TestFastW65C816RunWrite, &sRunContext, puiRunMemory, TEST_FAST_W65C816_FUZZ_SIZE);
+	cStep.SetHole(TEST_FAST_W65C816_RUN_IRQ, TEST_FAST_W65C816_RUN_IRQ + 1);
+	cRun.SetHole(TEST_FAST_W65C816_RUN_IRQ, TEST_FAST_W65C816_RUN_IRQ + 1);
 	cStep.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, bEmulation);
 	cRun.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, bEmulation);
 	cStep.TestSetS(0x1F0);
@@ -1131,7 +1131,7 @@ static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 			uiBreaks++;
 		}
 
-		if (!TestFast65C816RunSame(&cStep, &cRun, puiStepMemory, puiRunMemory, uiStepped, uiRun, uiChunk))
+		if (!TestFastW65C816RunSame(&cStep, &cRun, puiStepMemory, puiRunMemory, uiStepped, uiRun, uiChunk))
 		{
 			break;
 		}
@@ -1168,7 +1168,7 @@ static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 // addresses, and the counts.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816Breakpoints(void)
+static void TestFastW65C816Breakpoints(void)
 {
 	CBreakpoints	cBreakpoints;
 
@@ -1243,10 +1243,10 @@ static void TestFast65C816Breakpoints(void)
 // next time.  Disabled breakpoints are kept and passed; the bank counts.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816BreakpointRun(void)
+static void TestFastW65C816BreakpointRun(void)
 {
 	uint8*						puiMemory;
-	STestFast65C816RunContext	sContext;
+	STestFastW65C816RunContext	sContext;
 	CFastW65C816					cFast;
 	CBreakpoints*				pcBreakpoints;
 	uint64						uiCycles;
@@ -1258,12 +1258,12 @@ static void TestFast65C816BreakpointRun(void)
 		0xC8,				//INY: the breakpoint
 		0x80, 0xFA };		//BRA to the first INX
 
-	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
-	memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	puiMemory = (uint8*)malloc(TEST_FAST_W65C816_FUZZ_SIZE);
+	memset(puiMemory, 0xEA, TEST_FAST_W65C816_FUZZ_SIZE);
 	memcpy(&puiMemory[0x1000], auiLoop, sizeof(auiLoop));
 	sContext.puiMemory = puiMemory;
 	sContext.pcFast = &cFast;
-	cFast.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cFast.Init(TestFastW65C816RunRead, TestFastW65C816RunWrite, &sContext, puiMemory, TEST_FAST_W65C816_FUZZ_SIZE);
 	cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
 	cFast.TestSetS(0x1F0);
 	cFast.TestSetX(0);
@@ -1338,26 +1338,26 @@ static void TestFast65C816BreakpointRun(void)
 // A breakpoint at MVN stops before the move, not before each byte.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816BreakpointBlockMove(void)
+static void TestFastW65C816BreakpointBlockMove(void)
 {
 	uint8*						puiMemory;
-	STestFast65C816RunContext	sContext;
+	STestFastW65C816RunContext	sContext;
 	CFastW65C816					cFast;
 	size						i;
 	static uint8				auiMove[] = {
 		0x54, 0x00, 0x00,	//MVN 00,00: the breakpoint
 		0xDB };				//STP
 
-	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	puiMemory = (uint8*)malloc(TEST_FAST_W65C816_FUZZ_SIZE);
 	sContext.puiMemory = puiMemory;
 	sContext.pcFast = &cFast;
-	cFast.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cFast.Init(TestFastW65C816RunRead, TestFastW65C816RunWrite, &sContext, puiMemory, TEST_FAST_W65C816_FUZZ_SIZE);
 	AssertTrue(cFast.GetBreakpoints()->Add(0x1000, true));
 
 	//Run, then Step.
 	for (i = 0; i < 2; i++)
 	{
-		memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+		memset(puiMemory, 0xEA, TEST_FAST_W65C816_FUZZ_SIZE);
 		memcpy(&puiMemory[0x1000], auiMove, sizeof(auiMove));
 		puiMemory[0x40] = 0x11;
 		puiMemory[0x41] = 0x22;
@@ -1400,14 +1400,14 @@ static void TestFast65C816BreakpointBlockMove(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A write to TEST_FAST_65C816_SWITCH (a hole in the flat memory, so it
+// A write to TEST_FAST_W65C816_SWITCH (a hole in the flat memory, so it
 // reaches the callback) makes the processor use psContext's
 // breakpoints (non-zero) or its own (zero), as a machine changing mode does.
 //
 //////////////////////////////////////////////////////////////////////////
-#define TEST_FAST_65C816_SWITCH		0xFFF0
+#define TEST_FAST_W65C816_SWITCH		0xFFF0
 
-struct STestFast65C816SwitchContext
+struct STestFastW65C816SwitchContext
 {
 	uint8*			puiMemory;
 	CFastW65C816*	pcFast;
@@ -1415,25 +1415,25 @@ struct STestFast65C816SwitchContext
 };
 
 
-static uint8 TestFast65C816SwitchRead(void* pvContext, uint32 uiAddress)
+static uint8 TestFastW65C816SwitchRead(void* pvContext, uint32 uiAddress)
 {
-	STestFast65C816SwitchContext*	psContext;
+	STestFastW65C816SwitchContext*	psContext;
 
-	psContext = (STestFast65C816SwitchContext*)pvContext;
-	return (uiAddress < TEST_FAST_65C816_FUZZ_SIZE) ? psContext->puiMemory[uiAddress] : 0xFF;
+	psContext = (STestFastW65C816SwitchContext*)pvContext;
+	return (uiAddress < TEST_FAST_W65C816_FUZZ_SIZE) ? psContext->puiMemory[uiAddress] : 0xFF;
 }
 
 
-static void TestFast65C816SwitchWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+static void TestFastW65C816SwitchWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
-	STestFast65C816SwitchContext*	psContext;
+	STestFastW65C816SwitchContext*	psContext;
 
-	psContext = (STestFast65C816SwitchContext*)pvContext;
-	if (uiAddress == TEST_FAST_65C816_SWITCH)
+	psContext = (STestFastW65C816SwitchContext*)pvContext;
+	if (uiAddress == TEST_FAST_W65C816_SWITCH)
 	{
 		psContext->pcFast->UseBreakpoints((uiValue != 0) ? psContext->pcOther : NULL);
 	}
-	else if (uiAddress < TEST_FAST_65C816_FUZZ_SIZE)
+	else if (uiAddress < TEST_FAST_W65C816_FUZZ_SIZE)
 	{
 		psContext->puiMemory[uiAddress] = uiValue;
 	}
@@ -1450,10 +1450,10 @@ static void TestFast65C816SwitchWrite(void* pvContext, uint32 uiAddress, uint8 u
 // at that set's too.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816BreakpointSwitch(void)
+static void TestFastW65C816BreakpointSwitch(void)
 {
 	uint8*							puiMemory;
-	STestFast65C816SwitchContext	sContext;
+	STestFastW65C816SwitchContext	sContext;
 	CFastW65C816						cFast;
 	CBreakpoints					cOther;
 	static uint8					auiSwitch[] = {
@@ -1463,17 +1463,17 @@ static void TestFast65C816BreakpointSwitch(void)
 		0xEA,				//$1006 NOP
 		0xDB };				//$1007 STP
 
-	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	puiMemory = (uint8*)malloc(TEST_FAST_W65C816_FUZZ_SIZE);
 	sContext.puiMemory = puiMemory;
 	sContext.pcFast = &cFast;
 	sContext.pcOther = &cOther;
-	cFast.Init(TestFast65C816SwitchRead, TestFast65C816SwitchWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
-	cFast.SetHole(TEST_FAST_65C816_SWITCH, TEST_FAST_65C816_SWITCH + 1);
+	cFast.Init(TestFastW65C816SwitchRead, TestFastW65C816SwitchWrite, &sContext, puiMemory, TEST_FAST_W65C816_FUZZ_SIZE);
+	cFast.SetHole(TEST_FAST_W65C816_SWITCH, TEST_FAST_W65C816_SWITCH + 1);
 	cOther.Init();
 
 	//From its own (none) to the other's, which has one at the instruction after the switch.
 	AssertTrue(cOther.Add(0x1005, true));
-	memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	memset(puiMemory, 0xEA, TEST_FAST_W65C816_FUZZ_SIZE);
 	memcpy(&puiMemory[0x1000], auiSwitch, sizeof(auiSwitch));
 	cFast.Reset();
 	cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
@@ -1531,35 +1531,35 @@ static void TestFast65C816BreakpointSwitch(void)
 // cycles counted when each was signalled.
 //
 //////////////////////////////////////////////////////////////////////////
-#define TEST_FAST_65C816_MAX_WDMS	4
+#define TEST_FAST_W65C816_MAX_WDMS	4
 
-struct STestFast65C816WDMContext
+struct STestFastW65C816WDMContext
 {
 	CFastW65C816*	pcFast;
 	uint8*			puiMemory;
 	size			uiNumWDMs;
-	uint8			auiSignatures[TEST_FAST_65C816_MAX_WDMS];
-	uint64			auiCycles[TEST_FAST_65C816_MAX_WDMS];
+	uint8			auiSignatures[TEST_FAST_W65C816_MAX_WDMS];
+	uint64			auiCycles[TEST_FAST_W65C816_MAX_WDMS];
 };
 
 
-static uint8 TestFast65C816WDMRead(void* pvContext, uint32 uiAddress)
+static uint8 TestFastW65C816WDMRead(void* pvContext, uint32 uiAddress)
 {
 	return 0xFF;
 }
 
 
-static void TestFast65C816WDMWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+static void TestFastW65C816WDMWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
 }
 
 
-static void TestFast65C816WDMSignal(void* pvContext, uint8 uiSignal)
+static void TestFastW65C816WDMSignal(void* pvContext, uint8 uiSignal)
 {
-	STestFast65C816WDMContext*	psContext;
+	STestFastW65C816WDMContext*	psContext;
 
-	psContext = (STestFast65C816WDMContext*)pvContext;
-	if ((uiSignal == FAST_65C816_SIGNAL_WDM) && (psContext->uiNumWDMs < TEST_FAST_65C816_MAX_WDMS))
+	psContext = (STestFastW65C816WDMContext*)pvContext;
+	if ((uiSignal == FAST_W65C816_SIGNAL_WDM) && (psContext->uiNumWDMs < TEST_FAST_W65C816_MAX_WDMS))
 	{
 		psContext->auiSignatures[psContext->uiNumWDMs] = psContext->puiMemory[psContext->pcFast->GetProgramCounter() - 1];
 		psContext->auiCycles[psContext->uiNumWDMs] = psContext->pcFast->NumCycles();
@@ -1574,12 +1574,12 @@ static void TestFast65C816WDMSignal(void* pvContext, uint8 uiSignal)
 // without the signal callback.  The cycles it took.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 TestFast65C816WDMRun(CFastW65C816* pcFast, bool bStep, bool bSignal)
+static uint64 TestFastW65C816WDMRun(CFastW65C816* pcFast, bool bStep, bool bSignal)
 {
 	uint64	uiStart;
 	int		i;
 
-	pcFast->SetSignal(bSignal ? TestFast65C816WDMSignal : NULL);
+	pcFast->SetSignal(bSignal ? TestFastW65C816WDMSignal : NULL);
 	pcFast->Reset();
 	pcFast->TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
 	pcFast->TestSetS(0x1F0);
@@ -1603,15 +1603,15 @@ static uint64 TestFast65C816WDMRun(CFastW65C816* pcFast, bool bStep, bool bSigna
 
 //////////////////////////////////////////////////////////////////////////
 //
-// WDM is a two byte no-op that signals FAST_65C816_SIGNAL_WDM once it has
+// WDM is a two byte no-op that signals FAST_W65C816_SIGNAL_WDM once it has
 // run, with PC just past its signature byte, Stepped or Run.  It takes
 // the same cycles with and without anyone listening.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816WDM(void)
+static void TestFastW65C816WDM(void)
 {
 	uint8*						puiMemory;
-	STestFast65C816WDMContext	sContext;
+	STestFastW65C816WDMContext	sContext;
 	CFastW65C816					cFast;
 	uint64						uiQuietCycles;
 	int							iStep;
@@ -1621,18 +1621,18 @@ static void TestFast65C816WDM(void)
 		0x42, 0x00,			//$1003 WDM #$00
 		0xDB };				//$1005 STP
 
-	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
-	memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	puiMemory = (uint8*)malloc(TEST_FAST_W65C816_FUZZ_SIZE);
+	memset(puiMemory, 0xEA, TEST_FAST_W65C816_FUZZ_SIZE);
 	memcpy(&puiMemory[0x1000], auiWDM, sizeof(auiWDM));
 	sContext.pcFast = &cFast;
 	sContext.puiMemory = puiMemory;
-	cFast.Init(TestFast65C816WDMRead, TestFast65C816WDMWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cFast.Init(TestFastW65C816WDMRead, TestFastW65C816WDMWrite, &sContext, puiMemory, TEST_FAST_W65C816_FUZZ_SIZE);
 
 	for (iStep = 0; iStep < 2; iStep++)
 	{
-		uiQuietCycles = TestFast65C816WDMRun(&cFast, iStep == 1, false);
+		uiQuietCycles = TestFastW65C816WDMRun(&cFast, iStep == 1, false);
 		sContext.uiNumWDMs = 0;
-		AssertLong(uiQuietCycles, TestFast65C816WDMRun(&cFast, iStep == 1, true));
+		AssertLong(uiQuietCycles, TestFastW65C816WDMRun(&cFast, iStep == 1, true));
 		AssertSize(2, sContext.uiNumWDMs);
 		AssertInt(0xD6, sContext.auiSignatures[0]);
 		AssertInt(0x00, sContext.auiSignatures[1]);
@@ -1648,32 +1648,32 @@ static void TestFast65C816WDM(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void TestFast65C816(void)
+void TestFastW65C816(void)
 {
 	TypeConverterInit();
 	NumberInit();
 	BeginTests();
 
 	CW65C816InstructionFactory::GetInstance()->Init();
-	gsTestFast65C816Failures = 0;
+	gsTestFastW65C816Failures = 0;
 
-	TestFast65C816SingleStep();
-	TestFast65C816Fuzz(true, 0x65C816ULL);
-	TestFast65C816Fuzz(false, 0x816816ULL);
-	TestFast65C816Interrupts(false);
-	TestFast65C816Interrupts(true);
-	TestFast65C816Run(false, false, false);
-	TestFast65C816Run(true, false, false);
-	TestFast65C816Run(false, true, false);
-	TestFast65C816Run(true, true, false);
-	TestFast65C816Run(false, false, true);
-	TestFast65C816Run(true, false, true);
-	TestFast65C816Run(false, true, true);
-	TestFast65C816Breakpoints();
-	TestFast65C816BreakpointRun();
-	TestFast65C816BreakpointBlockMove();
-	TestFast65C816BreakpointSwitch();
-	TestFast65C816WDM();
+	TestFastW65C816SingleStep();
+	TestFastW65C816Fuzz(true, 0x65C816ULL);
+	TestFastW65C816Fuzz(false, 0x816816ULL);
+	TestFastW65C816Interrupts(false);
+	TestFastW65C816Interrupts(true);
+	TestFastW65C816Run(false, false, false);
+	TestFastW65C816Run(true, false, false);
+	TestFastW65C816Run(false, true, false);
+	TestFastW65C816Run(true, true, false);
+	TestFastW65C816Run(false, false, true);
+	TestFastW65C816Run(true, false, true);
+	TestFastW65C816Run(false, true, true);
+	TestFastW65C816Breakpoints();
+	TestFastW65C816BreakpointRun();
+	TestFastW65C816BreakpointBlockMove();
+	TestFastW65C816BreakpointSwitch();
+	TestFastW65C816WDM();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 

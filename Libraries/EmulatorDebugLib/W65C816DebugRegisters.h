@@ -24,7 +24,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 #include "DebugTarget.h"
 
 
-enum E65C816DebugRegister
+enum EW65C816DebugRegister
 {
 	DW65C816R_C,
 	DW65C816R_X,
@@ -42,9 +42,9 @@ enum E65C816DebugRegister
 
 
 //A CFastW65C816's registers as a CDebugTarget describes them, for any target with one.
-void	Get65C816DebugRegister(size uiRegister, SDebugRegister* psDest);
-uint64	Get65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister);
-bool	Set65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister, uint64 uiValue);
+void	GetW65C816DebugRegister(size uiRegister, SDebugRegister* psDest);
+uint64	GetW65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister);
+bool	SetW65C816DebugRegisterValue(CFastW65C816* pcMPU, size uiRegister, uint64 uiValue);
 
 
 #endif // __W65C816_DEBUG_REGISTERS_H__
