@@ -32,6 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPSemanticPass::Init(void)
 {
 	mcNames.Init(true);
+	masOthers.Init();
 	mcErrors.Init();
 	mpcUnit = NULL;
 	mcTypes.Init(true);
@@ -56,6 +57,7 @@ void CCPPSemanticPass::Kill(void)
 	mcPlaces.Kill();
 	mcTypes.Kill();
 	mcErrors.Kill();
+	masOthers.Kill();
 	mcNames.Kill();
 }
 
@@ -320,33 +322,70 @@ bool CCPPSemanticPass::AppendDeclaration(SCPP65Type* psType, const char* szName,
 //////////////////////////////////////////////////////////////////////////
 //
 // The name whose last component is iToken names pcSymbol (the overload
-// pcDeclarator declares, for a function).  The first answer is kept: a
-// template's body checked again with other arguments may resolve its
-// names differently.
+// pcDeclarator declares, for a function).  A template's body checked
+// again with other arguments may resolve its names differently: every
+// different answer is kept, in the order they were found.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPSemanticPass::Resolved(int iToken, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator)
 {
 	SCPPResolvedName	sName;
+	SCPPResolvedName*	psName;
+	int32				iOther;
 
-	if ((iToken < 0) || !pcSymbol || mcNames.Get(iToken))
+	if ((iToken < 0) || !pcSymbol)
 	{
 		return;
 	}
 	sName.pcSymbol = pcSymbol;
 	sName.pcDeclarator = pcDeclarator;
-	mcNames.Put(iToken, &sName);
+	sName.iNext = -1;
+	psName = mcNames.Get(iToken);
+	if (!psName)
+	{
+		mcNames.Put(iToken, &sName);
+		return;
+	}
+
+	for (;;)
+	{
+		if ((psName->pcSymbol == pcSymbol) && (psName->pcDeclarator == pcDeclarator))
+		{
+			return;
+		}
+		if (psName->iNext < 0)
+		{
+			break;
+		}
+		psName = masOthers.Get((size)psName->iNext);
+	}
+	iOther = (int32)masOthers.NumElements();
+	psName->iNext = iOther;
+	masOthers.Add(&sName);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What the name whose last component is iToken resolved to, or NULL.
+// What the name whose last component is iToken resolved to (the first
+// thing, if it did to several), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPPResolvedName* CCPPSemanticPass::GetResolved(int iToken)
 {
 	return mcNames.Get(iToken);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The next thing the name psResolved is of resolved to, in another
+// instance of the template it is in; NULL after the last.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPResolvedName* CCPPSemanticPass::GetNextResolved(SCPPResolvedName* psResolved)
+{
+	return (psResolved->iNext >= 0) ? masOthers.Get((size)psResolved->iNext) : NULL;
 }
 
 

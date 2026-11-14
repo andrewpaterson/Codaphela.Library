@@ -69,6 +69,9 @@ enum ECPPUsageType
 #define CPPIF_MACRO			0x02	//A name a macro made, where the macro was used: the text there is the macro's name,
 									//ARRAY_BLOCK, not the symbol's, CArrayBlock.
 #define CPPIF_C_LINKAGE		0x04	//A declaration inside extern "C": a function's or variable's label is only its name.
+#define CPPIF_INSTANCE		0x08	//A name in a template's declaration that the type checker resolved, which it does in the
+									//template's instances: mp->Init() in CHolder<M> is CFoo::Init in CHolder<CFoo>, and a
+									//reference of whatever else it is in another instance (CCPPIndex::FindFamily).
 
 
 //Where a symbol is named in a file.
@@ -95,6 +98,7 @@ struct SCPPIndexToken
 	int32					iArguments;		//The callee of a call: its number of arguments plus one.
 	bool					bDefinition;	//It names what a definition defines.
 	CCPPSyntax*				pcContainer;	//The innermost class or function definition the token is in, NULL if none.
+	bool					bTemplate;		//It is in a template's declaration.
 	uint8					uiUsage;		//ECPPUsageType (FindUsageTypes).
 	bool					bCLinkage;		//It names what a declaration inside extern "C" declares.
 };
@@ -255,6 +259,7 @@ public:
 	CCPPIndexSymbol*	FindSymbol(const char* szKey);
 	CCPPIndexSymbol*	FindSymbolAt(const char* szFileName, int iLine, int iColumn);
 	bool				FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest);
+	size				FindFamily(CCPPIndexSymbol* pcSymbol, CArrayInt* paiDest, SCPPIndexLocation* psWhere = NULL);
 	size				NumFiles(void);
 	char*				GetFileName(size uiFile);
 	char*				Print(CChars* pszDest);
@@ -262,7 +267,7 @@ public:
 protected:
 	static void			GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, uint8 uiFlags, CCPPIndexUnit* pcDest);
 	static bool			GetMacroUse(CCPPTokeniser* pcTokeniser, SPreprocessedToken* psSource, SPreprocessedToken* psDest);
-	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
+	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, uint8 uiFlags, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
 	static int			GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator, CCPPIndexUnit* pcDest);
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPTokeniser* pcTokeniser, CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition, bool bCLinkage);

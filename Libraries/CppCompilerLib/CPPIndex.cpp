@@ -43,6 +43,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxNameComponent.h"
 #include "CPPSyntaxTranslationUnit.h"
 #include "SourceFile.h"
+#include "BaseLib/ArrayInt64.h"
 #include "CPPIndex.h"
 
 
@@ -368,7 +369,8 @@ void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPP
 // class named by a macro, class ARRAY_BLOCK, is declared where the macro
 // was used (CPPIF_MACRO).  With a semantic pass (NULL
 // for none) the names it resolved are what it says: the members o.Init()
-// and p->miCount name, and the overloads calls call.
+// and p->miCount name, and the overloads calls call - each of them, for a
+// name in a template's body that its instances resolve differently.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass, CCPPIndexedFiles* pcIndexed)
@@ -475,7 +477,11 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 
 		if (psResolved)
 		{
-			GatherResolved(&cKeys, psResolved, psSource, (ECPPUsageType)asTokens.Get(i)->uiUsage, pcDest);
+			//In a template's body, a reference of what it resolved to in each instance.
+			for (; psResolved; psResolved = pcPass->GetNextResolved(psResolved))
+			{
+				GatherResolved(&cKeys, psResolved, psSource, asTokens.Get(i)->bTemplate ? CPPIF_INSTANCE : 0, (ECPPUsageType)asTokens.Get(i)->uiUsage, pcDest);
+			}
 		}
 		else
 		{
@@ -589,7 +595,8 @@ public:
 //////////////////////////////////////////////////////////////////////////
 //
 // Each token's innermost class or function definition: its node is set
-// on every token it spans, then its children's on theirs.
+// on every token it spans, then its children's on theirs.  The tokens of
+// a template's declaration are said to be in one.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
@@ -598,6 +605,17 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 	SCPPIndexToken*	psToken;
 	CCPPIndexContainerChildren	cChildren;
 
+	if (pcNode->GetKind() == CPPS_TemplateDeclaration)
+	{
+		for (iToken = pcNode->miFirstToken; (iToken >= 0) && (iToken <= pcNode->miLastToken); iToken++)
+		{
+			psToken = pasTokens->SafeGet((size)iToken);
+			if (psToken)
+			{
+				psToken->bTemplate = true;
+			}
+		}
+	}
 	if ((pcNode->GetKind() == CPPS_FunctionDefinition) || ((pcNode->GetKind() == CPPS_ClassSpecifier) && ((CCPPSyntaxClassSpecifier*)pcNode)->mpcName))
 	{
 		for (iToken = pcNode->miFirstToken; (iToken >= 0) && (iToken <= pcNode->miLastToken); iToken++)
@@ -1509,14 +1527,14 @@ int CCPPIndex::GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSynta
 // or to the one overload a call calls.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, ECPPUsageType eUsage, CCPPIndexUnit* pcDest)
+void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, uint8 uiFlags, ECPPUsageType eUsage, CCPPIndexUnit* pcDest)
 {
 	int	iKey;
 
 	iKey = GetUnitKey(pcKeys, psResolved->pcSymbol, psResolved->pcDeclarator, pcDest);
 	if (iKey >= 0)
 	{
-		pcDest->AddEntry(iKey, psSource, CPPIR_Reference, 0, GetSymbolUsageType(psResolved->pcSymbol, eUsage));
+		pcDest->AddEntry(iKey, psSource, CPPIR_Reference, uiFlags, GetSymbolUsageType(psResolved->pcSymbol, eUsage));
 	}
 }
 
@@ -1661,6 +1679,82 @@ bool CCPPIndex::AddLocation(int iSymbol, SCPPIndexLocation* psLocation)
 		mcLocations.Put(lliKey, &iSymbol);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The symbols that are named with pcSymbol by one name in a template's
+// declaration, each in an instance of the template: mp->Init() in
+// CHolder<M> names CFoo::Init in CHolder<CFoo> and CBar::Init in
+// CHolder<CBar>, so each is in the other's family.  The template is
+// written once for them all, and a change to how one of them is named or
+// called there is a change to all of them.  They are added to paiDest
+// (symbol indices, each once, never pcSymbol's own), and the number added
+// is returned.  psWhere, if given, is the first place found that pcSymbol
+// shares with another.
+//
+// It is one step: the families of the symbols found aren't looked for.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPIndex::FindFamily(CCPPIndexSymbol* pcSymbol, CArrayInt* paiDest, SCPPIndexLocation* psWhere)
+{
+	CArrayInt64			alliPlaces;
+	size				i;
+	size				j;
+	SCPPIndexLocation*	psLocation;
+	CCPPIndexSymbol*	pcOther;
+	size				uiFound;
+	int64				lliPlace;
+	size				uiPlace;
+
+	//The places an instance resolved pcSymbol at.  Most symbols have none.
+	alliPlaces.Init();
+	for (i = 0; i < pcSymbol->masLocations.NumElements(); i++)
+	{
+		psLocation = pcSymbol->masLocations.Get(i);
+		if (psLocation->uiFlags & CPPIF_INSTANCE)
+		{
+			alliPlaces.Add(GetCPPIndexLocationKey(psLocation->uiFile, psLocation->iLine, psLocation->iColumn));
+		}
+	}
+	uiFound = 0;
+	if (alliPlaces.NumElements() == 0)
+	{
+		alliPlaces.Kill();
+		return 0;
+	}
+	alliPlaces.QuickSort();
+
+	for (i = 0; i < mapcSymbols.NumElements(); i++)
+	{
+		pcOther = mapcSymbols.GetPtr(i);
+		if ((pcOther == pcSymbol) || (paiDest->Find((int)i) != ARRAY_ELEMENT_NOT_FOUND))
+		{
+			continue;
+		}
+		for (j = 0; j < pcOther->masLocations.NumElements(); j++)
+		{
+			psLocation = pcOther->masLocations.Get(j);
+			if (!(psLocation->uiFlags & CPPIF_INSTANCE))
+			{
+				continue;
+			}
+			lliPlace = GetCPPIndexLocationKey(psLocation->uiFile, psLocation->iLine, psLocation->iColumn);
+			if (alliPlaces.FindInSorted(&lliPlace, &ComparePrimitive<int64>, &uiPlace))
+			{
+				if (psWhere && (uiFound == 0))
+				{
+					*psWhere = *psLocation;
+				}
+				paiDest->Add((int)i);
+				uiFound++;
+				break;
+			}
+		}
+	}
+	alliPlaces.Kill();
+	return uiFound;
 }
 
 
@@ -1905,6 +1999,10 @@ char* CCPPIndex::Print(CChars* pszDest)
 			if (psLocation->uiFlags & CPPIF_AMBIGUOUS)
 			{
 				pszDest->Append(" ambiguous");
+			}
+			if (psLocation->uiFlags & CPPIF_INSTANCE)
+			{
+				pszDest->Append(" instance");
 			}
 			if (psLocation->uiFlags & CPPIF_MACRO)
 			{

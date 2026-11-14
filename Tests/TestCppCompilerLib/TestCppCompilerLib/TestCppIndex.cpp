@@ -1,3 +1,6 @@
+#include "BaseLib/FileUtil.h"
+#include "CppCompilerLib/HeaderFileMap.h"
+#include "CppCompilerLib/HeaderFiles.h"
 #include "CppCompilerLib/CPPPreprocessor.h"
 #include "CppCompilerLib/CppTokeniser.h"
 #include "CppCompilerLib/CppParser.h"
@@ -1298,6 +1301,302 @@ puc : unsigned char* x\n\
 }
 
 
+//The files the units indexed so far have indexed, as the IDE's index keeps them (CIDECodeModel::IsIndexedByAnother):
+//a unit gathered with these skips their names, but for what its semantic pass resolved.
+class CTestIndexedFiles : public CCPPIndexedFiles
+{
+public:
+	CArrayChars	maszFiles;
+
+	bool	IsIndexed(CSourceFile* pcFile) override
+	{
+		return maszFiles.Contains(pcFile->FullName());
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Indexes szSource as the unit szFileName, which can include pcHeaders'
+// files, as the IDE indexes a unit: checked, and gathered without the
+// names of the files the units before it indexed.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IndexUnitWithHeaders(CCPPIndex* pcIndex, CTestIndexedFiles* pcIndexed, CHeaderFiles* pcHeaders, const char* szFileName, const char* szSource)
+{
+	CTranslationUnit	cFile;
+	CCPPPreprocessor	cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPSemanticPass	cPass;
+	CCPPIndexUnit		cGathered;
+	size				i;
+
+	cFile.Init((char*)szFileName, NULL, false);
+	cFile.SetContents((char*)szSource);
+	cPreprocessor.Init(NULL);
+	cPreprocessor.AddIncludeDirectory(pcHeaders);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	cPass.Init();
+	cPass.Check(&cTree);
+	AssertString("", cPass.GetErrors()->Text());
+	cGathered.Init();
+	CCPPIndex::Gather(&cTokeniser, &cTree, &cGathered, &cPass, pcIndexed);
+	pcIndex->Merge(&cGathered);
+	for (i = 0; i < cGathered.maszFiles.NumElements(); i++)
+	{
+		if (!pcIndexed->maszFiles.Contains(cGathered.maszFiles.GetText(i)))
+		{
+			pcIndexed->maszFiles.Add(cGathered.maszFiles.GetText(i));
+		}
+	}
+	cGathered.Kill();
+	cPass.Kill();
+
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The places szKey is named in the file whose name ends szFile, as
+// "line:column" each followed by a space, 1 based.
+//
+//////////////////////////////////////////////////////////////////////////
+static void PrintIndexPlacesIn(CCPPIndex* pcIndex, const char* szKey, const char* szFile, CChars* pszDest)
+{
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexLocation*	psLocation;
+	size				i;
+	CChars				szName;
+
+	pcSymbol = pcIndex->FindSymbol(szKey);
+	if (!pcSymbol)
+	{
+		pszDest->Append("no symbol");
+		return;
+	}
+	for (i = 0; i < pcSymbol->NumLocations(); i++)
+	{
+		psLocation = pcSymbol->GetLocation(i);
+		szName.Init(pcIndex->GetFileName(psLocation->uiFile));
+		if (szName.EndsWith(szFile))
+		{
+			pszDest->Append(psLocation->iLine + 1)->Append(':')->Append(psLocation->iColumn + 1)->Append(' ');
+		}
+		szName.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys of szKey's family (CCPPIndex::FindFamily), each followed by a
+// space, then the place it shares with the first of them.
+//
+//////////////////////////////////////////////////////////////////////////
+static void PrintIndexFamily(CCPPIndex* pcIndex, const char* szKey, CChars* pszDest)
+{
+	CCPPIndexSymbol*	pcSymbol;
+	CArrayInt			aiFamily;
+	SCPPIndexLocation	sWhere;
+	size				i;
+
+	pcSymbol = pcIndex->FindSymbol(szKey);
+	if (!pcSymbol)
+	{
+		pszDest->Append("no symbol");
+		return;
+	}
+	aiFamily.Init();
+	if (pcIndex->FindFamily(pcSymbol, &aiFamily, &sWhere) > 0)
+	{
+		for (i = 0; i < aiFamily.NumElements(); i++)
+		{
+			pszDest->Append(pcIndex->GetSymbol((size)aiFamily.GetValue(i))->mszKey)->Append(' ');
+		}
+		pszDest->Append("at ")->Append(sWhere.iLine + 1)->Append(':')->Append(sWhere.iColumn + 1);
+	}
+	aiFamily.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a name in a template's body names depends on the template's
+// arguments: mp->Init() in CHolder<M> is CFoo::Init in CHolder<CFoo> and
+// CBar::Init in CHolder<CBar>.  It is a reference of each it is in any
+// instance, in whichever unit the instance is, so Find Usages and Rename
+// of CFoo::Init or of CBar::Init have it:
+//   - when the unit that indexed the template's header has no instance of
+//     it (A.cpp), and other units (B.cpp, C.cpp) have one each;
+//   - when one unit (D.cpp) has two instances of a template.
+// Those a template names by one name are each other's family (FindFamily):
+// the template is written once for them all.  A class with the same
+// member that no instance of the template uses (CLone) is in no family,
+// nor is a member of the template itself.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexTemplateInstances(void)
+{
+	CCPPIndex			cIndex;
+	CTestIndexedFiles	cIndexed;
+	CHeaderFileMap		cHeaderFiles;
+	CHeaderFiles		cHeaders;
+	CFileUtil			cFileUtil;
+	CChars				szDirectory;
+	CChars				sz;
+
+	szDirectory.Init();
+	cFileUtil.CurrentDirectory(&szDirectory);
+	cFileUtil.AppendToPath(&szDirectory, "Input");
+	cFileUtil.AppendToPath(&szDirectory, "SFT");
+	cHeaderFiles.Init();
+	cHeaders.Init(szDirectory.Text(), &cHeaderFiles, false, false);
+	szDirectory.Kill();
+	cHeaders.AddFile("Holder.h")->SetContents("\
+template<class M> class CHolder\n\
+{\n\
+public:\n\
+	M*		mp;\n\
+\n\
+	void	Start(void) { mp->Init(); }\n\
+};\n\
+\n\
+\n\
+template<class M> class CKeeper\n\
+{\n\
+public:\n\
+	M*		mp;\n\
+\n\
+	void	Stop(void) { mp->Kill(); }\n\
+};\n\
+\n\
+\n\
+class CFoo\n\
+{\n\
+public:\n\
+	void	Init(void);\n\
+	void	Kill(void);\n\
+};\n\
+\n\
+\n\
+class CBar\n\
+{\n\
+public:\n\
+	void	Init(void);\n\
+	void	Kill(void);\n\
+};\n\
+\n\
+\n\
+class CLone\n\
+{\n\
+public:\n\
+	void	Init(void);\n\
+};\n");
+
+	cIndex.Init();
+	cIndexed.maszFiles.Init();
+	IndexUnitWithHeaders(&cIndex, &cIndexed, &cHeaders, "A.cpp", "\
+#include \"Holder.h\"\n\
+void UseA(void)\n\
+{\n\
+}\n");
+	IndexUnitWithHeaders(&cIndex, &cIndexed, &cHeaders, "B.cpp", "\
+#include \"Holder.h\"\n\
+void UseB(void)\n\
+{\n\
+	CHolder<CFoo>	c;\n\
+\n\
+	c.Start();\n\
+}\n");
+	IndexUnitWithHeaders(&cIndex, &cIndexed, &cHeaders, "C.cpp", "\
+#include \"Holder.h\"\n\
+void UseC(void)\n\
+{\n\
+	CHolder<CBar>	c;\n\
+\n\
+	c.Start();\n\
+}\n");
+	IndexUnitWithHeaders(&cIndex, &cIndexed, &cHeaders, "D.cpp", "\
+#include \"Holder.h\"\n\
+void UseD(void)\n\
+{\n\
+	CKeeper<CFoo>	cFoo;\n\
+	CKeeper<CBar>	cBar;\n\
+	CLone			cLone;\n\
+\n\
+	cFoo.Stop();\n\
+	cBar.Stop();\n\
+	cLone.Init();\n\
+}\n");
+
+	//The header's own names are there once, from the unit that indexed it.
+	sz.Init();
+	PrintIndexPlacesIn(&cIndex, "CHolder", "Holder.h", &sz);
+	AssertString("1:25 ", sz.Text());
+	sz.Kill();
+
+	//An instance in each of two units that didn't index the header: mp->Init() (6:25) is a reference of both.
+	sz.Init();
+	PrintIndexPlacesIn(&cIndex, "CFoo::Init()", "Holder.h", &sz);
+	AssertString("22:7 6:25 ", sz.Text());
+	sz.Kill();
+	sz.Init();
+	PrintIndexPlacesIn(&cIndex, "CBar::Init()", "Holder.h", &sz);
+	AssertString("30:7 6:25 ", sz.Text());
+	sz.Kill();
+
+	//Two instances in one unit: mp->Kill() (15:24) is a reference of both.
+	sz.Init();
+	PrintIndexPlacesIn(&cIndex, "CFoo::Kill()", "Holder.h", &sz);
+	AssertString("23:7 15:24 ", sz.Text());
+	sz.Kill();
+	sz.Init();
+	PrintIndexPlacesIn(&cIndex, "CBar::Kill()", "Holder.h", &sz);
+	AssertString("31:7 15:24 ", sz.Text());
+	sz.Kill();
+
+	//The families: CFoo's and CBar's Init by CHolder's mp->Init(), their Kill by CKeeper's mp->Kill().
+	sz.Init();
+	PrintIndexFamily(&cIndex, "CFoo::Init()", &sz);
+	AssertString("CBar::Init() at 6:25", sz.Text());
+	sz.Kill();
+	sz.Init();
+	PrintIndexFamily(&cIndex, "CBar::Init()", &sz);
+	AssertString("CFoo::Init() at 6:25", sz.Text());
+	sz.Kill();
+	sz.Init();
+	PrintIndexFamily(&cIndex, "CBar::Kill()", &sz);
+	AssertString("CFoo::Kill() at 15:24", sz.Text());
+	sz.Kill();
+	sz.Init();
+	PrintIndexFamily(&cIndex, "CLone::Init()", &sz);
+	AssertString("", sz.Text());
+	sz.Kill();
+	sz.Init();
+	PrintIndexFamily(&cIndex, "CKeeper::Stop()", &sz);
+	AssertString("", sz.Text());
+	sz.Kill();
+
+	cIndexed.maszFiles.Kill();
+	cIndex.Kill();
+	cHeaders.Kill();
+	cHeaderFiles.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1313,6 +1612,7 @@ void TestCppIndex(void)
 	TestCppSemanticPassHost();
 	TestCppSemanticPassEnumeratorChain();
 	TestCppSemanticPassKept();
+	TestCppIndexTemplateInstances();
 	TestCppIndexMacroNames();
 	TestCppIndexCLinkage();
 	TestCppIndexContainers();

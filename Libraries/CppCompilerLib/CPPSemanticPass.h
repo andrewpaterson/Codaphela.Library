@@ -34,15 +34,18 @@ struct SCPP65Type;
 
 
 //What a name resolved to once the types of expressions are known: the member o.Init() and p->miCount name, and the
-//overload a call calls.
+//overload a call calls.  A name in a template's body can resolve to something else in each of the template's
+//instances (mp->Init() in CHolder<M>): each is kept, the first here and the others after it (GetNextResolved).
 struct SCPPResolvedName
 {
 	CCPPSymbol*				pcSymbol;		//The function, field or static member named.
 	CCPPSyntaxDeclarator*	pcDeclarator;	//A function's declarator: which of its overloads.  NULL for anything else.
+	int32					iNext;			//The next thing the same name resolved to, in the pass's others; -1 for none.
 };
 
 
 typedef CMapLongTemplate<SCPPResolvedName>	CMapResolvedNames;
+typedef CArrayTemplate<SCPPResolvedName>	CArrayResolvedNames;
 typedef CMapLongTemplate<SCPP65Type*>		CMapCPPNodeTypes;
 typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
 
@@ -67,7 +70,8 @@ typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
 class CCPPSemanticPass
 {
 protected:
-	CMapResolvedNames	mcNames;		//By the C++ token of the name (its last component's).
+	CMapResolvedNames	mcNames;		//By the C++ token of the name (its last component's): the first thing it resolved to.
+	CArrayResolvedNames	masOthers;		//What names resolved to after their first, in other instances of a template.
 	CCPPErrors			mcErrors;
 	CCPPUnit*			mpcUnit;		//A kept check's unit, NULL otherwise.
 	CMapCPPNodeTypes	mcTypes;		//A kept check: each expression's type, by its node...
@@ -92,6 +96,7 @@ public:
 
 	void				Resolved(int iToken, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator);
 	SCPPResolvedName*	GetResolved(int iToken);
+	SCPPResolvedName*	GetNextResolved(SCPPResolvedName* psResolved);
 	size				NumResolved(void);
 	CCPPErrors*			GetErrors(void);
 };
