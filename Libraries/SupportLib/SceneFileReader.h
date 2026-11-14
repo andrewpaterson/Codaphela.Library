@@ -30,7 +30,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //false, and an int32 value that's an index gives SCENE_FILE_NONE.
 //
 //Begin goes into the thing at that index among those of its kind.  End leaves it.  Only what's in the thing you're in can be
-//read, and the Reads that belong to a mesh's UV layer, an animation's track or an instance's mesh need a Begin for those too.
+//read, and the Reads that belong to a mesh's UV layer, a skeleton's bone, an animation's track or an instance's mesh need a Begin
+//for those too.  A bone's Parent and Local are read with GetParent and ReadLocalMatrix, as a connection's are.
 //
 //If a chunk's size doesn't fit what it should hold the file is damaged: the Num gives 0, the Read fails, and Failed is true.
 class CSceneFileReader
@@ -81,6 +82,14 @@ public:
 	bool	ReadSkinWeights(float32* pafWeights);
 	lsize	NumInverseMatrices(void);
 	bool	ReadInverseMatrices(float32* paf4x4s);
+	int32	GetSkinSkeleton(void);
+	lsize	NumSkinBones(void);
+	bool	ReadSkinBones(int32* paiBones);
+
+	size	NumSkeletons(void);
+	bool	BeginSkeleton(size uiSkeleton);
+	size	NumBones(void);
+	bool	BeginBone(size uiBone);
 
 	size	NumUVLayers(void);
 	bool	BeginUVLayer(size uiLayer);
@@ -108,6 +117,7 @@ public:
 	bool	ReadWorldMatrix(float32* paf4x4);
 	bool	ReadLocalMatrix(float32* paf4x4);
 	bool	GetParity(void);
+	bool	GetSkeletonBone(int32* piSkeleton, int32* piBone);  //False if it doesn't play a bone.
 
 	size	NumLights(void);
 	bool	BeginLight(size uiLight);
@@ -126,14 +136,17 @@ public:
 
 	size	NumAnimations(void);
 	bool	BeginAnimation(size uiAnimation);
+	int32	GetAnimationSkeleton(void);  //SCENE_FILE_NONE for the scene's own.
 	size	NumTracks(void);
 	bool	BeginTrack(size uiTrack);
+	int32	GetBone(void);  //For a track of a skeleton's animation.
 	lsize	NumKeys(void);
 	bool	ReadKeyTimes(float32* pafTimes);
 	bool	ReadKeyMatrices(float32* paf4x4s);
 
 	size	NumInstances(void);
 	bool	BeginInstance(size uiInstance);
+	int32	GetInstanceSkeleton(void);
 	lsize	NumInstanceConnections(void);
 	bool	ReadInstanceConnections(int32* paiConnections);
 	size	NumInstanceMeshes(void);

@@ -618,7 +618,7 @@ static bool CheckMaterialTextures(COldDragonScene* pcScene, SOldDragonMaterial* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteMesh(CSceneFileWriter* pcWriter, COldDragonMesh* pcMesh)
+static void WriteMesh(CSceneFileWriter* pcWriter, COldDragonMesh* pcMesh, int32 iSkeleton, CArrayInt* paiSkinBones)
 {
 	COldDragonFlatMesh	cFlat;
 	CArrayConvertFloats	af4x4s;
@@ -659,6 +659,10 @@ static void WriteMesh(CSceneFileWriter* pcWriter, COldDragonMesh* pcMesh)
 		GetInverseMatrices(pcMesh, &af4x4s);
 		pcWriter->WriteInverseMatrices(af4x4s.GetData(), pcMesh->macInverseSkinMatrices.NumElements());
 		af4x4s.Kill();
+	}
+	if (iSkeleton != SCENE_FILE_NONE)
+	{
+		pcWriter->WriteSkinBones(iSkeleton, paiSkinBones->GetData(), paiSkinBones->NumElements());
 	}
 	pcWriter->EndMesh();
 
@@ -813,6 +817,442 @@ static int32 GetConnectionParent(COldDragonScene* pcScene, int32 iConnection)
 }
 
 
+//What becomes of a scene's connections, worked out before anything is written.
+//
+//The connections a skinned mesh's instance has are a skeleton's bones, in their order in the scene, where a parent comes first.  The
+//skin's matrices are the old instance's connections, in its order, and the new instance has them in the skeleton's.
+//
+//An animation moving bones is that skeleton's.  It can't move anything else, so a track of one that moves a connection that isn't a
+//bone, with nothing placed on it or under it, is one of the helpers the old exporter wrote, as Goober's IK chains and finger helpers
+//are.  The bones' keys already hold what they did, so it's left out, with its connection.
+//
+//A bone's parent is the nearest bone above it, as what's in between isn't a bone.  A root bone hangs from the nearest connection above
+//it that isn't a helper, if there is one, as an instance's root bones hang from one of its own.  Its matrices are made again from its
+//world one, so it stays where it is.
+class COldDragonConnections
+{
+public:
+	CArrayInt	maiParents;			//Each connection's parent in the scene file, by its place in the scene.
+	CArrayInt	maiKept;			//1 for each connection that's kept, and 0 for a helper.
+	CArrayInt	maiFileIndex;		//Each connection's place in the file, SCENE_FILE_NONE when it's left out.
+	CArrayInt	maiSkeleton;		//The skeleton each connection is a bone of, SCENE_FILE_NONE if it isn't one.
+	CArrayInt	maiBone;			//Its place in that skeleton.
+	CArrayInt	maiMeshSkeleton;	//The skeleton each mesh's skin is posed by.
+	CArrayInt	maiSkeletonPlaced;	//The placed mesh each skeleton comes from.
+	CArrayInt	maiSkeletonStart;	//Where each skeleton's bones start in the two below.
+	CArrayInt	maiSkeletonBones;	//Each skeleton's bones, by their place in the scene, in the skeleton's order.
+	CArrayInt	maiSkeletonSlots;	//And in its instance's order, which is its skin's matrices'.
+	int32		miAnimationSkeleton;
+
+	void	Init(void);
+	void	Kill(void);
+	bool	Find(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced);
+
+	size	NumSkeletons(void);
+	size	NumBones(size uiSkeleton);
+	int32	GetBoneConnection(size uiSkeleton, size uiBone);
+	int32	GetSlotConnection(size uiSkeleton, size uiSlot);
+	int32	GetFileIndex(int32 iConnection);
+	int32	GetFileParent(int32 iConnection);
+
+protected:
+	bool	FindSkeleton(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, size uiPlaced);
+	bool	FindAnimationSkeleton(COldDragonScene* pcScene);
+	void	FindHelpers(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced);
+	bool	FindBoneParents(COldDragonScene* pcScene);
+	void	LeaveOutHelpers(void);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COldDragonConnections::Init(void)
+{
+	maiParents.Init();
+	maiKept.Init();
+	maiFileIndex.Init();
+	maiSkeleton.Init();
+	maiBone.Init();
+	maiMeshSkeleton.Init();
+	maiSkeletonPlaced.Init();
+	maiSkeletonStart.Init();
+	maiSkeletonBones.Init();
+	maiSkeletonSlots.Init();
+	miAnimationSkeleton = SCENE_FILE_NONE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COldDragonConnections::Kill(void)
+{
+	maiSkeletonSlots.Kill();
+	maiSkeletonBones.Kill();
+	maiSkeletonStart.Kill();
+	maiSkeletonPlaced.Kill();
+	maiMeshSkeleton.Kill();
+	maiBone.Kill();
+	maiSkeleton.Kill();
+	maiFileIndex.Kill();
+	maiKept.Kill();
+	maiParents.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size COldDragonConnections::NumSkeletons(void)
+{
+	return maiSkeletonStart.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size COldDragonConnections::NumBones(size uiSkeleton)
+{
+	size	uiEnd;
+
+	uiEnd = (uiSkeleton + 1 < NumSkeletons()) ? (size)maiSkeletonStart.GetValue(uiSkeleton + 1) : maiSkeletonBones.NumElements();
+	return uiEnd - (size)maiSkeletonStart.GetValue(uiSkeleton);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The connection, by its place in the scene, of a skeleton's bone.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 COldDragonConnections::GetBoneConnection(size uiSkeleton, size uiBone)
+{
+	return maiSkeletonBones.GetValue((size)maiSkeletonStart.GetValue(uiSkeleton) + uiBone);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// And of the skin's matrix uiSlot.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 COldDragonConnections::GetSlotConnection(size uiSkeleton, size uiSlot)
+{
+	return maiSkeletonSlots.GetValue((size)maiSkeletonStart.GetValue(uiSkeleton) + uiSlot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 COldDragonConnections::GetFileIndex(int32 iConnection)
+{
+	if (iConnection == SCENE_FILE_NONE)
+	{
+		return SCENE_FILE_NONE;
+	}
+	return maiFileIndex.GetValue((size)iConnection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 COldDragonConnections::GetFileParent(int32 iConnection)
+{
+	return GetFileIndex(maiParents.GetValue((size)iConnection));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instance's connections become the skeleton's bones.  A mesh placed
+// twice, a skin with other than one matrix for each connection, or a bone
+// in two skeletons isn't understood.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COldDragonConnections::FindSkeleton(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, size uiPlaced)
+{
+	SOldDragonPlaced*	psPlaced;
+	COldDragonMesh*		pcMesh;
+	CArrayInt			aiConnections;
+	CArrayInt			aiSlots;
+	CArrayInt			aiSorted;
+	int32				iSkeleton;
+	int32				iConnection;
+	size				i;
+	bool				bResult;
+
+	psPlaced = pasPlaced->Get(uiPlaced);
+	pcMesh = pcScene->macMeshes.Get((size)psPlaced->iObject);
+	if (pcMesh->macSkinVerts.NumElements() == 0)
+	{
+		return true;
+	}
+	if (maiMeshSkeleton.GetValue((size)psPlaced->iObject) != SCENE_FILE_NONE)
+	{
+		return gcLogger.Error2(__METHOD__, " Skinned mesh [", pcMesh->mszName, "] is placed more than once.", NULL);
+	}
+
+	aiConnections.Init();
+	aiSlots.Init();
+	GetInstanceConnections(pcScene, psPlaced, &aiConnections, &aiSlots);
+	bResult = true;
+	if (aiConnections.NumElements() != pcMesh->macInverseSkinMatrices.NumElements())
+	{
+		bResult = gcLogger.Error2(__METHOD__, " Skinned mesh [", pcMesh->mszName, "] has ", SizeToString(pcMesh->macInverseSkinMatrices.NumElements()), " matrices, but its instance has ", SizeToString(aiConnections.NumElements()), " connections.", NULL);
+	}
+
+	aiSorted.Init();
+	aiSorted.Add(aiConnections.GetData(), aiConnections.NumElements());
+	aiSorted.QuickSort();
+	iSkeleton = (int32)NumSkeletons();
+	for (i = 0; bResult && (i < aiSorted.NumElements()); i++)
+	{
+		iConnection = aiSorted.GetValue(i);
+		if ((iConnection == SCENE_FILE_NONE) || (maiSkeleton.GetValue((size)iConnection) != SCENE_FILE_NONE))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " Skinned mesh [", pcMesh->mszName, "] has a connection that isn't there, or is another skin's too.", NULL);
+		}
+		else
+		{
+			maiSkeleton.SetValue((size)iConnection, iSkeleton);
+			maiBone.SetValue((size)iConnection, (int32)i);
+		}
+	}
+	if (bResult)
+	{
+		maiSkeletonStart.Add((int32)maiSkeletonBones.NumElements());
+		maiSkeletonPlaced.Add((int32)uiPlaced);
+		maiSkeletonBones.Add(aiSorted.GetData(), aiSorted.NumElements());
+		maiSkeletonSlots.Add(aiConnections.GetData(), aiConnections.NumElements());
+		maiMeshSkeleton.SetValue((size)psPlaced->iObject, iSkeleton);
+	}
+	aiSorted.Kill();
+	aiSlots.Kill();
+	aiConnections.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bone's parent is the nearest bone of its skeleton above it, which must
+// come before it, and failing that the nearest kept connection above it.
+// The parents found are put in after, so that each walks up the scene's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COldDragonConnections::FindBoneParents(COldDragonScene* pcScene)
+{
+	CArrayInt	aiBoneParents;
+	size		i;
+	int32		iSkeleton;
+	int32		iParent;
+	int32		iKept;
+
+	aiBoneParents.Init();
+	for (i = 0; i < maiParents.NumElements(); i++)
+	{
+		iParent = maiParents.GetValue(i);
+		iSkeleton = maiSkeleton.GetValue(i);
+		if (iSkeleton != SCENE_FILE_NONE)
+		{
+			iKept = SCENE_FILE_NONE;
+			while ((iParent != SCENE_FILE_NONE) && (maiSkeleton.GetValue((size)iParent) != iSkeleton))
+			{
+				if ((iKept == SCENE_FILE_NONE) && (maiKept.GetValue((size)iParent) != 0))
+				{
+					iKept = iParent;
+				}
+				iParent = maiParents.GetValue((size)iParent);
+			}
+			if (iParent == SCENE_FILE_NONE)
+			{
+				iParent = iKept;
+			}
+			else if (maiBone.GetValue((size)iParent) >= maiBone.GetValue(i))
+			{
+				aiBoneParents.Kill();
+				return gcLogger.Error2(__METHOD__, " Bone [", pcScene->macConnections.Get(i)->szName, "] comes before its parent.", NULL);
+			}
+		}
+		aiBoneParents.Add(iParent);
+	}
+	for (i = 0; i < aiBoneParents.NumElements(); i++)
+	{
+		maiParents.SetValue(i, aiBoneParents.GetValue(i));
+	}
+	aiBoneParents.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The skeleton whose bones the sequences move, if they move any.  Moving
+// two skeletons' isn't understood.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COldDragonConnections::FindAnimationSkeleton(COldDragonScene* pcScene)
+{
+	size	i;
+	int32	iConnection;
+	int32	iSkeleton;
+
+	for (i = 0; i < pcScene->macSequences.NumElements(); i++)
+	{
+		iConnection = GetSequenceConnection(pcScene, pcScene->macSequences.Get(i));
+		if (iConnection == SCENE_FILE_NONE)
+		{
+			continue;
+		}
+		iSkeleton = maiSkeleton.GetValue((size)iConnection);
+		if (iSkeleton == SCENE_FILE_NONE)
+		{
+			continue;
+		}
+		if ((miAnimationSkeleton != SCENE_FILE_NONE) && (miAnimationSkeleton != iSkeleton))
+		{
+			return gcLogger.Error2(__METHOD__, " The sequences move the bones of more than one skin.", NULL);
+		}
+		miAnimationSkeleton = iSkeleton;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In an animation that moves bones, a connection moved by a sequence that
+// isn't a bone, with nothing placed on it, is a helper.
+//
+//////////////////////////////////////////////////////////////////////////
+void COldDragonConnections::FindHelpers(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced)
+{
+	CArrayInt			aiConnections;
+	CArrayInt			aiSlots;
+	SOldDragonPlaced*	psPlaced;
+	size				i;
+	size				j;
+	int32				iConnection;
+
+	if (miAnimationSkeleton == SCENE_FILE_NONE)
+	{
+		return;
+	}
+
+	for (i = 0; i < pcScene->macSequences.NumElements(); i++)
+	{
+		iConnection = GetSequenceConnection(pcScene, pcScene->macSequences.Get(i));
+		if ((iConnection != SCENE_FILE_NONE) && (maiSkeleton.GetValue((size)iConnection) == SCENE_FILE_NONE))
+		{
+			maiKept.SetValue((size)iConnection, 0);
+		}
+	}
+	for (i = 0; i < pasPlaced->NumElements(); i++)
+	{
+		psPlaced = pasPlaced->Get(i);
+		aiConnections.Init();
+		aiSlots.Init();
+		if (psPlaced->eKind == OLDPK_Mesh)
+		{
+			GetInstanceConnections(pcScene, psPlaced, &aiConnections, &aiSlots);
+		}
+		else
+		{
+			aiConnections.Add(GetPlacedConnection(pcScene, psPlaced));
+		}
+		for (j = 0; j < aiConnections.NumElements(); j++)
+		{
+			if (aiConnections.GetValue(j) != SCENE_FILE_NONE)
+			{
+				maiKept.SetValue((size)aiConnections.GetValue(j), 1);
+			}
+		}
+		aiSlots.Kill();
+		aiConnections.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A helper with something kept under it is kept, as its parent.  The rest
+// are left out, and what's kept is numbered.
+//
+//////////////////////////////////////////////////////////////////////////
+void COldDragonConnections::LeaveOutHelpers(void)
+{
+	size	i;
+	int32	iConnection;
+	int32	iFileIndex;
+
+	for (i = 0; i < maiKept.NumElements(); i++)
+	{
+		if (maiKept.GetValue(i) == 0)
+		{
+			continue;
+		}
+		iConnection = maiParents.GetValue(i);
+		while (iConnection != SCENE_FILE_NONE)
+		{
+			maiKept.SetValue((size)iConnection, 1);
+			iConnection = maiParents.GetValue((size)iConnection);
+		}
+	}
+
+	iFileIndex = 0;
+	for (i = 0; i < maiKept.NumElements(); i++)
+	{
+		maiFileIndex.SetValue(i, (maiKept.GetValue(i) != 0) ? iFileIndex++ : SCENE_FILE_NONE);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool COldDragonConnections::Find(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced)
+{
+	size	i;
+
+	for (i = 0; i < pcScene->macConnections.NumElements(); i++)
+	{
+		maiParents.Add(GetConnectionParent(pcScene, (int32)i));
+		maiKept.Add(1);
+		maiFileIndex.Add((int32)i);
+		maiSkeleton.Add(SCENE_FILE_NONE);
+		maiBone.Add(SCENE_FILE_NONE);
+	}
+	for (i = 0; i < pcScene->macMeshes.NumElements(); i++)
+	{
+		maiMeshSkeleton.Add(SCENE_FILE_NONE);
+	}
+
+	for (i = 0; i < pasPlaced->NumElements(); i++)
+	{
+		if (pasPlaced->Get(i)->eKind == OLDPK_Mesh)
+		{
+			ReturnOnFalse(FindSkeleton(pcScene, pasPlaced, i));
+		}
+	}
+	ReturnOnFalse(FindAnimationSkeleton(pcScene));
+	FindHelpers(pcScene, pasPlaced);
+	ReturnOnFalse(FindBoneParents(pcScene));
+	LeaveOutHelpers();
+	return true;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The world matrix is kept, and the local matrix is worked out from it and
@@ -820,34 +1260,89 @@ static int32 GetConnectionParent(COldDragonScene* pcScene, int32 iConnection)
 // file does.
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteConnection(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, int32 iConnection)
+static void GetConnectionMatrices(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, COldDragonConnections* pcConnections, int32 iConnection, SFloat4x4* psWorld, SFloat4x4* psLocal)
 {
-	SOldDragonConnection*	psConnection;
-	SFloat4x4				sWorld;
-	SFloat4x4				sParentWorld;
-	SFloat4x4				sInverse;
-	SFloat4x4				sLocal;
-	int32					iParent;
+	SFloat4x4	sParentWorld;
+	SFloat4x4	sInverse;
+	int32		iParent;
 
-	psConnection = pcScene->macConnections.Get((size)iConnection);
-	AimMatrix((float32*)&sWorld, psConnection->sWorld.af, GetConnectionAim(pcScene, pasPlaced, iConnection));
-	iParent = GetConnectionParent(pcScene, iConnection);
-
-	pcWriter->BeginConnection(psConnection->szName);
-	pcWriter->WriteWorldMatrix((float32*)&sWorld);
+	AimMatrix((float32*)psWorld, pcScene->macConnections.Get((size)iConnection)->sWorld.af, GetConnectionAim(pcScene, pasPlaced, iConnection));
+	iParent = pcConnections->maiParents.GetValue((size)iConnection);
 	if (iParent == SCENE_FILE_NONE)
 	{
-		pcWriter->WriteLocalMatrix((float32*)&sWorld);
+		*psLocal = *psWorld;
 	}
 	else
 	{
 		AimMatrix((float32*)&sParentWorld, pcScene->macConnections.Get((size)iParent)->sWorld.af, GetConnectionAim(pcScene, pasPlaced, iParent));
 		Float4x4Inverse(&sInverse, NULL, &sParentWorld);
-		Float4x4Multiply(&sLocal, &sWorld, &sInverse);
-		pcWriter->WriteParent(iParent);
-		pcWriter->WriteLocalMatrix((float32*)&sLocal);
+		Float4x4Multiply(psLocal, psWorld, &sInverse);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A skeleton is named after the instance it came from.  A bone's rest
+// matrix is its connection's local one, and a root bone's is relative to
+// what its connection hangs from.
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteSkeletons(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, COldDragonConnections* pcConnections)
+{
+	SFloat4x4	sWorld;
+	SFloat4x4	sLocal;
+	size		i;
+	size		j;
+	int32		iConnection;
+	int32		iParent;
+
+	for (i = 0; i < pcConnections->NumSkeletons(); i++)
+	{
+		pcWriter->BeginSkeleton(GetPlacedName(pcScene, pasPlaced->Get((size)pcConnections->maiSkeletonPlaced.GetValue(i))));
+		for (j = 0; j < pcConnections->NumBones(i); j++)
+		{
+			iConnection = pcConnections->GetBoneConnection(i, j);
+			GetConnectionMatrices(pcScene, pasPlaced, pcConnections, iConnection, &sWorld, &sLocal);
+			iParent = pcConnections->maiParents.GetValue((size)iConnection);
+			if ((iParent != SCENE_FILE_NONE) && (pcConnections->maiSkeleton.GetValue((size)iParent) != (int32)i))
+			{
+				iParent = SCENE_FILE_NONE;
+			}
+			pcWriter->WriteBone(pcScene->macConnections.Get((size)iConnection)->szName, (iParent == SCENE_FILE_NONE) ? SCENE_FILE_NONE : pcConnections->maiBone.GetValue((size)iParent), (float32*)&sLocal);
+		}
+		pcWriter->EndSkeleton();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteConnection(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, COldDragonConnections* pcConnections, int32 iConnection)
+{
+	SOldDragonConnection*	psConnection;
+	SFloat4x4				sWorld;
+	SFloat4x4				sLocal;
+	int32					iSkeleton;
+
+	psConnection = pcScene->macConnections.Get((size)iConnection);
+	GetConnectionMatrices(pcScene, pasPlaced, pcConnections, iConnection, &sWorld, &sLocal);
+
+	pcWriter->BeginConnection(psConnection->szName);
+	pcWriter->WriteWorldMatrix((float32*)&sWorld);
+	if (pcConnections->GetFileParent(iConnection) != SCENE_FILE_NONE)
+	{
+		pcWriter->WriteParent(pcConnections->GetFileParent(iConnection));
+	}
+	pcWriter->WriteLocalMatrix((float32*)&sLocal);
 	pcWriter->WriteParity(psConnection->bParity);
+	iSkeleton = pcConnections->maiSkeleton.GetValue((size)iConnection);
+	if (iSkeleton != SCENE_FILE_NONE)
+	{
+		pcWriter->WriteSkeletonBone(iSkeleton, pcConnections->maiBone.GetValue((size)iConnection));
+	}
 	pcWriter->EndConnection();
 }
 
@@ -966,7 +1461,7 @@ static bool CheckPlaced(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteLightsAndCameras(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced)
+static void WriteLightsAndCameras(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, COldDragonConnections* pcConnections)
 {
 	SOldDragonPlaced*	psPlaced;
 	size				i;
@@ -976,11 +1471,11 @@ static void WriteLightsAndCameras(CSceneFileWriter* pcWriter, COldDragonScene* p
 		psPlaced = pasPlaced->Get(i);
 		if (psPlaced->eKind == OLDPK_Light)
 		{
-			WriteLight(pcWriter, pcScene, pcScene->macLights.Get((size)psPlaced->iObject), GetPlacedConnection(pcScene, psPlaced));
+			WriteLight(pcWriter, pcScene, pcScene->macLights.Get((size)psPlaced->iObject), pcConnections->GetFileIndex(GetPlacedConnection(pcScene, psPlaced)));
 		}
 		else if (psPlaced->eKind == OLDPK_Camera)
 		{
-			WriteCamera(pcWriter, pcScene, pcScene->macCameras.Get((size)psPlaced->iObject), GetPlacedConnection(pcScene, psPlaced));
+			WriteCamera(pcWriter, pcScene, pcScene->macCameras.Get((size)psPlaced->iObject), pcConnections->GetFileIndex(GetPlacedConnection(pcScene, psPlaced)));
 		}
 	}
 	for (i = 0; i < pcScene->macLights.NumElements(); i++)
@@ -1031,7 +1526,7 @@ static COldDragonSequence* FindConnectionSequence(COldDragonScene* pcScene, int3
 // times isn't understood, and fails.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool MakeKeysLocal(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, int32 iConnection, CArrayConvertFloats* pafTimes, CArrayConvertFloats* paf4x4s)
+static bool MakeKeysLocal(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, COldDragonConnections* pcConnections, int32 iConnection, CArrayConvertFloats* pafTimes, CArrayConvertFloats* paf4x4s)
 {
 	COldDragonSequence*	pcParentSequence;
 	CArrayConvertFloats	afParentTimes;
@@ -1045,7 +1540,7 @@ static bool MakeKeysLocal(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPl
 	size				j;
 	bool				bResult;
 
-	iParent = GetConnectionParent(pcScene, iConnection);
+	iParent = pcConnections->maiParents.GetValue((size)iConnection);
 	if (iParent == SCENE_FILE_NONE)
 	{
 		return true;
@@ -1096,9 +1591,11 @@ static bool MakeKeysLocal(COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPl
 //////////////////////////////////////////////////////////////////////////
 //
 // One animation holds all of a scene's sequences, as they play together.
+// It's a skeleton's if they move bones, and then a sequence moving anything
+// else that's kept isn't understood.  A left out connection's is left out.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced)
+static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, CArrayOldDragonPlaced* pasPlaced, COldDragonConnections* pcConnections)
 {
 	COldDragonSequence*	pcSequence;
 	CArrayConvertFloats	afTimes;
@@ -1113,7 +1610,7 @@ static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene,
 	}
 
 	bResult = true;
-	pcWriter->BeginAnimation("Animation");
+	pcWriter->BeginAnimation("Animation", pcConnections->miAnimationSkeleton);
 	for (i = 0; (i < pcScene->macSequences.NumElements()) && bResult; i++)
 	{
 		pcSequence = pcScene->macSequences.Get(i);
@@ -1124,12 +1621,22 @@ static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene,
 			bResult = false;
 			break;
 		}
+		if (pcConnections->GetFileIndex(iConnection) == SCENE_FILE_NONE)
+		{
+			continue;
+		}
+		if ((pcConnections->miAnimationSkeleton != SCENE_FILE_NONE) && (pcConnections->maiSkeleton.GetValue((size)iConnection) == SCENE_FILE_NONE))
+		{
+			gcLogger.Error2(__METHOD__, " Sequence [", pcSequence->mszName, "] moves something that isn't a bone, which has something placed on it, with sequences that move bones.", NULL);
+			bResult = false;
+			break;
+		}
 		afTimes.Init();
 		af4x4s.Init();
-		bResult = GetTrackKeys(pcSequence, GetConnectionAim(pcScene, pasPlaced, iConnection), &afTimes, &af4x4s) && MakeKeysLocal(pcScene, pasPlaced, iConnection, &afTimes, &af4x4s);
+		bResult = GetTrackKeys(pcSequence, GetConnectionAim(pcScene, pasPlaced, iConnection), &afTimes, &af4x4s) && MakeKeysLocal(pcScene, pasPlaced, pcConnections, iConnection, &afTimes, &af4x4s);
 		if (bResult)
 		{
-			pcWriter->WriteTrack(iConnection, afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());
+			pcWriter->WriteTrack((pcConnections->miAnimationSkeleton != SCENE_FILE_NONE) ? pcConnections->maiBone.GetValue((size)iConnection) : pcConnections->GetFileIndex(iConnection), afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());
 		}
 		af4x4s.Kill();
 		afTimes.Kill();
@@ -1143,16 +1650,37 @@ static bool WriteAnimation(CSceneFileWriter* pcWriter, COldDragonScene* pcScene,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteMeshInstance(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, SOldDragonPlaced* psPlaced)
+static void WriteMeshInstance(CSceneFileWriter* pcWriter, COldDragonScene* pcScene, COldDragonConnections* pcConnections, SOldDragonPlaced* psPlaced)
 {
 	CArrayInt	aiConnections;
 	CArrayInt	aiSlots;
+	size		i;
+	int32		iSkeleton;
 
 	aiConnections.Init();
 	aiSlots.Init();
-	GetInstanceConnections(pcScene, psPlaced, &aiConnections, &aiSlots);
+	iSkeleton = pcConnections->maiMeshSkeleton.GetValue((size)psPlaced->iObject);
+	if (iSkeleton == SCENE_FILE_NONE)
+	{
+		GetInstanceConnections(pcScene, psPlaced, &aiConnections, &aiSlots);
+	}
+	else
+	{
+		for (i = 0; i < pcConnections->NumBones((size)iSkeleton); i++)
+		{
+			aiConnections.Add(pcConnections->GetBoneConnection((size)iSkeleton, i));
+		}
+	}
+	for (i = 0; i < aiConnections.NumElements(); i++)
+	{
+		aiConnections.SetValue(i, pcConnections->GetFileIndex(aiConnections.GetValue(i)));
+	}
 
 	pcWriter->BeginInstance(GetPlacedName(pcScene, psPlaced));
+	if (iSkeleton != SCENE_FILE_NONE)
+	{
+		pcWriter->WriteInstanceSkeleton(iSkeleton);
+	}
 	pcWriter->WriteConnections(aiConnections.GetData(), aiConnections.NumElements());
 	pcWriter->WriteInstanceMesh(psPlaced->iObject, aiSlots.GetData(), aiSlots.NumElements(), NULL, 0);
 	pcWriter->EndInstance();
@@ -1208,20 +1736,33 @@ bool WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename)
 {
 	CSceneFileWriter		cWriter;
 	CArrayOldDragonPlaced	asPlaced;
+	COldDragonConnections	cConnections;
+	CArrayInt				aiSkinBones;
 	size					i;
+	size					j;
+	int32					iSkeleton;
 	bool					bResult;
 
 	asPlaced.Init();
-	bResult = FindOldDragonPlaced(pcScene, &asPlaced) && CheckPlaced(pcScene, &asPlaced);
+	cConnections.Init();
+	bResult = FindOldDragonPlaced(pcScene, &asPlaced) && CheckPlaced(pcScene, &asPlaced) && cConnections.Find(pcScene, &asPlaced);
 
 	cWriter.Init(szFilename);
 	bResult = bResult && cWriter.Open();
 
 	if (bResult)
 	{
+		WriteSkeletons(&cWriter, pcScene, &asPlaced, &cConnections);
 		for (i = 0; i < pcScene->macMeshes.NumElements(); i++)
 		{
-			WriteMesh(&cWriter, pcScene->macMeshes.Get(i));
+			iSkeleton = cConnections.maiMeshSkeleton.GetValue(i);
+			aiSkinBones.Init();
+			for (j = 0; (iSkeleton != SCENE_FILE_NONE) && (j < cConnections.NumBones((size)iSkeleton)); j++)
+			{
+				aiSkinBones.Add(cConnections.maiBone.GetValue((size)cConnections.GetSlotConnection((size)iSkeleton, j)));
+			}
+			WriteMesh(&cWriter, pcScene->macMeshes.Get(i), iSkeleton, &aiSkinBones);
+			aiSkinBones.Kill();
 		}
 		for (i = 0; (i < pcScene->macImages.NumElements()) && bResult; i++)
 		{
@@ -1233,15 +1774,18 @@ bool WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename)
 		}
 		for (i = 0; i < pcScene->macConnections.NumElements(); i++)
 		{
-			WriteConnection(&cWriter, pcScene, &asPlaced, (int32)i);
+			if (cConnections.GetFileIndex((int32)i) != SCENE_FILE_NONE)
+			{
+				WriteConnection(&cWriter, pcScene, &asPlaced, &cConnections, (int32)i);
+			}
 		}
-		WriteLightsAndCameras(&cWriter, pcScene, &asPlaced);
-		bResult = bResult && WriteAnimation(&cWriter, pcScene, &asPlaced);
+		WriteLightsAndCameras(&cWriter, pcScene, &asPlaced, &cConnections);
+		bResult = bResult && WriteAnimation(&cWriter, pcScene, &asPlaced, &cConnections);
 		for (i = 0; i < asPlaced.NumElements(); i++)
 		{
 			if (asPlaced.Get(i)->eKind == OLDPK_Mesh)
 			{
-				WriteMeshInstance(&cWriter, pcScene, asPlaced.Get(i));
+				WriteMeshInstance(&cWriter, pcScene, &cConnections, asPlaced.Get(i));
 			}
 		}
 		WriteParticles(&cWriter, pcScene);
@@ -1252,6 +1796,7 @@ bool WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename)
 		}
 	}
 	cWriter.Kill();
+	cConnections.Kill();
 	asPlaced.Kill();
 	return bResult;
 }

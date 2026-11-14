@@ -1029,6 +1029,177 @@ void TestOldDragonConvertParents(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A body with a hip under it, an IK chain under that, and a knee under the
+// chain, all walking along x.  The knee and the hip pose a skinned leg, so
+// they're a skeleton, and the chain, moved but with nothing on it, is a
+// helper and is left out.  The knee's parent is the hip, and the hip, the
+// root bone, hangs from the body.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddTestLeg(COldDragonScene* pcScene)
+{
+	COldDragonMesh*			pcMesh;
+	COldDragonSequence*		pcSequence;
+	SOldDragonSkinVert*		psVert;
+	SOldDragonSkinWeight*	psWeight;
+	int32					aiMatrices[4] = { 0, 1, 0, 1 };
+	float32					afWeights[4] = { 1.0f, 1.0f, 0.5f, 0.5f };
+	int32					iNumber;
+	int32					i;
+
+	pcScene->Init();
+	pcScene->meVersion = ODV_September2009;
+	pcMesh = AddTestMesh(pcScene, "Leg");
+	for (i = 0; i < 4; i++)
+	{
+		psWeight = pcMesh->macSkinWeights.Add();
+		psWeight->iMatrix = aiMatrices[i];
+		psWeight->fWeight = afWeights[i];
+	}
+	for (i = 0; i < 3; i++)
+	{
+		psVert = pcMesh->macSkinVerts.Add();
+		psVert->iFirstWeight = i;
+		psVert->iNumWeights = (i == 2) ? 2 : 1;
+	}
+	SetTestTranslation(pcMesh->macInverseSkinMatrices.Add(), 0.0f);
+	SetTestTranslation(pcMesh->macInverseSkinMatrices.Add(), 0.0f);
+
+	AddTestPlacedConnection(pcScene, "Body", 10.0f, 10.0f);
+	AddTestPlacedConnection(pcScene, "Hip", 1.0f, 11.0f);
+	AddTestPlacedConnection(pcScene, "IK Chain", 2.0f, 13.0f);
+	AddTestPlacedConnection(pcScene, "Knee", 0.0f, 13.0f);
+
+	pcSequence = pcScene->AddSequence();
+	SetTestName(pcSequence->mszName, "Hip");
+	pcSequence->miConnection = 1;
+	AddTestMovingKey(pcSequence, 11.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 12.0f, 1.0f);
+
+	pcSequence = pcScene->AddSequence();
+	SetTestName(pcSequence->mszName, "IK Chain");
+	AddTestMovingKey(pcSequence, 13.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 15.0f, 1.0f);
+
+	pcSequence = pcScene->AddSequence();
+	SetTestName(pcSequence->mszName, "Knee");
+	pcSequence->miConnection = 3;
+	AddTestMovingKey(pcSequence, 13.0f, 0.0f);
+	AddTestMovingKey(pcSequence, 14.0f, 1.0f);
+
+	iNumber = 1;
+	AddTestInstance(pcScene, OLD_DRAGON_2009_INSTANCE_MESH, 0, 3)->maiConnections.Add(&iNumber);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestOldDragonConvertSkeleton(void)
+{
+	COldDragonScene		cScene;
+	CSceneFileReader	cReader;
+	CChars				szName;
+	SLogConfig			sLogConfig;
+	float32				af4x4s[32];
+	int32				aiIndices[2];
+	int32				iSkeleton;
+	int32				iBone;
+
+	AddTestLeg(&cScene);
+	AssertTrue(WriteOldDragonSceneFile(&cScene, CONVERTED));
+	cScene.Kill();
+
+	cReader.Init(CONVERTED);
+	AssertTrue(cReader.Open());
+	AssertSize(1, cReader.NumSkeletons());
+	AssertTrue(cReader.BeginSkeleton(0));
+	AssertSize(2, cReader.NumBones());
+	AssertTrue(cReader.BeginBone(0));
+	szName.Init();
+	AssertTrue(cReader.ReadName(&szName));
+	AssertString("Hip", szName.Text());
+	szName.Kill();
+	AssertInt(SCENE_FILE_NONE, cReader.GetParent());
+	AssertTrue(cReader.ReadLocalMatrix(af4x4s));
+	AssertFloat(1.0f, af4x4s[12], 3);
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.BeginBone(1));
+	AssertInt(0, cReader.GetParent());
+	AssertTrue(cReader.ReadLocalMatrix(af4x4s));
+	AssertFloat(2.0f, af4x4s[12], 3);
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.End());
+
+	AssertTrue(cReader.BeginMesh(0));
+	AssertInt(0, cReader.GetSkinSkeleton());
+	AssertLSize(2, cReader.NumSkinBones());
+	AssertTrue(cReader.ReadSkinBones(aiIndices));
+	AssertInt(1, aiIndices[0]);
+	AssertInt(0, aiIndices[1]);
+	AssertTrue(cReader.End());
+
+	AssertSize(3, cReader.NumConnections());
+	AssertTrue(cReader.BeginConnection(0));
+	AssertFalse(cReader.GetSkeletonBone(&iSkeleton, &iBone));
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.BeginConnection(1));
+	AssertInt(0, cReader.GetParent());
+	AssertTrue(cReader.GetSkeletonBone(&iSkeleton, &iBone));
+	AssertInt(0, iBone);
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.BeginConnection(2));
+	AssertInt(1, cReader.GetParent());
+	AssertTrue(cReader.GetSkeletonBone(&iSkeleton, &iBone));
+	AssertInt(1, iBone);
+	AssertTrue(cReader.ReadWorldMatrix(af4x4s));
+	AssertFloat(13.0f, af4x4s[12], 3);
+	AssertTrue(cReader.End());
+
+	AssertTrue(cReader.BeginAnimation(0));
+	AssertInt(0, cReader.GetAnimationSkeleton());
+	AssertSize(2, cReader.NumTracks());
+	AssertTrue(cReader.BeginTrack(0));
+	AssertInt(0, cReader.GetBone());
+	AssertTrue(cReader.ReadKeyMatrices(af4x4s));
+	AssertFloat(1.0f, af4x4s[12], 3);
+	AssertFloat(2.0f, af4x4s[16 + 12], 3);
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.BeginTrack(1));
+	AssertInt(1, cReader.GetBone());
+	AssertTrue(cReader.ReadKeyMatrices(af4x4s));
+	AssertFloat(2.0f, af4x4s[12], 3);
+	AssertFloat(2.0f, af4x4s[16 + 12], 3);
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.End());
+
+	AssertTrue(cReader.BeginInstance(0));
+	AssertInt(0, cReader.GetInstanceSkeleton());
+	AssertLSize(2, cReader.NumInstanceConnections());
+	AssertTrue(cReader.ReadInstanceConnections(aiIndices));
+	AssertInt(1, aiIndices[0]);
+	AssertInt(2, aiIndices[1]);
+	AssertTrue(cReader.BeginInstanceMesh(0));
+	AssertLSize(0, cReader.NumConnectionSlots());
+	AssertTrue(cReader.End());
+	AssertTrue(cReader.End());
+	AssertFalse(cReader.Failed());
+	cReader.Kill();
+
+	//With a camera on the chain it isn't a helper, and the animation can't move it and the bones both.
+	AddTestLeg(&cScene);
+	AddTestCamera(&cScene, "Camera", 45.0f);
+	AddTestInstance(&cScene, OLD_DRAGON_2009_INSTANCE_CAMERA, 0, 2);
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(WriteOldDragonSceneFile(&cScene, CONVERTED));
+	gcLogger.SetConfig(&sLogConfig);
+	cScene.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestOldDragonConvertOldFiles(void)
@@ -1075,6 +1246,7 @@ void TestOldDragonConverter(void)
 	TestOldDragonConvertFromIntoOblivionNodes();
 	TestOldDragonConvertAims();
 	TestOldDragonConvertParents();
+	TestOldDragonConvertSkeleton();
 	TestOldDragonConvertOldFiles();
 
 	cFileUtil.RemoveDir(CONVERTER_OUTPUT_DIR);

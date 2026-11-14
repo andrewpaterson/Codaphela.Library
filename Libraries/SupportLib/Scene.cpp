@@ -82,6 +82,7 @@ CONSTRUCTABLE(CSceneFileLoad);
 DESTRUCTABLE(CSceneFileLoad);
 public:
 	CSceneFileReader	mcReader;
+	CArray<CSkeleton>	mapSkeletons;
 	CArray<CConnection>	mapConnections;
 	CArray<CImage>		mapImages;
 	CArrayChars			maszImageNames;
@@ -95,6 +96,7 @@ public:
 	bool	Read(CScene* pcScene);
 
 protected:
+	bool	ReadSkeletons(void);
 	bool	ReadConnections(void);
 	bool	ReadImages(void);
 	bool	ReadMaterials(void);
@@ -106,6 +108,8 @@ protected:
 	bool	ReadInstanceMesh(CInstance* pcInstance);
 	bool	ReadParticles(CScene* pcScene);
 	Ptr<CConnection>	GetAttached(void);
+	Ptr<CSkeleton>		GetSkeleton(int32 iSkeleton, const char* szWhat);
+	Ptr<CBone>			GetBone(Ptr<CSkeleton> pSkeleton, int32 iBone, const char* szWhat);
 };
 
 
@@ -116,6 +120,7 @@ CONSTRUCTABLE(CSceneFileSave);
 DESTRUCTABLE(CSceneFileSave);
 public:
 	CSceneFileWriter	mcWriter;
+	CArray<CSkeleton>	mapSkeletons;
 	CArray<CConnection>	mapConnections;
 	CArray<CImage>		mapImages;
 	CArrayChars			maszImageNames;
@@ -133,13 +138,14 @@ protected:
 	void	GatherEditor(Ptr<CMeshEditor> pEditor);
 	void	GatherConnection(Ptr<CConnection> pConnection);
 	void	Gather(CScene* pcScene);
+	void	WriteSkeletons(void);
 	bool	WriteMeshes(void);
 	bool	WriteImages(void);
 	void	WriteMaterials(void);
-	void	WriteConnections(void);
+	bool	WriteConnections(void);
 	void	WriteLights(CScene* pcScene);
 	void	WriteCameras(CScene* pcScene);
-	void	WriteAnimations(CScene* pcScene);
+	bool	WriteAnimations(CScene* pcScene);
 	void	WriteInstances(CScene* pcScene);
 	void	WriteParticles(CScene* pcScene);
 };
@@ -211,6 +217,7 @@ void CSceneFileLoad::Init(const char* szFilename)
 	PreInit();
 
 	mcReader.Init(szFilename);
+	mapSkeletons.Init();
 	mapConnections.Init();
 	mapImages.Init();
 	maszImageNames.Init();
@@ -238,10 +245,97 @@ void CSceneFileLoad::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSceneFileLoad::Class(void)
 {
+	M_Embedded(mapSkeletons);
 	M_Embedded(mapConnections);
 	M_Embedded(mapImages);
 	M_Embedded(mapMaterials);
 	M_Embedded(mapEditors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL, having failed, if iSkeleton isn't one of the file's.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSkeleton> CSceneFileLoad::GetSkeleton(int32 iSkeleton, const char* szWhat)
+{
+	if ((iSkeleton < 0) || ((size)iSkeleton >= mapSkeletons.NumElements()))
+	{
+		gcLogger.Error2(__METHOD__, " ", szWhat, " has skeleton [", IntToString(iSkeleton), "], but the file has ", SizeToString(mapSkeletons.NumElements()), ".", NULL);
+		return NULL;
+	}
+	return mapSkeletons.Get((size)iSkeleton);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL, having failed, if iBone isn't one of pSkeleton's.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CBone> CSceneFileLoad::GetBone(Ptr<CSkeleton> pSkeleton, int32 iBone, const char* szWhat)
+{
+	if (pSkeleton.IsNull())
+	{
+		return NULL;
+	}
+	if ((iBone < 0) || ((size)iBone >= pSkeleton->NumBones()))
+	{
+		gcLogger.Error2(__METHOD__, " ", szWhat, " has bone [", IntToString(iBone), "], but skeleton [", pSkeleton->mszName.Text(), "] has ", SizeToString(pSkeleton->NumBones()), ".", NULL);
+		return NULL;
+	}
+	return pSkeleton->GetBone((size)iBone);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bone's parent comes before it, so it's already made.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileLoad::ReadSkeletons(void)
+{
+	Ptr<CSkeleton>	pSkeleton;
+	Ptr<CBone>		pParent;
+	CChars			szName;
+	SFloat4x4		sLocal;
+	size			i;
+	size			j;
+	int32			iParent;
+
+	for (i = 0; i < mcReader.NumSkeletons(); i++)
+	{
+		pSkeleton = OMalloc<CSkeleton>();
+		ReturnOnFalse(mcReader.BeginSkeleton(i));
+		ReturnOnFalse(mcReader.ReadName(&pSkeleton->mszName));
+		for (j = 0; j < mcReader.NumBones(); j++)
+		{
+			ReturnOnFalse(mcReader.BeginBone(j));
+			szName.Init();
+			mcReader.ReadName(&szName);
+			sLocal.Identity();
+			mcReader.ReadLocalMatrix((float32*)&sLocal);
+			iParent = mcReader.GetParent();
+			pParent = NULL;
+			if (iParent != SCENE_FILE_NONE)
+			{
+				if ((iParent < 0) || ((size)iParent >= j))
+				{
+					gcLogger.Error2(__METHOD__, " Bone [", szName.Text(), "] of skeleton [", pSkeleton->mszName.Text(), "] has a parent that isn't a bone before it.", NULL);
+					szName.Kill();
+					return false;
+				}
+				pParent = pSkeleton->GetBone((size)iParent);
+			}
+			pSkeleton->AddBone(szName.Text(), pParent, &sLocal);
+			szName.Kill();
+			ReturnOnFalse(mcReader.End());
+		}
+		ReturnOnFalse(mcReader.End());
+		mapSkeletons.Add(pSkeleton);
+	}
+	return true;
 }
 
 
@@ -257,6 +351,8 @@ bool CSceneFileLoad::ReadConnections(void)
 	size				uiNum;
 	size				i;
 	int32				iParent;
+	int32				iSkeleton;
+	int32				iBone;
 
 	uiNum = mcReader.NumConnections();
 	for (i = 0; i < uiNum; i++)
@@ -275,6 +371,11 @@ bool CSceneFileLoad::ReadConnections(void)
 		if (iParent != SCENE_FILE_NONE)
 		{
 			pConnection->mpParent = mapConnections.Get((size)iParent);
+		}
+		if (mcReader.GetSkeletonBone(&iSkeleton, &iBone))
+		{
+			pConnection->mpBone = GetBone(GetSkeleton(iSkeleton, pConnection->mszName.Text()), iBone, pConnection->mszName.Text());
+			ReturnOnFalse(pConnection->mpBone.IsNotNull());
 		}
 		ReturnOnFalse(mcReader.End());
 	}
@@ -401,7 +502,7 @@ bool CSceneFileLoad::ReadMeshes(void)
 	for (i = 0; i < mcReader.NumMeshes(); i++)
 	{
 		pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
-		ReturnOnFalse(ReadSceneFileMesh(&mcReader, i, &pEditor, &mapMaterials));
+		ReturnOnFalse(ReadSceneFileMesh(&mcReader, i, &pEditor, &mapMaterials, &mapSkeletons));
 		mapEditors.Add(pEditor);
 	}
 	return true;
@@ -483,6 +584,8 @@ bool CSceneFileLoad::ReadCameras(CScene* pcScene)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A skeleton's animation's tracks move its bones, and the scene's own's
+// move connections.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileLoad::ReadAnimations(CScene* pcScene)
@@ -500,11 +603,24 @@ bool CSceneFileLoad::ReadAnimations(CScene* pcScene)
 		pAnimation = OMalloc<CSceneAnimation>();
 		ReturnOnFalse(mcReader.BeginAnimation(i));
 		ReturnOnFalse(mcReader.ReadName(&pAnimation->mszName));
+		if (mcReader.GetAnimationSkeleton() != SCENE_FILE_NONE)
+		{
+			pAnimation->mpSkeleton = GetSkeleton(mcReader.GetAnimationSkeleton(), pAnimation->mszName.Text());
+			ReturnOnFalse(pAnimation->mpSkeleton.IsNotNull());
+		}
 		for (j = 0; j < mcReader.NumTracks(); j++)
 		{
 			pTrack = OMalloc<CConnectionAnimation>();
 			ReturnOnFalse(mcReader.BeginTrack(j));
-			pTrack->mpConnection = GetAttached();
+			if (pAnimation->IsSkeletal())
+			{
+				pTrack->mpBone = GetBone(pAnimation->mpSkeleton, mcReader.GetBone(), pAnimation->mszName.Text());
+				ReturnOnFalse(pTrack->mpBone.IsNotNull());
+			}
+			else
+			{
+				pTrack->mpConnection = GetAttached();
+			}
 
 			afTimes.Init();
 			af4x4s.Init();
@@ -534,6 +650,8 @@ bool CSceneFileLoad::ReadAnimations(CScene* pcScene)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A mesh posed by its skin's bones is bound to the instance's connections
+// for them.  Any other is given its connections by its slots.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileLoad::ReadInstanceMesh(CInstance* pcInstance)
@@ -546,6 +664,7 @@ bool CSceneFileLoad::ReadInstanceMesh(CInstance* pcInstance)
 	bool					bResult;
 
 	pInstanceMesh = OMalloc<CInstanceMesh>(mapEditors.Get((size)mcReader.GetInstanceMesh()));
+	pInstanceMesh->BindBones(pcInstance);
 
 	aiSlots.Init();
 	aiMaterials.Init();
@@ -560,7 +679,7 @@ bool CSceneFileLoad::ReadInstanceMesh(CInstance* pcInstance)
 		ReturnOnFalse(mcReader.ReadInstanceMaterials(aiMaterials.GetData()));
 	}
 	bResult = true;
-	for (i = 0; bResult && (i < aiSlots.NumElements()); i++)
+	for (i = 0; bResult && !pInstanceMesh->IsSkinned() && (i < aiSlots.NumElements()); i++)
 	{
 		iSlot = aiSlots.GetValue(i);
 		if ((iSlot < 0) || ((size)iSlot >= pcInstance->mapConnections.NumElements()))
@@ -603,6 +722,11 @@ bool CSceneFileLoad::ReadInstances(CScene* pcScene)
 		pInstance = OMalloc<CInstance>();
 		ReturnOnFalse(mcReader.BeginInstance(i));
 		ReturnOnFalse(mcReader.ReadName(&pInstance->mszName));
+		if (mcReader.GetInstanceSkeleton() != SCENE_FILE_NONE)
+		{
+			pInstance->mpSkeleton = GetSkeleton(mcReader.GetInstanceSkeleton(), pInstance->mszName.Text());
+			ReturnOnFalse(pInstance->mpSkeleton.IsNotNull());
+		}
 
 		aiConnections.Init();
 		aiConnections.Resize(mcReader.NumInstanceConnections());
@@ -677,6 +801,7 @@ bool CSceneFileLoad::ReadParticles(CScene* pcScene)
 bool CSceneFileLoad::Read(CScene* pcScene)
 {
 	ReturnOnFalse(mcReader.Open());
+	ReturnOnFalse(ReadSkeletons());
 	ReturnOnFalse(ReadConnections());
 	ReturnOnFalse(ReadImages());
 	ReturnOnFalse(ReadMaterials());
@@ -699,6 +824,7 @@ void CSceneFileSave::Init(const char* szFilename)
 	PreInit();
 
 	mcWriter.Init(szFilename);
+	mapSkeletons.Init();
 	mapConnections.Init();
 	mapImages.Init();
 	maszImageNames.Init();
@@ -726,6 +852,7 @@ void CSceneFileSave::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSceneFileSave::Class(void)
 {
+	M_Embedded(mapSkeletons);
 	M_Embedded(mapConnections);
 	M_Embedded(mapImages);
 	M_Embedded(mapMaterials);
@@ -800,6 +927,8 @@ void CSceneFileSave::GatherConnection(Ptr<CConnection> pConnection)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A skeleton is reached through the instances and animations that have it.
+// A skin's bones must be in one of those.
 //
 //////////////////////////////////////////////////////////////////////////
 void CSceneFileSave::Gather(CScene* pcScene)
@@ -814,6 +943,7 @@ void CSceneFileSave::Gather(CScene* pcScene)
 	for (i = 0; i < pcScene->mapInstances.NumElements(); i++)
 	{
 		pInstance = pcScene->mapInstances.Get(i);
+		SceneFileIndex<CSkeleton>(&mapSkeletons, pInstance->mpSkeleton, true);
 		for (j = 0; j < pInstance->mapConnections.NumElements(); j++)
 		{
 			GatherConnection(pInstance->mapConnections.Get(j));
@@ -839,10 +969,36 @@ void CSceneFileSave::Gather(CScene* pcScene)
 	for (i = 0; i < pcScene->mapAnimations.NumElements(); i++)
 	{
 		pAnimation = pcScene->mapAnimations.Get(i);
+		SceneFileIndex<CSkeleton>(&mapSkeletons, pAnimation->mpSkeleton, true);
 		for (j = 0; j < pAnimation->mapTracks.NumElements(); j++)
 		{
 			GatherConnection(pAnimation->mapTracks.Get(j)->mpConnection);
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSceneFileSave::WriteSkeletons(void)
+{
+	Ptr<CSkeleton>	pSkeleton;
+	Ptr<CBone>		pBone;
+	size			i;
+	size			j;
+
+	for (i = 0; i < mapSkeletons.NumElements(); i++)
+	{
+		pSkeleton = mapSkeletons.Get(i);
+		mcWriter.BeginSkeleton(pSkeleton->mszName.Text());
+		for (j = 0; j < pSkeleton->NumBones(); j++)
+		{
+			pBone = pSkeleton->GetBone(j);
+			mcWriter.WriteBone(pBone->mszName.Text(), pBone->mpParent.IsNull() ? SCENE_FILE_NONE : (int32)pBone->mpParent->muiIndex, (float32*)&pBone->msLocalMatrix);
+		}
+		mcWriter.EndSkeleton();
 	}
 }
 
@@ -870,7 +1026,7 @@ bool CSceneFileSave::WriteMeshes(void)
 		{
 			aiMaterials.Add(SceneFileIndex<CMaterial>(&mapMaterials, pcMaterials->mapMaterials.Get(j), false));
 		}
-		bResult = WriteSceneFileMesh(&mcWriter, &pEditor, &aiMaterials);
+		bResult = WriteSceneFileMesh(&mcWriter, &pEditor, &aiMaterials, &mapSkeletons);
 		aiMaterials.Kill();
 	}
 	return bResult;
@@ -946,16 +1102,23 @@ void CSceneFileSave::WriteMaterials(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False for a connection playing a bone of a skeleton the scene hasn't.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSceneFileSave::WriteConnections(void)
+bool CSceneFileSave::WriteConnections(void)
 {
 	Ptr<CConnection>	pConnection;
 	size				i;
+	int32				iSkeleton;
+	int32				iBone;
 
 	for (i = 0; i < mapConnections.NumElements(); i++)
 	{
 		pConnection = mapConnections.Get(i);
+		if (pConnection->mpBone.IsNotNull() && !FindSceneFileBone(&mapSkeletons, pConnection->mpBone, &iSkeleton, &iBone))
+		{
+			return gcLogger.Error2(__METHOD__, " Connection [", pConnection->mszName.Text(), "] plays a bone of a skeleton no instance or animation has.", NULL);
+		}
 		mcWriter.BeginConnection(pConnection->mszName.Text());
 		if (pConnection->mpParent.IsNotNull())
 		{
@@ -964,8 +1127,13 @@ void CSceneFileSave::WriteConnections(void)
 		mcWriter.WriteWorldMatrix((float32*)&pConnection->msWorldMatrix);
 		mcWriter.WriteLocalMatrix((float32*)&pConnection->msLocalMatrix);
 		mcWriter.WriteParity(pConnection->mbParity);
+		if (pConnection->mpBone.IsNotNull())
+		{
+			mcWriter.WriteSkeletonBone(iSkeleton, iBone);
+		}
 		mcWriter.EndConnection();
 	}
+	return true;
 }
 
 
@@ -1024,11 +1192,12 @@ void CSceneFileSave::WriteCameras(CScene* pcScene)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A scene file's keys are matrices.  A key of another kind is only made by
-// code nothing calls yet, and its data isn't one.
+// A skeleton's animation's tracks are attached to its bones, and the
+// scene's own's to connections.  False for a track whose bone isn't the
+// animation's skeleton's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSceneFileSave::WriteAnimations(CScene* pcScene)
+bool CSceneFileSave::WriteAnimations(CScene* pcScene)
 {
 	Ptr<CSceneAnimation>				pAnimation;
 	Ptr<CConnectionAnimation>			pTrack;
@@ -1038,14 +1207,30 @@ void CSceneFileSave::WriteAnimations(CScene* pcScene)
 	size								i;
 	size								j;
 	size								k;
+	int32								iAttached;
 
 	for (i = 0; i < pcScene->mapAnimations.NumElements(); i++)
 	{
 		pAnimation = pcScene->mapAnimations.Get(i);
-		mcWriter.BeginAnimation(pAnimation->mszName.Text());
+		for (j = 0; pAnimation->IsSkeletal() && (j < pAnimation->mapTracks.NumElements()); j++)
+		{
+			if (!pAnimation->mpSkeleton->Contains(pAnimation->mapTracks.Get(j)->mpBone))
+			{
+				return gcLogger.Error2(__METHOD__, " Animation [", pAnimation->mszName.Text(), "] has a track moving a bone that isn't its skeleton's.", NULL);
+			}
+		}
+		mcWriter.BeginAnimation(pAnimation->mszName.Text(), SceneFileIndex<CSkeleton>(&mapSkeletons, pAnimation->mpSkeleton, false));
 		for (j = 0; j < pAnimation->mapTracks.NumElements(); j++)
 		{
 			pTrack = pAnimation->mapTracks.Get(j);
+			if (pAnimation->IsSkeletal())
+			{
+				iAttached = (int32)pTrack->mpBone->muiIndex;
+			}
+			else
+			{
+				iAttached = SceneFileIndex<CConnection>(&mapConnections, pTrack->mpConnection, false);
+			}
 			afTimes.Init();
 			af4x4s.Init();
 			for (k = 0; k < pTrack->NumKeys(); k++)
@@ -1054,12 +1239,13 @@ void CSceneFileSave::WriteAnimations(CScene* pcScene)
 				afTimes.Add(psKey->fTime);
 				af4x4s.Add((float32*)&psKey->sMatrix, SCENE_FILE_FLOATS_IN_MATRIX);
 			}
-			mcWriter.WriteTrack(SceneFileIndex<CConnection>(&mapConnections, pTrack->mpConnection, false), afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());
+			mcWriter.WriteTrack(iAttached, afTimes.GetData(), af4x4s.GetData(), afTimes.NumElements());
 			af4x4s.Kill();
 			afTimes.Kill();
 		}
 		mcWriter.EndAnimation();
 	}
+	return true;
 }
 
 
@@ -1082,6 +1268,10 @@ void CSceneFileSave::WriteInstances(CScene* pcScene)
 	{
 		pInstance = pcScene->mapInstances.Get(i);
 		mcWriter.BeginInstance(pInstance->mszName.Text());
+		if (pInstance->mpSkeleton.IsNotNull())
+		{
+			mcWriter.WriteInstanceSkeleton(SceneFileIndex<CSkeleton>(&mapSkeletons, pInstance->mpSkeleton, false));
+		}
 
 		aiConnections.Init();
 		for (j = 0; j < pInstance->mapConnections.NumElements(); j++)
@@ -1096,7 +1286,7 @@ void CSceneFileSave::WriteInstances(CScene* pcScene)
 			pInstanceMesh = pInstance->mapMeshes.Get(j);
 			aiSlots.Init();
 			aiMaterials.Init();
-			for (k = 0; k < pInstanceMesh->mapConnections.NumElements(); k++)
+			for (k = 0; !pInstanceMesh->IsSkinned() && (k < pInstanceMesh->mapConnections.NumElements()); k++)
 			{
 				aiSlots.Add(SceneFileIndex<CConnection>(&pInstance->mapConnections, pInstanceMesh->mapConnections.Get(k), false));
 			}
@@ -1143,13 +1333,14 @@ bool CSceneFileSave::Write(CScene* pcScene)
 	Gather(pcScene);
 
 	ReturnOnFalse(mcWriter.Open());
+	WriteSkeletons();
 	ReturnOnFalse(WriteMeshes());
 	ReturnOnFalse(WriteImages());
 	WriteMaterials();
-	WriteConnections();
+	ReturnOnFalse(WriteConnections());
 	WriteLights(pcScene);
 	WriteCameras(pcScene);
-	WriteAnimations(pcScene);
+	ReturnOnFalse(WriteAnimations(pcScene));
 	WriteInstances(pcScene);
 	WriteParticles(pcScene);
 	return mcWriter.Close();

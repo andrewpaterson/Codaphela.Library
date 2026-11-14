@@ -145,6 +145,8 @@ class CRenderScene
 public:
 	CSceneFileReader		mcReader;
 	CArrayRenderFloats		mafWorlds;
+	CArrayRenderInts		maiSkeletons;	//The skeleton each connection plays a bone of, SCENE_FILE_NONE if none.
+	CArrayRenderInts		maiBones;		//And that bone.
 	CArrayRenderMaterial	masMaterials;
 	CArrayRenderImage		macImages;
 	CArrayRenderTriangle	masTriangles;
@@ -165,6 +167,8 @@ protected:
 	bool	AddInstance(size uiInstance);
 	bool	AddMesh(int32 iMesh, CArrayRenderInts* paiConnections, CArrayRenderInts* paiSlots);
 	bool	PosePositions(CArrayRenderFloats* pafPositions, CArrayRenderInts* paiConnections, CArrayRenderInts* paiSlots);
+	bool	GetSkinSlots(CArrayRenderInts* paiConnections, CArrayRenderInts* paiSlots);
+	void	SetBoneLocals(int32 iSkeleton, int32 iBone, float32* pafKey, CArrayRenderFloats* pafLocals);
 	void	AddBuiltTriangle(SRenderTriangle* psTriangle, SRenderView* psView, CRasterMesh* pcMesh);
 	bool	AddParticles(SRenderView* psView, CRasterMesh* pcMesh, float32 fScale);
 	void	SetLookThrough(SRenderOptions* psOptions, SRenderView* psView, float32 fRadius, float32 fFieldOfView);
@@ -230,6 +234,8 @@ uint32 CRenderImage::Sample(float32 u, float32 v)
 bool CRenderScene::Init(const char* szFilename)
 {
 	mafWorlds.Init();
+	maiSkeletons.Init();
+	maiBones.Init();
 	masMaterials.Init();
 	macImages.Init();
 	masTriangles.Init();
@@ -256,6 +262,8 @@ void CRenderScene::Kill(void)
 	}
 	macImages.Kill();
 	masMaterials.Kill();
+	maiBones.Kill();
+	maiSkeletons.Kill();
 	mafWorlds.Kill();
 }
 
@@ -333,6 +341,8 @@ bool CRenderScene::LoadWorlds(int32 iKey)
 	size				uiKey;
 	size				i;
 	size				j;
+	int32				iSkeleton;
+	int32				iBone;
 
 	uiNumConnections = mcReader.NumConnections();
 	mafWorlds.Resize(uiNumConnections * RENDER_FLOATS_IN_MATRIX);
@@ -345,6 +355,9 @@ bool CRenderScene::LoadWorlds(int32 iKey)
 		ReturnOnFalse(mcReader.ReadWorldMatrix(mafWorlds.GetData() + i * RENDER_FLOATS_IN_MATRIX));
 		ReturnOnFalse(mcReader.ReadLocalMatrix(afLocals.GetData() + i * RENDER_FLOATS_IN_MATRIX));
 		aiParents.Add(mcReader.GetParent());
+		mcReader.GetSkeletonBone(&iSkeleton, &iBone);
+		maiSkeletons.Add(iSkeleton);
+		maiBones.Add(iBone);
 		ReturnOnFalse(mcReader.End());
 	}
 
@@ -356,6 +369,7 @@ bool CRenderScene::LoadWorlds(int32 iKey)
 	}
 
 	ReturnOnFalse(mcReader.BeginAnimation(0));
+	iSkeleton = mcReader.GetAnimationSkeleton();
 	for (j = 0; j < mcReader.NumTracks(); j++)
 	{
 		ReturnOnFalse(mcReader.BeginTrack(j));
@@ -363,7 +377,14 @@ bool CRenderScene::LoadWorlds(int32 iKey)
 		afKeys.Resize(mcReader.NumKeys() * RENDER_FLOATS_IN_MATRIX);
 		ReturnOnFalse(mcReader.ReadKeyMatrices(afKeys.GetData()));
 		uiKey = ((size)iKey >= mcReader.NumKeys()) ? mcReader.NumKeys() - 1 : (size)iKey;
-		memcpy(afLocals.GetData() + (size)mcReader.GetAttached() * RENDER_FLOATS_IN_MATRIX, afKeys.GetData() + uiKey * RENDER_FLOATS_IN_MATRIX, sizeof(float32) * RENDER_FLOATS_IN_MATRIX);
+		if (iSkeleton != SCENE_FILE_NONE)
+		{
+			SetBoneLocals(iSkeleton, mcReader.GetBone(), afKeys.GetData() + uiKey * RENDER_FLOATS_IN_MATRIX, &afLocals);
+		}
+		else
+		{
+			memcpy(afLocals.GetData() + (size)mcReader.GetAttached() * RENDER_FLOATS_IN_MATRIX, afKeys.GetData() + uiKey * RENDER_FLOATS_IN_MATRIX, sizeof(float32) * RENDER_FLOATS_IN_MATRIX);
+		}
 		afKeys.Kill();
 		ReturnOnFalse(mcReader.End());
 	}
@@ -453,7 +474,10 @@ bool CRenderScene::AddInstance(size uiInstance)
 		iMesh = mcReader.GetInstanceMesh();
 		aiSlots.Init();
 		aiSlots.Resize(mcReader.NumConnectionSlots());
-		ReturnOnFalse(mcReader.ReadConnectionSlots(aiSlots.GetData()));
+		if (aiSlots.NumElements() > 0)
+		{
+			ReturnOnFalse(mcReader.ReadConnectionSlots(aiSlots.GetData()));
+		}
 		ReturnOnFalse(mcReader.End());
 
 		//The mesh is read outside the instance, as blocks don't nest, and then back to where it was.
@@ -492,6 +516,7 @@ bool CRenderScene::PosePositions(CArrayRenderFloats* pafPositions, CArrayRenderI
 	CArrayRenderInts	aiMatrices;
 	CArrayRenderFloats	afWeights;
 	CArrayRenderFloats	afInverses;
+	CArrayRenderInts	aiSkinSlots;
 	CArrayRenderFloats	afPosed;
 	CArrayTemplate<SFloat4x4>	asPalette;
 	SFloat4x4			sWorld;
@@ -523,6 +548,7 @@ bool CRenderScene::PosePositions(CArrayRenderFloats* pafPositions, CArrayRenderI
 	aiMatrices.Init();
 	afWeights.Init();
 	afInverses.Init();
+	aiSkinSlots.Init();
 	aiCounts.Resize(mcReader.NumSkinCounts());
 	aiMatrices.Resize(mcReader.NumSkinWeights());
 	afWeights.Resize(mcReader.NumSkinWeights());
@@ -531,6 +557,11 @@ bool CRenderScene::PosePositions(CArrayRenderFloats* pafPositions, CArrayRenderI
 	ReturnOnFalse(mcReader.ReadSkinMatrices(aiMatrices.GetData()));
 	ReturnOnFalse(mcReader.ReadSkinWeights(afWeights.GetData()));
 	ReturnOnFalse(mcReader.ReadInverseMatrices(afInverses.GetData()));
+	if (mcReader.GetSkinSkeleton() != SCENE_FILE_NONE)
+	{
+		ReturnOnFalse(GetSkinSlots(paiConnections, &aiSkinSlots));
+		paiSlots = &aiSkinSlots;
+	}
 
 	asPalette.Init();
 	for (i = 0; i < mcReader.NumInverseMatrices(); i++)
@@ -561,11 +592,73 @@ bool CRenderScene::PosePositions(CArrayRenderFloats* pafPositions, CArrayRenderI
 
 	afPosed.Kill();
 	asPalette.Kill();
+	aiSkinSlots.Kill();
 	afInverses.Kill();
 	afWeights.Kill();
 	aiMatrices.Kill();
 	aiCounts.Kill();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A skin posed by a skeleton's bones uses the instance's connections for
+// them: the slot of each of its matrices is the place in the instance's
+// connections of the one playing its bone.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRenderScene::GetSkinSlots(CArrayRenderInts* paiConnections, CArrayRenderInts* paiSlots)
+{
+	CArrayRenderInts	aiBones;
+	size				i;
+	size				j;
+	int32				iSkeleton;
+	int32				iConnection;
+
+	iSkeleton = mcReader.GetSkinSkeleton();
+	aiBones.Init();
+	aiBones.Resize(mcReader.NumSkinBones());
+	ReturnOnFalse(mcReader.ReadSkinBones(aiBones.GetData()));
+	for (i = 0; i < aiBones.NumElements(); i++)
+	{
+		for (j = 0; j < paiConnections->NumElements(); j++)
+		{
+			iConnection = paiConnections->GetValue(j);
+			if ((maiSkeletons.GetValue((size)iConnection) == iSkeleton) && (maiBones.GetValue((size)iConnection) == aiBones.GetValue(i)))
+			{
+				break;
+			}
+		}
+		if (j == paiConnections->NumElements())
+		{
+			aiBones.Kill();
+			printf("An instance hasn't a connection for one of its skin's bones.\n");
+			return false;
+		}
+		paiSlots->Add((int32)j);
+	}
+	aiBones.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A skeleton's animation poses every connection playing the bone.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRenderScene::SetBoneLocals(int32 iSkeleton, int32 iBone, float32* pafKey, CArrayRenderFloats* pafLocals)
+{
+	size	i;
+
+	for (i = 0; i < maiSkeletons.NumElements(); i++)
+	{
+		if ((maiSkeletons.GetValue(i) == iSkeleton) && (maiBones.GetValue(i) == iBone))
+		{
+			memcpy(pafLocals->GetData() + i * RENDER_FLOATS_IN_MATRIX, pafKey, sizeof(float32) * RENDER_FLOATS_IN_MATRIX);
+		}
+	}
 }
 
 

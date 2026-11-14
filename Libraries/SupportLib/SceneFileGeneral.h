@@ -37,6 +37,10 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //along its connection's -z.
 //
 //	Version		int32
+//	Skeleton	Name
+//				Bone			Name
+//								Parent			int32 bone, which comes before it
+//								Local			float32 x 16, its rest matrix relative to its parent's
 //	Mesh		Name
 //				Positions		float32 x, y, z
 //				Normals			float32 x, y, z
@@ -54,6 +58,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //				SkinMatrices	int32 for each weight, an index in InverseMatrices
 //				SkinWeights		float32 for each weight
 //				InverseMatrices	float32 x 16 for each matrix
+//				SkinSkeleton	int32 skeleton
+//				SkinBones		int32 for each matrix, a bone in SkinSkeleton
 //	Image		Name
 //				Size			int32 width, height
 //				Channels		char for each channel, as "RGBA"
@@ -66,6 +72,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //				Parent			int32 connection
 //				World, Local	float32 x 16, row major with vectors on the left
 //				Parity			int32 1 if its matrix mirrors
+//				SkeletonBone	int32 skeleton, int32 bone, if it plays a bone: its instance has that skeleton
 //	Light		Name
 //				LightType		int32 ESceneFileLightType
 //				Colour			float32 r, g, b, a
@@ -78,14 +85,20 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //				Lens			float32 horizontal field of view in radians, near, far
 //				Attached		int32 connection
 //	Animation	Name
-//				Track			Attached		int32 connection
+//				Skeleton		int32 skeleton, in a skeleton's animation, whose tracks have a Bone and not Attached
+//				Track			Attached		int32 connection, in the scene's own animation
+//								Bone			int32 bone, in a skeleton's
 //								KeyTimes		float32 seconds from the start of the animation
 //								KeyMatrices		float32 x 16 for each key, the connection's local matrix
 //	Instance	Name
+//				Skeleton		int32 skeleton
 //				Connections		int32 connections, the instance's own list in slot order
 //				InstanceMesh	MeshIndex		int32 mesh
-//								ConnectionSlots	int32 for each of the mesh's matrices, one for a rigid mesh, an index in Connections
+//								ConnectionSlots	int32 for each of the mesh's matrices, one for a rigid mesh, an index in Connections.  A
+//												mesh with SkinBones has none, as its are the instance's connections for them.
 //								Materials		int32 materials in place of the mesh's MaterialSlots
+//
+//Version 2 added skeletons.  Version 1's skinned meshes were posed by their instance's ConnectionSlots, which aren't read now.
 //	Particles	Name
 //				Positions		float32 x, y, z
 //				Colours			float32 r, g, b
@@ -94,9 +107,10 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //"SCN\0" as a little endian int32.
-#define SCENE_FILE_ID		((chunkName)'S' | ((chunkName)'C' << 8) | ((chunkName)'N' << 16))
-#define SCENE_FILE_VERSION	1
-#define SCENE_FILE_NONE		-1
+#define SCENE_FILE_ID				((chunkName)'S' | ((chunkName)'C' << 8) | ((chunkName)'N' << 16))
+#define SCENE_FILE_VERSION			2
+#define SCENE_FILE_OLDEST_VERSION	2  //What a reader still reads.
+#define SCENE_FILE_NONE				-1
 
 
 #define SCENE_FILE_FLOATS_IN_MATRIX		16
@@ -122,6 +136,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define SCENE_CHUNK_SKIN_MATRICES		"SkinMatrices"
 #define SCENE_CHUNK_SKIN_WEIGHTS		"SkinWeights"
 #define SCENE_CHUNK_INVERSE_MATRICES	"InverseMatrices"
+#define SCENE_CHUNK_SKIN_SKELETON		"SkinSkeleton"
+#define SCENE_CHUNK_SKIN_BONES			"SkinBones"
+
+#define SCENE_CHUNK_SKELETON			"Skeleton"
+#define SCENE_CHUNK_BONE				"Bone"
 
 #define SCENE_CHUNK_IMAGE				"Image"
 #define SCENE_CHUNK_SIZE				"Size"
@@ -136,6 +155,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define SCENE_CHUNK_WORLD				"World"
 #define SCENE_CHUNK_LOCAL				"Local"
 #define SCENE_CHUNK_PARITY				"Parity"
+#define SCENE_CHUNK_SKELETON_BONE		"SkeletonBone"
 
 #define SCENE_CHUNK_LIGHT				"Light"
 #define SCENE_CHUNK_LIGHT_TYPE			"LightType"

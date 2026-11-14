@@ -56,6 +56,7 @@ void CSceneFileReader::Kill(void)
 //
 // A file from a later version of the format is refused, as only then does
 // the version change: what it holds can't be read as this version would.
+// So is one from before skeletons, whose skins were posed another way.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileReader::Open(void)
@@ -78,7 +79,7 @@ bool CSceneFileReader::Open(void)
 	}
 
 	iVersion = GetInt32(SCENE_CHUNK_VERSION, 0);
-	if ((iVersion < 1) || (iVersion > SCENE_FILE_VERSION))
+	if ((iVersion < SCENE_FILE_OLDEST_VERSION) || (iVersion > SCENE_FILE_VERSION))
 	{
 		Close();
 		return Fail("It's a version of the format this doesn't know");
@@ -338,6 +339,14 @@ bool	CSceneFileReader::ReadSkinMatrices(int32* paiMatrices) { return ReadChunk(S
 bool	CSceneFileReader::ReadSkinWeights(float32* pafWeights) { return ReadChunk(SCENE_CHUNK_SKIN_WEIGHTS, pafWeights, sizeof(float32)); }
 lsize	CSceneFileReader::NumInverseMatrices(void) { return NumElements(SCENE_CHUNK_INVERSE_MATRICES, SCENE_FILE_MATRIX_SIZE); }
 bool	CSceneFileReader::ReadInverseMatrices(float32* paf4x4s) { return ReadChunk(SCENE_CHUNK_INVERSE_MATRICES, paf4x4s, SCENE_FILE_MATRIX_SIZE); }
+int32	CSceneFileReader::GetSkinSkeleton(void) { return GetInt32(SCENE_CHUNK_SKIN_SKELETON, SCENE_FILE_NONE); }
+lsize	CSceneFileReader::NumSkinBones(void) { return NumElements(SCENE_CHUNK_SKIN_BONES, sizeof(int32)); }
+bool	CSceneFileReader::ReadSkinBones(int32* paiBones) { return ReadChunk(SCENE_CHUNK_SKIN_BONES, paiBones, sizeof(int32)); }
+
+size	CSceneFileReader::NumSkeletons(void) { return NumChunks(SCENE_CHUNK_SKELETON); }
+bool	CSceneFileReader::BeginSkeleton(size uiSkeleton) { return Begin(SCENE_CHUNK_SKELETON, uiSkeleton); }
+size	CSceneFileReader::NumBones(void) { return NumChunks(SCENE_CHUNK_BONE); }
+bool	CSceneFileReader::BeginBone(size uiBone) { return Begin(SCENE_CHUNK_BONE, uiBone); }
 
 size	CSceneFileReader::NumUVLayers(void) { return NumChunks(SCENE_CHUNK_UV_LAYER); }
 bool	CSceneFileReader::BeginUVLayer(size uiLayer) { return Begin(SCENE_CHUNK_UV_LAYER, uiLayer); }
@@ -379,7 +388,9 @@ int32	CSceneFileReader::GetAttached(void) { return GetInt32(SCENE_CHUNK_ATTACHED
 
 size	CSceneFileReader::NumAnimations(void) { return NumChunks(SCENE_CHUNK_ANIMATION); }
 bool	CSceneFileReader::BeginAnimation(size uiAnimation) { return Begin(SCENE_CHUNK_ANIMATION, uiAnimation); }
+int32	CSceneFileReader::GetAnimationSkeleton(void) { return GetInt32(SCENE_CHUNK_SKELETON, SCENE_FILE_NONE); }
 size	CSceneFileReader::NumTracks(void) { return NumChunks(SCENE_CHUNK_TRACK); }
+int32	CSceneFileReader::GetBone(void) { return GetInt32(SCENE_CHUNK_BONE, SCENE_FILE_NONE); }
 bool	CSceneFileReader::BeginTrack(size uiTrack) { return Begin(SCENE_CHUNK_TRACK, uiTrack); }
 lsize	CSceneFileReader::NumKeys(void) { return NumElements(SCENE_CHUNK_KEY_TIMES, sizeof(float32)); }
 bool	CSceneFileReader::ReadKeyTimes(float32* pafTimes) { return ReadChunk(SCENE_CHUNK_KEY_TIMES, pafTimes, sizeof(float32)); }
@@ -387,6 +398,7 @@ bool	CSceneFileReader::ReadKeyMatrices(float32* paf4x4s) { return ReadChunk(SCEN
 
 size	CSceneFileReader::NumInstances(void) { return NumChunks(SCENE_CHUNK_INSTANCE); }
 bool	CSceneFileReader::BeginInstance(size uiInstance) { return Begin(SCENE_CHUNK_INSTANCE, uiInstance); }
+int32	CSceneFileReader::GetInstanceSkeleton(void) { return GetInt32(SCENE_CHUNK_SKELETON, SCENE_FILE_NONE); }
 lsize	CSceneFileReader::NumInstanceConnections(void) { return NumElements(SCENE_CHUNK_CONNECTIONS, sizeof(int32)); }
 bool	CSceneFileReader::ReadInstanceConnections(int32* paiConnections) { return ReadChunk(SCENE_CHUNK_CONNECTIONS, paiConnections, sizeof(int32)); }
 size	CSceneFileReader::NumInstanceMeshes(void) { return NumChunks(SCENE_CHUNK_INSTANCE_MESH); }
@@ -407,6 +419,26 @@ bool	CSceneFileReader::ReadParticlePositions(float32* pafXYZ) { return ReadChunk
 bool	CSceneFileReader::ReadParticleColours(float32* pafRGB) { return ReadChunk(SCENE_CHUNK_COLOURS, pafRGB, sizeof(float32) * 3); }
 bool	CSceneFileReader::ReadParticleRadii(float32* pafRadii) { return ReadChunk(SCENE_CHUNK_RADII, pafRadii, sizeof(float32)); }
 bool	CSceneFileReader::ReadParticleIntensities(float32* pafIntensities) { return ReadChunk(SCENE_CHUNK_INTENSITIES, pafIntensities, sizeof(float32)); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileReader::GetSkeletonBone(int32* piSkeleton, int32* piBone)
+{
+	int32	aiBone[2];
+
+	if (!ReadFixed(SCENE_CHUNK_SKELETON_BONE, aiBone, sizeof(aiBone)))
+	{
+		*piSkeleton = SCENE_FILE_NONE;
+		*piBone = SCENE_FILE_NONE;
+		return false;
+	}
+	*piSkeleton = aiBone[0];
+	*piBone = aiBone[1];
+	return true;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

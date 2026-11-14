@@ -42,6 +42,12 @@ along with Codaphela OldDragonLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //A sequence moves the connection with its name, and failing to find one fails.  Connections are written by their place in the
 //scene's list, where the old files numbered them in a way that in Goober isn't that place.
+//
+//A skinned mesh's instance's connections are a skeleton's bones, in the scene's order, and its instance has them in that order too.
+//The sequences moving them are the skeleton's animation, and one of those moving a connection that isn't a bone, with nothing placed
+//on it or under it, is a helper the exporter wrote, as Goober's IK chains and finger helpers are: it's left out, with its connection,
+//as the bones' keys already hold what it did.  A bone's parent is the nearest bone above it, and a root bone's the nearest kept
+//connection above it.
 bool	WriteOldDragonSceneFile(COldDragonScene* pcScene, const char* szFilename);
 
 

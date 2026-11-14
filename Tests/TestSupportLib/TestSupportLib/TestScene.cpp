@@ -94,6 +94,12 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 	AssertInt(0, pcVert->mcWeights.Get(0)->iMatrix);
 	AssertFloat(0.25f, pcVert->mcWeights.Get(1)->fWeight, 3);
 	AssertInt(1, pcVert->mcWeights.Get(1)->iMatrix);
+
+	//Its matrices are the instance's skeleton's bones, the second first.
+	AssertSize(2, pcMesh->mcSkin.mapBones.NumElements());
+	AssertTrue(&pcMesh->mcSkin.mapBones.Get(0) == &pInstance->mpSkeleton->GetBone(1));
+	AssertTrue(&pcMesh->mcSkin.mapBones.Get(1) == &pInstance->mpSkeleton->GetBone(0));
+	AssertTrue(pInstanceMesh->IsSkinned());
 }
 
 
@@ -138,22 +144,29 @@ static void TestSceneReadMaterials(Ptr<CScene> pScene)
 //////////////////////////////////////////////////////////////////////////
 //
 // One object for each of the file's connections, whatever refers to it.
+// Those playing bones are the instance's for its skeleton's, and its skinned
+// mesh is bound to them.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestSceneReadConnections(Ptr<CScene> pScene)
 {
 	Ptr<CInstance>			pInstance;
+	Ptr<CSkeleton>			pSkeleton;
 	Ptr<CConnection>		pChild;
 	Ptr<CConnection>		pRoot;
+	Ptr<CConnection>		pHip;
+	Ptr<CConnection>		pKnee;
 	Ptr<CLight>				pLight;
 	Ptr<CCamera>			pCamera;
 	Ptr<CSceneAnimation>	pAnimation;
 	Ptr<CConnectionAnimation>	pTrack;
 
 	pInstance = pScene->mapInstances.Get(0);
-	AssertSize(2, pInstance->mapConnections.NumElements());
+	AssertSize(4, pInstance->mapConnections.NumElements());
 	pChild = pInstance->mapConnections.Get(0);
 	pRoot = pInstance->mapConnections.Get(1);
+	pHip = pInstance->mapConnections.Get(2);
+	pKnee = pInstance->mapConnections.Get(3);
 	AssertString("Child", pChild->mszName.Text());
 	AssertString("Root", pRoot->mszName.Text());
 	AssertTrue(&pChild->mpParent == &pRoot);
@@ -163,8 +176,24 @@ static void TestSceneReadConnections(Ptr<CScene> pScene)
 	AssertFloat(2.0f, pChild->msWorldMatrix.pos.x, 3);
 	AssertFloat(4.0f, pChild->msLocalMatrix.pos.z, 3);
 
+	pSkeleton = pInstance->mpSkeleton;
+	AssertTrue(pSkeleton.IsNotNull());
+	AssertString("Legs", pSkeleton->mszName.Text());
+	AssertSize(2, pSkeleton->NumBones());
+	AssertString("Knee", pSkeleton->GetBone(1)->mszName.Text());
+	AssertTrue(&pSkeleton->GetBone(1)->mpParent == &pSkeleton->GetBone(0));
+	AssertFloat(3.0f, pSkeleton->GetBone(1)->msLocalMatrix.pos.y, 3);
+	AssertTrue(pChild->mpBone.IsNull());
+	AssertTrue(&pHip->mpBone == &pSkeleton->GetBone(0));
+	AssertTrue(&pKnee->mpBone == &pSkeleton->GetBone(1));
+	AssertTrue(&pHip->mpParent == &pRoot);
+	AssertTrue(&pKnee->mpParent == &pHip);
+
 	AssertSize(2, pInstance->mapMeshes.Get(0)->mapConnections.NumElements());
-	AssertTrue(&pInstance->mapMeshes.Get(0)->mapConnections.Get(1) == &pRoot);
+	AssertTrue(&pInstance->mapMeshes.Get(0)->mapConnections.Get(0) == &pKnee);
+	AssertTrue(&pInstance->mapMeshes.Get(0)->mapConnections.Get(1) == &pHip);
+	AssertSize(1, pInstance->mapMeshes.Get(1)->mapConnections.NumElements());
+	AssertTrue(&pInstance->mapMeshes.Get(1)->mapConnections.Get(0) == &pChild);
 
 	AssertSize(1, pScene->mapLights.NumElements());
 	pLight = pScene->mapLights.Get(0);
@@ -187,15 +216,24 @@ static void TestSceneReadConnections(Ptr<CScene> pScene)
 	AssertFloat(100.0f, pCamera->mfFar, 3);
 	AssertTrue(&pCamera->mpConnection == &pRoot);
 
-	AssertSize(1, pScene->mapAnimations.NumElements());
+	AssertSize(2, pScene->mapAnimations.NumElements());
 	pAnimation = pScene->mapAnimations.Get(0);
 	AssertString("Move", pAnimation->mszName.Text());
+	AssertFalse(pAnimation->IsSkeletal());
 	AssertSize(2, pAnimation->mapTracks.NumElements());
 	pTrack = pAnimation->mapTracks.Get(0);
 	AssertTrue(&pTrack->mpConnection == &pRoot);
 	AssertSize(2, pTrack->NumKeys());
 	AssertFloat(0.5f, pTrack->GetKey(1)->fTime, 3);
 	AssertTrue(&pAnimation->mapTracks.Get(1)->mpConnection == &pChild);
+
+	pAnimation = pScene->mapAnimations.Get(1);
+	AssertString("Kick", pAnimation->mszName.Text());
+	AssertTrue(&pAnimation->mpSkeleton == &pSkeleton);
+	AssertSize(1, pAnimation->mapTracks.NumElements());
+	pTrack = pAnimation->mapTracks.Get(0);
+	AssertTrue(&pTrack->mpBone == &pSkeleton->GetBone(1));
+	AssertTrue(pTrack->mpConnection.IsNull());
 }
 
 
@@ -271,7 +309,9 @@ void TestSceneWrite(void)
 	AssertSize(2, cReader.NumMeshes());
 	AssertSize(1, cReader.NumImages());
 	AssertSize(2, cReader.NumMaterials());
-	AssertSize(2, cReader.NumConnections());
+	AssertSize(4, cReader.NumConnections());
+	AssertSize(1, cReader.NumSkeletons());
+	AssertSize(2, cReader.NumAnimations());
 	AssertSize(1, cReader.NumInstances());
 
 	AssertTrue(cReader.BeginMesh(0));
@@ -633,6 +673,10 @@ void TestSceneFailures(void)
 	Ptr<CInstance>		pOther;
 	Ptr<CMeshEditor>	pEditor;
 	Ptr<CInstanceMesh>	pInstanceMesh;
+	Ptr<CSkeleton>		pSkeleton;
+	Ptr<CSceneAnimation>	pAnimation;
+	Ptr<CConnectionAnimation>	pTrack;
+	SFloat4x4			sMatrix;
 	CFileUtil			cFileUtil;
 
 	pScene = OMalloc<CScene>();
@@ -666,6 +710,30 @@ void TestSceneFailures(void)
 	AssertTrue(pScene->WriteFile(SCENE_OUTPUT_DIR _FS_ "Elsewhere.DRG"));
 	pScene = OMalloc<CScene>();
 	AssertFalse(pScene->ReadFile(SCENE_OUTPUT_DIR _FS_ "Elsewhere.DRG"));
+
+	//A skin's bones in a skeleton no instance or animation of the scene has, and a skeleton's animation moving another's bone.
+	pSkeleton = OMalloc<CSkeleton>();
+	sMatrix.Identity();
+	pSkeleton->AddBone("Bone", NULL, &sMatrix);
+	pScene = OMalloc<CScene>();
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->mpMesh->mcSkin.mbInUse = true;
+	pEditor->mpMesh->mcSkin.mapBones.Add(pSkeleton->GetBone(0));
+	pInstance = OMalloc<CInstance>();
+	pInstance->AddMesh(pEditor);
+	pScene->mapInstances.Add(pInstance);
+	AssertFalse(pScene->WriteFile(SCENE_OUTPUT_DIR _FS_ "Bad.DRG"));
+	AssertFalse(cFileUtil.Exists(SCENE_OUTPUT_DIR _FS_ "Bad.DRG"));
+
+	pScene = OMalloc<CScene>();
+	pAnimation = OMalloc<CSceneAnimation>();
+	pAnimation->mpSkeleton = OMalloc<CSkeleton>();
+	pTrack = OMalloc<CConnectionAnimation>();
+	pTrack->mpBone = pSkeleton->GetBone(0);
+	pAnimation->mapTracks.Add(pTrack);
+	pScene->mapAnimations.Add(pAnimation);
+	AssertFalse(pScene->WriteFile(SCENE_OUTPUT_DIR _FS_ "Bad.DRG"));
+	AssertFalse(cFileUtil.Exists(SCENE_OUTPUT_DIR _FS_ "Bad.DRG"));
 }
 
 
@@ -781,9 +849,21 @@ void TestSceneGooberRead(void)
 		AssertTrue(pInstance->mapConnections.Get(i)->mszName.StartsWith("bone") || pInstance->mapConnections.Get(i)->mszName.StartsWith("Bone"));
 	}
 
+	AssertTrue(pInstance->mpSkeleton.IsNotNull());
+	AssertSize(67, pInstance->mpSkeleton->NumBones());
+	for (i = 0; i < 67; i++)
+	{
+		AssertTrue(&pInstance->mapConnections.Get(i)->mpBone == &pInstance->mpSkeleton->GetBone(i));
+	}
+
 	pInstanceMesh = pInstance->mapMeshes.Get(0);
+	AssertTrue(pInstanceMesh->IsSkinned());
 	AssertSize(67, pInstanceMesh->mapConnections.NumElements());
 	pcMesh = &pInstanceMesh->mpEditor->mpMesh;
+	for (i = 0; i < 67; i++)
+	{
+		AssertTrue(&pInstanceMesh->mapConnections.Get(i)->mpBone == &pcMesh->mcSkin.mapBones.Get(i));
+	}
 	AssertInt(3241, pcMesh->NumCorners());
 	AssertInt(6134, pcMesh->NumFaces());
 	AssertLSize(3241, pcMesh->mcSkin.mcSkinVerts.NumElements());
@@ -796,7 +876,8 @@ void TestSceneGooberRead(void)
 	AssertLSize(6134, pcMesh->mcSmoothing.mauiGroups.NumElements());
 
 	AssertSize(1, pScene->mapAnimations.NumElements());
-	AssertSize(140, pScene->mapAnimations.Get(0)->mapTracks.NumElements());
+	AssertTrue(&pScene->mapAnimations.Get(0)->mpSkeleton == &pInstance->mpSkeleton);
+	AssertSize(67, pScene->mapAnimations.Get(0)->mapTracks.NumElements());
 	AssertSize(80, pScene->mapAnimations.Get(0)->mapTracks.Get(0)->masKeys.NumElements());
 	AssertSize(1, pScene->mapParticles.NumElements());
 	AssertLSize(1105, pScene->mapParticles.Get(0)->NumParticles());
@@ -811,9 +892,10 @@ void TestSceneGooberRead(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The most any of an instance's bones has changed in length, from its
-// parent's position to its own, against pafLengths, which it fills the
+// parent bone's position to its own, against pafLengths, which it fills the
 // first time (when it's empty).  A change is against the length and a
 // unit, so that a bone of almost no length doesn't make rounding look big.
+// A root bone hangs from what moves the instance, and the walk moves it.
 //
 //////////////////////////////////////////////////////////////////////////
 static float32 TestSceneGooberBoneChange(Ptr<CInstance> pInstance, CArrayFloat32* pafLengths)
@@ -838,7 +920,7 @@ static float32 TestSceneGooberBoneChange(Ptr<CInstance> pInstance, CArrayFloat32
 	for (i = 0; i < pInstance->mapConnections.NumElements(); i++)
 	{
 		pConnection = pInstance->mapConnections.Get(i);
-		if (pConnection->mpParent.IsNull())
+		if (pConnection->mpParent.IsNull() || pConnection->mpParent->mpBone.IsNull())
 		{
 			continue;
 		}
@@ -901,7 +983,8 @@ void TestSceneGooberWalk(void)
 		asWorlds.Add(&pInstance->mapConnections.Get(i)->msWorldMatrix);
 	}
 
-	pPlayer = OMalloc<CAnimationPlayer>(pAnimation, true);
+	pPlayer = OMalloc<CAnimationPlayer>(pAnimation, pInstance, true);
+	AssertSize(67, pPlayer->NumBound());
 	pPlayer->Apply();
 	pScene->UpdateConnections();
 	fWorst = 0.0f;
@@ -945,6 +1028,143 @@ void TestSceneGooberWalk(void)
 
 	afLengths.Kill();
 	asWorlds.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The distance between the positions of two connections.
+//
+//////////////////////////////////////////////////////////////////////////
+static float32 TestSceneGooberDistance(Ptr<CConnection> pA, Ptr<CConnection> pB)
+{
+	float32	x;
+	float32	y;
+	float32	z;
+
+	x = pA->msWorldMatrix.pos.x - pB->msWorldMatrix.pos.x;
+	y = pA->msWorldMatrix.pos.y - pB->msWorldMatrix.pos.y;
+	z = pA->msWorldMatrix.pos.z - pB->msWorldMatrix.pos.z;
+	return sqrtf(x * x + y * y + z * z);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A second Goober made from the first's skeleton, sharing its mesh and its
+// walk, ten along x from where it stands.  Each walks at its own time: the
+// first's bones are where the walk puts them at its time, as if the second
+// weren't there, and the second's at its own, moved along by its root.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneGooberTwo(void)
+{
+	Ptr<CScene>				pScene;
+	Ptr<CInstance>			pFirst;
+	Ptr<CInstance>			pSecond;
+	Ptr<CConnection>		pRoot;
+	Ptr<CInstanceMesh>		pSecondMesh;
+	Ptr<CSceneAnimation>	pWalk;
+	Ptr<CAnimationPlayer>	pFirstPlayer;
+	Ptr<CAnimationPlayer>	pSecondPlayer;
+	CArrayFloat4x4			asAlone;
+	CArrayFloat32			afFirstLengths;
+	CArrayFloat32			afSecondLengths;
+	size					i;
+	float32					fFirstTime;
+	float32					fSecondTime;
+	float32					fWorst;
+	float32					fDifference;
+	float32					fApart;
+
+	pScene = OMalloc<CScene>();
+	AssertTrue(pScene->ReadFile(SCENE_GOOBER));
+	pFirst = pScene->mapInstances.Get(0);
+	pWalk = pScene->mapAnimations.Get(0);
+	fFirstTime = pWalk->GetDuration() * 0.25f;
+	fSecondTime = pWalk->GetDuration() * 0.6f;
+
+	pFirstPlayer = OMalloc<CAnimationPlayer>(pWalk, pFirst, true);
+	pFirstPlayer->SetTime(fFirstTime);
+	pFirstPlayer->Apply();
+	pScene->UpdateConnections();
+	asAlone.Init();
+	for (i = 0; i < pFirst->mapConnections.NumElements(); i++)
+	{
+		asAlone.Add(&pFirst->mapConnections.Get(i)->msWorldMatrix);
+	}
+	pFirstPlayer->SetTime(0.0f);
+	pFirstPlayer->Apply();
+	pScene->UpdateConnections();
+	afFirstLengths.Init();
+	TestSceneGooberBoneChange(pFirst, &afFirstLengths);
+
+	pSecond = OMalloc<CInstance>();
+	pSecond->mszName.Append("Goober Two");
+	pRoot = OMalloc<CConnection>();
+	pRoot->msLocalMatrix.pos.Init(10.0f, 0.0f, 0.0f, 1.0f);
+	pSecond->mapConnections.Add(pRoot);
+	pSecond->MakeBones(pFirst->mpSkeleton, pRoot);
+	pSecondMesh = pSecond->AddMesh(pFirst->mapMeshes.Get(0)->mpEditor);
+	pScene->mapInstances.Add(pSecond);
+	AssertSize(68, pSecond->mapConnections.NumElements());
+	AssertSize(67, pSecondMesh->mapConnections.NumElements());
+	for (i = 0; i < 67; i++)
+	{
+		AssertTrue(&pSecondMesh->mapConnections.Get(i)->mpBone == &pFirst->mapMeshes.Get(0)->mapConnections.Get(i)->mpBone);
+		AssertFalse(&pSecondMesh->mapConnections.Get(i) == &pFirst->mapMeshes.Get(0)->mapConnections.Get(i));
+	}
+
+	pSecondPlayer = OMalloc<CAnimationPlayer>(pWalk, pSecond, true);
+	AssertSize(67, pSecondPlayer->NumBound());
+	pSecondPlayer->SetTime(0.0f);
+	pSecondPlayer->Apply();
+	pScene->UpdateConnections();
+	afSecondLengths.Init();
+	TestSceneGooberBoneChange(pSecond, &afSecondLengths);
+	AssertSize(66, afSecondLengths.NumElements());
+
+	pFirstPlayer->SetTime(fFirstTime);
+	pSecondPlayer->SetTime(fSecondTime);
+	pFirstPlayer->Apply();
+	pSecondPlayer->Apply();
+	pScene->UpdateConnections();
+
+	fWorst = 0.0f;
+	for (i = 0; i < pFirst->mapConnections.NumElements(); i++)
+	{
+		fDifference = fabsf(pFirst->mapConnections.Get(i)->msWorldMatrix.pos.x - asAlone.Get(i)->pos.x) + fabsf(pFirst->mapConnections.Get(i)->msWorldMatrix.pos.y - asAlone.Get(i)->pos.y) + fabsf(pFirst->mapConnections.Get(i)->msWorldMatrix.pos.z - asAlone.Get(i)->pos.z);
+		fWorst = (fDifference > fWorst) ? fDifference : fWorst;
+	}
+	AssertTrue(fWorst < 0.0001f);
+	AssertTrue(TestSceneGooberBoneChange(pFirst, &afFirstLengths) < 0.001f);
+	AssertTrue(TestSceneGooberBoneChange(pSecond, &afSecondLengths) < 0.001f);
+
+	//At different times their bones aren't just ten apart.
+	fWorst = 0.0f;
+	for (i = 0; i < 67; i++)
+	{
+		fApart = TestSceneGooberDistance(pFirst->mapConnections.Get(i), pSecond->mapConnections.Get(i + 1));
+		fDifference = fabsf(fApart - 10.0f);
+		fWorst = (fDifference > fWorst) ? fDifference : fWorst;
+	}
+	AssertTrue(fWorst > 0.01f);
+
+	//And at the same time they are.
+	pSecondPlayer->SetTime(fFirstTime);
+	pSecondPlayer->Apply();
+	pScene->UpdateConnections();
+	fWorst = 0.0f;
+	for (i = 0; i < 67; i++)
+	{
+		fDifference = fabsf(pSecond->mapConnections.Get(i + 1)->msWorldMatrix.pos.x - pFirst->mapConnections.Get(i)->msWorldMatrix.pos.x - 10.0f) + fabsf(pSecond->mapConnections.Get(i + 1)->msWorldMatrix.pos.y - pFirst->mapConnections.Get(i)->msWorldMatrix.pos.y) + fabsf(pSecond->mapConnections.Get(i + 1)->msWorldMatrix.pos.z - pFirst->mapConnections.Get(i)->msWorldMatrix.pos.z);
+		fWorst = (fDifference > fWorst) ? fDifference : fWorst;
+	}
+	AssertTrue(fWorst < 0.001f);
+
+	afSecondLengths.Kill();
+	afFirstLengths.Kill();
+	asAlone.Kill();
 }
 
 
@@ -1020,6 +1240,8 @@ void TestSceneGoober(void)
 	TestSceneGooberRead();
 	ObjectsFlush();
 	TestSceneGooberWalk();
+	ObjectsFlush();
+	TestSceneGooberTwo();
 	EndTestSceneGoober(uiMaxDebugAllocatorSize);
 
 	TestStatistics();

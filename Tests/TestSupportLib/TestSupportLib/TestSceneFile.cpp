@@ -39,7 +39,8 @@ static const float32	gafBackwards[] = { 1, 0.5f };
 static const float32	gafRed[] = { 1, 0, 0, 0.5f };
 static const float32	gafGrey[] = { 0.25f, 0.25f, 0.25f, 1 };
 static const float32	gafKeyTimes[] = { 0, 0.5f };
-static const int32		gaiInstanceConnections[] = { 1, 0 };
+static const int32		gaiSkinBones[] = { 1, 0 };
+static const int32		gaiInstanceConnections[] = { 1, 0, 2, 3 };
 static const int32		gaiConnectionSlots[] = { 0, 1 };
 static const int32		gaiInstanceMaterials[] = { 1 };
 static const float32	gafParticlePositions[] = { 1, 2, 3,  4, 5, 6 };
@@ -99,6 +100,11 @@ static void WriteSample(const char* szFilename)
 	cWriter.Init(szFilename);
 	AssertTrue(cWriter.Open());
 
+	AssertTrue(cWriter.BeginSkeleton("Legs"));
+	AssertTrue(cWriter.WriteBone("Hip", SCENE_FILE_NONE, gafIdentity));
+	AssertTrue(cWriter.WriteBone("Knee", 0, gafMoved));
+	AssertTrue(cWriter.EndSkeleton());
+
 	AssertTrue(cWriter.BeginMesh("Pyramid"));
 	AssertTrue(cWriter.WritePositions(gafPositions, ArrayCount(gafPositions) / 3));
 	AssertTrue(cWriter.WriteNormals(gafNormals, ArrayCount(gafNormals) / 3));
@@ -115,6 +121,7 @@ static void WriteSample(const char* szFilename)
 	memcpy(af4x4s, gafIdentity, sizeof(gafIdentity));
 	memcpy(&af4x4s[16], gafMoved, sizeof(gafMoved));
 	AssertTrue(cWriter.WriteInverseMatrices(af4x4s, 2));
+	AssertTrue(cWriter.WriteSkinBones(0, gaiSkinBones, 2));
 	AssertTrue(cWriter.EndMesh());
 
 	//Everything can be left out.
@@ -146,6 +153,17 @@ static void WriteSample(const char* szFilename)
 	AssertTrue(cWriter.WriteParity(true));
 	AssertTrue(cWriter.EndConnection());
 
+	AssertTrue(cWriter.BeginConnection("Hip"));
+	AssertTrue(cWriter.WriteParent(0));
+	AssertTrue(cWriter.WriteSkeletonBone(0, 0));
+	AssertTrue(cWriter.EndConnection());
+
+	AssertTrue(cWriter.BeginConnection("Knee"));
+	AssertTrue(cWriter.WriteParent(2));
+	AssertTrue(cWriter.WriteLocalMatrix(gafMoved));
+	AssertTrue(cWriter.WriteSkeletonBone(0, 1));
+	AssertTrue(cWriter.EndConnection());
+
 	AssertTrue(cWriter.BeginLight("Lamp"));
 	AssertTrue(cWriter.WriteLightType(SFLT_Spot));
 	AssertTrue(cWriter.WriteLightColour(gafGrey));
@@ -166,9 +184,14 @@ static void WriteSample(const char* szFilename)
 	AssertTrue(cWriter.WriteTrack(1, gafKeyTimes, gafMoved, 1));
 	AssertTrue(cWriter.EndAnimation());
 
+	AssertTrue(cWriter.BeginAnimation("Kick", 0));
+	AssertTrue(cWriter.WriteTrack(1, gafKeyTimes, af4x4s, 2));
+	AssertTrue(cWriter.EndAnimation());
+
 	AssertTrue(cWriter.BeginInstance("Thing"));
+	AssertTrue(cWriter.WriteInstanceSkeleton(0));
 	AssertTrue(cWriter.WriteConnections(gaiInstanceConnections, ArrayCount(gaiInstanceConnections)));
-	AssertTrue(cWriter.WriteInstanceMesh(0, gaiConnectionSlots, ArrayCount(gaiConnectionSlots), gaiInstanceMaterials, ArrayCount(gaiInstanceMaterials)));
+	AssertTrue(cWriter.WriteInstanceMesh(0, NULL, 0, gaiInstanceMaterials, ArrayCount(gaiInstanceMaterials)));
 	AssertTrue(cWriter.WriteInstanceMesh(1, gaiConnectionSlots, 1, NULL, 0));
 	AssertTrue(cWriter.EndInstance());
 
@@ -262,6 +285,11 @@ static void AssertSampleMesh(CSceneFileReader* pcReader)
 	AssertTrue(pcReader->ReadInverseMatrices(af4x4s));
 	AssertFloats(gafIdentity, af4x4s, 16);
 	AssertFloats(gafMoved, &af4x4s[16], 16);
+
+	AssertInt((int32)0, pcReader->GetSkinSkeleton());
+	AssertLSize(2, pcReader->NumSkinBones());
+	AssertTrue(pcReader->ReadSkinBones(ai));
+	AssertInts(gaiSkinBones, ai, 2);
 }
 
 
@@ -279,6 +307,7 @@ static void AssertSampleEmptyMesh(CSceneFileReader* pcReader)
 	AssertLSize(0, pcReader->NumCorners());
 	AssertSize(0, pcReader->NumUVLayers());
 	AssertLSize(0, pcReader->NumSkinWeights());
+	AssertInt((int32)SCENE_FILE_NONE, pcReader->GetSkinSkeleton());
 	AssertFalse(pcReader->ReadPositions(af));
 	AssertFalse(pcReader->Failed());
 }
@@ -346,11 +375,45 @@ static void AssertSampleMaterials(CSceneFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertSampleConnections(CSceneFileReader* pcReader)
+static void AssertSampleSkeleton(CSceneFileReader* pcReader)
 {
 	float32	af4x4[16];
 
-	AssertSize(2, pcReader->NumConnections());
+	AssertSize(1, pcReader->NumSkeletons());
+	AssertTrue(pcReader->BeginSkeleton(0));
+	AssertName(pcReader, "Legs");
+	AssertSize(2, pcReader->NumBones());
+
+	AssertTrue(pcReader->BeginBone(0));
+	AssertName(pcReader, "Hip");
+	AssertInt((int32)SCENE_FILE_NONE, pcReader->GetParent());
+	AssertTrue(pcReader->ReadLocalMatrix(af4x4));
+	AssertFloats(gafIdentity, af4x4, 16);
+	AssertTrue(pcReader->End());
+
+	AssertTrue(pcReader->BeginBone(1));
+	AssertName(pcReader, "Knee");
+	AssertInt((int32)0, pcReader->GetParent());
+	AssertTrue(pcReader->ReadLocalMatrix(af4x4));
+	AssertFloats(gafMoved, af4x4, 16);
+	AssertTrue(pcReader->End());
+	AssertFalse(pcReader->BeginBone(2));
+
+	AssertTrue(pcReader->End());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertSampleConnections(CSceneFileReader* pcReader)
+{
+	float32	af4x4[16];
+	int32	iSkeleton;
+	int32	iBone;
+
+	AssertSize(4, pcReader->NumConnections());
 
 	AssertTrue(pcReader->BeginConnection(0));
 	AssertName(pcReader, "Root");
@@ -359,6 +422,8 @@ static void AssertSampleConnections(CSceneFileReader* pcReader)
 	AssertFloats(gafIdentity, af4x4, 16);
 	AssertFalse(pcReader->ReadLocalMatrix(af4x4));
 	AssertFalse(pcReader->GetParity());
+	AssertFalse(pcReader->GetSkeletonBone(&iSkeleton, &iBone));
+	AssertInt((int32)SCENE_FILE_NONE, iBone);
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->BeginConnection(1));
@@ -369,6 +434,14 @@ static void AssertSampleConnections(CSceneFileReader* pcReader)
 	AssertTrue(pcReader->ReadLocalMatrix(af4x4));
 	AssertFloats(gafMoved, af4x4, 16);
 	AssertTrue(pcReader->GetParity());
+	AssertTrue(pcReader->End());
+
+	AssertTrue(pcReader->BeginConnection(3));
+	AssertName(pcReader, "Knee");
+	AssertInt((int32)2, pcReader->GetParent());
+	AssertTrue(pcReader->GetSkeletonBone(&iSkeleton, &iBone));
+	AssertInt((int32)0, iSkeleton);
+	AssertInt((int32)1, iBone);
 	AssertTrue(pcReader->End());
 }
 
@@ -421,9 +494,10 @@ static void AssertSampleAnimation(CSceneFileReader* pcReader)
 	float32	afTimes[2];
 	float32	af4x4s[32];
 
-	AssertSize(1, pcReader->NumAnimations());
+	AssertSize(2, pcReader->NumAnimations());
 	AssertTrue(pcReader->BeginAnimation(0));
 	AssertName(pcReader, "Move");
+	AssertInt((int32)SCENE_FILE_NONE, pcReader->GetAnimationSkeleton());
 	AssertSize(2, pcReader->NumTracks());
 
 	AssertTrue(pcReader->BeginTrack(0));
@@ -442,6 +516,19 @@ static void AssertSampleAnimation(CSceneFileReader* pcReader)
 	AssertTrue(pcReader->End());
 
 	AssertTrue(pcReader->End());
+
+	AssertTrue(pcReader->BeginAnimation(1));
+	AssertName(pcReader, "Kick");
+	AssertInt((int32)0, pcReader->GetAnimationSkeleton());
+	AssertSize(1, pcReader->NumTracks());
+	AssertTrue(pcReader->BeginTrack(0));
+	AssertInt((int32)1, pcReader->GetBone());
+	AssertInt((int32)SCENE_FILE_NONE, pcReader->GetAttached());
+	AssertLSize(2, pcReader->NumKeys());
+	AssertTrue(pcReader->ReadKeyMatrices(af4x4s));
+	AssertFloats(gafMoved, &af4x4s[16], 16);
+	AssertTrue(pcReader->End());
+	AssertTrue(pcReader->End());
 }
 
 
@@ -456,16 +543,15 @@ static void AssertSampleInstance(CSceneFileReader* pcReader)
 	AssertSize(1, pcReader->NumInstances());
 	AssertTrue(pcReader->BeginInstance(0));
 	AssertName(pcReader, "Thing");
-	AssertLSize(2, pcReader->NumInstanceConnections());
+	AssertInt((int32)0, pcReader->GetInstanceSkeleton());
+	AssertLSize(4, pcReader->NumInstanceConnections());
 	AssertTrue(pcReader->ReadInstanceConnections(ai));
-	AssertInts(gaiInstanceConnections, ai, 2);
+	AssertInts(gaiInstanceConnections, ai, 4);
 	AssertSize(2, pcReader->NumInstanceMeshes());
 
 	AssertTrue(pcReader->BeginInstanceMesh(0));
 	AssertInt((int32)0, pcReader->GetInstanceMesh());
-	AssertLSize(2, pcReader->NumConnectionSlots());
-	AssertTrue(pcReader->ReadConnectionSlots(ai));
-	AssertInts(gaiConnectionSlots, ai, 2);
+	AssertLSize(0, pcReader->NumConnectionSlots());
 	AssertLSize(1, pcReader->NumInstanceMaterials());
 	AssertTrue(pcReader->ReadInstanceMaterials(ai));
 	AssertInt((int32)1, ai[0]);
@@ -522,6 +608,8 @@ static void AssertSample(const char* szFilename)
 
 	cReader.Init(szFilename);
 	AssertTrue(cReader.Open());
+
+	AssertSampleSkeleton(&cReader);
 
 	AssertSize(2, cReader.NumMeshes());
 	AssertTrue(cReader.BeginMesh(0));
@@ -869,6 +957,125 @@ void TestSceneFileWriterUseFailures(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteOneBoneSkeleton(CSceneFileWriter* pcWriter)
+{
+	AssertTrue(pcWriter->BeginSkeleton("One"));
+	AssertTrue(pcWriter->WriteBone("Only", SCENE_FILE_NONE, gafIdentity));
+	AssertTrue(pcWriter->EndSkeleton());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Bones in the wrong order or that aren't there, and meshes posed by a
+// skeleton's bones used by an instance with another or given slots.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSceneFileWriterSkeletonFailures(void)
+{
+	CSceneFileWriter	cWriter;
+	static const int32	aiBone[] = { 0 };
+	static const int32	aiSlot[] = { 0 };
+	static const int32	aiCounts[] = { 1, 1, 1 };
+	static const int32	aiMatrices[] = { 0, 0, 0 };
+	static const float32	afWeights[] = { 1.0f, 1.0f, 1.0f };
+
+	//A parent that isn't a bone before it.
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	AssertTrue(cWriter.BeginSkeleton("Backwards"));
+	AssertFalse(cWriter.WriteBone("Child", 0, gafIdentity));
+	AssertNoFile(&cWriter);
+
+	//A bone that isn't in its skeleton, or a skeleton that isn't there.
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	WriteOneBoneSkeleton(&cWriter);
+	AssertTrue(cWriter.BeginConnection("Elbow"));
+	AssertTrue(cWriter.WriteSkeletonBone(0, 1));
+	AssertTrue(cWriter.EndConnection());
+	AssertNoFile(&cWriter);
+
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	AssertTrue(cWriter.BeginInstance("Thing"));
+	AssertTrue(cWriter.WriteInstanceSkeleton(0));
+	AssertTrue(cWriter.EndInstance());
+	AssertNoFile(&cWriter);
+
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	WriteOneBoneSkeleton(&cWriter);
+	AssertTrue(cWriter.BeginAnimation("Wave", 0));
+	AssertTrue(cWriter.WriteTrack(1, gafKeyTimes, gafIdentity, 1));
+	AssertTrue(cWriter.EndAnimation());
+	AssertNoFile(&cWriter);
+
+	//Not one bone for each of the skin's matrices.
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	WriteOneBoneSkeleton(&cWriter);
+	BeginTriangle(&cWriter);
+	AssertTrue(cWriter.WriteSkin(aiCounts, 3, aiMatrices, afWeights, 3));
+	AssertTrue(cWriter.WriteInverseMatrices(gafIdentity, 1));
+	AssertTrue(cWriter.WriteSkinBones(0, aiBone, 0));
+	AssertFalse(cWriter.EndMesh());
+	AssertNoFile(&cWriter);
+
+	//A skinned mesh used by an instance with another skeleton, or with none.
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	WriteOneBoneSkeleton(&cWriter);
+	WriteOneBoneSkeleton(&cWriter);
+	BeginTriangle(&cWriter);
+	AssertTrue(cWriter.WriteSkin(aiCounts, 3, aiMatrices, afWeights, 3));
+	AssertTrue(cWriter.WriteInverseMatrices(gafIdentity, 1));
+	AssertTrue(cWriter.WriteSkinBones(0, aiBone, 1));
+	AssertTrue(cWriter.EndMesh());
+	AssertTrue(cWriter.BeginInstance("Thing"));
+	AssertTrue(cWriter.WriteInstanceSkeleton(1));
+	AssertTrue(cWriter.WriteInstanceMesh(0, NULL, 0, NULL, 0));
+	AssertTrue(cWriter.EndInstance());
+	AssertNoFile(&cWriter);
+
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	WriteOneBoneSkeleton(&cWriter);
+	AssertTrue(cWriter.BeginInstance("Thing"));
+	AssertTrue(cWriter.WriteInstanceMesh(0, NULL, 0, NULL, 0));
+	AssertTrue(cWriter.EndInstance());
+	BeginTriangle(&cWriter);
+	AssertTrue(cWriter.WriteSkin(aiCounts, 3, aiMatrices, afWeights, 3));
+	AssertTrue(cWriter.WriteInverseMatrices(gafIdentity, 1));
+	AssertTrue(cWriter.WriteSkinBones(0, aiBone, 1));
+	AssertTrue(cWriter.EndMesh());
+	AssertNoFile(&cWriter);
+
+	//Slots for a mesh its skeleton's bones pose.
+	cWriter.Init(BAD_FILE);
+	AssertTrue(cWriter.Open());
+	WriteOneBoneSkeleton(&cWriter);
+	BeginTriangle(&cWriter);
+	AssertTrue(cWriter.WriteSkin(aiCounts, 3, aiMatrices, afWeights, 3));
+	AssertTrue(cWriter.WriteInverseMatrices(gafIdentity, 1));
+	AssertTrue(cWriter.WriteSkinBones(0, aiBone, 1));
+	AssertTrue(cWriter.EndMesh());
+	AssertTrue(cWriter.BeginConnection("Only"));
+	AssertTrue(cWriter.WriteSkeletonBone(0, 0));
+	AssertTrue(cWriter.EndConnection());
+	AssertTrue(cWriter.BeginInstance("Thing"));
+	AssertTrue(cWriter.WriteInstanceSkeleton(0));
+	AssertTrue(cWriter.WriteConnections(aiSlot, 1));
+	AssertTrue(cWriter.WriteInstanceMesh(0, aiSlot, 1, NULL, 0));
+	AssertTrue(cWriter.EndInstance());
+	AssertNoFile(&cWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Things can refer to what's written after them.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1009,6 +1216,14 @@ void TestSceneFileReaderFailures(void)
 	cFile.Kill();
 	AssertWontOpen();
 
+	//From before skeletons, whose skins were posed another way.
+	iVersion = SCENE_FILE_OLDEST_VERSION - 1;
+	BeginHandMadeFile(&cFile, SCENE_FILE_ID);
+	WriteHandMadeChunk(&cFile, SCENE_CHUNK_VERSION, &iVersion, sizeof(int32));
+	AssertTrue(cFile.WriteClose());
+	cFile.Kill();
+	AssertWontOpen();
+
 	//With a version from the future.
 	iVersion = SCENE_FILE_VERSION + 1;
 	BeginHandMadeFile(&cFile, SCENE_FILE_ID);
@@ -1080,6 +1295,7 @@ void TestSceneFile(void)
 	TestSceneFileWriterMeshFailures();
 	TestSceneFileWriterReferenceFailures();
 	TestSceneFileWriterUseFailures();
+	TestSceneFileWriterSkeletonFailures();
 	TestSceneFileReaderFailures();
 	gcLogger.SetConfig(&sLogConfig);
 

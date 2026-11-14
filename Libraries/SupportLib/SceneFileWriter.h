@@ -20,6 +20,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SCENE_FILE_WRITER_H__
 #define __SCENE_FILE_WRITER_H__
+#include "BaseLib/ArrayInt.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
 #include "SceneFileGeneral.h"
@@ -28,6 +29,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 enum ESceneFileBlock
 {
 	SFB_None,
+	SFB_Skeleton,
 	SFB_Mesh,
 	SFB_Image,
 	SFB_Material,
@@ -55,6 +57,8 @@ struct SSceneFileMeshCounts
 	lsize	uiSmoothGroups;
 	lsize	uiSkinCounts;
 	lsize	uiInverseMatrices;
+	lsize	uiSkinBones;
+	int32	iSkinSkeleton;
 	int32	iMaxPosition;
 	int32	iMaxNormal;
 	int32	iMaxColour;
@@ -68,6 +72,10 @@ struct SSceneFileMeshCounts
 //
 //Everything in a Begin and End goes in any order, once, and may be left out.  If anything fails or is wrong, everything after
 //it fails, and Close fails and leaves no file, so an exporter that only looks at Close's result still knows.
+//
+//A skeleton's bones are written parents first.  An animation is a skeleton's if BeginAnimation is given one, when each track is
+//attached to one of its bones, and the scene's own if not, when each is attached to a connection.  A mesh with SkinBones is posed
+//by its instance's connections for them, so its instance has its skeleton, and gives it no ConnectionSlots.
 class CSceneFileWriter
 {
 protected:
@@ -81,11 +89,22 @@ protected:
 	size					muiNumImages;
 	size					muiNumMaterials;
 	size					muiNumConnections;
+	size					muiNumSkeletons;
+	size					muiNumInstances;
+	size					muiNumBones;				//In the skeleton being written.
 	lsize					muiNumInstanceConnections;
 	int32					miMaxMesh;
 	int32					miMaxImage;
 	int32					miMaxMaterial;
 	int32					miMaxConnection;
+	int32					miMaxSkeleton;
+	int32					miAnimationSkeleton;		//Of the animation being written.
+	int32					miInstanceSkeleton;			//Of the instance being written.
+	CArrayInt				maiSkeletonBones;			//How many bones each skeleton has.
+	CArrayInt				maiBoneReferences;			//A skeleton and the largest of its bones referred to, for each reference.
+	CArrayInt				maiMeshSkeletons;			//Each mesh's SkinSkeleton.
+	CArrayInt				maiInstanceSkeletons;		//Each instance's skeleton.
+	CArrayInt				maiInstanceMeshes;			//The instance, mesh and number of slots of each instance mesh.
 
 public:
 	void	Init(const char* szFilename);
@@ -107,7 +126,12 @@ public:
 	bool	WriteSmoothGroups(const uint32* pauiGroups, lsize uiNumPolygons);
 	bool	WriteSkin(const int32* paiCounts, lsize uiNumPositions, const int32* paiMatrices, const float32* pafWeights, lsize uiNumWeights);
 	bool	WriteInverseMatrices(const float32* paf4x4s, lsize uiNumMatrices);
+	bool	WriteSkinBones(int32 iSkeleton, const int32* paiBones, lsize uiNumMatrices);
 	bool	EndMesh(void);
+
+	bool	BeginSkeleton(const char* szName);
+	bool	WriteBone(const char* szName, int32 iParent, const float32* paf4x4);  //iParent is a bone already written, or SCENE_FILE_NONE.
+	bool	EndSkeleton(void);
 
 	bool	BeginImage(const char* szName);
 	bool	WritePixels(int32 iWidth, int32 iHeight, const char* szChannels, const uint8* puiPixels);
@@ -124,6 +148,7 @@ public:
 	bool	WriteWorldMatrix(const float32* paf4x4);
 	bool	WriteLocalMatrix(const float32* paf4x4);
 	bool	WriteParity(bool bParity);
+	bool	WriteSkeletonBone(int32 iSkeleton, int32 iBone);
 	bool	EndConnection(void);
 
 	bool	BeginLight(const char* szName);
@@ -141,11 +166,12 @@ public:
 
 	bool	WriteAttached(int32 iConnection);  //For a light or a camera.
 
-	bool	BeginAnimation(const char* szName);
-	bool	WriteTrack(int32 iConnection, const float32* pafTimes, const float32* paf4x4s, lsize uiNumKeys);  //Times must go up.
+	bool	BeginAnimation(const char* szName, int32 iSkeleton = SCENE_FILE_NONE);
+	bool	WriteTrack(int32 iAttached, const float32* pafTimes, const float32* paf4x4s, lsize uiNumKeys);  //A bone in a skeleton's animation, and a connection in the scene's.  Times must go up.
 	bool	EndAnimation(void);
 
 	bool	BeginInstance(const char* szName);
+	bool	WriteInstanceSkeleton(int32 iSkeleton);
 	bool	WriteConnections(const int32* paiConnections, lsize uiNumConnections);  //Before the meshes, whose slots index them.
 	bool	WriteInstanceMesh(int32 iMesh, const int32* paiConnectionSlots, lsize uiNumSlots, const int32* paiMaterials, lsize uiNumMaterials);  //paiMaterials can be NULL.
 	bool	EndInstance(void);
@@ -162,6 +188,8 @@ protected:
 	bool	CheckIndices(const int32* paiIndices, lsize uiNumIndices, int32* piMax);
 	bool	CheckRequiredIndices(const int32* paiIndices, lsize uiNumIndices, int32* piMax);
 	bool	CheckMesh(void);
+	bool	AddBoneReference(int32 iSkeleton, const int32* paiBones, lsize uiNumBones);
+	bool	CheckSkeletons(void);
 };
 
 

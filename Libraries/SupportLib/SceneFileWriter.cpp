@@ -39,11 +39,22 @@ void CSceneFileWriter::Init(const char* szFilename)
 	muiNumImages = 0;
 	muiNumMaterials = 0;
 	muiNumConnections = 0;
+	muiNumSkeletons = 0;
+	muiNumInstances = 0;
+	muiNumBones = 0;
 	muiNumInstanceConnections = 0;
 	miMaxMesh = SCENE_FILE_NONE;
 	miMaxImage = SCENE_FILE_NONE;
 	miMaxMaterial = SCENE_FILE_NONE;
 	miMaxConnection = SCENE_FILE_NONE;
+	miMaxSkeleton = SCENE_FILE_NONE;
+	miAnimationSkeleton = SCENE_FILE_NONE;
+	miInstanceSkeleton = SCENE_FILE_NONE;
+	maiSkeletonBones.Init();
+	maiBoneReferences.Init();
+	maiMeshSkeletons.Init();
+	maiInstanceSkeletons.Init();
+	maiInstanceMeshes.Init();
 }
 
 
@@ -59,6 +70,11 @@ void CSceneFileWriter::Kill(void)
 		Fail("Was not closed");
 		Close();
 	}
+	maiInstanceMeshes.Kill();
+	maiInstanceSkeletons.Kill();
+	maiMeshSkeletons.Kill();
+	maiBoneReferences.Kill();
+	maiSkeletonBones.Kill();
 	mszFilename.Kill();
 }
 
@@ -107,9 +123,13 @@ bool CSceneFileWriter::Close(void)
 		{
 			Fail("Something was begun and not ended");
 		}
-		else if ((miMaxMesh >= (int32)muiNumMeshes) || (miMaxImage >= (int32)muiNumImages) || (miMaxMaterial >= (int32)muiNumMaterials) || (miMaxConnection >= (int32)muiNumConnections))
+		else if ((miMaxMesh >= (int32)muiNumMeshes) || (miMaxImage >= (int32)muiNumImages) || (miMaxMaterial >= (int32)muiNumMaterials) || (miMaxConnection >= (int32)muiNumConnections) || (miMaxSkeleton >= (int32)muiNumSkeletons))
 		{
-			Fail("Something refers to a mesh, image, material or connection that isn't there");
+			Fail("Something refers to a mesh, image, material, connection or skeleton that isn't there");
+		}
+		else
+		{
+			CheckSkeletons();
 		}
 	}
 
@@ -298,6 +318,124 @@ bool CSceneFileWriter::CheckRequiredIndices(const int32* paiIndices, lsize uiNum
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Bones are referred to by their skeleton and their place in it.  A
+// skeleton may be written after what refers to it, so each is checked when
+// the file closes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::AddBoneReference(int32 iSkeleton, const int32* paiBones, lsize uiNumBones)
+{
+	int32	iMaxBone;
+
+	ReturnOnFalse(CheckRequiredIndices(&iSkeleton, 1, &miMaxSkeleton));
+	iMaxBone = SCENE_FILE_NONE;
+	ReturnOnFalse(CheckRequiredIndices(paiBones, uiNumBones, &iMaxBone));
+	maiBoneReferences.Add(iSkeleton);
+	maiBoneReferences.Add(iMaxBone);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// That the skeletons have the bones referred to, and that a mesh posed by
+// a skeleton's bones is only used by an instance with that skeleton, which
+// gives it no slots.  Close has already checked the skeletons are there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::CheckSkeletons(void)
+{
+	size	i;
+	int32	iMeshSkeleton;
+	int32	iInstanceSkeleton;
+
+	for (i = 0; i < maiBoneReferences.NumElements(); i += 2)
+	{
+		if (maiBoneReferences.GetValue(i + 1) >= maiSkeletonBones.GetValue((size)maiBoneReferences.GetValue(i)))
+		{
+			return Fail("Something refers to a bone that isn't in its skeleton");
+		}
+	}
+	for (i = 0; i < maiInstanceMeshes.NumElements(); i += 3)
+	{
+		iInstanceSkeleton = maiInstanceSkeletons.GetValue((size)maiInstanceMeshes.GetValue(i));
+		iMeshSkeleton = maiMeshSkeletons.GetValue((size)maiInstanceMeshes.GetValue(i + 1));
+		if (iMeshSkeleton != SCENE_FILE_NONE)
+		{
+			if (iMeshSkeleton != iInstanceSkeleton)
+			{
+				return Fail("An instance uses a mesh posed by a skeleton that isn't the instance's");
+			}
+			if (maiInstanceMeshes.GetValue(i + 2) != 0)
+			{
+				return Fail("An instance gives connection slots to a mesh posed by its skeleton's bones");
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::BeginSkeleton(const char* szName)
+{
+	ReturnOnFalse(Begin(SFB_Skeleton, SCENE_CHUNK_SKELETON, szName));
+	muiNumBones = 0;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A parent comes before its children, which keeps a skeleton's bones in an
+// order they can be made in.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::WriteBone(const char* szName, int32 iParent, const float32* paf4x4)
+{
+	ReturnOnFalse(InBlock(SFB_Skeleton));
+	if ((iParent < SCENE_FILE_NONE) || (iParent >= (int32)muiNumBones))
+	{
+		return Fail("A bone's parent isn't a bone before it");
+	}
+
+	if (!mcFile.WriteChunkBegin())
+	{
+		return Fail("Could not write a chunk");
+	}
+	ReturnOnFalse(WriteChunk(SCENE_CHUNK_NAME, szName, sizeof(char), strlen(szName)));
+	if (iParent != SCENE_FILE_NONE)
+	{
+		ReturnOnFalse(WriteInt32Chunk(SCENE_CHUNK_PARENT, iParent));
+	}
+	ReturnOnFalse(WriteChunk(SCENE_CHUNK_LOCAL, paf4x4, sizeof(float32), SCENE_FILE_FLOATS_IN_MATRIX));
+	if (!mcFile.WriteChunkEnd(SCENE_CHUNK_BONE))
+	{
+		return Fail("Could not write a chunk");
+	}
+	muiNumBones++;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::EndSkeleton(void)
+{
+	ReturnOnFalse(InBlock(SFB_Skeleton));
+	maiSkeletonBones.Add((int)muiNumBones);
+	muiNumSkeletons++;
+	return End(SFB_Skeleton, SCENE_CHUNK_SKELETON);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileWriter::BeginMesh(const char* szName)
@@ -310,6 +448,7 @@ bool CSceneFileWriter::BeginMesh(const char* szName)
 	msMesh.iMaxColour = SCENE_FILE_NONE;
 	msMesh.iMaxSlot = SCENE_FILE_NONE;
 	msMesh.iMaxSkinMatrix = SCENE_FILE_NONE;
+	msMesh.iSkinSkeleton = SCENE_FILE_NONE;
 	return true;
 }
 
@@ -532,6 +671,22 @@ bool CSceneFileWriter::WriteInverseMatrices(const float32* paf4x4s, lsize uiNumM
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bone of each of the skin's matrices.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::WriteSkinBones(int32 iSkeleton, const int32* paiBones, lsize uiNumMatrices)
+{
+	ReturnOnFalse(InBlock(SFB_Mesh));
+	ReturnOnFalse(AddBoneReference(iSkeleton, paiBones, uiNumMatrices));
+	msMesh.iSkinSkeleton = iSkeleton;
+	msMesh.uiSkinBones = uiNumMatrices;
+	ReturnOnFalse(WriteInt32Chunk(SCENE_CHUNK_SKIN_SKELETON, iSkeleton));
+	return WriteChunk(SCENE_CHUNK_SKIN_BONES, paiBones, sizeof(int32), uiNumMatrices);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileWriter::CheckMesh(void)
@@ -576,6 +731,10 @@ bool CSceneFileWriter::CheckMesh(void)
 	{
 		return Fail("A weight refers to a matrix that isn't there");
 	}
+	if ((msMesh.iSkinSkeleton != SCENE_FILE_NONE) && (msMesh.uiSkinBones != msMesh.uiInverseMatrices))
+	{
+		return Fail("There isn't one skin bone for each matrix");
+	}
 	return true;
 }
 
@@ -588,6 +747,7 @@ bool CSceneFileWriter::EndMesh(void)
 {
 	ReturnOnFalse(InBlock(SFB_Mesh));
 	ReturnOnFalse(CheckMesh());
+	maiMeshSkeletons.Add(msMesh.iSkinSkeleton);
 	muiNumMeshes++;
 	return End(SFB_Mesh, SCENE_CHUNK_MESH);
 }
@@ -760,6 +920,22 @@ bool CSceneFileWriter::WriteParity(bool bParity)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::WriteSkeletonBone(int32 iSkeleton, int32 iBone)
+{
+	int32	aiBone[2];
+
+	ReturnOnFalse(InBlock(SFB_Connection));
+	ReturnOnFalse(AddBoneReference(iSkeleton, &iBone, 1));
+	aiBone[0] = iSkeleton;
+	aiBone[1] = iBone;
+	return WriteChunk(SCENE_CHUNK_SKELETON_BONE, aiBone, sizeof(int32), 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CSceneFileWriter::EndConnection(void)
 {
 	ReturnOnFalse(InBlock(SFB_Connection));
@@ -918,9 +1094,16 @@ bool CSceneFileWriter::WriteAttached(int32 iConnection)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::BeginAnimation(const char* szName)
+bool CSceneFileWriter::BeginAnimation(const char* szName, int32 iSkeleton)
 {
-	return Begin(SFB_Animation, SCENE_CHUNK_ANIMATION, szName);
+	ReturnOnFalse(Begin(SFB_Animation, SCENE_CHUNK_ANIMATION, szName));
+	miAnimationSkeleton = iSkeleton;
+	if (iSkeleton == SCENE_FILE_NONE)
+	{
+		return true;
+	}
+	ReturnOnFalse(CheckRequiredIndices(&iSkeleton, 1, &miMaxSkeleton));
+	return WriteInt32Chunk(SCENE_CHUNK_SKELETON, iSkeleton);
 }
 
 
@@ -928,12 +1111,19 @@ bool CSceneFileWriter::BeginAnimation(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneFileWriter::WriteTrack(int32 iConnection, const float32* pafTimes, const float32* paf4x4s, lsize uiNumKeys)
+bool CSceneFileWriter::WriteTrack(int32 iAttached, const float32* pafTimes, const float32* paf4x4s, lsize uiNumKeys)
 {
 	lsize	i;
 
 	ReturnOnFalse(InBlock(SFB_Animation));
-	ReturnOnFalse(CheckRequiredIndices(&iConnection, 1, &miMaxConnection));
+	if (miAnimationSkeleton != SCENE_FILE_NONE)
+	{
+		ReturnOnFalse(AddBoneReference(miAnimationSkeleton, &iAttached, 1));
+	}
+	else
+	{
+		ReturnOnFalse(CheckRequiredIndices(&iAttached, 1, &miMaxConnection));
+	}
 
 	for (i = 1; i < uiNumKeys; i++)
 	{
@@ -947,7 +1137,7 @@ bool CSceneFileWriter::WriteTrack(int32 iConnection, const float32* pafTimes, co
 	{
 		return Fail("Could not write a chunk");
 	}
-	ReturnOnFalse(WriteInt32Chunk(SCENE_CHUNK_ATTACHED, iConnection));
+	ReturnOnFalse(WriteInt32Chunk((miAnimationSkeleton != SCENE_FILE_NONE) ? SCENE_CHUNK_BONE : SCENE_CHUNK_ATTACHED, iAttached));
 	ReturnOnFalse(WriteChunk(SCENE_CHUNK_KEY_TIMES, pafTimes, sizeof(float32), uiNumKeys));
 	ReturnOnFalse(WriteChunk(SCENE_CHUNK_KEY_MATRICES, paf4x4s, sizeof(float32) * SCENE_FILE_FLOATS_IN_MATRIX, uiNumKeys));
 	if (!mcFile.WriteChunkEnd(SCENE_CHUNK_TRACK))
@@ -976,7 +1166,21 @@ bool CSceneFileWriter::BeginInstance(const char* szName)
 {
 	ReturnOnFalse(Begin(SFB_Instance, SCENE_CHUNK_INSTANCE, szName));
 	muiNumInstanceConnections = 0;
+	miInstanceSkeleton = SCENE_FILE_NONE;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneFileWriter::WriteInstanceSkeleton(int32 iSkeleton)
+{
+	ReturnOnFalse(InBlock(SFB_Instance));
+	ReturnOnFalse(CheckRequiredIndices(&iSkeleton, 1, &miMaxSkeleton));
+	miInstanceSkeleton = iSkeleton;
+	return WriteInt32Chunk(SCENE_CHUNK_SKELETON, iSkeleton);
 }
 
 
@@ -1017,7 +1221,10 @@ bool CSceneFileWriter::WriteInstanceMesh(int32 iMesh, const int32* paiConnection
 		return Fail("Could not write a chunk");
 	}
 	ReturnOnFalse(WriteInt32Chunk(SCENE_CHUNK_MESH_INDEX, iMesh));
-	ReturnOnFalse(WriteChunk(SCENE_CHUNK_CONNECTION_SLOTS, paiConnectionSlots, sizeof(int32), uiNumSlots));
+	if (uiNumSlots > 0)
+	{
+		ReturnOnFalse(WriteChunk(SCENE_CHUNK_CONNECTION_SLOTS, paiConnectionSlots, sizeof(int32), uiNumSlots));
+	}
 	if (uiNumMaterials > 0)
 	{
 		ReturnOnFalse(WriteChunk(SCENE_CHUNK_MATERIALS, paiMaterials, sizeof(int32), uiNumMaterials));
@@ -1026,6 +1233,9 @@ bool CSceneFileWriter::WriteInstanceMesh(int32 iMesh, const int32* paiConnection
 	{
 		return Fail("Could not write a chunk");
 	}
+	maiInstanceMeshes.Add((int)muiNumInstances);
+	maiInstanceMeshes.Add(iMesh);
+	maiInstanceMeshes.Add((int)uiNumSlots);
 	return true;
 }
 
@@ -1036,6 +1246,9 @@ bool CSceneFileWriter::WriteInstanceMesh(int32 iMesh, const int32* paiConnection
 //////////////////////////////////////////////////////////////////////////
 bool CSceneFileWriter::EndInstance(void)
 {
+	ReturnOnFalse(InBlock(SFB_Instance));
+	maiInstanceSkeletons.Add(miInstanceSkeleton);
+	muiNumInstances++;
 	return End(SFB_Instance, SCENE_CHUNK_INSTANCE);
 }
 

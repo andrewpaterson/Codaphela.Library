@@ -21,6 +21,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "MeshDefines.h"
 #include "MeshPolygonShape.h"
 #include "MeshSmoothGroups.h"
@@ -320,9 +321,54 @@ static bool ReadSceneFileMaterials(CSceneFileReader* pcReader, CMesh* pcMesh, SS
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The skeleton's bone of each of the skin's matrices.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ReadSceneFileSkin(CSceneFileReader* pcReader, CMesh* pcMesh)
+static bool ReadSceneFileSkinBones(CSceneFileReader* pcReader, CMesh* pcMesh, CArray<CSkeleton>* papSkeletons)
+{
+	CArraySceneFileIndex	aiBones;
+	Ptr<CSkeleton>			pSkeleton;
+	int32					iSkeleton;
+	int32					iBone;
+	size					i;
+	bool					bResult;
+
+	iSkeleton = pcReader->GetSkinSkeleton();
+	if (iSkeleton == SCENE_FILE_NONE)
+	{
+		return true;
+	}
+	if ((papSkeletons == NULL) || (iSkeleton < 0) || ((size)iSkeleton >= papSkeletons->NumElements()))
+	{
+		return gcLogger.Error2(__METHOD__, " A skin's skeleton [", IntToString(iSkeleton), "] isn't in the file.", NULL);
+	}
+	pSkeleton = papSkeletons->Get((size)iSkeleton);
+
+	aiBones.Init();
+	aiBones.Resize(pcReader->NumSkinBones());
+	bResult = (aiBones.NumElements() == 0) || pcReader->ReadSkinBones(aiBones.GetData());
+	for (i = 0; bResult && (i < aiBones.NumElements()); i++)
+	{
+		iBone = aiBones.GetValue(i);
+		if ((iBone < 0) || ((size)iBone >= pSkeleton->NumBones()))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " A skin's bone [", IntToString(iBone), "] isn't in its skeleton [", pSkeleton->mszName.Text(), "].", NULL);
+		}
+		else
+		{
+			pcMesh->mcSkin.mapBones.Add(pSkeleton->GetBone((size)iBone));
+		}
+	}
+	aiBones.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ReadSceneFileSkin(CSceneFileReader* pcReader, CMesh* pcMesh, CArray<CSkeleton>* papSkeletons)
 {
 	CArraySceneFileIndex	aiCounts;
 	CArraySceneFileIndex	aiMatrices;
@@ -377,7 +423,7 @@ static bool ReadSceneFileSkin(CSceneFileReader* pcReader, CMesh* pcMesh)
 	afWeights.Kill();
 	aiMatrices.Kill();
 	aiCounts.Kill();
-	return true;
+	return ReadSceneFileSkinBones(pcReader, pcMesh, papSkeletons);
 }
 
 
@@ -412,7 +458,7 @@ static bool ReadSceneFileSmoothGroups(CSceneFileReader* pcReader, CMesh* pcMesh,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcEditor, CArrayMaterial* papMaterials)
+bool ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcEditor, CArrayMaterial* papMaterials, CArray<CSkeleton>* papSkeletons)
 {
 	SSceneFileFaces			sFaces;
 	CArraySceneFileFloat	afPositions;
@@ -461,7 +507,7 @@ bool ReadSceneFileMesh(CSceneFileReader* pcReader, size uiMesh, CMeshEditor* pcE
 	}
 	ReturnOnFalse(ReadSceneFileColours(pcReader, pcMesh, &sFaces));
 	ReturnOnFalse(ReadSceneFileMaterials(pcReader, pcMesh, &sFaces, papMaterials));
-	ReturnOnFalse(ReadSceneFileSkin(pcReader, pcMesh));
+	ReturnOnFalse(ReadSceneFileSkin(pcReader, pcMesh, papSkeletons));
 	if (pcReader->NumSmoothGroups() > 0)
 	{
 		ReturnOnFalse(ReadSceneFileSmoothGroups(pcReader, pcMesh, &sFaces));
@@ -744,9 +790,76 @@ static void WriteSceneFileUVLayers(CSceneFileWriter* pcWriter, SSceneFilePolygon
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A skeleton knows its bones' places, so only which skeleton is looked for.
 //
 //////////////////////////////////////////////////////////////////////////
-static void WriteSceneFileSkin(CSceneFileWriter* pcWriter, CMesh* pcMesh)
+bool FindSceneFileBone(CArray<CSkeleton>* papSkeletons, Ptr<CBone> pBone, int32* piSkeleton, int32* piBone)
+{
+	size	i;
+
+	if (papSkeletons && pBone.IsNotNull())
+	{
+		for (i = 0; i < papSkeletons->NumElements(); i++)
+		{
+			if (papSkeletons->Get(i)->Contains(pBone))
+			{
+				*piSkeleton = (int32)i;
+				*piBone = (int32)pBone->muiIndex;
+				return true;
+			}
+		}
+	}
+	*piSkeleton = SCENE_FILE_NONE;
+	*piBone = SCENE_FILE_NONE;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bones must all be in one skeleton.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool WriteSceneFileSkinBones(CSceneFileWriter* pcWriter, CMesh* pcMesh, CArray<CSkeleton>* papSkeletons, const char* szName)
+{
+	CArraySceneFileIndex	aiBones;
+	int32					iSkeleton;
+	int32					iBoneSkeleton;
+	int32					iBone;
+	size					i;
+	bool					bResult;
+
+	if (pcMesh->mcSkin.mapBones.NumElements() == 0)
+	{
+		return true;
+	}
+
+	aiBones.Init();
+	iSkeleton = SCENE_FILE_NONE;
+	bResult = true;
+	for (i = 0; bResult && (i < pcMesh->mcSkin.mapBones.NumElements()); i++)
+	{
+		if (!FindSceneFileBone(papSkeletons, pcMesh->mcSkin.mapBones.Get(i), &iBoneSkeleton, &iBone) || ((i > 0) && (iBoneSkeleton != iSkeleton)))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " Mesh [", szName, "] has a skin whose bones aren't all in one skeleton of the scene's.", NULL);
+		}
+		iSkeleton = iBoneSkeleton;
+		aiBones.Add(iBone);
+	}
+	if (bResult)
+	{
+		pcWriter->WriteSkinBones(iSkeleton, aiBones.GetData(), aiBones.NumElements());
+	}
+	aiBones.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool WriteSceneFileSkin(CSceneFileWriter* pcWriter, CMesh* pcMesh, CArray<CSkeleton>* papSkeletons, const char* szName)
 {
 	CArraySceneFileIndex	aiCounts;
 	CArraySceneFileIndex	aiMatrices;
@@ -758,7 +871,7 @@ static void WriteSceneFileSkin(CSceneFileWriter* pcWriter, CMesh* pcMesh)
 
 	if (!pcMesh->mcSkin.InUse())
 	{
-		return;
+		return true;
 	}
 
 	aiCounts.Init();
@@ -783,6 +896,7 @@ static void WriteSceneFileSkin(CSceneFileWriter* pcWriter, CMesh* pcMesh)
 	afWeights.Kill();
 	aiMatrices.Kill();
 	aiCounts.Kill();
+	return WriteSceneFileSkinBones(pcWriter, pcMesh, papSkeletons, szName);
 }
 
 
@@ -790,7 +904,7 @@ static void WriteSceneFileSkin(CSceneFileWriter* pcWriter, CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool WriteSceneFileMesh(CSceneFileWriter* pcWriter, CMeshEditor* pcEditor, CArraySceneFileIndex* paiMaterials)
+bool WriteSceneFileMesh(CSceneFileWriter* pcWriter, CMeshEditor* pcEditor, CArraySceneFileIndex* paiMaterials, CArray<CSkeleton>* papSkeletons)
 {
 	SSceneFilePolygons		sPolygons;
 	CArraySceneFileFloat	afPositions;
@@ -801,6 +915,7 @@ bool WriteSceneFileMesh(CSceneFileWriter* pcWriter, CMeshEditor* pcEditor, CArra
 	SFloat32Vec3*			psPosition;
 	SSceneFileCorner*		psCorner;
 	size					i;
+	bool					bResult;
 
 	pcMesh = &pcEditor->mpMesh;
 	sPolygons.pcMesh = pcMesh;
@@ -862,13 +977,13 @@ bool WriteSceneFileMesh(CSceneFileWriter* pcWriter, CMeshEditor* pcEditor, CArra
 		auiGroups.Kill();
 	}
 
-	WriteSceneFileSkin(pcWriter, pcMesh);
+	bResult = WriteSceneFileSkin(pcWriter, pcMesh, papSkeletons, pcEditor->mszName.Text());
 
 	pcWriter->EndMesh();
 
 	sPolygons.asCorners.Kill();
 	sPolygons.aiFirstFaces.Kill();
 	sPolygons.aiSizes.Kill();
-	return true;
+	return bResult;
 }
 
