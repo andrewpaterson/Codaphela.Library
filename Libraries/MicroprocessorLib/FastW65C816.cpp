@@ -23,32 +23,32 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "FastW65C816.h"
 
 
-#define FAST_816_C		STATUS_CARRY
-#define FAST_816_Z		STATUS_ZERO
-#define FAST_816_I		STATUS_INTERRUPT_DISABLE
-#define FAST_816_D		STATUS_DECIMAL
-#define FAST_816_X		STATUS_INDEX_WIDTH
-#define FAST_816_M		STATUS_ACCUMULATOR_WIDTH
-#define FAST_816_V		STATUS_OVERFLOW
-#define FAST_816_N		STATUS_NEGATIVE
+#define FAST_W65C816_C	STATUS_CARRY
+#define FAST_W65C816_Z	STATUS_ZERO
+#define FAST_W65C816_I	STATUS_INTERRUPT_DISABLE
+#define FAST_W65C816_D	STATUS_DECIMAL
+#define FAST_W65C816_X	STATUS_INDEX_WIDTH
+#define FAST_W65C816_M	STATUS_ACCUMULATOR_WIDTH
+#define FAST_W65C816_V	STATUS_OVERFLOW
+#define FAST_W65C816_N	STATUS_NEGATIVE
 
 //The byte after an operand's address: anywhere in the 16MB, within bank 0 or within the direct page.
-#define FAST_816_WRAP_LONG	0xFFFFFF
-#define FAST_816_WRAP_BANK	0xFFFF
-#define FAST_816_WRAP_PAGE	0xFF
+#define FAST_W65C816_WRAP_LONG	0xFFFFFF
+#define FAST_W65C816_WRAP_BANK	0xFFFF
+#define FAST_W65C816_WRAP_PAGE	0xFF
 
 
 //Read-modify-write operations.
 enum EFast65C816Modify
 {
-	F816M_ASL,
-	F816M_LSR,
-	F816M_ROL,
-	F816M_ROR,
-	F816M_INC,
-	F816M_DEC,
-	F816M_TSB,
-	F816M_TRB,
+	FW65C816M_ASL,
+	FW65C816M_LSR,
+	FW65C816M_ROL,
+	FW65C816M_ROR,
+	FW65C816M_INC,
+	FW65C816M_DEC,
+	FW65C816M_TSB,
+	FW65C816M_TRB,
 };
 
 
@@ -65,7 +65,7 @@ void CFastW65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWri
 	muiD = 0;
 	muiPC = 0;
 	muiDBR = 0;
-	muiP = FAST_816_M | FAST_816_X | FAST_816_I;
+	muiP = FAST_W65C816_M | FAST_W65C816_X | FAST_W65C816_I;
 	mbE = true;
 
 	mbStopped = false;
@@ -76,7 +76,7 @@ void CFastW65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWri
 	muiNext = FAST_65C816_NEXT_INSTRUCTION;
 
 	muiCycles = 0;
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 
 	mfReadByte = fReadByte;
 	mfWriteByte = fWriteByte;
@@ -139,7 +139,7 @@ void CFastW65C816::SetBanks(void)
 	uint32	uiBank;
 	uint32	uiStart;
 
-	for (uiBank = 0; uiBank < FAST_816_BANKS; uiBank++)
+	for (uiBank = 0; uiBank < FAST_W65C816_BANKS; uiBank++)
 	{
 		uiStart = uiBank << 16;
 		mapuiBanks[uiBank] = NULL;
@@ -195,7 +195,7 @@ void CFastW65C816::Reset(void)
 	mbMoving = false;
 
 	mbE = true;
-	muiP = (uint8)((muiP | FAST_816_M | FAST_816_X | FAST_816_I) & ~FAST_816_D);
+	muiP = (uint8)((muiP | FAST_W65C816_M | FAST_W65C816_X | FAST_W65C816_I) & ~FAST_W65C816_D);
 	muiX &= 0xFF;
 	muiY &= 0xFF;
 	muiD = 0;
@@ -537,7 +537,7 @@ inline void CFastW65C816::Decide(void)
 	{
 		muiNext = FAST_65C816_NEXT_NMI;
 	}
-	else if (mbIrq && !(muiP & FAST_816_I))
+	else if (mbIrq && !(muiP & FAST_W65C816_I))
 	{
 		muiNext = FAST_65C816_NEXT_IRQ;
 	}
@@ -585,11 +585,11 @@ void CFastW65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bo
 	uiP = muiP;
 	if (mbE && bHardware)
 	{
-		uiP &= ~FAST_816_X;
+		uiP &= ~FAST_W65C816_X;
 	}
 	Push(uiP);
 
-	muiP = (uint8)((muiP | FAST_816_I) & ~FAST_816_D);
+	muiP = (uint8)((muiP | FAST_W65C816_I) & ~FAST_W65C816_D);
 	SetProgramBank(0);
 
 	uiVector = mbE ? uiEmulationVector : uiNativeVector;
@@ -613,7 +613,7 @@ FORCE_INLINE uint8 CFastW65C816::Read(uint32 uiAddress)
 	uint8*	puiBank;
 
 	muiCycles++;
-	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_816_BANKS - 1)];
+	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_W65C816_BANKS - 1)];
 	if (puiBank)
 	{
 		return puiBank[uiAddress & 0xFFFF];
@@ -635,7 +635,7 @@ FORCE_INLINE void CFastW65C816::Write(uint32 uiAddress, uint8 uiValue)
 	uint8*	puiBank;
 
 	muiCycles++;
-	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_816_BANKS - 1)];
+	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_W65C816_BANKS - 1)];
 	if (puiBank)
 	{
 		puiBank[uiAddress & 0xFFFF] = uiValue;
@@ -768,10 +768,10 @@ inline void CFastW65C816::SetP(uint8 uiP)
 {
 	if (mbE)
 	{
-		uiP |= FAST_816_M | FAST_816_X;
+		uiP |= FAST_W65C816_M | FAST_W65C816_X;
 	}
 	muiP = uiP;
-	if (uiP & FAST_816_X)
+	if (uiP & FAST_W65C816_X)
 	{
 		muiX &= 0xFF;
 		muiY &= 0xFF;
@@ -785,7 +785,7 @@ inline void CFastW65C816::SetP(uint8 uiP)
 //////////////////////////////////////////////////////////////////////////
 inline void CFastW65C816::SetNZ8(uint8 uiValue)
 {
-	muiP = (uint8)((muiP & ~(FAST_816_N | FAST_816_Z)) | (uiValue & FAST_816_N) | (uiValue == 0 ? FAST_816_Z : 0));
+	muiP = (uint8)((muiP & ~(FAST_W65C816_N | FAST_W65C816_Z)) | (uiValue & FAST_W65C816_N) | (uiValue == 0 ? FAST_W65C816_Z : 0));
 }
 
 
@@ -795,7 +795,7 @@ inline void CFastW65C816::SetNZ8(uint8 uiValue)
 //////////////////////////////////////////////////////////////////////////
 inline void CFastW65C816::SetNZ16(uint16 uiValue)
 {
-	muiP = (uint8)((muiP & ~(FAST_816_N | FAST_816_Z)) | ((uiValue >> 8) & FAST_816_N) | (uiValue == 0 ? FAST_816_Z : 0));
+	muiP = (uint8)((muiP & ~(FAST_W65C816_N | FAST_W65C816_Z)) | ((uiValue >> 8) & FAST_W65C816_N) | (uiValue == 0 ? FAST_W65C816_Z : 0));
 }
 
 
@@ -839,7 +839,7 @@ inline void CFastW65C816::SetNZX(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 inline bool CFastW65C816::IsM16(void)
 {
-	return !(muiP & FAST_816_M);
+	return !(muiP & FAST_W65C816_M);
 }
 
 
@@ -849,7 +849,7 @@ inline bool CFastW65C816::IsM16(void)
 //////////////////////////////////////////////////////////////////////////
 inline bool CFastW65C816::IsX16(void)
 {
-	return !(muiP & FAST_816_X);
+	return !(muiP & FAST_W65C816_X);
 }
 
 
@@ -954,10 +954,10 @@ FORCE_INLINE uint32 CFastW65C816::Direct(uint32 uiOffset)
 {
 	if (mbE && ((muiD & 0xFF) == 0))
 	{
-		muiWrap = FAST_816_WRAP_PAGE;
+		muiWrap = FAST_W65C816_WRAP_PAGE;
 		return muiD | (uiOffset & 0xFF);
 	}
-	muiWrap = FAST_816_WRAP_BANK;
+	muiWrap = FAST_W65C816_WRAP_BANK;
 	return (muiD + uiOffset) & 0xFFFF;
 }
 
@@ -969,7 +969,7 @@ FORCE_INLINE uint32 CFastW65C816::Direct(uint32 uiOffset)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE uint32 CFastW65C816::AddressAbsolute(void)
 {
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((uint32)muiDBR << 16) | Fetch16();
 }
 
@@ -989,7 +989,7 @@ inline uint32 CFastW65C816::AddressAbsoluteIndexed(uint16 uiIndex, bool bAlways)
 	{
 		muiCycles++;
 	}
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((((uint32)muiDBR << 16) | uiAddress) + uiIndex) & 0xFFFFFF;
 }
 
@@ -1004,7 +1004,7 @@ inline uint32 CFastW65C816::AddressLong(void)
 	uint16	uiAddress;
 
 	uiAddress = Fetch16();
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((uint32)Fetch() << 16) | uiAddress;
 }
 
@@ -1071,7 +1071,7 @@ inline uint32 CFastW65C816::AddressIndirect(void)
 	}
 	uiLow = Read(Direct(uiOffset));
 	uiHigh = Read(Direct((uint32)uiOffset + 1));
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((uint32)muiDBR << 16) | uiLow | (uiHigh << 8);
 }
 
@@ -1091,7 +1091,7 @@ inline uint32 CFastW65C816::AddressIndirectX(void)
 	muiCycles += (muiD & 0xFF) ? 2 : 1;
 	uiLow = Read(Direct((uint32)uiOffset + muiX));
 	uiHigh = Read(Direct((uint32)uiOffset + muiX + 1));
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((uint32)muiDBR << 16) | uiLow | (uiHigh << 8);
 }
 
@@ -1118,7 +1118,7 @@ inline uint32 CFastW65C816::AddressIndirectY(bool bAlways)
 	{
 		muiCycles++;
 	}
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((((uint32)muiDBR << 16) | uiLow | (uiHigh << 8)) + muiY) & 0xFFFFFF;
 }
 
@@ -1145,7 +1145,7 @@ inline uint32 CFastW65C816::AddressIndirectLong(void)
 	uiLow = Read(uiPointer & 0xFFFF);
 	uiHigh = Read((uiPointer + 1) & 0xFFFF);
 	uiBank = Read((uiPointer + 2) & 0xFFFF);
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((uint32)uiBank << 16) | (uiHigh << 8) | uiLow;
 }
 
@@ -1172,7 +1172,7 @@ inline uint32 CFastW65C816::AddressStack(void)
 
 	uiOffset = Fetch();
 	muiCycles++;
-	muiWrap = FAST_816_WRAP_BANK;
+	muiWrap = FAST_W65C816_WRAP_BANK;
 	return (muiS + uiOffset) & 0xFFFF;
 }
 
@@ -1192,7 +1192,7 @@ inline uint32 CFastW65C816::AddressStackY(void)
 	uiLow = Read(uiPointer);
 	uiHigh = Read((uiPointer + 1) & 0xFFFF);
 	muiCycles++;
-	muiWrap = FAST_816_WRAP_LONG;
+	muiWrap = FAST_W65C816_WRAP_LONG;
 	return ((((uint32)muiDBR << 16) | uiLow | (uiHigh << 8)) + muiY) & 0xFFFFFF;
 }
 
@@ -1277,7 +1277,7 @@ void CFastW65C816::ADC(uint16 uiValue)
 	uint32	uiResult;
 	uint32	uiAccumulator;
 
-	if (muiP & FAST_816_D)
+	if (muiP & FAST_W65C816_D)
 	{
 		Decimal(uiValue, false);
 		return;
@@ -1286,10 +1286,10 @@ void CFastW65C816::ADC(uint16 uiValue)
 	if (IsM16())
 	{
 		uiAccumulator = muiC;
-		uiResult = uiAccumulator + uiValue + (muiP & FAST_816_C);
-		muiP = (uint8)(muiP & ~(FAST_816_C | FAST_816_V));
-		muiP |= (uiResult > 0xFFFF) ? FAST_816_C : 0;
-		muiP |= (~(uiAccumulator ^ uiValue) & (uiAccumulator ^ uiResult) & 0x8000) ? FAST_816_V : 0;
+		uiResult = uiAccumulator + uiValue + (muiP & FAST_W65C816_C);
+		muiP = (uint8)(muiP & ~(FAST_W65C816_C | FAST_W65C816_V));
+		muiP |= (uiResult > 0xFFFF) ? FAST_W65C816_C : 0;
+		muiP |= (~(uiAccumulator ^ uiValue) & (uiAccumulator ^ uiResult) & 0x8000) ? FAST_W65C816_V : 0;
 		muiC = (uint16)uiResult;
 		SetNZ16(muiC);
 	}
@@ -1297,10 +1297,10 @@ void CFastW65C816::ADC(uint16 uiValue)
 	{
 		uiAccumulator = muiC & 0xFF;
 		uiValue &= 0xFF;
-		uiResult = uiAccumulator + uiValue + (muiP & FAST_816_C);
-		muiP = (uint8)(muiP & ~(FAST_816_C | FAST_816_V));
-		muiP |= (uiResult > 0xFF) ? FAST_816_C : 0;
-		muiP |= (~(uiAccumulator ^ uiValue) & (uiAccumulator ^ uiResult) & 0x80) ? FAST_816_V : 0;
+		uiResult = uiAccumulator + uiValue + (muiP & FAST_W65C816_C);
+		muiP = (uint8)(muiP & ~(FAST_W65C816_C | FAST_W65C816_V));
+		muiP |= (uiResult > 0xFF) ? FAST_W65C816_C : 0;
+		muiP |= (~(uiAccumulator ^ uiValue) & (uiAccumulator ^ uiResult) & 0x80) ? FAST_W65C816_V : 0;
 		muiC = (uint16)((muiC & 0xFF00) | (uiResult & 0xFF));
 		SetNZ8((uint8)uiResult);
 	}
@@ -1313,7 +1313,7 @@ void CFastW65C816::ADC(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 void CFastW65C816::SBC(uint16 uiValue)
 {
-	if (muiP & FAST_816_D)
+	if (muiP & FAST_W65C816_D)
 	{
 		Decimal(uiValue, true);
 		return;
@@ -1349,7 +1349,7 @@ void CFastW65C816::Decimal(uint16 uiValue, bool bSubtract)
 	{
 		iOperand = ~iOperand & iMask;
 	}
-	bCarry = (muiP & FAST_816_C) != 0;
+	bCarry = (muiP & FAST_W65C816_C) != 0;
 
 	iResult = 0;
 	for (iNibble = 0; iNibble < iNibbles; iNibble++)
@@ -1372,10 +1372,10 @@ void CFastW65C816::Decimal(uint16 uiValue, bool bSubtract)
 	}
 
 	iShift = (iNibbles - 1) * 4;
-	muiP = (uint8)(muiP & ~(FAST_816_C | FAST_816_V));
+	muiP = (uint8)(muiP & ~(FAST_W65C816_C | FAST_W65C816_V));
 	if ((~(iAccumulator ^ iOperand) & (iAccumulator ^ iResult) & (0x8 << iShift)) != 0)
 	{
-		muiP |= FAST_816_V;
+		muiP |= FAST_W65C816_V;
 	}
 	if (!bSubtract && (iResult > (0xa << iShift) - 1))
 	{
@@ -1387,7 +1387,7 @@ void CFastW65C816::Decimal(uint16 uiValue, bool bSubtract)
 	}
 	if (iResult > iMask)
 	{
-		muiP |= FAST_816_C;
+		muiP |= FAST_W65C816_C;
 	}
 	LDA((uint16)(iResult & iMask));
 }
@@ -1402,14 +1402,14 @@ inline void CFastW65C816::Compare(uint16 uiRegister, uint16 uiValue, bool b16)
 {
 	if (b16)
 	{
-		muiP = (uint8)((muiP & ~FAST_816_C) | ((uiRegister >= uiValue) ? FAST_816_C : 0));
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | ((uiRegister >= uiValue) ? FAST_W65C816_C : 0));
 		SetNZ16((uint16)(uiRegister - uiValue));
 	}
 	else
 	{
 		uiRegister &= 0xFF;
 		uiValue &= 0xFF;
-		muiP = (uint8)((muiP & ~FAST_816_C) | ((uiRegister >= uiValue) ? FAST_816_C : 0));
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | ((uiRegister >= uiValue) ? FAST_W65C816_C : 0));
 		SetNZ8((uint8)(uiRegister - uiValue));
 	}
 }
@@ -1425,10 +1425,10 @@ inline void CFastW65C816::BIT(uint16 uiValue)
 	uint16	uiTop;
 
 	uiTop = IsM16() ? (uint16)(uiValue >> 8) : uiValue;
-	muiP = (uint8)((muiP & ~(FAST_816_N | FAST_816_V | FAST_816_Z)) | (uiTop & (FAST_816_N | FAST_816_V)));
+	muiP = (uint8)((muiP & ~(FAST_W65C816_N | FAST_W65C816_V | FAST_W65C816_Z)) | (uiTop & (FAST_W65C816_N | FAST_W65C816_V)));
 	if (IsM16() ? ((muiC & uiValue) == 0) : (((muiC & uiValue) & 0xFF) == 0))
 	{
-		muiP |= FAST_816_Z;
+		muiP |= FAST_W65C816_Z;
 	}
 }
 
@@ -1441,12 +1441,12 @@ inline uint16 CFastW65C816::ASL(uint16 uiValue)
 {
 	if (IsM16())
 	{
-		muiP = (uint8)((muiP & ~FAST_816_C) | (uiValue >> 15));
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | (uiValue >> 15));
 		uiValue = (uint16)(uiValue << 1);
 	}
 	else
 	{
-		muiP = (uint8)((muiP & ~FAST_816_C) | ((uiValue >> 7) & 1));
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | ((uiValue >> 7) & 1));
 		uiValue = (uint16)((uiValue << 1) & 0xFF);
 	}
 	SetNZM(uiValue);
@@ -1460,7 +1460,7 @@ inline uint16 CFastW65C816::ASL(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 inline uint16 CFastW65C816::LSR(uint16 uiValue)
 {
-	muiP = (uint8)((muiP & ~FAST_816_C) | (uiValue & 1));
+	muiP = (uint8)((muiP & ~FAST_W65C816_C) | (uiValue & 1));
 	uiValue >>= 1;
 	SetNZM(uiValue);
 	return uiValue;
@@ -1475,15 +1475,15 @@ inline uint16 CFastW65C816::ROL(uint16 uiValue)
 {
 	uint16	uiCarry;
 
-	uiCarry = muiP & FAST_816_C;
+	uiCarry = muiP & FAST_W65C816_C;
 	if (IsM16())
 	{
-		muiP = (uint8)((muiP & ~FAST_816_C) | (uiValue >> 15));
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | (uiValue >> 15));
 		uiValue = (uint16)((uiValue << 1) | uiCarry);
 	}
 	else
 	{
-		muiP = (uint8)((muiP & ~FAST_816_C) | ((uiValue >> 7) & 1));
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | ((uiValue >> 7) & 1));
 		uiValue = (uint16)(((uiValue << 1) | uiCarry) & 0xFF);
 	}
 	SetNZM(uiValue);
@@ -1499,8 +1499,8 @@ inline uint16 CFastW65C816::ROR(uint16 uiValue)
 {
 	uint16	uiCarry;
 
-	uiCarry = muiP & FAST_816_C;
-	muiP = (uint8)((muiP & ~FAST_816_C) | (uiValue & 1));
+	uiCarry = muiP & FAST_W65C816_C;
+	muiP = (uint8)((muiP & ~FAST_W65C816_C) | (uiValue & 1));
 	uiValue = (uint16)((uiValue >> 1) | (uiCarry << (IsM16() ? 15 : 7)));
 	SetNZM(uiValue);
 	return uiValue;
@@ -1540,7 +1540,7 @@ inline uint16 CFastW65C816::TSB(uint16 uiValue)
 	uint16	uiMask;
 
 	uiMask = IsM16() ? 0xFFFF : 0xFF;
-	muiP = (uint8)((muiP & ~FAST_816_Z) | (((muiC & uiValue & uiMask) == 0) ? FAST_816_Z : 0));
+	muiP = (uint8)((muiP & ~FAST_W65C816_Z) | (((muiC & uiValue & uiMask) == 0) ? FAST_W65C816_Z : 0));
 	return (uint16)((uiValue | muiC) & uiMask);
 }
 
@@ -1554,7 +1554,7 @@ inline uint16 CFastW65C816::TRB(uint16 uiValue)
 	uint16	uiMask;
 
 	uiMask = IsM16() ? 0xFFFF : 0xFF;
-	muiP = (uint8)((muiP & ~FAST_816_Z) | (((muiC & uiValue & uiMask) == 0) ? FAST_816_Z : 0));
+	muiP = (uint8)((muiP & ~FAST_W65C816_Z) | (((muiC & uiValue & uiMask) == 0) ? FAST_W65C816_Z : 0));
 	return (uint16)(uiValue & ~muiC & uiMask);
 }
 
@@ -1567,19 +1567,19 @@ inline uint16 CFastW65C816::Operate(uint8 uiOperation, uint16 uiValue)
 {
 	switch (uiOperation)
 	{
-	case F816M_ASL:
+	case FW65C816M_ASL:
 		return ASL(uiValue);
-	case F816M_LSR:
+	case FW65C816M_LSR:
 		return LSR(uiValue);
-	case F816M_ROL:
+	case FW65C816M_ROL:
 		return ROL(uiValue);
-	case F816M_ROR:
+	case FW65C816M_ROR:
 		return ROR(uiValue);
-	case F816M_INC:
+	case FW65C816M_INC:
 		return INC(uiValue);
-	case F816M_DEC:
+	case FW65C816M_DEC:
 		return DEC(uiValue);
-	case F816M_TSB:
+	case FW65C816M_TSB:
 		return TSB(uiValue);
 	default:
 		return TRB(uiValue);
@@ -1721,7 +1721,7 @@ void CFastW65C816::BlockMove(int iStep)
 }
 
 
-#define FAST_816_READ_M(base, OPERATION) \
+#define FAST_W65C816_READ_M(base, OPERATION) \
 	case base + 0x01:	OPERATION(ReadM(AddressIndirectX()));					break; \
 	case base + 0x03:	OPERATION(ReadM(AddressStack()));						break; \
 	case base + 0x05:	OPERATION(ReadM(AddressDirect()));						break; \
@@ -1738,14 +1738,14 @@ void CFastW65C816::BlockMove(int iStep)
 	case base + 0x1D:	OPERATION(ReadM(AddressAbsoluteIndexed(muiX, false)));	break; \
 	case base + 0x1F:	OPERATION(ReadM(AddressLongX()));						break;
 
-#define FAST_816_MODIFY(base, OPERATION) \
+#define FAST_W65C816_MODIFY(base, OPERATION) \
 	case base + 0x06:	Modify(AddressDirect(), OPERATION);							break; \
 	case base + 0x0A:	ModifyAccumulator(OPERATION);								break; \
 	case base + 0x0E:	Modify(AddressAbsolute(), OPERATION);						break; \
 	case base + 0x16:	Modify(AddressDirectIndexed(muiX), OPERATION);				break; \
 	case base + 0x1E:	Modify(AddressAbsoluteIndexed(muiX, true), OPERATION);		break;
 
-#define FAST_816_CMP(uiValue)	Compare(muiC, uiValue, IsM16())
+#define FAST_W65C816_CMP(uiValue)	Compare(muiC, uiValue, IsM16())
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1767,18 +1767,18 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 	uiOpcode = Fetch();
 	switch (uiOpcode)
 	{
-	FAST_816_READ_M(0x00, ORA)
-	FAST_816_READ_M(0x20, AND)
-	FAST_816_READ_M(0x40, EOR)
-	FAST_816_READ_M(0x60, ADC)
-	FAST_816_READ_M(0xA0, LDA)
-	FAST_816_READ_M(0xC0, FAST_816_CMP)
-	FAST_816_READ_M(0xE0, SBC)
+	FAST_W65C816_READ_M(0x00, ORA)
+	FAST_W65C816_READ_M(0x20, AND)
+	FAST_W65C816_READ_M(0x40, EOR)
+	FAST_W65C816_READ_M(0x60, ADC)
+	FAST_W65C816_READ_M(0xA0, LDA)
+	FAST_W65C816_READ_M(0xC0, FAST_W65C816_CMP)
+	FAST_W65C816_READ_M(0xE0, SBC)
 
-	FAST_816_MODIFY(0x00, F816M_ASL)
-	FAST_816_MODIFY(0x20, F816M_ROL)
-	FAST_816_MODIFY(0x40, F816M_LSR)
-	FAST_816_MODIFY(0x60, F816M_ROR)
+	FAST_W65C816_MODIFY(0x00, FW65C816M_ASL)
+	FAST_W65C816_MODIFY(0x20, FW65C816M_ROL)
+	FAST_W65C816_MODIFY(0x40, FW65C816M_LSR)
+	FAST_W65C816_MODIFY(0x60, FW65C816M_ROR)
 
 	case 0x81:	WriteM(AddressIndirectX(), muiC);						break;
 	case 0x83:	WriteM(AddressStack(), muiC);							break;
@@ -1836,23 +1836,23 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 		{
 			uiValue &= 0xFF;
 		}
-		muiP = (uint8)((muiP & ~FAST_816_Z) | (((muiC & uiValue) == 0) ? FAST_816_Z : 0));
+		muiP = (uint8)((muiP & ~FAST_W65C816_Z) | (((muiC & uiValue) == 0) ? FAST_W65C816_Z : 0));
 		break;
 
-	case 0x04:	Modify(AddressDirect(), F816M_TSB);						break;
-	case 0x0C:	Modify(AddressAbsolute(), F816M_TSB);					break;
-	case 0x14:	Modify(AddressDirect(), F816M_TRB);						break;
-	case 0x1C:	Modify(AddressAbsolute(), F816M_TRB);					break;
-	case 0xC6:	Modify(AddressDirect(), F816M_DEC);						break;
-	case 0xCE:	Modify(AddressAbsolute(), F816M_DEC);					break;
-	case 0xD6:	Modify(AddressDirectIndexed(muiX), F816M_DEC);			break;
-	case 0xDE:	Modify(AddressAbsoluteIndexed(muiX, true), F816M_DEC);	break;
-	case 0xE6:	Modify(AddressDirect(), F816M_INC);						break;
-	case 0xEE:	Modify(AddressAbsolute(), F816M_INC);					break;
-	case 0xF6:	Modify(AddressDirectIndexed(muiX), F816M_INC);			break;
-	case 0xFE:	Modify(AddressAbsoluteIndexed(muiX, true), F816M_INC);	break;
-	case 0x1A:	ModifyAccumulator(F816M_INC);							break;
-	case 0x3A:	ModifyAccumulator(F816M_DEC);							break;
+	case 0x04:	Modify(AddressDirect(), FW65C816M_TSB);						break;
+	case 0x0C:	Modify(AddressAbsolute(), FW65C816M_TSB);					break;
+	case 0x14:	Modify(AddressDirect(), FW65C816M_TRB);						break;
+	case 0x1C:	Modify(AddressAbsolute(), FW65C816M_TRB);					break;
+	case 0xC6:	Modify(AddressDirect(), FW65C816M_DEC);						break;
+	case 0xCE:	Modify(AddressAbsolute(), FW65C816M_DEC);					break;
+	case 0xD6:	Modify(AddressDirectIndexed(muiX), FW65C816M_DEC);			break;
+	case 0xDE:	Modify(AddressAbsoluteIndexed(muiX, true), FW65C816M_DEC);	break;
+	case 0xE6:	Modify(AddressDirect(), FW65C816M_INC);						break;
+	case 0xEE:	Modify(AddressAbsolute(), FW65C816M_INC);					break;
+	case 0xF6:	Modify(AddressDirectIndexed(muiX), FW65C816M_INC);			break;
+	case 0xFE:	Modify(AddressAbsoluteIndexed(muiX, true), FW65C816M_INC);	break;
+	case 0x1A:	ModifyAccumulator(FW65C816M_INC);							break;
+	case 0x3A:	ModifyAccumulator(FW65C816M_DEC);							break;
 
 	case 0xE8:	SetIndex(&muiX, (uint16)(muiX + 1));					break;
 	case 0xC8:	SetIndex(&muiY, (uint16)(muiY + 1));					break;
@@ -1903,8 +1903,8 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 	case 0xFB:
 		//XCE
 		muiCycles++;
-		bCarry = (muiP & FAST_816_C) != 0;
-		muiP = (uint8)((muiP & ~FAST_816_C) | (mbE ? FAST_816_C : 0));
+		bCarry = (muiP & FAST_W65C816_C) != 0;
+		muiP = (uint8)((muiP & ~FAST_W65C816_C) | (mbE ? FAST_W65C816_C : 0));
 		mbE = bCarry;
 		if (mbE)
 		{
@@ -1917,13 +1917,13 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 		}
 		break;
 
-	case 0x18:	muiCycles++;	muiP &= ~FAST_816_C;	break;
-	case 0x38:	muiCycles++;	muiP |= FAST_816_C;		break;
-	case 0x58:	muiCycles++;	muiP &= ~FAST_816_I;	break;
-	case 0x78:	muiCycles++;	muiP |= FAST_816_I;		break;
-	case 0xD8:	muiCycles++;	muiP &= ~FAST_816_D;	break;
-	case 0xF8:	muiCycles++;	muiP |= FAST_816_D;		break;
-	case 0xB8:	muiCycles++;	muiP &= ~FAST_816_V;	break;
+	case 0x18:	muiCycles++;	muiP &= ~FAST_W65C816_C;	break;
+	case 0x38:	muiCycles++;	muiP |= FAST_W65C816_C;		break;
+	case 0x58:	muiCycles++;	muiP &= ~FAST_W65C816_I;	break;
+	case 0x78:	muiCycles++;	muiP |= FAST_W65C816_I;		break;
+	case 0xD8:	muiCycles++;	muiP &= ~FAST_W65C816_D;	break;
+	case 0xF8:	muiCycles++;	muiP |= FAST_W65C816_D;		break;
+	case 0xB8:	muiCycles++;	muiP &= ~FAST_W65C816_V;	break;
 	case 0xEA:	muiCycles++;							break;
 	case 0x42:
 		//WDM skips its signature byte without reading it.  A computer that gives WDM a meaning finds the byte before PC.
@@ -1948,14 +1948,14 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 		SetP((uint8)(muiP | uiValue));
 		break;
 
-	case 0x10:	Branch(!(muiP & FAST_816_N));		break;
-	case 0x30:	Branch((muiP & FAST_816_N) != 0);	break;
-	case 0x50:	Branch(!(muiP & FAST_816_V));		break;
-	case 0x70:	Branch((muiP & FAST_816_V) != 0);	break;
-	case 0x90:	Branch(!(muiP & FAST_816_C));		break;
-	case 0xB0:	Branch((muiP & FAST_816_C) != 0);	break;
-	case 0xD0:	Branch(!(muiP & FAST_816_Z));		break;
-	case 0xF0:	Branch((muiP & FAST_816_Z) != 0);	break;
+	case 0x10:	Branch(!(muiP & FAST_W65C816_N));		break;
+	case 0x30:	Branch((muiP & FAST_W65C816_N) != 0);	break;
+	case 0x50:	Branch(!(muiP & FAST_W65C816_V));		break;
+	case 0x70:	Branch((muiP & FAST_W65C816_V) != 0);	break;
+	case 0x90:	Branch(!(muiP & FAST_W65C816_C));		break;
+	case 0xB0:	Branch((muiP & FAST_W65C816_C) != 0);	break;
+	case 0xD0:	Branch(!(muiP & FAST_W65C816_Z));		break;
+	case 0xF0:	Branch((muiP & FAST_W65C816_Z) != 0);	break;
 	case 0x80:	Branch(true);						break;
 	case 0x82:
 		//BRL

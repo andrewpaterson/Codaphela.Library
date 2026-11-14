@@ -34,7 +34,7 @@ typedef void(*CFast65C816WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiV
 typedef void(*CFast65C816Signal)(void* pvContext, uint8 uiSignal);
 
 
-#define FAST_816_BANKS					0x100	//The 24 bit address space's 64KB banks.
+#define FAST_W65C816_BANKS					0x100	//The 24 bit address space's 64KB banks.
 
 
 #define FAST_65C816_NEXT_INSTRUCTION	0
@@ -88,7 +88,7 @@ protected:
 	uint32					muiWrap;	//How the byte after an operand's address wraps, see Next.
 
 	uint8*					mpuiMemory;
-	uint8*					mapuiBanks[FAST_816_BANKS];	//Each bank in mpuiMemory when all of it is plain memory, else NULL.
+	uint8*					mapuiBanks[FAST_W65C816_BANKS];	//Each bank in mpuiMemory when all of it is plain memory, else NULL.
 	uint8*					mpuiProgramBank;			//PBR's.
 	uint32					muiMemorySize;
 	uint32					muiHoleStart;
