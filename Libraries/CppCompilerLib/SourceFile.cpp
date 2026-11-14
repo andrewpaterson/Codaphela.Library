@@ -213,8 +213,15 @@ void CSourceFile::SetContents(const char* sz)
 char* CSourceFile::ShortName(void)
 {
 	size		iIndex;
+	size		iOther;
 
+	//Either separator ends the directory: a header found by its path ("Sub/Deep.h") has both on Windows.
 	iIndex = mszFullName.FindFromEnd(FILE_SEPARATOR);
+	iOther = mszFullName.FindFromEnd(OTHER_OS_FILE_SEPARATOR);
+	if ((iOther != ARRAY_ELEMENT_NOT_FOUND) && ((iIndex == ARRAY_ELEMENT_NOT_FOUND) || (iOther > iIndex)))
+	{
+		iIndex = iOther;
+	}
 	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return mszFullName.Text();
@@ -254,7 +261,9 @@ void CSourceFile::Path(CChars* pszPath)
 {
 	CFileUtil	cFileUtil;
 
+	//A name given with the other separator ("Lib/Sub/User.cpp" on Windows) is in Lib\Sub, not in the directory before it.
 	pszPath->Init(mszFullName);
+	cFileUtil.FixSeparators(pszPath);
 	cFileUtil.RemoveLastFromPath(pszPath);
 }
 

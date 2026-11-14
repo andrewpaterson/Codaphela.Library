@@ -162,6 +162,8 @@ CHeaderFile* CHeaderFiles::AddFile(char* szRelativeFileName)
 	szFullName.Init(mszBaseDirectory);
 	szFullName.Append(FILE_SEPARATOR);
 	szFullName.Append(szRelativeFileName);
+	//A header found by its path ("Sub/Deep.h") is kept under the name the disk gives it (Sub\Deep.h on Windows).
+	szFullName.Replace('/', FILE_SEPARATOR[0]);
 	pcHeader = mpcFileMap->AddFile(szFullName.Text(), mbSystem);
 	szFullName.Kill();
 
