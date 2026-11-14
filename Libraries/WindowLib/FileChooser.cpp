@@ -244,6 +244,9 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	psLook = mpDialog->GetLook();
 	pBody = OMalloc<CGridContainer>(pWindow);
 
+	//Backspace goes up from whatever has focus, the list or a button, unless it's File Name, which takes it to delete.
+	pBody->AddInputAction(CIC_Backspace, this, &CFileChooser::GoUp);
+
 	//Every label is as wide as the widest.
 	pLabel = OMalloc<CLabel>(pWindow, psLook->pcTheme->GetFont(), "Files of Type:");
 	iLabelWidth = pLabel->GetRequiredSize().x + GetMetric(TM_DialogLabelGap);
@@ -280,7 +283,6 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetColour(TC_ListSelected), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetColour(TC_ListHover), 4, &sInsets));
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);
 	mpList->SetDoubleClickActivates(true);
-	mpList->AddInputAction(CIC_Backspace, this, &CFileChooser::GoUp);
 	mpScrollPane = OMalloc<CScrollPane>(pWindow, psLook->pcTheme);
 	mpScrollPane->SetContent(mpList);
 	mpScrollPane->SetAlignment(CSH_Stretch, CSV_Stretch);

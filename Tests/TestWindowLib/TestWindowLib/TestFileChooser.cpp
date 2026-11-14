@@ -40,6 +40,7 @@ public:
 	Ptr<CComboBox>		GetFileType(void) { return mpFileType; }
 	Ptr<CComboBox>		GetLookIn(void) { return mpLookIn; }
 	Ptr<CButton>		GetUp(void) { return mpUp; }
+	Ptr<CWindow>		GetDialogWindow(void) { return mpDialog->GetWindow(); }
 	Ptr<CButton>		GetNewFolder(void) { return mpNewFolder; }
 	bool				IsNewFolderPending(void) { return mbNewFolderPending; }
 	bool				IsReplacePending(void) { return mbReplacePending; }
@@ -121,7 +122,7 @@ void TestFileChooserBrowse(void)
 		SDialogLook					sLook;
 		Ptr<CWindowTheme>			pTheme;  //The look only points to it.
 		Ptr<CTestFileChooser>		pChooser;
-		SComponentInputEvent		sEvent;
+		Ptr<CFocus>					pFocus;
 		CColourFormatHelper			cFormat;
 		Ptr<CImageCel>				pFolderIcon;
 		Ptr<CImageCel>				pFileIcon;
@@ -192,11 +193,26 @@ void TestFileChooserBrowse(void)
 		pChooser->ItemActivated();
 		AssertString(szFullSub.Text(), pChooser->GetDirectory());
 
-		//Backspace in the list goes up, as Up does.
-		memset(&sEvent, 0, sizeof(sEvent));
-		sEvent.eType = CIET_Command;
-		sEvent.eCommand = CIC_Backspace;
-		AssertTrue(pChooser->GetList()->CallInputActions(&sEvent));
+		//Backspace goes up, as Up does, from whatever has focus: the list, or Up once it has been clicked.  File Name takes it.
+		pFocus = pChooser->GetDialogWindow()->GetFocus();
+		pFocus->SetFocus(pChooser->GetList());
+		pFocus->Command(CIC_Backspace, false);
+		AssertString(szFull.Text(), pChooser->GetDirectory());
+		pChooser->GetList()->Select(0);
+		pChooser->ItemActivated();
+		pFocus->SetFocus(pChooser->GetUp());
+		pFocus->Command(CIC_Backspace, false);
+		AssertString(szFull.Text(), pChooser->GetDirectory());
+		pChooser->GetList()->Select(0);
+		pChooser->ItemActivated();
+		pChooser->GetFileName()->SetText("ab");
+		pFocus->SetFocus(pChooser->GetFileName());
+		pFocus->Command(CIC_Backspace, false);
+		AssertString(szFullSub.Text(), pChooser->GetDirectory());
+		AssertString("a", pChooser->GetFileName()->GetText());
+		pChooser->GetFileName()->SetText("");
+		pFocus->SetFocus(pChooser->GetList());
+		pFocus->Command(CIC_Backspace, false);
 		AssertString(szFull.Text(), pChooser->GetDirectory());
 		AssertInt(0, pChooser->GetList()->GetSelected());
 		pChooser->GetList()->Select(0);
