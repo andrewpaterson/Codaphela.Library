@@ -293,6 +293,7 @@
     <ClCompile Include="CPPMangler.cpp" />
     <ClCompile Include="CPPContext.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
+    <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPTemplate.cpp" />
     <ClCompile Include="CPPFunction.cpp" />
     <ClCompile Include="CPPVariable.cpp" />
@@ -534,6 +535,7 @@
     <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPContext.h" />
     <ClInclude Include="CPPDeclarators.h" />
+    <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPTemplate.h" />
     <ClInclude Include="CPPFunction.h" />
     <ClInclude Include="CPPVariable.h" />

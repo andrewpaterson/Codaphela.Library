@@ -926,8 +926,7 @@ CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CAr
 	CCPPTemplateArguments*					pcBindings;
 	CCPPFunction*					pcFunction;
 	CArrayCPP65Types				apsArguments;
-	CArrayCPP65Types				apsDeduced;
-	CArrayInt64						alliDeduced;
+	CCPPDeduction				cDeduction;
 	CChars							szArguments;
 	CCPPSyntaxFunctionSuffix*		pcInClass;
 	CCPPSyntaxParameter*			pcParameter;
@@ -944,15 +943,13 @@ CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CAr
 	{
 		apsArguments.Add(TypeOf(papcArguments->GetPtr(i)));
 	}
-	apsDeduced.Init();
-	alliDeduced.Init();
-	DeduceArguments(pcTemplate, &apsArguments, papcArguments, &apsDeduced, &alliDeduced);
+	cDeduction.Init(this, pcTemplate);
+	cDeduction.Deduce(&apsArguments, papcArguments);
 	apsArguments.Kill();
 
 	szArguments.Init();
-	pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, &apsDeduced, &szArguments, pcNode, &alliDeduced);
-	alliDeduced.Kill();
-	apsDeduced.Kill();
+	pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+	cDeduction.Kill();
 	if (!pcBindings)
 	{
 		szArguments.Kill();
@@ -1021,391 +1018,6 @@ CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CAr
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Deduces a function template's parameters from the types of a call's arguments
-// (an entry may be NULL).  papcArguments are the arguments, or NULL if only their
-// types are known.  papsDeduced gets an entry for each template parameter, NULL if
-// it is not deduced, and palliDeduced the non-type parameters' values
-// (DeduceParameter).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeduceArguments(CCPPTemplate* pcTemplate, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
-{
-	CCPPSyntaxFunctionSuffix*	pcSuffix;
-	size						i;
-
-	pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
-	for (i = 0; i < pcTemplate->mpcDeclaration->macpParameters.NumElements(); i++)
-	{
-		papsDeduced->Add(NULL);
-		palliDeduced->Add(0);
-	}
-	DeduceParameters(pcTemplate, pcSuffix, papsArguments, papcArguments, papsDeduced, palliDeduced);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deduces from each of a function suffix's parameters that has an argument
-// type in papsArguments, until a parameter pack takes the rest.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeduceParameters(CCPPTemplate* pcTemplate, CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
-{
-	CCPPSyntaxParameter*	pcParameter;
-	size					i;
-
-	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < papsArguments->NumElements()); i++)
-	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		if (!DeduceParameter(pcTemplate, pcParameter, papsArguments, papcArguments, i, papsDeduced, palliDeduced))
-		{
-			return;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deduces from the parameter i of a function, whose argument's type is
-// papsArguments' i: a parameter declared as T, T*, T** ... or T& takes the
-// argument's type, less the pointers, and less the const and volatile the
-// parameter has (const T* of const int* is int) or, for T, the argument's
-// own (a const int argument is int).  A function parameter pack (Args ... args)
-// takes the rest of the arguments' types: the template parameter pack's entry is
-// the first and the rest are added after it.  A parameter declared as
-// Name<..., N, ...> (or a pointer or reference to one) deduces from the
-// argument's instance of Name (DeduceFromInstance).  A pointer to a member
-// deduces from the argument's pointer to member (DeduceMemberPointer).  T&& and
-// Args&& ... take ForwardedType.  Returns false once a pack has taken the rest.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DeduceParameter(CCPPTemplate* pcTemplate, CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, size i, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
-{
-	CCPPSyntaxTypeSpecifier*	pcType;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntax*					pcTemplateParameter;
-	SCPP65Type*					psArgument;
-	size						j;
-	size						k;
-	size						uiPointers;
-	bool						bForwarding;
-
-	DeduceMemberPointer(pcTemplate, pcParameter->mpcDeclarator, papsArguments->GetPtr(i), papsDeduced, palliDeduced);
-	pcType = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->mpcType : NULL;
-	if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
-	{
-		return true;
-	}
-	pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
-	if (pcName->GetLast() && pcName->GetLast()->mbTemplateArguments)
-	{
-		psArgument = papsArguments->GetPtr(i);
-		psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
-		if (psArgument && psArgument->IsPointer() && pcParameter->mpcDeclarator && (pcParameter->mpcDeclarator->NumPointers() == 1) && (pcParameter->mpcDeclarator->GetPointer(0)->meKind == CPPP_Pointer))
-		{
-			psArgument = psArgument->psBase;
-		}
-		DeduceFromInstance(pcTemplate, pcName->GetLast(), psArgument, papsDeduced, palliDeduced);
-		return true;
-	}
-	for (j = 0; j < pcTemplate->mpcDeclaration->macpParameters.NumElements(); j++)
-	{
-		pcTemplateParameter = pcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-		if ((pcTemplateParameter->GetKind() != CPPS_TypeParameter) || (((CCPPSyntaxTypeParameter*)pcTemplateParameter)->mpcSymbol != pcName->mpcSymbol))
-		{
-			continue;
-		}
-		bForwarding = IsForwardingReference(pcParameter);
-		if (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack)
-		{
-			//Args ... args takes the types of the rest of the arguments (the pack is the last parameter).
-			for (k = i; k < papsArguments->NumElements(); k++)
-			{
-				psArgument = papsArguments->GetPtr(k);
-				psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
-				if (psArgument)
-				{
-					psArgument = bForwarding ? ForwardedType(psArgument, papcArguments ? papcArguments->GetPtr(k) : NULL) : psArgument->Unqualified();
-				}
-				if (k == i)
-				{
-					papsDeduced->SetPtr(j, psArgument);
-				}
-				else
-				{
-					papsDeduced->Add(psArgument);
-				}
-			}
-			return false;
-		}
-		psArgument = papsArguments->GetPtr(i);
-		if (bForwarding)
-		{
-			if (psArgument && !papsDeduced->GetPtr(j))
-			{
-				papsDeduced->SetPtr(j, ForwardedType(psArgument->WithoutReference(), papcArguments ? papcArguments->GetPtr(i) : NULL));
-			}
-			return true;
-		}
-		uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->NumPointers() : 0;
-		if (uiPointers && (pcParameter->mpcDeclarator->GetPointer(0)->meKind != CPPP_Pointer))
-		{
-			uiPointers = 0;
-		}
-		if (psArgument && (!pcParameter->mpcDeclarator || (pcParameter->mpcDeclarator->NumPointers() == 0)))
-		{
-			//A parameter taken by value: the argument's own const and volatile don't count.  [temp.deduct.call] 2
-			psArgument = psArgument->Unqualified();
-		}
-		for (; psArgument && uiPointers > 0; uiPointers--)
-		{
-			psArgument = psArgument->IsPointer() ? psArgument->psBase : NULL;
-		}
-		if (psArgument && pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
-		{
-			//const T (const T*, const T&) takes T without the const it has.
-			psArgument = mcTypes.Qualified(psArgument, psArgument->bConst && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST), psArgument->bVolatile && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_VOLATILE));
-		}
-		if (psArgument && !papsDeduced->GetPtr(j))
-		{
-			papsDeduced->SetPtr(j, psArgument);
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if the parameter is T&& (or Args&& ...), and not const T&&.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsForwardingReference(CCPPSyntaxParameter* pcParameter)
-{
-	CCPPSyntaxDeclarator*	pcDeclarator;
-
-	pcDeclarator = pcParameter->mpcDeclarator;
-	if (!pcDeclarator || (pcDeclarator->NumPointers() != 1) || (pcDeclarator->GetPointer(0)->meKind != CPPP_RValueReference))
-	{
-		return false;
-	}
-	return !pcParameter->mpcSpecifiers || !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What T is for an argument of type psArgument (not a reference) to T&&.
-// && is a & here, not a type of its own, so only what passing arguments on
-// needs is done (B10 in CppParserTodo.txt has the rest).  T is the argument's
-// type with its own const, so an object or a variable binds as it is.  A
-// value with no address is const, as only a const reference can bind to one,
-// and an array or a function is a const pointer to it, so an array of each
-// length isn't an instance of its own.  A string literal's characters are
-// const here, as the standard has them, or Init("x") would choose Init(char*)
-// over Init(const char*).  (The standard's T is not const for a value, and is
-// an array for an array.)
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcArgument)
-{
-	SCPP65Type*	psPlace;
-
-	if (psArgument->IsArray())
-	{
-		return mcTypes.Qualified(mcTypes.Pointer(psArgument->psBase), true, false);
-	}
-	if (psArgument->IsFunction())
-	{
-		return mcTypes.Qualified(mcTypes.Pointer(psArgument), true, false);
-	}
-	if (psArgument->IsClass() || !pcArgument)
-	{
-		return psArgument;
-	}
-	if (SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression)
-	{
-		return mcTypes.Qualified(mcTypes.Pointer(mcTypes.Qualified(psArgument->psBase, true, false)), true, false);
-	}
-
-	//An array's type here is already the pointer it decays to, but its place is the array.
-	psPlace = PlaceOf(pcArgument);
-	if (psPlace && !psPlace->WithoutReference()->IsArray())
-	{
-		return psArgument;
-	}
-	return mcTypes.Qualified(psArgument, true, psArgument->bVolatile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A parameter declared as a pointer to a member of a template parameter, void
-// (M::*f)(A*, V), deduces M as the class of the argument's pointer to member
-// (&CTarget::Changed), and A and V from the parameters of the argument's member
-// function, as a call's arguments deduce (DeduceParameters).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeduceMemberPointer(CCPPTemplate* pcTemplate, CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psArgument, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
-{
-	CCPPSyntaxPointerOperator*	pcPointer;
-	CCPPSyntaxDeclarator*		pcOuter;
-	CCPPSyntax*					pcSuffix;
-	CCPPSyntax*					pcTemplateParameter;
-	CCPPSymbol*					pcSymbol;
-	size						i;
-	size						j;
-
-	psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
-	if (!psArgument || !psArgument->IsMemberPointer() || !psArgument->pcClass)
-	{
-		return;
-	}
-	for (pcOuter = NULL; pcDeclarator; pcOuter = pcDeclarator, pcDeclarator = pcDeclarator->mpcNested)
-	{
-		for (i = 0; i < pcDeclarator->NumPointers(); i++)
-		{
-			pcPointer = pcDeclarator->GetPointer(i);
-			if (pcPointer->meKind != CPPP_MemberPointer)
-			{
-				continue;
-			}
-			pcSymbol = pcPointer->mpcClass ? pcPointer->mpcClass->mpcSymbol : NULL;
-			for (j = 0; pcSymbol && (j < pcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
-			{
-				pcTemplateParameter = pcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-				if ((pcTemplateParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !papsDeduced->GetPtr(j))
-				{
-					papsDeduced->SetPtr(j, psArgument->pcClass->mpsType);
-				}
-			}
-
-			//The member function's parameters follow the parentheses around (M::*f).
-			pcSuffix = (pcOuter && (pcOuter->macpSuffixes.NumElements() > 0)) ? pcOuter->macpSuffixes.GetPtr(0) : NULL;
-			if (pcSuffix && (pcSuffix->GetKind() == CPPS_FunctionSuffix) && psArgument->psBase && psArgument->psBase->IsFunction())
-			{
-				DeduceParameters(pcTemplate, (CCPPSyntaxFunctionSuffix*)pcSuffix, psArgument->psBase->papsParameters, NULL, papsDeduced, palliDeduced);
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Deduces the template parameters named in a parameter's template arguments,
-// Name<M, J>, from psArgument's class: an instance of the class template Name, or a
-// class derived from one.  Only instances of the primary template are looked in.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DeduceFromInstance(CCPPTemplate* pcTemplate, CCPPSyntaxNameComponent* pcComponent, SCPP65Type* psArgument, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced)
-{
-	CCPPClass*	pcInstance;
-	SCPPBinding*	psBinding;
-	CCPPSyntax*		pcTemplateParameter;
-	CCPPSymbol*		pcSymbol;
-	size			i;
-	size			j;
-
-	if (!psArgument || !psArgument->IsClass() || !pcComponent->mpcSymbol)
-	{
-		return;
-	}
-	pcInstance = FindInstanceBase(psArgument->pcClass, pcComponent->mpcSymbol);
-	if (!pcInstance || (pcInstance->mpcTemplate->mpcPrimary != pcInstance->mpcTemplate) || !pcInstance->mpcBindings)
-	{
-		return;
-	}
-	for (i = 0; (i < pcComponent->macpTemplateArguments.NumElements()) && (i < pcInstance->mpcBindings->macBindings.NumElements()); i++)
-	{
-		pcSymbol = GetArgumentSymbol(pcComponent->macpTemplateArguments.GetPtr(i));
-		psBinding = pcInstance->mpcBindings->macBindings.Get(i);
-		for (j = 0; pcSymbol && (j < pcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
-		{
-			pcTemplateParameter = pcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-			if ((pcTemplateParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && psBinding->psType && !papsDeduced->GetPtr(j))
-			{
-				papsDeduced->SetPtr(j, psBinding->psType);
-			}
-			else if ((pcTemplateParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !psBinding->psType && !papsDeduced->GetPtr(j))
-			{
-				papsDeduced->SetPtr(j, &mcTypes.msInt);
-				palliDeduced->SetValue(j, psBinding->lliValue);
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pcClass if it is an instance of the class template pcTemplate names, else the
-// first of its bases that is.  NULL if none is.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPP65Generator::FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTemplate)
-{
-	CCPPClass*	pcFound;
-	size			i;
-
-	if (pcClass->mpcTemplate && (pcClass->mpcTemplate->mpcPrimary->mpcSymbol == pcTemplate))
-	{
-		return pcClass;
-	}
-	if (!pcClass->HasBases())
-	{
-		BeginQuiet();
-		ResolveBases(pcClass, NULL);
-		EndQuiet();
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		pcFound = FindInstanceBase(pcClass->macBases.Get(i)->pcClass, pcTemplate);
-		if (pcFound)
-		{
-			return pcFound;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The symbol a template argument is just the name of (J or T), or NULL.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPP65Generator::GetArgumentSymbol(CCPPSyntax* pcArgument)
-{
-	CCPPSyntaxTypeId*			pcTypeId;
-	CCPPSyntaxTypeSpecifier*	pcType;
-
-	pcArgument = SkipParentheses(pcArgument);
-	if (pcArgument->GetKind() == CPPS_IdExpression)
-	{
-		return ((CCPPSyntaxIdExpression*)pcArgument)->mpcName->mpcSymbol;
-	}
-	if (pcArgument->GetKind() != CPPS_TypeId)
-	{
-		return NULL;
-	}
-	pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
-	if (pcTypeId->mpcDeclarator && ((pcTypeId->mpcDeclarator->NumPointers() > 0) || (pcTypeId->mpcDeclarator->macpSuffixes.NumElements() > 0)))
-	{
-		return NULL;
-	}
-	pcType = pcTypeId->mpcSpecifiers ? pcTypeId->mpcSpecifiers->mpcType : NULL;
-	if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
-	{
-		return NULL;
-	}
-	return ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The explicit specialisation of a function template for the mangled arguments,
 // or NULL.  A specialisation's arguments are its explicit ones (Size<char>) and
 // those deduced from its parameters' types (Size(short)), worked out once.
@@ -1418,8 +1030,7 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psType;
 	CArrayCPP65Types			apsParameters;
-	CArrayCPP65Types			apsDeduced;
-	CArrayInt64					alliDeduced;
+	CCPPDeduction				cDeduction;
 	size						i;
 	size						j;
 
@@ -1443,15 +1054,13 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 				psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
 				apsParameters.Add((psType && psType->IsReference()) ? psType->psBase : psType);
 			}
-			apsDeduced.Init();
-			alliDeduced.Init();
-			DeduceArguments(pcPrimary, &apsParameters, NULL, &apsDeduced, &alliDeduced);
-			if (!BindArguments(pcPrimary->mpcDeclaration, (pcTemplate->mpcPattern && pcTemplate->mpcPattern->mbTemplateArguments) ? &pcTemplate->mpcPattern->macpTemplateArguments : NULL, &apsDeduced, &pcTemplate->mszArguments, pcNode, &alliDeduced))
+			cDeduction.Init(this, pcPrimary);
+			cDeduction.Deduce(&apsParameters, NULL);
+			if (!BindArguments(pcPrimary->mpcDeclaration, (pcTemplate->mpcPattern && pcTemplate->mpcPattern->mbTemplateArguments) ? &pcTemplate->mpcPattern->macpTemplateArguments : NULL, cDeduction.GetTypes(), &pcTemplate->mszArguments, pcNode, cDeduction.GetValues()))
 			{
 				pcTemplate->mszArguments.Clear();
 			}
-			alliDeduced.Kill();
-			apsDeduced.Kill();
+			cDeduction.Kill();
 			apsParameters.Kill();
 			EndQuiet();
 			mcContext.LeaveBindings();
@@ -1847,8 +1456,7 @@ CCPPTemplate* CCPP65Generator::ChooseTemplate(CArrayCPPTemplates* papcCandidates
 bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int* aiRanks)
 {
 	CArrayCPP65Types			apsArguments;
-	CArrayCPP65Types			apsDeduced;
-	CArrayInt64					alliDeduced;
+	CCPPDeduction				cDeduction;
 	CChars						szArguments;
 	CCPPTemplateArguments*				pcBindings;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
@@ -1876,14 +1484,12 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 		{
 			apsArguments.Add(TypeOf(papcArguments->GetPtr(i)));
 		}
-		apsDeduced.Init();
-		alliDeduced.Init();
-		DeduceArguments(pcTemplate, &apsArguments, papcArguments, &apsDeduced, &alliDeduced);
+		cDeduction.Init(this, pcTemplate);
+		cDeduction.Deduce(&apsArguments, papcArguments);
 		szArguments.Init();
-		pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, &apsDeduced, &szArguments, pcNode, &alliDeduced);
+		pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
 		szArguments.Kill();
-		alliDeduced.Kill();
-		apsDeduced.Kill();
+		cDeduction.Kill();
 		bTakes = pcBindings != NULL;
 	}
 
