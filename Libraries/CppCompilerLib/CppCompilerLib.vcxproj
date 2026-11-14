@@ -190,6 +190,7 @@
     <ClCompile Include="CPPSymbolKey.cpp" />
     <ClCompile Include="CPPIndex.cpp" />
     <ClCompile Include="CPPSemanticPass.cpp" />
+    <ClCompile Include="CPPTypeWriter.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
     <ClCompile Include="CPP65IRFrontEndUnit.cpp" />
     <ClCompile Include="CPP65IRFrontEndStatements.cpp" />
@@ -477,6 +478,7 @@
     <ClInclude Include="CPPSymbolKey.h" />
     <ClInclude Include="CPPIndex.h" />
     <ClInclude Include="CPPSemanticPass.h" />
+    <ClInclude Include="CPPTypeWriter.h" />
     <ClInclude Include="CPP65IRFrontEnd.h" />
     <ClInclude Include="CPPSyntaxLazyDeclaration.h" />
     <ClInclude Include="IRBackend.h" />

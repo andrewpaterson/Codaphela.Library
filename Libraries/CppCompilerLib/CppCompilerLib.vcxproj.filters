@@ -219,6 +219,9 @@
     <ClCompile Include="CPPSemanticPass.cpp">
       <Filter>Source\Highlighter</Filter>
     </ClCompile>
+    <ClCompile Include="CPPTypeWriter.cpp">
+      <Filter>Source\Highlighter</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65IRFrontEnd.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1047,6 +1050,9 @@
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
     <ClInclude Include="CPPSemanticPass.h">
+      <Filter>Source\Highlighter</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPTypeWriter.h">
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
     <ClInclude Include="CPP65IRFrontEnd.h">
