@@ -265,6 +265,7 @@
     <ClInclude Include="NativeCursor.h" />
     <ClInclude Include="TabbedContainer.h" />
     <ClInclude Include="Dialog.h" />
+    <ClInclude Include="SettingsDialog.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="FileChooser.h" />
     <ClInclude Include="GoToDialog.h" />
@@ -306,6 +307,7 @@
     <ClInclude Include="WindowTick.h" />
     <ClInclude Include="ImageBorderContainer.h" />
     <ClInclude Include="KeyCaptureField.h" />
+    <ClInclude Include="KeymapPage.h" />
     <ClInclude Include="TextField.h" />
     <ClInclude Include="TextBackgrounds.h" />
     <ClInclude Include="TextSpans.h" />
@@ -357,6 +359,7 @@
     <ClCompile Include="DocumentWell.cpp" />
     <ClCompile Include="TabbedContainer.cpp" />
     <ClCompile Include="Dialog.cpp" />
+    <ClCompile Include="SettingsDialog.cpp" />
     <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="FileChooser.cpp" />
     <ClCompile Include="GoToDialog.cpp" />
@@ -435,6 +438,7 @@
     <ClCompile Include="WindowTick.cpp" />
     <ClCompile Include="ImageBorderContainer.cpp" />
     <ClCompile Include="KeyCaptureField.cpp" />
+    <ClCompile Include="KeymapPage.cpp" />
     <ClCompile Include="TextField.cpp" />
     <ClCompile Include="TextBackgrounds.cpp" />
     <ClCompile Include="TextSpans.cpp" />

@@ -348,6 +348,9 @@
     <ClInclude Include="Dialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="SettingsDialog.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="MessageDialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
@@ -370,6 +373,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
     <ClInclude Include="KeyCaptureField.h">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClInclude>
+    <ClInclude Include="KeymapPage.h">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClInclude>
     <ClInclude Include="TextField.h">
@@ -746,6 +752,9 @@
     <ClCompile Include="Dialog.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="SettingsDialog.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
     <ClCompile Include="MessageDialog.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
@@ -768,6 +777,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="KeyCaptureField.cpp">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClCompile>
+    <ClCompile Include="KeymapPage.cpp">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClCompile>
     <ClCompile Include="TextField.cpp">
