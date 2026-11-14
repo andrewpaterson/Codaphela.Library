@@ -9,6 +9,9 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="CookedMesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="RenderMesh.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -21,6 +24,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="CookedMesh.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="RenderMesh.h">

@@ -20,12 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="CookedMesh.cpp" />
     <ClCompile Include="RenderMesh.cpp" />
     <ClCompile Include="RenderScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderFactory.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="CookedMesh.h" />
     <ClInclude Include="RenderMesh.h" />
     <ClInclude Include="RenderScene.h" />
   </ItemGroup>

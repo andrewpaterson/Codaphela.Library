@@ -28,13 +28,13 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasterRenderMesh::Init(Ptr<CRasterRenderer> pRenderer, CMesh* pcMesh)
+void CRasterRenderMesh::Init(Ptr<CRasterRenderer> pRenderer, CCookedMesh* pcCooked)
 {
 	PreInit();
 
 	CRenderMesh::Init(pRenderer);
 	mpRasterMesh = OMalloc<CRasterMesh>();
-	BuildRasterMesh(&mpRasterMesh, pcMesh, pRenderer->GetScale());
+	BuildRasterMesh(&mpRasterMesh, pcCooked, pRenderer->GetScale());
 
 	PostInit();
 }

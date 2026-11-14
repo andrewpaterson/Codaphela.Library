@@ -22,22 +22,20 @@ along with Codaphela RenderLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __RENDER_FACTORY_H__
 #include "BaseLib/Constructable.h"
 #include "StandardLib/Pointer.h"
+#include "CookedMesh.h"
 #include "Renderer.h"
 #include "RenderMesh.h"
 
 
-class CMesh;
-
-
 //Makes a renderer, and what it draws, for one kind of device.  The app makes the factory, as it does a CNativeWindowFactory.
-//It isn't an object in the graph, so it outlives everything it makes.  A render mesh is only ever made whole from a mesh,
-//and made again when the mesh changes.
+//It isn't an object in the graph, so it outlives everything it makes.  A render mesh is only ever made whole from a cooked
+//mesh, and made again when the mesh changes.
 class CRenderFactory : public CConstructable
 {
 CONSTRUCTABLE(CRenderFactory);
 public:
 	virtual Ptr<CRenderer>		CreateRenderer(void) =0;
-	virtual Ptr<CRenderMesh>	CreateMesh(Ptr<CRenderer> pRenderer, CMesh* pcMesh) =0;
+	virtual Ptr<CRenderMesh>	CreateMesh(Ptr<CRenderer> pRenderer, CCookedMesh* pcCooked) =0;
 };
 
 

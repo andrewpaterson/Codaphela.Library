@@ -23,22 +23,26 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #include "BaseLib/PrimitiveTypes.h"
 
 
+class CCookedMesh;
 class CMesh;
 class CRasterMesh;
 
 
-//Makes the integer copy of a CMesh that CRasteriser draws, replacing what pcRaster had.  This is where a mesh's floats become
-//what RasterLib wants, so that RasterLib knows nothing of CMesh.
+//Makes the integer copy of a cooked mesh that CRasteriser draws, replacing what pcRaster had.  This is where a mesh's floats
+//become what RasterLib wants, so that RasterLib knows nothing of meshes.  A vertex is a cooked vertex, and a triangle has its first
+//corner's colour if the mesh has vertex colours and its submesh's if not, and is transparent if that colour is.
 //
 //The first centres the mesh on the origin and scales it so that its largest half width is RASTER_MESH_HALF_EXTENT.  The other
 //keeps the mesh where it is at a scale that's given, for meshes that are to be drawn together at their true sizes (see
-//SRasterInstance).
+//SRasterInstance).  Those given a CMesh cook it first, for what has a mesh and no renderer.
 //
-//Both leave out the triangles with no area once their corners are rounded to the raster mesh's units, which depends on the
+//They leave out the triangles with no area once their corners are rounded to the raster mesh's units, which depends on the
 //scale, so it's done here.  A face with no area in the CMesh is the mesh's to take out (see CMeshRemoveDegenerate).
 //
 //A skinned mesh's vertices get its weights, in integers that add up to exactly RASTER_SKIN_ONE, most first (see CRasterMesh),
 //and it has a matrix for each of its inverse matrices.  The vertices stay where the mesh was bound.
+void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked);
+void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale);
 void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh);
 void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale);
 

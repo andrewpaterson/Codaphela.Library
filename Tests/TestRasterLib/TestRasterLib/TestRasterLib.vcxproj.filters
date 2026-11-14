@@ -9,6 +9,9 @@
     <ClCompile Include="TestRasterLib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestCookedMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TestRasterMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

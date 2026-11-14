@@ -25,10 +25,10 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #include "RasterRenderer.h"
 
 
-class CMesh;
+class CCookedMesh;
 
 
-//A mesh as the raster renderer draws it: a CRasterMesh built from a CMesh where it is, at the renderer's scale.
+//A mesh as the raster renderer draws it: a CRasterMesh built from a cooked mesh where it is, at the renderer's scale.
 class CRasterRenderMesh : public CRenderMesh
 {
 CONSTRUCTABLE(CRasterRenderMesh);
@@ -37,7 +37,7 @@ protected:
 	Ptr<CRasterMesh>	mpRasterMesh;
 
 public:
-	void				Init(Ptr<CRasterRenderer> pRenderer, CMesh* pcMesh);
+	void				Init(Ptr<CRasterRenderer> pRenderer, CCookedMesh* pcCooked);
 	void				Class(void) override;
 	void				Free(void) override;
 

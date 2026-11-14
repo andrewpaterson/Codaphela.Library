@@ -35,7 +35,7 @@ public:
 	void				Kill(void);
 
 	Ptr<CRenderer>		CreateRenderer(void) override;
-	Ptr<CRenderMesh>	CreateMesh(Ptr<CRenderer> pRenderer, CMesh* pcMesh) override;
+	Ptr<CRenderMesh>	CreateMesh(Ptr<CRenderer> pRenderer, CCookedMesh* pcCooked) override;
 };
 
 

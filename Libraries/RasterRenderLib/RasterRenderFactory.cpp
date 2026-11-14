@@ -57,8 +57,8 @@ Ptr<CRenderer> CRasterRenderFactory::CreateRenderer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRenderMesh> CRasterRenderFactory::CreateMesh(Ptr<CRenderer> pRenderer, CMesh* pcMesh)
+Ptr<CRenderMesh> CRasterRenderFactory::CreateMesh(Ptr<CRenderer> pRenderer, CCookedMesh* pcCooked)
 {
-	return OMalloc<CRasterRenderMesh>(Ptr<CRasterRenderer>(pRenderer), pcMesh);
+	return OMalloc<CRasterRenderMesh>(Ptr<CRasterRenderer>(pRenderer), pcCooked);
 }
 

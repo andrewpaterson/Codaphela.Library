@@ -166,6 +166,7 @@ void CRenderScene::UpdateEditor(Ptr<CMeshEditor> pEditor)
 {
 	Ptr<CRenderSceneMesh>	pSceneMesh;
 	Ptr<CMesh>				pOutput;
+	Ptr<CCookedMesh>		pCooked;
 
 	if (pEditor.IsNull())
 	{
@@ -187,9 +188,11 @@ void CRenderScene::UpdateEditor(Ptr<CMeshEditor> pEditor)
 	if (pSceneMesh->IsOutOfDate())
 	{
 		pOutput = pEditor->GetOutput();
-		pSceneMesh->Made(mpcFactory->CreateMesh(mpRenderer, &pOutput));
+		pCooked = OMalloc<CCookedMesh>();
+		pCooked->Cook(&pOutput);
 		pOutput = NULL;
 		pEditor->ClearOutput();
+		pSceneMesh->Made(mpcFactory->CreateMesh(mpRenderer, &pCooked));
 	}
 }
 
