@@ -183,6 +183,9 @@
     <ClInclude Include="KeyGiver.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="RevealingUndo.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="EditCommands.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
@@ -582,6 +585,9 @@
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="KeyGiver.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="RevealingUndo.cpp">
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="EditCommands.cpp">

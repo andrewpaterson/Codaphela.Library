@@ -49,6 +49,9 @@
     <ClCompile Include="TestKeymap.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
+    <ClCompile Include="TestRevealingUndo.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
     <ClCompile Include="TestDocking.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>

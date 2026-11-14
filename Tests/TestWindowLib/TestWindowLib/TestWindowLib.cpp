@@ -42,6 +42,7 @@ void TestComponentInput(void);
 void TestComponentInputDevices(void);
 void TestInputAction(void);
 void TestKeymap(void);
+void TestRevealingUndo(void);
 void TestTabbedContainer(void);
 void TestDocking(void);
 void TestComponentInputWinRaw(void);
@@ -110,6 +111,7 @@ void RunWindowTests(void)
 	TestComponentInputDevices();
 	TestInputAction();
 	TestKeymap();
+	TestRevealingUndo();
 	TestTabbedContainer();
 	TestDocking();
 	TestComponentInputWinRaw();

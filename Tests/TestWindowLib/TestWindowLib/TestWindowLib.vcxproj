@@ -266,6 +266,7 @@
     <ClCompile Include="TestComponentInputDevices.cpp" />
     <ClCompile Include="TestInputAction.cpp" />
     <ClCompile Include="TestKeymap.cpp" />
+    <ClCompile Include="TestRevealingUndo.cpp" />
     <ClCompile Include="TestDocking.cpp" />
     <ClCompile Include="TestTabbedContainer.cpp" />
     <ClCompile Include="TestComponentInputWinRaw.cpp" />
