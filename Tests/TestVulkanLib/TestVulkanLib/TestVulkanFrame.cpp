@@ -1,12 +1,15 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/Float4x4.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogToMemory.h"
+#include "BaseLib/Mallocator.h"
 #include "BaseLib/NumberControl.h"
 #include "StandardLib/Objects.h"
+#include "SupportLib/AnimationPlayer.h"
 #include "SupportLib/Camera.h"
 #include "SupportLib/Image.h"
 #include "SupportLib/Instance.h"
@@ -27,6 +30,7 @@
 #define TEST_VULKAN_HEIGHT		150
 #define TEST_VULKAN_BACKGROUND	0xFF102030
 #define TEST_VULKAN_SCALE		1000
+#define TEST_VULKAN_GOOBER		".." _FS_ ".." _FS_ "TestSupportLib" _FS_ "TestSupportLib" _FS_ "Input" _FS_ "Scene" _FS_ "Goober.DRG"
 
 
 //How alike the two renderers' frames are.
@@ -272,20 +276,17 @@ static void TestVulkanCompare(uint32* puiRaster, uint32* puiVulkan, STestVulkanL
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The same scene drawn by the raster renderer and by Vulkan.  They round
-// differently at the edges of triangles and the rasteriser shades in
-// integers, so they're alike, not the same: nearly every pixel drawn by one
-// is drawn by the other, in nearly the same colour.
+// How alike the scene is drawn by the raster renderer and by Vulkan, which
+// draws uiInstances.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera, CVulkanRenderFactory* pcVulkanFactory, size uiInstances)
+static void TestVulkanLikeness(Ptr<CScene> pScene, Ptr<CCamera> pCamera, CVulkanRenderFactory* pcVulkanFactory, size uiInstances, STestVulkanLikeness* psLikeness)
 {
 	CRasterRenderFactory	cRasterFactory;
 	CRasteriser				cRasteriser;
 	CRasterTarget			cTarget;
 	Ptr<CRasterFrame>		pRasterFrame;
 	Ptr<CVulkanFrame>		pVulkanFrame;
-	STestVulkanLikeness		sLikeness;
 	uint32*					puiRaster;
 	uint32*					puiVulkan;
 
@@ -303,10 +304,7 @@ static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera,
 	AssertTrue(pVulkanFrame->Draw(puiVulkan, TEST_VULKAN_WIDTH, TEST_VULKAN_HEIGHT, TEST_VULKAN_BACKGROUND));
 	AssertSize(uiInstances, pVulkanFrame->NumInstances());
 
-	TestVulkanCompare(puiRaster, puiVulkan, &sLikeness);
-	AssertTrue(sLikeness.iCovered > TEST_VULKAN_WIDTH * TEST_VULKAN_HEIGHT / 10);
-	AssertTrue(sLikeness.iDisagree * 50 < sLikeness.iCovered);
-	AssertTrue(sLikeness.fMeanDifference < 4.0);
+	TestVulkanCompare(puiRaster, puiVulkan, psLikeness);
 
 	pVulkanFrame = NULL;
 	pRasterFrame = NULL;
@@ -315,6 +313,24 @@ static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera,
 	cRasterFactory.Kill();
 	free(puiVulkan);
 	free(puiRaster);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// They round differently at the edges of triangles and the rasteriser
+// shades in integers, so they're alike, not the same: nearly every pixel
+// drawn by one is drawn by the other, in nearly the same colour.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera, CVulkanRenderFactory* pcVulkanFactory, size uiInstances)
+{
+	STestVulkanLikeness	sLikeness;
+
+	TestVulkanLikeness(pScene, pCamera, pcVulkanFactory, uiInstances, &sLikeness);
+	AssertTrue(sLikeness.iCovered > TEST_VULKAN_WIDTH * TEST_VULKAN_HEIGHT / 10);
+	AssertTrue(sLikeness.iDisagree * 50 < sLikeness.iCovered);
+	AssertTrue(sLikeness.fMeanDifference < 4.0);
 }
 
 
@@ -464,6 +480,86 @@ void TestVulkanFrameSkinned(CVulkanRenderFactory* pcFactory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A camera on +z looking at the middle of where the instance mesh is posed,
+// far enough away to see it all.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestVulkanFrameOn(Ptr<CCamera> pCamera, CInstanceMesh* pcInstanceMesh)
+{
+	CArrayFloat32Vec3	asPositions;
+	SFloat32Vec3		sMin;
+	SFloat32Vec3		sMax;
+	SFloat32Vec3*		psPosition;
+	float32				fSize;
+	size				i;
+
+	asPositions.Init();
+	AssertTrue(pcInstanceMesh->Pose(&asPositions));
+	sMin = *asPositions.Get(0);
+	sMax = sMin;
+	for (i = 1; i < asPositions.NumElements(); i++)
+	{
+		psPosition = asPositions.Get(i);
+		sMin.Init(fminf(sMin.x, psPosition->x), fminf(sMin.y, psPosition->y), fminf(sMin.z, psPosition->z));
+		sMax.Init(fmaxf(sMax.x, psPosition->x), fmaxf(sMax.y, psPosition->y), fmaxf(sMax.z, psPosition->z));
+	}
+	asPositions.Kill();
+
+	fSize = fmaxf(fmaxf(sMax.x - sMin.x, sMax.y - sMin.y), sMax.z - sMin.z);
+	pCamera->mfNear = fSize * 0.01f;
+	pCamera->mfFar = fSize * 10.0f;
+	Float4x4Translation(&pCamera->mpConnection->msWorldMatrix, (sMin.x + sMax.x) * 0.5f, (sMin.y + sMax.y) * 0.5f, sMax.z + fSize * 1.2f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Goober, read from its converted file, walks, and at each of several times
+// Vulkan poses it where the rasteriser does: nearly every pixel drawn by
+// one is drawn by the other.  Their colours aren't compared, as Vulkan
+// draws Goober's texture and the rasteriser its material's colour.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestVulkanFrameGoober(CVulkanRenderFactory* pcFactory)
+{
+	CFileUtil				cFileUtil;
+	Ptr<CScene>				pScene;
+	Ptr<CInstance>			pInstance;
+	Ptr<CCamera>			pCamera;
+	Ptr<CAnimationPlayer>	pPlayer;
+	STestVulkanLikeness		sLikeness;
+	float64					fDuration;
+	int						iTime;
+
+	if (!cFileUtil.Exists(TEST_VULKAN_GOOBER))
+	{
+		return;
+	}
+
+	pScene = OMalloc<CScene>();
+	AssertTrue(pScene->ReadFile(TEST_VULKAN_GOOBER));
+	pInstance = pScene->mapInstances.Get(0);
+	pPlayer = OMalloc<CAnimationPlayer>(pScene->mapAnimations.Get(0), pInstance, true);
+	fDuration = pScene->mapAnimations.Get(0)->GetDuration();
+	pCamera = OMalloc<CCamera>();
+	pCamera->mfFOV = 0.9f;
+	pCamera->mpConnection = OMalloc<CConnection>();
+
+	for (iTime = 0; iTime < 8; iTime += 3)
+	{
+		pPlayer->SetTime((float32)(fDuration * iTime / 8.0));
+		pPlayer->Apply();
+		pScene->UpdateConnections();
+		TestVulkanFrameOn(pCamera, &pInstance->mapMeshes.Get(0));
+		TestVulkanLikeness(pScene, pCamera, pcFactory, 1, &sLikeness);
+		AssertTrue(sLikeness.iCovered > TEST_VULKAN_WIDTH * TEST_VULKAN_HEIGHT / 20);
+		AssertTrue(sLikeness.iDisagree * 50 < sLikeness.iCovered);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A square two across facing +z, textured by a 2x2 image: red and green
 // over blue and white, top row first, its UVs 0 at the top left.  Its
 // material is white, so the texels are its colours.
@@ -601,9 +697,13 @@ void TestVulkanFrame(void)
 {
 	CVulkanRenderFactory	cFactory;
 	Ptr<CVulkanRenderer>	pRenderer;
+	lsize					uiMaxDebugAllocatorSize;
 
 	BeginTests();
 
+	//Goober's images are bigger than the debug allocator's limit.
+	uiMaxDebugAllocatorSize = guiMaxDebugAllocatorSize;
+	InitAllocatorDebug(32 MB);
 	DataIOInit();
 	NumberInit();
 	ObjectsInit();
@@ -624,6 +724,8 @@ void TestVulkanFrame(void)
 		ObjectsFlush();
 		TestVulkanFrameSkinned(&cFactory);
 		ObjectsFlush();
+		TestVulkanFrameGoober(&cFactory);
+		ObjectsFlush();
 		TestVulkanFrameNoCamera(&cFactory);
 	}
 	pRenderer = NULL;
@@ -632,6 +734,7 @@ void TestVulkanFrame(void)
 	ObjectsKill(false);
 	NumberKill();
 	DataIOKill();
+	InitAllocatorDebug(uiMaxDebugAllocatorSize);
 
 	TestStatistics();
 }
