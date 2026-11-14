@@ -316,9 +316,35 @@ changes behaviour adds its own tests or checks.
    9.2 The IDE's and LogiCim's full checks, TestWindowLib, TestLogicimLib and the KiCad importer tests, all passing.
 
 
-Where it stands
----------------
+Where it stands (2026-11-14)
+----------------------------
 
-A first attempt at a canvas scope (CKS_Canvas, the keymap allowing bare keys for it, and the Add Shortcut dialog taking
-a describer instead of the keymap page) is in CommonLibraries' git stash, "Partial CKS_Canvas key scope, set aside for
-the keymap contexts design".  It hasn't been built; the design above replaces it, so it can be dropped.
+Steps 1 to 9 are built, checked and committed.  What was built differs from the plan above in these ways:
+
+- The key giver (KeyGiver.h) gives to key lists (CKeyListSource), not to commands: the keymap page's copies until OK,
+  or a command set's own keys (CCommandSetKeys, the chooser's).  It has Describe and Give only; removing and resetting
+  stay the page's and the chooser's, and there is no listener: whoever gave the keys binds and keeps them (the IDE's
+  CIDESettings, LogiCim's KeepKeymap).  The page gives as keys are added, so a clash asks then, not at OK.
+- Shadowing is said both ways: a key given in an inner context that a Global command has ("It shadows Open Project
+  there."), and a Global key an inner context's command keeps ("Editor Actions: Duplicate keeps it over the Editor.").
+  So in the IDE, Ctrl+D given to Debug: Step Over no longer moves from the editor's Duplicate: Step Over has it
+  everywhere but the editor.  The IDE's keymap-refused check was changed to say so; the others pass unchanged.
+- The keymap page shows a key's context after it unless it's Global or Editor ("R (Circuit), Ctrl+Shift+F, H").
+- LogiCim's Place commands are captioned "Add <component>", as the toolbar's are, and every library component has
+  one, the 74 series' too.  The check step is keys:<context>:<keys> (which command those keys run there, falling back
+  to Global); real keys over the canvas were tried by hand on an isolated X server (Shift+A places an AND gate, R
+  rotates it), and the hover and text field rules are TestWindowLib's (TestKeymapContextFocus).
+- The chooser's Shortcut line is blank on a library's row, but its buttons stay (components can't be hidden or
+  disabled yet); with nothing to give to they say "Select a component first.".  Its scripted step is chooser, with
+  LOGICIM_CHOOSER_EDITS.
+- Subcircuit commands are made for every circuit of the project, not only those that can go in the one being edited,
+  and are in the Place group.  They follow the project whenever its information is updated (CLogicimWindowContent::
+  FollowSubcircuitCommands), which covers loads, new projects, imports, undo and new subcircuits.  A key dropped on
+  loading because another command has it is dropped from the project too.  placeKeys is "<context>:<keys>" separated
+  by semicolons.
+- Along the way: CDialog::Show measures its body (a message dialog's long message was cut off), and CCommandSet::Remove.
+
+Left open:
+
+- A subcircuit rename keeping its keys isn't checked (the keys are on the circuit, so they should follow it).
+- Add Shortcut's Where combo box is centred in its row rather than left aligned.
