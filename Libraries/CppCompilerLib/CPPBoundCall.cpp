@@ -240,8 +240,9 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	}
 	mpcUnit->Resolved(pcName, pcFunction);
 
-	//memcpy of a few bytes, a constant count, is copied where it is called.
-	if (pcFunction->mbCLinkage && mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
+	//memcpy of a few bytes, a constant count, is copied where it is called: any function of the name, as the
+	//code has always been written (the type checker asked for C linkage, and gave the same type either way).
+	if (mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
 	{
 		pcBound->meHow = CPPBC_InlineMemcpy;
 		return;
