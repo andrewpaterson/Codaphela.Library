@@ -21,30 +21,40 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __VULKAN_FRAME_H__
 #define __VULKAN_FRAME_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Float4x4.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "StandardLib/Array.h"
 #include "SupportLib/Camera.h"
 #include "RenderLib/RenderScene.h"
 #include "VulkanRenderMesh.h"
 
 
-//A mesh somewhere: what its draws push, and whether it's mirrored.  The frame holds the mesh.
+//A mesh somewhere: what its draws push, and whether it's mirrored.  A skinned one's skin, and where its palette is in the frame's.
+//The frame holds the mesh.
 struct SVulkanFrameInstance
 {
 	CVulkanRenderMesh*	pcMesh;
 	SVulkanDraw			sDraw;
+	VkDescriptorSet		hSkin;
+	uint32				uiPaletteOffset;
 	bool				bMirrored;
 };
 
 
 typedef CArrayTemplate<SVulkanFrameInstance>	CArrayVulkanFrameInstance;
+typedef CArrayTemplatePrimitive<OIndex>			CArrayVulkanOIndex;
 
 
 //A frame of a scene as the Vulkan renderer draws it, made by Extract from a CRenderScene whose renderer is a CVulkanRenderer,
 //after Extract updates the render scene, and drawn offscreen by Draw into pixels (0xAARRGGBB, a row of the width after another).
 //
 //Each rigid mesh of each instance is placed by its connection's world matrix, and its normals are turned by that matrix's inverse
-//transpose.  A skinned mesh isn't drawn yet.  The camera is the scene camera, looking along its connection's -z with y up, its
-//field of view across the target's width, as CRasterFrame's is.  With no camera, or a camera that isn't placed, nothing is drawn.
+//transpose.  A skinned mesh is posed in the vertex shader by its palette: each matrix its inverse matrix times the world matrix of
+//the instance mesh's connection for it.  It isn't drawn if a connection is missing, which binding it logged, or if a matrix
+//mirrors, which is an error logged the first time this frame finds it for that instance mesh.
+//
+//The camera is the scene camera, looking along its connection's -z with y up, its field of view across the target's width, as
+//CRasterFrame's is.  With no camera, or a camera that isn't placed, nothing is drawn.
 //
 //The lights are the scene's, as CRasterFrame has them, in the scene's units: ambient lights add up, a directional light is
 //towards its connection's +z, and omni and spot lights are point lights, a spot's cone not being used yet.  A light's amount is
@@ -59,6 +69,8 @@ protected:
 	CArrayVulkanFrameInstance	masInstances;
 	CArray<CVulkanRenderMesh>	mapMeshes;
 	SVulkanFrameData			msData;
+	CArrayFloat4x4				masPalette;			//The skinned mesh being posed's matrices.
+	CArrayVulkanOIndex			maoiMirrorReported;	//The instance meshes a bone mirroring has been logged for.
 
 public:
 	void	Init(Ptr<CRenderScene> pRenderScene, Ptr<CCamera> pCamera);
@@ -72,6 +84,8 @@ public:
 
 protected:
 	void	ExtractInstances(void);
+	bool	ExtractSkinned(CInstance* pcInstance, CInstanceMesh* pcInstanceMesh, CVulkanRenderMesh* pcMesh, SVulkanFrameInstance* psInstance);
+	bool	IsMirrorReported(OIndex oiInstanceMesh);
 	bool	ExtractCamera(int32 iWidth, int32 iHeight);
 	void	ExtractLights(void);
 	void	DrawSubmeshes(CVulkanRenderer* pcRenderer, bool bTransparent);

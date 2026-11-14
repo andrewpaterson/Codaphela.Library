@@ -77,6 +77,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 	F(vkCreateDescriptorPool) \
 	F(vkDestroyDescriptorPool) \
 	F(vkAllocateDescriptorSets) \
+	F(vkFreeDescriptorSets) \
 	F(vkUpdateDescriptorSets) \
 	F(vkCreatePipelineLayout) \
 	F(vkDestroyPipelineLayout) \

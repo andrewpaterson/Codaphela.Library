@@ -43,7 +43,8 @@ typedef CArrayTemplate<SVulkanSubmesh>	CArrayVulkanSubmesh;
 //A mesh as the Vulkan renderer draws it, made from a cooked mesh: buffers of its positions, normals, colours, UVs and indices, and
 //its submeshes.  A mesh with no vertex colours has white ones, and its submeshes' colours are its materials'.  One with vertex
 //colours draws them, its submeshes white.  A submesh is textured with its material's diffuse image, and white with none.  A mesh
-//with no UVs has them all 0.  Its buffers are destroyed when it's freed, as nothing is in flight between frames (see
+//with no UVs has them all 0.  A skinned mesh has its skin in storage buffers too, with the set that gives them to the shaders, and
+//is drawn where its instance's palette poses it (see CVulkanFrame).  Its buffers are destroyed when it's freed, as nothing is in flight between frames (see
 //CVulkanRenderer).
 class CVulkanRenderMesh : public CRenderMesh
 {
@@ -55,6 +56,10 @@ protected:
 	SVulkanBuffer		msColours;
 	SVulkanBuffer		msUVs;
 	SVulkanBuffer		msIndices;
+	SVulkanBuffer		msSkinVertices;
+	SVulkanBuffer		msSkinWeights;
+	VkDescriptorSet		mhSkin;
+	uint32				muiNumMatrices;
 	CArrayVulkanSubmesh	masSubmeshes;
 	bool				mbMade;
 
@@ -64,12 +69,16 @@ public:
 	void			Free(void) override;
 
 	bool			IsDrawable(void);
+	bool			IsSkinned(void);
+	uint32			NumMatrices(void);
+	VkDescriptorSet	GetSkin(void);
 	void			Bind(void);
 	size			NumSubmeshes(void);
 	SVulkanSubmesh*	GetSubmesh(size uiIndex);
 
 protected:
 	bool			Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked);
+	bool			MakeSkin(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked);
 };
 
 

@@ -15,7 +15,8 @@ layout(location = 2) in vec4	inColour;
 layout(location = 3) in vec2	inUV;
 
 //mWorld places the mesh.  avNormal are the rows of what turns its normals (its inverse transpose).  vColour multiplies the
-//vertex's colour: the submesh's for a mesh with no vertex colours, and white for one with.
+//vertex's colour: the submesh's for a mesh with no vertex colours, and white for one with.  A skinned mesh has a 1 in
+//avNormal[0].w, and is put in the world by its palette, not mWorld.
 layout(push_constant) uniform SDraw
 {
 	mat4	mWorld;
@@ -44,6 +45,29 @@ layout(set = 0, binding = 0) uniform SFrame
 	SDirectionalLight	asDirectional[MAX_DIRECTIONAL_LIGHTS];
 	SPointLight			asPoint[MAX_POINT_LIGHTS];
 } sFrame;
+
+//A skinned mesh's vertex has uvFirstCount.y weights from uvFirstCount.x, each a matrix of the palette and how much of the vertex it
+//moves.  The palette is its instance's: each matrix is where it puts the mesh from where it was bound.
+struct SWeight
+{
+	uint	uiMatrix;
+	float	fWeight;
+};
+
+layout(std430, set = 2, binding = 0) readonly buffer SSkinVertices
+{
+	uvec2	auvFirstCount[];
+} sSkinVertices;
+
+layout(std430, set = 2, binding = 1) readonly buffer SSkinWeights
+{
+	SWeight	asWeights[];
+} sSkinWeights;
+
+layout(std430, set = 2, binding = 2) readonly buffer SPalette
+{
+	mat4	amMatrices[];
+} sPalette;
 
 layout(location = 0) out vec4	outColour;
 layout(location = 1) out float	outShade;
@@ -80,6 +104,34 @@ float PointShade(SPointLight sLight, vec3 vNormal, vec3 vWorld)
 }
 
 
+//Where a skinned vertex is: where each of its matrices puts it, by its weight, and its normal turned by each.  One with no
+//weights stays where the mesh was bound.
+void Skin(out vec4 vWorld, out vec3 vNormal)
+{
+	uvec2	uvFirstCount;
+	SWeight	sWeight;
+	mat4	mMatrix;
+	uint	i;
+
+	uvFirstCount = sSkinVertices.auvFirstCount[gl_VertexIndex];
+	if (uvFirstCount.y == 0)
+	{
+		vWorld = vec4(inPosition, 1.0);
+		vNormal = inNormal;
+		return;
+	}
+	vWorld = vec4(0.0);
+	vNormal = vec3(0.0);
+	for (i = 0; i < uvFirstCount.y; i++)
+	{
+		sWeight = sSkinWeights.asWeights[uvFirstCount.x + i];
+		mMatrix = sPalette.amMatrices[sWeight.uiMatrix];
+		vWorld += sWeight.fWeight * (mMatrix * vec4(inPosition, 1.0));
+		vNormal += sWeight.fWeight * (mat3(mMatrix) * inNormal);
+	}
+}
+
+
 void main()
 {
 	vec4	vWorld;
@@ -87,10 +139,17 @@ void main()
 	float	fShade;
 	int		i;
 
-	vWorld = sDraw.mWorld * vec4(inPosition, 1.0);
+	if (sDraw.avNormal[0].w > 0.5)
+	{
+		Skin(vWorld, vNormal);
+	}
+	else
+	{
+		vWorld = sDraw.mWorld * vec4(inPosition, 1.0);
+		vNormal = mat3(sDraw.avNormal[0].xyz, sDraw.avNormal[1].xyz, sDraw.avNormal[2].xyz) * inNormal;
+	}
 	gl_Position = sFrame.mViewProjection * vWorld;
 
-	vNormal = mat3(sDraw.avNormal[0].xyz, sDraw.avNormal[1].xyz, sDraw.avNormal[2].xyz) * inNormal;
 	if (dot(vNormal, vNormal) > 0.0)
 	{
 		vNormal = normalize(vNormal);

@@ -21,6 +21,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <string.h>
 #include "BaseLib/Float4x4.h"
+#include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
 #include "SupportLib/Instance.h"
 #include "SupportLib/Light.h"
@@ -58,6 +59,8 @@ void CVulkanFrame::Init(Ptr<CRenderScene> pRenderScene, Ptr<CCamera> pCamera)
 	masInstances.Init();
 	mapMeshes.Init();
 	memset(&msData, 0, sizeof(msData));
+	masPalette.Init();
+	maoiMirrorReported.Init();
 
 	PostInit();
 }
@@ -74,6 +77,8 @@ void CVulkanFrame::Class(void)
 	U_Unknown(CArrayVulkanFrameInstance, masInstances);
 	M_Embedded(mapMeshes);
 	U_Data(SVulkanFrameData, msData);
+	U_Unknown(CArrayFloat4x4, masPalette);
+	U_Unknown(CArrayVulkanOIndex, maoiMirrorReported);
 }
 
 
@@ -83,6 +88,8 @@ void CVulkanFrame::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CVulkanFrame::Free(void)
 {
+	maoiMirrorReported.Kill();
+	masPalette.Kill();
 	masInstances.Kill();
 }
 
@@ -115,7 +122,82 @@ static void VulkanNormalRows(float32 aafRows[3][4], SFloat4x4* psWorld)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A rigid mesh is placed by its one connection.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanFrame::IsMirrorReported(OIndex oiInstanceMesh)
+{
+	size	i;
+
+	for (i = 0; i < maoiMirrorReported.NumElements(); i++)
+	{
+		if (maoiMirrorReported.GetValue(i) == oiInstanceMesh)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its palette, added to the frame's, into a psInstance that's all 0.  False
+// if it can't be posed: a connection missing, a matrix that mirrors, or no
+// room in the palette.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanFrame::ExtractSkinned(CInstance* pcInstance, CInstanceMesh* pcInstanceMesh, CVulkanRenderMesh* pcMesh, SVulkanFrameInstance* psInstance)
+{
+	Ptr<CVulkanRenderer>	pRenderer;
+	Ptr<CConnection>		pConnection;
+	CMeshSkin*				pcSkin;
+	SFloat4x4*				psMatrix;
+	uint32					uiNumMatrices;
+	uint32					i;
+
+	uiNumMatrices = pcMesh->NumMatrices();
+	pcSkin = &pcInstanceMesh->mpEditor->mpMesh->mcSkin;
+	if ((pcSkin->mcInverseSkinMatricies.NumElements() < uiNumMatrices) || (pcInstanceMesh->mapConnections.NumElements() < uiNumMatrices))
+	{
+		return false;
+	}
+
+	masPalette.ReInit();
+	for (i = 0; i < uiNumMatrices; i++)
+	{
+		pConnection = pcInstanceMesh->mapConnections.Get(i);
+		if (pConnection.IsNull())
+		{
+			return false;
+		}
+		psMatrix = masPalette.Add();
+		Float4x4Multiply(psMatrix, pcSkin->mcInverseSkinMatricies.Get(i), &pConnection->msWorldMatrix);
+		if (psMatrix->Determinant() < 0.0f)
+		{
+			if (!IsMirrorReported(pcInstanceMesh->GetIndex()))
+			{
+				gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has mesh [", pcInstanceMesh->mpEditor->mszName.Text(), "] posed by [", pConnection->mszName.Text(), "], which mirrors it, so it isn't drawn.", NULL);
+				maoiMirrorReported.Add(pcInstanceMesh->GetIndex());
+			}
+			return false;
+		}
+	}
+
+	pRenderer = mpRenderScene->GetRenderer();
+	if (!pRenderer->AddPalette((float32*)masPalette.GetData(), uiNumMatrices, &psInstance->uiPaletteOffset))
+	{
+		return false;
+	}
+	psInstance->sDraw.aafNormal[0][3] = 1.0f;
+	psInstance->hSkin = pcMesh->GetSkin();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A rigid mesh is placed by its one connection, and a skinned one posed by
+// its connections.
 //
 //////////////////////////////////////////////////////////////////////////
 void CVulkanFrame::ExtractInstances(void)
@@ -124,13 +206,16 @@ void CVulkanFrame::ExtractInstances(void)
 	Ptr<CInstance>			pInstance;
 	Ptr<CInstanceMesh>		pInstanceMesh;
 	Ptr<CVulkanRenderMesh>	pRenderMesh;
-	SVulkanFrameInstance*	psInstance;
+	Ptr<CVulkanRenderer>	pRenderer;
+	SVulkanFrameInstance	sInstance;
 	SFloat4x4*				psWorld;
 	size					i;
 	size					j;
 
 	masInstances.ReInit();
 	mapMeshes.RemoveAll();
+	pRenderer = mpRenderScene->GetRenderer();
+	pRenderer->ClearPalette();
 	pScene = mpRenderScene->GetScene();
 	for (i = 0; i < pScene->mapInstances.NumElements(); i++)
 	{
@@ -138,7 +223,7 @@ void CVulkanFrame::ExtractInstances(void)
 		for (j = 0; j < pInstance->mapMeshes.NumElements(); j++)
 		{
 			pInstanceMesh = pInstance->mapMeshes.Get(j);
-			if (pInstanceMesh->mpEditor.IsNull() || pInstanceMesh->mpEditor->mpMesh->mcSkin.InUse() || (pInstanceMesh->mapConnections.NumElements() == 0))
+			if (pInstanceMesh->mpEditor.IsNull() || (pInstanceMesh->mapConnections.NumElements() == 0))
 			{
 				continue;
 			}
@@ -148,13 +233,28 @@ void CVulkanFrame::ExtractInstances(void)
 				continue;
 			}
 
-			psWorld = &pInstanceMesh->mapConnections.Get(0)->msWorldMatrix;
+			memset(&sInstance, 0, sizeof(sInstance));
+			sInstance.pcMesh = &pRenderMesh;
+			if (pRenderMesh->IsSkinned())
+			{
+				if (!ExtractSkinned(&pInstance, &pInstanceMesh, &pRenderMesh, &sInstance))
+				{
+					continue;
+				}
+			}
+			else if (pInstanceMesh->mpEditor->mpMesh->mcSkin.InUse())
+			{
+				continue;
+			}
+			else
+			{
+				psWorld = &pInstanceMesh->mapConnections.Get(0)->msWorldMatrix;
+				memcpy(sInstance.sDraw.afWorld, psWorld, sizeof(sInstance.sDraw.afWorld));
+				VulkanNormalRows(sInstance.sDraw.aafNormal, psWorld);
+				sInstance.bMirrored = psWorld->Determinant() < 0.0f;
+			}
 			mapMeshes.Add(pRenderMesh);
-			psInstance = masInstances.Add();
-			psInstance->pcMesh = &pRenderMesh;
-			memcpy(psInstance->sDraw.afWorld, psWorld, sizeof(psInstance->sDraw.afWorld));
-			VulkanNormalRows(psInstance->sDraw.aafNormal, psWorld);
-			psInstance->bMirrored = psWorld->Determinant() < 0.0f;
+			masInstances.Add(&sInstance);
 		}
 	}
 }
@@ -376,6 +476,14 @@ void CVulkanFrame::DrawSubmeshes(CVulkanRenderer* pcRenderer, bool bTransparent)
 			if (!bBound)
 			{
 				psInstance->pcMesh->Bind();
+				if (psInstance->hSkin)
+				{
+					pcRenderer->UseSkin(psInstance->hSkin, psInstance->uiPaletteOffset);
+				}
+				else
+				{
+					pcRenderer->UseNoSkin();
+				}
 				bBound = true;
 			}
 			psInstance->sDraw.afColour[0] = (float32)((psSubmesh->uiColour >> 16) & 0xFF) / 255.0f;

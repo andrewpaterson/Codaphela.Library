@@ -35,6 +35,8 @@ class CImage;
 #define VULKAN_MAX_DIRECTIONAL_LIGHTS	8  //As the shaders have.
 #define VULKAN_MAX_POINT_LIGHTS			64
 #define VULKAN_MAX_TEXTURES				1024
+#define VULKAN_MAX_SKINS				1024
+#define VULKAN_PALETTE_BYTES			(4 * 1024 * 1024)  //Each frame's skinned instances' matrices, 64 bytes each.
 
 
 //A buffer the CPU writes and the GPU reads, kept mapped while it lives.
@@ -85,7 +87,8 @@ struct SVulkanFrameData
 };
 
 
-//What the shaders are given for each draw, as push constants.
+//What the shaders are given for each draw, as push constants.  A skinned mesh's draw has a 1 in aafNormal[0][3], and its world and
+//normal matrices aren't used: its palette puts it in the world.
 struct SVulkanDraw
 {
 	float32	afWorld[16];
@@ -102,6 +105,9 @@ struct SVulkanDraw
 //A frame is BeginFrame, then the meshes' draws, then EndFrame, which waits for the GPU and gives the pixels.  So nothing is in
 //flight between frames, and a mesh's buffers are destroyed as soon as it's freed.  Every buffer is in memory the CPU sees and
 //the GPU reads, which is simple and fast enough for now.
+//
+//A skinned mesh has its skin in storage buffers (AllocateSkin), and each frame its instances' palettes are added to the frame's
+//(AddPalette), which a draw finds by its offset (UseSkin).  A rigid mesh's draw uses a skin with nothing in it.
 //
 //GetTexture gives the texture of a CImage, made the first time it's asked for, as many meshes share an image, and kept until the
 //renderer is freed.  A texture has no mipmaps yet.  An image it can't make one of, or no image, is white.  At most
@@ -131,6 +137,13 @@ protected:
 	VkSampler							mhSampler;
 	SVulkanTexture						msWhite;
 	CArrayVulkanTextureEntry			masTextures;
+	VkDescriptorSetLayout				mhSkinLayout;
+	VkDescriptorPool					mhSkinPool;
+	SVulkanBuffer						msPalette;
+	uint32								muiPaletteUsed;
+	uint32								muiPaletteAlignment;
+	SVulkanBuffer						msNoSkin;
+	VkDescriptorSet						mhNoSkin;
 	VkPipelineLayout					mhPipelineLayout;
 	VkPipeline							mhOpaquePipeline;
 	VkPipeline							mhTransparentPipeline;
@@ -156,12 +169,18 @@ public:
 	bool				CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
 	void				DestroyBuffer(SVulkanBuffer* psBuffer);
 	VkDescriptorSet		GetTexture(CImage* pcImage);
+	VkDescriptorSet		AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights);
+	void				FreeSkin(VkDescriptorSet hSkin);
+	void				ClearPalette(void);
+	bool				AddPalette(float32* paf4x4s, uint32 uiNumMatrices, uint32* puiOffset);
 
 	bool				BeginFrame(int32 iWidth, int32 iHeight, uint32 uiBackground, SVulkanFrameData* psFrame);
 	VkCommandBuffer		GetCommands(void);
 	void				UseOpaque(void);
 	void				UseTransparent(void);
 	void				UseTexture(VkDescriptorSet hTexture);
+	void				UseSkin(VkDescriptorSet hSkin, uint32 uiPaletteOffset);
+	void				UseNoSkin(void);
 	void				Draw(SVulkanDraw* psDraw, bool bMirrored, uint32 uiFirstIndex, uint32 uiNumIndices);
 	bool				EndFrame(uint32* puiPixels);
 
@@ -172,6 +191,7 @@ protected:
 	bool				CreateCommands(void);
 	bool				CreateDescriptors(void);
 	bool				CreateTextureDescriptors(void);
+	bool				CreateSkinDescriptors(void);
 	bool				CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint8* puiRGBA);
 	void				DestroyTexture(SVulkanTexture* psTexture);
 	bool				Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iWidth, int32 iHeight);

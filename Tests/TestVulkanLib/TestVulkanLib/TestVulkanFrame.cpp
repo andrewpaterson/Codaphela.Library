@@ -4,6 +4,7 @@
 #include "BaseLib/Float4x4.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogToMemory.h"
 #include "BaseLib/NumberControl.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Camera.h"
@@ -12,6 +13,7 @@
 #include "SupportLib/Light.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/Scene.h"
+#include "SupportLib/Skeleton.h"
 #include "RenderLib/RenderScene.h"
 #include "RasterLib/RasterTarget.h"
 #include "RasterRenderLib/RasterFrame.h"
@@ -276,7 +278,7 @@ static void TestVulkanCompare(uint32* puiRaster, uint32* puiVulkan, STestVulkanL
 // is drawn by the other, in nearly the same colour.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera, CVulkanRenderFactory* pcVulkanFactory)
+static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera, CVulkanRenderFactory* pcVulkanFactory, size uiInstances)
 {
 	CRasterRenderFactory	cRasterFactory;
 	CRasteriser				cRasteriser;
@@ -299,7 +301,7 @@ static void AssertTestVulkanLikeRaster(Ptr<CScene> pScene, Ptr<CCamera> pCamera,
 
 	pVulkanFrame = OMalloc<CVulkanFrame>(OMalloc<CRenderScene>(pScene, pcVulkanFactory, pcVulkanFactory->CreateRenderer()), pCamera);
 	AssertTrue(pVulkanFrame->Draw(puiVulkan, TEST_VULKAN_WIDTH, TEST_VULKAN_HEIGHT, TEST_VULKAN_BACKGROUND));
-	AssertSize(3, pVulkanFrame->NumInstances());
+	AssertSize(uiInstances, pVulkanFrame->NumInstances());
 
 	TestVulkanCompare(puiRaster, puiVulkan, &sLikeness);
 	AssertTrue(sLikeness.iCovered > TEST_VULKAN_WIDTH * TEST_VULKAN_HEIGHT / 10);
@@ -329,9 +331,134 @@ void TestVulkanFrameLikeRaster(CVulkanRenderFactory* pcFactory)
 
 	pScene = TestVulkanScene();
 	pCamera = pScene->mapCameras.Get(0);
-	AssertTestVulkanLikeRaster(pScene, pCamera, pcFactory);
+	AssertTestVulkanLikeRaster(pScene, pCamera, pcFactory, 3);
 	AddTestVulkanLights(pScene);
-	AssertTestVulkanLikeRaster(pScene, pCamera, pcFactory);
+	AssertTestVulkanLikeRaster(pScene, pCamera, pcFactory, 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box bound where the skeleton's bones are when they're at the origin:
+// its bottom corners all the root's, and its top corners half the root's
+// and half the tip's.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMeshEditor> TestVulkanSkinnedBox(Ptr<CSkeleton> pSkeleton)
+{
+	Ptr<CMeshEditor>	pEditor;
+	CMeshSkin*			pcSkin;
+	SSkinWeight*		psWeight;
+	SFloat4x4			sIdentity;
+	int					i;
+
+	pEditor = TestVulkanBox(1.5f, 1.0f, 0.8f, 0.6f, 0.2f);
+	pcSkin = &pEditor->mpMesh->mcSkin;
+	pcSkin->mbInUse = true;
+	for (i = 0; i < 8; i++)
+	{
+		pcSkin->AddCorner();
+		psWeight = pcSkin->mcSkinVerts.Get(i)->mcWeights.Add();
+		psWeight->iMatrix = 0;
+		psWeight->fWeight = (i & 2) ? 0.5f : 1.0f;
+		if (i & 2)
+		{
+			psWeight = pcSkin->mcSkinVerts.Get(i)->mcWeights.Add();
+			psWeight->iMatrix = 1;
+			psWeight->fWeight = 0.5f;
+		}
+	}
+	sIdentity.Identity();
+	pcSkin->mcInverseSkinMatricies.Add(&sIdentity);
+	pcSkin->mcInverseSkinMatricies.Add(&sIdentity);
+	pcSkin->mapBones.Add(pSkeleton->GetBone(0));
+	pcSkin->mapBones.Add(pSkeleton->GetBone(1));
+	return pEditor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instance of the skeleton with the skinned box, its root at fX and
+// turned about y, and its tip turned about z, bending the top of the box.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CInstance> AddTestVulkanSkinned(Ptr<CScene> pScene, Ptr<CSkeleton> pSkeleton, Ptr<CMeshEditor> pEditor, float32 fX, float32 fTurn)
+{
+	Ptr<CInstance>		pInstance;
+	Ptr<CConnection>	pRoot;
+	Ptr<CConnection>	pTip;
+
+	pInstance = OMalloc<CInstance>();
+	pInstance->MakeBones(pSkeleton, NULL);
+	pInstance->AddMesh(pEditor);
+	pScene->mapInstances.Add(pInstance);
+	pRoot = pInstance->mapConnections.Get(0);
+	pTip = pInstance->mapConnections.Get(1);
+	Float4x4RotationY(&pRoot->msLocalMatrix, fTurn);
+	pRoot->msLocalMatrix.pos.Init(fX, 0.0f, 0.0f, 1.0f);
+	Float4x4RotationZ(&pTip->msLocalMatrix, 0.6f);
+	return pInstance;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Two instances of a skinned box, the second's palette after the first's,
+// posed in the vertex shader as the rasteriser poses them.  A tip that
+// mirrors is an error logged once, the instance isn't drawn while it does,
+// and it's drawn again when it doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestVulkanFrameSkinned(CVulkanRenderFactory* pcFactory)
+{
+	CLogToMemory		cLog;
+	Ptr<CScene>			pScene;
+	Ptr<CCamera>		pCamera;
+	Ptr<CSkeleton>		pSkeleton;
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CInstance>		pInstance;
+	Ptr<CConnection>	pTip;
+	Ptr<CVulkanFrame>	pFrame;
+	SFloat4x4			sMatrix;
+	char				szLog[4096];
+	char*				sz;
+	uint32				auiPixels[16];
+
+	pScene = TestVulkanScene();
+	pCamera = pScene->mapCameras.Get(0);
+	pScene->mapInstances.RemoveAll();
+	pSkeleton = OMalloc<CSkeleton>();
+	sMatrix.Identity();
+	pSkeleton->AddBone("Root", NULL, &sMatrix);
+	pSkeleton->AddBone("Tip", NULL, &sMatrix);
+	pEditor = TestVulkanSkinnedBox(pSkeleton);
+	AddTestVulkanSkinned(pScene, pSkeleton, pEditor, -1.3f, 0.4f);
+	pInstance = AddTestVulkanSkinned(pScene, pSkeleton, pEditor, 1.3f, -0.7f);
+	pScene->UpdateConnections();
+	AssertTestVulkanLikeRaster(pScene, pCamera, pcFactory, 2);
+	AddTestVulkanLights(pScene);
+	AssertTestVulkanLikeRaster(pScene, pCamera, pcFactory, 2);
+
+	pFrame = OMalloc<CVulkanFrame>(OMalloc<CRenderScene>(pScene, pcFactory, pcFactory->CreateRenderer()), pCamera);
+	pTip = pInstance->mapConnections.Get(1);
+	pTip->msLocalMatrix.Identity();
+	pTip->msLocalMatrix.x.x = -1.0f;
+	pScene->UpdateConnections();
+	cLog.Start(true);
+	AssertTrue(pFrame->Draw(auiPixels, 4, 4, TEST_VULKAN_BACKGROUND));
+	AssertSize(1, pFrame->NumInstances());
+	AssertTrue(pFrame->Draw(auiPixels, 4, 4, TEST_VULKAN_BACKGROUND));
+	AssertSize(1, pFrame->NumInstances());
+	cLog.Stop(szLog, 4096);
+	sz = strstr(szLog, "which mirrors it");
+	AssertNotNull(sz);
+	AssertNull(strstr(sz + 1, "which mirrors it"));
+	AssertNotNull(strstr(szLog, "[Tip]"));
+	pTip->msLocalMatrix.Identity();
+	pScene->UpdateConnections();
+	AssertTrue(pFrame->Draw(auiPixels, 4, 4, TEST_VULKAN_BACKGROUND));
+	AssertSize(2, pFrame->NumInstances());
 }
 
 
@@ -494,6 +621,8 @@ void TestVulkanFrame(void)
 		TestVulkanFrameLikeRaster(&cFactory);
 		ObjectsFlush();
 		TestVulkanFrameTexture(&cFactory);
+		ObjectsFlush();
+		TestVulkanFrameSkinned(&cFactory);
 		ObjectsFlush();
 		TestVulkanFrameNoCamera(&cFactory);
 	}

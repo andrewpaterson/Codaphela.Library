@@ -105,6 +105,13 @@ void CVulkanRenderer::Init(void)
 	mhSampler = VK_NULL_HANDLE;
 	memset(&msWhite, 0, sizeof(msWhite));
 	masTextures.Init();
+	mhSkinLayout = VK_NULL_HANDLE;
+	mhSkinPool = VK_NULL_HANDLE;
+	ClearVulkanBuffer(&msPalette);
+	muiPaletteUsed = 0;
+	muiPaletteAlignment = 256;
+	ClearVulkanBuffer(&msNoSkin);
+	mhNoSkin = VK_NULL_HANDLE;
 	mhPipelineLayout = VK_NULL_HANDLE;
 	mhOpaquePipeline = VK_NULL_HANDLE;
 	mhTransparentPipeline = VK_NULL_HANDLE;
@@ -116,7 +123,7 @@ void CVulkanRenderer::Init(void)
 	miHeight = 0;
 	mszDeviceName.Init();
 
-	mbReady = mcVulkan.Load() && CreateInstance() && ChooseDevice() && CreateDevice() && CreateCommands() && CreateDescriptors() && CreateTextureDescriptors() && CreatePipelines();
+	mbReady = mcVulkan.Load() && CreateInstance() && ChooseDevice() && CreateDevice() && CreateCommands() && CreateDescriptors() && CreateTextureDescriptors() && CreateSkinDescriptors() && CreatePipelines();
 
 	PostInit();
 }
@@ -157,6 +164,10 @@ void CVulkanRenderer::Free(void)
 			DestroyTexture(&masTextures.Get(i)->sTexture);
 		}
 		DestroyTexture(&msWhite);
+		DestroyBuffer(&msPalette);
+		DestroyBuffer(&msNoSkin);
+		if (mhSkinPool)				mcVulkan.vkDestroyDescriptorPool(mhDevice, mhSkinPool, NULL);
+		if (mhSkinLayout)			mcVulkan.vkDestroyDescriptorSetLayout(mhDevice, mhSkinLayout, NULL);
 		if (mhSampler)				mcVulkan.vkDestroySampler(mhDevice, mhSampler, NULL);
 		if (mhTexturePool)			mcVulkan.vkDestroyDescriptorPool(mhDevice, mhTexturePool, NULL);
 		if (mhTextureLayout)		mcVulkan.vkDestroyDescriptorSetLayout(mhDevice, mhTextureLayout, NULL);
@@ -332,6 +343,7 @@ bool CVulkanRenderer::ChooseDevice(void)
 			muiQueueFamily = j;
 			mszDeviceName.ReInit();
 			mszDeviceName.Append(sProperties.deviceName);
+			muiPaletteAlignment = (uint32)sProperties.limits.minStorageBufferOffsetAlignment;
 		}
 	}
 	if (mhPhysicalDevice == VK_NULL_HANDLE)
@@ -540,6 +552,159 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 
 	memset(auiWhite, 0xFF, sizeof(auiWhite));
 	return CreateTexture(&msWhite, 1, 1, auiWhite);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A set for each skinned mesh, of its skin and the frame's palette, which
+// the vertex shader reads.  The palette is found at an offset given with
+// each draw.  Then the skin with nothing in it that rigid meshes use.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanRenderer::CreateSkinDescriptors(void)
+{
+	VkDescriptorSetLayoutBinding	asBindings[3];
+	VkDescriptorSetLayoutCreateInfo	sLayout;
+	VkDescriptorPoolSize			asPoolSizes[2];
+	VkDescriptorPoolCreateInfo		sPool;
+	uint32							i;
+
+	memset(asBindings, 0, sizeof(asBindings));
+	for (i = 0; i < 3; i++)
+	{
+		asBindings[i].binding = i;
+		asBindings[i].descriptorType = (i == 2) ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		asBindings[i].descriptorCount = 1;
+		asBindings[i].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	}
+	memset(&sLayout, 0, sizeof(sLayout));
+	sLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	sLayout.bindingCount = 3;
+	sLayout.pBindings = asBindings;
+	if (mcVulkan.vkCreateDescriptorSetLayout(mhDevice, &sLayout, NULL, &mhSkinLayout) < 0)
+	{
+		return false;
+	}
+
+	asPoolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	asPoolSizes[0].descriptorCount = (VULKAN_MAX_SKINS + 1) * 2;
+	asPoolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+	asPoolSizes[1].descriptorCount = VULKAN_MAX_SKINS + 1;
+	memset(&sPool, 0, sizeof(sPool));
+	sPool.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	sPool.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	sPool.maxSets = VULKAN_MAX_SKINS + 1;
+	sPool.poolSizeCount = 2;
+	sPool.pPoolSizes = asPoolSizes;
+	if ((mcVulkan.vkCreateDescriptorPool(mhDevice, &sPool, NULL, &mhSkinPool) < 0) ||
+		!CreateBuffer(&msPalette, VULKAN_PALETTE_BYTES, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) ||
+		!CreateBuffer(&msNoSkin, sizeof(float32) * 16, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT))
+	{
+		return false;
+	}
+	memset(msNoSkin.pvMapped, 0, sizeof(float32) * 16);
+	mhNoSkin = AllocateSkin(&msNoSkin, &msNoSkin);
+	return mhNoSkin != VK_NULL_HANDLE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The set of a skinned mesh's skin: psVertices has each vertex's first
+// weight and count, and psWeights each weight's matrix and amount.  Null
+// if no more can be made.  It goes back to the pool with FreeSkin.
+//
+//////////////////////////////////////////////////////////////////////////
+VkDescriptorSet CVulkanRenderer::AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights)
+{
+	VkDescriptorSetAllocateInfo	sAllocate;
+	VkDescriptorBufferInfo		asBuffers[3];
+	VkWriteDescriptorSet		asWrites[3];
+	VkDescriptorSet				hSet;
+	uint32						i;
+
+	memset(&sAllocate, 0, sizeof(sAllocate));
+	sAllocate.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	sAllocate.descriptorPool = mhSkinPool;
+	sAllocate.descriptorSetCount = 1;
+	sAllocate.pSetLayouts = &mhSkinLayout;
+	hSet = VK_NULL_HANDLE;
+	if (mcVulkan.vkAllocateDescriptorSets(mhDevice, &sAllocate, &hSet) < 0)
+	{
+		return VK_NULL_HANDLE;
+	}
+
+	asBuffers[0].buffer = psVertices->hBuffer;
+	asBuffers[0].offset = 0;
+	asBuffers[0].range = VK_WHOLE_SIZE;
+	asBuffers[1].buffer = psWeights->hBuffer;
+	asBuffers[1].offset = 0;
+	asBuffers[1].range = VK_WHOLE_SIZE;
+	asBuffers[2].buffer = msPalette.hBuffer;
+	asBuffers[2].offset = 0;
+	asBuffers[2].range = VULKAN_PALETTE_BYTES / 4;
+	memset(asWrites, 0, sizeof(asWrites));
+	for (i = 0; i < 3; i++)
+	{
+		asWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		asWrites[i].dstSet = hSet;
+		asWrites[i].dstBinding = i;
+		asWrites[i].descriptorCount = 1;
+		asWrites[i].descriptorType = (i == 2) ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		asWrites[i].pBufferInfo = &asBuffers[i];
+	}
+	mcVulkan.vkUpdateDescriptorSets(mhDevice, 3, asWrites, 0, NULL);
+	return hSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CVulkanRenderer::FreeSkin(VkDescriptorSet hSkin)
+{
+	if (hSkin)
+	{
+		mcVulkan.vkFreeDescriptorSets(mhDevice, mhSkinPool, 1, &hSkin);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before a frame's palettes are added.
+//
+//////////////////////////////////////////////////////////////////////////
+void CVulkanRenderer::ClearPalette(void)
+{
+	muiPaletteUsed = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds an instance's matrices to the frame's palette, and gives the offset
+// its draws find them at.  False if the palette is full, or one instance's
+// is more than a draw can see.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanRenderer::AddPalette(float32* paf4x4s, uint32 uiNumMatrices, uint32* puiOffset)
+{
+	uint32	uiSize;
+	uint32	uiOffset;
+
+	uiSize = uiNumMatrices * sizeof(float32) * 16;
+	uiOffset = (muiPaletteUsed + muiPaletteAlignment - 1) / muiPaletteAlignment * muiPaletteAlignment;
+	if ((uiSize > VULKAN_PALETTE_BYTES / 4) || (uiOffset + VULKAN_PALETTE_BYTES / 4 > VULKAN_PALETTE_BYTES))
+	{
+		return false;
+	}
+	memcpy((uint8*)msPalette.pvMapped + uiOffset, paf4x4s, uiSize);
+	muiPaletteUsed = uiOffset + uiSize;
+	*puiOffset = uiOffset;
+	return true;
 }
 
 
@@ -912,7 +1077,7 @@ bool CVulkanRenderer::CreatePipelines(void)
 {
 	VkPushConstantRange			sPushRange;
 	VkPipelineLayoutCreateInfo	sLayout;
-	VkDescriptorSetLayout		ahSetLayouts[2];
+	VkDescriptorSetLayout		ahSetLayouts[3];
 	VkShaderModule				hVertex;
 	VkShaderModule				hFragment;
 
@@ -923,7 +1088,8 @@ bool CVulkanRenderer::CreatePipelines(void)
 	sLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	ahSetLayouts[0] = mhSetLayout;
 	ahSetLayouts[1] = mhTextureLayout;
-	sLayout.setLayoutCount = 2;
+	ahSetLayouts[2] = mhSkinLayout;
+	sLayout.setLayoutCount = 3;
 	sLayout.pSetLayouts = ahSetLayouts;
 	sLayout.pushConstantRangeCount = 1;
 	sLayout.pPushConstantRanges = &sPushRange;
@@ -1273,6 +1439,29 @@ void CVulkanRenderer::UseTransparent(void)
 void CVulkanRenderer::UseTexture(VkDescriptorSet hTexture)
 {
 	mcVulkan.vkCmdBindDescriptorSets(mhCommands, VK_PIPELINE_BIND_POINT_GRAPHICS, mhPipelineLayout, 1, 1, &hTexture, 0, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the skinned mesh drawn next is posed by: its skin, and its
+// instance's palette.
+//
+//////////////////////////////////////////////////////////////////////////
+void CVulkanRenderer::UseSkin(VkDescriptorSet hSkin, uint32 uiPaletteOffset)
+{
+	mcVulkan.vkCmdBindDescriptorSets(mhCommands, VK_PIPELINE_BIND_POINT_GRAPHICS, mhPipelineLayout, 2, 1, &hSkin, 1, &uiPaletteOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rigid mesh drawn next has no skin.
+//
+//////////////////////////////////////////////////////////////////////////
+void CVulkanRenderer::UseNoSkin(void)
+{
+	UseSkin(mhNoSkin, 0);
 }
 
 

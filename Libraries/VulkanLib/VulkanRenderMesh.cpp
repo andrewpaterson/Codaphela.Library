@@ -41,6 +41,10 @@ void CVulkanRenderMesh::Init(Ptr<CVulkanRenderer> pRenderer, CCookedMesh* pcCook
 	memset(&msColours, 0, sizeof(SVulkanBuffer));
 	memset(&msUVs, 0, sizeof(SVulkanBuffer));
 	memset(&msIndices, 0, sizeof(SVulkanBuffer));
+	memset(&msSkinVertices, 0, sizeof(SVulkanBuffer));
+	memset(&msSkinWeights, 0, sizeof(SVulkanBuffer));
+	mhSkin = VK_NULL_HANDLE;
+	muiNumMatrices = 0;
 	masSubmeshes.Init();
 	mbMade = pRenderer->IsReady() && (pcCooked->NumTriangles() > 0) && Make(&pRenderer, pcCooked);
 
@@ -60,6 +64,10 @@ void CVulkanRenderMesh::Class(void)
 	U_Data(SVulkanBuffer, msColours);
 	U_Data(SVulkanBuffer, msUVs);
 	U_Data(SVulkanBuffer, msIndices);
+	U_Data(SVulkanBuffer, msSkinVertices);
+	U_Data(SVulkanBuffer, msSkinWeights);
+	U_Pointer(mhSkin);
+	U_UInt32(muiNumMatrices);
 	U_Unknown(CArrayVulkanSubmesh, masSubmeshes);
 	U_Bool(mbMade);
 }
@@ -78,6 +86,9 @@ void CVulkanRenderMesh::Free(void)
 	pRenderer = mpRenderer;
 	if (pRenderer.IsNotNull())
 	{
+		pRenderer->FreeSkin(mhSkin);
+		pRenderer->DestroyBuffer(&msSkinWeights);
+		pRenderer->DestroyBuffer(&msSkinVertices);
 		pRenderer->DestroyBuffer(&msIndices);
 		pRenderer->DestroyBuffer(&msUVs);
 		pRenderer->DestroyBuffer(&msColours);
@@ -140,7 +151,37 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 		pMaterial = pcCooked->mapMaterials.Get(i);
 		psSubmesh->hTexture = pcRenderer->GetTexture(pMaterial.IsNull() ? NULL : &pMaterial->GetImage(MI_Diffuse)->mpImage);
 	}
-	return true;
+	return !pcCooked->IsSkinned() || MakeSkin(pcRenderer, pcCooked);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each vertex's first weight and how many, and each weight's matrix and
+// amount, as SCookedSkinVertex and SCookedSkinWeight are and the shader
+// reads them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanRenderMesh::MakeSkin(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
+{
+	size	uiVerticesSize;
+	size	uiWeightsSize;
+
+	uiVerticesSize = pcCooked->masSkinVertices.NumElements() * sizeof(SCookedSkinVertex);
+	uiWeightsSize = pcCooked->masSkinWeights.NumElements() * sizeof(SCookedSkinWeight);
+	if (!pcRenderer->CreateBuffer(&msSkinVertices, uiVerticesSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) ||
+		!pcRenderer->CreateBuffer(&msSkinWeights, uiWeightsSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT))
+	{
+		return false;
+	}
+	memcpy(msSkinVertices.pvMapped, pcCooked->masSkinVertices.GetData(), uiVerticesSize);
+	if (uiWeightsSize > 0)
+	{
+		memcpy(msSkinWeights.pvMapped, pcCooked->masSkinWeights.GetData(), uiWeightsSize);
+	}
+	mhSkin = pcRenderer->AllocateSkin(&msSkinVertices, &msSkinWeights);
+	muiNumMatrices = pcCooked->muiNumMatrices;
+	return mhSkin != VK_NULL_HANDLE;
 }
 
 
@@ -171,6 +212,9 @@ void CVulkanRenderMesh::Bind(void)
 //
 //////////////////////////////////////////////////////////////////////////
 bool CVulkanRenderMesh::IsDrawable(void) { return mbMade; }
+bool CVulkanRenderMesh::IsSkinned(void) { return mhSkin != VK_NULL_HANDLE; }
+uint32 CVulkanRenderMesh::NumMatrices(void) { return muiNumMatrices; }
+VkDescriptorSet CVulkanRenderMesh::GetSkin(void) { return mhSkin; }
 size CVulkanRenderMesh::NumSubmeshes(void) { return masSubmeshes.NumElements(); }
 SVulkanSubmesh* CVulkanRenderMesh::GetSubmesh(size uiIndex) { return masSubmeshes.Get(uiIndex); }
 
