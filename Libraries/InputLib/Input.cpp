@@ -38,6 +38,7 @@ void CInput::Init(CNativeInput* pcNativeInput)
 	mpDevices = OMalloc<CInputDevices>(&mcActions);
 	mpcNativeInput = pcNativeInput;
 	mcProgramInput.Init();
+	mbReleaseAll = false;
 	mcActions.Init(&mpDevices);
 
 	if (mpcNativeInput)
@@ -61,6 +62,7 @@ void CInput::Class(void)
 	U_UInt32(muiTime);
 	U_Pointer(mpcNativeInput);
 	U_Unknown(CProgramInput, mcProgramInput);
+	U_Bool(mbReleaseAll);
 }
 
 
@@ -157,8 +159,22 @@ void CInput::Step(void)
 //////////////////////////////////////////////////////////////////////////
 void CInput::Update(void)
 {
+	CInputDevice*	pcInputDevice;
+	SSetIterator	sIter;
+	bool			bExists;
+
 	ClearStateFlags();
 	ClearEvents();
+	if (mbReleaseAll)
+	{
+		bExists = mpDevices->mlcDevices.StartIteration(&sIter, &pcInputDevice);
+		while (bExists)
+		{
+			pcInputDevice->ReleaseAll(muiSequence);
+			bExists = mpDevices->mlcDevices.Iterate(&sIter, &pcInputDevice);
+		}
+		mbReleaseAll = false;
+	}
 	if (mpcNativeInput)
 	{
 		mpcNativeInput->Update(&mpDevices, muiSequence);
@@ -171,6 +187,22 @@ void CInput::Update(void)
 
 	UpdateChords();
 	Step();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For when the program's window loses focus: the platform sends what's let
+// go after that to the window that has it, so this never hears of it.  At
+// the next Update every key, button and axis not at rest goes to rest, with
+// events, before what the platform gives, so the chords and actions let go
+// of them too.  Ctrl let go in another program doesn't make a later click
+// a Ctrl+click.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInput::ReleaseAll(void)
+{
+	mbReleaseAll = true;
 }
 
 

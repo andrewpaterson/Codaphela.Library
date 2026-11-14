@@ -283,6 +283,13 @@ void TestComponentInputWinRawDevices(void)
 		cRaw.Tap('A');
 		AssertLog("A:Outof;B:Lost;B:Gained;B:Printable(a,Insert);B:Printable(a,Insert);");
 
+		//Nor is a modifier it lets go of: Control released in another window doesn't make A Control+A when it's back.
+		cRaw.Press(VK_TEST_CONTROL);
+		pTestWindow->Deactivate();
+		pTestWindow->Activate();
+		cRaw.Tap('A');
+		AssertLog("B:Lost;B:Gained;B:Printable(a,Insert);");
+
 		//A modifier's event is held back while it could start a chord but the device has it down.
 		cRaw.Press(VK_TEST_CONTROL);
 		cRaw.Press(VK_TEST_SHIFT, false, MAKE_LEFT_SHIFT);

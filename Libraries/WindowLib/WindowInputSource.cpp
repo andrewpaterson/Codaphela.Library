@@ -410,7 +410,8 @@ bool CWindowInputSource::IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSour
 //
 // For when the window loses focus.  Keys let go while another window has
 // focus are never heard of, so those down now aren't down to IsDown until
-// they have been let go.
+// they have been let go, and the input lets go of them at its next update
+// (CInput::ReleaseAll), so its chords don't keep them down either.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindowInputSource::ForgetDown(void)
@@ -424,6 +425,7 @@ void CWindowInputSource::ForgetDown(void)
 	bool						bExists;
 
 	masForgotten.ReInit();
+	mpInput->ReleaseAll();
 	uiNumDevices = mapcDevices.NumElements();
 	for (i = 0; i < uiNumDevices; i++)
 	{

@@ -56,6 +56,7 @@ public:
 	void 						Process(void* pvInput, uint32 uiSequence);
 	void 						ClearStateFlags(void);
 	void 						UpdateRestEvents(uint32 uiSequence);
+	void 						ReleaseAll(uint32 uiSequence);
 	void 						GetSources(CArrayInputSourceDescPtr* pcActions, CInputCategoryGeneric* pcGeneric);
 	void 						ClearEvents(void);
 	void 						SortEvents(void);

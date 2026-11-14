@@ -45,6 +45,7 @@ protected:
 
 	CNativeInput*		mpcNativeInput;
 	CProgramInput		mcProgramInput;
+	bool				mbReleaseAll;  //The next Update lets go of everything first (see ReleaseAll).
 
 public:
 	void 				Init(CNativeInput* pcNativeInput);
@@ -59,6 +60,7 @@ public:
 	bool				AddNativeInput(CNativeInput* pcNativeInput);
 
 	void 				Update(void);
+	void				ReleaseAll(void);
 	void 				Update(uint32 uiTime);
 	void 				Step(void);
 	void 				ClearStateFlags(void);

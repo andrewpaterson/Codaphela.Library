@@ -178,6 +178,33 @@ void CInputDeviceState::ClearFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CInputDeviceState::ReleaseAll(CInputDeviceValues* pcEvents, uint32 uiSequence)
+{
+	SInputSourceState*	psState;
+	CInputSourceDesc*	pcSourceDesc;
+	float				fRest;
+	size				uiNumElements;
+	size				i;
+
+	uiNumElements = macSourceStates.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psState = macSourceStates.Get(i);
+		pcSourceDesc = psState->pcDesc;
+		fRest = pcSourceDesc->GetRestValue();
+		if (SetValue(psState, fRest))
+		{
+			pcEvents->Add(mpcDevice, pcSourceDesc, fRest, uiSequence, true, 0);
+		}
+		psState->iFlags |= SOURCE_STATE_RESTING;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CInputDeviceState::UpdateRestEvents(CInputDeviceValues* pcEvents, uint32 uiSequence)
 {
 	size				i;
