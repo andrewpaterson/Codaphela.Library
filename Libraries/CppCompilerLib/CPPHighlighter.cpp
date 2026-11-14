@@ -538,31 +538,60 @@ void CCPPHighlighter::FindSyntaxRanges(CSourceFile* pcFile, CCPPTokeniser* pcTok
 //////////////////////////////////////////////////////////////////////////
 void CCPPHighlighter::AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeniser, CArrayCPPSyntaxRanges* pasDest)
 {
+	SCPPSyntaxRange		sRange;
+
+	if (GetTokensRange(mpcFile, pcTokeniser, pcNode->miFirstToken, pcNode->miLastToken, &sRange))
+	{
+		*pasDest->Add() = sRange;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What one node was parsed from in pcFile, for a refactoring to change
+// or take out: false if its first or its last token isn't written there
+// (it is another file's, or a macro made it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPHighlighter::GetSyntaxRange(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, CCPPSyntax* pcNode, SCPPSyntaxRange* psDest)
+{
+	return GetTokensRange(pcFile, pcTokeniser, pcNode->miFirstToken, pcNode->miLastToken, psDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same for a run of tokens: the first's start to the last's end.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPHighlighter::GetTokensRange(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, int32 iFirstToken, int32 iLastToken, SCPPSyntaxRange* psDest)
+{
 	SPreprocessedToken*	psFirst;
 	SPreprocessedToken*	psLast;
-	SCPPSyntaxRange		sRange;
 	int					iOffset;
 
-	if ((pcNode->miFirstToken < 0) || (pcNode->miLastToken < pcNode->miFirstToken) || ((size)pcNode->miLastToken >= pcTokeniser->NumTokens()))
+	mpcFile = pcFile;
+	if ((iFirstToken < 0) || (iLastToken < iFirstToken) || ((size)iLastToken >= pcTokeniser->NumTokens()))
 	{
-		return;
+		return false;
 	}
-	psFirst = pcTokeniser->GetSource(pcTokeniser->Get(pcNode->miFirstToken));
-	psLast = pcTokeniser->GetSource(pcTokeniser->Get(pcNode->miLastToken));
+	psFirst = pcTokeniser->GetSource(pcTokeniser->Get(iFirstToken));
+	psLast = pcTokeniser->GetSource(pcTokeniser->Get(iLastToken));
 	if (!IsWrittenInFile(psFirst) || !IsWrittenInFile(psLast))
 	{
-		return;
+		return false;
 	}
 
 	iOffset = (int)mpcFile->GetOffset(psLast->iLine, psLast->iColumn);
 	iOffset += SourceLength(iOffset, (int)psLast->uiLength);
-	if (!mpcFile->GetLineAndColumn(iOffset, &sRange.iEndLine, &sRange.iEndColumn))
+	if (!mpcFile->GetLineAndColumn(iOffset, &psDest->iEndLine, &psDest->iEndColumn))
 	{
-		return;
+		return false;
 	}
-	sRange.iLine = psFirst->iLine;
-	sRange.iColumn = psFirst->iColumn;
-	*pasDest->Add() = sRange;
+	psDest->iLine = psFirst->iLine;
+	psDest->iColumn = psFirst->iColumn;
+	return true;
 }
 
 

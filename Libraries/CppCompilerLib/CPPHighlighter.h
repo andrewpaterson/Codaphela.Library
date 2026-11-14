@@ -103,6 +103,8 @@ public:
 	void				Kill(void);
 	void				Highlight(CSourceFile* pcFile, CPreprocessedTokens* pcPreprocessed, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
 	void				FindSyntaxRanges(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CArrayCPPSyntaxRanges* pasDest);
+	bool				GetSyntaxRange(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, CCPPSyntax* pcNode, SCPPSyntaxRange* psDest);
+	bool				GetTokensRange(CSourceFile* pcFile, CCPPTokeniser* pcTokeniser, int32 iFirstToken, int32 iLastToken, SCPPSyntaxRange* psDest);
 	static char*		PrintSyntaxRanges(CArrayCPPSyntaxRanges* pasRanges, CChars* psz);
 
 	SCPPHighlight*		Get(size iIndex);
