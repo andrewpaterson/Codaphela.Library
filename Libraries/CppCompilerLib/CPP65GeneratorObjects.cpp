@@ -191,7 +191,7 @@ bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	if (psType && psType->IsClass() && CompleteClass(psType->pcClass, NULL) && HasOperator(psType->pcClass, lliName, 1))
 	{
 		apcArguments.Add(pcBinary->mpcRight);
-		pcFunction = mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcBinary, IsConstObject(pcBinary->mpcLeft));
+		pcFunction = mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcBinary, CPPCalledObject(IsConstObject(pcBinary->mpcLeft)));
 		apcArguments.ReInit();
 	}
 	if (!pcFunction)

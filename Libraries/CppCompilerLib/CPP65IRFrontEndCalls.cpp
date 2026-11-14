@@ -865,7 +865,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 	SIRReference				sSymbol;
 	int64						lliName;
 	int							iOffset;
-	int							iConst;
+	ECPPCalledObject			eObject;
 	bool						bVirtual;
 	bool						bArrow;
 	bool						bThis;
@@ -946,12 +946,12 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 	}
 
 	pcComponent = pcName->GetLast();
-	iConst = pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis();
-	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, iConst) : NULL;
+	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis());
+	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !pcComponent->mbTemplateArguments)
 	{
-		pcFunction = mpcGenerator->mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, iConst);
+		pcFunction = mpcGenerator->mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
 	}
 	if (!pcFunction && pcTemplate)
 	{
@@ -1035,7 +1035,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 	{
 		apcArguments.Add(pcArgument);
 	}
-	pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), &apcArguments, pcObject, mpcGenerator->IsConstObject(pcObject));
+	pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), &apcArguments, pcObject, CPPCalledObject(mpcGenerator->IsConstObject(pcObject)));
 	if (!pcFunction || pcFunction->mbStatic)
 	{
 		apcArguments.Kill();

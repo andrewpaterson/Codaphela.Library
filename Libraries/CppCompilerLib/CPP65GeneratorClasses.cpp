@@ -1034,7 +1034,7 @@ SCPP65Type* CCPP65Generator::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 		return NULL;
 	}
 	apcNone.Init();
-	pcFunction = mcOverloads.FindFunction(psType->pcClass, GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, IsConstObject(pcObject));
+	pcFunction = mcOverloads.FindFunction(psType->pcClass, GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, CPPCalledObject(IsConstObject(pcObject)));
 	apcNone.Kill();
 	return pcFunction ? pcFunction->mpsReturn : NULL;
 }

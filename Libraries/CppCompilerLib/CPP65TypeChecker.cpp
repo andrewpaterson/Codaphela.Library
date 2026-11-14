@@ -1468,7 +1468,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 	SCPP65Type*					psType;
 	int64						lliName;
 	int							iOffset;
-	int							iConstObject;
+	ECPPCalledObject			eObject;
 	size						uiErrors;
 	bool						bArrow;
 
@@ -1561,8 +1561,8 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 
 	uiErrors = mpcGenerator->mcErrors.NumErrors();
 	pcComponent = pcName->GetLast();
-	iConstObject = pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis();
-	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, iConstObject) : NULL;
+	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis());
+	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !pcComponent->mbTemplateArguments)
 	{
@@ -1570,7 +1570,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		{
 			mpcGenerator->BeginQuiet();
 		}
-		pcFunction = mpcGenerator->mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, iConstObject);
+		pcFunction = mpcGenerator->mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
 		if (pcTemplate)
 		{
 			mpcGenerator->EndQuiet();
@@ -1655,7 +1655,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOp
 		return NULL;
 	}
 	uiErrors = mpcGenerator->mcErrors.NumErrors();
-	pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), papcArguments, pcNode, mpcGenerator->IsConstObject(pcObject));
+	pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), papcArguments, pcNode, CPPCalledObject(mpcGenerator->IsConstObject(pcObject)));
 	if (!pcFunction)
 	{
 		if (mpcGenerator->mcErrors.NumErrors() == uiErrors)
@@ -1694,7 +1694,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 		}
 		uiErrors = mpcGenerator->mcErrors.NumErrors();
 		mpcGenerator->BeginQuiet();
-		pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcNode, mpcGenerator->IsConstObject(pcLeft));
+		pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcNode, CPPCalledObject(mpcGenerator->IsConstObject(pcLeft)));
 		mpcGenerator->EndQuiet();
 		mpcGenerator->mcErrors.Truncate(uiErrors);
 		if (pcFunction)

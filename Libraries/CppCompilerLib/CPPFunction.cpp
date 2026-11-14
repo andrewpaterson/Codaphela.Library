@@ -131,14 +131,13 @@ bool CCPPFunction::Overrides(CCPPFunction* pcVirtual)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a function can be called on the object (iConstObject 1 if it is
-// const, 0 if not, -1 for none): a const object takes only const and static
-// member functions.  [over.match.funcs] 4
+// Whether a function can be called on the object (eObject): a const object
+// takes only const and static member functions.  [over.match.funcs] 4
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPFunction::TakesObject(int iConstObject)
+bool CCPPFunction::TakesObject(ECPPCalledObject eObject)
 {
-	return (iConstObject != 1) || !mpcClass || mbStatic || mbConstThis;
+	return (eObject != CPPCO_Const) || !mpcClass || mbStatic || mbConstThis;
 }
 
 

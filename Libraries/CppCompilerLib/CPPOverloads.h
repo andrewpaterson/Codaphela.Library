@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_OVERLOADS_H__
 #define __C_P_P_OVERLOADS_H__
+#include "BaseLib/ArrayInt.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
@@ -29,6 +30,40 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPP65Generator;
+
+
+//One of the functions a call could mean, or one of the templates.
+struct SCPPCandidate
+{
+	CCPPFunction*	pcFunction;
+	CCPPTemplate*	pcTemplate;
+};
+
+
+typedef CArrayTemplate<SCPPCandidate>	CArrayCPPCandidates;
+
+
+//The functions (or the function templates) a call could mean: those of its name that take its arguments, each
+//with the rank of every argument's conversion to its parameter (see CCPPOverloads::ConversionRank).  A candidate's
+//ranks are written to NextRanks, and Add keeps them with it.
+class CCPPCandidates
+{
+protected:
+	CArrayCPPCandidates	masCandidates;
+	CArrayInt			maiRanks;
+	size				muiArguments;
+
+public:
+	void			Init(size uiArguments);
+	void			Kill(void);
+
+	int*			NextRanks(void);
+	void			Add(CCPPFunction* pcFunction, CCPPTemplate* pcTemplate);
+	size			NumElements(void) { return masCandidates.NumElements(); }
+	CCPPFunction*	GetFunction(size uiIndex) { return masCandidates.Get(uiIndex)->pcFunction; }
+	CCPPTemplate*	GetTemplate(size uiIndex) { return masCandidates.Get(uiIndex)->pcTemplate; }
+	int				Compare(size uiFirst, size uiSecond);
+};
 
 
 //Chooses the function a call means.  [over.match]  The candidates are the functions of a name that a class, the
@@ -45,16 +80,16 @@ public:
 	void					Init(CCPP65Generator* pcUnit);
 	void					Kill(void);
 
-	CCPPTemplate*			FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, int iConstObject = -1);
-	CCPPTemplate*			ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, int iConstObject);
+	CCPPTemplate*			FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, ECPPCalledObject eObject = CPPCO_None);
+	CCPPTemplate*			ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, ECPPCalledObject eObject);
 	void					GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size uiArguments, CArrayCPPTemplates* papcCandidates);
 	CCPPTemplate*			GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit);
 	void					AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArrayCPPTemplates* papcCandidates);
-	CCPPTemplate*			ChooseTemplate(CArrayCPPTemplates* papcCandidates, int iConstObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall);
+	CCPPTemplate*			ChooseTemplate(CArrayCPPTemplates* papcCandidates, ECPPCalledObject eObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall);
 	bool					TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int* aiRanks);
 	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);
 	bool					IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, int64 lliName);
-	CCPPFunction*			FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject = -1, CArrayScopes* papcNamespaces = NULL);
+	CCPPFunction*			FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject = CPPCO_None, CArrayScopes* papcNamespaces = NULL);
 	CCPPFunction*			FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPFunction*			FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
 	CCPPFunction*			FindAssociatedFunction(CCPPSyntaxName* pcName, int64 lliName, CCPPSyntaxCallExpression* pcCall);
@@ -67,14 +102,14 @@ public:
 	bool					RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
-	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
+	CCPPFunction*			ChooseFunction(CCPPCandidates* pcCandidates, CArraySyntax* papcArguments, ECPPCalledObject eObject, bool* pbAmbiguous);
 	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
-	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, int iConstObject);
+	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject);
 	CCPPFunction*			FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
 	void					NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode);
 	bool					HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer);
 	CCPPFunction*			FindStaticFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded);
-	CCPPFunction*			FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject);
+	CCPPFunction*			FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, ECPPCalledObject eObject);
 	CCPPScope*				CurrentLookupScope(void);
 	CCPPFunction*			FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 };

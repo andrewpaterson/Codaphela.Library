@@ -32,6 +32,22 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 
 
+//The object a member function is called on, which chooses between a const function and one that isn't.
+enum ECPPCalledObject
+{
+	CPPCO_None,
+	CPPCO_Mutable,
+	CPPCO_Const,
+};
+
+
+//The object called on, from whether it is const.
+inline ECPPCalledObject CPPCalledObject(bool bConst)
+{
+	return bConst ? CPPCO_Const : CPPCO_Mutable;
+}
+
+
 enum ECPPFunctionKind
 {
 	CPPFK_Function,
@@ -88,7 +104,7 @@ public:
 	size	RequiredParameters(void);
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	Overrides(CCPPFunction* pcVirtual);
-	bool	TakesObject(int iConstObject);
+	bool	TakesObject(ECPPCalledObject eObject);
 	bool	IsUnitFunction(void);
 	void	SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition);
 };

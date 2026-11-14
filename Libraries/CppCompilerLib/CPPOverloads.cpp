@@ -26,6 +26,93 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCPPCandidates::Init(size uiArguments)
+{
+	masCandidates.Init();
+	maiRanks.Init();
+	muiArguments = uiArguments;
+	maiRanks.Resize(uiArguments);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCandidates::Kill(void)
+{
+	maiRanks.Kill();
+	masCandidates.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the ranks of the candidate that may be added next are written.  NULL for a call with no arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+int* CCPPCandidates::NextRanks(void)
+{
+	return (muiArguments > 0) ? maiRanks.Get(masCandidates.NumElements() * muiArguments) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds a candidate, whose ranks are those written to NextRanks.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCandidates::Add(CCPPFunction* pcFunction, CCPPTemplate* pcTemplate)
+{
+	SCPPCandidate*	psCandidate;
+
+	psCandidate = masCandidates.Add();
+	psCandidate->pcFunction = pcFunction;
+	psCandidate->pcTemplate = pcTemplate;
+	maiRanks.Resize((masCandidates.NumElements() + 1) * muiArguments);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 1 if the first candidate's arguments convert better (none worse, one better), -1
+// if the second's do, 0 if neither.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPCandidates::Compare(size uiFirst, size uiSecond)
+{
+	int*	aiFirst;
+	int*	aiSecond;
+	size	i;
+	bool	bFirst;
+	bool	bSecond;
+
+	aiFirst = NextRanks() - (masCandidates.NumElements() - uiFirst) * muiArguments;
+	aiSecond = NextRanks() - (masCandidates.NumElements() - uiSecond) * muiArguments;
+	bFirst = false;
+	bSecond = false;
+	for (i = 0; i < muiArguments; i++)
+	{
+		bFirst |= aiFirst[i] > aiSecond[i];
+		bSecond |= aiSecond[i] > aiFirst[i];
+	}
+	if (bFirst && !bSecond)
+	{
+		return 1;
+	}
+	if (bSecond && !bFirst)
+	{
+		return -1;
+	}
+	return 0;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCPPOverloads::Init(CCPP65Generator* pcUnit)
 {
 	mpcUnit = pcUnit;
@@ -213,22 +300,22 @@ CCPPFunction* CCPPOverloads::FindStaticFunction(CCPPClass* pcClass, int64 lliNam
 // instance of a member template.  A class without a member template reports errors as FindFunction does.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject)
+CCPPFunction* CCPPOverloads::FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, ECPPCalledObject eObject)
 {
 	CCPPTemplate*	pcTemplate;
 	CCPPFunction*	pcFunction;
 	size			uiErrors;
 
 	mpcUnit->mpcStatistics->Count(CPPCC_FindOperator);
-	pcTemplate = FindMemberTemplate(pcClass, lliName, papcArguments ? papcArguments->NumElements() : 0, iConstObject);
+	pcTemplate = FindMemberTemplate(pcClass, lliName, papcArguments ? papcArguments->NumElements() : 0, eObject);
 	if (!pcTemplate)
 	{
-		return FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, iConstObject);
+		return FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, eObject);
 	}
 
 	uiErrors = mpcUnit->mcErrors.NumErrors();
 	mpcUnit->BeginQuiet();
-	pcFunction = FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, iConstObject);
+	pcFunction = FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, eObject);
 	if (!pcFunction)
 	{
 		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
@@ -314,7 +401,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	}
 	if (bDeclared)
 	{
-		pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
+		pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None, &apcNamespaces);
 	}
 	for (i = 0; !pcFunction && (i < mpcUnit->mapcTemplates.NumElements()); i++)
 	{
@@ -401,6 +488,51 @@ void CCPPOverloads::NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFun
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The best of the candidates: the one whose every argument converts at least as well as
+// for any other, and one better, or between two that convert equally well the one that
+// qualifies them less (CompareQualifiers).  It is found by comparing each with the best
+// so far, then checked to be better than every other: *pbAmbiguous if it is not.  NULL
+// if there are no candidates.  [over.match.best]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::ChooseFunction(CCPPCandidates* pcCandidates, CArraySyntax* papcArguments, ECPPCalledObject eObject, bool* pbAmbiguous)
+{
+	size	uiBest;
+	size	i;
+	int		iRanks;
+
+	*pbAmbiguous = false;
+	if (pcCandidates->NumElements() == 0)
+	{
+		return NULL;
+	}
+	uiBest = 0;
+	for (i = 1; i < pcCandidates->NumElements(); i++)
+	{
+		iRanks = pcCandidates->Compare(i, uiBest);
+		if ((iRanks > 0) || ((iRanks == 0) && (CompareQualifiers(pcCandidates->GetFunction(i), pcCandidates->GetFunction(uiBest), papcArguments, eObject) > 0)))
+		{
+			uiBest = i;
+		}
+	}
+	for (i = 0; i < pcCandidates->NumElements(); i++)
+	{
+		if (i == uiBest)
+		{
+			continue;
+		}
+		iRanks = pcCandidates->Compare(uiBest, i);
+		if ((iRanks < 0) || ((iRanks == 0) && (CompareQualifiers(pcCandidates->GetFunction(uiBest), pcCandidates->GetFunction(i), papcArguments, eObject) <= 0)))
+		{
+			*pbAmbiguous = true;
+		}
+	}
+	return pcCandidates->GetFunction(uiBest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Overload resolution: of the functions of the name (in the class, then its bases if
 // bBases) that take the number of arguments (default arguments make the rest), the
 // one whose every argument converts at least as well as for any other, and one
@@ -408,13 +540,12 @@ void CCPPOverloads::NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFun
 // none matches functions of the name; NULL without an error if there are none.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject, CArrayScopes* papcNamespaces)
+CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject, CArrayScopes* papcNamespaces)
 {
+	CCPPCandidates		cCandidates;
 	CCPPFunction*		pcFunction;
 	CCPPFunction*		pcBest;
 	SCPP65Type*			apsArguments[32];
-	int					aiRanks[32];
-	int					aiBest[32];
 	size				uiArguments;
 	size				i;
 	bool				bAmbiguous;
@@ -444,9 +575,8 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		}
 	}
 
-	//The best is found by comparing each viable function with the best so far, then
-	//checked to be better than every other.
-	pcBest = NULL;
+	//The candidates: the functions of the name that the call can see, that take its arguments.
+	cCandidates.Init(uiArguments);
 	bFound = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
@@ -455,31 +585,13 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 			continue;
 		}
 		bFound = true;
-		if (!pcFunction->TakesObject(iConstObject) || !RankArguments(pcFunction, apsArguments, papcArguments, aiRanks))
+		if (pcFunction->TakesObject(eObject) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
 		{
-			continue;
-		}
-		if (!pcBest || (CompareRanks(aiRanks, aiBest, uiArguments) > 0) || ((CompareRanks(aiRanks, aiBest, uiArguments) == 0) && (CompareQualifiers(pcFunction, pcBest, papcArguments, iConstObject) > 0)))
-		{
-			pcBest = pcFunction;
-			memcpy(aiBest, aiRanks, sizeof(int) * uiArguments);
+			cCandidates.Add(pcFunction, NULL);
 		}
 	}
-	bAmbiguous = false;
-	for (pcFunction = pcBest ? mpcUnit->FirstFunctionOfName(lliName) : NULL; pcFunction; pcFunction = pcFunction->mpcNextOfName)
-	{
-		if ((pcFunction == pcBest) || (pcFunction->meKind != eKind) || pcFunction->mpcTemplate || !IsOverloadOf(pcClass, pcFunction, lliName) || (papcNamespaces && (papcNamespaces->Find(pcFunction->mpcNamespace) == ARRAY_ELEMENT_NOT_FOUND)))
-		{
-			continue;
-		}
-		if (pcFunction->TakesObject(iConstObject) && RankArguments(pcFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
-		{
-			if ((CompareRanks(aiBest, aiRanks, uiArguments) < 0) || (CompareQualifiers(pcBest, pcFunction, papcArguments, iConstObject) <= 0))
-			{
-				bAmbiguous = true;
-			}
-		}
-	}
+	pcBest = ChooseFunction(&cCandidates, papcArguments, eObject, &bAmbiguous);
+	cCandidates.Kill();
 
 	if (pcBest && !bAmbiguous)
 	{
@@ -499,7 +611,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	{
 		for (i = 0; i < pcClass->macBases.NumElements(); i++)
 		{
-			pcFunction = FindFunction(pcClass->macBases.Get(i)->pcClass, lliName, eKind, papcArguments, true, pcNode, iConstObject);
+			pcFunction = FindFunction(pcClass->macBases.Get(i)->pcClass, lliName, eKind, papcArguments, true, pcNode, eObject);
 			if (pcFunction)
 			{
 				return pcFunction;
@@ -678,7 +790,7 @@ CCPPFunction* CCPPOverloads::FindNamedFunction(CCPPSyntaxName* pcName, int64 lli
 	apcNamespaces.Init();
 	GetCallNamespaces(pcName, lliName, papcArguments, &apcNamespaces);
 	NormaliseNamespaces(&apcNamespaces);
-	pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
+	pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None, &apcNamespaces);
 	apcNamespaces.Kill();
 	return pcFunction;
 }
@@ -1023,46 +1135,15 @@ bool CCPPOverloads::HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psA
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 1 if the first function's arguments convert better (none worse, one better), -1
-// if the second's do, 0 if neither.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPPOverloads::CompareRanks(int* aiFirst, int* aiSecond, size uiArguments)
-{
-	size	i;
-	bool	bFirst;
-	bool	bSecond;
-
-	bFirst = false;
-	bSecond = false;
-	for (i = 0; i < uiArguments; i++)
-	{
-		bFirst |= aiFirst[i] > aiSecond[i];
-		bSecond |= aiSecond[i] > aiFirst[i];
-	}
-	if (bFirst && !bSecond)
-	{
-		return 1;
-	}
-	if (bSecond && !bFirst)
-	{
-		return -1;
-	}
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Between two functions whose arguments convert equally well, which qualifies them
 // less: of T* and const T*, or T& and const T&, the one without const, but an object
 // made by the argument (a temporary) or a const object binds better to a const
-// reference.  The object a member function is called on (iConstObject 1 if it is const,
-// 0 if not, -1 for none) is bound to this the same way.  1 if the first does, -1 if
-// the second does, 0 if neither.  [over.ics.rank] 3.2.6
+// reference.  The object a member function is called on (eObject) is bound to this
+// the same way.  1 if the first does, -1 if the second does, 0 if neither.
+// [over.ics.rank] 3.2.6
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, int iConstObject)
+int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject)
 {
 	size		i;
 	bool		bFirst;
@@ -1073,9 +1154,9 @@ int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 
 	bFirst = false;
 	bSecond = false;
-	if ((iConstObject >= 0) && (pcFirst->mbConstThis != pcSecond->mbConstThis))
+	if ((eObject != CPPCO_None) && (pcFirst->mbConstThis != pcSecond->mbConstThis))
 	{
-		if (pcFirst->mbConstThis == (iConstObject == 1))
+		if (pcFirst->mbConstThis == (eObject == CPPCO_Const))
 		{
 			bFirst = true;
 		}
@@ -1141,11 +1222,11 @@ bool CCPPOverloads::TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiAr
 //////////////////////////////////////////////////////////////////////////
 //
 // A member template of pcClass (or of a base) named lliName that takes uiArguments
-// arguments.  Of two that do, the one whose const matches the object's (iConstObject
-// 1 for a const object, 0 for one that is not, -1 for none) is chosen.
+// arguments.  Of two that do, the one whose const matches the object's (eObject)
+// is chosen.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, int iConstObject)
+CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, ECPPCalledObject eObject)
 {
 	CArrayCPPTemplates	apcCandidates;
 	CCPPTemplate*			pcTemplate;
@@ -1153,7 +1234,7 @@ CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliNam
 	mpcUnit->mpcStatistics->Count(CPPCC_FindMemberTemplate);
 	apcCandidates.Init();
 	GetMemberTemplates(pcClass, lliName, uiArguments, &apcCandidates);
-	pcTemplate = ChooseTemplate(&apcCandidates, iConstObject, NULL, NULL);
+	pcTemplate = ChooseTemplate(&apcCandidates, eObject, NULL, NULL);
 	apcCandidates.Kill();
 	return pcTemplate;
 }
@@ -1165,7 +1246,7 @@ CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliNam
 // the explicit template arguments papcExplicit, uses (ChooseTemplate).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, int iConstObject)
+CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, ECPPCalledObject eObject)
 {
 	CArrayCPPTemplates	apcCandidates;
 	CCPPTemplate*			pcTemplate;
@@ -1173,7 +1254,7 @@ CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliN
 	mpcUnit->mpcStatistics->Count(CPPCC_ChooseMemberTemplate);
 	apcCandidates.Init();
 	GetMemberTemplates(pcClass, lliName, pcCall->macpArguments.NumElements(), &apcCandidates);
-	pcTemplate = ChooseTemplate(&apcCandidates, iConstObject, papcExplicit, pcCall);
+	pcTemplate = ChooseTemplate(&apcCandidates, eObject, papcExplicit, pcCall);
 	apcCandidates.Kill();
 	return pcTemplate;
 }
@@ -1245,7 +1326,7 @@ CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName
 	pcTemplate = NULL;
 	if (apcCandidates.NumElements() > 0)
 	{
-		pcTemplate = ChooseTemplate(&apcCandidates, -1, papcExplicit, pcCall);
+		pcTemplate = ChooseTemplate(&apcCandidates, CPPCO_None, papcExplicit, pcCall);
 	}
 	else if (pcSymbol)
 	{
@@ -1302,77 +1383,65 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 // the ones whose arguments convert best (as plain overloads are ranked), as
 // CObjects::Get<M>(OIndex) and Get<M>(const char*) differ only in their
 // parameter's type.  Then the first whose const matches the object's
-// (iConstObject 1 for a const object, 0 for one that is not, -1 for none) is
-// chosen, or else the first.  pcCall is NULL to choose by the number of
-// arguments alone.
+// (eObject) is chosen, or else the first.  pcCall is NULL to choose by the number
+// of arguments alone.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, int iConstObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall)
+CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, ECPPCalledObject eObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall)
 {
-	CArrayCPPTemplates	apcTaken;
-	CArrayCPPTemplates	apcBest;
-	CArrayCPPTemplates*	papcChosen;
+	CCPPCandidates			cTaken;
+	CArrayCPPTemplates		apcChosen;
+	CArrayCPPTemplates*		papcChosen;
 	CCPPTemplate*			pcTemplate;
-	CArrayInt				aiRanks;
 	size					uiArguments;
-	size					uiBest;
+	size					uiBetter;
 	size					i;
 
 	mpcUnit->mpcStatistics->Count(CPPCC_ChooseTemplate);
-	apcTaken.Init();
-	apcBest.Init();
-	aiRanks.Init();
+	apcChosen.Init();
 	uiArguments = pcCall ? pcCall->macpArguments.NumElements() : 0;
+	cTaken.Init(uiArguments);
 	for (i = 0; pcCall && (papcCandidates->NumElements() > 1) && (i < papcCandidates->NumElements()); i++)
 	{
 		pcTemplate = papcCandidates->GetPtr(i);
-		aiRanks.Resize(aiRanks.NumElements() + uiArguments);
-		if (TemplateTakes(pcTemplate, papcExplicit, &pcCall->macpArguments, pcCall, (uiArguments > 0) ? aiRanks.Get(aiRanks.NumElements() - uiArguments) : NULL))
+		if (TemplateTakes(pcTemplate, papcExplicit, &pcCall->macpArguments, pcCall, cTaken.NextRanks()))
 		{
-			apcTaken.Add(pcTemplate);
-		}
-		else
-		{
-			aiRanks.Resize(aiRanks.NumElements() - uiArguments);
+			cTaken.Add(NULL, pcTemplate);
 		}
 	}
 
 	//Only the templates whose arguments no other's convert better.
-	for (i = 0; (uiArguments > 0) && (i < apcTaken.NumElements()); i++)
+	for (i = 0; (uiArguments > 0) && (i < cTaken.NumElements()); i++)
 	{
-		for (uiBest = 0; uiBest < apcTaken.NumElements(); uiBest++)
+		for (uiBetter = 0; uiBetter < cTaken.NumElements(); uiBetter++)
 		{
-			if (CompareRanks(aiRanks.Get(uiBest * uiArguments), aiRanks.Get(i * uiArguments), uiArguments) > 0)
+			if (cTaken.Compare(uiBetter, i) > 0)
 			{
 				break;
 			}
 		}
-		if (uiBest == apcTaken.NumElements())
+		if (uiBetter == cTaken.NumElements())
 		{
-			apcBest.Add(apcTaken.GetPtr(i));
+			apcChosen.Add(cTaken.GetTemplate(i));
 		}
 	}
-	if (apcBest.NumElements() > 0)
+	for (i = 0; (apcChosen.NumElements() == 0) && (i < cTaken.NumElements()); i++)
 	{
-		papcChosen = &apcBest;
+		apcChosen.Add(cTaken.GetTemplate(i));
 	}
-	else
-	{
-		papcChosen = (apcTaken.NumElements() > 0) ? &apcTaken : papcCandidates;
-	}
+	papcChosen = (apcChosen.NumElements() > 0) ? &apcChosen : papcCandidates;
 
 	pcTemplate = (papcChosen->NumElements() > 0) ? papcChosen->GetPtr(0) : NULL;
-	for (i = 0; (iConstObject >= 0) && (i < papcChosen->NumElements()); i++)
+	for (i = 0; (eObject != CPPCO_None) && (i < papcChosen->NumElements()); i++)
 	{
-		if (mpcUnit->IsConstSuffix(papcChosen->GetPtr(i)->mpcDeclarator->GetFunctionSuffix()) == (iConstObject == 1))
+		if (mpcUnit->IsConstSuffix(papcChosen->GetPtr(i)->mpcDeclarator->GetFunctionSuffix()) == (eObject == CPPCO_Const))
 		{
 			pcTemplate = papcChosen->GetPtr(i);
 			break;
 		}
 	}
-	aiRanks.Kill();
-	apcBest.Kill();
-	apcTaken.Kill();
+	cTaken.Kill();
+	apcChosen.Kill();
 	return pcTemplate;
 }
 
