@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "Instance.h"
 
 
@@ -79,13 +81,19 @@ bool CInstanceMesh::IsSkinned(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The instance's connections for its skin's bones, in the skin's order.
+// The instance's connections for its skin's bones, in the skin's order.  A
+// bone the instance hasn't got is NULL, and as the mesh can't be posed then
+// it isn't drawn.  That's logged here, once each time it's bound, as it's
+// only found again by binding again.
 //
 //////////////////////////////////////////////////////////////////////////
 void CInstanceMesh::BindBones(CInstance* pcInstance)
 {
-	CArray<CBone>*	papBones;
-	size			i;
+	CArray<CBone>*		papBones;
+	Ptr<CConnection>	pConnection;
+	Ptr<CBone>			pMissing;
+	size				uiNumMissing;
+	size				i;
 
 	if (!IsSkinned())
 	{
@@ -94,9 +102,23 @@ void CInstanceMesh::BindBones(CInstance* pcInstance)
 
 	mapConnections.RemoveAll();
 	papBones = &mpEditor->mpMesh->mcSkin.mapBones;
+	uiNumMissing = 0;
 	for (i = 0; i < papBones->NumElements(); i++)
 	{
-		mapConnections.Add(pcInstance->GetBoneConnection(papBones->Get(i)));
+		pConnection = pcInstance->GetBoneConnection(papBones->Get(i));
+		if (pConnection.IsNull())
+		{
+			if (uiNumMissing == 0)
+			{
+				pMissing = papBones->Get(i);
+			}
+			uiNumMissing++;
+		}
+		mapConnections.Add(pConnection);
+	}
+	if (uiNumMissing > 0)
+	{
+		gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has no connection for bone [", pMissing->mszName.Text(), "] of mesh [", mpEditor->mszName.Text(), "], nor for ", SizeToString(uiNumMissing - 1), " others, so the mesh isn't drawn.", NULL);
 	}
 }
 

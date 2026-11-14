@@ -21,21 +21,46 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #ifndef __RASTER_FRAME_H__
 #define __RASTER_FRAME_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "StandardLib/Array.h"
 #include "SupportLib/Camera.h"
 #include "RasterLib/Rasteriser.h"
 #include "RenderLib/RenderScene.h"
 
 
-typedef CArrayTemplate<SRasterInstance>	CArrayRasterInstance;
+class CInstance;
+class CInstanceMesh;
+
+
+//A skinned instance mesh's own vertices, kept from one frame to the next.  It's found by the instance mesh's object index,
+//so the frame doesn't keep the instance mesh, and one that's gone can't be taken for another.  It goes in a frame that
+//doesn't draw it.  bMirrorReported is whether a bone mirroring has been logged for it.
+struct SRasterFramePosed
+{
+	OIndex			oiInstanceMesh;
+	CRasterPosed*	pcPosed;
+	bool			bMirrorReported;
+	bool			bUsed;
+};
+
+
+typedef CArrayTemplate<SRasterInstance>		CArrayRasterInstance;
+typedef CArrayTemplate<SRasterFramePosed>	CArrayRasterFramePosed;
+typedef CArrayTemplate<SRasterBone>			CArrayRasterBone;
 
 
 //A frame of a scene as the raster renderer draws it, made by Extract from a CRenderScene whose renderer is a CRasterRenderer,
 //after Extract updates the render scene.
 //
 //Each rigid mesh of each instance is an SRasterInstance placed by its connection's world matrix, at the renderer's scale.  Its
-//axes are the matrix's, scale, mirror and all, and its light axes their rotation alone.  A skinned mesh isn't drawn yet.  The
-//frame holds the raster meshes its instances point at, so that they stay while they're drawn.
+//axes are the matrix's, scale, mirror and all, and its light axes their rotation alone.  The frame holds the raster meshes its
+//instances point at, so that they stay while they're drawn.
+//
+//A skinned mesh is posed by the frame, each of its matrices being its inverse matrix times the world matrix of the instance
+//mesh's connection for it, placed as a rigid mesh would be.  Its instance has the posed vertices, and no axes of its own.  It
+//isn't drawn if a connection is missing, which binding it logged (CInstanceMesh::BindBones), or if a matrix mirrors, which is
+//an error logged the first frame it happens, and not again while the instance mesh is drawn or tried.  A skin its raster mesh
+//couldn't take isn't drawn.
 //
 //The camera is the scene camera, if there is one.  It's set from it when the scene camera moves, with the eye where the scene
 //camera is and the point it turns around in front of it: as far as the middle of what's drawn the first time, and as far as
@@ -54,6 +79,8 @@ protected:
 	Ptr<CCamera>			mpCamera;
 	CArrayRasterInstance	masInstances;
 	CArray<CRasterMesh>		mapMeshes;
+	CArrayRasterFramePosed	masPosed;
+	CArrayRasterBone		masBones;  //The matrices of the skinned mesh being posed.
 	CRasterCamera			mcCamera;
 	SFloat4x4				msCameraWorld;  //The scene camera's world matrix when the camera last matched it.
 	size					muiCameraChanges;  //The camera's changes when it last matched the scene camera.
@@ -73,6 +100,10 @@ public:
 
 protected:
 	void				ExtractInstances(int32 iScale);
+	bool				ExtractPosed(CInstance* pcInstance, CInstanceMesh* pcInstanceMesh, CRasterMesh* pcRasterMesh, int32 iScale);
+	SRasterFramePosed*	GetPosed(OIndex oiInstanceMesh);
+	void				ReleaseUnusedPosed(void);
+	void				ReleasePosed(SRasterFramePosed* psPosed);
 	void				ExtractCamera(int32 iWidth, int32 iScale);
 	void				SetCameraFromScene(SFloat4x4* psWorld, int32 iScale);
 	void				WriteCamera(int32 iScale);

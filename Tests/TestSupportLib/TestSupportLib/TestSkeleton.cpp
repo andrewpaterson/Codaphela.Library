@@ -285,11 +285,13 @@ void TestSkeletonAddBoneLater(void)
 	Ptr<CInstance>			pBefore;
 	Ptr<CInstance>			pAfter;
 	Ptr<CMeshEditor>		pEditor;
+	Ptr<CMeshEditor>		pHooked;
 	Ptr<CInstanceMesh>		pInstanceMesh;
 	Ptr<CSceneAnimation>	pWave;
 	Ptr<CAnimationPlayer>	pPlayer;
 	Ptr<CBone>				pHook;
 	SFloat4x4				sMatrix;
+	SLogConfig				sLogConfig;
 
 	pScene = OMalloc<CScene>();
 	pSkeleton = TestSkeletonArm();
@@ -311,6 +313,18 @@ void TestSkeletonAddBoneLater(void)
 	AssertTrue(pBefore->GetBoneConnection(pHook).IsNull());
 	pPlayer = OMalloc<CAnimationPlayer>(pWave, pBefore, false);
 	AssertSize(2, pPlayer->NumBound());
+
+	//A mesh posed by the new bone, which the instance made before it hasn't got, can't be posed by that instance.
+	pHooked = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pHooked->mpMesh->mcSkin.mbInUse = true;
+	pHooked->mpMesh->mcSkin.mapBones.Add(pSkeleton->GetBone(0));
+	pHooked->mpMesh->mcSkin.mapBones.Add(pHook);
+	sLogConfig = gcLogger.SetSilent();
+	pInstanceMesh = pBefore->AddMesh(pHooked);
+	gcLogger.SetConfig(&sLogConfig);
+	AssertSize(2, pInstanceMesh->mapConnections.NumElements());
+	AssertPointer(&pBefore->mapConnections.Get(0), &pInstanceMesh->mapConnections.Get(0));
+	AssertTrue(pInstanceMesh->mapConnections.Get(1).IsNull());
 
 	pAfter = OMalloc<CInstance>();
 	pAfter->MakeBones(pSkeleton, NULL);

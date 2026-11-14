@@ -19,6 +19,8 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#include <stdlib.h>
+#include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
 #include "SupportLib/Instance.h"
 #include "SupportLib/Light.h"
@@ -117,24 +119,35 @@ static int32 RasterUnits(float64 fValue, int32 iScale)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A mesh where a world matrix puts it.  What a position is dotted with for
-// a new part is that part's column.
+// The axes, light axes and offset of where a world matrix puts a mesh.
+// What a position is dotted with for a new part is that part's column.
 //
 //////////////////////////////////////////////////////////////////////////
-static void RasterPlace(SRasterInstance* psInstance, CRasterMesh* pcMesh, SFloat4x4* psWorld, int32 iScale)
+static void RasterAxes(SInt32Vec3* asAxes, SInt32Vec3* asLightAxes, SInt32Vec3* psOffset, SFloat4x4* psWorld, int32 iScale)
 {
 	SFloat4x4	sRotation;
 	int			k;
 
 	RasterRotation(&sRotation, psWorld);
-	psInstance->Init(pcMesh);
 	for (k = 0; k < 3; k++)
 	{
-		psInstance->asAxes[k].Init(SRasterAxis::FromFloat(RasterRow(psWorld, 0)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(psWorld, 1)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(psWorld, 2)[k]).miRaw);
-		psInstance->asLightAxes[k].Init(SRasterAxis::FromFloat(RasterRow(&sRotation, 0)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(&sRotation, 1)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(&sRotation, 2)[k]).miRaw);
+		asAxes[k].Init(SRasterAxis::FromFloat(RasterRow(psWorld, 0)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(psWorld, 1)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(psWorld, 2)[k]).miRaw);
+		asLightAxes[k].Init(SRasterAxis::FromFloat(RasterRow(&sRotation, 0)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(&sRotation, 1)[k]).miRaw, SRasterAxis::FromFloat(RasterRow(&sRotation, 2)[k]).miRaw);
 	}
+	psOffset->Init(RasterUnits(psWorld->pos.x, iScale), RasterUnits(psWorld->pos.y, iScale), RasterUnits(psWorld->pos.z, iScale));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh where a world matrix puts it.
+//
+//////////////////////////////////////////////////////////////////////////
+static void RasterPlace(SRasterInstance* psInstance, CRasterMesh* pcMesh, SFloat4x4* psWorld, int32 iScale)
+{
+	psInstance->Init(pcMesh);
+	RasterAxes(psInstance->asAxes, psInstance->asLightAxes, &psInstance->sOffset, psWorld, iScale);
 	psInstance->bMirrored = psWorld->Determinant() < 0.0f;
-	psInstance->sOffset.Init(RasterUnits(psWorld->pos.x, iScale), RasterUnits(psWorld->pos.y, iScale), RasterUnits(psWorld->pos.z, iScale));
 }
 
 
@@ -161,6 +174,8 @@ void CRasterFrame::Init(Ptr<CRenderScene> pRenderScene, Ptr<CCamera> pCamera)
 	mpCamera = pCamera;
 	masInstances.Init();
 	mapMeshes.Init();
+	masPosed.Init();
+	masBones.Init();
 	mcCamera.Init();
 	msCameraWorld.Identity();
 	muiCameraChanges = 0;
@@ -180,6 +195,8 @@ void CRasterFrame::Class(void)
 	M_Pointer(mpCamera);
 	U_Unknown(CArrayRasterInstance, masInstances);
 	M_Embedded(mapMeshes);
+	U_Unknown(CArrayRasterFramePosed, masPosed);
+	U_Unknown(CArrayRasterBone, masBones);
 	U_Data(CRasterCamera, mcCamera);
 	U_4x4Float32(msCameraWorld);
 	U_Size(muiCameraChanges);
@@ -193,7 +210,146 @@ void CRasterFrame::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CRasterFrame::Free(void)
 {
+	size	i;
+
+	for (i = 0; i < masPosed.NumElements(); i++)
+	{
+		ReleasePosed(masPosed.Get(i));
+	}
+	masPosed.Kill();
+	masBones.Kill();
 	masInstances.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The posed vertices of the instance mesh with that object index, made the
+// first time.  Each is made once, so an instance's pointer to it stays good
+// however many more are made.
+//
+//////////////////////////////////////////////////////////////////////////
+SRasterFramePosed* CRasterFrame::GetPosed(OIndex oiInstanceMesh)
+{
+	SRasterFramePosed*	psPosed;
+	size				i;
+
+	for (i = 0; i < masPosed.NumElements(); i++)
+	{
+		psPosed = masPosed.Get(i);
+		if (psPosed->oiInstanceMesh == oiInstanceMesh)
+		{
+			psPosed->bUsed = true;
+			return psPosed;
+		}
+	}
+	psPosed = masPosed.Add();
+	psPosed->oiInstanceMesh = oiInstanceMesh;
+	psPosed->pcPosed = (CRasterPosed*)malloc(sizeof(CRasterPosed));
+	psPosed->pcPosed->Init();
+	psPosed->bMirrorReported = false;
+	psPosed->bUsed = true;
+	return psPosed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterFrame::ReleasePosed(SRasterFramePosed* psPosed)
+{
+	psPosed->pcPosed->Kill();
+	free(psPosed->pcPosed);
+	psPosed->pcPosed = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What this frame didn't draw or try is let go, so that a mesh that comes
+// back starts again, and can report again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasterFrame::ReleaseUnusedPosed(void)
+{
+	size	i;
+
+	for (i = masPosed.NumElements(); i > 0; i--)
+	{
+		if (!masPosed.Get(i - 1)->bUsed)
+		{
+			ReleasePosed(masPosed.Get(i - 1));
+			masPosed.RemoveAt(i - 1);
+		}
+	}
+	for (i = 0; i < masPosed.NumElements(); i++)
+	{
+		masPosed.Get(i)->bUsed = false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Poses a skinned mesh, and adds its instance, or doesn't if it can't be:
+// a missing connection was logged when it was bound, and a mirror is
+// logged here the first time.  Its matrices are where the connections put
+// it from where it was bound, each placed as a rigid mesh would be.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRasterFrame::ExtractPosed(CInstance* pcInstance, CInstanceMesh* pcInstanceMesh, CRasterMesh* pcRasterMesh, int32 iScale)
+{
+	SRasterFramePosed*	psPosed;
+	SRasterInstance*	psInstance;
+	SRasterBone*		psBone;
+	CMeshSkin*			pcSkin;
+	Ptr<CConnection>	pConnection;
+	SFloat4x4			sMatrix;
+	size				uiNumMatrices;
+	size				i;
+
+	uiNumMatrices = pcRasterMesh->muiNumMatrices;
+	pcSkin = &pcInstanceMesh->mpEditor->mpMesh->mcSkin;
+	if ((pcSkin->mcInverseSkinMatricies.NumElements() < uiNumMatrices) || (pcInstanceMesh->mapConnections.NumElements() < uiNumMatrices))
+	{
+		return false;
+	}
+	for (i = 0; i < uiNumMatrices; i++)
+	{
+		if (pcInstanceMesh->mapConnections.Get(i).IsNull())
+		{
+			return false;
+		}
+	}
+
+	psPosed = GetPosed(pcInstanceMesh->GetIndex());
+	masBones.ReInit();
+	for (i = 0; i < uiNumMatrices; i++)
+	{
+		pConnection = pcInstanceMesh->mapConnections.Get(i);
+		Float4x4Multiply(&sMatrix, pcSkin->mcInverseSkinMatricies.Get(i), &pConnection->msWorldMatrix);
+		if (sMatrix.Determinant() < 0.0f)
+		{
+			if (!psPosed->bMirrorReported)
+			{
+				gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has mesh [", pcInstanceMesh->mpEditor->mszName.Text(), "] posed by [", pConnection->mszName.Text(), "], which mirrors it, so it isn't drawn.", NULL);
+				psPosed->bMirrorReported = true;
+			}
+			return false;
+		}
+		psBone = masBones.Add();
+		RasterAxes(psBone->asAxes, psBone->asLightAxes, &psBone->sOffset, &sMatrix, iScale);
+	}
+
+	if (!psPosed->pcPosed->Pose(pcRasterMesh, masBones.GetData(), masBones.NumElements()))
+	{
+		return false;
+	}
+	psInstance = masInstances.Add();
+	psInstance->Init(pcRasterMesh);
+	psInstance->pcPosed = psPosed->pcPosed;
+	return true;
 }
 
 
@@ -229,8 +385,8 @@ void CRasterFrame::Draw(CRasteriser* pcRasteriser, CRasterTarget* pcTarget)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A rigid mesh is placed by its one connection.  A skinned one waits for
-// skinning.
+// A rigid mesh is placed by its one connection, and a skinned one posed by
+// its connections.
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasterFrame::ExtractInstances(int32 iScale)
@@ -253,7 +409,7 @@ void CRasterFrame::ExtractInstances(int32 iScale)
 		for (j = 0; j < pInstance->mapMeshes.NumElements(); j++)
 		{
 			pInstanceMesh = pInstance->mapMeshes.Get(j);
-			if (pInstanceMesh->mpEditor.IsNull() || pInstanceMesh->mpEditor->mpMesh->mcSkin.InUse() || (pInstanceMesh->mapConnections.NumElements() == 0))
+			if (pInstanceMesh->mpEditor.IsNull() || (pInstanceMesh->mapConnections.NumElements() == 0))
 			{
 				continue;
 			}
@@ -267,11 +423,22 @@ void CRasterFrame::ExtractInstances(int32 iScale)
 			{
 				continue;
 			}
-			pConnection = pInstanceMesh->mapConnections.Get(0);
-			mapMeshes.Add(pRasterMesh);
-			RasterPlace(masInstances.Add(), &pRasterMesh, &pConnection->msWorldMatrix, iScale);
+			if (pRasterMesh->IsSkinned())
+			{
+				if (ExtractPosed(&pInstance, &pInstanceMesh, &pRasterMesh, iScale))
+				{
+					mapMeshes.Add(pRasterMesh);
+				}
+			}
+			else if (!pInstanceMesh->mpEditor->mpMesh->mcSkin.InUse())
+			{
+				pConnection = pInstanceMesh->mapConnections.Get(0);
+				mapMeshes.Add(pRasterMesh);
+				RasterPlace(masInstances.Add(), &pRasterMesh, &pConnection->msWorldMatrix, iScale);
+			}
 		}
 	}
+	ReleaseUnusedPosed();
 }
 
 
