@@ -237,6 +237,8 @@ public:
 	CCPPTarget*				GetTarget(void) { return mpcTarget; }
 	CIRImports*				GetImports(void) { return mpcImports; }
 	CCPPTokeniser*			GetTokeniser(void) { return mpcTokeniser; }
+	CCPPSyntaxTree*			GetTree(void) { return mpcTree; }
+	CArrayCPPSymbols*		GetPackElements(void) { return &mapcPackElements; }
 	CSpillStore*			GetSpillStore(void) { return mpcSpillStore; }
 	CCPPSemanticPass*		GetSemanticPass(void) { return mpcSemanticPass; }
 	CAsm65Profile*			GetFrameProfile(void) { return mpcFrameProfile; }
@@ -408,8 +410,6 @@ public:
 
 	CCPPSymbol*				NewPackElement(CCPPSymbol* pcPack);
 	bool					HasPackExpansion(CArraySyntax* papcArguments);
-	CCPPSyntax*				ExpandPackArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments);
-	void					RestoreArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments);
 
 	bool					IsBuiltin(int64 lliName);
 	const SCPPBuiltin*	FindBuiltin(int64 lliName);

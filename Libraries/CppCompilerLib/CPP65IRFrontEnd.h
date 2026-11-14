@@ -285,7 +285,7 @@ protected:
 	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue, bool* pbMember);
 	bool			MemberFunction(CCPPClass* pcClass, int64 lliName, CCPPFunction** ppcFound, CCPPClass** ppcClass);
 	bool			MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SIRReference* psObject, SCPP65Type** ppsMember);
-	bool			MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
+	bool			MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace);
 	void			StringData(char* pcBytes, size uiLength, SCPP65IRValue* psValue);
 	bool			Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace);
@@ -310,8 +310,7 @@ protected:
 	bool			IsObjectValue(SCPP65IRValue* psValue);
 	bool			ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	bool			CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
-	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
-	bool			ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
+	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
 	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
 	bool			Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, CCPPClass* pcObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);
 	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces);
@@ -323,10 +322,10 @@ protected:
 	bool			Convert(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	bool			CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue);
 	void			NarrowCount(bool bLeading, SIRReference* psValue, SIRReference* psCount, int* piBits, SIRType sInt);
-	bool			Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, SCPP65IRValue* psValue);
-	bool			BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
-	bool			BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue);
-	bool			CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue);
+	bool			Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName, SCPP65IRValue* psValue);
+	bool			BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65IRValue* psValue);
+	bool			BuiltinBCD(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, bool bSubtract, SCPP65IRValue* psValue);
+	bool			CallWithArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue);
 	bool			VerifyIR(CIRFunction* pcFunction, const char* szFile, int iLine);
 	SIRReference	ConvertIR(SIRReference sValue, SIRType sFrom, SIRType sTo, bool bSigned);
 	SIRReference	BaseAddress(SIRReference sAddress, int iOffset);
@@ -336,7 +335,7 @@ protected:
 	SCPP65Type*		ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psType);
 	bool			MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65IRPlace* psPlace);
 	bool			FieldPlace(SIRReference sObject, CCPPClass* pcClass, int64 lliName, CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace);
-	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
+	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
 	bool			OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue);
 	bool			BoundOperatorCall(CCPPBoundCall* pcBound, ECppTokens eOperator, SCPP65IRValue* psValue);
 	bool			OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue);

@@ -105,15 +105,14 @@ protected:
 	bool			Truth(SCPP65Type* psType, CCPPSyntax* pcNode);
 
 	SCPP65Type*		CallExpression(CCPPSyntaxCallExpression* pcCall);
-	SCPP65Type*		ExpandPackCall(CCPPSyntaxCallExpression* pcCall);
 	SCPP65Type*		UncheckedCall(CArraySyntax* papcArguments);
-	SCPP65Type*		CallThroughPointer(CCPPSyntaxCallExpression* pcCall, SCPP65Type* psFunctionType);
+	SCPP65Type*		CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65Type* psFunctionType);
 	SCPP65Type*		Call(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	bool			Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn);
-	SCPP65Type*		Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName);
+	SCPP65Type*		Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName);
 	SCPP65Type*		InlineMemcpy(CArraySyntax* papcArguments);
 
-	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction);
+	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction);
 	SCPP65Type*		ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);
@@ -121,7 +120,7 @@ protected:
 	SCPP65Type*		MemberPlace(CCPPSyntaxMemberExpression* pcMember);
 	SCPP65Type*		MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary);
-	SCPP65Type*		MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary);
+	SCPP65Type*		MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		SubscriptPlace(CCPPSyntaxSubscriptExpression* pcSubscript);
 	SCPP65Type*		ResultPlace(SCPP65Type* psType, CCPPSyntax* pcNode);
 

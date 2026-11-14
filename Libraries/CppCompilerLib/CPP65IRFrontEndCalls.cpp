@@ -48,29 +48,27 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	}
 	switch (cBound.meHow)
 	{
-	case CPPBC_PackExpansion:
-		return ExpandPackCall(pcCall, psValue);
 	case CPPBC_Member:
 		//this's, where there is none to call it on.
 		if (!cBound.mpcObject && !cBound.mpcFunction->mbStatic && msThis.IsNone())
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, &pcCall->macpArguments, psValue, cBound.mpcObject, cBound.mbArrow, cBound.mpcObject ? cBound.mpcClass : NULL, cBound.mbVirtual);
+		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, cBound.mpapcArguments, psValue, cBound.mpcObject, cBound.mbArrow, cBound.mpcObject ? cBound.mpcClass : NULL, cBound.mbVirtual);
 	case CPPBC_Destructor:
-		return DestructorCall(pcCall, cBound.mpcClass, cBound.mpcObject, cBound.mbArrow, cBound.mbVirtual, psValue);
+		return DestructorCall(pcCall, cBound.mpapcArguments, cBound.mpcClass, cBound.mpcObject, cBound.mbArrow, cBound.mbVirtual, psValue);
 	case CPPBC_MemberPointer:
-		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee, psValue);
+		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee, psValue);
 	case CPPBC_Function:
 		if (cBound.mpcFunction->mpcClass && !cBound.mpcFunction->mbStatic)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, &pcCall->macpArguments, psValue);
+		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, cBound.mpapcArguments, psValue);
 	case CPPBC_InlineMemcpy:
-		return InlineMemcpy(&pcCall->macpArguments, mpcUnit->TypeOf(pcCall), psValue);
+		return InlineMemcpy(cBound.mpapcArguments, mpcUnit->TypeOf(pcCall), psValue);
 	case CPPBC_Builtin:
-		return Builtin(pcCall, cBound.mlliName, psValue);
+		return Builtin(pcCall, cBound.mpapcArguments, cBound.mlliName, psValue);
 	case CPPBC_Pointer:
 		//(*pf)() is pf(); (*ppf)() calls the function pointer ppf points to, so it keeps its *.
 		pcCallee = cBound.mpcCallee;
@@ -83,7 +81,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 				pcCallee = pcUnary->mpcOperand->WithoutParentheses();
 			}
 		}
-		return CallThroughPointer(pcCall, pcCallee, psValue);
+		return CallThroughPointer(pcCall, cBound.mpapcArguments, pcCallee, psValue);
 	default:
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -206,7 +204,7 @@ void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRRefe
 // ll: unsigned long long) as loops.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName, SCPP65IRValue* psValue)
 {
 	const SCPPBuiltin*	psBuiltin;
 	char*			szLabel;
@@ -239,7 +237,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	}
 
 	psBuiltin = mpcUnit->FindBuiltin(lliName);
-	if (!psBuiltin || ((int)pcCall->macpArguments.NumElements() != psBuiltin->iArguments) ||
+	if (!psBuiltin || ((int)papcArguments->NumElements() != psBuiltin->iArguments) ||
 		(psBuiltin->szDecimalModeOnly && !mpcUnit->GetTarget()->HasDecimalMode()))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -255,17 +253,17 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	case CPPB_Pause:
 		return true;
 	case CPPB_Expect:
-		return Value(pcCall->macpArguments.GetPtr(0), psValue) && Convert(psValue, mpcTypes->Promote(psValue->psType));
+		return Value(papcArguments->GetPtr(0), psValue) && Convert(psValue, mpcTypes->Promote(psValue->psType));
 	case CPPB_Memcpy:
 		//Copied in place for a small constant count, as memcpy is.
-		if (mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
+		if (mpcUnit->IsInlineMemcpy(lliName, papcArguments))
 		{
-			return InlineMemcpy(&pcCall->macpArguments, mpcUnit->TypeOf(pcCall), psValue);
+			return InlineMemcpy(papcArguments, mpcUnit->TypeOf(pcCall), psValue);
 		}
-		return BuiltinMemcpy(pcCall, psValue);
+		return BuiltinMemcpy(pcCall, papcArguments, psValue);
 	case CPPB_BCDAdd:
 	case CPPB_BCDSubtract:
-		return BuiltinBCD(pcCall, psBuiltin->eBuiltin == CPPB_BCDSubtract, psValue);
+		return BuiltinBCD(pcCall, papcArguments, psBuiltin->eBuiltin == CPPB_BCDSubtract, psValue);
 	case CPPB_Alloca:
 		//Frames are fixed in size (and the W65C816's stack is small); malloc instead.
 		mpcUnit->ReportError(pcCall, "__builtin_alloca is not supported");
@@ -278,7 +276,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	bPopcount = psBuiltin->eBuiltin == CPPB_Popcount;
 	bClz = psBuiltin->eBuiltin == CPPB_Clz;
 	psType = mpcUnit->BuiltinOperandType(psBuiltin);
-	if (!Value(pcCall->macpArguments.GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
+	if (!Value(papcArguments->GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -373,7 +371,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 // initialised is made by (msElide).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psType;
 	SCPP65IRValue	sCallee;
@@ -392,28 +390,7 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPP
 		return false;
 	}
 	msElide = sElide;
-	return Call(NULL, sCallee.sValue, psType->psBase, &pcCall->macpArguments, psValue);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// f(args...): written with the generator's ExpandPackArguments, which replaces
-// args... by a name for each of the pack's elements.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
-{
-	CArraySyntax	apcArguments;
-	bool			bResult;
-
-	if (mpcUnit->ExpandPackArguments(pcCall, &apcArguments))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-	bResult = CallExpression(pcCall, psValue);
-	mpcUnit->RestoreArguments(pcCall, &apcArguments);
-	return bResult;
+	return Call(NULL, sCallee.sValue, psType->psBase, papcArguments, psValue);
 }
 
 
@@ -787,11 +764,11 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 // qualified or on a named object), or nothing happens if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue)
 {
 	SIRReference	sObject;
 
-	if (!pcClass || (pcCall->macpArguments.NumElements() != 0))
+	if (!pcClass || (papcArguments->NumElements() != 0))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -901,7 +878,7 @@ bool CCPP65IRFrontEnd::CallObject(CCPPFunction* pcFunction, SIRReference sObject
 // __builtin_memcpy(Dest, Source, Count) is a call of Libc65's memcpy.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		apsParameter[3];
 
@@ -909,7 +886,7 @@ bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRV
 	apsParameter[1] = apsParameter[0];
 	apsParameter[2] = mpcTypes->Long(false);
 	mcModule.SetRegisterCall(mcModule.AddSymbol("_memcpy"));
-	return CallWithArguments(pcCall, apsParameter, 3, "_memcpy", apsParameter[0], psValue);
+	return CallWithArguments(pcCall, papcArguments, apsParameter, 3, "_memcpy", apsParameter[0], psValue);
 }
 
 
@@ -919,14 +896,14 @@ bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRV
 // the function szSymbol, whose result is of psResult's type.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::CallWithArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue	asArgument[IR65_MAX_BUILTIN_ARGUMENTS];
 	int				i;
 
 	for (i = 0; i < iCount; i++)
 	{
-		if (!Value(pcCall->macpArguments.GetPtr(i), &asArgument[i]) || !Convert(&asArgument[i], apsParameters[i]))
+		if (!Value(papcArguments->GetPtr(i), &asArgument[i]) || !Convert(&asArgument[i], apsParameters[i]))
 		{
 			return false;
 		}
@@ -949,7 +926,7 @@ bool CCPP65IRFrontEnd::CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP6
 // the runtime routines R816_BcdAdd and R816_BcdSubtract.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::BuiltinBCD(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, bool bSubtract, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		apsParameter[4];
 	char*			szLabel;
@@ -960,7 +937,7 @@ bool CCPP65IRFrontEnd::BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtra
 	apsParameter[3] = &mpcTypes->msUnsignedInt;
 	szLabel = (char*)(bSubtract ? "R816_BcdSubtract" : "R816_BcdAdd");
 	maszRuntime.AddIfUnique(szLabel);
-	return CallWithArguments(pcCall, apsParameter, 4, szLabel, &mpcTypes->msUnsignedInt, psValue);
+	return CallWithArguments(pcCall, papcArguments, apsParameter, 4, szLabel, &mpcTypes->msUnsignedInt, psValue);
 }
 
 

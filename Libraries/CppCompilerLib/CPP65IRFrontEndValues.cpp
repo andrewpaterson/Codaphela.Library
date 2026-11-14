@@ -634,7 +634,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 // as the callee is.  [expr.call] 8
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psMember;
 	SCPP65IRValue	sFunction;
@@ -652,7 +652,7 @@ bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPS
 	{
 		return false;
 	}
-	return Call(NULL, ConvertIR(sFunction.sValue, IRType(IRTK_I32), IRType(IRTK_Pointer), false), psMember->psBase, &pcCall->macpArguments, psValue, NULL, false, NULL, false, sObject);
+	return Call(NULL, ConvertIR(sFunction.sValue, IRType(IRTK_I32), IRType(IRTK_Pointer), false), psMember->psBase, papcArguments, psValue, NULL, false, NULL, false, sObject);
 }
 
 

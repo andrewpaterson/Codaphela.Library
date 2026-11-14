@@ -1190,57 +1190,31 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	}
 	switch (cBound.meHow)
 	{
-	case CPPBC_PackExpansion:
-		return ExpandPackCall(pcCall);
 	case CPPBC_Member:
-		return MemberFunctionCall(pcCall, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction);
+		return MemberFunctionCall(pcCall, cBound.mpapcArguments, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction);
 	case CPPBC_Destructor:
-		return cBound.mpcFunction ? MemberFunctionCall(pcCall, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction) : &mpcTypes->msVoid;
+		return cBound.mpcFunction ? MemberFunctionCall(pcCall, cBound.mpapcArguments, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction) : &mpcTypes->msVoid;
 	case CPPBC_MemberPointer:
-		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
+		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
 	case CPPBC_Function:
-		return Call(cBound.mpcFunction, &pcCall->macpArguments, pcCall);
+		return Call(cBound.mpcFunction, cBound.mpapcArguments, pcCall);
 	case CPPBC_InlineMemcpy:
-		return InlineMemcpy(&pcCall->macpArguments);
+		return InlineMemcpy(cBound.mpapcArguments);
 	case CPPBC_Builtin:
-		return Builtin(pcCall, cBound.mlliName);
+		return Builtin(pcCall, cBound.mpapcArguments, cBound.mlliName);
 	case CPPBC_Unchecked:
-		return UncheckedCall(&pcCall->macpArguments);
+		return UncheckedCall(cBound.mpapcArguments);
 	case CPPBC_Pointer:
 		psType = mpcUnit->TypeOf(cBound.mpcCallee);
 		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
 		{
-			return CallThroughPointer(pcCall, psType->psBase);
+			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
 		}
 		Error(cBound.mpcCallee, "Only calls to functions and pointers to functions are supported by the compiler yet");
 		return NULL;
 	default:
 		return NULL;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// f(args...): the call with the function parameter pack's elements for args...
-// (CCPPUnit::ExpandPackArguments).
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::ExpandPackCall(CCPPSyntaxCallExpression* pcCall)
-{
-	CArraySyntax	apcArguments;
-	CCPPSyntax*		pcExpansion;
-	SCPP65Type*		psType;
-
-	pcExpansion = mpcUnit->ExpandPackArguments(pcCall, &apcArguments);
-	if (pcExpansion)
-	{
-		Error(pcExpansion, "Only a function parameter pack can be expanded by the compiler yet");
-		return NULL;
-	}
-	psType = CallExpression(pcCall);
-	mpcUnit->RestoreArguments(pcCall, &apcArguments);
-	return psType;
 }
 
 
@@ -1269,9 +1243,9 @@ SCPP65Type* CCPP65TypeChecker::UncheckedCall(CArraySyntax* papcArguments)
 // A call through a pointer to a function of psFunctionType.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, SCPP65Type* psFunctionType)
+SCPP65Type* CCPP65TypeChecker::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65Type* psFunctionType)
 {
-	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, &pcCall->macpArguments, pcCall, psFunctionType->psBase) ||
+	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, papcArguments, pcCall, psFunctionType->psBase) ||
 		!Value(pcCall->mpcCallee))
 	{
 		return NULL;
@@ -1419,13 +1393,12 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 // their argument counts, their arguments' types and their results.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName)
+SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName)
 {
 	static const char*		aszArguments[] = { "no arguments", "one argument", "two arguments", "three arguments", "four arguments" };
 	const SCPPBuiltin*	psBuiltin;
 	SCPP65Type*				psType;
 	SCPP65Type*				psVoidPointer;
-	CArraySyntax*			papcArguments;
 	CChars					szError;
 	double					dValue;
 
@@ -1434,7 +1407,6 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 		return psType;
 	}
 
-	papcArguments = &pcCall->macpArguments;
 	psBuiltin = mpcUnit->FindBuiltin(lliName);
 	if (!psBuiltin)
 	{
@@ -1515,11 +1487,11 @@ SCPP65Type* CCPP65TypeChecker::InlineMemcpy(CArraySyntax* papcArguments)
 // its object (a pointer for ->), and its result.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction)
+SCPP65Type* CCPP65TypeChecker::MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction)
 {
 	bool	bObject;
 
-	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, &pcCall->macpArguments, pcCall, pcFunction->mpsReturn))
+	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, papcArguments, pcCall, pcFunction->mpsReturn))
 	{
 		return NULL;
 	}
@@ -1796,7 +1768,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerPlace(CCPPSyntaxBinaryExpression* pc
 // result.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary)
+SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary)
 {
 	SCPP65Type*	psMember;
 	SCPP65Type*	psFunctionType;
@@ -1808,7 +1780,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 		return NULL;
 	}
 	psFunctionType = psMember->psBase;
-	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, &pcCall->macpArguments, pcCall, psFunctionType->psBase) ||
+	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, papcArguments, pcCall, psFunctionType->psBase) ||
 		!MemberPointerObject(pcBinary) ||
 		!Value(pcBinary->mpcRight))
 	{

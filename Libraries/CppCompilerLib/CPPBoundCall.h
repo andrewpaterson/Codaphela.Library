@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_BOUND_CALL_H__
 #define __C_P_P_BOUND_CALL_H__
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPPFunction.h"
@@ -36,7 +37,6 @@ class CCPPUnit;
 enum ECPPBoundCall
 {
 	CPPBC_Failed,			//It can't be: an error says why.
-	CPPBC_PackExpansion,	//Its arguments have a pack to expand first; then it is bound again.
 	CPPBC_Member,			//A member function, on the object (this's if there is none): object.f(), pointer->f(), Class::f(), f().
 	CPPBC_Destructor,		//object.~X(), pointer->~X() or ~X(): the class's destructor, or nothing if it has none.
 	CPPBC_MemberPointer,	//(object.*pointer)() and (pointer->*pointer)().
@@ -58,6 +58,7 @@ public:
 	CCPPSyntaxName*		mpcName;		//The callee's name, or NULL if it isn't one.
 	int64				mlliName;		//The function's name (-1 if the callee has none).
 	CCPPFunction*		mpcFunction;	//The function chosen (a template's instance is made); NULL for a destructor there isn't.
+	CArraySyntax*		mpapcArguments;	//A call expression's arguments: the node's own, or with args... expanded (the binder's).
 
 	//A member's call and a destructor's.
 	CCPPSyntax*			mpcObject;		//What it is called on: the left of . or ->, or NULL for this.
@@ -79,6 +80,7 @@ public:
 
 
 typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
+typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 
 
 //Binds calls, and is the one way in to choosing a function: it owns the overloads.  [expr.call]  It has the one cascade that says what a call is: a member's, a template's instance, a
@@ -94,6 +96,7 @@ protected:
 	CCPPOverloads		mcOverloads;	//Chooses between the functions of a name; only the binder asks it.
 	CMapCPPBoundCalls	mcBound;
 	CMapCPPBoundCalls	mcOperators;	//By left operand.
+	CArrayCPPArguments	mapapcExpanded;	//The arguments of the calls with a pack expanded, kept until the unit is done.
 
 public:
 	void	Init(CCPPUnit* pcUnit);
@@ -112,6 +115,7 @@ public:
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 
 protected:
+	CArraySyntax*	ExpandPack(CCPPSyntaxCallExpression* pcCall);
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);

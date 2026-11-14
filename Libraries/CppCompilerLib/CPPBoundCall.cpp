@@ -33,6 +33,7 @@ void CCPPBoundCall::Init(void)
 	mpcName = NULL;
 	mlliName = -1;
 	mpcFunction = NULL;
+	mpapcArguments = NULL;
 	mpcObject = NULL;
 	mpcClass = NULL;
 	mbArrow = false;
@@ -55,6 +56,7 @@ void CCPPCallBinder::Init(CCPPUnit* pcUnit)
 	mcOverloads.Init(pcUnit);
 	mcBound.Init(true);
 	mcOperators.Init(true);
+	mapapcExpanded.Init();
 }
 
 
@@ -64,6 +66,14 @@ void CCPPCallBinder::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPCallBinder::Kill(void)
 {
+	size	i;
+
+	for (i = 0; i < mapapcExpanded.NumElements(); i++)
+	{
+		mapapcExpanded.GetPtr(i)->Kill();
+		free(mapapcExpanded.GetPtr(i));
+	}
+	mapapcExpanded.Kill();
 	mcOperators.Kill();
 	mcBound.Kill();
 	mcOverloads.Kill();
@@ -73,9 +83,9 @@ void CCPPCallBinder::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What the call is, in *pcBound.  False if it can't be made (CPPBC_Failed).  A call
-// whose arguments have a pack to expand is CPPBC_PackExpansion every time: it is
-// bound again, as what it is, once its caller has expanded them.  bReport when the
+// What the call is, in *pcBound.  False if it can't be made (CPPBC_Failed).  Its
+// arguments are the bound call's: the node's own, or with a function parameter
+// pack's args... expanded, which the binder makes once and keeps.  bReport when the
 // errors of a call that failed before are wanted again (the type checker's, which
 // ReportTypeOf reports); without it a failure is as it was remembered.
 //
@@ -83,13 +93,6 @@ void CCPPCallBinder::Kill(void)
 bool CCPPCallBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport)
 {
 	CCPPBoundCall*	pcRemembered;
-
-	if (mpcUnit->HasPackExpansion(&pcCall->macpArguments))
-	{
-		pcBound->Init();
-		pcBound->meHow = CPPBC_PackExpansion;
-		return true;
-	}
 
 	mpcUnit->GetStatistics()->Count(CPPCC_BoundCalls);
 	pcRemembered = mcBound.Get((int64)(size)pcCall);
@@ -106,7 +109,15 @@ bool CCPPCallBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBou
 	pcBound->Init();
 	pcBound->mpcBindings = mpcUnit->GetContext()->GetBindings();
 	pcBound->mpcIn = mpcUnit->GetContext()->GetFunction();
-	Resolve(pcCall, pcBound);
+	pcBound->mpapcArguments = mpcUnit->HasPackExpansion(&pcCall->macpArguments) ? ExpandPack(pcCall) : &pcCall->macpArguments;
+	if (pcBound->mpapcArguments)
+	{
+		Resolve(pcCall, pcBound);
+	}
+	else
+	{
+		pcBound->mpapcArguments = &pcCall->macpArguments;
+	}
 	mcBound.Put((int64)(size)pcCall, pcBound);
 	return pcBound->meHow != CPPBC_Failed;
 }
@@ -165,7 +176,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
 		pcBound->mlliName = pcSymbol->mlliName;
-		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mcOverloads.FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
+		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mcOverloads.FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcBound->mpapcArguments->NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
 		{
 			ResolveMember(pcCall, pcBound);
 			return;
@@ -178,10 +189,10 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 		{
 			uiErrors = mpcUnit->GetErrors()->NumErrors();
 			mpcUnit->BeginTrial();
-			pcFunction = mcOverloads.FindNamedFunction(pcName, pcSymbol->mlliName, &pcCall->macpArguments, pcCall);
+			pcFunction = mcOverloads.FindNamedFunction(pcName, pcSymbol->mlliName, pcBound->mpapcArguments, pcCall);
 			mpcUnit->EndTrial();
 			mpcUnit->GetErrors()->Truncate(uiErrors);
-			if (pcFunction && TakesAsTheyAre(pcFunction, &pcCall->macpArguments))
+			if (pcFunction && TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
 			{
 				mpcUnit->Resolved(pcName, pcFunction);
 				pcBound->meHow = CPPBC_Function;
@@ -189,13 +200,13 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 				return;
 			}
 		}
-		pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, papcExplicit);
+		pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, pcBound->mpapcArguments, papcExplicit);
 		if (!pcTemplate)
 		{
 			mpcUnit->Error(pcCallee, "The function template has not been defined");
 			return;
 		}
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, &pcCall->macpArguments, pcCall);
+		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
 		if (!pcFunction)
 		{
 			return;
@@ -215,7 +226,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 		return;
 	}
 
-	if (!pcSymbol && mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
+	if (!pcSymbol && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
 	{
 		pcBound->meHow = CPPBC_InlineMemcpy;
 		return;
@@ -238,7 +249,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	{
 		//Nothing declares it here: it may be in a namespace of its arguments'.
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		pcFunction = mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall);
+		pcFunction = mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall, pcBound->mpapcArguments);
 		if (pcFunction)
 		{
 			mpcUnit->Resolved(pcName, pcFunction);
@@ -267,11 +278,11 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	{
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
 		mpcUnit->BeginTrial();
-		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
-		if (!pcFunction || !TakesAsTheyAre(pcFunction, &pcCall->macpArguments))
+		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
+		if (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
 		{
-			pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, lliName, pcCall, NULL);
-			pcInstance = pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, &pcCall->macpArguments, pcCall) : NULL;
+			pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, lliName, pcCall, pcBound->mpapcArguments, NULL);
+			pcInstance = pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, pcBound->mpapcArguments, pcCall) : NULL;
 			pcFunction = pcInstance ? pcInstance : pcFunction;
 		}
 		mpcUnit->EndTrial();
@@ -286,7 +297,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	}
 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+	pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
 	if (!pcFunction)
 	{
 		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
@@ -300,7 +311,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 
 	//memcpy of a few bytes, a constant count, is copied where it is called: any function of the name, as the
 	//code has always been written (the type checker asked for C linkage, and gave the same type either way).
-	if (mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
+	if (mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
 	{
 		pcBound->meHow = CPPBC_InlineMemcpy;
 		return;
@@ -406,7 +417,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 	//p->~X(), o.~X(), p->X::~X() or ~X() (this's): nothing if the class has no destructor.
 	if (pcName->GetLast()->meKind == CPPNC_Destructor)
 	{
-		if (!pcClass || (pcCall->macpArguments.NumElements() != 0) || !mpcUnit->CompleteClass(pcClass, pcCallee))
+		if (!pcClass || (pcBound->mpapcArguments->NumElements() != 0) || !mpcUnit->CompleteClass(pcClass, pcCallee))
 		{
 			mpcUnit->Error(pcCallee, "This destructor call is not supported by the compiler yet");
 			return;
@@ -455,7 +466,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 	pcComponent = pcName->GetLast();
 	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
 	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcUnit->IsConstPointer(pcObject) : mpcUnit->IsConstObject(pcObject)) : mpcUnit->IsConstThis());
-	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, papcExplicit, eObject) : NULL;
+	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcBound->mpapcArguments, papcExplicit, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !papcExplicit)
 	{
@@ -464,7 +475,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 		{
 			mpcUnit->BeginQuiet();
 		}
-		pcFunction = mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
+		pcFunction = mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, pcBound->mpapcArguments, true, pcCall, eObject);
 		if (pcTemplate)
 		{
 			mpcUnit->EndQuiet();
@@ -472,7 +483,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 	}
 	if (!pcFunction && pcTemplate)
 	{
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, &pcCall->macpArguments, pcCall);
+		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
 	}
 	if (!pcFunction)
 	{
@@ -767,5 +778,73 @@ bool CCPPCallBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papc
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// f(args...): the call's arguments with args... replaced by a name for each of the
+// function parameter pack's elements, in an array the binder keeps.  The call node's
+// own arguments are left as they are: the same call is in instances with other
+// packs.  Only the function parameter pack itself can be expanded: NULL, with an
+// error, for another.
+//
+//////////////////////////////////////////////////////////////////////////
+CArraySyntax* CCPPCallBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
+{
+	CArraySyntax*				papcArguments;
+	CArrayCPPSymbols*			papcElements;
+	CCPPSyntax*					pcArgument;
+	CCPPSyntax*					pcPattern;
+	CCPPSyntaxIdExpression*		pcId;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntaxNameComponent*	pcLast;
+	CCPPSyntaxMemory*			pcMemory;
+	CCPPSymbol*					pcPack;
+	size						i;
+	size						j;
+
+	mpcUnit->GetStatistics()->Count(CPPCC_PackExpansions);
+	papcArguments = NewMalloc<CArraySyntax>();
+	papcArguments->Init();
+	mapapcExpanded.Add(papcArguments);
+	pcMemory = mpcUnit->GetTree()->GetMemory();
+	pcPack = mpcUnit->GetContext()->GetPackParameter();
+	papcElements = mpcUnit->GetPackElements();
+	for (i = 0; i < pcCall->macpArguments.NumElements(); i++)
+	{
+		pcArgument = pcCall->macpArguments.GetPtr(i);
+		if (pcArgument->GetKind() != CPPS_PackExpansionExpression)
+		{
+			papcArguments->Add(pcArgument);
+			continue;
+		}
+		pcPattern = ((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern->WithoutParentheses();
+		if (!pcPack || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != pcPack))
+		{
+			mpcUnit->Error(pcArgument, "Only a function parameter pack can be expanded by the compiler yet");
+			return NULL;
+		}
+		pcLast = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast();
+		for (j = 0; j < papcElements->NumElements(); j++)
+		{
+			mpcUnit->GetStatistics()->Count(CPPCC_PackExpansionNodes, 3);
+			pcId = pcMemory->Create<CCPPSyntaxIdExpression>(pcCall);
+			pcId->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
+			pcName = pcMemory->Create<CCPPSyntaxName>(pcId);
+			pcName->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
+			pcName->mpcSymbol = papcElements->GetPtr(j);
+			pcComponent = pcMemory->Create<CCPPSyntaxNameComponent>(pcName);
+			pcComponent->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
+			pcComponent->meKind = pcLast->meKind;
+			pcComponent->miName = pcLast->miName;
+			pcComponent->mpcSymbol = pcName->mpcSymbol;
+			pcName->macpComponents.Add(pcComponent);
+			pcId->mpcName = pcName;
+			papcArguments->Add(pcId);
+		}
+	}
+	return papcArguments;
 }
 

@@ -821,25 +821,25 @@ CCPPFunction* CCPPOverloads::FindNamedFunction(CCPPSyntaxName* pcName, int64 lli
 // if there is none.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindAssociatedFunction(CCPPSyntaxName* pcName, int64 lliName, CCPPSyntaxCallExpression* pcCall)
+CCPPFunction* CCPPOverloads::FindAssociatedFunction(CCPPSyntaxName* pcName, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
 {
 	CCPPFunction*	pcFunction;
 	CCPPTemplate*	pcTemplate;
 	size			uiErrors;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindAssociatedFunction);
-	if ((lliName == -1) || pcName->mbGlobal || pcName->GetQualifier() || (pcCall->macpArguments.NumElements() == 0))
+	if ((lliName == -1) || pcName->mbGlobal || pcName->GetQualifier() || (papcArguments->NumElements() == 0))
 	{
 		return NULL;
 	}
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+	pcFunction = FindNamedFunction(pcName, lliName, papcArguments, pcCall);
 	if (pcFunction || (mpcUnit->GetErrors()->NumErrors() != uiErrors))
 	{
 		return pcFunction;
 	}
-	pcTemplate = GetCallTemplate(NULL, lliName, pcCall, NULL);
-	return pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, &pcCall->macpArguments, pcCall) : NULL;
+	pcTemplate = GetCallTemplate(NULL, lliName, pcCall, papcArguments, NULL);
+	return pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcCall) : NULL;
 }
 
 
@@ -1278,7 +1278,7 @@ CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliNam
 	mpcUnit->GetStatistics()->Count(CPPCC_FindMemberTemplate);
 	apcCandidates.Init();
 	GetMemberTemplates(pcClass, lliName, uiArguments, &apcCandidates);
-	pcTemplate = ChooseTemplate(&apcCandidates, eObject, NULL, NULL);
+	pcTemplate = ChooseTemplate(&apcCandidates, eObject, NULL, NULL, NULL);
 	apcCandidates.Kill();
 	return pcTemplate;
 }
@@ -1290,15 +1290,15 @@ CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliNam
 // the explicit template arguments papcExplicit, uses (ChooseTemplate).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, ECPPCalledObject eObject)
+CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CArraySyntax* papcExplicit, ECPPCalledObject eObject)
 {
 	CArrayCPPTemplates	apcCandidates;
 	CCPPTemplate*			pcTemplate;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_ChooseMemberTemplate);
 	apcCandidates.Init();
-	GetMemberTemplates(pcClass, lliName, pcCall->macpArguments.NumElements(), &apcCandidates);
-	pcTemplate = ChooseTemplate(&apcCandidates, eObject, papcExplicit, pcCall);
+	GetMemberTemplates(pcClass, lliName, papcArguments->NumElements(), &apcCandidates);
+	pcTemplate = ChooseTemplate(&apcCandidates, eObject, papcExplicit, pcCall, papcArguments);
 	apcCandidates.Kill();
 	return pcTemplate;
 }
@@ -1345,7 +1345,7 @@ void CCPPOverloads::GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size u
 // GetTemplate's.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit)
+CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CArraySyntax* papcExplicit)
 {
 	CArrayCPPTemplates	apcCandidates;
 	CArrayScopes			apcNamespaces;
@@ -1357,20 +1357,20 @@ CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName
 	apcNamespaces.Init();
 	if (pcCall->mpcCallee->GetKind() == CPPS_IdExpression)
 	{
-		GetCallNamespaces(((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName, lliName, &pcCall->macpArguments, &apcNamespaces);
+		GetCallNamespaces(((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName, lliName, papcArguments, &apcNamespaces);
 	}
 	for (i = 0; i < apcNamespaces.NumElements(); i++)
 	{
-		AddCallTemplates(apcNamespaces.GetPtr(i)->FindHere(lliName), pcCall, &apcCandidates);
+		AddCallTemplates(apcNamespaces.GetPtr(i)->FindHere(lliName), pcCall, papcArguments, &apcCandidates);
 	}
 	if (apcNamespaces.NumElements() == 0)
 	{
-		AddCallTemplates(pcSymbol, pcCall, &apcCandidates);
+		AddCallTemplates(pcSymbol, pcCall, papcArguments, &apcCandidates);
 	}
 	pcTemplate = NULL;
 	if (apcCandidates.NumElements() > 0)
 	{
-		pcTemplate = ChooseTemplate(&apcCandidates, CPPCO_None, papcExplicit, pcCall);
+		pcTemplate = ChooseTemplate(&apcCandidates, CPPCO_None, papcExplicit, pcCall, papcArguments);
 	}
 	else if (pcSymbol)
 	{
@@ -1388,7 +1388,7 @@ CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName
 // number of arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArrayCPPTemplates* papcCandidates)
+void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CArrayCPPTemplates* papcCandidates)
 {
 	CCPPTemplate*				pcTemplate;
 	CCPPSymbol*					pcDeclaration;
@@ -1409,7 +1409,7 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 				continue;
 			}
 			pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
-			if (pcSuffix && TakesArguments(pcSuffix, pcCall->macpArguments.NumElements()))
+			if (pcSuffix && TakesArguments(pcSuffix, papcArguments->NumElements()))
 			{
 				papcCandidates->Add(pcTemplate);
 			}
@@ -1431,7 +1431,7 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 // of arguments alone.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, ECPPCalledObject eObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall)
+CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, ECPPCalledObject eObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
 {
 	CCPPCandidates			cTaken;
 	CArrayCPPTemplates		apcChosen;
@@ -1443,12 +1443,12 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 
 	mpcUnit->GetStatistics()->Count(CPPCC_ChooseTemplate);
 	apcChosen.Init();
-	uiArguments = pcCall ? pcCall->macpArguments.NumElements() : 0;
+	uiArguments = pcCall ? papcArguments->NumElements() : 0;
 	cTaken.Init(uiArguments);
 	for (i = 0; pcCall && (papcCandidates->NumElements() > 1) && (i < papcCandidates->NumElements()); i++)
 	{
 		pcTemplate = papcCandidates->GetPtr(i);
-		if (TemplateTakes(pcTemplate, papcExplicit, &pcCall->macpArguments, pcCall, cTaken.NextRanks()))
+		if (TemplateTakes(pcTemplate, papcExplicit, papcArguments, pcCall, cTaken.NextRanks()))
 		{
 			cTaken.Add(NULL, pcTemplate);
 		}
