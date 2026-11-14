@@ -67,7 +67,7 @@ static int32	gaiJewelThemeMetrics[] =
 	360,	//TM_DialogMinWidth
 	8,		//TM_MessageItemsGap
 	16,		//TM_MessageItemIndent
-	620,	//TM_FileChooserWidth
+	860,	//TM_FileChooserWidth
 	440,	//TM_FileChooserHeight
 	420,	//TM_FileChooserMinWidth
 	300,	//TM_FileChooserMinHeight
