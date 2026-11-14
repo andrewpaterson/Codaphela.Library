@@ -516,8 +516,8 @@ static void TestVulkanFrameOn(Ptr<CCamera> pCamera, CInstanceMesh* pcInstanceMes
 //
 // Goober, read from its converted file, walks, and at each of several times
 // Vulkan poses it where the rasteriser does: nearly every pixel drawn by
-// one is drawn by the other.  Their colours aren't compared, as Vulkan
-// draws Goober's texture and the rasteriser its material's colour.
+// one is drawn by the other.  Both draw Goober's texture, in nearly the
+// same colours: Vulkan filters its texels and the rasteriser doesn't.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestVulkanFrameGoober(CVulkanRenderFactory* pcFactory)
@@ -554,6 +554,7 @@ void TestVulkanFrameGoober(CVulkanRenderFactory* pcFactory)
 		TestVulkanLikeness(pScene, pCamera, pcFactory, 1, &sLikeness);
 		AssertTrue(sLikeness.iCovered > TEST_VULKAN_WIDTH * TEST_VULKAN_HEIGHT / 20);
 		AssertTrue(sLikeness.iDisagree * 50 < sLikeness.iCovered);
+		AssertTrue(sLikeness.fMeanDifference < 8.0);
 	}
 }
 

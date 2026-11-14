@@ -23,6 +23,7 @@
     <ClCompile Include="CookedMesh.cpp" />
     <ClCompile Include="RenderMesh.cpp" />
     <ClCompile Include="RenderScene.cpp" />
+    <ClCompile Include="ImageTexels.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderFactory.h" />
@@ -30,6 +31,7 @@
     <ClInclude Include="CookedMesh.h" />
     <ClInclude Include="RenderMesh.h" />
     <ClInclude Include="RenderScene.h" />
+    <ClInclude Include="ImageTexels.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B3F6D2A8-5C41-4E97-9A0D-2E8C7B154F63}</ProjectGuid>

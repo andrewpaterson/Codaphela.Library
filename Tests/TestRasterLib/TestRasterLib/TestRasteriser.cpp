@@ -1163,10 +1163,52 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Runs of two textures and of none through a mesh's triangles, which have
+// UVs going far past one.  Their texels are random and the second texture
+// isn't a power of two across.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestRasterAddTextureRuns(CRasterMesh* pcRaster, uint32* puiRandom)
+{
+	Ptr<CRasterTexture>	pTexture;
+	int32				aiTexture[3];
+	size				i;
+	int					k;
+
+	for (k = 0; k < 2; k++)
+	{
+		pTexture = OMalloc<CRasterTexture>((k == 0) ? 16 : 12, 8, (uint64)k);
+		for (i = 0; i < (size)(pTexture->GetWidth() * pTexture->GetHeight()); i++)
+		{
+			*puiRandom = *puiRandom * 1103515245 + 12345;
+			pTexture->GetTexels()[i] = *puiRandom;
+		}
+		aiTexture[k] = pcRaster->AddTexture(pTexture);
+	}
+	aiTexture[2] = RASTER_NO_TEXTURE;
+	for (i = 0; i < pcRaster->masVertices.NumElements(); i++)
+	{
+		*puiRandom = *puiRandom * 1103515245 + 12345;
+		pcRaster->masUVs.Add()->Init((int32)((*puiRandom >> 8) % (RASTER_UV_ONE * 6)) - RASTER_UV_ONE * 3, (int32)((*puiRandom >> 4) % (RASTER_UV_ONE * 6)) - RASTER_UV_ONE * 3);
+	}
+	for (i = 0; i < pcRaster->masOpaque.NumElements(); i++)
+	{
+		pcRaster->AddRun(&pcRaster->masOpaqueRuns, (uint32)i, aiTexture[(i / 777) % 3]);
+	}
+	for (i = 0; i < pcRaster->masTransparent.NumElements(); i++)
+	{
+		pcRaster->AddRun(&pcRaster->masTransparentRuns, (uint32)i, aiTexture[(i / 333 + 1) % 3]);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Instances draw the same bytes with jobs as without, in a mesh big enough
 // for several jobs of each kind, with triangles across many bands and depths
 // fighting, and transparent ones over them.  Jobs that can't run at the same
-// time draw as they do without jobs.
+// time draw as they do without jobs.  The first time none of them are
+// textured, and the second time runs of them are, which draw something else.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasteriserJobs(void)
@@ -1183,6 +1225,7 @@ void TestRasteriserJobs(void)
 	SRasterTriangle*	psTriangle;
 	uint32*				puiWithout;
 	uint32*				puiWith;
+	uint32*				puiUntextured;
 	uint32				uiRandom;
 	int					iMesh;
 	int					iNumVertices;
@@ -1190,6 +1233,7 @@ void TestRasteriserJobs(void)
 	int					i;
 	int					iCorner;
 	int					iCull;
+	int					iTextured;
 	bool				bSame;
 
 	uiRandom = 31337;
@@ -1243,6 +1287,7 @@ void TestRasteriserJobs(void)
 
 	puiWithout = (uint32*)malloc(200 * 150 * sizeof(uint32));
 	puiWith = (uint32*)malloc(200 * 150 * sizeof(uint32));
+	puiUntextured = (uint32*)malloc(200 * 150 * sizeof(uint32));
 	cWithout.Init(puiWithout, 200, 150, 200);
 	cWith.Init(puiWith, 200, 150, 200);
 	cRasteriser.Init();
@@ -1261,36 +1306,58 @@ void TestRasteriserJobs(void)
 	asInstances[2] = asInstances[0];
 	asInstances[2].sOffset.Init(-(1 << 17), 1 << 16, 1 << 17);
 
-	for (iCull = 0; iCull < 2; iCull++)
+	for (iTextured = 0; iTextured < 2; iTextured++)
 	{
-		cRasteriser.SetCullBackFaces(iCull == 0);
+		if (iTextured == 1)
+		{
+			TestRasterAddTextureRuns(&apRaster[0], &uiRandom);
+			TestRasterAddTextureRuns(&apRaster[1], &uiRandom);
+			AssertTrue(apRaster[0]->masOpaqueRuns.NumElements() > 50);
+		}
+		for (iCull = 0; iCull < 2; iCull++)
+		{
+			cRasteriser.SetCullBackFaces(iCull == 0);
 
-		cRasteriser.SetJobs(NULL);
-		cWithout.Clear(TEST_BLACK);
-		cRasteriser.Draw(asInstances, 3, &cCamera, &cWithout);
-		AssertTrue(CountPixels(&cWithout, TEST_BLACK) < 200 * 150 - 1000);
+			cRasteriser.SetJobs(NULL);
+			cWithout.Clear(TEST_BLACK);
+			cRasteriser.Draw(asInstances, 3, &cCamera, &cWithout);
+			AssertTrue(CountPixels(&cWithout, TEST_BLACK) < 200 * 150 - 1000);
+			if (iCull == 0)
+			{
+				if (iTextured == 0)
+				{
+					memcpy(puiUntextured, puiWithout, 200 * 150 * sizeof(uint32));
+				}
+				else
+				{
+					bSame = memcmp(puiUntextured, puiWithout, 200 * 150 * sizeof(uint32)) == 0;
+					AssertFalse(bSame);
+				}
+			}
 
-		cJobs.Init();
-		cRasteriser.SetJobs(&cJobs);
-		cWith.Clear(TEST_BLACK);
-		cRasteriser.Draw(asInstances, 3, &cCamera, &cWith);
-		AssertTrue(cJobs.miRun > 10);
-		bSame = memcmp(puiWithout, puiWith, 200 * 150 * sizeof(uint32)) == 0;
-		AssertTrue(bSame);
-		bSame = memcmp(cWithout.mpiDepths, cWith.mpiDepths, 200 * 150 * sizeof(int32)) == 0;
-		AssertTrue(bSame);
+			cJobs.Init();
+			cRasteriser.SetJobs(&cJobs);
+			cWith.Clear(TEST_BLACK);
+			cRasteriser.Draw(asInstances, 3, &cCamera, &cWith);
+			AssertTrue(cJobs.miRun > 10);
+			bSame = memcmp(puiWithout, puiWith, 200 * 150 * sizeof(uint32)) == 0;
+			AssertTrue(bSame);
+			bSame = memcmp(cWithout.mpiDepths, cWith.mpiDepths, 200 * 150 * sizeof(int32)) == 0;
+			AssertTrue(bSame);
 
-		//One job at a time is no reason to use them.
-		cRasteriser.SetJobs(&cSerial);
-		cWith.Clear(TEST_BLACK);
-		cRasteriser.Draw(asInstances, 3, &cCamera, &cWith);
-		bSame = memcmp(puiWithout, puiWith, 200 * 150 * sizeof(uint32)) == 0;
-		AssertTrue(bSame);
+			//One job at a time is no reason to use them.
+			cRasteriser.SetJobs(&cSerial);
+			cWith.Clear(TEST_BLACK);
+			cRasteriser.Draw(asInstances, 3, &cCamera, &cWith);
+			bSame = memcmp(puiWithout, puiWith, 200 * 150 * sizeof(uint32)) == 0;
+			AssertTrue(bSame);
+		}
 	}
 
 	cRasteriser.Kill();
 	cWith.Kill();
 	cWithout.Kill();
+	free(puiUntextured);
 	free(puiWith);
 	free(puiWithout);
 }

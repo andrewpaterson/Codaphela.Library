@@ -15,6 +15,7 @@ void TestCookedMesh(void);
 void TestRasterPosed(void);
 void TestRasterCamera(void);
 void TestRasteriser(void);
+void TestRasterTexture(void);
 void TestRasterLights(void);
 void TestRenderScene(void);
 void TestRasterFrame(void);
@@ -37,6 +38,7 @@ int __cdecl main(void)
 	TestRasterPosed();
 	TestRasterCamera();
 	TestRasteriser();
+	TestRasterTexture();
 	TestRasterLights();
 	TestRenderScene();
 	TestRasterFrame();

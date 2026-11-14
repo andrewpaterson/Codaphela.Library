@@ -24,6 +24,9 @@
     <ClCompile Include="TestRasteriser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestRasterTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TestRasterLights.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -23,8 +23,11 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #include "BaseLib/FixedPoint.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Mesh.h"
+#include "SupportLib/Image.h"
 #include "RenderLib/CookedMesh.h"
+#include "RenderLib/ImageTexels.h"
 #include "RasterLib/RasterMesh.h"
+#include "RasterRenderer.h"
 #include "RasterMeshBuild.h"
 
 
@@ -96,28 +99,93 @@ static void AddRasterSkinVertex(CRasterMesh* pcRaster, CCookedMesh* pcCooked, si
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A triangle's colour is its first corner's if the mesh has vertex colours,
-// and its submesh's if not.  It's transparent if its colour is.
+// The texture a submesh is drawn with, the renderer's if there is one, as
+// an index in the mesh's textures.  RASTER_NO_TEXTURE for none.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AddRasterTriangles(CRasterMesh* pcRaster, CCookedMesh* pcCooked, SCookedSubmesh* psSubmesh)
+static int32 FindRasterTexture(CRasterMesh* pcRaster, CCookedMesh* pcCooked, size uiSubmesh, CRasterRenderer* pcRenderer)
+{
+	Ptr<CMaterial>		pMaterial;
+	Ptr<CRasterTexture>	pTexture;
+	CImage*				pcImage;
+
+	pMaterial = pcCooked->mapMaterials.Get(uiSubmesh);
+	if (pMaterial.IsNull())
+	{
+		return RASTER_NO_TEXTURE;
+	}
+	pcImage = &pMaterial->GetImage(MI_Diffuse)->mpImage;
+	pTexture = (pcRenderer != NULL) ? pcRenderer->GetTexture(pcImage) : MakeRasterTexture(pcImage);
+	if (pTexture.IsNull())
+	{
+		return RASTER_NO_TEXTURE;
+	}
+	return pcRaster->AddTexture(pTexture);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A triangle's colour is its first corner's if the mesh has vertex colours,
+// and its submesh's if not.  It's transparent if its colour is.  Each goes
+// in its list's run of iTexture.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddRasterTriangles(CRasterMesh* pcRaster, CCookedMesh* pcCooked, SCookedSubmesh* psSubmesh, int32 iTexture)
 {
 	SRasterTriangle*	psTriangle;
 	uint32*				puiIndices;
 	uint32				uiColour;
 	uint32				i;
 	int					k;
+	bool				bOpaque;
 
 	puiIndices = pcCooked->mauiIndices.GetData() + psSubmesh->uiFirstIndex;
 	for (i = 0; i < psSubmesh->uiNumIndices; i += 3)
 	{
 		uiColour = pcCooked->HasColours() ? pcCooked->mauiColours.GetValue(puiIndices[i]) : psSubmesh->uiColour;
-		psTriangle = ((uiColour >> 24) == 0xFF) ? pcRaster->masOpaque.Add() : pcRaster->masTransparent.Add();
+		bOpaque = (uiColour >> 24) == 0xFF;
+		psTriangle = bOpaque ? pcRaster->masOpaque.Add() : pcRaster->masTransparent.Add();
 		for (k = 0; k < 3; k++)
 		{
 			psTriangle->aiVertex[k] = (int32)puiIndices[i + k];
 		}
 		psTriangle->uiColour = uiColour;
+		if (bOpaque)
+		{
+			pcRaster->AddRun(&pcRaster->masOpaqueRuns, (uint32)(pcRaster->masOpaque.NumElements() - 1), iTexture);
+		}
+		else
+		{
+			pcRaster->AddRun(&pcRaster->masTransparentRuns, (uint32)(pcRaster->masTransparent.NumElements() - 1), iTexture);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cooked mesh's UVs, or all 0 if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddRasterUVs(CRasterMesh* pcRaster, CCookedMesh* pcCooked)
+{
+	SFloat32Vec2*	psUV;
+	SInt32Vec2*		psRasterUV;
+	size			i;
+
+	for (i = 0; i < pcCooked->NumVertices(); i++)
+	{
+		psRasterUV = pcRaster->masUVs.Add();
+		if (pcCooked->HasUVs())
+		{
+			psUV = pcCooked->masUVs.Get(i);
+			psRasterUV->Init(FloatToIntScaled(psUV->x, RASTER_UV_ONE), FloatToIntScaled(psUV->y, RASTER_UV_ONE));
+		}
+		else
+		{
+			psRasterUV->Init(0, 0);
+		}
 	}
 }
 
@@ -128,7 +196,7 @@ static void AddRasterTriangles(CRasterMesh* pcRaster, CCookedMesh* pcCooked, SCo
 // each of the mesh's, and its triangles.
 //
 //////////////////////////////////////////////////////////////////////////
-static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CCookedMesh* pcCooked, SFloat32Vec3* psCentre, int32 iScale)
+static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CCookedMesh* pcCooked, SFloat32Vec3* psCentre, int32 iScale, CRasterRenderer* pcRenderer)
 {
 	SFloat32Vec3*	psPosition;
 	SFloat32Vec3*	psNormal;
@@ -152,7 +220,18 @@ static void BuildRasterMeshFrom(CRasterMesh* pcRaster, CCookedMesh* pcCooked, SF
 
 	for (i = 0; i < pcCooked->masSubmeshes.NumElements(); i++)
 	{
-		AddRasterTriangles(pcRaster, pcCooked, pcCooked->masSubmeshes.Get(i));
+		AddRasterTriangles(pcRaster, pcCooked, pcCooked->masSubmeshes.Get(i), FindRasterTexture(pcRaster, pcCooked, i, pcRenderer));
+	}
+
+	//A mesh with no textures has no runs and no UVs.
+	if (pcRaster->mapTextures.NumElements() == 0)
+	{
+		pcRaster->masOpaqueRuns.ReInit();
+		pcRaster->masTransparentRuns.ReInit();
+	}
+	else
+	{
+		AddRasterUVs(pcRaster, pcCooked);
 	}
 
 	pcRaster->RemoveDegenerate();
@@ -188,7 +267,7 @@ void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked)
 		fHalfExtent = (pcCooked->msMax.z - pcCooked->msMin.z) * 0.5f;
 	}
 	iScale = (fHalfExtent > 0.0f) ? (int32)floor((float64)RASTER_MESH_HALF_EXTENT / (float64)fHalfExtent) : 1;
-	BuildRasterMeshFrom(pcRaster, pcCooked, &sCentre, iScale);
+	BuildRasterMeshFrom(pcRaster, pcCooked, &sCentre, iScale, NULL);
 }
 
 
@@ -199,13 +278,25 @@ void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked)
 //////////////////////////////////////////////////////////////////////////
 void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale)
 {
+	BuildRasterMesh(pcRaster, pcCooked, iScale, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where it is, with iScale units to each of the mesh's, textured by
+// pcRenderer's textures.
+//
+//////////////////////////////////////////////////////////////////////////
+void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale, CRasterRenderer* pcRenderer)
+{
 	SFloat32Vec3	sCentre;
 
 	pcRaster->Clear();
 	if (pcCooked->NumTriangles() > 0)
 	{
 		sCentre.Zero();
-		BuildRasterMeshFrom(pcRaster, pcCooked, &sCentre, iScale);
+		BuildRasterMeshFrom(pcRaster, pcCooked, &sCentre, iScale, pcRenderer);
 	}
 }
 
@@ -235,5 +326,26 @@ void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale)
 	pCooked = OMalloc<CCookedMesh>();
 	pCooked->Cook(pcMesh);
 	BuildRasterMesh(pcRaster, &pCooked, iScale);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CRasterTexture> MakeRasterTexture(CImage* pcImage)
+{
+	Ptr<CRasterTexture>	pTexture;
+
+	if ((pcImage == NULL) || (pcImage->GetWidth() == 0) || (pcImage->GetHeight() == 0) || (pcImage->GetPrimitiveType() != PT_uint8))
+	{
+		return pTexture;
+	}
+	pTexture = OMalloc<CRasterTexture>((int32)pcImage->GetWidth(), (int32)pcImage->GetHeight(), (uint64)pcImage->GetIndex());
+	if (!GetImageTexels(pcImage, pTexture->GetTexels()))
+	{
+		pTexture = NULL;
+	}
+	return pTexture;
 }
 

@@ -23,6 +23,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
 #include "SupportLib/Image.h"
+#include "RenderLib/ImageTexels.h"
 #include "VulkanShaders.h"
 #include "VulkanRenderer.h"
 
@@ -31,7 +32,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #define VULKAN_MAX_PHYSICAL_DEVICES	16
 #define VULKAN_MAX_QUEUE_FAMILIES	16
 #define VULKAN_MAX_LAYERS			64
-#define VULKAN_TEXTURE_FORMAT		VK_FORMAT_R8G8B8A8_UNORM  //A texel is bytes of red, green, blue and alpha.
+#define VULKAN_TEXTURE_FORMAT		VK_FORMAT_B8G8R8A8_UNORM  //A texel is a uint32 0xAARRGGBB, as GetImageTexels makes them.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -509,7 +510,7 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 	VkDescriptorPoolSize			sPoolSize;
 	VkDescriptorPoolCreateInfo		sPool;
 	VkSamplerCreateInfo				sSampler;
-	uint8							auiWhite[4];
+	uint32							uiWhite;
 
 	memset(&sBinding, 0, sizeof(sBinding));
 	sBinding.binding = 0;
@@ -550,8 +551,8 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 		return false;
 	}
 
-	memset(auiWhite, 0xFF, sizeof(auiWhite));
-	return CreateTexture(&msWhite, 1, 1, auiWhite);
+	uiWhite = 0xFFFFFFFF;
+	return CreateTexture(&msWhite, 1, 1, &uiWhite);
 }
 
 
@@ -751,11 +752,11 @@ bool CVulkanRenderer::Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int
 
 //////////////////////////////////////////////////////////////////////////
 //
-// From puiRGBA, bytes of red, green, blue and alpha with the top row first.
+// From puiTexels, 0xAARRGGBB with the top row first.
 // False, having made nothing, if it can't be made.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint8* puiRGBA)
+bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint32* puiTexels)
 {
 	SVulkanBuffer				sPixels;
 	VkDescriptorSetAllocateInfo	sAllocate;
@@ -773,7 +774,7 @@ bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int
 		DestroyTexture(psTexture);
 		return false;
 	}
-	memcpy(sPixels.pvMapped, puiRGBA, (size)iWidth * iHeight * 4);
+	memcpy(sPixels.pvMapped, puiTexels, (size)iWidth * iHeight * sizeof(uint32));
 	bResult = Upload(&psTexture->sImage, &sPixels, iWidth, iHeight);
 	DestroyBuffer(&sPixels);
 
@@ -817,51 +818,6 @@ void CVulkanRenderer::DestroyTexture(SVulkanTexture* psTexture)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An image's texels as bytes of red, green, blue and alpha.  A colour it
-// hasn't a channel for is all there, as is alpha.  False for an image that
-// isn't bytes.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool GetVulkanTexels(CImage* pcImage, uint8* puiRGBA)
-{
-	CChannel*	pcChannel;
-	uint8*		puiImage;
-	size		uiNumChannels;
-	size		uiNumPixels;
-	size		i;
-	size		j;
-	int			aiPart[16];
-
-	if ((pcImage->GetPrimitiveType() != PT_uint8) || (pcImage->NumChannels() == 0) || (pcImage->NumChannels() > 16))
-	{
-		return false;
-	}
-	uiNumChannels = pcImage->NumChannels();
-	for (j = 0; j < uiNumChannels; j++)
-	{
-		pcChannel = pcImage->GetChannelAtIndex(j);
-		aiPart[j] = (pcChannel->iChannel == IMAGE_DIFFUSE_RED) ? 0 : ((pcChannel->iChannel == IMAGE_DIFFUSE_GREEN) ? 1 : ((pcChannel->iChannel == IMAGE_DIFFUSE_BLUE) ? 2 : ((pcChannel->iChannel == IMAGE_OPACITY) ? 3 : -1)));
-	}
-
-	uiNumPixels = (size)pcImage->GetWidth() * pcImage->GetHeight();
-	memset(puiRGBA, 0xFF, uiNumPixels * 4);
-	puiImage = (uint8*)pcImage->GetData();
-	for (i = 0; i < uiNumPixels; i++)
-	{
-		for (j = 0; j < uiNumChannels; j++)
-		{
-			if (aiPart[j] >= 0)
-			{
-				puiRGBA[i * 4 + aiPart[j]] = puiImage[i * uiNumChannels + j];
-			}
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // White for no image, one that isn't bytes, or one that can't be made.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -869,7 +825,7 @@ VkDescriptorSet CVulkanRenderer::GetTexture(CImage* pcImage)
 {
 	SVulkanTextureEntry*	psEntry;
 	SVulkanTexture			sTexture;
-	uint8*					puiRGBA;
+	uint32*					puiTexels;
 	OIndex					oiImage;
 	size					i;
 	bool					bResult;
@@ -892,9 +848,9 @@ VkDescriptorSet CVulkanRenderer::GetTexture(CImage* pcImage)
 		return msWhite.hSet;
 	}
 
-	puiRGBA = (uint8*)malloc((size)pcImage->GetWidth() * pcImage->GetHeight() * 4);
-	bResult = (puiRGBA != NULL) && GetVulkanTexels(pcImage, puiRGBA) && CreateTexture(&sTexture, (int32)pcImage->GetWidth(), (int32)pcImage->GetHeight(), puiRGBA);
-	free(puiRGBA);
+	puiTexels = (uint32*)malloc((size)pcImage->GetWidth() * pcImage->GetHeight() * sizeof(uint32));
+	bResult = (puiTexels != NULL) && GetImageTexels(pcImage, puiTexels) && CreateTexture(&sTexture, (int32)pcImage->GetWidth(), (int32)pcImage->GetHeight(), puiTexels);
+	free(puiTexels);
 	if (!bResult)
 	{
 		return msWhite.hSet;

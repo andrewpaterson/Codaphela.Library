@@ -22,9 +22,12 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __RASTER_MESH_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/FixedPoint.h"
+#include "BaseLib/Int32Vec2.h"
 #include "BaseLib/Int32Vec3.h"
 #include "BaseLib/Vec3.h"
+#include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
+#include "RasterTexture.h"
 
 
 //A part of a unit normal.
@@ -71,10 +74,25 @@ struct SRasterSkinVertex
 };
 
 
+//A texture run's iTexture for triangles with none.
+#define RASTER_NO_TEXTURE	-1
+
+
+//uiNumTriangles of a list's triangles from uiFirst, all textured by the mesh's texture iTexture, or by none.
+struct SRasterTextureRun
+{
+	uint32	uiFirst;
+	uint32	uiNumTriangles;
+	int32	iTexture;
+};
+
+
 typedef CArrayTemplate<SRasterVertex>		CArrayRasterVertex;
 typedef CArrayTemplate<SRasterTriangle>		CArrayRasterTriangle;
 typedef CArrayTemplate<SRasterSkinVertex>	CArrayRasterSkinVertex;
 typedef CArrayTemplate<SRasterSkinWeight>	CArrayRasterSkinWeight;
+typedef CArrayTemplate<SRasterTextureRun>	CArrayRasterTextureRun;
+typedef CArray<CRasterTexture>				CArrayRasterTexture;
 
 
 //The integer copy of a mesh that CRasteriser draws.  RasterRenderLib's BuildRasterMesh makes one from a CMesh, as RasterLib
@@ -91,6 +109,11 @@ typedef CArrayTemplate<SRasterSkinWeight>	CArrayRasterSkinWeight;
 //
 //A skinned mesh's vertices are where it was bound, and each has its weights in masSkinVertices: most first, adding up to
 //exactly RASTER_SKIN_ONE.  muiNumMatrices is how many matrices pose it (see CRasterPosed).  A rigid mesh has none of these.
+//
+//A textured mesh has a UV for each vertex, RASTER_UV_BITS of fraction, and its triangles in runs (masOpaqueRuns and
+//masTransparentRuns), each textured by one of mapTextures or by none, that cover every triangle of their list in order.  A mesh
+//with no textures has no UVs and no runs.  A triangle's colour is multiplied by its texture's, as the Vulkan renderer does.  Its
+//textures aren't in its file: they're given again after ReadFile, and a run of a texture it hasn't got is drawn with none.
 class CRasterMesh : public CObject
 {
 CONSTRUCTABLE(CRasterMesh);
@@ -104,6 +127,10 @@ public:
 	uint32					muiNumMatrices;
 	SInt32Vec3				msMin;  //The bounds of its vertices.
 	SInt32Vec3				msMax;
+	CArrayInt32Vec2			masUVs;  //One for each vertex if it's textured.
+	CArrayRasterTextureRun	masOpaqueRuns;
+	CArrayRasterTextureRun	masTransparentRuns;
+	CArrayRasterTexture		mapTextures;
 
 	void	Init(void);
 	void	Free(void) override;
@@ -117,8 +144,12 @@ public:
 	bool	WriteFile(const char* szFilename, uint64 uiSource);
 	bool	ReadFile(const char* szFilename, uint64 uiSource);
 
-	size	NumTriangles(void);
-	bool	IsSkinned(void);
+	size			NumTriangles(void);
+	bool			IsSkinned(void);
+	bool			IsTextured(void);
+	int32			AddTexture(Ptr<CRasterTexture> pTexture);
+	void			AddRun(CArrayRasterTextureRun* pasRuns, uint32 uiTriangle, int32 iTexture);
+	CRasterTexture*	GetTexture(int32 iTexture);
 };
 
 

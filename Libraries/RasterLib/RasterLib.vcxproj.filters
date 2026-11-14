@@ -21,6 +21,9 @@
     <ClCompile Include="RasterTarget.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="RasterTexture.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Rasteriser.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -42,6 +45,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="RasterTarget.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterTexture.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Rasteriser.h">

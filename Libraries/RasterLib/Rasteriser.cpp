@@ -122,6 +122,7 @@ void CRasteriser::Init(void)
 {
 	masScreen.Init();
 	mbCullBackFaces = true;
+	mbPerspective = true;
 	mpcJobs = NULL;
 	masProjectJobs.Init();
 	masListJobs.Init();
@@ -328,6 +329,7 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
 	PrepareLights(pcCamera);
+	mbPerspective = pcCamera->GetProjection() == RP_Perspective;
 	//All the point lights, as the mesh is where it is.
 	uiPointLights = (mcLights.masPoint.NumElements() == 0) ? 0 : ((((uint64)1 << (mcLights.masPoint.NumElements() - 1)) << 1) - 1);
 
@@ -358,8 +360,8 @@ void CRasteriser::Draw(CRasterMesh* pcMesh, CRasterCamera* pcCamera, CRasterTarg
 		psScreen[i].iShade = RasterClampShade(iShade);
 	}
 
-	DrawTriangles(&pcMesh->masOpaque, psScreen, pcTarget, false, false);
-	DrawTriangles(&pcMesh->masTransparent, psScreen, pcTarget, true, false);
+	DrawTriangles(pcMesh, psScreen, pcTarget, false, false);
+	DrawTriangles(pcMesh, psScreen, pcTarget, true, false);
 }
 
 
@@ -377,6 +379,7 @@ void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRaste
 
 	pcCamera->Prepare(pcTarget->miWidth, pcTarget->miHeight);
 	PrepareLights(pcCamera);
+	mbPerspective = pcCamera->GetProjection() == RP_Perspective;
 
 	uiNumVertices = 0;
 	mauiPointLights.Resize(uiNumInstances);
@@ -397,16 +400,47 @@ void CRasteriser::Draw(SRasterInstance* asInstances, size uiNumInstances, CRaste
 	for (i = 0; i < uiNumInstances; i++)
 	{
 		ProjectInstance(&asInstances[i], pcCamera, mauiPointLights.GetValue(i), psScreen, 0, asInstances[i].pcMesh->masVertices.NumElements());
-		DrawTriangles(&asInstances[i].pcMesh->masOpaque, psScreen, pcTarget, false, asInstances[i].bMirrored);
+		DrawTriangles(asInstances[i].pcMesh, psScreen, pcTarget, false, asInstances[i].bMirrored);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
 
 	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		DrawTriangles(&asInstances[i].pcMesh->masTransparent, psScreen, pcTarget, true, asInstances[i].bMirrored);
+		DrawTriangles(asInstances[i].pcMesh, psScreen, pcTarget, true, asInstances[i].bMirrored);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh's UVs, or NULL if it hasn't one for each vertex.
+//
+//////////////////////////////////////////////////////////////////////////
+static SInt32Vec2* RasterMeshUVs(CRasterMesh* pcMesh)
+{
+	if (pcMesh->masUVs.NumElements() != pcMesh->masVertices.NumElements())
+	{
+		return NULL;
+	}
+	return pcMesh->masUVs.GetData();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a run is textured by: NULL for none, for a texture the mesh hasn't
+// got, and for a mesh with no UVs.
+//
+//////////////////////////////////////////////////////////////////////////
+static CRasterTexture* RasterRunTexture(CRasterMesh* pcMesh, SRasterTextureRun* psRun, SInt32Vec2* psUVs)
+{
+	if (psUVs == NULL)
+	{
+		return NULL;
+	}
+	return pcMesh->GetTexture(psRun->iTexture);
 }
 
 
@@ -467,13 +501,13 @@ void CRasteriser::DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances
 	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		AddListJobs(&asInstances[i].pcMesh->masOpaque, psScreen, pcTarget, false, asInstances[i].bMirrored, &psDrawables);
+		AddListJobs(asInstances[i].pcMesh, psScreen, pcTarget, false, asInstances[i].bMirrored, &psDrawables);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
 	psScreen = masScreen.GetData();
 	for (i = 0; i < uiNumInstances; i++)
 	{
-		AddListJobs(&asInstances[i].pcMesh->masTransparent, psScreen, pcTarget, true, asInstances[i].bMirrored, &psDrawables);
+		AddListJobs(asInstances[i].pcMesh, psScreen, pcTarget, true, asInstances[i].bMirrored, &psDrawables);
 		psScreen += asInstances[i].pcMesh->masVertices.NumElements();
 	}
 	for (i = 0; i < masListJobs.NumElements(); i++)
@@ -503,20 +537,49 @@ void CRasteriser::DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::AddListJobs(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables)
+void CRasteriser::AddListJobs(CRasterMesh* pcMesh, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables)
+{
+	CArrayRasterTriangle*	pasTriangles;
+	CArrayRasterTextureRun*	pasRuns;
+	SRasterTextureRun*		psRun;
+	SInt32Vec2*				psUVs;
+	size					i;
+
+	pasTriangles = bTransparent ? &pcMesh->masTransparent : &pcMesh->masOpaque;
+	pasRuns = bTransparent ? &pcMesh->masTransparentRuns : &pcMesh->masOpaqueRuns;
+	if (pasRuns->NumElements() == 0)
+	{
+		AddListJobs(pasTriangles->GetData(), pasTriangles->NumElements(), NULL, NULL, psScreen, pcTarget, bTransparent, bMirrored, ppsDrawables);
+		return;
+	}
+	psUVs = RasterMeshUVs(pcMesh);
+	for (i = 0; i < pasRuns->NumElements(); i++)
+	{
+		psRun = pasRuns->Get(i);
+		AddListJobs(pasTriangles->GetData() + psRun->uiFirst, psRun->uiNumTriangles, RasterRunTexture(pcMesh, psRun, psUVs), psUVs, psScreen, pcTarget, bTransparent, bMirrored, ppsDrawables);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Triangles that are all textured by pcTexture, or by none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::AddListJobs(SRasterTriangle* psTriangles, size uiNumTriangles, CRasterTexture* pcTexture, SInt32Vec2* psUVs, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables)
 {
 	SRasterListJob*	psJob;
-	size			uiNumTriangles;
 	size			uiFirst;
 
-	uiNumTriangles = pasTriangles->NumElements();
 	for (uiFirst = 0; uiFirst < uiNumTriangles; uiFirst += RASTER_JOB_TRIANGLES)
 	{
 		psJob = masListJobs.Add();
 		psJob->pcRasteriser = this;
 		psJob->pcTarget = pcTarget;
-		psJob->psTriangles = pasTriangles->GetData() + uiFirst;
+		psJob->psTriangles = psTriangles + uiFirst;
 		psJob->uiNumTriangles = ((uiNumTriangles - uiFirst) < RASTER_JOB_TRIANGLES) ? (uiNumTriangles - uiFirst) : RASTER_JOB_TRIANGLES;
+		psJob->pcTexture = pcTexture;
+		psJob->psUVs = psUVs;
 		psJob->psScreen = psScreen;
 		psJob->psDrawables = *ppsDrawables;
 		psJob->uiNumDrawables = 0;
@@ -937,12 +1000,135 @@ static FORCE_INLINE bool RasterMayDraw(CRasterTarget* pcTarget, SRasterScreenVer
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pixels whose samples may be in a triangle, on the target and on rows
+// iTop to iBottom.  False if there are none.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored)
+static FORCE_INLINE bool RasterTriangleBox(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, int32 iTop, int32 iBottom, int32* piMinX, int32* piMinY, int32* piMaxX, int32* piMaxY)
+{
+	int32	iMinX;
+	int32	iMinY;
+	int32	iMaxX;
+	int32	iMaxY;
+
+	iMinX = (Min3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) + SRasterSubpixel::FromRaw(7)).Floor();
+	iMinY = (Min3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) + SRasterSubpixel::FromRaw(7)).Floor();
+	iMaxX = (Max3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) - SRasterSubpixel::FromRaw(8)).Floor();
+	iMaxY = (Max3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) - SRasterSubpixel::FromRaw(8)).Floor();
+	if (iMinX < 0)
+	{
+		iMinX = 0;
+	}
+	if (iMinY < 0)
+	{
+		iMinY = 0;
+	}
+	if (iMaxX >= pcTarget->miWidth)
+	{
+		iMaxX = pcTarget->miWidth - 1;
+	}
+	if (iMaxY >= pcTarget->miHeight)
+	{
+		iMaxY = pcTarget->miHeight - 1;
+	}
+	if (iMinY < iTop)
+	{
+		iMinY = iTop;
+	}
+	if (iMaxY > iBottom)
+	{
+		iMaxY = iBottom;
+	}
+	*piMinX = iMinX;
+	*piMinY = iMinY;
+	*piMaxX = iMaxX;
+	*piMaxY = iMaxY;
+	return (iMinX <= iMaxX) && (iMinY <= iMaxY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many bits a number needs: 0 for 0.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 RasterBits(uint64 uiValue)
+{
+	int32	iBits;
+
+	iBits = 0;
+	while (uiValue != 0)
+	{
+		iBits++;
+		uiValue >>= 1;
+	}
+	return iBits;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of a colour's channels times a texel's, rounded, as the Vulkan
+// renderer multiplies them.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE uint32 RasterModulate(uint32 uiColour, uint32 uiTexel)
+{
+	uint32	uiResult;
+	uint32	uiProduct;
+	int		iShift;
+
+	if (uiColour == 0xFFFFFFFF)
+	{
+		return uiTexel;
+	}
+	uiResult = 0;
+	for (iShift = 0; iShift < 32; iShift += 8)
+	{
+		uiProduct = ((uiColour >> iShift) & 0xFF) * ((uiTexel >> iShift) & 0xFF) + 128;
+		uiResult |= ((uiProduct + (uiProduct >> 8)) >> 8) << iShift;
+	}
+	return uiResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh's opaque or transparent triangles, a texture's run at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::DrawTriangles(CRasterMesh* pcMesh, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored)
+{
+	CArrayRasterTriangle*	pasTriangles;
+	CArrayRasterTextureRun*	pasRuns;
+	SRasterTextureRun*		psRun;
+	SInt32Vec2*				psUVs;
+	size					i;
+
+	pasTriangles = bTransparent ? &pcMesh->masTransparent : &pcMesh->masOpaque;
+	pasRuns = bTransparent ? &pcMesh->masTransparentRuns : &pcMesh->masOpaqueRuns;
+	if (pasRuns->NumElements() == 0)
+	{
+		DrawTriangles(pasTriangles->GetData(), pasTriangles->NumElements(), NULL, NULL, psScreen, pcTarget, bTransparent, bMirrored);
+		return;
+	}
+	psUVs = RasterMeshUVs(pcMesh);
+	for (i = 0; i < pasRuns->NumElements(); i++)
+	{
+		psRun = pasRuns->Get(i);
+		DrawTriangles(pasTriangles->GetData() + psRun->uiFirst, psRun->uiNumTriangles, RasterRunTexture(pcMesh, psRun, psUVs), psUVs, psScreen, pcTarget, bTransparent, bMirrored);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Triangles that are all textured by pcTexture, or by none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::DrawTriangles(SRasterTriangle* psTriangles, size uiNumTriangles, CRasterTexture* pcTexture, SInt32Vec2* psUVs, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored)
 {
 	size				i;
-	size				uiNumTriangles;
 	SRasterTriangle*	psTriangle;
 	int32				iTop;
 	int32				iBottom;
@@ -951,13 +1137,26 @@ void CRasteriser::DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScree
 
 	iSecond = bMirrored ? 2 : 1;
 	iThird = bMirrored ? 1 : 2;
-	uiNumTriangles = pasTriangles->NumElements();
-	psTriangle = pasTriangles->GetData();
+	psTriangle = psTriangles;
+	if (pcTexture == NULL)
+	{
+		for (i = 0; i < uiNumTriangles; i++)
+		{
+			if (RasterMayDraw(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[iSecond]], &psScreen[psTriangle[i].aiVertex[iThird]], mbCullBackFaces, &iTop, &iBottom))
+			{
+				DrawTriangleRows(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[iSecond]], &psScreen[psTriangle[i].aiVertex[iThird]], psTriangle[i].uiColour, bTransparent, 0, pcTarget->miHeight - 1);
+			}
+		}
+		return;
+	}
+
 	for (i = 0; i < uiNumTriangles; i++)
 	{
 		if (RasterMayDraw(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[iSecond]], &psScreen[psTriangle[i].aiVertex[iThird]], mbCullBackFaces, &iTop, &iBottom))
 		{
-			DrawTriangleRows(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[iSecond]], &psScreen[psTriangle[i].aiVertex[iThird]], psTriangle[i].uiColour, bTransparent, 0, pcTarget->miHeight - 1);
+			DrawTexturedTriangleRows(pcTarget, &psScreen[psTriangle[i].aiVertex[0]], &psScreen[psTriangle[i].aiVertex[iSecond]], &psScreen[psTriangle[i].aiVertex[iThird]],
+									 &psUVs[psTriangle[i].aiVertex[0]], &psUVs[psTriangle[i].aiVertex[iSecond]], &psUVs[psTriangle[i].aiVertex[iThird]],
+									 psTriangle[i].uiColour, pcTexture, bTransparent, 0, pcTarget->miHeight - 1);
 		}
 	}
 }
@@ -1052,7 +1251,14 @@ void CRasteriser::BandJob(void* pvJob)
 				if ((psDrawable->iBottom >= psJob->iTop) && (psDrawable->iTop <= psJob->iBottom))
 				{
 					psTriangle = psDrawable->psTriangle;
-					pcRasteriser->DrawTriangleRows(psJob->pcTarget, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[iSecond]], &psScreen[psTriangle->aiVertex[iThird]], psTriangle->uiColour, psList->bTransparent, psJob->iTop, psJob->iBottom);
+					if (psList->pcTexture == NULL)
+					{
+						pcRasteriser->DrawTriangleRows(psJob->pcTarget, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[iSecond]], &psScreen[psTriangle->aiVertex[iThird]], psTriangle->uiColour, psList->bTransparent, psJob->iTop, psJob->iBottom);
+					}
+					else
+					{
+						pcRasteriser->DrawTexturedTriangleRows(psJob->pcTarget, &psScreen[psTriangle->aiVertex[0]], &psScreen[psTriangle->aiVertex[iSecond]], &psScreen[psTriangle->aiVertex[iThird]], &psList->psUVs[psTriangle->aiVertex[0]], &psList->psUVs[psTriangle->aiVertex[iSecond]], &psList->psUVs[psTriangle->aiVertex[iThird]], psTriangle->uiColour, psList->pcTexture, psList->bTransparent, psJob->iTop, psJob->iBottom);
+					}
 				}
 			}
 		}
@@ -1173,35 +1379,7 @@ void CRasteriser::DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex*
 
 	//A pixel's sample is at its centre.
 	sOnePixel = SRasterSubpixel::FromInt(1);
-	iMinX = (Min3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) + SRasterSubpixel::FromRaw(7)).Floor();
-	iMinY = (Min3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) + SRasterSubpixel::FromRaw(7)).Floor();
-	iMaxX = (Max3(psA->sPosition.x, psB->sPosition.x, psC->sPosition.x) - SRasterSubpixel::FromRaw(8)).Floor();
-	iMaxY = (Max3(psA->sPosition.y, psB->sPosition.y, psC->sPosition.y) - SRasterSubpixel::FromRaw(8)).Floor();
-	if (iMinX < 0)
-	{
-		iMinX = 0;
-	}
-	if (iMinY < 0)
-	{
-		iMinY = 0;
-	}
-	if (iMaxX >= pcTarget->miWidth)
-	{
-		iMaxX = pcTarget->miWidth - 1;
-	}
-	if (iMaxY >= pcTarget->miHeight)
-	{
-		iMaxY = pcTarget->miHeight - 1;
-	}
-	if (iMinY < iTop)
-	{
-		iMinY = iTop;
-	}
-	if (iMaxY > iBottom)
-	{
-		iMaxY = iBottom;
-	}
-	if ((iMinX > iMaxX) || (iMinY > iMaxY))
+	if (!RasterTriangleBox(pcTarget, psA, psB, psC, iTop, iBottom, &iMinX, &iMinY, &iMaxX, &iMaxY))
 	{
 		return;
 	}
@@ -1387,6 +1565,317 @@ void CRasteriser::DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex*
 					}
 					RasterWritePixel(&puiPixelRow[x], &piDepthRow[x], iDepth, iShade, uiColour, bTransparent);
 				}
+			}
+			s0 += sStepX0;
+			s1 += sStepX1;
+			s2 += sStepX2;
+		}
+		sRow0 += sStepY0;
+		sRow1 += sStepY1;
+		sRow2 += sStepY2;
+		puiPixelRow += pcTarget->miStride;
+		piDepthRow += pcTarget->miWidth;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a textured triangle needs at each pixel, made once for it.  A pixel's
+// weights are how far it is inside each edge, shifted right by iWeightShift
+// for a triangle so big that they'd overflow, which they add up to.  Its
+// depth and shade are its corners' by its weights.
+//
+// Its UV is its first corner's and a fraction of the way to the others', the
+// fraction being by its weights times its corners' depths, which are the
+// distance from the eye's inverse and so straight across the screen.  The
+// depths are aiUVDepth, shifted right so that nothing can overflow.  With an
+// orthographic camera they're all one, and the UV is straight across the
+// screen too.  aiDeltaU and aiDeltaV are the second and third corners'
+// differences from the first's times their aiUVDepth.
+//
+//////////////////////////////////////////////////////////////////////////
+struct SRasterTextured
+{
+	int32	iWeightShift;
+	uint64	uiArea;
+	uint64	uiAreaInverse;  //Made when a pixel is first drawn, and most triangles draw none.
+	int64	aiDepth[3];
+	int64	aiShade[3];
+	int64	aiUVDepth[3];
+	int64	aiDeltaU[2];
+	int64	aiDeltaV[2];
+	int64	iU;
+	int64	iV;
+	bool	bConstantUV;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void RasterTexturedInit(SRasterTextured* psTextured, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, SInt32Vec2* psUVA, SInt32Vec2* psUVB, SInt32Vec2* psUVC, SRasterEdge sArea, bool bPerspective)
+{
+	int64	aiDU[2];
+	int64	aiDV[2];
+	uint64	uiMaxDelta;
+	uint64	uiMaxDepth;
+	int32	iWeightBits;
+	int32	iDepthShift;
+	int		i;
+
+	psTextured->uiArea = (uint64)sArea.miRaw;
+	psTextured->uiAreaInverse = 0;
+	psTextured->iWeightShift = RasterBits(psTextured->uiArea) - 30;
+	if (psTextured->iWeightShift < 0)
+	{
+		psTextured->iWeightShift = 0;
+	}
+	iWeightBits = RasterBits(psTextured->uiArea) - psTextured->iWeightShift;
+
+	psTextured->aiDepth[0] = psA->iDepth;
+	psTextured->aiDepth[1] = psB->iDepth;
+	psTextured->aiDepth[2] = psC->iDepth;
+	psTextured->aiShade[0] = psA->iShade;
+	psTextured->aiShade[1] = psB->iShade;
+	psTextured->aiShade[2] = psC->iShade;
+
+	psTextured->iU = psUVA->x;
+	psTextured->iV = psUVA->y;
+	aiDU[0] = (int64)psUVB->x - psUVA->x;
+	aiDU[1] = (int64)psUVC->x - psUVA->x;
+	aiDV[0] = (int64)psUVB->y - psUVA->y;
+	aiDV[1] = (int64)psUVC->y - psUVA->y;
+	uiMaxDelta = 0;
+	for (i = 0; i < 2; i++)
+	{
+		uiMaxDelta |= (uint64)((aiDU[i] < 0) ? -aiDU[i] : aiDU[i]);
+		uiMaxDelta |= (uint64)((aiDV[i] < 0) ? -aiDV[i] : aiDV[i]);
+	}
+	psTextured->bConstantUV = uiMaxDelta == 0;
+
+	if (bPerspective)
+	{
+		psTextured->aiUVDepth[0] = psA->iDepth;
+		psTextured->aiUVDepth[1] = psB->iDepth;
+		psTextured->aiUVDepth[2] = psC->iDepth;
+	}
+	else
+	{
+		psTextured->aiUVDepth[0] = 1;
+		psTextured->aiUVDepth[1] = 1;
+		psTextured->aiUVDepth[2] = 1;
+	}
+	uiMaxDepth = (uint64)(psTextured->aiUVDepth[0] | psTextured->aiUVDepth[1] | psTextured->aiUVDepth[2]);
+
+	//The weights add up to under 2^iWeightBits, so a weighted sum of depth times delta is under 2^62.
+	iDepthShift = iWeightBits + RasterBits(uiMaxDepth) + RasterBits(uiMaxDelta) - 62;
+	if (iDepthShift > 0)
+	{
+		for (i = 0; i < 3; i++)
+		{
+			psTextured->aiUVDepth[i] >>= iDepthShift;
+		}
+	}
+	for (i = 0; i < 2; i++)
+	{
+		psTextured->aiDeltaU[i] = aiDU[i] * psTextured->aiUVDepth[i + 1];
+		psTextured->aiDeltaV[i] = aiDV[i] * psTextured->aiUVDepth[i + 1];
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pixel with edge values s0, s1 and s2, its biases taken off, if it's in
+// front of what's at *piDepth.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE void RasterTexturedPixel(SRasterTextured* psTextured, CRasterTexture* pcTexture, uint32* puiPixel, int32* piDepth, SRasterEdge s0, SRasterEdge s1, SRasterEdge s2, uint32 uiColour, bool bTransparent)
+{
+	int64	iW0;
+	int64	iW1;
+	int64	iW2;
+	uint64	uiSum;
+	uint64	uiInverse;
+	int64	iWeighted;
+	int32	iDepth;
+	int32	iShade;
+	int64	iU;
+	int64	iV;
+
+	iW0 = s0.miRaw >> psTextured->iWeightShift;
+	iW1 = s1.miRaw >> psTextured->iWeightShift;
+	iW2 = s2.miRaw >> psTextured->iWeightShift;
+	if (psTextured->iWeightShift == 0)
+	{
+		//Unshifted, they add up to the area exactly.
+		if (psTextured->uiAreaInverse == 0)
+		{
+			psTextured->uiAreaInverse = RasterDivideInverse(psTextured->uiArea);
+		}
+		uiSum = psTextured->uiArea;
+		uiInverse = psTextured->uiAreaInverse;
+	}
+	else
+	{
+		uiSum = (uint64)(iW0 + iW1 + iW2);
+		uiInverse = RasterDivideInverse(uiSum);
+	}
+
+	iDepth = (int32)RasterDivideFloor(iW0 * psTextured->aiDepth[0] + iW1 * psTextured->aiDepth[1] + iW2 * psTextured->aiDepth[2], uiSum, uiInverse);
+	if (iDepth <= *piDepth)
+	{
+		return;
+	}
+	iShade = (int32)RasterDivideFloor(iW0 * psTextured->aiShade[0] + iW1 * psTextured->aiShade[1] + iW2 * psTextured->aiShade[2], uiSum, uiInverse);
+
+	iU = psTextured->iU;
+	iV = psTextured->iV;
+	if (!psTextured->bConstantUV)
+	{
+		iWeighted = iW0 * psTextured->aiUVDepth[0] + iW1 * psTextured->aiUVDepth[1] + iW2 * psTextured->aiUVDepth[2];
+		if (iWeighted > 0)
+		{
+			uiInverse = RasterDivideInverse((uint64)iWeighted);
+			iU += RasterDivideFloor(iW1 * psTextured->aiDeltaU[0] + iW2 * psTextured->aiDeltaU[1], (uint64)iWeighted, uiInverse);
+			iV += RasterDivideFloor(iW1 * psTextured->aiDeltaV[0] + iW2 * psTextured->aiDeltaV[1], (uint64)iWeighted, uiInverse);
+		}
+	}
+	RasterWritePixel(puiPixel, piDepth, iDepth, iShade, RasterModulate(uiColour, pcTexture->Sample(iU, iV)), bTransparent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As DrawTriangleRows, with uiColour times pcTexture's texel at each pixel.
+// Each pixel is worked out from its weights: a textured pixel costs a divide
+// for its UV anyway.  psUVA, psUVB and psUVC are its corners' UVs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::DrawTexturedTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, SInt32Vec2* psUVA, SInt32Vec2* psUVB, SInt32Vec2* psUVC, uint32 uiColour, CRasterTexture* pcTexture, bool bTransparent, int32 iTop, int32 iBottom)
+{
+	SRasterScreenVertex*	psSwap;
+	SInt32Vec2*				psSwapUV;
+	SRasterEdge				sArea;
+	SRasterTextured			sTextured;
+	int32					iMinX;
+	int32					iMaxX;
+	int32					iMinY;
+	int32					iMaxY;
+	int32					iFirstX;
+	int32					iLastX;
+	int32					x;
+	int32					y;
+	SRasterSubpixel			sSampleX;
+	SRasterSubpixel			sSampleY;
+	SRasterSubpixel			sOnePixel;
+	SRasterEdge				sBias0;
+	SRasterEdge				sBias1;
+	SRasterEdge				sBias2;
+	SRasterEdge				sRow0;
+	SRasterEdge				sRow1;
+	SRasterEdge				sRow2;
+	SRasterEdge				s0;
+	SRasterEdge				s1;
+	SRasterEdge				s2;
+	SRasterEdge				sStepX0;
+	SRasterEdge				sStepX1;
+	SRasterEdge				sStepX2;
+	SRasterEdge				sStepY0;
+	SRasterEdge				sStepY1;
+	SRasterEdge				sStepY2;
+	uint32*					puiPixelRow;
+	int32*					piDepthRow;
+	uint64					auiStepInverse[3];
+	bool					bWide;
+
+	if ((psA->iDepth == 0) || (psB->iDepth == 0) || (psC->iDepth == 0))
+	{
+		return;
+	}
+
+	sArea = RasterEdge(&psA->sPosition, &psB->sPosition, psC->sPosition.x, psC->sPosition.y);
+	if (sArea.miRaw == 0)
+	{
+		return;
+	}
+	if (sArea.miRaw < 0)
+	{
+		psSwap = psB;
+		psB = psC;
+		psC = psSwap;
+		psSwapUV = psUVB;
+		psUVB = psUVC;
+		psUVC = psSwapUV;
+		sArea = -sArea;
+	}
+	else if (mbCullBackFaces)
+	{
+		return;
+	}
+
+	sOnePixel = SRasterSubpixel::FromInt(1);
+	if (!RasterTriangleBox(pcTarget, psA, psB, psC, iTop, iBottom, &iMinX, &iMinY, &iMaxX, &iMaxY))
+	{
+		return;
+	}
+
+	sSampleX = SRasterSubpixel::FromInt(iMinX) + SRasterSubpixel::FromRaw(8);
+	sSampleY = SRasterSubpixel::FromInt(iMinY) + SRasterSubpixel::FromRaw(8);
+
+	sBias0 = RasterEdgeBias(&psB->sPosition, &psC->sPosition);
+	sBias1 = RasterEdgeBias(&psC->sPosition, &psA->sPosition);
+	sBias2 = RasterEdgeBias(&psA->sPosition, &psB->sPosition);
+
+	sRow0 = RasterEdge(&psB->sPosition, &psC->sPosition, sSampleX, sSampleY) + sBias0;
+	sRow1 = RasterEdge(&psC->sPosition, &psA->sPosition, sSampleX, sSampleY) + sBias1;
+	sRow2 = RasterEdge(&psA->sPosition, &psB->sPosition, sSampleX, sSampleY) + sBias2;
+
+	sStepX0 = (psB->sPosition.y - psC->sPosition.y) * sOnePixel;
+	sStepX1 = (psC->sPosition.y - psA->sPosition.y) * sOnePixel;
+	sStepX2 = (psA->sPosition.y - psB->sPosition.y) * sOnePixel;
+	sStepY0 = (psC->sPosition.x - psB->sPosition.x) * sOnePixel;
+	sStepY1 = (psA->sPosition.x - psC->sPosition.x) * sOnePixel;
+	sStepY2 = (psB->sPosition.x - psA->sPosition.x) * sOnePixel;
+
+	RasterTexturedInit(&sTextured, psA, psB, psC, psUVA, psUVB, psUVC, sArea, mbPerspective);
+
+	bWide = (iMaxX - iMinX) >= RASTER_WIDE_PIXELS;
+	if (bWide)
+	{
+		auiStepInverse[0] = (sStepX0.miRaw != 0) ? RasterDivideInverse((uint64)((sStepX0.miRaw < 0) ? -sStepX0.miRaw : sStepX0.miRaw)) : 0;
+		auiStepInverse[1] = (sStepX1.miRaw != 0) ? RasterDivideInverse((uint64)((sStepX1.miRaw < 0) ? -sStepX1.miRaw : sStepX1.miRaw)) : 0;
+		auiStepInverse[2] = (sStepX2.miRaw != 0) ? RasterDivideInverse((uint64)((sStepX2.miRaw < 0) ? -sStepX2.miRaw : sStepX2.miRaw)) : 0;
+	}
+
+	puiPixelRow = &pcTarget->mpuiPixels[(lsize)iMinY * (lsize)pcTarget->miStride];
+	piDepthRow = &pcTarget->mpiDepths[(lsize)iMinY * (lsize)pcTarget->miWidth];
+	for (y = iMinY; y <= iMaxY; y++)
+	{
+		s0 = sRow0;
+		s1 = sRow1;
+		s2 = sRow2;
+		iFirstX = iMinX;
+		iLastX = iMaxX;
+		if (bWide)
+		{
+			RasterEdgeSpan(s0, sStepX0, auiStepInverse[0], iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s1, sStepX1, auiStepInverse[1], iMinX, &iFirstX, &iLastX);
+			RasterEdgeSpan(s2, sStepX2, auiStepInverse[2], iMinX, &iFirstX, &iLastX);
+			if (iFirstX > iMinX)
+			{
+				s0 += SRasterEdge::FromRaw(sStepX0.miRaw * (iFirstX - iMinX));
+				s1 += SRasterEdge::FromRaw(sStepX1.miRaw * (iFirstX - iMinX));
+				s2 += SRasterEdge::FromRaw(sStepX2.miRaw * (iFirstX - iMinX));
+			}
+		}
+		for (x = iFirstX; x <= iLastX; x++)
+		{
+			if ((s0.miRaw | s1.miRaw | s2.miRaw) >= 0)
+			{
+				RasterTexturedPixel(&sTextured, pcTexture, &puiPixelRow[x], &piDepthRow[x], s0 - sBias0, s1 - sBias1, s2 - sBias2, uiColour, bTransparent);
 			}
 			s0 += sStepX0;
 			s1 += sStepX1;

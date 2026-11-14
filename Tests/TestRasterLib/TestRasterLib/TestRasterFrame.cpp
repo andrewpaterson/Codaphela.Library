@@ -387,7 +387,8 @@ static float64 TestFrameGooberWorst(CRasterMesh* pcRaster, CRasterPosed* pcPosed
 // put each vertex.  An axis holds RASTER_AXIS_BITS of fraction, so that's
 // a few parts in 1 << RASTER_AXIS_BITS of how far the vertices are from the
 // origin: Goober is about 6 million units across here, and is out by up to
-// 47.  Its images are bigger than the debug allocator's limit.
+// 47.  Its mesh is textured by its diffuse image.  Its images are bigger
+// than the debug allocator's limit.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterFrameGoober(void)
@@ -453,6 +454,13 @@ void TestRasterFrameGoober(void)
 	}
 	AssertTrue(fWorst > 0.0);
 	AssertTrue(fWorst < fLargest * TEST_GOOBER_PARTS / (1 << RASTER_AXIS_BITS) + 2.0);
+
+	//Textured by its material's diffuse image.
+	AssertTrue(psInstance->pcMesh->IsTextured());
+	AssertSize(psInstance->pcMesh->masVertices.NumElements(), psInstance->pcMesh->masUVs.NumElements());
+	AssertSize(1, psInstance->pcMesh->mapTextures.NumElements());
+	AssertInt(2048, psInstance->pcMesh->GetTexture(0)->GetWidth());
+	AssertInt(2048, psInstance->pcMesh->GetTexture(0)->GetHeight());
 
 	pFrame = NULL;
 	pPlayer = NULL;

@@ -21,11 +21,15 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #ifndef __RASTER_MESH_BUILD_H__
 #define __RASTER_MESH_BUILD_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "StandardLib/Pointer.h"
 
 
 class CCookedMesh;
+class CImage;
 class CMesh;
 class CRasterMesh;
+class CRasterRenderer;
+class CRasterTexture;
 
 
 //Makes the integer copy of a cooked mesh that CRasteriser draws, replacing what pcRaster had.  This is where a mesh's floats
@@ -41,10 +45,16 @@ class CRasterMesh;
 //
 //A skinned mesh's vertices get its weights, in integers that add up to exactly RASTER_SKIN_ONE, most first (see CRasterMesh),
 //and it has a matrix for each of its inverse matrices.  The vertices stay where the mesh was bound.
-void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked);
-void BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale);
-void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh);
-void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale);
+//
+//A submesh whose material has a diffuse image that's bytes is textured by it, and then the mesh has UVs, its cooked mesh's or
+//all 0 if it has none, as the Vulkan renderer draws it.  Given a renderer, its textures are the renderer's, shared with every
+//other mesh it draws; without one, the mesh has its own.  MakeRasterTexture is an image as a texture: NULL for one that isn't bytes.
+void				BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked);
+void				BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale);
+void				BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale, CRasterRenderer* pcRenderer);
+void				BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh);
+void				BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale);
+Ptr<CRasterTexture>	MakeRasterTexture(CImage* pcImage);
 
 
 #endif // __RASTER_MESH_BUILD_H__

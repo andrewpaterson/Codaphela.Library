@@ -192,7 +192,7 @@ protected:
 	bool				CreateDescriptors(void);
 	bool				CreateTextureDescriptors(void);
 	bool				CreateSkinDescriptors(void);
-	bool				CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint8* puiRGBA);
+	bool				CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint32* puiTexels);
 	void				DestroyTexture(SVulkanTexture* psTexture);
 	bool				Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iWidth, int32 iHeight);
 	bool				CreatePipelines(void);

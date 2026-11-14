@@ -20,24 +20,32 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 ** ------------------------------------------------------------------------ **/
 #ifndef __RASTER_RENDERER_H__
 #define __RASTER_RENDERER_H__
+#include "RasterLib/RasterMesh.h"
 #include "RenderLib/Renderer.h"
+
+
+class CImage;
 
 
 //The raster renderer.  Everything it draws is in one scale, miScale of RasterLib's integer units to each of the scene's, so that
 //meshes are drawn together at their true sizes (see SRasterInstance).
+//
+//GetTexture is the texture an image is drawn with, made the first time it's asked for and shared by every mesh after that.
 class CRasterRenderer : public CRenderer
 {
 CONSTRUCTABLE(CRasterRenderer);
 DESTRUCTABLE(CRasterRenderer);
 protected:
-	int32	miScale;
+	int32				miScale;
+	CArrayRasterTexture	mapTextures;
 
 public:
-	void	Init(int32 iScale);
-	void	Class(void) override;
-	void	Free(void) override;
+	void				Init(int32 iScale);
+	void				Class(void) override;
+	void				Free(void) override;
 
-	int32	GetScale(void);
+	int32				GetScale(void);
+	Ptr<CRasterTexture>	GetTexture(CImage* pcImage);
 };
 
 

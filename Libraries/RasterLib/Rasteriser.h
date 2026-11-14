@@ -91,6 +91,8 @@ struct SRasterListJob
 	SRasterTriangle*		psTriangles;
 	size					uiNumTriangles;
 	SRasterScreenVertex*	psScreen;  //The instance's first vertex.
+	CRasterTexture*			pcTexture;  //What all its triangles are textured by, NULL for none.
+	SInt32Vec2*				psUVs;  //The mesh's first vertex's.
 	SRasterDrawable*		psDrawables;  //Room for all its triangles.
 	size					uiNumDrawables;
 	int32					iTop;  //Of all its drawables.
@@ -119,7 +121,8 @@ typedef CArrayTemplatePrimitive<uint64>		CArrayRasterLightMask;
 
 //Draws a CRasterMesh with integer arithmetic only, so that every build draws the same pixels (given the same camera axes).
 //Triangles are filled by half-space edge functions with the top-left rule so that triangles sharing an edge never leave
-//a gap or draw a pixel twice.  Opaque triangles write depth.  Transparent ones are drawn after them, unsorted, testing
+//a gap or draw a pixel twice.  A textured triangle's texel is the one its pixel's UV is in, the UV divided by depth across the
+//screen with a perspective camera so that a texture doesn't bend, and straight across with an orthographic one.  Opaque triangles write depth.  Transparent ones are drawn after them, unsorted, testing
 //depth without writing it.  With instances that goes for all of them: every opaque triangle is drawn before any
 //transparent one.
 //
@@ -140,6 +143,7 @@ protected:
 	size						muiNumTowards;
 	CArrayRasterLightMask		mauiPointLights;  //The point lights that may reach each instance this frame.
 	bool						mbCullBackFaces;
+	bool						mbPerspective;  //This frame's camera's, which says how a texture is drawn across a triangle.
 	CJobs*						mpcJobs;  //What draws instances (SetJobs), NULL to draw them on the caller's thread.
 	CArrayRasterProjectJob		masProjectJobs;
 	CArrayRasterListJob			masListJobs;
@@ -164,10 +168,13 @@ protected:
 	uint64	FindPointLights(SRasterInstance* psInstance);
 	int32	ShadePointLights(uint64 uiPointLights, SInt64Vec3* psNormal, SInt32Vec3* psPosition);
 	void	DrawWithJobs(SRasterInstance* asInstances, size uiNumInstances, CRasterCamera* pcCamera, CRasterTarget* pcTarget);
-	void	AddListJobs(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables);
+	void	AddListJobs(CRasterMesh* pcMesh, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables);
+	void	AddListJobs(SRasterTriangle* psTriangles, size uiNumTriangles, CRasterTexture* pcTexture, SInt32Vec2* psUVs, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored, SRasterDrawable** ppsDrawables);
 	void	DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, uint32 uiColour, bool bTransparent, int32 iTop, int32 iBottom);
+	void	DrawTexturedTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, SInt32Vec2* psUVA, SInt32Vec2* psUVB, SInt32Vec2* psUVC, uint32 uiColour, CRasterTexture* pcTexture, bool bTransparent, int32 iTop, int32 iBottom);
 	void	ProjectInstance(SRasterInstance* psInstance, CRasterCamera* pcCamera, uint64 uiPointLights, SRasterScreenVertex* psScreen, size uiFirst, size uiNumVertices);
-	void	DrawTriangles(CArrayRasterTriangle* pasTriangles, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored);
+	void	DrawTriangles(CRasterMesh* pcMesh, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored);
+	void	DrawTriangles(SRasterTriangle* psTriangles, size uiNumTriangles, CRasterTexture* pcTexture, SInt32Vec2* psUVs, SRasterScreenVertex* psScreen, CRasterTarget* pcTarget, bool bTransparent, bool bMirrored);
 
 	static void	ProjectJob(void* pvJob);
 	static void	ListJob(void* pvJob);

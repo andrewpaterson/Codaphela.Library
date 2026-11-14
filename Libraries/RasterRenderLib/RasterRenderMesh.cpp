@@ -34,7 +34,7 @@ void CRasterRenderMesh::Init(Ptr<CRasterRenderer> pRenderer, CCookedMesh* pcCook
 
 	CRenderMesh::Init(pRenderer);
 	mpRasterMesh = OMalloc<CRasterMesh>();
-	BuildRasterMesh(&mpRasterMesh, pcCooked, pRenderer->GetScale());
+	BuildRasterMesh(&mpRasterMesh, pcCooked, pRenderer->GetScale(), &pRenderer);
 
 	PostInit();
 }
