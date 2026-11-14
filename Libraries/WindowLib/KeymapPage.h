@@ -177,6 +177,7 @@ protected:
 	int32			GetSelectedRow(void);
 	void			SelectRow(size uiRow);
 	bool			AddKeys(size uiRow, const char* szKeys, const char* szContext = NULL);
+	void			AddEditedKeys(size uiRow, const char* szEdit);
 	void			RemoveKeys(size uiRow);
 	void			ResetKeys(size uiRow);
 	void			ResetAllKeys(void);

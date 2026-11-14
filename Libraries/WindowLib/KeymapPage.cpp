@@ -485,13 +485,16 @@ const char* CKeymapPage::GetGroupCaption(CCommand* pcCommand)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The row's keys as a menu shows them, separated by commas.
+// The row's keys as a menu shows them, separated by commas, each followed
+// by where it works unless that's everywhere or an editor: "R (Circuit),
+// Ctrl+R".
 //
 //////////////////////////////////////////////////////////////////////////
 void CKeymapPage::ShowKeys(size uiRow, CChars* pszDest)
 {
 	SKeymapRow*	psRow;
-	size			i;
+	size		i;
+	const char*	szContext;
 
 	psRow = masRows.Get(uiRow);
 	for (i = 0; i < psRow->cKeys.NumKeys(); i++)
@@ -501,6 +504,13 @@ void CKeymapPage::ShowKeys(size uiRow, CChars* pszDest)
 			pszDest->Append(", ");
 		}
 		CComponentInput::AppendShortcutText(pszDest, psRow->cKeys.GetKeys(i));
+		szContext = psRow->cKeys.GetContext(i);
+		if ((StringCompare(szContext, COMPONENT_INPUT_GLOBAL_CONTEXT) != 0) && (StringCompare(szContext, COMPONENT_INPUT_EDITOR_CONTEXT) != 0))
+		{
+			pszDest->Append(" (");
+			pszDest->Append(szContext);
+			pszDest->Append(")");
+		}
 	}
 }
 
@@ -853,8 +863,38 @@ void CKeymapPage::ResetAllClicked(CButton* pcButton) { ResetAllKeys(); }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A scripted edit's keys for the row: "<context>:<keys>" where the part
+// before the colon is a context, else keys in the command's first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKeymapPage::AddEditedKeys(size uiRow, const char* szEdit)
+{
+	const char*	szColon;
+	CChars		szContext;
+
+	szColon = strchr(szEdit, ':');
+	szContext.Init();
+	if ((szColon != NULL) && (szColon != szEdit))
+	{
+		szContext.Append(szEdit, szColon - szEdit);
+	}
+	if (!szContext.Empty() && mpcInput->HasContext(szContext.Text()))
+	{
+		AddKeys(uiRow, &szColon[1], szContext.Text());
+	}
+	else
+	{
+		AddKeys(uiRow, szEdit);
+	}
+	szContext.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // For checking, what a user would do on the page, separated by semicolons:
-// select:<command's name>, add:<keys>, capture:<keys>, which goes through
+// select:<command's name>, add:<keys> or add:<context>:<keys>,
+// capture:<keys>, which goes through
 // Add Shortcut with them pressed, remove, reset, resetall, filter:<text>,
 // and show, which prints the rows the list has.
 //
@@ -887,7 +927,7 @@ void CKeymapPage::ApplyEdits(const char* szEdits)
 		}
 		else if ((strncmp(sz, "add:", 4) == 0) && (iRow >= 0))
 		{
-			AddKeys((size)iRow, &sz[4]);
+			AddEditedKeys((size)iRow, &sz[4]);
 			printf("Keymap: %s\n", mpStatus->GetText());
 		}
 		else if (strncmp(sz, "capture:", 8) == 0)
