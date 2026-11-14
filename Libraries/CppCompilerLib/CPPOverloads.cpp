@@ -203,7 +203,7 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 	int				iRank;
 	int				iBest;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindConversion);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindConversion);
 	if (!mpcUnit->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
@@ -245,7 +245,7 @@ bool CCPPOverloads::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65
 		return false;
 	}
 	pcFound = FindAddressedFunction(pcFunction->mpcName, pcFunction->mpcName->mpcSymbol->mlliName, psPointer->psBase, pcFunction, &bOverloaded);
-	return pcFound && psPointer->psBase->Equals(mpcUnit->mcTypes.Function(pcFound->mpsReturn, &pcFound->mapsParameters, pcFound->mbVariadic));
+	return pcFound && psPointer->psBase->Equals(mpcUnit->GetTypes()->Function(pcFound->mpsReturn, &pcFound->mapsParameters, pcFound->mbVariadic));
 }
 
 
@@ -262,14 +262,14 @@ CCPPFunction* CCPPOverloads::FindStaticFunction(CCPPClass* pcClass, int64 lliNam
 	CCPPFunction*		pcFound;
 	size				i;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindStaticFunction);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindStaticFunction);
 	pcFound = NULL;
 	*pbOverloaded = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
 		if ((pcFunction->mpcClass == pcClass) && pcFunction->mbStatic && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
 		{
-			if (psTarget && psTarget->Equals(mpcUnit->mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
+			if (psTarget && psTarget->Equals(mpcUnit->GetTypes()->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
 			{
 				*pbOverloaded = false;
 				return pcFunction;
@@ -306,14 +306,14 @@ CCPPFunction* CCPPOverloads::FindOperator(CCPPClass* pcClass, int64 lliName, CAr
 	CCPPFunction*	pcFunction;
 	size			uiErrors;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindOperator);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindOperator);
 	pcTemplate = FindMemberTemplate(pcClass, lliName, papcArguments ? papcArguments->NumElements() : 0, eObject);
 	if (!pcTemplate)
 	{
 		return FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, eObject);
 	}
 
-	uiErrors = mpcUnit->mcErrors.NumErrors();
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
 	mpcUnit->BeginQuiet();
 	pcFunction = FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, eObject);
 	if (!pcFunction)
@@ -321,7 +321,7 @@ CCPPFunction* CCPPOverloads::FindOperator(CCPPClass* pcClass, int64 lliName, CAr
 		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
 	}
 	mpcUnit->EndQuiet();
-	mpcUnit->mcErrors.Truncate(uiErrors);
+	mpcUnit->GetErrors()->Truncate(uiErrors);
 	return pcFunction;
 }
 
@@ -337,20 +337,20 @@ CCPPScope* CCPPOverloads::CurrentLookupScope(void)
 {
 	CCPPSyntaxName*	pcName;
 
-	if (!mpcUnit->mcContext.GetFunction())
+	if (!mpcUnit->GetContext()->GetFunction())
 	{
-		return mpcUnit->mcContext.GetNamespace();
+		return mpcUnit->GetContext()->GetNamespace();
 	}
-	pcName = mpcUnit->mcContext.GetFunction()->mpcDeclarator ? mpcUnit->mcContext.GetFunction()->mpcDeclarator->GetName() : NULL;
+	pcName = mpcUnit->GetContext()->GetFunction()->mpcDeclarator ? mpcUnit->GetContext()->GetFunction()->mpcDeclarator->GetName() : NULL;
 	if (pcName && pcName->mpcLookup)
 	{
 		return pcName->mpcLookup;
 	}
-	if (mpcUnit->mcContext.GetFunction()->mpcClass && mpcUnit->mcContext.GetFunction()->mpcClass->mpcSymbol)
+	if (mpcUnit->GetContext()->GetFunction()->mpcClass && mpcUnit->GetContext()->GetFunction()->mpcClass->mpcSymbol)
 	{
-		return mpcUnit->mcContext.GetFunction()->mpcClass->mpcSymbol->mpcScope;
+		return mpcUnit->GetContext()->GetFunction()->mpcClass->mpcSymbol->mpcScope;
 	}
-	return mpcUnit->mcContext.GetFunction()->mpcNamespace;
+	return mpcUnit->GetContext()->GetFunction()->mpcNamespace;
 }
 
 
@@ -374,7 +374,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	size							i;
 	bool							bDeclared;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindFreeOperator);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindFreeOperator);
 	bDeclared = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
@@ -384,7 +384,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 		}
 	}
 
-	uiErrors = mpcUnit->mcErrors.NumErrors();
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
 	pcFunction = NULL;
 	mpcUnit->BeginQuiet();
 	apcNamespaces.Init();
@@ -403,9 +403,9 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	{
 		pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None, &apcNamespaces);
 	}
-	for (i = 0; !pcFunction && (i < mpcUnit->mapcTemplates.NumElements()); i++)
+	for (i = 0; !pcFunction && (i < mpcUnit->GetTemplates()->NumElements()); i++)
 	{
-		pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
+		pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
 		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcDefinition || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
 		{
 			continue;
@@ -419,7 +419,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	}
 	apcNamespaces.Kill();
 	mpcUnit->EndQuiet();
-	mpcUnit->mcErrors.Truncate(uiErrors);
+	mpcUnit->GetErrors()->Truncate(uiErrors);
 	return pcFunction;
 }
 
@@ -551,7 +551,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	bool				bAmbiguous;
 	bool				bFound;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindFunction);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindFunction);
 	if (pcClass && !mpcUnit->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
@@ -570,7 +570,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		if (!apsArguments[i] && !mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)))
 		{
 			//Its errors.
-			mpcUnit->mcTypeChecker.Value(papcArguments->GetPtr(i));
+			mpcUnit->GetTypeChecker()->Value(papcArguments->GetPtr(i));
 			return NULL;
 		}
 	}
@@ -786,7 +786,7 @@ CCPPFunction* CCPPOverloads::FindNamedFunction(CCPPSyntaxName* pcName, int64 lli
 	CArrayScopes	apcNamespaces;
 	CCPPFunction*	pcFunction;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindNamedFunction);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindNamedFunction);
 	apcNamespaces.Init();
 	GetCallNamespaces(pcName, lliName, papcArguments, &apcNamespaces);
 	NormaliseNamespaces(&apcNamespaces);
@@ -809,14 +809,14 @@ CCPPFunction* CCPPOverloads::FindAssociatedFunction(CCPPSyntaxName* pcName, int6
 	CCPPTemplate*	pcTemplate;
 	size			uiErrors;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindAssociatedFunction);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindAssociatedFunction);
 	if ((lliName == -1) || pcName->mbGlobal || pcName->GetQualifier() || (pcCall->macpArguments.NumElements() == 0))
 	{
 		return NULL;
 	}
-	uiErrors = mpcUnit->mcErrors.NumErrors();
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
 	pcFunction = FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
-	if (pcFunction || (mpcUnit->mcErrors.NumErrors() != uiErrors))
+	if (pcFunction || (mpcUnit->GetErrors()->NumErrors() != uiErrors))
 	{
 		return pcFunction;
 	}
@@ -841,7 +841,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	CArrayScopes	apcNamespaces;
 	bool			bQualified;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindAddressedFunction);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindAddressedFunction);
 	pcFound = NULL;
 	*pbOverloaded = false;
 	pcClass = NULL;
@@ -852,9 +852,9 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 		pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
 		mpcUnit->EndQuiet();
 	}
-	else if (mpcUnit->mcContext.GetFunction() && mpcUnit->mcContext.GetFunction()->mpcClass)
+	else if (mpcUnit->GetContext()->GetFunction() && mpcUnit->GetContext()->GetFunction()->mpcClass)
 	{
-		pcClass = mpcUnit->mcContext.GetFunction()->mpcClass;
+		pcClass = mpcUnit->GetContext()->GetFunction()->mpcClass;
 	}
 	if (pcClass && mpcUnit->CompleteClass(pcClass, pcNode))
 	{
@@ -875,7 +875,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	{
 		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate && (!pcName || (apcNamespaces.Find(pcFunction->mpcNamespace) != ARRAY_ELEMENT_NOT_FOUND)))
 		{
-			if (psTarget && psTarget->Equals(mpcUnit->mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
+			if (psTarget && psTarget->Equals(mpcUnit->GetTypes()->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
 			{
 				pcFound = pcFunction;
 				*pbOverloaded = false;
@@ -982,7 +982,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 			//Only the same enum (an exact match) converts to an enum.
 			return CPPCR_None;
 		}
-		if ((psParameter == &mpcUnit->mcTypes.msInt) && psArgument->IsInteger() && ((psArgument->iBytes < 4) || psArgument->pcEnum))
+		if ((psParameter == &mpcUnit->GetTypes()->msInt) && psArgument->IsInteger() && ((psArgument->iBytes < 4) || psArgument->pcEnum))
 		{
 			return CPPCR_Promotion;
 		}
@@ -1231,7 +1231,7 @@ CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliNam
 	CArrayCPPTemplates	apcCandidates;
 	CCPPTemplate*			pcTemplate;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_FindMemberTemplate);
+	mpcUnit->GetStatistics()->Count(CPPCC_FindMemberTemplate);
 	apcCandidates.Init();
 	GetMemberTemplates(pcClass, lliName, uiArguments, &apcCandidates);
 	pcTemplate = ChooseTemplate(&apcCandidates, eObject, NULL, NULL);
@@ -1251,7 +1251,7 @@ CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliN
 	CArrayCPPTemplates	apcCandidates;
 	CCPPTemplate*			pcTemplate;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_ChooseMemberTemplate);
+	mpcUnit->GetStatistics()->Count(CPPCC_ChooseMemberTemplate);
 	apcCandidates.Init();
 	GetMemberTemplates(pcClass, lliName, pcCall->macpArguments.NumElements(), &apcCandidates);
 	pcTemplate = ChooseTemplate(&apcCandidates, eObject, papcExplicit, pcCall);
@@ -1272,9 +1272,9 @@ void CCPPOverloads::GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size u
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	size						i;
 
-	for (i = 0; i < mpcUnit->mapcTemplates.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetTemplates()->NumElements(); i++)
 	{
-		pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
+		pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
 		if (!pcTemplate->mbMemberTemplate || (pcTemplate->mpcClass != pcClass) || (pcTemplate->mlliName != lliName))
 		{
 			continue;
@@ -1308,7 +1308,7 @@ CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName
 	CCPPTemplate*			pcTemplate;
 	size					i;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_GetCallTemplate);
+	mpcUnit->GetStatistics()->Count(CPPCC_GetCallTemplate);
 	apcCandidates.Init();
 	apcNamespaces.Init();
 	if (pcCall->mpcCallee->GetKind() == CPPS_IdExpression)
@@ -1357,9 +1357,9 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 		{
 			continue;
 		}
-		for (i = 0; i < mpcUnit->mapcTemplates.NumElements(); i++)
+		for (i = 0; i < mpcUnit->GetTemplates()->NumElements(); i++)
 		{
-			pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
+			pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
 			if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || (pcTemplate->mpcSymbol != pcDeclaration) || !pcTemplate->mpcDefinition || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
 			{
 				continue;
@@ -1397,7 +1397,7 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 	size					uiBetter;
 	size					i;
 
-	mpcUnit->mpcStatistics->Count(CPPCC_ChooseTemplate);
+	mpcUnit->GetStatistics()->Count(CPPCC_ChooseTemplate);
 	apcChosen.Init();
 	uiArguments = pcCall ? pcCall->macpArguments.NumElements() : 0;
 	cTaken.Init(uiArguments);
@@ -1508,9 +1508,9 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		}
 		else
 		{
-			pcBindings->mpcOuter = mpcUnit->mcContext.GetBindings();
+			pcBindings->mpcOuter = mpcUnit->GetContext()->GetBindings();
 		}
-		mpcUnit->mcContext.EnterBindings(pcBindings);
+		mpcUnit->GetContext()->EnterBindings(pcBindings);
 		pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
 		bPack = false;
 		for (i = 0; bTakes && !bPack && pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < apsArguments.NumElements()); i++)
@@ -1522,7 +1522,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 			{
 				continue;
 			}
-			psParameter = mpcUnit->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
+			psParameter = mpcUnit->GetDeclarators()->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
 			psArgument = psArgument->WithoutReference();
 			if (psArgument->IsMemberPointer() && psArgument->psBase && psArgument->psBase->IsFunction())
 			{
@@ -1538,7 +1538,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 				}
 			}
 		}
-		mpcUnit->mcContext.LeaveBindings();
+		mpcUnit->GetContext()->LeaveBindings();
 		if (!pcTemplate->mpcClass)
 		{
 			pcBindings->mpcOuter = NULL;

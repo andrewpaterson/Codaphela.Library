@@ -36,7 +36,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	SCPP65Type*		psTo;
 	CCPPSyntax*		pcFunction;
 
-	psTo = mpcGenerator->mcDeclarators.GetTypeIdType(pcTypeId);
+	psTo = mpcGenerator->GetDeclarators()->GetTypeIdType(pcTypeId);
 	if (!psTo || psTo->IsClass() || psTo->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -85,7 +85,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	CCPPClass*	pcFrom;
 	CCPPClass*	pcTarget;
 
-	psTo = mpcGenerator->mcDeclarators.GetTypeIdType(pcCast->mpcType);
+	psTo = mpcGenerator->GetDeclarators()->GetTypeIdType(pcCast->mpcType);
 	if (!psTo)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -202,7 +202,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 
 	mpcGenerator->EnsureTypeInfo(pcTo);
 	szLabel.Init();
-	mpcGenerator->mcMangler.AppendTypeInfoLabel(&szLabel, pcTo);
+	mpcGenerator->GetMangler()->AppendTypeInfoLabel(&szLabel, pcTo);
 	sTarget = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	if (pcTo->IsUnnamed())

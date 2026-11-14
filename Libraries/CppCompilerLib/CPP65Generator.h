@@ -161,13 +161,6 @@ class CCPPSemanticPass;
 //going past what it can't type (CPP65GeneratorCheck.cpp).
 class CCPP65Generator : public CCPPRuntimeWriter
 {
-friend class CCPP65CheckChildren;
-friend class CCPP65IRFrontEnd;
-friend class CCPP65TypeChecker;
-friend class CCPPOverloads;
-friend class CCPPDeclarators;
-friend class CCPPDeduction;
-friend class CCPPSpecialisationMatch;
 protected:
 	CCPPSyntaxTree*			mpcTree;
 	CCPPTokeniser*			mpcTokeniser;
@@ -228,6 +221,32 @@ protected:
 	CCPPCompileOptions*		mpcOptions;			//How the unit is compiled where there is a choice (SetOptions): the builder's, or the defaults.
 
 public:
+	//What the classes that work for the unit ask it for.
+	CCPP65Types*			GetTypes(void) { return &mcTypes; }
+	CCPPContext*			GetContext(void) { return &mcContext; }
+	CCPPOverloads*			GetOverloads(void) { return &mcOverloads; }
+	CCPPDeclarators*		GetDeclarators(void) { return &mcDeclarators; }
+	CCPPMangler*			GetMangler(void) { return &mcMangler; }
+	CCPPUnitData*			GetData(void) { return &mcData; }
+	CCPP65TypeChecker*		GetTypeChecker(void) { return &mcTypeChecker; }
+	CChars*					GetCode(void) { return &mszCode; }
+	CArrayCPPTemplates*		GetTemplates(void) { return &mapcTemplates; }
+	CArrayCPPVariables*		GetLocals(void) { return &mapcLocals; }
+	CArrayLargeTemplate<uint16>*	GetCodePieces(void) { return &mauiCodePieces; }
+	int*					GetLabelCounter(void) { return &miLabels; }
+	CCPPTarget*				GetTarget(void) { return mpcTarget; }
+	CIRImports*				GetImports(void) { return mpcImports; }
+	CCPPTokeniser*			GetTokeniser(void) { return mpcTokeniser; }
+	CSpillStore*			GetSpillStore(void) { return mpcSpillStore; }
+	CCPPSemanticPass*		GetSemanticPass(void) { return mpcSemanticPass; }
+	CAsm65Profile*			GetFrameProfile(void) { return mpcFrameProfile; }
+	uint32					GetSpillUnit(void) { return muiSpillUnit; }
+	size					GetImportsTurn(void) { return muiImportsTurn; }
+	bool					HasLineTable(void) { return mbLineTable; }
+	bool					HasListing(void) { return mbListing; }
+	bool					HasNoFloats(void) { return mbNoFloats; }
+	int64					GetCompileTime(void) { return mlliCompileTime; }
+
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
 	void					Kill(void);
 
@@ -257,7 +276,6 @@ public:
 	void					GetMissingCallees(CArrayChars* paszNames);
 	bool					Check(CCPPSemanticPass* pcPass);
 
-protected:
 	//Declarations, functions and statements.  CPP65Generator.cpp
 	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
 	void					Warning(CCPPSyntax* pcNode, const char* szMessage);

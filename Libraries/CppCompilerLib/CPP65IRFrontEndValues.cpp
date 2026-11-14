@@ -405,7 +405,7 @@ bool CCPP65IRFrontEnd::ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruc
 	{
 		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), psValue);
 	}
-	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
+	psType = mpcGenerator->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 	if (!psType || !papcElements || (papcElements->NumElements() != 0) || !(psType->IsScalar() || psType->IsVoid()))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -453,7 +453,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 
 	pcName = pcId->mpcName;
 	lliName = pcName->mpcSymbol->mlliName;
-	pcFound = mpcGenerator->mcOverloads.FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
+	pcFound = mpcGenerator->GetOverloads()->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
 	if (bOverloaded || !pcFound)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1129,7 +1129,7 @@ bool CCPP65IRFrontEnd::NarrowSubscript(SCPP65Type* psArray, SCPP65IRValue* psPoi
 	SIRReference	sOffset;
 	int				iBytes;
 
-	if (!mpcGenerator->mpcTarget->NarrowsSubscripts() || !psArray->IsArray() || (psArray->iCount < 2) || (psArray->iBytes >= 0x10000) ||
+	if (!mpcGenerator->GetTarget()->NarrowsSubscripts() || !psArray->IsArray() || (psArray->iCount < 2) || (psArray->iBytes >= 0x10000) ||
 		!psIndex->psType->IsInteger() || !psPointer->psType->IsPointer())
 	{
 		return false;
@@ -1194,7 +1194,7 @@ SIRReference CCPP65IRFrontEnd::FunctionSymbol(CCPPFunction* pcFunction)
 
 	mpcGenerator->RequireFunction(pcFunction);
 	szLabel.Init();
-	mpcGenerator->mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
+	mpcGenerator->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction);
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	MarkFunctionSymbol(pcFunction, sSymbol.Index());

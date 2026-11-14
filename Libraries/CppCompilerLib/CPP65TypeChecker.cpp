@@ -32,7 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPP65TypeChecker::Init(CCPP65Generator* pcGenerator)
 {
 	mpcGenerator = pcGenerator;
-	mpcTypes = &pcGenerator->mcTypes;
+	mpcTypes = pcGenerator->GetTypes();
 	mapcNone.Init();
 }
 
@@ -93,7 +93,7 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcGenerator->IsObject(pcExpression))
 	{
 		pcClass = mpcGenerator->ObjectClass(pcExpression);
-		pcFunction = mpcGenerator->mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcExpression);
+		pcFunction = mpcGenerator->GetOverloads()->FindConversion(pcClass, psTo, bExplicit, pcExpression);
 		if (pcFunction)
 		{
 			return ObjectCall(pcExpression, pcFunction, NULL, pcExpression);
@@ -163,7 +163,7 @@ SCPP65Type* CCPP65TypeChecker::Result(CCPPSyntax* pcExpression)
 		if (pcNamedCast->meCast == CT_dynamic_cast)
 		{
 			//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
-			return mpcGenerator->mcDeclarators.GetTypeIdType(pcNamedCast->mpcType);
+			return mpcGenerator->GetDeclarators()->GetTypeIdType(pcNamedCast->mpcType);
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, pcExpression);
 	case CPPS_ConstructExpression:
@@ -313,7 +313,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 			return NULL;
 		}
 		pcParameter = (CCPPSyntaxParameter*)pcSymbol->mpcDeclaration;
-		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? mpcGenerator->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
+		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? mpcGenerator->GetDeclarators()->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
 		return (psType && psType->IsInteger()) ? psType : &mpcTypes->msInt;
 	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
@@ -343,7 +343,7 @@ SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName
 	bool				bOverloaded;
 
 	pcName = (pcNode && (pcNode->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcNode)->mpcName : NULL;
-	pcFound = mpcGenerator->mcOverloads.FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
+	pcFound = mpcGenerator->GetOverloads()->FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
 	if (bOverloaded)
 	{
 		Error(pcNode, "The address of an overloaded function needs the type of the function it is for");
@@ -483,12 +483,12 @@ bool CCPP65TypeChecker::MemberFunctionAddress(CCPPClass* pcClass, int64 lliName,
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 {
-	if (!mpcGenerator->mcContext.HasThis() || !mpcGenerator->mcContext.GetFunction() || !mpcGenerator->mcContext.GetFunction()->mpcClass)
+	if (!mpcGenerator->GetContext()->HasThis() || !mpcGenerator->GetContext()->GetFunction() || !mpcGenerator->GetContext()->GetFunction()->mpcClass)
 	{
 		Error(pcThis, "this is only in member functions");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcTypes->Qualified(mpcGenerator->mcContext.GetFunction()->mpcClass->mpsType, mpcGenerator->IsConstThis(), false));
+	return mpcTypes->Pointer(mpcTypes->Qualified(mpcGenerator->GetContext()->GetFunction()->mpcClass->mpsType, mpcGenerator->IsConstThis(), false));
 }
 
 
@@ -989,7 +989,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 		}
 	}
 
-	pcFunction = mpcGenerator->IsObject(pcExpression) ? mpcGenerator->mcOverloads.FindConversion(mpcGenerator->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
+	pcFunction = mpcGenerator->IsObject(pcExpression) ? mpcGenerator->GetOverloads()->FindConversion(mpcGenerator->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
 	if (pcFunction)
 	{
 		return Truth(ObjectCall(pcExpression, pcFunction, NULL, pcExpression), pcExpression);
@@ -1064,16 +1064,16 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 			return MemberCall(pcCall, pcCallee);
 		}
 	}
-	pcMember = mpcGenerator->mcContext.GetFunction();
+	pcMember = mpcGenerator->GetContext()->GetFunction();
 
 	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
-		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mpcGenerator->mcOverloads.FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcGenerator->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
+		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mpcGenerator->GetOverloads()->FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcGenerator->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
 		{
 			return MemberCall(pcCall, pcCallee);
 		}
-		pcTemplate = mpcGenerator->mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
+		pcTemplate = mpcGenerator->GetOverloads()->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!pcTemplate)
 		{
 			Error(pcCallee, "The function template has not been defined");
@@ -1104,7 +1104,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return Builtin(pcCall, lliName);
 	}
 
-	if (!pcSymbol && mpcGenerator->mpcSemanticPass && mpcGenerator->IsIntrinsic(lliName))
+	if (!pcSymbol && mpcGenerator->GetSemanticPass() && mpcGenerator->IsIntrinsic(lliName))
 	{
 		//Only checking: an intrinsic of the host's compiler (__debugbreak()), declared by no header.
 		return UncheckedCall(&pcCall->macpArguments);
@@ -1112,14 +1112,14 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	if (!pcSymbol && pcName)
 	{
 		//Nothing declares it here: it may be in a namespace of its arguments'.
-		uiErrors = mpcGenerator->mcErrors.NumErrors();
-		pcFunction = mpcGenerator->mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall);
+		uiErrors = mpcGenerator->GetErrors()->NumErrors();
+		pcFunction = mpcGenerator->GetOverloads()->FindAssociatedFunction(pcName, lliName, pcCall);
 		if (pcFunction)
 		{
 			mpcGenerator->Resolved(pcName, pcFunction);
 			return Call(pcFunction, &pcCall->macpArguments, pcCall);
 		}
-		if (mpcGenerator->mcErrors.NumErrors() != uiErrors)
+		if (mpcGenerator->GetErrors()->NumErrors() != uiErrors)
 		{
 			return NULL;
 		}
@@ -1135,11 +1135,11 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return NULL;
 	}
 
-	uiErrors = mpcGenerator->mcErrors.NumErrors();
-	pcFunction = mpcGenerator->mcOverloads.FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+	uiErrors = mpcGenerator->GetErrors()->NumErrors();
+	pcFunction = mpcGenerator->GetOverloads()->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
 	if (!pcFunction)
 	{
-		if (mpcGenerator->mcErrors.NumErrors() == uiErrors)
+		if (mpcGenerator->GetErrors()->NumErrors() == uiErrors)
 		{
 			mpcGenerator->ReportFailedDeclaration(lliName);
 			Error(pcCallee, "The function has not been declared");
@@ -1376,7 +1376,7 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 	psBuiltin = mpcGenerator->FindBuiltin(lliName);
 	if (!psBuiltin)
 	{
-		if (mpcGenerator->mpcSemanticPass)
+		if (mpcGenerator->GetSemanticPass())
 		{
 			//Only checking: the host compiler's other builtins (__builtin_va_start ...).
 			return UncheckedCall(papcArguments);
@@ -1384,7 +1384,7 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 		Error(pcCall, "This builtin is not supported by the compiler yet");
 		return NULL;
 	}
-	if (psBuiltin->szDecimalModeOnly && !mpcGenerator->mpcTarget->HasDecimalMode())
+	if (psBuiltin->szDecimalModeOnly && !mpcGenerator->GetTarget()->HasDecimalMode())
 	{
 		Error(pcCall, (char*)psBuiltin->szDecimalModeOnly);
 		return NULL;
@@ -1511,9 +1511,9 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		{
 			pcClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
 		}
-		else if (mpcGenerator->mcContext.GetFunction())
+		else if (mpcGenerator->GetContext()->GetFunction())
 		{
-			pcClass = mpcGenerator->mcContext.GetFunction()->mpcClass;
+			pcClass = mpcGenerator->GetContext()->GetFunction()->mpcClass;
 		}
 	}
 
@@ -1559,10 +1559,10 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		}
 	}
 
-	uiErrors = mpcGenerator->mcErrors.NumErrors();
+	uiErrors = mpcGenerator->GetErrors()->NumErrors();
 	pcComponent = pcName->GetLast();
 	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis());
-	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, eObject) : NULL;
+	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->GetOverloads()->ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !pcComponent->mbTemplateArguments)
 	{
@@ -1570,7 +1570,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		{
 			mpcGenerator->BeginQuiet();
 		}
-		pcFunction = mpcGenerator->mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
+		pcFunction = mpcGenerator->GetOverloads()->FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
 		if (pcTemplate)
 		{
 			mpcGenerator->EndQuiet();
@@ -1582,13 +1582,13 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 	}
 	if (!pcFunction)
 	{
-		if (mpcGenerator->mcErrors.NumErrors() == uiErrors)
+		if (mpcGenerator->GetErrors()->NumErrors() == uiErrors)
 		{
 			Error(pcCallee, "The class has no member function of that name");
 		}
 		return NULL;
 	}
-	if (!pcObject && !pcFunction->mbStatic && (!mpcGenerator->mcContext.GetFunction() || !mpcGenerator->mcContext.GetFunction()->mpcClass || !mpcGenerator->IsDerived(mpcGenerator->mcContext.GetFunction()->mpcClass, pcFunction->mpcClass, NULL)))
+	if (!pcObject && !pcFunction->mbStatic && (!mpcGenerator->GetContext()->GetFunction() || !mpcGenerator->GetContext()->GetFunction()->mpcClass || !mpcGenerator->IsDerived(mpcGenerator->GetContext()->GetFunction()->mpcClass, pcFunction->mpcClass, NULL)))
 	{
 		Error(pcCallee, "A member function needs an object");
 		return NULL;
@@ -1654,11 +1654,11 @@ SCPP65Type* CCPP65TypeChecker::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOp
 		Error(pcNode, "An operator call needs an object");
 		return NULL;
 	}
-	uiErrors = mpcGenerator->mcErrors.NumErrors();
-	pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), papcArguments, pcNode, CPPCalledObject(mpcGenerator->IsConstObject(pcObject)));
+	uiErrors = mpcGenerator->GetErrors()->NumErrors();
+	pcFunction = mpcGenerator->GetOverloads()->FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), papcArguments, pcNode, CPPCalledObject(mpcGenerator->IsConstObject(pcObject)));
 	if (!pcFunction)
 	{
-		if (mpcGenerator->mcErrors.NumErrors() == uiErrors)
+		if (mpcGenerator->GetErrors()->NumErrors() == uiErrors)
 		{
 			Error(pcNode, "The class has no operator for this");
 		}
@@ -1692,11 +1692,11 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 		{
 			apcArguments.Add(pcRight);
 		}
-		uiErrors = mpcGenerator->mcErrors.NumErrors();
+		uiErrors = mpcGenerator->GetErrors()->NumErrors();
 		mpcGenerator->BeginQuiet();
-		pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcNode, CPPCalledObject(mpcGenerator->IsConstObject(pcLeft)));
+		pcFunction = mpcGenerator->GetOverloads()->FindOperator(psType->pcClass, lliName, &apcArguments, pcNode, CPPCalledObject(mpcGenerator->IsConstObject(pcLeft)));
 		mpcGenerator->EndQuiet();
-		mpcGenerator->mcErrors.Truncate(uiErrors);
+		mpcGenerator->GetErrors()->Truncate(uiErrors);
 		if (pcFunction)
 		{
 			psType = OperatorCall(pcLeft, eOperator, &apcArguments, pcNode);
@@ -1711,7 +1711,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 	{
 		apcArguments.Add(pcRight);
 	}
-	pcFunction = mpcGenerator->mcOverloads.FindFreeOperator(lliName, &apcArguments, pcNode);
+	pcFunction = mpcGenerator->GetOverloads()->FindFreeOperator(lliName, &apcArguments, pcNode);
 	if (!pcFunction)
 	{
 		Error(pcNode, "No operator matches the operands");
@@ -1975,7 +1975,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 		{
 			return pcVariable->mpsType->WithoutReference();
 		}
-		pcClass = mpcGenerator->mcContext.GetFunction() ? mpcGenerator->mcContext.GetFunction()->mpcClass : NULL;
+		pcClass = mpcGenerator->GetContext()->GetFunction() ? mpcGenerator->GetContext()->GetFunction()->mpcClass : NULL;
 		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass) ? pcClass->FindFieldSymbol(pcSymbol, &iOffset) : NULL;
 		if (!psField && !pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
 		{
@@ -1992,7 +1992,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			Error(pcExpression, "Only variables are supported by the compiler here yet");
 			return NULL;
 		}
-		if (!mpcGenerator->mcContext.HasThis())
+		if (!mpcGenerator->GetContext()->HasThis())
 		{
 			Error(pcExpression, "A field needs an object");
 			return NULL;
@@ -2135,7 +2135,7 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 	SCPP65Type*				psFrom;
 	CCPPSyntaxIdExpression*	pcFunction;
 
-	psTo = mpcGenerator->mcDeclarators.GetTypeIdType(pcTypeId);
+	psTo = mpcGenerator->GetDeclarators()->GetTypeIdType(pcTypeId);
 	if (!psTo)
 	{
 		return NULL;
@@ -2180,7 +2180,7 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	SCPP65Type*		psType;
 	CArraySyntax*	papcElements;
 
-	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
+	psType = mpcGenerator->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 	if (psType && psType->IsClass())
 	{
 		return TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct);
@@ -2209,7 +2209,7 @@ SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 {
 	int64	lliBytes;
 
-	if (mpcGenerator->mpcSemanticPass)
+	if (mpcGenerator->GetSemanticPass())
 	{
 		//Only checking: the value isn't needed, only the type (__builtin_va_arg(ap, T) is a T).
 		return CheckedSizeofType(pcSizeof);
@@ -2241,7 +2241,7 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 	}
 	pcTrait = (CCPPSyntaxTypeTraitExpression*)pcSizeof;
 	szTrait.Init();
-	mpcGenerator->mpcTokeniser->GetSource(mpcGenerator->mpcTokeniser->Get(pcTrait->miName))->Append(&szTrait);
+	mpcGenerator->GetTokeniser()->GetSource(mpcGenerator->GetTokeniser()->Get(pcTrait->miName))->Append(&szTrait);
 	psType = &mpcTypes->msBool;
 	if (szTrait.Equals("__builtin_va_arg"))
 	{
@@ -2249,7 +2249,7 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 		if ((pcTrait->macpArguments.NumElements() == 2) && (pcTrait->macpArguments.GetPtr(1)->GetKind() == CPPS_TypeId))
 		{
 			Value(pcTrait->macpArguments.GetPtr(0));
-			psType = mpcGenerator->mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(1));
+			psType = mpcGenerator->GetDeclarators()->GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(1));
 		}
 	}
 	else if (szTrait.Equals("__builtin_offsetof"))
@@ -2276,7 +2276,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 		Error(pcNew, "Only new(address) Type is supported for placement new by the compiler yet");
 		return NULL;
 	}
-	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcNew->mpcType);
+	psType = mpcGenerator->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
 	if (!psType || (psType->IsClass() && !mpcGenerator->CompleteClass(psType->pcClass, pcNew)))
 	{
 		return NULL;
@@ -2481,7 +2481,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		if (pcInitialiser->GetKind() == CPPS_ConstructExpression)
 		{
 			pcConstruct = (CCPPSyntaxConstructExpression*)pcInitialiser;
-			if ((mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
+			if ((mpcGenerator->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
 			{
 				bResult = ConstructClass(pcClass, &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements, pcNode);
 				apcArguments.Kill();
@@ -2526,7 +2526,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 	}
 	if (pcClass->mbConstructors)
 	{
-		pcConstructor = mpcGenerator->mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+		pcConstructor = mpcGenerator->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
 		if (!pcConstructor)
 		{
 			return Error(pcNode, "No constructor matches the arguments");
@@ -2536,7 +2536,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 
 	if (papcArguments->NumElements() == 0)
 	{
-		pcConstructor = mpcGenerator->mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+		pcConstructor = mpcGenerator->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
 		return !pcConstructor || (Call(pcConstructor, papcArguments, pcNode) != NULL);
 	}
 
@@ -2779,7 +2779,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 	{
 		return true;
 	}
-	bKept = psFrom->psBase->Equals(psTo->psBase) ? (mpcGenerator->mcOverloads.QualificationRank(psTo, psFrom, false) != CPPCR_None) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
+	bKept = psFrom->psBase->Equals(psTo->psBase) ? (mpcGenerator->GetOverloads()->QualificationRank(psTo, psFrom, false) != CPPCR_None) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
 	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
 }
 

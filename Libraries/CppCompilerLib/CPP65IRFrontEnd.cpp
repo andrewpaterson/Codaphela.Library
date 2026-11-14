@@ -44,7 +44,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 {
 	muiAttempts = 0;
 	mpcGenerator = pcGenerator;
-	mpcTypes = &pcGenerator->mcTypes;
+	mpcTypes = pcGenerator->GetTypes();
 	mpcFunction = NULL;
 	mpcBlock = NULL;
 	mpcCPPFunction = NULL;
@@ -55,10 +55,10 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mpcProfiledCaller = NULL;
 	mbProfiledCaller = false;
 	mcModule.Init();
-	mcModule.AddDefaultSpace(pcGenerator->mpcTarget->GetPointerBytes());
-	mpcBackend = pcGenerator->mpcTarget->NewBackend();
+	mcModule.AddDefaultSpace(pcGenerator->GetTarget()->GetPointerBytes());
+	mpcBackend = pcGenerator->GetTarget()->NewBackend();
 	mcPipeline.Init();
-	pcGenerator->mpcTarget->BuildPipeline(&mcPipeline);
+	pcGenerator->GetTarget()->BuildPipeline(&mcPipeline);
 	masWritten.Init();
 	masJumps.Init();
 	masCases.Init();
@@ -117,7 +117,7 @@ void CCPP65IRFrontEnd::Kill(void)
 		//Code not given to the unit's assembly (a unit generated again, or one that failed) leaves the store.
 		if (!mbCodeGiven)
 		{
-			CCPP65Assembly::RemoveCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui, 0, psWritten->uiPieces);
+			CCPP65Assembly::RemoveCode(mpcGenerator->GetSpillStore(), mpcGenerator->GetSpillUnit(), ui, 0, psWritten->uiPieces);
 		}
 	}
 	masWritten.Kill();
@@ -148,7 +148,7 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 	bool					bResult;
 
 	muiAttempts++;
-	if (muiAttempts > mpcGenerator->mpcOptions->muiFunctionLimit)
+	if (muiAttempts > mpcGenerator->GetOptions()->muiFunctionLimit)
 	{
 		return false;
 	}
@@ -162,7 +162,7 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 	}
 
 	szLabel.Init();
-	mpcGenerator->mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
+	mpcGenerator->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction);
 	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0));
 
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function
@@ -219,7 +219,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mpcExit = NULL;
 	mauiStringBytes.ReInit();
 	mauiStringLengths.ReInit();
-	muiFirstString = mpcGenerator->mcData.NumStrings();
+	muiFirstString = mpcGenerator->GetData()->NumStrings();
 	mcAddresses.Init(true);
 	mcAnonymousAddresses.Init(true);
 	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
@@ -292,11 +292,11 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	{
 		//IR that doesn't verify is the front end's (or a pass's) mistake: the function is an error.
 		Finish();
-		if (mpcGenerator->mbLineTable || InliningProfile())
+		if (mpcGenerator->HasLineTable() || InliningProfile())
 		{
 			uiFingerprint = Fingerprint(mpcFunction);
 		}
-		if (mpcGenerator->mpcOptions->mbOptimise)
+		if (mpcGenerator->GetOptions()->mbOptimise)
 		{
 			InitOptimiser(&cOptimiser);
 			if (InliningProfile())
@@ -317,7 +317,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			szWarnings.Kill();
 		}
 		bResult = VerifyIR(mpcFunction, __FILE__, __LINE__);
-		if (mpcGenerator->mpcOptions->mbPrintIR)
+		if (mpcGenerator->GetOptions()->mbPrintIR)
 		{
 			fprintf(stderr, "Function %d\n", (int)muiAttempts);
 			PrintIR(mpcFunction);
@@ -337,21 +337,21 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten->pcFunction = mpcFunction;
 			psWritten->szLabel.Init(szLabel);
 			psWritten->uiPieces = 0;
-			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+			CCPP65Assembly::PutCode(mpcGenerator->GetSpillStore(), mpcGenerator->GetSpillUnit(), masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 			psWritten->pcBackend = pcWritten;
 			psWritten->uiFingerprint = uiFingerprint;
-			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
-			mpcGenerator->mszCode.Append((int)(masWritten.NumElements() - 1));
-			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
+			mpcGenerator->GetCode()->Append(IR65_FRONT_END_MARKER);
+			mpcGenerator->GetCode()->Append((int)(masWritten.NumElements() - 1));
+			mpcGenerator->GetCode()->Append(IR65_FRONT_END_MARKER);
 			for (ui = 0; ui < maszRuntime.NumElements(); ui++)
 			{
-				mpcGenerator->maszRuntime.AddIfUnique(*maszRuntime.Get(ui));
+				mpcGenerator->GetRuntimeCalls()->AddIfUnique(*maszRuntime.Get(ui));
 			}
 			uiStart = 0;
 			for (ui = 0; ui < mauiStringLengths.NumElements(); ui++)
 			{
 				uiLength = *mauiStringLengths.Get(ui);
-				mpcGenerator->mcData.AddString((char*)mauiStringBytes.GetData() + uiStart, uiLength);
+				mpcGenerator->GetData()->AddString((char*)mauiStringBytes.GetData() + uiStart, uiLength);
 				uiStart += uiLength;
 			}
 		}
@@ -361,7 +361,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		//As the generator's EndFunction leaves it.
-		mpcGenerator->mcContext.EndFunction();
+		mpcGenerator->GetContext()->EndFunction();
 	}
 	if (!bResult && mpcFunction)
 	{
@@ -426,7 +426,7 @@ bool CCPP65IRFrontEnd::Unsupported(const char* szFile, int iLine)
 		SetUnsupported(szFile, iLine, NULL);
 	}
 	mbUnsupported = true;
-	mpcGenerator->mpcStatistics->Count(CPPCC_UnsupportedExits);
+	mpcGenerator->GetStatistics()->Count(CPPCC_UnsupportedExits);
 	return false;
 }
 
@@ -485,7 +485,7 @@ void CCPP65IRFrontEnd::NoFloats(void)
 {
 	int		iToken;
 
-	if (!mpcGenerator->mbNoFloats || mbFloatReported)
+	if (!mpcGenerator->HasNoFloats() || mbFloatReported)
 	{
 		return;
 	}
@@ -507,7 +507,7 @@ void CCPP65IRFrontEnd::NoFloats(void)
 //////////////////////////////////////////////////////////////////////////
 SIRType CCPP65IRFrontEnd::ReturnIRType(SCPP65Type* psType)
 {
-	if (mpcGenerator->mpcTarget->WidensResults() && psType->IsScalar() && !psType->IsPointer() && (psType->iBytes < 4))
+	if (mpcGenerator->GetTarget()->WidensResults() && psType->IsScalar() && !psType->IsPointer() && (psType->iBytes < 4))
 	{
 		return IRType(IRTK_I32);
 	}
@@ -773,9 +773,9 @@ bool CCPP65IRFrontEnd::Parameters(void)
 
 	//The generator's parameter variables are known by their index in the parameters.  Object parameters are the
 	//called function's to destroy.
-	for (ui = 0; ui < mpcGenerator->mapcLocals.NumElements(); ui++)
+	for (ui = 0; ui < mpcGenerator->GetLocals()->NumElements(); ui++)
 	{
-		pcVariable = mpcGenerator->mapcLocals.GetPtr(ui);
+		pcVariable = mpcGenerator->GetLocals()->GetPtr(ui);
 		if (pcVariable->meStorage != CPPVS_Parameter)
 		{
 			continue;
@@ -900,9 +900,9 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 	}
 
 	cErrors.Init();
-	mpcBackend->Init(&mcModule, &mpcGenerator->miLabels, mpcGenerator->GetBackendScratch());
-	mpcBackend->SetOptions(mpcGenerator->mpcOptions);
-	mpcBackend->SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
+	mpcBackend->Init(&mcModule, mpcGenerator->GetLabelCounter(), mpcGenerator->GetBackendScratch());
+	mpcBackend->SetOptions(mpcGenerator->GetOptions());
+	mpcBackend->SetSourceMarkers(mpcGenerator->HasListing() || mpcGenerator->HasLineTable());
 	bResult = mpcBackend->GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
 	if (bResult)
 	{
@@ -910,7 +910,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		paszRuntime = mpcBackend->GetRuntime();
 		for (ui = 0; ui < paszRuntime->NumElements(); ui++)
 		{
-			mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
+			mpcGenerator->GetRuntimeCalls()->AddIfUnique(paszRuntime->GetText(ui));
 		}
 	}
 	else
@@ -1073,18 +1073,18 @@ bool CCPP65IRFrontEnd::SourceLine(int iToken, CSourceFile** ppcFile, int* piLine
 	SMacroExpansion*	psExpansion;
 	CPreprocessedTokens*	pcSource;
 
-	if ((iToken < 0) || ((size)iToken >= mpcGenerator->mpcTokeniser->NumTokens()))
+	if ((iToken < 0) || ((size)iToken >= mpcGenerator->GetTokeniser()->NumTokens()))
 	{
 		return false;
 	}
-	psSource = mpcGenerator->mpcTokeniser->GetSource(mpcGenerator->mpcTokeniser->Get(iToken));
+	psSource = mpcGenerator->GetTokeniser()->GetSource(mpcGenerator->GetTokeniser()->Get(iToken));
 	if (!psSource)
 	{
 		return false;
 	}
 	*ppcFile = psSource->pcFile;
 	*piLine = psSource->iLine;
-	pcSource = mpcGenerator->mpcTokeniser->mpcSource;
+	pcSource = mpcGenerator->GetTokeniser()->mpcSource;
 	if (psSource->iExpansion >= 0)
 	{
 		psExpansion = pcSource->GetExpansion((size)psSource->iExpansion);
@@ -1114,9 +1114,9 @@ bool CCPP65IRFrontEnd::Locals(void)
 
 	mcAnonymousAddresses.Kill();
 	mcAnonymousAddresses.Init(true);
-	for (ui = 0; ui < mpcGenerator->mapcLocals.NumElements(); ui++)
+	for (ui = 0; ui < mpcGenerator->GetLocals()->NumElements(); ui++)
 	{
-		pcVariable = mpcGenerator->mapcLocals.GetPtr(ui);
+		pcVariable = mpcGenerator->GetLocals()->GetPtr(ui);
 		if (pcVariable->meStorage != CPPVS_Local)
 		{
 			continue;
@@ -1313,7 +1313,7 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->Init(&mcModule);
 	pcOptimiser->SetPipeline(&mcPipeline);
-	mpcGenerator->mpcTarget->ConfigureOptimiser(pcOptimiser);
+	mpcGenerator->GetTarget()->ConfigureOptimiser(pcOptimiser);
 	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 	if (InliningProfile())
 	{

@@ -1103,7 +1103,7 @@ CIRBlock* CCPP65IRFrontEnd::GotoBlock(int iToken)
 	int64			lliName;
 	size			ui;
 
-	pcToken = mpcGenerator->mpcTokeniser->Get(iToken);
+	pcToken = mpcGenerator->GetTokeniser()->Get(iToken);
 	if (!pcToken || !pcToken->IsIdentifier())
 	{
 		return NULL;

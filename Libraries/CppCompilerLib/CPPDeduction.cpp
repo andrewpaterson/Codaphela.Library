@@ -194,7 +194,7 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		if (psArgument && pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
 		{
 			//const T (const T*, const T&) takes T without the const it has.
-			psArgument = mpcUnit->mcTypes.Qualified(psArgument, psArgument->bConst && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST), psArgument->bVolatile && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_VOLATILE));
+			psArgument = mpcUnit->GetTypes()->Qualified(psArgument, psArgument->bConst && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST), psArgument->bVolatile && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_VOLATILE));
 		}
 		if (psArgument && !mapsDeduced.GetPtr(j))
 		{
@@ -243,11 +243,11 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 
 	if (psArgument->IsArray())
 	{
-		return mpcUnit->mcTypes.Qualified(mpcUnit->mcTypes.Pointer(psArgument->psBase), true, false);
+		return mpcUnit->GetTypes()->Qualified(mpcUnit->GetTypes()->Pointer(psArgument->psBase), true, false);
 	}
 	if (psArgument->IsFunction())
 	{
-		return mpcUnit->mcTypes.Qualified(mpcUnit->mcTypes.Pointer(psArgument), true, false);
+		return mpcUnit->GetTypes()->Qualified(mpcUnit->GetTypes()->Pointer(psArgument), true, false);
 	}
 	if (psArgument->IsClass() || !pcArgument)
 	{
@@ -255,7 +255,7 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 	}
 	if (mpcUnit->SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression)
 	{
-		return mpcUnit->mcTypes.Qualified(mpcUnit->mcTypes.Pointer(mpcUnit->mcTypes.Qualified(psArgument->psBase, true, false)), true, false);
+		return mpcUnit->GetTypes()->Qualified(mpcUnit->GetTypes()->Pointer(mpcUnit->GetTypes()->Qualified(psArgument->psBase, true, false)), true, false);
 	}
 
 	//An array's type here is already the pointer it decays to, but its place is the array.
@@ -264,7 +264,7 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 	{
 		return psArgument;
 	}
-	return mpcUnit->mcTypes.Qualified(psArgument, true, psArgument->bVolatile);
+	return mpcUnit->GetTypes()->Qualified(psArgument, true, psArgument->bVolatile);
 }
 
 
@@ -359,7 +359,7 @@ void CCPPDeduction::DeduceFromInstance(CCPPSyntaxNameComponent* pcComponent, SCP
 			}
 			else if ((pcTemplateParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !psBinding->psType && !mapsDeduced.GetPtr(j))
 			{
-				mapsDeduced.SetPtr(j, &mpcUnit->mcTypes.msInt);
+				mapsDeduced.SetPtr(j, &mpcUnit->GetTypes()->msInt);
 				malliDeduced.SetValue(j, psBinding->lliValue);
 			}
 		}
@@ -600,7 +600,7 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding
 		{
 			return false;
 		}
-		psType = mpcUnit->mcTypes.Qualified(psType, false, psType->bVolatile);
+		psType = mpcUnit->GetTypes()->Qualified(psType, false, psType->bVolatile);
 		miScore++;
 	}
 
@@ -631,11 +631,11 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding
 	}
 
 	//A type naming none of the parameters must be the same type.
-	mpcUnit->mcContext.EnterBindings(NULL);
+	mpcUnit->GetContext()->EnterBindings(NULL);
 	mpcUnit->BeginQuiet();
-	psNamed = mpcUnit->mcDeclarators.GetTypeIdType(pcPattern);
+	psNamed = mpcUnit->GetDeclarators()->GetTypeIdType(pcPattern);
 	mpcUnit->EndQuiet();
-	mpcUnit->mcContext.LeaveBindings();
+	mpcUnit->GetContext()->LeaveBindings();
 	bResult = psNamed && psNamed->Same(psArgument->psType);
 	miScore += 2;
 	return bResult;

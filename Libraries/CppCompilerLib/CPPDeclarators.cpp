@@ -56,7 +56,7 @@ SCPP65Type* CCPPDeclarators::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
 	{
 		//The base type's own qualifiers stay (a typedef of const int).
-		psType = mpcUnit->mcTypes.Qualified(psType, psType->bConst || (pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile || (pcSpecifiers->muiFlags & CPPDS_VOLATILE));
+		psType = mpcUnit->GetTypes()->Qualified(psType, psType->bConst || (pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile || (pcSpecifiers->muiFlags & CPPDS_VOLATILE));
 	}
 	if (!psType || !pcDeclarator)
 	{
@@ -90,11 +90,11 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		switch (pcPointer->meKind)
 		{
 		case CPPP_Pointer:
-			psType = mpcUnit->QualifiedPointer(mpcUnit->mcTypes.Pointer(psType), pcPointer);
+			psType = mpcUnit->QualifiedPointer(mpcUnit->GetTypes()->Pointer(psType), pcPointer);
 			break;
 		case CPPP_Reference:
 		case CPPP_RValueReference:
-			psType = mpcUnit->mcTypes.Reference(psType);
+			psType = mpcUnit->GetTypes()->Reference(psType);
 			break;
 		case CPPP_MemberPointer:
 			pcClass = pcPointer->mpcClass ? mpcUnit->GetNameClass(pcPointer->mpcClass, pcNode) : NULL;
@@ -103,7 +103,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 				mpcUnit->Error(pcNode, "The class of a pointer to a member is not supported by the compiler yet");
 				return NULL;
 			}
-			psType = mpcUnit->mcTypes.MemberPointer(pcClass, psType);
+			psType = mpcUnit->GetTypes()->MemberPointer(pcClass, psType);
 			break;
 		default:
 			mpcUnit->Error(pcNode, "This declarator is not supported by the compiler yet");
@@ -131,7 +131,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		pcArray = (CCPPSyntaxArraySuffix*)pcSuffix;
 		if (!pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_Parameter))
 		{
-			psType = mpcUnit->mcTypes.Pointer(psType);
+			psType = mpcUnit->GetTypes()->Pointer(psType);
 			continue;
 		}
 		if (!pcArray->mpcSize)
@@ -152,7 +152,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		{
 			return NULL;
 		}
-		psType = mpcUnit->mcTypes.Array(psType, (int)lliCount);
+		psType = mpcUnit->GetTypes()->Array(psType, (int)lliCount);
 	}
 
 	if (pcDeclarator->mpcNested)
@@ -191,7 +191,7 @@ SCPP65Type* CCPPDeclarators::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFun
 		}
 		apsParameters.Add(mpcUnit->ParameterType(psType));
 	}
-	psType = mpcUnit->mcTypes.Function(psReturn, &apsParameters, pcSuffix->mbVariadic);
+	psType = mpcUnit->GetTypes()->Function(psReturn, &apsParameters, pcSuffix->mbVariadic);
 	apsParameters.Kill();
 	return psType;
 }
@@ -249,7 +249,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 
 	if (!pcSpecifiers)
 	{
-		return &mpcUnit->mcTypes.msInt;
+		return &mpcUnit->GetTypes()->msInt;
 	}
 
 	pcType = pcSpecifiers->mpcType;
@@ -276,7 +276,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			if (pcElaborated->meKey == CT_enum)
 			{
 				pcSymbol = pcElaborated->mpcName->mpcSymbol;
-				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? mpcUnit->EnumType(pcSymbol, NULL) : &mpcUnit->mcTypes.msInt;
+				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? mpcUnit->EnumType(pcSymbol, NULL) : &mpcUnit->GetTypes()->msInt;
 			}
 			//struct timsort names the class even when a function timsort was declared first.
 			pcSymbol = pcElaborated->mpcName->mpcSymbol;
@@ -296,9 +296,9 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			pcMember = mpcUnit->QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
 			if (pcMember)
 			{
-				mpcUnit->mcContext.EnterBindings(pcMemberClass->mpcBindings);
+				mpcUnit->GetContext()->EnterBindings(pcMemberClass->mpcBindings);
 				psMemberType = GetSymbolType(pcMember, pcNode);
-				mpcUnit->mcContext.LeaveBindings();
+				mpcUnit->GetContext()->LeaveBindings();
 				return psMemberType;
 			}
 			if (pcName->mpcSymbol)
@@ -322,10 +322,10 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					pcClass = mpcUnit->GetNameClass(pcName, pcNode);
 					return pcClass ? pcClass->mpsType : NULL;
 				case CPPSK_BuiltinType:
-					if (mpcUnit->mpcSemanticPass)
+					if (mpcUnit->GetSemanticPass())
 					{
 						//Only checking: the host's __builtin_va_list, a char* as MSVC's va_list is.
-						return mpcUnit->mcTypes.Pointer(&mpcUnit->mcTypes.msChar);
+						return mpcUnit->GetTypes()->Pointer(&mpcUnit->GetTypes()->msChar);
 					}
 					break;
 				default:
@@ -342,15 +342,15 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	bSigned = (uiKeywords & CPPTK_UNSIGNED) == 0;
 	if (uiKeywords & CPPTK_FLOAT)
 	{
-		return mpcUnit->mcTypes.Float(4);
+		return mpcUnit->GetTypes()->Float(4);
 	}
 	if (uiKeywords & CPPTK_DOUBLE)
 	{
-		return (pcSpecifiers->miLongs >= 1) ? mpcUnit->mcTypes.LongDouble() : mpcUnit->mcTypes.Float(8);
+		return (pcSpecifiers->miLongs >= 1) ? mpcUnit->GetTypes()->LongDouble() : mpcUnit->GetTypes()->Float(8);
 	}
 	if ((pcSpecifiers->miLongs >= 2) || (uiKeywords & CPPTK_INT64))
 	{
-		return mpcUnit->mcTypes.Integer(8, bSigned);
+		return mpcUnit->GetTypes()->Integer(8, bSigned);
 	}
 	if (uiKeywords & CPPTK_AUTO)
 	{
@@ -359,35 +359,35 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	}
 	if (uiKeywords & CPPTK_VOID)
 	{
-		return &mpcUnit->mcTypes.msVoid;
+		return &mpcUnit->GetTypes()->msVoid;
 	}
 	if (uiKeywords & CPPTK_BOOL)
 	{
-		return &mpcUnit->mcTypes.msBool;
+		return &mpcUnit->GetTypes()->msBool;
 	}
 	if (uiKeywords & (CPPTK_CHAR | CPPTK_INT8))
 	{
-		return mpcUnit->mcTypes.Integer(1, bSigned);
+		return mpcUnit->GetTypes()->Integer(1, bSigned);
 	}
 	if (uiKeywords & (CPPTK_WCHAR_T | CPPTK_CHAR16_T))
 	{
-		return mpcUnit->mcTypes.Integer(2, false);
+		return mpcUnit->GetTypes()->Integer(2, false);
 	}
 	if (uiKeywords & CPPTK_CHAR32_T)
 	{
-		return mpcUnit->mcTypes.Integer(4, false);
+		return mpcUnit->GetTypes()->Integer(4, false);
 	}
 	if (uiKeywords & (CPPTK_SHORT | CPPTK_INT16))
 	{
-		return mpcUnit->mcTypes.Integer(2, bSigned);
+		return mpcUnit->GetTypes()->Integer(2, bSigned);
 	}
 	if ((uiKeywords & CPPTK_INT32) || (pcSpecifiers->miLongs == 1))
 	{
-		return mpcUnit->mcTypes.Long(bSigned);
+		return mpcUnit->GetTypes()->Long(bSigned);
 	}
 	if (uiKeywords & (CPPTK_INT | CPPTK_SIGNED | CPPTK_UNSIGNED))
 	{
-		return bSigned ? &mpcUnit->mcTypes.msInt : &mpcUnit->mcTypes.msUnsignedInt;
+		return bSigned ? &mpcUnit->GetTypes()->msInt : &mpcUnit->GetTypes()->msUnsignedInt;
 	}
 	mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
 	return NULL;
