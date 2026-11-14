@@ -149,7 +149,7 @@ bool CIRW65C816Backend::ShiftCall(SIRInstruction* psInstruction)
 	szName.Kill();
 	if (iWords == 2)
 	{
-		CallerCleanUp(0, psInstruction);
+		mcCalls.CallerCleanUp(0, psInstruction);
 	}
 	return true;
 }

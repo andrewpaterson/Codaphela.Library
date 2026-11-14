@@ -131,7 +131,7 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 	{
 		szName.Kill();
 		mpsDivided = NULL;
-		CallerCleanUp(0, psInstruction);
+		mcCalls.CallerCleanUp(0, psInstruction);
 		return true;
 	}
 	UseRuntime(szName.Text());
@@ -139,7 +139,7 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 	szName.Insert(0, "jsl ");
 	Line(szName.Text());
 	szName.Kill();
-	CallerCleanUp(iBytes, psInstruction);
+	mcCalls.CallerCleanUp(iBytes, psInstruction);
 	return true;
 }
 

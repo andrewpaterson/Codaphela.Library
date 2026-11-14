@@ -57,7 +57,7 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 		asTypes[1] = psInstruction->sType;
 		bHidden = IsHiddenResult(psInstruction->sType);
 		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
-		CallerCleanUp(iBytes, psInstruction);
+		mcCalls.CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
 }
@@ -71,7 +71,7 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 int32 CIRW65C816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
 {
-	if (sValue.IsTemporary() && !mcPlaces.InX(sValue) && !Fused(sValue) && (mcPlaces.OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
+	if (sValue.IsTemporary() && !mcPlaces.InX(sValue) && !mcFusion.Fused(sValue) && (mcPlaces.OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
 	{
 		return mcPlaces.OffsetOf(sValue);
 	}
@@ -112,7 +112,7 @@ void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psI
 	sz.Kill();
 	if (!bHidden)
 	{
-		CallerCleanUp(0, psInstruction);
+		mcCalls.CallerCleanUp(0, psInstruction);
 	}
 }
 
@@ -219,7 +219,7 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 	}
 	if (iRegisters > 0)
 	{
-		LoadRegisters(asRegisters, aiWords, aiHidden, iRegisters);
+		mcCalls.LoadRegisters(asRegisters, aiWords, aiHidden, iRegisters);
 	}
 
 	UseRuntime(szName);
@@ -393,7 +393,7 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 	{
 		bHidden = IsHiddenResult(sTo);
 		iBytes = SoftFloatCall(szName.Text(), &sValue, &sFrom, 1, iExtended, bSigned, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
-		CallerCleanUp(iBytes, psInstruction);
+		mcCalls.CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
 }

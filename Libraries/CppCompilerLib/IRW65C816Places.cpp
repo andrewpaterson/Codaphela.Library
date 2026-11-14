@@ -107,7 +107,7 @@ void CIRW65C816Places::Layout(void)
 
 	//The temporaries share places when they aren't live at once (PackTemporaries); then the slots, each a place of its
 	//own.
-	mpcBackend->FoldPointers();
+	mpcBackend->mcFolds.FoldPointers();
 	mpcBackend->msFrame.iFrameBytes = PackTemporaries() - 1;
 
 	//A frame (with its arguments) past the page keeps S, as it was when aligned (AlignFrame), in two bytes in the page.
@@ -184,328 +184,6 @@ void CIRW65C816Places::Layout(void)
 			mpcBackend->masTemporaries.Get(ui)->bInX = false;
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A pointer plus a constant that is only used as loads' and stores'
-// addresses isn't worked out: they use the pointer it adds to, with the
-// constant in Y ([[D + n]:24 + Y]) or added to a symbol.  Its base pointer
-// (msFoldBase) and constant (miFoldOffset) are kept per temporary.  Then
-// pointers plus zero extended 16 bit values are folded too (FoldIndices).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FoldPointers(void)
-{
-	CArrayTemplate<int32>	aiAddressUses;
-	CArrayTemplate<int32>	aiUses;
-	CArrayTemplate<uint32>	auiCounted;
-	size					uiTemporaries;
-	size					ui;
-	size					uj;
-	size					uk;
-	CIRBlock*				pcBlock;
-	SIRInstruction*			psInstruction;
-	SIRReference			sNone;
-	int32					iZero;
-	int32					iUses;
-	int64					lliOffset;
-
-	uiTemporaries = mpcFunction->NumTemporaries();
-	sNone = IRNone();
-	iZero = 0;
-	GrowTemporaries();
-	aiAddressUses.Init(CIRW65C816Backend::GetScratch());
-	aiUses.Init(CIRW65C816Backend::GetScratch());
-	auiCounted.Init(CIRW65C816Backend::GetScratch());
-	mpcFunction->CountUses(&auiCounted);
-	for (ui = 0; ui < uiTemporaries; ui++)
-	{
-		masTemporaries.Get(ui)->iCountUses = iZero;
-		masTemporaries.Get(ui)->sFoldBase = sNone;
-		masTemporaries.Get(ui)->iFoldOffset = iZero;
-		masTemporaries.Get(ui)->sFoldIndex = sNone;
-		aiAddressUses.Add(&iZero);
-		iUses = (int32)*auiCounted.Get(ui);
-		aiUses.Add(&iUses);
-	}
-	auiCounted.Kill();
-
-	//How many uses (CountUses) of each temporary are loads' or stores' addresses, and shifts' counts.
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uj);
-			for (uk = 0; uk < 2; uk++)
-			{
-				if (psInstruction->asArguments[uk].IsTemporary())
-				{
-					if (((psInstruction->uiOpcode == IRO_Load) && (uk == 0)) || ((psInstruction->uiOpcode == IRO_Store) && (uk == 1)))
-					{
-						(*aiAddressUses.Get(psInstruction->asArguments[uk].Index()))++;
-					}
-					if ((uk == 1) && ((psInstruction->uiOpcode == IRO_Shl) || (psInstruction->uiOpcode == IRO_LShr) || (psInstruction->uiOpcode == IRO_AShr)))
-					{
-						(masTemporaries.Get(psInstruction->asArguments[uk].Index())->iCountUses)++;
-					}
-				}
-			}
-		}
-	}
-
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uj);
-			if ((psInstruction->uiOpcode == IRO_PtrAdd) && psInstruction->sResult.IsTemporary() && psInstruction->asArguments[1].IsConstant() &&
-				(psInstruction->asArguments[0].IsTemporary() || psInstruction->asArguments[0].IsSymbol()) &&
-				(*aiUses.Get(psInstruction->sResult.Index()) > 0) && (*aiUses.Get(psInstruction->sResult.Index()) == *aiAddressUses.Get(psInstruction->sResult.Index())))
-			{
-				lliOffset = (int64)mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
-				if ((lliOffset >= 0) && (lliOffset <= 0xFF00))
-				{
-					masTemporaries.Get(psInstruction->sResult.Index())->sFoldBase = psInstruction->asArguments[0];
-					masTemporaries.Get(psInstruction->sResult.Index())->iFoldOffset = (int32)lliOffset;
-				}
-			}
-		}
-	}
-
-	//A folded pointer's base that is itself folded is followed to the end.
-	for (ui = 0; ui < uiTemporaries; ui++)
-	{
-		while (!masTemporaries.Get(ui)->sFoldBase.IsNone() && masTemporaries.Get(ui)->sFoldBase.IsTemporary() && !masTemporaries.Get(masTemporaries.Get(ui)->sFoldBase.Index())->sFoldBase.IsNone())
-		{
-			uk = masTemporaries.Get(ui)->sFoldBase.Index();
-			masTemporaries.Get(ui)->iFoldOffset += masTemporaries.Get(uk)->iFoldOffset;
-			masTemporaries.Get(ui)->sFoldBase = masTemporaries.Get(uk)->sFoldBase;
-		}
-		if (masTemporaries.Get(ui)->iFoldOffset > 0xFF00)
-		{
-			masTemporaries.Get(ui)->sFoldBase = sNone;
-			masTemporaries.Get(ui)->iFoldOffset = 0;
-		}
-	}
-	FoldIndices(&aiUses);
-	for (ui = 0; ui < uiTemporaries; ui++)
-	{
-		masTemporaries.Get(ui)->iUses = *aiUses.Get(ui);
-	}
-	aiUses.Kill();
-	aiAddressUses.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A pointer plus a zero extended i16 x (ptradd p, zext x) that is only used
-// as the addresses of 1 word loads and stores isn't worked out: they put x
-// in Y and use p ([[D + p]:24 + Y]; the W65C816 adds Y to all 24 bits).
-// 2 word ones too when the ptradd is IRF_InArray: x + 2 then can't wrap
-// (LoadY's iny).
-// p must be a temporary that isn't folded itself, and nothing folded may
-// add to the ptradd (Y would be x plus a constant, which can wrap).  The
-// zext isn't worked out either when the folded ptradds are all its uses:
-// it is folded to x (FoldedBase), so x lives to the loads and stores.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
-{
-	CArrayTemplate<SIRInstruction*>	apsDefinitions;
-	CArrayTemplate<int32>			aiWordUses;		//Per temporary: its uses as a 1 word load's or store's address.
-	CArrayTemplate<int32>			aiPairUses;		//Per temporary: its uses as a 2 word load's or store's address.
-	CArrayTemplate<int32>			aiFoldedUses;	//Per zext: its uses by ptradds folded here.
-	CArrayTemplate<uint8>			abBase;			//Per temporary: something folded adds to it.
-	SIRInstruction*					psInstruction;
-	SIRInstruction*					psExtend;
-	CIRBlock*						pcBlock;
-	SIRInstruction*					psNull;
-	SIRReference					sPointer;
-	size							uiTemporaries;
-	size							ui;
-	size							uj;
-	int32							iZero;
-	uint8							uiFalse;
-
-	uiTemporaries = mpcFunction->NumTemporaries();
-	psNull = NULL;
-	iZero = 0;
-	uiFalse = 0;
-	apsDefinitions.Init(CIRW65C816Backend::GetScratch());
-	aiWordUses.Init(CIRW65C816Backend::GetScratch());
-	aiPairUses.Init(CIRW65C816Backend::GetScratch());
-	aiFoldedUses.Init(CIRW65C816Backend::GetScratch());
-	abBase.Init(CIRW65C816Backend::GetScratch());
-	for (ui = 0; ui < uiTemporaries; ui++)
-	{
-		apsDefinitions.Add(&psNull);
-		aiWordUses.Add(&iZero);
-		aiPairUses.Add(&iZero);
-		aiFoldedUses.Add(&iZero);
-		abBase.Add(&uiFalse);
-	}
-	for (ui = 0; ui < uiTemporaries; ui++)
-	{
-		if (!masTemporaries.Get(ui)->sFoldBase.IsNone() && masTemporaries.Get(ui)->sFoldBase.IsTemporary())
-		{
-			*abBase.Get(masTemporaries.Get(ui)->sFoldBase.Index()) = true;
-		}
-	}
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uj);
-			if (psInstruction->sResult.IsTemporary())
-			{
-				*apsDefinitions.Get(psInstruction->sResult.Index()) = psInstruction;
-			}
-			if (psInstruction->uiOpcode == IRO_Load)
-			{
-				sPointer = psInstruction->asArguments[0];
-			}
-			else if (psInstruction->uiOpcode == IRO_Store)
-			{
-				sPointer = psInstruction->asArguments[1];
-			}
-			else
-			{
-				continue;
-			}
-			if (sPointer.IsTemporary() && (Words(psInstruction->sType) == 1) && !(psInstruction->uiFlags & IRF_Volatile))
-			{
-				(*aiWordUses.Get(sPointer.Index()))++;
-			}
-			else if (sPointer.IsTemporary() && (Words(psInstruction->sType) == 2) && !(psInstruction->uiFlags & IRF_Volatile))
-			{
-				(*aiPairUses.Get(sPointer.Index()))++;
-			}
-		}
-	}
-
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uj);
-			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[0].IsTemporary() ||
-				!psInstruction->asArguments[1].IsTemporary() || !masTemporaries.Get(psInstruction->sResult.Index())->sFoldBase.IsNone() ||
-				!masTemporaries.Get(psInstruction->asArguments[0].Index())->sFoldBase.IsNone() || *abBase.Get(psInstruction->sResult.Index()) ||
-				(*paiUses->Get(psInstruction->sResult.Index()) == 0) ||
-				(*paiUses->Get(psInstruction->sResult.Index()) != *aiWordUses.Get(psInstruction->sResult.Index()) + ((psInstruction->uiFlags & IRF_InArray) ? *aiPairUses.Get(psInstruction->sResult.Index()) : 0)))
-			{
-				continue;
-			}
-			psExtend = *apsDefinitions.Get(psInstruction->asArguments[1].Index());
-			if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_ZExt) || !psExtend->asArguments[0].IsTemporary() ||
-				!mpcFunction->GetTemporaryType(psExtend->asArguments[0]).Is(IRTK_I16))
-			{
-				continue;
-			}
-			masTemporaries.Get(psInstruction->sResult.Index())->sFoldBase = psInstruction->asArguments[0];
-			masTemporaries.Get(psInstruction->sResult.Index())->iFoldOffset = 0;
-			masTemporaries.Get(psInstruction->sResult.Index())->sFoldIndex = psExtend->asArguments[0];
-			(*aiFoldedUses.Get(psInstruction->asArguments[1].Index()))++;
-		}
-	}
-
-	//A zext only the folded ptradds use isn't worked out.
-	for (ui = 0; ui < uiTemporaries; ui++)
-	{
-		psExtend = *apsDefinitions.Get(ui);
-		if (psExtend && (psExtend->uiOpcode == IRO_ZExt) && (*aiFoldedUses.Get(ui) > 0) && (*aiFoldedUses.Get(ui) == *paiUses->Get(ui)))
-		{
-			masTemporaries.Get(ui)->sFoldBase = psExtend->asArguments[0];
-			masTemporaries.Get(ui)->iFoldOffset = 0;
-		}
-	}
-	apsDefinitions.Kill();
-	aiWordUses.Kill();
-	aiPairUses.Kill();
-	aiFoldedUses.Kill();
-	abBase.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The i16 a folded pointer adds in Y (FoldIndices), else none.
-//
-//////////////////////////////////////////////////////////////////////////
-SIRReference CIRW65C816Backend::FoldedIndex(SIRReference sValue)
-{
-	if (sValue.IsTemporary() && (sValue.Index() < masTemporaries.NumElements()))
-	{
-		return masTemporaries.Get(sValue.Index())->sFoldIndex;
-	}
-	return IRNone();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether an instruction isn't worked out: a ptradd or add folded into its
-// loads and stores (FoldPointers), or a zext folded into its ptradds
-// (FoldIndices).  It writes no code.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::IsFolded(SIRInstruction* psInstruction)
-{
-	return ((psInstruction->uiOpcode == IRO_PtrAdd) || (psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_ZExt)) &&
-		psInstruction->sResult.IsTemporary() && !FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Y for word iOffset / 2 of a load or store through sPointer: the folded
-// index (plus iOffset by iny: a 2 word access is IRF_InArray, FoldIndices,
-// so it can't wrap), else the constant.  Word 0 with no index needs no Y
-// ([[D + p]:24]): returns whether Y was loaded.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::LoadY(SIRReference sPointer, int32 iOffset)
-{
-	SIRReference	sIndex;
-
-	sIndex = FoldedIndex(sPointer);
-	if (sIndex.IsNone())
-	{
-		if (iOffset == 0)
-		{
-			return false;
-		}
-		Line("ldy ", iOffset);
-		return true;
-	}
-	Operand("ldy", sIndex, 0);
-	for (; iOffset > 0; iOffset--)
-	{
-		Line("iny");
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A value, or the base pointer a folded pointer adds to.
-//
-//////////////////////////////////////////////////////////////////////////
-SIRReference CIRW65C816Backend::FoldedBase(SIRReference sValue)
-{
-	if (sValue.IsTemporary() && (sValue.Index() < masTemporaries.NumElements()) && !masTemporaries.Get(sValue.Index())->sFoldBase.IsNone())
-	{
-		return masTemporaries.Get(sValue.Index())->sFoldBase;
-	}
-	return sValue;
 }
 
 
@@ -1495,38 +1173,38 @@ void CIRW65C816Places::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, 
 			if (pcBlock->masInstructions.Get(uk)->uiOpcode == IRO_Call)
 			{
 				iCallPosition = iPosition + (int32)(uk - uiInstruction);
-				pcRanges->AddPair(pcBlock->masInstructions.Get(uk)->sResult, mpcBackend->FoldedBase(psInstruction->asArguments[0]), iCallPosition, iWeight);
+				pcRanges->AddPair(pcBlock->masInstructions.Get(uk)->sResult, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), iCallPosition, iWeight);
 				break;
 			}
 		}
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_EVENT_USE);
 	}
 	else
 	{
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedBase(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedBase(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedIndex(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedIndex(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
 	}
-	if (!psInstruction->sResult.IsTemporary() || !mpcBackend->FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
+	if (!psInstruction->sResult.IsTemporary() || !mpcBackend->mcFolds.FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
 	{
 		return;
 	}
 	IR816AddEvent(&psEvents->asEvents, psInstruction->sResult, iPosition, IR816_EVENT_DEFINE);
 	for (iArgument = 0; iArgument < IR_INSTRUCTION_ARGUMENTS; iArgument++)
 	{
-		if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && mpcBackend->FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
+		if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
 		{
 			pcRanges->AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, iWeight);
 		}
 	}
-	if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && mpcBackend->FoldedBase(psInstruction->asArguments[0]).IsTemporary())
+	if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]).IsTemporary())
 	{
 		//Its pointer's place: Load reads the words that overlap the pointer last (only worth keeping a word on
 		//the stack for when a phi joins them, p = p->psNext, so they're paired after the phis).
 		psLoadPair = psEvents->asLoadPairs.Add();
 		psLoadPair->sResult = psInstruction->sResult;
-		psLoadPair->sPointer = mpcBackend->FoldedBase(psInstruction->asArguments[0]);
+		psLoadPair->sPointer = mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]);
 		psLoadPair->iPosition = iPosition;
 		psLoadPair->iDepth = iWeight;
 		psLoadPair->bWide = mpcBackend->Words(psInstruction->sType) > 1;
@@ -2311,7 +1989,7 @@ void CIRW65C816Places::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<
 			{
 				//A 2 word access's folded index is read again for its second word (LoadY), after X may hold the first
 				//(a 32 bit result in A and X).
-				sValue = mpcBackend->FoldedIndex(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1]);
+				sValue = mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1]);
 				if (sValue.IsTemporary())
 				{
 					*abBad.Get(sValue.Index()) = true;
@@ -2323,7 +2001,7 @@ void CIRW65C816Places::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<
 				if (sValue.IsTemporary())
 				{
 					iScore = IR816XUse(psInstruction->uiOpcode, iArgument);
-					if (!mpcBackend->FoldedBase(sValue).Equals(sValue))
+					if (!mpcBackend->mcFolds.FoldedBase(sValue).Equals(sValue))
 					{
 						iScore = IR816_X_BAD;
 					}
@@ -2338,7 +2016,7 @@ void CIRW65C816Places::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<
 				}
 			}
 			sValue = psInstruction->sResult;
-			if (sValue.IsTemporary() && mpcBackend->FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction))
+			if (sValue.IsTemporary() && mpcBackend->mcFolds.FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction))
 			{
 				*abCandidate.Get(sValue.Index()) = true;
 				*aiScore.Get(sValue.Index()) += IR816_X_DEFINE * iWeight;

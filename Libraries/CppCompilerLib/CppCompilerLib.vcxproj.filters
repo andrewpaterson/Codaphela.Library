@@ -333,6 +333,9 @@
     <ClCompile Include="IRW65C816Places.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRW65C816Folds.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRW65C816Runtime.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1068,6 +1071,15 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRW65C816Places.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRW65C816Calls.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRW65C816Fusion.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRW65C816Folds.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRW65C816Code.h">

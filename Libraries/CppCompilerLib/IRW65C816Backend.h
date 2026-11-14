@@ -29,6 +29,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRDominators.h"
 #include "IRLoops.h"
 #include "IRW65C816Places.h"
+#include "IRW65C816Folds.h"
+#include "IRW65C816Fusion.h"
+#include "IRW65C816Calls.h"
 
 
 class CIRW65C816LiveRanges;
@@ -167,6 +170,9 @@ typedef CArrayTemplate<SIRW65C816Temporary>	CArrayIRW65C816Temporaries;
 //registers from the stack and goes on to the body.
 class CIRW65C816Backend : public CIRBackend
 {
+friend class CIRW65C816Calls;
+friend class CIRW65C816Fusion;
+friend class CIRW65C816Folds;
 friend class CIRW65C816Places;
 protected:
 	CArrayIRRegisterArguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
@@ -192,6 +198,9 @@ protected:
 	CMallocator*			mpcOldScratch;		//...and what the thread's scratch was before.
 
 	CIRW65C816Places			mcPlaces;
+	CIRW65C816Folds				mcFolds;
+	CIRW65C816Fusion			mcFusion;
+	CIRW65C816Calls				mcCalls;
 public:
 	void			Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) override;
 	void			SetOptions(CCPPCompileOptions* pcOptions) override;
@@ -263,12 +272,6 @@ protected:
 	int32			ArgumentPlace(SIRRegisterArgument* psArgument, int32* piPushed);
 	void			PushFrameAddress(int32 iOffset);
 	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
-	void			FoldPointers(void);
-	SIRReference	FoldedBase(SIRReference sValue);
-	SIRReference	FoldedIndex(SIRReference sValue);
-	bool			IsFolded(SIRInstruction* psInstruction);
-	void			FoldIndices(CArrayTemplate<int32>* paiUses);
-	bool			LoadY(SIRReference sPointer, int32 iOffset);
 
 	bool			Instruction(CIRBlock* pcBlock, size uiIndex);
 	void			Arithmetic(SIRInstruction* psInstruction);
@@ -315,19 +318,8 @@ protected:
 	void			ExtendInX(SIRInstruction* psInstruction);
 	void			Address(SIRInstruction* psInstruction, int32 iOffset);
 	void			Load(SIRInstruction* psInstruction);
-	bool			CanFuse(CIRBlock* pcBlock, size uiIndex);
-	bool			CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction);
-	bool			FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap);
-	bool			FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult);
-	SIRInstruction*	Fused(SIRReference sValue);
 	void			WordInA(SIRInstruction* psInstruction, int iWord);
 	void			StoreMemory(SIRInstruction* psInstruction);
-	void			Call(CIRBlock* pcBlock, SIRInstruction* psInstruction);
-	int32			PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments);
-	void			LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments);
-	void			LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters);
-	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
-	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);
 	void			FunctionArguments(void);
 	void			CopyAddressedParameters(void);
 	void			RegisterStub(CChars* pszBodyLabel);
@@ -337,7 +329,6 @@ protected:
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
 	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
 	void			StackLine(const char* szInstruction, int iOffset);
-	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);
 	int32			SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset);
 	void			FloatArithmetic(SIRInstruction* psInstruction);
 	void			FloatCompare(SIRInstruction* psInstruction);

@@ -42,6 +42,9 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	InitBackend(pcModule, piLabels, CIRW65C816Backend::GetScratch());
 	masTemporaries.Init(CIRW65C816Backend::GetScratch());
 	mcPlaces.Init(this);
+	mcCalls.Init(this);
+	mcFusion.Init(this);
+	mcFolds.Init(this);
 	mpcTemporariesOf = NULL;
 	masCopies.Init(CIRW65C816Backend::GetScratch());
 	masCopySteps.Init(CIRW65C816Backend::GetScratch());
@@ -72,6 +75,9 @@ void CIRW65C816Backend::Kill(void)
 	maiParameters.Kill();
 	masCopySteps.Kill();
 	masCopies.Kill();
+	mcFolds.Kill();
+	mcFusion.Kill();
+	mcCalls.Kill();
 	mcPlaces.Kill();
 	masTemporaries.Kill();
 	mcLoops.Kill();
@@ -686,11 +692,11 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			//Folded instructions write nothing: what is fused goes on past them.
-			if (IsFolded(pcBlock->masInstructions.Get(uiInstruction)))
+			if (mcFolds.IsFolded(pcBlock->masInstructions.Get(uiInstruction)))
 			{
 				continue;
 			}
-			if (CanFuse(pcBlock, uiInstruction))
+			if (mcFusion.CanFuse(pcBlock, uiInstruction))
 			{
 				mapsFused[miFused] = pcBlock->masInstructions.Get(uiInstruction);
 				miFused++;
@@ -1084,11 +1090,11 @@ void CIRW65C816Backend::FindSingleUses(void)
 			//A folded index (FoldIndices) is read by the load or store too (ldy), not only by its zext.
 			if (psInstruction->uiOpcode == IRO_Load)
 			{
-				IR816UseIn(&masTemporaries, &aiCount, FoldedIndex(psInstruction->asArguments[0]), (int32)ui);
+				IR816UseIn(&masTemporaries, &aiCount, mcFolds.FoldedIndex(psInstruction->asArguments[0]), (int32)ui);
 			}
 			else if (psInstruction->uiOpcode == IRO_Store)
 			{
-				IR816UseIn(&masTemporaries, &aiCount, FoldedIndex(psInstruction->asArguments[1]), (int32)ui);
+				IR816UseIn(&masTemporaries, &aiCount, mcFolds.FoldedIndex(psInstruction->asArguments[1]), (int32)ui);
 			}
 		}
 		IR816UseIn(&masTemporaries, &aiCount, pcBlock->msJump.sArgument, (int32)ui);
@@ -1688,7 +1694,7 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 				mpszOut->Append("\t\tsta [[D + ")->Append(IR816_SCRATCH_POINTER)->Append("]:24 + Y]")->AppendNewLine();
 			}
 		}
-		else if (Fused(psJump->sArgument))
+		else if (mcFusion.Fused(psJump->sArgument))
 		{
 			//The high word first (CanFuseReturn).
 			Operand("lda", psJump->sArgument, 1);
@@ -1824,7 +1830,7 @@ bool CIRW65C816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestina
 	int32	iSource;
 	int32	iDestination;
 
-	if (!sSource.IsTemporary() || !FoldedBase(sSource).Equals(sSource))
+	if (!sSource.IsTemporary() || !mcFolds.FoldedBase(sSource).Equals(sSource))
 	{
 		return false;
 	}
@@ -1845,7 +1851,7 @@ bool CIRW65C816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestina
 //////////////////////////////////////////////////////////////////////////
 bool CIRW65C816Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2)
 {
-	if (!sValue1.IsTemporary() || !sValue2.IsTemporary() || !FoldedBase(sValue1).Equals(sValue1) || !FoldedBase(sValue2).Equals(sValue2))
+	if (!sValue1.IsTemporary() || !sValue2.IsTemporary() || !mcFolds.FoldedBase(sValue1).Equals(sValue1) || !mcFolds.FoldedBase(sValue2).Equals(sValue2))
 	{
 		return false;
 	}

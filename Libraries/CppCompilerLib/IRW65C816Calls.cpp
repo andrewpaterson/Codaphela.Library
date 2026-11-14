@@ -27,60 +27,80 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Calls::Init(CIRW65C816Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Calls::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // After a call: the arguments are removed (pulled into Y, or S moved with A kept in Y; X is kept), then the result (A,
 // and X for 32 bits) goes to its place.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
+void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
 {
 	bool	bResult;
 	int		iWords;
 	int		i;
 
-	bResult = !psInstruction->sResult.IsNone() && !IsHiddenResult(psInstruction->sType);
-	iWords = bResult ? Words(psInstruction->sType) : 0;
+	bResult = !psInstruction->sResult.IsNone() && !mpcBackend->IsHiddenResult(psInstruction->sType);
+	iWords = bResult ? mpcBackend->Words(psInstruction->sType) : 0;
 	if ((iBytes == 2) || (iBytes == 4))
 	{
 		//Pulled into Y, which keeps A and X.
 		for (i = 0; i < iBytes; i += 2)
 		{
-			Line("ply");
+			mpcBackend->Line("ply");
 		}
 	}
 	else if (iBytes != 0)
 	{
 		if (bResult)
 		{
-			Line("tay");
+			mpcBackend->Line("tay");
 		}
-		Line("tsc");
-		Line("clc");
-		Line("adc ", iBytes);
-		Line("tcs");
+		mpcBackend->Line("tsc");
+		mpcBackend->Line("clc");
+		mpcBackend->Line("adc ", iBytes);
+		mpcBackend->Line("tcs");
 		if (bResult)
 		{
-			Line("tya");
+			mpcBackend->Line("tya");
 		}
 	}
 	if (bResult)
 	{
 		if (iWords == 1)
 		{
-			Mask(psInstruction->sType);
-			Store(psInstruction->sResult, 0);
+			mpcBackend->Mask(psInstruction->sType);
+			mpcBackend->Store(psInstruction->sResult, 0);
 		}
-		else if (IR816OnDirectPage(mcPlaces.OffsetOf(psInstruction->sResult) + 2))
+		else if (IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2))
 		{
-			Store(psInstruction->sResult, 0);
-			Frame("stx", mcPlaces.OffsetOf(psInstruction->sResult) + 2);
+			mpcBackend->Store(psInstruction->sResult, 0);
+			mpcBackend->Frame("stx", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
 		}
 		else
 		{
 			//Past the direct page Frame goes through X: the high word waits in the scratch word.
-			Frame("stx", IR816_SCRATCH_RESULT + 2);
-			Store(psInstruction->sResult, 0);
-			Frame("lda", IR816_SCRATCH_RESULT + 2);
-			Store(psInstruction->sResult, 1);
+			mpcBackend->Frame("stx", IR816_SCRATCH_RESULT + 2);
+			mpcBackend->Store(psInstruction->sResult, 0);
+			mpcBackend->Frame("lda", IR816_SCRATCH_RESULT + 2);
+			mpcBackend->Store(psInstruction->sResult, 1);
 		}
 	}
 }
@@ -92,7 +112,7 @@ void CIRW65C816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstructio
 // pushes the return address and the target - 1, and rtl's to it (rtl adds 1 to the low 16 bits only).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
+void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
 	int32					iBytes;
 	size					ui;
@@ -109,71 +129,71 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	//registers.
 	sCallee = psInstruction->asArguments[0];
 	asArguments.Init(CIRW65C816Backend::GetScratch());
-	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
+	if (!psInstruction->sResult.IsNone() && mpcBackend->IsHiddenResult(psInstruction->sType))
 	{
 		psPlaced = asArguments.Add();
 		psPlaced->iUnits = 2;
 		psPlaced->iRegister = -1;
 	}
-	for (ui = 0; ui < mauiPendingArguments.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->mauiPendingArguments.NumElements(); ui++)
 	{
-		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui));
+		psArgument = pcBlock->masInstructions.Get(*mpcBackend->mauiPendingArguments.Get(ui));
 		psPlaced = asArguments.Add();
-		psPlaced->iUnits = Words(psArgument->sType);
+		psPlaced->iUnits = mpcBackend->Words(psArgument->sType);
 		psPlaced->iRegister = -1;
 	}
-	iRegisters = IsRegisterCall(sCallee) ? AssignRegisters(&asArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
+	iRegisters = mpcBackend->IsRegisterCall(sCallee) ? mpcBackend->AssignRegisters(&asArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
 
 	iBytes = PushArguments(pcBlock, psInstruction, &asArguments);
 	if (iRegisters > 0)
 	{
 		LoadRegisterArguments(pcBlock, psInstruction, &asArguments);
 	}
-	mauiPendingArguments.FakeSetUsedElements(0);
+	mpcBackend->mauiPendingArguments.FakeSetUsedElements(0);
 
 	sz.Init(CIRW65C816Backend::GetScratch());
 	if (sCallee.IsSymbol())
 	{
 		sz.Append("jsl ");
-		sz.Append(mpcModule->GetSymbolName(sCallee.Index()));
+		sz.Append(mpcBackend->mpcModule->GetSymbolName(sCallee.Index()));
 		if (iRegisters > 0)
 		{
-			AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
+			mpcBackend->AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
 		}
-		Line(sz.Text());
+		mpcBackend->Line(sz.Text());
 	}
 	else
 	{
-		iReturn = NewLabel();
-		iCallee = mcPlaces.OffsetOf(sCallee);
-		Line("phk");
+		iReturn = mpcBackend->NewLabel();
+		iCallee = mpcBackend->mcPlaces.OffsetOf(sCallee);
+		mpcBackend->Line("phk");
 		sz.Append("per L");
 		sz.Append(iReturn);
 		sz.Append(" - 1");
-		Line(sz.Text());
+		mpcBackend->Line(sz.Text());
 		if (IR816PointerOnDirectPage(iCallee))
 		{
 			//The target's bank and high byte pushed as one word and a byte's room below them (phb: any byte), then the
 			//target - 1 written over that byte and the high byte (which the - 1 may have borrowed from): no change of
 			//A's width for the bank's byte.
-			Frame("pei", iCallee + 1);
-			Line("phb");
-			Frame("lda", iCallee);
-			Line("dec A");
-			Line("sta [S + 1]");
+			mpcBackend->Frame("pei", iCallee + 1);
+			mpcBackend->Line("phb");
+			mpcBackend->Frame("lda", iCallee);
+			mpcBackend->Line("dec A");
+			mpcBackend->Line("sta [S + 1]");
 		}
 		else
 		{
-			Line("sep m");
-			Frame("lda", iCallee + 2);
-			Line("pha");
-			Line("rep m");
-			Frame("lda", iCallee);
-			Line("dec A");
-			Line("pha");
+			mpcBackend->Line("sep m");
+			mpcBackend->Frame("lda", iCallee + 2);
+			mpcBackend->Line("pha");
+			mpcBackend->Line("rep m");
+			mpcBackend->Frame("lda", iCallee);
+			mpcBackend->Line("dec A");
+			mpcBackend->Line("pha");
 		}
-		Line("rtl");
-		Label(iReturn);
+		mpcBackend->Line("rtl");
+		mpcBackend->Label(iReturn);
 	}
 	sz.Kill();
 	asArguments.Kill();
@@ -188,7 +208,7 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 // isn't.  Returns the bytes pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments)
+int32 CIRW65C816Calls::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments)
 {
 	int32			iBytes;
 	size			ui;
@@ -196,20 +216,20 @@ int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInst
 	SIRInstruction*	psArgument;
 
 	iBytes = 0;
-	uiFirst = pasArguments->NumElements() - mauiPendingArguments.NumElements();
-	for (ui = mauiPendingArguments.NumElements(); ui > 0; ui--)
+	uiFirst = pasArguments->NumElements() - mpcBackend->mauiPendingArguments.NumElements();
+	for (ui = mpcBackend->mauiPendingArguments.NumElements(); ui > 0; ui--)
 	{
 		if (pasArguments->Get(uiFirst + ui - 1)->iRegister >= 0)
 		{
 			continue;
 		}
-		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui - 1));
-		PushValue(psArgument->asArguments[0], psArgument->sType);
-		iBytes += ValueBytes(psArgument->sType);
+		psArgument = pcBlock->masInstructions.Get(*mpcBackend->mauiPendingArguments.Get(ui - 1));
+		mpcBackend->PushValue(psArgument->asArguments[0], psArgument->sType);
+		iBytes += mpcBackend->ValueBytes(psArgument->sType);
 	}
 	if ((uiFirst == 1) && (pasArguments->Get(0)->iRegister < 0))
 	{
-		PushFrameAddress(mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->PushFrameAddress(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
 		iBytes += 4;
 	}
 	return iBytes;
@@ -259,7 +279,7 @@ static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction
 // pushed the others): LoadRegisters.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments)
+void CIRW65C816Calls::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIRRegisterArguments* pasArguments)
 {
 	SIRReference	asValues[IR816_ARGUMENT_REGISTERS];
 	int				aiWords[IR816_ARGUMENT_REGISTERS];
@@ -268,11 +288,11 @@ void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction*
 	int				iRegisters;
 	int				i;
 
-	iHiddenOffset = psInstruction->sResult.IsNone() ? -1 : mcPlaces.OffsetOf(psInstruction->sResult);
+	iHiddenOffset = psInstruction->sResult.IsNone() ? -1 : mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult);
 	iRegisters = 0;
 	for (i = 0; i < IR816_ARGUMENT_REGISTERS; i++)
 	{
-		IR816RegisterSource(pcBlock, psInstruction, &mauiPendingArguments, pasArguments, i, iHiddenOffset, &asValues[i], &aiWords[i], &aiHidden[i]);
+		IR816RegisterSource(pcBlock, psInstruction, &mpcBackend->mauiPendingArguments, pasArguments, i, iHiddenOffset, &asValues[i], &aiWords[i], &aiHidden[i]);
 		if (asValues[i].IsNone() && (aiHidden[i] < 0))
 		{
 			break;
@@ -293,7 +313,7 @@ void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction*
 // and pulled.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters)
+void CIRW65C816Calls::LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters)
 {
 	int		i;
 	bool	bDirect;
@@ -307,7 +327,7 @@ void CIRW65C816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int3
 
 	if (bDirect)
 	{
-		bAFirst = (aiHidden[0] < 0) && (aiWords[0] == 0) && mcPlaces.InX(asValues[0]);
+		bAFirst = (aiHidden[0] < 0) && (aiWords[0] == 0) && mpcBackend->mcPlaces.InX(asValues[0]);
 		if (bAFirst)
 		{
 			LoadRegisterWord(0, asValues[0], aiWords[0], aiHidden[0]);
@@ -328,28 +348,28 @@ void CIRW65C816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int3
 	{
 		if ((aiHidden[i] >= 0) && (aiWords[i] == 0))
 		{
-			Line("tdc");
-			Line("clc");
-			Line("adc ", aiHidden[i]);
-			Line("pha");
+			mpcBackend->Line("tdc");
+			mpcBackend->Line("clc");
+			mpcBackend->Line("adc ", aiHidden[i]);
+			mpcBackend->Line("pha");
 		}
 		else if (aiHidden[i] >= 0)
 		{
-			Line("pea 0");
+			mpcBackend->Line("pea 0");
 		}
 		else
 		{
-			PushWord(asValues[i], aiWords[i]);
+			mpcBackend->PushWord(asValues[i], aiWords[i]);
 		}
 	}
-	Line("pla");
+	mpcBackend->Line("pla");
 	if (iRegisters > 1)
 	{
-		Line("plx");
+		mpcBackend->Line("plx");
 	}
 	if (iRegisters > 2)
 	{
-		Line("ply");
+		mpcBackend->Line("ply");
 	}
 }
 
@@ -361,17 +381,17 @@ void CIRW65C816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int3
 // value kept in X, or a word in the direct page.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
+bool CIRW65C816Calls::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 {
 	if (!sValue.IsTemporary())
 	{
 		return true;
 	}
-	if ((iWord == 0) && mcPlaces.InX(sValue))
+	if ((iWord == 0) && mpcBackend->mcPlaces.InX(sValue))
 	{
 		return true;
 	}
-	return (iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || IR816OnDirectPage(mcPlaces.OffsetOf(sValue) + 2 * iWord);
+	return (iWord >= mpcBackend->Words(mpcBackend->mpcFunction->GetTemporaryType(sValue))) || IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(sValue) + 2 * iWord);
 }
 
 
@@ -382,7 +402,7 @@ bool CIRW65C816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 // frame offset; the high word is 0), else of sValue.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult)
+void CIRW65C816Calls::LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult)
 {
 	static const char*	aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
 	static const char*	aszZeros[IR816_ARGUMENT_REGISTERS] = { "lda 0", "ldx 0", "ldy 0" };
@@ -390,17 +410,17 @@ void CIRW65C816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int
 	if ((iHiddenResult >= 0) && (iWord == 0))
 	{
 		//The hidden result pointer is the first argument: its low word is A's.
-		Line("tdc");
-		Line("clc");
-		Line("adc ", iHiddenResult);
+		mpcBackend->Line("tdc");
+		mpcBackend->Line("clc");
+		mpcBackend->Line("adc ", iHiddenResult);
 	}
 	else if (iHiddenResult >= 0)
 	{
-		Line(aszZeros[iRegister]);
+		mpcBackend->Line(aszZeros[iRegister]);
 	}
 	else
 	{
-		Operand(aszLoads[iRegister], sValue, iWord);
+		mpcBackend->Operand(aszLoads[iRegister], sValue, iWord);
 	}
 }
 

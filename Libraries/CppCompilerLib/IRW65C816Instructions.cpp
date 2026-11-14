@@ -66,9 +66,9 @@ void CIRW65C816Backend::Operand(const char* szMnemonic, SIRReference sValue, int
 	uint16	uiWord;
 	char*	szName;
 
-	if ((miFused > 0) && (strcmp(szMnemonic, "lda") == 0) && Fused(sValue))
+	if ((miFused > 0) && (strcmp(szMnemonic, "lda") == 0) && mcFusion.Fused(sValue))
 	{
-		WordInA(Fused(sValue), iWord);
+		WordInA(mcFusion.Fused(sValue), iWord);
 		return;
 	}
 	if (sValue.IsTemporary())
@@ -345,10 +345,10 @@ void CIRW65C816Backend::PushFrameAddress(int32 iOffset)
 void CIRW65C816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset)
 {
 	*piOffset = 0;
-	if (!FoldedBase(sPointer).Equals(sPointer))
+	if (!mcFolds.FoldedBase(sPointer).Equals(sPointer))
 	{
 		*piOffset = masTemporaries.Get(sPointer.Index())->iFoldOffset;
-		sPointer = FoldedBase(sPointer);
+		sPointer = mcFolds.FoldedBase(sPointer);
 	}
 	*pszSymbol = NULL;
 	*piPlace = IR816_SCRATCH_POINTER;
@@ -380,7 +380,7 @@ bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	{
 	case IRO_Add:
 	case IRO_PtrAdd:
-		if (FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
+		if (mcFolds.FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
 		{
 			Arithmetic(psInstruction);
 		}
@@ -456,7 +456,7 @@ bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_IToPtr:
 	case IRO_SpaceCast:
 		//A zext folded into its ptradds' loads and stores (FoldIndices) isn't worked out.
-		if (FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
+		if (mcFolds.FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
 		{
 			Extend(psInstruction);
 		}
@@ -477,7 +477,7 @@ bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		mauiPendingArguments.Add(&uiIndex);
 		return true;
 	case IRO_Call:
-		Call(pcBlock, psInstruction);
+		mcCalls.Call(pcBlock, psInstruction);
 		return true;
 	case IRO_FAdd:
 	case IRO_FSub:
@@ -571,7 +571,7 @@ bool CIRW65C816Backend::StepInPlace(SIRInstruction* psInstruction)
 
 	sValue = psInstruction->asArguments[0];
 	bWord = psInstruction->sType.Is(IRTK_I16);
-	if (((Words(psInstruction->sType) != 2) && !bWord) || !psInstruction->sResult.IsTemporary() || !sValue.IsTemporary() || Fused(sValue) ||
+	if (((Words(psInstruction->sType) != 2) && !bWord) || !psInstruction->sResult.IsTemporary() || !sValue.IsTemporary() || mcFusion.Fused(sValue) ||
 		!psInstruction->asArguments[1].IsConstant() || mcPlaces.InX(sValue) || mcPlaces.InX(psInstruction->sResult) ||
 		(mcPlaces.OffsetOf(psInstruction->sResult) != mcPlaces.OffsetOf(sValue)) || !IR816PointerOnDirectPage(mcPlaces.OffsetOf(sValue)))
 	{
@@ -814,7 +814,7 @@ void CIRW65C816Backend::Load(SIRInstruction* psInstruction)
 	{
 		Line("sep m");
 	}
-	else if ((Words(psInstruction->sType) >= 2) && !mcPlaces.InX(psInstruction->sResult) && FusedOverlaps(psInstruction->sResult, FoldedBase(psInstruction->asArguments[0]), true))
+	else if ((Words(psInstruction->sType) >= 2) && !mcPlaces.InX(psInstruction->sResult) && mcFusion.FusedOverlaps(psInstruction->sResult, mcFolds.FoldedBase(psInstruction->asArguments[0]), true))
 	{
 		for (i = Words(psInstruction->sType) - 1; i >= 2; i--)
 		{
@@ -878,7 +878,7 @@ void CIRW65C816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 	sFirst = psInstruction->asArguments[0];
 	sSecond = psInstruction->asArguments[1];
 	if ((psInstruction->uiOpcode != IRO_Sub) && (psInstruction->uiOpcode != IRO_Not) && (psInstruction->uiOpcode != IRO_Load) &&
-		(Fused(sSecond) || ((Words(psInstruction->sType) == 1) && mcPlaces.InX(sSecond) && !mcPlaces.InX(sFirst))))
+		(mcFusion.Fused(sSecond) || ((Words(psInstruction->sType) == 1) && mcPlaces.InX(sSecond) && !mcPlaces.InX(sFirst))))
 	{
 		sFirst = psInstruction->asArguments[1];
 		sSecond = psInstruction->asArguments[0];
@@ -900,7 +900,7 @@ void CIRW65C816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 		{
 			sz.Append("lda [[D + ");
 			sz.Append(iPlace);
-			sz.Append(LoadY(sFirst, iOffset + 2 * iWord) ? "]:24 + Y]" : "]:24]");
+			sz.Append(mcFolds.LoadY(sFirst, iOffset + 2 * iWord) ? "]:24 + Y]" : "]:24]");
 		}
 		Line(sz.Text());
 		sz.Kill();
@@ -982,7 +982,7 @@ void CIRW65C816Backend::StoreMemory(SIRInstruction* psInstruction)
 		Operand("lda", psInstruction->asArguments[0], i);
 		if (!szSymbol)
 		{
-			sz.Append(LoadY(psInstruction->asArguments[1], iOffset + 2 * i) ? "]:24 + Y]" : "]:24]");
+			sz.Append(mcFolds.LoadY(psInstruction->asArguments[1], iOffset + 2 * i) ? "]:24 + Y]" : "]:24]");
 		}
 		Line(sz.Text());
 	}

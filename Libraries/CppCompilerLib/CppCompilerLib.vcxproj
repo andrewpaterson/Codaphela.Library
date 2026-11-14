@@ -230,6 +230,7 @@
     <ClCompile Include="IRW65C816Lines.cpp" />
     <ClCompile Include="IRW65C816Peephole.cpp" />
     <ClCompile Include="IRW65C816Places.cpp" />
+    <ClCompile Include="IRW65C816Folds.cpp" />
     <ClCompile Include="IRW65C816Runtime.cpp" />
     <ClCompile Include="CPPTarget.cpp" />
     <ClCompile Include="CPPCompileOptions.cpp" />
@@ -485,6 +486,9 @@
     <ClInclude Include="IR65BackendInternal.h" />
     <ClInclude Include="IRW65C816Backend.h" />
     <ClInclude Include="IRW65C816Places.h" />
+    <ClInclude Include="IRW65C816Calls.h" />
+    <ClInclude Include="IRW65C816Fusion.h" />
+    <ClInclude Include="IRW65C816Folds.h" />
     <ClInclude Include="IRW65C816Code.h" />
     <ClInclude Include="IRW65C816BackendInternal.h" />
     <ClInclude Include="CPPTarget.h" />

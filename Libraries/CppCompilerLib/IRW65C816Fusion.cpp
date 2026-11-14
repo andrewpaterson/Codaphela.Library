@@ -27,12 +27,32 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Fusion::Init(CIRW65C816Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Fusion::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether sResult's place overlaps sInput's (a temporary's) so that writing
 // its first word changes a later word of sInput's: any overlap when
 // bAnyOverlap (a pointer read for each word), else one not at the same place.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap)
+bool CIRW65C816Fusion::FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap)
 {
 	int32	iResult;
 	int32	iInput;
@@ -41,9 +61,9 @@ bool CIRW65C816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput,
 	{
 		return false;
 	}
-	iResult = mcPlaces.OffsetOf(sResult);
-	iInput = mcPlaces.OffsetOf(sInput);
-	if ((iResult >= iInput + ValueBytes(mpcFunction->GetTemporaryType(sInput))) || (iInput >= iResult + ValueBytes(mpcFunction->GetTemporaryType(sResult))))
+	iResult = mpcBackend->mcPlaces.OffsetOf(sResult);
+	iInput = mpcBackend->mcPlaces.OffsetOf(sInput);
+	if ((iResult >= iInput + mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(sInput))) || (iInput >= iResult + mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(sResult))))
 	{
 		return false;
 	}
@@ -57,15 +77,15 @@ bool CIRW65C816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput,
 // sValue, else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIRW65C816Backend::Fused(SIRReference sValue)
+SIRInstruction* CIRW65C816Fusion::Fused(SIRReference sValue)
 {
 	int		i;
 
-	for (i = 0; i < miFused; i++)
+	for (i = 0; i < mpcBackend->miFused; i++)
 	{
-		if (mapsFused[i]->sResult.Equals(sValue))
+		if (mpcBackend->mapsFused[i]->sResult.Equals(sValue))
 		{
-			return mapsFused[i];
+			return mpcBackend->mapsFused[i];
 		}
 	}
 	return NULL;
@@ -80,7 +100,7 @@ SIRInstruction* CIRW65C816Backend::Fused(SIRReference sValue)
 // partly overlapped.  The fused values it reads aren't written.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult)
+bool CIRW65C816Fusion::FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult)
 {
 	SIRReference	sPointer;
 	SIRReference	sIndex;
@@ -88,15 +108,15 @@ bool CIRW65C816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRRefere
 
 	if (psInstruction->uiOpcode == IRO_Load)
 	{
-		sPointer = FoldedBase(psInstruction->asArguments[0]);
-		sIndex = FoldedIndex(psInstruction->asArguments[0]);
-		if (sIndex.IsTemporary() && !mcPlaces.InX(sIndex) && FusedOverlaps(sResult, sIndex, true))
+		sPointer = mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]);
+		sIndex = mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[0]);
+		if (sIndex.IsTemporary() && !mpcBackend->mcPlaces.InX(sIndex) && FusedOverlaps(sResult, sIndex, true))
 		{
 			return false;
 		}
 		if (sPointer.IsTemporary())
 		{
-			return IR816PointerOnDirectPage(mcPlaces.OffsetOf(sPointer)) && !FusedOverlaps(sResult, sPointer, true);
+			return IR816PointerOnDirectPage(mpcBackend->mcPlaces.OffsetOf(sPointer)) && !FusedOverlaps(sResult, sPointer, true);
 		}
 		return sPointer.IsSymbol();
 	}
@@ -135,7 +155,7 @@ static bool IR816AndsConstant(SIRInstruction* psInstruction)
 // store could change a word still to be loaded).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
+bool CIRW65C816Fusion::CanFuse(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
 	SIRInstruction*	psNext;
@@ -149,14 +169,14 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	bool			bWordCopy;
 	size			uiNext;
 
-	if (miFused >= IR816_MAX_FUSED)
+	if (mpcBackend->miFused >= IR816_MAX_FUSED)
 	{
 		return false;
 	}
 	psInstruction = pcBlock->masInstructions.Get(uiIndex);
 
 	//The next instruction that writes code (IsFolded ones don't).
-	for (uiNext = uiIndex + 1; (uiNext < pcBlock->masInstructions.NumElements()) && IsFolded(pcBlock->masInstructions.Get(uiNext)); uiNext++)
+	for (uiNext = uiIndex + 1; (uiNext < pcBlock->masInstructions.NumElements()) && mpcBackend->mcFolds.IsFolded(pcBlock->masInstructions.Get(uiNext)); uiNext++)
 	{
 	}
 	if (uiNext >= pcBlock->masInstructions.NumElements())
@@ -168,10 +188,10 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 
 	//A 1 word load only stored by the next instruction is a copy through A (a byte's under the store's sep m), from
 	//any address: there is no second word to read after the first is written.
-	bWordCopy = (miFused == 0) && (psInstruction->uiOpcode == IRO_Load) && (Words(psInstruction->sType) == 1) && (psNext->uiOpcode == IRO_Store) &&
+	bWordCopy = (mpcBackend->miFused == 0) && (psInstruction->uiOpcode == IRO_Load) && (mpcBackend->Words(psInstruction->sType) == 1) && (psNext->uiOpcode == IRO_Store) &&
 		psNext->sType.Equals(psInstruction->sType) && psNext->asArguments[0].Equals(sResult) && !psNext->asArguments[1].Equals(sResult);
-	if (!sResult.IsTemporary() || ((Words(psInstruction->sType) < 2) && !bWordCopy) || psInstruction->sType.IsFloat() ||
-		(masTemporaries.Get(sResult.Index())->iUseBlock != miBlock))
+	if (!sResult.IsTemporary() || ((mpcBackend->Words(psInstruction->sType) < 2) && !bWordCopy) || psInstruction->sType.IsFloat() ||
+		(mpcBackend->masTemporaries.Get(sResult.Index())->iUseBlock != mpcBackend->miBlock))
 	{
 		return false;
 	}
@@ -188,7 +208,7 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 		break;
 	case IRO_Add:
 	case IRO_PtrAdd:
-		if (!FoldedBase(sResult).Equals(sResult))
+		if (!mpcBackend->mcFolds.FoldedBase(sResult).Equals(sResult))
 		{
 			return false;
 		}
@@ -218,7 +238,7 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Add:
 	case IRO_PtrAdd:
 	case IRO_Sub:
-		if ((psNext->uiOpcode != IRO_Sub) && !FoldedBase(psNext->sResult).Equals(psNext->sResult))
+		if ((psNext->uiOpcode != IRO_Sub) && !mpcBackend->mcFolds.FoldedBase(psNext->sResult).Equals(psNext->sResult))
 		{
 			return false;
 		}
@@ -228,7 +248,7 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Or:
 	case IRO_Xor:
 	case IRO_Not:
-		if ((Words(psNext->sType) != Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]))
+		if ((mpcBackend->Words(psNext->sType) != mpcBackend->Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]))
 		{
 			return false;
 		}
@@ -244,7 +264,7 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	case IRO_URem:
 	case IRO_SRem:
 		//Read into the scratch routine's operand a word at a time (RuntimeCall), all before its result is written.
-		if (!IsScratchCall(psNext) || (Words(psNext->sType) != Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]) ||
+		if (!mpcBackend->IsScratchCall(psNext) || (mpcBackend->Words(psNext->sType) != mpcBackend->Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]) ||
 			(!psNext->asArguments[0].Equals(sResult) && !psNext->asArguments[1].Equals(sResult)))
 		{
 			return false;
@@ -253,15 +273,15 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	default:
 		return false;
 	}
-	if (sNextResult.IsTemporary() && (mcPlaces.InX(sNextResult) || !IR816OnDirectPage(mcPlaces.OffsetOf(sNextResult))))
+	if (sNextResult.IsTemporary() && (mpcBackend->mcPlaces.InX(sNextResult) || !IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(sNextResult))))
 	{
 		return false;
 	}
 
 	//The whole chain: the carry, loads before a store, and what each reads.
-	for (i = 0; i <= miFused; i++)
+	for (i = 0; i <= mpcBackend->miFused; i++)
 	{
-		psChained = (i < miFused) ? mapsFused[i] : psInstruction;
+		psChained = (i < mpcBackend->miFused) ? mpcBackend->mapsFused[i] : psInstruction;
 		if ((psChained->uiOpcode == IRO_Add) || (psChained->uiOpcode == IRO_PtrAdd) || (psChained->uiOpcode == IRO_Sub))
 		{
 			iChainCarries++;
@@ -291,20 +311,20 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 // chain can't have an add or sub's carry).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction)
+bool CIRW65C816Fusion::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
 	SIRInstruction*	psChained;
 	int				i;
 
-	if ((pcBlock->msJump.uiKind != IRJ_Return) || !pcBlock->msJump.sArgument.Equals(psInstruction->sResult) || (msFrame.iHiddenResult >= 0) ||
-		!psInstruction->sResult.IsTemporary() || (Words(psInstruction->sType) != 2) || psInstruction->sType.IsFloat() ||
-		(masTemporaries.Get(psInstruction->sResult.Index())->iUseBlock != miBlock))
+	if ((pcBlock->msJump.uiKind != IRJ_Return) || !pcBlock->msJump.sArgument.Equals(psInstruction->sResult) || (mpcBackend->msFrame.iHiddenResult >= 0) ||
+		!psInstruction->sResult.IsTemporary() || (mpcBackend->Words(psInstruction->sType) != 2) || psInstruction->sType.IsFloat() ||
+		(mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->iUseBlock != mpcBackend->miBlock))
 	{
 		return false;
 	}
-	for (i = 0; i <= miFused; i++)
+	for (i = 0; i <= mpcBackend->miFused; i++)
 	{
-		psChained = (i < miFused) ? mapsFused[i] : psInstruction;
+		psChained = (i < mpcBackend->miFused) ? mpcBackend->mapsFused[i] : psInstruction;
 		switch (psChained->uiOpcode)
 		{
 		case IRO_Load:
