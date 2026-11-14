@@ -64,6 +64,9 @@ enum ECPPCompileCount
 	CPPCC_ChooseMemberTemplate,
 	CPPCC_ChooseTemplate,
 	CPPCC_GetCallTemplate,
+	CPPCC_Candidates,				//The functions of the name FindFunction looked at...
+	CPPCC_CandidatesViable,			//...and those that took the arguments, which it chose between.
+	CPPCC_FindFunctionAgain,		//FindFunction calls for a node and name it had chosen for before.
 	CPPCC_PackExpansions,			//Calls whose pack arguments were expanded (ExpandPackArguments)...
 	CPPCC_PackExpansionNodes,		//...and the syntax nodes made for them.
 	CPPCC_UnsupportedExits,			//CCPP65IRFrontEnd::Unsupported calls.

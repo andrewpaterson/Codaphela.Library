@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_OVERLOADS_H__
 #define __C_P_P_OVERLOADS_H__
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/MapLongTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
@@ -66,15 +67,19 @@ public:
 };
 
 
+typedef CMapLongTemplate<char>	CMapCPPResolved;
+
+
 //Chooses the function a call means.  [over.match]  The candidates are the functions of a name that a class, the
 //namespaces in reach or the arguments' own namespaces have, and the function templates among them whose arguments
 //can be deduced; each is ranked by the conversions its parameters need of the arguments, and the best is the
 //answer, or none is if two are as good as each other.  It asks the unit what a name is and where the compiler
-//is; it keeps nothing itself.
+//is; it keeps only what it has chosen for before, to count the calls it is asked about again.
 class CCPPOverloads
 {
 protected:
-	CCPPUnit*		mpcUnit;
+	CCPPUnit*			mpcUnit;
+	CMapCPPResolved		mcResolved;		//The nodes and names FindFunction has chosen for (CPPCC_FindFunctionAgain).
 
 public:
 	void					Init(CCPPUnit* pcUnit);

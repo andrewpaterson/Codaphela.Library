@@ -116,6 +116,7 @@ int CCPPCandidates::Compare(size uiFirst, size uiSecond)
 void CCPPOverloads::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mcResolved.Init(true);
 }
 
 
@@ -125,6 +126,7 @@ void CCPPOverloads::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPOverloads::Kill(void)
 {
+	mcResolved.Kill();
 	mpcUnit = NULL;
 }
 
@@ -547,11 +549,24 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	CCPPFunction*		pcBest;
 	SCPP65Type*			apsArguments[32];
 	size				uiArguments;
+	size				uiLooked;
 	size				i;
+	int64				lliResolved;
+	char				cResolved;
 	bool				bAmbiguous;
 	bool				bFound;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindFunction);
+	lliResolved = (int64)(size)pcNode + lliName * 31;
+	if (mcResolved.Get(lliResolved))
+	{
+		mpcUnit->GetStatistics()->Count(CPPCC_FindFunctionAgain);
+	}
+	else
+	{
+		cResolved = 1;
+		mcResolved.Put(lliResolved, &cResolved);
+	}
 	if (pcClass && !mpcUnit->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
@@ -577,19 +592,22 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 
 	//The candidates: the functions of the name that the call can see, that take its arguments.
 	cCandidates.Init(uiArguments);
-	bFound = false;
+	uiLooked = 0;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
 		if ((pcFunction->meKind != eKind) || pcFunction->mpcTemplate || !IsOverloadOf(pcClass, pcFunction, lliName) || (papcNamespaces && (papcNamespaces->Find(pcFunction->mpcNamespace) == ARRAY_ELEMENT_NOT_FOUND)))
 		{
 			continue;
 		}
-		bFound = true;
+		uiLooked++;
 		if (pcFunction->TakesObject(eObject) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
 		{
 			cCandidates.Add(pcFunction, NULL);
 		}
 	}
+	bFound = uiLooked > 0;
+	mpcUnit->GetStatistics()->Count(CPPCC_Candidates, uiLooked);
+	mpcUnit->GetStatistics()->Count(CPPCC_CandidatesViable, cCandidates.NumElements());
 	pcBest = ChooseFunction(&cCandidates, papcArguments, eObject, &bAmbiguous);
 	cCandidates.Kill();
 
