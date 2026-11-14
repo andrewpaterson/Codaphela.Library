@@ -794,15 +794,19 @@ bool CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Keys bound to an application's command ("Control+Shift+N"), not from
-// the input, as a test gives them: what is focussed is asked first, then
-// they run the command (DispatchUnhandledCommand).  False if nothing
-// took them.
+// Keys bound to a command ("Control+Shift+N", "Alt+Shift+Cursor Down"),
+// not from the input, as a test gives them: read in the context a press
+// of them would be (see FindKeyComponent), so an editor's keys give its
+// standard command.  What is focussed is asked first, then they run the
+// command (DispatchUnhandledCommand).  False if nothing took them.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFocus::Keys(const char* szKeys)
 {
 	SComponentInputEvent	sEvent;
+	CComponentInput*		pcInput;
+	const char*				szContext;
+	bool					bTaken;
 
 	if (!mbActive)
 	{
@@ -811,7 +815,15 @@ bool CFocus::Keys(const char* szKeys)
 	InitEvent(&sEvent, CIET_Command, true);
 	sEvent.eCommand = CIC_Command;
 	sEvent.szName = (char*)szKeys;
-	return DispatchEvents(&sEvent, 1) != NULL;
+	pcInput = mpWindow->GetComponentInput();
+	if (pcInput != NULL)
+	{
+		mpKeyComponent = FindKeyComponent(pcInput, &szContext);
+		sEvent.eCommand = pcInput->GetContextCommand(szContext, szKeys, CIC_Command, &sEvent);
+	}
+	bTaken = (sEvent.eCommand != CIC_Ignored) && (DispatchEvents(&sEvent, 1) != NULL);
+	mpKeyComponent = NULL;
+	return bTaken;
 }
 
 

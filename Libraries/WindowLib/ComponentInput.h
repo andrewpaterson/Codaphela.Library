@@ -155,6 +155,7 @@ public:
 	bool				AddContext(const char* szName, const char* szParent, bool bTyping, bool bEditorCommands = false);
 	bool				HasContext(const char* szName);
 	bool				IsTypingContext(const char* szName);
+	EComponentInputCommand	GetContextCommand(const char* szContext, const char* szKeys, EComponentInputCommand eStandard, SComponentInputEvent* psDest);
 	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand, const char* szContext = NULL);
 	bool				UnbindKeys(const char* szKeys, const char* szContext = NULL);
 	void				RemoveStandardKeys(EComponentInputCommand eCommand);
@@ -192,7 +193,6 @@ protected:
 	void							ApplyContextBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
 	void							KillBinding(SComponentInputBinding* psBinding);
 	void							KillContext(SComponentInputContext* psContext);
-	EComponentInputCommand			GetContextCommand(const char* szContext, const char* szKeys, EComponentInputCommand eStandard, SComponentInputEvent* psDest);
 	SComponentInputChordCommand*	GetChordCommand(const char* szName);
 	bool							IsKeyDown(EComponentInputKey eKey);
 	void							InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent);
