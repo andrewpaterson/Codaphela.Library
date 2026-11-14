@@ -353,6 +353,23 @@ Part 1, the 65C64:
 	Each step is estimated from A, built, compared program by program (the totals hide a rule that helps a few
 	and hurts most) and committed, with the unit tests and the four 65 suites on both processors after it.
 
+Re-profile and E to F (2026-11-14, user: "fix loop-counter ranges first then re-profile, then plan and run E
+through F").  Profile on 834438df8 with the step A tools (scratchpad mx2; 49.74G cycles, 94.4% compiled), as % of
+all cycles: loads and stores of [n] and [n + V] 24.8; width changes (wth 2.2, wthx 0.5, wtth 0.3; cpyx loads 2.8
+and stores 1.2 are only narrow accesses) 3.0; register copies 6.1 (other 4.8); masks 1.8; bra 1.3 (forward 0.71,
+to a return 0.34, back edge 0.27); constants 1.25.  Each step's candidates grouped by their code around them:
+
+	E  widths: spread thin, the largest pattern 0.05%; most are signed narrow values (a sign extending copy,
+	   a signed narrow compare).  wth / cpy / wthx loads cpyx could do are 0.04%.  Dropped (under the stop rule).
+	G  copies: spread thin, but cpy A, R / and A, value / bras z is 0.30%: tst R, value (9fbbe269e, -0.33%,
+	   -0.62%, -0.16%).  The rest dropped.
+	D  branches: a bra to an epilogue of three instructions or fewer (add S, n / pul V / ret, or pul V / ret)
+	   is 0.34%: the epilogue is written at each return instead, when not optimising for size (below: -0.25%,
+	   -0.41%, -0.23%, code +0.7% to +1.1%, 5 programs slower by under 0.1%).  Constant selects round a bra
+	   0.08%; back edges are in big loops with calls (the largest 0.05%).  Dropped.
+	F  constants: cpy W, 0 before mul and div 0.23% (the user's ruling: W is 0 for them, and they change it);
+	   a narrow store of 0 through a register 0.10%; the rest under 0.1% a pattern.  Dropped.
+
 Part 2, the W65C816: step A on it, then the same estimate, build and measure for what it shows.  The last
 breakdown (2026-10-31, TestBaseLib65) had about 1.5G cycles in frame slot to slot copies, near half of them phi
 copies before a jump, but much has changed since, so nothing is chosen before the profile.

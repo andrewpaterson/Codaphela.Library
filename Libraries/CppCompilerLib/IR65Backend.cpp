@@ -265,6 +265,61 @@ void CIR65Backend::Reallocate(SIR65Frame* psLaidOut, bool bHomeB)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the epilogue does after its label: the kept pseudo registers
+// pulled, the frame removed and V pulled, then ret.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::ReturnCode(void)
+{
+	int32	iUnit;
+
+	for (iUnit = IR65_PSEUDO_UNITS - 1; iUnit >= 0; iUnit--)
+	{
+		if (msFrame.uiSaved & (1u << iUnit))
+		{
+			Line("pul [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
+		}
+	}
+	if (!msFrame.bFrameless)
+	{
+		if (msFrame.iFrameBytes > 0)
+		{
+			Line("add S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
+		}
+		Line("pul V")->AppendNewLine();
+	}
+	if (msFrame.bHomeV)
+	{
+		Line("pul V")->AppendNewLine();
+	}
+	Line("ret")->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many instructions ReturnCode writes.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIR65Backend::ReturnInstructions(void)
+{
+	int	iInstructions;
+
+	iInstructions = msFrame.NumSaved() + 1;
+	if (!msFrame.bFrameless)
+	{
+		iInstructions += (msFrame.iFrameBytes > 0) ? 2 : 1;
+	}
+	if (msFrame.bHomeV)
+	{
+		iInstructions++;
+	}
+	return iInstructions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's code from its homes (Allocate): the prologue, the blocks
 // and the epilogue, appended to the text from uiStart on, each block's
 // instructions and jump noted in masChunks.
@@ -616,32 +671,12 @@ void CIR65Backend::RegisterStub(const char* szBody)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Epilogue(void)
 {
-	int32		iUnit;
 	size		ui;
 	size		uiText;
 	SIR65Stub*	psStub;
 
 	Label(miReturnLabel);
-	for (iUnit = IR65_PSEUDO_UNITS - 1; iUnit >= 0; iUnit--)
-	{
-		if (msFrame.uiSaved & (1u << iUnit))
-		{
-			Line("pul [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
-		}
-	}
-	if (!msFrame.bFrameless)
-	{
-		if (msFrame.iFrameBytes > 0)
-		{
-			Line("add S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
-		}
-		Line("pul V")->AppendNewLine();
-	}
-	if (msFrame.bHomeV)
-	{
-		Line("pul V")->AppendNewLine();
-	}
-	Line("ret")->AppendNewLine();
+	ReturnCode();
 
 	//Edges whose copies were moved out of the way.
 	for (ui = 0; ui < masStubs.NumElements(); ui++)
@@ -1248,7 +1283,15 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		}
 		if (pcNext != NULL)
 		{
-			Branch("bra ", miReturnLabel);
+			if (!mpcOptions->PrefersSize() && (ReturnInstructions() <= IR65_INLINE_RETURN))
+			{
+				//A short epilogue is written here rather than jumped to (for speed: it costs code).
+				ReturnCode();
+			}
+			else
+			{
+				Branch("bra ", miReturnLabel);
+			}
 		}
 		break;
 
