@@ -301,6 +301,19 @@ Part 1, the 65C64:
 	    instruction.  A counts the masks and extensions such a fact would remove; built only past the
 	    threshold, and then as an analysis both back ends read (stage 7's one record for each temporary is
 	    stage 7's).
+
+	    Done 2026-11-14 for the 65C64.  CIRKnownBits (IRKnownBits.cpp, shared, machine independent) bounds how
+	    many low bits of each temporary may be set, phis worked to a fixed point, and what the defining
+	    instruction works out in a 32 bit register before truncating (and: the fewer; or, xor: the more; add:
+	    one more; mul: the sum; lshr by a constant: fewer; shl by one: more; zext, trunc, copy, udiv, urem;
+	    sext of a value whose sign bit is 0; comparisons 1; sub, neg, not, calls and the rest: all).
+	    CIR65Backend::StoreResult doesn't mask a result that fits its type (FitsType).  Against 49096040f, all
+	    304 programs faster: TestBaseLib65 6.173G -> 6.096G (-1.26%), TestStandardLib65 15.664G -> 15.355G
+	    (-1.98%), TestSupportLib65 30.794G -> 30.320G (-1.54%); code 0.5% smaller.  More than the 0.79%
+	    estimate, which counted only facts local to a block; what the rest is wasn't looked into.  Not yet: ranges from loop tests (add X, 1 / and X, 65535 of a
+	    counter below a 16 bit bound) and the W65C816 reading it in place of FindZeroWords (Part 2).
+	    TestLibc65 on the W65C816 fails on 49096040f as on this (TestLibc65String.cpp lines 29, 108, 109, then a
+	    crash in TestLibc65Result): not this change's, not looked into.
 	C.  Register copies at entry, the cheap version: a parameter used only by the first instruction is taken
 	    from A, B or Y (about 0.1%, estimated 2026-11-13).  In the allocator (the arrival register as the home).
 	D.  Unconditional branches: loops rotated so the test is at the bottom, a small return block copied into

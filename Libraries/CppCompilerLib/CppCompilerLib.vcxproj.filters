@@ -363,6 +363,9 @@
     <ClCompile Include="IRDefinitions.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRKnownBits.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRLoops.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1095,6 +1098,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRDefinitions.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRKnownBits.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRLoops.h">

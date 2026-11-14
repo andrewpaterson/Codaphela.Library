@@ -524,8 +524,8 @@ void CIR65Backend::LoadValue(SIRReference sValue, const char* szRegister, EIR65E
 //////////////////////////////////////////////////////////////////////////
 //
 // Keeps a result worked out in szRegister (truncated if narrow, unless
-// bExtended says it is already) in its home, or in A for the next
-// instruction.
+// bExtended says it is already or mcKnownBits that the instruction's value
+// fits its type) in its home, or in A for the next instruction.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, bool bExtended)
@@ -547,7 +547,7 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 		{
 			Line("cpy A, ")->Append(szRegister)->AppendNewLine();
 		}
-		if (!bExtended)
+		if (!bExtended && !mcKnownBits.FitsType(sResult))
 		{
 			Truncate("A", sType);
 		}
@@ -564,7 +564,7 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 		Error("Result has no home.");
 		return;
 	}
-	if (!bExtended)
+	if (!bExtended && !mcKnownBits.FitsType(sResult))
 	{
 		Truncate(szRegister, sType);
 	}

@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRModule.h"
 #include "IRLiveness.h"
 #include "IRDominators.h"
+#include "IRKnownBits.h"
 #include "IR65Flags.h"
 #include "IR65Widths.h"
 #include "IR65Peephole.h"
@@ -208,6 +209,7 @@ protected:
 	CArrayTemplate<int32>	maiChangesXY;		//...that change X and Y...
 	CArrayTemplate<int32>	maiChangesY;		//...and that change Y.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
+	CIRKnownBits			mcKnownBits;		//How many low bits each temporary may have: a result that fits its type isn't masked.
 	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
 	CArrayIRCopies			masCopies;			//A jump's phi copies (Edge)...
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).

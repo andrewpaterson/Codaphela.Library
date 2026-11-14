@@ -66,6 +66,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mcPeephole.Init();
 	mcBackendPasses.Init();
 	mauiNarrowOnly.Init();
+	mcKnownBits.Init();
 }
 
 
@@ -77,6 +78,7 @@ void CIR65Backend::Kill(void)
 {
 	size	ui;
 
+	mcKnownBits.Kill();
 	mauiNarrowOnly.Kill();
 	mcPeephole.Kill();
 	mcBackendPasses.Kill();
@@ -147,6 +149,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	FunctionArguments();
 	Layout();
 	Allocate();
+	mcKnownBits.Compute(pcFunction);
 
 	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S doesn't
 	//move) or one that reads them before pushing anything.  Otherwise V points at the frame.
