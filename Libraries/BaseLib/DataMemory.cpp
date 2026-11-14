@@ -411,9 +411,9 @@ bool CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	size	iSize;
 	void*	pvMem;
 
-	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(size);
-	pvMem = RemapSinglePointer(psAlloc, sizeof(size));
-	memset(pvMem, 0xef, iSize);
+	iSize = sizeof(*psAlloc) - sizeof(psAlloc->uiSize) + psAlloc->uiSize;
+	pvMem = RemapSinglePointer(psAlloc, sizeof(psAlloc->uiSize));
+	memset(pvMem, MEMORY_FREED_FILL, iSize);
 #endif
 
 	//Empty free lists are kept so allocating and freeing one element doesn't create and destroy a free list each time.  See Compact.

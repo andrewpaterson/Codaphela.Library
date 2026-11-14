@@ -502,14 +502,15 @@ bool CUnknowns::IsFreed(CUnknown* pcUnknown)
 {
 #ifdef _DEBUG
 	SGeneralMemoryAllocation*	psAlloc;
-	size							i;
-	uint32*						piMem;
+	size						i;
+	uint8*						puiHeader;
 
+	//Freeing fills the header after uiSize, see CGeneralMemory::DeallocateInFreeList.
 	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pcUnknown);
-	for (i = 1; i < sizeof(SGeneralMemoryAllocation)/4; i++)
+	puiHeader = (uint8*)psAlloc;
+	for (i = sizeof(psAlloc->uiSize); i < sizeof(SGeneralMemoryAllocation); i++)
 	{
-		piMem = &((uint32*)psAlloc)[i];
-		if (*piMem != 0xefefefef)
+		if (puiHeader[i] != MEMORY_FREED_FILL)
 		{
 			return false;
 		}

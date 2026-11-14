@@ -248,6 +248,49 @@ void TestDataMemoryAfterParamsKilled(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Debug build fills a freed allocation with MEMORY_FREED_FILL, all but
+// its header's uiSize, to its last byte.  A second allocation in the same
+// free list keeps the slab the freed one is in.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDataMemoryRemoveFillsFreed(void)
+{
+#ifdef _DEBUG
+	CDataMemory	cMemory;
+	void*			pvKept;
+	void*			pvFreed;
+	uint8*			puiFreed;
+	size			i;
+	size			uiEnd;
+	size			uiWrong;
+
+	cMemory.Init(&gcDataMemoryFreeListParams);
+	pvKept = cMemory.Add(24);
+	pvFreed = cMemory.Add(24);
+	memset(pvFreed, 0x12, 24);
+	AssertTrue(cMemory.Remove(pvFreed));
+
+	puiFreed = (uint8*)DATA_MEMORY_GET_ALLOCATION(pvFreed);
+	AssertLSize(24, ((SDataMemoryAllocation*)puiFreed)->uiSize);
+	uiEnd = sizeof(SDataMemoryAllocation) + 24;
+	uiWrong = 0;
+	for (i = sizeof(((SDataMemoryAllocation*)puiFreed)->uiSize); i < uiEnd; i++)
+	{
+		if (puiFreed[i] != MEMORY_FREED_FILL)
+		{
+			uiWrong++;
+		}
+	}
+	AssertSize(0, uiWrong);
+
+	AssertTrue(cMemory.Remove(pvKept));
+	cMemory.Kill();
+#endif // _DEBUG
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDataMemory(void)
@@ -260,6 +303,7 @@ void TestDataMemory(void)
 	TestDataMemoryAdd();
 	TestDataMemoryIteration();
 	TestDataMemoryAfterParamsKilled();
+	TestDataMemoryRemoveFillsFreed();
 
 	DataMemoryKill();
 	WordsKill();

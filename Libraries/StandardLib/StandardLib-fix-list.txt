@@ -6,7 +6,6 @@ Everything still to fix in StandardLib after the code review, numbered for refer
 
 F. Hygiene: names, comments, typos, dead code
 ---------------------------------------------
-F2. [96] Debug poisoning of freed memory is the wrong length: GeneralMemory.cpp and DataMemory.cpp memset sizeof(psAlloc) + uiSize - sizeof(size) bytes from just after uiSize, where sizeof(*psAlloc) was meant, so the end of a freed block is never filled (the last 16 bytes on x64, 12 on Win32, for general memory).  CUnknowns::IsFreed checks from byte 4, which on x64 is the unfilled top half of uiSize, so it always returns false there.  Its 0xefefefef also repeats the fill byte by hand: share one constant with the memsets.
 F10. [160] CMapObject::Save relies on WriteMapUnknownHeader flushing the holding buffer before GetSortedSize, without a comment.
 F19. [203] CClass::ComputeSize stub returns 0.
 F27. [228] if ((char*)this < CORRUPT_MEMORY) return; silently ignores a corrupt pointer.

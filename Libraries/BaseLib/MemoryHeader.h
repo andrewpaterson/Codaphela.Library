@@ -8,6 +8,10 @@
 #include "ArrayTemplatePtr.h"
 
 
+//Debug builds fill a freed allocation with this byte: all of it but its header's uiSize, which comes first in each header.
+#define MEMORY_FREED_FILL	0xef
+
+
 struct SDataMemoryAllocation
 {
 	lsize		uiSize;
