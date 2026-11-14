@@ -362,7 +362,7 @@ Vulkan.
    mesh is bound in another pose than its walk's first key, so posed at that key its edges are 0.09 to 4.4 times their length in
    the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
 10. In-place updates, if dragging plain meshes is slow.
-11. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.  Not started.
+11. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.  Done 2026-11-14.
    The user's decisions:
      The raster renderer needn't draw the same bytes once it's built from cooked data: cooking may split vertices at UV seams and
      colour a triangle by its submesh's material.
@@ -380,6 +380,23 @@ Vulkan.
      WindowInputTester comes later.
    The order: the cook stage with the raster renderer built from it; VulkanLib's device, offscreen target, a rigid mesh, camera
    and lights; textures; skinning (Goober walking); the SupportLib pose.
+   What was done, and found:
+     RenderLib's CCookedMesh has unique vertices, submeshes by material and transparency, and skin weights as floats, normalised
+     and sorted most first.  CRenderScene cooks each editor's mesh, and both factories build from the cooked mesh.
+     BaseLib's CSharedLibrary loads vulkan-1.dll (libvulkan.so.1 on Linux), and VulkanLib gets every function through it, with
+     VK_NO_PROTOTYPES.  Vulkan 1.3, with dynamic rendering.  The validation layer is on in debug builds, its errors to gcLogger.
+     A frame is drawn and read back synchronously: B8G8R8A8 colour, so a pixel is 0xAARRGGBB as a CCanvas has it, D32 depth, and
+     host-visible buffers throughout.  Faster memory, and frames in flight, wait for the swapchain.
+     A front face is counter-clockwise when it isn't mirrored and clockwise when it is: Vulkan's y points down the target, so the
+     rasteriser's clockwise is wrong here.
+     Textures are cached by their CImage until the renderer goes, linear, repeating, with no mipmaps; no texture is white 1x1.
+     Skinning: each skinned mesh has a descriptor set of its skin, and the frame's palette (CInstanceMesh::GetPalette for each
+     instance) is one buffer seen at a dynamic offset.  A skinned draw has 1 in its normal rows' first w; rigid draws bind an
+     empty skin.  A mirroring bone is logged once and its mesh not drawn, as in CRasterFrame.
+     CInstanceMesh::Pose gives positions only, in floats: normals are per face corner in a CMesh, and physics wants positions.
+     TestVulkanLib: boxes lit and unlit within a mean 1.2 to 2.3 of 255 of the rasteriser, a texture's texels, skinned boxes, and
+     Goober's walk covering the rasteriser's pixels to about 1 in 500.  It isn't in the test sweep yet, and Linux needs
+     libvulkan-dev to build it with CMake (the headers compile in WSL).
 
 
 Test scenes
