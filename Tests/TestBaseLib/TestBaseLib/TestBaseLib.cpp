@@ -96,6 +96,7 @@ void TestLinkedList(void);
 void TestLinkedListBlock(void);
 void TestSafeLinkedListBlock(void);
 void TestMutex(void);
+void TestSharedLibrary(void);
 void TestLinkedListTemplate(void);
 void TestLinkedListBlockAligned(void);
 void TestListVariable(void);
@@ -298,6 +299,7 @@ int __cdecl main(void)
 	TestArrayTemplateEmbeddedPtr();
 	TestLinkedList();
 	TestMutex();
+	TestSharedLibrary();
 	TestLinkedListBlock();
 	TestSafeLinkedListBlock();
 	TestLinkedListTemplate();

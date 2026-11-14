@@ -747,6 +747,9 @@
     <ClInclude Include="ConditionVariable.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
+    <ClInclude Include="SharedLibrary.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
     <ClInclude Include="NativeThread.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
@@ -2013,6 +2016,15 @@
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="ConditionVariable_65C64.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedLibrary_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedLibrary_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedLibrary_65C64.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="NativeThread.cpp">

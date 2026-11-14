@@ -293,6 +293,7 @@
     <ClCompile Include="TestLinkedListBlock.cpp" />
     <ClCompile Include="TestSafeLinkedListBlock.cpp" />
     <ClCompile Include="TestMutex.cpp" />
+    <ClCompile Include="TestSharedLibrary.cpp" />
     <ClCompile Include="TestLinkedListTemplate.cpp" />
     <ClCompile Include="TestListBlock.cpp" />
     <ClCompile Include="TestListCharsMinimal.cpp" />

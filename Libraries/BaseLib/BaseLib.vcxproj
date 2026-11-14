@@ -350,6 +350,7 @@
     <ClInclude Include="LinkedListBlock.h" />
     <ClInclude Include="Mutex.h" />
     <ClInclude Include="ConditionVariable.h" />
+    <ClInclude Include="SharedLibrary.h" />
     <ClInclude Include="NativeThread.h" />
     <ClInclude Include="Jobs.h" />
     <ClInclude Include="SafeArrayBlock.h" />
@@ -773,6 +774,9 @@
     <ClCompile Include="ConditionVariable_Windows.cpp" />
     <ClCompile Include="ConditionVariable_Linux.cpp" />
     <ClCompile Include="ConditionVariable_65C64.cpp" />
+    <ClCompile Include="SharedLibrary_Windows.cpp" />
+    <ClCompile Include="SharedLibrary_Linux.cpp" />
+    <ClCompile Include="SharedLibrary_65C64.cpp" />
     <ClCompile Include="NativeThread.cpp" />
     <ClCompile Include="Jobs.cpp" />
     <ClCompile Include="NativeThread_Windows.cpp" />

@@ -504,6 +504,9 @@
     <ClCompile Include="TestMutex.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="TestSharedLibrary.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
     <ClCompile Include="TestIndexTreeMemory.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
