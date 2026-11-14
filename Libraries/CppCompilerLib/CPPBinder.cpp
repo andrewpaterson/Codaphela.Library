@@ -679,18 +679,6 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class's constructor for the arguments.  NULL, with an error if it has
-// constructors and none fits or no one is best, without one if it has none.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPBinder::FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
-{
-	return mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The function a name used for its address means: the only one of the name, or the
 // one of psTarget's type.  *pbOverloaded if there are several and none is chosen.
 //
@@ -983,5 +971,56 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 	pcBound->mpcClass = pcClass;
 	pcBound->mpcFunction = mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcNode);
 	pcBound->meHow = pcBound->mpcFunction ? CPPBV_Function : CPPBV_AsItIs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How an object of pcClass is made from papcArguments: by the constructor that
+// matches them; by nothing, when it has no constructor and there are none; or else as
+// an aggregate, its fields in order, which a class with bases or virtual functions
+// can't be.  False if it can't be made; its own two errors are reported only when
+// bReport (the type checker's: the front end is asked what was already checked).
+// [dcl.init]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport)
+{
+	pcBound->meHow = CPPBO_Failed;
+	pcBound->mpcConstructor = NULL;
+	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	{
+		return false;
+	}
+	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
+	{
+		pcBound->mpcConstructor = mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+		if (pcBound->mpcConstructor)
+		{
+			pcBound->meHow = CPPBO_Constructor;
+			return true;
+		}
+		if (pcClass->mbConstructors)
+		{
+			if (bReport)
+			{
+				mpcUnit->Error(pcNode, "No constructor matches the arguments");
+			}
+			return false;
+		}
+		pcBound->meHow = CPPBO_Nothing;
+		return true;
+	}
+
+	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()))
+	{
+		if (bReport)
+		{
+			mpcUnit->Error(pcNode, "These initialisers do not match the class");
+		}
+		return false;
+	}
+	pcBound->meHow = CPPBO_Aggregate;
+	return true;
 }
 

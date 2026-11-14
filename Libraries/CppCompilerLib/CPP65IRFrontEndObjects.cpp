@@ -787,31 +787,26 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass, CArraySyntax* papcArguments)
 {
-	CCPPFunction*	pcConstructor;
-	SCPPField*	psField;
-	SCPP65IRPlace	sField;
-	size			ui;
-	size			uiArgument;
+	CCPPBoundConstruction	cBound;
+	SCPPField*				psField;
+	SCPP65IRPlace			sField;
+	size					ui;
+	size					uiArgument;
 
-	if (!mpcUnit->CompleteClass(pcClass, NULL))
+	if (!mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
+	if (cBound.meHow == CPPBO_Constructor)
 	{
-		pcConstructor = mpcUnit->GetBinder()->FindConstructor(pcClass, papcArguments, mpcCPPFunction->mpcDefinition);
-		if (pcConstructor)
-		{
-			return CallObject(pcConstructor, psPlace->sAddress, pcClass, papcArguments, false);
-		}
-		return !pcClass->mbConstructors || Unsupported(__FILE__, __LINE__);
+		return CallObject(cBound.mpcConstructor, psPlace->sAddress, pcClass, papcArguments, false);
+	}
+	if (cBound.meHow == CPPBO_Nothing)
+	{
+		return true;
 	}
 
 	//An aggregate: the fields in order, the rest zero.
-	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
 	uiArgument = 0;
 	for (ui = 0; ui < pcClass->macFields.NumElements(); ui++)
 	{

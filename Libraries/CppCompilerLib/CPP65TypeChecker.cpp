@@ -2324,35 +2324,24 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
-	CCPPFunction*	pcConstructor;
-	size			i;
-	size			uiArgument;
-	bool			bResult;
+	CCPPBoundConstruction	cBound;
+	size					i;
+	size					uiArgument;
+	bool					bResult;
 
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, pcNode, &cBound, true))
 	{
 		return false;
 	}
-	if (pcClass->mbConstructors)
+	if (cBound.meHow == CPPBO_Constructor)
 	{
-		pcConstructor = mpcUnit->GetBinder()->FindConstructor(pcClass, papcArguments, pcNode);
-		if (!pcConstructor)
-		{
-			return Error(pcNode, "No constructor matches the arguments");
-		}
-		return Call(pcConstructor, papcArguments, pcNode) != NULL;
+		return Call(cBound.mpcConstructor, papcArguments, pcNode) != NULL;
+	}
+	if (cBound.meHow == CPPBO_Nothing)
+	{
+		return true;
 	}
 
-	if (papcArguments->NumElements() == 0)
-	{
-		pcConstructor = mpcUnit->GetBinder()->FindConstructor(pcClass, papcArguments, pcNode);
-		return !pcConstructor || (Call(pcConstructor, papcArguments, pcNode) != NULL);
-	}
-
-	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()))
-	{
-		return Error(pcNode, "These initialisers do not match the class");
-	}
 	bResult = true;
 	uiArgument = 0;
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
