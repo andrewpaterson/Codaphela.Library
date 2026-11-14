@@ -406,6 +406,7 @@ protected:
 	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
 	void				CompareOperands(SIRReference sFirst, SIRReference sSecond);
 	bool				IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
+	bool				NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand);
 	bool				FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
 	bool				TakesInA(SIRInstruction* psNext, SIRReference sValue);
 	bool				JumpTakesInA(CIRBlock* pcBlock, SIRInstruction* psFused, SIRReference sValue);

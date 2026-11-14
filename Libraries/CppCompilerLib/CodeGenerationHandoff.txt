@@ -333,6 +333,10 @@ Part 1, the 65C64:
 	    pointer in a pseudo register: the destination could be the address register), cpy B, A for an address
 	    worked out in A (a free X or Y could take it), and compares that load their second operand into B.
 	    Writing the code twice costs compile time (not measured).
+	    Then, against 81eb75ce2: a narrow compare with its second operand in memory is wth A, n / cmp A, [mem] /
+	    wth A, 32, not through B (NarrowMemoryOperand): -0.05%, -0.01%, -0.87%, no program slower; kept.  An
+	    address put in the load's own X or Y (32 bit loads) or a free X or Y (narrow ones) rather than B: +0.19% on
+	    TestBaseLib65, 160 of 170 programs slower; dropped.
 	C.  Register copies at entry, the cheap version: a parameter used only by the first instruction is taken
 	    from A, B or Y (about 0.1%, estimated 2026-11-13).  In the allocator (the arrival register as the home).
 	D.  Unconditional branches: loops rotated so the test is at the bottom, a small return block copied into

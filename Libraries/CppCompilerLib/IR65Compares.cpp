@@ -94,6 +94,33 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if sValue, not in A, can be cmp's second operand as memory (its
+// pseudo register, its place in the frame, or a deferred load), which a
+// narrowed A reads at its own width.  pszOperand (empty) gets the operand
+// if so.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand)
+{
+	size	uiMark;
+
+	if (!sValue.IsTemporary() || IsInA(sValue))
+	{
+		return false;
+	}
+	uiMark = mpszOut->Length();
+	if (Operand(sValue, pszOperand, true, IR65E_Zero) && (pszOperand->Length() > 0) && (pszOperand->Text()[0] == '['))
+	{
+		return true;
+	}
+	mpszOut->SetLength(uiMark);
+	pszOperand->Clear();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // After cmp X, Y: z is X = Y, c clear is X < Y unsigned and n != v is X < Y
 // signed.  > and <= swap the operands (with a constant they were made >=
 // and < by AdjustComparisons).  There is no branch on n = v, so it branches
@@ -111,6 +138,7 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	SIRReference	sLeft;
 	SIRReference	sRight;
 	int				iBits;
+	CChars			szOperand;
 
 	uiOpcode = psInstruction->uiOpcode;
 	if (mbFlagsKnown)
@@ -119,6 +147,7 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 		Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
 		return true;
 	}
+	szOperand.Init();
 	bSigned = IsIRSignedComparison(uiOpcode);
 	bSwap = IsIRSwappedComparison(uiOpcode);
 	bWide = IsWide(psInstruction->sType);
@@ -145,6 +174,14 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 			AppendImmediate(mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
 			mpszOut->AppendNewLine();
 			Line("wth ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", 32")->AppendNewLine();
+		}
+		else if (!bWide && (iBits != 1) && NarrowMemoryOperand(bSwap ? sLeft : sRight, &szOperand))
+		{
+			//The second in memory: read at the width A is narrowed to (its low bytes), without B.
+			LoadValue(bSwap ? sRight : sLeft, "A", IR65E_Zero);
+			Line("wth A, ")->Append(iBits)->AppendNewLine();
+			Line("cmp A, ")->Append(szOperand)->AppendNewLine();
+			Line("wth A, 32")->AppendNewLine();
 		}
 		else
 		{
@@ -185,6 +222,7 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	{
 		CompareOperands(sLeft, sRight);
 	}
+	szOperand.Kill();
 
 	if ((uiOpcode == IRO_Eq) || (uiOpcode == IRO_Ne))
 	{
