@@ -266,7 +266,9 @@ Stage 5, a call, a name and a member are resolved once; then the checkpoint.
   16. CCPPSyntaxVisitor: a virtual for each kind of node (241 GetKind tests today), and the small questions
       onto the nodes.
   17. Calls: one ResolveCall with the cascade, making a CCPPBoundCall that the type checker and the front end
-      both read; a pack's expanded arguments are the bound call's.  While old and new live together a debug
+      both read; a pack's expanded arguments are the bound call's.  It is also where CCPPOverloads' twelve
+      ways in become one (stage 4 left them twelve: Progress says why), and where the three things stage 4's
+      tests found about choosing are put right, each with its listings read.  While old and new live together a debug
       build runs both and compares them over every test and the three Lib65 projects.
   18. Names and members, the same way.
   19. The checkpoint: step 15's numbers again, the bound nodes made for a function, peak memory, compile
@@ -607,7 +609,9 @@ to compare today's build with.  A new baseline is needed before stage 4 measures
 	1       Done                    907ea497b f6bda54a9 66361baa7
 	2       Done but its leftovers  45a0b88cd 3ead06eff 7134b3000
 	3       Done                    cf550eee6 0630eb7e5 d820f0acd b674a3d6d 72767813f 1db5a1185 84809de21
-	4-11    Not started
+	4       Done but one way in     9df820a67 865c20374 da7696412 0c9f2d6fd 4723f9d05 5bde13c64 763030146 5304abcb3
+	                                f945ff482 b70675dbb f00de6c59 b856fded1
+	5-11    Not started
 
 The baseline of 2026-11-14 (68476daf2 with the #include fixes; Release x64, 16 threads, CompilerMeasure.py).
 This is what stages 3 to 5 are measured against.  TestCppCompilerLib: 260,170 checks pass.
@@ -785,6 +789,83 @@ Stage 3.
    it moves with stage 4's context, not before it.  ClassMember stays the generator's for the same reason:
    CCPPClassLayout only places.  "Conversion and operator are kinds" came to very little: a function's name was
    tested for its kind in two places.
+
+Stage 4.
+   Done, but for the one way in.  The generator is CCPPUnit (CPPUnit.h, CPPUnit*.cpp; f00de6c59, with HCP65's
+   ab45db0 and HCP65-IDE's 9e1d0cf for the include and the names in their text), it has no friends
+   (b70675dbb: its functions are public and twenty-four accessors answer 246 uses of its fields), and it has
+   221 functions where stage 3 left 275 and stage 0 found 316.  What left it:
+   - CCPPContext, where the compiler is (9df820a67): the template arguments, namespace, linkage, function,
+     static local and pack are entered and left, and the unit reports leaving out of order.  Quiet mode is its
+     too, with its two other uses named: a trial, whose failing is its own, and a loud part (865c20374).
+   - CCPPDeclarators, specifiers and declarators to types (da7696412).
+   - CCPPDeduction, one deduction of a function template's arguments, and CCPPSpecialisationMatch, one try at
+     a class template's specialisation, both in CPPDeduction.h (0c9f2d6fd, 4723f9d05).  They are made, asked
+     and killed where a deduction is wanted, and keep what the nine functions passed down through each other.
+   - CCPPOverloads, choosing the function a call means: thirty-two functions (5bde13c64).  A call's candidates
+     are ranked once in a CCPPCandidates and ChooseFunction picks from them, where FindFunction went over the
+     functions of the name twice and ranked each both times; ChooseTemplate keeps its templates the same way;
+     the object called on is an ECPPCalledObject where it was an int of -1, 0 or 1 (763030146).
+   - CCPPUnitData, the globals, the init and fini tables and the strings, which needs nothing of the unit
+     (f945ff482).
+   Every commit: TestSupportLib65's listings the same on both processors (838 and 839, compiled from a
+   snapshot of the libraries' sources, since other work was changing them) and TestCppCompilerLib passing.
+   One did not at first: 763030146 kept only the first of the templates a call could use, so a const object
+   called the member template that isn't const.  No library does that, so the listings were the same;
+   TestCPP65Generator caught it and 5304abcb3 put it right.  The listings alone don't prove a commit here.
+   Tests of its own (5304abcb3): TestCPPOverloads.cpp, overloads, deduction and specialisation matching
+   through whole programs, 293 checks; TestCppCompilerLib has 260,546.
+   The stage's end, 2026-11-14 (b856fded1).  The three Lib65 suites pass on both processors, preferring speed
+   and preferring size, and every program is smaller preferring size.  The stage changed no listing; cycles
+   and bytes differ from stage 3's by what other work changed in the libraries, their tests and the W65C816's
+   back end meanwhile (TestSharedLibrary is new, and TestSupportLib65 has another program).
+
+	Suite              Processor          Cycles       Bytes  Seconds  Peak MB    for size: Cycles       Bytes
+	TestBaseLib65      65C64          6115674023    21053785      128     1915          7850678465    17118599
+	TestBaseLib65      W65C816       16820456060    81520610      179     2037         23897907621    64480653
+	TestStandardLib65  65C64         15646464266    30097831      207     2748         21532985565    22941854
+	TestStandardLib65  W65C816       24412016525    71619789      186     2801         34465565120    47853333
+	TestSupportLib65   65C64         30776333250    32127841      416     2317         38888100345    24638974
+	TestSupportLib65   W65C816       62926911224    71148273      459     2421         91389042407    47646185
+
+   The compile alone on one thread is 63, 84, 70, 95, 98 and 126 seconds in that order (65, 82, 69, 93, 94 and
+   124 at stage 3's end), with peak memory of 462 to 805 megabytes: as it was, within what two runs differ by.
+   Ranking each candidate once saved nothing that shows.
+   Step 7's counters, taken after the overloads and not before (b856fded1), compiling TestSupportLib65's
+   project for the W65C816 on one thread: 512 thousand FindFunction calls look at 848 thousand functions of
+   their names (1.7 each), 543 thousand of them take the arguments (one each: a call seldom has two real
+   candidates), and 336 thousand of the calls, two in three, are for a node and a name already chosen for.  That is the type
+   checker's question asked again by the front end: stage 5's bound call, not a better FindFunction, is what
+   removes it.  ChooseMemberTemplate is called 262 thousand times and ChooseTemplate 329 thousand.  (With the suite's
+   programs compiled too, as b856fded1's message has it, the calls are 624 thousand and those asked again 411.)
+   Short of what the stage set:
+   - One way in.  The twelve ways in are CCPPOverloads' methods and share one ranking, but they are still
+     twelve: FindFunction for a class's or a namespace's functions, the template choosers before it at each
+     call site, and the operator, conversion, address and static finders beside it.  Making them one is making
+     the call sites one, which is stage 5's ResolveCall (step 17); doing it here would have been done twice.
+   - Quiet trials.  Step 9 said the count would fall by a thousand times.  It has not fallen: 1.69 million
+     with 122 failing compiling the suite, as before (1.27 million and 98 for the project alone).  Sorting the 118 places found that nearly all of them are silence around
+     work whose result is judged by what it returns, not trials of something that can fail, and that taking
+     quiet mode away from them changes which errors are reported.  They have names now (trial, loud part,
+     quiet) and one owner; the count falls when a bound node is made once and its errors with it (stage 5).
+   - The classes that left still hold the unit (mpcUnit) and ask it 157 questions between them: they are
+     its jobs in files of their own more than they are things that stand alone.  CCPPUnitData, CCPPContext,
+     CCPPCandidates, CCPPMangler and CCPPClassLayout do stand alone.
+   Found by the new tests and left as they are, for stage 5's resolving of calls:
+   - F(S()) with F(S&) and F(const S&) calls F(S&): only a call's or an operator's result counts as a
+     temporary that binds better to a const reference (IsMadeObject), not S().
+   - With template <class T> int F(T) and int F(int), F(1) calls the template: a call site asks for a template
+     first and a function only if there is none.
+   - P<int, int>::V reports nothing when two partial specialisations match equally; declaring an object of
+     the type does.  The error is lost where the instance is only named.
+   - sizeof...(pack) is parsed and not generated.
+   Step 15's numbers, taken with the stage's end since nothing between changes them.  The type checker
+   ("types") and the IR front end ("front end") are 4.1 and 3.1 seconds of the 126 compiling TestSupportLib65's
+   project for the W65C816 on one thread, and 1.5 and 1.7 of TestBaseLib65's 84: together about 6% and 4% of
+   the compile, so resolving once is for the code's shape, and little of the time can come back.  TypeOf is
+   called 3.94 million times and works 934 thousand out; 1352 calls have packs expanded, making 11,502 nodes.
+   The two walkers' functions for calls, names and members are 631 lines in the type checker and 909 in the
+   front end, and GetKind is tested 218 times in the C++ classes' files.
 
 Code generation, 2026-11-13 and 14 (not a stage: CodeGenerationHandoff.txt has it all).  The W65C816's and the
 65C64's code were made faster outside this plan's order: the three Lib65 suites' cycles on the 65C64 went from
