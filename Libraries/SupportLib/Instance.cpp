@@ -125,6 +125,154 @@ void CInstanceMesh::BindBones(CInstance* pcInstance)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A skinned mesh's matrices: each where its connection puts the mesh from
+// where it was bound, its inverse matrix times the connection's world
+// matrix.  False if a connection is missing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInstanceMesh::GetPalette(CArrayFloat4x4* pasPalette)
+{
+	CMeshSkin*			pcSkin;
+	Ptr<CConnection>	pConnection;
+	SFloat4x4*			psMatrix;
+	size				uiNumMatrices;
+	size				i;
+
+	pasPalette->ReInit();
+	if (!IsSkinned())
+	{
+		return false;
+	}
+	pcSkin = &mpEditor->mpMesh->mcSkin;
+	uiNumMatrices = pcSkin->mcInverseSkinMatricies.NumElements();
+	if (mapConnections.NumElements() < uiNumMatrices)
+	{
+		return false;
+	}
+	for (i = 0; i < uiNumMatrices; i++)
+	{
+		pConnection = mapConnections.Get(i);
+		psMatrix = pasPalette->Add();
+		if (pConnection.IsNull() || (psMatrix == NULL))
+		{
+			return false;
+		}
+		Float4x4Multiply(psMatrix, pcSkin->mcInverseSkinMatricies.Get(i), &pConnection->msWorldMatrix);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A renderer found the palette's uiMatrix mirrors the mesh.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstanceMesh::LogMirrored(CInstance* pcInstance, size uiMatrix)
+{
+	gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has mesh [", mpEditor->mszName.Text(), "] posed by [", mapConnections.Get(uiMatrix)->mszName.Text(), "], which mirrors it, so it isn't drawn.", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where each of the mesh's positions is in the world, in floats, for what
+// needs it in memory rather than drawn: physics, say.  A rigid mesh is
+// placed by its first connection.  A skinned one is posed by its palette,
+// each position moved by each of its weights' matrices by the weight, the
+// weights taken as adding up to one.  A position with no weights stays
+// where it was bound, as the renderers have it.  False, with no positions,
+// if a connection is missing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInstanceMesh::Pose(CArrayFloat32Vec3* pasPositions)
+{
+	CArrayFloat4x4		asPalette;
+	CMesh*				pcMesh;
+	CMeshSkinVert*		pcVert;
+	SSkinWeight*		psWeight;
+	SFloat32Vec3*		psBound;
+	SFloat32Vec3*		psPosed;
+	SFloat32Vec3		sMoved;
+	float32				fTotal;
+	size				uiNumPositions;
+	size				i;
+	size				j;
+	bool				bPosed;
+
+	pasPositions->ReInit();
+	if (mpEditor.IsNull() || mpEditor->mpMesh.IsNull() || (mapConnections.NumElements() == 0))
+	{
+		return false;
+	}
+	pcMesh = &mpEditor->mpMesh;
+	uiNumPositions = (size)pcMesh->NumCorners();
+
+	asPalette.Init();
+	if (IsSkinned())
+	{
+		bPosed = GetPalette(&asPalette) && (pcMesh->mcSkin.mcSkinVerts.NumElements() >= uiNumPositions);
+	}
+	else
+	{
+		bPosed = !mapConnections.Get(0).IsNull();
+		if (bPosed)
+		{
+			asPalette.Add(&mapConnections.Get(0)->msWorldMatrix);
+		}
+	}
+
+	for (i = 0; bPosed && (i < uiNumPositions); i++)
+	{
+		psBound = pcMesh->GetPosition((int)i);
+		psPosed = pasPositions->Add();
+		if (psPosed == NULL)
+		{
+			bPosed = false;
+		}
+		else if (!IsSkinned())
+		{
+			Float32Vec3TransformCoord(psPosed, psBound, asPalette.Get(0));
+		}
+		else
+		{
+			pcVert = pcMesh->mcSkin.mcSkinVerts.Get(i);
+			psPosed->Init(0.0f, 0.0f, 0.0f);
+			fTotal = 0.0f;
+			for (j = 0; j < pcVert->mcWeights.NumElements(); j++)
+			{
+				psWeight = pcVert->mcWeights.Get(j);
+				if ((psWeight->iMatrix >= 0) && ((size)psWeight->iMatrix < asPalette.NumElements()))
+				{
+					Float32Vec3TransformCoord(&sMoved, psBound, asPalette.Get(psWeight->iMatrix));
+					psPosed->x += sMoved.x * psWeight->fWeight;
+					psPosed->y += sMoved.y * psWeight->fWeight;
+					psPosed->z += sMoved.z * psWeight->fWeight;
+					fTotal += psWeight->fWeight;
+				}
+			}
+			if (fTotal > 0.0f)
+			{
+				psPosed->Init(psPosed->x / fTotal, psPosed->y / fTotal, psPosed->z / fTotal);
+			}
+			else
+			{
+				*psPosed = *psBound;
+			}
+		}
+	}
+	asPalette.Kill();
+
+	if (!bPosed)
+	{
+		pasPositions->ReInit();
+	}
+	return bPosed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CInstance::Init(void)

@@ -164,6 +164,7 @@ void CRasterFrame::Init(Ptr<CRenderScene> pRenderScene, Ptr<CCamera> pCamera)
 	masInstances.Init();
 	mapMeshes.Init();
 	masPosed.Init();
+	masPalette.Init();
 	masBones.Init();
 	mcCamera.Init();
 	msCameraWorld.Identity();
@@ -185,6 +186,7 @@ void CRasterFrame::Class(void)
 	U_Unknown(CArrayRasterInstance, masInstances);
 	M_Embedded(mapMeshes);
 	U_Unknown(CArrayRasterFramePosed, masPosed);
+	U_Unknown(CArrayFloat4x4, masPalette);
 	U_Unknown(CArrayRasterBone, masBones);
 	U_Data(CRasterCamera, mcCamera);
 	U_4x4Float32(msCameraWorld);
@@ -207,6 +209,7 @@ void CRasterFrame::Free(void)
 	}
 	masPosed.Kill();
 	masBones.Kill();
+	masPalette.Kill();
 	masInstances.Kill();
 }
 
@@ -292,43 +295,32 @@ bool CRasterFrame::ExtractPosed(CInstance* pcInstance, CInstanceMesh* pcInstance
 	SRasterFramePosed*	psPosed;
 	SRasterInstance*	psInstance;
 	SRasterBone*		psBone;
-	CMeshSkin*			pcSkin;
-	Ptr<CConnection>	pConnection;
-	SFloat4x4			sMatrix;
+	SFloat4x4*			psMatrix;
 	size				uiNumMatrices;
 	size				i;
 
 	uiNumMatrices = pcRasterMesh->muiNumMatrices;
-	pcSkin = &pcInstanceMesh->mpEditor->mpMesh->mcSkin;
-	if ((pcSkin->mcInverseSkinMatricies.NumElements() < uiNumMatrices) || (pcInstanceMesh->mapConnections.NumElements() < uiNumMatrices))
+	if (!pcInstanceMesh->GetPalette(&masPalette) || (masPalette.NumElements() < uiNumMatrices))
 	{
 		return false;
-	}
-	for (i = 0; i < uiNumMatrices; i++)
-	{
-		if (pcInstanceMesh->mapConnections.Get(i).IsNull())
-		{
-			return false;
-		}
 	}
 
 	psPosed = GetPosed(pcInstanceMesh->GetIndex());
 	masBones.ReInit();
 	for (i = 0; i < uiNumMatrices; i++)
 	{
-		pConnection = pcInstanceMesh->mapConnections.Get(i);
-		Float4x4Multiply(&sMatrix, pcSkin->mcInverseSkinMatricies.Get(i), &pConnection->msWorldMatrix);
-		if (sMatrix.Determinant() < 0.0f)
+		psMatrix = masPalette.Get(i);
+		if (psMatrix->Determinant() < 0.0f)
 		{
 			if (!psPosed->bMirrorReported)
 			{
-				gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has mesh [", pcInstanceMesh->mpEditor->mszName.Text(), "] posed by [", pConnection->mszName.Text(), "], which mirrors it, so it isn't drawn.", NULL);
+				pcInstanceMesh->LogMirrored(pcInstance, i);
 				psPosed->bMirrorReported = true;
 			}
 			return false;
 		}
 		psBone = masBones.Add();
-		RasterAxes(psBone->asAxes, psBone->asLightAxes, &psBone->sOffset, &sMatrix, iScale);
+		RasterAxes(psBone->asAxes, psBone->asLightAxes, &psBone->sOffset, psMatrix, iScale);
 	}
 
 	if (!psPosed->pcPosed->Pose(pcRasterMesh, masBones.GetData(), masBones.NumElements()))

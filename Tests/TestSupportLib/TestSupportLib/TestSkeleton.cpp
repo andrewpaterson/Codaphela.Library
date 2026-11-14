@@ -152,6 +152,140 @@ void TestSkeletonInstances(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestSkeletonPosition(float32 x, float32 y, float32 z, SFloat32Vec3* psActual)
+{
+	AssertFloat(x, psActual->x, 3);
+	AssertFloat(y, psActual->y, 3);
+	AssertFloat(z, psActual->z, 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mesh bound to the arm at rest: a corner on the root, one on the arm,
+// one between the arm and the hand whose weights add up to a half, and
+// one with no weights.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMeshEditor> TestSkeletonArmMesh(Ptr<CSkeleton> pSkeleton)
+{
+	Ptr<CMeshEditor>	pEditor;
+	CMeshSkin*			pcSkin;
+	SSkinWeight*		psWeight;
+	SFloat4x4			sInverse;
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->mszName.Append("Sleeve");
+	pcSkin = &pEditor->mpMesh->mcSkin;
+	pcSkin->mbInUse = true;
+	pEditor->AddCorner(1.0f, 0.0f, 0.0f);
+	pEditor->AddCorner(1.0f, 2.0f, 0.0f);
+	pEditor->AddCorner(1.0f, 3.0f, 0.0f);
+	pEditor->AddCorner(5.0f, 5.0f, 5.0f);
+	psWeight = pcSkin->mcSkinVerts.Get(0)->mcWeights.Add();
+	psWeight->iMatrix = 0;
+	psWeight->fWeight = 1.0f;
+	psWeight = pcSkin->mcSkinVerts.Get(1)->mcWeights.Add();
+	psWeight->iMatrix = 1;
+	psWeight->fWeight = 1.0f;
+	psWeight = pcSkin->mcSkinVerts.Get(2)->mcWeights.Add();
+	psWeight->iMatrix = 1;
+	psWeight->fWeight = 0.25f;
+	psWeight = pcSkin->mcSkinVerts.Get(2)->mcWeights.Add();
+	psWeight->iMatrix = 2;
+	psWeight->fWeight = 0.25f;
+
+	sInverse = TestSkeletonMove(0.0f, 0.0f);
+	pcSkin->mcInverseSkinMatricies.Add(&sInverse);
+	sInverse = TestSkeletonMove(0.0f, -2.0f);
+	pcSkin->mcInverseSkinMatricies.Add(&sInverse);
+	sInverse = TestSkeletonMove(0.0f, -3.0f);
+	pcSkin->mcInverseSkinMatricies.Add(&sInverse);
+	pcSkin->mapBones.Add(pSkeleton->GetBone(0));
+	pcSkin->mapBones.Add(pSkeleton->GetBone(1));
+	pcSkin->mapBones.Add(pSkeleton->GetBone(2));
+	return pEditor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Posed in floats: the root moved 10 along x, and the arm and the hand
+// each turned a quarter about z, taking x to y.  The corner between the
+// arm and the hand is half way between where each puts it, and the one
+// with no weights stays where it was bound.  A rigid mesh is where its
+// connection puts it, and a skinned mesh with a bone its instance hasn't
+// got can't be posed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSkeletonPose(void)
+{
+	Ptr<CScene>			pScene;
+	Ptr<CSkeleton>		pSkeleton;
+	Ptr<CSkeleton>		pOther;
+	Ptr<CInstance>		pInstance;
+	Ptr<CInstance>		pElsewhere;
+	Ptr<CInstanceMesh>	pInstanceMesh;
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshEditor>	pRigid;
+	Ptr<CConnection>	pConnection;
+	CArrayFloat32Vec3	asPositions;
+	SFloat4x4			sMatrix;
+	SLogConfig			sLogConfig;
+
+	pScene = OMalloc<CScene>();
+	pSkeleton = TestSkeletonArm();
+	pEditor = TestSkeletonArmMesh(pSkeleton);
+	pInstance = OMalloc<CInstance>();
+	pInstance->MakeBones(pSkeleton, NULL);
+	pInstanceMesh = pInstance->AddMesh(pEditor);
+	pScene->mapInstances.Add(pInstance);
+	pInstance->mapConnections.Get(0)->msLocalMatrix = TestSkeletonMove(10.0f, 0.0f);
+	Float4x4RotationZ(&sMatrix, 3.14159265f / 2.0f);
+	sMatrix.pos.Init(0.0f, 2.0f, 0.0f, 1.0f);
+	pInstance->mapConnections.Get(1)->msLocalMatrix = sMatrix;
+	sMatrix.pos.Init(0.0f, 1.0f, 0.0f, 1.0f);
+	pInstance->mapConnections.Get(2)->msLocalMatrix = sMatrix;
+	pScene->UpdateConnections();
+
+	asPositions.Init();
+	AssertTrue(pInstanceMesh->Pose(&asPositions));
+	AssertSize(4, asPositions.NumElements());
+	AssertTestSkeletonPosition(11.0f, 0.0f, 0.0f, asPositions.Get(0));
+	AssertTestSkeletonPosition(10.0f, 3.0f, 0.0f, asPositions.Get(1));
+	AssertTestSkeletonPosition(8.5f, 2.5f, 0.0f, asPositions.Get(2));
+	AssertTestSkeletonPosition(5.0f, 5.0f, 5.0f, asPositions.Get(3));
+
+	pRigid = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pRigid->AddCorner(1.0f, 2.0f, 3.0f);
+	pConnection = OMalloc<CConnection>();
+	Float4x4Translation(&pConnection->msLocalMatrix, 0.0f, 0.0f, 7.0f);
+	pInstance->mapConnections.Add(pConnection);
+	pInstanceMesh = pInstance->AddMesh(pRigid);
+	pInstanceMesh->mapConnections.Add(pConnection);
+	pScene->UpdateConnections();
+	AssertTrue(pInstanceMesh->Pose(&asPositions));
+	AssertSize(1, asPositions.NumElements());
+	AssertTestSkeletonPosition(1.0f, 2.0f, 10.0f, asPositions.Get(0));
+
+	pOther = OMalloc<CSkeleton>();
+	sMatrix = TestSkeletonMove(0.0f, 0.0f);
+	pOther->AddBone("Elsewhere", NULL, &sMatrix);
+	pElsewhere = OMalloc<CInstance>();
+	pElsewhere->MakeBones(pOther, NULL);
+	sLogConfig = gcLogger.SetSilent();
+	pInstanceMesh = pElsewhere->AddMesh(pEditor);
+	gcLogger.SetConfig(&sLogConfig);
+	AssertFalse(pInstanceMesh->Pose(&asPositions));
+	AssertSize(0, asPositions.NumElements());
+	asPositions.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The arm waves: its root moves along x and its arm up and down.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -352,6 +486,8 @@ void TestSkeleton(void)
 	TestSkeletonInstances();
 	ObjectsFlush();
 	TestSkeletonAnimation();
+	ObjectsFlush();
+	TestSkeletonPose();
 	ObjectsFlush();
 	TestSkeletonAddBoneLater();
 

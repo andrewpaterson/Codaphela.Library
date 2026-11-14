@@ -21,6 +21,7 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #ifndef __RASTER_FRAME_H__
 #define __RASTER_FRAME_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Float4x4.h"
 #include "BaseLib/IndexedGeneral.h"
 #include "StandardLib/Array.h"
 #include "SupportLib/Camera.h"
@@ -80,7 +81,8 @@ protected:
 	CArrayRasterInstance	masInstances;
 	CArray<CRasterMesh>		mapMeshes;
 	CArrayRasterFramePosed	masPosed;
-	CArrayRasterBone		masBones;  //The matrices of the skinned mesh being posed.
+	CArrayFloat4x4			masPalette;  //The skinned mesh being posed's matrices,
+	CArrayRasterBone		masBones;  //and them as the rasteriser has them.
 	CRasterCamera			mcCamera;
 	SFloat4x4				msCameraWorld;  //The scene camera's world matrix when the camera last matched it.
 	size					muiCameraChanges;  //The camera's changes when it last matched the scene camera.

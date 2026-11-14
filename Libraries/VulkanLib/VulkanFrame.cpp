@@ -21,7 +21,6 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <string.h>
 #include "BaseLib/Float4x4.h"
-#include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
 #include "SupportLib/Instance.h"
 #include "SupportLib/Light.h"
@@ -149,34 +148,21 @@ bool CVulkanFrame::IsMirrorReported(OIndex oiInstanceMesh)
 bool CVulkanFrame::ExtractSkinned(CInstance* pcInstance, CInstanceMesh* pcInstanceMesh, CVulkanRenderMesh* pcMesh, SVulkanFrameInstance* psInstance)
 {
 	Ptr<CVulkanRenderer>	pRenderer;
-	Ptr<CConnection>		pConnection;
-	CMeshSkin*				pcSkin;
-	SFloat4x4*				psMatrix;
 	uint32					uiNumMatrices;
 	uint32					i;
 
 	uiNumMatrices = pcMesh->NumMatrices();
-	pcSkin = &pcInstanceMesh->mpEditor->mpMesh->mcSkin;
-	if ((pcSkin->mcInverseSkinMatricies.NumElements() < uiNumMatrices) || (pcInstanceMesh->mapConnections.NumElements() < uiNumMatrices))
+	if (!pcInstanceMesh->GetPalette(&masPalette) || (masPalette.NumElements() < uiNumMatrices))
 	{
 		return false;
 	}
-
-	masPalette.ReInit();
 	for (i = 0; i < uiNumMatrices; i++)
 	{
-		pConnection = pcInstanceMesh->mapConnections.Get(i);
-		if (pConnection.IsNull())
-		{
-			return false;
-		}
-		psMatrix = masPalette.Add();
-		Float4x4Multiply(psMatrix, pcSkin->mcInverseSkinMatricies.Get(i), &pConnection->msWorldMatrix);
-		if (psMatrix->Determinant() < 0.0f)
+		if (masPalette.Get(i)->Determinant() < 0.0f)
 		{
 			if (!IsMirrorReported(pcInstanceMesh->GetIndex()))
 			{
-				gcLogger.Error2(__METHOD__, " Instance [", pcInstance->mszName.Text(), "] has mesh [", pcInstanceMesh->mpEditor->mszName.Text(), "] posed by [", pConnection->mszName.Text(), "], which mirrors it, so it isn't drawn.", NULL);
+				pcInstanceMesh->LogMirrored(pcInstance, i);
 				maoiMirrorReported.Add(pcInstanceMesh->GetIndex());
 			}
 			return false;

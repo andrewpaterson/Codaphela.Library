@@ -21,6 +21,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __INSTANCE_H__
 #define __INSTANCE_H__
 #include "BaseLib/Chars.h"
+#include "BaseLib/Float32Vec3.h"
+#include "BaseLib/Float4x4.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "Connection.h"
@@ -52,6 +54,10 @@ public:
 
 	bool	IsSkinned(void);
 	void	BindBones(CInstance* pcInstance);
+
+	bool	GetPalette(CArrayFloat4x4* pasPalette);
+	void	LogMirrored(CInstance* pcInstance, size uiMatrix);
+	bool	Pose(CArrayFloat32Vec3* pasPositions);
 };
 
 
