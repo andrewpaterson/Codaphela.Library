@@ -600,12 +600,10 @@ bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 	}
 
 	//The objects destroyed, everything that points to them, as the database has it, and everything they point to, in memory.
-	bResult = true;
-	for (i = 0; bResult && (i < paoiDestroyed->NumElements()); i++)
+	for (i = 0; i < paoiDestroyed->NumElements(); i++)
 	{
 		oi = paoiDestroyed->GetValue(i);
-		bResult = LoadForDestroy(oi);
-		if (!bResult)
+		if (!LoadForDestroy(oi))
 		{
 			return gcLogger.Error2(__METHOD__, " Could not load object [", IndexToString(oi), "] to destroy it.", NULL);
 		}
@@ -615,6 +613,7 @@ bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 			return gcLogger.Error2(__METHOD__, " Cannot destroy the root.", NULL);
 		}
 	}
+	bResult = true;
 	for (i = 0; bResult && (i < paoiDestroyed->NumElements()); i++)
 	{
 		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
@@ -1065,7 +1064,7 @@ void CObjects::SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts)
 		{
 			if (!ForceSave(pcBaseObject))
 			{
-				gcLogger.Error2(__METHOD__, " Could not save object [", pcBaseObject->GetName(), "] before freeing it.", NULL);
+				gcLogger.Error2(__METHOD__, " Could not save object [", IndexToString(pcBaseObject->GetIndex()), "] before freeing it.", NULL);
 			}
 			pcBaseObject->SetDirty(false);
 		}
