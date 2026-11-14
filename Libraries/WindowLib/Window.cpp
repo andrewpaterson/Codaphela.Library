@@ -145,6 +145,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mpOwner = NULL;
 	maOwned.Init();
 	masPosted.Init();
+	masPostedLater.Init();
 	mcClosed.Init();
 
 	PostInit();
@@ -163,6 +164,7 @@ void CWindow::Free(void)
 
 	mszWindowTitle.Kill();
 	mcActivated.Kill();
+	masPostedLater.Kill();
 	masPosted.Kill();
 
 	CComponent::Free();
@@ -217,6 +219,7 @@ void CWindow::Class(void)
 	M_Pointer(mpOwner);
 	M_Embedded(maOwned);
 	U_Unknown(CArrayMemberCalls, masPosted);
+	U_Unknown(CArrayWindowLaterCalls, masPostedLater);
 	U_Unknown(CComponentEvent<CWindow>, mcClosed);
 }
 
@@ -1406,27 +1409,94 @@ void CWindow::ClearCloseApprover(void)
 }
 
 
-size CWindow::NumPosted(void) { return masPosted.NumElements(); }  //The calls posted and not yet made.
+size CWindow::NumPosted(void) { return masPosted.NumElements() + masPostedLater.NumElements(); }  //The calls posted and not yet made.
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The calls posted (see Post), in the order they were.  One may post
-// another: it is called at the tick after.
+// See PostAfter.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PostCallAfter(SMemberCall* psCall, uint32 uiMilliseconds)
+{
+	SWindowLaterCall*	psLater;
+	int64				iDue;
+	size				i;
+
+	iDue = GetDebugTickCount() + uiMilliseconds;
+	RequestTick(uiMilliseconds);
+	for (i = 0; i < masPostedLater.NumElements(); i++)
+	{
+		psLater = masPostedLater.Get(i);
+		if (psLater->sCall.Equals(psCall))
+		{
+			if (iDue < psLater->iDue)
+			{
+				psLater->iDue = iDue;
+			}
+			return;
+		}
+	}
+	psLater = masPostedLater.Add();
+	memcpy(&psLater->sCall, psCall, sizeof(SMemberCall));
+	psLater->iDue = iDue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::RunPosted(void)
 {
+	RunPostedAt(GetDebugTickCount());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The calls posted (see Post), in the order they were, then those posted
+// for later (see PostAfter) whose time has come by iNow.  One may post
+// another: it is called at the tick after, or later.  The next tick is
+// asked for when the soonest still waiting is due.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::RunPostedAt(int64 iNow)
+{
 	CArrayMemberCalls	asCalls;
+	SWindowLaterCall*	psLater;
+	int64				iSoonest;
 	size				i;
 
-	if (masPosted.NumElements() == 0)
+	if ((masPosted.NumElements() == 0) && (masPostedLater.NumElements() == 0))
 	{
 		return;
 	}
 	asCalls.Init();
 	asCalls.Copy(&masPosted);
 	masPosted.RemoveRange(0, masPosted.NumElements());
+	iSoonest = -1;
+	for (i = 0; i < masPostedLater.NumElements();)
+	{
+		psLater = masPostedLater.Get(i);
+		if (psLater->iDue <= iNow)
+		{
+			memcpy(asCalls.Add(), &psLater->sCall, sizeof(SMemberCall));
+			masPostedLater.RemoveAt(i);
+		}
+		else
+		{
+			if ((iSoonest < 0) || (psLater->iDue < iSoonest))
+			{
+				iSoonest = psLater->iDue;
+			}
+			i++;
+		}
+	}
+	if (iSoonest >= 0)
+	{
+		RequestTick((uint32)(iSoonest - iNow));
+	}
 	for (i = 0; i < asCalls.NumElements(); i++)
 	{
 		asCalls.Get(i)->Call(NULL);
@@ -1449,6 +1519,13 @@ void CWindow::CancelPosted(void* pvObject)
 		if (masPosted.Get(i - 1)->IsOn(pvObject))
 		{
 			masPosted.RemoveAt(i - 1);
+		}
+	}
+	for (i = masPostedLater.NumElements(); i > 0; i--)
+	{
+		if (masPostedLater.Get(i - 1)->sCall.IsOn(pvObject))
+		{
+			masPostedLater.RemoveAt(i - 1);
 		}
 	}
 }

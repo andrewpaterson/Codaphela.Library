@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Timer.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/ClearCanvasDraw.h"
@@ -416,6 +417,7 @@ void TestWindowPost(void)
 		Ptr<CWindow>	pTestWindow;
 		CPointer		pNull;
 		CTestPosted		cPosted;
+		int64			iNow;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
 		pTestWindow = OMalloc<CWindow>("Post Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
@@ -440,6 +442,28 @@ void TestWindowPost(void)
 		pTestWindow->CancelPosted(&cPosted);
 		pTestWindow->RunPosted();
 		AssertInt(1, cPosted.miFirst);
+
+		//Posted for later, it's made once its time has come, and only once however often it was posted, at the earlier time.
+		cPosted.miSecond = 0;
+		iNow = GetDebugTickCount();
+		pTestWindow->PostAfter(500, &cPosted, &CTestPosted::Second);
+		pTestWindow->PostAfter(50, &cPosted, &CTestPosted::Second);
+		AssertSize(1, pTestWindow->NumPosted());
+		pTestWindow->RunPostedAt(iNow + 10);
+		AssertInt(0, cPosted.miSecond);
+		AssertSize(1, pTestWindow->NumPosted());
+		pTestWindow->RunPostedAt(iNow + 1000);
+		AssertInt(1, cPosted.miSecond);
+		AssertSize(0, pTestWindow->NumPosted());
+		pTestWindow->RunPostedAt(iNow + 2000);
+		AssertInt(1, cPosted.miSecond);
+
+		//Cancelled, it isn't made.
+		pTestWindow->PostAfter(50, &cPosted, &CTestPosted::Second);
+		pTestWindow->CancelPosted(&cPosted);
+		AssertSize(0, pTestWindow->NumPosted());
+		pTestWindow->RunPostedAt(iNow + 3000);
+		AssertInt(1, cPosted.miSecond);
 
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;

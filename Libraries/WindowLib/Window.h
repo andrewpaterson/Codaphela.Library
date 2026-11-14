@@ -47,6 +47,17 @@ class CToolTips;
 typedef CArrayTemplate<SMemberCall>	CArrayMemberCalls;
 
 
+//A call posted to be made once a time has come (see PostAfter).
+struct SWindowLaterCall
+{
+	SMemberCall	sCall;
+	int64		iDue;  //GetDebugTickCount when it's to be made.
+};
+
+
+typedef CArrayTemplate<SWindowLaterCall>	CArrayWindowLaterCalls;
+
+
 class CWindow : public CComponent
 {
 CONSTRUCTABLE(CWindow);
@@ -83,6 +94,7 @@ protected:
 	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
 	SMemberCall					msCloseApprover;  //Asked whether the close button may close the window, not set if it always may.
 	CArrayMemberCalls			masPosted;  //Called at the next tick, outside the input that posted them (see Post).
+	CArrayWindowLaterCalls		masPostedLater;  //Called at the first tick once their time has come (see PostAfter).
 	Ptr<CCanvas>				mpCaretBacking;  //What the caret covers, kept so hiding it needn't paint the window.
 	CInt32Rect					mcCaret;  //Where the focussed component's caret was drawn, window space, right and bottom exclusive.
 	ARGB32						msCaretColour;
@@ -152,8 +164,12 @@ public:
 	void					SetCloseApprover(O* pcObject, bool(M::*fApprove)(void));
 	template<class M, class O>
 	void					Post(O* pcObject, void(M::*fFunction)(void));
+	template<class M, class O>
+	void					PostAfter(uint32 uiMilliseconds, O* pcObject, void(M::*fFunction)(void));
+	void					PostCallAfter(SMemberCall* psCall, uint32 uiMilliseconds);
 	void					CancelPosted(void* pvObject);
 	void					RunPosted(void);
+	void					RunPostedAt(int64 iNow);
 	size					NumPosted(void);
 	void					ClearCloseApprover(void);
 	bool					ApproveClose(void);
@@ -272,6 +288,27 @@ void CWindow::Post(O* pcObject, void(M::*fFunction)(void))
 	}
 	memcpy(masPosted.Add(), &sCall, sizeof(SMemberCall));
 	RequestTick(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fFunction is called at the first tick at least uiMilliseconds from now,
+// as Post's are: the window waits no longer than that for its next tick,
+// so nothing else need happen.  What animates for a while without input,
+// a fade say, posts each step after the last and stops posting when it's
+// done, so the window waits for input again.  A call posted again before
+// it's made is made once, at the earlier time.  The object isn't held; it
+// calls CancelPosted before it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CWindow::PostAfter(uint32 uiMilliseconds, O* pcObject, void(M::*fFunction)(void))
+{
+	SMemberCall	sCall;
+
+	sCall.Init(pcObject, fFunction);
+	PostCallAfter(&sCall, uiMilliseconds);
 }
 
 
