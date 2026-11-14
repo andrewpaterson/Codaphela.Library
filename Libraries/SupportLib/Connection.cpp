@@ -31,6 +31,7 @@ Ptr<CConnection> CConnection::Init(void)
 
 	mszName.Init();
 	mpParent = NULL;
+	mpBone = NULL;
 	msWorldMatrix.Identity();
 	msLocalMatrix.Identity();
 	mbSelected = false;
@@ -62,6 +63,7 @@ void CConnection::Class(void)
 {
 	U_String(mszName);
 	M_Pointer(mpParent);
+	M_Pointer(mpBone);
 	U_4x4Float32(msWorldMatrix);
 	U_4x4Float32(msLocalMatrix);
 	U_Bool(mbSelected);
@@ -80,6 +82,7 @@ void CConnection::Copy(CConnection* pcConnection)
 	mszName.ReInit();
 	mszName.Append(pcConnection->mszName.Text());
 	mpParent = pcConnection->mpParent;
+	mpBone = pcConnection->mpBone;
 	msWorldMatrix = pcConnection->msWorldMatrix;
 	msLocalMatrix = pcConnection->msLocalMatrix;
 	mbSelected = pcConnection->mbSelected;

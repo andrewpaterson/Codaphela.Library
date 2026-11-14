@@ -60,6 +60,49 @@ void CInstanceMesh::Class(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether its matrices are its skin's bones.  A skin with no bones, as a
+// mesh read from an OBJ has, is posed by connections given to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInstanceMesh::IsSkinned(void)
+{
+	CMesh*	pcMesh;
+
+	if (mpEditor.IsNull() || mpEditor->mpMesh.IsNull())
+	{
+		return false;
+	}
+	pcMesh = &mpEditor->mpMesh;
+	return pcMesh->mcSkin.InUse() && (pcMesh->mcSkin.mapBones.NumElements() > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instance's connections for its skin's bones, in the skin's order.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstanceMesh::BindBones(CInstance* pcInstance)
+{
+	CArray<CBone>*	papBones;
+	size			i;
+
+	if (!IsSkinned())
+	{
+		return;
+	}
+
+	mapConnections.RemoveAll();
+	papBones = &mpEditor->mpMesh->mcSkin.mapBones;
+	for (i = 0; i < papBones->NumElements(); i++)
+	{
+		mapConnections.Add(pcInstance->GetBoneConnection(papBones->Get(i)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CInstance::Init(void)
@@ -67,6 +110,7 @@ void CInstance::Init(void)
 	PreInit();
 
 	mszName.Init();
+	mpSkeleton = NULL;
 	mapConnections.Init();
 	mapMeshes.Init();
 
@@ -91,7 +135,80 @@ void CInstance::Free(void)
 void CInstance::Class(void)
 {
 	U_String(mszName);
+	M_Pointer(mpSkeleton);
 	M_Embedded(mapConnections);
 	M_Embedded(mapMeshes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bones' connections go after those it has.  As a skeleton's parents
+// come first, each bone's parent's connection is made before it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstance::MakeBones(Ptr<CSkeleton> pSkeleton, Ptr<CConnection> pParent)
+{
+	Ptr<CConnection>	pConnection;
+	Ptr<CBone>			pBone;
+	size				uiFirst;
+	size				i;
+
+	mpSkeleton = pSkeleton;
+	uiFirst = mapConnections.NumElements();
+	for (i = 0; i < pSkeleton->NumBones(); i++)
+	{
+		pBone = pSkeleton->GetBone(i);
+		pConnection = OMalloc<CConnection>();
+		pConnection->mszName.Append(pBone->mszName.Text());
+		pConnection->mpBone = pBone;
+		pConnection->msLocalMatrix = pBone->msLocalMatrix;
+		pConnection->mpParent = pBone->mpParent.IsNull() ? pParent : mapConnections.Get(uiFirst + pBone->mpParent->muiIndex);
+		mapConnections.Add(pConnection);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if none of its connections plays pBone.  It's only looked for when
+// something is bound, so looking through them is fine.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CConnection> CInstance::GetBoneConnection(Ptr<CBone> pBone)
+{
+	Ptr<CConnection>	pConnection;
+	size				i;
+
+	if (pBone.IsNull())
+	{
+		return NULL;
+	}
+	for (i = 0; i < mapConnections.NumElements(); i++)
+	{
+		pConnection = mapConnections.Get(i);
+		if (&pConnection->mpBone == &pBone)
+		{
+			return pConnection;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A skinned mesh is bound to the instance's bones.  A rigid one is given its
+// connection by the caller.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CInstanceMesh> CInstance::AddMesh(Ptr<CMeshEditor> pEditor)
+{
+	Ptr<CInstanceMesh>	pInstanceMesh;
+
+	pInstanceMesh = OMalloc<CInstanceMesh>(pEditor);
+	pInstanceMesh->BindBones(this);
+	mapMeshes.Add(pInstanceMesh);
+	return pInstanceMesh;
 }
 

@@ -75,6 +75,7 @@ void TestSceneFile(void);
 void TestSceneFileGoober(void);
 void TestScene(void);
 void TestConnectionAnimation(void);
+void TestSkeleton(void);
 void TestSceneGoober(void);
 void TestSceneGooberResave(void);
 void TestImageResampler(void);
@@ -170,6 +171,7 @@ int __cdecl main(void)
 	TestSceneFileGoober();
 	TestScene();
 	TestConnectionAnimation();
+	TestSkeleton();
 	TestSceneGoober();
 	TestSceneGooberResave();
 	TestSound();

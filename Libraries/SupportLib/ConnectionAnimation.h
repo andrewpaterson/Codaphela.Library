@@ -26,6 +26,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "Connection.h"
+#include "Skeleton.h"
 
 
 //Where a connection is at fTime, seconds from the start of the animation: its local matrix, relative to its parent's, or to
@@ -45,13 +46,17 @@ typedef CArrayTemplate<SConnectionKey>	CArrayConnectionKey;
 //bone stays rigid as it turns.  What the split loses, a shear say, is blended straight, so it's each key itself at its time.
 //Before the first key it's at the first, and after the last at the last.  Apply sets the connection's local matrix; its world
 //matrix is made by CScene::UpdateConnections.
+//
+//It moves either mpConnection, in the scene's own animation, or mpBone, in a skeleton's, whose connection is a different one in
+//each instance playing it: ApplyTo sets that.
 class CConnectionAnimation : public CObject
 {
 CONSTRUCTABLE(CConnectionAnimation);
 DESTRUCTABLE(CConnectionAnimation);
 public:
 	CArrayConnectionKey	masKeys;
-	Ptr<CConnection>	mpConnection;  //What these keys move.
+	Ptr<CConnection>	mpConnection;  //What these keys move in the scene's own animation.
+	Ptr<CBone>			mpBone;  //What they move in a skeleton's.
 
 	void 			Init(void);
 	void 			Free(void) override;
@@ -64,17 +69,24 @@ public:
 
 	bool			GetMatrix(SFloat4x4* psDest, float32 fTime);
 	void			Apply(float32 fTime);
+	void			ApplyTo(Ptr<CConnection> pConnection, float32 fTime);
 };
 
 
-//Tracks that play together.  A walk is one of these, with a track for each bone.  It lasts as long as its longest track, and
-//Apply puts each of its connections where its track has it at fTime.
+//Tracks that play together.  It lasts as long as its longest track.  It's one of two kinds:
+//
+//	A skeleton's, with mpSkeleton, each track moving one of its bones.  A walk is one of these.  It moves nothing itself: a
+//	CAnimationPlayer bound to an instance with that skeleton plays it on that instance's connections, so many instances share it.
+//	The scene's own, with no skeleton, each track moving its connection.  Apply puts them where their tracks have them at fTime.
+//
+//It never mixes them, as a connection in a shared animation would move whatever instance played it.
 class CSceneAnimation : public CObject
 {
 CONSTRUCTABLE(CSceneAnimation);
 DESTRUCTABLE(CSceneAnimation);
 public:
 	CChars							mszName;
+	Ptr<CSkeleton>					mpSkeleton;
 	CArray<CConnectionAnimation>	mapTracks;
 
 	void 	Init(void);
@@ -82,6 +94,7 @@ public:
 	void	Class(void) override;
 
 	float32	GetDuration(void);
+	bool	IsSkeletal(void);
 	void	Apply(float32 fTime);
 };
 

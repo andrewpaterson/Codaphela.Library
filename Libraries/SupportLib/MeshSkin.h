@@ -25,13 +25,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MESH_SKIN_H__
 #include "BaseLib/ArrayTemplateEmbedded.h"
 #include "BaseLib/GeometricTypes.h"
+#include "StandardLib/Array.h"
 #include "MeshDetail.h"
+#include "Skeleton.h"
 
 
 struct SSkinWeight
 {
 	float32	fWeight;
-	int		iMatrix;  //0 ... miNumMatricies-1.  This is NOT a lookup into the ConnectionTracker.
+	int		iMatrix;  //The skin's own matrix: an index in mcInverseSkinMatricies and mapBones.
 };
 
 
@@ -60,6 +62,9 @@ typedef CArrayLargeTemplate<CMeshSkinVert> CArrayMeshSkinVert;
 
 
 //This class can be applied to both positions and normals because the postion/normal index is implicit.
+//
+//Matrix i is mapBones[i], a bone of a skeleton, shared like the mesh.  An instance's connections playing those bones are where it's
+//posed, and mcInverseSkinMatricies[i] brings a position to bone i's space as the mesh was bound: not, in general, its rest pose.
 class CMeshSkin : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshSkin);
@@ -70,6 +75,7 @@ public:
 									  //mcSkinVerts[3] is applied to mpcMesh->mcPositions.mcPositions[3].
 	
 	CArrayFloat4x4		mcInverseSkinMatricies;  //Matricies to bring the object spaces verts to local matrix space.
+	CArray<CBone>		mapBones;  //The bone of each matrix.
 
 	void 	Init(void);
 	void	Clear(void);

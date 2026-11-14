@@ -34,6 +34,7 @@ void CConnectionAnimation::Init(void)
 
 	masKeys.Init();
 	mpConnection = NULL;
+	mpBone = NULL;
 
 	PostInit();
 }
@@ -57,6 +58,7 @@ void CConnectionAnimation::Class(void)
 {
 	U_Unknown(CArrayConnectionKey, masKeys);
 	M_Pointer(mpConnection);
+	M_Pointer(mpBone);
 }
 
 
@@ -210,9 +212,21 @@ bool CConnectionAnimation::GetMatrix(SFloat4x4* psDest, float32 fTime)
 //////////////////////////////////////////////////////////////////////////
 void CConnectionAnimation::Apply(float32 fTime)
 {
-	if (mpConnection.IsNotNull())
+	ApplyTo(mpConnection, fTime);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nothing moves for a NULL connection, as for a bone an instance hasn't
+// got.
+//
+//////////////////////////////////////////////////////////////////////////
+void CConnectionAnimation::ApplyTo(Ptr<CConnection> pConnection, float32 fTime)
+{
+	if (pConnection.IsNotNull())
 	{
-		GetMatrix(&mpConnection->msLocalMatrix, fTime);
+		GetMatrix(&pConnection->msLocalMatrix, fTime);
 	}
 }
 
@@ -226,6 +240,7 @@ void CSceneAnimation::Init(void)
 	PreInit();
 
 	mszName.Init();
+	mpSkeleton = NULL;
 	mapTracks.Init();
 
 	PostInit();
@@ -249,7 +264,18 @@ void CSceneAnimation::Free(void)
 void CSceneAnimation::Class(void)
 {
 	U_String(mszName);
+	M_Pointer(mpSkeleton);
 	M_Embedded(mapTracks);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSceneAnimation::IsSkeletal(void)
+{
+	return mpSkeleton.IsNotNull();
 }
 
 
@@ -275,11 +301,18 @@ float32 CSceneAnimation::GetDuration(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A skeleton's animation moves nothing here: it's played on an instance by
+// a CAnimationPlayer bound to it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CSceneAnimation::Apply(float32 fTime)
 {
 	size	i;
+
+	if (IsSkeletal())
+	{
+		return;
+	}
 
 	for (i = 0; i < mapTracks.NumElements(); i++)
 	{

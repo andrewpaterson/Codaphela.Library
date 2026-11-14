@@ -24,6 +24,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Float4x4.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
+#include "Skeleton.h"
 
 
 //Something spatial that meshes, lights, cameras or other game information can be attached to.  mszName is what it's called in a
@@ -32,6 +33,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //Matrices are row major with vectors on their left.  UpdateWorldMatrix makes msWorldMatrix msLocalMatrix * the parent's world matrix,
 //and msLocalMatrix itself with no parent, updating its parents first.  mbParity is then whether it mirrors.  uiUpdate says which update
 //this is, so that a parent shared by many is only done once, and a loop of parents stops.
+//
+//mpBone is the bone of its instance's skeleton that it plays, NULL if it isn't one.  Many instances' connections play the same bone.
 class CConnection : public CObject
 {
 CONSTRUCTABLE(CConnection);
@@ -39,6 +42,7 @@ DESTRUCTABLE(CConnection);
 public:
 	CChars				mszName;
 	Ptr<CConnection>	mpParent;
+	Ptr<CBone>			mpBone;
 	SFloat4x4			msWorldMatrix;
 	SFloat4x4			msLocalMatrix;  //Relative to the parent, or the world with no parent.
 	bool				mbSelected;

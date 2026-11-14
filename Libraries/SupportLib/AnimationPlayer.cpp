@@ -33,12 +33,37 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CAnimationPlayer::Init(Ptr<CSceneAnimation> pAnimation, bool bLoop)
 {
+	Init(pAnimation, NULL, bLoop);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A skeleton's animation, on pInstance.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAnimationPlayer::Init(Ptr<CSceneAnimation> pAnimation, Ptr<CInstance> pInstance, bool bLoop)
+{
+	size	i;
+	bool	bSameSkeleton;
+
 	PreInit();
 
 	mpAnimation = pAnimation;
+	mpInstance = pInstance;
+	mapBound.Init();
 	mfTime = 0.0f;
 	mfSpeed = 1.0f;
 	mbLoop = bLoop;
+
+	if (pAnimation.IsNotNull() && pAnimation->IsSkeletal() && pInstance.IsNotNull())
+	{
+		bSameSkeleton = &pInstance->mpSkeleton == &pAnimation->mpSkeleton;
+		for (i = 0; i < pAnimation->mapTracks.NumElements(); i++)
+		{
+			mapBound.Add(bSameSkeleton ? pInstance->GetBoneConnection(pAnimation->mapTracks.Get(i)->mpBone) : Ptr<CConnection>());
+		}
+	}
 
 	PostInit();
 }
@@ -60,6 +85,8 @@ void CAnimationPlayer::Free(void)
 void CAnimationPlayer::Class(void)
 {
 	M_Pointer(mpAnimation);
+	M_Pointer(mpInstance);
+	M_Embedded(mapBound);
 	U_Float32(mfTime);
 	U_Float32(mfSpeed);
 	U_Bool(mbLoop);
@@ -83,7 +110,21 @@ void CAnimationPlayer::Advance(float32 fSeconds)
 //////////////////////////////////////////////////////////////////////////
 void CAnimationPlayer::Apply(void)
 {
-	if (mpAnimation.IsNotNull())
+	size	i;
+
+	if (mpAnimation.IsNull())
+	{
+		return;
+	}
+
+	if (mpAnimation->IsSkeletal())
+	{
+		for (i = 0; i < mapBound.NumElements(); i++)
+		{
+			mpAnimation->mapTracks.Get(i)->ApplyTo(mapBound.Get(i), mfTime);
+		}
+	}
+	else
 	{
 		mpAnimation->Apply(mfTime);
 	}
@@ -143,3 +184,26 @@ float32 CAnimationPlayer::GetTime(void) { return mfTime; }
 void CAnimationPlayer::SetSpeed(float32 fSpeed) { mfSpeed = fSpeed; }
 float32 CAnimationPlayer::GetSpeed(void) { return mfSpeed; }
 Ptr<CSceneAnimation> CAnimationPlayer::GetAnimation(void) { return mpAnimation; }
+Ptr<CInstance> CAnimationPlayer::GetInstance(void) { return mpInstance; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of a skeleton's animation's tracks found a connection.
+//
+//////////////////////////////////////////////////////////////////////////
+size CAnimationPlayer::NumBound(void)
+{
+	size	i;
+	size	uiBound;
+
+	uiBound = 0;
+	for (i = 0; i < mapBound.NumElements(); i++)
+	{
+		if (mapBound.Get(i).IsNotNull())
+		{
+			uiBound++;
+		}
+	}
+	return uiBound;
+}

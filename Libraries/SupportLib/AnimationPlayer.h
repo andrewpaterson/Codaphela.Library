@@ -26,24 +26,33 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
 #include "ConnectionAnimation.h"
+#include "Instance.h"
 
 
 //Plays an animation.  Advance moves its time on by seconds times its speed: one that loops goes round from its end to its
 //start, and one that doesn't stops at its end, when it's finished.  Apply puts the animation's connections where its tracks have
 //them at that time, and CScene::UpdateConnections then makes their world matrices.  A player is the app's: a scene file holds
 //animations, not who is playing them.
+//
+//A skeleton's animation is played on one instance, which Init binds it to: it finds once the instance's connection for each
+//track's bone.  One the instance hasn't got is left still, and an instance with another skeleton has none of them, as
+//binding one skeleton's bones to another's waits until something needs it.  Many players can share one animation, each with
+//its own instance and time.  The scene's own animation is played with no instance.
 class CAnimationPlayer : public CObject
 {
 CONSTRUCTABLE(CAnimationPlayer);
 DESTRUCTABLE(CAnimationPlayer);
 protected:
 	Ptr<CSceneAnimation>	mpAnimation;
+	Ptr<CInstance>			mpInstance;
+	CArray<CConnection>		mapBound;	//The instance's connection for each track, NULL where it has none.
 	float32					mfTime;		//Seconds from the animation's start.
 	float32					mfSpeed;	//1 plays it as fast as it was made.
 	bool					mbLoop;
 
 public:
 	void		Init(Ptr<CSceneAnimation> pAnimation, bool bLoop);
+	void		Init(Ptr<CSceneAnimation> pAnimation, Ptr<CInstance> pInstance, bool bLoop);
 	void		Free(void) override;
 	void		Class(void) override;
 
@@ -56,6 +65,8 @@ public:
 	float32		GetSpeed(void);
 	bool		IsFinished(void);
 	Ptr<CSceneAnimation>	GetAnimation(void);
+	Ptr<CInstance>			GetInstance(void);
+	size					NumBound(void);
 };
 
 

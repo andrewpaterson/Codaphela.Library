@@ -128,6 +128,7 @@ void CMeshSkin::Init(void)
 	CMeshDetail::Init();
 	mcSkinVerts.Init();
 	mcInverseSkinMatricies.Init();
+	mapBones.Init();
 
 	PostInit();
 }
@@ -174,6 +175,7 @@ void CMeshSkin::Class(void)
 
 	U_Unknown(CArrayMeshSkinVert, mcSkinVerts);
 	U_Unknown(CArrayFloat4x4, mcInverseSkinMatricies);
+	M_Embedded(mapBones);
 }
 
 
@@ -187,6 +189,7 @@ void CMeshSkin::Clear(void)
 	mcSkinVerts.Init();
 
 	mcInverseSkinMatricies.ReInit();
+	mapBones.RemoveAll();
 }
 
 

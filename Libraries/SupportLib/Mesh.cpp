@@ -478,6 +478,11 @@ void CMesh::CopySkinFrom(CMesh* pcSource)
 	{
 		mcSkin.mcInverseSkinMatricies.Add(pcSource->mcSkin.mcInverseSkinMatricies.Get(i));
 	}
+	mcSkin.mapBones.RemoveAll();
+	for (i = 0; i < pcSource->mcSkin.mapBones.NumElements(); i++)
+	{
+		mcSkin.mapBones.Add(pcSource->mcSkin.mapBones.Get(i));
+	}
 }
 
 
