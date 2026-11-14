@@ -478,3 +478,32 @@ void CCPPUnit::Changed(CCPPSyntax* pcExpression, uint8 uiChanges)
 		mpcSemanticPass->Changed(pcExpression, uiChanges);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function pcDeclarator declares or defines, NULL if the unit has
+// none: not an instance of a template, which the template's declarator
+// is shared by.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPUnit::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPFunction*	pcFunction;
+	size			i;
+
+	for (i = 0; pcDeclarator && (i < mapcFunctions.NumElements()); i++)
+	{
+		pcFunction = mapcFunctions.GetPtr(i);
+		if (pcFunction->mpcBindings || pcFunction->mpcTemplate)
+		{
+			continue;
+		}
+		if ((pcFunction->mpcDeclarator == pcDeclarator) || (pcFunction->mpcDefinition && (pcFunction->mpcDefinition->mpcDeclarator == pcDeclarator)))
+		{
+			return pcFunction;
+		}
+	}
+	return NULL;
+}
+

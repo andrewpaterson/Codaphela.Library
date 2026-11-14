@@ -66,7 +66,8 @@ typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
 //A check that is kept (Check's bKeep) also remembers what a refactoring asks of one unit: the type of every
 //expression typed (GetType), written as C++ (AppendType, AppendDeclaration), and how the place an expression
 //names can be changed there (FindChanges).  The types are the checked unit's, which lives until the pass is
-//killed; the index's checks aren't kept and remember none of it.
+//killed; the index's checks aren't kept and remember none of it.  It also gives the label the compiler would give a
+//function for the check's target (AppendFunctionLabel), which hand written assembly names it by.
 class CCPPSemanticPass
 {
 protected:
@@ -93,6 +94,7 @@ public:
 	uint8				FindChanges(CCPPSyntax* pcExpression);
 	bool				AppendType(SCPP65Type* psType, CChars* pszDest);
 	bool				AppendDeclaration(SCPP65Type* psType, const char* szName, CChars* pszDest);
+	bool				AppendFunctionLabel(CCPPSyntaxDeclarator* pcDeclarator, CChars* pszDest);
 
 	void				Resolved(int iToken, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator);
 	SCPPResolvedName*	GetResolved(int iToken);

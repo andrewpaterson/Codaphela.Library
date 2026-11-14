@@ -321,6 +321,31 @@ bool CCPPSemanticPass::AppendDeclaration(SCPP65Type* psType, const char* szName,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The label the compiler gives the function a declarator of a kept
+// check declares (or defines), for the target it was checked for:
+// "_CFoo__Init", "_CFoo__Run__Fi", "_Blend__Fss".  Its parameters' types
+// are in it where the function is overloaded or isn't a member, as the
+// target sizes them, so it is what hand written assembly must call it
+// by.  False if the declarator declares no function the unit has (a
+// template's, whose instances have labels of their own).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSemanticPass::AppendFunctionLabel(CCPPSyntaxDeclarator* pcDeclarator, CChars* pszDest)
+{
+	CCPPFunction*	pcFunction;
+
+	pcFunction = mpcUnit ? mpcUnit->FindDeclaredFunction(pcDeclarator) : NULL;
+	if (!pcFunction)
+	{
+		return false;
+	}
+	mpcUnit->GetMangler()->AppendFunctionLabel(pszDest, pcFunction);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The name whose last component is iToken names pcSymbol (the overload
 // pcDeclarator declares, for a function).  A template's body checked
 // again with other arguments may resolve its names differently: every

@@ -502,6 +502,7 @@ public:
 	void					Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void					PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void					Changed(CCPPSyntax* pcExpression, uint8 uiChanges);
+	CCPPFunction*			FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator);
 
 	//Floating point.  CPPUnitFloat.cpp
 	int64					FloatBits(SCPP65Type* psType, double dValue);
