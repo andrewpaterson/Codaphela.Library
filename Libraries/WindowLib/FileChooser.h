@@ -42,7 +42,8 @@ struct SFileChooserType
 //and Cancel are the buttons.
 //
 //Selecting a file puts its name in File Name.  A double click on a folder (or enter) opens it; on a file it chooses
-//it.  Open chooses what File Name names, relative to the folder shown unless it's a whole path, but if that's a
+//it.  Backspace in the list, the keymap's Backspace command, goes up a folder as Up One Level does; in File Name it
+//deletes as ever.  Open chooses what File Name names, relative to the folder shown unless it's a whole path, but if that's a
 //folder it opens it instead, as JFileChooser does.  A file that doesn't exist can't be opened.
 //
 //Saving with a type that has an extension, a name without it has it added.  The types are the caller's and must last

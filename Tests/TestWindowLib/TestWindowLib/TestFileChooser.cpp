@@ -121,6 +121,7 @@ void TestFileChooserBrowse(void)
 		SDialogLook					sLook;
 		Ptr<CWindowTheme>			pTheme;  //The look only points to it.
 		Ptr<CTestFileChooser>		pChooser;
+		SComponentInputEvent		sEvent;
 		CColourFormatHelper			cFormat;
 		Ptr<CImageCel>				pFolderIcon;
 		Ptr<CImageCel>				pFileIcon;
@@ -187,6 +188,17 @@ void TestFileChooserBrowse(void)
 
 		//Activating a folder's row opens it.  The list is activated by a double click, not a click.
 		AssertTrue(pChooser->GetList()->IsDoubleClickActivates());
+		pChooser->GetList()->Select(0);
+		pChooser->ItemActivated();
+		AssertString(szFullSub.Text(), pChooser->GetDirectory());
+
+		//Backspace in the list goes up, as Up does.
+		memset(&sEvent, 0, sizeof(sEvent));
+		sEvent.eType = CIET_Command;
+		sEvent.eCommand = CIC_Backspace;
+		AssertTrue(pChooser->GetList()->CallInputActions(&sEvent));
+		AssertString(szFull.Text(), pChooser->GetDirectory());
+		AssertInt(0, pChooser->GetList()->GetSelected());
 		pChooser->GetList()->Select(0);
 		pChooser->ItemActivated();
 		AssertString(szFullSub.Text(), pChooser->GetDirectory());
