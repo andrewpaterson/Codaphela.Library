@@ -18,9 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
 #include <string.h>
 #include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
+#include "SupportLib/Image.h"
 #include "VulkanShaders.h"
 #include "VulkanRenderer.h"
 
@@ -29,6 +31,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #define VULKAN_MAX_PHYSICAL_DEVICES	16
 #define VULKAN_MAX_QUEUE_FAMILIES	16
 #define VULKAN_MAX_LAYERS			64
+#define VULKAN_TEXTURE_FORMAT		VK_FORMAT_R8G8B8A8_UNORM  //A texel is bytes of red, green, blue and alpha.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +100,11 @@ void CVulkanRenderer::Init(void)
 	mhSetLayout = VK_NULL_HANDLE;
 	mhDescriptorPool = VK_NULL_HANDLE;
 	mhDescriptorSet = VK_NULL_HANDLE;
+	mhTextureLayout = VK_NULL_HANDLE;
+	mhTexturePool = VK_NULL_HANDLE;
+	mhSampler = VK_NULL_HANDLE;
+	memset(&msWhite, 0, sizeof(msWhite));
+	masTextures.Init();
 	mhPipelineLayout = VK_NULL_HANDLE;
 	mhOpaquePipeline = VK_NULL_HANDLE;
 	mhTransparentPipeline = VK_NULL_HANDLE;
@@ -108,7 +116,7 @@ void CVulkanRenderer::Init(void)
 	miHeight = 0;
 	mszDeviceName.Init();
 
-	mbReady = mcVulkan.Load() && CreateInstance() && ChooseDevice() && CreateDevice() && CreateCommands() && CreateDescriptors() && CreatePipelines();
+	mbReady = mcVulkan.Load() && CreateInstance() && ChooseDevice() && CreateDevice() && CreateCommands() && CreateDescriptors() && CreateTextureDescriptors() && CreatePipelines();
 
 	PostInit();
 }
@@ -137,11 +145,21 @@ void CVulkanRenderer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CVulkanRenderer::Free(void)
 {
+	size	i;
+
 	if (mhDevice)
 	{
 		mcVulkan.vkDeviceWaitIdle(mhDevice);
 		DestroyTarget();
 		DestroyBuffer(&msFrameData);
+		for (i = 0; i < masTextures.NumElements(); i++)
+		{
+			DestroyTexture(&masTextures.Get(i)->sTexture);
+		}
+		DestroyTexture(&msWhite);
+		if (mhSampler)				mcVulkan.vkDestroySampler(mhDevice, mhSampler, NULL);
+		if (mhTexturePool)			mcVulkan.vkDestroyDescriptorPool(mhDevice, mhTexturePool, NULL);
+		if (mhTextureLayout)		mcVulkan.vkDestroyDescriptorSetLayout(mhDevice, mhTextureLayout, NULL);
 		if (mhOpaquePipeline)		mcVulkan.vkDestroyPipeline(mhDevice, mhOpaquePipeline, NULL);
 		if (mhTransparentPipeline)	mcVulkan.vkDestroyPipeline(mhDevice, mhTransparentPipeline, NULL);
 		if (mhPipelineLayout)		mcVulkan.vkDestroyPipelineLayout(mhDevice, mhPipelineLayout, NULL);
@@ -159,6 +177,7 @@ void CVulkanRenderer::Free(void)
 		}
 		mcVulkan.vkDestroyInstance(mhInstance, NULL);
 	}
+	masTextures.Kill();
 	mszDeviceName.Kill();
 	mcVulkan.Kill();
 	CRenderer::Free();
@@ -466,6 +485,264 @@ bool CVulkanRenderer::CreateDescriptors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A set for each texture, of the one image the fragment shader samples,
+// with a sampler they all share: smooth between texels, and repeating.
+// Then the white texture.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanRenderer::CreateTextureDescriptors(void)
+{
+	VkDescriptorSetLayoutBinding	sBinding;
+	VkDescriptorSetLayoutCreateInfo	sLayout;
+	VkDescriptorPoolSize			sPoolSize;
+	VkDescriptorPoolCreateInfo		sPool;
+	VkSamplerCreateInfo				sSampler;
+	uint8							auiWhite[4];
+
+	memset(&sBinding, 0, sizeof(sBinding));
+	sBinding.binding = 0;
+	sBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	sBinding.descriptorCount = 1;
+	sBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	memset(&sLayout, 0, sizeof(sLayout));
+	sLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	sLayout.bindingCount = 1;
+	sLayout.pBindings = &sBinding;
+	if (mcVulkan.vkCreateDescriptorSetLayout(mhDevice, &sLayout, NULL, &mhTextureLayout) < 0)
+	{
+		return false;
+	}
+
+	sPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	sPoolSize.descriptorCount = VULKAN_MAX_TEXTURES + 1;
+	memset(&sPool, 0, sizeof(sPool));
+	sPool.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	sPool.maxSets = VULKAN_MAX_TEXTURES + 1;
+	sPool.poolSizeCount = 1;
+	sPool.pPoolSizes = &sPoolSize;
+	if (mcVulkan.vkCreateDescriptorPool(mhDevice, &sPool, NULL, &mhTexturePool) < 0)
+	{
+		return false;
+	}
+
+	memset(&sSampler, 0, sizeof(sSampler));
+	sSampler.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	sSampler.magFilter = VK_FILTER_LINEAR;
+	sSampler.minFilter = VK_FILTER_LINEAR;
+	sSampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	sSampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sSampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sSampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	if (mcVulkan.vkCreateSampler(mhDevice, &sSampler, NULL, &mhSampler) < 0)
+	{
+		return false;
+	}
+
+	memset(auiWhite, 0xFF, sizeof(auiWhite));
+	return CreateTexture(&msWhite, 1, 1, auiWhite);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the pixels in a buffer into an image the shaders sample, and waits
+// for it.  Not while a frame is being drawn, as it uses the frame's
+// commands.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanRenderer::Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iWidth, int32 iHeight)
+{
+	VkCommandBufferBeginInfo	sBegin;
+	VkBufferImageCopy			sCopy;
+	VkSubmitInfo				sSubmit;
+	bool						bResult;
+
+	mcVulkan.vkResetCommandBuffer(mhCommands, 0);
+	memset(&sBegin, 0, sizeof(sBegin));
+	sBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	sBegin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	mcVulkan.vkBeginCommandBuffer(mhCommands, &sBegin);
+
+	Barrier(psImage->hImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+	memset(&sCopy, 0, sizeof(sCopy));
+	sCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	sCopy.imageSubresource.layerCount = 1;
+	sCopy.imageExtent.width = (uint32)iWidth;
+	sCopy.imageExtent.height = (uint32)iHeight;
+	sCopy.imageExtent.depth = 1;
+	mcVulkan.vkCmdCopyBufferToImage(mhCommands, psPixels->hBuffer, psImage->hImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &sCopy);
+	Barrier(psImage->hImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+	mcVulkan.vkEndCommandBuffer(mhCommands);
+
+	memset(&sSubmit, 0, sizeof(sSubmit));
+	sSubmit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	sSubmit.commandBufferCount = 1;
+	sSubmit.pCommandBuffers = &mhCommands;
+	bResult = (mcVulkan.vkQueueSubmit(mhQueue, 1, &sSubmit, mhFence) >= 0) && (mcVulkan.vkWaitForFences(mhDevice, 1, &mhFence, VK_TRUE, UINT64_MAX) >= 0);
+	mcVulkan.vkResetFences(mhDevice, 1, &mhFence);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// From puiRGBA, bytes of red, green, blue and alpha with the top row first.
+// False, having made nothing, if it can't be made.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint8* puiRGBA)
+{
+	SVulkanBuffer				sPixels;
+	VkDescriptorSetAllocateInfo	sAllocate;
+	VkDescriptorImageInfo		sImageInfo;
+	VkWriteDescriptorSet		sWrite;
+	bool						bResult;
+
+	memset(psTexture, 0, sizeof(SVulkanTexture));
+	if (!CreateImage(&psTexture->sImage, iWidth, iHeight, VULKAN_TEXTURE_FORMAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_ASPECT_COLOR_BIT))
+	{
+		return false;
+	}
+	if (!CreateBuffer(&sPixels, (VkDeviceSize)iWidth * iHeight * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT))
+	{
+		DestroyTexture(psTexture);
+		return false;
+	}
+	memcpy(sPixels.pvMapped, puiRGBA, (size)iWidth * iHeight * 4);
+	bResult = Upload(&psTexture->sImage, &sPixels, iWidth, iHeight);
+	DestroyBuffer(&sPixels);
+
+	memset(&sAllocate, 0, sizeof(sAllocate));
+	sAllocate.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	sAllocate.descriptorPool = mhTexturePool;
+	sAllocate.descriptorSetCount = 1;
+	sAllocate.pSetLayouts = &mhTextureLayout;
+	if (!bResult || (mcVulkan.vkAllocateDescriptorSets(mhDevice, &sAllocate, &psTexture->hSet) < 0))
+	{
+		DestroyTexture(psTexture);
+		return false;
+	}
+
+	sImageInfo.sampler = mhSampler;
+	sImageInfo.imageView = psTexture->sImage.hView;
+	sImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	memset(&sWrite, 0, sizeof(sWrite));
+	sWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	sWrite.dstSet = psTexture->hSet;
+	sWrite.dstBinding = 0;
+	sWrite.descriptorCount = 1;
+	sWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	sWrite.pImageInfo = &sImageInfo;
+	mcVulkan.vkUpdateDescriptorSets(mhDevice, 1, &sWrite, 0, NULL);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its set goes back with the pool.
+//
+//////////////////////////////////////////////////////////////////////////
+void CVulkanRenderer::DestroyTexture(SVulkanTexture* psTexture)
+{
+	DestroyImage(&psTexture->sImage);
+	psTexture->hSet = VK_NULL_HANDLE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An image's texels as bytes of red, green, blue and alpha.  A colour it
+// hasn't a channel for is all there, as is alpha.  False for an image that
+// isn't bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool GetVulkanTexels(CImage* pcImage, uint8* puiRGBA)
+{
+	CChannel*	pcChannel;
+	uint8*		puiImage;
+	size		uiNumChannels;
+	size		uiNumPixels;
+	size		i;
+	size		j;
+	int			aiPart[16];
+
+	if ((pcImage->GetPrimitiveType() != PT_uint8) || (pcImage->NumChannels() == 0) || (pcImage->NumChannels() > 16))
+	{
+		return false;
+	}
+	uiNumChannels = pcImage->NumChannels();
+	for (j = 0; j < uiNumChannels; j++)
+	{
+		pcChannel = pcImage->GetChannelAtIndex(j);
+		aiPart[j] = (pcChannel->iChannel == IMAGE_DIFFUSE_RED) ? 0 : ((pcChannel->iChannel == IMAGE_DIFFUSE_GREEN) ? 1 : ((pcChannel->iChannel == IMAGE_DIFFUSE_BLUE) ? 2 : ((pcChannel->iChannel == IMAGE_OPACITY) ? 3 : -1)));
+	}
+
+	uiNumPixels = (size)pcImage->GetWidth() * pcImage->GetHeight();
+	memset(puiRGBA, 0xFF, uiNumPixels * 4);
+	puiImage = (uint8*)pcImage->GetData();
+	for (i = 0; i < uiNumPixels; i++)
+	{
+		for (j = 0; j < uiNumChannels; j++)
+		{
+			if (aiPart[j] >= 0)
+			{
+				puiRGBA[i * 4 + aiPart[j]] = puiImage[i * uiNumChannels + j];
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// White for no image, one that isn't bytes, or one that can't be made.
+//
+//////////////////////////////////////////////////////////////////////////
+VkDescriptorSet CVulkanRenderer::GetTexture(CImage* pcImage)
+{
+	SVulkanTextureEntry*	psEntry;
+	SVulkanTexture			sTexture;
+	uint8*					puiRGBA;
+	OIndex					oiImage;
+	size					i;
+	bool					bResult;
+
+	if ((pcImage == NULL) || (pcImage->GetWidth() == 0) || (pcImage->GetHeight() == 0))
+	{
+		return msWhite.hSet;
+	}
+	oiImage = pcImage->GetIndex();
+	for (i = 0; i < masTextures.NumElements(); i++)
+	{
+		psEntry = masTextures.Get(i);
+		if (psEntry->oiImage == oiImage)
+		{
+			return psEntry->sTexture.hSet;
+		}
+	}
+	if (masTextures.NumElements() >= VULKAN_MAX_TEXTURES)
+	{
+		return msWhite.hSet;
+	}
+
+	puiRGBA = (uint8*)malloc((size)pcImage->GetWidth() * pcImage->GetHeight() * 4);
+	bResult = (puiRGBA != NULL) && GetVulkanTexels(pcImage, puiRGBA) && CreateTexture(&sTexture, (int32)pcImage->GetWidth(), (int32)pcImage->GetHeight(), puiRGBA);
+	free(puiRGBA);
+	if (!bResult)
+	{
+		return msWhite.hSet;
+	}
+	psEntry = masTextures.Add();
+	psEntry->oiImage = oiImage;
+	psEntry->sTexture = sTexture;
+	return sTexture.hSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 VkShaderModule CVulkanRenderer::CreateShader(const uint32* puiCode, size uiSize)
@@ -485,8 +762,8 @@ VkShaderModule CVulkanRenderer::CreateShader(const uint32* puiCode, size uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A mesh's vertices are a position, a normal and a colour, each a stream of
-// its own.  Back faces are culled, and which way a front face is wound is
+// A mesh's vertices are a position, a normal, a colour and a UV, each a
+// stream of its own.  Back faces are culled, and which way a front face is wound is
 // set for each draw, as a mirrored mesh's are wound the other way.  A
 // transparent triangle tests depth and doesn't write it, and blends.
 // Alpha isn't written: the target's stays as it was cleared, opaque.
@@ -495,8 +772,8 @@ VkShaderModule CVulkanRenderer::CreateShader(const uint32* puiCode, size uiSize)
 VkPipeline CVulkanRenderer::CreatePipeline(VkShaderModule hVertex, VkShaderModule hFragment, bool bTransparent)
 {
 	VkPipelineShaderStageCreateInfo				asStages[2];
-	VkVertexInputBindingDescription				asBindings[3];
-	VkVertexInputAttributeDescription			asAttributes[3];
+	VkVertexInputBindingDescription				asBindings[4];
+	VkVertexInputAttributeDescription			asAttributes[4];
 	VkPipelineVertexInputStateCreateInfo		sVertexInput;
 	VkPipelineInputAssemblyStateCreateInfo		sAssembly;
 	VkPipelineViewportStateCreateInfo			sViewport;
@@ -523,21 +800,27 @@ VkPipeline CVulkanRenderer::CreatePipeline(VkShaderModule hVertex, VkShaderModul
 	asStages[1].module = hFragment;
 	asStages[1].pName = "main";
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 4; i++)
 	{
 		asBindings[i].binding = i;
-		asBindings[i].stride = (i == 2) ? sizeof(uint32) : sizeof(float32) * 3;
 		asBindings[i].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		asAttributes[i].location = i;
 		asAttributes[i].binding = i;
-		asAttributes[i].format = (i == 2) ? VULKAN_COLOUR_FORMAT : VK_FORMAT_R32G32B32_SFLOAT;
 		asAttributes[i].offset = 0;
 	}
+	asBindings[0].stride = sizeof(float32) * 3;
+	asAttributes[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	asBindings[1].stride = sizeof(float32) * 3;
+	asAttributes[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	asBindings[2].stride = sizeof(uint32);
+	asAttributes[2].format = VULKAN_COLOUR_FORMAT;
+	asBindings[3].stride = sizeof(float32) * 2;
+	asAttributes[3].format = VK_FORMAT_R32G32_SFLOAT;
 	memset(&sVertexInput, 0, sizeof(sVertexInput));
 	sVertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	sVertexInput.vertexBindingDescriptionCount = 3;
+	sVertexInput.vertexBindingDescriptionCount = 4;
 	sVertexInput.pVertexBindingDescriptions = asBindings;
-	sVertexInput.vertexAttributeDescriptionCount = 3;
+	sVertexInput.vertexAttributeDescriptionCount = 4;
 	sVertexInput.pVertexAttributeDescriptions = asAttributes;
 
 	memset(&sAssembly, 0, sizeof(sAssembly));
@@ -629,6 +912,7 @@ bool CVulkanRenderer::CreatePipelines(void)
 {
 	VkPushConstantRange			sPushRange;
 	VkPipelineLayoutCreateInfo	sLayout;
+	VkDescriptorSetLayout		ahSetLayouts[2];
 	VkShaderModule				hVertex;
 	VkShaderModule				hFragment;
 
@@ -637,8 +921,10 @@ bool CVulkanRenderer::CreatePipelines(void)
 	sPushRange.size = sizeof(SVulkanDraw);
 	memset(&sLayout, 0, sizeof(sLayout));
 	sLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	sLayout.setLayoutCount = 1;
-	sLayout.pSetLayouts = &mhSetLayout;
+	ahSetLayouts[0] = mhSetLayout;
+	ahSetLayouts[1] = mhTextureLayout;
+	sLayout.setLayoutCount = 2;
+	sLayout.pSetLayouts = ahSetLayouts;
 	sLayout.pushConstantRangeCount = 1;
 	sLayout.pPushConstantRanges = &sPushRange;
 	if (mcVulkan.vkCreatePipelineLayout(mhDevice, &sLayout, NULL, &mhPipelineLayout) < 0)
@@ -976,6 +1262,17 @@ void CVulkanRenderer::UseTransparent(void)
 {
 	mcVulkan.vkCmdBindPipeline(mhCommands, VK_PIPELINE_BIND_POINT_GRAPHICS, mhTransparentPipeline);
 	mcVulkan.vkCmdBindDescriptorSets(mhCommands, VK_PIPELINE_BIND_POINT_GRAPHICS, mhPipelineLayout, 0, 1, &mhDescriptorSet, 0, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the triangles drawn next are textured with (GetTexture).
+//
+//////////////////////////////////////////////////////////////////////////
+void CVulkanRenderer::UseTexture(VkDescriptorSet hTexture)
+{
+	mcVulkan.vkCmdBindDescriptorSets(mhCommands, VK_PIPELINE_BIND_POINT_GRAPHICS, mhPipelineLayout, 1, 1, &hTexture, 0, NULL);
 }
 
 

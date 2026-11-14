@@ -382,6 +382,7 @@ void CVulkanFrame::DrawSubmeshes(CVulkanRenderer* pcRenderer, bool bTransparent)
 			psInstance->sDraw.afColour[1] = (float32)((psSubmesh->uiColour >> 8) & 0xFF) / 255.0f;
 			psInstance->sDraw.afColour[2] = (float32)(psSubmesh->uiColour & 0xFF) / 255.0f;
 			psInstance->sDraw.afColour[3] = (float32)(psSubmesh->uiColour >> 24) / 255.0f;
+			pcRenderer->UseTexture(psSubmesh->hTexture);
 			pcRenderer->Draw(&psInstance->sDraw, psInstance->bMirrored, psSubmesh->uiFirstIndex, psSubmesh->uiNumIndices);
 		}
 	}

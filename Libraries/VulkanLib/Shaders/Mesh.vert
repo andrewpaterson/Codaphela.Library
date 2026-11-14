@@ -12,6 +12,7 @@
 layout(location = 0) in vec3	inPosition;
 layout(location = 1) in vec3	inNormal;
 layout(location = 2) in vec4	inColour;
+layout(location = 3) in vec2	inUV;
 
 //mWorld places the mesh.  avNormal are the rows of what turns its normals (its inverse transpose).  vColour multiplies the
 //vertex's colour: the submesh's for a mesh with no vertex colours, and white for one with.
@@ -46,6 +47,7 @@ layout(set = 0, binding = 0) uniform SFrame
 
 layout(location = 0) out vec4	outColour;
 layout(location = 1) out float	outShade;
+layout(location = 2) out vec2	outUV;
 
 
 float PointShade(SPointLight sLight, vec3 vNormal, vec3 vWorld)
@@ -106,4 +108,5 @@ void main()
 
 	outShade = min(fShade, 256.0) / 256.0;
 	outColour = inColour * sDraw.vColour;
+	outUV = inUV;
 }

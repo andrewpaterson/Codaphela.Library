@@ -82,6 +82,9 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 	F(vkDestroyPipelineLayout) \
 	F(vkCreateGraphicsPipelines) \
 	F(vkDestroyPipeline) \
+	F(vkCreateSampler) \
+	F(vkDestroySampler) \
+	F(vkCmdCopyBufferToImage) \
 	F(vkCmdPipelineBarrier) \
 	F(vkCmdBeginRendering) \
 	F(vkCmdEndRendering) \

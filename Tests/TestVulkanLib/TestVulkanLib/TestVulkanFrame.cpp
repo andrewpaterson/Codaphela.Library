@@ -7,6 +7,7 @@
 #include "BaseLib/NumberControl.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Camera.h"
+#include "SupportLib/Image.h"
 #include "SupportLib/Instance.h"
 #include "SupportLib/Light.h"
 #include "SupportLib/MeshEditor.h"
@@ -336,6 +337,116 @@ void TestVulkanFrameLikeRaster(CVulkanRenderFactory* pcFactory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A square two across facing +z, textured by a 2x2 image: red and green
+// over blue and white, top row first, its UVs 0 at the top left.  Its
+// material is white, so the texels are its colours.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMeshEditor> TestVulkanTexturedSquare(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMaterial>		pMaterial;
+	Ptr<CImage>			pImage;
+	CMesh*				pcMesh;
+	CMeshUVLayer*		pcLayer;
+	uint8				auiTexels[12] = { 255, 0, 0,  0, 255, 0,  0, 0, 255,  255, 255, 255 };
+	int					i;
+	int					k;
+	int					aiFaces[2][3] = { { 3, 2, 1 }, { 3, 1, 0 } };
+
+	pImage = OMalloc<CImage>(2, 2, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	memcpy(pImage->GetData(), auiTexels, sizeof(auiTexels));
+	pMaterial = OMalloc<CMaterial>();
+	pMaterial->msProperties.mcDiffuseColour.Init(1.0f, 1.0f, 1.0f, 1.0f);
+	pMaterial->GetImage(MI_Diffuse)->mpImage = pImage;
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pcMesh = &pEditor->mpMesh;
+	pcMesh->mcUVs.mbInUse = true;
+	pcMesh->mcUVs.AddLayer(pcMesh->GetConnectivity());
+	pcMesh->mcMaterials.mbInUse = true;
+	pcMesh->mcMaterials.mapMaterials.Add(pMaterial);
+	pEditor->AddCorner(-1.0f, 1.0f, 0.0f);
+	pEditor->AddCorner(1.0f, 1.0f, 0.0f);
+	pEditor->AddCorner(1.0f, -1.0f, 0.0f);
+	pEditor->AddCorner(-1.0f, -1.0f, 0.0f);
+	pEditor->AddFace(aiFaces[0][0], aiFaces[0][1], aiFaces[0][2]);
+	pEditor->AddFace(aiFaces[1][0], aiFaces[1][1], aiFaces[1][2]);
+
+	pcLayer = pcMesh->mcUVs.mcLayers.Get(0);
+	pcLayer->mcUVs.Add()->Init(0.0f, 0.0f);
+	pcLayer->mcUVs.Add()->Init(1.0f, 0.0f);
+	pcLayer->mcUVs.Add()->Init(1.0f, 1.0f);
+	pcLayer->mcUVs.Add()->Init(0.0f, 1.0f);
+	for (i = 0; i < 2; i++)
+	{
+		pcMesh->mcMaterials.mcFaces.SetValue((size)i, 0);
+		for (k = 0; k < 3; k++)
+		{
+			pcLayer->mcFaces.Get(i)->aiUVs[k] = aiFaces[i][k];
+		}
+	}
+	return pEditor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertTestVulkanColour(uint32 uiExpected, uint32 uiActual)
+{
+	AssertTrue(TestVulkanChannelDifference(uiExpected, uiActual) <= 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Two units in front of a camera that sees 90 degrees across, the square is
+// half the frame across, and in a frame 68 pixels across pixels 25 and 42
+// are the middles of the texels, so lit by ambient alone they're the
+// texels' colours.  The top of the image is at the top.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestVulkanFrameTexture(CVulkanRenderFactory* pcFactory)
+{
+	Ptr<CScene>			pScene;
+	Ptr<CCamera>		pCamera;
+	Ptr<CLight>			pLight;
+	Ptr<CVulkanFrame>	pFrame;
+	SFloat4x4			sWorld;
+	uint32				auiPixels[68 * 68];
+
+	pScene = OMalloc<CScene>();
+	sWorld.Identity();
+	AddTestVulkanInstance(pScene, TestVulkanTexturedSquare(), &sWorld);
+
+	pLight = OMalloc<CLight>();
+	pLight->meType = LT_Ambient;
+	pLight->mfIntensity = 1.0f;
+	pLight->msColour.Init(1.0f, 1.0f, 1.0f, 1.0f);
+	pScene->mapLights.Add(pLight);
+
+	pCamera = OMalloc<CCamera>();
+	pCamera->mfFOV = 3.14159265f / 2.0f;
+	pCamera->mfNear = 0.1f;
+	pCamera->mfFar = 10.0f;
+	pCamera->mpConnection = OMalloc<CConnection>();
+	Float4x4Translation(&pCamera->mpConnection->msWorldMatrix, 0.0f, 0.0f, 2.0f);
+	pScene->mapCameras.Add(pCamera);
+
+	pFrame = OMalloc<CVulkanFrame>(OMalloc<CRenderScene>(pScene, pcFactory, pcFactory->CreateRenderer()), pCamera);
+	AssertTrue(pFrame->Draw(auiPixels, 68, 68, TEST_VULKAN_BACKGROUND));
+	AssertTestVulkanColour(0xFFFF0000, auiPixels[25 * 68 + 25]);
+	AssertTestVulkanColour(0xFF00FF00, auiPixels[25 * 68 + 42]);
+	AssertTestVulkanColour(0xFF0000FF, auiPixels[42 * 68 + 25]);
+	AssertTestVulkanColour(0xFFFFFFFF, auiPixels[42 * 68 + 42]);
+	AssertTestVulkanColour(TEST_VULKAN_BACKGROUND, auiPixels[2 * 68 + 2]);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // With no camera there's nothing to draw.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -381,6 +492,8 @@ void TestVulkanFrame(void)
 		AssertTrue(strlen(pRenderer->GetDeviceName()) > 0);
 		pRenderer = NULL;
 		TestVulkanFrameLikeRaster(&cFactory);
+		ObjectsFlush();
+		TestVulkanFrameTexture(&cFactory);
 		ObjectsFlush();
 		TestVulkanFrameNoCamera(&cFactory);
 	}

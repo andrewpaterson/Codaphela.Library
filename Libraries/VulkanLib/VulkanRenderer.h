@@ -20,15 +20,21 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __VULKAN_RENDERER_H__
 #define __VULKAN_RENDERER_H__
+#include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "RenderLib/Renderer.h"
 #include "VulkanFunctions.h"
+
+
+class CImage;
 
 
 #define VULKAN_COLOUR_FORMAT			VK_FORMAT_B8G8R8A8_UNORM  //A pixel is a uint32 0xAARRGGBB, as CRasterTarget's are.
 #define VULKAN_DEPTH_FORMAT				VK_FORMAT_D32_SFLOAT
 #define VULKAN_MAX_DIRECTIONAL_LIGHTS	8  //As the shaders have.
 #define VULKAN_MAX_POINT_LIGHTS			64
+#define VULKAN_MAX_TEXTURES				1024
 
 
 //A buffer the CPU writes and the GPU reads, kept mapped while it lives.
@@ -48,6 +54,25 @@ struct SVulkanImage
 	VkDeviceMemory	hMemory;
 	VkImageView		hView;
 };
+
+
+//An image the shaders sample, and the descriptor set that gives it them.
+struct SVulkanTexture
+{
+	SVulkanImage	sImage;
+	VkDescriptorSet	hSet;
+};
+
+
+//A texture made from a CImage, found by its object index.
+struct SVulkanTextureEntry
+{
+	OIndex			oiImage;
+	SVulkanTexture	sTexture;
+};
+
+
+typedef CArrayTemplate<SVulkanTextureEntry>	CArrayVulkanTextureEntry;
 
 
 //What the shaders are given for a frame, laid out as they have it (std140).  See Shaders/Mesh.vert.
@@ -77,6 +102,10 @@ struct SVulkanDraw
 //A frame is BeginFrame, then the meshes' draws, then EndFrame, which waits for the GPU and gives the pixels.  So nothing is in
 //flight between frames, and a mesh's buffers are destroyed as soon as it's freed.  Every buffer is in memory the CPU sees and
 //the GPU reads, which is simple and fast enough for now.
+//
+//GetTexture gives the texture of a CImage, made the first time it's asked for, as many meshes share an image, and kept until the
+//renderer is freed.  A texture has no mipmaps yet.  An image it can't make one of, or no image, is white.  At most
+//VULKAN_MAX_TEXTURES are made.
 class CVulkanRenderer : public CRenderer
 {
 CONSTRUCTABLE(CVulkanRenderer);
@@ -97,6 +126,11 @@ protected:
 	VkDescriptorSetLayout				mhSetLayout;
 	VkDescriptorPool					mhDescriptorPool;
 	VkDescriptorSet						mhDescriptorSet;
+	VkDescriptorSetLayout				mhTextureLayout;
+	VkDescriptorPool					mhTexturePool;
+	VkSampler							mhSampler;
+	SVulkanTexture						msWhite;
+	CArrayVulkanTextureEntry			masTextures;
 	VkPipelineLayout					mhPipelineLayout;
 	VkPipeline							mhOpaquePipeline;
 	VkPipeline							mhTransparentPipeline;
@@ -121,11 +155,13 @@ public:
 
 	bool				CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
 	void				DestroyBuffer(SVulkanBuffer* psBuffer);
+	VkDescriptorSet		GetTexture(CImage* pcImage);
 
 	bool				BeginFrame(int32 iWidth, int32 iHeight, uint32 uiBackground, SVulkanFrameData* psFrame);
 	VkCommandBuffer		GetCommands(void);
 	void				UseOpaque(void);
 	void				UseTransparent(void);
+	void				UseTexture(VkDescriptorSet hTexture);
 	void				Draw(SVulkanDraw* psDraw, bool bMirrored, uint32 uiFirstIndex, uint32 uiNumIndices);
 	bool				EndFrame(uint32* puiPixels);
 
@@ -135,6 +171,10 @@ protected:
 	bool				CreateDevice(void);
 	bool				CreateCommands(void);
 	bool				CreateDescriptors(void);
+	bool				CreateTextureDescriptors(void);
+	bool				CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint8* puiRGBA);
+	void				DestroyTexture(SVulkanTexture* psTexture);
+	bool				Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iWidth, int32 iHeight);
 	bool				CreatePipelines(void);
 	VkPipeline			CreatePipeline(VkShaderModule hVertex, VkShaderModule hFragment, bool bTransparent);
 	VkShaderModule		CreateShader(const uint32* puiCode, size uiSize);

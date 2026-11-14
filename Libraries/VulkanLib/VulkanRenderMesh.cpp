@@ -39,6 +39,7 @@ void CVulkanRenderMesh::Init(Ptr<CVulkanRenderer> pRenderer, CCookedMesh* pcCook
 	memset(&msPositions, 0, sizeof(SVulkanBuffer));
 	memset(&msNormals, 0, sizeof(SVulkanBuffer));
 	memset(&msColours, 0, sizeof(SVulkanBuffer));
+	memset(&msUVs, 0, sizeof(SVulkanBuffer));
 	memset(&msIndices, 0, sizeof(SVulkanBuffer));
 	masSubmeshes.Init();
 	mbMade = pRenderer->IsReady() && (pcCooked->NumTriangles() > 0) && Make(&pRenderer, pcCooked);
@@ -57,6 +58,7 @@ void CVulkanRenderMesh::Class(void)
 	U_Data(SVulkanBuffer, msPositions);
 	U_Data(SVulkanBuffer, msNormals);
 	U_Data(SVulkanBuffer, msColours);
+	U_Data(SVulkanBuffer, msUVs);
 	U_Data(SVulkanBuffer, msIndices);
 	U_Unknown(CArrayVulkanSubmesh, masSubmeshes);
 	U_Bool(mbMade);
@@ -77,6 +79,7 @@ void CVulkanRenderMesh::Free(void)
 	if (pRenderer.IsNotNull())
 	{
 		pRenderer->DestroyBuffer(&msIndices);
+		pRenderer->DestroyBuffer(&msUVs);
 		pRenderer->DestroyBuffer(&msColours);
 		pRenderer->DestroyBuffer(&msNormals);
 		pRenderer->DestroyBuffer(&msPositions);
@@ -94,6 +97,7 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 {
 	SVulkanSubmesh*	psSubmesh;
 	SCookedSubmesh*	psCooked;
+	Ptr<CMaterial>	pMaterial;
 	uint32*			puiColours;
 	size			uiNumVertices;
 	size			i;
@@ -102,6 +106,7 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 	if (!pcRenderer->CreateBuffer(&msPositions, uiNumVertices * sizeof(SFloat32Vec3), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) ||
 		!pcRenderer->CreateBuffer(&msNormals, uiNumVertices * sizeof(SFloat32Vec3), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) ||
 		!pcRenderer->CreateBuffer(&msColours, uiNumVertices * sizeof(uint32), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) ||
+		!pcRenderer->CreateBuffer(&msUVs, uiNumVertices * sizeof(SFloat32Vec2), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) ||
 		!pcRenderer->CreateBuffer(&msIndices, pcCooked->mauiIndices.NumElements() * sizeof(uint32), VK_BUFFER_USAGE_INDEX_BUFFER_BIT))
 	{
 		return false;
@@ -110,6 +115,14 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 	memcpy(msPositions.pvMapped, pcCooked->masPositions.GetData(), uiNumVertices * sizeof(SFloat32Vec3));
 	memcpy(msNormals.pvMapped, pcCooked->masNormals.GetData(), uiNumVertices * sizeof(SFloat32Vec3));
 	memcpy(msIndices.pvMapped, pcCooked->mauiIndices.GetData(), pcCooked->mauiIndices.NumElements() * sizeof(uint32));
+	if (pcCooked->HasUVs())
+	{
+		memcpy(msUVs.pvMapped, pcCooked->masUVs.GetData(), uiNumVertices * sizeof(SFloat32Vec2));
+	}
+	else
+	{
+		memset(msUVs.pvMapped, 0, uiNumVertices * sizeof(SFloat32Vec2));
+	}
 	puiColours = (uint32*)msColours.pvMapped;
 	for (i = 0; i < uiNumVertices; i++)
 	{
@@ -124,6 +137,8 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 		psSubmesh->uiNumIndices = psCooked->uiNumIndices;
 		psSubmesh->uiColour = pcCooked->HasColours() ? VULKAN_WHITE : psCooked->uiColour;
 		psSubmesh->bTransparent = psCooked->bTransparent;
+		pMaterial = pcCooked->mapMaterials.Get(i);
+		psSubmesh->hTexture = pcRenderer->GetTexture(pMaterial.IsNull() ? NULL : &pMaterial->GetImage(MI_Diffuse)->mpImage);
 	}
 	return true;
 }
@@ -137,17 +152,16 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 void CVulkanRenderMesh::Bind(void)
 {
 	Ptr<CVulkanRenderer>	pRenderer;
-	VkBuffer				ahBuffers[3];
-	VkDeviceSize			auiOffsets[3];
+	VkBuffer				ahBuffers[4];
+	VkDeviceSize			auiOffsets[4];
 
 	pRenderer = mpRenderer;
 	ahBuffers[0] = msPositions.hBuffer;
 	ahBuffers[1] = msNormals.hBuffer;
 	ahBuffers[2] = msColours.hBuffer;
-	auiOffsets[0] = 0;
-	auiOffsets[1] = 0;
-	auiOffsets[2] = 0;
-	pRenderer->GetFunctions()->vkCmdBindVertexBuffers(pRenderer->GetCommands(), 0, 3, ahBuffers, auiOffsets);
+	ahBuffers[3] = msUVs.hBuffer;
+	memset(auiOffsets, 0, sizeof(auiOffsets));
+	pRenderer->GetFunctions()->vkCmdBindVertexBuffers(pRenderer->GetCommands(), 0, 4, ahBuffers, auiOffsets);
 	pRenderer->GetFunctions()->vkCmdBindIndexBuffer(pRenderer->GetCommands(), msIndices.hBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
