@@ -898,7 +898,21 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 		//specialisations are not looked up by the parser so they are not declared.
 		if (pcName->mpcSymbol && pcComponent && (pcComponent->miName != -1))
 		{
-			Resolve(pcComponent->miName, pcName->mpcSymbol, CPPTR_Declaration);
+			//X::X finds X's injected class name: what it declares is a constructor, which is declared after the class
+			//in the class's own scope.  [class.qual] 2
+			pcSymbol = pcName->mpcSymbol;
+			if (pcDeclarator->IsFunction() && !pcSymbol->IsFunction() && pcSymbol->mpcMembers && IsConstructorName(pcName))
+			{
+				for (pcType = pcSymbol->mpcNext; pcType; pcType = pcType->mpcNext)
+				{
+					if (pcType->IsFunction() && (pcType->mpcScope == pcSymbol->mpcMembers))
+					{
+						pcSymbol = pcType;
+						break;
+					}
+				}
+			}
+			Resolve(pcComponent->miName, pcSymbol, CPPTR_Declaration);
 		}
 		return pcName->mpcSymbol;
 	}

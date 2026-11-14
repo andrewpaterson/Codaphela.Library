@@ -238,6 +238,67 @@ void Reset()\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A constructor defined outside its class, CTank::CTank(int), is that
+// constructor's definition (its name finds the class's own name in the
+// class, which isn't what is declared): each overload's, by its
+// parameters.  The class named before the :: is a use of the class.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexConstructorDefinitions(void)
+{
+	CCPPIndex			cIndex;
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexLocation*	psLocation;
+
+	cIndex.Init();
+	IndexText(&cIndex, "A.cpp", "\
+class CTank\n\
+{\n\
+public:\n\
+	int	miSize;\n\
+	CTank(void);\n\
+	CTank(int iSize);\n\
+	void Init(void);\n\
+};\n\
+CTank::CTank(void) : miSize(0)\n\
+{\n\
+}\n\
+CTank::CTank(int iCapacity) : miSize(iCapacity)\n\
+{\n\
+}\n\
+void CTank::Init(void)\n\
+{\n\
+}\n");
+
+	pcSymbol = cIndex.FindSymbol("CTank::CTank()");
+	AssertNotNull(pcSymbol);
+	AssertInt(CPPSK_Function, pcSymbol->meKind);
+	AssertSize(2, pcSymbol->NumLocations());
+	AssertNotNull(pcSymbol->GetDeclaration());
+	psLocation = pcSymbol->GetDefinition();
+	AssertNotNull(psLocation);
+	AssertInt(8, psLocation->iLine);
+	AssertInt(7, psLocation->iColumn);
+
+	pcSymbol = cIndex.FindSymbol("CTank::CTank(int)");
+	AssertNotNull(pcSymbol);
+	AssertSize(2, pcSymbol->NumLocations());
+	psLocation = pcSymbol->GetDefinition();
+	AssertNotNull(psLocation);
+	AssertInt(11, psLocation->iLine);
+	AssertInt(7, psLocation->iColumn);
+
+	//The class: its definition, and the three names before a ::.
+	pcSymbol = cIndex.FindSymbol("CTank");
+	AssertNotNull(pcSymbol);
+	AssertSize(4, pcSymbol->NumLocations());
+
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // With the semantic pass, members named through objects (pc->Init(1),
 // c.miCount) are references, and a call is the one overload the
 // argument types pick.  A statement it can't type doesn't stop the
@@ -1730,6 +1791,7 @@ void TestCppIndex(void)
 
 	TestCppIndexUnits();
 	TestCppIndexSignatures();
+	TestCppIndexConstructorDefinitions();
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassQueued();
 	TestCppSemanticPassHost();
