@@ -293,6 +293,11 @@ Stage 5, a call, a name and a member are resolved once; then the checkpoint.
       class's conversion function, a converting constructor) is the binder's answer, read by both walkers.
   12. Making an object is bound once: which constructor, the default one that may not be there, or an
       aggregate's fields in order.
+   Both are done (2026-11-14; 11a4dc519 and 55fb7aa9c): the listings are the same on both processors and
+   TestCppCompilerLib passes (267,073).  Step 11 found the walkers disagreeing again: the front end converted
+   an object's value where it couldn't know what asked, so it allowed an explicit conversion function
+   everywhere and could call a different one from the type checker's choice.  It asks the binder now, in the
+   same places the type checker does; TestCPPOverloads has the case.  Step 12 found no disagreement.
    What stage 6 would also have given is given up: the two walks stay two, TypeOf and its map stay, the
    front end keeps its Unsupported exits (none is taken in any suite), and the IDE's check stays the type
    checker's.
