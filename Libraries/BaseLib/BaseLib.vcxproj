@@ -626,6 +626,7 @@
     <ClInclude Include="ValueSequenceConfig.h" />
     <ClInclude Include="XMLFile.h" />
     <ClInclude Include="XMLWriter.h" />
+    <ClInclude Include="RecentFiles.h" />
     <ClInclude Include="FunctionCaller.h" />
     <ClInclude Include="Calculator.h" />
     <ClInclude Include="CalcBinaryExpression.h" />
@@ -1017,6 +1018,7 @@
     <ClCompile Include="ValueSequenceConfig.cpp" />
     <ClCompile Include="XMLFile.cpp" />
     <ClCompile Include="XMLWriter.cpp" />
+    <ClCompile Include="RecentFiles.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
     <ClCompile Include="Calculator.cpp" />
     <ClCompile Include="CalcBinaryExpression.cpp" />

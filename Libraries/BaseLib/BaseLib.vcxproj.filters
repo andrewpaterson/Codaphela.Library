@@ -1230,6 +1230,9 @@
     <ClInclude Include="XMLWriter.h">
       <Filter>Source\File\XML</Filter>
     </ClInclude>
+    <ClInclude Include="RecentFiles.h">
+      <Filter>Source\File\XML</Filter>
+    </ClInclude>
     <ClInclude Include="FunctionCaller.h">
       <Filter>Source\Function</Filter>
     </ClInclude>
@@ -2433,6 +2436,9 @@
       <Filter>Source\File\XML</Filter>
     </ClCompile>
     <ClCompile Include="XMLWriter.cpp">
+      <Filter>Source\File\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="RecentFiles.cpp">
       <Filter>Source\File\XML</Filter>
     </ClCompile>
     <ClCompile Include="FunctionCaller.cpp">

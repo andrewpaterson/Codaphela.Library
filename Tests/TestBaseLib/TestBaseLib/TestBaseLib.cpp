@@ -145,6 +145,7 @@ void TestJSONParser(void);
 void TestXMLParser(void);
 void TestXMLFile(void);
 void TestXMLWriter(void);
+void TestRecentFiles(void);
 void TestQuaternion(void);
 void TestLogFile(void);
 void TestDurableFile(void);
@@ -349,6 +350,7 @@ int __cdecl main(void)
 	TestXMLParser();
 	TestXMLFile();
 	TestXMLWriter();
+	TestRecentFiles();
 	TestQuaternion();
 	TestFloatPrinter();
 	TestFunctionCaller();
