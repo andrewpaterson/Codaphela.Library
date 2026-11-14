@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_MANGLER_H__
 #define __C_P_P_MANGLER_H__
 #include "BaseLib/Chars.h"
-#include "CPPTokeniser.h"
+#include "CppTokeniser.h"
 #include "CPPScope.h"
 #include "CPP65Type.h"
 #include "CPPVariable.h"
