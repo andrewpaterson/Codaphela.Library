@@ -201,6 +201,30 @@ bool CCommandSet::BindKeys(CComponentInput* pcInput)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The command goes, its keys taken back from pcInput (NULL if they were
+// never bound), as a command for something that's gone does.  False if
+// there's no such command.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCommandSet::Remove(const char* szName, CComponentInput* pcInput)
+{
+	Ptr<CCommand>	pCommand;
+
+	pCommand = Find(szName);
+	if (pCommand.IsNull())
+	{
+		return false;
+	}
+	if (pcInput != NULL)
+	{
+		pCommand->Unbind(pcInput);
+	}
+	return maCommands.Remove(pCommand);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every command has the keys it was made with, once they're next bound.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -61,6 +61,7 @@ public:
 	template<class M, class O>
 	Ptr<CCommand>		Add(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(CCommand*));
 	Ptr<CCommand>		Add(Ptr<CCommand> pCommand);
+	bool				Remove(const char* szName, CComponentInput* pcInput);
 	Ptr<CCommand>		Find(const char* szName);
 	Ptr<CCommand>		FindKeys(const char* szKeys, const char* szContext = NULL);
 	size				NumCommands(void);
