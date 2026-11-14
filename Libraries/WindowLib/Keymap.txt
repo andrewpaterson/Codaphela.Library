@@ -1,0 +1,82 @@
+Keymap Contexts Plan
+====================
+
+Keys that mean different things in different parts of a window.  WindowLib's commands (CCommand, CCommandSet) and the
+keymap (Settings' Keymap, CKeymapPage) only know keys that work everywhere (CKS_Application, CKS_Window) and keys an
+editor takes (CKS_Editor), and only let a user give keys with Ctrl or Alt.  LogiCim's circuit canvas has bare keys
+(Logicim's: A places an AND gate, N an inverter, r rotates, m moves), which are hard-coded in
+CCircuitCanvas::Printable, outside the commands and the keymap, so they can't be seen or changed.  Its subcircuits
+can't be placed by a key at all.
+
+
+Decided (user, 2026-11-14)
+--------------------------
+
+- Contexts are real: what a key does depends on the focused component, and on the component under the pointer.
+- Hover and focus: over a context that takes bare keys (the circuit canvas), its keys work wherever the focus is,
+  unless the focus is in a text field, which keeps typing.  Elsewhere the focused component decides.
+- Fallback: a key not bound in the current context is looked for in the contexts around it, out to the global keys
+  (canvas, then window, then global), as IntelliJ IDEA's editor keymap falls back to its main one.  The innermost
+  binding wins.
+- Subcircuits can be placed by a key.  Every subcircuit that can go in the circuit being edited is a command, with no
+  key until one is given (in the component chooser or the keymap).
+- A subcircuit's key is kept in the project file, so it goes with the project and follows a rename.  A key the user's
+  keymap also gives is reported when the project loads.
+
+
+Open (for the user to think about)
+----------------------------------
+
+Each with the recommendation, to be decided before it's built.
+
+3. Where keys are changed.  Settings' Keymap works on copies, applied by OK; LogiCim's component chooser would change
+   a component's keys there and then.  Recommended: one set of rules (the keymap's, shared, as CheckCommandKeys began
+   to be), applied and saved by both through one path; the keymap page reads the keys afresh when it opens, and the
+   chooser can't be open while it is (both are modal).
+
+4. How bare keys are shown.  Menus show a command's first key.  Recommended: a menu shows the command's global key if
+   it has one, else its context key with the context ("R" for Rotate Left, shown as on the canvas in the keymap and
+   as plain R in the menu, since the menu is opened from the canvas's window).
+
+5. Conflicts across contexts.  "A key belongs to one command" becomes "a key belongs to one command in each context":
+   R can rotate on the canvas while Ctrl+R does something else everywhere, and a canvas key shadows a global one only
+   over the canvas.  Recommended: the keymap says when a context key shadows a global key ("R is Rotate Left over the
+   circuit; elsewhere it's ..."), and refuses nothing for it.
+
+6. The HCP65 IDE.  Recommended: it moves onto the same contexts.  Its editor keys (CKS_Editor) become the editor
+   context, with the global keys around it, and nothing changes for its users.
+
+
+Words
+-----
+
+Context     Where a key's binding is looked for: global (the whole window), a window's own, a component's (the circuit
+            canvas, a code editor).  Contexts nest; the focused or hovered component's context is the innermost.
+Binding     A key given to a command in a context.  A command can have keys in more than one context (R over the
+            canvas and Ctrl+R everywhere, say).
+Bare key    A key without Ctrl or Alt, which types a character in a text field.  Only a context that takes them (the
+            canvas) can bind them.
+
+
+Still to work out in the design
+-------------------------------
+
+- How a context is named, declared by a component and found from the focus and the pointer (CComponentInput's key
+  path); the canvas taking bare keys only while no text field is focused.
+- How a command declares its contexts and default keys per context, and how Keymap.xml records them (it records keys
+  by command now, which stays readable).
+- The keymap page's list with contexts: a column for where each key works, or a key per context.
+- Subcircuit commands in the project file: made and removed as subcircuits are, named by circuit not by the user's
+  name for them, and how they reach the command set and the keymap while the project is open.
+- LogiCim's canvas keys moved from CCircuitCanvas::Printable onto commands: placing each library component, rotate,
+  flip, properties and move.
+- The component chooser's Shortcut line above the preview: the selected component's keys, with Add Shortcut and
+  Remove, through the shared rules.
+
+
+Where it stands
+---------------
+
+A first attempt at a canvas scope (CKS_Canvas, the keymap allowing bare keys for it, and the Add Shortcut dialog taking
+a describer instead of the keymap page) is in CommonLibraries' git stash, "Partial CKS_Canvas key scope, set aside for
+the keymap contexts design".  It hasn't been built.
