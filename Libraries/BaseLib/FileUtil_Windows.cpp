@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifdef _WIN32
 #include <stdio.h>
+#include <string.h>
 #include "WindowsHeaders.h"
 #include <shlobj.h>
 #include "Logger.h"
@@ -379,6 +380,30 @@ bool CFileUtil::HomeDirectory(CChars* szDest)
 #ifdef _MSC_VER
 #pragma comment(lib, "shell32.lib")
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every drive's root, "C:\" and so on, in letter order, whether or not
+// there's anything in it (an empty card reader is listed).
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileUtil::FindRootDirectories(CArrayChars* paszRoots)
+{
+	char	szDrives[512];
+	char*	szDrive;
+	DWORD	uiLength;
+
+	uiLength = GetLogicalDriveStringsA(sizeof(szDrives) - 1, szDrives);
+	if ((uiLength == 0) || (uiLength >= sizeof(szDrives) - 1))
+	{
+		return;
+	}
+	for (szDrive = szDrives; *szDrive != 0; szDrive += strlen(szDrive) + 1)
+	{
+		paszRoots->Add(szDrive);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
