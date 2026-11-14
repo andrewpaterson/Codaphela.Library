@@ -545,7 +545,8 @@ bool CPointer::IsEqual(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 CPointer* CPointer::This(void)
 {
-	//This method should only *ever* be called whilst in the Load method on a CObject
+	//The pointer's own address.  operator& gives the address of the object pointed to, so M_Pointer in a Class() and
+	//anything else that needs the CPointer itself uses this.
 	return this;
 }
 

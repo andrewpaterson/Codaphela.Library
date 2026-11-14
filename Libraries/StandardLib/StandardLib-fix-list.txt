@@ -6,7 +6,6 @@ Everything still to fix in StandardLib after the code review, numbered for refer
 
 F. Hygiene: names, comments, typos, dead code
 ---------------------------------------------
-F28. [234] CPointer::This()'s "should only *ever* be called whilst in the Load method" comment is stale.
 F33. [257] for (...; bResult && ...) loops whose bodies already return; the "Could not save object" error logs GetName() (empty for unnamed) instead of the index.
 F49. [387] Validation messages: "should have ObjectsThisIn [NULL] set" reads backwards; the OBJECT_FLAGS_CALLED_ALLOCATE message is hard to parse.
 F50. [388] EmbeddedObjectValidate's two "does not have a from pointing to" messages are for opposite failures.
