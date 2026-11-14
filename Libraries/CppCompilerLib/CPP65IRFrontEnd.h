@@ -36,6 +36,7 @@ class CIROptimiser;
 
 
 class CCPPUnit;
+class CCPPBoundCall;
 class CCPPFunction;
 class CCPPVariable;
 struct SCPPVtableEntry;
@@ -337,6 +338,7 @@ protected:
 	bool			FieldPlace(SIRReference sObject, CCPPClass* pcClass, int64 lliName, CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace);
 	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
 	bool			OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue);
+	bool			BoundOperatorCall(CCPPBoundCall* pcBound, ECppTokens eOperator, SCPP65IRValue* psValue);
 	bool			OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue);
 	bool			IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscript);
 	bool			ArrayValue(CCPPSyntax* pcArray, SCPP65IRValue* psPointer, SCPP65Type** ppsArray);

@@ -64,6 +64,11 @@ public:
 	bool				mbArrow;		//The object is the left of ->.
 	bool				mbVirtual;		//A virtual function is called through the vtable: not for a named object or a qualified name.
 
+	//An operator's call: what was asked, so that it is the same question that is remembered.
+	CCPPSyntax*			mpcLeft;		//The left operand, or the only one; the object for an operator of its own.
+	CCPPSyntax*			mpcRight;		//The right operand or the argument, or NULL.
+	bool				mbOwnOnly;		//Only the object's own operator was looked for (BindOwnOperator).
+
 	//Where it was bound: the same call in another instance of a template is another call.
 	CCPPTemplateArguments*	mpcBindings;
 	CCPPFunction*			mpcIn;
@@ -78,22 +83,30 @@ typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 //Binds calls.  [expr.call]  It has the one cascade that says what a call is: a member's, a template's instance, a
 //builtin, a function found by its name or by its arguments' namespaces, or a pointer's.  A call bound once is
 //remembered for the template arguments and the function it is in; one that failed is bound again when it is
-//asked for with its errors wanted, so they are reported again.
+//asked for with its errors wanted, so they are reported again.  An operator with an object for an operand is a
+//call as well (BindOperator: the left operand's own operator function if one fits, or else one that is no
+//class's; BindOwnOperator: the object's own, for [], -> and what must be a member).
 class CCPPCallBinder
 {
 protected:
 	CCPPUnit*			mpcUnit;
 	CMapCPPBoundCalls	mcBound;
+	CMapCPPBoundCalls	mcOperators;	//By left operand.
 
 public:
 	void	Init(CCPPUnit* pcUnit);
 	void	Kill(void);
 
 	bool	Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport);
+	bool	BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
+	bool	BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 
 protected:
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);
+	void	ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);
+	void	ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);
 };
 
 

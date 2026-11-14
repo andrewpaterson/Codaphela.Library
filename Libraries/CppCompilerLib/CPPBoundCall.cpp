@@ -37,6 +37,9 @@ void CCPPBoundCall::Init(void)
 	mpcClass = NULL;
 	mbArrow = false;
 	mbVirtual = false;
+	mpcLeft = NULL;
+	mpcRight = NULL;
+	mbOwnOnly = false;
 	mpcBindings = NULL;
 	mpcIn = NULL;
 }
@@ -50,6 +53,7 @@ void CCPPCallBinder::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	mcBound.Init(true);
+	mcOperators.Init(true);
 }
 
 
@@ -59,6 +63,7 @@ void CCPPCallBinder::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPCallBinder::Kill(void)
 {
+	mcOperators.Kill();
 	mcBound.Kill();
 	mpcUnit = NULL;
 }
@@ -437,5 +442,177 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 	pcBound->meHow = CPPBC_Member;
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mbVirtual = bVirtual;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// left op right, or op left when pcRight is NULL, where an operand is an object:
+// the left object's own operator function if it has one that fits (CPPBC_Member, on
+// pcBound->mpcObject), or else an operator function that is no class's, declared or a
+// template's instance (CPPBC_Function, whose arguments are the operands).  False,
+// with no error of its own, if neither fits.  [over.match.oper]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport)
+{
+	return BindAnOperator(eOperator, pcLeft, pcRight, pcNode, pcBound, bReport, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object op argument (pcArgument NULL for none) as a call of the object's own
+// operator function: object[index], object->, and an operator that must be a member.
+// False with an error if it has none that fits.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport)
+{
+	return BindAnOperator(eOperator, pcObject, pcArgument, pcNode, pcBound, bReport, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Either, remembered by its left operand for the same question asked again.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly)
+{
+	CCPPBoundCall*	pcRemembered;
+	int64			lliName;
+
+	lliName = mpcUnit->GetOperatorName(eOperator, false);
+	mpcUnit->GetStatistics()->Count(CPPCC_BoundCalls);
+	pcRemembered = mcOperators.Get((int64)(size)pcLeft);
+	if (pcRemembered && (pcRemembered->mpcLeft == pcLeft) && (pcRemembered->mpcRight == pcRight) && (pcRemembered->mlliName == lliName) && (pcRemembered->mbOwnOnly == bOwnOnly) &&
+		(pcRemembered->mpcBindings == mpcUnit->GetContext()->GetBindings()) && (pcRemembered->mpcIn == mpcUnit->GetContext()->GetFunction()))
+	{
+		if ((pcRemembered->meHow != CPPBC_Failed) || !bReport)
+		{
+			*pcBound = *pcRemembered;
+			return pcBound->meHow != CPPBC_Failed;
+		}
+	}
+
+	mpcUnit->GetStatistics()->Count(CPPCC_BoundCallsResolved);
+	pcBound->Init();
+	pcBound->mpcBindings = mpcUnit->GetContext()->GetBindings();
+	pcBound->mpcIn = mpcUnit->GetContext()->GetFunction();
+	pcBound->mpcLeft = pcLeft;
+	pcBound->mpcRight = pcRight;
+	pcBound->mlliName = lliName;
+	pcBound->mbOwnOnly = bOwnOnly;
+	if (bOwnOnly)
+	{
+		ResolveOwnOperator(pcNode, pcBound);
+	}
+	else
+	{
+		ResolveOperator(pcNode, pcBound);
+	}
+	mcOperators.Put((int64)(size)pcLeft, pcBound);
+	return pcBound->meHow != CPPBC_Failed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCallBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
+{
+	SCPP65Type*		psType;
+	CCPPFunction*	pcFunction;
+	CArraySyntax	apcArguments;
+	size			uiErrors;
+
+	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
+	apcArguments.Init();
+	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mpcUnit->HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
+	{
+		if (pcBound->mpcRight)
+		{
+			apcArguments.Add(pcBound->mpcRight);
+		}
+
+		//That none of its own fits is no error: one that is no class's may.
+		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		mpcUnit->BeginQuiet();
+		pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
+		mpcUnit->EndQuiet();
+		mpcUnit->GetErrors()->Truncate(uiErrors);
+		if (pcFunction)
+		{
+			apcArguments.Kill();
+			pcBound->meHow = CPPBC_Member;
+			pcBound->mpcFunction = pcFunction;
+			pcBound->mpcObject = pcBound->mpcLeft;
+			pcBound->mpcClass = psType->pcClass;
+			pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
+			return;
+		}
+		apcArguments.ReInit();
+	}
+
+	//operator op(left, right), declared or from a function template.
+	apcArguments.Add(pcBound->mpcLeft);
+	if (pcBound->mpcRight)
+	{
+		apcArguments.Add(pcBound->mpcRight);
+	}
+	pcFunction = mpcUnit->GetOverloads()->FindFreeOperator(pcBound->mlliName, &apcArguments, pcNode);
+	apcArguments.Kill();
+	if (pcFunction)
+	{
+		pcBound->meHow = CPPBC_Function;
+		pcBound->mpcFunction = pcFunction;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCallBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
+{
+	SCPP65Type*		psType;
+	CCPPFunction*	pcFunction;
+	CArraySyntax	apcArguments;
+	size			uiErrors;
+
+	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
+	if (!psType || !psType->IsClass())
+	{
+		mpcUnit->Error(pcNode, "An operator call needs an object");
+		return;
+	}
+	if (!mpcUnit->CompleteClass(psType->pcClass, pcNode))
+	{
+		return;
+	}
+	apcArguments.Init();
+	if (pcBound->mpcRight)
+	{
+		apcArguments.Add(pcBound->mpcRight);
+	}
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
+	apcArguments.Kill();
+	if (!pcFunction)
+	{
+		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		{
+			mpcUnit->Error(pcNode, "The class has no operator for this");
+		}
+		return;
+	}
+	pcBound->meHow = CPPBC_Member;
+	pcBound->mpcFunction = pcFunction;
+	pcBound->mpcObject = pcBound->mpcLeft;
+	pcBound->mpcClass = psType->pcClass;
+	pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
 }
 

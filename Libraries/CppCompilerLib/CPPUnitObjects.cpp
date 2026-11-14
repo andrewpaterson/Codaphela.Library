@@ -172,38 +172,20 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 {
-	CArraySyntax	apcArguments;
-	SCPP65Type*		psType;
-	CCPPFunction*	pcFunction;
-	int64			lliName;
+	CCPPBoundCall	cBound;
 	size			uiErrors;
+	bool			bOverloaded;
 
 	if (!IsObject(pcBinary->mpcLeft) && !IsObject(pcBinary->mpcRight))
 	{
 		return false;
 	}
-	lliName = GetOperatorName(CT_Comma, false);
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
-	pcFunction = NULL;
-	psType = ValueTypeOf(pcBinary->mpcLeft);
-	apcArguments.Init();
-	if (psType && psType->IsClass() && CompleteClass(psType->pcClass, NULL) && HasOperator(psType->pcClass, lliName, 1))
-	{
-		apcArguments.Add(pcBinary->mpcRight);
-		pcFunction = mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcBinary, CPPCalledObject(IsConstObject(pcBinary->mpcLeft)));
-		apcArguments.ReInit();
-	}
-	if (!pcFunction)
-	{
-		apcArguments.Add(pcBinary->mpcLeft);
-		apcArguments.Add(pcBinary->mpcRight);
-		pcFunction = mcOverloads.FindFreeOperator(lliName, &apcArguments, pcBinary);
-	}
-	apcArguments.Kill();
+	bOverloaded = mcCalls.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
-	return pcFunction != NULL;
+	return bOverloaded;
 }
 
 

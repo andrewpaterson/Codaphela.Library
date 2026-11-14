@@ -829,29 +829,51 @@ bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, CCPPClas
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue)
 {
-	SCPP65Type*		psType;
-	CCPPFunction*	pcFunction;
-	CArraySyntax	apcArguments;
-	bool			bResult;
+	CCPPBoundCall	cBound;
 
-	psType = mpcUnit->ValueTypeOf(pcObject);
-	if (!psType || !psType->IsClass() || !mpcUnit->CompleteClass(psType->pcClass, pcObject))
+	if (!mpcUnit->GetCalls()->BindOwnOperator(eOperator, pcObject, pcArgument, pcObject, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	return BoundOperatorCall(&cBound, eOperator, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bound operator's call: of the object's own operator function, on the object, or
+// of one that is no class's, with the operands for arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::BoundOperatorCall(CCPPBoundCall* pcBound, ECppTokens eOperator, SCPP65IRValue* psValue)
+{
+	CArraySyntax	apcArguments;
+	bool			bResult;
+
 	apcArguments.Init();
-	if (pcArgument)
+	if (pcBound->meHow == CPPBC_Function)
 	{
-		apcArguments.Add(pcArgument);
+		apcArguments.Add(pcBound->mpcLeft);
+		if (pcBound->mpcRight)
+		{
+			apcArguments.Add(pcBound->mpcRight);
+		}
+		bResult = Call(pcBound->mpcFunction, FunctionSymbol(pcBound->mpcFunction), NULL, &apcArguments, psValue);
+		apcArguments.Kill();
+		return bResult;
 	}
-	pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, mpcUnit->GetOperatorName(eOperator, false), &apcArguments, pcObject, CPPCalledObject(mpcUnit->IsConstObject(pcObject)));
-	if (!pcFunction || pcFunction->mbStatic)
+	if (pcBound->mpcFunction->mbStatic)
 	{
 		apcArguments.Kill();
 		return Unsupported(__FILE__, __LINE__);
 	}
+	if (pcBound->mpcRight)
+	{
+		apcArguments.Add(pcBound->mpcRight);
+	}
+
 	//a = b and a op= b work out b first, other operators their left first, as the built in ones do.  [over.match.oper] 2
-	bResult = Call(pcFunction, FunctionSymbol(pcFunction), NULL, &apcArguments, psValue, pcObject, false, psType->pcClass, mpcUnit->SkipParentheses(pcObject)->GetKind() != CPPS_IdExpression,
+	bResult = Call(pcBound->mpcFunction, FunctionSymbol(pcBound->mpcFunction), NULL, &apcArguments, psValue, pcBound->mpcObject, false, pcBound->mpcClass, pcBound->mbVirtual,
 				   IRNone(), mpcUnit->IsAssignmentOperator(eOperator));
 	apcArguments.Kill();
 	return bResult;

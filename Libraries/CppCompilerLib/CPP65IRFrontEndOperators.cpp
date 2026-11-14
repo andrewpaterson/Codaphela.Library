@@ -830,43 +830,11 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue)
 {
-	SCPP65Type*		psType;
-	CCPPFunction*	pcFunction;
-	CArraySyntax	apcArguments;
-	int64			lliName;
-	bool			bResult;
+	CCPPBoundCall	cBound;
 
-	lliName = mpcUnit->GetOperatorName(eOperator, false);
-	psType = mpcUnit->ValueTypeOf(pcLeft);
-	apcArguments.Init();
-	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, NULL) && mpcUnit->HasOperator(psType->pcClass, lliName, pcRight ? 1 : 0))
+	if (!mpcUnit->GetCalls()->BindOperator(eOperator, pcLeft, pcRight, pcLeft, &cBound, false))
 	{
-		if (pcRight)
-		{
-			apcArguments.Add(pcRight);
-		}
-		pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, lliName, &apcArguments, pcLeft, CPPCalledObject(mpcUnit->IsConstObject(pcLeft)));
-		apcArguments.Kill();
-		if (pcFunction)
-		{
-			return OperatorCall(pcLeft, eOperator, pcRight, psValue);
-		}
-		apcArguments.Init();
-	}
-
-	//operator op(left, right), declared or from a function template.
-	apcArguments.Add(pcLeft);
-	if (pcRight)
-	{
-		apcArguments.Add(pcRight);
-	}
-	pcFunction = mpcUnit->GetOverloads()->FindFreeOperator(lliName, &apcArguments, pcLeft);
-	if (!pcFunction)
-	{
-		apcArguments.Kill();
 		return Unsupported(__FILE__, __LINE__);
 	}
-	bResult = Call(pcFunction, FunctionSymbol(pcFunction), NULL, &apcArguments, psValue);
-	apcArguments.Kill();
-	return bResult;
+	return BoundOperatorCall(&cBound, eOperator, psValue);
 }

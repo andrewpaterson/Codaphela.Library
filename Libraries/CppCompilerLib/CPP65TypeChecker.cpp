@@ -1555,27 +1555,13 @@ SCPP65Type* CCPP65TypeChecker::ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pc
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
-	SCPP65Type*		psType;
-	CCPPFunction*	pcFunction;
-	size			uiErrors;
+	CCPPBoundCall	cBound;
 
-	psType = mpcUnit->TypeOf(pcObject);
-	if (!psType || !psType->IsClass())
+	if (!mpcUnit->GetCalls()->BindOwnOperator(eOperator, pcObject, (papcArguments->NumElements() > 0) ? papcArguments->GetPtr(0) : NULL, pcNode, &cBound, true))
 	{
-		Error(pcNode, "An operator call needs an object");
 		return NULL;
 	}
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, mpcUnit->GetOperatorName(eOperator, false), papcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcObject)));
-	if (!pcFunction)
-	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
-		{
-			Error(pcNode, "The class has no operator for this");
-		}
-		return NULL;
-	}
-	return ObjectCall(pcObject, pcFunction, papcArguments, pcNode);
+	return ObjectCall(pcObject, cBound.mpcFunction, papcArguments, pcNode);
 }
 
 
@@ -1588,48 +1574,25 @@ SCPP65Type* CCPP65TypeChecker::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOp
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode)
 {
-	SCPP65Type*			psType;
-	CCPPFunction*		pcFunction;
-	CArraySyntax		apcArguments;
-	int64				lliName;
-	size				uiErrors;
+	CCPPBoundCall	cBound;
+	SCPP65Type*		psType;
+	CArraySyntax	apcArguments;
 
-	lliName = mpcUnit->GetOperatorName(eOperator, false);
-	psType = mpcUnit->ValueTypeOf(pcLeft);
-	apcArguments.Init();
-	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mpcUnit->HasOperator(psType->pcClass, lliName, pcRight ? 1 : 0))
+	if (!mpcUnit->GetCalls()->BindOperator(eOperator, pcLeft, pcRight, pcNode, &cBound, true))
 	{
-		if (pcRight)
-		{
-			apcArguments.Add(pcRight);
-		}
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		mpcUnit->BeginQuiet();
-		pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, lliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcLeft)));
-		mpcUnit->EndQuiet();
-		mpcUnit->GetErrors()->Truncate(uiErrors);
-		if (pcFunction)
-		{
-			psType = OperatorCall(pcLeft, eOperator, &apcArguments, pcNode);
-			apcArguments.Kill();
-			return psType;
-		}
-		apcArguments.ReInit();
+		Error(pcNode, "No operator matches the operands");
+		return NULL;
 	}
-
-	apcArguments.Add(pcLeft);
+	apcArguments.Init();
+	if (cBound.meHow == CPPBC_Function)
+	{
+		apcArguments.Add(pcLeft);
+	}
 	if (pcRight)
 	{
 		apcArguments.Add(pcRight);
 	}
-	pcFunction = mpcUnit->GetOverloads()->FindFreeOperator(lliName, &apcArguments, pcNode);
-	if (!pcFunction)
-	{
-		Error(pcNode, "No operator matches the operands");
-		apcArguments.Kill();
-		return NULL;
-	}
-	psType = Call(pcFunction, &apcArguments, pcNode);
+	psType = (cBound.meHow == CPPBC_Function) ? Call(cBound.mpcFunction, &apcArguments, pcNode) : ObjectCall(pcLeft, cBound.mpcFunction, &apcArguments, pcNode);
 	apcArguments.Kill();
 	return psType;
 }
