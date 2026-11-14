@@ -20,7 +20,10 @@ int __cdecl main(int argc, char** argv)
 {
 	int	iTotalTestsFailed;
 
-	TestProject65ChooseTarget(argc, argv);
+	if (!TestProject65ChooseTarget(argc, argv))
+	{
+		return 2;
+	}
 	BreakOnAllocation(0);
 	InitTotalStatistics();
 

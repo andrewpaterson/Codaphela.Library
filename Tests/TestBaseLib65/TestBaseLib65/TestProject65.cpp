@@ -968,12 +968,30 @@ void TestProject65RunTests(STestProject65* psProject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The 65C64 unless the test's command line is "W65C816" (or "816" for
-// short).
+// The target the test's command line names: "W65C816" (or "816" for
+// short), or "65C64" or nothing for the 65C64.  False, having said what
+// it takes, for anything else: the tests aren't run on a target that
+// wasn't asked for.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestProject65ChooseTarget(int argc, char** argv)
+bool TestProject65ChooseTarget(int argc, char** argv)
 {
-	geTestProject65Target = ((argc > 1) && ((strcmp(argv[1], "W65C816") == 0) || (strcmp(argv[1], "816") == 0))) ? CPPT_W65C816 : CPPT_65C64;
+	if (argc <= 1)
+	{
+		geTestProject65Target = CPPT_65C64;
+		return true;
+	}
+	if ((argc == 2) && ((strcmp(argv[1], "W65C816") == 0) || (strcmp(argv[1], "816") == 0)))
+	{
+		geTestProject65Target = CPPT_W65C816;
+		return true;
+	}
+	if ((argc == 2) && (strcmp(argv[1], "65C64") == 0))
+	{
+		geTestProject65Target = CPPT_65C64;
+		return true;
+	}
+	fprintf(stderr, "%s: unknown argument \"%s\".  Give W65C816 (or 816) for the W65C816, or 65C64 or nothing for the 65C64.\n", argv[0], (argc == 2) ? argv[1] : argv[2]);
+	return false;
 }
 

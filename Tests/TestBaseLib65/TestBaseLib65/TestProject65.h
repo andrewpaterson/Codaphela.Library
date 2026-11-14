@@ -23,7 +23,7 @@ extern ECPPTarget	geTestProject65Target;
 
 
 void TestProject65RunTests(STestProject65* psProject);
-void TestProject65ChooseTarget(int argc, char** argv);
+bool TestProject65ChooseTarget(int argc, char** argv);
 
 
 #endif // __TEST_PROJECT_65_H__
