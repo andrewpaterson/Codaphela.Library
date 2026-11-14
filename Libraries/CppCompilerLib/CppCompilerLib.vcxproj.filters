@@ -168,6 +168,9 @@
     <ClCompile Include="CPPClassLayout.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPMangler.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPTemplate.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -966,6 +969,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPClassLayout.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPMangler.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPTemplate.h">

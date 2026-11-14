@@ -525,7 +525,7 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 	}
 	mpcGenerator->EnsureVtable(pcClass);
 	szLabel.Init();
-	mpcGenerator->AppendVtableLabel(&szLabel, pcClass);
+	mpcGenerator->mcMangler.AppendVtableLabel(&szLabel, pcClass);
 	sLabel = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	if (pcClass->mlliName < 0)
@@ -587,11 +587,11 @@ void CCPP65IRFrontEnd::DescribeVtable(CArrayCPPVtableEntries* pasEntries, CCPPCl
 		if (psEntry->eKind == CPPVE_Header)
 		{
 			pcVtable->AddValue(IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), (uint64)(int64)(-psEntry->iVtablePointer));
-			mpcGenerator->AppendTypeInfoLabel(&szLabel, pcClass);
+			mpcGenerator->mcMangler.AppendTypeInfoLabel(&szLabel, pcClass);
 		}
 		else
 		{
-			mpcGenerator->AppendVtableEntryLabel(&szLabel, psEntry->pcFunction, psEntry->iAdjust);
+			mpcGenerator->mcMangler.AppendVtableEntryLabel(&szLabel, psEntry->pcFunction, psEntry->iAdjust);
 		}
 		pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
 		szLabel.Kill();

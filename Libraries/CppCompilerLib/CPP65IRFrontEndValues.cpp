@@ -1194,7 +1194,7 @@ SIRReference CCPP65IRFrontEnd::FunctionSymbol(CCPPFunction* pcFunction)
 
 	mpcGenerator->RequireFunction(pcFunction);
 	szLabel.Init();
-	mpcGenerator->AppendFunctionLabel(&szLabel, pcFunction);
+	mpcGenerator->mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	MarkFunctionSymbol(pcFunction, sSymbol.Index());

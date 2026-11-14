@@ -562,3 +562,17 @@ bool CCPPScope::IsDependent(void)
 	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The namespace the scope is in (or is), and NULL for the global one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPPScope::GetNamespace(void)
+{
+	CCPPScope*	pcNamespace;
+
+	pcNamespace = GetEnclosingNamespace();
+	return (pcNamespace && pcNamespace->mpcParent) ? pcNamespace : NULL;
+}
+

@@ -208,7 +208,7 @@ void CCPP65Generator::NormaliseNamespaces(CArrayScopes* papcNamespaces)
 
 	for (i = 0; i < papcNamespaces->NumElements(); i++)
 	{
-		papcNamespaces->SetPtr(i, NamespaceOf(papcNamespaces->GetPtr(i)));
+		papcNamespaces->SetPtr(i, papcNamespaces->GetPtr(i)->GetNamespace());
 	}
 }
 

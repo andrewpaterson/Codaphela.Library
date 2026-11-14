@@ -438,7 +438,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 				}
 				for (j = 0; j < psBinding->papsPack->NumElements(); j++)
 				{
-					AppendMangledType(pszArguments, psBinding->papsPack->GetPtr(j));
+					mcMangler.AppendType(pszArguments, psBinding->papsPack->GetPtr(j));
 				}
 				pszArguments->Append('E');
 				break;
@@ -468,7 +468,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 				break;
 			}
 			pszArguments->Append('_');
-			AppendMangledType(pszArguments, psBinding->psType);
+			mcMangler.AppendType(pszArguments, psBinding->psType);
 		}
 		else if (pcParameter->GetKind() == CPPS_Parameter)
 		{

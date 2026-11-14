@@ -262,7 +262,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcFunctions.Init();
 	mcFunctionsOfNames.Init(true);
 	mpcDeclaringNamespace = NULL;
-	mapcUnnamedNamespaces.Init();
+	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
 	mapcClasses.Init();
 	mapcTemplates.Init();
 	mapcAllBindings.Init();
@@ -332,7 +332,7 @@ void CCPP65Generator::Kill(void)
 		pcFunction->Kill();
 		SafeFree(pcFunction);
 	}
-	mapcUnnamedNamespaces.Kill();
+	mcMangler.Kill();
 	mcFunctionsOfNames.Kill();
 	mapcFunctions.Kill();
 	for (i = 0; i < mapcTemplates.NumElements(); i++)
@@ -822,7 +822,7 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 		if (pcVariable->mbUsed && !pcVariable->mbDefined)
 		{
 			szLabel.Init();
-			AppendGlobalLabel(&szLabel, pcVariable);
+			mcMangler.AppendGlobalLabel(&szLabel, pcVariable);
 			paszLabels->AddIfUnique(szLabel);
 			szLabel.Kill();
 		}
@@ -834,7 +834,7 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 		if (pcFunction->mbCalled && !pcFunction->mbGenerated)
 		{
 			szLabel.Init();
-			AppendFunctionLabel(&szLabel, pcFunction);
+			mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 			paszLabels->AddIfUnique(szLabel);
 			szLabel.Kill();
 		}
@@ -1431,7 +1431,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 	{
 		//A friend with a simple name is of the namespace its class is in, whatever the name finds.  [namespace.memdef] 3
 		bFriend = pcName->IsSimple() && (uiFlags & CPPDS_FRIEND);
-		pcNamespace = (pcName->mpcSymbol && !bFriend) ? NamespaceOf(pcName->mpcSymbol->mpcScope) : mpcDeclaringNamespace;
+		pcNamespace = (pcName->mpcSymbol && !bFriend) ? pcName->mpcSymbol->mpcScope->GetNamespace() : mpcDeclaringNamespace;
 	}
 	for (pcOther = FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
 	{
@@ -1970,36 +1970,6 @@ void CCPP65Generator::AppendZeros(int iBytes)
 		mszData.Append("\t\t.byte 0");
 		mszData.AppendNewLine();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// _name, or _Class__name for a static data member.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendGlobalLabel(CChars* psz, CCPPVariable* pcVariable)
-{
-	CChars	szName;
-	char*	szIdentifier;
-	int		iLength;
-	int64	lliName;
-
-	lliName = pcVariable->mpcSymbol->mlliName;
-	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
-	if (pcVariable->mpcClass)
-	{
-		szName.Init(szIdentifier, 0, iLength);
-		AppendClassLabel(psz, pcVariable->mpcClass, szName.Text());
-		szName.Kill();
-		return;
-	}
-	psz->Append('_');
-	if (!pcVariable->mbCLinkage)
-	{
-		AppendScopeNames(psz, NamespaceOf(pcVariable->mpcSymbol->mpcScope));
-	}
-	psz->Append(szIdentifier, iLength);
 }
 
 
@@ -2640,7 +2610,7 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 	//Each function is a section of its own.  Inline, template and generated functions are written by every unit
 	//that needs them, each in a COMDAT section the linker keeps one of.
 	szLabel.Init();
-	AppendFunctionLabel(&szLabel, pcFunction);
+	mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 	bShared = !pcFunction->IsUnitFunction() && (pcFunction->mbInline || pcFunction->mbImplicit || pcFunction->mpcTemplate);
 	if (bShared && !Emit(&szLabel))
 	{
@@ -2663,7 +2633,7 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 		if (((pcFunction->mapsParameters.NumElements() != 0) && !pcFunction->mpcInherited) || !WriteBody(pcFunction))
 		{
 			szLabel.Init("An implicit copy constructor or assignment (or one the IR front end can't write) is not supported on this target yet: ");
-			AppendFunctionLabel(&szLabel, pcFunction);
+			mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 			if (pcFunction->mapsParameters.NumElements() == 0)
 			{
 				AppendUnsupported(&szLabel);
@@ -3007,7 +2977,7 @@ void CCPP65Generator::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
 		return;
 	}
 	pcVariable->mbUsed = true;
-	AppendGlobalLabel(psz, pcVariable);
+	mcMangler.AppendGlobalLabel(psz, pcVariable);
 }
 
 

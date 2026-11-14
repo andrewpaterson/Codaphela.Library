@@ -47,7 +47,7 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 	//Each unit that makes one of a class's objects writes its vtable in a COMDAT section
 	//(the linker keeps one); a class without a name has its own.
 	szLabel.Init();
-	AppendVtableLabel(&szLabel, pcClass);
+	mcMangler.AppendVtableLabel(&szLabel, pcClass);
 	if (!Emit(&szLabel))
 	{
 		szLabel.Kill();
@@ -106,7 +106,7 @@ void CCPP65Generator::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 	mszData.Append(-iVtablePointer);
 	mszData.AppendNewLine();
 	mszData.Append("\t\t.long ");
-	AppendTypeInfoLabel(&mszData, pcClass);
+	mcMangler.AppendTypeInfoLabel(&mszData, pcClass);
 	mszData.AppendNewLine();
 }
 
@@ -132,7 +132,7 @@ void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
 	pcClass->mbTypeInfo = true;
 
 	szLabel.Init();
-	AppendTypeInfoLabel(&szLabel, pcClass);
+	mcMangler.AppendTypeInfoLabel(&szLabel, pcClass);
 	if (!Emit(&szLabel))
 	{
 		szLabel.Kill();
@@ -150,7 +150,7 @@ void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
 	szLabel.Kill();
 	mszData.Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
 	mszData.AppendNewLine();
-	AppendTypeInfoLabel(&mszData, pcClass);
+	mcMangler.AppendTypeInfoLabel(&mszData, pcClass);
 	mszData.Append(':');
 	mszData.AppendNewLine();
 	AppendTypeInfoBases(pcClass, 0);
@@ -175,7 +175,7 @@ void CCPP65Generator::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 	size		i;
 
 	mszData.Append("\t\t.long ");
-	AppendTypeInfoLabel(&mszData, pcClass);
+	mcMangler.AppendTypeInfoLabel(&mszData, pcClass);
 	mszData.AppendNewLine();
 	mszData.Append("\t\t.long ");
 	mszData.Append(iOffset);
@@ -202,7 +202,7 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 	mszData.Append("\t\t.long ");
 	if (pcFunction->mbPure)
 	{
-		AppendVtableEntryLabel(&mszData, pcFunction, iAdjust);
+		mcMangler.AppendVtableEntryLabel(&mszData, pcFunction, iAdjust);
 		mbPureVirtual = true;
 		mszData.AppendNewLine();
 		return;
@@ -210,14 +210,14 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 
 	RequireFunction(pcFunction);
 	szLabel.Init();
-	AppendVtableEntryLabel(&szLabel, pcFunction, iAdjust);
+	mcMangler.AppendVtableEntryLabel(&szLabel, pcFunction, iAdjust);
 	if (iAdjust != 0)
 	{
 		if (Emit(&szLabel))
 		{
 			AppendThunkLabel(&szLabel, !pcFunction->IsUnitFunction());
 			szFunction.Init();
-			AppendFunctionLabel(&szFunction, pcFunction);
+			mcMangler.AppendFunctionLabel(&szFunction, pcFunction);
 			mpcTarget->AppendAdjustThunk(&mszThunks, iAdjust, szFunction.Text());
 			szFunction.Kill();
 		}
@@ -225,29 +225,6 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 	mszData.Append(szLabel);
 	mszData.AppendNewLine();
 	szLabel.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A vtable entry's label: R_Pure for a pure virtual function, else the
-// function's, or its thunk's (__t and the adjustment's negation) when this
-// is adjusted by iAdjust first.  AppendVtableEntry writes the thunk.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust)
-{
-	if (pcFunction->mbPure)
-	{
-		psz->Append("R_Pure");
-		return;
-	}
-	AppendFunctionLabel(psz, pcFunction);
-	if (iAdjust != 0)
-	{
-		psz->Append("__t");
-		psz->Append(-iAdjust);
-	}
 }
 
 

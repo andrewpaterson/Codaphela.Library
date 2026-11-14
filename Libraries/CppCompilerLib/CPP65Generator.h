@@ -28,7 +28,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP65_MAX_ASSOCIATED_DEPTH	16		//How deep a type's bases and template arguments are followed for associated namespaces.
 #define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place...
 #define CPP65_INLINE_MEMCPY_SIZE	8		//...or, preferring size (CCPPCompileOptions::mePrefer), this many: about what the call's own code is.
-#define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 #define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The back end's arena (CCPP65Generator::GetBackendScratch) grows by chunks this big.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
@@ -46,6 +45,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTemplate.h"
 #include "CPPClass.h"
 #include "CPPClassLayout.h"
+#include "CPPMangler.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
 #include "CPPTarget.h"
@@ -200,7 +200,7 @@ protected:
 	bool					mbPureVirtual;
 
 	CCPPScope*				mpcDeclaringNamespace;	//The namespace Declarations is in, NULL for the global one: of what has no symbol (an operator).
-	CArrayScopes			mapcUnnamedNamespaces;	//Their places are the numbers in the labels of what they declare.
+	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPVariables	mapcLocals;
 	CCPPFunction*			mpcFunction;
 	int						miStatics;			//Static locals in the unit.
@@ -274,7 +274,6 @@ protected:
 	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
-	bool					IsOverloaded(CCPPFunction* pcFunction);
 	void					RequireFunction(CCPPFunction* pcFunction);
 	bool					Emit(CChars* pszLabel);
 	bool					Declarations(CArraySyntax* papcDeclarations);
@@ -284,7 +283,6 @@ protected:
 	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise);
 	void					AppendData(SCPP65Type* psType, int64 lliValue);
 	void					AppendZeros(int iBytes);
-	void					AppendGlobalLabel(CChars* psz, CCPPVariable* pcVariable);
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
 	CCPPVariable*			GetVariable(CCPPSymbol* pcSymbol);
@@ -405,7 +403,6 @@ protected:
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
 	void					AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust);
-	void					AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
 	void					InheritConstructors(CCPPClass* pcClass);
@@ -431,18 +428,8 @@ protected:
 	static bool				AddsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
-	void					AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction);
-	void					AppendClassLabel(CChars* psz, CCPPClass* pcClass, const char* szPart);
-	void					AppendVtableLabel(CChars* psz, CCPPClass* pcClass);
-	void					AppendTypeInfoLabel(CChars* psz, CCPPClass* pcClass);
-	void					AppendClassName(CChars* psz, CCPPClass* pcClass);
-	void					AppendScopeNames(CChars* psz, CCPPScope* pcScope);
-	static CCPPScope*		NamespaceOf(CCPPScope* pcScope);
-	void					AppendFunctionName(CChars* psz, int64 lliName);
-	void					AppendMangledType(CChars* psz, SCPP65Type* psType);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
-	const char*				GetOperatorLabel(int64 lliName);
 	void					SetDefinition(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	CCPPFunction*			FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);

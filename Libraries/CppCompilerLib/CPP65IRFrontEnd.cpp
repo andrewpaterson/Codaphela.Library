@@ -162,7 +162,7 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 	}
 
 	szLabel.Init();
-	mpcGenerator->AppendFunctionLabel(&szLabel, pcFunction);
+	mpcGenerator->mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0));
 
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function

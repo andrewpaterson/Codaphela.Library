@@ -290,6 +290,7 @@
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />
     <ClCompile Include="CPPClassLayout.cpp" />
+    <ClCompile Include="CPPMangler.cpp" />
     <ClCompile Include="CPPTemplate.cpp" />
     <ClCompile Include="CPPFunction.cpp" />
     <ClCompile Include="CPPVariable.cpp" />
@@ -528,6 +529,7 @@
     <ClInclude Include="CPP65Type.h" />
     <ClInclude Include="CPPClass.h" />
     <ClInclude Include="CPPClassLayout.h" />
+    <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPTemplate.h" />
     <ClInclude Include="CPPFunction.h" />
     <ClInclude Include="CPPVariable.h" />

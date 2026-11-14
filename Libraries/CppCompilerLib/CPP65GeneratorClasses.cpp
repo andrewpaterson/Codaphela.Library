@@ -494,7 +494,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	pcEnclosing = mpcDeclaringNamespace;
 	if (pcClass->mpcSymbol)
 	{
-		mpcDeclaringNamespace = NamespaceOf(pcClass->mpcSymbol->mpcScope);
+		mpcDeclaringNamespace = pcClass->mpcSymbol->mpcScope->GetNamespace();
 	}
 	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
 	{

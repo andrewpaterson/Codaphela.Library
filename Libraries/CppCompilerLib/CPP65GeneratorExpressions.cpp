@@ -2354,7 +2354,7 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		{
 			if (mpcFunction)
 			{
-				AppendFunctionLabel(&szName, mpcFunction);
+				mcMangler.AppendFunctionLabel(&szName, mpcFunction);
 			}
 		}
 		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->miIdentifier, &szName))
