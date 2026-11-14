@@ -373,6 +373,8 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 
 	EnsureSorted();
 
+	//Writing the header moves the map's holding entries into its sorted array (CMapBlock::WriteMapBlockHeader), so
+	//GetSortedSize counts every entry only after it.
 	ReturnOnFalse(mcMap.WriteMapUnknownHeader(pcFile));
 
 	pcMapPtrPtr = mcMap.GetPointerMap();
