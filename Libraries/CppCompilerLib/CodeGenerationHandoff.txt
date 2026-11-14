@@ -386,6 +386,11 @@ copies before a jump, but much has changed since, so nothing is chosen before th
 	index and the profile line with the calls.
 	R816_LShr32 was 12.9M calls from CHuffmanDecoder::InitFast, DeflateReverseBits's (uiCode >> i) & 1: written
 	as a shift by 1 a bit (StandardLib, below), TestSupportLib65 816 -2.35%, the other suites unchanged.
+	The other hot runtime call sites, not built: CMersenneTwister::Next(int, int)'s two R816_URem32 (the
+	rejection threshold and the value, about 1.1% each of TestBaseLib65 816; the threshold could be kept for a
+	range asked for again), R816_BcdSubtract from CNumber (1.3% of TestSupportLib65 816, assembly by design),
+	soft float, MemMove from struct copies, and test code's own divides (TestArraySizer).  None is code
+	generation, and the compiled code's own candidates are each under the 0.2% stop rule, so Part 2 stops here.
 
 At the end: the full sweep, and what was built and measured written here.
 
