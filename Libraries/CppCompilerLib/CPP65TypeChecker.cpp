@@ -80,8 +80,7 @@ SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit)
 {
-	CCPPFunction*				pcFunction;
-	CCPPClass*				pcClass;
+	CCPPBoundConversion			cBound;
 	CCPPSyntaxIdExpression*		pcFunctionName;
 
 	pcFunctionName = mpcUnit->FunctionNameFor(pcExpression, psTo);
@@ -90,14 +89,10 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 		return FunctionAddress(pcFunctionName, pcFunctionName->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
 	}
 
-	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcUnit->IsObject(pcExpression))
+	mpcUnit->GetBinder()->BindConversion(pcExpression, psTo, bExplicit, &cBound);
+	if (cBound.meHow == CPPBV_Function)
 	{
-		pcClass = mpcUnit->ObjectClass(pcExpression);
-		pcFunction = mpcUnit->GetBinder()->FindConversion(pcClass, psTo, bExplicit, pcExpression);
-		if (pcFunction)
-		{
-			return ObjectCall(pcExpression, pcFunction, NULL, pcExpression);
-		}
+		return ObjectCall(pcExpression, cBound.mpcFunction, NULL, pcExpression);
 	}
 	return Value(pcExpression);
 }
@@ -1089,7 +1084,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psLeft;
 	SCPP65Type*					psRight;
-	CCPPFunction*				pcFunction;
+	CCPPBoundConversion		cBound;
 
 	pcExpression = mpcUnit->SkipParentheses(pcExpression);
 	if (!pcExpression)
@@ -1134,10 +1129,11 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 		}
 	}
 
-	pcFunction = mpcUnit->IsObject(pcExpression) ? mpcUnit->GetBinder()->FindConversion(mpcUnit->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
-	if (pcFunction)
+	//A condition is a conversion to bool that an explicit conversion function may make.
+	mpcUnit->GetBinder()->BindConversion(pcExpression, &mpcTypes->msBool, true, &cBound);
+	if (cBound.meHow == CPPBV_Function)
 	{
-		return Truth(ObjectCall(pcExpression, pcFunction, NULL, pcExpression), pcExpression);
+		return Truth(ObjectCall(pcExpression, cBound.mpcFunction, NULL, pcExpression), pcExpression);
 	}
 	return Truth(Value(pcExpression), pcExpression);
 }

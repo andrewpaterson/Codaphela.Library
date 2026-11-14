@@ -106,6 +106,14 @@ void TestCPPOverloadsBasesAndConversions(void)
 	AssertInt(5, TestCPP65Main("struct B { int i; int F(int a) { return 5; } };\nstruct D : B { using B::F; int F(char c) { return 6; } };\nint main() { D d; d.i = 0; return d.F(1000); }"));
 	AssertInt(7, TestCPP65Main("struct S { int i; operator int() { return 7; } };\nint main() { S s; s.i = 0; int a = s; return a; }"));
 	AssertInt(8, TestCPP65Main("struct S { int i; operator char*() { return 0; } operator int() { return 8; } };\nint main() { S s; s.i = 0; int a = s; return a; }"));
+
+	//An explicit conversion function converts only where it is asked for: a cast or a condition.  An argument, an
+	//initialiser and what is returned take the one that isn't explicit, though the explicit one's type is nearer.
+	AssertInt(3, TestCPP65Main("struct S { int i; operator int() { return 3; } explicit operator long long() { return 4; } };\nint main() { S s; s.i = 0; long long a = s; return (int)a; }"));
+	AssertInt(4, TestCPP65Main("struct S { int i; operator int() { return 3; } explicit operator long long() { return 4; } };\nint main() { S s; s.i = 0; long long a = (long long)s; return (int)a; }"));
+	AssertInt(3, TestCPP65Main("struct S { int i; operator int() { return 3; } explicit operator long long() { return 4; } };\nint F(long long a) { return (int)a; }\nint main() { S s; s.i = 0; return F(s); }"));
+	AssertInt(3, TestCPP65Main("struct S { int i; operator int() { return 3; } explicit operator long long() { return 4; } };\nlong long F() { S s; s.i = 0; return s; }\nint main() { return (int)F(); }"));
+	AssertInt(5, TestCPP65Main("struct S { int i; explicit operator bool() { return i == 0; } };\nint main() { S s; s.i = 0; if (s) { return 5; } return 6; }"));
 }
 
 

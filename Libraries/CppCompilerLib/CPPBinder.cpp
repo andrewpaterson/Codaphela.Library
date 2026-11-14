@@ -691,18 +691,6 @@ CCPPFunction* CCPPBinder::FindConstructor(CCPPClass* pcClass, CArraySyntax* papc
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The conversion function that takes an object of pcClass to psTo best (explicit
-// ones only when bExplicit), or NULL, quietly.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPBinder::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode)
-{
-	return mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The function a name used for its address means: the only one of the name, or the
 // one of psTarget's type.  *pbOverloaded if there are several and none is chosen.
 //
@@ -962,5 +950,38 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 		return true;
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How the expression's value becomes psTo (NULL when no type is known): an object
+// wanted as a type that isn't a class or a reference is converted by its class's
+// conversion function, if one converts to it; an explicit one only when bExplicit (a
+// cast, or a condition).  Anything else is used as it is.  [class.conv.fct]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound)
+{
+	pcBound->meHow = CPPBV_AsItIs;
+	pcBound->mpcFunction = NULL;
+	pcBound->mpcClass = NULL;
+	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcUnit->IsObject(pcExpression))
+	{
+		BindObjectConversion(mpcUnit->ObjectClass(pcExpression), psTo, bExplicit, pcExpression, pcBound);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same for an object of pcClass that is already a value.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode, CCPPBoundConversion* pcBound)
+{
+	pcBound->mpcClass = pcClass;
+	pcBound->mpcFunction = mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcNode);
+	pcBound->meHow = pcBound->mpcFunction ? CPPBV_Function : CPPBV_AsItIs;
 }
 

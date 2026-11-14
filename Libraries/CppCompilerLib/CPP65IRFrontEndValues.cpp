@@ -40,12 +40,14 @@ bool CCPP65IRFrontEnd::Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psVal
 //////////////////////////////////////////////////////////////////////////
 //
 // An expression's value for psTo (NULL when it isn't known): a function's name
-// for a pointer to a function is the address of the overload of that type,
-// otherwise as Value.
+// for a pointer to a function is the address of the overload of that type, and
+// an object is converted by its conversion function to psTo (never an explicit
+// one: a cast and a condition convert the value, with ConvertObject).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue)
 {
+	CCPPBoundConversion		cBound;
 	CCPPSyntaxIdExpression*	pcFunction;
 
 	pcFunction = mpcUnit->FunctionNameFor(pcExpression, psTo);
@@ -58,7 +60,22 @@ bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP
 		psValue->psType = psTo;
 		return true;
 	}
-	return Value(pcExpression, psValue);
+	if (!Value(pcExpression, psValue))
+	{
+		return false;
+	}
+
+	//An object wanted as a value of another type, where nothing says so (an argument, an initialiser, what is
+	//assigned or returned): by the conversion function the binder chose, which is never an explicit one.
+	if (IsObjectValue(psValue))
+	{
+		mpcUnit->GetBinder()->BindConversion(pcExpression, psTo, false, &cBound);
+		if (cBound.meHow == CPPBV_Function)
+		{
+			return ConvertObjectBy(psValue, &cBound, psTo);
+		}
+	}
+	return true;
 }
 
 

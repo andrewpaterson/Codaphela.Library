@@ -198,13 +198,10 @@ bool CCPP65IRFrontEnd::IsObjectValue(SCPP65IRValue* psValue)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 {
-	CCPPClass*	pcClass;
-	CCPPFunction*	pcFunction;
-	SCPP65IRValue	sResult;
+	CCPPBoundConversion	cBound;
 
-	pcClass = psValue->psType->WithoutReference()->pcClass;
-	pcFunction = mpcUnit->GetBinder()->FindConversion(pcClass, psTo, true, NULL);
-	if (!pcFunction)
+	mpcUnit->GetBinder()->BindObjectConversion(psValue->psType->WithoutReference()->pcClass, psTo, true, NULL, &cBound);
+	if (cBound.meHow != CPPBV_Function)
 	{
 		if (mpcValue)
 		{
@@ -212,7 +209,21 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!Call(pcFunction, FunctionSymbol(pcFunction), NULL, &mapcNone, &sResult, NULL, false, pcClass, true, psValue->sValue))
+	return ConvertObjectBy(psValue, &cBound, psTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object at psValue converted by the conversion function bound for it, then the
+// result to psTo.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo)
+{
+	SCPP65IRValue	sResult;
+
+	if (!Call(pcBound->mpcFunction, FunctionSymbol(pcBound->mpcFunction), NULL, &mapcNone, &sResult, NULL, false, pcBound->mpcClass, true, psValue->sValue))
 	{
 		return false;
 	}

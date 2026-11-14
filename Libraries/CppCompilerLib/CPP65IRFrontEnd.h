@@ -37,6 +37,7 @@ class CIROptimiser;
 
 class CCPPUnit;
 class CCPPBoundCall;
+class CCPPBoundConversion;
 class CCPPFunction;
 class CCPPVariable;
 struct SCPPVtableEntry;
@@ -309,6 +310,7 @@ protected:
 	bool			Truth(SCPP65IRValue* psValue, SIRReference* psCondition);
 	bool			IsObjectValue(SCPP65IRValue* psValue);
 	bool			ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo);
+	bool			ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo);
 	bool			CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
 	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);

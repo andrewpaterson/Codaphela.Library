@@ -107,6 +107,24 @@ public:
 };
 
 
+//How an object becomes a value of a type that isn't a class.
+enum ECPPBoundConversion
+{
+	CPPBV_AsItIs,		//Not by a function of its class: it is used as it is (and converted, if it can be, as a value is).
+	CPPBV_Function,		//By the class's conversion function (operator T, its own or a base's), whose result is then converted.
+};
+
+
+//What converts an object (CCPPBinder::BindConversion): the conversion function chosen, and the object's class.
+class CCPPBoundConversion
+{
+public:
+	ECPPBoundConversion	meHow;
+	CCPPFunction*		mpcFunction;
+	CCPPClass*			mpcClass;
+};
+
+
 typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 
@@ -118,8 +136,8 @@ typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 //arguments and the function it is in; one that failed is bound again when it is asked for with its errors
 //wanted, so they are reported again.  An operator with an object for an operand is a call as well (BindOperator:
 //the left operand's own operator function if one fits, or else one that is no class's; BindOwnOperator: the
-//object's own, for [], -> and what must be a member).  BindName says what a name alone is, and BindMember which
-//member of a class.
+//object's own, for [], -> and what must be a member).  BindName says what a name alone is, BindMember which
+//member of a class, and BindConversion what converts an object to a value of another type.
 class CCPPBinder
 {
 protected:
@@ -139,10 +157,11 @@ public:
 
 	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
+	void	BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound);
+	void	BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode, CCPPBoundConversion* pcBound);
 
 	//What isn't a call expression's: these choose a function and remember nothing.
 	CCPPFunction*	FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	CCPPFunction*	FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
 	CCPPFunction*	FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
 	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
