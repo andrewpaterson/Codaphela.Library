@@ -171,8 +171,10 @@ Still waiting for the user (W65C816):
 
 - 8 bit results returned zero extended: about 4,000 masks after calls would go; assembly that returns bytes
   would have to comply.
-- uint8 counts elsewhere in the index tree: IndexTreeFile.cpp line 3970's loop works from size locals filled by
-  getters and was left; it needs its own look.
+
+Closed (2026-11-14): uint8 counts elsewhere in the index tree.  The one loop left, in
+CIndexTreeFile::PrintChildFileIndexes, is debug printing; its size counter is correct (the span is 0 to 255) and
+its cost is lost in the appends.  Left as it is.
 
 
 How to measure
