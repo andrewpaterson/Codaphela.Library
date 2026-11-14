@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{3D7A1C55-8E2B-4F60-A9D4-6B1E0C7F2A83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{9B4E2F17-6C8A-4D31-B5E0-2A7F1D9C3E64}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="VulkanFrame.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanFunctions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanRenderer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanRenderFactory.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanRenderMesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VulkanFrame.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanFunctions.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanRenderer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanRenderFactory.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanRenderMesh.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanShaders.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Mesh.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Mesh.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\CompileShaders.py">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
