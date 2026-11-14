@@ -453,7 +453,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 
 	pcName = pcId->mpcName;
 	lliName = pcName->mpcSymbol->mlliName;
-	pcFound = mpcGenerator->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
+	pcFound = mpcGenerator->mcOverloads.FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
 	if (bOverloaded || !pcFound)
 	{
 		return Unsupported(__FILE__, __LINE__);

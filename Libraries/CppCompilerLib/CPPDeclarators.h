@@ -34,7 +34,7 @@ class CCPP65Generator;
 class CCPPDeclarators
 {
 protected:
-	CCPP65Generator*	mpcUnit;
+	CCPP65Generator*		mpcUnit;
 
 public:
 	void					Init(CCPP65Generator* pcUnit);

@@ -686,65 +686,6 @@ void CCPP65Generator::InheritConstructors(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether pcFunction, a function named lliName, is one of pcClass's overloads: its
-// own, or a base's brought in by a using declaration and not hidden by one of its
-// own with the same parameters.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, int64 lliName)
-{
-	CCPPFunction*	pcOwn;
-	SCPPUsing*	psUsing;
-	size			i;
-	size			j;
-	bool			bUsed;
-
-	if (pcFunction->mpcClass == pcClass)
-	{
-		return true;
-	}
-	if (!pcClass || !pcFunction->mpcClass)
-	{
-		return false;
-	}
-	bUsed = false;
-	for (i = 0; i < pcClass->macUsings.NumElements(); i++)
-	{
-		psUsing = pcClass->macUsings.Get(i);
-		if ((psUsing->pcBase == pcFunction->mpcClass) && (psUsing->lliName == lliName))
-		{
-			bUsed = true;
-			break;
-		}
-	}
-	if (!bUsed)
-	{
-		return false;
-	}
-	for (pcOwn = FirstFunctionOfName(lliName); pcOwn; pcOwn = pcOwn->mpcNextOfName)
-	{
-		if ((pcOwn->mpcClass != pcClass) || (pcOwn->meKind != pcFunction->meKind) || pcOwn->mpcTemplate || (pcOwn->mapsParameters.NumElements() != pcFunction->mapsParameters.NumElements()))
-		{
-			continue;
-		}
-		for (j = 0; j < pcOwn->mapsParameters.NumElements(); j++)
-		{
-			if (!pcOwn->mapsParameters.GetPtr(j)->Equals(pcFunction->mapsParameters.GetPtr(j)))
-			{
-				break;
-			}
-		}
-		if (j == pcOwn->mapsParameters.NumElements())
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Declares a member of a class being laid out.  Functions defined in the class are
 // generated when they are called.
 //
@@ -1073,45 +1014,6 @@ CCPPVariable* CCPP65Generator::FindStatic(CCPPClass* pcClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The conversion function (operator T, its class's own or a base's) that converts
-// an object of pcClass to psTo best: by its result's conversion to psTo (see
-// ConversionRank; a condition is a conversion to bool).  explicit ones only when
-// bExplicit (a cast or a condition).  NULL, quietly, if none converts.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode)
-{
-	CCPPFunction*	pcFunction;
-	CCPPFunction*	pcBest;
-	int				iRank;
-	int				iBest;
-
-	mpcStatistics->Count(CPPCC_FindConversion);
-	if (!CompleteClass(pcClass, pcNode))
-	{
-		return NULL;
-	}
-	pcBest = NULL;
-	iBest = CPPCR_None;
-	for (pcFunction = FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
-	{
-		if (pcFunction->mpcTemplate || (pcFunction->mbExplicit && !bExplicit) || !IsDerived(pcClass, pcFunction->mpcClass, NULL))
-		{
-			continue;
-		}
-		iRank = ConversionRank(psTo, pcFunction->mpsReturn, NULL, false);
-		if (iRank > iBest)
-		{
-			pcBest = pcFunction;
-			iBest = iRank;
-		}
-	}
-	return pcBest;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The type of the pointer on the left of ->: the object's operator->'s result when
 // it is an object of a class.
 //
@@ -1132,7 +1034,7 @@ SCPP65Type* CCPP65Generator::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 		return NULL;
 	}
 	apcNone.Init();
-	pcFunction = FindFunction(psType->pcClass, GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, IsConstObject(pcObject));
+	pcFunction = mcOverloads.FindFunction(psType->pcClass, GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, IsConstObject(pcObject));
 	apcNone.Kill();
 	return pcFunction ? pcFunction->mpsReturn : NULL;
 }

@@ -191,14 +191,14 @@ bool CCPP65Generator::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	if (psType && psType->IsClass() && CompleteClass(psType->pcClass, NULL) && HasOperator(psType->pcClass, lliName, 1))
 	{
 		apcArguments.Add(pcBinary->mpcRight);
-		pcFunction = FindOperator(psType->pcClass, lliName, &apcArguments, pcBinary, IsConstObject(pcBinary->mpcLeft));
+		pcFunction = mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcBinary, IsConstObject(pcBinary->mpcLeft));
 		apcArguments.ReInit();
 	}
 	if (!pcFunction)
 	{
 		apcArguments.Add(pcBinary->mpcLeft);
 		apcArguments.Add(pcBinary->mpcRight);
-		pcFunction = FindFreeOperator(lliName, &apcArguments, pcBinary);
+		pcFunction = mcOverloads.FindFreeOperator(lliName, &apcArguments, pcBinary);
 	}
 	apcArguments.Kill();
 	EndQuiet();
@@ -234,101 +234,4 @@ CCPPClass* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
 	return psType->pcClass;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The scope code being written is in, as far as the generator knows without
-// its block: the one the function's name is declared from, or the namespace
-// being declared in.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPScope* CCPP65Generator::CurrentLookupScope(void)
-{
-	CCPPSyntaxName*	pcName;
-
-	if (!mcContext.GetFunction())
-	{
-		return mcContext.GetNamespace();
-	}
-	pcName = mcContext.GetFunction()->mpcDeclarator ? mcContext.GetFunction()->mpcDeclarator->GetName() : NULL;
-	if (pcName && pcName->mpcLookup)
-	{
-		return pcName->mpcLookup;
-	}
-	if (mcContext.GetFunction()->mpcClass && mcContext.GetFunction()->mpcClass->mpcSymbol)
-	{
-		return mcContext.GetFunction()->mpcClass->mpcSymbol->mpcScope;
-	}
-	return mcContext.GetFunction()->mpcNamespace;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The operator function (not a member) for the arguments: a declared one, or an
-// instance of a function template of that name.  Those of the namespaces around
-// the function being written (without the hiding names have) and those the
-// arguments are associated with.  NULL, quietly, if none matches.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
-{
-	CCPPFunction*					pcFunction;
-	CCPPTemplate*					pcTemplate;
-	CCPPSyntaxFunctionDefinition*	pcDefinition;
-	CCPPSyntaxName*					pcName;
-	CCPPScope*						pcLookup;
-	CArrayScopes					apcNamespaces;
-	size							uiErrors;
-	size							i;
-	bool							bDeclared;
-
-	mpcStatistics->Count(CPPCC_FindFreeOperator);
-	bDeclared = false;
-	for (pcFunction = FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
-	{
-		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate)
-		{
-			bDeclared = true;
-		}
-	}
-
-	uiErrors = mcErrors.NumErrors();
-	pcFunction = NULL;
-	BeginQuiet();
-	apcNamespaces.Init();
-	pcLookup = CurrentLookupScope();
-	if (pcLookup)
-	{
-		pcLookup->GatherEnclosingNamespaces(&apcNamespaces);
-	}
-	AddArgumentNamespaces(papcArguments, &apcNamespaces);
-	NormaliseNamespaces(&apcNamespaces);
-	if (apcNamespaces.Find(NULL) == ARRAY_ELEMENT_NOT_FOUND)
-	{
-		apcNamespaces.Add(NULL);
-	}
-	if (bDeclared)
-	{
-		pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, -1, &apcNamespaces);
-	}
-	for (i = 0; !pcFunction && (i < mapcTemplates.NumElements()); i++)
-	{
-		pcTemplate = mapcTemplates.GetPtr(i);
-		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcDefinition || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
-		{
-			continue;
-		}
-		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition;
-		pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
-		if (pcName && (pcName->macpComponents.NumElements() == 1) && (GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Find(pcTemplate->mpcNamespace) != ARRAY_ELEMENT_NOT_FOUND))
-		{
-			pcFunction = InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
-		}
-	}
-	apcNamespaces.Kill();
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
-	return pcFunction;
-}
 

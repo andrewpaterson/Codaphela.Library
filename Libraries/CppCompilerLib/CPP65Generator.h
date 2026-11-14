@@ -47,6 +47,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPClassLayout.h"
 #include "CPPMangler.h"
 #include "CPPContext.h"
+#include "CPPOverloads.h"
 #include "CPPDeclarators.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
@@ -163,6 +164,7 @@ class CCPP65Generator : public CCPPRuntimeWriter
 friend class CCPP65CheckChildren;
 friend class CCPP65IRFrontEnd;
 friend class CCPP65TypeChecker;
+friend class CCPPOverloads;
 friend class CCPPDeclarators;
 friend class CCPPDeduction;
 friend class CCPPSpecialisationMatch;
@@ -202,6 +204,7 @@ protected:
 	bool					mbPureVirtual;
 
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
+	CCPPOverloads			mcOverloads;
 	CCPPDeclarators			mcDeclarators;
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPVariables	mapcLocals;
@@ -355,14 +358,6 @@ protected:
 	CCPPFunction*			InstantiateFunction(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPTemplate*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
 	bool					MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
-	CCPPTemplate*			FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, int iConstObject = -1);
-	CCPPTemplate*			ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit, int iConstObject);
-	void					GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size uiArguments, CArrayCPPTemplates* papcCandidates);
-	CCPPTemplate*			GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcExplicit);
-	void					AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpression* pcCall, CArrayCPPTemplates* papcCandidates);
-	CCPPTemplate*			ChooseTemplate(CArrayCPPTemplates* papcCandidates, int iConstObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall);
-	bool					TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int* aiRanks);
-	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);
 	bool					IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode);
 	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
@@ -391,34 +386,15 @@ protected:
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
 	void					InheritConstructors(CCPPClass* pcClass);
-	bool					IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, int64 lliName);
-	CCPPFunction*			FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject = -1, CArrayScopes* papcNamespaces = NULL);
-	CCPPFunction*			FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	CCPPFunction*			FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
-	CCPPFunction*			FindAssociatedFunction(CCPPSyntaxName* pcName, int64 lliName, CCPPSyntaxCallExpression* pcCall);
-	void					GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArrayScopes* papcNamespaces);
-	void					GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CArrayScopes* papcNamespaces);
-	void					AddArgumentNamespaces(CArraySyntax* papcArguments, CArrayScopes* papcNamespaces);
-	void					AddAssociatedNamespaces(SCPP65Type* psType, CArrayScopes* papcNamespaces, int iDepth);
-	void					AddNamespaceOf(CCPPScope* pcScope, CArrayScopes* papcNamespaces);
-	static void				NormaliseNamespaces(CArrayScopes* papcNamespaces);
 	bool					IsConstObject(CCPPSyntax* pcExpression);
 	bool					IsConstPointer(CCPPSyntax* pcExpression);
 	bool					IsConstThis(void);
-	bool					RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
-	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
-	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
-	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
-	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
-	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
-	CCPPFunction*			FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);
 
-	void					NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode);
 
 	//Literals, constants, warnings and TypeOf.  CPP65GeneratorExpressions.cpp
 	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
@@ -444,12 +420,9 @@ protected:
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
-	bool					HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer);
-	CCPPFunction*			FindStaticFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
 	bool					HasMember(CCPPClass* pcClass, int64 lliName);
 	bool					HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments);
-	CCPPFunction*			FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject);
 	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	void					ReportFailedDeclaration(int64 lliName);
@@ -497,8 +470,6 @@ protected:
 	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
 	bool					MakesObject(CCPPSyntax* pcExpression);
-	CCPPScope*				CurrentLookupScope(void);
-	CCPPFunction*			FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 
 	//Check only.  CPP65GeneratorCheck.cpp
 	bool					CheckDefinitions(void);

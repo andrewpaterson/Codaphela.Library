@@ -248,73 +248,6 @@ CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a function of pcFunction's (unqualified) name has the function type
-// psPointer (a pointer to a function, or a reference to one) points to: an
-// overloaded name passed for a parameter of that type is that overload.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer)
-{
-	CCPPFunction*		pcFound;
-	bool				bOverloaded;
-
-	psPointer = psPointer->WithoutReference();
-	if (!psPointer->IsPointer() || psPointer->IsMemberPointer() || !psPointer->psBase || !psPointer->psBase->IsFunction() || pcFunction->mpcName->IsQualifiedByClass())
-	{
-		return false;
-	}
-	pcFound = FindAddressedFunction(pcFunction->mpcName, pcFunction->mpcName->mpcSymbol->mlliName, psPointer->psBase, pcFunction, &bOverloaded);
-	return pcFound && psPointer->psBase->Equals(mcTypes.Function(pcFound->mpsReturn, &pcFound->mapsParameters, pcFound->mbVariadic));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The static member function of the name in the class, or else in its bases (the
-// first base that has one).  *pbOverloaded is set when the name has several and
-// psTarget does not pick one.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::FindStaticFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded)
-{
-	CCPPFunction*		pcFunction;
-	CCPPFunction*		pcFound;
-	size				i;
-
-	mpcStatistics->Count(CPPCC_FindStaticFunction);
-	pcFound = NULL;
-	*pbOverloaded = false;
-	for (pcFunction = FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
-	{
-		if ((pcFunction->mpcClass == pcClass) && pcFunction->mbStatic && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
-		{
-			if (psTarget && psTarget->Equals(mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
-			{
-				*pbOverloaded = false;
-				return pcFunction;
-			}
-			*pbOverloaded |= (pcFound != NULL);
-			pcFound = pcFunction;
-		}
-	}
-	if (pcFound)
-	{
-		return pcFound;
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		pcFound = FindStaticFunction(pcClass->macBases.Get(i)->pcClass, lliName, psTarget, pbOverloaded);
-		if (pcFound || *pbOverloaded)
-		{
-			return pcFound;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A name reserved for the compiler (__debugbreak): the host compiler's
 // intrinsics, which no header declares.
 //
@@ -523,39 +456,7 @@ bool CCPP65Generator::HasMember(CCPPClass* pcClass, int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 {
-	return HasMember(pcClass, lliName) || FindMemberTemplate(pcClass, lliName, uiArguments);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The operator function of pcClass (or a base) for the arguments: a member function that takes them, or else an
-// instance of a member template.  A class without a member template reports errors as FindFunction does.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPP65Generator::FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int iConstObject)
-{
-	CCPPTemplate*	pcTemplate;
-	CCPPFunction*	pcFunction;
-	size			uiErrors;
-
-	mpcStatistics->Count(CPPCC_FindOperator);
-	pcTemplate = FindMemberTemplate(pcClass, lliName, papcArguments ? papcArguments->NumElements() : 0, iConstObject);
-	if (!pcTemplate)
-	{
-		return FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, iConstObject);
-	}
-
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
-	pcFunction = FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, iConstObject);
-	if (!pcFunction)
-	{
-		pcFunction = InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
-	}
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
-	return pcFunction;
+	return HasMember(pcClass, lliName) || mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments);
 }
 
 

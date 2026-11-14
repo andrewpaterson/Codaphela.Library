@@ -262,6 +262,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcFunctions.Init();
 	mcFunctionsOfNames.Init(true);
 	mcContext.Init();
+	mcOverloads.Init(this);
 	mcDeclarators.Init(this);
 	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
 	mapcClasses.Init();
@@ -326,6 +327,7 @@ void CCPP65Generator::Kill(void)
 	}
 	mcMangler.Kill();
 	mcDeclarators.Kill();
+	mcOverloads.Kill();
 	mcContext.Kill();
 	mcFunctionsOfNames.Kill();
 	mapcFunctions.Kill();

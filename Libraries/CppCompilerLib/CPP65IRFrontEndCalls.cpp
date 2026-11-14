@@ -79,7 +79,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	{
 		if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 		{
-			if (mpcGenerator->FindMemberTemplate(mpcCPPFunction->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcGenerator->HasMember(mpcCPPFunction->mpcClass, pcSymbol->mlliName))
+			if (mpcGenerator->mcOverloads.FindMemberTemplate(mpcCPPFunction->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcGenerator->HasMember(mpcCPPFunction->mpcClass, pcSymbol->mlliName))
 			{
 				return MemberCall(pcCall, pcCallee, psValue);
 			}
@@ -119,7 +119,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	pcFunction = NULL;
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
-		pcTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
+		pcTemplate = mpcGenerator->mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!pcTemplate)
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -133,7 +133,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		{
 			return InlineMemcpy(&pcCall->macpArguments, mpcGenerator->TypeOf(pcCall), psValue);
 		}
-		pcFunction = mpcGenerator->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+		pcFunction = mpcGenerator->mcOverloads.FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
 	}
 	else if (pcSymbol)
 	{
@@ -142,7 +142,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	else
 	{
 		//Nothing declares it here: it may be in a namespace of its arguments'.
-		pcFunction = mpcGenerator->FindAssociatedFunction(pcName, lliName, pcCall);
+		pcFunction = mpcGenerator->mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall);
 	}
 	if (!pcFunction || (pcFunction->mpcClass && !pcFunction->mbStatic))
 	{
@@ -947,11 +947,11 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 
 	pcComponent = pcName->GetLast();
 	iConst = pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis();
-	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, iConst) : NULL;
+	pcTemplate = mpcGenerator->CompleteClass(pcLookup, pcCall) ? mpcGenerator->mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, iConst) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !pcComponent->mbTemplateArguments)
 	{
-		pcFunction = mpcGenerator->FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, iConst);
+		pcFunction = mpcGenerator->mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, iConst);
 	}
 	if (!pcFunction && pcTemplate)
 	{
@@ -1035,7 +1035,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 	{
 		apcArguments.Add(pcArgument);
 	}
-	pcFunction = mpcGenerator->FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), &apcArguments, pcObject, mpcGenerator->IsConstObject(pcObject));
+	pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, mpcGenerator->GetOperatorName(eOperator, false), &apcArguments, pcObject, mpcGenerator->IsConstObject(pcObject));
 	if (!pcFunction || pcFunction->mbStatic)
 	{
 		apcArguments.Kill();

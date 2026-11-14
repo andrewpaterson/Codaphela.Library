@@ -845,7 +845,7 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 		{
 			apcArguments.Add(pcRight);
 		}
-		pcFunction = mpcGenerator->FindOperator(psType->pcClass, lliName, &apcArguments, pcLeft, mpcGenerator->IsConstObject(pcLeft));
+		pcFunction = mpcGenerator->mcOverloads.FindOperator(psType->pcClass, lliName, &apcArguments, pcLeft, mpcGenerator->IsConstObject(pcLeft));
 		apcArguments.Kill();
 		if (pcFunction)
 		{
@@ -860,7 +860,7 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 	{
 		apcArguments.Add(pcRight);
 	}
-	pcFunction = mpcGenerator->FindFreeOperator(lliName, &apcArguments, pcLeft);
+	pcFunction = mpcGenerator->mcOverloads.FindFreeOperator(lliName, &apcArguments, pcLeft);
 	if (!pcFunction)
 	{
 		apcArguments.Kill();
