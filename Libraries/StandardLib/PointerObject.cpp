@@ -375,6 +375,9 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 	CEmbeddedObject*	pcOldObject;
 	CPointer			cHoldEmbedding;
 
+	//A Ptr field reached through a NULL Ptr (pNull->mpField = p) is near address 0.  DereferenceArrow has already
+	//logged the NULL dereference, so the assignment is dropped rather than crashing.  See
+	//TestObjectAllocatorAssignmentToNullObject.
 	if ((char*)this < CORRUPT_MEMORY)
 	{
 		return;
