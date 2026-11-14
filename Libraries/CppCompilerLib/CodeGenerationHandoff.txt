@@ -235,17 +235,53 @@ In the order I would do it.
    CIRW65C816Backend::CopyAddressedParameters; the front end never writes such IR, so no C++ program's code
    changed (none of the four 65 suites on the W65C816 made a copy).
 
-3. The value facts, measured first.  The W65C816 back end knows which words of a value are always zero
-   (FindZeroWords), which values are only read as a byte (FindLowByteUses) and which are used once by the next
-   instruction.  The 65C64 has 32 bit registers and CIR65Widths, so these may buy little: count, in a profile,
-   the masks and extensions the 65C64 runs that such a fact would remove before sharing anything.
+3. The value facts and more speed on the 65C64: the plan below (the user, 2026-11-14), steps B to G.
 
 4. The rest of the consolidation is ConsolidationPlan.txt's (below).  Don't start it from here.
 
-5. If more speed is wanted on the 65C64 after that: the register copies at entry (the cheap version), and what
-   a fresh profile shows.  Of the instructions run on 2026-11-13 (before W was ordinary) about a tenth were
-   register to register copies, 9% loads of constants and 5% each unconditional branches and width changes.
-   The branches and the width changes have not been looked at.
+5. A W65C816 round: the plan's Part 2.
+
+
+The plan for the rest (2026-11-14)
+----------------------------------
+
+Asked for by the user once items 1 and 2 were done; Part 2 included at their word.  Thresholds: item 3 is built
+only if it would save 0.3% of cycles or more; steps C to G stop when the next is estimated below 0.2%.
+
+Where a fix goes: stage 7 of ConsolidationPlan.txt only moves the back ends' code, so a change to allocation,
+block order or selection survives it; stage 8 (if the user wants it) replaces the passes over the written text
+(CIR65Peephole and the like).  So fixes go in allocation and ordering where they can, and a new text pass is the
+last resort.
+
+Part 1, the 65C64:
+
+	A.  A fresh profile, measuring only.  The three Lib65 suites with profiles and listings; each instruction
+	    run, weighted by the times its source line was entered, sorted into: register to register copies (at
+	    entry, phis, call results, argument set up, other), constant loads, unconditional branches (loop back
+	    edges, to a return, over an else), width changes (wth, wthx, cpyx) and masks and extensions.  The table
+	    goes here; it replaces the 2026-11-13 figures (copies 10%, constants 9%, branches 5%, width changes 5%,
+	    before W was ordinary) and every step after is chosen and sized from it.
+	B.  Item 3, the value facts: the W65C816 knows which words of a value are always zero (FindZeroWords),
+	    which values are only read as a byte (FindLowByteUses) and which are used once by the next
+	    instruction.  A counts the masks and extensions such a fact would remove; built only past the
+	    threshold, and then as an analysis both back ends read (stage 7's one record for each temporary is
+	    stage 7's).
+	C.  Register copies at entry, the cheap version: a parameter used only by the first instruction is taken
+	    from A, B or Y (about 0.1%, estimated 2026-11-13).  In the allocator (the arrival register as the home).
+	D.  Unconditional branches: loops rotated so the test is at the bottom, a small return block copied into
+	    the blocks that jump to it, the else falling through.  In the block order (OrderBlocks, shared).
+	E.  Width changes, those in loops first (CIR65Widths).
+	F.  Constant loads: a hot constant kept in a register, or folded into the instruction that uses it.
+	G.  Phi and call result copies, the biggest part and the riskiest: values a copy joins given one home.
+
+	Each step is estimated from A, built, compared program by program (the totals hide a rule that helps a few
+	and hurts most) and committed, with the unit tests and the four 65 suites on both processors after it.
+
+Part 2, the W65C816: step A on it, then the same estimate, build and measure for what it shows.  The last
+breakdown (2026-10-31, TestBaseLib65) had about 1.5G cycles in frame slot to slot copies, near half of them phi
+copies before a jump, but much has changed since, so nothing is chosen before the profile.
+
+At the end: the full sweep, and what was built and measured written here.
 
 
 How this meets ConsolidationPlan.txt
