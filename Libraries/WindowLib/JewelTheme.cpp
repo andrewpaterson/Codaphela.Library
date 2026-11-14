@@ -267,6 +267,10 @@ void CJewelTheme::SetImages(Ptr<CWindowTheme> pTheme, Ptr<CWindow> pWindow)
 	pTheme->SetImage(TI_ParentFolder, CJewelImageGenerator::CreateArrow(JEWEL_ICON, true, &cFormat));
 	pTheme->SetImage(TI_Home, CJewelImageGenerator::CreateHome(JEWEL_ICON, &cFormat));
 	pTheme->SetImage(TI_NewFolder, CJewelImageGenerator::CreateNewFolder(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_Desktop, CJewelImageGenerator::CreateDesktop(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_Delete, CJewelImageGenerator::CreateCross(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_Refresh, CJewelImageGenerator::CreateRefresh(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_ShowHidden, CJewelImageGenerator::CreateEye(JEWEL_ICON, &cFormat));
 	pTheme->SetMenuBarButtonImages(CJewelImageGenerator::CreateFlatButtonImages(JEWEL_BAR_BACKGROUND, JEWEL_HOVER, JEWEL_HOVER, &cFormat));
 }
 

@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Label.h"
 #include "Dialog.h"
 #include "MessageDialog.h"
+#include "Toolbar.h"
 
 
 //A Files of Type choice.
@@ -37,14 +38,16 @@ struct SFileChooserType
 
 
 //A load and save dialog, Swing's JFileChooser as its Metal look lays it out: Look In (Save In when saving)
-//with the folders from the root down to the one shown, and Up One Level, Home and New Folder as the theme's icons
-//(TI_ParentFolder, TI_Home and TI_NewFolder) on flat buttons with tool tips, along the top;
+//with the folders from the root down to the one shown, then a toolbar of the theme's icons with tool tips, as IntelliJ's
+//Select Path dialog has them: Up One Level, Home and Desktop; New Folder and Delete; Refresh and Show Hidden Files and
+//Folders, a toggle that stays highlighted while they're shown.  Along the top;
 //the folder's folders then its files under it; and File Name and Files of Type along the bottom.  Open (or Save)
 //and Cancel are the buttons.
 //
 //Selecting a file puts its name in File Name.  A double click on a folder (or enter) opens it; on a file it chooses
 //it.  Backspace, the keymap's Backspace command, goes up a folder as Up One Level does, whatever has focus, the list or
-//a button, but in File Name it deletes as ever.  Open chooses what File Name names, relative to the folder shown unless it's a whole path, but if that's a
+//a button, but in File Name it deletes as ever; the Delete command deletes what's selected in the list the same way.
+//Deleting asks first, on the next tick, and a folder goes with everything in it.  Open chooses what File Name names, relative to the folder shown unless it's a whole path, but if that's a
 //folder it opens it instead, as JFileChooser does.  A file that doesn't exist can't be opened.
 //
 //Saving with a type that has an extension, a name without it has it added.  The types are the caller's and must last
@@ -58,9 +61,14 @@ protected:
 	Ptr<CDialog>				mpNewFolderDialog;  //While New Folder's dialog is shown.
 	Ptr<CMessageDialog>			mpReplaceDialog;  //While the question whether to replace a file is shown.
 	Ptr<CComboBox>				mpLookIn;
+	Ptr<CMessageDialog>			mpDeleteDialog;  //While the question whether to delete is shown.
 	Ptr<CButton>				mpUp;
 	Ptr<CButton>				mpHome;
+	Ptr<CButton>				mpDesktop;
 	Ptr<CButton>				mpNewFolder;
+	Ptr<CButton>				mpDelete;
+	Ptr<CButton>				mpRefresh;
+	Ptr<CButton>				mpShowHidden;
 	Ptr<CScrollPane>			mpScrollPane;
 	Ptr<CListContainer>			mpList;
 	Ptr<CTextField>				mpFileName;
@@ -75,6 +83,8 @@ protected:
 	bool						mbSave;
 	bool						mbNewFolderPending;  //New Folder was clicked; its dialog is shown on the next tick.
 	bool						mbReplacePending;  //The file chosen to save exists; whether to replace it is asked on the next tick.
+	bool						mbDeletePending;  //Delete was clicked; whether to delete is asked on the next tick.
+	bool						mbShowHidden;  //Hidden files and folders are listed.
 	SFileChooserType*			masTypes;
 	size						muiNumTypes;
 
@@ -96,14 +106,21 @@ public:
 	void			LookInChosen(void);
 	void			FileTypeChosen(void);
 	void			GoUp(void);
+	void			GoHome(void);
+	void			GoDesktop(void);
 	void			NewFolderClicked(void);
+	void			DeleteClicked(void);
+	void			Refresh(void);
+	void			ShowHiddenClicked(void);
+	bool			DeleteSelected(void);
 
 protected:
 	int32			GetMetric(EThemeMetric eMetric);
 	Ptr<CComponent>	CreateBody(void);
 	Ptr<CLabel>		CreateLabel(const char* szText, int32 iWidth);
-	Ptr<CButton>	CreateButton(EThemeImage eIcon, const char* szToolTip);
-	void			AddButton(Ptr<CGridContainer> pRow, Ptr<CButton> pButton, int iColumn, int32 iGap);
+	Ptr<CButton>	CreateButton(Ptr<CToolbar> pToolbar, EThemeImage eIcon, const char* szToolTip);
+	Ptr<CToolbar>	CreateToolbar(void);
+	char*			GetSelectedPath(void);
 	bool			Open(const char* szDirectory, const char* szSelect);
 	void			FillLookIn(void);
 	void			FillList(const char* szSelect);
@@ -112,7 +129,7 @@ protected:
 	const char*		GetTypeExtension(void);
 	void			NewFolder(void);
 	void			AskReplace(void);
-	void			GoHome(void);
+	void			AskDelete(void);
 	void			RemoveFromButton(Ptr<CButton> pButton);
 };
 

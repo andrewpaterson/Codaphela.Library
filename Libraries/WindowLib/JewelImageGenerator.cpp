@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <math.h>
 #include "StandardLib/Objects.h"
 #include "SupportLib/ImageDraw.h"
 #include "SupportLib/VectorShapes.h"
@@ -543,8 +544,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateHome(ARGB32 sColour, CColourFormatHel
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CJewelImageGenerator::CreateNewFolder(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
-	Ptr<CImage>		pImage;
-	CImageDraw		cDraw;
+	Ptr<CImageCel>	pCel;
 	CVectorPath		cPath;
 	SFloat64Vec2	asFolder[7];
 	SFloat64Vec2	asPlus[4];
@@ -562,7 +562,6 @@ Ptr<CImageCel> CJewelImageGenerator::CreateNewFolder(ARGB32 sColour, CColourForm
 	asPlus[2].Init(9.5, 12.5);
 	asPlus[3].Init(15.5, 12.5);
 
-	pImage = CreateClearImage(16, 16);
 	cPath.Init();
 	cPath.BeginPart(true);
 	for (i = 1; i < 7; i++)
@@ -571,13 +570,143 @@ Ptr<CImageCel> CJewelImageGenerator::CreateNewFolder(ARGB32 sColour, CColourForm
 	}
 	AddVectorStroke(&cPath, &asPlus[0], &asPlus[1], 0.5);
 	AddVectorStroke(&cPath, &asPlus[2], &asPlus[3], 0.5);
+	pCel = DrawPath(&cPath, sColour, pcFormat);
+	cPath.Kill();
+	return pCel;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A monitor in the style of the New UI's outlined icons, on a stand, in a
+// 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreateDesktop(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	SFloat64Vec2	asScreen[4];
+	SFloat64Vec2	asStand[4];
+
+	asScreen[0].Init(1.5, 2.5);
+	asScreen[1].Init(14.5, 2.5);
+	asScreen[2].Init(14.5, 11.5);
+	asScreen[3].Init(1.5, 11.5);
+	asStand[0].Init(7.5, 11.5);
+	asStand[1].Init(7.5, 13.5);
+	asStand[2].Init(4.5, 13.5);
+	asStand[3].Init(11.5, 13.5);
+	return DrawOutline(asScreen, 4, asStand, 4, sColour, pcFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Two arcs of a circle, each with its head where it goes on clockwise:
+// the New UI's refresh, in a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreateRefresh(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImageCel>	pCel;
+	CVectorPath		cPath;
+	SFloat64Vec2	sTip;
+	SFloat64Vec2	sBarb;
+	float64			afEnds[2];
+	float64			fAngle;
+	float64			fCos;
+	float64			fSin;
+	size			i;
+	int				iSide;
+
+	afEnds[0] = 330.0;
+	afEnds[1] = 150.0;
+	cPath.Init();
+	cPath.BeginPart(true);
+	AddArc(&cPath, 8.0, 8.0, 5.5, 5.5, 200.0, afEnds[0]);
+	AddArc(&cPath, 8.0, 8.0, 5.5, 5.5, 20.0, afEnds[1]);
+	for (i = 0; i < 2; i++)
+	{
+		//The head points along the circle, clockwise: its barbs go back along it, one in and one out.
+		fAngle = afEnds[i] * 3.14159265358979 / 180.0;
+		fCos = cos(fAngle);
+		fSin = sin(fAngle);
+		sTip.Init(8.0 + 5.5 * fCos, 8.0 + 5.5 * fSin);
+		for (iSide = -1; iSide <= 1; iSide += 2)
+		{
+			sBarb.Init(sTip.x + 2.5 * fSin + 2.5 * fCos * iSide, sTip.y - 2.5 * fCos + 2.5 * fSin * iSide);
+			AddVectorStroke(&cPath, &sTip, &sBarb, 0.5);
+		}
+	}
+	pCel = DrawPath(&cPath, sColour, pcFormat);
+	cPath.Kill();
+	return pCel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An eye in the style of the New UI's outlined icons, its lids two arcs
+// meeting at its corners and its pupil a circle, in a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreateEye(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImageCel>	pCel;
+	CVectorPath		cPath;
+
+	cPath.Init();
+	cPath.BeginPart(true);
+	AddArc(&cPath, 8.0, 12.0, 8.0, 7.5, 210.0, 330.0);
+	AddArc(&cPath, 8.0, 4.0, 8.0, 7.5, 30.0, 150.0);
+	AddArc(&cPath, 8.0, 8.0, 2.0, 2.0, 0.0, 360.0);
+	pCel = DrawPath(&cPath, sColour, pcFormat);
+	cPath.Kill();
+	return pCel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One pixel wide strokes along an ellipse's arc from fFrom to fTo degrees,
+// clockwise as the screen has it, y down: 0 is to the right and 90 below.
+//
+//////////////////////////////////////////////////////////////////////////
+void CJewelImageGenerator::AddArc(CVectorPath* pcPath, float64 fCentreX, float64 fCentreY, float64 fRadiusX, float64 fRadiusY, float64 fFrom, float64 fTo)
+{
+	SFloat64Vec2	sStart;
+	SFloat64Vec2	sEnd;
+	float64			fAngle;
+	int				iSteps;
+	int				i;
+
+	iSteps = (int)((fTo - fFrom) / 10.0) + 1;
+	fAngle = fFrom * 3.14159265358979 / 180.0;
+	sStart.Init(fCentreX + fRadiusX * cos(fAngle), fCentreY + fRadiusY * sin(fAngle));
+	for (i = 1; i <= iSteps; i++)
+	{
+		fAngle = (fFrom + (fTo - fFrom) * i / iSteps) * 3.14159265358979 / 180.0;
+		sEnd.Init(fCentreX + fRadiusX * cos(fAngle), fCentreY + fRadiusY * sin(fAngle));
+		AddVectorStroke(pcPath, &sStart, &sEnd, 0.5);
+		sStart = sEnd;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 16 x 16 cel of pcPath filled with sColour.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::DrawPath(CVectorPath* pcPath, ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>	pImage;
+	CImageDraw	cDraw;
+
+	pImage = CreateClearImage(16, 16);
 	cDraw.Init(&pImage);
 	cDraw.SetColour(sColour);
-	cDraw.DrawPath(&cPath);
+	cDraw.DrawPath(pcPath);
 	cDraw.Kill();
-	cPath.Kill();
-
 	return FinishCel(pImage, pcFormat);
 }
 

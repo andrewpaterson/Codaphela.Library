@@ -27,6 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CImageDraw;
+class CVectorPath;
 
 //Draws the button images of JetBrains' Jewel dark theme with CImageDraw rather than loading them.  Each state's border
 //is a strip of 8 x 8 tiles laid out as CButtonImages expects, or 7 x 7 tiles for a flat button.  From the outside in each tile has a two pixel focus
@@ -47,6 +48,9 @@ public:
 	static Ptr<CImageCel>		CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined page, 16 x 16.
 	static Ptr<CImageCel>		CreateHome(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined house, 16 x 16.
 	static Ptr<CImageCel>		CreateNewFolder(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined folder with a plus, 16 x 16.
+	static Ptr<CImageCel>		CreateDesktop(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined monitor on a stand, 16 x 16.
+	static Ptr<CImageCel>		CreateRefresh(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Two curved arrows chasing round, 16 x 16.
+	static Ptr<CImageCel>		CreateEye(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined eye, 16 x 16.
 	static Ptr<CImageCel>		CreatePin(ARGB32 sColour, bool bPinned, CColourFormatHelper* pcFormat);  //A push pin, upright when pinned, on its side when not, 16 x 16.
 	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 
@@ -57,6 +61,8 @@ protected:
 	static Ptr<CImage>			DrawSmallStrip(ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
 	static Ptr<CImage>			DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat);
 	static Ptr<CImageCel>		DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat);
+	static void					AddArc(CVectorPath* pcPath, float64 fCentreX, float64 fCentreY, float64 fRadiusX, float64 fRadiusY, float64 fFrom, float64 fTo);
+	static Ptr<CImageCel>		DrawPath(CVectorPath* pcPath, ARGB32 sColour, CColourFormatHelper* pcFormat);
 	static Ptr<CImageCel>		DrawOutline(SFloat64Vec2* asPoints, size uiNumPoints, SFloat64Vec2* asExtra, size uiNumExtra, ARGB32 sColour, CColourFormatHelper* pcFormat);
 	static void					DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour);
 	static void					DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius);

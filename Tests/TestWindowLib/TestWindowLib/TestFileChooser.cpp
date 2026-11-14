@@ -1,6 +1,10 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/TextFile.h"
+#ifdef _WIN32
+#include "BaseLib/WindowsHeaders.h"
+#undef CreateFile  //Windows makes it CreateFileA, which CJewelImageGenerator::CreateFile isn't.
+#endif
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/ClearCanvasDraw.h"
@@ -44,6 +48,10 @@ public:
 	Ptr<CButton>		GetNewFolder(void) { return mpNewFolder; }
 	bool				IsNewFolderPending(void) { return mbNewFolderPending; }
 	bool				IsReplacePending(void) { return mbReplacePending; }
+	bool				IsDeletePending(void) { return mbDeletePending; }
+	void				ClearDeletePending(void) { mbDeletePending = false; }
+	Ptr<CButton>		GetShowHidden(void) { return mpShowHidden; }
+	bool				OpenFolder(const char* szDirectory) { return Open(szDirectory, NULL); }
 	char*				GetRowPath(int32 iRow) { return maszRows.GetText(iRow); }
 	char*				GetClicked(void) { return mpDialog->GetClicked(); }
 };
@@ -71,6 +79,54 @@ static void WriteTestFile(const char* szDirectory, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether szPath is the whole path of szName in szDirectory.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsPathIn(const char* szPath, const char* szDirectory, const char* szName);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row of szName in szDirectory, -1 if it isn't listed.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 FindTestRow(CTestFileChooser* pcChooser, const char* szDirectory, const char* szName)
+{
+	int32	i;
+
+	for (i = 0; i < pcChooser->GetList()->NumRows(); i++)
+	{
+		if (IsPathIn(pcChooser->GetRowPath(i), szDirectory, szName))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A file that's hidden: its name starts with a dot, and on Windows it has
+// the hidden attribute.
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteHiddenTestFile(const char* szDirectory, const char* szName)
+{
+	CFileUtil	cFileUtil;
+	CChars		szPath;
+
+	WriteTestFile(szDirectory, szName);
+#ifdef _WIN32
+	szPath.Init(szDirectory);
+	cFileUtil.AppendToPath(&szPath, szName);
+	SetFileAttributesA(szPath.Text(), FILE_ATTRIBUTE_HIDDEN);
+	szPath.Kill();
+#endif
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IsPathIn(const char* szPath, const char* szDirectory, const char* szName)
@@ -122,6 +178,8 @@ void TestFileChooserBrowse(void)
 		SDialogLook					sLook;
 		Ptr<CWindowTheme>			pTheme;  //The look only points to it.
 		Ptr<CTestFileChooser>		pChooser;
+		CChars						szDesktop;
+		int32						iRow;
 		Ptr<CFocus>					pFocus;
 		CColourFormatHelper			cFormat;
 		Ptr<CImageCel>				pFolderIcon;
@@ -215,6 +273,52 @@ void TestFileChooserBrowse(void)
 		pFocus->Command(CIC_Backspace, false);
 		AssertString(szFull.Text(), pChooser->GetDirectory());
 		AssertInt(0, pChooser->GetList()->GetSelected());
+
+		//Refresh reads the folder again: a file written since it was shown is listed, and what was selected stays so.
+		AssertInt(4, pChooser->GetList()->NumRows());
+		WriteTestFile(szDirectory, "d.txt");
+		AssertInt(-1, FindTestRow(&pChooser, szDirectory, "d.txt"));
+		pChooser->Refresh();
+		AssertInt(5, pChooser->GetList()->NumRows());
+		AssertInt(0, pChooser->GetList()->GetSelected());
+
+		//Delete, from the list, asks first, on the next tick; deleting selects the row after or before.
+		iRow = FindTestRow(&pChooser, szDirectory, "d.txt");
+		AssertTrue(iRow > 0);
+		pChooser->GetList()->Select(iRow);
+		pFocus->Command(CIC_Delete, false);
+		AssertTrue(pChooser->IsDeletePending());
+		pChooser->ClearDeletePending();
+		AssertTrue(pChooser->DeleteSelected());
+		AssertInt(4, pChooser->GetList()->NumRows());
+		AssertInt(-1, FindTestRow(&pChooser, szDirectory, "d.txt"));
+		AssertTrue(pChooser->GetList()->GetSelected() >= 0);
+		pChooser->GetList()->Select(-1);
+		pFocus->Command(CIC_Delete, false);
+		AssertFalse(pChooser->IsDeletePending());
+
+		//Hidden files are shown while the toggle is on, which keeps it highlighted.
+		WriteHiddenTestFile(szDirectory, ".hidden.txt");
+		pChooser->Refresh();
+		AssertInt(-1, FindTestRow(&pChooser, szDirectory, ".hidden.txt"));
+		pChooser->ShowHiddenClicked();
+		AssertTrue(pChooser->GetShowHidden()->IsHighlighted());
+		AssertTrue(FindTestRow(&pChooser, szDirectory, ".hidden.txt") >= 0);
+		pChooser->ShowHiddenClicked();
+		AssertFalse(pChooser->GetShowHidden()->IsHighlighted());
+		AssertInt(-1, FindTestRow(&pChooser, szDirectory, ".hidden.txt"));
+
+		//Desktop opens the user's desktop folder, where there is one.
+		szDesktop.Init();
+		if (cFileUtil.DesktopDirectory(&szDesktop))
+		{
+			pChooser->GoDesktop();
+			NormaliseDirectory(&szDesktop);
+			AssertString(szDesktop.Text(), pChooser->GetDirectory());
+			pChooser->OpenFolder(szFull.Text());
+		}
+		szDesktop.Kill();
+		AssertString(szFull.Text(), pChooser->GetDirectory());
 		pChooser->GetList()->Select(0);
 		pChooser->ItemActivated();
 		AssertString(szFullSub.Text(), pChooser->GetDirectory());

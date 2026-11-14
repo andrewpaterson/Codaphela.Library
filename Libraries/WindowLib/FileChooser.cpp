@@ -79,6 +79,8 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	mbSave = bSave;
 	mbNewFolderPending = false;
 	mbReplacePending = false;
+	mbDeletePending = false;
+	mbShowHidden = false;
 	masTypes = asTypes;
 	muiNumTypes = uiNumTypes;
 	mpFolderIcon = pFolderIcon;
@@ -141,10 +143,15 @@ void CFileChooser::Class(void)
 	M_Pointer(mpDialog);
 	M_Pointer(mpNewFolderDialog);
 	M_Pointer(mpReplaceDialog);
+	M_Pointer(mpDeleteDialog);
 	M_Pointer(mpLookIn);
 	M_Pointer(mpUp);
 	M_Pointer(mpHome);
+	M_Pointer(mpDesktop);
 	M_Pointer(mpNewFolder);
+	M_Pointer(mpDelete);
+	M_Pointer(mpRefresh);
+	M_Pointer(mpShowHidden);
 	M_Pointer(mpScrollPane);
 	M_Pointer(mpList);
 	M_Pointer(mpFileName);
@@ -159,6 +166,8 @@ void CFileChooser::Class(void)
 	U_Bool(mbSave);
 	U_Bool(mbNewFolderPending);
 	U_Bool(mbReplacePending);
+	U_Bool(mbDeletePending);
+	U_Bool(mbShowHidden);
 	U_Pointer(masTypes);
 	U_Data(size, muiNumTypes);
 }
@@ -213,7 +222,11 @@ void CFileChooser::Free(void)
 	}
 	RemoveFromButton(mpUp);
 	RemoveFromButton(mpHome);
+	RemoveFromButton(mpDesktop);
 	RemoveFromButton(mpNewFolder);
+	RemoveFromButton(mpDelete);
+	RemoveFromButton(mpRefresh);
+	RemoveFromButton(mpShowHidden);
 
 	mszChosen.Kill();
 	maszRows.Kill();
@@ -234,6 +247,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	SDialogLook*			psLook;
 	Ptr<CGridContainer>		pBody;
 	Ptr<CGridContainer>		pTop;
+	Ptr<CToolbar>			pToolbar;
 	Ptr<CFillContainer>		pGap;
 	Ptr<CLabel>				pLabel;
 	SInsets					sInsets;
@@ -244,8 +258,10 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	psLook = mpDialog->GetLook();
 	pBody = OMalloc<CGridContainer>(pWindow);
 
-	//Backspace goes up from whatever has focus, the list or a button, unless it's File Name, which takes it to delete.
+	//Backspace goes up, and Delete deletes, from whatever has focus, the list or a button, unless it's File Name, which
+	//takes them to delete its characters.
 	pBody->AddInputAction(CIC_Backspace, this, &CFileChooser::GoUp);
+	pBody->AddInputAction(CIC_Delete, this, &CFileChooser::DeleteClicked);
 
 	//Every label is as wide as the widest.
 	pLabel = OMalloc<CLabel>(pWindow, psLook->pcTheme->GetFont(), "Files of Type:");
@@ -259,17 +275,10 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	mpLookIn = OMalloc<CComboBox>(pWindow, psLook->pcTheme);
 	mpLookIn->SetAlignment(CSH_Stretch, CSV_Center);
 	pTop->AddComponent(mpLookIn, 1, 0, 1, 1, 1, 0);
-	mpUp = CreateButton(TI_ParentFolder, "Up One Level");
-	mpHome = CreateButton(TI_Home, "Home");
-	mpNewFolder = CreateButton(TI_NewFolder, "New Folder");
-	mpUp->GetClickEvent()->Add(this, &CFileChooser::GoUp);
-	mpHome->GetClickEvent()->Add(this, &CFileChooser::GoHome);
-	mpNewFolder->GetClickEvent()->Add(this, &CFileChooser::NewFolderClicked);
-	AddButton(pTop, mpUp, 2, GetMetric(TM_FileChooserGap));
-	AddButton(pTop, mpHome, 4, GetMetric(TM_FileChooserGap) / 4);
-	AddButton(pTop, mpNewFolder, 6, GetMetric(TM_FileChooserGap) / 4);
+	pToolbar = CreateToolbar();
+	pTop->AddComponent(pToolbar, 2, 0);
 	//A grid in a grid is the size it's given, not the size its parts need.
-	pTop->SetDesiredSize(-1, (mpLookIn->GetDesiredSize().y > mpUp->GetDesiredSize().y) ? mpLookIn->GetDesiredSize().y : mpUp->GetDesiredSize().y);
+	pTop->SetDesiredSize(-1, (mpLookIn->GetDesiredSize().y > pToolbar->GetDesiredSize().y) ? mpLookIn->GetDesiredSize().y : pToolbar->GetDesiredSize().y);
 	pBody->AddComponent(pTop, 0, iRow, 3, 1, 1, 0);
 	iRow++;
 
@@ -333,33 +342,49 @@ Ptr<CLabel> CFileChooser::CreateLabel(const char* szText, int32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CButton> CFileChooser::CreateButton(EThemeImage eIcon, const char* szToolTip)
+Ptr<CButton> CFileChooser::CreateButton(Ptr<CToolbar> pToolbar, EThemeImage eIcon, const char* szToolTip)
 {
 	Ptr<CButton>		pButton;
 	Ptr<CWindowTheme>	pTheme;
 
 	pTheme = mpDialog->GetLook()->pcTheme;
 	pButton = OMalloc<CButton>(mpDialog->GetWindow(), pTheme, BL_Flat, pTheme->GetImage(eIcon), (const char*)NULL);
-	pButton->SetPadding(5, 5);
+	pButton->SetPadding(0, 0);
 	pButton->SetAlignment(CSH_Center, CSV_Center);
 	pButton->SetToolTip(szToolTip);
+	pToolbar->Append(pButton);
 	return pButton;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The button in iColumn of the row, after a gap in the column before.
+// The buttons after Look In, in IntelliJ's groups.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileChooser::AddButton(Ptr<CGridContainer> pRow, Ptr<CButton> pButton, int iColumn, int32 iGap)
+Ptr<CToolbar> CFileChooser::CreateToolbar(void)
 {
-	Ptr<CFillContainer>		pGap;
+	Ptr<CToolbar>	pToolbar;
 
-	pGap = OMalloc<CFillContainer>(mpDialog->GetWindow());
-	pGap->SetDesiredSize(iGap, 1);
-	pRow->AddComponent(pGap, iColumn - 1, 0);
-	pRow->AddComponent(pButton, iColumn, 0);
+	pToolbar = OMalloc<CToolbar>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme, false);
+	mpUp = CreateButton(pToolbar, TI_ParentFolder, "Up One Level");
+	mpHome = CreateButton(pToolbar, TI_Home, "Home");
+	mpDesktop = CreateButton(pToolbar, TI_Desktop, "Desktop");
+	pToolbar->AddSeparator();
+	mpNewFolder = CreateButton(pToolbar, TI_NewFolder, "New Folder");
+	mpDelete = CreateButton(pToolbar, TI_Delete, "Delete");
+	pToolbar->AddSeparator();
+	mpRefresh = CreateButton(pToolbar, TI_Refresh, "Refresh");
+	mpShowHidden = CreateButton(pToolbar, TI_ShowHidden, "Show Hidden Files and Folders");
+
+	mpUp->GetClickEvent()->Add(this, &CFileChooser::GoUp);
+	mpHome->GetClickEvent()->Add(this, &CFileChooser::GoHome);
+	mpDesktop->GetClickEvent()->Add(this, &CFileChooser::GoDesktop);
+	mpNewFolder->GetClickEvent()->Add(this, &CFileChooser::NewFolderClicked);
+	mpDelete->GetClickEvent()->Add(this, &CFileChooser::DeleteClicked);
+	mpRefresh->GetClickEvent()->Add(this, &CFileChooser::Refresh);
+	mpShowHidden->GetClickEvent()->Add(this, &CFileChooser::ShowHiddenClicked);
+	return pToolbar;
 }
 
 
@@ -444,7 +469,8 @@ void CFileChooser::FillLookIn(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The folder's folders then its files of the type chosen, hidden ones
-// left out.  The row of szSelect is selected if it's shown.
+// left out unless they're shown.  The row of szSelect is selected if it's
+// shown.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::FillList(const char* szSelect)
@@ -462,8 +488,8 @@ void CFileChooser::FillList(const char* szSelect)
 
 	aszFolders.Init();
 	aszFiles.Init();
-	cFileUtil.FindAllDirectories(mszDirectory.Text(), &aszFolders, false);
-	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFiles, false, false);
+	cFileUtil.FindAllDirectories(mszDirectory.Text(), &aszFolders, mbShowHidden);
+	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFiles, false, mbShowHidden);
 
 	iSelect = -1;
 	for (i = 0; i < aszFolders.NumElements(); i++)
@@ -758,6 +784,123 @@ void CFileChooser::NewFolderClicked(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether to delete is asked on the next tick, as New Folder's dialog is
+// shown.  Nothing is asked if nothing is selected.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::DeleteClicked(void)
+{
+	mbDeletePending = GetSelectedPath() != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The folder is read again from disk, what was selected kept selected if
+// it's still there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::Refresh(void)
+{
+	CChars	szSelected;
+
+	szSelected.Init(GetSelectedPath());
+	FillList(szSelected.Empty() ? NULL : szSelected.Text());
+	szSelected.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Hidden files and folders are shown, or not, and the button stays
+// highlighted while they are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::ShowHiddenClicked(void)
+{
+	mbShowHidden = !mbShowHidden;
+	mpShowHidden->SetHighlighted(mbShowHidden);
+	Refresh();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The whole path of the row selected, NULL if none is.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CFileChooser::GetSelectedPath(void)
+{
+	int32	iRow;
+
+	iRow = mpList->GetSelected();
+	if ((iRow < 0) || ((size)iRow >= maszRows.NumElements()))
+	{
+		return NULL;
+	}
+	return maszRows.GetText(iRow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selected file, or folder with everything in it, is deleted.  The row
+// after it is selected, or before it if it was the last.  False if nothing
+// was selected or it couldn't be deleted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileChooser::DeleteSelected(void)
+{
+	CFileUtil	cFileUtil;
+	CChars		szNext;
+	char*		szPath;
+	int32		iRow;
+	bool		bDeleted;
+
+	szPath = GetSelectedPath();
+	if (szPath == NULL)
+	{
+		return false;
+	}
+	iRow = mpList->GetSelected();
+	szNext.Init();
+	if ((size)iRow + 1 < maszRows.NumElements())
+	{
+		szNext.Append(maszRows.GetText(iRow + 1));
+	}
+	else if (iRow > 0)
+	{
+		szNext.Append(maszRows.GetText(iRow - 1));
+	}
+
+	bDeleted = ((iRow < miNumFolders) ? cFileUtil.RemoveDir(szPath) : cFileUtil.Delete(szPath));
+	FillList(szNext.Empty() ? NULL : szNext.Text());
+	szNext.Kill();
+	return bDeleted;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The user's desktop folder.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::GoDesktop(void)
+{
+	CFileUtil	cFileUtil;
+	CChars		szDesktop;
+
+	szDesktop.Init();
+	if (cFileUtil.DesktopDirectory(&szDesktop))
+	{
+		Open(szDesktop.Text(), NULL);
+	}
+	szDesktop.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::RemoveFromButton(Ptr<CButton> pButton)
@@ -787,6 +930,11 @@ void CFileChooser::DialogTick(void)
 	{
 		mbReplacePending = false;
 		AskReplace();
+	}
+	if (mbDeletePending)
+	{
+		mbDeletePending = false;
+		AskDelete();
 	}
 }
 
@@ -869,6 +1017,44 @@ void CFileChooser::AskReplace(void)
 		mpDialog->Close("OK");
 	}
 	mpReplaceDialog = NULL;
+
+	szMessage.Kill();
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Asks whether to delete what's selected: a folder goes with everything
+// in it, which the question says.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::AskDelete(void)
+{
+	CFileUtil	cFileUtil;
+	CChars		szName;
+	CChars		szMessage;
+	char*		szPath;
+
+	szPath = GetSelectedPath();
+	if (szPath == NULL)
+	{
+		return;
+	}
+	szName.Init();
+	cFileUtil.GetFileName(&szName, szPath);
+	szMessage.Init(mpList->GetSelected() < miNumFolders ? "Delete the folder " : "Delete ");
+	szMessage.Append(szName);
+	szMessage.Append(mpList->GetSelected() < miNumFolders ? " and everything in it?" : "?");
+
+	//The chooser holds the question while it's shown.
+	mpDeleteDialog = OMalloc<CMessageDialog>(mpDialog->GetWindow(), mpDialog->GetLook(), "Delete", szMessage.Text());
+	mpDeleteDialog->GetDialog()->SetOKCaption("Delete");
+	if (mpDeleteDialog->Show())
+	{
+		DeleteSelected();
+	}
+	mpDeleteDialog = NULL;
 
 	szMessage.Kill();
 	szName.Kill();

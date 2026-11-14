@@ -54,7 +54,7 @@ static_assert(sizeof(gaszThemeMetricNames) / sizeof(gaszThemeMetricNames[0]) == 
 static const char*	gaszThemeImageNames[] =
 {
 	"Chevron", "DownChevron", "Pin", "Unpin", "Close", "TabClose", "TabCloseHover", "PreviousArrow", "NextArrow", "ParentFolder",
-	"Home", "NewFolder",
+	"Home", "NewFolder", "Desktop", "Delete", "Refresh", "ShowHidden",
 };
 static_assert(sizeof(gaszThemeImageNames) / sizeof(gaszThemeImageNames[0]) == TI_NumImages, "gaszThemeImageNames needs a row for each EThemeImage.");
 

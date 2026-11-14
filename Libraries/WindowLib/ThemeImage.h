@@ -37,6 +37,10 @@ enum EThemeImage
 	TI_ParentFolder,		//Up a folder, a file chooser's Up One Level.
 	TI_Home,				//A file chooser's home folder.
 	TI_NewFolder,			//A file chooser's New Folder.
+	TI_Desktop,				//A file chooser's desktop folder.
+	TI_Delete,				//Delete what's selected.
+	TI_Refresh,				//Read again what's shown.
+	TI_ShowHidden,			//Show hidden files and folders.
 
 	TI_NumImages,
 };
