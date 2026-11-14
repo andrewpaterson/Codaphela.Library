@@ -27,6 +27,26 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Calls::Init(CIR65Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Calls::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The arg instructions before the call (CallArguments) are placed: a
 // function called by name that takes register arguments (IsRegisterCall,
 // not a variadic call) gets its first three of 32 bits or less in A, B and
@@ -38,7 +58,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // and keeps the result (CallerCleanUp).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
+bool CIR65Calls::Call(CIRBlock* pcBlock, size uiIndex)
 {
 	CArrayIRRegisterArguments	asArguments;
 	SIRRegisterArgument*		psArgument;
@@ -58,23 +78,23 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 	for (ui = uiFirst + (bThisCall ? 1 : 0); ui < uiIndex; ui++)
 	{
 		psArgument = asArguments.Add();
-		psArgument->iUnits = ArgumentUnits(pcBlock->masInstructions.Get(ui)->sType);
+		psArgument->iUnits = mpcBackend->mcPlaces.ArgumentUnits(pcBlock->masInstructions.Get(ui)->sType);
 		psArgument->iRegister = -1;
 	}
-	iRegisters = (IsRegisterCall(psCall->asArguments[0]) && !(psCall->uiFlags & IRF_Variadic)) ? AssignRegisters(&asArguments, IR65_ARGUMENT_REGISTERS, 1) : 0;
+	iRegisters = (mpcBackend->IsRegisterCall(psCall->asArguments[0]) && !(psCall->uiFlags & IRF_Variadic)) ? mpcBackend->AssignRegisters(&asArguments, IR65_ARGUMENT_REGISTERS, 1) : 0;
 
 	iBytes = PushArguments(pcBlock, uiFirst + (bThisCall ? 1 : 0), uiIndex, &asArguments);
 	szCallee.Init();
 	CalleeOperand(psCall->asArguments[0], bThisCall, &szCallee);
 	if (iRegisters > 0)
 	{
-		AppendRegisterSuffix(&szCallee, &asArguments, IR65_REGISTER_LETTERS);
+		mpcBackend->AppendRegisterSuffix(&szCallee, &asArguments, IR65_REGISTER_LETTERS);
 	}
 	if (bThisCall || (iRegisters > 0))
 	{
 		LoadRegisterArguments(pcBlock, uiFirst, bThisCall, &asArguments);
 	}
-	Line("jsr ")->Append(szCallee)->AppendNewLine();
+	mpcBackend->Line("jsr ")->Append(szCallee)->AppendNewLine();
 	szCallee.Kill();
 	asArguments.Kill();
 	CallerCleanUp(iBytes, psCall);
@@ -88,7 +108,7 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 // it has none).
 //
 //////////////////////////////////////////////////////////////////////////
-size CIR65Backend::CallArguments(CIRBlock* pcBlock, size uiCall)
+size CIR65Calls::CallArguments(CIRBlock* pcBlock, size uiCall)
 {
 	size	uiFirst;
 
@@ -108,7 +128,7 @@ size CIR65Backend::CallArguments(CIRBlock* pcBlock, size uiCall)
 // Returns the bytes pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, CArrayIRRegisterArguments* pasArguments)
+int32 CIR65Calls::PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, CArrayIRRegisterArguments* pasArguments)
 {
 	size			ui;
 	int32			iBytes;
@@ -122,8 +142,8 @@ int32 CIR65Backend::PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, C
 			continue;
 		}
 		psArg = pcBlock->masInstructions.Get(ui - 1);
-		Push(psArg->asArguments[0], psArg->sType);
-		iBytes += ValueBytes(psArg->sType);
+		mpcBackend->mcSelector.Push(psArg->asArguments[0], psArg->sType);
+		iBytes += mpcBackend->ValueBytes(psArg->sType);
 	}
 	return iBytes;
 }
@@ -137,23 +157,23 @@ int32 CIR65Backend::PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, C
 // it to pszCallee.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* pszCallee)
+void CIR65Calls::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* pszCallee)
 {
 	if (sCallee.IsSymbol())
 	{
-		pszCallee->Append(mpcModule->GetSymbolName(sCallee.Index()));
+		pszCallee->Append(mpcBackend->mpcModule->GetSymbolName(sCallee.Index()));
 	}
-	else if (InRegister(sCallee) && (PlaceOf(sCallee)->iOffset != IR65R_W) && (PlaceOf(sCallee)->iOffset != IR65R_B) && ((PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
+	else if (mpcBackend->mcPlaces.InRegister(sCallee) && (mpcBackend->mcPlaces.PlaceOf(sCallee)->iOffset != IR65R_W) && (mpcBackend->mcPlaces.PlaceOf(sCallee)->iOffset != IR65R_B) && ((mpcBackend->mcPlaces.PlaceOf(sCallee)->iOffset != IR65R_X) || !bThisCall))
 	{
-		AppendPlace(pszCallee, PlaceOf(sCallee));
+		mpcBackend->mcSelector.AppendPlace(pszCallee, mpcBackend->mcPlaces.PlaceOf(sCallee));
 	}
-	else if (sCallee.IsTemporary() && !IsInA(sCallee) && IsMemoryHome(PlaceOf(sCallee)) && ((PlaceOf(sCallee)->uiKind == IR65P_Pseudo) || !msFrame.bFrameless))
+	else if (sCallee.IsTemporary() && !mpcBackend->mcPlaces.IsInA(sCallee) && mpcBackend->mcPlaces.IsMemoryHome(mpcBackend->mcPlaces.PlaceOf(sCallee)) && ((mpcBackend->mcPlaces.PlaceOf(sCallee)->uiKind == IR65P_Pseudo) || !mpcBackend->msFrame.bFrameless))
 	{
-		AppendPlace(pszCallee, PlaceOf(sCallee));
+		mpcBackend->mcSelector.AppendPlace(pszCallee, mpcBackend->mcPlaces.PlaceOf(sCallee));
 	}
 	else
 	{
-		LoadValue(sCallee, "A", IR65E_Zero);
+		mpcBackend->mcSelector.LoadValue(sCallee, "A", IR65E_Zero);
 		pszCallee->Append('A');
 	}
 }
@@ -166,15 +186,15 @@ void CIR65Backend::CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* p
 // an argument's register).
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
+uint8 CIR65Calls::ReadsRegisters(SIRReference sValue)
 {
-	if (IsInA(sValue))
+	if (mpcBackend->mcPlaces.IsInA(sValue))
 	{
 		return 1;
 	}
-	if (InRegister(sValue))
+	if (mpcBackend->mcPlaces.InRegister(sValue))
 	{
-		switch (PlaceOf(sValue)->iOffset)
+		switch (mpcBackend->mcPlaces.PlaceOf(sValue)->iOffset)
 		{
 		case IR65R_X:
 			return 2;
@@ -200,7 +220,7 @@ uint8 CIR65Backend::ReadsRegisters(SIRReference sValue)
 // of X and Y) are pushed and pulled.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool bThisCall, CArrayIRRegisterArguments* pasArguments)
+void CIR65Calls::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool bThisCall, CArrayIRRegisterArguments* pasArguments)
 {
 	static const char*	aszRegisters[IR65_ARGUMENT_REGISTERS + 1] = { "A", "B", "Y", "X" };
 	static const uint8	auiWrites[IR65_ARGUMENT_REGISTERS + 1] = { 1, 8, 4, 2 };
@@ -267,15 +287,15 @@ void CIR65Backend::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool b
 			for (i = 0; !abPending[i]; i++)
 			{
 			}
-			Push(asValues[i], IRType(IRTK_I32));
+			mpcBackend->mcSelector.Push(asValues[i], IRType(IRTK_I32));
 			abPull[i] = true;
 		}
 		else
 		{
-			LoadValue(asValues[i], aszRegisters[i], IR65E_Zero);
+			mpcBackend->mcSelector.LoadValue(asValues[i], aszRegisters[i], IR65E_Zero);
 			if (i == 0)
 			{
-				msAvailable = IRNone();
+				mpcBackend->msAvailable = IRNone();
 			}
 		}
 		abPending[i] = false;
@@ -285,10 +305,10 @@ void CIR65Backend::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool b
 	{
 		if (abPull[i])
 		{
-			Line("pul ")->Append(aszRegisters[i])->AppendNewLine();
+			mpcBackend->Line("pul ")->Append(aszRegisters[i])->AppendNewLine();
 			if (i == 0)
 			{
-				msAvailable = IRNone();
+				mpcBackend->msAvailable = IRNone();
 			}
 		}
 	}
@@ -301,11 +321,11 @@ void CIR65Backend::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool b
 // goes to its home, or stays in A.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psCall)
+void CIR65Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psCall)
 {
 	RemoveArguments(iBytes);
-	msAvailable = IRNone();
-	StoreResult(psCall->sResult);
+	mpcBackend->msAvailable = IRNone();
+	mpcBackend->mcSelector.StoreResult(psCall->sResult);
 }
 
 
@@ -314,10 +334,10 @@ void CIR65Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psCall)
 // Removes iBytes of arguments a call was given.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::RemoveArguments(int32 iBytes)
+void CIR65Calls::RemoveArguments(int32 iBytes)
 {
 	if (iBytes > 0)
 	{
-		Line("add S, ")->Append(iBytes)->AppendNewLine();
+		mpcBackend->Line("add S, ")->Append(iBytes)->AppendNewLine();
 	}
 }

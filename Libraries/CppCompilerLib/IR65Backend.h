@@ -198,6 +198,13 @@ struct SIR65Frame
 };
 
 
+#include "IR65Places.h"
+#include "IR65Folds.h"
+#include "IR65Fusion.h"
+#include "IR65Calls.h"
+#include "IR65Selector.h"
+
+
 //Writes 65C64 assembly for IR functions.  Temporaries are given homes by register allocation (IR.txt 65C64 back
 //end): X or Y, W between calls, B between calls where the code doesn't work in it (CheckHomeB), V in a function that
 //needs no frame (CanUseV: calls keep it), a pseudo register ([$00 + W] to
@@ -212,6 +219,11 @@ struct SIR65Frame
 //counter; the soft float routines called are added to its runtime list.
 class CIR65Backend : public CIRBackend
 {
+friend class CIR65Selector;
+friend class CIR65Calls;
+friend class CIR65Fusion;
+friend class CIR65Folds;
+friend class CIR65Places;
 protected:
 	CIRDominators			mcDominators;
 	CIRLiveness				mcLiveness;
@@ -256,6 +268,11 @@ protected:
 	CIR65Peephole			mcPeephole;
 	CIRBackendPasses		mcBackendPasses;
 
+	CIR65Places					mcPlaces;
+	CIR65Folds					mcFolds;
+	CIR65Fusion					mcFusion;
+	CIR65Calls					mcCalls;
+	CIR65Selector				mcSelector;
 public:
 	void				Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) override;
 	void				Kill(void) override;
@@ -266,10 +283,8 @@ public:
 protected:
 	void				AdjustComparisons(void);
 	void				PreferSingleBranches(void);
-	bool				DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);
-	void				MarkFolded(void);
 	void				Peephole(size uiStart);
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
@@ -282,92 +297,15 @@ protected:
 	int					ValueBytes(SIRType sType);
 	bool				IsWide(SIRType sType);
 	bool				IsNarrow(SIRType sType);
-	SIRInstruction*		FusedComparison(CIRBlock* pcBlock);
-	void				MarkInA(void);
-	bool				FoldedBase(SIRInstruction* psNext, SIRReference sValue);
-	int32				ParameterOffset(size uiParameter);
-	void				ArrivalPlace(size uiParameter, SIR65Place* psPlace);
-	void				FunctionArguments(void);
-	int					ParameterRegister(size uiParameter);
 	void				RegisterStub(const char* szBody);
 	void				StoreRegisterParameters(void);
 	void				StoreArrivedRegister(const char* szRegister, SIR65Place* psPlace, SIRType sType, const char** aszSources, SIR65Place** apsPlaces, int* piMoves);
-	int					ArgumentUnits(SIRType sType);
-	void				Layout(void);
-	bool				NeedsHome(int32 iTemporary);
-	void				Allocate(void);
-	void				DiscountAddresses(CArrayIR65Weights* pasWeights);
-	void				FindChanges(void);
-	void				Coalesce(void);
-	int32				Find(int32 iTemporary);
-	bool				Interferes(int32 iLeader1, int32 iLeader2);
-	void				Join(int32 iLeader1, int32 iLeader2);
-	bool				Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions);
-	bool				LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions);
-	bool				HasParameter(int32 iLeader);
 	bool				WriteBody(const char* szLabel, size uiStart);
 	void				Reallocate(SIR65Frame* psLaidOut, bool bHomeB);
-	void				AddChunk(int32 iFrom, int32 iTo, size uiStart);
-	bool				CheckHomeB(bool bChanges);
-	bool				HomeFree(int32 iHome, int32 iLeader);
-	int32				FindRange(CArrayIRRanges* pasRanges, SIRRange* psRange);
-	void				TakeHome(int32 iHome, int32 iLeader);
-	void				PlaceClass(int32 iLeader, uint8 uiKind, int32 iOffset, int32 iBytes);
-	bool				TakeHomes(int32 iHome, int32 iUnits, int32 iLeader);
-	bool				AllocateClass(int32 iLeader, uint32 uiWeight);
-	bool				AllocateClasses(CArrayIR65Weights* pasWeights);
-	void				ClearHomes(void);
-	bool				CanUseV(void);
-	bool				PaysV(void);
-	bool				IsAddressRegister(SIR65Place* psPlace);
-	bool				HasWidth(SIR65Place* psPlace);
-	bool				Fits32BitRegister(int32 iLeader);
-	int32				FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader);
-	SIR65Place*			PlaceOf(SIRReference sValue);
-	bool				IsHome(SIR65Place* psPlace);
-	bool				IsMemoryHome(SIR65Place* psPlace);
-	bool				SamePlace(SIRReference sValue1, SIRReference sValue2);
-	bool				Overlaps(SIR65Place* psPlace1, SIR65Place* psPlace2);
-	bool				IsDeferred(SIRReference sValue);
-	bool				IsInA(SIRReference sValue);
-	bool				InRegister(SIRReference sValue);
-	bool				NarrowOnly(SIRReference sValue);
-	void				FindNarrowOnly(void);
-	const char*			RegisterName(SIR65Place* psPlace);
-	bool				IsFrameOperand(CChars* pszOperand);
-	bool				IsLeaf(void);
-	bool				ArgumentsReadFirst(void);
-	bool				IsArrivalPlace(SIRReference sValue);
-	void				AppendPlace(CChars* psz, SIR65Place* psPlace);
-	void				AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Extend eExtend);
-	bool				Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend);
-	bool				SmallImmediate(SIRReference sValue, int iMin, int iMax);
-	const char*			WidthRegister(const char* szRegister);
-	const char*			WorkRegister(SIRInstruction* psInstruction);
-	bool				IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex);
-	const char*			FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, const char* szPrefer);
-	bool				CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened, CIRBlock* pcBlock, size uiIndex, const char* szPrefer);
-	void				Extend(const char* szRegister, SIRType sType, EIR65Extend eExtend);
-	void				Truncate(const char* szRegister, SIRType sType);
-	void				LoadConstant(const char* szRegister, SIRType sType, uint64 ulliBits, EIR65Extend eExtend);
-	void				LoadPlace(SIR65Place* psPlace, SIRType sType, const char* szRegister, EIR65Extend eExtend);
-	void				StorePlace(SIR65Place* psPlace, SIRType sType, const char* szRegister);
-	void				LoadValue(SIRReference sValue, const char* szRegister, EIR65Extend eExtend);
-	void				StoreResult(SIRReference sResult, const char* szRegister = "A", bool bExtended = false);
-	void				MemoryOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened);
-	void				FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const char* szWidened);
-	void				Push(SIRReference sValue, SIRType sType);
-	void				Multiply(const char* szInstruction);
 	bool				HasMoves(CIRBlock* pcFrom, CIRBlock* pcTo);
 	bool				Skipped(SIRInstruction* psInstruction);
 	size				NextWritten(CIRBlock* pcBlock, size uiAfter, size uiEnd);
 	bool				Block(CIRBlock* pcBlock, CIRBlock* pcNext);
-	bool				CanFuse(CIRBlock* pcBlock, size uiIndex);
-	SIRInstruction*		ExtendOf(CIRBlock* pcBlock, size uiLoad);
-	SIRInstruction*		PairedDivide(CIRBlock* pcBlock, size uiIndex);
-	bool				PairsWithDivide(SIRInstruction* psInstruction, SIRInstruction* psPartner);
-	SIRReference		InAAfterFused(void);
-	void				Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind);
 	bool				WriteInstruction(CIRBlock* pcBlock, size uiIndex);
 	bool				WriteFused(CIRBlock* pcBlock, size uiCount);
 	void				NextInstruction(void);
@@ -381,41 +319,8 @@ protected:
 	bool				CopySamePlace(SIRReference sValue1, SIRReference sValue2);
 	void				TestZero(SIRReference sValue);
 	bool				Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psFused);
-	bool				Instruction(CIRBlock* pcBlock, size uiIndex);
-	bool				Commutes(uint16 uiOpcode);
-	bool				ReadModifyWrite(SIRInstruction* psInstruction, SIRInstruction* psStore);
-	bool				Integer(SIRInstruction* psInstruction);
-	bool				IntegerWide(SIRInstruction* psInstruction);
-	bool				MultiplyInstruction(SIRInstruction* psInstruction);
 	int					MultiplyCost(SIRType sType, uint64 ulliMultiplier) override;
 	int					ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits) override;
-	bool				ShiftSigned(SIRInstruction* psInstruction);
-	bool				Divide(SIRInstruction* psInstruction, SIRInstruction* psNext);
-	bool				Conversion(SIRInstruction* psInstruction);
-	bool				FloatOperation(SIRInstruction* psInstruction);
-	bool				FloatConversion(SIRInstruction* psInstruction);
-	bool				CanDefer(CIRBlock* pcBlock, size uiIndex);
-	bool				PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, char* pcRegister);
-	bool				Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExtend);
-	bool				Store(CIRBlock* pcBlock, size uiIndex);
-	bool				Call(CIRBlock* pcBlock, size uiIndex);
-	size				CallArguments(CIRBlock* pcBlock, size uiCall);
-	int32				PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, CArrayIRRegisterArguments* pasArguments);
-	void				CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* pszCallee);
-	void				LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool bThisCall, CArrayIRRegisterArguments* pasArguments);
-	uint8				ReadsRegisters(SIRReference sValue);
-	void				CallerCleanUp(int32 iBytes, SIRInstruction* psCall);
-	void				RemoveArguments(int32 iBytes);
-	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
-	void				CompareOperands(SIRReference sFirst, SIRReference sSecond);
-	bool				IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
-	bool				NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand);
-	bool				FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
-	bool				TakesInA(SIRInstruction* psNext, SIRReference sValue);
-	bool				JumpTakesInA(CIRBlock* pcBlock, SIRInstruction* psFused, SIRReference sValue);
-	bool				Immediate(SIRReference sValue, SIRType sType);
-	void				LoadOperands(SIRInstruction* psInstruction, EIR65Extend eExtend, bool bImmediate);
-	bool				TakesInB(SIRInstruction* psNext, SIRReference sValue);
 };
 
 

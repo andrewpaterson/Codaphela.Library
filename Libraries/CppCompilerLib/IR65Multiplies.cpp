@@ -34,10 +34,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // takes that out where W is 0 already.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Multiply(const char* szInstruction)
+void CIR65Selector::Multiply(const char* szInstruction)
 {
-	Line("cpy W, 0")->AppendNewLine();
-	Line(szInstruction)->AppendNewLine();
+	mpcBackend->Line("cpy W, 0")->AppendNewLine();
+	mpcBackend->Line(szInstruction)->AppendNewLine();
 }
 
 
@@ -46,13 +46,13 @@ void CIR65Backend::Multiply(const char* szInstruction)
 // A x B -> Y.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
+bool CIR65Selector::MultiplyInstruction(SIRInstruction* psInstruction)
 {
 	bool	bWide;
 	bool	bByte;
 
-	bWide = IsWide(psInstruction->sType);
-	if (!bWide && IsInA(psInstruction->asArguments[1]) && !IsInA(psInstruction->asArguments[0]))
+	bWide = mpcBackend->IsWide(psInstruction->sType);
+	if (!bWide && mpcBackend->mcPlaces.IsInA(psInstruction->asArguments[1]) && !mpcBackend->mcPlaces.IsInA(psInstruction->asArguments[0]))
 	{
 		LoadValue(psInstruction->asArguments[0], "B", IR65E_Zero);
 	}
@@ -62,26 +62,26 @@ bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 	}
 	if (bWide)
 	{
-		Line("wtth (A, B), 64")->AppendNewLine();
-		Line("wth Y, 64")->AppendNewLine();
+		mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
+		mpcBackend->Line("wth Y, 64")->AppendNewLine();
 	}
-	bByte = !bWide && psInstruction->asArguments[1].IsConstant() && (IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) < 256);
+	bByte = !bWide && psInstruction->asArguments[1].IsConstant() && (IRTruncate(psInstruction->sType, mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) < 256);
 	if (bByte)
 	{
 		//mul takes a step for each byte of B: a multiplier below 256 takes one.
-		Line("wth B, 8")->AppendNewLine();
+		mpcBackend->Line("wth B, 8")->AppendNewLine();
 	}
 	Multiply("mul");
 	if (bByte)
 	{
-		Line("wth B, 32")->AppendNewLine();
+		mpcBackend->Line("wth B, 32")->AppendNewLine();
 	}
-	msAvailable = IRNone();
+	mpcBackend->msAvailable = IRNone();
 	if (bWide)
 	{
-		Line("cpy A, Y")->AppendNewLine();
-		Line("wth Y, 32")->AppendNewLine();
-		Line("wtth (A, B), 32")->AppendNewLine();
+		mpcBackend->Line("cpy A, Y")->AppendNewLine();
+		mpcBackend->Line("wth Y, 32")->AppendNewLine();
+		mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
 		StoreResult(psInstruction->sResult);
 	}
 	else
@@ -147,7 +147,7 @@ int CIR65Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int i
 // Signed: R_DivideSigned (A / B -> A, the remainder in B).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
+bool CIR65Selector::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 {
 	bool			bWide;
 	bool			bSigned;
@@ -155,7 +155,7 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 	SIRReference	sLeft;
 	SIRReference	sRight;
 
-	bWide = IsWide(psInstruction->sType);
+	bWide = mpcBackend->IsWide(psInstruction->sType);
 	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
 	bRemainder = (psInstruction->uiOpcode == IRO_SRem) || (psInstruction->uiOpcode == IRO_URem);
 	sLeft = psInstruction->asArguments[0];
@@ -166,48 +166,48 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 		LoadOperands(psInstruction, bSigned ? IR65E_Sign : IR65E_Zero, false);
 		if (bWide)
 		{
-			Line("wtth (A, B), 64")->AppendNewLine();
+			mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
 		}
 		if (bSigned)
 		{
-			Line(bWide ? "jsr R_DivideSigned64" : "jsr R_DivideSigned")->AppendNewLine();
-			UseRuntime(bWide ? "R_DivideSigned64" : "R_DivideSigned");
+			mpcBackend->Line(bWide ? "jsr R_DivideSigned64" : "jsr R_DivideSigned")->AppendNewLine();
+			mpcBackend->UseRuntime(bWide ? "R_DivideSigned64" : "R_DivideSigned");
 		}
 		else
 		{
-			Line("wth Y, 64")->AppendNewLine();
-			Line("cpy Y, A")->AppendNewLine();
-			Line("cpy A, B")->AppendNewLine();
-			Line("cpy B, 0")->AppendNewLine();
+			mpcBackend->Line("wth Y, 64")->AppendNewLine();
+			mpcBackend->Line("cpy Y, A")->AppendNewLine();
+			mpcBackend->Line("cpy A, B")->AppendNewLine();
+			mpcBackend->Line("cpy B, 0")->AppendNewLine();
 			Multiply("div");
-			Line("cpy A, Y")->AppendNewLine();
-			Line("wth Y, 32")->AppendNewLine();
+			mpcBackend->Line("cpy A, Y")->AppendNewLine();
+			mpcBackend->Line("wth Y, 32")->AppendNewLine();
 		}
 		if (bRemainder)
 		{
-			Line("cpy A, B")->AppendNewLine();
+			mpcBackend->Line("cpy A, B")->AppendNewLine();
 		}
 		if (bWide)
 		{
-			Line("wtth (A, B), 32")->AppendNewLine();
+			mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
 		}
-		msAvailable = IRNone();
+		mpcBackend->msAvailable = IRNone();
 		StoreResult(psInstruction->sResult);
 		return true;
 	}
 
 	//The dividend to Y and the divisor to A, in an order that loses neither.
-	if (IsInA(sRight) && !IsInA(sLeft))
+	if (mpcBackend->mcPlaces.IsInA(sRight) && !mpcBackend->mcPlaces.IsInA(sLeft))
 	{
 		LoadValue(sLeft, "Y", IR65E_Zero);
 	}
-	else if (InRegister(sRight) && (PlaceOf(sRight)->iOffset == IR65R_Y) && !sLeft.Equals(sRight))
+	else if (mpcBackend->mcPlaces.InRegister(sRight) && (mpcBackend->mcPlaces.PlaceOf(sRight)->iOffset == IR65R_Y) && !sLeft.Equals(sRight))
 	{
-		if (IsInA(sLeft))
+		if (mpcBackend->mcPlaces.IsInA(sLeft))
 		{
-			Line("cpy B, A")->AppendNewLine();
-			Line("cpy A, Y")->AppendNewLine();
-			Line("cpy Y, B")->AppendNewLine();
+			mpcBackend->Line("cpy B, A")->AppendNewLine();
+			mpcBackend->Line("cpy A, Y")->AppendNewLine();
+			mpcBackend->Line("cpy Y, B")->AppendNewLine();
 		}
 		else
 		{
@@ -220,9 +220,9 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 		LoadValue(sLeft, "Y", IR65E_Zero);
 		LoadValue(sRight, "A", IR65E_Zero);
 	}
-	Line("cpy B, 0")->AppendNewLine();
+	mpcBackend->Line("cpy B, 0")->AppendNewLine();
 	Multiply("div");
-	msAvailable = IRNone();
+	mpcBackend->msAvailable = IRNone();
 	if (psNext && PairsWithDivide(psInstruction, psNext))
 	{
 		//The result from Y goes first, as the other may be kept in Y.
@@ -242,9 +242,9 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 // The optimiser puts them next to each other (SetDivideRemainders).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner)
+bool CIR65Selector::DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner)
 {
-	if (((psFirst->uiOpcode != IRO_UDiv) && (psFirst->uiOpcode != IRO_URem)) || IsWide(psFirst->sType))
+	if (((psFirst->uiOpcode != IRO_UDiv) && (psFirst->uiOpcode != IRO_URem)) || mpcBackend->IsWide(psFirst->sType))
 	{
 		return false;
 	}
@@ -260,7 +260,7 @@ bool CIR65Backend::DividePartner(SIRInstruction* psFirst, SIRInstruction* psPart
 // none.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIR65Backend::PairedDivide(CIRBlock* pcBlock, size uiIndex)
+SIRInstruction* CIR65Selector::PairedDivide(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psPartner;
 
@@ -277,11 +277,11 @@ SIRInstruction* CIR65Backend::PairedDivide(CIRBlock* pcBlock, size uiIndex)
 // (through PairedDivide) both ask this, so they agree.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::PairsWithDivide(SIRInstruction* psInstruction, SIRInstruction* psPartner)
+bool CIR65Selector::PairsWithDivide(SIRInstruction* psInstruction, SIRInstruction* psPartner)
 {
-	if (!DividePartner(psInstruction, psPartner) || PlaceOf(psInstruction->sResult)->bInA)
+	if (!DividePartner(psInstruction, psPartner) || mpcBackend->mcPlaces.PlaceOf(psInstruction->sResult)->bInA)
 	{
 		return false;
 	}
-	return (psInstruction->uiOpcode != IRO_URem) || !PlaceOf(psPartner->sResult)->bInA;
+	return (psInstruction->uiOpcode != IRO_URem) || !mpcBackend->mcPlaces.PlaceOf(psPartner->sResult)->bInA;
 }

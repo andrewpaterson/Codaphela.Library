@@ -30,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // Branches to iLabel when the comparison is bJumpIf.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
+bool CIR65Selector::Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
 {
 	if (psInstruction->sType.IsFloat())
 	{
@@ -47,7 +47,7 @@ bool CIR65Backend::Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iL
 // or B, the second as an operand that can go with it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond)
+void CIR65Selector::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 {
 	CChars	szLeft;
 	CChars	szRight;
@@ -55,22 +55,22 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 
 	szLeft.Init();
 	szRight.Init();
-	bSmall = IsInA(sSecond) || InRegister(sSecond) || SmallImmediate(sSecond, -8, 8);
+	bSmall = mpcBackend->mcPlaces.IsInA(sSecond) || mpcBackend->mcPlaces.InRegister(sSecond) || SmallImmediate(sSecond, -8, 8);
 
-	if (IsInA(sFirst))
+	if (mpcBackend->mcPlaces.IsInA(sFirst))
 	{
 		szLeft.Append('A');
 	}
-	else if (InRegister(sFirst))
+	else if (mpcBackend->mcPlaces.InRegister(sFirst))
 	{
-		szLeft.Append(RegisterName(PlaceOf(sFirst)));
+		szLeft.Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sFirst)));
 	}
-	else if (bSmall && sFirst.IsTemporary() && (PlaceOf(sFirst)->uiKind == IR65P_Pseudo))
+	else if (bSmall && sFirst.IsTemporary() && (mpcBackend->mcPlaces.PlaceOf(sFirst)->uiKind == IR65P_Pseudo))
 	{
 		//Memory goes with a register or -8 to 8.
-		AppendPlace(&szLeft, PlaceOf(sFirst));
+		AppendPlace(&szLeft, mpcBackend->mcPlaces.PlaceOf(sFirst));
 	}
-	else if (IsInA(sSecond))
+	else if (mpcBackend->mcPlaces.IsInA(sSecond))
 	{
 		LoadValue(sFirst, "B", IR65E_Zero);
 		szLeft.Append('B');
@@ -86,7 +86,7 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 		LoadValue(sSecond, (StringCompare(szLeft.Text(), "B") == 0) ? "A" : "B", IR65E_Zero);
 		szRight.Append((StringCompare(szLeft.Text(), "B") == 0) ? 'A' : 'B');
 	}
-	Line("cmp ")->Append(szLeft)->Append(", ")->Append(szRight)->AppendNewLine();
+	mpcBackend->Line("cmp ")->Append(szLeft)->Append(", ")->Append(szRight)->AppendNewLine();
 	szRight.Kill();
 	szLeft.Kill();
 }
@@ -100,20 +100,20 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 // if so.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand)
+bool CIR65Selector::NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand)
 {
 	size	uiMark;
 
-	if (!sValue.IsTemporary() || IsInA(sValue))
+	if (!sValue.IsTemporary() || mpcBackend->mcPlaces.IsInA(sValue))
 	{
 		return false;
 	}
-	uiMark = mpszOut->Length();
+	uiMark = mpcBackend->mpszOut->Length();
 	if (Operand(sValue, pszOperand, true, IR65E_Zero) && (pszOperand->Length() > 0) && (pszOperand->Text()[0] == '['))
 	{
 		return true;
 	}
-	mpszOut->SetLength(uiMark);
+	mpcBackend->mpszOut->SetLength(uiMark);
 	pszOperand->Clear();
 	return false;
 }
@@ -127,7 +127,7 @@ bool CIR65Backend::NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand)
 // round a bra.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
+bool CIR65Selector::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
 {
 	uint16			uiOpcode;
 	bool			bSigned;
@@ -141,47 +141,47 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	CChars			szOperand;
 
 	uiOpcode = psInstruction->uiOpcode;
-	if (mbFlagsKnown)
+	if (mpcBackend->mbFlagsKnown)
 	{
 		//The block before compared the same operands.
-		Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
+		mpcBackend->Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
 		return true;
 	}
 	szOperand.Init();
 	bSigned = IsIRSignedComparison(uiOpcode);
 	bSwap = IsIRSwappedComparison(uiOpcode);
-	bWide = IsWide(psInstruction->sType);
+	bWide = mpcBackend->IsWide(psInstruction->sType);
 	sLeft = psInstruction->asArguments[0];
 	sRight = psInstruction->asArguments[1];
 
-	if (bWide || (IsNarrow(psInstruction->sType) && (bSigned || (NarrowOnly(sLeft) && NarrowOnly(sRight)))))
+	if (bWide || (mpcBackend->IsNarrow(psInstruction->sType) && (bSigned || (mpcBackend->mcPlaces.NarrowOnly(sLeft) && mpcBackend->mcPlaces.NarrowOnly(sRight)))))
 	{
 		//Signed i8 and i16 are compared at their own width (the registers narrowed), which needs no extending; so
 		//are unsigned ones of values only ever compared, whose extending then goes (CIR65Widths).
 		iBits = bWide ? 64 : psInstruction->sType.IntegerBits();
-		if (!bWide && (iBits != 1) && InRegister(sLeft) && InRegister(sRight) && (PlaceOf(sLeft)->iOffset != PlaceOf(sRight)->iOffset))
+		if (!bWide && (iBits != 1) && mpcBackend->mcPlaces.InRegister(sLeft) && mpcBackend->mcPlaces.InRegister(sRight) && (mpcBackend->mcPlaces.PlaceOf(sLeft)->iOffset != mpcBackend->mcPlaces.PlaceOf(sRight)->iOffset))
 		{
 			//Both kept in X and Y: those are narrowed instead.
-			Line("wtth (X, Y), ")->Append(iBits)->AppendNewLine();
-			Line("cmp ")->Append(RegisterName(PlaceOf(bSwap ? sRight : sLeft)))->Append(", ")->Append(RegisterName(PlaceOf(bSwap ? sLeft : sRight)))->AppendNewLine();
-			Line("wtth (X, Y), 32")->AppendNewLine();
+			mpcBackend->Line("wtth (X, Y), ")->Append(iBits)->AppendNewLine();
+			mpcBackend->Line("cmp ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(bSwap ? sRight : sLeft)))->Append(", ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(bSwap ? sLeft : sRight)))->AppendNewLine();
+			mpcBackend->Line("wtth (X, Y), 32")->AppendNewLine();
 		}
-		else if (!bWide && (iBits != 1) && !bSwap && InRegister(sLeft) && Immediate(sRight, psInstruction->sType))
+		else if (!bWide && (iBits != 1) && !bSwap && mpcBackend->mcPlaces.InRegister(sLeft) && Immediate(sRight, psInstruction->sType))
 		{
 			//Kept in X or Y and compared with a constant: the register is narrowed.
-			Line("wth ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", ")->Append(iBits)->AppendNewLine();
-			Line("cmp ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", ");
-			AppendImmediate(mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
-			mpszOut->AppendNewLine();
-			Line("wth ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", 32")->AppendNewLine();
+			mpcBackend->Line("wth ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", ")->Append(iBits)->AppendNewLine();
+			mpcBackend->Line("cmp ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", ");
+			AppendImmediate(mpcBackend->mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
+			mpcBackend->mpszOut->AppendNewLine();
+			mpcBackend->Line("wth ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", 32")->AppendNewLine();
 		}
 		else if (!bWide && (iBits != 1) && NarrowMemoryOperand(bSwap ? sLeft : sRight, &szOperand))
 		{
 			//The second in memory: read at the width A is narrowed to (its low bytes), without B.
 			LoadValue(bSwap ? sRight : sLeft, "A", IR65E_Zero);
-			Line("wth A, ")->Append(iBits)->AppendNewLine();
-			Line("cmp A, ")->Append(szOperand)->AppendNewLine();
-			Line("wth A, 32")->AppendNewLine();
+			mpcBackend->Line("wth A, ")->Append(iBits)->AppendNewLine();
+			mpcBackend->Line("cmp A, ")->Append(szOperand)->AppendNewLine();
+			mpcBackend->Line("wth A, 32")->AppendNewLine();
 		}
 		else
 		{
@@ -196,21 +196,21 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 			}
 			if (iBits != 32)
 			{
-				Line("wtth (A, B), ")->Append(iBits)->AppendNewLine();
+				mpcBackend->Line("wtth (A, B), ")->Append(iBits)->AppendNewLine();
 			}
-			if (mbRightImmediate)
+			if (mpcBackend->mbRightImmediate)
 			{
-				Line("cmp A, ");
-				AppendImmediate(mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
-				mpszOut->AppendNewLine();
+				mpcBackend->Line("cmp A, ");
+				AppendImmediate(mpcBackend->mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
+				mpcBackend->mpszOut->AppendNewLine();
 			}
 			else
 			{
-				Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
+				mpcBackend->Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
 			}
 			if (iBits != 32)
 			{
-				Line("wtth (A, B), 32")->AppendNewLine();
+				mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
 			}
 		}
 	}
@@ -226,7 +226,7 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 
 	if ((uiOpcode == IRO_Eq) || (uiOpcode == IRO_Ne))
 	{
-		Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
+		mpcBackend->Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
 		return true;
 	}
 
@@ -234,23 +234,23 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	bLess = ((uiOpcode == IRO_SLt) || (uiOpcode == IRO_ULt) || (uiOpcode == IRO_SGt) || (uiOpcode == IRO_UGt)) == bJumpIf;
 	if (!bSigned)
 	{
-		Branch(bLess ? "brac c, " : "bras c, ", iLabel);
+		mpcBackend->Branch(bLess ? "brac c, " : "bras c, ", iLabel);
 	}
-	else if (!bSwap && IsZero(sRight))
+	else if (!bSwap && mpcBackend->IsZero(sRight))
 	{
 		//cmp x, 0 can't overflow, so n alone is x < 0 (x > -1 is x >= 0 by AdjustComparisons; x > 0 is x >= 1).
-		Branch(bLess ? "bras n, " : "brac n, ", iLabel);
+		mpcBackend->Branch(bLess ? "bras n, " : "brac n, ", iLabel);
 	}
 	else if (bLess)
 	{
-		Branch("braso (n, v), ", iLabel);
+		mpcBackend->Branch("braso (n, v), ", iLabel);
 	}
 	else
 	{
-		iSkip = NewLabel();
-		Branch("braso (n, v), ", iSkip);
-		Branch("bra ", iLabel);
-		Label(iSkip);
+		iSkip = mpcBackend->NewLabel();
+		mpcBackend->Branch("braso (n, v), ", iSkip);
+		mpcBackend->Branch("bra ", iLabel);
+		mpcBackend->Label(iSkip);
 	}
 	return true;
 }

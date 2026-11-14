@@ -27,6 +27,26 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Fusion::Init(CIR65Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Fusion::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether instruction uiIndex of pcBlock isn't written in its turn, as the
 // W65C816 back end's CanFuse: the next instruction written (its consumer,
 // WriteInstruction) writes it.  A load it reads as a memory operand
@@ -35,13 +55,13 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // consumer uses, which it takes from A (bInA, MarkInA).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
+bool CIR65Fusion::CanFuse(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
 	SIRInstruction*	psPartner;
 	SIR65Fused*		psLast;
 
-	psLast = (masFused.NumElements() > 0) ? masFused.Get(masFused.NumElements() - 1) : NULL;
+	psLast = (mpcBackend->masFused.NumElements() > 0) ? mpcBackend->masFused.Get(mpcBackend->masFused.NumElements() - 1) : NULL;
 	if (psLast && ((psLast->uiKind == IR65FU_Extended) || (psLast->uiKind == IR65FU_Paired)))
 	{
 		//The sext or partner that writes the instruction before it is written in its turn.
@@ -51,7 +71,7 @@ bool CIR65Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	if (psInstruction->uiOpcode == IRO_Load)
 	{
 		//PureMemoryOperand asks what A will hold when the consumer starts.
-		msAvailable = InAAfterFused();
+		mpcBackend->msAvailable = InAAfterFused();
 		if (CanDefer(pcBlock, uiIndex))
 		{
 			Fuse(pcBlock, uiIndex, IR65FU_Deferred);
@@ -63,13 +83,13 @@ bool CIR65Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 			return true;
 		}
 	}
-	psPartner = PairedDivide(pcBlock, uiIndex);
-	if (psPartner && !Skipped(psPartner))
+	psPartner = mpcBackend->mcSelector.PairedDivide(pcBlock, uiIndex);
+	if (psPartner && !mpcBackend->Skipped(psPartner))
 	{
 		Fuse(pcBlock, uiIndex, IR65FU_Paired);
 		return true;
 	}
-	if (psInstruction->sResult.IsTemporary() && PlaceOf(psInstruction->sResult)->bInA)
+	if (psInstruction->sResult.IsTemporary() && mpcBackend->mcPlaces.PlaceOf(psInstruction->sResult)->bInA)
 	{
 		Fuse(pcBlock, uiIndex, IR65FU_InA);
 		return true;
@@ -82,11 +102,11 @@ bool CIR65Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind)
+void CIR65Fusion::Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind)
 {
 	SIR65Fused*	psFused;
 
-	psFused = masFused.Add();
+	psFused = mpcBackend->masFused.Add();
 	psFused->psInstruction = pcBlock->masInstructions.Get(uiIndex);
 	psFused->uiIndex = uiIndex;
 	psFused->uiKind = uiKind;
@@ -100,18 +120,18 @@ void CIR65Backend::Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind)
 // written left there (a deferred load doesn't change A).
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIR65Backend::InAAfterFused(void)
+SIRReference CIR65Fusion::InAAfterFused(void)
 {
 	size	ui;
 
-	for (ui = masFused.NumElements(); ui > 0; ui--)
+	for (ui = mpcBackend->masFused.NumElements(); ui > 0; ui--)
 	{
-		if (masFused.Get(ui - 1)->uiKind == IR65FU_InA)
+		if (mpcBackend->masFused.Get(ui - 1)->uiKind == IR65FU_InA)
 		{
-			return masFused.Get(ui - 1)->psInstruction->sResult;
+			return mpcBackend->masFused.Get(ui - 1)->psInstruction->sResult;
 		}
 	}
-	return msInA;
+	return mpcBackend->msInA;
 }
 
 
@@ -122,15 +142,15 @@ SIRReference CIR65Backend::InAAfterFused(void)
 // (Load).  NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIR65Backend::ExtendOf(CIRBlock* pcBlock, size uiLoad)
+SIRInstruction* CIR65Fusion::ExtendOf(CIRBlock* pcBlock, size uiLoad)
 {
 	SIRInstruction*	psLoad;
 	SIRInstruction*	psExtend;
 
 	psLoad = pcBlock->masInstructions.Get(uiLoad);
 	psExtend = pcBlock->masInstructions.SafeGet(uiLoad + 1);
-	if ((psLoad->uiOpcode != IRO_Load) || (ValueBytes(psLoad->sType) >= 4) || (psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->asArguments[0].Equals(psLoad->sResult) ||
-		!psLoad->sResult.IsTemporary() || (*mauiUses.Get(psLoad->sResult.Index()) != 1) || IsWide(psExtend->sType) || Skipped(psExtend))
+	if ((psLoad->uiOpcode != IRO_Load) || (mpcBackend->ValueBytes(psLoad->sType) >= 4) || (psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->asArguments[0].Equals(psLoad->sResult) ||
+		!psLoad->sResult.IsTemporary() || (*mpcBackend->mauiUses.Get(psLoad->sResult.Index()) != 1) || mpcBackend->IsWide(psExtend->sType) || mpcBackend->Skipped(psExtend))
 	{
 		return NULL;
 	}
@@ -148,7 +168,7 @@ SIRInstruction* CIR65Backend::ExtendOf(CIRBlock* pcBlock, size uiLoad)
 // mszDeferred.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::CanDefer(CIRBlock* pcBlock, size uiIndex)
+bool CIR65Fusion::CanDefer(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psLoad;
 	SIRInstruction*	psNext;
@@ -160,11 +180,11 @@ bool CIR65Backend::CanDefer(CIRBlock* pcBlock, size uiIndex)
 
 	psLoad = pcBlock->masInstructions.Get(uiIndex);
 	sResult = psLoad->sResult;
-	if (((masFused.NumElements() > 0) && (masFused.Get(masFused.NumElements() - 1)->uiKind == IR65FU_Deferred)) || !sResult.IsTemporary() || !PlaceOf(sResult)->bInA || (psLoad->uiFlags & IRF_Volatile) || (ValueBytes(psLoad->sType) != 4))
+	if (((mpcBackend->masFused.NumElements() > 0) && (mpcBackend->masFused.Get(mpcBackend->masFused.NumElements() - 1)->uiKind == IR65FU_Deferred)) || !sResult.IsTemporary() || !mpcBackend->mcPlaces.PlaceOf(sResult)->bInA || (psLoad->uiFlags & IRF_Volatile) || (mpcBackend->ValueBytes(psLoad->sType) != 4))
 	{
 		return false;
 	}
-	uiNext = NextWritten(pcBlock, uiIndex, pcBlock->masInstructions.NumElements());
+	uiNext = mpcBackend->NextWritten(pcBlock, uiIndex, pcBlock->masInstructions.NumElements());
 	psNext = pcBlock->masInstructions.SafeGet(uiNext);
 	if (psNext)
 	{
@@ -172,7 +192,7 @@ bool CIR65Backend::CanDefer(CIRBlock* pcBlock, size uiIndex)
 		{
 			return false;
 		}
-		szWork = WorkRegister(psNext);
+		szWork = mpcBackend->mcSelector.WorkRegister(psNext);
 	}
 	else
 	{
@@ -181,13 +201,13 @@ bool CIR65Backend::CanDefer(CIRBlock* pcBlock, size uiIndex)
 
 	szOperand.Init();
 	cRegister = '\0';
-	if (!PureMemoryOperand(psLoad->asArguments[0], &szOperand, &cRegister) || (cRegister == szWork[0]))
+	if (!mpcBackend->mcSelector.PureMemoryOperand(psLoad->asArguments[0], &szOperand, &cRegister) || (cRegister == szWork[0]))
 	{
 		szOperand.Kill();
 		return false;
 	}
-	mszDeferred.Kill();
-	mszDeferred.Init(&szOperand);
+	mpcBackend->mszDeferred.Kill();
+	mpcBackend->mszDeferred.Init(&szOperand);
 	szOperand.Kill();
 	return true;
 }

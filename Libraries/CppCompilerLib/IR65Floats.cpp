@@ -32,7 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // sign bit in line.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
+bool CIR65Selector::FloatOperation(SIRInstruction* psInstruction)
 {
 	bool		bDouble;
 	CChars		szName;
@@ -43,15 +43,15 @@ bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
 		LoadValue(psInstruction->asArguments[0], "A", IR65E_Zero);
 		if (bDouble)
 		{
-			Line("wth A, 64")->AppendNewLine();
-			Line("xor A, -9223372036854775808")->AppendNewLine();
-			Line("wth A, 32")->AppendNewLine();
+			mpcBackend->Line("wth A, 64")->AppendNewLine();
+			mpcBackend->Line("xor A, -9223372036854775808")->AppendNewLine();
+			mpcBackend->Line("wth A, 32")->AppendNewLine();
 		}
 		else
 		{
-			Line("xor A, -2147483648")->AppendNewLine();
+			mpcBackend->Line("xor A, -2147483648")->AppendNewLine();
 		}
-		msAvailable = IRNone();
+		mpcBackend->msAvailable = IRNone();
 		StoreResult(psInstruction->sResult);
 		return true;
 	}
@@ -59,10 +59,10 @@ bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
 	Push(psInstruction->asArguments[1], psInstruction->sType);
 	Push(psInstruction->asArguments[0], psInstruction->sType);
 	szName.Init();
-	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
-	CallRuntime(szName.Text(), 2 * ValueBytes(psInstruction->sType));
+	mpcBackend->AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
+	mpcBackend->CallRuntime(szName.Text(), 2 * mpcBackend->ValueBytes(psInstruction->sType));
 	szName.Kill();
-	msAvailable = IRNone();
+	mpcBackend->msAvailable = IRNone();
 	StoreResult(psInstruction->sResult);
 	return true;
 }
@@ -74,27 +74,27 @@ bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
 // Integers narrower than 32 bits convert as ints.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
+bool CIR65Selector::FloatConversion(SIRInstruction* psInstruction)
 {
 	SIRType	sFrom;
 	bool	bSigned;
 	CChars	szName;
 
-	sFrom = mpcFunction->TypeOf(psInstruction->asArguments[0]);
+	sFrom = mpcBackend->mpcFunction->TypeOf(psInstruction->asArguments[0]);
 	szName.Init();
-	AppendSoftFloatName(&szName, psInstruction, sFrom);
+	mpcBackend->AppendSoftFloatName(&szName, psInstruction, sFrom);
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_FExt:
 	case IRO_FTrunc:
 		Push(psInstruction->asArguments[0], sFrom);
-		CallRuntime(szName.Text(), ValueBytes(sFrom));
+		mpcBackend->CallRuntime(szName.Text(), mpcBackend->ValueBytes(sFrom));
 		break;
 
 	case IRO_SIToF:
 	case IRO_UIToF:
 		bSigned = psInstruction->uiOpcode == IRO_SIToF;
-		if (IsWide(sFrom))
+		if (mpcBackend->IsWide(sFrom))
 		{
 			Push(psInstruction->asArguments[0], sFrom);
 		}
@@ -102,18 +102,18 @@ bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
 		{
 			//Narrow integers are pushed as ints, extended.
 			LoadValue(psInstruction->asArguments[0], "A", bSigned ? IR65E_Sign : IR65E_Zero);
-			Line("psh A")->AppendNewLine();
+			mpcBackend->Line("psh A")->AppendNewLine();
 		}
-		CallRuntime(szName.Text(), IsWide(sFrom) ? 8 : 4);
+		mpcBackend->CallRuntime(szName.Text(), mpcBackend->IsWide(sFrom) ? 8 : 4);
 		break;
 
 	default:
 		Push(psInstruction->asArguments[0], sFrom);
-		CallRuntime(szName.Text(), ValueBytes(sFrom));
+		mpcBackend->CallRuntime(szName.Text(), mpcBackend->ValueBytes(sFrom));
 		break;
 	}
 	szName.Kill();
-	msAvailable = IRNone();
+	mpcBackend->msAvailable = IRNone();
 	StoreResult(psInstruction->sResult);
 	return true;
 }
@@ -126,7 +126,7 @@ bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
 // make each true are FloatCompareValues'.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
+bool CIR65Selector::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
 {
 	const char*	szTrue;
 	const char*	szFalse;
@@ -138,16 +138,16 @@ bool CIR65Backend::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int
 	Push(psInstruction->asArguments[1], psInstruction->sType);
 	Push(psInstruction->asArguments[0], psInstruction->sType);
 	szName.Init();
-	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
-	CallRuntime(szName.Text(), 2 * ValueBytes(psInstruction->sType));
+	mpcBackend->AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
+	mpcBackend->CallRuntime(szName.Text(), 2 * mpcBackend->ValueBytes(psInstruction->sType));
 	szName.Kill();
-	msAvailable = IRNone();
+	mpcBackend->msAvailable = IRNone();
 
 	//One value is cmp A, v; two (v, v + 1) are A - v below 2, unsigned.
-	iValues = FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
+	iValues = mpcBackend->FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
 	if (iValues == 1)
 	{
-		Line("cmp A, ")->Append(aiValues[0])->AppendNewLine();
+		mpcBackend->Line("cmp A, ")->Append(aiValues[0])->AppendNewLine();
 		szTrue = bNot ? "brac z, " : "bras z, ";
 		szFalse = bNot ? "bras z, " : "brac z, ";
 	}
@@ -155,12 +155,12 @@ bool CIR65Backend::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int
 	{
 		if (aiValues[0] != 0)
 		{
-			Line("add A, ")->Append(-aiValues[0])->AppendNewLine();
+			mpcBackend->Line("add A, ")->Append(-aiValues[0])->AppendNewLine();
 		}
-		Line("cmp A, 2")->AppendNewLine();
+		mpcBackend->Line("cmp A, 2")->AppendNewLine();
 		szTrue = "brac c, ";
 		szFalse = "bras c, ";
 	}
-	Branch(bJumpIf ? szTrue : szFalse, iLabel);
+	mpcBackend->Branch(bJumpIf ? szTrue : szFalse, iLabel);
 	return true;
 }

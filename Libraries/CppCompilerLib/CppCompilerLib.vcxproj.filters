@@ -1064,6 +1064,21 @@
     <ClInclude Include="IR65Backend.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
+    <ClInclude Include="IR65Selector.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Calls.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Fusion.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Folds.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Places.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
     <ClInclude Include="IR65BackendInternal.h">
       <Filter>Source\IR</Filter>
     </ClInclude>

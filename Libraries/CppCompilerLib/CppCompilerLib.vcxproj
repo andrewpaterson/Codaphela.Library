@@ -483,6 +483,11 @@
     <ClInclude Include="IRBackendPasses.h" />
     <ClInclude Include="IRBranchPasses.h" />
     <ClInclude Include="IR65Backend.h" />
+    <ClInclude Include="IR65Selector.h" />
+    <ClInclude Include="IR65Calls.h" />
+    <ClInclude Include="IR65Fusion.h" />
+    <ClInclude Include="IR65Folds.h" />
+    <ClInclude Include="IR65Places.h" />
     <ClInclude Include="IR65BackendInternal.h" />
     <ClInclude Include="IRW65C816Backend.h" />
     <ClInclude Include="IRW65C816Places.h" />

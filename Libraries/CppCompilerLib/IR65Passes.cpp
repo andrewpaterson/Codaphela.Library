@@ -113,7 +113,7 @@ void CIR65Backend::PreferSingleBranches(void)
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		psFused = FusedComparison(pcBlock);
+		psFused = mcPlaces.FusedComparison(pcBlock);
 		if ((psFused == NULL) || (pcBlock->msJump.pcThen == pcBlock->msJump.pcElse) || !mcDominators.IsReachable(pcBlock))
 		{
 			continue;

@@ -48,11 +48,31 @@ static int CompareIR65Weights(const void* pv1, const void* pv2)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Folds::Init(CIR65Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Folds::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A ptradd of a constant just before the load or store that alone uses it
 // becomes part of the load or store's address.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::MarkFolded(void)
+void CIR65Folds::MarkFolded(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -62,9 +82,9 @@ void CIR65Backend::MarkFolded(void)
 	SIRReference	sAddress;
 	SIR65Place*		psPlace;
 
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiInstruction = 1; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -74,11 +94,11 @@ void CIR65Backend::MarkFolded(void)
 				continue;
 			}
 			psPrevious = pcBlock->masInstructions.Get(uiInstruction - 1);
-			if (ConstantPtrAdd(psPrevious) && psPrevious->sResult.Equals(sAddress) && (*mauiUses.Get(sAddress.Index()) == 1))
+			if (mpcBackend->ConstantPtrAdd(psPrevious) && psPrevious->sResult.Equals(sAddress) && (*mpcBackend->mauiUses.Get(sAddress.Index()) == 1))
 			{
-				psPlace = PlaceOf(sAddress);
+				psPlace = mpcBackend->mcPlaces.PlaceOf(sAddress);
 				psPlace->uiKind = IR65P_Folded;
-				psPlace->iOffset = (int32)mpcFunction->GetSigned(psPrevious->asArguments[1]);
+				psPlace->iOffset = (int32)mpcBackend->mpcFunction->GetSigned(psPrevious->asArguments[1]);
 				psPlace->sBase = psPrevious->asArguments[0];
 				psPlace->bInA = false;
 			}
@@ -142,16 +162,36 @@ void SIR65Frame::SetFrameless(bool bFramelessIn)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Places::Init(CIR65Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Places::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The comparison a block's brif alone uses, which branches without making
 // its i1; NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIR65Backend::FusedComparison(CIRBlock* pcBlock)
+SIRInstruction* CIR65Places::FusedComparison(CIRBlock* pcBlock)
 {
 	SIRInstruction*	psLast;
 
-	psLast = BranchComparison(pcBlock);
-	if (psLast && (*mauiUses.Get(psLast->sResult.Index()) == 1))
+	psLast = mpcBackend->BranchComparison(pcBlock);
+	if (psLast && (*mpcBackend->mauiUses.Get(psLast->sResult.Index()) == 1))
 	{
 		return psLast;
 	}
@@ -166,7 +206,7 @@ SIRInstruction* CIR65Backend::FusedComparison(CIRBlock* pcBlock)
 // block's brif fuses has no result either.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::MarkInA(void)
+void CIR65Places::MarkInA(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -179,37 +219,37 @@ void CIR65Backend::MarkInA(void)
 	SIRReference	sResult;
 	bool			bInA;
 
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		psFused = FusedComparison(pcBlock);
 		uiNumInstructions = pcBlock->masInstructions.NumElements();
 		if (psFused)
 		{
-			masPlaces.Get(psFused->sResult.Index())->bInA = true;
+			mpcBackend->masPlaces.Get(psFused->sResult.Index())->bInA = true;
 			uiNumInstructions--;
 		}
 		for (uiInstruction = 0; uiInstruction < uiNumInstructions; uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			sResult = psInstruction->sResult;
-			if (!sResult.IsTemporary() || (*mauiUses.Get(sResult.Index()) != 1) || Skipped(psInstruction))
+			if (!sResult.IsTemporary() || (*mpcBackend->mauiUses.Get(sResult.Index()) != 1) || mpcBackend->Skipped(psInstruction))
 			{
 				continue;
 			}
 
 			//The next instruction that writes something.
-			uiNext = NextWritten(pcBlock, uiInstruction, uiNumInstructions);
+			uiNext = mpcBackend->NextWritten(pcBlock, uiInstruction, uiNumInstructions);
 			if (uiNext < uiNumInstructions)
 			{
 				psNext = pcBlock->masInstructions.Get(uiNext);
-				bInA = TakesInA(psNext, sResult) || TakesInB(psNext, sResult) || ((psNext->uiOpcode == IRO_Load) && psNext->asArguments[0].Equals(sResult)) || FoldedBase(psNext, sResult);
+				bInA = mpcBackend->mcSelector.TakesInA(psNext, sResult) || mpcBackend->mcSelector.TakesInB(psNext, sResult) || ((psNext->uiOpcode == IRO_Load) && psNext->asArguments[0].Equals(sResult)) || mpcBackend->mcFolds.FoldedBase(psNext, sResult);
 			}
 			else
 			{
-				bInA = JumpTakesInA(pcBlock, psFused, sResult) || (psFused && TakesInB(psFused, sResult)) || (psFused && FoldedBase(psFused, sResult));
+				bInA = mpcBackend->mcSelector.JumpTakesInA(pcBlock, psFused, sResult) || (psFused && mpcBackend->mcSelector.TakesInB(psFused, sResult)) || (psFused && mpcBackend->mcFolds.FoldedBase(psFused, sResult));
 			}
-			masPlaces.Get(sResult.Index())->bInA = bInA;
+			mpcBackend->masPlaces.Get(sResult.Index())->bInA = bInA;
 		}
 	}
 }
@@ -221,12 +261,12 @@ void CIR65Backend::MarkInA(void)
 // sValue.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::FoldedBase(SIRInstruction* psNext, SIRReference sValue)
+bool CIR65Folds::FoldedBase(SIRInstruction* psNext, SIRReference sValue)
 {
 	SIRReference	sAddress;
 
 	sAddress = IRAddressOf(psNext);
-	return sAddress.IsTemporary() && (PlaceOf(sAddress)->uiKind == IR65P_Folded) && PlaceOf(sAddress)->sBase.Equals(sValue);
+	return sAddress.IsTemporary() && (mpcBackend->mcPlaces.PlaceOf(sAddress)->uiKind == IR65P_Folded) && mpcBackend->mcPlaces.PlaceOf(sAddress)->sBase.Equals(sValue);
 }
 
 
@@ -235,7 +275,7 @@ bool CIR65Backend::FoldedBase(SIRInstruction* psNext, SIRReference sValue)
 // Where a parameter the caller pushed starts, from the first argument.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::ParameterOffset(size uiParameter)
+int32 CIR65Places::ParameterOffset(size uiParameter)
 {
 	size	ui;
 	int32	iOffset;
@@ -243,11 +283,11 @@ int32 CIR65Backend::ParameterOffset(size uiParameter)
 	iOffset = 0;
 	for (ui = 0; ui < uiParameter; ui++)
 	{
-		if (((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall)) || (ParameterRegister(ui) >= 0))
+		if (((ui == 0) && (mpcBackend->mpcFunction->muiAttributes & IRA_ThisCall)) || (ParameterRegister(ui) >= 0))
 		{
 			continue;
 		}
-		iOffset += ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+		iOffset += mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(ui)));
 	}
 	return iOffset;
 }
@@ -259,9 +299,9 @@ int32 CIR65Backend::ParameterOffset(size uiParameter)
 // two for 64 (which are pushed: only one unit goes in a register).
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR65Backend::ArgumentUnits(SIRType sType)
+int CIR65Places::ArgumentUnits(SIRType sType)
 {
-	return (ValueBytes(sType) + 3) / 4;
+	return (mpcBackend->ValueBytes(sType) + 3) / 4;
 }
 
 
@@ -273,22 +313,22 @@ int CIR65Backend::ArgumentUnits(SIRType sType)
 // variadic (CIRBackend::AssignRegisters), the rest pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::FunctionArguments(void)
+void CIR65Places::FunctionArguments(void)
 {
 	SIRRegisterArgument*	psArgument;
 	size					ui;
 
-	masArguments.FakeSetUsedElements(0);
-	for (ui = (mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	mpcBackend->masArguments.FakeSetUsedElements(0);
+	for (ui = (mpcBackend->mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 	{
-		psArgument = masArguments.Add();
-		psArgument->iUnits = ArgumentUnits(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+		psArgument = mpcBackend->masArguments.Add();
+		psArgument->iUnits = ArgumentUnits(mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(ui)));
 		psArgument->iRegister = -1;
 	}
-	miRegisterArguments = 0;
-	if (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !(mpcFunction->muiAttributes & IRA_Variadic))
+	mpcBackend->miRegisterArguments = 0;
+	if (mpcBackend->IsRegisterCall(IRReference(IRRK_Symbol, mpcBackend->mpcFunction->muiSymbol)) && !(mpcBackend->mpcFunction->muiAttributes & IRA_Variadic))
 	{
-		miRegisterArguments = AssignRegisters(&masArguments, IR65_ARGUMENT_REGISTERS, 1);
+		mpcBackend->miRegisterArguments = mpcBackend->AssignRegisters(&mpcBackend->masArguments, IR65_ARGUMENT_REGISTERS, 1);
 	}
 }
 
@@ -299,16 +339,16 @@ void CIR65Backend::FunctionArguments(void)
 // pushed (or is a thiscall's this, in X).
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR65Backend::ParameterRegister(size uiParameter)
+int CIR65Places::ParameterRegister(size uiParameter)
 {
 	size	uiFirst;
 
-	uiFirst = (mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0;
-	if ((uiParameter < uiFirst) || (uiParameter - uiFirst >= masArguments.NumElements()))
+	uiFirst = (mpcBackend->mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0;
+	if ((uiParameter < uiFirst) || (uiParameter - uiFirst >= mpcBackend->masArguments.NumElements()))
 	{
 		return -1;
 	}
-	return masArguments.Get(uiParameter - uiFirst)->iRegister;
+	return mpcBackend->masArguments.Get(uiParameter - uiFirst)->iRegister;
 }
 
 
@@ -317,11 +357,11 @@ int CIR65Backend::ParameterRegister(size uiParameter)
 // Where the caller pushed a parameter.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::ArrivalPlace(size uiParameter, SIR65Place* psPlace)
+void CIR65Places::ArrivalPlace(size uiParameter, SIR65Place* psPlace)
 {
 	psPlace->uiKind = IR65P_Argument;
 	psPlace->iOffset = ParameterOffset(uiParameter);
-	psPlace->iBytes = ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uiParameter)));
+	psPlace->iBytes = mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(uiParameter)));
 	psPlace->bInA = false;
 }
 
@@ -334,7 +374,7 @@ void CIR65Backend::ArrivalPlace(size uiParameter, SIR65Place* psPlace)
 // it).  Results left in A are marked.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Layout(void)
+void CIR65Places::Layout(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -344,17 +384,17 @@ void CIR65Backend::Layout(void)
 	SIRInstruction*	psInstruction;
 	SIR65Place*		psPlace;
 
-	masPlaces.FakeSetUsedElements(0);
-	masPlaces.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
-	mauiAddressed.FakeSetUsedElements(0);
-	mauiAddressed.GrowToAtLeastNumElements(mpcFunction->masParameters.NumElements(), true, 0);
-	msFrame.Init();
-	MarkFolded();
+	mpcBackend->masPlaces.FakeSetUsedElements(0);
+	mpcBackend->masPlaces.GrowToAtLeastNumElements(mpcBackend->mpcFunction->NumTemporaries(), true, 0);
+	mpcBackend->mauiAddressed.FakeSetUsedElements(0);
+	mpcBackend->mauiAddressed.GrowToAtLeastNumElements(mpcBackend->mpcFunction->masParameters.NumElements(), true, 0);
+	mpcBackend->msFrame.Init();
+	mpcBackend->mcFolds.MarkFolded();
 	MarkInA();
 
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -362,45 +402,45 @@ void CIR65Backend::Layout(void)
 			{
 				continue;
 			}
-			psPlace = masPlaces.Get(psInstruction->sResult.Index());
+			psPlace = mpcBackend->masPlaces.Get(psInstruction->sResult.Index());
 			if (psInstruction->uiOpcode == IRO_Slot)
 			{
 				psPlace->uiKind = IR65P_FrameAddress;
-				psPlace->iBytes = (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits;
-				psPlace->iOffset = msFrame.Add(psPlace->iBytes);
+				psPlace->iBytes = (int32)mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits;
+				psPlace->iOffset = mpcBackend->msFrame.Add(psPlace->iBytes);
 			}
 			else if (psInstruction->uiOpcode == IRO_ArgAddress)
 			{
-				iParameter = (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits;
-				if ((size)iParameter >= mpcFunction->masParameters.NumElements())
+				iParameter = (int32)mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits;
+				if ((size)iParameter >= mpcBackend->mpcFunction->masParameters.NumElements())
 				{
-					Error("argaddr of a parameter the function doesn't have.");
+					mpcBackend->Error("argaddr of a parameter the function doesn't have.");
 				}
-				else if ((iParameter == 0) && (mpcFunction->muiAttributes & IRA_ThisCall))
+				else if ((iParameter == 0) && (mpcBackend->mpcFunction->muiAttributes & IRA_ThisCall))
 				{
-					if (msFrame.iThisOffset < 0)
+					if (mpcBackend->msFrame.iThisOffset < 0)
 					{
-						msFrame.iThisOffset = msFrame.Add(4);
+						mpcBackend->msFrame.iThisOffset = mpcBackend->msFrame.Add(4);
 					}
 					psPlace->uiKind = IR65P_FrameAddress;
-					psPlace->iOffset = msFrame.iThisOffset;
+					psPlace->iOffset = mpcBackend->msFrame.iThisOffset;
 				}
 				else if (ParameterRegister((size)iParameter) >= 0)
 				{
 					//A parameter that came in a register is kept in the frame for its address (the prologue stores it).
 					iRegister = ParameterRegister((size)iParameter);
-					if (msFrame.aiRegisterOffset[iRegister] < 0)
+					if (mpcBackend->msFrame.aiRegisterOffset[iRegister] < 0)
 					{
-						msFrame.aiRegisterOffset[iRegister] = msFrame.Add(4);
+						mpcBackend->msFrame.aiRegisterOffset[iRegister] = mpcBackend->msFrame.Add(4);
 					}
 					psPlace->uiKind = IR65P_FrameAddress;
-					psPlace->iOffset = msFrame.aiRegisterOffset[iRegister];
+					psPlace->iOffset = mpcBackend->msFrame.aiRegisterOffset[iRegister];
 				}
 				else
 				{
 					psPlace->uiKind = IR65P_ArgumentAddress;
 					psPlace->iOffset = ParameterOffset((size)iParameter);
-					*mauiAddressed.Get((size)iParameter) = 1;
+					*mpcBackend->mauiAddressed.Get((size)iParameter) = 1;
 				}
 			}
 		}
@@ -414,14 +454,14 @@ void CIR65Backend::Layout(void)
 // left in A.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::NeedsHome(int32 iTemporary)
+bool CIR65Places::NeedsHome(int32 iTemporary)
 {
 	SIR65Place*		psPlace;
 	SIRReference	sTemporary;
 
-	psPlace = masPlaces.Get(iTemporary);
+	psPlace = mpcBackend->masPlaces.Get(iTemporary);
 	sTemporary = IRReference(IRRK_Temporary, (uint32)iTemporary);
-	return (psPlace->uiKind == IR65P_None) && !psPlace->bInA && (*mauiUses.Get(iTemporary) > 0) && (mcLiveness.NumRanges(sTemporary) > 0);
+	return (psPlace->uiKind == IR65P_None) && !psPlace->bInA && (*mpcBackend->mauiUses.Get(iTemporary) > 0) && (mpcBackend->mcLiveness.NumRanges(sTemporary) > 0);
 }
 
 
@@ -445,7 +485,7 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // without it) nor where B was lost the last time (maiLosesB; CheckHomeB).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Allocate(void)
+void CIR65Places::Allocate(void)
 {
 	CArrayIR65Weights			asWeights;
 	SIR65Weight*				psWeight;
@@ -457,14 +497,14 @@ void CIR65Backend::Allocate(void)
 	ClearHomes();
 	FindChanges();
 
-	iNumTemporaries = (int32)mpcFunction->NumTemporaries();
-	maiClasses.FakeSetUsedElements(0);
-	maiLeaders.FakeSetUsedElements(0);
+	iNumTemporaries = (int32)mpcBackend->mpcFunction->NumTemporaries();
+	mpcBackend->maiClasses.FakeSetUsedElements(0);
+	mpcBackend->maiLeaders.FakeSetUsedElements(0);
 	for (iTemporary = 0; iTemporary < iNumTemporaries; iTemporary++)
 	{
 		iMember = -1;
-		maiClasses.Add(&iMember);
-		maiLeaders.Add(&iTemporary);
+		mpcBackend->maiClasses.Add(&iMember);
+		mpcBackend->maiLeaders.Add(&iTemporary);
 	}
 	Coalesce();
 
@@ -478,28 +518,28 @@ void CIR65Backend::Allocate(void)
 		psWeight = asWeights.Add();
 		psWeight->iLeader = iTemporary;
 		psWeight->uiWeight = 0;
-		for (iMember = iTemporary; iMember >= 0; iMember = *maiClasses.Get(iMember))
+		for (iMember = iTemporary; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 		{
-			psWeight->uiWeight += mcLiveness.GetWeight(IRReference(IRRK_Temporary, (uint32)iMember));
+			psWeight->uiWeight += mpcBackend->mcLiveness.GetWeight(IRReference(IRRK_Temporary, (uint32)iMember));
 		}
 	}
 	DiscountAddresses(&asWeights);
 	asWeights.QuickSort(CompareIR65Weights);
-	msFrame.bHomeV = CanUseV();
-	muiWeightV = 0;
-	mbFrameOnly = false;
-	if (!AllocateClasses(&asWeights) || (msFrame.bHomeV && !PaysV()))
+	mpcBackend->msFrame.bHomeV = CanUseV();
+	mpcBackend->muiWeightV = 0;
+	mpcBackend->mbFrameOnly = false;
+	if (!AllocateClasses(&asWeights) || (mpcBackend->msFrame.bHomeV && !PaysV()))
 	{
 		//With V the frame's register after all.  If it kept anything in a kept pseudo register there will be a frame:
 		//that is where those go.
-		mbFrameOnly = msFrame.bHomeV && (msFrame.uiSaved != 0);
+		mpcBackend->mbFrameOnly = mpcBackend->msFrame.bHomeV && (mpcBackend->msFrame.uiSaved != 0);
 		ClearHomes();
 		for (ui = 0; ui < asWeights.NumElements(); ui++)
 		{
 			PlaceClass(asWeights.Get(ui)->iLeader, IR65P_None, 0, 0);
 		}
-		msFrame.uiSaved = 0;
-		msFrame.bHomeV = false;
+		mpcBackend->msFrame.uiSaved = 0;
+		mpcBackend->msFrame.bHomeV = false;
 		AllocateClasses(&asWeights);
 	}
 	asWeights.Kill();
@@ -514,16 +554,16 @@ void CIR65Backend::Allocate(void)
 // costs (IR65_KEPT_COST each, against the frame's 9 cycles less V's 6).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::PaysV(void)
+bool CIR65Places::PaysV(void)
 {
 	int		iSaved;
 
-	if (masHomes.Get(IR65R_V)->asRanges.NumElements() == 0)
+	if (mpcBackend->masHomes.Get(IR65R_V)->asRanges.NumElements() == 0)
 	{
 		return false;
 	}
-	iSaved = msFrame.NumSaved();
-	return (iSaved == 0) || (IR65_REGISTER_GAIN * (int64)muiWeightV > (int64)IR65_KEPT_COST * iSaved - 3);
+	iSaved = mpcBackend->msFrame.NumSaved();
+	return (iSaved == 0) || (IR65_REGISTER_GAIN * (int64)mpcBackend->muiWeightV > (int64)IR65_KEPT_COST * iSaved - 3);
 }
 
 
@@ -533,7 +573,7 @@ bool CIR65Backend::PaysV(void)
 // the frame while V is a home (it can't be both).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::AllocateClasses(CArrayIR65Weights* pasWeights)
+bool CIR65Places::AllocateClasses(CArrayIR65Weights* pasWeights)
 {
 	SIR65Weight*	psWeight;
 	size			ui;
@@ -556,19 +596,19 @@ bool CIR65Backend::AllocateClasses(CArrayIR65Weights* pasWeights)
 // homes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::ClearHomes(void)
+void CIR65Places::ClearHomes(void)
 {
 	SIR65Home*	psHome;
 	size		ui;
 
-	for (ui = 0; ui < masHomes.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->masHomes.NumElements(); ui++)
 	{
-		masHomes.Get(ui)->asRanges.Kill();
+		mpcBackend->masHomes.Get(ui)->asRanges.Kill();
 	}
-	masHomes.FakeSetUsedElements(0);
+	mpcBackend->masHomes.FakeSetUsedElements(0);
 	for (ui = 0; ui < IR65_HOME_FRAME; ui++)
 	{
-		psHome = masHomes.Add();
+		psHome = mpcBackend->masHomes.Add();
 		psHome->asRanges.Init();
 		psHome->iOffset = -1;
 	}
@@ -584,17 +624,17 @@ void CIR65Backend::ClearHomes(void)
 // (AllocateClass leaves none where it was pushed).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::CanUseV(void)
+bool CIR65Places::CanUseV(void)
 {
 	size	ui;
 
-	if (!mpcOptions->mbHomeV || (msFrame.iFrameBytes != 0) || (msFrame.iThisOffset >= 0) || (mpcFunction->muiAttributes & IRA_Variadic))
+	if (!mpcBackend->mpcOptions->mbHomeV || (mpcBackend->msFrame.iFrameBytes != 0) || (mpcBackend->msFrame.iThisOffset >= 0) || (mpcBackend->mpcFunction->muiAttributes & IRA_Variadic))
 	{
 		return false;
 	}
-	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 	{
-		if (*mauiAddressed.Get(ui))
+		if (*mpcBackend->mauiAddressed.Get(ui))
 		{
 			return false;
 		}
@@ -611,14 +651,14 @@ bool CIR65Backend::CanUseV(void)
 // own width in its register.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Fits32BitRegister(int32 iLeader)
+bool CIR65Places::Fits32BitRegister(int32 iLeader)
 {
 	int32	iMember;
 	SIRType	sType;
 
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
-		sType = mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iMember));
+		sType = mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iMember));
 		if (!sType.IsPointer() && !sType.Is(IRTK_I32))
 		{
 			return false;
@@ -636,7 +676,7 @@ bool CIR65Backend::Fits32BitRegister(int32 iLeader)
 // don't count towards its class's weight.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::DiscountAddresses(CArrayIR65Weights* pasWeights)
+void CIR65Places::DiscountAddresses(CArrayIR65Weights* pasWeights)
 {
 	CArrayTemplate<uint32>	auiDiscounts;	//Per class leader.
 	size					ui;
@@ -650,11 +690,11 @@ void CIR65Backend::DiscountAddresses(CArrayIR65Weights* pasWeights)
 	uint32*					puiDiscount;
 
 	auiDiscounts.Init();
-	auiDiscounts.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	auiDiscounts.GrowToAtLeastNumElements(mpcBackend->mpcFunction->NumTemporaries(), true, 0);
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		uiUse = CIRLoops::Weight(mcLiveness.LoopDepth(pcBlock), IR_LOOP_WEIGHT_MAX_DEPTH);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
+		uiUse = CIRLoops::Weight(mpcBackend->mcLiveness.LoopDepth(pcBlock), IR_LOOP_WEIGHT_MAX_DEPTH);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -664,7 +704,7 @@ void CIR65Backend::DiscountAddresses(CArrayIR65Weights* pasWeights)
 				*auiDiscounts.Get((size)Find((int32)sAddress.Index())) += uiUse;
 			}
 			else if ((psInstruction->uiOpcode == IRO_PtrAdd) && psInstruction->asArguments[0].IsTemporary() && psInstruction->sResult.IsTemporary() &&
-					 SmallImmediate(psInstruction->asArguments[1], -8, 8) && (Find((int32)psInstruction->asArguments[0].Index()) == Find((int32)psInstruction->sResult.Index())))
+					 mpcBackend->mcSelector.SmallImmediate(psInstruction->asArguments[1], -8, 8) && (Find((int32)psInstruction->asArguments[0].Index()) == Find((int32)psInstruction->sResult.Index())))
 			{
 				*auiDiscounts.Get((size)Find((int32)psInstruction->sResult.Index())) += 2 * uiUse;
 			}
@@ -688,7 +728,7 @@ void CIR65Backend::DiscountAddresses(CArrayIR65Weights* pasWeights)
 // that are called), mul and div.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::FindChanges(void)
+void CIR65Places::FindChanges(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -696,27 +736,27 @@ void CIR65Backend::FindChanges(void)
 	int32			iPosition;
 	uint8			uiFlags;
 
-	maiCalls.FakeSetUsedElements(0);
-	maiChangesXY.FakeSetUsedElements(0);
-	maiChangesY.FakeSetUsedElements(0);
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	mpcBackend->maiCalls.FakeSetUsedElements(0);
+	mpcBackend->maiChangesXY.FakeSetUsedElements(0);
+	mpcBackend->maiChangesY.FakeSetUsedElements(0);
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
-			iPosition = mcLiveness.Position(pcBlock, uiInstruction);
+			iPosition = mpcBackend->mcLiveness.Position(pcBlock, uiInstruction);
 			uiFlags = IR65OpcodeFlags(pcBlock->masInstructions.Get(uiInstruction)->uiOpcode);
 			if (uiFlags & IR65F_CALLS)
 			{
-				maiCalls.Add(&iPosition);
+				mpcBackend->maiCalls.Add(&iPosition);
 			}
 			else if (uiFlags & IR65F_CHANGES_XY)
 			{
-				maiChangesXY.Add(&iPosition);
+				mpcBackend->maiChangesXY.Add(&iPosition);
 			}
 			else if (uiFlags & IR65F_CHANGES_Y)
 			{
-				maiChangesY.Add(&iPosition);
+				mpcBackend->maiChangesY.Add(&iPosition);
 			}
 		}
 	}
@@ -729,7 +769,7 @@ void CIR65Backend::FindChanges(void)
 // they don't interfere.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Coalesce(void)
+void CIR65Places::Coalesce(void)
 {
 	size			ui;
 	size			uiPhi;
@@ -740,9 +780,9 @@ void CIR65Backend::Coalesce(void)
 	int32			iPhi;
 	int32			iValue;
 
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiPhi = 0; uiPhi < pcBlock->masPhis.NumElements(); uiPhi++)
 		{
 			psPhi = pcBlock->masPhis.Get(uiPhi);
@@ -774,9 +814,9 @@ void CIR65Backend::Coalesce(void)
 // The first temporary of iTemporary's class.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::Find(int32 iTemporary)
+int32 CIR65Places::Find(int32 iTemporary)
 {
-	return *maiLeaders.Get(iTemporary);
+	return *mpcBackend->maiLeaders.Get(iTemporary);
 }
 
 
@@ -785,20 +825,20 @@ int32 CIR65Backend::Find(int32 iTemporary)
 // True if any temporary of one class is live where one of the other is.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Interferes(int32 iLeader1, int32 iLeader2)
+bool CIR65Places::Interferes(int32 iLeader1, int32 iLeader2)
 {
 	int32			iMember1;
 	int32			iMember2;
 	SIRReference	sMember1;
 	SIRReference	sMember2;
 
-	for (iMember1 = iLeader1; iMember1 >= 0; iMember1 = *maiClasses.Get(iMember1))
+	for (iMember1 = iLeader1; iMember1 >= 0; iMember1 = *mpcBackend->maiClasses.Get(iMember1))
 	{
 		sMember1 = IRReference(IRRK_Temporary, (uint32)iMember1);
-		for (iMember2 = iLeader2; iMember2 >= 0; iMember2 = *maiClasses.Get(iMember2))
+		for (iMember2 = iLeader2; iMember2 >= 0; iMember2 = *mpcBackend->maiClasses.Get(iMember2))
 		{
 			sMember2 = IRReference(IRRK_Temporary, (uint32)iMember2);
-			if (CIRLiveness::Intersect(mcLiveness.GetRanges(sMember1), mcLiveness.NumRanges(sMember1), mcLiveness.GetRanges(sMember2), mcLiveness.NumRanges(sMember2)))
+			if (CIRLiveness::Intersect(mpcBackend->mcLiveness.GetRanges(sMember1), mpcBackend->mcLiveness.NumRanges(sMember1), mpcBackend->mcLiveness.GetRanges(sMember2), mpcBackend->mcLiveness.NumRanges(sMember2)))
 			{
 				return true;
 			}
@@ -813,17 +853,17 @@ bool CIR65Backend::Interferes(int32 iLeader1, int32 iLeader2)
 // iLeader2's class joins the end of iLeader1's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Join(int32 iLeader1, int32 iLeader2)
+void CIR65Places::Join(int32 iLeader1, int32 iLeader2)
 {
 	int32	iMember;
 
-	for (iMember = iLeader1; *maiClasses.Get(iMember) >= 0; iMember = *maiClasses.Get(iMember))
+	for (iMember = iLeader1; *mpcBackend->maiClasses.Get(iMember) >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
 	}
-	*maiClasses.Get(iMember) = iLeader2;
-	for (iMember = iLeader2; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	*mpcBackend->maiClasses.Get(iMember) = iLeader2;
+	for (iMember = iLeader2; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
-		*maiLeaders.Get(iMember) = iLeader1;
+		*mpcBackend->maiLeaders.Get(iMember) = iLeader1;
 	}
 }
 
@@ -834,7 +874,7 @@ void CIR65Backend::Join(int32 iLeader1, int32 iLeader2)
 // (sorted): live both where it reads and where it writes.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions)
+bool CIR65Places::Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 {
 	int32			iMember;
 	SIRReference	sMember;
@@ -849,11 +889,11 @@ bool CIR65Backend::Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 	{
 		return false;
 	}
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
 		sMember = IRReference(IRRK_Temporary, (uint32)iMember);
-		psRanges = mcLiveness.GetRanges(sMember);
-		uiNumRanges = mcLiveness.NumRanges(sMember);
+		psRanges = mpcBackend->mcLiveness.GetRanges(sMember);
+		uiNumRanges = mpcBackend->mcLiveness.NumRanges(sMember);
 		for (ui = 0; ui < uiNumRanges; ui++)
 		{
 			uiLow = 0;
@@ -886,7 +926,7 @@ bool CIR65Backend::Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 // read there, or live across it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions)
+bool CIR65Places::LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 {
 	int32			iMember;
 	SIRRange*		psRanges;
@@ -900,10 +940,10 @@ bool CIR65Backend::LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 	{
 		return false;
 	}
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
-		psRanges = mcLiveness.GetRanges(IRReference(IRRK_Temporary, (uint32)iMember));
-		uiNumRanges = mcLiveness.NumRanges(IRReference(IRRK_Temporary, (uint32)iMember));
+		psRanges = mpcBackend->mcLiveness.GetRanges(IRReference(IRRK_Temporary, (uint32)iMember));
+		uiNumRanges = mpcBackend->mcLiveness.NumRanges(IRReference(IRRK_Temporary, (uint32)iMember));
 		for (ui = 0; ui < uiNumRanges; ui++)
 		{
 			uiLow = 0;
@@ -935,16 +975,16 @@ bool CIR65Backend::LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 // True if a temporary of the class is one of the function's parameters.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::HasParameter(int32 iLeader)
+bool CIR65Places::HasParameter(int32 iLeader)
 {
 	int32	iMember;
 	size	ui;
 
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
-		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+		for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 		{
-			if (mpcFunction->masParameters.Get(ui)->Index() == (uint32)iMember)
+			if (mpcBackend->mpcFunction->masParameters.Get(ui)->Index() == (uint32)iMember)
 			{
 				return true;
 			}
@@ -960,15 +1000,15 @@ bool CIR65Backend::HasParameter(int32 iLeader)
 // at positions iFrom to iTo (a jump's copies at the jump's position).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::AddChunk(int32 iFrom, int32 iTo, size uiStart)
+void CIR65Places::AddChunk(int32 iFrom, int32 iTo, size uiStart)
 {
 	SIR65Chunk*	psChunk;
 
-	psChunk = masChunks.Add();
+	psChunk = mpcBackend->masChunks.Add();
 	psChunk->iFrom = iFrom;
 	psChunk->iTo = iTo;
 	psChunk->uiStart = uiStart;
-	psChunk->uiEnd = mpszOut->Length();
+	psChunk->uiEnd = mpcBackend->mpszOut->Length();
 }
 
 
@@ -1189,7 +1229,7 @@ static void IR65AddPosition(CArrayTemplate<int32>* paiPositions, int32 iPosition
 // (maiLosesB) for the next Allocate, and the check fails.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::CheckHomeB(bool bChanges)
+bool CIR65Places::CheckHomeB(bool bChanges)
 {
 	size				uiChunk;
 	SIR65Chunk*			psChunk;
@@ -1215,11 +1255,11 @@ bool CIR65Backend::CheckHomeB(bool bChanges)
 	int32				iPosition;
 
 	bAllRight = true;
-	pasRanges = &masHomes.Get(IR65R_B)->asRanges;
-	szText = mpszOut->Text();
-	for (uiChunk = 0; uiChunk < masChunks.NumElements(); uiChunk++)
+	pasRanges = &mpcBackend->masHomes.Get(IR65R_B)->asRanges;
+	szText = mpcBackend->mpszOut->Text();
+	for (uiChunk = 0; uiChunk < mpcBackend->masChunks.NumElements(); uiChunk++)
 	{
-		psChunk = masChunks.Get(uiChunk);
+		psChunk = mpcBackend->masChunks.Get(uiChunk);
 		bThrough = false;
 		bDies = false;
 		bEarly = false;
@@ -1303,7 +1343,7 @@ bool CIR65Backend::CheckHomeB(bool bChanges)
 			{
 				for (iPosition = psChunk->iFrom; iPosition <= psChunk->iTo; iPosition += 2)
 				{
-					IR65AddPosition(&maiChangesB, iPosition);
+					IR65AddPosition(&mpcBackend->maiChangesB, iPosition);
 				}
 			}
 			continue;
@@ -1316,7 +1356,7 @@ bool CIR65Backend::CheckHomeB(bool bChanges)
 		{
 			for (iPosition = psChunk->iFrom; iPosition <= psChunk->iTo; iPosition += 2)
 			{
-				IR65AddPosition(&maiLosesB, iPosition);
+				IR65AddPosition(&mpcBackend->maiLosesB, iPosition);
 			}
 			bAllRight = false;
 		}
@@ -1330,7 +1370,7 @@ bool CIR65Backend::CheckHomeB(bool bChanges)
 // True if none of the class's ranges overlap those given the home already.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::HomeFree(int32 iHome, int32 iLeader)
+bool CIR65Places::HomeFree(int32 iHome, int32 iLeader)
 {
 	CArrayIRRanges*	pasRanges;
 	int32			iMember;
@@ -1339,12 +1379,12 @@ bool CIR65Backend::HomeFree(int32 iHome, int32 iLeader)
 	size			uiNumRanges;
 	size			ui;
 
-	pasRanges = &masHomes.Get(iHome)->asRanges;
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	pasRanges = &mpcBackend->masHomes.Get(iHome)->asRanges;
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
 		sMember = IRReference(IRRK_Temporary, (uint32)iMember);
-		psRanges = mcLiveness.GetRanges(sMember);
-		uiNumRanges = mcLiveness.NumRanges(sMember);
+		psRanges = mpcBackend->mcLiveness.GetRanges(sMember);
+		uiNumRanges = mpcBackend->mcLiveness.NumRanges(sMember);
 		for (ui = 0; ui < uiNumRanges; ui++)
 		{
 			if (FindRange(pasRanges, &psRanges[ui]) < 0)
@@ -1362,7 +1402,7 @@ bool CIR65Backend::HomeFree(int32 iHome, int32 iLeader)
 // Where psRange goes in the sorted pasRanges, or -1 if it overlaps one.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::FindRange(CArrayIRRanges* pasRanges, SIRRange* psRange)
+int32 CIR65Places::FindRange(CArrayIRRanges* pasRanges, SIRRange* psRange)
 {
 	size	uiLow;
 	size	uiHigh;
@@ -1395,7 +1435,7 @@ int32 CIR65Backend::FindRange(CArrayIRRanges* pasRanges, SIRRange* psRange)
 // Gives a class's ranges to a home (HomeFree must be true).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::TakeHome(int32 iHome, int32 iLeader)
+void CIR65Places::TakeHome(int32 iHome, int32 iLeader)
 {
 	CArrayIRRanges*	pasRanges;
 	int32			iMember;
@@ -1405,18 +1445,18 @@ void CIR65Backend::TakeHome(int32 iHome, int32 iLeader)
 	size			ui;
 	int32			iIndex;
 
-	pasRanges = &masHomes.Get(iHome)->asRanges;
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	pasRanges = &mpcBackend->masHomes.Get(iHome)->asRanges;
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
 		sMember = IRReference(IRRK_Temporary, (uint32)iMember);
-		psRanges = mcLiveness.GetRanges(sMember);
-		uiNumRanges = mcLiveness.NumRanges(sMember);
+		psRanges = mpcBackend->mcLiveness.GetRanges(sMember);
+		uiNumRanges = mpcBackend->mcLiveness.NumRanges(sMember);
 		for (ui = 0; ui < uiNumRanges; ui++)
 		{
 			iIndex = FindRange(pasRanges, &psRanges[ui]);
 			if (iIndex < 0)
 			{
-				Error("Home given twice.");
+				mpcBackend->Error("Home given twice.");
 				return;
 			}
 			pasRanges->InsertAt(&psRanges[ui], (size)iIndex);
@@ -1430,14 +1470,14 @@ void CIR65Backend::TakeHome(int32 iHome, int32 iLeader)
 // Sets the home of each temporary of a class.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::PlaceClass(int32 iLeader, uint8 uiKind, int32 iOffset, int32 iBytes)
+void CIR65Places::PlaceClass(int32 iLeader, uint8 uiKind, int32 iOffset, int32 iBytes)
 {
 	int32		iMember;
 	SIR65Place*	psPlace;
 
-	for (iMember = iLeader; iMember >= 0; iMember = *maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
 	{
-		psPlace = masPlaces.Get(iMember);
+		psPlace = mpcBackend->masPlaces.Get(iMember);
 		psPlace->uiKind = uiKind;
 		psPlace->iOffset = iOffset;
 		psPlace->iBytes = iBytes;
@@ -1450,7 +1490,7 @@ void CIR65Backend::PlaceClass(int32 iLeader, uint8 uiKind, int32 iOffset, int32 
 // True if iUnits homes from iHome are free for the class; takes them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::TakeHomes(int32 iHome, int32 iUnits, int32 iLeader)
+bool CIR65Places::TakeHomes(int32 iHome, int32 iUnits, int32 iLeader)
 {
 	int32	i;
 
@@ -1474,7 +1514,7 @@ bool CIR65Backend::TakeHomes(int32 iHome, int32 iUnits, int32 iLeader)
 // See Allocate.  False if the class needs the frame while V is a home.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
+bool CIR65Places::AllocateClass(int32 iLeader, uint32 uiWeight)
 {
 	SIRType		sType;
 	bool		bCall;
@@ -1490,25 +1530,25 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	SIR65Home*	psHome;
 	SIR65Place	sArrival;
 
-	sType = mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iLeader));
-	bCall = Crosses(iLeader, &maiCalls);
-	bChangesXY = bCall || Crosses(iLeader, &maiChangesXY);
-	bChangesY = bChangesXY || Crosses(iLeader, &maiChangesY);
-	iUnits = IsWide(sType) ? 2 : 1;
+	sType = mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iLeader));
+	bCall = Crosses(iLeader, &mpcBackend->maiCalls);
+	bChangesXY = bCall || Crosses(iLeader, &mpcBackend->maiChangesXY);
+	bChangesY = bChangesXY || Crosses(iLeader, &mpcBackend->maiChangesY);
+	iUnits = mpcBackend->IsWide(sType) ? 2 : 1;
 
 	//V, where it is a home: a value live across a call (X and Y are changed by it, and a kept pseudo register costs
 	//more to save than V does), or one worth V's push and pull (or they are paid for already).
-	bV = msFrame.bHomeV && (iUnits == 1) && Fits32BitRegister(iLeader) && (bCall || (uiWeight >= IR65_V_WEIGHT) || (masHomes.Get(IR65R_V)->asRanges.NumElements() > 0));
+	bV = mpcBackend->msFrame.bHomeV && (iUnits == 1) && Fits32BitRegister(iLeader) && (bCall || (uiWeight >= IR65_V_WEIGHT) || (mpcBackend->masHomes.Get(IR65R_V)->asRanges.NumElements() > 0));
 
 	//A pushed parameter alone in its class (not a thiscall's this, which comes in X, nor one that comes in A, B or Y),
 	//whose arrival place nothing stores to through an argaddr.
 	iParameter = -1;
-	if (*maiClasses.Get(iLeader) < 0)
+	if (*mpcBackend->maiClasses.Get(iLeader) < 0)
 	{
-		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+		for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 		{
-			if ((mpcFunction->masParameters.Get(ui)->Index() == (uint32)iLeader) && !((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall)) && (ParameterRegister(ui) < 0) &&
-				!*mauiAddressed.Get(ui))
+			if ((mpcBackend->mpcFunction->masParameters.Get(ui)->Index() == (uint32)iLeader) && !((ui == 0) && (mpcBackend->mpcFunction->muiAttributes & IRA_ThisCall)) && (ParameterRegister(ui) < 0) &&
+				!*mpcBackend->mauiAddressed.Get(ui))
 			{
 				iParameter = (int32)ui;
 				break;
@@ -1517,7 +1557,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	}
 
 	//A parameter used at most once isn't worth copying (but is, where V is a home: the prologue reads it from S).
-	if ((iParameter < 0) || (uiWeight > 2) || msFrame.bHomeV)
+	if ((iParameter < 0) || (uiWeight > 2) || mpcBackend->msFrame.bHomeV)
 	{
 		if ((iUnits == 1) && !bChangesXY && TakeHomes(IR65R_X, 1, iLeader))
 		{
@@ -1531,20 +1571,20 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 		}
 		//W, where nothing that changes it is done while the class is live (calls, mul and div: what changes Y).  Before
 		//V, which costs more to have and is the only register for a class live across calls.
-		if (mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && Fits32BitRegister(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
+		if (mpcBackend->mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && Fits32BitRegister(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
 		{
 			PlaceClass(iLeader, IR65P_Register, IR65R_W, 4);
 			return true;
 		}
 		//B, where the code doesn't work in it while the class is live (CheckHomeB): not across what changes Y either.
-		if (mbHomeB && (iUnits == 1) && !bChangesY && !HasParameter(iLeader) && !Crosses(iLeader, &maiChangesB) && !LiveAt(iLeader, &maiLosesB) && TakeHomes(IR65R_B, 1, iLeader))
+		if (mpcBackend->mbHomeB && (iUnits == 1) && !bChangesY && !HasParameter(iLeader) && !Crosses(iLeader, &mpcBackend->maiChangesB) && !LiveAt(iLeader, &mpcBackend->maiLosesB) && TakeHomes(IR65R_B, 1, iLeader))
 		{
 			PlaceClass(iLeader, IR65P_Register, IR65R_B, 4);
 			return true;
 		}
 		if (bV && TakeHomes(IR65R_V, 1, iLeader))
 		{
-			muiWeightV += uiWeight;
+			mpcBackend->muiWeightV += uiWeight;
 			PlaceClass(iLeader, IR65P_Register, IR65R_V, 4);
 			return true;
 		}
@@ -1555,7 +1595,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 			return true;
 		}
 	}
-	if ((iParameter >= 0) && !msFrame.bHomeV)
+	if ((iParameter >= 0) && !mpcBackend->msFrame.bHomeV)
 	{
 		ArrivalPlace((size)iParameter, &sArrival);
 		PlaceClass(iLeader, sArrival.uiKind, sArrival.iOffset, sArrival.iBytes);
@@ -1563,35 +1603,35 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	}
 	//A kept pseudo register costs a push and a pull (10 cycles) and the frame's place costs the same to use: so only
 	//where there is no frame yet.
-	iUnit = (((uiWeight >= 8) && (msFrame.iFrameBytes == 0) && !mbFrameOnly) || msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
+	iUnit = (((uiWeight >= 8) && (mpcBackend->msFrame.iFrameBytes == 0) && !mpcBackend->mbFrameOnly) || mpcBackend->msFrame.bHomeV) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
 	if (iUnit >= 0)
 	{
-		msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;
+		mpcBackend->msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;
 		PlaceClass(iLeader, IR65P_Pseudo, IR65_SAVED_UNIT(iUnit), IR65_PSEUDO_UNIT_BYTES * iUnits);
 		return true;
 	}
-	if (msFrame.bHomeV)
+	if (mpcBackend->msFrame.bHomeV)
 	{
 		return false;
 	}
 
-	for (iHome = IR65_HOME_FRAME; iHome + iUnits <= (int32)masHomes.NumElements(); iHome++)
+	for (iHome = IR65_HOME_FRAME; iHome + iUnits <= (int32)mpcBackend->masHomes.NumElements(); iHome++)
 	{
-		if ((iUnits == 2) && (masHomes.Get(iHome + 1)->iOffset != masHomes.Get(iHome)->iOffset + IR65_PSEUDO_UNIT_BYTES))
+		if ((iUnits == 2) && (mpcBackend->masHomes.Get(iHome + 1)->iOffset != mpcBackend->masHomes.Get(iHome)->iOffset + IR65_PSEUDO_UNIT_BYTES))
 		{
 			continue;
 		}
 		if (TakeHomes(iHome, iUnits, iLeader))
 		{
-			PlaceClass(iLeader, IR65P_Frame, masHomes.Get(iHome)->iOffset, IR65_PSEUDO_UNIT_BYTES * iUnits);
+			PlaceClass(iLeader, IR65P_Frame, mpcBackend->masHomes.Get(iHome)->iOffset, IR65_PSEUDO_UNIT_BYTES * iUnits);
 			return true;
 		}
 	}
-	iOffset = msFrame.Add(IR65_PSEUDO_UNIT_BYTES * iUnits);
-	iHome = (int32)masHomes.NumElements();
+	iOffset = mpcBackend->msFrame.Add(IR65_PSEUDO_UNIT_BYTES * iUnits);
+	iHome = (int32)mpcBackend->masHomes.NumElements();
 	for (iUnit = 0; iUnit < iUnits; iUnit++)
 	{
-		psHome = masHomes.Add();
+		psHome = mpcBackend->masHomes.Add();
 		psHome->asRanges.Init();
 		psHome->iOffset = iOffset + IR65_PSEUDO_UNIT_BYTES * iUnit;
 	}
@@ -1607,7 +1647,7 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 // kept ones) free for the class, taken; -1 if none are.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader)
+int32 CIR65Places::FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader)
 {
 	int32	iUnit;
 
@@ -1626,9 +1666,9 @@ int32 CIR65Backend::FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIR65Place* CIR65Backend::PlaceOf(SIRReference sValue)
+SIR65Place* CIR65Places::PlaceOf(SIRReference sValue)
 {
-	return masPlaces.Get(sValue.Index());
+	return mpcBackend->masPlaces.Get(sValue.Index());
 }
 
 
@@ -1638,7 +1678,7 @@ SIR65Place* CIR65Backend::PlaceOf(SIRReference sValue)
 // frame or a parameter where it was pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsHome(SIR65Place* psPlace)
+bool CIR65Places::IsHome(SIR65Place* psPlace)
 {
 	return (psPlace->uiKind == IR65P_Register) || (psPlace->uiKind == IR65P_Pseudo) || (psPlace->uiKind == IR65P_Frame) || (psPlace->uiKind == IR65P_Argument);
 }
@@ -1650,7 +1690,7 @@ bool CIR65Backend::IsHome(SIR65Place* psPlace)
 // 4 byte parameter where it was pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsMemoryHome(SIR65Place* psPlace)
+bool CIR65Places::IsMemoryHome(SIR65Place* psPlace)
 {
 	return (psPlace->uiKind == IR65P_Pseudo) || (psPlace->uiKind == IR65P_Frame) || ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes == 4));
 }
@@ -1661,7 +1701,7 @@ bool CIR65Backend::IsMemoryHome(SIR65Place* psPlace)
 // True if two temporaries have the same home.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::SamePlace(SIRReference sValue1, SIRReference sValue2)
+bool CIR65Places::SamePlace(SIRReference sValue1, SIRReference sValue2)
 {
 	SIR65Place*	psPlace1;
 	SIR65Place*	psPlace2;
@@ -1681,7 +1721,7 @@ bool CIR65Backend::SamePlace(SIRReference sValue1, SIRReference sValue2)
 // True if writing one home changes the other.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Overlaps(SIR65Place* psPlace1, SIR65Place* psPlace2)
+bool CIR65Places::Overlaps(SIR65Place* psPlace1, SIR65Place* psPlace2)
 {
 	if (!IsHome(psPlace1) || (psPlace1->uiKind != psPlace2->uiKind))
 	{
@@ -1701,7 +1741,7 @@ bool CIR65Backend::Overlaps(SIR65Place* psPlace1, SIR65Place* psPlace2)
 // (IR65FU_Deferred, CanDefer).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsDeferred(SIRReference sValue)
+bool CIR65Places::IsDeferred(SIRReference sValue)
 {
 	size	ui;
 
@@ -1709,9 +1749,9 @@ bool CIR65Backend::IsDeferred(SIRReference sValue)
 	{
 		return false;
 	}
-	for (ui = 0; ui < masFused.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->masFused.NumElements(); ui++)
 	{
-		if ((masFused.Get(ui)->uiKind == IR65FU_Deferred) && masFused.Get(ui)->psInstruction->sResult.Equals(sValue))
+		if ((mpcBackend->masFused.Get(ui)->uiKind == IR65FU_Deferred) && mpcBackend->masFused.Get(ui)->psInstruction->sResult.Equals(sValue))
 		{
 			return true;
 		}
@@ -1725,9 +1765,9 @@ bool CIR65Backend::IsDeferred(SIRReference sValue)
 // True if the instruction before left sValue in A.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsInA(SIRReference sValue)
+bool CIR65Places::IsInA(SIRReference sValue)
 {
-	return sValue.IsTemporary() && msAvailable.Equals(sValue);
+	return sValue.IsTemporary() && mpcBackend->msAvailable.Equals(sValue);
 }
 
 
@@ -1736,7 +1776,7 @@ bool CIR65Backend::IsInA(SIRReference sValue)
 // True if sValue's home is a register.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::InRegister(SIRReference sValue)
+bool CIR65Places::InRegister(SIRReference sValue)
 {
 	return sValue.IsTemporary() && (PlaceOf(sValue)->uiKind == IR65P_Register);
 }
@@ -1748,9 +1788,9 @@ bool CIR65Backend::InRegister(SIRReference sValue)
 // (as the type it is), so the bits it is extended to are never read.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::NarrowOnly(SIRReference sValue)
+bool CIR65Places::NarrowOnly(SIRReference sValue)
 {
-	return sValue.IsConstant() || (sValue.IsTemporary() && *mauiNarrowOnly.Get(sValue.Index()));
+	return sValue.IsConstant() || (sValue.IsTemporary() && *mpcBackend->mauiNarrowOnly.Get(sValue.Index()));
 }
 
 
@@ -1759,7 +1799,7 @@ bool CIR65Backend::NarrowOnly(SIRReference sValue)
 // Marks the narrow loads whose only uses are integer comparisons (NarrowOnly).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::FindNarrowOnly(void)
+void CIR65Places::FindNarrowOnly(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -1769,23 +1809,23 @@ void CIR65Backend::FindNarrowOnly(void)
 	SIRPhi*			psPhi;
 	SIRReference	sValue;
 
-	mauiNarrowOnly.FakeSetUsedElements(0);
-	mauiNarrowOnly.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	mpcBackend->mauiNarrowOnly.FakeSetUsedElements(0);
+	mpcBackend->mauiNarrowOnly.GrowToAtLeastNumElements(mpcBackend->mpcFunction->NumTemporaries() + 1, true, 0);
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode == IRO_Load) && IsNarrow(psInstruction->sType) && !psInstruction->sType.Is(IRTK_I1))
+			if ((psInstruction->uiOpcode == IRO_Load) && mpcBackend->IsNarrow(psInstruction->sType) && !psInstruction->sType.Is(IRTK_I1))
 			{
-				*mauiNarrowOnly.Get(psInstruction->sResult.Index()) = 1;
+				*mpcBackend->mauiNarrowOnly.Get(psInstruction->sResult.Index()) = 1;
 			}
 		}
 	}
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masPhis.NumElements(); uiInstruction++)
 		{
 			psPhi = pcBlock->masPhis.Get(uiInstruction);
@@ -1794,7 +1834,7 @@ void CIR65Backend::FindNarrowOnly(void)
 				sValue = psPhi->asArguments.Get(uiArgument)->sValue;
 				if (sValue.IsTemporary())
 				{
-					*mauiNarrowOnly.Get(sValue.Index()) = 0;
+					*mpcBackend->mauiNarrowOnly.Get(sValue.Index()) = 0;
 				}
 			}
 		}
@@ -1810,14 +1850,14 @@ void CIR65Backend::FindNarrowOnly(void)
 				sValue = psInstruction->asArguments[uiArgument];
 				if (sValue.IsTemporary())
 				{
-					*mauiNarrowOnly.Get(sValue.Index()) = 0;
+					*mpcBackend->mauiNarrowOnly.Get(sValue.Index()) = 0;
 				}
 			}
 		}
 		sValue = pcBlock->msJump.sArgument;
 		if (sValue.IsTemporary())
 		{
-			*mauiNarrowOnly.Get(sValue.Index()) = 0;
+			*mpcBackend->mauiNarrowOnly.Get(sValue.Index()) = 0;
 		}
 	}
 }
@@ -1827,7 +1867,7 @@ void CIR65Backend::FindNarrowOnly(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
+const char* CIR65Places::RegisterName(SIR65Place* psPlace)
 {
 	static const char*	aszNames[IR65R_Count] = { "X", "Y", "V", "W", "B" };
 
@@ -1844,7 +1884,7 @@ const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 // which MemoryOperand uses as [B] when an address is nowhere else.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsAddressRegister(SIR65Place* psPlace)
+bool CIR65Places::IsAddressRegister(SIR65Place* psPlace)
 {
 	return (psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_W) && (psPlace->iOffset != IR65R_B);
 }
@@ -1856,7 +1896,7 @@ bool CIR65Backend::IsAddressRegister(SIR65Place* psPlace)
 // and Y; V and W are always 32 bits wide.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::HasWidth(SIR65Place* psPlace)
+bool CIR65Places::HasWidth(SIR65Place* psPlace)
 {
 	return (psPlace->uiKind == IR65P_Register) && ((psPlace->iOffset == IR65R_X) || (psPlace->iOffset == IR65R_Y));
 }
@@ -1869,7 +1909,7 @@ bool CIR65Backend::HasWidth(SIR65Place* psPlace)
 // 2026-10-28).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsFrameOperand(CChars* pszOperand)
+bool CIR65Places::IsFrameOperand(CChars* pszOperand)
 {
 	return pszOperand->Find("S]") != (size)-1;
 }
@@ -1881,16 +1921,16 @@ bool CIR65Backend::IsFrameOperand(CChars* pszOperand)
 // pushed while it runs.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsLeaf(void)
+bool CIR65Places::IsLeaf(void)
 {
 	size	ui;
 	size	uiInstruction;
 
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		for (uiInstruction = 0; uiInstruction < mpcFunction->GetBlock(ui)->masInstructions.NumElements(); uiInstruction++)
+		for (uiInstruction = 0; uiInstruction < mpcBackend->mpcFunction->GetBlock(ui)->masInstructions.NumElements(); uiInstruction++)
 		{
-			if (IR65OpcodeFlags(mpcFunction->GetBlock(ui)->masInstructions.Get(uiInstruction)->uiOpcode) & (IR65F_CALLS | IR65F_CHANGES_XY))
+			if (IR65OpcodeFlags(mpcBackend->mpcFunction->GetBlock(ui)->masInstructions.Get(uiInstruction)->uiOpcode) & (IR65F_CALLS | IR65F_CHANGES_XY))
 			{
 				return false;
 			}
@@ -1908,7 +1948,7 @@ bool CIR65Backend::IsLeaf(void)
 // prologue, so they can be read from [n + S] without a frame.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::ArgumentsReadFirst(void)
+bool CIR65Places::ArgumentsReadFirst(void)
 {
 	size			ui;
 	size			uiInstruction;
@@ -1920,7 +1960,7 @@ bool CIR65Backend::ArgumentsReadFirst(void)
 	SIRInstruction*	psInstruction;
 	SIRPhi*			psPhi;
 
-	pcEntry = mpcFunction->GetEntry();
+	pcEntry = mpcBackend->mpcFunction->GetEntry();
 	for (uiFirstPush = 0; uiFirstPush < pcEntry->masInstructions.NumElements(); uiFirstPush++)
 	{
 		psInstruction = pcEntry->masInstructions.Get(uiFirstPush);
@@ -1930,9 +1970,9 @@ bool CIR65Backend::ArgumentsReadFirst(void)
 		}
 	}
 
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -1970,7 +2010,7 @@ bool CIR65Backend::ArgumentsReadFirst(void)
 // True if sValue is a parameter read from where it arrived.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsArrivalPlace(SIRReference sValue)
+bool CIR65Places::IsArrivalPlace(SIRReference sValue)
 {
 	return sValue.IsTemporary() && (PlaceOf(sValue)->uiKind == IR65P_Argument);
 }

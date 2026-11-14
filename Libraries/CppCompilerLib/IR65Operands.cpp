@@ -32,23 +32,23 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // without a frame).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::AppendPlace(CChars* psz, SIR65Place* psPlace)
+void CIR65Selector::AppendPlace(CChars* psz, SIR65Place* psPlace)
 {
 	switch (psPlace->uiKind)
 	{
 	case IR65P_Register:
-		psz->Append(RegisterName(psPlace));
+		psz->Append(mpcBackend->mcPlaces.RegisterName(psPlace));
 		break;
 	case IR65P_Pseudo:
 		psz->Append('[')->Append(psPlace->iOffset)->Append(" + W]");
 		break;
 	case IR65P_Frame:
 	case IR65P_FrameAddress:
-		psz->Append('[')->Append(1 + psPlace->iOffset)->Append(" + ")->Append(msFrame.cRegister)->Append(']');
+		psz->Append('[')->Append(1 + psPlace->iOffset)->Append(" + ")->Append(mpcBackend->msFrame.cRegister)->Append(']');
 		break;
 	case IR65P_Argument:
 	case IR65P_ArgumentAddress:
-		psz->Append('[')->Append(msFrame.iArguments + psPlace->iOffset)->Append(" + ")->Append(msFrame.cRegister)->Append(']');
+		psz->Append('[')->Append(mpcBackend->msFrame.iArguments + psPlace->iOffset)->Append(" + ")->Append(mpcBackend->msFrame.cRegister)->Append(']');
 		break;
 	}
 }
@@ -59,12 +59,12 @@ void CIR65Backend::AppendPlace(CChars* psz, SIR65Place* psPlace)
 // A constant as an immediate, extended to 32 bits as eExtend says.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Extend eExtend)
+void CIR65Selector::AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Extend eExtend)
 {
 	SIRConstant*	psConstant;
 	int64			lliValue;
 
-	psConstant = mpcFunction->GetConstant(sConstant);
+	psConstant = mpcBackend->mpcFunction->GetConstant(sConstant);
 	lliValue = (eExtend == IR65E_Sign) ? IRSignExtend(psConstant->sType, psConstant->ulliBits) : (int64)psConstant->ulliBits;
 	psz->Append((int64)(int32)lliValue);
 }
@@ -80,23 +80,23 @@ void CIR65Backend::AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Ext
 // the operand.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend)
+bool CIR65Selector::Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend)
 {
 	SIRType		sType;
 	SIR65Place*	psPlace;
 
-	if (IsDeferred(sValue))
+	if (mpcBackend->mcPlaces.IsDeferred(sValue))
 	{
 		//add, sub, cmp, shl and shr can't address memory with S.
-		if (bArithmetic && IsFrameOperand(&mszDeferred))
+		if (bArithmetic && mpcBackend->mcPlaces.IsFrameOperand(&mpcBackend->mszDeferred))
 		{
 			return false;
 		}
-		pszOperand->Append(mszDeferred);
+		pszOperand->Append(mpcBackend->mszDeferred);
 		return true;
 	}
-	sType = mpcFunction->TypeOf(sValue);
-	if (IsWide(sType))
+	sType = mpcBackend->mpcFunction->TypeOf(sValue);
+	if (mpcBackend->IsWide(sType))
 	{
 		return false;
 	}
@@ -107,19 +107,19 @@ bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithm
 	}
 	if (sValue.IsSymbol())
 	{
-		pszOperand->Append(mpcModule->GetSymbolName(sValue.Index()));
+		pszOperand->Append(mpcBackend->mpcModule->GetSymbolName(sValue.Index()));
 		return true;
 	}
-	if (!sValue.IsTemporary() || ((eExtend == IR65E_Sign) && IsNarrow(sType)))
+	if (!sValue.IsTemporary() || ((eExtend == IR65E_Sign) && mpcBackend->IsNarrow(sType)))
 	{
 		return false;
 	}
-	if (IsInA(sValue))
+	if (mpcBackend->mcPlaces.IsInA(sValue))
 	{
 		pszOperand->Append('A');
 		return true;
 	}
-	psPlace = PlaceOf(sValue);
+	psPlace = mpcBackend->mcPlaces.PlaceOf(sValue);
 	switch (psPlace->uiKind)
 	{
 	case IR65P_Register:
@@ -127,14 +127,14 @@ bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithm
 		AppendPlace(pszOperand, psPlace);
 		return true;
 	case IR65P_Frame:
-		if (bArithmetic && (msFrame.cRegister == 'S'))
+		if (bArithmetic && (mpcBackend->msFrame.cRegister == 'S'))
 		{
 			return false;
 		}
 		AppendPlace(pszOperand, psPlace);
 		return true;
 	case IR65P_Argument:
-		if ((bArithmetic && (msFrame.cRegister == 'S')) || (psPlace->iBytes != 4))
+		if ((bArithmetic && (mpcBackend->msFrame.cRegister == 'S')) || (psPlace->iBytes != 4))
 		{
 			return false;
 		}
@@ -152,7 +152,7 @@ bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithm
 // zero extended), which an instruction can use with memory.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::SmallImmediate(SIRReference sValue, int iMin, int iMax)
+bool CIR65Selector::SmallImmediate(SIRReference sValue, int iMin, int iMax)
 {
 	SIRConstant*	psConstant;
 	int64			lliValue;
@@ -161,12 +161,12 @@ bool CIR65Backend::SmallImmediate(SIRReference sValue, int iMin, int iMax)
 	{
 		return false;
 	}
-	psConstant = mpcFunction->GetConstant(sValue);
-	if (IsWide(psConstant->sType))
+	psConstant = mpcBackend->mpcFunction->GetConstant(sValue);
+	if (mpcBackend->IsWide(psConstant->sType))
 	{
 		return false;
 	}
-	lliValue = IsNarrow(psConstant->sType) ? (int64)psConstant->ulliBits : (int64)(int32)psConstant->ulliBits;
+	lliValue = mpcBackend->IsNarrow(psConstant->sType) ? (int64)psConstant->ulliBits : (int64)(int32)psConstant->ulliBits;
 	return (lliValue >= iMin) && (lliValue <= iMax);
 }
 
@@ -177,15 +177,15 @@ bool CIR65Backend::SmallImmediate(SIRReference sValue, int iMin, int iMax)
 // instruction uiIndex, so it can hold something else for that instruction.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex)
+bool CIR65Selector::IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex)
 {
 	SIR65Home*	psHome;
 	SIRRange*	psRange;
 	int32		iPosition;
 	size		ui;
 
-	iPosition = mcLiveness.Position(pcBlock, uiIndex);
-	psHome = masHomes.Get(iRegister);
+	iPosition = mpcBackend->mcLiveness.Position(pcBlock, uiIndex);
+	psHome = mpcBackend->masHomes.Get(iRegister);
 	for (ui = 0; ui < psHome->asRanges.NumElements(); ui++)
 	{
 		psRange = psHome->asRanges.Get(ui);
@@ -205,7 +205,7 @@ bool CIR65Backend::IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex
 // one that is free (IsRegisterFree), else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIR65Backend::FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, const char* szPrefer)
+const char* CIR65Selector::FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, const char* szPrefer)
 {
 	if (szPrefer && ((StringCompare(szPrefer, "X") == 0) || (StringCompare(szPrefer, "Y") == 0)))
 	{
@@ -231,12 +231,12 @@ const char* CIR65Backend::FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, c
 // otherwise it is the one MemoryOperand gives with szWidened.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened, CIRBlock* pcBlock, size uiIndex, const char* szPrefer)
+bool CIR65Selector::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened, CIRBlock* pcBlock, size uiIndex, const char* szPrefer)
 {
 	size		uiMark;
 	const char*	szFree;
 
-	uiMark = mpszOut->Length();
+	uiMark = mpcBackend->mpszOut->Length();
 	MemoryOperand(sAddress, pszOperand, szWidened);
 	if (CIR65Code::IsCopyExtendAddress(pszOperand))
 	{
@@ -249,18 +249,18 @@ bool CIR65Backend::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, 
 	}
 
 	//Loading an address into B, X or Y changes nothing the back end keeps track of, so what was written can go.
-	mpszOut->SetLength(uiMark);
+	mpcBackend->mpszOut->SetLength(uiMark);
 	pszOperand->Kill();
 	pszOperand->Init();
-	mszAddress = szFree;
+	mpcBackend->mszAddress = szFree;
 	MemoryOperand(sAddress, pszOperand, NULL);
-	mszAddress = "B";
+	mpcBackend->mszAddress = "B";
 	if (CIR65Code::IsCopyExtendAddress(pszOperand))
 	{
 		return true;
 	}
 
-	mpszOut->SetLength(uiMark);
+	mpcBackend->mpszOut->SetLength(uiMark);
 	pszOperand->Kill();
 	pszOperand->Init();
 	MemoryOperand(sAddress, pszOperand, szWidened);
@@ -274,7 +274,7 @@ bool CIR65Backend::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, 
 // bits (wth, wthx and cpyx): A for V and W, which have only the one.
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIR65Backend::WidthRegister(const char* szRegister)
+const char* CIR65Selector::WidthRegister(const char* szRegister)
 {
 	return ((szRegister[0] == 'V') || (szRegister[0] == 'W')) ? "A" : szRegister;
 }
@@ -286,16 +286,16 @@ const char* CIR65Backend::WidthRegister(const char* szRegister)
 // kept in X, Y, V or W, otherwise A (B is what the code works in besides A).
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIR65Backend::WorkRegister(SIRInstruction* psInstruction)
+const char* CIR65Selector::WorkRegister(SIRInstruction* psInstruction)
 {
 	SIR65Place*	psPlace;
 
-	if (!psInstruction->sResult.IsTemporary() || IsWide(psInstruction->sType))
+	if (!psInstruction->sResult.IsTemporary() || mpcBackend->IsWide(psInstruction->sType))
 	{
 		return "A";
 	}
-	psPlace = PlaceOf(psInstruction->sResult);
-	return ((psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_B)) ? RegisterName(psPlace) : "A";
+	psPlace = mpcBackend->mcPlaces.PlaceOf(psInstruction->sResult);
+	return ((psPlace->uiKind == IR65P_Register) && (psPlace->iOffset != IR65R_B)) ? mpcBackend->mcPlaces.RegisterName(psPlace) : "A";
 }
 
 
@@ -305,7 +305,7 @@ const char* CIR65Backend::WorkRegister(SIRInstruction* psInstruction)
 // sign bit), when eExtend says so.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Extend(const char* szRegister, SIRType sType, EIR65Extend eExtend)
+void CIR65Selector::Extend(const char* szRegister, SIRType sType, EIR65Extend eExtend)
 {
 	int		iBits;
 	int64	lliSign;
@@ -314,8 +314,8 @@ void CIR65Backend::Extend(const char* szRegister, SIRType sType, EIR65Extend eEx
 	if ((eExtend == IR65E_Sign) && (iBits >= 1) && (iBits < 32))
 	{
 		lliSign = (int64)1 << (iBits - 1);
-		Line("xor ")->Append(szRegister)->Append(", ")->Append(lliSign)->AppendNewLine();
-		Line("sub ")->Append(szRegister)->Append(", ")->Append(lliSign)->AppendNewLine();
+		mpcBackend->Line("xor ")->Append(szRegister)->Append(", ")->Append(lliSign)->AppendNewLine();
+		mpcBackend->Line("sub ")->Append(szRegister)->Append(", ")->Append(lliSign)->AppendNewLine();
 	}
 }
 
@@ -325,11 +325,11 @@ void CIR65Backend::Extend(const char* szRegister, SIRType sType, EIR65Extend eEx
 // Keeps the low bits of a narrow integer, zero extended.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Truncate(const char* szRegister, SIRType sType)
+void CIR65Selector::Truncate(const char* szRegister, SIRType sType)
 {
-	if (IsNarrow(sType))
+	if (mpcBackend->IsNarrow(sType))
 	{
-		Line("and ")->Append(szRegister)->Append(", ")->Append((((int64)1) << sType.IntegerBits()) - 1)->AppendNewLine();
+		mpcBackend->Line("and ")->Append(szRegister)->Append(", ")->Append((((int64)1) << sType.IntegerBits()) - 1)->AppendNewLine();
 	}
 }
 
@@ -338,19 +338,19 @@ void CIR65Backend::Truncate(const char* szRegister, SIRType sType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::LoadConstant(const char* szRegister, SIRType sType, uint64 ulliBits, EIR65Extend eExtend)
+void CIR65Selector::LoadConstant(const char* szRegister, SIRType sType, uint64 ulliBits, EIR65Extend eExtend)
 {
 	int64	lliValue;
 
-	if (IsWide(sType))
+	if (mpcBackend->IsWide(sType))
 	{
-		Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
-		Line("cpy ")->Append(szRegister)->Append(", ")->Append((int64)ulliBits)->AppendNewLine();
-		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
+		mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ")->Append((int64)ulliBits)->AppendNewLine();
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 		return;
 	}
 	lliValue = (eExtend == IR65E_Sign) ? IRSignExtend(sType, ulliBits) : (int64)ulliBits;
-	Line("cpy ")->Append(szRegister)->Append(", ")->Append((int64)(int32)lliValue)->AppendNewLine();
+	mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ")->Append((int64)(int32)lliValue)->AppendNewLine();
 }
 
 
@@ -362,46 +362,46 @@ void CIR65Backend::LoadConstant(const char* szRegister, SIRType sType, uint64 ul
 // width and widened.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::LoadPlace(SIR65Place* psPlace, SIRType sType, const char* szRegister, EIR65Extend eExtend)
+void CIR65Selector::LoadPlace(SIR65Place* psPlace, SIRType sType, const char* szRegister, EIR65Extend eExtend)
 {
 	CChars*	psz;
 
 	if (psPlace->uiKind == IR65P_Register)
 	{
-		if (StringCompare(RegisterName(psPlace), szRegister) != 0)
+		if (StringCompare(mpcBackend->mcPlaces.RegisterName(psPlace), szRegister) != 0)
 		{
-			Line("cpy ")->Append(szRegister)->Append(", ")->Append(RegisterName(psPlace))->AppendNewLine();
+			mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ")->Append(mpcBackend->mcPlaces.RegisterName(psPlace))->AppendNewLine();
 		}
 		Extend(szRegister, sType, eExtend);
 		return;
 	}
-	if (IsWide(sType))
+	if (mpcBackend->IsWide(sType))
 	{
-		Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
-		psz = Line("cpy ")->Append(szRegister)->Append(", ");
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
+		psz = mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ");
 		AppendPlace(psz, psPlace);
 		psz->AppendNewLine();
-		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 		return;
 	}
-	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4) && (msFrame.cRegister == 'V'))
+	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4) && (mpcBackend->msFrame.cRegister == 'V'))
 	{
 		//cpyx extends the argument into the 32 bit register (it can't address with S).
-		psz = Line("cpyx ")->Append(szRegister)->Append(", ");
+		psz = mpcBackend->Line("cpyx ")->Append(szRegister)->Append(", ");
 		AppendPlace(psz, psPlace);
-		psz->Append(((eExtend == IR65E_Sign) && IsNarrow(sType)) ? ":s" : ":")->Append(8 * psPlace->iBytes)->AppendNewLine();
+		psz->Append(((eExtend == IR65E_Sign) && mpcBackend->IsNarrow(sType)) ? ":s" : ":")->Append(8 * psPlace->iBytes)->AppendNewLine();
 		return;
 	}
 	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4))
 	{
-		Line("wth ")->Append(szRegister)->Append(", ")->Append(8 * psPlace->iBytes)->AppendNewLine();
-		psz = Line("cpy ")->Append(szRegister)->Append(", ");
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", ")->Append(8 * psPlace->iBytes)->AppendNewLine();
+		psz = mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ");
 		AppendPlace(psz, psPlace);
 		psz->AppendNewLine();
-		Line("wthx ")->Append(szRegister)->Append(((eExtend == IR65E_Sign) && IsNarrow(sType)) ? ", 32:s" : ", 32")->AppendNewLine();
+		mpcBackend->Line("wthx ")->Append(szRegister)->Append(((eExtend == IR65E_Sign) && mpcBackend->IsNarrow(sType)) ? ", 32:s" : ", 32")->AppendNewLine();
 		return;
 	}
-	psz = Line("cpy ")->Append(szRegister)->Append(", ");
+	psz = mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ");
 	AppendPlace(psz, psPlace);
 	psz->AppendNewLine();
 	Extend(szRegister, sType, eExtend);
@@ -413,28 +413,28 @@ void CIR65Backend::LoadPlace(SIR65Place* psPlace, SIRType sType, const char* szR
 // Stores a register to a home.  Narrow values are already zero extended.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::StorePlace(SIR65Place* psPlace, SIRType sType, const char* szRegister)
+void CIR65Selector::StorePlace(SIR65Place* psPlace, SIRType sType, const char* szRegister)
 {
 	CChars*	psz;
 
 	if (psPlace->uiKind == IR65P_Register)
 	{
-		if (StringCompare(RegisterName(psPlace), szRegister) != 0)
+		if (StringCompare(mpcBackend->mcPlaces.RegisterName(psPlace), szRegister) != 0)
 		{
-			Line("cpy ")->Append(RegisterName(psPlace))->Append(", ")->Append(szRegister)->AppendNewLine();
+			mpcBackend->Line("cpy ")->Append(mpcBackend->mcPlaces.RegisterName(psPlace))->Append(", ")->Append(szRegister)->AppendNewLine();
 		}
 		return;
 	}
-	if (IsWide(sType))
+	if (mpcBackend->IsWide(sType))
 	{
-		Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
 	}
-	psz = Line("cpy ");
+	psz = mpcBackend->Line("cpy ");
 	AppendPlace(psz, psPlace);
 	psz->Append(", ")->Append(szRegister)->AppendNewLine();
-	if (IsWide(sType))
+	if (mpcBackend->IsWide(sType))
 	{
-		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
+		mpcBackend->Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 	}
 }
 
@@ -445,77 +445,77 @@ void CIR65Backend::StorePlace(SIR65Place* psPlace, SIRType sType, const char* sz
 // in place (its operand dies there, so extending it is fine).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::LoadValue(SIRReference sValue, const char* szRegister, EIR65Extend eExtend)
+void CIR65Selector::LoadValue(SIRReference sValue, const char* szRegister, EIR65Extend eExtend)
 {
 	SIR65Place*	psPlace;
 	bool		bA;
 
 	bA = StringCompare(szRegister, "A") == 0;
-	if (IsDeferred(sValue))
+	if (mpcBackend->mcPlaces.IsDeferred(sValue))
 	{
 		if (bA)
 		{
-			msAvailable = IRNone();
+			mpcBackend->msAvailable = IRNone();
 		}
-		Line("cpy ")->Append(szRegister)->Append(", ")->Append(mszDeferred)->AppendNewLine();
+		mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ")->Append(mpcBackend->mszDeferred)->AppendNewLine();
 		return;
 	}
-	if (IsInA(sValue))
+	if (mpcBackend->mcPlaces.IsInA(sValue))
 	{
-		if (!bA && IsWide(mpcFunction->TypeOf(sValue)))
+		if (!bA && mpcBackend->IsWide(mpcBackend->mpcFunction->TypeOf(sValue)))
 		{
-			Line("wtth (A, ")->Append(szRegister)->Append("), 64")->AppendNewLine();
-			Line("cpy ")->Append(szRegister)->Append(", A")->AppendNewLine();
-			Line("wtth (A, ")->Append(szRegister)->Append("), 32")->AppendNewLine();
+			mpcBackend->Line("wtth (A, ")->Append(szRegister)->Append("), 64")->AppendNewLine();
+			mpcBackend->Line("cpy ")->Append(szRegister)->Append(", A")->AppendNewLine();
+			mpcBackend->Line("wtth (A, ")->Append(szRegister)->Append("), 32")->AppendNewLine();
 			return;
 		}
 		if (!bA)
 		{
-			Line("cpy ")->Append(szRegister)->Append(", A")->AppendNewLine();
+			mpcBackend->Line("cpy ")->Append(szRegister)->Append(", A")->AppendNewLine();
 		}
-		else if ((eExtend == IR65E_Sign) && IsNarrow(mpcFunction->TypeOf(sValue)))
+		else if ((eExtend == IR65E_Sign) && mpcBackend->IsNarrow(mpcBackend->mpcFunction->TypeOf(sValue)))
 		{
-			msAvailable = IRNone();
+			mpcBackend->msAvailable = IRNone();
 		}
-		Extend(szRegister, mpcFunction->TypeOf(sValue), eExtend);
+		Extend(szRegister, mpcBackend->mpcFunction->TypeOf(sValue), eExtend);
 		return;
 	}
 	if (bA)
 	{
-		msAvailable = IRNone();
+		mpcBackend->msAvailable = IRNone();
 	}
 
 	switch (sValue.Kind())
 	{
 	case IRRK_Constant:
-		LoadConstant(szRegister, mpcFunction->GetConstant(sValue)->sType, mpcFunction->GetConstant(sValue)->ulliBits, eExtend);
+		LoadConstant(szRegister, mpcBackend->mpcFunction->GetConstant(sValue)->sType, mpcBackend->mpcFunction->GetConstant(sValue)->ulliBits, eExtend);
 		return;
 	case IRRK_Symbol:
-		Line("cpy ")->Append(szRegister)->Append(", ")->Append(mpcModule->GetSymbolName(sValue.Index()))->AppendNewLine();
+		mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ")->Append(mpcBackend->mpcModule->GetSymbolName(sValue.Index()))->AppendNewLine();
 		return;
 	case IRRK_Temporary:
 		break;
 	default:
-		Error("Operand can't be loaded.");
+		mpcBackend->Error("Operand can't be loaded.");
 		return;
 	}
 
-	psPlace = PlaceOf(sValue);
+	psPlace = mpcBackend->mcPlaces.PlaceOf(sValue);
 	switch (psPlace->uiKind)
 	{
 	case IR65P_FrameAddress:
 	case IR65P_ArgumentAddress:
-		Line("cpy ")->Append(szRegister)->Append(", ")->Append(msFrame.cRegister)->AppendNewLine();
-		Line("add ")->Append(szRegister)->Append(", ")->Append(((psPlace->uiKind == IR65P_ArgumentAddress) ? msFrame.iArguments : 1) + psPlace->iOffset)->AppendNewLine();
+		mpcBackend->Line("cpy ")->Append(szRegister)->Append(", ")->Append(mpcBackend->msFrame.cRegister)->AppendNewLine();
+		mpcBackend->Line("add ")->Append(szRegister)->Append(", ")->Append(((psPlace->uiKind == IR65P_ArgumentAddress) ? mpcBackend->msFrame.iArguments : 1) + psPlace->iOffset)->AppendNewLine();
 		return;
 	case IR65P_Register:
 	case IR65P_Pseudo:
 	case IR65P_Frame:
 	case IR65P_Argument:
-		LoadPlace(psPlace, mpcFunction->GetTemporaryType(sValue), szRegister, eExtend);
+		LoadPlace(psPlace, mpcBackend->mpcFunction->GetTemporaryType(sValue), szRegister, eExtend);
 		return;
 	default:
-		Error("Temporary isn't where it was left.");
+		mpcBackend->Error("Temporary isn't where it was left.");
 		return;
 	}
 }
@@ -528,7 +528,7 @@ void CIR65Backend::LoadValue(SIRReference sValue, const char* szRegister, EIR65E
 // fits its type) in its home, or in A for the next instruction.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, bool bExtended)
+void CIR65Selector::StoreResult(SIRReference sResult, const char* szRegister, bool bExtended)
 {
 	SIR65Place*	psPlace;
 	SIRType		sType;
@@ -538,20 +538,20 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 	{
 		return;
 	}
-	psPlace = PlaceOf(sResult);
-	sType = mpcFunction->GetTemporaryType(sResult);
+	psPlace = mpcBackend->mcPlaces.PlaceOf(sResult);
+	sType = mpcBackend->mpcFunction->GetTemporaryType(sResult);
 	bA = StringCompare(szRegister, "A") == 0;
 	if (psPlace->bInA)
 	{
 		if (!bA)
 		{
-			Line("cpy A, ")->Append(szRegister)->AppendNewLine();
+			mpcBackend->Line("cpy A, ")->Append(szRegister)->AppendNewLine();
 		}
-		if (!bExtended && !mcKnownBits.FitsType(sResult))
+		if (!bExtended && !mpcBackend->mcKnownBits.FitsType(sResult))
 		{
 			Truncate("A", sType);
 		}
-		msInA = sResult;
+		mpcBackend->msInA = sResult;
 		return;
 	}
 	if (psPlace->uiKind == IR65P_None)
@@ -561,17 +561,17 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 	}
 	if ((psPlace->uiKind != IR65P_Register) && (psPlace->uiKind != IR65P_Pseudo) && (psPlace->uiKind != IR65P_Frame))
 	{
-		Error("Result has no home.");
+		mpcBackend->Error("Result has no home.");
 		return;
 	}
-	if (!bExtended && !mcKnownBits.FitsType(sResult))
+	if (!bExtended && !mpcBackend->mcKnownBits.FitsType(sResult))
 	{
 		Truncate(szRegister, sType);
 	}
 	StorePlace(psPlace, sType, szRegister);
 	if (bA)
 	{
-		msInA = sResult;
+		mpcBackend->msInA = sResult;
 	}
 }
 
@@ -584,30 +584,30 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 // access narrows or widens (an address in it is copied to B first).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened)
+void CIR65Selector::MemoryOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened)
 {
 	SIR65Place*	psPlace;
 
 	if (sAddress.IsSymbol())
 	{
-		pszOperand->Append('[')->Append(mpcModule->GetSymbolName(sAddress.Index()))->Append(']');
+		pszOperand->Append('[')->Append(mpcBackend->mpcModule->GetSymbolName(sAddress.Index()))->Append(']');
 		return;
 	}
 	if (sAddress.IsConstant())
 	{
-		pszOperand->Append('[')->Append((int64)(uint32)mpcFunction->GetConstant(sAddress)->ulliBits)->Append(']');
+		pszOperand->Append('[')->Append((int64)(uint32)mpcBackend->mpcFunction->GetConstant(sAddress)->ulliBits)->Append(']');
 		return;
 	}
-	if (sAddress.IsTemporary() && (PlaceOf(sAddress)->uiKind == IR65P_Folded))
+	if (sAddress.IsTemporary() && (mpcBackend->mcPlaces.PlaceOf(sAddress)->uiKind == IR65P_Folded))
 	{
-		FoldedOperand(PlaceOf(sAddress), pszOperand, szWidened);
+		FoldedOperand(mpcBackend->mcPlaces.PlaceOf(sAddress), pszOperand, szWidened);
 		return;
 	}
 	if (sAddress.IsTemporary())
 	{
-		if (IsInA(sAddress) && !InRegister(sAddress))
+		if (mpcBackend->mcPlaces.IsInA(sAddress) && !mpcBackend->mcPlaces.InRegister(sAddress))
 		{
-			if (((szWidened == NULL) || (StringCompare(szWidened, "A") != 0)) && (StringCompare(mszAddress, "B") == 0))
+			if (((szWidened == NULL) || (StringCompare(szWidened, "A") != 0)) && (StringCompare(mpcBackend->mszAddress, "B") == 0))
 			{
 				pszOperand->Append("[A]");
 				return;
@@ -615,7 +615,7 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 		}
 		else
 		{
-			psPlace = PlaceOf(sAddress);
+			psPlace = mpcBackend->mcPlaces.PlaceOf(sAddress);
 			switch (psPlace->uiKind)
 			{
 			case IR65P_FrameAddress:
@@ -623,16 +623,16 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 				AppendPlace(pszOperand, psPlace);
 				return;
 			case IR65P_Register:
-				//[W] too for a cpy (mbCopyAddress): cpy addresses memory with any register, and [W] with no offset
+				//[W] too for a cpy (mpcBackend->mbCopyAddress): cpy addresses memory with any register, and [W] with no offset
 				//isn't how a pseudo register is written.
-				if ((IsAddressRegister(psPlace) || mbCopyAddress) && ((szWidened == NULL) || (StringCompare(szWidened, RegisterName(psPlace)) != 0)))
+				if ((mpcBackend->mcPlaces.IsAddressRegister(psPlace) || mpcBackend->mbCopyAddress) && ((szWidened == NULL) || (StringCompare(szWidened, mpcBackend->mcPlaces.RegisterName(psPlace)) != 0)))
 				{
-					pszOperand->Append('[')->Append(RegisterName(psPlace))->Append(']');
+					pszOperand->Append('[')->Append(mpcBackend->mcPlaces.RegisterName(psPlace))->Append(']');
 					return;
 				}
 				break;
 			default:
-				if (IsMemoryHome(psPlace))
+				if (mpcBackend->mcPlaces.IsMemoryHome(psPlace))
 				{
 					pszOperand->Append('[');
 					AppendPlace(pszOperand, psPlace);
@@ -643,8 +643,8 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 			}
 		}
 	}
-	LoadValue(sAddress, mszAddress, IR65E_Zero);
-	pszOperand->Append('[')->Append(mszAddress)->Append(']');
+	LoadValue(sAddress, mpcBackend->mszAddress, IR65E_Zero);
+	pszOperand->Append('[')->Append(mpcBackend->mszAddress)->Append(']');
 }
 
 
@@ -654,7 +654,7 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 // argument, [offset + R] with the base in a register (not szWidened) or B.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const char* szWidened)
+void CIR65Selector::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const char* szWidened)
 {
 	SIRReference	sBase;
 	SIR65Place*		psBase;
@@ -664,7 +664,7 @@ void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const
 	sBase = psFolded->sBase;
 	if (sBase.IsSymbol())
 	{
-		pszOperand->Append('[')->Append(mpcModule->GetSymbolName(sBase.Index()));
+		pszOperand->Append('[')->Append(mpcBackend->mpcModule->GetSymbolName(sBase.Index()));
 		if (psFolded->iOffset != 0)
 		{
 			pszOperand->Append((psFolded->iOffset < 0) ? " - " : " + ")->Append((int64)((psFolded->iOffset < 0) ? -(int64)psFolded->iOffset : psFolded->iOffset));
@@ -674,18 +674,18 @@ void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const
 	}
 	if (sBase.IsConstant())
 	{
-		pszOperand->Append('[')->Append((int64)(uint32)(mpcFunction->GetConstant(sBase)->ulliBits + psFolded->iOffset))->Append(']');
+		pszOperand->Append('[')->Append((int64)(uint32)(mpcBackend->mpcFunction->GetConstant(sBase)->ulliBits + psFolded->iOffset))->Append(']');
 		return;
 	}
 
 	szRegister = NULL;
-	if (IsInA(sBase))
+	if (mpcBackend->mcPlaces.IsInA(sBase))
 	{
 		szRegister = "A";
 	}
 	else if (sBase.IsTemporary())
 	{
-		psBase = PlaceOf(sBase);
+		psBase = mpcBackend->mcPlaces.PlaceOf(sBase);
 		if ((psBase->uiKind == IR65P_FrameAddress) || (psBase->uiKind == IR65P_ArgumentAddress))
 		{
 			sAddress = *psBase;
@@ -693,15 +693,15 @@ void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const
 			AppendPlace(pszOperand, &sAddress);
 			return;
 		}
-		if (IsAddressRegister(psBase))
+		if (mpcBackend->mcPlaces.IsAddressRegister(psBase))
 		{
-			szRegister = RegisterName(psBase);
+			szRegister = mpcBackend->mcPlaces.RegisterName(psBase);
 		}
 	}
-	if ((szRegister == NULL) || (szWidened && (StringCompare(szRegister, szWidened) == 0)) || ((StringCompare(szRegister, "A") == 0) && (StringCompare(mszAddress, "B") != 0)))
+	if ((szRegister == NULL) || (szWidened && (StringCompare(szRegister, szWidened) == 0)) || ((StringCompare(szRegister, "A") == 0) && (StringCompare(mpcBackend->mszAddress, "B") != 0)))
 	{
-		LoadValue(sBase, mszAddress, IR65E_Zero);
-		szRegister = mszAddress;
+		LoadValue(sBase, mpcBackend->mszAddress, IR65E_Zero);
+		szRegister = mpcBackend->mszAddress;
 	}
 	pszOperand->Append('[')->Append(psFolded->iOffset)->Append(" + ")->Append(szRegister)->Append(']');
 }
@@ -713,48 +713,48 @@ void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const
 // or as an immediate when it can be, otherwise from A.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Push(SIRReference sValue, SIRType sType)
+void CIR65Selector::Push(SIRReference sValue, SIRType sType)
 {
 	int			iBytes;
 	CChars		szOperand;
 	SIR65Place*	psPlace;
 	const char*	szRegister;
 
-	iBytes = ValueBytes(sType);
+	iBytes = mpcBackend->ValueBytes(sType);
 	if (iBytes == 8)
 	{
 		LoadValue(sValue, "A", IR65E_Zero);
-		Line("wth A, 64")->AppendNewLine();
-		Line("psh A")->AppendNewLine();
-		Line("wth A, 32")->AppendNewLine();
+		mpcBackend->Line("wth A, 64")->AppendNewLine();
+		mpcBackend->Line("psh A")->AppendNewLine();
+		mpcBackend->Line("wth A, 32")->AppendNewLine();
 		return;
 	}
 	if (sValue.IsConstant())
 	{
 		szOperand.Init();
 		AppendImmediate(&szOperand, sValue, IR65E_Zero);
-		Line("psh ")->Append(szOperand)->Append(':')->Append(8 * iBytes)->AppendNewLine();
+		mpcBackend->Line("psh ")->Append(szOperand)->Append(':')->Append(8 * iBytes)->AppendNewLine();
 		szOperand.Kill();
 		return;
 	}
 
 	szRegister = NULL;
-	if (IsInA(sValue))
+	if (mpcBackend->mcPlaces.IsInA(sValue))
 	{
 		szRegister = "A";
 	}
-	else if (InRegister(sValue) && ((iBytes == 4) || HasWidth(PlaceOf(sValue))))
+	else if (mpcBackend->mcPlaces.InRegister(sValue) && ((iBytes == 4) || mpcBackend->mcPlaces.HasWidth(mpcBackend->mcPlaces.PlaceOf(sValue))))
 	{
-		szRegister = RegisterName(PlaceOf(sValue));
+		szRegister = mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sValue));
 	}
 	else if ((iBytes == 4) && sValue.IsTemporary())
 	{
-		psPlace = PlaceOf(sValue);
-		if (IsMemoryHome(psPlace))
+		psPlace = mpcBackend->mcPlaces.PlaceOf(sValue);
+		if (mpcBackend->mcPlaces.IsMemoryHome(psPlace))
 		{
 			szOperand.Init();
 			AppendPlace(&szOperand, psPlace);
-			Line("psh ")->Append(szOperand)->AppendNewLine();
+			mpcBackend->Line("psh ")->Append(szOperand)->AppendNewLine();
 			szOperand.Kill();
 			return;
 		}
@@ -766,12 +766,12 @@ void CIR65Backend::Push(SIRReference sValue, SIRType sType)
 	}
 	if (iBytes == 4)
 	{
-		Line("psh ")->Append(szRegister)->AppendNewLine();
+		mpcBackend->Line("psh ")->Append(szRegister)->AppendNewLine();
 		return;
 	}
-	Line("wth ")->Append(szRegister)->Append(", ")->Append(8 * iBytes)->AppendNewLine();
-	Line("psh ")->Append(szRegister)->AppendNewLine();
-	Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
+	mpcBackend->Line("wth ")->Append(szRegister)->Append(", ")->Append(8 * iBytes)->AppendNewLine();
+	mpcBackend->Line("psh ")->Append(szRegister)->AppendNewLine();
+	mpcBackend->Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 }
 
 
@@ -781,7 +781,7 @@ void CIR65Backend::Push(SIRReference sValue, SIRType sType)
 // A or B; cRegister is set to X or Y if it uses one.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, char* pcRegister)
+bool CIR65Selector::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, char* pcRegister)
 {
 	SIR65Place*		psPlace;
 	SIR65Place*		psBase;
@@ -792,25 +792,25 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 		MemoryOperand(sAddress, pszOperand, NULL);
 		return true;
 	}
-	if (!sAddress.IsTemporary() || IsInA(sAddress))
+	if (!sAddress.IsTemporary() || mpcBackend->mcPlaces.IsInA(sAddress))
 	{
 		return false;
 	}
-	psPlace = PlaceOf(sAddress);
+	psPlace = mpcBackend->mcPlaces.PlaceOf(sAddress);
 	switch (psPlace->uiKind)
 	{
 	case IR65P_Folded:
 		sBase = psPlace->sBase;
 		if (sBase.IsTemporary())
 		{
-			if (IsInA(sBase))
+			if (mpcBackend->mcPlaces.IsInA(sBase))
 			{
 				return false;
 			}
-			psBase = PlaceOf(sBase);
-			if (IsAddressRegister(psBase))
+			psBase = mpcBackend->mcPlaces.PlaceOf(sBase);
+			if (mpcBackend->mcPlaces.IsAddressRegister(psBase))
 			{
-				*pcRegister = RegisterName(psBase)[0];
+				*pcRegister = mpcBackend->mcPlaces.RegisterName(psBase)[0];
 			}
 			else if ((psBase->uiKind != IR65P_FrameAddress) && (psBase->uiKind != IR65P_ArgumentAddress))
 			{
@@ -820,11 +820,11 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 		FoldedOperand(psPlace, pszOperand, NULL);
 		return true;
 	case IR65P_Register:
-		if (!IsAddressRegister(psPlace))
+		if (!mpcBackend->mcPlaces.IsAddressRegister(psPlace))
 		{
 			return false;
 		}
-		*pcRegister = RegisterName(psPlace)[0];
+		*pcRegister = mpcBackend->mcPlaces.RegisterName(psPlace)[0];
 		MemoryOperand(sAddress, pszOperand, NULL);
 		return true;
 	case IR65P_FrameAddress:
@@ -832,7 +832,7 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 		MemoryOperand(sAddress, pszOperand, NULL);
 		return true;
 	default:
-		if (!IsMemoryHome(psPlace))
+		if (!mpcBackend->mcPlaces.IsMemoryHome(psPlace))
 		{
 			return false;
 		}
