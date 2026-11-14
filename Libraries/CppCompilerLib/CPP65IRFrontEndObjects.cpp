@@ -502,7 +502,7 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A polymorphic class's vtable pointers in the object at sObject: each
-// part of its vtable (CCPP65Generator::VtableEntries) is pointed at by the
+// part of its vtable (CCPPVtable::GetEntries) is pointed at by the
 // vtable pointer its header says.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -533,13 +533,13 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 		mcModule.SetLocal(sLabel.Index());
 	}
 	asEntries.Init();
-	mpcGenerator->VtableEntries(pcClass, &asEntries);
+	pcClass->mcVtable.GetEntries(&asEntries);
 	DescribeVtable(&asEntries, pcClass, sLabel.Index());
 
 	//The words from the label: the first part's header is before it (its pointer only when the class has its own).
-	if (pcClass->miVtableOffset != -1)
+	if (pcClass->mcVtable.miPointerOffset != -1)
 	{
-		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sLabel, AddressAt(sObject, pcClass->miVtableOffset));
+		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sLabel, AddressAt(sObject, pcClass->mcVtable.miPointerOffset));
 	}
 	iWord = 0;
 	for (ui = 1; ui < asEntries.NumElements(); ui++)
@@ -563,7 +563,7 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 //
 // The module's known data for a class's vtable from its label, the entries
-// the generator writes (pasEntries, CCPP65Generator::VtableEntries), so a
+// the generator writes (pasEntries, CCPPVtable::GetEntries), so a
 // virtual call through a vtable pointer the optimiser can see stored
 // becomes a call of the function (and may be inlined).
 //

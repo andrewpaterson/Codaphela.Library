@@ -640,7 +640,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		pcFunction->mbImplicit = true;
 		pcClass->mpcDestructor = pcFunction;
 	}
-	bResult &= LayoutVirtuals(pcClass, pcSpecifier);
+	pcClass->mcVtable.LayoutOwn(pcClass);
 
 	//The bases, the vtable pointer, then the fields.  #pragma pack(n) aligns each to at most n bytes.
 	iPack = pcSpecifier->miPack;
@@ -660,19 +660,19 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		iBytes += psBase->pcClass->mpsType->iBytes;
 		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
 	}
-	if (pcClass->mpcBase && (pcClass->mpcBase->miVtableOffset != -1) && (pcClass->macBases.Get(0)->iOffset == 0))
+	if (pcClass->mpcBase && (pcClass->mpcBase->mcVtable.miPointerOffset != -1) && (pcClass->macBases.Get(0)->iOffset == 0))
 	{
-		pcClass->miVtableOffset = pcClass->mpcBase->miVtableOffset;
+		pcClass->mcVtable.miPointerOffset = pcClass->mpcBase->mcVtable.miPointerOffset;
 	}
-	else if (pcClass->mapcVirtuals.NumElements() > 0)
+	else if (pcClass->mcVtable.mapcFunctions.NumElements() > 0)
 	{
 		iFieldAlign = PackAlignment(mpcTarget->GetPointerBytes(), iPack);
 		iBytes = (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
-		pcClass->miVtableOffset = iBytes;
+		pcClass->mcVtable.miPointerOffset = iBytes;
 		iBytes += mpcTarget->GetPointerBytes();
 		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
 	}
-	LayoutSecondaryVtables(pcClass);
+	pcClass->mcVtable.LayoutSecondaries(pcClass);
 	iUnitBytes = 0;
 	iUnitOffset = 0;
 	iUnitBits = 0;
@@ -708,7 +708,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	iAlign = (iClassAlign > iAlign) ? iClassAlign : iAlign;
 	iBytes = (iBytes + iAlign - 1) & ~(iAlign - 1);
 
-	pcClass->mbEmpty = (pcClass->macFields.NumElements() == 0) && (pcClass->miVtableOffset == -1);
+	pcClass->mbEmpty = (pcClass->macFields.NumElements() == 0) && (pcClass->mcVtable.miPointerOffset == -1);
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		pcClass->mbEmpty &= pcClass->macBases.Get(i)->pcClass->mbEmpty;

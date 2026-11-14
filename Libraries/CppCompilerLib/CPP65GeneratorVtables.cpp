@@ -26,138 +26,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The vtable starts as the first base's.  A function with the name and parameters
-// of a virtual function in it overrides it (and is virtual); other virtual functions
-// are added on the end.  A destructor overrides a virtual base destructor.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode)
-{
-	CCPPFunction*		pcFunction;
-	CCPPFunction*		pcVirtual;
-	size				i;
-	size				j;
-	bool				bOverride;
-
-	if (pcClass->mpcBase)
-	{
-		for (i = 0; i < pcClass->mpcBase->mapcVirtuals.NumElements(); i++)
-		{
-			pcClass->mapcVirtuals.Add(pcClass->mpcBase->mapcVirtuals.GetPtr(i));
-		}
-	}
-
-	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
-	{
-		pcFunction = pcClass->mapcMembers.GetPtr(i);
-		if (pcFunction->mbStatic || (pcFunction->meKind == CPPFK_Constructor))
-		{
-			continue;
-		}
-
-		bOverride = false;
-		for (j = 0; j < pcClass->mapcVirtuals.NumElements(); j++)
-		{
-			pcVirtual = pcClass->mapcVirtuals.GetPtr(j);
-			if (pcFunction->Overrides(pcVirtual))
-			{
-				pcClass->mapcVirtuals.SetPtr(j, pcFunction);
-				pcFunction->mbVirtual = true;
-				pcFunction->miSlot = (int)j;
-				bOverride = true;
-				break;
-			}
-		}
-		//A function that overrides one in a secondary vtable also gets a place in the class's own.
-		if (!bOverride && (pcFunction->mbVirtual || pcClass->OverridesBase(pcFunction)))
-		{
-			pcFunction->mbVirtual = true;
-			pcFunction->miSlot = (int)pcClass->mapcVirtuals.NumElements();
-			pcClass->mapcVirtuals.Add(pcFunction);
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The vtables of the polymorphic base subobjects that do not share the class's
-// vtable pointer: the bases' own (except the first base's when the class shares it)
-// and their secondary vtables, with the class's functions overriding.  The base
-// offsets must be known.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::LayoutSecondaryVtables(CCPPClass* pcClass)
-{
-	SCPPBase*		psBase;
-	SCPPSecondaryVtable*	psVtable;
-	bool			bShared;
-	size			i;
-	size			j;
-
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		psBase = pcClass->macBases.Get(i);
-		bShared = (i == 0) && (pcClass->mpcBase == psBase->pcClass) && (psBase->pcClass->miVtableOffset != -1) && (pcClass->miVtableOffset == psBase->pcClass->miVtableOffset);
-		if (!bShared && (psBase->pcClass->miVtableOffset != -1))
-		{
-			AddSecondaryVtable(pcClass, psBase->iOffset, psBase->pcClass, &psBase->pcClass->mapcVirtuals, NULL);
-		}
-		for (j = 0; j < psBase->pcClass->macVtables.NumElements(); j++)
-		{
-			psVtable = psBase->pcClass->macVtables.Get(j);
-			AddSecondaryVtable(pcClass, psBase->iOffset + psVtable->iOffset, psVtable->pcOwner, &psVtable->mapcFunctions, &psVtable->maiAdjust);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A secondary vtable at iOffset, starting as a base's.  The class's own functions
-// override; they need this moved back from the subobject to the class.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AddSecondaryVtable(CCPPClass* pcClass, int iOffset, CCPPClass* pcOwner, CArrayCPPFunctions* papcFunctions, CArrayInt* paiAdjust)
-{
-	SCPPSecondaryVtable*		psVtable;
-	CCPPFunction*		pcFunction;
-	size				i;
-	size				j;
-
-	psVtable = pcClass->macVtables.Add();
-	psVtable->iOffset = iOffset;
-	psVtable->pcOwner = pcOwner;
-	psVtable->mapcFunctions.Init();
-	psVtable->maiAdjust.Init();
-	for (i = 0; i < papcFunctions->NumElements(); i++)
-	{
-		psVtable->mapcFunctions.Add(papcFunctions->GetPtr(i));
-		psVtable->maiAdjust.Add(paiAdjust ? paiAdjust->GetValue(i) : 0);
-	}
-
-	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
-	{
-		pcFunction = pcClass->mapcMembers.GetPtr(i);
-		if (pcFunction->mbStatic || (pcFunction->meKind == CPPFK_Constructor))
-		{
-			continue;
-		}
-		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
-		{
-			if (pcFunction->Overrides(psVtable->mapcFunctions.GetPtr(j)))
-			{
-				psVtable->mapcFunctions.SetPtr(j, pcFunction);
-				psVtable->maiAdjust.SetValue(j, -iOffset);
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // _Class__2: the addresses of the virtual functions, written the first time an
 // object of the class is made.  Its functions are generated.  Pure virtual
 // functions are R_Pure, which stops.
@@ -170,11 +38,11 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 	size						i;
 	CChars						szLabel;
 
-	if (pcClass->mbVtable)
+	if (pcClass->mcVtable.mbWritten)
 	{
 		return;
 	}
-	pcClass->mbVtable = true;
+	pcClass->mcVtable.mbWritten = true;
 
 	//Each unit that makes one of a class's objects writes its vtable in a COMDAT section
 	//(the linker keeps one); a class without a name has its own.
@@ -199,7 +67,7 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 
 	//The label is after the first part's header.
 	asEntries.Init();
-	VtableEntries(pcClass, &asEntries);
+	pcClass->mcVtable.GetEntries(&asEntries);
 	for (i = 0; i < asEntries.NumElements(); i++)
 	{
 		psEntry = asEntries.Get(i);
@@ -222,55 +90,6 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 	szLabel.Kill();
 
 	EnsureTypeInfo(pcClass);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class's vtable, in order (see CPP65_VTABLE_ENTRY_BYTES): its own
-// part's header (before the label) and functions, then each secondary
-// vtable's header and functions.  The generator writes it (EnsureVtable)
-// and the IR front end describes it and stores its parts' addresses from
-// the same list.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::VtableEntries(CCPPClass* pcClass, CArrayCPPVtableEntries* pasEntries)
-{
-	SCPPVtableEntry*	psEntry;
-	SCPPSecondaryVtable*		psVtable;
-	size				i;
-	size				j;
-
-	psEntry = pasEntries->Add();
-	psEntry->eKind = CPPVE_Header;
-	psEntry->iVtablePointer = (pcClass->miVtableOffset == -1) ? 0 : pcClass->miVtableOffset;
-	psEntry->pcFunction = NULL;
-	psEntry->iAdjust = 0;
-	for (i = 0; i < pcClass->mapcVirtuals.NumElements(); i++)
-	{
-		psEntry = pasEntries->Add();
-		psEntry->eKind = CPPVE_Function;
-		psEntry->iVtablePointer = 0;
-		psEntry->pcFunction = pcClass->mapcVirtuals.GetPtr(i);
-		psEntry->iAdjust = 0;
-	}
-	for (i = 0; i < pcClass->macVtables.NumElements(); i++)
-	{
-		psVtable = pcClass->macVtables.Get(i);
-		psEntry = pasEntries->Add();
-		psEntry->eKind = CPPVE_Header;
-		psEntry->iVtablePointer = psVtable->iOffset + psVtable->pcOwner->miVtableOffset;
-		psEntry->pcFunction = NULL;
-		psEntry->iAdjust = 0;
-		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
-		{
-			psEntry = pasEntries->Add();
-			psEntry->eKind = CPPVE_Function;
-			psEntry->iVtablePointer = 0;
-			psEntry->pcFunction = psVtable->mapcFunctions.GetPtr(j);
-			psEntry->iAdjust = psVtable->maiAdjust.GetValue(j);
-		}
-	}
 }
 
 
@@ -446,13 +265,13 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFuncti
 	CChars	szLabel;
 
 	szLabel.Init("__vcall_");
-	szLabel.Append(pcFunction->mpcClass->miVtableOffset);
+	szLabel.Append(pcFunction->mpcClass->mcVtable.miPointerOffset);
 	szLabel.Append('_');
 	szLabel.Append(pcFunction->miSlot);
 	if (Emit(&szLabel))
 	{
 		AppendThunkLabel(&szLabel, true);
-		mpcTarget->AppendVirtualCallThunk(&mszThunks, pcFunction->mpcClass->miVtableOffset, CPP65_VTABLE_ENTRY_BYTES * pcFunction->miSlot);
+		mpcTarget->AppendVirtualCallThunk(&mszThunks, pcFunction->mpcClass->mcVtable.miPointerOffset, CPP65_VTABLE_ENTRY_BYTES * pcFunction->miSlot);
 	}
 	psz->Append(szLabel);
 	szLabel.Kill();

@@ -400,9 +400,6 @@ protected:
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ClassError(int iToken, const char* szMessage);
 	void					ReportClassErrors(void);
-	bool					LayoutVirtuals(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	void					LayoutSecondaryVtables(CCPPClass* pcClass);
-	void					AddSecondaryVtable(CCPPClass* pcClass, int iOffset, CCPPClass* pcOwner, CArrayCPPFunctions* papcFunctions, CArrayInt* paiAdjust);
 	void					EnsureVtable(CCPPClass* pcClass);
 	void					EnsureTypeInfo(CCPPClass* pcClass);
 	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset);
@@ -410,7 +407,6 @@ protected:
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
 	void					AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust);
-	void					VtableEntries(CCPPClass* pcClass, CArrayCPPVtableEntries* pasEntries);
 	void					AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);

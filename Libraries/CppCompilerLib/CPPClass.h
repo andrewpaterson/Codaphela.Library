@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
 #include "CPPFunction.h"
+#include "CPPVtable.h"
 
 
 //A non-static data member.  Offsets include the base class's.
@@ -74,54 +75,6 @@ struct SCPPUsing
 typedef CArrayTemplate<SCPPUsing>		CArrayCPPUsings;
 
 
-//A secondary vtable: the one for the polymorphic base subobject at iOffset that does not share the class's
-//vtable pointer.  It is laid out like pcOwner's vtable.  A function whose object is not that subobject is
-//called through a thunk that adds maiAdjust's entry to this first.
-struct SCPPSecondaryVtable
-{
-	int					iOffset;
-	CCPPClass*			pcOwner;
-	CArrayCPPFunctions	mapcFunctions;
-	CArrayInt			maiAdjust;
-};
-
-
-typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
-
-
-//A vtable (CCPP65Generator::VtableEntries): before each part (the class's own, then each secondary vtable) a header of
-//two words, the distance from the part's vtable pointer to the object's start and the class's type info, then the
-//part's functions.  A vtable pointer points at its part's first function, and the label (_Class__2) at the first part's.
-//The type info (_Class__3) is an entry per subobject, its class's type info and its offset, and a zero.
-#define CPP65_VTABLE_ENTRY_BYTES		4
-#define CPP65_VTABLE_HEADER_ENTRIES		2
-#define CPP65_VTABLE_TOP_OFFSET			(-CPP65_VTABLE_HEADER_ENTRIES * CPP65_VTABLE_ENTRY_BYTES)	//From a vtable pointer: the distance to the object's start.
-#define CPP65_VTABLE_TYPE_INFO_OFFSET	(-CPP65_VTABLE_ENTRY_BYTES)			//From a vtable pointer: the class's type info.
-#define CPP65_TYPE_INFO_ENTRY_BYTES		(2 * CPP65_VTABLE_ENTRY_BYTES)
-#define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//In a type info entry: the subobject's offset.
-#define CPP65_VTABLE_LABEL				"2"
-#define CPP65_TYPE_INFO_LABEL			"3"
-
-
-enum ECPPVtableEntry
-{
-	CPPVE_Header,		//A part's header: iVtablePointer is where the part's vtable pointer is in the object.
-	CPPVE_Function,		//pcFunction, through a thunk that adds iAdjust to this if it isn't 0.
-};
-
-
-struct SCPPVtableEntry
-{
-	ECPPVtableEntry		eKind;
-	int					iVtablePointer;
-	CCPPFunction*		pcFunction;
-	int					iAdjust;
-};
-
-
-typedef CArrayTemplate<SCPPVtableEntry>	CArrayCPPVtableEntries;
-
-
 //How far a class has come.  Each state has all that the ones before it have.
 enum ECPPClassState
 {
@@ -146,14 +99,11 @@ public:
 	CArrayCPPUsings				macUsings;
 	CArrayCPPFields				macFields;
 	CArrayCPPFunctions			mapcMembers;		//Its functions, in the order they were added.
-	CArrayCPPFunctions			mapcVirtuals;		//The vtable.
-	int							miVtableOffset;		//-1 if the class has no vtable of its own.
-	CArrayCPPSecondaryVtables	macVtables;			//The secondary vtables, written after the vtable.
+	CCPPVtable					mcVtable;			//Its virtual functions: its own vtable and the secondary ones.
 	ECPPClassState				meState;
 	bool						mbEmpty;			//No fields, no vtable pointer and empty bases.
 	int							miAlign;
 	bool						mbUnion;
-	bool						mbVtable;			//The vtable has been written.
 	bool						mbTypeInfo;			//The type info (for dynamic_cast) has been written.
 	bool						mbConstructors;		//The class declares a constructor.
 	CCPPClass*					mpcInheritedBase;	//The base whose constructors are inherited (using Base::Base), or NULL.

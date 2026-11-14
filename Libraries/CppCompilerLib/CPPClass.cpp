@@ -41,14 +41,11 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	macUsings.Init();
 	macFields.Init();
 	mapcMembers.Init();
-	mapcVirtuals.Init();
-	miVtableOffset = -1;
-	macVtables.Init();
+	mcVtable.Init();
 	meState = CPPCS_Declared;
 	mbEmpty = false;
 	miAlign = 1;
 	mbUnion = false;
-	mbVtable = false;
 	mbTypeInfo = false;
 	mbConstructors = false;
 	mpcInheritedBase = NULL;
@@ -66,16 +63,8 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 void CCPPClass::Kill(void)
 {
-	size	i;
-
 	mszArguments.Kill();
-	for (i = 0; i < macVtables.NumElements(); i++)
-	{
-		macVtables.Get(i)->maiAdjust.Kill();
-		macVtables.Get(i)->mapcFunctions.Kill();
-	}
-	macVtables.Kill();
-	mapcVirtuals.Kill();
+	mcVtable.Kill();
 	mapcMembers.Kill();
 	macFields.Kill();
 	macUsings.Kill();
@@ -373,7 +362,7 @@ bool CCPPClass::IsTriviallyCopyable(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::IsPolymorphic(void)
 {
-	return (miVtableOffset != -1) || (macVtables.NumElements() > 0);
+	return mcVtable.IsPolymorphic();
 }
 
 
@@ -385,29 +374,7 @@ bool CCPPClass::IsPolymorphic(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::IsAbstract(void)
 {
-	SCPPSecondaryVtable*	psVtable;
-	size			i;
-	size			j;
-
-	for (i = 0; i < mapcVirtuals.NumElements(); i++)
-	{
-		if (mapcVirtuals.GetPtr(i)->mbPure)
-		{
-			return true;
-		}
-	}
-	for (i = 0; i < macVtables.NumElements(); i++)
-	{
-		psVtable = macVtables.Get(i);
-		for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
-		{
-			if (psVtable->mapcFunctions.GetPtr(j)->mbPure)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
+	return mcVtable.HasPure();
 }
 
 
@@ -419,32 +386,13 @@ bool CCPPClass::IsAbstract(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::OverridesBase(CCPPFunction* pcFunction)
 {
-	CCPPClass*	pcBase;
-	SCPPSecondaryVtable*	psVtable;
-	size			i;
-	size			j;
-	size			k;
+	size	i;
 
 	for (i = 0; i < macBases.NumElements(); i++)
 	{
-		pcBase = macBases.Get(i)->pcClass;
-		for (j = 0; j < pcBase->mapcVirtuals.NumElements(); j++)
+		if (macBases.Get(i)->pcClass->mcVtable.IsOverriddenBy(pcFunction))
 		{
-			if (pcFunction->Overrides(pcBase->mapcVirtuals.GetPtr(j)))
-			{
-				return true;
-			}
-		}
-		for (j = 0; j < pcBase->macVtables.NumElements(); j++)
-		{
-			psVtable = pcBase->macVtables.Get(j);
-			for (k = 0; k < psVtable->mapcFunctions.NumElements(); k++)
-			{
-				if (pcFunction->Overrides(psVtable->mapcFunctions.GetPtr(k)))
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 	}
 	return false;
@@ -459,13 +407,6 @@ bool CCPPClass::OverridesBase(CCPPFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 int CCPPClass::GetVtablePointerOffset(void)
 {
-	SCPPSecondaryVtable*	psVtable;
-
-	if (miVtableOffset != -1)
-	{
-		return miVtableOffset;
-	}
-	psVtable = macVtables.Get(0);
-	return psVtable->iOffset + psVtable->pcOwner->miVtableOffset;
+	return mcVtable.GetPointerOffset();
 }
 

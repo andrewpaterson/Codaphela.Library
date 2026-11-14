@@ -174,6 +174,9 @@
     <ClCompile Include="CPPVariable.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPVtable.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65TypeChecker.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -966,6 +969,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPVariable.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPVtable.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65TypeChecker.h">
