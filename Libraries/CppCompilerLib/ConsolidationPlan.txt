@@ -2,8 +2,10 @@ CppCompilerLib: consolidation plan
 ==================================
 
 How the compiler is to be reshaped from five very large classes, full of special cases, into small classes that
-each do one job.  Written 2026-11-11, from reading the code and measuring it; nothing here is started.  The library
-was CppParserLib until that day.
+each do one job.  Written 2026-11-11, from reading the code and measuring it.  The library was CppParserLib
+until that day.  Planned again on 2026-11-14, on a new baseline: stages 0 to 2 are done but for what is named in
+"The plan from here", stage 3 has its names, and "The plan from here" is the order of what is left to the
+checkpoint.  The stages below it say what each is for and are as they were written.
 
 The rule for every stage (the user, 2026-11-11): the code the compiler writes must work, and ideally is faster.
 It does not have to be the assembly written before.  So a stage is free to take the simpler design where the old
@@ -14,22 +16,26 @@ A stage doesn't add C++ features.
 Where it is now
 ---------------
 
-491 files, 127,000 lines, 3,319 functions.  368 functions are over 50 lines and 101 are over 100.  In the table
-the lines are those inside the class's functions.
+502 files, 134,000 lines, 3,526 functions (2026-11-14).  379 functions are over 50 lines and 107 are over 100.
+In the table the lines are those inside the class's functions, and the figures after the arrow are those of
+2026-11-11, where the plan started.
 
 	Class                Functions   Lines   ifs   What it is
-	CCPP65Generator         314      8,909   865   Everything about the C++: 65 fields, 3 friend classes
-	CIROptimiser            173      8,438   782   Every pass, 29 fields, the order written out in Optimise
-	CIRW65C816Backend       158      6,137   492   Frame, places, instructions, calls, peepholes, runtime
-	CCPP65IRFrontEnd        187      5,811   624   Function bodies to IR
-	CCPPParser              159      5,496   619   The parser
-	CIR65Backend            131      3,484   325   The 65C64's, 30 fields
-	CPreprocessor           101      3,174   285   Preprocessor.cpp is 3,557 lines and was never split
-	CCPP65TypeChecker        70      2,103   291   Expressions' types
-	CCPP65Builder            98      1,296    81   Project, scheduling, linking, listings
+	CCPP65Generator      314 > 316   8,737   867   Everything about the C++: 3 friend classes
+	CIRW65C816Backend    158 > 166   6,506   525   Frame, places, instructions, calls, peepholes, runtime
+	CCPP65IRFrontEnd     187 > 193   5,949   644   Function bodies to IR
+	CCPPParser                 159   5,506   621   The parser
+	CIR65Backend         131 > 148   3,963   369   The 65C64's
+	CCPPPreprocessor           101   3,215   288   CPPPreprocessor.cpp was never split
+	CCPP65TypeChecker           70   2,110   292   Expressions' types
+	CCPP65Builder         98 > 101   1,310    76   Project, scheduling, linking, listings
 
-The clean-up of 2026-11-04 and 05 split the big files by subject.  The classes were not split: each is still one
-class with all its state shared between all its functions, spread over ten files.  That is what is left to do.
+CIROptimiser (173 functions, 8,438 lines) is gone: its passes are ten classes of 11 to 24 functions, the largest
+CIRIdiomPasses with 1,322 lines (stage 2).  The target is a class (stage 1).  Everything else has grown a
+little, not shrunk: in the three days since the plan was written other sessions made 105 commits here (the
+65C64's register arguments, inlining across units and its registers V and W; bit-fields; #includes by path; the
+W65C816's names), and stage 3 has so far only changed names.  The five classes that are everything about the
+C++ and the two back ends are still one class each with all its state shared between all its functions.
 
 
 What makes the special cases
@@ -168,6 +174,109 @@ user, 2026-11-11).
 Stages 6 to 11 wait: the user comes back then to whether the back ends' code becomes instructions (stage 8) and
 whether the 65C64 gets its half of it.  After every stage: the whole proof (below) and a row in Progress at the end of
 this file.  Sizes are relative: S, M, L, XL.
+
+
+The plan from here (2026-11-14)
+-------------------------------
+
+What changed since the plan was written, and what it does to the plan:
+
+  - The library is not this plan's alone.  "Stages 3 to 6 have the generator, the type checker and the IR front
+    end to themselves" was true on 2026-11-11 and isn't now: bit-fields went into the generator's class layout,
+    and the 65C64's back end changes daily.  So each step below is one commit that is small enough to make,
+    prove and commit in one sitting; the moves are made by scripts that fail when the code under them has
+    changed, and are fitted again; nothing is left staged between steps.
+  - The IR layer and the back ends are left to the sessions working in them.  Stage 2's leftovers (liveness,
+    ranges and use counts as kept analyses; one matcher for the four byte loop idioms; the longest passes split
+    into finding, checking and rewriting) are not needed by stages 3 to 5 and wait for the checkpoint, where
+    they are shown with stages 7 and 11.
+  - The 65C64's cycles are a quarter to a third lower than on 2026-11-11 and its programs a seventh bigger
+    (arguments in registers, inlining across units), so the baseline of 2026-11-11 can't be compared with.  The
+    one of 2026-11-14 (in Progress) is what stages 3 to 5 are measured against, and it is taken again, with
+    the reason written down, when another session's commit moves the cycles.
+  - The compiler's own suite did not pass on Windows: three checks of the #include work of 2026-11-13 failed
+    there, and the suite stops at the first.  They are fixed (a file's name with both separators), so the suite
+    is whole again: 260,170 checks pass.
+  - Stage 0's and stage 1's leftovers that mattered are done with the baseline: the size check is program by
+    program (all 594 are smaller preferring size), and the compile alone is timed on one thread.  The rest
+    (each workspace's high water mark, the W65C816's fullest bank, a VTune profile) is dropped until a stage
+    asks for it: the phase times and the counters have answered every question so far.  The spread between two
+    runs is measured at step 7, the first place a time is compared.
+
+The steps, in order.  Each ends with the build clean, TestSupportLib65's listings compared on both processors
+and TestCppCompilerLib passing; a stage ends with the whole proof and its row in Progress.
+
+Stage 3, the C++'s things do their own work.  Only moves code: the listings stay the same throughout.
+
+   1. The classes get files and methods.  CPPVariable, CPPFunction, CPPTemplate and CPPClass (.h and .cpp, each
+      class with Init and Kill) come out of CPP65Generator.h, and the eighteen generator functions that only ask
+      one of them a question become its methods: IsPolymorphic, IsAbstract, FindField, FindFieldSymbol,
+      NumAggregateFields, NeedsConstructor, NeedsDestructor, HasCopyConstructor, GetCopyConstructor,
+      IsTriviallyCopyable, GetVtablePointerOffset and IsInstanceNamed on the class; SameParameters, Overrides,
+      OverridesBase, TakesObject, RequiredParameters and IsUnitFunction on the function; Find on the template
+      arguments.  The script is written and fitted to today's code.
+   2. A class's state is one enum (declared, resolving its bases, bases known, laying out, complete) where it
+      is mbComplete, mbLayingOut and mbBases.  IsDerivedFrom stays the generator's until stage 4: it resolves
+      the bases, which needs the context.
+   3. CCPPVtable: the primary's entries, where its pointer is, the secondaries and their thunks, and whether it
+      has been written.  The class owns it.
+   4. CCPPClassLayout lays a class out: LayoutClass, ClassMember, the alignment and pack rules, and now the
+      bit-fields too (LayoutBitField, ClassBitField).  What is wrong with a class goes into the list bit-fields
+      brought (SCPPClassError), which the generator prints; the layout itself reports nothing.  It gets tests
+      of its own.
+   5. CCPPMangler makes every label (CPP65GeneratorLabels.cpp), with both processors' register argument
+      suffixes.
+   6. A function's kind says it is a conversion or an operator, where its name is tested.
+   Ends when: the generator has about a hundred functions fewer than its 316; compile time and memory within
+   what two runs differ by.
+
+Stage 4, the generator's jobs become classes that hold their own state.  The context comes first, because
+every other class here needs to be told where the compiler is; the overloads come last, because they are the
+one step that may change the code that is written.
+
+   7. Measured before: the twelve ways in are counted already (the table in Progress); added here are the
+      candidates in each resolution and the calls resolved more than once, and the spread of the compile's
+      times (the same build twice, on one thread).
+   8. CCPPContext, without the trials: the template arguments (set at 32 places), the function, whether there
+      is a this, static local, C linkage and the pack being expanded are entered and left by an object on the
+      stack, not saved and put back by hand.
+   9. The trials.  Of 1.7 million quiet trials compiling TestSupportLib65's project, 128 fail: so the 118
+      places that use quiet mode are first sorted into those that try something that can fail and those that
+      only keep a message from being printed twice.  The first kind becomes a context whose errors go to a list
+      of its own; the second kind stops using quiet mode at all.  That count should fall by a thousand times.
+  10. CCPPDeclarators: specifiers and declarators to types (GetType, GetDeclaratorType, GetBaseType,
+      GetTypeIdType).
+  11. CCPPDeduction: one deduction with its template, arguments and what is deduced so far as fields, and the
+      specialisation's pattern matcher beside it.  The nine Deduce functions stop passing five arguments on.
+      Tests of its own.
+  12. CCPPOverloads: a set of candidates, one Choose, one Report; the twelve ways in become one, a commit for
+      each way in or two.  Here the listings may differ: each difference is read, the right ranking kept and
+      a test added, and that commit carries the suites' cycles and sizes.  Tests of its own.
+  13. CCPPUnitData: the globals, strings, bss and the init and fini tables.
+  14. What is left is CCPPUnit.  Its three friends go: the front end's 332 questions (mpcGenerator->) and the
+      type checker's are asked through what is public.
+   Ends when: one way in; no member saved and put back by hand; the suites pass on both processors, preferring
+   speed and preferring size.
+
+Stage 5, a call, a name and a member are resolved once; then the checkpoint.
+
+  15. Measured before: the type checker's and the front end's shares of the compile (the phase times, "types"
+      and "front end", and VTune by class if they don't say enough), TypeOf's calls and those worked out, pack
+      expansions and their nodes, and the lines in the two walkers' call, name and member functions.
+  16. CCPPSyntaxVisitor: a virtual for each kind of node (241 GetKind tests today), and the small questions
+      onto the nodes.
+  17. Calls: one ResolveCall with the cascade, making a CCPPBoundCall that the type checker and the front end
+      both read; a pack's expanded arguments are the bound call's.  While old and new live together a debug
+      build runs both and compares them over every test and the three Lib65 projects.
+  18. Names and members, the same way.
+  19. The checkpoint: step 15's numbers again, the bound nodes made for a function, peak memory, compile
+      time, the suites' cycles and sizes, the disagreements found, and what is suggested for stages 6 to 11
+      and for stage 2's leftovers.  The plan stops and the numbers go to the user.
+
+One thing the baseline found that isn't in a stage: on the W65C816 TestFatCache is twice as fast preferring
+size as preferring speed (202 million cycles against 430), TestRedirectPrintf a third faster and TestArraySizer
+an eighth; on the 65C64 TestFatCache is a seventh faster.  Something done for speed makes those slower.  It is
+looked at in stage 11, or before if a step here happens on the cause.
 
 Stage 0.  Ground.  (S)
 
@@ -455,7 +564,7 @@ Made by the user, 2026-11-11:
   - The compiler's own time and memory are only watched for now, not a gate.
   - Speed against size is an option, not a rule: stage 1 starts it.
   - Stages 3 to 6 have the generator, the type checker and the IR front end to themselves: there is no other
-    session in them.
+    session in them.  (No longer so by 2026-11-14: "The plan from here" says how the work allows for it.)
 
 For the user, when stage 5 is done:
   - Stage 6: the rest of an expression as bound nodes, on the checkpoint's numbers.
@@ -494,11 +603,102 @@ day: the 65C64's back end has had a hundred commits since, so its cycles and byt
 to compare today's build with.  A new baseline is needed before stage 4 measures anything.
 
 	Stage   State                   Commits
-	0       Mostly done             92a2f3511 6a8463f4d
-	1       Done but the size check 907ea497b f6bda54a9 66361baa7
-	2       Mostly done             45a0b88cd 3ead06eff 7134b3000
+	0       Done                    92a2f3511 6a8463f4d
+	1       Done                    907ea497b f6bda54a9 66361baa7
+	2       Done but its leftovers  45a0b88cd 3ead06eff 7134b3000
 	3       Only the names          cf550eee6
 	4-11    Not started
+
+The baseline of 2026-11-14 (68476daf2 with the #include fixes; Release x64, 16 threads, CompilerMeasure.py).
+This is what stages 3 to 5 are measured against.  TestCppCompilerLib: 260,170 checks pass.
+
+Preferring speed.  The last two columns are against 2026-11-11:
+
+	Suite              Processor  Programs  Asserts          Cycles       Bytes  Seconds  Peak MB  Cycles  Bytes
+	TestBaseLib65      65C64           168   160570      6178687673    20967031      132     1896    -26%   +14%
+	TestBaseLib65      W65C816         166   154089     17015392416    80551663      162     1981     -7%     0%
+	TestStandardLib65  65C64            66    11058     15790451124    30218486      215     2707    -34%   +15%
+	TestStandardLib65  W65C816          64    10505     24637484002    71601035      189     2807     -4%    -2%
+	TestSupportLib65   65C64            67    29569     33228301834    31516846      437     2313    -23%   +16%
+	TestSupportLib65   W65C816          63    21076     63054849618    69618056      450     2411     -2%    -2%
+
+Preferring size.  Every suite passes with the same programs and asserts, and every one of the 594 programs is
+smaller than it is preferring speed.  The last two columns are against preferring speed:
+
+	Suite              Processor          Cycles       Bytes  Seconds  Peak MB  Cycles  Bytes
+	TestBaseLib65      65C64          7923067209    16995477      135     1866    +28%   -19%
+	TestBaseLib65      W65C816       24060044056    63732346      189     1930    +41%   -21%
+	TestStandardLib65  65C64         21701195648    23003739      260     2615    +37%   -24%
+	TestStandardLib65  W65C816       34674731011    47844681      231     2684    +41%   -33%
+	TestSupportLib65   65C64         42458071999    24173809      510     2302    +28%   -23%
+	TestSupportLib65   W65C816       91462998126    46702367      593     2347    +45%   -33%
+
+The 65C64 now gives up as much speed for size as the W65C816 does (it was 14 to 17% slower for 4 to 7% smaller):
+it has the inlining across units that the option turns down.
+
+The compile alone, on one thread, no test run (seconds and the process's peak memory):
+
+	                    65C64            W65C816
+	TestBaseLib65       61s   459 MB     81s   519 MB
+	TestStandardLib65   68s   515 MB     93s   573 MB
+	TestSupportLib65    93s   721 MB    122s   798 MB
+
+What compiling TestSupportLib65's project took and counted, in the run on 16 threads (milliseconds added over
+the threads; set beside the table of 2026-11-11 below, which was taken the same way), and the same compile on
+one thread, where a unit is compiled once:
+
+	                             16 threads              one thread
+	                         65C64   W65C816         65C64   W65C816
+	preprocess               17831     13032          5207      5158
+	tokenise                  6083      5913          3465      3416
+	parse                    46123     45416         22507     22233
+	declarations              7550      7596          2644      2653
+	types                     9117      9514          3695      3726
+	front end                 5737      6018          2875      2913
+	inline                   15677     27254          9801     16940
+	optimise                  5515      6238          3061      3429
+	back end                  8746     13233          4631      8279
+	code passes              29904     44318         15965     25864
+	assemble                 20428     32222         12896     20800
+
+	functions                72119     72976         56889     56254
+	TypeOf                 4792964   4747972       3913572   3845317
+	TypeOf worked out      1168819   1150414        938265    916084
+	quiet trials           1656209   1682335       1261967   1256878
+	quiet trials failed        126       128           102       102
+	FindFunction            607482    610957        497831    493043
+	FindNamedFunction        86562     85907         74957     73823
+	FindAddressedFunction     1960      2000          1673      1673
+	FindAssociatedFunction       0         0             0         0
+	FindOperator             53766     54990         48630     48644
+	FindFreeOperator             0         0             0         0
+	FindStaticFunction        4178      4328          3261      3261
+	FindConversion           52558     54883         45926     47414
+	FindMemberTemplate       63545     64822         56447     56299
+	ChooseMemberTemplate    327740    327117        258059    254804
+	ChooseTemplate          397638    398391        320021    316612
+	GetCallTemplate           6353      6452          5515      5509
+	pack expansions           1422      1470          1266      1284
+	pack expansion nodes     12516     12876         11166     11358
+	unsupported exits            0         0             0         0
+	65C64 code loaded       330012         0        262895         0
+	65C64 code refused         234         0           205         0
+	dominators             1198628   1420123        958641   1107275
+	optimised functions     111860    109707         89354     85196
+	optimiser rounds        233360    227879        186781    177592
+
+What it says:
+  - The two processors now cost the compiler nearly the same up to the front end, and the 65C64 does as much
+    work as the W65C816 did (72,000 functions where it compiled 29,000): it inlines across units, so its units
+    are compiled again as the W65C816's are.
+  - On one thread the order is the same as it has been: the passes over the code the back ends wrote, parsing,
+    assembling, inlining.  Types and the front end together, which stages 4 to 6 rework, are 7 seconds of the
+    65C64's 93 and of the W65C816's 122: those stages are for the shape of the code and won't make the compiler
+    much faster.
+  - A quarter of TypeOf's calls work the type out.  Of 1.26 million quiet trials 102 fail (step 9).
+  - FindAssociatedFunction and FindFreeOperator are never called compiling the three libraries: two of the
+    twelve ways in are only reached by the compiler's own tests.
+  - Dominators are worked out 13 times for each function optimised (they were 37 before stage 2).
 
 Stage 0.
    Done: TestCppParser.cpp line 268 expects "inline" on Windows, where __inline is a macro (92a2f3511), so the
@@ -507,11 +707,12 @@ Stage 0.
    optimiser's rounds) and times each phase when asked (CCPP65Builder::SetTimes); TEST_PROJECT65_COMPILE_STATS
    prints them and TEST_PROJECT65_CYCLES each program's size with its cycles (6a8463f4d).  CompilerMeasure.py
    is the script.
-   The baseline was taken on 2026-11-11 (below).
-   Left: the workspaces' high water marks (the process's peak memory is measured), the W65C816's fullest bank
-   (each program's image bytes are), where an Unsupported exit is taken (they are counted: none is, in the
-   suites), the VTune profile (the phase times say where the time goes) and the spread between two runs of the
-   same build, which was seen (a tenth or so on the times) but not measured alone on a quiet machine.
+   The baseline was taken on 2026-11-11 (below) and again on 2026-11-14 (above).
+   Not done, and dropped until a stage asks for one: the workspaces' high water marks (the process's peak memory
+   is measured), the W65C816's fullest bank (each program's image bytes are), where an Unsupported exit is
+   taken (they are counted: none is, in the suites) and the VTune profile (the phase times say where the time
+   goes).  The spread between two runs of the same build was seen (a tenth or so on the times) and is measured
+   at step 7 of "The plan from here".
 
 Stage 1.
    Done: CCPPTarget with CCPPTarget65C64, CCPPTargetW65C816 and CCPPTargetHost, holding the sizes and asked for
@@ -530,8 +731,9 @@ Stage 1.
    a header defines that aren't inline (ec1ec1644, TestCPP816CompiledAgain).  Programs compiled for size are
    slower, so the suites give them more of the emulator's instructions (TEST_PROJECT65_STEPS, which
    CompilerMeasure.py --size sets).
-   Left: the totals are smaller on every suite and processor, but "every linked program is smaller or the same"
-   was not checked program by program.  The places that trade speed for size aren't listed here yet.
+   On 2026-11-14 it was checked program by program (CompilerMeasure.py --raw keeps each run's output): all 594
+   programs are smaller preferring size.
+   Left: the places that trade speed for size are listed as the stages meet them.
 
 Stage 2.
    Done: the passes are in ten groups, CIRAddressPasses to CIRRangePasses, on a base CIRPasses, sharing a
@@ -545,8 +747,9 @@ Stage 2.
    project, over the threads) were 38.9s before the analyses were kept and 28.7s after, taken on a machine
    that was running other suites, so the size of the gain is rough; the dominators' counts are exact.
    TestCppCompilerLib passes on 7134b3000 with ec1ec1644 (259,791 checks) and on cf550eee6.
-   Left: liveness, ranges and use counts are not yet kept analyses.  The four byte loop idioms don't share one
-   matcher, and the longest passes aren't split into finding, checking and rewriting.
+   Left, and waiting for the checkpoint ("The plan from here"): liveness, ranges and use counts are not yet
+   kept analyses.  The four byte loop idioms don't share one matcher, and the longest passes aren't split into
+   finding, checking and rewriting.
 
 Stage 3.
    Done: the structs are classes with the Meaning layer's names, CCPPClass, CCPPFunction, CCPPVariable,
@@ -684,6 +887,5 @@ ShareDivisions, NarrowMultiplies, DivisibilityTests and BoundDivisions hardly ev
 of the W65C816's pass time, and DeleteDeadLoops and MergeAddressPhis cost far more than they change: for
 the stage that looks at the passes' order and at what a pass can skip.
 
-The figures in "Where it is now" are those of 2026-11-11, before stage 2 split CIROptimiser into its groups; on
-2026-11-13 the library is 502 source files and about 131,000 lines.  Of "What makes the special cases", 4 (the
-target an enum) and 7 (the passes one class) are what stages 1 and 2 removed.
+Of "What makes the special cases", 4 (the target an enum) and 7 (the passes one class) are what stages 1 and 2
+removed; the counts in the others are those of 2026-11-11.

@@ -1,6 +1,7 @@
 """Measures the C++ compiler (CppCompilerLib) with the Lib65 test suites, the same way each time.
 
     python CompilerMeasure.py [--compile] [--serial] [--size] [--configuration Release] [--only Suite,...] [--out file]
+                              [--raw directory]
 
 For each suite (TestBaseLib65, TestStandardLib65, TestSupportLib65) on each processor (65C64, W65C816) it runs the
 suite's Release x64 executable and writes a table: whether it passed, its programs and asserts, the cycles its
@@ -9,6 +10,8 @@ memory, and the compiler's own times by phase and counts (TEST_PROJECT65_COMPILE
 
 --compile  only compiles the suite's project (no program is linked or run): for the compiler's own time and memory.
 --serial   compiles the units one at a time, for CPU time that other work on the machine disturbs less.
+--raw      keeps each run's own output there (Suite_Processor.txt): every program's cycles and size, to compare
+           two compilers program by program.
 
 Cycles, sizes and counts are exact: two runs of one compiler give the same.  Times are not: take them twice.
 
@@ -73,6 +76,9 @@ def run(suite, processor, arguments, options):
     started = time.time()
     process = subprocess.Popen([executable] + arguments, cwd=directory, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = process.communicate()[0].decode('latin-1')
+    if options.raw:
+        os.makedirs(options.raw, exist_ok=True)
+        open(os.path.join(options.raw, '%s_%s.txt' % (suite, processor)), 'w', encoding='latin-1', newline='').write(output)
     result = {'suite': suite, 'processor': processor, 'seconds': time.time() - started, 'exit': process.returncode,
               'memory': peak_memory(process), 'cycles': 0, 'size': 0, 'programs': 0, 'asserts': 0, 'times': {}, 'counts': {}, 'passes': {}}
     for line in output.split('\n'):
@@ -147,6 +153,7 @@ def main():
     parser.add_argument('--only', default='')
     parser.add_argument('--processor', default='', help='65C64 or W65C816; both by default')
     parser.add_argument('--out', default='')
+    parser.add_argument('--raw', default='', help="a directory for each run's own output")
     options = parser.parse_args()
     suites = [s for s in SUITES if not options.only or s in options.only.split(',')]
     results = []
