@@ -72,6 +72,7 @@ protected:
 	bool	RemoveCompares(void);
 	bool	MovesCompareBase(size uiLine, CChars* pszCompare);
 	bool	IsCompareWithZero(size uiLine);
+	bool	FollowsFixedWidthResult(size uiLine);
 	bool	SameCompare(size uiLine1, size uiLine2);
 };
 

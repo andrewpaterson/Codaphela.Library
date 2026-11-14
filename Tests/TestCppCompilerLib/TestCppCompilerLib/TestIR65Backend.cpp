@@ -1181,6 +1181,40 @@ void TestIR65FlagsOptimise(const char* szExpected, const char* szCode)
 void TestIR65BackendFlags(void)
 {
 	//and set n and z from A; the cpy X, A from both X and A.
+	//A cmp V, 0 or cmp W, 0 straight after an instruction that wrote the register (and set n and z from it) goes; one
+	//after anything else, or whose c is read, stays.
+	TestIR65FlagsOptimise(
+		"_F:\n"
+		"\t\tcpy V, [V]\n"
+		"\t\tbras z, L1\n"
+		"\t\tadd W, 1\n"
+		"\t\tbras z, L1\n"
+		"\t\tcpy A, 1\n"
+		"\t\tcmp V, 0\n"
+		"\t\tbras z, L1\n"
+		"\t\tsub W, 1\n"
+		"\t\tcmp W, 0\n"
+		"\t\tbras c, L1\n"
+		"\t\tret\n"
+		"L1:\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcpy V, [V]\n"
+		"\t\tcmp V, 0\n"
+		"\t\tbras z, L1\n"
+		"\t\tadd W, 1\n"
+		"\t\tcmp W, 0\n"
+		"\t\tbras z, L1\n"
+		"\t\tcpy A, 1\n"
+		"\t\tcmp V, 0\n"
+		"\t\tbras z, L1\n"
+		"\t\tsub W, 1\n"
+		"\t\tcmp W, 0\n"
+		"\t\tbras c, L1\n"
+		"\t\tret\n"
+		"L1:\n"
+		"\t\tret\n");
+
 	TestIR65FlagsOptimise(
 		"_F:\n"
 		"\t\tand A, 255\n"

@@ -385,6 +385,11 @@ bool CIR65Flags::RemoveCompares(void)
 				bRemoved = true;
 			}
 		}
+		else if (FollowsFixedWidthResult(ui) && ((*mauiDemand.Get(ui) & ~(IR65_FLAG_N | IR65_FLAG_Z)) == 0))
+		{
+			*auiNew.Get(ui) = 1;
+			bRemoved = true;
+		}
 	}
 	for (ui = 0; ui < mcCode.NumLines(); ui++)
 	{
@@ -409,6 +414,40 @@ bool CIR65Flags::RemoveCompares(void)
 	}
 	auiNew.Kill();
 	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the line is cmp V, 0 or cmp W, 0 and the line just before it
+// wrote that register and set n and z from what it wrote (cpy V, [X];
+// add W, 1).  V and W aren't among the registers the states follow (they
+// have no width to follow: always 32 bits), so only the line before is
+// looked at.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Flags::FollowsFixedWidthResult(size uiLine)
+{
+	SIR65CodeLine*	psBefore;
+	CChars*			pszLine;
+	CChars*			pszBefore;
+	const char*		szOperand;
+	char			cRegister;
+
+	pszLine = mcCode.GetText(uiLine);
+	if ((uiLine == 0) || !(pszLine->Equals("\t\tcmp V, 0") || pszLine->Equals("\t\tcmp W, 0")))
+	{
+		return false;
+	}
+	cRegister = pszLine->GetChar(6);
+	psBefore = mcCode.GetLine(uiLine - 1);
+	if (!mcCode.IsReached(uiLine - 1) || (psBefore->uiKind != IR65CK_Alu) || !psBefore->bResultFlags || !psBefore->bWritesFirst || psBefore->bFirstMemory)
+	{
+		return false;
+	}
+	pszBefore = mcCode.GetText(uiLine - 1);
+	szOperand = FindChar(pszBefore->Text() + 2, ' ', false);
+	return (szOperand != NULL) && (szOperand[1] == cRegister) && (szOperand[2] == ',');
 }
 
 
