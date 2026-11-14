@@ -222,6 +222,103 @@ CMallocator* CIRW65C816Backend::GetScratch(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A parameter is read from its arrival place (PlaceTemporaries), which is
+// also where an argaddr of it points.  A store through that address would
+// change what the parameter reads after it, where the parameter is the
+// value passed.  So a parameter both addressed and used is copied first
+// thing in the entry block, and its uses read the copy, which has a place
+// of its own (AddRegions shares no arrival place in a function with an
+// argaddr).  The front end reads an addressed parameter only through its
+// address, so this is for IR that mixes the two.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::CopyAddressedParameters(void)
+{
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcEntry;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRReference	sParameter;
+	SIRReference	sCopy;
+	size			uiParameter;
+	size			ui;
+	size			uj;
+	size			uk;
+	size			uiIndex;
+	bool			bAddressed;
+	bool			bUsed;
+
+	pcEntry = mpcFunction->GetEntry();
+	for (uiParameter = 0; uiParameter < mpcFunction->masParameters.NumElements(); uiParameter++)
+	{
+		sParameter = *mpcFunction->masParameters.Get(uiParameter);
+		bAddressed = false;
+		bUsed = false;
+		for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+		{
+			pcBlock = mpcFunction->GetBlock(ui);
+			for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
+			{
+				psPhi = pcBlock->masPhis.Get(uj);
+				for (uk = 0; uk < psPhi->asArguments.NumElements(); uk++)
+				{
+					bUsed |= psPhi->asArguments.Get(uk)->sValue.Equals(sParameter);
+				}
+			}
+			for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(uj);
+				if ((psInstruction->uiOpcode == IRO_ArgAddress) && ((size)mpcFunction->GetSigned(psInstruction->asArguments[0]) == uiParameter))
+				{
+					bAddressed = true;
+				}
+				bUsed |= psInstruction->asArguments[0].Equals(sParameter) || psInstruction->asArguments[1].Equals(sParameter);
+			}
+			bUsed |= pcBlock->msJump.sArgument.Equals(sParameter);
+		}
+		if (!bAddressed || !bUsed)
+		{
+			continue;
+		}
+
+		uiIndex = 0;
+		sCopy = InsertBefore(pcEntry, &uiIndex, IRO_Copy, mpcFunction->GetTemporaryType(sParameter), sParameter, IRNone());
+		for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+		{
+			pcBlock = mpcFunction->GetBlock(ui);
+			for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
+			{
+				psPhi = pcBlock->masPhis.Get(uj);
+				for (uk = 0; uk < psPhi->asArguments.NumElements(); uk++)
+				{
+					if (psPhi->asArguments.Get(uk)->sValue.Equals(sParameter))
+					{
+						psPhi->asArguments.Get(uk)->sValue = sCopy;
+					}
+				}
+			}
+			for (uj = ((pcBlock == pcEntry) ? 1 : 0); uj < pcBlock->masInstructions.NumElements(); uj++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(uj);
+				for (uk = 0; uk < IR_INSTRUCTION_ARGUMENTS; uk++)
+				{
+					if (psInstruction->asArguments[uk].Equals(sParameter))
+					{
+						psInstruction->asArguments[uk] = sCopy;
+					}
+				}
+			}
+			if (pcBlock->msJump.sArgument.Equals(sParameter))
+			{
+				pcBlock->msJump.sArgument = sCopy;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's hidden result pointer (when it returns 64 bits) and
 // parameters as its callers pass them (masArguments, the frame's register
 // words): in registers when its symbol is marked for them and it isn't
@@ -326,6 +423,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	muiSource = 0;
 
 	ExpandMultiplies();
+	CopyAddressedParameters();
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
 	mcBackendPasses.OrderBlocks(pcFunction, true);

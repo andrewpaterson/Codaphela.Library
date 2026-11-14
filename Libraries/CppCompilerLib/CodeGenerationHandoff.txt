@@ -224,15 +224,16 @@ What is left
 
 In the order I would do it.
 
-1. The full sweep on the current heads.  The last one (2026-11-13b, clean) was on 2b998ccae and HCP65 23fe61e.
-   Since then: W an ordinary register, the assembly's W, the index tree's cast, the flags for V and W, [W] as an
-   address.  Each passed the unit tests and the four 65 suites (the two processors where both are touched); none
-   has been through the whole matrix.  Fix what it finds.
+1. Done 2026-11-14: the full sweep (/home/r2d2/CodaphelaSweep/2026-11-14) on 8ec7fe07f and HCP65 9a504ea,
+   116 builds and 114 runs, all passed.
 
-2. The run-time tests on both processors.  TestIR65Backend and TestIRW65C816Backend each run small IR programs
-   on their simulator and each has cases the other lacks (the W65C816's are the larger set).  A case that only
-   checks a result is the same program for both; running each on both would have been a useful second check on
-   the register work, and is cheap.  Keep the expectations of exact assembly where they are.
+2. Done 2026-11-14: the run-time tests on both processors.  TestIR65Run runs each 65C64 program on the
+   W65C816 too (not those needing soft float, which TestIR816Run doesn't link) and TestIR816Run each W65C816
+   program on the 65C64; the results must be the same.  TestIR65Run65C64 and TestIR816RunW65C816 run on one.
+   It found one difference: the W65C816 read a parameter from where it arrived after a store through its
+   argaddr had changed it (TestIR65BackendAllocation's _Keep__Fi gave 909, not 509).  Fixed by
+   CIRW65C816Backend::CopyAddressedParameters; the front end never writes such IR, so no C++ program's code
+   changed (none of the four 65 suites on the W65C816 made a copy).
 
 3. The value facts, measured first.  The W65C816 back end knows which words of a value are always zero
    (FindZeroWords), which values are only read as a byte (FindLowByteUses) and which are used once by the next

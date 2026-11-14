@@ -25,7 +25,7 @@
 //////////////////////////////////////////////////////////////////////////
 //
 // The W65C816 back end (CIRW65C816Backend), on IR programs: each runs on CFastW65C816 (some in lockstep with the
-// CW65C816 simulator too) and must give the result expected and the 65C64 back end's.
+// CW65C816 simulator too) and must give the result expected and the 65C64 back end's (TestIR816Run).
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +37,8 @@
 #define TEST_IR816_MATH_TABLES	TEST_IR816_LIBC65 _FS_ "MathTbls"
 
 
-int64 TestIR65Run(const char* szIR, bool bFloat, CChars* pszAssembly);
+int64 TestIR65Run65C64(const char* szIR, bool bFloat, CChars* pszAssembly);
+void AssertIRSameResult(int64 lliResult65C64, int64 lliResultW65C816, const char* szIR);
 
 
 //The start up: the reset vector and its jml stub in bank 0, then main's result (A and X, or 8 bytes through the
@@ -201,10 +202,11 @@ static void TestIR816FrameWrites(const char* szCode, CChars* pszWrites)
 //////////////////////////////////////////////////////////////////////////
 //
 // Parses and verifies szIR, generates it (and the runtime routines it uses) with the W65C816 back end, links it
-// with the start up and runs it.  Returns main's result, sign extended from its type.
+// with the start up and runs it.  Returns main's result, sign extended from its type.  Only the W65C816:
+// TestIR816Run runs it on the 65C64 too.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
+int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly)
 {
 	CIRModule		cModule;
 	CCPPErrors		cErrors;
@@ -316,20 +318,28 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Runs szIR on the W65C816 (TestIR816RunW65C816) and on the 65C64, which
+// must give the same result.  pszAssembly gets the W65C816's assembly.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
+{
+	int64	lliResult;
+
+	lliResult = TestIR816RunW65C816(szIR, bLockstep, pszAssembly);
+	AssertIRSameResult(TestIR65Run65C64(szIR, false, NULL), lliResult, szIR);
+	return lliResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The expected result, the W65C816's and the 65C64's.
 //
 //////////////////////////////////////////////////////////////////////////
 static void AssertIR816(int64 lliExpected, const char* szIR, bool bLockstep = false)
 {
-	int64	lliResult65;
-
 	AssertLong(lliExpected, TestIR816Run(szIR, bLockstep));
-	lliResult65 = TestIR65Run(szIR, false, NULL);
-	if (strstr(szIR, "function i64 @_main") == NULL)
-	{
-		lliResult65 = (int32)lliResult65;
-	}
-	AssertLong(lliExpected, lliResult65);
 }
 
 

@@ -328,6 +328,7 @@ protected:
 	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
 	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);
 	void			FunctionArguments(void);
+	void			CopyAddressedParameters(void);
 	void			RegisterStub(CChars* pszBodyLabel);
 	bool			Forwarder(CChars* pszJump);
 	void			GenerateForwarder(const char* szLabel, CChars* pszJump);

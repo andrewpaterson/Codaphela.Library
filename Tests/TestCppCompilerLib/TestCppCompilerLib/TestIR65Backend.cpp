@@ -75,14 +75,18 @@ const char*	gszTestIR65DivideSigned64 =
 	"\n";
 
 
+int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Parses and verifies szIR, generates it with the 65C64 back end, links it
 // with the start up (and the soft float runtime when bFloat) and runs it.
-// Returns A when the program stops (main's result).
+// Returns A when the program stops (main's result).  Only the 65C64:
+// TestIR65Run runs it on the W65C816 too.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = NULL)
+int64 TestIR65Run65C64(const char* szIR, bool bFloat, CChars* pszAssembly)
 {
 	CIRModule		cModule;
 	CCPPErrors		cErrors;
@@ -156,6 +160,44 @@ int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = N
 	szCode.Kill();
 	cErrors.Kill();
 	cModule.Kill();
+	return lliResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the two processors' results for szIR are the same: all 64 bits
+// when main returns i64, else the low 32 (the 65C64's A is wider than
+// main's result; the W65C816's is sign extended from main's type).
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertIRSameResult(int64 lliResult65C64, int64 lliResultW65C816, const char* szIR)
+{
+	if (strstr(szIR, "function i64 @_main") == NULL)
+	{
+		lliResult65C64 = (int32)lliResult65C64;
+		lliResultW65C816 = (int32)lliResultW65C816;
+	}
+	AssertLong(lliResult65C64, lliResultW65C816);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs szIR on the 65C64 (TestIR65Run65C64) and, unless it needs the soft
+// float runtime (which TestIR816Run doesn't link), on the W65C816 too, which
+// must give the same result.  pszAssembly gets the 65C64's assembly.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = NULL)
+{
+	int64	lliResult;
+
+	lliResult = TestIR65Run65C64(szIR, bFloat, pszAssembly);
+	if (!bFloat)
+	{
+		AssertIRSameResult(lliResult, TestIR816RunW65C816(szIR, false, NULL), szIR);
+	}
 	return lliResult;
 }
 

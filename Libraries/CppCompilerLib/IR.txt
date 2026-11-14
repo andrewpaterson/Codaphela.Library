@@ -138,6 +138,12 @@ Calls:
 	argaddr n						the address of parameter n where the caller put it
 									(va_start, and &parameter)
 
+A parameter is the value passed: a store through its argaddr doesn't change what the
+parameter reads after it.  The front end reads an addressed parameter only through its
+address, but IR may mix the two.  The 65C64 gives an addressed parameter a home of its
+own; the W65C816, which reads parameters where they arrived, copies one that is both
+addressed and used first thing (CopyAddressedParameters, 2026-11-14).
+
 A call may read and write any memory whose address has escaped.  The calling
 convention (pushing each argument at its own size, the caller removing them, the
 result in A) belongs to the back end.  va_start is still to do (the front end walks the
