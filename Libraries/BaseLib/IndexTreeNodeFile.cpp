@@ -238,7 +238,7 @@ size CIndexTreeNodeFile::FindNextFirstIndex(void)
 	size					uiNumIndices;
 
 	acChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 1; i <= uiNumIndices; i++)
 	{
 		pcChild = &acChildren[i];
@@ -364,7 +364,7 @@ size CIndexTreeNodeFile::NumValidIndexes(void)
 
 	iCount = 0;
 	acChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = &acChildren[i];
@@ -396,7 +396,7 @@ size CIndexTreeNodeFile::NumValidMemoryIndexes(void)
 
 	iCount = 0;
 	acChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = &acChildren[i];
@@ -428,7 +428,7 @@ CIndexTreeNodeFile* CIndexTreeNodeFile::GetValidMemoryNode(size iIndex)
 
 	iCount = 0;
 	acChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = &acChildren[i];
@@ -841,7 +841,7 @@ void CIndexTreeNodeFile::Print(CChars* psz, bool bHex)
 	psz->Append(" ");
 
 	acChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = &acChildren[i];

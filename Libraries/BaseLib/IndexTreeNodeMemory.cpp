@@ -190,7 +190,7 @@ size CIndexTreeNodeMemory::FindNextFirstIndex(void)
 	size					uiNumIndices;
 
 	apcChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 1; i <= uiNumIndices; i++)
 	{
 		pcChild = apcChildren[i];
@@ -244,7 +244,7 @@ size CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 	CIndexTreeNodeMemory**	apcChildren;
 	size					uiNumIndices;
 
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	apcChildren = GetNodes();
 	for (i = 0; i <= uiNumIndices; i++)
 	{
@@ -353,7 +353,7 @@ size CIndexTreeNodeMemory::NumValidIndexes(void)
 	iCount = 0;
 	apcChildren = GetNodes();
 
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = apcChildren[i];
@@ -420,7 +420,7 @@ void CIndexTreeNodeMemory::Print(CChars* psz, bool bHex)
 	psz->Append(" ");
 
 	apcChildren = GetNodes();
-	uiNumIndices = muiLastIndex - muiFirstIndex;
+	uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex);
 	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = apcChildren[i];
