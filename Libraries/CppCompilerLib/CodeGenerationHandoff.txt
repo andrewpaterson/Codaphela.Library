@@ -1,0 +1,277 @@
+Code generation: where it stands and what is left
+==================================================
+
+Written 2026-11-14 for whoever takes this on next.  It covers the work of 2026-11-13 and 14 on the two code
+generators (CIRW65C816Backend for the real W65C816, CIR65Backend for the imaginary 65C64): what was built, what
+was measured and thrown away, how to measure, and what is left.  The reshaping of the compiler as a whole is
+ConsolidationPlan.txt's, not this note's: "How this meets ConsolidationPlan.txt" below says where the two touch.
+
+Nothing here is pushed.  Every commit named is local on master, in CommonLibraries unless HCP65 is said.
+
+
+What the user asked for
+-----------------------
+
+1. Compare the two generators and say what it would take to optimise the 65C64's further (done).
+2. Optimise the W65C816's code (done, in items, each measured and committed).
+3. A plan to optimise the 65C64's code and to consolidate it with the W65C816's; then "Do all of Part 1 and
+   Part 2" of that plan (done).  Part 3, the consolidation, was not asked for beyond what Part 2 needed.
+4. Afterwards: W made an ordinary register, the 65C64 assembly cleaned up, the index tree's byte cast, and
+   three small 65C64 items (two built, one measured and left).
+
+The user's rulings that shaped it are listed under "Rulings" below.  Follow them; ask before changing any.
+
+
+Where the numbers are
+---------------------
+
+Cycles for the three library suites, each program run on the simulator (TEST_PROJECT65_CYCLES=1, the sum over
+the suite's programs).  G is 10^9.
+
+	65C64                                   TestBaseLib65   TestStandardLib65   TestSupportLib65
+	Start (e11249d6a)                           8.567G          24.00G              43.19G
+	Inlining across units, limits 24/48/96/32   7.125G          18.59G              37.12G
+	Register arguments (A, B, Y)                7.045G          17.60G              36.40G
+	V a third register                          6.711G          16.79G              35.02G
+	Frame's place, not a kept pseudo register   6.666G          16.63G              34.66G
+	V only where it pays                        6.536G          16.36G              34.56G
+	W a fourth register                         6.254G          15.89G              33.31G
+	cpy W, 0 taken out where W is 0             6.220G          15.80G              33.23G
+	W an ordinary register                      6.188G          15.73G              33.08G
+	Assembly no longer keeps W                  6.167G          15.69G              33.02G
+	[W] as a cpy's address (and the flags)      6.145G          15.66G              33.00G
+	Since the start                             -28.3%          -34.8%              -23.6%
+
+	W65C816                                 TestBaseLib65   TestStandardLib65   TestSupportLib65
+	Start of 2026-11-13                        18.43G           -                   -
+	After the W65C816 items (e11249d6a)        17.15G          24.68G              63.09G
+	Index tree's count a byte (f89561e1f)      16.91G          24.45G              63.08G
+
+The 65C64 steps left the W65C816's code as it was (its cycles were compared after each and were the same).
+
+Linked sizes of the 65C64 suites' programs now: 21.24M, 30.61M and 31.74M bytes.  Inlining across units cost
+18% of size on TestBaseLib65; the register work since has given 2 to 3% of it back.
+
+
+What was built
+--------------
+
+W65C816, 2026-11-13 (all in IR.txt and W65C816.txt where they belong):
+
+	9b45a70e6   FoldBranches folds a brif a dominating branch decided; the peephole drops cpx/cpy 0 and a load
+	            only for flags; IR816TidyExits
+	421e19e5a   ranges from guards against a bound that isn't a constant; NarrowMultiplies; BoundIndices
+	69c18045e   words that are always zero are read as the constant; a constant offset folded into a bounded one
+	b91476272   an i8 only used as a byte isn't masked; two word signed compares by cmp/sbc/bvc
+	30bc9c10b   ReduceDivisions: a loop counter divided by a constant keeps quotient and remainder counters
+	0427328e8   signed compares keep C and Z without a scratch word; calls through pointers without sep m
+	e11249d6a   constants added one after another come to one add
+
+65C64, 2026-11-13 and 14:
+
+	699f7772e + HCP65 e1acc12   the profile runs on either processor (CAsm65Profile on a CAsm65ProfiledCore)
+	e0ff9fbb4                   units inline each other's functions; limits 24/48/96/32
+	a82599cf8                   the register arguments' rule and label suffix shared (CIRBackend)
+	2d44eb467 + HCP65 23fe61e   the first three arguments in A, B and Y; this stays in X; function pointers and
+	                            vtables keep the stack entry through a stub
+	dee166ea0                   X or Y kept by calls: measured, slower, noted in CPP65Generator.txt, not built in
+	923e49654                   V a third register in a function that needs no frame
+	c6d7b7091                   a value live across calls goes in the frame where there is one
+	27c481406                   V only where it pays for the kept pseudo registers it forces (PaysV)
+	e1c976b26                   W a fourth register between calls
+	5f9d94369                   a cpy W, 0 where W is 0 already goes
+	2b998ccae                   Fits32BitRegister named for V and W
+	84030500b + HCP65 952710a   W a register like any other (the user's ruling)
+	HCP65 f1fddfa               string.asm and softfloat.asm no longer keep W
+	6f9fb8a16                   a cmp V, 0 or cmp W, 0 straight after the register is written goes
+	d66d0bc7a                   a load's or store's cpy reads through a pointer in W ([W])
+
+Source, not the compiler:
+
+	f89561e1f   uiNumIndices = (uint8)(muiLastIndex - muiFirstIndex) in IndexTreeNodeMemory.cpp and
+	            IndexTreeNodeFile.cpp: the W65C816 then indexes the children through Y
+
+The design of each 65C64 item is written where the next reader looks for it: IR.txt ("V as a third register",
+"W as a fourth register", the allocation table), CPP65Generator.txt (the calling convention, register arguments,
+W, the note on X and Y kept by calls) and the comments on CIR65Backend::Allocate, CanUseV, PaysV,
+Fits32BitRegister, IsAddressRegister and CIR65Peephole::TransferW.
+
+
+What the 65C64 costs (measured)
+-------------------------------
+
+From a profile and the listings: take the source lines whose code is one instruction and divide their cycles by
+the times they were entered.
+
+	An instruction on registers                         1 cycle
+	[X], [Y], [V], [A], [B]                             3
+	[n], [n + V], [n + X], [n + S], [symbol]            4 (5 for a symbol)
+	[[n]] (through a pointer in a pseudo register)      6
+	add [n], 1 (a step in memory)                       6
+	psh or pul of a register                            3
+	psh or pul of a pseudo register                     5
+	mul, div                                            1 (a step for each byte of B, in fact; see MultiplyCost)
+
+So a value in a pseudo register or the frame costs 3 cycles more every time it is used, and when this was
+measured a third of the instructions run used one.  That is why more registers was the lever on the 65C64 and
+the W65C816's passes were not.  The registers now: X and Y (a call changes them), W (a call, a mul and a div
+change it; 32 bit values; an address only as a cpy's [W]), V (every function keeps it; only in a function with
+no frame; 32 bit values), then the pseudo registers and the frame.
+
+
+Measured and not built: don't do these again without a new idea
+---------------------------------------------------------------
+
+	X kept by every function            +0.3%, +1.3%, +1.4% cycles on the three suites.  A thiscall on another
+	                                    object puts that in X and small hot leaves pay the push and pull.
+	Y kept by every function            +1.5%, +1.3%, +1.0%.  mul, div, a third argument and a stub change Y.
+	Counter divisions (ReduceDivisions) +0.76% on the 65C64: its div is a cycle.  Left out of its pipeline.
+	Forwarders as jumps                 0.01% of the instructions run are a jsr followed by a ret.
+	Dead stores to pseudo registers     1.8M of 3G instructions run.
+	No DiscountAddresses                +3.2%: the discount is right even though the cost table says a pointer in
+	                                    memory costs as much as any value (with few registers the bytes of a
+	                                    string loop are worth more in X and Y than the pointers).
+	V in a function that has a frame    Half the instructions run are in such functions and it would be worth
+	                                    1 to 2% after its costs, but the frame would have to be addressed from S
+	                                    with the pushed depth counted at every push and pull, and add, sub and
+	                                    cmp can't address with S.  The user: not worth the S management.
+	Register copies at entry            At most 0.3% (cpy X, A where the parameter could be used from A), two
+	                                    thirds of it in CompareMNodeKey.  Needs copy forwarding and register
+	                                    liveness in the text passes; a cheap version (a parameter used only by
+	                                    the first instruction is taken from A) would get about 0.1%.  Offered to
+	                                    the user, not answered.
+	A constant divisor routine (816)    R816_UDiv32 is already about 18 cycles a bit; a constant saves only the
+	                                    operands' set up.
+
+
+Rulings
+-------
+
+The user's, in order.  The W65C816's are also in W65C816.txt and the memory notes.
+
+- Commit as work goes, look for code smells and clean up; commits by path, no co-author line.
+- 65C64 inlining: measure and pick the knee (24/48/96/32 was picked).
+- 65C64 register arguments: this stays in X; the first three scalar arguments of 32 bits or less in A, B and Y;
+  function pointers and vtables keep the stack entry through a stub, as on the W65C816.
+- 65C64 this across calls: try X kept and Y kept, commit the faster or neither; no change to the processor.
+  (Neither.)
+- Verification: the compiler's unit tests and the four 65 suites on both processors after every step, a full
+  sweep at the end.
+- "W is 0 in every call was a misunderstanding around calling the mul instruction" (2026-11-14): W is an
+  ordinary register a call may change.  The pseudo registers are $0000 to $00FF and are written [n].
+- W65C816 function pointers and vtables stay on the stack entry "for now" (a note was asked for and made).
+
+Still waiting for the user (W65C816):
+
+- Frameless leaves: a leaf that runs on its caller's scratch direct page words (about 33 cycles a call).  Every
+  caller's scratch would have to be free at a call, which callers with D = S, interrupt stubs and assembly with
+  its own D don't promise.
+- 8 bit results returned zero extended: about 4,000 masks after calls would go; assembly that returns bytes
+  would have to comply.
+- Function pointers and vtables at the register entry: no stub on a call through a pointer, but it changes what
+  &f, vtables, thunks and assembly that takes a function pointer mean.
+- uint8 counts elsewhere in the index tree: IndexTreeFile.cpp line 3970's loop works from size locals filled by
+  getters and was left; it needs its own look.
+
+
+How to measure
+--------------
+
+The suites are TestBaseLib65, TestStandardLib65 and TestSupportLib65 (CommonLibraries/Tests) and TestLibc65
+(HCP65/Tests).  Each compiles its library and tests for a processor and runs the programs on the simulator.
+No argument is the 65C64, "816" the W65C816.  TestProject65.cpp reads these:
+
+	TEST_PROJECT65_CYCLES=1            prints "SIZE bytes name" and "CYCLES n" for each program
+	TEST_PROJECT65_ONLY=name           one program
+	TEST_PROJECT65_PROFILE=file        writes the profile (each function's calls, each line's times entered and
+	                                   cycles)
+	TEST_PROJECT65_PROFILE_REPORT=file where the cycles went, by line and by function
+	TEST_PROJECT65_LISTINGS=dir        each unit's assembly with its source lines
+	TEST_PROJECT65_STACK_ARGUMENTS=1   no register arguments (CCPPCompileOptions::mbRegisterArguments off)
+	TEST_PROJECT65_FRAME_V=1           V only ever the frame's register (mbHomeV off)
+	TEST_PROJECT65_ZERO_W=1            no values in W (mbHomeW off)
+	TEST_PROJECT65_PREFER_SIZE=1       prefer size to speed
+
+Rules that were learnt the hard way:
+
+- Other sessions edit, build and run in the same checkouts.  Build in a directory of your own (cmake -S the
+  test's directory -B somewhere private) and run from a private copy of the test's project directory, with the
+  Libraries reached through a symlink: the tests write ./Output and two runs of one suite delete each other's
+  files.  The 65 suites read ../../TestBaseLib (and so on) beside them.
+- Compare per program, not only the totals: sum the CYCLES lines, then list the programs that got slower.  A
+  change that helps the total and hurts most programs is usually a rule that needs tuning (PaysV was).
+- A cycle count is exact and repeatable; two runs of one build give the same numbers.
+- The unit tests' asserts trap.  Run TestCppCompilerLib under gdb -batch -ex "handle SIGTRAP nostop noprint
+  nopass" -ex run to see every failure and not only the first.  Many expect exact assembly: when the code
+  changes, read each difference and decide it is right before changing the expectation.
+- Commit with a pathspec (git commit -m ... -- paths).  Other sessions leave files staged, and a plain commit
+  takes them.  Check git show --stat HEAD afterwards.
+- To find what to do next, profile and weigh: for a pattern of instruction, add up the times its source line was
+  entered over the listings.  Estimate before building: three of the last four estimates made from static counts
+  were too high (the flags item was 0.01% where 0.5% was guessed), and the measured ones were right.
+- The full sweep is /home/r2d2/CodaphelaSweep/<date>/sweep.py (copy the last one to a new dated directory).  It
+  builds from git archive of each repository's HEAD, so it tests what is committed: 116 builds and 114 runs,
+  about 75 minutes.  Start it detached (setsid nohup).  Its log calls a run under gdb FAIL because gdb's batch
+  mode returns 1: a run passed if its log has "Total Failed: 0" and "exited normally" (the Asan runs have no gdb
+  and say PASS).
+
+
+What is left
+------------
+
+In the order I would do it.
+
+1. The full sweep on the current heads.  The last one (2026-11-13b, clean) was on 2b998ccae and HCP65 23fe61e.
+   Since then: W an ordinary register, the assembly's W, the index tree's cast, the flags for V and W, [W] as an
+   address.  Each passed the unit tests and the four 65 suites (the two processors where both are touched); none
+   has been through the whole matrix.  Fix what it finds.
+
+2. The run-time tests on both processors.  TestIR65Backend and TestIRW65C816Backend each run small IR programs
+   on their simulator and each has cases the other lacks (the W65C816's are the larger set).  A case that only
+   checks a result is the same program for both; running each on both would have been a useful second check on
+   the register work, and is cheap.  Keep the expectations of exact assembly where they are.
+
+3. The value facts, measured first.  The W65C816 back end knows which words of a value are always zero
+   (FindZeroWords), which values are only read as a byte (FindLowByteUses) and which are used once by the next
+   instruction.  The 65C64 has 32 bit registers and CIR65Widths, so these may buy little: count, in a profile,
+   the masks and extensions the 65C64 runs that such a fact would remove before sharing anything.
+
+4. The rest of the consolidation is ConsolidationPlan.txt's (below).  Don't start it from here.
+
+5. If more speed is wanted on the 65C64 after that: the register copies at entry (the cheap version), and what
+   a fresh profile shows.  Of the instructions run on 2026-11-13 (before W was ordinary) about a tenth were
+   register to register copies, 9% loads of constants and 5% each unconditional branches and width changes.
+   The branches and the width changes have not been looked at.
+
+
+How this meets ConsolidationPlan.txt
+------------------------------------
+
+ConsolidationPlan.txt (2026-11-11) is the user's plan for reshaping the whole compiler, in twelve stages.  It is
+run to the end of stage 5; stages 6 to 11 wait for the user, who comes back then to stage 8's question.  The
+"Part 3" of this work's plan was written without it in mind and overlaps its later stages:
+
+	Part 3's row                                      Where it belongs
+	Profiler                                          Done here (699f7772e).
+	Register arguments' rule and suffix               Done here (a82599cf8).  The stubs are still one each:
+	                                                  stage 7 (CIRW65C816Calls and its 65C64 twin).
+	Forwarder detection                               Drop: 0.01% on the 65C64.
+	Dead and unread stores over frame slots           Drop for the 65C64: 1.8M of 3G.
+	Decoded code model for the text passes            Stage 8, which replaces it: the back ends' code becomes
+	                                                  instructions and nothing is decoded.  Don't unify CIR65Code
+	                                                  and CIRW65C816Code before that ruling.
+	Value facts                                       Stage 7's one record for each temporary; measure first
+	                                                  (item 3 above).
+	Frame description                                 Stage 7.  SIR65Frame has since gained bHomeV.
+	Run-time test programs                            Item 2 above; no stage needs it.
+	Each processor's passes tried on the other        Stage 11.  Three are now measured for the 65C64 (above).
+
+Two things this work changes for that plan:
+
+- Stage 8's "measure before" asks how many 65C64 functions CIR65Code refuses.  The new register code writes
+  lines with V and W as operands (cpy V, [X]; add W, 1; cmp W, V); the decoder takes them as it took cpy V, S,
+  but the count should be taken again.
+- Stage 7 says the listings must be the same.  They are not the same as before this work; take the baseline
+  after it.
+
+ConsolidationPlan.txt's Progress has a short entry pointing here.

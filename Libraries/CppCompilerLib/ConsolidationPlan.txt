@@ -760,6 +760,14 @@ Stage 3.
    mbComplete, mbLayingOut and mbBases are not yet one state.  CCPPVtable, CCPPClassLayout and CCPPMangler
    don't exist.
 
+Code generation, 2026-11-13 and 14 (not a stage: CodeGenerationHandoff.txt has it all).  The W65C816's and the
+65C64's code were made faster outside this plan's order: the three Lib65 suites' cycles on the 65C64 went from
+8.567G, 24.00G and 43.19G to 6.145G, 15.66G and 33.00G (register arguments, V and W as registers, inlining across
+units), and on the W65C816 TestBaseLib65's from 18.43G to 16.91G.  So the listings and cycles a later stage
+compares with are those after d66d0bc7a, not those of 2026-11-11.  That note also says which of the passes
+stage 11 would try on the 65C64 are already measured, and that stage 8's count of the functions CIR65Code
+refuses should be taken again (the 65C64's code now has V and W as operands).
+
 The numbers of 2026-11-11.
 
 How a commit was checked: TestSupportLib65's project compiled without running a test, every unit's listing
