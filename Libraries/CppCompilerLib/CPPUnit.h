@@ -216,6 +216,7 @@ protected:
 	CScratchPadAllocator	mcBackendScratch;	//The W65C816 back end's working arrays and strings, for one function at a time (CIRW65C816Backend::SetScratch).
 	CArrayLargeTemplate<uint16>	mauiCodePieces;	//Per function written by the IR front end: how many pieces its code is in.
 	CCPPSemanticPass*		mpcSemanticPass;	//Check only: what names resolved to goes here.  NULL when generating.
+	bool					mbRemember;			//A kept check: the pass is told each expression's type and what changes its place too.
 	CCPPCompileStatistics*	mpcStatistics;		//What compiling the unit is counted and timed in (SetStatistics): the builder's for the unit...
 	CCPPCompileStatistics	mcOwnStatistics;	//...or the generator's own when none is set.
 	CCPPCompileOptions*		mpcOptions;			//How the unit is compiled where there is a choice (SetOptions): the builder's, or the defaults.
@@ -276,7 +277,7 @@ public:
 	CCPPCompileStatistics*	GetStatistics(void);
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
-	bool					Check(CCPPSemanticPass* pcPass);
+	bool					Check(CCPPSemanticPass* pcPass, bool bRemember = false);
 
 	//Declarations, functions and statements.  CPPUnit.cpp
 	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
@@ -490,6 +491,9 @@ public:
 	bool					IsCheckedExpression(CCPPSyntax* pcNode);
 	void					Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction);
 	void					Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol);
+	void					Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
+	void					PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);
+	void					Changed(CCPPSyntax* pcExpression, uint8 uiChanges);
 
 	//Floating point.  CPPUnitFloat.cpp
 	int64					FloatBits(SCPP65Type* psType, double dValue);

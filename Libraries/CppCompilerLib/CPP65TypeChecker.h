@@ -80,6 +80,8 @@ public:
 
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
+	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);
+	void			ObjectChanged(CCPPSyntax* pcObject, CCPPFunction* pcFunction);
 	SCPP65Type*		Load(SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	SCPP65Type*		ConstantValue(CCPPSyntax* pcExpression);
 	SCPP65Type*		StringLiteral(CCPPSyntaxStringExpression* pcString);

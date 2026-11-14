@@ -26,8 +26,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPSymbol;
+class CCPPSyntax;
 class CCPPSyntaxTree;
 class CCPPSyntaxDeclarator;
+class CCPPUnit;
+struct SCPP65Type;
 
 
 //What a name resolved to once the types of expressions are known: the member o.Init() and p->miCount name, and the
@@ -40,6 +43,15 @@ struct SCPPResolvedName
 
 
 typedef CMapLongTemplate<SCPPResolvedName>	CMapResolvedNames;
+typedef CMapLongTemplate<SCPP65Type*>		CMapCPPNodeTypes;
+typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
+
+
+//How the place an expression names can be changed where it is written (CCPPSemanticPass::FindChanges).
+#define CPPPC_ASSIGNED		0x01	//Assigned to (=, += and the rest), incremented or decremented.
+#define CPPPC_REFERENCE		0x02	//Bound to a reference that isn't const: an argument's, or a variable's initialiser.
+#define CPPPC_ADDRESS		0x04	//Its address is taken.
+#define CPPPC_MEMBER_CALL	0x08	//A member function that isn't const (or an operator of its class's) is called on it.
 
 
 //Works out the types of a parsed translation unit's expressions without generating any code, with the C++
@@ -47,17 +59,36 @@ typedef CMapLongTemplate<SCPPResolvedName>	CMapResolvedNames;
 //p->miCount name, and which overload f(x) calls.  It keeps going past what it can't type (C++ the compiler doesn't
 //support, or that is wrong): the rest of the statement, and the rest of the function, are still checked.  For the
 //IDE's index (CCPPIndex::Gather) and refactorings.
+//
+//A check that is kept (Check's bKeep) also remembers what a refactoring asks of one unit: the type of every
+//expression typed (GetType), written as C++ (AppendType, AppendDeclaration), and how the place an expression
+//names can be changed there (FindChanges).  The types are the checked unit's, which lives until the pass is
+//killed; the index's checks aren't kept and remember none of it.
 class CCPPSemanticPass
 {
 protected:
 	CMapResolvedNames	mcNames;		//By the C++ token of the name (its last component's).
 	CCPPErrors			mcErrors;
+	CCPPUnit*			mpcUnit;		//A kept check's unit, NULL otherwise.
+	CMapCPPNodeTypes	mcTypes;		//A kept check: each expression's type, by its node...
+	CMapCPPNodeTypes	mcPlaces;		//...the type of the place of those only typed as places (the left of an assignment)...
+	CMapCPPNodeChanges	mcChanges;		//...and how the type checker found a node's place changed (CPPPC_).
 
 public:
 	void				Init(void);
 	void				Kill(void);
 
-	bool				Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_Host);
+	bool				Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_Host, bool bKeep = false);
+	bool				IsKept(void) { return mpcUnit != NULL; }
+
+	void				Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
+	void				PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);
+	void				Changed(CCPPSyntax* pcExpression, uint8 uiChanges);
+	SCPP65Type*			GetType(CCPPSyntax* pcExpression);
+	uint8				GetChanges(CCPPSyntax* pcExpression);
+	uint8				FindChanges(CCPPSyntax* pcExpression);
+	bool				AppendType(SCPP65Type* psType, CChars* pszDest);
+	bool				AppendDeclaration(SCPP65Type* psType, const char* szName, CChars* pszDest);
 
 	void				Resolved(int iToken, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator);
 	SCPPResolvedName*	GetResolved(int iToken);

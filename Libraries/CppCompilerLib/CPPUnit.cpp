@@ -245,6 +245,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	muiSpillUnit = 0;
 	mauiCodePieces.Init();
 	mpcSemanticPass = NULL;
+	mbRemember = false;
 	mcOwnStatistics.Init();
 	mpcStatistics = &mcOwnStatistics;
 	mpcOptions = GetDefaultCPPCompileOptions();

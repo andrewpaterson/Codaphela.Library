@@ -2,6 +2,8 @@
 #include "CppCompilerLib/CppTokeniser.h"
 #include "CppCompilerLib/CppParser.h"
 #include "CppCompilerLib/CPPIndex.h"
+#include "CppCompilerLib/CPPSyntaxes.h"
+#include "CppCompilerLib/CPP65Type.h"
 #include "TestLib/Assert.h"
 
 
@@ -1009,6 +1011,293 @@ public:\n\
 }
 
 
+//Writes what a kept check remembers of every expression in a tree, in the order they are written: its source, its
+//type as C++ and, for a name, how what it names is changed there.
+class CTestKeptCheckPrinter : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPSemanticPass*	mpcPass;
+	CChars*				mpszDest;
+	bool				mbDeclare;	//A name's type is written as a declaration of x, and nothing else is written.
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		SCPP65Type*	psType;
+		uint8		uiChanges;
+
+		psType = mpcPass->GetType(pcChild);
+		if (psType && mbDeclare)
+		{
+			if (pcChild->GetKind() == CPPS_IdExpression)
+			{
+				pcChild->PrettyPrint(mpszDest, 0);
+				mpszDest->Append(" : ");
+				if (!mpcPass->AppendDeclaration(psType, "x", mpszDest))
+				{
+					mpszDest->Append("?");
+				}
+				mpszDest->AppendNewLine();
+			}
+		}
+		else if (psType)
+		{
+			pcChild->PrettyPrint(mpszDest, 0);
+			mpszDest->Append(" : ");
+			if (!mpcPass->AppendType(psType, mpszDest))
+			{
+				mpszDest->Append("?");
+			}
+			if (pcChild->GetKind() == CPPS_IdExpression)
+			{
+				uiChanges = mpcPass->FindChanges(pcChild);
+				mpszDest->Append((uiChanges & CPPPC_ASSIGNED) ? " assigned" : "");
+				mpszDest->Append((uiChanges & CPPPC_REFERENCE) ? " reference" : "");
+				mpszDest->Append((uiChanges & CPPPC_ADDRESS) ? " address" : "");
+				mpszDest->Append((uiChanges & CPPPC_MEMBER_CALL) ? " member call" : "");
+			}
+			mpszDest->AppendNewLine();
+		}
+		pcChild->VisitFields(this);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Checks szSource with a kept check and prints what it remembers of the
+// expressions (CTestKeptCheckPrinter).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCppKeptCheckPrint(const char* szSource, CChars* pszDest, bool bDeclare = false)
+{
+	CTranslationUnit		cFile;
+	CCPPPreprocessor		cPreprocessor;
+	CCPPTokeniser			cTokeniser;
+	CCPPSyntaxTree			cTree;
+	CCPPParser				cParser;
+	CCPPSemanticPass		cPass;
+	CTestKeptCheckPrinter	cPrinter;
+
+	cFile.Init("Kept.cpp", NULL, false);
+	cFile.SetContents((char*)szSource);
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	cPass.Init();
+	AssertFalse(cPass.IsKept());
+	cPass.Check(&cTree, CPPT_Host, true);
+	AssertString("", cPass.GetErrors()->Text());
+	AssertTrue(cPass.IsKept());
+	cPrinter.mpcPass = &cPass;
+	cPrinter.mpszDest = pszDest;
+	cPrinter.mbDeclare = bDeclare;
+	cTree.GetRoot()->VisitFields(&cPrinter);
+	cPass.Kill();
+
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A kept check (CCPPSemanticPass::Check's bKeep) remembers the type of
+// every expression, which is written as C++ (a class in its namespace, a
+// template's instance with its arguments, an enum by its name), and how
+// what a name names is changed where it is used: assigned, bound to a
+// reference that isn't const, its address taken, or a member function
+// that isn't const called on it - through its members and elements too.
+// A check that isn't kept remembers none of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassKept(void)
+{
+	CChars				sz;
+	CCPPSemanticPass	cPass;
+
+	sz.Init();
+	TestCppKeptCheckPrint("\
+namespace NS\n\
+{\n\
+	class CBar\n\
+	{\n\
+	public:\n\
+		int		miValue;\n\
+		void	Set(int i);\n\
+		int		Get(void) const;\n\
+	};\n\
+	enum EKind { K_A, K_B };\n\
+}\n\
+template<class T, int N> class CList\n\
+{\n\
+public:\n\
+	T*		mpFirst;\n\
+	T*		First(void);\n\
+	int		Count(void) const;\n\
+};\n\
+typedef unsigned int uint32;\n\
+void Fill(int& i, const NS::CBar& cIn, NS::CBar& cOut);\n\
+void Take(int* pi);\n\
+int (*gpfCallback)(char);\n\
+int Use(NS::CBar* pcBar, CList<NS::CBar, 4>& cList, const char* sz, NS::EKind eKind)\n\
+{\n\
+	int			i;\n\
+	int			j;\n\
+	uint32		ui;\n\
+	NS::CBar	cBar;\n\
+	NS::CBar	cOther;\n\
+	char		ac[4];\n\
+	float		f;\n\
+\n\
+	i = pcBar->Get();\n\
+	ui = i + 1u;\n\
+	f = i * 2.0f;\n\
+	Fill(j, cBar, cOther);\n\
+	Take(&i);\n\
+	cBar.Set(i);\n\
+	cBar.Get();\n\
+	cOther.miValue = 2;\n\
+	ac[1] = sz[0];\n\
+	(j)++;\n\
+	pcBar->Set(ui);\n\
+	return cList.First()->miValue + cList.Count() + gpfCallback(ac[0]) + (eKind == NS::K_B) + (int)f;\n\
+}\n", &sz);
+	AssertString("\
+i = pcBar->Get() : int\n\
+i : int assigned\n\
+pcBar->Get() : int\n\
+pcBar : NS::CBar*\n\
+ui = i + 1u : unsigned int\n\
+ui : unsigned int assigned\n\
+i + 1u : unsigned int\n\
+i : int\n\
+1u : unsigned int\n\
+f = i * 2.0f : float\n\
+f : float assigned\n\
+i * 2.0f : float\n\
+i : int\n\
+2.0f : float\n\
+Fill(j, cBar, cOther) : void\n\
+j : int reference\n\
+cBar : NS::CBar\n\
+cOther : NS::CBar reference\n\
+Take(&i) : void\n\
+&i : int*\n\
+i : int address\n\
+cBar.Set(i) : void\n\
+cBar : NS::CBar member call\n\
+i : int\n\
+cBar.Get() : int\n\
+cBar : NS::CBar\n\
+cOther.miValue = 2 : int\n\
+cOther.miValue : int\n\
+cOther : NS::CBar assigned\n\
+2 : int\n\
+ac[1] = sz[0] : char\n\
+ac[1] : char\n\
+ac : char* assigned\n\
+1 : int\n\
+sz[0] : const char\n\
+sz : const char*\n\
+0 : int\n\
+(j)++ : int\n\
+(j) : int\n\
+j : int assigned\n\
+pcBar->Set(ui) : void\n\
+pcBar : NS::CBar*\n\
+ui : unsigned int\n\
+cList.First()->miValue + cList.Count() + gpfCallback(ac[0]) + (eKind == NS::K_B) + (int)f : int\n\
+cList.First()->miValue + cList.Count() + gpfCallback(ac[0]) + (eKind == NS::K_B) : int\n\
+cList.First()->miValue + cList.Count() + gpfCallback(ac[0]) : int\n\
+cList.First()->miValue + cList.Count() : int\n\
+cList.First()->miValue : int\n\
+cList.First() : NS::CBar*\n\
+cList : CList<NS::CBar, 4> member call\n\
+cList.Count() : int\n\
+cList : CList<NS::CBar, 4>\n\
+gpfCallback(ac[0]) : int\n\
+gpfCallback : int (*)(char)\n\
+ac[0] : char\n\
+ac : char*\n\
+0 : int\n\
+(eKind == NS::K_B) : bool\n\
+eKind == NS::K_B : bool\n\
+eKind : NS::EKind\n\
+NS::K_B : NS::EKind\n\
+(int)f : int\n\
+f : float\n\
+", sz.Text());
+	sz.Kill();
+
+	//Declarations: pointers against the type, a pointer to a function or an array in parentheses with the name, an
+	//array's sizes after it.  What is in a namespace without a name is written without one; a class without a name
+	//can't be written.
+	sz.Init();
+	TestCppKeptCheckPrint("\
+namespace\n\
+{\n\
+	class CHidden\n\
+	{\n\
+	public:\n\
+		int		mi;\n\
+	};\n\
+}\n\
+typedef struct\n\
+{\n\
+	int		a;\n\
+} SUnnamed;\n\
+int Add(int a, int b);\n\
+char gac[3][5];\n\
+void Use(SUnnamed* psUnnamed)\n\
+{\n\
+	int					(*pf)(int, int);\n\
+	void				(*pfNone)(void);\n\
+	CHidden				c;\n\
+	const char* const*	ppsz;\n\
+	char				(*pac)[5];\n\
+	volatile long long	lli;\n\
+	unsigned char*		puc;\n\
+\n\
+	pf = Add;\n\
+	pfNone = 0;\n\
+	c.mi = 1;\n\
+	psUnnamed->a = 2;\n\
+	pac = gac;\n\
+	ppsz = 0;\n\
+	lli = 0;\n\
+	puc = 0;\n\
+}\n", &sz, true);
+	AssertString("\
+pf : int (*x)(int, int)\n\
+pfNone : void (*x)(void)\n\
+c : CHidden x\n\
+psUnnamed : ?\n\
+pac : char (*x)[5]\n\
+gac : char (*x)[5]\n\
+ppsz : const char* const* x\n\
+lli : volatile long long x\n\
+puc : unsigned char* x\n\
+", sz.Text());
+	sz.Kill();
+
+	//Without a kept check nothing can be written.
+	cPass.Init();
+	sz.Init();
+	AssertFalse(cPass.AppendType(NULL, &sz));
+	AssertString("", sz.Text());
+	sz.Kill();
+	cPass.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1023,6 +1312,7 @@ void TestCppIndex(void)
 	TestCppSemanticPassQueued();
 	TestCppSemanticPassHost();
 	TestCppSemanticPassEnumeratorChain();
+	TestCppSemanticPassKept();
 	TestCppIndexMacroNames();
 	TestCppIndexCLinkage();
 	TestCppIndexContainers();

@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPPUnit.h"
+#include "CPPSemanticPass.h"
 #include "CPP65TypeChecker.h"
 
 
@@ -114,6 +115,7 @@ SCPP65Type* CCPP65TypeChecker::Result(CCPPSyntax* pcExpression)
 	//The node's own Visit works its type out, the types of what is in it on the way, and leaves it here last.
 	mpsResult = NULL;
 	pcExpression->Accept(this);
+	mpcUnit->Typed(pcExpression, mpsResult);
 	return mpsResult;
 }
 
@@ -657,6 +659,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		return Load(Place(pcUnary), pcUnary);
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
+		mpcUnit->Changed(pcOperand, CPPPC_ADDRESS);
 		if (mpcUnit->IsObject(pcOperand) && mpcUnit->HasMember(mpcUnit->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, pcUnary);
@@ -1347,6 +1350,10 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 			{
 				return false;
 			}
+			if (!psParameter->psBase->bConst)
+			{
+				mpcUnit->Changed(pcArgument, CPPPC_REFERENCE);
+			}
 			continue;
 		}
 		if (psParameter->IsClass())
@@ -1486,8 +1493,28 @@ SCPP65Type* CCPP65TypeChecker::MemberFunctionCall(CCPPSyntaxCallExpression* pcCa
 	if (!pcFunction->mbStatic && pcObject)
 	{
 		bObject = ((CCPPSyntaxMemberExpression*)pcCallee)->mbArrow ? (ArrowPointer(pcObject, pcCallee) != NULL) : (Place(pcObject) != NULL);
+		if (!((CCPPSyntaxMemberExpression*)pcCallee)->mbArrow)
+		{
+			ObjectChanged(pcObject, pcFunction);
+		}
 	}
 	return bObject ? pcFunction->mpsReturn : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcFunction is called on pcObject (not through a pointer): unless it is
+// a const function, the object can be changed by it, which a kept check
+// remembers (CCPPSemanticPass::FindChanges).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::ObjectChanged(CCPPSyntax* pcObject, CCPPFunction* pcFunction)
+{
+	if (pcObject && !pcFunction->mbStatic && !pcFunction->mbConstThis)
+	{
+		mpcUnit->Changed(pcObject, CPPPC_MEMBER_CALL);
+	}
 }
 
 
@@ -1503,6 +1530,7 @@ SCPP65Type* CCPP65TypeChecker::ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pc
 	{
 		return NULL;
 	}
+	ObjectChanged(pcObject, pcFunction);
 	return pcFunction->mpsReturn;
 }
 
@@ -1772,6 +1800,22 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = PlaceType(pcExpression);
+	mpcUnit->PlaceTyped(pcExpression, psType);
+	mpcUnit->PlaceTyped(mpcUnit->SkipParentheses(pcExpression), psType);
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What Place gives for each kind of expression that can be a place.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxIdExpression*		pcId;
 	CCPPBoundName					cBound;
@@ -2487,6 +2531,10 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		mpcUnit->BeginQuiet();
 		psValue = Place(pcInitialiser);
 		mpcUnit->EndQuiet();
+		if (psValue && !psType->psBase->bConst)
+		{
+			mpcUnit->Changed(pcInitialiser, CPPPC_REFERENCE);
+		}
 		return psValue ? CanBind(psType, psValue, pcNode) : (Value(pcInitialiser) != NULL);
 	}
 	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode);

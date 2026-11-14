@@ -33,12 +33,17 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // an error and the others are still checked.  Returns false if anything
 // couldn't be (GetErrors).
 //
+// With bRemember the pass is also told the type of each expression and
+// what changes the place of one (Typed, PlaceTyped and Changed), for a
+// check that is kept (CCPPSemanticPass::Check).
+//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::Check(CCPPSemanticPass* pcPass)
+bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 {
 	CCPPSyntaxTranslationUnit*	pcRoot;
 
 	mpcSemanticPass = pcPass;
+	mbRemember = bRemember;
 	pcRoot = mpcTree->GetRoot();
 	if (pcRoot)
 	{
@@ -51,6 +56,7 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass)
 	ReportClassErrors();
 	CheckContext();
 	mpcSemanticPass = NULL;
+	mbRemember = false;
 	return mcErrors.NumErrors() == 0;
 }
 
@@ -347,3 +353,47 @@ void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
 	mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, NULL);
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type checker typed pcExpression: a kept check's pass is told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
+{
+	if (mbRemember)
+	{
+		mpcSemanticPass->Typed(pcExpression, psType);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type checker found the type of the place pcExpression is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
+{
+	if (mbRemember)
+	{
+		mpcSemanticPass->PlaceTyped(pcExpression, psType);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type checker found the place pcExpression is can be changed there
+// (CPPPC_): bound to a reference that isn't const, its address taken, or
+// a member function that isn't const called on it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::Changed(CCPPSyntax* pcExpression, uint8 uiChanges)
+{
+	if (mbRemember)
+	{
+		mpcSemanticPass->Changed(pcExpression, uiChanges);
+	}
+}
