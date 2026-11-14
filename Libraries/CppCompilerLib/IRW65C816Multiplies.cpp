@@ -123,7 +123,7 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		}
 		if (IsHiddenResult(sType))
 		{
-			PushFrameAddress(OffsetOf(psInstruction->sResult));
+			PushFrameAddress(mcPlaces.OffsetOf(psInstruction->sResult));
 			iBytes += 4;
 		}
 	}

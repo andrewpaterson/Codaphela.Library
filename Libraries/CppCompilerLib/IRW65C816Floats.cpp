@@ -56,7 +56,7 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 		asTypes[0] = psInstruction->sType;
 		asTypes[1] = psInstruction->sType;
 		bHidden = IsHiddenResult(psInstruction->sType);
-		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : OffsetOf(psInstruction->sResult));
+		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
 		CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
@@ -71,9 +71,9 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 int32 CIRW65C816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
 {
-	if (sValue.IsTemporary() && !InX(sValue) && !Fused(sValue) && (OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
+	if (sValue.IsTemporary() && !mcPlaces.InX(sValue) && !Fused(sValue) && (mcPlaces.OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
 	{
-		return OffsetOf(sValue);
+		return mcPlaces.OffsetOf(sValue);
 	}
 	CopyWords(iScratch, sValue, Words(sType));
 	return iScratch;
@@ -102,7 +102,7 @@ void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psI
 	}
 	if (bHidden)
 	{
-		Line("lda ", psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : OffsetOf(psInstruction->sResult));
+		Line("lda ", psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
 	}
 	sz.Init(szName);
 	sz.Append(IR816_FRAME_OPERANDS);
@@ -392,7 +392,7 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 	else
 	{
 		bHidden = IsHiddenResult(sTo);
-		iBytes = SoftFloatCall(szName.Text(), &sValue, &sFrom, 1, iExtended, bSigned, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : OffsetOf(psInstruction->sResult));
+		iBytes = SoftFloatCall(szName.Text(), &sValue, &sFrom, 1, iExtended, bSigned, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
 		CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();

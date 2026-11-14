@@ -49,6 +49,26 @@ bool IR816OnDirectPage(int32 iOffset)
 // or [[D + n], y]: all of its 3 bytes are on the direct page.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Places::Init(CIRW65C816Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Places::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool IR816PointerOnDirectPage(int32 iOffset)
 {
 	return iOffset + IR816_LONG_POINTER_BYTES <= IR816_DIRECT_PAGE;
@@ -62,7 +82,7 @@ bool IR816PointerOnDirectPage(int32 iOffset)
 // the hidden result pointer first, then the parameters in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Layout(void)
+void CIRW65C816Places::Layout(void)
 {
 	size				ui;
 	size				uiBlock;
@@ -77,91 +97,91 @@ void CIRW65C816Backend::Layout(void)
 	SIRReference		sParameter;
 
 	iNone = -1;
-	GrowTemporaries();
-	maiParameters.FakeSetUsedElements(0);
-	for (ui = 0; ui < masTemporaries.NumElements(); ui++)
+	mpcBackend->GrowTemporaries();
+	mpcBackend->maiParameters.FakeSetUsedElements(0);
+	for (ui = 0; ui < mpcBackend->masTemporaries.NumElements(); ui++)
 	{
-		masTemporaries.Get(ui)->iOffset = iNone;
-		masTemporaries.Get(ui)->iSlot = iNone;
+		mpcBackend->masTemporaries.Get(ui)->iOffset = iNone;
+		mpcBackend->masTemporaries.Get(ui)->iSlot = iNone;
 	}
 
 	//The temporaries share places when they aren't live at once (PackTemporaries); then the slots, each a place of its
 	//own.
-	FoldPointers();
-	msFrame.iFrameBytes = PackTemporaries() - 1;
+	mpcBackend->FoldPointers();
+	mpcBackend->msFrame.iFrameBytes = PackTemporaries() - 1;
 
 	//A frame (with its arguments) past the page keeps S, as it was when aligned (AlignFrame), in two bytes in the page.
-	iRest = IR816_LINK_BYTES + (IsHiddenResult(mpcFunction->msReturnType) ? 4 : 0);
-	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	iRest = IR816_LINK_BYTES + (mpcBackend->IsHiddenResult(mpcBackend->mpcFunction->msReturnType) ? 4 : 0);
+	for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 	{
-		iRest += ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+		iRest += mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(ui)));
 	}
-	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	for (uiBlock = 0; uiBlock < mpcBackend->mpcFunction->NumBlocks(); uiBlock++)
 	{
-		pcBlock = mpcFunction->GetBlock(uiBlock);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(uiBlock);
 		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
 		{
-			iRest += (ValueBytes(pcBlock->masPhis.Get(ui)->sType) + 1) & ~1;
+			iRest += (mpcBackend->ValueBytes(pcBlock->masPhis.Get(ui)->sType) + 1) & ~1;
 		}
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if (psInstruction->uiOpcode == IRO_Slot)
 			{
-				iRest += ((int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits + 1) & ~1;
+				iRest += ((int32)mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits + 1) & ~1;
 			}
 		}
 	}
-	msFrame.iSavedS = ((msFrame.Link() + iRest > IR816_DIRECT_PAGE) && (msFrame.Link() + 2 <= IR816_DIRECT_PAGE)) ? msFrame.Add(2) : -1;
-	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	mpcBackend->msFrame.iSavedS = ((mpcBackend->msFrame.Link() + iRest > IR816_DIRECT_PAGE) && (mpcBackend->msFrame.Link() + 2 <= IR816_DIRECT_PAGE)) ? mpcBackend->msFrame.Add(2) : -1;
+	for (uiBlock = 0; uiBlock < mpcBackend->mpcFunction->NumBlocks(); uiBlock++)
 	{
-		pcBlock = mpcFunction->GetBlock(uiBlock);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(uiBlock);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if (psInstruction->uiOpcode == IRO_Slot)
 			{
-				masTemporaries.Get(psInstruction->sResult.Index())->iSlot = msFrame.Add((int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
+				mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->iSlot = mpcBackend->msFrame.Add((int32)mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
 			}
 		}
 	}
 	//The register arguments' words are the frame's top, the first lowest: the prologue pushes them there (Prologue).
-	msFrame.iRegisterBase = (msFrame.iRegisterWords > 0) ? msFrame.Add(2 * msFrame.iRegisterWords) : -1;
+	mpcBackend->msFrame.iRegisterBase = (mpcBackend->msFrame.iRegisterWords > 0) ? mpcBackend->msFrame.Add(2 * mpcBackend->msFrame.iRegisterWords) : -1;
 
 	//The pushed arguments are above the frame and the link, in order.
-	iArgument = msFrame.Arguments();
+	iArgument = mpcBackend->msFrame.Arguments();
 	uiArgument = 0;
-	if (IsHiddenResult(mpcFunction->msReturnType))
+	if (mpcBackend->IsHiddenResult(mpcBackend->mpcFunction->msReturnType))
 	{
-		msFrame.iHiddenResult = ArgumentPlace(masArguments.Get(uiArgument), &iArgument);
+		mpcBackend->msFrame.iHiddenResult = mpcBackend->ArgumentPlace(mpcBackend->masArguments.Get(uiArgument), &iArgument);
 		uiArgument++;
 	}
-	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 	{
-		sParameter = *mpcFunction->masParameters.Get(ui);
-		iPlace = ArgumentPlace(masArguments.Get(uiArgument), &iArgument);
+		sParameter = *mpcBackend->mpcFunction->masParameters.Get(ui);
+		iPlace = mpcBackend->ArgumentPlace(mpcBackend->masArguments.Get(uiArgument), &iArgument);
 		uiArgument++;
-		maiParameters.Add(&iPlace);
-		masTemporaries.Get(sParameter.Index())->iOffset = iPlace;
+		mpcBackend->maiParameters.Add(&iPlace);
+		mpcBackend->masTemporaries.Get(sParameter.Index())->iOffset = iPlace;
 	}
-	msFrame.iArgumentBytes = iArgument - msFrame.Arguments();
+	mpcBackend->msFrame.iArgumentBytes = iArgument - mpcBackend->msFrame.Arguments();
 
 	//The temporaries at a pushed parameter's stand-in place (AddRegions) get the parameter's place: no frame reaches
 	//IR816_ARGUMENT_STANDIN.
-	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumTemporaries(); ui++)
 	{
-		if (masTemporaries.Get(ui)->iOffset >= IR816_ARGUMENT_STANDIN)
+		if (mpcBackend->masTemporaries.Get(ui)->iOffset >= IR816_ARGUMENT_STANDIN)
 		{
-			masTemporaries.Get(ui)->iOffset += msFrame.Arguments() - IR816_ARGUMENT_STANDIN;
+			mpcBackend->masTemporaries.Get(ui)->iOffset += mpcBackend->msFrame.Arguments() - IR816_ARGUMENT_STANDIN;
 		}
 	}
 
 	//Frame reaches past the direct page through X, so nothing is kept in X then.
 	if (!IR816OnDirectPage(iArgument))
 	{
-		for (ui = 0; ui < masTemporaries.NumElements(); ui++)
+		for (ui = 0; ui < mpcBackend->masTemporaries.NumElements(); ui++)
 		{
-			masTemporaries.Get(ui)->bInX = false;
+			mpcBackend->masTemporaries.Get(ui)->bInX = false;
 		}
 	}
 }
@@ -1088,7 +1108,7 @@ static bool IR816CanShareArgument(uint16 uiOpcode, int iArgument)
 // fills far.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AddRegions(CIRW65C816LiveRanges* pcRanges)
+void CIRW65C816Places::AddRegions(CIRW65C816LiveRanges* pcRanges)
 {
 	CIRBlock*		pcBlock;
 	SIRRegisterArgument*	psArgument;
@@ -1100,10 +1120,10 @@ void CIRW65C816Backend::AddRegions(CIRW65C816LiveRanges* pcRanges)
 	int32			iPlace;
 	bool			bShare;
 
-	bShare = !(mpcFunction->muiAttributes & IRA_Variadic);
-	for (ui = 0; bShare && (ui < mpcFunction->NumBlocks()); ui++)
+	bShare = !(mpcBackend->mpcFunction->muiAttributes & IRA_Variadic);
+	for (ui = 0; bShare && (ui < mpcBackend->mpcFunction->NumBlocks()); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		for (uj = 0; bShare && (uj < pcBlock->masInstructions.NumElements()); uj++)
 		{
 			bShare = pcBlock->masInstructions.Get(uj)->uiOpcode != IRO_ArgAddress;
@@ -1114,28 +1134,28 @@ void CIRW65C816Backend::AddRegions(CIRW65C816LiveRanges* pcRanges)
 	{
 		iPushed = IR816_ARGUMENT_STANDIN;
 		uiArgument = 0;
-		if (IsHiddenResult(mpcFunction->msReturnType))
+		if (mpcBackend->IsHiddenResult(mpcBackend->mpcFunction->msReturnType))
 		{
-			ArgumentPlace(masArguments.Get(uiArgument), &iPushed);
+			mpcBackend->ArgumentPlace(mpcBackend->masArguments.Get(uiArgument), &iPushed);
 			uiArgument++;
 		}
-		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++, uiArgument++)
+		for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++, uiArgument++)
 		{
-			psArgument = masArguments.Get(uiArgument);
-			iPlace = ArgumentPlace(psArgument, &iPushed);
+			psArgument = mpcBackend->masArguments.Get(uiArgument);
+			iPlace = mpcBackend->ArgumentPlace(psArgument, &iPushed);
 			if (psArgument->iRegister < 0)
 			{
-				masTemporaries.Get(mpcFunction->masParameters.Get(ui)->Index())->iOffset = iPlace;
+				mpcBackend->masTemporaries.Get(mpcBackend->mpcFunction->masParameters.Get(ui)->Index())->iOffset = iPlace;
 			}
 		}
 		pcRanges->AddRegion(IR816_ARGUMENT_STANDIN, iPushed);
-		for (ui = 0, uiArgument = IsHiddenResult(mpcFunction->msReturnType) ? 1 : 0; ui < mpcFunction->masParameters.NumElements(); ui++, uiArgument++)
+		for (ui = 0, uiArgument = mpcBackend->IsHiddenResult(mpcBackend->mpcFunction->msReturnType) ? 1 : 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++, uiArgument++)
 		{
-			sParameter = *mpcFunction->masParameters.Get(ui);
-			psArgument = masArguments.Get(uiArgument);
+			sParameter = *mpcBackend->mpcFunction->masParameters.Get(ui);
+			psArgument = mpcBackend->masArguments.Get(uiArgument);
 			if ((psArgument->iRegister < 0) && (pcRanges->Start((int32)sParameter.Index()) >= 0))
 			{
-				pcRanges->Take((int32)sParameter.Index(), masTemporaries.Get(sParameter.Index())->iOffset, 2 * psArgument->iUnits);
+				pcRanges->Take((int32)sParameter.Index(), mpcBackend->masTemporaries.Get(sParameter.Index())->iOffset, 2 * psArgument->iUnits);
 			}
 		}
 	}
@@ -1165,15 +1185,15 @@ static bool IR816PlacedAfter(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int3
 // none: how often a jump from one to the other is made.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
+int32 CIRW65C816Places::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
 {
 	int32	iLoop;
 
-	for (iLoop = mcLoops.Innermost(pcFrom); iLoop >= 0; iLoop = mcLoops.GetLoop(iLoop)->iParent)
+	for (iLoop = mpcBackend->mcLoops.Innermost(pcFrom); iLoop >= 0; iLoop = mpcBackend->mcLoops.GetLoop(iLoop)->iParent)
 	{
-		if (mcLoops.Contains(iLoop, pcTo))
+		if (mpcBackend->mcLoops.Contains(iLoop, pcTo))
 		{
-			return mcLoops.GetLoop(iLoop)->iDepth;
+			return mpcBackend->mcLoops.GetLoop(iLoop)->iDepth;
 		}
 	}
 	return 0;
@@ -1341,7 +1361,7 @@ static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTem
 // temporaries in the frame.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::PackTemporaries(void)
+int32 CIRW65C816Places::PackTemporaries(void)
 {
 	CIRW65C816LiveRanges		cRanges;
 	CIRLiveSets				cSets;
@@ -1352,23 +1372,23 @@ int32 CIRW65C816Backend::PackTemporaries(void)
 	size					ui;
 	int32					iNext;
 
-	uiTemporaries = mpcFunction->NumTemporaries();
+	uiTemporaries = mpcBackend->mpcFunction->NumTemporaries();
 	cRanges.Init(uiTemporaries);
 	sEvents.Init();
 	AddPackEvents(&cRanges, &sEvents);
 
 	//What is live into and out of each block, then the ranges.
 	cSets.Init(CIRW65C816Backend::GetScratch());
-	cSets.Start(mpcFunction);
-	IR816AddLiveEvents(&sEvents, mpcFunction->NumBlocks(), &cSets);
+	cSets.Start(mpcBackend->mpcFunction);
+	IR816AddLiveEvents(&sEvents, mpcBackend->mpcFunction->NumBlocks(), &cSets);
 	cSets.Solve();
-	IR816AddRanges(&sEvents, mpcFunction->NumBlocks(), uiTemporaries, &cSets, &cRanges);
+	IR816AddRanges(&sEvents, mpcBackend->mpcFunction->NumBlocks(), uiTemporaries, &cSets, &cRanges);
 
 	abParameter.Init(CIRW65C816Backend::GetScratch());
 	abParameter.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 	{
-		*abParameter.Get(mpcFunction->masParameters.Get(ui)->Index()) = true;
+		*abParameter.Get(mpcBackend->mpcFunction->masParameters.Get(ui)->Index()) = true;
 	}
 	aiOrder.Init(CIRW65C816Backend::GetScratch());
 	OrderTemporaries(&cRanges, &abParameter, &aiOrder);
@@ -1379,9 +1399,9 @@ int32 CIRW65C816Backend::PackTemporaries(void)
 	//A temporary with no definition or use still has a place (it is never live).
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
-		if ((cRanges.Start((int32)ui) == -1) && (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) != 0))
+		if ((cRanges.Start((int32)ui) == -1) && (mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) != 0))
 		{
-			masTemporaries.Get(ui)->iOffset = IR816_FIRST_TEMPORARY;
+			mpcBackend->masTemporaries.Get(ui)->iOffset = IR816_FIRST_TEMPORARY;
 		}
 	}
 
@@ -1401,7 +1421,7 @@ int32 CIRW65C816Backend::PackTemporaries(void)
 // positions (PackTemporaries), and the pairs.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AddPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents)
+void CIRW65C816Places::AddPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents)
 {
 	CIRBlock*		pcBlock;
 	SIR816LoadPair*	psLoadPair;
@@ -1412,9 +1432,9 @@ void CIRW65C816Backend::AddPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816Pack
 	int32			iWeight;
 
 	iPosition = 0;
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
 		iEvent = (int32)psEvents->asEvents.NumElements();
 		psEvents->aiBlockEvents.Add(&iEvent);
 		psEvents->aiBlockStart.Add(&iPosition);
@@ -1423,7 +1443,7 @@ void CIRW65C816Backend::AddPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816Pack
 			IR816AddEvent(&psEvents->asEvents, pcBlock->masPhis.Get(uj)->sResult, iPosition, IR816_EVENT_DEFINE);
 		}
 		iPosition++;
-		iWeight = IR816_PAIR_WEIGHT(mcLoops.Depth(pcBlock), false, false);
+		iWeight = IR816_PAIR_WEIGHT(mpcBackend->mcLoops.Depth(pcBlock), false, false);
 		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
 		{
 			AddInstructionPackEvents(pcRanges, psEvents, pcBlock, uj, iPosition, iWeight);
@@ -1457,7 +1477,7 @@ void CIRW65C816Backend::AddPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816Pack
 // iWeight is a pair's in the block.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight)
+void CIRW65C816Places::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight)
 {
 	SIRInstruction*	psInstruction;
 	SIR816LoadPair*	psLoadPair;
@@ -1475,41 +1495,41 @@ void CIRW65C816Backend::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges,
 			if (pcBlock->masInstructions.Get(uk)->uiOpcode == IRO_Call)
 			{
 				iCallPosition = iPosition + (int32)(uk - uiInstruction);
-				pcRanges->AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition, iWeight);
+				pcRanges->AddPair(pcBlock->masInstructions.Get(uk)->sResult, mpcBackend->FoldedBase(psInstruction->asArguments[0]), iCallPosition, iWeight);
 				break;
 			}
 		}
-		IR816AddEvent(&psEvents->asEvents, FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_EVENT_USE);
 	}
 	else
 	{
-		IR816AddEvent(&psEvents->asEvents, FoldedBase(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, FoldedBase(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, FoldedIndex(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, FoldedIndex(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedBase(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedBase(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedIndex(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->FoldedIndex(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
 	}
-	if (!psInstruction->sResult.IsTemporary() || !FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
+	if (!psInstruction->sResult.IsTemporary() || !mpcBackend->FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
 	{
 		return;
 	}
 	IR816AddEvent(&psEvents->asEvents, psInstruction->sResult, iPosition, IR816_EVENT_DEFINE);
 	for (iArgument = 0; iArgument < IR_INSTRUCTION_ARGUMENTS; iArgument++)
 	{
-		if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
+		if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && mpcBackend->FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
 		{
 			pcRanges->AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, iWeight);
 		}
 	}
-	if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && FoldedBase(psInstruction->asArguments[0]).IsTemporary())
+	if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && mpcBackend->FoldedBase(psInstruction->asArguments[0]).IsTemporary())
 	{
 		//Its pointer's place: Load reads the words that overlap the pointer last (only worth keeping a word on
 		//the stack for when a phi joins them, p = p->psNext, so they're paired after the phis).
 		psLoadPair = psEvents->asLoadPairs.Add();
 		psLoadPair->sResult = psInstruction->sResult;
-		psLoadPair->sPointer = FoldedBase(psInstruction->asArguments[0]);
+		psLoadPair->sPointer = mpcBackend->FoldedBase(psInstruction->asArguments[0]);
 		psLoadPair->iPosition = iPosition;
 		psLoadPair->iDepth = iWeight;
-		psLoadPair->bWide = Words(psInstruction->sType) > 1;
+		psLoadPair->bWide = mpcBackend->Words(psInstruction->sType) > 1;
 	}
 }
 
@@ -1520,7 +1540,7 @@ void CIRW65C816Backend::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges,
 // arguments used and their results written, on the way out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition)
+void CIRW65C816Places::AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition)
 {
 	CIRBlock*		pcSuccessor;
 	SIRPhi*			psPhi;
@@ -1546,7 +1566,7 @@ void CIRW65C816Backend::AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, S
 			{
 				//The copy is made going that way: as often as the innermost loop both blocks are in goes round (once
 				//per loop for a way out of it).
-				pcRanges->AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true, mcLoops.IsHead(pcSuccessor)));
+				pcRanges->AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true, mpcBackend->mcLoops.IsHead(pcSuccessor)));
 			}
 		}
 	}
@@ -1561,7 +1581,7 @@ void CIRW65C816Backend::AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, S
 // round a loop takes its place).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder)
+void CIRW65C816Places::OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder)
 {
 	CArrayTemplate<int32>	aiStartWeights;	//Per temporary: the weight of its heaviest pair where it starts, or -1.
 	size					uiTemporaries;
@@ -1571,7 +1591,7 @@ void CIRW65C816Backend::OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayT
 	int32					iWeight;
 	int32					iTemporary;
 
-	uiTemporaries = mpcFunction->NumTemporaries();
+	uiTemporaries = mpcBackend->mpcFunction->NumTemporaries();
 	aiStartWeights.Init(CIRW65C816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
@@ -1588,7 +1608,7 @@ void CIRW65C816Backend::OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayT
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		iTemporary = (int32)ui;
-		if ((pcRanges->Start(iTemporary) >= 0) && (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) != 0) && !*pabParameter->Get(ui))
+		if ((pcRanges->Start(iTemporary) >= 0) && (mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) != 0) && !*pabParameter->Get(ui))
 		{
 			paiOrder->Add(&iTemporary);
 		}
@@ -1733,7 +1753,7 @@ int32 CIRW65C816Groups::Find(int32 iTemporary)
 // stand-in places (AddRegions) are grouped, each alone to start with.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
+void CIRW65C816Places::GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
 {
 	CArrayTemplate<SIR816MergePair>	asPairs;
 	SIR816MergePair*		psMerge;
@@ -1752,13 +1772,13 @@ void CIRW65C816Backend::GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C
 		iTemporary = *paiOrder->Get(ui);
 		*pcGroups->maiParent.Get(iTemporary) = iTemporary;
 	}
-	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 	{
-		iTemporary = (int32)mpcFunction->masParameters.Get(ui)->Index();
-		if ((masTemporaries.Get(iTemporary)->iOffset >= 0) && (pcRanges->Start(iTemporary) >= 0))
+		iTemporary = (int32)mpcBackend->mpcFunction->masParameters.Get(ui)->Index();
+		if ((mpcBackend->masTemporaries.Get(iTemporary)->iOffset >= 0) && (pcRanges->Start(iTemporary) >= 0))
 		{
 			*pcGroups->maiParent.Get(iTemporary) = iTemporary;
-			*pcGroups->maiFixed.Get(iTemporary) = masTemporaries.Get(iTemporary)->iOffset;
+			*pcGroups->maiFixed.Get(iTemporary) = mpcBackend->masTemporaries.Get(iTemporary)->iOffset;
 		}
 	}
 	for (ui = 0; ui < pcGroups->maiParent.NumElements(); ui++)
@@ -1861,9 +1881,9 @@ void CIRW65C816Backend::GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C
 // The bytes a temporary's place takes: its value's, in whole words.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::PlaceBytes(int32 iTemporary)
+int32 CIRW65C816Places::PlaceBytes(int32 iTemporary)
 {
-	return (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
+	return (mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
 }
 
 
@@ -1873,13 +1893,13 @@ int32 CIRW65C816Backend::PlaceBytes(int32 iTemporary)
 // may be at iOffset.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::IsGroupFree(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter)
+bool CIRW65C816Places::IsGroupFree(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter)
 {
 	int32	iTemporary;
 
 	for (iTemporary = iGroup; iTemporary != -1; iTemporary = *pcGroups->maiNext.Get(iTemporary))
 	{
-		if (!*pabParameter->Get(iTemporary) && !pcRanges->IsFree(iTemporary, iOffset, PlaceBytes(iTemporary), &masTemporaries))
+		if (!*pabParameter->Get(iTemporary) && !pcRanges->IsFree(iTemporary, iOffset, PlaceBytes(iTemporary), &mpcBackend->masTemporaries))
 		{
 			return false;
 		}
@@ -1896,7 +1916,7 @@ bool CIRW65C816Backend::IsGroupFree(CIRW65C816LiveRanges* pcRanges, CIRW65C816Gr
 // arguments is the caller's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTemporary)
+void CIRW65C816Places::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTemporary)
 {
 	int32	iBytes;
 	int32	iPair;
@@ -1910,8 +1930,8 @@ void CIRW65C816Backend::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTe
 	iBestOffset = -1;
 	for (iPair = *pcRanges->maiPairFirst.Get(iTemporary); iPair != -1; iPair = *pcRanges->maiPairNext.Get(iPair))
 	{
-		iOffset = masTemporaries.Get(*pcRanges->maiPairOther.Get(iPair))->iOffset;
-		if (pcRanges->IsFree(iTemporary, iOffset, iBytes, &masTemporaries))
+		iOffset = mpcBackend->masTemporaries.Get(*pcRanges->maiPairOther.Get(iPair))->iOffset;
+		if (pcRanges->IsFree(iTemporary, iOffset, iBytes, &mpcBackend->masTemporaries))
 		{
 			iDepth = *pcRanges->maiPairWeight.Get(iPair);
 			if (iDepth > iBestDepth)
@@ -1925,13 +1945,13 @@ void CIRW65C816Backend::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTe
 	if (iOffset < 0)
 	{
 		iOffset = IR816_FIRST_TEMPORARY;
-		while (!pcRanges->IsFree(iTemporary, iOffset, iBytes, &masTemporaries))
+		while (!pcRanges->IsFree(iTemporary, iOffset, iBytes, &mpcBackend->masTemporaries))
 		{
 			iOffset += 2;
 		}
 	}
 	pcRanges->Take(iTemporary, iOffset, iBytes);
-	masTemporaries.Get(iTemporary)->iOffset = iOffset;
+	mpcBackend->masTemporaries.Get(iTemporary)->iOffset = iOffset;
 }
 
 
@@ -1945,7 +1965,7 @@ void CIRW65C816Backend::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTe
 // after the temporaries in the frame.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
+int32 CIRW65C816Places::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
 {
 	CIRW65C816Groups			cGroups;
 	CArrayTemplate<bool>	abPlaced;		//Per group.
@@ -1961,10 +1981,10 @@ int32 CIRW65C816Backend::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArray
 	int32					iBestOffset;
 	int32					iNext;
 
-	cGroups.Init(mpcFunction->NumTemporaries());
+	cGroups.Init(mpcBackend->mpcFunction->NumTemporaries());
 	GroupTemporaries(pcRanges, &cGroups, paiOrder, pabParameter);
 	abPlaced.Init(CIRW65C816Backend::GetScratch());
-	abPlaced.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	abPlaced.GrowToAtLeastNumElements(mpcBackend->mpcFunction->NumTemporaries() + 1, true, 0);
 
 	for (ui = 0; ui < paiOrder->NumElements(); ui++)
 	{
@@ -2002,7 +2022,7 @@ int32 CIRW65C816Backend::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArray
 				for (iPair = *pcRanges->maiPairFirst.Get(iMember); iPair != -1; iPair = *pcRanges->maiPairNext.Get(iPair))
 				{
 					iOther = *pcRanges->maiPairOther.Get(iPair);
-					iOffset = masTemporaries.Get(iOther)->iOffset;
+					iOffset = mpcBackend->masTemporaries.Get(iOther)->iOffset;
 					iDepth = *pcRanges->maiPairWeight.Get(iPair);
 					if ((iOffset >= 0) && (iDepth > iBestDepth) && IsGroupFree(pcRanges, &cGroups, iGroup, iOffset, pabParameter))
 					{
@@ -2025,7 +2045,7 @@ int32 CIRW65C816Backend::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArray
 			if (!*pabParameter->Get(iMember))
 			{
 				pcRanges->Take(iMember, iBestOffset, PlaceBytes(iMember));
-				masTemporaries.Get(iMember)->iOffset = iBestOffset;
+				mpcBackend->masTemporaries.Get(iMember)->iOffset = iBestOffset;
 			}
 		}
 	}
@@ -2034,7 +2054,7 @@ int32 CIRW65C816Backend::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArray
 	for (ui = 0; ui < paiOrder->NumElements(); ui++)
 	{
 		iTemporary = *paiOrder->Get(ui);
-		iOffset = masTemporaries.Get(iTemporary)->iOffset;
+		iOffset = mpcBackend->masTemporaries.Get(iTemporary)->iOffset;
 		if ((iOffset < IR816_ARGUMENT_STANDIN) && (iOffset + PlaceBytes(iTemporary) > iNext))
 		{
 			iNext = iOffset + PlaceBytes(iTemporary);
@@ -2228,7 +2248,7 @@ bool IR816ClobbersX(SIRInstruction* psInstruction)
 // page (Frame reaches it through X).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter)
+void CIRW65C816Places::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter)
 {
 	CArrayTemplate<int32>	aiScore;		//Per temporary.
 	CArrayTemplate<uint8>	abCandidate;	//Per temporary.
@@ -2254,11 +2274,11 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 	int						iArgument;
 	bool					bFree;
 
-	uiTemporaries = mpcFunction->NumTemporaries();
-	GrowTemporaries();
-	for (ui = 0; ui < masTemporaries.NumElements(); ui++)
+	uiTemporaries = mpcBackend->mpcFunction->NumTemporaries();
+	mpcBackend->GrowTemporaries();
+	for (ui = 0; ui < mpcBackend->masTemporaries.NumElements(); ui++)
 	{
-		masTemporaries.Get(ui)->bInX = false;
+		mpcBackend->masTemporaries.Get(ui)->bInX = false;
 	}
 	aiScore.Init(CIRW65C816Backend::GetScratch());
 	aiScore.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
@@ -2270,10 +2290,10 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 
 	//The scores and the positions that change X, numbered as PackTemporaries numbers them.
 	iPosition = 0;
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		iDepth = mcLoops.Depth(pcBlock);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
+		iDepth = mpcBackend->mcLoops.Depth(pcBlock);
 		iWeight = (int32)CIRLoops::Weight(iDepth, IR816_X_MAX_DEPTH);
 		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
 		{
@@ -2287,11 +2307,11 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 			{
 				aiClobbers.Add(&iPosition);
 			}
-			if (((psInstruction->uiOpcode == IRO_Load) || (psInstruction->uiOpcode == IRO_Store)) && (Words(psInstruction->sType) > 1))
+			if (((psInstruction->uiOpcode == IRO_Load) || (psInstruction->uiOpcode == IRO_Store)) && (mpcBackend->Words(psInstruction->sType) > 1))
 			{
 				//A 2 word access's folded index is read again for its second word (LoadY), after X may hold the first
 				//(a 32 bit result in A and X).
-				sValue = FoldedIndex(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1]);
+				sValue = mpcBackend->FoldedIndex(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1]);
 				if (sValue.IsTemporary())
 				{
 					*abBad.Get(sValue.Index()) = true;
@@ -2303,7 +2323,7 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 				if (sValue.IsTemporary())
 				{
 					iScore = IR816XUse(psInstruction->uiOpcode, iArgument);
-					if (!FoldedBase(sValue).Equals(sValue))
+					if (!mpcBackend->FoldedBase(sValue).Equals(sValue))
 					{
 						iScore = IR816_X_BAD;
 					}
@@ -2318,12 +2338,12 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 				}
 			}
 			sValue = psInstruction->sResult;
-			if (sValue.IsTemporary() && FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction))
+			if (sValue.IsTemporary() && mpcBackend->FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction))
 			{
 				*abCandidate.Get(sValue.Index()) = true;
 				*aiScore.Get(sValue.Index()) += IR816_X_DEFINE * iWeight;
 				if (((psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub)) && psInstruction->asArguments[0].IsTemporary() &&
-					psInstruction->asArguments[1].IsConstant() && (mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits <= 2))
+					psInstruction->asArguments[1].IsConstant() && (mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits <= 2))
 				{
 					*aiScore.Get(sValue.Index()) += IR816_X_STEP * iWeight;
 					*aiScore.Get(psInstruction->asArguments[0].Index()) += IR816_X_STEP * iWeight;
@@ -2359,7 +2379,7 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 	{
 		iTemporary = (int32)ui;
 		if (*abCandidate.Get(ui) && !*abBad.Get(ui) && !*pabParameter->Get(ui) && (*aiScore.Get(ui) > 0) && (pcRanges->Start(iTemporary) >= 0) &&
-			(Words(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) == 1))
+			(mpcBackend->Words(mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) == 1))
 		{
 			aiOrder.Add(&iTemporary);
 		}
@@ -2390,7 +2410,7 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 		if (bFree)
 		{
 			aiInX.Add(&iTemporary);
-			masTemporaries.Get(iTemporary)->bInX = true;
+			mpcBackend->masTemporaries.Get(iTemporary)->bInX = true;
 		}
 	}
 
@@ -2407,9 +2427,9 @@ void CIRW65C816Backend::AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::InX(SIRReference sValue)
+bool CIRW65C816Places::InX(SIRReference sValue)
 {
-	return sValue.IsTemporary() && (sValue.Index() < masTemporaries.NumElements()) && masTemporaries.Get(sValue.Index())->bInX;
+	return sValue.IsTemporary() && (sValue.Index() < mpcBackend->masTemporaries.NumElements()) && mpcBackend->masTemporaries.Get(sValue.Index())->bInX;
 }
 
 
@@ -2417,8 +2437,8 @@ bool CIRW65C816Backend::InX(SIRReference sValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::OffsetOf(SIRReference sTemporary)
+int32 CIRW65C816Places::OffsetOf(SIRReference sTemporary)
 {
-	return masTemporaries.Get(sTemporary.Index())->iOffset;
+	return mpcBackend->masTemporaries.Get(sTemporary.Index())->iOffset;
 }
 

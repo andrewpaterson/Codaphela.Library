@@ -41,6 +41,7 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	mpcOldScratch = pcArena ? SetScratch(pcArena) : NULL;
 	InitBackend(pcModule, piLabels, CIRW65C816Backend::GetScratch());
 	masTemporaries.Init(CIRW65C816Backend::GetScratch());
+	mcPlaces.Init(this);
 	mpcTemporariesOf = NULL;
 	masCopies.Init(CIRW65C816Backend::GetScratch());
 	masCopySteps.Init(CIRW65C816Backend::GetScratch());
@@ -71,6 +72,7 @@ void CIRW65C816Backend::Kill(void)
 	maiParameters.Kill();
 	masCopySteps.Kill();
 	masCopies.Kill();
+	mcPlaces.Kill();
 	masTemporaries.Kill();
 	mcLoops.Kill();
 	mcBackendPasses.Kill();
@@ -432,7 +434,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	}
 	szJump.Kill();
 
-	Layout();
+	mcPlaces.Layout();
 	msFrame.bNoResult = ReturnsNothingInA();
 	if (msFrame.iFrameBytes > IR816_MAX_FRAME_BYTES)
 	{
@@ -1693,7 +1695,7 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 			Line("tax");
 			Operand("lda", psJump->sArgument, 0);
 		}
-		else if (!psJump->sArgument.IsTemporary() || IR816OnDirectPage(OffsetOf(psJump->sArgument) + 2 * iWords))
+		else if (!psJump->sArgument.IsTemporary() || IR816OnDirectPage(mcPlaces.OffsetOf(psJump->sArgument) + 2 * iWords))
 		{
 			//Straight into A and X.
 			if (iWords > 1)
@@ -1740,7 +1742,7 @@ void CIRW65C816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 		psPhi = pcTo->masPhis.Get(ui);
 		if (pcTo->FindPhiArgument(psPhi, pcFrom))
 		{
-			if (InX(psPhi->sResult))
+			if (mcPlaces.InX(psPhi->sResult))
 			{
 				psInX = psPhi;
 			}
@@ -1767,7 +1769,7 @@ void CIRW65C816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 				Frame("sta", IR816_SCRATCH_RESULT + 2 * i);
 			}
 		}
-		else if (InX(psStep->sDestination))
+		else if (mcPlaces.InX(psStep->sDestination))
 		{
 			if (psStep->bSaved)
 			{
@@ -1783,12 +1785,12 @@ void CIRW65C816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 			for (i = 0; i < Words(psStep->sType); i++)
 			{
 				Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
-				Frame("sta", OffsetOf(psStep->sDestination) + 2 * i);
+				Frame("sta", mcPlaces.OffsetOf(psStep->sDestination) + 2 * i);
 			}
 		}
 		else
 		{
-			CopyWords(OffsetOf(psStep->sDestination), psStep->sSource, Words(psStep->sType));
+			CopyWords(mcPlaces.OffsetOf(psStep->sDestination), psStep->sSource, Words(psStep->sType));
 		}
 	}
 }
@@ -1826,12 +1828,12 @@ bool CIRW65C816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestina
 	{
 		return false;
 	}
-	if (InX(sDestination) || InX(sSource))
+	if (mcPlaces.InX(sDestination) || mcPlaces.InX(sSource))
 	{
-		return InX(sDestination) && InX(sSource);
+		return mcPlaces.InX(sDestination) && mcPlaces.InX(sSource);
 	}
-	iSource = OffsetOf(sSource);
-	iDestination = OffsetOf(sDestination);
+	iSource = mcPlaces.OffsetOf(sSource);
+	iDestination = mcPlaces.OffsetOf(sDestination);
 	return (iSource < iDestination + 2 * Words(mpcFunction->GetTemporaryType(sDestination))) && (iDestination < iSource + 2 * Words(mpcFunction->GetTemporaryType(sSource)));
 }
 
@@ -1847,11 +1849,11 @@ bool CIRW65C816Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2
 	{
 		return false;
 	}
-	if (InX(sValue1) || InX(sValue2))
+	if (mcPlaces.InX(sValue1) || mcPlaces.InX(sValue2))
 	{
-		return InX(sValue1) && InX(sValue2);
+		return mcPlaces.InX(sValue1) && mcPlaces.InX(sValue2);
 	}
-	return OffsetOf(sValue1) == OffsetOf(sValue2);
+	return mcPlaces.OffsetOf(sValue1) == mcPlaces.OffsetOf(sValue2);
 }
 
 

@@ -45,10 +45,10 @@ void CIRW65C816Backend::Shift(SIRInstruction* psInstruction)
 	SIRType			sType;
 
 	sType = psInstruction->sType;
-	iResult = OffsetOf(psInstruction->sResult);
+	iResult = mcPlaces.OffsetOf(psInstruction->sResult);
 	iWords = Words(sType);
 	sAmount = psInstruction->asArguments[1];
-	if (InX(psInstruction->sResult))
+	if (mcPlaces.InX(psInstruction->sResult))
 	{
 		//A 16 bit shift by a constant (AllocateX), in A.
 		Operand("lda", psInstruction->asArguments[0], 0);
@@ -140,9 +140,9 @@ bool CIRW65C816Backend::ShiftCall(SIRInstruction* psInstruction)
 	}
 	else
 	{
-		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], 4);
+		CopyWords(mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], 4);
 		Operand("lda", psInstruction->asArguments[1], 0);
-		Line("ldx ", OffsetOf(psInstruction->sResult));
+		Line("ldx ", mcPlaces.OffsetOf(psInstruction->sResult));
 	}
 	szName.Insert(0, "jsl ");
 	Line(szName.Text());
@@ -179,7 +179,7 @@ bool CIRW65C816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 		return false;
 	}
 	iAmount = (int)(mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits & 63);
-	iResult = OffsetOf(psInstruction->sResult);
+	iResult = mcPlaces.OffsetOf(psInstruction->sResult);
 	if ((iAmount < 1) || (iAmount > 7) || !IR816OnDirectPage(iResult + 4))
 	{
 		return false;
@@ -256,11 +256,11 @@ bool CIRW65C816Backend::BitShift(SIRInstruction* psInstruction)
 	iWords = Words(psInstruction->sType);
 	if ((psInstruction->uiOpcode != IRO_Shl) || psInstruction->asArguments[1].IsConstant() || !psInstruction->asArguments[0].IsConstant() ||
 		(mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits != 1) || !(psInstruction->sType.Is(IRTK_I16) || psInstruction->sType.Is(IRTK_I32) || psInstruction->sType.Is(IRTK_I64)) ||
-		InX(psInstruction->sResult) || psInstruction->sResult.IsNone())
+		mcPlaces.InX(psInstruction->sResult) || psInstruction->sResult.IsNone())
 	{
 		return false;
 	}
-	iResult = OffsetOf(psInstruction->sResult);
+	iResult = mcPlaces.OffsetOf(psInstruction->sResult);
 	if (!IR816OnDirectPage(iResult + 2 * iWords))
 	{
 		return false;

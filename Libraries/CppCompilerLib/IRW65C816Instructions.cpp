@@ -73,7 +73,7 @@ void CIRW65C816Backend::Operand(const char* szMnemonic, SIRReference sValue, int
 	}
 	if (sValue.IsTemporary())
 	{
-		if ((iWord == 0) && InX(sValue))
+		if ((iWord == 0) && mcPlaces.InX(sValue))
 		{
 			//Kept in X (AllocateX): read through A or a push, or else the scratch word.
 			if (strcmp(szMnemonic, "lda") == 0)
@@ -106,7 +106,7 @@ void CIRW65C816Backend::Operand(const char* szMnemonic, SIRReference sValue, int
 		}
 		else if (iWord < Words(mpcFunction->GetTemporaryType(sValue)))
 		{
-			Frame(szMnemonic, OffsetOf(sValue) + 2 * iWord);
+			Frame(szMnemonic, mcPlaces.OffsetOf(sValue) + 2 * iWord);
 			return;
 		}
 		uiWord = 0;
@@ -157,23 +157,23 @@ void CIRW65C816Backend::Operand(const char* szMnemonic, SIRReference sValue, int
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Store(SIRReference sResult, int iWord)
 {
-	if (InX(sResult))
+	if (mcPlaces.InX(sResult))
 	{
 		Line("tax");
 		return;
 	}
-	if ((miBlock >= 0) && (Words(mpcFunction->GetTemporaryType(sResult)) == 1) && IR816OnDirectPage(OffsetOf(sResult)) &&
+	if ((miBlock >= 0) && (Words(mpcFunction->GetTemporaryType(sResult)) == 1) && IR816OnDirectPage(mcPlaces.OffsetOf(sResult)) &&
 		(sResult.Index() < masTemporaries.NumElements()) && (masTemporaries.Get(sResult.Index())->iUseBlock == miBlock))
 	{
 		//Its one use is later in the block: the store is marked for Peephole, which leaves the value in A when that
 		//use is the next lda of it with A not changed before it.
 		mpszOut->Append("\t\tsta [D + ");
-		mpszOut->Append(OffsetOf(sResult));
+		mpszOut->Append(mcPlaces.OffsetOf(sResult));
 		mpszOut->Append("]" IR816_KEEP_IN_A);
 		mpszOut->AppendNewLine();
 		return;
 	}
-	Frame("sta", OffsetOf(sResult) + 2 * iWord);
+	Frame("sta", mcPlaces.OffsetOf(sResult) + 2 * iWord);
 }
 
 
@@ -304,7 +304,7 @@ void CIRW65C816Backend::PushValue(SIRReference sValue, SIRType sType)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::PushWord(SIRReference sValue, int iWord)
 {
-	if (sValue.IsTemporary() && (iWord < Words(mpcFunction->GetTemporaryType(sValue))) && (IR816OnDirectPage(OffsetOf(sValue) + 2 * iWord) || InX(sValue)))
+	if (sValue.IsTemporary() && (iWord < Words(mpcFunction->GetTemporaryType(sValue))) && (IR816OnDirectPage(mcPlaces.OffsetOf(sValue) + 2 * iWord) || mcPlaces.InX(sValue)))
 	{
 		//pei pushes a direct page word without A (Peephole makes it pha when A holds it).
 		Operand("pei", sValue, iWord);
@@ -357,9 +357,9 @@ void CIRW65C816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char
 		*pszSymbol = mpcModule->GetSymbolName(sPointer.Index());
 		return;
 	}
-	if (sPointer.IsTemporary() && IR816PointerOnDirectPage(OffsetOf(sPointer)))
+	if (sPointer.IsTemporary() && IR816PointerOnDirectPage(mcPlaces.OffsetOf(sPointer)))
 	{
-		*piPlace = OffsetOf(sPointer);
+		*piPlace = mcPlaces.OffsetOf(sPointer);
 		return;
 	}
 	CopyWords(IR816_SCRATCH_POINTER, sPointer, 2);
@@ -414,12 +414,12 @@ bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		}
 		return true;
 	case IRO_Copy:
-		if (InX(psInstruction->sResult))
+		if (mcPlaces.InX(psInstruction->sResult))
 		{
 			Operand("ldx", psInstruction->asArguments[0], 0);
 			return true;
 		}
-		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
+		CopyWords(mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
 		return true;
 	case IRO_Shl:
 	case IRO_LShr:
@@ -486,10 +486,10 @@ bool CIRW65C816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		FloatArithmetic(psInstruction);
 		return true;
 	case IRO_FNeg:
-		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
-		Frame("lda", OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
+		CopyWords(mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
+		Frame("lda", mcPlaces.OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
 		Line("eor 0x8000");
-		Frame("sta", OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
+		Frame("sta", mcPlaces.OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
 		return true;
 	case IRO_FEq:
 	case IRO_FNe:
@@ -528,7 +528,7 @@ void CIRW65C816Backend::Arithmetic(SIRInstruction* psInstruction)
 	uint16	uiStep;
 
 	iWords = Words(psInstruction->sType);
-	if ((iWords == 1) && psInstruction->sType.Is(IRTK_I16) && InX(psInstruction->sResult) && InX(psInstruction->asArguments[0]) &&
+	if ((iWords == 1) && psInstruction->sType.Is(IRTK_I16) && mcPlaces.InX(psInstruction->sResult) && mcPlaces.InX(psInstruction->asArguments[0]) &&
 		ConstantWord(psInstruction->asArguments[1], 0, &uiStep) && (uiStep >= 1) && (uiStep <= 2))
 	{
 		for (i = 0; i < uiStep; i++)
@@ -572,8 +572,8 @@ bool CIRW65C816Backend::StepInPlace(SIRInstruction* psInstruction)
 	sValue = psInstruction->asArguments[0];
 	bWord = psInstruction->sType.Is(IRTK_I16);
 	if (((Words(psInstruction->sType) != 2) && !bWord) || !psInstruction->sResult.IsTemporary() || !sValue.IsTemporary() || Fused(sValue) ||
-		!psInstruction->asArguments[1].IsConstant() || InX(sValue) || InX(psInstruction->sResult) ||
-		(OffsetOf(psInstruction->sResult) != OffsetOf(sValue)) || !IR816PointerOnDirectPage(OffsetOf(sValue)))
+		!psInstruction->asArguments[1].IsConstant() || mcPlaces.InX(sValue) || mcPlaces.InX(psInstruction->sResult) ||
+		(mcPlaces.OffsetOf(psInstruction->sResult) != mcPlaces.OffsetOf(sValue)) || !IR816PointerOnDirectPage(mcPlaces.OffsetOf(sValue)))
 	{
 		return false;
 	}
@@ -590,7 +590,7 @@ bool CIRW65C816Backend::StepInPlace(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	iOffset = OffsetOf(sValue);
+	iOffset = mcPlaces.OffsetOf(sValue);
 	if (bWord)
 	{
 		Frame((uiStep == 1) ? "inc" : "dec", iOffset);
@@ -631,13 +631,13 @@ void CIRW65C816Backend::Logic(SIRInstruction* psInstruction)
 	{
 		if ((psInstruction->uiOpcode == IRO_And) && (ConstantWord(psInstruction->asArguments[1], i, &uiWord) || ConstantWord(psInstruction->asArguments[0], i, &uiWord)) && (uiWord == 0))
 		{
-			if (InX(psInstruction->sResult))
+			if (mcPlaces.InX(psInstruction->sResult))
 			{
 				Line("ldx 0");
 			}
 			else
 			{
-				Frame("stz", OffsetOf(psInstruction->sResult) + 2 * i);
+				Frame("stz", mcPlaces.OffsetOf(psInstruction->sResult) + 2 * i);
 			}
 			continue;
 		}
@@ -721,12 +721,12 @@ void CIRW65C816Backend::Extend(SIRInstruction* psInstruction)
 	sValue = psInstruction->asArguments[0];
 	sSource = mpcFunction->TypeOf(sValue);
 	sType = psInstruction->sType;
-	if (InX(psInstruction->sResult))
+	if (mcPlaces.InX(psInstruction->sResult))
 	{
 		ExtendInX(psInstruction);
 		return;
 	}
-	iResult = OffsetOf(psInstruction->sResult);
+	iResult = mcPlaces.OffsetOf(psInstruction->sResult);
 	iSourceWords = Words(sSource);
 	iWords = Words(sType);
 	iCopied = (iSourceWords < iWords) ? iSourceWords : iWords;
@@ -793,7 +793,7 @@ void CIRW65C816Backend::Address(SIRInstruction* psInstruction, int32 iOffset)
 	Line("clc");
 	Line("adc ", iOffset);
 	Store(psInstruction->sResult, 0);
-	Frame("stz", OffsetOf(psInstruction->sResult) + 2);
+	Frame("stz", mcPlaces.OffsetOf(psInstruction->sResult) + 2);
 }
 
 
@@ -814,7 +814,7 @@ void CIRW65C816Backend::Load(SIRInstruction* psInstruction)
 	{
 		Line("sep m");
 	}
-	else if ((Words(psInstruction->sType) >= 2) && !InX(psInstruction->sResult) && FusedOverlaps(psInstruction->sResult, FoldedBase(psInstruction->asArguments[0]), true))
+	else if ((Words(psInstruction->sType) >= 2) && !mcPlaces.InX(psInstruction->sResult) && FusedOverlaps(psInstruction->sResult, FoldedBase(psInstruction->asArguments[0]), true))
 	{
 		for (i = Words(psInstruction->sType) - 1; i >= 2; i--)
 		{
@@ -878,7 +878,7 @@ void CIRW65C816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 	sFirst = psInstruction->asArguments[0];
 	sSecond = psInstruction->asArguments[1];
 	if ((psInstruction->uiOpcode != IRO_Sub) && (psInstruction->uiOpcode != IRO_Not) && (psInstruction->uiOpcode != IRO_Load) &&
-		(Fused(sSecond) || ((Words(psInstruction->sType) == 1) && InX(sSecond) && !InX(sFirst))))
+		(Fused(sSecond) || ((Words(psInstruction->sType) == 1) && mcPlaces.InX(sSecond) && !mcPlaces.InX(sFirst))))
 	{
 		sFirst = psInstruction->asArguments[1];
 		sSecond = psInstruction->asArguments[0];

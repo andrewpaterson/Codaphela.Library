@@ -28,6 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRBackendPasses.h"
 #include "IRDominators.h"
 #include "IRLoops.h"
+#include "IRW65C816Places.h"
 
 
 class CIRW65C816LiveRanges;
@@ -166,6 +167,7 @@ typedef CArrayTemplate<SIRW65C816Temporary>	CArrayIRW65C816Temporaries;
 //registers from the stack and goes on to the body.
 class CIRW65C816Backend : public CIRBackend
 {
+friend class CIRW65C816Places;
 protected:
 	CArrayIRRegisterArguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
 	SIRW65C816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
@@ -189,6 +191,7 @@ protected:
 	CScratchPadAllocator*	mpcArena;			//Init's arena, this thread's scratch (SetScratch) until Kill, or NULL...
 	CMallocator*			mpcOldScratch;		//...and what the thread's scratch was before.
 
+	CIRW65C816Places			mcPlaces;
 public:
 	void			Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) override;
 	void			SetOptions(CCPPCompileOptions* pcOptions) override;
@@ -246,22 +249,6 @@ protected:
 	int				ValueBytes(SIRType sType);
 	int				Words(SIRType sType);
 	bool			IsHiddenResult(SIRType sType);
-	void			Layout(void);
-	void			AddRegions(CIRW65C816LiveRanges* pcRanges);
-	int32			PackTemporaries(void);
-	void			AddPackEvents(CIRW65C816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents);
-	void			AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, size uiInstruction, int32 iPosition, int32 iWeight);
-	void			AddSuccessorPackEvents(CIRW65C816LiveRanges* pcRanges, struct SIR816PackEvents* psEvents, CIRBlock* pcBlock, int32 iPosition);
-	void			OrderTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter, CArrayTemplate<int32>* paiOrder);
-	int32			SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo);
-	int32			PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
-	void			GroupTemporaries(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
-	bool			IsGroupFree(CIRW65C816LiveRanges* pcRanges, CIRW65C816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter);
-	void			PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTemporary);
-	int32			PlaceBytes(int32 iTemporary);
-	void			AllocateX(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
-	bool			InX(SIRReference sValue);
-	int32			OffsetOf(SIRReference sTemporary);
 
 	void			Frame(const char* szMnemonic, int32 iOffset);
 	void			Operand(const char* szMnemonic, SIRReference sValue, int iWord);

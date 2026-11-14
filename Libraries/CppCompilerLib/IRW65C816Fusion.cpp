@@ -41,8 +41,8 @@ bool CIRW65C816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput,
 	{
 		return false;
 	}
-	iResult = OffsetOf(sResult);
-	iInput = OffsetOf(sInput);
+	iResult = mcPlaces.OffsetOf(sResult);
+	iInput = mcPlaces.OffsetOf(sInput);
 	if ((iResult >= iInput + ValueBytes(mpcFunction->GetTemporaryType(sInput))) || (iInput >= iResult + ValueBytes(mpcFunction->GetTemporaryType(sResult))))
 	{
 		return false;
@@ -90,13 +90,13 @@ bool CIRW65C816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRRefere
 	{
 		sPointer = FoldedBase(psInstruction->asArguments[0]);
 		sIndex = FoldedIndex(psInstruction->asArguments[0]);
-		if (sIndex.IsTemporary() && !InX(sIndex) && FusedOverlaps(sResult, sIndex, true))
+		if (sIndex.IsTemporary() && !mcPlaces.InX(sIndex) && FusedOverlaps(sResult, sIndex, true))
 		{
 			return false;
 		}
 		if (sPointer.IsTemporary())
 		{
-			return IR816PointerOnDirectPage(OffsetOf(sPointer)) && !FusedOverlaps(sResult, sPointer, true);
+			return IR816PointerOnDirectPage(mcPlaces.OffsetOf(sPointer)) && !FusedOverlaps(sResult, sPointer, true);
 		}
 		return sPointer.IsSymbol();
 	}
@@ -253,7 +253,7 @@ bool CIRW65C816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	default:
 		return false;
 	}
-	if (sNextResult.IsTemporary() && (InX(sNextResult) || !IR816OnDirectPage(OffsetOf(sNextResult))))
+	if (sNextResult.IsTemporary() && (mcPlaces.InX(sNextResult) || !IR816OnDirectPage(mcPlaces.OffsetOf(sNextResult))))
 	{
 		return false;
 	}

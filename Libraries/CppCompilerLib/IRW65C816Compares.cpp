@@ -54,7 +54,7 @@ void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SI
 			Line(szFlip);
 			Line("cmp ", (int64)((((i < 4) ? (mpcFunction->GetConstant(sRight)->ulliBits >> (16 * i)) : 0) ^ uiFlip) & 0xFFFF));
 		}
-		else if (bSigned && (i == iWords - 1) && !sType.Is(IRTK_I1) && !sType.Is(IRTK_I8) && !((iWords == 1) && (InX(sLeft) || InX(sRight))))
+		else if (bSigned && (i == iWords - 1) && !sType.Is(IRTK_I1) && !sType.Is(IRTK_I8) && !((iWords == 1) && (mcPlaces.InX(sLeft) || mcPlaces.InX(sRight))))
 		{
 			//Two values whose sign is their top word's top bit.  With the top words equal the rest compare unsigned;
 			//with them different but of one sign their own unsigned compare is right; with different signs the
@@ -91,7 +91,7 @@ void CIRW65C816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SI
 			Line(szFlip);
 			Frame("cmp", IR816_SCRATCH_VALUE);
 		}
-		else if ((iWords == 1) && InX(sLeft))
+		else if ((iWords == 1) && mcPlaces.InX(sLeft))
 		{
 			Operand("cpx", sRight, i);
 		}
@@ -204,7 +204,7 @@ bool CIRW65C816Backend::SubtractsSigned(CIRBlock* pcBlock)
 	{
 		return true;
 	}
-	return (Words(psCompare->sType) == 2) && !InX(psCompare->asArguments[0]) && !InX(psCompare->asArguments[1]) && !EqualityFollows(pcBlock);
+	return (Words(psCompare->sType) == 2) && !mcPlaces.InX(psCompare->asArguments[0]) && !mcPlaces.InX(psCompare->asArguments[1]) && !EqualityFollows(pcBlock);
 }
 
 

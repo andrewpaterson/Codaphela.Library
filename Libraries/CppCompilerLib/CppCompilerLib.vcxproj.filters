@@ -1067,6 +1067,9 @@
     <ClInclude Include="IRW65C816Backend.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
+    <ClInclude Include="IRW65C816Places.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
     <ClInclude Include="IRW65C816Code.h">
       <Filter>Source\IR</Filter>
     </ClInclude>

@@ -69,10 +69,10 @@ void CIRW65C816Backend::CallerCleanUp(int32 iBytes, SIRInstruction* psInstructio
 			Mask(psInstruction->sType);
 			Store(psInstruction->sResult, 0);
 		}
-		else if (IR816OnDirectPage(OffsetOf(psInstruction->sResult) + 2))
+		else if (IR816OnDirectPage(mcPlaces.OffsetOf(psInstruction->sResult) + 2))
 		{
 			Store(psInstruction->sResult, 0);
-			Frame("stx", OffsetOf(psInstruction->sResult) + 2);
+			Frame("stx", mcPlaces.OffsetOf(psInstruction->sResult) + 2);
 		}
 		else
 		{
@@ -145,7 +145,7 @@ void CIRW65C816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	else
 	{
 		iReturn = NewLabel();
-		iCallee = OffsetOf(sCallee);
+		iCallee = mcPlaces.OffsetOf(sCallee);
 		Line("phk");
 		sz.Append("per L");
 		sz.Append(iReturn);
@@ -209,7 +209,7 @@ int32 CIRW65C816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInst
 	}
 	if ((uiFirst == 1) && (pasArguments->Get(0)->iRegister < 0))
 	{
-		PushFrameAddress(OffsetOf(psInstruction->sResult));
+		PushFrameAddress(mcPlaces.OffsetOf(psInstruction->sResult));
 		iBytes += 4;
 	}
 	return iBytes;
@@ -268,7 +268,7 @@ void CIRW65C816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction*
 	int				iRegisters;
 	int				i;
 
-	iHiddenOffset = psInstruction->sResult.IsNone() ? -1 : OffsetOf(psInstruction->sResult);
+	iHiddenOffset = psInstruction->sResult.IsNone() ? -1 : mcPlaces.OffsetOf(psInstruction->sResult);
 	iRegisters = 0;
 	for (i = 0; i < IR816_ARGUMENT_REGISTERS; i++)
 	{
@@ -307,7 +307,7 @@ void CIRW65C816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int3
 
 	if (bDirect)
 	{
-		bAFirst = (aiHidden[0] < 0) && (aiWords[0] == 0) && InX(asValues[0]);
+		bAFirst = (aiHidden[0] < 0) && (aiWords[0] == 0) && mcPlaces.InX(asValues[0]);
 		if (bAFirst)
 		{
 			LoadRegisterWord(0, asValues[0], aiWords[0], aiHidden[0]);
@@ -367,11 +367,11 @@ bool CIRW65C816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 	{
 		return true;
 	}
-	if ((iWord == 0) && InX(sValue))
+	if ((iWord == 0) && mcPlaces.InX(sValue))
 	{
 		return true;
 	}
-	return (iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || IR816OnDirectPage(OffsetOf(sValue) + 2 * iWord);
+	return (iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || IR816OnDirectPage(mcPlaces.OffsetOf(sValue) + 2 * iWord);
 }
 
 
