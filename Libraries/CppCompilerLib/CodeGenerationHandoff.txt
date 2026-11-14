@@ -374,6 +374,19 @@ Part 2, the W65C816: step A on it, then the same estimate, build and measure for
 breakdown (2026-10-31, TestBaseLib65) had about 1.5G cycles in frame slot to slot copies, near half of them phi
 copies before a jump, but much has changed since, so nothing is chosen before the profile.
 
+	Profile 2026-11-14 (the step A tools with the 816 argument, scratchpad mx2, prof816/dump816; 104.3G cycles in
+	the three suites, 79% in compiled code).  Compiled code: frame loads and stores ([D + n]) about 23%, loads
+	through pointers about 11% (the 816 has only A, X and Y, so it lives in the frame); copies frame to frame
+	2.5% (at a block's end 0.7%, the rest spread out); bra before a label 0.74% spread thin; byte loads masked
+	with and 0xFF 0.5% (masks after arithmetic under 0.1%, so CIRKnownBits in place of FindZeroWords would
+	give little); a store then a load of the same slot 0.08%.  Runtime: soft float 8.4%, MemMove 3.3%,
+	R816_Mul32 1.95% (about 144 cycles a call; its hot callers multiply a size read from memory, nothing to
+	narrow), R816_UDiv16 1.4%, R816_LShr32 1.1%, R816_UDiv32 0.9%.  The call site records give a caller's line
+	only, and every dumped function's lines are file "I": find the function by the dump with the call at that
+	index and the profile line with the calls.
+	R816_LShr32 was 12.9M calls from CHuffmanDecoder::InitFast, DeflateReverseBits's (uiCode >> i) & 1: written
+	as a shift by 1 a bit (StandardLib, below), TestSupportLib65 816 -2.35%, the other suites unchanged.
+
 At the end: the full sweep, and what was built and measured written here.
 
 

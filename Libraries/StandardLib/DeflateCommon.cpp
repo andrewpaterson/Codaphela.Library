@@ -104,10 +104,13 @@ uint32 DeflateReverseBits(uint32 uiCode, uint uiLength)
 	uint32	uiReversed;
 	uint	i;
 
+	//The code is shifted a bit at a time rather than by i: a shift by a variable amount is a runtime call on the
+	//W65C816.
 	uiReversed = 0;
 	for (i = 0; i < uiLength; i++)
 	{
-		uiReversed = (uiReversed << 1) | ((uiCode >> i) & 1);
+		uiReversed = (uiReversed << 1) | (uiCode & 1);
+		uiCode >>= 1;
 	}
 	return uiReversed;
 }
