@@ -67,6 +67,7 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 	mpMouseOverComponent = NULL;
 	mpFocussedComponent = NULL;
 	mpDragComponent = NULL;
+	mpKeyComponent = NULL;
 	msPointer.Init(0, 0);
 	mbPointerIn = false;
 	mbActive = true;
@@ -98,6 +99,7 @@ void CFocus::Class(void)
 	M_Pointer(mpMouseOverComponent);
 	M_Pointer(mpFocussedComponent);
 	M_Pointer(mpDragComponent);
+	M_Pointer(mpKeyComponent);
 	M_Pointer(mpWindow);
 	U_2Int32(msPointer);
 	U_Bool(mbPointerIn);
@@ -341,14 +343,17 @@ bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponen
 	SComponentInputEvent*	psTaken;
 	size					uiNumEvents;
 	Ptr<CComponent>			pFocussed;
+	const char*				szContext;
 
 	if (!mbActive)
 	{
 		return false;
 	}
 	pFocussed = mpFocussedComponent;
-	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents, (mpFocussedComponent.IsNotNull() && mpFocussedComponent->UsesEditorKeys() && !mpWindow->IsModal()) ? COMPONENT_INPUT_EDITOR_CONTEXT : NULL);
+	mpKeyComponent = FindKeyComponent(pcComponentInput, &szContext);
+	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents, szContext);
 	psTaken = DispatchEvents(asEvents, uiNumEvents);
+	mpKeyComponent = NULL;
 	if (mpFocussedComponent != pFocussed)
 	{
 		return false;
@@ -487,7 +492,9 @@ bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
 	{
 		return Dispatch(mpMouseOverComponent, psEvent);
 	}
-	if (Dispatch(mpFocussedComponent, psEvent))
+
+	//A key bound in the context of the component under the pointer is for it (see FindKeyComponent).
+	if (Dispatch(((psEvent->szContext != NULL) && mpKeyComponent.IsNotNull()) ? mpKeyComponent : mpFocussedComponent, psEvent))
 	{
 		return true;
 	}
@@ -1000,6 +1007,62 @@ Ptr<CComponent>	CFocus::GetDragComponent(void) { return mpDragComponent; }
 EFocusDrag		CFocus::GetDrag(void) { return meDrag; }
 CComponentEvent<CFocus>*	CFocus::GetFocusChangeEvent(void) { return &mcFocusChanged; }
 Ptr<CComponent>	CFocus::GetMouseOverComponent(void) { return mpMouseOverComponent; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The context pComponent's keys are read in: its own, or the nearest of
+// its parents' (see CComponent::GetKeyContext); NULL for the global keys.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CFocus::GetKeyContext(Ptr<CComponent> pComponent)
+{
+	const char*	szContext;
+
+	for (; pComponent.IsNotNull(); pComponent = pComponent->GetParent())
+	{
+		szContext = pComponent->GetKeyContext();
+		if (szContext != NULL)
+		{
+			return szContext;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The context a key is read in, in pszContext, and the component it's
+// for if that isn't the focussed one.  In a dialog it's the global keys,
+// so what's done to a context's keys can't stop it working.  Over a
+// component in a typing context (LogiCim's circuit), its keys are read
+// wherever the focus is, unless the focussed component takes typing (a
+// text field), and the key is for the component under the pointer.
+// Otherwise it's the focussed component's context.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CFocus::FindKeyComponent(CComponentInput* pcComponentInput, const char** pszContext)
+{
+	const char*	szHovered;
+
+	*pszContext = NULL;
+	if (mpWindow->IsModal())
+	{
+		return NULL;
+	}
+	if (mbPointerIn && mpMouseOverComponent.IsNotNull() && (mpMouseOverComponent != mpFocussedComponent) && !(mpFocussedComponent.IsNotNull() && mpFocussedComponent->TakesTyping()))
+	{
+		szHovered = GetKeyContext(mpMouseOverComponent);
+		if ((szHovered != NULL) && pcComponentInput->IsTypingContext(szHovered))
+		{
+			*pszContext = szHovered;
+			return mpMouseOverComponent;
+		}
+	}
+	*pszContext = GetKeyContext(mpFocussedComponent);
+	return NULL;
+}
 SInt32Vec2		CFocus::GetPointer(void) { return msPointer; }
 bool			CFocus::IsPointerIn(void) { return mbPointerIn; }
 bool			CFocus::IsActive(void) { return mbActive; }

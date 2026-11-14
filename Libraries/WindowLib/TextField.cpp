@@ -475,6 +475,9 @@ bool CTextField::WantsEnter(void)
 }
 
 
+bool CTextField::TakesTyping(void) { return true; }
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Undo and redo only with something to undo or redo.

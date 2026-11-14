@@ -43,8 +43,8 @@ static SKeymapTestCommand	gasKeymapTestCommands[] =
 };
 
 
-//Logs the commands and characters it is given, and the context the last command's keys were bound in.  It's an
-//editor to the keys, or isn't.
+//Logs the commands and characters it is given, and the context the last command's keys were bound in.  Its keys are
+//read in the Editor context, or the context it's given, and it takes typing or doesn't.
 class CKeymapTestComponent : public CComponent
 {
 CONSTRUCTABLE(CKeymapTestComponent);
@@ -52,6 +52,8 @@ DESTRUCTABLE(CKeymapTestComponent);
 public:
 	CChars*		mpszLog;
 	bool		mbEditor;
+	char*		mszContext;
+	bool		mbTakesTyping;
 	char*		mszLastContext;
 
 public:
@@ -63,6 +65,8 @@ public:
 		CComponent::Init(pWindow);
 		mpszLog = pszLog;
 		mbEditor = bEditor;
+		mszContext = NULL;
+		mbTakesTyping = false;
 		mszLastContext = NULL;
 		SetCanGetFocus(true);
 		for (i = 0; i < sizeof(gasKeymapTestCommands) / sizeof(gasKeymapTestCommands[0]); i++)
@@ -78,10 +82,13 @@ public:
 		CComponent::Class();
 		U_Pointer(mpszLog);
 		U_Bool(mbEditor);
+		U_Pointer(mszContext);
+		U_Bool(mbTakesTyping);
 		U_Pointer(mszLastContext);
 	}
 
-	bool UsesEditorKeys(void) override { return mbEditor; }
+	const char* GetKeyContext(void) override { return mbEditor ? COMPONENT_INPUT_EDITOR_CONTEXT : mszContext; }
+	bool TakesTyping(void) override { return mbTakesTyping; }
 
 	void CommandAction(SComponentInputEvent* psEvent)
 	{
@@ -319,6 +326,71 @@ void TestKeymapContexts(void)
 	AssertTrue(cTest.cInput.UnbindKeys("A", "Inner"));
 	AssertFalse(cTest.cInput.UnbindKeys("A", "Inner"));
 	AssertFalse(cTest.cInput.IsBound("A", "Inner"));
+
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A component's keys are read in its context, falling back to the
+// contexts around it, the innermost binding winning.  In a typing context
+// a bound key that types (with shift too) gives its command and an
+// unbound one types.  Over a component in a typing context its keys are
+// read, for it, wherever the focus is, unless the focussed component
+// takes typing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapContextFocus(void)
+{
+	CChars				szLog;
+	CKeymapTestWindow	cTest;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	AssertTrue(cTest.cInput.AddContext("Outer", NULL, false));
+	AssertTrue(cTest.cInput.AddContext("Inner", "Outer", true));
+	cTest.pField->mszContext = "Inner";
+	cTest.FocusField();
+
+	//Outer's key, from Inner, then Inner's own on the same key.
+	AssertTrue(cTest.cInput.BindKeys("F5", CIC_Copy, "Outer"));
+	cTest.cDevices.Tap("F5");
+	AssertLog("Copy;");
+	AssertString("Outer", cTest.pField->mszLastContext);
+	AssertTrue(cTest.cInput.BindKeys("F5", CIC_Paste, "Inner"));
+	cTest.cDevices.Tap("F5");
+	AssertLog("Paste;");
+	AssertString("Inner", cTest.pField->mszLastContext);
+
+	//Bare keys in a typing context; one that isn't bound types.
+	AssertTrue(cTest.cInput.BindKeys("A", CIC_Cut, "Inner"));
+	AssertTrue(cTest.cInput.BindKeys("Shift+A", CIC_Duplicate, "Inner"));
+	cTest.cDevices.Tap("A");
+	cTest.cDevices.Shift("A");
+	cTest.cDevices.Tap("C");
+	AssertLog("Cut;Duplicate;c;");
+
+	//Over the field, with the editor focussed: the field's keys, for the field.
+	cTest.FocusEditor();
+	cTest.pField->mszLastContext = NULL;
+	cTest.pWindow->PointerMoved(48, 16);
+	cTest.cDevices.Tap("A");
+	AssertLog("Cut;");
+	AssertString("Inner", cTest.pField->mszLastContext);
+	AssertNull(cTest.pEditor->mszLastContext);
+	cTest.cDevices.Tap("C");
+	AssertLog("c;");
+
+	//Unless the editor takes typing; or the pointer is over the editor itself.
+	cTest.pEditor->mbTakesTyping = true;
+	cTest.cDevices.Tap("A");
+	AssertLog("a;");
+	cTest.pEditor->mbTakesTyping = false;
+	cTest.pWindow->PointerMoved(16, 16);
+	cTest.cDevices.Tap("A");
+	AssertLog("a;");
 
 	cTest.Kill();
 	szLog.Kill();
@@ -1235,6 +1307,7 @@ void TestKeymap(void)
 
 	TestKeymapUnbindKeys();
 	TestKeymapContexts();
+	TestKeymapContextFocus();
 	TestKeymapEditorKeys();
 	TestKeymapInsert();
 	TestKeymapDialog();

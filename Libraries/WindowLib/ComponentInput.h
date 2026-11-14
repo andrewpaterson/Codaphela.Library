@@ -104,8 +104,8 @@ typedef CArrayTemplate<SComponentInputContext>	CArrayComponentInputContext;
 //
 //An application's keys (BindKeys) are global, given to every keyboard in place of the standard keys, or in a context
 //(AddContext), read only when a key is read in that context (Translate's szContext).  The focus reads a key in the
-//context of the component it's for (CComponent::UsesEditorKeys: the Editor context) in a window that isn't a dialog;
-//everything else keeps the global and standard keys, so what is done to a context's keys can't stop a dialog working.
+//context of the component it's for (CComponent::GetKeyContext: a text area's is Editor) in a window that isn't a
+//dialog, so what is done to a context's keys can't stop a dialog working (see CFocus::FindKeyComponent).
 //
 //Kill a CComponentInput before the CWindowInputSource it was given.
 class CWindow;
@@ -153,6 +153,7 @@ public:
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
 	bool				AddContext(const char* szName, const char* szParent, bool bTyping, bool bEditorCommands = false);
 	bool				HasContext(const char* szName);
+	bool				IsTypingContext(const char* szName);
 	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand, const char* szContext = NULL);
 	bool				UnbindKeys(const char* szKeys, const char* szContext = NULL);
 	bool				BindEditorKeys(const char* szKeys, EComponentInputCommand eCommand);

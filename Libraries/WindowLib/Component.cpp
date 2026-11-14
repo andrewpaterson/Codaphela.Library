@@ -785,7 +785,8 @@ void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
 bool CComponent::WantsEscape(void) { return false; }  //Escape goes to the window's cancel button unless the focussed component wants it.
 bool CComponent::IsTabStop(void) { return mbCanGetFocus; }  //Tab can move the focus to it in a dialog (CFocus::MoveFocus).
-bool CComponent::UsesEditorKeys(void) { return false; }  //The keys an application has given editors (CComponentInput::BindEditorKeys) are for it, outside of a dialog.
+const char* CComponent::GetKeyContext(void) { return NULL; }  //The context its keys are read in (see CComponentInput::AddContext), NULL for its parent's (the global keys at the top).
+bool CComponent::TakesTyping(void) { return false; }  //A key that types is a character for it, so a context's bare keys aren't read for the component under the pointer.
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }

@@ -67,6 +67,7 @@ protected:
 	Ptr<CComponent>			mpMouseOverComponent;
 	Ptr<CComponent>			mpFocussedComponent;
 	Ptr<CComponent>			mpDragComponent;  //Gets ContDrag* until the drag stops, even once the pointer has left it.
+	Ptr<CComponent>			mpKeyComponent;  //While a key is dispatched: the component under the pointer whose context it was read in, NULL for the focussed component's.
 	Ptr<CWindow>			mpWindow;
 	SInt32Vec2				msPointer;  //In window client space.
 	bool					mbPointerIn;
@@ -101,6 +102,8 @@ public:
 
 	Ptr<CComponent>		GetFocussedComponent(void);
 	Ptr<CComponent>		GetMouseOverComponent(void);
+	Ptr<CComponent>		FindKeyComponent(CComponentInput* pcComponentInput, const char** pszContext);
+	static const char*	GetKeyContext(Ptr<CComponent> pComponent);
 	SInt32Vec2			GetPointer(void);
 	bool				IsPointerIn(void);
 	bool				IsActive(void);

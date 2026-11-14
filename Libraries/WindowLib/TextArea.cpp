@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MapsCanvasDraw.h"
 #include "Window.h"
 #include "NativeWindowFactory.h"
+#include "ComponentInput.h"
 #include "TextArea.h"
 
 
@@ -1234,7 +1235,8 @@ bool CTextArea::WantsEnter(void)
 }
 
 
-bool CTextArea::UsesEditorKeys(void) { return true; }
+const char* CTextArea::GetKeyContext(void) { return COMPONENT_INPUT_EDITOR_CONTEXT; }  //The keys an application has given editors (CComponentInput::BindEditorKeys), outside of a dialog.
+bool CTextArea::TakesTyping(void) { return true; }
 
 
 //////////////////////////////////////////////////////////////////////////

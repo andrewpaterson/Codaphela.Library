@@ -809,6 +809,21 @@ bool CComponentInput::HasContext(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether keys that type can be bound in the context (not the global
+// keys).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::IsTypingContext(const char* szName)
+{
+	SComponentInputContext*	psContext;
+
+	psContext = GetContext(szName);
+	return (psContext != NULL) && psContext->bTyping;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The Editor context's keys (see BindKeys): an editor command's standard
 // keys no longer give it in an editor unless they are bound too.  The
 // context is added by the first.
