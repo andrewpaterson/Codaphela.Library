@@ -10,7 +10,8 @@ What the objects are
 --------------------
   CScene                    Instances, lights, cameras, animations and particles.  Everything else is reached through what uses it.
     CInstance               One thing in the game, one character say.
-      CArray<CConnection>   Its own, in the order a file holds them.
+      Ptr<CSkeleton>        Shared with other instances, from step 8.  Its bones, each a CBone.
+      CArray<CConnection>   Its own, in the order a file holds them.  One for each bone, which points at its CBone.
       CArray<CInstanceMesh>
         Ptr<CMeshEditor>    Shared with other instances.  Holds the mesh and its modifier stack.
         CArray<CConnection> The instance's connections the mesh's matrices use.  One for a rigid mesh, one per matrix for a
@@ -268,7 +269,7 @@ Vulkan.
    TestRasterLib.  Step 5's CRasterFrame is the first to call CRenderScene.
 5. Extract.  Done: RasterRenderLib's CRasterFrame, whose Extract updates the render scene and makes what CRasteriser draws.
    Connections become SRasterInstances, one for each rigid mesh of each instance, at the renderer's scale.  A skinned mesh waits
-   for step 8.  The user's decisions:
+   for step 9.  The user's decisions:
      An instance's axes may scale and mirror.  Its light axes are their rotation alone, which the light is turned into the mesh
      by, and a mirrored instance's triangles are wound the other way.  The shade is clamped at 256, so it can't carry into the
      next colour channel.  An uneven scale shades as if the normals were only turned, which is very nearly right for the small
@@ -302,16 +303,53 @@ Vulkan.
      Between two keys each is split into scale, rotation and position (BaseLib's Float4x4Decompose), blended, the rotation by
      slerp, and put back.  What the split loses, the slight shear Goober's keys have, is blended straight, so each key is itself at
      its time and nothing jumps.
-     Tracks hold Ptrs.  Sharing a walk between instances waits until something needs it: its tracks would name the connections
-     they move, and a player for each instance would bind the names to that instance's connections.
+     Tracks hold Ptrs.  Sharing a walk between instances is step 8's.
      Tests prove it, not a picture: played at its start every bone of Goober's is where its file has it, and through the walk,
      at its keys and between them, no bone changes length.  RenderSceneFile --key poses it the same way, and draws it whole.
-8. Skinning, in software on the raster renderer: per-instance vertices, using each instance mesh's connections.  The fixed point
+8. Skeletons, before skinning, so that skinning is written once against them.  Done: CBone and CSkeleton in SupportLib's
+   Skeleton.h, the format's version 2, and every converted file made again.  A skeleton was spread over three places: the
+   instance's connections and their parents, CMeshSkin's inverse matrices, and each CInstanceMesh's mapConnections.  A second
+   Goober meant copying 67 connections and rewiring their parents and its mesh's list, and a walk only moved the Goober it was read
+   with, as its tracks pointed at that one's connections.  The user's decisions:
+     A CSkeleton is shared, and holds its CBones parents first.  A CBone is a CObject that doesn't change once built: its name, a
+     Ptr to its parent bone and its rest local matrix.  The skeleton keeps each bone's index in it right as bones are added.
+     Bones are known by what they are, not where they are.  A CConnection gains a Ptr<CBone>, NULL for what isn't a bone, and
+     CMeshSkin holds the CBone each of its matrices is, so a bone added to a skeleton later breaks no clip or skin.
+     A CSceneAnimation is one of two kinds.  A skeleton's holds a Ptr<CSkeleton>, each of its tracks a Ptr<CBone>, and it moves
+     nothing until a player is bound to an instance with that skeleton: Goober's walk, shared by any number of Goobers.  The
+     scene's own holds no skeleton, and each of its tracks a Ptr<CConnection>, as before: Melee's ships flying about, and
+     Test.DRG's planets and the Point01 its camera hangs under.  A clip never mixes them, as a fixed connection in a shared clip
+     would move the first instance's whatever instance played it.
+     An instance made from a skeleton has a connection for each bone, in the skeleton's order, its local matrix the bone's rest one,
+     and the root bone's parent is the instance's own connection.  A CAnimationPlayer bound to an instance finds each track's
+     connection once, by its bone, and plays as it does now.  CInstanceMesh::mapConnections is bound the same way from the skin's
+     bones, and becomes a cache: a file no longer holds it.  A walk on another skeleton needs a map from bone to bone (by name, or
+     given), which waits until something needs it.
+     What a skeleton holds is the exporter's and the converter's choice: the bones a skin uses, and the attachment points worth
+     keeping.  For Goober that's its 67 bones and none of its 73 IK chain and finger helpers, whose effect is in the bones' keys.
+     Its walk loses their tracks.
+     The file has a Skeleton chunk listing the bones by index, which tracks and skins write, as references are indices into lists
+     in the same file.  The reader makes them Ptrs and the writer indices again.  The version goes up, as the skin's matrices mean
+     something new.  An Animation with a Skeleton chunk has tracks with a Bone, and one without has tracks with Attached.
+   What doing it found:
+     A connection that plays a bone says so with SkeletonBone (skeleton, bone), and an instance with a Skeleton gives a mesh posed
+     by its bones no ConnectionSlots.  The writer checks at Close that every bone referred to is in its skeleton, and that such a
+     mesh is only used by an instance with its skeleton.  A reader refuses version 1, whose skins were posed by their slots.
+     Saving a scene reaches skeletons through its instances and animations, so a skin whose bones are in neither fails to save.
+     The converter's helpers are narrower than "a connection only a track uses": only in an animation that moves bones is a track
+     moving something else a helper, so the files with no skeleton came out the same but for their version, byte for byte.  Goober
+     went from 141 connections and 140 tracks to 68 (goober_, which nothing uses, and the 67 bones) and 67.  A bone's parent is the
+     nearest bone above it, skipping what isn't one, and a root bone hangs from the nearest kept connection above it; Goober's
+     bone_goober_00 has none.  Its instance's connections are in the skeleton's order now, not the skin's.
+     RenderSceneFile draws every converted file, posed at several keys, to the same bytes as before.  TestSceneGooberTwo makes a
+     second Goober from the first's skeleton, ten along, sharing its mesh and walk at another time: the first is where it would be
+     alone, no bone of either changes length, and at the same time they're ten apart.
+9. Skinning, in software on the raster renderer: per-instance vertices, using each instance mesh's connections.  The fixed point
    skinning goes in RasterLib, taking integer weights and bone matrices, and RasterRenderLib converts to them.  Goober, loaded from
    its converted file, proves it.  Its mesh is bound in another pose than its walk's first key, so posed at that key its edges are
    0.09 to 4.4 times their length in the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
-9. In-place updates, if dragging plain meshes is slow.
-10. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
+10. In-place updates, if dragging plain meshes is slow.
+11. The cook stage and VulkanLib.  The factory, and the build in RasterRenderLib, change from CMesh* to cooked data.
 
 
 Test scenes
@@ -356,9 +394,6 @@ is lost, and a point list has its own cook and draw on each renderer.
 Modifiers that make other faces (weld, corner merge, edge collapse, fix reversed, merge normals) can't keep UVs, skin or materials,
 as they only rebuild positions, normals and colours: CMeshModifier::CanRebuild refuses such a mesh and Modify returns it as it was.
 Modifiers that only change normals, and shapes, keep everything since step 2.
-
-Where bone hierarchy lives.  CMeshSkin has the weights and inverse matrices, but nothing holds a skeleton that instances could
-share.
 
 Creating and removing an attached light.  Copying an instance doesn't bring its lantern along, so whatever creates the
 character must also create the light and add it to the scene.  When the character is removed, something must remove the light,
