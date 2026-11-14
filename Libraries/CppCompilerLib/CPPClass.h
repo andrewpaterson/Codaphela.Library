@@ -112,6 +112,8 @@ public:
 	CCPPTemplate*				mpcTemplate;		//The class template this is an instance of.
 	CCPPTemplateArguments*		mpcBindings;
 	CChars						mszArguments;		//The instance's template arguments, mangled for its label.
+	bool						mbPlaceholder;		//It stands for a template's type parameter, whose symbol is its: a class with
+													//nothing in it, written as the parameter's name (CCPPUnit::PlaceholderClass).
 
 	void			Init(CCPPSymbol* pcSymbol, int64 lliName);
 	void			Kill(void);

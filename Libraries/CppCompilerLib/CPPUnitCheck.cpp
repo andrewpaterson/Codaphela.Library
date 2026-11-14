@@ -50,9 +50,14 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 		Declarations(&pcRoot->macpDeclarations);
 		CheckClasses(&pcRoot->macpDeclarations);
 	}
-	while (CheckDefinitions())
+	do
 	{
+		if (mbRemember)
+		{
+			CheckTemplatesAsThemselves();
+		}
 	}
+	while (CheckDefinitions());
 	ReportClassErrors();
 	CheckContext();
 	mpcSemanticPass = NULL;
@@ -357,12 +362,88 @@ void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type checker typed pcExpression: a kept check's pass is told.
+// A kept check has every template the unit declares as itself too
+// (Refactorings.txt in the IDE, T3): a class template's instance with its
+// parameters standing for themselves is completed, so its member
+// functions are declared, those defined outside it with them; and a
+// function template's, and a member template's of a class that isn't an
+// instance (or is one as itself), is declared.  CheckDefinitions then
+// checks their bodies, quietly: what is in a body that only a template
+// argument would have (pv->Init(), a > b) can't be typed, which is no
+// error, and the rest is typed in the template's own words, M* and
+// CArray<M>&.  Completing a class can declare more templates (its member
+// templates), so it is done before each round of definitions.
+//
+// An explicit specialisation has no parameters and is what it is; a
+// partial specialisation is left (its instance as itself would need the
+// pattern's arguments).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CheckTemplatesAsThemselves(void)
+{
+	CCPPTemplate*	pcTemplate;
+	CCPPClass*		pcClass;
+	size			i;
+
+	for (i = 0; i < mapcTemplates.NumElements(); i++)
+	{
+		pcTemplate = mapcTemplates.GetPtr(i);
+		if (pcTemplate->mbAsItself)
+		{
+			continue;
+		}
+		pcTemplate->mbAsItself = true;
+		if (!pcTemplate->mpcDeclaration || (pcTemplate->mpcDeclaration->macpParameters.NumElements() == 0) || (pcTemplate->mpcPrimary != pcTemplate))
+		{
+			continue;
+		}
+
+		if (pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition->GetKind() == CPPS_ClassSpecifier))
+		{
+			BeginQuiet();
+			pcClass = InstantiateClassAsItself(pcTemplate);
+			if (pcClass)
+			{
+				CompleteClass(pcClass, pcTemplate->mpcDefinition);
+			}
+			EndQuiet();
+		}
+		else if (!pcTemplate->mbMember || (pcTemplate->mbMemberTemplate && pcTemplate->mpcClass && (!pcTemplate->mpcClass->mpcBindings || pcTemplate->mpcClass->mpcBindings->IsSelf())))
+		{
+			//A function template, or a member template in a class that isn't another instance.  A class template's
+			//members defined outside it are declared with its instance (LayoutClass).
+			BeginQuiet();
+			InstantiateFunctionAsItself(pcTemplate);
+			EndQuiet();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether what is being checked is written as it is checked: it is not
+// in a template, or the template's parameters stand for themselves.  In
+// an instance with arguments an expression's type is the instance's
+// (CFoo*, where the template says M*), which isn't the type of what is
+// written.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsCheckedAsWritten(void)
+{
+	return !mcContext.GetBindings() || mcContext.GetBindings()->IsSelf();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type checker typed pcExpression: a kept check's pass is told, if
+// it is checked as written.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
-	if (mbRemember)
+	if (mbRemember && IsCheckedAsWritten())
 	{
 		mpcSemanticPass->Typed(pcExpression, psType);
 	}
@@ -376,7 +457,7 @@ void CCPPUnit::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
-	if (mbRemember)
+	if (mbRemember && IsCheckedAsWritten())
 	{
 		mpcSemanticPass->PlaceTyped(pcExpression, psType);
 	}

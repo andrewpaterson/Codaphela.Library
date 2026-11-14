@@ -1301,6 +1301,129 @@ puc : unsigned char* x\n\
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A kept check types a template's body as it is written, the template's
+// parameters standing for themselves (CCPPUnit::CheckTemplatesAsThemselves):
+// M* and CHolder<M, N>*, whatever it is instantiated with, and when
+// nothing instantiates it.  What only an argument would have (pv->Init(),
+// pv->miCount) has no type; what is around it and in it still has.  Code
+// that isn't in a template is typed as ever, an instance by its arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassTemplateAsItself(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	TestCppKeptCheckPrint("\
+class CFoo\n\
+{\n\
+public:\n\
+	int		miCount;\n\
+	void	Init(void);\n\
+};\n\
+template<class M, int N>\n\
+class CHolder\n\
+{\n\
+public:\n\
+	M*		mp;\n\
+	M		mItem;\n\
+	int		miUsed;\n\
+	M		maItems[N];\n\
+\n\
+	M*				Get(int i) { return &maItems[i]; }\n\
+	void			Start(void);\n\
+	int				Count(void) const { return miUsed; }\n\
+	CHolder<M, N>*	Self(void) { return this; }\n\
+};\n\
+template<class M, int N>\n\
+void CHolder<M, N>::Start(void)\n\
+{\n\
+	M*	pv;\n\
+	int	i;\n\
+\n\
+	pv = Get(0);\n\
+	mp = pv;\n\
+	i = Count() + N;\n\
+	mItem = *pv;\n\
+	pv->Init();\n\
+	miUsed = pv->miCount + i;\n\
+	Self()->Start();\n\
+}\n\
+template<class T>\n\
+T* Step(T* pt, int iCount)\n\
+{\n\
+	return pt + iCount;\n\
+}\n\
+template<class T>\n\
+class CNeverUsed\n\
+{\n\
+public:\n\
+	T		mValue;\n\
+\n\
+	T*		Address(void) { return &mValue; }\n\
+};\n\
+int Use(void)\n\
+{\n\
+	CHolder<CFoo, 4>	c;\n\
+\n\
+	c.Start();\n\
+	return c.Count();\n\
+}\n", &sz);
+	AssertString("\
+&maItems[i] : M*\n\
+maItems[i] : M\n\
+maItems : M* address\n\
+i : int\n\
+miUsed : const int\n\
+this : CHolder<M, N>*\n\
+&maItems[i] : M*\n\
+maItems[i] : M\n\
+maItems : M* address\n\
+i : int\n\
+miUsed : const int\n\
+this : CHolder<M, N>*\n\
+pv = Get(0) : M*\n\
+pv : M* assigned\n\
+Get(0) : M*\n\
+0 : int\n\
+mp = pv : M*\n\
+mp : M* assigned\n\
+pv : M*\n\
+i = Count() + N : int\n\
+i : int assigned\n\
+Count() + N : int\n\
+Count() : int\n\
+N : int\n\
+mItem = *pv : M\n\
+mItem : M assigned\n\
+*pv : M\n\
+pv : M*\n\
+pv : M*\n\
+miUsed : int assigned\n\
+pv : M*\n\
+i : int\n\
+Self()->Start() : void\n\
+Self() : CHolder<M, N>*\n\
+pt + iCount : T*\n\
+pt : T*\n\
+iCount : int\n\
+&mValue : T*\n\
+mValue : T address\n\
+&mValue : T*\n\
+mValue : T address\n\
+4 : int\n\
+4 : int\n\
+c.Start() : void\n\
+c : CHolder<CFoo, 4> member call\n\
+c.Count() : int\n\
+c : CHolder<CFoo, 4>\n\
+", sz.Text());
+	sz.Kill();
+}
+
+
 //The files the units indexed so far have indexed, as the IDE's index keeps them (CIDECodeModel::IsIndexedByAnother):
 //a unit gathered with these skips their names, but for what its semantic pass resolved.
 class CTestIndexedFiles : public CCPPIndexedFiles
@@ -1612,6 +1735,7 @@ void TestCppIndex(void)
 	TestCppSemanticPassHost();
 	TestCppSemanticPassEnumeratorChain();
 	TestCppSemanticPassKept();
+	TestCppSemanticPassTemplateAsItself();
 	TestCppIndexTemplateInstances();
 	TestCppIndexMacroNames();
 	TestCppIndexCLinkage();

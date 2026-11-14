@@ -37,6 +37,8 @@ struct SCPPBinding
 	SCPP65Type*						psType;
 	int64							lliValue;
 	CArrayTemplatePtr<SCPP65Type>*	papsPack;	//A parameter pack's types.
+	bool							bSelf;		//The parameter stands for itself (CCPPUnit::BindAsItself): its type is a
+												//placeholder that is written as its name, and its value isn't known.
 };
 
 
@@ -45,15 +47,20 @@ typedef CArrayTemplate<SCPPBinding>	CArrayCPPBindings;
 
 //The template arguments of an instantiation.  mpcOuter is the class instance a member template is in.  mpcClass
 //is the instance the bindings belong to, for the class's own name used without arguments inside it.
+//
+//With mbSelf each parameter stands for itself: the template as it is written, with no arguments yet, which is what
+//a kept check types a template's body as (CCPPUnit::CheckTemplatesAsThemselves).
 class CCPPTemplateArguments
 {
 public:
 	CArrayCPPBindings		macBindings;
 	CCPPTemplateArguments*	mpcOuter;
 	CCPPClass*				mpcClass;
+	bool					mbSelf;
 
 	void			Init(void);
 	void			Kill(void);
+	bool			IsSelf(void);
 
 	SCPPBinding*	Find(CCPPSymbol* pcParameter);
 	SCPPBinding*	FindOwn(CCPPSymbol* pcParameter);
@@ -90,6 +97,7 @@ public:
 	CCPPScope*						mpcNamespace;	//The namespace it was declared in, NULL for the global one: of an instance with no symbol (an operator).
 	CChars							mszArguments;
 	CArrayCPPFunctions				mapcInstances;	//A function template's instances.
+	bool							mbAsItself;		//It has been instantiated as itself (CheckTemplatesAsThemselves), or couldn't be.
 
 	void	Init(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember, CCPPScope* pcNamespace);
 	void	Kill(void);

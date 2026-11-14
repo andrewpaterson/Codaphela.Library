@@ -38,6 +38,9 @@ class CCPPClass;
 //arguments.  The compiler's types have no typedefs in them, so none is written: uint32 is "unsigned int" and
 //size is "unsigned long long" (the host's).  An integer the size of the target's int is "int", so a long of that
 //size is too.  What has no name can't be written (a class or enum without one): false, with nothing appended.
+//
+//In a template checked as itself (CCPPUnit::CheckTemplatesAsThemselves) a type parameter's placeholder is written
+//as the parameter's name, and the template's own instance with its parameters' names: "M*", "CArray<M, N>&".
 class CCPPTypeWriter
 {
 protected:
@@ -55,6 +58,7 @@ protected:
 	bool	Named(SCPP65Type* psType, CChars* pszDest);
 	bool	ClassName(CCPPClass* pcClass, CChars* pszDest);
 	bool	QualifiedName(CCPPSymbol* pcSymbol, CChars* pszDest);
+	bool	ParameterName(CCPPSymbol* pcSymbol, CChars* pszDest);
 	void	Qualifiers(SCPP65Type* psType, CChars* pszDest);
 };
 

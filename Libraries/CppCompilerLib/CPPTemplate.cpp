@@ -33,6 +33,28 @@ void CCPPTemplateArguments::Init(void)
 	macBindings.Init();
 	mpcOuter = NULL;
 	mpcClass = NULL;
+	mbSelf = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether every parameter stands for itself, here and in what these are
+// in: the template as it is written.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTemplateArguments::IsSelf(void)
+{
+	CCPPTemplateArguments*	pcArguments;
+
+	for (pcArguments = this; pcArguments; pcArguments = pcArguments->mpcOuter)
+	{
+		if (!pcArguments->mbSelf)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -122,6 +144,7 @@ void CCPPTemplate::Init(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcD
 	mbArguments = false;
 	mszArguments.Init();
 	mapcInstances.Init();
+	mbAsItself = false;
 	mpcNamespace = pcNamespace;
 }
 

@@ -277,6 +277,11 @@ bool CCPPTypeWriter::ClassName(CCPPClass* pcClass, CChars* pszDest)
 	bool					bResult;
 	bool					bFirst;
 
+	if (pcClass && pcClass->mbPlaceholder)
+	{
+		//A template's type parameter, as itself.
+		return ParameterName(pcClass->mpcSymbol, pszDest);
+	}
 	if (!pcClass || !pcClass->mpcSymbol || pcClass->IsUnnamed() || !QualifiedName(pcClass->mpcSymbol, pszDest))
 	{
 		return false;
@@ -309,6 +314,11 @@ bool CCPPTypeWriter::ClassName(CCPPClass* pcClass, CChars* pszDest)
 		{
 			bResult &= AppendDeclaration(psBinding->psType, NULL, pszDest);
 		}
+		else if (psBinding->bSelf)
+		{
+			//A value parameter as itself: its name.
+			bResult &= ParameterName(psBinding->pcParameter, pszDest);
+		}
 		else
 		{
 			pszDest->Append(psBinding->lliValue);
@@ -316,6 +326,31 @@ bool CCPPTypeWriter::ClassName(CCPPClass* pcClass, CChars* pszDest)
 	}
 	pszDest->Append('>');
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A template parameter's name, which nothing qualifies.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTypeWriter::ParameterName(CCPPSymbol* pcSymbol, CChars* pszDest)
+{
+	char*	szName;
+	int		iLength;
+
+	if (!pcSymbol || (pcSymbol->mlliName < 0))
+	{
+		return false;
+	}
+	iLength = 0;
+	szName = mpcUnit->GetTokeniser()->GetIdentifier(pcSymbol->mlliName, &iLength);
+	if (!szName)
+	{
+		return false;
+	}
+	pszDest->Append(szName, iLength);
+	return true;
 }
 
 
