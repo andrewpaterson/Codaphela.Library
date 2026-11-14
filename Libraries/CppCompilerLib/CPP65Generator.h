@@ -45,6 +45,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPFunction.h"
 #include "CPPTemplate.h"
 #include "CPPClass.h"
+#include "CPPClassLayout.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
 #include "CPPTarget.h"
@@ -346,8 +347,6 @@ protected:
 	CCPPClass*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext = NULL);
 	CCPPClass*			FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate);
 	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
-	int						TypeAlignment(SCPP65Type* psType);
-	int						PackAlignment(int iAlign, int iPack);
 	int						AlignasAlignment(CArraySyntax* papcSpecifiers);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
@@ -395,7 +394,6 @@ protected:
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	void					LayoutBitField(CCPPClass* pcClass, SCPPField* psField, int iPack, int* piBytes, int* piAlign, int* piUnitBytes, int* piUnitOffset, int* piUnitBits);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ClassError(int iToken, const char* szMessage);

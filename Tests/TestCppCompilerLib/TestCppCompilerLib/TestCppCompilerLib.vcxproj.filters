@@ -85,6 +85,9 @@
     <ClCompile Include="TestDefineMap.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPPClassLayout.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestPreprocessorHeaderCache.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>

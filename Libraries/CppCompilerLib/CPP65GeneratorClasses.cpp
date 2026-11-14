@@ -152,17 +152,6 @@ CCPPScope* CCPP65Generator::ComponentLookup(CCPPSyntaxNameComponent* pcComponent
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An alignment limited by #pragma pack(iPack) (0 for none).
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::PackAlignment(int iAlign, int iPack)
-{
-	return ((iPack > 0) && (iAlign > iPack)) ? iPack : iAlign;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The strictest alignment the alignas(n) and alignas(type) specifiers in
 // papcSpecifiers ask for: 0 for none (alignas(0) asks for nothing), -1 after
 // an error.  It is kept whatever #pragma pack says, as MSVC does.  [dcl.align]
@@ -193,7 +182,7 @@ int CCPP65Generator::AlignasAlignment(CArraySyntax* papcSpecifiers)
 			{
 				return -1;
 			}
-			lliAlign = TypeAlignment(psType);
+			lliAlign = CCPPClassLayout::TypeAlignment(psType);
 		}
 		else if (!Constant(pcAlignment, &lliAlign))
 		{
@@ -308,39 +297,6 @@ CCPPClass* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompone
 		return NULL;
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A type's alignment in a class, as MSVC lays classes out (BaseLib reads and writes them as raw bytes): a
-// scalar is aligned to its size (8 for long long and double), a pointer or reference to 4, an array as its
-// element and a class to its largest member's alignment.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::TypeAlignment(SCPP65Type* psType)
-{
-	if (psType->IsClass())
-	{
-		return (psType->pcClass->miAlign < 1) ? 1 : psType->pcClass->miAlign;
-	}
-	if (psType->IsArray())
-	{
-		return TypeAlignment(psType->psBase);
-	}
-	if (psType->IsReference() || psType->IsPointer() || psType->IsMemberPointer())
-	{
-		return 4;
-	}
-	if (psType->iBytes >= 8)
-	{
-		return 8;
-	}
-	if (psType->iBytes >= 4)
-	{
-		return 4;
-	}
-	return (psType->iBytes < 1) ? 1 : psType->iBytes;
 }
 
 
@@ -491,57 +447,6 @@ bool CCPP65Generator::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Places the bit-field psField as MSVC does (BaseLib lays classes out its
-// way).  Bit-fields share a unit the size of their type, aligned as it is,
-// from its lowest bit up: one goes in the open unit (*piUnitBytes at
-// *piUnitOffset, *piUnitBits used) when its type is the same size and its
-// bits fit, otherwise it opens a unit after *piBytes.  A width of 0 closes
-// the unit.  In a union each is at bit 0 of offset 0.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::LayoutBitField(CCPPClass* pcClass, SCPPField* psField, int iPack, int* piBytes, int* piAlign, int* piUnitBytes, int* piUnitOffset, int* piUnitBits)
-{
-	int		iTypeBytes;
-	int		iFieldAlign;
-
-	iTypeBytes = psField->psType->iBytes;
-	if (psField->iBitWidth == 0)
-	{
-		psField->iOffset = *piBytes;
-		*piUnitBytes = 0;
-		return;
-	}
-	iFieldAlign = PackAlignment(TypeAlignment(psField->psType), iPack);
-	*piAlign = (iFieldAlign > *piAlign) ? iFieldAlign : *piAlign;
-	if (pcClass->mbUnion)
-	{
-		psField->iOffset = 0;
-		psField->iBitOffset = 0;
-		if (iTypeBytes > pcClass->mpsType->iBytes)
-		{
-			pcClass->mpsType->iBytes = iTypeBytes;
-		}
-		return;
-	}
-	if ((*piUnitBytes == iTypeBytes) && (*piUnitBits + psField->iBitWidth <= iTypeBytes * 8))
-	{
-		psField->iOffset = *piUnitOffset;
-		psField->iBitOffset = *piUnitBits;
-		*piUnitBits += psField->iBitWidth;
-		return;
-	}
-	*piBytes = (*piBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
-	psField->iOffset = *piBytes;
-	psField->iBitOffset = 0;
-	*piUnitBytes = iTypeBytes;
-	*piUnitOffset = *piBytes;
-	*piUnitBits = psField->iBitWidth;
-	*piBytes += iTypeBytes;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Lays out a class: the bases in order (an empty base takes no space), the vtable
 // pointer if no base has one, then the fields.  Members are read first: functions
 // are declared (in class definitions are generated when called) and fields are
@@ -556,20 +461,12 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	CCPPSyntaxBaseSpecifier*		pcBaseSpecifier;
 	CCPPSyntaxNameComponent*		pcComponent;
 	CCPPTemplate*					pcMember;
-	SCPPBase*						psBase;
-	SCPPField*					psField;
 	CCPPFunction*					pcFunction;
-	CCPPTemplateArguments*					pcSaved;
-	CCPPTemplateArguments*					pcMemberBindings;
+	CCPPTemplateArguments*			pcSaved;
+	CCPPTemplateArguments*			pcMemberBindings;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPClassLayout					cLayout;
 	size							i;
-	int								iBytes;
-	int								iAlign;
-	int								iPack;
-	int								iFieldAlign;
-	int								iUnitBytes;
-	int								iUnitOffset;
-	int								iUnitBits;
 	int								iClassAlign;
 	bool							bResult;
 
@@ -642,79 +539,16 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	pcClass->mcVtable.LayoutOwn(pcClass);
 
-	//The bases, the vtable pointer, then the fields.  #pragma pack(n) aligns each to at most n bytes.
-	iPack = pcSpecifier->miPack;
-	iBytes = 0;
-	iAlign = 1;
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		psBase = pcClass->macBases.Get(i);
-		if (psBase->pcClass->mbEmpty)
-		{
-			psBase->iOffset = 0;
-			continue;
-		}
-		iFieldAlign = PackAlignment(psBase->pcClass->miAlign, iPack);
-		iBytes = (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
-		psBase->iOffset = iBytes;
-		iBytes += psBase->pcClass->mpsType->iBytes;
-		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
-	}
-	if (pcClass->mpcBase && (pcClass->mpcBase->mcVtable.miPointerOffset != -1) && (pcClass->macBases.Get(0)->iOffset == 0))
-	{
-		pcClass->mcVtable.miPointerOffset = pcClass->mpcBase->mcVtable.miPointerOffset;
-	}
-	else if (pcClass->mcVtable.mapcFunctions.NumElements() > 0)
-	{
-		iFieldAlign = PackAlignment(mpcTarget->GetPointerBytes(), iPack);
-		iBytes = (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
-		pcClass->mcVtable.miPointerOffset = iBytes;
-		iBytes += mpcTarget->GetPointerBytes();
-		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
-	}
-	pcClass->mcVtable.LayoutSecondaries(pcClass);
-	iUnitBytes = 0;
-	iUnitOffset = 0;
-	iUnitBits = 0;
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (psField->IsBitField())
-		{
-			LayoutBitField(pcClass, psField, iPack, &iBytes, &iAlign, &iUnitBytes, &iUnitOffset, &iUnitBits);
-			continue;
-		}
-		iUnitBytes = 0;
-		iFieldAlign = PackAlignment(TypeAlignment(psField->psType), iPack);
-		iFieldAlign = (psField->iAlign > iFieldAlign) ? psField->iAlign : iFieldAlign;
-		iBytes = pcClass->mbUnion ? 0 : (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
-		psField->iOffset = iBytes;
-		iBytes += psField->psType->iBytes;
-		iAlign = (iFieldAlign > iAlign) ? iFieldAlign : iAlign;
-		if (pcClass->mbUnion && (iBytes > pcClass->mpsType->iBytes))
-		{
-			pcClass->mpsType->iBytes = iBytes;
-		}
-	}
-	if (pcClass->mbUnion)
-	{
-		iBytes = pcClass->mpsType->iBytes;
-	}
+	//The bases, the vtable pointer, then the fields.
 	iClassAlign = AlignasAlignment(&pcSpecifier->macpAttributes);
 	if (iClassAlign < 0)
 	{
 		bResult = false;
 	}
-	iAlign = (iClassAlign > iAlign) ? iClassAlign : iAlign;
-	iBytes = (iBytes + iAlign - 1) & ~(iAlign - 1);
-
-	pcClass->mbEmpty = (pcClass->macFields.NumElements() == 0) && (pcClass->mcVtable.miPointerOffset == -1);
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		pcClass->mbEmpty &= pcClass->macBases.Get(i)->pcClass->mbEmpty;
-	}
-	pcClass->miAlign = iAlign;
-	mcTypes.SetClassBytes(pcClass->mpsType, (iBytes > 0) ? iBytes : 1);
+	cLayout.Init(pcClass, pcSpecifier->miPack, mpcTarget->GetPointerBytes());
+	cLayout.Layout(iClassAlign);
+	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
+	cLayout.Kill();
 	pcClass->meState = CPPCS_Complete;
 
 	if (pcClass->mpcInheritedBase)

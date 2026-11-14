@@ -1208,7 +1208,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		*plliValue = (pcSizeof->meKeyword == CT_alignof) ? TypeAlignment(psType) : psType->iBytes;
+		*plliValue = (pcSizeof->meKeyword == CT_alignof) ? CCPPClassLayout::TypeAlignment(psType) : psType->iBytes;
 		return true;
 
 	default:
