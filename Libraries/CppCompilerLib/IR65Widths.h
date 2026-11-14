@@ -29,7 +29,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //then each register's width is only set straight before an instruction that uses the register, and only when it
 //isn't already that width.  A loop's label starts with the widths its code first needs (so a loop keeps a narrow
 //register narrow) and each jump to it sets them first; other labels start with the widths the code reaching them
-//agrees on.  Calls and returns keep the 32 bit convention.
+//agrees on.  Calls and returns keep the 32 bit convention.  A register copied to A only to be anded with a
+//constant for a branch on z is tested in place (UseTests).
 class CIR65Widths
 {
 protected:
@@ -53,6 +54,7 @@ protected:
 	void	ComputeLive(void);
 	void	LiveOut(size uiLine, SIR65Widths* psOut);
 	bool	RemoveExtensions(void);
+	bool	UseTests(void);
 	uint8	NextNeed(size uiFirst, int iRegister);
 	void	Anticipate(size uiLabel, size uiFallThrough);
 	void	DecideEntry(size uiLabel, bool bFromActual);

@@ -62,6 +62,7 @@ static const SIR65CodeMnemonic gasIR65CodeMnemonics[] =
 	{ "shl",	IR65CK_Alu,			true,	true,	true,	false,	IR65_FLAG_C | IR65_FLAG_V | IR65_FLAG_Z },
 	{ "shr",	IR65CK_Alu,			true,	true,	true,	false,	IR65_FLAGS_ALL },
 	{ "cmp",	IR65CK_Alu,			true,	false,	false,	false,	IR65_FLAGS_ALL },
+	{ "tst",	IR65CK_Alu,			true,	false,	false,	false,	IR65_FLAG_N | IR65_FLAG_Z },
 	{ "neg",	IR65CK_Negate,		false,	true,	false,	true,	IR65_FLAG_N | IR65_FLAG_Z },
 	{ "psh",	IR65CK_Push,		false,	false,	false,	false,	0 },
 	{ "pul",	IR65CK_Pull,		false,	false,	false,	false,	0 },

@@ -141,7 +141,7 @@ void CIR65Widths::Optimise(CChars* pszCode, size uiStart)
 	{
 		ComputeLive();
 	}
-	while (RemoveExtensions());
+	while (RemoveExtensions() || UseTests());
 
 	pszCode->SetLength(uiStart);
 	Write();
@@ -245,6 +245,79 @@ void CIR65Widths::LiveOut(size uiLine, SIR65Widths* psOut)
 			psOut->auiRegisters[i] |= psNext->auiRegisters[i];
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "cpy A, R / and A, value / bras z (or brac z)" with the bits of A they
+// write read by neither way on is "tst R, value / bras z": the same n and z, A untouched, one
+// instruction less.  Only with A and R the same width.  True if one was.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Widths::UseTests(void)
+{
+	size			ui;
+	size			uiNum;
+	SIR65CodeLine*	psCopy;
+	SIR65CodeLine*	psAnd;
+	SIR65CodeLine*	psBranch;
+	SIR65Widths		sOut;
+	SIR65Widths*	psWidths;
+	CChars*			pszCopy;
+	CChars*			pszAnd;
+	CChars*			pszBranch;
+	CChars			szInstruction;
+	bool			bChanged;
+
+	bChanged = false;
+	uiNum = mcCode.NumLines();
+	for (ui = 0; ui + 2 < uiNum; ui++)
+	{
+		if (!mcCode.IsReached(ui) || mcCode.IsRemoved(ui) || mcCode.IsRemoved(ui + 1) || mcCode.IsRemoved(ui + 2))
+		{
+			continue;
+		}
+		psCopy = mcCode.GetLine(ui);
+		psAnd = mcCode.GetLine(ui + 1);
+		psBranch = mcCode.GetLine(ui + 2);
+		if ((psCopy->uiKind != IR65CK_Alu) || (psAnd->uiKind != IR65CK_Alu) || (psBranch->uiKind != IR65CK_Branch))
+		{
+			continue;
+		}
+		if ((psCopy->iFirst != IR65CR_A) || (psCopy->iSecond < 0) || (psCopy->iSecond == IR65CR_A) || (psAnd->iFirst != IR65CR_A) || (psAnd->iSecond >= 0))
+		{
+			continue;
+		}
+		pszCopy = mcCode.GetText(ui);
+		pszAnd = mcCode.GetText(ui + 1);
+		pszBranch = mcCode.GetText(ui + 2);
+		if ((pszCopy->Length() != 10) || !pszCopy->StartsWith("\t\tcpy A, ") || !pszAnd->StartsWith("\t\tand A, ") || (pszAnd->Text()[9] == '[') || !(pszBranch->StartsWith("\t\tbras z, ") || pszBranch->StartsWith("\t\tbrac z, ")))
+		{
+			continue;
+		}
+		psWidths = mcCode.GetWidths(ui);
+		if (psWidths->auiRegisters[IR65CR_A] != psWidths->auiRegisters[psCopy->iSecond])
+		{
+			continue;
+		}
+		//The bits of A the cpy and and write (at A's width) are read by neither way on (a wider A's upper bits
+		//aren't touched either way).
+		LiveOut(ui + 2, &sOut);
+		if (sOut.auiRegisters[IR65CR_A] & CIR65Code::Bands(psWidths->auiRegisters[IR65CR_A]))
+		{
+			continue;
+		}
+		szInstruction.Init("tst ");
+		szInstruction.Append(CIR65Code::RegisterName(psCopy->iSecond))->Append(", ")->Append(pszAnd->Text() + 9);
+		if (mcCode.Replace(ui + 1, szInstruction.Text()))
+		{
+			mcCode.Remove(ui);
+			bChanged = true;
+		}
+		szInstruction.Kill();
+	}
+	return bChanged;
 }
 
 
