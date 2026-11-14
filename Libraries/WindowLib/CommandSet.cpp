@@ -32,6 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define COMMAND_SET_COMMAND_TAG		"Command"
 #define COMMAND_SET_KEYS_TAG		"Keys"
 #define COMMAND_SET_NAME_ATTRIBUTE	"Name"
+#define COMMAND_SET_CONTEXT_ATTRIBUTE	"Context"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,7 +40,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // A tag's text comes with the white space around it in the file.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AddKeysText(Ptr<CCommand> pCommand, const char* szText)
+static void AddKeysText(Ptr<CCommand> pCommand, const char* szText, const char* szContext)
 {
 	CChars	szKeys;
 	size	uiStart;
@@ -56,7 +57,7 @@ static void AddKeysText(Ptr<CCommand> pCommand, const char* szText)
 		uiEnd--;
 	}
 	szKeys.Init(szText, uiStart, uiEnd);
-	pCommand->AddKeys(szKeys.Text());
+	pCommand->AddKeys(szKeys.Text(), szContext);
 	szKeys.Kill();
 }
 
@@ -141,10 +142,11 @@ Ptr<CCommand> CCommandSet::Find(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 //
 // The command bound to szKeys (named as CComponentInput names them, as an
-// event's are), NULL if there is none.
+// event's are) in szContext (NULL for the global keys), NULL if there is
+// none.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCommand> CCommandSet::FindKeys(const char* szKeys)
+Ptr<CCommand> CCommandSet::FindKeys(const char* szKeys, const char* szContext)
 {
 	size	i;
 
@@ -154,7 +156,7 @@ Ptr<CCommand> CCommandSet::FindKeys(const char* szKeys)
 	}
 	for (i = 0; i < maCommands.NumElements(); i++)
 	{
-		if (maCommands.Get(i)->HasKeys(szKeys))
+		if (maCommands.Get(i)->HasKeys(szKeys, StrEmpty(szContext) ? COMPONENT_INPUT_GLOBAL_CONTEXT : szContext))
 		{
 			return maCommands.Get(i);
 		}
@@ -182,7 +184,7 @@ bool CCommandSet::BindKeys(CComponentInput* pcInput)
 	}
 	for (i = 0; i < maCommands.NumElements(); i++)
 	{
-		if (maCommands.Get(i)->GetKeyScope() == CKS_Window)
+		if (maCommands.Get(i)->IsGivingStandard() && (StringCompare(maCommands.Get(i)->GetFirstContext(), COMPONENT_INPUT_GLOBAL_CONTEXT) == 0))
 		{
 			pcInput->RemoveStandardKeys(maCommands.Get(i)->GetStandardCommand());
 		}
@@ -215,10 +217,11 @@ void CCommandSet::ResetKeys(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The user's keys in szFile, in place of any before, once they're next
-// bound.  A key belongs to one command, so a command that kept its own
-// gives up any the user gave another; if the file gives two the same, the
-// first has it.  Commands the file names that aren't here are ignored.
+// The user's keys in szFile, in place of any the keymap keeps before,
+// once they're next bound.  A key belongs to one command in each context, so a command that
+// kept its own gives up any the user gave another there; if the file
+// gives two the same, the first has it.  Commands the file names that
+// aren't here, or whose keys aren't the user's, are ignored.
 // False, and each command has what it was made with, if it isn't there or
 // isn't a keymap.
 //
@@ -244,7 +247,13 @@ bool CCommandSet::ReadKeys(const char* szFile)
 	size			j;
 	size			k;
 
-	ResetKeys();
+	for (i = 0; i < maCommands.NumElements(); i++)
+	{
+		if (maCommands.Get(i)->IsKeptByKeymap())
+		{
+			maCommands.Get(i)->ResetKeys();
+		}
+	}
 	szFileName.Init();
 	szDirectory.Init();
 	aszRead.Init();
@@ -263,7 +272,7 @@ bool CCommandSet::ReadKeys(const char* szFile)
 		{
 			szName = pcTag->GetStringAttribute(COMMAND_SET_NAME_ATTRIBUTE);
 			pCommand = szName ? Find(szName) : Ptr<CCommand>();
-			if (pCommand.IsNull() || aszRead.Contains(szName))
+			if (pCommand.IsNull() || !pCommand->IsKeptByKeymap() || aszRead.Contains(szName))
 			{
 				continue;
 			}
@@ -273,7 +282,7 @@ bool CCommandSet::ReadKeys(const char* szFile)
 			{
 				szKeys.Init();
 				pcKeysTag->GetText(&szKeys);
-				AddKeysText(pCommand, szKeys.Text());
+				AddKeysText(pCommand, szKeys.Text(), pcKeysTag->GetStringAttribute(COMMAND_SET_CONTEXT_ATTRIBUTE));
 				szKeys.Kill();
 			}
 		}
@@ -293,7 +302,7 @@ bool CCommandSet::ReadKeys(const char* szFile)
 				pOther = maCommands.Get(k);
 				if ((&pOther != &pCommand) && (aszRead.GetIndex(pOther->GetName()) > i))
 				{
-					pOther->RemoveKeys(pCommand->GetKeys(j));
+					pOther->RemoveKeys(pCommand->GetKeys(j), pCommand->GetKeysContext(j));
 				}
 			}
 		}
@@ -305,8 +314,8 @@ bool CCommandSet::ReadKeys(const char* szFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The commands whose keys differ from those they were made with to
-// szFile, its directory made if it isn't there.
+// The commands whose keys differ from those they were made with, and are
+// the user's, to szFile, its directory made if it isn't there.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCommandSet::WriteKeys(const char* szFile)
@@ -324,13 +333,17 @@ bool CCommandSet::WriteKeys(const char* szFile)
 	for (i = 0; i < maCommands.NumElements(); i++)
 	{
 		pCommand = maCommands.Get(i);
-		if (!pCommand->HasDefaultKeys())
+		if (pCommand->IsKeptByKeymap() && !pCommand->HasDefaultKeys())
 		{
 			cWriter.Begin(COMMAND_SET_COMMAND_TAG);
 			cWriter.Attribute(COMMAND_SET_NAME_ATTRIBUTE, pCommand->GetName());
 			for (j = 0; j < pCommand->NumKeys(); j++)
 			{
 				cWriter.Begin(COMMAND_SET_KEYS_TAG);
+				if (StringCompare(pCommand->GetKeysContext(j), pCommand->GetFirstContext()) != 0)
+				{
+					cWriter.Attribute(COMMAND_SET_CONTEXT_ATTRIBUTE, pCommand->GetKeysContext(j));
+				}
 				cWriter.Text(pCommand->GetKeys(j));
 				cWriter.End();
 			}
@@ -365,11 +378,11 @@ bool CCommandSet::Run(const char* szName)
 // run now, so the keys go on.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCommandSet::RunKeys(const char* szKeys)
+bool CCommandSet::RunKeys(const char* szKeys, const char* szContext)
 {
 	Ptr<CCommand>	pCommand;
 
-	pCommand = FindKeys(szKeys);
+	pCommand = FindKeys(szKeys, szContext);
 	return pCommand.IsNotNull() && pCommand->Run();
 }
 

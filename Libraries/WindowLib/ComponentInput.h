@@ -77,8 +77,9 @@ typedef CArrayTemplate<SComponentInputBinding>	CArrayComponentInputBinding;
 
 //An application's keys for a part of its window (CComponentInput::AddContext): a code editor, a circuit.  A key read
 //in a context is looked for in its bindings, then its parent's, out to the global keys, and the innermost binding
-//wins.  A typing context can have keys that type a character, which then give their command there instead.  An
-//editor context's standard editor commands (caret, selection, editing) are its own: one it doesn't bind gives nothing.
+//wins.  A typing context can have keys that type a character, which then give their command there instead.  Once an
+//editor context has keys, the standard editor commands (caret, selection, editing) are its own: one it doesn't bind
+//gives nothing.  The Editor context (a text area's) is always there.
 struct SComponentInputContext
 {
 	CChars						szName;
@@ -156,11 +157,8 @@ public:
 	bool				IsTypingContext(const char* szName);
 	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand, const char* szContext = NULL);
 	bool				UnbindKeys(const char* szKeys, const char* szContext = NULL);
-	bool				BindEditorKeys(const char* szKeys, EComponentInputCommand eCommand);
-	bool				UnbindEditorKeys(const char* szKeys);
 	void				RemoveStandardKeys(EComponentInputCommand eCommand);
 	bool				IsBound(const char* szKeys, const char* szContext = NULL);
-	bool				IsEditorBound(const char* szKeys);
 	EComponentInputCommand	GetStandardCommand(const char* szKeys);
 	bool				IsTypingKeys(const char* szKeys);
 	static bool			IsEditorCommand(EComponentInputCommand eCommand);

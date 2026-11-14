@@ -522,7 +522,7 @@ bool CFocus::DispatchUnhandledCommand(SComponentInputEvent* psEvent)
 
 	if (psEvent->eCommand == CIC_Command)
 	{
-		return RunCommand(mpWindow, psEvent->szName);
+		return RunCommand(mpWindow, psEvent->szName, psEvent->szContext);
 	}
 	if (((psEvent->eCommand == CIC_Tab) || (psEvent->eCommand == CIC_BackTab)) && mpWindow->IsModal())
 	{
@@ -626,21 +626,21 @@ void CFocus::FindTabStops(Ptr<CComponent> pComponent, SFocusTabStops* psStops)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The command bound to szKeys in pWindow's commands, or its owner's (a
-// dialog's or tool window's), runs.  False if there is none or it can't
-// run now.
+// The command bound to szKeys in szContext (NULL for the global keys) in
+// pWindow's commands, or its owner's (a dialog's or tool window's), runs.
+// False if there is none or it can't run now.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFocus::RunCommand(Ptr<CWindow> pWindow, char* szKeys)
+bool CFocus::RunCommand(Ptr<CWindow> pWindow, char* szKeys, const char* szContext)
 {
 	Ptr<CCommandSet>	pCommands;
 
 	while (pWindow.IsNotNull())
 	{
 		pCommands = pWindow->GetCommands();
-		if (pCommands.IsNotNull() && pCommands->FindKeys(szKeys).IsNotNull())
+		if (pCommands.IsNotNull() && pCommands->FindKeys(szKeys, szContext).IsNotNull())
 		{
-			return pCommands->RunKeys(szKeys);
+			return pCommands->RunKeys(szKeys, szContext);
 		}
 		pWindow = pWindow->GetOwner();
 	}

@@ -25,17 +25,21 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CComponentInput;
-//An application's commands, given to its window (CWindow::SetCommands).  Their keys are bound (BindKeys) as
-//CIC_Command; such a key that nothing focused takes runs the command whose keys it is (see
-//CFocus::DispatchUnhandledCommand).  A command is found by its name too, as scripts and menus find it.
+//An application's commands, given to its window (CWindow::SetCommands).  Their keys are bound (BindKeys) in their
+//contexts as CIC_Command, or their standard command; such a key that nothing focused takes runs the command whose keys
+//it is in the context it was read in (see CFocus::DispatchUnhandledCommand).  A command is found by its name too, as
+//scripts and menus find it.
 //
 //A user's keys are kept in a file of theirs, only for the commands they differ on, so a command added later comes with
-//its own:
+//its own.  Keys say their context where it isn't the command's first:
 //
 //	<Keymap>
 //		<Command Name="Edit.Copy"><Keys>Control+Shift+C</Keys><Keys>Control+Insert</Keys></Command>
+//		<Command Name="Edit.RotateLeft"><Keys Context="Circuit">R</Keys><Keys>Control+R</Keys></Command>
 //		<Command Name="Debug.StepOver"/>
 //	</Keymap>
+//
+//Commands whose keys aren't the user's (CCommand::SetKeptByKeymap(false), a project's) aren't written there, nor read.
 class CCommandSet : public CObject
 {
 CONSTRUCTABLE(CCommandSet);
@@ -58,13 +62,13 @@ public:
 	Ptr<CCommand>		Add(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(CCommand*));
 	Ptr<CCommand>		Add(Ptr<CCommand> pCommand);
 	Ptr<CCommand>		Find(const char* szName);
-	Ptr<CCommand>		FindKeys(const char* szKeys);
+	Ptr<CCommand>		FindKeys(const char* szKeys, const char* szContext = NULL);
 	size				NumCommands(void);
 	Ptr<CCommand>		GetCommand(size uiIndex);
 
 	bool				BindKeys(CComponentInput* pcInput);
 	bool				Run(const char* szName);
-	bool				RunKeys(const char* szKeys);
+	bool				RunKeys(const char* szKeys, const char* szContext = NULL);
 
 	bool				ReadKeys(const char* szFile);
 	bool				WriteKeys(const char* szFile);

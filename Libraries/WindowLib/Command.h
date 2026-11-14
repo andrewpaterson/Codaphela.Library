@@ -31,12 +31,29 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CComponentInput;
 
 
-//Where a command's keys work, and so how they're bound.
-enum ECommandKeyScope
+//Keys and the context each is bound in (see CComponentInput::AddContext), as a command keeps them: "R" in "Circuit",
+//"Control+R" in "Global".  The keys are named as CComponentInput::NameKeys names them.
+class CCommandKeyList
 {
-	CKS_Application,	//Anywhere nothing focused takes them; they run the command.
-	CKS_Window,			//Anywhere; they give its standard command, which a window's parts take (Close Document).
-	CKS_Editor,			//In a component that uses editor keys; they give it its standard command (Copy).
+protected:
+	CArrayChars	maszContexts;
+	CArrayChars	maszKeys;
+
+public:
+	void	Init(void);
+	void	Kill(void);
+
+	void	Clear(void);
+	void	Copy(CCommandKeyList* pcSource);
+	bool	Add(const char* szContext, const char* szKeys);
+	bool	Remove(const char* szContext, const char* szKeys);
+	size	Find(const char* szContext, const char* szKeys);
+	bool	Contains(const char* szContext, const char* szKeys);
+	bool	ContainsKeys(const char* szKeys);
+	bool	HasSameKeys(CCommandKeyList* pcOther);
+	size	NumKeys(void);
+	char*	GetKeys(size uiIndex);
+	char*	GetContext(size uiIndex);
 };
 
 
@@ -47,8 +64,13 @@ enum ECommandKeyScope
 //given the command run (a table of an application's actions, say).  The functions' object isn't held by the command;
 //it must outlive it.
 //
-//A command can have several keys, the first being those a menu shows.  It remembers those it started with, so a user's
-//changes can be told from them and undone, and those it last bound, so they can be unbound.
+//Its keys are each bound in a context (LogiCim's Rotate Left has R over the circuit, and could have Control+R
+//everywhere): those it may have keys in are its contexts (AllowContext), the first, Global unless it's told otherwise
+//(SetContext), being where keys given without one go.  They run it, or give its standard command when it stands for
+//one a window's or an editor's parts take (SetGivesStandard: Copy, Close Document).  A command can have several keys,
+//the first Global one being what a menu shows.  It remembers those it started with, so a user's changes can be told
+//from them and undone, and those it last bound, so they can be unbound.  Keys a project keeps rather than the user's
+//keymap (a subcircuit's, in LogiCim) are SetKeptByKeymap(false).
 //
 //A command that turns something on and off (Group by Project) says which it is (SetCheckedCheck): a toolbar shows its
 //button on while it is.
@@ -59,10 +81,12 @@ DESTRUCTABLE(CCommand);
 protected:
 	CChars					mszName;
 	CChars					mszCaption;
-	CArrayChars				maszKeys;  //Named as CComponentInput names them.
-	CArrayChars				maszDefaultKeys;  //The keys it was made with.
-	CArrayChars				maszBoundKeys;  //The keys given to a CComponentInput by Bind.
-	ECommandKeyScope		meKeyScope;
+	CArrayChars				maszContexts;  //Where it may have keys, the first where keys without a context go.
+	CCommandKeyList			mcKeys;
+	CCommandKeyList			mcDefaultKeys;  //The keys it was made with.
+	CCommandKeyList			mcBoundKeys;  //The keys given to a CComponentInput by Bind.
+	bool					mbGivesStandard;  //Its keys give meStandard rather than running it.
+	bool					mbKeptByKeymap;  //Its keys are the user's keymap's (CCommandSet::ReadKeys and WriteKeys).
 	Ptr<CImageCel>			mpIcon;  //NULL for none.
 	SMemberCall				msRun;
 	SMemberCall				msEnabled;  //Not set: the command can always run.
@@ -92,24 +116,37 @@ public:
 	bool					Run(void);
 	void					SetStandardCommand(EComponentInputCommand eStandard);
 	EComponentInputCommand	GetStandardCommand(void);
+	void					SetGivesStandard(bool bGivesStandard);
+	bool					IsGivingStandard(void);
 
 	char*				GetName(void);
 	char*				GetCaption(void);
+	void				SetContext(const char* szContext);
+	void				AllowContext(const char* szContext);
+	bool				IsContextAllowed(const char* szContext);
+	size				NumContexts(void);
+	char*				GetContext(size uiIndex);
+	char*				GetFirstContext(void);
+	void				SetKeptByKeymap(bool bKept);
+	bool				IsKeptByKeymap(void);
+
 	char*				GetKeys(void);
 	size				NumKeys(void);
 	char*				GetKeys(size uiIndex);
-	bool				HasKeys(const char* szKeys);
-	void				AddDefaultKeys(const char* szKeys);
-	bool				AddKeys(const char* szKeys);
-	void				RemoveKeys(const char* szKeys);
+	char*				GetKeysContext(size uiIndex);
+	bool				HasKeys(const char* szKeys, const char* szContext = NULL);
+	void				AddDefaultKeys(const char* szKeys, const char* szContext = NULL);
+	bool				AddKeys(const char* szKeys, const char* szContext = NULL);
+	void				RemoveKeys(const char* szKeys, const char* szContext = NULL);
 	void				SetKeys(CArrayChars* paszKeys);
+	void				SetKeys(CCommandKeyList* pcKeys);
 	void				ClearKeys(void);
 	void				ResetKeys(void);
 	bool				HasDefaultKeys(void);
 	size				NumDefaultKeys(void);
 	char*				GetDefaultKeys(size uiIndex);
-	void				SetKeyScope(ECommandKeyScope eScope);
-	ECommandKeyScope	GetKeyScope(void);
+	char*				GetDefaultKeysContext(size uiIndex);
+	CCommandKeyList*	GetKeyList(void);
 	bool				Bind(CComponentInput* pcInput);
 	void				Unbind(CComponentInput* pcInput);
 	Ptr<CImageCel>		GetIcon(void);
@@ -117,6 +154,8 @@ public:
 
 protected:
 	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, SMemberCall* psRun, bool bRunAsks);
+	const char*			ToContext(const char* szContext);
+	bool				NameKeys(const char* szKeys, CChars* pszDest);
 };
 
 

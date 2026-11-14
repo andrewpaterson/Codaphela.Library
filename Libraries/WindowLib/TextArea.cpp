@@ -1235,7 +1235,7 @@ bool CTextArea::WantsEnter(void)
 }
 
 
-const char* CTextArea::GetKeyContext(void) { return COMPONENT_INPUT_EDITOR_CONTEXT; }  //The keys an application has given editors (CComponentInput::BindEditorKeys), outside of a dialog.
+const char* CTextArea::GetKeyContext(void) { return COMPONENT_INPUT_EDITOR_CONTEXT; }  //The keys an application has bound in the Editor context, outside of a dialog.
 bool CTextArea::TakesTyping(void) { return true; }
 
 

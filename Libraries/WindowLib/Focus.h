@@ -138,7 +138,7 @@ protected:
 	bool				DispatchUnhandledCommand(SComponentInputEvent* psEvent);
 	bool				MoveFocus(bool bForward);
 	void				FindTabStops(Ptr<CComponent> pComponent, SFocusTabStops* psStops);
-	bool				RunCommand(Ptr<CWindow> pWindow, char* szKeys);
+	bool				RunCommand(Ptr<CWindow> pWindow, char* szKeys, const char* szContext);
 	bool				FocusClick(void);
 	void				InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, bool bInsert);
 	bool				IsClick(SComponentInputEvent* psEvent);

@@ -122,6 +122,7 @@ void CComponentInput::Init(CWindowInputSource* pcSource, CWindow* pcWindow)
 	masChordCommands.Init();
 	masBindings.Init();
 	masContexts.Init();
+	AddContext(COMPONENT_INPUT_EDITOR_CONTEXT, NULL, false, true);
 
 	mbCapsLock = false;
 	mbNumLock = false;
@@ -822,24 +823,7 @@ bool CComponentInput::IsTypingContext(const char* szName)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// The Editor context's keys (see BindKeys): an editor command's standard
-// keys no longer give it in an editor unless they are bound too.  The
-// context is added by the first.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CComponentInput::BindEditorKeys(const char* szKeys, EComponentInputCommand eCommand)
-{
-	if (GetContext(COMPONENT_INPUT_EDITOR_CONTEXT) == NULL)
-	{
-		AddContext(COMPONENT_INPUT_EDITOR_CONTEXT, NULL, false, true);
-	}
-	return BindKeys(szKeys, eCommand, COMPONENT_INPUT_EDITOR_CONTEXT);
-}
 
-
-bool CComponentInput::UnbindEditorKeys(const char* szKeys) { return UnbindKeys(szKeys, COMPONENT_INPUT_EDITOR_CONTEXT); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -914,8 +898,6 @@ bool CComponentInput::IsBound(const char* szKeys, const char* szContext)
 	return bBound;
 }
 
-
-bool CComponentInput::IsEditorBound(const char* szKeys) { return IsBound(szKeys, COMPONENT_INPUT_EDITOR_CONTEXT); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1393,7 +1375,7 @@ SComponentInputBinding* CComponentInput::FindContextBinding(const char* szContex
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a key read in szContext is in an editor context (it or one
-// around it), whose keys say what the editor commands are.
+// around it) with keys, which say what the editor commands are.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponentInput::HasEditorCommands(const char* szContext)
@@ -1403,7 +1385,7 @@ bool CComponentInput::HasEditorCommands(const char* szContext)
 
 	for (psContext = GetContext(szContext), uiDepth = 0; (psContext != NULL) && (uiDepth < masContexts.NumElements()); psContext = GetParentContext(psContext), uiDepth++)
 	{
-		if (psContext->bEditorCommands)
+		if (psContext->bEditorCommands && (psContext->asBindings.NumElements() > 0))
 		{
 			return true;
 		}

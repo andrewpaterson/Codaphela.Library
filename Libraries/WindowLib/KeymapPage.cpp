@@ -616,7 +616,7 @@ bool CKeymapPage::DescribeKeys(size uiRow, const char* szKeys, CChars* pszMessag
 	{
 		pszMessage->Append(" types a character: add Ctrl or Alt.");
 	}
-	else if ((psRow->pcCommand->GetKeyScope() != CKS_Editor) && CComponentInput::IsWidgetCommand(mpcInput->GetStandardCommand(szName.Text())))
+	else if ((StringCompare(psRow->pcCommand->GetFirstContext(), COMPONENT_INPUT_EDITOR_CONTEXT) != 0) && CComponentInput::IsWidgetCommand(mpcInput->GetStandardCommand(szName.Text())))
 	{
 		pszMessage->Append(" is needed by dialogs and text fields.");
 	}

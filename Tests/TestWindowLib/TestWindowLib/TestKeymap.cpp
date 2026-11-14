@@ -281,7 +281,7 @@ void TestKeymapContexts(void)
 
 	AssertTrue(cTest.cInput.HasContext(COMPONENT_INPUT_GLOBAL_CONTEXT));
 	AssertTrue(cTest.cInput.HasContext(NULL));
-	AssertFalse(cTest.cInput.HasContext(COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.HasContext(COMPONENT_INPUT_EDITOR_CONTEXT));
 	AssertTrue(cTest.cInput.AddContext("Outer", NULL, false));
 	AssertTrue(cTest.cInput.AddContext("Inner", "Outer", true));
 	AssertTrue(cTest.cInput.HasContext("Inner"));
@@ -291,7 +291,7 @@ void TestKeymapContexts(void)
 	AssertFalse(cTest.cInput.BindKeys("F5", CIC_Copy, "Nowhere"));
 	AssertFalse(cTest.cInput.BindKeys("A", CIC_Copy, "Outer"));
 	AssertFalse(cTest.cInput.BindKeys("Shift+A", CIC_Copy, "Outer"));
-	AssertFalse(cTest.cInput.BindEditorKeys("A", CIC_Copy));
+	AssertFalse(cTest.cInput.BindKeys("A", CIC_Copy, COMPONENT_INPUT_EDITOR_CONTEXT));
 	gcLogger.SetConfig(&sLogConfig);
 	AssertFalse(cTest.cInput.HasContext("Lost"));
 	AssertFalse(cTest.cInput.IsBound("A", "Outer"));
@@ -313,7 +313,7 @@ void TestKeymapContexts(void)
 	AssertLog("a;A;");
 
 	//The editor's keys say which context they're from; a standard key's say none.
-	AssertTrue(cTest.cInput.BindEditorKeys("F6", CIC_Up));
+	AssertTrue(cTest.cInput.BindKeys("F6", CIC_Up, COMPONENT_INPUT_EDITOR_CONTEXT));
 	cTest.FocusEditor();
 	cTest.cDevices.Tap("F6");
 	AssertLog("Up;");
@@ -392,6 +392,117 @@ void TestKeymapContextFocus(void)
 	cTest.cDevices.Tap("A");
 	AssertLog("a;");
 
+	cTest.Kill();
+	szLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A command with keys in contexts: a menu shows its Global keys, else its
+// first; it's found by its keys in their context; a bare key in a typing
+// context runs it there and still types elsewhere.  The keymap file says
+// a key's context where it isn't the command's first, reads keys without
+// one into its first, and leaves out a command whose keys aren't the
+// user's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestKeymapCommandContexts(void)
+{
+	CChars				szLog;
+	CKeymapTestWindow	cTest;
+	CKeymapTestCommands	cRun;
+	Ptr<CCommandSet>	pCommands;
+	Ptr<CCommand>		pRotate;
+	Ptr<CCommand>		pPlace;
+	Ptr<CCommand>		pBoard;
+	CFileUtil			cFileUtil;
+	CTextFile			cFile;
+
+	szLog.Init();
+	cTest.Init(&szLog);
+	cRun.mpszLog = &szLog;
+	cFileUtil.RemoveDir(TEST_KEYMAP_DIRECTORY);
+	AssertTrue(cTest.cInput.AddContext("Circuit", NULL, true));
+	cTest.pField->mszContext = "Circuit";
+
+	pCommands = OMalloc<CCommandSet>();
+	cTest.pWindow->SetCommands(pCommands);
+	pRotate = pCommands->Add("Edit.Rotate", "Rotate", NULL, Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pRotate->AllowContext("Circuit");
+	pRotate->AddDefaultKeys("A", "Circuit");
+	pRotate->AddDefaultKeys("Control+Q");
+	pPlace = pCommands->Add("Place.Clock", "Clock", NULL, Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pPlace->SetContext("Circuit");
+	pPlace->AddDefaultKeys("Shift+C");
+	pBoard = pCommands->Add("Place.Board", "Board", NULL, Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
+	pBoard->SetContext("Circuit");
+	pBoard->SetKeptByKeymap(false);
+	AssertTrue(pCommands->BindKeys(&cTest.cInput));
+
+	//Shown keys, and where they are.
+	AssertString("Control+Q", pRotate->GetKeys());
+	AssertString("Shift+C", pPlace->GetKeys());
+	AssertString("Circuit", pPlace->GetKeysContext(0));
+	AssertTrue(pRotate->HasKeys("A", "Circuit"));
+	AssertFalse(pRotate->HasKeys("A", COMPONENT_INPUT_GLOBAL_CONTEXT));
+	AssertTrue(pRotate->HasKeys("A"));
+	AssertTrue(pCommands->FindKeys("A", "Circuit") == pRotate);
+	AssertTrue(pCommands->FindKeys("A").IsNull());
+	AssertTrue(pCommands->FindKeys("Control+Q") == pRotate);
+	AssertTrue(pCommands->FindKeys("Shift+C", "Circuit") == pPlace);
+
+	//In the circuit the bare keys run them; the global key runs Rotate anywhere; elsewhere A and C type.
+	cTest.FocusField();
+	cTest.cDevices.Tap("A");
+	cTest.cDevices.Shift("C");
+	cTest.cDevices.Control("Q");
+	AssertLog("Edit.Rotate;Place.Clock;Edit.Rotate;");
+	cTest.FocusEditor();
+	cTest.pWindow->PointerMoved(16, 16);
+	cTest.cDevices.Tap("A");
+	cTest.cDevices.Shift("C");
+	cTest.cDevices.Control("Q");
+	AssertLog("a;C;Edit.Rotate;");
+
+	//Written: the key in a context that isn't the command's first says so; a key in its first doesn't.
+	pRotate->RemoveKeys("A", "Circuit");
+	AssertTrue(pRotate->AddKeys("W", "Circuit"));
+	AssertTrue(pPlace->AddKeys("X"));
+	AssertTrue(pBoard->AddKeys("D"));
+	AssertTrue(pCommands->WriteKeys(TEST_KEYMAP_FILE));
+	cFile.Init();
+	AssertTrue(cFile.Read(TEST_KEYMAP_FILE));
+	AssertTrue(strstr(cFile.Text(), "<Keys Context=\"Circuit\">") != NULL);
+	AssertTrue(strstr(strstr(cFile.Text(), "<Keys Context=\"Circuit\">") + strlen("<Keys Context"), "Context=") == NULL);
+	AssertTrue(strstr(cFile.Text(), "Place.Board") == NULL);
+	cFile.Kill();
+
+	//Read back, each key in its context; a project's command keeps what it has.
+	pCommands->ResetKeys();
+	AssertTrue(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertTrue(pRotate->HasKeys("W", "Circuit"));
+	AssertTrue(pRotate->HasKeys("Control+Q", COMPONENT_INPUT_GLOBAL_CONTEXT));
+	AssertFalse(pRotate->HasKeys("A"));
+	AssertTrue(pPlace->HasKeys("X", "Circuit"));
+	AssertSize(0, pBoard->NumKeys());
+	AssertTrue(pBoard->AddKeys("D"));
+
+	//A file written before contexts: keys without one are in the command's first context; a project's command's are ignored.
+	cFile.Init("<Keymap><Command Name=\"Place.Clock\"><Keys>F5</Keys></Command><Command Name=\"Place.Board\"><Keys>F6</Keys></Command></Keymap>\n");
+	AssertTrue(cFile.Write(TEST_KEYMAP_FILE));
+	cFile.Kill();
+	AssertTrue(pCommands->ReadKeys(TEST_KEYMAP_FILE));
+	AssertTrue(pPlace->HasKeys("F5", "Circuit"));
+	AssertTrue(pBoard->HasKeys("D", "Circuit"));
+	AssertFalse(pBoard->HasKeys("F6"));
+
+	cTest.pWindow->SetCommands(NULL);
+	pCommands = NULL;
+	pRotate = NULL;
+	pPlace = NULL;
+	pBoard = NULL;
+	cFileUtil.RemoveDir(TEST_KEYMAP_DIRECTORY);
 	cTest.Kill();
 	szLog.Kill();
 }
@@ -499,14 +610,14 @@ void TestKeymapEditorKeys(void)
 	cTest.cDevices.Tap("Cursor Up");
 	AssertLog("Copy;Up;");
 
-	AssertTrue(cTest.cInput.BindEditorKeys("Control+Q", CIC_Copy));
-	AssertTrue(cTest.cInput.BindEditorKeys("F6", CIC_Up));
-	AssertTrue(cTest.cInput.BindEditorKeys("Enter", CIC_Enter));
-	AssertTrue(cTest.cInput.BindEditorKeys("Insert", CIC_ToggleInsert));
-	AssertTrue(cTest.cInput.IsEditorBound("Control+Q"));
-	AssertTrue(cTest.cInput.IsEditorBound("F6"));
-	AssertFalse(cTest.cInput.IsEditorBound("Control+C"));
-	AssertFalse(cTest.cInput.IsEditorBound("F13"));
+	AssertTrue(cTest.cInput.BindKeys("Control+Q", CIC_Copy, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("F6", CIC_Up, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("Enter", CIC_Enter, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("Insert", CIC_ToggleInsert, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.IsBound("Control+Q", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.IsBound("F6", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertFalse(cTest.cInput.IsBound("Control+C", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertFalse(cTest.cInput.IsBound("F13", COMPONENT_INPUT_EDITOR_CONTEXT));
 
 	//In the editor the bound keys work and those moved off do nothing.
 	cTest.cDevices.Control("Q");
@@ -545,11 +656,11 @@ void TestKeymapEditorKeys(void)
 	//With num lock off a numpad key is the key it stands for.
 	cTest.cDevices.Tap("Numpad 8");
 	AssertLog("");
-	AssertTrue(cTest.cInput.BindEditorKeys("Cursor Up", CIC_Up));
+	AssertTrue(cTest.cInput.BindKeys("Cursor Up", CIC_Up, COMPONENT_INPUT_EDITOR_CONTEXT));
 	cTest.cDevices.Tap("Numpad 8");
 	AssertLog("Up;");
-	AssertTrue(cTest.cInput.UnbindEditorKeys("Cursor Up"));
-	AssertFalse(cTest.cInput.UnbindEditorKeys("Cursor Up"));
+	AssertTrue(cTest.cInput.UnbindKeys("Cursor Up", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertFalse(cTest.cInput.UnbindKeys("Cursor Up", COMPONENT_INPUT_EDITOR_CONTEXT));
 
 	cTest.Kill();
 	szLog.Kill();
@@ -571,8 +682,8 @@ void TestKeymapInsert(void)
 	szLog.Init();
 	cTest.Init(&szLog);
 	cTest.FocusEditor();
-	AssertTrue(cTest.cInput.BindEditorKeys("Insert", CIC_ToggleInsert));
-	AssertTrue(cTest.cInput.BindEditorKeys("Control+Insert", CIC_Copy));
+	AssertTrue(cTest.cInput.BindKeys("Insert", CIC_ToggleInsert, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("Control+Insert", CIC_Copy, COMPONENT_INPUT_EDITOR_CONTEXT));
 
 	AssertTrue(cTest.cInput.IsInsert());
 	cTest.cDevices.Tap("Insert");
@@ -584,9 +695,9 @@ void TestKeymapInsert(void)
 	AssertTrue(cTest.cInput.IsInsert());
 
 	//Moved to a key and to a chord.
-	AssertTrue(cTest.cInput.UnbindEditorKeys("Insert"));
-	AssertTrue(cTest.cInput.BindEditorKeys("F1", CIC_ToggleInsert));
-	AssertTrue(cTest.cInput.BindEditorKeys("Control+Q", CIC_ToggleInsert));
+	AssertTrue(cTest.cInput.UnbindKeys("Insert", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("F1", CIC_ToggleInsert, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("Control+Q", CIC_ToggleInsert, COMPONENT_INPUT_EDITOR_CONTEXT));
 	cTest.cDevices.Tap("Insert");
 	AssertTrue(cTest.cInput.IsInsert());
 	cTest.cDevices.Tap("F1");
@@ -596,7 +707,7 @@ void TestKeymapInsert(void)
 	AssertLog("");
 
 	//The insert key given something else.
-	AssertTrue(cTest.cInput.BindEditorKeys("Insert", CIC_Copy));
+	AssertTrue(cTest.cInput.BindKeys("Insert", CIC_Copy, COMPONENT_INPUT_EDITOR_CONTEXT));
 	cTest.cDevices.Tap("Insert");
 	AssertTrue(cTest.cInput.IsInsert());
 	AssertLog("Copy;");
@@ -672,8 +783,8 @@ void TestKeymapDialog(void)
 	cTest.cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
 	pOwnerTick = OMalloc<CScriptFramesTick>(&KeymapDialogOwnerFrames, &cDialog);
 	cTest.Init(&szLog, pOwnerTick);
-	AssertTrue(cTest.cInput.BindEditorKeys("Control+Q", CIC_Copy));
-	AssertTrue(cTest.cInput.BindEditorKeys("Enter", CIC_Enter));
+	AssertTrue(cTest.cInput.BindKeys("Control+Q", CIC_Copy, COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.BindKeys("Enter", CIC_Enter, COMPONENT_INPUT_EDITOR_CONTEXT));
 	AssertFalse(cTest.pWindow->IsModal());
 
 	cDialog.pcDevices = &cTest.cDevices;
@@ -831,10 +942,10 @@ void TestKeymapWindowCommands(void)
 	cTest.pWindow->SetCommands(pCommands);
 	pClose = pCommands->Add("Close", "Close", "Control+F4", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
 	pClose->SetStandardCommand(CIC_CloseDocument);
-	pClose->SetKeyScope(CKS_Window);
+	pClose->SetGivesStandard(true);
 	pDifference = pCommands->Add("Difference", "Difference", "F7", Ptr<CImageCel>(), &cRun, &CKeymapTestCommands::Run);
 	pDifference->SetStandardCommand(CIC_NextDifference);
-	pDifference->SetKeyScope(CKS_Window);
+	pDifference->SetGivesStandard(true);
 	AssertTrue(pCommands->BindKeys(&cTest.cInput));
 
 	//They give the standard command, they don't run the command.
@@ -905,16 +1016,17 @@ void TestKeymapEditCommands(void)
 
 	pCopy = pCommands->Find("Edit.Copy");
 	AssertSize(2, pCopy->NumKeys());
-	AssertInt(CKS_Editor, pCopy->GetKeyScope());
+	AssertString(COMPONENT_INPUT_EDITOR_CONTEXT, pCopy->GetFirstContext());
+	AssertTrue(pCopy->IsGivingStandard());
 	AssertInt(CIC_Copy, pCopy->GetStandardCommand());
 	AssertInt(CIC_Up, pCommands->Find("Editor.Up")->GetStandardCommand());
-	AssertInt(CKS_Window, pCommands->Find("Window.CloseDocument")->GetKeyScope());
-	AssertInt(CKS_Window, pCommands->Find("Window.JumpToSource")->GetKeyScope());
+	AssertString(COMPONENT_INPUT_GLOBAL_CONTEXT, pCommands->Find("Window.CloseDocument")->GetFirstContext());
+	AssertTrue(pCommands->Find("Window.JumpToSource")->IsGivingStandard());
 	AssertInt(CIC_JumpToSource, pCommands->Find("Window.JumpToSource")->GetStandardCommand());
 	AssertSize(2, pCommands->Find("Editor.Enter")->NumKeys());
-	AssertTrue(cTest.cInput.IsEditorBound("Control+C"));
-	AssertTrue(cTest.cInput.IsEditorBound("Control+Insert"));
-	AssertTrue(cTest.cInput.IsEditorBound("Cursor Up"));
+	AssertTrue(cTest.cInput.IsBound("Control+C", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.IsBound("Control+Insert", COMPONENT_INPUT_EDITOR_CONTEXT));
+	AssertTrue(cTest.cInput.IsBound("Cursor Up", COMPONENT_INPUT_EDITOR_CONTEXT));
 	AssertFalse(cTest.cInput.IsBound("Control+C"));
 
 	szKeys.Init();
@@ -1308,6 +1420,7 @@ void TestKeymap(void)
 	TestKeymapUnbindKeys();
 	TestKeymapContexts();
 	TestKeymapContextFocus();
+	TestKeymapCommandContexts();
 	TestKeymapEditorKeys();
 	TestKeymapInsert();
 	TestKeymapDialog();
