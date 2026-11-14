@@ -72,6 +72,33 @@ bool CFileUtil::HomeDirectory(CChars* szDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Desktop in the user's home folder.  False, and nothing appended, if
+// there's no such folder.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::DesktopDirectory(CChars* szDest)
+{
+	CChars	szDesktop;
+	bool	bExists;
+
+	szDesktop.Init();
+	bExists = HomeDirectory(&szDesktop);
+	if (bExists)
+	{
+		AppendToPath(&szDesktop, "Desktop");
+		bExists = IsDirectory(szDesktop.Text());
+		if (bExists)
+		{
+			szDest->Append(szDesktop);
+		}
+	}
+	szDesktop.Kill();
+	return bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::MakeDir(const char*szPathName)

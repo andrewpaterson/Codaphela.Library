@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef _WIN32
 #include <stdio.h>
 #include "WindowsHeaders.h"
+#include <shlobj.h>
 #include "Logger.h"
 #include "FilePosition.h"
 #include "FileUtil.h"
@@ -367,6 +368,30 @@ bool CFileUtil::HomeDirectory(CChars* szDest)
 
 	uiLength = GetEnvironmentVariableA("USERPROFILE", szTemp, MAX_PATH);
 	if ((uiLength == 0) || (uiLength >= MAX_PATH))
+	{
+		return false;
+	}
+	szDest->Append(szTemp);
+	return true;
+}
+
+
+#ifdef _MSC_VER
+#pragma comment(lib, "shell32.lib")
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The user's desktop folder, where Windows has it (it may have been moved,
+// into OneDrive say).  False, and nothing appended, if it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::DesktopDirectory(CChars* szDest)
+{
+	char	szTemp[MAX_PATH];
+
+	if (SHGetFolderPathA(NULL, CSIDL_DESKTOPDIRECTORY, NULL, SHGFP_TYPE_CURRENT, szTemp) != S_OK)
 	{
 		return false;
 	}

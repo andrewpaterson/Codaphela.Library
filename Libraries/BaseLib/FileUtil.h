@@ -66,6 +66,7 @@ public:
 	void	CollapsePath(CChars* szPathName);
 	void	CurrentDirectory(CChars* szDest);
 	bool	HomeDirectory(CChars* szDest);
+	bool	DesktopDirectory(CChars* szDest);
 	void	SplitPath(const char* szPathName, CChars* szDestFilename, CChars* szDestDirectory);
 	void	SplitPath(const char* szPathName, CArrayChars* paszComponents);
 	void	GetFileName(CChars* szDest, const char* szPathName);
