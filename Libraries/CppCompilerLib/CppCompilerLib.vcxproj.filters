@@ -186,7 +186,7 @@
     <ClCompile Include="CPPOverloads.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPBoundCall.cpp">
+    <ClCompile Include="CPPBinder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPTemplate.cpp">
@@ -1010,7 +1010,7 @@
     <ClInclude Include="CPPOverloads.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
-    <ClInclude Include="CPPBoundCall.h">
+    <ClInclude Include="CPPBinder.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPTemplate.h">

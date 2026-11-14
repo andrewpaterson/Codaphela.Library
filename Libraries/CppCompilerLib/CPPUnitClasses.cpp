@@ -1032,7 +1032,7 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 	{
 		return NULL;
 	}
-	pcFunction = mcCalls.FindArrowOperator(psType->pcClass, pcObject, pcNode);
+	pcFunction = mcBinder.FindArrowOperator(psType->pcClass, pcObject, pcNode);
 	return pcFunction ? pcFunction->mpsReturn : NULL;
 }
 

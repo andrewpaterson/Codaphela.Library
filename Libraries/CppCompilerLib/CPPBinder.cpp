@@ -19,7 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
-#include "CPPBoundCall.h"
+#include "CPPBinder.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ void CCPPBoundCall::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::Init(CCPPUnit* pcUnit)
+void CCPPBinder::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	mcOverloads.Init(pcUnit);
@@ -64,7 +64,7 @@ void CCPPCallBinder::Init(CCPPUnit* pcUnit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::Kill(void)
+void CCPPBinder::Kill(void)
 {
 	size	i;
 
@@ -90,7 +90,7 @@ void CCPPCallBinder::Kill(void)
 // ReportTypeOf reports); without it a failure is as it was remembered.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport)
+bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport)
 {
 	CCPPBoundCall*	pcRemembered;
 
@@ -128,7 +128,7 @@ bool CCPPCallBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBou
 // The cascade.  pcBound->meHow is CPPBC_Failed until something else is found.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
+void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
 {
 	CCPPSyntax*					pcCallee;
 	CCPPSyntaxName*				pcName;
@@ -330,7 +330,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 // callee: a member expression, or a name.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
+void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
 {
 	CCPPSyntaxMemberExpression*	pcMember;
 	CCPPSyntaxName*				pcName;
@@ -514,7 +514,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 // with no error of its own, if neither fits.  [over.match.oper]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport)
+bool CCPPBinder::BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport)
 {
 	return BindAnOperator(eOperator, pcLeft, pcRight, pcNode, pcBound, bReport, false);
 }
@@ -527,7 +527,7 @@ bool CCPPCallBinder::BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPP
 // False with an error if it has none that fits.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport)
+bool CCPPBinder::BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport)
 {
 	return BindAnOperator(eOperator, pcObject, pcArgument, pcNode, pcBound, bReport, true);
 }
@@ -538,7 +538,7 @@ bool CCPPCallBinder::BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject,
 // Either, remembered by its left operand for the same question asked again.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly)
+bool CCPPBinder::BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly)
 {
 	CCPPBoundCall*	pcRemembered;
 	int64			lliName;
@@ -581,7 +581,7 @@ bool CCPPCallBinder::BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
+void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 {
 	SCPP65Type*		psType;
 	CCPPFunction*	pcFunction;
@@ -636,7 +636,7 @@ void CCPPCallBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
+void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 {
 	SCPP65Type*		psType;
 	CCPPFunction*	pcFunction;
@@ -683,7 +683,7 @@ void CCPPCallBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBou
 // constructors and none fits or no one is best, without one if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPCallBinder::FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPFunction* CCPPBinder::FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	return mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
 }
@@ -695,7 +695,7 @@ CCPPFunction* CCPPCallBinder::FindConstructor(CCPPClass* pcClass, CArraySyntax* 
 // ones only when bExplicit), or NULL, quietly.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPCallBinder::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode)
+CCPPFunction* CCPPBinder::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode)
 {
 	return mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcNode);
 }
@@ -707,7 +707,7 @@ CCPPFunction* CCPPCallBinder::FindConversion(CCPPClass* pcClass, SCPP65Type* psT
 // one of psTarget's type.  *pbOverloaded if there are several and none is chosen.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPCallBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded)
+CCPPFunction* CCPPBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded)
 {
 	return mcOverloads.FindAddressedFunction(pcName, lliName, psTarget, pcNode, pbOverloaded);
 }
@@ -718,7 +718,7 @@ CCPPFunction* CCPPCallBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int6
 // The class's operator-> for the object, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPCallBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode)
+CCPPFunction* CCPPBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 {
 	CArraySyntax	apcNone;
 	CCPPFunction*	pcFunction;
@@ -736,7 +736,7 @@ CCPPFunction* CCPPCallBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* 
 // uiArguments arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments)
+bool CCPPBinder::HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments)
 {
 	return mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments) != NULL;
 }
@@ -748,7 +748,7 @@ bool CCPPCallBinder::HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size u
 // takes none away.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
+bool CCPPBinder::KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
 {
 	return mcOverloads.QualificationRank(psTo, psFrom, false) != CPPCR_None;
 }
@@ -760,7 +760,7 @@ bool CCPPCallBinder::KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
 // for const and a reference: no argument is converted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArguments)
+bool CCPPBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArguments)
 {
 	SCPP65Type*	psArgument;
 	size		i;
@@ -790,7 +790,7 @@ bool CCPPCallBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papc
 // error, for another.
 //
 //////////////////////////////////////////////////////////////////////////
-CArraySyntax* CCPPCallBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
+CArraySyntax* CCPPBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
 {
 	CArraySyntax*				papcArguments;
 	CArrayCPPSymbols*			papcElements;
@@ -856,7 +856,7 @@ CArraySyntax* CCPPCallBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
 // time its function is written): what a name can't be used as is its user's error.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPCallBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
+void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
 {
 	CCPPSymbol*		pcSymbol;
 	CCPPFunction*	pcIn;
@@ -932,7 +932,7 @@ void CCPPCallBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBou
 // class can't be completed, which is reported at pcNode.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCallBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound)
+bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound)
 {
 	int64	lliName;
 

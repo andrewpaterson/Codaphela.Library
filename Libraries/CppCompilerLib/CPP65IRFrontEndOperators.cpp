@@ -832,7 +832,7 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 {
 	CCPPBoundCall	cBound;
 
-	if (!mpcUnit->GetCalls()->BindOperator(eOperator, pcLeft, pcRight, pcLeft, &cBound, false))
+	if (!mpcUnit->GetBinder()->BindOperator(eOperator, pcLeft, pcRight, pcLeft, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

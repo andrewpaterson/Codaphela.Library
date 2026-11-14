@@ -48,7 +48,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPMangler.h"
 #include "CPPContext.h"
 #include "CPPUnitData.h"
-#include "CPPBoundCall.h"
+#include "CPPBinder.h"
 #include "CPPDeclarators.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
@@ -194,7 +194,7 @@ protected:
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
-	CCPPCallBinder			mcCalls;			//What each call is, worked out once.
+	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPVariables	mapcLocals;
@@ -224,7 +224,7 @@ public:
 	//What the classes that work for the unit ask it for.
 	CCPP65Types*			GetTypes(void) { return &mcTypes; }
 	CCPPContext*			GetContext(void) { return &mcContext; }
-	CCPPCallBinder*			GetCalls(void) { return &mcCalls; }
+	CCPPBinder*				GetBinder(void) { return &mcBinder; }
 	CCPPDeclarators*		GetDeclarators(void) { return &mcDeclarators; }
 	CCPPMangler*			GetMangler(void) { return &mcMangler; }
 	CCPPUnitData*			GetData(void) { return &mcData; }

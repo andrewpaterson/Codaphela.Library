@@ -93,7 +93,7 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcUnit->IsObject(pcExpression))
 	{
 		pcClass = mpcUnit->ObjectClass(pcExpression);
-		pcFunction = mpcUnit->GetCalls()->FindConversion(pcClass, psTo, bExplicit, pcExpression);
+		pcFunction = mpcUnit->GetBinder()->FindConversion(pcClass, psTo, bExplicit, pcExpression);
 		if (pcFunction)
 		{
 			return ObjectCall(pcExpression, pcFunction, NULL, pcExpression);
@@ -445,7 +445,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	CCPPSyntaxParameter*	pcParameter;
 	SCPP65Type*				psType;
 
-	mpcUnit->GetCalls()->BindName(pcId, &cBound);
+	mpcUnit->GetBinder()->BindName(pcId, &cBound);
 	switch (cBound.meWhat)
 	{
 	case CPPBN_FunctionName:
@@ -488,7 +488,7 @@ SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName
 	bool				bOverloaded;
 
 	pcName = (pcNode && (pcNode->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcNode)->mpcName : NULL;
-	pcFound = mpcUnit->GetCalls()->FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
+	pcFound = mpcUnit->GetBinder()->FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
 	if (bOverloaded)
 	{
 		Error(pcNode, "The address of an overloaded function needs the type of the function it is for");
@@ -1134,7 +1134,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 		}
 	}
 
-	pcFunction = mpcUnit->IsObject(pcExpression) ? mpcUnit->GetCalls()->FindConversion(mpcUnit->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
+	pcFunction = mpcUnit->IsObject(pcExpression) ? mpcUnit->GetBinder()->FindConversion(mpcUnit->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
 	if (pcFunction)
 	{
 		return Truth(ObjectCall(pcExpression, pcFunction, NULL, pcExpression), pcExpression);
@@ -1175,7 +1175,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	CCPPBoundCall	cBound;
 	SCPP65Type*		psType;
 
-	if (!mpcUnit->GetCalls()->Bind(pcCall, &cBound, true))
+	if (!mpcUnit->GetBinder()->Bind(pcCall, &cBound, true))
 	{
 		return NULL;
 	}
@@ -1520,7 +1520,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOp
 {
 	CCPPBoundCall	cBound;
 
-	if (!mpcUnit->GetCalls()->BindOwnOperator(eOperator, pcObject, (papcArguments->NumElements() > 0) ? papcArguments->GetPtr(0) : NULL, pcNode, &cBound, true))
+	if (!mpcUnit->GetBinder()->BindOwnOperator(eOperator, pcObject, (papcArguments->NumElements() > 0) ? papcArguments->GetPtr(0) : NULL, pcNode, &cBound, true))
 	{
 		return NULL;
 	}
@@ -1541,7 +1541,7 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 	SCPP65Type*		psType;
 	CArraySyntax	apcArguments;
 
-	if (!mpcUnit->GetCalls()->BindOperator(eOperator, pcLeft, pcRight, pcNode, &cBound, true))
+	if (!mpcUnit->GetBinder()->BindOperator(eOperator, pcLeft, pcRight, pcNode, &cBound, true))
 	{
 		Error(pcNode, "No operator matches the operands");
 		return NULL;
@@ -1644,7 +1644,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 	}
 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	if (!mpcUnit->GetCalls()->BindMember(psType->pcClass, pcMember->mpcName, pcMember, &cBound))
+	if (!mpcUnit->GetBinder()->BindMember(psType->pcClass, pcMember->mpcName, pcMember, &cBound))
 	{
 		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
 		{
@@ -1790,7 +1790,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		//A variable, or a field of this.
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
-		mpcUnit->GetCalls()->BindName(pcId, &cBound);
+		mpcUnit->GetBinder()->BindName(pcId, &cBound);
 		if (cBound.meWhat == CPPBN_Variable)
 		{
 			return cBound.mpcVariable->mpsType->WithoutReference();
@@ -2339,7 +2339,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 	}
 	if (pcClass->mbConstructors)
 	{
-		pcConstructor = mpcUnit->GetCalls()->FindConstructor(pcClass, papcArguments, pcNode);
+		pcConstructor = mpcUnit->GetBinder()->FindConstructor(pcClass, papcArguments, pcNode);
 		if (!pcConstructor)
 		{
 			return Error(pcNode, "No constructor matches the arguments");
@@ -2349,7 +2349,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 
 	if (papcArguments->NumElements() == 0)
 	{
-		pcConstructor = mpcUnit->GetCalls()->FindConstructor(pcClass, papcArguments, pcNode);
+		pcConstructor = mpcUnit->GetBinder()->FindConstructor(pcClass, papcArguments, pcNode);
 		return !pcConstructor || (Call(pcConstructor, papcArguments, pcNode) != NULL);
 	}
 
@@ -2592,7 +2592,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 	{
 		return true;
 	}
-	bKept = psFrom->psBase->Equals(psTo->psBase) ? mpcUnit->GetCalls()->KeepsQualifiers(psTo, psFrom) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
+	bKept = psFrom->psBase->Equals(psTo->psBase) ? mpcUnit->GetBinder()->KeepsQualifiers(psTo, psFrom) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
 	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
 }
 

@@ -42,7 +42,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psOperandType;
 
-	if (!mpcUnit->GetCalls()->Bind(pcCall, &cBound, false))
+	if (!mpcUnit->GetBinder()->Bind(pcCall, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -808,7 +808,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 {
 	CCPPBoundCall	cBound;
 
-	if (!mpcUnit->GetCalls()->BindOwnOperator(eOperator, pcObject, pcArgument, pcObject, &cBound, false))
+	if (!mpcUnit->GetBinder()->BindOwnOperator(eOperator, pcObject, pcArgument, pcObject, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

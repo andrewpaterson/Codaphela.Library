@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __C_P_P_BOUND_CALL_H__
-#define __C_P_P_BOUND_CALL_H__
+#ifndef __C_P_P_BINDER_H__
+#define __C_P_P_BINDER_H__
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "CPPSyntaxes.h"
@@ -49,7 +49,7 @@ enum ECPPBoundCall
 };
 
 
-//What a call expression means, worked out once (CCPPCallBinder::Bind): how it is made, and for a function called
+//What a call expression means, worked out once (CCPPBinder::Bind): how it is made, and for a function called
 //by its label, which.  The type checker gives its type from this and the IR front end writes it from this.
 class CCPPBoundCall
 {
@@ -93,7 +93,7 @@ enum ECPPBoundName
 };
 
 
-//What an id-expression means (CCPPCallBinder::BindName), or the name after . or -> for an object of a class
+//What an id-expression means (CCPPBinder::BindName), or the name after . or -> for an object of a class
 //(BindMember): which of the things a name can be, and the symbol, the variable or the field it is.  The type checker gives its type from this and the IR front end its value and place.
 class CCPPBoundName
 {
@@ -111,13 +111,16 @@ typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 
 
-//Binds calls, and is the one way in to choosing a function: it owns the overloads.  [expr.call]  It has the one cascade that says what a call is: a member's, a template's instance, a
-//builtin, a function found by its name or by its arguments' namespaces, or a pointer's.  A call bound once is
-//remembered for the template arguments and the function it is in; one that failed is bound again when it is
-//asked for with its errors wanted, so they are reported again.  An operator with an object for an operand is a
-//call as well (BindOperator: the left operand's own operator function if one fits, or else one that is no
-//class's; BindOwnOperator: the object's own, for [], -> and what must be a member).
-class CCPPCallBinder
+//Says what the calls, names and members of a unit's expressions are, in one place, for the type checker and the
+//IR front end to read.  It is the one way in to choosing a function: it owns the overloads.  [expr.call]
+//Bind has the one cascade that says what a call is: a member's, a template's instance, a builtin, a function found
+//by its name or by its arguments' namespaces, or a pointer's.  A call bound once is remembered for the template
+//arguments and the function it is in; one that failed is bound again when it is asked for with its errors
+//wanted, so they are reported again.  An operator with an object for an operand is a call as well (BindOperator:
+//the left operand's own operator function if one fits, or else one that is no class's; BindOwnOperator: the
+//object's own, for [], -> and what must be a member).  BindName says what a name alone is, and BindMember which
+//member of a class.
+class CCPPBinder
 {
 protected:
 	CCPPUnit*			mpcUnit;
@@ -156,4 +159,4 @@ protected:
 };
 
 
-#endif // __C_P_P_BOUND_CALL_H__
+#endif // __C_P_P_BINDER_H__

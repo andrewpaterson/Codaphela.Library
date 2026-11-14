@@ -182,7 +182,7 @@ bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
-	bOverloaded = mcCalls.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
+	bOverloaded = mcBinder.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
 	return bOverloaded;

@@ -106,7 +106,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_StringExpression:
 		return StringLiteral(pcExpression, psValue);
 	case CPPS_IdExpression:
-		mpcUnit->GetCalls()->BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
 		switch (cBound.meWhat)
 		{
 		case CPPBN_FunctionName:
@@ -445,7 +445,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 
 	pcName = pcId->mpcName;
 	lliName = pcName->mpcSymbol->mlliName;
-	pcFound = mpcUnit->GetCalls()->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
+	pcFound = mpcUnit->GetBinder()->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
 	if (bOverloaded || !pcFound)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -729,7 +729,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	{
 	case CPPS_IdExpression:
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
-		mpcUnit->GetCalls()->BindName(pcId, &cBound);
+		mpcUnit->GetBinder()->BindName(pcId, &cBound);
 		if (cBound.meWhat == CPPBN_Variable)
 		{
 			return VariablePlace(cBound.mpcVariable, psPlace);
@@ -984,7 +984,7 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!mpcUnit->GetCalls()->BindMember(psType->pcClass, pcMember->mpcName, NULL, &cBound))
+	if (!mpcUnit->GetBinder()->BindMember(psType->pcClass, pcMember->mpcName, NULL, &cBound))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

@@ -262,7 +262,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcFunctionsOfNames.Init(true);
 	mcContext.Init();
 	mcData.Init();
-	mcCalls.Init(this);
+	mcBinder.Init(this);
 	mcDeclarators.Init(this);
 	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
 	mapcClasses.Init();
@@ -319,7 +319,7 @@ void CCPPUnit::Kill(void)
 	}
 	mcMangler.Kill();
 	mcDeclarators.Kill();
-	mcCalls.Kill();
+	mcBinder.Kill();
 	mcData.Kill();
 	mcContext.Kill();
 	mcFunctionsOfNames.Kill();
