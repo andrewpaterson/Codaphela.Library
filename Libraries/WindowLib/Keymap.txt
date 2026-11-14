@@ -20,31 +20,28 @@ Decided (user, 2026-11-14)
   binding wins.
 - Subcircuits can be placed by a key.  Every subcircuit that can go in the circuit being edited is a command, with no
   key until one is given (in the component chooser or the keymap).
-- A subcircuit's key is kept in the project file, so it goes with the project and follows a rename.  A key the user's
-  keymap also gives is reported when the project loads.
-
-
-Open (for the user to think about)
-----------------------------------
-
-Each with the recommendation, to be decided before it's built.
-
-3. Where keys are changed.  Settings' Keymap works on copies, applied by OK; LogiCim's component chooser would change
-   a component's keys there and then.  Recommended: one set of rules (the keymap's, shared, as CheckCommandKeys began
-   to be), applied and saved by both through one path; the keymap page reads the keys afresh when it opens, and the
-   chooser can't be open while it is (both are modal).
-
-4. How bare keys are shown.  Menus show a command's first key.  Recommended: a menu shows the command's global key if
-   it has one, else its context key with the context ("R" for Rotate Left, shown as on the canvas in the keymap and
-   as plain R in the menu, since the menu is opened from the canvas's window).
-
-5. Conflicts across contexts.  "A key belongs to one command" becomes "a key belongs to one command in each context":
-   R can rotate on the canvas while Ctrl+R does something else everywhere, and a canvas key shadows a global one only
-   over the canvas.  Recommended: the keymap says when a context key shadows a global key ("R is Rotate Left over the
-   circuit; elsewhere it's ..."), and refuses nothing for it.
-
-6. The HCP65 IDE.  Recommended: it moves onto the same contexts.  Its editor keys (CKS_Editor) become the editor
-   context, with the global keys around it, and nothing changes for its users.
+- A subcircuit's key is kept in the project file, so it goes with the project and follows a rename.  Only
+  subcircuits' placement keys are the project's: the library components' (A for an AND gate) and every other key are
+  the user's, in their settings (Keymap.xml), the same in every project.
+- Conflicts between the two are detected (2026-11-14):
+  - Loading a project silently clears any of its subcircuit keys that clash with the user's keymap: the user's keys
+    win, and nothing is said.
+  - Giving a key that clashes, in the keymap or the component chooser, shows a warning pop up naming the command that
+    has it.
+- The clash warning (2026-11-14) says who has the key and offers to move it: "Ctrl+Alt+A is Settings' File: Open
+  Project.  Give it to AND Gate instead?" with Give and Cancel.  Give moves the key and saves both files it touches
+  (the project's and the user's keymap).
+- One set of rules for every place keys are given, the keymap page and the component chooser (the keymap's, shared,
+  as CheckCommandKeys began to be), applied and saved through one path.  The keymap page reads the keys afresh each
+  time it opens; it and the chooser are both modal, so they're never open together.
+- Conflicts across contexts (2026-11-14): a key belongs to one command in each context.  R can rotate over the canvas
+  while Ctrl+R does something else everywhere, and a context's key shadows a global one only in that context.  The
+  keymap says when a context key shadows a global key ("R is Rotate Left over the circuit; elsewhere it's ..."), and
+  refuses nothing for it.
+- The HCP65 IDE (2026-11-14) moves onto the same contexts: its editor keys (CKS_Editor) become the editor context, with
+  the global keys around it, and nothing changes for its users.
+- How keys are shown (2026-11-14): a menu item (and a tool button's tip) shows the command's global key if it has one,
+  else its context key, plain: Rotate Left shows "R", not "R (circuit)".  The keymap's list says where each key works.
 
 
 Words
