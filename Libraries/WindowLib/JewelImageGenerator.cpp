@@ -513,6 +513,77 @@ Ptr<CImageCel> CJewelImageGenerator::CreateFile(ARGB32 sColour, CColourFormatHel
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A house in the style of the New UI's outlined icons, a pitched roof over
+// its walls and a door, in a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreateHome(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	SFloat64Vec2	asPoints[5];
+	SFloat64Vec2	asDoor[4];
+
+	asPoints[0].Init(2.5, 14.5);
+	asPoints[1].Init(2.5, 7.5);
+	asPoints[2].Init(8.0, 2.0);
+	asPoints[3].Init(13.5, 7.5);
+	asPoints[4].Init(13.5, 14.5);
+	asDoor[0].Init(6.5, 14.5);
+	asDoor[1].Init(6.5, 10.5);
+	asDoor[2].Init(9.5, 10.5);
+	asDoor[3].Init(9.5, 14.5);
+	return DrawOutline(asPoints, 5, asDoor, 4, sColour, pcFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CreateFolder's folder, open at the bottom right where a plus is, in a
+// 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreateNewFolder(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>		pImage;
+	CImageDraw		cDraw;
+	CVectorPath		cPath;
+	SFloat64Vec2	asFolder[7];
+	SFloat64Vec2	asPlus[4];
+	size			i;
+
+	asFolder[0].Init(8.5, 12.5);
+	asFolder[1].Init(1.5, 12.5);
+	asFolder[2].Init(1.5, 3.5);
+	asFolder[3].Init(6.5, 3.5);
+	asFolder[4].Init(8.5, 5.5);
+	asFolder[5].Init(14.5, 5.5);
+	asFolder[6].Init(14.5, 8.5);
+	asPlus[0].Init(12.5, 9.5);
+	asPlus[1].Init(12.5, 15.5);
+	asPlus[2].Init(9.5, 12.5);
+	asPlus[3].Init(15.5, 12.5);
+
+	pImage = CreateClearImage(16, 16);
+	cPath.Init();
+	cPath.BeginPart(true);
+	for (i = 1; i < 7; i++)
+	{
+		AddVectorStroke(&cPath, &asFolder[i - 1], &asFolder[i], 0.5);
+	}
+	AddVectorStroke(&cPath, &asPlus[0], &asPlus[1], 0.5);
+	AddVectorStroke(&cPath, &asPlus[2], &asPlus[3], 0.5);
+
+	cDraw.Init(&pImage);
+	cDraw.SetColour(sColour);
+	cDraw.DrawPath(&cPath);
+	cDraw.Kill();
+	cPath.Kill();
+
+	return FinishCel(pImage, pcFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A 16 x 16 cel of one pixel wide strokes around the closed shape
 // asPoints, and along the open line asExtra (which can be NULL).  Points
 // on pixel centres keep straight edges sharp.

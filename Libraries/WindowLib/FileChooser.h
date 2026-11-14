@@ -37,7 +37,8 @@ struct SFileChooserType
 
 
 //A load and save dialog, Swing's JFileChooser as its Metal look lays it out: Look In (Save In when saving)
-//with the folders from the root down to the one shown, and Up One Level, Home and New Folder buttons, along the top;
+//with the folders from the root down to the one shown, and Up One Level, Home and New Folder as the theme's icons
+//(TI_ParentFolder, TI_Home and TI_NewFolder) on flat buttons with tool tips, along the top;
 //the folder's folders then its files under it; and File Name and Files of Type along the bottom.  Open (or Save)
 //and Cancel are the buttons.
 //
@@ -101,7 +102,7 @@ protected:
 	int32			GetMetric(EThemeMetric eMetric);
 	Ptr<CComponent>	CreateBody(void);
 	Ptr<CLabel>		CreateLabel(const char* szText, int32 iWidth);
-	Ptr<CButton>	CreateButton(const char* szCaption);
+	Ptr<CButton>	CreateButton(EThemeImage eIcon, const char* szToolTip);
 	void			AddButton(Ptr<CGridContainer> pRow, Ptr<CButton> pButton, int iColumn, int32 iGap);
 	bool			Open(const char* szDirectory, const char* szSelect);
 	void			FillLookIn(void);

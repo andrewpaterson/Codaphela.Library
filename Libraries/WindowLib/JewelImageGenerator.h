@@ -45,6 +45,8 @@ public:
 	static Ptr<CImageCel>		CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined keyboard, 16 x 16.
 	static Ptr<CImageCel>		CreateFolder(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined folder, 16 x 16.
 	static Ptr<CImageCel>		CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined page, 16 x 16.
+	static Ptr<CImageCel>		CreateHome(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined house, 16 x 16.
+	static Ptr<CImageCel>		CreateNewFolder(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined folder with a plus, 16 x 16.
 	static Ptr<CImageCel>		CreatePin(ARGB32 sColour, bool bPinned, CColourFormatHelper* pcFormat);  //A push pin, upright when pinned, on its side when not, 16 x 16.
 	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 

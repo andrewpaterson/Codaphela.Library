@@ -34,6 +34,9 @@ enum EThemeImage
 	TI_TabCloseHover,		//A tab's close cross under the pointer.
 	TI_PreviousArrow,		//Up: the previous difference.
 	TI_NextArrow,			//Down: the next difference.
+	TI_ParentFolder,		//Up a folder, a file chooser's Up One Level.
+	TI_Home,				//A file chooser's home folder.
+	TI_NewFolder,			//A file chooser's New Folder.
 
 	TI_NumImages,
 };

@@ -53,7 +53,8 @@ static_assert(sizeof(gaszThemeMetricNames) / sizeof(gaszThemeMetricNames[0]) == 
 //In EThemeImage's order, for the error reading one that wasn't set.
 static const char*	gaszThemeImageNames[] =
 {
-	"Chevron", "DownChevron", "Pin", "Unpin", "Close", "TabClose", "TabCloseHover", "PreviousArrow", "NextArrow",
+	"Chevron", "DownChevron", "Pin", "Unpin", "Close", "TabClose", "TabCloseHover", "PreviousArrow", "NextArrow", "ParentFolder",
+	"Home", "NewFolder",
 };
 static_assert(sizeof(gaszThemeImageNames) / sizeof(gaszThemeImageNames[0]) == TI_NumImages, "gaszThemeImageNames needs a row for each EThemeImage.");
 

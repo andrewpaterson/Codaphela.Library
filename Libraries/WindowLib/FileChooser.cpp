@@ -259,15 +259,15 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	mpLookIn = OMalloc<CComboBox>(pWindow, psLook->pcTheme);
 	mpLookIn->SetAlignment(CSH_Stretch, CSV_Center);
 	pTop->AddComponent(mpLookIn, 1, 0, 1, 1, 1, 0);
-	mpUp = CreateButton("Up");
-	mpHome = CreateButton("Home");
-	mpNewFolder = CreateButton("New Folder");
+	mpUp = CreateButton(TI_ParentFolder, "Up One Level");
+	mpHome = CreateButton(TI_Home, "Home");
+	mpNewFolder = CreateButton(TI_NewFolder, "New Folder");
 	mpUp->GetClickEvent()->Add(this, &CFileChooser::GoUp);
 	mpHome->GetClickEvent()->Add(this, &CFileChooser::GoHome);
 	mpNewFolder->GetClickEvent()->Add(this, &CFileChooser::NewFolderClicked);
 	AddButton(pTop, mpUp, 2, GetMetric(TM_FileChooserGap));
-	AddButton(pTop, mpHome, 4, GetMetric(TM_FileChooserGap) / 2);
-	AddButton(pTop, mpNewFolder, 6, GetMetric(TM_FileChooserGap) / 2);
+	AddButton(pTop, mpHome, 4, GetMetric(TM_FileChooserGap) / 4);
+	AddButton(pTop, mpNewFolder, 6, GetMetric(TM_FileChooserGap) / 4);
 	//A grid in a grid is the size it's given, not the size its parts need.
 	pTop->SetDesiredSize(-1, (mpLookIn->GetDesiredSize().y > mpUp->GetDesiredSize().y) ? mpLookIn->GetDesiredSize().y : mpUp->GetDesiredSize().y);
 	pBody->AddComponent(pTop, 0, iRow, 3, 1, 1, 0);
@@ -333,12 +333,16 @@ Ptr<CLabel> CFileChooser::CreateLabel(const char* szText, int32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CButton> CFileChooser::CreateButton(const char* szCaption)
+Ptr<CButton> CFileChooser::CreateButton(EThemeImage eIcon, const char* szToolTip)
 {
-	Ptr<CButton>	pButton;
+	Ptr<CButton>		pButton;
+	Ptr<CWindowTheme>	pTheme;
 
-	pButton = OMalloc<CButton>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme, szCaption);
+	pTheme = mpDialog->GetLook()->pcTheme;
+	pButton = OMalloc<CButton>(mpDialog->GetWindow(), pTheme, BL_Flat, pTheme->GetImage(eIcon), (const char*)NULL);
+	pButton->SetPadding(5, 5);
 	pButton->SetAlignment(CSH_Center, CSV_Center);
+	pButton->SetToolTip(szToolTip);
 	return pButton;
 }
 
