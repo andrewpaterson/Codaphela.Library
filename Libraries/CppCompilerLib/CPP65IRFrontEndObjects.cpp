@@ -203,7 +203,7 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	SCPP65IRValue	sResult;
 
 	pcClass = psValue->psType->WithoutReference()->pcClass;
-	pcFunction = mpcUnit->GetOverloads()->FindConversion(pcClass, psTo, true, NULL);
+	pcFunction = mpcUnit->GetCalls()->FindConversion(pcClass, psTo, true, NULL);
 	if (!pcFunction)
 	{
 		if (mpcValue)
@@ -788,7 +788,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{
-		pcConstructor = mpcUnit->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, mpcCPPFunction->mpcDefinition);
+		pcConstructor = mpcUnit->GetCalls()->FindConstructor(pcClass, papcArguments, mpcCPPFunction->mpcDefinition);
 		if (pcConstructor)
 		{
 			return CallObject(pcConstructor, psPlace->sAddress, pcClass, papcArguments, false);

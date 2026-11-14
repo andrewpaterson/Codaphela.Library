@@ -93,7 +93,7 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcUnit->IsObject(pcExpression))
 	{
 		pcClass = mpcUnit->ObjectClass(pcExpression);
-		pcFunction = mpcUnit->GetOverloads()->FindConversion(pcClass, psTo, bExplicit, pcExpression);
+		pcFunction = mpcUnit->GetCalls()->FindConversion(pcClass, psTo, bExplicit, pcExpression);
 		if (pcFunction)
 		{
 			return ObjectCall(pcExpression, pcFunction, NULL, pcExpression);
@@ -497,7 +497,7 @@ SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName
 	bool				bOverloaded;
 
 	pcName = (pcNode && (pcNode->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcNode)->mpcName : NULL;
-	pcFound = mpcUnit->GetOverloads()->FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
+	pcFound = mpcUnit->GetCalls()->FindAddressedFunction(pcName, lliName, psTarget, pcNode, &bOverloaded);
 	if (bOverloaded)
 	{
 		Error(pcNode, "The address of an overloaded function needs the type of the function it is for");
@@ -1143,7 +1143,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 		}
 	}
 
-	pcFunction = mpcUnit->IsObject(pcExpression) ? mpcUnit->GetOverloads()->FindConversion(mpcUnit->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
+	pcFunction = mpcUnit->IsObject(pcExpression) ? mpcUnit->GetCalls()->FindConversion(mpcUnit->ObjectClass(pcExpression), &mpcTypes->msBool, true, pcExpression) : NULL;
 	if (pcFunction)
 	{
 		return Truth(ObjectCall(pcExpression, pcFunction, NULL, pcExpression), pcExpression);
@@ -2400,7 +2400,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 	}
 	if (pcClass->mbConstructors)
 	{
-		pcConstructor = mpcUnit->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+		pcConstructor = mpcUnit->GetCalls()->FindConstructor(pcClass, papcArguments, pcNode);
 		if (!pcConstructor)
 		{
 			return Error(pcNode, "No constructor matches the arguments");
@@ -2410,7 +2410,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 
 	if (papcArguments->NumElements() == 0)
 	{
-		pcConstructor = mpcUnit->GetOverloads()->FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+		pcConstructor = mpcUnit->GetCalls()->FindConstructor(pcClass, papcArguments, pcNode);
 		return !pcConstructor || (Call(pcConstructor, papcArguments, pcNode) != NULL);
 	}
 
@@ -2653,7 +2653,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 	{
 		return true;
 	}
-	bKept = psFrom->psBase->Equals(psTo->psBase) ? (mpcUnit->GetOverloads()->QualificationRank(psTo, psFrom, false) != CPPCR_None) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
+	bKept = psFrom->psBase->Equals(psTo->psBase) ? mpcUnit->GetCalls()->KeepsQualifiers(psTo, psFrom) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
 	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
 }
 

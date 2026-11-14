@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPFunction.h"
 #include "CPPClass.h"
 #include "CPPTemplate.h"
+#include "CPPOverloads.h"
 
 
 class CCPPUnit;
@@ -80,7 +81,7 @@ public:
 typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 
 
-//Binds calls.  [expr.call]  It has the one cascade that says what a call is: a member's, a template's instance, a
+//Binds calls, and is the one way in to choosing a function: it owns the overloads.  [expr.call]  It has the one cascade that says what a call is: a member's, a template's instance, a
 //builtin, a function found by its name or by its arguments' namespaces, or a pointer's.  A call bound once is
 //remembered for the template arguments and the function it is in; one that failed is bound again when it is
 //asked for with its errors wanted, so they are reported again.  An operator with an object for an operand is a
@@ -90,6 +91,7 @@ class CCPPCallBinder
 {
 protected:
 	CCPPUnit*			mpcUnit;
+	CCPPOverloads		mcOverloads;	//Chooses between the functions of a name; only the binder asks it.
 	CMapCPPBoundCalls	mcBound;
 	CMapCPPBoundCalls	mcOperators;	//By left operand.
 
@@ -100,6 +102,14 @@ public:
 	bool	Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport);
 	bool	BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 	bool	BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
+
+	//What isn't a call expression's: these choose a function and remember nothing.
+	CCPPFunction*	FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	CCPPFunction*	FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
+	CCPPFunction*	FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
+	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
+	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
+	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 
 protected:
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);

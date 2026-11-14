@@ -52,6 +52,7 @@ void CCPPBoundCall::Init(void)
 void CCPPCallBinder::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mcOverloads.Init(pcUnit);
 	mcBound.Init(true);
 	mcOperators.Init(true);
 }
@@ -65,6 +66,7 @@ void CCPPCallBinder::Kill(void)
 {
 	mcOperators.Kill();
 	mcBound.Kill();
+	mcOverloads.Kill();
 	mpcUnit = NULL;
 }
 
@@ -161,13 +163,13 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
 		pcBound->mlliName = pcSymbol->mlliName;
-		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mpcUnit->GetOverloads()->FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
+		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mcOverloads.FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
 		{
 			ResolveMember(pcCall, pcBound);
 			return;
 		}
 		papcExplicit = (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL;
-		pcTemplate = mpcUnit->GetOverloads()->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, papcExplicit);
+		pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, papcExplicit);
 		if (!pcTemplate)
 		{
 			mpcUnit->Error(pcCallee, "The function template has not been defined");
@@ -216,7 +218,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	{
 		//Nothing declares it here: it may be in a namespace of its arguments'.
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		pcFunction = mpcUnit->GetOverloads()->FindAssociatedFunction(pcName, lliName, pcCall);
+		pcFunction = mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall);
 		if (pcFunction)
 		{
 			mpcUnit->Resolved(pcName, pcFunction);
@@ -237,7 +239,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	}
 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mpcUnit->GetOverloads()->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
+	pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
 	if (!pcFunction)
 	{
 		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
@@ -406,7 +408,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 	pcComponent = pcName->GetLast();
 	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
 	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcUnit->IsConstPointer(pcObject) : mpcUnit->IsConstObject(pcObject)) : mpcUnit->IsConstThis());
-	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mpcUnit->GetOverloads()->ChooseMemberTemplate(pcLookup, lliName, pcCall, papcExplicit, eObject) : NULL;
+	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, papcExplicit, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !papcExplicit)
 	{
@@ -415,7 +417,7 @@ void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCa
 		{
 			mpcUnit->BeginQuiet();
 		}
-		pcFunction = mpcUnit->GetOverloads()->FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
+		pcFunction = mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
 		if (pcTemplate)
 		{
 			mpcUnit->EndQuiet();
@@ -540,7 +542,7 @@ void CCPPCallBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		//That none of its own fits is no error: one that is no class's may.
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
 		mpcUnit->BeginQuiet();
-		pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
+		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
 		mpcUnit->EndQuiet();
 		mpcUnit->GetErrors()->Truncate(uiErrors);
 		if (pcFunction)
@@ -562,7 +564,7 @@ void CCPPCallBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	{
 		apcArguments.Add(pcBound->mpcRight);
 	}
-	pcFunction = mpcUnit->GetOverloads()->FindFreeOperator(pcBound->mlliName, &apcArguments, pcNode);
+	pcFunction = mcOverloads.FindFreeOperator(pcBound->mlliName, &apcArguments, pcNode);
 	apcArguments.Kill();
 	if (pcFunction)
 	{
@@ -599,7 +601,7 @@ void CCPPCallBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBou
 		apcArguments.Add(pcBound->mpcRight);
 	}
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mpcUnit->GetOverloads()->FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
+	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
 	apcArguments.Kill();
 	if (!pcFunction)
 	{
@@ -614,5 +616,82 @@ void CCPPCallBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBou
 	pcBound->mpcObject = pcBound->mpcLeft;
 	pcBound->mpcClass = psType->pcClass;
 	pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's constructor for the arguments.  NULL, with an error if it has
+// constructors and none fits or no one is best, without one if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPCallBinder::FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+{
+	return mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The conversion function that takes an object of pcClass to psTo best (explicit
+// ones only when bExplicit), or NULL, quietly.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPCallBinder::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode)
+{
+	return mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function a name used for its address means: the only one of the name, or the
+// one of psTarget's type.  *pbOverloaded if there are several and none is chosen.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPCallBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded)
+{
+	return mcOverloads.FindAddressedFunction(pcName, lliName, psTarget, pcNode, pbOverloaded);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's operator-> for the object, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPCallBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode)
+{
+	CArraySyntax	apcNone;
+	CCPPFunction*	pcFunction;
+
+	apcNone.Init();
+	pcFunction = mcOverloads.FindFunction(pcClass, mpcUnit->GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcObject)));
+	apcNone.Kill();
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the class (or a base) has a member template of the name that takes
+// uiArguments arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments)
+{
+	return mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether converting psFrom to psTo, the same type but for const and volatile,
+// takes none away.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCallBinder::KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom)
+{
+	return mcOverloads.QualificationRank(psTo, psFrom, false) != CPPCR_None;
 }
 

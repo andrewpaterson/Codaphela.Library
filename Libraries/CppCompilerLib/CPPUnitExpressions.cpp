@@ -434,7 +434,7 @@ bool CCPPUnit::HasMember(CCPPClass* pcClass, int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 {
-	return HasMember(pcClass, lliName) || mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments);
+	return HasMember(pcClass, lliName) || mcCalls.HasMemberTemplate(pcClass, lliName, uiArguments);
 }
 
 

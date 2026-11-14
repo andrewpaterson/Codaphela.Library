@@ -1022,7 +1022,6 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 {
 	SCPP65Type*		psType;
 	CCPPFunction*	pcFunction;
-	CArraySyntax	apcNone;
 
 	psType = TypeOf(pcObject);
 	if (!psType || !psType->IsClass())
@@ -1033,9 +1032,7 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 	{
 		return NULL;
 	}
-	apcNone.Init();
-	pcFunction = mcOverloads.FindFunction(psType->pcClass, GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, CPPCalledObject(IsConstObject(pcObject)));
-	apcNone.Kill();
+	pcFunction = mcCalls.FindArrowOperator(psType->pcClass, pcObject, pcNode);
 	return pcFunction ? pcFunction->mpsReturn : NULL;
 }
 

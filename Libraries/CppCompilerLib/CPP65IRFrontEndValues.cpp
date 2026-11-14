@@ -453,7 +453,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 
 	pcName = pcId->mpcName;
 	lliName = pcName->mpcSymbol->mlliName;
-	pcFound = mpcUnit->GetOverloads()->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
+	pcFound = mpcUnit->GetCalls()->FindAddressedFunction(pcName, lliName, psTarget, pcId, &bOverloaded);
 	if (bOverloaded || !pcFound)
 	{
 		return Unsupported(__FILE__, __LINE__);
