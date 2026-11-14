@@ -606,7 +606,7 @@ to compare today's build with.  A new baseline is needed before stage 4 measures
 	0       Done                    92a2f3511 6a8463f4d
 	1       Done                    907ea497b f6bda54a9 66361baa7
 	2       Done but its leftovers  45a0b88cd 3ead06eff 7134b3000
-	3       Only the names          cf550eee6
+	3       Done                    cf550eee6 0630eb7e5 d820f0acd b674a3d6d 72767813f 1db5a1185 84809de21
 	4-11    Not started
 
 The baseline of 2026-11-14 (68476daf2 with the #include fixes; Release x64, 16 threads, CompilerMeasure.py).
@@ -755,10 +755,36 @@ Stage 3.
    Done: the structs are classes with the Meaning layer's names, CCPPClass, CCPPFunction, CCPPVariable,
    CCPPTemplate and CCPPTemplateArguments, and the structs and enums beside them lost the 65 (cf550eee6).  Only
    names changed.  SCPP65Type and CCPP65Types keep theirs.
-   Left: nearly all of it.  The classes are still in CPP65Generator.h with only fields; IsPolymorphic,
-   NeedsDestructor, FindField and the rest are still the generator's, and it has 312 functions where it had 314.
-   mbComplete, mbLayingOut and mbBases are not yet one state.  CCPPVtable, CCPPClassLayout and CCPPMangler
-   don't exist.
+   The classes have files of their own (CPPVariable, CPPFunction, CPPTemplate, CPPClass) with Init and Kill,
+   and eighteen of the generator's functions that only asked one of them a question are its methods
+   (0630eb7e5).  A class's state is one enum (d820f0acd).  Its virtual functions are a CCPPVtable it owns, which
+   lays itself out and lists itself as it is written (b674a3d6d).  CCPPClassLayout places the bases, the
+   vtable pointer, the fields and the bit-fields, and is tested alone (72767813f, TestCPPClassLayout).
+   CCPPMangler makes every label (1db5a1185).  IsUnnamed, IsConversion and IsOperator are asked where a name's
+   sign was tested, and FindMemberSymbol, SetDefinition and HasQualifiersOf are where they belong (84809de21).
+   Every commit: TestSupportLib65's listings the same on both processors (839 and 840) and TestCppCompilerLib
+   passing (260,253 checks at the end).
+   The stage's end, 2026-11-14 (84809de21 on 9fb432566).  The three Lib65 suites pass on both processors with
+   the baseline's programs and asserts, preferring speed and preferring size, and every program is smaller
+   preferring size.  Cycles and bytes are those of the code generation commits pulled in during the stage
+   (within 1.3% of the baseline of 2026-11-14, most of them lower); the stage itself changed no listing.
+
+	Suite              Processor          Cycles       Bytes  Seconds  Peak MB    for size: Cycles       Bytes
+	TestBaseLib65      65C64          6111576611    20880671      133     1897          7845263688    16936023
+	TestBaseLib65      W65C816       16803169982    80550341      162     1986         23875208210    63730706
+	TestStandardLib65  65C64         15646463134    30079512      211     2694         21532985565    22941854
+	TestStandardLib65  W65C816       24412019872    71596856      189     2784         34465565120    47853333
+	TestSupportLib65   65C64         32989222591    31374604      433     2302         42198193324    24108923
+	TestSupportLib65   W65C816       63061543507    69616301      470     2392         91473842285    46712177
+
+   The compile alone on one thread is 65, 82, 69, 93, 94 and 124 seconds in that order (61, 81, 68, 93, 93 and
+   122 at the baseline) with the same peak memory to a megabyte or two: within what two runs differ by.
+   Short of what the stage set: the generator has 275 functions where the stage found 316, forty-one fewer and
+   not the hundred the plan guessed.  What else is a class's or a function's own (declaring a class's members,
+   resolving its bases, IsDerived, the conversions and constructors it finds) asks where the compiler is, so
+   it moves with stage 4's context, not before it.  ClassMember stays the generator's for the same reason:
+   CCPPClassLayout only places.  "Conversion and operator are kinds" came to very little: a function's name was
+   tested for its kind in two places.
 
 Code generation, 2026-11-13 and 14 (not a stage: CodeGenerationHandoff.txt has it all).  The W65C816's and the
 65C64's code were made faster outside this plan's order: the three Lib65 suites' cycles on the 65C64 went from
