@@ -470,7 +470,7 @@ void CCPPTargetW65C816::AppendRuntime(CCPPRuntimeWriter* pcWriter)
 	if (aszRoutines.NumElements() != 0)
 	{
 		cErrors.Init();
-		if (!CIRW65C816Backend::GenerateRuntime(&aszRoutines, pcWriter->GetRuntimeCode(), &cErrors))
+		if (!CIRW65C816Runtime::GenerateRuntime(&aszRoutines, pcWriter->GetRuntimeCode(), &cErrors))
 		{
 			pcWriter->RuntimeError(cErrors.Text());
 		}

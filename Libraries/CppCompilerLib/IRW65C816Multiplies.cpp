@@ -32,16 +32,16 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // time to the scratch bytes, the first then the second.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::IsScratchCall(SIRInstruction* psInstruction)
+bool CIRW65C816Selector::IsScratchCall(SIRInstruction* psInstruction)
 {
 	CChars	szName;
 	bool	bScratch;
 
-	if (psInstruction->sType.IsFloat() || (Words(psInstruction->sType) < 2))
+	if (psInstruction->sType.IsFloat() || (mpcBackend->Words(psInstruction->sType) < 2))
 	{
 		return false;
 	}
-	RuntimeName(&szName, psInstruction);
+	mpcBackend->mcRuntime.RuntimeName(&szName, psInstruction);
 	bScratch = IR816ScratchRoutine(szName.Text());
 	szName.Kill();
 	return bScratch;
@@ -54,7 +54,7 @@ bool CIRW65C816Backend::IsScratchCall(SIRInstruction* psInstruction)
 // The scratch routines get their operands at IR816_SCRATCH_ARGUMENT_A and _B, the others pushed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
+bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 {
 	CChars		szName;
 	SIRType		sType;
@@ -65,7 +65,7 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 	sType = psInstruction->sType;
 	if (sType.IsFloat() || sType.Is(IRTK_I1))
 	{
-		return Error("Multiply and divide are for i8 to i64");
+		return mpcBackend->Error("Multiply and divide are for i8 to i64");
 	}
 	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
 	if (TableDivide(psInstruction, bSigned) || ByteMultiply(psInstruction) || WideMultiply(psInstruction))
@@ -75,7 +75,7 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 
 	if (RemainderLeft(psInstruction))
 	{
-		for (i = 0; i < Words(sType); i++)
+		for (i = 0; i < mpcBackend->Words(sType); i++)
 		{
 			Frame("lda", IR816_SCRATCH_REMAINDER + 2 * i);
 			Store(psInstruction->sResult, i);
@@ -83,7 +83,7 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		return true;
 	}
 
-	RuntimeName(&szName, psInstruction);
+	mpcBackend->mcRuntime.RuntimeName(&szName, psInstruction);
 
 	iBytes = 0;
 	if (IR816ScratchRoutine(szName.Text()))
@@ -94,52 +94,52 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 			for (i = 0; i < 2; i++)
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
-				Line("and 0xFF");
+				mpcBackend->Line("and 0xFF");
 				SignExtendInA(7);
 				Frame("sta", (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
 			}
 		}
 		else
 		{
-			CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], Words(sType));
-			CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], Words(sType));
+			CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], mpcBackend->Words(sType));
+			CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], mpcBackend->Words(sType));
 		}
 	}
 	else
 	{
-		iBytes = 2 * ValueBytes(sType);
+		iBytes = 2 * mpcBackend->ValueBytes(sType);
 		for (i = 1; i >= 0; i--)
 		{
 			if (bSigned && sType.Is(IRTK_I8))
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
 				SignExtendInA(7);
-				Line("pha");
+				mpcBackend->Line("pha");
 			}
 			else
 			{
 				PushValue(psInstruction->asArguments[i], sType);
 			}
 		}
-		if (IsHiddenResult(sType))
+		if (mpcBackend->IsHiddenResult(sType))
 		{
-			PushFrameAddress(mcPlaces.OffsetOf(psInstruction->sResult));
+			PushFrameAddress(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
 			iBytes += 4;
 		}
 	}
 	if (InlineMultiply16(psInstruction))
 	{
 		szName.Kill();
-		mpsDivided = NULL;
-		mcCalls.CallerCleanUp(0, psInstruction);
+		mpcBackend->mpsDivided = NULL;
+		mpcBackend->mcCalls.CallerCleanUp(0, psInstruction);
 		return true;
 	}
-	UseRuntime(szName.Text());
-	mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) ? psInstruction : NULL;
+	mpcBackend->UseRuntime(szName.Text());
+	mpcBackend->mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) ? psInstruction : NULL;
 	szName.Insert(0, "jsl ");
-	Line(szName.Text());
+	mpcBackend->Line(szName.Text());
 	szName.Kill();
-	mcCalls.CallerCleanUp(iBytes, psInstruction);
+	mpcBackend->mcCalls.CallerCleanUp(iBytes, psInstruction);
 	return true;
 }
 
@@ -150,21 +150,21 @@ bool CIRW65C816Backend::RuntimeCall(SIRInstruction* psInstruction)
 // (x << 8) | y, the product x * y is left in A.  Bit 7 of x picks the bank.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::TableProduct(void)
+void CIRW65C816Selector::TableProduct(void)
 {
 	int32	iHigh;
 	int32	iGot;
 
-	iHigh = NewLabel();
-	iGot = NewLabel();
-	Line("asl A");
-	Line("tax");
-	Branch("bcs", iHigh);
-	Line("lda [MathMult + X]:24");
-	Branch("bra", iGot);
-	Label(iHigh);
-	Line("lda [MathMult + 0x10000 + X]:24");
-	Label(iGot);
+	iHigh = mpcBackend->NewLabel();
+	iGot = mpcBackend->NewLabel();
+	mpcBackend->Line("asl A");
+	mpcBackend->Line("tax");
+	mpcBackend->Branch("bcs", iHigh);
+	mpcBackend->Line("lda [MathMult + X]:24");
+	mpcBackend->Branch("bra", iGot);
+	mpcBackend->Label(iHigh);
+	mpcBackend->Line("lda [MathMult + 0x10000 + X]:24");
+	mpcBackend->Label(iGot);
 }
 
 
@@ -179,36 +179,36 @@ void CIRW65C816Backend::TableProduct(void)
 // written, for any other multiply.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::InlineMultiply16(SIRInstruction* psInstruction)
+bool CIRW65C816Selector::InlineMultiply16(SIRInstruction* psInstruction)
 {
 	int32	iNoHighB;
 	int32	iDone;
 
-	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I16) || !mbMathTables || (miBlock < 0) ||
-		(mcLoops.Depth(mpcFunction->GetBlock((size)miBlock)) == 0))
+	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I16) || !mpcBackend->mbMathTables || (mpcBackend->miBlock < 0) ||
+		(mpcBackend->mcLoops.Depth(mpcBackend->mpcFunction->GetBlock((size)mpcBackend->miBlock)) == 0))
 	{
 		return false;
 	}
 	//The high bytes are tested with m at 16 bits, so both labels are reached with it (as every label is, W65C816.txt).
-	iNoHighB = NewLabel();
-	iDone = NewLabel();
-	Line("sep m");
+	iNoHighB = mpcBackend->NewLabel();
+	iDone = mpcBackend->NewLabel();
+	mpcBackend->Line("sep m");
 	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
-	Line("xba");
+	mpcBackend->Line("xba");
 	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
-	Line("rep m");
+	mpcBackend->Line("rep m");
 	TableProduct();
 	Frame("sta", IR816_SCRATCH_RESULT);
 	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
-	Line("and 0xFF00");
-	Branch("beq", iNoHighB);
+	mpcBackend->Line("and 0xFF00");
+	mpcBackend->Branch("beq", iNoHighB);
 	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_B + 1, IR816_SCRATCH_ARGUMENT_A);
-	Label(iNoHighB);
+	mpcBackend->Label(iNoHighB);
 	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
-	Line("and 0xFF00");
-	Branch("beq", iDone);
+	mpcBackend->Line("and 0xFF00");
+	mpcBackend->Branch("beq", iDone);
 	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_A + 1, IR816_SCRATCH_ARGUMENT_B);
-	Label(iDone);
+	mpcBackend->Label(iDone);
 	Frame("lda", IR816_SCRATCH_RESULT);
 	return true;
 }
@@ -221,17 +221,17 @@ bool CIRW65C816Backend::InlineMultiply16(SIRInstruction* psInstruction)
 // before and after.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
+void CIRW65C816Selector::InlineCrossProduct(int32 iHigh, int32 iLow)
 {
-	Line("sep m");
+	mpcBackend->Line("sep m");
 	Frame("lda", iHigh);
-	Line("xba");
+	mpcBackend->Line("xba");
 	Frame("lda", iLow);
-	Line("rep m");
+	mpcBackend->Line("rep m");
 	TableProduct();
-	Line("xba");
-	Line("and 0xFF00");
-	Line("clc");
+	mpcBackend->Line("xba");
+	mpcBackend->Line("and 0xFF00");
+	mpcBackend->Line("clc");
 	Frame("adc", IR816_SCRATCH_RESULT);
 	Frame("sta", IR816_SCRATCH_RESULT);
 }
@@ -246,12 +246,12 @@ void CIRW65C816Backend::InlineCrossProduct(int32 iHigh, int32 iLow)
 // caller's scratch bytes), which nothing has written since.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::RemainderLeft(SIRInstruction* psInstruction)
+bool CIRW65C816Selector::RemainderLeft(SIRInstruction* psInstruction)
 {
 	SIRInstruction*	psDivide;
 
-	psDivide = mpsWritten;
-	if (!psDivide || (psDivide != mpsDivided) || (miFused != 0))
+	psDivide = mpcBackend->mpsWritten;
+	if (!psDivide || (psDivide != mpcBackend->mpsDivided) || (mpcBackend->miFused != 0))
 	{
 		return false;
 	}
@@ -274,7 +274,7 @@ bool CIRW65C816Backend::RemainderLeft(SIRInstruction* psInstruction)
 // parameter, a phi, or not a temporary).
 //
 //////////////////////////////////////////////////////////////////////////
-SIRInstruction* CIRW65C816Backend::FindDefinition(SIRReference sValue)
+SIRInstruction* CIRW65C816Selector::FindDefinition(SIRReference sValue)
 {
 	size			uiBlock;
 	size			ui;
@@ -285,9 +285,9 @@ SIRInstruction* CIRW65C816Backend::FindDefinition(SIRReference sValue)
 	{
 		return NULL;
 	}
-	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	for (uiBlock = 0; uiBlock < mpcBackend->mpcFunction->NumBlocks(); uiBlock++)
 	{
-		pcBlock = mpcFunction->GetBlock(uiBlock);
+		pcBlock = mpcBackend->mpcFunction->GetBlock(uiBlock);
 		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(ui);
@@ -308,14 +308,14 @@ SIRInstruction* CIRW65C816Backend::FindDefinition(SIRReference sValue)
 // 32 or more.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
+bool CIRW65C816Selector::IsHighHalfZero(SIRReference sValue, int iDepth)
 {
 	SIRInstruction*	psDefinition;
 	uint64			ulliAmount;
 
 	if (sValue.IsConstant())
 	{
-		return (mpcFunction->GetConstant(sValue)->ulliBits >> 32) == 0;
+		return (mpcBackend->mpcFunction->GetConstant(sValue)->ulliBits >> 32) == 0;
 	}
 	psDefinition = FindDefinition(sValue);
 	if ((psDefinition == NULL) || (iDepth > 2))
@@ -325,7 +325,7 @@ bool CIRW65C816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
 	switch (psDefinition->uiOpcode)
 	{
 	case IRO_ZExt:
-		return !psDefinition->asArguments[0].IsTemporary() || (mpcFunction->GetTemporaryType(psDefinition->asArguments[0]).Bits() <= 32);
+		return !psDefinition->asArguments[0].IsTemporary() || (mpcBackend->mpcFunction->GetTemporaryType(psDefinition->asArguments[0]).Bits() <= 32);
 	case IRO_And:
 		return IsHighHalfZero(psDefinition->asArguments[0], iDepth + 1) || IsHighHalfZero(psDefinition->asArguments[1], iDepth + 1);
 	case IRO_LShr:
@@ -333,7 +333,7 @@ bool CIRW65C816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
 		{
 			return false;
 		}
-		ulliAmount = mpcFunction->GetConstant(psDefinition->asArguments[1])->ulliBits & 63;
+		ulliAmount = mpcBackend->mpcFunction->GetConstant(psDefinition->asArguments[1])->ulliBits & 63;
 		return ulliAmount >= 32;
 	default:
 		return false;
@@ -349,19 +349,19 @@ bool CIRW65C816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
 // any other multiply.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::WideMultiply(SIRInstruction* psInstruction)
+bool CIRW65C816Selector::WideMultiply(SIRInstruction* psInstruction)
 {
 	int		i;
 
-	if ((psInstruction->uiOpcode != IRO_Mul) || (Words(psInstruction->sType) != 4) ||
+	if ((psInstruction->uiOpcode != IRO_Mul) || (mpcBackend->Words(psInstruction->sType) != 4) ||
 		!IsHighHalfZero(psInstruction->asArguments[0], 0) || !IsHighHalfZero(psInstruction->asArguments[1], 0))
 	{
 		return false;
 	}
 	CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], 2);
 	CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], 2);
-	UseRuntime(IR816_RUNTIME_PREFIX "UMulWide32");
-	Line("jsl " IR816_RUNTIME_PREFIX "UMulWide32");
+	mpcBackend->UseRuntime(IR816_RUNTIME_PREFIX "UMulWide32");
+	mpcBackend->Line("jsl " IR816_RUNTIME_PREFIX "UMulWide32");
 	if (!psInstruction->sResult.IsNone())
 	{
 		for (i = 0; i < 4; i++)
@@ -382,7 +382,7 @@ bool CIRW65C816Backend::WideMultiply(SIRInstruction* psInstruction)
 // False, with nothing written, for any other.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
+bool CIRW65C816Selector::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 {
 	CChars	szName;
 	uint64	ulliDivisor;
@@ -391,24 +391,24 @@ bool CIRW65C816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 	{
 		return false;
 	}
-	ulliDivisor = mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits & 0xFF;
+	ulliDivisor = mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits & 0xFF;
 	if ((ulliDivisor < 3) || (bSigned && (ulliDivisor >= 0x80)))
 	{
 		return false;
 	}
 	szName.Init(bSigned ? IR816_SIGNED_TABLE : IR816_UNSIGNED_TABLE);
 	szName.Append((int)ulliDivisor);
-	UseRuntime(szName.Text());
+	mpcBackend->UseRuntime(szName.Text());
 	Operand("lda", psInstruction->asArguments[0], 0);
-	Line("asl A");
-	Line("tax");
-	mpszOut->Append("\t\tlda [")->Append(szName)->Append(" + X]:24\n");
+	mpcBackend->Line("asl A");
+	mpcBackend->Line("tax");
+	mpcBackend->mpszOut->Append("\t\tlda [")->Append(szName)->Append(" + X]:24\n");
 	szName.Kill();
 	if ((psInstruction->uiOpcode == IRO_SRem) || (psInstruction->uiOpcode == IRO_URem))
 	{
-		Line("xba");
+		mpcBackend->Line("xba");
 	}
-	Line("and 0xFF");
+	mpcBackend->Line("and 0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
 		Store(psInstruction->sResult, 0);
@@ -425,17 +425,17 @@ bool CIRW65C816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 // table (SetMathTables): R816_Mul16 is called instead.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::ByteMultiply(SIRInstruction* psInstruction)
+bool CIRW65C816Selector::ByteMultiply(SIRInstruction* psInstruction)
 {
-	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8) || !mbMathTables)
+	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8) || !mpcBackend->mbMathTables)
 	{
 		return false;
 	}
 	Operand("lda", psInstruction->asArguments[1], 0);
-	Line("xba");
+	mpcBackend->Line("xba");
 	Operand("ora", psInstruction->asArguments[0], 0);
 	TableProduct();
-	Line("and 0xFF");
+	mpcBackend->Line("and 0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
 		Store(psInstruction->sResult, 0);

@@ -164,11 +164,31 @@ bool IR816ScratchRoutine(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Runtime::Init(CIRW65C816Backend* pcBackend)
+{
+	mpcBackend = pcBackend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Runtime::Kill(void)
+{
+	mpcBackend = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The runtime routine RuntimeCall calls for psInstruction (mul, udiv, sdiv,
 // urem or srem), into pszName (Init'd here).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
+void CIRW65C816Runtime::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
 {
 	pszName->Init(IR816_RUNTIME_PREFIX);
 	switch (psInstruction->uiOpcode)
@@ -189,7 +209,7 @@ void CIRW65C816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstructi
 // n bits): 1 << k in n / 16 words for each k from 0 to 63, 0 past the width.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
+void CIRW65C816Runtime::AppendBitsTable(CChars* pszDest, const char* szName)
 {
 	int		iBits;
 	int		i;
@@ -223,7 +243,7 @@ void CIRW65C816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
 // its low byte.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
+void CIRW65C816Runtime::AppendDivideTable(CChars* pszDest, const char* szName)
 {
 	int		iDivisor;
 	int		iValue;
@@ -259,7 +279,7 @@ void CIRW65C816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 // IR816FindRoutine); any other name is an error.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors)
+bool CIRW65C816Runtime::GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors)
 {
 	size	i;
 	char*	szName;

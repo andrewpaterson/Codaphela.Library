@@ -250,7 +250,7 @@ int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly)
 	cBackend.Init(&cModule, &iLabels);
 	cBackend.SetMathTables(!gbTestIR816MathSafe);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
-	AssertTrue(CIRW65C816Backend::GenerateRuntime(cBackend.GetRuntime(), &szRuntime, &cErrors));
+	AssertTrue(CIRW65C816Runtime::GenerateRuntime(cBackend.GetRuntime(), &szRuntime, &cErrors));
 	AssertString("", cErrors.Text());
 	cBackend.Kill();
 	if (pszAssembly)

@@ -264,7 +264,7 @@ bool CIRW65C816Fusion::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	case IRO_URem:
 	case IRO_SRem:
 		//Read into the scratch routine's operand a word at a time (RuntimeCall), all before its result is written.
-		if (!mpcBackend->IsScratchCall(psNext) || (mpcBackend->Words(psNext->sType) != mpcBackend->Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]) ||
+		if (!mpcBackend->mcSelector.IsScratchCall(psNext) || (mpcBackend->Words(psNext->sType) != mpcBackend->Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]) ||
 			(!psNext->asArguments[0].Equals(sResult) && !psNext->asArguments[1].Equals(sResult)))
 		{
 			return false;

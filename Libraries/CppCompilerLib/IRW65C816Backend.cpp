@@ -42,6 +42,7 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	InitBackend(pcModule, piLabels, CIRW65C816Backend::GetScratch());
 	masTemporaries.Init(CIRW65C816Backend::GetScratch());
 	mcPlaces.Init(this);
+	mcSelector.Init(this);
 	mcCalls.Init(this);
 	mcFusion.Init(this);
 	mcFolds.Init(this);
@@ -78,6 +79,7 @@ void CIRW65C816Backend::Kill(void)
 	mcFolds.Kill();
 	mcFusion.Kill();
 	mcCalls.Kill();
+	mcSelector.Kill();
 	mcPlaces.Kill();
 	masTemporaries.Kill();
 	mcLoops.Kill();
@@ -705,7 +707,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 			}
 			Source(pcBlock->masInstructions.Get(uiInstruction)->uiSource);
 			mbUnmasked = IsLowByteOnly(pcBlock->masInstructions.Get(uiInstruction)->sResult);
-			Instruction(pcBlock, uiInstruction);
+			mcSelector.Instruction(pcBlock, uiInstruction);
 			mbUnmasked = false;
 			mpsWritten = pcBlock->masInstructions.Get(uiInstruction);
 			miFused = 0;
@@ -811,11 +813,11 @@ void CIRW65C816Backend::FindZeroWords(void)
 				if (psInstruction->asArguments[0].IsTemporary())
 				{
 					iNarrow = Words(mpcFunction->GetTemporaryType(psInstruction->asArguments[0]));
-					uiZero = (uint8)(uiAll & ~((1 << iNarrow) - 1)) | ZeroWords(psInstruction->asArguments[0]);
+					uiZero = (uint8)(uiAll & ~((1 << iNarrow) - 1)) | mcSelector.ZeroWords(psInstruction->asArguments[0]);
 				}
 				break;
 			case IRO_And:
-				uiZero = ZeroWords(psInstruction->asArguments[0]) | ZeroWords(psInstruction->asArguments[1]);
+				uiZero = mcSelector.ZeroWords(psInstruction->asArguments[0]) | mcSelector.ZeroWords(psInstruction->asArguments[1]);
 				break;
 			case IRO_LShr:
 				if (psInstruction->asArguments[1].IsConstant())
@@ -956,7 +958,7 @@ bool CIRW65C816Backend::IsLowByteOnly(SIRReference sValue)
 // a temporary's as FindZeroWords found them.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIRW65C816Backend::ZeroWords(SIRReference sValue)
+uint8 CIRW65C816Selector::ZeroWords(SIRReference sValue)
 {
 	uint64	ulliBits;
 	uint8	uiZero;
@@ -964,7 +966,7 @@ uint8 CIRW65C816Backend::ZeroWords(SIRReference sValue)
 
 	if (sValue.IsConstant())
 	{
-		ulliBits = mpcFunction->GetConstant(sValue)->ulliBits;
+		ulliBits = mpcBackend->mpcFunction->GetConstant(sValue)->ulliBits;
 		uiZero = 0;
 		for (i = 0; i < 4; i++)
 		{
@@ -975,9 +977,9 @@ uint8 CIRW65C816Backend::ZeroWords(SIRReference sValue)
 		}
 		return uiZero;
 	}
-	if (sValue.IsTemporary() && (sValue.Index() < masTemporaries.NumElements()))
+	if (sValue.IsTemporary() && (sValue.Index() < mpcBackend->masTemporaries.NumElements()))
 	{
-		return masTemporaries.Get(sValue.Index())->uiZeroWords;
+		return mpcBackend->masTemporaries.Get(sValue.Index())->uiZeroWords;
 	}
 	return 0;
 }
@@ -990,7 +992,7 @@ uint8 CIRW65C816Backend::ZeroWords(SIRReference sValue)
 //////////////////////////////////////////////////////////////////////////
 bool CIRW65C816Backend::IsZeroWord(SIRReference sValue, int iWord)
 {
-	return sValue.IsTemporary() && (iWord >= 1) && (iWord < 4) && ((ZeroWords(sValue) >> iWord) & 1);
+	return sValue.IsTemporary() && (iWord >= 1) && (iWord < 4) && ((mcSelector.ZeroWords(sValue) >> iWord) & 1);
 }
 
 
@@ -1683,40 +1685,40 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 		iWords = Words(psJump->sType);
 		if (msFrame.iHiddenResult >= 0)
 		{
-			Frame("lda", msFrame.iHiddenResult);
-			Frame("sta", IR816_SCRATCH_POINTER);
-			Frame("lda", msFrame.iHiddenResult + 2);
-			Frame("sta", IR816_SCRATCH_POINTER + 2);
+			mcSelector.Frame("lda", msFrame.iHiddenResult);
+			mcSelector.Frame("sta", IR816_SCRATCH_POINTER);
+			mcSelector.Frame("lda", msFrame.iHiddenResult + 2);
+			mcSelector.Frame("sta", IR816_SCRATCH_POINTER + 2);
 			for (i = 0; i < iWords; i++)
 			{
 				Line("ldy ", 2 * i);
-				Operand("lda", psJump->sArgument, i);
+				mcSelector.Operand("lda", psJump->sArgument, i);
 				mpszOut->Append("\t\tsta [[D + ")->Append(IR816_SCRATCH_POINTER)->Append("]:24 + Y]")->AppendNewLine();
 			}
 		}
 		else if (mcFusion.Fused(psJump->sArgument))
 		{
 			//The high word first (CanFuseReturn).
-			Operand("lda", psJump->sArgument, 1);
+			mcSelector.Operand("lda", psJump->sArgument, 1);
 			Line("tax");
-			Operand("lda", psJump->sArgument, 0);
+			mcSelector.Operand("lda", psJump->sArgument, 0);
 		}
 		else if (!psJump->sArgument.IsTemporary() || IR816OnDirectPage(mcPlaces.OffsetOf(psJump->sArgument) + 2 * iWords))
 		{
 			//Straight into A and X.
 			if (iWords > 1)
 			{
-				Operand("ldx", psJump->sArgument, 1);
+				mcSelector.Operand("ldx", psJump->sArgument, 1);
 			}
-			Operand("lda", psJump->sArgument, 0);
+			mcSelector.Operand("lda", psJump->sArgument, 0);
 		}
 		else
 		{
-			CopyWords(IR816_SCRATCH_RESULT, psJump->sArgument, iWords);
-			Frame("lda", IR816_SCRATCH_RESULT);
+			mcSelector.CopyWords(IR816_SCRATCH_RESULT, psJump->sArgument, iWords);
+			mcSelector.Frame("lda", IR816_SCRATCH_RESULT);
 			if (iWords > 1)
 			{
-				Frame("ldx", IR816_SCRATCH_RESULT + 2);
+				mcSelector.Frame("ldx", IR816_SCRATCH_RESULT + 2);
 			}
 		}
 	}
@@ -1771,32 +1773,32 @@ void CIRW65C816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 		{
 			for (i = 0; i < Words(psStep->sType); i++)
 			{
-				Operand("lda", psStep->sSource, i);
-				Frame("sta", IR816_SCRATCH_RESULT + 2 * i);
+				mcSelector.Operand("lda", psStep->sSource, i);
+				mcSelector.Frame("sta", IR816_SCRATCH_RESULT + 2 * i);
 			}
 		}
 		else if (mcPlaces.InX(psStep->sDestination))
 		{
 			if (psStep->bSaved)
 			{
-				Frame("ldx", IR816_SCRATCH_RESULT);
+				mcSelector.Frame("ldx", IR816_SCRATCH_RESULT);
 			}
 			else
 			{
-				Operand("ldx", psStep->sSource, 0);
+				mcSelector.Operand("ldx", psStep->sSource, 0);
 			}
 		}
 		else if (psStep->bSaved)
 		{
 			for (i = 0; i < Words(psStep->sType); i++)
 			{
-				Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
-				Frame("sta", mcPlaces.OffsetOf(psStep->sDestination) + 2 * i);
+				mcSelector.Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
+				mcSelector.Frame("sta", mcPlaces.OffsetOf(psStep->sDestination) + 2 * i);
 			}
 		}
 		else
 		{
-			CopyWords(mcPlaces.OffsetOf(psStep->sDestination), psStep->sSource, Words(psStep->sType));
+			mcSelector.CopyWords(mcPlaces.OffsetOf(psStep->sDestination), psStep->sSource, Words(psStep->sType));
 		}
 	}
 }
@@ -1934,13 +1936,13 @@ bool CIRW65C816Backend::HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 {
-	if ((pcBlock->masInstructions.NumElements() > 0) && IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
+	if ((pcBlock->masInstructions.NumElements() > 0) && mcSelector.IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
 	{
-		FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel, FlagsKnown(pcBlock), SubtractsSigned(pcBlock));
+		mcSelector.FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel, mcSelector.FlagsKnown(pcBlock), mcSelector.SubtractsSigned(pcBlock));
 	}
 	else
 	{
-		Operand("lda", pcBlock->msJump.sArgument, 0);
+		mcSelector.Operand("lda", pcBlock->msJump.sArgument, 0);
 		Branch(bWhen ? "bne" : "beq", iLabel);
 	}
 }

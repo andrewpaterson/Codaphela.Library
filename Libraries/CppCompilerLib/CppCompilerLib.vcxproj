@@ -486,6 +486,8 @@
     <ClInclude Include="IR65BackendInternal.h" />
     <ClInclude Include="IRW65C816Backend.h" />
     <ClInclude Include="IRW65C816Places.h" />
+    <ClInclude Include="IRW65C816Runtime.h" />
+    <ClInclude Include="IRW65C816Selector.h" />
     <ClInclude Include="IRW65C816Calls.h" />
     <ClInclude Include="IRW65C816Fusion.h" />
     <ClInclude Include="IRW65C816Folds.h" />

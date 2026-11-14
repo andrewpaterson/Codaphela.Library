@@ -86,21 +86,21 @@ void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
 	{
 		if (iWords == 1)
 		{
-			mpcBackend->Mask(psInstruction->sType);
-			mpcBackend->Store(psInstruction->sResult, 0);
+			mpcBackend->mcSelector.Mask(psInstruction->sType);
+			mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
 		}
 		else if (IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2))
 		{
-			mpcBackend->Store(psInstruction->sResult, 0);
-			mpcBackend->Frame("stx", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
+			mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
+			mpcBackend->mcSelector.Frame("stx", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
 		}
 		else
 		{
 			//Past the direct page Frame goes through X: the high word waits in the scratch word.
-			mpcBackend->Frame("stx", IR816_SCRATCH_RESULT + 2);
-			mpcBackend->Store(psInstruction->sResult, 0);
-			mpcBackend->Frame("lda", IR816_SCRATCH_RESULT + 2);
-			mpcBackend->Store(psInstruction->sResult, 1);
+			mpcBackend->mcSelector.Frame("stx", IR816_SCRATCH_RESULT + 2);
+			mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
+			mpcBackend->mcSelector.Frame("lda", IR816_SCRATCH_RESULT + 2);
+			mpcBackend->mcSelector.Store(psInstruction->sResult, 1);
 		}
 	}
 }
@@ -176,19 +176,19 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 			//The target's bank and high byte pushed as one word and a byte's room below them (phb: any byte), then the
 			//target - 1 written over that byte and the high byte (which the - 1 may have borrowed from): no change of
 			//A's width for the bank's byte.
-			mpcBackend->Frame("pei", iCallee + 1);
+			mpcBackend->mcSelector.Frame("pei", iCallee + 1);
 			mpcBackend->Line("phb");
-			mpcBackend->Frame("lda", iCallee);
+			mpcBackend->mcSelector.Frame("lda", iCallee);
 			mpcBackend->Line("dec A");
 			mpcBackend->Line("sta [S + 1]");
 		}
 		else
 		{
 			mpcBackend->Line("sep m");
-			mpcBackend->Frame("lda", iCallee + 2);
+			mpcBackend->mcSelector.Frame("lda", iCallee + 2);
 			mpcBackend->Line("pha");
 			mpcBackend->Line("rep m");
-			mpcBackend->Frame("lda", iCallee);
+			mpcBackend->mcSelector.Frame("lda", iCallee);
 			mpcBackend->Line("dec A");
 			mpcBackend->Line("pha");
 		}
@@ -224,12 +224,12 @@ int32 CIRW65C816Calls::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstru
 			continue;
 		}
 		psArgument = pcBlock->masInstructions.Get(*mpcBackend->mauiPendingArguments.Get(ui - 1));
-		mpcBackend->PushValue(psArgument->asArguments[0], psArgument->sType);
+		mpcBackend->mcSelector.PushValue(psArgument->asArguments[0], psArgument->sType);
 		iBytes += mpcBackend->ValueBytes(psArgument->sType);
 	}
 	if ((uiFirst == 1) && (pasArguments->Get(0)->iRegister < 0))
 	{
-		mpcBackend->PushFrameAddress(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->mcSelector.PushFrameAddress(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
 		iBytes += 4;
 	}
 	return iBytes;
@@ -359,7 +359,7 @@ void CIRW65C816Calls::LoadRegisters(SIRReference* asValues, int* aiWords, int32*
 		}
 		else
 		{
-			mpcBackend->PushWord(asValues[i], aiWords[i]);
+			mpcBackend->mcSelector.PushWord(asValues[i], aiWords[i]);
 		}
 	}
 	mpcBackend->Line("pla");
@@ -420,7 +420,7 @@ void CIRW65C816Calls::LoadRegisterWord(int iRegister, SIRReference sValue, int i
 	}
 	else
 	{
-		mpcBackend->Operand(aszLoads[iRegister], sValue, iWord);
+		mpcBackend->mcSelector.Operand(aszLoads[iRegister], sValue, iWord);
 	}
 }
 

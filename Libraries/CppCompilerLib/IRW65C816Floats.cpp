@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // _SoftDouble<operation> for f64.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
+void CIRW65C816Selector::FloatArithmetic(SIRInstruction* psInstruction)
 {
 	CChars			szName;
 	int32			iFirst;
@@ -42,8 +42,8 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 	bool			bHidden;
 
 	szName.Init("_");
-	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
-	if (mpcOptions->mbSoftFloatInFrame)
+	mpcBackend->AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
+	if (mpcBackend->mpcOptions->mbSoftFloatInFrame)
 	{
 		iFirst = FrameOperand(psInstruction->asArguments[0], psInstruction->sType, IR816_SCRATCH_RESULT);
 		iSecond = FrameOperand(psInstruction->asArguments[1], psInstruction->sType, IR816_SCRATCH_ARGUMENT_A);
@@ -55,9 +55,9 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 		asValues[1] = psInstruction->asArguments[1];
 		asTypes[0] = psInstruction->sType;
 		asTypes[1] = psInstruction->sType;
-		bHidden = IsHiddenResult(psInstruction->sType);
-		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
-		mcCalls.CallerCleanUp(iBytes, psInstruction);
+		bHidden = mpcBackend->IsHiddenResult(psInstruction->sType);
+		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->mcCalls.CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
 }
@@ -69,13 +69,13 @@ void CIRW65C816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 // when it is a temporary with one, else it is copied to iScratch.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
+int32 CIRW65C816Selector::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
 {
-	if (sValue.IsTemporary() && !mcPlaces.InX(sValue) && !mcFusion.Fused(sValue) && (mcPlaces.OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
+	if (sValue.IsTemporary() && !mpcBackend->mcPlaces.InX(sValue) && !mpcBackend->mcFusion.Fused(sValue) && (mpcBackend->mcPlaces.OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
 	{
-		return mcPlaces.OffsetOf(sValue);
+		return mpcBackend->mcPlaces.OffsetOf(sValue);
 	}
-	CopyWords(iScratch, sValue, Words(sType));
+	CopyWords(iScratch, sValue, mpcBackend->Words(sType));
 	return iScratch;
 }
 
@@ -89,30 +89,30 @@ int32 CIRW65C816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 
 // result comes back in A (and X).  Nothing is pushed or removed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond)
+void CIRW65C816Selector::FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond)
 {
 	CChars	sz;
 	bool	bHidden;
 
-	bHidden = IsHiddenResult(psInstruction->sType);
-	Line("ldx ", iFirst);
+	bHidden = mpcBackend->IsHiddenResult(psInstruction->sType);
+	mpcBackend->Line("ldx ", iFirst);
 	if (iSecond >= 0)
 	{
-		Line("ldy ", iSecond);
+		mpcBackend->Line("ldy ", iSecond);
 	}
 	if (bHidden)
 	{
-		Line("lda ", psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->Line("lda ", psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
 	}
 	sz.Init(szName);
 	sz.Append(IR816_FRAME_OPERANDS);
-	UseRuntime(sz.Text());
+	mpcBackend->UseRuntime(sz.Text());
 	sz.Insert(0, "jsl ");
-	Line(sz.Text());
+	mpcBackend->Line(sz.Text());
 	sz.Kill();
 	if (!bHidden)
 	{
-		mcCalls.CallerCleanUp(0, psInstruction);
+		mpcBackend->mcCalls.CallerCleanUp(0, psInstruction);
 	}
 }
 
@@ -131,7 +131,7 @@ void CIRW65C816Backend::FrameOperandCall(const char* szName, SIRInstruction* psI
 // caller to remove.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
+int32 CIRW65C816Selector::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
 {
 	CArrayIRRegisterArguments	asArguments;
 	SIRRegisterArgument*			psArgument;
@@ -155,11 +155,11 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 	for (i = 0; i < iValues; i++)
 	{
 		psArgument = asArguments.Add();
-		psArgument->iUnits = (i == iExtended) ? 2 : Words(asTypes[i]);
+		psArgument->iUnits = (i == iExtended) ? 2 : mpcBackend->Words(asTypes[i]);
 		psArgument->iRegister = -1;
 	}
 	iFirst = bHidden ? 1 : 0;
-	iRegisters = mpcOptions->mbRegisterArguments ? AssignRegisters(&asArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
+	iRegisters = mpcBackend->mpcOptions->mbRegisterArguments ? mpcBackend->AssignRegisters(&asArguments, IR816_ARGUMENT_REGISTERS, IR816_ARGUMENT_REGISTERS) : 0;
 	if ((iExtended >= 0) && (asArguments.Get(iFirst + iExtended)->iRegister >= 0))
 	{
 		iRegisters = 0;
@@ -219,17 +219,17 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 	}
 	if (iRegisters > 0)
 	{
-		mcCalls.LoadRegisters(asRegisters, aiWords, aiHidden, iRegisters);
+		mpcBackend->mcCalls.LoadRegisters(asRegisters, aiWords, aiHidden, iRegisters);
 	}
 
-	UseRuntime(szName);
+	mpcBackend->UseRuntime(szName);
 	sz.Init("jsl ");
 	sz.Append(szName);
 	if (iRegisters > 0)
 	{
-		AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
+		mpcBackend->AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
 	}
-	Line(sz.Text());
+	mpcBackend->Line(sz.Text());
 	sz.Kill();
 	asArguments.Kill();
 	return iBytes;
@@ -241,7 +241,7 @@ int32 CIRW65C816Backend::SoftFloatCall(const char* szName, SIRReference* asValue
 // _SoftFloatCompare gives -1, 0 or 1, or 2 when either is a NaN, in A: each comparison is true for some of those.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FloatCompare(SIRInstruction* psInstruction)
+void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 {
 	int					aiValues[2];
 	int					iValues;
@@ -260,15 +260,15 @@ void CIRW65C816Backend::FloatCompare(SIRInstruction* psInstruction)
 	sType = psInstruction->sType;
 	szName.Init(CIRW65C816Backend::GetScratch());
 	szName.Append('_');
-	AppendSoftFloatName(&szName, psInstruction, sType);
-	if (mpcOptions->mbSoftFloatInFrame)
+	mpcBackend->AppendSoftFloatName(&szName, psInstruction, sType);
+	if (mpcBackend->mpcOptions->mbSoftFloatInFrame)
 	{
-		Line("ldx ", FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT));
-		Line("ldy ", FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A));
+		mpcBackend->Line("ldx ", FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT));
+		mpcBackend->Line("ldy ", FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A));
 		szName.Append(IR816_FRAME_OPERANDS);
-		UseRuntime(szName.Text());
+		mpcBackend->UseRuntime(szName.Text());
 		szName.Insert(0, "jsl ");
-		Line(szName.Text());
+		mpcBackend->Line(szName.Text());
 		Frame("sta", IR816_SCRATCH_RESULT);
 	}
 	else
@@ -281,42 +281,42 @@ void CIRW65C816Backend::FloatCompare(SIRInstruction* psInstruction)
 		Frame("sta", IR816_SCRATCH_RESULT);
 		if (iBytes > 0)
 		{
-			Line("tsc");
-			Line("clc");
-			Line("adc ", iBytes);
-			Line("tcs");
+			mpcBackend->Line("tsc");
+			mpcBackend->Line("clc");
+			mpcBackend->Line("adc ", iBytes);
+			mpcBackend->Line("tcs");
 		}
 	}
 
 	//The compare's results that make it true (or false, for fne and fordered).
-	iValues = FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
+	iValues = mpcBackend->FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
 
-	iTrue = NewLabel();
-	iFalse = NewLabel();
-	iEnd = NewLabel();
+	iTrue = mpcBackend->NewLabel();
+	iFalse = mpcBackend->NewLabel();
+	iEnd = mpcBackend->NewLabel();
 	sz.Init(CIRW65C816Backend::GetScratch());
 	Frame("lda", IR816_SCRATCH_RESULT);
 	for (i = 0; i < iValues; i++)
 	{
-		Line("cmp ", aiValues[i] & 0xFFFF);
+		mpcBackend->Line("cmp ", aiValues[i] & 0xFFFF);
 		sz.Clear();
 		sz.Append("beq L");
 		sz.Append(bNot ? iFalse : iTrue);
-		Line(sz.Text());
+		mpcBackend->Line(sz.Text());
 	}
 	sz.Clear();
 	sz.Append("bra L");
 	sz.Append(bNot ? iTrue : iFalse);
-	Line(sz.Text());
-	Label(iTrue);
-	Line("lda 1");
+	mpcBackend->Line(sz.Text());
+	mpcBackend->Label(iTrue);
+	mpcBackend->Line("lda 1");
 	sz.Clear();
 	sz.Append("bra L");
 	sz.Append(iEnd);
-	Line(sz.Text());
-	Label(iFalse);
-	Line("lda 0");
-	Label(iEnd);
+	mpcBackend->Line(sz.Text());
+	mpcBackend->Label(iFalse);
+	mpcBackend->Line("lda 0");
+	mpcBackend->Label(iEnd);
 	Store(psInstruction->sResult, 0);
 	szName.Kill();
 	sz.Kill();
@@ -329,7 +329,7 @@ void CIRW65C816Backend::FloatCompare(SIRInstruction* psInstruction)
 // bit one as a long long.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
+void CIRW65C816Selector::FloatConversion(SIRInstruction* psInstruction)
 {
 	SIRType			sFrom;
 	SIRType			sTo;
@@ -344,11 +344,11 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 	sValue = psInstruction->asArguments[0];
 	iExtended = -1;
 	bSigned = false;
-	sFrom = mpcFunction->TypeOf(sValue);
+	sFrom = mpcBackend->mpcFunction->TypeOf(sValue);
 	sTo = psInstruction->sType;
 	szName.Init(CIRW65C816Backend::GetScratch());
 	szName.Append('_');
-	AppendSoftFloatName(&szName, psInstruction, sFrom);
+	mpcBackend->AppendSoftFloatName(&szName, psInstruction, sFrom);
 	if ((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF))
 	{
 		bSigned = psInstruction->uiOpcode == IRO_SIToF;
@@ -357,9 +357,9 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 			iExtended = 0;
 		}
 	}
-	if (mpcOptions->mbSoftFloatInFrame)
+	if (mpcBackend->mpcOptions->mbSoftFloatInFrame)
 	{
-		if (((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF)) && (Words(sFrom) < 2))
+		if (((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF)) && (mpcBackend->Words(sFrom) < 2))
 		{
 			//Extended to 32 bits (as PushInt32 does) in the scratch bytes.
 			Operand("lda", sValue, 0);
@@ -378,7 +378,7 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 			}
 			else
 			{
-				Line("lda 0");
+				mpcBackend->Line("lda 0");
 			}
 			Frame("sta", IR816_SCRATCH_RESULT + 2);
 			iFirst = IR816_SCRATCH_RESULT;
@@ -391,9 +391,9 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 	}
 	else
 	{
-		bHidden = IsHiddenResult(sTo);
-		iBytes = SoftFloatCall(szName.Text(), &sValue, &sFrom, 1, iExtended, bSigned, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mcPlaces.OffsetOf(psInstruction->sResult));
-		mcCalls.CallerCleanUp(iBytes, psInstruction);
+		bHidden = mpcBackend->IsHiddenResult(sTo);
+		iBytes = SoftFloatCall(szName.Text(), &sValue, &sFrom, 1, iExtended, bSigned, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->mcCalls.CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
 }
@@ -404,9 +404,9 @@ void CIRW65C816Backend::FloatConversion(SIRInstruction* psInstruction)
 // Pushes an integer of up to 32 bits as 32 bits, sign or zero extended.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
+void CIRW65C816Selector::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 {
-	if (Words(sType) == 2)
+	if (mpcBackend->Words(sType) == 2)
 	{
 		PushValue(sValue, sType);
 		return;
@@ -423,9 +423,9 @@ void CIRW65C816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSign
 	}
 	else
 	{
-		Line("lda 0");
+		mpcBackend->Line("lda 0");
 	}
-	Line("pha");
+	mpcBackend->Line("pha");
 	Frame("lda", IR816_SCRATCH_VALUE);
-	Line("pha");
+	mpcBackend->Line("pha");
 }

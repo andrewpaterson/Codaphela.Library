@@ -339,7 +339,7 @@ bool CIRW65C816Folds::LoadY(SIRReference sPointer, int32 iOffset)
 		mpcBackend->Line("ldy ", iOffset);
 		return true;
 	}
-	mpcBackend->Operand("ldy", sIndex, 0);
+	mpcBackend->mcSelector.Operand("ldy", sIndex, 0);
 	for (; iOffset > 0; iOffset--)
 	{
 		mpcBackend->Line("iny");

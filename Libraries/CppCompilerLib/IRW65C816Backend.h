@@ -32,6 +32,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRW65C816Folds.h"
 #include "IRW65C816Fusion.h"
 #include "IRW65C816Calls.h"
+#include "IRW65C816Selector.h"
+#include "IRW65C816Runtime.h"
 
 
 class CIRW65C816LiveRanges;
@@ -170,6 +172,8 @@ typedef CArrayTemplate<SIRW65C816Temporary>	CArrayIRW65C816Temporaries;
 //registers from the stack and goes on to the body.
 class CIRW65C816Backend : public CIRBackend
 {
+friend class CIRW65C816Runtime;
+friend class CIRW65C816Selector;
 friend class CIRW65C816Calls;
 friend class CIRW65C816Fusion;
 friend class CIRW65C816Folds;
@@ -201,6 +205,8 @@ protected:
 	CIRW65C816Folds				mcFolds;
 	CIRW65C816Fusion			mcFusion;
 	CIRW65C816Calls				mcCalls;
+	CIRW65C816Selector			mcSelector;
+	CIRW65C816Runtime			mcRuntime;
 public:
 	void			Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator* pcArena = NULL) override;
 	void			SetOptions(CCPPCompileOptions* pcOptions) override;
@@ -223,14 +229,10 @@ public:
 	void			FindZeroWords(void);
 	void			FindLowByteUses(void);
 	bool			IsLowByteOnly(SIRReference sValue);
-	uint8			ZeroWords(SIRReference sValue);
 	bool			IsZeroWord(SIRReference sValue, int iWord);
 	int				MultiplyCost(SIRType sType, uint64 ulliMultiplier) override;
 	int				ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits) override;
 
-	static bool		GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors);
-	static void		AppendDivideTable(CChars* pszDest, const char* szName);
-	static void		AppendBitsTable(CChars* pszDest, const char* szName);
 	static void		Peephole(CChars* pszDest, size uiStart);
 	static void		Peephole(CIRW65C816Code* pcCode);
 	static void		RemoveDeadStores(CChars* pszDest, size uiStart);
@@ -259,81 +261,19 @@ protected:
 	int				Words(SIRType sType);
 	bool			IsHiddenResult(SIRType sType);
 
-	void			Frame(const char* szMnemonic, int32 iOffset);
-	void			Operand(const char* szMnemonic, SIRReference sValue, int iWord);
-	void			Store(SIRReference sResult, int iWord);
-	void			Mask(SIRType sType);
-	bool			ConstantWord(SIRReference sValue, int iWord, uint16* puiWord);
-	void			CopyWords(int32 iDestination, SIRReference sValue, int iWords);
-	void			ZeroWords(int32 iDestination, int iFirst, int iWords);
-	void			FillSign(int32 iDestination, int iFirst, int iWords);
-	void			PushValue(SIRReference sValue, SIRType sType);
-	void			PushWord(SIRReference sValue, int iWord);
 	int32			ArgumentPlace(SIRRegisterArgument* psArgument, int32* piPushed);
-	void			PushFrameAddress(int32 iOffset);
-	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
 
-	bool			Instruction(CIRBlock* pcBlock, size uiIndex);
-	void			Arithmetic(SIRInstruction* psInstruction);
-	bool			StepInPlace(SIRInstruction* psInstruction);
-	void			Logic(SIRInstruction* psInstruction);
-	void			Shift(SIRInstruction* psInstruction);
-	bool			BitShift(SIRInstruction* psInstruction);
-	bool			ShiftTwoWords(SIRInstruction* psInstruction);
-	bool			ShiftCall(SIRInstruction* psInstruction);
-	int32			FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch);
-	void			FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond);
-	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
-	void			ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther);
-	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
-	void			ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount);
-	void			ShiftWordInA(uint16 uiOpcode, int iAmount);
-	void			SignExtendInA(int iSignBit);
-	void			SignWordInA(void);
-	bool			RuntimeCall(SIRInstruction* psInstruction);
-	bool			RemainderLeft(SIRInstruction* psInstruction);
-	bool			InlineMultiply16(SIRInstruction* psInstruction);
-	void			InlineCrossProduct(int32 iHigh, int32 iLow);
-	void			TableProduct(void);
-	bool			WideMultiply(SIRInstruction* psInstruction);
-	bool			IsHighHalfZero(SIRReference sValue, int iDepth);
-	SIRInstruction*	FindDefinition(SIRReference sValue);
-	void			RuntimeName(CChars* pszName, SIRInstruction* psInstruction);
-	bool			IsScratchCall(SIRInstruction* psInstruction);
-	void			Compare(SIRInstruction* psInstruction);
-	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);
-	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown, bool bSubtract);
-	bool			EqualityFollows(CIRBlock* pcBlock);
-	bool			SubtractsSigned(CIRBlock* pcBlock);
-	bool			FlagsKnown(CIRBlock* pcBlock);
-	bool			LeavesEqualityInZ(SIRInstruction* psInstruction);
 	void			Branch(const char* szMnemonic, int32 iLabel);
 	bool			HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
-	void			CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned);
-	void			SignedLessFlags(SIRReference* psArguments, int iWords, bool bSwapped);
-	bool			TableDivide(SIRInstruction* psInstruction, bool bSigned);
-	bool			ByteMultiply(SIRInstruction* psInstruction);
-	void			Extend(SIRInstruction* psInstruction);
-	void			ExtendInX(SIRInstruction* psInstruction);
-	void			Address(SIRInstruction* psInstruction, int32 iOffset);
-	void			Load(SIRInstruction* psInstruction);
-	void			WordInA(SIRInstruction* psInstruction, int iWord);
-	void			StoreMemory(SIRInstruction* psInstruction);
 	void			FunctionArguments(void);
 	void			CopyAddressedParameters(void);
 	void			RegisterStub(CChars* pszBodyLabel);
 	bool			Forwarder(CChars* pszJump);
 	void			GenerateForwarder(const char* szLabel, CChars* pszJump);
-	bool			OnlyCounts(SIRReference sValue);
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
 	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
 	void			StackLine(const char* szInstruction, int iOffset);
-	int32			SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset);
-	void			FloatArithmetic(SIRInstruction* psInstruction);
-	void			FloatCompare(SIRInstruction* psInstruction);
-	void			FloatConversion(SIRInstruction* psInstruction);
-	void			PushInt32(SIRReference sValue, SIRType sType, bool bSigned);
 
 	void			Prologue(const char* szLabel);
 	void			Epilogue(void);
