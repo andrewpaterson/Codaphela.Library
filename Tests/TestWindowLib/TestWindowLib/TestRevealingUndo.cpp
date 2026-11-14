@@ -18,7 +18,6 @@ public:
 	bool IsUndoShown(bool bRedo) override { return miChange == miHere; }
 	bool ShowUndo(bool bRedo) override { if (miChange < 0) { return false; } miHere = miChange; mszLog.Append("show;"); return true; }
 	bool DoUndo(bool bRedo) override { if (miChange < 0) { return false; } miUndone++; mszLog.Append(bRedo ? "redo;" : "undo;"); return true; }
-	void AppendUndoState(CChars* pszDest) override { pszDest->Append(miHere); pszDest->Append(','); pszDest->Append(miUndone); }
 	void AppendUndoWhere(bool bRedo, CChars* pszDest) override { pszDest->Append("in place "); pszDest->Append(miChange); }
 };
 
@@ -26,8 +25,8 @@ public:
 //////////////////////////////////////////////////////////////////////////
 //
 // A change in view is undone at once; one out of view is shown by the
-// first press, said, and undone by the second; anything in between, or
-// redo after undo, starts again.
+// first press, said, and undone by the second, as it's in view then;
+// moving away in between shows it again.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRevealingUndoPresses(void)
@@ -43,14 +42,12 @@ void TestRevealingUndoPresses(void)
 	AssertTrue(cUndo.Press(false, "Ctrl+Z", &szMessage));
 	AssertString("undo;", cHost.mszLog.Text());
 	AssertString("", szMessage.Text());
-	AssertFalse(cUndo.IsShowing());
 
 	cHost.mszLog.Clear();
 	cHost.miChange = 2;
 	AssertTrue(cUndo.Press(false, "Ctrl+Z", &szMessage));
 	AssertString("show;", cHost.mszLog.Text());
 	AssertString("Ctrl+Z again to undo the change in place 2.", szMessage.Text());
-	AssertTrue(cUndo.IsShowing());
 	AssertTrue(cUndo.Press(false, "Ctrl+Z", &szMessage));
 	AssertString("show;undo;", cHost.mszLog.Text());
 	AssertString("", szMessage.Text());
@@ -67,8 +64,6 @@ void TestRevealingUndoPresses(void)
 	cHost.miChange = 4;
 	AssertTrue(cUndo.Press(true, "Ctrl+Shift+Z", &szMessage));
 	AssertString("Ctrl+Shift+Z again to redo the change in place 4.", szMessage.Text());
-	cUndo.Forget();
-	AssertFalse(cUndo.IsShowing());
 
 	//Nothing to undo.
 	cHost.miChange = -1;
