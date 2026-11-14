@@ -219,7 +219,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mpcExit = NULL;
 	mauiStringBytes.ReInit();
 	mauiStringLengths.ReInit();
-	muiFirstString = mpcGenerator->maszStrings.NumElements();
+	muiFirstString = mpcGenerator->mcData.NumStrings();
 	mcAddresses.Init(true);
 	mcAnonymousAddresses.Init(true);
 	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
@@ -351,7 +351,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			for (ui = 0; ui < mauiStringLengths.NumElements(); ui++)
 			{
 				uiLength = *mauiStringLengths.Get(ui);
-				mpcGenerator->AddString((char*)mauiStringBytes.GetData() + uiStart, uiLength);
+				mpcGenerator->mcData.AddString((char*)mauiStringBytes.GetData() + uiStart, uiLength);
 				uiStart += uiLength;
 			}
 		}

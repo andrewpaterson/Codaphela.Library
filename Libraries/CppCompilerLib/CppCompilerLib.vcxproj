@@ -292,6 +292,7 @@
     <ClCompile Include="CPPClassLayout.cpp" />
     <ClCompile Include="CPPMangler.cpp" />
     <ClCompile Include="CPPContext.cpp" />
+    <ClCompile Include="CPPUnitData.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPOverloads.cpp" />
@@ -535,6 +536,7 @@
     <ClInclude Include="CPPClassLayout.h" />
     <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPContext.h" />
+    <ClInclude Include="CPPUnitData.h" />
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPOverloads.h" />

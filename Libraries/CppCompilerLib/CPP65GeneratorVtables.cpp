@@ -55,15 +55,15 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 	}
 	if (pcClass->IsUnnamed())
 	{
-		AppendSection(&mszData, "rodata", &szLabel, NULL);
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
 	}
 	else
 	{
-		AppendSection(&mszData, "rodata", &szLabel, ", comdat");
-		AppendGlobal(&mszData, &szLabel);
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
 	}
-	mszData.Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
-	mszData.AppendNewLine();
+	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mcData.GetText()->AppendNewLine();
 
 	//The label is after the first part's header.
 	asEntries.Init();
@@ -81,9 +81,9 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 		}
 		if (i == 0)
 		{
-			mszData.Append(szLabel);
-			mszData.Append(':');
-			mszData.AppendNewLine();
+			mcData.GetText()->Append(szLabel);
+			mcData.GetText()->Append(':');
+			mcData.GetText()->AppendNewLine();
 		}
 	}
 	asEntries.Kill();
@@ -102,12 +102,12 @@ void CCPP65Generator::EnsureVtable(CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 {
-	mszData.Append("\t\t.long ");
-	mszData.Append(-iVtablePointer);
-	mszData.AppendNewLine();
-	mszData.Append("\t\t.long ");
-	mcMangler.AppendTypeInfoLabel(&mszData, pcClass);
-	mszData.AppendNewLine();
+	mcData.GetText()->Append("\t\t.long ");
+	mcData.GetText()->Append(-iVtablePointer);
+	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append("\t\t.long ");
+	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
+	mcData.GetText()->AppendNewLine();
 }
 
 
@@ -140,22 +140,22 @@ void CCPP65Generator::EnsureTypeInfo(CCPPClass* pcClass)
 	}
 	if (pcClass->IsUnnamed())
 	{
-		AppendSection(&mszData, "rodata", &szLabel, NULL);
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
 	}
 	else
 	{
-		AppendSection(&mszData, "rodata", &szLabel, ", comdat");
-		AppendGlobal(&mszData, &szLabel);
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
 	}
 	szLabel.Kill();
-	mszData.Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
-	mszData.AppendNewLine();
-	mcMangler.AppendTypeInfoLabel(&mszData, pcClass);
-	mszData.Append(':');
-	mszData.AppendNewLine();
+	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mcData.GetText()->AppendNewLine();
+	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
+	mcData.GetText()->Append(':');
+	mcData.GetText()->AppendNewLine();
 	AppendTypeInfoBases(pcClass, 0);
-	mszData.Append("\t\t.long 0");
-	mszData.AppendNewLine();
+	mcData.GetText()->Append("\t\t.long 0");
+	mcData.GetText()->AppendNewLine();
 
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -174,12 +174,12 @@ void CCPP65Generator::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 	SCPPBase*	psBase;
 	size		i;
 
-	mszData.Append("\t\t.long ");
-	mcMangler.AppendTypeInfoLabel(&mszData, pcClass);
-	mszData.AppendNewLine();
-	mszData.Append("\t\t.long ");
-	mszData.Append(iOffset);
-	mszData.AppendNewLine();
+	mcData.GetText()->Append("\t\t.long ");
+	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
+	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append("\t\t.long ");
+	mcData.GetText()->Append(iOffset);
+	mcData.GetText()->AppendNewLine();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
@@ -199,12 +199,12 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 	CChars	szLabel;
 	CChars	szFunction;
 
-	mszData.Append("\t\t.long ");
+	mcData.GetText()->Append("\t\t.long ");
 	if (pcFunction->mbPure)
 	{
-		mcMangler.AppendVtableEntryLabel(&mszData, pcFunction, iAdjust);
+		mcMangler.AppendVtableEntryLabel(mcData.GetText(), pcFunction, iAdjust);
 		mbPureVirtual = true;
-		mszData.AppendNewLine();
+		mcData.GetText()->AppendNewLine();
 		return;
 	}
 
@@ -222,8 +222,8 @@ void CCPP65Generator::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 			szFunction.Kill();
 		}
 	}
-	mszData.Append(szLabel);
-	mszData.AppendNewLine();
+	mcData.GetText()->Append(szLabel);
+	mcData.GetText()->AppendNewLine();
 	szLabel.Kill();
 }
 
@@ -265,12 +265,12 @@ void CCPP65Generator::AppendThunkLabel(CChars* pszLabel, bool bComdat)
 {
 	if (bComdat)
 	{
-		AppendSection(&mszThunks, "text", pszLabel, ", comdat");
-		AppendGlobal(&mszThunks, pszLabel);
+		CCPPUnitData::AppendSection(&mszThunks, "text", pszLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(&mszThunks, pszLabel);
 	}
 	else
 	{
-		AppendSection(&mszThunks, "text", pszLabel, NULL);
+		CCPPUnitData::AppendSection(&mszThunks, "text", pszLabel, NULL);
 	}
 	mszThunks.Append(*pszLabel);
 	mszThunks.Append(':');

@@ -260,7 +260,7 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	uiMarkerLength = szMarker.Length();
 	szMarker.Kill();
 	szMarker.Init();
-	mpcGenerator->AppendSection(&szMarker, "text", &szName, NULL);
+	CCPPUnitData::AppendSection(&szMarker, "text", &szName, NULL);
 	szMarker.Append(IR65_FRONT_END_MARKER);
 	szMarker.Append((int)(masWritten.NumElements() - 1));
 	szMarker.Append(IR65_FRONT_END_MARKER);
@@ -318,7 +318,7 @@ bool CCPP65IRFrontEnd::RemoveSpecialised(size uiFunction)
 
 	psWritten = masWritten.Get(uiFunction);
 	szSection.Init();
-	mpcGenerator->AppendSection(&szSection, "text", &psWritten->szLabel, NULL);
+	CCPPUnitData::AppendSection(&szSection, "text", &psWritten->szLabel, NULL);
 	uiSectionLength = szSection.Length();
 	szSection.Append(IR65_FRONT_END_MARKER);
 	szSection.Append((int)uiFunction);

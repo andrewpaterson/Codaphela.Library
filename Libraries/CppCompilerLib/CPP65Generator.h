@@ -47,6 +47,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPClassLayout.h"
 #include "CPPMangler.h"
 #include "CPPContext.h"
+#include "CPPUnitData.h"
 #include "CPPOverloads.h"
 #include "CPPDeclarators.h"
 #include "CPPDeduction.h"
@@ -141,7 +142,6 @@ struct SCPPTypeOf
 typedef CMapLongTemplate<SCPPTypeOf>		CMapCPPTypeOfs;
 
 
-typedef CArrayTemplate<CChars>				CArrayCPPStrings;
 
 
 #define CPP65_BUILTIN_PREFIX			"__builtin_"
@@ -175,7 +175,6 @@ protected:
 	CCPPTarget*				mpcTarget;
 
 	CChars					mszCode;
-	CChars					mszData;
 	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
 	CArrayChars				maszRuntime;		//The runtime routines' labels the unit calls: linked (soft float), or written into the unit (AppendRuntime).
 	CCPPErrors				mcErrors;
@@ -198,11 +197,9 @@ protected:
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
 	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
-	CArrayCPPStrings		maszStrings;
-	int						miStartUps;			//R_Initialise and R_Finalise routines written.
-	bool						mbDataBss;			//The last BeginData was bss: the global's start up routines associate with bss.label.
 	bool					mbPureVirtual;
 
+	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
 	CCPPOverloads			mcOverloads;
 	CCPPDeclarators			mcDeclarators;
@@ -287,8 +284,6 @@ protected:
 	bool					IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration);
 	bool					GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration);
 	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise);
-	void					AppendData(SCPP65Type* psType, int64 lliValue);
-	void					AppendZeros(int iBytes);
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
 	CCPPVariable*			GetVariable(CCPPSymbol* pcSymbol);
@@ -309,25 +304,19 @@ protected:
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
-	void					AppendStrings(CChars* pszDest);
 	void					AppendRuntime(void);
 	CArrayChars*			GetRuntimeCalls(void) override;
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;
 	void					RuntimeError(const char* szMessage) override;
-	void					AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData);
 	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy);
-	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	SCPP65Type*				ParameterType(SCPP65Type* psType);
 	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);
-	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions, bool bBss = false);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
-	void					AppendSpace(int iBytes);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
-	void					AppendGlobal(CChars* psz, CChars* pszLabel);
 
 	void					ReportTypeOf(CCPPSyntax* pcExpression);
 	bool					ReportError(CCPPSyntax* pcNode, const char* szMessage);
@@ -414,7 +403,6 @@ protected:
 
 	bool					IsAssignmentOperator(ECppTokens eOperator);
 
-	int						AddString(char* szBytes, size uiLength);
 	bool					FunctionNameText(int64 lliName, CChars* pszText);
 	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);

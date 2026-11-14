@@ -105,28 +105,6 @@ SCPP65Type* CCPP65Generator::IntegerLiteralType(CCTInt* pcInt)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds uiLength bytes and a zero as string data, labelled Str and the number returned.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::AddString(char* szBytes, size uiLength)
-{
-	CChars*	pszBytes;
-	size	i;
-
-	pszBytes = maszStrings.Add();
-	pszBytes->Init();
-	for (i = 0; i < uiLength; i++)
-	{
-		pszBytes->Append((int)(uint8)szBytes[i]);
-		pszBytes->Append(", ");
-	}
-	pszBytes->Append('0');
-	return (int)maszStrings.NumElements() - 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // __func__ and __FUNCTION__ are the function's name.  __PRETTY_FUNCTION__ and
 // __FUNCSIG__ are its class and name ("CClass::Name"), not the whole signature.
 // Returns false if lliName is not one of them.
