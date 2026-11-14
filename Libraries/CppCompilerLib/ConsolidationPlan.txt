@@ -270,7 +270,7 @@ Stage 5, a call, a name and a member are resolved once; then the checkpoint.
    2. CCPPSyntaxVisitor: a virtual for each kind of node, and the small questions onto the nodes.  Done: the
       type checker's Result is its first user.
    3. Calls that aren't on an object are bound once: CCPPCallBinder has the one cascade and makes a
-      CCPPBoundCall that the type checker and the front end both read.  Written; being proven.
+      CCPPBoundCall that the type checker and the front end both read.
    4. Calls on an object, the same way: the object, its class and whether it is const, destructor calls, a
       field that points to a function, and whether the call goes through the vtable.
    5. Operator and conversion calls through the binder, and CCPPOverloads' twelve ways in become one (stage 4
@@ -286,6 +286,7 @@ Stage 5, a call, a name and a member are resolved once; then the checkpoint.
       for a function, peak memory, compile time, the suites' cycles and sizes, the disagreements found, and
       what is suggested for stages 6 to 11 and for stage 2's leftovers.  The plan stops and the numbers go to
       the user.
+   All ten are done (2026-11-14): Progress has the checkpoint.  The binder is CCPPBinder since step 9.
    Old and new are compared without a debug build that runs both: the listings of TestSupportLib65's project
    on both processors, made by the compiler before a step and after it, are the front end's choices side by
    side, and TestCppCompilerLib is the type checker's.  A listing that differs is read; where the two walkers
@@ -627,7 +628,10 @@ to compare today's build with.  A new baseline is needed before stage 4 measures
 	3       Done                    cf550eee6 0630eb7e5 d820f0acd b674a3d6d 72767813f 1db5a1185 84809de21
 	4       Done but one way in     9df820a67 865c20374 da7696412 0c9f2d6fd 4723f9d05 5bde13c64 763030146 5304abcb3
 	                                f945ff482 b70675dbb f00de6c59 b856fded1
-	5-11    Not started
+	5       Done: the checkpoint    9d3684ca3 1ebcd76da cf306ce4d 5d923f2fd a91247def 1018d00d0 0e844a0e3 8c592e37c
+	                                2f958ec73 7bb4745b6 1be9f6d69
+	6-11    Waiting for the user
+	(Commits are named as they were when each row was written: the history has been rebased since, more than once.)
 
 The baseline of 2026-11-14 (68476daf2 with the #include fixes; Release x64, 16 threads, CompilerMeasure.py).
 This is what stages 3 to 5 are measured against.  TestCppCompilerLib: 260,170 checks pass.
@@ -882,6 +886,102 @@ Stage 4.
    called 3.94 million times and works 934 thousand out; 1352 calls have packs expanded, making 11,502 nodes.
    The two walkers' functions for calls, names and members are 631 lines in the type checker and 909 in the
    front end, and GetKind is tested 218 times in the C++ classes' files.
+
+Stage 5.  The checkpoint, 2026-11-14.  The plan stops here: stages 6 to 11 wait for the user.
+   What was made.  CCPPSyntaxVisitor has a virtual for each of the eighty-one kinds of node and every node
+   accepts one (9d3684ca3); the type checker's Result uses it.  CCPPBinder (CPPBinder.h and .cpp; it was
+   CCPPCallBinder until 1be9f6d69) says what a unit's calls, names and members are, in one place, for both
+   walkers to read:
+   - A call that isn't on an object (1ebcd76da) and one that is (5d923f2fd) are a CCPPBoundCall: how it is
+     made (a function by its label, a member function on an object, a destructor, through a pointer, a
+     builtin, memcpy in place), the function, the object and its class, whether it is the left of ->,
+     whether it goes through the vtable, and its arguments.  It is remembered for the template arguments and
+     the function the call is in.
+   - An operator with an object for an operand is bound the same way (a91247def).
+   - The binder owns the overloads (1018d00d0): nothing else reaches FindFunction, the template choosers or
+     the ranking.  This is the one way in that stage 4 left.
+   - A pack's expanded arguments are the bound call's, made once, and the syntax tree is not rewritten and
+     put back (8c592e37c): ExpandPackArguments, RestoreArguments and both walkers' ExpandPackCall are gone.
+   - What a name alone is (2f958ec73, CCPPBoundName) and which member of a class a name is (7bb4745b6).
+     These remember nothing: a local's variable is made again each time its function is written.
+   Every step: TestSupportLib65's listings the same on both processors (838 and 839, from the snapshot) and
+   TestCppCompilerLib passing (267,038 checks at the end).  No listing changed in the whole stage.
+   Where the two walkers disagreed, and which rule was kept:
+   - A function declared with a __builtin_ name: the type checker called it as declared, the front end wrote
+     the builtin.  The builtin (the front end's: it is the code that was always written).
+   - A function named memcpy with a small constant count: the type checker copied in place only one with C
+     linkage, the front end any.  Any (the front end's).  The binder was first given the type checker's
+     rule, and TestCPP65IRMemcpy's program stopped linking; the listings had not shown it (cf306ce4d).
+   - Looking for a member function where a member template could do instead: the type checker looked quietly,
+     the front end reported.  Quietly.
+   What was wrong in both and is put right, with tests in TestCPPOverloads (0e844a0e3): F(S()) bound a
+   constructed temporary to S& before const S&; the first declaration of a name decided whether a call saw
+   its templates or its functions, so each hid the other; and two specialisations matching equally was not
+   reported when the instance was only named.  No library does any of these, so no listing changed.
+   Still as it was: sizeof...(pack) is parsed and not generated.
+
+   The numbers, compiling TestSupportLib65's project for the W65C816 on one thread (stage 4's end, then now):
+
+	FindFunction calls                            511591      221334
+	...for a node and a name already chosen for   336349       60122
+	ChooseMemberTemplate calls                    261712      104162
+	ChooseTemplate calls                          329310      127280
+	FindNamedFunction calls                        75637       31621
+	TypeOf calls                                 3936291     3129100
+	...worked out                                 933536      931602
+	Calls asked what they are (Bind)                   -      412005
+	...worked out                                      -      164473
+	Calls with a pack expanded                      1352         666
+	...nodes made for them                         11502        5694
+	Quiet trials                                 1271503     1271655
+	Type checker, seconds                            4.1         4.1
+	IR front end, seconds                            3.1         2.7
+	The compile, seconds                             126         133
+	Peak memory, megabytes                           805         803
+
+   57,706 functions are written, so a function has 2.9 calls worked out on average (the most in one function
+   was not counted).  The six compiles take 61, 80, 68, 93, 102 and 133 seconds (63, 84, 70, 95, 98 and 126 at
+   stage 4's end) with the same peak memory: level, with another session building while the last two ran.
+   The two walkers' functions for calls, names and members: the type checker's are 365 lines where they were
+   631, the front end's 713 where they were 909, and the binder that has what they decided is 751.  So 462
+   lines of deciding left the walkers and the three together are 1829 lines where the two were 1540.  GetKind
+   is tested 215 times where it was 218.  The type checker has 87 functions and 1790 lines, the front end 192
+   and 5713, the unit 219 and 5592, the overloads 35 and 1092, the binder 20 and 714.
+
+   The three Lib65 suites pass on both processors, preferring speed and preferring size, and every program
+   is smaller preferring size.  TestBaseLib65's W65C816 row and both of TestStandardLib65's are stage 4's to
+   the cycle and the byte, and so are five of the six rows for size; the others differ by what other work
+   changed in the libraries and their tests meanwhile (a session added to BaseLib's FileUtil during the run:
+   the speed rows were all compiled before it, the size rows all after, and it cost no bytes).
+
+	Suite              Processor          Cycles       Bytes  Seconds  Peak MB    for size: Cycles       Bytes
+	TestBaseLib65      65C64          6116039523    21113732      122     1923          7850678465    17118599
+	TestBaseLib65      W65C816       16820456060    81520610      163     2007         23897907621    64480653
+	TestStandardLib65  65C64         15646464266    30097831      208     2770         21532985565    22941854
+	TestStandardLib65  W65C816       24412016525    71619789      188     2838         34465565120    47853333
+	TestSupportLib65   65C64         30779408474    32140847      414     2330         38892290143    24647910
+	TestSupportLib65   W65C816       62941762145    71191493      448     2410         91389042407    47646185
+
+   What it says about going on.  The stage's own test was: if the front end's call and member functions are
+   short and decide nothing, stage 6 goes ahead; if they haven't shrunk much, it is dropped.  They decide
+   nothing now about which function, which object or which field: that is the binder's, once.  They are not
+   short: the front end's lost a fifth and the type checker's two fifths, because most of what they are is
+   writing code and working types out, which no binding takes away.  And the code grew by 290 lines.
+   What binding bought is not size and not time (the two walkers are 5% of the compile): it is that a
+   question has one answer.  Three rules the walkers disagreed on are one rule each, three wrong choices that
+   were wrong twice were put right once, and the same call is no longer worked out two or three times.
+   Suggested, for the user to decide:
+   - Stage 6 as written (every kind of expression a bound node, XL) is not worth its size on this evidence:
+     the same 20 to 40% of a walker's deciding would move, at about the same cost in lines, for kinds where
+     the walkers disagree less than they did about calls.
+   - What is worth taking from it is the two kinds where each walker still decides for itself and they can
+     disagree: conversions (which conversion function or constructor converts, FindConversion asked from
+     three places) and making, copying and destroying objects (FindConstructor asked from three).  Each is a
+     question for the binder, a step of stage 5's size, not a stage.
+   - The quiet trials (1.27 million, as before) did not fall with bound calls as stage 4's row hoped: they
+     are TypeOf's and the template choosers' silence, not the call cascade's.  They would fall only if TypeOf
+     stopped re-running the type checker to report, which is a change to how errors are kept, not to binding.
+   - Stages 7 to 11 don't depend on stage 6 and are untouched by this.
 
 Code generation, 2026-11-13 and 14 (not a stage: CodeGenerationHandoff.txt has it all).  The W65C816's and the
 65C64's code were made faster outside this plan's order: the three Lib65 suites' cycles on the 65C64 went from
