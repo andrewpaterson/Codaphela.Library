@@ -35,6 +35,8 @@ void CCPPContext::Init(void)
 	mbLinkageExtern = false;
 	mbCLinkage = false;
 	mpcPackParameter = NULL;
+	miQuiet = 0;
+	mbQuietFailed = false;
 	masEntered.Init();
 	mbBroken = false;
 }
@@ -61,6 +63,7 @@ SCPPContextEntry* CCPPContext::Enter(ECPPContextEntry eKind)
 	psEntry = masEntered.Add();
 	psEntry->eKind = eKind;
 	psEntry->pvSaved = NULL;
+	psEntry->iSaved = 0;
 	psEntry->bSaved = false;
 	psEntry->bOtherSaved = false;
 	return psEntry;
@@ -230,6 +233,109 @@ void CCPPContext::LeaveStaticLocal(void)
 	{
 		mbStaticLocal = false;
 		mbThis = sEntry.bSaved;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Errors are not reported until EndQuiet.  True if nothing was quiet before:
+// whether it fails is then counted from here.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPContext::BeginQuiet(void)
+{
+	bool	bOutermost;
+
+	bOutermost = miQuiet == 0;
+	if (bOutermost)
+	{
+		mbQuietFailed = false;
+	}
+	miQuiet++;
+	return bOutermost;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if no error was made since the outermost BeginQuiet (or since the trial
+// it is in began).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPContext::EndQuiet(void)
+{
+	miQuiet--;
+	return !mbQuietFailed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Quiet code whose failing is its own.  True if nothing was quiet before.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPContext::BeginTrial(void)
+{
+	bool	bOutermost;
+
+	bOutermost = miQuiet == 0;
+	Enter(CPPCE_Trial)->bSaved = mbQuietFailed;
+	mbQuietFailed = false;
+	miQuiet++;
+	return bOutermost;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the trial made no error.  What was quiet around it has failed or not
+// as it had before the trial.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPContext::EndTrial(void)
+{
+	SCPPContextEntry	sEntry;
+	bool				bPassed;
+
+	bPassed = !mbQuietFailed;
+	if (Leave(CPPCE_Trial, &sEntry))
+	{
+		mbQuietFailed = sEntry.bSaved;
+		miQuiet--;
+	}
+	return bPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Errors are reported until EndLoud, whatever is quiet around it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::BeginLoud(void)
+{
+	SCPPContextEntry*	psEntry;
+
+	psEntry = Enter(CPPCE_Loud);
+	psEntry->iSaved = miQuiet;
+	psEntry->bSaved = mbQuietFailed;
+	miQuiet = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::EndLoud(void)
+{
+	SCPPContextEntry	sEntry;
+
+	if (Leave(CPPCE_Loud, &sEntry))
+	{
+		miQuiet = sEntry.iSaved;
+		mbQuietFailed = sEntry.bSaved;
 	}
 }
 

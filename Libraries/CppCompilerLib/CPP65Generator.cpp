@@ -274,10 +274,8 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcFailed.Init();
 	mcTypeOfs.Init(true);
 	maszEmitted.Init();
-	miQuiet = 0;
 	miWarningChecks = 0;
 	mapcConstantTypes.Init();
-	mbQuietFailed = false;
 	maszStrings.Init();
 	miStartUps = 0;
 	mbDataBss = false;
@@ -871,9 +869,9 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Error(CCPPSyntax* pcNode, const char* szMessage)
 {
-	if (miQuiet > 0)
+	if (mcContext.IsQuiet())
 	{
-		mbQuietFailed = true;
+		mcContext.SetFailed();
 		return false;
 	}
 	return ErrorAt(pcNode ? pcNode->miFirstToken : -1, szMessage);
@@ -1019,15 +1017,9 @@ void CCPP65Generator::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMe
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 {
-	int		iQuiet;
-	bool	bQuietFailed;
-
-	iQuiet = miQuiet;
-	bQuietFailed = mbQuietFailed;
-	miQuiet = 0;
+	BeginLoud();
 	Error(pcNode, szMessage);
-	miQuiet = iQuiet;
-	mbQuietFailed = bQuietFailed;
+	EndLoud();
 	return false;
 }
 
@@ -1039,15 +1031,9 @@ bool CCPP65Generator::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::ReportErrorAt(int iToken, const char* szMessage)
 {
-	int		iQuiet;
-	bool	bQuietFailed;
-
-	iQuiet = miQuiet;
-	bQuietFailed = mbQuietFailed;
-	miQuiet = 0;
+	BeginLoud();
 	ErrorAt(iToken, szMessage);
-	miQuiet = iQuiet;
-	mbQuietFailed = bQuietFailed;
+	EndLoud();
 	return false;
 }
 
@@ -1060,12 +1046,10 @@ bool CCPP65Generator::ReportErrorAt(int iToken, const char* szMessage)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::BeginQuiet(void)
 {
-	if (miQuiet == 0)
+	if (mcContext.BeginQuiet())
 	{
-		mbQuietFailed = false;
 		mpcStatistics->Count(CPPCC_QuietTrials);
 	}
-	miQuiet++;
 }
 
 
@@ -1076,12 +1060,70 @@ void CCPP65Generator::BeginQuiet(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::EndQuiet(void)
 {
-	miQuiet--;
-	if ((miQuiet == 0) && mbQuietFailed)
+	bool	bPassed;
+
+	bPassed = mcContext.EndQuiet();
+	if (!bPassed && !mcContext.IsQuiet())
 	{
 		mpcStatistics->Count(CPPCC_QuietTrialsFailed);
 	}
-	return !mbQuietFailed;
+	return bPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Something is tried that may fail, and whether it does is its own: EndTrial says
+// whether it made an error, and the quiet code around it (if any) hasn't failed
+// because it did.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::BeginTrial(void)
+{
+	if (mcContext.BeginTrial())
+	{
+		mpcStatistics->Count(CPPCC_QuietTrials);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::EndTrial(void)
+{
+	bool	bPassed;
+
+	bPassed = mcContext.EndTrial();
+	if (!bPassed && !mcContext.IsQuiet())
+	{
+		mpcStatistics->Count(CPPCC_QuietTrialsFailed);
+	}
+	return bPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is an error where it is, in quiet mode too, is reported: until EndLoud
+// nothing is quiet, and after it what was quiet is, having failed or not as it
+// had.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::BeginLoud(void)
+{
+	mcContext.BeginLoud();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::EndLoud(void)
+{
+	mcContext.EndLoud();
 }
 
 

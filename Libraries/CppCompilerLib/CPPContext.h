@@ -33,6 +33,8 @@ enum ECPPContextEntry
 	CPPCE_Namespace,
 	CPPCE_Linkage,
 	CPPCE_StaticLocal,
+	CPPCE_Trial,
+	CPPCE_Loud,
 };
 
 
@@ -41,6 +43,7 @@ struct SCPPContextEntry
 {
 	ECPPContextEntry	eKind;
 	void*				pvSaved;
+	int					iSaved;
 	bool				bSaved;
 	bool				bOtherSaved;
 };
@@ -54,6 +57,11 @@ typedef CArrayTemplate<SCPPContextEntry>	CArrayCPPContextEntries;
 //function being written.  A part of it is entered and left (EnterBindings and LeaveBindings), and what was
 //there before comes back when it is left: nothing is saved and put back by hand.  Leaving what wasn't the
 //last thing entered is a mistake in the compiler, and is kept (IsBroken) for the unit to report.
+//
+//It is also where errors go.  In quiet code they are not reported: what is done there is judged by what it
+//returns, and a declaration the compiler can't do yet is only an error when it is used.  Quiet code in quiet
+//code is the same quiet code.  A trial is quiet code whose failing is its own (EndTrial says if it did), and a
+//loud part is reported whatever is around it.
 class CCPPContext
 {
 protected:
@@ -65,6 +73,8 @@ protected:
 	bool					mbLinkageExtern;		//In extern "C" without braces: declarations are extern.
 	bool					mbCLinkage;				//In extern "C": functions declared have C linkage.
 	CCPPSymbol*				mpcPackParameter;		//The function parameter pack of the function being written, or NULL.
+	int						miQuiet;				//Above 0, errors are not reported, only noted in mbQuietFailed.
+	bool					mbQuietFailed;
 	CArrayCPPContextEntries	masEntered;
 	bool					mbBroken;
 
@@ -97,6 +107,15 @@ public:
 
 	void					SetPackParameter(CCPPSymbol* pcSymbol) { mpcPackParameter = pcSymbol; }
 	CCPPSymbol*				GetPackParameter(void) { return mpcPackParameter; }
+
+	bool					BeginQuiet(void);
+	bool					EndQuiet(void);
+	bool					BeginTrial(void);
+	bool					EndTrial(void);
+	void					BeginLoud(void);
+	void					EndLoud(void);
+	bool					IsQuiet(void) { return miQuiet > 0; }
+	void					SetFailed(void) { mbQuietFailed = true; }
 
 	bool					IsBroken(void) { return mbBroken || (masEntered.NumElements() != 0); }
 

@@ -131,16 +131,13 @@ SCPP65Type* CCPP65Generator::CastClassType(CCPPSyntax* pcExpression)
 SCPP65Type* CCPP65Generator::PlaceOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psPlace;
-	bool		bQuietFailed;
 
 	//A failure here is not one of the quiet code around it.
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
+	BeginTrial();
 	mpcStatistics->Begin(CPPCP_Types);
 	psPlace = mcTypeChecker.Place(pcExpression);
 	mpcStatistics->End(CPPCP_Types);
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	EndTrial();
 	return psPlace;
 }
 

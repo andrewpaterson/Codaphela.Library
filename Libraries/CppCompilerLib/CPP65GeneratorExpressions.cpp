@@ -361,14 +361,11 @@ bool CCPP65Generator::IsBuiltin(int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::QuietConstant(CCPPSyntax* pcExpression, int64* plliValue)
 {
-	bool	bQuietFailed;
 	bool	bConstant;
 
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
+	BeginTrial();
 	bConstant = Constant(pcExpression, plliValue);
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	EndTrial();
 	return bConstant;
 }
 
@@ -864,17 +861,11 @@ SCPP65Type* CCPP65Generator::PlaceTypeOf(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
 {
-	int		iQuiet;
-	bool	bQuietFailed;
-
-	iQuiet = miQuiet;
-	bQuietFailed = mbQuietFailed;
-	miQuiet = 0;
+	BeginLoud();
 	mpcStatistics->Begin(CPPCP_Types);
 	mcTypeChecker.Value(pcExpression);
 	mpcStatistics->End(CPPCP_Types);
-	miQuiet = iQuiet;
-	mbQuietFailed = bQuietFailed;
+	EndLoud();
 }
 
 
@@ -887,16 +878,11 @@ void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
 {
-	int		iQuiet;
-	bool	bQuietFailed;
 	bool	bKept;
 
-	iQuiet = miQuiet;
-	bQuietFailed = mbQuietFailed;
-	miQuiet = 0;
+	BeginLoud();
 	bKept = mcTypeChecker.KeepsQualifiers(pcValue, psTo);
-	miQuiet = iQuiet;
-	mbQuietFailed = bQuietFailed;
+	EndLoud();
 	return bKept;
 }
 
@@ -1688,7 +1674,6 @@ void CCPP65Generator::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoid
 	SCPP65Type*					psBound;
 	int64						lliValue;
 	bool						bConstant;
-	bool						bQuietFailed;
 	CChars						szMessage;
 	ECppTokens					eOperator;
 
@@ -1738,8 +1723,7 @@ void CCPP65Generator::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoid
 	}
 
 	//A constant bound is ComparisonRange's, and a choice of constants (b ? 7 : 3) is two of them.
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
+	BeginTrial();
 	pcInner = SkipParentheses(pcBound);
 	if (pcInner && (pcInner->GetKind() == CPPS_ConditionalExpression))
 	{
@@ -1750,8 +1734,7 @@ void CCPP65Generator::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoid
 	{
 		bConstant = Constant(pcBound, &lliValue);
 	}
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	EndTrial();
 	if (bConstant || HasWarning(pcBinary, "Loop counter"))
 	{
 		return;
@@ -1813,7 +1796,6 @@ void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	int64			lliMask;
 	int				iBits;
 	bool			bConstant;
-	bool			bQuietFailed;
 	bool			bAlways;
 	CChars			szMessage;
 
@@ -1831,8 +1813,7 @@ void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 
 	//Most comparisons have no constant side; looking must not leave an error.
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
+	BeginTrial();
 	pcConstant = pcBinary->mpcRight;
 	psVariable = psLeft;
 	bConstant = Constant(pcConstant, &lliValue);
@@ -1846,8 +1827,7 @@ void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	{
 		bConstant = false;
 	}
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	EndTrial();
 	if (!bConstant)
 	{
 		return;

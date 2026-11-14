@@ -189,10 +189,8 @@ protected:
 	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
 	CMapCPPTypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
-	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
 	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
-	bool					mbQuietFailed;
 	CArrayCPPStrings		maszStrings;
 	int						miStartUps;			//R_Initialise and R_Finalise routines written.
 	bool						mbDataBss;			//The last BeginData was bss: the global's start up routines associate with bss.label.
@@ -262,6 +260,10 @@ protected:
 	void					AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage);
 	void					BeginQuiet(void);
 	bool					EndQuiet(void);
+	void					BeginTrial(void);
+	bool					EndTrial(void);
+	void					BeginLoud(void);
+	void					EndLoud(void);
 	CChars*					Line(const char* szText);
 	void					AppendName(CChars* psz, int64 lliName);
 	int64					GetName(CCPPSyntaxDeclarator* pcDeclarator);

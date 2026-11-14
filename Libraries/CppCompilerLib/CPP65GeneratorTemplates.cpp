@@ -1855,7 +1855,6 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psArgument;
 	SCPP65Type*					psParameter;
-	bool						bQuietFailed;
 	bool						bTakes;
 	bool						bPack;
 	int							iRank;
@@ -1867,8 +1866,7 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 	}
 
 	//A failure here is not one of the quiet code around it.
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
+	BeginTrial();
 	apsArguments.Init();
 	pcBindings = NULL;
 	bTakes = !pcTemplate->mpcClass || DefineMemberTemplate(pcTemplate, pcNode);
@@ -1935,8 +1933,7 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 		}
 	}
 	apsArguments.Kill();
-	bTakes = EndQuiet() && bTakes;
-	mbQuietFailed = bQuietFailed;
+	bTakes = EndTrial() && bTakes;
 	return bTakes;
 }
 
