@@ -61,6 +61,8 @@ static const char*	gaszCPPCompileCounts[CPPCC_NumCounts] =
 	"GetCallTemplate",
 	"candidates",
 	"candidates viable",
+	"bound calls",
+	"bound calls resolved",
 	"FindFunction again",
 	"pack expansions",
 	"pack expansion nodes",

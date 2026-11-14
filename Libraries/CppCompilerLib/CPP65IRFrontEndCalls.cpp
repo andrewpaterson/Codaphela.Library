@@ -37,120 +37,49 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
 {
+	CCPPBoundCall				cBound;
 	CCPPSyntax*					pcCallee;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPSymbol*					pcSymbol;
-	CCPPFunction*				pcFunction;
-	CCPPTemplate*				pcTemplate;
-	SIRReference				sSymbol;
-	int64						lliName;
+	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psOperandType;
 
-	if (mpcUnit->HasPackExpansion(&pcCall->macpArguments))
-	{
-		return ExpandPackCall(pcCall, psValue);
-	}
-	pcCallee = mpcUnit->SkipParentheses(pcCall->mpcCallee);
-	if (pcCallee->GetKind() == CPPS_MemberExpression)
-	{
-		return MemberCall(pcCall, pcCallee, psValue);
-	}
-	if (mpcUnit->IsMemberPointerOperator(pcCallee))
-	{
-		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)pcCallee, psValue);
-	}
-	pcSymbol = NULL;
-	pcName = NULL;
-	pcComponent = NULL;
-	if (pcCallee->GetKind() == CPPS_IdExpression)
-	{
-		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
-		pcSymbol = pcName->mpcSymbol;
-		pcComponent = pcName->GetLast();
-		if (pcName->IsQualifiedByClass())
-		{
-			return MemberCall(pcCall, pcCallee, psValue);
-		}
-	}
-
-	//f() in a member function may be a member, even when the parser could not resolve it in a template.
-	if (pcName && !pcName->mbGlobal && mpcCPPFunction->mpcClass)
-	{
-		if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
-		{
-			if (mpcUnit->GetOverloads()->FindMemberTemplate(mpcCPPFunction->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcUnit->HasMember(mpcCPPFunction->mpcClass, pcSymbol->mlliName))
-			{
-				return MemberCall(pcCall, pcCallee, psValue);
-			}
-		}
-		else
-		{
-			lliName = pcSymbol ? pcSymbol->mlliName : mpcUnit->GetFunctionName(pcComponent);
-			if ((!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->HasMember(mpcCPPFunction->mpcClass, lliName))
-			{
-				return MemberCall(pcCall, pcCallee, psValue);
-			}
-		}
-	}
-
-	//A call through an expression (table[i](...), (*pf)(...), GetF()(...)): a pointer to a function.
-	if (!pcName)
-	{
-		//(*pf)() is pf(); (*ppf)() calls the function pointer ppf points to, so it keeps its *.
-		if ((pcCallee->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcCallee)->meOperator == CT_Multiply))
-		{
-			psOperandType = mpcUnit->TypeOf(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
-			if (psOperandType && psOperandType->IsPointer() && psOperandType->psBase->IsFunction())
-			{
-				pcCallee = mpcUnit->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
-			}
-		}
-		return CallThroughPointer(pcCall, pcCallee, psValue);
-	}
-
-	//__builtin_ functions.
-	lliName = pcSymbol ? pcSymbol->mlliName : mpcUnit->GetFunctionName(pcComponent);
-	if ((!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->IsBuiltin(lliName))
-	{
-		return Builtin(pcCall, lliName, psValue);
-	}
-
-	pcFunction = NULL;
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
-	{
-		pcTemplate = mpcUnit->GetOverloads()->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
-		if (!pcTemplate)
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
-	}
-	else if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
-	{
-		lliName = pcSymbol->mlliName;
-		if (mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
-		{
-			return InlineMemcpy(&pcCall->macpArguments, mpcUnit->TypeOf(pcCall), psValue);
-		}
-		pcFunction = mpcUnit->GetOverloads()->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
-	}
-	else if (pcSymbol)
-	{
-		return CallThroughPointer(pcCall, pcCallee, psValue);
-	}
-	else
-	{
-		//Nothing declares it here: it may be in a namespace of its arguments'.
-		pcFunction = mpcUnit->GetOverloads()->FindAssociatedFunction(pcName, lliName, pcCall);
-	}
-	if (!pcFunction || (pcFunction->mpcClass && !pcFunction->mbStatic))
+	if (!mpcUnit->GetCalls()->Bind(pcCall, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-
-	sSymbol = FunctionSymbol(pcFunction);
-	return Call(pcFunction, sSymbol, NULL, &pcCall->macpArguments, psValue);
+	switch (cBound.meHow)
+	{
+	case CPPBC_PackExpansion:
+		return ExpandPackCall(pcCall, psValue);
+	case CPPBC_Member:
+		return MemberCall(pcCall, cBound.mpcCallee, psValue);
+	case CPPBC_MemberPointer:
+		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee, psValue);
+	case CPPBC_Function:
+		if (cBound.mpcFunction->mpcClass && !cBound.mpcFunction->mbStatic)
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, &pcCall->macpArguments, psValue);
+	case CPPBC_InlineMemcpy:
+		return InlineMemcpy(&pcCall->macpArguments, mpcUnit->TypeOf(pcCall), psValue);
+	case CPPBC_Builtin:
+		return Builtin(pcCall, cBound.mlliName, psValue);
+	case CPPBC_Pointer:
+		//(*pf)() is pf(); (*ppf)() calls the function pointer ppf points to, so it keeps its *.
+		pcCallee = cBound.mpcCallee;
+		if (!cBound.mpcName && (pcCallee->GetKind() == CPPS_UnaryExpression))
+		{
+			pcUnary = (CCPPSyntaxUnaryExpression*)pcCallee;
+			psOperandType = (pcUnary->meOperator == CT_Multiply) ? mpcUnit->TypeOf(pcUnary->mpcOperand) : NULL;
+			if (psOperandType && psOperandType->IsPointer() && psOperandType->psBase->IsFunction())
+			{
+				pcCallee = pcUnary->mpcOperand->WithoutParentheses();
+			}
+		}
+		return CallThroughPointer(pcCall, pcCallee, psValue);
+	default:
+		return Unsupported(__FILE__, __LINE__);
+	}
 }
 
 

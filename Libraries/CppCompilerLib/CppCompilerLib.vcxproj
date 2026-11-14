@@ -296,6 +296,7 @@
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPOverloads.cpp" />
+    <ClCompile Include="CPPBoundCall.cpp" />
     <ClCompile Include="CPPTemplate.cpp" />
     <ClCompile Include="CPPFunction.cpp" />
     <ClCompile Include="CPPVariable.cpp" />
@@ -541,6 +542,7 @@
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPOverloads.h" />
+    <ClInclude Include="CPPBoundCall.h" />
     <ClInclude Include="CPPTemplate.h" />
     <ClInclude Include="CPPFunction.h" />
     <ClInclude Include="CPPVariable.h" />

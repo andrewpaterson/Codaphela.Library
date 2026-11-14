@@ -1181,134 +1181,40 @@ bool CCPP65TypeChecker::Truth(SCPP65Type* psType, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 {
-	CCPPSyntax*					pcCallee;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPSymbol*					pcSymbol;
-	CCPPFunction*				pcFunction;
-	CCPPFunction*				pcMember;
-	CCPPTemplate*				pcTemplate;
-	SCPP65Type*					psType;
-	size						uiErrors;
-	int64						lliName;
+	CCPPBoundCall	cBound;
+	SCPP65Type*		psType;
 
-	if (mpcUnit->HasPackExpansion(&pcCall->macpArguments))
+	if (!mpcUnit->GetCalls()->Bind(pcCall, &cBound, true))
 	{
+		return NULL;
+	}
+	switch (cBound.meHow)
+	{
+	case CPPBC_PackExpansion:
 		return ExpandPackCall(pcCall);
-	}
-	pcCallee = mpcUnit->SkipParentheses(pcCall->mpcCallee);
-	if (pcCallee->GetKind() == CPPS_MemberExpression)
-	{
-		return MemberCall(pcCall, pcCallee);
-	}
-	if (mpcUnit->IsMemberPointerOperator(pcCallee))
-	{
-		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)pcCallee);
-	}
-	pcSymbol = NULL;
-	pcName = NULL;
-	pcComponent = NULL;
-	if (pcCallee->GetKind() == CPPS_IdExpression)
-	{
-		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
-		pcSymbol = pcName->mpcSymbol;
-		pcComponent = pcName->GetLast();
-		if (pcName->IsQualifiedByClass())
-		{
-			return MemberCall(pcCall, pcCallee);
-		}
-	}
-	pcMember = mpcUnit->GetContext()->GetFunction();
-
-	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
-	{
-		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mpcUnit->GetOverloads()->FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
-		{
-			return MemberCall(pcCall, pcCallee);
-		}
-		pcTemplate = mpcUnit->GetOverloads()->GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
-		if (!pcTemplate)
-		{
-			Error(pcCallee, "The function template has not been defined");
-			return NULL;
-		}
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
-		if (!pcFunction)
-		{
-			return NULL;
-		}
-		mpcUnit->Resolved(pcName, pcFunction);
-		return Call(pcFunction, &pcCall->macpArguments, pcCall);
-	}
-
-	//f() in a member function may be a member, even when the parser could not resolve it in a template.
-	lliName = pcSymbol ? pcSymbol->mlliName : mpcUnit->GetFunctionName(pcComponent);
-	if (pcName && !pcName->mbGlobal && pcMember && pcMember->mpcClass && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->HasMember(pcMember->mpcClass, lliName))
-	{
-		return MemberCall(pcCall, pcCallee);
-	}
-
-	if (!pcSymbol && mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
-	{
+	case CPPBC_Member:
+		return MemberCall(pcCall, cBound.mpcCallee);
+	case CPPBC_MemberPointer:
+		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
+	case CPPBC_Function:
+		return Call(cBound.mpcFunction, &pcCall->macpArguments, pcCall);
+	case CPPBC_InlineMemcpy:
 		return InlineMemcpy(&pcCall->macpArguments);
-	}
-	if (!pcSymbol && mpcUnit->IsBuiltin(lliName))
-	{
-		return Builtin(pcCall, lliName);
-	}
-
-	if (!pcSymbol && mpcUnit->GetSemanticPass() && mpcUnit->IsIntrinsic(lliName))
-	{
-		//Only checking: an intrinsic of the host's compiler (__debugbreak()), declared by no header.
+	case CPPBC_Builtin:
+		return Builtin(pcCall, cBound.mlliName);
+	case CPPBC_Unchecked:
 		return UncheckedCall(&pcCall->macpArguments);
-	}
-	if (!pcSymbol && pcName)
-	{
-		//Nothing declares it here: it may be in a namespace of its arguments'.
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		pcFunction = mpcUnit->GetOverloads()->FindAssociatedFunction(pcName, lliName, pcCall);
-		if (pcFunction)
-		{
-			mpcUnit->Resolved(pcName, pcFunction);
-			return Call(pcFunction, &pcCall->macpArguments, pcCall);
-		}
-		if (mpcUnit->GetErrors()->NumErrors() != uiErrors)
-		{
-			return NULL;
-		}
-	}
-	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
-	{
-		psType = mpcUnit->TypeOf(pcCallee);
+	case CPPBC_Pointer:
+		psType = mpcUnit->TypeOf(cBound.mpcCallee);
 		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
 		{
 			return CallThroughPointer(pcCall, psType->psBase);
 		}
-		Error(pcCallee, "Only calls to functions and pointers to functions are supported by the compiler yet");
+		Error(cBound.mpcCallee, "Only calls to functions and pointers to functions are supported by the compiler yet");
+		return NULL;
+	default:
 		return NULL;
 	}
-
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mpcUnit->GetOverloads()->FindNamedFunction(pcName, lliName, &pcCall->macpArguments, pcCall);
-	if (!pcFunction)
-	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
-		{
-			mpcUnit->ReportFailedDeclaration(lliName);
-			Error(pcCallee, "The function has not been declared");
-		}
-		return NULL;
-	}
-
-	mpcUnit->Resolved(pcName, pcFunction);
-
-	//memcpy of a few bytes, a constant count, is copied where it is called.
-	if (pcFunction->mbCLinkage && mpcUnit->IsInlineMemcpy(lliName, &pcCall->macpArguments))
-	{
-		return InlineMemcpy(&pcCall->macpArguments);
-	}
-	return Call(pcFunction, &pcCall->macpArguments, pcCall);
 }
 
 
