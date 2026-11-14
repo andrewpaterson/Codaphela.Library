@@ -2172,6 +2172,139 @@ void TestTextAreaEditBox(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+static void TapControl(CComponentInputTestDevices* pcDevices, char* szKey)
+{
+	pcDevices->Press((char*)"Left Control");
+	pcDevices->Tap(szKey);
+	pcDevices->Release((char*)"Left Control");
+}
+
+
+//What a text area's undo said.
+class CTestUndoMessages
+{
+public:
+	CChars	mszSaid;
+
+	void	Said(CTextArea* pcArea, char* szMessage) { mszSaid.Set(szMessage); }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A text area that reveals undo: an edit scrolled out of view is shown
+// by the first Ctrl+Z, which says so, and undone by the second; scrolling
+// in between starts again; an edit in view is undone at once.  One that
+// doesn't undoes at once wherever the edit is.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditRevealingUndo(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CScrollPane>			pScroll;
+		Ptr<CTextArea>				pTextArea;
+		CComponentInputTestDevices	cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		CTestUndoMessages			cMessages;
+		CChars						szText;
+		int32						i;
+
+		cWindow.Init("Text Area Window", 200, 100);
+		pTestWindow = cWindow.pWindow;
+		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
+		pTestWindow->SetContainer(pScroll);
+		szText.Init("line 0");
+		for (i = 1; i < 20; i++)
+		{
+			szText.Append("\nline ");
+			szText.Append(i);
+		}
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), szText.Text());
+		pTextArea->SetRevealsUndo(true);
+		cMessages.mszSaid.Init();
+		pTextArea->GetUndoMessageEvent()->Add(&cMessages, &CTestUndoMessages::Said);
+		pScroll->SetContent(pTextArea);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		pTestWindow->SetComponentInput(&cComponentInput);
+		pTestWindow->Paint();
+
+		//An x typed on the last line, then back to the top.
+		TapControl(&cDevices, (char*)"End");
+		pTestWindow->Paint();
+		pTextArea->GetEditing()->Printable('x', true);
+		pTestWindow->Paint();
+		pTextArea->GetEditing()->DocumentHome();
+		pTestWindow->Paint();
+		AssertSize(0, pTextArea->GetCaretPosition());
+		AssertInt(0, pScroll->GetScrollPosition().y);
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") != NULL);
+
+		//The first press shows the last line and says so; the second undoes it.
+		pTextArea->PressUndo(false);
+		pTestWindow->Paint();
+		AssertInt(20 * 24 - 100, pScroll->GetScrollPosition().y);
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") != NULL);
+		AssertTrue(strstr(cMessages.mszSaid.Text(), " again to undo the change at line 20.") != NULL);
+		pTextArea->PressUndo(false);
+		pTestWindow->Paint();
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") == NULL);
+		AssertString("", cMessages.mszSaid.Text());
+
+		//Redo from the top: shown, then, scrolled away in between, shown again; then redone.
+		pTextArea->GetEditing()->DocumentHome();
+		pTestWindow->Paint();
+		pTextArea->PressUndo(true);
+		pTestWindow->Paint();
+		AssertTrue(strstr(cMessages.mszSaid.Text(), " again to redo the change at line 20.") != NULL);
+		pScroll->SetScrollPosition(0, 0);
+		pTestWindow->Paint();
+		pTextArea->PressUndo(true);
+		pTestWindow->Paint();
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") == NULL);
+		pTextArea->PressUndo(true);
+		pTestWindow->Paint();
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") != NULL);
+
+		//In view, undone at once; without revealing, undone at once wherever it is.
+		pTextArea->PressUndo(false);
+		pTestWindow->Paint();
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") == NULL);
+		AssertString("", cMessages.mszSaid.Text());
+		pTextArea->SetRevealsUndo(false);
+		pTextArea->GetEditing()->DocumentHome();
+		pTestWindow->Paint();
+		AssertTrue(pTextArea->Redo());
+		AssertTrue(strstr(pTextArea->GetText(), "line 19x") != NULL);
+
+		pTestWindow->SetComponentInput(NULL);
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+		cMessages.mszSaid.Kill();
+		szText.Kill();
+		pTextArea = NULL;
+		pScroll = NULL;
+		pTestWindow = NULL;
+	}
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The keys, as the keyboard gives them through the component input, move
 // the caret and the view with it: a text area in a scroll pane is scrolled
 // to its caret by the next paint, though the keys' actions keep the
@@ -2281,6 +2414,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
 	TestTextAreaEditKeysScroll();
+	TestTextAreaEditRevealingUndo();
 	TestTextAreaEditOccurrences();
 	TestTextAreaEditOccurrenceRanges();
 	TestTextAreaEditBox();

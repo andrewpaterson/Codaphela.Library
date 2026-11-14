@@ -53,6 +53,7 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	meCursor = NC_Arrow;
 	muiDrop = 0;
 	mbDropRowEnd = false;
+	mpcUndoPresser = NULL;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -223,8 +224,9 @@ bool CTextEditingInput::GetDropPosition(size* puiPosition, bool* pbRowEnd)
 void CTextEditingInput::PrintableAction(SComponentInputEvent* psEvent) { mpcEditing->Printable(psEvent->cPrintable, psEvent->bInsert); }
 void CTextEditingInput::SpaceAction(SComponentInputEvent* psEvent) { mpcEditing->Printable(' ', psEvent->bInsert); }
 void CTextEditingInput::TabAction(SComponentInputEvent* psEvent) { mpcEditing->Tab(psEvent->bInsert); }
-void CTextEditingInput::UndoAction(void) { mpcEditing->Undo(); }
-void CTextEditingInput::RedoAction(void) { mpcEditing->Redo(); }
+void CTextEditingInput::UndoAction(void) { if (mpcUndoPresser != NULL) { mpcUndoPresser->PressUndo(false); } else { mpcEditing->Undo(); } }
+void CTextEditingInput::RedoAction(void) { if (mpcUndoPresser != NULL) { mpcUndoPresser->PressUndo(true); } else { mpcEditing->Redo(); } }
+void CTextEditingInput::SetUndoPresser(CTextUndoPresser* pcPresser) { mpcUndoPresser = pcPresser; }
 
 
 //////////////////////////////////////////////////////////////////////////

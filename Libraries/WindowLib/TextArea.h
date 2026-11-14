@@ -34,6 +34,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextAreaShapes.h"
 #include "TextAreaOccurrences.h"
 #include "TextEditingInput.h"
+#include "RevealingUndo.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
 #include "WindowTheme.h"
@@ -43,6 +44,7 @@ class CTextArea;
 
 
 typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  //What happened to the undo history.
+typedef CComponentValueEvent<CTextArea, char*>				CTextAreaMessageEvent;  //What a press of undo did, for a status bar.
 
 
 //Lines of text drawn with a CMapsCanvasDraw.  Line feeds start new lines and, with word wrap on (it is off by default),
@@ -80,7 +82,7 @@ typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  /
 //
 //The moves and edits themselves (Up, SelectRight, Printable, Paste ...) are the editing's: GetEditing gives it, and the
 //input actions reach it directly.  The text area has only what it adds to them: the text, its layout and what is drawn.
-class CTextArea : public CCanvas, public CTextEditingView
+class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
@@ -112,6 +114,9 @@ protected:
 	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot (see
 	//CTextDocument::Load).
 	CTextAreaUndoEvent			mcUndoEvent;
+	CRevealingUndo				mcRevealingUndo;  //Used if SetRevealsUndo: a change out of view is shown before it's undone.
+	bool						mbRevealsUndo;
+	CTextAreaMessageEvent		mcUndoMessageEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 
 public:
@@ -137,6 +142,13 @@ public:
 	bool						UndoTo(size uiId);
 	void						SetTypingPause(int32 iMilliseconds);
 	CTextAreaUndoEvent*			GetUndoEvent(void);
+	void						SetRevealsUndo(bool bReveals);
+	CTextAreaMessageEvent*		GetUndoMessageEvent(void);
+	void						PressUndo(bool bRedo) override;
+	bool						IsUndoShown(bool bRedo) override;
+	bool						ShowUndo(bool bRedo) override;
+	bool						DoUndo(bool bRedo) override;
+	void						AppendUndoWhere(bool bRedo, CChars* pszDest) override;
 	CComponentEvent<CTextArea>*	GetChangeEvent(void);
 	void						SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>					GetFont(void);

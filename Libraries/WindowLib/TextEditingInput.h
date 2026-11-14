@@ -45,6 +45,15 @@ enum ETextEditingDrag
 };
 
 
+//What undo and redo keys go to instead of the editing, if it's set (CTextEditingInput::SetUndoPresser): a text area
+//that shows a change out of view before undoing it (see CRevealingUndo).
+class CTextUndoPresser
+{
+public:
+	virtual void	PressUndo(bool bRedo) = 0;
+};
+
+
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
 //CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  Paste from
 //History (Control+Shift+V, as IntelliJ IDEA's) asks the clipboard's history's chooser which of the texts copied
@@ -77,6 +86,7 @@ protected:
 	ENativeCursor			meCursor;  //The component's pointer shape, put back when the selected text stops being dragged.
 	size					muiDrop;  //Where the dragged text would be dropped.
 	bool					mbDropRowEnd;
+	CTextUndoPresser*		mpcUndoPresser;  //Not held, NULL for undo straight to the editing.
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
@@ -84,6 +94,7 @@ public:
 
 	void	SetPointerEnabled(bool bEnabled);
 	void	SetTextDragEnabled(bool bEnabled);
+	void	SetUndoPresser(CTextUndoPresser* pcPresser);
 	bool	GetDropPosition(size* puiPosition, bool* pbRowEnd);
 	void	FocusLost(void);
 

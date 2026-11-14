@@ -95,6 +95,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcDocument.AddListener(&mcBackgrounds);
 	mcEditing.Init(&mcDocument, this);
 	mcUndoEvent.Init();
+	mcRevealingUndo.Init(this);
+	mbRevealsUndo = false;
+	mcUndoMessageEvent.Init();
 	mcChanged.Init();
 	mbSelectable = true;
 
@@ -133,6 +136,8 @@ void CTextArea::Free(void)
 	mcBackgrounds.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
+	mcUndoMessageEvent.Kill();
+	mcRevealingUndo.Kill();
 	mcInput.Kill();
 	mcEditing.Kill();
 	mcOccurrences.Kill();
@@ -151,6 +156,9 @@ void CTextArea::Class(void)
 
 	U_Unknown(CTextDocument, mcDocument);
 	U_Unknown(CTextAreaUndoEvent, mcUndoEvent);
+	U_Unknown(CRevealingUndo, mcRevealingUndo);
+	U_Bool(mbRevealsUndo);
+	U_Unknown(CTextAreaMessageEvent, mcUndoMessageEvent);
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
 	M_Pointer(mpLayout);
 	M_Pointer(mpMaps);
@@ -1466,6 +1474,130 @@ void CTextArea::SetTypingPause(int32 iMilliseconds)
 
 
 CTextAreaUndoEvent* CTextArea::GetUndoEvent(void) { return &mcUndoEvent; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The undo and redo keys (and Edit's Undo and Redo) show an edit whose
+// lines are scrolled out of view before undoing it, the second press
+// undoing it (see CRevealingUndo); what was done is told to the undo
+// message's listeners, for a status bar.  Off, they undo at once, as a
+// text field's do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetRevealsUndo(bool bReveals)
+{
+	mbRevealsUndo = bReveals;
+	mcInput.SetUndoPresser(bReveals ? this : NULL);
+}
+
+
+CTextAreaMessageEvent* CTextArea::GetUndoMessageEvent(void) { return &mcUndoMessageEvent; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Undo or redo pressed, through the revealing undo; the message (empty if
+// the edit was undone) told, with the keys that undo it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::PressUndo(bool bRedo)
+{
+	CChars	szKeys;
+	CChars	szMessage;
+
+	szKeys.Init();
+	if ((mpWindow.IsNull()) || (mpWindow->GetComponentInput() == NULL) || !mpWindow->GetComponentInput()->GetShortcutText(bRedo ? CIC_Redo : CIC_Undo, &szKeys))
+	{
+		szKeys.Append(bRedo ? "Redo" : "Undo");
+	}
+	szMessage.Init();
+	mcRevealingUndo.Press(bRedo, szKeys.Text(), &szMessage);
+	mcUndoMessageEvent.Call(this, szMessage.Text());
+	szMessage.Kill();
+	szKeys.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bounds of the line the next undo's edit is on, in the window, and
+// what of the text area shows; false if either isn't known (the text area
+// isn't laid out, or there's nothing to undo).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool GetUndoLineBounds(CTextArea* pcArea, CTextEditing* pcEditing, bool bRedo, CInt32Rect* pcLine)
+{
+	size	uiCaret;
+
+	return pcEditing->GetUndoCaret(bRedo, &uiCaret) && pcArea->GetLineBounds(pcArea->FindLine(uiCaret), pcLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether any of the next undo's line shows.  A text area that isn't laid
+// out, or with nothing to undo, says it does: it's undone as it is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::IsUndoShown(bool bRedo)
+{
+	CInt32Rect	cLine;
+	CInt32Rect	cShown;
+
+	if ((mcActualBounds.GetHeight() <= 0) || !HasRows() || !GetUndoLineBounds(this, &mcEditing, bRedo, &cLine))
+	{
+		return true;
+	}
+	cLine.Init(mcActualBounds.GetLeft() + cLine.GetLeft(), mcActualBounds.GetTop() + cLine.GetTop(), mcActualBounds.GetLeft() + cLine.GetRight(), mcActualBounds.GetTop() + cLine.GetBottom());
+	cShown = mcActualBounds;
+	if (!GetClip(&cShown))
+	{
+		cShown = mcActualBounds;
+	}
+	return (cLine.GetBottom() > cShown.GetTop()) && (cLine.GetTop() < cShown.GetBottom());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The scroll pane shows the next undo's line, the caret left where it is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::ShowUndo(bool bRedo)
+{
+	CInt32Rect	cLine;
+	SInt32Vec2	sPosition;
+
+	if (!GetUndoLineBounds(this, &mcEditing, bRedo, &cLine))
+	{
+		return false;
+	}
+	sPosition = GetPosition();
+	cLine.Init(cLine.GetLeft() + sPosition.x, cLine.GetTop() + sPosition.y, cLine.GetRight() + sPosition.x, cLine.GetBottom() + sPosition.y);
+	ScrollToShow(&cLine);
+	return true;
+}
+
+
+bool CTextArea::DoUndo(bool bRedo) { return bRedo ? mcEditing.Redo() : mcEditing.Undo(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "at line 120".
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AppendUndoWhere(bool bRedo, CChars* pszDest)
+{
+	size	uiCaret;
+
+	if (mcEditing.GetUndoCaret(bRedo, &uiCaret))
+	{
+		pszDest->Append("at line ");
+		pszDest->Append((int64)FindLine(uiCaret) + 1);
+	}
+}
 CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged; }  //Called after each edit (undo and redo too), with the text laid out again.
 
 
