@@ -206,9 +206,8 @@ bool CIR65Peephole::IsLoaded(void)
 // Takes out each cpy into A, B, X or Y (at 32 bits) of the value it
 // already holds, or of a register that was copied from it and that it
 // hasn't changed since, when the n and z it sets aren't read.  And each
-// cpy W, 0 where W is 0 already (a function that keeps a value in W sets
-// it back before every call, whether it has used it since the last or not:
-// CIR65Backend::ClearW).
+// cpy W, 0 where W is 0 already (one is written before every mul and div:
+// CIR65Backend::Multiply).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Peephole::RemoveCopies(void)
@@ -395,7 +394,7 @@ void CIR65Peephole::ComputeStates(void)
 		{
 			psTo->aiValues[i] = (ui == 0) ? IR65_VALUE_UNKNOWN : IR65_VALUE_UNSET;
 		}
-		psTo->bZeroW = true;
+		psTo->bZeroW = false;
 	}
 
 	do
@@ -519,7 +518,7 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 		break;
 	case IR65CK_Multiply:
 	case IR65CK_Divide:
-		//They count W up (it is put back to 0 after them).
+		//They count W up.
 		Forget(psState, IR65_NAME_W);
 		break;
 	case IR65CK_Alu:
@@ -559,10 +558,9 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether W is known to be 0 after the line: a call returns with it 0 (the
-// calling convention) and cpy W, 0 makes it so; mul and div count in it,
-// and anything else that writes it (its first operand, or a pul of it)
-// leaves it unknown.
+// Whether W is known to be 0 after the line: cpy W, 0 makes it so; a call
+// may change it, mul and div count in it, and anything else that writes it
+// (its first operand, or a pul of it) leaves it unknown.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Peephole::TransferW(size uiLine, SIR65Values* psState)
@@ -582,8 +580,6 @@ void CIR65Peephole::TransferW(size uiLine, SIR65Values* psState)
 	case IR65CK_Push:
 		break;
 	case IR65CK_Call:
-		psState->bZeroW = true;
-		break;
 	case IR65CK_Multiply:
 	case IR65CK_Divide:
 		psState->bZeroW = false;

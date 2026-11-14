@@ -30,8 +30,8 @@ const char*	gszTestIR65DivideSigned =
 	"\t\tabs Y, A\n"
 	"\t\tabs A, B\n"
 	"\t\tcpy B, 0\n"
-	"\t\tdiv\n"
 	"\t\tcpy W, 0\n"
+	"\t\tdiv\n"
 	"\t\tpul X\n"
 	"\t\tcmp X, 0\n"
 	"\t\tbrac n, R_DivideSigned1\n"
@@ -57,8 +57,8 @@ const char*	gszTestIR65DivideSigned64 =
 	"\t\tabs Y, A\n"
 	"\t\tabs A, B\n"
 	"\t\tcpy B, 0\n"
-	"\t\tdiv\n"
 	"\t\tcpy W, 0\n"
+	"\t\tdiv\n"
 	"\t\tpul X\n"
 	"\t\tcmp X, 0\n"
 	"\t\tbrac n, R_DivideSigned641\n"
@@ -731,7 +731,6 @@ void TestIR65BackendAllocation(void)
 		"L4:\n"
 		"\t\tcpy A, Y\n"
 		"L5:\n"
-		"\t\tcpy W, 0\n"
 		"\t\tpul V\n"
 		"\t\tret\n"
 		"\n", szSum.Text());
@@ -891,8 +890,7 @@ void TestIR65BackendAllocation(void)
 		"\t%r = add i64 %s2, %v\n"
 		"\tret i64 %r\n}\n"));
 	//A string compare's pointers are only addresses and steps, so the bytes get X and Y; one pointer gets W and the other
-	//V.  W is no address register (it is copied to B) and is set back to 0 before the function returns: "abc" against
-	//"abd" is -1.  The bytes are only compared, so they are read narrow (cpy, not cpyx): X and Y stay 8 bits wide across
+	//V.  W is no address register (it is copied to B): "abc" against "abd" is -1.  The bytes are only compared, so they are read narrow (cpy, not cpyx): X and Y stay 8 bits wide across
 	//the loop.
 	szAssembly.Init();
 	AssertLong(-1, (int32)TestIR65Run(
@@ -911,7 +909,6 @@ void TestIR65BackendAllocation(void)
 		"\t%s = slot ptr 4, 4\n\tstore i32 6513249, %s\n\t%t = slot ptr 4, 4\n\tstore i32 6578785, %t\n"
 		"\t%r = call i32 @_Compare__FPcPc(ptr %s, ptr %t)\n\tret i32 %r\n}\n", false, &szAssembly));
 	AssertTrue(szAssembly.Contains("\t\tcpy B, W\n\t\tcpy X, [B]\n\t\tadd W, 1\n\t\tcpy Y, [V]\n\t\tadd V, 1\n") && !szAssembly.Contains("cpyx"));
-	AssertTrue(szAssembly.Contains("\t\tcpy W, 0\n\t\tpul V\n\t\tret\n"));
 	szAssembly.Kill();
 }
 
@@ -1575,11 +1572,9 @@ void TestIR65BackendHomeV(void)
 	AssertFalse(szAssembly.Contains("jsr V"));
 	szAssembly.Kill();
 
-	//W as a fourth register between calls, multiplies and divides: it is set back to 0 before each (they want it so) and
-	//before the function returns, and the pseudo registers are written [n] (not [n + W]) by every instruction.  The
-	//loop's four values have X, Y, W and V; after it comes a multiply and a call.  W is 0 when the function starts, so
-	//the value in it that starts at 0 isn't set; it is set back before the mul, and is still 0 after it for the call and
-	//the return (CIR65Peephole takes those out).
+	//W as a fourth register between calls, multiplies and divides, which change it: the loop's four values have X, Y, W
+	//and V; after it comes a multiply, which counts in W from 0 (W is set first), and a call.  The pseudo registers are
+	//written [n], not [n + W].
 	szAssembly.Init();
 	AssertInt((1 + 2 + 3 + 4) * (1 ^ 2 ^ 3 ^ 4) + 1, (int32)TestIR65Run(
 		"function i32 @_Next__Fi(i32 %x)\n{\nb:\n\t%r = add i32 %x, 1\n\tret i32 %r\n}\n\n"
@@ -1604,48 +1599,44 @@ void TestIR65BackendHomeV(void)
 	sz.Init();
 	sz.AppendSubString(szAssembly, szAssembly.Find("_Work__Fi:"), szAssembly.Find("\t\t.section text._main"));
 	AssertTrue(sz.Contains("\t\txor W, X\n"));
-	AssertTrue(sz.Contains("\t\tcpy B, W\n\t\tcpy W, 0\n\t\tmul\n\t\tcpy W, 0\n"));
+	AssertTrue(sz.Contains("\t\tcpy B, W\n\t\tcpy W, 0\n\t\tmul\n\t\tcpy X, Y\n"));
 	AssertFalse(sz.Contains("\t\tcpy W, 0\n\t\tjsr") || sz.Contains("\t\tcpy W, 0\n\t\tpul V\n"));
 	AssertFalse(sz.Contains(" + W]"));
 	sz.Kill();
 	szAssembly.Kill();
 
-	//A cpy W, 0 where W is 0 already goes: at the function's start, after a call and after another; one after W is
-	//written, after a mul, or where a way in leaves W unknown stays.
+	//A cpy W, 0 where W is 0 already goes (after another, with nothing that writes W between); one at the function's
+	//start, after a call, after W is written, after a mul, or where a way in leaves W unknown stays.
 	TestIR65PeepholeOptimise(
 		"_F:\n"
-		"\t\tjsr _G\n"
-		"\t\tcpy W, A\n"
-		"\t\tadd W, 1\n"
-		"\t\tcpy B, W\n"
 		"\t\tcpy W, 0\n"
+		"\t\tadd A, 1\n"
 		"\t\tmul\n"
 		"\t\tcpy W, 0\n"
 		"\t\tjsr _G\n"
+		"\t\tcpy W, 0\n"
 		"\t\tcmp A, 0\n"
 		"\t\tbras z, L1\n"
 		"\t\tcpy W, A\n"
 		"L1:\n"
 		"\t\tcpy W, 0\n"
+		"\t\tdiv\n"
 		"\t\tret\n",
 		"_F:\n"
 		"\t\tcpy W, 0\n"
-		"\t\tjsr _G\n"
-		"\t\tcpy W, 0\n"
-		"\t\tcpy W, A\n"
-		"\t\tadd W, 1\n"
-		"\t\tcpy B, W\n"
-		"\t\tcpy W, 0\n"
+		"\t\tadd A, 1\n"
 		"\t\tcpy W, 0\n"
 		"\t\tmul\n"
 		"\t\tcpy W, 0\n"
 		"\t\tcpy W, 0\n"
 		"\t\tjsr _G\n"
+		"\t\tcpy W, 0\n"
 		"\t\tcmp A, 0\n"
 		"\t\tbras z, L1\n"
 		"\t\tcpy W, A\n"
 		"L1:\n"
 		"\t\tcpy W, 0\n"
+		"\t\tdiv\n"
 		"\t\tret\n");
 
 	//Where V is a value's home, [n + V] is anyone's memory (a device's register, say): a store to it read straight

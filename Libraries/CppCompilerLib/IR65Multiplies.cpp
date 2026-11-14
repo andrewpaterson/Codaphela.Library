@@ -28,16 +28,16 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// mul and div count their steps in W, from 0.  W is 0 (the calling
-// convention, CPP65Generator.txt) unless the function keeps a value in it
-// (ClearW), so it is only set back afterwards.
+// mul and div count their steps in W, from 0, and leave it at twice their
+// width in bytes.  W is a register like any other (a call may change it,
+// and it may be a value's home), so it is set to 0 before them; CIR65Peephole
+// takes that out where W is 0 already.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Multiply(const char* szInstruction)
 {
-	ClearW();
-	Line(szInstruction)->AppendNewLine();
 	Line("cpy W, 0")->AppendNewLine();
+	Line(szInstruction)->AppendNewLine();
 }
 
 
@@ -96,7 +96,7 @@ bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 //
 // Roughly the cycles of a mul by a constant (MultiplyInstruction, for
 // ExpandMultiplies): the constant into B (narrowed to 8 bits round the mul
-// when it fits), a step a byte of B, and W cleared after.  A 64 bit mul
+// when it fits), a step a byte of B, and W cleared before.  A 64 bit mul
 // stays one: its shifts and adds are no cheaper.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -170,7 +170,6 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 		}
 		if (bSigned)
 		{
-			ClearW();
 			Line(bWide ? "jsr R_DivideSigned64" : "jsr R_DivideSigned")->AppendNewLine();
 			UseRuntime(bWide ? "R_DivideSigned64" : "R_DivideSigned");
 		}

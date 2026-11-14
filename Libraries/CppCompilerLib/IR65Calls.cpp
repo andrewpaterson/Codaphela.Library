@@ -74,7 +74,6 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 	{
 		LoadRegisterArguments(pcBlock, uiFirst, bThisCall, &asArguments);
 	}
-	ClearW();
 	Line("jsr ")->Append(szCallee)->AppendNewLine();
 	szCallee.Kill();
 	asArguments.Kill();
@@ -133,7 +132,7 @@ int32 CIR65Backend::PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd, C
 //////////////////////////////////////////////////////////////////////////
 //
 // The callee is jumped to where it is: a register (X only when this doesn't
-// go there; not W, which is 0 by then), or through a pointer in a pseudo
+// go there; not W, which is no address register), or through a pointer in a pseudo
 // register or the frame (jsr [n + W]); else it is loaded into A.  Appends
 // it to pszCallee.
 //

@@ -212,7 +212,7 @@ void CCPPTarget65C64::AppendRuntime(CCPPRuntimeWriter* pcWriter)
 // Signed divide: A / B.  The quotient is in A and the remainder in B.  The quotient
 // is negative when the signs differ, the remainder has the dividend's sign.  The
 // 64 bit routine is called with A and B 64 bits wide and leaves them so; it widens
-// X and Y while it works.  Changes A, B, X and Y.
+// X and Y while it works.  Changes A, B, X, Y and W (div counts in it, from 0).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget65C64::AppendDivideSigned(CChars* pszCode, const char* szName, int iBytes)
@@ -228,8 +228,8 @@ void CCPPTarget65C64::AppendDivideSigned(CChars* pszCode, const char* szName, in
 	pszCode->Append("\t\tabs Y, A")->AppendNewLine();
 	pszCode->Append("\t\tabs A, B")->AppendNewLine();
 	pszCode->Append("\t\tcpy B, 0")->AppendNewLine();
-	pszCode->Append("\t\tdiv")->AppendNewLine();
 	pszCode->Append("\t\tcpy W, 0")->AppendNewLine();
+	pszCode->Append("\t\tdiv")->AppendNewLine();
 	pszCode->Append("\t\tpul X")->AppendNewLine();
 	pszCode->Append("\t\tcmp X, 0")->AppendNewLine();
 	pszCode->Append("\t\tbrac n, ")->Append(szName)->Append('1')->AppendNewLine();

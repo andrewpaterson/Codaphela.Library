@@ -29,7 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //What A, B, X and Y hold (32 bits of): an index into CIR65Peephole's values, or IR65_VALUE_.  bZeroW: W is known to
-//be 0 (as it is at the function's label and after a call: the calling convention).
+//be 0 (after a cpy W, 0, until something writes it or a call or a label two ways reach differently comes).
 struct SIR65Values
 {
 	int16	aiValues[IR65_CODE_REGISTERS];

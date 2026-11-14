@@ -32,22 +32,20 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// add, sub, cmp, shl, shr and cpyx can't address memory with W (the user,
-// 2026-10-28), so their pseudo registers are written [n] instead of [n + W] (W
-// is 0 by the calling convention).  The passes before see [n + W] everywhere, so
-// it is done last.  bAll: W is a value's home in the function
-// (SIR65Frame::bHomeW), so every instruction's are.
+// The pseudo registers are $0000 to $00FF whatever W holds (it is a register
+// like any other: the user, 2026-11-14), so they are written [n], not
+// [n + W].  The lowering and the passes before write and see [n + W]
+// everywhere (it is how they tell a pseudo register from other memory), so
+// it is done last.
 //
 //////////////////////////////////////////////////////////////////////////
-void IR65PseudoWithoutW(CChars* pszCode, size uiStart, bool bAll)
+void IR65PseudoWithoutW(CChars* pszCode, size uiStart)
 {
-	static const char*	aszArithmetic[] = { "\t\tadd ", "\t\tsub ", "\t\tcmp ", "\t\tshl ", "\t\tshr ", "\t\tcpyx ", NULL };
 	CChars				szOut;
 	CChars				szLine;
 	const char*			szText;
 	const char*			szEnd;
 	size				uiLength;
-	int					i;
 
 	szOut.Init();
 	szText = pszCode->Text() + uiStart;
@@ -57,14 +55,7 @@ void IR65PseudoWithoutW(CChars* pszCode, size uiStart, bool bAll)
 		uiLength = szEnd ? (size)(szEnd - szText + 1) : StrLen(szText);
 		szLine.Init();
 		szLine.Append(szText, uiLength);
-		for (i = 0; aszArithmetic[i]; i++)
-		{
-			if (bAll || szLine.StartsWith(aszArithmetic[i]))
-			{
-				szLine.Replace(" + W]", "]");
-				break;
-			}
-		}
+		szLine.Replace(" + W]", "]");
 		szOut.Append(szLine);
 		szLine.Kill();
 		szText += uiLength;

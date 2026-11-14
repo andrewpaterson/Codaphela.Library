@@ -185,7 +185,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	CountLoaded(mcWidths.IsLoaded());
 	mcPeephole.Optimise(pszDest, muiBodyStart, msFrame.bHomeV);
 	CountLoaded(mcPeephole.IsLoaded());
-	IR65PseudoWithoutW(pszDest, muiBodyStart, msFrame.bHomeW);
+	IR65PseudoWithoutW(pszDest, muiBodyStart);
 	mpcModule->End(CPPCP_CodePasses);
 	if (mbSourceMarkers)
 	{
@@ -510,7 +510,6 @@ void CIR65Backend::Epilogue(void)
 	SIR65Stub*	psStub;
 
 	Label(miReturnLabel);
-	ClearW();
 	for (iUnit = IR65_PSEUDO_UNITS - 1; iUnit >= 0; iUnit--)
 	{
 		if (msFrame.uiSaved & (1u << iUnit))
@@ -570,21 +569,6 @@ void CIR65Backend::Branch(const char* szBranch, int32 iLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// W is 0 at every call and return, and where mul and div start (the
-// calling convention): where it is a home it is set back before each.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::ClearW(void)
-{
-	if (msFrame.bHomeW)
-	{
-		Line("cpy W, 0")->AppendNewLine();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Calls a soft float routine (_ and its name) and removes iBytes of
 // arguments.
 //
@@ -596,7 +580,6 @@ void CIR65Backend::CallRuntime(const char* szName, int iBytes)
 	szLabel.Init("_");
 	szLabel.Append(szName);
 	UseRuntime(szLabel.Text());
-	ClearW();
 	Line("jsr ")->Append(szLabel)->AppendNewLine();
 	szLabel.Kill();
 	RemoveArguments(iBytes);

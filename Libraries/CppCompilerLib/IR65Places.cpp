@@ -100,7 +100,6 @@ void SIR65Frame::Init(void)
 	iThisOffset = -1;
 	uiSaved = 0;
 	bHomeV = false;
-	bHomeW = false;
 	bFrameless = false;
 	cRegister = 'V';
 	iArguments = 0;
@@ -440,9 +439,8 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 // V as a third register, for pointers and i32s (Fits32BitRegister): calls
 // keep it (every function keeps V), so it is where one live across calls
 // goes; that stands if V was taken and nothing had to go in the frame.  W
-// is a fourth for those between calls, multiplies and divides, which want
-// it 0: the function sets it back before each and before it returns
-// (ClearW).
+// is a fourth for those between calls, multiplies and divides, which
+// change it as they do Y.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Allocate(void)
@@ -499,7 +497,6 @@ void CIR65Backend::Allocate(void)
 			PlaceClass(asWeights.Get(ui)->iLeader, IR65P_None, 0, 0);
 		}
 		msFrame.uiSaved = 0;
-		msFrame.bHomeW = false;
 		msFrame.bHomeV = false;
 		AllocateClasses(&asWeights);
 	}
@@ -1085,11 +1082,10 @@ bool CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 			PlaceClass(iLeader, IR65P_Register, IR65R_Y, 4);
 			return true;
 		}
-		//W, where nothing that wants it 0 is done while the class is live (calls, mul and div: what changes Y).  Before
+		//W, where nothing that changes it is done while the class is live (calls, mul and div: what changes Y).  Before
 		//V, which costs more to have and is the only register for a class live across calls.
 		if (mpcOptions->mbHomeW && (iUnits == 1) && !bChangesY && Fits32BitRegister(iLeader) && TakeHomes(IR65R_W, 1, iLeader))
 		{
-			msFrame.bHomeW = true;
 			PlaceClass(iLeader, IR65P_Register, IR65R_W, 4);
 			return true;
 		}

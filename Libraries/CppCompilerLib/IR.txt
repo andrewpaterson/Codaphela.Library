@@ -535,20 +535,22 @@ twice is read twice).  BaseLib, StandardLib and SupportLib on the 65C64: 4.7%, 4
 3.8% fewer cycles, 166 of 168, 66 of 66 and 66 of 67 programs faster, 1.7% to 2.3% less
 code.  CCPPCompileOptions::mbHomeV false keeps V for the frame, to compare.
 
-W as a fourth register (2026-11-13).  W is 0 at every call and return, and code that
-changes it sets it back (CPP65Generator.txt: mul and div count in it).  Nothing reads it
-between: the pseudo registers can be written [n], which add, sub, cmp, shl, shr and cpyx
-already need.  So W is a home (IR65R_W) for a class of pointers or i32s that isn't live
-across a call, a mul, a div or a runtime routine (what changes Y), taken after X and Y and
-before V (it costs less to have).  A function that uses it sets it back to 0 before each of
-those and before it returns (CIR65Backend::ClearW, a cycle each), and its last text pass
-writes every pseudo register as [n] (IR65PseudoWithoutW with bAll), so no [n + W] is
-left to mean anything else.  W is never written as an address ([W], [4 + W]:
-IsAddressRegister; a pointer in it is copied to B, 1 cycle more than [X] and 2 less than
-[[n + W]]) and has only the one width, as V.  BaseLib, StandardLib and SupportLib on the
-65C64: 4.3%, 2.9% and 3.6% fewer cycles.  CCPPCompileOptions::mbHomeW false keeps W 0
-throughout, to compare.  CIR65Peephole then takes out each cpy W, 0 where W is 0 already
-(it is at the function's label and after a call; TransferW): 0.5%, 0.5% and 0.2% more.
+W as a fourth register (2026-11-13; an ordinary register 2026-11-14).  W is a register
+like any other: a call may change it, mul and div count in it from 0, and the pseudo
+registers are $0000 to $00FF whatever it holds (CPP65Generator.txt).  So W is a home
+(IR65R_W) for a class of pointers or i32s that isn't live across a call, a mul, a div or
+a runtime routine (what changes Y), taken after X and Y and before V (it costs nothing to
+have).  The lowering and the text passes write and read the pseudo registers as [n + W]
+(how they tell them from other memory) and the last pass writes every one as [n]
+(IR65PseudoWithoutW), so no [n + W] is left to mean anything else.  W is never written
+as an address ([W], [4 + W]: IsAddressRegister; a pointer in it is copied to B, 1 cycle
+more than [X] and 2 less than [[n]]) and has only the one width, as V.  A mul or div is
+written with cpy W, 0 before it, which CIR65Peephole takes out where W is 0 already
+(TransferW).  BaseLib, StandardLib and SupportLib on the 65C64: 4.3%, 2.9% and 3.6% fewer
+cycles with W kept 0 at every call and return (the convention as it was first
+understood: the function set it back before each), 0.5%, 0.5% and 0.2% more with the
+clears that weren't needed taken out, and 0.5% more each as an ordinary register.
+CCPPCompileOptions::mbHomeW false keeps values out of W, to compare.
 
 A parameter used at most once, or that gets no X, Y or low pseudo register, stays where
 it was pushed; others are copied to their home by the prologue (this from X).  64 bit values only get memory (two units).  Narrow
@@ -609,8 +611,8 @@ x >= c + 1 too.  A signed comparison branches in one instruction only on less (b
 round with its blocks swapped before layout, so the block it falls through to is the
 cheap one.
 
-mul and div are "mul / cpy W, 0": W is always 0 (the calling convention, the user
-2026-10-25), and they leave it counted up.
+mul and div are "cpy W, 0 / mul": they count in W from 0 and leave it counted up (until
+2026-11-14 "mul / cpy W, 0", with W kept 0 as the calling convention was then read).
 
 Peephole (per function, on the text): a branch to a label just after it goes, and a
 value stored then read straight back at 32 bits is copied from the register instead.
@@ -718,9 +720,10 @@ pass cleans up, and the instructions print as assembly.
 	Registers	A, B, X and Y.  The pseudo registers [n + W] are a second register
 				class: slower than A..Y.  Spills go to the frame ([n + V]).  add, sub,
 				cmp, shl and shr address memory with V, X or Y but not W (the user,
-				2026-10-28), so the last pass writes their pseudo registers as [n] (W
-				is 0); the passes before see [n + W].  They still can't use [n + S].
-	Calls		V, W and S are kept as now, and so are the pseudo registers [0x80 + W] to
+				2026-10-28); the last pass writes every pseudo register as [n] (W is a
+				register like any other since 2026-11-14); the passes before see
+				[n + W].  They still can't use [n + S].
+	Calls		V and S are kept as now (W too until 2026-11-14), and so are the pseudo registers [0x80 + W] to
 				[0xFF + W] (callee saved, the user 2026-10-24): a function that uses one
 				pushes it first and pulls it before returning.  [0x00 + W] to [0x7F + W]
 				may change.  The runtime routines (softfloat.asm, string.asm, R_*) use

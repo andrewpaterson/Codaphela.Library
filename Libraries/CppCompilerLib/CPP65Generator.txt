@@ -70,7 +70,7 @@ The memory map, register widths, argument sizes, W, V and this below are the use
 Memory map (the user, 2026-10-23)
 ---------------------------------
 
-	0000:0000 - 0000:FFFF	pseudo registers and scratch memory, addressed from W
+	0000:0000 - 0000:FFFF	pseudo registers and scratch memory
 							(the compiler's temporaries are the first $100 bytes)
 	0001:0000				programs start here (code, then data)
 	001F:FFFC				the stack starts here and works down
@@ -216,20 +216,18 @@ Narrowing a value in a register keeps the registers 32 bits wide:
 An expression's value ends in A.  A binary operator has its left operand in A and its
 right in B, a constant (add A, 3) or a pseudo register (cmp A, [4]).
 
-W points at the pseudo registers, like the 6502's zero page and the 65816's direct
-page.  It is always 0 (the user, 2026-10-25: part of the calling convention), so the
-pseudo registers are $0000 to $00FF.  They are written as [n]: add, sub,
-cmp, shl, shr and cpyx address memory with V, X or Y but not W (the user, 2026-10-28).  mul
-and div count in W from 0 and leave it at twice their width in bytes, so it is set back
-straight after:
+The pseudo registers are $0000 to $00FF, written [n].  W doesn't point at them: it is a
+register like any other, which a call may change (the user, 2026-11-14: "W is 0 at every
+call" was a misunderstanding of what mul needs; until then the convention here kept W 0
+and the pseudo registers were [n + W]).  add, sub, cmp, shl, shr and cpyx address memory
+with V, X or Y but not W (the user, 2026-10-28).  mul and div count in W from 0 and leave
+it at twice their width in bytes, so it is set first:
 
-		mul
 		cpy W, 0
+		mul
 
-Between calls a function may keep a value of its own in W in the same way (IR.txt, W as a
-fourth register): it sets W back to 0 before every call, mul and div and before it
-returns, and writes its pseudo registers as [n] throughout, so W is still 0 wherever the
-convention says it is.
+Between calls, multiplies and divides a function may keep a value in W (IR.txt, W as a
+fourth register).
 
 When neither operand of a binary operator is simple (a constant or a variable), the
 right is worked out first and kept in the next free pseudo register while the left is:
@@ -268,8 +266,7 @@ Calling convention
 - A variadic function's extra arguments are pushed like the others, after the default
   argument promotions (char, short and bool are int; arrays and functions are
   pointers), so Libc65's va_arg walks up the stack from the last named parameter.
-- V, W and S are kept by a call; A, B, X, Y and the pseudo registers may change.  W is 0
-  at every call and return (code that changes it, like mul and div, sets it back).
+- V and S are kept by a call; A, B, X, Y, W and the pseudo registers may change.
 
 Register arguments (the user, 2026-11-13: this stays in X; the first three arguments of 32
 bits or less go in A, B and Y; function pointers and vtables keep the stack entry), by the
@@ -359,8 +356,8 @@ Instructions used for operators
 -------------------------------
 
 	+ - & | ^			add sub and or xor
-	*					mul (A x B -> Y), keeping W
-	/ % unsigned		cpy Y, A / cpy A, B / cpy B, 0 / div (Y / A -> Y, remainder in B), keeping W
+	*					cpy W, 0 / mul (A x B -> Y)
+	/ % unsigned		cpy Y, A / cpy A, B / cpy B, 0 / cpy W, 0 / div (Y / A -> Y, remainder in B)
 	/ % signed			jsr R_DivideSigned (only added when used): divides the absolute values
 						and fixes the signs (quotient negative if the signs differ, remainder
 						with the dividend's sign)
