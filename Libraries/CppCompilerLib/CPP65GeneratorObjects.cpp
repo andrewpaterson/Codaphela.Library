@@ -249,20 +249,20 @@ CCPPScope* CCPP65Generator::CurrentLookupScope(void)
 {
 	CCPPSyntaxName*	pcName;
 
-	if (!mpcFunction)
+	if (!mcContext.GetFunction())
 	{
-		return mpcDeclaringNamespace;
+		return mcContext.GetNamespace();
 	}
-	pcName = mpcFunction->mpcDeclarator ? mpcFunction->mpcDeclarator->GetName() : NULL;
+	pcName = mcContext.GetFunction()->mpcDeclarator ? mcContext.GetFunction()->mpcDeclarator->GetName() : NULL;
 	if (pcName && pcName->mpcLookup)
 	{
 		return pcName->mpcLookup;
 	}
-	if (mpcFunction->mpcClass && mpcFunction->mpcClass->mpcSymbol)
+	if (mcContext.GetFunction()->mpcClass && mcContext.GetFunction()->mpcClass->mpcSymbol)
 	{
-		return mpcFunction->mpcClass->mpcSymbol->mpcScope;
+		return mcContext.GetFunction()->mpcClass->mpcSymbol->mpcScope;
 	}
-	return mpcFunction->mpcNamespace;
+	return mcContext.GetFunction()->mpcNamespace;
 }
 
 

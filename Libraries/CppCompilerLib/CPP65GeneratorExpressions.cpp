@@ -153,17 +153,17 @@ bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
 		return false;
 	}
 
-	if (mpcFunction)
+	if (mcContext.GetFunction())
 	{
-		if (bPretty && mpcFunction->mpcClass)
+		if (bPretty && mcContext.GetFunction()->mpcClass)
 		{
-			szName = mpcTokeniser->GetIdentifier(mpcFunction->mpcClass->mlliName, &iLength);
+			szName = mpcTokeniser->GetIdentifier(mcContext.GetFunction()->mpcClass->mlliName, &iLength);
 			pszText->Append(szName, iLength);
 			pszText->Append("::");
 		}
-		if (!mpcFunction->IsOperator())
+		if (!mcContext.GetFunction()->IsOperator())
 		{
-			szName = mpcTokeniser->GetIdentifier(mpcFunction->mlliName, &iLength);
+			szName = mpcTokeniser->GetIdentifier(mcContext.GetFunction()->mlliName, &iLength);
 			pszText->Append(szName, iLength);
 		}
 		else
@@ -708,7 +708,7 @@ CCPPSyntax* CCPP65Generator::ExpandPackArguments(CCPPSyntaxCallExpression* pcCal
 			continue;
 		}
 		pcPattern = SkipParentheses(((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern);
-		if (!mpcPackParameter || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != mpcPackParameter))
+		if (!mcContext.GetPackParameter() || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != mcContext.GetPackParameter()))
 		{
 			RestoreArguments(pcCall, papcArguments);
 			return pcArgument;
@@ -815,7 +815,7 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 
 	mpcStatistics->Count(CPPCC_TypeOf);
 	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
-	if (psTypeOf && (psTypeOf->pcBindings == mpcBindings) && (psTypeOf->pcFunction == mpcFunction))
+	if (psTypeOf && (psTypeOf->pcBindings == mcContext.GetBindings()) && (psTypeOf->pcFunction == mcContext.GetFunction()))
 	{
 		return psTypeOf->psType;
 	}
@@ -827,8 +827,8 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	mpcStatistics->End(CPPCP_Types);
 	mcErrors.Truncate(uiErrors);
 
-	sTypeOf.pcBindings = mpcBindings;
-	sTypeOf.pcFunction = mpcFunction;
+	sTypeOf.pcBindings = mcContext.GetBindings();
+	sTypeOf.pcFunction = mcContext.GetFunction();
 	sTypeOf.psType = psType;
 	mcTypeOfs.Put((int64)(size)pcExpression, &sTypeOf);
 	return psType;
@@ -966,7 +966,6 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPVariable*					pcVariable;
 	SCPP65Type*						psType;
 	SCPPBinding*					psBinding;
-	CCPPTemplateArguments*					pcSaved;
 	CCPPClass*					pcClass;
 	CCPPSymbol*						pcEnumerator;
 	bool							bResult;
@@ -1025,10 +1024,9 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 			pcEnumerator = QualifiedEnumerator(pcId->mpcName, pcExpression, &pcClass);
 			if (pcEnumerator)
 			{
-				pcSaved = mpcBindings;
-				mpcBindings = pcClass->mpcBindings;
+				mcContext.EnterBindings(pcClass->mpcBindings);
 				bResult = EnumeratorValue(pcEnumerator, plliValue);
-				mpcBindings = pcSaved;
+				mcContext.LeaveBindings();
 				return bResult;
 			}
 		}
@@ -2321,9 +2319,9 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		szName.Init();
 		if (szIdentifier && (iLength == 13) && (memcmp(szIdentifier, "__FUNCDNAME__", 13) == 0))
 		{
-			if (mpcFunction)
+			if (mcContext.GetFunction())
 			{
-				mcMangler.AppendFunctionLabel(&szName, mpcFunction);
+				mcMangler.AppendFunctionLabel(&szName, mcContext.GetFunction());
 			}
 		}
 		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->miIdentifier, &szName))

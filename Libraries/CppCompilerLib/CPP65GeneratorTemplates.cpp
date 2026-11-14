@@ -250,7 +250,7 @@ CCPPTemplate* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTempl
 	CCPPTemplate*	pcTemplate;
 
 	pcTemplate = NewMalloc<CCPPTemplate>();
-	pcTemplate->Init(pcSymbol, pcDeclaration, pcDefinition, bMember, mpcDeclaringNamespace);
+	pcTemplate->Init(pcSymbol, pcDeclaration, pcDefinition, bMember, mcContext.GetNamespace());
 	mapcTemplates.Add(pcTemplate);
 	return pcTemplate;
 }
@@ -391,7 +391,6 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 	CCPPSyntax*				pcArgument;
 	CCPPSyntaxTypeParameter*	pcType;
 	CCPPSyntaxParameter*	pcValue;
-	CCPPTemplateArguments*			pcSaved;
 	SCPP65Type*				psType;
 	size					i;
 	size					j;
@@ -455,11 +454,10 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 			else if (!pcArgument && pcType->mpcDefault)
 			{
 				//A default can use the parameters before it.
-				pcSaved = mpcBindings;
-				pcBindings->mpcOuter = mpcBindings;
-				mpcBindings = pcBindings;
+				pcBindings->mpcOuter = mcContext.GetBindings();
+				mcContext.EnterBindings(pcBindings);
 				psBinding->psType = GetTypeIdType(pcType->mpcDefault);
-				mpcBindings = pcSaved;
+				mcContext.LeaveBindings();
 				pcBindings->mpcOuter = NULL;
 			}
 			if (!psBinding->psType)
@@ -509,7 +507,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 //////////////////////////////////////////////////////////////////////////
 SCPPBinding* CCPP65Generator::FindBinding(CCPPSymbol* pcParameter)
 {
-	return mpcBindings ? mpcBindings->Find(pcParameter) : NULL;
+	return mcContext.GetBindings() ? mcContext.GetBindings()->Find(pcParameter) : NULL;
 }
 
 
@@ -804,7 +802,6 @@ bool CCPP65Generator::MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId
 	CCPPTemplate*					pcTemplate;
 	SCPP65Type*						psType;
 	SCPP65Type*						psNamed;
-	CCPPTemplateArguments*					pcSaved;
 	size							i;
 	bool							bResult;
 
@@ -871,12 +868,11 @@ bool CCPP65Generator::MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId
 	}
 
 	//A type naming none of the parameters must be the same type.
-	pcSaved = mpcBindings;
-	mpcBindings = NULL;
+	mcContext.EnterBindings(NULL);
 	BeginQuiet();
 	psNamed = GetTypeIdType(pcPattern);
 	EndQuiet();
-	mpcBindings = pcSaved;
+	mcContext.LeaveBindings();
 	bResult = psNamed && psNamed->Same(psArgument->psType);
 	*piScore += 2;
 	return bResult;
@@ -928,13 +924,11 @@ CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CAr
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPTemplate*					pcSpecialisation;
 	CCPPTemplateArguments*					pcBindings;
-	CCPPTemplateArguments*					pcSaved;
 	CCPPFunction*					pcFunction;
 	CArrayCPP65Types				apsArguments;
 	CArrayCPP65Types				apsDeduced;
 	CArrayInt64						alliDeduced;
 	CChars							szArguments;
-	CCPPScope*						pcSavedNamespace;
 	CCPPSyntaxFunctionSuffix*		pcInClass;
 	CCPPSyntaxParameter*			pcParameter;
 	size							i;
@@ -982,21 +976,19 @@ CCPPFunction* CCPP65Generator::InstantiateFunction(CCPPTemplate* pcTemplate, CAr
 	}
 
 	//A member template's instance also sees its class's template arguments.
-	pcSaved = mpcBindings;
 	if (pcTemplate->mpcClass)
 	{
 		pcBindings->mpcOuter = pcTemplate->mpcClassDeclaration ? RenameBindings(pcTemplate->mpcClass, pcTemplate->mpcClassDeclaration) : pcTemplate->mpcClass->mpcBindings;
 	}
 	else
 	{
-		pcBindings->mpcOuter = mpcBindings;
+		pcBindings->mpcOuter = mcContext.GetBindings();
 	}
-	mpcBindings = pcBindings;
-	pcSavedNamespace = mpcDeclaringNamespace;
-	mpcDeclaringNamespace = pcTemplate->mpcNamespace;
+	mcContext.EnterBindings(pcBindings);
+	mcContext.EnterNamespace(pcTemplate->mpcNamespace);
 	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcTemplate->mpcClass, false, pcTemplate, &szArguments);
-	mpcDeclaringNamespace = pcSavedNamespace;
-	mpcBindings = pcSaved;
+	mcContext.LeaveNamespace();
+	mcContext.LeaveBindings();
 	if (!pcTemplate->mpcClass)
 	{
 		pcBindings->mpcOuter = NULL;
@@ -1424,7 +1416,6 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 	CCPPTemplate*				pcTemplate;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxParameter*		pcParameter;
-	CCPPTemplateArguments*				pcSaved;
 	SCPP65Type*					psType;
 	CArrayCPP65Types			apsParameters;
 	CArrayCPP65Types			apsDeduced;
@@ -1442,8 +1433,7 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 		if (!pcTemplate->mbArguments)
 		{
 			pcTemplate->mbArguments = true;
-			pcSaved = mpcBindings;
-			mpcBindings = NULL;
+			mcContext.EnterBindings(NULL);
 			BeginQuiet();
 			apsParameters.Init();
 			pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
@@ -1464,7 +1454,7 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 			apsDeduced.Kill();
 			apsParameters.Kill();
 			EndQuiet();
-			mpcBindings = pcSaved;
+			mcContext.LeaveBindings();
 		}
 		if (!pcTemplate->mszArguments.Empty() && pcTemplate->mszArguments.Equals(pszArguments))
 		{
@@ -1861,7 +1851,6 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 	CArrayInt64					alliDeduced;
 	CChars						szArguments;
 	CCPPTemplateArguments*				pcBindings;
-	CCPPTemplateArguments*				pcSaved;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psArgument;
@@ -1903,16 +1892,15 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 	if (bTakes)
 	{
 		//The parameters' types are worked out as InstantiateFunction declares them.
-		pcSaved = mpcBindings;
 		if (pcTemplate->mpcClass)
 		{
 			pcBindings->mpcOuter = pcTemplate->mpcClassDeclaration ? RenameBindings(pcTemplate->mpcClass, pcTemplate->mpcClassDeclaration) : pcTemplate->mpcClass->mpcBindings;
 		}
 		else
 		{
-			pcBindings->mpcOuter = mpcBindings;
+			pcBindings->mpcOuter = mcContext.GetBindings();
 		}
-		mpcBindings = pcBindings;
+		mcContext.EnterBindings(pcBindings);
 		pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
 		bPack = false;
 		for (i = 0; bTakes && !bPack && pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < apsArguments.NumElements()); i++)
@@ -1940,7 +1928,7 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 				}
 			}
 		}
-		mpcBindings = pcSaved;
+		mcContext.LeaveBindings();
 		if (!pcTemplate->mpcClass)
 		{
 			pcBindings->mpcOuter = NULL;

@@ -261,7 +261,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcGlobals.Init();
 	mapcFunctions.Init();
 	mcFunctionsOfNames.Init(true);
-	mpcDeclaringNamespace = NULL;
+	mcContext.Init();
 	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
 	mapcClasses.Init();
 	mapcTemplates.Init();
@@ -269,11 +269,9 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapapsPacks.Init();
 	mapcPackElements.Init();
 	mapcPackSymbols.Init();
-	mpcPackParameter = NULL;
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	mapcFailed.Init();
-	mpcBindings = NULL;
 	mcTypeOfs.Init(true);
 	maszEmitted.Init();
 	miQuiet = 0;
@@ -286,12 +284,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbPureVirtual = false;
 
 	mapcLocals.Init();
-	mpcFunction = NULL;
 	miStatics = 0;
-	mbStaticLocal = false;
-	mbLinkageExtern = false;
-	mbCLinkage = false;
-	mbThis = false;
 	miLabels = 0;
 }
 
@@ -333,6 +326,7 @@ void CCPP65Generator::Kill(void)
 		SafeFree(pcFunction);
 	}
 	mcMangler.Kill();
+	mcContext.Kill();
 	mcFunctionsOfNames.Kill();
 	mapcFunctions.Kill();
 	for (i = 0; i < mapcTemplates.NumElements(); i++)
@@ -420,6 +414,21 @@ bool CCPP65Generator::Generate(CCPP65Assembly* pcDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// When the unit's declarations and functions are done the compiler is nowhere: everything entered was left,
+// in order.  If not, the compiler has a mistake in it, and what it wrote can't be trusted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::CheckContext(void)
+{
+	if (mcContext.IsBroken())
+	{
+		ErrorAt(-1, "Internal error: the compiler's context was not left as it was entered");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The first part of Generate, which can be done before the unit's turn with
 // the imports (SetImports): the functions are generated and inlined, with
 // the imports exported so far.  GenerateAfterTurn does the rest, in the
@@ -440,6 +449,7 @@ bool CCPP65Generator::GenerateBeforeTurn(void)
 	//Functions generated when they are first called, which may call others.
 	GenerateQueued();
 	ReportClassErrors();
+	CheckContext();
 	mpcStatistics->End(CPPCP_Declarations);
 
 	//The IR front end inlines across the unit.
@@ -1177,9 +1187,6 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 	CCPPSyntax*							pcDeclaration;
 	CCPPSyntaxLinkageSpecification*		pcLinkage;
 	bool								bResult;
-	bool								bLinkageExtern;
-	bool								bCLinkage;
-	CCPPScope*							pcEnclosing;
 
 	bResult = true;
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
@@ -1208,22 +1215,17 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 		case CPPS_LinkageSpecification:
 			//extern "C" int x; declares x, as if it were extern; extern "C" { int x; } defines it.  [dcl.link]
 			pcLinkage = (CCPPSyntaxLinkageSpecification*)pcDeclaration;
-			bLinkageExtern = mbLinkageExtern;
-			bCLinkage = mbCLinkage;
-			mbLinkageExtern = !pcLinkage->mbBraced;
-			mbCLinkage = IsCLinkage(pcLinkage);
+			mcContext.EnterLinkage(IsCLinkage(pcLinkage), !pcLinkage->mbBraced);
 			bResult &= Declarations(&pcLinkage->macpDeclarations);
-			mbLinkageExtern = bLinkageExtern;
-			mbCLinkage = bCLinkage;
+			mcContext.LeaveLinkage();
 			break;
 		case CPPS_TemplateDeclaration:
 			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
 			break;
 		case CPPS_Namespace:
-			pcEnclosing = mpcDeclaringNamespace;
-			mpcDeclaringNamespace = ((CCPPSyntaxNamespace*)pcDeclaration)->mpcScope;
+			mcContext.EnterNamespace(((CCPPSyntaxNamespace*)pcDeclaration)->mpcScope);
 			bResult &= Declarations(&((CCPPSyntaxNamespace*)pcDeclaration)->macpDeclarations);
-			mpcDeclaringNamespace = pcEnclosing;
+			mcContext.LeaveNamespace();
 			break;
 		case CPPS_EmptyDeclaration:
 		case CPPS_StaticAssert:
@@ -1431,7 +1433,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 	{
 		//A friend with a simple name is of the namespace its class is in, whatever the name finds.  [namespace.memdef] 3
 		bFriend = pcName->IsSimple() && (uiFlags & CPPDS_FRIEND);
-		pcNamespace = (pcName->mpcSymbol && !bFriend) ? pcName->mpcSymbol->mpcScope->GetNamespace() : mpcDeclaringNamespace;
+		pcNamespace = (pcName->mpcSymbol && !bFriend) ? pcName->mpcSymbol->mpcScope->GetNamespace() : mcContext.GetNamespace();
 	}
 	for (pcOther = FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
 	{
@@ -1472,7 +1474,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 		apsParameters.Kill();
 		pcFunction->mbVirtual |= (uiFlags & CPPDS_VIRTUAL) != 0;
 		pcFunction->mbPure |= bPure;
-		pcFunction->mbCLinkage |= mbCLinkage && !pcClass;
+		pcFunction->mbCLinkage |= mcContext.IsCLinkage() && !pcClass;
 		pcFunction->mbExplicit |= (uiFlags & CPPDS_EXPLICIT) != 0;
 		return pcFunction;
 	}
@@ -1494,7 +1496,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 	pcFunction->mbPure = bPure;
 	pcFunction->mbInline = (uiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)) != 0;
 	pcFunction->mpcTemplate = pcTemplate;
-	pcFunction->mbCLinkage = mbCLinkage && !pcClass;
+	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
 	if (pszArguments)
 	{
@@ -1714,7 +1716,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		}
 
 		//extern without an initialiser only declares; extern int x = 1; defines x.  [basic.def]
-		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mbLinkageExtern) && !pcInit->mpcInitializer)
+		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mcContext.IsLinkageExtern()) && !pcInit->mpcInitializer)
 		{
 			BeginQuiet();
 			psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
@@ -1771,7 +1773,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
-		mbThis = false;
+		mcContext.NoThis();
 		if (bBss)
 		{
 			AppendSpace(psType->iBytes);
@@ -1895,7 +1897,7 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 	}
 	if (pcInitialiser && (psType->IsFloat() || !Constant(pcInitialiser, &lliValue)))
 	{
-		if (mbStaticLocal)
+		if (mcContext.IsStaticLocal())
 		{
 			return Error(pcInitialiser, "A static local variable needs a constant initialiser in the compiler yet");
 		}
@@ -1982,7 +1984,7 @@ CCPPVariable* CCPP65Generator::AddVariable(CArrayCPPVariables* papcVariables, CC
 	CCPPVariable*	pcVariable;
 
 	pcVariable = NewMalloc<CCPPVariable>();
-	pcVariable->Init(pcSymbol, psType, eStorage, iOffset, mbCLinkage);
+	pcVariable->Init(pcSymbol, psType, eStorage, iOffset, mcContext.IsCLinkage());
 	papcVariables->Add(pcVariable);
 	return pcVariable;
 }
@@ -2299,7 +2301,6 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 {
 	CCPPSymbol*					pcMember;
 	CCPPClass*				pcMemberClass;
-	CCPPTemplateArguments*				pcSavedBindings;
 	SCPP65Type*					psMemberType;
 	uint32								uiKeywords;
 	bool								bSigned;
@@ -2360,10 +2361,9 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			pcMember = QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
 			if (pcMember)
 			{
-				pcSavedBindings = mpcBindings;
-				mpcBindings = pcMemberClass->mpcBindings;
+				mcContext.EnterBindings(pcMemberClass->mpcBindings);
 				psMemberType = GetSymbolType(pcMember, pcNode);
-				mpcBindings = pcSavedBindings;
+				mcContext.LeaveBindings();
 				return psMemberType;
 			}
 			if (pcName->mpcSymbol)
@@ -2587,7 +2587,6 @@ bool CCPP65Generator::WriteBody(CCPPFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 {
-	CCPPTemplateArguments*	pcSaved;
 	CChars			szLabel;
 	bool			bShared;
 
@@ -2600,10 +2599,9 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 	if (mpcSemanticPass)
 	{
 		//Only checked.
-		pcSaved = mpcBindings;
-		mpcBindings = pcFunction->mpcBindings;
+		mcContext.EnterBindings(pcFunction->mpcBindings);
 		CheckFunction(pcFunction);
-		mpcBindings = pcSaved;
+		mcContext.LeaveBindings();
 		return;
 	}
 
@@ -2623,8 +2621,7 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 		AppendGlobal(&mszCode, &szLabel);
 	}
 	szLabel.Kill();
-	pcSaved = mpcBindings;
-	mpcBindings = pcFunction->mpcBindings;
+	mcContext.EnterBindings(pcFunction->mpcBindings);
 
 	if (pcFunction->mbImplicit)
 	{
@@ -2647,7 +2644,7 @@ void CCPP65Generator::GenerateFunction(CCPPFunction* pcFunction)
 	{
 		GenerateDefinition(pcFunction);
 	}
-	mpcBindings = pcSaved;
+	mcContext.LeaveBindings();
 }
 
 
@@ -2735,7 +2732,7 @@ void CCPP65Generator::AddParameters(CCPPFunction* pcFunction)
 		uiPack = psPack ? psPack->papsPack->NumElements() : ((j < pcFunction->mapsParameters.NumElements()) ? 1 : 0);
 		if (psPack)
 		{
-			mpcPackParameter = pcParameter->mpcSymbol;
+			mcContext.SetPackParameter(pcParameter->mpcSymbol);
 		}
 		for (k = 0; k < uiPack; k++)
 		{
@@ -2776,11 +2773,8 @@ void CCPP65Generator::AppendUnsupported(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::BeginFunction(CCPPFunction* pcFunction)
 {
-	mpcFunction = pcFunction;
+	mcContext.BeginFunction(pcFunction);
 	FreeVariables(&mapcLocals);
-
-	mbThis = pcFunction->mpcClass && !pcFunction->mbStatic;
-	mpcPackParameter = NULL;
 	mapcPackElements.ReInit();
 }
 
@@ -2794,8 +2788,7 @@ void CCPP65Generator::BeginFunction(CCPPFunction* pcFunction)
 void CCPP65Generator::EndFunction(CCPPFunction* pcFunction)
 {
 	//Only a function the IR front end couldn't write ends here (it ends the ones it writes itself): nothing is written.
-	mpcFunction = NULL;
-	mbThis = false;
+	mcContext.EndFunction();
 }
 
 
@@ -2921,7 +2914,6 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	CChars				szLabel;
 	bool				bResult;
 	bool				bInitialise;
-	bool				bThis;
 
 	psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	if (!psType)
@@ -2946,12 +2938,9 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 		return true;
 	}
 
-	bThis = mbThis;
-	mbThis = false;
-	mbStaticLocal = true;
+	mcContext.EnterStaticLocal();
 	bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
-	mbStaticLocal = false;
-	mbThis = bThis;
+	mcContext.LeaveStaticLocal();
 	return bResult;
 }
 

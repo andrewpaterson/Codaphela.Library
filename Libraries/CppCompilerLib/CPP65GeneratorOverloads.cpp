@@ -427,9 +427,9 @@ CCPPFunction* CCPP65Generator::FindAddressedFunction(CCPPSyntaxName* pcName, int
 		pcClass = GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
 		EndQuiet();
 	}
-	else if (mpcFunction && mpcFunction->mpcClass)
+	else if (mcContext.GetFunction() && mcContext.GetFunction()->mpcClass)
 	{
-		pcClass = mpcFunction->mpcClass;
+		pcClass = mcContext.GetFunction()->mpcClass;
 	}
 	if (pcClass && CompleteClass(pcClass, pcNode))
 	{
@@ -836,7 +836,7 @@ bool CCPP65Generator::IsConstPointer(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IsConstThis(void)
 {
-	return mpcFunction && mpcFunction->mbConstThis;
+	return mcContext.GetFunction() && mcContext.GetFunction()->mbConstThis;
 }
 
 

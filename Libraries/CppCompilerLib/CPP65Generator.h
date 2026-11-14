@@ -46,6 +46,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPClass.h"
 #include "CPPClassLayout.h"
 #include "CPPMangler.h"
+#include "CPPContext.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
 #include "CPPTarget.h"
@@ -182,12 +183,10 @@ protected:
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
 	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function parameter packs' elements.
-	CCPPSymbol*				mpcPackParameter;	//The function parameter pack of the function being generated, or NULL.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
 	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
-	CCPPTemplateArguments*			mpcBindings;		//The template arguments of what is being generated or laid out.
 	CMapCPPTypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
@@ -199,15 +198,10 @@ protected:
 	bool						mbDataBss;			//The last BeginData was bss: the global's start up routines associate with bss.label.
 	bool					mbPureVirtual;
 
-	CCPPScope*				mpcDeclaringNamespace;	//The namespace Declarations is in, NULL for the global one: of what has no symbol (an operator).
+	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPVariables	mapcLocals;
-	CCPPFunction*			mpcFunction;
 	int						miStatics;			//Static locals in the unit.
-	bool					mbStaticLocal;		//A static local's data is being written.
-	bool					mbLinkageExtern;	//In extern "C" without braces: declarations are extern.
-	bool					mbCLinkage;			//In extern "C": functions declared have C linkage.
-	bool					mbThis;				//The function being written is a member function with this (not a global's or static local's initialiser).
 	int						miLabels;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
 	CCPP65TypeChecker		mcTypeChecker;		//Works out expressions' types (TypeOf).
@@ -243,6 +237,7 @@ public:
 	void					SetImports(CIRImports* pcImports, size uiTurn);
 	bool					MissedImports(void);
 	bool					GenerateBeforeTurn(void);
+	void					CheckContext(void);
 	bool					GenerateAfterTurn(CCPP65Assembly* pcDest);
 	CArrayChars*			GetNotImported(void);
 	void					SetFrameProfile(CAsm65Profile* pcProfile);

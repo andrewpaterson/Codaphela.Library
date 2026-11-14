@@ -483,12 +483,12 @@ bool CCPP65TypeChecker::MemberFunctionAddress(CCPPClass* pcClass, int64 lliName,
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 {
-	if (!mpcGenerator->mbThis || !mpcGenerator->mpcFunction || !mpcGenerator->mpcFunction->mpcClass)
+	if (!mpcGenerator->mcContext.HasThis() || !mpcGenerator->mcContext.GetFunction() || !mpcGenerator->mcContext.GetFunction()->mpcClass)
 	{
 		Error(pcThis, "this is only in member functions");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcTypes->Qualified(mpcGenerator->mpcFunction->mpcClass->mpsType, mpcGenerator->IsConstThis(), false));
+	return mpcTypes->Pointer(mpcTypes->Qualified(mpcGenerator->mcContext.GetFunction()->mpcClass->mpsType, mpcGenerator->IsConstThis(), false));
 }
 
 
@@ -1064,7 +1064,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 			return MemberCall(pcCall, pcCallee);
 		}
 	}
-	pcMember = mpcGenerator->mpcFunction;
+	pcMember = mpcGenerator->mcContext.GetFunction();
 
 	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
@@ -1511,9 +1511,9 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		{
 			pcClass = mpcGenerator->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
 		}
-		else if (mpcGenerator->mpcFunction)
+		else if (mpcGenerator->mcContext.GetFunction())
 		{
-			pcClass = mpcGenerator->mpcFunction->mpcClass;
+			pcClass = mpcGenerator->mcContext.GetFunction()->mpcClass;
 		}
 	}
 
@@ -1588,7 +1588,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		}
 		return NULL;
 	}
-	if (!pcObject && !pcFunction->mbStatic && (!mpcGenerator->mpcFunction || !mpcGenerator->mpcFunction->mpcClass || !mpcGenerator->IsDerived(mpcGenerator->mpcFunction->mpcClass, pcFunction->mpcClass, NULL)))
+	if (!pcObject && !pcFunction->mbStatic && (!mpcGenerator->mcContext.GetFunction() || !mpcGenerator->mcContext.GetFunction()->mpcClass || !mpcGenerator->IsDerived(mpcGenerator->mcContext.GetFunction()->mpcClass, pcFunction->mpcClass, NULL)))
 	{
 		Error(pcCallee, "A member function needs an object");
 		return NULL;
@@ -1975,7 +1975,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 		{
 			return pcVariable->mpsType->WithoutReference();
 		}
-		pcClass = mpcGenerator->mpcFunction ? mpcGenerator->mpcFunction->mpcClass : NULL;
+		pcClass = mpcGenerator->mcContext.GetFunction() ? mpcGenerator->mcContext.GetFunction()->mpcClass : NULL;
 		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass) ? pcClass->FindFieldSymbol(pcSymbol, &iOffset) : NULL;
 		if (!psField && !pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
 		{
@@ -1992,7 +1992,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 			Error(pcExpression, "Only variables are supported by the compiler here yet");
 			return NULL;
 		}
-		if (!mpcGenerator->mbThis)
+		if (!mpcGenerator->mcContext.HasThis())
 		{
 			Error(pcExpression, "A field needs an object");
 			return NULL;

@@ -361,8 +361,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		//As the generator's EndFunction leaves it.
-		mpcGenerator->mpcFunction = NULL;
-		mpcGenerator->mbThis = false;
+		mpcGenerator->mcContext.EndFunction();
 	}
 	if (!bResult && mpcFunction)
 	{

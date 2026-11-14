@@ -77,7 +77,7 @@ CCPPClass* CCPP65Generator::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifie
 	CCPPSyntax*		pcParent;
 	size			i;
 
-	for (pcBindings = mpcBindings; pcBindings; pcBindings = pcBindings->mpcOuter)
+	for (pcBindings = mcContext.GetBindings(); pcBindings; pcBindings = pcBindings->mpcOuter)
 	{
 		pcParent = pcSpecifier->mpcParent;
 		while (pcParent && (!pcBindings->mpcClass || (pcParent != pcBindings->mpcClass->mpcSpecifier)))
@@ -277,16 +277,16 @@ CCPPClass* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompone
 
 		//The template's own name inside it is the instance being made, and a base's name
 		//in a class derived from an instance is that instance.
-		for (pcBindings = mpcBindings; pcBindings; pcBindings = pcBindings->mpcOuter)
+		for (pcBindings = mcContext.GetBindings(); pcBindings; pcBindings = pcBindings->mpcOuter)
 		{
 			if (pcBindings->mpcClass && pcBindings->mpcClass->mpcTemplate && (pcBindings->mpcClass->mpcTemplate->mpcPrimary == pcTemplate))
 			{
 				return pcBindings->mpcClass;
 			}
 		}
-		if (!pcContext && mpcFunction)
+		if (!pcContext && mcContext.GetFunction())
 		{
-			pcContext = mpcFunction->mpcClass;
+			pcContext = mcContext.GetFunction()->mpcClass;
 		}
 		pcClass = pcContext ? FindBaseInstance(pcContext, pcTemplate) : NULL;
 		if (pcClass)
@@ -371,7 +371,6 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	CCPPSyntaxBaseSpecifier*	pcBaseSpecifier;
 	CCPPClass*				pcBaseClass;
 	SCPPBase*					psBase;
-	CCPPTemplateArguments*				pcSaved;
 	size						i;
 	bool						bResult;
 
@@ -389,8 +388,7 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 
 	pcClass->meState = CPPCS_ResolvingBases;
-	pcSaved = mpcBindings;
-	mpcBindings = pcClass->mpcBindings;
+	mcContext.EnterBindings(pcClass->mpcBindings);
 	bResult = true;
 	for (i = 0; i < pcClass->mpcSpecifier->macpBases.NumElements(); i++)
 	{
@@ -413,7 +411,7 @@ bool CCPP65Generator::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	pcClass->mpcBase = (pcClass->macBases.NumElements() > 0) ? pcClass->macBases.Get(0)->pcClass : NULL;
 	pcClass->meState = CPPCS_BasesKnown;
-	mpcBindings = pcSaved;
+	mcContext.LeaveBindings();
 	return bResult;
 }
 
@@ -456,13 +454,11 @@ bool CCPP65Generator::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
-	CCPPScope*						pcEnclosing;
 	CCPPSyntaxClassSpecifier*		pcSpecifier;
 	CCPPSyntaxBaseSpecifier*		pcBaseSpecifier;
 	CCPPSyntaxNameComponent*		pcComponent;
 	CCPPTemplate*					pcMember;
 	CCPPFunction*					pcFunction;
-	CCPPTemplateArguments*			pcSaved;
 	CCPPTemplateArguments*			pcMemberBindings;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPClassLayout					cLayout;
@@ -471,8 +467,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	bool							bResult;
 
 	pcSpecifier = pcClass->mpcSpecifier;
-	pcSaved = mpcBindings;
-	mpcBindings = pcClass->mpcBindings;
+	mcContext.EnterBindings(pcClass->mpcBindings);
 	bResult = true;
 
 	pcClass->mbUnion = pcSpecifier->meKey == CT_union;
@@ -491,16 +486,12 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 
 	//Its friends are of its namespace, whatever is being generated when it is completed.
-	pcEnclosing = mpcDeclaringNamespace;
-	if (pcClass->mpcSymbol)
-	{
-		mpcDeclaringNamespace = pcClass->mpcSymbol->mpcScope->GetNamespace();
-	}
+	mcContext.EnterNamespace(pcClass->mpcSymbol ? pcClass->mpcSymbol->mpcScope->GetNamespace() : mcContext.GetNamespace());
 	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
 	{
 		bResult &= ClassMember(pcClass, pcSpecifier->macpMembers.GetPtr(i));
 	}
-	mpcDeclaringNamespace = pcEnclosing;
+	mcContext.LeaveNamespace();
 
 	//A class template's members defined outside it.  Their template parameters are
 	//new names for the class's.
@@ -516,11 +507,11 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 			pcMemberBindings = RenameBindings(pcClass, pcMember->mpcDeclaration);
 
 			pcDefinition = (CCPPSyntaxFunctionDefinition*)pcMember->mpcDefinition;
-			mpcBindings = pcMemberBindings;
+			mcContext.EnterBindings(pcMemberBindings);
 			BeginQuiet();
 			pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
 			EndQuiet();
-			mpcBindings = pcClass->mpcBindings;
+			mcContext.LeaveBindings();
 			if (pcFunction && (pcDefinition->meBody == CPPFB_Body))
 			{
 				pcFunction->mpcDefinition = pcDefinition;
@@ -563,7 +554,7 @@ bool CCPP65Generator::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		pcFunction->mbImplicit = true;
 		pcFunction->mbDefined = true;
 	}
-	mpcBindings = pcSaved;
+	mcContext.LeaveBindings();
 	return bResult;
 }
 

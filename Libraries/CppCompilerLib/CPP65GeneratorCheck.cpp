@@ -49,6 +49,7 @@ bool CCPP65Generator::Check(CCPPSemanticPass* pcPass)
 	{
 	}
 	ReportClassErrors();
+	CheckContext();
 	mpcSemanticPass = NULL;
 	return mcErrors.NumErrors() == 0;
 }
