@@ -116,7 +116,7 @@ SCPP65Type* CCPP65Generator::CastClassType(CCPPSyntax* pcExpression)
 		return NULL;
 	}
 	BeginQuiet();
-	psType = GetTypeIdType(pcType);
+	psType = mcDeclarators.GetTypeIdType(pcType);
 	EndQuiet();
 	return (psType && psType->IsClass()) ? psType : NULL;
 }

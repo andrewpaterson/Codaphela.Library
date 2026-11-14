@@ -177,7 +177,7 @@ int CCPP65Generator::AlignasAlignment(CArraySyntax* papcSpecifiers)
 		pcAlignment = ((CCPPSyntaxAlignasSpecifier*)pcSpecifier)->mpcAlignment;
 		if (pcAlignment->GetKind() == CPPS_TypeId)
 		{
-			psType = GetTypeIdType((CCPPSyntaxTypeId*)pcAlignment);
+			psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcAlignment);
 			if (!psType || (psType->IsClass() && !CompleteClass(psType->pcClass, pcAlignment)))
 			{
 				return -1;
@@ -249,7 +249,7 @@ CCPPClass* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompone
 	}
 	if (pcSymbol->meKind == CPPSK_Typedef)
 	{
-		psType = GetSymbolType(pcSymbol, pcNode);
+		psType = mcDeclarators.GetSymbolType(pcSymbol, pcNode);
 		return (psType && psType->IsClass()) ? psType->pcClass : NULL;
 	}
 	if (pcSymbol->meKind == CPPSK_TypeParameter)
@@ -904,7 +904,7 @@ bool CCPP65Generator::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				continue;
 			}
 
-			psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+			psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			if (!psType)
 			{
 				bResult = false;
@@ -1002,7 +1002,7 @@ bool CCPP65Generator::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers
 	{
 		return ClassError(pcInit->miFirstToken, "A bit-field can't be static");
 	}
-	psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
+	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
 	if (!psType)
 	{
 		return false;

@@ -420,7 +420,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 				for (j = i; papcArguments && (j < papcArguments->NumElements()); j++)
 				{
 					pcArgument = papcArguments->GetPtr(j);
-					psType = (pcArgument->GetKind() == CPPS_TypeId) ? GetTypeIdType((CCPPSyntaxTypeId*)pcArgument) : NULL;
+					psType = (pcArgument->GetKind() == CPPS_TypeId) ? mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcArgument) : NULL;
 					if (!psType)
 					{
 						bResult = Error(pcArgument, "The template argument is not a type the compiler supports");
@@ -445,7 +445,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 			if (pcArgument && (pcArgument->GetKind() == CPPS_TypeId))
 			{
 				//const int is a different argument to int (its type is const).
-				psBinding->psType = GetTypeIdType((CCPPSyntaxTypeId*)pcArgument);
+				psBinding->psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcArgument);
 			}
 			else if (!pcArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -456,7 +456,7 @@ CCPPTemplateArguments* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclarat
 				//A default can use the parameters before it.
 				pcBindings->mpcOuter = mcContext.GetBindings();
 				mcContext.EnterBindings(pcBindings);
-				psBinding->psType = GetTypeIdType(pcType->mpcDefault);
+				psBinding->psType = mcDeclarators.GetTypeIdType(pcType->mpcDefault);
 				mcContext.LeaveBindings();
 				pcBindings->mpcOuter = NULL;
 			}
@@ -870,7 +870,7 @@ bool CCPP65Generator::MatchType(CCPPTemplate* pcSpecialisation, CCPPSyntaxTypeId
 	//A type naming none of the parameters must be the same type.
 	mcContext.EnterBindings(NULL);
 	BeginQuiet();
-	psNamed = GetTypeIdType(pcPattern);
+	psNamed = mcDeclarators.GetTypeIdType(pcPattern);
 	EndQuiet();
 	mcContext.LeaveBindings();
 	bResult = psNamed && psNamed->Same(psArgument->psType);
@@ -1440,7 +1440,7 @@ CCPPTemplate* CCPP65Generator::FindFunctionSpecialisation(CCPPTemplate* pcPrimar
 			for (j = 0; pcSuffix && (j < pcSuffix->macpParameters.NumElements()); j++)
 			{
 				pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(j);
-				psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+				psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
 				apsParameters.Add((psType && psType->IsReference()) ? psType->psBase : psType);
 			}
 			apsDeduced.Init();
@@ -1910,7 +1910,7 @@ bool CCPP65Generator::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papc
 			{
 				continue;
 			}
-			psParameter = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
+			psParameter = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
 			psArgument = psArgument->WithoutReference();
 			if (psArgument->IsMemberPointer() && psArgument->psBase && psArgument->psBase->IsFunction())
 			{

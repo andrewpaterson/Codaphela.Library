@@ -163,7 +163,7 @@ SCPP65Type* CCPP65TypeChecker::Result(CCPPSyntax* pcExpression)
 		if (pcNamedCast->meCast == CT_dynamic_cast)
 		{
 			//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
-			return mpcGenerator->GetTypeIdType(pcNamedCast->mpcType);
+			return mpcGenerator->mcDeclarators.GetTypeIdType(pcNamedCast->mpcType);
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, pcExpression);
 	case CPPS_ConstructExpression:
@@ -313,7 +313,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 			return NULL;
 		}
 		pcParameter = (CCPPSyntaxParameter*)pcSymbol->mpcDeclaration;
-		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? mpcGenerator->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
+		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? mpcGenerator->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
 		return (psType && psType->IsInteger()) ? psType : &mpcTypes->msInt;
 	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
@@ -2135,7 +2135,7 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 	SCPP65Type*				psFrom;
 	CCPPSyntaxIdExpression*	pcFunction;
 
-	psTo = mpcGenerator->GetTypeIdType(pcTypeId);
+	psTo = mpcGenerator->mcDeclarators.GetTypeIdType(pcTypeId);
 	if (!psTo)
 	{
 		return NULL;
@@ -2180,7 +2180,7 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	SCPP65Type*		psType;
 	CArraySyntax*	papcElements;
 
-	psType = mpcGenerator->GetTypeIdType(pcConstruct->mpcType);
+	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
 	if (psType && psType->IsClass())
 	{
 		return TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct);
@@ -2249,7 +2249,7 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 		if ((pcTrait->macpArguments.NumElements() == 2) && (pcTrait->macpArguments.GetPtr(1)->GetKind() == CPPS_TypeId))
 		{
 			Value(pcTrait->macpArguments.GetPtr(0));
-			psType = mpcGenerator->GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(1));
+			psType = mpcGenerator->mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(1));
 		}
 	}
 	else if (szTrait.Equals("__builtin_offsetof"))
@@ -2276,7 +2276,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 		Error(pcNew, "Only new(address) Type is supported for placement new by the compiler yet");
 		return NULL;
 	}
-	psType = mpcGenerator->GetTypeIdType(pcNew->mpcType);
+	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcNew->mpcType);
 	if (!psType || (psType->IsClass() && !mpcGenerator->CompleteClass(psType->pcClass, pcNew)))
 	{
 		return NULL;
@@ -2481,7 +2481,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		if (pcInitialiser->GetKind() == CPPS_ConstructExpression)
 		{
 			pcConstruct = (CCPPSyntaxConstructExpression*)pcInitialiser;
-			if ((mpcGenerator->GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
+			if ((mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
 			{
 				bResult = ConstructClass(pcClass, &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements, pcNode);
 				apcArguments.Kill();

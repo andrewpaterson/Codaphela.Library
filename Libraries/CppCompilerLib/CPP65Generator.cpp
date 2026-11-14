@@ -262,6 +262,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcFunctions.Init();
 	mcFunctionsOfNames.Init(true);
 	mcContext.Init();
+	mcDeclarators.Init(this);
 	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
 	mapcClasses.Init();
 	mapcTemplates.Init();
@@ -324,6 +325,7 @@ void CCPP65Generator::Kill(void)
 		SafeFree(pcFunction);
 	}
 	mcMangler.Kill();
+	mcDeclarators.Kill();
 	mcContext.Kill();
 	mcFunctionsOfNames.Kill();
 	mapcFunctions.Kill();
@@ -1396,7 +1398,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 	if (lliName == CPP_CONVERSION_NAME)
 	{
 		//operator T () returns T.
-		psReturn = pcComponent->mpcConversionType ? GetTypeIdType(pcComponent->mpcConversionType) : NULL;
+		psReturn = pcComponent->mpcConversionType ? mcDeclarators.GetTypeIdType(pcComponent->mpcConversionType) : NULL;
 		if (!psReturn)
 		{
 			return NULL;
@@ -1404,11 +1406,11 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 	}
 	else if (eKind == CPPFK_Function)
 	{
-		psReturn = GetType(pcSpecifiers, NULL, pcDeclarator, NULL);
+		psReturn = mcDeclarators.GetType(pcSpecifiers, NULL, pcDeclarator, NULL);
 		if (psReturn && pcDeclarator->mpcNested)
 		{
 			//int (*Pick())(int) returns what the declarators around its name make of the int.
-			psReturn = GetDeclaratorType(psReturn, pcDeclarator, pcDeclarator, NULL, pcSuffix);
+			psReturn = mcDeclarators.GetDeclaratorType(psReturn, pcDeclarator, pcDeclarator, NULL, pcSuffix);
 		}
 		for (i = 0; psReturn && !pcDeclarator->mpcNested && (i < pcDeclarator->NumPointers()); i++)
 		{
@@ -1448,7 +1450,7 @@ CCPPFunction* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpeci
 			{
 				psPack->psType = psPack->papsPack->GetPtr(j);
 			}
-			psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+			psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
 			if (psPack)
 			{
 				psPack->psType = NULL;
@@ -1719,7 +1721,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 	{
 		//The class is laid out when it is first needed whole.
 		BeginQuiet();
-		GetBaseType(pcSpecifiers, pcDeclaration);
+		mcDeclarators.GetBaseType(pcSpecifiers, pcDeclaration);
 		EndQuiet();
 	}
 
@@ -1761,7 +1763,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mcContext.IsLinkageExtern()) && !pcInit->mpcInitializer)
 		{
 			BeginQuiet();
-			psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+			psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			EndQuiet();
 			if (psType && !pcVariable)
 			{
@@ -1781,7 +1783,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			pcInitialiser = pcVariable->mpcInClassInitialiser;
 		}
 
-		psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInitialiser);
+		psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInitialiser);
 		if (!psType)
 		{
 			bResult = false;
@@ -2080,161 +2082,6 @@ CCPPVariable* CCPP65Generator::GetVariable(CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type a declarator declares.  pcDeclarator may be NULL for the base type.  An
-// array without a size gets it from pcInitialiser.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser)
-{
-	SCPP65Type*	psType;
-
-	psType = GetBaseType(pcSpecifiers, pcNode);
-	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
-	{
-		//The base type's own qualifiers stay (a typedef of const int).
-		psType = mcTypes.Qualified(psType, psType->bConst || (pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile || (pcSpecifiers->muiFlags & CPPDS_VOLATILE));
-	}
-	if (!psType || !pcDeclarator)
-	{
-		return psType;
-	}
-	return GetDeclaratorType(psType, pcDeclarator, pcNode, pcInitialiser);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Applies a declarator to a type: the pointer and reference operators first, then
-// the array and function suffixes from the last, then a nested declarator, as in
-// int (*pf)(int) (a pointer to a function).  [dcl.meaning]  A parameter's array
-// without a size (char* argv[]) is a pointer.  [dcl.fct]  It stops at pcFunction
-// if that is given, for the type a function with that suffix returns.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser, CCPPSyntaxFunctionSuffix* pcFunction)
-{
-	CCPPSyntaxPointerOperator*	pcPointer;
-	CCPPSyntax*					pcSuffix;
-	CCPPSyntaxArraySuffix*		pcArray;
-	CCPPClass*				pcClass;
-	size						i;
-	int64						lliCount;
-
-	for (i = 0; i < pcDeclarator->NumPointers(); i++)
-	{
-		pcPointer = pcDeclarator->GetPointer(i);
-		switch (pcPointer->meKind)
-		{
-		case CPPP_Pointer:
-			psType = QualifiedPointer(mcTypes.Pointer(psType), pcPointer);
-			break;
-		case CPPP_Reference:
-		case CPPP_RValueReference:
-			psType = mcTypes.Reference(psType);
-			break;
-		case CPPP_MemberPointer:
-			pcClass = pcPointer->mpcClass ? GetNameClass(pcPointer->mpcClass, pcNode) : NULL;
-			if (!pcClass)
-			{
-				Error(pcNode, "The class of a pointer to a member is not supported by the compiler yet");
-				return NULL;
-			}
-			psType = mcTypes.MemberPointer(pcClass, psType);
-			break;
-		default:
-			Error(pcNode, "This declarator is not supported by the compiler yet");
-			return NULL;
-		}
-	}
-
-	for (i = pcDeclarator->macpSuffixes.NumElements(); i > 0; i--)
-	{
-		pcSuffix = pcDeclarator->macpSuffixes.GetPtr(i - 1);
-		if (pcSuffix == pcFunction)
-		{
-			return psType;
-		}
-		if (pcSuffix->GetKind() == CPPS_FunctionSuffix)
-		{
-			psType = GetFunctionType(psType, (CCPPSyntaxFunctionSuffix*)pcSuffix, pcNode);
-			if (!psType)
-			{
-				return NULL;
-			}
-			continue;
-		}
-
-		pcArray = (CCPPSyntaxArraySuffix*)pcSuffix;
-		if (!pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_Parameter))
-		{
-			psType = mcTypes.Pointer(psType);
-			continue;
-		}
-		if (!pcArray->mpcSize)
-		{
-			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(StringInitialiser(pcInitialiser, psType)) : 0;
-			if (lliCount <= 0)
-			{
-				Error(pcNode, "An array needs a size or an initialiser");
-				return NULL;
-			}
-		}
-		else if (!Constant(pcArray->mpcSize, &lliCount) || (lliCount <= 0))
-		{
-			Error(pcArray->mpcSize, "An array size must be a positive constant");
-			return NULL;
-		}
-		if (psType->IsClass() && !CompleteClass(psType->pcClass, pcNode))
-		{
-			return NULL;
-		}
-		psType = mcTypes.Array(psType, (int)lliCount);
-	}
-
-	if (pcDeclarator->mpcNested)
-	{
-		return GetDeclaratorType(psType, pcDeclarator->mpcNested, pcNode, pcInitialiser, pcFunction);
-	}
-	return psType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A function type: what it returns and its parameters' types.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntax* pcNode)
-{
-	CCPPSyntaxParameter*	pcParameter;
-	CArrayCPP65Types		apsParameters;
-	SCPP65Type*				psType;
-	size					i;
-
-	apsParameters.Init();
-	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
-	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-		if (!psType)
-		{
-			apsParameters.Kill();
-			return NULL;
-		}
-		if (psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
-		{
-			break;
-		}
-		apsParameters.Add(ParameterType(psType));
-	}
-	psType = mcTypes.Function(psReturn, &apsParameters, pcSuffix->mbVariadic);
-	apsParameters.Kill();
-	return psType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A parameter's type in its function's type: an array is a pointer to its
 // element, a function a pointer to it, and const and volatile on the
 // parameter itself go (f(const int) is f(int)).  [dcl.fct] 5
@@ -2301,244 +2148,6 @@ CCPPSyntax* CCPP65Generator::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65
 		}
 	}
 	return pcInitialiser;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The number of elements an initialiser gives an array without a size: the
-// elements of a list, or a string's characters and its zero.  0 if it gives none.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::GetInitialiserCount(CCPPSyntax* pcInitialiser)
-{
-	CArrayUint8		auiBytes;
-	int				iCount;
-
-	if (!pcInitialiser)
-	{
-		return 0;
-	}
-	if (pcInitialiser->GetKind() == CPPS_InitializerList)
-	{
-		return (int)((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements.NumElements();
-	}
-	if (pcInitialiser->GetKind() == CPPS_StringExpression)
-	{
-		auiBytes.Init();
-		iCount = DecodeString(pcInitialiser, &auiBytes) ? ((int)auiBytes.NumElements() / StringElementBytes(pcInitialiser)) + 1 : 0;
-		auiBytes.Kill();
-		return iCount;
-	}
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type the specifiers name.  long is 4 bytes, as on Windows.  char is signed.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode)
-{
-	CCPPSymbol*					pcMember;
-	CCPPClass*				pcMemberClass;
-	SCPP65Type*					psMemberType;
-	uint32								uiKeywords;
-	bool								bSigned;
-	CCPPSyntaxTypeSpecifier*			pcType;
-	CCPPSyntaxName*						pcName;
-	CCPPSyntaxClassSpecifier*			pcClassSpecifier;
-	CCPPSyntaxElaboratedTypeSpecifier*	pcElaborated;
-	CCPPSymbol*							pcSymbol;
-	CCPPClass*						pcClass;
-	SCPPBinding*						psBinding;
-
-	if (!pcSpecifiers)
-	{
-		return &mcTypes.msInt;
-	}
-
-	pcType = pcSpecifiers->mpcType;
-	if (pcType)
-	{
-		if (pcType->GetKind() == CPPS_EnumSpecifier)
-		{
-			return EnumType(((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol, (CCPPSyntaxEnumSpecifier*)pcType);
-		}
-		if (pcType->GetKind() == CPPS_ClassSpecifier)
-		{
-			//The class is laid out when it is first needed whole.
-			pcClassSpecifier = (CCPPSyntaxClassSpecifier*)pcType;
-			pcClass = pcClassSpecifier->mpcSymbol ? GetClass(pcClassSpecifier->mpcSymbol, pcNode) : GetUnnamedClass(pcClassSpecifier);
-			if (!pcClass->mpcSpecifier)
-			{
-				pcClass->mpcSpecifier = pcClassSpecifier;
-			}
-			return pcClass->mpsType;
-		}
-		if (pcType->GetKind() == CPPS_ElaboratedTypeSpecifier)
-		{
-			pcElaborated = (CCPPSyntaxElaboratedTypeSpecifier*)pcType;
-			if (pcElaborated->meKey == CT_enum)
-			{
-				pcSymbol = pcElaborated->mpcName->mpcSymbol;
-				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? EnumType(pcSymbol, NULL) : &mcTypes.msInt;
-			}
-			//struct timsort names the class even when a function timsort was declared first.
-			pcSymbol = pcElaborated->mpcName->mpcSymbol;
-			while (pcSymbol && (pcSymbol->meKind != CPPSK_Class) && (pcSymbol->meKind != CPPSK_ClassTemplate))
-			{
-				pcSymbol = pcSymbol->mpcNext;
-			}
-			pcClass = GetComponentClass(pcElaborated->mpcName->GetLast(), pcSymbol ? pcSymbol : pcElaborated->mpcName->mpcSymbol, pcNode);
-			if (pcClass)
-			{
-				return pcClass->mpsType;
-			}
-		}
-		else if (pcType->GetKind() == CPPS_NamedTypeSpecifier)
-		{
-			pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
-			pcMember = QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
-			if (pcMember)
-			{
-				mcContext.EnterBindings(pcMemberClass->mpcBindings);
-				psMemberType = GetSymbolType(pcMember, pcNode);
-				mcContext.LeaveBindings();
-				return psMemberType;
-			}
-			if (pcName->mpcSymbol)
-			{
-				switch (pcName->mpcSymbol->meKind)
-				{
-				case CPPSK_Enum:
-					return EnumType(pcName->mpcSymbol, NULL);
-				case CPPSK_Typedef:
-					return GetSymbolType(pcName->mpcSymbol, pcNode);
-				case CPPSK_TypeParameter:
-					psBinding = FindBinding(pcName->mpcSymbol);
-					if (!psBinding || !psBinding->psType)
-					{
-						Error(pcNode, "A template parameter used outside an instantiation");
-						return NULL;
-					}
-					return psBinding->psType;
-				case CPPSK_Class:
-				case CPPSK_ClassTemplate:
-					pcClass = GetNameClass(pcName, pcNode);
-					return pcClass ? pcClass->mpsType : NULL;
-				case CPPSK_BuiltinType:
-					if (mpcSemanticPass)
-					{
-						//Only checking: the host's __builtin_va_list, a char* as MSVC's va_list is.
-						return mcTypes.Pointer(&mcTypes.msChar);
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		Error(pcNode, "This type is not supported by the compiler yet");
-		return NULL;
-	}
-
-	//long double is double, as MSVC.
-	uiKeywords = pcSpecifiers->muiTypeKeywords;
-	bSigned = (uiKeywords & CPPTK_UNSIGNED) == 0;
-	if (uiKeywords & CPPTK_FLOAT)
-	{
-		return mcTypes.Float(4);
-	}
-	if (uiKeywords & CPPTK_DOUBLE)
-	{
-		return (pcSpecifiers->miLongs >= 1) ? mcTypes.LongDouble() : mcTypes.Float(8);
-	}
-	if ((pcSpecifiers->miLongs >= 2) || (uiKeywords & CPPTK_INT64))
-	{
-		return mcTypes.Integer(8, bSigned);
-	}
-	if (uiKeywords & CPPTK_AUTO)
-	{
-		Error(pcSpecifiers, "auto is not supported by the compiler yet");
-		return NULL;
-	}
-	if (uiKeywords & CPPTK_VOID)
-	{
-		return &mcTypes.msVoid;
-	}
-	if (uiKeywords & CPPTK_BOOL)
-	{
-		return &mcTypes.msBool;
-	}
-	if (uiKeywords & (CPPTK_CHAR | CPPTK_INT8))
-	{
-		return mcTypes.Integer(1, bSigned);
-	}
-	if (uiKeywords & (CPPTK_WCHAR_T | CPPTK_CHAR16_T))
-	{
-		return mcTypes.Integer(2, false);
-	}
-	if (uiKeywords & CPPTK_CHAR32_T)
-	{
-		return mcTypes.Integer(4, false);
-	}
-	if (uiKeywords & (CPPTK_SHORT | CPPTK_INT16))
-	{
-		return mcTypes.Integer(2, bSigned);
-	}
-	if ((uiKeywords & CPPTK_INT32) || (pcSpecifiers->miLongs == 1))
-	{
-		return mcTypes.Long(bSigned);
-	}
-	if (uiKeywords & (CPPTK_INT | CPPTK_SIGNED | CPPTK_UNSIGNED))
-	{
-		return bSigned ? &mcTypes.msInt : &mcTypes.msUnsignedInt;
-	}
-	Error(pcNode, "This type is not supported by the compiler yet");
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetTypeIdType(CCPPSyntaxTypeId* pcTypeId)
-{
-	return GetType(pcTypeId->mpcSpecifiers, pcTypeId->mpcDeclarator, pcTypeId);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type a typedef, variable or parameter symbol was declared with.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
-{
-	CCPPSyntax*					pcDeclaration;
-	CCPPSyntaxInitDeclarator*	pcInit;
-	CCPPSyntaxParameter*		pcParameter;
-
-	pcDeclaration = pcSymbol->mpcDeclaration;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
-	{
-		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration;
-		return GetType(((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator, pcNode, pcInit->mpcInitializer);
-	}
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
-	{
-		pcParameter = (CCPPSyntaxParameter*)pcDeclaration;
-		return GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
-	}
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_AliasDeclaration))
-	{
-		return GetTypeIdType(((CCPPSyntaxAliasDeclaration*)pcDeclaration)->mpcType);
-	}
-	Error(pcNode, "This declaration is not supported by the compiler yet");
-	return NULL;
 }
 
 
@@ -2878,7 +2487,7 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 			{
 				return Error(pcNode, "Extern and thread local variables are not supported by the compiler yet");
 			}
-			psType = GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+			psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			if (!psType)
 			{
 				return false;
@@ -2957,7 +2566,7 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	bool				bResult;
 	bool				bInitialise;
 
-	psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	if (!psType)
 	{
 		return false;

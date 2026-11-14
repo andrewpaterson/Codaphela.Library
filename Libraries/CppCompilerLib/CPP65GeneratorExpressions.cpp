@@ -1095,7 +1095,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
-		psType = GetTypeIdType(pcCast->mpcType);
+		psType = mcDeclarators.GetTypeIdType(pcCast->mpcType);
 		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !Constant(pcCast->mpcOperand, &lliLeft))
 		{
 			return false;
@@ -1105,7 +1105,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
-		psType = GetTypeIdType(pcConstruct->mpcType);
+		psType = mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
 		papcElements = ConstructElements(pcConstruct);
 		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !papcElements || (papcElements->NumElements() > 1))
 		{
@@ -1130,7 +1130,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		if (pcSizeof->mpcType)
 		{
-			psType = GetTypeIdType(pcSizeof->mpcType);
+			psType = mcDeclarators.GetTypeIdType(pcSizeof->mpcType);
 		}
 		else
 		{
@@ -2016,7 +2016,7 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 	{
 		return false;
 	}
-	psType = GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(0));
+	psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(0));
 	if (!psType)
 	{
 		return false;
@@ -2129,7 +2129,7 @@ SCPP65Type* CCPP65Generator::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifie
 	bSigned = true;
 	if (pcSpecifier && pcSpecifier->mpcBase)
 	{
-		psBase = GetTypeIdType(pcSpecifier->mpcBase);
+		psBase = mcDeclarators.GetTypeIdType(pcSpecifier->mpcBase);
 		if (psBase && psBase->IsInteger())
 		{
 			iBytes = psBase->iBytes;

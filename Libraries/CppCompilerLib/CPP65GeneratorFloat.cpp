@@ -167,7 +167,7 @@ bool CCPP65Generator::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP
 
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
-		psType = GetTypeIdType(pcCast->mpcType);
+		psType = mcDeclarators.GetTypeIdType(pcCast->mpcType);
 		if (psType && psType->IsFloat() && FloatValue(pcCast->mpcOperand, pdValue, &psLeft))
 		{
 			if (psType->iBytes == 4)

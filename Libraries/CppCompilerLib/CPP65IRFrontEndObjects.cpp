@@ -721,7 +721,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		if (pcInitialiser->GetKind() == CPPS_ConstructExpression)
 		{
 			pcConstruct = (CCPPSyntaxConstructExpression*)pcInitialiser;
-			if ((mpcGenerator->GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
+			if ((mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType) == psType) && pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
 			{
 				return ConstructClass(psPlace, pcClass, &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements);
 			}
@@ -872,7 +872,7 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psType = mpcGenerator->GetTypeIdType(pcNew->mpcType);
+	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcNew->mpcType);
 	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsArray() || psType->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1123,7 +1123,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		return Assignment((CCPPSyntaxBinaryExpression*)pcExpression, psValue);
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
-		psType = mpcGenerator->GetTypeIdType(pcConstruct->mpcType);
+		psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
 		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -1156,7 +1156,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 			}
 			return Unsupported(__FILE__, __LINE__);
 		}
-		psType = mpcGenerator->GetTypeIdType(pcType);
+		psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcType);
 		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
 		{
 			return Unsupported(__FILE__, __LINE__);

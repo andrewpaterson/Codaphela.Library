@@ -405,7 +405,7 @@ bool CCPP65IRFrontEnd::ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruc
 	{
 		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), psValue);
 	}
-	psType = mpcGenerator->GetTypeIdType(pcConstruct->mpcType);
+	psType = mpcGenerator->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
 	if (!psType || !papcElements || (papcElements->NumElements() != 0) || !(psType->IsScalar() || psType->IsVoid()))
 	{
 		return Unsupported(__FILE__, __LINE__);

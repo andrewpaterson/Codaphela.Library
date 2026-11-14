@@ -36,7 +36,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	SCPP65Type*		psTo;
 	CCPPSyntax*		pcFunction;
 
-	psTo = mpcGenerator->GetTypeIdType(pcTypeId);
+	psTo = mpcGenerator->mcDeclarators.GetTypeIdType(pcTypeId);
 	if (!psTo || psTo->IsClass() || psTo->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -85,7 +85,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	CCPPClass*	pcFrom;
 	CCPPClass*	pcTarget;
 
-	psTo = mpcGenerator->GetTypeIdType(pcCast->mpcType);
+	psTo = mpcGenerator->mcDeclarators.GetTypeIdType(pcCast->mpcType);
 	if (!psTo)
 	{
 		return Unsupported(__FILE__, __LINE__);
