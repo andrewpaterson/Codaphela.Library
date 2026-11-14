@@ -33,6 +33,10 @@ void CCPPBoundCall::Init(void)
 	mpcName = NULL;
 	mlliName = -1;
 	mpcFunction = NULL;
+	mpcObject = NULL;
+	mpcClass = NULL;
+	mbArrow = false;
+	mbVirtual = false;
 	mpcBindings = NULL;
 	mpcIn = NULL;
 }
@@ -123,7 +127,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	pcBound->mpcCallee = pcCallee;
 	if (pcCallee->GetKind() == CPPS_MemberExpression)
 	{
-		pcBound->meHow = CPPBC_Member;
+		ResolveMember(pcCall, pcBound);
 		return;
 	}
 	if (mpcUnit->IsMemberPointerOperator(pcCallee))
@@ -142,7 +146,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 		pcBound->mpcName = pcName;
 		if (pcName->IsQualifiedByClass())
 		{
-			pcBound->meHow = CPPBC_Member;
+			ResolveMember(pcCall, pcBound);
 			return;
 		}
 	}
@@ -154,7 +158,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 		pcBound->mlliName = pcSymbol->mlliName;
 		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mpcUnit->GetOverloads()->FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
 		{
-			pcBound->meHow = CPPBC_Member;
+			ResolveMember(pcCall, pcBound);
 			return;
 		}
 		papcExplicit = (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL;
@@ -180,7 +184,7 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	pcBound->mlliName = lliName;
 	if (pcName && !pcName->mbGlobal && pcMember && pcMember->mpcClass && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->HasMember(pcMember->mpcClass, lliName))
 	{
-		pcBound->meHow = CPPBC_Member;
+		ResolveMember(pcCall, pcBound);
 		return;
 	}
 
@@ -250,3 +254,188 @@ void CCPPCallBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pc
 	pcBound->meHow = CPPBC_Function;
 	pcBound->mpcFunction = pcFunction;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call on an object, or one in a member function that means a member: the object
+// and its class, then the destructor, a field that points to a function, or the member
+// function of the name chosen for the arguments and for whether the object is const
+// (a member template's instance if no function fits).  pcBound->mpcCallee is the
+// callee: a member expression, or a name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCallBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
+{
+	CCPPSyntaxMemberExpression*	pcMember;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CArraySyntax*				papcExplicit;
+	CCPPSyntax*					pcCallee;
+	CCPPSyntax*					pcObject;
+	CCPPClass*					pcClass;
+	CCPPClass*					pcLookup;
+	CCPPFunction*				pcFunction;
+	CCPPFunction*				pcIn;
+	CCPPTemplate*				pcTemplate;
+	SCPP65Type*					psType;
+	int64						lliName;
+	int							iOffset;
+	ECPPCalledObject			eObject;
+	size						uiErrors;
+	bool						bArrow;
+	bool						bVirtual;
+
+	pcCallee = pcBound->mpcCallee;
+	pcIn = mpcUnit->GetContext()->GetFunction();
+	pcClass = NULL;
+	pcObject = NULL;
+	bArrow = false;
+	bVirtual = true;
+	if (pcCallee->GetKind() == CPPS_MemberExpression)
+	{
+		pcMember = (CCPPSyntaxMemberExpression*)pcCallee;
+		psType = mpcUnit->TypeOf(pcMember->mpcObject);
+		if (!psType)
+		{
+			//Its errors.
+			mpcUnit->GetTypeChecker()->Value(pcMember->mpcObject);
+			return;
+		}
+		bArrow = pcMember->mbArrow;
+		if (bArrow)
+		{
+			psType = mpcUnit->ArrowType(pcMember->mpcObject, pcCallee);
+			psType = (psType && psType->IsPointer()) ? psType->psBase : NULL;
+		}
+		else
+		{
+			psType = psType->WithoutReference();
+		}
+		if (!psType || !psType->IsClass())
+		{
+			mpcUnit->Error(pcCallee, "Member functions need an object of a class");
+			return;
+		}
+		pcClass = psType->pcClass;
+		if (!mpcUnit->CompleteClass(pcClass, pcCallee))
+		{
+			return;
+		}
+		pcObject = pcMember->mpcObject;
+		pcName = pcMember->mpcName;
+
+		//A named object is what it is declared as: its virtual functions are called by their labels.
+		if (!bArrow && (pcObject->WithoutParentheses()->GetKind() == CPPS_IdExpression))
+		{
+			bVirtual = false;
+		}
+	}
+	else
+	{
+		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
+		if (pcName->IsQualifiedByClass())
+		{
+			pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
+			bVirtual = false;
+		}
+		else if (pcIn)
+		{
+			pcClass = pcIn->mpcClass;
+		}
+	}
+	pcBound->mpcName = pcName;
+	pcBound->mpcObject = pcObject;
+	pcBound->mpcClass = pcClass;
+	pcBound->mbArrow = bArrow;
+
+	//p->~X(), o.~X(), p->X::~X() or ~X() (this's): nothing if the class has no destructor.
+	if (pcName->GetLast()->meKind == CPPNC_Destructor)
+	{
+		if (!pcClass || (pcCall->macpArguments.NumElements() != 0) || !mpcUnit->CompleteClass(pcClass, pcCallee))
+		{
+			mpcUnit->Error(pcCallee, "This destructor call is not supported by the compiler yet");
+			return;
+		}
+		if (pcClass->mpcDestructor)
+		{
+			mpcUnit->Resolved(pcName, pcClass->mpcDestructor);
+		}
+		pcBound->meHow = CPPBC_Destructor;
+		pcBound->mpcFunction = pcClass->mpcDestructor;
+		pcBound->mbVirtual = pcName->IsQualifiedByClass() ? false : bVirtual;
+		return;
+	}
+
+	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
+	pcBound->mlliName = lliName;
+	if (!pcClass || (lliName == -1))
+	{
+		mpcUnit->Error(pcCallee, "This call is not supported by the compiler yet");
+		return;
+	}
+
+	pcLookup = pcClass;
+	if (pcObject && pcName->IsQualifiedByClass())
+	{
+		pcLookup = mpcUnit->QualifierClass(pcClass, pcName->GetQualifier(), pcCallee);
+		if (!pcLookup)
+		{
+			return;
+		}
+		bVirtual = false;
+	}
+
+	//object.pf() calls through a field that points to a function.
+	if (pcObject && !mpcUnit->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
+	{
+		psType = mpcUnit->TypeOf(pcCallee);
+		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
+		{
+			pcBound->meHow = CPPBC_Pointer;
+			return;
+		}
+	}
+
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	pcComponent = pcName->GetLast();
+	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
+	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcUnit->IsConstPointer(pcObject) : mpcUnit->IsConstObject(pcObject)) : mpcUnit->IsConstThis());
+	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mpcUnit->GetOverloads()->ChooseMemberTemplate(pcLookup, lliName, pcCall, papcExplicit, eObject) : NULL;
+	pcFunction = NULL;
+	if (!pcTemplate || !papcExplicit)
+	{
+		//With a member template to fall back on, that no function fits is no error.
+		if (pcTemplate)
+		{
+			mpcUnit->BeginQuiet();
+		}
+		pcFunction = mpcUnit->GetOverloads()->FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
+		if (pcTemplate)
+		{
+			mpcUnit->EndQuiet();
+		}
+	}
+	if (!pcFunction && pcTemplate)
+	{
+		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, &pcCall->macpArguments, pcCall);
+	}
+	if (!pcFunction)
+	{
+		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		{
+			mpcUnit->Error(pcCallee, "The class has no member function of that name");
+		}
+		return;
+	}
+	if (!pcObject && !pcFunction->mbStatic && (!pcIn || !pcIn->mpcClass || !mpcUnit->IsDerived(pcIn->mpcClass, pcFunction->mpcClass, NULL)))
+	{
+		mpcUnit->Error(pcCallee, "A member function needs an object");
+		return;
+	}
+	mpcUnit->Resolved(pcName, pcFunction);
+	pcBound->meHow = CPPBC_Member;
+	pcBound->mpcFunction = pcFunction;
+	pcBound->mbVirtual = bVirtual;
+}
+

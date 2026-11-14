@@ -51,7 +51,14 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	case CPPBC_PackExpansion:
 		return ExpandPackCall(pcCall, psValue);
 	case CPPBC_Member:
-		return MemberCall(pcCall, cBound.mpcCallee, psValue);
+		//this's, where there is none to call it on.
+		if (!cBound.mpcObject && !cBound.mpcFunction->mbStatic && msThis.IsNone())
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, &pcCall->macpArguments, psValue, cBound.mpcObject, cBound.mbArrow, cBound.mpcObject ? cBound.mpcClass : NULL, cBound.mbVirtual);
+	case CPPBC_Destructor:
+		return DestructorCall(pcCall, cBound.mpcClass, cBound.mpcObject, cBound.mbArrow, cBound.mbVirtual, psValue);
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee, psValue);
 	case CPPBC_Function:
@@ -770,133 +777,6 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 		*psMade = sPlace.sAddress;
 	}
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// object.f(), pointer->f(), f() and Class::f() in a member function: calls
-// through a pointer or this are virtual; calls
-// on an object variable and qualified calls are not.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, SCPP65IRValue* psValue)
-{
-	CCPPSyntaxMemberExpression*	pcMember;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPSyntax*					pcObject;
-	CCPPClass*				pcClass;
-	CCPPClass*				pcLookup;
-	CCPPFunction*				pcFunction;
-	CCPPTemplate*				pcTemplate;
-	SCPP65Type*					psType;
-	SIRReference				sSymbol;
-	int64						lliName;
-	int							iOffset;
-	ECPPCalledObject			eObject;
-	bool						bVirtual;
-	bool						bArrow;
-	bool						bThis;
-
-	pcClass = NULL;
-	pcObject = NULL;
-	bVirtual = true;
-	bThis = false;
-	bArrow = false;
-	if (pcCallee->GetKind() == CPPS_MemberExpression)
-	{
-		pcMember = (CCPPSyntaxMemberExpression*)pcCallee;
-		psType = mpcUnit->TypeOf(pcMember->mpcObject);
-		if (!psType)
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		bArrow = pcMember->mbArrow;
-		if (bArrow)
-		{
-			psType = ArrowClass(pcMember->mpcObject, psType);
-		}
-		else if (psType->IsReference())
-		{
-			psType = psType->psBase;
-		}
-		if (!psType || !psType->IsClass() || !mpcUnit->CompleteClass(psType->pcClass, pcCallee))
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		pcClass = psType->pcClass;
-		pcObject = pcMember->mpcObject;
-		pcName = pcMember->mpcName;
-		if (!bArrow && (mpcUnit->SkipParentheses(pcObject)->GetKind() == CPPS_IdExpression))
-		{
-			bVirtual = false;
-		}
-	}
-	else
-	{
-		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
-		if (pcName->IsQualifiedByClass())
-		{
-			pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
-			bVirtual = false;
-		}
-		else
-		{
-			pcClass = mpcCPPFunction->mpcClass;
-		}
-		bThis = true;
-	}
-
-	if (pcName->GetLast()->meKind == CPPNC_Destructor)
-	{
-		return DestructorCall(pcCall, pcClass, pcObject, bArrow, pcName->IsQualifiedByClass() ? false : bVirtual, psValue);
-	}
-
-	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
-	if (!pcClass || (lliName == -1))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-	pcLookup = pcClass;
-	if (pcObject && pcName->IsQualifiedByClass())
-	{
-		pcLookup = mpcUnit->QualifierClass(pcClass, pcName->GetQualifier(), pcCallee);
-		if (!pcLookup)
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		bVirtual = false;
-	}
-	if (pcObject && !mpcUnit->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
-	{
-		//object.pf() calls through a field that points to a function.
-		return CallThroughPointer(pcCall, pcCallee, psValue);
-	}
-
-	pcComponent = pcName->GetLast();
-	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcUnit->IsConstPointer(pcObject) : mpcUnit->IsConstObject(pcObject)) : mpcUnit->IsConstThis());
-	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mpcUnit->GetOverloads()->ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, eObject) : NULL;
-	pcFunction = NULL;
-	if (!pcTemplate || !pcComponent->mbTemplateArguments)
-	{
-		pcFunction = mpcUnit->GetOverloads()->FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
-	}
-	if (!pcFunction && pcTemplate)
-	{
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
-	}
-	if (!pcFunction)
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-	if (bThis && !pcFunction->mbStatic && (!mpcCPPFunction->mpcClass || msThis.IsNone() || !mpcUnit->IsDerived(mpcCPPFunction->mpcClass, pcFunction->mpcClass, NULL)))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-
-	sSymbol = FunctionSymbol(pcFunction);
-	return Call(pcFunction, sSymbol, NULL, &pcCall->macpArguments, psValue, pcObject, bArrow, pcObject ? pcClass : NULL, bVirtual);
 }
 
 

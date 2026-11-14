@@ -335,7 +335,6 @@ protected:
 	SCPP65Type*		ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psType);
 	bool			MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65IRPlace* psPlace);
 	bool			FieldPlace(SIRReference sObject, CCPPClass* pcClass, int64 lliName, CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace);
-	bool			MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
 	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
 	bool			OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue);
 	bool			OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue);

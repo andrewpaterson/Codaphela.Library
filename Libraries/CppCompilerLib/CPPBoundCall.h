@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPPFunction.h"
+#include "CPPClass.h"
 #include "CPPTemplate.h"
 
 
@@ -35,7 +36,8 @@ enum ECPPBoundCall
 {
 	CPPBC_Failed,			//It can't be: an error says why.
 	CPPBC_PackExpansion,	//Its arguments have a pack to expand first; then it is bound again.
-	CPPBC_Member,			//A member function's: object.f(), pointer->f(), Class::f(), or f() where a member is meant.
+	CPPBC_Member,			//A member function, on the object (this's if there is none): object.f(), pointer->f(), Class::f(), f().
+	CPPBC_Destructor,		//object.~X(), pointer->~X() or ~X(): the class's destructor, or nothing if it has none.
 	CPPBC_MemberPointer,	//(object.*pointer)() and (pointer->*pointer)().
 	CPPBC_Function,			//The function, by its label.
 	CPPBC_Pointer,			//Through a pointer to a function, which the callee is.
@@ -54,7 +56,13 @@ public:
 	CCPPSyntax*			mpcCallee;		//What is called, without its parentheses.
 	CCPPSyntaxName*		mpcName;		//The callee's name, or NULL if it isn't one.
 	int64				mlliName;		//The function's name (-1 if the callee has none).
-	CCPPFunction*		mpcFunction;	//CPPBC_Function: the function chosen (a template's instance is made).
+	CCPPFunction*		mpcFunction;	//The function chosen (a template's instance is made); NULL for a destructor there isn't.
+
+	//A member's call and a destructor's.
+	CCPPSyntax*			mpcObject;		//What it is called on: the left of . or ->, or NULL for this.
+	CCPPClass*			mpcClass;		//The object's class (this's, or the one that qualifies the name, without an object).
+	bool				mbArrow;		//The object is the left of ->.
+	bool				mbVirtual;		//A virtual function is called through the vtable: not for a named object or a qualified name.
 
 	//Where it was bound: the same call in another instance of a template is another call.
 	CCPPTemplateArguments*	mpcBindings;
@@ -85,6 +93,7 @@ public:
 
 protected:
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 };
 
 

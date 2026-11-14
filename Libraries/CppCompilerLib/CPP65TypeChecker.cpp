@@ -1193,7 +1193,9 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	case CPPBC_PackExpansion:
 		return ExpandPackCall(pcCall);
 	case CPPBC_Member:
-		return MemberCall(pcCall, cBound.mpcCallee);
+		return MemberFunctionCall(pcCall, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction);
+	case CPPBC_Destructor:
+		return cBound.mpcFunction ? MemberFunctionCall(pcCall, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction) : &mpcTypes->msVoid;
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
 	case CPPBC_Function:
@@ -1504,157 +1506,6 @@ SCPP65Type* CCPP65TypeChecker::InlineMemcpy(CArraySyntax* papcArguments)
 		return NULL;
 	}
 	return psVoidPointer;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// object.f(...), pointer->f(...), Class::f(...) and, in a member function, f(...):
-// the member function's result.  A destructor's call is void.  object.Base::f() looks
-// f up in Base.  A member template is used when it has template arguments or no
-// other function matches.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee)
-{
-	CCPPSyntaxMemberExpression*	pcMember;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPSyntax*					pcObject;
-	CCPPClass*				pcClass;
-	CCPPClass*				pcLookup;
-	CCPPFunction*				pcFunction;
-	CCPPTemplate*				pcTemplate;
-	SCPP65Type*					psType;
-	int64						lliName;
-	int							iOffset;
-	ECPPCalledObject			eObject;
-	size						uiErrors;
-	bool						bArrow;
-
-	pcClass = NULL;
-	pcObject = NULL;
-	bArrow = false;
-	if (pcCallee->GetKind() == CPPS_MemberExpression)
-	{
-		pcMember = (CCPPSyntaxMemberExpression*)pcCallee;
-		psType = mpcUnit->TypeOf(pcMember->mpcObject);
-		if (!psType)
-		{
-			//Its errors.
-			Value(pcMember->mpcObject);
-			return NULL;
-		}
-		bArrow = pcMember->mbArrow;
-		if (bArrow)
-		{
-			psType = mpcUnit->ArrowType(pcMember->mpcObject, pcCallee);
-			psType = (psType && psType->IsPointer()) ? psType->psBase : NULL;
-		}
-		if (!psType || !psType->IsClass())
-		{
-			Error(pcCallee, "Member functions need an object of a class");
-			return NULL;
-		}
-		pcClass = psType->pcClass;
-		if (!mpcUnit->CompleteClass(pcClass, pcCallee))
-		{
-			return NULL;
-		}
-		pcObject = pcMember->mpcObject;
-		pcName = pcMember->mpcName;
-	}
-	else
-	{
-		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
-		if (pcName->IsQualifiedByClass())
-		{
-			pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
-		}
-		else if (mpcUnit->GetContext()->GetFunction())
-		{
-			pcClass = mpcUnit->GetContext()->GetFunction()->mpcClass;
-		}
-	}
-
-	//p->~X(), o.~X(), p->X::~X() or ~X() (this's): nothing if the class has no destructor.
-	if (pcName->GetLast()->meKind == CPPNC_Destructor)
-	{
-		if (!pcClass || (pcCall->macpArguments.NumElements() != 0) || !mpcUnit->CompleteClass(pcClass, pcCallee))
-		{
-			Error(pcCallee, "This destructor call is not supported by the compiler yet");
-			return NULL;
-		}
-		if (!pcClass->mpcDestructor)
-		{
-			return &mpcTypes->msVoid;
-		}
-		mpcUnit->Resolved(pcName, pcClass->mpcDestructor);
-		return MemberFunctionCall(pcCall, pcCallee, pcObject, pcClass->mpcDestructor);
-	}
-
-	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
-	if (!pcClass || (lliName == -1))
-	{
-		Error(pcCallee, "This call is not supported by the compiler yet");
-		return NULL;
-	}
-
-	pcLookup = pcClass;
-	if (pcObject && pcName->IsQualifiedByClass())
-	{
-		pcLookup = mpcUnit->QualifierClass(pcClass, pcName->GetQualifier(), pcCallee);
-		if (!pcLookup)
-		{
-			return NULL;
-		}
-	}
-	//object.pf() calls through a field that points to a function.
-	if (pcObject && !mpcUnit->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
-	{
-		psType = mpcUnit->TypeOf(pcCallee);
-		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
-		{
-			return CallThroughPointer(pcCall, psType->psBase);
-		}
-	}
-
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcComponent = pcName->GetLast();
-	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcUnit->IsConstPointer(pcObject) : mpcUnit->IsConstObject(pcObject)) : mpcUnit->IsConstThis());
-	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mpcUnit->GetOverloads()->ChooseMemberTemplate(pcLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, eObject) : NULL;
-	pcFunction = NULL;
-	if (!pcTemplate || !pcComponent->mbTemplateArguments)
-	{
-		if (pcTemplate)
-		{
-			mpcUnit->BeginQuiet();
-		}
-		pcFunction = mpcUnit->GetOverloads()->FindFunction(pcLookup, lliName, CPPFK_Function, &pcCall->macpArguments, true, pcCall, eObject);
-		if (pcTemplate)
-		{
-			mpcUnit->EndQuiet();
-		}
-	}
-	if (!pcFunction && pcTemplate)
-	{
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
-	}
-	if (!pcFunction)
-	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
-		{
-			Error(pcCallee, "The class has no member function of that name");
-		}
-		return NULL;
-	}
-	if (!pcObject && !pcFunction->mbStatic && (!mpcUnit->GetContext()->GetFunction() || !mpcUnit->GetContext()->GetFunction()->mpcClass || !mpcUnit->IsDerived(mpcUnit->GetContext()->GetFunction()->mpcClass, pcFunction->mpcClass, NULL)))
-	{
-		Error(pcCallee, "A member function needs an object");
-		return NULL;
-	}
-	mpcUnit->Resolved(pcName, pcFunction);
-	return MemberFunctionCall(pcCall, pcCallee, pcObject, pcFunction);
 }
 
 
