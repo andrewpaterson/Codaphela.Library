@@ -20,6 +20,7 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Int64Vec3.h"
 #include "RasterCamera.h"
+#include "RasterLights.h"
 #include "RasterPosed.h"
 
 
@@ -42,39 +43,6 @@ void CRasterPosed::Init(void)
 void CRasterPosed::Kill(void)
 {
 	masVertices.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The largest whole number whose square isn't more than uiValue.
-//
-//////////////////////////////////////////////////////////////////////////
-static uint64 RasterSquareRoot(uint64 uiValue)
-{
-	uint64	uiRoot;
-	uint64	uiBit;
-
-	uiRoot = 0;
-	uiBit = (uint64)1 << 62;
-	while (uiBit > uiValue)
-	{
-		uiBit >>= 2;
-	}
-	while (uiBit != 0)
-	{
-		if (uiValue >= uiRoot + uiBit)
-		{
-			uiValue -= uiRoot + uiBit;
-			uiRoot = (uiRoot >> 1) + uiBit;
-		}
-		else
-		{
-			uiRoot >>= 1;
-		}
-		uiBit >>= 2;
-	}
-	return uiRoot;
 }
 
 
