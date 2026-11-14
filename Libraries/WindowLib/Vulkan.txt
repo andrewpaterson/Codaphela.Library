@@ -1,0 +1,137 @@
+Vulkan Plan
+===========
+
+Vulkan as WindowLib's renderer: every native canvas a GPU image, a window presented through a Vulkan swapchain, and a 3D view
+drawn straight into its canvas.  Today Vulkan draws a scene offscreen and reads it back into a CImage, which a canvas draw blits
+onto the window's canvas, which GDI copies to the screen (SupportLib's ScenePlan.txt, step 11).  Goober takes about 40ms a
+frame that way in WindowInputTester, where the rasteriser is faster.  Where the 40ms goes hasn't been measured: the readback
+buffer is host visible and not cached, so its memcpy is the suspect, and the GPU's own work for one skinned mesh should be well
+under a millisecond.
+
+
+Decisions (user, 2026-11-14)
+----------------------------
+
+- Option B: a window presents all of its client area through a swapchain.  Not a child native window per 3D view, which would
+  cover WindowLib's popups, menus, tool tips and docking guides, as they are drawn into the window's own canvas.
+- Vulkan is the complete renderer for every native canvas WindowLib needs, not only for windows with a 3D view.  The software
+  native canvases (WinGDILib, X11Lib, WinRefLib) stay, for a machine without a Vulkan 1.3 device, and for tests.
+- GetImageOrNull goes from the drawing API: nothing outside a native canvas touches its pixels, whatever the native canvas is,
+  WinRefLib's image included.
+- Both ways of drawing pixels are needed in one UI (see Pixels): a drawer's own image drawn on with DrawImage, and a write-only
+  lock, BeginPixels / EndPixels.
+- Reading pixels is explicit, ReadPixels, and only for snapshots, VerifyRedraw and tests.
+
+
+How a Vulkan native canvas works
+--------------------------------
+
+A native canvas is a VkImage that is drawn into and sampled.  The GPU's copy is the only copy: there is no CPU shadow and no
+readback while drawing.
+
+A canvas call doesn't happen when it's made.  It's recorded, in the order it was made, into the window's command buffer for the
+paint:
+
+  Clear, DrawBox          Filled or outlined rectangles, batched as quads.
+  DrawCanvas, CopyCanvas  A quad sampling the source canvas's image, with a barrier where the target changes.
+  DrawImage, DrawCel      The CImage uploaded as a texture, once while it doesn't change, and drawn as a quad, blended where it
+                          has opacity.  A cel is a rectangle of its image's texture.
+  DrawPixel               A point, batched in order with the rest.  Nothing outside CCanvas calls it today.
+  BeginPixels/EndPixels   The area copied from staging memory into the canvas's image, in order with the rest.
+
+The paint is one submit.  Presenting copies the window canvas's damaged area into the swapchain image and presents it.  A
+transparent canvas has a real alpha channel, so GDI's 0 in the fourth byte of an opaque pixel is gone.
+
+The 3D view is a canvas like any other: the Vulkan scene renders into its canvas's image, with no CPU, and a popup drawn after it
+covers it, as the window's canvas is composited in order.  CVulkanFrame::Draw(puiPixels) stays for tests and tools.
+
+One VkDevice is shared by every window.  Each window has its own swapchain, command buffers, fences and semaphores, two frames in
+flight, and remakes its swapchain when it is resized or out of date.  CVulkanRenderer stops being one command buffer and one
+target.
+
+
+Pixels
+------
+
+  DrawImage               The drawer keeps its own image, which lasts between paints, so it can redraw only what changed or
+                          draw onto what it drew last time.  GDI and WinRefLib copy it into their pixels, Vulkan uploads it.  On
+                          a transparent canvas it's blended.  One copy more than drawing on the canvas, on GDI.
+
+  BeginPixels(pcArea)     The canvas lends an image of its size and colour format; only pcArea is the drawer's to write, and
+  EndPixels()             it must write every pixel of it.  What's in it at BeginPixels is undefined: not the canvas, nor what
+                          the drawer wrote last time.  Nothing else is drawn on the canvas between the two.
+                            WinGDILib   Its own image: no copy.  EndPixels does nothing (it may note the area as damage).
+                            WinRefLib   Its own image, pcArea first filled with a poison pattern, so a drawer that reads what's
+                                        beneath or misses pixels shows it in TestWindowLib and the IDE's checks.  It asserts
+                                        that nothing is drawn between Begin and End.  On by default in tests.
+                            Vulkan      A staging image, mapped host memory if CImage can wrap it, else copied at EndPixels.
+                                        EndPixels records the copy of pcArea into the canvas's image.  Two staging images (or
+                                        a ring), as the GPU may still be reading the last.
+
+  ReadPixels(pDest, pcArea)  A copy out.  GDI and WinRefLib copy; Vulkan reads back synchronously, which is slow and rare.
+
+Both are draws in order, so one canvas can use both in one paint: a BeginPixels area after a DrawBox replaces the box there, and a
+DrawImage after it is on top.
+
+
+What each drawer does (as found 2026-11-14)
+-------------------------------------------
+
+Native calls only, unchanged:  CBandsCanvasDraw, CClearCanvasDraw, CDockGuidesDraw, CProgressBarDraw, CTextMarksCanvasDraw
+(DrawBox).
+
+Blits onto what's already on the canvas, which become native DrawCel / DrawImage, blended by the native canvas:
+  CImageCanvasDraw        A cel, aligned or stretched (IconComponent, ImageBorderContainer, ScrollBar, Label, and every drawer
+                          below that shows its own image through an mpCelDraw).  Through CBlitCanvasDraw's StartBlit today.
+  CMapsCanvasDraw         Text: Label and TextArea blit glyph tiles with opacity onto the canvas through CMaps.  CMaps and its
+                          blitter cache are keyed by the destination CImage today; for this they emit cels to a canvas (each
+                          visible tile a DrawCel, one quad on Vulkan from the glyph image's texture), and the software native
+                          canvases blit them as now.  The largest single change.
+  CBlitCanvasDraw         Goes, or keeps only its own-image path, once those two draw through the native canvas.
+
+Their own image, drawn with DrawImage (option 1); each image changes every paint, so is uploaded each time:
+  CDiffDividerDraw, CRoundedBoxCanvasDraw (WindowLib), CKeyboardCanvasDraw, CMouseCanvasDraw (WindowInputTester).
+
+Whole area every paint, candidates for BeginPixels (option 2):
+  CSceneCanvasDraw (the rasteriser; with Vulkan it renders into the canvas instead), CVRMLCanvasDraw (WindowInputTester),
+  CBoardSceneDraw (HCP65 emulator), CCircuitCanvasDraw (LogiCim: it draws the whole canvas, and already goes through an image of
+  its own when the native canvas holds only part of it, which BeginPixels's area has to allow for).
+
+Pixel readers, to ReadPixels:  the snapshots (SavePNG of GetImageOrNull in LogiCim's and the IDE's window ticks, IDEScript's
+dialog snapshot, WindowInputTester's tick), CWindow::VerifyRedraw, and TestWindowLib's GetPixelData checks (TestCanvas,
+TestCaretBlink, TestList, TestMenu, TestTextAreaEdit, TestWinGDICanvas).  X11Window's GetPixelData and NativeCanvas.cpp's default
+Clears stay inside the native canvases.
+
+
+Steps
+-----
+
+1. The API on the software native canvases, with no Vulkan: BeginPixels, EndPixels and ReadPixels on CNativeCanvas; WinRefLib's
+   poison and assertion; the readers moved to ReadPixels; CCanvas::GetImageOrNull and GetPixelData removed.  Proved by the
+   snapshots of LogiCim, the IDE and WindowInputTester being the same bytes before and after, on GDI.
+2. Drawers moved: CImageCanvasDraw to DrawCel, CMaps emitting cels to a canvas, the option 1 and option 2 drawers above.  The
+   same snapshots again, and TestWindowLib on WinRefLib with poison.
+3. A change counter on CImage (see Open), so a texture is uploaded only when its image changed.
+4. VulkanLib's native canvases and presenting, on Windows, WindowInputTester first: shared device, a swapchain per window,
+   recorded draws, damaged area presented.  The 40ms measured before (its parts: wait, memcpy, GDI present) and after.
+5. The scene view renders into its canvas.  No readback in a window.
+6. The HCP65 IDE, LogiCim and the emulator on it; X11's surface (VK_KHR_xlib_surface) on the Linux box.
+
+
+Open
+----
+
+- How DrawImage knows an image hasn't changed: a change counter on CImage (SupportLib), which is automatic and can't miss a
+  change, or callers saying so.  Recommended: the counter.
+- Where the Vulkan natives come from: a factory in VulkanLib that wraps the platform's (WinGDILib's or X11Lib's window, its
+  messages and input, with Vulkan canvases and presenting), so WindowLib never depends on VulkanLib and the platform libraries
+  don't either.  Recommended, not decided.
+- Present mode: FIFO is tear free but blocks the UI thread in present; MAILBOX or IMMEDIATE don't block.  Input waits while it's
+  blocked.
+- Can CImage wrap memory it doesn't own (mapped staging memory), or is EndPixels a memcpy on Vulkan.
+- Glyphs: a DrawCel per glyph on GDI costs what CMaps's blit costs now; on Vulkan they're batched quads from the font's image.
+  Whether a font's image is one texture (an atlas) as it is, or is split.
+- A canvas whose native canvas holds only part of it (scroll panes, GetNativeOrigin): BeginPixels's area is in the native
+  canvas's space.
+- Meanwhile: the readback could be made cheap (host-cached memory, the previous frame shown while the next is drawn) without any
+  of this, if the 40ms is the memcpy.

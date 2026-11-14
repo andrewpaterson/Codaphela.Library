@@ -358,7 +358,7 @@ Vulkan.
      instance mesh is drawn or tried.  That's a flag on the frame's record of it, as CLogger has no "once".  A CLogger::ErrorOnce
      taking such a flag was offered, and not added.
    Goober, loaded from its converted file and walked, poses at eight times to within 47 units of floats in 6 million: the axes'
-   16 bits of fraction, as a rigid mesh has.  It draws in its material's colour, white, as RasterLib has no textures yet.  Its
+   16 bits of fraction, as a rigid mesh has.  It drew in its material's colour, white, until RasterLib had textures (step 12).  Its
    mesh is bound in another pose than its walk's first key, so posed at that key its edges are 0.09 to 4.4 times their length in
    the mesh, at its joints, though it draws right: an edge's length isn't a test of it.
 10. In-place updates, if dragging plain meshes is slow.
@@ -397,6 +397,14 @@ Vulkan.
      TestVulkanLib: boxes lit and unlit within a mean 1.2 to 2.3 of 255 of the rasteriser, a texture's texels, skinned boxes, and
      Goober's walk covering the rasteriser's pixels to about 1 in 500.  It isn't in the test sweep yet, and Linux needs
      libvulkan-dev to build it with CMake (the headers compile in WSL).
+12. Textures in the rasteriser, so Goober is textured in both renderers.  Done 2026-11-14 (78d282cb4).
+   The user's decisions: textured triangles have their own filler, not a path shared with untextured ones, and the untextured
+   bytes needn't stay the same (they did: the golden frames' 97 hashes, serially and with 8 workers).
+   What was done: CRasterTexture, nearest texel and repeating, no mipmaps; a CRasterMesh's UVs, textures and runs of triangles
+   by texture; perspective correct at each drawn pixel from the inverse depth it already has.  RenderLib's GetImageTexels makes
+   both renderers' texels, and Vulkan's textures are B8G8R8A8.  Goober's colours are within a mean 5.16 of 255 of Vulkan's,
+   which filters its texels.  Bilinear filtering and mipmaps wait.
+13. Vulkan as WindowLib's renderer, with a swapchain.  Planned in WindowLib's Vulkan.txt (2026-11-14).
 
 
 Test scenes
@@ -452,5 +460,5 @@ importers convert to it.
 Threads.  Cooking would run on CJobs and draws skip what isn't ready, but it isn't known yet that reading a CMesh off the main
 thread is safe.
 
-Vulkan in a window.  CCanvas is software pixels, while Vulkan presents to a surface made from the native window.  A Vulkan view in
-a dialog needs a design of its own.
+Vulkan in a window.  Designed in WindowLib's Vulkan.txt (2026-11-14): Vulkan renders every native canvas and presents the whole
+window, so a Vulkan view in a dialog is no different.
