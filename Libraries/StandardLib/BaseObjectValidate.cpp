@@ -136,9 +136,13 @@ void CBaseObject::ValidateAllocation(void)
 
 	bAllocateCalled = FixBool(GetFlags() & OBJECT_FLAGS_CALLED_ALLOCATE);
 	bInObjects = IsAllocatedInObjects();
-	if (bAllocateCalled != bInObjects)
+	if (bAllocateCalled && !bInObjects)
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has OBJECT_FLAGS_CALLED_ALLOCATE set but is not allocated in Objects.", NULL);
+	}
+	else if (!bAllocateCalled && bInObjects)
+	{
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} is allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "] but does not have OBJECT_FLAGS_CALLED_ALLOCATE set.", NULL);
 	}
 }
 
@@ -222,14 +226,14 @@ void CBaseObject::ValidateObjectsThisIn(void)
 	{
 		if (mpcObjectsThisIn != NULL)
 		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} is embedded but has ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
 		}
 	}
 	else
 	{
 		if (mpcObjectsThisIn == NULL)
 		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have ObjectsThisIn [NULL] set.", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} is not embedded but has no ObjectsThisIn.", NULL);
 		}
 	}
 }

@@ -1089,9 +1089,9 @@ void TestEmbeddedNestedPointerValidated(void)
 
 		AssertTrue(pObject->TestRemoveHeapFrom(&pOuter->mcInner.maObjects));
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
-		pcError = strstr(szErrors, "does not have a from pointing to");
+		pcError = strstr(szErrors, "which has no from back to it");
 		AssertNotNull(pcError);
-		AssertNull(strstr(pcError + 1, "does not have a from pointing to"));
+		AssertNull(strstr(pcError + 1, "which has no from back to it"));
 
 		pObject->AddHeapFrom(&pOuter->mcInner.maObjects, false);
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));

@@ -58,7 +58,7 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 	bFromPointsTo = pcBaseObject->ContainsPointerTo(this);
 	if (!bFromPointsTo)
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} pointed to from object {", ObjectToString(pcBaseObject), "} does not have a from pointing to.", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a from object {", ObjectToString(pcBaseObject), "}, which has no pointer to it.", NULL);
 	}
 }
 
@@ -74,7 +74,7 @@ void CEmbeddedObject::ValidatePointerTo(CEmbeddedObject* pcPointedTo)
 	bToPointsToFrom = pcPointedTo->ContainsFrom(this);
 	if (!bToPointsToFrom)
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} pointing to Object {", ObjectToString(pcPointedTo), "} does not have a from pointing to.", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} points to object {", ObjectToString(pcPointedTo), "}, which has no from back to it.", NULL);
 	}
 }
 
