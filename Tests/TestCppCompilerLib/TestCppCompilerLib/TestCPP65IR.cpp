@@ -1601,6 +1601,37 @@ void TestCPP65IRSpecialisationMembers(void)
 }
 
 
+//Names with characters past ASCII, in UTF-8 and as universal character names, that both targets run
+//(TestCPP65IRExtendedIdentifiers, TestCPP816ExtendedIdentifiers): a global, a function, a class with a member and a
+//static member, and a label.  12 if they're right.
+const char*	gszTestCPP65ExtendedIdentifiers =
+	"int caf\xC3\xA9 = 3;\n"
+	"int f\\u00FCr(int \xC3\xA9t\xC3\xA9) { return \\u00E9t\\u00E9 + 1; }\n"
+	"struct Gr\xC3\xB6\xC3\x9F" "e { int l\xC3\xA4nge; static int z\xC3\xA4hler; int H\xC3\xB6he(void) { return l\\u00E4nge * 2; } };\n"
+	"int Gr\\u00F6\\u00DF" "e::z\\u00E4hler = 2;\n"
+	"int main()\n"
+	"{\n"
+	"\tGr\xC3\xB6\\u00DF" "e gr\xC3\xB6\xC3\x9F" "e;\n"
+	"\tgr\\u00F6\\u00DF" "e.l\xC3\xA4nge = f\xC3\xBCr(caf\\u00E9) - 1;\n"
+	"\tif (gr\xC3\xB6\xC3\x9F" "e.H\\u00F6he() == 6) { goto \xC3\xBC" "ber; }\n"
+	"\treturn 0;\n"
+	"\xC3\xBC" "ber:\n"
+	"\treturn gr\xC3\xB6\xC3\x9F" "e.H\xC3\xB6he() * Gr\xC3\xB6\xC3\x9F" "e::z\xC3\xA4hler;\n"
+	"}\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Names with characters past ASCII are labels in the assembly as they are,
+// which the assembler takes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRExtendedIdentifiers(void)
+{
+	AssertInt(12, TestCPP65Main(gszTestCPP65ExtendedIdentifiers));
+}
+
+
 //The wide string literals both targets run (TestCPP65IRWideStrings, TestCPP816WideStrings).  0 if they're right.
 const char*	gszTestCPP65WideStrings =
 	"const char16_t* gp = u\"hi\";\n"
@@ -2096,6 +2127,7 @@ void TestCPP65IR(void)
 	TestCPP65IRThunks();
 	TestCPP65IROverloadedComma();
 	TestCPP65IRWideStrings();
+	TestCPP65IRExtendedIdentifiers();
 	TestCPP65IRSpecialisationMembers();
 	TestCPP65IRScalarConstruct();
 	TestCPP65IRBlockFunctions();

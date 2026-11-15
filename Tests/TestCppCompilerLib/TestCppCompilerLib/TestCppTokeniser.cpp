@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/Logger.h"
@@ -189,6 +190,108 @@ void TestCppTokeniserIdentifiers(void)
 
 	cTokeniser.Kill();
 	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szText is one identifier with a character the language doesn't allow in
+// one: the one error szError (its message, then the identifier).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertBadIdentifier(const char* szText, const char* szError)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+	CChars				szSource;
+	CChars				szExpected;
+
+	szSource.Init("int ");
+	szSource.Append(szText);
+	szSource.Append(';');
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, szSource.Text()));
+	szExpected.Init("Tokens.cpp (1, 5): ");
+	szExpected.Append(szError);
+	szExpected.Append(" [");
+	szExpected.Append(szText);
+	szExpected.Append("]\n");
+	AssertString(szExpected.Text(), cTokeniser.GetErrors()->Text());
+	szExpected.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An identifier may have characters past ASCII, written in the source's
+// UTF-8 or as universal character names: it is the same identifier either
+// way (its name is UTF-8), through # and ## too.  Only the characters the
+// language allows, and not a combining character first.  A byte order
+// mark at the start of the source is not part of it.  [lex.name]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserExtendedIdentifiers(void)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+	CCTIdentifier*		pcCafe;
+	CCTString*			pcString;
+	int					iLength;
+	CChars				sz;
+
+	//é is U+00E9 (C3 A9), the combining acute accent U+0301 (CC 81) and € U+20AC (E2 82 AC).
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "caf\xC3\xA9 caf\\u00E9 caf\\U000000E9 ca\\\nf\\u00e9 \xC3\xA9t\xC3\xA9 e\\u0301 _\xE2\x82\xAC" "9 cafe"));
+	AssertSize(8, cTokeniser.NumTokens());
+	pcCafe = (CCTIdentifier*)cTokeniser.Get(0);
+	AssertTrue(pcCafe->IsIdentifier());
+	AssertString("caf\xC3\xA9", cTokeniser.GetIdentifier(pcCafe->miIdentifier, &iLength));
+	AssertInt(5, iLength);
+	AssertInt(pcCafe->miIdentifier, ((CCTIdentifier*)cTokeniser.Get(1))->miIdentifier);
+	AssertInt(pcCafe->miIdentifier, ((CCTIdentifier*)cTokeniser.Get(2))->miIdentifier);
+	AssertInt(pcCafe->miIdentifier, ((CCTIdentifier*)cTokeniser.Get(3))->miIdentifier);
+	AssertString("\xC3\xA9t\xC3\xA9", cTokeniser.GetIdentifier(((CCTIdentifier*)cTokeniser.Get(4))->miIdentifier));
+	AssertString("e\xCC\x81", cTokeniser.GetIdentifier(((CCTIdentifier*)cTokeniser.Get(5))->miIdentifier));
+	AssertString("_\xE2\x82\xAC" "9", cTokeniser.GetIdentifier(((CCTIdentifier*)cTokeniser.Get(6))->miIdentifier));
+	AssertTrue(pcCafe->miIdentifier != ((CCTIdentifier*)cTokeniser.Get(7))->miIdentifier);
+
+	//Tokens print as the characters they are.
+	sz.Init();
+	cTokeniser.Print(&sz);
+	AssertString("caf\xC3\xA9 caf\xC3\xA9 caf\xC3\xA9 caf\xC3\xA9 \xC3\xA9t\xC3\xA9 e\xCC\x81 _\xE2\x82\xAC" "9 cafe\n", sz.Text());
+	sz.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//A macro's name, a stringified argument and a pasted name.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "#define caf\\u00E9 7\n#define STRING(x) #x\n#define PASTE(a, b) a##b\ncaf\xC3\xA9 STRING(caf\\u00E9) PASTE(\\u00E9, t\xC3\xA9) \xC3\xA9t\\u00E9"));
+	AssertSize(4, cTokeniser.NumTokens());
+	AssertInteger(cTokeniser.Get(0), 7, true, false);
+	pcString = (CCTString*)cTokeniser.Get(1);
+	AssertTrue(pcString->IsString());
+	AssertInt(7, (int)(pcString->mszEnd - pcString->mszStart) + 1);
+	AssertInt(0, memcmp("\"caf\xC3\xA9\"", pcString->mszStart, 7));
+	AssertTrue(cTokeniser.Get(2)->IsIdentifier());
+	AssertInt(((CCTIdentifier*)cTokeniser.Get(3))->miIdentifier, ((CCTIdentifier*)cTokeniser.Get(2))->miIdentifier);
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//A byte order mark.  Columns are still bytes from the start of the line.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "\xEF\xBB\xBFint x;"));
+	AssertSize(3, cTokeniser.NumTokens());
+	AssertTrue(cTokeniser.Get(0)->Is(CT_int));
+	AssertInt(3, cTokeniser.GetSource(cTokeniser.Get(0))->iColumn);
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//A no-break space (U+00A0) and a multiplication sign (U+00D7) are not letters, an identifier can't start with a
+	//combining character, and bytes that aren't UTF-8 are no character at all.
+	AssertBadIdentifier("\xC2\xA0x", "This character is not allowed in an identifier.");
+	AssertBadIdentifier("a\xC3\x97" "b", "This character is not allowed in an identifier.");
+	AssertBadIdentifier("\xCC\x81" "e", "An identifier can't start with this character.");
+	AssertBadIdentifier("a\xC3", "The source is not UTF-8 here.");
+	AssertBadIdentifier("\xFFx", "The source is not UTF-8 here.");
 }
 
 
@@ -694,6 +797,7 @@ void TestCppTokeniser(void)
 	TestCppTokeniserKeywordsAndPunctuators();
 	TestCppTokeniserDigraphBeforeScope();
 	TestCppTokeniserIdentifiers();
+	TestCppTokeniserExtendedIdentifiers();
 	TestCppTokeniserIntegers();
 	TestCppTokeniserFloatingAndCharacters();
 	TestCppTokeniserCharacterLiterals();

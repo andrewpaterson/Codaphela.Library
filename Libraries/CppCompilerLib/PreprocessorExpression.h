@@ -63,7 +63,6 @@ protected:
 	SPPValue	Apply(int iOperator, SPPValue sLeft, SPPValue sRight, bool bEvaluate);
 	bool		GetCharacter(char c);
 	void		SkipWhitespace(void);
-	bool		IsIdentifierCharacter(char c);
 	SPPValue	Error(const char* szError);
 };
 

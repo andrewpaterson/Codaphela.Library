@@ -44,6 +44,7 @@ protected:
 	CPreprocessorParser*	mpcParser;
 	CPPTokenMemory*			mpcTokens;
 	bool					mbContainsLineContinuers;
+	bool					mbContainsUniversalNames;	//The token being read has \u or \U names in it, outside a literal.
 	int						miStartLine;
 	int						miStartColumn;
 
@@ -56,6 +57,7 @@ public:
 	void		Preprocess(void);
 	bool		PossibleComment(void);
 	void		Quote(char** pszStart, bool bInOther);
+	void		IdentifierCharacter(void);
 	bool		IsDigitSeparator(void);
 	bool		IsPPNumberContinuation(void);
 	bool		IsPPNumberStart(void);
@@ -63,7 +65,7 @@ public:
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
 	void		NullAll(void);
 	void		MarkStart(void);
-	void		ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd);
+	void		Respell(CChars* psz, char* szStart, char* szEnd);
 };
 
 

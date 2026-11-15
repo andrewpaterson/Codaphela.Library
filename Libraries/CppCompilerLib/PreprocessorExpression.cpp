@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/StringHelper.h"
 #include "LiteralHelper.h"
+#include "CPPNameCharacters.h"
 #include "PreprocessorExpression.h"
 
 
@@ -462,10 +463,10 @@ SPPValue CPreprocessorExpression::Primary(bool bEvaluate)
 		return Character(mszPos);
 	}
 
-	if (IsIdentifierCharacter(*mszPos))
+	if (IsCPPNameCharacter(*mszPos))
 	{
 		szIdentifier = mszPos;
-		while (IsIdentifierCharacter(*mszPos))
+		while (IsCPPNameCharacter(*mszPos))
 		{
 			mszPos++;
 		}
@@ -512,7 +513,7 @@ SPPValue CPreprocessorExpression::Number(void)
 	for (;;)
 	{
 		c = *mszPos;
-		if (IsIdentifierCharacter(c) || (c == '.') || (c == '\''))
+		if (IsCPPNameCharacter(c) || (c == '.') || (c == '\''))
 		{
 			mszPos++;
 		}
@@ -641,16 +642,6 @@ void CPreprocessorExpression::SkipWhitespace(void)
 	{
 		mszPos++;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessorExpression::IsIdentifierCharacter(char c)
-{
-	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_');
 }
 
 

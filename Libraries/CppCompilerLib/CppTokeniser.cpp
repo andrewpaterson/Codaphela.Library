@@ -28,6 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTReservedWord.h"
 #include "CTString.h"
 #include "CTUserLiteral.h"
+#include "CPPNameCharacters.h"
 #include "CTDouble.h"
 #include "CTFloat.h"
 #include "CTLongDouble.h"
@@ -339,6 +340,7 @@ bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken)
 	CCTReservedWord*	pcReservedWord;
 	CCTBoolean*			pcBoolean;
 	CCTIdentifier*		pcIdentifier;
+	const char*			szError;
 
 	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1);
 	if (lliID != -1)
@@ -359,6 +361,11 @@ bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken)
 		return true;
 	}
 
+	szError = InvalidCPPNameCharacter(psToken->szText, psToken->uiLength);
+	if (szError)
+	{
+		return SharedError(psToken, szError);
+	}
 	pcIdentifier = CCTIdentifier::Construct(mcStack.Add(sizeof(CCTIdentifier)));
 	pcIdentifier->Init(GetIdentifierID(psToken->szText, psToken->uiLength));
 	AddToken(pcIdentifier);
@@ -445,7 +452,7 @@ CCPPToken* CCPPTokeniser::Number(SPreprocessedToken* psToken, size* puiLength)
 	eResult = ParseNumberLiteral(psToken->szText, psToken->uiLength, &sLiteral);
 	if (NumberLiteralError(eResult))
 	{
-		LiteralError(psToken, NumberLiteralError(eResult));
+		SharedError(psToken, NumberLiteralError(eResult));
 		return NULL;
 	}
 	*puiLength = psToken->uiLength - sLiteral.uiUserSuffix;
@@ -548,7 +555,7 @@ CCPPToken* CCPPTokeniser::Character(SPreprocessedToken* psToken, size uiLength)
 	szError = CharacterLiteralError(ParseCharacterLiteral(psToken->szText, uiLength, &sLiteral));
 	if (szError)
 	{
-		LiteralError(psToken, szError);
+		SharedError(psToken, szError);
 		return NULL;
 	}
 
@@ -619,11 +626,11 @@ void CCPPTokeniser::AddToken(CCPPToken* pcToken)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An error in LiteralHelper's words, which the preprocessor's #if uses
-// too, as a sentence.
+// An error in the words of LiteralHelper and CPPNameCharacters, which the
+// preprocessor's #if uses too, as a sentence.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::LiteralError(SPreprocessedToken* psToken, const char* szError)
+bool CCPPTokeniser::SharedError(SPreprocessedToken* psToken, const char* szError)
 {
 	CChars	sz;
 

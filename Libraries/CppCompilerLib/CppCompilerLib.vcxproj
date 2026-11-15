@@ -419,6 +419,7 @@
     <ClCompile Include="LiteralHelper.cpp" />
     <ClCompile Include="PreprocessedTokens.cpp" />
     <ClCompile Include="Punctuators.cpp" />
+    <ClCompile Include="CPPNameCharacters.cpp" />
     <ClCompile Include="PreprocessorPosition.cpp" />
     <ClCompile Include="CPPPreprocessor_Linux.cpp" />
     <ClCompile Include="CPPPreprocessor_Windows.cpp" />

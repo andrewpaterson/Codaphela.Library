@@ -77,7 +77,7 @@ protected:
 	void				AddToken(CCPPToken* pcToken);
 	int64				GetIdentifierID(const char* szName, size uiLength);
 	bool				Error(SPreprocessedToken* psToken, const char* szError);
-	bool				LiteralError(SPreprocessedToken* psToken, const char* szError);
+	bool				SharedError(SPreprocessedToken* psToken, const char* szError);
 };
 
 

@@ -300,7 +300,7 @@ bool CPreprocessorParser::IsWhitespace(void)
 {
 	char c;
 	c = *mszParserPos;
-	return (c == ' ') || ((unsigned char)c >= 128) || (c >= 1 && c <= 9) || (c == 11) || (c == 12);
+	return (c == ' ') || (c >= 1 && c <= 9) || (c == 11) || (c == 12);
 }
 
 

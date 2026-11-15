@@ -936,6 +936,9 @@
     <ClCompile Include="Punctuators.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
+    <ClCompile Include="CPPNameCharacters.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
     <ClCompile Include="DirectiveMap.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>

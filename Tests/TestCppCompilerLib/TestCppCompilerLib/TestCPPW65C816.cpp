@@ -1110,6 +1110,20 @@ void TestCPP816NestedConstants(void)
 }
 
 
+extern const char*	gszTestCPP65ExtendedIdentifiers;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The names of TestCPP65IRExtendedIdentifiers.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ExtendedIdentifiers(void)
+{
+	AssertInt(12, TestCPP816Run(gszTestCPP65ExtendedIdentifiers));
+}
+
+
 extern const char*	gszTestCPP65WideStrings;
 
 
@@ -6241,6 +6255,7 @@ void TestCPP816(void)
 	TestCPP816Thunks();
 	TestCPP816OverloadedComma();
 	TestCPP816WideStrings();
+	TestCPP816ExtendedIdentifiers();
 	TestCPP816NestedConstants();
 	TestCPP816SharedTables();
 	TestCPP816Statements();

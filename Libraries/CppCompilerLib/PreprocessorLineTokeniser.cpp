@@ -72,6 +72,8 @@ void CPreprocessorLineTokeniser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokeniser::Preprocess(void)
 {
+	size	uiLength;
+
 	//Remember that at this point the hash and directive have already been strippeed if they existed.
 	//Any existing hashes are... something else.
 	while (!mpcParser->mbEndOfFile)
@@ -95,13 +97,24 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 			}
 			else if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 			{
-				//A backslash outside a literal is a token of its own, as in the stringified str(: @\n).
 				mpcParser->StepLeft();
-				AddRelevantToken();
-				NullAll();
-				mszDecorationStart = mpcParser->GetPos();
-				MarkStart();
-				mpcParser->StepRight();
+				uiLength = UniversalCharacterNameLength(mpcParser->GetPos(), mpcParser->GetEnd() + 1);
+				if (uiLength != 0)
+				{
+					//A character of an identifier, spelled \u00E9: the token's text has the character itself.
+					IdentifierCharacter();
+					mbContainsUniversalNames = true;
+					mpcParser->StepRight((int)uiLength - 1);
+				}
+				else
+				{
+					//A backslash outside a literal is a token of its own, as in the stringified str(: @\n).
+					AddRelevantToken();
+					NullAll();
+					mszDecorationStart = mpcParser->GetPos();
+					MarkStart();
+					mpcParser->StepRight();
+				}
 			}
 			else
 			{
@@ -162,16 +175,12 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 		{
 			if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 			{
-				//Letters after a digit are part of the pp-number, as in 0x7FFF or 201402L.
-				if ((!mszIdentifierStart) && (!mszNumberStart))
-				{
-					AddRelevantToken();
-					NullAll();
-					mszIdentifierStart = mpcParser->GetPos();
-					MarkStart();
-				}
+				IdentifierCharacter();
 			}
-			mpcParser->StepRight();
+			else
+			{
+				mpcParser->StepRight();
+			}
 		}
 		else if (mpcParser->IsDigit())
 		{
@@ -214,6 +223,26 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 
 	//This handles the end of file without an newline case.
 	AddRelevantToken();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A character an identifier can start with, outside a literal: it starts
+// one, or is the next of the one being read.  Letters after a digit are
+// part of the pp-number, as in 0x7FFF or 201402L.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorLineTokeniser::IdentifierCharacter(void)
+{
+	if ((!mszIdentifierStart) && (!mszNumberStart))
+	{
+		AddRelevantToken();
+		NullAll();
+		mszIdentifierStart = mpcParser->GetPos();
+		MarkStart();
+	}
+	mpcParser->StepRight();
 }
 
 
@@ -500,7 +529,7 @@ CPPText* CPreprocessorLineTokeniser::AddText(EPreprocessorText eType, char* szSt
 	CPPTextWithSource*	pcTextWithSource;
 
 	mbOnlyWhitespace = false;
-	if (!mbContainsLineContinuers)
+	if (!mbContainsLineContinuers && !mbContainsUniversalNames)
 	{
 		pcText = mpcTokens->AddToken<CPPText>();
 		pcText->Init(eType, miStartLine, miStartColumn, mpcParser->mszFileName, szStart, szEndExclusive);
@@ -511,7 +540,7 @@ CPPText* CPreprocessorLineTokeniser::AddText(EPreprocessorText eType, char* szSt
 	else
 	{
 		sz.Init();
-		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
+		Respell(&sz, szStart, szEndExclusive);
 
 		pcTextWithSource = mpcTokens->AddToken<CPPTextWithSource>();
 		pcTextWithSource->Init(eType, miStartLine, miStartColumn, mpcParser->mszFileName, sz.Text(), (int)sz.Length());
@@ -547,27 +576,44 @@ void CPreprocessorLineTokeniser::NullAll(void)
 	mszHashStart = NULL;
 	mszNumberStart = NULL;
 	mbContainsLineContinuers = false;
+	mbContainsUniversalNames = false;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// A token's text when it isn't what the source has from szStart to szEnd:
+// line splices are taken out and, in an identifier or a number, universal
+// character names are the characters they name, in UTF-8, so that a name
+// is the same however it is spelled.  [lex.phases] 1 and 2
+//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokeniser::ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd)
+void CPreprocessorLineTokeniser::Respell(CChars* psz, char* szStart, char* szEnd)
 {
-	char*	pc;
+	char*		pc;
+	const char*	szName;
+	size		uiLength;
+	uint32		uiCharacter;
+	char		szUTF8[UTF8_MAX_BYTES];
 
 	for (pc = szStart; pc < szEnd; pc++)
 	{
+		uiLength = mbContainsUniversalNames ? UniversalCharacterNameLength(pc, szEnd) : 0;
 		if ((*pc == '\\') && (pc + 1 < szEnd) && ((pc[1] == '\n') || (pc[1] == '\r')))
 		{
-			//A line splice: the backslash and the new line are removed.  [lex.phases] 2
+			//A line splice: the backslash and the new line are removed.
 			pc++;
 			if ((pc + 1 < szEnd) && ((pc[1] == '\n') || (pc[1] == '\r')) && (pc[1] != pc[0]))
 			{
 				pc++;
 			}
+		}
+		else if (uiLength != 0)
+		{
+			szName = pc + 1;
+			DecodeEscape(&szName, pc + uiLength, &uiCharacter);
+			psz->Append(szUTF8, EncodeUTF8(uiCharacter, szUTF8));
+			pc += uiLength - 1;
 		}
 		else
 		{

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "PreprocessorTokeniser.h"
 #include "PPLine.h"
 #include "PPConditional.h"
@@ -105,6 +106,11 @@ bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 	szEnd = szPos + iLength-1;
 	mcParser.Init(szPos, szEnd, mszFileName);
 	mcParser.SetComments(mpacComments);
+	if ((iLength >= 3) && (memcmp(szPos, "\xEF\xBB\xBF", 3) == 0))
+	{
+		//A UTF-8 byte order mark is not part of the text.  Columns stay offsets into the line.
+		mcParser.StepRight(3);
+	}
 
 	bLastDirective = false;
 	iBlock = (int)pacDestBlockSets->NumElements();
