@@ -723,7 +723,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		Error(pcUnary, "The operand must be an integer");
 		return NULL;
 	}
-	if (psType->IsScopedEnum())
+	if (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_ARITHMETIC))
 	{
 		Error(pcUnary, "An enum class has no arithmetic: cast its value to an integer");
 		return NULL;
@@ -755,7 +755,7 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	{
 		return NULL;
 	}
-	if (!psType->IsScalar() || psType->IsScopedEnum())
+	if (!psType->IsScalar() || (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_INCREMENT)))
 	{
 		Error(pcUnary, "Only integers and pointers can be incremented");
 		return NULL;
@@ -934,7 +934,7 @@ SCPP65Type* CCPP65TypeChecker::Operate(ECppTokens eOperator, SCPP65Type* psLeft,
 	{
 		return NULL;
 	}
-	if (psLeft->IsScopedEnum() || psRight->IsScopedEnum())
+	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && !RecordsEnumOperands(pcNode, psLeft, psRight, CPPEC_ARITHMETIC))
 	{
 		Error(pcNode, "An enum class has no arithmetic: cast its value to an integer");
 		return NULL;
@@ -998,7 +998,7 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode)
 {
-	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && (psLeft->Unqualified() != psRight->Unqualified()))
+	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && (psLeft->Unqualified() != psRight->Unqualified()) && !RecordsEnumOperands(pcNode, psLeft, psRight, CPPEC_COMPARE))
 	{
 		return Error(pcNode, "An enum class's value is compared only with its own values");
 	}
@@ -1181,7 +1181,7 @@ bool CCPP65TypeChecker::Truth(SCPP65Type* psType, CCPPSyntax* pcNode)
 	{
 		return Error(pcNode, "A condition must be an integer or a pointer");
 	}
-	if (psType->IsScopedEnum())
+	if (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcNode, psType, psType, CPPEC_CONDITION))
 	{
 		return Error(pcNode, "An enum class's value is not a condition: compare it with one of its values");
 	}
@@ -2719,6 +2719,24 @@ bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An operator with an enum class's value as an operand: recorded if every
+// enum class among its operands is the one a refactoring is asking about
+// (CCPPSemanticPass::SetRecordedEnum), so the check goes on.  False if
+// one isn't: it is refused.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLeft, SCPP65Type* psRight, uint8 uiKind)
+{
+	if ((psLeft->IsScopedEnum() && !mpcUnit->IsRecordedEnum(psLeft)) || (psRight->IsScopedEnum() && !mpcUnit->IsRecordedEnum(psRight)))
+	{
+		return false;
+	}
+	return mpcUnit->RecordEnumCast(pcNode, psLeft, psRight, uiKind);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether psFrom converts to psTo with no cast as far as an enum class
 // goes: its value is only its own type's, and only its own values are its.
 // [conv.prom] and [conv.integral] leave a scoped enum out.
@@ -2740,11 +2758,11 @@ bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	}
 	if (psFrom->IsScopedEnum())
 	{
-		return Error(pcNode, "An enum class's value becomes another type only by a cast");
+		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_OTHER) || Error(pcNode, "An enum class's value becomes another type only by a cast");
 	}
 	if (psTo->IsScopedEnum())
 	{
-		return Error(pcNode, "An enum class is given only its own values, or a cast");
+		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_ENUM) || Error(pcNode, "An enum class is given only its own values, or a cast");
 	}
 	return true;
 }

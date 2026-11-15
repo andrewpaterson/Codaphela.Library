@@ -429,6 +429,115 @@ void TestCppSemanticPassQueued(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A kept check of szSource with szEnum taken as an enum class
+// (CCPPSemanticPass::SetRecordedEnum; NULL for none): whether it checked
+// without an error, and the kinds (CPPEC_, a digit each, in order of
+// kind) of the casts recorded.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestCppSemanticPassRecord(const char* szSource, const char* szEnum, CChars* pszKinds)
+{
+	CTranslationUnit	cFile;
+	CCPPPreprocessor	cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPSemanticPass	cPass;
+	size				i;
+	uint8				uiKind;
+	bool				bResult;
+
+	cFile.Init("Recorded.cpp", NULL, false);
+	cFile.SetContents((char*)szSource);
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	cPass.Init();
+	cPass.SetRecordedEnum(szEnum);
+	bResult = cPass.Check(&cTree, CPPT_Host, true);
+	pszKinds->Clear();
+	for (uiKind = CPPEC_TO_OTHER; uiKind <= CPPEC_INCREMENT; uiKind++)
+	{
+		for (i = 0; i < cPass.NumEnumCasts(); i++)
+		{
+			if (cPass.GetEnumCast(i)->uiKind == uiKind)
+			{
+				pszKinds->Append((char)('0' + uiKind));
+			}
+		}
+	}
+	cPass.Kill();
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum checked as if it were an enum class, for the refactoring that
+// makes it one: each place its value would be refused is recorded, not
+// reported, and the check goes on, so what follows from a cast is found
+// too.  Another enum that is an enum class is still refused.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassRecordedEnum(void)
+{
+	CChars	szKinds;
+
+	szKinds.Init();
+
+	//Nothing is asked about: an enum's value is an integer.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A, B };\nint F(E e) { int i = e; return i + (e + 1); }\n", NULL, &szKinds));
+	AssertString("", szKinds.Text());
+
+	//Given to an int, and added to.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A, B };\nint F(E e) { int i = e; return i + (e + 1); }\n", "E", &szKinds));
+	AssertString("02", szKinds.Text());
+
+	//A condition and a comparison with an integer; a cast, its own values and what a function of its type returns need nothing.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A, B };\nE G(int i) { E e = (E)i; if (e) { e = B; } return (e == 1) ? A : e; }\n", "E", &szKinds));
+	AssertString("34", szKinds.Text());
+
+	//Returned from a function of another type, and an integer returned as it.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A };\nint F(E e) { return e; }\nE G(int i) { return i; }\n", "E", &szKinds));
+	AssertString("01", szKinds.Text());
+
+	//Flags: each operator, and what the or gives is an int given to the enum only through its cast.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A = 1, B = 2 };\nint F(E e) { e = (E)(e | B); return e & A; }\n", "E", &szKinds));
+	AssertString("22", szKinds.Text());
+
+	//An argument for an int parameter still finds the function.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A };\nint G(int i) { return i; }\nint F(E e) { return G(e); }\n", "E", &szKinds));
+	AssertString("0", szKinds.Text());
+
+	//++ has no cast.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A, B };\nvoid F(E e) { e++; }\n", "E", &szKinds));
+	AssertString("5", szKinds.Text());
+
+	//An enum in a class, by its name with the class's.
+	AssertTrue(TestCppSemanticPassRecord("class C { public: enum E { A }; };\nint F(C::E e) { return e + 1; }\n", "C::E", &szKinds));
+	AssertString("2", szKinds.Text());
+
+	//Another enum's value isn't recorded, and one that is an enum class is refused as it always is.
+	AssertTrue(TestCppSemanticPassRecord("enum E { A };\nenum F { B };\nint G(F f) { return f + 1; }\n", "E", &szKinds));
+	AssertString("", szKinds.Text());
+	AssertFalse(TestCppSemanticPassRecord("enum class S { A };\nenum E { B };\nint F(S s, E e) { return (int)(s + e); }\n", "E", &szKinds));
+
+	szKinds.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A type a declaration names that nothing declares is an error of a
 // check, whether or not what is declared is used: one declared further
 // down, and one never declared, in a member function's parameter, a
@@ -1836,6 +1945,7 @@ void TestCppIndex(void)
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassQueued();
 	TestCppSemanticPassUndeclaredTypes();
+	TestCppSemanticPassRecordedEnum();
 	TestCppSemanticPassHost();
 	TestCppSemanticPassEnumeratorChain();
 	TestCppSemanticPassKept();

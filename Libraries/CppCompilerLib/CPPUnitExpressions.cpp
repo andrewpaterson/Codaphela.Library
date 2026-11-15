@@ -29,6 +29,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPPUnit.h"
+#include "CPPSemanticPass.h"
+#include "CPPTypeWriter.h"
 #include "LiteralHelper.h"
 
 
@@ -2024,6 +2026,8 @@ SCPP65Type* CCPPUnit::EnumeratorType(CCPPSymbol* pcSymbol)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier)
 {
+	CCPPTypeWriter			cWriter;
+	CChars					szName;
 	SCPP65Type*				psType;
 	SCPP65Type*				psBase;
 	CCPPSyntaxEnumerator*	pcEnumerator;
@@ -2120,7 +2124,20 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 
 	if (pcEnum)
 	{
-		return mcTypes.Enum(pcEnum, iBytes, bSigned, pcSpecifier && pcSpecifier->mbScoped);
+		psType = mcTypes.Enum(pcEnum, iBytes, bSigned, pcSpecifier && pcSpecifier->mbScoped);
+		if (mpcSemanticPass && (mpcSemanticPass->GetRecordedEnum()[0] != '\0') && !mpcSemanticPass->GetRecordedEnumType())
+		{
+			//The enum a refactoring is asking about: checked as an enum class, what that refuses recorded.
+			szName.Init();
+			cWriter.Init(this);
+			if (cWriter.AppendType(psType, &szName) && szName.Equals(mpcSemanticPass->GetRecordedEnum()))
+			{
+				psType->bScopedEnum = true;
+				mpcSemanticPass->SetRecordedEnumType(psType);
+			}
+			szName.Kill();
+		}
+		return psType;
 	}
 	return mcTypes.Integer(iBytes, bSigned);
 }

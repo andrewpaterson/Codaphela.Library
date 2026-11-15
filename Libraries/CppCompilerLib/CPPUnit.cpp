@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxTree.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPUnit.h"
+#include "CPPSemanticPass.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -758,6 +759,29 @@ void CCPPUnit::GetExternals(CArrayChars* paszLabels)
 			paszLabels->AddIfUnique(maszRuntime.GetText(i));
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A check for a refactoring records where an enum's value would need a
+// cast if it were an enum class, instead of refusing it there
+// (CCPPSemanticPass::SetRecordedEnum).  True if it was recorded.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind)
+{
+	return mpcSemanticPass && mpcSemanticPass->RecordEnumCast(pcNode, psFrom, psTo, uiKind);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsRecordedEnum(SCPP65Type* psType)
+{
+	return mpcSemanticPass && mpcSemanticPass->IsRecordedEnum(psType);
 }
 
 

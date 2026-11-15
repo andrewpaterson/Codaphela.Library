@@ -74,6 +74,8 @@ public:
 	bool			Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			Truth(SCPP65Type* psType, CCPPSyntax* pcNode);
+	bool			RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLeft, SCPP65Type* psRight, uint8 uiKind);
 	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
@@ -106,7 +108,6 @@ protected:
 	SCPP65Type*		ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*		ConditionValue(CCPPSyntax* pcExpression);
 	bool			Condition(CCPPSyntax* pcExpression);
-	bool			Truth(SCPP65Type* psType, CCPPSyntax* pcNode);
 
 	SCPP65Type*		CallExpression(CCPPSyntaxCallExpression* pcCall);
 	SCPP65Type*		UncheckedCall(CArraySyntax* papcArguments);

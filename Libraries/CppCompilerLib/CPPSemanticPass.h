@@ -21,6 +21,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_SEMANTIC_PASS_H__
 #define __C_P_P_SEMANTIC_PASS_H__
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Chars.h"
 #include "CPPErrors.h"
 #include "CPPTarget.h"
 
@@ -50,6 +52,29 @@ typedef CMapLongTemplate<SCPP65Type*>		CMapCPPNodeTypes;
 typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
 
 
+//Where a value would need a cast if an enum were an enum class (CCPPSemanticPass::SetRecordedEnum): what the type
+//checker refuses of an enum class is recorded for that enum, and checked on as if it were allowed.
+#define CPPEC_TO_OTHER		0	//pcNode is a value of the enum given to psTo, another type: it needs a cast to psTo.
+#define CPPEC_TO_ENUM		1	//pcNode is another type's value (psFrom) given to the enum: it needs a cast to the enum.
+#define CPPEC_ARITHMETIC	2	//pcNode is an operator's expression (binary, unary, an assignment like +=, a subscript)
+								//with the enum's value as an operand: each such operand needs a cast to an integer.
+#define CPPEC_COMPARE		3	//pcNode compares the enum's value with another type's: it needs a cast to an integer.
+#define CPPEC_CONDITION		4	//pcNode is the enum's value used as a condition.
+#define CPPEC_INCREMENT		5	//pcNode steps the enum's value with ++ or --: no cast makes that an enum class's.
+
+
+struct SCPPEnumCast
+{
+	CCPPSyntax*		pcNode;
+	SCPP65Type*		psFrom;
+	SCPP65Type*		psTo;
+	uint8			uiKind;		//CPPEC_.
+};
+
+
+typedef CArrayTemplate<SCPPEnumCast>	CArrayCPPEnumCasts;
+
+
 //How the place an expression names can be changed where it is written (CCPPSemanticPass::FindChanges).
 #define CPPPC_ASSIGNED		0x01	//Assigned to (=, += and the rest), incremented or decremented.
 #define CPPPC_REFERENCE		0x02	//Bound to a reference that isn't const: an argument's, or a variable's initialiser.
@@ -68,6 +93,11 @@ typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
 //names can be changed there (FindChanges).  The types are the checked unit's, which lives until the pass is
 //killed; the index's checks aren't kept and remember none of it.  It also gives the label the compiler would give a
 //function for the check's target (AppendFunctionLabel), which hand written assembly names it by.
+//
+//SetRecordedEnum, before the check, names an enum to be checked as an enum class though it isn't one: every place
+//the type checker would refuse its value (given to another type, in arithmetic, compared with an integer, as a
+//condition) is recorded instead (GetEnumCast), and the check goes on as if it were allowed, so what follows from
+//one cast is found too.  A refactoring that makes the enum an enum class writes the casts from them.
 class CCPPSemanticPass
 {
 protected:
@@ -79,6 +109,9 @@ protected:
 	CMapCPPNodeTypes	mcPlaces;		//...the type of the place of those only typed as places (the left of an assignment)...
 	CMapCPPNodeChanges	mcChanges;		//...and how the type checker found a node's place changed (CPPPC_).
 	bool				mbTemplatesAsThemselves;	//A check that isn't kept checks each template in its own words too (CCPPUnit::CheckTemplatesAsThemselves), as a kept one does.
+	CChars				mszRecordedEnum;	//An enum, by its name with its scopes ("CMotor::EState"), to check as an enum class; empty for none.
+	SCPP65Type*			mpsRecordedEnum;	//Its type, once the check has met it.
+	CArrayCPPEnumCasts	masEnumCasts;		//Where its values would need casts.
 
 public:
 	void				Init(void);
@@ -88,6 +121,14 @@ public:
 	bool				IsKept(void) { return mpcUnit != NULL; }
 	void				SetTemplatesAsThemselves(bool bTemplatesAsThemselves) { mbTemplatesAsThemselves = bTemplatesAsThemselves; }
 	bool				IsTemplatesAsThemselves(void) { return mbTemplatesAsThemselves; }
+	void				SetRecordedEnum(const char* szQualifiedName);
+	char*				GetRecordedEnum(void) { return mszRecordedEnum.Text(); }
+	void				SetRecordedEnumType(SCPP65Type* psType) { mpsRecordedEnum = psType; }
+	SCPP65Type*			GetRecordedEnumType(void) { return mpsRecordedEnum; }
+	bool				IsRecordedEnum(SCPP65Type* psType);
+	bool				RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
+	size				NumEnumCasts(void) { return masEnumCasts.NumElements(); }
+	SCPPEnumCast*		GetEnumCast(size uiIndex) { return masEnumCasts.Get(uiIndex); }
 
 	void				Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void				PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);

@@ -1001,7 +1001,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	}
 	if ((psParameter->IsInteger() || psParameter->IsFloat()) && (psArgument->IsInteger() || psArgument->IsFloat()))
 	{
-		if (psParameter->pcEnum || psArgument->IsScopedEnum())
+		if (psParameter->pcEnum || (psArgument->IsScopedEnum() && !mpcUnit->IsRecordedEnum(psArgument)))
 		{
 			//Only the same enum (an exact match) converts to an enum, and an enum class's value to nothing else.
 			return CPPCR_None;

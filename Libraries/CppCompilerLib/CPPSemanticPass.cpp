@@ -36,6 +36,9 @@ void CCPPSemanticPass::Init(void)
 	mcErrors.Init();
 	mpcUnit = NULL;
 	mbTemplatesAsThemselves = false;
+	mszRecordedEnum.Init();
+	mpsRecordedEnum = NULL;
+	masEnumCasts.Init();
 	mcTypes.Init(true);
 	mcPlaces.Init(true);
 	mcChanges.Init(true);
@@ -54,6 +57,8 @@ void CCPPSemanticPass::Kill(void)
 		free(mpcUnit);
 		mpcUnit = NULL;
 	}
+	masEnumCasts.Kill();
+	mszRecordedEnum.Kill();
 	mcChanges.Kill();
 	mcPlaces.Kill();
 	mcTypes.Kill();
@@ -130,6 +135,74 @@ void CCPPSemanticPass::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
 	{
 		mcPlaces.Put((int64)(size)pcExpression, &psType);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum to check as an enum class, by its name with its scopes; before
+// Check.  An empty name is none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSemanticPass::SetRecordedEnum(const char* szQualifiedName)
+{
+	mszRecordedEnum.Set(szQualifiedName ? szQualifiedName : "");
+	mpsRecordedEnum = NULL;
+	masEnumCasts.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type (whatever its const, and through a reference) is the
+// recorded enum's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSemanticPass::IsRecordedEnum(SCPP65Type* psType)
+{
+	if (!psType || !mpsRecordedEnum)
+	{
+		return false;
+	}
+	if (psType->IsReference())
+	{
+		psType = psType->psBase;
+	}
+	return psType->Unqualified() == mpsRecordedEnum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A place the type checker would refuse an enum class's value.  True if
+// it is the recorded enum's: it is recorded (once for a node and a kind)
+// and the checker goes on as if it were allowed.  False for any other
+// enum class, which is refused.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSemanticPass::RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind)
+{
+	SCPPEnumCast*	psCast;
+	size			i;
+
+	if (!IsRecordedEnum(psFrom) && !IsRecordedEnum(psTo))
+	{
+		return false;
+	}
+	for (i = 0; i < masEnumCasts.NumElements(); i++)
+	{
+		psCast = masEnumCasts.Get(i);
+		if ((psCast->pcNode == pcNode) && (psCast->uiKind == uiKind))
+		{
+			return true;
+		}
+	}
+	psCast = masEnumCasts.Add();
+	psCast->pcNode = pcNode;
+	psCast->psFrom = psFrom;
+	psCast->psTo = psTo;
+	psCast->uiKind = uiKind;
+	return true;
 }
 
 

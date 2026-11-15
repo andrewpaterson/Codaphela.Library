@@ -287,6 +287,9 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 {
+	CCPPSyntax*	pcValue;
+	SCPP65Type*	psValue;
+
 	if (!pcNode)
 	{
 		return;
@@ -305,6 +308,35 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 			return;
 		}
 		break;
+	case CPPS_ReturnStatement:
+		//What is returned is the function's type's: an enum class's value isn't another's without a cast.
+		CheckChildren(pcNode);
+		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
+		psValue = (pcValue && mcContext.GetFunction() && mcContext.GetFunction()->mpsReturn) ? TypeOf(pcValue) : NULL;
+		if (psValue && !psValue->IsClass() && !mcContext.GetFunction()->mpsReturn->IsClass() && !mcContext.GetFunction()->mpsReturn->IsVoid())
+		{
+			mcTypeChecker.KeepsScopedEnum(psValue, mcContext.GetFunction()->mpsReturn, pcValue);
+		}
+		return;
+	case CPPS_IfStatement:
+	case CPPS_WhileStatement:
+	case CPPS_DoStatement:
+	case CPPS_ForStatement:
+		//What a statement tests is a condition: an enum class's value isn't one.
+		CheckChildren(pcNode);
+		switch (pcNode->GetKind())
+		{
+		case CPPS_IfStatement:		pcValue = ((CCPPSyntaxIfStatement*)pcNode)->mpcCondition;		break;
+		case CPPS_WhileStatement:	pcValue = ((CCPPSyntaxWhileStatement*)pcNode)->mpcCondition;	break;
+		case CPPS_DoStatement:		pcValue = ((CCPPSyntaxDoStatement*)pcNode)->mpcCondition;		break;
+		default:					pcValue = ((CCPPSyntaxForStatement*)pcNode)->mpcCondition;		break;
+		}
+		psValue = (pcValue && IsCheckedExpression(pcValue)) ? TypeOf(pcValue) : NULL;
+		if (psValue && psValue->IsScopedEnum())
+		{
+			mcTypeChecker.Truth(psValue, pcValue);
+		}
+		return;
 	case CPPS_ClassSpecifier:
 	case CPPS_EnumSpecifier:
 	case CPPS_LazyDeclaration:

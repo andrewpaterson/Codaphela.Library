@@ -245,6 +245,8 @@ public:
 	CArrayCPPSymbols*		GetPackElements(void) { return &mapcPackElements; }
 	CSpillStore*			GetSpillStore(void) { return mpcSpillStore; }
 	CCPPSemanticPass*		GetSemanticPass(void) { return mpcSemanticPass; }
+	bool					RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
+	bool					IsRecordedEnum(SCPP65Type* psType);
 	CAsm65Profile*			GetFrameProfile(void) { return mpcFrameProfile; }
 	uint32					GetSpillUnit(void) { return muiSpillUnit; }
 	size					GetImportsTurn(void) { return muiImportsTurn; }
