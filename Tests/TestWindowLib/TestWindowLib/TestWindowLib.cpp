@@ -50,6 +50,7 @@ void TestInputSourceChannel(void);
 void TestButton(void);
 void TestButtonBar(void);
 void TestList(void);
+void TestTable(void);
 void TestTree(void);
 void TestMenu(void);
 void TestTextField(void);
@@ -119,6 +120,7 @@ void RunWindowTests(void)
 	TestButton();
 	TestButtonBar();
 	TestList();
+	TestTable();
 	TestTree();
 	TestMenu();
 	TestTextField();

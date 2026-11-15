@@ -231,6 +231,9 @@
     <ClInclude Include="ListContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="Table.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="TreeContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -624,6 +627,9 @@
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="ListContainer.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Table.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="TreeContainer.cpp">
