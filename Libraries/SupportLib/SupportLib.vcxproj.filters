@@ -567,6 +567,18 @@
     <ClInclude Include="QuickHull.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
+    <ClInclude Include="Shape.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="HalfSpace.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
     <ClInclude Include="MeshSelections.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
@@ -1317,6 +1329,18 @@
       <Filter>Source\Mesh\Modifier</Filter>
     </ClCompile>
     <ClCompile Include="QuickHull.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Shape.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="HalfSpace.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="MeshSelections.cpp">
