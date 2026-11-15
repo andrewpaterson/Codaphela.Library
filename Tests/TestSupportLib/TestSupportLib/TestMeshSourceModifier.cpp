@@ -11,6 +11,7 @@
 #include "SupportLib/MeshPlaneEditor.h"
 #include "SupportLib/MeshRingEditor.h"
 #include "SupportLib/MeshSmoothFaces.h"
+#include "SupportLib/MeshTorusEditor.h"
 #include "SupportLib/MeshTubeEditor.h"
 #include "TestLib/Assert.h"
 
@@ -27,6 +28,7 @@ enum ETestMeshShape
 	TMS_Cone,
 	TMS_Cylinder,
 	TMS_Tube,
+	TMS_Torus,
 	TMS_NumShapes
 };
 
@@ -69,6 +71,9 @@ static void TestMeshSourceAddShape(CMeshModifierStack* pcStack, ETestMeshShape e
 		break;
 	case TMS_Tube:
 		pcStack->AddModifier<CMeshTubeEditor>()->Init(&sZ, &sStart, 0.5f, 1.0f, 1.0f, 4, 1, 3);
+		break;
+	case TMS_Torus:
+		pcStack->AddModifier<CMeshTorusEditor>()->Init(&sZ, &sStart, 1.0f, 0.25f, 4, 3);
 		break;
 	default:
 		break;

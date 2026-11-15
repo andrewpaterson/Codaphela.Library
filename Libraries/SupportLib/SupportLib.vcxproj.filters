@@ -1442,6 +1442,9 @@
     <ClCompile Include="MeshTubeEditor.cpp">
       <Filter>Source\Mesh\Modifier\Source\Shape\Cylindrical</Filter>
     </ClCompile>
+    <ClCompile Include="MeshTorusEditor.cpp">
+      <Filter>Source\Mesh\Modifier\Source\Shape</Filter>
+    </ClCompile>
     <ClCompile Include="MeshCornerBuilder.cpp">
       <Filter>Source\Mesh\IO</Filter>
     </ClCompile>

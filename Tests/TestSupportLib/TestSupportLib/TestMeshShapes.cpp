@@ -9,6 +9,7 @@
 #include "SupportLib/MeshConeEditor.h"
 #include "SupportLib/MeshCylinderEditor.h"
 #include "SupportLib/MeshTubeEditor.h"
+#include "SupportLib/MeshTorusEditor.h"
 #include "SupportLib/MeshWriter.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/TextParser.h"
@@ -752,6 +753,81 @@ void TestCylinder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestTorus(void)
+{
+	CMesh				cMesh;
+	SFloat32Vec3		sZDirection;
+	SFloat32Vec3		sCentre;
+	CMeshTorusEditor*	pcTorusEditor;
+	CMeshEditor			cMeshEditor;
+	CFileUtil			cFileUtil;
+	SFloat32Vec3		sNormal;
+	SFloat32Vec3		sMiddle;
+	SFloat32Vec3		sOut;
+	SFloat32Vec3*		psPosition;
+	float32				fAcross;
+	bool				bOnSurface;
+	bool				bFacing;
+	int					i;
+
+	cFileUtil.RemoveDir("Output/Shape");
+	cFileUtil.MakeDir("Output/Shape");
+
+	sZDirection.Init(0, 0, 1);
+	sCentre.Init(0, 0, 0);
+
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	pcTorusEditor = cMeshEditor.AddModifier<CMeshTorusEditor>();
+	pcTorusEditor->Init(&sZDirection, &sCentre, 3.0f, 1.0f, 8, 6);
+	AssertInt(48, pcTorusEditor->ExpectedCornerChunkSize());
+	AssertInt(96, pcTorusEditor->ExpectedFaceChunkSize());
+	cMeshEditor.Collapse();
+	WriteMesh(&cMesh, "Output/Shape/Torus8x6.OBJ");
+
+	AssertInt(48, cMesh.NumCorners());
+	AssertInt(96, cMesh.NumFaces());
+	AssertInt(144, cMesh.NumEdges());
+	AssertInt(48, cMeshEditor.NumPolygons());
+	AssertFloat3(SFloat32Vec3(0, 4, 0), cMesh.GetPosition(0), 3);
+	AssertFloat3(SFloat32Vec3(0, 3.5f, sqrtf(0.75f)), cMesh.GetPosition(8), 3);
+	AssertShapeClosed(&cMesh, 0);
+
+	//Every corner is the tube's radius from the circle through its middle, and every face faces away from that.
+	bOnSurface = true;
+	for (i = 0; i < cMesh.NumCorners(); i++)
+	{
+		psPosition = cMesh.GetPosition(i);
+		fAcross = sqrtf(psPosition->x * psPosition->x + psPosition->y * psPosition->y) - 3.0f;
+		bOnSurface &= fabsf(sqrtf(fAcross * fAcross + psPosition->z * psPosition->z) - 1.0f) < 0.0001f;
+	}
+	AssertTrue(bOnSurface);
+
+	bFacing = true;
+	for (i = 0; i < cMesh.NumFaces(); i++)
+	{
+		TestShapeFaceNormal(&cMesh, i, &sNormal, &sMiddle);
+		sOut.Init(sMiddle.x, sMiddle.y, 0);
+		sOut.Normalize();
+		sOut *= -3.0f;
+		sOut.Add(&sMiddle);
+		bFacing &= Float32Vec3Dot(&sNormal, &sOut) > 0.0f;
+	}
+	AssertTrue(bFacing);
+
+	cMeshEditor.RemoveModifiers();
+	cMeshEditor.Kill();
+	cMesh.Kill();
+	AssertOBJShape("Input/Shape/Torus8x6.OBJ", "Output/Shape/Torus8x6.OBJ");
+
+	cFileUtil.RemoveDir("Output/Shape");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestTube(void)
 {
 	CMesh				cMesh;
@@ -843,6 +919,7 @@ void TestMeshShapes(void)
 	TestCone();
 	TestCylinder();
 	TestTube();
+	TestTorus();
 
 	ObjectsKill(false);
 	NumberKill();
