@@ -1,0 +1,138 @@
+Texture unwrapping plan
+=======================
+
+Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so a texture can be drawn on it, and baking a
+texture for it.  Nothing here is built yet.  What is decided and what is only proposed is said at each point.
+
+
+The user's decisions (2026-11-15)
+---------------------------------
+  It lives in SupportLib: unwrapping is for any mesh, not only isosurfaces.
+  Textures will be both baked and loaded; baked first.
+  Texel density isn't known yet, so it's a setting, not fixed (see Texel density).
+
+
+What there is
+-------------
+  CMesh's UVs are CMeshUVCoords: layers (CMeshUVLayer), each its UVs (CArrayLargeFloat32Vec2) and for each face its corners'
+  UVs (SMeshUVFace, aiUVs[0] == -1 for a face with none).  Faces of different charts can share a corner position and still
+  have different UVs, so a seam needs no extra corners.
+  A material (CMaterial) has its images (CMaterialImage: a Ptr<CImage>, addressing, filters and meUVSource), and CMeshMaterials
+  a material for each face.  RenderLib's cooked mesh carries UVs and RasterLib draws textured faces (TestRasterTexture).
+  Modifiers that rebuild a mesh's faces (weld, merge normals, CMeshShapeNormals) refuse a mesh with UVs (CanRebuild), so an
+  unwrap goes on an editor's stack after them.
+  There's no sparse linear solver, no procedural colour (noise, a material of 3D points) and no bake.
+
+
+How it's done
+-------------
+Three stages, as every unwrapper does them (Hormann, Levy and Sheffer's course notes; xatlas):
+
+  Charts     The mesh is cut into charts, pieces that flatten without much stretch.  Their edges are the seams.
+  Flatten    Each chart is laid flat (parameterised) so its triangles keep their shapes as nearly as can be.
+  Pack       The charts are placed in the unit square without overlapping, a few texels apart, at one scale for all.
+
+Then for a baked texture:
+
+  Bake       For each texel inside a chart, its triangle and barycentric position give a 3D point and normal on the mesh, and
+             the material's colour there is the texel's.  Texels just outside each chart take the colours of their nearest
+             inside ones (dilation), so filtering and mip levels don't bring in the gutter's colour at seams.
+
+Baking is why seams are cheap here: every chart is baked from its own 3D points, so neighbouring charts match at a seam without
+their UVs having to line up, as a painted texture's must.  Short seams matter less than little stretch.  A loaded texture,
+later, is the other way round: it comes with its UVs, or wants few, long-lined-up seams.
+
+
+Charts (proposed)
+-----------------
+First, box projection: each face goes to whichever of the six axis directions its normal is nearest, and each connected group
+of faces with one direction is a chart, projected flat along it.  It can't fold, and gets the whole pipeline drawing.  It
+stretches on slopes (up to 1 / cos 54.7 degrees, a face at the same angle to three axes) and makes many seams on a curve.
+
+Then, charts grown by normals (as xatlas and Blender's Smart UV Project do, D-Charts done properly): faces are added to a chart
+while their normals stay within an angle of its average, best fitting face first, then charts too small are merged into a
+neighbour.  A chart has to be a disc (one boundary, no holes) to flatten: one that isn't is split.
+
+Proposed: grown charts, angle 60 degrees, as LSCM below flattens a curved chart well.
+
+
+Flatten (proposed)
+------------------
+Least Squares Conformal Maps (Levy, Petitjean, Ray and Maillot 2002): the UVs minimising how far each triangle is from a
+scaled, turned copy of itself, with two corners pinned (the furthest apart on the chart's boundary).  It's a sparse linear least
+squares problem in the UVs, solved by conjugate gradients on its normal equations.  Angles are kept, so a texture isn't
+sheared; areas can grow or shrink across a big chart, which charting by angle keeps small.
+
+A chart LSCM folds (a triangle turned over in UV) is split in two and each flattened again.
+
+Later, if texel density across a chart matters: As-Rigid-As-Possible (Liu, Zhang, Xu, Gotsman and Gortler 2008) from LSCM's
+UVs, which keeps areas too.
+
+The solver: a sparse matrix (rows of column, value pairs) and conjugate gradients.  Proposed in BaseLib, as plain arithmetic,
+float64 inside (a big chart's normal equations lose float32 precision).
+
+
+Pack (proposed)
+---------------
+First, each chart's bounding rectangle, turned to its smallest area, packed by size into the square (skyline), all charts at
+one scale, a few texels between them.  Then, where space is wasted, charts drawn into a bitmap at a few turns and placed where
+they first fit (xatlas's way).
+
+Texel density
+-------------
+Not known yet.  Proposed: a setting, texels per unit of the mesh, from which the packer works out the image size (rounded up to
+a power of two); or an image size, from which it works out the density.  Every chart has the same density, so a texture's
+detail is the same everywhere.
+
+
+Bake (proposed)
+---------------
+A material of 3D points: a CObject whose Colour(position, normal) gives an ARGB32, so a bake doesn't care what makes the
+colour.  The first is a 3D checker, which is also the test of stretch: squares that stay square and the same size everywhere
+mean the unwrap is good.  Noise and real materials are another plan.
+
+The baker draws each face's UV triangle into a CImage at the packed size, with each texel's 3D point and normal from its
+barycentric position, asks the material, then dilates the charts' edges into the gutters.  The image becomes the mesh's
+material's diffuse image.
+
+
+Steps
+-----
+Each with its tests, in TestSupportLib.
+
+1. Measures, as TestProceduralLib's MeshMeasures are for meshes: every face has UVs, none is turned over, no two charts'
+   triangles overlap, all are in the unit square, and how much each triangle is stretched (the singular values of its map from
+   3D to UV: their ratio is angle distortion, their product against the chart's average is area distortion).
+2. Box projection and bounding box packing, as a CMeshModifier (CMeshUnwrap) that adds a UV layer.  Tests: a box (six charts,
+   no stretch), a sphere (stretched as box projection is), a torus, an isosurface; all measures pass.
+3. Bake: the 3D material, the checker, the baker and dilation, and the image on the mesh's material.  Tests: texels' colours
+   against the checker at their 3D points, the gutters filled, and a scene drawn by the raster renderer within a tolerance of
+   saved bytes, as TestShapeScene.
+4. Grown charts.  Tests: a sphere in few charts, a box in six, every chart a disc.
+5. BaseLib's sparse matrix and conjugate gradients.  Tests: against small systems solved directly.
+6. LSCM.  Tests: a flat chart's UVs its shape exactly (no stretch), a hemisphere's angles kept, folded charts split; the
+   checker's squares stay square on the sphere and isosurface.
+7. Raster packing, if bounding boxes waste much space.
+8. ARAP, if texel density across charts matters.
+9. Loaded textures: keeping a mesh's own UVs, and unwrapping for a texture made to be painted (fewer, longer seams).
+
+
+Open
+----
+Texel density (above).
+How the checker or a material is given its scale.
+Mip levels: whether a baked image makes its own, and how wide the gutters must be for them.
+Several UV layers: one for colour, and later a lightmap's (which can't share texels between faces, unlike a tiled colour).
+Whether CMeshUnwrap keeps its charts so a re-bake after a material change doesn't unwrap again.
+
+
+Literature
+----------
+  Hormann, Levy and Sheffer, Mesh Parameterization: Theory and Practice, SIGGRAPH 2007 course notes.  The overview.
+  Levy, Petitjean, Ray and Maillot, Least Squares Conformal Maps for Automatic Texture Atlas Generation, SIGGRAPH 2002.
+  Sheffer, Levy, Mogilnitsky and Bogomyakov, ABF++, ACM TOG 2005.
+  Liu, Zhang, Xu, Gotsman and Gortler, A Local/Global Approach to Mesh Parameterization (ARAP), SGP 2008.
+  Julius, Kraevoy and Sheffer, D-Charts: Quasi-Developable Mesh Segmentation, Eurographics 2005.
+  Sawhney and Crane, Boundary First Flattening, ACM TOG 2017.
+  Floater, Mean Value Coordinates, CAGD 2003.  A chart that can't fold, as a fallback.
+  xatlas, github.com/jpcy/xatlas (MIT): charting, LSCM and packing in one file, to read alongside.
