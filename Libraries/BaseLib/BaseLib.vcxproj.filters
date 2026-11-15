@@ -1701,6 +1701,21 @@
     <ClInclude Include="Int16Vec2.h">
       <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
+    <ClInclude Include="Float32Bounds.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float32Box.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float32Plane.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float32Sphere.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float32Triangle.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
     <ClInclude Include="Float32Vec3.h">
       <Filter>Source\Data\Geometric\Vector3</Filter>
     </ClInclude>
@@ -2905,6 +2920,21 @@
     </ClCompile>
     <ClCompile Include="Int16Vec2.cpp">
       <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Bounds.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Box.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Plane.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Sphere.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Triangle.cpp">
+      <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
     <ClCompile Include="Float32Vec3.cpp">
       <Filter>Source\Data\Geometric\Vector3</Filter>

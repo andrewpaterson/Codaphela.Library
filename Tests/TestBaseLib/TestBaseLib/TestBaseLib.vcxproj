@@ -257,6 +257,11 @@
     <ClCompile Include="TestEscapeCodes.cpp" />
     <ClCompile Include="TestFileIO.cpp" />
     <ClCompile Include="TestFloat32Vec2.cpp" />
+    <ClCompile Include="TestFloat32Bounds.cpp" />
+    <ClCompile Include="TestFloat32Box.cpp" />
+    <ClCompile Include="TestFloat32Plane.cpp" />
+    <ClCompile Include="TestFloat32Sphere.cpp" />
+    <ClCompile Include="TestFloat32Triangle.cpp" />
     <ClCompile Include="TestFloat32Vec3.cpp" />
     <ClCompile Include="TestFloat32Vec4.cpp" />
     <ClCompile Include="TestFloat64Vec4.cpp" />

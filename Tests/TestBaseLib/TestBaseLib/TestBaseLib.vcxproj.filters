@@ -789,6 +789,21 @@
     <ClCompile Include="TestIntVec2.cpp">
       <Filter>Source\Data\Geometric\Vec2</Filter>
     </ClCompile>
+    <ClCompile Include="TestFloat32Bounds.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Box.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Plane.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Sphere.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Triangle.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
     <ClCompile Include="TestFloat32Vec3.cpp">
       <Filter>Source\Data\Geometric\Vec3</Filter>
     </ClCompile>

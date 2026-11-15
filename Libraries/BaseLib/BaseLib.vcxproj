@@ -446,6 +446,11 @@
     <ClInclude Include="MarkupTag.h" />
     <ClInclude Include="MarkupText.h" />
     <ClInclude Include="Float32Vec2.h" />
+    <ClInclude Include="Float32Bounds.h" />
+    <ClInclude Include="Float32Box.h" />
+    <ClInclude Include="Float32Plane.h" />
+    <ClInclude Include="Float32Sphere.h" />
+    <ClInclude Include="Float32Triangle.h" />
     <ClInclude Include="Float32Vec3.h" />
     <ClInclude Include="Float32Vec4.h" />
     <ClInclude Include="Float4x4.h" />
@@ -864,6 +869,11 @@
     <ClCompile Include="MarkupTag.cpp" />
     <ClCompile Include="MarkupText.cpp" />
     <ClCompile Include="Float32Vec2.cpp" />
+    <ClCompile Include="Float32Bounds.cpp" />
+    <ClCompile Include="Float32Box.cpp" />
+    <ClCompile Include="Float32Plane.cpp" />
+    <ClCompile Include="Float32Sphere.cpp" />
+    <ClCompile Include="Float32Triangle.cpp" />
     <ClCompile Include="Float32Vec3.cpp" />
     <ClCompile Include="Float32Vec4.cpp" />
     <ClCompile Include="Float4x4.cpp" />
