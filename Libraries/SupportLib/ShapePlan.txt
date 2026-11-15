@@ -159,7 +159,11 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
    along its matrix's axes, not the largest as this plan first said: a world distance is at least the smallest scale times
    the shape's own, so only that is a bound; it's exact for an even scale.  TestShapeCombination checks each against a grid
    sampled surface (bisected where Contains changes), which fails, as the direct checks do, with the largest scale.
-7. CConvexHull, from CQuickHull.
+7. CConvexHull, from CQuickHull.  Done: its faces' planes (BaseLib's CArrayFloat32Plane) and its corners, saved by its own Save
+   and Load as CMeshPositions saves its array.  Its distance is the furthest plane's, its gradient that plane's normal, and
+   its bounds its corners'; points CQuickHull can't make a hull of make it nothing.  TestConvexHull: a box's points make a hull
+   whose distance is the box's inside, exactly, and no more outside, and which the grid sampled surface check finds a bound;
+   its planes, corners and distances are the same saved and read back.  The shape tests share one TestShapeRandom.
 8. The isosurface and the shape to mesh modifier (Isosurface.txt).
 9. CMeshShape, when collision or picking needs it.
 
