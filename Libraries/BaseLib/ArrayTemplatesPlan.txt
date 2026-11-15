@@ -8,8 +8,7 @@ Where it is: the questions the plan started with are answered (under "Answered",
 found).  Done 2026-11-15, all five steps: every family is a template written once (CArrayBlockBase<SIZE>,
 CArrayTemplateBase<M, BLOCK>, CArrayTemplatePrimitiveBase<M, TEMPLATE>, CArrayCharBase<PRIMITIVE>, CCharsBase<STRING,
 TEXT>) in its own .h and .cpp, the macros and .inl files are gone, and nothing got bigger or slower but for one 65C64
-difference the user ruled insignificant (step 4).  Left: building it with MSVC (on Windows), and the Count typedef
-(deferred, step 4).
+difference the user ruled insignificant (step 4).  Left: building it with MSVC (on Windows).
 
 
 Why
@@ -294,8 +293,13 @@ after step 2.
      others (all of them, or those to functions that can't be inlined) make the conversion exactly neutral, but
      change everything else: 0.06% to 0.12% more bytes on both targets and 0.0008% more cycles on the 816
      (faster on the 65C64).  The user's ruling (2026-11-15): leave it, it isn't significant.
-     Deferred (the user, 2026-11-15): a class scope "typedef typename BLOCK::Count Count;" (and the like) to
-     shorten the declarations: maybe later, not now.
+     The Count typedef, deferred here, was done after step 5 (the user asked whether it conflicts with
+     RefactoringQuestions 53's name classes: it doesn't, being a typedef of a type, not of a template's
+     instance): SArrayHeaderBase, CArrayBlockBase, CArrayTemplateBase, CArrayTemplatePrimitiveBase and
+     CCharsBase each have "typedef typename X::Count Count;" (a dependent base isn't looked in for it), and
+     their members, parameters and locals are Count; a function defined outside its class keeps the long form
+     for its return type.  CChars's Count(char c) became Occurrences(char c) for it (the user's choice), its
+     callers with it; CString keeps its own Count(char).
   5. Done 2026-11-15: ArraySizeNatural.inl, ArraySizeLarge.inl and ArraySizeUndef.inl deleted (nothing included
      them after step 4); each Class and Code .inl folded into the .h or .cpp that included it (the user's choice):
      ArrayBlock.h/.cpp, ArrayTemplate.h, ArrayTemplatePrimitive.h, ArrayChar.h/.cpp, Chars.h/.cpp.  BaseLib.vcxproj
