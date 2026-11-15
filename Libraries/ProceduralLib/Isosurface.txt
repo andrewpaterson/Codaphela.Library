@@ -76,8 +76,8 @@ its normal.  The vertex is where the planes through the crossings, along their n
 
 Proposed, as Ju et al. and most implementations since do it:
   Accumulate the 3x3 matrix A'A, the vector A'b and b'b, which are small and add up, so cells can be merged later.
-  Solve relative to the mass point (the crossings' average), with a pseudo inverse of A'A whose singular values under a tenth of
-  the largest are taken as zero.  So a sphere's or a flat face's vertex is near the mass point instead of anywhere along the
+  Solve relative to the mass point (the crossings' average), with a pseudo inverse of A'A whose eigenvalues under a hundredth of
+  the largest are taken as zero (A's singular values under a tenth: A'A's eigenvalues are their squares).  So a sphere's or a flat face's vertex is near the mass point instead of anywhere along the
   surface, a cylinder's side doesn't slide along its axis, and two or three planes still give their edge or corner exactly.
   If the vertex is still outside its cell it is clamped back in, and the mass point is used if that makes the error worse.
 BaseLib has no eigen or singular value solver.  A 3x3 symmetric Jacobi rotation solver is small and is written for this, in
@@ -144,10 +144,20 @@ that plan's step 8, done in these sub-steps, each with its tests in TestProcedur
     point, BaseLib's 3x3 symmetric Jacobi solver giving the pseudo inverse, small singular values dropped, and the vertex
     clamped to its cell.  Tests: three planes give their corner exactly, two the nearest point on their edge, one the mass
     point, and the solver's own.
+    Done: BaseLib's SFloat32Symmetric3x3 (float32, as BaseLib compiles for the 65C64 and W65C816) and SIsosurfaceFit, relative to
+    the cell's centre.  Its cut off is a hundredth of A'A's largest eigenvalue: a tenth drops a face crossed at one or two of a
+    cell's edges when another is crossed at many.
 8.5 Dual contouring on a uniform grid: a vertex for each cell the surface crosses and a quad for each crossed edge, from the four
     cells around it, wound from inside to outside and split along the diagonal whose middle is nearer the surface, added as two
     AddFaces.  Flat normals, then CMeshMergeNormals.  Tests: a box's corners and edges exactly where they are, a cylinder's rims
     sharp, the seam of a cylinder pushed into a box sharp, a sphere's vertices on it, each closed and facing out.
+    Done: CDualContouring.  At 0.25 cells, a turned box's corners are exact, its volume within 1% (marching cubes loses 4%) and its
+    area right to 2 decimals; a cylinder has 80 corners on its rims (marching cubes 16) and its volume within 0.5%; the union's
+    seam has 22 (marching cubes none).  Not every vertex is on a crease: a cell can hold pieces of two faces whose edge passes
+    outside it, and the fit, clamped back into the cell or the mass point, is up to 0.3 of a cell off.  Letting the vertex out of
+    its cell by even a tenth of one folds faces over instead, so it stays clamped, and the octree's splitting is to shrink such
+    cells.  A gyroid has a few faces folded (4 of 7000) where a cell holds two pieces of surface (Known limits).
+    CMeshMergeNormals' arrays are large ones now: a thousand faces passed 64KB with a 16 bit size.
 8.6 The octree: a cell skipped when its distance shows the surface can't reach it, and split when its normals differ by more than
     an angle or its centre's distance differs from what its corners predict.  An edge is taken from the smallest cell around it,
     so nothing cracks between sizes.  Tests: closed with no cracks, a V notch thinner than the largest cell kept, a flat face
