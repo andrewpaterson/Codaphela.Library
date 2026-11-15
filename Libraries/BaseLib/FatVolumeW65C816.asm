@@ -677,7 +677,7 @@ _CFatVolume__GetLabel:
 		.width (A, X), 16
 		jsr Enter
 		jsr PushLabel
-		jsl _CChars__Text
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Text
 		ply
 		ply
 		jmp Leave
@@ -1871,7 +1871,7 @@ ShiftRight32Done:
 SetLabel:
 		.width (A, X), 16
 		jsr PushLabel
-		jsl _CChars__Kill
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Kill
 		ply
 		ply
 		pea 10
@@ -1879,13 +1879,13 @@ SetLabel:
 		pei [D + F_POINTER + 2]
 		pei [D + F_POINTER]
 		jsr PushLabel
-		jsl _CChars__Init__FPKctt
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Init__FPKctt
 		tsc
 		clc
 		adc 12
 		tcs
 		jsr PushLabel
-		jsl _CChars__StripWhitespace
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__StripWhitespace
 		ply
 		ply
 		rts
@@ -2206,7 +2206,7 @@ _CFatVolume__Mount:
 		adc 10
 		tcs
 		jsr PushLabel
-		jsl _CChars__Init
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Init
 		ply
 		ply
 		; Not mounted until the BIOS parameter block is found: unmounting after a mount that fails writes nothing.
@@ -2682,7 +2682,7 @@ UnmountInfoRead:
 		jmp Leave
 UnmountCaches:
 		jsr PushLabel
-		jsl _CChars__Kill
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Kill
 		ply
 		ply
 		jsr SectorCache

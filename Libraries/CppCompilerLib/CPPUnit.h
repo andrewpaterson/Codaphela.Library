@@ -395,6 +395,8 @@ public:
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
+	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ClassError(int iToken, const char* szMessage);

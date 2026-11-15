@@ -87,10 +87,32 @@ char GetNumberAs1DigitHex(size nybble)
 }
 
 
-#include "ArraySizeNatural.inl"
 #include "CharsCode.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "CharsCode.inl"
-#include "ArraySizeUndef.inl"
+
+//The only instances: Chars.h declares them extern.
+template class CCharsBase<CChars, CArrayChar>;
+template class CCharsBase<CLargeChars, CArrayLargeChar>;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A large string appends a natural one.
+//
+//////////////////////////////////////////////////////////////////////////
+CLargeChars* CLargeChars::Append(CChars szString)
+{
+	Append(szString.Text());
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLargeChars* CLargeChars::Append(CChars* psz)
+{
+	Append(psz->Text());
+	return this;
+}

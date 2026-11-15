@@ -54,6 +54,7 @@ int32		TestCPP65MainFloat(const char* szSource);
 
 extern const char* gszTestCPP65StaticConstMembers;
 extern const char* gszTestCPP65NestedQualifiers;
+extern const char* gszTestCPP65LateMemberDefinitions;
 size		TestCPP65CompileLibrary(const char* szLibrary, CChars* pszErrors);
 size		TestCPP816RunChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps);
 size		TestCPP816RunLockstepChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps);

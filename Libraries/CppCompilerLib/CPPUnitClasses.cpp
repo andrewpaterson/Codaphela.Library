@@ -445,6 +445,65 @@ bool CCPPUnit::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An instance of a class template gets its function defined outside the template
+// (pcMember).  Its template parameters are new names for the class's.  A function
+// called before its definition was seen is generated now, as C++ instantiates it
+// wherever in the unit its definition is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember)
+{
+	CCPPTemplateArguments*			pcMemberBindings;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPFunction*					pcFunction;
+
+	pcMemberBindings = RenameBindings(pcClass, pcMember->mpcDeclaration);
+	pcDefinition = (CCPPSyntaxFunctionDefinition*)pcMember->mpcDefinition;
+	mcContext.EnterBindings(pcMemberBindings);
+	BeginQuiet();
+	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
+	EndQuiet();
+	mcContext.LeaveBindings();
+	if (pcFunction && (pcDefinition->meBody == CPPFB_Body) && !pcFunction->mpcDefinition)
+	{
+		pcFunction->mpcDefinition = pcDefinition;
+		pcFunction->mpcBindings = pcMemberBindings;
+		pcFunction->mbInline = true;
+		if (pcFunction->mbCalled)
+		{
+			RequireFunction(pcFunction);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function of a class template defined outside it (pcMember) after some of its
+// instances were laid out (a CChars used whole by a header included before
+// CharsCode.inl): they get it too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DefineOutsideMembers(CCPPTemplate* pcMember)
+{
+	CCPPClass*	pcClass;
+	size		i;
+
+	for (i = 0; i < mapcClasses.NumElements(); i++)
+	{
+		pcClass = mapcClasses.GetPtr(i);
+		if (pcClass->mpcTemplate && (pcClass->mpcTemplate == pcMember->mpcOwner) && pcClass->IsComplete())
+		{
+			mcContext.EnterBindings(pcClass->mpcBindings);
+			DefineOutsideMember(pcClass, pcMember);
+			mcContext.LeaveBindings();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Lays out a class: the bases in order (an empty base takes no space), the vtable
 // pointer if no base has one, then the fields.  Members are read first: functions
 // are declared (in class definitions are generated when called) and fields are
@@ -459,8 +518,6 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	CCPPSyntaxNameComponent*		pcComponent;
 	CCPPTemplate*					pcMember;
 	CCPPFunction*					pcFunction;
-	CCPPTemplateArguments*			pcMemberBindings;
-	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPClassLayout					cLayout;
 	size							i;
 	int								iClassAlign;
@@ -493,30 +550,16 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	mcContext.LeaveNamespace();
 
-	//A class template's members defined outside it.  Their template parameters are
-	//new names for the class's.
+	//A class template's members defined outside it (so far: one defined later is given to the instances already laid
+	//out then, DefineOutsideMembers).
 	if (pcClass->mpcTemplate)
 	{
 		for (i = 0; i < mapcTemplates.NumElements(); i++)
 		{
 			pcMember = mapcTemplates.GetPtr(i);
-			if (!pcMember->mbMember || pcMember->mbMemberTemplate || (pcMember->mpcOwner != pcClass->mpcTemplate))
+			if (pcMember->mbMember && !pcMember->mbMemberTemplate && (pcMember->mpcOwner == pcClass->mpcTemplate))
 			{
-				continue;
-			}
-			pcMemberBindings = RenameBindings(pcClass, pcMember->mpcDeclaration);
-
-			pcDefinition = (CCPPSyntaxFunctionDefinition*)pcMember->mpcDefinition;
-			mcContext.EnterBindings(pcMemberBindings);
-			BeginQuiet();
-			pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
-			EndQuiet();
-			mcContext.LeaveBindings();
-			if (pcFunction && (pcDefinition->meBody == CPPFB_Body))
-			{
-				pcFunction->mpcDefinition = pcDefinition;
-				pcFunction->mpcBindings = pcMemberBindings;
-				pcFunction->mbInline = true;
+				DefineOutsideMember(pcClass, pcMember);
 			}
 		}
 	}

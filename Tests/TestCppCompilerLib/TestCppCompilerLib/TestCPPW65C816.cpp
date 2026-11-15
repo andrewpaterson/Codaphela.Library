@@ -3035,7 +3035,8 @@ void TestCPP816DynamicCastUnits(void)
 void TestCPP816StaticConstMembers(void)
 {
 	AssertInt(760, TestCPP816Run(gszTestCPP65StaticConstMembers));
-	AssertInt(243, TestCPP816Run(gszTestCPP65NestedQualifiers));
+	AssertInt(273, TestCPP816Run(gszTestCPP65NestedQualifiers));
+	AssertInt(42, TestCPP816Run(gszTestCPP65LateMemberDefinitions));
 }
 
 

@@ -20,14 +20,16 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-//No include guard: CharsCode.inl is included once per string size (ArraySizeNatural.inl and
-//ArraySizeLarge.inl define the names and types it is written with).
+//CCharsBase's functions, for either string size.  Chars.cpp includes it and instantiates them for both; Chars.h
+//declares them extern, so no other unit compiles them.
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::_Init(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::_Init(void)
 {
 	//This makes it safe to call kill.
 	//It does not make 'this' usable.  It will - rightly - NULL pointer.
@@ -39,19 +41,20 @@ void CHARS::_Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::InitLength(ASIZE iLength)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::InitLength(typename TEXT::Count iLength)
 {
 	if (iLength != 0)
 	{
 		mcText.Init();
 		mcText.Resize(iLength + 1);
 		mcText.SetValue(iLength, '\0');
-		return this;
+		return (STRING*)this;
 	}
 	else
 	{
 		InitEmpty();
-		return this;
+		return (STRING*)this;
 	}
 }
 
@@ -60,14 +63,15 @@ CHARS* CHARS::InitLength(ASIZE iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::InitLength(CMallocator* pcMalloc, ASIZE iLength)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::InitLength(CMallocator* pcMalloc, typename TEXT::Count iLength)
 {
 	if (iLength != 0)
 	{
 		mcText.Init(pcMalloc);
 		mcText.Resize(iLength + 1);
 		mcText.SetValue(iLength, '\0');
-		return this;
+		return (STRING*)this;
 	}
 	else
 	{
@@ -80,10 +84,11 @@ CHARS* CHARS::InitLength(CMallocator* pcMalloc, ASIZE iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(void)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(void)
 {
 	InitEmpty();
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -94,7 +99,8 @@ CHARS* CHARS::Init(void)
 // CReuseAllocator emptying and refilling the string then reuses the same memory.
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(CMallocator* pcMalloc)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(CMallocator* pcMalloc)
 {
 	if ((pcMalloc == NULL) || (pcMalloc == &gcSystemAllocator))
 	{
@@ -105,7 +111,7 @@ CHARS* CHARS::Init(CMallocator* pcMalloc)
 		mcText.Init(pcMalloc);
 		mcText.Add('\0');
 	}
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -113,7 +119,8 @@ CHARS* CHARS::Init(CMallocator* pcMalloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(const char* szString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(const char* szString)
 {
 	mcText.Init();
 	if (!StrEmpty(szString))
@@ -124,7 +131,7 @@ CHARS* CHARS::Init(const char* szString)
 	{
 		SetEmpty();
 	}
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -132,9 +139,10 @@ CHARS* CHARS::Init(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(CHARS szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(STRING szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
-	if ((iEndExclusive > iStartInclusive) && (iEndExclusive != ARRAY_SIZE_MAX))
+	if ((iEndExclusive > iStartInclusive) && (iEndExclusive != TEXT::SizePolicy::Max))
 	{
 		mcText.Init();
 		AppendSubString(szString, iStartInclusive, iEndExclusive);
@@ -144,7 +152,7 @@ CHARS* CHARS::Init(CHARS szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
 	{
 		InitEmpty();
 	}
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -152,7 +160,8 @@ CHARS* CHARS::Init(CHARS szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(const char* szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
 	if (iEndExclusive > iStartInclusive)
 	{
@@ -164,7 +173,7 @@ CHARS* CHARS::Init(const char* szString, ASIZE iStartInclusive, ASIZE iEndExclus
 	{
 		InitEmpty();
 	}
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -173,11 +182,12 @@ CHARS* CHARS::Init(const char* szString, ASIZE iStartInclusive, ASIZE iEndExclus
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(const char* szString, ASIZE iStartInclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, typename TEXT::Count iStartInclusive)
 {
 	mcText.Init();
 	Set(&szString[iStartInclusive]);
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -185,7 +195,8 @@ CHARS* CHARS::Init(const char* szString, ASIZE iStartInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(CHARS szString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(STRING szString)
 {
 	if (!szString.Empty())
 	{
@@ -197,7 +208,7 @@ CHARS* CHARS::Init(CHARS szString)
 		InitEmpty();
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -205,7 +216,8 @@ CHARS* CHARS::Init(CHARS szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(CHARS* psz)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(STRING* psz)
 {
 	if (psz && !psz->Empty())
 	{
@@ -216,7 +228,7 @@ CHARS* CHARS::Init(CHARS* psz)
 	{
 		InitEmpty();
 	}
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -224,7 +236,8 @@ CHARS* CHARS::Init(CHARS* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(char cPadCharacter, ASIZE iNumber)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(char cPadCharacter, typename TEXT::Count iNumber)
 {
 	if (iNumber != 0)
 	{
@@ -235,7 +248,7 @@ CHARS* CHARS::Init(char cPadCharacter, ASIZE iNumber)
 	{
 		InitEmpty();
 	}
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -243,7 +256,8 @@ CHARS* CHARS::Init(char cPadCharacter, ASIZE iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Init(CExternalString* pcString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Init(CExternalString* pcString)
 {
 	return Init(pcString->msz, 0, pcString->miLen);
 }
@@ -253,13 +267,14 @@ CHARS* CHARS::Init(CExternalString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::InitList(const char* szFirst, ...)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::InitList(const char* szFirst, ...)
 {
 	InitEmpty();
 
-	va_list			vaMarker;
-	const char*		pc;
-	ASIZE			iCount;
+	va_list					vaMarker;
+	const char*				pc;
+	typename TEXT::Count	iCount;
 
 	if (szFirst)
 	{
@@ -277,7 +292,7 @@ CHARS* CHARS::InitList(const char* szFirst, ...)
 	}
 
 	CleanIfEmpty();
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -285,13 +300,14 @@ CHARS* CHARS::InitList(const char* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::InitList(CHARS* szFirst, ...)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::InitList(STRING* szFirst, ...)
 {
 	InitEmpty();
 
-	va_list		vaMarker;
-	CHARS*		pc;
-	ASIZE		iCount;
+	va_list					vaMarker;
+	STRING*					pc;
+	typename TEXT::Count	iCount;
 
 	if (szFirst)
 	{
@@ -303,12 +319,12 @@ CHARS* CHARS::InitList(CHARS* szFirst, ...)
 		{
 			Append(pc->Text());
 			iCount++;
-			pc = va_arg(vaMarker, CHARS*);
+			pc = va_arg(vaMarker, STRING*);
 		}
 		va_end(vaMarker);
 	}
 	CleanIfEmpty();
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -316,7 +332,8 @@ CHARS* CHARS::InitList(CHARS* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::InitData2(const char* szData, ASIZE iDataLength)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::InitData2(const char* szData, typename TEXT::Count iDataLength)
 {
 	InitEmpty();
 
@@ -328,7 +345,8 @@ bool CHARS::InitData2(const char* szData, ASIZE iDataLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Kill(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Kill(void)
 {
 	if (!IsFakeEmpty())
 	{
@@ -341,7 +359,8 @@ void CHARS::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::DumpKill(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::DumpKill(void)
 {
 	Dump();
 	Kill();
@@ -352,7 +371,8 @@ void CHARS::DumpKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Fake(const char* szString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Fake(const char* szString)
 {
 	if (szString)
 	{
@@ -369,7 +389,8 @@ void CHARS::Fake(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Fake(const char* szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Fake(const char* szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
 	char* pcPosition;
 
@@ -389,7 +410,8 @@ void CHARS::Fake(const char* szString, ASIZE iStartInclusive, ASIZE iEndExclusiv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::ReInit(void)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::ReInit(void)
 {
 	Kill();
 	return Init();
@@ -398,26 +420,25 @@ CHARS* CHARS::ReInit(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szString's length if it fits (ARRAY_SIZE_MAX - 1 characters and the zero).
-// A longer one is an overflow (ARRAY_CHECK_SIZE): reported in debug, and
+// szString's length if it fits (TEXT::SizePolicy::Max - 1 characters and the zero).
+// A longer one is an overflow (SizePolicy::CheckSize): reported in debug, and
 // treated as empty rather than cut short.
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::CStringLength(const char* szString)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::CStringLength(const char* szString)
 {
 	lsize	uiLength;
 
 	uiLength = strlen(szString);
-#ifdef ARRAY_CHECK_SIZE
-	if (uiLength >= ARRAY_SIZE_MAX)
+	if (TEXT::SizePolicy::CheckSize && (uiLength >= TEXT::SizePolicy::Max))
 	{
 #ifdef _DEBUG
 		gcUserError.Set("A string counted with size can't hold a C string of MAX_SIZE characters or more.  Use CLargeChars.");
 #endif // _DEBUG
 		return 0;
 	}
-#endif // ARRAY_CHECK_SIZE
-	return (ASIZE)uiLength;
+	return (typename TEXT::Count)uiLength;
 }
 
 
@@ -425,7 +446,8 @@ ASIZE CHARS::CStringLength(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Length(void)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Length(void)
 {
 	//Don't include the zero char at the end of the string.
 	if (mcText.IsEmpty() || IsFakeEmpty())
@@ -440,9 +462,10 @@ ASIZE CHARS::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Set(CHARS szString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Set(STRING szString)
 {
-	ASIZE uiLen;
+	typename TEXT::Count uiLen;
 
 	uiLen = szString.Length() + 1;
 	if (uiLen > 1)
@@ -460,9 +483,10 @@ void CHARS::Set(CHARS szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Set(CHARS* psz)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Set(STRING* psz)
 {
-	ASIZE uiLen;
+	typename TEXT::Count uiLen;
 
 	uiLen = psz->Length() + 1;
 	if (uiLen > 1)
@@ -480,9 +504,10 @@ void CHARS::Set(CHARS* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Set(const char* szString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Set(const char* szString)
 {
-	ASIZE uiLen;
+	typename TEXT::Count uiLen;
 
 	if (!StrEmpty(szString))
 	{
@@ -500,7 +525,8 @@ void CHARS::Set(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::SetNonNull(const char* szString, ASIZE uiLen)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::SetNonNull(const char* szString, typename TEXT::Count uiLen)
 {
 	if (!IsFakeEmpty())
 	{
@@ -511,7 +537,7 @@ void CHARS::SetNonNull(const char* szString, ASIZE uiLen)
 		Unfake();
 		mcText.Resize(uiLen);
 	}
-	ARRAY_MEMCPY(mcText.GetData(), szString, uiLen);
+	TEXT::SizePolicy::Copy(mcText.GetData(), szString, uiLen);
 }
 
 
@@ -519,7 +545,8 @@ void CHARS::SetNonNull(const char* szString, ASIZE uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::SetEmpty(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::SetEmpty(void)
 {
 	if (!IsFakeEmpty())
 	{
@@ -541,7 +568,8 @@ void CHARS::SetEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::SetChar(ASIZE iIndex, char c)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::SetChar(typename TEXT::Count iIndex, char c)
 {
 	if (iIndex < Length())
 	{
@@ -554,20 +582,21 @@ void CHARS::SetChar(ASIZE iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(const char* szString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(const char* szString)
 {
-	ASIZE	uiLen;
-	char*	pcPosition;
+	typename TEXT::Count	uiLen;
+	char*					pcPosition;
 
 	if (!StrEmpty(szString))
 	{
 		uiLen = CStringLength(szString);
 		pcPosition = PrivateGrow(uiLen);
-		ARRAY_MEMCPY(pcPosition, szString, uiLen);
+		TEXT::SizePolicy::Copy(pcPosition, szString, uiLen);
 		pcPosition[uiLen] = '\0';
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -575,18 +604,19 @@ CHARS* CHARS::Append(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(CExternalString* pcString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(CExternalString* pcString)
 {
 	char*	pcPosition;
 
 	if (pcString && pcString->miLen > 0)
 	{
 		pcPosition = PrivateGrow(pcString->miLen);
-		ARRAY_MEMCPY(pcPosition, pcString->msz, pcString->miLen);
+		TEXT::SizePolicy::Copy(pcPosition, pcString->msz, pcString->miLen);
 		pcPosition[pcString->miLen] = '\0';
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -594,7 +624,8 @@ CHARS* CHARS::Append(CExternalString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(const char* szString, ASIZE uiLen)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(const char* szString, typename TEXT::Count uiLen)
 {
 	char*	pcPosition;
 	char*	pcZero;
@@ -602,12 +633,12 @@ CHARS* CHARS::Append(const char* szString, ASIZE uiLen)
 	if (szString && uiLen > 0)
 	{
 		pcPosition = PrivateGrow(uiLen);
-		ARRAY_MEMCPY(pcPosition, szString, uiLen);
+		TEXT::SizePolicy::Copy(pcPosition, szString, uiLen);
 		pcZero = mcText.Tail();
 		*pcZero = '\0';
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -615,7 +646,8 @@ CHARS* CHARS::Append(const char* szString, ASIZE uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(char cPadCharacter)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(char cPadCharacter)
 {
 	char* pcReplace;
 
@@ -625,7 +657,7 @@ CHARS* CHARS::Append(char cPadCharacter)
 	*pcReplace = cPadCharacter;
 	mcText.Add(0);
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -633,10 +665,11 @@ CHARS* CHARS::Append(char cPadCharacter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(CHARS szString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(STRING szString)
 {
 	Append(szString.Text());
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -644,23 +677,11 @@ CHARS* CHARS::Append(CHARS szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(CHARS* psz)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(STRING* psz)
 {
 	Append(psz->Text());
-	return this;
-}
-
-
-#ifdef CHARS_NATURAL
-//////////////////////////////////////////////////////////////////////////
-//
-// A large string appends a natural one.
-//
-//////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(CHARS_NATURAL szString)
-{
-	Append(szString.Text());
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -668,22 +689,11 @@ CHARS* CHARS::Append(CHARS_NATURAL szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(CHARS_NATURAL* psz)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(CCharsImmutable* psz)
 {
 	Append(psz->Text());
-	return this;
-}
-#endif // CHARS_NATURAL
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(CCharsImmutable* psz)
-{
-	Append(psz->Text());
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -691,7 +701,8 @@ CHARS* CHARS::Append(CCharsImmutable* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(int32 i)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(int32 i)
 {
 	char szString[32];
 
@@ -704,7 +715,8 @@ CHARS* CHARS::Append(int32 i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(int32 i, uint16 iBase)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(int32 i, uint16 iBase)
 {
 	char szString[32];
 
@@ -717,7 +729,8 @@ CHARS* CHARS::Append(int32 i, uint16 iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(uint64 ulli)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(uint64 ulli)
 {
 	char szString[64];
 
@@ -730,7 +743,8 @@ CHARS* CHARS::Append(uint64 ulli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(int64 lli)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(int64 lli)
 {
 	char szString[64];
 
@@ -743,7 +757,8 @@ CHARS* CHARS::Append(int64 lli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(uint32 ui)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(uint32 ui)
 {
 	char szString[32];
 
@@ -756,7 +771,8 @@ CHARS* CHARS::Append(uint32 ui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(uint32 ui, uint16 iBase)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(uint32 ui, uint16 iBase)
 {
 	char szString[32];
 
@@ -770,7 +786,8 @@ CHARS* CHARS::Append(uint32 ui, uint16 iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(int16 i)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(int16 i)
 {
 	return Append((int32)i);
 }
@@ -780,7 +797,8 @@ CHARS* CHARS::Append(int16 i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(int16 i, uint16 iBase)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(int16 i, uint16 iBase)
 {
 	return Append((int32)i, iBase);
 }
@@ -790,7 +808,8 @@ CHARS* CHARS::Append(int16 i, uint16 iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(uint16 ui)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(uint16 ui)
 {
 	return Append((uint32)ui);
 }
@@ -800,7 +819,8 @@ CHARS* CHARS::Append(uint16 ui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(uint16 ui, uint16 iBase)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(uint16 ui, uint16 iBase)
 {
 	return Append((uint32)ui, iBase);
 }
@@ -811,13 +831,14 @@ CHARS* CHARS::Append(uint16 ui, uint16 iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(float f, ASIZE iMaxDecimals, bool bAppendF)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(float f, typename TEXT::Count iMaxDecimals, bool bAppendF)
 {
 	char szString[32];
 
 	if (!FloatToString(szString, 32, f, (int)iMaxDecimals, bAppendF))
 	{
-		return this;
+		return (STRING*)this;
 	}
 	return  Append(szString);
 }
@@ -827,13 +848,14 @@ CHARS* CHARS::Append(float f, ASIZE iMaxDecimals, bool bAppendF)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(double d, ASIZE iMaxDecimals, bool bAppendD)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(double d, typename TEXT::Count iMaxDecimals, bool bAppendD)
 {
 	char	szString[128];
 
 	if (!DoubleToString(szString, 128, d, (int)iMaxDecimals, bAppendD))
 	{
-		return this;
+		return (STRING*)this;
 	}
 	return Append(szString);
 }
@@ -843,13 +865,14 @@ CHARS* CHARS::Append(double d, ASIZE iMaxDecimals, bool bAppendD)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendQuoted(const char* szString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendQuoted(const char* szString)
 {
 	Append('"');
 	Append(szString);
 	Append('"');
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -857,13 +880,14 @@ CHARS* CHARS::AppendQuoted(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendQuoted(char c)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendQuoted(char c)
 {
 	Append('\'');
 	Append(c);
 	Append('\'');
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -871,7 +895,8 @@ CHARS* CHARS::AppendQuoted(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendNewLine(void)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendNewLine(void)
 {
 	return Append("\n");
 }
@@ -881,7 +906,8 @@ CHARS* CHARS::AppendNewLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendCarriageReturn(void)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendCarriageReturn(void)
 {
 	return Append("\r");
 }
@@ -891,7 +917,8 @@ CHARS* CHARS::AppendCarriageReturn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendNewLine(CHARS szString)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendNewLine(STRING szString)
 {
 	Append(&szString);
 	return AppendNewLine();
@@ -904,12 +931,13 @@ CHARS* CHARS::AppendNewLine(CHARS szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendHexHiLo(void* pv, ASIZE iNumBytes)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendHexHiLo(void* pv, typename TEXT::Count iNumBytes)
 {
-	ASIZE	i;
-	char*	pb;
-	int8	nibble;
-	char	c;
+	typename TEXT::Count	i;
+	char*					pb;
+	int8					nibble;
+	char					c;
 
 	if (iNumBytes != 0)
 	{
@@ -928,7 +956,7 @@ CHARS* CHARS::AppendHexHiLo(void* pv, ASIZE iNumBytes)
 		while (i != 0);
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -936,12 +964,13 @@ CHARS* CHARS::AppendHexHiLo(void* pv, ASIZE iNumBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendHexLoHi(void* pv, ASIZE iNumBytes)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendHexLoHi(void* pv, typename TEXT::Count iNumBytes)
 {
-	ASIZE	i;
-	char*	pb;
-	int8	nibble;
-	char	c;
+	typename TEXT::Count	i;
+	char*					pb;
+	int8					nibble;
+	char					c;
 
 	if (iNumBytes != 0)
 	{
@@ -957,7 +986,7 @@ CHARS* CHARS::AppendHexLoHi(void* pv, ASIZE iNumBytes)
 		}
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -965,7 +994,8 @@ CHARS* CHARS::AppendHexLoHi(void* pv, ASIZE iNumBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendBool(bool bValue)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendBool(bool bValue)
 {
 	return AppendBool(bValue, "True", "False");
 }
@@ -975,7 +1005,8 @@ CHARS* CHARS::AppendBool(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
 {
 	if (bValue)
 	{
@@ -992,7 +1023,8 @@ CHARS* CHARS::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Insert(ASIZE iPos, char c)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, char c)
 {
 	if (iPos >= mcText.NumElements())
 	{
@@ -1009,9 +1041,10 @@ void CHARS::Insert(ASIZE iPos, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Insert(ASIZE iPos, char c, ASIZE uiCount)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, char c, typename TEXT::Count uiCount)
 {
-	ASIZE i;
+	typename TEXT::Count i;
 
 	mcText.InsertNumAt(uiCount, iPos);
 	for (i = 0; i < uiCount; i++)
@@ -1025,10 +1058,11 @@ void CHARS::Insert(ASIZE iPos, char c, ASIZE uiCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Insert(ASIZE iPos, const char* szString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, const char* szString)
 {
-	char*	pcNew;
-	ASIZE	uiInsertLen;
+	char*					pcNew;
+	typename TEXT::Count	uiInsertLen;
 
 	if (StrEmpty(szString))
 	{
@@ -1040,7 +1074,7 @@ void CHARS::Insert(ASIZE iPos, const char* szString)
 	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
 	if (pcNew)
 	{
-		ARRAY_MEMCPY(pcNew, szString, uiInsertLen);
+		TEXT::SizePolicy::Copy(pcNew, szString, uiInsertLen);
 	}
 }
 
@@ -1049,10 +1083,11 @@ void CHARS::Insert(ASIZE iPos, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Insert(ASIZE iPos, CHARS* pszString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, STRING* pszString)
 {
 	char*	pcNew;
-	ASIZE uiInsertLen;
+	typename TEXT::Count uiInsertLen;
 
 	if (pszString == NULL || pszString->Empty())
 	{
@@ -1064,7 +1099,7 @@ void CHARS::Insert(ASIZE iPos, CHARS* pszString)
 	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
 	if (pcNew)
 	{
-		ARRAY_MEMCPY(pcNew, pszString->Text(), uiInsertLen);
+		TEXT::SizePolicy::Copy(pcNew, pszString->Text(), uiInsertLen);
 	}
 }
 
@@ -1073,7 +1108,8 @@ void CHARS::Insert(ASIZE iPos, CHARS* pszString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Minimize(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Minimize(void)
 {
 	if (!IsFakeEmpty())
 	{
@@ -1086,7 +1122,8 @@ void CHARS::Minimize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CHARS::Text(void)
+template<class STRING, class TEXT>
+char* CCharsBase<STRING, TEXT>::Text(void)
 {
 	return mcText.GetData();
 }
@@ -1096,7 +1133,8 @@ char* CHARS::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CHARS::Text(ASIZE iIndex)
+template<class STRING, class TEXT>
+char* CCharsBase<STRING, TEXT>::Text(typename TEXT::Count iIndex)
 {
 	if (iIndex < Length())
 	{
@@ -1113,7 +1151,8 @@ char* CHARS::Text(ASIZE iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Empty(void)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Empty(void)
 {
 	if (Length() == 0)
 	{
@@ -1127,11 +1166,12 @@ bool CHARS::Empty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendList(const char* szFirst, ...)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendList(const char* szFirst, ...)
 {
-	va_list			vaMarker;
-	const char*		pc;
-	ASIZE				iCount;
+	va_list					vaMarker;
+	const char*				pc;
+	typename TEXT::Count	iCount;
 
 	iCount = 0;
 	pc = szFirst;
@@ -1145,7 +1185,7 @@ CHARS* CHARS::AppendList(const char* szFirst, ...)
 	}
 	va_end(vaMarker);
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -1153,10 +1193,11 @@ CHARS* CHARS::AppendList(const char* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CHARS::PrivateGrow(ASIZE iNumberOfCharacters)
+template<class STRING, class TEXT>
+char* CCharsBase<STRING, TEXT>::PrivateGrow(typename TEXT::Count iNumberOfCharacters)
 {
-	char*	pszPosition;
-	ASIZE	iPosition;
+	char*					pszPosition;
+	typename TEXT::Count	iPosition;
 
 	if (mcText.IsEmpty())
 	{
@@ -1195,19 +1236,20 @@ char* CHARS::PrivateGrow(ASIZE iNumberOfCharacters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::Append(char cPadCharacter, ASIZE iNumber)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::Append(char cPadCharacter, typename TEXT::Count iNumber)
 {
 	char*	pcPosition;
 
-	if ((iNumber != 0) && (iNumber != ARRAY_NOT_FOUND))
+	if ((iNumber != 0) && (iNumber != TEXT::SizePolicy::NotFound))
 	{
 		pcPosition = PrivateGrow(iNumber);
-		ARRAY_MEMSET(pcPosition, cPadCharacter, iNumber);
+		TEXT::SizePolicy::Set(pcPosition, cPadCharacter, iNumber);
 		pcPosition = mcText.Tail();
 		*pcPosition = '\0';
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -1215,9 +1257,10 @@ CHARS* CHARS::Append(char cPadCharacter, ASIZE iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::LeftAlign(const char* szString, char cPadCharacter, ASIZE uiWidth)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::LeftAlign(const char* szString, char cPadCharacter, typename TEXT::Count uiWidth)
 {
-	ASIZE	uiLen;
+	typename TEXT::Count	uiLen;
 
 	uiLen = CStringLength(szString);
 	if (uiLen != 0)
@@ -1240,9 +1283,10 @@ void CHARS::LeftAlign(const char* szString, char cPadCharacter, ASIZE uiWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RightAlign(const char* szString, char cPadCharacter, ASIZE uiWidth)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RightAlign(const char* szString, char cPadCharacter, typename TEXT::Count uiWidth)
 {
-	ASIZE	uiLen;
+	typename TEXT::Count	uiLen;
 
 	uiLen = CStringLength(szString);
 	if (uiLen != 0)
@@ -1264,7 +1308,8 @@ void CHARS::RightAlign(const char* szString, char cPadCharacter, ASIZE uiWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::LeftAlign(CHARS szString, char cPadCharacter, ASIZE uiWidth)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::LeftAlign(STRING szString, char cPadCharacter, typename TEXT::Count uiWidth)
 {
 	if (szString.Length() <= uiWidth)
 	{
@@ -1282,7 +1327,8 @@ void CHARS::LeftAlign(CHARS szString, char cPadCharacter, ASIZE uiWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RightAlign(CHARS szString, char cPadCharacter, ASIZE uiWidth)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RightAlign(STRING szString, char cPadCharacter, typename TEXT::Count uiWidth)
 {
 	if (szString.Length() <= uiWidth)
 	{
@@ -1300,9 +1346,10 @@ void CHARS::RightAlign(CHARS szString, char cPadCharacter, ASIZE uiWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RightAlign(ASIZE uiOffset, char cPadCharacter, ASIZE uiWidth)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RightAlign(typename TEXT::Count uiOffset, char cPadCharacter, typename TEXT::Count uiWidth)
 {
-	ASIZE	uiLen;
+	typename TEXT::Count	uiLen;
 
 	uiLen = Length() - uiOffset;
 	if (uiLen != 0)
@@ -1319,11 +1366,12 @@ void CHARS::RightAlign(ASIZE uiOffset, char cPadCharacter, ASIZE uiWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RightAlign(char cPadCharacter, ASIZE uiWidth)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RightAlign(char cPadCharacter, typename TEXT::Count uiWidth)
 {
-	ASIZE	iLength;
-	char*	pcDest;
-	ASIZE	iOldWidth;
+	typename TEXT::Count	iLength;
+	char*					pcDest;
+	typename TEXT::Count	iOldWidth;
 
 	if (Length() < uiWidth)
 	{
@@ -1331,8 +1379,8 @@ void CHARS::RightAlign(char cPadCharacter, ASIZE uiWidth)
 		iOldWidth = Length();
 		PrivateGrow(iLength);
 		pcDest = (char*)RemapSinglePointer(mcText.GetData(), iLength);
-		ARRAY_MEMMOVE(pcDest, mcText.GetData(), iOldWidth);
-		ARRAY_MEMSET(mcText.GetData(), cPadCharacter, iLength);
+		TEXT::SizePolicy::Move(pcDest, mcText.GetData(), iOldWidth);
+		TEXT::SizePolicy::Set(mcText.GetData(), cPadCharacter, iLength);
 		(*mcText.Tail()) = '\0';
 	}
 }
@@ -1342,18 +1390,19 @@ void CHARS::RightAlign(char cPadCharacter, ASIZE uiWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendSubString(const char* szString, ASIZE iLength)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, typename TEXT::Count iLength)
 {
 	char*	pcPosition;
 
 	if ((szString) && (iLength != 0))
 	{
 		pcPosition = PrivateGrow(iLength);
-		ARRAY_MEMCPY(pcPosition, szString, iLength);
+		TEXT::SizePolicy::Copy(pcPosition, szString, iLength);
 		(*mcText.Tail()) = '\0';
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -1361,7 +1410,8 @@ CHARS* CHARS::AppendSubString(const char* szString, ASIZE iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendSubString(CHARS szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
 	const char* pcPosition;
 
@@ -1374,7 +1424,8 @@ CHARS* CHARS::AppendSubString(CHARS szString, ASIZE iStartInclusive, ASIZE iEndE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendSubString(CHARS* pszString, ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING* pszString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
 	const char* pcPosition;
 
@@ -1387,7 +1438,8 @@ CHARS* CHARS::AppendSubString(CHARS* pszString, ASIZE iStartInclusive, ASIZE iEn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendSubString(const char* szString, ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
 	const char* pcPosition;
 
@@ -1400,9 +1452,10 @@ CHARS* CHARS::AppendSubString(const char* szString, ASIZE iStartInclusive, ASIZE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
 {
-	return AppendSubString(szStartInclusive, (ASIZE)(szEndExclusive-szStartInclusive));
+	return AppendSubString(szStartInclusive, (typename TEXT::Count)(szEndExclusive-szStartInclusive));
 }
 
 
@@ -1410,7 +1463,8 @@ CHARS* CHARS::AppendSubString(const char* szStartInclusive, const char* szEndExc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RemoveLastCharacter(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RemoveLastCharacter(void)
 {
 	char*	pcPosition;
 
@@ -1434,7 +1488,8 @@ void CHARS::RemoveLastCharacter(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RemoveFromStart(ASIZE iNumChars)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RemoveFromStart(typename TEXT::Count iNumChars)
 {
 	Remove(0, iNumChars);
 }
@@ -1444,9 +1499,10 @@ void CHARS::RemoveFromStart(ASIZE iNumChars)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RemoveFromEnd(ASIZE iNumChars)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RemoveFromEnd(typename TEXT::Count iNumChars)
 {
-	ASIZE iLength;
+	typename TEXT::Count iLength;
 
 	iLength = Length();
 	if (iNumChars >= iLength)
@@ -1462,9 +1518,10 @@ void CHARS::RemoveFromEnd(ASIZE iNumChars)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Remove(ASIZE iStartInclusive, ASIZE iEndExclusive)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Remove(typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
 {
-	ASIZE	iLength;
+	typename TEXT::Count	iLength;
 
 	if (!Empty())
 	{
@@ -1483,10 +1540,11 @@ void CHARS::Remove(ASIZE iStartInclusive, ASIZE iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RemoveEnd(ASIZE iIndex)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RemoveEnd(typename TEXT::Count iIndex)
 {
-	ASIZE	iToRemove;
-	ASIZE	uiLength;
+	typename TEXT::Count	iToRemove;
+	typename TEXT::Count	uiLength;
 
 	uiLength = Length();
 	if (uiLength >= iIndex)
@@ -1511,7 +1569,8 @@ void CHARS::RemoveEnd(ASIZE iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::RemoveCharacter(ASIZE iPos)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::RemoveCharacter(typename TEXT::Count iPos)
 {
 	if (iPos < Length())
 	{
@@ -1525,11 +1584,12 @@ void CHARS::RemoveCharacter(ASIZE iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Split(CArrayChars* aszDest, char cSplitter)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Split(CArrayChars* aszDest, char cSplitter)
 {
-	lsize	iPos;
-	char*	pszPos;
-	ASIZE	iMax;
+	lsize					iPos;
+	char*					pszPos;
+	typename TEXT::Count	iMax;
 
 	pszPos = Text();
 	iMax = Length();
@@ -1542,7 +1602,7 @@ void CHARS::Split(CArrayChars* aszDest, char cSplitter)
 			aszDest->Add(pszPos, 0, (size)iPos);
 			iPos++;
 			pszPos = (char*)RemapSinglePointer((void*)pszPos, iPos);
-			iMax -= (ASIZE)iPos;
+			iMax -= (typename TEXT::Count)iPos;
 		}
 		else
 		{
@@ -1557,7 +1617,8 @@ void CHARS::Split(CArrayChars* aszDest, char cSplitter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::SplitLines(CArrayChars* aszDest)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::SplitLines(CArrayChars* aszDest)
 {
 	//This assumes new lines are passified.
 	Split(aszDest, '\n');
@@ -1568,7 +1629,8 @@ void CHARS::SplitLines(CArrayChars* aszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Equals(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Equals(const char* szString)
 {
 	if (szString)
 	{
@@ -1585,11 +1647,12 @@ bool CHARS::Equals(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Equals(const char* szString, ASIZE uiLen)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Equals(const char* szString, typename TEXT::Count uiLen)
 {
 	if (uiLen == Length())
 	{
-		if (ARRAY_MEMCMP(Text(), szString, uiLen) == 0)
+		if (TEXT::SizePolicy::Compare(Text(), szString, uiLen) == 0)
 		{
 			return true;
 		}
@@ -1602,7 +1665,8 @@ bool CHARS::Equals(const char* szString, ASIZE uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Equals(CHARS szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Equals(STRING szString)
 {
 	return Equals(szString.Text());
 }
@@ -1612,7 +1676,8 @@ bool CHARS::Equals(CHARS szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Equals(CHARS* pszString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Equals(STRING* pszString)
 {
 	return Equals(pszString->Text());
 }
@@ -1622,7 +1687,8 @@ bool CHARS::Equals(CHARS* pszString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::EqualsIgnoreCase(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::EqualsIgnoreCase(const char* szString)
 {
 	if (StringInsensitiveCompare(Text(), szString) == 0)
 	{
@@ -1636,7 +1702,8 @@ bool CHARS::EqualsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::EqualsIgnoreCase(CHARS szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::EqualsIgnoreCase(STRING szString)
 {
 	return EqualsIgnoreCase(szString.Text());
 }
@@ -1646,7 +1713,8 @@ bool CHARS::EqualsIgnoreCase(CHARS szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Contains(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Contains(const char* szString)
 {
 	char*	pc;
 
@@ -1668,7 +1736,8 @@ bool CHARS::Contains(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::ContainsIgnoreCase(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::ContainsIgnoreCase(const char* szString)
 {
 	char*	pc;
 
@@ -1685,9 +1754,10 @@ bool CHARS::ContainsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::Contains(char c)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::Contains(char c)
 {
-	return Find(0, c) != ARRAY_NOT_FOUND;
+	return Find(0, c) != TEXT::SizePolicy::NotFound;
 }
 
 
@@ -1695,11 +1765,12 @@ bool CHARS::Contains(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Occurrences(const char* szString)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Occurrences(const char* szString)
 {
-	ASIZE	iCount;
-	ASIZE	iIndex;
-	ASIZE	iFindLen;
+	typename TEXT::Count	iCount;
+	typename TEXT::Count	iIndex;
+	typename TEXT::Count	iFindLen;
 
 	iFindLen = CStringLength(szString);
 	if (iFindLen == 0)
@@ -1708,7 +1779,7 @@ ASIZE CHARS::Occurrences(const char* szString)
 	}
 
 	iIndex = Find(0, szString);
-	if (iIndex == ARRAY_NOT_FOUND)
+	if (iIndex == TEXT::SizePolicy::NotFound)
 	{
 		return 0;
 	}
@@ -1719,7 +1790,7 @@ ASIZE CHARS::Occurrences(const char* szString)
 		iCount++;
 		iIndex += iFindLen;
 		iIndex = Find(iIndex, szString);
-		if (iIndex == ARRAY_NOT_FOUND)
+		if (iIndex == TEXT::SizePolicy::NotFound)
 		{
 			return iCount;
 		}
@@ -1731,7 +1802,8 @@ ASIZE CHARS::Occurrences(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::StartsWith(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::StartsWith(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -1746,7 +1818,8 @@ bool CHARS::StartsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::StartsWithIgnoreCase(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::StartsWithIgnoreCase(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -1761,9 +1834,10 @@ bool CHARS::StartsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::StartsWith(char c)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::StartsWith(char c)
 {
-	ASIZE		iLength;
+	typename TEXT::Count	iLength;
 
 	iLength = Length();
 	if (iLength != 0)
@@ -1781,9 +1855,10 @@ bool CHARS::StartsWith(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::EndsWith(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::EndsWith(const char* szString)
 {
-	ASIZE	uiLen;
+	typename TEXT::Count	uiLen;
 
 	if (szString == NULL)
 	{
@@ -1804,9 +1879,10 @@ bool CHARS::EndsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::EndsWith(char c)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::EndsWith(char c)
 {
-	ASIZE		iLength;
+	typename TEXT::Count	iLength;
 
 	iLength = Length();
 	if (iLength != 0)
@@ -1824,9 +1900,10 @@ bool CHARS::EndsWith(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::EndsWithIgnoreCase(const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::EndsWithIgnoreCase(const char* szString)
 {
-	ASIZE	uiLen;
+	typename TEXT::Count	uiLen;
 
 	if (szString == NULL)
 	{
@@ -1847,13 +1924,14 @@ bool CHARS::EndsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::SubStringEquals(ASIZE iStart, const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::SubStringEquals(typename TEXT::Count iStart, const char* szString)
 {
-	ASIZE	i;
-	ASIZE	j;
-	ASIZE	uiLen;
-	ASIZE	iSubLen;
-	char*	szText;
+	typename TEXT::Count	i;
+	typename TEXT::Count	j;
+	typename TEXT::Count	uiLen;
+	typename TEXT::Count	iSubLen;
+	char*					szText;
 
 	szText = Text();
 	uiLen = Length();
@@ -1899,13 +1977,14 @@ bool CHARS::SubStringEquals(ASIZE iStart, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::SubStringEqualsIgnoreCase(ASIZE iStart, const char* szString)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::SubStringEqualsIgnoreCase(typename TEXT::Count iStart, const char* szString)
 {
-	ASIZE	i;
-	ASIZE	j;
-	ASIZE	uiLen;
-	ASIZE    c1;
-	ASIZE    c2;
+	typename TEXT::Count	i;
+	typename TEXT::Count	j;
+	typename TEXT::Count	uiLen;
+	typename TEXT::Count    c1;
+	typename TEXT::Count    c2;
 	char*	szText;
 
 	szText = Text();
@@ -1936,9 +2015,10 @@ bool CHARS::SubStringEqualsIgnoreCase(ASIZE iStart, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindFromEnd(const char* szString)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(const char* szString)
 {
-	ASIZE iOtherLen;
+	typename TEXT::Count iOtherLen;
 
 	iOtherLen = CStringLength(szString);
 	return FindFromEnd(Length() - iOtherLen, szString);
@@ -1949,13 +2029,14 @@ ASIZE CHARS::FindFromEnd(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindFromEnd(ASIZE iIndex, const char* szString)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(typename TEXT::Count iIndex, const char* szString)
 {
-	ASIZE	i;
+	typename TEXT::Count	i;
 
 	if (iIndex > Length())
 	{
-		return ARRAY_NOT_FOUND;
+		return TEXT::SizePolicy::NotFound;
 	}
 
 	i = iIndex + 1;
@@ -1968,7 +2049,7 @@ ASIZE CHARS::FindFromEnd(ASIZE iIndex, const char* szString)
 		}
 	}
 	while (i != 0);
-	return ARRAY_NOT_FOUND;
+	return TEXT::SizePolicy::NotFound;
 }
 
 
@@ -1976,11 +2057,12 @@ ASIZE CHARS::FindFromEnd(ASIZE iIndex, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindFromEnd(char c)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(char c)
 {
 	if (mcText.IsEmpty() || IsFakeEmpty())
 	{
-		return ARRAY_NOT_FOUND;
+		return TEXT::SizePolicy::NotFound;
 	}
 	
 	return FindFromEnd(Length() - 1, c);
@@ -1992,17 +2074,18 @@ ASIZE CHARS::FindFromEnd(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindFromEnd(ASIZE iIndex, char c)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(typename TEXT::Count iIndex, char c)
 {
-	ASIZE	i;
-	char*	szText;
-	ASIZE	uiLength;
+	typename TEXT::Count	i;
+	char*					szText;
+	typename TEXT::Count	uiLength;
 
 	//An index past the end starts at the last character.
 	uiLength = Length();
 	if (uiLength == 0)
 	{
-		return ARRAY_NOT_FOUND;
+		return TEXT::SizePolicy::NotFound;
 	}
 	if (iIndex >= uiLength)
 	{
@@ -2020,7 +2103,7 @@ ASIZE CHARS::FindFromEnd(ASIZE iIndex, char c)
 		}
 	}
 	while (i != 0);
-	return ARRAY_NOT_FOUND;
+	return TEXT::SizePolicy::NotFound;
 }
 
 
@@ -2028,7 +2111,8 @@ ASIZE CHARS::FindFromEnd(ASIZE iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Find(const char* szString)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Find(const char* szString)
 {
 	return Find(0, szString);
 }
@@ -2038,23 +2122,24 @@ ASIZE CHARS::Find(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Find(ASIZE iIndex, const char* szString)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Find(typename TEXT::Count iIndex, const char* szString)
 {
-	ASIZE	iOtherLen;
-	ASIZE	i;
-	ASIZE	uiLen;
-	ASIZE	iDiff;
+	typename TEXT::Count	iOtherLen;
+	typename TEXT::Count	i;
+	typename TEXT::Count	uiLen;
+	typename TEXT::Count	iDiff;
 
 	uiLen = Length();
 	if (iIndex > uiLen)
 	{
-		return ARRAY_NOT_FOUND;
+		return TEXT::SizePolicy::NotFound;
 	}
 
 	iOtherLen = CStringLength(szString);
 	if (iOtherLen > uiLen - iIndex)
 	{
-		return ARRAY_NOT_FOUND;
+		return TEXT::SizePolicy::NotFound;
 	}
 
 	iDiff = uiLen - iOtherLen;
@@ -2065,7 +2150,7 @@ ASIZE CHARS::Find(ASIZE iIndex, const char* szString)
 			return i;
 		}
 	}
-	return ARRAY_NOT_FOUND;
+	return TEXT::SizePolicy::NotFound;
 }
 
 
@@ -2073,11 +2158,12 @@ ASIZE CHARS::Find(ASIZE iIndex, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Find(ASIZE iIndex, char c)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Find(typename TEXT::Count iIndex, char c)
 {
-	ASIZE	i;
-	ASIZE	uiLen;
-	char*	szText;
+	typename TEXT::Count	i;
+	typename TEXT::Count	uiLen;
+	char*					szText;
 
 	szText = Text();
 	uiLen = Length();
@@ -2088,7 +2174,7 @@ ASIZE CHARS::Find(ASIZE iIndex, char c)
 			return i;
 		}
 	}
-	return ARRAY_NOT_FOUND;
+	return TEXT::SizePolicy::NotFound;
 }
 
 
@@ -2096,7 +2182,8 @@ ASIZE CHARS::Find(ASIZE iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Find(char c)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Find(char c)
 {
 	return Find(0, c);
 }
@@ -2106,11 +2193,12 @@ ASIZE CHARS::Find(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindDigit(ASIZE iIndex)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindDigit(typename TEXT::Count iIndex)
 {
-	ASIZE	i;
-	char	c;
-	ASIZE	uiLen;
+	typename TEXT::Count	i;
+	char					c;
+	typename TEXT::Count	uiLen;
 
 	uiLen = Length();
 	for (i = iIndex; i < uiLen; i++)
@@ -2121,7 +2209,7 @@ ASIZE CHARS::FindDigit(ASIZE iIndex)
 			return i;
 		}
 	}
-	return ARRAY_NOT_FOUND;
+	return TEXT::SizePolicy::NotFound;
 }
 
 
@@ -2129,7 +2217,8 @@ ASIZE CHARS::FindDigit(ASIZE iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CHARS::GetChar(ASIZE iIndex)
+template<class STRING, class TEXT>
+char CCharsBase<STRING, TEXT>::GetChar(typename TEXT::Count iIndex)
 {
 	char*	pc;
 
@@ -2146,15 +2235,16 @@ char CHARS::GetChar(ASIZE iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CHARS szOldString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, STRING szOldString)
 {
-	ASIZE	i;
-	ASIZE	j;
-	CHARS	cTemp;
-	char	cNew;
-	char	cOld;
-	ASIZE	uiLen;
-	ASIZE	iOldLen;
+	typename TEXT::Count	i;
+	typename TEXT::Count	j;
+	STRING					cTemp;
+	char					cNew;
+	char					cOld;
+	typename TEXT::Count	uiLen;
+	typename TEXT::Count	iOldLen;
 
 	uiLen = Length();
 
@@ -2191,7 +2281,8 @@ void CHARS::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::IsWhitespace(ASIZE iPos, bool bIncludeNewLines)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::IsWhitespace(typename TEXT::Count iPos, bool bIncludeNewLines)
 {
 	char	c;
 
@@ -2204,10 +2295,11 @@ bool CHARS::IsWhitespace(ASIZE iPos, bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::IsWhitespace(void)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::IsWhitespace(void)
 {
-	ASIZE		i;
-	ASIZE		uiLen;
+	typename TEXT::Count	i;
+	typename TEXT::Count	uiLen;
 
 	uiLen = Length();
 	for (i = 0; i < uiLen; i++)
@@ -2225,7 +2317,8 @@ bool CHARS::IsWhitespace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::SetLength(ASIZE iLength)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::SetLength(typename TEXT::Count iLength)
 {
 	if (iLength != 0)
 	{
@@ -2246,10 +2339,11 @@ void CHARS::SetLength(ASIZE iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindEndOfLeadingWhitespace(bool bIncludeNewLines)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindEndOfLeadingWhitespace(bool bIncludeNewLines)
 {
-	ASIZE	iLength;
-	ASIZE	iStart;
+	typename TEXT::Count	iLength;
+	typename TEXT::Count	iStart;
 
 	iLength = Length();
 	for (iStart = 0; iStart < iLength; iStart++)
@@ -2267,10 +2361,11 @@ ASIZE CHARS::FindEndOfLeadingWhitespace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::FindStartOfTrailingWhitespace(bool bIncludeNewLines)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindStartOfTrailingWhitespace(bool bIncludeNewLines)
 {
-	ASIZE	iLength;
-	ASIZE	iEnd;
+	typename TEXT::Count	iLength;
+	typename TEXT::Count	iEnd;
 
 	iLength = Length();
 	if (iLength != 0)
@@ -2296,11 +2391,12 @@ ASIZE CHARS::FindStartOfTrailingWhitespace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::StripWhitespace(bool bIncludeNewLines)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::StripWhitespace(bool bIncludeNewLines)
 {
-	ASIZE	iLength;
-	ASIZE	iStart;
-	ASIZE	iEnd;
+	typename TEXT::Count	iLength;
+	typename TEXT::Count	iStart;
+	typename TEXT::Count	iEnd;
 
 	iStart = FindEndOfLeadingWhitespace(bIncludeNewLines);
 	iEnd = FindStartOfTrailingWhitespace(bIncludeNewLines);
@@ -2323,7 +2419,8 @@ ASIZE CHARS::StripWhitespace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHARS::Compare(CHARS* szOther)
+template<class STRING, class TEXT>
+int CCharsBase<STRING, TEXT>::Compare(STRING* szOther)
 {
 	return StringCompare(Text(), szOther->Text());
 }
@@ -2333,7 +2430,8 @@ int CHARS::Compare(CHARS* szOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHARS::CompareIgnoreCase(CHARS* szOther)
+template<class STRING, class TEXT>
+int CCharsBase<STRING, TEXT>::CompareIgnoreCase(STRING* szOther)
 {
 	return StringInsensitiveCompare(Text(), szOther->Text());
 }
@@ -2343,7 +2441,8 @@ int CHARS::CompareIgnoreCase(CHARS* szOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHARS::Compare(const char* szOther)
+template<class STRING, class TEXT>
+int CCharsBase<STRING, TEXT>::Compare(const char* szOther)
 {
 	return StringCompare(Text(), szOther);
 }
@@ -2353,7 +2452,8 @@ int CHARS::Compare(const char* szOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHARS::CompareIgnoreCase(const char* szOther)
+template<class STRING, class TEXT>
+int CCharsBase<STRING, TEXT>::CompareIgnoreCase(const char* szOther)
 {
 	return StringInsensitiveCompare(Text(), szOther);
 }
@@ -2363,11 +2463,12 @@ int CHARS::CompareIgnoreCase(const char* szOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Replace(char cFind, char cReplace)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Replace(char cFind, char cReplace)
 {
-	ASIZE	i;
-	ASIZE	iLength;
-	ASIZE	iCount;
+	typename TEXT::Count	i;
+	typename TEXT::Count	iLength;
+	typename TEXT::Count	iCount;
 
 	iLength = Length();
 	iCount = 0;
@@ -2387,10 +2488,11 @@ ASIZE CHARS::Replace(char cFind, char cReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Replace(const char* szFind, const char* szReplace)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Replace(const char* szFind, const char* szReplace)
 {
-	ASIZE	iReplaceLen;
-	ASIZE	iFindLen;
+	typename TEXT::Count	iReplaceLen;
+	typename TEXT::Count	iFindLen;
 
 	if (szFind == NULL)
 	{
@@ -2431,14 +2533,15 @@ ASIZE CHARS::Replace(const char* szFind, const char* szReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::ReplaceWithEqualLength(const char* szFind, const char* szReplace, ASIZE iFindLen)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithEqualLength(const char* szFind, const char* szReplace, typename TEXT::Count iFindLen)
 {
-	ASIZE		iCount;
-	ASIZE		iIndex;
+	typename TEXT::Count	iCount;
+	typename TEXT::Count	iIndex;
 
 	iCount = 0;
 	iIndex = Find(0, szFind);
-	while (iIndex != ARRAY_NOT_FOUND)
+	while (iIndex != TEXT::SizePolicy::NotFound)
 	{
 		Overwrite(iIndex, szReplace);
 		iCount++;
@@ -2451,20 +2554,21 @@ ASIZE CHARS::ReplaceWithEqualLength(const char* szFind, const char* szReplace, A
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE iReplaceLen, ASIZE iFindLen, ASIZE iDifference)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithShorter(const char* szFind, const char* szReplace, typename TEXT::Count iReplaceLen, typename TEXT::Count iFindLen, typename TEXT::Count iDifference)
 {
-	ASIZE		iCount;
-	ASIZE		iIndex;
-	ASIZE		iTotalDifference;
-	ASIZE		iOldIndex;
-	ASIZE		iDestPos;
-	ASIZE		iSize;
-	ASIZE		iEnd;
+	typename TEXT::Count	iCount;
+	typename TEXT::Count	iIndex;
+	typename TEXT::Count	iTotalDifference;
+	typename TEXT::Count	iOldIndex;
+	typename TEXT::Count	iDestPos;
+	typename TEXT::Count	iSize;
+	typename TEXT::Count	iEnd;
 
 	//Remember that iDifference is Positive!
 	iCount = 0;
 	iIndex = Find(0, szFind);
-	if (iIndex == ARRAY_NOT_FOUND)
+	if (iIndex == TEXT::SizePolicy::NotFound)
 	{
 		return 0;
 	}
@@ -2479,7 +2583,7 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 		{
 			if (iCount != 0)
 			{
-				ARRAY_MEMMOVE(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
+				TEXT::SizePolicy::Move(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
 			}
 			Overwrite(iIndex - (iCount * iDifference), szReplace);
 		}
@@ -2487,14 +2591,14 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 		{
 			if (iCount != 0)
 			{
-				ARRAY_MEMMOVE(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
+				TEXT::SizePolicy::Move(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
 			}
 		}
 		iCount++;
 		iOldIndex = iIndex;
 		iDestPos = iOldIndex + iReplaceLen - (iDifference * (iCount - 1));
 		iIndex = Find(iIndex + iFindLen, szFind);
-		if (iIndex == ARRAY_NOT_FOUND)
+		if (iIndex == TEXT::SizePolicy::NotFound)
 		{
 			iTotalDifference = iDifference * iCount;
 			iEnd = Length() - iTotalDifference;
@@ -2503,7 +2607,7 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 			{
 				if (iCount != 0)
 				{
-					ARRAY_MEMMOVE(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
+					TEXT::SizePolicy::Move(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
 				}
 			}
 			break;
@@ -2520,13 +2624,14 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::ReplaceWithLonger(const char* szFind, const char* szReplace, ASIZE iFindLen, ASIZE iDifference)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithLonger(const char* szFind, const char* szReplace, typename TEXT::Count iFindLen, typename TEXT::Count iDifference)
 {
-	ASIZE		iCount;
-	ASIZE		iIndex;
-	ASIZE		i;
-	ASIZE		iTotalDifference;
-	ASIZE		iOldIndex;
+	typename TEXT::Count	iCount;
+	typename TEXT::Count	iIndex;
+	typename TEXT::Count	i;
+	typename TEXT::Count	iTotalDifference;
+	typename TEXT::Count	iOldIndex;
 
 	iCount = Occurrences(szFind);
 	if (iCount == 0)
@@ -2545,7 +2650,7 @@ ASIZE CHARS::ReplaceWithLonger(const char* szFind, const char* szReplace, ASIZE 
 		i--;
 		iOldIndex = iIndex;
 		iIndex = FindFromEnd(iIndex, szFind);
-		ARRAY_MEMMOVE(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
+		TEXT::SizePolicy::Move(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
 		Overwrite(iIndex + (iDifference * i), szReplace);
 		iIndex -= iFindLen;
 	}
@@ -2559,11 +2664,12 @@ ASIZE CHARS::ReplaceWithLonger(const char* szFind, const char* szReplace, ASIZE 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Overwrite(ASIZE iIndex, const char* szReplace)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Overwrite(typename TEXT::Count iIndex, const char* szReplace)
 {
-	ASIZE		i;
-	ASIZE		j;
-	ASIZE		uiLen;
+	typename TEXT::Count	i;
+	typename TEXT::Count	j;
+	typename TEXT::Count	uiLen;
 
 	if (StrEmpty(szReplace))
 	{
@@ -2586,12 +2692,13 @@ void CHARS::Overwrite(ASIZE iIndex, const char* szReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Reverse(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Reverse(void)
 {
-	char*	szText;
-	ASIZE	i;
-	ASIZE	j;
-	char	c;
+	char*					szText;
+	typename TEXT::Count	i;
+	typename TEXT::Count	j;
+	char					c;
 
 	//StrRev in this string's size (a CLargeChars can be longer than a size counts), leaving the zero at the end.
 	if (Length() > 1)
@@ -2611,7 +2718,8 @@ void CHARS::Reverse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Clear(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Clear(void)
 {
 	if (!IsFakeEmpty())
 	{
@@ -2624,10 +2732,11 @@ void CHARS::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendData(const char* szData, ASIZE iMaxLength)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, typename TEXT::Count iMaxLength)
 {
-	ASIZE	i;
-	ASIZE	iLength;
+	typename TEXT::Count	i;
+	typename TEXT::Count	iLength;
 
 	iLength = iMaxLength;
 	for (i = 0; i < iMaxLength; i++)
@@ -2647,12 +2756,13 @@ CHARS* CHARS::AppendData(const char* szData, ASIZE iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendData(const char* szData, ASIZE iDataLength, ASIZE iMaxLength)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, typename TEXT::Count iDataLength, typename TEXT::Count iMaxLength)
 {
-	ASIZE	i;
-	ASIZE	iLength;
-	uint8	c;
-	bool	bLastReadable;
+	typename TEXT::Count	i;
+	typename TEXT::Count	iLength;
+	uint8					c;
+	bool					bLastReadable;
 	
 	if (iDataLength > iMaxLength)
 	{
@@ -2718,7 +2828,7 @@ CHARS* CHARS::AppendData(const char* szData, ASIZE iDataLength, ASIZE iMaxLength
 		Append("...");
 	}
 
-	return this;
+	return (STRING*)this;
 }
 
 
@@ -2726,13 +2836,14 @@ CHARS* CHARS::AppendData(const char* szData, ASIZE iDataLength, ASIZE iMaxLength
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::AppendData2(const char* szData, ASIZE iDataLength)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::AppendData2(const char* szData, typename TEXT::Count iDataLength)
 {
-	ASIZE	i;
-	ASIZE	iPrintable;
-	uint8	c;
-	float	fPrintable;
-	CHARS	szString;
+	typename TEXT::Count	i;
+	typename TEXT::Count	iPrintable;
+	uint8					c;
+	float					fPrintable;
+	STRING					szString;
 
 	if ((szData == NULL) || (iDataLength == 0))
 	{
@@ -2787,7 +2898,8 @@ bool CHARS::AppendData2(const char* szData, ASIZE iDataLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHARS* CHARS::AppendPointer(void* pv)
+template<class STRING, class TEXT>
+STRING* CCharsBase<STRING, TEXT>::AppendPointer(void* pv)
 {
 	Append("0x");
 	return AppendHexHiLo(&pv, sizeof(void*));
@@ -2798,7 +2910,8 @@ CHARS* CHARS::AppendPointer(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma)
 {
 	if (msFlags & uiFlag)
 	{
@@ -2817,7 +2930,8 @@ bool CHARS::AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::CountNewLines(void)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::CountNewLines(void)
 {
 	return ::CountNewLines(mcText.GetData(), mcText.NumElements());
 }
@@ -2827,12 +2941,13 @@ ASIZE CHARS::CountNewLines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ASIZE CHARS::Count(char c)
+template<class STRING, class TEXT>
+typename TEXT::Count CCharsBase<STRING, TEXT>::Count(char c)
 {
-	ASIZE	i;
-	char	cAt;
-	ASIZE	iCount;
-	ASIZE	uiLen;
+	typename TEXT::Count	i;
+	char					cAt;
+	typename TEXT::Count	iCount;
+	typename TEXT::Count	uiLen;
 
 	uiLen = Length();
 	iCount = 0;
@@ -2852,7 +2967,8 @@ ASIZE CHARS::Count(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::LowerCase(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::LowerCase(void)
 {
 	ToLower(mcText.GetData());
 }
@@ -2862,7 +2978,8 @@ void CHARS::LowerCase(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::UpperCase(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::UpperCase(void)
 {
 	ToUpper(mcText.GetData());
 }
@@ -2872,11 +2989,12 @@ void CHARS::UpperCase(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::ReplaceNonTabsWithSpace(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::ReplaceNonTabsWithSpace(void)
 {
-	ASIZE	i;
-	char	c;
-	ASIZE	uiLen;
+	typename TEXT::Count	i;
+	char					c;
+	typename TEXT::Count	uiLen;
 
 	uiLen = Length();
 	for (i = 0; i < uiLen; i++)
@@ -2894,7 +3012,8 @@ void CHARS::ReplaceNonTabsWithSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::PassifyNewlines(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::PassifyNewlines(void)
 {
 	lsize	iNewLen;
 
@@ -2902,7 +3021,7 @@ void CHARS::PassifyNewlines(void)
 	iNewLen = ::PassifyNewlines(mcText.GetData());
 	if (iNewLen != MAX_LSIZE)
 	{
-		mcText.Resize((ASIZE)iNewLen + 1);
+		mcText.Resize((typename TEXT::Count)iNewLen + 1);
 	}
 }
 
@@ -2911,14 +3030,15 @@ void CHARS::PassifyNewlines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CHARS::FindLineContaining(const char* szPosition, ASIZE* piLineNumber)
+template<class STRING, class TEXT>
+char* CCharsBase<STRING, TEXT>::FindLineContaining(const char* szPosition, typename TEXT::Count* piLineNumber)
 {
-	ASIZE	i;
-	ASIZE	iNumLineFeeds;
-	ASIZE	uiLen;
-	char*	szString;
-	char*	szStartOfLine;
-	char*	szCurrent;
+	typename TEXT::Count	i;
+	typename TEXT::Count	iNumLineFeeds;
+	typename TEXT::Count	uiLen;
+	char*					szString;
+	char*					szStartOfLine;
+	char*					szCurrent;
 
 	uiLen = Length();
 	iNumLineFeeds = 0;
@@ -2952,11 +3072,12 @@ char* CHARS::FindLineContaining(const char* szPosition, ASIZE* piLineNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::MakeCPlusPlus(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::MakeCPlusPlus(void)
 {
-	ASIZE	iIndex;
-	bool	bStartOfLine;
-	char	c;
+	typename TEXT::Count	iIndex;
+	bool					bStartOfLine;
+	char					c;
 
 	bStartOfLine = true;
 	iIndex = 0;
@@ -2998,9 +3119,10 @@ void CHARS::MakeCPlusPlus(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::WriteString(CFileWriter* pcWriter)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::WriteString(CFileWriter* pcWriter)
 {
-	ARRAY_CHAR c;
+	TEXT c;
 
 	if (!IsFakeEmpty())
 	{
@@ -3018,7 +3140,8 @@ bool CHARS::WriteString(CFileWriter* pcWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::ReadString(CFileReader* pcReader)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::ReadString(CFileReader* pcReader)
 {
 	bool	bResult;
 
@@ -3039,9 +3162,10 @@ bool CHARS::ReadString(CFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::ReadChars(CFileReader* pcReader)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::ReadChars(CFileReader* pcReader)
 {
-	ASIZE	iLength;
+	typename TEXT::Count	iLength;
 
 	if (!pcReader->ReadStringLength(&iLength))
 	{
@@ -3073,7 +3197,8 @@ bool CHARS::ReadChars(CFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::CleanIfEmpty(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::CleanIfEmpty(void)
 {
 	if (mcText.NumElements() <= 1)
 	{
@@ -3089,7 +3214,8 @@ void CHARS::CleanIfEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::InitEmpty(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::InitEmpty(void)
 {
 	mcText.Fake(gszEmptyString, 1);
 }
@@ -3099,7 +3225,8 @@ void CHARS::InitEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::IsFakeEmpty(void)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::IsFakeEmpty(void)
 {
 	return mcText.GetData() == gszEmptyString;
 }
@@ -3111,7 +3238,8 @@ bool CHARS::IsFakeEmpty(void)
 // system allocator's (see Init(CMallocator*)).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHARS::KeepsArray(void)
+template<class STRING, class TEXT>
+bool CCharsBase<STRING, TEXT>::KeepsArray(void)
 {
 	return !mcText.IsMalloc(&gcSystemAllocator) && !mcText.IsMalloc(&gcNullAllocator);
 }
@@ -3121,7 +3249,8 @@ bool CHARS::KeepsArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Unfake(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Unfake(void)
 {
 	mcText.Init();
 	mcText.Add('\0');
@@ -3132,7 +3261,8 @@ void CHARS::Unfake(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::UnfakeIfFakeEmpty(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::UnfakeIfFakeEmpty(void)
 {
 	if (IsFakeEmpty())
 	{
@@ -3145,11 +3275,12 @@ void CHARS::UnfakeIfFakeEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CHARS::CopyIntoBuffer(char* szDest, ASIZE iDestLength)
+template<class STRING, class TEXT>
+char* CCharsBase<STRING, TEXT>::CopyIntoBuffer(char* szDest, typename TEXT::Count iDestLength)
 {
-	ASIZE		iLength;
+	typename TEXT::Count	iLength;
 
-	if (iDestLength == ARRAY_NOT_FOUND)
+	if (iDestLength == TEXT::SizePolicy::NotFound)
 	{
 		StrCpySafe(szDest, Text(), iDestLength);
 		return szDest;
@@ -3163,11 +3294,11 @@ char* CHARS::CopyIntoBuffer(char* szDest, ASIZE iDestLength)
 		iLength = Length();
 		if (iLength < iDestLength)
 		{
-			ARRAY_MEMCPY(szDest, Text(), iLength + 1);
+			TEXT::SizePolicy::Copy(szDest, Text(), iLength + 1);
 		}
 		else
 		{
-			ARRAY_MEMCPY(szDest, Text(), iDestLength - 2);
+			TEXT::SizePolicy::Copy(szDest, Text(), iDestLength - 2);
 			szDest[iDestLength - 1] = '\0';
 		}
 		return szDest;
@@ -3179,11 +3310,12 @@ char* CHARS::CopyIntoBuffer(char* szDest, ASIZE iDestLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Dump(void)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Dump(void)
 {
-	CHARS	szString;
-	ASIZE	i;
-	ASIZE	uiLen;
+	STRING					szString;
+	typename TEXT::Count	i;
+	typename TEXT::Count	uiLen;
 
 	uiLen = Length();
 	if (uiLen <= 10000)
@@ -3212,7 +3344,8 @@ void CHARS::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHARS::Dump(const char* szString)
+template<class STRING, class TEXT>
+void CCharsBase<STRING, TEXT>::Dump(const char* szString)
 {
 	EngineOutput(szString);
 }

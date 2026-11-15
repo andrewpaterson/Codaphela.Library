@@ -32,13 +32,30 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CArrayChars;
-#include "ArraySizeNatural.inl"
 #include "CharsClass.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "CharsClass.inl"
-#include "ArraySizeUndef.inl"
+
+//The names the strings are known by.  A large string also appends a natural one.
+class CChars : public CCharsBase<CChars, CArrayChar>
+{
+CONSTRUCTABLE(CChars)
+};
+
+
+class CLargeChars : public CCharsBase<CLargeChars, CArrayLargeChar>
+{
+CONSTRUCTABLE(CLargeChars)
+public:
+	using CCharsBase<CLargeChars, CArrayLargeChar>::Append;
+
+	CLargeChars*	Append(CChars szString);
+	CLargeChars*	Append(CChars* psz);
+};
+
+
+//Chars.cpp instantiates them; no other unit compiles their functions.
+extern template class CCharsBase<CChars, CArrayChar>;
+extern template class CCharsBase<CLargeChars, CArrayLargeChar>;
 
 
 int CompareChars(const void* arg1, const void* arg2);

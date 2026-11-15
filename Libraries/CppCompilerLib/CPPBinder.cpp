@@ -401,7 +401,8 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
 		if (pcName->IsQualifiedByClass())
 		{
-			pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee);
+			//TEXT::SizePolicy::Copy(...): a qualifier the parser couldn't resolve is found in the class before it.
+			pcClass = pcName->GetQualifier()->mpcSymbol ? mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee) : mpcUnit->QualifiersClass(pcName, pcCallee);
 			bVirtual = false;
 		}
 		else if (pcIn)

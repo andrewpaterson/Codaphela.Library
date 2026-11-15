@@ -1615,20 +1615,46 @@ void TestCPP65GeneratorStaticConstMembers(void)
 // A name in a template with a qualifier the parser can't resolve, because it
 // depends on the template's arguments: TEMPLATE::SizePolicy::NotFound, where
 // SizePolicy is a typedef of TEMPLATE's base (BaseLib's array templates).  As a
-// value, an array size and in a type.  1 + 77 + 11 + 154.
+// value, an array size, in a type and calling its static function
+// (TEMPLATE::SizePolicy::Twice(iLocal)).  1 + 77 + 11 + 154 + 30.
 //
 //////////////////////////////////////////////////////////////////////////
 const char* gszTestCPP65NestedQualifiers = "\
-struct SPolicy { typedef short Count; static const Count NotFound = 77; };\n\
+struct SPolicy { typedef short Count; static const Count NotFound = 77; static Count Twice(Count n) { return (Count)(n * 2); } };\n\
 template<class SIZE> struct SBlock { typedef SIZE SizePolicy; typedef typename SIZE::Count Count; Count miUsed; };\n\
 struct CBlock : SBlock<SPolicy> {};\n\
-template<class M, class TEMPLATE> struct SPrimitive : TEMPLATE { typename TEMPLATE::Count Find(M m) { if (m == 3) { return 1; } return TEMPLATE::SizePolicy::NotFound; } char ac[TEMPLATE::SizePolicy::NotFound / 7]; typename TEMPLATE::SizePolicy::Count Twice(void) { return (typename TEMPLATE::SizePolicy::Count)(TEMPLATE::SizePolicy::NotFound * 2); } };\n\
-int main(void) { SPrimitive<int, CBlock> s; return s.Find(3) + s.Find(4) + (int)sizeof(s.ac) + s.Twice(); }\n";
+template<class M, class TEMPLATE> struct SPrimitive : TEMPLATE { typename TEMPLATE::Count Find(M m) { if (m == 3) { return 1; } return TEMPLATE::SizePolicy::NotFound; } char ac[TEMPLATE::SizePolicy::NotFound / 7]; typename TEMPLATE::SizePolicy::Count Twice(void) { return (typename TEMPLATE::SizePolicy::Count)(TEMPLATE::SizePolicy::NotFound * 2); } typename TEMPLATE::Count Calls(typename TEMPLATE::Count iParam) { typename TEMPLATE::Count iLocal; iLocal = 5; return (typename TEMPLATE::Count)(TEMPLATE::SizePolicy::Twice(iLocal) + TEMPLATE::SizePolicy::Twice(iParam + 1)); } };\n\
+int main(void) { SPrimitive<int, CBlock> s; return s.Find(3) + s.Find(4) + (int)sizeof(s.ac) + s.Twice() + s.Calls(9); }\n";
 
 
 void TestCPP65GeneratorNestedQualifiers(void)
 {
-	AssertInt(243, TestCPP65Main(gszTestCPP65NestedQualifiers));
+	AssertInt(273, TestCPP65Main(gszTestCPP65NestedQualifiers));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class template's functions defined outside it after an instance was laid out
+// (SLate<int> by its global, as CChars is by a header included before
+// CharsCode.inl): the instance gets them, one called before its definition is
+// generated, and an explicit instantiation generates them.  7 + 20 + 15.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* gszTestCPP65LateMemberDefinitions = "\
+template<class M> struct SLate { M m; M Get(void); M Twice(void); };\n\
+SLate<int> gsLate;\n\
+SLate<char> gsLateChar;\n\
+int UseLate(void) { return gsLate.Get(); }\n\
+template<class M> M SLate<M>::Get(void) { return (M)(m + 5); }\n\
+template<class M> M SLate<M>::Twice(void) { return (M)(m * 2); }\n\
+template struct SLate<char>;\n\
+int main(void) { gsLate.m = 2; gsLateChar.m = 10; return UseLate() + gsLateChar.Twice() + gsLateChar.Get(); }\n";
+
+
+void TestCPP65GeneratorLateMemberDefinitions(void)
+{
+	AssertInt(42, TestCPP65Main(gszTestCPP65LateMemberDefinitions));
 }
 
 
@@ -3775,6 +3801,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorExternTemplates();
 	TestCPP65GeneratorStaticConstMembers();
 	TestCPP65GeneratorNestedQualifiers();
+	TestCPP65GeneratorLateMemberDefinitions();
 	TestCPP65GeneratorExternTemplateProject();
 	TestCPP65GeneratorFloat();
 	TestCPP65GeneratorBaseLib();
