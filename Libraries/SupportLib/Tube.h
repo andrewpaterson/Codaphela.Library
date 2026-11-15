@@ -39,6 +39,7 @@ public:
 
 	float32	ProfileDistance(float32 fRadial, float32 fAlong, SFloat32Vec2* psGradient) override;
 	void	GetBounds(SFloat32Bounds* psDest) override;
+	bool	AddMesh(CMeshEditor* pcMeshEditor, int iSegments) override;
 };
 
 

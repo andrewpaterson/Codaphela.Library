@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "MeshTorusEditor.h"
 #include "Torus.h"
 
 
@@ -78,3 +79,18 @@ void CTorus::GetBounds(SFloat32Bounds* psDest)
 	AddDisc(psDest, -mfTubeRadius, mfRadius + mfTubeRadius);
 	AddDisc(psDest, mfTubeRadius, mfRadius + mfTubeRadius);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTorus::AddMesh(CMeshEditor* pcMeshEditor, int iSegments)
+{
+	CMeshTorusEditor	cEditor;
+
+	cEditor.Init(&msAxis, &msStart, mfRadius, mfTubeRadius, ShapeMeshSegments(iSegments), ShapeMeshSegments(iSegments) / 2);
+	cEditor.Generate(pcMeshEditor);
+	cEditor.Kill();
+	return true;
+}
+

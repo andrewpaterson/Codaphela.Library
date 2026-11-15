@@ -20,6 +20,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
 #include "BaseLib/FloatHelper.h"
+#include "MeshConeEditor.h"
 #include "Cone.h"
 
 
@@ -140,3 +141,18 @@ void CCone::GetBounds(SFloat32Bounds* psDest)
 	AddDisc(psDest, 0.0f, mfBottomRadius);
 	AddDisc(psDest, mfLength, mfTopRadius);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCone::AddMesh(CMeshEditor* pcMeshEditor, int iSegments)
+{
+	CMeshConeEditor	cEditor;
+
+	cEditor.Init(&msAxis, &msStart, mfTopRadius, mfBottomRadius, mfLength, ShapeMeshSegments(iSegments), 1, 1, 1);
+	cEditor.Generate(pcMeshEditor);
+	cEditor.Kill();
+	return true;
+}
+

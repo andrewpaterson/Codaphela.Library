@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "MeshSphereEditor.h"
 #include "Sphere.h"
 
 
@@ -95,3 +96,20 @@ void CSphere::GetBounds(SFloat32Bounds* psDest)
 {
 	msSphere.GetBounds(psDest);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSphere::AddMesh(CMeshEditor* pcMeshEditor, int iSegments)
+{
+	CMeshSphereEditor	cEditor;
+	SFloat32Vec3		sZDirection;
+
+	sZDirection.Init(0, 0, 1);
+	cEditor.Init(&sZDirection, &msSphere.sCenter, msSphere.fRadius, ShapeMeshSegments(iSegments), ShapeMeshSegments(iSegments) / 2);
+	cEditor.Generate(pcMeshEditor);
+	cEditor.Kill();
+	return true;
+}
+

@@ -40,6 +40,7 @@ public:
 	float32	Distance(SFloat32Vec3* psPosition) override;
 	void	Gradient(SFloat32Vec3* psDest, SFloat32Vec3* psPosition) override;
 	void	GetBounds(SFloat32Bounds* psDest) override;
+	bool	AddMesh(CMeshEditor* pcMeshEditor, int iSegments) override;
 };
 
 

@@ -11,6 +11,12 @@
 #include "SupportLib/Sphere.h"
 #include "SupportLib/Box.h"
 #include "SupportLib/HalfSpace.h"
+#include "SupportLib/Cylinder.h"
+#include "SupportLib/Cone.h"
+#include "SupportLib/Tube.h"
+#include "SupportLib/Torus.h"
+#include "SupportLib/Capsule.h"
+#include "SupportLib/MeshEditor.h"
 #include "TestLib/Assert.h"
 
 
@@ -327,6 +333,136 @@ void TestShapeSaveLoad(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcShape's own mesh: closed (every edge on two faces), every corner on
+// it, and every face facing out, along its gradient at the face's middle.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertShapeAddsMesh(CShape* pcShape, int iSegments)
+{
+	CMesh			cMesh;
+	CMeshEditor		cEditor;
+	CMeshEdge*		pcEdge;
+	int*			piCorners;
+	SFloat32Vec3	sSide1;
+	SFloat32Vec3	sSide2;
+	SFloat32Vec3	sNormal;
+	SFloat32Vec3	sMiddle;
+	SFloat32Vec3	sGradient;
+	float32			fFurthest;
+	float32			fDistance;
+	int				iOpen;
+	int				iFacingIn;
+	int				i;
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	AssertTrue(pcShape->AddMesh(&cEditor, iSegments));
+	AssertTrue(cMesh.NumFaces() > 0);
+
+	iOpen = 0;
+	for (i = 0; i < cMesh.NumEdges(); i++)
+	{
+		pcEdge = cMesh.GetEdge(i);
+		if ((pcEdge->maiFace[0] == -1) || (pcEdge->maiFace[1] == -1))
+		{
+			iOpen++;
+		}
+	}
+	AssertInt(0, iOpen);
+
+	fFurthest = 0.0f;
+	for (i = 0; i < cMesh.NumCorners(); i++)
+	{
+		fDistance = fabsf(pcShape->Distance(cMesh.GetPosition(i)));
+		if (fDistance > fFurthest)
+		{
+			fFurthest = fDistance;
+		}
+	}
+	AssertTrue(fFurthest < 0.0001f);
+
+	iFacingIn = 0;
+	for (i = 0; i < cMesh.NumFaces(); i++)
+	{
+		piCorners = cMesh.GetFaceCorners(i);
+		sSide1 = *cMesh.GetPosition(piCorners[1]) - *cMesh.GetPosition(piCorners[0]);
+		sSide2 = *cMesh.GetPosition(piCorners[2]) - *cMesh.GetPosition(piCorners[0]);
+		Float32Vec3Cross(&sNormal, &sSide1, &sSide2);
+		sMiddle = (*cMesh.GetPosition(piCorners[0]) + *cMesh.GetPosition(piCorners[1]) + *cMesh.GetPosition(piCorners[2])) / 3.0f;
+		pcShape->Gradient(&sGradient, &sMiddle);
+		if (Float32Vec3Dot(&sNormal, &sGradient) <= 0.0f)
+		{
+			iFacingIn++;
+		}
+	}
+	AssertInt(0, iFacingIn);
+
+	cEditor.Kill();
+	cMesh.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The primitives with mesh editors add their meshes, a turned box and one
+// whose axes are left handed too, and those without (a capsule, a half
+// space) add none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestShapeAddMesh(void)
+{
+	Ptr<CShape>		pShape;
+	SFloat32Box		sBox;
+	SFloat32Vec3	sCentre;
+	SFloat32Vec3	sAxis;
+	SFloat32Vec3	asAxes[3];
+	SFloat32Plane	sPlane;
+	CMesh			cMesh;
+	CMeshEditor		cEditor;
+
+	sCentre.Init(1, -2, 3);
+	sAxis.Init(1.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f);
+	pShape = OMalloc<CSphere>(&sCentre, 2.0f);
+	AssertShapeAddsMesh(&pShape, 16);
+
+	asAxes[0].Init(2, 1, 2);
+	asAxes[0] /= 3.0f;
+	asAxes[1].Init(-2, 2, 1);
+	asAxes[1] /= 3.0f;
+	Float32Vec3Cross(&asAxes[2], &asAxes[0], &asAxes[1]);
+	sBox.Init(&sCentre, &asAxes[0], 1.1f, &asAxes[1], 0.9f, &asAxes[2], 0.7f);
+	pShape = OMalloc<CBox>(&sBox);
+	AssertShapeAddsMesh(&pShape, 16);
+	asAxes[2] = -asAxes[2];
+	sBox.Init(&sCentre, &asAxes[0], 1.1f, &asAxes[1], 0.9f, &asAxes[2], 0.7f);
+	pShape = OMalloc<CBox>(&sBox);
+	AssertShapeAddsMesh(&pShape, 16);
+
+	pShape = OMalloc<CCylinder>(&sAxis, &sCentre, 2.0f, 5.0f);
+	AssertShapeAddsMesh(&pShape, 24);
+	pShape = OMalloc<CCone>(&sAxis, &sCentre, 1.0f, 2.0f, 4.0f);
+	AssertShapeAddsMesh(&pShape, 24);
+	pShape = OMalloc<CTube>(&sAxis, &sCentre, 1.0f, 2.0f, 3.0f);
+	AssertShapeAddsMesh(&pShape, 24);
+	pShape = OMalloc<CTorus>(&sAxis, &sCentre, 3.0f, 1.0f);
+	AssertShapeAddsMesh(&pShape, 2);
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	pShape = OMalloc<CCapsule>(&sAxis, &sCentre, 1.0f, 3.0f);
+	AssertFalse(pShape->AddMesh(&cEditor, 16));
+	sPlane.Init(&sAxis, &sCentre);
+	pShape = OMalloc<CHalfSpace>(&sPlane);
+	AssertFalse(pShape->AddMesh(&cEditor, 16));
+	AssertInt(0, cMesh.NumFaces());
+	cEditor.Kill();
+	cMesh.Kill();
+	pShape = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestShape(void)
@@ -338,6 +474,7 @@ void TestShape(void)
 	TestShapeSphere();
 	TestShapeBox();
 	TestShapeHalfSpace();
+	TestShapeAddMesh();
 	ObjectsDiscard();
 	ObjectsKill(false);
 

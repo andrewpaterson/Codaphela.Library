@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "MeshTubeEditor.h"
 #include "Tube.h"
 
 
@@ -77,3 +78,18 @@ void CTube::GetBounds(SFloat32Bounds* psDest)
 	AddDisc(psDest, 0.0f, mfOuterRadius);
 	AddDisc(psDest, mfLength, mfOuterRadius);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTube::AddMesh(CMeshEditor* pcMeshEditor, int iSegments)
+{
+	CMeshTubeEditor	cEditor;
+
+	cEditor.Init(&msAxis, &msStart, mfInnerRadius, mfOuterRadius, mfLength, ShapeMeshSegments(iSegments), 1, 2);  //Its rings count its ends.
+	cEditor.Generate(pcMeshEditor);
+	cEditor.Kill();
+	return true;
+}
+

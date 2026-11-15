@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "MeshCylinderEditor.h"
 #include "Cylinder.h"
 
 
@@ -75,3 +76,18 @@ void CCylinder::GetBounds(SFloat32Bounds* psDest)
 	AddDisc(psDest, 0.0f, mfRadius);
 	AddDisc(psDest, mfLength, mfRadius);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCylinder::AddMesh(CMeshEditor* pcMeshEditor, int iSegments)
+{
+	CMeshCylinderEditor	cEditor;
+
+	cEditor.Init(&msAxis, &msStart, mfRadius, mfLength, ShapeMeshSegments(iSegments), 1, 1);
+	cEditor.Generate(pcMeshEditor);
+	cEditor.Kill();
+	return true;
+}
+

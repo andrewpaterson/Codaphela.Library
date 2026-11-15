@@ -19,6 +19,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#include "MeshBoxEditor.h"
 #include "Box.h"
 
 
@@ -127,3 +128,37 @@ void CBox::GetBounds(SFloat32Bounds* psDest)
 {
 	msBox.GetBounds(psDest);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBox::AddMesh(CMeshEditor* pcMeshEditor, int iSegments)
+{
+	CMeshBoxEditor	cEditor;
+	SFloat32Vec3	asSides[3];
+	SFloat32Vec3	sStart;
+	SFloat32Vec3	sCross;
+	int				i;
+
+	sStart = msBox.sCenter;
+	for (i = 0; i < 3; i++)
+	{
+		asSides[i] = msBox.asAxes[i] * (2.0f * msBox.afHalfLengths[i]);
+		sStart -= msBox.asAxes[i] * msBox.afHalfLengths[i];
+	}
+
+	//The editor's sides go right handed; a box whose axes don't starts from the far end of its last.
+	Float32Vec3Cross(&sCross, &asSides[0], &asSides[1]);
+	if (Float32Vec3Dot(&sCross, &asSides[2]) < 0.0f)
+	{
+		sStart += asSides[2];
+		asSides[2] = -asSides[2];
+	}
+
+	cEditor.Init(&asSides[0], &asSides[1], &asSides[2], &sStart, 1, 1, 1);
+	cEditor.Generate(pcMeshEditor);
+	cEditor.Kill();
+	return true;
+}
+
