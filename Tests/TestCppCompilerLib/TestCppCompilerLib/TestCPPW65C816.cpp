@@ -6226,6 +6226,41 @@ void TestCPP816WideMultiplies(void)
 }
 
 
+const char*	gaszTestCPPEnumClassSources[] =
+{
+	"enum class EColour { Red, Green = 5, Blue };\nint main() { EColour e = EColour::Blue; return (int)e + (e == EColour::Blue ? 10 : 0) + (int)EColour::Green; }\n",
+	"enum class A { X = 1 };\nenum class B { X = 2 };\nint main() { return (int)A::X + (int)B::X * 4; }\n",
+	"enum class EKind : unsigned char { One = 1, Two, Three };\nint F(EKind e) { switch (e) { case EKind::One: return 10; case EKind::Two: return 20; default: return 30; } }\nint main() { return F(EKind::Two) + F(EKind::Three) + (int)sizeof(EKind); }\n",
+	"enum class E { A, B, C };\nstruct S { E e; int ai[3]; };\nint main() { S s; s.e = E::C; s.ai[static_cast<int>(s.e)] = 7; return s.ai[2] + (s.e > E::B ? 1 : 0) + (static_cast<E>(1) == E::B ? 2 : 0); }\n",
+	"enum EOld { OLD_A = 3, OLD_B };\nint main() { EOld e = EOld::OLD_B; return EOld::OLD_A + e; }\n",
+	"namespace N { struct S { enum class EMode { Off, On = 4 }; EMode m; }; }\nint main() { N::S s; s.m = N::S::EMode::On; return (int)s.m + (s.m != N::S::EMode::Off ? 1 : 0); }\n",
+	"enum class E { A = 2 };\nint F(int i) { return 1; }\nint F(E e) { return 2; }\nint main() { return F(E::A) * 10 + F((int)E::A); }\n",
+	"enum class E : int;\nE G();\nenum class E : int { A = 9 };\nE G() { return E::A; }\nint main() { return (int)G(); }\n",
+	"enum class E : long { Big = 100000 };\nint main() { E e = E::Big; return ((long)e == 100000L ? 1 : 0) + (int)sizeof(E); }\n",	"enum class E { A, B, C };\nint main() { E e = (E)2; E f = E::A; return (f < e ? 1 : 0) + (e == E::C ? 2 : 0) + static_cast<int>(f); }\n",
+};
+int			gaiTestCPPEnumClassResults[] = { 21, 9, 51, 10, 7, 5, 21, 9, 5, 3 };
+size		guiTestCPPEnumClassSources = sizeof(gaiTestCPPEnumClassResults) / sizeof(int);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A scoped enum (enum class) runs on the W65C816: its enumerators by its
+// name, two with the same enumerators, an underlying type, in a switch,
+// a struct, a class in a namespace, overloads against int, declared ahead
+// of its definition; and an unscoped enum's enumerators by its name too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816EnumClass(void)
+{
+	size	i;
+
+	for (i = 0; i < guiTestCPPEnumClassSources; i++)
+	{
+		AssertInt(gaiTestCPPEnumClassResults[i], TestCPP816Run(gaszTestCPPEnumClassSources[i]));
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Namespaces run on the W65C816 too: qualified names, overloads, templates,
@@ -6357,6 +6392,7 @@ void TestCPP816(void)
 	TestCPP816WideMultiplies();
 	TestCPP816ConstantArguments();
 	TestCPP816Namespaces();
+	TestCPP816EnumClass();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	NumberKill();

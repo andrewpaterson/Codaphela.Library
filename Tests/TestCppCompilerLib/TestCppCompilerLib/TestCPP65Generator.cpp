@@ -520,9 +520,9 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	AssertPointer(psClass, cTypes.Class(pcFirstClass));
 
 	AssertNull(cTypes.FindEnum(pcFirstEnum));
-	psEnum = cTypes.Enum(pcFirstEnum, 2, false);
+	psEnum = cTypes.Enum(pcFirstEnum, 2, false, false);
 	AssertPointer(psEnum, cTypes.FindEnum(pcFirstEnum));
-	AssertPointer(psEnum, cTypes.Enum(pcFirstEnum, 2, false));
+	AssertPointer(psEnum, cTypes.Enum(pcFirstEnum, 2, false, false));
 	AssertNull(cTypes.FindEnum(pcSecondEnum));
 	AssertTrue(cTypes.Volatile(psEnum) != psEnum);
 	AssertPointer(psEnum, cTypes.FindEnum(pcFirstEnum));
@@ -3771,6 +3771,52 @@ void TestCPP65GeneratorListing(void)
 }
 
 
+extern const char*	gaszTestCPPEnumClassSources[];
+extern int			gaiTestCPPEnumClassResults[];
+extern size			guiTestCPPEnumClassSources;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A scoped enum (enum class) runs on the 65C64 as on the W65C816 (the
+// sources are TestCPP816EnumClass's); and what one refuses: its value as
+// an int, an enumerator without its name, an int as its value, and
+// another enum's enumerator compared with its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorEnumClass(void)
+{
+	static const char*	aszRefused[] =
+	{
+		"enum class E { A };\nint main() { int i = E::A; return i; }\n",
+		"enum class E { A };\nint main() { E e = A; return 0; }\n",
+		"enum class E { A };\nint main() { E e = 0; return 0; }\n",
+		"enum class E { A };\nenum class F { A };\nint main() { return E::A == F::A; }\n",
+		"enum class E { A, B };\nint main() { E e = E::B; return e == 1; }\n",
+		"enum class E { A, B };\nint main() { E e = E::B; return (int)(e + 1); }\n",
+		"enum class E { A, B };\nint F(int i) { return i; }\nint main() { return F(E::B); }\n",
+		"enum class E { A, B };\nint main() { E e = E::B; if (e) { return 1; } return 0; }\n",
+		"enum class E { A, B };\nint main() { E e = E::A; e++; return 0; }\n",
+	};
+	CChars	szAssembly;
+	CChars	szErrors;
+	size	i;
+
+	for (i = 0; i < guiTestCPPEnumClassSources; i++)
+	{
+		AssertInt(gaiTestCPPEnumClassResults[i], TestCPP65Main(gaszTestCPPEnumClassSources[i]));
+	}
+	for (i = 0; i < sizeof(aszRefused) / sizeof(char*); i++)
+	{
+		szAssembly.Init();
+		szErrors.Init();
+		AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, aszRefused[i], true, NULL));
+		szErrors.Kill();
+		szAssembly.Kill();
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -3821,6 +3867,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorLockstep();
 	TestCPP65GeneratorErrors();
 	TestCPP65GeneratorListing();
+	TestCPP65GeneratorEnumClass();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

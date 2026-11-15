@@ -995,9 +995,9 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	}
 	if ((psParameter->IsInteger() || psParameter->IsFloat()) && (psArgument->IsInteger() || psArgument->IsFloat()))
 	{
-		if (psParameter->pcEnum)
+		if (psParameter->pcEnum || psArgument->IsScopedEnum())
 		{
-			//Only the same enum (an exact match) converts to an enum.
+			//Only the same enum (an exact match) converts to an enum, and an enum class's value to nothing else.
 			return CPPCR_None;
 		}
 		if ((psParameter == &mpcUnit->GetTypes()->msInt) && psArgument->IsInteger() && ((psArgument->iBytes < 4) || psArgument->pcEnum))

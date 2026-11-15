@@ -63,6 +63,7 @@ struct SCPP65Type
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
+	bool			bScopedEnum;	//...an enum class: no value of it becomes another type, or another type's it, without a cast.
 	bool			bConst;			//const T: a copy of psUnqualified that can't be written through.
 	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
 	SCPP65Type*		psUnqualified;	//The type without const and volatile (itself when it is neither).
@@ -85,6 +86,7 @@ struct SCPP65Type
 	bool	HasQualifiersOf(SCPP65Type* psFrom);
 	bool	Same(SCPP65Type* psOther);
 	SCPP65Type*	Unqualified(void);
+	bool		IsScopedEnum(void);
 	SCPP65Type*	WithoutReference(void);
 	int		GetElementBytes(void);
 	void	Append(CChars* psz);
@@ -143,7 +145,7 @@ public:
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
 	SCPP65Type*			Reference(SCPP65Type* psBase);
 	SCPP65Type*			MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember);
-	SCPP65Type*			Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned);
+	SCPP65Type*			Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned, bool bScoped);
 	SCPP65Type*			FindEnum(CCPPSymbol* pcEnum);
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);

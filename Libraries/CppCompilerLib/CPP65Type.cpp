@@ -341,6 +341,17 @@ bool SCPP65Type::Same(SCPP65Type* psOther)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether it is an enum class's type, const or not.  [dcl.enum] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsScopedEnum(void)
+{
+	return (pcEnum != NULL) && (bScopedEnum || psUnqualified->bScopedEnum);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type without const and volatile.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -442,6 +453,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
 	psType->pcEnum = NULL;
+	psType->bScopedEnum = false;
 	psType->bConst = false;
 	psType->bVolatile = false;
 	psType->psUnqualified = psType;
@@ -863,7 +875,7 @@ SCPP65Type* CCPP65Types::MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember)
 // overloads and templates.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned)
+SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned, bool bScoped)
 {
 	SCPP65Type*	psType;
 
@@ -876,6 +888,7 @@ SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned)
 	psType = NewType(CPP65TK_Integer, iBytes);
 	psType->bSigned = bSigned;
 	psType->pcEnum = pcEnum;
+	psType->bScopedEnum = bScoped;
 	AddType(psType);
 	mcEnums.Put(GetPointerKey(pcEnum), &psType);
 	return psType;

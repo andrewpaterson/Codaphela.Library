@@ -303,7 +303,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	if (pcBinary->meOperator == CT_Assignment)
 	{
 		mpcUnit->ConversionOverflow(pcBinary->mpcRight, sPlace.psType);
-		if (!Convert(&sRight, sPlace.psType))
+		if (!ConvertImplicit(&sRight, sPlace.psType, pcBinary->mpcRight))
 		{
 			return false;
 		}
@@ -782,7 +782,15 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	}
 
 	//An object is converted to bool (with its conversion function).
-	if (!Value(pcExpression, &sValue) || !Truth(&sValue, &sCondition))
+	if (!Value(pcExpression, &sValue))
+	{
+		return false;
+	}
+	if (sValue.psType && sValue.psType->IsScopedEnum())
+	{
+		return mpcUnit->ReportError(pcExpression, "An enum class's value is not a condition: compare it with one of its values");
+	}
+	if (!Truth(&sValue, &sCondition))
 	{
 		return false;
 	}
@@ -807,6 +815,11 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 	if (!psValue->psType->IsScalar())
 	{
 		return Unsupported(__FILE__, __LINE__);
+	}
+	if (psValue->psType->IsScopedEnum())
+	{
+		//Where the expression isn't to hand (!e, e && x, e ? x : y).
+		return mpcUnit->ReportError(NULL, "An enum class's value is not a condition: compare it with one of its values");
 	}
 	sType = IRTypeOf(psValue->psType);
 	if (psValue->psType->IsFloat())

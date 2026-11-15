@@ -723,6 +723,11 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		Error(pcUnary, "The operand must be an integer");
 		return NULL;
 	}
+	if (psType->IsScopedEnum())
+	{
+		Error(pcUnary, "An enum class has no arithmetic: cast its value to an integer");
+		return NULL;
+	}
 	switch (pcUnary->meOperator)
 	{
 	case CT_Add:
@@ -750,7 +755,7 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	{
 		return NULL;
 	}
-	if (!psType->IsScalar())
+	if (!psType->IsScalar() || psType->IsScopedEnum())
 	{
 		Error(pcUnary, "Only integers and pointers can be incremented");
 		return NULL;
@@ -929,6 +934,11 @@ SCPP65Type* CCPP65TypeChecker::Operate(ECppTokens eOperator, SCPP65Type* psLeft,
 	{
 		return NULL;
 	}
+	if (psLeft->IsScopedEnum() || psRight->IsScopedEnum())
+	{
+		Error(pcNode, "An enum class has no arithmetic: cast its value to an integer");
+		return NULL;
+	}
 	psType = mpcTypes->Operation(eOperator, psLeft, psRight);
 	if (psType)
 	{
@@ -988,6 +998,10 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode)
 {
+	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && (psLeft->Unqualified() != psRight->Unqualified()))
+	{
+		return Error(pcNode, "An enum class's value is compared only with its own values");
+	}
 	if (psLeft->IsFloat() || psRight->IsFloat())
 	{
 		if (psLeft->IsPointer() || psRight->IsPointer() || !psLeft->IsScalar() || !psRight->IsScalar())
@@ -1166,6 +1180,10 @@ bool CCPP65TypeChecker::Truth(SCPP65Type* psType, CCPPSyntax* pcNode)
 	if (!psType->IsScalar())
 	{
 		return Error(pcNode, "A condition must be an integer or a pointer");
+	}
+	if (psType->IsScopedEnum())
+	{
+		return Error(pcNode, "An enum class's value is not a condition: compare it with one of its values");
 	}
 	return true;
 }
@@ -2611,12 +2629,46 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 //////////////////////////////////////////////////////////////////////////
 //
 // Convert, for a conversion no cast asks for: a pointer can't lose const or
-// volatile (KeepsPointerQualifiers).
+// volatile (KeepsPointerQualifiers), and an enum class's value stays one
+// (KeepsScopedEnum).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
-	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode);
+	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psFrom converts to psTo with no cast as far as an enum class
+// goes: its value is only its own type's, and only its own values are its.
+// [conv.prom] and [conv.integral] leave a scoped enum out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	if (psTo->IsReference())
+	{
+		psTo = psTo->psBase;
+	}
+	if (psFrom->IsReference())
+	{
+		psFrom = psFrom->psBase;
+	}
+	if (psTo->IsVoid() || (psFrom->Unqualified() == psTo->Unqualified()))
+	{
+		return true;
+	}
+	if (psFrom->IsScopedEnum())
+	{
+		return Error(pcNode, "An enum class's value becomes another type only by a cast");
+	}
+	if (psTo->IsScopedEnum())
+	{
+		return Error(pcNode, "An enum class is given only its own values, or a cast");
+	}
+	return true;
 }
 
 

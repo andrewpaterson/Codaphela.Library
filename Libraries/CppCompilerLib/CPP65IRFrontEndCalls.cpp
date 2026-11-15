@@ -737,7 +737,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 			}
 			sArgument.psType = psParameter;
 		}
-		else if (!ValueFor(pcArgument, psParameter, &sArgument) || !Convert(&sArgument, psParameter))
+		else if (!ValueFor(pcArgument, psParameter, &sArgument) || !ConvertImplicit(&sArgument, psParameter, pcArgument))
 		{
 			return false;
 		}

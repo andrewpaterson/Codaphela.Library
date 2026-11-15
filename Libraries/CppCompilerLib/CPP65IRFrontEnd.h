@@ -322,6 +322,7 @@ protected:
 	bool			DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue);
 	SIRReference	DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo);
 	bool			Convert(SCPP65IRValue* psValue, SCPP65Type* psTo);
+	bool			ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue);
 	void			NarrowCount(bool bLeading, SIRReference* psValue, SIRReference* psCount, int* piBits, SIRType sInt);
 	bool			Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName, SCPP65IRValue* psValue);

@@ -481,7 +481,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		return true;
 	}
 	mpcUnit->ConversionOverflow(pcInitialiser, psPlace->psType);
-	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue) || !Convert(&sValue, psPlace->psType))
+	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue) || !ConvertImplicit(&sValue, psPlace->psType, pcInitialiser))
 	{
 		return false;
 	}
@@ -600,7 +600,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			pcElement = papcOne->GetPtr(0);
 		}
 		mpcUnit->ConversionOverflow(pcElement, psElement);
-		if (!ValueFor(pcElement, psElement, &sValue) || !Convert(&sValue, psElement))
+		if (!ValueFor(pcElement, psElement, &sValue) || !ConvertImplicit(&sValue, psElement, pcElement))
 		{
 			return false;
 		}
@@ -1010,7 +1010,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	else
 	{
 		mpcUnit->ConversionOverflow(pcReturn->mpcValue, psReturn);
-		if (!ValueFor(pcReturn->mpcValue, psReturn, &sValue) || !Convert(&sValue, psReturn))
+		if (!ValueFor(pcReturn->mpcValue, psReturn, &sValue) || !ConvertImplicit(&sValue, psReturn, pcReturn->mpcValue))
 		{
 			return false;
 		}

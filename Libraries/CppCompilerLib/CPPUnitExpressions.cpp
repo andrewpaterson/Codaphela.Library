@@ -2097,7 +2097,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 
 	if (pcEnum)
 	{
-		return mcTypes.Enum(pcEnum, iBytes, bSigned);
+		return mcTypes.Enum(pcEnum, iBytes, bSigned, pcSpecifier && pcSpecifier->mbScoped);
 	}
 	return mcTypes.Integer(iBytes, bSigned);
 }

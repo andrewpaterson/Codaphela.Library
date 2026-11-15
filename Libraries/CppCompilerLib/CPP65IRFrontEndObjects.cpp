@@ -1204,7 +1204,7 @@ bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, S
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!ValueFor(pcValue, psType, &sValue) || !Convert(&sValue, psType))
+	if (!ValueFor(pcValue, psType, &sValue) || !ConvertImplicit(&sValue, psType, pcValue))
 	{
 		return false;
 	}

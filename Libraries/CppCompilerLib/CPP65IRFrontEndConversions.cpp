@@ -259,6 +259,31 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Converts a value to psTo where no cast asks for it (a variable given its
+// value, an argument, what a function returns, an assignment): an enum
+// class's value stays one (CCPP65TypeChecker::KeepsScopedEnum).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	bool	bKept;
+
+	if (psValue->psType && psTo && (psValue->psType->IsScopedEnum() || psTo->IsScopedEnum() || (psTo->IsReference() && psTo->psBase->IsScopedEnum())))
+	{
+		mpcUnit->BeginLoud();
+		bKept = mpcUnit->GetTypeChecker()->KeepsScopedEnum(psValue->psType, psTo, pcNode);
+		mpcUnit->EndLoud();
+		if (!bKept)
+		{
+			return false;
+		}
+	}
+	return Convert(psValue, psTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Converts a value to psTo.
 //
 //////////////////////////////////////////////////////////////////////////
