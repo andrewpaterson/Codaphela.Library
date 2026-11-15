@@ -45,7 +45,7 @@ struct SMeshMergedNormal
 };
 
 
-typedef CArrayTemplate<SMeshMergedNormal>	CArrayMeshMergedNormal;
+typedef CArrayLargeTemplate<SMeshMergedNormal>	CArrayMeshMergedNormal;  //Large, as are the lists: a mesh of a thousand faces passes 64KB with a 16 bit size.
 
 
 //What's known about a mesh as its normals merge.  A face corner is the face's index * NUM_FACE_CORNERS + which corner of it.
@@ -54,10 +54,10 @@ struct SMeshMergeNormals
 	CMesh*					pcMesh;
 	float64					fMinCosine;
 
-	CArrayInt				aiFirstFaceCorner;	//Of each corner, a list through aiNextFaceCorner, -1 at its end.
-	CArrayInt				aiNextFaceCorner;
+	CArrayLargeInt			aiFirstFaceCorner;	//Of each corner, a list through aiNextFaceCorner, -1 at its end.
+	CArrayLargeInt			aiNextFaceCorner;
 	CArrayMeshMergedNormal	asMerged;
-	CArrayInt				aiFaceCornerMerged;	//The merged normal of each face corner, -1 if it has no normal of its own.
+	CArrayLargeInt			aiFaceCornerMerged;	//The merged normal of each face corner, -1 if it has no normal of its own.
 };
 
 
