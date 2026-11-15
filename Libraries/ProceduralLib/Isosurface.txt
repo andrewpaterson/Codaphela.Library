@@ -99,9 +99,12 @@ cracks between sizes.  The quad is wound so its face looks from negative to posi
 file's polygons are, and TestMeshShapes' checks (closed, facing out) say so.
 
 The mesh has one corner per cell vertex, shared by every quad that uses it: one connected mesh, so CMesh's connectivity, the
-modifiers and smoothing work on it.  A quad is added as two triangles split along the diagonal that follows the crease (the one
-whose triangles' normals agree best), as the other diagonal zigzags a crease.  CMesh::AddQuad always splits between its second
-and fourth corners (faces 1 2 4 and 2 3 4), so the quad's corners are turned to put the chosen diagonal there.
+modifiers and smoothing work on it.  A quad is added as two triangles split along the diagonal that follows the crease, as the
+other diagonal zigzags a crease.  That isn't the split whose triangles' normals agree best: a quad across a box's edge has two of
+its vertices on the edge, and splitting between them gives faces at a right angle, which is right, where the other split gives
+two faces that agree better and cut through the box.  Proposed: the diagonal whose middle is nearer the surface, by the shape's
+distance there.  CMesh::AddQuad picks the flattest split itself (IsMeshQuadCutFirstToThird), which is right for a general mesh
+and not here, so the isosurface's quads are added as two AddFaces.
 
 Normals are per face corner in a CMesh.  Proposed: flat face normals, then CMeshMergeNormals (SupportLib), which makes the
 normals at a corner one average where they are within an angle of each other, so a sphere shades smooth and a box's edges stay
