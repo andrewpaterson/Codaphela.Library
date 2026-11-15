@@ -28,12 +28,6 @@
     <Filter Include="Source\Mesh\Detail\Connectivity">
       <UniqueIdentifier>{2299b482-779b-4fc1-9a0c-b3182d143326}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Mesh\Shape">
-      <UniqueIdentifier>{540a21a9-166f-4544-9886-0772d89185fc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Mesh\Shape\Detail">
-      <UniqueIdentifier>{7cec4a73-98e0-49aa-921c-5a5495187a70}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Mesh\Modifier">
       <UniqueIdentifier>{e6c2532c-2a32-4810-85d8-ba4b61b12df7}</UniqueIdentifier>
     </Filter>
@@ -555,24 +549,6 @@
     <ClInclude Include="MeshFace.h">
       <Filter>Source\Mesh\Detail\Connectivity</Filter>
     </ClInclude>
-    <ClInclude Include="MeshShape.h">
-      <Filter>Source\Mesh\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshBoundingBox.h">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshConvexHull.h">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshLeaves.h">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshTriangles.h">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="ShapesIndexed.h">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClInclude>
     <ClInclude Include="MeshEdgeVisibility.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
@@ -585,7 +561,7 @@
     <ClInclude Include="MeshPolygons.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
-    <ClInclude Include="MeshPolygonShape.h">
+    <ClInclude Include="MeshPolygonCut.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
     <ClInclude Include="MeshSelections.h">
@@ -699,37 +675,13 @@
     <ClInclude Include="TileMap.h">
       <Filter>Source\Map\Tile</Filter>
     </ClInclude>
-    <ClInclude Include="Box.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="ConvexHull.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="HalfSpace.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
     <ClInclude Include="LineInfinite.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="LineSegment.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
-    <ClInclude Include="Plane.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Polygon.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
     <ClInclude Include="Ray.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="ShapeHelper.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Sphere.h">
-      <Filter>Source\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Triangle.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="ImageToR3G3B2A.h">
@@ -1346,24 +1298,6 @@
     <ClCompile Include="MeshFace.cpp">
       <Filter>Source\Mesh\Detail\Connectivity</Filter>
     </ClCompile>
-    <ClCompile Include="MeshShape.cpp">
-      <Filter>Source\Mesh\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshBoundingBox.cpp">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshConvexHull.cpp">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshLeaves.cpp">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshTriangles.cpp">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClCompile>
-    <ClCompile Include="ShapesIndexed.cpp">
-      <Filter>Source\Mesh\Shape\Detail</Filter>
-    </ClCompile>
     <ClCompile Include="MeshEdgeVisibility.cpp">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClCompile>
@@ -1376,7 +1310,7 @@
     <ClCompile Include="MeshPolygons.cpp">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClCompile>
-    <ClCompile Include="MeshPolygonShape.cpp">
+    <ClCompile Include="MeshPolygonCut.cpp">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClCompile>
     <ClCompile Include="MeshSelections.cpp">
@@ -1490,37 +1424,13 @@
     <ClCompile Include="TileMap.cpp">
       <Filter>Source\Map\Tile</Filter>
     </ClCompile>
-    <ClCompile Include="Box.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="ConvexHull.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="HalfSpace.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
     <ClCompile Include="LineInfinite.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="LineSegment.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
-    <ClCompile Include="Plane.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="Polygon.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
     <ClCompile Include="Ray.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="ShapeHelper.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="Sphere.cpp">
-      <Filter>Source\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="ChannelTypes.cpp">

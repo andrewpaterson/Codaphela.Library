@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MESH_POLYGON_SHAPE_H__
-#define __MESH_POLYGON_SHAPE_H__
+#ifndef __MESH_POLYGON_CUT_H__
+#define __MESH_POLYGON_CUT_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayTemplatePrimitive.h"
 #include "BaseLib/PrimitiveTypes.h"
@@ -68,5 +68,5 @@ void	CutMeshPolygon(CMesh* pcMesh, const int32* paiPositions, int32 iNumCorners,
 bool	GetMeshPolygonLoop(CMesh* pcMesh, CMeshPolygon* pcPolygon, CArrayMeshPolygonEdge* pasEdges, CArrayMeshPolygonEdge* pasLoop);
 
 
-#endif // __MESH_POLYGON_SHAPE_H__
+#endif // __MESH_POLYGON_CUT_H__
 

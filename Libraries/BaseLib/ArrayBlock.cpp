@@ -195,19 +195,6 @@ typename SIZE::Count CArrayBlockBase<SIZE>::SetUsedElements(Count iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(Count iIndex)
-{
-	//This is only used by CConvexHullGenerator.RemoveDiscontiguousTriangles/
-	//It should be removed.
-	return RemoveAtNoDeallocate(iIndex, false, miElementSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class SIZE>
 bool CArrayBlockBase<SIZE>::SetChunkSize(Count iChunkSize)
 {
 	if (iChunkSize < miChunkSize)

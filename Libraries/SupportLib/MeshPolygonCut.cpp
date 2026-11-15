@@ -23,7 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GeometricTypes.h"
 #include "MeshDefines.h"
 #include "MeshEditor.h"
-#include "MeshPolygonShape.h"
+#include "MeshPolygonCut.h"
 
 
 //////////////////////////////////////////////////////////////////////////

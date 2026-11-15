@@ -207,7 +207,6 @@ public:
 	Count	ChunkSize(void);
 	Count	SetUsedElements(Count iNumElements);
 
-	Count	RemoveAtNoDeallocate(Count iIndex);
 	bool	SetChunkSize(Count iChunkSize);
 
 	bool	Write(CFileWriter* pcFileWriter);

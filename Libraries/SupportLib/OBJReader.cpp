@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/TextParser.h"
 #include "Mesh.h"
 #include "MeshEditor.h"
-#include "MeshPolygonShape.h"
+#include "MeshPolygonCut.h"
 #include "OBJReader.h"
 
 

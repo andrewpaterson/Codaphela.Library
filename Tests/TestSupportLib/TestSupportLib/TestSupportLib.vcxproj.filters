@@ -20,9 +20,6 @@
     <Filter Include="Source Files\TextEditor">
       <UniqueIdentifier>{a5b23259-78be-4c56-a24a-d576373fe969}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Shape">
-      <UniqueIdentifier>{47a626e0-7e47-47b3-aa1b-ebefdc76f4d3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Image\Draw">
       <UniqueIdentifier>{6fcdae2d-418a-4cd3-aa1e-fdde63040822}</UniqueIdentifier>
     </Filter>
@@ -147,18 +144,6 @@
     </ClCompile>
     <ClCompile Include="TestNormalGeneration.cpp">
       <Filter>Source Files\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="TestHalfSpace.cpp">
-      <Filter>Source Files\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="TestPolygon.cpp">
-      <Filter>Source Files\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="TestSphereShape.cpp">
-      <Filter>Source Files\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="TestTriangleShape.cpp">
-      <Filter>Source Files\Shape</Filter>
     </ClCompile>
     <ClCompile Include="AssertImage.cpp">
       <Filter>Source Files\Image</Filter>

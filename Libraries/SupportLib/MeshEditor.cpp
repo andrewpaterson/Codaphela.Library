@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/Logger.h"
 #include "StandardLib/Objects.h"
 #include "MeshEditor.h"
-#include "MeshPolygonShape.h"
+#include "MeshPolygonCut.h"
 
 
 //////////////////////////////////////////////////////////////////////////

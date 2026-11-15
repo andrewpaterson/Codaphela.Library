@@ -21,7 +21,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Object.h"
-#include "ShapesIndexed.h"
 #include "MeshFaceReturn.h"
 #include "MeshPositions.h"
 #include "MeshConnectivity.h"

@@ -24,7 +24,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "Mesh.h"
-#include "MeshPolygonShape.h"
+#include "MeshPolygonCut.h"
 
 
 //////////////////////////////////////////////////////////////////////////

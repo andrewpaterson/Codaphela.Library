@@ -300,11 +300,7 @@
     <ClCompile Include="TestMeshShapes.cpp" />
     <ClCompile Include="TestMeshUVCoords.cpp" />
     <ClCompile Include="TestNormalGeneration.cpp" />
-    <ClCompile Include="TestHalfSpace.cpp" />
-    <ClCompile Include="TestPolygon.cpp" />
-    <ClCompile Include="TestSphereShape.cpp" />
     <ClCompile Include="TestTileMapGenerator.cpp" />
-    <ClCompile Include="TestTriangleShape.cpp" />
     <ClCompile Include="TestTrueTypeFont.cpp" />
     <ClCompile Include="TestFontFamily.cpp" />
     <ClCompile Include="TestTextMarkupParser.cpp" />

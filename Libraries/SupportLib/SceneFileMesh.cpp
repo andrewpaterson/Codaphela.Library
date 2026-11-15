@@ -23,7 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "MeshDefines.h"
-#include "MeshPolygonShape.h"
+#include "MeshPolygonCut.h"
 #include "MeshSmoothGroups.h"
 #include "SceneFileMesh.h"
 
