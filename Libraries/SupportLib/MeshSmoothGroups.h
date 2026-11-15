@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_SMOOTH_GROUPS_H__
 #define __MESH_SMOOTH_GROUPS_H__
+#include "BaseLib/ArrayUint32.h"
 #include "MeshModifier.h"
 
 
@@ -61,7 +62,7 @@ protected:
 	void		GenerateGroupsFromNames(CMesh* pcMesh);
 	void		GenerateGroupsFromAngles(CMesh* pcMesh);
 	void		FindAngleRegions(CMesh* pcMesh, float32 fDot, CArrayLargeFloat32Vec3* pasPolygonNormals, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts);
-	uint32		ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts, CArrayInt* paiRegionGroups);
+	uint32		ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts, CArrayUint32* paiRegionGroups);
 };
 
 

@@ -170,8 +170,8 @@ void TestMeshSmoothGroupsModify(void)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
-	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
-	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
+	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
+	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
@@ -391,8 +391,8 @@ void TestMeshSmoothGroupsAngleFold(void)
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
-	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
-	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
+	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
+	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	AssertTrue(TestMeshSmoothMinCornerDot(&pOutput, 0) < 0.999f);
 	cStack.Kill();
@@ -404,8 +404,8 @@ void TestMeshSmoothGroupsAngleFold(void)
 	pOutput = cStack.GetOutput();
 	uiGroup0 = pOutput->mcSmoothing.mauiGroups.GetValue(0);
 	uiGroup1 = pOutput->mcSmoothing.mauiGroups.GetValue(1);
-	AssertInt(1, uiGroup0);
-	AssertInt(2, uiGroup1);
+	AssertInt((int32)1, uiGroup0);
+	AssertInt((int32)2, uiGroup1);
 	AssertLSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
 	AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, 0), 3);
 	AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, 1), 3);
@@ -414,7 +414,7 @@ void TestMeshSmoothGroupsAngleFold(void)
 	pcSmoothing->mfSharpAngle = 45.0f;
 	cStack.Touch();
 	pOutput = cStack.GetOutput();
-	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
+	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 }
@@ -531,7 +531,7 @@ void TestMeshSmoothGroupsAngleShapes(void)
 	iNumFaces = pOutput->NumFaces();
 	for (i = 0; i < iNumFaces; i++)
 	{
-		AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(i));
+		AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(i));
 	}
 	AssertLSize(iNumFaces + pOutput->NumCorners(), pOutput->mcNormals.mcNormals.NumElements());
 	pOutput = NULL;
@@ -552,7 +552,7 @@ void TestMeshSmoothGroupsAngleTooManyGroups(void)
 	Ptr<CMesh>			pMesh;
 	Ptr<CMesh>			pOutput;
 	CMeshSmoothGroups*	pcSmoothing;
-	CArrayInt			aiGroups;
+	CArrayUint32		aiGroups;
 	int					i;
 	float32				fAngle;
 	uint32				uiGroup;
@@ -578,7 +578,7 @@ void TestMeshSmoothGroupsAngleTooManyGroups(void)
 	{
 		uiGroup = pOutput->mcSmoothing.mauiGroups.GetValue(i);
 		AssertTrue(uiGroup != 0);
-		aiGroups.AddIfUnique((int)uiGroup);
+		aiGroups.AddIfUnique(uiGroup);
 	}
 	AssertSize(32, aiGroups.NumElements());
 	aiGroups.Kill();

@@ -154,7 +154,7 @@ void CMeshSmoothGroups::GenerateGroupsFromAngles(CMesh* pcMesh)
 	CArrayInt				aiRegions;
 	CArrayInt				aiOrder;
 	CArrayInt				aiRegionStarts;
-	CArrayInt				aiRegionGroups;
+	CArrayUint32			aiRegionGroups;
 	int						iNumRegions;
 	int						iRegion;
 	int						i;
@@ -187,7 +187,7 @@ void CMeshSmoothGroups::GenerateGroupsFromAngles(CMesh* pcMesh)
 	for (iRegion = 0; iRegion < iNumRegions; iRegion++)
 	{
 		uiGroup = ChooseRegionGroup(pcMesh, iRegion, &aiRegions, &aiOrder, &aiRegionStarts, &aiRegionGroups);
-		aiRegionGroups.SetValue(iRegion, (int)uiGroup);
+		aiRegionGroups.SetValue(iRegion, uiGroup);
 		for (i = aiRegionStarts.GetValue(iRegion); i < aiRegionStarts.GetValue(iRegion + 1); i++)
 		{
 			iFace = aiOrder.GetValue(i);
@@ -312,7 +312,7 @@ void CMeshSmoothGroups::FindAngleRegions(CMesh* pcMesh, float32 fDot, CArrayLarg
 // those regions at its corners.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMeshSmoothGroups::ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts, CArrayInt* paiRegionGroups)
+uint32 CMeshSmoothGroups::ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts, CArrayUint32* paiRegionGroups)
 {
 	int				aiBitUses[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
 	uint32			uiUsed;
@@ -343,7 +343,7 @@ uint32 CMeshSmoothGroups::ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayIn
 				iOtherRegion = paiRegions->GetValue(pcCorner->maiFace.GetValue(l));
 				if (iOtherRegion < iRegion)
 				{
-					uiOtherGroup = (uint32)paiRegionGroups->GetValue(iOtherRegion);
+					uiOtherGroup = paiRegionGroups->GetValue(iOtherRegion);
 					uiUsed |= uiOtherGroup;
 					for (iBit = 0; iBit < MAX_UNOVERLAPPING_SMOOTHING_GROUPS; iBit++)
 					{

@@ -621,7 +621,7 @@ void TestMeshAddPolygonCuts(void)
 	TestMeshCutAddCorners(&cMesh, afPentagon, 5);
 	r = cMesh.AddPolygon(&aiCorners);
 	AssertInt(3, r.NumFaces());
-	AssertInt(0, r.miFirstFace);
+	AssertInt((int32)0, r.miFirstFace);
 	AssertInt(3, cMesh.NumFaces());
 	fArea = 0.0;
 	for (i = 0; i < 3; i++)
@@ -698,7 +698,7 @@ void TestMeshAddPolygonCuts(void)
 	cEditor.Init(&cMesh);
 	TestMeshCutAddCorners(&cMesh, afPentagon, 5);
 	r = cEditor.AddPolygon(&aiCorners, 4, true);
-	AssertInt(0, r.miFirstFace);
+	AssertInt((int32)0, r.miFirstFace);
 	AssertLSize(1, cMesh.mcPolygons.mcPolygons.NumElements());
 	for (i = 0; i < 3; i++)
 	{
