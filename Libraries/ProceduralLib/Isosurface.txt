@@ -5,7 +5,8 @@ ProceduralLib makes a CMesh from any shape that can say how far a point is from 
 hulls, and what is made by joining and cutting them.  The mesh it makes is an ordinary CMesh, so a CMeshEditor, a CScene and both
 renderers take it as they take any other.
 
-Nothing here is built yet.  What is decided and what is only proposed is said at each point.
+Built: ShapePlan.txt's step 8, in the sub-steps under Steps, each with what it found.  What was decided and what was only proposed
+is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -113,8 +114,11 @@ UVs and materials aren't made yet.  See Open.
 Known limits
 ------------
 Dual contouring can make a surface that isn't a manifold (two sheets through one vertex) where one cell holds parts of the
-surface that don't touch.  Manifold Dual Contouring (Schaefer, Ju and Warren 2007) splits such a cell's vertex.  Whether it is
-needed is found by testing, step 8.8.
+surface that don't touch.  Manifold Dual Contouring (Schaefer, Ju and Warren 2007) splits such a cell's vertex (step 8.8).  It
+does so where two sheets' normals are over about 100 degrees apart, so a pinch can still be left where they're nearer, or in an
+octree leaf bigger than the smallest.
+Marching cubes' pieces are only what the corners show: a box's edge just outside a cell leaves its two faces as two pieces, and a
+cell can hold pieces of two faces whose edge passes outside it, where the vertex, clamped back in, is up to 0.3 of a cell off.
 A corner can be cut off when the cell holding it doesn't cross all three of its faces.  Splitting by normal angle usually reaches
 it, as the normals of a corner's faces differ by a right angle.
 The vertex is a fit, so a surface may cross itself near a tight crease; the clamp keeps it within its cell.
@@ -177,7 +181,17 @@ that plan's step 8, done in these sub-steps, each with its tests in TestProcedur
     (ScenePlan.txt, step 2).  A primitive is made exactly by its own mesh editor with the same values (ShapePlan.txt, section
     5); anything else goes through the isosurface.  Tests: a primitive's mesh is its editor's, a combination's is closed and
     facing out, and a small scene of shapes drawn with CRasterFrame matches saved bytes.
+    Done: CShape::AddMesh in SupportLib (the sphere, box, cylinder, cone, tube and torus) and CMeshShapeEditor in ProceduralLib.
+    It makes faces only; CMeshFlatFaces and CMeshMergeNormals after it give normals.  The scene is matched within 8 a channel in
+    all but a hundredth of its pixels, not byte for byte: g++ contracts a * b + c into FMA instructions when it optimises
+    (-march=haswell, and its rule against that is for C only), so Release and Debug builds differ in floats' last bits, even
+    SupportLib's sphere editor's, and that moved 32 pixels by a level or two.  It's left out of Size16 builds, as RenderLib's
+    cooked mesh lists count with a size.  A union's two slivers at a cylinder's rim, a thousandth apart, can face either way.
 8.8 Manifold dual contouring, only if 8.6's tests find sheets meeting at a vertex.
+    Done, as they did: a gyroid had 9 corners pinched uniformly and 12 on the octree, now 0 and 1.  A cell's sheets are marching
+    cubes' pieces, its ambiguous faces decided by the asymptotic decider (Nielson and Hamann 1991), joined where their normals
+    are under about 100 degrees apart: without that a box's edge just outside a cell dented it.  The octree splits its smallest
+    leaves' vertices; bigger ones keep one.
 Classic marching cubes' ambiguous cases (MC33) are dropped, as marching cubes is only the baseline.
 
 

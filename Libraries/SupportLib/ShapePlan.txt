@@ -165,6 +165,10 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
    whose distance is the box's inside, exactly, and no more outside, and which the grid sampled surface check finds a bound;
    its planes, corners and distances are the same saved and read back.  The shape tests share one TestShapeRandom.
 8. The isosurface and the shape to mesh modifier (Isosurface.txt).
+   Done, in Isosurface.txt's sub-steps 8.1 to 8.8: ProceduralLib's marching cubes baseline, dual contouring on a uniform grid and
+   on a balanced octree, manifold where sheets meet, and CMeshShapeEditor, a source modifier holding its CShape (modifiers are
+   CObjects now).  A primitive is meshed by its own editor through CShape::AddMesh.  BaseLib has SFloat32Symmetric3x3, the vertex
+   fit's eigen solver.
 9. CMeshShape, when collision or picking needs it.
 
 
