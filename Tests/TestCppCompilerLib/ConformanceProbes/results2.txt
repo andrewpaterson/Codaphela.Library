@@ -1,0 +1,71 @@
+FAIL sa_works_false                 q_sa_works_false.cpp (3, 44): An array size must be a positive constant (in SA at q_sa_works_false.cpp (4, 1)) [(]
+ok   sa_works_true                  
+FAIL static_assert_false            q_static_assert_false.cpp (4, 30): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 333) [int]
+ok   sem_const_deduce               
+FAIL sem_ref_distinct               q_sem_ref_distinct.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_ref_distinct.cpp (4, 118)) [(]
+FAIL sem_ref_collapse               q_sem_ref_collapse.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_ref_collapse.cpp (4, 172)) [(]
+FAIL sem_is_lref_spec               q_sem_is_lref_spec.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_is_lref_spec.cpp (4, 233)) [(]
+                                    q_sem_is_lref_spec.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_is_lref_spec.cpp (4, 281)) [(]
+ok   sem_enum_class_size            
+FAIL sem_constexpr_var_class        q_sem_constexpr_var_class.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_constexpr_var_class.cpp (4, 56)) [(]
+FAIL sem_constexpr_float            q_sem_constexpr_float.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_constexpr_float.cpp (4, 31)) [(]
+                                    q_sem_constexpr_float.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_constexpr_float.cpp (4, 80)) [(]
+FAIL sem_constexpr_ternary_ptr      q_sem_constexpr_ternary_ptr.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_constexpr_ternary_ptr.cpp (4, 34)) [(]
+FAIL sem_sizeof_pack                q_sem_sizeof_pack.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_sizeof_pack.cpp (4, 67)) [(]
+ok   sem_alignof                    
+FAIL sem_is_traits                  q_sem_is_traits.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_is_traits.cpp (4, 304)) [(]
+                                    q_sem_is_traits.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_is_traits.cpp (4, 333)) [(]
+FAIL sem_is_traits2                 q_sem_is_traits2.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_is_traits2.cpp (4, 31)) [(]
+                                    q_sem_is_traits2.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_is_traits2.cpp (4, 55)) [(]
+FAIL sem_underlying                 q_sem_underlying.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_underlying.cpp (4, 140)) [(]
+FAIL sem_decltype_expr              q_sem_decltype_expr.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_decltype_expr.cpp (4, 125)) [(]
+                                    q_sem_decltype_expr.cpp (3, 44): An array size must be a positive constant (in SA at q_sem_decltype_expr.cpp (4, 158)) [(]
+ok   nullptr_assign                 
+FAIL nullptr_arg                    q_nullptr_arg.cpp (4, 54): No function matches the arguments (void*): it takes (short*) [f]
+FAIL nullptr_arg_class              q_nullptr_arg_class.cpp (4, 65): No function matches the arguments (void*): it takes (class*) [f]
+ok   nullptr_return_cmp             
+FAIL attr_param                     q_attr_param.cpp (4, 7): Lambda expressions are not supported. [[]
+                                    q_attr_param.cpp (4, 1): This declaration is not supported by the compiler yet [int]
+ok   attr_fn                        
+ok   attr_stmt                      
+ok   attr_class_var                 
+FAIL sizeof_member                  q_sizeof_member.cpp (4, 50): This sizeof or type trait is not supported by the compiler yet [sizeof]
+ok   sizeof_expr_member             
+ok   deleted_fn_called              
+ok   abstract_instantiated          
+ok   private_access                 
+ok   narrowing                      
+ok   enum_class_implicit            
+ok   enum_class_compare_int         
+FAIL explicit_ctor_implicit_use     q_explicit_ctor_implicit_use.cpp (4, 77): No function matches the arguments (short): it takes (class) [f]
+FAIL const_member_call_nonconst     q_const_member_call_nonconst.cpp (4, 79): No function matches the arguments (short): it takes (short) [s]
+FAIL const_ptr_write                q_const_ptr_write.cpp (4, 44): A const object cannot be changed [*]
+FAIL const_cast_away_implicit       q_const_cast_away_implicit.cpp (4, 40): This conversion takes const away from what the pointer points to [&]
+FAIL ref_to_temp_nonconst           q_ref_to_temp_nonconst.cpp (4, 49): No function matches the arguments (short): it takes (short&) [f]
+FAIL return_type_mismatch           q_return_type_mismatch.cpp (4, 36): The object has no conversion to the type it is used as [s]
+FAIL undeclared                     q_undeclared.cpp (4, 21): Only variables are supported by the compiler here yet [nothere]
+ok   missing_return_ok              
+ok   use_before_template_two_phase  
+ok   template_static_member         
+FAIL template_nontype_ptr           q_template_nontype_ptr.cpp (4, 79): The template argument must be a constant [&]
+ok   template_friend                
+ok   template_default_class_arg     
+FAIL template_partial_spec_ptr      q_template_partial_spec_ptr.cpp (3, 44): An array size must be a positive constant (in SA at q_template_partial_spec_ptr.cpp (4, 183)) [(]
+FAIL template_deduce_array          q_template_deduce_array.cpp (4, 103): The template argument must be a constant [len]
+ok   template_explicit_fn_spec      
+FAIL operator_overloads_misc        q_operator_overloads_misc.cpp (4, 501): Only calls to functions and pointers to functions are supported by the compiler yet [c]
+ok   operator_comma_assign_class    
+ok   copy_elision_return_class      
+ok   temporaries_dtor               
+ok   array_of_objects               
+ok   global_object_ctor             
+ok   pointer_to_member_fn           
+ok   switch_long_long               
+ok   float_double_long_double       
+ok   struct_bit_ops_misc            
+FAIL designated_or_compound         q_designated_or_compound.cpp (4, 97): This expression is not supported by the compiler yet [{]
+ok   static_member_fn_const         
+ok   ctor_init_order_base           
+ok   explicit_dtor_call             
+ok   typedef_fn_ptr_array           
+ok   label_address_ext              

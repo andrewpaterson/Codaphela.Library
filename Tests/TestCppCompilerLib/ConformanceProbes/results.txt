@@ -1,0 +1,153 @@
+ok   ns_basic                       
+ok   ns_using                       
+ok   ns_nested_alias                
+ok   ns_anonymous                   
+ok   ns_adl                         
+ok   ns_reopen_class                
+FAIL try_catch                      try_catch.cpp (1, 23): This expression is not supported by the compiler yet [throw]
+                                    try_catch.cpp (1, 44): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL throw_only                     throw_only.cpp (1, 25): This expression is not supported by the compiler yet [throw]
+ok   noexcept_spec                  
+FAIL noexcept_operator              noexcept_operator.cpp (1, 39): This expression is not supported by the compiler yet [noexcept]
+FAIL typeid                         typeid.cpp (1, 104): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndValues.cpp line 908) [int]
+FAIL virtual_inheritance            virtual_inheritance.cpp (1, 33): Virtual inheritance is not supported by the compiler yet [virtual]
+                                    virtual_inheritance.cpp (1, 66): Virtual inheritance is not supported by the compiler yet [virtual]
+FAIL static_local_nonconst          static_local_nonconst.cpp (1, 48): A static local variable needs a constant initialiser in the compiler yet [g]
+FAIL static_local_object            static_local_object.cpp (1, 55): Static local objects and references are not supported by the compiler yet [s]
+ok   const_overload                 
+ok   const_pointer_overload         
+ok   const_deduce                   
+FAIL const_assign_error             const_assign_error.cpp (1, 31): A const object cannot be changed [c]
+ok   volatile_type                  
+FAIL sfinae                         sfinae.cpp (1, 181): This type is not supported by the compiler yet [f]
+FAIL template_template              template_template.cpp (1, 49): Template template parameters are not supported. [template]
+                                    template_template.cpp (1, 40): This declaration is not supported by the compiler yet [template]
+                                    template_template.cpp (1, 113): Only variables are supported by the compiler here yet [Use]
+ok   ctor_template                  
+FAIL member_class_template          member_class_template.cpp (1, 43): A template parameter used outside an instantiation [v]
+ok   member_function_template       
+ok   partial_ordering               
+ok   explicit_spec_member           
+ok   dependent_typename             
+ok   default_template_arg_fn        
+ok   deleted_call                   
+FAIL defaulted                      An implicit copy constructor or assignment (or one the IR front end can't write) is not supported on this target yet: _S__0__FRKC1S
+FAIL overload_ambiguous             overload_ambiguous.cpp (1, 73): The call is ambiguous [f]
+ok   class_operator_new             
+FAIL placement_new_args             placement_new_args.cpp (1, 183): Only new(address) Type is supported for placement new by the compiler yet [new]
+FAIL new_array_init                 new_array_init.cpp (1, 23): Only new Type[count] (one dimension, no initialiser list) is supported by the compiler yet [new]
+FAIL new_array_value_init           new_array_value_init.cpp (1, 23): new Type[count]() is not supported by the compiler yet [new]
+FAIL new_2d                         new_2d.cpp (1, 28): Only new Type[count] (one dimension, no initialiser list) is supported by the compiler yet [new]
+FAIL postfix_object                 postfix_object.cpp (1, 144): Only integers and pointers can be incremented [s]
+FAIL arrow_returns_object           arrow_returns_object.cpp (1, 171): operator-> must return a pointer for the compiler [q]
+FAIL conversion_to_class            conversion_to_class.cpp (1, 120): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndConversions.cpp line 289) [int]
+FAIL ptr_overloaded_member          ptr_overloaded_member.cpp (1, 100): The address of an overloaded function is not supported by the compiler yet [S]
+ok   address_overloaded_fn          
+FAIL ref_bound_temporary            ref_bound_temporary.cpp (1, 75): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 410) [int]
+ok   member_pointer_data            
+ok   anonymous_union                
+ok   local_class                    
+FAIL cond_objects_diff              cond_objects_diff.cpp (1, 87): c ? x : y with objects of different types is not supported by the compiler yet [a]
+FAIL dynamic_cast_ref               dynamic_cast_ref.cpp (1, 100): dynamic_cast to a reference is not supported [dynamic_cast]
+ok   goto_switch_misc               
+FAIL extern_local                   extern_local.cpp (1, 36): Extern and thread local variables are not supported by the compiler yet [g]
+ok   bitfield                       
+ok   mutable_explicit               
+ok   wide_string                    
+ok   multiple_inheritance_virtual   
+ok   pure_virtual_abstract_error    
+ok   friend                         
+ok   access_private_error           
+FAIL function_try_block             function_try_block.cpp (1, 32): Expected '{'. [:]
+ok   varargs                        
+ok   union_ctor_member              
+FAIL rvalue_overload                rvalue_overload.cpp (1, 29): The function is defined twice [int]
+                                    rvalue_overload.cpp (1, 101): No function matches the arguments (short): it takes (short&) [f]
+FAIL move_ctor                      move_ctor.cpp (1, 140): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndValues.cpp line 901) [T]
+FAIL implicit_move                  implicit_move.cpp (1, 129): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndValues.cpp line 901) [T]
+ok   forward_collapse               
+ok   ref_qualified                  
+FAIL auto_var                       auto_var.cpp (1, 14): auto is not supported by the compiler yet [auto]
+                                    auto_var.cpp (1, 26): auto is not supported by the compiler yet [auto]
+                                    auto_var.cpp (1, 40): auto is not supported by the compiler yet [const]
+FAIL auto_trailing_return           auto_trailing_return.cpp (1, 6): This function declarator is not supported by the compiler yet [f]
+                                    auto_trailing_return.cpp (1, 60): The function has not been declared [f]
+FAIL decltype                       decltype.cpp (1, 37): This type is not supported by the compiler yet [b]
+                                    decltype.cpp (1, 58): This type is not supported by the compiler yet [c]
+FAIL lambda_nocapture               lambda_nocapture.cpp (1, 23): Lambda expressions are not supported. [[]
+                                    lambda_nocapture.cpp (1, 1): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL lambda_capture                 lambda_capture.cpp (1, 41): Lambda expressions are not supported. [[]
+                                    lambda_capture.cpp (1, 1): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL lambda_to_fnptr                lambda_to_fnptr.cpp (1, 30): Lambda expressions are not supported. [[]
+                                    lambda_to_fnptr.cpp (1, 1): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL lambda_this                    lambda_this.cpp (1, 38): Lambda expressions are not supported. [[]
+                                    lambda_this.cpp (1, 19): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+ok   constexpr_var                  
+FAIL constexpr_fn                   constexpr_fn.cpp (1, 49): An array size must be a positive constant [sq]
+                                    constexpr_fn.cpp (1, 77): This sizeof or type trait is not supported by the compiler yet [sizeof]
+ok   constexpr_fn_runtime           
+FAIL constexpr_class                constexpr_class.cpp (1, 116): An array size must be a positive constant [gp]
+                                    constexpr_class.cpp (1, 147): This sizeof or type trait is not supported by the compiler yet [sizeof]
+ok   static_assert                  
+ok   variadic_call                  
+FAIL variadic_sizeof                variadic_sizeof.cpp (1, 45): This sizeof or type trait is not supported by the compiler yet [sizeof]
+ok   variadic_recursive             
+ok   variadic_class                 
+FAIL variadic_expand_expr           variadic_expand_expr.cpp (1, 85): Only a function parameter pack can be expanded by the compiler yet [(]
+FAIL variadic_init_list             variadic_init_list.cpp (1, 50): This expression is not supported by the compiler yet [a]
+FAIL variadic_bases                 variadic_bases.cpp (1, 75): This base class is not supported by the compiler yet [T]
+ok   init_list_aggregate            
+ok   init_list_ctor                 
+FAIL std_initializer_list           std_initializer_list.cpp (1, 393): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndObjects.cpp line 798) [int]
+ok   narrowing_error                
+ok   member_init_default            
+FAIL range_for_array                range_for_array.cpp (1, 1): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL range_for_class                range_for_class.cpp (1, 81): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL range_for_free_begin           range_for_free_begin.cpp (1, 93): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+ok   alias_using                    
+FAIL alias_template                 alias_template.cpp (1, 130): This type is not supported by the compiler yet [b]
+                                    alias_template.cpp (1, 151): This type is not supported by the compiler yet [p]
+FAIL nullptr_t                      nullptr_t.cpp (1, 70): This type is not supported by the compiler yet [nullptr_t]
+                                    nullptr_t.cpp (1, 115): No function matches the arguments (void*): it takes (short*) [f]
+FAIL nullptr_basic                  nullptr_basic.cpp (1, 60): No function matches the arguments (void*): it takes (short*) [f]
+ok   enum_class                     
+ok   enum_class_no_implicit_error   
+FAIL enum_class_unscoped_error      enum_class_unscoped_error.cpp (1, 49): Only variables are supported by the compiler here yet [B]
+ok   enum_underlying_fwd            
+FAIL udl_operator                   udl_operator.cpp (1, 19): Expected an operator. [""]
+                                    udl_operator.cpp (1, 1): This declaration is not supported by the compiler yet [long]
+                                    udl_operator.cpp (1, 105): User-defined literals are not supported by the compiler yet [2_k]
+FAIL thread_local                   thread_local.cpp (1, 63): Extern and thread local variables are not supported by the compiler yet [lt]
+ok   override_final                 
+ok   alignas_alignof                
+ok   explicit_conversion            
+ok   inherit_ctor                   
+ok   delegating_ctor                
+ok   long_long_char16               
+ok   extern_template                
+ok   unrestricted_union             
+ok   template_right_angle           
+ok   default_fn_template_args       
+ok   local_type_template_arg        
+ok   inline_namespace               
+FAIL attributes                     attributes.cpp (1, 32): Lambda expressions are not supported. [[]
+                                    attributes.cpp (1, 26): This declaration is not supported by the compiler yet [int]
+                                    attributes.cpp (1, 90): Only calls to functions and pointers to functions are supported by the compiler yet [f]
+FAIL sizeof_member                  sizeof_member.cpp (1, 50): This sizeof or type trait is not supported by the compiler yet [sizeof]
+FAIL type_traits_intrinsics         type_traits_intrinsics.cpp (1, 108): This sizeof or type trait is not supported by the compiler yet [__is_base_of]
+FAIL generic_lambda                 generic_lambda.cpp (1, 23): Lambda expressions are not supported. [[]
+                                    generic_lambda.cpp (1, 1): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL init_capture                   init_capture.cpp (1, 34): Lambda expressions are not supported. [[]
+                                    init_capture.cpp (1, 1): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+FAIL auto_return                    auto_return.cpp (1, 1): auto is not supported by the compiler yet [auto]
+                                    auto_return.cpp (1, 53): The function has not been declared [f]
+FAIL decltype_auto                  decltype_auto.cpp (1, 27): This type is not supported by the compiler yet [f]
+                                    decltype_auto.cpp (1, 60): The function has not been declared [f]
+FAIL relaxed_constexpr              relaxed_constexpr.cpp (1, 99): An array size must be a positive constant [fact]
+                                    relaxed_constexpr.cpp (1, 129): This sizeof or type trait is not supported by the compiler yet [sizeof]
+FAIL variable_template              variable_template.cpp (1, 68): Expected '(' or '{' after the type. [>]
+                                    variable_template.cpp (1, 42): This function uses C++ the W65C816 compiler doesn't support yet (CPP65IRFrontEndStatements.cpp line 109) [int]
+ok   deprecated_attr                
+ok   sized_delete                   
+ok   binary_digit_sep               
+ok   aggregate_nsdmi                

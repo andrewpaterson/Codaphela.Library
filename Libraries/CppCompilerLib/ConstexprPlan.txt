@@ -1,0 +1,117 @@
+constexpr: constant expressions worked out by running the IR
+==============================================================
+
+Plan only (2026-11-15), not started.  It is stage 4 of Part B in CppParserTodo.txt (section 6), planned on its own at the user's word: "run the IR at compile time but plan this step out all on its own".  Found by reading the code and by compiling small programs with hcp65build; check each statement about the code before relying on it.
+
+
+Where things are
+----------------
+
+What a constant expression can be today is what CCPPUnit::Constant (CPPUnitExpressions.cpp) and FloatConstant fold from the syntax tree: literals, enumerators, sizeof, const integers with constant initialisers, and operators on them.  Compiled 2026-11-15:
+  - constexpr int N = 3 * 4; int a[N];											works
+  - constexpr int sq(int x) { return x * x; }  int a[sq(3)];					"An array size must be a positive constant"
+  - a constexpr function called with a variable									works (it is an inline function)
+  - struct P { int x; constexpr P(int a) : x(a) {} };  constexpr P gp(5);  gp.x	not a constant
+  - constexpr P gp = { 2, 3 };  gp.y											not a constant
+  - constexpr double d = 1.5 * 2;  d == 3.0									not a constant
+  - constexpr int a[] = { 1, 2, 3 };  a[1]									not a constant
+  - a loop in a constexpr function (C++14)										not a constant
+  - static_assert(false, "") at namespace scope								compiles (it is never worked out); in a function it is an unrelated error
+
+So constexpr is "inline" and no more.  C++14 lets a constexpr function have locals, loops, assignments and several returns, which the tree folder would have to be taught one statement at a time; the IR already says all of them, and the front end already writes it.
+
+
+The idea
+--------
+
+To work out an expression that the tree folder can't, the front end writes it as the body of a function of no arguments, in IR, and an interpreter runs that IR, calling the IR of the constexpr functions it calls.  What comes back is the value, or why it isn't a constant.
+
+There are three parts: the front end able to write a function while it is writing another; the interpreter; and what a constant object is.
+
+
+1. The front end writes a function on demand
+---------------------------------------------
+
+CCPP65IRFrontEnd holds the function being written in itself: mpcFunction, mpcBlock, mpcCPPFunction, msThis, msResult, msElide, mcAddresses, masJumps, masCases, masLabels, masLiving, masTemporaries, miConditional, mpcExit and more.  A constant is needed in the middle of writing a function (an array's size, a case label, a template argument), so the function being written must be set aside and taken up again.
+
+  - Gather that state into one object (the function being written), which the front end has a current one of.  This is the consolidation's kind of change and changes no code generated: prove it with the listings (TEST_PROJECT65_LISTINGS, both targets) and the suite.
+  - Constant functions are written into a module of their own, never optimised and never given to a back end: slots stay memory (load and store), which is what the interpreter wants.  A function's IR is kept once written (by its CCPPFunction), so a function called from a thousand array bounds is written once.
+  - A constexpr function's body may not have been parsed (CppParserLazy) or instantiated (templates are generated when first called): asking for its IR must do both, as calling it does.
+  - To check: the front end for the host target (CPPT_Host, the IDE's semantic pass) has no back end ("NULL for a target nothing is generated for").  It must still write IR for constants, with the host's sizes, or the IDE will show errors the build doesn't.
+
+
+2. The interpreter (CIRInterpreter)
+------------------------------------
+
+Runs a CIRFunction of the generic opcodes (IROpcode.h: about sixty), for the target the module is for.
+
+  Values.  A temporary is 64 bits of integer or pointer, or a double; its type says how much of it counts.  One instruction's arithmetic is CIROptimiserFolding::Fold's (IROptimiserFolding.cpp), moved to where both can use it, so that folding and interpreting can't disagree.
+
+  Memory.  Every slot, global, string literal and constant object is an object: its bytes as the target lays them out (little end first), and which of them have been written.  A pointer is an object and an offset, so ptradd, comparing two pointers into one object and subtracting them work, and a load or store outside its object is caught.  Classes need nothing more: the front end has laid them out, and members, bases, bit-fields and unions are loads and stores at offsets.
+    - Reading a byte that was never written is not a constant (an uninitialised variable).
+    - Storing to a global or a string is not a constant, except to the object whose initialiser is being worked out.
+    - ptrtoi and itoptr are not constants, except for null.
+    - A function's address is a value (its symbol), so a call through a constant pointer to a function works.
+
+  Control.  Blocks, phis (all of a block's read before any is written), jmp, brif, ret.  A call runs the callee's IR with a new frame of slots; a callee with no IR (not constexpr, not defined, a runtime routine, a virtual call) is not a constant.
+
+  Limits.  [implimits] asks for 512 calls deep and about a million steps; both are settings, and running out is an error that says so, not a hang.
+
+  Failure.  "Not a constant expression", with the reason and where: the IR carries source lines (IRSourceMarkers.h), and the calls being run are the trail from the expression to the place.
+
+  Tests.  The interpreter is tested on IR text (CIRParser), with no C++: arithmetic at each width, each failure, loops, recursion, the limits.
+
+  To decide while doing it:
+    - Signed overflow is not a constant expression in the standard, but the IR's add doesn't say whether it is signed ("signed overflow wraps around", IR.txt).  Either the front end marks the arithmetic it writes for signed C++ operands, or overflow wraps here as it does at run time.  Start with wrapping; it accepts more than the standard, never less.
+    - Floating point: the optimiser already folds floats on the host, so the interpreter does the same and is no worse.  Whether that is exactly what Libc65's soft float gives at run time is worth one test of awkward values (rounding, denormals), since a constant and a variable should agree.
+
+
+3. Constant objects
+--------------------
+
+  - A constexpr variable of a class or array type is its bytes after its initialiser has been run by the interpreter (a constructor is a function whose this is the object).  The CCPPVariable keeps them, with a note of each pointer in them (which object, what offset).
+  - Reading it in a later constant expression (gp.x, a[1], a call of a constexpr member function on it) is a load from those bytes.
+  - It is written to the unit as initialised data, with no start up code.
+  - const integers with constant initialisers stay as they are (the tree folder's): the common case stays fast.
+
+
+Where constants are asked for
+------------------------------
+
+CCPPUnit::Constant keeps its tree folder as the quick way and asks the interpreter when it meets what it can't fold: a call, a member of a constant object, an element of a constant array, a floating point value.  The places that call it then all gain: array sizes, enumerators, case labels, template arguments, alignas, bit-field widths, static_assert (which must also be worked out at namespace scope: stage 1 of Part B), the noexcept operator later.
+
+The two must agree on what they both do: the conformance table (Part B stage 0) has each such expression once, and it is run both ways.
+
+
+What the language asks of a definition  [dcl.constexpr], C++14
+----------------------------------------------------------------
+
+Checked when the function is defined, whether or not it is ever called in a constant:
+  - its return and parameter types are literal types; it is not virtual;
+  - its body has no goto, try, asm, static or thread_local variable, and no variable left uninitialised;
+  - a constexpr constructor initialises every member and base, and its class has no virtual base.
+A constexpr member function is not const unless it says so (it was in C++11): check what the compiler does now.  constexpr functions are inline, as now.  __is_literal_type follows from the above.
+
+
+Stages
+------
+
+  1. (S) The table of constant expressions: each with its value on both targets, and those that must be refused with why.  Today's results are the baseline.
+  2. (M) The front end's function being written as an object that can be set aside.  No change to any listing.
+  3. (M-L) CIRInterpreter, with Fold shared, tested on IR text.
+  4. (M) Constant asks the interpreter for calls of constexpr functions with scalar arguments and results.  C++11's kind of function (one return, ?: and recursion) and C++14's (locals, loops, assignment) work at once, since both are IR; the definition's checks decide what is allowed.  static_assert is worked out wherever it is.
+  5. (L) Constant objects: constexpr constructors, literal classes, arrays, members and elements read back, constexpr member functions, pointers and references to constant objects and string literals ("abc"[1]).
+  6. (S-M) Floating point constants through the interpreter; the soft float test.
+  7. (M) Constant initialisation of other statics: a global whose initialiser the interpreter can run is data, not start up code.  Not needed for compliance; measure what it saves before keeping it.
+  8. (S) The errors: the reason, the trail of calls, the limits as settings.
+
+Stages 2 and 3 don't depend on each other.  Variable templates (Part B stage 6) and the noexcept operator (stage 8) use this when they come.
+
+
+What could go wrong
+-------------------
+
+  - Time and memory: every constant that isn't folded writes IR.  The IR of a function is kept; the quick folder stays in front; the limits stop a runaway.  Watch the compile time of the Lib65 suites (CompilerMeasure.py).
+  - A header's constants now depend on the bodies of functions, so what the header cache and the lazy parser may skip changes: a constexpr function's body is needed by any unit that uses it in a constant.
+  - The function limit (CCPPCompileOptions::muiFunctionLimit, muiAttempts) and the inliner's imports must not count or see constant functions' IR.
+  - Two evaluators: anything the tree folder gets wrong is now visible as a disagreement.  That is a gain, but expect to fix the folder.

@@ -50,7 +50,7 @@ Right now the highlighting is only spans checked by tests.
 6. C++ compliance: preprocessor and tokeniser to C++17, code generators to C++14
 -----------------------------------------------------------------------------------
 
-Part A is done (2026-11-15: the "Part A plan" below says how, step by step).  Part B is notes only (2026-11-07), not started: found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
+Part A is done (2026-11-15: the "Part A plan" below says how, step by step).  Part B is not started: it has a plan ("Part B plan" below, 2026-11-15, checked by compiling) and its notes (2026-11-07) were found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
 
 Already done in the preprocessor and tokeniser: __has_include and __has_include_next, _Pragma, __VA_ARGS__ (with the ", ##" comma rule), digit separators, binary literals, hex floats (0x1p-3 pp-numbers, read by strtold), u8 character literals, digraphs and alternative tokens, and no trigraphs (C++17 removed them).
 
@@ -145,13 +145,51 @@ Part A plan (2026-11-15)
   Feature-test macros (__cpp_raw_strings, __cpp_user_defined_literals and the rest) are defined with the item that makes each true, starting here.
   Tests: a group for each item in TestPreprocessor and TestCppTokeniser, and TestCPP816 cases for raw strings and character literals, which reach generated code.
 
+Part B plan (2026-11-15, not started)
+  The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (Tests/TestCppCompilerLib/ConformanceProbes: probe.py and probe2.py, with what each gave in results.txt and results2.txt).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
+
+  What the notes had wrong:
+    - Namespaces (B1) are done: nested ones, aliases, anonymous and inline ones, using, and argument dependent lookup compile.
+    - const is in types (B6) where it could be proved: const overloads of members and of pointer parameters, a specialisation for const T, and the errors for writing through const.
+    - These compile already: defaulted functions of simple classes, a variadic function calling itself, variadic class templates, brace initialisation, default member initialisers, inherited and delegating constructors, alignas, explicit conversion operators, member function templates, constructor templates, partial ordering, explicit specialisation of a member.
+
+  What the notes didn't have.  Accepted and wrong, with no error:
+    - static_assert at namespace scope is never worked out (a false one compiles); a false one in a function is an unrelated error.
+    - A call of an = delete function; an object of an abstract class; a private member used from outside its class.
+    - enum class converts to int and compares with it; narrowing in { } is not an error.
+  Refused, and should not be:
+    - f(nullptr) where f takes a pointer ("No function matches the arguments (void*)").
+    - [[maybe_unused]] on a parameter (read as a lambda); sizeof(S::member); f(S{1, 2}); c(1, 2) for an object with operator() in one case.
+    - A template's array bound deduced (T (&)[N]), a partial specialisation for T[N], a pointer as a template argument.
+    - __is_base_of, __is_convertible_to, __underlying_type and some other type traits.
+
+  Stages:
+    0. (S) The probes become a test: each feature a small program run on both targets with the value it must return, and those that must be refused with their error.  What fails today is listed as failing, and every later stage moves entries across.  Compliance is then a number.
+    1. (M, many small) The silent wrong accepts and the small refusals just listed.  Access control (private and protected) is enforced (the user): expect errors in existing sources to clear up.
+    2. (L) B10.  Rvalue references as a type of their own: collapsing, & and && overloads, move constructors and assignment (and the implicit ones, and when they are deleted), xvalues, ref-qualified members.
+    3. (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
+    4. (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
+    5. (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
+    6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
+    7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.
+    8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
+    9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
+    Then, when all of the above is done, come back to the user for: exceptions (B2), and the language support headers (B-4) and how much of the library.
+
+  Why this order: wrong code with no error first; rvalue references before what is built on them (moves, forwarding, the library's move and forward); auto before lambdas; constexpr before the templates that lean on it.  Stages 6, 7 and 9 depend on little and can move.
+
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.
   - "%"PRId64 with no space: as g++ (see A2 above).
   - Feature-test macros: with each item (see above).
+  For Part B (the user, 2026-11-15):
+  - Virtual inheritance: "Keep it in scope but test it thoroughly."
+  - Exceptions: "Come back to exceptions when the rest of Plan B is done."  Until then throw and try stay errors.
+  - Language support headers: "Come back to Language-support headers when the rest of Plan B is done."
+  - Access control: "enforce it."
+  - constexpr: "run the IR at compile time but plan this step out all on its own" (ConstexprPlan.txt).
 
-Decisions for the user
-  - __cplusplus: decided, above.  The reason: it says what the whole compiler implements, so 201703L would tell headers C++17 is there when the generators are C++14.
+Decisions for the user (when the rest of Part B is done)
   - Exceptions: strict compliance needs them.  A documented mode without them (as many embedded compilers have) would remove the largest item.
   - The library: only the B-4 headers, or the whole C++14 library, which is a separate project of about the same size again.
 
