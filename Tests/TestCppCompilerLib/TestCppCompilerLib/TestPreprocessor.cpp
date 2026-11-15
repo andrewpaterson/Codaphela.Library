@@ -8,6 +8,7 @@
 #include "CppCompilerLib/PPLine.h"
 #include "CppCompilerLib/PPDirective.h"
 #include "CppCompilerLib/HeaderFileMap.h"
+#include "CppCompilerLib/CPPTarget.h"
 #include "TestLib/Assert.h"
 
 
@@ -2194,6 +2195,71 @@ none\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// __has_cpp_attribute is the year and month of a standard attribute (its
+// __name__ spelling too), and 0 for any other: one with a namespace, an
+// unknown one, and anything that isn't a single name.  [cpp.cond]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorHasCppAttribute(void)
+{
+	CChars	szDest;
+
+	szDest.Init();
+	CCPPPreprocessor::Preprocess("\
+#if __has_cpp_attribute(noreturn) == 200809 && __has_cpp_attribute(carries_dependency) == 200809 && __has_cpp_attribute(deprecated) == 201309\n\
+eleven\n\
+#endif\n\
+#if __has_cpp_attribute(fallthrough) == 201603 && __has_cpp_attribute(nodiscard) == 201603L && __has_cpp_attribute(maybe_unused) >= 201603\n\
+seventeen\n\
+#endif\n\
+#if __has_cpp_attribute(__nodiscard__) && __has_cpp_attribute( deprecated ) == 201309\n\
+spelled\n\
+#endif\n\
+#if __has_cpp_attribute(gnu::noreturn) || __has_cpp_attribute(likely) || __has_cpp_attribute(nodiscar) || __has_cpp_attribute(__) || __has_cpp_attribute()\n\
+unknown\n\
+#endif\n", &szDest);
+	AssertString("eleven\nseventeen\nspelled\n", szDest.Text());
+	szDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __STDCPP_DEFAULT_NEW_ALIGNMENT__ is what operator new aligns to: the
+// host's, or what the target's Libc65 heap does (CTrueMallocator, with 32
+// bit pointers).  [cpp.predefined]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorDefaultNewAlignment(void)
+{
+	CConfig		cConfig;
+	CChars		szDest;
+	int			i;
+	ECPPTarget	aeTargets[] = { CPPT_65C64, CPPT_W65C816 };
+
+	szDest.Init();
+	AssertTrue(PreprocessFile("Alignment.cpp", "\
+#if __STDCPP_DEFAULT_NEW_ALIGNMENT__ == 8 || __STDCPP_DEFAULT_NEW_ALIGNMENT__ == 16\n\
+host\n\
+#endif\n", NULL, NULL, NULL, &szDest, NULL));
+	AssertString("host\n", szDest.Text());
+	szDest.Kill();
+
+	for (i = 0; i < 2; i++)
+	{
+		cConfig.Init("Release");
+		GetCPPTarget(aeTargets[i])->AddDefines(&cConfig, false);
+		szDest.Init();
+		AssertTrue(PreprocessFile("Alignment.cpp", "size_t a = __STDCPP_DEFAULT_NEW_ALIGNMENT__;\n", &cConfig, NULL, NULL, &szDest, NULL));
+		AssertString("size_t a = 8UL;\n", szDest.Text());
+		szDest.Kill();
+		cConfig.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A configuration define is NAME or NAME=VALUE.  It replaces a predefined
 // macro of the same name.
 //
@@ -2544,6 +2610,8 @@ void TestPreprocessor(void)
 	TestPreprocessorParentheses();
 	TestPreprocessorPredefinedMacros();
 	TestPreprocessorHasOperators();
+	TestPreprocessorHasCppAttribute();
+	TestPreprocessorDefaultNewAlignment();
 	TestPreprocessorConfigDefines();
 	TestPreprocessorConfigDefineWithoutValue();
 	TestPreprocessorPragmaOnce();

@@ -107,12 +107,14 @@ uint32 CCPPTarget65C64::GetStackTop(void)
 // and __LIBC65__ the Libc65 headers and devices, which BaseLib's Define.h and
 // its _65C64.cpp files are written for.  The host's macros (_MSC_VER, _WIN32)
 // are not defined, so its headers and _Windows.cpp files are left out.
+// operator new aligns as Libc65's malloc does (CTrueMallocator).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget65C64::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
 {
 	pcConfig->AddDefine("__65C64__=1");
 	pcConfig->AddDefine("__LIBC65__=1");
+	pcConfig->AddDefine("__STDCPP_DEFAULT_NEW_ALIGNMENT__=8UL");
 	pcConfig->mbKeepPragmaPack = true;
 	pcConfig->mbHostDefines = false;
 }

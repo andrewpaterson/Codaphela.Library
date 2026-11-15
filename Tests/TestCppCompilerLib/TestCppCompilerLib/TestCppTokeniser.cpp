@@ -120,6 +120,44 @@ void TestCppTokeniserKeywordsAndPunctuators(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// <:: is < and :: (a template argument that starts with ::), not the
+// digraph <: and a :, unless : or > follows it.  [lex.pptoken] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserDigraphBeforeScope(void)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+	static ECppTokens	aeExpected[] = {		//NUM_CPP_TOKENS for an identifier.
+		NUM_CPP_TOKENS, CT_LessThan, CT_ScopeResolution, NUM_CPP_TOKENS, CT_GreaterThan,
+		NUM_CPP_TOKENS, CT_OpenSquareBracket, CT_ScopeResolution, NUM_CPP_TOKENS,
+		CT_OpenSquareBracket, CT_CloseSquareBracket,
+		NUM_CPP_TOKENS, CT_OpenSquareBracket, NUM_CPP_TOKENS, CT_CloseSquareBracket,
+		CT_LessThan, CT_ScopeResolution };
+	size				i;
+
+	//The last line but one's <: is pasted, and the last's <:: ends the source.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "#define PASTE(a, b) a##b\nX<::Y>\na<:::b\n<::>\nc PASTE(<, :)d:>\n<::"));
+	AssertSize(sizeof(aeExpected) / sizeof(ECppTokens), cTokeniser.NumTokens());
+	for (i = 0; i < cTokeniser.NumTokens(); i++)
+	{
+		if (aeExpected[i] == NUM_CPP_TOKENS)
+		{
+			AssertTrue(cTokeniser.Get(i)->IsIdentifier());
+		}
+		else
+		{
+			AssertTrue(cTokeniser.Get(i)->Is(aeExpected[i]));
+		}
+	}
+
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserIdentifiers(void)
@@ -448,6 +486,7 @@ void TestCppTokeniser(void)
 	NumberInit();
 
 	TestCppTokeniserKeywordsAndPunctuators();
+	TestCppTokeniserDigraphBeforeScope();
 	TestCppTokeniserIdentifiers();
 	TestCppTokeniserIntegers();
 	TestCppTokeniserFloatingAndCharacters();

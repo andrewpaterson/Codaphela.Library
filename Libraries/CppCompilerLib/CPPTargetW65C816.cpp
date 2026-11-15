@@ -119,12 +119,14 @@ uint32 CCPPTargetW65C816::GetStackTop(void)
 // __W65C816__ is the processor, __LIBC65__ the Libc65 headers and devices
 // (as the 65C64's), and __W65C816_ASSEMBLY__ leaves out the C++ that a
 // unit's XW65C816.asm replaces when those are built (bAssemblyUnits).
+// operator new aligns as Libc65's malloc does (CTrueMallocator).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTargetW65C816::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
 {
 	pcConfig->AddDefine("__W65C816__=1");
 	pcConfig->AddDefine("__LIBC65__=1");
+	pcConfig->AddDefine("__STDCPP_DEFAULT_NEW_ALIGNMENT__=8UL");
 	if (bAssemblyUnits)
 	{
 		pcConfig->AddDefine("__W65C816_ASSEMBLY__=1");

@@ -900,6 +900,12 @@ void CCPPPreprocessor::Init(CConfig* pcConfig)
 	//C++14.  __func__ and __FUNCTION__ are identifiers, not macros.  __STDC__ is left to the configuration.
 	AddDefine("__cplusplus", "201402L", &mcDefineReplacementMemory);
 	AddDefine("__STDC_HOSTED__", "1", &mcDefineReplacementMemory);
+	if (!pcConfig || pcConfig->mbHostDefines)
+	{
+		//What the host's operator new aligns to, as the Microsoft compiler has it (a size_t).  The other targets
+		//define their own (CCPPTarget::AddDefines).  [cpp.predefined]
+		AddDefine("__STDCPP_DEFAULT_NEW_ALIGNMENT__", (sizeof(void*) == 8) ? "16ull" : "8u", &mcDefineReplacementMemory);
+	}
 
 	AddSpecialOperator("defined", PPSO_Defined);
 	AddSpecialOperator("__has_attribute", PPSO_HasAttribute);
@@ -3393,6 +3399,52 @@ static bool SkipParenthesised(CArrayPreprocessedTokens* pacTokens, size* piIndex
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// What __has_cpp_attribute is for the attribute named szName: the year
+// and month the standard took it (or last changed it), 0 for one it
+// doesn't have.  __name__ is name.  The parser takes all of them and none
+// changes the code made, as the standard allows.  [cpp.cond], [dcl.attr]
+//
+//////////////////////////////////////////////////////////////////////////
+struct SCppAttribute
+{
+	const char*		szName;
+	int64			lliVersion;
+};
+
+
+static const SCppAttribute	gasCppAttributes[] =
+{
+	{ "carries_dependency",	200809 },
+	{ "deprecated",			201309 },
+	{ "fallthrough",		201603 },
+	{ "maybe_unused",		201603 },
+	{ "nodiscard",			201603 },
+	{ "noreturn",			200809 },
+};
+
+
+static int64 CppAttributeVersion(const char* szName, size uiLength)
+{
+	size	i;
+
+	if ((uiLength > 4) && (memcmp(szName, "__", 2) == 0) && (memcmp(&szName[uiLength - 2], "__", 2) == 0))
+	{
+		szName += 2;
+		uiLength -= 4;
+	}
+	for (i = 0; i < sizeof(gasCppAttributes) / sizeof(SCppAttribute); i++)
+	{
+		if ((strlen(gasCppAttributes[i].szName) == uiLength) && (memcmp(gasCppAttributes[i].szName, szName, uiLength) == 0))
+		{
+			return gasCppAttributes[i].lliVersion;
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -3402,9 +3454,11 @@ bool CCPPPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSo
 	size					iNumTokens;
 	SPreprocessedToken*		psToken;
 	SPreprocessedToken*		psNext;
+	SPreprocessedToken*		psName;
 	CSpecialOperator*		pcSpecial;
 	CExternalString			cName;
 	bool					bParenthesis;
+	int64					lliValue;
 	CChars					szName;
 	bool					bSystem;
 	CHeaderFile*			pcIncludeFile;
@@ -3484,13 +3538,21 @@ bool CCPPPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSo
 				continue;
 			}
 
-			//Attributes, builtins and features are not known.
+			//Builtins, features and the compilers' own attributes are not known.  A standard attribute is, when its
+			//name is all there is in the parentheses.
+			lliValue = 0;
+			psName = pacSource->SafeGet(i + 2);
+			psNext = pacSource->SafeGet(i + 3);
+			if ((eType == PPSO_HasCppAttribute) && psName && psName->IsIdentifier() && psNext && psNext->IsPunctuator(")"))
+			{
+				lliValue = CppAttributeVersion(psName->szText, psName->uiLength);
+			}
 			i++;
 			if (!SkipParenthesised(pacSource, &i))
 			{
 				return Error(psToken, "Expected ')'.");
 			}
-			AddNumber(0, psToken, pacDest);
+			AddNumber(lliValue, psToken, pacDest);
 			continue;
 		}
 
