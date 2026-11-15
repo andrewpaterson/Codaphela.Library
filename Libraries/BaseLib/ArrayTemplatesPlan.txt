@@ -5,10 +5,11 @@ The intent (the user, 2026-11-15): turn the classes a macro makes, ARRAY_BLOCK a
 that work on ordinary 32 and 64 bit targets as well as the 16 bit W65C816.
 
 Where it is: the questions the plan started with are answered (under "Answered", the user's rulings and what was
-found).  Steps 0 to 4 are done (2026-11-15): every family is a template written once (CArrayBlockBase<SIZE>,
+found).  Done 2026-11-15, all five steps: every family is a template written once (CArrayBlockBase<SIZE>,
 CArrayTemplateBase<M, BLOCK>, CArrayTemplatePrimitiveBase<M, TEMPLATE>, CArrayCharBase<PRIMITIVE>, CCharsBase<STRING,
-TEXT>), and nothing got bigger or slower but for one 65C64 difference (step 4).  Step 5, the clean up, waits for the
-user.  A session picking this up starts at "Steps".
+TEXT>) in its own .h and .cpp, the macros and .inl files are gone, and nothing got bigger or slower but for one 65C64
+difference the user ruled insignificant (step 4).  Left: building it with MSVC (on Windows), and the Count typedef
+(deferred, step 4).
 
 
 Why
@@ -292,12 +293,18 @@ after step 2.
      programs using AppendData are 12 bytes larger.  Tried and not kept: forwarders not taking a call from the
      others (all of them, or those to functions that can't be inlined) make the conversion exactly neutral, but
      change everything else: 0.06% to 0.12% more bytes on both targets and 0.0008% more cycles on the 816
-     (faster on the 65C64).  A user's ruling if more is wanted.
+     (faster on the 65C64).  The user's ruling (2026-11-15): leave it, it isn't significant.
      Deferred (the user, 2026-11-15): a class scope "typedef typename BLOCK::Count Count;" (and the like) to
      shorten the declarations: maybe later, not now.
-  5. Not started.  ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
-     projects' files (vcxproj, filters, CMakeLists.txt) put right; the comments that name the macros (e) brought
-     up to date; the IDE's Refactorings.txt (T6) and RefactoringQuestions.txt (48) told that it is done.
+  5. Done 2026-11-15: ArraySizeNatural.inl, ArraySizeLarge.inl and ArraySizeUndef.inl deleted (nothing included
+     them after step 4); each Class and Code .inl folded into the .h or .cpp that included it (the user's choice):
+     ArrayBlock.h/.cpp, ArrayTemplate.h, ArrayTemplatePrimitive.h, ArrayChar.h/.cpp, Chars.h/.cpp.  BaseLib.vcxproj
+     and its filters lose the eleven .inl files (CMakeLists.txt read only the .cpp files: nothing to change).  The
+     comments that named the macros or files are brought up to date (CppCompilerLib's CPPIndex.h/.cpp, which
+     keeps its support for classes a macro makes, and CPPUnitClasses.cpp; TestCppIndex.cpp and
+     TestCPP65Generator.cpp; HCP65's stringW65C816_16.asm; HCP65-IDE's IDEConvertMacro.h), and the IDE's
+     Refactorings.txt (T6) and RefactoringQuestions.txt (48) say it is done.  "git blame -C" follows the folded
+     code to its .inl.
 
 
 What the session that does this needs to know

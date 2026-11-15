@@ -578,7 +578,7 @@ void TestCppSemanticPassEnumeratorChain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A class whose name a macro makes, as BaseLib's ARRAY_BLOCK makes
+// A class whose name a macro makes, as BaseLib's ARRAY_BLOCK made
 // CArrayBlock and, included again, CArrayLargeBlock, is defined where the
 // macro was used (flagged CPPIF_MACRO), so Go to Class and Go to
 // Definition find it.  Names a macro body only uses aren't references.

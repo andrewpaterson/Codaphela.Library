@@ -1646,8 +1646,8 @@ void TestCPP65GeneratorNestedQualifiers(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A class template's functions defined outside it after an instance was laid out
-// (SLate<int> by its global, as CChars is by a header included before
-// CharsCode.inl): the instance gets them, one called before its definition is
+// (SLate<int> by its global, as CChars is by a header Chars.cpp includes before
+// CCharsBase's functions): the instance gets them, one called before its definition is
 // generated, and an explicit instantiation generates them.  7 + 20 + 15.
 //
 //////////////////////////////////////////////////////////////////////////

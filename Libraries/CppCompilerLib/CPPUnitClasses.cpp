@@ -480,8 +480,8 @@ void CCPPUnit::DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember)
 //////////////////////////////////////////////////////////////////////////
 //
 // A function of a class template defined outside it (pcMember) after some of its
-// instances were laid out (a CChars used whole by a header included before
-// CharsCode.inl): they get it too.
+// instances were laid out (a CChars used whole by a header Chars.cpp includes
+// before CCharsBase's functions): they get it too.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DefineOutsideMembers(CCPPTemplate* pcMember)

@@ -3002,39 +3002,6 @@
     <None Include="FatVolumeW65C816.asm">
       <Filter>Source\FileSystem\Fat32</Filter>
     </None>
-    <None Include="ArrayBlockClass.inl">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </None>
-    <None Include="ArrayBlockCode.inl">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </None>
-    <None Include="ArraySizeNatural.inl">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </None>
-    <None Include="ArraySizeLarge.inl">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </None>
-    <None Include="ArraySizeUndef.inl">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </None>
-    <None Include="ArrayTemplate.inl">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </None>
-    <None Include="ArrayTemplatePrimitive.inl">
-      <Filter>Source\Data\Array\Primitive</Filter>
-    </None>
-    <None Include="ArrayCharClass.inl">
-      <Filter>Source\Data\Array\Primitive\Specific</Filter>
-    </None>
-    <None Include="ArrayCharCode.inl">
-      <Filter>Source\Data\Array\Primitive\Specific</Filter>
-    </None>
-    <None Include="CharsClass.inl">
-      <Filter>Source\Data\String</Filter>
-    </None>
-    <None Include="CharsCode.inl">
-      <Filter>Source\Data\String</Filter>
-    </None>
     <None Include="TimSort.inl">
       <Filter>Source\Sort</Filter>
     </None>

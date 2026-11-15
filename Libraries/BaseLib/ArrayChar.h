@@ -25,7 +25,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-#include "ArrayCharClass.inl"
+//CArrayChar (characters counted in size, a CArrayTemplatePrimitive<char>) and CArrayLargeChar (counted in lsize, a
+//CArrayLargeTemplatePrimitive<char>) are this, written once: PRIMITIVE is the class each derives from.
+template<class PRIMITIVE>
+class CArrayCharBase : public PRIMITIVE
+{
+public:
+	void	AddList(char iStop, ...);
+};
 
 
 //ArrayChar.cpp instantiates them; no other unit compiles their functions.

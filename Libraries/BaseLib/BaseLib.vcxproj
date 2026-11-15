@@ -1058,17 +1058,6 @@
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
     <None Include="TimSort.inl" />
-    <None Include="CharsClass.inl" />
-    <None Include="CharsCode.inl" />
-    <None Include="ArrayBlockClass.inl" />
-    <None Include="ArrayBlockCode.inl" />
-    <None Include="ArraySizeNatural.inl" />
-    <None Include="ArraySizeLarge.inl" />
-    <None Include="ArraySizeUndef.inl" />
-    <None Include="ArrayTemplate.inl" />
-    <None Include="ArrayTemplatePrimitive.inl" />
-    <None Include="ArrayCharClass.inl" />
-    <None Include="ArrayCharCode.inl" />
     <None Include="TypeConverter_Mapping.inl" />
     <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt" />

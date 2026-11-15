@@ -366,8 +366,8 @@ void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPP
 // pcDest.  It touches no index so units can be gathered on several
 // threads at once.  Names from macro bodies are where the macro is
 // defined, not used, so they are left out, but for what they declare: a
-// class named by a macro, class ARRAY_BLOCK, is declared where the macro
-// was used (CPPIF_MACRO).  With a semantic pass (NULL
+// class named by a macro, class ARRAY_BLOCK (as BaseLib's arrays were), is
+// declared where the macro was used (CPPIF_MACRO).  With a semantic pass (NULL
 // for none) the names it resolved are what it says: the members o.Init()
 // and p->miCount name, and the overloads calls call - each of them, for a
 // name in a template's body that its instances resolve differently.
@@ -1408,8 +1408,8 @@ void CCPPIndex::FindNames(CCPPTokeniser* pcTokeniser, CCPPSyntax* pcNode, CArray
 //////////////////////////////////////////////////////////////////////////
 //
 // Where the macro that made psSource was used in the source text, the
-// outermost if one macro's body used another: ArrayBlockClass.inl's
-// ARRAY_BLOCK for the CArrayBlock it made.  psDest is a token there, as
+// outermost if one macro's body used another: ARRAY_BLOCK for the
+// CArrayBlock it made (as BaseLib's arrays were).  psDest is a token there, as
 // long as the macro's name.  False if it isn't known.
 //
 //////////////////////////////////////////////////////////////////////////
