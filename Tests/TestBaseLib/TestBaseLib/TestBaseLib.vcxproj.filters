@@ -864,6 +864,9 @@
     <ClCompile Include="TestFatStress.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
+    <ClCompile Include="TestFloat32Symmetric3x3.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestIndexTreeObject.h">

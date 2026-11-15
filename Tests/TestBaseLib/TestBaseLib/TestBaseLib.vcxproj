@@ -429,6 +429,7 @@
     <ClCompile Include="TestNumber.cpp" />
     <ClCompile Include="TestXMLParser.cpp" />
     <ClCompile Include="WordKey.cpp" />
+    <ClCompile Include="TestFloat32Symmetric3x3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayTemplateTestClasses.h" />

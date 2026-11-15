@@ -1785,6 +1785,9 @@
     <ClInclude Include="LeakDetector.h">
       <Filter>Source\Memory\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Float32Symmetric3x3.h">
+      <Filter>Source\Memory\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2994,6 +2997,9 @@
       <Filter>Source\Data\Array\Embedded</Filter>
     </ClCompile>
     <ClCompile Include="LeakDetector.cpp">
+      <Filter>Source\Memory\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Symmetric3x3.cpp">
       <Filter>Source\Memory\Debug</Filter>
     </ClCompile>
   </ItemGroup>
