@@ -144,6 +144,16 @@ struct SCPPTypeOf
 typedef CMapLongTemplate<SCPPTypeOf>		CMapCPPTypeOfs;
 
 
+//The function being written, put aside while another's parameters and locals are made (CCPPUnit::EnterFunctionScope).
+struct SCPPFunctionScope
+{
+	CCPPFunction*		pcFunction;
+	CCPPSymbol*			pcPackParameter;
+	CArrayCPPVariables	apcLocals;
+	CArrayCPPSymbols	apcPackElements;
+};
+
+
 
 
 #define CPP65_BUILTIN_PREFIX			"__builtin_"
@@ -303,6 +313,13 @@ public:
 	int64					GetName(CCPPSyntaxDeclarator* pcDeclarator);
 
 	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
+	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
+	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
+	SCPP65Type*				ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn);
+	void					FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns);
+	SCPP65Type*				ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDeclarator* pcDeclarator);
+	void					EnterFunctionScope(SCPPFunctionScope* psScope, CCPPFunction* pcFunction);
+	void					LeaveFunctionScope(SCPPFunctionScope* psScope);
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
 	void					RequireFunction(CCPPFunction* pcFunction);
@@ -322,7 +339,7 @@ public:
 	bool					GenerateQueued(void);
 	bool					GenerateDefinition(CCPPFunction* pcFunction);
 	bool					WriteBody(CCPPFunction* pcFunction);
-	void					AddParameters(CCPPFunction* pcFunction);
+	void					AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator = NULL);
 	void					BeginFunction(CCPPFunction* pcFunction);
 	void					EndFunction(CCPPFunction* pcFunction);
 	void					AppendUnsupported(CChars* psz);

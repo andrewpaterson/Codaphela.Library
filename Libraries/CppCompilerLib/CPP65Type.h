@@ -122,6 +122,7 @@ protected:
 
 public:
 	SCPP65Type			msVoid;
+	SCPP65Type			msUndeduced;	//What auto f() returns until its definition says (CCPPUnit::ResolveReturn): void, but itself.
 	SCPP65Type			msBool;
 	SCPP65Type			msChar;
 	SCPP65Type			msUnsignedChar;

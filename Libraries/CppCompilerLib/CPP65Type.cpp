@@ -411,6 +411,7 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 	mcEnums.Init(true);
 	mcQualified.Init(true);
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
+	InitBuiltin(&msUndeduced, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
 	InitBuiltin(&msChar, CPP65TK_Integer, 1, true);
 	InitBuiltin(&msUnsignedChar, CPP65TK_Integer, 1, false);

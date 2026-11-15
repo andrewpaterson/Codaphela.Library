@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "BaseLib/LeakDetector.h"
 #include "TestLib/Assert.h"
 
@@ -44,6 +45,12 @@ int __cdecl main(void)
 
 	BreakOnAllocation(0);
 	InitTotalStatistics();
+
+	if (getenv("TEST_CPP_CONFORMANCE_TRY"))
+	{
+		//One program, tried on each target (TestCPPConformanceTry), and nothing else.
+		TestCPPConformance();
+	}
 
 	TestCppErrors();
 	TestPreprocessor();

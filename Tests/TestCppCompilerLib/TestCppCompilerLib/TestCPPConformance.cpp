@@ -16,6 +16,7 @@
 
 //A program that must be refused, where a case's value would be.
 #define CONFORMANCE_REFUSED		(-1)
+#define CONFORMANCE_TRIED		(-2)	//TEST_CPP_CONFORMANCE_TRY's program: what it does is written out.
 
 //The most instructions a case runs for: they are small.
 #define CONFORMANCE_STEPS		2000000
@@ -60,8 +61,8 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage1, "", ""),
 	CONFORMANCE_GROUP(Stage2, "", ""),
 	CONFORMANCE_GROUP(Stage3,
-		"AutoVariables(C) AutoDropsConstAndReference(C) AutoTypes(C) AutoInFor(C) AutoFunctionPointer(C) TrailingReturn(C) Decltype(C) DecltypeTypes(W) DecltypeTrailing(C) RangeForArray(C) RangeForClass(C) RangeForFreeBegin(C) RangeForIterator(C) RangeForBreakContinue(C) AliasTemplate(C) NullPointerType(C) AutoReturn(C) DecltypeAuto(C) ",
-		"AutoVariables(C) AutoDropsConstAndReference(C) AutoTypes(C) AutoInFor(C) AutoFunctionPointer(C) TrailingReturn(C) Decltype(C) DecltypeTypes(W) DecltypeTrailing(C) RangeForArray(C) RangeForClass(C) RangeForFreeBegin(C) RangeForIterator(C) RangeForBreakContinue(C) AliasTemplate(C) NullPointerType(C) AutoReturn(C) DecltypeAuto(C) "),
+		"RangeForArray(C) RangeForClass(C) RangeForFreeBegin(C) RangeForIterator(C) RangeForBreakContinue(C) ",
+		"RangeForArray(C) RangeForClass(C) RangeForFreeBegin(C) RangeForIterator(C) RangeForBreakContinue(C) "),
 	CONFORMANCE_GROUP(Stage4,
 		"ConstexprFunction(C) ConstexprRecursion(C) ConstexprLoop(C) ConstexprStatements(C) ConstexprCaseAndTemplateArgument(C) ConstexprStaticAssertFalse(A) ConstexprClass(C) ConstexprAggregate(C) ConstexprArray(C) ConstexprString(C) ConstexprFloating(C) ConstexprReferencesAndPointers(C) ConstexprLocalObjects(C) ConstexprNotConstant(A) ",
 		"ConstexprFunction(C) ConstexprRecursion(C) ConstexprLoop(C) ConstexprStatements(C) ConstexprCaseAndTemplateArgument(C) ConstexprStaticAssertFalse(A) ConstexprClass(C) ConstexprAggregate(C) ConstexprArray(C) ConstexprString(C) ConstexprFloating(C) ConstexprReferencesAndPointers(C) ConstexprLocalObjects(C) ConstexprNotConstant(A) "),
@@ -228,7 +229,7 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 		cBuilder.Kill();
 	}
 
-	if (szNotDone && getenv("TEST_CPP_CONFORMANCE_VERBOSE"))
+	if (szNotDone && (getenv("TEST_CPP_CONFORMANCE_VERBOSE") || (psCase->iExpected == CONFORMANCE_TRIED)))
 	{
 		fprintf(stderr, "%s %s%s: %s\n", (eTarget == CPPT_W65C816) ? "W65C816" : "65C64", psCase->szName, szNotDone, szErrors.Text());
 	}
@@ -334,6 +335,40 @@ static void TestCPPConformanceExport(const char* szDirectory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// TEST_CPP_CONFORMANCE_TRY in the environment names a source file: it is
+// built and run on each target, what main returned or why it wasn't built
+// is written to stderr, and nothing else is tested.  For trying a program
+// out while the compiler is worked on.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPPConformanceTry(const char* szFileName)
+{
+	SConformanceCase	sCase;
+	CChars				szSource;
+	FILE*				pFile;
+	int					iChar;
+
+	szSource.Init();
+	pFile = fopen(szFileName, "rb");
+	for (iChar = pFile ? fgetc(pFile) : EOF; iChar != EOF; iChar = fgetc(pFile))
+	{
+		szSource.Append((char)iChar);
+	}
+	if (pFile)
+	{
+		fclose(pFile);
+	}
+	sCase.szName = "Try";
+	sCase.iExpected = CONFORMANCE_TRIED;
+	sCase.szSource = szSource.Text();
+	ConformanceCase(&sCase, CPPT_65C64);
+	ConformanceCase(&sCase, CPPT_W65C816);
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How much of C++14 the compiler does, measured: every case on both
 // targets, against what is known not to be done.
 //
@@ -348,6 +383,11 @@ void TestCPPConformance(void)
 	TypeConverterInit();
 	NumberInit();
 
+	if (getenv("TEST_CPP_CONFORMANCE_TRY"))
+	{
+		TestCPPConformanceTry(getenv("TEST_CPP_CONFORMANCE_TRY"));
+		exit(0);
+	}
 	if (getenv("TEST_CPP_CONFORMANCE_EXPORT"))
 	{
 		TestCPPConformanceExport(getenv("TEST_CPP_CONFORMANCE_EXPORT"));

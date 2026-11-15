@@ -1260,13 +1260,233 @@ bool CCPPUnit::IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Records a function's signature (DeclareSignature) and, where its return
+// type is written after it or left to its body (auto), works that out.
+// Returns NULL after an error.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
+{
+	CCPPFunction*	pcFunction;
+
+	pcFunction = DeclareSignature(pcSpecifiers, pcDeclarator, bDefinition, pcClass, bPure, pcTemplate, pszArguments);
+	if (pcFunction && (pcFunction->mpsReturn == &mcTypes.msUndeduced) && !ResolveReturn(pcFunction, pcSpecifiers, pcDeclarator))
+	{
+		return NULL;
+	}
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of what a function declared auto f(...) -> type, auto f(...)
+// { } or decltype(auto) f(...) { } returns.  Its parameters are in scope
+// for the type written after it, and its locals too for the type its
+// first return gives, which the others must give as well: they are made
+// as they are to write the function, in a function scope of their own,
+// as this may be asked while another function is being written.  A
+// declaration with neither leaves the type until the definition.
+// [dcl.fct] 2, [dcl.spec.auto] 2, 7-9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxFunctionSuffix*		pcSuffix;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	SCPPFunctionScope				sScope;
+	SCPP65Type*						psReturn;
+	CArraySyntax					apcReturns;
+	size							i;
+
+	pcSuffix = pcDeclarator->GetFunctionSuffix();
+	pcDefinition = (pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_FunctionDefinition)) ? (CCPPSyntaxFunctionDefinition*)pcDeclarator->mpcParent : NULL;
+	if (pcDefinition && (pcDefinition->meBody != CPPFB_Body))
+	{
+		pcDefinition = NULL;
+	}
+	if (!pcSuffix->mpcTrailingReturn && !pcDefinition)
+	{
+		return true;
+	}
+
+	EnterFunctionScope(&sScope, pcFunction);
+	AddParameters(pcFunction, pcDeclarator);
+	if (pcSuffix->mpcTrailingReturn)
+	{
+		psReturn = mcDeclarators.GetTypeIdType(pcSuffix->mpcTrailingReturn);
+	}
+	else
+	{
+		BeginQuiet();
+		AllocateLocals(pcDefinition->mpcBody);
+		EndQuiet();
+		apcReturns.Init();
+		FindReturns(pcDefinition->mpcBody, &apcReturns);
+		psReturn = &mcTypes.msVoid;
+		for (i = 0; psReturn && (i < apcReturns.NumElements()); i++)
+		{
+			psReturn = ReturnedType(pcSpecifiers, pcDeclarator, (CCPPSyntaxReturnStatement*)apcReturns.GetPtr(i));
+			if (i == 0)
+			{
+				//Known from here on, so the function can call itself after its first return.
+				pcFunction->mpsReturn = psReturn ? psReturn : &mcTypes.msUndeduced;
+			}
+			else if (psReturn && !psReturn->Same(pcFunction->mpsReturn))
+			{
+				Error(apcReturns.GetPtr(i), "Each return of a function declared auto must give the same type");
+				psReturn = NULL;
+			}
+		}
+		apcReturns.Kill();
+	}
+	LeaveFunctionScope(&sScope);
+	if (psReturn)
+	{
+		pcFunction->mpsReturn = psReturn;
+	}
+	return psReturn != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type return value; gives a function declared auto (as it gives a
+// variable declared so, with the function's & or *) or decltype(auto).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn)
+{
+	SCPP65Type*	psType;
+
+	if (!pcReturn->mpcValue)
+	{
+		return &mcTypes.msVoid;
+	}
+	if (mcDeclarators.IsDecltypeAuto(pcSpecifiers))
+	{
+		return mcDeclarators.DecltypeType(pcReturn->mpcValue, pcReturn);
+	}
+	psType = mcDeclarators.DeduceAuto(pcSpecifiers, pcDeclarator, pcReturn->mpcValue, pcReturn);
+	if (psType && (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+	{
+		psType = mcTypes.Qualified(psType, psType->bConst || (pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile || (pcSpecifiers->muiFlags & CPPDS_VOLATILE));
+	}
+	return ReturnDeclaratorType(psType, pcDeclarator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The return statements of a function's body, in order: not those of a
+// class inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns)
+{
+	size	i;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	{
+		return;
+	}
+	if (pcNode->GetKind() == CPPS_ReturnStatement)
+	{
+		papcReturns->Add(pcNode);
+		return;
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		FindReturns(pcNode->GetChild(i), papcReturns);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a function's declarator makes of the type before it: int (*Pick())(int)
+// returns what the declarators around its name make of the int, and int*& f()
+// a reference to a pointer.  NULL after an error.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	size	i;
+
+	if (psReturn && pcDeclarator->mpcNested)
+	{
+		psReturn = mcDeclarators.GetDeclaratorType(psReturn, pcDeclarator, pcDeclarator, NULL, pcDeclarator->GetFunctionSuffix());
+	}
+	for (i = 0; psReturn && !pcDeclarator->mpcNested && (i < pcDeclarator->NumPointers()); i++)
+	{
+		switch (pcDeclarator->GetPointer(i)->meKind)
+		{
+		case CPPP_Pointer:
+			psReturn = QualifiedPointer(mcTypes.Pointer(psReturn), pcDeclarator->GetPointer(i));
+			break;
+		case CPPP_Reference:
+		case CPPP_RValueReference:
+			psReturn = mcTypes.Reference(psReturn, pcDeclarator->GetPointer(i)->meKind == CPPP_RValueReference);
+			break;
+		default:
+			Error(pcDeclarator, "Pointers to members are not supported by the compiler yet");
+			psReturn = NULL;
+			break;
+		}
+	}
+	return psReturn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts a function scope inside whatever is being written: pcFunction's
+// parameters and locals can be made (AddParameters, AllocateLocals) and
+// its expressions typed, and LeaveFunctionScope puts back the function
+// that was being written, with its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::EnterFunctionScope(SCPPFunctionScope* psScope, CCPPFunction* pcFunction)
+{
+	psScope->pcFunction = mcContext.GetFunction();
+	psScope->pcPackParameter = mcContext.GetPackParameter();
+	memcpy(&psScope->apcLocals, &mapcLocals, sizeof(CArrayCPPVariables));
+	memcpy(&psScope->apcPackElements, &mapcPackElements, sizeof(CArrayCPPSymbols));
+	mapcLocals.Init();
+	mapcPackElements.Init();
+	BeginFunction(pcFunction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::LeaveFunctionScope(SCPPFunctionScope* psScope)
+{
+	mcContext.EndFunction();
+	FreeVariables(&mapcLocals);
+	mapcLocals.Kill();
+	mapcPackElements.Kill();
+	memcpy(&mapcLocals, &psScope->apcLocals, sizeof(CArrayCPPVariables));
+	memcpy(&mapcPackElements, &psScope->apcPackElements, sizeof(CArrayCPPSymbols));
+	if (psScope->pcFunction)
+	{
+		mcContext.BeginFunction(psScope->pcFunction);
+		mcContext.SetPackParameter(psScope->pcPackParameter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Records a function's signature, a member of pcClass if it is not NULL, or an
 // instance of pcTemplate.  A function may be declared any number of times but
 // defined once.  Functions with the same name and different parameters are
 // overloads.  Returns NULL after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
+CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
 {
 	int64						lliName;
 	CCPPFunction*				pcFunction;
@@ -1286,6 +1506,7 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	size						uiPack;
 	uint32						uiFlags;
 	bool						bConstThis;
+	bool						bUndeduced;
 	ECPPRefQualifier			eRefQualifier;
 	bool						bFriend;
 	CCPPScope*					pcNamespace;
@@ -1314,9 +1535,15 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	}
 
 	pcSuffix = pcDeclarator->GetFunctionSuffix();
-	if ((!pcDeclarator->mpcNested && (pcDeclarator->macpSuffixes.NumElements() != 1)) || pcSuffix->mpcTrailingReturn)
+	if (!pcDeclarator->mpcNested && (pcDeclarator->macpSuffixes.NumElements() != 1))
 	{
 		Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
+		return NULL;
+	}
+	bUndeduced = mcDeclarators.IsAuto(pcSpecifiers) || mcDeclarators.IsDecltypeAuto(pcSpecifiers);
+	if (pcSuffix->mpcTrailingReturn && (!mcDeclarators.IsAuto(pcSpecifiers) || pcDeclarator->mpcNested || (pcDeclarator->NumPointers() != 0)))
+	{
+		Error(pcDeclarator, "A function whose return type is written after it is declared auto, and nothing more");
 		return NULL;
 	}
 
@@ -1332,29 +1559,8 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	}
 	else if (eKind == CPPFK_Function)
 	{
-		psReturn = mcDeclarators.GetType(pcSpecifiers, NULL, pcDeclarator, NULL);
-		if (psReturn && pcDeclarator->mpcNested)
-		{
-			//int (*Pick())(int) returns what the declarators around its name make of the int.
-			psReturn = mcDeclarators.GetDeclaratorType(psReturn, pcDeclarator, pcDeclarator, NULL, pcSuffix);
-		}
-		for (i = 0; psReturn && !pcDeclarator->mpcNested && (i < pcDeclarator->NumPointers()); i++)
-		{
-			switch (pcDeclarator->GetPointer(i)->meKind)
-			{
-			case CPPP_Pointer:
-				psReturn = QualifiedPointer(mcTypes.Pointer(psReturn), pcDeclarator->GetPointer(i));
-				break;
-			case CPPP_Reference:
-			case CPPP_RValueReference:
-				psReturn = mcTypes.Reference(psReturn, pcDeclarator->GetPointer(i)->meKind == CPPP_RValueReference);
-				break;
-			default:
-				Error(pcDeclarator, "Pointers to members are not supported by the compiler yet");
-				psReturn = NULL;
-				break;
-			}
-		}
+		//auto: the type is worked out once the function is known (ResolveReturn).
+		psReturn = bUndeduced ? &mcTypes.msUndeduced : ReturnDeclaratorType(mcDeclarators.GetType(pcSpecifiers, NULL, pcDeclarator, NULL), pcDeclarator);
 		if (!psReturn)
 		{
 			return NULL;
@@ -2239,10 +2445,11 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 // after the hidden result address of a function that returns an object.
 // Object arguments are the function's to destroy.  A function parameter
 // pack is a parameter for each of its types, each with its own symbol (see
-// ExpandPackCall).
+// ExpandPackCall).  They are named as pcDeclarator names them, or as the
+// function's definition does.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AddParameters(CCPPFunction* pcFunction)
+void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator)
 {
 	CCPPSyntaxFunctionSuffix*		pcSuffix;
 	CCPPSyntaxParameter*			pcParameter;
@@ -2255,7 +2462,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction)
 	size							k;
 	size							uiPack;
 
-	pcSuffix = pcFunction->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
+	pcSuffix = (pcDeclarator ? pcDeclarator : pcFunction->mpcDefinition->mpcDeclarator)->GetFunctionSuffix();
 	j = 0;
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{

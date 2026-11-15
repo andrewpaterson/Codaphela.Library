@@ -45,14 +45,24 @@ void CCPPDeclarators::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The type a declarator declares.  pcDeclarator may be NULL for the base type.  An
-// array without a size gets it from pcInitialiser.
+// array without a size gets it from pcInitialiser, and auto is what the initialiser
+// makes it (AutoType).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeclarators::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser)
 {
 	SCPP65Type*	psType;
 
-	psType = GetBaseType(pcSpecifiers, pcNode);
+	if (IsDecltypeAuto(pcSpecifiers))
+	{
+		psType = pcInitialiser ? DecltypeType(pcInitialiser, pcNode) : NULL;
+		if (!pcInitialiser)
+		{
+			mpcUnit->Error(pcNode, "decltype(auto) needs an initialiser to take its type from");
+		}
+		return psType;
+	}
+	psType = IsAuto(pcSpecifiers) ? AutoType(pcSpecifiers, pcDeclarator, pcNode, pcInitialiser) : GetBaseType(pcSpecifiers, pcNode);
 	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
 	{
 		//The base type's own qualifiers stay (a typedef of const int).
@@ -229,6 +239,241 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the specifiers are auto: the type is the initialiser's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeclarators::IsAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	return pcSpecifiers && !pcSpecifiers->mpcType && (pcSpecifiers->muiTypeKeywords & CPPTK_AUTO);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the specifiers are decltype(auto): the type is the initialiser's
+// as decltype has it, a reference where that is one.  [dcl.spec.auto] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeclarators::IsDecltypeAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	CCPPSyntax*	pcOperand;
+
+	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_DecltypeSpecifier))
+	{
+		return false;
+	}
+	pcOperand = ((CCPPSyntaxDecltypeSpecifier*)pcSpecifiers->mpcType)->mpcOperand;
+	return pcOperand && (pcOperand->GetKind() == CPPS_TypeId) && IsAuto(((CCPPSyntaxTypeId*)pcOperand)->mpcSpecifiers);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type auto is in the declaration of a variable (pcNode, with its
+// declarator and initialiser): what the initialiser makes it, which must
+// be the same for each variable the declaration declares.  [dcl.spec.auto] 7
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::AutoType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser)
+{
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcFirst;
+	SCPP65Type*						psType;
+	SCPP65Type*						psFirst;
+
+	psType = DeduceAuto(pcSpecifiers, pcDeclarator, pcInitialiser, pcNode);
+	if (!psType || (pcNode->GetKind() != CPPS_InitDeclarator) || !pcNode->mpcParent || (pcNode->mpcParent->GetKind() != CPPS_SimpleDeclaration))
+	{
+		return psType;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode->mpcParent;
+	pcFirst = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(0);
+	if (pcFirst != pcNode)
+	{
+		mpcUnit->BeginQuiet();
+		psFirst = DeduceAuto(pcSpecifiers, pcFirst->mpcDeclarator, pcFirst->mpcInitializer, pcFirst);
+		mpcUnit->EndQuiet();
+		if (psFirst && !psFirst->Same(psType))
+		{
+			mpcUnit->Error(pcNode, "auto is not the same type for each variable of the declaration");
+			return NULL;
+		}
+	}
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What auto is for one declarator and its initialiser, as a template's T
+// is for a parameter declared so and that argument: auto x = e is e's
+// type without its const (an array's or a function's a pointer), auto* p
+// what e points to, auto& r what e is, and auto&& r that or, for what has
+// a name, a reference to it.  [dcl.spec.auto] 7, [temp.deduct.call]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+{
+	CCPP65Types*	pcTypes;
+	SCPP65Type*		psType;
+	size			uiPointers;
+	ECPPPointer		eLast;
+
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) && (((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements.NumElements() == 1))
+	{
+		pcInitialiser = ((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements.GetPtr(0);
+	}
+	if (!pcInitialiser || (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
+	{
+		mpcUnit->Error(pcNode, "auto needs an initialiser to take its type from");
+		return NULL;
+	}
+	if (pcInitialiser->GetKind() == CPPS_InitializerList)
+	{
+		mpcUnit->Error(pcNode, "auto from a list in braces is not supported by the compiler yet");
+		return NULL;
+	}
+
+	pcTypes = mpcUnit->GetTypes();
+	uiPointers = pcDeclarator ? pcDeclarator->NumPointers() : 0;
+	eLast = uiPointers ? pcDeclarator->GetPointer(uiPointers - 1)->meKind : CPPP_Pointer;
+	if ((eLast == CPPP_Reference) || (eLast == CPPP_RValueReference))
+	{
+		psType = mpcUnit->IsRvalue(pcInitialiser) ? NULL : mpcUnit->PlaceOf(pcInitialiser);
+		if (psType && (eLast == CPPP_RValueReference) && (uiPointers == 1) && !(pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+		{
+			//auto&& of what has a name is a reference to it.
+			return pcTypes->Reference(psType);
+		}
+		psType = psType ? psType : mpcUnit->ValueTypeOf(pcInitialiser);
+		uiPointers--;
+	}
+	else
+	{
+		psType = mpcUnit->ValueTypeOf(pcInitialiser);
+		if (psType && (psType->IsArray() || psType->IsFunction()))
+		{
+			psType = pcTypes->Pointer(psType->IsArray() ? psType->psBase : psType);
+		}
+		else if (psType && psType->IsPointer() && (mpcUnit->SkipParentheses(pcInitialiser)->GetKind() == CPPS_StringExpression))
+		{
+			//A string literal's characters are const.
+			psType = pcTypes->Pointer(pcTypes->Qualified(psType->psBase, true, false));
+		}
+		psType = psType ? psType->Unqualified() : NULL;
+	}
+	if (!psType)
+	{
+		mpcUnit->ReportTypeOf(pcInitialiser);
+		return NULL;
+	}
+	for (; uiPointers > 0; uiPointers--)
+	{
+		if ((pcDeclarator->GetPointer(uiPointers - 1)->meKind != CPPP_Pointer) || !psType->IsPointer())
+		{
+			mpcUnit->Error(pcNode, "The initialiser is not what the declarator makes of auto");
+			return NULL;
+		}
+		psType = psType->psBase;
+	}
+
+	//const auto takes the type without the const it has.
+	return pcTypes->Qualified(psType, psType->bConst && !(pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile && !(pcSpecifiers->muiFlags & CPPDS_VOLATILE));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// decltype(operand).  A name, or a member of an object, with no
+// parentheses round it is the type it was declared with; any other
+// expression is its type, a reference to it if the expression is an
+// lvalue (so decltype((a)) is int& where decltype(a) is int).  Nothing
+// is worked out.  [dcl.type.simple] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
+{
+	CCPPBoundName	cBound;
+	SCPP65Type*		psType;
+
+	if (pcOperand->GetKind() == CPPS_TypeId)
+	{
+		//__typeof__(type).
+		return GetTypeIdType((CCPPSyntaxTypeId*)pcOperand);
+	}
+	if (pcOperand->GetKind() == CPPS_IdExpression)
+	{
+		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
+		if (cBound.meWhat == CPPBN_Variable)
+		{
+			return cBound.mpcVariable->mpsType;
+		}
+		if (cBound.meWhat == CPPBN_Field)
+		{
+			return cBound.mpsField->psType;
+		}
+	}
+	else if (pcOperand->GetKind() == CPPS_MemberExpression)
+	{
+		psType = mpcUnit->PlaceOf(pcOperand);
+		if (psType)
+		{
+			//The field's type, not const because its object is.
+			return mpcUnit->IsConstObject(((CCPPSyntaxMemberExpression*)pcOperand)->mpcObject) ? psType->Unqualified() : psType;
+		}
+	}
+
+	psType = mpcUnit->DeclaredTypeOf(pcOperand);
+	if (!psType)
+	{
+		mpcUnit->ReportTypeOf(pcOperand);
+		return NULL;
+	}
+	if (psType->IsReference() || mpcUnit->IsRvalue(pcOperand))
+	{
+		return psType;
+	}
+	psType = mpcUnit->PlaceOf(pcOperand);
+	return psType ? mpcUnit->GetTypes()->Reference(psType) : mpcUnit->ValueTypeOf(pcOperand);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Name<arguments> where Name is template<...> using Name = type: the type,
+// with the template's parameters the arguments.  An alias template has no
+// instances of its own: it is the type each time.  [temp.alias] 2
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::AliasTemplateType(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxAliasDeclaration*	pcAlias;
+	CCPPTemplateArguments*		pcBindings;
+	SCPP65Type*					psType;
+	CChars						szArguments;
+
+	pcAlias = (CCPPSyntaxAliasDeclaration*)pcName->mpcSymbol->mpcDeclaration;
+	if (!pcAlias || (pcAlias->GetKind() != CPPS_AliasDeclaration) || !pcAlias->mpcParent || (pcAlias->mpcParent->GetKind() != CPPS_TemplateDeclaration))
+	{
+		mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
+		return NULL;
+	}
+	szArguments.Init();
+	pcBindings = mpcUnit->BindArguments((CCPPSyntaxTemplateDeclaration*)pcAlias->mpcParent, &pcName->GetLast()->macpTemplateArguments, NULL, &szArguments, pcNode);
+	szArguments.Kill();
+	if (!pcBindings)
+	{
+		return NULL;
+	}
+	mpcUnit->GetContext()->EnterBindings(pcBindings);
+	psType = GetTypeIdType(pcAlias->mpcType);
+	mpcUnit->GetContext()->LeaveBindings();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type the specifiers name.  long is 4 bytes, as on Windows.  char is signed.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -255,6 +500,10 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcType = pcSpecifiers->mpcType;
 	if (pcType)
 	{
+		if (pcType->GetKind() == CPPS_DecltypeSpecifier)
+		{
+			return DecltypeType(((CCPPSyntaxDecltypeSpecifier*)pcType)->mpcOperand, pcNode);
+		}
 		if (pcType->GetKind() == CPPS_EnumSpecifier)
 		{
 			return mpcUnit->EnumType(((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol, (CCPPSyntaxEnumSpecifier*)pcType);
@@ -310,6 +559,8 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					return mpcUnit->EnumType(pcName->mpcSymbol, NULL);
 				case CPPSK_Typedef:
 					return GetSymbolType(pcName->mpcSymbol, pcNode);
+				case CPPSK_AliasTemplate:
+					return AliasTemplateType(pcName, pcNode);
 				case CPPSK_TypeParameter:
 					psBinding = mpcUnit->FindBinding(pcName->mpcSymbol);
 					if (!psBinding || !psBinding->psType)
@@ -355,7 +606,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	}
 	if (uiKeywords & CPPTK_AUTO)
 	{
-		mpcUnit->Error(pcSpecifiers, "auto is not supported by the compiler yet");
+		mpcUnit->Error(pcSpecifiers, "auto can only be the type of a variable with an initialiser");
 		return NULL;
 	}
 	if (uiKeywords & CPPTK_VOID)

@@ -45,6 +45,12 @@ public:
 	SCPP65Type*				GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntax* pcNode);
 	int						GetInitialiserCount(CCPPSyntax* pcInitialiser);
 	SCPP65Type*				GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode);
+	bool					IsAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
+	bool					IsDecltypeAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
+	SCPP65Type*				AutoType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser);
+	SCPP65Type*				DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	SCPP65Type*				AliasTemplateType(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
+	SCPP65Type*				DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				GetTypeIdType(CCPPSyntaxTypeId* pcTypeId);
 	SCPP65Type*				GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 };

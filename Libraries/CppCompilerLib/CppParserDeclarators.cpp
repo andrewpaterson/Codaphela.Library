@@ -516,7 +516,10 @@ CCPPSyntaxFunctionSuffix* CCPPParser::ParseFunctionSuffix(CCPPSyntax* pcParent, 
 
 	if (Accept(CT_MemberByPointer))
 	{
+		//The parameters are in scope in it: auto add(A a, B b) -> decltype(a + b).  [basic.scope.block] 2
+		mpcScope = pcScope;
 		pcFunction->mpcTrailingReturn = ParseTypeId(pcFunction);
+		PopScope(pcScope);
 		if (!pcFunction->mpcTrailingReturn)
 		{
 			return NULL;

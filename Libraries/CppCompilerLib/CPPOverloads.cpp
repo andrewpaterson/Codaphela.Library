@@ -613,6 +613,11 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 
 	if (pcBest && !bAmbiguous)
 	{
+		if (pcBest->mpsReturn == &mpcUnit->GetTypes()->msUndeduced)
+		{
+			mpcUnit->Error(pcNode, "The function is declared auto and what it returns isn't known until it is defined");
+			return NULL;
+		}
 		if (pcBest->mbDeleted)
 		{
 			//It was the best match, and so the call is wrong: that is what deleting it is for.  [dcl.fct.def.delete]
