@@ -165,6 +165,69 @@ void TestMeshUnwrapGrown(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Charts laid flat by LSCM: a box's six faces as before, unstretched; a
+// sphere and a torus in box charts and in grown charts, their faces'
+// angles kept to within 1.15 times (laid across their normals, grown
+// charts stretch the sphere's 4.6 times) and their texels per area near
+// the density.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshUnwrapConformal(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshUnwrap>	pUnwrap;
+	Ptr<CMesh>			pMesh;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+	SFloat32Vec3		sAxis;
+	SFloat32Vec3		sCentre;
+	SMeshUVStretch		sStretch;
+	int					i;
+
+	sX.Init(2, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 0.5f);
+	sStart.Init(-1, -0.5f, -0.25f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 2, 2, 2);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, MUC_Grown, MUF_Conformal);
+	pMesh = pEditor->GetOutput();
+	AssertUnwrapped(&pMesh, &pUnwrap);
+	AssertInt(6, pUnwrap->miNumCharts);
+	MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 64.0f);
+	AssertFloat(1.0f, sStretch.fWorstAngle, 3);
+	AssertFloat(1.0f, sStretch.fLeastArea, 3);
+	AssertFloat(1.0f, sStretch.fMostArea, 3);
+
+	sAxis.Init(0, 0, 1);
+	sCentre.Init(0.3f, -0.2f, 0.1f);
+	for (i = 0; i < 4; i++)
+	{
+		pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+		if (i < 2)
+		{
+			pEditor->AddModifier<CMeshSphereEditor>(&sAxis, &sCentre, 1.0f, 24, 12);
+		}
+		else
+		{
+			pEditor->AddModifier<CMeshTorusEditor>(&sAxis, &sCentre, 2.0f, 0.5f, 32, 12);
+		}
+		pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, ((i % 2) == 0) ? MUC_Box : MUC_Grown, MUF_Conformal);
+		pMesh = pEditor->GetOutput();
+		AssertUnwrapped(&pMesh, &pUnwrap);
+		MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 100.0f);
+		AssertTrue(sStretch.fWorstAngle < 1.15f);
+		AssertTrue(sStretch.fMeanAngle < 1.06f);
+		AssertTrue(sStretch.fLeastArea > 0.7f);
+		AssertTrue(sStretch.fMostArea < 1.6f);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUnwrap(void)
@@ -178,6 +241,8 @@ void TestMeshUnwrap(void)
 	TestMeshUnwrapCurved();
 	ObjectsFlush();
 	TestMeshUnwrapGrown();
+	ObjectsFlush();
+	TestMeshUnwrapConformal();
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();

@@ -313,6 +313,9 @@
     <ClCompile Include="TestMeshBake.cpp">
       <Filter>Source Files\Image\Font</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshUVConformal.cpp">
+      <Filter>Source Files\Image\Font</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h">

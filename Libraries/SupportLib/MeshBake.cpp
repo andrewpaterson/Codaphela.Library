@@ -228,7 +228,7 @@ static void MeshBakeDilate(int iWidth, int iHeight, CArrayLargeUint32* pauiColou
 			{
 				continue;
 			}
-			uiNext = uiTexel + (lsize)(aaiSteps[k][0] + (aaiSteps[k][1] * iWidth));
+			uiNext = uiTexel + (lsize)aaiSteps[k][0] + ((lsize)aaiSteps[k][1] * (lsize)iWidth);  //Unsigned, so a step back wraps round to it.
 			if (paiCovered->GetValue(uiNext) == 0)
 			{
 				paiCovered->SetValue(uiNext, 1);

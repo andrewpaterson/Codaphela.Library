@@ -26,14 +26,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/Float32Vec2.h"
 #include "StandardLib/Objects.h"
 #include "MeshUVMeasures.h"
+#include "MeshUVConformal.h"
 #include "MeshUnwrap.h"
 
 
 //The turns a chart's bounding rectangle is tried at, across a right angle, for the smallest.
 #define MESH_UNWRAP_TURNS	90
 
-//How many times charts that overlap themselves laid flat are grown again, at half the angle each time.  A chart of one face
-//can't overlap itself, which is where halving ends.
+//How many times charts that fold or overlap themselves laid flat are grown again, at half the angle each time.  A chart of
+//one face can't, which is where halving ends.
 #define MESH_UNWRAP_REGROWS	12
 
 
@@ -41,6 +42,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 struct SMeshUnwrapUVs
 {
 	CArrayLargeFloat32Vec2	masUVs;
+	CArrayLargeInt			maiUVCorners;  //The corner each UV is of.
 	CArrayLargeInt			maiChartStarts;
 	CArrayLargeInt			maiFaceUVs;  //Three for each face.
 	CArrayLargeInt			maiSizes;  //Each chart's width and height in texels, once turned.
@@ -58,6 +60,7 @@ struct SMeshUnwrapUVs
 void SMeshUnwrapUVs::Init(void)
 {
 	masUVs.Init();
+	maiUVCorners.Init();
 	maiChartStarts.Init();
 	maiFaceUVs.Init();
 	maiSizes.Init();
@@ -75,6 +78,7 @@ void SMeshUnwrapUVs::Kill(void)
 	maiSizes.Kill();
 	maiFaceUVs.Kill();
 	maiChartStarts.Kill();
+	maiUVCorners.Kill();
 	masUVs.Kill();
 }
 
@@ -83,12 +87,13 @@ void SMeshUnwrapUVs::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUnwrap::Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts)
+void CMeshUnwrap::Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts, EMeshUnwrapFlatten eFlatten)
 {
 	PreInit();
 	CMeshModifier::Init();
 	mfTexelsPerUnit = fTexelsPerUnit;
 	meCharts = eCharts;
+	meFlatten = eFlatten;
 	mfChartAngle = MESH_CHARTS_ANGLE;
 	miPageSize = MESH_UNWRAP_PAGE;
 	miGutter = MESH_UNWRAP_GUTTER;
@@ -108,6 +113,7 @@ void CMeshUnwrap::Class(void)
 	CMeshModifier::Class();
 	U_Float32(mfTexelsPerUnit);
 	U_Enum(meCharts);
+	U_Enum(meFlatten);
 	U_Float32(mfChartAngle);
 	U_SInt(miPageSize);
 	U_SInt(miGutter);
@@ -179,6 +185,7 @@ static void MeshUnwrapFlatten(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts*
 	psUVs->maiFaceUVs.Resize((lsize)pcMesh->NumFaces() * NUM_FACE_CORNERS);
 	psUVs->maiChartStarts.ReInit();
 	psUVs->masUVs.ReInit();
+	psUVs->maiUVCorners.ReInit();
 
 	for (iChart = 0; iChart < pcCharts->NumCharts(); iChart++)
 	{
@@ -196,6 +203,7 @@ static void MeshUnwrapFlatten(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts*
 					psPosition = pcMesh->GetPosition(iCorner);
 					aiCornerChart.SetValue((lsize)iCorner, iChart);
 					aiCornerUV.SetValue((lsize)iCorner, (int)psUVs->masUVs.NumElements());
+					psUVs->maiUVCorners.Add(iCorner);
 					psUVs->masUVs.Add()->Init(Float32Vec3Dot(psPosition, &sU) * fTexelsPerUnit, Float32Vec3Dot(psPosition, &sV) * fTexelsPerUnit);
 				}
 				psUVs->maiFaceUVs.SetValue(((lsize)iFace * NUM_FACE_CORNERS) + (lsize)k, aiCornerUV.GetValue((lsize)iCorner));
@@ -211,35 +219,83 @@ static void MeshUnwrapFlatten(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The charts whose faces overlap each other laid flat.
+// A chart's faces' corners, three for each, as indices into its own UVs.
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshUnwrapOverlapping(CArrayInt* paiDest, SMeshUnwrapUVs* psUVs, CMeshCharts* pcCharts)
+static void MeshUnwrapChartCorners(CArrayLargeInt* paiDest, SMeshUnwrapUVs* psUVs, CMeshCharts* pcCharts, int iChart)
+{
+	int		iFirst;
+	int		iFace;
+	int		i;
+	int		k;
+
+	paiDest->ReInit();
+	iFirst = psUVs->maiChartStarts.GetValue((lsize)iChart);
+	for (i = 0; i < pcCharts->NumFaces(iChart); i++)
+	{
+		iFace = pcCharts->GetFace(iChart, i);
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
+		{
+			paiDest->Add(psUVs->maiFaceUVs.GetValue(((lsize)iFace * NUM_FACE_CORNERS) + (lsize)k) - iFirst);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each chart laid flat again by LSCM, from where it's laid across its
+// normal.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUnwrapConformal(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts* pcCharts, float32 fTexelsPerUnit)
+{
+	CArrayLargeInt			aiCorners;
+	CArrayLargeFloat32Vec3	asPositions;
+	int						iChart;
+	int						iFirst;
+	int						iLast;
+	int						i;
+
+	aiCorners.Init();
+	asPositions.Init();
+	for (iChart = 0; iChart < pcCharts->NumCharts(); iChart++)
+	{
+		iFirst = psUVs->maiChartStarts.GetValue((lsize)iChart);
+		iLast = psUVs->maiChartStarts.GetValue((lsize)iChart + 1);
+		asPositions.ReInit();
+		for (i = iFirst; i < iLast; i++)
+		{
+			asPositions.Add(pcMesh->GetPosition(psUVs->maiUVCorners.GetValue((lsize)i)));
+		}
+		MeshUnwrapChartCorners(&aiCorners, psUVs, pcCharts, iChart);
+		FlattenConformal(psUVs->masUVs.Get((lsize)iFirst), asPositions.Get(0), iLast - iFirst, aiCorners.Get(0), pcCharts->NumFaces(iChart), fTexelsPerUnit);
+	}
+	asPositions.Kill();
+	aiCorners.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The charts with faces turned over or overlapping each other laid flat.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUnwrapFolded(CArrayInt* paiDest, SMeshUnwrapUVs* psUVs, CMeshCharts* pcCharts)
 {
 	CArrayLargeInt	aiCorners;
+	SFloat32Vec2*	pasUVs;
 	int				iChart;
-	int				iFace;
-	int				i;
-	int				k;
+	int				iNumFaces;
 
 	paiDest->ReInit();
 	aiCorners.Init();
 	for (iChart = 0; iChart < pcCharts->NumCharts(); iChart++)
 	{
-		if (pcCharts->NumFaces(iChart) < 2)
-		{
-			continue;
-		}
-		aiCorners.ReInit();
-		for (i = 0; i < pcCharts->NumFaces(iChart); i++)
-		{
-			iFace = pcCharts->GetFace(iChart, i);
-			for (k = 0; k < NUM_FACE_CORNERS; k++)
-			{
-				aiCorners.Add(psUVs->maiFaceUVs.GetValue(((lsize)iFace * NUM_FACE_CORNERS) + (lsize)k));
-			}
-		}
-		if (CountUVTriangleOverlaps(psUVs->masUVs.Get(0), aiCorners.Get(0), pcCharts->NumFaces(iChart)) > 0)
+		MeshUnwrapChartCorners(&aiCorners, psUVs, pcCharts, iChart);
+		pasUVs = psUVs->masUVs.Get((lsize)psUVs->maiChartStarts.GetValue((lsize)iChart));
+		iNumFaces = pcCharts->NumFaces(iChart);
+		if ((CountUVTrianglesTurned(pasUVs, aiCorners.Get(0), iNumFaces) > 0) || (CountUVTriangleOverlaps(pasUVs, aiCorners.Get(0), iNumFaces) > 0))
 		{
 			paiDest->Add(iChart);
 		}
@@ -529,8 +585,8 @@ static void MeshUnwrapPack(SMeshUnwrapUVs* psUVs, int iNumCharts, int iGutter, i
 //////////////////////////////////////////////////////////////////////////
 //
 // A copy of the mesh with UV layer 0 made again: charts, laid flat (and
-// those that overlap themselves grown again smaller until none do),
-// turned, packed, and each UV its place across the layout.
+// those that fold or overlap themselves grown again smaller until none
+// do), turned, packed, and each UV its place across the layout.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
@@ -541,7 +597,7 @@ Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
 	CMeshUVLayer*	pcLayer;
 	SMeshUVFace*	psUVFace;
 	SFloat32Vec2*	psUV;
-	CArrayInt		aiOverlapping;
+	CArrayInt		aiFolded;
 	float32			fAngle;
 	int				iRegrow;
 	int				iNumCharts;
@@ -567,20 +623,24 @@ Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
 		cCharts.MakeBox(&pMesh);
 	}
 	sUVs.Init();
-	aiOverlapping.Init();
+	aiFolded.Init();
 	fAngle = mfChartAngle;
 	for (iRegrow = 0; iRegrow <= MESH_UNWRAP_REGROWS; iRegrow++)
 	{
 		MeshUnwrapFlatten(&sUVs, &pMesh, &cCharts, mfTexelsPerUnit);
-		MeshUnwrapOverlapping(&aiOverlapping, &sUVs, &cCharts);
-		if ((aiOverlapping.NumElements() == 0) || (iRegrow == MESH_UNWRAP_REGROWS))
+		if (meFlatten == MUF_Conformal)
+		{
+			MeshUnwrapConformal(&sUVs, &pMesh, &cCharts, mfTexelsPerUnit);
+		}
+		MeshUnwrapFolded(&aiFolded, &sUVs, &cCharts);
+		if ((aiFolded.NumElements() == 0) || (iRegrow == MESH_UNWRAP_REGROWS))
 		{
 			break;
 		}
 		fAngle *= 0.5f;
-		cCharts.Regrow(&pMesh, &aiOverlapping, fAngle);
+		cCharts.Regrow(&pMesh, &aiFolded, fAngle);
 	}
-	aiOverlapping.Kill();
+	aiFolded.Kill();
 	iNumCharts = cCharts.NumCharts();
 	MeshUnwrapOrient(&sUVs, iNumCharts);
 	MeshUnwrapPack(&sUVs, iNumCharts, miGutter, miPageSize, &miLayoutWidth, &miLayoutHeight);

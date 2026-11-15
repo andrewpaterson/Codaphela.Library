@@ -352,9 +352,9 @@ int CountUVTriangleOverlaps(SFloat32Vec2* pasUVs, int* paiCorners, int iNumTrian
 	}
 
 	aiCellFaces.Init();
-	aiCellFaces.Resize((lsize)aiCellStarts.GetValue((lsize)(iCells * iCells)));
+	aiCellFaces.Resize((lsize)aiCellStarts.GetValue((lsize)iCells * iCells));
 	aiFilled.Init();
-	aiFilled.Resize((lsize)(iCells * iCells));
+	aiFilled.Resize((lsize)iCells * iCells);
 	aiFilled.SetArrayValues(0);
 	for (i = 0; i < iNumFaces; i++)
 	{
@@ -448,28 +448,23 @@ int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each face is laid in its own plane (its first side along x), and the
-// map from there to its texels is the 2 by 2 matrix J taking its two
-// sides to its UV sides.  J's singular values are (Q + R) and |Q - R|,
-// Q and R the lengths of (E, H) and (F, G), E = (a + d) / 2, F = (a - d)
-// / 2, G = (c + b) / 2, H = (c - b) / 2 for J = (a, b; c, d).
+// A triangle laid in its own plane (its first side along x), and the map
+// from there to its texels the 2 by 2 matrix J taking its two sides to
+// its UV sides (fU1, fV1) and (fU2, fV2).  J's singular values are
+// (Q + R) and |Q - R|, Q and R the lengths of (E, H) and (F, G), E = (a +
+// d) / 2, F = (a - d) / 2, G = (c + b) / 2, H = (c - b) / 2 for J = (a,
+// b; c, d).  Gives their ratio, their product (texels per area) and the
+// triangle's twice area in 3D; false for a triangle with no area in 3D or
+// in UV.
 //
 //////////////////////////////////////////////////////////////////////////
-void MeasureMeshUVStretch(SMeshUVStretch* psDest, CMesh* pcMesh, int iLayer, float32 fLayoutWidth, float32 fLayoutHeight, float32 fTexelsPerUnit)
+static bool MeshUVTriangleStretch(SFloat32Vec3** papsPositions, float64 fU1, float64 fV1, float64 fU2, float64 fV2, float64* pfRatio, float64* pfTexelArea, float64* pfTwiceArea)
 {
-	CMeshUVLayer*	pcLayer;
-	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
-	int*			piCorners;
 	SFloat32Vec3	sSide1;
 	SFloat32Vec3	sSide2;
 	float64			fLength1;
 	float64			fX2;
 	float64			fY2;
-	float64			fU1;
-	float64			fV1;
-	float64			fU2;
-	float64			fV2;
-	float64			fDeterminant;
 	float64			a;
 	float64			b;
 	float64			c;
@@ -478,18 +473,108 @@ void MeasureMeshUVStretch(SMeshUVStretch* psDest, CMesh* pcMesh, int iLayer, flo
 	float64			fR;
 	float64			fMost;
 	float64			fLeast;
-	float64			fRatio;
-	float64			fArea;
-	float64			fDensity;
-	float64			fWeighted;
-	float64			fTotalArea;
-	int				iFace;
 
+	sSide1 = *papsPositions[1] - *papsPositions[0];
+	sSide2 = *papsPositions[2] - *papsPositions[0];
+	fLength1 = sSide1.Magnitude();
+	if (fLength1 <= 0.0)
+	{
+		return false;
+	}
+	fX2 = Float32Vec3Dot(&sSide2, &sSide1) / fLength1;
+	fY2 = (float64)sSide2.SquareMagnitude() - (fX2 * fX2);
+	if (fY2 <= 0.0)
+	{
+		return false;
+	}
+	fY2 = sqrt(fY2);
+	if ((fY2 <= 0.0) || (((fU1 * fV2) - (fU2 * fV1)) == 0.0))
+	{
+		return false;
+	}
+
+	//J (fLength1, 0) = (fU1, fV1) and J (fX2, fY2) = (fU2, fV2).
+	a = fU1 / fLength1;
+	c = fV1 / fLength1;
+	b = (fU2 - (a * fX2)) / fY2;
+	d = (fV2 - (c * fX2)) / fY2;
+	fQ = sqrt((((a + d) * 0.5) * ((a + d) * 0.5)) + (((c - b) * 0.5) * ((c - b) * 0.5)));
+	fR = sqrt((((a - d) * 0.5) * ((a - d) * 0.5)) + (((c + b) * 0.5) * ((c + b) * 0.5)));
+	fMost = fQ + fR;
+	fLeast = fabs(fQ - fR);
+	if (fLeast <= 0.0)
+	{
+		return false;
+	}
+	*pfRatio = fMost / fLeast;
+	*pfTexelArea = fMost * fLeast;
+	*pfTwiceArea = fLength1 * fY2;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A triangle's stretch into the measure: its ratio, its texels per area
+// against the density, and its share of the mean (pfWeighted over
+// pfTotalArea) by its area.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUVStretchAdd(SMeshUVStretch* psDest, float64 fRatio, float64 fArea, float64 fTwiceArea, float64* pfWeighted, float64* pfTotalArea)
+{
+	if ((psDest->iNumFaces == 0) || (fRatio > psDest->fWorstAngle))
+	{
+		psDest->fWorstAngle = (float32)fRatio;
+	}
+	if ((psDest->iNumFaces == 0) || (fArea < psDest->fLeastArea))
+	{
+		psDest->fLeastArea = (float32)fArea;
+	}
+	if ((psDest->iNumFaces == 0) || (fArea > psDest->fMostArea))
+	{
+		psDest->fMostArea = (float32)fArea;
+	}
+	*pfWeighted += fRatio * fTwiceArea;
+	*pfTotalArea += fTwiceArea;
+	psDest->iNumFaces++;
+	psDest->fMeanAngle = (float32)(*pfWeighted / *pfTotalArea);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUVStretchInit(SMeshUVStretch* psDest)
+{
 	psDest->fWorstAngle = 1.0f;
 	psDest->fMeanAngle = 1.0f;
 	psDest->fLeastArea = 0.0f;
 	psDest->fMostArea = 0.0f;
 	psDest->iNumFaces = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void MeasureMeshUVStretch(SMeshUVStretch* psDest, CMesh* pcMesh, int iLayer, float32 fLayoutWidth, float32 fLayoutHeight, float32 fTexelsPerUnit)
+{
+	CMeshUVLayer*	pcLayer;
+	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
+	SFloat32Vec3*	apsPositions[NUM_FACE_CORNERS];
+	int*			piCorners;
+	int				k;
+	float64			fRatio;
+	float64			fTexelArea;
+	float64			fTwiceArea;
+	float64			fDensity;
+	float64			fWeighted;
+	float64			fTotalArea;
+	int				iFace;
+
+	MeshUVStretchInit(psDest);
 	pcLayer = MeshUVLayer(pcMesh, iLayer);
 	if (pcLayer == NULL)
 	{
@@ -506,70 +591,75 @@ void MeasureMeshUVStretch(SMeshUVStretch* psDest, CMesh* pcMesh, int iLayer, flo
 			continue;
 		}
 		piCorners = pcMesh->GetFaceCorners(iFace);
-		sSide1 = *pcMesh->GetPosition(piCorners[1]) - *pcMesh->GetPosition(piCorners[0]);
-		sSide2 = *pcMesh->GetPosition(piCorners[2]) - *pcMesh->GetPosition(piCorners[0]);
-		fLength1 = sSide1.Magnitude();
-		if (fLength1 <= 0.0)
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
 		{
-			continue;
+			apsPositions[k] = pcMesh->GetPosition(piCorners[k]);
 		}
-		fX2 = Float32Vec3Dot(&sSide2, &sSide1) / fLength1;
-		fY2 = (float64)sSide2.SquareMagnitude() - (fX2 * fX2);
-		if (fY2 <= 0.0)
+		if (MeshUVTriangleStretch(apsPositions, ((float64)apsUVs[1]->x - apsUVs[0]->x) * fLayoutWidth, ((float64)apsUVs[1]->y - apsUVs[0]->y) * fLayoutHeight,
+								  ((float64)apsUVs[2]->x - apsUVs[0]->x) * fLayoutWidth, ((float64)apsUVs[2]->y - apsUVs[0]->y) * fLayoutHeight, &fRatio, &fTexelArea, &fTwiceArea))
 		{
-			continue;
+			MeshUVStretchAdd(psDest, fRatio, fTexelArea / fDensity, fTwiceArea, &fWeighted, &fTotalArea);
 		}
-		fY2 = sqrt(fY2);
-		if (fY2 <= 0.0)
-		{
-			continue;
-		}
-
-		fU1 = ((float64)apsUVs[1]->x - apsUVs[0]->x) * fLayoutWidth;
-		fV1 = ((float64)apsUVs[1]->y - apsUVs[0]->y) * fLayoutHeight;
-		fU2 = ((float64)apsUVs[2]->x - apsUVs[0]->x) * fLayoutWidth;
-		fV2 = ((float64)apsUVs[2]->y - apsUVs[0]->y) * fLayoutHeight;
-		fDeterminant = (fU1 * fV2) - (fU2 * fV1);
-		if (fDeterminant == 0.0)
-		{
-			continue;
-		}
-
-		//J (fLength1, 0) = (fU1, fV1) and J (fX2, fY2) = (fU2, fV2).
-		a = fU1 / fLength1;
-		c = fV1 / fLength1;
-		b = (fU2 - (a * fX2)) / fY2;
-		d = (fV2 - (c * fX2)) / fY2;
-		fQ = sqrt((((a + d) * 0.5) * ((a + d) * 0.5)) + (((c - b) * 0.5) * ((c - b) * 0.5)));
-		fR = sqrt((((a - d) * 0.5) * ((a - d) * 0.5)) + (((c + b) * 0.5) * ((c + b) * 0.5)));
-		fMost = fQ + fR;
-		fLeast = fabs(fQ - fR);
-		if (fLeast <= 0.0)
-		{
-			continue;
-		}
-
-		fRatio = fMost / fLeast;
-		fArea = (fMost * fLeast) / fDensity;
-		if ((psDest->iNumFaces == 0) || (fRatio > psDest->fWorstAngle))
-		{
-			psDest->fWorstAngle = (float32)fRatio;
-		}
-		if ((psDest->iNumFaces == 0) || (fArea < psDest->fLeastArea))
-		{
-			psDest->fLeastArea = (float32)fArea;
-		}
-		if ((psDest->iNumFaces == 0) || (fArea > psDest->fMostArea))
-		{
-			psDest->fMostArea = (float32)fArea;
-		}
-		fWeighted += fRatio * fLength1 * fY2;
-		fTotalArea += fLength1 * fY2;
-		psDest->iNumFaces++;
 	}
-	if (fTotalArea > 0.0)
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void MeasureUVTriangleStretch(SMeshUVStretch* psDest, SFloat32Vec2* pasUVs, SFloat32Vec3* pasPositions, int* paiCorners, int iNumTriangles, float32 fTexelsPerUnit)
+{
+	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
+	SFloat32Vec3*	apsPositions[NUM_FACE_CORNERS];
+	int				k;
+	float64			fRatio;
+	float64			fTexelArea;
+	float64			fTwiceArea;
+	float64			fDensity;
+	float64			fWeighted;
+	float64			fTotalArea;
+	int				iTriangle;
+
+	MeshUVStretchInit(psDest);
+	fDensity = (float64)fTexelsPerUnit * fTexelsPerUnit;
+	fWeighted = 0.0;
+	fTotalArea = 0.0;
+	for (iTriangle = 0; iTriangle < iNumTriangles; iTriangle++)
 	{
-		psDest->fMeanAngle = (float32)(fWeighted / fTotalArea);
+		MeshUVTriangle(pasUVs, paiCorners, iTriangle, apsUVs);
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
+		{
+			apsPositions[k] = &pasPositions[paiCorners[(iTriangle * NUM_FACE_CORNERS) + k]];
+		}
+		if (MeshUVTriangleStretch(apsPositions, (float64)apsUVs[1]->x - apsUVs[0]->x, (float64)apsUVs[1]->y - apsUVs[0]->y,
+								  (float64)apsUVs[2]->x - apsUVs[0]->x, (float64)apsUVs[2]->y - apsUVs[0]->y, &fRatio, &fTexelArea, &fTwiceArea))
+		{
+			MeshUVStretchAdd(psDest, fRatio, fTexelArea / fDensity, fTwiceArea, &fWeighted, &fTotalArea);
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CountUVTrianglesTurned(SFloat32Vec2* pasUVs, int* paiCorners, int iNumTriangles)
+{
+	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
+	int				iTriangle;
+	int				iTurned;
+
+	iTurned = 0;
+	for (iTriangle = 0; iTriangle < iNumTriangles; iTriangle++)
+	{
+		MeshUVTriangle(pasUVs, paiCorners, iTriangle, apsUVs);
+		if (MeshUVTwiceArea(apsUVs) <= 0.0)
+		{
+			iTurned++;
+		}
+	}
+	return iTurned;
 }
 

@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Steps 1 to 5 are built (see Steps).  What is decided and what is only proposed is said at each point.
+Steps 1 to 6 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -164,6 +164,17 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
    unknowns, and a matrix that isn't positive definite failing.
 6. LSCM.  Tests: a flat chart's UVs its shape exactly (no stretch), a hemisphere's angles kept, folded charts split; the checker's
    squares stay square on the sphere and isosurface.
+   Done: FlattenConformal (MeshUVConformal) and CMeshUnwrap's meFlatten (MUF_Projected, the default for now, or
+   MUF_Conformal).  A chart's rows are each triangle's Cauchy-Riemann equations in its own plane, weighted by the root of its
+   area; the two UVs furthest apart laid across the normal are pinned, and that layout is CGLS's start; the answer is scaled
+   to the chart's area at the density.  A chart that folds or overlaps itself goes back through step 4's regrow (split by
+   growing again at half the angle), so folds are split as overlaps are; neither has happened on the test meshes.  Grown
+   charts by LSCM: a sphere's faces' angles kept to 1.11 times (4.6 laid across their normals), a torus's 1.09, the five
+   sphere isosurface's 1.10 (7.4), the hemisphere's 1.23 with its areas 0.51 to 2.04 of the density, as a conformal map's
+   are.  Conjugate gradients make about as many iterations as a chart has UVs (column scaling saved 13%, not kept), so
+   TestMeshUnwrap is too slow for the W65C816's 4G instructions (47.8G cycles) and isn't run there.  CountUVTrianglesTurned
+   and MeasureUVTriangleStretch measure a chart's own triangles.  A baked solid texture looks the same however it's
+   unwrapped (only its sharpness changes), so the textured scene doesn't show it; the measures do.
 7. Raster packing, if bounding boxes waste much space.
 8. ARAP, if texel density inside charts matters.
 9. The virtual texture (VirtualTexturePlan.txt): layouts placed at instances' addresses, pages baked on demand.

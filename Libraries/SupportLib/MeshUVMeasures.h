@@ -55,10 +55,14 @@ int		CountMeshUVsOutside(CMesh* pcMesh, int iLayer);
 //Pairs of faces whose UV triangles overlap: whose insides share some area, not just an edge or a corner.
 int		CountMeshUVOverlaps(CMesh* pcMesh, int iLayer);
 
-//The same of any triangles: iNumTriangles of them, their corners three at a time in paiCorners, indices into pasUVs.
-int		CountUVTriangleOverlaps(SFloat32Vec2* pasUVs, int* paiCorners, int iNumTriangles);
-
 void	MeasureMeshUVStretch(SMeshUVStretch* psDest, CMesh* pcMesh, int iLayer, float32 fLayoutWidth, float32 fLayoutHeight, float32 fTexelsPerUnit);
+
+
+//The same of any triangles (a chart's, as it's laid flat): iNumTriangles of them, their corners three at a time in paiCorners,
+//indices into pasUVs (in texels) and pasPositions (each UV's position).
+int		CountUVTrianglesTurned(SFloat32Vec2* pasUVs, int* paiCorners, int iNumTriangles);
+int		CountUVTriangleOverlaps(SFloat32Vec2* pasUVs, int* paiCorners, int iNumTriangles);
+void	MeasureUVTriangleStretch(SMeshUVStretch* psDest, SFloat32Vec2* pasUVs, SFloat32Vec3* pasPositions, int* paiCorners, int iNumTriangles, float32 fTexelsPerUnit);
 
 
 #endif // __MESH_UV_MEASURES_H__
