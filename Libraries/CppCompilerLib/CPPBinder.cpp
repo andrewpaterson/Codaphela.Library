@@ -838,6 +838,7 @@ void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
 	CCPPFunction*	pcIn;
 	CCPPClass*		pcClass;
 	CCPPClass*		pcEnumeratorClass;
+	CCPPClass*		pcMemberClass;
 
 	pcBound->meWhat = CPPBN_Nothing;
 	pcBound->mpcVariable = NULL;
@@ -852,8 +853,33 @@ void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
 		return;
 	}
 
+	//A static member is the variable of the class the name means: every instance of a class template has its own
+	//under the template's symbol.  SIZE::Max with SIZE bound to a class, STwice<7>::Value, and in a member function
+	//of an instance its own Max.
+	pcBound->mpcVariable = NULL;
+	if (!pcSymbol || (pcSymbol->meKind == CPPSK_Field))
+	{
+		pcMemberClass = NULL;
+		if (pcId->mpcName->macpComponents.NumElements() > 1)
+		{
+			mpcUnit->QualifiedMember(pcId->mpcName, CPPSK_Field, pcId, &pcMemberClass);
+		}
+		else if (pcSymbol)
+		{
+			pcIn = mpcUnit->GetContext()->GetFunction();
+			pcMemberClass = (pcIn && pcIn->mpcClass && pcIn->mpcClass->mpcTemplate) ? pcIn->mpcClass : NULL;
+		}
+		if (pcMemberClass)
+		{
+			pcBound->mpcVariable = mpcUnit->FindStatic(pcMemberClass, mpcUnit->GetComponentName(pcId->mpcName->GetLast()));
+		}
+	}
+
 	//A local, a parameter, a global or a static member.
-	pcBound->mpcVariable = pcSymbol ? mpcUnit->GetVariable(pcSymbol) : NULL;
+	if (!pcBound->mpcVariable && pcSymbol)
+	{
+		pcBound->mpcVariable = mpcUnit->GetVariable(pcSymbol);
+	}
 	if (pcBound->mpcVariable)
 	{
 		pcBound->meWhat = CPPBN_Variable;

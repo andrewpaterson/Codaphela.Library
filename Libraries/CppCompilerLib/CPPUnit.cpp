@@ -1552,13 +1552,14 @@ bool CCPPUnit::GenerateQueued(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A function is called: it is generated later if it is defined but not generated
-// yet.
+// yet, and if another unit doesn't generate it (extern template,
+// IsInstantiatedElsewhere): its label is then an external.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::RequireFunction(CCPPFunction* pcFunction)
 {
 	pcFunction->mbCalled = true;
-	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit))
+	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit) && !IsInstantiatedElsewhere(pcFunction))
 	{
 		pcFunction->mbQueued = true;
 		mapcQueue.Add(pcFunction);

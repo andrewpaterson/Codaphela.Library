@@ -59,6 +59,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbCalled = false;
 	mpcTemplate = NULL;
 	mszArguments.Init();
+	mbExternInstance = false;
 	mpcNextOfName = NULL;
 }
 

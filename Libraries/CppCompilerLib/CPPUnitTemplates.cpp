@@ -48,13 +48,13 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 	bool							bExplicit;
 
 	pcDeclaration = pcTemplateDeclaration->mpcDeclaration;
-	if (pcTemplateDeclaration->mbInstantiation && !pcTemplateDeclaration->mbExtern && pcDeclaration)
-	{
-		return ExplicitInstantiation(pcDeclaration);
-	}
-	if (pcTemplateDeclaration->mbInstantiation || !pcDeclaration)
+	if (!pcDeclaration)
 	{
 		return true;
+	}
+	if (pcTemplateDeclaration->mbInstantiation)
+	{
+		return ExplicitInstantiation(pcDeclaration, pcTemplateDeclaration->mbExtern);
 	}
 	bExplicit = pcTemplateDeclaration->macpParameters.NumElements() == 0;
 
@@ -259,10 +259,14 @@ CCPPTemplate* CCPPUnit::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDecl
 //////////////////////////////////////////////////////////////////////////
 //
 // template class Name<Arguments>; generates every member function of the instance
-// that has a definition.
+// that has a definition, and template int Max<int>(int, int); (or Max(int, int))
+// the function template's instance.  extern template ... (bExtern) generates
+// neither: the unit uses the instance another unit's explicit instantiation
+// generates (IsInstantiatedElsewhere).  An explicit instantiation after an extern
+// one in the same unit generates the instance.  [temp.explicit]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
+bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 {
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPSyntaxTypeSpecifier*		pcType;
@@ -272,18 +276,34 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
 	size							i;
 
 	pcType = NULL;
+	pcSimple = NULL;
 	if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
 	{
 		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration;
 		pcType = pcSimple->mpcSpecifiers ? pcSimple->mpcSpecifiers->mpcType : NULL;
 	}
-	if (!pcType || ((pcType->GetKind() != CPPS_ElaboratedTypeSpecifier) && (pcType->GetKind() != CPPS_NamedTypeSpecifier)))
+	if (pcSimple && (pcSimple->macpDeclarators.NumElements() == 1))
 	{
-		return Error(pcDeclaration, "Only explicit instantiations of class templates are supported by the compiler yet");
+		return ExplicitFunctionInstantiation((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0), bExtern);
+	}
+	if (!pcType || (pcSimple->macpDeclarators.NumElements() != 0) || ((pcType->GetKind() != CPPS_ElaboratedTypeSpecifier) && (pcType->GetKind() != CPPS_NamedTypeSpecifier)))
+	{
+		return Error(pcDeclaration, "Only explicit instantiations of class templates and function templates are supported by the compiler yet");
 	}
 	pcName = (pcType->GetKind() == CPPS_ElaboratedTypeSpecifier) ? ((CCPPSyntaxElaboratedTypeSpecifier*)pcType)->mpcName : ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
 	pcClass = GetNameClass(pcName, pcDeclaration);
-	if (!pcClass || !CompleteClass(pcClass, pcDeclaration))
+	if (!pcClass)
+	{
+		return false;
+	}
+	if (bExtern)
+	{
+		//Its members are declared when it is completed, wherever that is.
+		pcClass->mbExternInstance = true;
+		return true;
+	}
+	pcClass->mbExternInstance = false;
+	if (!CompleteClass(pcClass, pcDeclaration))
 	{
 		return false;
 	}
@@ -296,6 +316,117 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// template int Max<int>(int a, int b); and template int Max(int, int); name the
+// instance of the function template Max whose arguments are the explicit ones
+// and those deduced from the parameters' types.  Generated unless bExtern.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern)
+{
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	CCPPTemplate*				pcTemplate;
+	CCPPTemplateArguments*		pcBindings;
+	CCPPFunction*				pcFunction;
+	SCPP65Type*					psType;
+	CArrayCPP65Types			apsParameters;
+	CCPPDeduction				cDeduction;
+	CChars						szArguments;
+	int64						lliName;
+	size						i;
+
+	pcName = pcInit->mpcDeclarator ? pcInit->mpcDeclarator->GetName() : NULL;
+	pcSuffix = pcInit->mpcDeclarator ? pcInit->mpcDeclarator->GetFunctionSuffix() : NULL;
+	if (!pcName || !pcSuffix || pcName->IsQualifiedByClass())
+	{
+		return Error(pcInit, "Only explicit instantiations of class templates and function templates are supported by the compiler yet");
+	}
+	pcComponent = pcName->GetLast();
+	pcTemplate = pcName->mpcSymbol ? GetTemplate(pcName->mpcSymbol) : NULL;
+	if (!pcTemplate || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
+	{
+		lliName = GetComponentName(pcComponent);
+		pcTemplate = (lliName != -1) ? GetTemplateByName(lliName, CPPS_FunctionDefinition, ComponentLookup(pcComponent)) : NULL;
+	}
+	if (!pcTemplate)
+	{
+		return Error(pcInit, "The explicit instantiation names no function template");
+	}
+
+	//The parameters' types are the deduced arguments' (as FindFunctionSpecialisation deduces them).
+	mcContext.EnterBindings(NULL);
+	apsParameters.Init();
+	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+		apsParameters.Add((psType && psType->IsReference()) ? psType->psBase : psType);
+	}
+	cDeduction.Init(this, pcTemplate);
+	cDeduction.Deduce(&apsParameters, NULL);
+	szArguments.Init();
+	pcBindings = BindArguments(pcTemplate->mpcDeclaration, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, cDeduction.GetTypes(), &szArguments, pcInit, cDeduction.GetValues());
+	cDeduction.Kill();
+	apsParameters.Kill();
+	mcContext.LeaveBindings();
+
+	pcFunction = pcBindings ? InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcInit) : NULL;
+	szArguments.Kill();
+	if (!pcFunction)
+	{
+		return false;
+	}
+	pcFunction->mbExternInstance = bExtern;
+	if (!bExtern)
+	{
+		RequireFunction(pcFunction);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function is generated by the unit with its explicit instantiation, not by
+// this one: an instance extern template names (of a function template, or a member
+// of a class template defined outside the class) that isn't inline, constexpr or
+// written by the compiler.  [temp.explicit] 10: those still are generated where
+// used.  The index's and the IDE's checks check it as ever.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsInstantiatedElsewhere(CCPPFunction* pcFunction)
+{
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxName*					pcName;
+
+	pcDefinition = pcFunction->mpcDefinition;
+	if (mpcSemanticPass || !pcDefinition || pcFunction->mbImplicit)
+	{
+		return false;
+	}
+	if (pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)))
+	{
+		return false;
+	}
+	if (pcFunction->mbExternInstance)
+	{
+		return true;
+	}
+
+	//A member template's instance isn't the class's to instantiate.  A member defined in the class is inline.
+	if (!pcFunction->mpcClass || !pcFunction->mpcClass->mbExternInstance || pcFunction->mpcTemplate)
+	{
+		return false;
+	}
+	pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
+	return pcName && pcName->IsQualifiedByClass();
 }
 
 

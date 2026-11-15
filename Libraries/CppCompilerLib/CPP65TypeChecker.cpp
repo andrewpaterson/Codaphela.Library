@@ -433,7 +433,8 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 //
 // A name: the enclosing function's name (__func__ ...), an enumerator, a non-type
 // template parameter (its argument, at the parameter's type), a function or a
-// function template (their address), or else a variable or a field.
+// function template (their address), a static const member initialised in its
+// class (its value), or else a variable or a field.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
@@ -441,6 +442,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	CCPPBoundName			cBound;
 	CCPPSyntaxParameter*	pcParameter;
 	SCPP65Type*				psType;
+	int64					lliValue;
 
 	mpcUnit->GetBinder()->BindName(pcId, &cBound);
 	switch (cBound.meWhat)
@@ -464,6 +466,13 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return FunctionAddress(pcId, cBound.mpcSymbol->mlliName, NULL);
 	case CPPBN_FunctionTemplate:
 		return FunctionTemplateAddress(pcId);
+	case CPPBN_Variable:
+		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
+		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && mpcUnit->Constant(pcId, &lliValue))
+		{
+			return Load(cBound.mpcVariable->mpsType, pcId);
+		}
+		return Load(Place(pcId), pcId);
 	default:
 		return Load(Place(pcId), pcId);
 	}

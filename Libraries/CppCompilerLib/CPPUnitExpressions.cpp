@@ -758,6 +758,7 @@ bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	SCPPBinding*					psBinding;
 	CCPPClass*					pcClass;
 	CCPPSymbol*						pcEnumerator;
+	CCPPSymbol*						pcMember;
 	bool							bResult;
 	int64							lliLeft;
 	int64							lliRight;
@@ -820,6 +821,22 @@ bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 				return bResult;
 			}
 		}
+
+		//A static const member: SNarrow::Max, SIZE::Max with SIZE bound to a class, or Max in its class.  Its
+		//initialiser is worked out with the bindings of the class that declares it.
+		pcClass = NULL;
+		if (!pcSymbol || (pcSymbol->meKind == CPPSK_Field))
+		{
+			pcMember = QualifiedMember(pcId->mpcName, CPPSK_Field, pcExpression, &pcClass);
+			if (pcMember)
+			{
+				pcSymbol = pcMember;
+			}
+			else
+			{
+				pcClass = NULL;
+			}
+		}
 		if (!pcSymbol)
 		{
 			return false;
@@ -839,21 +856,32 @@ bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 			return true;
 		}
 
-		//A const integer initialised with a constant.
+		//A const integer initialised with a constant, or a static const member initialised in its class.
 		pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
-		if ((pcSymbol->meKind != CPPSK_Variable) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator) || !pcInit->mpcInitializer)
+		if (((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Field)) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator) || !pcInit->mpcInitializer)
 		{
 			return false;
 		}
 		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
-		if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
+		if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
 		{
 			return false;
 		}
-		pcVariable = GetVariable(pcSymbol);
+		if ((pcSymbol->meKind == CPPSK_Field) && !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_STATIC))
+		{
+			return false;
+		}
+		pcVariable = (pcSymbol->meKind == CPPSK_Variable) ? GetVariable(pcSymbol) : NULL;
 		if (pcVariable && !pcVariable->mpsType->IsInteger())
 		{
 			return false;
+		}
+		if (pcClass)
+		{
+			mcContext.EnterBindings(pcClass->mpcBindings);
+			bResult = Constant(pcInit->mpcInitializer, plliValue);
+			mcContext.LeaveBindings();
+			return bResult;
 		}
 		return Constant(pcInit->mpcInitializer, plliValue);
 

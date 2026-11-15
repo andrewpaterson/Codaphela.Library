@@ -93,6 +93,7 @@ public:
 	bool							mbCalled;
 	CCPPTemplate*					mpcTemplate;	//The function template this is an instance of.
 	CChars							mszArguments;	//The instance's template arguments, mangled for its label.
+	bool							mbExternInstance;	//A function template's instance extern template names: another unit's.
 	CCPPFunction*					mpcNextOfName;	//The next function added with the same mlliName (see CCPPUnit::FirstFunctionOfName).
 
 	void	Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);

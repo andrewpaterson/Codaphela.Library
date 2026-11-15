@@ -50,6 +50,9 @@ int32		TestCPP65RunProject(const char** aszUnits, const char* szStubs, size uiMa
 int32		TestCPP65RunProjectLockstep(const char** aszUnits, const char* szStubs, size uiMaxInstructions, size* puiInstructions);
 int32		TestCPP65RunProjectLazy(const char** aszUnits, const char* szStubs, size* puiUnits, size* puiLoads, const char* szSource = NULL);
 int32		TestCPP65MainFloat(const char* szSource);
+
+
+extern const char* gszTestCPP65StaticConstMembers;
 size		TestCPP65CompileLibrary(const char* szLibrary, CChars* pszErrors);
 size		TestCPP816RunChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps);
 size		TestCPP816RunLockstepChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps);

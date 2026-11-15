@@ -112,6 +112,8 @@ public:
 	CCPPTemplate*				mpcTemplate;		//The class template this is an instance of.
 	CCPPTemplateArguments*		mpcBindings;
 	CChars						mszArguments;		//The instance's template arguments, mangled for its label.
+	bool						mbExternInstance;	//extern template class Name<Arguments>; names it: its members defined outside it
+													//that aren't inline are another unit's (CCPPUnit::IsInstantiatedElsewhere).
 	bool						mbPlaceholder;		//It stands for a template's type parameter, whose symbol is its: a class with
 													//nothing in it, written as the parameter's name (CCPPUnit::PlaceholderClass).
 

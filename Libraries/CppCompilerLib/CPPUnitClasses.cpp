@@ -984,6 +984,26 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A const integer static data member initialised in its class (static const int
+// Max = 100;): where its value is used it is a constant, and needs no definition.
+// Its address, or a reference to it, needs one.  [class.static.data] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsConstantMember(CCPPVariable* pcVariable)
+{
+	SCPP65Type*	psType;
+
+	if (!pcVariable || !pcVariable->mpcClass || !pcVariable->mpcInClassInitialiser)
+	{
+		return false;
+	}
+	psType = pcVariable->mpsType;
+	return psType && psType->bConst && psType->IsInteger();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A static data member of the class or of its bases.
 //
 //////////////////////////////////////////////////////////////////////////

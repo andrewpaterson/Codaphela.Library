@@ -134,6 +134,13 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcExpression, psValue);
 		case CPPBN_Constant:
 			return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
+		case CPPBN_Variable:
+			//A static const member initialised in its class is its value (CCPP65TypeChecker::IdExpression).
+			if (mpcUnit->IsConstantMember(cBound.mpcVariable) && ConstantValue(pcExpression, psValue))
+			{
+				return true;
+			}
+			break;
 		default:
 			//A variable or a field: a place, which is loaded.
 			break;

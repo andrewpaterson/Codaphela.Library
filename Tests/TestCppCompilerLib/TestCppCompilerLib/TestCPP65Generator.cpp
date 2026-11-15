@@ -1482,6 +1482,155 @@ void TestCPP65GeneratorProject(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The labels szSource (a unit, not a program) uses and doesn't define, sorted and
+// space separated.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65GeneratedExternals(CChars* pszDest, const char* szSource)
+{
+	CChars		szAssembly;
+	CChars		szErrors;
+	CArrayChars	aszExternals;
+	size		i;
+
+	szAssembly.Init();
+	szErrors.Init();
+	aszExternals.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource, false, &aszExternals));
+	AssertString("", szErrors.Text());
+	aszExternals.QuickSort(true);
+	pszDest->Init();
+	for (i = 0; i < aszExternals.NumElements(); i++)
+	{
+		if (i != 0)
+		{
+			pszDest->Append(' ');
+		}
+		pszDest->Append(aszExternals.Get(i));
+	}
+	aszExternals.Kill();
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// extern template class SBox<int>; and extern template int Twice<int>(int);: the
+// unit doesn't generate the instances' functions, it uses another unit's.  What is
+// inline (defined in the class, or declared inline) and what the compiler writes
+// is still generated.  template class SBox<int>; generates them, also after an
+// extern one.  [temp.explicit]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorExternTemplates(void)
+{
+	static const char*	szTemplates = "\
+template<class M> struct SBox { M m; M Get(void); void Set(M x) { m = x; } virtual int Kind(void); };\n\
+template<class M> M SBox<M>::Get(void) { return m; }\n\
+template<class M> int SBox<M>::Kind(void) { return 1; }\n\
+template<class M> inline M Half(M m) { return m / 2; }\n\
+template<class T> T Twice(T t) { return t + t; }\n\
+template<class T> inline T Thrice(T t) { return t + t + t; }\n\
+template<class T> constexpr T Square(T t) { return t * t; }\n\
+int Use(void) { SBox<int> s; s.Set(3); return s.Get() + s.Kind() + Twice(4) + Thrice(5) + Square(6) + Twice((short)1) + Half(8); }\n";
+	CChars				szSource;
+	CChars				szExternals;
+
+	//Get and Kind (the vtable SBox's constructor writes names it) and Twice<int> are Instances.cpp's.
+	szSource.Init(szTemplates);
+	szSource.Insert(szSource.Find("int Use"), "extern template struct SBox<int>;\nextern template int Twice<int>(int);\nextern template int Thrice<int>(int);\nextern template int Square(int);\n");
+	TestCPP65GeneratedExternals(&szExternals, szSource.Text());
+	AssertString("_SBox__T_i__Get _SBox__T_i__Kind _Twice__T_i__Fi", szExternals.Text());
+	szExternals.Kill();
+	szSource.Kill();
+
+	//Nothing extern: every instance is the unit's.
+	TestCPP65GeneratedExternals(&szExternals, szTemplates);
+	AssertString("", szExternals.Text());
+	szExternals.Kill();
+
+	//The explicit instantiations after the extern ones generate them.
+	szSource.Init(szTemplates);
+	szSource.Insert(szSource.Find("int Use"), "extern template class SBox<int>;\nextern template int Twice(int);\n");
+	szSource.Append("template class SBox<int>;\ntemplate int Twice<int>(int);\n");
+	TestCPP65GeneratedExternals(&szExternals, szSource.Text());
+	AssertString("", szExternals.Text());
+	szExternals.Kill();
+	szSource.Kill();
+
+	//An explicit instantiation alone generates every function of the instance, called or not.
+	TestCPP65GeneratedExternals(&szExternals, "template<class M> struct SBox { M m; M Get(void); void Set(M x) { m = x; } };\ntemplate<class M> M SBox<M>::Get(void) { return m; }\ntemplate<class T> T Twice(T t) { return t + t; }\ntemplate struct SBox<char>;\ntemplate long Twice(long);\n");
+	AssertString("", szExternals.Text());
+	szExternals.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A static const member initialised in its class is a constant: an array size, a
+// template argument, a case label, a static local's initialiser, a condition;
+// named by its class (SNarrow::Max), by a template parameter bound to its class
+// (SIZE::Max) and in its class (Half, which depends on SIZE).  Each instance has
+// its own (STwice<7> and STwice<8>, SArray<SNarrow> and SArray<SWide>).  10 + 17 +
+// 1 + 2 + 14 + 16 + 100 + 50 + 50 + 500.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* gszTestCPP65StaticConstMembers = "\
+struct SNarrow { static const int Max = 100; static const bool Check = true; };\n\
+struct SWide { static const int Max = 1000; static const bool Check = false; };\n\
+template<int N> struct SBuffer { char ac[N]; };\n\
+template<int N> struct STwice { static const int Value = N * 2; };\n\
+char gac[SNarrow::Max / 10];\n\
+template<class SIZE> struct SArray { char ac[SIZE::Max / 10]; SBuffer<SIZE::Max / 50> s; static const int Half = SIZE::Max / 2; char ah[Half / 10]; int HalfOf(void) { return Half; } };\n\
+template<class SIZE> int Kind(void) { switch (SIZE::Max) { case SNarrow::Max: return 1; } return 0; }\n\
+template<class SIZE> int Checked(void) { if (SIZE::Check) { return 2; } return 3; }\n\
+int main(void) { SArray<SNarrow> s; SArray<SWide> sw; static int si = SNarrow::Max; return (int)sizeof(gac) + (int)sizeof(s) + Kind<SNarrow>() + Checked<SNarrow>() + STwice<7>::Value + STwice<8>::Value + si + SArray<SNarrow>::Half + s.HalfOf() + sw.HalfOf(); }\n";
+
+
+void TestCPP65GeneratorStaticConstMembers(void)
+{
+	AssertInt(760, TestCPP65Main(gszTestCPP65StaticConstMembers));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A size policy of BaseLib's ArrayTemplatesPlan.txt shape in a project: Counter.h
+// declares its instances extern, Instances.cpp instantiates them and Main.cpp uses
+// them.  Main.cpp writes none of the instances' functions that aren't inline.  Its
+// static const members are constants: array sizes, template arguments, case labels
+// and a static local's initialiser.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorExternTemplateProject(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/ExternTemplateProject/Main.cpp", "Input/CPP65/ExternTemplateProject/Instances.cpp", NULL };
+	STestCPP65Run		sRun;
+	CChars				szMap;
+	bool				bBuilt;
+
+	szMap.Init();
+	bBuilt = TestCPP65BeginProject(&sRun, aszUnits, "", NULL, &szMap);
+	AssertTrue(bBuilt);
+	if (bBuilt)
+	{
+		AssertTrue(TestCPP65Run(&sRun, 1000000) < 1000000);
+		AssertIntHex(CPP65_STACK_TOP, TestCPP65MPU(&sRun)->GetS());
+		AssertInt(3377, (int32)TestCPP65MPU(&sRun)->GetA());
+		TestCPP65End(&sRun);
+	}
+
+	//No copy of an instance's function is dropped: Main.cpp didn't write one.  Its inline Init is Main.cpp's.
+	AssertFalse(szMap.Contains("__Add comdat"));
+	AssertFalse(szMap.Contains("__Tally comdat"));
+	AssertFalse(szMap.Contains("_Twice__T_i__Fi comdat"));
+	szMap.Kill();
+}
+
+
 //The expected values below are worked out by C++ on the host and must follow IEEE 754.
 //Under /fp:fast NaN comparisons (and x != x) are wrong, so the host maths is precise here.
 #ifdef _MSC_VER
@@ -3587,6 +3736,9 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorStandardLibConstructs();
 	TestCPP65GeneratorArrayTemplate();
 	TestCPP65GeneratorProject();
+	TestCPP65GeneratorExternTemplates();
+	TestCPP65GeneratorStaticConstMembers();
+	TestCPP65GeneratorExternTemplateProject();
 	TestCPP65GeneratorFloat();
 	TestCPP65GeneratorBaseLib();
 	TestCPP65GeneratorAllBaseLib();

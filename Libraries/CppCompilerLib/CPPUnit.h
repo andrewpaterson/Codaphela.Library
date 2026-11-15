@@ -357,7 +357,9 @@ public:
 	int						AlignasAlignment(CArraySyntax* papcSpecifiers);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
-	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration);
+	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern);
+	bool					ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern);
+	bool					IsInstantiatedElsewhere(CCPPFunction* pcFunction);
 	CCPPTemplate*			GetTemplate(CCPPSymbol* pcSymbol);
 	CCPPTemplate*			GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup);
 	CCPPTemplate*			GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent);
@@ -402,6 +404,7 @@ public:
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
 	void					AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
+	bool					IsConstantMember(CCPPVariable* pcVariable);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
 	void					InheritConstructors(CCPPClass* pcClass);
 	bool					IsConstObject(CCPPSyntax* pcExpression);

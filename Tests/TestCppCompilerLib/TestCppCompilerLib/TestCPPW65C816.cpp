@@ -3029,6 +3029,58 @@ void TestCPP816DynamicCastUnits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// TestCPP65GeneratorStaticConstMembers on the W65C816.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816StaticConstMembers(void)
+{
+	AssertInt(760, TestCPP816Run(gszTestCPP65StaticConstMembers));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TestCPP65GeneratorExternTemplateProject on the W65C816, where int is 16 bits.
+// Then Instances.cpp is a library unit, as BaseLib's units are: it is linked only
+// because Main.cpp uses the instances it generates, which no other unit has.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ExternTemplateProject(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/ExternTemplateProject/Main.cpp", "Input/CPP65/ExternTemplateProject/Instances.cpp", NULL };
+	CCPP65Builder		cBuilder;
+	CFileUtil			cFileUtil;
+	CChars				szDirectory;
+	CChars				szMissing;
+	CChars				szMap;
+
+	AssertInt(3377, TestCPP816RunProject(aszUnits, "", NULL));
+
+	cBuilder.Init();
+	cBuilder.SetTarget(CPPT_W65C816);
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	AssertTrue(cBuilder.AddStartUp());
+	szDirectory.Init("Input" _FS_ "CPP65" _FS_ "ExternTemplateProject");
+	cFileUtil.FullPath(&szDirectory);
+	cBuilder.AddUnit("ExternTemplateProject", szDirectory.Text(), "Main.cpp");
+	cBuilder.AddUnit("ExternTemplateProject", szDirectory.Text(), "Instances.cpp", true);
+	szDirectory.Kill();
+	AssertTrue(cBuilder.Link());
+	AssertString("", cBuilder.GetErrors());
+	szMissing.Init();
+	cBuilder.GetMissingNames(&szMissing);
+	AssertString("", szMissing.Text());
+	szMissing.Kill();
+	szMap.Init(cBuilder.GetMap());
+	AssertTrue(szMap.Contains("Instances.cpp"));
+	AssertFalse(szMap.Contains("__Add comdat"));
+	szMap.Kill();
+	cBuilder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A member template overloaded with a plain member of the same name and
 // parameters (CObjects::Get<M>(const char*) and Get(const char*)) calls the
 // plain member from inside the template: a template's arguments that can't be
@@ -6207,6 +6259,8 @@ void TestCPP816(void)
 	TestCPP816DestructorCalls();
 	TestCPP816DynamicCast();
 	TestCPP816DynamicCastUnits();
+	TestCPP816StaticConstMembers();
+	TestCPP816ExternTemplateProject();
 	TestCPP816OverloadedFunctionPointers();
 	TestCPP816MemberTemplateCallsPlainOverload();
 	TestCPP816VariadicObjectParameters();
