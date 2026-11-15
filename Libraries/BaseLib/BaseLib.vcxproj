@@ -653,6 +653,7 @@
     <ClInclude Include="XMLString.h" />
     <ClInclude Include="XMLWhitespace.h" />
     <ClInclude Include="Float32Symmetric3x3.h" />
+    <ClInclude Include="Float64SparseMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
@@ -1059,6 +1060,7 @@
     <ClCompile Include="XMLString.cpp" />
     <ClCompile Include="XMLWhitespace.cpp" />
     <ClCompile Include="Float32Symmetric3x3.cpp" />
+    <ClCompile Include="Float64SparseMatrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BaseLib.ruleset" />

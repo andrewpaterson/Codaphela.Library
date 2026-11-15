@@ -1788,6 +1788,9 @@
     <ClInclude Include="Float32Symmetric3x3.h">
       <Filter>Source\Memory\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Float64SparseMatrix.h">
+      <Filter>Source\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -3001,6 +3004,9 @@
     </ClCompile>
     <ClCompile Include="Float32Symmetric3x3.cpp">
       <Filter>Source\Memory\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Float64SparseMatrix.cpp">
+      <Filter>Source\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -32,5 +32,8 @@ public:
 };
 
 
+typedef CArrayLargeTemplatePrimitive<float64>	CArrayLargeFloat64;  //Can pass 64KB with a 16 bit size (a solver's vectors).
+
+
 #endif // __ARRAY_FLOAT64_H__
 

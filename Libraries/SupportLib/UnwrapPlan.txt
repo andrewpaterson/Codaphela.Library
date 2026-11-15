@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Steps 1 to 4 are built (see Steps).  What is decided and what is only proposed is said at each point.
+Steps 1 to 5 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -156,6 +156,12 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
    1.37); a torus 23; an isosurface of five spheres clean in both kinds.  Turning box charts moved the textured scene's
    texels, so its expected frame is the new one.
 5. BaseLib's sparse matrix and conjugate gradients.  Tests: against small systems solved directly.
+   Done: CFloat64SparseMatrix (entries as row, column and value in any order, two at one place adding; A x and A' x),
+   Float64SparseSolve (conjugate gradients, A symmetric positive definite) and Float64SparseLeastSquares (CGLS: the normal
+   equations without making A'A, so LSCM's matrix is built as it is, a row for each triangle's two equations).  Both stop at a
+   residual relative to x = 0's, return their iterations or -1.  TestFloat64SparseMatrix: multiplies against a dense matrix,
+   a 3 by 3 system in three iterations, a 100 long one, a line fitted to five points (two iterations), 300 equations in 60
+   unknowns, and a matrix that isn't positive definite failing.
 6. LSCM.  Tests: a flat chart's UVs its shape exactly (no stretch), a hemisphere's angles kept, folded charts split; the checker's
    squares stay square on the sphere and isosurface.
 7. Raster packing, if bounding boxes waste much space.
