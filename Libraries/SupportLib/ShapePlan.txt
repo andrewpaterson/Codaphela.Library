@@ -55,6 +55,17 @@ every face, and a flat set.
 Bounding fits (a minimal sphere, an oriented box fitted to the hull) are written when collision or culling needs them.
 
 
+3. Meshes (SupportLib)
+---------------------
+CMesh and its details are the data, and CMeshEditor and its modifiers make and change meshes, as they do now.  The procedural
+mesh shapes (CMeshBoxEditor, CMeshSphereEditor and the others) stay mesh editors and aren't CShapes: each primitive CShape pairs
+with one (section 4), and meshes and shapes meet only through the bridges (section 5).
+
+The one change is a name, so a shape is only ever a CShape: MeshPolygonShape.h (cutting a polygon into faces for the OBJ and
+scene readers, and walking round them for the writers) becomes MeshPolygonCut.h.  VectorShapes and GeometryMap are 2D outlines
+for the vector rasteriser and stay as they are.
+
+
 4. Shapes
 ---------
   class CShape : public CObject
@@ -106,12 +117,6 @@ its hull and bounds if wanted, in its own arrays, again when the mesh's change c
 The old CMeshShape, which added its spheres' centres and its box's axes to the mesh's own positions and normals, goes.
 
 
-Renames
--------
-MeshPolygonShape.h (cutting a polygon into faces for the OBJ and scene readers, and walking round them for the writers) becomes
-MeshPolygonCut.h.  VectorShapes and GeometryMap are 2D outlines for the vector rasteriser and stay as they are.
-
-
 Steps
 -----
 Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pass after it.
@@ -138,7 +143,10 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
 
 Found while reading the 2009 classes
 ------------------------------------
-For the record, as the classes go rather than being fixed.  The new code is tested against each.
+For the record, as the classes went rather than being fixed.  Step 1's TestFloat32 tests check the triangle's corner, the
+sphere holding a triangle, and the box around points reading past the last and setting no centre.  CQuickHull's tests (step 3)
+are to check what the hull generator got wrong.  The rest (the box's best fit, the leaves, the mesh's hull and bounding box) have
+no new code yet; whatever replaces them (the bounding fits, CMeshShape) is to be tested against them when it's written.
   CTriangle::Set from nine numbers took the first corner's z for the second's.
   CSphere::Contains(CTriangle*) compared squared distances with the square root of the radius.
   CBox::SetFromPointsAxisAligned read the point after the last on every pass; neither box fit set the centre; the best fit took
