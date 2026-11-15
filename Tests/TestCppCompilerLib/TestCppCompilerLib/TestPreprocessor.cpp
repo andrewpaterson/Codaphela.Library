@@ -1769,6 +1769,12 @@ void TestPreprocessorErrors(void)
 	AssertString("Errors.cpp (3, 6): #elif or #else after #else.\n", szErrors.Text());
 	szErrors.Kill();
 
+	//A user-defined literal isn't a number a condition can have.
+	szErrors.Init();
+	PreprocessErrors("#if 10_km\n#endif\n", &szErrors);
+	AssertString("Errors.cpp (1, 4): Cannot evaluate \"10_km\".  User-defined literal in a preprocessor expression at column 6.\n", szErrors.Text());
+	szErrors.Kill();
+
 	//A function-like macro's parameters are identifiers separated by commas, "..." last.
 	szErrors.Init();
 	AssertTrue(PreprocessErrors("#define F(a, b, ...) a\n#define G() 1\n#define H(a...) a\n", &szErrors));

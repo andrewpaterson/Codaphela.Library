@@ -65,15 +65,17 @@ public:
 
 protected:
 	void				Clear(void);
-	bool				Token(SPreprocessedToken* psToken, int iSource);
-	bool				Identifier(SPreprocessedToken* psToken, int iSource);
-	bool				Punctuator(SPreprocessedToken* psToken, int iSource);
-	bool				Number(SPreprocessedToken* psToken, int iSource);
-	bool				Integer(int iSource, SIntegerLiteral* psLiteral);
-	bool				Floating(SPreprocessedToken* psToken, int iSource, char* szNumber);
-	bool				Character(SPreprocessedToken* psToken, int iSource);
-	bool				String(SPreprocessedToken* psToken, int iSource);
-	void				AddToken(CCPPToken* pcToken, int iSource);
+	bool				Token(SPreprocessedToken* psToken);
+	bool				Identifier(SPreprocessedToken* psToken);
+	bool				Punctuator(SPreprocessedToken* psToken);
+	bool				Literal(SPreprocessedToken* psToken);
+	CCPPToken*			Number(SPreprocessedToken* psToken, size* puiLength);
+	CCPPToken*			Integer(SNumberLiteral* psLiteral);
+	CCPPToken*			Floating(SPreprocessedToken* psToken, SNumberLiteral* psLiteral);
+	CCPPToken*			Character(SPreprocessedToken* psToken, size uiLength);
+	CCPPToken*			String(SPreprocessedToken* psToken, size uiLength);
+	void				AddToken(CCPPToken* pcToken);
+	int64				GetIdentifierID(const char* szName, size uiLength);
 	bool				Error(SPreprocessedToken* psToken, const char* szError);
 	bool				LiteralError(SPreprocessedToken* psToken, const char* szError);
 };

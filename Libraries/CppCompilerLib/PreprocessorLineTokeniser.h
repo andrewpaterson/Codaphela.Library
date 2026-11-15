@@ -55,13 +55,12 @@ public:
 	void		Kill(void);
 	void		Preprocess(void);
 	bool		PossibleComment(void);
+	void		Quote(char** pszStart, bool bInOther);
 	bool		IsDigitSeparator(void);
 	bool		IsPPNumberContinuation(void);
 	bool		IsPPNumberStart(void);
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
-	void		AddDoubleQuotedToken(void);
-	void		AddSingleQuotedToken(void);
 	void		NullAll(void);
 	void		MarkStart(void);
 	void		ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd);

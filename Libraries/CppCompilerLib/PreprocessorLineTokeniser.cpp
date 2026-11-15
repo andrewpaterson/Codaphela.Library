@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "PPWhiteSpace.h"
 #include "PPHashes.h"
 #include "CPPNameCharacters.h"
+#include "LiteralHelper.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -77,23 +78,9 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 	{
 		if (mpcParser->IsNewLine())
 		{
-			if (mszSingleQuoteStart)
-			{
-				//Newline in constant... not allowed.
-				AddSingleQuotedToken();
-				NullAll();
-			}
-			else if (mszDoubleQuoteStart)
-			{
-				//Newline in constant... not allowed.
-				AddDoubleQuotedToken();
-				NullAll();
-			}
-			else
-			{
-				AddRelevantToken();
-				NullAll();
-			}
+			//A string or character that hasn't ended is ended by the line: the C++ tokeniser reports it.
+			AddRelevantToken();
+			NullAll();
 			mpcParser->SkipNewLine();
 			break;
 		}
@@ -124,27 +111,7 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 		}
 		else if ((*mpcParser->GetPos()) == '"')
 		{
-			if (!mszSingleQuoteStart)
-			{
-				if (!mszDoubleQuoteStart)
-				{
-					AddRelevantToken();
-					NullAll();
-					mszDoubleQuoteStart = mpcParser->GetPos();
-					MarkStart();
-					mpcParser->StepRight();
-				}
-				else
-				{
-					mpcParser->StepRight();
-					AddDoubleQuotedToken();
-					NullAll();
-				}
-			}
-			else
-			{
-				mpcParser->StepRight();
-			}
+			Quote(&mszDoubleQuoteStart, mszSingleQuoteStart != NULL);
 		}
 		else if (((*mpcParser->GetPos()) == '\'') && IsDigitSeparator())
 		{
@@ -153,27 +120,7 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 		}
 		else if ((*mpcParser->GetPos()) == '\'')
 		{
-			if (!mszDoubleQuoteStart)
-			{
-				if (!mszSingleQuoteStart)
-				{
-					AddRelevantToken();
-					NullAll();
-					mszSingleQuoteStart = mpcParser->GetPos();
-					MarkStart();
-					mpcParser->StepRight();
-				}
-				else
-				{
-					mpcParser->StepRight();
-					AddSingleQuotedToken();
-					NullAll();
-				}
-			}
-			else
-			{
-				mpcParser->StepRight();
-			}
+			Quote(&mszSingleQuoteStart, mszDoubleQuoteStart != NULL);
 		}
 		else if (mpcParser->IsWhitespace())
 		{
@@ -267,6 +214,60 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 
 	//This handles the end of file without an newline case.
 	AddRelevantToken();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A quote: the start of a string or character literal, its end, or a
+// character of a literal of the other kind (bInOther).  *pszStart is where
+// a literal of the quote's kind started, NULL when not in one.
+//
+// The literal starts at its encoding prefix, as the L of L"x" and the u8
+// of u8'x', and ends after its user-defined suffix, as the _s of "x"_s:
+// they are part of its token.  [lex.ccon], [lex.string], [lex.ext]
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorLineTokeniser::Quote(char** pszStart, bool bInOther)
+{
+	bool	bString;
+	char*	szPrefix;
+
+	if (bInOther)
+	{
+		mpcParser->StepRight();
+		return;
+	}
+
+	bString = (*mpcParser->GetPos()) == '"';
+	if (!*pszStart)
+	{
+		szPrefix = mszIdentifierStart;
+		if (szPrefix && IsLiteralPrefix(szPrefix, mpcParser->GetPos() - szPrefix, bString))
+		{
+			//The identifier so far is the literal's start.
+			mszIdentifierStart = NULL;
+			*pszStart = szPrefix;
+		}
+		else
+		{
+			AddRelevantToken();
+			NullAll();
+			*pszStart = mpcParser->GetPos();
+			MarkStart();
+		}
+		mpcParser->StepRight();
+	}
+	else
+	{
+		mpcParser->StepRight();
+		while (!mpcParser->mbEndOfFile && IsCPPNameCharacter(*mpcParser->GetPos()))
+		{
+			mpcParser->StepRight();
+		}
+		AddText(bString ? PPT_DoubleQuoted : PPT_SingleQuoted, *pszStart, mpcParser->GetPos());
+		NullAll();
+	}
 }
 
 
@@ -451,6 +452,14 @@ void CPreprocessorLineTokeniser::AddRelevantToken(void)
 		//The length of a decorator must be 1!
 		AddText(PPT_Decorator, mszDecorationStart, mpcParser->GetPos());
 	}
+	else if (mszDoubleQuoteStart)
+	{
+		AddText(PPT_DoubleQuoted, mszDoubleQuoteStart, mpcParser->GetPos());
+	}
+	else if (mszSingleQuoteStart)
+	{
+		AddText(PPT_SingleQuoted, mszSingleQuoteStart, mpcParser->GetPos());
+	}
 	else if ((mszIdentifierStart) && (mszIdentifierStart <= mpcParser->GetEnd()))
 	{
 		AddText(PPT_Identifier, mszIdentifierStart, mpcParser->GetPos());
@@ -510,33 +519,6 @@ CPPText* CPreprocessorLineTokeniser::AddText(EPreprocessorText eType, char* szSt
 		mpcTokenHolder->Add(pcTextWithSource);
 		sz.Kill();
 		return pcTextWithSource;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokeniser::AddDoubleQuotedToken(void)
-{
-	//String literals keep their spelling.  Escape sequences are the compiler's business.
-	if (mszDoubleQuoteStart)
-	{
-		AddText(PPT_DoubleQuoted, mszDoubleQuoteStart, mpcParser->GetPos());
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokeniser::AddSingleQuotedToken(void)
-{
-	if (mszSingleQuoteStart)
-	{
-		AddText(PPT_SingleQuoted, mszSingleQuoteStart, mpcParser->GetPos());
 	}
 }
 

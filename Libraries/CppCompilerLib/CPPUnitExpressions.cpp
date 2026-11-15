@@ -42,6 +42,11 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 	CCPPToken*		pcToken;
 
 	pcToken = mpcTokeniser->Get(pcLiteral->miLiteral);
+	if (pcToken->IsUserLiteral())
+	{
+		Error(pcLiteral, "User-defined literals are not supported by the compiler yet");
+		return NULL;
+	}
 	if (pcToken->IsNumber())
 	{
 		switch (((CCTNumber*)pcToken)->meType)
@@ -880,6 +885,10 @@ bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			*plliValue = ((CCTBoolean*)pcToken)->mcBool ? 1 : 0;
 			return true;
+		}
+		if (pcToken->IsUserLiteral())
+		{
+			return false;
 		}
 		*plliValue = 0;
 		return true;
@@ -2196,6 +2205,10 @@ bool CCPPUnit::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 			continue;
 		}
 
+		if (pcToken->IsUserLiteral())
+		{
+			return Error(pcString, "User-defined literals are not supported by the compiler yet");
+		}
 		if (iElementBytes != 1)
 		{
 			return Error(pcString, "The function's name can't be part of a wide string literal");

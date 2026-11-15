@@ -524,6 +524,41 @@ void TestCPP65IRStringEscapes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// User-defined literals are parsed (adjacent strings with the same suffix
+// are one, with different ones an error) but nothing is generated for
+// them yet.  [lex.ext]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRUserLiterals(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "int gi = 10_km;"));
+	AssertString("Generated.cpp (1, 10): User-defined literals are not supported by the compiler yet [10_km]\n", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "const char* gsz = \"a\" \"b\"_s \"c\"_s;"));
+	AssertString("Generated.cpp (1, 19): User-defined literals are not supported by the compiler yet [\"a\"]\n", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "const char* gsz = \"a\"_s \"b\"_t;"));
+	AssertString("Generated.cpp (1, 25): Adjacent string literals have different user-defined suffixes. [\"b\"_t]\nGenerated.cpp (1, 19): User-defined literals are not supported by the compiler yet [\"a\"_s]\n", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // BaseLib's StringCompare.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2030,6 +2065,7 @@ void TestCPP65IR(void)
 	TestCPP65IRMemcpy();
 	TestCPP65IRUnsupportedReason();
 	TestCPP65IRStringEscapes();
+	TestCPP65IRUserLiterals();
 	TestCPP65IRStringCompare();
 	TestCPP65IRDevirtualise();
 	TestCPP65IRInlineConstants();

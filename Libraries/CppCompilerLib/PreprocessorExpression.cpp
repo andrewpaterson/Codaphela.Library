@@ -500,7 +500,8 @@ SPPValue CPreprocessorExpression::Primary(bool bEvaluate)
 SPPValue CPreprocessorExpression::Number(void)
 {
 	SPPValue			sValue;
-	SIntegerLiteral		sLiteral;
+	SNumberLiteral			sLiteral;
+	ENumberLiteralResult	eResult;
 	char*				szStart;
 	char				c;
 	bool				bHex;
@@ -525,20 +526,18 @@ SPPValue CPreprocessorExpression::Number(void)
 		}
 	}
 
-	switch (ParseIntegerLiteral(szStart, mszPos - szStart, &sLiteral))
+	eResult = ParseNumberLiteral(szStart, mszPos - szStart, &sLiteral);
+	if (NumberLiteralError(eResult))
 	{
-	case ILR_Integer:
-		break;
-	case ILR_Floating:
+		return Error(NumberLiteralError(eResult));
+	}
+	if (eResult == NLR_Floating)
+	{
 		return Error("Floating point in a preprocessor expression");
-	case ILR_InvalidDigit:
-		return Error("Invalid digit in integer");
-	case ILR_TooLarge:
-		return Error("Integer is too large");
-	case ILR_NoDigits:
-		return Error("Integer has no digits");
-	default:
-		return Error("Invalid integer suffix");
+	}
+	if (sLiteral.uiUserSuffix != 0)
+	{
+		return Error("User-defined literal in a preprocessor expression");
 	}
 
 	//A literal too large for intmax_t is uintmax_t.

@@ -879,6 +879,9 @@
     <ClCompile Include="CTString.cpp">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClCompile>
+    <ClCompile Include="CTUserLiteral.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
     <ClCompile Include="CTDouble.cpp">
       <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
     </ClCompile>
@@ -1644,6 +1647,9 @@
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="CTString.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTUserLiteral.h">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="CTDouble.h">

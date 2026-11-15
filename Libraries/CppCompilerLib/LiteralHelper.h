@@ -24,27 +24,42 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTString.h"
 
 
-//What ParseIntegerLiteral found.
-enum EIntegerLiteralResult
+//What ParseNumberLiteral found.
+enum ENumberLiteralResult
 {
-	ILR_Integer,
-	ILR_Floating,		//A floating literal: szNumber holds it without digit separators.
-	ILR_InvalidDigit,
-	ILR_TooLarge,
-	ILR_InvalidSuffix,
-	ILR_NoDigits,		//0x or 0b with no digits after it.
+	NLR_Integer,
+	NLR_Floating,
+	NLR_InvalidDigit,
+	NLR_TooLarge,
+	NLR_InvalidSuffix,
+	NLR_NoDigits,			//0x or 0b with no digits after it.
+	NLR_NoExponent,			//e or p with no digits after it, or a hexadecimal floating literal with no p.
+	NLR_InvalidSeparator,	//A ' that isn't between two digits.
 };
 
 
-//An integer literal's value and suffix.  [lex.icon]
-struct SIntegerLiteral
+//A floating literal's type, from its suffix.
+enum EFloatingLiteral
 {
-	char	szNumber[256];	//The literal without digit separators.
-	uint64	ulliValue;
-	int		iBase;
-	bool	bUnsigned;		//u or U.
-	int		iLongs;			//0, 1 (l) or 2 (ll).
-	bool	bInt64;			//Microsoft's i64.
+	FL_Double,
+	FL_Float,
+	FL_LongDouble,
+};
+
+
+//A number literal: its digits, what its suffix says, and an integer's value.  [lex.icon], [lex.fcon], [lex.ext]
+struct SNumberLiteral
+{
+	char				szNumber[256];	//The literal without digit separators or its suffix.
+	size				uiUserSuffix;	//The length of the user-defined suffix that ends the literal's text, 0 for none.
+
+	uint64				ulliValue;		//An integer's.
+	int					iBase;
+	bool				bUnsigned;		//u or U.
+	int					iLongs;			//0, 1 (l) or 2 (ll).
+	bool				bInt64;			//Microsoft's i64.
+
+	EFloatingLiteral	eFloating;		//A floating literal's.
 };
 
 
@@ -71,7 +86,11 @@ struct SCharacterLiteral
 };
 
 
-EIntegerLiteralResult	ParseIntegerLiteral(const char* szText, size uiLength, SIntegerLiteral* psLiteral);
+ENumberLiteralResult	ParseNumberLiteral(const char* szText, size uiLength, SNumberLiteral* psLiteral);
+const char*				NumberLiteralError(ENumberLiteralResult eResult);
+bool					IsLiteralPrefix(const char* sz, size uiLength, bool bString);
+ECTEncoding				LiteralEncoding(const char* szText);
+size					QuotedLiteralLength(const char* szText, size uiLength);
 ECharacterLiteralResult	ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral);
 const char*				CharacterLiteralError(ECharacterLiteralResult eResult);
 int64					CharacterLiteralValue(SCharacterLiteral* psLiteral);

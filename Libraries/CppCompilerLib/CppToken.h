@@ -41,6 +41,8 @@ public:
 	virtual bool	IsString(void);
 	virtual bool	IsChar(void);
 	virtual bool	IsBool(void);
+	virtual bool	IsUserLiteral(void);
+	virtual bool	IsUserString(void);	//A user-defined literal that is a string, as "text"_s.
 	virtual bool	Is(ECppTokens eToken);
 	virtual void	Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 			void	SetSource(int iSource);

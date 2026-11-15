@@ -15,6 +15,7 @@
 #include "CppCompilerLib/CTDouble.h"
 #include "CppCompilerLib/CTLongDouble.h"
 #include "CppCompilerLib/CTString.h"
+#include "CppCompilerLib/CTUserLiteral.h"
 #include "CppCompilerLib/CTBoolean.h"
 #include "TestLib/Assert.h"
 
@@ -437,14 +438,20 @@ static void AssertIntegerLiteral(const char* szText, const char* szError)
 //////////////////////////////////////////////////////////////////////////
 //
 // An integer literal's suffix is u and l or ll (either case, each once, in
-// either order), or Microsoft's i8, i16, i32 and i64 after an optional u.
-// 0x and 0b need a digit.  [lex.icon]
+// either order), or Microsoft's i8, i16, i32 and i64 after an optional u;
+// any other identifier is a user-defined suffix
+// (TestCppTokeniserUserLiterals), and anything else an error.  0x and 0b
+// need a digit, an exponent needs one, a hexadecimal floating literal
+// needs an exponent, and a digit separator is between two digits.
+// [lex.icon], [lex.fcon]
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserIntegerLiterals(void)
 {
 	static const char*	aszValid[] = { "1u", "1U", "1l", "1L", "1ul", "1lu", "1ull", "1llu", "1LL", "1uLL", "1LLU", "1i64", "1ui64", "1I32", "1i16", "1i8", "0x1F", "0b101", "0", "017", NULL };
-	static const char*	aszBadSuffix[] = { "1uu", "1lul", "1lL", "1Ll", "1lll", "1i64l", "1li64", "1i64u", "1ui", NULL };
+	static const char*	aszBadSuffix[] = { "1.2.3", "1..", "0x1p3.5", "1.5e3.f", NULL };
+	static const char*	aszBadSeparator[] = { "1'_0", "0x'FF", "1.'5", "1'u", NULL };
+	static const char*	aszNoExponent[] = { "1e", "1e+", "1.5E-", "0x1.8", "0x1p", "1e_x", NULL };
 	CChars				szLong;
 	size				i;
 
@@ -454,7 +461,15 @@ void TestCppTokeniserIntegerLiterals(void)
 	}
 	for (i = 0; aszBadSuffix[i]; i++)
 	{
-		AssertIntegerLiteral(aszBadSuffix[i], "Invalid integer literal suffix.");
+		AssertIntegerLiteral(aszBadSuffix[i], "Invalid number literal suffix.");
+	}
+	for (i = 0; aszBadSeparator[i]; i++)
+	{
+		AssertIntegerLiteral(aszBadSeparator[i], "A digit separator must be between two digits.");
+	}
+	for (i = 0; aszNoExponent[i]; i++)
+	{
+		AssertIntegerLiteral(aszNoExponent[i], "Floating literal has no exponent digits.");
 	}
 	AssertIntegerLiteral("0x", "Integer literal has no digits.");
 	AssertIntegerLiteral("0bu", "Integer literal has no digits.");
@@ -470,6 +485,105 @@ void TestCppTokeniserIntegerLiterals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The user-defined literal at token uiToken: its suffix, and the literal
+// it is without it.
+//
+//////////////////////////////////////////////////////////////////////////
+static CCPPToken* AssertUserLiteral(CCPPTokeniser* pcTokeniser, size uiToken, const char* szSuffix)
+{
+	CCTUserLiteral*		pcUserLiteral;
+
+	pcUserLiteral = (CCTUserLiteral*)pcTokeniser->Get(uiToken);
+	AssertTrue(pcUserLiteral->IsUserLiteral());
+	AssertFalse(pcUserLiteral->IsNumber() || pcUserLiteral->IsChar() || pcUserLiteral->IsString());
+	AssertString(szSuffix, pcTokeniser->GetIdentifier(pcUserLiteral->miSuffix));
+	return pcUserLiteral->mpcLiteral;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number, character or string followed by an identifier, with nothing
+// between them, is a user-defined literal: the literal as it is without
+// the suffix (an integer the widest, a floating literal a long double),
+// and the suffix.  Only an identifier that is one of the language's own
+// suffixes isn't.  [lex.ext]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserUserLiterals(void)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+	CCPPToken*			pcLiteral;
+	CChars				sz;
+
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "10_km 0x1F_h 1'000uu 1.5_m 1e3f_x 'a'_c u'\\u00E9'_c \"text\"_s u8\"w\\\"\"_w8 12q 1.5f 10u \"s\" _s"));
+	AssertSize(14, cTokeniser.NumTokens());
+
+	AssertLongLong(AssertUserLiteral(&cTokeniser, 0, "_km"), 10, false);
+	AssertLongLong(AssertUserLiteral(&cTokeniser, 1, "_h"), 0x1F, false);
+	AssertLongLong(AssertUserLiteral(&cTokeniser, 2, "uu"), 1000, false);
+	AssertLongDouble(1.5L, ((CCTLongDouble*)AssertUserLiteral(&cTokeniser, 3, "_m"))->mcValue, 3);
+	AssertLongDouble(1000.0L, ((CCTLongDouble*)AssertUserLiteral(&cTokeniser, 4, "f_x"))->mcValue, 3);
+	pcLiteral = AssertUserLiteral(&cTokeniser, 5, "_c");
+	AssertTrue(pcLiteral->IsChar());
+	AssertChar('a', ((CCTChar*)pcLiteral)->mcChar);
+	AssertInt(0xE9, ((CCTShort*)AssertUserLiteral(&cTokeniser, 6, "_c"))->mcValue);
+	AssertTrue(cTokeniser.Get(6)->IsUserLiteral() && !cTokeniser.Get(6)->IsUserString());
+
+	//The string is the literal without its suffix, to its closing quote.
+	pcLiteral = AssertUserLiteral(&cTokeniser, 7, "_s");
+	AssertTrue(pcLiteral->IsString() && cTokeniser.Get(7)->IsUserString());
+	AssertInt(CTE_Narrow, ((CCTString*)pcLiteral)->meEncoding);
+	AssertInt(6, (int)(((CCTString*)pcLiteral)->mszEnd - ((CCTString*)pcLiteral)->mszStart) + 1);
+	pcLiteral = AssertUserLiteral(&cTokeniser, 8, "_w8");
+	AssertInt(CTE_UTF8, ((CCTString*)pcLiteral)->meEncoding);
+	AssertInt(7, (int)(((CCTString*)pcLiteral)->mszEnd - ((CCTString*)pcLiteral)->mszStart) + 1);
+	AssertChar('"', *((CCTString*)pcLiteral)->mszEnd);
+
+	AssertLongLong(AssertUserLiteral(&cTokeniser, 9, "q"), 12, false);
+
+	//The language's suffixes, and an identifier after a space, are not.
+	AssertFalse(cTokeniser.Get(10)->IsUserLiteral());
+	AssertFloat(1.5f, ((CCTFloat*)cTokeniser.Get(10))->mcValue, 3);
+	AssertInteger(cTokeniser.Get(11), 10, false, false);
+	AssertTrue(cTokeniser.Get(12)->IsString());
+	AssertTrue(cTokeniser.Get(13)->IsIdentifier());
+
+	//Tokens print as they were spelled.
+	sz.Init();
+	cTokeniser.Print(&sz);
+	AssertString("10_km 0x1F_h 1'000uu 1.5_m 1e3f_x 'a'_c u'\\u00E9'_c \"text\"_s u8\"w\\\"\"_w8 12q 1.5f 10u \"s\" _s\n", sz.Text());
+	sz.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//As g++ has it, a macro touching the end of a string is the macro (so "%" PRId64 needs no space), unless its name
+	//starts with an underscore.  ## makes a suffix as writing it does.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "#define PRId64 \"lld\"\n#define _fmt 1\n#define PASTE(a, b) a##b\n\"%\"PRId64 \"%\"_fmt 'a'PRId64 PASTE(\"x\", _s) PASTE(1, _km) PASTE(L, \"wide\") PASTE(u8, 'c')"));
+	AssertSize(9, cTokeniser.NumTokens());
+	AssertTrue(cTokeniser.Get(0)->IsString());
+	AssertTrue(cTokeniser.Get(1)->IsString());
+	AssertTrue(AssertUserLiteral(&cTokeniser, 2, "_fmt")->IsString());
+	AssertTrue(cTokeniser.Get(3)->IsChar());
+	AssertTrue(cTokeniser.Get(4)->IsString());
+	AssertTrue(AssertUserLiteral(&cTokeniser, 5, "_s")->IsString());
+	AssertLongLong(AssertUserLiteral(&cTokeniser, 6, "_km"), 1, false);
+	AssertInt(CTE_Wide, ((CCTString*)cTokeniser.Get(7))->meEncoding);
+	AssertTrue(cTokeniser.Get(8)->IsChar());
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//A literal that doesn't end is an error, and takes no suffix.
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, "const char* s = \"abc;\nchar c = 'd;\n"));
+	AssertString("Tokens.cpp (1, 17): Unterminated string literal. [\"abc;]\nTokens.cpp (2, 10): Unterminated character literal. ['d;]\n", cTokeniser.GetErrors()->Text());
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserErrors(void)
@@ -478,9 +592,9 @@ void TestCppTokeniserErrors(void)
 	CCPPTokeniser		cTokeniser;
 
 	//Errors are kept in the tokeniser's list.  Their tokens are preprocessed token indices.
-	AssertFalse(TokeniseText(&cFile, &cTokeniser, "int x = 12q;"));
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, "int x = 1.q.;"));
 	AssertSize(1, cTokeniser.GetErrors()->NumErrors());
-	AssertString("Tokens.cpp (1, 9): Invalid integer literal suffix. [12q]\n", cTokeniser.GetErrors()->Text());
+	AssertString("Tokens.cpp (1, 9): Invalid number literal suffix. [1.q.]\n", cTokeniser.GetErrors()->Text());
 	AssertInt(3, cTokeniser.GetErrors()->GetToken(0));
 	AssertInt(0, cTokeniser.GetErrors()->GetLine(0));
 	AssertInt(8, cTokeniser.GetErrors()->GetColumn(0));
@@ -492,8 +606,8 @@ void TestCppTokeniserErrors(void)
 	cTokeniser.Kill();
 	cFile.Kill();
 
-	AssertFalse(TokeniseText(&cFile, &cTokeniser, "char c = '';\nint y = 1; int z = 2q;"));
-	AssertString("Tokens.cpp (1, 10): Empty character literal. ['']\nTokens.cpp (2, 20): Invalid integer literal suffix. [2q]\n", cTokeniser.GetErrors()->Text());
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, "char c = '';\nint y = 1; int z = 2..;"));
+	AssertString("Tokens.cpp (1, 10): Empty character literal. ['']\nTokens.cpp (2, 20): Invalid number literal suffix. [2..]\n", cTokeniser.GetErrors()->Text());
 	cTokeniser.Kill();
 	cFile.Kill();
 
@@ -586,6 +700,7 @@ void TestCppTokeniser(void)
 	TestCppTokeniserLocations();
 	TestCppTokeniserErrors();
 	TestCppTokeniserIntegerLiterals();
+	TestCppTokeniserUserLiterals();
 	TestCppTokeniserIdentifierIndex();
 
 	NumberKill();

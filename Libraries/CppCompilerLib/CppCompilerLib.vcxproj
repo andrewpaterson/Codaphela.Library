@@ -462,6 +462,7 @@
     <ClCompile Include="CTIdentifier.cpp" />
     <ClCompile Include="CTReservedWord.cpp" />
     <ClCompile Include="CTString.cpp" />
+    <ClCompile Include="CTUserLiteral.cpp" />
     <ClCompile Include="CTDouble.cpp" />
     <ClCompile Include="CTFloat.cpp" />
     <ClCompile Include="CTInt.cpp" />
@@ -723,6 +724,7 @@
     <ClInclude Include="CTIdentifier.h" />
     <ClInclude Include="CTReservedWord.h" />
     <ClInclude Include="CTString.h" />
+    <ClInclude Include="CTUserLiteral.h" />
     <ClInclude Include="CTDouble.h" />
     <ClInclude Include="CTFloat.h" />
     <ClInclude Include="CTInt.h" />

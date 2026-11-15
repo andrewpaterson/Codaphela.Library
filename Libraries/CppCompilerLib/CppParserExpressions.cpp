@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTIdentifier.h"
+#include "CTUserLiteral.h"
 #include "CppParser.h"
 
 
@@ -626,7 +627,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 		return ParseStringExpression(pcParent);
 	}
 
-	if (pcToken->IsNumber() || pcToken->IsChar() || pcToken->IsBool() || pcToken->Is(CT_nullptr))
+	if (pcToken->IsNumber() || pcToken->IsChar() || pcToken->IsBool() || pcToken->Is(CT_nullptr) || pcToken->IsUserLiteral())
 	{
 		pcLiteral = mpcMemory->Create<CCPPSyntaxLiteralExpression>(pcParent);
 		pcLiteral->miLiteral = CurrentToken();
@@ -772,6 +773,8 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 CCPPSyntaxExpression* CCPPParser::ParseStringExpression(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxStringExpression*	pcString;
+	CCPPToken*					pcToken;
+	int32						iSuffix;
 
 	//Adjacent string literals are one.  [lex.string] 13
 	pcString = mpcMemory->Create<CCPPSyntaxStringExpression>(pcParent);
@@ -781,8 +784,20 @@ CCPPSyntaxExpression* CCPPParser::ParseStringExpression(CCPPSyntax* pcParent)
 		Error("Expected a string.");
 		return NULL;
 	}
+
+	//Those with user-defined suffixes must all have the same one.  [lex.ext] 8
+	iSuffix = -1;
 	while (IsStringPart())
 	{
+		pcToken = Peek(0);
+		if (pcToken->IsUserString())
+		{
+			if ((iSuffix != -1) && (iSuffix != ((CCTUserLiteral*)pcToken)->miSuffix))
+			{
+				Error("Adjacent string literals have different user-defined suffixes.");
+			}
+			iSuffix = ((CCTUserLiteral*)pcToken)->miSuffix;
+		}
 		Next();
 	}
 	pcString->miLastToken = PreviousToken();
@@ -805,7 +820,7 @@ bool CCPPParser::IsStringPart(void)
 	{
 		return false;
 	}
-	if (pcToken->IsString())
+	if (pcToken->IsString() || pcToken->IsUserString())
 	{
 		return true;
 	}

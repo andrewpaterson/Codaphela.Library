@@ -264,11 +264,11 @@ void CCPPHighlighter::AddTokens(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTr
 		{
 			eKind = CPPH_Keyword;
 		}
-		else if (pcToken->IsString())
+		else if (psSource->uiKind == PTK_String)
 		{
 			eKind = CPPH_String;
 		}
-		else if (pcToken->IsChar() || (psSource->uiKind == PTK_Character))
+		else if (psSource->uiKind == PTK_Character)
 		{
 			eKind = CPPH_Character;
 		}

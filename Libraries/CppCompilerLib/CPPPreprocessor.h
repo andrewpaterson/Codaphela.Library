@@ -223,6 +223,7 @@ protected:
 
 	//Converting tokenised lines.
 	void				ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, CDefine* pcDefine, bool bStartOfLine, CArrayPreprocessedTokens* pacDest);
+	size				LiteralBeforeMacro(CPPText* pcLiteral);
 	CPPToken*			ConvertDecorators(CPPTokenList* pcTokens, size* piIndex, CSourceFile* pcFile, uint8 uiFlags, CArrayPreprocessedTokens* pacDest);
 
 	//Directives.

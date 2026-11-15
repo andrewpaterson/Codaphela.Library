@@ -27,6 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTIdentifier.h"
 #include "CTReservedWord.h"
 #include "CTString.h"
+#include "CTUserLiteral.h"
 #include "CTDouble.h"
 #include "CTFloat.h"
 #include "CTLongDouble.h"
@@ -293,7 +294,7 @@ bool CCPPTokeniser::Tokenise(CPreprocessedTokens* pcSource)
 	{
 		psToken = pcSource->Get(i);
 		miSource = (int)i;
-		Token(psToken, (int)i);
+		Token(psToken);
 	}
 	miSource = -1;
 	return !mbError;
@@ -304,20 +305,18 @@ bool CCPPTokeniser::Tokenise(CPreprocessedTokens* pcSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Token(SPreprocessedToken* psToken, int iSource)
+bool CCPPTokeniser::Token(SPreprocessedToken* psToken)
 {
 	switch (psToken->uiKind)
 	{
 	case PTK_Identifier:
-		return Identifier(psToken, iSource);
+		return Identifier(psToken);
 	case PTK_Punctuator:
-		return Punctuator(psToken, iSource);
+		return Punctuator(psToken);
 	case PTK_Number:
-		return Number(psToken, iSource);
 	case PTK_Character:
-		return Character(psToken, iSource);
 	case PTK_String:
-		return String(psToken, iSource);
+		return Literal(psToken);
 	}
 
 	//A stray character.  System headers are only skimmed so it is dropped there.
@@ -333,7 +332,7 @@ bool CCPPTokeniser::Token(SPreprocessedToken* psToken, int iSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken, int iSource)
+bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken)
 {
 	int64				lliID;
 	ECppTokens			eToken;
@@ -349,25 +348,20 @@ bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken, int iSource)
 		{
 			pcBoolean = CCTBoolean::Construct(mcStack.Add(sizeof(CCTBoolean)));
 			pcBoolean->Init(eToken == CT_true);
-			AddToken(pcBoolean, iSource);
+			AddToken(pcBoolean);
 		}
 		else
 		{
 			pcReservedWord = CCTReservedWord::Construct(mcStack.Add(sizeof(CCTReservedWord)));
 			pcReservedWord->Init(eToken);
-			AddToken(pcReservedWord, iSource);
+			AddToken(pcReservedWord);
 		}
 		return true;
 	}
 
-	lliID = mcIdentifiers.Get(psToken->szText, psToken->szText + psToken->uiLength - 1);
-	if (lliID == -1)
-	{
-		lliID = mcIdentifiers.Add(psToken->szText, psToken->szText + psToken->uiLength - 1);
-	}
 	pcIdentifier = CCTIdentifier::Construct(mcStack.Add(sizeof(CCTIdentifier)));
-	pcIdentifier->Init(lliID);
-	AddToken(pcIdentifier, iSource);
+	pcIdentifier->Init(GetIdentifierID(psToken->szText, psToken->uiLength));
+	AddToken(pcIdentifier);
 	return true;
 }
 
@@ -376,7 +370,7 @@ bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken, int iSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken, int iSource)
+bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken)
 {
 	int64				lliID;
 	CCTReservedWord*	pcReservedWord;
@@ -389,34 +383,73 @@ bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken, int iSource)
 
 	pcReservedWord = CCTReservedWord::Construct(mcStack.Add(sizeof(CCTReservedWord)));
 	pcReservedWord->Init(gasCPPReservedWords[lliID].eToken);
-	AddToken(pcReservedWord, iSource);
+	AddToken(pcReservedWord);
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// A number, character or string.  One with a user-defined suffix, as
+// 10_km and "text"_s, is the literal without it in a CCTUserLiteral.
+// [lex.literal], [lex.ext]
+//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Number(SPreprocessedToken* psToken, int iSource)
+bool CCPPTokeniser::Literal(SPreprocessedToken* psToken)
 {
-	SIntegerLiteral		sLiteral;
+	CCPPToken*			pcLiteral;
+	CCTUserLiteral*		pcUserLiteral;
+	size				uiLength;
 
-	switch (ParseIntegerLiteral(psToken->szText, psToken->uiLength, &sLiteral))
+	uiLength = psToken->uiLength;
+	if (psToken->uiKind == PTK_Number)
 	{
-	case ILR_Integer:
-		return Integer(iSource, &sLiteral);
-	case ILR_Floating:
-		return Floating(psToken, iSource, sLiteral.szNumber);
-	case ILR_InvalidDigit:
-		return Error(psToken, "Invalid digit in integer literal.");
-	case ILR_TooLarge:
-		return Error(psToken, "Integer literal is too large.");
-	case ILR_NoDigits:
-		return Error(psToken, "Integer literal has no digits.");
-	default:
-		return Error(psToken, "Invalid integer literal suffix.");
+		pcLiteral = Number(psToken, &uiLength);
 	}
+	else
+	{
+		uiLength = QuotedLiteralLength(psToken->szText, psToken->uiLength);
+		if (uiLength == 0)
+		{
+			return Error(psToken, (psToken->uiKind == PTK_String) ? "Unterminated string literal." : "Unterminated character literal.");
+		}
+		pcLiteral = (psToken->uiKind == PTK_String) ? String(psToken, uiLength) : Character(psToken, uiLength);
+	}
+	if (!pcLiteral)
+	{
+		return false;
+	}
+
+	if (uiLength < psToken->uiLength)
+	{
+		pcUserLiteral = CCTUserLiteral::Construct(mcStack.Add(sizeof(CCTUserLiteral)));
+		pcUserLiteral->Init(pcLiteral, GetIdentifierID(&psToken->szText[uiLength], psToken->uiLength - uiLength));
+		pcLiteral = pcUserLiteral;
+	}
+	AddToken(pcLiteral);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number's token, or NULL with an error.  *puiLength is the length of
+// the literal without a user-defined suffix.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPToken* CCPPTokeniser::Number(SPreprocessedToken* psToken, size* puiLength)
+{
+	SNumberLiteral			sLiteral;
+	ENumberLiteralResult	eResult;
+
+	eResult = ParseNumberLiteral(psToken->szText, psToken->uiLength, &sLiteral);
+	if (NumberLiteralError(eResult))
+	{
+		LiteralError(psToken, NumberLiteralError(eResult));
+		return NULL;
+	}
+	*puiLength = psToken->uiLength - sLiteral.uiUserSuffix;
+	return (eResult == NLR_Integer) ? Integer(&sLiteral) : Floating(psToken, &sLiteral);
 }
 
 
@@ -424,7 +457,7 @@ bool CCPPTokeniser::Number(SPreprocessedToken* psToken, int iSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Integer(int iSource, SIntegerLiteral* psLiteral)
+CCPPToken* CCPPTokeniser::Integer(SNumberLiteral* psLiteral)
 {
 	uint64			ulliValue;
 	bool			bUnsigned;
@@ -441,38 +474,22 @@ bool CCPPTokeniser::Integer(int iSource, SIntegerLiteral* psLiteral)
 	bDecimal = (psLiteral->iBase == 10);
 	if ((iLongs < 2) && !psLiteral->bInt64)
 	{
-		if (!bUnsigned && (ulliValue <= 0x7FFFFFFFULL))
+		if ((!bUnsigned && (ulliValue <= 0x7FFFFFFFULL)) || ((bUnsigned || !bDecimal) && (ulliValue <= 0xFFFFFFFFULL)))
 		{
 			pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
 			pcInt->Init((unsigned int)ulliValue);
-			pcInt->mbSigned = true;
+			pcInt->mbSigned = !bUnsigned && (ulliValue <= 0x7FFFFFFFULL);
 			pcInt->mbLong = (iLongs == 1);
 			pcInt->mbDecimal = bDecimal;
-			AddToken(pcInt, iSource);
-			return true;
-		}
-		if ((bUnsigned || !bDecimal) && (ulliValue <= 0xFFFFFFFFULL))
-		{
-			pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-			pcInt->Init((unsigned int)ulliValue);
-			pcInt->mbSigned = false;
-			pcInt->mbLong = (iLongs == 1);
-			pcInt->mbDecimal = bDecimal;
-			AddToken(pcInt, iSource);
-			return true;
+			return pcInt;
 		}
 	}
 
+	//Too large for long long is unsigned long long, as Microsoft has it.
 	pcLongLong = CCTLongLong::Construct(mcStack.Add(sizeof(CCTLongLong)));
 	pcLongLong->Init(ulliValue);
-	pcLongLong->mbSigned = !bUnsigned && ((ulliValue <= 0x7FFFFFFFFFFFFFFFULL) || bDecimal);
-	if (ulliValue > 0x7FFFFFFFFFFFFFFFULL)
-	{
-		//Too large for long long.  Microsoft makes it unsigned long long.
-		pcLongLong->mbSigned = false;
-	}
-	AddToken(pcLongLong, iSource);
-	return true;
+	pcLongLong->mbSigned = !bUnsigned && (ulliValue <= 0x7FFFFFFFFFFFFFFFULL);
+	return pcLongLong;
 }
 
 
@@ -480,7 +497,7 @@ bool CCPPTokeniser::Integer(int iSource, SIntegerLiteral* psLiteral)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szNumber)
+CCPPToken* CCPPTokeniser::Floating(SPreprocessedToken* psToken, SNumberLiteral* psLiteral)
 {
 	char*			szEnd;
 	long double		ldValue;
@@ -488,47 +505,39 @@ bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szN
 	CCTDouble*		pcDouble;
 	CCTLongDouble*	pcLongDouble;
 
-	ldValue = strtold(szNumber, &szEnd);
-	if ((*szEnd == 'f') || (*szEnd == 'F'))
+	ldValue = strtold(psLiteral->szNumber, &szEnd);
+	if (*szEnd != '\0')
 	{
-		if (szEnd[1] != '\0')
-		{
-			return Error(psToken, "Invalid floating literal suffix.");
-		}
-		//Read again at the type's precision: rounding the long double again could be a bit out.
-		pcFloat = CCTFloat::Construct(mcStack.Add(sizeof(CCTFloat)));
-		pcFloat->Init(strtof(szNumber, NULL));
-		AddToken(pcFloat, iSource);
+		Error(psToken, "Invalid floating literal.");
+		return NULL;
 	}
-	else if ((*szEnd == 'l') || (*szEnd == 'L'))
+
+	//float and double are read again at their own precision: rounding the long double again could be a bit out.
+	switch (psLiteral->eFloating)
 	{
-		if (szEnd[1] != '\0')
-		{
-			return Error(psToken, "Invalid floating literal suffix.");
-		}
+	case FL_Float:
+		pcFloat = CCTFloat::Construct(mcStack.Add(sizeof(CCTFloat)));
+		pcFloat->Init(strtof(psLiteral->szNumber, NULL));
+		return pcFloat;
+	case FL_LongDouble:
 		pcLongDouble = CCTLongDouble::Construct(mcStack.Add(sizeof(CCTLongDouble)));
 		pcLongDouble->Init(ldValue);
-		AddToken(pcLongDouble, iSource);
-	}
-	else if (*szEnd == '\0')
-	{
+		return pcLongDouble;
+	default:
 		pcDouble = CCTDouble::Construct(mcStack.Add(sizeof(CCTDouble)));
-		pcDouble->Init(strtod(szNumber, NULL));
-		AddToken(pcDouble, iSource);
+		pcDouble->Init(strtod(psLiteral->szNumber, NULL));
+		return pcDouble;
 	}
-	else
-	{
-		return Error(psToken, "Invalid floating literal.");
-	}
-	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The token of the character literal that is the first uiLength
+// characters of psToken, or NULL with an error.
+//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
+CCPPToken* CCPPTokeniser::Character(SPreprocessedToken* psToken, size uiLength)
 {
 	SCharacterLiteral	sLiteral;
 	const char*			szError;
@@ -536,81 +545,64 @@ bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
 	CCTShort*			pcShort;
 	CCTInt*				pcInt;
 
-	szError = CharacterLiteralError(ParseCharacterLiteral(psToken->szText, psToken->uiLength, &sLiteral));
+	szError = CharacterLiteralError(ParseCharacterLiteral(psToken->szText, uiLength, &sLiteral));
 	if (szError)
 	{
-		return LiteralError(psToken, szError);
+		LiteralError(psToken, szError);
+		return NULL;
 	}
 
 	if (((sLiteral.eEncoding == CTE_Narrow) || (sLiteral.eEncoding == CTE_UTF8)) && (sLiteral.iCount == 1))
 	{
 		pcChar = CCTChar::Construct(mcStack.Add(sizeof(CCTChar)));
 		pcChar->Init((char)sLiteral.uiValue);
-		AddToken(pcChar, iSource);
+		return pcChar;
 	}
-	else if (((sLiteral.eEncoding == CTE_Wide) || (sLiteral.eEncoding == CTE_UTF16)) && (sLiteral.iCount == 1))
+	if (((sLiteral.eEncoding == CTE_Wide) || (sLiteral.eEncoding == CTE_UTF16)) && (sLiteral.iCount == 1))
 	{
 		//wchar_t is 16 bits on Windows.
 		pcShort = CCTShort::Construct(mcStack.Add(sizeof(CCTShort)));
 		pcShort->Init((unsigned short)sLiteral.uiValue);
 		pcShort->mbSigned = false;
-		AddToken(pcShort, iSource);
+		return pcShort;
 	}
-	else
-	{
-		pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-		pcInt->Init(sLiteral.uiValue);
-		pcInt->mbSigned = (sLiteral.eEncoding != CTE_UTF32);
-		AddToken(pcInt, iSource);
-	}
-	return true;
+	pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
+	pcInt->Init(sLiteral.uiValue);
+	pcInt->mbSigned = (sLiteral.eEncoding != CTE_UTF32);
+	return pcInt;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The token of the string literal that is the first uiLength characters
+// of psToken, or NULL with an error.  The literal keeps its spelling.
+// Adjacent literals are joined by the parser.  [lex.string] 13
+//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::String(SPreprocessedToken* psToken, int iSource)
+CCPPToken* CCPPTokeniser::String(SPreprocessedToken* psToken, size uiLength)
 {
 	const char*		sz;
 	ECTEncoding		eEncoding;
 	CCTString*		pcString;
 	size			i;
 
-	//The literal keeps its spelling.  Adjacent literals are joined by the parser.  [lex.string] 13
 	sz = psToken->szText;
-	eEncoding = CTE_Narrow;
-	if ((sz[0] == 'u') && (sz[1] == '8'))
-	{
-		eEncoding = CTE_UTF8;
-	}
-	else if (sz[0] == 'L')
-	{
-		eEncoding = CTE_Wide;
-	}
-	else if (sz[0] == 'u')
-	{
-		eEncoding = CTE_UTF16;
-	}
-	else if (sz[0] == 'U')
-	{
-		eEncoding = CTE_UTF32;
-	}
+	eEncoding = LiteralEncoding(sz);
 
 	//The prefix is everything before the opening quote; R in it makes a raw string.
 	for (i = 0; sz[i] != '"'; i++)
 	{
 		if (sz[i] == 'R')
 		{
-			return Error(psToken, "Raw string literals are not supported.");
+			Error(psToken, "Raw string literals are not supported.");
+			return NULL;
 		}
 	}
 
 	pcString = CCTString::Construct(mcStack.Add(sizeof(CCTString)));
-	pcString->Init(psToken->szText, psToken->szText + psToken->uiLength - 1, eEncoding);
-	AddToken(pcString, iSource);
-	return true;
+	pcString->Init(sz, sz + uiLength - 1, eEncoding);
+	return pcString;
 }
 
 
@@ -618,9 +610,9 @@ bool CCPPTokeniser::String(SPreprocessedToken* psToken, int iSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::AddToken(CCPPToken* pcToken, int iSource)
+void CCPPTokeniser::AddToken(CCPPToken* pcToken)
 {
-	pcToken->SetSource(iSource);
+	pcToken->SetSource(miSource);
 	mcTokens.Add(pcToken);
 }
 
@@ -726,12 +718,24 @@ SPreprocessedToken* CCPPTokeniser::GetSource(CCPPToken* pcToken)
 //////////////////////////////////////////////////////////////////////////
 int64 CCPPTokeniser::GetIdentifierID(char* szName)
 {
+	return GetIdentifierID(szName, strlen(szName));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The ID of the name that is uiLength characters at szName, which it is
+// given if it is new.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPPTokeniser::GetIdentifierID(const char* szName, size uiLength)
+{
 	int64	lliID;
 
-	lliID = mcIdentifiers.Get(szName, NULL);
+	lliID = mcIdentifiers.Get((char*)szName, (char*)szName + uiLength - 1);
 	if (lliID == -1)
 	{
-		lliID = mcIdentifiers.Add(szName);
+		lliID = mcIdentifiers.Add((char*)szName, (char*)szName + uiLength - 1);
 	}
 	return lliID;
 }

@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "PreprocessorPosition.h"
 #include "PPTokenMemory.h"
 #include "CPPNameCharacters.h"
+#include "LiteralHelper.h"
 
 
 #define MAX_INCLUDE_DEPTH	200
@@ -593,24 +594,26 @@ SPPSource* CCPPPreprocessor::GetCurrentFileSource(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// How much of a string or character token is the literal, when what
+// follows its closing quote is not its user-defined suffix ("text"_s) but
+// a macro: as g++ has it, a macro that doesn't start with an underscore,
+// so that "%" PRId64 can be written without the space, as it was before
+// there were suffixes.  0 when the token is all one literal.  [lex.ext]
+//
 //////////////////////////////////////////////////////////////////////////
-static bool IsStringPrefix(const char* sz, size uiLength)
+size CCPPPreprocessor::LiteralBeforeMacro(CPPText* pcLiteral)
 {
-	if (uiLength == 1)
+	size				uiLength;
+	CExternalString		cName;
+
+	uiLength = QuotedLiteralLength(pcLiteral->TextStart(), pcLiteral->Length());
+	if ((uiLength == 0) || (uiLength == pcLiteral->Length()) || (pcLiteral->TextStart()[uiLength] == '_'))
 	{
-		return (sz[0] == 'L') || (sz[0] == 'u') || (sz[0] == 'U') || (sz[0] == 'R');
+		return 0;
 	}
-	if (uiLength == 2)
-	{
-		return ((sz[0] == 'u') && (sz[1] == '8')) || (((sz[0] == 'L') || (sz[0] == 'u') || (sz[0] == 'U')) && (sz[1] == 'R'));
-	}
-	if (uiLength == 3)
-	{
-		return (sz[0] == 'u') && (sz[1] == '8') && (sz[2] == 'R');
-	}
-	return false;
+	cName.Init(pcLiteral->TextStart() + uiLength, (int)(pcLiteral->Length() - uiLength));
+	return mcDefines.Get(&cName) ? uiLength : 0;
 }
 
 
@@ -623,21 +626,20 @@ void CCPPPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile
 	size				i;
 	size				iNumTokens;
 	CPPToken*			pcToken;
-	CPPToken*			pcNext;
 	CPPText*			pcText;
-	CPPText*			pcNextText;
 	CPPHashes*			pcHashes;
 	CPPReplacement*		pcReplacement;
 	SPreprocessedToken	sToken;
 	uint8				uiFlags;
 	size				iCount;
+	size				uiLiteral;
 	int					iColumn;
 	CChars*				pszName;
-	CChars				szMerged;
 	EPreprocessedTokenKind	eKind;
 
 	//Turns the tokeniser's tokens into preprocessed tokens: whitespace becomes a flag, single character decorators become
-	//punctuators, string prefixes join their strings and, in a macro body, parameters and # and ## are marked.
+	//punctuators, a macro touching the end of a string is parted from it and, in a macro body, parameters and # and ##
+	//are marked.
 	uiFlags = bStartOfLine ? PTF_START_OF_LINE : 0;
 	iNumTokens = pcTokens->NumTokens();
 	for (i = 0; i < iNumTokens;)
@@ -695,34 +697,6 @@ void CCPPPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile
 				continue;
 			}
 
-			pcNext = (i + 1 < iNumTokens) ? pcTokens->Get(i + 1) : NULL;
-			if ((pcText->meType == PPT_Identifier) && pcNext && pcNext->IsText() && IsStringPrefix(pcText->TextStart(), pcText->Length()))
-			{
-				pcNextText = (CPPText*)pcNext;
-				if ((pcNextText->meType == PPT_DoubleQuoted) || (pcNextText->meType == PPT_SingleQuoted))
-				{
-					//The prefix of L"x" or u8"x" is part of the string.
-					eKind = (pcNextText->meType == PPT_DoubleQuoted) ? PTK_String : PTK_Character;
-					if (pcText->TextStart() + pcText->Length() == pcNextText->TextStart())
-					{
-						sToken.Init(eKind, pcText->TextStart(), pcText->Length() + pcNextText->Length(), pcFile, pcToken->Line(), pcToken->Column());
-					}
-					else
-					{
-						szMerged.Init();
-						szMerged.Append(pcText->TextStart(), pcText->Length());
-						szMerged.Append(pcNextText->TextStart(), pcNextText->Length());
-						sToken.Init(eKind, AddString(szMerged.Text(), szMerged.Length()), szMerged.Length(), pcFile, pcToken->Line(), pcToken->Column());
-						szMerged.Kill();
-					}
-					sToken.uiFlags = uiFlags;
-					pacDest->Add(&sToken);
-					uiFlags = 0;
-					i += 2;
-					continue;
-				}
-			}
-
 			switch (pcText->meType)
 			{
 			case PPT_Identifier:
@@ -743,6 +717,14 @@ void CCPPPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile
 			}
 			sToken.Init(eKind, pcText->TextStart(), pcText->Length(), pcFile, pcToken->Line(), pcToken->Column());
 			sToken.uiFlags = uiFlags;
+			uiLiteral = ((eKind == PTK_String) || (eKind == PTK_Character)) ? LiteralBeforeMacro(pcText) : 0;
+			if (uiLiteral != 0)
+			{
+				//The literal, then the macro's name as a token of its own.
+				sToken.uiLength = (uint32)uiLiteral;
+				pacDest->Add(&sToken);
+				sToken.Init(PTK_Identifier, pcText->TextStart() + uiLiteral, pcText->Length() - uiLiteral, pcFile, pcToken->Line(), pcToken->Column() + (int)uiLiteral);
+			}
 			pacDest->Add(&sToken);
 			uiFlags = 0;
 			i++;
@@ -2531,78 +2513,72 @@ void CCPPPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreproc
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The length of the identifier at sz, uiLength at most; 0 if there isn't
+// one.
+//
 //////////////////////////////////////////////////////////////////////////
-static size QuotedLength(const char* sz, size uiLength)
+static size IdentifierLength(const char* sz, size uiLength)
 {
 	size	i;
-	char	cQuote;
 
-	//The length of the literal starting at sz[0], 0 if it is not terminated.
-	cQuote = sz[0];
-	for (i = 1; i < uiLength; i++)
+	if ((uiLength == 0) || !IsIdentifierStart(sz[0]))
 	{
-		if (sz[i] == '\\')
-		{
-			i++;
-		}
-		else if (sz[i] == cQuote)
-		{
-			return i + 1;
-		}
+		return 0;
 	}
-	return 0;
+	for (i = 1; (i < uiLength) && IsIdentifierCharacter(sz[i]); i++)
+	{
+	}
+	return i;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The kind of the one preprocessing token sz spells, -1 if it is not
+// exactly one token: what pasting two tokens must make.  [cpp.concat]
+//
 //////////////////////////////////////////////////////////////////////////
 static int LexSingleToken(const char* sz, size uiLength)
 {
-	size	i;
+	size	uiPrefix;
+	size	uiQuoted;
 	char	c;
 
-	//The kind of the one preprocessing token sz spells, -1 if it is not exactly one token.
 	if (uiLength == 0)
 	{
 		return -1;
 	}
 
-	c = sz[0];
-	if (IsIdentifierStart(c))
+	uiPrefix = IdentifierLength(sz, uiLength);
+	if (uiPrefix == uiLength)
 	{
-		for (i = 1; (i < uiLength) && IsIdentifierCharacter(sz[i]); i++)
+		return PTK_Identifier;
+	}
+
+	c = sz[uiPrefix];
+	if ((c == '"') || (c == '\''))
+	{
+		//A string or a character, after its prefix if it has one and before its user-defined suffix if it has one.
+		if ((uiPrefix != 0) && !IsLiteralPrefix(sz, uiPrefix, c == '"'))
 		{
+			return -1;
 		}
-		if (i == uiLength)
+		uiQuoted = QuotedLiteralLength(sz, uiLength);
+		if ((uiQuoted == 0) || ((uiQuoted != uiLength) && (uiQuoted + IdentifierLength(&sz[uiQuoted], uiLength - uiQuoted) != uiLength)))
 		{
-			return PTK_Identifier;
+			return -1;
 		}
-		if (IsStringPrefix(sz, i) && ((sz[i] == '"') || (sz[i] == '\'')))
-		{
-			if (i + QuotedLength(&sz[i], uiLength - i) == uiLength)
-			{
-				return (sz[i] == '"') ? PTK_String : PTK_Character;
-			}
-		}
+		return (c == '"') ? PTK_String : PTK_Character;
+	}
+	if (uiPrefix != 0)
+	{
 		return -1;
 	}
 
 	if (((c >= '0') && (c <= '9')) || ((c == '.') && (uiLength > 1) && (sz[1] >= '0') && (sz[1] <= '9')))
 	{
 		return (PPNumberLength(sz, uiLength) == uiLength) ? PTK_Number : -1;
-	}
-
-	if ((c == '"') || (c == '\''))
-	{
-		if (QuotedLength(sz, uiLength) == uiLength)
-		{
-			return (c == '"') ? PTK_String : PTK_Character;
-		}
-		return -1;
 	}
 
 	if (PunctuatorLength(sz, uiLength) == uiLength)

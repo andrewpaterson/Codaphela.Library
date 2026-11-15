@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
+#include "CPPNameCharacters.h"
 #include "LiteralHelper.h"
 
 
@@ -28,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // an optional u.  Sets psLiteral's bUnsigned, iLongs and bInt64.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ParseIntegerSuffix(const char* sz, SIntegerLiteral* psLiteral)
+static bool ParseIntegerSuffix(const char* sz, SNumberLiteral* psLiteral)
 {
 	bool	bLongs;
 
@@ -77,15 +79,103 @@ static bool ParseIntegerSuffix(const char* sz, SIntegerLiteral* psLiteral)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reads the integer literal szText (a whole pp-number, uiLength chars):
-// its base, value and suffix.  Digit separators are left out.  Suffixes
-// are u and l or ll (either case, each once, in either order) and
-// Microsoft's i8, i16, i32 and i64 after an optional u.  Returns
-// ILR_Floating, leaving the rest unset, if it is a floating literal; one
-// longer than szNumber holds is ILR_TooLarge.  [lex.icon]
+// Whether sz (all of it) is a floating suffix: none, f or l, either case.
+// Sets psLiteral's eFloating.
 //
 //////////////////////////////////////////////////////////////////////////
-EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIntegerLiteral* psLiteral)
+static bool ParseFloatingSuffix(const char* sz, SNumberLiteral* psLiteral)
+{
+	psLiteral->eFloating = FL_Double;
+	if ((sz[0] == 'f') || (sz[0] == 'F'))
+	{
+		psLiteral->eFloating = FL_Float;
+		sz++;
+	}
+	else if ((sz[0] == 'l') || (sz[0] == 'L'))
+	{
+		psLiteral->eFloating = FL_LongDouble;
+		sz++;
+	}
+	return *sz == '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sz (all of it) is an identifier: what a user-defined literal's
+// suffix is.  [lex.ext]
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsUserSuffix(const char* sz)
+{
+	if (!IsCPPNameStart(*sz))
+	{
+		return false;
+	}
+	for (sz++; IsCPPNameCharacter(*sz); sz++)
+	{
+	}
+	return *sz == '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number literal's suffix, szSuffix (all that follows its digits): one
+// of the language's, or else a user-defined literal's, which is cut from
+// szNumber and its length kept.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ParseNumberSuffix(char* szSuffix, bool bFloating, SNumberLiteral* psLiteral)
+{
+	psLiteral->uiUserSuffix = 0;
+	if (bFloating ? ParseFloatingSuffix(szSuffix, psLiteral) : ParseIntegerSuffix(szSuffix, psLiteral))
+	{
+		*szSuffix = '\0';
+		return true;
+	}
+	if (!IsUserSuffix(szSuffix))
+	{
+		return false;
+	}
+
+	//The literal operator is given the value as the widest type.  [lex.ext] 3
+	psLiteral->uiUserSuffix = strlen(szSuffix);
+	psLiteral->bUnsigned = true;
+	psLiteral->iLongs = 2;
+	psLiteral->bInt64 = false;
+	psLiteral->eFloating = FL_LongDouble;
+	*szSuffix = '\0';
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether c is a digit of iBase (2, 8, 10 or 16).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsDigit(char c, int iBase)
+{
+	if ((c >= '0') && (c <= '9'))
+	{
+		return true;
+	}
+	return (iBase == 16) && (((c >= 'a') && (c <= 'f')) || ((c >= 'A') && (c <= 'F')));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads the number literal szText (a whole pp-number, uiLength chars):
+// whether it is an integer or a floating literal, its suffix and, for an
+// integer, its base and value.  Digit separators are left out of szNumber;
+// each must be between two digits.  A literal longer than szNumber holds
+// is NLR_TooLarge.  The code and #if both read numbers with it, so they
+// agree.  [lex.icon], [lex.fcon]
+//
+//////////////////////////////////////////////////////////////////////////
+ENumberLiteralResult ParseNumberLiteral(const char* szText, size uiLength, SNumberLiteral* psLiteral)
 {
 	char*		szNumber;
 	char*		szDigits;
@@ -96,6 +186,7 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 	int			iBase;
 	char		c;
 	bool		bFloating;
+	bool		bExponent;
 	uint64		ulliValue;
 	uint64		ulliDigit;
 
@@ -103,11 +194,18 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 	iLength = 0;
 	for (i = 0; i < uiLength; i++)
 	{
-		if (szText[i] != '\'')
+		if (szText[i] == '\'')
+		{
+			if ((i == 0) || (i + 1 == uiLength) || !IsDigit(szText[i - 1], 16) || !IsDigit(szText[i + 1], 16))
+			{
+				return NLR_InvalidSeparator;
+			}
+		}
+		else
 		{
 			if (iLength == sizeof(psLiteral->szNumber) - 1)
 			{
-				return ILR_TooLarge;
+				return NLR_TooLarge;
 			}
 			szNumber[iLength] = szText[i];
 			iLength++;
@@ -128,52 +226,50 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 		szDigits = &szNumber[2];
 	}
 
-	//Find where the digits end and the suffix starts.
+	//Find where the digits end and the suffix starts.  An exponent is e (p in hexadecimal), a sign if there is one, and
+	//decimal digits.
 	bFloating = false;
-	szEnd = szDigits;
-	for (;;)
+	bExponent = false;
+	for (szEnd = szDigits; ; szEnd++)
 	{
 		c = *szEnd;
-		if ((c >= '0') && (c <= '9'))
+		if (IsDigit(c, bExponent ? 10 : iBase))
 		{
 		}
-		else if ((iBase == 16) && (((c >= 'a') && (c <= 'f')) || ((c >= 'A') && (c <= 'F'))))
-		{
-		}
-		else if (c == '.')
+		else if ((c == '.') && !bFloating && (iBase != 2))
 		{
 			bFloating = true;
 		}
-		else if ((iBase == 10) && ((c == 'e') || (c == 'E')))
+		else if (!bExponent && (((iBase == 10) && ((c == 'e') || (c == 'E'))) || ((iBase == 16) && ((c == 'p') || (c == 'P')))))
 		{
 			bFloating = true;
+			bExponent = true;
 			if ((szEnd[1] == '+') || (szEnd[1] == '-'))
 			{
 				szEnd++;
 			}
-		}
-		else if ((iBase == 16) && ((c == 'p') || (c == 'P')))
-		{
-			bFloating = true;
-			if ((szEnd[1] == '+') || (szEnd[1] == '-'))
+			if (!IsDigit(szEnd[1], 10))
 			{
-				szEnd++;
+				return NLR_NoExponent;
 			}
 		}
 		else
 		{
 			break;
 		}
-		szEnd++;
 	}
 
 	if (bFloating)
 	{
-		return ILR_Floating;
+		if ((iBase == 16) && !bExponent)
+		{
+			return NLR_NoExponent;
+		}
+		return ParseNumberSuffix(szEnd, true, psLiteral) ? NLR_Floating : NLR_InvalidSuffix;
 	}
 	if ((iBase != 10) && (szEnd == szDigits))
 	{
-		return ILR_NoDigits;
+		return NLR_NoDigits;
 	}
 
 	if ((iBase == 10) && (szDigits[0] == '0') && (szEnd > szDigits + 1))
@@ -201,18 +297,130 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 
 		if (ulliDigit >= (uint64)iBase)
 		{
-			return ILR_InvalidDigit;
+			return NLR_InvalidDigit;
 		}
 		if (ulliValue > (0xFFFFFFFFFFFFFFFFULL - ulliDigit) / iBase)
 		{
-			return ILR_TooLarge;
+			return NLR_TooLarge;
 		}
 		ulliValue = ulliValue * iBase + ulliDigit;
 	}
 
 	psLiteral->ulliValue = ulliValue;
 	psLiteral->iBase = iBase;
-	return ParseIntegerSuffix(szEnd, psLiteral) ? ILR_Integer : ILR_InvalidSuffix;
+	return ParseNumberSuffix(szEnd, false, psLiteral) ? NLR_Integer : NLR_InvalidSuffix;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is wrong with a number literal, for an error; NULL if nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* NumberLiteralError(ENumberLiteralResult eResult)
+{
+	switch (eResult)
+	{
+	case NLR_Integer:
+	case NLR_Floating:
+		return NULL;
+	case NLR_InvalidDigit:
+		return "Invalid digit in integer literal";
+	case NLR_TooLarge:
+		return "Integer literal is too large";
+	case NLR_InvalidSuffix:
+		return "Invalid number literal suffix";
+	case NLR_NoDigits:
+		return "Integer literal has no digits";
+	case NLR_NoExponent:
+		return "Floating literal has no exponent digits";
+	case NLR_InvalidSeparator:
+		return "A digit separator must be between two digits";
+	}
+	return "Invalid number literal";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the uiLength characters at sz are the prefix of a string
+// literal (bString) or a character literal: u8, u, U or L, and for a
+// string R after one of them or alone.  [lex.ccon], [lex.string]
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsLiteralPrefix(const char* sz, size uiLength, bool bString)
+{
+	if (bString && (uiLength > 0) && (sz[uiLength - 1] == 'R'))
+	{
+		uiLength--;
+		if (uiLength == 0)
+		{
+			return true;
+		}
+	}
+	if (uiLength == 1)
+	{
+		return (sz[0] == 'L') || (sz[0] == 'u') || (sz[0] == 'U');
+	}
+	return (uiLength == 2) && (sz[0] == 'u') && (sz[1] == '8');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The encoding a string or character literal's prefix gives it.
+//
+//////////////////////////////////////////////////////////////////////////
+ECTEncoding LiteralEncoding(const char* szText)
+{
+	switch (szText[0])
+	{
+	case 'u':
+		return (szText[1] == '8') ? CTE_UTF8 : CTE_UTF16;
+	case 'U':
+		return CTE_UTF32;
+	case 'L':
+		return CTE_Wide;
+	default:
+		return CTE_Narrow;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The length of the string or character literal at szText (no more than
+// uiLength characters), from its prefix to its closing quote: what is
+// left of the text after it is a user-defined suffix.  0 if it has no
+// closing quote.
+//
+//////////////////////////////////////////////////////////////////////////
+size QuotedLiteralLength(const char* szText, size uiLength)
+{
+	size	i;
+	char	cQuote;
+
+	for (i = 0; (i < uiLength) && (szText[i] != '"') && (szText[i] != '\''); i++)
+	{
+	}
+	if (i == uiLength)
+	{
+		return 0;
+	}
+
+	cQuote = szText[i];
+	for (i++; i < uiLength; i++)
+	{
+		if (szText[i] == '\\')
+		{
+			i++;
+		}
+		else if (szText[i] == cQuote)
+		{
+			return i + 1;
+		}
+	}
+	return 0;
 }
 
 
@@ -274,28 +482,10 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 	size		uiBytes;
 	size		i;
 
-	sz = szText;
 	szEnd = szText + uiLength;
-	psLiteral->eEncoding = CTE_Narrow;
-	if ((sz[0] == 'u') && (sz[1] == '8'))
+	psLiteral->eEncoding = LiteralEncoding(szText);
+	for (sz = szText; *sz != '\''; sz++)
 	{
-		psLiteral->eEncoding = CTE_UTF8;
-		sz += 2;
-	}
-	else if (sz[0] == 'L')
-	{
-		psLiteral->eEncoding = CTE_Wide;
-		sz++;
-	}
-	else if (sz[0] == 'u')
-	{
-		psLiteral->eEncoding = CTE_UTF16;
-		sz++;
-	}
-	else if (sz[0] == 'U')
-	{
-		psLiteral->eEncoding = CTE_UTF32;
-		sz++;
 	}
 	sz++;  //The opening quote.
 
