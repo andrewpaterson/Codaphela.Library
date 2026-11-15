@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Nothing here is built yet.  What is decided and what is only proposed is said at each point.
+Steps 1 and 2 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -118,14 +118,22 @@ barycentric position, asks the material, then dilates the charts' edges into the
 
 Steps
 -----
-Each with its tests, in TestSupportLib.
+Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLib, which has them).
 
 1. Measures, as TestProceduralLib's MeshMeasures are for meshes: every face has UVs, none is turned over, no two charts'
    triangles overlap, all are in the layout, and how much each triangle is stretched (the singular values of its map from 3D
    to texels: their ratio is angle distortion, their product against the scene's density squared is area distortion).
-2. Box projection and bounding box packing at a texel density, page aligned, as a CMeshModifier (CMeshUnwrap) that adds the
+   Done: MeshUVMeasures.  A face anticlockwise seen from outside is to be anticlockwise in UV, u right and v up; one that
+   isn't, or has no area in UV, is turned over.  Overlaps are pairs of faces whose UV triangles' insides share area (the
+   separating axis test, touching not counted), found through a grid of cells over the UVs.
+2. Box projection and bounding box packing at a texel density, as a CMeshModifier (CMeshUnwrap) that adds the
    UV layer and keeps the layout's size and its charts.  Tests: a box (six charts, no stretch), a sphere (stretched as box
    projection is), a torus, an isosurface; all measures pass.
+   Done: CMeshUnwrap.  Charts are joined across edges between faces of one direction; a corner on a seam has a UV for each
+   chart it's in.  Packing is by bounding rectangles along a skyline, tallest first, the layout as wide as the square root of
+   the charts' area, not yet onto pages (that waits for the virtual texture).  It keeps the layout's size and number of charts;
+   each chart's rectangle, which needs an array saved with it, also waits for the virtual texture.  A box is six charts with
+   no stretch; a sphere six, within root 3; an isosurface of five spheres unwrapped after CMeshShapeNormals, all clean.
 3. Bake: the 3D material, the checker, the baker, every mip level, dilation, and the image on the mesh's material.  Tests:
    texels' colours against the checker at their 3D points at every level, the gutters filled, and a scene drawn by the raster
    renderer within a tolerance of saved bytes, as TestShapeScene.

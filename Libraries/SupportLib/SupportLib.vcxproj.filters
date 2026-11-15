@@ -1065,6 +1065,9 @@
     <ClInclude Include="MeshUVMeasures.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="MeshUnwrap.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1863,6 +1866,9 @@
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
     <ClCompile Include="MeshUVMeasures.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshUnwrap.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
   </ItemGroup>

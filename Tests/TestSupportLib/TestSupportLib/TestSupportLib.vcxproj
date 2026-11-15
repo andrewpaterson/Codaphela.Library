@@ -310,6 +310,7 @@
     <ClCompile Include="TestFontFamily.cpp" />
     <ClCompile Include="TestTextMarkupParser.cpp" />
     <ClCompile Include="TestMeshUVMeasures.cpp" />
+    <ClCompile Include="TestMeshUnwrap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h" />

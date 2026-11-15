@@ -11,6 +11,8 @@
 #include "SupportLib/ShapeSmoothUnion.h"
 #include "ProceduralLib/MeshShapeEditor.h"
 #include "ProceduralLib/MeshShapeNormals.h"
+#include "SupportLib/MeshUnwrap.h"
+#include "SupportLib/MeshUVMeasures.h"
 #include "TestLib/Assert.h"
 #include "MeshMeasures.h"
 
@@ -246,6 +248,47 @@ void TestMeshShapeNormalsCreases(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The five spheres meshed, given the shape's normals and unwrapped last
+// (as the modifiers that rebuild faces refuse a mesh with UVs): every face
+// has UVs, none turned over, outside or overlapping, and its normals kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshShapeNormalsUnwrapped(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshUnwrap>	pUnwrap;
+	Ptr<CShape>			pShape;
+	Ptr<CMesh>			pMesh;
+	SFloat32Vec3		asCentres[5];
+	int					i;
+
+	asCentres[0].Init(-1.5f, 0.2f, 0);
+	asCentres[1].Init(-0.3f, -0.4f, 0);
+	asCentres[2].Init(0.9f, 0.5f, 0);
+	asCentres[3].Init(1.8f, -0.6f, 0);
+	asCentres[4].Init(0.2f, 1.4f, 0);
+	pShape = OMalloc<CSphere>(&asCentres[0], 1.0f);
+	for (i = 1; i < 5; i++)
+	{
+		pShape = OMalloc<CShapeSmoothUnion>(pShape, OMalloc<CSphere>(&asCentres[i], 1.0f), 0.5f);
+	}
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshShapeEditor>(pShape, 0.05f, 0.8f);
+	pEditor->AddModifier<CMeshShapeNormals>(pShape);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f);
+	pMesh = pEditor->GetOutput();
+	AssertTrue(pMesh->mcNormals.InUse());
+	AssertTrue(pUnwrap->miNumCharts >= 6);
+	AssertInt(0, CountMeshUVFacesMissing(&pMesh, 0));
+	AssertInt(0, CountMeshUVFacesTurned(&pMesh, 0));
+	AssertInt(0, CountMeshUVsOutside(&pMesh, 0));
+	AssertInt(0, CountMeshUVOverlaps(&pMesh, 0));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshShapeNormals(void)
@@ -257,6 +300,8 @@ void TestMeshShapeNormals(void)
 	TestMeshShapeNormalsSmooth();
 	ObjectsFlush();
 	TestMeshShapeNormalsCreases();
+	ObjectsFlush();
+	TestMeshShapeNormalsUnwrapped();
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();
