@@ -90,7 +90,7 @@ static void TestMeshEdgeCollapseAddGrid(CMesh* pcMesh, int iCells, float32 fCell
 static Ptr<CMesh> TestMeshEdgeCollapseOutput(CMeshModifierStack* pcStack, Ptr<CMesh> pSource, float32 fMaxError)
 {
 	pcStack->Init(pSource);
-	pcStack->AddModifier<CMeshEdgeCollapse>()->Init(fMaxError);
+	pcStack->AddModifier<CMeshEdgeCollapse>(fMaxError);
 	return pcStack->GetOutput();
 }
 
@@ -539,8 +539,8 @@ void TestMeshEdgeCollapseBox(void)
 	TestMeshEdgeCollapseAddSide(&pSource, 0, 0, 1, 1, 0, 0, 0, 1, 0);
 
 	cStack.Init(pSource);
-	cStack.AddModifier<CMeshWeldCorners>()->Init();
-	cStack.AddModifier<CMeshEdgeCollapse>()->Init(0.01f);
+	cStack.AddModifier<CMeshWeldCorners>();
+	cStack.AddModifier<CMeshEdgeCollapse>(0.01f);
 	pOutput = cStack.GetOutput();
 
 	AssertInt(300, pSource->NumFaces());

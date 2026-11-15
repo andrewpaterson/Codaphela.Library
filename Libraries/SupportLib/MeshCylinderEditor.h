@@ -24,23 +24,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_CYLINDER_EDITOR_H__
 #define __MESH_CYLINDER_EDITOR_H__
 #include "MeshConeEditor.h"
-#include "MeshSourceModifier.h"
 
 
-class CMeshCylinderEditor : public CMeshSourceModifier
+//A cone whose radii are the same.
+class CMeshCylinderEditor : public CMeshConeEditor
 {
 CONSTRUCTABLE(CMeshCylinderEditor);
-public:
-	CMeshConeEditor		mcConeEditor;
-
+DESTRUCTABLE(CMeshCylinderEditor);
 public:
 	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fRadius, float32 fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments);
-	void	Kill(void);
-
-	int		ExpectedFaceChunkSize(void);
-	int		ExpectedCornerChunkSize(void);
-
-	void	Generate(CMeshEditor* pcMeshEditor) override;
 };
 
 

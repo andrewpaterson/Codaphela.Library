@@ -56,34 +56,34 @@ static void TestMeshSourceAddShape(CMeshModifierStack* pcStack, ETestMeshShape e
 	switch (eShape)
 	{
 	case TMS_Plane:
-		pcStack->AddModifier<CMeshPlaneEditor>()->Init(&sX, &sY, &sStart, 2, 2);
+		pcStack->AddModifier<CMeshPlaneEditor>(&sX, &sY, &sStart, 2, 2);
 		break;
 	case TMS_Box:
-		pcStack->AddModifier<CMeshBoxEditor>()->Init(&sX, &sY, &sZ, &sStart, 2, 2, 2);
+		pcStack->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 2, 2, 2);
 		break;
 	case TMS_Disc:
-		pcStack->AddModifier<CMeshDiscEditor>()->Init(&sZ, &sStart, 0.0f, 1.0f, 3, 1);
+		pcStack->AddModifier<CMeshDiscEditor>(&sZ, &sStart, 0.0f, 1.0f, 3, 1);
 		break;
 	case TMS_Ring:
-		pcStack->AddModifier<CMeshRingEditor>()->Init(&sZ, &sStart, 1.0f, 1.0f, 1.0f, 4, 3);
+		pcStack->AddModifier<CMeshRingEditor>(&sZ, &sStart, 1.0f, 1.0f, 1.0f, 4, 3);
 		break;
 	case TMS_Cone:
-		pcStack->AddModifier<CMeshConeEditor>()->Init(&sZ, &sStart, 0.5f, 1.0f, 1.0f, 4, 1, 1, 3);
+		pcStack->AddModifier<CMeshConeEditor>(&sZ, &sStart, 0.5f, 1.0f, 1.0f, 4, 1, 1, 3);
 		break;
 	case TMS_Cylinder:
-		pcStack->AddModifier<CMeshCylinderEditor>()->Init(&sZ, &sStart, 1.0f, 1.0f, 4, 1, 3);
+		pcStack->AddModifier<CMeshCylinderEditor>(&sZ, &sStart, 1.0f, 1.0f, 4, 1, 3);
 		break;
 	case TMS_Tube:
-		pcStack->AddModifier<CMeshTubeEditor>()->Init(&sZ, &sStart, 0.5f, 1.0f, 1.0f, 4, 1, 3);
+		pcStack->AddModifier<CMeshTubeEditor>(&sZ, &sStart, 0.5f, 1.0f, 1.0f, 4, 1, 3);
 		break;
 	case TMS_Sphere:
-		pcStack->AddModifier<CMeshSphereEditor>()->Init(&sZ, &sStart, 1.0f, 4, 3);
+		pcStack->AddModifier<CMeshSphereEditor>(&sZ, &sStart, 1.0f, 4, 3);
 		break;
 	case TMS_Geosphere:
-		pcStack->AddModifier<CMeshGeosphereEditor>()->Init(&sZ, &sStart, 1.0f, 2);
+		pcStack->AddModifier<CMeshGeosphereEditor>(&sZ, &sStart, 1.0f, 2);
 		break;
 	case TMS_Torus:
-		pcStack->AddModifier<CMeshTorusEditor>()->Init(&sZ, &sStart, 1.0f, 0.25f, 4, 3);
+		pcStack->AddModifier<CMeshTorusEditor>(&sZ, &sStart, 1.0f, 0.25f, 4, 3);
 		break;
 	default:
 		break;
@@ -209,7 +209,7 @@ void TestMeshSourceEditorAddsToMesh(void)
 	AssertInt(4 + 9, cEditor.GetOutput()->NumCorners());
 	cEditor.Collapse();
 	AssertInt(4 + 9, cMesh.NumCorners());
-	AssertInt(0, cEditor.mcModifiers.NumEditors());
+	AssertInt(0, cEditor.mcModifiers.NumModifiers());
 	pOutput = NULL;
 	cEditor.Kill();
 }
@@ -223,15 +223,15 @@ void TestMeshSourceEditorAddsToMesh(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshSourceEditorAddsToCollapsed(void)
 {
-	CMesh				cMesh;
-	CMeshEditor			cEditor;
-	CMeshPlaneEditor*	pcPlane;
-	Ptr<CMesh>			pOutput;
-	SFloat32Vec3		sX;
-	SFloat32Vec3		sY;
-	SFloat32Vec3		sStart;
-	int					iVisibleEdges;
-	int					i;
+	CMesh					cMesh;
+	CMeshEditor				cEditor;
+	Ptr<CMeshPlaneEditor>	pPlane;
+	Ptr<CMesh>				pOutput;
+	SFloat32Vec3			sX;
+	SFloat32Vec3			sY;
+	SFloat32Vec3			sStart;
+	int						iVisibleEdges;
+	int						i;
 
 	sX.Init(1, 0, 0);
 	sY.Init(0, 1, 0);
@@ -239,9 +239,8 @@ void TestMeshSourceEditorAddsToCollapsed(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	pcPlane = cEditor.AddModifier<CMeshPlaneEditor>();
-	pcPlane->Init(&sX, &sY, &sStart, 2, 2);
-	pcPlane->SetFaceName(3);
+	pPlane = cEditor.AddModifier<CMeshPlaneEditor>(&sX, &sY, &sStart, 2, 2);
+	pPlane->SetFaceName(3);
 	cEditor.Collapse();
 
 	AssertInt(4, cEditor.NumPolygons());
@@ -299,8 +298,8 @@ void TestMeshSourceEditorKeepsNormals(void)
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshPlaneEditor>()->Init(&sX, &sY, &sStart, 2, 2);
-	cEditor.AddModifier<CMeshSmoothFaces>()->Init();
+	cEditor.AddModifier<CMeshPlaneEditor>(&sX, &sY, &sStart, 2, 2);
+	cEditor.AddModifier<CMeshSmoothFaces>();
 	cEditor.Collapse();
 	AssertLSize(8 + 9, cMesh.mcNormals.mcNormals.NumElements());
 

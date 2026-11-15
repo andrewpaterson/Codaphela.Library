@@ -32,6 +32,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshSphereEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCentre, float32 fRadius, int iWedgeSegments, int iRingSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection);
 	msZDirection.Normalize();
 	msCentre.Init(psCentre);
@@ -40,6 +42,25 @@ void CMeshSphereEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCentre,
 	miRingSegments = iRingSegments;
 	mbFlipFaces = false;
 	miFaceName = 0;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSphereEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msCentre);
+	U_Float32(mfRadius);
+	U_SInt(miWedgeSegments);
+	U_SInt(miRingSegments);
+	U_Bool(mbFlipFaces);
+	U_SInt(miFaceName);
 }
 
 
@@ -60,16 +81,6 @@ void CMeshSphereEditor::SetFlipFaces(bool bFlipFaces)
 void CMeshSphereEditor::SetFaceName(int iFaceName)
 {
 	miFaceName = iFaceName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshSphereEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

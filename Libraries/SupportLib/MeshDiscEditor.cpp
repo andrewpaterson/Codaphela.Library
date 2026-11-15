@@ -35,6 +35,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshDiscEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fInnerRadius, float32 fOuterRadius, int iWedgeSegments, int iCircleSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection->x, psZDirection->y, psZDirection->z);
 	msZDirection.Normalize();
 	msStart.Init(psStart->x, psStart->y, psStart->z);
@@ -44,6 +46,26 @@ void CMeshDiscEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, fl
 	mfInnerRadius = fInnerRadius;
 	mbFlipFaces = false;
 	miFaceName = 0;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshDiscEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msStart);
+	U_Float32(mfInnerRadius);
+	U_Float32(mfOuterRadius);
+	U_SInt(miWedgeSegments);
+	U_SInt(miCircleSegments);
+	U_Bool(mbFlipFaces);
+	U_SInt(miFaceName);
 }
 
 
@@ -64,16 +86,6 @@ void CMeshDiscEditor::SetFlipFaces(bool bFlipFaces)
 void CMeshDiscEditor::SetFaceName(int iFaceName)
 {
 	miFaceName = iFaceName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshDiscEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

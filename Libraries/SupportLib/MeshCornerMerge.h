@@ -33,11 +33,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshCornerMerge : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshCornerMerge);
+DESTRUCTABLE(CMeshCornerMerge);
 protected:
 	float32		mfCellSize;  //In the mesh's own units.
 
 public:
 	void		Init(float32 fCellSize);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };

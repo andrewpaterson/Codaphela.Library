@@ -34,11 +34,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshRemoveDegenerate : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshRemoveDegenerate);
+DESTRUCTABLE(CMeshRemoveDegenerate);
 protected:
 	size		muiNumRemoved;
 
 public:
 	void		Init(void);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 

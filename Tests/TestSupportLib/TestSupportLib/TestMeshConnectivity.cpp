@@ -21,16 +21,16 @@ void AssertEdgeCorners(CMeshEdge* pcEdge, size iCorner1, size iCorner2);
 //////////////////////////////////////////////////////////////////////////
 void TestMeshEdgeConnectivity(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshPlaneEditor*	pcPlaneEditor;
-	CMeshEditor			cMeshEditor;
-	CMeshConnectivity*	pcConn;
-	size				i;
-	CCornerEdgesMap*	pcCornerEdgesMap;
+	CMesh					cMesh;
+	SFloat32Vec3			sXDirection;
+	SFloat32Vec3			sYDirection;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshPlaneEditor>	pPlaneEditor;
+	CMeshEditor				cMeshEditor;
+	CMeshConnectivity*		pcConn;
+	size					i;
+	CCornerEdgesMap*		pcCornerEdgesMap;
 
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
@@ -40,8 +40,7 @@ void TestMeshEdgeConnectivity(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(-0.5f, -0.5f, -0.5f);
 
-	pcPlaneEditor = cMeshEditor.AddModifier<CMeshPlaneEditor>();
-	pcPlaneEditor->Init(&sXDirection, &sYDirection, &sStart, 1, 2);
+	pPlaneEditor = cMeshEditor.AddModifier<CMeshPlaneEditor>(&sXDirection, &sYDirection, &sStart, 1, 2);
 
 	cMeshEditor.Collapse();
 

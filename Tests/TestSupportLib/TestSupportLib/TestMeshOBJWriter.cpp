@@ -83,7 +83,7 @@ void TestMeshOBJWriterBox(void)
 		SFloat32Vec3		sYDirection;
 		SFloat32Vec3		sZDirection;
 		SFloat32Vec3		sStart;
-		CMeshBoxEditor*		pcBoxEditor;
+		Ptr<CMeshBoxEditor>	pBoxEditor;
 
 		MakeSmoothedBox(&cMesh, &cMeshEditor);
 		AssertTrue(SaveOBJ(&cMeshEditor, "Output/Shape/SmoothingFromEditor.OBJ"));
@@ -98,8 +98,7 @@ void TestMeshOBJWriterBox(void)
 		sYDirection.Init(0, 1, 0);
 		sZDirection.Init(0, 0, 1);
 		sStart.Init(-0.5f, -0.5f, -0.5f);
-		pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-		pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+		pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 		cMeshEditor.Collapse();
 		AssertInt(48, cMesh.NumFaces());
 		AssertInt(24, cMeshEditor.NumPolygons());

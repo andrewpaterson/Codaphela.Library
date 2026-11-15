@@ -33,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothFaces::Init(void)
 {
+	PreInit();
+	PostInit();
 }
 
 
@@ -40,9 +42,9 @@ void CMeshSmoothFaces::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothFaces::Kill(void)
+void CMeshSmoothFaces::Class(void)
 {
-	CMeshModifier::Kill();
+	CMeshModifier::Class();
 }
 
 

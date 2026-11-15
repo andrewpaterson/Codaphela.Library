@@ -34,9 +34,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::Init(uint32 uiAddGroup)
 {
+	PreInit();
+
 	muiAddGroup = uiAddGroup;
 	meGenerationStyle = SGS_None;
 	mfSharpAngle = 22.5f;
+
+	PostInit();
 }
 
 
@@ -44,9 +48,12 @@ void CMeshSmoothGroups::Init(uint32 uiAddGroup)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::Kill(void)
+void CMeshSmoothGroups::Class(void)
 {
-	CMeshModifier::Kill();
+	CMeshModifier::Class();
+	U_UInt32(muiAddGroup);
+	U_Enum(meGenerationStyle);
+	U_Float32(mfSharpAngle);
 }
 
 

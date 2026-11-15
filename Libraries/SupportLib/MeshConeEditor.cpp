@@ -35,6 +35,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshConeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iTopCircleSegments, int iBottomCircleSegments, int iRingSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection);
 	msStart.Init(psStart);
 	mfTopRadius = fTopRadius;
@@ -44,6 +46,8 @@ void CMeshConeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, fl
 	miRingSegments = iRingSegments;
 	miTopCircleSegments	= iTopCircleSegments;
 	miBottomCircleSegments = iBottomCircleSegments;
+
+	PostInit();
 }
 
 
@@ -51,9 +55,57 @@ void CMeshConeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, fl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshConeEditor::Kill(void)
+void CMeshConeEditor::Class(void)
 {
-	CMeshSourceModifier::Kill();
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msStart);
+	U_Float32(mfTopRadius);
+	U_Float32(mfBottomRadius);
+	U_Float32(mfLength);
+	U_SInt(miWedgeSegments);
+	U_SInt(miTopCircleSegments);
+	U_SInt(miBottomCircleSegments);
+	U_SInt(miRingSegments);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The editors of its top, its side and its bottom, briefly, for working out
+// its sizes and generating it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshConeEditor::InitParts(CMeshDiscEditor* pcTopDisc, CMeshRingEditor* pcRing, CMeshDiscEditor* pcBottomDisc)
+{
+	SFloat32Vec3	sTopCenter;
+
+	sTopCenter.Init(&msZDirection);
+	sTopCenter *= mfLength;
+	sTopCenter.Add(&msStart);
+
+	pcTopDisc->Init(&msZDirection, &sTopCenter, 0.0f, mfTopRadius, miWedgeSegments, miTopCircleSegments);
+	pcTopDisc->SetFaceName(1);
+
+	pcRing->Init(&msZDirection, &msStart, mfTopRadius, mfBottomRadius, mfLength, miWedgeSegments, miRingSegments);
+	pcRing->SetZOffsets(1, 1);
+	pcRing->SetFaceName(2);
+
+	pcBottomDisc->Init(&msZDirection, &msStart, 0.0f, mfBottomRadius, miWedgeSegments, miBottomCircleSegments);
+	pcBottomDisc->SetFlipFaces(true);
+	pcBottomDisc->SetFaceName(3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshConeEditor::KillParts(CMeshDiscEditor* pcTopDisc, CMeshRingEditor* pcRing, CMeshDiscEditor* pcBottomDisc)
+{
+	pcBottomDisc->Kill();
+	pcRing->Kill();
+	pcTopDisc->Kill();
 }
 
 
@@ -63,20 +115,24 @@ void CMeshConeEditor::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshConeEditor::ExpectedFaceChunkSize(void)
 {
-	int iNumFaces;
+	CMeshDiscEditor		cTopDisc;
+	CMeshRingEditor		cRing;
+	CMeshDiscEditor		cBottomDisc;
+	int					iNumFaces;
 
-	iNumFaces = mcTopDisc.ExpectedFaceChunkSize();
+	InitParts(&cTopDisc, &cRing, &cBottomDisc);
+	iNumFaces = cTopDisc.ExpectedFaceChunkSize();
 	if (miRingSegments > 2)
 	{
-		iNumFaces += mcRing.ExpectedFaceChunkSize();
+		iNumFaces += cRing.ExpectedFaceChunkSize();
 		iNumFaces += miWedgeSegments * 2 * 2;
 	}
 	else
 	{
 		iNumFaces += miWedgeSegments * 2;
 	}
-	iNumFaces += mcBottomDisc.ExpectedFaceChunkSize();
-
+	iNumFaces += cBottomDisc.ExpectedFaceChunkSize();
+	KillParts(&cTopDisc, &cRing, &cBottomDisc);
 	return iNumFaces;
 }
 
@@ -87,13 +143,17 @@ int CMeshConeEditor::ExpectedFaceChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshConeEditor::ExpectedCornerChunkSize(void)
 {
-	int	iNumVerticies;
+	CMeshDiscEditor		cTopDisc;
+	CMeshRingEditor		cRing;
+	CMeshDiscEditor		cBottomDisc;
+	int					iNumCorners;
 
-	iNumVerticies = mcTopDisc.ExpectedCornerChunkSize();
-	iNumVerticies += mcRing.ExpectedCornerChunkSize();
-	iNumVerticies += mcBottomDisc.ExpectedCornerChunkSize();
-
-	return iNumVerticies;
+	InitParts(&cTopDisc, &cRing, &cBottomDisc);
+	iNumCorners = cTopDisc.ExpectedCornerChunkSize();
+	iNumCorners += cRing.ExpectedCornerChunkSize();
+	iNumCorners += cBottomDisc.ExpectedCornerChunkSize();
+	KillParts(&cTopDisc, &cRing, &cBottomDisc);
+	return iNumCorners;
 }
 
 
@@ -103,49 +163,34 @@ int CMeshConeEditor::ExpectedCornerChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConeEditor::Generate(CMeshEditor* pcMeshEditor)
 {
-	SFloat32Vec3				sTopCenter;
+	CMeshDiscEditor		cTopDisc;
+	CMeshRingEditor		cRing;
+	CMeshDiscEditor		cBottomDisc;
 	int					iFirstRing;
 	int					iLastRing;
 	int					iLastTop;
 	int					iLastBottom;
 
-	sTopCenter.Init(&msZDirection);
-	sTopCenter *= mfLength;
-	sTopCenter.Add(&msStart);
+	InitParts(&cTopDisc, &cRing, &cBottomDisc);
 
-	mcTopDisc.Init(&msZDirection, &sTopCenter, 0.0f, mfTopRadius, miWedgeSegments, miTopCircleSegments);
-	mcTopDisc.SetFaceName(1);
-
-	mcRing.Init(&msZDirection, &msStart, mfTopRadius, mfBottomRadius, mfLength, miWedgeSegments, miRingSegments);
-	mcRing.SetZOffsets(1, 1);
-	mcRing.SetFaceName(2);
-
-	mcBottomDisc.Init(&msZDirection, &msStart, 0.0f, mfBottomRadius, miWedgeSegments, miBottomCircleSegments);
-	mcBottomDisc.SetFlipFaces(true);
-	mcBottomDisc.SetFaceName(3);
-
-	mcTopDisc.Generate(pcMeshEditor);
+	cTopDisc.Generate(pcMeshEditor);
 	iLastTop = pcMeshEditor->NumCorners() - miWedgeSegments;
 
-	mcBottomDisc.Generate(pcMeshEditor);
+	cBottomDisc.Generate(pcMeshEditor);
 	iLastBottom = pcMeshEditor->NumCorners() - miWedgeSegments;
 
 	if (miRingSegments > 2)
 	{
 		iFirstRing = pcMeshEditor->NumCorners();
-		mcRing.Generate(pcMeshEditor);
+		cRing.Generate(pcMeshEditor);
 		iLastRing = pcMeshEditor->NumCorners() - miWedgeSegments;
-
-		mcRing.AddZStrip(pcMeshEditor, iLastRing, iLastTop, true);
-		mcRing.AddZStrip(pcMeshEditor, iLastBottom, iFirstRing, true);
+		cRing.AddZStrip(pcMeshEditor, iLastRing, iLastTop, true);
+		cRing.AddZStrip(pcMeshEditor, iLastBottom, iFirstRing, true);
 	}
 	else
 	{
-		mcRing.AddZStrip(pcMeshEditor, iLastBottom, iLastTop, true);
+		cRing.AddZStrip(pcMeshEditor, iLastBottom, iLastTop, true);
 	}
 
-	mcTopDisc.Kill();
-	mcRing.Kill();
-	mcBottomDisc.Kill();
+	KillParts(&cTopDisc, &cRing, &cBottomDisc);
 }
-

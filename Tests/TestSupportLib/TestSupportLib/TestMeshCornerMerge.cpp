@@ -53,11 +53,10 @@ static void TestMeshCornerMergeAddFace(CMesh* pcMesh, int iCorner1, int iCorner2
 //////////////////////////////////////////////////////////////////////////
 static Ptr<CMesh> TestMeshCornerMergeOutput(CMeshModifierStack* pcStack, Ptr<CMesh> pSource, float32 fCellSize)
 {
-	CMeshCornerMerge*	pcMerge;
+	Ptr<CMeshCornerMerge>	pMerge;
 
 	pcStack->Init(pSource);
-	pcMerge = pcStack->AddModifier<CMeshCornerMerge>();
-	pcMerge->Init(fCellSize);
+	pMerge = pcStack->AddModifier<CMeshCornerMerge>(fCellSize);
 	return pcStack->GetOutput();
 }
 

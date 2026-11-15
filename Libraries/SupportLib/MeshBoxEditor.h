@@ -30,6 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshBoxEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshBoxEditor);
+DESTRUCTABLE(CMeshBoxEditor);
 public:
 	SFloat32Vec3 	msXDirection;
 	SFloat32Vec3 	msYDirection; 
@@ -40,7 +41,7 @@ public:
 	int			miZSegments;
 
 	void	Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments, int iZSegments);
-	void	Kill(void);
+	void	Class(void) override;
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 

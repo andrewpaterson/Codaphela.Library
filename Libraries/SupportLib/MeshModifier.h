@@ -24,19 +24,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_MODIFIER_H__
 #define __MESH_MODIFIER_H__
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
 #include "Mesh.h"
 
 
 //A modifier leaves the mesh it is given as it was and returns the result (see CMeshModifierStack::GetOutput).
 class CMeshEditor;
-class CMeshModifier : public CUnknown
+class CMeshModifier : public CObject
 {
 CONSTRUCTABLE(CMeshModifier);
+DESTRUCTABLE(CMeshModifier);
 public:
-	void			Kill(void);
+	void				Init(void);
+	void				Class(void) override;
+	void				Free(void) override;
 
-	virtual Ptr<CMesh>	Modify(Ptr<CMesh> pMesh);  //Returns pMesh itself if there is nothing to change.
+	virtual Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) = 0;  //Returns pMesh itself if there is nothing to change.
 
 
 protected:

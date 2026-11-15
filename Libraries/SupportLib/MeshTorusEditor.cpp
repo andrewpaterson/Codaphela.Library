@@ -33,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshTorusEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCentre, float32 fRadius, float32 fTubeRadius, int iWedgeSegments, int iTubeSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection);
 	msZDirection.Normalize();
 	msCentre.Init(psCentre);
@@ -42,6 +44,26 @@ void CMeshTorusEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCentre, 
 	miTubeSegments = iTubeSegments;
 	mbFlipFaces = false;
 	miFaceName = 0;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshTorusEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msCentre);
+	U_Float32(mfRadius);
+	U_Float32(mfTubeRadius);
+	U_SInt(miWedgeSegments);
+	U_SInt(miTubeSegments);
+	U_Bool(mbFlipFaces);
+	U_SInt(miFaceName);
 }
 
 
@@ -62,16 +84,6 @@ void CMeshTorusEditor::SetFlipFaces(bool bFlipFaces)
 void CMeshTorusEditor::SetFaceName(int iFaceName)
 {
 	miFaceName = iFaceName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshTorusEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

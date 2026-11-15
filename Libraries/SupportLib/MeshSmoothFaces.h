@@ -30,9 +30,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshSmoothFaces : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothFaces);
+DESTRUCTABLE(CMeshSmoothFaces);
 public:
 	void 	Init(void);
-	void 	Kill(void);
+	void 	Class(void) override;
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
 

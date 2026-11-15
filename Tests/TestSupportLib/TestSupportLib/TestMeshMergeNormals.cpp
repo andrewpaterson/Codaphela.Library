@@ -72,7 +72,7 @@ static void TestMeshMergeNormalsSetFace(CMesh* pcMesh, int iFace, float32 fDegre
 static Ptr<CMesh> TestMeshMergeNormalsOutput(CMeshModifierStack* pcStack, Ptr<CMesh> pSource, float32 fDegrees)
 {
 	pcStack->Init(pSource);
-	pcStack->AddModifier<CMeshMergeNormals>()->Init(fDegrees * TEST_MESH_MERGE_NORMALS_RADIANS);
+	pcStack->AddModifier<CMeshMergeNormals>(fDegrees * TEST_MESH_MERGE_NORMALS_RADIANS);
 	return pcStack->GetOutput();
 }
 
@@ -232,7 +232,7 @@ void TestMeshMergeNormalsNothingToDo(void)
 	pOutput = TestMeshMergeNormalsOutput(&cStack, pSource, 10);
 	AssertFalse(pOutput == pSource);
 	cStack.Flatten();
-	cStack.AddModifier<CMeshMergeNormals>()->Init(10 * TEST_MESH_MERGE_NORMALS_RADIANS);
+	cStack.AddModifier<CMeshMergeNormals>(10 * TEST_MESH_MERGE_NORMALS_RADIANS);
 	AssertTrue(cStack.GetOutput() == pOutput);
 	cStack.Kill();
 

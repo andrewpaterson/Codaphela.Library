@@ -80,8 +80,8 @@ public:
 
 	void	RemoveModifiers(void);
 
-	template<typename M>
-	M*		AddModifier(void);
+	template<class M, typename ... Args>
+	Ptr<M>	AddModifier(Args&& ... args);
 
 	int		NumCorners(void);
 	int		NumFaces(void);
@@ -120,10 +120,10 @@ protected:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<typename M>
-M* CMeshEditor::AddModifier(void)
+template<class M, typename ... Args>
+Ptr<M> CMeshEditor::AddModifier(Args&& ... args)
 {
-	return mcModifiers.AddModifier<M>();
+	return mcModifiers.AddModifier<M>(args ...);
 }
 
 

@@ -33,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshFlatFaces::Init(void)
 {
+	PreInit();
+	PostInit();
 }
 
 
@@ -40,9 +42,9 @@ void CMeshFlatFaces::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshFlatFaces::Kill(void)
+void CMeshFlatFaces::Class(void)
 {
-	CMeshModifier::Kill();
+	CMeshModifier::Class();
 }
 
 

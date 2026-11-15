@@ -31,11 +31,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshFixReversed : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshFixReversed);
+DESTRUCTABLE(CMeshFixReversed);
 protected:
 	size		muiNumFixed;
 
 public:
 	void		Init(void);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 

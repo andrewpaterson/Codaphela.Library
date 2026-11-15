@@ -43,6 +43,8 @@ static const int gaaiIcosahedronFaces[GEOSPHERE_ICOSAHEDRON_FACES][3] =
 //////////////////////////////////////////////////////////////////////////
 void CMeshGeosphereEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCentre, float32 fRadius, int iSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection);
 	msZDirection.Normalize();
 	msCentre.Init(psCentre);
@@ -50,6 +52,24 @@ void CMeshGeosphereEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCent
 	miSegments = iSegments;
 	mbFlipFaces = false;
 	miFaceName = 0;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshGeosphereEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msCentre);
+	U_Float32(mfRadius);
+	U_SInt(miSegments);
+	U_Bool(mbFlipFaces);
+	U_SInt(miFaceName);
 }
 
 
@@ -70,16 +90,6 @@ void CMeshGeosphereEditor::SetFlipFaces(bool bFlipFaces)
 void CMeshGeosphereEditor::SetFaceName(int iFaceName)
 {
 	miFaceName = iFaceName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshGeosphereEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

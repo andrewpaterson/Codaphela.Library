@@ -33,6 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshTubeEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshTubeEditor);
+DESTRUCTABLE(CMeshTubeEditor);
 public:
 	SFloat32Vec3	msZDirection;
 	SFloat32Vec3	msStart;
@@ -46,7 +47,7 @@ public:
 
 	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fInnerRadius, float32 fOuterRadius, float32 fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments);
 	void	SetFlipFaces(bool bFlipFaces);
-	void	Kill(void);
+	void	Class(void) override;
 
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);

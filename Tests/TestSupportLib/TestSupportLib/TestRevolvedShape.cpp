@@ -124,7 +124,7 @@ void TestRevolvedShapeCylinder(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshCylinderEditor>()->Init(&sAxis, &sStart, 2.0f, 5.0f, 24, 2, 3);
+	cEditor.AddModifier<CMeshCylinderEditor>(&sAxis, &sStart, 2.0f, 5.0f, 24, 2, 3);
 	cEditor.Collapse();
 	AssertShapeOnMesh(&pCylinder, &cMesh);
 	cEditor.Kill();
@@ -186,7 +186,7 @@ void TestRevolvedShapeCone(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshConeEditor>()->Init(&sAxis, &sStart, 1.0f, 2.0f, 4.0f, 24, 2, 2, 3);
+	cEditor.AddModifier<CMeshConeEditor>(&sAxis, &sStart, 1.0f, 2.0f, 4.0f, 24, 2, 2, 3);
 	cEditor.Collapse();
 	AssertShapeOnMesh(&pCone, &cMesh);
 	cEditor.Kill();
@@ -232,7 +232,7 @@ void TestRevolvedShapeTube(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshTubeEditor>()->Init(&sAxis, &sStart, 1.0f, 2.0f, 3.0f, 24, 2, 3);
+	cEditor.AddModifier<CMeshTubeEditor>(&sAxis, &sStart, 1.0f, 2.0f, 3.0f, 24, 2, 3);
 	cEditor.Collapse();
 	AssertShapeOnMesh(&pTube, &cMesh);
 	cEditor.Kill();
@@ -277,7 +277,7 @@ void TestRevolvedShapeTorus(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshTorusEditor>()->Init(&sAxis, &sCenter, 3.0f, 1.0f, 24, 12);
+	cEditor.AddModifier<CMeshTorusEditor>(&sAxis, &sCenter, 3.0f, 1.0f, 24, 12);
 	cEditor.Collapse();
 	AssertShapeOnMesh(&pTorus, &cMesh);
 	cEditor.Kill();

@@ -3,6 +3,7 @@
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshModifierStack.h"
+#include "SupportLib/MeshSphereEditor.h"
 #include "TestLib/Assert.h"
 
 
@@ -38,6 +39,7 @@ size CountMeshMemoryObjects(const char* szClassName)
 class CMeshTestMoveModifier : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshTestMoveModifier);
+DESTRUCTABLE(CMeshTestMoveModifier);
 public:
 	float32	mfScale;
 	float32	mfAdd;
@@ -45,9 +47,19 @@ public:
 
 	void Init(float32 fScale, float32 fAdd)
 	{
+		PreInit();
 		mfScale = fScale;
 		mfAdd = fAdd;
 		miCalls = 0;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CMeshModifier::Class();
+		U_Float32(mfScale);
+		U_Float32(mfAdd);
+		U_SInt(miCalls);
 	}
 
 	Ptr<CMesh> Modify(Ptr<CMesh> pMesh) override
@@ -66,6 +78,7 @@ public:
 class CMeshTestSameModifier : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshTestSameModifier);
+DESTRUCTABLE(CMeshTestSameModifier);
 public:
 	Ptr<CMesh> Modify(Ptr<CMesh> pMesh) override
 	{
@@ -95,18 +108,16 @@ static Ptr<CMesh> TestMeshOneCorner(float32 x)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshModifierStackOutput(void)
 {
-	CMeshModifierStack		cStack;
-	Ptr<CMesh>				pSource;
-	Ptr<CMesh>				pOutput;
-	CMeshTestMoveModifier*	pcDouble;
-	CMeshTestMoveModifier*	pcAdd;
+	CMeshModifierStack			cStack;
+	Ptr<CMesh>					pSource;
+	Ptr<CMesh>					pOutput;
+	Ptr<CMeshTestMoveModifier>	pDouble;
+	Ptr<CMeshTestMoveModifier>	pAdd;
 
 	pSource = TestMeshOneCorner(3);
 	cStack.Init(pSource);
-	pcDouble = cStack.AddModifier<CMeshTestMoveModifier>();
-	pcDouble->Init(2, 0);
-	pcAdd = cStack.AddModifier<CMeshTestMoveModifier>();
-	pcAdd->Init(1, 1);
+	pDouble = cStack.AddModifier<CMeshTestMoveModifier>(2, 0);
+	pAdd = cStack.AddModifier<CMeshTestMoveModifier>(1, 1);
 
 	pOutput = cStack.GetOutput();
 	AssertFloat(7, pOutput->GetPosition(0)->x, 3);
@@ -125,28 +136,26 @@ void TestMeshModifierStackOutput(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshModifierStackKeepsOutput(void)
 {
-	CMeshModifierStack		cStack;
-	Ptr<CMesh>				pOutput;
-	CMeshTestMoveModifier*	pcAdd;
-	CMeshTestMoveModifier*	pcDouble;
+	CMeshModifierStack			cStack;
+	Ptr<CMesh>					pOutput;
+	Ptr<CMeshTestMoveModifier>	pAdd;
+	Ptr<CMeshTestMoveModifier>	pDouble;
 
 	cStack.Init(TestMeshOneCorner(3));
-	pcAdd = cStack.AddModifier<CMeshTestMoveModifier>();
-	pcAdd->Init(1, 1);
+	pAdd = cStack.AddModifier<CMeshTestMoveModifier>(1, 1);
 
 	pOutput = cStack.GetOutput();
 	AssertTrue(cStack.GetOutput() == pOutput);
-	AssertInt(1, pcAdd->miCalls);
+	AssertInt(1, pAdd->miCalls);
 
 	cStack.Touch();
 	AssertFloat(4, cStack.GetOutput()->GetPosition(0)->x, 3);
 	AssertFalse(cStack.GetOutput() == pOutput);
-	AssertInt(2, pcAdd->miCalls);
+	AssertInt(2, pAdd->miCalls);
 
-	pcDouble = cStack.AddModifier<CMeshTestMoveModifier>();
-	pcDouble->Init(2, 0);
+	pDouble = cStack.AddModifier<CMeshTestMoveModifier>(2, 0);
 	AssertFloat(8, cStack.GetOutput()->GetPosition(0)->x, 3);
-	AssertInt(3, pcAdd->miCalls);
+	AssertInt(3, pAdd->miCalls);
 
 	cStack.Kill();
 }
@@ -172,7 +181,7 @@ void TestMeshModifierStackNothingToDo(void)
 
 	cStack.Flatten();
 	AssertTrue(cStack.GetSource() == pSource);
-	AssertInt(0, cStack.NumEditors());
+	AssertInt(0, cStack.NumModifiers());
 
 	cStack.Kill();
 }
@@ -186,23 +195,22 @@ void TestMeshModifierStackNothingToDo(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshModifierStackFlatten(void)
 {
-	CMeshModifierStack		cStack;
-	Ptr<CMesh>				pOldSource;
-	Ptr<CMesh>				pOutput;
-	CMeshTestMoveModifier*	pcAdd;
+	CMeshModifierStack			cStack;
+	Ptr<CMesh>					pOldSource;
+	Ptr<CMesh>					pOutput;
+	Ptr<CMeshTestMoveModifier>	pAdd;
 
 	pOldSource = TestMeshOneCorner(3);
 	cStack.Init(pOldSource);
-	pcAdd = cStack.AddModifier<CMeshTestMoveModifier>();
-	pcAdd->Init(1, 1);
+	pAdd = cStack.AddModifier<CMeshTestMoveModifier>(1, 1);
 	pOutput = cStack.GetOutput();
-	AssertInt(1, pcAdd->miCalls);
+	AssertInt(1, pAdd->miCalls);
 
 	cStack.Flatten();
 
 	AssertTrue(cStack.GetSource() == pOutput);
 	AssertTrue(cStack.GetOutput() == pOutput);
-	AssertInt(0, cStack.NumEditors());
+	AssertInt(0, cStack.NumModifiers());
 	AssertFloat(3, pOldSource->GetPosition(0)->x, 3);
 	AssertFloat(4, cStack.GetSource()->GetPosition(0)->x, 3);
 
@@ -245,23 +253,22 @@ void TestMeshEditorOutputIsMesh(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshEditorOutputChanges(void)
 {
-	Ptr<CMeshEditor>		pEditor;
-	Ptr<CMesh>				pOutput;
-	CMeshTestMoveModifier*	pcAdd;
-	SFloat32Vec3			sPosition;
-	size					uiStructure;
-	size					uiShape;
+	Ptr<CMeshEditor>			pEditor;
+	Ptr<CMesh>					pOutput;
+	Ptr<CMeshTestMoveModifier>	pAdd;
+	SFloat32Vec3				sPosition;
+	size						uiStructure;
+	size						uiShape;
 
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddCorner(3, 0, 0);
-	pcAdd = pEditor->AddModifier<CMeshTestMoveModifier>();
-	pcAdd->Init(1, 1);
+	pAdd = pEditor->AddModifier<CMeshTestMoveModifier>(1, 1);
 
 	pOutput = pEditor->GetOutput();
 	AssertFloat(4, pOutput->GetPosition(0)->x, 3);
 	AssertFloat(3, pEditor->mpMesh->GetPosition(0)->x, 3);
 	AssertTrue(pEditor->GetOutput() == pOutput);
-	AssertInt(1, pcAdd->miCalls);
+	AssertInt(1, pAdd->miCalls);
 
 	uiStructure = pEditor->NumStructureChanges();
 	uiShape = pEditor->NumShapeChanges();
@@ -270,22 +277,22 @@ void TestMeshEditorOutputChanges(void)
 	AssertSize(uiStructure, pEditor->NumStructureChanges());
 	AssertSize(uiShape + 1, pEditor->NumShapeChanges());
 	pEditor->GetOutput();
-	AssertInt(2, pcAdd->miCalls);
+	AssertInt(2, pAdd->miCalls);
 
 	pEditor->AddCorner(1, 1, 1);
 	AssertSize(uiStructure + 1, pEditor->NumStructureChanges());
 	AssertSize(uiShape + 1, pEditor->NumShapeChanges());
 	pOutput = pEditor->GetOutput();
-	AssertInt(3, pcAdd->miCalls);
+	AssertInt(3, pAdd->miCalls);
 	AssertTrue(pEditor->GetOutput() == pOutput);
-	AssertInt(3, pcAdd->miCalls);
+	AssertInt(3, pAdd->miCalls);
 
 	//Let go, it's made again from the same mesh.
 	pEditor->ClearOutput();
 	pOutput = NULL;
 	AssertSize(1, CountMeshMemoryObjects("CMesh"));
 	AssertFloat(4, pEditor->GetOutput()->GetPosition(0)->x, 3);
-	AssertInt(4, pcAdd->miCalls);
+	AssertInt(4, pAdd->miCalls);
 }
 
 
@@ -298,15 +305,14 @@ void TestMeshEditorOutputChanges(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshEditorModifierChanges(void)
 {
-	Ptr<CMeshEditor>		pEditor;
-	CMeshTestMoveModifier*	pcAdd;
+	Ptr<CMeshEditor>			pEditor;
+	Ptr<CMeshTestMoveModifier>	pAdd;
 
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddCorner(3, 0, 0);
 	AssertSize(0, pEditor->NumModifierChanges());
 
-	pcAdd = pEditor->AddModifier<CMeshTestMoveModifier>();
-	pcAdd->Init(1, 1);
+	pAdd = pEditor->AddModifier<CMeshTestMoveModifier>(1, 1);
 	AssertSize(1, pEditor->NumModifierChanges());
 
 	pEditor->GetOutput();
@@ -314,14 +320,14 @@ void TestMeshEditorModifierChanges(void)
 	pEditor->AddCorner(1, 1, 1);
 	pEditor->GetOutput();
 	AssertSize(1, pEditor->NumModifierChanges());
-	AssertInt(2, pcAdd->miCalls);
+	AssertInt(2, pAdd->miCalls);
 
 	pEditor->mcModifiers.Touch();
 	AssertSize(2, pEditor->NumModifierChanges());
 
 	pEditor->Collapse();
 	AssertSize(3, pEditor->NumModifierChanges());
-	AssertInt(0, pEditor->mcModifiers.NumEditors());
+	AssertInt(0, pEditor->mcModifiers.NumModifiers());
 }
 
 
@@ -333,12 +339,12 @@ void TestMeshEditorModifierChanges(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshEditorScale(void)
 {
-	Ptr<CMeshEditor>		pEditor;
-	CMeshTestMoveModifier*	pcAdd;
-	SFloat32Vec3*			psPosition;
-	SFloat32Vec3			sNormal;
-	size					uiStructure;
-	size					uiShape;
+	Ptr<CMeshEditor>			pEditor;
+	Ptr<CMeshTestMoveModifier>	pAdd;
+	SFloat32Vec3*				psPosition;
+	SFloat32Vec3				sNormal;
+	size						uiStructure;
+	size						uiShape;
 
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->mpMesh->mcNormals.mbInUse = true;
@@ -346,10 +352,9 @@ void TestMeshEditorScale(void)
 	pEditor->AddCorner(4, 0, 0);
 	pEditor->AddCorner(0, 4, 0);
 	pEditor->AddFace(0, 1, 2);
-	pcAdd = pEditor->AddModifier<CMeshTestMoveModifier>();
-	pcAdd->Init(1, 1);
+	pAdd = pEditor->AddModifier<CMeshTestMoveModifier>(1, 1);
 	pEditor->GetOutput();
-	AssertInt(1, pcAdd->miCalls);
+	AssertInt(1, pAdd->miCalls);
 
 	AssertLSize(1, pEditor->mpMesh->mcNormals.mcNormals.NumElements());
 	sNormal = *pEditor->mpMesh->mcNormals.mcNormals.Get(0);
@@ -370,7 +375,47 @@ void TestMeshEditorScale(void)
 	AssertFloat(sNormal.z, pEditor->mpMesh->mcNormals.mcNormals.Get(0)->z, 5);
 
 	AssertFloat(1001, pEditor->GetOutput()->GetPosition(0)->x, 3);
-	AssertInt(2, pcAdd->miCalls);
+	AssertInt(2, pAdd->miCalls);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A modifier is an object its stack holds: GetModifier gives the one
+// AddModifier made, a setting changed through it and Touch make the output
+// again, and the modifiers go when their editor does.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshEditorModifiersAreObjects(void)
+{
+	Ptr<CMeshEditor>			pEditor;
+	Ptr<CMeshTestMoveModifier>	pAdd;
+	SFloat32Vec3				sAxis;
+	SFloat32Vec3				sCentre;
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddCorner(3, 0, 0);
+	pAdd = pEditor->AddModifier<CMeshTestMoveModifier>(1, 1);
+	AssertInt(1, pEditor->mcModifiers.NumModifiers());
+	AssertTrue(&pEditor->mcModifiers.GetModifier<CMeshTestMoveModifier>() == &pAdd);
+	AssertNull(&pEditor->mcModifiers.GetModifier<CMeshTestSameModifier>());
+	AssertFloat(4, pEditor->GetOutput()->GetPosition(0)->x, 3);
+
+	pAdd->mfAdd = 10;
+	pEditor->mcModifiers.Touch();
+	AssertFloat(13, pEditor->GetOutput()->GetPosition(0)->x, 3);
+
+	sAxis.Init(0, 0, 1);
+	sCentre.Init(0, 0, 0);
+	pEditor->AddModifier<CMeshSphereEditor>(&sAxis, &sCentre, 1.0f, 4, 3);
+	AssertInt(2, pEditor->mcModifiers.NumModifiers());
+	AssertSize(1, CountMeshMemoryObjects("CMeshSphereEditor"));
+	AssertSize(1, CountMeshMemoryObjects("CMeshTestMoveModifier"));
+
+	pAdd = NULL;
+	pEditor = NULL;
+	AssertSize(0, CountMeshMemoryObjects("CMeshSphereEditor"));
+	AssertSize(0, CountMeshMemoryObjects("CMeshTestMoveModifier"));
 }
 
 
@@ -400,6 +445,8 @@ void TestMeshModifierStack(void)
 	TestMeshEditorModifierChanges();
 	ObjectsFlush();
 	TestMeshEditorScale();
+	ObjectsFlush();
+	TestMeshEditorModifiersAreObjects();
 
 	ObjectsKill(false);
 	DataIOKill();

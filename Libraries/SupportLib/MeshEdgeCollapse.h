@@ -38,11 +38,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshEdgeCollapse : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshEdgeCollapse);
+DESTRUCTABLE(CMeshEdgeCollapse);
 protected:
 	float32		mfMaxError;  //In the mesh's own units.
 
 public:
 	void		Init(float32 fMaxError);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };

@@ -30,6 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshRingEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshRingEditor);
+DESTRUCTABLE(CMeshRingEditor);
 public:
 	SFloat32Vec3 	msZDirection;
 	SFloat32Vec3 	msStart;
@@ -47,7 +48,7 @@ public:
 	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
 	void	SetZOffsets(int iZStartOffset, int iZEndOffset);
-	void	Kill(void);
+	void	Class(void) override;
 
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);

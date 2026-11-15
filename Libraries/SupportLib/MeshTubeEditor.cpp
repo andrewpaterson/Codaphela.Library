@@ -33,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshTubeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fInnerRadius, float32 fOuterRadius, float32 fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection);
 	msZDirection.Normalize();
 	msStart.Init(psStart);
@@ -43,6 +45,27 @@ void CMeshTubeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, fl
 	miCircleSegments = iCircleSegments;
 	miRingSegments = iRingSegments;
 	mbFlipFaces = false;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshTubeEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msStart);
+	U_Float32(mfInnerRadius);
+	U_Float32(mfOuterRadius);
+	U_Float32(mfLength);
+	U_SInt(miWedgeSegments);
+	U_SInt(miCircleSegments);
+	U_SInt(miRingSegments);
+	U_Bool(mbFlipFaces);
 }
 
 
@@ -53,16 +76,6 @@ void CMeshTubeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, fl
 void CMeshTubeEditor::SetFlipFaces(bool bFlipFaces)
 {
 	mbFlipFaces = bFlipFaces;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshTubeEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

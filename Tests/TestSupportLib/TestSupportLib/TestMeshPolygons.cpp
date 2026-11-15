@@ -144,17 +144,15 @@ void TestMeshPolygonAdjacency(void)
 	{
 		CMeshEditor			cMeshEditor;
 		CMesh				cMesh;
-		CMeshPlaneEditor* pcPlane;
 		CArrayInt			aiAdjacent;
+		SFloat32Vec3		sXDirection(3, 0, 0);
+		SFloat32Vec3		sYDirection(0, 3, 0);
+		SFloat32Vec3		sStart(0, 0, 0);
 
 		cMesh.Init();
 		cMeshEditor.Init(&cMesh);
 
-		pcPlane = cMeshEditor.AddModifier<CMeshPlaneEditor>();
-		SFloat32Vec3	sXDirection(3, 0, 0);
-		SFloat32Vec3	sYDirection(0, 3, 0);
-		SFloat32Vec3	sStart(0, 0, 0);
-		pcPlane->Init(&sXDirection, &sYDirection, &sStart, 3, 3);
+		cMeshEditor.AddModifier<CMeshPlaneEditor>(&sXDirection, &sYDirection, &sStart, 3, 3);
 
 		cMeshEditor.Collapse();
 
@@ -360,7 +358,7 @@ void TestMeshPolygonsOnMesh(void)
 		AssertInt(0, pCopy->mcPolygons.maiFacesToPolygons.GetValue(1));
 
 		cStack.Init(pMesh);
-		cStack.AddModifier<CMeshFlatFaces>()->Init();
+		cStack.AddModifier<CMeshFlatFaces>();
 		pOutput = cStack.GetOutput();
 		AssertFalse(pOutput == pMesh);
 		AssertLSize(1, pOutput->mcPolygons.mcPolygons.NumElements());

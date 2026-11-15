@@ -34,9 +34,6 @@ class CMeshSourceModifier : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSourceModifier);
 public:
-	void		Init(void);
-	void		Kill(void);
-
 	virtual int ExpectedFaceChunkSize(void) =0;
 	virtual int ExpectedCornerChunkSize(void) =0;
 

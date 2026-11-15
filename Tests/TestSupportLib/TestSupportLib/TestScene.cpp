@@ -79,7 +79,7 @@ static void TestSceneReadMesh(Ptr<CScene> pScene)
 	AssertInt(-1, pcMesh->mcMaterials.mcFaces.GetValue(2));
 
 	//A scene file's groups are the mesh's, not a modifier's on the editor's stack.
-	AssertNull(pEditor->mcModifiers.GetModifier<CMeshSmoothGroups>());
+	AssertNull(&pEditor->mcModifiers.GetModifier<CMeshSmoothGroups>());
 	AssertTrue(pcMesh->mcSmoothing.InUse());
 	AssertTrue(pcMesh->mcSmoothing.mauiGroups.GetValue(0) == 1);
 	AssertTrue(pcMesh->mcSmoothing.mauiGroups.GetValue(1) == 1);

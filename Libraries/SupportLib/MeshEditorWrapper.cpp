@@ -202,7 +202,7 @@ CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFl
 		aiFlipped.Init();
 		for (i = 0; i < uiNumCorners; i++)
 		{
-			aiFlipped.Add(paiCorners->GetValue((uiNumCorners - i) % uiNumCorners));
+			aiFlipped.Add(paiCorners->GetValue((size)((uiNumCorners - i) % uiNumCorners)));
 		}
 		r = mpcMesh->AddPolygon(&aiFlipped);
 		aiFlipped.Kill();

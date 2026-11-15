@@ -17,17 +17,17 @@ void TestMeshSmoothGroupsOneAndZero(void)
 {
 	ObjectsInit();
 
-	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshBoxEditor*		pcBoxEditor;
-	CMeshEditor			cMeshEditor;
-	CMeshSmoothGroups*	pcSmoothing;
-	int					i;
-	SMeshNormalFace*	psFaceNormal;
-	CMeshFace*			pcFace;
+	CMesh					cMesh;
+	SFloat32Vec3			sXDirection;
+	SFloat32Vec3			sYDirection;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshBoxEditor>		pBoxEditor;
+	CMeshEditor				cMeshEditor;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
+	int						i;
+	SMeshNormalFace*		psFaceNormal;
+	CMeshFace*				pcFace;
 
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
@@ -38,11 +38,9 @@ void TestMeshSmoothGroupsOneAndZero(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(-0.5f, -0.5f, -0.5f);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
-	pcSmoothing = cMeshEditor.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init(1);
+	pSmoothing = cMeshEditor.AddModifier<CMeshSmoothGroups>(1);
 
 	cMeshEditor.Collapse();
 
@@ -67,7 +65,7 @@ void TestMeshSmoothGroupsOneAndZero(void)
 
 	//Its groups are its own now: with none, the same modifier makes it flat.
 	cMesh.mcSmoothing.SetAll(48, 0);
-	cMeshEditor.AddModifier<CMeshSmoothGroups>()->Init();
+	cMeshEditor.AddModifier<CMeshSmoothGroups>();
 	cMeshEditor.Collapse();
 
 	AssertInt(48, cMesh.NumFaces());
@@ -105,14 +103,14 @@ void TestMeshSmoothGroupsNamed(void)
 {
 	ObjectsInit();
 
-	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshBoxEditor*		pcBoxEditor;
-	CMeshEditor			cMeshEditor;
-	CMeshSmoothGroups*	pcSmoothing;
+	CMesh					cMesh;
+	SFloat32Vec3			sXDirection;
+	SFloat32Vec3			sYDirection;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshBoxEditor>		pBoxEditor;
+	CMeshEditor				cMeshEditor;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
 
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
@@ -123,12 +121,10 @@ void TestMeshSmoothGroupsNamed(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(-0.5f, -0.5f, -0.5f);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
-	pcSmoothing = cMeshEditor.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Name;
+	pSmoothing = cMeshEditor.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Name;
 
 	cMeshEditor.Collapse();
 
@@ -159,17 +155,17 @@ void TestMeshSmoothFaces(void)
 {
 	ObjectsInit();
 
-	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshBoxEditor*		pcBoxEditor;
-	CMeshEditor			cMeshEditor;
-	CMeshSmoothFaces*	pcSmoothing;
-	int					i;
-	SMeshNormalFace*	psFaceNormal;
-	CMeshFace*			pcFace;
+	CMesh					cMesh;
+	SFloat32Vec3			sXDirection;
+	SFloat32Vec3			sYDirection;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshBoxEditor>		pBoxEditor;
+	CMeshEditor				cMeshEditor;
+	Ptr<CMeshSmoothFaces>	pSmoothing;
+	int						i;
+	SMeshNormalFace*		psFaceNormal;
+	CMeshFace*				pcFace;
 
 	cMesh.Init();
 	cMesh.mcNormals.mbInUse = true;
@@ -180,11 +176,9 @@ void TestMeshSmoothFaces(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(-0.5f, -0.5f, -0.5f);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
-	pcSmoothing = cMeshEditor.AddModifier<CMeshSmoothFaces>();
-	pcSmoothing->Init();
+	pSmoothing = cMeshEditor.AddModifier<CMeshSmoothFaces>();
 
 	cMeshEditor.Collapse();
 
@@ -224,13 +218,13 @@ void TestMeshFlatFaces(void)
 	ObjectsInit();
 
 	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshBoxEditor*		pcBoxEditor;
+	SFloat32Vec3		sXDirection;
+	SFloat32Vec3		sYDirection;
+	SFloat32Vec3		sZDirection;
+	SFloat32Vec3		sStart;
+	Ptr<CMeshBoxEditor>	pBoxEditor;
 	CMeshEditor			cMeshEditor;
-	CMeshFlatFaces*		pcSmoothing;
+	Ptr<CMeshFlatFaces>	pSmoothing;
 	int					i;
 	SMeshNormalFace*	psFaceNormal;
 
@@ -243,11 +237,9 @@ void TestMeshFlatFaces(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(-0.5f, -0.5f, -0.5f);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
-	pcSmoothing = cMeshEditor.AddModifier<CMeshFlatFaces>();
-	pcSmoothing->Init();
+	pSmoothing = cMeshEditor.AddModifier<CMeshFlatFaces>();
 
 	cMeshEditor.Collapse();
 

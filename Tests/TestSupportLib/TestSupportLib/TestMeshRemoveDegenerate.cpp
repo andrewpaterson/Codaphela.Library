@@ -75,12 +75,12 @@ static Ptr<CMesh> TestMeshRemoveDegenerateMesh(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshRemoveDegenerateRemovesFaces(void)
 {
-	CMeshModifierStack		cStack;
-	Ptr<CMesh>				pSource;
-	Ptr<CMesh>				pOutput;
-	CMeshRemoveDegenerate*	pcRemove;
-	SMeshNormalFace*		psNormalFace;
-	int						k;
+	CMeshModifierStack			cStack;
+	Ptr<CMesh>					pSource;
+	Ptr<CMesh>					pOutput;
+	Ptr<CMeshRemoveDegenerate>	pRemove;
+	SMeshNormalFace*			psNormalFace;
+	int							k;
 
 	pSource = TestMeshRemoveDegenerateMesh();
 	AssertFalse(CMeshRemoveDegenerate::IsDegenerate(&pSource, 0));
@@ -90,11 +90,10 @@ void TestMeshRemoveDegenerateRemovesFaces(void)
 	AssertFalse(CMeshRemoveDegenerate::IsDegenerate(&pSource, 4));
 
 	cStack.Init(pSource);
-	pcRemove = cStack.AddModifier<CMeshRemoveDegenerate>();
-	pcRemove->Init();
+	pRemove = cStack.AddModifier<CMeshRemoveDegenerate>();
 	pOutput = cStack.GetOutput();
 	AssertFalse(pOutput == pSource);
-	AssertSize(3, pcRemove->NumRemoved());
+	AssertSize(3, pRemove->NumRemoved());
 
 	AssertInt(2, pOutput->NumFaces());
 	AssertInt(4, pOutput->NumCorners());
@@ -132,10 +131,10 @@ void TestMeshRemoveDegenerateRemovesFaces(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshRemoveDegenerateNothingToDo(void)
 {
-	CMeshModifierStack		cStack;
-	Ptr<CMesh>				pMesh;
-	CMeshRemoveDegenerate*	pcRemove;
-	SLogConfig				sLogConfig;
+	CMeshModifierStack			cStack;
+	Ptr<CMesh>					pMesh;
+	Ptr<CMeshRemoveDegenerate>	pRemove;
+	SLogConfig					sLogConfig;
 
 	pMesh = OMalloc<CMesh>();
 	pMesh->AddCorner(0, 0, 0);
@@ -143,21 +142,19 @@ void TestMeshRemoveDegenerateNothingToDo(void)
 	pMesh->AddCorner(50, 0.000001f, 0);
 	pMesh->AddFace(0, 1, 2);
 	cStack.Init(pMesh);
-	pcRemove = cStack.AddModifier<CMeshRemoveDegenerate>();
-	pcRemove->Init();
+	pRemove = cStack.AddModifier<CMeshRemoveDegenerate>();
 	AssertTrue(cStack.GetOutput() == pMesh);
-	AssertSize(0, pcRemove->NumRemoved());
+	AssertSize(0, pRemove->NumRemoved());
 	cStack.Kill();
 
 	pMesh = TestMeshRemoveDegenerateMesh();
 	pMesh->mcMaterials.mbInUse = true;
 	cStack.Init(pMesh);
-	pcRemove = cStack.AddModifier<CMeshRemoveDegenerate>();
-	pcRemove->Init();
+	pRemove = cStack.AddModifier<CMeshRemoveDegenerate>();
 	sLogConfig = gcLogger.SetSilent();
 	AssertTrue(cStack.GetOutput() == pMesh);
 	gcLogger.SetConfig(&sLogConfig);
-	AssertSize(0, pcRemove->NumRemoved());
+	AssertSize(0, pRemove->NumRemoved());
 	cStack.Kill();
 }
 

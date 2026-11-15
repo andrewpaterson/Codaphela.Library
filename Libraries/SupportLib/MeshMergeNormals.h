@@ -34,11 +34,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshMergeNormals : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshMergeNormals);
+DESTRUCTABLE(CMeshMergeNormals);
 protected:
 	float32		mfMaxAngle;  //In radians.
 
 public:
 	void		Init(float32 fMaxAngle);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };

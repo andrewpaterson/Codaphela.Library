@@ -34,6 +34,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshPlaneEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments)
 {
+	PreInit();
+
 	msXDirection.Init(psXDirection->x, psXDirection->y, psXDirection->z);
 	msYDirection.Init(psYDirection->x, psYDirection->y, psYDirection->z);
 	msStart.Init(psStart->x, psStart->y, psStart->z);
@@ -45,6 +47,29 @@ void CMeshPlaneEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirecti
 	miYE = 0;
 	mbFlipFaces = false;
 	miFaceName = 0;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshPlaneEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msXDirection);
+	U_3Float32(msYDirection);
+	U_3Float32(msStart);
+	U_SInt(miXSegments);
+	U_SInt(miYSegments);
+	U_SInt(miXI);
+	U_SInt(miXE);
+	U_SInt(miYI);
+	U_SInt(miYE);
+	U_Bool(mbFlipFaces);
+	U_SInt(miFaceName);
 }
 
 
@@ -86,16 +111,6 @@ void CMeshPlaneEditor::SetFlipFaces(bool bFlipFaces)
 void CMeshPlaneEditor::SetFaceName(int iFaceName)
 {
 	miFaceName = iFaceName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshPlaneEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

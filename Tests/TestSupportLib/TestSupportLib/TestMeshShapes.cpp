@@ -293,16 +293,16 @@ static int CountFacesNamed(CMesh* pcMesh, int iName)
 //////////////////////////////////////////////////////////////////////////
 void TestPlane(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sStart;
-	CMeshPlaneEditor*	pcPlaneEditor;
-	CMeshEditor			cMeshEditor;
-	int					iNumCorners;
-	int					iNumFaces;
-	int					iNumPositions;
-	CMeshPolygon*		pcPolygon;
+	CMesh					cMesh;
+	SFloat32Vec3			sXDirection;
+	SFloat32Vec3			sYDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshPlaneEditor>	pPlaneEditor;
+	CMeshEditor				cMeshEditor;
+	int						iNumCorners;
+	int						iNumFaces;
+	int						iNumPositions;
+	CMeshPolygon*			pcPolygon;
 
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
@@ -311,8 +311,7 @@ void TestPlane(void)
 	sYDirection.Init(0, 1, 0);
 	sStart.Init(0, 0, 0);
 	
-	pcPlaneEditor = cMeshEditor.AddModifier<CMeshPlaneEditor>();
-	pcPlaneEditor->Init(&sXDirection, &sYDirection, &sStart, 2, 2);
+	pPlaneEditor = cMeshEditor.AddModifier<CMeshPlaneEditor>(&sXDirection, &sYDirection, &sStart, 2, 2);
 
 	cMeshEditor.Collapse();
 
@@ -395,11 +394,11 @@ void TestPlane(void)
 void TestBox(void)
 {
 	CMesh				cMesh;
-	SFloat32Vec3				sXDirection;
-	SFloat32Vec3				sYDirection;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshBoxEditor*		pcBoxEditor;
+	SFloat32Vec3		sXDirection;
+	SFloat32Vec3		sYDirection;
+	SFloat32Vec3		sZDirection;
+	SFloat32Vec3		sStart;
+	Ptr<CMeshBoxEditor>	pBoxEditor;
 	CMeshEditor			cMeshEditor;
 	int					iNumCorners;
 	int					iNumFaces;
@@ -417,8 +416,7 @@ void TestBox(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(0, 0, 0);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 4, 5, 6);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 4, 5, 6);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box4x5x6.OBJ");
@@ -445,8 +443,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 2, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 2, 2);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box1x2x2.OBJ");
@@ -459,8 +456,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x2x2.OBJ");
@@ -473,8 +469,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 1, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 1, 2);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x1x2.OBJ");
@@ -487,8 +482,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 1);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 1);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x2x1.OBJ");
@@ -501,8 +495,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 1, 2);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 1, 2);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box1x1x2.OBJ");
@@ -515,8 +508,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 2, 1);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 2, 1);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box1x2x1.OBJ");
@@ -529,8 +521,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 1, 1);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 1, 1);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Box2x1x1.OBJ");
@@ -543,8 +534,7 @@ void TestBox(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 1, 1);
+	pBoxEditor = cMeshEditor.AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 1, 1, 1);
 
 	cMeshEditor.Collapse();
 
@@ -578,11 +568,11 @@ void TestBox(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDisc(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshDiscEditor*	pcDiscEditor;
-	CMeshEditor			cMeshEditor;
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshDiscEditor>	pDiscEditor;
+	CMeshEditor				cMeshEditor;
 
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(0, 0, 0);
@@ -590,8 +580,7 @@ void TestDisc(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcDiscEditor = cMeshEditor.AddModifier<CMeshDiscEditor>();
-	pcDiscEditor->Init(&sZDirection, &sStart, 0.0f, 1.0f, 3, 1);
+	pDiscEditor = cMeshEditor.AddModifier<CMeshDiscEditor>(&sZDirection, &sStart, 0.0f, 1.0f, 3, 1);
 
 	cMeshEditor.Collapse();
 
@@ -612,8 +601,7 @@ void TestDisc(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcDiscEditor = cMeshEditor.AddModifier<CMeshDiscEditor>();
-	pcDiscEditor->Init(&sZDirection, &sStart, 0.0f, 1.0f, 3, 2);
+	pDiscEditor = cMeshEditor.AddModifier<CMeshDiscEditor>(&sZDirection, &sStart, 0.0f, 1.0f, 3, 2);
 
 	cMeshEditor.Collapse();
 
@@ -639,12 +627,12 @@ void TestDisc(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRing(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshRingEditor*	pcRingEditor;
-	CMeshEditor			cMeshEditor;
-	CFileUtil			cFileUtil;
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshRingEditor>	pRingEditor;
+	CMeshEditor				cMeshEditor;
+	CFileUtil				cFileUtil;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -655,8 +643,7 @@ void TestRing(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcRingEditor = cMeshEditor.AddModifier<CMeshRingEditor>();
-	pcRingEditor->Init(&sZDirection, &sStart, 0.5f, 1.0f, 1.0f, 3, 2);
+	pRingEditor = cMeshEditor.AddModifier<CMeshRingEditor>(&sZDirection, &sStart, 0.5f, 1.0f, 1.0f, 3, 2);
 
 	cMeshEditor.Collapse();
 
@@ -681,8 +668,7 @@ void TestRing(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcRingEditor = cMeshEditor.AddModifier<CMeshRingEditor>();
-	pcRingEditor->Init(&sZDirection, &sStart, 0.5f, 1.0f, 3.0f, 12, 8);
+	pRingEditor = cMeshEditor.AddModifier<CMeshRingEditor>(&sZDirection, &sStart, 0.5f, 1.0f, 3.0f, 12, 8);
 
 	cMeshEditor.Collapse();
 
@@ -710,12 +696,12 @@ void TestRing(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCone(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3				sZDirection;
-	SFloat32Vec3				sStart;
-	CMeshConeEditor*	pcConeEditor;
-	CMeshEditor			cMeshEditor;
-	CFileUtil			cFileUtil;
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshConeEditor>	pConeEditor;
+	CMeshEditor				cMeshEditor;
+	CFileUtil				cFileUtil;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -726,8 +712,7 @@ void TestCone(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(0, 0, 0);
 
-	pcConeEditor = cMeshEditor.AddModifier<CMeshConeEditor>();
-	pcConeEditor->Init(&sZDirection, &sStart, 1.0f, 3.0f, 6.0f, 20, 3, 4, 11);
+	pConeEditor = cMeshEditor.AddModifier<CMeshConeEditor>(&sZDirection, &sStart, 1.0f, 3.0f, 6.0f, 20, 3, 4, 11);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cone20x3x4x11.OBJ");
@@ -751,8 +736,7 @@ void TestCone(void)
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
 
-	pcConeEditor = cMeshEditor.AddModifier<CMeshConeEditor>();
-	pcConeEditor->Init(&sZDirection, &sStart, 1.0f, 1.0f, 2.0f, 3, 1, 1, 2);
+	pConeEditor = cMeshEditor.AddModifier<CMeshConeEditor>(&sZDirection, &sStart, 1.0f, 1.0f, 2.0f, 3, 1, 1, 2);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cone3x1x1x2.OBJ");
@@ -783,12 +767,12 @@ void TestCone(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCylinder(void)
 {
-	CMesh					cMesh;
-	SFloat32Vec3					sZDirection;
-	SFloat32Vec3					sStart;
-	CMeshCylinderEditor*	pcCylinderEditor;
-	CMeshEditor				cMeshEditor;
-	CFileUtil				cFileUtil;
+	CMesh						cMesh;
+	SFloat32Vec3				sZDirection;
+	SFloat32Vec3				sStart;
+	Ptr<CMeshCylinderEditor>	pCylinderEditor;
+	CMeshEditor					cMeshEditor;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -799,8 +783,7 @@ void TestCylinder(void)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(0, 0, 0);
 
-	pcCylinderEditor = cMeshEditor.AddModifier<CMeshCylinderEditor>();
-	pcCylinderEditor->Init(&sZDirection, &sStart, 1.0f, 2.0f, 8, 3, 4);
+	pCylinderEditor = cMeshEditor.AddModifier<CMeshCylinderEditor>(&sZDirection, &sStart, 1.0f, 2.0f, 8, 3, 4);
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cylinder8x3x4x11.OBJ");
@@ -854,7 +837,7 @@ void TestShapeAxes(void)
 		//A disc lies across its axis, out to its radius.
 		cMesh.Init();
 		cMeshEditor.Init(&cMesh);
-		cMeshEditor.AddModifier<CMeshDiscEditor>()->Init(psZDirection, &sStart, 0.0f, 2.0f, 8, 3);
+		cMeshEditor.AddModifier<CMeshDiscEditor>(psZDirection, &sStart, 0.0f, 2.0f, 8, 3);
 		cMeshEditor.Collapse();
 
 		AssertInt(25, cMesh.NumCorners());
@@ -879,7 +862,7 @@ void TestShapeAxes(void)
 		//A ring goes from its bottom radius at the start to its top radius at the end.
 		cMesh.Init();
 		cMeshEditor.Init(&cMesh);
-		cMeshEditor.AddModifier<CMeshRingEditor>()->Init(psZDirection, &sStart, 0.5f, 1.0f, 3.0f, 12, 8);
+		cMeshEditor.AddModifier<CMeshRingEditor>(psZDirection, &sStart, 0.5f, 1.0f, 3.0f, 12, 8);
 		cMeshEditor.Collapse();
 
 		AssertInt(96, cMesh.NumCorners());
@@ -898,7 +881,7 @@ void TestShapeAxes(void)
 		//A cone is closed and faces out, with its ends across its axis.
 		cMesh.Init();
 		cMeshEditor.Init(&cMesh);
-		cMeshEditor.AddModifier<CMeshConeEditor>()->Init(psZDirection, &sStart, 1.0f, 3.0f, 6.0f, 20, 3, 4, 11);
+		cMeshEditor.AddModifier<CMeshConeEditor>(psZDirection, &sStart, 1.0f, 3.0f, 6.0f, 20, 3, 4, 11);
 		cMeshEditor.Collapse();
 
 		AssertInt(322, cMesh.NumCorners());
@@ -918,12 +901,12 @@ void TestShapeAxes(void)
 //////////////////////////////////////////////////////////////////////////
 void TestSphere(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3		sZDirection;
-	SFloat32Vec3		sCentre;
-	CMeshSphereEditor*	pcSphereEditor;
-	CMeshEditor			cMeshEditor;
-	CFileUtil			cFileUtil;
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sCentre;
+	Ptr<CMeshSphereEditor>	pSphereEditor;
+	CMeshEditor				cMeshEditor;
+	CFileUtil				cFileUtil;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -933,10 +916,9 @@ void TestSphere(void)
 
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	pcSphereEditor = cMeshEditor.AddModifier<CMeshSphereEditor>();
-	pcSphereEditor->Init(&sZDirection, &sCentre, 2.0f, 8, 4);
-	AssertInt(26, pcSphereEditor->ExpectedCornerChunkSize());
-	AssertInt(48, pcSphereEditor->ExpectedFaceChunkSize());
+	pSphereEditor = cMeshEditor.AddModifier<CMeshSphereEditor>(&sZDirection, &sCentre, 2.0f, 8, 4);
+	AssertInt(26, pSphereEditor->ExpectedCornerChunkSize());
+	AssertInt(48, pSphereEditor->ExpectedFaceChunkSize());
 
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Sphere8x4.OBJ");
@@ -961,7 +943,7 @@ void TestSphere(void)
 	sCentre.Init(0, 0, 0);
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	cMeshEditor.AddModifier<CMeshSphereEditor>()->Init(&sZDirection, &sCentre, 1.0f, 3, 2);
+	cMeshEditor.AddModifier<CMeshSphereEditor>(&sZDirection, &sCentre, 1.0f, 3, 2);
 	cMeshEditor.Collapse();
 	AssertInt(5, cMesh.NumCorners());
 	AssertInt(6, cMesh.NumFaces());
@@ -975,9 +957,8 @@ void TestSphere(void)
 	sZDirection.Init(0, 2, 0);
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	pcSphereEditor = cMeshEditor.AddModifier<CMeshSphereEditor>();
-	pcSphereEditor->Init(&sZDirection, &sCentre, 1.0f, 6, 3);
-	pcSphereEditor->SetFlipFaces(true);
+	pSphereEditor = cMeshEditor.AddModifier<CMeshSphereEditor>(&sZDirection, &sCentre, 1.0f, 6, 3);
+	pSphereEditor->SetFlipFaces(true);
 	cMeshEditor.Collapse();
 	AssertInt(14, cMesh.NumCorners());
 	AssertInt(24, cMesh.NumFaces());
@@ -997,18 +978,18 @@ void TestSphere(void)
 //////////////////////////////////////////////////////////////////////////
 void TestGeosphere(void)
 {
-	CMesh					cMesh;
-	SFloat32Vec3			sZDirection;
-	SFloat32Vec3			sCentre;
-	CMeshGeosphereEditor*	pcGeosphereEditor;
-	CMeshEditor				cMeshEditor;
-	CFileUtil				cFileUtil;
-	CMeshEdge*				pcEdge;
-	SFloat32Vec3			sEdge;
-	float32					fShortest;
-	float32					fLongest;
-	float32					fLength;
-	int						i;
+	CMesh						cMesh;
+	SFloat32Vec3				sZDirection;
+	SFloat32Vec3				sCentre;
+	Ptr<CMeshGeosphereEditor>	pGeosphereEditor;
+	CMeshEditor					cMeshEditor;
+	CFileUtil					cFileUtil;
+	CMeshEdge*					pcEdge;
+	SFloat32Vec3				sEdge;
+	float32						fShortest;
+	float32						fLongest;
+	float32						fLength;
+	int							i;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -1019,7 +1000,7 @@ void TestGeosphere(void)
 	//An icosahedron.
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	cMeshEditor.AddModifier<CMeshGeosphereEditor>()->Init(&sZDirection, &sCentre, 1.0f, 1);
+	cMeshEditor.AddModifier<CMeshGeosphereEditor>(&sZDirection, &sCentre, 1.0f, 1);
 	cMeshEditor.Collapse();
 	AssertInt(12, cMesh.NumCorners());
 	AssertInt(20, cMesh.NumFaces());
@@ -1035,10 +1016,9 @@ void TestGeosphere(void)
 	sCentre.Init(-1, 0.5f, 2);
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	pcGeosphereEditor = cMeshEditor.AddModifier<CMeshGeosphereEditor>();
-	pcGeosphereEditor->Init(&sZDirection, &sCentre, 3.0f, 3);
-	AssertInt(92, pcGeosphereEditor->ExpectedCornerChunkSize());
-	AssertInt(180, pcGeosphereEditor->ExpectedFaceChunkSize());
+	pGeosphereEditor = cMeshEditor.AddModifier<CMeshGeosphereEditor>(&sZDirection, &sCentre, 3.0f, 3);
+	AssertInt(92, pGeosphereEditor->ExpectedCornerChunkSize());
+	AssertInt(180, pGeosphereEditor->ExpectedFaceChunkSize());
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Geosphere3.OBJ");
 
@@ -1072,10 +1052,9 @@ void TestGeosphere(void)
 	sZDirection.Init(1, 1, 1);
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	pcGeosphereEditor = cMeshEditor.AddModifier<CMeshGeosphereEditor>();
-	pcGeosphereEditor->Init(&sZDirection, &sCentre, 0.5f, 2);
-	pcGeosphereEditor->SetFlipFaces(true);
-	pcGeosphereEditor->SetFaceName(5);
+	pGeosphereEditor = cMeshEditor.AddModifier<CMeshGeosphereEditor>(&sZDirection, &sCentre, 0.5f, 2);
+	pGeosphereEditor->SetFlipFaces(true);
+	pGeosphereEditor->SetFaceName(5);
 	cMeshEditor.Collapse();
 	AssertInt(42, cMesh.NumCorners());
 	AssertInt(80, cMesh.NumFaces());
@@ -1096,20 +1075,20 @@ void TestGeosphere(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTorus(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3		sZDirection;
-	SFloat32Vec3		sCentre;
-	CMeshTorusEditor*	pcTorusEditor;
-	CMeshEditor			cMeshEditor;
-	CFileUtil			cFileUtil;
-	SFloat32Vec3		sNormal;
-	SFloat32Vec3		sMiddle;
-	SFloat32Vec3		sOut;
-	SFloat32Vec3*		psPosition;
-	float32				fAcross;
-	bool				bOnSurface;
-	bool				bFacing;
-	int					i;
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sCentre;
+	Ptr<CMeshTorusEditor>	pTorusEditor;
+	CMeshEditor				cMeshEditor;
+	CFileUtil				cFileUtil;
+	SFloat32Vec3			sNormal;
+	SFloat32Vec3			sMiddle;
+	SFloat32Vec3			sOut;
+	SFloat32Vec3*			psPosition;
+	float32					fAcross;
+	bool					bOnSurface;
+	bool					bFacing;
+	int						i;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -1119,10 +1098,9 @@ void TestTorus(void)
 
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	pcTorusEditor = cMeshEditor.AddModifier<CMeshTorusEditor>();
-	pcTorusEditor->Init(&sZDirection, &sCentre, 3.0f, 1.0f, 8, 6);
-	AssertInt(48, pcTorusEditor->ExpectedCornerChunkSize());
-	AssertInt(96, pcTorusEditor->ExpectedFaceChunkSize());
+	pTorusEditor = cMeshEditor.AddModifier<CMeshTorusEditor>(&sZDirection, &sCentre, 3.0f, 1.0f, 8, 6);
+	AssertInt(48, pTorusEditor->ExpectedCornerChunkSize());
+	AssertInt(96, pTorusEditor->ExpectedFaceChunkSize());
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Torus8x6.OBJ");
 
@@ -1171,16 +1149,16 @@ void TestTorus(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTube(void)
 {
-	CMesh				cMesh;
-	SFloat32Vec3		sZDirection;
-	SFloat32Vec3		sStart;
-	CMeshTubeEditor*	pcTubeEditor;
-	CMeshEditor			cMeshEditor;
-	CFileUtil			cFileUtil;
-	SFloat32Vec3*		psPosition;
-	float32				fRadius;
-	bool				bInside;
-	int					i;
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshTubeEditor>	pTubeEditor;
+	CMeshEditor				cMeshEditor;
+	CFileUtil				cFileUtil;
+	SFloat32Vec3*			psPosition;
+	float32					fRadius;
+	bool					bInside;
+	int						i;
 
 	cFileUtil.RemoveDir("Output/Shape");
 	cFileUtil.MakeDir("Output/Shape");
@@ -1190,10 +1168,9 @@ void TestTube(void)
 
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	pcTubeEditor = cMeshEditor.AddModifier<CMeshTubeEditor>();
-	pcTubeEditor->Init(&sZDirection, &sStart, 1.0f, 2.0f, 3.0f, 8, 2, 3);
-	AssertInt(64, pcTubeEditor->ExpectedCornerChunkSize());
-	AssertInt(128, pcTubeEditor->ExpectedFaceChunkSize());
+	pTubeEditor = cMeshEditor.AddModifier<CMeshTubeEditor>(&sZDirection, &sStart, 1.0f, 2.0f, 3.0f, 8, 2, 3);
+	AssertInt(64, pTubeEditor->ExpectedCornerChunkSize());
+	AssertInt(128, pTubeEditor->ExpectedFaceChunkSize());
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Tube8x2x3.OBJ");
 
@@ -1228,7 +1205,7 @@ void TestTube(void)
 	//The fewest segments: a square ring of four quads around, turned.
 	cMesh.Init();
 	cMeshEditor.Init(&cMesh);
-	cMeshEditor.AddModifier<CMeshTubeEditor>()->Init(&sZDirection, &sStart, 0.5f, 1.0f, 1.0f, 3, 1, 2);
+	cMeshEditor.AddModifier<CMeshTubeEditor>(&sZDirection, &sStart, 0.5f, 1.0f, 1.0f, 3, 1, 2);
 	cMeshEditor.Collapse();
 	AssertInt(12, cMesh.NumCorners());
 	AssertInt(24, cMesh.NumFaces());

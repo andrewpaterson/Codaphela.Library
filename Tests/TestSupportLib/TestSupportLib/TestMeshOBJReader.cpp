@@ -82,17 +82,17 @@ static SFloat32Vec3* GetFaceCornerNormal(CMesh* pcMesh, int iFace, int iFaceCorn
 //////////////////////////////////////////////////////////////////////////
 void MakeSmoothedBox(CMesh* pcMesh, CMeshEditor* pcEditor)
 {
-	SFloat32Vec3		sXDirection;
-	SFloat32Vec3		sYDirection;
-	SFloat32Vec3		sZDirection;
-	SFloat32Vec3		sStart;
-	CMeshBoxEditor*		pcBoxEditor;
-	CMeshSmoothGroups*	pcSmoothing;
-	SFloat32Vec3*		psPosition;
-	SMeshUVFace*		psFaceUV;
-	int*				piCorners;
-	int					i;
-	int					k;
+	SFloat32Vec3			sXDirection;
+	SFloat32Vec3			sYDirection;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sStart;
+	Ptr<CMeshBoxEditor>		pBoxEditor;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
+	SFloat32Vec3*			psPosition;
+	SMeshUVFace*			psFaceUV;
+	int*					piCorners;
+	int						i;
+	int						k;
 
 	pcMesh->Init();
 	pcMesh->mcNormals.mbInUse = true;
@@ -103,12 +103,10 @@ void MakeSmoothedBox(CMesh* pcMesh, CMeshEditor* pcEditor)
 	sZDirection.Init(0, 0, 1);
 	sStart.Init(-0.5f, -0.5f, -0.5f);
 
-	pcBoxEditor = pcEditor->AddModifier<CMeshBoxEditor>();
-	pcBoxEditor->Init(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
+	pBoxEditor = pcEditor->AddModifier<CMeshBoxEditor>(&sXDirection, &sYDirection, &sZDirection, &sStart, 2, 2, 2);
 
-	pcSmoothing = pcEditor->AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Name;
+	pSmoothing = pcEditor->AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Name;
 
 	pcEditor->Collapse();
 

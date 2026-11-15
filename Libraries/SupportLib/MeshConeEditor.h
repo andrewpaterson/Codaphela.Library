@@ -32,6 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshConeEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshConeEditor);
+DESTRUCTABLE(CMeshConeEditor);
 public:
 	SFloat32Vec3 			msZDirection;
 	SFloat32Vec3 			msStart;
@@ -43,19 +44,18 @@ public:
 	int					miBottomCircleSegments;
 	int					miRingSegments;
 
-private:
-	CMeshRingEditor		mcRing;
-	CMeshDiscEditor		mcTopDisc;
-	CMeshDiscEditor		mcBottomDisc;
-
 public:
 	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iTopCircleSegments, int iBottomCircleSegments, int iRingSegments);
-	void	Kill(void);
+	void	Class(void) override;
 
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
+
+protected:
+	void	InitParts(CMeshDiscEditor* pcTopDisc, CMeshRingEditor* pcRing, CMeshDiscEditor* pcBottomDisc);
+	void	KillParts(CMeshDiscEditor* pcTopDisc, CMeshRingEditor* pcRing, CMeshDiscEditor* pcBottomDisc);
 };
 
 

@@ -38,6 +38,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshGeosphereEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshGeosphereEditor);
+DESTRUCTABLE(CMeshGeosphereEditor);
 public:
 	SFloat32Vec3	msZDirection;
 	SFloat32Vec3	msCentre;
@@ -49,7 +50,7 @@ public:
 	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psCentre, float32 fRadius, int iSegments);
 	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
-	void	Kill(void);
+	void	Class(void) override;
 
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);

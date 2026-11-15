@@ -33,7 +33,7 @@ void CMeshModifierStack::Init(Ptr<CMesh> pSource)
 {
 	PreInit();
 
-	macEditors.Init();
+	maModifiers.Init();
 	mpSource = pSource;
 	mpOutput = NULL;
 	muiChanges = 0;
@@ -48,7 +48,6 @@ void CMeshModifierStack::Init(Ptr<CMesh> pSource)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::Free(void)
 {
-	macEditors.Kill();
 }
 
 
@@ -58,7 +57,7 @@ void CMeshModifierStack::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::Class(void)
 {
-	U_Unknown(CArrayUnknown, macEditors);
+	M_Embedded(maModifiers);
 	M_Pointer(mpSource);
 	M_Pointer(mpOutput);
 	U_Size(muiChanges);
@@ -93,7 +92,7 @@ bool CMeshModifierStack::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::ReInit(void)
 {
-	macEditors.ReInit();
+	maModifiers.RemoveAll();
 	Changed();
 }
 
@@ -102,9 +101,9 @@ void CMeshModifierStack::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::AddModifier(CMeshModifier* pcEditor)
+void CMeshModifierStack::AddModifier(Ptr<CMeshModifier> pModifier)
 {
-	macEditors.Add(pcEditor);
+	maModifiers.Add(pModifier);
 	Changed();
 }
 
@@ -125,10 +124,10 @@ Ptr<CMesh> CMeshModifierStack::GetSource(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshModifierStack::GetOutput(void)
 {
-	CMeshModifier*	pcModifier;
-	Ptr<CMesh>		pMesh;
-	size			i;
-	size			uiNumElements;
+	Ptr<CMeshModifier>	pModifier;
+	Ptr<CMesh>			pMesh;
+	size				i;
+	size				uiNumElements;
 
 	if (mpOutput.IsNull())
 	{
@@ -138,11 +137,11 @@ Ptr<CMesh> CMeshModifierStack::GetOutput(void)
 		}
 
 		pMesh = mpSource;
-		uiNumElements = macEditors.NumElements();
+		uiNumElements = maModifiers.NumElements();
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcModifier = (CMeshModifier*)macEditors.Get(i);
-			pMesh = pcModifier->Modify(pMesh);
+			pModifier = maModifiers.Get(i);
+			pMesh = pModifier->Modify(pMesh);
 		}
 		mpOutput = pMesh;
 	}
@@ -206,9 +205,9 @@ void CMeshModifierStack::Flatten(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshModifierStack::NumEditors(void)
+int CMeshModifierStack::NumModifiers(void)
 {
-	return (int)macEditors.NumElements();
+	return (int)maModifiers.NumElements();
 }
 
 

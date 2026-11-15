@@ -55,7 +55,7 @@ static void TestMeshWeldAddFace(CMesh* pcMesh, int iCorner1, int iCorner2, int i
 static Ptr<CMesh> TestMeshWeldOutput(CMeshModifierStack* pcStack, Ptr<CMesh> pSource)
 {
 	pcStack->Init(pSource);
-	pcStack->AddModifier<CMeshWeldCorners>()->Init();
+	pcStack->AddModifier<CMeshWeldCorners>();
 	return pcStack->GetOutput();
 }
 
@@ -217,7 +217,7 @@ void TestMeshWeldCornersNothingToDo(void)
 	pOutput = TestMeshWeldOutput(&cStack, pSource);
 	AssertFalse(pOutput == pSource);
 	cStack.Flatten();
-	cStack.AddModifier<CMeshWeldCorners>()->Init();
+	cStack.AddModifier<CMeshWeldCorners>();
 	AssertTrue(cStack.GetOutput() == pOutput);
 	cStack.Kill();
 

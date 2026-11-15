@@ -78,21 +78,20 @@ static Ptr<CMesh> TestMeshFixReversedMesh(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshFixReversedTurnsFaces(void)
 {
-	CMeshModifierStack	cStack;
-	Ptr<CMesh>			pSource;
-	Ptr<CMesh>			pOutput;
-	CMeshFixReversed*	pcFix;
-	SMeshNormalFace*	psNormalFace;
-	int*				piColours;
+	CMeshModifierStack		cStack;
+	Ptr<CMesh>				pSource;
+	Ptr<CMesh>				pOutput;
+	Ptr<CMeshFixReversed>	pFix;
+	SMeshNormalFace*		psNormalFace;
+	int*					piColours;
 
 	pSource = TestMeshFixReversedMesh();
 	cStack.Init(pSource);
-	pcFix = cStack.AddModifier<CMeshFixReversed>();
-	pcFix->Init();
+	pFix = cStack.AddModifier<CMeshFixReversed>();
 
 	pOutput = cStack.GetOutput();
 	AssertFalse(pOutput == pSource);
-	AssertSize(2, pcFix->NumFixed());
+	AssertSize(2, pFix->NumFixed());
 
 	TestMeshFixReversedAssertCorners(&pOutput, 0, 0, 1, 2);
 	TestMeshFixReversedAssertCorners(&pOutput, 1, 0, 1, 2);
@@ -135,23 +134,21 @@ void TestMeshFixReversedTurnsFaces(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshFixReversedNothingToDo(void)
 {
-	CMeshModifierStack	cStack;
-	Ptr<CMesh>			pMesh;
-	Ptr<CMesh>			pOutput;
-	CMeshFixReversed*	pcFix;
-	SLogConfig			sLogConfig;
+	CMeshModifierStack		cStack;
+	Ptr<CMesh>				pMesh;
+	Ptr<CMesh>				pOutput;
+	Ptr<CMeshFixReversed>	pFix;
+	SLogConfig				sLogConfig;
 
 	pMesh = TestMeshFixReversedMesh();
 	cStack.Init(pMesh);
-	pcFix = cStack.AddModifier<CMeshFixReversed>();
-	pcFix->Init();
+	pFix = cStack.AddModifier<CMeshFixReversed>();
 	pOutput = cStack.GetOutput();
 
 	cStack.Flatten();
-	pcFix = cStack.AddModifier<CMeshFixReversed>();
-	pcFix->Init();
+	pFix = cStack.AddModifier<CMeshFixReversed>();
 	AssertTrue(cStack.GetOutput() == pOutput);
-	AssertSize(0, pcFix->NumFixed());
+	AssertSize(0, pFix->NumFixed());
 	cStack.Kill();
 
 	pMesh = OMalloc<CMesh>();
@@ -160,16 +157,14 @@ void TestMeshFixReversedNothingToDo(void)
 	pMesh->AddCorner(0, 100, 0);
 	pMesh->AddFace(0, 1, 2);
 	cStack.Init(pMesh);
-	pcFix = cStack.AddModifier<CMeshFixReversed>();
-	pcFix->Init();
+	pFix = cStack.AddModifier<CMeshFixReversed>();
 	AssertTrue(cStack.GetOutput() == pMesh);
 	cStack.Kill();
 
 	pMesh = TestMeshFixReversedMesh();
 	pMesh->mcMaterials.mbInUse = true;
 	cStack.Init(pMesh);
-	pcFix = cStack.AddModifier<CMeshFixReversed>();
-	pcFix->Init();
+	pFix = cStack.AddModifier<CMeshFixReversed>();
 	sLogConfig = gcLogger.SetSilent();
 	AssertTrue(cStack.GetOutput() == pMesh);
 	gcLogger.SetConfig(&sLogConfig);

@@ -30,6 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshPlaneEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshPlaneEditor);
+DESTRUCTABLE(CMeshPlaneEditor);
 public:
 	SFloat32Vec3 	msXDirection;
 	SFloat32Vec3 	msYDirection; 
@@ -48,7 +49,7 @@ public:
 	void	SetYOffsets(int iYStartOffset, int iYEndOffset);
 	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
-	void	Kill(void);
+	void	Class(void) override;
 
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);

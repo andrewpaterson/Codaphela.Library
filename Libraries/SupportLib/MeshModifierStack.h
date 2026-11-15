@@ -23,8 +23,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_MODIFIER_STACK_H__
 #define __MESH_MODIFIER_STACK_H__
-#include <string.h>
-#include "StandardLib/ArrayUnknown.h"
+#include "BaseLib/StringHelper.h"
+#include "StandardLib/Array.h"
+#include "StandardLib/Objects.h"
 #include "MeshModifier.h"
 
 
@@ -40,10 +41,10 @@ class CMeshModifierStack : public CObject
 CONSTRUCTABLE(CMeshModifierStack);
 DESTRUCTABLE(CMeshModifierStack);
 protected:
-	CArrayUnknown	macEditors;  //Mesh | Editor 0 | Editor 1 | etc...
-	Ptr<CMesh>		mpSource;
-	Ptr<CMesh>		mpOutput;
-	size			muiChanges;
+	CArray<CMeshModifier>	maModifiers;  //Mesh | Modifier 0 | Modifier 1 | etc...
+	Ptr<CMesh>				mpSource;
+	Ptr<CMesh>				mpOutput;
+	size					muiChanges;
 
 public:
 	void	Init(Ptr<CMesh> pSource = NULL);
@@ -55,12 +56,12 @@ public:
 
 	void	ReInit(void);
 
-	void 	AddModifier(CMeshModifier* pcEditor);
-	template<typename M>
-	M*		AddModifier(void);
-	template<typename M>
-	M*		GetModifier(void);  //The first of its class, or NULL.
-	int		NumEditors(void);
+	void 	AddModifier(Ptr<CMeshModifier> pModifier);
+	template<class M, typename ... Args>
+	Ptr<M>	AddModifier(Args&& ... args);  //Made with OMalloc, whose arguments are its Init's.
+	template<class M>
+	Ptr<M>	GetModifier(void);  //The first of its class, or NULL.
+	int		NumModifiers(void);
 
 
 	Ptr<CMesh>	GetSource(void);
@@ -79,21 +80,14 @@ protected:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<typename M>
-M* CMeshModifierStack::AddModifier(void)
+template<class M, typename ... Args>
+Ptr<M> CMeshModifierStack::AddModifier(Args&& ... args)
 {
-	M*	pv;
+	Ptr<M>	pModifier;
 
-	if (mpcUnknownsThisIn != NULL)
-	{
-		pv = mpcUnknownsThisIn->Add<M>();
-	}
-	else
-	{
-		pv = UMalloc(M);
-	}
-	AddModifier(pv);
-	return pv;
+	pModifier = OMalloc<M>(args ...);
+	AddModifier(pModifier);
+	return pModifier;
 }
 
 
@@ -101,18 +95,18 @@ M* CMeshModifierStack::AddModifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<typename M>
-M* CMeshModifierStack::GetModifier(void)
+template<class M>
+Ptr<M> CMeshModifierStack::GetModifier(void)
 {
-	CUnknown*	pcModifier;
-	size		i;
+	Ptr<CMeshModifier>	pModifier;
+	size				i;
 
-	for (i = 0; i < macEditors.NumElements(); i++)
+	for (i = 0; i < maModifiers.NumElements(); i++)
 	{
-		pcModifier = macEditors.Get(i);
-		if (strcmp(pcModifier->ClassName(), M::StaticClassName()) == 0)
+		pModifier = maModifiers.Get(i);
+		if (StringCompare(pModifier->ClassName(), M::StaticClassName()) == 0)
 		{
-			return (M*)pcModifier;
+			return (M*)&pModifier;
 		}
 	}
 	return NULL;

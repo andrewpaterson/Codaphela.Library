@@ -33,8 +33,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshWeldCorners : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshWeldCorners);
+DESTRUCTABLE(CMeshWeldCorners);
 public:
 	void		Init(void);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };

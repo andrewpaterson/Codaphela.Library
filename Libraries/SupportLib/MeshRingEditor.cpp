@@ -33,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshRingEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iRingSegments)
 {
+	PreInit();
+
 	msZDirection.Init(psZDirection);
 	msStart.Init(psStart);
 	mfTopRadius = fTopRadius;
@@ -44,6 +46,29 @@ void CMeshRingEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, fl
 	miFaceName = 0;
 	miZI = 0;
 	miZE = 0;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshRingEditor::Class(void)
+{
+	CMeshSourceModifier::Class();
+	U_3Float32(msZDirection);
+	U_3Float32(msStart);
+	U_Float32(mfTopRadius);
+	U_Float32(mfBottomRadius);
+	U_Float32(mfLength);
+	U_SInt(miWedgeSegments);
+	U_SInt(miRingSegments);
+	U_Bool(mbFlipFaces);
+	U_SInt(miFaceName);
+	U_SInt(miZI);
+	U_SInt(miZE);
 }
 
 
@@ -75,16 +100,6 @@ void CMeshRingEditor::SetZOffsets(int iZStartOffset, int iZEndOffset)
 {
 	miZI = iZStartOffset;
 	miZE = iZEndOffset;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMeshRingEditor::Kill(void)
-{
-	CMeshSourceModifier::Kill();
 }
 
 

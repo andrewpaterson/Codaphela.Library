@@ -497,11 +497,11 @@ CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces
 			bEdgeCA = IsMeshPolygonEdge(iC, iA, (int)uiNumCorners);
 			if (!bFlipFaces)
 			{
-				AddFace(aiPositions.GetValue(iA), aiPositions.GetValue(iB), aiPositions.GetValue(iC), iName, bEdgeAB, bEdgeBC, bEdgeCA);
+				AddFace(aiPositions.GetValue((size)iA), aiPositions.GetValue((size)iB), aiPositions.GetValue((size)iC), iName, bEdgeAB, bEdgeBC, bEdgeCA);
 			}
 			else
 			{
-				AddFace(aiPositions.GetValue(iA), aiPositions.GetValue(iC), aiPositions.GetValue(iB), iName, bEdgeCA, bEdgeBC, bEdgeAB);
+				AddFace(aiPositions.GetValue((size)iA), aiPositions.GetValue((size)iC), aiPositions.GetValue((size)iB), iName, bEdgeCA, bEdgeBC, bEdgeAB);
 			}
 		}
 		aiFaceCorners.Kill();

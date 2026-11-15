@@ -35,6 +35,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments, int iZSegments)
 {
+	PreInit();
+
 	msXDirection.Init(psXDirection->x, psXDirection->y, psXDirection->z);
 	msYDirection.Init(psYDirection->x, psYDirection->y, psYDirection->z);
 	msZDirection.Init(psZDirection->x, psZDirection->y, psZDirection->z);
@@ -42,6 +44,8 @@ void CMeshBoxEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection
 	miXSegments = iXSegments;
 	miYSegments = iYSegments;
 	miZSegments = iZSegments;
+
+	PostInit();
 }
 
 
@@ -49,9 +53,16 @@ void CMeshBoxEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::Kill(void)
+void CMeshBoxEditor::Class(void)
 {
-	CMeshSourceModifier::Kill();
+	CMeshSourceModifier::Class();
+	U_3Float32(msXDirection);
+	U_3Float32(msYDirection);
+	U_3Float32(msZDirection);
+	U_3Float32(msStart);
+	U_SInt(miXSegments);
+	U_SInt(miYSegments);
+	U_SInt(miZSegments);
 }
 
 
@@ -156,9 +167,14 @@ void CMeshBoxEditor::Generate(CMeshEditor* pcMeshEditor)
 	bool				bLeftRight;
 	bool				bFrontBack;
 
-	//Worked out once: the corners a side starts at are only set, and only used, when it has its own plane.
+	//Worked out once: the corners a side starts at are only set, and only used, when it has its own plane.  They start at 0 all the
+	//same, as Release builds can't always see that.
 	bLeftRight = (miZSegments > 1);
 	bFrontBack = (miYSegments > 1) && (miZSegments > 1);
+	iFirstLeft = 0;
+	iFirstRight = 0;
+	iFirstFront = 0;
+	iFirstBack = 0;
 
 	//Top
 	iFirstTop = pcMeshEditor->NumCorners();

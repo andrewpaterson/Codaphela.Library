@@ -45,13 +45,14 @@ class CMesh;
 class CMeshSmoothGroups : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothGroups);
+DESTRUCTABLE(CMeshSmoothGroups);
 public:
 	uint32					muiAddGroup;
 	ESmoothGenerationStyle	meGenerationStyle;
 	float32					mfSharpAngle;
 
 	void 		Init(uint32 uiAddGroup = 1);
-	void 		Kill(void);
+	void 		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 

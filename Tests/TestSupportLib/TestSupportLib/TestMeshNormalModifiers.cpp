@@ -93,7 +93,7 @@ void TestMeshNormalModifiersMakeNewMeshes(void)
 	pSource = TestMeshNormalTwoFaces(1, 2);
 
 	cStack.Init(pSource);
-	cStack.AddModifier<CMeshFlatFaces>()->Init();
+	cStack.AddModifier<CMeshFlatFaces>();
 	pOutput = cStack.GetOutput();
 	AssertFalse(pOutput == pSource);
 	AssertFalse(pSource->mcNormals.InUse());
@@ -107,7 +107,7 @@ void TestMeshNormalModifiersMakeNewMeshes(void)
 	cStack.Kill();
 
 	cStack.Init(pSource);
-	cStack.AddModifier<CMeshSmoothFaces>()->Init();
+	cStack.AddModifier<CMeshSmoothFaces>();
 	pOutput = cStack.GetOutput();
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	psNormalFace = pOutput->mcNormals.mcFaces.Get(0);
@@ -128,13 +128,12 @@ void TestMeshNormalModifiersMakeNewMeshes(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshSmoothGroupsModify(void)
 {
-	CMeshModifierStack	cStack;
-	Ptr<CMesh>			pOutput;
-	CMeshSmoothGroups*	pcSmoothing;
+	CMeshModifierStack		cStack;
+	Ptr<CMesh>				pOutput;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
 
 	cStack.Init(TestMeshNormalTwoFaces(1, 1));
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init(1);
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>(1);
 	pOutput = cStack.GetOutput();
 	AssertLSize(2, pOutput->mcSmoothing.mauiGroups.NumElements());
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
@@ -147,9 +146,8 @@ void TestMeshSmoothGroupsModify(void)
 	cStack.Kill();
 
 	cStack.Init(TestMeshNormalTwoFaces(1, 2));
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Name;
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Name;
 	pOutput = cStack.GetOutput();
 	AssertTrue(pOutput->mcSmoothing.mauiGroups.GetValue(0) == 1);
 	AssertTrue(pOutput->mcSmoothing.mauiGroups.GetValue(1) == 2);
@@ -157,8 +155,7 @@ void TestMeshSmoothGroupsModify(void)
 	cStack.Kill();
 
 	cStack.Init(TestMeshNormalTwoFaces(1, 1));
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init(0);
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>(0);
 	pOutput = cStack.GetOutput();
 	AssertLSize(2, pOutput->mcNormals.mcNormals.NumElements());
 	AssertInt(1, pOutput->mcNormals.mcFaces.Get(1)->aiCornerNormals[0]);
@@ -166,9 +163,8 @@ void TestMeshSmoothGroupsModify(void)
 
 	//By angle the names don't matter: the faces are flat, so they're one group.
 	cStack.Init(TestMeshNormalTwoFaces(1, 2));
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
 	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
 	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
@@ -176,7 +172,7 @@ void TestMeshSmoothGroupsModify(void)
 	cStack.Kill();
 
 	cStack.Init();
-	cStack.AddModifier<CMeshSmoothGroups>()->Init();
+	cStack.AddModifier<CMeshSmoothGroups>();
 	AssertInt(0, cStack.GetOutput()->NumFaces());
 	cStack.Kill();
 }
@@ -200,8 +196,8 @@ void TestMeshNormalModifiersAfterShape(void)
 	sStart.Init(0, 0, 0);
 
 	cStack.Init();
-	cStack.AddModifier<CMeshPlaneEditor>()->Init(&sX, &sY, &sStart, 2, 2);
-	cStack.AddModifier<CMeshSmoothFaces>()->Init();
+	cStack.AddModifier<CMeshPlaneEditor>(&sX, &sY, &sStart, 2, 2);
+	cStack.AddModifier<CMeshSmoothFaces>();
 	pOutput = cStack.GetOutput();
 	AssertInt(8, pOutput->NumFaces());
 	AssertLSize(8 + 9, pOutput->mcNormals.mcNormals.NumElements());
@@ -228,7 +224,7 @@ void TestMeshNormalModifiersInEditorAgain(void)
 	AssertLSize(2, cMesh.mcNormals.mcNormals.NumElements());
 
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshSmoothGroups>()->Init(1);
+	cEditor.AddModifier<CMeshSmoothGroups>(1);
 	pOutput = cEditor.GetOutput();
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	AssertLSize(2, cMesh.mcNormals.mcNormals.NumElements());
@@ -237,9 +233,9 @@ void TestMeshNormalModifiersInEditorAgain(void)
 	cEditor.Collapse();
 	AssertLSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
 	AssertLSize(2, cMesh.mcSmoothing.mauiGroups.NumElements());
-	AssertInt(0, cEditor.mcModifiers.NumEditors());
+	AssertInt(0, cEditor.mcModifiers.NumModifiers());
 
-	cEditor.AddModifier<CMeshSmoothGroups>()->Init(1);
+	cEditor.AddModifier<CMeshSmoothGroups>(1);
 	cEditor.Collapse();
 	AssertLSize(2 + 4, cMesh.mcNormals.mcNormals.NumElements());
 	AssertInt(2, cMesh.NumFaces());
@@ -287,7 +283,7 @@ void TestMeshNormalModifiersKeepDetails(void)
 	pSource->mcSkin.mcInverseSkinMatricies.Add(&sInverse);
 
 	cStack.Init(pSource);
-	cStack.AddModifier<CMeshSmoothGroups>()->Init(1);
+	cStack.AddModifier<CMeshSmoothGroups>(1);
 	pOutput = cStack.GetOutput();
 	AssertFalse(pOutput == pSource);
 	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
@@ -380,16 +376,15 @@ static float32 TestMeshSmoothMinCornerDot(CMesh* pcMesh, int iFace)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshSmoothGroupsAngleFold(void)
 {
-	CMeshModifierStack	cStack;
-	Ptr<CMesh>			pOutput;
-	CMeshSmoothGroups*	pcSmoothing;
-	uint32				uiGroup0;
-	uint32				uiGroup1;
+	CMeshModifierStack		cStack;
+	Ptr<CMesh>				pOutput;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
+	uint32					uiGroup0;
+	uint32					uiGroup1;
 
 	cStack.Init(TestMeshNormalFoldedFaces(15.0f));
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
 	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
 	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
@@ -398,9 +393,8 @@ void TestMeshSmoothGroupsAngleFold(void)
 	cStack.Kill();
 
 	cStack.Init(TestMeshNormalFoldedFaces(30.0f));
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
 	uiGroup0 = pOutput->mcSmoothing.mauiGroups.GetValue(0);
 	uiGroup1 = pOutput->mcSmoothing.mauiGroups.GetValue(1);
@@ -411,7 +405,7 @@ void TestMeshSmoothGroupsAngleFold(void)
 	AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, 1), 3);
 
 	//A sharper angle than the fold smooths it.
-	pcSmoothing->mfSharpAngle = 45.0f;
+	pSmoothing->mfSharpAngle = 45.0f;
 	cStack.Touch();
 	pOutput = cStack.GetOutput();
 	AssertInt((int32)1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
@@ -430,23 +424,23 @@ void TestMeshSmoothGroupsAngleFold(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshSmoothGroupsAngleShapes(void)
 {
-	CMesh				cMesh;
-	CMeshEditor			cEditor;
-	Ptr<CMesh>			pOutput;
-	CMeshSmoothGroups*	pcSmoothing;
-	SFloat32Vec3		sX;
-	SFloat32Vec3		sY;
-	SFloat32Vec3		sZ;
-	SFloat32Vec3		sStart;
-	SFloat32Vec3*		psFlat;
-	SFloat32Vec3*		psCorner;
-	SMeshNormalFace*	psNormalFace;
-	CArrayInt			aiGroups;
-	int					i;
-	int					j;
-	int					iNumFaces;
-	uint32				uiGroup;
-	bool				bCap;
+	CMesh					cMesh;
+	CMeshEditor				cEditor;
+	Ptr<CMesh>				pOutput;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
+	SFloat32Vec3			sX;
+	SFloat32Vec3			sY;
+	SFloat32Vec3			sZ;
+	SFloat32Vec3			sStart;
+	SFloat32Vec3*			psFlat;
+	SFloat32Vec3*			psCorner;
+	SMeshNormalFace*		psNormalFace;
+	CArrayInt				aiGroups;
+	int						i;
+	int						j;
+	int						iNumFaces;
+	uint32					uiGroup;
+	bool					bCap;
 
 	sX.Init(1, 0, 0);
 	sY.Init(0, 1, 0);
@@ -455,10 +449,9 @@ void TestMeshSmoothGroupsAngleShapes(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshBoxEditor>()->Init(&sX, &sY, &sZ, &sStart, 2, 2, 2);
-	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	cEditor.AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 2, 2, 2);
+	pSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cEditor.GetOutput();
 	iNumFaces = pOutput->NumFaces();
 	AssertInt(48, iNumFaces);
@@ -491,10 +484,9 @@ void TestMeshSmoothGroupsAngleShapes(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshCylinderEditor>()->Init(&sZ, &sStart, 1.0f, 2.0f, 24, 1, 1);
-	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	cEditor.AddModifier<CMeshCylinderEditor>(&sZ, &sStart, 1.0f, 2.0f, 24, 1, 1);
+	pSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cEditor.GetOutput();
 	iNumFaces = pOutput->NumFaces();
 	for (i = 0; i < iNumFaces; i++)
@@ -523,10 +515,9 @@ void TestMeshSmoothGroupsAngleShapes(void)
 
 	cMesh.Init();
 	cEditor.Init(&cMesh);
-	cEditor.AddModifier<CMeshGeosphereEditor>()->Init(&sZ, &sStart, 1.0f, 3);
-	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	cEditor.AddModifier<CMeshGeosphereEditor>(&sZ, &sStart, 1.0f, 3);
+	pSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cEditor.GetOutput();
 	iNumFaces = pOutput->NumFaces();
 	for (i = 0; i < iNumFaces; i++)
@@ -548,14 +539,14 @@ void TestMeshSmoothGroupsAngleShapes(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMeshSmoothGroupsAngleTooManyGroups(void)
 {
-	CMeshModifierStack	cStack;
-	Ptr<CMesh>			pMesh;
-	Ptr<CMesh>			pOutput;
-	CMeshSmoothGroups*	pcSmoothing;
-	CArrayUint32		aiGroups;
-	int					i;
-	float32				fAngle;
-	uint32				uiGroup;
+	CMeshModifierStack		cStack;
+	Ptr<CMesh>				pMesh;
+	Ptr<CMesh>				pOutput;
+	Ptr<CMeshSmoothGroups>	pSmoothing;
+	CArrayUint32			aiGroups;
+	int						i;
+	float32					fAngle;
+	uint32					uiGroup;
 
 	pMesh = OMalloc<CMesh>();
 	pMesh->AddCorner(0, 0, 0);
@@ -568,9 +559,8 @@ void TestMeshSmoothGroupsAngleTooManyGroups(void)
 	}
 
 	cStack.Init(pMesh);
-	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
-	pcSmoothing->Init();
-	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
 
 	aiGroups.Init();
