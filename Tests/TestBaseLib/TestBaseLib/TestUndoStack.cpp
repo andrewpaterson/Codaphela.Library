@@ -333,6 +333,56 @@ void TestUndoLogRenamed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A document made is a step in the group of the edits made with it: it
+// isn't an edit (its ids find nothing), it is undone and redone with its
+// group, and it stays when its document is closed, its edits going.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUndoLogCreated(void)
+{
+	CUndoLog	cLog;
+	size		uiGroup;
+
+	cLog.Init();
+	cLog.BeginGroup();
+	cLog.Created("Keg.h", "Drum.h");
+	cLog.Kept("Drum.h", 0, 1);
+	cLog.Kept("Keg.h", 0, 1);
+	cLog.EndGroup();
+
+	AssertSize(3, cLog.NumSteps());
+	uiGroup = cLog.Get(0)->uiGroup;
+	AssertSize(uiGroup, cLog.Get(2)->uiGroup);
+	AssertTrue(cLog.IsCreated(0));
+	AssertFalse(cLog.IsRename(0));
+	AssertFalse(cLog.IsCreated(1));
+	AssertString("Keg.h", cLog.Get(0)->szDocument.Text());
+	AssertString("Drum.h", cLog.Get(0)->szRenamed.Text());
+	AssertString("", cLog.Get(0)->szContent.Text());
+	AssertSize(MAX_SIZE, cLog.Undone("Keg.h", 0, 0));
+
+	//Undone, newest first; the document is closed when it is taken away, and its making stays to be redone.
+	AssertSize(uiGroup, cLog.Undone("Keg.h", 1, 0));
+	AssertSize(uiGroup, cLog.Undone("Drum.h", 1, 0));
+	cLog.Get(0)->szContent.Set("class CKeg {};\n");
+	cLog.MarkUndone(0);
+	cLog.RemoveDocument("Keg.h");
+	AssertSize(2, cLog.NumSteps());
+	AssertTrue(cLog.IsCreated(0));
+	AssertTrue(cLog.IsUndone(0));
+	AssertString("class CKeg {};\n", cLog.Get(0)->szContent.Text());
+	AssertSize(uiGroup, cLog.FindRedoGroup());
+	AssertSize(MAX_SIZE, cLog.FindUndoGroup());
+
+	cLog.MarkRedone(0);
+	AssertSize(uiGroup, cLog.Redone("Drum.h", 0, 1));
+	AssertSize(uiGroup, cLog.FindUndoGroup());
+	cLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Past the maximum the oldest steps are dropped.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -366,6 +416,7 @@ void TestUndoStack(void)
 	TestUndoLogAcrossDocuments();
 	TestUndoLogRenameDocument();
 	TestUndoLogRenamed();
+	TestUndoLogCreated();
 	TestUndoLogMaximum();
 
 	TestStatistics();

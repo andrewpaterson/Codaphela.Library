@@ -33,15 +33,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 //An edit of one document, its undo stack's snapshot ids before and after it, the group it was made in and, if it has
 //been undone, when (the log's count of undos when it was, 0 if it hasn't been).  Or a document renamed (a file
 //renamed): szDocument its old name and szRenamed its new one, its ids 0; the log's user renames it back to undo it.
+//Or a document made (a file made for what was moved to it): szDocument its name and szRenamed the document it was
+//made beside, its ids 0; the log's user takes it away to undo it, keeping its text here (szContent), and makes it
+//again with that text to redo it.  It stays in the log when its document is closed.
 struct SUndoLogStep
 {
 	CChars	szDocument;
 	CChars	szRenamed;		//Empty for an edit.
+	CChars	szContent;		//A document made: its text, while its making is undone.
 	size	uiIdBefore;
 	size	uiIdAfter;
 	size	uiGroup;
 	size	uiUndone;
 	bool	bRename;
+	bool	bCreated;
 };
 
 
@@ -79,6 +84,7 @@ public:
 	void			Kept(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			Merged(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			Renamed(char* szOldDocument, char* szNewDocument);
+	void			Created(char* szDocument, char* szBeside);
 	size			Undone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	size			Redone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			RemoveDocument(char* szDocument);
@@ -93,6 +99,7 @@ public:
 	SUndoLogStep*	Get(size uiIndex);
 	bool			IsUndone(size uiIndex);
 	bool			IsRename(size uiIndex);
+	bool			IsCreated(size uiIndex);
 
 protected:
 	size			FindStep(char* szDocument, size uiIdBefore, size uiIdAfter, bool bUndone);
