@@ -13,8 +13,9 @@ int		CountMeshOpenEdges(CMesh* pcMesh);
 //Corners less edges plus faces: 2 for a ball, 0 for a ring.
 int		MeshEulerCharacteristic(CMesh* pcMesh);
 
-//Faces whose normal points into pcShape: against its gradient at the face's middle.  Faces with no area aren't counted.
-int		CountMeshFacesFacingIn(CMesh* pcMesh, CShape* pcShape);
+//Faces whose normal points into pcShape: against its gradient at the face's middle.  Faces with no area aren't counted, nor
+//those under fLeastArea: a sliver's facing can be rounding.
+int		CountMeshFacesFacingIn(CMesh* pcMesh, CShape* pcShape, float32 fLeastArea = 0.0f);
 
 //Faces whose corners are in a line, or on each other.
 int		CountMeshFacesWithNoArea(CMesh* pcMesh);

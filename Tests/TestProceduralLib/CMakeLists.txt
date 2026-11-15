@@ -1,5 +1,5 @@
 # Linux build of TestProceduralLib (BaseLib + TestLib + StandardLib + SupportLib +
-# ProceduralLib + TestProceduralLib).
+# RasterLib + RenderLib + RasterRenderLib + ProceduralLib + TestProceduralLib).
 #
 # Builds 32-bit (-m32, needs g++-multilib) by default.  Add -DBASELIB_64=ON
 # for a 64-bit build, in its own build directory:
@@ -41,6 +41,9 @@ set(BASELIB_DIR "${COMMON_DIR}/BaseLib")
 set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(STANDARDLIB_DIR "${COMMON_DIR}/StandardLib")
 set(SUPPORTLIB_DIR "${COMMON_DIR}/SupportLib")
+set(RASTERLIB_DIR "${COMMON_DIR}/RasterLib")
+set(RENDERLIB_DIR "${COMMON_DIR}/RenderLib")
+set(RASTERRENDERLIB_DIR "${COMMON_DIR}/RasterRenderLib")
 set(PROCEDURALLIB_DIR "${COMMON_DIR}/ProceduralLib")
 set(TESTPROCEDURALLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/TestProceduralLib")
 
@@ -94,6 +97,12 @@ vcxproj_sources(TESTLIB_SOURCES "${TESTLIB_DIR}/TestLib.vcxproj")
 vcxproj_sources(STANDARDLIB_SOURCES "${STANDARDLIB_DIR}/StandardLib.vcxproj")
 
 vcxproj_sources(SUPPORTLIB_SOURCES "${SUPPORTLIB_DIR}/SupportLib.vcxproj")
+
+vcxproj_sources(RASTERLIB_SOURCES "${RASTERLIB_DIR}/RasterLib.vcxproj")
+
+vcxproj_sources(RENDERLIB_SOURCES "${RENDERLIB_DIR}/RenderLib.vcxproj")
+
+vcxproj_sources(RASTERRENDERLIB_SOURCES "${RASTERRENDERLIB_DIR}/RasterRenderLib.vcxproj")
 
 vcxproj_sources(PROCEDURALLIB_SOURCES "${PROCEDURALLIB_DIR}/ProceduralLib.vcxproj")
 
@@ -195,11 +204,20 @@ target_compile_definitions(StandardLib PRIVATE $<$<CONFIG:Debug>:DEBUG_POINTER>)
 add_library(SupportLib STATIC ${SUPPORTLIB_SOURCES})
 target_link_libraries(SupportLib PUBLIC StandardLib BaseLib)
 
+add_library(RasterLib STATIC ${RASTERLIB_SOURCES})
+target_link_libraries(RasterLib PUBLIC StandardLib BaseLib)
+
+add_library(RenderLib STATIC ${RENDERLIB_SOURCES})
+target_link_libraries(RenderLib PUBLIC SupportLib StandardLib BaseLib)
+
+add_library(RasterRenderLib STATIC ${RASTERRENDERLIB_SOURCES})
+target_link_libraries(RasterRenderLib PUBLIC RenderLib RasterLib SupportLib StandardLib BaseLib)
+
 add_library(ProceduralLib STATIC ${PROCEDURALLIB_SOURCES})
 target_link_libraries(ProceduralLib PUBLIC SupportLib StandardLib BaseLib)
 
 add_executable(TestProceduralLib ${TESTPROCEDURALLIB_SOURCES})
-target_link_libraries(TestProceduralLib PRIVATE TestLib ProceduralLib SupportLib StandardLib BaseLib)
+target_link_libraries(TestProceduralLib PRIVATE TestLib ProceduralLib RasterRenderLib RenderLib RasterLib SupportLib StandardLib BaseLib)
 
 # The tests read their input (Input/ ...) relative to the project directory,
 # as Visual Studio does.

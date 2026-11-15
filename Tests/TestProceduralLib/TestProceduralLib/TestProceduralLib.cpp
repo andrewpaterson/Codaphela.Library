@@ -15,6 +15,8 @@ void TestMarchingCubes(void);
 void TestIsosurfaceFit(void);
 void TestDualContouring(void);
 void TestIsosurfaceOctree(void);
+void TestMeshShapeEditor(void);
+void TestShapeScene(void);
 
 
 int __cdecl main(void)
@@ -34,6 +36,8 @@ int __cdecl main(void)
 	TestIsosurfaceFit();
 	TestDualContouring();
 	TestIsosurfaceOctree();
+	TestMeshShapeEditor();
+	TestShapeScene();
 
 	MemoryKill();
 	TypeConverterKill();

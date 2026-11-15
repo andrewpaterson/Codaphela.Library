@@ -232,6 +232,8 @@
     <ClCompile Include="IsosurfaceMeshes.cpp" />
     <ClCompile Include="TestDualContouring.cpp" />
     <ClCompile Include="TestIsosurfaceOctree.cpp" />
+    <ClCompile Include="TestMeshShapeEditor.cpp" />
+    <ClCompile Include="TestShapeScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
@@ -248,6 +250,15 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\Libraries\ProceduralLib\ProceduralLib.vcxproj">
       <Project>{9878aeff-411b-415e-995b-ba59059726e1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\RasterLib\RasterLib.vcxproj">
+      <Project>{2e428e10-c931-4778-b914-ff2e90163de5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\RasterRenderLib\RasterRenderLib.vcxproj">
+      <Project>{8c1e5b47-3a9d-4f62-b0e4-71d2a6c93f58}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\RenderLib\RenderLib.vcxproj">
+      <Project>{b3f6d2a8-5c41-4e97-9a0d-2e8c7b154f63}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Libraries\StandardLib\StandardLib.vcxproj">
       <Project>{2cfa23fa-6565-4744-8b75-9790b21cc0e5}</Project>

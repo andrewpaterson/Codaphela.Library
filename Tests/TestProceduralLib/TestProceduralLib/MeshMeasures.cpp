@@ -71,7 +71,7 @@ static bool MeshFaceHasArea(CMesh* pcMesh, int iFace, SFloat32Vec3* psNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CountMeshFacesFacingIn(CMesh* pcMesh, CShape* pcShape)
+int CountMeshFacesFacingIn(CMesh* pcMesh, CShape* pcShape, float32 fLeastArea)
 {
 	int				i;
 	int				iNumFaces;
@@ -85,7 +85,7 @@ int CountMeshFacesFacingIn(CMesh* pcMesh, CShape* pcShape)
 	for (i = 0; i < iNumFaces; i++)
 	{
 		MeshFaceNormal(pcMesh, i, &sNormal, &sMiddle);
-		if (MeshFaceHasArea(pcMesh, i, &sNormal))
+		if (MeshFaceHasArea(pcMesh, i, &sNormal) && (((float32)sNormal.Magnitude() * 0.5f) >= fLeastArea))
 		{
 			pcShape->Gradient(&sGradient, &sMiddle);
 			if (Float32Vec3Dot(&sNormal, &sGradient) <= 0.0f)
