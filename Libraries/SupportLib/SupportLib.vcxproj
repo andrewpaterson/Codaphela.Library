@@ -397,6 +397,12 @@
     <ClInclude Include="MeshPolygonCut.h" />
     <ClInclude Include="QuickHull.h" />
     <ClInclude Include="Shape.h" />
+    <ClInclude Include="ShapeGroup.h" />
+    <ClInclude Include="ShapeIntersection.h" />
+    <ClInclude Include="ShapeSmoothUnion.h" />
+    <ClInclude Include="ShapeSubtraction.h" />
+    <ClInclude Include="ShapeTransform.h" />
+    <ClInclude Include="ShapeUnion.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="HalfSpace.h" />
     <ClInclude Include="Sphere.h" />
@@ -656,6 +662,12 @@
     <ClCompile Include="MeshPolygonCut.cpp" />
     <ClCompile Include="QuickHull.cpp" />
     <ClCompile Include="Shape.cpp" />
+    <ClCompile Include="ShapeGroup.cpp" />
+    <ClCompile Include="ShapeIntersection.cpp" />
+    <ClCompile Include="ShapeSmoothUnion.cpp" />
+    <ClCompile Include="ShapeSubtraction.cpp" />
+    <ClCompile Include="ShapeTransform.cpp" />
+    <ClCompile Include="ShapeUnion.cpp" />
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="HalfSpace.cpp" />
     <ClCompile Include="Sphere.cpp" />

@@ -56,6 +56,7 @@ void TestMeshShapes(void);
 void TestQuickHull(void);
 void TestShape(void);
 void TestRevolvedShape(void);
+void TestShapeCombination(void);
 void TestMeshConnectivity(void);
 void TestMeshModifierStack(void);
 void TestMeshSourceModifier(void);
@@ -151,6 +152,7 @@ int __cdecl main(void)
 	TestQuickHull();
 	TestShape();
 	TestRevolvedShape();
+	TestShapeCombination();
 	TestMeshConnectivity();
 	TestMeshModifierStack();
 	TestMeshSourceModifier();

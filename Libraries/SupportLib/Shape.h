@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __SHAPE_H__
 #include "BaseLib/Float32Bounds.h"
 #include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
 
 
 //The step of Gradient's central differences, as a fraction of the shape's bounds' longest side.

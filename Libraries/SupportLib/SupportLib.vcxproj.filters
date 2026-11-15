@@ -570,6 +570,24 @@
     <ClInclude Include="Shape.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
+    <ClInclude Include="ShapeGroup.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeIntersection.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeSmoothUnion.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeSubtraction.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeTransform.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeUnion.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
     <ClInclude Include="Box.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
@@ -1350,6 +1368,24 @@
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Shape.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeGroup.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeIntersection.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeSmoothUnion.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeSubtraction.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeTransform.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeUnion.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Box.cpp">

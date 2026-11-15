@@ -148,6 +148,9 @@
     <ClCompile Include="TestShape.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestShapeCombination.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshUVCoords.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
