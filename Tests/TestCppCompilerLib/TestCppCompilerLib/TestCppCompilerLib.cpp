@@ -20,6 +20,7 @@ void TestCPP816Interprocedural(void);
 void TestCPP65ListingIndex(void);
 void TestCPP816Volatile(void);
 void TestCPP65ForwardingReferences(void);
+void TestCPPConformance(void);
 void TestCPP65IR(void);
 void TestCPP65Generator(void);
 void TestCPP65LazyHeaders(void);
@@ -56,6 +57,7 @@ int __cdecl main(void)
 	TestCPPSyntaxBlock();
 	TestCppHighlighter();
 	TestCppIndex();
+	TestCPPConformance();
 	TestIR();
 	TestIRInterprocedural();
 	TestIRImportsTurns();

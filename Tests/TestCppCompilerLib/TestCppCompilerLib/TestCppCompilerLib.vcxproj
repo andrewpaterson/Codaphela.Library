@@ -243,6 +243,7 @@
     <ClCompile Include="TestCPPW65C816Interprocedural.cpp" />
     <ClCompile Include="TestCPP65ListingIndex.cpp" />
     <ClCompile Include="TestCPP65ForwardingReferences.cpp" />
+    <ClCompile Include="TestCPPConformance.cpp" />
     <ClCompile Include="TestCPPW65C816Volatile.cpp" />
     <ClCompile Include="TestCPP65IR.cpp" />
     <ClCompile Include="TestCPP65LazyHeaders.cpp" />
@@ -266,6 +267,7 @@
     <ClCompile Include="TestUnit4.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TestCPPConformanceCases.h" />
     <ClInclude Include="TestHeader.h" />
     <ClInclude Include="TestHeader2.h" />
     <ClInclude Include="TestCPP65Context.h" />

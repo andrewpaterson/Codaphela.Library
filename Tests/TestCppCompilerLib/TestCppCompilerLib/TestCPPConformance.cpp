@@ -1,0 +1,371 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/Chars.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/TextFile.h"
+#include "BaseLib/TypeNames.h"
+#include "BaseLib/TypeConverter.h"
+#include "BaseLib/NumberControl.h"
+#include "Assembler65Lib/Asm65Memory.h"
+#include "CppCompilerLib/CPP65Builder.h"
+#include "CppCompilerLib/CPPTarget.h"
+#include "TestLib/Assert.h"
+#include "TestCPP65Context.h"
+
+
+//A program that must be refused, where a case's value would be.
+#define CONFORMANCE_REFUSED		(-1)
+
+//The most instructions a case runs for: they are small.
+#define CONFORMANCE_STEPS		2000000
+
+
+struct SConformanceCase
+{
+	const char*	szName;
+	int32		iExpected;		//What main returns, or CONFORMANCE_REFUSED.
+	const char*	szSource;
+};
+
+
+#include "TestCPPConformanceCases.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the compiler can't do yet, for each stage and target: a case's name
+// and (C) it didn't build, (W) it ran and returned the wrong value or
+// didn't stop, or (A) it was accepted and must be refused.  Take a case off
+// its list as the compiler does it (Conformance/lists.py prints the lists
+// as they are now, and writes them here); the lists being empty is Part B
+// done.
+//
+//////////////////////////////////////////////////////////////////////////
+struct SConformanceGroup
+{
+	const char*				szName;
+	const SConformanceCase*	pasCases;
+	size					uiNumCases;
+	const char*				aszNotDone[2];	//The 65C64's, then the W65C816's.
+};
+
+
+#define CONFORMANCE_GROUP(NAME, NOT_DONE_65C64, NOT_DONE_W65C816) { #NAME, gasConformance##NAME, sizeof(gasConformance##NAME) / sizeof(SConformanceCase), { NOT_DONE_65C64, NOT_DONE_W65C816 } }
+
+
+static const SConformanceGroup gasConformanceGroups[] =
+{
+	CONFORMANCE_GROUP(Works, "", ""),
+	CONFORMANCE_GROUP(Stage1,
+		"StaticAssertFalse(A) StaticAssertFalseInClass(A) DeletedFunctionCalled(A) DeletedCopy(A) DeletedAssignment(A) AbstractObject(A) AbstractObjectInherited(A) PrivateMember(A) PrivateFunction(A) ProtectedMember(A) PrivateFromDerived(A) PrivateConstructor(A) PrivateBaseMember(A) PrivateStatic(A) PrivateNestedType(A) NarrowingVariable(A) NarrowingFloating(A) NullPointerArgument(C) NullPointerOverload(C) AttributeOnParameter(C) SizeofMember(C) BracedTemporaryArgument(C) CallOperator(C) CallOperatorOnCopy(C) DefaultedFunctions(C) AggregateMemberInitialisers(W) ",
+		"StaticAssertFalse(A) StaticAssertFalseInClass(A) DeletedFunctionCalled(A) DeletedCopy(A) DeletedAssignment(A) AbstractObject(A) AbstractObjectInherited(A) PrivateMember(A) PrivateFunction(A) ProtectedMember(A) PrivateFromDerived(A) PrivateConstructor(A) PrivateBaseMember(A) PrivateStatic(A) PrivateNestedType(A) NarrowingVariable(A) NarrowingFloating(A) NullPointerArgument(C) NullPointerOverload(C) AttributeOnParameter(C) SizeofMember(C) BracedTemporaryArgument(C) CallOperator(C) CallOperatorOnCopy(C) DefaultedFunctions(C) AggregateMemberInitialisers(W) "),
+	CONFORMANCE_GROUP(Stage2,
+		"RvalueOverload(C) ConstReferenceAndRvalueOverload(W) RvalueBindsVariable(A) RvalueLocal(C) RvalueDistinctType(W) RvalueSpecialisations(C) ReferenceCollapsing(W) ForwardingDeduction(W) ForwardingCopies(C) MoveConstructor(C) MoveAssignment(C) ImplicitMove(C) MoveOnlyReturned(C) MoveOnlyCopied(A) PerfectForwarding(C) ForwardingPack(C) RefQualifiedMembers(W) RvalueMember(C) RvalueReturn(C) NamedRvalueIsLvalue(C) TemporaryToConstReference(C) ",
+		"RvalueOverload(C) ConstReferenceAndRvalueOverload(W) RvalueBindsVariable(A) RvalueLocal(C) RvalueDistinctType(W) RvalueSpecialisations(C) ReferenceCollapsing(W) ForwardingDeduction(W) ForwardingCopies(C) MoveConstructor(C) MoveAssignment(C) ImplicitMove(C) MoveOnlyReturned(C) MoveOnlyCopied(A) PerfectForwarding(C) ForwardingPack(C) RefQualifiedMembers(W) RvalueMember(C) RvalueReturn(C) NamedRvalueIsLvalue(C) TemporaryToConstReference(C) "),
+	CONFORMANCE_GROUP(Stage3,
+		"AutoVariables(C) AutoDropsConstAndReference(C) AutoTypes(C) AutoInFor(C) AutoFunctionPointer(C) TrailingReturn(C) Decltype(C) DecltypeTypes(W) DecltypeTrailing(C) RangeForArray(C) RangeForClass(C) RangeForFreeBegin(C) RangeForIterator(C) RangeForBreakContinue(C) AliasTemplate(C) NullPointerType(C) AutoReturn(C) DecltypeAuto(C) ",
+		"AutoVariables(C) AutoDropsConstAndReference(C) AutoTypes(C) AutoInFor(C) AutoFunctionPointer(C) TrailingReturn(C) Decltype(C) DecltypeTypes(W) DecltypeTrailing(C) RangeForArray(C) RangeForClass(C) RangeForFreeBegin(C) RangeForIterator(C) RangeForBreakContinue(C) AliasTemplate(C) NullPointerType(C) AutoReturn(C) DecltypeAuto(C) "),
+	CONFORMANCE_GROUP(Stage4,
+		"ConstexprFunction(C) ConstexprRecursion(C) ConstexprLoop(C) ConstexprStatements(C) ConstexprCaseAndTemplateArgument(C) ConstexprStaticAssertFalse(A) ConstexprClass(C) ConstexprAggregate(C) ConstexprArray(C) ConstexprString(C) ConstexprFloating(C) ConstexprReferencesAndPointers(C) ConstexprLocalObjects(C) ConstexprNotConstant(A) ",
+		"ConstexprFunction(C) ConstexprRecursion(C) ConstexprLoop(C) ConstexprStatements(C) ConstexprCaseAndTemplateArgument(C) ConstexprStaticAssertFalse(A) ConstexprClass(C) ConstexprAggregate(C) ConstexprArray(C) ConstexprString(C) ConstexprFloating(C) ConstexprReferencesAndPointers(C) ConstexprLocalObjects(C) ConstexprNotConstant(A) "),
+	CONFORMANCE_GROUP(Stage5,
+		"LambdaPlain(C) LambdaCaptures(C) LambdaDefaultCaptures(C) LambdaMutable(C) LambdaToFunctionPointer(C) LambdaThis(C) LambdaAsTemplateArgument(C) LambdaReturnType(C) LambdaNested(C) LambdaCopiedAndStored(C) LambdaCapturesObject(C) LambdaGeneric(C) LambdaInitCapture(C) ",
+		"LambdaPlain(C) LambdaCaptures(C) LambdaDefaultCaptures(C) LambdaMutable(C) LambdaToFunctionPointer(C) LambdaThis(C) LambdaAsTemplateArgument(C) LambdaReturnType(C) LambdaNested(C) LambdaCopiedAndStored(C) LambdaCapturesObject(C) LambdaGeneric(C) LambdaInitCapture(C) "),
+	CONFORMANCE_GROUP(Stage6,
+		"Sfinae(C) SfinaeMemberDetection(C) SfinaeDefaultArgument(C) TemplateTemplateParameter(C) MemberClassTemplate(C) ArrayBoundDeduced(C) ArraySpecialisation(W) PointerTemplateArgument(C) PackSizeof(C) PackExpandedExpression(C) PackInInitialiser(C) PackBases(C) PackTemplateArguments(C) PackNonType(W) PackMembers(C) VariableTemplate(C) TypeTraitsClasses(C) TypeTraitsRelations(C) TypeTraitsTrivial(C) UnderlyingType(W) DependentTemplateName(C) TemplateConversionOperator(C) DefaultTemplateTemplate(C) PartialOrdering(W) MemberSpecialisation(W) TemplateStaticMember(C) VariadicClass(W) ",
+		"Sfinae(C) SfinaeMemberDetection(C) SfinaeDefaultArgument(C) TemplateTemplateParameter(C) MemberClassTemplate(C) ArrayBoundDeduced(C) ArraySpecialisation(W) PointerTemplateArgument(C) PackSizeof(C) PackExpandedExpression(C) PackInInitialiser(C) PackBases(C) PackTemplateArguments(C) PackNonType(W) PackMembers(C) VariableTemplate(C) TypeTraitsClasses(C) TypeTraitsRelations(C) TypeTraitsTrivial(C) UnderlyingType(W) DependentTemplateName(C) TemplateConversionOperator(C) DefaultTemplateTemplate(C) PartialOrdering(W) MemberSpecialisation(W) TemplateStaticMember(C) VariadicClass(W) "),
+	CONFORMANCE_GROUP(Stage7,
+		"StaticLocalInitialisedOnce(C) StaticLocalObject(C) StaticLocalNotReached(C) PostfixOnObjects(C) ArrowReturnsObject(C) ConversionFunctions(C) PointerToOverloadedMember(C) ReferenceBoundToTemporary(C) ReferenceMemberAndGlobal(C) NewArrayForms(C) PlacementNewArguments(C) ConditionalOnClasses(C) ExternLocal(C) ThreadLocal(C) ImplicitCopyAndAssign(W) FunctionTryBlock(C) ClassOperatorNew(C) ",
+		"StaticLocalInitialisedOnce(C) StaticLocalObject(C) StaticLocalNotReached(C) PostfixOnObjects(C) ArrowReturnsObject(C) ConversionFunctions(C) PointerToOverloadedMember(C) ReferenceBoundToTemporary(C) ReferenceMemberAndGlobal(C) NewArrayForms(C) PlacementNewArguments(C) ConditionalOnClasses(C) ExternLocal(C) ThreadLocal(C) ImplicitCopyAndAssign(W) FunctionTryBlock(C) ClassOperatorNew(C) "),
+	CONFORMANCE_GROUP(Stage8,
+		"InitializerList(C) InitializerListPreferred(C) InitializerListRangeFor(C) LiteralOperators(C) LiteralOperatorRaw(C) NoexceptOperator(C) ",
+		"InitializerList(C) InitializerListPreferred(C) InitializerListRangeFor(C) LiteralOperators(C) LiteralOperatorRaw(C) NoexceptOperator(C) "),
+	CONFORMANCE_GROUP(Stage9,
+		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) ",
+		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) "),
+};
+
+
+#define NUM_CONFORMANCE_GROUPS	(sizeof(gasConformanceGroups) / sizeof(SConformanceGroup))
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the program compiles for the target, alone (nothing is linked).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, CChars* pszErrors)
+{
+	CCPP65Builder	cBuilder;
+	CChars			szAssembly;
+	bool			bCompiled;
+
+	cBuilder.Init();
+	szAssembly.Init();
+	bCompiled = CCPP65Builder::Generate(&szAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget) && pszErrors->Empty();
+	szAssembly.Kill();
+	cBuilder.Kill();
+	return bCompiled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Builds the program for the target, with its start up and Libc65's string
+// routines (the optimiser makes loops calls of them).  False, with why in
+// pszErrors, if it doesn't compile or link or something it uses is missing.
+// Nothing is asserted: a case the compiler can't do is not a failed test.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, CChars* pszErrors)
+{
+	static const char*	aszString65C64[] = { "Libc65/string.asm", NULL };
+	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", NULL };
+	CFileUtil			cFileUtil;
+	CChars				szLibc65;
+	bool				bBuilt;
+
+	pcBuilder->SetTarget(eTarget);
+	TestCPP65AddIncludeDirectories(pcBuilder);
+	bBuilt = pcBuilder->AddStartUp();
+	if (eTarget == CPPT_W65C816)
+	{
+		TestCPP65LibrariesDirectory(&szLibc65, "Libc65");
+		szLibc65.Append("Libc65");
+		cFileUtil.FullPath(&szLibc65);
+		pcBuilder->AddMathTables(szLibc65.Text());
+		szLibc65.Kill();
+	}
+	bBuilt &= pcBuilder->AddSource("Test.cpp", szSource);
+	TestCPP65AddUnits(pcBuilder, (eTarget == CPPT_W65C816) ? aszStringW65C816 : aszString65C64, eTarget != CPPT_W65C816);
+	bBuilt &= pcBuilder->Link();
+
+	pszErrors->Append(pcBuilder->GetErrors());
+	pcBuilder->GetMissingNames(pszErrors);
+	return bBuilt && pszErrors->Empty();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a built program from reset.  False if it doesn't stop, with its
+// stack where it started and nothing read or written where there is no
+// memory; else *piResult is what main returned.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceRun65C64(CCPP65Builder* pcBuilder, int32* piResult)
+{
+	STestCPP65Run	sRun;
+	bool			bStopped;
+
+	TestCPP65BeginBuilt(&sRun, pcBuilder);
+	bStopped = (TestCPP65Run(&sRun, CONFORMANCE_STEPS) < CONFORMANCE_STEPS) && (TestCPP65MPU(&sRun)->GetS() == CPP65_STACK_TOP);
+	*piResult = (int32)TestCPP65MPU(&sRun)->GetA();
+	TestCPP65End(&sRun);
+	return bStopped;
+}
+
+
+static bool ConformanceRunW65C816(CCPP65Builder* pcBuilder, int32* piResult)
+{
+	CAsm65Memory	cMemory;
+	CFastW65C816	cFast;
+	bool			bStopped;
+
+	cMemory.Init(ASM65_MEMORY_LOW_SIZE);
+	cMemory.Load(pcBuilder->GetOutput());
+	cMemory.InitFast65816(&cFast);
+	cFast.Reset();
+	bStopped = (cFast.Run(CONFORMANCE_STEPS) < CONFORMANCE_STEPS) && cFast.IsStopped() && (cMemory.NumBadAccesses() == 0) && ((uint32)cFast.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop());
+	*piResult = (int16)cFast.GetC();
+	cFast.Kill();
+	cMemory.Kill();
+	return bStopped;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the compiler does with a case on a target: NULL if it is right, else
+// "(C)", "(W)" or "(A)" (SConformanceGroup).  TEST_CPP_CONFORMANCE_VERBOSE
+// in the environment says why on stderr.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eTarget)
+{
+	CCPP65Builder	cBuilder;
+	CChars			szErrors;
+	const char*		szNotDone;
+	int32			iResult;
+	bool			bStopped;
+
+	szErrors.Init();
+	szNotDone = NULL;
+	if (psCase->iExpected == CONFORMANCE_REFUSED)
+	{
+		if (ConformanceCompiles(psCase->szSource, eTarget, &szErrors))
+		{
+			szNotDone = "(A)";
+		}
+		szErrors.Clear();
+	}
+	else
+	{
+		cBuilder.Init();
+		if (!ConformanceBuild(&cBuilder, psCase->szSource, eTarget, &szErrors))
+		{
+			szNotDone = "(C)";
+		}
+		else
+		{
+			bStopped = (eTarget == CPPT_W65C816) ? ConformanceRunW65C816(&cBuilder, &iResult) : ConformanceRun65C64(&cBuilder, &iResult);
+			if (!bStopped || (iResult != psCase->iExpected))
+			{
+				szNotDone = "(W)";
+				szErrors.Append(bStopped ? "returned " : "didn't stop, with ");
+				szErrors.Append(iResult);
+				szErrors.Append(" for ");
+				szErrors.Append(psCase->iExpected);
+			}
+		}
+		cBuilder.Kill();
+	}
+
+	if (szNotDone && getenv("TEST_CPP_CONFORMANCE_VERBOSE"))
+	{
+		fprintf(stderr, "%s %s%s: %s\n", (eTarget == CPPT_W65C816) ? "W65C816" : "65C64", psCase->szName, szNotDone, szErrors.Text());
+	}
+	szErrors.Kill();
+	return szNotDone;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A group's cases on a target: those not done are the group's list.  With
+// TEST_CPP_CONFORMANCE_LISTS in the environment the lists are written to
+// stderr and not checked, to see where the compiler is.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPPConformanceGroup(const SConformanceGroup* psGroup, ECPPTarget eTarget)
+{
+	CChars			szNotDone;
+	const char*		szCaseNotDone;
+	size			i;
+	size			uiNotDone;
+
+	szNotDone.Init();
+	uiNotDone = 0;
+	for (i = 0; i < psGroup->uiNumCases; i++)
+	{
+		szCaseNotDone = ConformanceCase(&psGroup->pasCases[i], eTarget);
+		if (szCaseNotDone)
+		{
+			szNotDone.Append(psGroup->pasCases[i].szName);
+			szNotDone.Append(szCaseNotDone);
+			szNotDone.Append(' ');
+			uiNotDone++;
+		}
+	}
+
+	if (getenv("TEST_CPP_CONFORMANCE_LISTS"))
+	{
+		fprintf(stderr, "%s %s %d of %d: \"%s\"\n", psGroup->szName, (eTarget == CPPT_W65C816) ? "W65C816" : "65C64", (int)(psGroup->uiNumCases - uiNotDone), (int)psGroup->uiNumCases, szNotDone.Text());
+	}
+	else
+	{
+		AssertString(psGroup->aszNotDone[(eTarget == CPPT_W65C816) ? 1 : 0], szNotDone.Text());
+	}
+	szNotDone.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the cases to the directory TEST_CPP_CONFORMANCE_EXPORT names, each
+// as Group.Name.cpp, with Cases.txt listing them and their values: for
+// another compiler to say what they should do (Conformance/hostcheck.py,
+// with the Microsoft compiler).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPPConformanceExport(const char* szDirectory)
+{
+	CFileUtil					cFileUtil;
+	CTextFile					cFile;
+	CChars						szName;
+	CChars						szList;
+	const SConformanceGroup*	psGroup;
+	const SConformanceCase*		psCase;
+	size						i;
+	size						j;
+
+	cFileUtil.MakeDir(szDirectory);
+	szList.Init();
+	for (i = 0; i < NUM_CONFORMANCE_GROUPS; i++)
+	{
+		psGroup = &gasConformanceGroups[i];
+		for (j = 0; j < psGroup->uiNumCases; j++)
+		{
+			psCase = &psGroup->pasCases[j];
+			szName.Init(psGroup->szName);
+			szName.Append('.');
+			szName.Append(psCase->szName);
+			szList.Append(szName);
+			szList.Append(' ');
+			szList.Append(psCase->iExpected);
+			szList.AppendNewLine();
+
+			szName.Insert(0, FILE_SEPARATOR);
+			szName.Insert(0, szDirectory);
+			szName.Append(".cpp");
+			cFile.Init(psCase->szSource);
+			cFile.Write(szName.Text());
+			cFile.Kill();
+			szName.Kill();
+		}
+	}
+	szName.Init(szDirectory);
+	szName.Append(FILE_SEPARATOR);
+	szName.Append("Cases.txt");
+	cFile.Init(szList.Text());
+	cFile.Write(szName.Text());
+	cFile.Kill();
+	szName.Kill();
+	szList.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How much of C++14 the compiler does, measured: every case on both
+// targets, against what is known not to be done.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPPConformance(void)
+{
+	size	i;
+
+	BeginTests();
+
+	TypesInit();
+	TypeConverterInit();
+	NumberInit();
+
+	if (getenv("TEST_CPP_CONFORMANCE_EXPORT"))
+	{
+		TestCPPConformanceExport(getenv("TEST_CPP_CONFORMANCE_EXPORT"));
+	}
+	for (i = 0; i < NUM_CONFORMANCE_GROUPS; i++)
+	{
+		TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_65C64);
+		TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_W65C816);
+	}
+
+	NumberKill();
+	TypeConverterKill();
+	TypesKill();
+
+	TestStatistics();
+}
+

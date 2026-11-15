@@ -1,0 +1,1700 @@
+//The conformance cases (TestCPPConformance.cpp): small programs, one a feature of the language, in the stages of
+//Part B of CppCompilerLib/CppParserTodo.txt (section 6).  A case's value is what its main returns, and was found by
+//compiling and running it with the Microsoft compiler (Conformance/hostcheck.py does it again for cases
+//exported with TEST_CPP_CONFORMANCE_EXPORT); CONFORMANCE_REFUSED is a program a compiler must refuse.  Values are
+//1 to 32767, so that they are an int's on every target and a program that returns 0 by accident isn't right.
+
+
+//What the compiler did before Part B was started, and must go on doing.
+static const SConformanceCase gasConformanceWorks[] =
+{
+	{
+		"NamespaceBasic", 3,
+		"namespace N { int f(int x) { return x + 1; } int v = 2; }\n"
+		"int main() { return N::f(N::v); }\n"
+	},
+	{
+		"NamespaceUsing", 8,
+		"namespace N { int f(int x) { return x + 1; } int g(int x) { return x * 3; } }\n"
+		"using namespace N;\n"
+		"using N::g;\n"
+		"int main() { return f(1) + g(2); }\n"
+	},
+	{
+		"NamespaceNestedAlias", 8,
+		"namespace A { namespace B { int v = 4; } }\n"
+		"namespace C = A::B;\n"
+		"int main() { return C::v + A::B::v; }\n"
+	},
+	{
+		"NamespaceAnonymous", 8,
+		"namespace { int v = 4; int f() { return v; } }\n"
+		"int main() { return f() + v; }\n"
+	},
+	{
+		"NamespaceADL", 3,
+		"namespace N { struct S { int v; }; int get(S s) { return s.v; } }\n"
+		"int main() { N::S s; s.v = 3; return get(s); }\n"
+	},
+	{
+		"NamespaceClassOutside", 5,
+		"namespace N { struct S { int f(); }; }\n"
+		"int N::S::f() { return 5; }\n"
+		"int main() { N::S s; return s.f(); }\n"
+	},
+	{
+		"NamespaceInline", 12,
+		"namespace N { inline namespace V1 { int f() { return 6; } } }\n"
+		"int main() { return N::f() + N::V1::f(); }\n"
+	},
+	{
+		"ConstMemberOverload", 12,
+		"struct S { int f() { return 1; } int f() const { return 2; } };\n"
+		"int main() { S s; const S c = S(); return s.f() * 10 + c.f(); }\n"
+	},
+	{
+		"ConstPointerOverload", 12,
+		"int f(int* p) { return 1; }\n"
+		"int f(const int* p) { return 2; }\n"
+		"int main() { int a = 0; const int b = 0; return f(&a) * 10 + f(&b); }\n"
+	},
+	{
+		"ConstSpecialisation", 21,
+		"template<class T> struct IsConst { enum { V = 1 }; };\n"
+		"template<class T> struct IsConst<const T> { enum { V = 2 }; };\n"
+		"int main() { return IsConst<const int>::V * 10 + IsConst<int>::V; }\n"
+	},
+	{
+		"ConstAssigned", CONFORMANCE_REFUSED,
+		"int main() { const int c = 1; c = 2; return c; }\n"
+	},
+	{
+		"ConstPointerWrite", CONFORMANCE_REFUSED,
+		"int main() { int a = 0; const int* p = &a; *p = 1; return a; }\n"
+	},
+	{
+		"ConstTakenAway", CONFORMANCE_REFUSED,
+		"int main() { const int a = 0; int* p = &a; return *p; }\n"
+	},
+	{
+		"ConstObjectChanged", CONFORMANCE_REFUSED,
+		"struct S { int v; void set(int a) { v = a; } };\n"
+		"int main() { const S s = S(); s.set(1); return 0; }\n"
+	},
+	{
+		"MutableMember", 2,
+		"struct S { mutable int v; explicit S(int a) : v(a) {} int f() const { v++; return v; } };\n"
+		"int main() { const S s(1); return s.f(); }\n"
+	},
+	{
+		"ExplicitConstructorImplicit", CONFORMANCE_REFUSED,
+		"struct S { explicit S(int) {} };\n"
+		"int f(S) { return 1; }\n"
+		"int main() { return f(3); }\n"
+	},
+	{
+		"ReferenceToValue", CONFORMANCE_REFUSED,
+		"int f(int& r) { return r; }\n"
+		"int main() { return f(3); }\n"
+	},
+	{
+		"UndeclaredName", CONFORMANCE_REFUSED,
+		"int main() { return nothere; }\n"
+	},
+	{
+		"AmbiguousCall", CONFORMANCE_REFUSED,
+		"int f(unsigned char) { return 1; }\n"
+		"int f(char) { return 2; }\n"
+		"int main() { return f(1); }\n"
+	},
+	{
+		"ConstructorTemplate", 3,
+		"struct S { int v; template<class T> S(T t) : v((int)t) {} };\n"
+		"int main() { S s(3L); return s.v; }\n"
+	},
+	{
+		"MemberFunctionTemplate", 6,
+		"struct S { template<class T> T twice(T t) { return t + t; } };\n"
+		"int main() { S s; return s.twice(2) + (int)s.twice<long>(1); }\n"
+	},
+	{
+		"DependentTypename", 3,
+		"template<class T> struct A { typedef T Type; };\n"
+		"template<class T> typename A<T>::Type f(T t) { typename A<T>::Type u = t; return u; }\n"
+		"int main() { return f(3); }\n"
+	},
+	{
+		"FunctionTemplateDefaults", 6,
+		"template<class T = int> T f() { return 4; }\n"
+		"template<class T, class U = T> U g(T t) { return (U)t; }\n"
+		"int main() { return f() + g(2); }\n"
+	},
+	{
+		"FunctionSpecialisation", 12,
+		"template<class T> int f(T) { return 1; }\n"
+		"template<> int f<char>(char) { return 2; }\n"
+		"int main() { return f(1) * 10 + f('c'); }\n"
+	},
+	{
+		"TemplateFriend", 2,
+		"template<class T> class B { T v; template<class U> friend U get(const B<U>& b); public: B() : v(2) {} };\n"
+		"template<class U> U get(const B<U>& b) { return b.v; }\n"
+		"int main() { B<int> b; return get(b); }\n"
+	},
+	{
+		"TemplateDefaultArgument", 4,
+		"template<class T, int N = 4> struct A { T a[N]; };\n"
+		"int main() { A<char> a; return sizeof(a); }\n"
+	},
+	{
+		"TemplatePointerSpecialisation", 12,
+		"template<class T> struct A { enum { V = 1 }; };\n"
+		"template<class T> struct A<T*> { enum { V = 2 }; };\n"
+		"int main() { return A<int>::V * 10 + A<int*>::V; }\n"
+	},
+	{
+		"TemplateLateLookup", 2,
+		"template<class T> int f(T t) { return g(t); }\n"
+		"struct S {};\n"
+		"int g(S) { return 2; }\n"
+		"int main() { S s; return f(s); }\n"
+	},
+	{
+		"TemplateRightAngles", 1,
+		"template<class T> struct A { T v; };\n"
+		"int main() { A<A<int>> a; a.v.v = 1; return a.v.v; }\n"
+	},
+	{
+		"ExternTemplate", 1,
+		"template<class T> struct S { T f() { return 1; } };\n"
+		"extern template struct S<int>;\n"
+		"template struct S<int>;\n"
+		"int main() { S<int> s; return s.f(); }\n"
+	},
+	{
+		"LocalTypeArgument", 2,
+		"template<class T> int sz(T) { return sizeof(T); }\n"
+		"int main() { struct L { char a; char b; }; L l; return sz(l); }\n"
+	},
+	{
+		"VariadicCall", 14,
+		"int g(int a, int b, int c) { return a + b * 2 + c * 3; }\n"
+		"template<class... A> int f(A... a) { return g(a...); }\n"
+		"int main() { return f(1, 2, 3); }\n"
+	},
+	{
+		"VariadicRecursion", 102,
+		"int sum() { return 0; }\n"
+		"template<class T, class... R> int sum(T t, R... r) { return (int)t + sum(r...); }\n"
+		"int main() { return sum(1, 2L, 'c'); }\n"
+	},
+	{
+		"MemberPointerData", 3,
+		"struct S { int a; int b; };\n"
+		"int main() { int S::*p = &S::b; S s; s.a = 1; s.b = 3; return s.*p; }\n"
+	},
+	{
+		"MemberPointerFunction", 12,
+		"struct S { int v; int get() { return v; } virtual int vget() { return v + 1; } };\n"
+		"int main() { int (S::*p)() = &S::get; int (S::*q)() = &S::vget; S s; s.v = 1; S* ps = &s; return (s.*p)() * 10 + (ps->*q)(); }\n"
+	},
+	{
+		"OverloadedFunctionAddress", 2,
+		"int f(char) { return 1; }\n"
+		"int f(long) { return 2; }\n"
+		"int main() { int (*p)(long) = f; return p(0); }\n"
+	},
+	{
+		"AnonymousUnion", 14,
+		"struct S { union { long i; char c[4]; }; };\n"
+		"int main() { S s; s.i = 0x01020304; return s.c[0] + s.c[3] * 10; }\n"
+	},
+	{
+		"LocalClass", 2,
+		"int main() { struct L { int v; int get() { return v; } }; L l; l.v = 2; return l.get(); }\n"
+	},
+	{
+		"BitFields", 23,
+		"struct S { unsigned a : 3; unsigned b : 5; };\n"
+		"int main() { S s; s.a = 5; s.b = 17; s.a++; return s.a + s.b; }\n"
+	},
+	{
+		"WideString", 98,
+		"int main() { const wchar_t* w = L\"ab\"; return w[1]; }\n"
+	},
+	{
+		"MultipleInheritanceVirtual", 34,
+		"struct A { virtual int f() { return 1; } };\n"
+		"struct B { virtual int g() { return 2; } };\n"
+		"struct C : A, B { int f() override { return 3; } int g() override { return 4; } };\n"
+		"int main() { C c; B* b = &c; A* a = &c; return a->f() * 10 + b->g(); }\n"
+	},
+	{
+		"Friend", 2,
+		"class S { int v; friend int get(const S& s); public: S() : v(2) {} };\n"
+		"int get(const S& s) { return s.v; }\n"
+		"int main() { S s; return get(s); }\n"
+	},
+	{
+		"UnionWithConstructor", 2,
+		"struct M { int v; M() : v(1) {} M(int a) : v(a) {} };\n"
+		"union U { M m; int i; U() : m(2) {} ~U() {} };\n"
+		"int main() { U u; return u.m.v; }\n"
+	},
+	{
+		"BraceInitialisation", 10,
+		"struct S { int a; int b; };\n"
+		"int main() { S s{1, 2}; S t = {3, 4}; int x{5}; return s.a + t.b + x; }\n"
+	},
+	{
+		"BraceConstructor", 16,
+		"struct S { int v; S(int a, int b) : v(a + b * 2) {} };\n"
+		"S make() { return {1, 2}; }\n"
+		"int main() { S s{3, 4}; return s.v + make().v; }\n"
+	},
+	{
+		"MemberInitialisers", 23,
+		"struct S { int a = 3; int b{4}; int c; S() : c(5) {} S(int x) : a(x), c(6) {} };\n"
+		"int main() { S s; S t(1); return s.a + s.b + s.c + t.a + t.b + t.c; }\n"
+	},
+	{
+		"AliasDeclaration", 2,
+		"using Int = int;\n"
+		"using Fn = int (*)(int);\n"
+		"int f(Int x) { return x + 1; }\n"
+		"int main() { Fn p = f; return p(1); }\n"
+	},
+	{
+		"EnumClass", 6,
+		"enum class E : unsigned char { A, B = 5 };\n"
+		"int main() { E e = E::B; return (int)e + sizeof(E); }\n"
+	},
+	{
+		"EnumClassUnscopedName", CONFORMANCE_REFUSED,
+		"enum class E { A, B };\n"
+		"int main() { return (int)B; }\n"
+	},
+	{
+		"EnumFixedType", 3,
+		"enum E : short;\n"
+		"enum E : short { A = 1 };\n"
+		"int main() { return sizeof(E) + A; }\n"
+	},
+	{
+		"OverrideFinal", 2,
+		"struct A { virtual int f() { return 1; } };\n"
+		"struct B final : A { int f() final { return 2; } };\n"
+		"int main() { B b; A* a = &b; return a->f(); }\n"
+	},
+	{
+		"Alignment", 88,
+		"struct alignas(8) S { char c; };\n"
+		"int main() { return alignof(S) * 10 + sizeof(S); }\n"
+	},
+	{
+		"ExplicitConversionOperator", 21,
+		"struct S { int v; explicit operator bool() const { return v != 0; } };\n"
+		"int main() { S s; s.v = 1; S t; t.v = 0; return (s ? 1 : 0) + (t ? 10 : 20); }\n"
+	},
+	{
+		"InheritedConstructor", 3,
+		"struct A { int v; A(int a) : v(a) {} };\n"
+		"struct B : A { using A::A; };\n"
+		"int main() { B b(3); return b.v; }\n"
+	},
+	{
+		"DelegatingConstructor", 4,
+		"struct S { int v; S(int a) : v(a) {} S() : S(4) {} };\n"
+		"int main() { S s; return s.v; }\n"
+	},
+	{
+		"IntegerTypes", 196,
+		"int main() { long long a = 1LL << 40; char16_t c = u'a'; char32_t d = U'b'; return (int)(a >> 40) + c + d; }\n"
+	},
+	{
+		"NullPointer", 221,
+		"struct S {};\n"
+		"S* f() { return nullptr; }\n"
+		"int main() { int* p = nullptr; S* q = f(); return (p == nullptr) + (q != nullptr ? 10 : 20) + (q ? 100 : 200); }\n"
+	},
+	{
+		"Operators", 47,
+		"struct V { int x; V operator+(const V& o) const { V r; r.x = x + o.x; return r; } V& operator+=(const V& o) { x += o.x; return *this; } bool operator==(const V& o) const { return x == o.x; } int operator[](int i) const { return x + i; } V operator-() const { V r; r.x = -x; return r; } };\n"
+		"V operator*(const V& a, int k) { V r; r.x = a.x * k; return r; }\n"
+		"int main() { V a; a.x = 1; V b = a + a; b += a; V c = -(b * 2); return (a == a) + b[1] * 10 - c.x; }\n"
+	},
+	{
+		"OperatorChain", 6,
+		"struct S { int v; S& operator=(int a) { v = a; return *this; } S& operator<<(int a) { v += a; return *this; } };\n"
+		"int main() { S s; s = 1; s << 2 << 3; return s.v; }\n"
+	},
+	{
+		"ReturnedObjects", 6,
+		"struct S { int a[4]; S() { a[0] = 1; a[3] = 5; } };\n"
+		"S make() { S s; return s; }\n"
+		"int main() { S s = make(); S t; t = make(); return s.a[0] + t.a[3]; }\n"
+	},
+	{
+		"TemporariesDestroyed", 22,
+		"int g = 0;\n"
+		"struct T { ~T() { g++; } int v() const { return 10; } };\n"
+		"T make() { return T(); }\n"
+		"int main() { int r = make().v() + T().v(); return r + g; }\n"
+	},
+	{
+		"ArraysOfObjects", 33,
+		"int g = 0;\n"
+		"struct T { int v; T() : v(++g) {} ~T() { g--; } };\n"
+		"int f() { T a[3]; return a[2].v * 10 + g; }\n"
+		"int main() { return f() + g; }\n"
+	},
+	{
+		"GlobalObjects", 8,
+		"struct T { int v; T() : v(4) {} };\n"
+		"T gt;\n"
+		"T ga[2];\n"
+		"int main() { return gt.v + ga[1].v; }\n"
+	},
+	{
+		"SwitchLongLong", 7,
+		"int main() { long long v = 1LL << 33; switch (v >> 33) { case 1: return 7; default: return 0; } }\n"
+	},
+	{
+		"LongLongArithmetic", 315,
+		"int main() { unsigned long long a = 0xFFFFFFFFFFULL; a >>= 4; a *= 3; a /= 7; a %= 1000; return (int)a; }\n"
+	},
+	{
+		"StaticMembers", 44,
+		"struct S { static const int N = 4; static int f() { return N; } char a[N]; };\n"
+		"int main() { return S::f() * 10 + sizeof(S); }\n"
+	},
+	{
+		"BaseInitialisationOrder", 13,
+		"int g = 0;\n"
+		"struct A { int a; A(int x) : a(x + g) { g = 10; } };\n"
+		"struct B { int b; B(int x) : b(x + g) { g = 20; } };\n"
+		"struct C : A, B { int c; C() : B(2), A(1), c(a + b) {} };\n"
+		"int main() { C c; return c.c; }\n"
+	},
+	{
+		"ExplicitDestructor", 9,
+		"#ifdef _MSC_VER\n"
+		"#include <new>\n"
+		"#endif\n"
+		"int g = 0;\n"
+		"struct S { int v; ~S() { g = v; } };\n"
+		"int main() { char buf[8]; S* p = new (buf) S; p->v = 9; p->~S(); return g; }\n"
+	},
+	{
+		"FunctionPointerArray", 23,
+		"typedef int (*Fn)(int);\n"
+		"int a(int x) { return x; }\n"
+		"int b(int x) { return x + 1; }\n"
+		"int main() { Fn t[2] = { a, b }; return t[1](1) * 10 + t[0](3); }\n"
+	},
+	{
+		"Loops", 8,
+		"int main() { int i = 0; int s = 0; do { i++; if (i == 2) { continue; } s += i; } while (i < 4); for (;;) { break; } switch (i) { case 4: goto done; default: break; } s = 99; done: return s; }\n"
+	},
+	{
+		"AttributesIgnored", 33,
+		"[[noreturn]] void die();\n"
+		"[[nodiscard]] int f() { return 1; }\n"
+		"struct [[deprecated]] S { int v; };\n"
+		"[[deprecated(\"old\")]] int g() { return 2; }\n"
+		"int main() { [[maybe_unused]] int u = 0; int i = 1; switch (i) { case 1: i++; [[fallthrough]]; case 2: i++; } return i * 10 + f() + g(); }\n"
+	},
+	{
+		"SizedDelete", 1,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"char gacArena[256];\n"
+		"size_t guiArena = 0;\n"
+		"void* Take(size_t n) { void* p = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return p; }\n"
+		"int gSize = 0;\n"
+		"void* operator new(size_t n) { return Take(n); }\n"
+		"void operator delete(void* p) noexcept {}\n"
+		"void operator delete(void* p, size_t n) noexcept { gSize = (int)n; }\n"
+		"struct S { char c[6]; };\n"
+		"int main() { S* p = new S; delete p; return gSize == 6 || gSize == 0; }\n"
+	},
+	{
+		"NoexceptSpecification", 3,
+		"int f() noexcept { return 1; }\n"
+		"int g() throw() { return 2; }\n"
+		"int main() { return f() + g(); }\n"
+	},
+	{
+		"VolatileObjects", 6,
+		"volatile int gv = 3;\n"
+		"int f(volatile int* p) { return *p + *p; }\n"
+		"int main() { return f(&gv); }\n"
+	},
+};
+
+
+//Stage 1: what was accepted and wrong, and small things refused.
+static const SConformanceCase gasConformanceStage1[] =
+{
+	{
+		"StaticAssertTrue", 7,
+		"static_assert(sizeof(long) == 4, \"long\");\n"
+		"int main() { static_assert(1 == 1, \"one\"); return 7; }\n"
+	},
+	{
+		"StaticAssertFalse", CONFORMANCE_REFUSED,
+		"static_assert(1 == 2, \"no\");\n"
+		"int main() { return 0; }\n"
+	},
+	{
+		"StaticAssertFalseInFunction", CONFORMANCE_REFUSED,
+		"int main() { static_assert(sizeof(char) == 2, \"no\"); return 0; }\n"
+	},
+	{
+		"StaticAssertFalseInClass", CONFORMANCE_REFUSED,
+		"struct S { static_assert(sizeof(char) == 2, \"no\"); };\n"
+		"int main() { return 0; }\n"
+	},
+	{
+		"DeletedFunctionCalled", CONFORMANCE_REFUSED,
+		"void f(int) = delete;\n"
+		"int main() { f(1); return 0; }\n"
+	},
+	{
+		"DeletedCopy", CONFORMANCE_REFUSED,
+		"struct S { S() {} S(const S&) = delete; };\n"
+		"int main() { S a; S b(a); return 0; }\n"
+	},
+	{
+		"DeletedAssignment", CONFORMANCE_REFUSED,
+		"struct S { S() {} S& operator=(const S&) = delete; };\n"
+		"int main() { S a; S b; b = a; return 0; }\n"
+	},
+	{
+		"DeletedOverloadNotChosen", 3,
+		"void f(char) = delete;\n"
+		"int f(long) { return 3; }\n"
+		"int main() { return f(1L); }\n"
+	},
+	{
+		"AbstractObject", CONFORMANCE_REFUSED,
+		"struct A { virtual int f() = 0; };\n"
+		"int main() { A a; return 0; }\n"
+	},
+	{
+		"AbstractObjectInherited", CONFORMANCE_REFUSED,
+		"struct A { virtual int f() = 0; };\n"
+		"struct B : A { int g() { return 1; } };\n"
+		"int main() { B b; return 0; }\n"
+	},
+	{
+		"AbstractImplemented", 4,
+		"struct A { virtual int f() = 0; };\n"
+		"struct B : A { int f() { return 4; } };\n"
+		"int main() { B b; A* a = &b; return a->f(); }\n"
+	},
+	{
+		"PrivateMember", CONFORMANCE_REFUSED,
+		"class S { int v; };\n"
+		"int main() { S s; s.v = 1; return 0; }\n"
+	},
+	{
+		"PrivateFunction", CONFORMANCE_REFUSED,
+		"class S { int f() { return 1; } };\n"
+		"int main() { S s; return s.f(); }\n"
+	},
+	{
+		"ProtectedMember", CONFORMANCE_REFUSED,
+		"class S { protected: int v; };\n"
+		"int main() { S s; s.v = 1; return 0; }\n"
+	},
+	{
+		"PrivateFromDerived", CONFORMANCE_REFUSED,
+		"class A { int v; };\n"
+		"class B : public A { public: int f() { return v; } };\n"
+		"int main() { B b; return b.f(); }\n"
+	},
+	{
+		"PrivateConstructor", CONFORMANCE_REFUSED,
+		"class S { S() {} };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	{
+		"PrivateBaseMember", CONFORMANCE_REFUSED,
+		"struct A { int v; };\n"
+		"class B : A { };\n"
+		"int main() { B b; b.v = 1; return 0; }\n"
+	},
+	{
+		"PrivateStatic", CONFORMANCE_REFUSED,
+		"class S { static int v; };\n"
+		"int S::v = 1;\n"
+		"int main() { return S::v; }\n"
+	},
+	{
+		"PrivateNestedType", CONFORMANCE_REFUSED,
+		"class S { struct I { int v; }; };\n"
+		"int main() { S::I i; i.v = 1; return i.v; }\n"
+	},
+	{
+		"AccessAllowed", 3121,
+		"class A { int a; protected: int b; public: A() : a(1), b(2) {} int geta() { return a; } friend int peek(A& x); friend class F; };\n"
+		"class B : public A { public: int getb() { return b; } };\n"
+		"class F { public: int get(A& x) { return x.a + x.b; } };\n"
+		"int peek(A& x) { return x.a; }\n"
+		"int main() { B b; F f; return b.geta() + b.getb() * 10 + peek(b) * 100 + f.get(b) * 1000; }\n"
+	},
+	{
+		"AccessStaticAndNested", 7,
+		"class S { static int v; struct I { int w; }; public: static int get() { I i; i.w = 2; return v + i.w; } };\n"
+		"int S::v = 5;\n"
+		"int main() { return S::get(); }\n"
+	},
+	{
+		"EnumClassToInt", CONFORMANCE_REFUSED,
+		"enum class E { A, B };\n"
+		"int main() { int i = E::B; return i; }\n"
+	},
+	{
+		"EnumClassComparedWithInt", CONFORMANCE_REFUSED,
+		"enum class E { A, B };\n"
+		"int main() { E e = E::B; return e == 1; }\n"
+	},
+	{
+		"EnumClassArithmetic", CONFORMANCE_REFUSED,
+		"enum class E { A, B };\n"
+		"int main() { E e = E::B; return e + 1; }\n"
+	},
+	{
+		"IntToEnumClass", CONFORMANCE_REFUSED,
+		"enum class E { A, B };\n"
+		"int main() { E e = 1; return 0; }\n"
+	},
+	{
+		"EnumClassCast", 152,
+		"enum class E { A, B = 5 };\n"
+		"int main() { E e = E::B; E f = (E)2; return (int)e * 10 + static_cast<int>(f) + (e == E::B) * 100 + (e < f) * 1000; }\n"
+	},
+	{
+		"NarrowingVariable", CONFORMANCE_REFUSED,
+		"int main() { long l = 70000; char c{l}; return c; }\n"
+	},
+	{
+		"NarrowingFloating", CONFORMANCE_REFUSED,
+		"int main() { int i{2.5}; return i; }\n"
+	},
+	{
+		"NotNarrowing", 196,
+		"struct S { char c; long l; };\n"
+		"int main() { char c{65}; S s{66, 3}; long l{c}; return c + s.c + (int)l; }\n"
+	},
+	{
+		"NullPointerArgument", 11,
+		"int f(int* p) { return p == 0; }\n"
+		"struct S {};\n"
+		"int g(S* p) { return p == 0; }\n"
+		"int main() { return f(nullptr) + g(nullptr) * 10; }\n"
+	},
+	{
+		"NullPointerOverload", 12,
+		"int f(int* p) { return 1; }\n"
+		"int f(int i) { return 2; }\n"
+		"int main() { return f(nullptr) * 10 + f(0); }\n"
+	},
+	{
+		"AttributeOnParameter", 5,
+		"int f([[maybe_unused]] int x, [[maybe_unused]] int y) { return 5; }\n"
+		"int main() { return f(0, 1); }\n"
+	},
+	{
+		"SizeofMember", 43,
+		"struct S { char a; long b; char c[3]; };\n"
+		"int main() { return sizeof(S::b) * 10 + sizeof(S::c); }\n"
+	},
+	{
+		"BracedTemporaryArgument", 61,
+		"struct S { int a; int b; };\n"
+		"int f(S s) { return s.a + s.b * 2; }\n"
+		"int main() { return f(S{1, 2}) * 10 + f({3, 4}); }\n"
+	},
+	{
+		"CallOperator", 12,
+		"struct V { int x; int operator()(int a, int b) const { return a + b + x; } };\n"
+		"int main() { V a; a.x = 1; return a(5, 6); }\n"
+	},
+	{
+		"CallOperatorOnCopy", 24,
+		"struct V { int x; int operator()(int a, int b) const { return a + b + x; } V operator-() const { V r; r.x = -x; return r; } };\n"
+		"V operator*(const V& a, int k) { V r; r.x = a.x * k; return r; }\n"
+		"int main() { V b; b.x = 3; V c = -(b * 2); return c(10, 20); }\n"
+	},
+	{
+		"DefaultedFunctions", 2,
+		"struct S { int v; S() = default; S(const S&) = default; S& operator=(const S&) = default; ~S() = default; };\n"
+		"int main() { S a; a.v = 1; S b(a); S c; c = b; return b.v + c.v; }\n"
+	},
+	{
+		"AggregateMemberInitialisers", 52,
+		"struct S { int a = 1; int b = 2; };\n"
+		"int main() { S s{5}; return s.a * 10 + s.b; }\n"
+	},
+};
+
+
+//Stage 2: rvalue references.
+static const SConformanceCase gasConformanceStage2[] =
+{
+	{
+		"RvalueOverload", 12,
+		"int f(int& x) { return 1; }\n"
+		"int f(int&& x) { return 2; }\n"
+		"int main() { int a = 0; return f(a) * 10 + f(3); }\n"
+	},
+	{
+		"ConstReferenceAndRvalueOverload", 12,
+		"int f(const int& x) { return 1; }\n"
+		"int f(int&& x) { return 2; }\n"
+		"int main() { int a = 0; return f(a) * 10 + f(3); }\n"
+	},
+	{
+		"RvalueBindsVariable", CONFORMANCE_REFUSED,
+		"int main() { int a = 0; int&& r = a; return r; }\n"
+	},
+	{
+		"RvalueLocal", 4,
+		"int main() { int&& r = 3; r++; return r; }\n"
+	},
+	{
+		"RvalueDistinctType", 1,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main() { return Same<int&, int&&>::V * 10 + Same<int&&, int&&>::V; }\n"
+	},
+	{
+		"RvalueSpecialisations", 123,
+		"template<class T> struct Kind { enum { V = 1 }; };\n"
+		"template<class T> struct Kind<T&> { enum { V = 2 }; };\n"
+		"template<class T> struct Kind<T&&> { enum { V = 3 }; };\n"
+		"int main() { return Kind<int>::V * 100 + Kind<int&>::V * 10 + Kind<int&&>::V; }\n"
+	},
+	{
+		"ReferenceCollapsing", 1111,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<class T> struct AddRR { typedef T&& Type; };\n"
+		"template<class T> struct AddLR { typedef T& Type; };\n"
+		"int main() { return Same<AddRR<int&>::Type, int&>::V + Same<AddRR<int>::Type, int&&>::V * 10 + Same<AddLR<int&&>::Type, int&>::V * 100 + Same<AddRR<int&&>::Type, int&&>::V * 1000; }\n"
+	},
+	{
+		"ForwardingDeduction", 212,
+		"template<class T> struct IsLRef { enum { V = 1 }; };\n"
+		"template<class T> struct IsLRef<T&> { enum { V = 2 }; };\n"
+		"template<class T> int f(T&& t) { return IsLRef<T>::V; }\n"
+		"int main() { int a = 0; const int c = 0; return f(a) * 100 + f(3) * 10 + f(c); }\n"
+	},
+	{
+		"ForwardingCopies", 92,
+		"template<class T> int F(T&& t) { T x = t; x = 9; return t; }\n"
+		"int main() { int i = 1; return F(i) * 10 + F(2); }\n"
+	},
+	{
+		"MoveConstructor", 1021,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct S { int v; S() : v(1) {} S(const S& o) : v(o.v + 10) {} S(S&& o) : v(o.v + 100) { o.v = 0; } };\n"
+		"int main() { S a; S b(a); S c(Move(a)); return b.v + c.v * 10 + a.v * 1000; }\n"
+	},
+	{
+		"MoveAssignment", 213,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct S { int v; S() : v(1) {} S& operator=(const S& o) { v = o.v + 10; return *this; } S& operator=(S&& o) { v = o.v + 100; return *this; } };\n"
+		"S make() { return S(); }\n"
+		"int main() { S a; S b; S c; b = a; c = Move(a); a = make(); return b.v + c.v + a.v; }\n"
+	},
+	{
+		"ImplicitMove", 3501,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct M { int v; M() : v(0) {} M(M&& o) : v(o.v + 1) {} M(const M& o) : v(o.v + 50) {} M& operator=(M&& o) { v = o.v + 3; return *this; } M& operator=(const M& o) { v = o.v + 70; return *this; } };\n"
+		"struct W { M m; };\n"
+		"int main() { W a; W b(Move(a)); W c(a); W d; d = Move(a); return b.m.v + c.m.v * 10 + d.m.v * 1000; }\n"
+	},
+	{
+		"MoveOnlyReturned", 240,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct U { int v; U(int a) : v(a) {} U(U&& o) : v(o.v) { o.v = 0; } U(const U&) = delete; };\n"
+		"U make(int a) { U u(a); return u; }\n"
+		"int take(U u) { return u.v; }\n"
+		"int main() { U u = make(4); return take(Move(u)) * 10 + u.v + take(make(2)) * 100; }\n"
+	},
+	{
+		"MoveOnlyCopied", CONFORMANCE_REFUSED,
+		"struct U { int v; U(int a) : v(a) {} U(U&& o) : v(o.v) {} };\n"
+		"int main() { U u(1); U w(u); return w.v; }\n"
+	},
+	{
+		"PerfectForwarding", 123,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"int g(int& x) { return 1; }\n"
+		"int g(const int& x) { return 2; }\n"
+		"int g(int&& x) { return 3; }\n"
+		"template<class T> int h(T&& t) { return g(Forward<T>(t)); }\n"
+		"int main() { int a = 0; const int c = 0; return h(a) * 100 + h(c) * 10 + h(3); }\n"
+	},
+	{
+		"ForwardingPack", 114,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct P { int v; P(int& a, int&& b, const int& c) : v(100 + a + b * 2 + c * 3) {} };\n"
+		"template<class... A> P make(A&&... a) { return P(Forward<A>(a)...); }\n"
+		"int main() { int a = 1; const int c = 3; return make(a, 2, c).v; }\n"
+	},
+	{
+		"RefQualifiedMembers", 123,
+		"struct S { int f() & { return 1; } int f() && { return 2; } int g() const & { return 3; } };\n"
+		"int main() { S s; return s.f() * 100 + S().f() * 10 + S().g(); }\n"
+	},
+	{
+		"RvalueMember", 122,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct S { int v; };\n"
+		"int f(int& x) { return 1; }\n"
+		"int f(int&& x) { return 2; }\n"
+		"S make() { S s; s.v = 0; return s; }\n"
+		"int main() { S s; s.v = 0; return f(s.v) * 100 + f(Move(s).v) * 10 + f(make().v); }\n"
+	},
+	{
+		"RvalueReturn", 8,
+		"int g = 5;\n"
+		"int&& f() { return static_cast<int&&>(g); }\n"
+		"int main() { int&& r = f(); r = 8; return g; }\n"
+	},
+	{
+		"NamedRvalueIsLvalue", 1,
+		"int f(int& x) { return 1; }\n"
+		"int f(int&& x) { return 2; }\n"
+		"int h(int&& x) { return f(x); }\n"
+		"int main() { return h(3); }\n"
+	},
+	{
+		"TemporaryToConstReference", 542,
+		"int f(const int& x) { return x + 1; }\n"
+		"struct S { int v; S(int a) : v(a) {} };\n"
+		"int g(const S& s) { return s.v; }\n"
+		"int main() { return f(3) * 10 + g(S(2)) + g(5) * 100; }\n"
+	},
+};
+
+
+//Stage 3: auto, decltype, range-for, alias templates, nullptr_t.
+static const SConformanceCase gasConformanceStage3[] =
+{
+	{
+		"AutoVariables", 409,
+		"int main() { auto x = 3; auto* p = &x; const auto& r = x; auto y = x; y++; return x + *p + r + y * 100; }\n"
+	},
+	{
+		"AutoDropsConstAndReference", 61,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main() { const int c = 5; int i = 1; int& ri = i; auto a = c; auto b = ri; a++; b = 7; return a * 10 + i; }\n"
+	},
+	{
+		"AutoTypes", 31,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main() { auto a = 1L; auto b = 'c'; auto c = 1.5f; auto d = \"x\"; auto e = &a; return Same<decltype(a), long>::V + Same<decltype(b), char>::V * 2 + Same<decltype(c), float>::V * 4 + Same<decltype(d), const char*>::V * 8 + Same<decltype(e), long*>::V * 16; }\n"
+	},
+	{
+		"AutoInFor", 20,
+		"int main() { int a[4] = { 1, 2, 3, 4 }; int s = 0; for (auto i = 0; i < 4; i++) { s += a[i]; } for (auto* p = a; p != a + 4; ++p) { s += *p; } return s; }\n"
+	},
+	{
+		"AutoFunctionPointer", 9,
+		"int f(int x) { return x * 3; }\n"
+		"int main() { auto p = f; auto q = &f; return p(2) + q(1); }\n"
+	},
+	{
+		"AutoNoInitialiser", CONFORMANCE_REFUSED,
+		"int main() { auto x; x = 1; return x; }\n"
+	},
+	{
+		"AutoConflicting", CONFORMANCE_REFUSED,
+		"int main() { auto a = 1, b = 2.5; return a; }\n"
+	},
+	{
+		"TrailingReturn", 22,
+		"auto f(int x) -> int { return x + 1; }\n"
+		"struct S { auto g() const -> long { return 2; } };\n"
+		"int main() { S s; return f(1) * 10 + (int)s.g(); }\n"
+	},
+	{
+		"Decltype", 52,
+		"int main() { int a = 1; decltype(a) b = 2; decltype((a)) c = a; c = 5; return a * 10 + b; }\n"
+	},
+	{
+		"DecltypeTypes", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S { long m; };\n"
+		"int f();\n"
+		"int a;\n"
+		"int main() { S s; return Same<decltype(a), int>::V + Same<decltype((a)), int&>::V * 2 + Same<decltype(a + 1L), long>::V * 4 + Same<decltype(s.m), long>::V * 8 + Same<decltype(f()), int>::V * 16 + Same<decltype(nullptr), decltype(nullptr)>::V * 32; }\n"
+	},
+	{
+		"DecltypeTrailing", 13,
+		"template<class A, class B> auto add(A a, B b) -> decltype(a + b) { return a + b; }\n"
+		"int main() { return (int)add(1, 2L) + (sizeof(add(1, 2L)) == sizeof(long)) * 10; }\n"
+	},
+	{
+		"RangeForArray", 18,
+		"int main() { int a[3] = { 1, 2, 3 }; int s = 0; for (int x : a) { s += x; } for (int& x : a) { x *= 2; } for (auto x : a) { s += x; } return s; }\n"
+	},
+	{
+		"RangeForClass", 6,
+		"struct R { int a[3]; int* begin() { return a; } int* end() { return a + 3; } };\n"
+		"int main() { R r; r.a[0] = 1; r.a[1] = 2; r.a[2] = 3; int s = 0; for (int x : r) { s += x; } return s; }\n"
+	},
+	{
+		"RangeForFreeBegin", 3,
+		"namespace N { struct R { int a[2]; }; int* begin(R& r) { return r.a; } int* end(R& r) { return r.a + 2; } }\n"
+		"int main() { N::R r; r.a[0] = 1; r.a[1] = 2; int s = 0; for (int x : r) { s += x; } return s; }\n"
+	},
+	{
+		"RangeForIterator", 12,
+		"struct It { int i; bool operator!=(const It& o) const { return i != o.i; } It& operator++() { i++; return *this; } int operator*() const { return i * 2; } };\n"
+		"struct R { It begin() const { It t; t.i = 1; return t; } It end() const { It t; t.i = 4; return t; } };\n"
+		"int main() { R r; int s = 0; for (auto x : r) { s += x; } return s; }\n"
+	},
+	{
+		"RangeForBreakContinue", 8,
+		"int main() { int a[5] = { 1, 2, 3, 4, 5 }; int s = 0; for (int x : a) { if (x == 2) { continue; } if (x == 5) { break; } s += x; } return s; }\n"
+	},
+	{
+		"AliasTemplate", 61,
+		"template<class T> struct Box { T v; };\n"
+		"template<class T> using B = Box<T>;\n"
+		"template<class T> using Ptr = T*;\n"
+		"template<class T, int N> using Arr = T[N];\n"
+		"int main() { B<int> b; b.v = 1; Ptr<int> p = &b.v; Arr<char, 6> a; return *p + sizeof(a) * 10; }\n"
+	},
+	{
+		"NullPointerType", 121,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int f(int*) { return 1; }\n"
+		"int f(nullptr_t) { return 2; }\n"
+		"int main() { nullptr_t n = nullptr; int* p = n; return f(nullptr) * 10 + f(p) + (sizeof(nullptr_t) == sizeof(void*)) * 100; }\n"
+	},
+	{
+		"AutoReturn", 122,
+		"auto f(int x) { return x + 1; }\n"
+		"auto g(int x) { if (x > 0) { return 1L; } return 2L; }\n"
+		"int main() { return f(1) * 10 + (int)g(0) + (sizeof(g(0)) == sizeof(long)) * 100; }\n"
+	},
+	{
+		"DecltypeAuto", 3,
+		"int g = 1;\n"
+		"decltype(auto) f() { return (g); }\n"
+		"decltype(auto) h() { return g; }\n"
+		"int main() { f() = 3; int x = h(); x = 9; return g; }\n"
+	},
+};
+
+
+//Stage 4: constexpr (ConstexprPlan.txt).
+static const SConformanceCase gasConformanceStage4[] =
+{
+	{
+		"ConstexprVariable", 12,
+		"constexpr int N = 3 * 4;\n"
+		"char a[N];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprFunction", 25169,
+		"constexpr int sq(int x) { return x * x; }\n"
+		"char a[sq(3)];\n"
+		"enum { E = sq(4) };\n"
+		"int main() { int v = 5; return sizeof(a) + E * 10 + sq(v) * 1000; }\n"
+	},
+	{
+		"ConstexprRecursion", 120,
+		"constexpr int fact(int n) { return n <= 1 ? 1 : n * fact(n - 1); }\n"
+		"char a[fact(5)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprLoop", 21,
+		"constexpr int sum(int n) { int r = 0; for (int i = 1; i <= n; i++) { r += i; } return r; }\n"
+		"char a[sum(6)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprStatements", 10,
+		"constexpr int f(int n) { int r = 1; int i = 0; while (i < n) { if (i % 2) { r += 3; } else { r *= 2; } i++; } switch (r) { case 13: return r + 100; default: break; } return r; }\n"
+		"char a[f(3)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprCaseAndTemplateArgument", 310,
+		"constexpr int sq(int x) { return x * x; }\n"
+		"template<int N> struct A { enum { V = N + 1 }; };\n"
+		"int main() { int x = 4; int r = 0; switch (x) { case sq(2): r = 3; break; default: r = 9; } return r * 100 + A<sq(3)>::V; }\n"
+	},
+	{
+		"ConstexprStaticAssert", 9,
+		"constexpr int sq(int x) { return x * x; }\n"
+		"static_assert(sq(3) == 9, \"sq\");\n"
+		"int main() { return 9; }\n"
+	},
+	{
+		"ConstexprStaticAssertFalse", CONFORMANCE_REFUSED,
+		"constexpr int sq(int x) { return x * x; }\n"
+		"static_assert(sq(3) == 8, \"sq\");\n"
+		"int main() { return 0; }\n"
+	},
+	{
+		"ConstexprClass", 75,
+		"struct P { int x; int y; constexpr P(int a, int b) : x(a), y(b) {} constexpr int sum() const { return x + y; } };\n"
+		"constexpr P gp(5, 2);\n"
+		"char a[gp.sum()];\n"
+		"char b[gp.x];\n"
+		"int main() { return sizeof(a) * 10 + sizeof(b); }\n"
+	},
+	{
+		"ConstexprAggregate", 23,
+		"struct P { int x; int y; };\n"
+		"constexpr P gp = { 2, 3 };\n"
+		"char a[gp.y];\n"
+		"int main() { return sizeof(a) + gp.x * 10; }\n"
+	},
+	{
+		"ConstexprArray", 53,
+		"constexpr int ga[] = { 1, 2, 3 };\n"
+		"char a[ga[1] + ga[2]];\n"
+		"constexpr int at(const int* p, int i) { return p[i]; }\n"
+		"char b[at(ga, 2)];\n"
+		"int main() { return sizeof(a) * 10 + sizeof(b); }\n"
+	},
+	{
+		"ConstexprString", 52,
+		"constexpr int len(const char* s) { int n = 0; while (s[n]) { n++; } return n; }\n"
+		"char a[len(\"hello\")];\n"
+		"char b[\"abc\"[1] - 'a' + 1];\n"
+		"int main() { return sizeof(a) * 10 + sizeof(b); }\n"
+	},
+	{
+		"ConstexprFloating", 35,
+		"constexpr double d = 1.5 * 2;\n"
+		"constexpr double half(double x) { return x / 2; }\n"
+		"char a[(int)d];\n"
+		"char b[(int)(half(9.0) + 0.5)];\n"
+		"int main() { return sizeof(a) * 10 + sizeof(b); }\n"
+	},
+	{
+		"ConstexprReferencesAndPointers", 75,
+		"constexpr int gv = 7;\n"
+		"constexpr const int& gr = gv;\n"
+		"constexpr const int* gq = &gv;\n"
+		"char a[gr];\n"
+		"char b[*gq - 2];\n"
+		"int main() { return sizeof(a) * 10 + sizeof(b); }\n"
+	},
+	{
+		"ConstexprLocalObjects", 9,
+		"struct V { int x; constexpr V(int a) : x(a) {} constexpr V add(V o) const { return V(x + o.x); } };\n"
+		"constexpr int f() { V a(2); V b = a.add(V(3)); int t[3] = { 1, 2, 3 }; t[1] = b.x; return t[0] + t[1] + t[2]; }\n"
+		"char a[f()];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprNotConstant", CONFORMANCE_REFUSED,
+		"int g = 3;\n"
+		"constexpr int v = g;\n"
+		"int main() { return v; }\n"
+	},
+	{
+		"ConstexprCallsOrdinary", CONFORMANCE_REFUSED,
+		"int f(int x) { return x; }\n"
+		"constexpr int g(int x) { return f(x); }\n"
+		"char a[g(3)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprDivisionByZero", CONFORMANCE_REFUSED,
+		"constexpr int f(int x) { return 10 / x; }\n"
+		"char a[f(0) + 1];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprOutOfBounds", CONFORMANCE_REFUSED,
+		"constexpr int ga[] = { 1, 2, 3 };\n"
+		"constexpr int f(int i) { return ga[i]; }\n"
+		"char a[f(5) + 1];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprRunTime", 93,
+		"constexpr int sq(int x) { return x * x; }\n"
+		"struct P { int x; constexpr P(int a) : x(a) {} constexpr int get() const { return x; } };\n"
+		"int main() { int v = 3; P p(v); return sq(v) * 10 + p.get(); }\n"
+	},
+};
+
+
+//Stage 5: lambdas.
+static const SConformanceCase gasConformanceStage5[] =
+{
+	{
+		"LambdaPlain", 23,
+		"int main() { auto f = [](int x) { return x + 1; }; return f(1) * 10 + [](int a, int b) { return a - b; }(5, 2); }\n"
+	},
+	{
+		"LambdaCaptures", 443,
+		"int main() { int a = 1, b = 2; auto f = [a, &b](int x) { b += x; return a + b; }; int r = f(1); a = 50; return r * 10 + b + f(0) * 100; }\n"
+	},
+	{
+		"LambdaDefaultCaptures", 543,
+		"int main() { int a = 1, b = 2, c = 3; auto f = [=]() { return a + b; }; auto g = [&]() { c = a + b; }; auto h = [=, &c]() { c += a; }; auto k = [&, a]() { b = a * 5; }; g(); h(); k(); return f() + c * 10 + b * 100; }\n"
+	},
+	{
+		"LambdaMutable", 51,
+		"int main() { int a = 1; auto f = [a]() mutable { a += 2; return a; }; f(); return f() * 10 + a; }\n"
+	},
+	{
+		"LambdaToFunctionPointer", 45,
+		"int apply(int (*p)(int), int x) { return p(x); }\n"
+		"int main() { int (*p)(int) = [](int x) { return x * 2; }; return p(2) * 10 + apply([](int x) { return x + 1; }, 4); }\n"
+	},
+	{
+		"LambdaThis", 34,
+		"struct S { int v; int f() { auto g = [this]() { v++; return v + 1; }; return g(); } int h() { auto g = [=]() { return v * 2; }; return g(); } };\n"
+		"int main() { S s; s.v = 1; return s.f() * 10 + s.h(); }\n"
+	},
+	{
+		"LambdaAsTemplateArgument", 69,
+		"template<class F> int apply(F f, int x) { return f(x); }\n"
+		"template<class F> int twice(F&& f) { return f() + f(); }\n"
+		"int main() { int k = 3; return apply([k](int x) { return x * k; }, 2) * 10 + twice([&k]() { return ++k; }); }\n"
+	},
+	{
+		"LambdaReturnType", 15,
+		"int main() { auto f = [](int x) -> long { return x; }; auto g = [](bool b) -> double { if (b) { return 1; } return 2.5; }; return (sizeof(f(1)) == sizeof(long)) * 10 + (int)(g(false) * 2); }\n"
+	},
+	{
+		"LambdaNested", 7,
+		"int main() { int a = 2; auto f = [a](int x) { auto g = [a, x](int y) { return a * x + y; }; return g(1); }; return f(3); }\n"
+	},
+	{
+		"LambdaCopiedAndStored", 156,
+		"struct H { int k; };\n"
+		"int main() { int n = 4; auto f = [n](int x) { return x + n; }; auto g = f; n = 100; return f(1) * 10 + g(2) + (sizeof(f) == sizeof(int)) * 100; }\n"
+	},
+	{
+		"LambdaCapturesObject", 22,
+		"int gd = 0;\n"
+		"struct T { int v; T(int a) : v(a) {} T(const T& o) : v(o.v + 1) {} ~T() { gd++; } };\n"
+		"int f() { T t(1); auto g = [t]() { return t.v; }; return g(); }\n"
+		"int main() { int r = f(); return r * 10 + gd; }\n"
+	},
+	{
+		"LambdaGeneric", 231,
+		"int main() { auto f = [](auto x) { return x + 1; }; auto g = [](auto a, auto b) { return sizeof(a) + sizeof(b); }; return f(1) * 100 + (int)f(2L) * 10 + (g('c', 'd') == 2); }\n"
+	},
+	{
+		"LambdaInitCapture", 12,
+		"int main() { int a = 1; auto f = [b = a + 1, &c = a]() { c = 10; return b; }; return f() + a; }\n"
+	},
+	{
+		"LambdaUsesUncaptured", CONFORMANCE_REFUSED,
+		"int main() { int a = 1; auto f = []() { return a; }; return f(); }\n"
+	},
+	{
+		"LambdaChangesCopy", CONFORMANCE_REFUSED,
+		"int main() { int a = 1; auto f = [a]() { a = 2; return a; }; return f(); }\n"
+	},
+};
+
+
+//Stage 6: templates.
+static const SConformanceCase gasConformanceStage6[] =
+{
+	{
+		"Sfinae", 12,
+		"template<bool B, class T = void> struct EnableIf {};\n"
+		"template<class T> struct EnableIf<true, T> { typedef T Type; };\n"
+		"template<class T> typename EnableIf<sizeof(T) == 1, int>::Type f(T) { return 1; }\n"
+		"template<class T> typename EnableIf<sizeof(T) != 1, int>::Type f(T) { return 2; }\n"
+		"int main() { return f('a') * 10 + f(1L); }\n"
+	},
+	{
+		"SfinaeMemberDetection", 11,
+		"template<class T> struct HasSize { template<class U> static char test(int U::*); template<class U> static long test(...); enum { V = sizeof(test<T>(0)) == 1 }; };\n"
+		"struct S {};\n"
+		"int main() { return HasSize<S>::V * 10 + HasSize<int>::V + 1; }\n"
+	},
+	{
+		"SfinaeDefaultArgument", 12,
+		"template<bool B, class T = void> struct EnableIf {};\n"
+		"template<class T> struct EnableIf<true, T> { typedef T Type; };\n"
+		"template<class T, class = typename EnableIf<(sizeof(T) > 1)>::Type> int f(T) { return 1; }\n"
+		"int f(...) { return 2; }\n"
+		"int main() { return f(1L) * 10 + f('c'); }\n"
+	},
+	{
+		"TemplateTemplateParameter", 42,
+		"template<class T> struct Box { T v; };\n"
+		"template<template<class> class C, class T> struct Use { C<T> c; };\n"
+		"int main() { Use<Box, long> u; u.c.v = 2; return (int)u.c.v + sizeof(u.c.v) * 10; }\n"
+	},
+	{
+		"MemberClassTemplate", 1442,
+		"struct O { template<class T> struct I { T v; int size() { return sizeof(T); } }; };\n"
+		"template<class A> struct P { template<class B> struct Q { enum { V = sizeof(A) * 10 + sizeof(B) }; }; };\n"
+		"int main() { O::I<long> i; i.v = 2; return (int)i.v + i.size() * 10 + P<char>::Q<long>::V * 100; }\n"
+	},
+	{
+		"ArrayBoundDeduced", 531,
+		"template<class T, unsigned long N> int len(T (&)[N]) { return (int)N; }\n"
+		"template<class T, unsigned long N> int size(T (&a)[N]) { return sizeof(a); }\n"
+		"int main() { char a[5]; long b[3]; return len(a) * 100 + len(b) * 10 + (size(b) == 12); }\n"
+	},
+	{
+		"ArraySpecialisation", 173,
+		"template<class T> struct A { enum { V = 1 }; };\n"
+		"template<class T, int N> struct A<T[N]> { enum { V = N }; };\n"
+		"template<class T> struct A<T[]> { enum { V = 3 }; };\n"
+		"int main() { return A<int>::V * 100 + A<int[7]>::V * 10 + A<int[]>::V; }\n"
+	},
+	{
+		"PointerTemplateArgument", 328,
+		"int g = 3;\n"
+		"int f(int x) { return x + 1; }\n"
+		"template<int* P> struct A { int get() { return *P; } };\n"
+		"template<int (*F)(int)> struct B { int call(int x) { return F(x); } };\n"
+		"template<int& R> struct C { void set() { R = 8; } };\n"
+		"int main() { A<&g> a; B<f> b; C<g> c; int r = a.get() * 100 + b.call(1) * 10; c.set(); return r + g; }\n"
+	},
+	{
+		"PackSizeof", 206,
+		"template<class... T> struct Count { enum { V = sizeof...(T) }; };\n"
+		"template<class... A> int f(A... a) { return sizeof...(A) + sizeof...(a); }\n"
+		"int main() { return Count<int, char>::V * 100 + Count<>::V * 10 + f(1, 2, 3); }\n"
+	},
+	{
+		"PackExpandedExpression", 654,
+		"int g(int a, int b, int c) { return a + b * 10 + c * 100; }\n"
+		"int twice(int x) { return x * 2; }\n"
+		"template<class... A> int f(A... a) { return g((a + 1)...); }\n"
+		"template<class... A> int h(A... a) { return g(twice(a)...); }\n"
+		"int main() { return f(1, 2, 3) + h(1, 1, 1); }\n"
+	},
+	{
+		"PackInInitialiser", 4131,
+		"template<class... A> int f(A... a) { int v[] = { a... }; return v[0] + v[sizeof...(a) - 1] * 10; }\n"
+		"template<class... A> int count(A... a) { int s = 0; int v[] = { (s += a, 0)... }; return s + sizeof(v) / sizeof(v[0]) * 100; }\n"
+		"int main() { return f(1, 2, 3) + count(1, 2, 3, 4) * 10; }\n"
+	},
+	{
+		"PackBases", 12,
+		"struct A { int a; A() : a(1) {} };\n"
+		"struct B { int b; B() : b(2) {} };\n"
+		"template<class... T> struct D : T... { D() : T()... {} };\n"
+		"int main() { D<A, B> d; return d.a * 10 + d.b; }\n"
+	},
+	{
+		"PackTemplateArguments", 23,
+		"template<class... T> struct List { enum { N = sizeof...(T) }; };\n"
+		"template<class... T> struct Wrap { typedef List<T*...> Type; typedef List<int, T...> More; };\n"
+		"int main() { return Wrap<int, char>::Type::N * 10 + Wrap<int, char>::More::N; }\n"
+	},
+	{
+		"PackNonType", 10,
+		"template<int... N> struct Sum;\n"
+		"template<> struct Sum<> { enum { V = 0 }; };\n"
+		"template<int H, int... T> struct Sum<H, T...> { enum { V = H + Sum<T...>::V }; };\n"
+		"int main() { return Sum<1, 2, 3, 4>::V; }\n"
+	},
+	{
+		"PackMembers", 12,
+		"template<class... T> struct Tuple;\n"
+		"template<> struct Tuple<> {};\n"
+		"template<class H, class... T> struct Tuple<H, T...> : Tuple<T...> { H h; Tuple(H a, T... t) : Tuple<T...>(t...), h(a) {} };\n"
+		"int main() { Tuple<int, long, char> t(1, 2L, 'c'); Tuple<long, char>& u = t; return t.h * 10 + (int)u.h; }\n"
+	},
+	{
+		"VariableTemplate", 349,
+		"template<class T> constexpr T pi = T(3);\n"
+		"template<class T> constexpr int size = sizeof(T);\n"
+		"template<> constexpr int size<char> = 9;\n"
+		"int main() { return pi<int> * 100 + size<long> * 10 + size<char>; }\n"
+	},
+	{
+		"TypeTraitsClasses", 1023,
+		"struct B {};\n"
+		"struct D : B {};\n"
+		"union U { int i; };\n"
+		"enum E { X };\n"
+		"struct V { virtual void f() {} };\n"
+		"struct A { virtual void f() = 0; };\n"
+		"struct F final {};\n"
+		"int main() { return __is_class(B) + __is_union(U) * 2 + __is_enum(E) * 4 + __is_polymorphic(V) * 8 + __is_abstract(A) * 16 + __is_empty(B) * 32 + __is_final(F) * 64 + !__is_class(U) * 128 + !__is_polymorphic(B) * 256 + !__is_empty(V) * 512; }\n"
+	},
+	{
+		"TypeTraitsRelations", 255,
+		"struct B {};\n"
+		"struct D : B {};\n"
+		"struct N { N(int) {} };\n"
+		"int main() { return __is_base_of(B, D) + !__is_base_of(D, B) * 2 + __is_convertible_to(D*, B*) * 4 + !__is_convertible_to(B*, D*) * 8 + __is_constructible(N, int) * 16 + !__is_constructible(N) * 32 + __is_assignable(B&, B) * 64 + __is_base_of(B, B) * 128; }\n"
+	},
+	{
+		"TypeTraitsTrivial", 1023,
+		"struct P { int a; };\n"
+		"struct C { C() {} C(const C&) {} ~C() {} };\n"
+		"int main() { return __is_pod(P) + !__is_pod(C) * 2 + __is_trivially_copyable(P) * 4 + !__is_trivially_copyable(C) * 8 + __is_trivially_constructible(P) * 16 + __has_trivial_destructor(P) * 32 + !__has_trivial_destructor(C) * 64 + __is_standard_layout(P) * 128 + __is_trivial(P) * 256 + __is_literal_type(P) * 512; }\n"
+	},
+	{
+		"UnderlyingType", 11,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"enum E : short { X };\n"
+		"enum class F : unsigned char { Y };\n"
+		"int main() { return Same<__underlying_type(E), short>::V * 10 + Same<__underlying_type(F), unsigned char>::V; }\n"
+	},
+	{
+		"DependentTemplateName", 44,
+		"struct S { template<class T> T conv(int x) { return (T)x; } template<class T> struct In { T v; }; };\n"
+		"template<class C> int f(C c) { typename C::template In<long> i; i.v = c.template conv<long>(4); return (int)i.v + sizeof(i.v) * 10; }\n"
+		"int main() { S s; return f(s); }\n"
+	},
+	{
+		"TemplateConversionOperator", 1411,
+		"struct S { int v; template<class T> operator T() const { return (T)(v + sizeof(T)); } };\n"
+		"int main() { S s; s.v = 10; long l = s; char c = s; return (int)l * 100 + c; }\n"
+	},
+	{
+		"DefaultTemplateTemplate", 7,
+		"template<class T> struct Less { bool operator()(T a, T b) const { return a < b; } };\n"
+		"template<class T, class C = Less<T>> struct Max { T get(T a, T b) { C c; return c(a, b) ? b : a; } };\n"
+		"int main() { Max<int> m; return m.get(3, 7); }\n"
+	},
+	{
+		"PartialOrdering", 12,
+		"template<class T> int f(T) { return 1; }\n"
+		"template<class T> int f(T*) { return 2; }\n"
+		"int main() { int a = 0; return f(a) * 10 + f(&a); }\n"
+	},
+	{
+		"MemberSpecialisation", 12,
+		"template<class T> struct S { int f() { return 1; } };\n"
+		"template<> int S<char>::f() { return 2; }\n"
+		"int main() { S<int> a; S<char> b; return a.f() * 10 + b.f(); }\n"
+	},
+	{
+		"TemplateStaticMember", 43,
+		"template<class T> struct S { static int count; };\n"
+		"template<class T> int S<T>::count = 3;\n"
+		"int main() { S<int>::count++; return S<int>::count * 10 + S<char>::count; }\n"
+	},
+	{
+		"VariadicClass", 3,
+		"template<class... T> struct Tuple;\n"
+		"template<> struct Tuple<> { enum { N = 0 }; };\n"
+		"template<class H, class... T> struct Tuple<H, T...> : Tuple<T...> { enum { N = 1 + Tuple<T...>::N }; H h; };\n"
+		"int main() { return Tuple<int, char, long>::N; }\n"
+	},
+};
+
+
+//Stage 7: objects.
+static const SConformanceCase gasConformanceStage7[] =
+{
+	{
+		"StaticLocalInitialisedOnce", 101,
+		"int gCalls = 0;\n"
+		"int g() { gCalls++; return 7; }\n"
+		"int f() { static int v = g(); v++; return v; }\n"
+		"int main() { f(); f(); return f() * 10 + gCalls; }\n"
+	},
+	{
+		"StaticLocalObject", 521,
+		"int gMade = 0;\n"
+		"struct S { int v; S() : v(3) { gMade++; } };\n"
+		"int f() { static S s; s.v++; return s.v; }\n"
+		"S& single() { static S s; return s; }\n"
+		"int main() { f(); single().v = 9; return f() * 100 + gMade * 10 + (single().v == 9); }\n"
+	},
+	{
+		"StaticLocalNotReached", 1,
+		"int gMade = 0;\n"
+		"struct S { S() { gMade++; } };\n"
+		"void f(bool b) { if (b) { static S s; } }\n"
+		"int main() { f(false); int a = gMade; f(true); f(true); return a * 10 + gMade; }\n"
+	},
+	{
+		"PostfixOnObjects", 11121,
+		"struct S { int v; S operator++(int) { S t = *this; v++; return t; } S& operator++() { v += 10; return *this; } S operator--(int) { S t = *this; v--; return t; } };\n"
+		"int main() { S s; s.v = 1; S t = s++; ++s; S u = s--; return t.v + u.v * 10 + s.v * 1000; }\n"
+	},
+	{
+		"ArrowReturnsObject", 7,
+		"struct I { int v; };\n"
+		"struct P { I* p; I* operator->() { return p; } };\n"
+		"struct Q { P q; P operator->() { return q; } };\n"
+		"int main() { I i; i.v = 6; Q q; q.q.p = &i; q->v++; return q->v; }\n"
+	},
+	{
+		"ConversionFunctions", 1356,
+		"struct A { int v; };\n"
+		"struct B { int w; operator A() const { A a; a.v = w + 1; return a; } operator int&() { return w; } operator const char*() const { return \"xyz\"; } };\n"
+		"int take(A a) { return a.v; }\n"
+		"int main() { B b; b.w = 2; A a = b; int& r = b; r = 5; const char* s = b; return a.v * 100 + b.w * 10 + take(b) + (s[1] == 'y') * 1000; }\n"
+	},
+	{
+		"ConvertingConstructors", 5641,
+		"struct A { int v; A(int a) : v(a) {} A(const char* s) : v(s[0]) {} };\n"
+		"struct B { int w; B(const A& a) : w(a.v * 2) {} };\n"
+		"int take(A a) { return a.v; }\n"
+		"A make() { return 4; }\n"
+		"int main() { A a = 3; B b = a; A c = \"A\"; return take(5) * 1000 + b.w * 100 + make().v * 10 + (c.v == 65); }\n"
+	},
+	{
+		"PointerToOverloadedMember", 214,
+		"struct S { int f(char) { return 1; } int f(long) { return 2; } static int g(char) { return 3; } static int g(long) { return 4; } };\n"
+		"int main() { int (S::*p)(long) = &S::f; int (S::*q)(char) = &S::f; int (*r)(long) = &S::g; S s; return (s.*p)(0) * 100 + (s.*q)(0) * 10 + r(0); }\n"
+	},
+	{
+		"ReferenceBoundToTemporary", 1341,
+		"int gDead = 0;\n"
+		"struct S { int v; S(int a) : v(a) {} ~S() { gDead++; } };\n"
+		"S make() { return S(3); }\n"
+		"int f() { const S& r = make(); const int& i = 4; int alive = (gDead == 0); return r.v * 100 + i * 10 + alive; }\n"
+		"int main() { int r = f(); return r + gDead * 1000; }\n"
+	},
+	{
+		"ReferenceMemberAndGlobal", 357,
+		"struct H { const int& r; H(const int& a) : r(a) {} };\n"
+		"int g = 5;\n"
+		"const int& gr = g;\n"
+		"const long& gt = 7;\n"
+		"int main() { int a = 2; H h(a); a = 3; return h.r * 100 + gr * 10 + (int)gt; }\n"
+	},
+	{
+		"NewArrayForms", 3457,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"char gacArena[256];\n"
+		"size_t guiArena = 0;\n"
+		"void* Take(size_t n) { void* p = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return p; }\n"
+		"void* operator new[](size_t n) { return Take(n); }\n"
+		"void operator delete[](void* p) noexcept {}\n"
+		"struct S { int v; S() : v(7) {} };\n"
+		"int main() { int* p = new int[3]{ 1, 2, 3 }; int* q = new int[3](); q[1] += 4; int (*m)[4] = new int[3][4]; m[2][3] = 5; S* s = new S[2]; int r = p[2] * 1000 + q[1] * 100 + m[2][3] * 10 + s[1].v; delete[] p; delete[] q; delete[] m; delete[] s; return r; }\n"
+	},
+	{
+		"PlacementNewArguments", 442,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"struct Tag { int k; };\n"
+		"void* operator new(size_t n, const Tag& t, void* p) { return (char*)p + t.k; }\n"
+		"void* operator new(size_t n, void* p) noexcept { return p; }\n"
+		"struct S { int v; S(int a) : v(a) {} };\n"
+		"int main() { char buf[16]; Tag t; t.k = 4; S* p = new (t, buf) S(4); S* q = new (buf) S(2); return p->v * 10 + q->v + ((char*)p - buf) * 100; }\n"
+	},
+	{
+		"ConditionalOnClasses", 120,
+		"struct A { int v; };\n"
+		"struct B : A {};\n"
+		"int main() { A a; B b; a.v = 1; b.v = 2; A r = (a.v ? a : b); A s = (a.v ? b : a); return r.v * 100 + s.v * 10; }\n"
+	},
+	{
+		"ExternLocal", 132,
+		"int g = 3;\n"
+		"int h();\n"
+		"int main() { extern int g; extern int k; int h(); return g * 10 + k + h(); }\n"
+		"int k = 2;\n"
+		"int h() { return 100; }\n"
+	},
+	{
+		"ThreadLocal", 33,
+		"thread_local int gt = 2;\n"
+		"int f() { static thread_local int lt = 1; lt++; return lt; }\n"
+		"int main() { gt++; f(); return gt * 10 + f(); }\n"
+	},
+	{
+		"ImplicitCopyAndAssign", 2115,
+		"struct M { int v; M() : v(1) {} M(const M& o) : v(o.v + 1) {} M& operator=(const M& o) { v = o.v + 10; return *this; } };\n"
+		"struct W { int a; M m; char c[3]; };\n"
+		"struct X : W { long l; };\n"
+		"int main() { X a; a.a = 5; a.c[2] = 3; a.l = 9; X b(a); X c; c = a; return b.m.v * 1000 + c.m.v * 10 + b.a + b.c[2] + (int)c.l - 17 + 5; }\n"
+	},
+	{
+		"ImplicitDestructorOrder", 321,
+		"int g = 0;\n"
+		"struct A { ~A() { g = g * 10 + 1; } };\n"
+		"struct B { ~B() { g = g * 10 + 2; } };\n"
+		"struct C : A { B b; ~C() { g = g * 10 + 3; } };\n"
+		"int main() { { C c; } return g; }\n"
+	},
+	{
+		"ArrayMemberCopy", 25,
+		"struct E { int v; E() : v(1) {} E(const E& o) : v(o.v * 2) {} };\n"
+		"struct S { E e[3]; int n[2]; };\n"
+		"int main() { S a; a.n[1] = 5; S b = a; return b.e[2].v * 10 + b.n[1]; }\n"
+	},
+	{
+		"CommaAndLogicalOverloads", 212,
+		"struct S { int v; S operator,(const S& o) const { S r; r.v = v * 10 + o.v; return r; } bool operator!() const { return v == 0; } S operator~() const { S r; r.v = ~v; return r; } };\n"
+		"int main() { S a; a.v = 1; S b; b.v = 2; S c = (a, b); return c.v + (!a ? 100 : 200) + (~b).v + 3; }\n"
+	},
+	{
+		"FunctionTryBlock", 6,
+		"struct S { int v; S(int a) try : v(a) { } catch (...) { } };\n"
+		"int main() { S s(6); return s.v; }\n"
+	},
+	{
+		"ClassOperatorNew", 5,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"char gacArena[256];\n"
+		"size_t guiArena = 0;\n"
+		"void* Take(size_t n) { void* p = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return p; }\n"
+		"int gDeleted = 0;\n"
+		"struct S { int v; void* operator new(size_t n) { return Take(n); } void operator delete(void* p) { gDeleted++; } };\n"
+		"int main() { S* p = new S; p->v = 4; int r = p->v; delete p; return r + gDeleted; }\n"
+	},
+};
+
+
+//Stage 8: initializer lists and literal operators.
+static const SConformanceCase gasConformanceStage8[] =
+{
+	{
+		"InitializerList", 6390,
+		"#ifdef _MSC_VER\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"struct V { int s; int n; V(std::initializer_list<int> l) : s(0), n((int)l.size()) { for (const int* i = l.begin(); i != l.end(); ++i) { s += *i; } } };\n"
+		"int sum(std::initializer_list<long> l) { int s = 0; for (const long* i = l.begin(); i != l.end(); ++i) { s += (int)*i; } return s; }\n"
+		"int main() { V v{ 1, 2, 3 }; V w = { 4, 5 }; return v.s * 1000 + v.n * 100 + w.s * 10 + sum({ 1, 2 }) - 3; }\n"
+	},
+	{
+		"InitializerListPreferred", 1232,
+		"#ifdef _MSC_VER\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"struct V { int k; V(int a, int b) : k(1) {} V(std::initializer_list<int> l) : k(2) {} };\n"
+		"struct W { int k; W(int a, int b) : k(3) {} };\n"
+		"int main() { V a(1, 2); V b{ 1, 2 }; W c{ 1, 2 }; V d{}; return a.k * 1000 + b.k * 100 + c.k * 10 + d.k; }\n"
+	},
+	{
+		"InitializerListRangeFor", 15,
+		"#ifdef _MSC_VER\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"int main() { int s = 0; for (int x : { 1, 2, 3 }) { s += x; } auto l = { 4, 5 }; for (int x : l) { s += x; } return s; }\n"
+	},
+	{
+		"LiteralOperators", 2542,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"long long operator\"\" _k(unsigned long long v) { return (long long)v * 1000; }\n"
+		"long double operator\"\" _half(long double v) { return v / 2; }\n"
+		"int operator\"\" _len(const char* s, size_t n) { return (int)n; }\n"
+		"int operator\"\" _c(char c) { return c - 'a'; }\n"
+		"int main() { return (int)(2_k / 1000) * 1000 + (int)(5.0_half * 2) * 100 + \"abcd\"_len * 10 + 'c'_c; }\n"
+	},
+	{
+		"LiteralOperatorRaw", 354,
+		"int operator\"\" _digits(const char* s) { int n = 0; while (s[n]) { n++; } return n; }\n"
+		"template<char... C> int operator\"\" _count() { return sizeof...(C); }\n"
+		"int main() { return 12345_digits * 10 + 0x1F_digits + 123_count * 100; }\n"
+	},
+	{
+		"LiteralOperatorMissing", CONFORMANCE_REFUSED,
+		"int main() { return 12_nothere; }\n"
+	},
+	{
+		"NoexceptOperator", 15,
+		"int f() noexcept;\n"
+		"int g();\n"
+		"struct S { ~S() {} void h() noexcept {} };\n"
+		"int main() { S s; return noexcept(f()) + !noexcept(g()) * 2 + noexcept(1 + 2) * 4 + noexcept(s.h()) * 8; }\n"
+	},
+};
+
+
+//Stage 9: type information and virtual inheritance.
+static const SConformanceCase gasConformanceStage9[] =
+{
+	{
+		"Typeid", 127,
+		"#ifdef _MSC_VER\n"
+		"#include <typeinfo>\n"
+		"#else\n"
+		"namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }\n"
+		"#endif\n"
+		"struct B { virtual ~B() {} };\n"
+		"struct D : B {};\n"
+		"struct N {};\n"
+		"int main() { D d; B b; B& r = d; B* p = &d; return (typeid(r) == typeid(D)) + (typeid(b) == typeid(B)) * 2 + (typeid(*p) != typeid(B)) * 4 + (typeid(int) == typeid(int)) * 8 + (typeid(N) != typeid(D)) * 16 + (typeid(p) == typeid(B*)) * 32 + (typeid(const int) == typeid(int)) * 64; }\n"
+	},
+	{
+		"DynamicCastReference", 44,
+		"struct B { virtual ~B() {} };\n"
+		"struct D : B { int v; };\n"
+		"int main() { D d; d.v = 4; B& b = d; D& r = dynamic_cast<D&>(b); const B& cb = d; const D& cr = dynamic_cast<const D&>(cb); return r.v * 10 + cr.v; }\n"
+	},
+	{
+		"DynamicCastPointers", 15,
+		"struct A { virtual ~A() {} int a; };\n"
+		"struct B { virtual ~B() {} int b; };\n"
+		"struct C : A, B { int c; };\n"
+		"struct E : A {};\n"
+		"int main() { C c; A* a = &c; B* b = dynamic_cast<B*>(a); E* e = dynamic_cast<E*>(a); void* v = dynamic_cast<void*>(b); return (b == (B*)&c) + (e == 0) * 2 + (v == (void*)&c) * 4 + (dynamic_cast<C*>(b) == &c) * 8; }\n"
+	},
+	{
+		"VirtualDiamond", 73,
+		"struct A { int a; };\n"
+		"struct B : virtual A { int b; };\n"
+		"struct C : virtual A { int c; };\n"
+		"struct D : B, C { int d; };\n"
+		"int main() { D d; d.a = 1; B* b = &d; C* c = &d; b->a += 2; c->a += 4; A* a = &d; return d.a * 10 + (a == (A*)b) + (a == (A*)c) * 2; }\n"
+	},
+	{
+		"VirtualBaseConstructedOnce", 973,
+		"int g = 0;\n"
+		"struct A { int a; A(int x) : a(x) { g = g * 10 + 1; } A() : a(9) { g = g * 10 + 5; } };\n"
+		"struct B : virtual A { B() : A(2) { g = g * 10 + 2; } };\n"
+		"struct C : virtual A { C() : A(3) { g = g * 10 + 3; } };\n"
+		"struct D : B, C { D() : A(7) { g = g * 10 + 4; } };\n"
+		"struct E : B, C { E() { g = g * 10 + 6; } };\n"
+		"int main() { D d; int first = g; g = 0; E e; return (first == 1234) + (g == 5236) * 2 + d.a * 10 + e.a * 100; }\n"
+	},
+	{
+		"VirtualBaseDestroyedOnce", 4321,
+		"int g = 0;\n"
+		"struct A { ~A() { g = g * 10 + 1; } };\n"
+		"struct B : virtual A { ~B() { g = g * 10 + 2; } };\n"
+		"struct C : virtual A { ~C() { g = g * 10 + 3; } };\n"
+		"struct D : B, C { ~D() { g = g * 10 + 4; } };\n"
+		"int main() { { D d; } return g; }\n"
+	},
+	{
+		"VirtualFunctionsThroughVirtualBase", 15032,
+		"struct A { virtual int f() { return 1; } virtual int g() { return 10; } int call() { return f() + g(); } };\n"
+		"struct B : virtual A { int f() override { return 2; } };\n"
+		"struct C : virtual A { int g() override { return 30; } };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; A* a = &d; B* b = &d; C* c = &d; return a->f() + a->g() + b->g() * 100 + c->f() * 1000 + (a->call() == 32) * 10000; }\n"
+	},
+	{
+		"VirtualBaseCasts", 515,
+		"struct A { virtual ~A() {} int a; };\n"
+		"struct B : virtual A { int b; };\n"
+		"struct C : virtual A { int c; };\n"
+		"struct D : B, C { int d; };\n"
+		"int main() { D d; d.a = 5; A* a = &d; B* b = &d; D* pd = dynamic_cast<D*>(a); C* pc = dynamic_cast<C*>(b); B* pb = dynamic_cast<B*>(a); A* up = pc; return (pd == &d) + (pc == (C*)&d) * 2 + (pb == b) * 4 + (up == a) * 8 + up->a * 100; }\n"
+	},
+	{
+		"VirtualBaseInConstructor", 2123,
+		"struct A { int a; A() : a(1) {} virtual int f() { return 1; } };\n"
+		"struct B : virtual A { int seen; B() : seen(f() * 10 + a) { a = 2; } int f() override { return 2; } };\n"
+		"struct C : virtual A { int seen; C() : seen(a) { a = 3; } };\n"
+		"struct D : B, C { int f() override { return 4; } };\n"
+		"int main() { D d; return d.B::seen * 100 + d.C::seen * 10 + d.a; }\n"
+	},
+	{
+		"VirtualBaseMemberPointers", 43,
+		"struct A { int a; int fa() { return a; } };\n"
+		"struct B : virtual A { int b; };\n"
+		"struct D : B { int d; };\n"
+		"int main() { D d; d.a = 3; d.b = 4; int B::*pb = &B::b; int (A::*pf)() = &A::fa; A* a = &d; return d.*pb * 10 + (a->*pf)(); }\n"
+	},
+	{
+		"VirtualBaseMixed", 237,
+		"struct A { int a; A() : a(1) {} };\n"
+		"struct B : virtual A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"struct E : virtual A, virtual B { };\n"
+		"int main() { D d; d.B::a = 2; d.C::a = 3; E e; e.a = 7; B* b = &e; return d.B::a * 100 + d.C::a * 10 + b->a; }\n"
+	},
+	{
+		"VirtualBaseAssignmentAndCopy", 1413,
+		"struct A { int a; };\n"
+		"struct B : virtual A { int b; };\n"
+		"struct C : virtual A { int c; };\n"
+		"struct D : B, C { int d; };\n"
+		"int main() { D x; x.a = 1; x.b = 2; x.c = 3; x.d = 4; D y(x); D z; z = x; x.a = 9; return y.a * 1000 + y.d * 100 + z.a * 10 + z.c; }\n"
+	},
+	{
+		"VirtualBaseEmptyAndDeep", 233,
+		"struct A { virtual int f() { return 1; } };\n"
+		"struct B : virtual A { };\n"
+		"struct C : virtual B { int f() override { return 3; } };\n"
+		"struct D : virtual C, virtual A { int v; };\n"
+		"int main() { D d; d.v = 2; A* a = &d; B* b = &d; return a->f() * 10 + b->f() + d.v * 100; }\n"
+	},
+};

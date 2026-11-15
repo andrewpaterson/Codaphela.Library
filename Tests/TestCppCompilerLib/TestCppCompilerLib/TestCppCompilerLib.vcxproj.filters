@@ -67,6 +67,9 @@
     <ClCompile Include="TestCPP65ForwardingReferences.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPPConformance.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestCPPW65C816Volatile.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
@@ -126,6 +129,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TestCPPConformanceCases.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
     <ClInclude Include="TestHeader.h">
       <Filter>Source\Project</Filter>
     </ClInclude>

@@ -146,7 +146,7 @@ Part A plan (2026-11-15)
   Tests: a group for each item in TestPreprocessor and TestCppTokeniser, and TestCPP816 cases for raw strings and character literals, which reach generated code.
 
 Part B plan (2026-11-15, not started)
-  The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (Tests/TestCppCompilerLib/ConformanceProbes: probe.py and probe2.py, with what each gave in results.txt and results2.txt).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
+  The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (they became stage 0's cases).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
 
   What the notes had wrong:
     - Namespaces (B1) are done: nested ones, aliases, anonymous and inline ones, using, and argument dependent lookup compile.
@@ -164,7 +164,8 @@ Part B plan (2026-11-15, not started)
     - __is_base_of, __is_convertible_to, __underlying_type and some other type traits.
 
   Stages:
-    0. (S) The probes become a test: each feature a small program run on both targets with the value it must return, and those that must be refused with their error.  What fails today is listed as failing, and every later stage moves entries across.  Compliance is then a number.
+    0. Done 2026-11-15.  TestCPPConformance (TestCppCompilerLib): 256 cases in TestCPPConformanceCases.h, a group for what worked already and one for each stage below, each case run on the 65C64 and the W65C816.  A case's value is what the Microsoft compiler makes its program return (Tests/TestCppCompilerLib/Conformance/hostcheck.py checks them all again); the test has, for each stage and target, the list of cases not done, which Conformance/lists.py prints and writes.  At the start 102 of the 256 were done on each target (with enum class refusing implicit conversions, done the same day).  Running them found wrong code in what compiled: partial ordering of function templates, a member's explicit specialisation, a class template's static member, counting a variadic class template's arguments, class operator new, and an aggregate's default member initialisers; they are in the stages that will mend them.
+       As it was planned: (S) The probes become a test: each feature a small program run on both targets with the value it must return, and those that must be refused with their error.  What fails today is listed as failing, and every later stage moves entries across.  Compliance is then a number.
     1. (M, many small) The silent wrong accepts and the small refusals just listed.  Access control (private and protected) is enforced (the user).  What it and the enum class rules find wrong in BaseLib, Libc65 and the HCP65 sources is fixed as part of this stage (the user), which is checked by building them and running the Lib65 suites.
     2. (L) B10.  Rvalue references as a type of their own: collapsing, & and && overloads, move constructors and assignment (and the implicit ones, and when they are deleted), xvalues, ref-qualified members.
     3. (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
