@@ -144,6 +144,12 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
    object written to it last, so each shape is saved to a file of its own.
 5. CCylinder, CCone, CTube, CTorus and CCapsule.  Each also tested against its editor's mesh: every corner of the mesh made
    with the same values is on its surface, within a tolerance.
+   Done.  They're CRevolvedShapes: a start, a unit axis and a length, with a point turned into its profile's plane (how far
+   from the axis, how far along it) where each gives a 2D distance and gradient, which turning a profile keeps exact.  The
+   cylinder's and tube's profiles are rectangles, the cone's a trapezoid (Quilez's capped cone, its gradient on the surface the
+   nearest feature's normal), the torus's a circle and the capsule's a line less its radius.  Each takes the values its mesh
+   editor does, in its order; the torus's length is nothing.  TestRevolvedShape along a tilted axis; a point exactly on a
+   surface is only exactly on it along an axis, so that's where zero being outside is tested.
 6. The combinations.  Tests: each is a bound (never more than a brute force distance to its surface sampled finely), a graph
    of them is freed with what holds it, and Save and Load.
 7. CConvexHull, from CQuickHull.
