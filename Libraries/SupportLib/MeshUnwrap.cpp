@@ -25,18 +25,71 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/Float32Vec2.h"
 #include "StandardLib/Objects.h"
+#include "MeshUVMeasures.h"
 #include "MeshUnwrap.h"
 
 
+//The turns a chart's bounding rectangle is tried at, across a right angle, for the smallest.
+#define MESH_UNWRAP_TURNS	90
+
+//How many times charts that overlap themselves laid flat are grown again, at half the angle each time.  A chart of one face
+//can't overlap itself, which is where halving ends.
+#define MESH_UNWRAP_REGROWS	12
+
+
+//Each chart's UVs in texels, while a layout is made: added chart by chart, so a chart's are maiChartStarts[c] to [c + 1].
+struct SMeshUnwrapUVs
+{
+	CArrayLargeFloat32Vec2	masUVs;
+	CArrayLargeInt			maiChartStarts;
+	CArrayLargeInt			maiFaceUVs;  //Three for each face.
+	CArrayLargeInt			maiSizes;  //Each chart's width and height in texels, once turned.
+	CArrayLargeInt			maiPlaces;  //Where its rectangle went, gutters and all.
+
+	void	Init(void);
+	void	Kill(void);
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUnwrap::Init(float32 fTexelsPerUnit)
+void SMeshUnwrapUVs::Init(void)
+{
+	masUVs.Init();
+	maiChartStarts.Init();
+	maiFaceUVs.Init();
+	maiSizes.Init();
+	maiPlaces.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SMeshUnwrapUVs::Kill(void)
+{
+	maiPlaces.Kill();
+	maiSizes.Kill();
+	maiFaceUVs.Kill();
+	maiChartStarts.Kill();
+	masUVs.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshUnwrap::Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts)
 {
 	PreInit();
 	CMeshModifier::Init();
 	mfTexelsPerUnit = fTexelsPerUnit;
+	meCharts = eCharts;
+	mfChartAngle = MESH_CHARTS_ANGLE;
 	miPageSize = MESH_UNWRAP_PAGE;
 	miGutter = MESH_UNWRAP_GUTTER;
 	miLayoutWidth = 0;
@@ -54,6 +107,8 @@ void CMeshUnwrap::Class(void)
 {
 	CMeshModifier::Class();
 	U_Float32(mfTexelsPerUnit);
+	U_Enum(meCharts);
+	U_Float32(mfChartAngle);
 	U_SInt(miPageSize);
 	U_SInt(miGutter);
 	U_SInt(miLayoutWidth);
@@ -64,51 +119,239 @@ void CMeshUnwrap::Class(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The direction a face's normal is nearest: (axis * 2) + 1 along it, axis
-// * 2 against it.
+// Two units across psNormal, with it right handed (u, v, n), so a face
+// anticlockwise seen from the normal's side is anticlockwise in u and v.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshUnwrapDirection(CMesh* pcMesh, int iFace)
+static void MeshUnwrapBasis(SFloat32Vec3* psNormal, SFloat32Vec3* psU, SFloat32Vec3* psV)
 {
-	int*			piCorners;
-	SFloat32Vec3	sSide1;
-	SFloat32Vec3	sSide2;
-	SFloat32Vec3	sNormal;
-	float32			afNormal[3];
-	int				iAxis;
-	int				i;
+	SFloat32Vec3	sAxis;
+	float32			fX;
+	float32			fY;
+	float32			fZ;
 
-	piCorners = pcMesh->GetFaceCorners(iFace);
-	sSide1 = *pcMesh->GetPosition(piCorners[1]) - *pcMesh->GetPosition(piCorners[0]);
-	sSide2 = *pcMesh->GetPosition(piCorners[2]) - *pcMesh->GetPosition(piCorners[0]);
-	Float32Vec3Cross(&sNormal, &sSide1, &sSide2);
-	afNormal[0] = sNormal.x;
-	afNormal[1] = sNormal.y;
-	afNormal[2] = sNormal.z;
-	iAxis = 0;
-	for (i = 1; i < 3; i++)
+	fX = fabsf(psNormal->x);
+	fY = fabsf(psNormal->y);
+	fZ = fabsf(psNormal->z);
+	if ((fX <= fY) && (fX <= fZ))
 	{
-		if (fabsf(afNormal[i]) > fabsf(afNormal[iAxis]))
-		{
-			iAxis = i;
-		}
+		sAxis.Init(1, 0, 0);
 	}
-	return (iAxis * 2) + ((afNormal[iAxis] > 0.0f) ? 1 : 0);
+	else if (fY <= fZ)
+	{
+		sAxis.Init(0, 1, 0);
+	}
+	else
+	{
+		sAxis.Init(0, 0, 1);
+	}
+	Float32Vec3Cross(psU, &sAxis, psNormal);
+	psU->Normalize();
+	Float32Vec3Cross(psV, psNormal, psU);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each chart's corners laid flat across its normal, in texels: a UV for
+// each corner in each chart it's in.
 //
 //////////////////////////////////////////////////////////////////////////
-static int MeshUnwrapRoot(CArrayLargeInt* paiParents, int i)
+static void MeshUnwrapFlatten(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts* pcCharts, float32 fTexelsPerUnit)
 {
-	while (paiParents->GetValue((lsize)i) != i)
+	CArrayLargeInt	aiCornerChart;  //The chart a corner last had a UV in,
+	CArrayLargeInt	aiCornerUV;  //and that UV.
+	SFloat32Vec3	sU;
+	SFloat32Vec3	sV;
+	SFloat32Vec3*	psPosition;
+	int*			piCorners;
+	int				iChart;
+	int				iFace;
+	int				iCorner;
+	int				i;
+	int				k;
+
+	aiCornerChart.Init();
+	aiCornerChart.Resize((lsize)pcMesh->NumCorners());
+	aiCornerChart.SetArrayValues(-1);
+	aiCornerUV.Init();
+	aiCornerUV.Resize((lsize)pcMesh->NumCorners());
+	psUVs->maiFaceUVs.Resize((lsize)pcMesh->NumFaces() * NUM_FACE_CORNERS);
+	psUVs->maiChartStarts.ReInit();
+	psUVs->masUVs.ReInit();
+
+	for (iChart = 0; iChart < pcCharts->NumCharts(); iChart++)
 	{
-		paiParents->SetValue((lsize)i, paiParents->GetValue((lsize)paiParents->GetValue((lsize)i)));
-		i = paiParents->GetValue((lsize)i);
+		psUVs->maiChartStarts.Add((int)psUVs->masUVs.NumElements());
+		MeshUnwrapBasis(pcCharts->masNormals.Get((lsize)iChart), &sU, &sV);
+		for (i = 0; i < pcCharts->NumFaces(iChart); i++)
+		{
+			iFace = pcCharts->GetFace(iChart, i);
+			piCorners = pcMesh->GetFaceCorners(iFace);
+			for (k = 0; k < NUM_FACE_CORNERS; k++)
+			{
+				iCorner = piCorners[k];
+				if (aiCornerChart.GetValue((lsize)iCorner) != iChart)
+				{
+					psPosition = pcMesh->GetPosition(iCorner);
+					aiCornerChart.SetValue((lsize)iCorner, iChart);
+					aiCornerUV.SetValue((lsize)iCorner, (int)psUVs->masUVs.NumElements());
+					psUVs->masUVs.Add()->Init(Float32Vec3Dot(psPosition, &sU) * fTexelsPerUnit, Float32Vec3Dot(psPosition, &sV) * fTexelsPerUnit);
+				}
+				psUVs->maiFaceUVs.SetValue(((lsize)iFace * NUM_FACE_CORNERS) + (lsize)k, aiCornerUV.GetValue((lsize)iCorner));
+			}
+		}
 	}
-	return i;
+	psUVs->maiChartStarts.Add((int)psUVs->masUVs.NumElements());
+
+	aiCornerUV.Kill();
+	aiCornerChart.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The charts whose faces overlap each other laid flat.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUnwrapOverlapping(CArrayInt* paiDest, SMeshUnwrapUVs* psUVs, CMeshCharts* pcCharts)
+{
+	CArrayLargeInt	aiCorners;
+	int				iChart;
+	int				iFace;
+	int				i;
+	int				k;
+
+	paiDest->ReInit();
+	aiCorners.Init();
+	for (iChart = 0; iChart < pcCharts->NumCharts(); iChart++)
+	{
+		if (pcCharts->NumFaces(iChart) < 2)
+		{
+			continue;
+		}
+		aiCorners.ReInit();
+		for (i = 0; i < pcCharts->NumFaces(iChart); i++)
+		{
+			iFace = pcCharts->GetFace(iChart, i);
+			for (k = 0; k < NUM_FACE_CORNERS; k++)
+			{
+				aiCorners.Add(psUVs->maiFaceUVs.GetValue(((lsize)iFace * NUM_FACE_CORNERS) + (lsize)k));
+			}
+		}
+		if (CountUVTriangleOverlaps(psUVs->masUVs.Get(0), aiCorners.Get(0), pcCharts->NumFaces(iChart)) > 0)
+		{
+			paiDest->Add(iChart);
+		}
+	}
+	aiCorners.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each chart turned to whichever of MESH_UNWRAP_TURNS turns across a right
+// angle gives the smallest bounding rectangle, moved to start at 0, 0,
+// and its size rounded up to whole texels.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUnwrapOrient(SMeshUnwrapUVs* psUVs, int iNumCharts)
+{
+	SFloat32Vec2*	psUV;
+	float32			fCos;
+	float32			fSin;
+	float32			fBestCos;
+	float32			fBestSin;
+	float32			fBestArea;
+	float32			fArea;
+	float32			fU;
+	float32			fV;
+	float32			fMinU;
+	float32			fMinV;
+	float32			fMaxU;
+	float32			fMaxV;
+	int				iChart;
+	int				iTurn;
+	int				i;
+	int				iFirst;
+	int				iLast;
+
+	psUVs->maiSizes.Resize((lsize)iNumCharts * 2);
+	for (iChart = 0; iChart < iNumCharts; iChart++)
+	{
+		iFirst = psUVs->maiChartStarts.GetValue((lsize)iChart);
+		iLast = psUVs->maiChartStarts.GetValue((lsize)iChart + 1);
+		fBestCos = 1.0f;
+		fBestSin = 0.0f;
+		fBestArea = -1.0f;
+		fMinU = 0.0f;
+		fMaxU = 0.0f;
+		fMinV = 0.0f;
+		fMaxV = 0.0f;
+		for (iTurn = 0; iTurn < MESH_UNWRAP_TURNS; iTurn++)
+		{
+			fCos = cosf((float32)iTurn * 1.5707963f / MESH_UNWRAP_TURNS);
+			fSin = sinf((float32)iTurn * 1.5707963f / MESH_UNWRAP_TURNS);
+			for (i = iFirst; i < iLast; i++)
+			{
+				psUV = psUVs->masUVs.Get((lsize)i);
+				fU = (psUV->x * fCos) - (psUV->y * fSin);
+				fV = (psUV->x * fSin) + (psUV->y * fCos);
+				if (i == iFirst)
+				{
+					fMinU = fU;
+					fMaxU = fU;
+					fMinV = fV;
+					fMaxV = fV;
+				}
+				fMinU = (fU < fMinU) ? fU : fMinU;
+				fMaxU = (fU > fMaxU) ? fU : fMaxU;
+				fMinV = (fV < fMinV) ? fV : fMinV;
+				fMaxV = (fV > fMaxV) ? fV : fMaxV;
+			}
+			fArea = (fMaxU - fMinU) * (fMaxV - fMinV);
+			if ((fBestArea < 0.0f) || (fArea < fBestArea))
+			{
+				fBestArea = fArea;
+				fBestCos = fCos;
+				fBestSin = fSin;
+			}
+		}
+
+		for (i = iFirst; i < iLast; i++)
+		{
+			psUV = psUVs->masUVs.Get((lsize)i);
+			fU = (psUV->x * fBestCos) - (psUV->y * fBestSin);
+			fV = (psUV->x * fBestSin) + (psUV->y * fBestCos);
+			psUV->Init(fU, fV);
+			if (i == iFirst)
+			{
+				fMinU = fU;
+				fMaxU = fU;
+				fMinV = fV;
+				fMaxV = fV;
+			}
+			fMinU = (fU < fMinU) ? fU : fMinU;
+			fMaxU = (fU > fMaxU) ? fU : fMaxU;
+			fMinV = (fV < fMinV) ? fV : fMinV;
+			fMaxV = (fV > fMaxV) ? fV : fMaxV;
+		}
+		for (i = iFirst; i < iLast; i++)
+		{
+			psUV = psUVs->masUVs.Get((lsize)i);
+			psUV->Init(psUV->x - fMinU, psUV->y - fMinV);
+		}
+		psUVs->maiSizes.SetValue((lsize)iChart * 2, (int)ceilf(fMaxU - fMinU));
+		psUVs->maiSizes.SetValue(((lsize)iChart * 2) + 1, (int)ceilf(fMaxV - fMinV));
+		if (psUVs->maiSizes.GetValue((lsize)iChart * 2) < 1)
+		{
+			psUVs->maiSizes.SetValue((lsize)iChart * 2, 1);
+		}
+		if (psUVs->maiSizes.GetValue(((lsize)iChart * 2) + 1) < 1)
+		{
+			psUVs->maiSizes.SetValue(((lsize)iChart * 2) + 1, 1);
+		}
+	}
 }
 
 
@@ -210,247 +453,50 @@ static void MeshUnwrapPlace(CArrayInt* paiSkyline, int iLayoutWidth, int iWidth,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A copy of the mesh with UV layer 0 made again.  Faces are put in charts
-// by their directions and the edges they share; each chart's corners are
-// laid flat along its direction in texels (u along the next axis round
-// and v the one after, u turned round looking against the axis, so faces
-// facing that way stay anticlockwise); then the charts' rectangles are
-// packed and the UVs set from where they went.
+// The charts' rectangles, a gutter round each, tallest first along a
+// skyline across a layout as wide as the square root of their area (or
+// the widest), its sides in whole pages.  Returns the layout's size.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
+static void MeshUnwrapPack(SMeshUnwrapUVs* psUVs, int iNumCharts, int iGutter, int iPageSize, int* piWidth, int* piHeight)
 {
-	Ptr<CMesh>				pOutput;
-	CMeshUVLayer*			pcLayer;
-	SMeshUVFace*			psUVFace;
-	CMeshEdge*				pcEdge;
-	SFloat32Vec3*			psPosition;
-	SFloat32Vec2*			psUV;
-	CArrayLargeInt			aiDirections;
-	CArrayLargeInt			aiParents;
-	CArrayLargeInt			aiCharts;  //Each face's chart.
-	CArrayLargeInt			aiChartStarts;  //Where each chart's faces start in aiChartFaces.
-	CArrayLargeInt			aiChartFaces;
-	CArrayLargeInt			aiCornerChart;  //The chart a corner last had a UV in,
-	CArrayLargeInt			aiCornerUV;  //and that UV.
-	CArrayLargeInt			aiUVCharts;  //Each UV's chart.
-	CArrayLargeFloat32Vec2	asTexels;  //Each UV in texels along its chart's direction.
-	CArrayLargeFloat32Vec2	asChartMinimums;
-	CArrayLargeInt			aiChartSizes;  //Each chart's width and height in texels.
-	CArrayLargeInt			aiChartPlaces;  //Where its rectangle went, gutters and all.
-	CArrayLargeInt			aiOrder;
-	CArrayInt				aiSkyline;
-	int						iNumFaces;
-	int						iNumCorners;
-	int						iNumCharts;
-	int						iFace;
-	int						iChart;
-	int						iCorner;
-	int						iUV;
-	int						iDirection;
-	int						iAxis;
-	int						iRoot0;
-	int						iRoot1;
-	int						i;
-	int						j;
-	int						k;
-	int						x;
-	int						y;
-	int						iWidest;
-	int						iLayoutWidth;
-	int						iLayoutHeight;
-	int						iGutters;
-	int*					piCorners;
-	float32					afPosition[3];
-	float32					fU;
-	float32					fV;
-	float64					fArea;
-	SFloat32Vec2*			psMinimum;
+	CArrayLargeInt	aiOrder;
+	CArrayInt		aiSkyline;
+	float64			fArea;
+	int				iWidest;
+	int				iChart;
+	int				iGutters;
+	int				iLayoutWidth;
+	int				iLayoutHeight;
+	int				i;
+	int				j;
+	int				x;
+	int				y;
 
-	iNumFaces = pMesh->NumFaces();
-	if ((iNumFaces == 0) || (mfTexelsPerUnit <= 0.0f))
-	{
-		return pMesh;
-	}
-	iNumCorners = pMesh->NumCorners();
-
-	//Charts: faces of one direction joined by edges.
-	aiDirections.Init();
-	aiParents.Init();
-	for (iFace = 0; iFace < iNumFaces; iFace++)
-	{
-		aiDirections.Add(MeshUnwrapDirection(&pMesh, iFace));
-		aiParents.Add(iFace);
-	}
-	for (i = 0; i < pMesh->NumEdges(); i++)
-	{
-		pcEdge = pMesh->GetEdge(i);
-		if ((pcEdge->maiFace[0] < 0) || (pcEdge->maiFace[1] < 0))
-		{
-			continue;
-		}
-		if (aiDirections.GetValue((lsize)pcEdge->maiFace[0]) != aiDirections.GetValue((lsize)pcEdge->maiFace[1]))
-		{
-			continue;
-		}
-		iRoot0 = MeshUnwrapRoot(&aiParents, pcEdge->maiFace[0]);
-		iRoot1 = MeshUnwrapRoot(&aiParents, pcEdge->maiFace[1]);
-		if (iRoot0 != iRoot1)
-		{
-			aiParents.SetValue((lsize)((iRoot0 > iRoot1) ? iRoot0 : iRoot1), (iRoot0 < iRoot1) ? iRoot0 : iRoot1);
-		}
-	}
-
-	aiCharts.Init();
-	aiCharts.Resize((lsize)iNumFaces);
-	aiCharts.SetArrayValues(-1);
-	iNumCharts = 0;
-	for (iFace = 0; iFace < iNumFaces; iFace++)
-	{
-		iRoot0 = MeshUnwrapRoot(&aiParents, iFace);
-		if (aiCharts.GetValue((lsize)iRoot0) == -1)
-		{
-			aiCharts.SetValue((lsize)iRoot0, iNumCharts);
-			iNumCharts++;
-		}
-		aiCharts.SetValue((lsize)iFace, aiCharts.GetValue((lsize)iRoot0));
-	}
-
-	aiChartStarts.Init();
-	aiChartStarts.Resize((lsize)iNumCharts + 1);
-	aiChartStarts.SetArrayValues(0);
-	for (iFace = 0; iFace < iNumFaces; iFace++)
-	{
-		iChart = aiCharts.GetValue((lsize)iFace);
-		aiChartStarts.SetValue((lsize)iChart + 1, aiChartStarts.GetValue((lsize)iChart + 1) + 1);
-	}
-	for (iChart = 0; iChart < iNumCharts; iChart++)
-	{
-		aiChartStarts.SetValue((lsize)iChart + 1, aiChartStarts.GetValue((lsize)iChart + 1) + aiChartStarts.GetValue((lsize)iChart));
-	}
-	aiChartFaces.Init();
-	aiChartFaces.Resize((lsize)iNumFaces);
-	aiOrder.Init();
-	aiOrder.Resize((lsize)iNumCharts);
-	aiOrder.SetArrayValues(0);
-	for (iFace = 0; iFace < iNumFaces; iFace++)
-	{
-		iChart = aiCharts.GetValue((lsize)iFace);
-		aiChartFaces.SetValue((lsize)(aiChartStarts.GetValue((lsize)iChart) + aiOrder.GetValue((lsize)iChart)), iFace);
-		aiOrder.SetValue((lsize)iChart, aiOrder.GetValue((lsize)iChart) + 1);
-	}
-
-	//Each chart's corners laid flat in texels, a UV for each corner in each chart it's in.
-	aiCornerChart.Init();
-	aiCornerChart.Resize((lsize)iNumCorners);
-	aiCornerChart.SetArrayValues(-1);
-	aiCornerUV.Init();
-	aiCornerUV.Resize((lsize)iNumCorners);
-	aiUVCharts.Init();
-	asTexels.Init();
-	asChartMinimums.Init();
-	asChartMinimums.Resize((lsize)iNumCharts);
-	aiChartSizes.Init();
-	aiChartSizes.Resize((lsize)iNumCharts * 2);
-
-	pOutput = OMalloc<CMesh>();
-	pOutput->CopyFrom(&pMesh);
-	pOutput->mcUVs.mbInUse = true;
-	pcLayer = pOutput->mcUVs.EnsureLayerExists(0, pOutput->GetConnectivity());
-	pcLayer->mcUVs.ReInit();
-
+	iGutters = 2 * iGutter;
 	fArea = 0.0;
 	iWidest = 0;
-	iGutters = 2 * miGutter;
 	for (iChart = 0; iChart < iNumCharts; iChart++)
 	{
-		iDirection = aiDirections.GetValue((lsize)aiChartFaces.GetValue((lsize)aiChartStarts.GetValue((lsize)iChart)));
-		iAxis = iDirection / 2;
-		psMinimum = asChartMinimums.Get((lsize)iChart);
-		for (i = aiChartStarts.GetValue((lsize)iChart); i < aiChartStarts.GetValue((lsize)iChart + 1); i++)
-		{
-			iFace = aiChartFaces.GetValue((lsize)i);
-			piCorners = pMesh->GetFaceCorners(iFace);
-			psUVFace = pcLayer->mcFaces.Get((lsize)iFace);
-			for (k = 0; k < NUM_FACE_CORNERS; k++)
-			{
-				iCorner = piCorners[k];
-				if (aiCornerChart.GetValue((lsize)iCorner) != iChart)
-				{
-					psPosition = pMesh->GetPosition(iCorner);
-					afPosition[0] = psPosition->x;
-					afPosition[1] = psPosition->y;
-					afPosition[2] = psPosition->z;
-					fU = afPosition[(iAxis + 1) % 3] * mfTexelsPerUnit;
-					fV = afPosition[(iAxis + 2) % 3] * mfTexelsPerUnit;
-					if ((iDirection & 1) == 0)
-					{
-						fU = -fU;
-					}
-					iUV = (int)asTexels.NumElements();
-					asTexels.Add()->Init(fU, fV);
-					aiUVCharts.Add(iChart);
-					if ((i == aiChartStarts.GetValue((lsize)iChart)) && (k == 0))
-					{
-						psMinimum->Init(fU, fV);
-					}
-					else
-					{
-						psMinimum->Init((fU < psMinimum->x) ? fU : psMinimum->x, (fV < psMinimum->y) ? fV : psMinimum->y);
-					}
-					aiCornerChart.SetValue((lsize)iCorner, iChart);
-					aiCornerUV.SetValue((lsize)iCorner, iUV);
-				}
-				psUVFace->aiUVs[k] = aiCornerUV.GetValue((lsize)iCorner);
-			}
-		}
-	}
-
-	//Each chart's size, from its minimum to its maximum, rounded up to whole texels.
-	for (iChart = 0; iChart < iNumCharts; iChart++)
-	{
-		aiChartSizes.SetValue((lsize)iChart * 2, 1);
-		aiChartSizes.SetValue(((lsize)iChart * 2) + 1, 1);
-	}
-	for (iUV = 0; iUV < (int)asTexels.NumElements(); iUV++)
-	{
-		iChart = aiUVCharts.GetValue((lsize)iUV);
-		psUV = asTexels.Get((lsize)iUV);
-		psMinimum = asChartMinimums.Get((lsize)iChart);
-		x = (int)ceilf(psUV->x - psMinimum->x);
-		y = (int)ceilf(psUV->y - psMinimum->y);
-		if (x > aiChartSizes.GetValue((lsize)iChart * 2))
-		{
-			aiChartSizes.SetValue((lsize)iChart * 2, x);
-		}
-		if (y > aiChartSizes.GetValue(((lsize)iChart * 2) + 1))
-		{
-			aiChartSizes.SetValue(((lsize)iChart * 2) + 1, y);
-		}
-	}
-	for (iChart = 0; iChart < iNumCharts; iChart++)
-	{
-		x = aiChartSizes.GetValue((lsize)iChart * 2) + iGutters;
-		y = aiChartSizes.GetValue(((lsize)iChart * 2) + 1) + iGutters;
+		x = psUVs->maiSizes.GetValue((lsize)iChart * 2) + iGutters;
+		y = psUVs->maiSizes.GetValue(((lsize)iChart * 2) + 1) + iGutters;
 		fArea += (float64)x * y;
 		iWidest = (x > iWidest) ? x : iWidest;
 	}
-
-	//The layout as wide as the square of all the charts' area, or the widest, in whole pages.
 	iLayoutWidth = (int)ceil(sqrt(fArea));
 	iLayoutWidth = (iWidest > iLayoutWidth) ? iWidest : iLayoutWidth;
-	iLayoutWidth = ((iLayoutWidth + miPageSize - 1) / miPageSize) * miPageSize;
+	iLayoutWidth = ((iLayoutWidth + iPageSize - 1) / iPageSize) * iPageSize;
 
-	//Tallest first along the skyline.
+	aiOrder.Init();
 	for (iChart = 0; iChart < iNumCharts; iChart++)
 	{
-		aiOrder.SetValue((lsize)iChart, iChart);
+		aiOrder.Add(iChart);
 	}
 	for (i = 1; i < iNumCharts; i++)
 	{
 		iChart = aiOrder.GetValue((lsize)i);
 		j = i - 1;
-		while ((j >= 0) && (aiChartSizes.GetValue(((lsize)aiOrder.GetValue((lsize)j) * 2) + 1) < aiChartSizes.GetValue(((lsize)iChart * 2) + 1)))
+		while ((j >= 0) && (psUVs->maiSizes.GetValue(((lsize)aiOrder.GetValue((lsize)j) * 2) + 1) < psUVs->maiSizes.GetValue(((lsize)iChart * 2) + 1)))
 		{
 			aiOrder.SetValue((lsize)j + 1, aiOrder.GetValue((lsize)j));
 			j--;
@@ -458,8 +504,7 @@ Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
 		aiOrder.SetValue((lsize)(j + 1), iChart);
 	}
 
-	aiChartPlaces.Init();
-	aiChartPlaces.Resize((lsize)iNumCharts * 2);
+	psUVs->maiPlaces.Resize((lsize)iNumCharts * 2);
 	aiSkyline.Init();
 	aiSkyline.Add(0);
 	aiSkyline.Add(0);
@@ -468,43 +513,105 @@ Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
 	for (i = 0; i < iNumCharts; i++)
 	{
 		iChart = aiOrder.GetValue((lsize)i);
-		MeshUnwrapPlace(&aiSkyline, iLayoutWidth, aiChartSizes.GetValue((lsize)iChart * 2) + iGutters, aiChartSizes.GetValue(((lsize)iChart * 2) + 1) + iGutters, &x, &y);
-		aiChartPlaces.SetValue((lsize)iChart * 2, x);
-		aiChartPlaces.SetValue(((lsize)iChart * 2) + 1, y);
-		y += aiChartSizes.GetValue(((lsize)iChart * 2) + 1) + iGutters;
+		MeshUnwrapPlace(&aiSkyline, iLayoutWidth, psUVs->maiSizes.GetValue((lsize)iChart * 2) + iGutters, psUVs->maiSizes.GetValue(((lsize)iChart * 2) + 1) + iGutters, &x, &y);
+		psUVs->maiPlaces.SetValue((lsize)iChart * 2, x);
+		psUVs->maiPlaces.SetValue(((lsize)iChart * 2) + 1, y);
+		y += psUVs->maiSizes.GetValue(((lsize)iChart * 2) + 1) + iGutters;
 		iLayoutHeight = (y > iLayoutHeight) ? y : iLayoutHeight;
 	}
-	iLayoutHeight = ((iLayoutHeight + miPageSize - 1) / miPageSize) * miPageSize;
+	*piWidth = iLayoutWidth;
+	*piHeight = ((iLayoutHeight + iPageSize - 1) / iPageSize) * iPageSize;
+	aiSkyline.Kill();
+	aiOrder.Kill();
+}
 
-	//The UVs: where each is in its chart, where the chart went, across the layout.
-	for (iUV = 0; iUV < (int)asTexels.NumElements(); iUV++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A copy of the mesh with UV layer 0 made again: charts, laid flat (and
+// those that overlap themselves grown again smaller until none do),
+// turned, packed, and each UV its place across the layout.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
+{
+	Ptr<CMesh>		pOutput;
+	CMeshCharts		cCharts;
+	SMeshUnwrapUVs	sUVs;
+	CMeshUVLayer*	pcLayer;
+	SMeshUVFace*	psUVFace;
+	SFloat32Vec2*	psUV;
+	CArrayInt		aiOverlapping;
+	float32			fAngle;
+	int				iRegrow;
+	int				iNumCharts;
+	int				iChart;
+	int				iFace;
+	int				i;
+	int				k;
+	float32			fX;
+	float32			fY;
+
+	if ((pMesh->NumFaces() == 0) || (mfTexelsPerUnit <= 0.0f))
 	{
-		iChart = aiUVCharts.GetValue((lsize)iUV);
-		psUV = asTexels.Get((lsize)iUV);
-		psMinimum = asChartMinimums.Get((lsize)iChart);
-		fU = (psUV->x - psMinimum->x) + (float32)(aiChartPlaces.GetValue((lsize)iChart * 2) + miGutter);
-		fV = (psUV->y - psMinimum->y) + (float32)(aiChartPlaces.GetValue(((lsize)iChart * 2) + 1) + miGutter);
-		pcLayer->mcUVs.Add()->Init(fU / (float32)iLayoutWidth, fV / (float32)iLayoutHeight);
+		return pMesh;
 	}
 
-	miLayoutWidth = iLayoutWidth;
-	miLayoutHeight = iLayoutHeight;
+	cCharts.Init();
+	if (meCharts == MUC_Grown)
+	{
+		cCharts.Grow(&pMesh, mfChartAngle);
+	}
+	else
+	{
+		cCharts.MakeBox(&pMesh);
+	}
+	sUVs.Init();
+	aiOverlapping.Init();
+	fAngle = mfChartAngle;
+	for (iRegrow = 0; iRegrow <= MESH_UNWRAP_REGROWS; iRegrow++)
+	{
+		MeshUnwrapFlatten(&sUVs, &pMesh, &cCharts, mfTexelsPerUnit);
+		MeshUnwrapOverlapping(&aiOverlapping, &sUVs, &cCharts);
+		if ((aiOverlapping.NumElements() == 0) || (iRegrow == MESH_UNWRAP_REGROWS))
+		{
+			break;
+		}
+		fAngle *= 0.5f;
+		cCharts.Regrow(&pMesh, &aiOverlapping, fAngle);
+	}
+	aiOverlapping.Kill();
+	iNumCharts = cCharts.NumCharts();
+	MeshUnwrapOrient(&sUVs, iNumCharts);
+	MeshUnwrapPack(&sUVs, iNumCharts, miGutter, miPageSize, &miLayoutWidth, &miLayoutHeight);
 	miNumCharts = iNumCharts;
 
-	aiSkyline.Kill();
-	aiChartPlaces.Kill();
-	aiChartSizes.Kill();
-	asChartMinimums.Kill();
-	asTexels.Kill();
-	aiUVCharts.Kill();
-	aiCornerUV.Kill();
-	aiCornerChart.Kill();
-	aiOrder.Kill();
-	aiChartFaces.Kill();
-	aiChartStarts.Kill();
-	aiCharts.Kill();
-	aiParents.Kill();
-	aiDirections.Kill();
+	pOutput = OMalloc<CMesh>();
+	pOutput->CopyFrom(&pMesh);
+	pOutput->mcUVs.mbInUse = true;
+	pcLayer = pOutput->mcUVs.EnsureLayerExists(0, pOutput->GetConnectivity());
+	pcLayer->mcUVs.ReInit();
+	for (iChart = 0; iChart < iNumCharts; iChart++)
+	{
+		fX = (float32)(sUVs.maiPlaces.GetValue((lsize)iChart * 2) + miGutter);
+		fY = (float32)(sUVs.maiPlaces.GetValue(((lsize)iChart * 2) + 1) + miGutter);
+		for (i = sUVs.maiChartStarts.GetValue((lsize)iChart); i < sUVs.maiChartStarts.GetValue((lsize)iChart + 1); i++)
+		{
+			psUV = sUVs.masUVs.Get((lsize)i);
+			pcLayer->mcUVs.Add()->Init((psUV->x + fX) / (float32)miLayoutWidth, (psUV->y + fY) / (float32)miLayoutHeight);
+		}
+	}
+	for (iFace = 0; iFace < pMesh->NumFaces(); iFace++)
+	{
+		psUVFace = pcLayer->mcFaces.Get((lsize)iFace);
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
+		{
+			psUVFace->aiUVs[k] = sUVs.maiFaceUVs.GetValue(((lsize)iFace * NUM_FACE_CORNERS) + (lsize)k);
+		}
+	}
+
+	sUVs.Kill();
+	cCharts.Kill();
 	return pOutput;
 }
 

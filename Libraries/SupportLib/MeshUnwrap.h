@@ -24,38 +24,48 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_UNWRAP_H__
 #define __MESH_UNWRAP_H__
 #include "MeshModifier.h"
+#include "MeshCharts.h"
 
 
 #define MESH_UNWRAP_PAGE		128		//The virtual texture's page, in texels: a layout's sides are whole pages.
 #define MESH_UNWRAP_GUTTER		4		//Texels between a chart and its neighbours, at the finest level.
 
 
-//Gives a mesh UV layer 0 (UnwrapPlan.txt, step 2): its faces cut into charts, each laid flat, and the charts packed into a layout
-//of texels at mfTexelsPerUnit texels to a unit of the mesh, its sides whole pages.  The UVs are each corner's place in the
-//layout, 0 to 1 across it; a face anticlockwise seen from outside is anticlockwise in UV, u to the right and v up.  Corners of
-//one chart share their UVs, and a corner on a seam has one for each chart it's in.
+//How a mesh is cut into charts (CMeshCharts).
+enum EMeshUnwrapCharts
+{
+	MUC_Box,	//By the axis direction each face is nearest.
+	MUC_Grown,	//Grown across edges while faces stay within mfChartAngle of a chart's average normal.
+};
+
+
+//Gives a mesh UV layer 0 (UnwrapPlan.txt): its faces cut into charts (meCharts), each laid flat across its normal, turned to
+//its smallest bounding rectangle, and the charts packed into a layout of texels at mfTexelsPerUnit texels to a unit of the
+//mesh, its sides whole pages.  The UVs are each corner's place in the layout, 0 to 1 across it; a face anticlockwise seen from
+//outside is anticlockwise in UV, u to the right and v up.  Corners of one chart share their UVs, and a corner on a seam has one
+//for each chart it's in.
 //
-//For now the charts are box projected: each face goes to whichever of the six axis directions its normal is nearest, each group
-//of faces joined by edges with one direction is a chart, laid flat along it.  Nothing folds; a slope is stretched, up to 1.73
-//times along it (a face at the same angle to three axes).  They're packed by their bounding rectangles, tallest first, along a
-//skyline, a gutter apart, not yet onto pages.  A layout's size and how many charts it has are kept (miLayoutWidth and so on)
-//once it has been made, for a bake.
-//
-//Everything else the mesh has is kept, and its other UV layers.
+//Laid flat across its normal, a chart is stretched where its faces slope from it (by 1 / cos of the angle along the slope), and
+//can't fold, as no face is a right angle from it.  It can overlap itself (round a torus's inside): its faces are grown again
+//at half the angle, until no chart does.  The rectangles, a gutter round each, are packed tallest first along a
+//skyline, not yet onto pages.  A layout's size and how many charts it has are kept (miLayoutWidth and so on) once it has been
+//made, for a bake.  Everything else the mesh has is kept, and its other UV layers.
 class CMeshUnwrap : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshUnwrap);
 DESTRUCTABLE(CMeshUnwrap);
 public:
-	float32		mfTexelsPerUnit;
-	int			miPageSize;
-	int			miGutter;
+	float32				mfTexelsPerUnit;
+	EMeshUnwrapCharts	meCharts;
+	float32				mfChartAngle;  //Radians, for MUC_Grown.
+	int					miPageSize;
+	int					miGutter;
 
-	int			miLayoutWidth;  //In texels, as last made.
-	int			miLayoutHeight;
-	int			miNumCharts;
+	int					miLayoutWidth;  //In texels, as last made.
+	int					miLayoutHeight;
+	int					miNumCharts;
 
-	void		Init(float32 fTexelsPerUnit);
+	void		Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts = MUC_Box);
 	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;

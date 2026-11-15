@@ -109,6 +109,62 @@ void TestMeshUnwrapCurved(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Grown charts: a box's six faces are six charts, unstretched; a sphere
+// is a few, each laid across its own normal, stretched where its faces
+// slope from it (up to 4.6 times; LSCM keeps their shapes); a torus is
+// clean, as charts that overlap themselves laid flat (round its inside)
+// are grown again smaller.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshUnwrapGrown(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshUnwrap>	pUnwrap;
+	Ptr<CMesh>			pMesh;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+	SFloat32Vec3		sAxis;
+	SFloat32Vec3		sCentre;
+	SMeshUVStretch		sStretch;
+
+	sX.Init(2, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 0.5f);
+	sStart.Init(-1, -0.5f, -0.25f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 2, 2, 2);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, MUC_Grown);
+	pMesh = pEditor->GetOutput();
+	AssertUnwrapped(&pMesh, &pUnwrap);
+	AssertInt(6, pUnwrap->miNumCharts);
+	MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 64.0f);
+	AssertFloat(1.0f, sStretch.fWorstAngle, 4);
+	AssertFloat(1.0f, sStretch.fMostArea, 4);
+
+	sAxis.Init(0, 0, 1);
+	sCentre.Init(0.3f, -0.2f, 0.1f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshSphereEditor>(&sAxis, &sCentre, 1.0f, 24, 12);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Grown);
+	pMesh = pEditor->GetOutput();
+	AssertUnwrapped(&pMesh, &pUnwrap);
+	MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 100.0f);
+	AssertTrue(pUnwrap->miNumCharts <= 12);
+	AssertTrue(sStretch.fMeanAngle < 1.5f);
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshTorusEditor>(&sAxis, &sCentre, 2.0f, 0.5f, 32, 12);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Grown);
+	pMesh = pEditor->GetOutput();
+	AssertUnwrapped(&pMesh, &pUnwrap);
+	AssertTrue(pUnwrap->miNumCharts < 40);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUnwrap(void)
@@ -120,6 +176,8 @@ void TestMeshUnwrap(void)
 	TestMeshUnwrapBox();
 	ObjectsFlush();
 	TestMeshUnwrapCurved();
+	ObjectsFlush();
+	TestMeshUnwrapGrown();
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();

@@ -1077,6 +1077,9 @@
     <ClInclude Include="MeshBake.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="MeshCharts.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1887,6 +1890,9 @@
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
     <ClCompile Include="MeshBake.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshCharts.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
   </ItemGroup>

@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Steps 1 to 3 are built (see Steps).  What is decided and what is only proposed is said at each point.
+Steps 1 to 4 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -146,6 +146,15 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
    a checker's cube planes is evenly both colours, as a solid texture is there.  TestShapeScene's textured scene: a box and
    five spheres smoothly joined, checkered, within a tolerance of the frame first looked at.
 4. Grown charts.  Tests: a sphere in few charts, a box in six, every chart a disc.
+   Done: CMeshCharts (MakeBox, Grow, Regrow) and CMeshUnwrap's meCharts (MUC_Box still the default, until LSCM).  A chart
+   grows across edges from each face not yet in one, taking whichever face beside it is nearest its area weighted average
+   normal while that's within 60 degrees; faces that end up more than 85 degrees from the final average leave it, so a chart
+   laid flat across its normal can't fold.  There's no disc check: a chart only has to lay flat without overlapping itself
+   until LSCM, and one that overlaps (found by the measures' overlap test) has its faces grown again at half the angle.  Charts
+   too small aren't merged yet, and every chart is turned (by 90 turns of a degree) to its smallest bounding rectangle.  A box
+   is six charts unstretched; a sphere six, up to 4.6 times stretched where its faces slope from the chart's normal (a mean of
+   1.37); a torus 23; an isosurface of five spheres clean in both kinds.  Turning box charts moved the textured scene's
+   texels, so its expected frame is the new one.
 5. BaseLib's sparse matrix and conjugate gradients.  Tests: against small systems solved directly.
 6. LSCM.  Tests: a flat chart's UVs its shape exactly (no stretch), a hemisphere's angles kept, folded charts split; the checker's
    squares stay square on the sphere and isosurface.

@@ -470,6 +470,7 @@
     <ClInclude Include="SolidTexture.h" />
     <ClInclude Include="SolidChecker.h" />
     <ClInclude Include="MeshBake.h" />
+    <ClInclude Include="MeshCharts.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseFontDraw.cpp" />
@@ -742,6 +743,7 @@
     <ClCompile Include="SolidTexture.cpp" />
     <ClCompile Include="SolidChecker.cpp" />
     <ClCompile Include="MeshBake.cpp" />
+    <ClCompile Include="MeshCharts.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -249,8 +249,9 @@ void TestMeshShapeNormalsCreases(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The five spheres meshed, given the shape's normals and unwrapped last
-// (as the modifiers that rebuild faces refuse a mesh with UVs): every face
-// has UVs, none turned over, outside or overlapping, and its normals kept.
+// (as the modifiers that rebuild faces refuse a mesh with UVs), in box and
+// grown charts: every face has UVs, none turned over, outside or
+// overlapping, and its normals kept.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshShapeNormalsUnwrapped(void)
@@ -273,17 +274,20 @@ void TestMeshShapeNormalsUnwrapped(void)
 		pShape = OMalloc<CShapeSmoothUnion>(pShape, OMalloc<CSphere>(&asCentres[i], 1.0f), 0.5f);
 	}
 
-	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
-	pEditor->AddModifier<CMeshShapeEditor>(pShape, 0.05f, 0.8f);
-	pEditor->AddModifier<CMeshShapeNormals>(pShape);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f);
-	pMesh = pEditor->GetOutput();
-	AssertTrue(pMesh->mcNormals.InUse());
-	AssertTrue(pUnwrap->miNumCharts >= 6);
-	AssertInt(0, CountMeshUVFacesMissing(&pMesh, 0));
-	AssertInt(0, CountMeshUVFacesTurned(&pMesh, 0));
-	AssertInt(0, CountMeshUVsOutside(&pMesh, 0));
-	AssertInt(0, CountMeshUVOverlaps(&pMesh, 0));
+	for (i = 0; i < 2; i++)
+	{
+		pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+		pEditor->AddModifier<CMeshShapeEditor>(pShape, 0.05f, 0.8f);
+		pEditor->AddModifier<CMeshShapeNormals>(pShape);
+		pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, (i == 0) ? MUC_Box : MUC_Grown);
+		pMesh = pEditor->GetOutput();
+		AssertTrue(pMesh->mcNormals.InUse());
+		AssertTrue(pUnwrap->miNumCharts >= 6);
+		AssertInt(0, CountMeshUVFacesMissing(&pMesh, 0));
+		AssertInt(0, CountMeshUVFacesTurned(&pMesh, 0));
+		AssertInt(0, CountMeshUVsOutside(&pMesh, 0));
+		AssertInt(0, CountMeshUVOverlaps(&pMesh, 0));
+	}
 }
 
 

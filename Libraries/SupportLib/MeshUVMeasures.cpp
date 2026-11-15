@@ -227,17 +227,32 @@ static bool MeshUVTrianglesOverlap(SFloat32Vec2** papsA, SFloat32Vec2** papsB, f
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The faces with area in UV are put in the cells of a grid over their UVs
-// their bounding boxes cover, so only faces in a cell together are
+// A triangle's three UVs.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUVTriangle(SFloat32Vec2* pasUVs, int* paiCorners, int iTriangle, SFloat32Vec2** papsUVs)
+{
+	int		k;
+
+	for (k = 0; k < NUM_FACE_CORNERS; k++)
+	{
+		papsUVs[k] = &pasUVs[paiCorners[(iTriangle * NUM_FACE_CORNERS) + k]];
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The triangles with area are put in the cells of a grid over their UVs
+// their bounding boxes cover, so only triangles in a cell together are
 // compared.  A pair is counted in the first cell both cover, so once.
 //
 //////////////////////////////////////////////////////////////////////////
-int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
+int CountUVTriangleOverlaps(SFloat32Vec2* pasUVs, int* paiCorners, int iNumTriangles)
 {
-	CMeshUVLayer*	pcLayer;
 	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
 	SFloat32Vec2*	apsOther[NUM_FACE_CORNERS];
-	CArrayLargeInt	aiFaces;  //Those with area in UV.
+	CArrayLargeInt	aiFaces;  //The triangles with area.
 	CArrayLargeInt	aiBoxes;  //Each one's cells, x0, y0, x1, y1.
 	CArrayLargeInt	aiCellStarts;
 	CArrayLargeInt	aiCellFaces;
@@ -263,20 +278,15 @@ int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
 	int*			piOther;
 	int				aiBox[4];
 
-	pcLayer = MeshUVLayer(pcMesh, iLayer);
-	if (pcLayer == NULL)
-	{
-		return 0;
-	}
-
 	aiFaces.Init();
 	fMinU = 1e30;
 	fMinV = 1e30;
 	fMaxU = -1e30;
 	fMaxV = -1e30;
-	for (iFace = 0; iFace < pcMesh->NumFaces(); iFace++)
+	for (iFace = 0; iFace < iNumTriangles; iFace++)
 	{
-		if (MeshFaceUVs(pcLayer, iFace, apsUVs) && (MeshUVTwiceArea(apsUVs) != 0.0))
+		MeshUVTriangle(pasUVs, paiCorners, iFace, apsUVs);
+		if (MeshUVTwiceArea(apsUVs) != 0.0)
 		{
 			aiFaces.Add(iFace);
 			for (k = 0; k < NUM_FACE_CORNERS; k++)
@@ -308,7 +318,7 @@ int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
 	aiCellStarts.SetArrayValues(0);
 	for (i = 0; i < iNumFaces; i++)
 	{
-		MeshFaceUVs(pcLayer, aiFaces.GetValue((lsize)i), apsUVs);
+		MeshUVTriangle(pasUVs, paiCorners, aiFaces.GetValue((lsize)i), apsUVs);
 		aiBox[0] = (int)((apsUVs[0]->x - fMinU) / fCellU);
 		aiBox[1] = (int)((apsUVs[0]->y - fMinV) / fCellV);
 		aiBox[2] = aiBox[0];
@@ -375,8 +385,8 @@ int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
 				{
 					continue;
 				}
-				MeshFaceUVs(pcLayer, aiFaces.GetValue((lsize)aiCellFaces.GetValue((lsize)i)), apsUVs);
-				MeshFaceUVs(pcLayer, aiFaces.GetValue((lsize)aiCellFaces.GetValue((lsize)j)), apsOther);
+				MeshUVTriangle(pasUVs, paiCorners, aiFaces.GetValue((lsize)aiCellFaces.GetValue((lsize)i)), apsUVs);
+				MeshUVTriangle(pasUVs, paiCorners, aiFaces.GetValue((lsize)aiCellFaces.GetValue((lsize)j)), apsOther);
 				if (MeshUVTrianglesOverlap(apsUVs, apsOther, fTolerance))
 				{
 					iOverlaps++;
@@ -390,6 +400,48 @@ int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
 	aiCellStarts.Kill();
 	aiBoxes.Kill();
 	aiFaces.Kill();
+	return iOverlaps;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The faces with all their UVs, as triangles of the layer's UVs.
+//
+//////////////////////////////////////////////////////////////////////////
+int CountMeshUVOverlaps(CMesh* pcMesh, int iLayer)
+{
+	CMeshUVLayer*	pcLayer;
+	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
+	CArrayLargeInt	aiCorners;
+	SMeshUVFace*	psUVFace;
+	int				iFace;
+	int				k;
+	int				iOverlaps;
+
+	pcLayer = MeshUVLayer(pcMesh, iLayer);
+	if ((pcLayer == NULL) || (pcLayer->mcUVs.NumElements() == 0))
+	{
+		return 0;
+	}
+	aiCorners.Init();
+	for (iFace = 0; iFace < pcMesh->NumFaces(); iFace++)
+	{
+		if (MeshFaceUVs(pcLayer, iFace, apsUVs))
+		{
+			psUVFace = pcLayer->mcFaces.Get((lsize)iFace);
+			for (k = 0; k < NUM_FACE_CORNERS; k++)
+			{
+				aiCorners.Add(psUVFace->aiUVs[k]);
+			}
+		}
+	}
+	iOverlaps = 0;
+	if (aiCorners.NumElements() > 0)
+	{
+		iOverlaps = CountUVTriangleOverlaps(pcLayer->mcUVs.Get(0), aiCorners.Get(0), (int)(aiCorners.NumElements() / NUM_FACE_CORNERS));
+	}
+	aiCorners.Kill();
 	return iOverlaps;
 }
 
