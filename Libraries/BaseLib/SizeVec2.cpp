@@ -223,8 +223,8 @@ void SizeVec2InterpolatePosition(SSizeVec2* psVecDest, const SSizeVec2* psVec1, 
 	SSizeVec2		sVec1;
 	SSizeVec2		sVec2;
 
-	SizeVec2Scale(&sVec1, psVec1, fWeight);
-	SizeVec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	SizeVec2Scale(&sVec1, psVec1, 1.0f - fWeight);
+	SizeVec2Scale(&sVec2, psVec2, fWeight);
 	SizeVec2Add(psVecDest, &sVec1, &sVec2);
 }
 

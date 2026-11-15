@@ -239,8 +239,8 @@ void Int16Vec3InterpolatePosition(SInt16Vec3* psVecDest, const SInt16Vec3* psVec
 	SInt16Vec3	sVec1;
 	SInt16Vec3	sVec2;
 
-	Int16Vec3Scale(&sVec1, psVec1, fWeight);
-	Int16Vec3Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Int16Vec3Scale(&sVec1, psVec1, 1.0f - fWeight);
+	Int16Vec3Scale(&sVec2, psVec2, fWeight);
 	Int16Vec3Add(psVecDest, &sVec1, &sVec2);
 }
 

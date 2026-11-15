@@ -255,8 +255,8 @@ void IntVec4InterpolatePosition(SIntVec4* psVecDest, const SIntVec4* psVec1, con
 	SIntVec4	sVec1;
 	SIntVec4	sVec2;
 
-	IntVec4Scale(&sVec1, psVec1, fWeight);
-	IntVec4Scale(&sVec2, psVec2, 1.0f - fWeight);
+	IntVec4Scale(&sVec1, psVec1, 1.0f - fWeight);
+	IntVec4Scale(&sVec2, psVec2, fWeight);
 	IntVec4Add(psVecDest, &sVec1, &sVec2);
 }
 

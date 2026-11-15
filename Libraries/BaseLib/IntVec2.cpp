@@ -243,8 +243,8 @@ void IntVec2InterpolatePosition(SIntVec2* psVecDest, const SIntVec2* psVec1, con
 	SIntVec2		sVec1;
 	SIntVec2		sVec2;
 
-	IntVec2Scale(&sVec1, psVec1, fWeight);
-	IntVec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	IntVec2Scale(&sVec1, psVec1, 1.0f - fWeight);
+	IntVec2Scale(&sVec2, psVec2, fWeight);
 	IntVec2Add(psVecDest, &sVec1, &sVec2);
 }
 

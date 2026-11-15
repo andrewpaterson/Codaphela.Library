@@ -239,8 +239,8 @@ void Int32Vec3InterpolatePosition(SInt32Vec3* psVecDest, const SInt32Vec3* psVec
 	SInt32Vec3	sVec1;
 	SInt32Vec3	sVec2;
 
-	Int32Vec3Scale(&sVec1, psVec1, fWeight);
-	Int32Vec3Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Int32Vec3Scale(&sVec1, psVec1, 1.0f - fWeight);
+	Int32Vec3Scale(&sVec2, psVec2, fWeight);
 	Int32Vec3Add(psVecDest, &sVec1, &sVec2);
 }
 

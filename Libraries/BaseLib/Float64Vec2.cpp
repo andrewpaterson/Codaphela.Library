@@ -376,8 +376,8 @@ void Float64Vec2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2*
 	SFloat64Vec2		sVec1;
 	SFloat64Vec2		sVec2;
 
-	Float64Vec2Scale(&sVec1, psVec1, fWeight);
-	Float64Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float64Vec2Scale(&sVec1, psVec1, 1.0f - fWeight);
+	Float64Vec2Scale(&sVec2, psVec2, fWeight);
 	Float64Vec2Add(psVecDest, &sVec1, &sVec2);
 }
 
@@ -391,8 +391,8 @@ void Float64Vec2InterpolateNormal(SFloat64Vec2* psVecDest, const SFloat64Vec2* p
 	SFloat64Vec2		sVec1;
 	SFloat64Vec2		sVec2;
 
-	Float64Vec2Scale(&sVec1, psVec1, fWeight);
-	Float64Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float64Vec2Scale(&sVec1, psVec1, 1.0f - fWeight);
+	Float64Vec2Scale(&sVec2, psVec2, fWeight);
 	Float64Vec2Add(&sVec1, &sVec1, &sVec2);
 
 	//Should possibly check for zero length vectors.

@@ -243,8 +243,8 @@ void Int64Vec2InterpolatePosition(SInt64Vec2* psVecDest, const SInt64Vec2* psVec
 	SInt64Vec2		sVec1;
 	SInt64Vec2		sVec2;
 
-	Int64Vec2Scale(&sVec1, psVec1, fWeight);
-	Int64Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Int64Vec2Scale(&sVec1, psVec1, 1.0f - fWeight);
+	Int64Vec2Scale(&sVec2, psVec2, fWeight);
 	Int64Vec2Add(psVecDest, &sVec1, &sVec2);
 }
 

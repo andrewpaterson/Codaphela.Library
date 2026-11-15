@@ -223,8 +223,8 @@ void UInt32Vec2InterpolatePosition(SUInt32Vec2* psVecDest, const SUInt32Vec2* ps
 	SUInt32Vec2		sVec1;
 	SUInt32Vec2		sVec2;
 
-	UInt32Vec2Scale(&sVec1, psVec1, fWeight);
-	UInt32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	UInt32Vec2Scale(&sVec1, psVec1, 1.0f - fWeight);
+	UInt32Vec2Scale(&sVec2, psVec2, fWeight);
 	UInt32Vec2Add(psVecDest, &sVec1, &sVec2);
 }
 
