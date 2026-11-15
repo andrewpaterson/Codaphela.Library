@@ -166,6 +166,57 @@ static bool IsMeshPolygonEar(CArrayFloat64Vec2* pasPoints, CArrayInt* paiRemaini
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A position as a float64, so that nearly flat faces' normals compare
+// without float32's rounding.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshPolygonPosition(SFloat64Vec3* psDest, CMesh* pcMesh, int32 iPosition)
+{
+	SFloat32Vec3*	psPosition;
+
+	psPosition = pcMesh->GetPosition(iPosition);
+	psDest->Init(psPosition->x, psPosition->y, psPosition->z);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The normal of the face from A to B to C, twice its area long.  It points
+// the way the face faces when its corners go anticlockwise.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshPolygonTriangleNormal(SFloat64Vec3* psDest, SFloat64Vec3* psA, SFloat64Vec3* psB, SFloat64Vec3* psC)
+{
+	SFloat64Vec3	sAB;
+	SFloat64Vec3	sAC;
+
+	Float64Vec3Subtract(&sAB, psB, psA);
+	Float64Vec3Subtract(&sAC, psC, psA);
+	Float64Vec3Cross(psDest, &sAB, &sAC);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cosine of the angle between two normals: 1 when the faces are flat
+// with each other.  -2, less than any, when either has no area.
+//
+//////////////////////////////////////////////////////////////////////////
+static float64 MeshPolygonNormalsCosine(SFloat64Vec3* psA, SFloat64Vec3* psB)
+{
+	float64		fLengths;
+
+	fLengths = sqrt(Float64Vec3Dot(psA, psA) * Float64Vec3Dot(psB, psB));
+	if (fLengths == 0.0)
+	{
+		return -2.0;
+	}
+	return Float64Vec3Dot(psA, psB) / fLengths;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A polygon with no ears, as it has no area or crosses itself, is still cut
 // up, from its first corner.
 //
@@ -182,6 +233,65 @@ static int FindMeshPolygonEar(CArrayFloat64Vec2* pasPoints, CArrayInt* paiRemain
 		}
 	}
 	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A quad is cut between its second and fourth corners, into faces 1 2 4 and
+// 2 3 4, unless cutting between its first and third, into faces 1 2 3 and
+// 1 3 4, is better.  It is when the other cut makes a face facing against
+// the quad, as across a concave quad from outside its inward corner, and
+// when its faces fold less against each other on a bent quad.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsMeshQuadCutFirstToThird(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3, int iCorner4)
+{
+	SFloat64Vec3	s1;
+	SFloat64Vec3	s2;
+	SFloat64Vec3	s3;
+	SFloat64Vec3	s4;
+	SFloat64Vec3	sDiagonal13;
+	SFloat64Vec3	sDiagonal24;
+	SFloat64Vec3	sQuadNormal;
+	SFloat64Vec3	sNormal124;
+	SFloat64Vec3	sNormal234;
+	SFloat64Vec3	sNormal123;
+	SFloat64Vec3	sNormal134;
+	bool			bValid24;
+	bool			bValid13;
+	float64			fCosine24;
+	float64			fCosine13;
+
+	MeshPolygonPosition(&s1, pcMesh, iCorner1);
+	MeshPolygonPosition(&s2, pcMesh, iCorner2);
+	MeshPolygonPosition(&s3, pcMesh, iCorner3);
+	MeshPolygonPosition(&s4, pcMesh, iCorner4);
+
+	//Newell's normal of four corners is the cross product of the diagonals.
+	Float64Vec3Subtract(&sDiagonal13, &s3, &s1);
+	Float64Vec3Subtract(&sDiagonal24, &s4, &s2);
+	Float64Vec3Cross(&sQuadNormal, &sDiagonal13, &sDiagonal24);
+
+	MeshPolygonTriangleNormal(&sNormal124, &s1, &s2, &s4);
+	MeshPolygonTriangleNormal(&sNormal234, &s2, &s3, &s4);
+	MeshPolygonTriangleNormal(&sNormal123, &s1, &s2, &s3);
+	MeshPolygonTriangleNormal(&sNormal134, &s1, &s3, &s4);
+
+	bValid24 = (Float64Vec3Dot(&sNormal124, &sQuadNormal) > 0.0) && (Float64Vec3Dot(&sNormal234, &sQuadNormal) > 0.0);
+	bValid13 = (Float64Vec3Dot(&sNormal123, &sQuadNormal) > 0.0) && (Float64Vec3Dot(&sNormal134, &sQuadNormal) > 0.0);
+	if (bValid24 != bValid13)
+	{
+		return bValid13;
+	}
+	if (!bValid13)
+	{
+		return false;
+	}
+
+	fCosine24 = MeshPolygonNormalsCosine(&sNormal124, &sNormal234);
+	fCosine13 = MeshPolygonNormalsCosine(&sNormal123, &sNormal134);
+	return fCosine13 > fCosine24 + MESH_POLYGON_FOLD_TOLERANCE;
 }
 
 

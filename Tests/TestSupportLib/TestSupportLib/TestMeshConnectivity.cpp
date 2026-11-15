@@ -4,6 +4,7 @@
 #include "StandardLib/ObjectWriter.h"
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshEditor.h"
+#include "SupportLib/MeshEditorWrapper.h"
 #include "SupportLib/MeshPlaneEditor.h"
 #include "TestLib/Assert.h"
 
@@ -383,6 +384,201 @@ void TestMeshEditorNewEdges(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static void TestMeshCutAddCorners(CMesh* pcMesh, float32* afXYZ, int iNumCorners)
+{
+	int		i;
+
+	for (i = 0; i < iNumCorners; i++)
+	{
+		pcMesh->AddCorner(afXYZ[i * 3], afXYZ[i * 3 + 1], afXYZ[i * 3 + 2]);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A face's normal, twice its area long.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestMeshCutFaceNormal(SFloat64Vec3* psNormal, CMesh* pcMesh, int iFace)
+{
+	int*			aiCorners;
+	SFloat32Vec3*	ps1;
+	SFloat32Vec3*	ps2;
+	SFloat32Vec3*	ps3;
+	SFloat64Vec3	s12;
+	SFloat64Vec3	s13;
+
+	aiCorners = pcMesh->GetFaceCorners(iFace);
+	ps1 = pcMesh->GetPosition(aiCorners[0]);
+	ps2 = pcMesh->GetPosition(aiCorners[1]);
+	ps3 = pcMesh->GetPosition(aiCorners[2]);
+	s12.Init((float64)ps2->x - ps1->x, (float64)ps2->y - ps1->y, (float64)ps2->z - ps1->z);
+	s13.Init((float64)ps3->x - ps1->x, (float64)ps3->y - ps1->y, (float64)ps3->z - ps1->z);
+	Float64Vec3Cross(psNormal, &s12, &s13);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of a face's corners is the mesh's corner its place in aiQuad says.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertMeshCutFace(CMesh* pcMesh, int iFace, int* aiQuad, int iQuad1, int iQuad2, int iQuad3)
+{
+	int*	aiCorners;
+
+	aiCorners = pcMesh->GetFaceCorners(iFace);
+	AssertInt(aiQuad[iQuad1], aiCorners[0]);
+	AssertInt(aiQuad[iQuad2], aiCorners[1]);
+	AssertInt(aiQuad[iQuad3], aiCorners[2]);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What's returned for a quad says the corners its two faces have.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertMeshCutQuadReturn(CMesh* pcMesh, CMFRet r, int* aiQuad)
+{
+	int		i1;
+	int		i2;
+	int		i3;
+
+	AssertInt(2, r.NumFaces());
+	r.Unpack1(&i1, &i2, &i3);
+	AssertMeshCutFace(pcMesh, r.miFirstFace, aiQuad, i1, i2, i3);
+	r.Unpack2(&i1, &i2, &i3);
+	AssertMeshCutFace(pcMesh, r.miFirstFace + 1, aiQuad, i1, i2, i3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A flat convex quad is cut from its second corner to its fourth, as it
+// always was.  A bent one is cut the way it folds least, and a concave one
+// through its inward corner, so both of its faces face as it does.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshAddQuadCuts(void)
+{
+	CMesh			cMesh;
+	CMFRet			r;
+	SFloat64Vec3	sNormal;
+	int				aiQuad[4] = { 0, 1, 2, 3 };
+	float32			afSquare[] = { 0, 0, 0,  1, 0, 0,  1, 1, 0,  0, 1, 0 };
+	float32			afBent[] = { 0, 0, 0,  1, 0, 0.5f,  1, 1, 0,  0, 1, 0 };
+	float32			afInwardFirst[] = { 1, 1, 0,  2, 0, 0,  1, 3, 0,  0, 0, 0 };
+	float32			afInwardSecond[] = { 0, 0, 0,  1, 1, 0,  2, 0, 0,  1, 3, 0 };
+
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afSquare, 4);
+	r = cMesh.AddQuad(0, 1, 2, 3);
+	AssertMeshCutQuadReturn(&cMesh, r, aiQuad);
+	AssertMeshCutFace(&cMesh, 0, aiQuad, 0, 1, 3);
+	AssertMeshCutFace(&cMesh, 1, aiQuad, 1, 2, 3);
+	cMesh.Kill();
+
+	//Corner 1 is lifted, so cutting from corner 0 to 2 leaves the other face flat.
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afBent, 4);
+	r = cMesh.AddQuad(0, 1, 2, 3);
+	AssertMeshCutQuadReturn(&cMesh, r, aiQuad);
+	AssertMeshCutFace(&cMesh, 0, aiQuad, 0, 1, 2);
+	AssertMeshCutFace(&cMesh, 1, aiQuad, 0, 2, 3);
+	TestMeshCutFaceNormal(&sNormal, &cMesh, 1);
+	AssertDouble(0.0, sNormal.x, 6);
+	AssertDouble(0.0, sNormal.y, 6);
+	cMesh.Kill();
+
+	//Corner 0 points inwards, so the cut from 1 to 3 would make a face outside the quad.
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afInwardFirst, 4);
+	r = cMesh.AddQuad(0, 1, 2, 3);
+	AssertMeshCutQuadReturn(&cMesh, r, aiQuad);
+	AssertMeshCutFace(&cMesh, 0, aiQuad, 0, 1, 2);
+	AssertMeshCutFace(&cMesh, 1, aiQuad, 0, 2, 3);
+	TestMeshCutFaceNormal(&sNormal, &cMesh, 0);
+	AssertTrue(sNormal.z > 0.0);
+	TestMeshCutFaceNormal(&sNormal, &cMesh, 1);
+	AssertTrue(sNormal.z > 0.0);
+	cMesh.Kill();
+
+	//Corner 1 points inwards, so the usual cut goes through it.
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afInwardSecond, 4);
+	r = cMesh.AddQuad(0, 1, 2, 3);
+	AssertMeshCutFace(&cMesh, 0, aiQuad, 0, 1, 3);
+	AssertMeshCutFace(&cMesh, 1, aiQuad, 1, 2, 3);
+	TestMeshCutFaceNormal(&sNormal, &cMesh, 0);
+	AssertTrue(sNormal.z > 0.0);
+	TestMeshCutFaceNormal(&sNormal, &cMesh, 1);
+	AssertTrue(sNormal.z > 0.0);
+	cMesh.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An editor and a wrapper on a bare mesh cut a bent quad the same way,
+// flipped or not, and say so in what they return.  The editor's quad is one
+// polygon.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshEditorAddQuadCuts(void)
+{
+	CMesh				cMesh;
+	CMeshEditor			cEditor;
+	CMeshEditorWrapper	cWrapper;
+	Ptr<CMesh>			pMesh;
+	CMFRet				r;
+	SFloat64Vec3		sNormal;
+	int					aiQuad[4] = { 0, 1, 2, 3 };
+	float32				afBent[] = { 0, 0, 0,  1, 0, 0.5f,  1, 1, 0,  0, 1, 0 };
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	TestMeshCutAddCorners(&cMesh, afBent, 4);
+	r = cEditor.AddQuad(0, 1, 2, 3, 7, false);
+	AssertMeshCutQuadReturn(&cMesh, r, aiQuad);
+	AssertMeshCutFace(&cMesh, 0, aiQuad, 0, 1, 2);
+	AssertMeshCutFace(&cMesh, 1, aiQuad, 0, 2, 3);
+	AssertLSize(1, cMesh.mcPolygons.mcPolygons.NumElements());
+	cEditor.Kill();
+	cMesh.Kill();
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	TestMeshCutAddCorners(&cMesh, afBent, 4);
+	r = cEditor.AddQuad(0, 1, 2, 3, 7, true);
+	AssertMeshCutQuadReturn(&cMesh, r, aiQuad);
+	AssertMeshCutFace(&cMesh, 0, aiQuad, 0, 2, 1);
+	AssertMeshCutFace(&cMesh, 1, aiQuad, 0, 3, 2);
+	TestMeshCutFaceNormal(&sNormal, &cMesh, 1);
+	AssertTrue(sNormal.z < 0.0);
+	AssertLSize(1, cMesh.mcPolygons.mcPolygons.NumElements());
+	cEditor.Kill();
+	cMesh.Kill();
+
+	pMesh = OMalloc<CMesh>();
+	TestMeshCutAddCorners(&pMesh, afBent, 4);
+	cWrapper.Init(pMesh);
+	r = cWrapper.AddQuad(0, 1, 2, 3, 0, true);
+	AssertMeshCutQuadReturn(&pMesh, r, aiQuad);
+	TestMeshCutFaceNormal(&sNormal, &pMesh, 0);
+	AssertTrue(sNormal.z < 0.0);
+	TestMeshCutFaceNormal(&sNormal, &pMesh, 1);
+	AssertTrue(sNormal.z < 0.0);
+	cWrapper.Kill();
+	pMesh = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestMeshConnectivity(void)
 {
 	BeginTests();
@@ -396,6 +592,8 @@ void TestMeshConnectivity(void)
 	TestMeshConnectivityGeneratedWhenNeeded();
 	TestMeshConnectivityGeneratedInSteps();
 	TestMeshEditorNewEdges();
+	TestMeshAddQuadCuts();
+	TestMeshEditorAddQuadCuts();
 
 	ObjectsKill(false);
 	DataIOKill();

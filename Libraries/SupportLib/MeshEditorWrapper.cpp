@@ -26,6 +26,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshEditorWrapper.h"
 
 
+//Where each corner of a quad added the other way round, 1 4 3 2, is in the quad as it was given.
+static const int gaiFlippedQuadCorners[4] = { 0, 3, 2, 1 };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -134,11 +138,15 @@ CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A flipped quad is added to a mesh with its corners the other way round
+// from its first, 1 4 3 2, which is cut where the quad would be.  What's
+// returned numbers the corners as they were given.
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName, bool bFlipFaces)
 {
 	CMFRet	rQuad;
+	int		aiCorners[6];
 
 	if ((mpcEditor != NULL))
 	{
@@ -153,9 +161,10 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 		else
 		{
 			rQuad = mpcMesh->AddQuad(iCorner1, iCorner4, iCorner3, iCorner2);
-
-			//I have no idea if this is correct or not.
-			rQuad.Repack(0, 3, 1, 3, 2, 1);
+			rQuad.Unpack1(&aiCorners[0], &aiCorners[1], &aiCorners[2]);
+			rQuad.Unpack2(&aiCorners[3], &aiCorners[4], &aiCorners[5]);
+			rQuad.Repack(gaiFlippedQuadCorners[aiCorners[0]], gaiFlippedQuadCorners[aiCorners[1]], gaiFlippedQuadCorners[aiCorners[2]],
+						  gaiFlippedQuadCorners[aiCorners[3]], gaiFlippedQuadCorners[aiCorners[4]], gaiFlippedQuadCorners[aiCorners[5]]);
 			return rQuad;
 		}
 	}

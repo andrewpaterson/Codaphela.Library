@@ -49,6 +49,15 @@ typedef CArrayTemplatePrimitive<int32>		CArrayMeshPolygonCorners;
 //Whether two of a polygon's corners are next to each other around it, so that the edge between them is on its outside.
 bool	IsMeshPolygonEdge(int iCorner1, int iCorner2, int iNumCorners);
 
+//How much flatter, as the cosine of a fold, one way of cutting a polygon must be than another to be taken instead.  Below it they're
+//the same, as a flat polygon's cuts are once rounded.
+#define MESH_POLYGON_FOLD_TOLERANCE		1e-9
+
+//Whether a quad is cut between its first and third corners (faces 1 2 3 and 1 3 4) instead of its second and fourth (faces 1 2 4 and
+//2 3 4, as a flat convex quad is).  A concave quad is cut through its inward corner, so neither face is outside it, and a bent quad
+//the way its faces fold least.
+bool	IsMeshQuadCutFirstToThird(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3, int iCorner4);
+
 //paiPositions has a position for each of its corners.  paiFaceCorners gets three of those corners for each face to make.
 void	CutMeshPolygon(CMesh* pcMesh, const int32* paiPositions, int32 iNumCorners, CArrayMeshPolygonCorners* paiFaceCorners);
 

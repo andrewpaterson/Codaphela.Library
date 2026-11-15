@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/Logger.h"
 #include "StandardLib/Objects.h"
 #include "MeshEditor.h"
+#include "MeshPolygonShape.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -395,29 +396,46 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Cut as CMesh::AddQuad cuts it, whichever way its faces face.  The edge
+// between its faces is hidden.
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditor::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName, bool bFlipFaces)
 {
 	CMFRet	rFace1;
 	CMFRet	rFace2;
+	bool	bFirstToThird;
 
-	if (!bFlipFaces)
+	bFirstToThird = IsMeshQuadCutFirstToThird(&mpMesh, iCorner1, iCorner2, iCorner3, iCorner4);
+	if (!bFirstToThird && !bFlipFaces)
 	{
 		rFace1 = AddFace(iCorner1, iCorner2, iCorner4, iName, true, false, true);
 		rFace1.Repack(0, 1, 3);
 		rFace2 = AddFace(iCorner2, iCorner3, iCorner4, iName, true, true, false);
 		rFace2.Repack(1, 2, 3);
-		rFace1.Pack2(rFace2);
 	}
-	else
+	else if (!bFirstToThird && bFlipFaces)
 	{
 		rFace1 = AddFace(iCorner1, iCorner4, iCorner2, iName, true, false, true);
 		rFace1.Repack(0, 3, 1);
 		rFace2 = AddFace(iCorner2, iCorner4, iCorner3, iName, false, true, true);
 		rFace2.Repack(1, 3, 2);
-		rFace1.Pack2(rFace2);
 	}
+	else if (!bFlipFaces)
+	{
+		rFace1 = AddFace(iCorner1, iCorner2, iCorner3, iName, true, true, false);
+		rFace1.Repack(0, 1, 2);
+		rFace2 = AddFace(iCorner1, iCorner3, iCorner4, iName, false, true, true);
+		rFace2.Repack(0, 2, 3);
+	}
+	else
+	{
+		rFace1 = AddFace(iCorner1, iCorner3, iCorner2, iName, false, true, true);
+		rFace1.Repack(0, 2, 1);
+		rFace2 = AddFace(iCorner1, iCorner4, iCorner3, iName, true, true, false);
+		rFace2.Repack(0, 3, 2);
+	}
+	rFace1.Pack2(rFace2);
 	return rFace1;
 }
 

@@ -87,7 +87,7 @@ public:
 	void			AddCorner(SFloat32Vec3* psPosition);
 
 	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);
-	CMFRet			AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4);
+	CMFRet			AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4);  //Cut 2 to 4, or 1 to 3 where it's concave or that folds less.
 	CMFRet			AddPolygon(CArrayInt* paiCorners);
 	
 	void			RemoveFace(int iFace);

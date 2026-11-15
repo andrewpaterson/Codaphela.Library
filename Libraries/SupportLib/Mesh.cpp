@@ -24,6 +24,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "Mesh.h"
+#include "MeshPolygonShape.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -530,6 +531,8 @@ CMFRet CMesh::AddFace(int iCorner1, int iCorner2, int iCorner3)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Cut between corners 2 and 4, or between 1 and 3 where that's better
+// (IsMeshQuadCutFirstToThird).  What's returned says which.
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMesh::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4)
@@ -537,10 +540,20 @@ CMFRet CMesh::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4)
 	CMFRet	r1;
 	CMFRet	r2;
 
-	r1 = AddFace(iCorner1, iCorner2, iCorner4);
-	r1.Repack(0, 1, 3);
-	r2 = AddFace(iCorner2, iCorner3, iCorner4);
-	r2.Repack(1, 2, 3);
+	if (!IsMeshQuadCutFirstToThird(this, iCorner1, iCorner2, iCorner3, iCorner4))
+	{
+		r1 = AddFace(iCorner1, iCorner2, iCorner4);
+		r1.Repack(0, 1, 3);
+		r2 = AddFace(iCorner2, iCorner3, iCorner4);
+		r2.Repack(1, 2, 3);
+	}
+	else
+	{
+		r1 = AddFace(iCorner1, iCorner2, iCorner3);
+		r1.Repack(0, 1, 2);
+		r2 = AddFace(iCorner1, iCorner3, iCorner4);
+		r2.Repack(0, 2, 3);
+	}
 
 	r1.Pack2(r2);
 	return r1;
