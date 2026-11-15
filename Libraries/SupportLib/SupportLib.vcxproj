@@ -400,6 +400,12 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="HalfSpace.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="RevolvedShape.h" />
+    <ClInclude Include="Capsule.h" />
+    <ClInclude Include="Cone.h" />
+    <ClInclude Include="Cylinder.h" />
+    <ClInclude Include="Torus.h" />
+    <ClInclude Include="Tube.h" />
     <ClInclude Include="MeshSelections.h" />
     <ClInclude Include="MeshModifier.h" />
     <ClInclude Include="MeshModifierStack.h" />
@@ -653,6 +659,12 @@
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="HalfSpace.cpp" />
     <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="RevolvedShape.cpp" />
+    <ClCompile Include="Capsule.cpp" />
+    <ClCompile Include="Cone.cpp" />
+    <ClCompile Include="Cylinder.cpp" />
+    <ClCompile Include="Torus.cpp" />
+    <ClCompile Include="Tube.cpp" />
     <ClCompile Include="MeshSelections.cpp" />
     <ClCompile Include="MeshModifier.cpp" />
     <ClCompile Include="MeshModifierStack.cpp" />

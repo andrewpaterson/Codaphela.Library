@@ -20,7 +20,7 @@
 // point away from its creases.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertShapeGradient(CShape* pcShape, SFloat32Vec3* psPosition, float32 fX, float32 fY, float32 fZ)
+void AssertShapeGradient(CShape* pcShape, SFloat32Vec3* psPosition, float32 fX, float32 fY, float32 fZ)
 {
 	SFloat32Vec3	sGradient;
 	SFloat32Vec3	sDifferences;
@@ -195,7 +195,7 @@ static void TestShapeAddConstructors(void)
 // file of its own.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestShapeWrite(char* szDirectory, CShape* pcShape)
+bool TestShapeWrite(char* szDirectory, CShape* pcShape)
 {
 	CExternalObjectSerialiser	cSerialiser;
 	CChunkFileObjectWriter		cWriter;
@@ -214,7 +214,7 @@ static bool TestShapeWrite(char* szDirectory, CShape* pcShape)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static CBaseObject* TestShapeRead(char* szDirectory, const char* szName)
+CBaseObject* TestShapeRead(char* szDirectory, const char* szName)
 {
 	CExternalObjectDeserialiser		cDeserialiser;
 	CChunkFileSystemObjectReader	cReader;
