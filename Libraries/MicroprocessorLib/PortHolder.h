@@ -36,6 +36,7 @@ public:
 			void	KillPorts(void);
 
 			void	AddPort(CPort* pcPort);
+			bool	RemovePort(CPort* pcPort);
 			CPort*	GetPort(const char* szName);
 			size	NumPorts(void);
 			CPort*	GetPort(size uiIndex);

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ArrayElementNotFound.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/StringHelper.h"
@@ -61,6 +62,26 @@ void CPortHolder::KillPorts(void)
 void CPortHolder::AddPort(CPort* pcPort)
 {
 	mapcPorts.Add(pcPort);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the port out of the holder, which no longer frees it.  False if
+// the holder doesn't have it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPortHolder::RemovePort(CPort* pcPort)
+{
+	size	uiIndex;
+
+	uiIndex = mapcPorts.Find(pcPort);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+	mapcPorts.RemoveAt(uiIndex, true);
+	return true;
 }
 
 

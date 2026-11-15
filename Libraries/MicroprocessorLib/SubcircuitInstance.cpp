@@ -155,6 +155,55 @@ CArrayTracePortPtr* CSubcircuitInstance::GetTracePorts(const char* szPinName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Takes the pin named szPinName and its trace ports out of the instance
+// and frees them, the ports disconnected from their traces first, live
+// on the timeline if it isn't NULL.  For a pin taken out of the
+// subcircuit, or changed, while it's simulated.  False if there's no pin
+// of that name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSubcircuitInstance::RemoveTracePorts(const char* szPinName, CTimeline* pcTimeline)
+{
+	SSubcircuitNamedPin*	psNamedPin;
+	size					i;
+	CTracePort*				pcPort;
+
+	psNamedPin = FindNamedPin(szPinName);
+	if (psNamedPin == NULL)
+	{
+		return false;
+	}
+
+	for (i = 0; i < psNamedPin->apcTracePorts.NumElements(); i++)
+	{
+		pcPort = psNamedPin->apcTracePorts.GetPtr(i);
+		if (pcTimeline != NULL)
+		{
+			pcPort->Disconnect(pcTimeline);
+		}
+		RemovePort(pcPort);
+		SafeKill(pcPort);
+	}
+	mapsNamedPins.RemoveAt(mapsNamedPins.Find(psNamedPin), true);
+	SafeKill(psNamedPin);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the instance has ports for a pin named szPinName (with no error
+// if it hasn't).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSubcircuitInstance::HasTracePorts(const char* szPinName)
+{
+	return FindNamedPin(szPinName) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 SSubcircuitNamedPin* CSubcircuitInstance::FindNamedPin(const char* szPinName)

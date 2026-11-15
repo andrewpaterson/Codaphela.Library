@@ -56,6 +56,8 @@ public:
 	virtual const char*						GetType(void);
 			CArrayTracePortPtr*				AddTracePorts(const char* szPinName, size uiPortCount);
 			CArrayTracePortPtr*				GetTracePorts(const char* szPinName);
+			bool							RemoveTracePorts(const char* szPinName, CTimeline* pcTimeline);
+			bool							HasTracePorts(const char* szPinName);
 			size							NumNamedPins(void);
 			char*							GetPinName(size uiIndex);
 
