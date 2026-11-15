@@ -31,8 +31,9 @@ static void AssertUnwrapped(CMesh* pcMesh, CMeshUnwrap* pcUnwrap)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A box 2 by 1 by 0.5 at 64 texels to the unit: six charts, one for each
-// side, none stretched, all at 64 texels to the unit.  Its normals (made
+// A box 2 by 1 by 0.5 at 64 texels to the unit, box projected: six
+// charts, one for each side, none stretched, all at 64 texels to the
+// unit.  Its normals (made
 // before the unwrap) are kept.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -54,7 +55,7 @@ void TestMeshUnwrapBox(void)
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 2, 2, 2);
 	pEditor->AddModifier<CMeshFlatFaces>();
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, MUC_Box, MUF_Projected);
 	pMesh = pEditor->GetOutput();
 
 	AssertUnwrapped(&pMesh, &pUnwrap);
@@ -70,8 +71,8 @@ void TestMeshUnwrapBox(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A sphere: six charts, one about each axis, stretched as box projection
-// stretches a slope (at most root 3 between two directions, and never
+// A sphere box projected: six charts, one about each axis, stretched as
+// box projection stretches a slope (at most root 3 between two directions, and never
 // more texels than the density).  A torus: unwrapped as well, in more
 // charts.
 //
@@ -89,7 +90,7 @@ void TestMeshUnwrapCurved(void)
 	sCentre.Init(0.3f, -0.2f, 0.1f);
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshSphereEditor>(&sAxis, &sCentre, 1.0f, 24, 12);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Box, MUF_Projected);
 	pMesh = pEditor->GetOutput();
 	AssertUnwrapped(&pMesh, &pUnwrap);
 	AssertInt(6, pUnwrap->miNumCharts);
@@ -100,7 +101,7 @@ void TestMeshUnwrapCurved(void)
 
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshTorusEditor>(&sAxis, &sCentre, 2.0f, 0.5f, 32, 12);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Box, MUF_Projected);
 	pMesh = pEditor->GetOutput();
 	AssertUnwrapped(&pMesh, &pUnwrap);
 	AssertTrue(pUnwrap->miNumCharts > 6);
@@ -109,11 +110,11 @@ void TestMeshUnwrapCurved(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Grown charts: a box's six faces are six charts, unstretched; a sphere
-// is a few, each laid across its own normal, stretched where its faces
-// slope from it (up to 4.6 times; LSCM keeps their shapes); a torus is
-// clean, as charts that overlap themselves laid flat (round its inside)
-// are grown again smaller.
+// Grown charts laid across their normals: a box's six faces are six
+// charts, unstretched; a sphere is a few, each stretched where its faces
+// slope from its normal (up to 4.6 times; LSCM keeps their shapes); a
+// torus is clean, as charts that overlap themselves laid flat (round its
+// inside) are grown again smaller.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUnwrapGrown(void)
@@ -135,7 +136,7 @@ void TestMeshUnwrapGrown(void)
 	sStart.Init(-1, -0.5f, -0.25f);
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 2, 2, 2);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, MUC_Grown);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, MUC_Grown, MUF_Projected);
 	pMesh = pEditor->GetOutput();
 	AssertUnwrapped(&pMesh, &pUnwrap);
 	AssertInt(6, pUnwrap->miNumCharts);
@@ -147,7 +148,7 @@ void TestMeshUnwrapGrown(void)
 	sCentre.Init(0.3f, -0.2f, 0.1f);
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshSphereEditor>(&sAxis, &sCentre, 1.0f, 24, 12);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Grown);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Grown, MUF_Projected);
 	pMesh = pEditor->GetOutput();
 	AssertUnwrapped(&pMesh, &pUnwrap);
 	MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 100.0f);
@@ -156,7 +157,7 @@ void TestMeshUnwrapGrown(void)
 
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshTorusEditor>(&sAxis, &sCentre, 2.0f, 0.5f, 32, 12);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Grown);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f, MUC_Grown, MUF_Projected);
 	pMesh = pEditor->GetOutput();
 	AssertUnwrapped(&pMesh, &pUnwrap);
 	AssertTrue(pUnwrap->miNumCharts < 40);
@@ -169,7 +170,10 @@ void TestMeshUnwrapGrown(void)
 // sphere and a torus in box charts and in grown charts, their faces'
 // angles kept to within 1.15 times (laid across their normals, grown
 // charts stretch the sphere's 4.6 times) and their texels per area near
-// the density.
+// the density.  Their charts cover from 0.44 to 0.63 of their layouts
+// (packed as rectangles, 0.31 to 0.53): the rest is gutters, the cells
+// round charts' edges and whole pages (so a layout a page taller, as
+// builds whose floats differ can pack, covers a tenth less).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUnwrapConformal(void)
@@ -184,6 +188,7 @@ void TestMeshUnwrapConformal(void)
 	SFloat32Vec3		sAxis;
 	SFloat32Vec3		sCentre;
 	SMeshUVStretch		sStretch;
+	float32				afCovered[4];
 	int					i;
 
 	sX.Init(2, 0, 0);
@@ -222,7 +227,12 @@ void TestMeshUnwrapConformal(void)
 		AssertTrue(sStretch.fMeanAngle < 1.06f);
 		AssertTrue(sStretch.fLeastArea > 0.7f);
 		AssertTrue(sStretch.fMostArea < 1.6f);
+		afCovered[i] = MeasureMeshUVArea(&pMesh, 0);
 	}
+	AssertTrue(afCovered[0] > 0.4f);
+	AssertTrue(afCovered[1] > 0.55f);
+	AssertTrue(afCovered[2] > 0.4f);
+	AssertTrue(afCovered[3] > 0.4f);
 }
 
 

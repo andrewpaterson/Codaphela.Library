@@ -144,6 +144,34 @@ int CountMeshUVFacesTurned(CMesh* pcMesh, int iLayer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+float32 MeasureMeshUVArea(CMesh* pcMesh, int iLayer)
+{
+	CMeshUVLayer*	pcLayer;
+	SFloat32Vec2*	apsUVs[NUM_FACE_CORNERS];
+	int				iFace;
+	float64			fTwiceArea;
+
+	pcLayer = MeshUVLayer(pcMesh, iLayer);
+	if (pcLayer == NULL)
+	{
+		return 0.0f;
+	}
+	fTwiceArea = 0.0;
+	for (iFace = 0; iFace < pcMesh->NumFaces(); iFace++)
+	{
+		if (MeshFaceUVs(pcLayer, iFace, apsUVs))
+		{
+			fTwiceArea += fabs(MeshUVTwiceArea(apsUVs));
+		}
+	}
+	return (float32)(fTwiceArea * 0.5);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CountMeshUVsOutside(CMesh* pcMesh, int iLayer)
 {
 	CMeshUVLayer*	pcLayer;

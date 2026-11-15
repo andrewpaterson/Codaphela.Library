@@ -187,12 +187,12 @@ static Ptr<CCamera> TestShapeSceneCamera(SFloat32Vec3* psEye)
 //////////////////////////////////////////////////////////////////////////
 //
 // pScene drawn by the raster renderer from psEye, 128 by 80, as it was
-// when first drawn and looked at (Input/<szName>.raw) but for a hundredth
-// of its pixels.  Output/<szName>.raw is what was drawn, ARGB32 rows from
-// the top.
+// when first drawn and looked at (Input/<szName>.raw) but for
+// iPercentDifferent of its pixels.  Output/<szName>.raw is what was
+// drawn, ARGB32 rows from the top.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size uiInstances, const char* szName)
+static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size uiInstances, const char* szName, int iPercentDifferent)
 {
 	CRasterRenderFactory	cFactory;
 	CRasteriser				cRasteriser;
@@ -248,7 +248,7 @@ static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size u
 	iDifferent = TestShapeSceneDifferences(szFile.Text(), puiPixels, TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT);
 	szFile.Kill();
 	AssertTrue(iDifferent >= 0);
-	AssertTrue(iDifferent <= (TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT / 100));
+	AssertTrue(iDifferent <= (TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT * iPercentDifferent / 100));
 
 	cTarget.Kill();
 	free(puiPixels);
@@ -305,7 +305,7 @@ void TestShapeSceneDraw(void)
 	TestShapeSceneAdd(pScene, OMalloc<CShapeSmoothUnion>(OMalloc<CSphere>(&sCentre, 0.8f), OMalloc<CSphere>(&sStart, 0.6f), 0.4f), 0.05f, 0.4f);
 
 	sEye.Init(1.5f, -9.0f, 6.0f);
-	TestShapeSceneRender(pScene, &sEye, 4, "ShapeScene");
+	TestShapeSceneRender(pScene, &sEye, 4, "ShapeScene", 1);
 	pUnion = NULL;
 	pScene = NULL;
 }
@@ -314,12 +314,12 @@ void TestShapeSceneDraw(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A box and five spheres smoothly joined, unwrapped at 64 texels to the
-// unit and a checker of quarter unit cubes baked onto them
-// (Input/TexturedScene.raw).  The box's faces are each one chart, so its
-// squares are square; the spheres' are box projected, so theirs stretch
-// where a face slopes away from its chart's axis.  The box is off the
-// checker's planes: a face on one is evenly both colours, as a solid
-// texture is there.
+// unit (grown charts by LSCM) and a checker of quarter unit cubes baked
+// onto them (Input/TexturedScene.raw), within three hundredths of its
+// pixels: builds whose floats differ (FMA) can pack the charts a cell
+// apart, so the checker's texels are on another grid and its edges move a
+// pixel.  The box is off the checker's planes: a face on one is evenly
+// both colours, as a solid texture is there.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestShapeSceneTextured(void)
@@ -357,7 +357,7 @@ void TestShapeSceneTextured(void)
 	TestShapeSceneAddTextured(pScene, pSpheres, pChecker, 64.0f);
 
 	sEye.Init(0.5f, -8.0f, 4.0f);
-	TestShapeSceneRender(pScene, &sEye, 2, "TexturedScene");
+	TestShapeSceneRender(pScene, &sEye, 2, "TexturedScene", 3);
 	pSpheres = NULL;
 	pChecker = NULL;
 	pScene = NULL;

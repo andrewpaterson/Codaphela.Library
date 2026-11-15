@@ -472,6 +472,7 @@
     <ClInclude Include="MeshBake.h" />
     <ClInclude Include="MeshCharts.h" />
     <ClInclude Include="MeshUVConformal.h" />
+    <ClInclude Include="BitmapPacker.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseFontDraw.cpp" />
@@ -746,6 +747,7 @@
     <ClCompile Include="MeshBake.cpp" />
     <ClCompile Include="MeshCharts.cpp" />
     <ClCompile Include="MeshUVConformal.cpp" />
+    <ClCompile Include="BitmapPacker.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

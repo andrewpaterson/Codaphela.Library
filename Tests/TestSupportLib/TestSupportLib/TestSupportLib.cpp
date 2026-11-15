@@ -59,6 +59,7 @@ void TestRevolvedShape(void);
 void TestShapeCombination(void);
 void TestConvexHull(void);
 void TestMeshUVMeasures(void);
+void TestBitmapPacker(void);
 void TestMeshUVConformal(void);
 void TestMeshUnwrap(void);
 void TestMeshBake(void);
@@ -160,6 +161,7 @@ int __cdecl main(void)
 	TestShapeCombination();
 	TestConvexHull();
 	TestMeshUVMeasures();
+	TestBitmapPacker();
 	TestMeshUVConformal();
 	TestMeshUnwrap();
 	TestMeshBake();

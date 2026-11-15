@@ -52,6 +52,9 @@ int		CountMeshUVFacesTurned(CMesh* pcMesh, int iLayer);
 //UVs outside 0 to 1.
 int		CountMeshUVsOutside(CMesh* pcMesh, int iLayer);
 
+//How much of the layout (UVs 0 to 1) the faces cover, 0 to 1 when none overlap.
+float32	MeasureMeshUVArea(CMesh* pcMesh, int iLayer);
+
 //Pairs of faces whose UV triangles overlap: whose insides share some area, not just an edge or a corner.
 int		CountMeshUVOverlaps(CMesh* pcMesh, int iLayer);
 

@@ -1083,6 +1083,9 @@
     <ClInclude Include="MeshUVConformal.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="BitmapPacker.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1899,6 +1902,9 @@
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
     <ClCompile Include="MeshUVConformal.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapPacker.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
   </ItemGroup>

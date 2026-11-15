@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 enum EMeshUnwrapCharts
 {
 	MUC_Box,	//By the axis direction each face is nearest.
-	MUC_Grown,	//Grown across edges while faces stay within mfChartAngle of a chart's average normal.
+	MUC_Grown,	//Grown across edges while faces stay within mfChartAngle of a chart's average normal; the default.
 };
 
 
@@ -43,7 +43,7 @@ enum EMeshUnwrapCharts
 enum EMeshUnwrapFlatten
 {
 	MUF_Projected,	//Across its normal.
-	MUF_Conformal,	//By LSCM (FlattenConformal), from there: angles kept.
+	MUF_Conformal,	//By LSCM (FlattenConformal), from there: angles kept; the default.
 };
 
 
@@ -56,9 +56,10 @@ enum EMeshUnwrapFlatten
 //Laid flat across its normal, a chart is stretched where its faces slope from it (by 1 / cos of the angle along the slope), and
 //can't fold, as no face is a right angle from it.  LSCM then keeps its faces' angles, but can fold one that's very curved or
 //isn't a disc.  A chart that folds or overlaps itself (round a torus's inside) has its faces grown again at half the angle,
-//until no chart does.  The rectangles, a gutter round each, are packed tallest first along a skyline, not yet onto pages.  A
-//layout's size and how many charts it has are kept (miLayoutWidth and so on) once it has been made, for a bake.  Everything
-//else the mesh has is kept, and its other UV layers.
+//until no chart does.  Charts are packed as the cells (miGutter texels square) their triangles cover, a cell of gutter round
+//them, each at whichever quarter turn reaches least high where it first fits (CBitmapPacker), so charts fit into each other's
+//hollows; not yet onto pages.  A layout's size and how many charts it has are kept (miLayoutWidth and so on) once it has been
+//made, for a bake.  Everything else the mesh has is kept, and its other UV layers.
 class CMeshUnwrap : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshUnwrap);
@@ -75,7 +76,7 @@ public:
 	int					miLayoutHeight;
 	int					miNumCharts;
 
-	void		Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts = MUC_Box, EMeshUnwrapFlatten eFlatten = MUF_Projected);
+	void		Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts = MUC_Grown, EMeshUnwrapFlatten eFlatten = MUF_Conformal);
 	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;

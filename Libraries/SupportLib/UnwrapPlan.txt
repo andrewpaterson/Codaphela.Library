@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Steps 1 to 6 are built (see Steps).  What is decided and what is only proposed is said at each point.
+Steps 1 to 7 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -103,7 +103,8 @@ Pack (proposed)
 ---------------
 Each chart's bounding rectangle, turned to its smallest area, packed by size (skyline) into the layout, a gutter apart, its
 corner on a page boundary where that wastes little.  Later, where space is wasted, charts drawn into a bitmap at a few turns
-and placed where they first fit (xatlas's way).  The layout's sides are rounded up to whole pages.
+and placed where they first fit (xatlas's way).  The layout's sides are rounded up to whole pages.  (Built: the bitmap,
+step 7; page boundaries wait for the virtual texture.)
 
 
 Bake (proposed)
@@ -176,7 +177,23 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
    and MeasureUVTriangleStretch measure a chart's own triangles.  A baked solid texture looks the same however it's
    unwrapped (only its sharpness changes), so the textured scene doesn't show it; the measures do.
 7. Raster packing, if bounding boxes waste much space.
+   Done: they did.  Charts filled 0.31 to 0.53 of their layouts packed as rectangles (a torus's curved strips half their
+   rectangles, the skyline 0.58 to 0.95 of the rest).  CBitmapPacker packs rows of bits (CBitRows), each shape where it first
+   fits, lowest then leftmost; how many bits each of its rows has clear rules out heights quickly.  A chart is the cells
+   (miGutter texels square) its triangles cover, found a row of cells at a time from where its sides cross the row, grown a
+   cell all round for its gutter; its other three quarter turns are its cells turned, and the turn that reaches least high is
+   kept.  Charts go biggest first across a layout as wide as the root of their cells' area.  Charts now fill 0.44 to 0.63 of
+   their layouts (a sphere in grown charts 0.32 to 0.63, a torus 0.31 to 0.49, the isosurface 0.43 to 0.54); the rest is the
+   gutters, the cells round charts' edges and whole pages.  Grown charts by LSCM are now CMeshUnwrap's default: they stretch a
+   face's angles 1.1 times against box projection's 1.7, in no more layout.  MeasureMeshUVArea gives how much of a layout
+   the faces cover.  The textured scene is within three hundredths of its pixels, as builds whose floats differ (FMA) can
+   pack charts a cell apart and move the checker's edges a pixel.
 8. ARAP, if texel density inside charts matters.
+   Not built (2026-11-15): LSCM's texels per area across a chart are 0.77 to 1.48 of the density on a sphere, 0.84 to 1.16 on
+   a torus and 0.63 to 1.44 on the five sphere isosurface, at the 60 degree chart angle; a smaller angle makes more, flatter
+   charts with less spread.  ARAP would bring them nearer 1 for several LSCM sized solves a chart (its local and global
+   steps), and TestMeshUnwrap is already the slowest test on the 65 targets.  Whether that spread shows waits for textures
+   being looked at at the scene's density (Open).
 9. The virtual texture (VirtualTexturePlan.txt): layouts placed at instances' addresses, pages baked on demand.
 10. Loaded textures: a mesh's own UVs kept, tiling materials on a second layer.
 
@@ -184,6 +201,8 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
 Open
 ----
 The scene's texel density, chosen by eye (step 3 makes it easy to try).
+Whether LSCM's spread of texels per area inside a chart (0.63 to 1.44 of the density on the isosurface) shows, which is
+whether step 8's ARAP, or a smaller chart angle, is wanted.
 How large a chart may be before it's split for packing (a chart wider than the virtual texture's page cache can't be drawn
 at its finest level all at once).
 

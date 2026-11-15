@@ -313,6 +313,7 @@
     <ClCompile Include="TestMeshUnwrap.cpp" />
     <ClCompile Include="TestMeshBake.cpp" />
     <ClCompile Include="TestMeshUVConformal.cpp" />
+    <ClCompile Include="TestBitmapPacker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h" />
