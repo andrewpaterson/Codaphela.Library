@@ -219,6 +219,48 @@ const char* gsz = \"a\\\nb\";\n", &sz));
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A token is as long as it is written: an identifier's universal
+// character names count as they are in the source (its text has their
+// characters), over a splice too, and a raw string's backslash and new
+// line are its own, with a span on each of its lines.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppHighlighterRespelledAndRawTokens(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	AssertString("\
+1:1 3 keyword\n\
+1:5 9 variable declaration\n\
+1:15 1 operator\n\
+1:17 1 number\n\
+1:18 1 operator\n\
+2:1 3 keyword\n\
+2:5 3 variable declaration\n\
+3:1 13 variable declaration\n\
+3:15 1 operator\n\
+3:17 5 variable\n\
+3:22 1 operator\n\
+4:1 5 keyword\n\
+4:7 4 keyword\n\
+4:11 1 operator\n\
+4:13 3 variable declaration\n\
+4:17 1 operator\n\
+4:19 5 string\n\
+5:1 3 string\n\
+5:4 1 operator\n", HighlightText("\
+int caf\\u00E9 = 1;\n\
+int \xC3\xA9\\\n\
+t\\u00E9\\u00E9 = caf\xC3\xA9;\n\
+const char* gsz = R\"(a\\\n\
+b)\";\n", &sz));
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A skipped group is inactive from the line after the directive that
 // starts skipping to the line before the one that stops it: its comment
 // lines and the conditionals nested in it too.  Blank lines have no
@@ -531,6 +573,7 @@ void TestCppHighlighter(void)
 
 	TestCppHighlighterSource();
 	TestCppHighlighterSplices();
+	TestCppHighlighterRespelledAndRawTokens();
 	TestCppHighlighterInactiveGroups();
 	TestCppHighlighterHeaderIncludedTwice();
 	TestCppHighlighterSyntaxRanges();

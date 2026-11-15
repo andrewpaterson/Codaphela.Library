@@ -389,15 +389,107 @@ ECTEncoding LiteralEncoding(const char* szText)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The most characters a raw string's delimiter has.  [lex.string]
+//
+//////////////////////////////////////////////////////////////////////////
+#define RAW_STRING_MAX_DELIMITER	16
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The length of the raw string whose opening quote is at szQuote, to its
+// closing quote, reading no further than szEnd: R"delimiter( and all the
+// characters to )delimiter", whatever they are (new lines, quotes and
+// backslashes too).  0 if it isn't one: a delimiter with a space, a
+// bracket, a backslash or a new line in it or too long, or no end.
+// [lex.string]
+//
+//////////////////////////////////////////////////////////////////////////
+size RawStringLength(const char* szQuote, const char* szEnd)
+{
+	const char*	szDelimiter;
+	const char*	sz;
+	size		uiDelimiter;
+	char		c;
+
+	szDelimiter = szQuote + 1;
+	for (sz = szDelimiter; ; sz++)
+	{
+		if ((sz >= szEnd) || (sz - szDelimiter > RAW_STRING_MAX_DELIMITER))
+		{
+			return 0;
+		}
+		c = *sz;
+		if (c == '(')
+		{
+			break;
+		}
+		if ((c == ' ') || (c == ')') || (c == '\\') || (c == '"') || (c == '\t') || (c == '\v') || (c == '\f') || (c == '\n') || (c == '\r'))
+		{
+			return 0;
+		}
+	}
+	uiDelimiter = (size)(sz - szDelimiter);
+
+	//The first )delimiter" ends it.
+	for (sz++; sz + uiDelimiter + 1 < szEnd; sz++)
+	{
+		if ((sz[0] == ')') && (sz[uiDelimiter + 1] == '"') && (memcmp(&sz[1], szDelimiter, uiDelimiter) == 0))
+		{
+			return (size)(sz + uiDelimiter + 2 - szQuote);
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The characters of the raw string whose quotes are at szQuote and
+// szCloseQuote: those between its delimiters' brackets.
+//
+//////////////////////////////////////////////////////////////////////////
+void RawStringCharacters(const char* szQuote, const char* szCloseQuote, const char** pszFirst, const char** pszEnd)
+{
+	const char*	sz;
+
+	for (sz = szQuote + 1; *sz != '('; sz++)
+	{
+	}
+	*pszFirst = sz + 1;
+	*pszEnd = szCloseQuote - (sz - szQuote);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the string literal at szText is a raw string: its prefix ends
+// with R.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsRawString(const char* szText)
+{
+	const char*	sz;
+
+	for (sz = szText; *sz != '"'; sz++)
+	{
+	}
+	return (sz > szText) && (sz[-1] == 'R');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The length of the string or character literal at szText (no more than
 // uiLength characters), from its prefix to its closing quote: what is
 // left of the text after it is a user-defined suffix.  0 if it has no
-// closing quote.
+// closing quote (or, a raw string, isn't one: RawStringLength).
 //
 //////////////////////////////////////////////////////////////////////////
 size QuotedLiteralLength(const char* szText, size uiLength)
 {
 	size	i;
+	size	uiRaw;
 	char	cQuote;
 
 	for (i = 0; (i < uiLength) && (szText[i] != '"') && (szText[i] != '\''); i++)
@@ -409,6 +501,11 @@ size QuotedLiteralLength(const char* szText, size uiLength)
 	}
 
 	cQuote = szText[i];
+	if ((cQuote == '"') && IsRawString(szText))
+	{
+		uiRaw = RawStringLength(&szText[i], szText + uiLength);
+		return (uiRaw == 0) ? 0 : i + uiRaw;
+	}
 	for (i++; i < uiLength; i++)
 	{
 		if (szText[i] == '\\')

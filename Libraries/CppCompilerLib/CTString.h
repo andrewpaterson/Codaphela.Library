@@ -46,6 +46,8 @@ public:
 	void	Kill(void);
 	bool	IsString(void);
 	bool	IsWide(void);
+	bool	IsRaw(void);
+	const char*	OpeningQuote(void);
 };
 
 

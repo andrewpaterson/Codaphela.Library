@@ -50,12 +50,12 @@ Right now the highlighting is only spans checked by tests.
 6. C++ compliance: preprocessor and tokeniser to C++17, code generators to C++14
 -----------------------------------------------------------------------------------
 
-Notes only (2026-11-07), not started.  Found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
+Part A is done (2026-11-15: the "Part A plan" below says how, step by step).  Part B is notes only (2026-11-07), not started: found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
 
 Already done in the preprocessor and tokeniser: __has_include and __has_include_next, _Pragma, __VA_ARGS__ (with the ", ##" comma rule), digit separators, binary literals, hex floats (0x1p-3 pp-numbers, read by strtold), u8 character literals, digraphs and alternative tokens, and no trigraphs (C++17 removed them).
 
 A. Preprocessor and tokeniser to C++17
-  Planned 2026-11-15 (checked against the code, nothing built): see "Part A plan" below, which replaces the notes on A1 to A7 here where they differ.
+  All done 2026-11-15: see "Part A plan" below, which replaces the notes on A1 to A7 here where they differ.
   - A1 (L, the only structural item) Raw string literals.  The preprocessor reads source a line at a time and splices backslash-newlines.  A raw string can span lines, must not be spliced, and can hold ", //, /* and #.  PreprocessorLineTokeniser and PreprocessorParser must see R"delim( and scan to )delim" across lines, undoing splices inside it.  Check that PPBlock and PPHeaderCache cope with a token that spans lines, then remove the error at CppTokeniser.cpp:706.  IsStringPrefix (Preprocessor.cpp:563) already knows the R prefixes.
   - A2 (S) User-defined literal suffixes (10_km, "x"_s): keep the suffix on number, character and string tokens instead of "Invalid integer literal suffix" (LiteralHelper.cpp, CppTokeniser.cpp).  operator "" itself is B17.
   - A3 (M) Extended identifiers.  PreprocessorParser.cpp:302 treats bytes of 128 and over as white space, and IsIdentifierStart (Preprocessor.cpp:2273) is ASCII only.  UTF-8 and \u / \U in identifiers, both spellings the same identifier, and through # and ##.
@@ -96,7 +96,7 @@ B-4. Language support headers
   - Even without the rest of the library: <initializer_list>, <typeinfo>, <exception>, <cstddef> (nullptr_t), <type_traits> (over the __is_ intrinsics that exist), and move and forward from <utility>.  Libc65 has only <new>.
 
 Order
-  1. A4, A5 and A7, then A3, then A1.
+  1. A4, A5 and A7, then A3, then A1 (done, with A6 and A2: Part A).
   2. B9a (done).
   3. B6.
   4. B1.
@@ -132,7 +132,12 @@ Part A plan (2026-11-15)
     - IsCPPNameStart and IsCPPNameCharacter (CPPNameCharacters.h) take the ranges of [lex.name] and Annex E, with those not allowed first.  PPNumberLength, IsDigitSeparator, LexSingleToken, EmitPragmaPack and GetDirective use them.
     - Bytes of 128 and over stop being white space (CPreprocessorParser::IsWhitespace).  A UTF-8 byte order mark at the start of a file is skipped (nothing does now).  Any other one outside an identifier, literal or comment is a stray character, which the tokeniser reports (and drops in system headers).  A source with a stray Latin-1 byte in its code compiles now and will not.
     - Forced by this, though it is the generators': a name with bytes of 128 and over is encoded when it is mangled (_uXXXX), so Assembler65Lib sees ASCII labels.
-  Step 5, A1.  Smaller than the note above says: splices are only removed from a token that has one (ReplaceLineContinuers) and a token's text points into the source, so a raw string needs nothing undone.
+  Step 5, A1.  Done 2026-11-15 (TestCppTokeniserRawStrings, TestCPP65IRRawStrings, TestCPP816RawStrings, TestCppHighlighterRespelledAndRawTokens, TestPreprocessorFeatureMacros): Part A is finished.  As below, and:
+    - RawStringLength (LiteralHelper) is the one reader of a raw string, for the line tokeniser (CPreprocessorLineTokeniser::Quote), ## and the C++ tokeniser; CCPPUnit::DecodeRawStringToken makes its elements.
+    - Checked: __LINE__ and tokens after a raw string have their own lines; a raw string in a macro's body, as an argument and in a skipped group.  CCPPHighlighter::SourceLength measured a token in the file by skipping backslash-newlines, which is wrong in a raw string and for an identifier with universal character names: a token whose text is the file's own is as long as its text, and a respelled one is measured against the file.
+    - Checked too: the header cache replays a header with raw strings as it was preprocessed (TestPreprocessorHeaderCacheRawStrings), and the preprocessed text has a raw string as it was written.  Not checked: hcp65build's -show-plain output of one.
+    - The feature macros defined are those of the literals: __cpp_raw_strings, __cpp_unicode_characters, __cpp_unicode_literals, __cpp_binary_literals, __cpp_digit_separators and __cpp_hex_float.  __cpp_user_defined_literals waits for B17.
+  As it was planned.  It is smaller than the note above says: splices are only removed from a token that has one (ReplaceLineContinuers) and a token's text points into the source, so a raw string needs nothing undone.
     - CPreprocessorLineTokeniser: at a " when the identifier being read is exactly R, u8R, uR, UR or LR, read the delimiter (16 characters at most) and scan to )delim" over new lines, with no backslashes, comments or #.  One PPT_DoubleQuoted token with the prefix in it.
     - Not terminated before the end of the file: an ordinary string on its line and an error, so that one in an #if 0 cannot swallow the rest of the file.
     - After it: CCPPTokeniser::String loses its error and marks the token raw; DecodeStringToken copies the bytes with no escapes (CR LF to LF, UTF-8 still decoded for wide ones); Stringify makes a new line in one \n; LexSingleToken and QuotedLength know the form.

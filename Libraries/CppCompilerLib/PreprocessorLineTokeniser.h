@@ -57,6 +57,7 @@ public:
 	void		Preprocess(void);
 	bool		PossibleComment(void);
 	void		Quote(char** pszStart, bool bInOther);
+	void		EndQuoted(char** pszStart, bool bString);
 	void		IdentifierCharacter(void);
 	bool		IsDigitSeparator(void);
 	bool		IsPPNumberContinuation(void);

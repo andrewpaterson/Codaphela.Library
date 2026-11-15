@@ -882,6 +882,15 @@ void CCPPPreprocessor::Init(CConfig* pcConfig)
 	//C++14.  __func__ and __FUNCTION__ are identifiers, not macros.  __STDC__ is left to the configuration.
 	AddDefine("__cplusplus", "201402L", &mcDefineReplacementMemory);
 	AddDefine("__STDC_HOSTED__", "1", &mcDefineReplacementMemory);
+
+	//The features of the language's literals, which are all the tokeniser's and whose strings the generators make.
+	//The others are defined as the generators come to have them.  [cpp.predefined], SD-6
+	AddDefine("__cpp_binary_literals", "201304", &mcDefineReplacementMemory);
+	AddDefine("__cpp_digit_separators", "201309", &mcDefineReplacementMemory);
+	AddDefine("__cpp_hex_float", "201603", &mcDefineReplacementMemory);
+	AddDefine("__cpp_raw_strings", "200710", &mcDefineReplacementMemory);
+	AddDefine("__cpp_unicode_characters", "200704", &mcDefineReplacementMemory);
+	AddDefine("__cpp_unicode_literals", "200710", &mcDefineReplacementMemory);
 	if (!pcConfig || pcConfig->mbHostDefines)
 	{
 		//What the host's operator new aligns to, as the Microsoft compiler has it (a size_t).  The other targets
@@ -2477,7 +2486,8 @@ void CCPPPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreproc
 	SPreprocessedToken*	psToken;
 	char				c;
 
-	//Whitespace between tokens becomes one space.  " and \ in string and character literals are escaped.  [cpp.stringize]
+	//Whitespace between tokens becomes one space.  " and \ in string and character literals are escaped, and a new line
+	//in a raw string is \n, so that the result is a string.  [cpp.stringize]
 	sz.Init("\"");
 	for (i = 0; i < pacArgument->NumElements(); i++)
 	{
@@ -2492,11 +2502,19 @@ void CCPPPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreproc
 			for (j = 0; j < psToken->uiLength; j++)
 			{
 				c = psToken->szText[j];
-				if ((c == '"') || (c == '\\'))
+				if (c == '\n')
 				{
-					sz.Append('\\');
+					//A raw string's new line.
+					sz.Append("\\n");
 				}
-				sz.Append(c);
+				else if (c != '\r')
+				{
+					if ((c == '"') || (c == '\\'))
+					{
+						sz.Append('\\');
+					}
+					sz.Append(c);
+				}
 			}
 		}
 		else

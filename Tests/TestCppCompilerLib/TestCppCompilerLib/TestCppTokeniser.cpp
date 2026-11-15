@@ -687,6 +687,123 @@ void TestCppTokeniserUserLiterals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The spelling of the string at token uiToken (a user-defined literal's
+// string too).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertStringSpelling(CCPPTokeniser* pcTokeniser, size uiToken, const char* szSpelling, ECTEncoding eEncoding, bool bRaw)
+{
+	CCPPToken*	pcToken;
+	CCTString*	pcString;
+	CChars		sz;
+
+	pcToken = pcTokeniser->Get(uiToken);
+	pcString = (CCTString*)(pcToken->IsUserLiteral() ? ((CCTUserLiteral*)pcToken)->mpcLiteral : pcToken);
+	AssertTrue(pcString->IsString());
+	sz.Init(pcString->mszStart, 0, (size)(pcString->mszEnd - pcString->mszStart) + 1);
+	AssertString(szSpelling, sz.Text());
+	sz.Kill();
+	AssertInt(eEncoding, pcString->meEncoding);
+	AssertBool(bRaw, pcString->IsRaw());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A raw string, R"delimiter(...)delimiter", is one token whatever is in
+// it: new lines, quotes, backslashes (a splice too), comments and
+// directives.  Lines are counted through it.  It takes the encoding
+// prefixes before its R and a user-defined suffix, and # and ## know it.
+// One that doesn't end, or whose delimiter isn't one, is an error on its
+// line and no more.  [lex.string], [lex.pptoken]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserRawStrings(void)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+
+	AssertTrue(TokeniseText(&cFile, &cTokeniser,
+		"int a = sizeof(R\"x(one\n"
+		"// two /* \\\n"
+		"#define THREE 3\n"
+		"\"four\" )y\" )x )\"\n"
+		")x\"); int b = __LINE__; THREE\n"
+		"int c = __LINE__;"));
+	AssertSize(19, cTokeniser.NumTokens());
+	AssertStringSpelling(&cTokeniser, 5, "R\"x(one\n// two /* \\\n#define THREE 3\n\"four\" )y\" )x )\"\n)x\"", CTE_Narrow, true);
+	AssertInt(0, cTokeniser.GetSource(cTokeniser.Get(5))->iLine);
+	AssertTrue(cTokeniser.Get(6)->Is(CT_CloseRoundBracket));
+	AssertInt(4, cTokeniser.GetSource(cTokeniser.Get(6))->iLine);
+	AssertInteger(cTokeniser.Get(11), 5, true, false);
+	AssertTrue(cTokeniser.Get(13)->IsIdentifier());
+	AssertInteger(cTokeniser.Get(17), 6, true, false);
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//Prefixes, a suffix, an empty one, an empty delimiter and the longest one; R alone and R apart from a string are not.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "u8R\"(a)\" uR\"(b)\" UR\"(c)\" LR\"(d)\" R\"(e)\"_s R\"()\" R\"0123456789abcdef(f)0123456789abcdef\" R R \"g\" \"h\""));
+	AssertSize(11, cTokeniser.NumTokens());
+	AssertStringSpelling(&cTokeniser, 0, "u8R\"(a)\"", CTE_UTF8, true);
+	AssertStringSpelling(&cTokeniser, 1, "uR\"(b)\"", CTE_UTF16, true);
+	AssertStringSpelling(&cTokeniser, 2, "UR\"(c)\"", CTE_UTF32, true);
+	AssertStringSpelling(&cTokeniser, 3, "LR\"(d)\"", CTE_Wide, true);
+	AssertTrue(AssertUserLiteral(&cTokeniser, 4, "_s")->IsString());
+	AssertStringSpelling(&cTokeniser, 4, "R\"(e)\"", CTE_Narrow, true);
+	AssertStringSpelling(&cTokeniser, 5, "R\"()\"", CTE_Narrow, true);
+	AssertStringSpelling(&cTokeniser, 6, "R\"0123456789abcdef(f)0123456789abcdef\"", CTE_Narrow, true);
+	AssertTrue(cTokeniser.Get(7)->IsIdentifier());
+	AssertTrue(cTokeniser.Get(8)->IsIdentifier());
+	AssertStringSpelling(&cTokeniser, 9, "\"g\"", CTE_Narrow, false);
+	AssertStringSpelling(&cTokeniser, 10, "\"h\"", CTE_Narrow, false);
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//In a macro's body, as an argument, stringified (its quotes and backslashes escaped, its new line \n) and pasted.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser,
+		"#define TEXT R\"(a\n"
+		"b)\"\n"
+		"#define STRING(x) #x\n"
+		"#define PASTE(a, b) a##b\n"
+		"#define SAME(x) x\n"
+		"TEXT SAME(R\"(c, d)\") STRING(R\"(e\n"
+		"\"f\\)\") PASTE(R, \"(g)\") PASTE(u8R\"(h)\", _s)"));
+	AssertSize(5, cTokeniser.NumTokens());
+	AssertStringSpelling(&cTokeniser, 0, "R\"(a\nb)\"", CTE_Narrow, true);
+	AssertStringSpelling(&cTokeniser, 1, "R\"(c, d)\"", CTE_Narrow, true);
+	AssertStringSpelling(&cTokeniser, 2, "\"R\\\"(e\\n\\\"f\\\\)\\\"\"", CTE_Narrow, false);
+	AssertStringSpelling(&cTokeniser, 3, "R\"(g)\"", CTE_Narrow, true);
+	AssertStringSpelling(&cTokeniser, 4, "u8R\"(h)\"", CTE_UTF8, true);
+	AssertTrue(cTokeniser.Get(4)->IsUserLiteral());
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//In lines that are skipped: a directive in one is not a directive, and one that doesn't end takes only its line.
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, "#if 0\nR\"(\n#endif\n)\" skipped\n#endif\nint x;\n#if 0\nR\"(abc\n#endif\nint y;"));
+	AssertSize(6, cTokeniser.NumTokens());
+	AssertTrue(cTokeniser.Get(0)->Is(CT_int));
+	AssertTrue(cTokeniser.Get(3)->Is(CT_int));
+	cTokeniser.Kill();
+	cFile.Kill();
+
+	//No end, a delimiter with a space in it, and one of 17 characters.
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, "const char* s = R\"x(abc)\";\nint y;"));
+	AssertString("Tokens.cpp (1, 17): Raw string literal has no end, or its delimiter is not one. [R\"x(abc)\"]\n", cTokeniser.GetErrors()->Text());
+	cTokeniser.Kill();
+	cFile.Kill();
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, "const char* s = R\"a b(c)a b\";"));
+	AssertString("Tokens.cpp (1, 17): Raw string literal has no end, or its delimiter is not one. [R\"a b(c)a b\"]\n", cTokeniser.GetErrors()->Text());
+	cTokeniser.Kill();
+	cFile.Kill();
+	AssertFalse(TokeniseText(&cFile, &cTokeniser, "const char* s = R\"0123456789abcdefg(c)0123456789abcdefg\";"));
+	AssertString("Tokens.cpp (1, 17): Raw string literal has no end, or its delimiter is not one. [R\"0123456789abcdefg(c)0123456789abcdefg\"]\n", cTokeniser.GetErrors()->Text());
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserErrors(void)
@@ -805,6 +922,7 @@ void TestCppTokeniser(void)
 	TestCppTokeniserErrors();
 	TestCppTokeniserIntegerLiterals();
 	TestCppTokeniserUserLiterals();
+	TestCppTokeniserRawStrings();
 	TestCppTokeniserIdentifierIndex();
 
 	NumberKill();

@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CTString.h"
 #include "CppTokeniser.h"
+#include "LiteralHelper.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,5 +73,32 @@ bool CCTString::IsString(void)
 bool CCTString::IsWide(void)
 {
 	return (meEncoding == CTE_Wide) || (meEncoding == CTE_UTF16) || (meEncoding == CTE_UTF32);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A raw string, as R"(text)": its prefix ends with R.  [lex.string]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCTString::IsRaw(void)
+{
+	return IsRawString(mszStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The quote after the prefix.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CCTString::OpeningQuote(void)
+{
+	const char*	sz;
+
+	for (sz = mszStart; *sz != '"'; sz++)
+	{
+	}
+	return sz;
 }
 

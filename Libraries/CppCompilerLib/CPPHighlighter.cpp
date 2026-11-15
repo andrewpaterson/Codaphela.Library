@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTReservedWord.h"
 #include "CPPSyntaxTranslationUnit.h"
 #include "CPPHighlighter.h"
+#include "CPPNameCharacters.h"
 
 
 //The name of each kind of highlight, indexed by ECPPHighlight.
@@ -278,7 +279,7 @@ void CCPPHighlighter::AddTokens(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTr
 		}
 		//A token can be split over lines by backslash-newlines.
 		iOffset = (int)mpcFile->GetOffset(psSource->iLine, psSource->iColumn);
-		AddSpan(iOffset, SourceLength(iOffset, (int)psSource->uiLength), eKind, uiFlags);
+		AddSpan(iOffset, SourceLength(iOffset, psSource), eKind, uiFlags);
 	}
 }
 
@@ -584,7 +585,7 @@ bool CCPPHighlighter::GetTokensRange(CSourceFile* pcFile, CCPPTokeniser* pcToken
 	}
 
 	iOffset = (int)mpcFile->GetOffset(psLast->iLine, psLast->iColumn);
-	iOffset += SourceLength(iOffset, (int)psLast->uiLength);
+	iOffset += SourceLength(iOffset, psLast);
 	if (!mpcFile->GetLineAndColumn(iOffset, &psDest->iEndLine, &psDest->iEndColumn))
 	{
 		return false;
@@ -676,19 +677,32 @@ bool CCPPHighlighter::IsWrittenInFile(SPreprocessedToken* psSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The length in the file of the token that starts at iOffset.  A token
+// whose text is the file's own is as long as its text: a raw string too,
+// whose backslashes and new lines are its characters.  One the line
+// tokeniser respelled is longer in the file than its text, by the
+// backslash-newlines it was spliced over and by the universal character
+// names its characters were written as (CPreprocessorLineTokeniser::
+// Respell).
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPHighlighter::SourceLength(int iOffset, int iLength)
+int CCPPHighlighter::SourceLength(int iOffset, SPreprocessedToken* psToken)
 {
 	char*	sz;
 	int		iEnd;
 	int		iContentsLength;
+	size	uiName;
+	size	i;
 
-	//The length of a token in the file, where its length doesn't count the backslash-newlines it was spliced over.
 	sz = mpcFile->GetContents();
 	iContentsLength = (int)mpcFile->GetContentsLength();
+	if ((psToken->szText >= sz) && (psToken->szText < sz + iContentsLength))
+	{
+		return (int)psToken->uiLength;
+	}
+
 	iEnd = iOffset;
-	while (iLength > 0)
+	for (i = 0; i < psToken->uiLength;)
 	{
 		while ((iEnd < iContentsLength) && (sz[iEnd] == '\\'))
 		{
@@ -709,8 +723,21 @@ int CCPPHighlighter::SourceLength(int iOffset, int iLength)
 		{
 			break;
 		}
-		iEnd++;
-		iLength--;
+
+		uiName = ((uint8)psToken->szText[i] >= 0x80) ? UniversalCharacterNameLength(&sz[iEnd], sz + iContentsLength) : 0;
+		if (uiName != 0)
+		{
+			//The name in the file is one character's UTF-8 in the text.
+			iEnd += (int)uiName;
+			for (i++; (i < psToken->uiLength) && ((psToken->szText[i] & 0xC0) == 0x80); i++)
+			{
+			}
+		}
+		else
+		{
+			iEnd++;
+			i++;
+		}
 	}
 	return iEnd - iOffset;
 }

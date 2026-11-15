@@ -1124,6 +1124,20 @@ void TestCPP816ExtendedIdentifiers(void)
 }
 
 
+extern const char*	gszTestCPP65RawStrings;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The raw strings of TestCPP65IRRawStrings.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816RawStrings(void)
+{
+	AssertInt(0, TestCPP816Run(gszTestCPP65RawStrings));
+}
+
+
 extern const char*	gszTestCPP65WideStrings;
 
 
@@ -6255,6 +6269,7 @@ void TestCPP816(void)
 	TestCPP816Thunks();
 	TestCPP816OverloadedComma();
 	TestCPP816WideStrings();
+	TestCPP816RawStrings();
 	TestCPP816ExtendedIdentifiers();
 	TestCPP816NestedConstants();
 	TestCPP816SharedTables();

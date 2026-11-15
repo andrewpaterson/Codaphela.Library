@@ -90,7 +90,10 @@ ENumberLiteralResult	ParseNumberLiteral(const char* szText, size uiLength, SNumb
 const char*				NumberLiteralError(ENumberLiteralResult eResult);
 bool					IsLiteralPrefix(const char* sz, size uiLength, bool bString);
 ECTEncoding				LiteralEncoding(const char* szText);
+bool					IsRawString(const char* szText);
 size					QuotedLiteralLength(const char* szText, size uiLength);
+size					RawStringLength(const char* szQuote, const char* szEnd);
+void					RawStringCharacters(const char* szQuote, const char* szCloseQuote, const char** pszFirst, const char** pszEnd);
 ECharacterLiteralResult	ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral);
 const char*				CharacterLiteralError(ECharacterLiteralResult eResult);
 int64					CharacterLiteralValue(SCharacterLiteral* psLiteral);

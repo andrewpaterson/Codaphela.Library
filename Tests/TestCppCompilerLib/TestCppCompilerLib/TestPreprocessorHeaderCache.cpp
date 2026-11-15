@@ -272,6 +272,38 @@ void TestPreprocessorHeaderCacheReplayed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A header with raw strings over several lines, one of them a macro's
+// body: replayed as it was preprocessed, its lines after them counted.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorHeaderCacheRawStrings(void)
+{
+	static const char*	aszDirectories[] = { "", NULL };
+	static const char*	aszNames[] = { "Unit1.cpp", "Unit2.cpp", NULL };
+	static const char*	aszUnits[] = {
+		"#include \"Raw.h\"\nint After1 = __LINE__;\n",
+		"int Before2;\n#include \"Raw.h\"\nint After2 = __LINE__;\n",
+		NULL };
+	CPPHeaderCache		cCache;
+	CArrayChars			aszTexts;
+
+	cCache.Init();
+	TestPPHeaderCacheSame(aszDirectories, aszNames, aszUnits, &cCache, &aszTexts);
+
+	AssertSize(1, cCache.NumHits());
+	AssertTrue(aszTexts.NumElements() == 2);
+	if (aszTexts.NumElements() == 2)
+	{
+		AssertTrue(strstr(aszTexts.GetText(1), "R\"x(two\nlines \\\n#endif \"and\" )y\" more)x\" R\"(one\n// not a comment\n)\"; int RawLine = 8;") != NULL);
+		AssertTrue(strstr(aszTexts.GetText(1), "After2 = 3") != NULL);
+	}
+	aszTexts.Kill();
+	cCache.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A header whose text changes is forgotten with those that depend on it
 // (NestedIf.h included Config.h); one that doesn't (Guard.h) is kept and
 // replayed.  The unit preprocessed again sees the new text, as it does
@@ -430,6 +462,7 @@ void TestPreprocessorHeaderCache(void)
 	BeginTests();
 
 	TestPreprocessorHeaderCacheReplayed();
+	TestPreprocessorHeaderCacheRawStrings();
 	TestPreprocessorHeaderCacheNotKept();
 	TestPreprocessorHeaderCacheIncludeNext();
 	TestPreprocessorHeaderCacheIncludersDirectories();

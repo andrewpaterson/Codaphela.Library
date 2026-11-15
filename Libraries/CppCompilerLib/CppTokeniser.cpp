@@ -418,7 +418,7 @@ bool CCPPTokeniser::Literal(SPreprocessedToken* psToken)
 		uiLength = QuotedLiteralLength(psToken->szText, psToken->uiLength);
 		if (uiLength == 0)
 		{
-			return Error(psToken, (psToken->uiKind == PTK_String) ? "Unterminated string literal." : "Unterminated character literal.");
+			return Error(psToken, (psToken->uiKind == PTK_Character) ? "Unterminated character literal." : IsRawString(psToken->szText) ? "Raw string literal has no end, or its delimiter is not one." : "Unterminated string literal.");
 		}
 		pcLiteral = (psToken->uiKind == PTK_String) ? String(psToken, uiLength) : Character(psToken, uiLength);
 	}
@@ -583,32 +583,19 @@ CCPPToken* CCPPTokeniser::Character(SPreprocessedToken* psToken, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 //
 // The token of the string literal that is the first uiLength characters
-// of psToken, or NULL with an error.  The literal keeps its spelling.
-// Adjacent literals are joined by the parser.  [lex.string] 13
+// of psToken.  The literal keeps its spelling: its characters are the
+// generator's business (CCPPUnit::DecodeString).  Adjacent literals are
+// joined by the parser.  [lex.string] 13
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPToken* CCPPTokeniser::String(SPreprocessedToken* psToken, size uiLength)
 {
 	const char*		sz;
-	ECTEncoding		eEncoding;
 	CCTString*		pcString;
-	size			i;
 
 	sz = psToken->szText;
-	eEncoding = LiteralEncoding(sz);
-
-	//The prefix is everything before the opening quote; R in it makes a raw string.
-	for (i = 0; sz[i] != '"'; i++)
-	{
-		if (sz[i] == 'R')
-		{
-			Error(psToken, "Raw string literals are not supported.");
-			return NULL;
-		}
-	}
-
 	pcString = CCTString::Construct(mcStack.Add(sizeof(CCTString)));
-	pcString->Init(sz, sz + uiLength - 1, eEncoding);
+	pcString->Init(sz, sz + uiLength - 1, LiteralEncoding(sz));
 	return pcString;
 }
 

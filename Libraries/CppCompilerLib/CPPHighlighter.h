@@ -125,7 +125,7 @@ protected:
 	void				Sort(void);
 	void				AddSyntaxRange(CCPPSyntax* pcNode, CCPPTokeniser* pcTokeniser, CArrayCPPSyntaxRanges* pasDest);
 	bool				IsWrittenInFile(SPreprocessedToken* psSource);
-	int					SourceLength(int iOffset, int iLength);
+	int					SourceLength(int iOffset, SPreprocessedToken* psToken);
 	int					LineLength(int iLine);
 };
 

@@ -2211,6 +2211,32 @@ none\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The feature macros of the literals the tokeniser reads.  The others
+// wait for the generators.  SD-6
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorFeatureMacros(void)
+{
+	CChars	szDest;
+
+	szDest.Init();
+	CCPPPreprocessor::Preprocess("\
+#if __cpp_raw_strings == 200710 && __cpp_unicode_characters == 200704 && __cpp_unicode_literals == 200710\n\
+eleven\n\
+#endif\n\
+#if __cpp_binary_literals == 201304 && __cpp_digit_separators == 201309 && __cpp_hex_float == 201603\n\
+later\n\
+#endif\n\
+#if defined(__cpp_user_defined_literals) || defined(__cpp_lambdas) || defined(__cpp_constexpr)\n\
+not yet\n\
+#endif\n", &szDest);
+	AssertString("eleven\nlater\n", szDest.Text());
+	szDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __has_cpp_attribute is the year and month of a standard attribute (its
 // __name__ spelling too), and 0 for any other: one with a namespace, an
 // unknown one, and anything that isn't a single name.  [cpp.cond]
@@ -2627,6 +2653,7 @@ void TestPreprocessor(void)
 	TestPreprocessorPredefinedMacros();
 	TestPreprocessorHasOperators();
 	TestPreprocessorHasCppAttribute();
+	TestPreprocessorFeatureMacros();
 	TestPreprocessorDefaultNewAlignment();
 	TestPreprocessorConfigDefines();
 	TestPreprocessorConfigDefineWithoutValue();

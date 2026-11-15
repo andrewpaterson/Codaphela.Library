@@ -487,6 +487,7 @@ public:
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);
 	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
+	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
 	int						StringElementBytes(CCPPSyntax* pcString);
 	SCPP65Type*				StringElementType(CCPPSyntax* pcString);
 	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);

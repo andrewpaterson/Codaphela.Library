@@ -254,13 +254,17 @@ void CPreprocessorLineTokeniser::IdentifierCharacter(void)
 //
 // The literal starts at its encoding prefix, as the L of L"x" and the u8
 // of u8'x', and ends after its user-defined suffix, as the _s of "x"_s:
-// they are part of its token.  [lex.ccon], [lex.string], [lex.ext]
+// they are part of its token.  A raw string (an R ends its prefix) is
+// read to its end at its opening quote.  [lex.ccon], [lex.string],
+// [lex.ext]
 //
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokeniser::Quote(char** pszStart, bool bInOther)
 {
 	bool	bString;
 	char*	szPrefix;
+	char*	szRawEnd;
+	size	uiRaw;
 
 	if (bInOther)
 	{
@@ -277,6 +281,23 @@ void CPreprocessorLineTokeniser::Quote(char** pszStart, bool bInOther)
 			//The identifier so far is the literal's start.
 			mszIdentifierStart = NULL;
 			*pszStart = szPrefix;
+			if (mpcParser->GetPos()[-1] == 'R')
+			{
+				uiRaw = RawStringLength(mpcParser->GetPos(), mpcParser->GetEnd() + 1);
+				if (uiRaw != 0)
+				{
+					//All of a raw string is read here: its lines are not lines of the source, and nothing in it is a
+					//splice, a comment or a directive.  One that doesn't end is left to end with the line, as a string
+					//does, so that it can't take the rest of the file with it.
+					szRawEnd = mpcParser->GetPos() + uiRaw - 1;
+					while (mpcParser->GetPos() < szRawEnd)
+					{
+						mpcParser->StepRight();
+					}
+					EndQuoted(pszStart, true);
+					return;
+				}
+			}
 		}
 		else
 		{
@@ -289,14 +310,26 @@ void CPreprocessorLineTokeniser::Quote(char** pszStart, bool bInOther)
 	}
 	else
 	{
-		mpcParser->StepRight();
-		while (!mpcParser->mbEndOfFile && IsCPPNameCharacter(*mpcParser->GetPos()))
-		{
-			mpcParser->StepRight();
-		}
-		AddText(bString ? PPT_DoubleQuoted : PPT_SingleQuoted, *pszStart, mpcParser->GetPos());
-		NullAll();
+		EndQuoted(pszStart, bString);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The closing quote of the string or character literal that started at
+// *pszStart: its token ends after its user-defined suffix, if it has one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorLineTokeniser::EndQuoted(char** pszStart, bool bString)
+{
+	mpcParser->StepRight();
+	while (!mpcParser->mbEndOfFile && IsCPPNameCharacter(*mpcParser->GetPos()))
+	{
+		mpcParser->StepRight();
+	}
+	AddText(bString ? PPT_DoubleQuoted : PPT_SingleQuoted, *pszStart, mpcParser->GetPos());
+	NullAll();
 }
 
 

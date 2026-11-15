@@ -1632,6 +1632,41 @@ void TestCPP65IRExtendedIdentifiers(void)
 }
 
 
+//The raw string literals both targets run (TestCPP65IRRawStrings, TestCPP816RawStrings): nothing in one is an escape,
+//a new line is one '\n' however the source ends its lines (gu's is a carriage return and a line feed), wide ones are
+//their characters, and one joins the strings beside it.  0 if they're right.
+const char*	gszTestCPP65RawStrings =
+	"const char* gs = R\"(a\\nb\"c)\";\n"
+	"const char gt[] = R\"x(1\n"
+	"2)\")x\";\n"
+	"const char gu[] = R\"(1\r\n"
+	"2)\";\n"
+	"const wchar_t* gw = LR\"(\xC3\xA9\\)\";\n"
+	"char32_t gv[] = UR\"(\xE2\x82\xAC\\u20AC)\";\n"
+	"int main()\n"
+	"{\n"
+	"\tconst char* p = \"x\\t\" R\"(\\y)\" \"z\"; int w = 0;\n"
+	"\tif ((gs[0] != 'a') || (gs[1] != '\\\\') || (gs[2] != 'n') || (gs[3] != 'b') || (gs[4] != '\"') || (gs[5] != 'c') || (gs[6] != 0)) { w |= 1; }\n"
+	"\tif ((sizeof(gt) != 6) || (gt[0] != '1') || (gt[1] != '\\n') || (gt[2] != '2') || (gt[3] != ')') || (gt[4] != '\"') || (gt[5] != 0)) { w |= 2; }\n"
+	"\tif ((sizeof(gu) != 4) || (gu[1] != '\\n') || (gu[2] != '2')) { w |= 4; }\n"
+	"\tif ((gw[0] != 0xE9) || (gw[1] != '\\\\') || (gw[2] != 0)) { w |= 8; }\n"
+	"\tif ((sizeof(gv) != 32) || (gv[0] != 0x20ACL) || (gv[1] != '\\\\') || (gv[2] != 'u') || (gv[6] != 'C') || (gv[7] != 0)) { w |= 16; }\n"
+	"\tif ((p[0] != 'x') || (p[1] != '\\t') || (p[2] != '\\\\') || (p[3] != 'y') || (p[4] != 'z') || (p[5] != 0)) { w |= 32; }\n"
+	"\treturn w;\n"
+	"}\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Raw strings in generated code.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRRawStrings(void)
+{
+	AssertInt(0, TestCPP65Main(gszTestCPP65RawStrings));
+}
+
+
 //The wide string literals both targets run (TestCPP65IRWideStrings, TestCPP816WideStrings).  0 if they're right.
 const char*	gszTestCPP65WideStrings =
 	"const char16_t* gp = u\"hi\";\n"
@@ -2127,6 +2162,7 @@ void TestCPP65IR(void)
 	TestCPP65IRThunks();
 	TestCPP65IROverloadedComma();
 	TestCPP65IRWideStrings();
+	TestCPP65IRRawStrings();
 	TestCPP65IRExtendedIdentifiers();
 	TestCPP65IRSpecialisationMembers();
 	TestCPP65IRScalarConstruct();

@@ -2355,6 +2355,38 @@ static void AppendUTF8(CArrayUint8* pauiBytes, uint32 uiCharacter)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The elements of one raw string literal token: its characters as they
+// are written, with nothing escaped.  A new line is one '\n' however the
+// source ends its lines.  [lex.string], [lex.phases] 1
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes)
+{
+	const char*		sz;
+	const char*		szEnd;
+
+	RawStringCharacters(pcToken->OpeningQuote(), pcToken->mszEnd, &sz, &szEnd);
+	while (sz < szEnd)
+	{
+		if ((sz[0] == '\r') && (sz + 1 < szEnd) && (sz[1] == '\n'))
+		{
+			sz++;
+		}
+		else if (iElementBytes == 1)
+		{
+			pauiBytes->Add((uint8)*sz);
+			sz++;
+		}
+		else
+		{
+			AppendWideCharacter(pauiBytes, DecodeUTF8(&sz, szEnd), iElementBytes);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bytes of one narrow string literal token (its escapes decoded as
 // the tokeniser decodes them, DecodeEscape).
 //
@@ -2366,16 +2398,13 @@ bool CCPPUnit::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int i
 	uint32			uiValue;
 	char			cEscape;
 
-	sz = pcToken->mszStart;
-	while (*sz != '"')
+	if (pcToken->IsRaw())
 	{
-		if (*sz == 'R')
-		{
-			return Error(pcString, "Raw string literals are not supported by the compiler yet");
-		}
-		sz++;
+		DecodeRawStringToken(pcToken, iElementBytes, pauiBytes);
+		return true;
 	}
-	sz++;
+
+	sz = pcToken->OpeningQuote() + 1;
 	szEnd = pcToken->mszEnd;
 
 	while (sz < szEnd)
