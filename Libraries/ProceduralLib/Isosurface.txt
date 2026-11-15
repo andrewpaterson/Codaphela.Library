@@ -1,0 +1,173 @@
+Isosurface plan
+===============
+
+ProceduralLib makes a CMesh from any shape that can say how far a point is from its surface: spheres, cylinders, cubes, convex
+hulls, and what is made by joining and cutting them.  The mesh it makes is an ordinary CMesh, so a CMeshEditor, a CScene and both
+renderers take it as they take any other.
+
+Nothing here is built yet.  What is decided and what is only proposed is said at each point.
+
+
+The user's decisions (2026-11-15)
+---------------------------------
+  The surface is extracted by dual contouring on an octree, with each cell's vertex placed by a fit to the planes at its crossings
+  (Ju, Losasso, Schaefer and Warren 2002).  Plain marching cubes was recommended first and dropped: it puts vertices only on cell
+  edges, so a crease (a V, a mitred elbow, a cube's edge) is cut off by a bevel up to a cell wide, a notch narrower than a cell can
+  vanish, and finer cells only make the bevel narrower.
+  Detail goes where the shape needs it: the octree splits a cell where its normals disagree or its corners don't predict its middle.
+  Spheres, cylinders, cubes and convex hulls must all work, and so must what is made by joining and cutting them.
+  Classic marching cubes is still built, as a baseline to compare against, step 3.
+
+
+What a shape is
+---------------
+A shape is a signed distance: negative inside, positive outside, zero on its surface.  Proposed interface, in ProceduralLib:
+
+  class CDistanceShape
+  {
+  public:
+      virtual float32  Distance(SFloat32Vec3* psPosition) = 0;
+      virtual void     Gradient(SFloat32Vec3* psDest, SFloat32Vec3* psPosition);  //By central differences unless overridden.
+  };
+
+The rules:
+  Exactly zero is outside.  A cube whose faces lie on the grid's planes samples zeros on them, and taking zero both ways gives
+  faces twice or not at all.  Every test that samples a sign uses the one function for it.
+  Distance may be a bound and not exact: it must never be more than the true distance, as empty space is skipped by it.  min and
+  max of exact distances are bounds, and so is a smooth union, so joining and cutting keep this.
+  A shape that can give its gradient exactly should.  Central differences taken across a crease average its two faces, and the
+  plane fit then can't find the crease.  Central differences are the fallback, with a step well under the smallest cell.
+  The gradient needn't be a unit vector; the fit normalises it.
+
+Shapes to start with, and what each tests:
+  Sphere       Smooth, no creases.  The fit has no single answer and has to be steadied (see Placing a cell's vertex).
+  Box          Faces, edges and corners: one, two and three planes.  Its faces on the grid's planes test the zero rule.
+  Cylinder     A smooth side and two circular creases at its caps.  The side's normals only vary around its axis.
+  Convex hull  The largest of its faces' signed plane distances (CConvexHull's CPolygons are CPlanes).  Exact inside and on the
+               surface, a bound outside near edges and corners, which is allowed.  Its gradient is the winning face's normal,
+               exactly the plane the fit wants, so a hull's faces come out flat and its edges sharp.
+  Union, intersection, subtraction   min, max and max(a, -b).  Where two shapes meet there is a new crease, and each crossing
+               takes its normal from whichever shape wins there, so a cylinder pushed into a box has a sharp seam.
+  Smooth union                       Quilez's polynomial smooth min.  Its seam is rounded, by design.  A bound.
+  Transform    A shape moved, turned and scaled evenly; the distance is scaled back.  An uneven scale gives a bound only if the
+               distance is divided by the largest scale.
+
+A closed CMesh as a shape (closest triangle through a spatial index, inside by winding number or pseudo normals, Baerentzen and
+Aanaes 2005) is left until something needs it.  It is far slower than the shapes above.
+
+
+Building the octree
+-------------------
+The octree covers a box given by the caller: its root cell, the smallest cell size and the largest.  Proposed:
+
+  A cell is split while it is bigger than the largest size.
+  A cell whose centre is further from the surface than half its diagonal has no surface in it, so it isn't split and makes no
+  faces.  This is what a distance buys over an inside / outside test, and it is still safe when the distance is a bound.
+  A cell that may hold the surface is split, down to the smallest size, if:
+    the normals at its crossings differ by more than an angle (a crease, or a bend tighter than the cell), or
+    the distance at its centre differs from what its corners' distances predict (trilinearly) by more than a tolerance, which
+    finds a notch or spike thinner than the cell whose walls the corners don't see.
+  Nothing thinner than the smallest cell is expected to survive.  A sphere smaller than it may vanish.
+
+Cells that make no faces are dropped, so a scene mostly of empty space costs little.  Corner distances are shared between
+neighbouring cells, keyed by their position on the finest grid, so each is worked out once.
+
+
+Placing a cell's vertex
+-----------------------
+Each edge of a leaf cell whose ends differ in sign has a crossing.  The crossing is found along the edge (proposed: a few steps of
+the secant method on the distance, as linear interpolation alone puts it off a curved surface), and the shape's gradient there is
+its normal.  The vertex is where the planes through the crossings, along their normals, best meet:
+
+  minimise  sum over crossings  (n . (x - p))^2
+
+Proposed, as Ju et al. and most implementations since do it:
+  Accumulate the 3x3 matrix A'A, the vector A'b and b'b, which are small and add up, so cells can be merged later.
+  Solve relative to the mass point (the crossings' average), with a pseudo inverse of A'A whose singular values under a tenth of
+  the largest are taken as zero.  So a sphere's or a flat face's vertex is near the mass point instead of anywhere along the
+  surface, a cylinder's side doesn't slide along its axis, and two or three planes still give their edge or corner exactly.
+  If the vertex is still outside its cell it is clamped back in, and the mass point is used if that makes the error worse.
+BaseLib has no eigen or singular value solver.  A 3x3 symmetric Jacobi rotation solver is small and is written for this,
+in ProceduralLib unless something else wants it.
+
+
+Making the faces
+----------------
+Each edge with a crossing is shared by four cells (around it), and their four vertices make one quad.  On an octree some of those
+cells are bigger, and the edge is taken from the smallest of them, so a big cell's vertex is used by several quads and nothing
+cracks between sizes.  The quad is wound so its face looks from negative to positive, anticlockwise from outside, as a scene
+file's polygons are, and TestMeshShapes' checks (closed, facing out) say so.
+
+The mesh has one corner per cell vertex, shared by every quad that uses it: one connected mesh, so CMesh's connectivity, the
+modifiers and smoothing work on it.  A quad is added as two triangles split along the diagonal that follows the crease (the one
+whose triangles' normals agree best), as the other diagonal zigzags a crease.  CMesh::AddQuad always splits between its second
+and fourth corners (faces 1 2 4 and 2 3 4), so the quad's corners are turned to put the chosen diagonal there.
+
+Normals are per face corner in a CMesh.  Proposed: flat face normals, then CMeshMergeNormals (SupportLib), which makes the
+normals at a corner one average where they are within an angle of each other, so a sphere shades smooth and a box's edges stay
+sharp.  Using the shape's gradient at each vertex instead is smoother on curves but blurs creases, and needs the angle test
+anyway.  CMeshSmoothGroups' SGS_Angle smooths nothing yet, so it isn't used.
+
+UVs and materials aren't made yet.  See Open.
+
+
+Known limits
+------------
+Dual contouring can make a surface that isn't a manifold (two sheets through one vertex) where one cell holds parts of the
+surface that don't touch.  Manifold Dual Contouring (Schaefer, Ju and Warren 2007) splits such a cell's vertex.  Whether it is
+needed is found by testing, step 7.
+A corner can be cut off when the cell holding it doesn't cross all three of its faces.  Splitting by normal angle usually reaches
+it, as the normals of a corner's faces differ by a right angle.
+The vertex is a fit, so a surface may cross itself near a tight crease; the clamp keeps it within its cell.
+
+
+Steps
+-----
+Each step has its tests in TestProceduralLib.
+
+1. CDistanceShape, the sign rule, and the sphere, box, cylinder and convex hull, with their exact gradients.  Tests: distances
+   and gradients at known points, the gradients against central differences away from creases.
+2. Union, intersection, subtraction, smooth union and transform.  Tests: the distance of a point near a seam, and that each is a
+   bound (never more than a brute force distance to the surface sampled finely).
+3. Marching cubes on a uniform grid, the baseline: Bourke's 256 case tables (from Bloyd), vertices shared by the grid edge they
+   are on.  Tests: TestMeshShapes' closed and facing out checks on each shape, and every vertex within a tolerance of the surface.
+4. Dual contouring on a uniform grid: crossings, the plane fit with its Jacobi solver, quads split along the crease.  Tests: a
+   box's corners and edges exactly where they are (marching cubes' aren't), a sphere's vertices on it, closed and facing out.
+5. The octree: empty cells skipped by distance, cells split by normal angle and by the centre test, faces between cells of
+   different sizes.  Tests: closed with no cracks, a V notch thinner than the largest cell kept, a flat face left coarse.
+6. A CMeshSourceModifier that runs it (proposed CMeshIsosurfaceEditor in ProceduralLib), so it sits on a CMeshEditor's stack, and
+   a CScene of shapes drawn with CRasterFrame.  Tests: a frame compared with saved bytes.
+7. Manifold dual contouring, if step 5's tests find sheets meeting at a vertex.
+8. Classic marching cubes' ambiguous cases (MC33, Lewiner 2003), only if step 3 is kept and shows holes.
+
+
+Open
+----
+Where CDistanceShape lives.  ProceduralLib for now; SupportLib if anything else (collision, picking) wants distances.
+float32 or float64 inside the fit.  The fit subtracts nearly equal numbers on a far away cell; positions relative to the cell's
+centre may be enough.
+UVs.  An isosurface has none.  A box projection (each face takes the UVs of the plane its normal is nearest) is the simplest;
+triplanar blending needs three samples and isn't something a CMesh can hold.
+Materials.  A distance query could also say which shape won, so each face gets its shape's material slot.
+Coordinates.  ScenePlan.txt's open question applies: a scene file is right handed with y up.
+Threads.  Cells are independent once their corners are known, so the octree's leaves could be done on CJobs.
+Level of detail between blocks of an octree made separately (Transvoxel, Lengyel 2010) waits for something big enough to need it.
+
+
+Literature
+----------
+  Lorensen and Cline, Marching Cubes, SIGGRAPH 1987.  US patent 4,710,876 expired 5 June 2005.
+  Bourke, Polygonising a scalar field, 1994, paulbourke.net/geometry/polygonise.  The 256 case tables, from Cory Bloyd.
+  Nielson and Hamann, The Asymptotic Decider, Visualization 1991.  Ambiguous faces.
+  Lewiner, Lopes, Vieira and Tavares, Efficient Implementation of Marching Cubes' Cases with Topological Guarantees, JGT 8(2) 2003.
+  Treece, Prager and Gee, Regularised Marching Tetrahedra, Computers & Graphics 23(4) 1999.
+  Kobbelt, Botsch, Schwanecke and Seidel, Feature Sensitive Surface Extraction from Volume Data (Extended Marching Cubes), SIGGRAPH 2001.
+  Ju, Losasso, Schaefer and Warren, Dual Contouring of Hermite Data, SIGGRAPH 2002.  This plan's method.
+  Schaefer, Ju and Warren, Manifold Dual Contouring, TVCG 2007.
+  Schaefer and Warren, Dual Marching Cubes: Primal Contouring of Dual Grids, PG 2004 / CGF 2005.
+  Gibson, Constrained Elastic Surface Nets, MICCAI 1998.
+  Bloomenthal, An Implicit Surface Polygonizer, Graphics Gems IV 1994.
+  Lengyel, Transvoxel, 2010, transvoxel.org.
+  Hart, Sphere Tracing, The Visual Computer 12(10) 1996.  Distances as bounds.
+  Quilez, distance functions and smooth minimum, iquilezles.org/articles/distfunctions and /smin.
+  de Araujo, Lopes, Jepp, Jorge and Wyvill, A Survey on Implicit Surface Polygonization, ACM Computing Surveys 47(4) 2015.
