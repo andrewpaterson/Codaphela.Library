@@ -1,0 +1,169 @@
+The macro-made array classes as templates (plan, 2026-11-15)
+=============================================================
+
+The intent (the user, 2026-11-15): turn the classes a macro makes, ARRAY_BLOCK and the rest, into templated classes
+that work on ordinary 32 and 64 bit targets as well as the 16 bit W65C816.
+
+This is a plan only.  Nothing in it has been built or tried.  What was read to write it is under "What is there
+now"; what is not known is under "Not known" and must be found out before the larger steps are taken.
+
+
+Why
+---
+
+BaseLib has five families of classes that are each written once and made twice, by #including their text between
+ArraySizeNatural.inl (or ArraySizeLarge.inl) and ArraySizeUndef.inl:
+
+    written as                  natural (counted in size)      large (counted in lsize)
+    ARRAY_BLOCK                 CArrayBlock                    CArrayLargeBlock
+    ARRAY_CHAR                  CArrayChar                     CArrayLargeChar
+    CHARS                       CChars                         CLargeChars
+    ARRAY_TEMPLATE<M>           CArrayTemplate<M>              CArrayLargeTemplate<M>
+    ARRAY_TEMPLATE_PRIMITIVE<M> CArrayTemplatePrimitive<M>     CArrayLargeTemplatePrimitive<M>
+    ARRAY_HEADER                SArrayTemplateHeader           SArrayLargeTemplateHeader
+
+They are templates in what they do and macros in what they are.  The HCP65 IDE's index, Rename, Find Usages and
+every refactoring see code a macro made as having no source of its own, and refuse it (the IDE's Refactorings.txt,
+T6, and its RefactoringQuestions.txt, 48).  As real templates they are ordinary source to all of those, and T6
+needs nothing built for it.
+
+
+What is there now
+-----------------
+
+Read 2026-11-15 in D:\gameengine\CommonLibraries\Libraries\BaseLib:
+
+  - ArraySizeNatural.inl and ArraySizeLarge.inl #define, and ArraySizeUndef.inl #undefs:
+        the class names above, and CHARS_NATURAL (CChars, in the large inclusion only);
+        ASIZE              size, or lsize;
+        ARRAY_SIZE_MAX     MAX_SIZE, or MAX_LSIZE;
+        ARRAY_NOT_FOUND    ARRAY_ELEMENT_NOT_FOUND, or ARRAY_LARGE_ELEMENT_NOT_FOUND;
+        ARRAY_MEMCPY, ARRAY_MEMMOVE, ARRAY_MEMSET, ARRAY_MEMCMP, ARRAY_MEMSWP
+                           memcpy16, memmove16, memset16, memcmp16, MemSwp16 for natural arrays where
+                           __W65C816__ is defined (at most MAX_SIZE bytes are moved, so the moves take 16 bit
+                           counts: Libc65's stringW65C816_16.asm); memcpy, memmove, memset, memcmp, MemSwp
+                           everywhere else;
+        ARRAY_CHECK_SIZE   defined for natural arrays where SIZE_16 is defined: an array holds at most MAX_SIZE
+                           bytes and past that fails as if out of memory (ArrayBlockClass.inl line 176,
+                           ArrayBlockCode.inl line 264).
+    That is all that differs between the two inclusions.
+  - The files that include them (16): ArrayBlock.h/.cpp with ArrayBlockClass.inl and ArrayBlockCode.inl (1962
+    lines); ArrayChar.h/.cpp with ArrayCharClass.inl and ArrayCharCode.inl (43); Chars.h/.cpp with CharsClass.inl
+    and CharsCode.inl (3218); ArrayTemplate.h with ArrayTemplate.inl (410); ArrayTemplatePrimitive.h with
+    ArrayTemplatePrimitive.inl (640).
+  - ArrayBlockCode.inl and CharsCode.inl are compiled once each, in ArrayBlock.cpp and Chars.cpp (included twice
+    there).  ArrayTemplate.inl and ArrayTemplatePrimitive.inl are templates already and are in their headers.
+  - ARRAY_TEMPLATE<M> is "class ARRAY_TEMPLATE : public ARRAY_BLOCK, protected CPostMalloc<M>".
+  - "class CChars;" is declared ahead of its definition in at least 11 headers (BaseLib's ArrayBlockSorted.h,
+    CalcObject.h, CharsImmutable.h, ErrorHandler.h, Killable.h, Line.h, TextPosition.h; CppCompilerLib's
+    CPPTarget.h, PPTokenBlockIndex.h, PreprocessorPosition.h; TestLib's AssertStatistics.h).  Other libraries and
+    the other repositories were not searched.
+  - The C++ compiler's parser accepts "extern template" (CppParserClasses.cpp sets mbExtern) and the unit has code
+    for explicit instantiation (CPPUnitTemplates.cpp, mbInstantiation).
+
+
+The design proposed
+-------------------
+
+1. A size policy: a small struct for each of the two variants, with everything the macros vary.
+
+        struct SArrayNaturalSize
+        {
+            typedef size    Count;
+            static const size   Max = MAX_SIZE;             //or an enumerator, or an inline function: see 16 bit
+            static const size   NotFound = ARRAY_ELEMENT_NOT_FOUND;
+            static const bool   CheckSize = (true where SIZE_16, else false);
+
+            static void* Copy(void* pvDest, const void* pvSource, size uiBytes);    //memcpy16 on the 816, memcpy
+            static void* Move(...);  static void* Set(...);  static int Compare(...);  static void Swap(...);
+        };
+        struct SArrayLargeSize { typedef lsize Count; ... memcpy and the rest ... };
+
+   The five functions are inline and only forward.  The policy's names are to be the house's: this is a sketch.
+
+2. Each family written once as a template with the policy as a parameter (the last, for those that have M):
+
+        template<class SIZE> class CArrayBlockBase : public CMalloc, protected SArrayHeaderBase<SIZE> { ... };
+        template<class M, class SIZE> class CArrayTemplateBase : public CArrayBlockBase<SIZE>, protected CPostMalloc<M> { ... };
+
+   ASIZE becomes typename SIZE::Count, ARRAY_MEMCPY becomes SIZE::Copy, #ifdef ARRAY_CHECK_SIZE becomes
+   if (SIZE::CheckSize) (a constant the compiler folds), and so on.  The text is otherwise what the .inl has.
+
+3. The old names kept, by a class of each name that derives from the template and adds nothing:
+
+        class CArrayBlock : public CArrayBlockBase<SArrayNaturalSize> {};
+        class CArrayLargeBlock : public CArrayBlockBase<SArrayLargeSize> {};
+        template<class M> class CArrayTemplate : public CArrayTemplateBase<M, SArrayNaturalSize> {};
+
+   Not a typedef: a typedef can't be declared ahead ("class CChars;"), and these are, in many headers.  A derived
+   class keeps every one of those as it is.  What it costs: a function of the template that takes or gives its own
+   type (TakeFrom(ARRAY_BLOCK* pcSource), Copy(ARRAY_TEMPLATE<M>*)) takes or gives the base, which a CArrayBlock is,
+   so calls compile; one that gives a pointer to its own type gives the base's, which isn't a CArrayBlock*: each
+   such function has to be looked at.  CHARS_NATURAL (the large CChars naming the natural one) becomes an ordinary
+   name or a second parameter.
+
+4. The code stays compiled once.  ArrayBlock.cpp and Chars.cpp instantiate the templates explicitly
+   ("template class CArrayBlockBase<SArrayNaturalSize>;" and the large one), and the headers declare them
+   "extern template", so no other file compiles their bodies.  This is what keeps compile time and the 816's code
+   size where they are.  It depends on the first of "Not known".
+
+
+Not known (find out first)
+--------------------------
+
+  a. Whether the CPP65 compiler's W65C816 (and 65C64) code generators honour explicit instantiation and
+     "extern template": the parser and the unit have the code, the generators weren't read.  If they don't, either
+     that is built in the compiler first or the bodies go to headers and every unit compiles them.
+  b. Whether, without (a), duplicate instances from several units are folded by the linker, and what the ROM's size
+     becomes.  The FAT and kernal code must stay small.
+  c. Whether MSVC, and GCC or Clang on Linux (WSL has the build tools), compile the same text: typename where a
+     dependent type needs it, this-> or a using for a member of a dependent base (CArrayTemplateBase<M, SIZE> names
+     miUsedElements of CArrayBlockBase<SIZE>: MSVC lets that through without this->, the others don't).
+  d. Whether "static const size Max = MAX_SIZE;" in a struct is something the 816 compiler takes as a constant
+     (memory: static locals there need constants of the exact type); an enum or an inline function may be needed.
+  e. Every place outside BaseLib that names ASIZE, ARRAY_BLOCK or the other macro names directly (9 files had
+     ASIZE when counted from Libraries; the other repositories weren't searched).
+  f. What CArrayBlock's shrink and free behaviour is relied on for: it is not to change (the user's ruling, kept in
+     memory as "CArrayBlock releases memory").  This plan changes no behaviour, only what the classes are written
+     as; a step that would change behaviour is out of it.
+
+
+Steps
+-----
+
+Each step ends with the suites passing and a commit.  Stop and go back to the user after step 2.
+
+  0. Measure what there is: the build time of BaseLib and of one large user (Release x64), the 816 ROM's size and
+     the code size of the array classes in it, and TestBaseLib, TestBaseLib65 and TestStandardLib65 passing.  These
+     are what steps 1 and 2 are compared with.
+  1. Find out (a) to (d) with a class of a dozen lines, not with CArrayBlock: a template with a policy parameter,
+     instantiated explicitly in one .cpp and declared extern in a header two units include, built for the host,
+     for Linux and for the 816.  Write down what each compiler does.  If the 816 compiler needs work for (a), that
+     work is a step of its own, agreed with the user (it is the CppCompilerLib session's ground).
+  2. CArrayBlock alone, as a spike: the policy structs, CArrayBlockBase<SIZE> from ArrayBlockClass.inl and
+     ArrayBlockCode.inl, the two derived classes, explicit instantiation in ArrayBlock.cpp.  ARRAY_TEMPLATE and the
+     others still derive from the name CArrayBlock, which is still a class, so nothing else changes.  Compare with
+     step 0: the suites, the build time, the ROM's size.  Back to the user with the numbers before going on.
+  3. CArrayTemplate<M> and CArrayTemplatePrimitive<M> (ArrayTemplate.inl, ArrayTemplatePrimitive.inl): they are
+     templates already, so this is the second parameter and the derived templates of the old names.
+  4. CArrayChar, then CChars (the largest: CharsCode.inl, and CHARS_NATURAL).
+  5. ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
+     projects' files (vcxproj, filters, CMakeLists.txt) put right; the IDE's Refactorings.txt (T6) and
+     RefactoringQuestions.txt (48) told that it is done.
+
+
+What the session that does this needs to know
+---------------------------------------------
+
+  - Build Release x64.  Before a Release x64 build or suite run, see whether another session is running and tell
+    it (the CppCompilerLib session builds the same outputs); Debug x64 never clashes.
+  - The suites to run are the user's list, not every project found: ask, or see the memory note "Test sweep
+    how-to".  The *65 suites are run for this work, because it is about the 816; for ordinary feature work they
+    aren't.
+  - Sources have LF line endings and vcxproj files CRLF.  Don't write scripts that contain backslashes through a
+    shell heredoc: write them to a file.
+  - House style: Hungarian prefixes, the library's own primitive types (size, uint32), tabs, the banner comment
+    over each function.  On the 816, hot arithmetic is in size or int, not int32 or int64.
+  - Commit without a Co-Authored-By line, through a temporary index, leaving nothing staged; don't push.
+  - The HCP65 IDE's refactorings exist now and could do some of this text's moving, but they refuse macro-made
+    code, which is what this is: this conversion is by hand.
