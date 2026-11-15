@@ -1,0 +1,68 @@
+Virtual texture plan
+====================
+
+A single megatexture, as Rage's (id Tech 5's MegaTexture): one texture over every surface of a scene, its texels unique, nothing
+tiled, kept as pages of which only those in view are in memory.  It builds on the unwrap (UnwrapPlan.txt), which gives each mesh
+a layout of texels, and on the object database, which already loads objects when they're wanted and lets them go.  This is an
+outline: nothing here is built, and only what UnwrapPlan.txt records as the user's decisions is decided.
+
+
+Why it suits this project
+-------------------------
+  The object database pages already: a page of texels is a small object, named by its level and place, read when it's wanted
+  and freed when it isn't.
+  The textures are procedural, so a page needn't be stored before it's wanted: it can be baked from the materials when first
+  asked for, and kept.  Rage stored terabytes of painted texels; here detail costs bake time, and a page can be baked again
+  after a material or a light changes.
+
+
+How it works (Rage's way, and van Waveren's and Barrett's notes)
+----------------------------------------------------------------
+  The virtual texture is very large (Rage's was about 128K texels square) with a full mip chain, every level cut into pages
+  (about 128 by 128 texels, with a few texels of border copied from their neighbours so filtering works across a page's edge).
+  Each instance's layout has an address in it, in pages (UnwrapPlan.txt).
+  Feedback: each frame the renderer finds which pages, at which levels, the pixels on screen want (a small, cheap draw of
+  page numbers rather than colours, read back).
+  Wanted pages not in memory are read from the database, or baked if they've never been, and put in a page cache: a texture of
+  fixed size holding the pages in memory.  A page table (a small texture, one entry for each page of each level) says where in
+  the cache each page is.  Drawing a texel looks up its page in the table, then reads the cache.  A page not there yet is drawn
+  from a coarser level that is, so nothing is ever missing, only blurred for a frame or two.
+  The cache is let go of least recently used first.
+
+
+Proposed (to decide when it starts)
+-----------------------------------
+  Page size 128 texels with a 4 texel border (120 used), and the cache 4096 texels square (1024 pages).
+  Pages are CObjects in the database, named by level and page, with their texels compressed as images are saved now.
+  A page is baked when first wanted, at its own level from the materials (never shrunk from the level above), and kept; a
+  change marks the pages it touches to bake again.
+  Both renderers draw it: Vulkan with the page table and cache as textures and the feedback draw; the rasteriser with the same
+  lookup in software.
+  Lighting is baked into the pages (no lightmaps): which lights, and when they're baked, is its own question.
+
+
+Open
+----
+  The virtual texture's size, and so how many pages its page table has, from the scene's texel density and surface area.
+  How the feedback is found in the rasteriser (it can note pages as it draws, rather than in a pass of its own).
+  Baking in the background (ThreadLib's jobs) so a frame never waits.
+  How a page's texels are compressed in the database, and on the GPU (BC1 or BC7 in Vulkan, or none at first).
+
+
+Steps (an outline)
+------------------
+1. Pages and the page table as objects, and a bake of one page from the layouts and materials over it.
+2. The cache, the lookup and drawing from coarser pages, in the rasteriser.
+3. Feedback, loading and letting go, in the rasteriser.
+4. Vulkan: page table and cache textures, the feedback draw.
+5. Baking in the background.
+6. Baked lighting.
+
+
+Literature
+----------
+  van Waveren, id Tech 5 Challenges: From Texture Virtualization to Massive Parallelization, SIGGRAPH 2009.
+  van Waveren and Hart, Using Virtual Texturing to Handle Massive Texture Data, GTC 2010.
+  Barrett, Sparse Virtual Textures, GDC 2008.
+  Mittring, Advanced Virtual Texture Topics, SIGGRAPH 2008.
+  Obert, van Waveren and Sellers, Virtual Texturing in Software and Hardware, SIGGRAPH 2012 course.
