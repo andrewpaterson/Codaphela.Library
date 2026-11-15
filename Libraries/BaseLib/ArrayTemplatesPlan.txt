@@ -5,10 +5,10 @@ The intent (the user, 2026-11-15): turn the classes a macro makes, ARRAY_BLOCK a
 that work on ordinary 32 and 64 bit targets as well as the 16 bit W65C816.
 
 Where it is: the questions the plan started with are answered (under "Answered", the user's rulings and what was
-found).  Steps 0 to 3 are done (2026-11-15): CArrayBlock and CArrayLargeBlock are CArrayBlockBase<SIZE>, the
-CArrayTemplate and CArrayTemplatePrimitive families CArrayTemplateBase<M, BLOCK> and CArrayTemplatePrimitiveBase<M,
-TEMPLATE>, and nothing about them got bigger or slower (steps 2 and 3's numbers).  Step 4 waits for the user.  A
-session picking this up starts at "Steps".
+found).  Steps 0 to 4 are done (2026-11-15): every family is a template written once (CArrayBlockBase<SIZE>,
+CArrayTemplateBase<M, BLOCK>, CArrayTemplatePrimitiveBase<M, TEMPLATE>, CArrayCharBase<PRIMITIVE>, CCharsBase<STRING,
+TEXT>), and nothing got bigger or slower but for one 65C64 difference (step 4).  Step 5, the clean up, waits for the
+user.  A session picking this up starts at "Steps".
 
 
 Why
@@ -266,10 +266,36 @@ after step 2.
      programs the same cycles and bytes; the kernal ROM 217550 bytes as after step 2; native TestBaseLib median
      2.82 s before and after (five runs each); the kernal built in a median 11.32 s before, 11.29 s after.  The
      suites pass; the full sweep: see the step's commit.
-  4. CArrayChar, then CChars (the largest: CharsCode.inl, and CHARS_NATURAL).  As in step 3, each base takes the
-     class it derives from (CArrayCharBase<..., CArrayTemplatePrimitive<char>>), so a CChars still has the classes
-     it has now as bases; CharsCode.inl's functions go in Chars.cpp with explicit instantiation, as ArrayBlock's.
-  5. ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
+  4. Done 2026-11-15: CArrayChar, then CChars.
+       - CArrayCharBase<PRIMITIVE> derives from PRIMITIVE (CArrayTemplatePrimitive<char> or the large one), as in
+         step 3; ArrayChar.cpp instantiates both, ArrayChar.h declares them extern.
+       - CChars isn't derived from an array: it holds one (mcText).  CCharsBase<STRING, TEXT>: TEXT is the array
+         (CArrayChar, CArrayLargeChar), STRING the class deriving from it (CChars, CLargeChars), so its functions
+         take and return what they did (CChars* Append(CChars* psz)) and "return this;" is "return (STRING*)this;".
+         CONSTRUCTABLE is in the named classes (their class names); CHARS_NATURAL's Append(CChars) and
+         Append(CChars*) are CLargeChars's own, with "using CCharsBase<...>::Append;".  Chars.cpp instantiates
+         both, Chars.h declares them extern.
+       - The W65C816 FAT assembly (FatVolumeW65C816.asm) called five CChars functions by label; it calls the
+         template's (_CCharsBase__T_C6CChars_C10CArrayChar__Init and the others).  TestCPP816AssemblyReplaces
+         checks that labels the assembly calls exist.
+     Found on the way, and done (compiler, both targets): a call through a qualifier the parser couldn't resolve
+     (TEXT::SizePolicy::Copy(...)) is found as values were in step 3 (CCPPBinder, QualifiersClass); a class
+     template's function defined outside it after an instance was laid out (CChars, used whole by headers
+     Chars.cpp includes before CharsCode.inl: the natural instance got no functions at all) is given to that
+     instance and generated if called (DefineOutsideMember, DefineOutsideMembers); an explicit instantiation puts
+     functions already waiting back in definition order (changes no program).  Tests in TestCppCompilerLib.
+     Before (step 0) and after, the same compiler for both: sizeof the same everywhere; the kernal ROM 217550
+     bytes as after step 2; on the 816 every program the same cycles and bytes.  On the 65C64 one difference
+     remains: CChars::AppendData inlines less (four callees it inlined are calls), because the policy's
+     forwarders (TEXT::SizePolicy::Copy, which are memcpy) each take one of the 32 calls the 65C64 inlines into a
+     function at a time (the 816 has 64).  TestIndexTreeEvicting takes 416 more cycles (+0.0007%), and the
+     programs using AppendData are 12 bytes larger.  Tried and not kept: forwarders not taking a call from the
+     others (all of them, or those to functions that can't be inlined) make the conversion exactly neutral, but
+     change everything else: 0.06% to 0.12% more bytes on both targets and 0.0008% more cycles on the 816
+     (faster on the 65C64).  A user's ruling if more is wanted.
+     Deferred (the user, 2026-11-15): a class scope "typedef typename BLOCK::Count Count;" (and the like) to
+     shorten the declarations: maybe later, not now.
+  5. Not started.  ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
      projects' files (vcxproj, filters, CMakeLists.txt) put right; the comments that name the macros (e) brought
      up to date; the IDE's Refactorings.txt (T6) and RefactoringQuestions.txt (48) told that it is done.
 
