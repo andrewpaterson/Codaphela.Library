@@ -1,4 +1,5 @@
 #include "BaseLib/GlobalDataTypesIO.h"
+#include "BaseLib/Numbers.h"
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshPlaneEditor.h"
@@ -7,6 +8,7 @@
 #include "SupportLib/MeshRingEditor.h"
 #include "SupportLib/MeshConeEditor.h"
 #include "SupportLib/MeshCylinderEditor.h"
+#include "SupportLib/MeshTubeEditor.h"
 #include "SupportLib/MeshWriter.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/TextParser.h"
@@ -101,6 +103,121 @@ static void AssertOBJShape(const char* szExpected, const char* szActual)
 	aszExpected.Kill();
 	cActual.Kill();
 	cExpected.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A face's normal, as CMeshNormals makes it, and the middle of its corners.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestShapeFaceNormal(CMesh* pcMesh, int iFace, SFloat32Vec3* psNormal, SFloat32Vec3* psMiddle)
+{
+	int*			piCorners;
+	SFloat32Vec3	sVec1;
+	SFloat32Vec3	sVec2;
+
+	piCorners = pcMesh->GetFaceCorners(iFace);
+	sVec1 = *pcMesh->GetPosition(piCorners[0]) - *pcMesh->GetPosition(piCorners[1]);
+	sVec2 = *pcMesh->GetPosition(piCorners[2]) - *pcMesh->GetPosition(piCorners[1]);
+	Float32Vec3Cross(psNormal, &sVec2, &sVec1);
+
+	*psMiddle = *pcMesh->GetPosition(piCorners[0]) + *pcMesh->GetPosition(piCorners[1]);
+	psMiddle->Add(pcMesh->GetPosition(piCorners[2]));
+	*psMiddle /= 3.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every edge is on two faces, so the shape has no holes, and corners less
+// edges plus faces is iEulerCharacteristic: 2 for a ball, 0 for a ring.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertShapeClosed(CMesh* pcMesh, int iEulerCharacteristic)
+{
+	int			i;
+	int			iNumEdges;
+	CMeshEdge*	pcEdge;
+	bool		bClosed;
+
+	bClosed = true;
+	iNumEdges = pcMesh->NumEdges();
+	for (i = 0; i < iNumEdges; i++)
+	{
+		pcEdge = pcMesh->GetEdge(i);
+		if ((pcEdge->maiFace[0] == -1) || (pcEdge->maiFace[1] == -1))
+		{
+			bClosed = false;
+		}
+	}
+	AssertTrue(bClosed);
+	AssertInt(iEulerCharacteristic, pcMesh->NumCorners() - iNumEdges + pcMesh->NumFaces());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each face of a shape around Z through the origin, from 0 to fLength, faces
+// the way its name says: up (1), out (2), down (3) or in (4).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCylindricalFacesOutward(CMesh* pcMesh, float32 fLength)
+{
+	int				i;
+	SFloat32Vec3	sNormal;
+	SFloat32Vec3	sMiddle;
+	SFloat32Vec3	sOut;
+	bool			bFacing;
+	int				iName;
+
+	bFacing = true;
+	for (i = 0; i < pcMesh->NumFaces(); i++)
+	{
+		TestShapeFaceNormal(pcMesh, i, &sNormal, &sMiddle);
+		iName = pcMesh->GetFaceName(i);
+		if (iName == 1)
+		{
+			sOut.Init(0, 0, 1);
+			bFacing &= fabsf(sMiddle.z - fLength) < 0.0001f;
+		}
+		else if (iName == 3)
+		{
+			sOut.Init(0, 0, -1);
+			bFacing &= fabsf(sMiddle.z) < 0.0001f;
+		}
+		else if (iName == 2)
+		{
+			sOut.Init(sMiddle.x, sMiddle.y, 0);
+		}
+		else
+		{
+			sOut.Init(-sMiddle.x, -sMiddle.y, 0);
+		}
+		bFacing &= Float32Vec3Dot(&sNormal, &sOut) > 0.0f;
+	}
+	AssertTrue(bFacing);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int CountFacesNamed(CMesh* pcMesh, int iName)
+{
+	int	i;
+	int	iCount;
+
+	iCount = 0;
+	for (i = 0; i < pcMesh->NumFaces(); i++)
+	{
+		if (pcMesh->GetFaceName(i) == iName)
+		{
+			iCount++;
+		}
+	}
+	return iCount;
 }
 
 
@@ -618,10 +735,90 @@ void TestCylinder(void)
 	cMeshEditor.Collapse();
 	WriteMesh(&cMesh, "Output/Shape/Cylinder8x3x4x11.OBJ");
 
+	//The checks the shapes below are put to hold for a cylinder already.
+	AssertShapeClosed(&cMesh, 2);
+	AssertCylindricalFacesOutward(&cMesh, 2.0f);
+
 	cMeshEditor.RemoveModifiers();
 	cMesh.Kill();
 	AssertOBJShape("Input/Shape/Cylinder8x3x4x11.OBJ", "Output/Shape/Cylinder8x3x4x11.OBJ");
 	cMeshEditor.Kill();
+
+	cFileUtil.RemoveDir("Output/Shape");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTube(void)
+{
+	CMesh				cMesh;
+	SFloat32Vec3		sZDirection;
+	SFloat32Vec3		sStart;
+	CMeshTubeEditor*	pcTubeEditor;
+	CMeshEditor			cMeshEditor;
+	CFileUtil			cFileUtil;
+	SFloat32Vec3*		psPosition;
+	float32				fRadius;
+	bool				bInside;
+	int					i;
+
+	cFileUtil.RemoveDir("Output/Shape");
+	cFileUtil.MakeDir("Output/Shape");
+
+	sZDirection.Init(0, 0, 1);
+	sStart.Init(0, 0, 0);
+
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	pcTubeEditor = cMeshEditor.AddModifier<CMeshTubeEditor>();
+	pcTubeEditor->Init(&sZDirection, &sStart, 1.0f, 2.0f, 3.0f, 8, 2, 3);
+	AssertInt(64, pcTubeEditor->ExpectedCornerChunkSize());
+	AssertInt(128, pcTubeEditor->ExpectedFaceChunkSize());
+	cMeshEditor.Collapse();
+	WriteMesh(&cMesh, "Output/Shape/Tube8x2x3.OBJ");
+
+	AssertInt(64, cMesh.NumCorners());
+	AssertInt(128, cMesh.NumFaces());
+	AssertInt(192, cMesh.NumEdges());
+	AssertInt(64, cMeshEditor.NumPolygons());
+	AssertInt(4, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
+	AssertInt(32, CountFacesNamed(&cMesh, 1));
+	AssertInt(32, CountFacesNamed(&cMesh, 2));
+	AssertInt(32, CountFacesNamed(&cMesh, 3));
+	AssertInt(32, CountFacesNamed(&cMesh, 4));
+	AssertFloat3(SFloat32Vec3(0, 2, 0), cMesh.GetPosition(0), 3);
+	AssertFloat3(SFloat32Vec3(0, 1, 3), cMesh.GetPosition(32), 3);
+	AssertShapeClosed(&cMesh, 0);
+	AssertCylindricalFacesOutward(&cMesh, 3.0f);
+
+	bInside = true;
+	for (i = 0; i < cMesh.NumCorners(); i++)
+	{
+		psPosition = cMesh.GetPosition(i);
+		fRadius = sqrtf(psPosition->x * psPosition->x + psPosition->y * psPosition->y);
+		bInside &= (fRadius > 0.9999f) && (fRadius < 2.0001f) && (psPosition->z > -0.0001f) && (psPosition->z < 3.0001f);
+	}
+	AssertTrue(bInside);
+
+	cMeshEditor.RemoveModifiers();
+	cMeshEditor.Kill();
+	cMesh.Kill();
+	AssertOBJShape("Input/Shape/Tube8x2x3.OBJ", "Output/Shape/Tube8x2x3.OBJ");
+
+	//The fewest segments: a square ring of four quads around, turned.
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	cMeshEditor.AddModifier<CMeshTubeEditor>()->Init(&sZDirection, &sStart, 0.5f, 1.0f, 1.0f, 3, 1, 2);
+	cMeshEditor.Collapse();
+	AssertInt(12, cMesh.NumCorners());
+	AssertInt(24, cMesh.NumFaces());
+	AssertShapeClosed(&cMesh, 0);
+	AssertCylindricalFacesOutward(&cMesh, 1.0f);
+	cMeshEditor.Kill();
+	cMesh.Kill();
 
 	cFileUtil.RemoveDir("Output/Shape");
 }
@@ -645,6 +842,7 @@ void TestMeshShapes(void)
 	TestRing();
 	TestCone();
 	TestCylinder();
+	TestTube();
 
 	ObjectsKill(false);
 	NumberKill();

@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_SOURCE_MODIFIER_H__
 #define __MESH_SOURCE_MODIFIER_H__
+#include "BaseLib/GeometricTypes.h"
 #include "MeshModifier.h"
 
 
@@ -42,6 +43,10 @@ public:
 	virtual void	Generate(CMeshEditor* pcMeshEditor) =0;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
+
+protected:
+	static void	WedgeDirection(SFloat32Vec3* psDest, SFloat32Vec3* psZDirection);
+	void		GenerateRevolved(CMeshEditor* pcMeshEditor, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32* pafRadii, float32* pafZs, int* paiFaceNames, int iNumPoints, int iWedgeSegments, bool bFlipFaces);
 };
 
 

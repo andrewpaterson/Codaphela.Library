@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Numbers.h"
 #include "StandardLib/Objects.h"
 #include "MeshEditor.h"
 #include "MeshSourceModifier.h"
@@ -135,3 +136,83 @@ Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
 	}
 	return pOutput;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The direction across psZDirection (which is normalised) that a shape's
+// first wedge points in: Y, as CMeshRingEditor's and CMeshDiscEditor's do,
+// with what is along psZDirection taken out.  X if psZDirection is along Y.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSourceModifier::WedgeDirection(SFloat32Vec3* psDest, SFloat32Vec3* psZDirection)
+{
+	SFloat32Vec3	sAcross;
+	SFloat32Vec3	sAlong;
+	float32			fDot;
+
+	sAcross.Init(0, 1, 0);
+	fDot = Float32Vec3Dot(&sAcross, psZDirection);
+	if (fabsf(fDot) > 0.99f)
+	{
+		sAcross.Init(1, 0, 0);
+		fDot = Float32Vec3Dot(&sAcross, psZDirection);
+	}
+	sAlong.Init(psZDirection);
+	sAlong *= fDot;
+	*psDest = sAcross - sAlong;
+	psDest->Normalize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Turns a closed loop of iNumPoints (each a radius out from psZDirection and
+// a distance along it from psStart) once around psZDirection, in
+// iWedgeSegments wedges.  The quad between point p and the next is named
+// paiFaceNames[p].  Its faces face out where the loop goes along
+// psZDirection on the outside, as CMeshRingEditor's do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSourceModifier::GenerateRevolved(CMeshEditor* pcMeshEditor, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32* pafRadii, float32* pafZs, int* paiFaceNames, int iNumPoints, int iWedgeSegments, bool bFlipFaces)
+{
+	SFloat32Vec3	sAcross;
+	SFloat32Vec3	sWedge;
+	SFloat32Vec3	sAlong;
+	float32			fWedgeRad;
+	int				iStartPosition;
+	int				iThis;
+	int				iNext;
+	int				p;
+	int				i;
+
+	iStartPosition = pcMeshEditor->NumCorners();
+	fWedgeRad = (N_PI*2.0f)/iWedgeSegments;
+	WedgeDirection(&sAcross, psZDirection);
+
+	for (p = 0; p < iNumPoints; p++)
+	{
+		sAlong.Init(psZDirection);
+		sAlong *= pafZs[p];
+		sAlong.Add(psStart);
+		for (i = 0; i < iWedgeSegments; i++)
+		{
+			Float32Vec3RotateAboutNormalisedAxis(&sWedge, sAcross, fWedgeRad * i, *psZDirection);
+			sWedge *= pafRadii[p];
+			sWedge.Add(&sAlong);
+			pcMeshEditor->AddCorner(&sWedge);
+		}
+	}
+
+	for (p = 0; p < iNumPoints; p++)
+	{
+		iThis = iStartPosition + (p * iWedgeSegments);
+		iNext = iStartPosition + (((p + 1) % iNumPoints) * iWedgeSegments);
+		for (i = 0; i + 1 < iWedgeSegments; i++)
+		{
+			pcMeshEditor->AddQuad(iThis + i+1, iThis + i, iNext + i, iNext + i+1, paiFaceNames[p], !bFlipFaces);
+		}
+		pcMeshEditor->AddQuad(iThis, iThis + i, iNext + i, iNext, paiFaceNames[p], !bFlipFaces);
+	}
+}
+
