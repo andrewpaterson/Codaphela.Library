@@ -482,7 +482,7 @@ void TestCPP816ArrayLayers(void)
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__IsEmpty.ax", "_CArrayCommonUnknown__IsEmpty.ax")) { w |= 128; }
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__UnsafeGetObject.axy", "_CArrayCommonUnknown__UnsafeGet.axy")) { w |= 256; }
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayCommonUnknown__GrowTo.axy") &&
-		!TestCPP816OnlyCalls(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayBlock__GrowToAtLeastNumElements.axy")) { w |= 512; }
+		!TestCPP816OnlyCalls(szCommon.Text(), "_CArrayCommonObject__GrowTo.axy", "_CArrayBlockBase__T_C17SArrayNaturalSize__GrowToAtLeastNumElements.axy")) { w |= 512; }
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__CalculateIsSorted.ax", "_CArrayCommonUnknown__CalculateIsSorted.ax")) { w |= 1024; }
 
 	if (!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayNumElements__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonObject__NumElements.ax") &&

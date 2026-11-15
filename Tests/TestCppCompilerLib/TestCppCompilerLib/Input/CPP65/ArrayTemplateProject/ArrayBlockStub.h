@@ -1,12 +1,14 @@
 //The parts of CArrayBlock the CArrayTemplate tests call, on a fixed buffer.  The real ones are in ArrayBlock.cpp,
-//which needs the rest of BaseLib and the C library to run.  Include it in one translation unit.
+//which needs the rest of BaseLib and the C library to run.  Include it in one translation unit: it instantiates them
+//(ArrayBlock.h declares them extern).
 #include "BaseLib/ArrayBlock.h"
 
 
 char	gacArrayBuffer[1024];
 
 
-void CArrayBlock::Init(size iElementSize)
+template<class SIZE>
+void CArrayBlockBase<SIZE>::Init(typename SIZE::Count iElementSize)
 {
 	mpcMalloc = NULL;
 	miElementSize = iElementSize;
@@ -17,14 +19,16 @@ void CArrayBlock::Init(size iElementSize)
 }
 
 
-void CArrayBlock::Kill(void)
+template<class SIZE>
+void CArrayBlockBase<SIZE>::Kill(void)
 {
 	miNumElements = 0;
 	mpvArray = NULL;
 }
 
 
-void* CArrayBlock::Add(void)
+template<class SIZE>
+void* CArrayBlockBase<SIZE>::Add(void)
 {
 	void*	pv;
 
@@ -34,25 +38,33 @@ void* CArrayBlock::Add(void)
 }
 
 
-void* CArrayBlock::Get(size iIndex)
+template<class SIZE>
+void* CArrayBlockBase<SIZE>::Get(typename SIZE::Count iIndex)
 {
 	return (char*)mpvArray + iIndex * miElementSize;
 }
 
 
-void* CArrayBlock::Tail(void)
+template<class SIZE>
+void* CArrayBlockBase<SIZE>::Tail(void)
 {
 	return Get(miNumElements - 1);
 }
 
 
-size CArrayBlock::NumElements(void)
+template<class SIZE>
+typename SIZE::Count CArrayBlockBase<SIZE>::NumElements(void)
 {
 	return miNumElements;
 }
 
 
-size CArrayBlock::ElementSize(void)
+template<class SIZE>
+typename SIZE::Count CArrayBlockBase<SIZE>::ElementSize(void)
 {
 	return miElementSize;
 }
+
+
+template class CArrayBlockBase<SArrayNaturalSize>;
+

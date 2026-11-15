@@ -8,12 +8,12 @@
 #include "StdRandom.h"
 #include "ErrorHandler.h"
 #include "ArrayBlock.h"
-
-
-#include "ArraySizeNatural.inl"
 #include "ArrayBlockCode.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "ArrayBlockCode.inl"
-#include "ArraySizeUndef.inl"
+
+//The only instances: ArrayBlock.h declares them extern.
+template struct SArrayHeaderBase<SArrayNaturalSize>;
+template struct SArrayHeaderBase<SArrayLargeSize>;
+template class CArrayBlockBase<SArrayNaturalSize>;
+template class CArrayBlockBase<SArrayLargeSize>;
+
