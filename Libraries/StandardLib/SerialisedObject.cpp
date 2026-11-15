@@ -117,10 +117,13 @@ lsize CSerialisedObject::GetLength(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSerialisedObject::SetLength(size iLength)
 {
+#ifdef BUILD_64
+	//A 32-bit size can't be more than 4GB.
 	if ((uint64)iLength > MAX_UINT32)
 	{
 		return gcLogger.Error2(__METHOD__, " A serialised object can't be [", SizeToString(iLength), "] bytes long (4GB at most).", NULL);
 	}
+#endif // BUILD_64
 	miLength = (uint32)iLength;
 	return true;
 }
