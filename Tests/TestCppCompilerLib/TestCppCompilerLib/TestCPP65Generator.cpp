@@ -1579,6 +1579,16 @@ int Use(void) { SBox<int> s; s.Set(3); return s.Get() + s.Kind() + Twice(4) + Th
 	AssertTrue(szAssembly.Find("text._SOrder__T_i__Second") != ARRAY_ELEMENT_NOT_FOUND);
 	szErrors.Kill();
 	szAssembly.Kill();
+
+	//Also one called before its definition was seen (waiting since its definition, the instance laid out before it).
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "template<class M> struct SOrder { M m; M Second(void); M First(void); };\nSOrder<int> gsOrder;\nint Early(void) { return gsOrder.Second(); }\ntemplate<class M> M SOrder<M>::First(void) { return m; }\ntemplate<class M> M SOrder<M>::Second(void) { return m + 1; }\ntemplate struct SOrder<int>;\n"));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Find("text._SOrder__T_i__First") < szAssembly.Find("text._SOrder__T_i__Second"));
+	AssertTrue(szAssembly.Find("text._SOrder__T_i__Second") != ARRAY_ELEMENT_NOT_FOUND);
+	szErrors.Kill();
+	szAssembly.Kill();
 }
 
 

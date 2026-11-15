@@ -266,7 +266,8 @@ CCPPTemplate* CCPPUnit::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDecl
 // generates (IsInstantiatedElsewhere).  An explicit instantiation after an extern
 // one in the same unit generates the instance.  [temp.explicit]  The functions
 // are generated in the order they are defined, as a class's that isn't a
-// template are: what the inliner makes of them depends on it.
+// template are, also those waiting already: what the inliner makes of them
+// depends on it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
@@ -334,9 +335,23 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 			apcDefined.Add(pcFunction);
 		}
 	}
+	//One already waiting (called before its definition was seen) waits again in its place in that order.
 	for (i = 0; i < apcDefined.NumElements(); i++)
 	{
-		RequireFunction(apcDefined.GetPtr(i));
+		pcFunction = apcDefined.GetPtr(i);
+		if (pcFunction->mbQueued && !pcFunction->mbGenerated)
+		{
+			for (j = muiQueueNext; j < mapcQueue.NumElements(); j++)
+			{
+				if (mapcQueue.GetPtr(j) == pcFunction)
+				{
+					mapcQueue.RemoveAt(j);
+					break;
+				}
+			}
+			pcFunction->mbQueued = false;
+		}
+		RequireFunction(pcFunction);
 	}
 	apcDefined.Kill();
 	return true;
