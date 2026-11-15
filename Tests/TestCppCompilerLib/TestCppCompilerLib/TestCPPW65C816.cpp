@@ -4918,6 +4918,34 @@ void TestCPP816AlignedFrameUnreadArguments(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Warnings(void)
 {
+	//A class that is the name of a template's instance (the instance is its only base, and it has only constructors):
+	//the instance written out under it is warned of, each place once.
+	AssertInt(3, TestCPP816CountWarnings(
+		"template<class M> class CTankTemplate { public: M mcGauge; int miLevel; CTankTemplate(void) { miLevel = 0; } CTankTemplate(int i) { miLevel = i; } };\n"
+		"class CGauge { public: int miMark; };\n"
+		"class CTank : public CTankTemplate<CGauge> { public: CTank(void) : CTankTemplate<CGauge>() {} CTank(int i) : CTankTemplate<CGauge>(i) {} };\n"
+		"int Level(CTankTemplate<CGauge>* pcTank) { return pcTank->miLevel; }\n"
+		"int F(void) { CTankTemplate< CGauge > cTank(3); CTank cNamed; return Level(&cTank) + cNamed.miLevel + (int)sizeof(CTankTemplate<CGauge>); }\n", "has the name CTank"));
+
+	//None: the name used; the instance written above the class; another instance; in a template; a class with a
+	//member of its own, or with another base, is no name.
+	AssertInt(0, TestCPP816CountWarnings(
+		"template<class M> class CTankTemplate { public: M mcGauge; int miLevel; CTankTemplate(void) { miLevel = 0; } };\n"
+		"class CGauge { public: int miMark; };\n"
+		"class CDial { public: int miMark; };\n"
+		"int Early(CTankTemplate<CGauge>* pcTank) { return pcTank->miLevel; }\n"
+		"class CTank : public CTankTemplate<CGauge> {};\n"
+		"template<class N> int Any(N* pc, CTankTemplate<CGauge>* pcTank) { return pc->miMark + pcTank->miLevel; }\n"
+		"int Level(CTank* pcTank) { return pcTank->miLevel; }\n"
+		"int F(void) { CTank cTank; CTankTemplate<CDial> cOther; CDial cDial; return Level(&cTank) + Early(&cTank) + cOther.miLevel + Any(&cDial, &cTank); }\n", "has the name"));
+	AssertInt(0, TestCPP816CountWarnings(
+		"template<class M> class CTankTemplate { public: M mcGauge; int miLevel; CTankTemplate(void) { miLevel = 0; } };\n"
+		"class CGauge { public: int miMark; };\n"
+		"class CDeepTank : public CTankTemplate<CGauge> { public: int miDepth; };\n"
+		"class CBase { public: int miBase; };\n"
+		"class CWideTank : public CBase, public CTankTemplate<CGauge> {};\n"
+		"int F(void) { CTankTemplate<CGauge> cTank; CDeepTank cDeep; CWideTank cWide; cDeep.miDepth = 1; cWide.miBase = 2; return cTank.miLevel + cDeep.miDepth + cWide.miBase; }\n", "has the name"));
+
 	//An int expression that doesn't fit 16 bits: not on the 65C64, where int is 32 bits.
 	AssertInt(1, TestCPP816CountWarnings("int F(void) { return 12000 * 6; }\n", "Integer overflow"));
 	AssertInt(0, TestCPP816CountWarnings("int F(void) { return 12000 * 6; }\n", "Integer overflow", CPPT_65C64));

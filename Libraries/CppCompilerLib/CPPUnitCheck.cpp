@@ -67,6 +67,7 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 	while (CheckDefinitions());
 	ReportClassErrors();
 	ReportUndeclaredTypes();
+	ReportNamedInstances();
 	CheckContext();
 	mpcSemanticPass = NULL;
 	mbRemember = false;
@@ -596,3 +597,224 @@ CCPPFunction* CCPPUnit::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator)
 	return NULL;
 }
 
+
+//Finds the classes that are names for a template's instance, and then each place such an instance is written out
+//(CCPPUnit::ReportNamedInstances).
+class CCPPNamedInstanceFinder : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*				mpcUnit;
+	CArrayCPPNameClasses*	mpapcClasses;
+	bool					mbClasses;		//Finding the classes, not the instances.
+	int						miTemplates;	//How many template declarations the node is in,
+	int						miInitializers;	//and how many constructors' initialisers.
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		bool	bTemplate;
+		bool	bInitializer;
+
+		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
+		bInitializer = (pcChild->GetKind() == CPPS_MemberInitializer);
+		miTemplates += bTemplate ? 1 : 0;
+		miInitializers += bInitializer ? 1 : 0;
+		if (mbClasses && (pcChild->GetKind() == CPPS_ClassSpecifier) && (miTemplates == 0) && mpcUnit->IsNameClass((CCPPSyntaxClassSpecifier*)pcChild))
+		{
+			mpapcClasses->Add((CCPPSyntaxClassSpecifier*)pcChild);
+		}
+		if (!mbClasses && (pcChild->GetKind() == CPPS_NameComponent) && (miTemplates == 0) && (miInitializers == 0))
+		{
+			mpcUnit->NamedInstance((CCPPSyntaxNameComponent*)pcChild, mpapcClasses);
+		}
+		pcChild->VisitFields(this);
+		miInitializers -= bInitializer ? 1 : 0;
+		miTemplates -= bTemplate ? 1 : 0;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class can be the name of a template's instance: "class CTank :
+// public CTankTemplate<CGauge> {};", where a typedef would be another
+// name for the same type, is a type of its own that can be declared
+// ahead of its definition.  Nothing says a class is one; it is one if a
+// template's instance is its only base and it has nothing of its own but
+// constructors (which hand what they are given to the instance's).
+//
+// Where such a class is declared, writing the instance out
+// ("CTankTemplate<CGauge>* pcTank") names another type than the one the
+// rest of the code uses: a warning says to use the name.  Not in the
+// class's own list of bases or its constructors' initialisers, which
+// have to name the instance; not in a template; not above the class; and
+// not for an instance written another way than the class's base is (a
+// typedef of its argument, say), which isn't looked for.  A class in a
+// header whose declarations nothing has named yet isn't parsed, and so
+// isn't found.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ReportNamedInstances(void)
+{
+	CCPPNamedInstanceFinder	cFinder;
+	CArrayCPPNameClasses	apcClasses;
+
+	if (!mpcTree->GetRoot())
+	{
+		return;
+	}
+	apcClasses.Init();
+	cFinder.mpcUnit = this;
+	cFinder.mpapcClasses = &apcClasses;
+	cFinder.miTemplates = 0;
+	cFinder.miInitializers = 0;
+	cFinder.mbClasses = true;
+	mpcTree->GetRoot()->VisitFields(&cFinder);
+	if (apcClasses.NumElements() > 0)
+	{
+		cFinder.mbClasses = false;
+		mpcTree->GetRoot()->VisitFields(&cFinder);
+	}
+	apcClasses.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class is the name of a template's instance: it has a name,
+// one base that is written with template arguments, and no members but
+// constructors (declared or defined), with the access they are given.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsNameClass(CCPPSyntaxClassSpecifier* pcClass)
+{
+	CCPPSyntaxBaseSpecifier*	pcBase;
+	CCPPSyntax*					pcMember;
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxNameComponent*	pcName;
+	CChars						szClass;
+	CChars						szMember;
+	size						i;
+	bool						bConstructor;
+
+	if (!pcClass->mpcName || !pcClass->mpcName->GetLast() || (pcClass->macpBases.NumElements() != 1))
+	{
+		return false;
+	}
+	pcBase = (CCPPSyntaxBaseSpecifier*)pcClass->macpBases.GetPtr(0);
+	if ((pcBase->GetKind() != CPPS_BaseSpecifier) || !pcBase->mpcName || !pcBase->mpcName->GetLast() || !pcBase->mpcName->GetLast()->mbTemplateArguments)
+	{
+		return false;
+	}
+	szClass.Init();
+	AppendTokensText(pcClass->mpcName->GetLast()->miName, pcClass->mpcName->GetLast()->miName, &szClass);
+	bConstructor = true;
+	for (i = 0; bConstructor && (i < pcClass->macpMembers.NumElements()); i++)
+	{
+		pcMember = pcClass->macpMembers.GetPtr(i);
+		pcDeclarator = NULL;
+		if (pcMember->GetKind() == CPPS_AccessSpecifier)
+		{
+			continue;
+		}
+		if (pcMember->GetKind() == CPPS_FunctionDefinition)
+		{
+			pcDeclarator = ((CCPPSyntaxFunctionDefinition*)pcMember)->mpcDeclarator;
+		}
+		else if ((pcMember->GetKind() == CPPS_SimpleDeclaration) && (((CCPPSyntaxSimpleDeclaration*)pcMember)->macpDeclarators.NumElements() == 1) &&
+				 (((CCPPSyntaxSimpleDeclaration*)pcMember)->macpDeclarators.GetPtr(0)->GetKind() == CPPS_InitDeclarator))
+		{
+			pcDeclarator = ((CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcMember)->macpDeclarators.GetPtr(0))->mpcDeclarator;
+		}
+		pcName = (pcDeclarator && pcDeclarator->mpcName) ? pcDeclarator->mpcName->GetLast() : NULL;
+		bConstructor = pcName && (pcName->meKind == CPPNC_Identifier) && (pcDeclarator->macpPrefix.NumElements() == 0) && (pcDeclarator->macpSuffixes.NumElements() > 0);
+		if (bConstructor)
+		{
+			szMember.Init();
+			AppendTokensText(pcName->miName, pcName->miName, &szMember);
+			bConstructor = szMember.Equals(szClass.Text());
+			szMember.Kill();
+		}
+	}
+	szClass.Kill();
+	return bConstructor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name's component written with template arguments: a warning if it is
+// a template's instance that a class declared above it is the name of.
+// It is the instance if it is written as the class's base is, from the
+// start of its name to the end of its arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPNameClasses* papcClasses)
+{
+	CCPPSyntaxClassSpecifier*	pcClass;
+	CCPPSyntaxName*				pcBase;
+	CCPPSyntaxName*				pcName;
+	SPreprocessedToken*			psSource;
+	CChars						szInstance;
+	CChars						szBase;
+	CChars						szMessage;
+	size						i;
+
+	if (!pcComponent->mbTemplateArguments || !pcComponent->mpcParent || (pcComponent->mpcParent->GetKind() != CPPS_Name) || (pcComponent->miFirstToken < 0))
+	{
+		return;
+	}
+	pcName = (CCPPSyntaxName*)pcComponent->mpcParent;
+	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get((size)pcName->miFirstToken));
+	if (!psSource || (psSource->pcFile && psSource->pcFile->IsSystemFile()))
+	{
+		return;
+	}
+	szInstance.Init();
+	AppendTokensText(pcName->miFirstToken, pcComponent->miLastToken, &szInstance);
+	for (i = 0; i < papcClasses->NumElements(); i++)
+	{
+		pcClass = papcClasses->GetPtr(i);
+		pcBase = ((CCPPSyntaxBaseSpecifier*)pcClass->macpBases.GetPtr(0))->mpcName;
+		if ((pcBase == pcName) || (pcClass->miLastToken > pcName->miFirstToken))
+		{
+			continue;
+		}
+		szBase.Init();
+		AppendTokensText(pcBase->miFirstToken, pcBase->miLastToken, &szBase);
+		if (szBase.Equals(szInstance.Text()))
+		{
+			szMessage.Init(szInstance);
+			szMessage.Append(" has the name ");
+			AppendTokensText(pcClass->mpcName->GetLast()->miName, pcClass->mpcName->GetLast()->miName, &szMessage);
+			szMessage.Append(": use the name, which is a type of its own");
+			Warning(pcName, szMessage.Text());
+			szMessage.Kill();
+			szBase.Kill();
+			break;
+		}
+		szBase.Kill();
+	}
+	szInstance.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A run of tokens as they are written, with nothing between them:
+// "CTankTemplate<CGauge>" however it was spaced.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendTokensText(int iFirstToken, int iLastToken, CChars* pszDest)
+{
+	SPreprocessedToken*	psSource;
+	int					i;
+
+	for (i = iFirstToken; (i >= 0) && (i <= iLastToken) && ((size)i < mpcTokeniser->NumTokens()); i++)
+	{
+		psSource = mpcTokeniser->GetSource(mpcTokeniser->Get((size)i));
+		if (psSource && psSource->szText)
+		{
+			pszDest->Append(psSource->szText, psSource->uiLength);
+		}
+	}
+}

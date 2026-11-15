@@ -444,6 +444,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	//Functions generated when they are first called, which may call others.
 	GenerateQueued();
 	ReportClassErrors();
+	ReportNamedInstances();
 	CheckContext();
 	mpcStatistics->End(CPPCP_Declarations);
 
