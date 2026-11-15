@@ -229,10 +229,13 @@
     <ClCompile Include="TestIsosurfaceGrid.cpp" />
     <ClCompile Include="TestMarchingCubes.cpp" />
     <ClCompile Include="TestIsosurfaceFit.cpp" />
+    <ClCompile Include="IsosurfaceMeshes.cpp" />
+    <ClCompile Include="TestDualContouring.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
     <ClInclude Include="TestGyroid.h" />
+    <ClInclude Include="IsosurfaceMeshes.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

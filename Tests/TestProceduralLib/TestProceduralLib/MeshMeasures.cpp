@@ -153,6 +153,84 @@ float32 FurthestMeshCornerFromSurface(CMesh* pcMesh, CShape* pcShape)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+float32 MeshVolume(CMesh* pcMesh)
+{
+	int				i;
+	int				iNumFaces;
+	int*			piCorners;
+	SFloat32Vec3	sCross;
+	float32			fVolume;
+
+	fVolume = 0.0f;
+	iNumFaces = pcMesh->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		piCorners = pcMesh->GetFaceCorners(i);
+		Float32Vec3Cross(&sCross, pcMesh->GetPosition(piCorners[1]), pcMesh->GetPosition(piCorners[2]));
+		fVolume += Float32Vec3Dot(pcMesh->GetPosition(piCorners[0]), &sCross);
+	}
+	return fVolume / 6.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+float32 MeshArea(CMesh* pcMesh)
+{
+	int				i;
+	int				iNumFaces;
+	SFloat32Vec3	sNormal;
+	SFloat32Vec3	sMiddle;
+	float32			fArea;
+
+	fArea = 0.0f;
+	iNumFaces = pcMesh->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		MeshFaceNormal(pcMesh, i, &sNormal, &sMiddle);
+		fArea += sNormal.Magnitude() * 0.5f;
+	}
+	return fArea;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CountMeshCornersOnCircle(CMesh* pcMesh, SFloat32Vec3* psCentre, SFloat32Vec3* psAxis, float32 fRadius, float32 fTolerance)
+{
+	int				i;
+	int				iNumCorners;
+	int				iOn;
+	SFloat32Vec3	sOffset;
+	SFloat32Vec3	sAcross;
+	float32			fAlong;
+	float32			fOut;
+
+	iOn = 0;
+	iNumCorners = pcMesh->NumCorners();
+	for (i = 0; i < iNumCorners; i++)
+	{
+		sOffset = *pcMesh->GetPosition(i) - *psCentre;
+		fAlong = Float32Vec3Dot(&sOffset, psAxis);
+		sAcross = sOffset - (*psAxis * fAlong);
+		fOut = (float32)sAcross.Magnitude() - fRadius;
+		if (((fAlong * fAlong) + (fOut * fOut)) < (fTolerance * fTolerance))
+		{
+			iOn++;
+		}
+	}
+	return iOn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 float32 NearestMeshCorner(CMesh* pcMesh, SFloat32Vec3* psPoint)
 {
 	int				i;

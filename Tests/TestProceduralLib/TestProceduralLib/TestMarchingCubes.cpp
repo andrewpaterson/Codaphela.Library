@@ -10,34 +10,7 @@
 #include "TestLib/Assert.h"
 #include "MeshMeasures.h"
 #include "TestGyroid.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pcShape meshed by marching cubes on a grid of fCellSize around it.
-//
-//////////////////////////////////////////////////////////////////////////
-static Ptr<CMesh> TestMarchingCubesMesh(CShape* pcShape, float32 fCellSize)
-{
-	Ptr<CMesh>		pMesh;
-	CMeshEditor		cEditor;
-	CIsosurfaceGrid	cGrid;
-	CMarchingCubes	cMarchingCubes;
-	SFloat32Bounds	sBounds;
-
-	GrownShapeBounds(&sBounds, pcShape, fCellSize);
-	cGrid.Init(&sBounds, fCellSize);
-	cGrid.Sample(pcShape);
-
-	pMesh = OMalloc<CMesh>();
-	cEditor.Init(pMesh);
-	cMarchingCubes.Init();
-	cMarchingCubes.Generate(&cEditor, &cGrid);
-	cMarchingCubes.Kill();
-	cEditor.Kill();
-	cGrid.Kill();
-	return pMesh;
-}
+#include "IsosurfaceMeshes.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -158,7 +131,7 @@ void TestMarchingCubesSmooth(void)
 
 	sCentre.Init(0.1f, 0.2f, 0.3f);
 	pSphere = OMalloc<CSphere>(&sCentre, 2.0f);
-	pMesh = TestMarchingCubesMesh(&pSphere, 0.25f);
+	pMesh = MarchingCubesMesh(&pSphere, 0.25f);
 	AssertTrue(pMesh->NumFaces() > 500);
 	AssertInt(0, CountMeshOpenEdges(&pMesh));
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
@@ -167,14 +140,14 @@ void TestMarchingCubesSmooth(void)
 
 	sAxis.Init(1, 2, 3);
 	pCylinder = OMalloc<CCylinder>(&sAxis, &sCentre, 1.5f, 3.0f);
-	pMesh = TestMarchingCubesMesh(&pCylinder, 0.25f);
+	pMesh = MarchingCubesMesh(&pCylinder, 0.25f);
 	AssertInt(0, CountMeshOpenEdges(&pMesh));
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
 	AssertInt(0, CountMeshFacesFacingIn(&pMesh, &pCylinder));
 	AssertTrue(FurthestMeshCornerFromSurface(&pMesh, &pCylinder) < 0.0001f);
 
 	pTorus = OMalloc<CTorus>(&sAxis, &sCentre, 2.0f, 0.75f);
-	pMesh = TestMarchingCubesMesh(&pTorus, 0.25f);
+	pMesh = MarchingCubesMesh(&pTorus, 0.25f);
 	AssertInt(0, CountMeshOpenEdges(&pMesh));
 	AssertInt(0, MeshEulerCharacteristic(&pMesh));
 	AssertInt(0, CountMeshFacesFacingIn(&pMesh, &pTorus));
@@ -212,7 +185,7 @@ void TestMarchingCubesGyroid(void)
 	pShape = OMalloc<CShapeIntersection>();
 	pShape->Add(pSphere);
 	pShape->Add(pGyroid);
-	pMesh = TestMarchingCubesMesh(&pShape, 0.2f);
+	pMesh = MarchingCubesMesh(&pShape, 0.2f);
 	AssertTrue(pMesh->NumFaces() > 1000);
 	AssertInt(0, CountMeshOpenEdges(&pMesh));
 
@@ -261,7 +234,7 @@ void TestMarchingCubesBox(void)
 	asAxes[2].Init(0, 0, 1);
 	sBox.Init(&sCentre, &asAxes[0], 1.1f, &asAxes[1], 0.9f, &asAxes[2], 0.7f);
 	pBox = OMalloc<CBox>(&sBox);
-	pMesh = TestMarchingCubesMesh(&pBox, 0.25f);
+	pMesh = MarchingCubesMesh(&pBox, 0.25f);
 	AssertInt(0, CountMeshOpenEdges(&pMesh));
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
 	AssertInt(0, CountMeshFacesFacingIn(&pMesh, &pBox));

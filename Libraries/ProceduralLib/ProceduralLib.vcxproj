@@ -23,12 +23,14 @@
     <ClCompile Include="IsosurfaceGrid.cpp" />
     <ClCompile Include="MarchingCubes.cpp" />
     <ClCompile Include="IsosurfaceFit.cpp" />
+    <ClCompile Include="DualContouring.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
     <ClInclude Include="IsosurfaceGrid.h" />
     <ClInclude Include="MarchingCubes.h" />
     <ClInclude Include="IsosurfaceFit.h" />
+    <ClInclude Include="DualContouring.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>

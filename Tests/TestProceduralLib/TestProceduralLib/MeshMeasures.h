@@ -22,6 +22,15 @@ int		CountMeshFacesWithNoArea(CMesh* pcMesh);
 //The furthest any corner is from pcShape's surface.
 float32	FurthestMeshCornerFromSurface(CMesh* pcMesh, CShape* pcShape);
 
+//The volume a closed mesh facing out holds, from the divergence theorem: each face's corners' triple product over 6.
+float32	MeshVolume(CMesh* pcMesh);
+
+//The faces' areas added up.
+float32	MeshArea(CMesh* pcMesh);
+
+//How many corners are within fTolerance of the circle of fRadius around psCentre, across psAxis (a unit).
+int		CountMeshCornersOnCircle(CMesh* pcMesh, SFloat32Vec3* psCentre, SFloat32Vec3* psAxis, float32 fRadius, float32 fTolerance);
+
 //How near the nearest corner comes to psPoint.
 float32	NearestMeshCorner(CMesh* pcMesh, SFloat32Vec3* psPoint);
 

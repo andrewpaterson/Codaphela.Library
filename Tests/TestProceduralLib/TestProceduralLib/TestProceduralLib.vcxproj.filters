@@ -24,12 +24,21 @@
     <ClCompile Include="TestIsosurfaceFit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IsosurfaceMeshes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDualContouring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="TestGyroid.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IsosurfaceMeshes.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
