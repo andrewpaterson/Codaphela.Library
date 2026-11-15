@@ -304,6 +304,9 @@
     <ClCompile Include="TestTextMarkupParser.cpp">
       <Filter>Source Files\Image\Font</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshUVMeasures.cpp">
+      <Filter>Source Files\Image\Font</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h">

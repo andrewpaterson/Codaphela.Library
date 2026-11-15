@@ -465,6 +465,7 @@
     <ClInclude Include="VectorRasteriser.h" />
     <ClInclude Include="VectorShapes.h" />
     <ClInclude Include="TrueTypeRasteriser.h" />
+    <ClInclude Include="MeshUVMeasures.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseFontDraw.cpp" />
@@ -732,6 +733,7 @@
     <ClCompile Include="VectorRasteriser.cpp" />
     <ClCompile Include="VectorShapes.cpp" />
     <ClCompile Include="TrueTypeRasteriser.cpp" />
+    <ClCompile Include="MeshUVMeasures.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
