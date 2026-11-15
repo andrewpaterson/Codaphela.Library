@@ -1445,6 +1445,9 @@
     <ClCompile Include="MeshTorusEditor.cpp">
       <Filter>Source\Mesh\Modifier\Source\Shape</Filter>
     </ClCompile>
+    <ClCompile Include="MeshSphereEditor.cpp">
+      <Filter>Source\Mesh\Modifier\Source\Shape\Spherical</Filter>
+    </ClCompile>
     <ClCompile Include="MeshCornerBuilder.cpp">
       <Filter>Source\Mesh\IO</Filter>
     </ClCompile>

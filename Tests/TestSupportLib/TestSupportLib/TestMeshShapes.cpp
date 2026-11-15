@@ -9,6 +9,7 @@
 #include "SupportLib/MeshConeEditor.h"
 #include "SupportLib/MeshCylinderEditor.h"
 #include "SupportLib/MeshTubeEditor.h"
+#include "SupportLib/MeshSphereEditor.h"
 #include "SupportLib/MeshTorusEditor.h"
 #include "SupportLib/MeshWriter.h"
 #include "BaseLib/TextFile.h"
@@ -154,6 +155,46 @@ static void AssertShapeClosed(CMesh* pcMesh, int iEulerCharacteristic)
 	}
 	AssertTrue(bClosed);
 	AssertInt(iEulerCharacteristic, pcMesh->NumCorners() - iNumEdges + pcMesh->NumFaces());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every corner is fRadius from psCentre, and every face faces away from it
+// (or towards it if bInward).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertBallShape(CMesh* pcMesh, SFloat32Vec3* psCentre, float32 fRadius, bool bInward)
+{
+	int				i;
+	SFloat32Vec3	sNormal;
+	SFloat32Vec3	sMiddle;
+	SFloat32Vec3	sOut;
+	bool			bOnSurface;
+	bool			bFacing;
+
+	bOnSurface = true;
+	for (i = 0; i < pcMesh->NumCorners(); i++)
+	{
+		sOut = *pcMesh->GetPosition(i) - *psCentre;
+		if (fabsf(sOut.Magnitude() - fRadius) > 0.0001f)
+		{
+			bOnSurface = false;
+		}
+	}
+	AssertTrue(bOnSurface);
+
+	bFacing = true;
+	for (i = 0; i < pcMesh->NumFaces(); i++)
+	{
+		TestShapeFaceNormal(pcMesh, i, &sNormal, &sMiddle);
+		sOut = sMiddle - *psCentre;
+		if ((Float32Vec3Dot(&sNormal, &sOut) > 0.0f) == bInward)
+		{
+			bFacing = false;
+		}
+	}
+	AssertTrue(bFacing);
 }
 
 
@@ -753,6 +794,85 @@ void TestCylinder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestSphere(void)
+{
+	CMesh				cMesh;
+	SFloat32Vec3		sZDirection;
+	SFloat32Vec3		sCentre;
+	CMeshSphereEditor*	pcSphereEditor;
+	CMeshEditor			cMeshEditor;
+	CFileUtil			cFileUtil;
+
+	cFileUtil.RemoveDir("Output/Shape");
+	cFileUtil.MakeDir("Output/Shape");
+
+	sZDirection.Init(0, 0, 1);
+	sCentre.Init(1, 2, 3);
+
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	pcSphereEditor = cMeshEditor.AddModifier<CMeshSphereEditor>();
+	pcSphereEditor->Init(&sZDirection, &sCentre, 2.0f, 8, 4);
+	AssertInt(26, pcSphereEditor->ExpectedCornerChunkSize());
+	AssertInt(48, pcSphereEditor->ExpectedFaceChunkSize());
+
+	cMeshEditor.Collapse();
+	WriteMesh(&cMesh, "Output/Shape/Sphere8x4.OBJ");
+
+	AssertInt(26, cMesh.NumCorners());
+	AssertInt(48, cMesh.NumFaces());
+	AssertInt(72, cMesh.NumEdges());
+	AssertInt(16 + 16, cMeshEditor.NumPolygons());
+	AssertInt(1, cMeshEditor.mpMesh->mcPolygons.NumUniqueNames());
+	AssertFloat3(SFloat32Vec3(1, 2, 1), cMesh.GetPosition(0), 3);
+	AssertFloat3(SFloat32Vec3(1, 2 + sqrtf(2.0f), 3 - sqrtf(2.0f)), cMesh.GetPosition(1), 3);
+	AssertFloat3(SFloat32Vec3(1, 2, 5), cMesh.GetPosition(25), 3);
+	AssertShapeClosed(&cMesh, 2);
+	AssertBallShape(&cMesh, &sCentre, 2.0f, false);
+
+	cMeshEditor.RemoveModifiers();
+	cMeshEditor.Kill();
+	cMesh.Kill();
+	AssertOBJShape("Input/Shape/Sphere8x4.OBJ", "Output/Shape/Sphere8x4.OBJ");
+
+	//The fewest bands: two cones of three faces, base to base.
+	sCentre.Init(0, 0, 0);
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	cMeshEditor.AddModifier<CMeshSphereEditor>()->Init(&sZDirection, &sCentre, 1.0f, 3, 2);
+	cMeshEditor.Collapse();
+	AssertInt(5, cMesh.NumCorners());
+	AssertInt(6, cMesh.NumFaces());
+	AssertInt(6, cMeshEditor.NumPolygons());
+	AssertShapeClosed(&cMesh, 2);
+	AssertBallShape(&cMesh, &sCentre, 1.0f, false);
+	cMeshEditor.Kill();
+	cMesh.Kill();
+
+	//Along Y, which a cone's wedges can't be turned about, and flipped.
+	sZDirection.Init(0, 2, 0);
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	pcSphereEditor = cMeshEditor.AddModifier<CMeshSphereEditor>();
+	pcSphereEditor->Init(&sZDirection, &sCentre, 1.0f, 6, 3);
+	pcSphereEditor->SetFlipFaces(true);
+	cMeshEditor.Collapse();
+	AssertInt(14, cMesh.NumCorners());
+	AssertInt(24, cMesh.NumFaces());
+	AssertFloat3(SFloat32Vec3(0, -1, 0), cMesh.GetPosition(0), 3);
+	AssertShapeClosed(&cMesh, 2);
+	AssertBallShape(&cMesh, &sCentre, 1.0f, true);
+	cMeshEditor.Kill();
+	cMesh.Kill();
+
+	cFileUtil.RemoveDir("Output/Shape");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestTorus(void)
 {
 	CMesh				cMesh;
@@ -919,6 +1039,7 @@ void TestMeshShapes(void)
 	TestCone();
 	TestCylinder();
 	TestTube();
+	TestSphere();
 	TestTorus();
 
 	ObjectsKill(false);
