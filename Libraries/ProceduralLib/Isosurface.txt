@@ -62,8 +62,10 @@ The octree covers a box given by the caller: its root cell, the smallest cell si
     finds a notch or spike thinner than the cell whose walls the corners don't see.
   Nothing thinner than the smallest cell is expected to survive.  A sphere smaller than it may vanish.
 
-Cells that make no faces are dropped, so a scene mostly of empty space costs little.  Corner distances are shared between
-neighbouring cells, keyed by their position on the finest grid, so each is worked out once.
+Cells that make no faces are dropped, so a scene mostly of empty space costs little.  Corner distances were to be shared between
+neighbouring cells, keyed by their position on the finest grid, so each is worked out once.  They aren't yet: a distance is the
+same each time it's worked out, so cells agree on their signs, and BaseLib's maps count with a size, which a big octree could
+pass with a 16 bit one.
 
 
 Placing a cell's vertex
@@ -162,6 +164,15 @@ that plan's step 8, done in these sub-steps, each with its tests in TestProcedur
     an angle or its centre's distance differs from what its corners predict.  An edge is taken from the smallest cell around it,
     so nothing cracks between sizes.  Tests: closed with no cracks, a V notch thinner than the largest cell kept, a flat face
     left coarse, and far fewer cells than the uniform grid.
+    Done: CIsosurfaceOctree.  Faces are made on the minimal edges (each leaf's edges with no smaller leaf around them), and each
+    crossing is added to the fits of all the leaves around its edge, so a big leaf beside small ones has a vertex.  Two things
+    the plan didn't have, both against faces folding over where sizes change: the tree is balanced (leaves beside each other
+    differ by one size at most), and a crossing counts in a leaf's fit by its edge's length over the leaf's size, so a big
+    leaf's small neighbours don't pull its vertex over theirs.  A turned box went from 43 faces facing in to 1.  Splitting by
+    the distance needs a bound, so the test gyroid is divided by its steepest slope.  At cells from 1 to 0.0625, a sphere has a
+    quarter of a uniform grid's corners and a box half, a V notch a third of the largest cell is kept, and a gyroid cut by a
+    sphere is closed with none of its own faces folded.  A box's corners are within a quarter of the smallest cell, as the
+    cell holding one may not cross all three of its faces (Known limits).
 8.7 Shape to mesh: one CMeshSourceModifier in ProceduralLib holding a Ptr<CShape>, now that modifiers are CObjects
     (ScenePlan.txt, step 2).  A primitive is made exactly by its own mesh editor with the same values (ShapePlan.txt, section
     5); anything else goes through the isosurface.  Tests: a primitive's mesh is its editor's, a combination's is closed and
