@@ -10,6 +10,7 @@
 #include "SupportLib/MeshCylinderEditor.h"
 #include "SupportLib/MeshTubeEditor.h"
 #include "SupportLib/MeshSphereEditor.h"
+#include "SupportLib/MeshGeosphereEditor.h"
 #include "SupportLib/MeshTorusEditor.h"
 #include "SupportLib/MeshWriter.h"
 #include "BaseLib/TextFile.h"
@@ -873,6 +874,105 @@ void TestSphere(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestGeosphere(void)
+{
+	CMesh					cMesh;
+	SFloat32Vec3			sZDirection;
+	SFloat32Vec3			sCentre;
+	CMeshGeosphereEditor*	pcGeosphereEditor;
+	CMeshEditor				cMeshEditor;
+	CFileUtil				cFileUtil;
+	CMeshEdge*				pcEdge;
+	SFloat32Vec3			sEdge;
+	float32					fShortest;
+	float32					fLongest;
+	float32					fLength;
+	int						i;
+
+	cFileUtil.RemoveDir("Output/Shape");
+	cFileUtil.MakeDir("Output/Shape");
+
+	sZDirection.Init(0, 0, 1);
+	sCentre.Init(0, 0, 0);
+
+	//An icosahedron.
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	cMeshEditor.AddModifier<CMeshGeosphereEditor>()->Init(&sZDirection, &sCentre, 1.0f, 1);
+	cMeshEditor.Collapse();
+	AssertInt(12, cMesh.NumCorners());
+	AssertInt(20, cMesh.NumFaces());
+	AssertInt(30, cMesh.NumEdges());
+	AssertInt(20, cMeshEditor.NumPolygons());
+	AssertFloat3(SFloat32Vec3(0, 0, 1), cMesh.GetPosition(0), 3);
+	AssertFloat3(SFloat32Vec3(0, 0, -1), cMesh.GetPosition(11), 3);
+	AssertShapeClosed(&cMesh, 2);
+	AssertBallShape(&cMesh, &sCentre, 1.0f, false);
+	cMeshEditor.Kill();
+	cMesh.Kill();
+
+	sCentre.Init(-1, 0.5f, 2);
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	pcGeosphereEditor = cMeshEditor.AddModifier<CMeshGeosphereEditor>();
+	pcGeosphereEditor->Init(&sZDirection, &sCentre, 3.0f, 3);
+	AssertInt(92, pcGeosphereEditor->ExpectedCornerChunkSize());
+	AssertInt(180, pcGeosphereEditor->ExpectedFaceChunkSize());
+	cMeshEditor.Collapse();
+	WriteMesh(&cMesh, "Output/Shape/Geosphere3.OBJ");
+
+	AssertInt(92, cMesh.NumCorners());
+	AssertInt(180, cMesh.NumFaces());
+	AssertInt(270, cMesh.NumEdges());
+	AssertInt(180, cMeshEditor.NumPolygons());
+	AssertInt(270, cMeshEditor.NumVisibleEdges(1));
+	AssertShapeClosed(&cMesh, 2);
+	AssertBallShape(&cMesh, &sCentre, 3.0f, false);
+
+	//Its triangles are nearly all the same size.
+	fShortest = 1000.0f;
+	fLongest = 0.0f;
+	for (i = 0; i < cMesh.NumEdges(); i++)
+	{
+		pcEdge = cMesh.GetEdge(i);
+		sEdge = *cMesh.GetPosition(pcEdge->maiCorner[0]) - *cMesh.GetPosition(pcEdge->maiCorner[1]);
+		fLength = sEdge.Magnitude();
+		fShortest = (fLength < fShortest) ? fLength : fShortest;
+		fLongest = (fLength > fLongest) ? fLength : fLongest;
+	}
+	AssertTrue(fShortest / fLongest > 0.8f);
+
+	cMeshEditor.RemoveModifiers();
+	cMeshEditor.Kill();
+	cMesh.Kill();
+	AssertOBJShape("Input/Shape/Geosphere3.OBJ", "Output/Shape/Geosphere3.OBJ");
+
+	//On a slant, and flipped.
+	sZDirection.Init(1, 1, 1);
+	cMesh.Init();
+	cMeshEditor.Init(&cMesh);
+	pcGeosphereEditor = cMeshEditor.AddModifier<CMeshGeosphereEditor>();
+	pcGeosphereEditor->Init(&sZDirection, &sCentre, 0.5f, 2);
+	pcGeosphereEditor->SetFlipFaces(true);
+	pcGeosphereEditor->SetFaceName(5);
+	cMeshEditor.Collapse();
+	AssertInt(42, cMesh.NumCorners());
+	AssertInt(80, cMesh.NumFaces());
+	AssertInt(5, cMesh.GetFaceName(79));
+	AssertFloat3(SFloat32Vec3(-1 + 0.5f / sqrtf(3.0f), 0.5f + 0.5f / sqrtf(3.0f), 2 + 0.5f / sqrtf(3.0f)), cMesh.GetPosition(0), 3);
+	AssertShapeClosed(&cMesh, 2);
+	AssertBallShape(&cMesh, &sCentre, 0.5f, true);
+	cMeshEditor.Kill();
+	cMesh.Kill();
+
+	cFileUtil.RemoveDir("Output/Shape");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestTorus(void)
 {
 	CMesh				cMesh;
@@ -1040,6 +1140,7 @@ void TestMeshShapes(void)
 	TestCylinder();
 	TestTube();
 	TestSphere();
+	TestGeosphere();
 	TestTorus();
 
 	ObjectsKill(false);

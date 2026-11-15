@@ -6,6 +6,7 @@
 #include "SupportLib/MeshConeEditor.h"
 #include "SupportLib/MeshCylinderEditor.h"
 #include "SupportLib/MeshDiscEditor.h"
+#include "SupportLib/MeshGeosphereEditor.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshModifierStack.h"
 #include "SupportLib/MeshPlaneEditor.h"
@@ -30,6 +31,7 @@ enum ETestMeshShape
 	TMS_Cylinder,
 	TMS_Tube,
 	TMS_Sphere,
+	TMS_Geosphere,
 	TMS_Torus,
 	TMS_NumShapes
 };
@@ -76,6 +78,9 @@ static void TestMeshSourceAddShape(CMeshModifierStack* pcStack, ETestMeshShape e
 		break;
 	case TMS_Sphere:
 		pcStack->AddModifier<CMeshSphereEditor>()->Init(&sZ, &sStart, 1.0f, 4, 3);
+		break;
+	case TMS_Geosphere:
+		pcStack->AddModifier<CMeshGeosphereEditor>()->Init(&sZ, &sStart, 1.0f, 2);
 		break;
 	case TMS_Torus:
 		pcStack->AddModifier<CMeshTorusEditor>()->Init(&sZ, &sStart, 1.0f, 0.25f, 4, 3);

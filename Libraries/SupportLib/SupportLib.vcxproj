@@ -686,6 +686,7 @@
     <ClCompile Include="MeshTubeEditor.cpp" />
     <ClCompile Include="MeshTorusEditor.cpp" />
     <ClCompile Include="MeshSphereEditor.cpp" />
+    <ClCompile Include="MeshGeosphereEditor.cpp" />
     <ClCompile Include="MeshCornerBuilder.cpp" />
     <ClCompile Include="MeshFileType.cpp" />
     <ClCompile Include="MeshReader.cpp" />
