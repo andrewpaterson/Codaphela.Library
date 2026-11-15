@@ -62,6 +62,7 @@ struct SCPP65Type
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
+	bool			bRvalue;		//A reference: T&&, which binds to what has no name or is about to go; else T&.
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
 	bool			bScopedEnum;	//...an enum class: no value of it becomes another type, or another type's it, without a cast.
 	bool			bConst;			//const T: a copy of psUnqualified that can't be written through.
@@ -78,6 +79,8 @@ struct SCPP65Type
 	bool	IsVoid(void);
 	bool	IsClass(void);
 	bool	IsReference(void);
+	bool	IsRvalueReference(void);
+	bool	IsLvalueReference(void);
 	bool	IsMemberPointer(void);
 	bool	IsFloat(void);
 	bool	IsSupported(void);
@@ -143,7 +146,7 @@ public:
 	SCPP65Type*			Pointer(SCPP65Type* psBase);
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
-	SCPP65Type*			Reference(SCPP65Type* psBase);
+	SCPP65Type*			Reference(SCPP65Type* psBase, bool bRvalue = false);
 	SCPP65Type*			MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember);
 	SCPP65Type*			Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned, bool bScoped);
 	SCPP65Type*			FindEnum(CCPPSymbol* pcEnum);
@@ -171,7 +174,7 @@ protected:
 	static uint64		HashStructure(SCPP65Type* psType);
 	static void			AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext);
 	static SCPP65Type*	GetMapped(CMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey);
-	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount);
+	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount, bool bRvalue = false);
 };
 
 

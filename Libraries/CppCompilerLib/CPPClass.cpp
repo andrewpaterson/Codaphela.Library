@@ -283,23 +283,27 @@ bool CCPPClass::NeedsDestructor(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the class declares a constructor that takes one of its objects (a copy
-// constructor).
+// True if the class declares a constructor that takes one of its objects, to
+// copy or to move: making an object from another is then a choice among its
+// constructors.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::HasCopyConstructor(void)
 {
-	return GetCopyConstructor() != NULL;
+	return GetCopier(false, false) || GetCopier(false, true);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class's copy constructor (taking one of its objects by reference, any other
-// parameters having defaults), or NULL.
+// The member the class declares that makes one of its objects from another (a
+// constructor) or, with bAssignment, gives one the value of another
+// (operator=): the one taking the other by T& or const T&, a copy, or with
+// bMove by T&&, a move.  Any other parameters have defaults.  NULL if it
+// declares none.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPClass::GetCopyConstructor(void)
+CCPPFunction* CCPPClass::GetCopier(bool bAssignment, bool bMove)
 {
 	CCPPFunction*	pcFunction;
 	SCPP65Type*		psParameter;
@@ -308,17 +312,86 @@ CCPPFunction* CCPPClass::GetCopyConstructor(void)
 	for (i = 0; i < mapcMembers.NumElements(); i++)
 	{
 		pcFunction = mapcMembers.GetPtr(i);
-		if ((pcFunction->meKind != CPPFK_Constructor) || pcFunction->mbImplicit || (pcFunction->mapsParameters.NumElements() == 0))
+		if (bAssignment ? (pcFunction->mlliName != CPP_OPERATOR_NAME(CT_Assignment)) : (pcFunction->meKind != CPPFK_Constructor))
+		{
+			continue;
+		}
+		if (pcFunction->mbImplicit || (pcFunction->mapsParameters.NumElements() == 0) || (pcFunction->RequiredParameters() != 1))
 		{
 			continue;
 		}
 		psParameter = pcFunction->mapsParameters.GetPtr(0);
-		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->pcClass == this) && (pcFunction->RequiredParameters() == 1))
+		if (psParameter->IsReference() && (psParameter->bRvalue == bMove) && psParameter->psBase->IsClass() && (psParameter->psBase->pcClass == this))
 		{
 			return pcFunction;
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member that copies an object of the class that is part of another
+// (a base or a field of an object copied member by member), or moves it
+// with bMove: what is moved is copied if the class declares no move.
+// NULL if the class declares neither, and its own parts are done.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPClass::GetPartCopier(bool bAssignment, bool bMove)
+{
+	CCPPFunction*	pcFunction;
+
+	pcFunction = bMove ? GetCopier(bAssignment, true) : NULL;
+	return pcFunction ? pcFunction : GetCopier(bAssignment, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the class's objects can't be copied or assigned unless it says
+// how: it declares a move constructor or a move assignment, which takes
+// away the copies the compiler would have written.  [class.copy] 7, 18
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::IsCopyDeleted(void)
+{
+	return GetCopier(false, true) || GetCopier(true, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if assigning the class's objects copies their bytes: neither it nor
+// its bases and fields have an operator= for their own objects.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::IsTriviallyAssignable(void)
+{
+	SCPP65Type*		psType;
+	size			i;
+
+	if (GetCopier(true, false) || GetCopier(true, true))
+	{
+		return false;
+	}
+	for (i = 0; i < macBases.NumElements(); i++)
+	{
+		if (!macBases.Get(i)->pcClass->IsTriviallyAssignable())
+		{
+			return false;
+		}
+	}
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		psType = macFields.Get(i)->psType;
+		psType = psType->IsArray() ? psType->psBase : psType;
+		if (psType->IsClass() && !psType->pcClass->IsTriviallyAssignable())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 

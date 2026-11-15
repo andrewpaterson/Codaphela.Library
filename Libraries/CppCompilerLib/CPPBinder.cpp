@@ -369,7 +369,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 
 	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcCallee)));
+	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
 	if (!pcFunction)
 	{
 		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
@@ -532,7 +532,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
 	pcComponent = pcName->GetLast();
 	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
-	eObject = CPPCalledObject(pcObject ? (bArrow ? mpcUnit->IsConstPointer(pcObject) : mpcUnit->IsConstObject(pcObject)) : mpcUnit->IsConstThis());
+	eObject = CalledObject(pcObject, bArrow);
 	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcBound->mpapcArguments, papcExplicit, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !papcExplicit)
@@ -668,7 +668,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		//That none of its own fits is no error: one that is no class's may.
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
 		mpcUnit->BeginQuiet();
-		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
+		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
 		mpcUnit->EndQuiet();
 		mpcUnit->GetErrors()->Truncate(uiErrors);
 		if (pcFunction)
@@ -727,7 +727,7 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		apcArguments.Add(pcBound->mpcRight);
 	}
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcLeft)));
+	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
 	apcArguments.Kill();
 	if (!pcFunction)
 	{
@@ -822,6 +822,27 @@ bool CCPPBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArgu
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object a member function is called on, for the choice among const
+// and & and && overloads: pcObject (what a pointer points to with
+// bArrow), or the function's own when there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPCalledObject CCPPBinder::CalledObject(CCPPSyntax* pcObject, bool bArrow)
+{
+	if (!pcObject)
+	{
+		return CPPCalledObject(mpcUnit->IsConstThis());
+	}
+	if (bArrow)
+	{
+		return CPPCalledObject(mpcUnit->IsConstPointer(pcObject));
+	}
+	return CPPCalledObject(mpcUnit->IsConstObject(pcObject), mpcUnit->IsRvalue(pcObject));
 }
 
 

@@ -94,7 +94,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			break;
 		case CPPP_Reference:
 		case CPPP_RValueReference:
-			psType = mpcUnit->GetTypes()->Reference(psType);
+			psType = mpcUnit->GetTypes()->Reference(psType, pcPointer->meKind == CPPP_RValueReference);
 			break;
 		case CPPP_MemberPointer:
 			pcClass = pcPointer->mpcClass ? mpcUnit->GetNameClass(pcPointer->mpcClass, pcNode) : NULL;

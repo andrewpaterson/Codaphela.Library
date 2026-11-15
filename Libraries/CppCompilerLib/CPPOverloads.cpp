@@ -966,14 +966,24 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 {
 	int64			lliValue;
 	bool			bReference;
+	bool			bRvalue;
 	CCPPFunction*	pcConversion;
 
 	bReference = psParameter->IsReference();
+	bRvalue = psParameter->IsRvalueReference();
 	psParameter = bReference ? psParameter->psBase : psParameter;
 	psArgument = psArgument->WithoutReference();
-	if (bReference && !psParameter->bConst && !psParameter->IsClass() && pcArgument && !mpcUnit->PlaceOf(pcArgument))
+	if (bRvalue)
 	{
-		//A value with no address only binds to a const reference.
+		if (pcArgument && !mpcUnit->IsRvalue(pcArgument))
+		{
+			//What has a name doesn't bind to T&&.  [dcl.init.ref] 5.2
+			return CPPCR_None;
+		}
+	}
+	else if (bReference && !psParameter->bConst && !psParameter->IsClass() && pcArgument && mpcUnit->IsRvalue(pcArgument))
+	{
+		//A value with no name only binds to a const reference or T&&.
 		return CPPCR_None;
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && (mpcUnit->SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression))
@@ -983,10 +993,15 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	}
 	if (psParameter->Equals(psArgument))
 	{
+		if (bRvalue)
+		{
+			//T&& takes what it binds to as it is, and const T&& a T.
+			return psParameter->HasQualifiersOf(psArgument) ? CPPCR_Exact : CPPCR_None;
+		}
 		if (bReference && psArgument->IsClass() && !psArgument->bConst && pcArgument && IsTemporary(pcArgument, psArgument->pcClass))
 		{
-			//An object made for the call binds best to a const reference (T& takes it too, as MSVC lets it).
-			return psParameter->bConst ? CPPCR_Exact : CPPCR_Qualification;
+			//An object made for the call binds to a const reference (T& takes it too, as MSVC lets it).
+			return psParameter->bConst ? CPPCR_RvalueToConst : CPPCR_Qualification;
 		}
 		//A copy doesn't care what its source's own const is; a reference does, as does what a pointer points to.
 		return QualificationRank(psParameter, psArgument, bReference);
@@ -1209,9 +1224,21 @@ int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 
 	bFirst = false;
 	bSecond = false;
-	if ((eObject != CPPCO_None) && (pcFirst->mbConstThis != pcSecond->mbConstThis))
+	if (CPPCalledRvalue(eObject) && (pcFirst->meRefQualifier != pcSecond->meRefQualifier))
 	{
-		if (pcFirst->mbConstThis == (eObject == CPPCO_Const))
+		//An object that is going is taken by f() && before f() const &, as T&& before const T&.
+		if (pcFirst->meRefQualifier == CPPRQ_Rvalue)
+		{
+			bFirst = true;
+		}
+		else if (pcSecond->meRefQualifier == CPPRQ_Rvalue)
+		{
+			bSecond = true;
+		}
+	}
+	else if ((eObject != CPPCO_None) && (pcFirst->mbConstThis != pcSecond->mbConstThis))
+	{
+		if (pcFirst->mbConstThis == CPPCalledConst(eObject))
 		{
 			bFirst = true;
 		}
@@ -1492,7 +1519,7 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 	pcTemplate = (papcChosen->NumElements() > 0) ? papcChosen->GetPtr(0) : NULL;
 	for (i = 0; (eObject != CPPCO_None) && (i < papcChosen->NumElements()); i++)
 	{
-		if (mpcUnit->IsConstSuffix(papcChosen->GetPtr(i)->mpcDeclarator->GetFunctionSuffix()) == (eObject == CPPCO_Const))
+		if (mpcUnit->IsConstSuffix(papcChosen->GetPtr(i)->mpcDeclarator->GetFunctionSuffix()) == CPPCalledConst(eObject))
 		{
 			pcTemplate = papcChosen->GetPtr(i);
 			break;

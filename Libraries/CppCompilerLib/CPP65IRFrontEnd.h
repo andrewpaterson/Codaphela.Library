@@ -255,7 +255,7 @@ protected:
 	bool			DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
 	bool			Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable** ppcLast);
-	bool			LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser);
+	bool			LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser, bool bInFrame = false);
 	bool			ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser);
 	bool			ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcElements, size* puiNext);
 	void			ZeroElements(SIRReference sAddress, int iOffset, SCPP65Type* psElement, int iCount);
@@ -290,6 +290,8 @@ protected:
 	bool			MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace);
 	void			StringData(char* pcBytes, size uiLength, SCPP65IRValue* psValue);
 	bool			Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace);
+	bool			IsReferenceCast(CCPPSyntax* pcExpression);
+	bool			ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace);
 	bool			VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* psPlace);
 	bool			UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
 	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
@@ -377,8 +379,12 @@ protected:
 	bool			CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource);
 	bool			CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress);
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
-	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource);
-	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource);
+	bool			CopyDeleted(CCPPSyntax* pcNode);
+	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
+	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
+	bool			AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource, CCPPSyntax* pcSource);
+	bool			AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
+	bool			AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
 	SCPP65Type*		FunctionType(CCPPFunction* pcFunction);
 	int				BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase);
 	void			CopyPieces(SIRReference sDest, SIRReference sSource, int iBytes);

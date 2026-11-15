@@ -118,10 +118,14 @@ void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction)
 		//overloads.  Without parameters (only one such overload can exist) or with C linkage it is just its name.
 		//So does an instance of a function template, as Add<M>(void) and Add<M>(size) are both Add__T_..., and an
 		//overloaded member (hand-written assembly calls it by a label that doesn't depend on the order of its
-		//overloads); a const one ends in K.
+		//overloads); a const one ends in K, and one declared & or && in R or O.
 		if (pcFunction->mbConstThis)
 		{
 			psz->Append("__K");
+		}
+		if (pcFunction->meRefQualifier != CPPRQ_None)
+		{
+			psz->Append((pcFunction->meRefQualifier == CPPRQ_Rvalue) ? "__O" : "__R");
 		}
 		if ((pcFunction->mapsParameters.NumElements() > 0) || pcFunction->mbVariadic)
 		{
@@ -356,8 +360,8 @@ void CCPPMangler::AppendFunctionName(CChars* psz, int64 lliName)
 //
 // Types in labels: v void, b bool, c char, h unsigned char, s short, t unsigned
 // short, i int, j unsigned, x long long, y unsigned long long, f float, d double,
-// e long double, P pointer, R reference, A count _ array, F return parameters E
-// function, and C, the length and the label of a class.  A volatile type starts
+// e long double, P pointer, R reference, O rvalue reference (T&&), A count _
+// array, F return parameters E function, and C, the length and the label of a class.  A volatile type starts
 // with V and a const one with K (VK both): const char* is PKc, const T& RK.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -413,7 +417,7 @@ void CCPPMangler::AppendType(CChars* psz, SCPP65Type* psType)
 		AppendType(psz, psType->psBase);
 		break;
 	case CPP65TK_Reference:
-		psz->Append('R');
+		psz->Append(psType->bRvalue ? 'O' : 'R');
 		AppendType(psz, psType->psBase);
 		break;
 	case CPP65TK_Array:

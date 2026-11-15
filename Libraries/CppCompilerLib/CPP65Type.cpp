@@ -115,6 +115,26 @@ bool SCPP65Type::IsReference(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsRvalueReference(void)
+{
+	return (eKind == CPP65TK_Reference) && bRvalue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsLvalueReference(void)
+{
+	return (eKind == CPP65TK_Reference) && !bRvalue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type a reference refers to; any other type is itself.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -182,7 +202,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	{
 		return true;
 	}
-	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (pcClass != psOther->pcClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum))
+	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (pcClass != psOther->pcClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum) || (bRvalue != psOther->bRvalue))
 	{
 		return false;
 	}
@@ -264,7 +284,7 @@ void SCPP65Type::Append(CChars* psz)
 		break;
 	case CPP65TK_Reference:
 		psBase->Append(psz);
-		psz->Append("&");
+		psz->Append(bRvalue ? "&&" : "&");
 		break;
 	case CPP65TK_Array:
 		psBase->Append(psz);
@@ -452,6 +472,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
+	psType->bRvalue = false;
 	psType->pcEnum = NULL;
 	psType->bScopedEnum = false;
 	psType->bConst = false;
@@ -594,7 +615,7 @@ int64 CCPP65Types::GetBaseKey(ECPP65TypeKind eKind, SCPP65Type* psBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount)
+SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount, bool bRvalue)
 {
 	SCPP65Type*			psType;
 	SCPP65TypeChain*	psChain;
@@ -603,7 +624,7 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 	psChain = mcByBase.Get(GetBaseKey(eKind, psBase));
 	for (psType = psChain ? psChain->psFirst : NULL; psType; psType = psType->psNextSameBase)
 	{
-		if ((psType->eKind == eKind) && (psType->psBase == psBase) && (psType->iCount == iCount) && (psType->iBytes == iBytes))
+		if ((psType->eKind == eKind) && (psType->psBase == psBase) && (psType->iCount == iCount) && (psType->iBytes == iBytes) && (psType->bRvalue == bRvalue))
 		{
 			return psType;
 		}
@@ -612,6 +633,7 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 	psType = NewType(eKind, iBytes);
 	psType->psBase = psBase;
 	psType->iCount = iCount;
+	psType->bRvalue = bRvalue;
 	AddType(psType);
 	return psType;
 }
@@ -834,11 +856,19 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A reference to psBase: T& or, with bRvalue, T&&.  A reference to a
+// reference is one reference: an rvalue reference only if both are, as
+// T&& is int& when T is int&.  [dcl.ref] 6
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
+SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase, bool bRvalue)
 {
-	return Add(CPP65TK_Reference, miPointerBytes, psBase, 0);
+	if (psBase->IsReference())
+	{
+		bRvalue = bRvalue && psBase->bRvalue;
+		psBase = psBase->psBase;
+	}
+	return Add(CPP65TK_Reference, miPointerBytes, psBase, 0, bRvalue);
 }
 
 

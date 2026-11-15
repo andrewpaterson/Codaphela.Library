@@ -225,46 +225,49 @@ bool CCPPDeduction::IsForwardingReference(CCPPSyntaxParameter* pcParameter)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What T is for an argument of type psArgument (not a reference) to T&&.
-// && is a & here, not a type of its own, so only what passing arguments on
-// needs is done (B10 in CppParserTodo.txt has the rest).  T is the argument's
-// type with its own const, so an object or a variable binds as it is.  A
-// value with no address is const, as only a const reference can bind to one,
-// and an array or a function is a const pointer to it, so an array of each
-// length isn't an instance of its own.  A string literal's characters are
-// const here, as the standard has them, or Init("x") would choose Init(char*)
-// over Init(const char*).  (The standard's T is not const for a value, and is
-// an array for an array.)
+// What T is for an argument of type psArgument (not a reference) to T&&:
+// U& for what has a name (so T&& is U&, and the argument binds as it is,
+// with its own const), and U for a value or what is about to go (so T&&
+// binds to it).  [temp.deduct.call] 3.  Not as the standard has it: an
+// array or a function is a const pointer to it, so an array of each
+// length isn't an instance of its own, and a string literal's characters
+// are const, or Init("x") would choose Init(char*) over Init(const char*).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcArgument)
 {
-	SCPP65Type*	psPlace;
+	CCPP65Types*	pcTypes;
+	SCPP65Type*		psPlace;
 
+	pcTypes = mpcUnit->GetTypes();
 	if (psArgument->IsArray())
 	{
-		return mpcUnit->GetTypes()->Qualified(mpcUnit->GetTypes()->Pointer(psArgument->psBase), true, false);
+		return pcTypes->Qualified(pcTypes->Pointer(psArgument->psBase), true, false);
 	}
 	if (psArgument->IsFunction())
 	{
-		return mpcUnit->GetTypes()->Qualified(mpcUnit->GetTypes()->Pointer(psArgument), true, false);
+		return pcTypes->Qualified(pcTypes->Pointer(psArgument), true, false);
 	}
-	if (psArgument->IsClass() || !pcArgument)
+	if (!pcArgument)
 	{
 		return psArgument;
 	}
 	if (mpcUnit->SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression)
 	{
-		return mpcUnit->GetTypes()->Qualified(mpcUnit->GetTypes()->Pointer(mpcUnit->GetTypes()->Qualified(psArgument->psBase, true, false)), true, false);
+		return pcTypes->Qualified(pcTypes->Pointer(pcTypes->Qualified(psArgument->psBase, true, false)), true, false);
+	}
+	if (mpcUnit->IsRvalue(pcArgument))
+	{
+		return psArgument->Unqualified();
 	}
 
 	//An array's type here is already the pointer it decays to, but its place is the array.
 	psPlace = mpcUnit->PlaceOf(pcArgument);
-	if (psPlace && !psPlace->WithoutReference()->IsArray())
+	if (psPlace && psPlace->WithoutReference()->IsArray())
 	{
-		return psArgument;
+		return pcTypes->Qualified(psArgument, true, psArgument->bVolatile);
 	}
-	return mpcUnit->GetTypes()->Qualified(psArgument, true, psArgument->bVolatile);
+	return pcTypes->Reference(psArgument);
 }
 
 
@@ -584,7 +587,7 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding
 		{
 			psType = psType->psBase;
 		}
-		else if (((pcOperator->meKind == CPPP_Reference) || (pcOperator->meKind == CPPP_RValueReference)) && psType->IsReference())
+		else if (((pcOperator->meKind == CPPP_Reference) && psType->IsLvalueReference()) || ((pcOperator->meKind == CPPP_RValueReference) && psType->IsRvalueReference()))
 		{
 			psType = psType->psBase;
 		}

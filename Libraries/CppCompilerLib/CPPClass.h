@@ -134,8 +134,11 @@ public:
 	bool			NeedsConstructor(void);
 	bool			NeedsDestructor(void);
 	bool			HasCopyConstructor(void);
-	CCPPFunction*	GetCopyConstructor(void);
+	CCPPFunction*	GetCopier(bool bAssignment, bool bMove);
+	CCPPFunction*	GetPartCopier(bool bAssignment, bool bMove);
+	bool			IsCopyDeleted(void);
 	bool			IsTriviallyCopyable(void);
+	bool			IsTriviallyAssignable(void);
 	bool			IsPolymorphic(void);
 	bool			IsAbstract(void);
 	bool			OverridesBase(CCPPFunction* pcFunction);

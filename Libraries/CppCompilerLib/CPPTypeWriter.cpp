@@ -102,7 +102,7 @@ bool CCPPTypeWriter::Declaration(SCPP65Type* psType, CChars* pszOperators, CChar
 		}
 		else
 		{
-			szOperator.Append((psType->eKind == CPP65TK_Pointer) ? '*' : '&');
+			szOperator.Append((psType->eKind == CPP65TK_Pointer) ? "*" : (psType->bRvalue ? "&&" : "&"));
 		}
 		if (psType->bConst)
 		{

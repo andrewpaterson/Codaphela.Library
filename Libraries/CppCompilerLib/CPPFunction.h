@@ -37,20 +37,44 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP_CONVERSION_NAME				(CPP_OPERATOR_NAME(0) - 2 * (int64)NUM_CPP_TOKENS)
 
 
-//The object a member function is called on, which chooses between a const function and one that isn't.
+//The object a member function is called on, which chooses between a const function and one that isn't, and
+//between one declared & and one declared &&.
 enum ECPPCalledObject
 {
 	CPPCO_None,
 	CPPCO_Mutable,
 	CPPCO_Const,
+	CPPCO_MutableRvalue,	//An object with no name, or one about to go (CCPPUnit::IsRvalue).
+	CPPCO_ConstRvalue,
 };
 
 
-//The object called on, from whether it is const.
-inline ECPPCalledObject CPPCalledObject(bool bConst)
+//The object called on, from whether it is const and whether it is an rvalue.
+inline ECPPCalledObject CPPCalledObject(bool bConst, bool bRvalue = false)
 {
-	return bConst ? CPPCO_Const : CPPCO_Mutable;
+	return bRvalue ? (bConst ? CPPCO_ConstRvalue : CPPCO_MutableRvalue) : (bConst ? CPPCO_Const : CPPCO_Mutable);
 }
+
+
+inline bool CPPCalledConst(ECPPCalledObject eObject)
+{
+	return (eObject == CPPCO_Const) || (eObject == CPPCO_ConstRvalue);
+}
+
+
+inline bool CPPCalledRvalue(ECPPCalledObject eObject)
+{
+	return (eObject == CPPCO_MutableRvalue) || (eObject == CPPCO_ConstRvalue);
+}
+
+
+//void f() & and void f() &&: the kind of object a member function takes.  [dcl.fct] 6
+enum ECPPRefQualifier
+{
+	CPPRQ_None,
+	CPPRQ_Lvalue,
+	CPPRQ_Rvalue,
+};
 
 
 enum ECPPFunctionKind
@@ -87,6 +111,7 @@ public:
 	bool							mbCLinkage;		//Declared in extern "C": its label is only its name.
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
+	ECPPRefQualifier				meRefQualifier;	//Declared & or &&: an overload of the same function declared the other.
 	bool							mbImplicit;		//A constructor or destructor the compiler wrote.
 	bool							mbDeleted;		//= delete: it is an overload like any other, and an error if it is the one chosen.
 	CCPPFunction*					mpcInherited;	//The base's constructor an inherited constructor calls (using Base::Base).

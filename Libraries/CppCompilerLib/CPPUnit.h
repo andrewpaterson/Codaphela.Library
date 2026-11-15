@@ -74,6 +74,7 @@ enum ECPPConversionRank
 	CPPCR_Conversion,
 	CPPCR_Promotion,
 	CPPCR_Qualification,	//An exact match but for const or volatile added: worse than the same type.  [over.ics.rank] 3.2.6
+	CPPCR_RvalueToConst,	//An object with no name bound to const T&: exact, but T&& takes it better.  [over.ics.rank] 3.2.3
 	CPPCR_Exact,
 };
 
@@ -136,6 +137,7 @@ struct SCPPTypeOf
 	CCPPTemplateArguments*		pcBindings;
 	CCPPFunction*		pcFunction;
 	SCPP65Type*			psType;
+	SCPP65Type*			psDeclared;		//psType, or the reference to it the expression is declared to give (f() of T& f(), a cast to T&&).
 };
 
 
@@ -385,6 +387,7 @@ public:
 	CCPPTemplate*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
 	bool					MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
 	bool					IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix);
+	ECPPRefQualifier		RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode);
 	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	CCPPTemplateArguments*			NewBindings(void);
@@ -461,6 +464,7 @@ public:
 	CCPPClass*				QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				DeclaredTypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
@@ -505,6 +509,8 @@ public:
 	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
 	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);
+	bool					IsRvalue(CCPPSyntax* pcExpression);
+	bool					IsReturnedLocal(CCPPSyntaxIdExpression* pcId);
 	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
 	bool					MakesObject(CCPPSyntax* pcExpression);

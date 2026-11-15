@@ -1286,6 +1286,7 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	size						uiPack;
 	uint32						uiFlags;
 	bool						bConstThis;
+	ECPPRefQualifier			eRefQualifier;
 	bool						bFriend;
 	CCPPScope*					pcNamespace;
 
@@ -1346,7 +1347,7 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 				break;
 			case CPPP_Reference:
 			case CPPP_RValueReference:
-				psReturn = mcTypes.Reference(psReturn);
+				psReturn = mcTypes.Reference(psReturn, pcDeclarator->GetPointer(i)->meKind == CPPP_RValueReference);
 				break;
 			default:
 				Error(pcDeclarator, "Pointers to members are not supported by the compiler yet");
@@ -1363,6 +1364,7 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	apsParameters.Init();
 	apcDefaults.Init();
 	bConstThis = pcClass && IsConstSuffix(pcSuffix);
+	eRefQualifier = pcClass ? RefQualifier(pcSuffix) : CPPRQ_None;
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
@@ -1415,7 +1417,7 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		{
 			continue;
 		}
-		if ((pcOther->IsConversion() && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis))
+		if ((pcOther->IsConversion() && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis) || (pcOther->meRefQualifier != eRefQualifier))
 		{
 			continue;
 		}
@@ -1457,6 +1459,7 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		pcFunction->mapcDefaults.Add(apcDefaults.GetPtr(i));
 	}
 	pcFunction->mbConstThis = bConstThis;
+	pcFunction->meRefQualifier = eRefQualifier;
 	apcDefaults.Kill();
 	apsParameters.Kill();
 	pcFunction->mbVariadic = pcSuffix->mbVariadic;

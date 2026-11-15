@@ -269,7 +269,8 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	psLeft = mpcUnit->TypeOf(pcBinary->mpcLeft);
 	if (psLeft && psLeft->IsClass())
 	{
-		//object op= value calls the class's operator if it has one; object = object copies the bytes otherwise.
+		//object op= value calls the class's operator if it has one; object = object assigns each part otherwise, as
+		//the compiler's own operator= does: the bytes, unless a part's class has an operator=.
 		if (mpcUnit->HasOperator(psLeft->pcClass, mpcUnit->GetOperatorName(pcBinary->meOperator, false), 1))
 		{
 			return OperatorCall(pcBinary->mpcLeft, pcBinary->meOperator, pcBinary->mpcRight, psValue);
@@ -279,7 +280,15 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 			return Unsupported(__FILE__, __LINE__);
 		}
 		//The right before the left, as for a scalar.  [expr.ass] 1
-		if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass() || !CopyBytes(&sPlace, &sRight))
+		if (psLeft->pcClass->IsCopyDeleted())
+		{
+			return CopyDeleted(pcBinary);
+		}
+		if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass())
+		{
+			return false;
+		}
+		if (!(sPlace.psType->pcClass->IsTriviallyAssignable() ? CopyBytes(&sPlace, &sRight) : AssignMembers(&sPlace, &sRight, pcBinary->mpcRight)))
 		{
 			return false;
 		}

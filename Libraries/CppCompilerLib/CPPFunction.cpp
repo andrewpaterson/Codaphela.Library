@@ -46,6 +46,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbCLinkage = false;
 	mbExplicit = false;
 	mbConstThis = false;
+	meRefQualifier = CPPRQ_None;
 	mbImplicit = false;
 	mbDeleted = false;
 	mpcInherited = NULL;
@@ -134,12 +135,25 @@ bool CCPPFunction::Overrides(CCPPFunction* pcVirtual)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a function can be called on the object (eObject): a const object
-// takes only const and static member functions.  [over.match.funcs] 4
+// takes only const and static member functions, and a function declared &
+// or && only an object that is, or isn't, an rvalue.  [over.match.funcs] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunction::TakesObject(ECPPCalledObject eObject)
 {
-	return (eObject != CPPCO_Const) || !mpcClass || mbStatic || mbConstThis;
+	if ((eObject == CPPCO_None) || !mpcClass || mbStatic)
+	{
+		return true;
+	}
+	if ((meRefQualifier != CPPRQ_None) && ((meRefQualifier == CPPRQ_Rvalue) != CPPCalledRvalue(eObject)))
+	{
+		//f() const & takes an object that is going too, as const T& does.
+		if (!((meRefQualifier == CPPRQ_Lvalue) && mbConstThis))
+		{
+			return false;
+		}
+	}
+	return !CPPCalledConst(eObject) || mbConstThis;
 }
 
 

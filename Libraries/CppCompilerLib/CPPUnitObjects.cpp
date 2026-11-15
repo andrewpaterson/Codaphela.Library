@@ -35,6 +35,76 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the expression is an rvalue: a value with no name (3, a + b, an
+// object a call or a constructor makes) or something said to be about to
+// go (what a function returning T&& returns, a cast to T&&, a member of
+// either).  What has a name is an lvalue, a variable declared T&& too,
+// but for a local object where it is returned.  An rvalue binds to T&&
+// and not to T&; an lvalue to T& and not to T&&.  [basic.lval]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxMemberExpression*	pcMember;
+	SCPP65Type*					psType;
+
+	pcExpression = SkipParentheses(pcExpression);
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_StringExpression:
+		return false;
+	case CPPS_IdExpression:
+		return (PlaceOf(pcExpression) == NULL) || IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression);
+	case CPPS_MemberExpression:
+		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
+		return !pcMember->mbArrow && IsRvalue(pcMember->mpcObject);
+	default:
+		break;
+	}
+
+	psType = DeclaredTypeOf(pcExpression);
+	if (!psType)
+	{
+		return false;
+	}
+	if (psType->IsReference())
+	{
+		return psType->bRvalue;
+	}
+	if (psType->IsClass())
+	{
+		return MakesObject(pcExpression) || (pcExpression->GetKind() == CPPS_ConstructExpression);
+	}
+	return PlaceOf(pcExpression) == NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcId is return object; of one of the function's own objects (a
+// local or a parameter, not a reference): it is going, so it is moved to
+// the result if its class has a move.  [class.copy] 32
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsReturnedLocal(CCPPSyntaxIdExpression* pcId)
+{
+	CCPPSyntax*		pcParent;
+	CCPPBoundName	cBound;
+
+	for (pcParent = pcId->mpcParent; pcParent && (pcParent->GetKind() == CPPS_ParenthesisedExpression); pcParent = pcParent->mpcParent)
+	{
+	}
+	if (!pcParent || (pcParent->GetKind() != CPPS_ReturnStatement))
+	{
+		return false;
+	}
+	mcBinder.BindName(pcId, &cBound);
+	return (cBound.meWhat == CPPBN_Variable) && ((cBound.mpcVariable->meStorage == CPPVS_Local) || (cBound.mpcVariable->meStorage == CPPVS_Parameter)) && cBound.mpcVariable->mpsType->IsClass();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if the expression makes an object of the class (a call, or an operator, that
 // returns one): it can be made where the object it initialises is.
 //
@@ -144,19 +214,26 @@ SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if a reference parameter gets a temporary holding the argument, not
-// the argument's address: a const reference to a type that isn't a class,
-// and an argument that has no address or is of another type (const long&
-// of a char, const char* const& of an array).  [dcl.init.ref]
+// True if a reference gets a temporary holding the value, not the value's
+// address: a const reference or T&&, and a value that has no address or
+// is of another type (const long& of a char, const char* const& of an
+// array, const Class& of what a Class is made from).  An object of the
+// class, or of one derived from it, is referred to itself.  [dcl.init.ref]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 {
 	SCPP65Type*	psPlace;
+	SCPP65Type*	psValue;
 
-	if (!psReference->psBase->bConst || psReference->psBase->IsClass())
+	if (!(psReference->psBase->bConst || psReference->bRvalue))
 	{
 		return false;
+	}
+	if (psReference->psBase->IsClass())
+	{
+		psValue = ValueTypeOf(pcArgument);
+		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
 	}
 	psPlace = PlaceOf(pcArgument);
 	return !psPlace || !psReference->psBase->Equals(psPlace->WithoutReference());

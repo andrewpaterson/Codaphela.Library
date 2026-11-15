@@ -1359,6 +1359,33 @@ bool CCPPUnit::IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The & or && after a member function's parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPRefQualifier CCPPUnit::RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix)
+{
+	CCPPSyntax*	pcQualifier;
+	ECppTokens	eKeyword;
+	size		i;
+
+	for (i = 0; pcSuffix && (i < pcSuffix->macpQualifiers.NumElements()); i++)
+	{
+		pcQualifier = pcSuffix->macpQualifiers.GetPtr(i);
+		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
+		{
+			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
+			if ((eKeyword == CT_BitwiseAnd) || (eKeyword == CT_LogicalAnd))
+			{
+				return (eKeyword == CT_LogicalAnd) ? CPPRQ_Rvalue : CPPRQ_Lvalue;
+			}
+		}
+	}
+	return CPPRQ_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A member template declared in its class but defined outside it takes the outside
 // definition with its name and parameters (and its template parameters, which the
 // definition uses): the one whose parameters are written the same, as overloads

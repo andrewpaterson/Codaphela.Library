@@ -399,7 +399,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 			}
 			AddLiving(&sPlace);
 		}
-		else if (pcInit->mpcInitializer && !LocalInitialiser(&sPlace, pcInit->mpcInitializer))
+		else if (pcInit->mpcInitializer && !LocalInitialiser(&sPlace, pcInit->mpcInitializer, true))
 		{
 			return false;
 		}
@@ -421,10 +421,12 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 //////////////////////////////////////////////////////////////////////////
 //
 // = value, (value), {value} or {} for a scalar; a reference takes its
-// initialiser's address; an array its list or string.
+// initialiser's address; an array its list or string.  bInFrame is for a
+// local variable: its reference to a value (const int& r = 3, int&& r = 3)
+// refers to a temporary in the frame.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser)
+bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcInitialiser, bool bInFrame)
 {
 	CArraySyntax*	papcElements;
 	SCPP65IRValue	sValue;
@@ -476,7 +478,21 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	if (psPlace->psType->IsReference())
 	{
-		if (!Place(pcInitialiser, &sReferred) || !ReferenceAddress(&sReferred, psPlace->psType, &sValue.sValue))
+		if (mpcUnit->BindsToTemporary(psPlace->psType, pcInitialiser))
+		{
+			//const int& r = 3 and int&& r = 3: a temporary that lasts as long as the function's frame, which is
+			//as long as a local reference does.  A global's, or a field's, would outlast it.
+			if (!bInFrame || psPlace->psType->psBase->IsClass())
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
+			if (!ValueTemporary(pcInitialiser, psPlace->psType->psBase, &sReferred))
+			{
+				return false;
+			}
+			sValue.sValue = sReferred.sAddress;
+		}
+		else if (!Place(pcInitialiser, &sReferred) || !ReferenceAddress(&sReferred, psPlace->psType, &sValue.sValue))
 		{
 			return false;
 		}

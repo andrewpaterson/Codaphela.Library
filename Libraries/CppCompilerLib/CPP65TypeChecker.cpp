@@ -51,14 +51,20 @@ void CCPP65TypeChecker::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The type of an expression's value: a reference's is what it refers to.  Arrays and
-// functions named are pointers to them (see Load).
+// functions named are pointers to them (see Load).  ppsDeclared is given the type
+// before that: a reference where the expression is declared to give one (a call of a
+// function that returns T& or T&&, a cast to one), which says what kind of value it is.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression)
+SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression, SCPP65Type** ppsDeclared)
 {
 	SCPP65Type*		psType;
 
 	psType = Result(pcExpression);
+	if (ppsDeclared)
+	{
+		*ppsDeclared = psType;
+	}
 	if (psType && psType->IsReference())
 	{
 		psType = psType->psBase;
@@ -2006,6 +2012,37 @@ SCPP65Type* CCPP65TypeChecker::ResultPlace(SCPP65Type* psType, CCPPSyntax* pcNod
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A cast to a reference, (T&)x or static_cast<T&&>(x): x itself as a T,
+// which is its own type (const taken away or not) or, for an object, a
+// base or a derived class of its class.  [expr.static.cast] 2, 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psPlace;
+	SCPP65Type*	psReferred;
+
+	psPlace = Place(pcOperand);
+	if (!psPlace)
+	{
+		return NULL;
+	}
+	psReferred = psTo->psBase;
+	if (psReferred->Equals(psPlace))
+	{
+		return psTo;
+	}
+	if (psReferred->IsClass() && psPlace->IsClass() && (mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL) || mpcUnit->IsDerived(psReferred->pcClass, psPlace->pcClass, NULL)))
+	{
+		return psTo;
+	}
+	Error(pcNode, "A cast to a reference to another type is not supported by the compiler yet");
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // (type)x, static_cast<type>(x), reinterpret_cast<type>(x), const_cast<type>(x) and
 // type(x).  To a class it is a temporary made from x; (FPointer)&f chooses the
 // overload of f with the pointer's type.
@@ -2025,6 +2062,10 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 	if (psTo->IsClass())
 	{
 		return TemporaryObject(psTo, pcOperand, pcNode);
+	}
+	if (psTo->IsReference())
+	{
+		return ReferenceCast(psTo, pcOperand, pcNode);
 	}
 
 	pcFunction = mpcUnit->FunctionNameFor(pcOperand, psTo);
@@ -2633,6 +2674,15 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 
 	if (psType->IsReference())
 	{
+		if (!BindsCategory(psType, pcInitialiser, pcNode))
+		{
+			return false;
+		}
+		if (mpcUnit->BindsToTemporary(psType, pcInitialiser))
+		{
+			//It refers to a temporary holding the value.
+			return ImplicitConvert(ValueFor(pcInitialiser, psType->psBase, false), psType->psBase, pcNode);
+		}
 		mpcUnit->BeginQuiet();
 		psValue = Place(pcInitialiser);
 		mpcUnit->EndQuiet();
@@ -2800,6 +2850,19 @@ bool CCPP65TypeChecker::CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcValue is the kind of expression a reference of type
+// psReference binds to: T&& only to what has no name or is about to go.
+// [dcl.init.ref] 5.2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::BindsCategory(SCPP65Type* psReference, CCPPSyntax* pcValue, CCPPSyntax* pcNode)
+{
+	return !psReference->bRvalue || mpcUnit->IsRvalue(pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether reference psReference can bind to a place of type psPlace: it has
 // the place's const and volatile.  [dcl.init.ref]
 //
@@ -2831,7 +2894,7 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 	}
 	if (psTo->IsReference())
 	{
-		return CanBind(psTo, psValue, pcValue);
+		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
 	}
 	return KeepsPointerQualifiers(psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue, psTo, pcValue);
 }

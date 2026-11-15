@@ -194,6 +194,7 @@ public:
 
 protected:
 	CArraySyntax*	ExpandPack(CCPPSyntaxCallExpression* pcCall);
+	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	void	ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	void	CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode);

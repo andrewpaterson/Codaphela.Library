@@ -743,7 +743,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 			//= c ? x : y makes the object here from whichever is worked out.
 			return ObjectConditional((CCPPSyntaxConditionalExpression*)mpcUnit->SkipParentheses(pcInitialiser), psPlace, &sMade);
 		}
-		if (psSource && psSource->IsClass() && (psSource->pcClass == pcClass) && IsObjectCall(pcInitialiser))
+		if (psSource && psSource->IsClass() && (psSource->pcClass == pcClass) && IsObjectCall(pcInitialiser) && !(mpcUnit->DeclaredTypeOf(pcInitialiser)->IsReference() && pcClass->HasCopyConstructor()))
 		{
 			//A call (or an operator's) that makes an object of the class makes it here (as C++17 requires).
 			msElide = psPlace->sAddress;
@@ -1143,6 +1143,12 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		return true;
 	case CPPS_CastExpression:
 	case CPPS_NamedCastExpression:
+		if (IsReferenceCast(pcExpression))
+		{
+			//static_cast<Class&&>(object) is the object.
+			break;
+		}
+
 		//(Class)value and static_cast<Class>(value) are a temporary made from the value, as Class(value).
 		if (pcExpression->GetKind() == CPPS_CastExpression)
 		{
@@ -1191,15 +1197,31 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A temporary of psType (not a class) holding pcValue, for a reference to
-// bind to.  It is in the function's frame, so it outlasts the call.
+// A temporary of psType holding pcValue, for a reference to bind to.  It
+// is in the function's frame, so it outlasts the call; an object, made
+// from the value by its class's constructor, is destroyed at the end of
+// the full expression.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace)
 {
 	SCPP65IRValue	sValue;
+	CArraySyntax	apcArguments;
+	bool			bResult;
 
 	psType = psType->Unqualified();
+	if (psType->IsClass())
+	{
+		if (!Temporary(psType, psPlace, true))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		apcArguments.Init();
+		apcArguments.Add(pcValue);
+		bResult = Construct(psPlace, &apcArguments, NULL);
+		apcArguments.Kill();
+		return bResult;
+	}
 	if (!IsSupportedType(psType))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1267,8 +1289,9 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 //////////////////////////////////////////////////////////////////////////
 //
 // Copy constructs the object at psPlace from pcSource (of its class or one
-// derived from it): with the class's copy
-// constructor, its implicit one (CopyMembers), or its bytes.
+// derived from it): with a constructor the class declares for that (the
+// one chosen for the source, so a move for what is going), or as the
+// compiler's own does, its parts one by one (CopyMembers) or its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
@@ -1286,11 +1309,28 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 		apcArguments.Kill();
 		return bResult;
 	}
+	if (pcClass->IsCopyDeleted())
+	{
+		return CopyDeleted(pcSource);
+	}
 	if (!pcClass->IsTriviallyCopyable())
 	{
 		return CopyMembers(psPlace, pcSource);
 	}
 	return CopyObject(psPlace, pcSource);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error that an object is copied whose class's copy the compiler
+// may not write.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CopyDeleted(CCPPSyntax* pcNode)
+{
+	mpcUnit->ReportError(pcNode, "The object cannot be copied: its class declares a move and no copy");
+	return Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -1344,7 +1384,7 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 	SCPP65IRPlace	sSource;
 	SIRReference	sAddress;
 
-	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress);
+	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource));
 }
 
 
@@ -1354,7 +1394,7 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 // sSource) that have copy constructors with them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource)
+bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
 {
 	SCPPBase*		psBase;
 	SCPPField*	psField;
@@ -1367,7 +1407,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
-		if (!CopyPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset)))
+		if (!CopyPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset), bMove))
 		{
 			return false;
 		}
@@ -1389,7 +1429,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 		for (j = 0; j < iCount; j++)
 		{
 			iOffset = psField->iOffset + j * psType->iBytes;
-			if (!CopyPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset)))
+			if (!CopyPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset), bMove))
 			{
 				return false;
 			}
@@ -1440,7 +1480,7 @@ bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 // own parts, or left as its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource)
+bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
 {
 	CCPPFunction*					pcConstructor;
 	SCPP65Type*						psParameter;
@@ -1448,10 +1488,14 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 	SCPP65IRValue*					psDefault;
 	size							ui;
 
-	pcConstructor = pcClass->GetCopyConstructor();
+	pcConstructor = pcClass->GetPartCopier(false, bMove);
 	if (!pcConstructor)
 	{
-		return pcClass->IsTriviallyCopyable() || CopyParts(pcClass, sDestination, sSource);
+		if (pcClass->IsCopyDeleted())
+		{
+			return CopyDeleted(mpcValue);
+		}
+		return pcClass->IsTriviallyCopyable() || CopyParts(pcClass, sDestination, sSource, bMove);
 	}
 
 	//The defaults are worked out before the arguments are given: one may be a call.
@@ -1480,6 +1524,114 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 	}
 	asDefaults.Kill();
 	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(pcConstructor), -1, true);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object = pcSource for a class with no operator= of its own whose parts
+// have: as the compiler's own operator= does, each base and field is
+// assigned in turn, with its class's operator= or its bytes.  What is
+// going (bMove of AssignParts) is moved from where a part's class has a
+// move assignment.  [class.copy] 28
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource, CCPPSyntax* pcSource)
+{
+	SCPP65IRPlace	sSource;
+	SIRReference	sAddress;
+
+	sSource.sAddress = psSource->sValue;
+	sSource.psType = psSource->psType->WithoutReference();
+	if (!sSource.psType->IsClass() || !mpcUnit->IsDerived(sSource.psType->pcClass, psPlace->psType->pcClass, NULL) || !ReferenceAddress(&sSource, mpcTypes->Pointer(psPlace->psType), &sAddress))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	return AssignParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource)) && StoreVtables(psPlace->sAddress, psPlace->psType->pcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Assigns the bases and the fields of the pcClass at sSource to those of
+// the one at sDestination, in the order they are declared.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
+{
+	SCPPBase*	psBase;
+	SCPPField*	psField;
+	SCPP65Type*	psType;
+	size		i;
+	int			j;
+	int			iOffset;
+
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!AssignPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset), bMove))
+		{
+			return false;
+		}
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
+		if (!psType->IsClass())
+		{
+			CopyPieces(AddressAt(sDestination, psField->iOffset), AddressAt(sSource, psField->iOffset), psField->psType->iBytes);
+			continue;
+		}
+		for (j = 0; j < (psField->psType->IsArray() ? psField->psType->iCount : 1); j++)
+		{
+			iOffset = psField->iOffset + j * psType->iBytes;
+			if (!AssignPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset), bMove))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Assigns the pcClass at sSource to the one at sDestination, a part of an
+// object being assigned: with the class's operator= for its own objects,
+// or as AssignParts, or its bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
+{
+	CCPPFunction*	pcOperator;
+	SCPP65Type*		psReturn;
+
+	pcOperator = pcClass->GetPartCopier(true, bMove);
+	if (!pcOperator)
+	{
+		if (pcClass->IsCopyDeleted())
+		{
+			return CopyDeleted(mpcValue);
+		}
+		if (!pcClass->IsTriviallyAssignable())
+		{
+			return AssignParts(pcClass, sDestination, sSource, bMove);
+		}
+		CopyPieces(sDestination, sSource, pcClass->mpsType->iBytes);
+		return true;
+	}
+
+	psReturn = pcOperator->mpsReturn;
+	if ((pcOperator->mapsParameters.NumElements() != 1) || psReturn->IsClass() || (!psReturn->IsVoid() && !psReturn->IsReference() && !IsSupportedType(psReturn)))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sDestination);
+	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sSource);
+	mpcFunction->Call(mpcBlock, psReturn->IsVoid() ? IRType(IRTK_None) : (psReturn->IsReference() ? IRType(IRTK_Pointer) : IRTypeOf(psReturn)), FunctionSymbol(pcOperator), -1, true);
 	return true;
 }
 

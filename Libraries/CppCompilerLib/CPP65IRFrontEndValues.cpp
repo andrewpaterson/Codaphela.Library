@@ -113,6 +113,11 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	{
 		return ObjectValue(pcExpression, psValue);
 	}
+	if (IsReferenceCast(pcExpression))
+	{
+		//What a cast to a reference refers to, read.
+		return Place(pcExpression, &sPlace) && Load(&sPlace, psValue);
+	}
 
 	switch (pcExpression->GetKind())
 	{
@@ -731,6 +736,48 @@ void CCPP65IRFrontEnd::StringData(char* pcBytes, size uiLength, SCPP65IRValue* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the expression is a cast to a reference that is what it casts:
+// (T&)x, static_cast<T&&>(x).  dynamic_cast<T&> is not one: it has a
+// check to make.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsReferenceCast(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	if ((pcExpression->GetKind() != CPPS_CastExpression) && ((pcExpression->GetKind() != CPPS_NamedCastExpression) || (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)))
+	{
+		return false;
+	}
+	psType = mpcUnit->DeclaredTypeOf(pcExpression);
+	return psType && psType->IsReference();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The place a cast to a reference, static_cast<T&&>(x), refers to: x's,
+// or for an object of another class of its hierarchy that class's part.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace)
+{
+	CCPPSyntax*		pcOperand;
+	SCPP65IRPlace	sOperand;
+
+	pcOperand = (pcCast->GetKind() == CPPS_CastExpression) ? ((CCPPSyntaxCastExpression*)pcCast)->mpcOperand : ((CCPPSyntaxNamedCastExpression*)pcCast)->mpcOperand;
+	if (!Place(pcOperand, &sOperand) || !ReferenceAddress(&sOperand, psReference, &psPlace->sAddress))
+	{
+		return false;
+	}
+	psPlace->psType = psReference->psBase;
+	psPlace->psBitField = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Variables, *pointer, array[index], and calls that return references.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -833,8 +880,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		return true;
 
 	case CPPS_CallExpression:
-		//The type of a call that returns a reference to a class is the class.
-		psType = mpcUnit->TypeOf(pcExpression);
+		//What a call that returns a reference refers to, or the object a call makes.
+		psType = mpcUnit->DeclaredTypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -894,6 +941,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	case CPPS_CastExpression:
 	case CPPS_NamedCastExpression:
+		if (IsReferenceCast(pcExpression))
+		{
+			return ReferenceCastPlace(pcExpression, mpcUnit->DeclaredTypeOf(pcExpression), psPlace);
+		}
+		//Any other cast is the object it makes, as below.
 	case CPPS_ConditionalExpression:
 		psType = mpcUnit->TypeOf(pcExpression);
 		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))

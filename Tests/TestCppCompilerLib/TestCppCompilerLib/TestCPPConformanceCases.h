@@ -763,17 +763,6 @@ static const SConformanceCase gasConformanceStage2[] =
 		"int main() { int a = 0; const int c = 0; return h(a) * 100 + h(c) * 10 + h(3); }\n"
 	},
 	{
-		"ForwardingPack", 114,
-		"template<class T> struct RemoveRef { typedef T Type; };\n"
-		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
-		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
-		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
-		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
-		"struct P { int v; P(int& a, int&& b, const int& c) : v(100 + a + b * 2 + c * 3) {} };\n"
-		"template<class... A> P make(A&&... a) { return P(Forward<A>(a)...); }\n"
-		"int main() { int a = 1; const int c = 3; return make(a, 2, c).v; }\n"
-	},
-	{
 		"RefQualifiedMembers", 123,
 		"struct S { int f() & { return 1; } int f() && { return 2; } int g() const & { return 3; } };\n"
 		"int main() { S s; return s.f() * 100 + S().f() * 10 + S().g(); }\n"
@@ -1208,6 +1197,17 @@ static const SConformanceCase gasConformanceStage6[] =
 		"template<class... T> struct Count { enum { V = sizeof...(T) }; };\n"
 		"template<class... A> int f(A... a) { return sizeof...(A) + sizeof...(a); }\n"
 		"int main() { return Count<int, char>::V * 100 + Count<>::V * 10 + f(1, 2, 3); }\n"
+	},
+	{
+		"ForwardingPack", 114,
+		"template<class T> struct RemoveRef { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&> { typedef T Type; };\n"
+		"template<class T> struct RemoveRef<T&&> { typedef T Type; };\n"
+		"template<class T> typename RemoveRef<T>::Type&& Move(T&& t) { return static_cast<typename RemoveRef<T>::Type&&>(t); }\n"
+		"template<class T> T&& Forward(typename RemoveRef<T>::Type& t) { return static_cast<T&&>(t); }\n"
+		"struct P { int v; P(int& a, int&& b, const int& c) : v(100 + a + b * 2 + c * 3) {} };\n"
+		"template<class... A> P make(A&&... a) { return P(Forward<A>(a)...); }\n"
+		"int main() { int a = 1; const int c = 3; return make(a, 2, c).v; }\n"
 	},
 	{
 		"PackExpandedExpression", 654,

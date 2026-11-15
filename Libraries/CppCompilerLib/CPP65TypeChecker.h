@@ -68,7 +68,7 @@ public:
 	void			Init(CCPPUnit* pcUnit);
 	void			Kill(void);
 
-	SCPP65Type*		Value(CCPPSyntax* pcExpression);
+	SCPP65Type*		Value(CCPPSyntax* pcExpression, SCPP65Type** ppsDeclared = NULL);
 	SCPP65Type*		ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
 	SCPP65Type*		Place(CCPPSyntax* pcExpression);
 	bool			Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
@@ -131,6 +131,8 @@ protected:
 	SCPP65Type*		ResultPlace(SCPP65Type* psType, CCPPSyntax* pcNode);
 
 	SCPP65Type*		CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
+	bool			BindsCategory(SCPP65Type* psReference, CCPPSyntax* pcValue, CCPPSyntax* pcNode);
+	SCPP65Type*		ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*		ConstructExpression(CCPPSyntaxConstructExpression* pcConstruct);
 	SCPP65Type*		SizeofExpression(CCPPSyntax* pcSizeof);
 	SCPP65Type*		CheckedSizeofType(CCPPSyntax* pcSizeof);

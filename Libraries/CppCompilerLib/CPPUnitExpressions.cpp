@@ -708,7 +708,7 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 	mpcStatistics->Count(CPPCC_TypeOfWorkedOut);
 	uiErrors = mcErrors.NumErrors();
 	mpcStatistics->Begin(CPPCP_Types);
-	psType = mcTypeChecker.Value(pcExpression);
+	psType = mcTypeChecker.Value(pcExpression, &sTypeOf.psDeclared);
 	mpcStatistics->End(CPPCP_Types);
 	mcErrors.Truncate(uiErrors);
 
@@ -717,6 +717,24 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 	sTypeOf.psType = psType;
 	mcTypeOfs.Put((int64)(size)pcExpression, &sTypeOf);
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the expression is declared to give: TypeOf's, or the reference
+// to it that a call of a function returning T& or T&&, or a cast to one,
+// gives.  A variable declared as a reference is its own type here, as its
+// name is the thing it refers to.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::DeclaredTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPPTypeOf*	psTypeOf;
+
+	TypeOf(pcExpression);
+	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
+	return psTypeOf ? psTypeOf->psDeclared : NULL;
 }
 
 

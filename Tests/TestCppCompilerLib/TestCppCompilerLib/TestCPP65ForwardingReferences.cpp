@@ -550,14 +550,13 @@ static void TestForwardingReferenceRejected(ECPPTarget eTarget)
 //////////////////////////////////////////////////////////////////////////
 //
 // What the compiler can't do yet is listed here for each target: take a
-// program off its list as the compiler does it.  ReferenceCollapsing and
-// ForwardPattern need rvalue references as a type of their own (B10 in
-// CppParserTodo.txt), which passing arguments through doesn't.  So does
-// ScalarTemporaryByReference: T&& of a value is const here.
+// program off its list as the compiler does it.  ForwardPattern expands
+// Forward<Args>(args)..., a pattern that is more than the pack's name
+// (Part B stage 6 in CppParserTodo.txt).
 //
 //////////////////////////////////////////////////////////////////////////
-#define TEST_CPP65_FORWARDING_NOT_DONE		"ScalarTemporaryByReference(C) ReferenceCollapsing(W) ForwardPattern(C) "
-#define TEST_CPP816_FORWARDING_NOT_DONE		"ScalarTemporaryByReference(C) ReferenceCollapsing(W) ForwardPattern(C) "
+#define TEST_CPP65_FORWARDING_NOT_DONE		"ForwardPattern(C) "
+#define TEST_CPP816_FORWARDING_NOT_DONE		"ForwardPattern(C) "
 
 void TestCPP65ForwardingReferences(void)
 {
