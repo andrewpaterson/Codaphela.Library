@@ -33,8 +33,8 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 //(CShape::AddMesh) is that editor's mesh, exactly, with miSegments around its circles.  Anything else is an isosurface: dual
 //contouring on an octree over its bounds, from cells of mfLargest down to mfSmallest, split where its normals differ by more
 //than mfSplitAngle or a cell's centre is more than mfCentreTolerance from what its corners predict.  A shape with endless
-//bounds (a half space) and no editor makes nothing.  It makes faces only; CMeshFlatFaces then CMeshMergeNormals give them
-//normals that are smooth across curves and sharp at creases.
+//bounds (a half space) and no editor makes nothing.  It makes faces only; CMeshShapeNormals after it gives them normals from the
+//shape, smooth across curves however coarse the faces and sharp at creases.
 class CMeshShapeEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshShapeEditor);

@@ -182,7 +182,10 @@ that plan's step 8, done in these sub-steps, each with its tests in TestProcedur
     5); anything else goes through the isosurface.  Tests: a primitive's mesh is its editor's, a combination's is closed and
     facing out, and a small scene of shapes drawn with CRasterFrame matches saved bytes.
     Done: CShape::AddMesh in SupportLib (the sphere, box, cylinder, cone, tube and torus) and CMeshShapeEditor in ProceduralLib.
-    It makes faces only; CMeshFlatFaces and CMeshMergeNormals after it give normals.  The scene is matched within 8 a channel in
+    It makes faces only.  CMeshFlatFaces and CMeshMergeNormals after it gave normals at first, but merging at 30 degrees split
+    corners where coarse faces fanned through more (4 of 5300 on five spheres smoothly joined, which showed as creases in
+    WindowInputTester's isosurface tab).  CMeshShapeNormals gives them from the shape: the gradient at each corner, shared,
+    where its faces' sides agree within 45 degrees, and each face's own side's at a crease.  The scene is matched within 8 a channel in
     all but a hundredth of its pixels, not byte for byte: g++ contracts a * b + c into FMA instructions when it optimises
     (-march=haswell, and its rule against that is for C only), so Release and Debug builds differ in floats' last bits, even
     SupportLib's sphere editor's, and that moved 32 pixels by a level or two.  It's left out of Size16 builds, as RenderLib's

@@ -234,6 +234,7 @@
     <ClCompile Include="TestIsosurfaceOctree.cpp" />
     <ClCompile Include="TestMeshShapeEditor.cpp" />
     <ClCompile Include="TestShapeScene.cpp" />
+    <ClCompile Include="TestMeshShapeNormals.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />

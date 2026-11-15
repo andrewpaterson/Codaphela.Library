@@ -27,6 +27,9 @@
     <ClCompile Include="MeshShapeEditor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="MeshShapeNormals.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
@@ -48,6 +51,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="MeshShapeEditor.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshShapeNormals.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

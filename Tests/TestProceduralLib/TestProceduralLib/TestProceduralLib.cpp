@@ -16,6 +16,7 @@ void TestIsosurfaceFit(void);
 void TestDualContouring(void);
 void TestIsosurfaceOctree(void);
 void TestMeshShapeEditor(void);
+void TestMeshShapeNormals(void);
 void TestShapeScene(void);
 
 
@@ -37,6 +38,7 @@ int __cdecl main(void)
 	TestDualContouring();
 	TestIsosurfaceOctree();
 	TestMeshShapeEditor();
+	TestMeshShapeNormals();
 	TestShapeScene();
 
 	MemoryKill();
