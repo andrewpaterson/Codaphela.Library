@@ -227,9 +227,11 @@
     <ClCompile Include="MeshMeasures.cpp" />
     <ClCompile Include="TestMeshMeasures.cpp" />
     <ClCompile Include="TestIsosurfaceGrid.cpp" />
+    <ClCompile Include="TestMarchingCubes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
+    <ClInclude Include="TestGyroid.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

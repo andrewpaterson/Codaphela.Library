@@ -153,6 +153,48 @@ float32 FurthestMeshCornerFromSurface(CMesh* pcMesh, CShape* pcShape)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+float32 NearestMeshCorner(CMesh* pcMesh, SFloat32Vec3* psPoint)
+{
+	int				i;
+	int				iNumCorners;
+	float32			fNearest;
+	float32			fDistance;
+	SFloat32Vec3	sOffset;
+
+	fNearest = FLOAT32_BOUNDS_LARGEST;
+	iNumCorners = pcMesh->NumCorners();
+	for (i = 0; i < iNumCorners; i++)
+	{
+		sOffset = *pcMesh->GetPosition(i) - *psPoint;
+		fDistance = sOffset.Magnitude();
+		if (fDistance < fNearest)
+		{
+			fNearest = fDistance;
+		}
+	}
+	return fNearest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void GrownShapeBounds(SFloat32Bounds* psDest, CShape* pcShape, float32 fMargin)
+{
+	SFloat32Vec3	sMargin;
+
+	pcShape->GetBounds(psDest);
+	sMargin.Init(fMargin, fMargin, fMargin);
+	psDest->sMinimum -= sMargin;
+	psDest->sMaximum += sMargin;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void MeshFaceNormal(CMesh* pcMesh, int iFace, SFloat32Vec3* psNormal, SFloat32Vec3* psMiddle)
 {
 	int*			piCorners;

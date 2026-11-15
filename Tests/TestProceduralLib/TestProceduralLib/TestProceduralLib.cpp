@@ -11,6 +11,7 @@
 
 void TestMeshMeasures(void);
 void TestIsosurfaceGrid(void);
+void TestMarchingCubes(void);
 
 
 int __cdecl main(void)
@@ -26,6 +27,7 @@ int __cdecl main(void)
 
 	TestMeshMeasures();
 	TestIsosurfaceGrid();
+	TestMarchingCubes();
 
 	MemoryKill();
 	TypeConverterKill();
