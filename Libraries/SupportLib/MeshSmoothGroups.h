@@ -38,7 +38,9 @@ class CMesh;
 
 
 //Makes a mesh's normals from its smoothing groups (CMesh::mcSmoothing).  With SGS_None it keeps the mesh's groups, and a mesh with none has
-//every face put in muiAddGroup.  SGS_Name makes them from its faces' names, one group for each name.  SGS_Angle doesn't smooth anything yet.
+//every face put in muiAddGroup.  SGS_Name makes them from its faces' names, one group for each name.  SGS_Angle makes them from the
+//angles between faces: faces joined across edges within mfSharpAngle degrees of each other share a group, which differs from those of
+//the faces they meet at sharper edges.
 class CMeshSmoothGroups : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothGroups);
@@ -58,6 +60,8 @@ protected:
 	void		GenerateGroups(CMesh* pcMesh);
 	void		GenerateGroupsFromNames(CMesh* pcMesh);
 	void		GenerateGroupsFromAngles(CMesh* pcMesh);
+	void		FindAngleRegions(CMesh* pcMesh, float32 fDot, CArrayLargeFloat32Vec3* pasPolygonNormals, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts);
+	uint32		ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts, CArrayInt* paiRegionGroups);
 };
 
 

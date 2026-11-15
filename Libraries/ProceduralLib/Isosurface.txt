@@ -106,7 +106,8 @@ and fourth corners (faces 1 2 4 and 2 3 4), so the quad's corners are turned to 
 Normals are per face corner in a CMesh.  Proposed: flat face normals, then CMeshMergeNormals (SupportLib), which makes the
 normals at a corner one average where they are within an angle of each other, so a sphere shades smooth and a box's edges stay
 sharp.  Using the shape's gradient at each vertex instead is smoother on curves but blurs creases, and needs the angle test
-anyway.  CMeshSmoothGroups' SGS_Angle smooths nothing yet, so it isn't used.
+anyway.  CMeshSmoothGroups' SGS_Angle does the same by smoothing groups, which a scene file keeps; either will do, and which is
+for step 6.
 
 UVs and materials aren't made yet.  See Open.
 

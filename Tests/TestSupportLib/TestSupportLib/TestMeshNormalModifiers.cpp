@@ -1,8 +1,11 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Mesh.h"
+#include "SupportLib/MeshBoxEditor.h"
+#include "SupportLib/MeshCylinderEditor.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshFlatFaces.h"
+#include "SupportLib/MeshGeosphereEditor.h"
 #include "SupportLib/MeshModifierStack.h"
 #include "SupportLib/MeshPlaneEditor.h"
 #include "SupportLib/MeshSmoothFaces.h"
@@ -161,12 +164,15 @@ void TestMeshSmoothGroupsModify(void)
 	AssertInt(1, pOutput->mcNormals.mcFaces.Get(1)->aiCornerNormals[0]);
 	cStack.Kill();
 
+	//By angle the names don't matter: the faces are flat, so they're one group.
 	cStack.Init(TestMeshNormalTwoFaces(1, 2));
 	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
 	pcSmoothing->Init();
 	pcSmoothing->meGenerationStyle = SGS_Angle;
 	pOutput = cStack.GetOutput();
-	AssertLSize(2, pOutput->mcNormals.mcNormals.NumElements());
+	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
+	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
 	cStack.Kill();
 
 	cStack.Init();
@@ -313,6 +319,275 @@ void TestMeshNormalModifiersKeepDetails(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Two faces sharing corners 0 and 1, along y.  The first is flat, facing
+// +z, and the second is folded up from it by fDegrees.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMesh> TestMeshNormalFoldedFaces(float32 fDegrees)
+{
+	Ptr<CMesh>	pMesh;
+	float32		fRadians;
+
+	fRadians = fDegrees * (float32)N_PI / 180.0f;
+
+	pMesh = OMalloc<CMesh>();
+	pMesh->AddCorner(0, 0, 0);
+	pMesh->AddCorner(0, 1, 0);
+	pMesh->AddCorner(1, 0, 0);
+	pMesh->AddCorner(-cosf(fRadians), 0, sinf(fRadians));
+	pMesh->AddFace(0, 2, 1);
+	pMesh->AddFace(0, 1, 3);
+	return pMesh;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The smallest dot product between a face's flat normal and its corners'
+// normals: 1 where its corners are sharp, less where they're smoothed.
+//
+//////////////////////////////////////////////////////////////////////////
+static float32 TestMeshSmoothMinCornerDot(CMesh* pcMesh, int iFace)
+{
+	SMeshNormalFace*	psNormalFace;
+	SFloat32Vec3*		psFlat;
+	SFloat32Vec3*		psCorner;
+	float32				fMin;
+	float32				fDot;
+	int					i;
+
+	psNormalFace = pcMesh->mcNormals.mcFaces.Get(iFace);
+	psFlat = pcMesh->mcNormals.mcNormals.Get(psNormalFace->iFaceNormal);
+	fMin = 1.0f;
+	for (i = 0; i < NUM_FACE_CORNERS; i++)
+	{
+		psCorner = pcMesh->mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[i]);
+		fDot = Float32Vec3Dot(psFlat, psCorner);
+		if (fDot < fMin)
+		{
+			fMin = fDot;
+		}
+	}
+	return fMin;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Two faces are one group when the fold between them is within the sharp
+// angle and two when it isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshSmoothGroupsAngleFold(void)
+{
+	CMeshModifierStack	cStack;
+	Ptr<CMesh>			pOutput;
+	CMeshSmoothGroups*	pcSmoothing;
+	uint32				uiGroup0;
+	uint32				uiGroup1;
+
+	cStack.Init(TestMeshNormalFoldedFaces(15.0f));
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cStack.GetOutput();
+	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(0));
+	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	AssertTrue(TestMeshSmoothMinCornerDot(&pOutput, 0) < 0.999f);
+	cStack.Kill();
+
+	cStack.Init(TestMeshNormalFoldedFaces(30.0f));
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cStack.GetOutput();
+	uiGroup0 = pOutput->mcSmoothing.mauiGroups.GetValue(0);
+	uiGroup1 = pOutput->mcSmoothing.mauiGroups.GetValue(1);
+	AssertInt(1, uiGroup0);
+	AssertInt(2, uiGroup1);
+	AssertLSize(2 + 6, pOutput->mcNormals.mcNormals.NumElements());
+	AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, 0), 3);
+	AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, 1), 3);
+
+	//A sharper angle than the fold smooths it.
+	pcSmoothing->mfSharpAngle = 45.0f;
+	cStack.Touch();
+	pOutput = cStack.GetOutput();
+	AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(1));
+	AssertLSize(2 + 4, pOutput->mcNormals.mcNormals.NumElements());
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box's sides are at right angles, so every corner is sharp; the faces of
+// one side, split into several polygons, are one group; and sides that meet
+// have different groups.  A cylinder's side is smooth and its caps sharp.
+// A geosphere is all one group.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshSmoothGroupsAngleShapes(void)
+{
+	CMesh				cMesh;
+	CMeshEditor			cEditor;
+	Ptr<CMesh>			pOutput;
+	CMeshSmoothGroups*	pcSmoothing;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+	SFloat32Vec3*		psFlat;
+	SFloat32Vec3*		psCorner;
+	SMeshNormalFace*	psNormalFace;
+	CArrayInt			aiGroups;
+	int					i;
+	int					j;
+	int					iNumFaces;
+	uint32				uiGroup;
+	bool				bCap;
+
+	sX.Init(1, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 1);
+	sStart.Init(0, 0, 0);
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	cEditor.AddModifier<CMeshBoxEditor>()->Init(&sX, &sY, &sZ, &sStart, 2, 2, 2);
+	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cEditor.GetOutput();
+	iNumFaces = pOutput->NumFaces();
+	AssertInt(48, iNumFaces);
+	aiGroups.Init();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		uiGroup = pOutput->mcSmoothing.mauiGroups.GetValue(i);
+		AssertTrue(uiGroup != 0);
+		AssertTrue((uiGroup & (uiGroup - 1)) == 0);
+		aiGroups.AddIfUnique((int)uiGroup);
+		AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, i), 3);
+		for (j = 0; j < iNumFaces; j++)
+		{
+			//A group is one side, or two opposite ones.
+			if (pOutput->mcSmoothing.mauiGroups.GetValue(j) == uiGroup)
+			{
+				AssertFloat(1.0f, fabsf(Float32Vec3Dot(pOutput->mcNormals.GetFaceNormal(i), pOutput->mcNormals.GetFaceNormal(j))), 3);
+			}
+		}
+	}
+	//Opposite sides don't meet, so they can share a group: three are enough.
+	AssertSize(3, aiGroups.NumElements());
+	aiGroups.Kill();
+
+	//Each of the 26 positions has a normal for each side it's on.
+	AssertLSize(48 + 6 * 1 + 12 * 2 + 8 * 3, pOutput->mcNormals.mcNormals.NumElements());
+	pOutput = NULL;
+	cEditor.Kill();
+	cMesh.Kill();
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	cEditor.AddModifier<CMeshCylinderEditor>()->Init(&sZ, &sStart, 1.0f, 2.0f, 24, 1, 1);
+	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cEditor.GetOutput();
+	iNumFaces = pOutput->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		psNormalFace = pOutput->mcNormals.mcFaces.Get(i);
+		psFlat = pOutput->mcNormals.mcNormals.Get(psNormalFace->iFaceNormal);
+		bCap = fabsf(psFlat->z) > 0.999f;
+		if (bCap)
+		{
+			AssertFloat(1.0f, TestMeshSmoothMinCornerDot(&pOutput, i), 3);
+		}
+		else
+		{
+			AssertTrue(TestMeshSmoothMinCornerDot(&pOutput, i) < 0.999f);
+			for (j = 0; j < NUM_FACE_CORNERS; j++)
+			{
+				psCorner = pOutput->mcNormals.mcNormals.Get(psNormalFace->aiCornerNormals[j]);
+				AssertFloat(0.0f, psCorner->z, 3);
+				AssertFloat(1.0f, psCorner->Magnitude(), 3);
+			}
+		}
+	}
+	pOutput = NULL;
+	cEditor.Kill();
+	cMesh.Kill();
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	cEditor.AddModifier<CMeshGeosphereEditor>()->Init(&sZ, &sStart, 1.0f, 3);
+	pcSmoothing = cEditor.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cEditor.GetOutput();
+	iNumFaces = pOutput->NumFaces();
+	for (i = 0; i < iNumFaces; i++)
+	{
+		AssertInt(1, pOutput->mcSmoothing.mauiGroups.GetValue(i));
+	}
+	AssertLSize(iNumFaces + pOutput->NumCorners(), pOutput->mcNormals.mcNormals.NumElements());
+	pOutput = NULL;
+	cEditor.Kill();
+	cMesh.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 33 faces meeting only at corner 0 are 33 groups that all touch, one more
+// than there are bits.  Every face still gets a bit, and only two share one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshSmoothGroupsAngleTooManyGroups(void)
+{
+	CMeshModifierStack	cStack;
+	Ptr<CMesh>			pMesh;
+	Ptr<CMesh>			pOutput;
+	CMeshSmoothGroups*	pcSmoothing;
+	CArrayInt			aiGroups;
+	int					i;
+	float32				fAngle;
+	uint32				uiGroup;
+
+	pMesh = OMalloc<CMesh>();
+	pMesh->AddCorner(0, 0, 0);
+	for (i = 0; i < 33; i++)
+	{
+		fAngle = (float32)i * 2.0f * (float32)N_PI / 33.0f;
+		pMesh->AddCorner(cosf(fAngle), sinf(fAngle), 0);
+		pMesh->AddCorner(cosf(fAngle + 0.1f), sinf(fAngle + 0.1f), 0);
+		pMesh->AddFace(0, 1 + i * 2, 2 + i * 2);
+	}
+
+	cStack.Init(pMesh);
+	pcSmoothing = cStack.AddModifier<CMeshSmoothGroups>();
+	pcSmoothing->Init();
+	pcSmoothing->meGenerationStyle = SGS_Angle;
+	pOutput = cStack.GetOutput();
+
+	aiGroups.Init();
+	for (i = 0; i < 33; i++)
+	{
+		uiGroup = pOutput->mcSmoothing.mauiGroups.GetValue(i);
+		AssertTrue(uiGroup != 0);
+		aiGroups.AddIfUnique((int)uiGroup);
+	}
+	AssertSize(32, aiGroups.NumElements());
+	aiGroups.Kill();
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshNormalModifiers(void)
@@ -325,6 +600,9 @@ void TestMeshNormalModifiers(void)
 	TestMeshAddFaceKeepsCornerNormals();
 	TestMeshNormalModifiersMakeNewMeshes();
 	TestMeshSmoothGroupsModify();
+	TestMeshSmoothGroupsAngleFold();
+	TestMeshSmoothGroupsAngleShapes();
+	TestMeshSmoothGroupsAngleTooManyGroups();
 	TestMeshNormalModifiersAfterShape();
 	TestMeshNormalModifiersInEditorAgain();
 	TestMeshNormalModifiersKeepDetails();

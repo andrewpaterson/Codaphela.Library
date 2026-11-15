@@ -130,53 +130,246 @@ void CMeshSmoothGroups::GenerateGroupsFromNames(CMesh* pcMesh)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Faces joined across edges whose normals are within mfSharpAngle of each
+// other are a region, and each region is given one smoothing group, a bit
+// that no region touching it at a corner has.  So a region is smooth and
+// meets its neighbours at sharp edges.
+//
+// A face in a polygon is compared by its polygon's normal, and the faces of
+// a polygon are always in one region.  A face in none, or a mesh with no
+// polygons, is compared by its own normal.
+//
+// Joining is from face to face, so a region can hold two faces that are
+// further apart than the angle (round a cone's tip), and they're smoothed
+// where they meet, as 3ds Max's Auto Smooth does.  A region whose
+// neighbours already have all 32 bits takes the bit it touches least, and is
+// smoothed with the neighbours that have it where they meet.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::GenerateGroupsFromAngles(CMesh* pcMesh)
 {
-	lsize			i;
-	lsize			iNumPolygons;
-	CArrayLargeFloat32Vec3	asNormals;
-	CArrayInt		aiAdjPolys;
-	SFloat32Vec3*		psThisNormal;
-	SFloat32Vec3*		psOtherNormal;
-	size			j;
-	int				iOtherGon;
-	float32			fDot;
-	float32			fResult;
-	size				uiNumElements;
+	int						iNumFaces;
+	float32					fDot;
+	CArrayLargeFloat32Vec3	asPolygonNormals;
+	CArrayInt				aiRegions;
+	CArrayInt				aiOrder;
+	CArrayInt				aiRegionStarts;
+	CArrayInt				aiRegionGroups;
+	int						iNumRegions;
+	int						iRegion;
+	int						i;
+	int						iFace;
+	uint32					uiGroup;
+
+	iNumFaces = pcMesh->NumFaces();
+	pcMesh->mcSmoothing.SetAll((size)iNumFaces, 0);
+	if (iNumFaces == 0)
+	{
+		return;
+	}
 
 	fDot = Deg2Dot(mfSharpAngle);
 
-	asNormals.Init();
-	pcMesh->mcPolygons.GetNormals(&asNormals, &pcMesh->mcNormals);
-
-	pcMesh->mcSmoothing.SetAll((size)pcMesh->NumFaces(), 0);
-
-	iNumPolygons = pcMesh->mcPolygons.mcPolygons.NumElements();
-	for (i = 0; i < iNumPolygons; i++)
+	asPolygonNormals.Init();
+	if (pcMesh->mcPolygons.InUse())
 	{
-		psThisNormal = asNormals.Get(i);
-		aiAdjPolys.Init();
-		pcMesh->mcPolygons.GetAdjacentPolygons(pcMesh->GetConnectivity(), (int)i, &aiAdjPolys);
-
-		uiNumElements = aiAdjPolys.NumElements();
-		for (j = 0; j < uiNumElements; j++)
-		{
-			iOtherGon = aiAdjPolys.GetValue(j);
-			psOtherNormal = asNormals.Get(iOtherGon);
-
-			fResult = Float32Vec3Dot(psThisNormal, psOtherNormal);
-			if (fResult >= fDot)
-			{
-				//Smooth!
-			}
-		}
-
-		aiAdjPolys.Kill();
+		pcMesh->mcPolygons.GetNormals(&asPolygonNormals, &pcMesh->mcNormals);
 	}
 
-	asNormals.Kill();
+	aiRegions.Init();
+	aiOrder.Init();
+	aiRegionStarts.Init();
+	FindAngleRegions(pcMesh, fDot, &asPolygonNormals, &aiRegions, &aiOrder, &aiRegionStarts);
+	iNumRegions = (int)aiRegionStarts.NumElements() - 1;
+
+	aiRegionGroups.Init();
+	aiRegionGroups.Resize(iNumRegions);
+	for (iRegion = 0; iRegion < iNumRegions; iRegion++)
+	{
+		uiGroup = ChooseRegionGroup(pcMesh, iRegion, &aiRegions, &aiOrder, &aiRegionStarts, &aiRegionGroups);
+		aiRegionGroups.SetValue(iRegion, (int)uiGroup);
+		for (i = aiRegionStarts.GetValue(iRegion); i < aiRegionStarts.GetValue(iRegion + 1); i++)
+		{
+			iFace = aiOrder.GetValue(i);
+			pcMesh->mcSmoothing.mauiGroups.SetValue(iFace, uiGroup);
+		}
+	}
+
+	aiRegionGroups.Kill();
+	aiRegionStarts.Kill();
+	aiOrder.Kill();
+	aiRegions.Kill();
+	asPolygonNormals.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The normal a face is compared by: its polygon's, if it's in one, else its
+// own.
+//
+//////////////////////////////////////////////////////////////////////////
+static SFloat32Vec3* AngleRegionNormal(CMesh* pcMesh, CArrayLargeFloat32Vec3* pasPolygonNormals, int iFace)
+{
+	int		iPolygon;
+
+	if (pasPolygonNormals->NumElements() != 0)
+	{
+		iPolygon = pcMesh->mcPolygons.maiFacesToPolygons.GetValue(iFace);
+		if (iPolygon != -1)
+		{
+			return pasPolygonNormals->Get(iPolygon);
+		}
+	}
+	return pcMesh->mcNormals.GetFaceNormal(iFace);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Floods the faces into regions across edges that aren't sharp.  paiRegions
+// gets each face's region; paiOrder the faces, a region's together and in
+// order; paiRegionStarts where each region starts in paiOrder, and one more
+// for where the last ends.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSmoothGroups::FindAngleRegions(CMesh* pcMesh, float32 fDot, CArrayLargeFloat32Vec3* pasPolygonNormals, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts)
+{
+	int						iNumFaces;
+	int						iFace;
+	int						iRegion;
+	int						iNext;
+	int						iThis;
+	int						iOther;
+	size					j;
+	SAdjFaces				sAdjFaces;
+	SFloat32Vec3*			psThisNormal;
+	SFloat32Vec3*			psOtherNormal;
+	bool					bSamePolygon;
+	int						iThisPolygon;
+	CMeshConnectivity*		pcConn;
+
+	iNumFaces = pcMesh->NumFaces();
+	pcConn = pcMesh->GetConnectivity();
+
+	paiRegions->Resize(iNumFaces);
+	for (iFace = 0; iFace < iNumFaces; iFace++)
+	{
+		paiRegions->SetValue(iFace, -1);
+	}
+
+	iRegion = 0;
+	for (iFace = 0; iFace < iNumFaces; iFace++)
+	{
+		if (paiRegions->GetValue(iFace) != -1)
+		{
+			continue;
+		}
+
+		paiRegionStarts->Add((int)paiOrder->NumElements());
+		paiRegions->SetValue(iFace, iRegion);
+		paiOrder->Add(iFace);
+
+		//paiOrder is the queue: what's after iNext is still to be looked around.
+		for (iNext = paiRegionStarts->GetValue(iRegion); iNext < (int)paiOrder->NumElements(); iNext++)
+		{
+			iThis = paiOrder->GetValue(iNext);
+			psThisNormal = AngleRegionNormal(pcMesh, pasPolygonNormals, iThis);
+			iThisPolygon = -1;
+			if (pasPolygonNormals->NumElements() != 0)
+			{
+				iThisPolygon = pcMesh->mcPolygons.maiFacesToPolygons.GetValue(iThis);
+			}
+
+			sAdjFaces = pcConn->GetAdjacentFaces(iThis);
+			for (j = 0; j < NUM_FACE_EDGES; j++)
+			{
+				iOther = sAdjFaces.aiFace[j];
+				if ((iOther == -1) || (paiRegions->GetValue(iOther) != -1))
+				{
+					continue;
+				}
+
+				bSamePolygon = (iThisPolygon != -1) && (pcMesh->mcPolygons.maiFacesToPolygons.GetValue(iOther) == iThisPolygon);
+				psOtherNormal = AngleRegionNormal(pcMesh, pasPolygonNormals, iOther);
+				if (bSamePolygon || (Float32Vec3Dot(psThisNormal, psOtherNormal) >= fDot))
+				{
+					paiRegions->SetValue(iOther, iRegion);
+					paiOrder->Add(iOther);
+				}
+			}
+		}
+		iRegion++;
+	}
+	paiRegionStarts->Add((int)paiOrder->NumElements());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lowest bit that no region before iRegion touching it at a corner has.
+// If they have all 32, the bit it touches least: counted by the faces of
+// those regions at its corners.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CMeshSmoothGroups::ChooseRegionGroup(CMesh* pcMesh, int iRegion, CArrayInt* paiRegions, CArrayInt* paiOrder, CArrayInt* paiRegionStarts, CArrayInt* paiRegionGroups)
+{
+	int				aiBitUses[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
+	uint32			uiUsed;
+	int				i;
+	int				iFace;
+	int*			aiCorners;
+	size			k;
+	size			l;
+	size			uiNumCornerFaces;
+	CMeshCorner*	pcCorner;
+	int				iOtherRegion;
+	uint32			uiOtherGroup;
+	int				iBit;
+	int				iLeastBit;
+
+	memset(aiBitUses, 0, sizeof(aiBitUses));
+	uiUsed = 0;
+	for (i = paiRegionStarts->GetValue(iRegion); i < paiRegionStarts->GetValue(iRegion + 1); i++)
+	{
+		iFace = paiOrder->GetValue(i);
+		aiCorners = pcMesh->GetFaceCorners(iFace);
+		for (k = 0; k < NUM_FACE_CORNERS; k++)
+		{
+			pcCorner = pcMesh->GetCorner(aiCorners[k]);
+			uiNumCornerFaces = pcCorner->maiFace.NumElements();
+			for (l = 0; l < uiNumCornerFaces; l++)
+			{
+				iOtherRegion = paiRegions->GetValue(pcCorner->maiFace.GetValue(l));
+				if (iOtherRegion < iRegion)
+				{
+					uiOtherGroup = (uint32)paiRegionGroups->GetValue(iOtherRegion);
+					uiUsed |= uiOtherGroup;
+					for (iBit = 0; iBit < MAX_UNOVERLAPPING_SMOOTHING_GROUPS; iBit++)
+					{
+						if (uiOtherGroup == ((uint32)1 << iBit))
+						{
+							aiBitUses[iBit]++;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	iLeastBit = 0;
+	for (iBit = 0; iBit < MAX_UNOVERLAPPING_SMOOTHING_GROUPS; iBit++)
+	{
+		if ((uiUsed & ((uint32)1 << iBit)) == 0)
+		{
+			return (uint32)1 << iBit;
+		}
+		if (aiBitUses[iBit] < aiBitUses[iLeastBit])
+		{
+			iLeastBit = iBit;
+		}
+	}
+	return (uint32)1 << iLeastBit;
 }
 
 
