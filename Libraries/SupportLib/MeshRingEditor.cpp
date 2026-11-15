@@ -124,6 +124,7 @@ void CMeshRingEditor::Generate(CMeshEditor* pcMeshEditor)
 	int			z;
 	SFloat32Vec3		sDest;
 	SFloat32Vec3		sSource;
+	SFloat32Vec3		sAcross;
 	float32		fWedgeRad;
 	float32		fRadius;
 	float32		f;
@@ -136,6 +137,7 @@ void CMeshRingEditor::Generate(CMeshEditor* pcMeshEditor)
 	iStartPosition = pcMeshEditor->NumCorners();
 
 	fWedgeRad = (N_PI*2.0f)/miWedgeSegments;
+	WedgeDirection(&sAcross, &msZDirection);
 
 	for (z = miZI; z < miRingSegments-miZE; z++)
 	{
@@ -143,7 +145,8 @@ void CMeshRingEditor::Generate(CMeshEditor* pcMeshEditor)
 		fRadius = InterpolateFloat(mfBottomRadius, mfTopRadius, f);
 		fZ = mfLength * f;
 
-		sSource.Init(0.0f, fRadius, 0.0f);
+		sSource.Init(&sAcross);
+		sSource *= fRadius;
 		for (i = 0; i < (uint)miWedgeSegments; i++)
 		{
 			Float32Vec3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);

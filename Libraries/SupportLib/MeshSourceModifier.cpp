@@ -141,8 +141,8 @@ Ptr<CMesh> CMeshSourceModifier::Modify(Ptr<CMesh> pMesh)
 //////////////////////////////////////////////////////////////////////////
 //
 // The direction across psZDirection (which is normalised) that a shape's
-// first wedge points in: Y, as CMeshRingEditor's and CMeshDiscEditor's do,
-// with what is along psZDirection taken out.  X if psZDirection is along Y.
+// first wedge points in: Y with what is along psZDirection taken out, or X
+// if psZDirection is along Y.  Every shape around an axis starts from it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMeshSourceModifier::WedgeDirection(SFloat32Vec3* psDest, SFloat32Vec3* psZDirection)

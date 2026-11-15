@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/Numbers.h"
+#include "BaseLib/FloatHelper.h"
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshPlaneEditor.h"
@@ -201,16 +202,35 @@ static void AssertBallShape(CMesh* pcMesh, SFloat32Vec3* psCentre, float32 fRadi
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each face of a shape around Z through the origin, from 0 to fLength, faces
-// the way its name says: up (1), out (2), down (3) or in (4).
+// How far psPosition is along psZDirection (which is normalised) from the
+// origin, and what is left across it.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCylindricalFacesOutward(CMesh* pcMesh, float32 fLength)
+static void SplitAlongAxis(SFloat32Vec3* psPosition, SFloat32Vec3* psZDirection, float32* pfAlong, SFloat32Vec3* psAcross)
+{
+	SFloat32Vec3	sAlong;
+
+	*pfAlong = Float32Vec3Dot(psPosition, psZDirection);
+	sAlong.Init(psZDirection);
+	sAlong *= *pfAlong;
+	*psAcross = *psPosition - sAlong;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each face of a shape around psZDirection through the origin, from 0 to
+// fLength, faces the way its name says: up (1), out (2), down (3) or in (4).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCylindricalFacesOutward(CMesh* pcMesh, SFloat32Vec3* psZDirection, float32 fLength)
 {
 	int				i;
 	SFloat32Vec3	sNormal;
 	SFloat32Vec3	sMiddle;
+	SFloat32Vec3	sAcross;
 	SFloat32Vec3	sOut;
+	float32			fAlong;
 	bool			bFacing;
 	int				iName;
 
@@ -218,24 +238,27 @@ static void AssertCylindricalFacesOutward(CMesh* pcMesh, float32 fLength)
 	for (i = 0; i < pcMesh->NumFaces(); i++)
 	{
 		TestShapeFaceNormal(pcMesh, i, &sNormal, &sMiddle);
+		SplitAlongAxis(&sMiddle, psZDirection, &fAlong, &sAcross);
 		iName = pcMesh->GetFaceName(i);
 		if (iName == 1)
 		{
-			sOut.Init(0, 0, 1);
-			bFacing &= fabsf(sMiddle.z - fLength) < 0.0001f;
+			sOut.Init(psZDirection);
+			bFacing &= fabsf(fAlong - fLength) < 0.0001f;
 		}
 		else if (iName == 3)
 		{
-			sOut.Init(0, 0, -1);
-			bFacing &= fabsf(sMiddle.z) < 0.0001f;
+			sOut.Init(psZDirection);
+			sOut *= -1.0f;
+			bFacing &= fabsf(fAlong) < 0.0001f;
 		}
 		else if (iName == 2)
 		{
-			sOut.Init(sMiddle.x, sMiddle.y, 0);
+			sOut = sAcross;
 		}
 		else
 		{
-			sOut.Init(-sMiddle.x, -sMiddle.y, 0);
+			sOut = sAcross;
+			sOut *= -1.0f;
 		}
 		bFacing &= Float32Vec3Dot(&sNormal, &sOut) > 0.0f;
 	}
@@ -784,7 +807,7 @@ void TestCylinder(void)
 
 	//The checks the shapes below are put to hold for a cylinder already.
 	AssertShapeClosed(&cMesh, 2);
-	AssertCylindricalFacesOutward(&cMesh, 2.0f);
+	AssertCylindricalFacesOutward(&cMesh, &sZDirection, 2.0f);
 
 	cMeshEditor.RemoveModifiers();
 	cMesh.Kill();
@@ -792,6 +815,100 @@ void TestCylinder(void)
 	cMeshEditor.Kill();
 
 	cFileUtil.RemoveDir("Output/Shape");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The disc, ring and cone (and so the cylinder) are the same shape whichever
+// way their axis points: along Z, along Y, along -X or between Y and Z.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestShapeAxes(void)
+{
+	CMesh			cMesh;
+	CMeshEditor		cMeshEditor;
+	SFloat32Vec3	asZDirection[4];
+	SFloat32Vec3	sStart;
+	SFloat32Vec3	sAcross;
+	SFloat32Vec3*	psZDirection;
+	float32			fAlong;
+	float32			fRadius;
+	float32			fMaxRadius;
+	bool			bFlat;
+	bool			bOnRing;
+	int				i;
+	int				j;
+
+	asZDirection[0].Init(0, 0, 1);
+	asZDirection[1].Init(0, 1, 0);
+	asZDirection[2].Init(-1, 0, 0);
+	asZDirection[3].Init(0, 1, 1);
+	asZDirection[3].Normalize();
+	sStart.Init(0, 0, 0);
+
+	for (i = 0; i < 4; i++)
+	{
+		psZDirection = &asZDirection[i];
+
+		//A disc lies across its axis, out to its radius.
+		cMesh.Init();
+		cMeshEditor.Init(&cMesh);
+		cMeshEditor.AddModifier<CMeshDiscEditor>()->Init(psZDirection, &sStart, 0.0f, 2.0f, 8, 3);
+		cMeshEditor.Collapse();
+
+		AssertInt(25, cMesh.NumCorners());
+		bFlat = true;
+		fMaxRadius = 0.0f;
+		for (j = 0; j < cMesh.NumCorners(); j++)
+		{
+			SplitAlongAxis(cMesh.GetPosition(j), psZDirection, &fAlong, &sAcross);
+			bFlat &= fabsf(fAlong) < 0.0001f;
+			fRadius = sAcross.Magnitude();
+			if (fRadius > fMaxRadius)
+			{
+				fMaxRadius = fRadius;
+			}
+		}
+		AssertTrue(bFlat);
+		AssertFloat(2.0f, fMaxRadius, 3);
+
+		cMesh.Kill();
+		cMeshEditor.Kill();
+
+		//A ring goes from its bottom radius at the start to its top radius at the end.
+		cMesh.Init();
+		cMeshEditor.Init(&cMesh);
+		cMeshEditor.AddModifier<CMeshRingEditor>()->Init(psZDirection, &sStart, 0.5f, 1.0f, 3.0f, 12, 8);
+		cMeshEditor.Collapse();
+
+		AssertInt(96, cMesh.NumCorners());
+		bOnRing = true;
+		for (j = 0; j < cMesh.NumCorners(); j++)
+		{
+			SplitAlongAxis(cMesh.GetPosition(j), psZDirection, &fAlong, &sAcross);
+			bOnRing &= (fAlong > -0.0001f) && (fAlong < 3.0001f);
+			bOnRing &= fabsf(sAcross.Magnitude() - InterpolateFloat(1.0f, 0.5f, fAlong / 3.0f)) < 0.0001f;
+		}
+		AssertTrue(bOnRing);
+
+		cMesh.Kill();
+		cMeshEditor.Kill();
+
+		//A cone is closed and faces out, with its ends across its axis.
+		cMesh.Init();
+		cMeshEditor.Init(&cMesh);
+		cMeshEditor.AddModifier<CMeshConeEditor>()->Init(psZDirection, &sStart, 1.0f, 3.0f, 6.0f, 20, 3, 4, 11);
+		cMeshEditor.Collapse();
+
+		AssertInt(322, cMesh.NumCorners());
+		AssertInt(640, cMesh.NumFaces());
+		AssertShapeClosed(&cMesh, 2);
+		AssertCylindricalFacesOutward(&cMesh, psZDirection, 6.0f);
+
+		cMesh.Kill();
+		cMeshEditor.Kill();
+	}
 }
 
 
@@ -1092,7 +1209,7 @@ void TestTube(void)
 	AssertFloat3(SFloat32Vec3(0, 2, 0), cMesh.GetPosition(0), 3);
 	AssertFloat3(SFloat32Vec3(0, 1, 3), cMesh.GetPosition(32), 3);
 	AssertShapeClosed(&cMesh, 0);
-	AssertCylindricalFacesOutward(&cMesh, 3.0f);
+	AssertCylindricalFacesOutward(&cMesh, &sZDirection, 3.0f);
 
 	bInside = true;
 	for (i = 0; i < cMesh.NumCorners(); i++)
@@ -1116,7 +1233,7 @@ void TestTube(void)
 	AssertInt(12, cMesh.NumCorners());
 	AssertInt(24, cMesh.NumFaces());
 	AssertShapeClosed(&cMesh, 0);
-	AssertCylindricalFacesOutward(&cMesh, 1.0f);
+	AssertCylindricalFacesOutward(&cMesh, &sZDirection, 1.0f);
 	cMeshEditor.Kill();
 	cMesh.Kill();
 
@@ -1142,6 +1259,7 @@ void TestMeshShapes(void)
 	TestRing();
 	TestCone();
 	TestCylinder();
+	TestShapeAxes();
 	TestTube();
 	TestSphere();
 	TestGeosphere();

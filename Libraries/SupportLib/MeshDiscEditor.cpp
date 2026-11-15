@@ -118,11 +118,13 @@ void CMeshDiscEditor::Generate(CMeshEditor* pcMeshEditor)
 	uint		j;
 	SFloat32Vec3		sDest;
 	SFloat32Vec3		sSource;
+	SFloat32Vec3		sAcross;
 	float32		fWedgeRad;
 	float32		fRadius;
 	int			iStartPosition;
 
 	fWedgeRad = (N_PI*2.0f)/miWedgeSegments;
+	WedgeDirection(&sAcross, &msZDirection);
 
 	iStartPosition = pcMeshEditor->NumCorners();
 
@@ -130,7 +132,8 @@ void CMeshDiscEditor::Generate(CMeshEditor* pcMeshEditor)
 	for (j = 0; j < (uint)miCircleSegments; j++)
 	{
 		fRadius = (mfOuterRadius / miCircleSegments) * (j+1);
-		sSource.Init(0.0f, fRadius, 0.0f);
+		sSource.Init(&sAcross);
+		sSource *= fRadius;
 		for (i = 0; i < (uint)miWedgeSegments; i++)
 		{
 			Float32Vec3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);
