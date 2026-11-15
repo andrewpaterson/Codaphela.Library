@@ -30,7 +30,7 @@ void CArrayBlockBase<SIZE>::_Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Init(typename SIZE::Count iElementSize)
+void CArrayBlockBase<SIZE>::Init(Count iElementSize)
 {
 	Init(&gcSystemAllocator, iElementSize);
 }
@@ -41,7 +41,7 @@ void CArrayBlockBase<SIZE>::Init(typename SIZE::Count iElementSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, typename SIZE::Count iElementSize)
+void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, Count iElementSize)
 {
 	Init(pcMalloc, iElementSize, 1);
 }
@@ -52,7 +52,7 @@ void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, typename SIZE::Count iEl
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, typename SIZE::Count iElementSize, typename SIZE::Count iChunkSize)
+void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, Count iElementSize, Count iChunkSize)
 {
 	CMalloc::Init(pcMalloc);
 	mpvArray = NULL;
@@ -68,7 +68,7 @@ void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, typename SIZE::Count iEl
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, typename SIZE::Count iElementSize, void* pvData, typename SIZE::Count uiNumData)
+void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, Count iElementSize, void* pvData, Count uiNumData)
 {
 	Init(pcMalloc, iElementSize);
 	Resize(uiNumData);
@@ -81,7 +81,7 @@ void CArrayBlockBase<SIZE>::Init(CMallocator* pcMalloc, typename SIZE::Count iEl
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Fake(typename SIZE::Count iElementSize, void* pvData, typename SIZE::Count iNum, typename SIZE::Count iChunkSize)
+void CArrayBlockBase<SIZE>::Fake(Count iElementSize, void* pvData, Count iNum, Count iChunkSize)
 {
 	CMalloc::Init(&gcNullAllocator);
 	mpvArray = pvData;
@@ -120,8 +120,8 @@ void CArrayBlockBase<SIZE>::TakeFrom(CArrayBlockBase<SIZE>* pcSource)
 template<class SIZE>
 void CArrayBlockBase<SIZE>::ReInit(void)
 {
-	CMallocator*			pcMalloc;
-	typename SIZE::Count	iChunkSize;
+	CMallocator*	pcMalloc;
+	Count			iChunkSize;
 
 	pcMalloc = mpcMalloc;
 	iChunkSize = miChunkSize;
@@ -136,7 +136,7 @@ void CArrayBlockBase<SIZE>::ReInit(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::SafeGet(typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::SafeGet(Count iIndex)
 {
 	if (iIndex < miUsedElements)
 	{
@@ -154,9 +154,9 @@ void* CArrayBlockBase<SIZE>::SafeGet(typename SIZE::Count iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::SafeSet(typename SIZE::Count iIndex, void* pvData)
+bool CArrayBlockBase<SIZE>::SafeSet(Count iIndex, void* pvData)
 {
-	typename SIZE::Count	iOldLength;
+	Count	iOldLength;
 
 
 	if (iIndex < miUsedElements)
@@ -168,7 +168,7 @@ bool CArrayBlockBase<SIZE>::SafeSet(typename SIZE::Count iIndex, void* pvData)
 	{
 		iOldLength = NumElements();
 		SetUsedElements(iIndex+1);
-		SIZE::Set(Get(iOldLength), 0, (typename SIZE::Count)((iIndex-iOldLength) * miElementSize));
+		SIZE::Set(Get(iOldLength), 0, (Count)((iIndex-iOldLength) * miElementSize));
 		Set(iIndex, pvData);
 		return true;
 	}
@@ -180,9 +180,9 @@ bool CArrayBlockBase<SIZE>::SafeSet(typename SIZE::Count iIndex, void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::SetUsedElements(typename SIZE::Count iUsedElements)
+typename SIZE::Count CArrayBlockBase<SIZE>::SetUsedElements(Count iUsedElements)
 {
-	typename SIZE::Count	iOldUsedElements;
+	Count	iOldUsedElements;
 
 	iOldUsedElements = miUsedElements;
 	SetArraySize(iUsedElements);
@@ -195,7 +195,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::SetUsedElements(typename SIZE::Count
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(typename SIZE::Count iIndex)
+typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(Count iIndex)
 {
 	//This is only used by CConvexHullGenerator.RemoveDiscontiguousTriangles/
 	//It should be removed.
@@ -208,7 +208,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(typename SIZE::
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::SetChunkSize(typename SIZE::Count iChunkSize)
+bool CArrayBlockBase<SIZE>::SetChunkSize(Count iChunkSize)
 {
 	if (iChunkSize < miChunkSize)
 	{
@@ -242,11 +242,11 @@ bool CArrayBlockBase<SIZE>::SetChunkSize(typename SIZE::Count iChunkSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::SetArraySize(typename SIZE::Count iNeededElements)
+void CArrayBlockBase<SIZE>::SetArraySize(Count iNeededElements)
 {
-	void*					pv;
-	typename SIZE::Count	iNumElements;
-	typename SIZE::Count	iChunkSize;
+	void*	pv;
+	Count	iNumElements;
+	Count	iChunkSize;
 
 	if (iNeededElements == 0)
 	{
@@ -260,8 +260,8 @@ void CArrayBlockBase<SIZE>::SetArraySize(typename SIZE::Count iNeededElements)
 	}
 	else
 	{
-		iChunkSize = (typename SIZE::Count)CalculateChunkSize(iNeededElements, miChunkSize);
-		iNumElements = (typename SIZE::Count)CalculateArraySize(iNeededElements, iChunkSize);
+		iChunkSize = (Count)CalculateChunkSize(iNeededElements, miChunkSize);
+		iNumElements = (Count)CalculateArraySize(iNeededElements, iChunkSize);
 		if (SIZE::CheckSize && ((iNumElements < iNeededElements) || ((miElementSize != 0) && (iNumElements > SIZE::Max / miElementSize))))
 		{
 			Overflowed();
@@ -270,7 +270,7 @@ void CArrayBlockBase<SIZE>::SetArraySize(typename SIZE::Count iNeededElements)
 
 		if (miNumElements != iNumElements)
 		{
-			pv = (void*)Realloc(mpvArray, (typename SIZE::Count)(miElementSize * iNumElements));
+			pv = (void*)Realloc(mpvArray, (Count)(miElementSize * iNumElements));
 			mpvArray = pv;
 			if (mpvArray == NULL)
 			{
@@ -313,9 +313,9 @@ void CArrayBlockBase<SIZE>::Overflowed(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::AddNum(typename SIZE::Count iNumElements)
+typename SIZE::Count CArrayBlockBase<SIZE>::AddNum(Count iNumElements)
 {
-	typename SIZE::Count	iOldUsedElements;
+	Count	iOldUsedElements;
 
 	if (SIZE::CheckSize && (iNumElements > SIZE::Max - miUsedElements))
 	{
@@ -360,7 +360,7 @@ void* CArrayBlockBase<SIZE>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::AddGetIndex(typename SIZE::Count* piIndex)
+void* CArrayBlockBase<SIZE>::AddGetIndex(Count* piIndex)
 {
 	void* pv;
 
@@ -405,7 +405,7 @@ void* CArrayBlockBase<SIZE>::Add(void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Set(typename SIZE::Count iIndex, void* pvData)
+void CArrayBlockBase<SIZE>::Set(Count iIndex, void* pvData)
 {
 	void*	pvTemp;
 
@@ -419,7 +419,7 @@ void CArrayBlockBase<SIZE>::Set(typename SIZE::Count iIndex, void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertAt(typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::InsertAt(Count iIndex)
 {
 	void*	pSource;
 	void*	pDest;
@@ -444,7 +444,7 @@ void* CArrayBlockBase<SIZE>::InsertAt(typename SIZE::Count iIndex)
 	pSource = Get(iIndex);
 	pDest = RemapSinglePointer(pSource, miElementSize);
 
-	SIZE::Move(pDest, pSource, (typename SIZE::Count)(miElementSize * (miUsedElements - 1 - iIndex)));
+	SIZE::Move(pDest, pSource, (Count)(miElementSize * (miUsedElements - 1 - iIndex)));
 	return (void*)pSource;
 }
 
@@ -454,7 +454,7 @@ void* CArrayBlockBase<SIZE>::InsertAt(typename SIZE::Count iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertAt(void* pvData, typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::InsertAt(void* pvData, Count iIndex)
 {
 	void* pv;
 
@@ -472,7 +472,7 @@ void* CArrayBlockBase<SIZE>::InsertAt(void* pvData, typename SIZE::Count iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::PrivateRemoveAt(typename SIZE::Count iIndex, bool bPreserveOrder, typename SIZE::Count iDataSize)
+void CArrayBlockBase<SIZE>::PrivateRemoveAt(Count iIndex, bool bPreserveOrder, Count iDataSize)
 {
 	if (iIndex < miUsedElements)
 	{
@@ -491,12 +491,12 @@ void CArrayBlockBase<SIZE>::PrivateRemoveAt(typename SIZE::Count iIndex, bool bP
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(typename SIZE::Count iIndex, bool bPreserveOrder, typename SIZE::Count iDataSize)
+typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(Count iIndex, bool bPreserveOrder, Count iDataSize)
 {
-	void*					pSource;
-	void*					pDest;
-	void*					pEnd;
-	typename SIZE::Count	iUsedElements;
+	void*	pSource;
+	void*	pDest;
+	void*	pEnd;
+	Count	iUsedElements;
 
 	iUsedElements = miUsedElements;
 	iUsedElements--;
@@ -505,18 +505,18 @@ typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(typename SIZE::
 		return iUsedElements;
 	}
 
-	pSource = RemapSinglePointer(mpvArray, (typename SIZE::Count)(iIndex * iDataSize));
+	pSource = RemapSinglePointer(mpvArray, (Count)(iIndex * iDataSize));
 
 	if (bPreserveOrder)
 	{
 		//If the order of elements is to be preserved then move all the elements back one.
 		pDest = (void*)RemapSinglePointer(pSource, iDataSize);
-		SIZE::Move(pSource, pDest, (typename SIZE::Count)(iDataSize * (iUsedElements - iIndex)));
+		SIZE::Move(pSource, pDest, (Count)(iDataSize * (iUsedElements - iIndex)));
 	}
 	else
 	{
 		//If the order is unimportant then just move the last element to the empty.
-		pEnd = (void*)RemapSinglePointer(mpvArray, (typename SIZE::Count)(iUsedElements * iDataSize));
+		pEnd = (void*)RemapSinglePointer(mpvArray, (Count)(iUsedElements * iDataSize));
 		SIZE::Copy(pSource, pEnd, iDataSize);
 	}
 	return iUsedElements;
@@ -528,7 +528,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::RemoveAtNoDeallocate(typename SIZE::
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::RemoveAt(typename SIZE::Count iIndex, bool bPreserveOrder)
+void CArrayBlockBase<SIZE>::RemoveAt(Count iIndex, bool bPreserveOrder)
 {
 	PrivateRemoveAt(iIndex, bPreserveOrder, miElementSize);
 }
@@ -539,13 +539,13 @@ void CArrayBlockBase<SIZE>::RemoveAt(typename SIZE::Count iIndex, bool bPreserve
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::PrivateRemoveRange(typename SIZE::Count iStartIndex, typename SIZE::Count iEndIndexExclusive, bool bPreserveOrder, typename SIZE::Count iDataSize)
+void CArrayBlockBase<SIZE>::PrivateRemoveRange(Count iStartIndex, Count iEndIndexExclusive, bool bPreserveOrder, Count iDataSize)
 {
-	typename SIZE::Count	iNumTrailing;
-	typename SIZE::Count	iNumToRemove;
-	void*					pvEnd;
-	void*					pvStart;
-	void*					pv;
+	Count	iNumTrailing;
+	Count	iNumToRemove;
+	void*	pvEnd;
+	void*	pvStart;
+	void*	pv;
 
 	if (iEndIndexExclusive <= iStartIndex)
 	{
@@ -581,7 +581,7 @@ void CArrayBlockBase<SIZE>::PrivateRemoveRange(typename SIZE::Count iStartIndex,
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::RemoveRange(typename SIZE::Count iStartIndex, typename SIZE::Count iEndIndexExclusive, bool bPreserveOrder)
+void CArrayBlockBase<SIZE>::RemoveRange(Count iStartIndex, Count iEndIndexExclusive, bool bPreserveOrder)
 {
 	PrivateRemoveRange(iStartIndex, iEndIndexExclusive, bPreserveOrder, miElementSize);
 }
@@ -592,16 +592,16 @@ void CArrayBlockBase<SIZE>::RemoveRange(typename SIZE::Count iStartIndex, typena
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::RemoveAt(typename SIZE::Count* paiElementsToDelete, typename SIZE::Count iNumElementsToDelete, bool bPreserveOrder)
+void CArrayBlockBase<SIZE>::RemoveAt(Count* paiElementsToDelete, Count iNumElementsToDelete, bool bPreserveOrder)
 {
-	typename SIZE::Count	i;
-	typename SIZE::Count	iIndex;
-	typename SIZE::Count	iFirstElementToMove;
-	typename SIZE::Count	iEndElementToMove;
-	typename SIZE::Count	iMoved;
-	typename SIZE::Count	iDestElement;
-	typename SIZE::Count	iDestOffset;
-	typename SIZE::Count	iNumDeleted;
+	Count	i;
+	Count	iIndex;
+	Count	iFirstElementToMove;
+	Count	iEndElementToMove;
+	Count	iMoved;
+	Count	iDestElement;
+	Count	iDestOffset;
+	Count	iNumDeleted;
 
 	//Little gotcha on paiElementsToDelete.  It must be sorted smallest to largest and each value must be unique.
 
@@ -895,7 +895,7 @@ void* CArrayBlockBase<SIZE>::Tail(void)
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::AddIfUnique(void* pvData)
 {
-	typename SIZE::Count iElementNum;
+	Count iElementNum;
 
 	iElementNum = Find(pvData);
 	if (iElementNum == SIZE::NotFound)
@@ -913,8 +913,8 @@ typename SIZE::Count CArrayBlockBase<SIZE>::AddIfUnique(void* pvData)
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::Find(void* pvData)
 {
-	typename SIZE::Count	i;
-	void*					pv;
+	Count	i;
+	void*	pv;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -933,9 +933,9 @@ typename SIZE::Count CArrayBlockBase<SIZE>::Find(void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::AddIfUniqueKey(void* pvData, typename SIZE::Count iKeyOffset, typename SIZE::Count iKeySize)
+typename SIZE::Count CArrayBlockBase<SIZE>::AddIfUniqueKey(void* pvData, Count iKeyOffset, Count iKeySize)
 {
-	typename SIZE::Count	iElementNum;
+	Count	iElementNum;
 
 	iElementNum = FindWithKey(pvData, iKeyOffset, iKeySize);
 	if (iElementNum == SIZE::NotFound)
@@ -952,11 +952,11 @@ typename SIZE::Count CArrayBlockBase<SIZE>::AddIfUniqueKey(void* pvData, typenam
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::FindWithKey(void* pvData, typename SIZE::Count iKeyOffset, typename SIZE::Count iKeySize)
+typename SIZE::Count CArrayBlockBase<SIZE>::FindWithKey(void* pvData, Count iKeyOffset, Count iKeySize)
 {
-	typename SIZE::Count	i;
-	void*					pIndex;
-	void*					pTest;
+	Count	i;
+	void*	pIndex;
+	void*	pTest;
 
 	pIndex = RemapSinglePointer(mpvArray, iKeyOffset);
 	pTest = RemapSinglePointer(pvData, iKeyOffset);
@@ -980,8 +980,8 @@ typename SIZE::Count CArrayBlockBase<SIZE>::FindWithKey(void* pvData, typename S
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::FindWithIntKey(int iKey)
 {
-	typename SIZE::Count	i;
-	void*					pIndex;
+	Count	i;
+	void*	pIndex;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -1000,14 +1000,14 @@ typename SIZE::Count CArrayBlockBase<SIZE>::FindWithIntKey(int iKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::FindWithIntKey(int iKey, typename SIZE::Count iKeyOffset)
+typename SIZE::Count CArrayBlockBase<SIZE>::FindWithIntKey(int iKey, Count iKeyOffset)
 {
-	typename SIZE::Count	i;
-	void*					pIndex;
+	Count	i;
+	void*	pIndex;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		pIndex = RemapSinglePointer(mpvArray, (typename SIZE::Count)(i * miElementSize + iKeyOffset));
+		pIndex = RemapSinglePointer(mpvArray, (Count)(i * miElementSize + iKeyOffset));
 		if (*((int*)pIndex) == iKey)
 		{
 			return i;
@@ -1023,14 +1023,14 @@ typename SIZE::Count CArrayBlockBase<SIZE>::FindWithIntKey(int iKey, typename SI
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::FindWithSizeKey(size iKey, typename SIZE::Count iKeyOffset)
+typename SIZE::Count CArrayBlockBase<SIZE>::FindWithSizeKey(size iKey, Count iKeyOffset)
 {
-	typename SIZE::Count	i;
-	void*					pIndex;
+	Count	i;
+	void*	pIndex;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		pIndex = RemapSinglePointer(mpvArray, (typename SIZE::Count)(i * miElementSize) + iKeyOffset);
+		pIndex = RemapSinglePointer(mpvArray, (Count)(i * miElementSize) + iKeyOffset);
 		if (*((size*)pIndex) == iKey)
 		{
 			return i;
@@ -1045,7 +1045,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::FindWithSizeKey(size iKey, typename 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::Resize(typename SIZE::Count iNumElements)
+typename SIZE::Count CArrayBlockBase<SIZE>::Resize(Count iNumElements)
 {
 	return SetUsedElements(iNumElements);
 }
@@ -1056,10 +1056,10 @@ typename SIZE::Count CArrayBlockBase<SIZE>::Resize(typename SIZE::Count iNumElem
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::GrowToAtLeastNumElements(typename SIZE::Count iNumElements, bool bClear, uint8 iClear)
+void* CArrayBlockBase<SIZE>::GrowToAtLeastNumElements(Count iNumElements, bool bClear, uint8 iClear)
 {
-	typename SIZE::Count	iOldUsedElements;
-	void*					pvStart;
+	Count	iOldUsedElements;
+	void*	pvStart;
 
 	if (iNumElements == 0)
 	{
@@ -1074,7 +1074,7 @@ void* CArrayBlockBase<SIZE>::GrowToAtLeastNumElements(typename SIZE::Count iNumE
 			if (iOldUsedElements < iNumElements)
 			{
 				pvStart = Get(iOldUsedElements);
-				SIZE::Set(pvStart, iClear, (typename SIZE::Count)((iNumElements - iOldUsedElements) * miElementSize));
+				SIZE::Set(pvStart, iClear, (Count)((iNumElements - iOldUsedElements) * miElementSize));
 			}
 		}
 		return Get(iNumElements - 1);
@@ -1109,7 +1109,7 @@ bool CArrayBlockBase<SIZE>::Equals(CArrayBlockBase<SIZE>* pcOtherArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::Swap(typename SIZE::Count iIndex1, typename SIZE::Count iIndex2)
+void CArrayBlockBase<SIZE>::Swap(Count iIndex1, Count iIndex2)
 {
 	void*	pElement1;
 	void*	pElement2;
@@ -1128,8 +1128,8 @@ void CArrayBlockBase<SIZE>::Swap(typename SIZE::Count iIndex1, typename SIZE::Co
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting)
 {
-	typename SIZE::Count	iIndex;
-	bool					bExists;
+	Count	iIndex;
+	bool	bExists;
 
 	bExists = FindInSorted(pvData, fCompare, &iIndex);
 	if (iIndex < miUsedElements)
@@ -1163,7 +1163,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::InsertIntoSorted(DataCompare fCompar
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::FindInSorted(void* pvData, DataCompare fCompare, typename SIZE::Count* piIndex)
+bool CArrayBlockBase<SIZE>::FindInSorted(void* pvData, DataCompare fCompare, Count* piIndex)
 {
 	if (miUsedElements == 0)
 	{
@@ -1179,13 +1179,13 @@ bool CArrayBlockBase<SIZE>::FindInSorted(void* pvData, DataCompare fCompare, typ
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::BinarySearch(void* pvData, typename SIZE::Count iLeft, typename SIZE::Count iRight, DataCompare fCompare, typename SIZE::Count* piIndex)
+bool CArrayBlockBase<SIZE>::BinarySearch(void* pvData, Count iLeft, Count iRight, DataCompare fCompare, Count* piIndex)
 {
-	typename SIZE::Count	iMiddle;
-	int						iResultMiddle;
-	void*					pvMiddle;
-	char*					pcArray;
-	typename SIZE::Count	iElementSize;
+	Count	iMiddle;
+	int		iResultMiddle;
+	void*	pvMiddle;
+	char*	pcArray;
+	Count	iElementSize;
 
 	//Held in locals because fCompare could change the array as far as the compiler knows.
 	pcArray = (char*)mpvArray;
@@ -1196,7 +1196,7 @@ bool CArrayBlockBase<SIZE>::BinarySearch(void* pvData, typename SIZE::Count iLef
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
-		pvMiddle = &pcArray[(typename SIZE::Count)(iElementSize * iMiddle)];
+		pvMiddle = &pcArray[(Count)(iElementSize * iMiddle)];
 		iResultMiddle = fCompare(pvData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
@@ -1236,8 +1236,8 @@ bool CArrayBlockBase<SIZE>::BinarySearch(void* pvData, typename SIZE::Count iLef
 template<class SIZE>
 void CArrayBlockBase<SIZE>::Reverse(void)
 {
-	typename SIZE::Count	i;
-	typename SIZE::Count	iCount;
+	Count	i;
+	Count	iCount;
 
 	iCount = miUsedElements/2;
 	for (i = 0; i < iCount; i++)
@@ -1254,11 +1254,11 @@ void CArrayBlockBase<SIZE>::Reverse(void)
 template<class SIZE>
 void CArrayBlockBase<SIZE>::Shuffle(CRandom* pcRandom)
 {
-	typename SIZE::Count	i;
-	typename SIZE::Count	iNumElements;
-	CRandom					cRandom;
-	bool					bKillRandom;
-	typename SIZE::Count	iIndex;
+	Count	i;
+	Count	iNumElements;
+	CRandom	cRandom;
+	bool	bKillRandom;
+	Count	iIndex;
 
 	bKillRandom = false;
 	if (pcRandom == NULL)
@@ -1289,7 +1289,7 @@ void CArrayBlockBase<SIZE>::Shuffle(CRandom* pcRandom)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::CopyArrayInto(CArrayBlockBase<SIZE>* pcOtherArray, typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::CopyArrayInto(CArrayBlockBase<SIZE>* pcOtherArray, Count iIndex)
 {
 	void*	pv;
 
@@ -1307,7 +1307,7 @@ void* CArrayBlockBase<SIZE>::CopyArrayInto(CArrayBlockBase<SIZE>* pcOtherArray, 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::CopyBlockInto(void* paElements, typename SIZE::Count iLength, typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::CopyBlockInto(void* paElements, Count iLength, Count iIndex)
 {
 	void*	pv;
 
@@ -1324,7 +1324,7 @@ void* CArrayBlockBase<SIZE>::CopyBlockInto(void* paElements, typename SIZE::Coun
 template<class SIZE>
 void* CArrayBlockBase<SIZE>::InsertArrayAfterEnd(CArrayBlockBase<SIZE>* pcOtherArray)
 {
-	typename SIZE::Count	iArrayIndex;
+	Count	iArrayIndex;
 
 	iArrayIndex = AddNum(pcOtherArray->miUsedElements);
 	return CopyArrayInto(pcOtherArray, iArrayIndex);
@@ -1348,7 +1348,7 @@ void* CArrayBlockBase<SIZE>::InsertArrayBeforeStart(CArrayBlockBase<SIZE>* pcOth
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertArrayAt(CArrayBlockBase<SIZE>* pcOtherArray, typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::InsertArrayAt(CArrayBlockBase<SIZE>* pcOtherArray, Count iIndex)
 {
 	InsertNumAt(pcOtherArray->miUsedElements, iIndex);
 	return CopyArrayInto(pcOtherArray, iIndex);
@@ -1360,11 +1360,11 @@ void* CArrayBlockBase<SIZE>::InsertArrayAt(CArrayBlockBase<SIZE>* pcOtherArray, 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertNumAt(typename SIZE::Count iNumElements, typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::InsertNumAt(Count iNumElements, Count iIndex)
 {
-	void*					pvFrom;
-	void*					pvTo;
-	typename SIZE::Count	iNumToMove;
+	void*	pvFrom;
+	void*	pvTo;
+	Count	iNumToMove;
 
 	if ((iNumElements == 0) || (iIndex > miNumElements))
 	{
@@ -1386,9 +1386,9 @@ void* CArrayBlockBase<SIZE>::InsertNumAt(typename SIZE::Count iNumElements, type
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertBlockAfterEnd(void* paElements, typename SIZE::Count iLength)
+void* CArrayBlockBase<SIZE>::InsertBlockAfterEnd(void* paElements, Count iLength)
 {
-	typename SIZE::Count	iArrayIndex;
+	Count	iArrayIndex;
 
 	iArrayIndex = AddNum(iLength);
 	return CopyBlockInto(paElements, iLength, iArrayIndex);
@@ -1400,7 +1400,7 @@ void* CArrayBlockBase<SIZE>::InsertBlockAfterEnd(void* paElements, typename SIZE
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertBlockBeforeStart(void* paElements, typename SIZE::Count iLength)
+void* CArrayBlockBase<SIZE>::InsertBlockBeforeStart(void* paElements, Count iLength)
 {
 	InsertNumAt(iLength, 0);
 	return CopyBlockInto(paElements, iLength, 0);
@@ -1412,7 +1412,7 @@ void* CArrayBlockBase<SIZE>::InsertBlockBeforeStart(void* paElements, typename S
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::InsertBlockAt(void* paElements, typename SIZE::Count iLength, typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::InsertBlockAt(void* paElements, Count iLength, Count iIndex)
 {
 	InsertNumAt(iLength, iIndex);
 	return CopyBlockInto(paElements, iLength, iIndex);
@@ -1424,9 +1424,9 @@ void* CArrayBlockBase<SIZE>::InsertBlockAt(void* paElements, typename SIZE::Coun
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::Get(typename SIZE::Count iIndex)
+void* CArrayBlockBase<SIZE>::Get(Count iIndex)
 {
-	return (void*)RemapSinglePointer(mpvArray, (typename SIZE::Count)(miElementSize * iIndex));
+	return (void*)RemapSinglePointer(mpvArray, (Count)(miElementSize * iIndex));
 }
 
 
@@ -1435,7 +1435,7 @@ void* CArrayBlockBase<SIZE>::Get(typename SIZE::Count iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::GetAdjustedIndex(typename SIZE::Count iIndex)
+typename SIZE::Count CArrayBlockBase<SIZE>::GetAdjustedIndex(Count iIndex)
 {
 	if (iIndex == SIZE::NotFound)
 	{
@@ -1452,8 +1452,8 @@ typename SIZE::Count CArrayBlockBase<SIZE>::GetAdjustedIndex(typename SIZE::Coun
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::GetIndex(void* pvData)
 {
-	ptr						tDifference;
-	typename SIZE::Count	iDifference;
+	ptr		tDifference;
+	Count	iDifference;
 
 	//Make sure the element lies within the array (whole pointers: a 16 bit size would wrap).
 	if ((ptr)pvData < (ptr)mpvArray)
@@ -1467,7 +1467,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::GetIndex(void* pvData)
 	}
 
 	//Make sure the element is correctly aligned.
-	iDifference = (typename SIZE::Count)tDifference;
+	iDifference = (Count)tDifference;
 	if (iDifference % miElementSize != 0)
 	{
 		return SIZE::NotFound;
@@ -1481,16 +1481,16 @@ typename SIZE::Count CArrayBlockBase<SIZE>::GetIndex(void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::RemoveBatch(typename SIZE::Count uiFirstElementPos, typename SIZE::Count uiNumInBatch, typename SIZE::Count uiNumBatches, typename SIZE::Count uiSkip)
+void CArrayBlockBase<SIZE>::RemoveBatch(Count uiFirstElementPos, Count uiNumInBatch, Count uiNumBatches, Count uiSkip)
 {
-	typename SIZE::Count	i;
-	void*					pcSource;
-	void*					pcDest;
-	typename SIZE::Count	uiDest;
-	typename SIZE::Count	uiSource;
-	typename SIZE::Count	uiCopyWidth;
-	typename SIZE::Count	uiSourceStride;
-	typename SIZE::Count	uiNewNumElements;
+	Count	i;
+	void*	pcSource;
+	void*	pcDest;
+	Count	uiDest;
+	Count	uiSource;
+	Count	uiCopyWidth;
+	Count	uiSourceStride;
+	Count	uiNewNumElements;
 
 	if (uiNumBatches >= 2)
 	{
@@ -1547,7 +1547,7 @@ void CArrayBlockBase<SIZE>::RemoveAll(void)
 template<class SIZE>
 bool CArrayBlockBase<SIZE>::Remove(void* pvData, bool bPreserveOrder)
 {
-	typename SIZE::Count	iIndex;
+	Count	iIndex;
 
 	iIndex = GetIndex(pvData);
 	if (iIndex != SIZE::NotFound)
@@ -1569,11 +1569,11 @@ bool CArrayBlockBase<SIZE>::Remove(void* pvData, bool bPreserveOrder)
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::RemoveArray(CArrayBlockBase<SIZE>* pcOtherArray, bool bPreserveOrder)
 {
-	typename SIZE::Count	i;
-	typename SIZE::Count	iOtherNumElements;
-	void*					pvOther;
-	typename SIZE::Count	iThisIndex;
-	typename SIZE::Count	iRemoved;
+	Count	i;
+	Count	iOtherNumElements;
+	void*	pvOther;
+	Count	iThisIndex;
+	Count	iRemoved;
 
 	iRemoved = 0;
 	iOtherNumElements = pcOtherArray->NumElements();
@@ -1598,12 +1598,12 @@ typename SIZE::Count CArrayBlockBase<SIZE>::RemoveArray(CArrayBlockBase<SIZE>* p
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::RemoveArrayFromSorted(CArrayBlockBase<SIZE>* pcOtherArray, DataCompare fCompare)
 {
-	typename SIZE::Count	i;
-	typename SIZE::Count	iOtherNumElements;
-	void*					pvOther;
-	typename SIZE::Count	iThisIndex;
-	bool					bFound;
-	typename SIZE::Count	iRemoved;
+	Count	i;
+	Count	iOtherNumElements;
+	void*	pvOther;
+	Count	iThisIndex;
+	bool	bFound;
+	Count	iRemoved;
 
 	iRemoved = 0;
 	iOtherNumElements = pcOtherArray->NumElements();
@@ -1626,18 +1626,18 @@ typename SIZE::Count CArrayBlockBase<SIZE>::RemoveArrayFromSorted(CArrayBlockBas
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, typename SIZE::Count iNumInBatch, typename SIZE::Count iNumBatches, typename SIZE::Count iSkip)
+void CArrayBlockBase<SIZE>::InsertBatch(Count iFirstElementPos, Count iNumInBatch, Count iNumBatches, Count iSkip)
 {
-	typename SIZE::Count	i;
-	void*					pcFirst;
-	typename SIZE::Count	iTotalStride;
-	void*					pcSource;
-	void*					pcDest;
-	typename SIZE::Count	iDest;
-	typename SIZE::Count	iSource;
-	typename SIZE::Count	iOldNumElements;
-	typename SIZE::Count	iRemaining;
-	typename SIZE::Count	iStride;
+	Count	i;
+	void*	pcFirst;
+	Count	iTotalStride;
+	void*	pcSource;
+	void*	pcDest;
+	Count	iDest;
+	Count	iSource;
+	Count	iOldNumElements;
+	Count	iRemaining;
+	Count	iStride;
 
 	if (SIZE::CheckSize && ((iNumBatches != 0) && (iNumInBatch > SIZE::Max / iNumBatches)))
 	{
@@ -1652,8 +1652,8 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 
 	iDest = (iNumInBatch + iSkip) * (i + 1) - iSkip;
 	iSource = iSkip * i;
-	pcDest = RemapSinglePointer(pcFirst, (typename SIZE::Count)(iDest * miElementSize));
-	pcSource = RemapSinglePointer(pcFirst, (typename SIZE::Count)(iSource * miElementSize));
+	pcDest = RemapSinglePointer(pcFirst, (Count)(iDest * miElementSize));
+	pcSource = RemapSinglePointer(pcFirst, (Count)(iSource * miElementSize));
 
 	if (iOldNumElements > iSource)
 	{
@@ -1675,7 +1675,7 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 			do
 			{
 				i--;
-				SIZE::Move(RemapSinglePointer(pcFirst, (typename SIZE::Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (typename SIZE::Count)(iStride * i)), 1);
+				SIZE::Move(RemapSinglePointer(pcFirst, (Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (Count)(iStride * i)), 1);
 			}
 			while (i != 0);
 		}
@@ -1688,7 +1688,7 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 			do
 			{
 				i--;
-				SIZE::Move(RemapSinglePointer(pcFirst, (typename SIZE::Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (typename SIZE::Count)(iStride * i)), 2);
+				SIZE::Move(RemapSinglePointer(pcFirst, (Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (Count)(iStride * i)), 2);
 			}
 			while (i != 0);
 		}
@@ -1701,7 +1701,7 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 			do
 			{
 				i--;
-				SIZE::Move(RemapSinglePointer(pcFirst, (typename SIZE::Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (typename SIZE::Count)(iStride * i)), 4);
+				SIZE::Move(RemapSinglePointer(pcFirst, (Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (Count)(iStride * i)), 4);
 			}
 			while (i != 0);
 		}
@@ -1714,7 +1714,7 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 			do
 			{
 				i--;
-				SIZE::Move(RemapSinglePointer(pcFirst, (typename SIZE::Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (typename SIZE::Count)(iStride * i)), 8);
+				SIZE::Move(RemapSinglePointer(pcFirst, (Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (Count)(iStride * i)), 8);
 			}
 			while (i != 0);
 		}
@@ -1727,7 +1727,7 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 			do
 			{
 				i--;
-				SIZE::Move(RemapSinglePointer(pcFirst, (typename SIZE::Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (typename SIZE::Count)(iStride * i)), 12);
+				SIZE::Move(RemapSinglePointer(pcFirst, (Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (Count)(iStride * i)), 12);
 			}
 			while (i != 0);
 		}
@@ -1740,7 +1740,7 @@ void CArrayBlockBase<SIZE>::InsertBatch(typename SIZE::Count iFirstElementPos, t
 			do
 			{
 				i--;
-				SIZE::Move(RemapSinglePointer(pcFirst, (typename SIZE::Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (typename SIZE::Count)(iStride * i)), iStride);
+				SIZE::Move(RemapSinglePointer(pcFirst, (Count)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (Count)(iStride * i)), iStride);
 			}
 			while (i != 0);
 		}
@@ -1804,7 +1804,7 @@ bool CArrayBlockBase<SIZE>::WriteHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 //uiFileElementSize is written in place of the element size.
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::WriteHeader(CFileWriter* pcFileWriter, typename SIZE::Count uiFileElementSize)
+bool CArrayBlockBase<SIZE>::WriteHeader(CFileWriter* pcFileWriter, Count uiFileElementSize)
 {
 	SArrayHeaderBase<SIZE>	sHeader;
 
@@ -1879,7 +1879,7 @@ bool CArrayBlockBase<SIZE>::ReadHeader(CFileReader* pcFileReader, CMallocator* p
 //The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  MAX_SIZE for
 //both uses the element size in the file.
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, typename SIZE::Count uiFileElementSize, typename SIZE::Count uiElementSize)
+bool CArrayBlockBase<SIZE>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, Count uiFileElementSize, Count uiElementSize)
 {
 	SArrayHeaderBase<SIZE>	sHeader;
 
@@ -1973,11 +1973,11 @@ bool CArrayBlockBase<SIZE>::Read(CFileReader* pcFileReader)
 template<class SIZE>
 bool CArrayBlockBase<SIZE>::IsSorted(DataCompare fCompare)
 {
-	typename SIZE::Count	ui;
-	typename SIZE::Count	uiNumElements;
-	void*					pvLeft;
-	void*					pvRight;
-	int						iResult;
+	Count	ui;
+	Count	uiNumElements;
+	void*	pvLeft;
+	void*	pvRight;
+	int		iResult;
 
 	if (miUsedElements < 2)
 	{
@@ -2026,11 +2026,11 @@ void* CArrayBlockBase<SIZE>::GetData(void) { return mpvArray; }
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::ChunkSize(void) { return miChunkSize; }
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::RemoveNum(typename SIZE::Count iNumElements) { return SetUsedElements(miUsedElements - iNumElements); }
+typename SIZE::Count CArrayBlockBase<SIZE>::RemoveNum(Count iNumElements) { return SetUsedElements(miUsedElements - iNumElements); }
 template<class SIZE>
-void CArrayBlockBase<SIZE>::FakeSetUsedElements(typename SIZE::Count iUsedElements) { miUsedElements = iUsedElements; }
+void CArrayBlockBase<SIZE>::FakeSetUsedElements(Count iUsedElements) { miUsedElements = iUsedElements; }
 template<class SIZE>
-void CArrayBlockBase<SIZE>::SetAllocateSize(typename SIZE::Count iSize) { miChunkSize = iSize; }
+void CArrayBlockBase<SIZE>::SetAllocateSize(Count iSize) { miChunkSize = iSize; }
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::ElementSize(void) { return miElementSize; }
 template<class SIZE>

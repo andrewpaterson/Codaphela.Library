@@ -56,39 +56,41 @@ protected:
 	using TEMPLATE::mpvArray;
 
 public:
+	typedef typename TEMPLATE::Count	Count;
+
 	using TEMPLATE::FindInSorted;
 	using TEMPLATE::Resize;
 	using TEMPLATE::SetUsedElements;
 
-	M							GetValue(typename TEMPLATE::Count iIndex);
-	M							SafeGetValue(typename TEMPLATE::Count iIndex, M iNotFound);
-	M							operator[](typename TEMPLATE::Count iIndex);
-	void						SetValue(typename TEMPLATE::Count iIndex, M iElement);
-	void						Add(M iElement);
-	void						Add(M* paElements, typename TEMPLATE::Count iNumElements);
-	void						InsertAt(M iElement, typename TEMPLATE::Count iIndex);
-	void						SetArrayValues(M iValue);
-	void						SetArrayValues(M iStart, M iIncrement);
-	void						QuickSort(void);
-	void						BubbleSort(void);
-	typename TEMPLATE::Count	Find(M iValue);
-	typename TEMPLATE::Count	AddIfUnique(M iValue);
-	void						Swap(typename TEMPLATE::Count iIndex1, typename TEMPLATE::Count iIndex2);
-	void						InsertIntoSorted(M iElement, bool bOverwriteExisting);
+	M		GetValue(Count iIndex);
+	M		SafeGetValue(Count iIndex, M iNotFound);
+	M		operator[](Count iIndex);
+	void	SetValue(Count iIndex, M iElement);
+	void	Add(M iElement);
+	void	Add(M* paElements, Count iNumElements);
+	void	InsertAt(M iElement, Count iIndex);
+	void	SetArrayValues(M iValue);
+	void	SetArrayValues(M iStart, M iIncrement);
+	void	QuickSort(void);
+	void	BubbleSort(void);
+	Count	Find(M iValue);
+	Count	AddIfUnique(M iValue);
+	void	Swap(Count iIndex1, Count iIndex2);
+	void	InsertIntoSorted(M iElement, bool bOverwriteExisting);
 	template<class F>
-	void						InsertInOrder(M iElement, F* psOrder, typename TEMPLATE::Count iFirst = 0);
-	bool						RemoveFromSorted(M iElement);
-	bool						RemoveDuplicatesFromSorted(void);
-	void						MakeUnique(void);
-	void						Intersect(CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray1, CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray2);
-	bool						IsSorted(void);
-	typename TEMPLATE::Count	FindFinalContiguousInSorted(void);
-	M							Pop(void);
-	void						Push(M iElement);
+	void	InsertInOrder(M iElement, F* psOrder, Count iFirst = 0);
+	bool	RemoveFromSorted(M iElement);
+	bool	RemoveDuplicatesFromSorted(void);
+	void	MakeUnique(void);
+	void	Intersect(CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray1, CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray2);
+	bool	IsSorted(void);
+	Count	FindFinalContiguousInSorted(void);
+	M		Pop(void);
+	void	Push(M iElement);
 
-	void						AddRemap(typename TEMPLATE::Count iElementPos, M iRemapNum);
-	void						AddList(M iStop, ...);
-	void						RemoveRemap(typename TEMPLATE::Count iElementPos);
+	void	AddRemap(Count iElementPos, M iRemapNum);
+	void	AddList(M iStop, ...);
+	void	RemoveRemap(Count iElementPos);
 };
 
 
@@ -99,7 +101,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-M CArrayTemplatePrimitiveBase<M, TEMPLATE>::GetValue(typename TEMPLATE::Count iIndex)
+M CArrayTemplatePrimitiveBase<M, TEMPLATE>::GetValue(Count iIndex)
 {
 	return (*(TEMPLATE::Get(iIndex)));
 }
@@ -121,7 +123,7 @@ M CArrayTemplatePrimitiveBase<M, TEMPLATE>::operator[](typename TEMPLATE::Count 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-M CArrayTemplatePrimitiveBase<M, TEMPLATE>::SafeGetValue(typename TEMPLATE::Count iIndex, M iNotFound)
+M CArrayTemplatePrimitiveBase<M, TEMPLATE>::SafeGetValue(Count iIndex, M iNotFound)
 {
 	if (iIndex < miUsedElements)
 	{
@@ -136,7 +138,7 @@ M CArrayTemplatePrimitiveBase<M, TEMPLATE>::SafeGetValue(typename TEMPLATE::Coun
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::SetValue(typename TEMPLATE::Count iIndex, M iElement)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::SetValue(Count iIndex, M iElement)
 {
 	((M*)mpvArray)[iIndex] = iElement;
 }
@@ -161,7 +163,7 @@ void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Add(M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Add(M* paElements, typename TEMPLATE::Count iNumElements)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Add(M* paElements, Count iNumElements)
 {
 	typename TEMPLATE::Count	i;
 	M*							pvTemp;
@@ -179,7 +181,7 @@ void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Add(M* paElements, typename TEMPL
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertAt(M iElement, typename TEMPLATE::Count iIndex)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertAt(M iElement, Count iIndex)
 {
 	M*	pvTemp;
 
@@ -289,7 +291,7 @@ typename TEMPLATE::Count CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddIfUnique(M
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Swap(typename TEMPLATE::Count iIndex1, typename TEMPLATE::Count iIndex2)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Swap(Count iIndex1, Count iIndex2)
 {
 	M*		piElement1;
 	M*		piElement2;
@@ -349,7 +351,7 @@ void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertIntoSorted(M iElement, bool
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
 template<class F>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertInOrder(M iElement, F* psOrder, typename TEMPLATE::Count iFirst)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertInOrder(M iElement, F* psOrder, Count iFirst)
 {
 	typename TEMPLATE::Count	i;
 
@@ -571,7 +573,7 @@ void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Push(M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddRemap(typename TEMPLATE::Count iElementPos, M iRemapNum)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddRemap(Count iElementPos, M iRemapNum)
 {
 	M*							pi;
 	typename TEMPLATE::Count	iIndex;
@@ -602,7 +604,7 @@ void CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddRemap(typename TEMPLATE::Count
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class TEMPLATE>
-void CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveRemap(typename TEMPLATE::Count iElementPos)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveRemap(Count iElementPos)
 {
 	M*							pi;
 	typename TEMPLATE::Count	iIndex;

@@ -32,57 +32,59 @@ template<class M, class BLOCK>
 class CArrayTemplateBase : public BLOCK, protected CPostMalloc<M>
 {
 public:
-	void					Init(void);
-	void					Init(CMallocator* pcMalloc);
-	void					Init(CMallocator* pcMalloc, typename BLOCK::Count iChunkSize);
-	void					Init(CMallocator* pcMalloc, M* pvData, typename BLOCK::Count uiNumData);
-	void					Fake(M* pvData, typename BLOCK::Count iNum, typename BLOCK::Count iChunkSize = 1);
-	void					TakeFrom(CArrayTemplateBase<M, BLOCK>* pcSource);
-	void					Kill(void);
+	typedef typename BLOCK::Count	Count;
 
-	M*						Add(void);
-	M*						Add(M* pvData);
-	M*						AddGetIndex(typename BLOCK::Count* piIndex);
-	typename BLOCK::Count	AddIfUnique(M* pvData);
-	typename BLOCK::Count	AddIfUniqueKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize);
+	void	Init(void);
+	void	Init(CMallocator* pcMalloc);
+	void	Init(CMallocator* pcMalloc, Count iChunkSize);
+	void	Init(CMallocator* pcMalloc, M* pvData, Count uiNumData);
+	void	Fake(M* pvData, Count iNum, Count iChunkSize = 1);
+	void	TakeFrom(CArrayTemplateBase<M, BLOCK>* pcSource);
+	void	Kill(void);
 
-	void					Copy(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	M*		Add(void);
+	M*		Add(M* pvData);
+	M*		AddGetIndex(Count* piIndex);
+	Count	AddIfUnique(M* pvData);
+	Count	AddIfUniqueKey(M* pvData, Count iKeyOffset, Count iKeySize);
 
-	M*						Get(typename BLOCK::Count iIndex);
-	M*						SafeGet(typename BLOCK::Count iIndex);
-	M*						GetData(void);
-	typename BLOCK::Count	GetIndex(M* pvData);
-	M*						Tail(void);
-	M&						operator[](typename BLOCK::Count iIndex);
+	void	Copy(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
 
-	M*						InsertArrayAfterEnd(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
-	M*						InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcOtherArray, typename BLOCK::Count iIndex);
-	M*						InsertArrayBeforeStart(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
-	M*						InsertAt(typename BLOCK::Count iIndex);
-	M*						InsertAt(M* pvData, typename BLOCK::Count iIndex);
-	M*						InsertBlockAfterEnd(M* paElements, typename BLOCK::Count iLength);
-	M*						InsertBlockAt(M* paElements, typename BLOCK::Count iLength, typename BLOCK::Count iIndex);
-	M*						InsertBlockBeforeStart(M* paElements, typename BLOCK::Count iLength);
-	typename BLOCK::Count	InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
-	M*						InsertNumAt(typename BLOCK::Count iNumElements, typename BLOCK::Count iIndex);
+	M*		Get(Count iIndex);
+	M*		SafeGet(Count iIndex);
+	M*		GetData(void);
+	Count	GetIndex(M* pvData);
+	M*		Tail(void);
+	M&						operator[](Count iIndex);
 
-	typename BLOCK::Count	RemoveArray(CArrayTemplateBase<M, BLOCK>* pcOtherArray, bool bPreserveOrder = true);
-	typename BLOCK::Count	RemoveArrayFromSorted(CArrayTemplateBase<M, BLOCK>* pcOtherArray, DataCompare fCompare);
+	M*		InsertArrayAfterEnd(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	M*		InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcOtherArray, Count iIndex);
+	M*		InsertArrayBeforeStart(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	M*		InsertAt(Count iIndex);
+	M*		InsertAt(M* pvData, Count iIndex);
+	M*		InsertBlockAfterEnd(M* paElements, Count iLength);
+	M*		InsertBlockAt(M* paElements, Count iLength, Count iIndex);
+	M*		InsertBlockBeforeStart(M* paElements, Count iLength);
+	Count	InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
+	M*		InsertNumAt(Count iNumElements, Count iIndex);
 
-	bool					Pop(M* pvData);
-	bool					Pop(void);
-	void					Push(M* pvData);
-	M*						Push(void);
-	M*						PushCopy(void);
+	Count	RemoveArray(CArrayTemplateBase<M, BLOCK>* pcOtherArray, bool bPreserveOrder = true);
+	Count	RemoveArrayFromSorted(CArrayTemplateBase<M, BLOCK>* pcOtherArray, DataCompare fCompare);
 
-	bool					Contains(M* pvData);
-	bool					Equals(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
-	typename BLOCK::Count	Find(M* pvData);
-	bool					FindInSorted(M* pvData, DataCompare fCompare, typename BLOCK::Count* piIndex);
-	typename BLOCK::Count	FindWithKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize);
+	bool	Pop(M* pvData);
+	bool	Pop(void);
+	void	Push(M* pvData);
+	M*		Push(void);
+	M*		PushCopy(void);
 
-	void					Set(typename BLOCK::Count iIndex, M* pvData);
-	bool					SafeSet(typename BLOCK::Count iIndex, M* pvData);
+	bool	Contains(M* pvData);
+	bool	Equals(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	Count	Find(M* pvData);
+	bool	FindInSorted(M* pvData, DataCompare fCompare, Count* piIndex);
+	Count	FindWithKey(M* pvData, Count iKeyOffset, Count iKeySize);
+
+	void	Set(Count iIndex, M* pvData);
+	bool	SafeSet(Count iIndex, M* pvData);
 };
 
 
@@ -92,18 +94,18 @@ public:
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(void) { BLOCK::Init(sizeof(M)); }
 template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc) { BLOCK::Init(pcMalloc, sizeof(M)); }
-template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc, typename BLOCK::Count iChunkSize) { BLOCK::Init(pcMalloc, sizeof(M), iChunkSize); }
-template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc, M* pvData, typename BLOCK::Count uiNumData) { BLOCK::Init(pcMalloc, sizeof(M), pvData, uiNumData); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc, Count iChunkSize) { BLOCK::Init(pcMalloc, sizeof(M), iChunkSize); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc, M* pvData, Count uiNumData) { BLOCK::Init(pcMalloc, sizeof(M), pvData, uiNumData); }
 template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::TakeFrom(CArrayTemplateBase<M, BLOCK>* pcSource) { BLOCK::TakeFrom(pcSource); }
 template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Kill(void) { BLOCK::Kill(); }
-template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::SafeGet(typename BLOCK::Count iIndex) { return (M*)BLOCK::SafeGet(iIndex); }
-template<class M, class BLOCK> bool	CArrayTemplateBase<M, BLOCK>::SafeSet(typename BLOCK::Count iIndex, M* pvData) { return BLOCK::SafeSet(iIndex, pvData); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::SafeGet(Count iIndex) { return (M*)BLOCK::SafeGet(iIndex); }
+template<class M, class BLOCK> bool	CArrayTemplateBase<M, BLOCK>::SafeSet(Count iIndex, M* pvData) { return BLOCK::SafeSet(iIndex, pvData); }
 template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::Add(void) { return this->PostMalloc((M*)BLOCK::Add()); }
-template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::AddGetIndex(typename BLOCK::Count* piIndex) { return this->PostMalloc((M*)BLOCK::AddGetIndex(piIndex)); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::AddGetIndex(Count* piIndex) { return this->PostMalloc((M*)BLOCK::AddGetIndex(piIndex)); }
 template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::Add(M* pvData) { return (M*)BLOCK::Add(pvData); }
-template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Set(typename BLOCK::Count iIndex, M* pvData) { return BLOCK::Set(iIndex, pvData); }
-template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::InsertAt(typename BLOCK::Count iIndex) { return this->PostMalloc((M*)BLOCK::InsertAt(iIndex)); }
-template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::InsertAt(M* pvData, typename BLOCK::Count iIndex) { return (M*)BLOCK::InsertAt(pvData, iIndex); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Set(Count iIndex, M* pvData) { return BLOCK::Set(iIndex, pvData); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::InsertAt(Count iIndex) { return this->PostMalloc((M*)BLOCK::InsertAt(iIndex)); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::InsertAt(M* pvData, Count iIndex) { return (M*)BLOCK::InsertAt(pvData, iIndex); }
 template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Copy(CArrayTemplateBase<M, BLOCK>* pcOtherArray) { BLOCK::Copy(pcOtherArray); }
 
 
@@ -211,7 +213,7 @@ bool CArrayTemplateBase<M, BLOCK>::Contains(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::AddIfUniqueKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize)
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::AddIfUniqueKey(M* pvData, Count iKeyOffset, Count iKeySize)
 {
 	return BLOCK::AddIfUniqueKey(pvData, iKeyOffset, iKeySize);
 }
@@ -222,7 +224,7 @@ typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::AddIfUniqueKey(M* pvData, ty
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::FindWithKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize)
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::FindWithKey(M* pvData, Count iKeyOffset, Count iKeySize)
 {
 	return BLOCK::FindWithKey(pvData, iKeyOffset, iKeySize);
 }
@@ -255,7 +257,7 @@ typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::InsertIntoSorted(DataCompare
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-bool CArrayTemplateBase<M, BLOCK>::FindInSorted(M* pvData, DataCompare fCompare, typename BLOCK::Count* piIndex)
+bool CArrayTemplateBase<M, BLOCK>::FindInSorted(M* pvData, DataCompare fCompare, Count* piIndex)
 {
 	return BLOCK::FindInSorted(pvData, fCompare, piIndex);
 }
@@ -288,7 +290,7 @@ M* CArrayTemplateBase<M, BLOCK>::InsertArrayBeforeStart(CArrayTemplateBase<M, BL
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcOtherArray, typename BLOCK::Count iIndex)
+M* CArrayTemplateBase<M, BLOCK>::InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcOtherArray, Count iIndex)
 {
 	return (M*)BLOCK::InsertArrayAt(pcOtherArray, iIndex);
 }
@@ -299,7 +301,7 @@ M* CArrayTemplateBase<M, BLOCK>::InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcO
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::InsertNumAt(typename BLOCK::Count iNumElements, typename BLOCK::Count iIndex)
+M* CArrayTemplateBase<M, BLOCK>::InsertNumAt(Count iNumElements, Count iIndex)
 {
 	return this->PostMalloc((M*)BLOCK::InsertNumAt(iNumElements, iIndex), iNumElements, this->miElementSize);
 }
@@ -310,7 +312,7 @@ M* CArrayTemplateBase<M, BLOCK>::InsertNumAt(typename BLOCK::Count iNumElements,
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::InsertBlockAfterEnd(M* paElements, typename BLOCK::Count iLength)
+M* CArrayTemplateBase<M, BLOCK>::InsertBlockAfterEnd(M* paElements, Count iLength)
 {
 	return (M*)BLOCK::InsertBlockAfterEnd(paElements, iLength);
 }
@@ -321,7 +323,7 @@ M* CArrayTemplateBase<M, BLOCK>::InsertBlockAfterEnd(M* paElements, typename BLO
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::InsertBlockBeforeStart(M* paElements, typename BLOCK::Count iLength)
+M* CArrayTemplateBase<M, BLOCK>::InsertBlockBeforeStart(M* paElements, Count iLength)
 {
 	return (M*)BLOCK::InsertBlockBeforeStart(paElements, iLength);
 }
@@ -332,7 +334,7 @@ M* CArrayTemplateBase<M, BLOCK>::InsertBlockBeforeStart(M* paElements, typename 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::InsertBlockAt(M* paElements, typename BLOCK::Count iLength, typename BLOCK::Count iIndex)
+M* CArrayTemplateBase<M, BLOCK>::InsertBlockAt(M* paElements, Count iLength, Count iIndex)
 {
 	return (M*)BLOCK::InsertBlockAt(paElements, iLength, iIndex);
 }
@@ -343,7 +345,7 @@ M* CArrayTemplateBase<M, BLOCK>::InsertBlockAt(M* paElements, typename BLOCK::Co
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::Get(typename BLOCK::Count iIndex)
+M* CArrayTemplateBase<M, BLOCK>::Get(Count iIndex)
 {
 	return (M*)BLOCK::Get(iIndex);
 }
@@ -376,7 +378,7 @@ M* CArrayTemplateBase<M, BLOCK>::GetData(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-void CArrayTemplateBase<M, BLOCK>::Fake(M* pvData, typename BLOCK::Count iNum, typename BLOCK::Count iChunkSize)
+void CArrayTemplateBase<M, BLOCK>::Fake(M* pvData, Count iNum, Count iChunkSize)
 {
 	BLOCK::Fake(sizeof(M), pvData, iNum, iChunkSize);
 }

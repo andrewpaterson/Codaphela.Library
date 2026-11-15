@@ -66,12 +66,14 @@ struct SArrayLargeSize
 template<class SIZE>
 struct SArrayHeaderBase
 {
-	typename SIZE::Count	miElementSize;
-	typename SIZE::Count	miUsedElements;
-	typename SIZE::Count	miChunkSize;
+	typedef typename SIZE::Count	Count;
 
-	bool					Write(CFileWriter* pcFileWriter);
-	bool					Read(CFileReader* pcFileReader);
+	Count	miElementSize;
+	Count	miUsedElements;
+	Count	miChunkSize;
+
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 //Elements in an array are always of the same size.  Array elements are indexed from the start of the array.
@@ -97,136 +99,136 @@ protected:
 	using SArrayHeaderBase<SIZE>::miUsedElements;
 	using SArrayHeaderBase<SIZE>::miChunkSize;
 
-	typename SIZE::Count	miNumElements;
-	void*					mpvArray;
+	Count	miNumElements;
+	void*	mpvArray;
 
 public:
-	void					_Init(void);
-	void					Init(typename SIZE::Count iElementSize);
-	void					Init(CMallocator* pcMalloc, typename SIZE::Count iElementSize);
-	void					Init(CMallocator* pcMalloc, typename SIZE::Count iElementSize, typename SIZE::Count iChunkSize);
-	void					Init(CMallocator* pcMalloc, typename SIZE::Count iElementSize, void* pvData, typename SIZE::Count uiNumData);
-	void					ReInit(void);
+	void	_Init(void);
+	void	Init(Count iElementSize);
+	void	Init(CMallocator* pcMalloc, Count iElementSize);
+	void	Init(CMallocator* pcMalloc, Count iElementSize, Count iChunkSize);
+	void	Init(CMallocator* pcMalloc, Count iElementSize, void* pvData, Count uiNumData);
+	void	ReInit(void);
 
-	void					Finalise(void);
-	void					Fake(typename SIZE::Count iElementSize, void* pvData, typename SIZE::Count iNum, typename SIZE::Count iChunkSize = 1);
-	void					TakeFrom(CArrayBlockBase<SIZE>* pcSource);
+	void	Finalise(void);
+	void	Fake(Count iElementSize, void* pvData, Count iNum, Count iChunkSize = 1);
+	void	TakeFrom(CArrayBlockBase<SIZE>* pcSource);
 
-	void					Kill(void);
+	void	Kill(void);
 
-	void					SetAllocateSize(typename SIZE::Count iSize);
-	void					FakeSetUsedElements(typename SIZE::Count iUsedElements);
+	void	SetAllocateSize(Count iSize);
+	void	FakeSetUsedElements(Count iUsedElements);
 
-	typename SIZE::Count	NumElements(void);
-	bool					IsEmpty(void);
-	bool					IsNotEmpty(void);
-	typename SIZE::Count	AllocatedElements(void);
-	typename SIZE::Count	ElementSize(void);
+	Count	NumElements(void);
+	bool	IsEmpty(void);
+	bool	IsNotEmpty(void);
+	Count	AllocatedElements(void);
+	Count	ElementSize(void);
 
-	void*					Add(void);
-	void*					Add(void* pvData);
-	void*					AddGetIndex(typename SIZE::Count* piIndex);
-	typename SIZE::Count	AddExistingGetIndex(void* pvData);
-	typename SIZE::Count	AddIfUnique(void* pvData);
-	typename SIZE::Count	AddIfUniqueKey(void* pvData, typename SIZE::Count iKeyOffset, typename SIZE::Count iKeySize);
+	void*	Add(void);
+	void*	Add(void* pvData);
+	void*	AddGetIndex(Count* piIndex);
+	Count	AddExistingGetIndex(void* pvData);
+	Count	AddIfUnique(void* pvData);
+	Count	AddIfUniqueKey(void* pvData, Count iKeyOffset, Count iKeySize);
 
-	void					Copy(CArrayBlockBase<SIZE>* pcOtherArray);
+	void	Copy(CArrayBlockBase<SIZE>* pcOtherArray);
 
-	void*					Get(typename SIZE::Count iIndex);
-	void*					SafeGet(typename SIZE::Count iIndex);
-	typename SIZE::Count	GetAdjustedIndex(typename SIZE::Count iIndex);
-	void*					GetData(void);
-	void					GetHeader(SArrayHeaderBase<SIZE>* psHeader);
-	typename SIZE::Count	GetIndex(void* pvData);
-	void*					Tail(void);
+	void*	Get(Count iIndex);
+	void*	SafeGet(Count iIndex);
+	Count	GetAdjustedIndex(Count iIndex);
+	void*	GetData(void);
+	void	GetHeader(SArrayHeaderBase<SIZE>* psHeader);
+	Count	GetIndex(void* pvData);
+	void*	Tail(void);
 
-	void*					InsertArrayAfterEnd(CArrayBlockBase<SIZE>* pcOtherArray);
-	void*					InsertArrayAt(CArrayBlockBase<SIZE>* pcOtherArray, typename SIZE::Count iIndex);
-	void*					InsertArrayBeforeStart(CArrayBlockBase<SIZE>* pcOtherArray);
-	void*					InsertAt(typename SIZE::Count iIndex);
-	void*					InsertAt(void* pvData, typename SIZE::Count iIndex);
-	void*					InsertBlockAfterEnd(void* paElements, typename SIZE::Count iLength);
-	void*					InsertBlockAt(void* paElements, typename SIZE::Count iIndex, typename SIZE::Count iLength);
-	void*					InsertBlockBeforeStart(void* paElements, typename SIZE::Count iLength);
-	typename SIZE::Count	InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting);
-	void*					InsertNumAt(typename SIZE::Count iNumElements, typename SIZE::Count iIndex);
-	void					InsertBatch(typename SIZE::Count iFirstIndex, typename SIZE::Count iNumInBatch, typename SIZE::Count iNumBatches, typename SIZE::Count iStrideToNextBatch);
+	void*	InsertArrayAfterEnd(CArrayBlockBase<SIZE>* pcOtherArray);
+	void*	InsertArrayAt(CArrayBlockBase<SIZE>* pcOtherArray, Count iIndex);
+	void*	InsertArrayBeforeStart(CArrayBlockBase<SIZE>* pcOtherArray);
+	void*	InsertAt(Count iIndex);
+	void*	InsertAt(void* pvData, Count iIndex);
+	void*	InsertBlockAfterEnd(void* paElements, Count iLength);
+	void*	InsertBlockAt(void* paElements, Count iIndex, Count iLength);
+	void*	InsertBlockBeforeStart(void* paElements, Count iLength);
+	Count	InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting);
+	void*	InsertNumAt(Count iNumElements, Count iIndex);
+	void	InsertBatch(Count iFirstIndex, Count iNumInBatch, Count iNumBatches, Count iStrideToNextBatch);
 
-	bool					Pop(void* pvDest);
-	bool					Pop(void);
-	void					Push(void* pvData);
-	void*					Push(void);
-	void*					PushCopy(void);
-	bool					PopFirst(void* pvData);
-	bool					PopFirst(void);
+	bool	Pop(void* pvDest);
+	bool	Pop(void);
+	void	Push(void* pvData);
+	void*	Push(void);
+	void*	PushCopy(void);
+	bool	PopFirst(void* pvData);
+	bool	PopFirst(void);
 
-	typename SIZE::Count	AddNum(typename SIZE::Count iNumElements);
-	typename SIZE::Count	RemoveNum(typename SIZE::Count iNumElements);
-	void*					GrowToAtLeastNumElements(typename SIZE::Count iNumElements, bool bClear = false, uint8  iClear = 0);
-	typename SIZE::Count	Resize(typename SIZE::Count iNumElements);
+	Count	AddNum(Count iNumElements);
+	Count	RemoveNum(Count iNumElements);
+	void*	GrowToAtLeastNumElements(Count iNumElements, bool bClear = false, uint8  iClear = 0);
+	Count	Resize(Count iNumElements);
 
-	void					Sort(DataCompare fCompare);
-	void					BubbleSort(DataCompare fCompare);
-	void					QuickSort(DataCompare fCompare);
-	void					TimSort(DataCompare fCompare);
-	bool					IsSorted(DataCompare fCompare);
+	void	Sort(DataCompare fCompare);
+	void	BubbleSort(DataCompare fCompare);
+	void	QuickSort(DataCompare fCompare);
+	void	TimSort(DataCompare fCompare);
+	bool	IsSorted(DataCompare fCompare);
 
-	void					Reverse(void);
-	void					Shuffle(CRandom* pcRandom = NULL);
+	void	Reverse(void);
+	void	Shuffle(CRandom* pcRandom = NULL);
 
-	bool					Contains(void* pvData);
-	bool					Equals(CArrayBlockBase<SIZE>* pcOtherArray);
-	typename SIZE::Count	Find(void* pvData);
-	bool					FindInSorted(void* pvData, DataCompare fCompare, typename SIZE::Count* piIndex);
-	typename SIZE::Count	FindWithIntKey(int iKey);
-	typename SIZE::Count	FindWithIntKey(int iKey, typename SIZE::Count iKeyOffset);
-	typename SIZE::Count	FindWithSizeKey(size iKey, typename SIZE::Count iKeyOffset);
-	typename SIZE::Count	FindWithKey(void* pvData, typename SIZE::Count iKeyOffset, typename SIZE::Count iKeySize);
+	bool	Contains(void* pvData);
+	bool	Equals(CArrayBlockBase<SIZE>* pcOtherArray);
+	Count	Find(void* pvData);
+	bool	FindInSorted(void* pvData, DataCompare fCompare, Count* piIndex);
+	Count	FindWithIntKey(int iKey);
+	Count	FindWithIntKey(int iKey, Count iKeyOffset);
+	Count	FindWithSizeKey(size iKey, Count iKeyOffset);
+	Count	FindWithKey(void* pvData, Count iKeyOffset, Count iKeySize);
 
-	void					RemoveAt(typename SIZE::Count iIndex, bool bPreserveOrder = true);
-	void					RemoveAt(typename SIZE::Count* paiIndex, typename SIZE::Count iNumElements, bool bPreserveOrder = true);
-	void					RemoveRange(typename SIZE::Count iStartIndex, typename SIZE::Count iEndIndexExclusive, bool bPreserveOrder = true);
-	bool					RemoveTail(void);
-	bool					RemoveFirst(void);
-	void					RemoveBatch(typename SIZE::Count iFirstIndex, typename SIZE::Count iNumInBatch, typename SIZE::Count iNumBatches, typename SIZE::Count iStrideToNextBatch);
-	void					RemoveAll(void);
-	bool					Remove(void* pvData, bool bPreserveOrder = true);
-	typename SIZE::Count	RemoveArray(CArrayBlockBase<SIZE>* pcOtherArray, bool bPreserveOrder = true);
-	typename SIZE::Count	RemoveArrayFromSorted(CArrayBlockBase<SIZE>* pcOtherArray, DataCompare fCompare);
+	void	RemoveAt(Count iIndex, bool bPreserveOrder = true);
+	void	RemoveAt(Count* paiIndex, Count iNumElements, bool bPreserveOrder = true);
+	void	RemoveRange(Count iStartIndex, Count iEndIndexExclusive, bool bPreserveOrder = true);
+	bool	RemoveTail(void);
+	bool	RemoveFirst(void);
+	void	RemoveBatch(Count iFirstIndex, Count iNumInBatch, Count iNumBatches, Count iStrideToNextBatch);
+	void	RemoveAll(void);
+	bool	Remove(void* pvData, bool bPreserveOrder = true);
+	Count	RemoveArray(CArrayBlockBase<SIZE>* pcOtherArray, bool bPreserveOrder = true);
+	Count	RemoveArrayFromSorted(CArrayBlockBase<SIZE>* pcOtherArray, DataCompare fCompare);
 
 
-	void					Set(typename SIZE::Count iIndex, void* pvData);
-	bool					SafeSet(typename SIZE::Count iIndex, void* pvData);
-	void					Swap(typename SIZE::Count iIndex1, typename SIZE::Count iIndex2);
-	void					Zero(void);
-	void					One(void);
+	void	Set(Count iIndex, void* pvData);
+	bool	SafeSet(Count iIndex, void* pvData);
+	void	Swap(Count iIndex1, Count iIndex2);
+	void	Zero(void);
+	void	One(void);
 
-	typename SIZE::Count	ByteSize(void);
-	typename SIZE::Count	ChunkSize(void);
-	typename SIZE::Count	SetUsedElements(typename SIZE::Count iNumElements);
+	Count	ByteSize(void);
+	Count	ChunkSize(void);
+	Count	SetUsedElements(Count iNumElements);
 
-	typename SIZE::Count	RemoveAtNoDeallocate(typename SIZE::Count iIndex);
-	bool					SetChunkSize(typename SIZE::Count iChunkSize);
+	Count	RemoveAtNoDeallocate(Count iIndex);
+	bool	SetChunkSize(Count iChunkSize);
 
-	bool					Write(CFileWriter* pcFileWriter);
-	bool					Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 
-	bool					WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	bool					WriteHeader(CFileWriter* pcFileWriter);
-	bool					WriteHeader(CFileWriter* pcFileWriter, typename SIZE::Count uiFileElementSize);
-	bool					ReadAllocatorAndHeader(CFileReader* pcFileReader);
-	bool					ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
-	bool					ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, typename SIZE::Count uiFileElementSize, typename SIZE::Count uiElementSize);
+	bool	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	bool	WriteHeader(CFileWriter* pcFileWriter);
+	bool	WriteHeader(CFileWriter* pcFileWriter, Count uiFileElementSize);
+	bool	ReadAllocatorAndHeader(CFileReader* pcFileReader);
+	bool	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
+	bool	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, Count uiFileElementSize, Count uiElementSize);
 
 protected:
-	bool					BinarySearch(void* pvData, typename SIZE::Count iLeft, typename SIZE::Count iRight, DataCompare fCompare, typename SIZE::Count* piIndex);
-	void*					CopyArrayInto(CArrayBlockBase<SIZE>* pcOtherArray, typename SIZE::Count iIndex);
-	void*					CopyBlockInto(void* paElements, typename SIZE::Count iLength, typename SIZE::Count iIndex);
-	void					PrivateRemoveAt(typename SIZE::Count iIndex, bool bPreserveOrder, typename SIZE::Count iDataSize);
-	void					PrivateRemoveRange(typename SIZE::Count iStartIndex, typename SIZE::Count iEndIndexExclusive, bool bPreserveOrder, typename SIZE::Count iDataSize);
-	typename SIZE::Count	RemoveAtNoDeallocate(typename SIZE::Count iIndex, bool bPreserveOrder, typename SIZE::Count iDataSize);
-	void					SetArraySize(typename SIZE::Count iNumElements);
-	void					Overflowed(void);
+	bool	BinarySearch(void* pvData, Count iLeft, Count iRight, DataCompare fCompare, Count* piIndex);
+	void*	CopyArrayInto(CArrayBlockBase<SIZE>* pcOtherArray, Count iIndex);
+	void*	CopyBlockInto(void* paElements, Count iLength, Count iIndex);
+	void	PrivateRemoveAt(Count iIndex, bool bPreserveOrder, Count iDataSize);
+	void	PrivateRemoveRange(Count iStartIndex, Count iEndIndexExclusive, bool bPreserveOrder, Count iDataSize);
+	Count	RemoveAtNoDeallocate(Count iIndex, bool bPreserveOrder, Count iDataSize);
+	void	SetArraySize(Count iNumElements);
+	void	Overflowed(void);
 };
 
 
