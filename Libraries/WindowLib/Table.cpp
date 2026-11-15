@@ -750,6 +750,7 @@ void CTable::SetCellEditable(int32 iRow, int32 iColumn, bool bEditable)
 	if ((iRow >= 0) && (iRow < NumRows()) && (iColumn >= 0) && (iColumn < NumColumns()))
 	{
 		maiCellEditable.SetValue(CellIndex(iRow, iColumn), bEditable ? 1 : 0);
+		UpdateCell(iRow, iColumn);
 	}
 }
 
@@ -771,39 +772,74 @@ bool CTable::CanEdit(int32 iRow, int32 iColumn) { return IsCellEditable(iRow, iC
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What shows a cell: a label in its padding, or a check box.
+// What shows a cell: a label in its padding, or a check box in the
+// middle of its own.  It is at least as wide as its column's caption (and
+// as the column's width in characters, if it was given one), so a column
+// of ticks has room for its caption.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CComponent> CTable::CreateCell(int32 iRow, int32 iColumn)
 {
 	Ptr<CFillContainer>	pPadding;
 	Ptr<CLabel>			pLabel;
-	Ptr<CCheckBox>		pCheckBox;
 
-	if (GetColumnKind(iColumn) == TCK_Tick)
-	{
-		pCheckBox = OMalloc<CCheckBox>(mpWindow, mpTheme, "", IsCellTicked(iRow, iColumn));
-		pCheckBox->SetAlignment(CSH_Center, CSV_Center);
-		pCheckBox->SetCanGetFocus(false);
-		return pCheckBox;
-	}
 	pPadding = OMalloc<CFillContainer>(mpWindow);
-	pPadding->SetInsets(TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX), TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX));
-	pLabel = OMalloc<CLabel>(mpWindow, mpTheme->GetFont(), GetCellText(iRow, iColumn));
-	pLabel->SetAlignment(CSH_Left, CSV_Center);
-	pPadding->AddComponent(pLabel);
 	pPadding->SetAlignment(CSH_Stretch, CSV_Stretch);
-	if (maiColumnWidths.GetValue((size)iColumn) > 0)
+	if (GetColumnKind(iColumn) != TCK_Tick)
 	{
-		pPadding->SetDesiredSize(maiColumnWidths.GetValue((size)iColumn) * (int)mpTheme->GetFont()->GetAverageWidth() + 2 * mpTheme->GetMetric(TM_FieldPaddingX), -1);
+		pPadding->SetInsets(TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX), TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX));
+		pLabel = OMalloc<CLabel>(mpWindow, mpTheme->GetFont(), GetCellText(iRow, iColumn));
+		pLabel->SetAlignment(CSH_Left, CSV_Center);
+		pPadding->AddComponent(pLabel);
 	}
+	FillCell(pPadding, iRow, iColumn);
 	return pPadding;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What shows a cell made to show what the cell has now.
+// What shows a cell made to show what the cell has now: its label's
+// text; or its check box, which a tick that can't be changed and isn't
+// ticked hasn't (a cell that has no tick to give is empty).  Its width is
+// what it needs, or its caption's if that is more.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTable::FillCell(Ptr<CComponent> pCell, int32 iRow, int32 iColumn)
+{
+	Ptr<CCheckBox>	pCheckBox;
+	int32			iWidth;
+	int32			iNeeded;
+
+	if (GetColumnKind(iColumn) == TCK_Tick)
+	{
+		pCell->RemoveAllComponents();
+		if (IsCellEditable(iRow, iColumn) || IsCellTicked(iRow, iColumn))
+		{
+			pCheckBox = OMalloc<CCheckBox>(mpWindow, mpTheme, "", IsCellTicked(iRow, iColumn));
+			pCheckBox->SetAlignment(CSH_Center, CSV_Center);
+			pCheckBox->SetCanGetFocus(false);
+			pCell->AddComponent(pCheckBox);
+		}
+	}
+	else
+	{
+		((Ptr<CLabel>)pCell->GetComponent(0))->SetText(GetCellText(iRow, iColumn));
+	}
+
+	pCell->SetDesiredSize(-1, -1);
+	iNeeded = ((Ptr<CFillContainer>)pCell)->GetRequiredSize().x;
+	iWidth = CContainer::GetMeasuredSize(maHeaders.Get((size)iColumn)).x;
+	if (maiColumnWidths.GetValue((size)iColumn) * (int32)mpTheme->GetFont()->GetAverageWidth() + 2 * mpTheme->GetMetric(TM_FieldPaddingX) > iWidth)
+	{
+		iWidth = maiColumnWidths.GetValue((size)iColumn) * (int32)mpTheme->GetFont()->GetAverageWidth() + 2 * mpTheme->GetMetric(TM_FieldPaddingX);
+	}
+	pCell->SetDesiredSize((iNeeded > iWidth) ? iNeeded : iWidth, (GetColumnKind(iColumn) == TCK_Tick) ? GetRowHeight() : -1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CTable::UpdateCell(int32 iRow, int32 iColumn)
@@ -811,19 +847,11 @@ void CTable::UpdateCell(int32 iRow, int32 iColumn)
 	Ptr<CComponent>	pCell;
 
 	pCell = GetCellComponent(iRow, iColumn);
-	if (pCell.IsNull())
+	if (pCell.IsNotNull())
 	{
-		return;
+		FillCell(pCell, iRow, iColumn);
+		InvalidateLayout();
 	}
-	if (GetColumnKind(iColumn) == TCK_Tick)
-	{
-		((Ptr<CCheckBox>)pCell)->SetTicked(IsCellTicked(iRow, iColumn));
-	}
-	else
-	{
-		((Ptr<CLabel>)pCell->GetComponent(0))->SetText(GetCellText(iRow, iColumn));
-	}
-	InvalidateLayout();
 }
 
 

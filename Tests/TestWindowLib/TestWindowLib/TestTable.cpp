@@ -201,6 +201,22 @@ void TestTableCells(void)
 		AssertLog("Changed:0,2=;");
 		AssertFalse(pTable->IsEditing());
 
+		//A column is at least as wide as its caption: the tick's is wider than a tick.
+		AssertTrue(pTable->GetCellBounds(0, 2, &cCell));
+		AssertTrue(cCell.GetWidth() >= CContainer::GetMeasuredSize(pTable->GetHeaderComponent(2)).x);
+
+		//A tick that can't be changed and isn't ticked shows nothing; one that is ticked still shows.
+		AssertSize(1, pTable->GetCellComponent(0, 2)->NumComponents());
+		pTable->SetCellEditable(0, 2, false);
+		AssertSize(0, pTable->GetCellComponent(0, 2)->NumComponents());
+		pTestWindow->InputCommand(CIC_Space, true);
+		AssertFalse(pTable->IsCellTicked(0, 2));
+		AssertLog("");
+		pTable->SetCellEditable(1, 2, false);
+		AssertSize(1, pTable->GetCellComponent(1, 2)->NumComponents());
+		pTable->SetCellEditable(0, 2, true);
+		AssertSize(1, pTable->GetCellComponent(0, 2)->NumComponents());
+
 		//SelectCell is the owner's: no such cell is refused.
 		AssertTrue(pTable->SelectCell(2, 1));
 		AssertLog("Selected:2,1;");

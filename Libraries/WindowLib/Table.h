@@ -258,6 +258,7 @@ protected:
 	size			CellIndex(int32 iRow, int32 iColumn);
 	void			Rebuild(void);
 	Ptr<CComponent>	CreateCell(int32 iRow, int32 iColumn);
+	void			FillCell(Ptr<CComponent> pCell, int32 iRow, int32 iColumn);
 	void			UpdateCell(int32 iRow, int32 iColumn);
 	void			LayoutOverlays(void);
 	void			Changed(int32 iRow, int32 iColumn);
