@@ -20,14 +20,15 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-//No include guard: ArrayCharCode.inl is included once per array size (ArraySizeNatural.inl and
-//ArraySizeLarge.inl define the names and types it is written with).
+//CArrayCharBase's functions, for either array size.  ArrayChar.cpp includes it and instantiates them for both;
+//ArrayChar.h declares them extern, so no other unit compiles them.
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void ARRAY_CHAR::AddList(char iStop, ...)
+template<class PRIMITIVE>
+void CArrayCharBase<PRIMITIVE>::AddList(char iStop, ...)
 {
 	va_list		vaMarker;
 	char		iValue;
@@ -36,8 +37,9 @@ void ARRAY_CHAR::AddList(char iStop, ...)
 	iValue = (char)va_arg(vaMarker, int);  //char is promoted to int when passed through ...
 	while (iValue != iStop)
 	{
-		Add((char)iValue);
+		this->Add((char)iValue);
 		iValue = (char)va_arg(vaMarker, int);  //char is promoted to int when passed through ...
 	}
 	va_end(vaMarker);
 }
+

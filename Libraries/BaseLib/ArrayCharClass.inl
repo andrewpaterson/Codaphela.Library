@@ -20,11 +20,19 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-//No include guard: ArrayCharClass.inl is included once per array size (ArraySizeNatural.inl and
-//ArraySizeLarge.inl define the names and types it is written with).
+#ifndef __ARRAY_CHAR_CLASS_H__
+#define __ARRAY_CHAR_CLASS_H__
 
-class ARRAY_CHAR: public ARRAY_TEMPLATE_PRIMITIVE<char>
+
+//CArrayChar (characters counted in size, a CArrayTemplatePrimitive<char>) and CArrayLargeChar (counted in lsize, a
+//CArrayLargeTemplatePrimitive<char>) are this, written once: PRIMITIVE is the class each derives from.
+template<class PRIMITIVE>
+class CArrayCharBase : public PRIMITIVE
 {
 public:
-	void AddList(char iStop, ...);
+	void	AddList(char iStop, ...);
 };
+
+
+#endif // __ARRAY_CHAR_CLASS_H__
+

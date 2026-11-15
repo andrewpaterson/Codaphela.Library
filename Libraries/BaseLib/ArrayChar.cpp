@@ -1,10 +1,8 @@
 #include "ArrayChar.h"
-
-
-#include "ArraySizeNatural.inl"
 #include "ArrayCharCode.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "ArrayCharCode.inl"
-#include "ArraySizeUndef.inl"
+
+//The only instances: ArrayChar.h declares them extern.
+template class CArrayCharBase<CArrayTemplatePrimitive<char> >;
+template class CArrayCharBase<CArrayLargeTemplatePrimitive<char> >;
+

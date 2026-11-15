@@ -25,13 +25,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-#include "ArraySizeNatural.inl"
 #include "ArrayCharClass.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "ArrayCharClass.inl"
-#include "ArraySizeUndef.inl"
+
+//ArrayChar.cpp instantiates them; no other unit compiles their functions.
+extern template class CArrayCharBase<CArrayTemplatePrimitive<char> >;
+extern template class CArrayCharBase<CArrayLargeTemplatePrimitive<char> >;
+
+
+//The names the arrays are known by: a CArrayChar is a CArrayTemplatePrimitive<char>.
+class CArrayChar : public CArrayCharBase<CArrayTemplatePrimitive<char> > {};
+class CArrayLargeChar : public CArrayCharBase<CArrayLargeTemplatePrimitive<char> > {};
 
 
 #endif // __ARRAY_CHAR_H__
