@@ -99,7 +99,7 @@ half space); the isosurface is then given a box by its caller.
   CShapeSubtraction    Ptrs to two shapes              max(a, -b): a bound
   CShapeSmoothUnion    Ptrs to two shapes, a radius    Quilez's polynomial smooth min: a bound
   CShapeTransform      a Ptr to one shape, a matrix    the shape's, at the point turned into its frame, scaled back by the
-                       and its inverse                  largest scale, so an uneven scale is a bound
+                       and its inverse                  smallest scale, so an uneven scale is a bound
 
 A primitive is placed by its own values, as its mesh editor is, and CShapeTransform moves a combination.  Combinations hold
 their children as Ptrs, so a shape is a graph like a scene, rooted by whatever holds it.  There are no open shapes: a mesh's
@@ -152,6 +152,13 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
    surface is only exactly on it along an axis, so that's where zero being outside is tested.
 6. The combinations.  Tests: each is a bound (never more than a brute force distance to its surface sampled finely), a graph
    of them is freed with what holds it, and Save and Load.
+   Done.  The union and intersection are CShapeGroups (a CArray<CShape>, the nearest or furthest at each point giving the
+   distance and gradient); the subtraction's gradient is the cut's turned round where the cut wins; the smooth union is
+   Quilez's polynomial smooth min in its blended form, whose gradient is the same blend of the two, exactly, and whose bounds
+   grow by a quarter of its radius, as far as the blend can fill the seam.  The transform scales back by the smallest scale
+   along its matrix's axes, not the largest as this plan first said: a world distance is at least the smallest scale times
+   the shape's own, so only that is a bound; it's exact for an even scale.  TestShapeCombination checks each against a grid
+   sampled surface (bisected where Contains changes), which fails, as the direct checks do, with the largest scale.
 7. CConvexHull, from CQuickHull.
 8. The isosurface and the shape to mesh modifier (Isosurface.txt).
 9. CMeshShape, when collision or picking needs it.
