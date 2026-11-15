@@ -165,7 +165,7 @@ Part B plan (2026-11-15, not started)
 
   Stages:
     0. (S) The probes become a test: each feature a small program run on both targets with the value it must return, and those that must be refused with their error.  What fails today is listed as failing, and every later stage moves entries across.  Compliance is then a number.
-    1. (M, many small) The silent wrong accepts and the small refusals just listed.  Access control (private and protected) is enforced (the user): expect errors in existing sources to clear up.
+    1. (M, many small) The silent wrong accepts and the small refusals just listed.  Access control (private and protected) is enforced (the user).  What it and the enum class rules find wrong in BaseLib, Libc65 and the HCP65 sources is fixed as part of this stage (the user), which is checked by building them and running the Lib65 suites.
     2. (L) B10.  Rvalue references as a type of their own: collapsing, & and && overloads, move constructors and assignment (and the implicit ones, and when they are deleted), xvalues, ref-qualified members.
     3. (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
     4. (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
@@ -173,7 +173,7 @@ Part B plan (2026-11-15, not started)
     6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
     7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.
     8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
-    9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
+    9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
     Then, when all of the above is done, come back to the user for: exceptions (B2), and the language support headers (B-4) and how much of the library.
 
   Why this order: wrong code with no error first; rvalue references before what is built on them (moves, forwarding, the library's move and forward); auto before lambdas; constexpr before the templates that lean on it.  Stages 6, 7 and 9 depend on little and can move.
@@ -187,6 +187,8 @@ Decisions (made 2026-11-15)
   - Exceptions: "Come back to exceptions when the rest of Plan B is done."  Until then throw and try stay errors.
   - Language support headers: "Come back to Language-support headers when the rest of Plan B is done."
   - Access control: "enforce it."
+  - A dynamic_cast<T&> that fails, while there are no exceptions: "Trap."
+  - What enforcing access control and enum class breaks in BaseLib and the HCP65 sources: "fix those sources as part of the stage."
   - constexpr: "run the IR at compile time but plan this step out all on its own" (ConstexprPlan.txt).
 
 Decisions for the user (when the rest of Part B is done)
