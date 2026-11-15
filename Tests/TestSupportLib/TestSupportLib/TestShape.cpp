@@ -16,6 +16,18 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The same numbers every run, from 0 up to but not including 1.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 TestShapeRandom(uint32* puiState)
+{
+	*puiState = *puiState * 1664525u + 1013904223u;
+	return (float32)(*puiState >> 8) / 16777216.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The shape's gradient is a unit and agrees with central differences at a
 // point away from its creases.
 //

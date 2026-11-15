@@ -6,16 +6,7 @@
 #include "TestLib/Assert.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// The same numbers every run, from 0 up to but not including 1.
-//
-//////////////////////////////////////////////////////////////////////////
-static float32 TestQuickHullRandom(uint32* puiState)
-{
-	*puiState = *puiState * 1664525u + 1013904223u;
-	return (float32)(*puiState >> 8) / 16777216.0f;
-}
+float32	TestShapeRandom(uint32* puiState);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -260,7 +251,7 @@ void TestQuickHullClouds(void)
 	uiState = 12345;
 	for (i = 0; i < 200; i++)
 	{
-		asPoints[i].Init(TestQuickHullRandom(&uiState) * 20.0f - 7.0f, TestQuickHullRandom(&uiState) * 6.0f + 100.0f, TestQuickHullRandom(&uiState) * 2.0f - 1.0f);
+		asPoints[i].Init(TestShapeRandom(&uiState) * 20.0f - 7.0f, TestShapeRandom(&uiState) * 6.0f + 100.0f, TestShapeRandom(&uiState) * 2.0f - 1.0f);
 	}
 	cHull.Init();
 	AssertTrue(cHull.Generate(asPoints, sizeof(SFloat32Vec3), 200));
@@ -271,7 +262,7 @@ void TestQuickHullClouds(void)
 	{
 		do
 		{
-			asPoints[i].Init(TestQuickHullRandom(&uiState) * 2.0f - 1.0f, TestQuickHullRandom(&uiState) * 2.0f - 1.0f, TestQuickHullRandom(&uiState) * 2.0f - 1.0f);
+			asPoints[i].Init(TestShapeRandom(&uiState) * 2.0f - 1.0f, TestShapeRandom(&uiState) * 2.0f - 1.0f, TestShapeRandom(&uiState) * 2.0f - 1.0f);
 		}
 		while (asPoints[i].SquareMagnitude() < 0.01);
 		asPoints[i].Normalize();

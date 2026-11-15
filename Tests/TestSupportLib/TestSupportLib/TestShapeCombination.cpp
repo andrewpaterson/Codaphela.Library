@@ -18,22 +18,11 @@ void			AssertShapeGradient(CShape* pcShape, SFloat32Vec3* psPosition, float32 fX
 bool			TestShapeWrite(char* szDirectory, CShape* pcShape);
 CBaseObject*	TestShapeRead(char* szDirectory, const char* szName);
 size			CountMeshMemoryObjects(const char* szClassName);
+float32			TestShapeRandom(uint32* puiState);
 
 
 #define SHAPE_BOUND_CELLS	12
 #define SHAPE_BOUND_PROBES	30
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The same numbers every run, from 0 up to but not including 1.
-//
-//////////////////////////////////////////////////////////////////////////
-static float32 TestShapeCombinationRandom(uint32* puiState)
-{
-	*puiState = *puiState * 1664525u + 1013904223u;
-	return (float32)(*puiState >> 8) / 16777216.0f;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,9 +139,9 @@ static void AssertShapeIsBound(CShape* pcShape)
 	uiState = 271828;
 	for (iIndex = 0; iIndex < SHAPE_BOUND_PROBES; iIndex++)
 	{
-		sProbe.Init(sBounds.sMinimum.x + sSize.x * TestShapeCombinationRandom(&uiState),
-					sBounds.sMinimum.y + sSize.y * TestShapeCombinationRandom(&uiState),
-					sBounds.sMinimum.z + sSize.z * TestShapeCombinationRandom(&uiState));
+		sProbe.Init(sBounds.sMinimum.x + sSize.x * TestShapeRandom(&uiState),
+					sBounds.sMinimum.y + sSize.y * TestShapeRandom(&uiState),
+					sBounds.sMinimum.z + sSize.z * TestShapeRandom(&uiState));
 		fNearest = FLOAT32_BOUNDS_LARGEST;
 		for (i = 0; i < asSurface.NumElements(); i++)
 		{
@@ -481,7 +470,7 @@ void TestShapeCombinationGraph(void)
 	uiState = 31415;
 	for (i = 0; i < 4; i++)
 	{
-		asProbes[i].Init(TestShapeCombinationRandom(&uiState) * 10.0f - 3.0f, TestShapeCombinationRandom(&uiState) * 6.0f - 3.0f, TestShapeCombinationRandom(&uiState) * 6.0f - 3.0f);
+		asProbes[i].Init(TestShapeRandom(&uiState) * 10.0f - 3.0f, TestShapeRandom(&uiState) * 6.0f - 3.0f, TestShapeRandom(&uiState) * 6.0f - 3.0f);
 	}
 
 	ObjectsInit();
