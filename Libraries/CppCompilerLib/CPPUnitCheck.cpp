@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "SourceFile.h"
 #include "CPPSyntaxTree.h"
 #include "CPPSemanticPass.h"
 #include "CPPUnit.h"
@@ -32,6 +33,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // instances too), each statement on its own: one that can't be typed is
 // an error and the others are still checked.  Returns false if anything
 // couldn't be (GetErrors).
+//
+// A declaration is only wrong to the compiler when what it declares is
+// used, so a type nothing declares in one that nothing uses ("int
+// Use(CLater* pc);" in a class, "CNever* Make(void);") was no error: a
+// check says so at the end (ReportUndeclaredTypes), as a C++ compiler
+// would where the name is written.
 //
 // With bRemember the pass is also told the type of each expression and
 // what changes the place of one (Typed, PlaceTyped and Changed), for a
@@ -59,10 +66,92 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 	}
 	while (CheckDefinitions());
 	ReportClassErrors();
+	ReportUndeclaredTypes();
 	CheckContext();
 	mpcSemanticPass = NULL;
 	mbRemember = false;
 	return mcErrors.NumErrors() == 0;
+}
+
+
+//Finds the types a unit's declarations name that nothing declares (CCPPUnit::ReportUndeclaredTypes).
+class CCPPUndeclaredTypeFinder : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*	mpcUnit;
+	int			miTemplates;	//How many template declarations the node is in.
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		bool	bTemplate;
+
+		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
+		miTemplates += bTemplate ? 1 : 0;
+		if ((pcChild->GetKind() == CPPS_NamedTypeSpecifier) && (miTemplates == 0))
+		{
+			mpcUnit->UndeclaredType((CCPPSyntaxNamedTypeSpecifier*)pcChild);
+		}
+		pcChild->VisitFields(this);
+		miTemplates -= bTemplate ? 1 : 0;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error for each type a declaration names that nothing declares,
+// whether or not what it declares is used.  Not in a template (a name
+// there may be one only an instance has), and not in the compiler's own
+// headers, which are skimmed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ReportUndeclaredTypes(void)
+{
+	CCPPUndeclaredTypeFinder	cFinder;
+
+	if (mpcTree->GetRoot())
+	{
+		cFinder.mpcUnit = this;
+		cFinder.miTemplates = 0;
+		mpcTree->GetRoot()->VisitFields(&cFinder);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type named by one plain name that the parser found nothing for: an
+// error at the name, unless there is one there already (what it declares
+// was used).  A name with a scope before it is left: its scope may be one
+// the parser can't look in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
+{
+	SPreprocessedToken*	psSource;
+	CCPPToken*			pcToken;
+	size				i;
+	int					iToken;
+
+	if (!pcNamed->mpcName || pcNamed->mpcName->mpcSymbol || !pcNamed->mpcName->IsSimple())
+	{
+		return;
+	}
+	iToken = pcNamed->mpcName->miFirstToken;
+	pcToken = (iToken >= 0) ? mpcTokeniser->Get((size)iToken) : NULL;
+	psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
+	if (!psSource || (psSource->pcFile && psSource->pcFile->IsSystemFile()))
+	{
+		return;
+	}
+	for (i = 0; i < mcErrors.NumErrors(); i++)
+	{
+		if (mcErrors.GetToken(i) == iToken)
+		{
+			return;
+		}
+	}
+	ErrorAt(iToken, "This type is not declared");
 }
 
 

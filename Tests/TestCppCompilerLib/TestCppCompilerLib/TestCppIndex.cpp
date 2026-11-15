@@ -429,6 +429,47 @@ void TestCppSemanticPassQueued(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A type a declaration names that nothing declares is an error of a
+// check, whether or not what is declared is used: one declared further
+// down, and one never declared, in a member function's parameter, a
+// function's parameter and what it returns, a field, a variable, a base
+// class and a member held by value.  A class declared ahead of where it
+// is named isn't one, nor is a name in a template that only an instance
+// has.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassUndeclaredTypes(void)
+{
+	//Declared further down.
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: int Use(CLater* pc); };\nclass CLater { public: int mi; };\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: int Use(CLater* pc); };\nclass CLater { public: int mi; };\nint CVat::Use(CLater* pc) { return pc->mi; }\n"));
+	AssertFalse(TestCppSemanticPassCheck("int Use(CLater* pc);\nclass CLater { public: int mi; };\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: CLater* mpc; };\nclass CLater { public: int mi; };\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: int Use(void) { CLater c; return c.mi; } };\nclass CLater { public: int mi; };\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: CLater mc; };\nclass CLater { public: int mi; };\n"));
+
+	//Never declared.
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: CNever* mpc; };\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: int Use(CNever* pc); };\n"));
+	AssertFalse(TestCppSemanticPassCheck("int Use(CNever* pc);\n"));
+	AssertFalse(TestCppSemanticPassCheck("CNever* Make(void);\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat { public: CNever* Make(void); };\n"));
+	AssertFalse(TestCppSemanticPassCheck("CNever* gpc;\n"));
+	AssertFalse(TestCppSemanticPassCheck("int Use(void) { CNever* pc; return 0; }\n"));
+	AssertFalse(TestCppSemanticPassCheck("class CVat : public CNever { public: int mi; };\n"));
+
+	//Declared first: by its definition, and ahead of it.
+	AssertTrue(TestCppSemanticPassCheck("class CLater { public: int mi; };\nclass CVat { public: int Use(CLater* pc); CLater* Make(void); CLater mc; };\n"));
+	AssertTrue(TestCppSemanticPassCheck("class CLater;\nclass CVat { public: int Use(CLater* pc); CLater* mpc; };\nCLater* Make(void);\nclass CLater { public: int mi; };\n"));
+	AssertTrue(TestCppSemanticPassCheck("typedef int Unit;\nstruct SOrder { Unit iUnit; };\nUnit Count(Unit iFirst);\n"));
+
+	//In a template a name may be an instance's: it isn't looked at.
+	AssertTrue(TestCppSemanticPassCheck("template<class M> class CHolder { public: M* mp; typename M::SMark msMark; int Use(M* p); };\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The host's C++ checks without errors: calling conventions in
 // declarators (void* __cdecl f()), its compiler's builtins and intrinsics
 // (__builtin_va_arg(ap, T) is a T), and its 8 byte pointers and size_t.
@@ -1794,6 +1835,7 @@ void TestCppIndex(void)
 	TestCppIndexConstructorDefinitions();
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassQueued();
+	TestCppSemanticPassUndeclaredTypes();
 	TestCppSemanticPassHost();
 	TestCppSemanticPassEnumeratorChain();
 	TestCppSemanticPassKept();

@@ -396,6 +396,8 @@ public:
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ClassError(int iToken, const char* szMessage);
 	void					ReportClassErrors(void);
+	void					ReportUndeclaredTypes(void);
+	void					UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed);
 	void					EnsureVtable(CCPPClass* pcClass);
 	void					EnsureTypeInfo(CCPPClass* pcClass);
 	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset);
