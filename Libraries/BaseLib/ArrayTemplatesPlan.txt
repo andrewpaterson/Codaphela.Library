@@ -5,9 +5,9 @@ The intent (the user, 2026-11-15): turn the classes a macro makes, ARRAY_BLOCK a
 that work on ordinary 32 and 64 bit targets as well as the 16 bit W65C816.
 
 Where it is: the questions the plan started with are answered (under "Answered", the user's rulings and what was
-found).  The compiler work they needed is done: the CPP65 compiler honours explicit instantiation and extern
-template on both targets (step 1).  BaseLib itself is untouched: the next step is step 0, then step 2.  A session
-picking this up starts at "Steps".
+found).  Steps 0, 1 and 2 are done: CArrayBlock and CArrayLargeBlock are CArrayBlockBase<SIZE> (2026-11-15), and
+nothing about them got bigger or slower (step 2's numbers).  The plan says to go back to the user after step 2:
+step 3 waits for the user.  A session picking this up starts at "Steps".
 
 
 Why
@@ -190,24 +190,57 @@ Steps
 Each step ends with the full sweep building (e), the suites passing and a commit.  Stop and go back to the user
 after step 2.
 
-  0. Measure what there is: the build time of BaseLib and of one large user (Release x64), the 816 ROM's size and
-     the code size of the array classes in it, and TestBaseLib, TestBaseLib65 and TestStandardLib65 passing.  These
-     are what step 2 is compared with.  Not started.
+  0. Done 2026-11-15: what there was, measured from a snapshot of HEAD (CommonLibraries 837ec7b85), Release x64
+     on Linux.  The scripts are in the session's scratchpad (step0/baseline.sh, sizes.sh, count.py, speed.sh,
+     compare.py); the numbers are below, beside step 2's.
   1. Done 2026-11-15: (a) to (d) found out with ExternTemplateProject, a class of a few dozen lines, on g++, the
      65C64 and the 816; the compiler made to honour extern template and function template instantiation, and
      static const members made constants (d).  TestCppCompilerLib passes, Release x64 on Linux.  Not done:
      building the compiler and the test with MSVC (on Windows).
-  2. CArrayBlock alone, as a spike: the policy structs, CArrayBlockBase<SIZE> from ArrayBlockClass.inl and
-     ArrayBlockCode.inl, the two derived classes, explicit instantiation in ArrayBlock.cpp and extern template
-     in ArrayBlock.h.  ARRAY_TEMPLATE and the others still derive from the name CArrayBlock, which is still a
-     class, so nothing else changes.  Compare with step 0: the suites, the build time, the ROM's size.  Check
-     that no object grew: sizeof CArrayBlock, CArrayLargeBlock, CChars and CArrayTemplate<int> before and after,
-     on MSVC, g++ 32 and 64 bit and both 65 targets (the user asked how much larger each array becomes: the
-     answer expected is 0 bytes, since the policy has no data and the derived classes add nothing).  Back to the
-     user with the numbers before going on.
+  2. Done 2026-11-15: CArrayBlock alone.  ArrayBlock.h has the policies (SArrayNaturalSize, SArrayLargeSize), the
+     names (SArrayTemplateHeader, SArrayLargeTemplateHeader, CArrayBlock, CArrayLargeBlock: classes deriving from
+     the templates and adding nothing) and the extern template declarations; ArrayBlockClass.inl is the templates
+     SArrayHeaderBase<SIZE> and CArrayBlockBase<SIZE> (with an include guard now), ArrayBlockCode.inl their
+     functions, and ArrayBlock.cpp includes it and instantiates the four.  The ARRAY_CHECK_SIZE blocks are
+     "if (SIZE::CheckSize && ...)"; the header's fields are named in the class by "using SArrayHeaderBase<SIZE>::
+     miUsedElements;" (and the other two), not this->.  ArrayTemplate.inl and the others still use the macros
+     and derive from the name CArrayBlock, unchanged.  Before and after:
+       - sizeof, every array class (CArrayBlock, CArrayLargeBlock, both headers, CArrayTemplate<int>,
+         CArrayLargeTemplate<int>, CArrayTemplatePrimitive<char>, CArrayChar, CChars, CLargeChars,
+         CArrayBlockSorted, CArrayChars, and a class deriving from CArrayBlock with one char): the same on g++ 64
+         (48 for CArrayBlock), g++ 32 (24), the W65C816 (16) and the 65C64 (24).  0 bytes larger, as the user
+         expected.  Not measured with MSVC.
+       - The 65 test programs (TestBaseLib65 and TestStandardLib65, 468 programs on the two targets): every one
+         takes exactly the same cycles and is exactly as many bytes before as after (5.97G, 17.0G, 14.9G and 24.5G
+         cycles).  Measured with the same binaries from folders whose paths are as long as each other.
+       - The kernal ROM (Release|W65C816): 217518 -> 217550 bytes (+32, 0.015%).  Every CArrayBlock and
+         CArrayLargeBlock function has the same number of instructions; the kernal links whole units, so it keeps
+         the large array's Overflowed (never called: CheckSize is false) and the policies' forwarders (inlined
+         everywhere, their own copies unreferenced).
+       - Native (g++ Release x64): TestBaseLib's median of 20 alternating runs 2.890 s before and after.  The array
+         functions are 34490 -> 34508 bytes (LTO clones three of them differently).
+       - Build times (one clean build each): BaseLib 1.9 -> 2.1 s, StandardLib 1.3 -> 1.2 s, TestBaseLib65 12.5 ->
+         13.8 s; the 65 compiler building the kernal, median of five, 10.93 -> 10.72 s.  Within the noise.
+       - Suites: TestBaseLib (and Size16), TestBaseLib65 and TestStandardLib65 on both targets, TestCppCompilerLib
+         pass; the full sweep (121 builds, 119 runs) builds, and runs as the 2026-11-14b sweep did, but for
+         TestThreadLib 64Asan, whose producers timed out under the sweep's load (TestSharedMemoryQueue line 342)
+         and which passed three times run alone.  Warnings as before (the Size16 builds' -Wconversion ones too:
+         four casts to the count type where a product is passed to SIZE::Move and SIZE::Set).
+     Found on the way, and done:
+       - Explicit instantiation generated a class's functions in the order the class declares them, where a class
+         that isn't a template has them generated in the order they are defined.  What the 816 inliner makes of a
+         unit depends on that order: the first try inlined much less (the ROM 8KB smaller, calls where there had
+         been none).  The compiler now generates them in definition order (CCPPUnit::ExplicitInstantiation; test in
+         TestCPP65GeneratorExternTemplates).
+       - The 65 targets' labels are the template's: _CArrayBlockBase__T_C17SArrayNaturalSize__Add, not
+         _CArrayBlock__Add.  TestCPPW65C816Interprocedural named one, and TestCppCompilerLib's ArrayBlockStub.h
+         defined CArrayBlock's functions by hand (now as CArrayBlockBase<SIZE>'s, instantiated there).  No
+         hand-written assembly calls them.
   3. CArrayTemplate<M> and CArrayTemplatePrimitive<M> (ArrayTemplate.inl, ArrayTemplatePrimitive.inl): they are
      templates already, so this is the second parameter and the derived templates of the old names.  Their code
      is in their headers and stays there (M isn't known in a .cpp); this->, not extern template, is the work.
+     ARRAY_BLOCK::Get(...) in them becomes CArrayBlockBase<SIZE>::Get(...), a dependent base, so g++ needs it
+     qualified or this->; the size measurements and speed.sh/compare.py of step 2 show whether anything moved.
   4. CArrayChar, then CChars (the largest: CharsCode.inl, and CHARS_NATURAL).
   5. ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
      projects' files (vcxproj, filters, CMakeLists.txt) put right; the comments that name the macros (e) brought
