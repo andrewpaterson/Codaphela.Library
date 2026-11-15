@@ -15,6 +15,9 @@
     <ClCompile Include="TestMeshMeasures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestIsosurfaceGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h">

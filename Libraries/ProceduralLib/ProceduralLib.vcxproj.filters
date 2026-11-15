@@ -9,9 +9,15 @@
     <ClCompile Include="Procedural.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="IsosurfaceGrid.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="IsosurfaceGrid.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

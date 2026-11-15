@@ -226,6 +226,7 @@
     <ClCompile Include="TestProceduralLib.cpp" />
     <ClCompile Include="MeshMeasures.cpp" />
     <ClCompile Include="TestMeshMeasures.cpp" />
+    <ClCompile Include="TestIsosurfaceGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />

@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Procedural.cpp" />
+    <ClCompile Include="IsosurfaceGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
+    <ClInclude Include="IsosurfaceGrid.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>
