@@ -137,6 +137,11 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
    flat, in a line or in one place.  Removing only the face a point was given to, not every face it sees, fails them.
 4. CShape, with CSphere, CBox and CHalfSpace.  Tests: distances, gradients against central differences away from creases,
    bounds, Contains at exactly zero, and Save and Load.
+   Done.  Each holds its value struct (msSphere, msBox, msPlane) as fields Class() names, so the object machinery saves and
+   loads it; OMalloc<CSphere>(&sCenter, fRadius) and the like make one.  The sphere's and box's gradients are units (the
+   sphere's is nothing at its centre); the half space's is its normal, and its bounds are as large as a float32 goes.  CShape's
+   own Gradient steps SHAPE_GRADIENT_STEP (1e-4) of its bounds' longest side, or of 1.  TestShape; a chunk file holds the
+   object written to it last, so each shape is saved to a file of its own.
 5. CCylinder, CCone, CTube, CTorus and CCapsule.  Each also tested against its editor's mesh: every corner of the mesh made
    with the same values is on its surface, within a tolerance.
 6. The combinations.  Tests: each is a bound (never more than a brute force distance to its surface sampled finely), a graph
