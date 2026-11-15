@@ -292,6 +292,7 @@
     <ClCompile Include="WaitTestRefWindow.cpp" />
     <ClCompile Include="TestCheckBox.cpp" />
     <ClCompile Include="TestComboBox.cpp" />
+    <ClCompile Include="TestCompletionField.cpp" />
     <ClCompile Include="TestDialog.cpp" />
     <ClCompile Include="TestFileChooser.cpp" />
     <ClCompile Include="TestGoToDialog.cpp" />

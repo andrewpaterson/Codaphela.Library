@@ -58,6 +58,7 @@ void TestClipboardHistory(void);
 void TestPasteHistoryDialog(void);
 void TestCheckBox(void);
 void TestComboBox(void);
+void TestCompletionField(void);
 void TestDialog(void);
 void TestFileChooser(void);
 void TestGoToDialog(void);
@@ -128,6 +129,7 @@ void RunWindowTests(void)
 	TestPasteHistoryDialog();
 	TestCheckBox();
 	TestComboBox();
+	TestCompletionField();
 	TestDialog();
 	TestFileChooser();
 	TestGoToDialog();

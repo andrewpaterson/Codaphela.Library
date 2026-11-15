@@ -390,6 +390,9 @@
     <ClInclude Include="TextField.h">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClInclude>
+    <ClInclude Include="CompletionField.h">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClInclude>
     <ClInclude Include="ScrollBar.h">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClInclude>
@@ -801,6 +804,9 @@
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClCompile>
     <ClCompile Include="TextField.cpp">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClCompile>
+    <ClCompile Include="CompletionField.cpp">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClCompile>
     <ClCompile Include="ScrollBar.cpp">

@@ -111,6 +111,7 @@ public:
 	void				AddDivider(const char* szTitle);
 	void				AddExtraButton(const char* szCaption);
 	void				SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor);
+	void				SetFirstEditor(Ptr<CComponent> pFirstEditor);
 	void				SetOKCaption(const char* szCaption);
 	void				SetCancelCaption(const char* szCaption);
 	void				RemoveButtons(void);
