@@ -127,11 +127,19 @@ that plan's step 8, done in these sub-steps, each with its tests in TestProcedur
     use TestSupportLib's: closed (every edge on two faces, corners less edges plus faces as expected), facing out (each face's
     normal agrees with the shape's gradient at its middle) and on the surface (every corner within a tolerance of it).  They're
     tried on SupportLib's editors' meshes with the shapes of the same values, and on a mesh turned inside out.
+    Done: MeshMeasures in TestProceduralLib, whose CMake has the Size16 option now.
 8.2 Sampling.  A grid over a box: the shape's distance at each corner, each worked out once, each edge's crossing found on the
     distance with exactly zero outside, and the shape's gradient there as the crossing's normal.  Marching cubes and dual
     contouring both use it.
+    Done: CIsosurfaceGrid, the crossing found by the Illinois method (the secant through the bracket, the end that stays twice
+    halved).  Its arrays are large ones, so a grid can pass 64KB with a 16 bit size.
 8.3 Marching cubes, the baseline, with each vertex shared by the grid edge it's on.  Tests: a sphere, cylinder and torus come out
     closed, facing out and on the surface.  A box's edges come out bevelled, which is what 8.5 is measured against.
+    Done: CMarchingCubes.  Its 256 cases are made, not Bourke's tables typed in: each face of the cube is walked anticlockwise
+    seen from outside and a line joins each crossing into the inside to the next out of it.  A face's lines depend on its own
+    corners, so neighbouring cubes agree and nothing cracks, and two inside corners across a face are kept apart.  A gyroid cut
+    by a sphere (TestGyroid.h) meets every case.  Where a cut meets the surface at a sharp angle, a bevel's middle can be won by
+    the other shape, so facing out is only checked on the gyroid's own faces there.
 8.4 The plane fit: a cell's crossings and normals accumulated (A'A, A'b, b'b and the mass point) and solved relative to the mass
     point, BaseLib's 3x3 symmetric Jacobi solver giving the pseudo inverse, small singular values dropped, and the vertex
     clamped to its cell.  Tests: three planes give their corner exactly, two the nearest point on their edge, one the mass
