@@ -324,7 +324,7 @@ void CRectangleBestPacker::AddWidthAttempts(EPackRotation eRotation, bool bRotat
 	for (i = 0; i < 25; i++)
 	{
 		fPos = i/24.0f;
-		InterpolateFloat(&fDest, fStartWidth, fEndWidth, fPos);
+		InterpolateFloat(&fDest, fEndWidth, fStartWidth, fPos);
 		iWidth = (int32)(fDest + 0.5f);
 		if (iWidth != iLastWidth)
 		{

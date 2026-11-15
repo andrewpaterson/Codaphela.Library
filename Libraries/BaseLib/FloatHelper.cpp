@@ -256,7 +256,7 @@ float32 NormaliseFloat(float32 fMax, float32 fMin, float32 fPos)
 //////////////////////////////////////////////////////////////////////////
 float32 InterpolateFloat(float32 f1, float32 f2, float32 fPos)
 {
-	return (f1 * fPos) + (f2 * (1.0f - fPos));
+	return (f1 * (1.0f - fPos)) + (f2 * fPos);
 }
 
 
@@ -536,7 +536,7 @@ float64 NormaliseDouble(float64 fMax, float64 fMin, float64 fPos)
 //////////////////////////////////////////////////////////////////////////
 float64 InterpolateDouble(float64 f1, float64 f2, float64 fPos)
 {
-	return (f1 * fPos) + (f2 * (1.0f - fPos));
+	return (f1 * (1.0 - fPos)) + (f2 * fPos);
 }
 
 
