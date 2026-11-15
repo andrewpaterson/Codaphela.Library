@@ -378,6 +378,29 @@ void TestUndoLogCreated(void)
 	AssertSize(uiGroup, cLog.Redone("Drum.h", 0, 1));
 	AssertSize(uiGroup, cLog.FindUndoGroup());
 	cLog.Kill();
+
+	//A document taken away: its edits are forgotten, and its step has its text to make it again with.
+	cLog.Init();
+	cLog.Kept("Keg.h", 0, 1);
+	cLog.BeginGroup();
+	cLog.Kept("Main.cpp", 0, 1);
+	cLog.Deleted("Keg.h", "Drum.h", "class CKeg {};\n");
+	cLog.EndGroup();
+	AssertSize(2, cLog.NumSteps());
+	AssertString("Main.cpp", cLog.Get(0)->szDocument.Text());
+	AssertTrue(cLog.IsDeleted(1));
+	AssertFalse(cLog.IsCreated(1));
+	AssertString("Keg.h", cLog.Get(1)->szDocument.Text());
+	AssertString("Drum.h", cLog.Get(1)->szRenamed.Text());
+	AssertString("class CKeg {};\n", cLog.Get(1)->szContent.Text());
+	uiGroup = cLog.Get(1)->uiGroup;
+	AssertSize(uiGroup, cLog.FindUndoGroup());
+	cLog.MarkUndone(1);
+	AssertSize(uiGroup, cLog.Undone("Main.cpp", 1, 0));
+	cLog.RemoveDocument("Keg.h");
+	AssertSize(2, cLog.NumSteps());
+	AssertSize(uiGroup, cLog.FindRedoGroup());
+	cLog.Kill();
 }
 
 

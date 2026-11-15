@@ -159,6 +159,27 @@ void CUndoLog::Created(char* szDocument, char* szBeside)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A document was taken away (a file deleted), with the text it had and
+// the document it was beside: a step of its own, in the open group.
+// Undoing it is for the log's user, who makes the document again with
+// the text; redoing it takes it away again.  Its edits are forgotten, as
+// a closed document's are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CUndoLog::Deleted(char* szDocument, char* szBeside, char* szContent)
+{
+	SUndoLogStep*	psStep;
+
+	RemoveDocument(szDocument);
+	psStep = AddStep(szDocument, 0, 0);
+	psStep->szRenamed.Set(szBeside);
+	psStep->szContent.Set(szContent);
+	psStep->bDeleted = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szDocument's undone steps, and undone renames from or to it, dropped:
 // a new step of it means they can't be redone.
 //
@@ -195,6 +216,7 @@ SUndoLogStep* CUndoLog::AddStep(char* szDocument, size uiIdBefore, size uiIdAfte
 	psStep->szRenamed.Init();
 	psStep->szContent.Init();
 	psStep->bCreated = false;
+	psStep->bDeleted = false;
 	psStep->uiIdBefore = uiIdBefore;
 	psStep->uiIdAfter = uiIdAfter;
 	psStep->uiUndone = 0;
@@ -312,7 +334,7 @@ void CUndoLog::RemoveDocument(char* szDocument)
 
 	for (i = masSteps.NumElements(); i > 0; i--)
 	{
-		if (!masSteps.Get(i - 1)->bRename && !masSteps.Get(i - 1)->bCreated && (StringCompare(masSteps.Get(i - 1)->szDocument.Text(), szDocument) == 0))
+		if (!masSteps.Get(i - 1)->bRename && !masSteps.Get(i - 1)->bCreated && !masSteps.Get(i - 1)->bDeleted && (StringCompare(masSteps.Get(i - 1)->szDocument.Text(), szDocument) == 0))
 		{
 			RemoveAt(i - 1);
 		}
@@ -404,7 +426,7 @@ size CUndoLog::FindStep(char* szDocument, size uiIdBefore, size uiIdAfter, bool 
 	for (i = masSteps.NumElements(); i > 0; i--)
 	{
 		psStep = masSteps.Get(i - 1);
-		if (!psStep->bRename && !psStep->bCreated && (psStep->uiIdAfter == uiIdAfter) && ((uiIdBefore == MAX_SIZE) || (psStep->uiIdBefore == uiIdBefore)) &&
+		if (!psStep->bRename && !psStep->bCreated && !psStep->bDeleted && (psStep->uiIdAfter == uiIdAfter) && ((uiIdBefore == MAX_SIZE) || (psStep->uiIdBefore == uiIdBefore)) &&
 			((psStep->uiUndone != 0) == bUndone) && (StringCompare(psStep->szDocument.Text(), szDocument) == 0))
 		{
 			return i - 1;
@@ -436,4 +458,5 @@ SUndoLogStep* CUndoLog::Get(size uiIndex) { return masSteps.Get(uiIndex); }
 bool CUndoLog::IsUndone(size uiIndex) { return masSteps.Get(uiIndex)->uiUndone != 0; }
 bool CUndoLog::IsRename(size uiIndex) { return masSteps.Get(uiIndex)->bRename; }
 bool CUndoLog::IsCreated(size uiIndex) { return masSteps.Get(uiIndex)->bCreated; }
+bool CUndoLog::IsDeleted(size uiIndex) { return masSteps.Get(uiIndex)->bDeleted; }
 

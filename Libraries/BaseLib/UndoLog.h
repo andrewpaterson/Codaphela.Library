@@ -35,7 +35,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //renamed): szDocument its old name and szRenamed its new one, its ids 0; the log's user renames it back to undo it.
 //Or a document made (a file made for what was moved to it): szDocument its name and szRenamed the document it was
 //made beside, its ids 0; the log's user takes it away to undo it, keeping its text here (szContent), and makes it
-//again with that text to redo it.  It stays in the log when its document is closed.
+//again with that text to redo it.  It stays in the log when its document is closed.  Or a document taken away (a
+//file deleted with the class that was all it had): the same the other way round, its text kept from the start; the
+//log's user makes it again to undo it and takes it away to redo it.
 struct SUndoLogStep
 {
 	CChars	szDocument;
@@ -47,6 +49,7 @@ struct SUndoLogStep
 	size	uiUndone;
 	bool	bRename;
 	bool	bCreated;
+	bool	bDeleted;
 };
 
 
@@ -85,6 +88,7 @@ public:
 	void			Merged(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			Renamed(char* szOldDocument, char* szNewDocument);
 	void			Created(char* szDocument, char* szBeside);
+	void			Deleted(char* szDocument, char* szBeside, char* szContent);
 	size			Undone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	size			Redone(char* szDocument, size uiIdBefore, size uiIdAfter);
 	void			RemoveDocument(char* szDocument);
@@ -100,6 +104,7 @@ public:
 	bool			IsUndone(size uiIndex);
 	bool			IsRename(size uiIndex);
 	bool			IsCreated(size uiIndex);
+	bool			IsDeleted(size uiIndex);
 
 protected:
 	size			FindStep(char* szDocument, size uiIdBefore, size uiIdAfter, bool bUndone);
