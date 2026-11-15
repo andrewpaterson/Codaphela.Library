@@ -404,6 +404,7 @@
     <ClInclude Include="ShapeTransform.h" />
     <ClInclude Include="ShapeUnion.h" />
     <ClInclude Include="Box.h" />
+    <ClInclude Include="ConvexHull.h" />
     <ClInclude Include="HalfSpace.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="RevolvedShape.h" />
@@ -669,6 +670,7 @@
     <ClCompile Include="ShapeTransform.cpp" />
     <ClCompile Include="ShapeUnion.cpp" />
     <ClCompile Include="Box.cpp" />
+    <ClCompile Include="ConvexHull.cpp" />
     <ClCompile Include="HalfSpace.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="RevolvedShape.cpp" />

@@ -42,5 +42,8 @@ public:
 };
 
 
+typedef CArrayTemplate<SFloat32Plane>	CArrayFloat32Plane;
+
+
 #endif // __FLOAT32_PLANE_H__
 

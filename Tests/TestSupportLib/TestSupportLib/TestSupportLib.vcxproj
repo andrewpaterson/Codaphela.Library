@@ -302,6 +302,7 @@
     <ClCompile Include="TestRevolvedShape.cpp" />
     <ClCompile Include="TestShape.cpp" />
     <ClCompile Include="TestShapeCombination.cpp" />
+    <ClCompile Include="TestConvexHull.cpp" />
     <ClCompile Include="TestMeshUVCoords.cpp" />
     <ClCompile Include="TestNormalGeneration.cpp" />
     <ClCompile Include="TestTileMapGenerator.cpp" />

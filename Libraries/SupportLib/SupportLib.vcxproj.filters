@@ -591,6 +591,9 @@
     <ClInclude Include="Box.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
+    <ClInclude Include="ConvexHull.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
     <ClInclude Include="HalfSpace.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
@@ -1389,6 +1392,9 @@
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Box.cpp">
+      <Filter>Source\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvexHull.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="HalfSpace.cpp">

@@ -35,7 +35,7 @@ float32			TestShapeRandom(uint32* puiState);
 // cell.  Inside, its distance mustn't be further below zero.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertShapeIsBound(CShape* pcShape)
+void AssertShapeIsBound(CShape* pcShape)
 {
 	SFloat32Bounds		sBounds;
 	SFloat32Vec3		sSize;
