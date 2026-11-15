@@ -224,7 +224,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="TestProceduralLib.cpp" />
-    <ClCompile Include="TestProcedural.cpp" />
+    <ClCompile Include="MeshMeasures.cpp" />
+    <ClCompile Include="TestMeshMeasures.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MeshMeasures.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

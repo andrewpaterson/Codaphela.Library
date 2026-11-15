@@ -12,6 +12,9 @@
 #
 # Add -DBASELIB_ASAN=ON for AddressSanitizer and LeakSanitizer.
 #
+# Add -DBASELIB_SIZE16=ON (32-bit only) to check the W65C816's size model on the host: size is 16 bits and lsize 32,
+# and -Wconversion warns of each wider value narrowed to a size ("to 'size'" in the warning).
+#
 # Source lists are read from the .vcxproj files so Visual Studio stays the
 # source of truth.  Building re-runs the configure step automatically when a
 # .vcxproj changes.  Test directories can contain .cpp files that are test data,
@@ -30,6 +33,7 @@ endif()
 
 option(BASELIB_ASAN "Build with AddressSanitizer and LeakSanitizer" OFF)
 option(BASELIB_64 "Build 64-bit instead of 32-bit" OFF)
+option(BASELIB_SIZE16 "Build with a 16-bit size (the W65C816's size model) and -Wconversion" OFF)
 
 get_filename_component(CODAPHELA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 set(COMMON_DIR "${CODAPHELA_ROOT}/CommonLibraries/Libraries")
@@ -154,6 +158,14 @@ check_ipo_supported(RESULT BASELIB_IPO_SUPPORTED LANGUAGES CXX)
 if(BASELIB_IPO_SUPPORTED)
 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
+endif()
+
+if(BASELIB_SIZE16)
+	if(BASELIB_64)
+		message(FATAL_ERROR "BASELIB_SIZE16 is for 32-bit builds.")
+	endif()
+	target_compile_definitions(baselib_options INTERFACE BASELIB_SIZE16)
+	target_compile_options(baselib_options INTERFACE -Wconversion)
 endif()
 
 if(BASELIB_ASAN)

@@ -9,7 +9,7 @@
 #include "TestLib/Assert.h"
 
 
-void TestProcedural(void);
+void TestMeshMeasures(void);
 
 
 int __cdecl main(void)
@@ -23,7 +23,7 @@ int __cdecl main(void)
 	TypeConverterInit();
 	MemoryInit();
 
-	TestProcedural();
+	TestMeshMeasures();
 
 	MemoryKill();
 	TypeConverterKill();

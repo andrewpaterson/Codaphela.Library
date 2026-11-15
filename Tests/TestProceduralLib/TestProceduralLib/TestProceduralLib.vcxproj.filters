@@ -9,9 +9,17 @@
     <ClCompile Include="TestProceduralLib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestProcedural.cpp">
+    <ClCompile Include="MeshMeasures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshMeasures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MeshMeasures.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />
