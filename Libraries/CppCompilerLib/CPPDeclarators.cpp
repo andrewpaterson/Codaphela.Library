@@ -294,6 +294,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
 			pcMember = mpcUnit->QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
+			mpcUnit->GetBinder()->CheckTypeName(pcMember ? pcMember : pcName->mpcSymbol, pcName);
 			if (pcMember)
 			{
 				mpcUnit->GetContext()->EnterBindings(pcMemberClass->mpcBindings);

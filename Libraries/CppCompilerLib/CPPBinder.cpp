@@ -54,6 +54,7 @@ void CCPPBinder::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	mcOverloads.Init(pcUnit);
+	mcAccess.Init(pcUnit);
 	mcBound.Init(true);
 	mcOperators.Init(true);
 	mapapcExpanded.Init();
@@ -78,6 +79,22 @@ void CCPPBinder::Kill(void)
 	mcBound.Kill();
 	mcOverloads.Kill();
 	mpcUnit = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function chosen for a call or an operator must be one that may be
+// named there.  If it isn't the call has failed, so that it is bound
+// again, and the error reported again, when its errors are wanted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode)
+{
+	if ((pcBound->meHow != CPPBC_Failed) && !mcAccess.CheckFunction(pcBound->mpcFunction, pcBound->mpcClass, pcNode))
+	{
+		pcBound->meHow = CPPBC_Failed;
+	}
 }
 
 
@@ -113,6 +130,7 @@ bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, 
 	if (pcBound->mpapcArguments)
 	{
 		Resolve(pcCall, pcBound);
+		CheckAccess(pcBound, pcCall);
 	}
 	else
 	{
@@ -621,6 +639,7 @@ bool CCPPBinder::BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSy
 	{
 		ResolveOperator(pcNode, pcBound);
 	}
+	CheckAccess(pcBound, pcNode);
 	mcOperators.Put((int64)(size)pcLeft, pcBound);
 	return pcBound->meHow != CPPBC_Failed;
 }
@@ -876,12 +895,29 @@ CArraySyntax* CCPPBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a name used as an expression is (ResolveName), which must be what
+// may be named there: a field or a static member of a class, an
+// enumerator or a member function.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
+{
+	ResolveName(pcId, pcBound);
+	if ((pcBound->meWhat != CPPBN_Nothing) && (pcBound->meWhat != CPPBN_FunctionName))
+	{
+		mcAccess.CheckSymbol(pcBound->mpcSymbol, pcBound->mpcClass, pcId);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the name is, in *pcBound: the one cascade, in the order a name is looked at.
 // It reports nothing and remembers nothing (a local's variable is made again each
 // time its function is written): what a name can't be used as is its user's error.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
+void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
 {
 	CCPPSymbol*		pcSymbol;
 	CCPPFunction*	pcIn;
@@ -1003,16 +1039,21 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	{
 		pcBound->meWhat = CPPBN_Field;
 		pcBound->mpcSymbol = pcBound->mpsField->pcSymbol;
-		return true;
 	}
-	pcBound->mpcVariable = mpcUnit->FindStatic(pcClass, lliName);
-	if (pcBound->mpcVariable)
+	else
 	{
+		pcBound->mpcVariable = mpcUnit->FindStatic(pcClass, lliName);
+		if (!pcBound->mpcVariable)
+		{
+			return false;
+		}
 		pcBound->meWhat = CPPBN_Variable;
 		pcBound->mpcSymbol = pcBound->mpcVariable->mpcSymbol;
-		return true;
 	}
-	return false;
+
+	//It is the member whether or not it may be named here: that it may not is an error of its own.
+	mcAccess.CheckSymbol(pcBound->mpcSymbol, pcClass, pcNode);
+	return true;
 }
 
 
@@ -1051,6 +1092,19 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A type named in a declaration (Class::Nested, or a name alone): if it is
+// a class's member (a nested class or enum, or a typedef) it must be one
+// that may be named there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
+{
+	mcAccess.CheckSymbol(pcSymbol, NULL, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How an object of pcClass is made from papcArguments: by the constructor that
 // matches them; by nothing, when it has no constructor and there are none; or else as
 // an aggregate, its fields in order, which a class with bases or virtual functions
@@ -1072,6 +1126,10 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 		pcBound->mpcConstructor = mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
 		if (pcBound->mpcConstructor)
 		{
+			if (!mcAccess.CheckFunction(pcBound->mpcConstructor, pcClass, pcNode))
+			{
+				return false;
+			}
 			pcBound->meHow = CPPBO_Constructor;
 			return true;
 		}

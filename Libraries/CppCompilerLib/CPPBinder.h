@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPVariable.h"
 #include "CPPTemplate.h"
 #include "CPPOverloads.h"
+#include "CPPAccess.h"
 
 
 class CCPPUnit;
@@ -158,11 +159,14 @@ typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 //the left operand's own operator function if one fits, or else one that is no class's; BindOwnOperator: the
 //object's own, for [], -> and what must be a member).  BindName says what a name alone is, BindMember which
 //member of a class, BindConversion what converts an object to a value of another type, and BindConstruction what makes one.
+//What it says a name or a call is must also be something that may be named there (CCPPAccess): a private member
+//used outside its class is an error here.  Access is asked after the choosing, and never changes what is chosen.
 class CCPPBinder
 {
 protected:
 	CCPPUnit*			mpcUnit;
 	CCPPOverloads		mcOverloads;	//Chooses between the functions of a name; only the binder asks it.
+	CCPPAccess			mcAccess;		//Says whether what was chosen may be named where it is.
 	CMapCPPBoundCalls	mcBound;
 	CMapCPPBoundCalls	mcOperators;	//By left operand.
 	CArrayCPPArguments	mapapcExpanded;	//The arguments of the calls with a pack expanded, kept until the unit is done.
@@ -177,6 +181,7 @@ public:
 
 	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
+	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	bool	BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport);
 	void	BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound);
 	void	BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode, CCPPBoundConversion* pcBound);
@@ -190,6 +195,8 @@ public:
 protected:
 	CArraySyntax*	ExpandPack(CCPPSyntaxCallExpression* pcCall);
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	void	ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
+	void	CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode);
 	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	bool	ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);

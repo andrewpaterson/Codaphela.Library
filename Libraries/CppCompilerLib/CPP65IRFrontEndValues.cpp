@@ -1008,7 +1008,7 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!mpcUnit->GetBinder()->BindMember(psType->pcClass, pcMember->mpcName, NULL, &cBound))
+	if (!mpcUnit->GetBinder()->BindMember(psType->pcClass, pcMember->mpcName, pcMember, &cBound))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

@@ -299,6 +299,7 @@
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPOverloads.cpp" />
+    <ClCompile Include="CPPAccess.cpp" />
     <ClCompile Include="CPPBinder.cpp" />
     <ClCompile Include="CPPTemplate.cpp" />
     <ClCompile Include="CPPFunction.cpp" />
@@ -560,6 +561,7 @@
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPOverloads.h" />
+    <ClInclude Include="CPPAccess.h" />
     <ClInclude Include="CPPBinder.h" />
     <ClInclude Include="CPPTemplate.h" />
     <ClInclude Include="CPPFunction.h" />

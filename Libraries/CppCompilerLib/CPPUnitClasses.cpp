@@ -408,6 +408,7 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		psBase = pcClass->macBases.Add();
 		psBase->pcClass = pcBaseClass;
 		psBase->iOffset = 0;
+		psBase->eAccess = (pcBaseSpecifier->meAccess != CPPA_None) ? pcBaseSpecifier->meAccess : ((pcClass->mpcSpecifier->meKey == CT_class) ? CPPA_Private : CPPA_Public);
 	}
 	pcClass->mpcBase = (pcClass->macBases.NumElements() > 0) ? pcClass->macBases.Get(0)->pcClass : NULL;
 	pcClass->meState = CPPCS_BasesKnown;

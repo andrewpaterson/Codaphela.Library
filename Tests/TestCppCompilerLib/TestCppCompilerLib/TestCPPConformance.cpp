@@ -57,9 +57,7 @@ struct SConformanceGroup
 static const SConformanceGroup gasConformanceGroups[] =
 {
 	CONFORMANCE_GROUP(Works, "", ""),
-	CONFORMANCE_GROUP(Stage1,
-		"PrivateMember(A) PrivateFunction(A) ProtectedMember(A) PrivateFromDerived(A) PrivateConstructor(A) PrivateBaseMember(A) PrivateStatic(A) PrivateNestedType(A) ",
-		"PrivateMember(A) PrivateFunction(A) ProtectedMember(A) PrivateFromDerived(A) PrivateConstructor(A) PrivateBaseMember(A) PrivateStatic(A) PrivateNestedType(A) "),
+	CONFORMANCE_GROUP(Stage1, "", ""),
 	CONFORMANCE_GROUP(Stage2,
 		"RvalueOverload(C) ConstReferenceAndRvalueOverload(W) RvalueBindsVariable(A) RvalueLocal(C) RvalueDistinctType(W) RvalueSpecialisations(C) ReferenceCollapsing(W) ForwardingDeduction(W) ForwardingCopies(C) MoveConstructor(C) MoveAssignment(C) ImplicitMove(C) MoveOnlyReturned(C) MoveOnlyCopied(A) PerfectForwarding(C) ForwardingPack(C) RefQualifiedMembers(W) RvalueMember(C) RvalueReturn(C) NamedRvalueIsLvalue(C) TemporaryToConstReference(C) ",
 		"RvalueOverload(C) ConstReferenceAndRvalueOverload(W) RvalueBindsVariable(A) RvalueLocal(C) RvalueDistinctType(W) RvalueSpecialisations(C) ReferenceCollapsing(W) ForwardingDeduction(W) ForwardingCopies(C) MoveConstructor(C) MoveAssignment(C) ImplicitMove(C) MoveOnlyReturned(C) MoveOnlyCopied(A) PerfectForwarding(C) ForwardingPack(C) RefQualifiedMembers(W) RvalueMember(C) RvalueReturn(C) NamedRvalueIsLvalue(C) TemporaryToConstReference(C) "),

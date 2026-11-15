@@ -58,6 +58,7 @@ struct SCPPBase
 {
 	CCPPClass*	pcClass;
 	int			iOffset;
+	ECPPAccess	eAccess;	//public, protected or private: what its members are, at most, as the derived class's.
 };
 
 
