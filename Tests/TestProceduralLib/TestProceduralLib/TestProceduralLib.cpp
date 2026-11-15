@@ -14,6 +14,7 @@ void TestIsosurfaceGrid(void);
 void TestMarchingCubes(void);
 void TestIsosurfaceFit(void);
 void TestDualContouring(void);
+void TestIsosurfaceOctree(void);
 
 
 int __cdecl main(void)
@@ -32,6 +33,7 @@ int __cdecl main(void)
 	TestMarchingCubes();
 	TestIsosurfaceFit();
 	TestDualContouring();
+	TestIsosurfaceOctree();
 
 	MemoryKill();
 	TypeConverterKill();

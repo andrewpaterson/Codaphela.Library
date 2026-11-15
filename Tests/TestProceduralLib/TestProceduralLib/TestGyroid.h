@@ -6,7 +6,8 @@
 
 //Schoen's gyroid, sin x cos y + sin y cos z + sin z cos x, at mfScale: a surface that winds through every cell of a grid
 //whatever its size, so it meets each of a cube's cases, the ones with two inside corners across a face from each other too.
-//Not a distance, and endless, so the tests cut it with a sphere.
+//Divided by its steepest slope, root 6 times mfScale, it's a bound, as the octree needs.  Endless, so the tests cut it with a
+//sphere.
 class CTestGyroid : public CShape
 {
 CONSTRUCTABLE(CTestGyroid);
@@ -37,7 +38,7 @@ public:
 		x = psPosition->x * mfScale;
 		y = psPosition->y * mfScale;
 		z = psPosition->z * mfScale;
-		return (sinf(x) * cosf(y)) + (sinf(y) * cosf(z)) + (sinf(z) * cosf(x));
+		return ((sinf(x) * cosf(y)) + (sinf(y) * cosf(z)) + (sinf(z) * cosf(x))) / (2.4494897f * mfScale);
 	}
 
 	void GetBounds(SFloat32Bounds* psDest) override

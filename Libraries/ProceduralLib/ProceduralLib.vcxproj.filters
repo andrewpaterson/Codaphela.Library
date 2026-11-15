@@ -21,6 +21,9 @@
     <ClCompile Include="DualContouring.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="IsosurfaceOctree.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
@@ -36,6 +39,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="DualContouring.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="IsosurfaceOctree.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

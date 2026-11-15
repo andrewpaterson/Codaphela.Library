@@ -2,6 +2,7 @@
 #include "SupportLib/MeshEditor.h"
 #include "ProceduralLib/MarchingCubes.h"
 #include "ProceduralLib/DualContouring.h"
+#include "ProceduralLib/IsosurfaceOctree.h"
 #include "MeshMeasures.h"
 #include "IsosurfaceMeshes.h"
 
@@ -59,3 +60,30 @@ Ptr<CMesh> DualContouringMesh(CShape* pcShape, float32 fCellSize)
 	return pMesh;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMesh> OctreeMesh(CShape* pcShape, float32 fSmallest, float32 fLargest, float32 fCentreTolerance, int* piLeaves)
+{
+	Ptr<CMesh>			pMesh;
+	CMeshEditor			cEditor;
+	CIsosurfaceOctree	cOctree;
+	SFloat32Bounds		sBounds;
+
+	GrownShapeBounds(&sBounds, pcShape, fSmallest);
+	cOctree.Init(&sBounds, fSmallest, fLargest, 0.5236f, fCentreTolerance);
+	cOctree.Build(pcShape);
+	if (piLeaves != NULL)
+	{
+		*piLeaves = cOctree.NumLeaves();
+	}
+
+	pMesh = OMalloc<CMesh>();
+	cEditor.Init(pMesh);
+	cOctree.Generate(&cEditor, pcShape);
+	cOctree.Kill();
+	cEditor.Kill();
+	return pMesh;
+}

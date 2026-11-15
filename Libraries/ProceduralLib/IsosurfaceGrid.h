@@ -46,6 +46,10 @@ typedef CArrayLargeTemplatePrimitive<float32>		CArrayLargeFloat32;
 //corners lie on a surface would otherwise come out twice or not at all.
 bool	IsosurfaceInside(float32 fDistance);
 
+//Where the surface crosses the edge from psStart to psEnd, whose distances differ by IsosurfaceInside, found to within fTolerance,
+//and the shape's gradient there as a unit normal.
+void	IsosurfaceFindCrossing(SIsosurfaceCrossing* psDest, CShape* pcShape, SFloat32Vec3* psStart, float32 fStartDistance, SFloat32Vec3* psEnd, float32 fEndDistance, float32 fTolerance);
+
 
 //A uniform grid of cubic cells over a box (Isosurface.txt, step 8.2).  Sample works out the shape's distance at each corner once
 //and, along each edge whose ends differ by IsosurfaceInside, where the surface crosses it and the shape's normal there.
@@ -72,9 +76,6 @@ public:
 	float32					GetCornerDistance(int x, int y, int z);
 	SIsosurfaceCrossing*	GetCrossing(int x, int y, int z, int iAxis);  //On the edge from corner x, y, z along axis iAxis (0 is x), or NULL.
 	int						NumCrossings(void);
-
-protected:
-	void					FindCrossing(SIsosurfaceCrossing* psDest, CShape* pcShape, SFloat32Vec3* psStart, float32 fStartDistance, SFloat32Vec3* psEnd, float32 fEndDistance);
 };
 
 

@@ -41,11 +41,12 @@ public:
 	SFloat32Symmetric3x3	sATA;
 	SFloat32Vec3			sATb;
 	float32					fBTB;
-	SFloat32Vec3			sMassPointSum;  //Relative to sReference.
+	SFloat32Vec3			sMassPointSum;  //Relative to sReference, each point times its weight.
+	float32					fWeight;  //The points' weights added up.
 	int						iNumPoints;
 
 	void	Init(SFloat32Vec3* psReference);
-	void	Add(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal);  //psNormal a unit.
+	void	Add(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWeight = 1.0f);  //psNormal a unit.
 
 	void	GetMassPoint(SFloat32Vec3* psDest);
 	float32	Error(SFloat32Vec3* psPosition);

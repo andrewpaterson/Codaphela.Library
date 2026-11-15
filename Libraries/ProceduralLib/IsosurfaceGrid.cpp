@@ -147,7 +147,7 @@ void CIsosurfaceGrid::Sample(CShape* pcShape)
 							GetCornerPosition(&sNext, aiNext[0], aiNext[1], aiNext[2]);
 							maiCrossings.SetValue((uiCorner * 3) + (lsize)iAxis, (int)masCrossings.NumElements());
 							psCrossing = masCrossings.Add();
-							FindCrossing(psCrossing, pcShape, &sPosition, fDistance, &sNext, fNextDistance);
+							IsosurfaceFindCrossing(psCrossing, pcShape, &sPosition, fDistance, &sNext, fNextDistance, mfCellSize * 1e-6f);
 						}
 					}
 				}
@@ -167,7 +167,7 @@ void CIsosurfaceGrid::Sample(CShape* pcShape)
 // the edge's direction, inside to outside, where the shape has none.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIsosurfaceGrid::FindCrossing(SIsosurfaceCrossing* psDest, CShape* pcShape, SFloat32Vec3* psStart, float32 fStartDistance, SFloat32Vec3* psEnd, float32 fEndDistance)
+void IsosurfaceFindCrossing(SIsosurfaceCrossing* psDest, CShape* pcShape, SFloat32Vec3* psStart, float32 fStartDistance, SFloat32Vec3* psEnd, float32 fEndDistance, float32 fTolerance)
 {
 	SFloat32Vec3	sAlong;
 	float32			fA;
@@ -176,7 +176,6 @@ void CIsosurfaceGrid::FindCrossing(SIsosurfaceCrossing* psDest, CShape* pcShape,
 	float32			fDistanceB;
 	float32			fT;
 	float32			fDistance;
-	float32			fTolerance;
 	float32			fLength;
 	bool			bInsideA;
 	int				iLastMoved;
@@ -188,7 +187,6 @@ void CIsosurfaceGrid::FindCrossing(SIsosurfaceCrossing* psDest, CShape* pcShape,
 	fDistanceA = fStartDistance;
 	fDistanceB = fEndDistance;
 	bInsideA = IsosurfaceInside(fStartDistance);
-	fTolerance = mfCellSize * 1e-6f;
 	iLastMoved = 0;
 	fT = 0.0f;
 	for (i = 0; i < ISOSURFACE_CROSSING_STEPS; i++)

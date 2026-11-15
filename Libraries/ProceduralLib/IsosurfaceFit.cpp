@@ -33,26 +33,34 @@ void SIsosurfaceFit::Init(SFloat32Vec3* psReference)
 	sATb.Init(0, 0, 0);
 	fBTB = 0.0f;
 	sMassPointSum.Init(0, 0, 0);
+	fWeight = 0.0f;
 	iNumPoints = 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A row n of A, with b = n . p.
+// A row n of A, with b = n . p, both times the square root of fWeight, so
+// the plane counts fWeight times in the sums, and the point fWeight times
+// in the mass point.
 //
 //////////////////////////////////////////////////////////////////////////
-void SIsosurfaceFit::Add(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal)
+void SIsosurfaceFit::Add(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fPointWeight)
 {
 	SFloat32Vec3	sRelative;
+	SFloat32Vec3	sRow;
 	float32			fB;
+	float32			fRoot;
 
+	fRoot = sqrtf(fPointWeight);
 	sRelative = *psPosition - sReference;
-	fB = Float32Vec3Dot(psNormal, &sRelative);
-	sATA.AddOuter(psNormal);
-	sATb += *psNormal * fB;
+	sRow = *psNormal * fRoot;
+	fB = Float32Vec3Dot(&sRow, &sRelative);
+	sATA.AddOuter(&sRow);
+	sATb += sRow * fB;
 	fBTB += fB * fB;
-	sMassPointSum += sRelative;
+	sMassPointSum += sRelative * fPointWeight;
+	fWeight += fPointWeight;
 	iNumPoints++;
 }
 
@@ -68,7 +76,7 @@ void SIsosurfaceFit::GetMassPoint(SFloat32Vec3* psDest)
 		*psDest = sReference;
 		return;
 	}
-	*psDest = sReference + (sMassPointSum / (float32)iNumPoints);
+	*psDest = sReference + (sMassPointSum / fWeight);
 }
 
 

@@ -231,6 +231,7 @@
     <ClCompile Include="TestIsosurfaceFit.cpp" />
     <ClCompile Include="IsosurfaceMeshes.cpp" />
     <ClCompile Include="TestDualContouring.cpp" />
+    <ClCompile Include="TestIsosurfaceOctree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
