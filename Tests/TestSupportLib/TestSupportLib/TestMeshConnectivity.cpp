@@ -577,6 +577,157 @@ void TestMeshEditorAddQuadCuts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A polygon of five or more corners is cut into faces where it was dropped:
+// a flat one into faces that cover it facing its way, a concave one too, and
+// a bent one with its bend in one face.  In an editor its faces are one
+// polygon with only its outline visible, and flipped they face the other
+// way.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshAddPolygonCuts(void)
+{
+	CMesh				cMesh;
+	CMeshEditor			cEditor;
+	CMeshEditorWrapper	cWrapper;
+	Ptr<CMesh>			pMesh;
+	CMFRet				r;
+	CArrayInt			aiCorners;
+	CArrayInt			aiCorners6;
+	SFloat64Vec3		sNormal;
+	float64				fArea;
+	int					i;
+	int					j;
+	int					iFacesOnLifted;
+	int*				aiFaceCorners;
+	bool				abVisible[NUM_FACE_EDGES];
+	int					iVisible;
+	float32				afPentagon[] = { 2, 0, 0,  4, 1, 0,  3, 3, 0,  1, 3, 0,  0, 1, 0 };
+	float32				afL[] = { 0, 0, 0,  2, 0, 0,  2, 1, 0,  1, 1, 0,  1, 2, 0,  0, 2, 0 };
+	float32				afBent[] = { 2, 0, 0,  4, 1, 0,  3, 3, 1.5f,  1, 3, 0,  0, 1, 0 };
+
+	aiCorners.Init();
+	aiCorners6.Init();
+	for (i = 0; i < 6; i++)
+	{
+		if (i < 5)
+		{
+			aiCorners.Add(i);
+		}
+		aiCorners6.Add(i);
+	}
+
+	//Flat and convex, area 8.
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afPentagon, 5);
+	r = cMesh.AddPolygon(&aiCorners);
+	AssertInt(3, r.NumFaces());
+	AssertInt(0, r.miFirstFace);
+	AssertInt(3, cMesh.NumFaces());
+	fArea = 0.0;
+	for (i = 0; i < 3; i++)
+	{
+		TestMeshCutFaceNormal(&sNormal, &cMesh, i);
+		AssertTrue(sNormal.z > 0.0);
+		fArea += sNormal.z / 2.0;
+	}
+	AssertDouble(8.0, fArea, 6);
+	cMesh.Kill();
+
+	//An L, concave at corner 3, area 3.
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afL, 6);
+	r = cMesh.AddPolygon(&aiCorners6);
+	AssertInt(4, cMesh.NumFaces());
+	fArea = 0.0;
+	for (i = 0; i < 4; i++)
+	{
+		TestMeshCutFaceNormal(&sNormal, &cMesh, i);
+		AssertTrue(sNormal.z > 0.0);
+		fArea += sNormal.z / 2.0;
+	}
+	AssertDouble(3.0, fArea, 6);
+	cMesh.Kill();
+
+	//Corner 2 is lifted.  Only one face reaches it, and the others are flat.
+	cMesh.Init();
+	TestMeshCutAddCorners(&cMesh, afBent, 5);
+	cMesh.AddPolygon(&aiCorners);
+	iFacesOnLifted = 0;
+	for (i = 0; i < 3; i++)
+	{
+		aiFaceCorners = cMesh.GetFaceCorners(i);
+		if ((aiFaceCorners[0] == 2) || (aiFaceCorners[1] == 2) || (aiFaceCorners[2] == 2))
+		{
+			iFacesOnLifted++;
+		}
+		else
+		{
+			TestMeshCutFaceNormal(&sNormal, &cMesh, i);
+			AssertDouble(0.0, sNormal.x, 6);
+			AssertDouble(0.0, sNormal.y, 6);
+			AssertTrue(sNormal.z > 0.0);
+		}
+	}
+	AssertInt(1, iFacesOnLifted);
+	cMesh.Kill();
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	TestMeshCutAddCorners(&cMesh, afPentagon, 5);
+	r = cEditor.AddPolygon(&aiCorners, 4, false);
+	AssertInt(3, r.NumFaces());
+	AssertInt(3, cMesh.NumFaces());
+	AssertLSize(1, cMesh.mcPolygons.mcPolygons.NumElements());
+	AssertSize(3, cMesh.mcPolygons.Get(0)->maiFaces.NumElements());
+	iVisible = 0;
+	for (i = 0; i < 3; i++)
+	{
+		AssertInt(4, cMesh.GetFaceName(i));
+		cMesh.mcPolygons.GetFaceEdges(cMesh.GetConnectivity(), i, abVisible);
+		for (j = 0; j < NUM_FACE_EDGES; j++)
+		{
+			iVisible += abVisible[j] ? 1 : 0;
+		}
+	}
+	AssertInt(5, iVisible);
+
+	cEditor.Kill();
+	cMesh.Kill();
+
+	cMesh.Init();
+	cEditor.Init(&cMesh);
+	TestMeshCutAddCorners(&cMesh, afPentagon, 5);
+	r = cEditor.AddPolygon(&aiCorners, 4, true);
+	AssertInt(0, r.miFirstFace);
+	AssertLSize(1, cMesh.mcPolygons.mcPolygons.NumElements());
+	for (i = 0; i < 3; i++)
+	{
+		TestMeshCutFaceNormal(&sNormal, &cMesh, i);
+		AssertTrue(sNormal.z < 0.0);
+	}
+	cEditor.Kill();
+	cMesh.Kill();
+
+	pMesh = OMalloc<CMesh>();
+	TestMeshCutAddCorners(&pMesh, afPentagon, 5);
+	cWrapper.Init(pMesh);
+	r = cWrapper.AddPolygon(&aiCorners, 0, true);
+	AssertInt(3, pMesh->NumFaces());
+	for (i = 0; i < 3; i++)
+	{
+		TestMeshCutFaceNormal(&sNormal, &pMesh, i);
+		AssertTrue(sNormal.z < 0.0);
+	}
+	cWrapper.Kill();
+	pMesh = NULL;
+
+	aiCorners6.Kill();
+	aiCorners.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshConnectivity(void)
@@ -594,6 +745,7 @@ void TestMeshConnectivity(void)
 	TestMeshEditorNewEdges();
 	TestMeshAddQuadCuts();
 	TestMeshEditorAddQuadCuts();
+	TestMeshAddPolygonCuts();
 
 	ObjectsKill(false);
 	DataIOKill();

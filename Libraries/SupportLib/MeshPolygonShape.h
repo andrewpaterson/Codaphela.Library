@@ -58,7 +58,9 @@ bool	IsMeshPolygonEdge(int iCorner1, int iCorner2, int iNumCorners);
 //the way its faces fold least.
 bool	IsMeshQuadCutFirstToThird(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3, int iCorner4);
 
-//paiPositions has a position for each of its corners.  paiFaceCorners gets three of those corners for each face to make.
+//paiPositions has a position for each of its corners.  paiFaceCorners gets three of those corners for each face to make: each time
+//the ear that folds least against what's left, else the first, so a concave polygon's faces are inside it and a bent one's creases
+//are as small as they can be.
 void	CutMeshPolygon(CMesh* pcMesh, const int32* paiPositions, int32 iNumCorners, CArrayMeshPolygonCorners* paiFaceCorners);
 
 //pasEdges gets the edges of all a polygon's faces and pasLoop the ones around its outside, in order.  False unless they are one loop

@@ -562,11 +562,18 @@ CMFRet CMesh::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// More than four corners are cut up by CutMeshPolygon, and what's returned
+// is overflowed, its faces those from miFirstFace on.
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMesh::AddPolygon(CArrayInt* paiCorners)
 {
-	CMFRet	r;
+	CMFRet						r;
+	CArrayMeshPolygonCorners	aiPositions;
+	CArrayMeshPolygonCorners	aiFaceCorners;
+	size						i;
+	size						uiNumCorners;
+	int32						iFirstFace;
 
 	if (paiCorners->NumElements() < 3)
 	{
@@ -583,8 +590,24 @@ CMFRet CMesh::AddPolygon(CArrayInt* paiCorners)
 	}
 	else
 	{
-		//Remember to return the new edge count also.
-		r.PackOverflow();
+		uiNumCorners = paiCorners->NumElements();
+		aiPositions.Init();
+		for (i = 0; i < uiNumCorners; i++)
+		{
+			aiPositions.Add(paiCorners->GetValue(i));
+		}
+		aiFaceCorners.Init();
+		CutMeshPolygon(this, aiPositions.GetData(), (int32)uiNumCorners, &aiFaceCorners);
+
+		iFirstFace = (int32)NumFaces();
+		for (i = 0; i < aiFaceCorners.NumElements(); i += NUM_FACE_CORNERS)
+		{
+			AddFace(aiPositions.GetValue(aiFaceCorners.GetValue(i)), aiPositions.GetValue(aiFaceCorners.GetValue(i + 1)), aiPositions.GetValue(aiFaceCorners.GetValue(i + 2)));
+		}
+		aiFaceCorners.Kill();
+		aiPositions.Kill();
+
+		r.PackOverflow(iFirstFace);
 		return r;
 	}
 }

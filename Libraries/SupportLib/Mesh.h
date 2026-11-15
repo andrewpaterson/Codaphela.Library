@@ -88,7 +88,7 @@ public:
 
 	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);
 	CMFRet			AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4);  //Cut 2 to 4, or 1 to 3 where it's concave or that folds less.
-	CMFRet			AddPolygon(CArrayInt* paiCorners);
+	CMFRet			AddPolygon(CArrayInt* paiCorners);  //More than 4 corners are cut by CutMeshPolygon, and overflow what's returned.
 	
 	void			RemoveFace(int iFace);
 	void			RemoveFaces(CArrayInt* paiFaces);

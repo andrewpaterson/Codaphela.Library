@@ -442,11 +442,25 @@ CMFRet CMeshEditor::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorne
 
 //////////////////////////////////////////////////////////////////////////
 //
+// More than four corners are cut up by CutMeshPolygon, with the edges inside
+// hidden, so the faces are one polygon.  What's returned is overflowed, its
+// faces those from miFirstFace on.
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces)
 {
-	CMFRet	r;
+	CMFRet						r;
+	CArrayMeshPolygonCorners	aiPositions;
+	CArrayMeshPolygonCorners	aiFaceCorners;
+	size						i;
+	size						uiNumCorners;
+	int32						iFirstFace;
+	int							iA;
+	int							iB;
+	int							iC;
+	bool						bEdgeAB;
+	bool						bEdgeBC;
+	bool						bEdgeCA;
 
 	if (paiCorners->NumElements() < 3)
 	{
@@ -463,7 +477,37 @@ CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces
 	}
 	else
 	{
-		r.PackOverflow();
+		uiNumCorners = paiCorners->NumElements();
+		aiPositions.Init();
+		for (i = 0; i < uiNumCorners; i++)
+		{
+			aiPositions.Add(paiCorners->GetValue(i));
+		}
+		aiFaceCorners.Init();
+		CutMeshPolygon(&mpMesh, aiPositions.GetData(), (int32)uiNumCorners, &aiFaceCorners);
+
+		iFirstFace = (int32)mpMesh->NumFaces();
+		for (i = 0; i < aiFaceCorners.NumElements(); i += NUM_FACE_CORNERS)
+		{
+			iA = aiFaceCorners.GetValue(i);
+			iB = aiFaceCorners.GetValue(i + 1);
+			iC = aiFaceCorners.GetValue(i + 2);
+			bEdgeAB = IsMeshPolygonEdge(iA, iB, (int)uiNumCorners);
+			bEdgeBC = IsMeshPolygonEdge(iB, iC, (int)uiNumCorners);
+			bEdgeCA = IsMeshPolygonEdge(iC, iA, (int)uiNumCorners);
+			if (!bFlipFaces)
+			{
+				AddFace(aiPositions.GetValue(iA), aiPositions.GetValue(iB), aiPositions.GetValue(iC), iName, bEdgeAB, bEdgeBC, bEdgeCA);
+			}
+			else
+			{
+				AddFace(aiPositions.GetValue(iA), aiPositions.GetValue(iC), aiPositions.GetValue(iB), iName, bEdgeCA, bEdgeBC, bEdgeAB);
+			}
+		}
+		aiFaceCorners.Kill();
+		aiPositions.Kill();
+
+		r.PackOverflow(iFirstFace);
 		return r;
 	}
 }

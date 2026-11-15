@@ -198,6 +198,26 @@ static void MeshPolygonTriangleNormal(SFloat64Vec3* psDest, SFloat64Vec3* psA, S
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the edge from one position to another adds to a polygon's normal,
+// by Newell's method: a polygon's normal is the sum of its edges', twice
+// its area long, as a face's is, and is right however bent it is.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshPolygonEdgeNormal(SFloat64Vec3* psDest, CMesh* pcMesh, int32 iFrom, int32 iTo)
+{
+	SFloat32Vec3*	psFrom;
+	SFloat32Vec3*	psTo;
+
+	psFrom = pcMesh->GetPosition(iFrom);
+	psTo = pcMesh->GetPosition(iTo);
+	psDest->x = ((float64)psFrom->y - (float64)psTo->y) * ((float64)psFrom->z + (float64)psTo->z);
+	psDest->y = ((float64)psFrom->z - (float64)psTo->z) * ((float64)psFrom->x + (float64)psTo->x);
+	psDest->z = ((float64)psFrom->x - (float64)psTo->x) * ((float64)psFrom->y + (float64)psTo->y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The cosine of the angle between two normals: 1 when the faces are flat
 // with each other.  -2, less than any, when either has no area.
 //
@@ -217,22 +237,95 @@ static float64 MeshPolygonNormalsCosine(SFloat64Vec3* psA, SFloat64Vec3* psB)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A polygon with no ears, as it has no area or crosses itself, is still cut
-// up, from its first corner.
+// The normal of what's left of a polygon with normal psNormal once the
+// corner iCorner, between iPrevious and iNext, is cut off.
 //
 //////////////////////////////////////////////////////////////////////////
-static int FindMeshPolygonEar(CArrayFloat64Vec2* pasPoints, CArrayInt* paiRemaining, int iNumRemaining)
+static void MeshPolygonNormalWithout(SFloat64Vec3* psDest, CMesh* pcMesh, SFloat64Vec3* psNormal, int32 iPrevious, int32 iCorner, int32 iNext)
 {
-	int		i;
+	SFloat64Vec3	sEdge;
 
+	psDest->Init(psNormal);
+	MeshPolygonEdgeNormal(&sEdge, pcMesh, iPrevious, iCorner);
+	psDest->Subtract(&sEdge);
+	MeshPolygonEdgeNormal(&sEdge, pcMesh, iCorner, iNext);
+	psDest->Subtract(&sEdge);
+	MeshPolygonEdgeNormal(&sEdge, pcMesh, iPrevious, iNext);
+	psDest->Add(&sEdge);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How flat the face an ear cuts off is with what's left: the cosine of the
+// fold between them.
+//
+//////////////////////////////////////////////////////////////////////////
+static float64 MeshPolygonEarCosine(CMesh* pcMesh, const int32* paiPositions, CArrayInt* paiRemaining, int iNumRemaining, int iCorner, SFloat64Vec3* psNormal)
+{
+	int32			iPrevious;
+	int32			iEar;
+	int32			iNext;
+	SFloat64Vec3	sPrevious;
+	SFloat64Vec3	sEar;
+	SFloat64Vec3	sNext;
+	SFloat64Vec3	sEarNormal;
+	SFloat64Vec3	sRestNormal;
+
+	iPrevious = paiPositions[paiRemaining->GetValue((iCorner + iNumRemaining - 1) % iNumRemaining)];
+	iEar = paiPositions[paiRemaining->GetValue(iCorner)];
+	iNext = paiPositions[paiRemaining->GetValue((iCorner + 1) % iNumRemaining)];
+
+	MeshPolygonPosition(&sPrevious, pcMesh, iPrevious);
+	MeshPolygonPosition(&sEar, pcMesh, iEar);
+	MeshPolygonPosition(&sNext, pcMesh, iNext);
+	MeshPolygonTriangleNormal(&sEarNormal, &sPrevious, &sEar, &sNext);
+	MeshPolygonNormalWithout(&sRestNormal, pcMesh, psNormal, iPrevious, iEar, iNext);
+	return MeshPolygonNormalsCosine(&sEarNormal, &sRestNormal);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Of the corners that can be cut off, the one whose face folds least
+// against what's left, so a bent polygon's creases are as small as they can
+// be.  Of those that fold the same, as all of a flat polygon's do, the
+// first.  A polygon with no ears, as it has no area or crosses itself, is
+// still cut up, from its first corner.
+//
+//////////////////////////////////////////////////////////////////////////
+static int FindMeshPolygonEar(CMesh* pcMesh, const int32* paiPositions, CArrayFloat64Vec2* pasPoints, CArrayInt* paiRemaining, int iNumRemaining, SFloat64Vec3* psNormal)
+{
+	int			i;
+	int			iBest;
+	float64		fBest;
+	float64		fCosine;
+
+	iBest = -1;
+	fBest = 0.0;
 	for (i = 0; i < iNumRemaining; i++)
 	{
 		if (IsMeshPolygonEar(pasPoints, paiRemaining, iNumRemaining, i))
 		{
-			return i;
+			if (iNumRemaining == NUM_FACE_CORNERS)
+			{
+				return i;
+			}
+
+			fCosine = MeshPolygonEarCosine(pcMesh, paiPositions, paiRemaining, iNumRemaining, i, psNormal);
+			if ((iBest == -1) || (fCosine > fBest + MESH_POLYGON_FOLD_TOLERANCE))
+			{
+				iBest = i;
+				fBest = fCosine;
+			}
 		}
 	}
-	return 0;
+
+	if (iBest == -1)
+	{
+		return 0;
+	}
+	return iBest;
 }
 
 
@@ -297,8 +390,10 @@ bool IsMeshQuadCutFirstToThird(CMesh* pcMesh, int iCorner1, int iCorner2, int iC
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Cuts a polygon into faces by taking the first ear each time.  A convex quad
-// comes out as CMesh::AddQuad cuts it: corners 0, 1, 3 and then 1, 2, 3.
+// Cuts a polygon into faces by taking an ear each time: the one that folds
+// least against what's left, else the first.  A quad comes out as
+// CMesh::AddQuad cuts it: a flat convex one into corners 0, 1, 3 and then
+// 1, 2, 3.
 //
 //////////////////////////////////////////////////////////////////////////
 void CutMeshPolygon(CMesh* pcMesh, const int32* paiPositions, int32 iNumCorners, CArrayMeshPolygonCorners* paiFaceCorners)
@@ -308,9 +403,21 @@ void CutMeshPolygon(CMesh* pcMesh, const int32* paiPositions, int32 iNumCorners,
 	int					iNumRemaining;
 	int					iEar;
 	int					i;
+	SFloat64Vec3		sNormal;
+	SFloat64Vec3		sEdge;
+	SFloat64Vec3		sRest;
+	int32				iPrevious;
+	int32				iNext;
 
 	asPoints.Init();
 	ProjectMeshPolygon(pcMesh, paiPositions, iNumCorners, &asPoints);
+
+	sNormal.Init(0, 0, 0);
+	for (i = 0; i < iNumCorners; i++)
+	{
+		MeshPolygonEdgeNormal(&sEdge, pcMesh, paiPositions[i], paiPositions[(i + 1) % iNumCorners]);
+		sNormal.Add(&sEdge);
+	}
 
 	iNumRemaining = iNumCorners;
 	aiRemaining.Init();
@@ -322,10 +429,15 @@ void CutMeshPolygon(CMesh* pcMesh, const int32* paiPositions, int32 iNumCorners,
 
 	while (iNumRemaining >= NUM_FACE_CORNERS)
 	{
-		iEar = FindMeshPolygonEar(&asPoints, &aiRemaining, iNumRemaining);
+		iEar = FindMeshPolygonEar(pcMesh, paiPositions, &asPoints, &aiRemaining, iNumRemaining, &sNormal);
 		paiFaceCorners->Add(aiRemaining.GetValue(iEar));
 		paiFaceCorners->Add(aiRemaining.GetValue((iEar + 1) % iNumRemaining));
 		paiFaceCorners->Add(aiRemaining.GetValue((iEar + iNumRemaining - 1) % iNumRemaining));
+
+		iPrevious = paiPositions[aiRemaining.GetValue((iEar + iNumRemaining - 1) % iNumRemaining)];
+		iNext = paiPositions[aiRemaining.GetValue((iEar + 1) % iNumRemaining)];
+		MeshPolygonNormalWithout(&sRest, pcMesh, &sNormal, iPrevious, paiPositions[aiRemaining.GetValue(iEar)], iNext);
+		sNormal.Init(&sRest);
 
 		iNumRemaining--;
 		for (i = iEar; i < iNumRemaining; i++)

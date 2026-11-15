@@ -39,6 +39,7 @@ public:
 	void	Repack(int iCorner1, int iCorner2, int iCorner3);
 	void	Repack(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6);
 	void	PackOverflow(void);
+	void	PackOverflow(int32 iFirstFace);  //More than two faces, the rest following iFirstFace.
 
 	int		NumFaces(void);  //A value of 3 implies that this structure has overflowed.  Result is elsewhere.
 	int		NewEdges(void);

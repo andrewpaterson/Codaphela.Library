@@ -173,17 +173,40 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A flipped polygon is added to a mesh with its corners the other way round
+// from its first, as a flipped quad is.
 //
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces)
 {
+	CArrayInt	aiFlipped;
+	CMFRet		r;
+	size		i;
+	size		uiNumCorners;
+
 	if ((mpcEditor != NULL))
 	{
 		return mpcEditor->AddPolygon(paiCorners, iName, bFlipFaces);
 	}
+	else if (!bFlipFaces || (paiCorners->NumElements() == 4))
+	{
+		if (bFlipFaces)
+		{
+			return AddQuad(paiCorners->GetValue(0), paiCorners->GetValue(1), paiCorners->GetValue(2), paiCorners->GetValue(3), iName, true);
+		}
+		return mpcMesh->AddPolygon(paiCorners);
+	}
 	else
 	{
-		return mpcMesh->AddPolygon(paiCorners);
+		uiNumCorners = paiCorners->NumElements();
+		aiFlipped.Init();
+		for (i = 0; i < uiNumCorners; i++)
+		{
+			aiFlipped.Add(paiCorners->GetValue((uiNumCorners - i) % uiNumCorners));
+		}
+		r = mpcMesh->AddPolygon(&aiFlipped);
+		aiFlipped.Kill();
+		return r;
 	}
 }
 

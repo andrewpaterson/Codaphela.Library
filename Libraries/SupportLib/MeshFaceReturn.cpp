@@ -48,6 +48,20 @@ void CMFRet::PackOverflow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMFRet::PackOverflow(int32 iFirstFace)
+{
+	miFirstFace = iFirstFace;
+	manCorners[0] = 0;
+	manCorners[1] = 3 << 4;
+	manCorners[2] = 0;
+	manCorners[3] = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMFRet::Pack(int32 iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges)
 {
 	miFirstFace = iFirstFace;
