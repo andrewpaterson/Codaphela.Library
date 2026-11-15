@@ -31,7 +31,7 @@ void CMarchingCubes::Init(void)
 
 	for (iInside = 0; iInside < MARCHING_CUBES_CASES; iInside++)
 	{
-		MakeCase(&masCases[iInside], iInside);
+		MakeCase(&masCases[iInside], iInside, 0);
 	}
 }
 
@@ -52,14 +52,18 @@ void CMarchingCubes::Kill(void)
 // go anticlockwise seen from outside: from the far side, (0, 0), (1, 0),
 // (1, 1), (0, 1), and the other way from the near side.  Along that walk
 // a crossing goes into the inside or comes out of it, and they take
-// turns, so each going in is joined to the next coming out.  An edge is
+// turns, so each going in is joined to the next coming out, which keeps
+// two inside corners across a face from each other apart.  A face whose
+// bit (iAxis * 2) + iSide is set in iJoinedFaces joins each going in to
+// the last coming out, which joins them.  Either way the cube on the other
+// side of the face must do the same.  An edge is
 // on two faces, walked one way on each, so it is where one face's line
 // ends and the other's starts, and the lines make loops.  A loop runs
 // anticlockwise seen from outside (an inside corner alone makes x, y, z),
 // so its fan does too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarchingCubes::MakeCase(SMarchingCubesCase* psCase, int iInside)
+void CMarchingCubes::MakeCase(SMarchingCubesCase* psCase, int iInside, int iJoinedFaces)
 {
 	static const int	aaiNearOrder[4][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}};
 	static const int	aaiFarOrder[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
@@ -117,13 +121,25 @@ void CMarchingCubes::MakeCase(SMarchingCubesCase* psCase, int iInside)
 			{
 				if (abGoesIn[i])
 				{
-					aiNext[aiEvents[i]] = aiEvents[(i + 1) % iNumEvents];
+					if (iJoinedFaces & (1 << ((iAxis * 2) + iSide)))
+					{
+						aiNext[aiEvents[i]] = aiEvents[(i + iNumEvents - 1) % iNumEvents];
+					}
+					else
+					{
+						aiNext[aiEvents[i]] = aiEvents[(i + 1) % iNumEvents];
+					}
 				}
 			}
 		}
 	}
 
 	psCase->iNumFaces = 0;
+	psCase->iNumPieces = 0;
+	for (iEdge = 0; iEdge < MARCHING_CUBES_EDGES; iEdge++)
+	{
+		psCase->aiEdgePieces[iEdge] = -1;
+	}
 	for (iEdge = 0; iEdge < MARCHING_CUBES_EDGES; iEdge++)
 	{
 		if ((aiNext[iEdge] == -1) || abUsed[iEdge])
@@ -136,10 +152,12 @@ void CMarchingCubes::MakeCase(SMarchingCubesCase* psCase, int iInside)
 		while ((i != -1) && !abUsed[i])
 		{
 			abUsed[i] = true;
+			psCase->aiEdgePieces[i] = (int8)psCase->iNumPieces;
 			aiLoop[iLoopLength] = i;
 			iLoopLength++;
 			i = aiNext[i];
 		}
+		psCase->iNumPieces++;
 
 		for (j = 1; j < iLoopLength - 1; j++)
 		{
@@ -149,6 +167,73 @@ void CMarchingCubes::MakeCase(SMarchingCubesCase* psCase, int iInside)
 			psCase->iNumFaces++;
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The case of a cube with these distances at its corners, its ambiguous
+// faces decided by the asymptotic decider (Nielson and Hamann 1991): on a
+// face whose corners go inside, outside, inside, outside, the two inside
+// corners are joined where the face's bilinear interpolation is inside
+// at its saddle point, (v0 v2 - v1 v3) / (v0 + v2 - v1 - v3).  It depends
+// on the face's corners alone, so the cubes either side agree.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMarchingCubes::DecideCase(SMarchingCubesCase* psCase, float32* pafDistances)
+{
+	int		iInside;
+	int		iJoinedFaces;
+	int		iCorner;
+	int		iAxis;
+	int		iSide;
+	int		iU;
+	int		iV;
+	int		aiCorners[4];
+	float32	afValues[4];
+	float32	fDenominator;
+	float32	fSaddle;
+	int		i;
+
+	iInside = 0;
+	for (iCorner = 0; iCorner < MARCHING_CUBES_CORNERS; iCorner++)
+	{
+		if (IsosurfaceInside(pafDistances[iCorner]))
+		{
+			iInside |= 1 << iCorner;
+		}
+	}
+
+	iJoinedFaces = 0;
+	for (iAxis = 0; iAxis < 3; iAxis++)
+	{
+		iU = (iAxis + 1) % 3;
+		iV = (iAxis + 2) % 3;
+		for (iSide = 0; iSide < 2; iSide++)
+		{
+			aiCorners[0] = (iSide << iAxis);
+			aiCorners[1] = (iSide << iAxis) | (1 << iU);
+			aiCorners[2] = (iSide << iAxis) | (1 << iU) | (1 << iV);
+			aiCorners[3] = (iSide << iAxis) | (1 << iV);
+			for (i = 0; i < 4; i++)
+			{
+				afValues[i] = pafDistances[aiCorners[i]];
+			}
+			if ((IsosurfaceInside(afValues[0]) == IsosurfaceInside(afValues[2])) && (IsosurfaceInside(afValues[1]) == IsosurfaceInside(afValues[3])) && (IsosurfaceInside(afValues[0]) != IsosurfaceInside(afValues[1])))
+			{
+				fDenominator = afValues[0] + afValues[2] - afValues[1] - afValues[3];
+				if (fDenominator != 0.0f)
+				{
+					fSaddle = ((afValues[0] * afValues[2]) - (afValues[1] * afValues[3])) / fDenominator;
+					if (IsosurfaceInside(fSaddle))
+					{
+						iJoinedFaces |= 1 << ((iAxis * 2) + iSide);
+					}
+				}
+			}
+		}
+	}
+	MakeCase(psCase, iInside, iJoinedFaces);
 }
 
 

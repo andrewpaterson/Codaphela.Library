@@ -20,6 +20,9 @@ int		CountMeshFacesFacingIn(CMesh* pcMesh, CShape* pcShape, float32 fLeastArea =
 //Faces whose corners are in a line, or on each other.
 int		CountMeshFacesWithNoArea(CMesh* pcMesh);
 
+//Corners where two sheets of the surface meet: the faces around one make more than one fan, joined across edges through it.
+int		CountMeshPinchedCorners(CMesh* pcMesh);
+
 //The furthest any corner is from pcShape's surface.
 float32	FurthestMeshCornerFromSurface(CMesh* pcMesh, CShape* pcShape);
 

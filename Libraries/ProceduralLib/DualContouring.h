@@ -23,17 +23,32 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/MeshEditor.h"
 #include "IsosurfaceGrid.h"
 #include "IsosurfaceFit.h"
+#include "MarchingCubes.h"
+
+
+//Which piece of a cell's surface each of its edges' crossings is on (SMarchingCubesCase::aiEdgePieces).
+struct SDualContouringPieces
+{
+	int8	aiEdgePieces[MARCHING_CUBES_EDGES];
+};
+
+
+typedef CArrayLargeTemplate<SDualContouringPieces>	CArrayDualContouringPieces;
 
 
 //Dual contouring (Ju, Losasso, Schaefer and Warren 2002) on a uniform grid (Isosurface.txt, step 8.5).  A cell the surface
-//crosses has one vertex, where the planes at its edges' crossings best meet (SIsosurfaceFit), so a crease or corner inside the
-//cell is where it is, not cut off.  Each crossed edge of the grid makes a quad of the four cells' vertices around it, from its
-//inside end to its outside end, split into two triangles along the diagonal whose middle is nearer the surface (the one that
-//follows a crease).  Each cell's vertex is one corner of the mesh, shared by every face on it.
+//crosses has a vertex for each sheet of surface in it (manifold dual contouring, Schaefer, Ju and Warren 2007, step 8.8):
+//marching cubes' pieces for its corners, its ambiguous faces decided by the asymptotic decider, joined where they aren't two
+//sheets (IsosurfaceJoinPieces).  Each vertex is where the planes at its piece's crossings best meet (SIsosurfaceFit), so a crease
+//or corner inside the cell is where it is, not cut off, and two sheets in one cell don't meet at one vertex.  Each crossed edge
+//of the grid makes a quad of the vertices of its piece in the four cells around it, from its inside end to its outside end, split
+//into two triangles along the diagonal whose middle is nearer the surface (the one that follows a crease).  Each vertex is one
+//corner of the mesh, shared by every face on it.
 class CDualContouring
 {
 public:
-	CArrayLargeInt	maiCellCorners;  //Each cell's corner in the mesh, or -1.
+	CArrayLargeInt				maiCellCorners;  //Each cell's first corner in the mesh (one for each piece of surface in it), or -1.
+	CArrayDualContouringPieces	masCellPieces;  //Each cell's edges' pieces.
 
 	void	Init(void);
 	void	Kill(void);
@@ -42,8 +57,20 @@ public:
 
 protected:
 	lsize	CellIndex(CIsosurfaceGrid* pcGrid, int x, int y, int z);
-	bool	FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int x, int y, int z);
+	void	CellCase(SMarchingCubesCase* psDest, CIsosurfaceGrid* pcGrid, int x, int y, int z);
+	void	FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int x, int y, int z, SMarchingCubesCase* psCase, int iPiece);
 };
+
+
+//Two pieces of surface in a cell whose average normals are further apart than this (about 100 degrees) are two sheets, either
+//side of something thinner than the cell, and keep a vertex each.
+#define ISOSURFACE_SHEETS_COSINE	(-0.2f)
+
+
+//Joins the pieces of a cell's surface (psCase's aiEdgePieces and iNumPieces) that aren't two sheets, by their crossings' normals
+//(pasEdgeNormals, for each of the cell's edges that crosses).  Marching cubes' pieces are only what the corners show: a box's edge
+//just outside a cell can leave two faces as two pieces, and one vertex on the edge between them is better than a vertex each.
+void	IsosurfaceJoinPieces(SMarchingCubesCase* psCase, SFloat32Vec3* pasEdgeNormals);
 
 
 //A quad of corners anticlockwise seen from outside (along psNormal, the surface's at its edge's crossing), as two triangles: the

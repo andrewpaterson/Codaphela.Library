@@ -61,6 +61,7 @@ void TestDualContouringBox(void)
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
 	AssertInt(0, CountMeshFacesFacingIn(&pMesh, &pBox));
 	AssertTrue(FurthestMeshCornerFromSurface(&pMesh, &pBox) < 0.075f);
+	AssertInt(0, CountMeshPinchedCorners(&pMesh));
 
 	fFurthest = 0.0f;
 	for (i = 0; i < 8; i++)
@@ -234,6 +235,7 @@ void TestDualContouringSeam(void)
 	AssertTrue(iOnSeam >= 15);
 	AssertTrue(iMarchedOnSeam <= 3);
 	AssertTrue(FurthestMeshCornerFromSurface(&pMesh, &pUnion) < 0.02f);
+	AssertInt(0, CountMeshPinchedCorners(&pMesh));
 }
 
 
@@ -264,10 +266,10 @@ void TestDualContouringSphere(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A gyroid cut by a sphere: closed, and its own faces face out but for a
-// few (4 of 7000) where a cell holds two pieces of its surface and their
-// one vertex folds a face over (Isosurface.txt's Known limits: manifold
-// dual contouring splits such a vertex).  Faces near the sphere are left
-// out, as in TestMarchingCubesGyroid.
+// few where a cell holds two pieces of its surface.  Each sheet of a cell
+// has its own vertex (manifold dual contouring), so they hardly ever meet
+// at one: 9 of 6100 corners were pinched with a vertex for each cell.
+// Faces near the sphere are left out, as in TestMarchingCubesGyroid.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDualContouringGyroid(void)
@@ -311,6 +313,7 @@ void TestDualContouringGyroid(void)
 	}
 	AssertTrue(iGyroidFaces > 5000);
 	AssertTrue(iFacingIn <= 10);
+	AssertTrue(CountMeshPinchedCorners(&pMesh) <= 2);
 }
 
 

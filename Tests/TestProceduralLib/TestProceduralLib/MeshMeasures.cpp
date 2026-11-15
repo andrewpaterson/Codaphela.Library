@@ -1,5 +1,6 @@
 #include <math.h>
 #include "BaseLib/Float32Vec3.h"
+#include "BaseLib/ArrayInt.h"
 #include "MeshMeasures.h"
 
 
@@ -121,6 +122,118 @@ int CountMeshFacesWithNoArea(CMesh* pcMesh)
 		}
 	}
 	return iNoArea;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each corner's faces are labelled by fans: a face joins the fan of
+// another face of the corner it shares an edge through the corner with,
+// until nothing changes.  More than one label left is a pinch.
+//
+//////////////////////////////////////////////////////////////////////////
+int CountMeshPinchedCorners(CMesh* pcMesh)
+{
+	CArrayLargeInt	aiFirstFace;
+	CArrayLargeInt	aiNextFace;
+	CArrayInt		aiFaces;
+	CArrayInt		aiFans;
+	int*		piCorners;
+	int*		piOther;
+	int			iNumFaces;
+	int			iNumCorners;
+	int			iFace;
+	int			iCorner;
+	int			iPinched;
+	int			i;
+	int			j;
+	int			k;
+	int			m;
+	int			iFan;
+	bool		bChanged;
+	bool		bShared;
+
+	iNumFaces = pcMesh->NumFaces();
+	iNumCorners = pcMesh->NumCorners();
+	aiFirstFace.Init();
+	aiNextFace.Init();
+	aiFirstFace.Resize((lsize)iNumCorners);
+	aiFirstFace.SetArrayValues(-1);
+	aiNextFace.Resize((lsize)(iNumFaces * NUM_FACE_CORNERS));
+	for (iFace = 0; iFace < iNumFaces; iFace++)
+	{
+		piCorners = pcMesh->GetFaceCorners(iFace);
+		for (i = 0; i < NUM_FACE_CORNERS; i++)
+		{
+			aiNextFace.SetValue((lsize)((iFace * NUM_FACE_CORNERS) + i), aiFirstFace.GetValue((lsize)piCorners[i]));
+			aiFirstFace.SetValue((lsize)piCorners[i], (iFace * NUM_FACE_CORNERS) + i);
+		}
+	}
+
+	iPinched = 0;
+	aiFaces.Init();
+	aiFans.Init();
+	for (iCorner = 0; iCorner < iNumCorners; iCorner++)
+	{
+		aiFaces.ReInit();
+		aiFans.ReInit();
+		for (k = aiFirstFace.GetValue((lsize)iCorner); k != -1; k = aiNextFace.GetValue((lsize)k))
+		{
+			aiFans.Add((int)aiFaces.NumElements());
+			aiFaces.Add(k / NUM_FACE_CORNERS);
+		}
+
+		do
+		{
+			bChanged = false;
+			for (i = 0; i < (int)aiFaces.NumElements(); i++)
+			{
+				piCorners = pcMesh->GetFaceCorners(aiFaces.GetValue((size)i));
+				for (j = i + 1; j < (int)aiFaces.NumElements(); j++)
+				{
+					if (aiFans.GetValue((size)i) == aiFans.GetValue((size)j))
+					{
+						continue;
+					}
+					piOther = pcMesh->GetFaceCorners(aiFaces.GetValue((size)j));
+					bShared = false;
+					for (k = 0; (k < NUM_FACE_CORNERS) && !bShared; k++)
+					{
+						for (m = 0; m < NUM_FACE_CORNERS; m++)
+						{
+							if ((piCorners[k] != iCorner) && (piCorners[k] == piOther[m]))
+							{
+								bShared = true;
+								break;
+							}
+						}
+					}
+					if (bShared)
+					{
+						iFan = (aiFans.GetValue((size)i) < aiFans.GetValue((size)j)) ? aiFans.GetValue((size)i) : aiFans.GetValue((size)j);
+						aiFans.SetValue((size)i, iFan);
+						aiFans.SetValue((size)j, iFan);
+						bChanged = true;
+					}
+				}
+			}
+		}
+		while (bChanged);
+
+		for (i = 1; i < (int)aiFans.NumElements(); i++)
+		{
+			if (aiFans.GetValue((size)i) != aiFans.GetValue(0))
+			{
+				iPinched++;
+				break;
+			}
+		}
+	}
+	aiFans.Kill();
+	aiFaces.Kill();
+	aiNextFace.Kill();
+	aiFirstFace.Kill();
+	return iPinched;
 }
 
 

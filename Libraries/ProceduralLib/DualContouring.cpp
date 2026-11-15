@@ -19,6 +19,7 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#include <string.h>
 #include "MarchingCubes.h"
 #include "DualContouring.h"
 
@@ -30,6 +31,7 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 void CDualContouring::Init(void)
 {
 	maiCellCorners.Init();
+	masCellPieces.Init();
 }
 
 
@@ -39,6 +41,7 @@ void CDualContouring::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDualContouring::Kill(void)
 {
+	masCellPieces.Kill();
 	maiCellCorners.Kill();
 }
 
@@ -68,13 +71,20 @@ void CDualContouring::Generate(CMeshEditor* pcMeshEditor, CIsosurfaceGrid* pcGri
 	int					aiCells[3];
 	int					aiCorners[4];
 	int					iSwap;
+	int					iPiece;
+	int					iLocalEdge;
 	bool				bInGrid;
 	lsize				uiNumCells;
+	lsize				uiCell;
 	SFloat32Vec3		sVertex;
+	SMarchingCubesCase	sCase;
+	SFloat32Vec3		asNormals[MARCHING_CUBES_EDGES];
+	int					iStart;
 
 	uiNumCells = (lsize)pcGrid->miCellsX * (lsize)pcGrid->miCellsY * (lsize)pcGrid->miCellsZ;
 	maiCellCorners.Resize(uiNumCells);
 	maiCellCorners.SetArrayValues(-1);
+	masCellPieces.Resize(uiNumCells);
 
 	iCorner = pcMeshEditor->NumCorners();
 	for (z = 0; z < pcGrid->miCellsZ; z++)
@@ -83,11 +93,27 @@ void CDualContouring::Generate(CMeshEditor* pcMeshEditor, CIsosurfaceGrid* pcGri
 		{
 			for (x = 0; x < pcGrid->miCellsX; x++)
 			{
-				if (FitCell(&sVertex, pcGrid, x, y, z))
+				uiCell = CellIndex(pcGrid, x, y, z);
+				CellCase(&sCase, pcGrid, x, y, z);
+				for (iLocalEdge = 0; iLocalEdge < MARCHING_CUBES_EDGES; iLocalEdge++)
 				{
-					pcMeshEditor->AddCorner(&sVertex);
-					maiCellCorners.SetValue(CellIndex(pcGrid, x, y, z), iCorner);
-					iCorner++;
+					if (sCase.aiEdgePieces[iLocalEdge] >= 0)
+					{
+						iStart = CMarchingCubes::EdgeStartCorner(iLocalEdge);
+						asNormals[iLocalEdge] = pcGrid->GetCrossing(x + (iStart & 1), y + ((iStart >> 1) & 1), z + ((iStart >> 2) & 1), iLocalEdge / 4)->sNormal;
+					}
+				}
+				IsosurfaceJoinPieces(&sCase, asNormals);
+				memcpy(masCellPieces.Get(uiCell)->aiEdgePieces, sCase.aiEdgePieces, sizeof(sCase.aiEdgePieces));
+				if (sCase.iNumPieces > 0)
+				{
+					maiCellCorners.SetValue(uiCell, iCorner);
+					for (iPiece = 0; iPiece < sCase.iNumPieces; iPiece++)
+					{
+						FitCell(&sVertex, pcGrid, x, y, z, &sCase, iPiece);
+						pcMeshEditor->AddCorner(&sVertex);
+						iCorner++;
+					}
 				}
 			}
 		}
@@ -125,7 +151,9 @@ void CDualContouring::Generate(CMeshEditor* pcMeshEditor, CIsosurfaceGrid* pcGri
 							bInGrid = false;
 							break;
 						}
-						aiCorners[i] = maiCellCorners.GetValue(CellIndex(pcGrid, aiCell[0], aiCell[1], aiCell[2]));
+						uiCell = CellIndex(pcGrid, aiCell[0], aiCell[1], aiCell[2]);
+						iLocalEdge = (iAxis * 4) + ((aaiAround[i][0] == -1) ? 1 : 0) + ((aaiAround[i][1] == -1) ? 2 : 0);
+						aiCorners[i] = maiCellCorners.GetValue(uiCell) + masCellPieces.Get(uiCell)->aiEdgePieces[iLocalEdge];
 					}
 					if (!bInGrid)
 					{
@@ -148,6 +176,25 @@ void CDualContouring::Generate(CMeshEditor* pcMeshEditor, CIsosurfaceGrid* pcGri
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The cell's marching cubes case, its ambiguous faces decided by their
+// corners' distances.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDualContouring::CellCase(SMarchingCubesCase* psDest, CIsosurfaceGrid* pcGrid, int x, int y, int z)
+{
+	float32	afDistances[MARCHING_CUBES_CORNERS];
+	int		iCorner;
+
+	for (iCorner = 0; iCorner < MARCHING_CUBES_CORNERS; iCorner++)
+	{
+		afDistances[iCorner] = pcGrid->GetCornerDistance(x + (iCorner & 1), y + ((iCorner >> 1) & 1), z + ((iCorner >> 2) & 1));
+	}
+	CMarchingCubes::DecideCase(psDest, afDistances);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 lsize CDualContouring::CellIndex(CIsosurfaceGrid* pcGrid, int x, int y, int z)
@@ -158,11 +205,11 @@ lsize CDualContouring::CellIndex(CIsosurfaceGrid* pcGrid, int x, int y, int z)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The planes at the crossings on the cell's twelve edges, fitted from the
-// cell's centre and kept in the cell.  False if none of its edges cross.
+// The planes at the crossings on the cell's edges that are on iPiece of
+// its surface, fitted from the cell's centre and kept in the cell.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDualContouring::FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int x, int y, int z)
+void CDualContouring::FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int x, int y, int z, SMarchingCubesCase* psCase, int iPiece)
 {
 	SIsosurfaceFit			sFit;
 	SIsosurfaceCrossing*	psCrossing;
@@ -180,6 +227,10 @@ bool CDualContouring::FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int
 	sFit.Init(&sCentre);
 	for (iEdge = 0; iEdge < MARCHING_CUBES_EDGES; iEdge++)
 	{
+		if (psCase->aiEdgePieces[iEdge] != iPiece)
+		{
+			continue;
+		}
 		iStart = CMarchingCubes::EdgeStartCorner(iEdge);
 		psCrossing = pcGrid->GetCrossing(x + (iStart & 1), y + ((iStart >> 1) & 1), z + ((iStart >> 2) & 1), iEdge / 4);
 		if (psCrossing != NULL)
@@ -187,12 +238,99 @@ bool CDualContouring::FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int
 			sFit.Add(&psCrossing->sPosition, &psCrossing->sNormal);
 		}
 	}
-	if (sFit.iNumPoints == 0)
-	{
-		return false;
-	}
 	sFit.Solve(psDest, &sCell);
-	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each piece's normals added up, then pieces joined (smaller numbers
+// taking larger ones) while any two not yet one are closer than two
+// sheets, and numbered again from 0.
+//
+//////////////////////////////////////////////////////////////////////////
+void IsosurfaceJoinPieces(SMarchingCubesCase* psCase, SFloat32Vec3* pasEdgeNormals)
+{
+	SFloat32Vec3	asSums[MARCHING_CUBES_EDGES];
+	int				aiJoined[MARCHING_CUBES_EDGES];
+	int				aiNumbers[MARCHING_CUBES_EDGES];
+	int				iEdge;
+	int				iPiece;
+	int				i;
+	int				j;
+	int				iFrom;
+	int				iNumPieces;
+	float32			fLengths;
+	bool			bChanged;
+
+	if (psCase->iNumPieces < 2)
+	{
+		return;
+	}
+
+	for (iPiece = 0; iPiece < psCase->iNumPieces; iPiece++)
+	{
+		asSums[iPiece].Init(0, 0, 0);
+		aiJoined[iPiece] = iPiece;
+	}
+	for (iEdge = 0; iEdge < MARCHING_CUBES_EDGES; iEdge++)
+	{
+		if (psCase->aiEdgePieces[iEdge] >= 0)
+		{
+			asSums[psCase->aiEdgePieces[iEdge]] += pasEdgeNormals[iEdge];
+		}
+	}
+
+	do
+	{
+		bChanged = false;
+		for (i = 0; i < psCase->iNumPieces; i++)
+		{
+			for (j = i + 1; j < psCase->iNumPieces; j++)
+			{
+				if (aiJoined[i] == aiJoined[j])
+				{
+					continue;
+				}
+				fLengths = (float32)(asSums[i].Magnitude() * asSums[j].Magnitude());
+				if (Float32Vec3Dot(&asSums[i], &asSums[j]) > (ISOSURFACE_SHEETS_COSINE * fLengths))
+				{
+					iFrom = aiJoined[j];
+					for (iPiece = 0; iPiece < psCase->iNumPieces; iPiece++)
+					{
+						if (aiJoined[iPiece] == iFrom)
+						{
+							aiJoined[iPiece] = aiJoined[i];
+						}
+					}
+					bChanged = true;
+				}
+			}
+		}
+	}
+	while (bChanged);
+
+	iNumPieces = 0;
+	for (iPiece = 0; iPiece < psCase->iNumPieces; iPiece++)
+	{
+		aiNumbers[iPiece] = -1;
+	}
+	for (iPiece = 0; iPiece < psCase->iNumPieces; iPiece++)
+	{
+		if (aiNumbers[aiJoined[iPiece]] == -1)
+		{
+			aiNumbers[aiJoined[iPiece]] = iNumPieces;
+			iNumPieces++;
+		}
+	}
+	for (iEdge = 0; iEdge < MARCHING_CUBES_EDGES; iEdge++)
+	{
+		if (psCase->aiEdgePieces[iEdge] >= 0)
+		{
+			psCase->aiEdgePieces[iEdge] = (int8)aiNumbers[aiJoined[psCase->aiEdgePieces[iEdge]]];
+		}
+	}
+	psCase->iNumPieces = iNumPieces;
 }
 
 

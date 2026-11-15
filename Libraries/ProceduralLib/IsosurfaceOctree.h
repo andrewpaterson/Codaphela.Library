@@ -36,12 +36,12 @@ struct SIsosurfaceNode
 };
 
 
-//The faces of one crossed minimal edge: the leaves around it, anticlockwise seen from outside.  Three where one leaf is two of
-//the four places around it.
+//The faces of one crossed minimal edge: the vertices of the leaves around it (their fits), anticlockwise seen from outside.  Three
+//where one leaf is two of the four places around it.
 struct SIsosurfacePolygon
 {
-	int				aiLeaves[4];
-	int				iNumLeaves;
+	int				aiVertices[4];
+	int				iNumVertices;
 	SFloat32Vec3	sNormal;  //The surface's at its edge's crossing.
 };
 
@@ -62,7 +62,8 @@ typedef CArrayLargeTemplate<SIsosurfaceFit>		CArrayIsosurfaceFit;
 //vertex where their edges cross its faces.  A crossing counts in a leaf's fit by its edge's length over the leaf's size, so a
 //big leaf's many small neighbours don't pull its vertex over theirs.  Nothing cracks between sizes, as every face is made from the smallest edges.
 //Then it's balanced: a leaf beside a cube of its size split twice is split, so leaves beside each other differ by one size at
-//most, as a big leaf among much smaller ones folds faces over.
+//most, as a big leaf among much smaller ones folds faces over.  A leaf of the smallest size has a vertex for each sheet of surface
+//in it, as CDualContouring's cells do (manifold dual contouring, step 8.8); a bigger one has one, as its normals agree.
 //Corner distances are worked out again where cells meet: Distance is the same each time, so cells agree on their signs.
 class CIsosurfaceOctree
 {
@@ -90,7 +91,8 @@ protected:
 	int		FindNode(int x, int y, int z, int iSize);
 	bool	Balance(void);
 	bool	ShouldSplit(CShape* pcShape, SIsosurfaceNode* psNode);
-	void	FindPolygons(CShape* pcShape, CArrayIsosurfacePolygon* pasPolygons, CArrayIsosurfaceFit* pasFits);
+	int		FindPieces(CShape* pcShape, CArrayDualContouringPieces* pasPieces, CArrayLargeInt* paiFirstVertices, CArrayLargeInt* paiVertexLeaves);
+	void	FindPolygons(CShape* pcShape, CArrayIsosurfacePolygon* pasPolygons, CArrayIsosurfaceFit* pasFits, CArrayDualContouringPieces* pasPieces, CArrayLargeInt* paiFirstVertices);
 };
 
 

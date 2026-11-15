@@ -33,6 +33,7 @@ void TestIsosurfaceOctreeSphere(void)
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
 	AssertInt(0, CountMeshFacesFacingIn(&pMesh, &pSphere));
 	AssertTrue(FurthestMeshCornerFromSurface(&pMesh, &pSphere) < 0.005f);
+	AssertInt(0, CountMeshPinchedCorners(&pMesh));
 	fVolume = 4.18879f * 8.0f;
 	AssertTrue(fabsf(MeshVolume(&pMesh) - fVolume) < (fVolume * 0.002f));
 
@@ -77,6 +78,7 @@ void TestIsosurfaceOctreeBox(void)
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
 	AssertTrue(CountMeshFacesFacingIn(&pMesh, &pBox) <= 1);
 	AssertTrue(FurthestMeshCornerFromSurface(&pMesh, &pBox) < 0.019f);
+	AssertInt(0, CountMeshPinchedCorners(&pMesh));
 	fFurthest = 0.0f;
 	for (i = 0; i < 8; i++)
 	{
@@ -128,6 +130,7 @@ void TestIsosurfaceOctreeNotch(void)
 	AssertInt(2, MeshEulerCharacteristic(&pMesh));
 	AssertInt(0, CountMeshFacesFacingIn(&pMesh, &pNotched));
 	AssertTrue(fabsf(MeshVolume(&pMesh) - 31.8848f) < 0.01f);
+	AssertInt(0, CountMeshPinchedCorners(&pMesh));
 	for (i = 0; i < 3; i++)
 	{
 		sPoint.Init(-1.0f + (float32)i, 0.05f, 1.03f - 0.1697f);
@@ -142,8 +145,9 @@ void TestIsosurfaceOctreeNotch(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A gyroid cut by a sphere winds through every size of cell: closed, so
-// nothing cracks where sizes meet, and its own faces face out (its
-// curves split cells small enough that none holds two pieces of it).
+// nothing cracks where sizes meet, and its own faces face out.  Its
+// smallest leaves have a vertex for each sheet in them, so sheets hardly
+// ever meet at one (12 of 21500 corners did with a vertex for each leaf).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIsosurfaceOctreeGyroid(void)
@@ -188,6 +192,7 @@ void TestIsosurfaceOctreeGyroid(void)
 	}
 	AssertTrue(iGyroidFaces > 10000);
 	AssertInt(0, iFacingIn);
+	AssertTrue(CountMeshPinchedCorners(&pMesh) <= 3);
 }
 
 

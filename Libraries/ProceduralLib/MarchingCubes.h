@@ -32,12 +32,15 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MARCHING_CUBES_MAX_FACES	12
 
 
-//Which of a cube's edges each case's triangles have their corners on, anticlockwise seen from outside.  A case is a cube's
+//Which of a cube's edges each case's triangles have their corners on, anticlockwise seen from outside, and which piece of surface
+//(loop) each edge's crossing is on, -1 if none: manifold dual contouring gives each piece its own vertex.  A case is a cube's
 //inside corners as bits.
 struct SMarchingCubesCase
 {
 	int		iNumFaces;
 	int8	aaiFaces[MARCHING_CUBES_MAX_FACES][3];
+	int		iNumPieces;
+	int8	aiEdgePieces[MARCHING_CUBES_EDGES];
 };
 
 
@@ -61,8 +64,8 @@ public:
 	static int	EdgeEndCorner(int iEdge);
 	static int	CornersEdge(int iCorner1, int iCorner2);
 
-protected:
-	void		MakeCase(SMarchingCubesCase* psCase, int iInside);
+	static void	MakeCase(SMarchingCubesCase* psCase, int iInside, int iJoinedFaces);
+	static void	DecideCase(SMarchingCubesCase* psCase, float32* pafDistances);
 };
 
 
