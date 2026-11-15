@@ -16,7 +16,7 @@ The user's decisions (2026-11-15)
   vanish, and finer cells only make the bevel narrower.
   Detail goes where the shape needs it: the octree splits a cell where its normals disagree or its corners don't predict its middle.
   Spheres, cylinders, cubes and convex hulls must all work, and so must what is made by joining and cutting them.
-  Classic marching cubes is still built, as a baseline to compare against, step 3.
+  Classic marching cubes is still built, as a baseline to compare against, step 8.3.
 
 
 What a shape is
@@ -43,7 +43,7 @@ Shapes to start with, and what each tests:
                takes its normal from whichever shape wins there, so a cylinder pushed into a box has a sharp seam.
   Smooth union                       Quilez's polynomial smooth min.  Its seam is rounded, by design.  A bound.
   Transform    A shape moved, turned and scaled evenly; the distance is scaled back.  An uneven scale gives a bound only if the
-               distance is divided by the largest scale.
+               distance is scaled back by the smallest scale (ShapePlan.txt, step 6).
 
 A closed CMesh as a shape (closest triangle through a spatial index, inside by winding number or pseudo normals, Baerentzen and
 Aanaes 2005) is left until something needs it.  It is far slower than the shapes above.  ShapePlan.txt has it as CMeshShape, which keeps its search structure in its own arrays.
@@ -80,8 +80,8 @@ Proposed, as Ju et al. and most implementations since do it:
   the largest are taken as zero.  So a sphere's or a flat face's vertex is near the mass point instead of anywhere along the
   surface, a cylinder's side doesn't slide along its axis, and two or three planes still give their edge or corner exactly.
   If the vertex is still outside its cell it is clamped back in, and the mass point is used if that makes the error worse.
-BaseLib has no eigen or singular value solver.  A 3x3 symmetric Jacobi rotation solver is small and is written for this,
-in ProceduralLib unless something else wants it.
+BaseLib has no eigen or singular value solver.  A 3x3 symmetric Jacobi rotation solver is small and is written for this, in
+BaseLib, as it is plain arithmetic something else may want (the user's decision, 2026-11-15).
 
 
 Making the faces
@@ -102,8 +102,8 @@ and not here, so the isosurface's quads are added as two AddFaces.
 Normals are per face corner in a CMesh.  Proposed: flat face normals, then CMeshMergeNormals (SupportLib), which makes the
 normals at a corner one average where they are within an angle of each other, so a sphere shades smooth and a box's edges stay
 sharp.  Using the shape's gradient at each vertex instead is smoother on curves but blurs creases, and needs the angle test
-anyway.  CMeshSmoothGroups' SGS_Angle does the same by smoothing groups, which a scene file keeps; either will do, and which is
-for step 6.
+anyway.  CMeshSmoothGroups' SGS_Angle does the same by smoothing groups, which a scene file keeps.  CMeshMergeNormals it is
+(the user's decision, 2026-11-15), as it works per corner on any mesh.
 
 UVs and materials aren't made yet.  See Open.
 
@@ -112,7 +112,7 @@ Known limits
 ------------
 Dual contouring can make a surface that isn't a manifold (two sheets through one vertex) where one cell holds parts of the
 surface that don't touch.  Manifold Dual Contouring (Schaefer, Ju and Warren 2007) splits such a cell's vertex.  Whether it is
-needed is found by testing, step 7.
+needed is found by testing, step 8.8.
 A corner can be cut off when the cell holding it doesn't cross all three of its faces.  Splitting by normal angle usually reaches
 it, as the normals of a corner's faces differ by a right angle.
 The vertex is a fit, so a surface may cross itself near a tight crease; the clamp keeps it within its cell.
@@ -120,20 +120,36 @@ The vertex is a fit, so a surface may cross itself near a tight crease; the clam
 
 Steps
 -----
-Each step has its tests in TestProceduralLib.
+The shapes and their combinations are ShapePlan.txt's steps 1 to 7, in BaseLib and SupportLib with their own tests.  The rest is
+that plan's step 8, done in these sub-steps, each with its tests in TestProceduralLib and committed when it passes:
 
-1. and 2. The shapes and their combinations are ShapePlan.txt's steps 1 to 7, in BaseLib and SupportLib with their own tests.
-   This plan's steps 3 to 7 are that plan's step 8, with the modifier that meshes a primitive by its own mesh editor.
-3. Marching cubes on a uniform grid, the baseline: Bourke's 256 case tables (from Bloyd), vertices shared by the grid edge they
-   are on.  Tests: TestMeshShapes' closed and facing out checks on each shape, and every vertex within a tolerance of the surface.
-4. Dual contouring on a uniform grid: crossings, the plane fit with its Jacobi solver, quads split along the crease.  Tests: a
-   box's corners and edges exactly where they are (marching cubes' aren't), a sphere's vertices on it, closed and facing out.
-5. The octree: empty cells skipped by distance, cells split by normal angle and by the centre test, faces between cells of
-   different sizes.  Tests: closed with no cracks, a V notch thinner than the largest cell kept, a flat face left coarse.
-6. A CMeshSourceModifier that runs it (proposed CMeshIsosurfaceEditor in ProceduralLib), so it sits on a CMeshEditor's stack, and
-   a CScene of shapes drawn with CRasterFrame.  Tests: a frame compared with saved bytes.
-7. Manifold dual contouring, if step 5's tests find sheets meeting at a vertex.
-8. Classic marching cubes' ambiguous cases (MC33, Lewiner 2003), only if step 3 is kept and shows holes.
+8.1 TestProceduralLib builds and runs on Linux: Release x64, Debug 32-bit, Size16 and ASan.  Its own mesh checks, as it can't
+    use TestSupportLib's: closed (every edge on two faces, corners less edges plus faces as expected), facing out (each face's
+    normal agrees with the shape's gradient at its middle) and on the surface (every corner within a tolerance of it).  They're
+    tried on SupportLib's editors' meshes with the shapes of the same values, and on a mesh turned inside out.
+8.2 Sampling.  A grid over a box: the shape's distance at each corner, each worked out once, each edge's crossing found on the
+    distance with exactly zero outside, and the shape's gradient there as the crossing's normal.  Marching cubes and dual
+    contouring both use it.
+8.3 Marching cubes, the baseline, with each vertex shared by the grid edge it's on.  Tests: a sphere, cylinder and torus come out
+    closed, facing out and on the surface.  A box's edges come out bevelled, which is what 8.5 is measured against.
+8.4 The plane fit: a cell's crossings and normals accumulated (A'A, A'b, b'b and the mass point) and solved relative to the mass
+    point, BaseLib's 3x3 symmetric Jacobi solver giving the pseudo inverse, small singular values dropped, and the vertex
+    clamped to its cell.  Tests: three planes give their corner exactly, two the nearest point on their edge, one the mass
+    point, and the solver's own.
+8.5 Dual contouring on a uniform grid: a vertex for each cell the surface crosses and a quad for each crossed edge, from the four
+    cells around it, wound from inside to outside and split along the diagonal whose middle is nearer the surface, added as two
+    AddFaces.  Flat normals, then CMeshMergeNormals.  Tests: a box's corners and edges exactly where they are, a cylinder's rims
+    sharp, the seam of a cylinder pushed into a box sharp, a sphere's vertices on it, each closed and facing out.
+8.6 The octree: a cell skipped when its distance shows the surface can't reach it, and split when its normals differ by more than
+    an angle or its centre's distance differs from what its corners predict.  An edge is taken from the smallest cell around it,
+    so nothing cracks between sizes.  Tests: closed with no cracks, a V notch thinner than the largest cell kept, a flat face
+    left coarse, and far fewer cells than the uniform grid.
+8.7 Shape to mesh: one CMeshSourceModifier in ProceduralLib holding a Ptr<CShape>, now that modifiers are CObjects
+    (ScenePlan.txt, step 2).  A primitive is made exactly by its own mesh editor with the same values (ShapePlan.txt, section
+    5); anything else goes through the isosurface.  Tests: a primitive's mesh is its editor's, a combination's is closed and
+    facing out, and a small scene of shapes drawn with CRasterFrame matches saved bytes.
+8.8 Manifold dual contouring, only if 8.6's tests find sheets meeting at a vertex.
+Classic marching cubes' ambiguous cases (MC33) are dropped, as marching cubes is only the baseline.
 
 
 Open
