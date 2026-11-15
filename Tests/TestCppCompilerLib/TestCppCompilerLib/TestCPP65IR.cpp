@@ -1324,14 +1324,14 @@ void TestCPP65IRZeroedArrays(void)
 	szAssembly.Init();
 	szErrors.Init();
 	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int Big() { volatile int i = 0; char sz[256] = \"x\"; return sz[i]; }"));
-	AssertTrue(szAssembly.Count(10) < 100);
+	AssertTrue(szAssembly.Occurrences(10) < 100);
 	szAssembly.Kill();
 	szErrors.Kill();
 
 	szAssembly.Init();
 	szErrors.Init();
 	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int Each() { volatile char sz[64] = { 1 }; return sz[0]; }"));
-	AssertTrue(szAssembly.Count(10) > 63);
+	AssertTrue(szAssembly.Occurrences(10) > 63);
 	szAssembly.Kill();
 	szErrors.Kill();
 }

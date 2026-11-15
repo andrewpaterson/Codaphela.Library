@@ -191,7 +191,7 @@ public:
 	void			Overwrite(size iPos, const char* szReplace) { msz.Overwrite(iPos, szReplace); D(); }
 	void			Overwrite(size iPos, Ptr<CString> pReplace) { return Overwrite(iPos, pReplace->Text()); }
 	size			CountNewLines(void) { return msz.CountNewLines(); }
-	size			Count(char c) { return msz.Count(c); }
+	size			Count(char c) { return msz.Occurrences(c); }
 
 	void					Split(CArrayChars* aszDest, char cSplitter) { msz.Split(aszDest, cSplitter); }
 	Ptr<CArray<CString>>	Split(char cSplitter);

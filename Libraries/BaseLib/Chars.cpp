@@ -105,7 +105,7 @@ void CCharsBase<STRING, TEXT>::_Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::InitLength(typename TEXT::Count iLength)
+STRING* CCharsBase<STRING, TEXT>::InitLength(Count iLength)
 {
 	if (iLength != 0)
 	{
@@ -127,7 +127,7 @@ STRING* CCharsBase<STRING, TEXT>::InitLength(typename TEXT::Count iLength)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::InitLength(CMallocator* pcMalloc, typename TEXT::Count iLength)
+STRING* CCharsBase<STRING, TEXT>::InitLength(CMallocator* pcMalloc, Count iLength)
 {
 	if (iLength != 0)
 	{
@@ -203,7 +203,7 @@ STRING* CCharsBase<STRING, TEXT>::Init(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Init(STRING szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+STRING* CCharsBase<STRING, TEXT>::Init(STRING szString, Count iStartInclusive, Count iEndExclusive)
 {
 	if ((iEndExclusive > iStartInclusive) && (iEndExclusive != TEXT::SizePolicy::Max))
 	{
@@ -224,7 +224,7 @@ STRING* CCharsBase<STRING, TEXT>::Init(STRING szString, typename TEXT::Count iSt
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, Count iStartInclusive, Count iEndExclusive)
 {
 	if (iEndExclusive > iStartInclusive)
 	{
@@ -246,7 +246,7 @@ STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, typename TEXT::Coun
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, typename TEXT::Count iStartInclusive)
+STRING* CCharsBase<STRING, TEXT>::Init(const char* szString, Count iStartInclusive)
 {
 	mcText.Init();
 	Set(&szString[iStartInclusive]);
@@ -300,7 +300,7 @@ STRING* CCharsBase<STRING, TEXT>::Init(STRING* psz)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Init(char cPadCharacter, typename TEXT::Count iNumber)
+STRING* CCharsBase<STRING, TEXT>::Init(char cPadCharacter, Count iNumber)
 {
 	if (iNumber != 0)
 	{
@@ -335,9 +335,9 @@ STRING* CCharsBase<STRING, TEXT>::InitList(const char* szFirst, ...)
 {
 	InitEmpty();
 
-	va_list					vaMarker;
-	const char*				pc;
-	typename TEXT::Count	iCount;
+	va_list		vaMarker;
+	const char*	pc;
+	Count		iCount;
 
 	if (szFirst)
 	{
@@ -368,9 +368,9 @@ STRING* CCharsBase<STRING, TEXT>::InitList(STRING* szFirst, ...)
 {
 	InitEmpty();
 
-	va_list					vaMarker;
-	STRING*					pc;
-	typename TEXT::Count	iCount;
+	va_list	vaMarker;
+	STRING*	pc;
+	Count	iCount;
 
 	if (szFirst)
 	{
@@ -396,7 +396,7 @@ STRING* CCharsBase<STRING, TEXT>::InitList(STRING* szFirst, ...)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::InitData2(const char* szData, typename TEXT::Count iDataLength)
+bool CCharsBase<STRING, TEXT>::InitData2(const char* szData, Count iDataLength)
 {
 	InitEmpty();
 
@@ -453,7 +453,7 @@ void CCharsBase<STRING, TEXT>::Fake(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Fake(const char* szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+void CCharsBase<STRING, TEXT>::Fake(const char* szString, Count iStartInclusive, Count iEndExclusive)
 {
 	char* pcPosition;
 
@@ -501,7 +501,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::CStringLength(const char* szStrin
 #endif // _DEBUG
 		return 0;
 	}
-	return (typename TEXT::Count)uiLength;
+	return (Count)uiLength;
 }
 
 
@@ -528,7 +528,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::Length(void)
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Set(STRING szString)
 {
-	typename TEXT::Count uiLen;
+	Count uiLen;
 
 	uiLen = szString.Length() + 1;
 	if (uiLen > 1)
@@ -549,7 +549,7 @@ void CCharsBase<STRING, TEXT>::Set(STRING szString)
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Set(STRING* psz)
 {
-	typename TEXT::Count uiLen;
+	Count uiLen;
 
 	uiLen = psz->Length() + 1;
 	if (uiLen > 1)
@@ -570,7 +570,7 @@ void CCharsBase<STRING, TEXT>::Set(STRING* psz)
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Set(const char* szString)
 {
-	typename TEXT::Count uiLen;
+	Count uiLen;
 
 	if (!StrEmpty(szString))
 	{
@@ -589,7 +589,7 @@ void CCharsBase<STRING, TEXT>::Set(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::SetNonNull(const char* szString, typename TEXT::Count uiLen)
+void CCharsBase<STRING, TEXT>::SetNonNull(const char* szString, Count uiLen)
 {
 	if (!IsFakeEmpty())
 	{
@@ -632,7 +632,7 @@ void CCharsBase<STRING, TEXT>::SetEmpty(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::SetChar(typename TEXT::Count iIndex, char c)
+void CCharsBase<STRING, TEXT>::SetChar(Count iIndex, char c)
 {
 	if (iIndex < Length())
 	{
@@ -648,8 +648,8 @@ void CCharsBase<STRING, TEXT>::SetChar(typename TEXT::Count iIndex, char c)
 template<class STRING, class TEXT>
 STRING* CCharsBase<STRING, TEXT>::Append(const char* szString)
 {
-	typename TEXT::Count	uiLen;
-	char*					pcPosition;
+	Count	uiLen;
+	char*	pcPosition;
 
 	if (!StrEmpty(szString))
 	{
@@ -688,7 +688,7 @@ STRING* CCharsBase<STRING, TEXT>::Append(CExternalString* pcString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Append(const char* szString, typename TEXT::Count uiLen)
+STRING* CCharsBase<STRING, TEXT>::Append(const char* szString, Count uiLen)
 {
 	char*	pcPosition;
 	char*	pcZero;
@@ -895,7 +895,7 @@ STRING* CCharsBase<STRING, TEXT>::Append(uint16 ui, uint16 iBase)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Append(float f, typename TEXT::Count iMaxDecimals, bool bAppendF)
+STRING* CCharsBase<STRING, TEXT>::Append(float f, Count iMaxDecimals, bool bAppendF)
 {
 	char szString[32];
 
@@ -912,7 +912,7 @@ STRING* CCharsBase<STRING, TEXT>::Append(float f, typename TEXT::Count iMaxDecim
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Append(double d, typename TEXT::Count iMaxDecimals, bool bAppendD)
+STRING* CCharsBase<STRING, TEXT>::Append(double d, Count iMaxDecimals, bool bAppendD)
 {
 	char	szString[128];
 
@@ -995,12 +995,12 @@ STRING* CCharsBase<STRING, TEXT>::AppendNewLine(STRING szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendHexHiLo(void* pv, typename TEXT::Count iNumBytes)
+STRING* CCharsBase<STRING, TEXT>::AppendHexHiLo(void* pv, Count iNumBytes)
 {
-	typename TEXT::Count	i;
-	char*					pb;
-	int8					nibble;
-	char					c;
+	Count	i;
+	char*	pb;
+	int8	nibble;
+	char	c;
 
 	if (iNumBytes != 0)
 	{
@@ -1028,12 +1028,12 @@ STRING* CCharsBase<STRING, TEXT>::AppendHexHiLo(void* pv, typename TEXT::Count i
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendHexLoHi(void* pv, typename TEXT::Count iNumBytes)
+STRING* CCharsBase<STRING, TEXT>::AppendHexLoHi(void* pv, Count iNumBytes)
 {
-	typename TEXT::Count	i;
-	char*					pb;
-	int8					nibble;
-	char					c;
+	Count	i;
+	char*	pb;
+	int8	nibble;
+	char	c;
 
 	if (iNumBytes != 0)
 	{
@@ -1087,7 +1087,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendBool(bool bValue, const char* szTrue, co
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, char c)
+void CCharsBase<STRING, TEXT>::Insert(Count iPos, char c)
 {
 	if (iPos >= mcText.NumElements())
 	{
@@ -1105,9 +1105,9 @@ void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, char c)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, char c, typename TEXT::Count uiCount)
+void CCharsBase<STRING, TEXT>::Insert(Count iPos, char c, Count uiCount)
 {
-	typename TEXT::Count i;
+	Count i;
 
 	mcText.InsertNumAt(uiCount, iPos);
 	for (i = 0; i < uiCount; i++)
@@ -1122,10 +1122,10 @@ void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, char c, typenam
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, const char* szString)
+void CCharsBase<STRING, TEXT>::Insert(Count iPos, const char* szString)
 {
-	char*					pcNew;
-	typename TEXT::Count	uiInsertLen;
+	char*	pcNew;
+	Count	uiInsertLen;
 
 	if (StrEmpty(szString))
 	{
@@ -1147,10 +1147,10 @@ void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, const char* szS
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Insert(typename TEXT::Count iPos, STRING* pszString)
+void CCharsBase<STRING, TEXT>::Insert(Count iPos, STRING* pszString)
 {
 	char*	pcNew;
-	typename TEXT::Count uiInsertLen;
+	Count uiInsertLen;
 
 	if (pszString == NULL || pszString->Empty())
 	{
@@ -1197,7 +1197,7 @@ char* CCharsBase<STRING, TEXT>::Text(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-char* CCharsBase<STRING, TEXT>::Text(typename TEXT::Count iIndex)
+char* CCharsBase<STRING, TEXT>::Text(Count iIndex)
 {
 	if (iIndex < Length())
 	{
@@ -1232,9 +1232,9 @@ bool CCharsBase<STRING, TEXT>::Empty(void)
 template<class STRING, class TEXT>
 STRING* CCharsBase<STRING, TEXT>::AppendList(const char* szFirst, ...)
 {
-	va_list					vaMarker;
-	const char*				pc;
-	typename TEXT::Count	iCount;
+	va_list		vaMarker;
+	const char*	pc;
+	Count		iCount;
 
 	iCount = 0;
 	pc = szFirst;
@@ -1257,10 +1257,10 @@ STRING* CCharsBase<STRING, TEXT>::AppendList(const char* szFirst, ...)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-char* CCharsBase<STRING, TEXT>::PrivateGrow(typename TEXT::Count iNumberOfCharacters)
+char* CCharsBase<STRING, TEXT>::PrivateGrow(Count iNumberOfCharacters)
 {
-	char*					pszPosition;
-	typename TEXT::Count	iPosition;
+	char*	pszPosition;
+	Count	iPosition;
 
 	if (mcText.IsEmpty())
 	{
@@ -1300,7 +1300,7 @@ char* CCharsBase<STRING, TEXT>::PrivateGrow(typename TEXT::Count iNumberOfCharac
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::Append(char cPadCharacter, typename TEXT::Count iNumber)
+STRING* CCharsBase<STRING, TEXT>::Append(char cPadCharacter, Count iNumber)
 {
 	char*	pcPosition;
 
@@ -1321,9 +1321,9 @@ STRING* CCharsBase<STRING, TEXT>::Append(char cPadCharacter, typename TEXT::Coun
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::LeftAlign(const char* szString, char cPadCharacter, typename TEXT::Count uiWidth)
+void CCharsBase<STRING, TEXT>::LeftAlign(const char* szString, char cPadCharacter, Count uiWidth)
 {
-	typename TEXT::Count	uiLen;
+	Count	uiLen;
 
 	uiLen = CStringLength(szString);
 	if (uiLen != 0)
@@ -1347,9 +1347,9 @@ void CCharsBase<STRING, TEXT>::LeftAlign(const char* szString, char cPadCharacte
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RightAlign(const char* szString, char cPadCharacter, typename TEXT::Count uiWidth)
+void CCharsBase<STRING, TEXT>::RightAlign(const char* szString, char cPadCharacter, Count uiWidth)
 {
-	typename TEXT::Count	uiLen;
+	Count	uiLen;
 
 	uiLen = CStringLength(szString);
 	if (uiLen != 0)
@@ -1372,7 +1372,7 @@ void CCharsBase<STRING, TEXT>::RightAlign(const char* szString, char cPadCharact
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::LeftAlign(STRING szString, char cPadCharacter, typename TEXT::Count uiWidth)
+void CCharsBase<STRING, TEXT>::LeftAlign(STRING szString, char cPadCharacter, Count uiWidth)
 {
 	if (szString.Length() <= uiWidth)
 	{
@@ -1391,7 +1391,7 @@ void CCharsBase<STRING, TEXT>::LeftAlign(STRING szString, char cPadCharacter, ty
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RightAlign(STRING szString, char cPadCharacter, typename TEXT::Count uiWidth)
+void CCharsBase<STRING, TEXT>::RightAlign(STRING szString, char cPadCharacter, Count uiWidth)
 {
 	if (szString.Length() <= uiWidth)
 	{
@@ -1410,9 +1410,9 @@ void CCharsBase<STRING, TEXT>::RightAlign(STRING szString, char cPadCharacter, t
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RightAlign(typename TEXT::Count uiOffset, char cPadCharacter, typename TEXT::Count uiWidth)
+void CCharsBase<STRING, TEXT>::RightAlign(Count uiOffset, char cPadCharacter, Count uiWidth)
 {
-	typename TEXT::Count	uiLen;
+	Count	uiLen;
 
 	uiLen = Length() - uiOffset;
 	if (uiLen != 0)
@@ -1430,11 +1430,11 @@ void CCharsBase<STRING, TEXT>::RightAlign(typename TEXT::Count uiOffset, char cP
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RightAlign(char cPadCharacter, typename TEXT::Count uiWidth)
+void CCharsBase<STRING, TEXT>::RightAlign(char cPadCharacter, Count uiWidth)
 {
-	typename TEXT::Count	iLength;
-	char*					pcDest;
-	typename TEXT::Count	iOldWidth;
+	Count	iLength;
+	char*	pcDest;
+	Count	iOldWidth;
 
 	if (Length() < uiWidth)
 	{
@@ -1454,7 +1454,7 @@ void CCharsBase<STRING, TEXT>::RightAlign(char cPadCharacter, typename TEXT::Cou
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, typename TEXT::Count iLength)
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, Count iLength)
 {
 	char*	pcPosition;
 
@@ -1474,7 +1474,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, typename
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING szString, Count iStartInclusive, Count iEndExclusive)
 {
 	const char* pcPosition;
 
@@ -1488,7 +1488,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING szString, typename TEXT
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING* pszString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING* pszString, Count iStartInclusive, Count iEndExclusive)
 {
 	const char* pcPosition;
 
@@ -1502,7 +1502,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING* pszString, typename TE
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, Count iStartInclusive, Count iEndExclusive)
 {
 	const char* pcPosition;
 
@@ -1518,7 +1518,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, typename
 template<class STRING, class TEXT>
 STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
 {
-	return AppendSubString(szStartInclusive, (typename TEXT::Count)(szEndExclusive-szStartInclusive));
+	return AppendSubString(szStartInclusive, (Count)(szEndExclusive-szStartInclusive));
 }
 
 
@@ -1552,7 +1552,7 @@ void CCharsBase<STRING, TEXT>::RemoveLastCharacter(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RemoveFromStart(typename TEXT::Count iNumChars)
+void CCharsBase<STRING, TEXT>::RemoveFromStart(Count iNumChars)
 {
 	Remove(0, iNumChars);
 }
@@ -1563,9 +1563,9 @@ void CCharsBase<STRING, TEXT>::RemoveFromStart(typename TEXT::Count iNumChars)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RemoveFromEnd(typename TEXT::Count iNumChars)
+void CCharsBase<STRING, TEXT>::RemoveFromEnd(Count iNumChars)
 {
-	typename TEXT::Count iLength;
+	Count iLength;
 
 	iLength = Length();
 	if (iNumChars >= iLength)
@@ -1582,9 +1582,9 @@ void CCharsBase<STRING, TEXT>::RemoveFromEnd(typename TEXT::Count iNumChars)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Remove(typename TEXT::Count iStartInclusive, typename TEXT::Count iEndExclusive)
+void CCharsBase<STRING, TEXT>::Remove(Count iStartInclusive, Count iEndExclusive)
 {
-	typename TEXT::Count	iLength;
+	Count	iLength;
 
 	if (!Empty())
 	{
@@ -1604,10 +1604,10 @@ void CCharsBase<STRING, TEXT>::Remove(typename TEXT::Count iStartInclusive, type
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RemoveEnd(typename TEXT::Count iIndex)
+void CCharsBase<STRING, TEXT>::RemoveEnd(Count iIndex)
 {
-	typename TEXT::Count	iToRemove;
-	typename TEXT::Count	uiLength;
+	Count	iToRemove;
+	Count	uiLength;
 
 	uiLength = Length();
 	if (uiLength >= iIndex)
@@ -1633,7 +1633,7 @@ void CCharsBase<STRING, TEXT>::RemoveEnd(typename TEXT::Count iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::RemoveCharacter(typename TEXT::Count iPos)
+void CCharsBase<STRING, TEXT>::RemoveCharacter(Count iPos)
 {
 	if (iPos < Length())
 	{
@@ -1650,9 +1650,9 @@ void CCharsBase<STRING, TEXT>::RemoveCharacter(typename TEXT::Count iPos)
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Split(CArrayChars* aszDest, char cSplitter)
 {
-	lsize					iPos;
-	char*					pszPos;
-	typename TEXT::Count	iMax;
+	lsize	iPos;
+	char*	pszPos;
+	Count	iMax;
 
 	pszPos = Text();
 	iMax = Length();
@@ -1665,7 +1665,7 @@ void CCharsBase<STRING, TEXT>::Split(CArrayChars* aszDest, char cSplitter)
 			aszDest->Add(pszPos, 0, (size)iPos);
 			iPos++;
 			pszPos = (char*)RemapSinglePointer((void*)pszPos, iPos);
-			iMax -= (typename TEXT::Count)iPos;
+			iMax -= (Count)iPos;
 		}
 		else
 		{
@@ -1711,7 +1711,7 @@ bool CCharsBase<STRING, TEXT>::Equals(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::Equals(const char* szString, typename TEXT::Count uiLen)
+bool CCharsBase<STRING, TEXT>::Equals(const char* szString, Count uiLen)
 {
 	if (uiLen == Length())
 	{
@@ -1831,9 +1831,9 @@ bool CCharsBase<STRING, TEXT>::Contains(char c)
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::Occurrences(const char* szString)
 {
-	typename TEXT::Count	iCount;
-	typename TEXT::Count	iIndex;
-	typename TEXT::Count	iFindLen;
+	Count	iCount;
+	Count	iIndex;
+	Count	iFindLen;
 
 	iFindLen = CStringLength(szString);
 	if (iFindLen == 0)
@@ -1900,7 +1900,7 @@ bool CCharsBase<STRING, TEXT>::StartsWithIgnoreCase(const char* szString)
 template<class STRING, class TEXT>
 bool CCharsBase<STRING, TEXT>::StartsWith(char c)
 {
-	typename TEXT::Count	iLength;
+	Count	iLength;
 
 	iLength = Length();
 	if (iLength != 0)
@@ -1921,7 +1921,7 @@ bool CCharsBase<STRING, TEXT>::StartsWith(char c)
 template<class STRING, class TEXT>
 bool CCharsBase<STRING, TEXT>::EndsWith(const char* szString)
 {
-	typename TEXT::Count	uiLen;
+	Count	uiLen;
 
 	if (szString == NULL)
 	{
@@ -1945,7 +1945,7 @@ bool CCharsBase<STRING, TEXT>::EndsWith(const char* szString)
 template<class STRING, class TEXT>
 bool CCharsBase<STRING, TEXT>::EndsWith(char c)
 {
-	typename TEXT::Count	iLength;
+	Count	iLength;
 
 	iLength = Length();
 	if (iLength != 0)
@@ -1966,7 +1966,7 @@ bool CCharsBase<STRING, TEXT>::EndsWith(char c)
 template<class STRING, class TEXT>
 bool CCharsBase<STRING, TEXT>::EndsWithIgnoreCase(const char* szString)
 {
-	typename TEXT::Count	uiLen;
+	Count	uiLen;
 
 	if (szString == NULL)
 	{
@@ -1988,13 +1988,13 @@ bool CCharsBase<STRING, TEXT>::EndsWithIgnoreCase(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::SubStringEquals(typename TEXT::Count iStart, const char* szString)
+bool CCharsBase<STRING, TEXT>::SubStringEquals(Count iStart, const char* szString)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	j;
-	typename TEXT::Count	uiLen;
-	typename TEXT::Count	iSubLen;
-	char*					szText;
+	Count	i;
+	Count	j;
+	Count	uiLen;
+	Count	iSubLen;
+	char*	szText;
 
 	szText = Text();
 	uiLen = Length();
@@ -2041,13 +2041,13 @@ bool CCharsBase<STRING, TEXT>::SubStringEquals(typename TEXT::Count iStart, cons
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::SubStringEqualsIgnoreCase(typename TEXT::Count iStart, const char* szString)
+bool CCharsBase<STRING, TEXT>::SubStringEqualsIgnoreCase(Count iStart, const char* szString)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	j;
-	typename TEXT::Count	uiLen;
-	typename TEXT::Count    c1;
-	typename TEXT::Count    c2;
+	Count	i;
+	Count	j;
+	Count	uiLen;
+	Count    c1;
+	Count    c2;
 	char*	szText;
 
 	szText = Text();
@@ -2081,7 +2081,7 @@ bool CCharsBase<STRING, TEXT>::SubStringEqualsIgnoreCase(typename TEXT::Count iS
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(const char* szString)
 {
-	typename TEXT::Count iOtherLen;
+	Count iOtherLen;
 
 	iOtherLen = CStringLength(szString);
 	return FindFromEnd(Length() - iOtherLen, szString);
@@ -2093,9 +2093,9 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(typename TEXT::Count iIndex, const char* szString)
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(Count iIndex, const char* szString)
 {
-	typename TEXT::Count	i;
+	Count	i;
 
 	if (iIndex > Length())
 	{
@@ -2138,11 +2138,11 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(char c)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(typename TEXT::Count iIndex, char c)
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(Count iIndex, char c)
 {
-	typename TEXT::Count	i;
-	char*					szText;
-	typename TEXT::Count	uiLength;
+	Count	i;
+	char*	szText;
+	Count	uiLength;
 
 	//An index past the end starts at the last character.
 	uiLength = Length();
@@ -2186,12 +2186,12 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::Find(const char* szString)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::Find(typename TEXT::Count iIndex, const char* szString)
+typename TEXT::Count CCharsBase<STRING, TEXT>::Find(Count iIndex, const char* szString)
 {
-	typename TEXT::Count	iOtherLen;
-	typename TEXT::Count	i;
-	typename TEXT::Count	uiLen;
-	typename TEXT::Count	iDiff;
+	Count	iOtherLen;
+	Count	i;
+	Count	uiLen;
+	Count	iDiff;
 
 	uiLen = Length();
 	if (iIndex > uiLen)
@@ -2222,11 +2222,11 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::Find(typename TEXT::Count iIndex,
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::Find(typename TEXT::Count iIndex, char c)
+typename TEXT::Count CCharsBase<STRING, TEXT>::Find(Count iIndex, char c)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	uiLen;
-	char*					szText;
+	Count	i;
+	Count	uiLen;
+	char*	szText;
 
 	szText = Text();
 	uiLen = Length();
@@ -2257,11 +2257,11 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::Find(char c)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::FindDigit(typename TEXT::Count iIndex)
+typename TEXT::Count CCharsBase<STRING, TEXT>::FindDigit(Count iIndex)
 {
-	typename TEXT::Count	i;
-	char					c;
-	typename TEXT::Count	uiLen;
+	Count	i;
+	char	c;
+	Count	uiLen;
 
 	uiLen = Length();
 	for (i = iIndex; i < uiLen; i++)
@@ -2281,7 +2281,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::FindDigit(typename TEXT::Count iI
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-char CCharsBase<STRING, TEXT>::GetChar(typename TEXT::Count iIndex)
+char CCharsBase<STRING, TEXT>::GetChar(Count iIndex)
 {
 	char*	pc;
 
@@ -2301,13 +2301,13 @@ char CCharsBase<STRING, TEXT>::GetChar(typename TEXT::Count iIndex)
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, STRING szOldString)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	j;
-	STRING					cTemp;
-	char					cNew;
-	char					cOld;
-	typename TEXT::Count	uiLen;
-	typename TEXT::Count	iOldLen;
+	Count	i;
+	Count	j;
+	STRING	cTemp;
+	char	cNew;
+	char	cOld;
+	Count	uiLen;
+	Count	iOldLen;
 
 	uiLen = Length();
 
@@ -2345,7 +2345,7 @@ void CCharsBase<STRING, TEXT>::Difference(CArrayInt* paiNewToOldIndices, CArrayI
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::IsWhitespace(typename TEXT::Count iPos, bool bIncludeNewLines)
+bool CCharsBase<STRING, TEXT>::IsWhitespace(Count iPos, bool bIncludeNewLines)
 {
 	char	c;
 
@@ -2361,8 +2361,8 @@ bool CCharsBase<STRING, TEXT>::IsWhitespace(typename TEXT::Count iPos, bool bInc
 template<class STRING, class TEXT>
 bool CCharsBase<STRING, TEXT>::IsWhitespace(void)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	uiLen;
+	Count	i;
+	Count	uiLen;
 
 	uiLen = Length();
 	for (i = 0; i < uiLen; i++)
@@ -2381,7 +2381,7 @@ bool CCharsBase<STRING, TEXT>::IsWhitespace(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::SetLength(typename TEXT::Count iLength)
+void CCharsBase<STRING, TEXT>::SetLength(Count iLength)
 {
 	if (iLength != 0)
 	{
@@ -2405,8 +2405,8 @@ void CCharsBase<STRING, TEXT>::SetLength(typename TEXT::Count iLength)
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::FindEndOfLeadingWhitespace(bool bIncludeNewLines)
 {
-	typename TEXT::Count	iLength;
-	typename TEXT::Count	iStart;
+	Count	iLength;
+	Count	iStart;
 
 	iLength = Length();
 	for (iStart = 0; iStart < iLength; iStart++)
@@ -2427,8 +2427,8 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::FindEndOfLeadingWhitespace(bool b
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::FindStartOfTrailingWhitespace(bool bIncludeNewLines)
 {
-	typename TEXT::Count	iLength;
-	typename TEXT::Count	iEnd;
+	Count	iLength;
+	Count	iEnd;
 
 	iLength = Length();
 	if (iLength != 0)
@@ -2457,9 +2457,9 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::FindStartOfTrailingWhitespace(boo
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::StripWhitespace(bool bIncludeNewLines)
 {
-	typename TEXT::Count	iLength;
-	typename TEXT::Count	iStart;
-	typename TEXT::Count	iEnd;
+	Count	iLength;
+	Count	iStart;
+	Count	iEnd;
 
 	iStart = FindEndOfLeadingWhitespace(bIncludeNewLines);
 	iEnd = FindStartOfTrailingWhitespace(bIncludeNewLines);
@@ -2529,9 +2529,9 @@ int CCharsBase<STRING, TEXT>::CompareIgnoreCase(const char* szOther)
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::Replace(char cFind, char cReplace)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	iLength;
-	typename TEXT::Count	iCount;
+	Count	i;
+	Count	iLength;
+	Count	iCount;
 
 	iLength = Length();
 	iCount = 0;
@@ -2554,8 +2554,8 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::Replace(char cFind, char cReplace
 template<class STRING, class TEXT>
 typename TEXT::Count CCharsBase<STRING, TEXT>::Replace(const char* szFind, const char* szReplace)
 {
-	typename TEXT::Count	iReplaceLen;
-	typename TEXT::Count	iFindLen;
+	Count	iReplaceLen;
+	Count	iFindLen;
 
 	if (szFind == NULL)
 	{
@@ -2597,10 +2597,10 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::Replace(const char* szFind, const
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithEqualLength(const char* szFind, const char* szReplace, typename TEXT::Count iFindLen)
+typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithEqualLength(const char* szFind, const char* szReplace, Count iFindLen)
 {
-	typename TEXT::Count	iCount;
-	typename TEXT::Count	iIndex;
+	Count	iCount;
+	Count	iIndex;
 
 	iCount = 0;
 	iIndex = Find(0, szFind);
@@ -2618,15 +2618,15 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithEqualLength(const char
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithShorter(const char* szFind, const char* szReplace, typename TEXT::Count iReplaceLen, typename TEXT::Count iFindLen, typename TEXT::Count iDifference)
+typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithShorter(const char* szFind, const char* szReplace, Count iReplaceLen, Count iFindLen, Count iDifference)
 {
-	typename TEXT::Count	iCount;
-	typename TEXT::Count	iIndex;
-	typename TEXT::Count	iTotalDifference;
-	typename TEXT::Count	iOldIndex;
-	typename TEXT::Count	iDestPos;
-	typename TEXT::Count	iSize;
-	typename TEXT::Count	iEnd;
+	Count	iCount;
+	Count	iIndex;
+	Count	iTotalDifference;
+	Count	iOldIndex;
+	Count	iDestPos;
+	Count	iSize;
+	Count	iEnd;
 
 	//Remember that iDifference is Positive!
 	iCount = 0;
@@ -2688,13 +2688,13 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithShorter(const char* sz
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithLonger(const char* szFind, const char* szReplace, typename TEXT::Count iFindLen, typename TEXT::Count iDifference)
+typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithLonger(const char* szFind, const char* szReplace, Count iFindLen, Count iDifference)
 {
-	typename TEXT::Count	iCount;
-	typename TEXT::Count	iIndex;
-	typename TEXT::Count	i;
-	typename TEXT::Count	iTotalDifference;
-	typename TEXT::Count	iOldIndex;
+	Count	iCount;
+	Count	iIndex;
+	Count	i;
+	Count	iTotalDifference;
+	Count	iOldIndex;
 
 	iCount = Occurrences(szFind);
 	if (iCount == 0)
@@ -2728,11 +2728,11 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithLonger(const char* szF
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-void CCharsBase<STRING, TEXT>::Overwrite(typename TEXT::Count iIndex, const char* szReplace)
+void CCharsBase<STRING, TEXT>::Overwrite(Count iIndex, const char* szReplace)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	j;
-	typename TEXT::Count	uiLen;
+	Count	i;
+	Count	j;
+	Count	uiLen;
 
 	if (StrEmpty(szReplace))
 	{
@@ -2758,10 +2758,10 @@ void CCharsBase<STRING, TEXT>::Overwrite(typename TEXT::Count iIndex, const char
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Reverse(void)
 {
-	char*					szText;
-	typename TEXT::Count	i;
-	typename TEXT::Count	j;
-	char					c;
+	char*	szText;
+	Count	i;
+	Count	j;
+	char	c;
 
 	//StrRev in this string's size (a CLargeChars can be longer than a size counts), leaving the zero at the end.
 	if (Length() > 1)
@@ -2796,10 +2796,10 @@ void CCharsBase<STRING, TEXT>::Clear(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, typename TEXT::Count iMaxLength)
+STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, Count iMaxLength)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	iLength;
+	Count	i;
+	Count	iLength;
 
 	iLength = iMaxLength;
 	for (i = 0; i < iMaxLength; i++)
@@ -2820,12 +2820,12 @@ STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, typename TEXT::
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, typename TEXT::Count iDataLength, typename TEXT::Count iMaxLength)
+STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, Count iDataLength, Count iMaxLength)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	iLength;
-	uint8					c;
-	bool					bLastReadable;
+	Count	i;
+	Count	iLength;
+	uint8	c;
+	bool	bLastReadable;
 	
 	if (iDataLength > iMaxLength)
 	{
@@ -2900,13 +2900,13 @@ STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, typename TEXT::
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::AppendData2(const char* szData, typename TEXT::Count iDataLength)
+bool CCharsBase<STRING, TEXT>::AppendData2(const char* szData, Count iDataLength)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	iPrintable;
-	uint8					c;
-	float					fPrintable;
-	STRING					szString;
+	Count	i;
+	Count	iPrintable;
+	uint8	c;
+	float	fPrintable;
+	STRING	szString;
 
 	if ((szData == NULL) || (iDataLength == 0))
 	{
@@ -3005,12 +3005,12 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::CountNewLines(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::Count(char c)
+typename TEXT::Count CCharsBase<STRING, TEXT>::Occurrences(char c)
 {
-	typename TEXT::Count	i;
-	char					cAt;
-	typename TEXT::Count	iCount;
-	typename TEXT::Count	uiLen;
+	Count	i;
+	char	cAt;
+	Count	iCount;
+	Count	uiLen;
 
 	uiLen = Length();
 	iCount = 0;
@@ -3055,9 +3055,9 @@ void CCharsBase<STRING, TEXT>::UpperCase(void)
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::ReplaceNonTabsWithSpace(void)
 {
-	typename TEXT::Count	i;
-	char					c;
-	typename TEXT::Count	uiLen;
+	Count	i;
+	char	c;
+	Count	uiLen;
 
 	uiLen = Length();
 	for (i = 0; i < uiLen; i++)
@@ -3084,7 +3084,7 @@ void CCharsBase<STRING, TEXT>::PassifyNewlines(void)
 	iNewLen = ::PassifyNewlines(mcText.GetData());
 	if (iNewLen != MAX_LSIZE)
 	{
-		mcText.Resize((typename TEXT::Count)iNewLen + 1);
+		mcText.Resize((Count)iNewLen + 1);
 	}
 }
 
@@ -3094,14 +3094,14 @@ void CCharsBase<STRING, TEXT>::PassifyNewlines(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-char* CCharsBase<STRING, TEXT>::FindLineContaining(const char* szPosition, typename TEXT::Count* piLineNumber)
+char* CCharsBase<STRING, TEXT>::FindLineContaining(const char* szPosition, Count* piLineNumber)
 {
-	typename TEXT::Count	i;
-	typename TEXT::Count	iNumLineFeeds;
-	typename TEXT::Count	uiLen;
-	char*					szString;
-	char*					szStartOfLine;
-	char*					szCurrent;
+	Count	i;
+	Count	iNumLineFeeds;
+	Count	uiLen;
+	char*	szString;
+	char*	szStartOfLine;
+	char*	szCurrent;
 
 	uiLen = Length();
 	iNumLineFeeds = 0;
@@ -3138,9 +3138,9 @@ char* CCharsBase<STRING, TEXT>::FindLineContaining(const char* szPosition, typen
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::MakeCPlusPlus(void)
 {
-	typename TEXT::Count	iIndex;
-	bool					bStartOfLine;
-	char					c;
+	Count	iIndex;
+	bool	bStartOfLine;
+	char	c;
 
 	bStartOfLine = true;
 	iIndex = 0;
@@ -3228,7 +3228,7 @@ bool CCharsBase<STRING, TEXT>::ReadString(CFileReader* pcReader)
 template<class STRING, class TEXT>
 bool CCharsBase<STRING, TEXT>::ReadChars(CFileReader* pcReader)
 {
-	typename TEXT::Count	iLength;
+	Count	iLength;
 
 	if (!pcReader->ReadStringLength(&iLength))
 	{
@@ -3339,9 +3339,9 @@ void CCharsBase<STRING, TEXT>::UnfakeIfFakeEmpty(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-char* CCharsBase<STRING, TEXT>::CopyIntoBuffer(char* szDest, typename TEXT::Count iDestLength)
+char* CCharsBase<STRING, TEXT>::CopyIntoBuffer(char* szDest, Count iDestLength)
 {
-	typename TEXT::Count	iLength;
+	Count	iLength;
 
 	if (iDestLength == TEXT::SizePolicy::NotFound)
 	{
@@ -3376,9 +3376,9 @@ char* CCharsBase<STRING, TEXT>::CopyIntoBuffer(char* szDest, typename TEXT::Coun
 template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Dump(void)
 {
-	STRING					szString;
-	typename TEXT::Count	i;
-	typename TEXT::Count	uiLen;
+	STRING	szString;
+	Count	i;
+	Count	uiLen;
 
 	uiLen = Length();
 	if (uiLen <= 10000)

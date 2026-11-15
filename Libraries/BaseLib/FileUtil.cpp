@@ -145,7 +145,7 @@ bool CFileUtil::IsRootDirectory(const char* szPathName)
 	sz.Init(szPathName);
 	FullPath(&sz);
 	CollapsePath(&sz);
-	iCount = sz.Count(FILE_SEPARATOR[0]);
+	iCount = sz.Occurrences(FILE_SEPARATOR[0]);
 	if (iCount == 1)
 	{
 		iEnd = sz.FindFromEnd(FILE_SEPARATOR[0]);

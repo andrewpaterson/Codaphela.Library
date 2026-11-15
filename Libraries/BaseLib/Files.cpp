@@ -92,7 +92,7 @@ bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 	szPackFileOffset.RemoveFromEnd(iLength);
 	szPackFileOffset.Replace('\\', '/');
 
-	iRank = (uint32)szPackFileOffset.Count('/');
+	iRank = (uint32)szPackFileOffset.Occurrences('/');
 
 	bResult = pcPackFiles->Init(szPackFileOffset.Text(), szFullName, iRank);
 	szPackFileOffset.Kill();

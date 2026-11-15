@@ -50,7 +50,7 @@ void NormaliseDirectory(CChars* pszDirectory)
 	{
 		pszDirectory->Append(FILE_SEPARATOR);
 	}
-	else if ((pszDirectory->Count(FILE_SEPARATOR[0]) > 1) && pszDirectory->EndsWith(FILE_SEPARATOR[0]))
+	else if ((pszDirectory->Occurrences(FILE_SEPARATOR[0]) > 1) && pszDirectory->EndsWith(FILE_SEPARATOR[0]))
 	{
 		pszDirectory->RemoveEnd(pszDirectory->Length() - 1);
 	}
