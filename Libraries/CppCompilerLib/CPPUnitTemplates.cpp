@@ -263,7 +263,9 @@ CCPPTemplate* CCPPUnit::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDecl
 // the function template's instance.  extern template ... (bExtern) generates
 // neither: the unit uses the instance another unit's explicit instantiation
 // generates (IsInstantiatedElsewhere).  An explicit instantiation after an extern
-// one in the same unit generates the instance.  [temp.explicit]
+// one in the same unit generates the instance.  [temp.explicit]  The functions
+// are generated in the order they are defined, as a class's that isn't a
+// template are: what the inliner makes of them depends on it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
@@ -273,7 +275,9 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 	CCPPSyntaxName*					pcName;
 	CCPPClass*					pcClass;
 	CCPPFunction*					pcFunction;
+	CArrayCPPFunctions				apcDefined;
 	size							i;
+	size							j;
 
 	pcType = NULL;
 	pcSimple = NULL;
@@ -307,14 +311,33 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 	{
 		return false;
 	}
+	//The defined functions by where their definitions are (an insertion sort: it keeps the order of equals), then those
+	//the compiler writes.
+	apcDefined.Init();
 	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 	{
 		pcFunction = pcClass->mapcMembers.GetPtr(i);
-		if (pcFunction->mpcDefinition || pcFunction->mbImplicit)
+		if (pcFunction->mpcDefinition)
 		{
-			RequireFunction(pcFunction);
+			for (j = apcDefined.NumElements(); (j > 0) && (apcDefined.GetPtr(j - 1)->mpcDefinition->miFirstToken > pcFunction->mpcDefinition->miFirstToken); j--)
+			{
+			}
+			*apcDefined.InsertAt(j) = pcFunction;
 		}
 	}
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if (!pcFunction->mpcDefinition && pcFunction->mbImplicit)
+		{
+			apcDefined.Add(pcFunction);
+		}
+	}
+	for (i = 0; i < apcDefined.NumElements(); i++)
+	{
+		RequireFunction(apcDefined.GetPtr(i));
+	}
+	apcDefined.Kill();
 	return true;
 }
 

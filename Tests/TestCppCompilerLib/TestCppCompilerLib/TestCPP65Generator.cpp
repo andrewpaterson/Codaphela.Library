@@ -1522,7 +1522,7 @@ static void TestCPP65GeneratedExternals(CChars* pszDest, const char* szSource)
 // unit doesn't generate the instances' functions, it uses another unit's.  What is
 // inline (defined in the class, or declared inline) and what the compiler writes
 // is still generated.  template class SBox<int>; generates them, also after an
-// extern one.  [temp.explicit]
+// extern one, in the order they are defined.  [temp.explicit]
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorExternTemplates(void)
@@ -1538,6 +1538,8 @@ template<class T> constexpr T Square(T t) { return t * t; }\n\
 int Use(void) { SBox<int> s; s.Set(3); return s.Get() + s.Kind() + Twice(4) + Thrice(5) + Square(6) + Twice((short)1) + Half(8); }\n";
 	CChars				szSource;
 	CChars				szExternals;
+	CChars				szAssembly;
+	CChars				szErrors;
 
 	//Get and Kind (the vtable SBox's constructor writes names it) and Twice<int> are Instances.cpp's.
 	szSource.Init(szTemplates);
@@ -1565,6 +1567,17 @@ int Use(void) { SBox<int> s; s.Set(3); return s.Get() + s.Kind() + Twice(4) + Th
 	TestCPP65GeneratedExternals(&szExternals, "template<class M> struct SBox { M m; M Get(void); void Set(M x) { m = x; } };\ntemplate<class M> M SBox<M>::Get(void) { return m; }\ntemplate<class T> T Twice(T t) { return t + t; }\ntemplate struct SBox<char>;\ntemplate long Twice(long);\n");
 	AssertString("", szExternals.Text());
 	szExternals.Kill();
+
+	//Its functions are generated in the order they are defined (as a class's that isn't a template are), not the
+	//order the class declares them: what the inliner makes of them depends on it.
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "template<class M> struct SOrder { M m; M Second(void); M First(void); };\ntemplate<class M> M SOrder<M>::First(void) { return m; }\ntemplate<class M> M SOrder<M>::Second(void) { return m + 1; }\ntemplate struct SOrder<int>;\n"));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Find("text._SOrder__T_i__First") < szAssembly.Find("text._SOrder__T_i__Second"));
+	AssertTrue(szAssembly.Find("text._SOrder__T_i__Second") != ARRAY_ELEMENT_NOT_FOUND);
+	szErrors.Kill();
+	szAssembly.Kill();
 }
 
 
