@@ -45,13 +45,12 @@ int ComparePrimitive(const void* arg1, const void* arg2)
 }
 
 
-#include "ArraySizeNatural.inl"
 #include "ArrayTemplatePrimitive.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "ArrayTemplatePrimitive.inl"
-#include "ArraySizeUndef.inl"
+
+//The names the arrays are known by: a CArrayTemplatePrimitive<M> is a CArrayTemplate<M>.
+template<class M> class CArrayTemplatePrimitive : public CArrayTemplatePrimitiveBase<M, CArrayTemplate<M> > {};
+template<class M> class CArrayLargeTemplatePrimitive : public CArrayTemplatePrimitiveBase<M, CArrayLargeTemplate<M> > {};
 
 
 #endif // __ARRAY_TEMPLATE_PRIMITIVE_H__

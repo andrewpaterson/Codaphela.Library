@@ -20,50 +20,54 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-//No include guard: ArrayTemplatePrimitive.inl is included once per array size (ArraySizeNatural.inl and
-//ArraySizeLarge.inl define the names and types it is written with).
+#ifndef __ARRAY_TEMPLATE_PRIMITIVE_BASE_H__
+#define __ARRAY_TEMPLATE_PRIMITIVE_BASE_H__
 
-template<class M>
-class ARRAY_TEMPLATE_PRIMITIVE : public ARRAY_TEMPLATE<M>
+
+//CArrayTemplatePrimitive<M> (an array of numbers counted in size, a CArrayTemplate<M>) and
+//CArrayLargeTemplatePrimitive<M> (counted in lsize, a CArrayLargeTemplate<M>) are this, written once: TEMPLATE is the
+//class each derives from.
+template<class M, class TEMPLATE>
+class CArrayTemplatePrimitiveBase : public TEMPLATE
 {
 protected:
-	using ARRAY_TEMPLATE<M>::miUsedElements;
-	using ARRAY_TEMPLATE<M>::mpvArray;
+	using TEMPLATE::miUsedElements;
+	using TEMPLATE::mpvArray;
 
 public:
-	using ARRAY_TEMPLATE<M>::FindInSorted;
-	using ARRAY_TEMPLATE<M>::Resize;
-	using ARRAY_TEMPLATE<M>::SetUsedElements;
+	using TEMPLATE::FindInSorted;
+	using TEMPLATE::Resize;
+	using TEMPLATE::SetUsedElements;
 
-	M 		GetValue(ASIZE iIndex);
-	M		SafeGetValue(ASIZE iIndex, M iNotFound);
-	M 		operator[](ASIZE iIndex);
-	void	SetValue(ASIZE iIndex, M iElement);
-	void 	Add(M iElement);
-	void 	Add(M* paElements, ASIZE iNumElements);
-	void	InsertAt(M iElement, ASIZE iIndex);
-	void 	SetArrayValues(M iValue);
-	void	SetArrayValues(M iStart, M iIncrement);
-	void	QuickSort(void);
-	void	BubbleSort(void);
-	ASIZE 	Find(M iValue);
-	ASIZE 	AddIfUnique(M iValue);
-	void	Swap(ASIZE iIndex1, ASIZE iIndex2);
-	void	InsertIntoSorted(M iElement, bool bOverwriteExisting);
+	M							GetValue(typename TEMPLATE::Count iIndex);
+	M							SafeGetValue(typename TEMPLATE::Count iIndex, M iNotFound);
+	M							operator[](typename TEMPLATE::Count iIndex);
+	void						SetValue(typename TEMPLATE::Count iIndex, M iElement);
+	void						Add(M iElement);
+	void						Add(M* paElements, typename TEMPLATE::Count iNumElements);
+	void						InsertAt(M iElement, typename TEMPLATE::Count iIndex);
+	void						SetArrayValues(M iValue);
+	void						SetArrayValues(M iStart, M iIncrement);
+	void						QuickSort(void);
+	void						BubbleSort(void);
+	typename TEMPLATE::Count	Find(M iValue);
+	typename TEMPLATE::Count	AddIfUnique(M iValue);
+	void						Swap(typename TEMPLATE::Count iIndex1, typename TEMPLATE::Count iIndex2);
+	void						InsertIntoSorted(M iElement, bool bOverwriteExisting);
 	template<class F>
-	void	InsertInOrder(M iElement, F* psOrder, ASIZE iFirst = 0);
-	bool	RemoveFromSorted(M iElement);
-	bool	RemoveDuplicatesFromSorted(void);
-	void	MakeUnique(void);
-	void	Intersect(ARRAY_TEMPLATE_PRIMITIVE<M>* pcArray1, ARRAY_TEMPLATE_PRIMITIVE<M>* pcArray2);
-	bool	IsSorted(void);
-	ASIZE	FindFinalContiguousInSorted(void);
-	M		Pop(void);
-	void 	Push(M iElement);
+	void						InsertInOrder(M iElement, F* psOrder, typename TEMPLATE::Count iFirst = 0);
+	bool						RemoveFromSorted(M iElement);
+	bool						RemoveDuplicatesFromSorted(void);
+	void						MakeUnique(void);
+	void						Intersect(CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray1, CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray2);
+	bool						IsSorted(void);
+	typename TEMPLATE::Count	FindFinalContiguousInSorted(void);
+	M							Pop(void);
+	void						Push(M iElement);
 
-	void	AddRemap(ASIZE iElementPos, M iRemapNum);
-	void 	AddList(M iStop, ...);
-	void	RemoveRemap(ASIZE iElementPos);
+	void						AddRemap(typename TEMPLATE::Count iElementPos, M iRemapNum);
+	void						AddList(M iStop, ...);
+	void						RemoveRemap(typename TEMPLATE::Count iElementPos);
 };
 
 
@@ -73,10 +77,10 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M ARRAY_TEMPLATE_PRIMITIVE<M>::GetValue(ASIZE iIndex)
+template<class M, class TEMPLATE>
+M CArrayTemplatePrimitiveBase<M, TEMPLATE>::GetValue(typename TEMPLATE::Count iIndex)
 {
-	return (*(ARRAY_TEMPLATE<M>::Get(iIndex)));
+	return (*(TEMPLATE::Get(iIndex)));
 }
 
 
@@ -84,10 +88,10 @@ M ARRAY_TEMPLATE_PRIMITIVE<M>::GetValue(ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M ARRAY_TEMPLATE_PRIMITIVE<M>::operator[](ASIZE iIndex)
+template<class M, class TEMPLATE>
+M CArrayTemplatePrimitiveBase<M, TEMPLATE>::operator[](typename TEMPLATE::Count iIndex)
 {
-	return (*(ARRAY_TEMPLATE<M>::Get(iIndex)));
+	return (*(TEMPLATE::Get(iIndex)));
 }
 
 
@@ -95,8 +99,8 @@ M ARRAY_TEMPLATE_PRIMITIVE<M>::operator[](ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M ARRAY_TEMPLATE_PRIMITIVE<M>::SafeGetValue(ASIZE iIndex, M iNotFound)
+template<class M, class TEMPLATE>
+M CArrayTemplatePrimitiveBase<M, TEMPLATE>::SafeGetValue(typename TEMPLATE::Count iIndex, M iNotFound)
 {
 	if (iIndex < miUsedElements)
 	{
@@ -110,8 +114,8 @@ M ARRAY_TEMPLATE_PRIMITIVE<M>::SafeGetValue(ASIZE iIndex, M iNotFound)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::SetValue(ASIZE iIndex, M iElement)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::SetValue(typename TEMPLATE::Count iIndex, M iElement)
 {
 	((M*)mpvArray)[iIndex] = iElement;
 }
@@ -121,12 +125,12 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::SetValue(ASIZE iIndex, M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::Add(M iElement)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Add(M iElement)
 {
 	M*	pvTemp;
 
-	pvTemp = ARRAY_TEMPLATE<M>::Add();
+	pvTemp = TEMPLATE::Add();
 	*pvTemp = iElement;
 }
 
@@ -135,15 +139,15 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::Add(M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::Add(M* paElements, ASIZE iNumElements)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Add(M* paElements, typename TEMPLATE::Count iNumElements)
 {
-	ASIZE	i;
-	M*		pvTemp;
+	typename TEMPLATE::Count	i;
+	M*							pvTemp;
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		pvTemp = ARRAY_TEMPLATE<M>::Add();
+		pvTemp = TEMPLATE::Add();
 		*pvTemp = paElements[i];
 	}
 }
@@ -153,12 +157,12 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::Add(M* paElements, ASIZE iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertAt(M iElement, ASIZE iIndex)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertAt(M iElement, typename TEMPLATE::Count iIndex)
 {
 	M*	pvTemp;
 
-	pvTemp = ARRAY_TEMPLATE<M>::InsertAt(iIndex);
+	pvTemp = TEMPLATE::InsertAt(iIndex);
 	if (pvTemp)
 	{
 		*pvTemp = iElement;
@@ -170,10 +174,10 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertAt(M iElement, ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::SetArrayValues(M iValue)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::SetArrayValues(M iValue)
 {
-	ASIZE	i;
+	typename TEMPLATE::Count	i;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -186,10 +190,10 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::SetArrayValues(M iValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::SetArrayValues(M iStartValue, M iIncrement)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::SetArrayValues(M iStartValue, M iIncrement)
 {
-	ASIZE	i;
+	typename TEMPLATE::Count	i;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -203,10 +207,10 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::SetArrayValues(M iStartValue, M iIncrement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::QuickSort(void)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::QuickSort(void)
 {
-	ARRAY_TEMPLATE<M>::QuickSort(&ComparePrimitive<M>);
+	TEMPLATE::QuickSort(&ComparePrimitive<M>);
 }
 
 
@@ -214,10 +218,10 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::QuickSort(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::BubbleSort(void)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::BubbleSort(void)
 {
-	ARRAY_TEMPLATE<M>::BubbleSort(&ComparePrimitive<M>);
+	TEMPLATE::BubbleSort(&ComparePrimitive<M>);
 }
 
 
@@ -225,10 +229,10 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::BubbleSort(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::Find(M iValue)
+template<class M, class TEMPLATE>
+typename TEMPLATE::Count CArrayTemplatePrimitiveBase<M, TEMPLATE>::Find(M iValue)
 {
-	ASIZE	i;
+	typename TEMPLATE::Count	i;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -237,7 +241,7 @@ ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::Find(M iValue)
 			return i;
 		}
 	}
-	return ARRAY_NOT_FOUND;
+	return TEMPLATE::SizePolicy::NotFound;
 }
 
 
@@ -245,13 +249,13 @@ ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::Find(M iValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::AddIfUnique(M iValue)
+template<class M, class TEMPLATE>
+typename TEMPLATE::Count CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddIfUnique(M iValue)
 {
-	ASIZE iPos;
+	typename TEMPLATE::Count iPos;
 
 	iPos = Find(iValue);
-	if (iPos == ARRAY_NOT_FOUND)
+	if (iPos == TEMPLATE::SizePolicy::NotFound)
 	{
 		Add(iValue);
 	}
@@ -263,8 +267,8 @@ ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::AddIfUnique(M iValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::Swap(ASIZE iIndex1, ASIZE iIndex2)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Swap(typename TEMPLATE::Count iIndex1, typename TEMPLATE::Count iIndex2)
 {
 	M*		piElement1;
 	M*		piElement2;
@@ -282,11 +286,11 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::Swap(ASIZE iIndex1, ASIZE iIndex2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertIntoSorted(M iElement, bool bOverwriteExisting)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertIntoSorted(M iElement, bool bOverwriteExisting)
 {
-	ASIZE	iPos;
-	bool	bExists;
+	typename TEMPLATE::Count	iPos;
+	bool						bExists;
 
 	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (iPos < miUsedElements)
@@ -299,7 +303,7 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertIntoSorted(M iElement, bool bOverwriteEx
 		{
 			if (bOverwriteExisting)
 			{
-				ARRAY_TEMPLATE<M>::Set(iPos, &iElement);
+				TEMPLATE::Set(iPos, &iElement);
 			}
 			else
 			{
@@ -322,11 +326,11 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertIntoSorted(M iElement, bool bOverwriteEx
 // them, so elements inserted one by one keep their order.				//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
+template<class M, class TEMPLATE>
 template<class F>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertInOrder(M iElement, F* psOrder, ASIZE iFirst)
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::InsertInOrder(M iElement, F* psOrder, typename TEMPLATE::Count iFirst)
 {
-	ASIZE	i;
+	typename TEMPLATE::Count	i;
 
 	for (i = iFirst; i < miUsedElements; i++)
 	{
@@ -343,11 +347,11 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertInOrder(M iElement, F* psOrder, ASIZE iF
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveFromSorted(M iElement)
+template<class M, class TEMPLATE>
+bool CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveFromSorted(M iElement)
 {
-	ASIZE	iPos;
-	bool	bExists;
+	typename TEMPLATE::Count	iPos;
+	bool						bExists;
 
 	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (bExists)
@@ -363,14 +367,14 @@ bool ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveFromSorted(M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveDuplicatesFromSorted(void)
+template<class M, class TEMPLATE>
+bool CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveDuplicatesFromSorted(void)
 {
-	ASIZE	i;
-	M		iValue;
-	M		iCurrent;
-	bool	bAnyRemoved;
-	ASIZE  iWrite;
+	typename TEMPLATE::Count	i;
+	M							iValue;
+	M							iCurrent;
+	bool						bAnyRemoved;
+	typename TEMPLATE::Count  iWrite;
 
 	bAnyRemoved = false;
     if (miUsedElements > 0)
@@ -405,8 +409,8 @@ bool ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveDuplicatesFromSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::MakeUnique(void)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::MakeUnique(void)
 {
 	QuickSort();
 	RemoveDuplicatesFromSorted();
@@ -417,13 +421,13 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::MakeUnique(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::Intersect(ARRAY_TEMPLATE_PRIMITIVE<M>* pcArray1, ARRAY_TEMPLATE_PRIMITIVE<M>* pcArray2)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Intersect(CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray1, CArrayTemplatePrimitiveBase<M, TEMPLATE>* pcArray2)
 {
-	ASIZE	i;
-	ASIZE	j;
-	M		x;
-	M		y;
+	typename TEMPLATE::Count	i;
+	typename TEMPLATE::Count	j;
+	M							x;
+	M							y;
 
 	//This assumes that both arrays contain only unique values.
 	for (i = 0; i < pcArray1->NumElements(); i++)
@@ -448,12 +452,12 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::Intersect(ARRAY_TEMPLATE_PRIMITIVE<M>* pcArray
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE_PRIMITIVE<M>::IsSorted(void)
+template<class M, class TEMPLATE>
+bool CArrayTemplatePrimitiveBase<M, TEMPLATE>::IsSorted(void)
 {
-	ASIZE	i;
-	M		iValue;
-	M		iLast;
+	typename TEMPLATE::Count	i;
+	M							iValue;
+	M							iLast;
 
 	if (miUsedElements > 1)
 	{
@@ -485,15 +489,15 @@ bool ARRAY_TEMPLATE_PRIMITIVE<M>::IsSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::FindFinalContiguousInSorted(void)
+template<class M, class TEMPLATE>
+typename TEMPLATE::Count CArrayTemplatePrimitiveBase<M, TEMPLATE>::FindFinalContiguousInSorted(void)
 {
-	ASIZE	i;
-	M		iValue;
+	typename TEMPLATE::Count	i;
+	M							iValue;
 
 	if (miUsedElements == 0)
 	{
-		return ARRAY_NOT_FOUND;
+		return TEMPLATE::SizePolicy::NotFound;
 	}
 
 	for (i = 0; i < miUsedElements; i++)
@@ -507,7 +511,7 @@ ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::FindFinalContiguousInSorted(void)
 			}
 			else
 			{
-				return ARRAY_NOT_FOUND;
+				return TEMPLATE::SizePolicy::NotFound;
 			}
 		}
 	}
@@ -519,13 +523,13 @@ ASIZE ARRAY_TEMPLATE_PRIMITIVE<M>::FindFinalContiguousInSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M ARRAY_TEMPLATE_PRIMITIVE<M>::Pop(void)
+template<class M, class TEMPLATE>
+M CArrayTemplatePrimitiveBase<M, TEMPLATE>::Pop(void)
 {
 	M	i;
 
 	//Returns zero if empty.
-	ARRAY_TEMPLATE<M>::Pop(&i);
+	TEMPLATE::Pop(&i);
 	return i;
 }
 
@@ -534,8 +538,8 @@ M ARRAY_TEMPLATE_PRIMITIVE<M>::Pop(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::Push(M iElement)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::Push(M iElement)
 {
 	Add(iElement);
 }
@@ -545,22 +549,22 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::Push(M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::AddRemap(ASIZE iElementPos, M iRemapNum)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddRemap(typename TEMPLATE::Count iElementPos, M iRemapNum)
 {
-	M*		pi;
-	ASIZE	iIndex;
-	ASIZE	iNumToAdd;
-	ASIZE	iMinusOne;
+	M*							pi;
+	typename TEMPLATE::Count	iIndex;
+	typename TEMPLATE::Count	iNumToAdd;
+	typename TEMPLATE::Count	iMinusOne;
 
 	if (miUsedElements > iElementPos)
 	{
-		pi = ARRAY_TEMPLATE<M>::Get(iElementPos);
+		pi = TEMPLATE::Get(iElementPos);
 		(*pi) = iRemapNum;
 	}
 	else
 	{
-		iMinusOne = ARRAY_SIZE_MAX;
+		iMinusOne = TEMPLATE::SizePolicy::Max;
 		iNumToAdd = (iElementPos - miUsedElements);
 
 		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)
@@ -576,16 +580,16 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::AddRemap(ASIZE iElementPos, M iRemapNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveRemap(ASIZE iElementPos)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveRemap(typename TEMPLATE::Count iElementPos)
 {
-	M*		pi;
-	ASIZE	iIndex;
-	ASIZE	iCutDown;
+	M*							pi;
+	typename TEMPLATE::Count	iIndex;
+	typename TEMPLATE::Count	iCutDown;
 
 	if (iElementPos < miUsedElements)
 	{
-		pi = ARRAY_TEMPLATE<M>::Get(iElementPos);
+		pi = TEMPLATE::Get(iElementPos);
 		(*pi) = -1;
 	}
 
@@ -596,7 +600,7 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveRemap(ASIZE iElementPos)
 		do
 		{
 			iIndex--;
-			pi = ARRAY_TEMPLATE<M>::Get(iIndex);
+			pi = TEMPLATE::Get(iIndex);
 			if (*pi == (M)-1)
 			{
 				iCutDown = iIndex;
@@ -623,8 +627,8 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::RemoveRemap(ASIZE iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE_PRIMITIVE<M>::AddList(M iStop, ...)
+template<class M, class TEMPLATE>
+void CArrayTemplatePrimitiveBase<M, TEMPLATE>::AddList(M iStop, ...)
 {
 	va_list		vaMarker;
 	M			iValue;
@@ -638,3 +642,7 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::AddList(M iStop, ...)
 	}
 	va_end(vaMarker);
 }
+
+
+#endif // __ARRAY_TEMPLATE_PRIMITIVE_BASE_H__
+

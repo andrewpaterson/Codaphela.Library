@@ -20,64 +20,67 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-//No include guard: ArrayTemplate.inl is included once per array size (ArraySizeNatural.inl and
-//ArraySizeLarge.inl define the names and types it is written with).
+#ifndef __ARRAY_TEMPLATE_BASE_H__
+#define __ARRAY_TEMPLATE_BASE_H__
 
-template<class M>
-class ARRAY_TEMPLATE : public ARRAY_BLOCK, protected CPostMalloc<M>
+
+//CArrayTemplate<M> (an array of M counted in size, a CArrayBlock) and CArrayLargeTemplate<M> (counted in lsize, a
+//CArrayLargeBlock) are this, written once: BLOCK is the class each derives from.
+template<class M, class BLOCK>
+class CArrayTemplateBase : public BLOCK, protected CPostMalloc<M>
 {
 public:
-	void 	Init(void);
-	void 	Init(CMallocator* pcMalloc);
-	void 	Init(CMallocator* pcMalloc, ASIZE iChunkSize);
-	void	Init(CMallocator* pcMalloc, M* pvData, ASIZE uiNumData);
-	void	Fake(M* pvData, ASIZE iNum, ASIZE iChunkSize = 1);
-	void	TakeFrom(ARRAY_TEMPLATE<M>* pcSource);
-	void	Kill(void);
+	void					Init(void);
+	void					Init(CMallocator* pcMalloc);
+	void					Init(CMallocator* pcMalloc, typename BLOCK::Count iChunkSize);
+	void					Init(CMallocator* pcMalloc, M* pvData, typename BLOCK::Count uiNumData);
+	void					Fake(M* pvData, typename BLOCK::Count iNum, typename BLOCK::Count iChunkSize = 1);
+	void					TakeFrom(CArrayTemplateBase<M, BLOCK>* pcSource);
+	void					Kill(void);
 
-	M*		Add(void);
-	M*		Add(M* pvData);
-	M* 		AddGetIndex(ASIZE* piIndex);
-	ASIZE 	AddIfUnique(M* pvData);
-	ASIZE 	AddIfUniqueKey(M* pvData, ASIZE iKeyOffset, ASIZE iKeySize);
+	M*						Add(void);
+	M*						Add(M* pvData);
+	M*						AddGetIndex(typename BLOCK::Count* piIndex);
+	typename BLOCK::Count	AddIfUnique(M* pvData);
+	typename BLOCK::Count	AddIfUniqueKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize);
 
-	void 	Copy(ARRAY_TEMPLATE<M>* pcOtherArray);
+	void					Copy(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
 
-	M*		Get(ASIZE iIndex);
-	M*		SafeGet(ASIZE iIndex);
-	M*		GetData(void);
-	ASIZE	GetIndex(M* pvData);
-	M*		Tail(void);
-	M&		operator[](ASIZE iIndex);
+	M*						Get(typename BLOCK::Count iIndex);
+	M*						SafeGet(typename BLOCK::Count iIndex);
+	M*						GetData(void);
+	typename BLOCK::Count	GetIndex(M* pvData);
+	M*						Tail(void);
+	M&						operator[](typename BLOCK::Count iIndex);
 
-	M*		InsertArrayAfterEnd(ARRAY_TEMPLATE<M>* pcOtherArray);
-	M*		InsertArrayAt(ARRAY_TEMPLATE<M>* pcOtherArray, ASIZE iIndex);
-	M*		InsertArrayBeforeStart(ARRAY_TEMPLATE<M>* pcOtherArray);
-	M* 		InsertAt(ASIZE iIndex);
-	M*	 	InsertAt(M* pvData, ASIZE iIndex);
-	M*		InsertBlockAfterEnd(M* paElements, ASIZE iLength);
-	M*		InsertBlockAt(M* paElements, ASIZE iLength, ASIZE iIndex);
-	M*		InsertBlockBeforeStart(M* paElements, ASIZE iLength);
-	ASIZE	InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
-	M*		InsertNumAt(ASIZE iNumElements, ASIZE iIndex);
+	M*						InsertArrayAfterEnd(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	M*						InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcOtherArray, typename BLOCK::Count iIndex);
+	M*						InsertArrayBeforeStart(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	M*						InsertAt(typename BLOCK::Count iIndex);
+	M*						InsertAt(M* pvData, typename BLOCK::Count iIndex);
+	M*						InsertBlockAfterEnd(M* paElements, typename BLOCK::Count iLength);
+	M*						InsertBlockAt(M* paElements, typename BLOCK::Count iLength, typename BLOCK::Count iIndex);
+	M*						InsertBlockBeforeStart(M* paElements, typename BLOCK::Count iLength);
+	typename BLOCK::Count	InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
+	M*						InsertNumAt(typename BLOCK::Count iNumElements, typename BLOCK::Count iIndex);
 
-	ASIZE	RemoveArray(ARRAY_TEMPLATE<M>* pcOtherArray, bool bPreserveOrder = true);
-	ASIZE	RemoveArrayFromSorted(ARRAY_TEMPLATE<M>* pcOtherArray, DataCompare fCompare);
+	typename BLOCK::Count	RemoveArray(CArrayTemplateBase<M, BLOCK>* pcOtherArray, bool bPreserveOrder = true);
+	typename BLOCK::Count	RemoveArrayFromSorted(CArrayTemplateBase<M, BLOCK>* pcOtherArray, DataCompare fCompare);
 
-	bool	Pop(M* pvData);
-	bool	Pop(void);
-	void 	Push(M* pvData);
-	M*		Push(void);
-	M*		PushCopy(void);
+	bool					Pop(M* pvData);
+	bool					Pop(void);
+	void					Push(M* pvData);
+	M*						Push(void);
+	M*						PushCopy(void);
 
-	bool	Contains(M* pvData);
-	bool	Equals(ARRAY_TEMPLATE<M>* pcOtherArray);
-	ASIZE 	Find(M* pvData);
-	bool	FindInSorted(M* pvData, DataCompare fCompare, ASIZE* piIndex);
-	ASIZE 	FindWithKey(M* pvData, ASIZE iKeyOffset, ASIZE iKeySize);
+	bool					Contains(M* pvData);
+	bool					Equals(CArrayTemplateBase<M, BLOCK>* pcOtherArray);
+	typename BLOCK::Count	Find(M* pvData);
+	bool					FindInSorted(M* pvData, DataCompare fCompare, typename BLOCK::Count* piIndex);
+	typename BLOCK::Count	FindWithKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize);
 
-	void	Set(ASIZE iIndex, M* pvData);
-	bool	SafeSet(ASIZE iIndex, M* pvData);
+	void					Set(typename BLOCK::Count iIndex, M* pvData);
+	bool					SafeSet(typename BLOCK::Count iIndex, M* pvData);
 };
 
 
@@ -85,31 +88,31 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M> void	ARRAY_TEMPLATE<M>::Init(void) { ARRAY_BLOCK::Init(sizeof(M)); }
-template<class M> void	ARRAY_TEMPLATE<M>::Init(CMallocator* pcMalloc) { ARRAY_BLOCK::Init(pcMalloc, sizeof(M)); }
-template<class M> void	ARRAY_TEMPLATE<M>::Init(CMallocator* pcMalloc, ASIZE iChunkSize) { ARRAY_BLOCK::Init(pcMalloc, sizeof(M), iChunkSize); }
-template<class M> void	ARRAY_TEMPLATE<M>::Init(CMallocator* pcMalloc, M* pvData, ASIZE uiNumData) { ARRAY_BLOCK::Init(pcMalloc, sizeof(M), pvData, uiNumData); }
-template<class M> void	ARRAY_TEMPLATE<M>::TakeFrom(ARRAY_TEMPLATE<M>* pcSource) { ARRAY_BLOCK::TakeFrom(pcSource); }
-template<class M> void	ARRAY_TEMPLATE<M>::Kill(void) { ARRAY_BLOCK::Kill(); }
-template<class M> M*	ARRAY_TEMPLATE<M>::SafeGet(ASIZE iIndex) { return (M*)ARRAY_BLOCK::SafeGet(iIndex); }
-template<class M> bool	ARRAY_TEMPLATE<M>::SafeSet(ASIZE iIndex, M* pvData) { return ARRAY_BLOCK::SafeSet(iIndex, pvData); }
-template<class M> M*	ARRAY_TEMPLATE<M>::Add(void) { return this->PostMalloc((M*)ARRAY_BLOCK::Add()); }
-template<class M> M*	ARRAY_TEMPLATE<M>::AddGetIndex(ASIZE* piIndex) { return this->PostMalloc((M*)ARRAY_BLOCK::AddGetIndex(piIndex)); }
-template<class M> M*	ARRAY_TEMPLATE<M>::Add(M* pvData) { return (M*)ARRAY_BLOCK::Add(pvData); }
-template<class M> void	ARRAY_TEMPLATE<M>::Set(ASIZE iIndex, M* pvData) { return ARRAY_BLOCK::Set(iIndex, pvData); }
-template<class M> M*	ARRAY_TEMPLATE<M>::InsertAt(ASIZE iIndex) { return this->PostMalloc((M*)ARRAY_BLOCK::InsertAt(iIndex)); }
-template<class M> M*	ARRAY_TEMPLATE<M>::InsertAt(M* pvData, ASIZE iIndex) { return (M*)ARRAY_BLOCK::InsertAt(pvData, iIndex); }
-template<class M> void	ARRAY_TEMPLATE<M>::Copy(ARRAY_TEMPLATE* pcOtherArray) { ARRAY_BLOCK::Copy(pcOtherArray); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(void) { BLOCK::Init(sizeof(M)); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc) { BLOCK::Init(pcMalloc, sizeof(M)); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc, typename BLOCK::Count iChunkSize) { BLOCK::Init(pcMalloc, sizeof(M), iChunkSize); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Init(CMallocator* pcMalloc, M* pvData, typename BLOCK::Count uiNumData) { BLOCK::Init(pcMalloc, sizeof(M), pvData, uiNumData); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::TakeFrom(CArrayTemplateBase<M, BLOCK>* pcSource) { BLOCK::TakeFrom(pcSource); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Kill(void) { BLOCK::Kill(); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::SafeGet(typename BLOCK::Count iIndex) { return (M*)BLOCK::SafeGet(iIndex); }
+template<class M, class BLOCK> bool	CArrayTemplateBase<M, BLOCK>::SafeSet(typename BLOCK::Count iIndex, M* pvData) { return BLOCK::SafeSet(iIndex, pvData); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::Add(void) { return this->PostMalloc((M*)BLOCK::Add()); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::AddGetIndex(typename BLOCK::Count* piIndex) { return this->PostMalloc((M*)BLOCK::AddGetIndex(piIndex)); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::Add(M* pvData) { return (M*)BLOCK::Add(pvData); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Set(typename BLOCK::Count iIndex, M* pvData) { return BLOCK::Set(iIndex, pvData); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::InsertAt(typename BLOCK::Count iIndex) { return this->PostMalloc((M*)BLOCK::InsertAt(iIndex)); }
+template<class M, class BLOCK> M*	CArrayTemplateBase<M, BLOCK>::InsertAt(M* pvData, typename BLOCK::Count iIndex) { return (M*)BLOCK::InsertAt(pvData, iIndex); }
+template<class M, class BLOCK> void	CArrayTemplateBase<M, BLOCK>::Copy(CArrayTemplateBase<M, BLOCK>* pcOtherArray) { BLOCK::Copy(pcOtherArray); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE<M>::Push(M* pvData)
+template<class M, class BLOCK>
+void CArrayTemplateBase<M, BLOCK>::Push(M* pvData)
 {
-	ARRAY_BLOCK::Push(pvData);
+	BLOCK::Push(pvData);
 }
 
 
@@ -117,8 +120,8 @@ void ARRAY_TEMPLATE<M>::Push(M* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::Push(void)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::Push(void)
 {
 	return Add();
 }
@@ -128,10 +131,10 @@ M* ARRAY_TEMPLATE<M>::Push(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::PushCopy(void)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::PushCopy(void)
 {
-	return (M*)ARRAY_BLOCK::PushCopy();
+	return (M*)BLOCK::PushCopy();
 }
 
 
@@ -139,10 +142,10 @@ M* ARRAY_TEMPLATE<M>::PushCopy(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE<M>::Pop(M* pvData)
+template<class M, class BLOCK>
+bool CArrayTemplateBase<M, BLOCK>::Pop(M* pvData)
 {
-	return ARRAY_BLOCK::Pop(pvData);
+	return BLOCK::Pop(pvData);
 }
 
 
@@ -150,10 +153,10 @@ bool ARRAY_TEMPLATE<M>::Pop(M* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE<M>::Pop(void)
+template<class M, class BLOCK>
+bool CArrayTemplateBase<M, BLOCK>::Pop(void)
 {
-	return ARRAY_BLOCK::Pop();
+	return BLOCK::Pop();
 }
 
 
@@ -161,10 +164,10 @@ bool ARRAY_TEMPLATE<M>::Pop(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::Tail(void)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::Tail(void)
 {
-	return (M*)ARRAY_BLOCK::Tail();
+	return (M*)BLOCK::Tail();
 }
 
 
@@ -172,10 +175,10 @@ M* ARRAY_TEMPLATE<M>::Tail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::AddIfUnique(M* pvData)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::AddIfUnique(M* pvData)
 {
-	return ARRAY_BLOCK::AddIfUnique(pvData);
+	return BLOCK::AddIfUnique(pvData);
 }
 
 
@@ -183,10 +186,10 @@ ASIZE ARRAY_TEMPLATE<M>::AddIfUnique(M* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::Find(M* pvData)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::Find(M* pvData)
 {
-	return ARRAY_BLOCK::Find(pvData);
+	return BLOCK::Find(pvData);
 }
 
 
@@ -194,10 +197,10 @@ ASIZE ARRAY_TEMPLATE<M>::Find(M* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE<M>::Contains(M* pvData)
+template<class M, class BLOCK>
+bool CArrayTemplateBase<M, BLOCK>::Contains(M* pvData)
 {
-	return ARRAY_BLOCK::Contains(pvData);
+	return BLOCK::Contains(pvData);
 }
 
 
@@ -205,10 +208,10 @@ bool ARRAY_TEMPLATE<M>::Contains(M* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::AddIfUniqueKey(M* pvData, ASIZE iKeyOffset, ASIZE iKeySize)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::AddIfUniqueKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize)
 {
-	return ARRAY_BLOCK::AddIfUniqueKey(pvData, iKeyOffset, iKeySize);
+	return BLOCK::AddIfUniqueKey(pvData, iKeyOffset, iKeySize);
 }
 
 
@@ -216,10 +219,10 @@ ASIZE ARRAY_TEMPLATE<M>::AddIfUniqueKey(M* pvData, ASIZE iKeyOffset, ASIZE iKeyS
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::FindWithKey(M* pvData, ASIZE iKeyOffset, ASIZE iKeySize)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::FindWithKey(M* pvData, typename BLOCK::Count iKeyOffset, typename BLOCK::Count iKeySize)
 {
-	return ARRAY_BLOCK::FindWithKey(pvData, iKeyOffset, iKeySize);
+	return BLOCK::FindWithKey(pvData, iKeyOffset, iKeySize);
 }
 
 
@@ -227,10 +230,10 @@ ASIZE ARRAY_TEMPLATE<M>::FindWithKey(M* pvData, ASIZE iKeyOffset, ASIZE iKeySize
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE<M>::Equals(ARRAY_TEMPLATE<M>* pcOtherArray)
+template<class M, class BLOCK>
+bool CArrayTemplateBase<M, BLOCK>::Equals(CArrayTemplateBase<M, BLOCK>* pcOtherArray)
 {
-	return ARRAY_BLOCK::Equals(pcOtherArray);
+	return BLOCK::Equals(pcOtherArray);
 }
 
 
@@ -238,10 +241,10 @@ bool ARRAY_TEMPLATE<M>::Equals(ARRAY_TEMPLATE<M>* pcOtherArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting)
 {
-	return ARRAY_BLOCK::InsertIntoSorted(fCompare, pvData, bOverwriteExisting);
+	return BLOCK::InsertIntoSorted(fCompare, pvData, bOverwriteExisting);
 }
 
 
@@ -249,10 +252,10 @@ ASIZE ARRAY_TEMPLATE<M>::InsertIntoSorted(DataCompare fCompare, M* pvData, bool 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool ARRAY_TEMPLATE<M>::FindInSorted(M* pvData, DataCompare fCompare, ASIZE* piIndex)
+template<class M, class BLOCK>
+bool CArrayTemplateBase<M, BLOCK>::FindInSorted(M* pvData, DataCompare fCompare, typename BLOCK::Count* piIndex)
 {
-	return ARRAY_BLOCK::FindInSorted(pvData, fCompare, piIndex);
+	return BLOCK::FindInSorted(pvData, fCompare, piIndex);
 }
 
 
@@ -260,10 +263,10 @@ bool ARRAY_TEMPLATE<M>::FindInSorted(M* pvData, DataCompare fCompare, ASIZE* piI
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertArrayAfterEnd(ARRAY_TEMPLATE<M>* pcOtherArray)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertArrayAfterEnd(CArrayTemplateBase<M, BLOCK>* pcOtherArray)
 {
-	return (M*)ARRAY_BLOCK::InsertArrayAfterEnd(pcOtherArray);
+	return (M*)BLOCK::InsertArrayAfterEnd(pcOtherArray);
 }
 
 
@@ -271,10 +274,10 @@ M* ARRAY_TEMPLATE<M>::InsertArrayAfterEnd(ARRAY_TEMPLATE<M>* pcOtherArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertArrayBeforeStart(ARRAY_TEMPLATE<M>* pcOtherArray)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertArrayBeforeStart(CArrayTemplateBase<M, BLOCK>* pcOtherArray)
 {
-	return (M*)ARRAY_BLOCK::InsertArrayBeforeStart(pcOtherArray);
+	return (M*)BLOCK::InsertArrayBeforeStart(pcOtherArray);
 }
 
 
@@ -282,10 +285,10 @@ M* ARRAY_TEMPLATE<M>::InsertArrayBeforeStart(ARRAY_TEMPLATE<M>* pcOtherArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertArrayAt(ARRAY_TEMPLATE<M>* pcOtherArray, ASIZE iIndex)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertArrayAt(CArrayTemplateBase<M, BLOCK>* pcOtherArray, typename BLOCK::Count iIndex)
 {
-	return (M*)ARRAY_BLOCK::InsertArrayAt(pcOtherArray, iIndex);
+	return (M*)BLOCK::InsertArrayAt(pcOtherArray, iIndex);
 }
 
 
@@ -293,10 +296,10 @@ M* ARRAY_TEMPLATE<M>::InsertArrayAt(ARRAY_TEMPLATE<M>* pcOtherArray, ASIZE iInde
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertNumAt(ASIZE iNumElements, ASIZE iIndex)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertNumAt(typename BLOCK::Count iNumElements, typename BLOCK::Count iIndex)
 {
-	return this->PostMalloc((M*)ARRAY_BLOCK::InsertNumAt(iNumElements, iIndex), iNumElements, miElementSize);
+	return this->PostMalloc((M*)BLOCK::InsertNumAt(iNumElements, iIndex), iNumElements, this->miElementSize);
 }
 
 
@@ -304,10 +307,10 @@ M* ARRAY_TEMPLATE<M>::InsertNumAt(ASIZE iNumElements, ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertBlockAfterEnd(M* paElements, ASIZE iLength)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertBlockAfterEnd(M* paElements, typename BLOCK::Count iLength)
 {
-	return (M*)ARRAY_BLOCK::InsertBlockAfterEnd(paElements, iLength);
+	return (M*)BLOCK::InsertBlockAfterEnd(paElements, iLength);
 }
 
 
@@ -315,10 +318,10 @@ M* ARRAY_TEMPLATE<M>::InsertBlockAfterEnd(M* paElements, ASIZE iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertBlockBeforeStart(M* paElements, ASIZE iLength)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertBlockBeforeStart(M* paElements, typename BLOCK::Count iLength)
 {
-	return (M*)ARRAY_BLOCK::InsertBlockBeforeStart(paElements, iLength);
+	return (M*)BLOCK::InsertBlockBeforeStart(paElements, iLength);
 }
 
 
@@ -326,10 +329,10 @@ M* ARRAY_TEMPLATE<M>::InsertBlockBeforeStart(M* paElements, ASIZE iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::InsertBlockAt(M* paElements, ASIZE iLength, ASIZE iIndex)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::InsertBlockAt(M* paElements, typename BLOCK::Count iLength, typename BLOCK::Count iIndex)
 {
-	return (M*)ARRAY_BLOCK::InsertBlockAt(paElements, iLength, iIndex);
+	return (M*)BLOCK::InsertBlockAt(paElements, iLength, iIndex);
 }
 
 
@@ -337,10 +340,10 @@ M* ARRAY_TEMPLATE<M>::InsertBlockAt(M* paElements, ASIZE iLength, ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::Get(ASIZE iIndex)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::Get(typename BLOCK::Count iIndex)
 {
-	return (M*)ARRAY_BLOCK::Get(iIndex);
+	return (M*)BLOCK::Get(iIndex);
 }
 
 
@@ -348,10 +351,10 @@ M* ARRAY_TEMPLATE<M>::Get(ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::GetIndex(M* pvData)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::GetIndex(M* pvData)
 {
-	return ARRAY_BLOCK::GetIndex(pvData);
+	return BLOCK::GetIndex(pvData);
 }
 
 
@@ -359,10 +362,10 @@ ASIZE ARRAY_TEMPLATE<M>::GetIndex(M* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* ARRAY_TEMPLATE<M>::GetData(void)
+template<class M, class BLOCK>
+M* CArrayTemplateBase<M, BLOCK>::GetData(void)
 {
-	return (M*)ARRAY_BLOCK::GetData();
+	return (M*)BLOCK::GetData();
 }
 
 
@@ -370,10 +373,10 @@ M* ARRAY_TEMPLATE<M>::GetData(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void ARRAY_TEMPLATE<M>::Fake(M* pvData, ASIZE iNum, ASIZE iChunkSize)
+template<class M, class BLOCK>
+void CArrayTemplateBase<M, BLOCK>::Fake(M* pvData, typename BLOCK::Count iNum, typename BLOCK::Count iChunkSize)
 {
-	ARRAY_BLOCK::Fake(sizeof(M), pvData, iNum, iChunkSize);
+	BLOCK::Fake(sizeof(M), pvData, iNum, iChunkSize);
 }
 
 
@@ -381,8 +384,8 @@ void ARRAY_TEMPLATE<M>::Fake(M* pvData, ASIZE iNum, ASIZE iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M& ARRAY_TEMPLATE<M>::operator[](ASIZE iIndex)
+template<class M, class BLOCK>
+M& CArrayTemplateBase<M, BLOCK>::operator[](typename BLOCK::Count iIndex)
 {
 	return ((M*)this->mpvArray)[iIndex];
 }
@@ -392,10 +395,10 @@ M& ARRAY_TEMPLATE<M>::operator[](ASIZE iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::RemoveArray(ARRAY_TEMPLATE<M>* pcOtherArray, bool bPreserveOrder)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::RemoveArray(CArrayTemplateBase<M, BLOCK>* pcOtherArray, bool bPreserveOrder)
 {
-	return ARRAY_BLOCK::RemoveArray(pcOtherArray, bPreserveOrder);
+	return BLOCK::RemoveArray(pcOtherArray, bPreserveOrder);
 }
 
 
@@ -403,8 +406,12 @@ ASIZE ARRAY_TEMPLATE<M>::RemoveArray(ARRAY_TEMPLATE<M>* pcOtherArray, bool bPres
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-ASIZE ARRAY_TEMPLATE<M>::RemoveArrayFromSorted(ARRAY_TEMPLATE<M>* pcOtherArray, DataCompare fCompare)
+template<class M, class BLOCK>
+typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::RemoveArrayFromSorted(CArrayTemplateBase<M, BLOCK>* pcOtherArray, DataCompare fCompare)
 {
-	return ARRAY_BLOCK::RemoveArrayFromSorted(pcOtherArray, fCompare);
+	return BLOCK::RemoveArrayFromSorted(pcOtherArray, fCompare);
 }
+
+
+#endif // __ARRAY_TEMPLATE_BASE_H__
+

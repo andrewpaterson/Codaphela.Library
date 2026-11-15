@@ -50,6 +50,10 @@ class CRandom;
 template<class SIZE>
 class CArrayBlockBase : public CMalloc, protected SArrayHeaderBase<SIZE>
 {
+public:
+	typedef SIZE					SizePolicy;		//The arrays deriving from it are written with these.
+	typedef typename SIZE::Count	Count;
+
 protected:
 	using SArrayHeaderBase<SIZE>::miElementSize;
 	using SArrayHeaderBase<SIZE>::miUsedElements;

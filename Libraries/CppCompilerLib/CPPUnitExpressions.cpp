@@ -453,7 +453,8 @@ CCPPSymbol* CCPPUnit::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pc
 //
 // The member of the kind eKind Class::Name names, where Class is a class, an instance of a class template, a typedef of
 // one or a template parameter, and in ppsClass the class that declares it: a member of an instance can depend on its
-// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.
+// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.  A qualifier the parser
+// couldn't resolve is found in the class before it (QualifiersClass): TEMPLATE::SizePolicy::NotFound.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass)
@@ -468,28 +469,104 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 		return NULL;
 	}
 	pcQualifier = pcName->GetQualifier();
-	if (!pcQualifier || !pcQualifier->mpcSymbol)
+	if (!pcQualifier)
 	{
 		return NULL;
 	}
-	switch (pcQualifier->mpcSymbol->meKind)
+	if (pcQualifier->mpcSymbol)
 	{
-	case CPPSK_Class:
-	case CPPSK_ClassTemplate:
-	case CPPSK_Typedef:
-	case CPPSK_TypeParameter:
-		break;
-	default:
+		switch (pcQualifier->mpcSymbol->meKind)
+		{
+		case CPPSK_Class:
+		case CPPSK_ClassTemplate:
+		case CPPSK_Typedef:
+		case CPPSK_TypeParameter:
+			break;
+		default:
+			return NULL;
+		}
+	}
+	else if (pcName->macpComponents.NumElements() < 3)
+	{
 		return NULL;
 	}
 
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
-	pcClass = GetComponentClass(pcQualifier, NULL, pcNode);
+	pcClass = pcQualifier->mpcSymbol ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
 	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
 	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class pcName's qualifiers (its components before the last) name.  The parser leaves a name in a template that
+// depends on its arguments unresolved: such a component is the member typedef or class of that name of the class the
+// components before it name, worked out with the bindings of the class that declares it (in TEMPLATE::SizePolicy,
+// SizePolicy is a typedef of the class TEMPLATE is bound to, or of one of its bases).  NULL if one isn't a class.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPClass*				pcClass;
+	CCPPClass*				pcDeclaring;
+	CCPPSymbol*					pcMember;
+	SCPP65Type*					psType;
+	int64						lliName;
+	size						i;
+
+	pcClass = NULL;
+	for (i = 0; i + 1 < pcName->macpComponents.NumElements(); i++)
+	{
+		pcComponent = (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(i);
+		if (pcComponent->mpcSymbol && (pcComponent->mpcSymbol->meKind == CPPSK_Namespace))
+		{
+			pcClass = NULL;
+			continue;
+		}
+		if (pcComponent->mpcSymbol || !pcClass)
+		{
+			pcClass = GetComponentClass(pcComponent, NULL, pcNode);
+		}
+		else
+		{
+			if (!CompleteClass(pcClass, pcNode))
+			{
+				return NULL;
+			}
+			lliName = GetComponentName(pcComponent);
+			pcDeclaring = NULL;
+			pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Typedef, &pcDeclaring);
+			if (!pcMember)
+			{
+				pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Class, &pcDeclaring);
+			}
+			if (!pcMember)
+			{
+				return NULL;
+			}
+			mcContext.EnterBindings(pcDeclaring->mpcBindings);
+			if (pcMember->meKind == CPPSK_Typedef)
+			{
+				psType = mcDeclarators.GetSymbolType(pcMember, pcNode);
+				pcClass = (psType && psType->IsClass()) ? psType->pcClass : NULL;
+			}
+			else
+			{
+				pcClass = GetComponentClass(pcComponent, pcMember, pcNode);
+			}
+			mcContext.LeaveBindings();
+		}
+		if (!pcClass)
+		{
+			return NULL;
+		}
+	}
+	return pcClass;
 }
 
 

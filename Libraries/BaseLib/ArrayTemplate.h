@@ -26,13 +26,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayBlock.h"
 
 
-#include "ArraySizeNatural.inl"
 #include "ArrayTemplate.inl"
-#include "ArraySizeUndef.inl"
 
-#include "ArraySizeLarge.inl"
-#include "ArrayTemplate.inl"
-#include "ArraySizeUndef.inl"
+
+//The names the arrays are known by: each is the array of its block, so a CArrayTemplate<M> is a CArrayBlock.
+template<class M> class CArrayTemplate : public CArrayTemplateBase<M, CArrayBlock> {};
+template<class M> class CArrayLargeTemplate : public CArrayTemplateBase<M, CArrayLargeBlock> {};
 
 
 #endif // __TEMPLATE_ARRAY_H__
