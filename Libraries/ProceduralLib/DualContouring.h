@@ -46,9 +46,11 @@ protected:
 };
 
 
-//A quad of corners anticlockwise seen from outside, as two triangles split along the diagonal whose middle is nearer the surface.
-//Across a box's edge, two of the quad's corners are on the edge, and the diagonal between them follows it.
-void	IsosurfaceAddQuad(CMeshEditor* pcMeshEditor, CShape* pcShape, int* paiCorners, int iFaceName);
+//A quad of corners anticlockwise seen from outside (along psNormal, the surface's at its edge's crossing), as two triangles: the
+//split whose triangles both face along psNormal if only one does, else the one whose diagonal's middle is nearer the surface
+//(across a box's edge, two of the quad's corners are on the edge, and the diagonal between them follows it), else the one whose
+//smaller triangle is larger.
+void	IsosurfaceAddQuad(CMeshEditor* pcMeshEditor, CShape* pcShape, int* paiCorners, SFloat32Vec3* psNormal, int iFaceName);
 
 
 #endif // __DUAL_CONTOURING_H__

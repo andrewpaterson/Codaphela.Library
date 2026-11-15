@@ -138,7 +138,7 @@ void CDualContouring::Generate(CMeshEditor* pcMeshEditor, CIsosurfaceGrid* pcGri
 						aiCorners[1] = aiCorners[3];
 						aiCorners[3] = iSwap;
 					}
-					IsosurfaceAddQuad(pcMeshEditor, pcShape, aiCorners, iFaceName);
+					IsosurfaceAddQuad(pcMeshEditor, pcShape, aiCorners, &pcGrid->GetCrossing(x, y, z, iAxis)->sNormal, iFaceName);
 				}
 			}
 		}
@@ -200,16 +200,89 @@ bool CDualContouring::FitCell(SFloat32Vec3* psDest, CIsosurfaceGrid* pcGrid, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void IsosurfaceAddQuad(CMeshEditor* pcMeshEditor, CShape* pcShape, int* paiCorners, int iFaceName)
+static float32 IsosurfaceTwiceArea(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3)
+{
+	SFloat32Vec3	sSide1;
+	SFloat32Vec3	sSide2;
+	SFloat32Vec3	sCross;
+
+	sSide1 = *pcMesh->GetPosition(iCorner2) - *pcMesh->GetPosition(iCorner1);
+	sSide2 = *pcMesh->GetPosition(iCorner3) - *pcMesh->GetPosition(iCorner1);
+	Float32Vec3Cross(&sCross, &sSide1, &sSide2);
+	return (float32)sCross.Magnitude();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsosurfaceFacesAlong(CMesh* pcMesh, int iCorner1, int iCorner2, int iCorner3, SFloat32Vec3* psNormal)
+{
+	SFloat32Vec3	sSide1;
+	SFloat32Vec3	sSide2;
+	SFloat32Vec3	sCross;
+
+	sSide1 = *pcMesh->GetPosition(iCorner2) - *pcMesh->GetPosition(iCorner1);
+	sSide2 = *pcMesh->GetPosition(iCorner3) - *pcMesh->GetPosition(iCorner1);
+	Float32Vec3Cross(&sCross, &sSide1, &sSide2);
+	return Float32Vec3Dot(&sCross, psNormal) > 0.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A split with a triangle facing against the crossing's normal folds over
+// its neighbours.  Where both diagonals' middles are as near the surface
+// (within a thousandth of the quad's longer diagonal), the split whose
+// smaller triangle is larger: three corners along one edge of a box make
+// a sliver, which could face either way.
+//
+//////////////////////////////////////////////////////////////////////////
+void IsosurfaceAddQuad(CMeshEditor* pcMeshEditor, CShape* pcShape, int* paiCorners, SFloat32Vec3* psNormal, int iFaceName)
 {
 	SFloat32Vec3	sMiddle02;
 	SFloat32Vec3	sMiddle13;
+	SFloat32Vec3	sDiagonal;
 	CMesh*			pcMesh;
+	float32			fDistance02;
+	float32			fDistance13;
+	float32			fLongest;
+	float32			fSmaller02;
+	float32			fSmaller13;
+	bool			bSplit02;
+	bool			bAlong02;
+	bool			bAlong13;
 
 	pcMesh = &pcMeshEditor->mpMesh;
 	sMiddle02 = (*pcMesh->GetPosition(paiCorners[0]) + *pcMesh->GetPosition(paiCorners[2])) * 0.5f;
 	sMiddle13 = (*pcMesh->GetPosition(paiCorners[1]) + *pcMesh->GetPosition(paiCorners[3])) * 0.5f;
-	if (fabsf(pcShape->Distance(&sMiddle02)) <= fabsf(pcShape->Distance(&sMiddle13)))
+	fDistance02 = fabsf(pcShape->Distance(&sMiddle02));
+	fDistance13 = fabsf(pcShape->Distance(&sMiddle13));
+
+	sDiagonal = *pcMesh->GetPosition(paiCorners[2]) - *pcMesh->GetPosition(paiCorners[0]);
+	fLongest = (float32)sDiagonal.Magnitude();
+	sDiagonal = *pcMesh->GetPosition(paiCorners[3]) - *pcMesh->GetPosition(paiCorners[1]);
+	fLongest = fmaxf(fLongest, (float32)sDiagonal.Magnitude());
+
+	bAlong02 = IsosurfaceFacesAlong(pcMesh, paiCorners[0], paiCorners[1], paiCorners[2], psNormal) && IsosurfaceFacesAlong(pcMesh, paiCorners[0], paiCorners[2], paiCorners[3], psNormal);
+	bAlong13 = IsosurfaceFacesAlong(pcMesh, paiCorners[0], paiCorners[1], paiCorners[3], psNormal) && IsosurfaceFacesAlong(pcMesh, paiCorners[1], paiCorners[2], paiCorners[3], psNormal);
+	if (bAlong02 != bAlong13)
+	{
+		bSplit02 = bAlong02;
+	}
+	else if (fabsf(fDistance02 - fDistance13) > (fLongest * 0.001f))
+	{
+		bSplit02 = fDistance02 < fDistance13;
+	}
+	else
+	{
+		fSmaller02 = fminf(IsosurfaceTwiceArea(pcMesh, paiCorners[0], paiCorners[1], paiCorners[2]), IsosurfaceTwiceArea(pcMesh, paiCorners[0], paiCorners[2], paiCorners[3]));
+		fSmaller13 = fminf(IsosurfaceTwiceArea(pcMesh, paiCorners[0], paiCorners[1], paiCorners[3]), IsosurfaceTwiceArea(pcMesh, paiCorners[1], paiCorners[2], paiCorners[3]));
+		bSplit02 = fSmaller02 >= fSmaller13;
+	}
+
+	if (bSplit02)
 	{
 		pcMeshEditor->AddFace(paiCorners[0], paiCorners[1], paiCorners[2], iFaceName);
 		pcMeshEditor->AddFace(paiCorners[0], paiCorners[2], paiCorners[3], iFaceName);
