@@ -1,11 +1,13 @@
-The macro-made array classes as templates (plan, 2026-11-15)
-=============================================================
+The macro-made array classes as templates (plan, 2026-11-15; the user's answers the same day)
+==============================================================================================
 
 The intent (the user, 2026-11-15): turn the classes a macro makes, ARRAY_BLOCK and the rest, into templated classes
 that work on ordinary 32 and 64 bit targets as well as the 16 bit W65C816.
 
-This is a plan only.  Nothing in it has been built or tried.  What was read to write it is under "What is there
-now"; what is not known is under "Not known" and must be found out before the larger steps are taken.
+Where it is: the questions the plan started with are answered (under "Answered", the user's rulings and what was
+found).  The compiler work they needed is done: the CPP65 compiler honours explicit instantiation and extern
+template on both targets (step 1).  BaseLib itself is untouched: the next step is step 0, then step 2.  A session
+picking this up starts at "Steps".
 
 
 Why
@@ -31,7 +33,8 @@ needs nothing built for it.
 What is there now
 -----------------
 
-Read 2026-11-15 in D:\gameengine\CommonLibraries\Libraries\BaseLib:
+Read 2026-11-15 in D:\gameengine\CommonLibraries\Libraries\BaseLib (Windows) and
+~/Codaphela/CommonLibraries/Libraries/BaseLib (Linux), the same sources:
 
   - ArraySizeNatural.inl and ArraySizeLarge.inl #define, and ArraySizeUndef.inl #undefs:
         the class names above, and CHARS_NATURAL (CChars, in the large inclusion only);
@@ -54,12 +57,13 @@ Read 2026-11-15 in D:\gameengine\CommonLibraries\Libraries\BaseLib:
   - ArrayBlockCode.inl and CharsCode.inl are compiled once each, in ArrayBlock.cpp and Chars.cpp (included twice
     there).  ArrayTemplate.inl and ArrayTemplatePrimitive.inl are templates already and are in their headers.
   - ARRAY_TEMPLATE<M> is "class ARRAY_TEMPLATE : public ARRAY_BLOCK, protected CPostMalloc<M>".
-  - "class CChars;" is declared ahead of its definition in at least 11 headers (BaseLib's ArrayBlockSorted.h,
-    CalcObject.h, CharsImmutable.h, ErrorHandler.h, Killable.h, Line.h, TextPosition.h; CppCompilerLib's
-    CPPTarget.h, PPTokenBlockIndex.h, PreprocessorPosition.h; TestLib's AssertStatistics.h).  Other libraries and
-    the other repositories were not searched.
-  - The C++ compiler's parser accepts "extern template" (CppParserClasses.cpp sets mbExtern) and the unit has code
-    for explicit instantiation (CPPUnitTemplates.cpp, mbInstantiation).
+  - "class CChars;" is declared ahead of its definition in 13 files of all the repositories (counted 2026-11-15
+    over CommonLibraries, HCP65, HCP65-IDE, LogiCim, IntoOblivionX, StarControlRedux, Tide, Pico and
+    WindowInputTester: among them BaseLib's ArrayBlockSorted.h, CalcObject.h, CharsImmutable.h, ErrorHandler.h,
+    Killable.h, Line.h, TextPosition.h; CppCompilerLib's CPPTarget.h, PPTokenBlockIndex.h, PreprocessorPosition.h;
+    TestLib's AssertStatistics.h).  No file declares CLargeChars, CArrayBlock, CArrayLargeBlock, CArrayChar or
+    CArrayLargeChar ahead, and none declares CArrayTemplate or the other templates ahead.  57 files name one of the
+    large classes (CLargeChars, CArrayLargeBlock, CArrayLargeTemplate, ...).
 
 
 The design proposed
@@ -70,7 +74,7 @@ The design proposed
         struct SArrayNaturalSize
         {
             typedef size    Count;
-            static const size   Max = MAX_SIZE;             //or an enumerator, or an inline function: see 16 bit
+            static const size   Max = MAX_SIZE;             //a constant on every target: (d)
             static const size   NotFound = ARRAY_ELEMENT_NOT_FOUND;
             static const bool   CheckSize = (true where SIZE_16, else false);
 
@@ -104,62 +108,123 @@ The design proposed
 
 4. The code stays compiled once.  ArrayBlock.cpp and Chars.cpp instantiate the templates explicitly
    ("template class CArrayBlockBase<SArrayNaturalSize>;" and the large one), and the headers declare them
-   "extern template", so no other file compiles their bodies.  This is what keeps compile time and the 816's code
-   size where they are.  It depends on the first of "Not known".
+   "extern template", so no other file compiles their bodies.  This is what keeps compile time where it is (the
+   816's code size is safe either way: (b)).  MSVC, g++ and the CPP65 compiler all honour it: (a).
+
+   What extern template leaves out, on every compiler: the functions defined outside the class without inline
+   or constexpr.  Those defined in the class are inline and still compiled by each unit that calls them, as
+   they are now; so ArrayBlockCode.inl's and CharsCode.inl's functions stay defined outside the class, without
+   inline, and the few short ones in the class stay in it.  A member template of the class (ArrayTemplate.inl
+   has none that matter) isn't instantiated by "template class" and is compiled where used.
 
 
-Not known (find out first)
---------------------------
+Answered (2026-11-15)
+---------------------
 
-  a. Whether the CPP65 compiler's W65C816 (and 65C64) code generators honour explicit instantiation and
-     "extern template": the parser and the unit have the code, the generators weren't read.  If they don't, either
-     that is built in the compiler first or the bodies go to headers and every unit compiles them.
-  b. Whether, without (a), duplicate instances from several units are folded by the linker, and what the ROM's size
-     becomes.  The FAT and kernal code must stay small.
-  c. Whether MSVC, and GCC or Clang on Linux (WSL has the build tools), compile the same text: typename where a
-     dependent type needs it, this-> or a using for a member of a dependent base (CArrayTemplateBase<M, SIZE> names
-     miUsedElements of CArrayBlockBase<SIZE>: MSVC lets that through without this->, the others don't).
-  d. Whether "static const size Max = MAX_SIZE;" in a struct is something the 816 compiler takes as a constant
-     (memory: static locals there need constants of the exact type); an enum or an inline function may be needed.
-  e. Every place outside BaseLib that names ASIZE, ARRAY_BLOCK or the other macro names directly (9 files had
-     ASIZE when counted from Libraries; the other repositories weren't searched).
-  f. What CArrayBlock's shrink and free behaviour is relied on for: it is not to change (the user's ruling, kept in
-     memory as "CArrayBlock releases memory").  This plan changes no behaviour, only what the classes are written
-     as; a step that would change behaviour is out of it.
+  a. Do the CPP65 compiler's W65C816 and 65C64 code generators honour explicit instantiation and extern template?
+     The user's ruling: yes, they must; where they don't, the compiler is fixed.  What was found: "template class
+     X<A>;" already generated every member; "extern template" was parsed and ignored, so each unit compiled the
+     bodies again (correct, only slower); "template int f<int>(int);" was an error.  Now (CppCompilerLib,
+     CCPPUnit::ExplicitInstantiation, ExplicitFunctionInstantiation, IsInstantiatedElsewhere):
+       - extern template class X<A>; a unit doesn't generate X<A>'s functions defined outside the class that
+         aren't inline or constexpr: their labels are externals.  Those defined in the class, and the
+         constructors, destructors and vtables the compiler writes, are still generated by the unit (COMDAT, as
+         before).  [temp.explicit] 10.
+       - template int f<int>(int); and template int f(int); generate the function template's instance; extern
+         template ... of either makes it an external, unless the template is inline or constexpr.
+       - An explicit instantiation after an extern one in the same unit generates (Instances.cpp includes the
+         header with the extern declarations, then instantiates).
+       - The explicit instantiation's functions are still COMDAT sections, so a unit without the extern
+         declaration that makes its own copy links (the linker keeps one).  A library unit (linked only when
+         used, as BaseLib's are) that holds the instantiation is linked for the labels the others use.
+       - The IDE's checks and the index (the semantic pass) check every function as before.
+     Not done (not needed by this plan): explicitly instantiating one member ("template void X<int>::f();", an
+     error as before); a function template overloaded by another of the same name picks the first.
+     Tests: TestCppCompilerLib's TestCPP65GeneratorExternTemplates (the externals a unit is left with),
+     TestCPP65GeneratorExternTemplateProject and TestCPP816ExternTemplateProject (Input/CPP65/
+     ExternTemplateProject: a size policy of this plan's shape, extern in Counter.h, instantiated in
+     Instances.cpp, used by Main.cpp; run on both targets, and on the 816 with Instances.cpp a library unit).
+  b. Without (a), are the duplicates folded, and what happens to the ROM's size?  Answered by reading: every
+     template instance (and inline function) is written in a COMDAT section and the linker keeps one, so the
+     ROM never held duplicates; the cost was only compile time.  With (a) the units don't compile them at all.
+  c. Must the text compile under g++ and MSVC?  The user's ruling: Codaphela must compile under both g++ and MSVC.
+     So the converted text follows the rules both take: "typename SIZE::Count" wherever a type depends on the
+     policy, and "this->miUsedElements" (or "using CArrayBlockBase<SIZE>::miUsedElements;" in the class) for every
+     member of a base that depends on a template parameter: MSVC finds them without, g++ doesn't.
+     ExternTemplateProject is written that way and builds with g++ -std=c++14 -Wall -Wextra -pedantic with no
+     warnings, and its Main.o leaves every non-inline instance function (and the vtables) undefined.  MSVC
+     can't be built on Linux: each step is built with MSVC on Windows too (by the user or a Windows session)
+     before it is called done.
+  d. Is "static const size Max = MAX_SIZE;" in a struct a constant to the 816 compiler?  The user's ruling: it
+     should be, and if it isn't that is a gap to fix.  It wasn't, on either target, and is fixed:
+       - As a constant (an array size, a template argument, a case label), a static const member wasn't one,
+         even SNarrow::Max; SIZE::Max wasn't found at all.  CCPPUnit::Constant now takes a static const member
+         initialised in its class, by its class, by a template parameter bound to its class, or in its class,
+         worked out with the bindings of the class that declares it.
+       - As a value (if (SIZE::Check), switch (SIZE::Max), STwice<7>::Value) it was loaded from memory, from a
+         label nothing defines when the member has no definition outside the class (and SIZE::Max didn't bind at
+         all).  Its value is now the constant (CCPPUnit::IsConstantMember, in CCPP65TypeChecker::IdExpression and
+         the IR front end), so it needs no definition, as in C++.  Its address or a reference to it still does.
+       - A static member is now the variable of the class the name means (CCPPBinder::BindName): each instance
+         of a class template has its own, under the template's one symbol, and the first instance's was taken.
+     Tests: TestCPP65GeneratorStaticConstMembers and TestCPP816StaticConstMembers, and ExternTemplateProject.
+  e. Who names ASIZE, ARRAY_BLOCK and the other macros outside BaseLib's array files?  The user's ruling: all the
+     repositories are checked out under ~/Codaphela, so work it out, and make sure the full test sweep compiles
+     (the matrix of the memory note "Run all tests scope").  Found 2026-11-15, searching every .h/.cpp/.inl/.c of
+     all the repositories for ASIZE, ARRAY_BLOCK, ARRAY_CHAR, CHARS, ARRAY_TEMPLATE, ARRAY_TEMPLATE_PRIMITIVE,
+     ARRAY_HEADER, CHARS_NATURAL, ARRAY_SIZE_MAX, ARRAY_NOT_FOUND, ARRAY_MEM*, ARRAY_CHECK_SIZE and the
+     ArraySize*.inl names: only the 19 files of the five families (ArrayBlock, ArrayChar, Chars, ArrayTemplate,
+     ArrayTemplatePrimitive, and ArraySizeNatural/Large/Undef.inl).  Outside them they are named only in comments
+     (CppCompilerLib's CPPIndex.cpp and CPPIndex.h, HCP65-IDE's IDEConvertMacro.h) and in TestCppIndex.cpp's
+     test of a class a macro names, which defines its own ARRAY_BLOCK and stays.  Users name the classes
+     (CChars, CArrayTemplate<M>, ...), which the derived classes keep.  Search again before step 5 deletes the
+     macros, and build the whole sweep after each step.
+  f. CArrayBlock's shrink and free behaviour.  The user's ruling: it stays how it is, unless keeping it becomes a
+     massive task to maintain; if it does, stop and ask.  The conversion changes what the classes are written as,
+     not what they do, so it is expected to stay as it is for free.
 
 
 Steps
 -----
 
-Each step ends with the suites passing and a commit.  Stop and go back to the user after step 2.
+Each step ends with the full sweep building (e), the suites passing and a commit.  Stop and go back to the user
+after step 2.
 
   0. Measure what there is: the build time of BaseLib and of one large user (Release x64), the 816 ROM's size and
      the code size of the array classes in it, and TestBaseLib, TestBaseLib65 and TestStandardLib65 passing.  These
-     are what steps 1 and 2 are compared with.
-  1. Find out (a) to (d) with a class of a dozen lines, not with CArrayBlock: a template with a policy parameter,
-     instantiated explicitly in one .cpp and declared extern in a header two units include, built for the host,
-     for Linux and for the 816.  Write down what each compiler does.  If the 816 compiler needs work for (a), that
-     work is a step of its own, agreed with the user (it is the CppCompilerLib session's ground).
+     are what step 2 is compared with.  Not started.
+  1. Done 2026-11-15: (a) to (d) found out with ExternTemplateProject, a class of a few dozen lines, on g++, the
+     65C64 and the 816; the compiler made to honour extern template and function template instantiation, and
+     static const members made constants (d).  TestCppCompilerLib passes, Release x64 on Linux.  Not done:
+     building the compiler and the test with MSVC (on Windows).
   2. CArrayBlock alone, as a spike: the policy structs, CArrayBlockBase<SIZE> from ArrayBlockClass.inl and
-     ArrayBlockCode.inl, the two derived classes, explicit instantiation in ArrayBlock.cpp.  ARRAY_TEMPLATE and the
-     others still derive from the name CArrayBlock, which is still a class, so nothing else changes.  Compare with
-     step 0: the suites, the build time, the ROM's size.  Back to the user with the numbers before going on.
+     ArrayBlockCode.inl, the two derived classes, explicit instantiation in ArrayBlock.cpp and extern template
+     in ArrayBlock.h.  ARRAY_TEMPLATE and the others still derive from the name CArrayBlock, which is still a
+     class, so nothing else changes.  Compare with step 0: the suites, the build time, the ROM's size.  Check
+     that no object grew: sizeof CArrayBlock, CArrayLargeBlock, CChars and CArrayTemplate<int> before and after,
+     on MSVC, g++ 32 and 64 bit and both 65 targets (the user asked how much larger each array becomes: the
+     answer expected is 0 bytes, since the policy has no data and the derived classes add nothing).  Back to the
+     user with the numbers before going on.
   3. CArrayTemplate<M> and CArrayTemplatePrimitive<M> (ArrayTemplate.inl, ArrayTemplatePrimitive.inl): they are
-     templates already, so this is the second parameter and the derived templates of the old names.
+     templates already, so this is the second parameter and the derived templates of the old names.  Their code
+     is in their headers and stays there (M isn't known in a .cpp); this->, not extern template, is the work.
   4. CArrayChar, then CChars (the largest: CharsCode.inl, and CHARS_NATURAL).
   5. ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
-     projects' files (vcxproj, filters, CMakeLists.txt) put right; the IDE's Refactorings.txt (T6) and
-     RefactoringQuestions.txt (48) told that it is done.
+     projects' files (vcxproj, filters, CMakeLists.txt) put right; the comments that name the macros (e) brought
+     up to date; the IDE's Refactorings.txt (T6) and RefactoringQuestions.txt (48) told that it is done.
 
 
 What the session that does this needs to know
 ---------------------------------------------
 
   - Build Release x64.  Before a Release x64 build or suite run, see whether another session is running and tell
-    it (the CppCompilerLib session builds the same outputs); Debug x64 never clashes.
-  - The suites to run are the user's list, not every project found: ask, or see the memory note "Test sweep
-    how-to".  The *65 suites are run for this work, because it is about the 816; for ordinary feature work they
-    aren't.
+    it (the CppCompilerLib session builds the same outputs); Debug x64 never clashes.  On Linux, build in a
+    private build directory and run suites from a private copy of the test folder (other sessions share the
+    tree and the suites' Output folders).
+  - The suites to run are the user's list, not every project found: ask, or see the memory note "Run all tests
+    scope".  The *65 suites are run for this work, because it is about the 816; for ordinary feature work they
+    aren't.  Every step builds the whole sweep (e), since every library uses these classes.
+  - MSVC and g++ both have to take the text (c): typename and this-> everywhere a template needs them.
   - Sources have LF line endings and vcxproj files CRLF.  Don't write scripts that contain backslashes through a
     shell heredoc: write them to a file.
   - House style: Hungarian prefixes, the library's own primitive types (size, uint32), tabs, the banner comment
