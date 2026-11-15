@@ -139,6 +139,9 @@
     <ClCompile Include="TestMeshShapes.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
+    <ClCompile Include="TestQuickHull.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshUVCoords.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>

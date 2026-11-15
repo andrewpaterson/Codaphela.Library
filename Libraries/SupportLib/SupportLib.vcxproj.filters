@@ -564,6 +564,9 @@
     <ClInclude Include="MeshPolygonCut.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
+    <ClInclude Include="QuickHull.h">
+      <Filter>Source\Shape</Filter>
+    </ClInclude>
     <ClInclude Include="MeshSelections.h">
       <Filter>Source\Mesh\Modifier</Filter>
     </ClInclude>
@@ -1312,6 +1315,9 @@
     </ClCompile>
     <ClCompile Include="MeshPolygonCut.cpp">
       <Filter>Source\Mesh\Modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="QuickHull.cpp">
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="MeshSelections.cpp">
       <Filter>Source\Mesh\Modifier</Filter>

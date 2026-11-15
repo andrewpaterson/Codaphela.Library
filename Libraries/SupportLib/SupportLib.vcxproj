@@ -395,6 +395,7 @@
     <ClInclude Include="MeshEditorWrapper.h" />
     <ClInclude Include="MeshPolygons.h" />
     <ClInclude Include="MeshPolygonCut.h" />
+    <ClInclude Include="QuickHull.h" />
     <ClInclude Include="MeshSelections.h" />
     <ClInclude Include="MeshModifier.h" />
     <ClInclude Include="MeshModifierStack.h" />
@@ -643,6 +644,7 @@
     <ClCompile Include="MeshEditorWrapper.cpp" />
     <ClCompile Include="MeshPolygons.cpp" />
     <ClCompile Include="MeshPolygonCut.cpp" />
+    <ClCompile Include="QuickHull.cpp" />
     <ClCompile Include="MeshSelections.cpp" />
     <ClCompile Include="MeshModifier.cpp" />
     <ClCompile Include="MeshModifierStack.cpp" />

@@ -129,7 +129,12 @@ Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pas
    ShapeHelper, ShapesIndexed, CMeshShape, CMeshTriangles, CMeshLeaves, CMeshBoundingBox and CMeshConvexHull, and their tests.
    Rename MeshPolygonShape.h.  Done: TestSphereShape, TestHalfSpace, TestPolygon and TestTriangleShape went with them, and
    BaseLib's RemoveAtNoDeallocate(Count), which only the hull generator used.
-3. CQuickHull.
+3. CQuickHull.  Done.  A point is outside a face by more than 1e-5 of how far the points reach along x, y and z together
+   (QUICK_HULL_TOLERANCE).  The faces a new point sees are found across neighbours from the one it was furthest in front of,
+   so they always join up; the triangles of one plane are merged into a face, its corners in order, with Newell's plane.
+   TestQuickHull: a cube with points inside and on its faces and edges (six faces of four, only its corners are corners), a
+   turned box, a cloud of 200 points and 120 on a sphere (all corners) checked by brute force and Euler, and points too few,
+   flat, in a line or in one place.  Removing only the face a point was given to, not every face it sees, fails them.
 4. CShape, with CSphere, CBox and CHalfSpace.  Tests: distances, gradients against central differences away from creases,
    bounds, Contains at exactly zero, and Save and Load.
 5. CCylinder, CCone, CTube, CTorus and CCapsule.  Each also tested against its editor's mesh: every corner of the mesh made

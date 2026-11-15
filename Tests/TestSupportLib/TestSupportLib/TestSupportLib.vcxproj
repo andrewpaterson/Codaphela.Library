@@ -298,6 +298,7 @@
     <ClCompile Include="TestSceneFileGoober.cpp" />
     <ClCompile Include="TestMeshPolygons.cpp" />
     <ClCompile Include="TestMeshShapes.cpp" />
+    <ClCompile Include="TestQuickHull.cpp" />
     <ClCompile Include="TestMeshUVCoords.cpp" />
     <ClCompile Include="TestNormalGeneration.cpp" />
     <ClCompile Include="TestTileMapGenerator.cpp" />
