@@ -250,7 +250,11 @@ Vulkan.
    A copy of a mesh keeps everything, so a modifier that only changes normals works on any mesh, and a shape keeps what the mesh
    it's added to has on that mesh's own faces.  Edge visibility and selections stay on the editor: they are what the user sees
    and does.  An edge is hidden when the faces on both sides are in one polygon (CMeshPolygons::GetFaceEdges).
-   Left: CMesh::MovePosition, MovePositions, RemoveFace, RemoveFaces and RemoveCorner are empty, so moving and removing do
+   Modifiers are CObjects, as CImageModifiers are (2026-11-15).  A stack holds its modifiers in a CArray, AddModifier<M>(args)
+   makes one with OMalloc and returns a Ptr<M>, GetModifier<M> finds the first of a class, and they go when their stack does.
+   Each registers its settings in Class.  Being a CObject lets a modifier hold a Ptr, as an isosurface holds its CShape
+   (ShapePlan step 8).
+   Left:CMesh::MovePosition, MovePositions, RemoveFace, RemoveFaces and RemoveCorner are empty, so moving and removing do
    nothing yet, and it isn't decided whether a move is to a position or by an offset.  SaveOBJ of a CMesh writes triangles even
    when it has polygons, as a test reading triangles back expects that.
 3. CConnection updates.  Done: UpdateWorldMatrix makes its world matrix its local one times its parent's, and its local one with no
