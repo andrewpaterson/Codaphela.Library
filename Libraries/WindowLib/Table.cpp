@@ -31,6 +31,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //How tall the line under the selected cell is.
 #define TABLE_CELL_MARK_HEIGHT	2
 
+//Above and below a cell's text, and a caption's.
+#define TABLE_CELL_PADDING_Y	4
+
+//The line between the captions and the rows.
+#define TABLE_HEADER_LINE		1
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -319,6 +325,9 @@ void CTable::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpHeaderBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_Panel)));
 	mpHeaderBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 	CContainer::AddComponent(mpHeaderBackground);
+	mpHeaderLine = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_Separator)));
+	mpHeaderLine->SetAlignment(CSH_Stretch, CSV_Stretch);
+	CContainer::AddComponent(mpHeaderLine);
 	mpList = OMalloc<CTableList>(pWindow, pTheme, this);
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);
 	mpScroll = OMalloc<CScrollPane>(pWindow, pTheme);
@@ -352,6 +361,7 @@ void CTable::Class(void)
 
 	M_Pointer(mpTheme);
 	M_Pointer(mpHeaderBackground);
+	M_Pointer(mpHeaderLine);
 	M_Embedded(maHeaders);
 	M_Pointer(mpScroll);
 	M_Pointer(mpList);
@@ -446,7 +456,7 @@ int32 CTable::AddColumn(const char* szCaption, ETableColumn eKind, int iWidthWei
 	maiColumnEditable.Add(1);
 
 	pPadding = OMalloc<CFillContainer>(mpWindow);
-	pPadding->SetInsets(mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX), mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX));
+	pPadding->SetInsets(TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX), TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX));
 	pLabel = OMalloc<CLabel>(mpWindow, mpTheme->GetFont(), szCaption);
 	pLabel->SetAlignment(CSH_Left, CSV_Center);
 	pPadding->AddComponent(pLabel);
@@ -778,7 +788,7 @@ Ptr<CComponent> CTable::CreateCell(int32 iRow, int32 iColumn)
 		return pCheckBox;
 	}
 	pPadding = OMalloc<CFillContainer>(mpWindow);
-	pPadding->SetInsets(mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX), mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX));
+	pPadding->SetInsets(TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX), TABLE_CELL_PADDING_Y, mpTheme->GetMetric(TM_FieldPaddingX));
 	pLabel = OMalloc<CLabel>(mpWindow, mpTheme->GetFont(), GetCellText(iRow, iColumn));
 	pLabel->SetAlignment(CSH_Left, CSV_Center);
 	pPadding->AddComponent(pLabel);
@@ -1300,8 +1310,8 @@ int32 CTable::FindColumnAt(int x)
 }
 
 
-int32 CTable::GetRowHeight(void) { return (int32)mpTheme->GetFont()->GetLineHeight() + 2 * mpTheme->GetMetric(TM_FieldPaddingY); }
-int32 CTable::GetHeaderHeight(void) { return GetRowHeight(); }
+int32 CTable::GetRowHeight(void) { return (int32)mpTheme->GetFont()->GetLineHeight() + 2 * TABLE_CELL_PADDING_Y; }
+int32 CTable::GetHeaderHeight(void) { return GetRowHeight() + TABLE_HEADER_LINE; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1352,6 +1362,7 @@ void CTable::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		iHeader = sArea.y;
 	}
 	LayoutComponentInArea(mpHeaderBackground, sOrigin, SInt32Vec2(sArea.x, iHeader));
+	LayoutComponentInArea(mpHeaderLine, SInt32Vec2(sOrigin.x, sOrigin.y + iHeader - TABLE_HEADER_LINE), SInt32Vec2(sArea.x, (iHeader >= TABLE_HEADER_LINE) ? TABLE_HEADER_LINE : 0));
 	sRows.Init(sOrigin.x, sOrigin.y + iHeader);
 	LayoutComponentInArea(mpScroll, sRows, SInt32Vec2(sArea.x, sArea.y - iHeader));
 	SetActualBounds(sPosition, sAreaSize);
@@ -1413,7 +1424,7 @@ void CTable::LayoutOverlays(void)
 			sPosition.Init(iLeft, cBounds.msTopLeft.y);
 			iLeft += iWidth;
 		}
-		LayoutComponentInArea(maHeaders.Get((size)i), sPosition, SInt32Vec2(iWidth, iHeader));
+		LayoutComponentInArea(maHeaders.Get((size)i), sPosition, SInt32Vec2(iWidth, (iHeader >= TABLE_HEADER_LINE) ? iHeader - TABLE_HEADER_LINE : 0));
 	}
 
 	//The selected cell's line, while the cell is in view.

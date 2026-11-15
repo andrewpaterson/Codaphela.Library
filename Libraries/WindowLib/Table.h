@@ -154,6 +154,7 @@ DESTRUCTABLE(CTable);
 protected:
 	Ptr<CWindowTheme>		mpTheme;
 	Ptr<CCanvas>			mpHeaderBackground;
+	Ptr<CCanvas>			mpHeaderLine;  //Between the captions and the rows.
 	CArray<CComponent>		maHeaders;  //Each column's caption, in its padding.
 	Ptr<CScrollPane>		mpScroll;
 	Ptr<CTableList>			mpList;
