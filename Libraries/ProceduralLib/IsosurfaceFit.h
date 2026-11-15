@@ -24,8 +24,10 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Float32Symmetric3x3.h"
 
 
-//The fraction of A'A's largest eigenvalue under which a direction counts as unconstrained (a tenth: Ju et al. 2002).
-#define ISOSURFACE_FIT_CUT_OFF		(0.1f)
+//The fraction of A'A's largest eigenvalue under which a direction counts as unconstrained.  Ju et al. (2002) drop A's singular
+//values under a tenth of the largest, and A'A's eigenvalues are their squares, so it's a hundredth.  A tenth here drops a face
+//crossed at one or two of a cell's edges when another is crossed at many, and the vertex slides off past their edge.
+#define ISOSURFACE_FIT_CUT_OFF		(0.01f)
 
 
 //What a cell's vertex is fitted to (Isosurface.txt, Placing a cell's vertex): the planes through its crossings along their
