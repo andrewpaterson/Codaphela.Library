@@ -1,0 +1,150 @@
+Shape plan
+==========
+
+Five layers, each with one job, meeting in two places.  "Shape" means a CShape and nothing else.
+
+  1. Value geometry        BaseLib    Plain structs that hold values and do the arithmetic.
+  2. Point set algorithms  SupportLib Quickhull, and bounding fits when something needs them.
+  3. Meshes                SupportLib CMesh and its details are the data; CMeshEditor and its modifiers make and change
+                                      meshes.  Unchanged.
+  4. Shapes                SupportLib CShape: solids that say how far a point is from their surface.
+  5. Bridges               Shape to mesh (ProceduralLib), and mesh to shape (CMeshShape).
+
+Nothing here is built yet but what each step says is done.
+
+
+The user's decisions (2026-11-15)
+---------------------------------
+  The base is CShape, it is a CObject, and every shape extends it.
+  The 2009 collision classes aren't repaired: the model below replaces them, and they're deleted.  They were pointer views onto
+  a mesh's arrays (CSphere, CBox, CPlane, CHalfSpace, CTriangle, CPolygon, CConvexHull, ShapeHelper's C*Helper), index records
+  (CShapeIndexed and C*Indexed) and a mesh's collision data (CMeshShape's CMeshTriangles, CMeshLeaves, CMeshBoundingBox and
+  CMeshConvexHull), none of it called by anything but four thin tests, and broken: the hull generator's free lists were set up
+  with their arguments the wrong way round once CFreeList::Init changed, it started from two flat faces that lose every point
+  in their plane, and it only removed faces with points left to see.  The bugs found are listed in Found while reading, below.
+
+
+1. Value geometry (BaseLib)
+---------------------------
+Structs beside SFloat32Vec3 and SFloat4x4: values, no pointers into other arrays, no CObject, so they go in arrays, free lists
+and a renderer's per-frame data, and RasterLib (BaseLib and StandardLib only) can use them.
+
+  SFloat32Plane     sNormal (unit), fDistance        Distance(p) = n.p - d, negative behind it: a half space's inside.
+  SFloat32Sphere    sCenter, fRadius                 Distance, Contains, Volume, IntersectionVolume, fits to points.
+  SFloat32Box       sCenter, asAxes[3] (unit,        An oriented box.  Distance (exact), Contains, Volume, GetCorner.
+                    longest first), afHalfLengths[3]
+  SFloat32Bounds    sMinimum, sMaximum               An axis aligned box: Empty, Add a point or bounds, Center, Size,
+                                                     Contains, Distance (exact).  What CShape::GetBounds gives.
+  SFloat32Triangle  asPositions[3]                   Normal, Plane, Area, Center, ClosestPoint, Distance (unsigned).
+
+The rules, the same as CShape's: Distance is negative inside, positive outside, and exactly zero is outside (Contains is
+Distance < 0).  A triangle has no inside, so its Distance is unsigned.  Only what something needs is written; ray tests,
+segments and the like wait.
+
+CCookedMesh's msMin and msMax and RasterLib's integer bounds could become SFloat32Bounds later.  Not part of this plan.
+
+
+2. Point set algorithms (SupportLib)
+------------------------------------
+CQuickHull: points to their convex hull, as faces (coplanar triangles merged into polygons) with their planes and the
+indices of the points they're made of.  Written fresh: it starts from a tetrahedron, a point is outside a face by a tolerance
+scaled to the points' extent, every face a new point can see is removed, and flat or degenerate sets fail cleanly.  Tests: a
+cube with points inside and on its faces, a turned box, random clouds against a brute force check that every point is behind
+every face, and a flat set.
+
+Bounding fits (a minimal sphere, an oriented box fitted to the hull) are written when collision or culling needs them.
+
+
+4. Shapes
+---------
+  class CShape : public CObject
+  {
+  public:
+      virtual float32  Distance(SFloat32Vec3* psPosition) = 0;
+      virtual void     Gradient(SFloat32Vec3* psDest, SFloat32Vec3* psPosition);  //Central differences unless overridden.
+      virtual void     GetBounds(SFloat32Bounds* psBounds) = 0;
+      virtual bool     IsExact(void);  //Distance is the distance, not only a bound.
+              bool     Contains(SFloat32Vec3* psPosition);  //Distance < 0.
+  };
+
+Every shape is a solid.  Distance may be a bound: never more than the true distance.  Gradient needn't be a unit vector, and a
+shape that can give it exactly should, as central differences across a crease average its faces.  Bounds may be infinite (a
+half space); the isosurface is then given a box by its caller.
+
+  Shape          Holds                                      Distance                         Mesh editor
+  CSphere        SFloat32Sphere                             exact                            CMeshSphereEditor, Geosphere
+  CBox           SFloat32Box                                exact                            CMeshBoxEditor
+  CCylinder      ends, radius                               exact, capped                    CMeshCylinderEditor
+  CCone          ends, two radii                            exact, capped                    CMeshConeEditor
+  CTube          ends, two radii (a pipe's walls)           exact                            CMeshTubeEditor
+  CTorus         centre, axis, two radii                    exact                            CMeshTorusEditor
+  CCapsule       ends, radius                               exact                            none
+  CHalfSpace     SFloat32Plane                              exact, infinite bounds           none
+  CConvexHull    its faces' SFloat32Planes and its corners  exact inside, bound outside      none (made by CQuickHull)
+  CMeshShape     a Ptr<CMesh> and its own search structure  exact                            the mesh itself
+
+  CShapeUnion          Ptrs to two or more shapes      min: a bound
+  CShapeIntersection   Ptrs to two or more shapes      max: a bound
+  CShapeSubtraction    Ptrs to two shapes              max(a, -b): a bound
+  CShapeSmoothUnion    Ptrs to two shapes, a radius    Quilez's polynomial smooth min: a bound
+  CShapeTransform      a Ptr to one shape, a matrix    the shape's, at the point turned into its frame, scaled back by the
+                       and its inverse                  largest scale, so an uneven scale is a bound
+
+A primitive is placed by its own values, as its mesh editor is, and CShapeTransform moves a combination.  Combinations hold
+their children as Ptrs, so a shape is a graph like a scene, rooted by whatever holds it.  There are no open shapes: a mesh's
+faces are already triangles, and SFloat32Triangle does their arithmetic.
+
+
+5. Bridges
+----------
+Shape to mesh, in ProceduralLib: one source modifier that meshes any CShape.  A primitive is made by its own mesh editor with
+the same values, exactly; anything else goes through the isosurface (Isosurface.txt).
+
+Mesh to shape: CMeshShape is a closed mesh's distance: the closest face through a bounding volume hierarchy over its faces,
+inside by winding number or pseudo normals (Baerentzen and Aanaes 2005).  It holds a Ptr<CMesh> and builds its hierarchy, and
+its hull and bounds if wanted, in its own arrays, again when the mesh's change counters move.  It never writes into the mesh.
+The old CMeshShape, which added its spheres' centres and its box's axes to the mesh's own positions and normals, goes.
+
+
+Renames
+-------
+MeshPolygonShape.h (cutting a polygon into faces for the OBJ and scene readers, and walking round them for the writers) becomes
+MeshPolygonCut.h.  VectorShapes and GeometryMap are 2D outlines for the vector rasteriser and stay as they are.
+
+
+Steps
+-----
+Each step has its tests, and TestBaseLib, TestSupportLib and their 65 suites pass after it.
+
+1. Value geometry: SFloat32Plane, SFloat32Sphere, SFloat32Box, SFloat32Bounds and SFloat32Triangle in BaseLib, with
+   TestBaseLib's tests, which take over the cases of TestSphereShape, TestHalfSpace and TestTriangleShape.
+2. Delete the 2009 classes: CSphere, CBox, CPlane, CHalfSpace, CTriangle, CPolygon, CConvexHull and its generator,
+   ShapeHelper, ShapesIndexed, CMeshShape, CMeshTriangles, CMeshLeaves, CMeshBoundingBox and CMeshConvexHull, and their tests.
+   Rename MeshPolygonShape.h.
+3. CQuickHull.
+4. CShape, with CSphere, CBox and CHalfSpace.  Tests: distances, gradients against central differences away from creases,
+   bounds, Contains at exactly zero, and Save and Load.
+5. CCylinder, CCone, CTube, CTorus and CCapsule.  Each also tested against its editor's mesh: every corner of the mesh made
+   with the same values is on its surface, within a tolerance.
+6. The combinations.  Tests: each is a bound (never more than a brute force distance to its surface sampled finely), a graph
+   of them is freed with what holds it, and Save and Load.
+7. CConvexHull, from CQuickHull.
+8. The isosurface and the shape to mesh modifier (Isosurface.txt).
+9. CMeshShape, when collision or picking needs it.
+
+
+Found while reading the 2009 classes
+------------------------------------
+For the record, as the classes go rather than being fixed.  The new code is tested against each.
+  CTriangle::Set from nine numbers took the first corner's z for the second's.
+  CSphere::Contains(CTriangle*) compared squared distances with the square root of the radius.
+  CBox::SetFromPointsAxisAligned read the point after the last on every pass; neither box fit set the centre; the best fit took
+  its axes from the rotation's rows, where v * M makes them its columns.
+  CConvexHull's polygons pointed at normals the generator freed.  CMeshConvexHull looked their indices up among the mesh's
+  normals, where they weren't, after copying in every normal the generator ever made.
+  CMeshLeaves gave a triangle no normal and then worked out its plane from it, and never recorded a leaf's faces.
+  CPolygonIndexed didn't save its normal or whether it was convex.
+  CMeshBoundingBox fitted the box with a placeholder centre among the points, through a pointer the placeholder's Add could
+  move.
+  The hull generator's free lists, its flat start, its third point (measured from a plane through the origin) and its face
+  removal, above.

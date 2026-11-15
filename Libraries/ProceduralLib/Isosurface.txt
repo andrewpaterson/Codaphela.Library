@@ -21,16 +21,9 @@ The user's decisions (2026-11-15)
 
 What a shape is
 ---------------
-A shape is a signed distance: negative inside, positive outside, zero on its surface.  Proposed interface, in ProceduralLib:
-
-  class CDistanceShape
-  {
-  public:
-      virtual float32  Distance(SFloat32Vec3* psPosition) = 0;
-      virtual void     Gradient(SFloat32Vec3* psDest, SFloat32Vec3* psPosition);  //By central differences unless overridden.
-  };
-
-The rules:
+A shape is a CShape (SupportLib's ShapePlan.txt, the user's decision): a CObject whose Distance is negative inside, positive
+outside and zero on its surface, with a Gradient.  Every shape extends it, and the isosurface takes a Ptr<CShape>.  What the
+isosurface needs of it:
   Exactly zero is outside.  A cube whose faces lie on the grid's planes samples zeros on them, and taking zero both ways gives
   faces twice or not at all.  Every test that samples a sign uses the one function for it.
   Distance may be a bound and not exact: it must never be more than the true distance, as empty space is skipped by it.  min and
@@ -43,7 +36,7 @@ Shapes to start with, and what each tests:
   Sphere       Smooth, no creases.  The fit has no single answer and has to be steadied (see Placing a cell's vertex).
   Box          Faces, edges and corners: one, two and three planes.  Its faces on the grid's planes test the zero rule.
   Cylinder     A smooth side and two circular creases at its caps.  The side's normals only vary around its axis.
-  Convex hull  The largest of its faces' signed plane distances (CConvexHull's CPolygons are CPlanes).  Exact inside and on the
+  Convex hull  The largest of its faces' signed plane distances (ShapePlan.txt's CConvexHull, from CQuickHull).  Exact inside and on the
                surface, a bound outside near edges and corners, which is allowed.  Its gradient is the winning face's normal,
                exactly the plane the fit wants, so a hull's faces come out flat and its edges sharp.
   Union, intersection, subtraction   min, max and max(a, -b).  Where two shapes meet there is a new crease, and each crossing
@@ -53,7 +46,7 @@ Shapes to start with, and what each tests:
                distance is divided by the largest scale.
 
 A closed CMesh as a shape (closest triangle through a spatial index, inside by winding number or pseudo normals, Baerentzen and
-Aanaes 2005) is left until something needs it.  It is far slower than the shapes above.
+Aanaes 2005) is left until something needs it.  It is far slower than the shapes above.  ShapePlan.txt has it as CMeshShape, which keeps its search structure in its own arrays.
 
 
 Building the octree
@@ -129,10 +122,8 @@ Steps
 -----
 Each step has its tests in TestProceduralLib.
 
-1. CDistanceShape, the sign rule, and the sphere, box, cylinder and convex hull, with their exact gradients.  Tests: distances
-   and gradients at known points, the gradients against central differences away from creases.
-2. Union, intersection, subtraction, smooth union and transform.  Tests: the distance of a point near a seam, and that each is a
-   bound (never more than a brute force distance to the surface sampled finely).
+1. and 2. The shapes and their combinations are ShapePlan.txt's steps 1 to 7, in BaseLib and SupportLib with their own tests.
+   This plan's steps 3 to 7 are that plan's step 8, with the modifier that meshes a primitive by its own mesh editor.
 3. Marching cubes on a uniform grid, the baseline: Bourke's 256 case tables (from Bloyd), vertices shared by the grid edge they
    are on.  Tests: TestMeshShapes' closed and facing out checks on each shape, and every vertex within a tolerance of the surface.
 4. Dual contouring on a uniform grid: crossings, the plane fit with its Jacobi solver, quads split along the crease.  Tests: a
@@ -147,7 +138,6 @@ Each step has its tests in TestProceduralLib.
 
 Open
 ----
-Where CDistanceShape lives.  ProceduralLib for now; SupportLib if anything else (collision, picking) wants distances.
 float32 or float64 inside the fit.  The fit subtracts nearly equal numbers on a far away cell; positions relative to the cell's
 centre may be enough.
 UVs.  An isosurface has none.  A box projection (each face takes the UVs of the plane its normal is nearest) is the simplest;
