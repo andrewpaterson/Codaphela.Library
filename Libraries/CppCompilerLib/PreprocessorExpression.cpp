@@ -555,19 +555,14 @@ SPPValue CPreprocessorExpression::Character(const char* szStart)
 {
 	SPPValue			sValue;
 	SCharacterLiteral	sLiteral;
+	const char*			szError;
 	int64				lliValue;
 
 	//The value it has in code (ParseCharacterLiteral and CharacterLiteralValue, which the tokeniser uses too).
-	switch (ParseCharacterLiteral(szStart, StrLen(szStart), &sLiteral))
+	szError = CharacterLiteralError(ParseCharacterLiteral(szStart, StrLen(szStart), &sLiteral));
+	if (szError)
 	{
-	case CLR_Character:
-		break;
-	case CLR_Empty:
-		return Error("Empty character literal");
-	case CLR_InvalidEscape:
-		return Error("Unknown escape sequence");
-	default:
-		return Error("Unterminated character literal");
+		return Error(szError);
 	}
 	mszPos = (char*)szStart + sLiteral.uiLength;
 	lliValue = CharacterLiteralValue(&sLiteral);
@@ -664,7 +659,7 @@ bool CPreprocessorExpression::IsIdentifierCharacter(char c)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPValue CPreprocessorExpression::Error(char* szError)
+SPPValue CPreprocessorExpression::Error(const char* szError)
 {
 	SPPValue	sValue;
 

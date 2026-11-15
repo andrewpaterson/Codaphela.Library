@@ -218,9 +218,49 @@ EIntegerLiteralResult ParseIntegerLiteral(const char* szText, size uiLength, SIn
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The largest value one code unit of a character literal holds.  Wide
+// characters are 16 bits, as on Windows.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 LargestCodeUnit(ECTEncoding eEncoding)
+{
+	switch (eEncoding)
+	{
+	case CTE_Wide:
+	case CTE_UTF16:
+		return 0xFFFF;
+	case CTE_UTF32:
+		return 0xFFFFFFFF;
+	default:
+		return 0xFF;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds a character to a character literal: the first is its value, and
+// more are packed in below it a byte each (as MSVC does).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddCharacter(SCharacterLiteral* psLiteral, uint32 uiCharacter)
+{
+	psLiteral->uiValue = (psLiteral->iCount == 0) ? uiCharacter : ((psLiteral->uiValue << 8) | (uiCharacter & 0xFF));
+	psLiteral->iCount++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Reads the character literal at szText (its prefix, if any, and quotes;
 // no more than uiLength characters): its encoding, value and length.  The
-// code and #if both read literals with it, so they agree.  [lex.ccon]
+// code and #if both read literals with it, so they agree.
+//
+// A character is the same however it is spelled, in the source's UTF-8 or
+// as a universal character name: in a narrow literal it is its UTF-8
+// bytes, each a character of the literal (as a string has them), and in
+// the others it must be one code unit.  A numeric escape is a code unit
+// itself.  [lex.ccon]
 //
 //////////////////////////////////////////////////////////////////////////
 ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral)
@@ -228,6 +268,11 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 	const char*	sz;
 	const char*	szEnd;
 	uint32		uiCharacter;
+	uint32		uiLargest;
+	bool		bCodePoint;
+	char		szUTF8[UTF8_MAX_BYTES];
+	size		uiBytes;
+	size		i;
 
 	sz = szText;
 	szEnd = szText + uiLength;
@@ -254,6 +299,7 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 	}
 	sz++;  //The opening quote.
 
+	uiLargest = LargestCodeUnit(psLiteral->eEncoding);
 	psLiteral->uiValue = 0;
 	psLiteral->iCount = 0;
 	for (;;)
@@ -269,21 +315,81 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 		if (*sz == '\\')
 		{
 			sz++;
+			bCodePoint = (*sz == 'u') || (*sz == 'U');
 			if (!DecodeEscape(&sz, szEnd, &uiCharacter))
 			{
 				return CLR_InvalidEscape;
 			}
+			if (!bCodePoint && (uiCharacter > uiLargest))
+			{
+				return CLR_EscapeTooLarge;
+			}
 		}
 		else
 		{
-			uiCharacter = (unsigned char)*sz;
-			sz++;
+			bCodePoint = true;
+			uiCharacter = DecodeUTF8(&sz, szEnd);
 		}
-		psLiteral->uiValue = (psLiteral->iCount == 0) ? uiCharacter : ((psLiteral->uiValue << 8) | (uiCharacter & 0xFF));
-		psLiteral->iCount++;
+
+		if (!bCodePoint || (uiCharacter < 0x80))
+		{
+			AddCharacter(psLiteral, uiCharacter);
+		}
+		else if (psLiteral->eEncoding == CTE_Narrow)
+		{
+			uiBytes = EncodeUTF8(uiCharacter, szUTF8);
+			for (i = 0; i < uiBytes; i++)
+			{
+				AddCharacter(psLiteral, (uint8)szUTF8[i]);
+			}
+		}
+		else if ((psLiteral->eEncoding == CTE_UTF8) || (uiCharacter > uiLargest))
+		{
+			return CLR_NotOneCodeUnit;
+		}
+		else
+		{
+			AddCharacter(psLiteral, uiCharacter);
+		}
 	}
 	psLiteral->uiLength = (size)(sz + 1 - szText);
-	return (psLiteral->iCount == 0) ? CLR_Empty : CLR_Character;
+	if (psLiteral->iCount == 0)
+	{
+		return CLR_Empty;
+	}
+	if ((psLiteral->iCount > 1) && (psLiteral->eEncoding != CTE_Narrow) && (psLiteral->eEncoding != CTE_Wide))
+	{
+		return CLR_SeveralCharacters;
+	}
+	return CLR_Character;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is wrong with a character literal, for an error; NULL if nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CharacterLiteralError(ECharacterLiteralResult eResult)
+{
+	switch (eResult)
+	{
+	case CLR_Character:
+		return NULL;
+	case CLR_Empty:
+		return "Empty character literal";
+	case CLR_InvalidEscape:
+		return "Invalid escape sequence";
+	case CLR_Unterminated:
+		return "Unterminated character literal";
+	case CLR_EscapeTooLarge:
+		return "The escape sequence's value is too large for the character literal's type";
+	case CLR_NotOneCodeUnit:
+		return "The character is more than one code unit of the character literal's encoding";
+	case CLR_SeveralCharacters:
+		return "More than one character in a u8, u or U character literal";
+	}
+	return "Invalid character literal";
 }
 
 
@@ -398,5 +504,64 @@ bool DecodeEscape(const char** psz, const char* szEnd, uint32* puiValue)
 	*psz = sz;
 	*puiValue = uiValue;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The character whose UTF-8 *psz is at (a byte that doesn't start one is
+// that byte), with *psz moved past it.  Reads no further than szEnd.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 DecodeUTF8(const char** psz, const char* szEnd)
+{
+	const uint8*	pu;
+	uint32			uiCharacter;
+	int				iMore;
+	int				i;
+
+	pu = (const uint8*)*psz;
+	iMore = ((pu[0] & 0xE0) == 0xC0) ? 1 : ((pu[0] & 0xF0) == 0xE0) ? 2 : ((pu[0] & 0xF8) == 0xF0) ? 3 : 0;
+	uiCharacter = (iMore == 0) ? pu[0] : (pu[0] & (0x3F >> iMore));
+	for (i = 1; i <= iMore; i++)
+	{
+		if (((const char*)&pu[i] >= szEnd) || ((pu[i] & 0xC0) != 0x80))
+		{
+			(*psz)++;
+			return pu[0];
+		}
+		uiCharacter = (uiCharacter << 6) | (pu[i] & 0x3F);
+	}
+	*psz += iMore + 1;
+	return uiCharacter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the UTF-8 bytes of the character uiCharacter to szDest (room
+// for UTF8_MAX_BYTES, no zero after them) and returns how many.
+//
+//////////////////////////////////////////////////////////////////////////
+size EncodeUTF8(uint32 uiCharacter, char* szDest)
+{
+	size	uiBytes;
+	size	i;
+
+	if (uiCharacter < 0x80)
+	{
+		szDest[0] = (char)uiCharacter;
+		return 1;
+	}
+
+	//The first byte has as many high bits set as there are bytes; the rest hold 6 bits each under 10.
+	uiBytes = (uiCharacter < 0x800) ? 2 : (uiCharacter < 0x10000) ? 3 : 4;
+	for (i = uiBytes - 1; i > 0; i--)
+	{
+		szDest[i] = (char)(0x80 | (uiCharacter & 0x3F));
+		uiCharacter >>= 6;
+	}
+	szDest[0] = (char)((0xF0 << (4 - uiBytes)) | uiCharacter);
+	return uiBytes;
 }
 

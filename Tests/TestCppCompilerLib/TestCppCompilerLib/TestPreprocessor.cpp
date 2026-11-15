@@ -1457,6 +1457,16 @@ void TestPreprocessorConditionalUniversalCharacterNames(void)
 
 	AssertString("good\n", szDest.Text());
 	szDest.Kill();
+
+	//A character is the same spelled in the source's UTF-8 (C3 A9 is U+00E9, E2 82 AC is U+20AC): one code unit of a
+	//wide literal, and its UTF-8 bytes in a narrow one, as in code.
+	szDest.Init();
+	CCPPPreprocessor::Preprocess(
+		"#if u'\xC3\xA9' == 0xE9 && L'\xE2\x82\xAC' == 0x20AC && U'\xE2\x82\xAC' == U'\\u20AC' && '\xC3\xA9' == '\\u00E9' && '\\u00E9' == 0xC3A9\n"
+		"good\n"
+		"#endif\n", &szDest);
+	AssertString("good\n", szDest.Text());
+	szDest.Kill();
 }
 
 

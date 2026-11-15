@@ -54,7 +54,10 @@ enum ECharacterLiteralResult
 	CLR_Character,
 	CLR_Empty,
 	CLR_InvalidEscape,
-	CLR_Unterminated,	//No closing quote before the end of the line.
+	CLR_Unterminated,		//No closing quote before the end of the line.
+	CLR_EscapeTooLarge,		//A numeric escape's value doesn't fit the literal's character type.
+	CLR_NotOneCodeUnit,		//The character isn't one code unit of the literal's encoding, as u8'\u00E9' and u'\U0001F600'.
+	CLR_SeveralCharacters,	//More than one character in a u8, u or U literal.
 };
 
 
@@ -70,8 +73,15 @@ struct SCharacterLiteral
 
 EIntegerLiteralResult	ParseIntegerLiteral(const char* szText, size uiLength, SIntegerLiteral* psLiteral);
 ECharacterLiteralResult	ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral);
+const char*				CharacterLiteralError(ECharacterLiteralResult eResult);
 int64					CharacterLiteralValue(SCharacterLiteral* psLiteral);
 bool					DecodeEscape(const char** psz, const char* szEnd, uint32* puiValue);
+
+//The source is UTF-8, and so are narrow strings.
+#define UTF8_MAX_BYTES	4
+
+uint32					DecodeUTF8(const char** psz, const char* szEnd);
+size					EncodeUTF8(uint32 uiCharacter, char* szDest);
 
 
 #endif // !__LITERAL_HELPER_H__

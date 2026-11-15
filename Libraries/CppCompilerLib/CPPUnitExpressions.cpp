@@ -2260,36 +2260,6 @@ static void AppendWideCharacter(CArrayUint8* pauiBytes, uint32 uiCharacter, int 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The character whose UTF-8 *psz is at (a byte that doesn't start one is that
-// byte), with *psz moved past it.
-//
-//////////////////////////////////////////////////////////////////////////
-static uint32 DecodeUTF8(const char** psz, const char* szEnd)
-{
-	const uint8*	pu;
-	uint32			uiCharacter;
-	int				iMore;
-	int				i;
-
-	pu = (const uint8*)*psz;
-	iMore = ((pu[0] & 0xE0) == 0xC0) ? 1 : ((pu[0] & 0xF0) == 0xE0) ? 2 : ((pu[0] & 0xF8) == 0xF0) ? 3 : 0;
-	uiCharacter = (iMore == 0) ? pu[0] : (pu[0] & (0x3F >> iMore));
-	for (i = 1; i <= iMore; i++)
-	{
-		if (((const char*)&pu[i] >= szEnd) || ((pu[i] & 0xC0) != 0x80))
-		{
-			(*psz)++;
-			return pu[0];
-		}
-		uiCharacter = (uiCharacter << 6) | (pu[i] & 0x3F);
-	}
-	*psz += iMore + 1;
-	return uiCharacter;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The bytes of an element of a string expression: its widest token's, as
 // adjacent literals take the prefix any of them has.  [lex.string]
 //
@@ -2358,27 +2328,14 @@ uint32 CCPPUnit::StringElement(CArrayUint8* pauiBytes, int iElementBytes, size u
 //////////////////////////////////////////////////////////////////////////
 static void AppendUTF8(CArrayUint8* pauiBytes, uint32 uiCharacter)
 {
-	if (uiCharacter < 0x80)
+	char	szUTF8[UTF8_MAX_BYTES];
+	size	uiBytes;
+	size	i;
+
+	uiBytes = EncodeUTF8(uiCharacter, szUTF8);
+	for (i = 0; i < uiBytes; i++)
 	{
-		pauiBytes->Add((uint8)uiCharacter);
-	}
-	else if (uiCharacter < 0x800)
-	{
-		pauiBytes->Add((uint8)(0xC0 | (uiCharacter >> 6)));
-		pauiBytes->Add((uint8)(0x80 | (uiCharacter & 0x3F)));
-	}
-	else if (uiCharacter < 0x10000)
-	{
-		pauiBytes->Add((uint8)(0xE0 | (uiCharacter >> 12)));
-		pauiBytes->Add((uint8)(0x80 | ((uiCharacter >> 6) & 0x3F)));
-		pauiBytes->Add((uint8)(0x80 | (uiCharacter & 0x3F)));
-	}
-	else
-	{
-		pauiBytes->Add((uint8)(0xF0 | (uiCharacter >> 18)));
-		pauiBytes->Add((uint8)(0x80 | ((uiCharacter >> 12) & 0x3F)));
-		pauiBytes->Add((uint8)(0x80 | ((uiCharacter >> 6) & 0x3F)));
-		pauiBytes->Add((uint8)(0x80 | (uiCharacter & 0x3F)));
+		pauiBytes->Add((uint8)szUTF8[i]);
 	}
 }
 

@@ -74,7 +74,8 @@ protected:
 	bool				Character(SPreprocessedToken* psToken, int iSource);
 	bool				String(SPreprocessedToken* psToken, int iSource);
 	void				AddToken(CCPPToken* pcToken, int iSource);
-	bool				Error(SPreprocessedToken* psToken, char* szError);
+	bool				Error(SPreprocessedToken* psToken, const char* szError);
+	bool				LiteralError(SPreprocessedToken* psToken, const char* szError);
 };
 
 

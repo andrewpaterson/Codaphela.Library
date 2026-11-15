@@ -531,20 +531,15 @@ bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szN
 bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
 {
 	SCharacterLiteral	sLiteral;
+	const char*			szError;
 	CCTChar*			pcChar;
 	CCTShort*			pcShort;
 	CCTInt*				pcInt;
 
-	switch (ParseCharacterLiteral(psToken->szText, psToken->uiLength, &sLiteral))
+	szError = CharacterLiteralError(ParseCharacterLiteral(psToken->szText, psToken->uiLength, &sLiteral));
+	if (szError)
 	{
-	case CLR_Character:
-		break;
-	case CLR_Empty:
-		return Error(psToken, "Empty character literal.");
-	case CLR_InvalidEscape:
-		return Error(psToken, "Invalid escape sequence.");
-	default:
-		return Error(psToken, "Unterminated character literal.");
+		return LiteralError(psToken, szError);
 	}
 
 	if (((sLiteral.eEncoding == CTE_Narrow) || (sLiteral.eEncoding == CTE_UTF8)) && (sLiteral.iCount == 1))
@@ -631,10 +626,28 @@ void CCPPTokeniser::AddToken(CCPPToken* pcToken, int iSource)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// An error in LiteralHelper's words, which the preprocessor's #if uses
+// too, as a sentence.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::LiteralError(SPreprocessedToken* psToken, const char* szError)
+{
+	CChars	sz;
+
+	sz.Init(szError);
+	sz.Append('.');
+	Error(psToken, sz.Text());
+	sz.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Error(SPreprocessedToken* psToken, char* szError)
+bool CCPPTokeniser::Error(SPreprocessedToken* psToken, const char* szError)
 {
 	CChars	szDetail;
 

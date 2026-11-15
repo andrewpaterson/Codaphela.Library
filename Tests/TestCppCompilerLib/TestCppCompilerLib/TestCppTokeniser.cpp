@@ -277,6 +277,98 @@ void TestCppTokeniserFloatingAndCharacters(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szText is one character literal: uiValue if szError is NULL, else the
+// one error szError (its message, then the literal).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCharacterLiteral(const char* szText, uint32 uiValue, const char* szError)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+	CChars				szSource;
+	CChars				szExpected;
+	CCPPToken*			pcToken;
+
+	szSource.Init("int x = ");
+	szSource.Append(szText);
+	szSource.Append(';');
+	if (!szError)
+	{
+		AssertTrue(TokeniseText(&cFile, &cTokeniser, szSource.Text()));
+		AssertString("", cTokeniser.GetErrors()->Text());
+		pcToken = cTokeniser.Get(3);
+		if (pcToken->IsChar())
+		{
+			AssertIntHex(uiValue, (uint32)(uint8)((CCTChar*)pcToken)->mcChar);
+		}
+		else if (((CCTNumber*)pcToken)->meType == CTNT_Short)
+		{
+			AssertIntHex(uiValue, (uint32)(uint16)((CCTShort*)pcToken)->mcValue);
+		}
+		else
+		{
+			AssertIntHex(uiValue, (uint32)((CCTInt*)pcToken)->mcValue);
+		}
+	}
+	else
+	{
+		AssertFalse(TokeniseText(&cFile, &cTokeniser, szSource.Text()));
+		szExpected.Init("Tokens.cpp (1, 9): ");
+		szExpected.Append(szError);
+		szExpected.Append(" [");
+		szExpected.Append(szText);
+		szExpected.Append("]\n");
+		AssertString(szExpected.Text(), cTokeniser.GetErrors()->Text());
+		szExpected.Kill();
+	}
+	cTokeniser.Kill();
+	cFile.Kill();
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A character is the same spelled in the source's UTF-8 or as a universal
+// character name.  In a narrow literal it is its UTF-8 bytes, each a
+// character of the literal; in a u8, L, u or U literal it must be one code
+// unit, and u8, u and U literals hold one character.  A numeric escape
+// must fit the literal's type.  [lex.ccon]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserCharacterLiterals(void)
+{
+	//é is U+00E9 (C3 A9), € is U+20AC (E2 82 AC) and the last is U+1F600 (F0 9F 98 80).
+	AssertCharacterLiteral("u8'a'", 'a', NULL);
+	AssertCharacterLiteral("L'\xC3\xA9'", 0xE9, NULL);
+	AssertCharacterLiteral("u'\xC3\xA9'", 0xE9, NULL);
+	AssertCharacterLiteral("u'\\u00E9'", 0xE9, NULL);
+	AssertCharacterLiteral("u'\xE2\x82\xAC'", 0x20AC, NULL);
+	AssertCharacterLiteral("U'\xE2\x82\xAC'", 0x20AC, NULL);
+	AssertCharacterLiteral("U'\xF0\x9F\x98\x80'", 0x1F600, NULL);
+	AssertCharacterLiteral("U'\\U0001F600'", 0x1F600, NULL);
+	AssertCharacterLiteral("'\xC3\xA9'", 0xC3A9, NULL);
+	AssertCharacterLiteral("'\\u00E9'", 0xC3A9, NULL);
+	AssertCharacterLiteral("'\\u0041'", 'A', NULL);
+	AssertCharacterLiteral("'\\xE9'", 0xE9, NULL);
+	AssertCharacterLiteral("L'ab'", ('a' << 8) | 'b', NULL);
+
+	AssertCharacterLiteral("u8'\xC3\xA9'", 0, "The character is more than one code unit of the character literal's encoding.");
+	AssertCharacterLiteral("u8'\\u00E9'", 0, "The character is more than one code unit of the character literal's encoding.");
+	AssertCharacterLiteral("u'\xF0\x9F\x98\x80'", 0, "The character is more than one code unit of the character literal's encoding.");
+	AssertCharacterLiteral("L'\\U0001F600'", 0, "The character is more than one code unit of the character literal's encoding.");
+	AssertCharacterLiteral("u8'ab'", 0, "More than one character in a u8, u or U character literal.");
+	AssertCharacterLiteral("u'ab'", 0, "More than one character in a u8, u or U character literal.");
+	AssertCharacterLiteral("U'ab'", 0, "More than one character in a u8, u or U character literal.");
+	AssertCharacterLiteral("'\\x100'", 0, "The escape sequence's value is too large for the character literal's type.");
+	AssertCharacterLiteral("u8'\\400'", 0, "The escape sequence's value is too large for the character literal's type.");
+	AssertCharacterLiteral("u'\\x10000'", 0, "The escape sequence's value is too large for the character literal's type.");
+	AssertCharacterLiteral("'\\q'", 0, "Invalid escape sequence.");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserLocations(void)
@@ -490,6 +582,7 @@ void TestCppTokeniser(void)
 	TestCppTokeniserIdentifiers();
 	TestCppTokeniserIntegers();
 	TestCppTokeniserFloatingAndCharacters();
+	TestCppTokeniserCharacterLiterals();
 	TestCppTokeniserLocations();
 	TestCppTokeniserErrors();
 	TestCppTokeniserIntegerLiterals();

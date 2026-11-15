@@ -1588,6 +1588,7 @@ const char*	gszTestCPP65WideStrings =
 	"\tif ((u\"\\x41\"[0] != 0x41) || (u\"\\xFFFF\"[0] != 0xFFFFu) || (u\"\xC3\xA9\"[0] != 0xE9) || (U\"\xE2\x82\xAC\"[0] != 0x20AC) || (u\"\\u00E9\"[0] != 0xE9) || (L\"\"[0] != 0)) { w |= 128; }\n"
 	"\tfor (i = 1; i < 40; i++) { if (lc[i] != 0) { w |= 256; } }\n"
 	"\tif ((lc[0] != 'k') || ('n' != \"n\" \"\"[0])) { w |= 512; }\n"
+	"\tif ((u'\xC3\xA9' != 0xE9) || (L'\xE2\x82\xAC' != 0x20AC) || (U'\xF0\x9F\x98\x80' != 0x1F600L) || (U'\\U0001F600' != 0x1F600L) || (u'\\u00E9' != u\"\xC3\xA9\"[0])) { w |= 1024; }\n"
 	"\treturn w;\n"
 	"}\n";
 
@@ -1597,8 +1598,8 @@ const char*	gszTestCPP65WideStrings =
 // L, u and U strings have elements of their own widths, ended by a whole zero:
 // in globals, locals and through pointers, with adjacent literals taking the
 // prefix.  \u past 0xFFFF is a surrogate pair in 16 bits, and raw characters are
-// the UTF-8 they're written in.  A string only initialises an array of its own
-// width, and an escape must fit.
+// the UTF-8 they're written in, in wide character literals too.  A string only
+// initialises an array of its own width, and an escape must fit.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IRWideStrings(void)

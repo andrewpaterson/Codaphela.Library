@@ -64,7 +64,7 @@ protected:
 	bool		GetCharacter(char c);
 	void		SkipWhitespace(void);
 	bool		IsIdentifierCharacter(char c);
-	SPPValue	Error(char* szError);
+	SPPValue	Error(const char* szError);
 };
 
 
