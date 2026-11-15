@@ -648,6 +648,10 @@ void TestRing(void)
 	AssertInt(3, cMeshEditor.NumPolygons());
 	AssertInt(9, cMeshEditor.NumVisibleEdges(1));
 
+	//The bottom radius is at the start and the top radius is at the end.
+	AssertFloat3(SFloat32Vec3(0.0f, 1.0f, 0.0f), cMesh.GetPosition(0), 3);
+	AssertFloat3(SFloat32Vec3(0.0f, 0.5f, 1.0f), cMesh.GetPosition(3), 3);
+
 	cMesh.Kill();
 	cMeshEditor.Kill();
 

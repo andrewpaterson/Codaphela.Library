@@ -140,7 +140,7 @@ void CMeshRingEditor::Generate(CMeshEditor* pcMeshEditor)
 	for (z = miZI; z < miRingSegments-miZE; z++)
 	{
 		f = (float32)z/(float32)(miRingSegments-1);
-		fRadius = InterpolateFloat(mfTopRadius, mfBottomRadius, f);
+		fRadius = InterpolateFloat(mfBottomRadius, mfTopRadius, f);
 		fZ = mfLength * f;
 
 		sSource.Init(0.0f, fRadius, 0.0f);

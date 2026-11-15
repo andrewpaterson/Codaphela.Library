@@ -116,7 +116,7 @@ void CMeshConeEditor::Generate(CMeshEditor* pcMeshEditor)
 	mcTopDisc.Init(&msZDirection, &sTopCenter, 0.0f, mfTopRadius, miWedgeSegments, miTopCircleSegments);
 	mcTopDisc.SetFaceName(1);
 
-	mcRing.Init(&msZDirection, &msStart, mfBottomRadius, mfTopRadius, mfLength, miWedgeSegments, miRingSegments);
+	mcRing.Init(&msZDirection, &msStart, mfTopRadius, mfBottomRadius, mfLength, miWedgeSegments, miRingSegments);
 	mcRing.SetZOffsets(1, 1);
 	mcRing.SetFaceName(2);
 
