@@ -228,6 +228,7 @@
     <ClCompile Include="TestMeshMeasures.cpp" />
     <ClCompile Include="TestIsosurfaceGrid.cpp" />
     <ClCompile Include="TestMarchingCubes.cpp" />
+    <ClCompile Include="TestIsosurfaceFit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
