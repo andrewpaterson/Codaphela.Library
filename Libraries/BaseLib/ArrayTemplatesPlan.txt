@@ -5,9 +5,10 @@ The intent (the user, 2026-11-15): turn the classes a macro makes, ARRAY_BLOCK a
 that work on ordinary 32 and 64 bit targets as well as the 16 bit W65C816.
 
 Where it is: the questions the plan started with are answered (under "Answered", the user's rulings and what was
-found).  Steps 0, 1 and 2 are done: CArrayBlock and CArrayLargeBlock are CArrayBlockBase<SIZE> (2026-11-15), and
-nothing about them got bigger or slower (step 2's numbers).  The plan says to go back to the user after step 2:
-step 3 waits for the user.  A session picking this up starts at "Steps".
+found).  Steps 0 to 3 are done (2026-11-15): CArrayBlock and CArrayLargeBlock are CArrayBlockBase<SIZE>, the
+CArrayTemplate and CArrayTemplatePrimitive families CArrayTemplateBase<M, BLOCK> and CArrayTemplatePrimitiveBase<M,
+TEMPLATE>, and nothing about them got bigger or slower (steps 2 and 3's numbers).  Step 4 waits for the user.  A
+session picking this up starts at "Steps".
 
 
 Why
@@ -236,12 +237,38 @@ after step 2.
          _CArrayBlock__Add.  TestCPPW65C816Interprocedural named one, and TestCppCompilerLib's ArrayBlockStub.h
          defined CArrayBlock's functions by hand (now as CArrayBlockBase<SIZE>'s, instantiated there).  No
          hand-written assembly calls them.
-  3. CArrayTemplate<M> and CArrayTemplatePrimitive<M> (ArrayTemplate.inl, ArrayTemplatePrimitive.inl): they are
-     templates already, so this is the second parameter and the derived templates of the old names.  Their code
-     is in their headers and stays there (M isn't known in a .cpp); this->, not extern template, is the work.
-     ARRAY_BLOCK::Get(...) in them becomes CArrayBlockBase<SIZE>::Get(...), a dependent base, so g++ needs it
-     qualified or this->; the size measurements and speed.sh/compare.py of step 2 show whether anything moved.
-  4. CArrayChar, then CChars (the largest: CharsCode.inl, and CHARS_NATURAL).
+  3. Done 2026-11-15: CArrayTemplate<M> and CArrayTemplatePrimitive<M>.  The design changed from the one above:
+     the second parameter is the class the template derives from, not the size policy.
+       - Why: with CArrayTemplateBase<M, SIZE> deriving from CArrayBlockBase<SIZE>, CArrayBlock would be a
+         sibling of CArrayTemplate<M>, not its base, and code relies on a CArrayTemplate<M> being a CArrayBlock
+         (macDepth.CArrayBlock::Pop() in PackFileIterator.cpp, CArrayBlock::QuickSort(...) in
+         ArrayTemplatePtr.h, CArrayTemplate pointers passed as CArrayBlock pointers), and on a
+         CArrayTemplatePrimitive<M> being a CArrayTemplate<M>.
+       - So: template<class M, class BLOCK> class CArrayTemplateBase : public BLOCK, protected CPostMalloc<M>, with
+         template<class M> class CArrayTemplate : public CArrayTemplateBase<M, CArrayBlock> {} and
+         CArrayLargeTemplate<M> on CArrayLargeBlock (ArrayTemplate.h); template<class M, class TEMPLATE> class
+         CArrayTemplatePrimitiveBase : public TEMPLATE, with CArrayTemplatePrimitive<M> on CArrayTemplate<M> and
+         CArrayLargeTemplatePrimitive<M> on CArrayLargeTemplate<M> (ArrayTemplatePrimitive.h).  The hierarchy is
+         what it was, with an empty class at each level.
+       - CArrayBlockBase gives what they are written with as typedefs: Count (typename BLOCK::Count) and SizePolicy
+         (TEMPLATE::SizePolicy::NotFound).  ArrayTemplate.inl and ArrayTemplatePrimitive.inl have include guards
+         and are included once.  ArrayCharClass.inl and the CChars files still use the macros, which still name
+         CArrayTemplatePrimitive and the others (step 4).
+       - "template class CArrayTemplate<int>;" instantiates nothing now (CArrayTemplate<int> declares no
+         functions; its base's aren't instantiated by it, in C++): TestCPP65GeneratorArrayTemplate instantiates
+         CArrayTemplateBase<int, CArrayBlock>.  The 65 labels are _CArrayTemplateBase__T_C10CTestClass_C11CArrayBlock__Get
+         and the like; one map check in TestCPP65GeneratorProject named the old one.
+     Found on the way, and done: the compiler couldn't resolve a value named through a typedef of a template
+     parameter's base (TEMPLATE::SizePolicy::NotFound: "Only variables are supported by the compiler here yet");
+     a qualifier the parser leaves unresolved is now found in the class before it (CCPPUnit::QualifiersClass, in
+     QualifiedMember; test TestCPP65GeneratorNestedQualifiers and in TestCPP816StaticConstMembers).
+     Before (step 0) and after: sizeof every array class the same on the four targets; each of the 468 65 test
+     programs the same cycles and bytes; the kernal ROM 217550 bytes as after step 2; native TestBaseLib median
+     2.82 s before and after (five runs each); the kernal built in a median 11.32 s before, 11.29 s after.  The
+     suites pass; the full sweep: see the step's commit.
+  4. CArrayChar, then CChars (the largest: CharsCode.inl, and CHARS_NATURAL).  As in step 3, each base takes the
+     class it derives from (CArrayCharBase<..., CArrayTemplatePrimitive<char>>), so a CChars still has the classes
+     it has now as bases; CharsCode.inl's functions go in Chars.cpp with explicit instantiation, as ArrayBlock's.
   5. ArraySizeNatural.inl, ArraySizeLarge.inl, ArraySizeUndef.inl and the Class and Code .inl files deleted; the
      projects' files (vcxproj, filters, CMakeLists.txt) put right; the comments that name the macros (e) brought
      up to date; the IDE's Refactorings.txt (T6) and RefactoringQuestions.txt (48) told that it is done.
