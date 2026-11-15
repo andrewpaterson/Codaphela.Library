@@ -407,7 +407,9 @@ bool CCPPParser::IsParameterClause(void)
 		{
 			return true;
 		}
-		return false;
+
+		//[[attributes]] start a parameter (a lambda can't start with [[).  [dcl.attr.grammar] 7
+		return (eToken == CT_OpenSquareBracket) && IsAhead(2, CT_OpenSquareBracket);
 	}
 
 	if (pcNext->IsIdentifier() || pcNext->Is(CT_ScopeResolution))

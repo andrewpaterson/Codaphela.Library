@@ -29,7 +29,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Type.h"
 
 
-#define CPP_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
+//The names of functions that aren't identifiers, below -1 (which is no name): an operator is named by its token
+//(operator() is the first token's), new[] and delete[] apart from new and delete, and every conversion function
+//(operator T) has one name; they differ by their result.
+#define CPP_OPERATOR_NAME(eToken)		(-2 - (int64)(eToken))
+#define CPP_ARRAY_OPERATOR_NAME(eToken)	(CPP_OPERATOR_NAME(eToken) - (int64)NUM_CPP_TOKENS)
+#define CPP_CONVERSION_NAME				(CPP_OPERATOR_NAME(0) - 2 * (int64)NUM_CPP_TOKENS)
 
 
 //The object a member function is called on, which chooses between a const function and one that isn't.
@@ -83,6 +88,7 @@ public:
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
 	bool							mbImplicit;		//A constructor or destructor the compiler wrote.
+	bool							mbDeleted;		//= delete: it is an overload like any other, and an error if it is the one chosen.
 	CCPPFunction*					mpcInherited;	//The base's constructor an inherited constructor calls (using Base::Base).
 	CCPPSyntaxFunctionDefinition*	mpcDefinition;
 	CCPPSyntaxDeclarator*			mpcDeclarator;	//The first declaration's declarator (a template's, for an instance).

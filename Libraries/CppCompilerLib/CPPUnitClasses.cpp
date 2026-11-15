@@ -418,6 +418,27 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// CompleteClass for the class of an object that is being made (a variable,
+// a temporary, what new makes): it can't be abstract.  A base of an object
+// can, so this is not asked for a base.  [class.abstract]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	if (!CompleteClass(pcClass, pcNode))
+	{
+		return false;
+	}
+	if (pcClass->IsAbstract())
+	{
+		return Error(pcNode, "An object of an abstract class can't be made: a pure virtual function of it has no body");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Lays out a class the first time it is needed whole.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -756,9 +777,13 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 	{
 	case CPPS_AccessSpecifier:
 	case CPPS_EmptyDeclaration:
-	case CPPS_StaticAssert:
 	case CPPS_AliasDeclaration:
 		return true;
+
+	case CPPS_StaticAssert:
+		//A class template's are worked out for each instance, whose arguments they may be about; a class's own were
+		//when it was defined (ClassStaticAsserts).
+		return !pcClass->mpcTemplate || StaticAssert((CCPPSyntaxStaticAssert*)pcMember);
 
 	case CPPS_UsingDeclaration:
 		ClassUsing(pcClass, (CCPPSyntaxUsingDeclaration*)pcMember);
@@ -821,6 +846,10 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		{
 			//A nested class is laid out when it is used.
 			pcClassSpecifier = (CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType;
+			if (!ClassStaticAsserts(pcClassSpecifier))
+			{
+				return false;
+			}
 			if (pcClassSpecifier->mpcSymbol)
 			{
 				GetClass(pcClassSpecifier->mpcSymbol, pcMember)->mpcSpecifier = pcClassSpecifier;

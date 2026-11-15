@@ -326,6 +326,7 @@ public:
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
+	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendRuntime(void);
@@ -393,6 +394,7 @@ public:
 	CCPPTemplate*			FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode);
 	CCPPTemplate*			FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode);
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	bool					CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
@@ -485,6 +487,7 @@ public:
 	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
+	bool					IsNullPointerLiteral(CCPPSyntax* pcExpression);
 	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);
 	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
 	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);

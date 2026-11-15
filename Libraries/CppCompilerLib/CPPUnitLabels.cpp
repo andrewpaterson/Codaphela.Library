@@ -58,13 +58,13 @@ int64 CCPPUnit::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Operators are named by their token: -1 - token, and -1 - NUM_CPP_TOKENS - token
-// for new[] and delete[].
+// Operators are named by their token (CPP_OPERATOR_NAME), new[] and delete[]
+// apart from new and delete.
 //
 //////////////////////////////////////////////////////////////////////////
 int64 CCPPUnit::GetOperatorName(ECppTokens eToken, bool bArray)
 {
-	return bArray ? (-1 - NUM_CPP_TOKENS - (int64)eToken) : (-1 - (int64)eToken);
+	return bArray ? CPP_ARRAY_OPERATOR_NAME(eToken) : CPP_OPERATOR_NAME(eToken);
 }
 
 

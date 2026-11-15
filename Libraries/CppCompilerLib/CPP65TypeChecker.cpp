@@ -1208,9 +1208,9 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	switch (cBound.meHow)
 	{
 	case CPPBC_Member:
-		return MemberFunctionCall(pcCall, cBound.mpapcArguments, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction);
+		return MemberFunctionCall(pcCall, &cBound);
 	case CPPBC_Destructor:
-		return cBound.mpcFunction ? MemberFunctionCall(pcCall, cBound.mpapcArguments, cBound.mpcCallee, cBound.mpcObject, cBound.mpcFunction) : &mpcTypes->msVoid;
+		return cBound.mpcFunction ? MemberFunctionCall(pcCall, &cBound) : &mpcTypes->msVoid;
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
 	case CPPBC_Function:
@@ -1508,21 +1508,23 @@ SCPP65Type* CCPP65TypeChecker::InlineMemcpy(CArraySyntax* papcArguments)
 // its object (a pointer for ->), and its result.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction)
+SCPP65Type* CCPP65TypeChecker::MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
 {
-	bool	bObject;
+	CCPPFunction*	pcFunction;
+	bool			bObject;
 
-	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, papcArguments, pcCall, pcFunction->mpsReturn))
+	pcFunction = pcBound->mpcFunction;
+	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, pcBound->mpapcArguments, pcCall, pcFunction->mpsReturn))
 	{
 		return NULL;
 	}
 	bObject = true;
-	if (!pcFunction->mbStatic && pcObject)
+	if (!pcFunction->mbStatic && pcBound->mpcObject)
 	{
-		bObject = ((CCPPSyntaxMemberExpression*)pcCallee)->mbArrow ? (ArrowPointer(pcObject, pcCallee) != NULL) : (Place(pcObject) != NULL);
-		if (!((CCPPSyntaxMemberExpression*)pcCallee)->mbArrow)
+		bObject = pcBound->mbArrow ? (ArrowPointer(pcBound->mpcObject, pcBound->mpcCallee) != NULL) : (Place(pcBound->mpcObject) != NULL);
+		if (!pcBound->mbArrow)
 		{
-			ObjectChanged(pcObject, pcFunction);
+			ObjectChanged(pcBound->mpcObject, pcFunction);
 		}
 	}
 	return bObject ? pcFunction->mpsReturn : NULL;
@@ -2063,7 +2065,7 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 	if (psType && psType->IsClass())
 	{
-		return TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct);
+		return mpcUnit->CompleteObjectClass(psType->pcClass, pcConstruct) ? TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct) : NULL;
 	}
 	papcElements = mpcUnit->ConstructElements(pcConstruct);
 	if (psType && papcElements && (papcElements->NumElements() == 0) && (psType->IsScalar() || psType->IsVoid()))
@@ -2157,7 +2159,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 		return NULL;
 	}
 	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
-	if (!psType || (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, pcNew)))
+	if (!psType || (psType->IsClass() && !mpcUnit->CompleteObjectClass(psType->pcClass, pcNew)))
 	{
 		return NULL;
 	}

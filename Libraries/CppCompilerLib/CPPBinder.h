@@ -38,7 +38,8 @@ class CCPPUnit;
 enum ECPPBoundCall
 {
 	CPPBC_Failed,			//It can't be: an error says why.
-	CPPBC_Member,			//A member function, on the object (this's if there is none): object.f(), pointer->f(), Class::f(), f().
+	CPPBC_Member,			//A member function, on the object (this's if there is none): object.f(), pointer->f(), Class::f(), f(); and
+							//object(), which is its operator().
 	CPPBC_Destructor,		//object.~X(), pointer->~X() or ~X(): the class's destructor, or nothing if it has none.
 	CPPBC_MemberPointer,	//(object.*pointer)() and (pointer->*pointer)().
 	CPPBC_Function,			//The function, by its label.
@@ -190,6 +191,7 @@ protected:
 	CArraySyntax*	ExpandPack(CCPPSyntaxCallExpression* pcCall);
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	bool	ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);
 	void	ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);
 	void	ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);

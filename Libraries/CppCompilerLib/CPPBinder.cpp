@@ -264,8 +264,11 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	}
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{
-		//A variable, or an expression: a pointer to a function if it is anything.
-		pcBound->meHow = CPPBC_Pointer;
+		//A variable, or an expression: an object with an operator(), or else a pointer to a function if it is anything.
+		if (!ResolveCallOperator(pcCall, pcBound))
+		{
+			pcBound->meHow = CPPBC_Pointer;
+		}
 		return;
 	}
 
@@ -318,6 +321,51 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	}
 	pcBound->meHow = CPPBC_Function;
 	pcBound->mpcFunction = pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object(arguments) for an object of a class: its operator(), a member
+// called on it.  False if the callee isn't an object of a class; true with
+// the call still failed if no operator() takes the arguments.  [over.call]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound)
+{
+	SCPP65Type*		psType;
+	CCPPFunction*	pcFunction;
+	size			uiErrors;
+
+	mpcUnit->BeginQuiet();
+	psType = mpcUnit->ValueTypeOf(pcBound->mpcCallee);
+	mpcUnit->EndQuiet();
+	if (!psType || !psType->IsClass())
+	{
+		return false;
+	}
+	if (!mpcUnit->CompleteClass(psType->pcClass, pcCall))
+	{
+		return true;
+	}
+
+	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CPPCalledObject(mpcUnit->IsConstObject(pcBound->mpcCallee)));
+	if (!pcFunction)
+	{
+		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		{
+			mpcUnit->Error(pcCall, "The class has no operator() for these arguments");
+		}
+		return true;
+	}
+	pcBound->meHow = CPPBC_Member;
+	pcBound->mpcFunction = pcFunction;
+	pcBound->mpcObject = pcBound->mpcCallee;
+	pcBound->mpcClass = psType->pcClass;
+	pcBound->mbVirtual = pcBound->mpcCallee->GetKind() != CPPS_IdExpression;
+	return true;
 }
 
 

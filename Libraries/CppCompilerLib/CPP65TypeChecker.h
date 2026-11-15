@@ -115,7 +115,7 @@ protected:
 	SCPP65Type*		Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName);
 	SCPP65Type*		InlineMemcpy(CArraySyntax* papcArguments);
 
-	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, CCPPFunction* pcFunction);
+	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	SCPP65Type*		ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);

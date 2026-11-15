@@ -613,6 +613,12 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 
 	if (pcBest && !bAmbiguous)
 	{
+		if (pcBest->mbDeleted)
+		{
+			//It was the best match, and so the call is wrong: that is what deleting it is for.  [dcl.fct.def.delete]
+			mpcUnit->Error(pcNode, "The function chosen is deleted");
+			return NULL;
+		}
 		return pcBest;
 	}
 	if (bAmbiguous)
@@ -1008,6 +1014,11 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		{
 			return CPPCR_Promotion;
 		}
+		return CPPCR_Conversion;
+	}
+	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && pcArgument && mpcUnit->IsNullPointerLiteral(pcArgument))
+	{
+		//nullptr is a null pointer of any type.  [conv.ptr] 1
 		return CPPCR_Conversion;
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer())

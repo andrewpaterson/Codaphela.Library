@@ -47,6 +47,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbExplicit = false;
 	mbConstThis = false;
 	mbImplicit = false;
+	mbDeleted = false;
 	mpcInherited = NULL;
 	mapcDefaults.Init();
 	mbVariadic = false;
@@ -166,7 +167,8 @@ bool CCPPFunction::IsUnitFunction(void)
 // Records the function's definition.  Functions defined in classes, inline,
 // constexpr and template functions are generated when they are first called.
 // Bodies that were skipped (in system headers) are not definitions; = default
-// makes the generator write a constructor or destructor.
+// makes the generator write a constructor or destructor, and = delete makes
+// choosing the function an error (CCPPOverloads::FindFunction).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPFunction::SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition)
@@ -175,6 +177,11 @@ void CCPPFunction::SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition)
 	{
 		mbImplicit = true;
 		mbDefined = true;
+		return;
+	}
+	if (pcDefinition->meBody == CPPFB_Delete)
+	{
+		mbDeleted = true;
 		return;
 	}
 	if (pcDefinition->meBody != CPPFB_Body)

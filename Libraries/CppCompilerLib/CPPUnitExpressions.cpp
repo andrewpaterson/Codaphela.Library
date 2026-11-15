@@ -2167,6 +2167,18 @@ bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the expression is nullptr itself.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsNullPointerLiteral(CCPPSyntax* pcExpression)
+{
+	pcExpression = SkipParentheses(pcExpression);
+	return pcExpression && (pcExpression->GetKind() == CPPS_LiteralExpression) && mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral)->Is(CT_nullptr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPUnit::SkipParentheses(CCPPSyntax* pcExpression)

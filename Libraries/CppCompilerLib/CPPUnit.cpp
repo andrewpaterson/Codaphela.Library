@@ -1170,8 +1170,10 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 			bResult &= Declarations(&((CCPPSyntaxNamespace*)pcDeclaration)->macpDeclarations);
 			mcContext.LeaveNamespace();
 			break;
-		case CPPS_EmptyDeclaration:
 		case CPPS_StaticAssert:
+			bResult &= StaticAssert((CCPPSyntaxStaticAssert*)pcDeclaration);
+			break;
+		case CPPS_EmptyDeclaration:
 		case CPPS_LazyDeclaration:		//A header declaration the unit never used, so never parsed.
 			break;
 		default:
@@ -1623,6 +1625,10 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		BeginQuiet();
 		mcDeclarators.GetBaseType(pcSpecifiers, pcDeclaration);
 		EndQuiet();
+		if (!ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
+		{
+			return false;
+		}
 	}
 
 	bResult = true;
@@ -1690,7 +1696,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			continue;
 		}
 		psElement = psType->IsArray() ? psType->psBase : psType;
-		if (psElement->IsClass() && !CompleteClass(psElement->pcClass, pcInit))
+		if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcInit))
 		{
 			bResult = false;
 			continue;
@@ -2340,7 +2346,7 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 			{
 				return Error(pcNode, "This type of local variable is not supported by the compiler yet");
 			}
-			if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !CompleteClass((psType->IsArray() ? psType->psBase : psType)->pcClass, pcNode))
+			if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !CompleteObjectClass((psType->IsArray() ? psType->psBase : psType)->pcClass, pcNode))
 			{
 				return false;
 			}
@@ -2462,6 +2468,31 @@ void CCPPUnit::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
 	}
 	pcVariable->mbUsed = true;
 	mcMangler.AppendGlobalLabel(psz, pcVariable);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The static_asserts among a class's members, when the class is defined: it
+// may never be laid out, and they are wrong all the same.  [dcl.dcl] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier)
+{
+	CCPPSyntax*	pcMember;
+	size		i;
+	bool		bResult;
+
+	bResult = true;
+	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
+	{
+		pcMember = pcSpecifier->macpMembers.GetPtr(i);
+		if (pcMember->GetKind() == CPPS_StaticAssert)
+		{
+			bResult &= StaticAssert((CCPPSyntaxStaticAssert*)pcMember);
+		}
+	}
+	return bResult;
 }
 
 

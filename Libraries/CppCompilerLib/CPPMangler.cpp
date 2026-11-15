@@ -462,8 +462,8 @@ const char* CCPPMangler::GetOperatorLabel(int64 lliName)
 	ECppTokens	eToken;
 	bool		bArray;
 
-	bArray = lliName < -1 - NUM_CPP_TOKENS;
-	eToken = (ECppTokens)(bArray ? (-1 - NUM_CPP_TOKENS - lliName) : (-1 - lliName));
+	bArray = lliName <= CPP_ARRAY_OPERATOR_NAME(0);
+	eToken = (ECppTokens)((bArray ? CPP_ARRAY_OPERATOR_NAME(0) : CPP_OPERATOR_NAME(0)) - lliName);
 	switch (eToken)
 	{
 	case CT_OpenSquareBracket:			return "Index";
