@@ -60,6 +60,7 @@ void TestShapeCombination(void);
 void TestConvexHull(void);
 void TestMeshUVMeasures(void);
 void TestMeshUnwrap(void);
+void TestMeshBake(void);
 void TestMeshConnectivity(void);
 void TestMeshModifierStack(void);
 void TestMeshSourceModifier(void);
@@ -159,6 +160,7 @@ int __cdecl main(void)
 	TestConvexHull();
 	TestMeshUVMeasures();
 	TestMeshUnwrap();
+	TestMeshBake();
 	TestMeshConnectivity();
 	TestMeshModifierStack();
 	TestMeshSourceModifier();

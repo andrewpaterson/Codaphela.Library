@@ -1068,6 +1068,15 @@
     <ClInclude Include="MeshUnwrap.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="SolidTexture.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidChecker.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshBake.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1869,6 +1878,15 @@
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
     <ClCompile Include="MeshUnwrap.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidTexture.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidChecker.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshBake.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
   </ItemGroup>

@@ -311,6 +311,7 @@
     <ClCompile Include="TestTextMarkupParser.cpp" />
     <ClCompile Include="TestMeshUVMeasures.cpp" />
     <ClCompile Include="TestMeshUnwrap.cpp" />
+    <ClCompile Include="TestMeshBake.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h" />

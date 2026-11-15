@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Steps 1 and 2 are built (see Steps).  What is decided and what is only proposed is said at each point.
+Steps 1 to 3 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -137,6 +137,14 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
 3. Bake: the 3D material, the checker, the baker, every mip level, dilation, and the image on the mesh's material.  Tests:
    texels' colours against the checker at their 3D points at every level, the gutters filled, and a scene drawn by the raster
    renderer within a tolerance of saved bytes, as TestShapeScene.
+   Done: CSolidTexture (Colour(position, normal, width): the texel's width in world units, so a texture finer than a texel
+   gives its average, not its noise), CSolidChecker (Quilez's box filtered checker in three dimensions, a point's colour below
+   a thousandth of a cube, where float32 can't average), BakeMeshTexture (any UV layer at any size: texels whose centres a face
+   covers take the texture at their 3D points, then every other texel its nearest covered one's, breadth first) and CMeshBake
+   (level 0 at the layout's size, read from the CMeshUnwrap before it, on one white material).  Only level 0 is baked, as
+   neither renderer has mipmaps; BakeMeshTexture at half the size is the next level, for the virtual texture.  A face lying on
+   a checker's cube planes is evenly both colours, as a solid texture is there.  TestShapeScene's textured scene: a box and
+   five spheres smoothly joined, checkered, within a tolerance of the frame first looked at.
 4. Grown charts.  Tests: a sphere in few charts, a box in six, every chart a disc.
 5. BaseLib's sparse matrix and conjugate gradients.  Tests: against small systems solved directly.
 6. LSCM.  Tests: a flat chart's UVs its shape exactly (no stretch), a hemisphere's angles kept, folded charts split; the checker's
