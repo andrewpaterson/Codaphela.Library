@@ -40,6 +40,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // check says so at the end (ReportUndeclaredTypes), as a C++ compiler
 // would where the name is written.
 //
+// A template nothing instantiates is checked in its own words too, its
+// parameters standing for themselves, by a kept check and by a pass that
+// asks for it (SetTemplatesAsThemselves: the IDE's index, which then has
+// what such a template's body names).
+//
 // With bRemember the pass is also told the type of each expression and
 // what changes the place of one (Typed, PlaceTyped and Changed), for a
 // check that is kept (CCPPSemanticPass::Check).
@@ -59,7 +64,7 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 	}
 	do
 	{
-		if (mbRemember)
+		if (mbRemember || pcPass->IsTemplatesAsThemselves())
 		{
 			CheckTemplatesAsThemselves();
 		}

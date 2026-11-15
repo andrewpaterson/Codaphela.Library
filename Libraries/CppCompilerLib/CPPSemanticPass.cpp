@@ -35,6 +35,7 @@ void CCPPSemanticPass::Init(void)
 	masOthers.Init();
 	mcErrors.Init();
 	mpcUnit = NULL;
+	mbTemplatesAsThemselves = false;
 	mcTypes.Init(true);
 	mcPlaces.Init(true);
 	mcChanges.Init(true);

@@ -78,6 +78,7 @@ protected:
 	CMapCPPNodeTypes	mcTypes;		//A kept check: each expression's type, by its node...
 	CMapCPPNodeTypes	mcPlaces;		//...the type of the place of those only typed as places (the left of an assignment)...
 	CMapCPPNodeChanges	mcChanges;		//...and how the type checker found a node's place changed (CPPPC_).
+	bool				mbTemplatesAsThemselves;	//A check that isn't kept checks each template in its own words too (CCPPUnit::CheckTemplatesAsThemselves), as a kept one does.
 
 public:
 	void				Init(void);
@@ -85,6 +86,8 @@ public:
 
 	bool				Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_Host, bool bKeep = false);
 	bool				IsKept(void) { return mpcUnit != NULL; }
+	void				SetTemplatesAsThemselves(bool bTemplatesAsThemselves) { mbTemplatesAsThemselves = bTemplatesAsThemselves; }
+	bool				IsTemplatesAsThemselves(void) { return mbTemplatesAsThemselves; }
 
 	void				Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void				PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);
