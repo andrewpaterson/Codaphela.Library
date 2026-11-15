@@ -717,8 +717,8 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		return Unsupported(__FILE__, __LINE__);
 	}
 
-	//(object) and = object copy an object.
-	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->mbConstructors)
+	//(object) and = object copy an object, when no copy constructor of the class's own is to be called.
+	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->HasCopyConstructor())
 	{
 		psSource = mpcUnit->ValueTypeOf(papcArguments->GetPtr(0));
 		if (psSource && psSource->IsClass() && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
@@ -806,7 +806,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		return true;
 	}
 
-	//An aggregate: the fields in order, the rest zero.
+	//An aggregate: the fields in order, the rest by their default member initialisers, or zero.
 	uiArgument = 0;
 	for (ui = 0; ui < pcClass->macFields.NumElements(); ui++)
 	{
@@ -818,7 +818,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		sField.sAddress = AddressAt(psPlace->sAddress, psField->iOffset);
 		sField.psType = psField->psType;
 		sField.psBitField = psField->IsBitField() ? psField : NULL;
-		if (!Construct(&sField, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : NULL))
+		if (!Construct(&sField, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : psField->pcInitialiser))
 		{
 			return false;
 		}

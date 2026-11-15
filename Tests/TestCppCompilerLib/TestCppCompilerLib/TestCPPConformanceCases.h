@@ -618,7 +618,7 @@ static const SConformanceCase gasConformanceStage1[] =
 		"BracedTemporaryArgument", 61,
 		"struct S { int a; int b; };\n"
 		"int f(S s) { return s.a + s.b * 2; }\n"
-		"int main() { return f(S{1, 2}) * 10 + f({3, 4}); }\n"
+		"int main() { return f(S{1, 2}) * 10 + f(S{3, 4}); }\n"
 	},
 	{
 		"CallOperator", 12,
@@ -1574,6 +1574,13 @@ static const SConformanceCase gasConformanceStage8[] =
 	{
 		"LiteralOperatorMissing", CONFORMANCE_REFUSED,
 		"int main() { return 12_nothere; }\n"
+	},
+	{
+		"BracedListArgument", 1117,
+		"struct S { int a; int b; };\n"
+		"int f(S s) { return s.a + s.b * 2; }\n"
+		"S g() { return { 5, 6 }; }\n"
+		"int main() { return f({3, 4}) * 100 + f(g()); }\n"
 	},
 	{
 		"NoexceptOperator", 15,

@@ -77,7 +77,8 @@ public:
 	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
-	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	bool			NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
+	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced = false);
 
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
@@ -116,6 +117,7 @@ protected:
 	SCPP65Type*		InlineMemcpy(CArraySyntax* papcArguments);
 
 	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	bool			Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo);
 	SCPP65Type*		ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);

@@ -461,6 +461,7 @@ public:
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
+	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
 
 	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
 
@@ -488,6 +489,7 @@ public:
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 	bool					IsNullPointerLiteral(CCPPSyntax* pcExpression);
+	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);
 	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
 	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);

@@ -468,6 +468,10 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 			return Unsupported(__FILE__, __LINE__);
 		}
 		pcInitialiser = papcElements->GetPtr(0);
+		if (!psPlace->psType->IsReference() && !mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
+		{
+			return false;
+		}
 	}
 
 	if (psPlace->psType->IsReference())

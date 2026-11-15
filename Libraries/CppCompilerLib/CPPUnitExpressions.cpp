@@ -775,6 +775,25 @@ bool CCPPUnit::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcValue, the one value in braces that initialises a psTo, is not
+// narrowed by its conversion (CCPP65TypeChecker::NotNarrowed), for the
+// variables' initialisers the generators convert themselves.  An error
+// where it is, as CheckInitialiser's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo)
+{
+	bool	bNotNarrowed;
+
+	BeginLoud();
+	bNotNarrowed = mcTypeChecker.NotNarrowed(pcValue, psTo);
+	EndLoud();
+	return bNotNarrowed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // = and the compound assignments (+= ...).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1059,6 +1078,10 @@ bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 			{
 				pcVariable = GetVariable(((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol);
 				psType = pcVariable ? pcVariable->mpsType : NULL;
+			}
+			if (!psType)
+			{
+				psType = QualifiedFieldType(pcOperand);
 			}
 			if (!psType && pcOperand && ((pcOperand->GetKind() == CPPS_IdExpression) || (pcOperand->GetKind() == CPPS_MemberExpression)))
 			{
@@ -2162,6 +2185,35 @@ bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 	}
 	*plliValue = lliValue + (int64)(uiIndex - uiValued);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the field Class::field names, with no object: what sizeof
+// and the like may be given, as nothing is read.  NULL if the expression
+// isn't that.  [expr.prim.general] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::QualifiedFieldType(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxName*	pcName;
+	CCPPClass*		pcClass;
+	SCPPField*		psField;
+	int				iOffset;
+
+	if (!pcExpression || (pcExpression->GetKind() != CPPS_IdExpression))
+	{
+		return NULL;
+	}
+	pcName = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName;
+	if (!pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_Field) || !pcName->IsQualifiedByClass())
+	{
+		return NULL;
+	}
+	pcClass = GetComponentClass(pcName->GetQualifier(), NULL, pcExpression);
+	psField = (pcClass && CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
+	return psField ? psField->psType : NULL;
 }
 
 

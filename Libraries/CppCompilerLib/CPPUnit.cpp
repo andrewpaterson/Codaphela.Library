@@ -1774,6 +1774,10 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 	{
 		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
 		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+		if (pcInitialiser && !CheckBracedValue(pcInitialiser, psType))
+		{
+			return false;
+		}
 	}
 
 	if (psType->IsArray())

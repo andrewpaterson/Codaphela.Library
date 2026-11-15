@@ -2264,6 +2264,77 @@ SCPP65Type* CCPP65TypeChecker::TemporaryObject(SCPP65Type* psType, CCPPSyntax* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether converting pcSource to psTo is a narrowing conversion: floating
+// point to an integer; to a smaller floating type, or an integer to a
+// floating type, unless the source is a constant; or an integer to an
+// integer type that can't hold every value of the source's type, unless
+// the source is a constant it can hold.  [dcl.init.list] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFrom;
+	int64		lliValue;
+	int64		lliLimit;
+	double		dValue;
+	bool		bConstant;
+
+	psFrom = mpcUnit->ValueTypeOf(pcSource);
+	if (!psFrom || psFrom->pcEnum || psTo->pcEnum || (psTo->eKind == CPP65TK_Bool) || !(psFrom->IsInteger() || psFrom->IsFloat()) || !(psTo->IsInteger() || psTo->IsFloat()))
+	{
+		return false;
+	}
+
+	mpcUnit->BeginQuiet();
+	if (psFrom->IsFloat())
+	{
+		bConstant = mpcUnit->FloatConstant(pcSource, &dValue);
+		mpcUnit->EndQuiet();
+		return psTo->IsInteger() || ((psTo->iBytes < psFrom->iBytes) && !bConstant);
+	}
+	bConstant = mpcUnit->Constant(pcSource, &lliValue);
+	mpcUnit->EndQuiet();
+	if (psTo->IsFloat())
+	{
+		return !bConstant;
+	}
+	if ((psTo->bSigned == psFrom->bSigned) ? (psTo->iBytes >= psFrom->iBytes) : (psTo->bSigned && (psTo->iBytes > psFrom->iBytes)))
+	{
+		return false;
+	}
+	if (!bConstant)
+	{
+		return true;
+	}
+
+	//A constant the type holds isn't narrowed.
+	if (psTo->iBytes >= 8)
+	{
+		return !psTo->bSigned && (lliValue < 0);
+	}
+	lliLimit = (int64)1 << (8 * psTo->iBytes - (psTo->bSigned ? 1 : 0));
+	return (lliValue >= lliLimit) || (lliValue < (psTo->bSigned ? -lliLimit : 0));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A value in braces for a psTo: an error if converting it narrows it.
+// [dcl.init.list] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
+{
+	if (Narrows(pcSource, psTo))
+	{
+		return Error(pcSource, "The conversion could lose some of the value, which an initialiser in braces may not");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a psType can be made from papcArguments (Type(arguments)) or pcInitialiser
 // (= value, (arguments) or {arguments}).  A reference is bound to a place, an array
 // gets its elements in order, a scalar is converted from its one value, and an
@@ -2279,12 +2350,14 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	CCPPClass*					pcClass;
 	int								i;
 	bool							bResult;
+	bool							bBraced;
 
 	apcArguments.Init();
 	if (!papcArguments)
 	{
 		papcArguments = &apcArguments;
 	}
+	bBraced = pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList);
 	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))
 	{
 		papcArguments = (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) ? &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements : &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
@@ -2337,6 +2410,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 			pcInitialiser = (papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL;
 		}
 		bResult = !pcInitialiser || ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser);
+		bResult = bResult && (!bBraced || !pcInitialiser || NotNarrowed(pcInitialiser, psType));
 		apcArguments.Kill();
 		return bResult;
 	}
@@ -2348,8 +2422,8 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		return false;
 	}
 
-	//(object) copies it, as = object does.
-	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->mbConstructors)
+	//(object) copies it, as = object does, when no copy constructor of the class's own is to be called.
+	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->HasCopyConstructor())
 	{
 		psSource = ObjectType(papcArguments->GetPtr(0));
 		if (psSource && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
@@ -2423,7 +2497,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 		{
 			continue;
 		}
-		bResult &= Construct(pcClass->macFields.Get(i)->psType, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : NULL, pcNode);
+		bResult &= Construct(pcClass->macFields.Get(i)->psType, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : pcClass->macFields.Get(i)->pcInitialiser, pcNode);
 		uiArgument++;
 	}
 	return bResult;
@@ -2502,10 +2576,11 @@ SCPP65Type* CCPP65TypeChecker::ObjectType(CCPPSyntax* pcExpression)
 // an array of them) is constructed, a reference is bound to its place (or
 // to a temporary of its value), anything else takes the converted value
 // of = value, (value) or {value}.  An array's list (or string) has each
-// element's value.
+// element's value.  A value in braces (bBraced: it is an element of a list)
+// may not be narrowed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced)
 {
 	CArraySyntax*	papcElements;
 	SCPP65Type*		psElement;
@@ -2535,6 +2610,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
 		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		bBraced = true;
 	}
 	if (papcElements && (papcElements->NumElements() == 1) && !psType->IsArray())
 	{
@@ -2550,7 +2626,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		bResult = true;
 		for (i = 0; i < papcElements->NumElements(); i++)
 		{
-			bResult &= Initialise(psType->IsArray() ? psType->psBase : psType, papcElements->GetPtr(i), pcNode);
+			bResult &= Initialise(psType->IsArray() ? psType->psBase : psType, papcElements->GetPtr(i), pcNode, bBraced);
 		}
 		return bResult;
 	}
@@ -2566,7 +2642,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		}
 		return psValue ? CanBind(psType, psValue, pcNode) : (Value(pcInitialiser) != NULL);
 	}
-	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode);
+	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode) && (!bBraced || NotNarrowed(pcInitialiser, psType));
 }
 
 
