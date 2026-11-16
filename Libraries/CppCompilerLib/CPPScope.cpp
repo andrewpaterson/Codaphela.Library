@@ -247,7 +247,7 @@ CCPPSymbol* CCPPScope::Find(int64 lliName)
 		pcSymbol = pcScope->FindDeclared(lliName, 0);
 		if (!pcSymbol && (pcScope->meKind == CPPSC_Namespace))
 		{
-			pcSymbol = FindNominated(lliName, pcScope);
+			pcSymbol = FindNominated(lliName, pcScope, NULL);
 		}
 		if (pcSymbol)
 		{
@@ -305,10 +305,11 @@ CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth)
 // The name in a namespace nominated where pcLevel is the nearest namespace
 // enclosing the using-directive and what it nominates: by a directive (or
 // as an unnamed or inline namespace) of this scope or of one it is in, up
-// to pcLevel.  [namespace.udir] 2
+// to pcLevel.  The first found, or with papcFound all of them, gathered
+// there.  [namespace.udir] 2
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel)
+CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCPPSymbols* papcFound)
 {
 	CCPPScope*	pcScope;
 	CCPPScope*	pcUsing;
@@ -323,9 +324,13 @@ CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel)
 			if ((pcUsing->meKind == CPPSC_Namespace) && (pcScope->NominationLevel(pcUsing) == pcLevel))
 			{
 				pcSymbol = pcUsing->FindMember(lliName);
-				if (pcSymbol)
+				if (pcSymbol && !papcFound)
 				{
 					return pcSymbol;
+				}
+				if (pcSymbol)
+				{
+					papcFound->Add(pcSymbol);
 				}
 			}
 		}
@@ -335,6 +340,107 @@ CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether unqualified lookup of the name from here, at the scope it finds
+// it in, finds two things that aren't the same: two using-directives' x, or
+// an unnamed namespace's x beside the x of the namespace it is in.  A
+// function's overloads are one name.  [namespace.udir] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::IsAmbiguous(int64 lliName)
+{
+	CArrayCPPSymbols	apcFound;
+	CCPPScope*			pcScope;
+	CCPPSymbol*			pcDeclared;
+	bool				bAmbiguous;
+
+	apcFound.Init();
+	bAmbiguous = false;
+	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
+	{
+		pcDeclared = pcScope->FindDeclared(lliName, 0);
+		if (pcDeclared)
+		{
+			apcFound.Add(pcDeclared);
+		}
+		if (pcScope->meKind == CPPSC_Namespace)
+		{
+			FindNominated(lliName, pcScope, &apcFound);
+		}
+		if ((apcFound.NumElements() > 0) || pcScope->mpcQualifier)
+		{
+			break;
+		}
+	}
+	bAmbiguous = AreDifferent(&apcFound);
+	apcFound.Kill();
+	return bAmbiguous;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether qualified lookup of the name in this namespace finds two things
+// that aren't the same: none of its own, and different ones in what its
+// using-directives nominate.  [namespace.qual] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::IsAmbiguousMember(int64 lliName)
+{
+	CArrayCPPSymbols	apcFound;
+	CCPPSymbol*			pcSymbol;
+	size				i;
+	bool				bAmbiguous;
+
+	if ((meKind != CPPSC_Namespace) || FindHere(lliName))
+	{
+		return false;
+	}
+	apcFound.Init();
+	for (i = 0; i < mapcUsings.NumElements(); i++)
+	{
+		pcSymbol = mapcUsings.GetPtr(i)->FindMember(lliName);
+		if (pcSymbol)
+		{
+			apcFound.Add(pcSymbol);
+		}
+	}
+	bAmbiguous = AreDifferent(&apcFound);
+	apcFound.Kill();
+	return bAmbiguous;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if what a lookup found is more than one thing: different symbols,
+// not all functions.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::AreDifferent(CArrayCPPSymbols* papcFound)
+{
+	CCPPSymbol*	pcFirst;
+	CCPPSymbol*	pcOther;
+	size		i;
+
+	if (papcFound->NumElements() < 2)
+	{
+		return false;
+	}
+	pcFirst = papcFound->GetPtr(0);
+	for (i = 1; i < papcFound->NumElements(); i++)
+	{
+		pcOther = papcFound->GetPtr(i);
+		if ((pcOther != pcFirst) && !(pcOther->IsFunction() && pcFirst->IsFunction()))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

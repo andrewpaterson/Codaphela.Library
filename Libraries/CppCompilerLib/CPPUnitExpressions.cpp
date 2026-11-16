@@ -204,6 +204,32 @@ CCPPSyntaxIdExpression* CCPPUnit::FunctionNameFor(CCPPSyntax* pcExpression, SCPP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a name that isn't a function's is ambiguous: lookup finds two
+// different things where it finds it (CCPPScope::IsAmbiguous, or for a
+// name qualified by a namespace IsAmbiguousMember).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsAmbiguousName(CCPPSyntaxName* pcName)
+{
+	CCPPSyntaxNameComponent*	pcQualifier;
+	int64						lliName;
+
+	if (!pcName->mpcSymbol || pcName->mpcSymbol->IsFunction() || (pcName->GetLast()->meKind != CPPNC_Identifier))
+	{
+		return false;
+	}
+	lliName = pcName->mpcSymbol->mlliName;
+	pcQualifier = pcName->GetQualifier();
+	if (pcQualifier)
+	{
+		return pcQualifier->mpcSymbol && (pcQualifier->mpcSymbol->meKind == CPPSK_Namespace) && pcQualifier->mpcSymbol->mpcMembers && pcQualifier->mpcSymbol->mpcMembers->IsAmbiguousMember(lliName);
+	}
+	return !pcName->mbGlobal && pcName->mpcLookup && pcName->mpcLookup->IsAmbiguous(lliName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // f or &f: the name of a function (overloaded or not), else NULL.
 //
 //////////////////////////////////////////////////////////////////////////

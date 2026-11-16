@@ -271,7 +271,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		pcBound->meHow = CPPBC_Unchecked;
 		return;
 	}
-	if (!pcSymbol && pcName)
+	if (!pcSymbol && pcName && mcOverloads.UsesArgumentLookup(pcName))
 	{
 		//Nothing declares it here: it may be in a namespace of its arguments'.
 		uiErrors = mpcUnit->GetErrors()->NumErrors();

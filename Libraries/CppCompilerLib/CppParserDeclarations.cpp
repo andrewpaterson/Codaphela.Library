@@ -204,6 +204,13 @@ CCPPSyntaxDeclaration* CCPPParser::ParseNamespace(CCPPSyntax* pcParent)
 		{
 			return NULL;
 		}
+		pcSymbol = mpcScope->FindHere(lliName);
+		if ((miTentative == 0) && pcSymbol && (pcSymbol->meKind == CPPSK_Namespace) && pcAlias->mpcSymbol && (pcSymbol->mpcMembers != pcAlias->mpcSymbol->mpcMembers))
+		{
+			//namespace B = A; and then namespace B = D;  [namespace.alias] 3
+			ErrorAt(pcNamespace->miName, "The name is a namespace already, and not that one");
+			return NULL;
+		}
 		pcSymbol = Declare(lliName, pcNamespace->miName, CPPSK_Namespace, pcNamespace, mpcScope);
 		if (pcSymbol && pcAlias->mpcSymbol)
 		{
@@ -387,6 +394,17 @@ CCPPSyntaxDeclaration* CCPPParser::ParseUsing(CCPPSyntax* pcParent)
 	if ((miTentative == 0) && pcLast && (pcLast->miName != -1) && (pcLast->meKind == CPPNC_Identifier))
 	{
 		pcSymbol = pcUsing->mpcName->mpcSymbol;
+		if (pcSymbol && (pcSymbol->meKind == CPPSK_Namespace))
+		{
+			//using A::B; for a namespace B.  [namespace.udecl] 6
+			ErrorAt(iFirstToken, "A using-declaration can't name a namespace");
+			return NULL;
+		}
+		if (pcSymbol && IsUsingConflict(pcSymbol))
+		{
+			ErrorAt(iFirstToken, "The using-declaration's name is declared here already");
+			return NULL;
+		}
 		if (pcSymbol)
 		{
 			mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol, iFirstToken);
@@ -394,6 +412,27 @@ CCPPSyntaxDeclaration* CCPPParser::ParseUsing(CCPPSyntax* pcParent)
 	}
 	pcUsing->SetTokens(iFirstToken, PreviousToken());
 	return pcUsing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a using-declaration of pcSymbol, in a namespace or a block,
+// conflicts with what the scope declares of the name itself: int x; using
+// A::x;.  Functions are overloads; a class's members are hidden instead.
+// [namespace.udecl] 14
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsUsingConflict(CCPPSymbol* pcSymbol)
+{
+	CCPPSymbol*	pcHere;
+
+	if (mpcScope->meKind == CPPSC_Class)
+	{
+		return false;
+	}
+	pcHere = mpcScope->FindHere(pcSymbol->mlliName);
+	return pcHere && (pcHere != pcSymbol) && (pcHere->mpcScope == mpcScope) && !pcHere->IsFunction() && !pcSymbol->IsFunction();
 }
 
 

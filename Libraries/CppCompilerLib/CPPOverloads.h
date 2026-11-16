@@ -104,6 +104,7 @@ public:
 	void					GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CCPPOverloadScopes* papcNamespaces);
 	void					GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces);
 	void					AddArgumentNamespaces(CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces);
+	bool					UsesArgumentLookup(CCPPSyntaxName* pcName);
 	void					AddOverloadSetNamespaces(CCPPSyntaxName* pcName, CCPPOverloadScopes* papcNamespaces);
 	void					AddAssociatedNamespaces(SCPP65Type* psType, CCPPOverloadScopes* papcNamespaces, int iDepth);
 	void					AddNamespaceOf(CCPPScope* pcScope, CCPPOverloadScopes* papcNamespaces);

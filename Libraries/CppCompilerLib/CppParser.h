@@ -220,6 +220,7 @@ protected:
 	CCPPSyntaxDeclaration*			ParseNamespace(CCPPSyntax* pcParent);
 	CCPPSyntaxDeclaration*			ParseLinkageSpecification(CCPPSyntax* pcParent);
 	CCPPSyntaxDeclaration*			ParseUsing(CCPPSyntax* pcParent);
+	bool							IsUsingConflict(CCPPSymbol* pcSymbol);
 	CCPPSyntaxDeclaration*			ParseStaticAssert(CCPPSyntax* pcParent);
 	CCPPSyntaxDeclaration*			ParseAsmDeclaration(CCPPSyntax* pcParent);
 	CCPPSyntaxDeclaration*			ParseSimpleDeclaration(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);

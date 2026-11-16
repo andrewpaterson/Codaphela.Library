@@ -76,9 +76,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage9,
 		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) ",
 		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) "),
-	CONFORMANCE_GROUP(Stage10,
-		"DefinedInNonEnclosing(A) UnnamedAmbiguousWithGlobal(A) AliasRedefinedDifferent(A) UsingDeclarationOfNamespace(A) UsingDeclarationConflicts(A) UsingDirectiveAmbiguityUsed(A) QualifiedAmbiguous(A) ADLSuppressedByParentheses(A) ",
-		"DefinedInNonEnclosing(A) UnnamedAmbiguousWithGlobal(A) AliasRedefinedDifferent(A) UsingDeclarationOfNamespace(A) UsingDeclarationConflicts(A) UsingDirectiveAmbiguityUsed(A) QualifiedAmbiguous(A) ADLSuppressedByParentheses(A) "),
+	CONFORMANCE_GROUP(Stage10, "", ""),
 };
 
 

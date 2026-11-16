@@ -462,6 +462,11 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	SCPP65Type*				psType;
 	int64					lliValue;
 
+	if (mpcUnit->IsAmbiguousName(pcId->mpcName))
+	{
+		mpcUnit->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
+		return NULL;
+	}
 	mpcUnit->GetBinder()->BindName(pcId, &cBound);
 	switch (cBound.meWhat)
 	{
@@ -1909,6 +1914,11 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		//A variable, or a field of this.
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
+		if (mpcUnit->IsAmbiguousName(pcId->mpcName))
+		{
+			mpcUnit->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
+			return NULL;
+		}
 		mpcUnit->GetBinder()->BindName(pcId, &cBound);
 		if (cBound.meWhat == CPPBN_Variable)
 		{

@@ -905,10 +905,26 @@ void CCPPOverloads::AddOverloadSetNamespaces(CCPPSyntaxName* pcName, CCPPOverloa
 void CCPPOverloads::GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces)
 {
 	GetOverloadNamespaces(pcName, lliName, papcNamespaces);
-	if (!pcName->mbGlobal && !pcName->GetQualifier())
+	if (UsesArgumentLookup(pcName))
 	{
 		AddArgumentNamespaces(papcArguments, papcNamespaces);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a call of the name looks in its arguments' namespaces: a name
+// neither qualified nor in parentheses, as (p)(s) isn't.
+// [basic.lookup.argdep] 1, 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::UsesArgumentLookup(CCPPSyntaxName* pcName)
+{
+	CCPPSyntax*	pcId;
+
+	pcId = pcName->mpcParent;
+	return !pcName->mbGlobal && !pcName->GetQualifier() && !(pcId && pcId->mpcParent && (pcId->mpcParent->GetKind() == CPPS_ParenthesisedExpression));
 }
 
 

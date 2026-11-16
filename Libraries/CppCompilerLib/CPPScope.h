@@ -101,7 +101,10 @@ public:
 	CCPPSymbol*		FindMember(int64 lliName);
 	CCPPSymbol*		Find(int64 lliName);
 	CCPPSymbol*		FindDeclared(int64 lliName, int iDepth);
-	CCPPSymbol*		FindNominated(int64 lliName, CCPPScope* pcLevel);
+	CCPPSymbol*		FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCPPSymbols* papcFound);
+	bool			IsAmbiguous(int64 lliName);
+	bool			IsAmbiguousMember(int64 lliName);
+	static bool		AreDifferent(CArrayCPPSymbols* papcFound);
 	CCPPScope*		NominationLevel(CCPPScope* pcNominated);
 	CCPPScope*		GetDeclarationScope(void);
 	CCPPScope*		GetEnclosingNamespace(void);

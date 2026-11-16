@@ -1347,6 +1347,26 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a qualified name (A::f) is defined in a namespace that encloses
+// its declaration, as it must be: not namespace C { int A::f() { ... } }.
+// [namespace.memdef] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsDefinedWhereDeclared(CCPPSyntaxName* pcName)
+{
+	CCPPScope*	pcHere;
+
+	if ((pcName->macpComponents.NumElements() < 2) || !pcName->mpcSymbol || !pcName->mpcSymbol->mpcScope)
+	{
+		return true;
+	}
+	pcHere = mcContext.GetNamespace();
+	return !pcHere || pcHere->Encloses(pcName->mpcSymbol->mpcScope);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type of what a function declared auto f(...) -> type, auto f(...)
 // { } or decltype(auto) f(...) { } returns.  Its parameters are in scope
 // for the type written after it, and its locals too for the type its
@@ -1589,6 +1609,11 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	if (lliName == -1)
 	{
 		Error(pcDeclarator, "This function name is not supported by the compiler yet");
+		return NULL;
+	}
+	if (!pcClass && !pcTemplate && bDefinition && !IsDefinedWhereDeclared(pcName))
+	{
+		Error(pcDeclarator, "The function is defined in a namespace that doesn't enclose it");
 		return NULL;
 	}
 	eKind = CPPFK_Function;
