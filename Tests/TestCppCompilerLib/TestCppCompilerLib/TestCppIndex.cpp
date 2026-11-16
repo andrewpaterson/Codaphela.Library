@@ -1939,6 +1939,46 @@ void UseD(void)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An explicit specialisation of a variable template declares the
+// template's name: a declaration of the template's symbol, which Rename and
+// Find Usages want (a variable's definition is a declaration too).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexVariableTemplateSpecialisation(void)
+{
+	CCPPIndex			cIndex;
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexLocation*	psLocation;
+	CChars				szPlaces;
+	size				i;
+
+	cIndex.Init();
+	IndexText(&cIndex, "A.cpp", "\
+template<class M> M gmPi = M(3.14159265);\n\
+template<> int gmPi<int> = 3;\n\
+int Pi(void) { return gmPi<int>; }\n", true);
+
+	pcSymbol = cIndex.FindSymbol("gmPi");
+	AssertNotNull(pcSymbol);
+	szPlaces.Init();
+	for (i = 0; i < pcSymbol->NumLocations(); i++)
+	{
+		psLocation = pcSymbol->GetLocation(i);
+		szPlaces.Append(psLocation->iLine);
+		szPlaces.Append(':');
+		szPlaces.Append(psLocation->iColumn);
+		szPlaces.Append((psLocation->uiRole == CPPIR_Definition) ? " definition" : ((psLocation->uiRole == CPPIR_Declaration) ? " declaration" : " reference"));
+		szPlaces.Append("\n");
+	}
+	AssertString("0:20 declaration\n1:15 declaration\n2:22 reference\n", szPlaces.Text());
+	szPlaces.Kill();
+
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppIndex(void)
@@ -1964,6 +2004,7 @@ void TestCppIndex(void)
 	TestCppIndexOverrides();
 	TestCppIndexRemoveFile();
 	TestCppIndexRemoveFileHierarchy();
+	TestCppIndexVariableTemplateSpecialisation();
 
 	TestStatistics();
 }
