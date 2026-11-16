@@ -57,12 +57,28 @@ typedef CArrayTemplate<SCPPField>		CArrayCPPFields;
 struct SCPPBase
 {
 	CCPPClass*	pcClass;
-	int			iOffset;
+	int			iOffset;	//Where it is in the class's own part; not used for a virtual base (CCPPClass::macVirtualBases).
 	ECPPAccess	eAccess;	//public, protected or private: what its members are, at most, as the derived class's.
+	bool		bVirtual;	//A virtual base: one subobject however many paths reach it, where the complete object puts it.
 };
 
 
 typedef CArrayTemplate<SCPPBase>		CArrayCPPBases;
+
+
+//A virtual base of a class, direct or not, and where it is in a complete object of the class.
+struct SCPPVirtualBase
+{
+	CCPPClass*	pcClass;
+	int			iOffset;
+};
+
+
+typedef CArrayTemplate<SCPPVirtualBase>	CArrayCPPVirtualBases;
+
+
+//What IsDerived gives as the offset of a base reached through a virtual base: there is none that is fixed.
+#define CPP_VIRTUAL_PATH	(-0x7FFFFFFF)
 
 
 //using Base::f; in a class: Base's functions named f are overloads of the class's own.
@@ -99,6 +115,8 @@ public:
 	SCPP65Type*					mpsType;
 	CCPPClass*					mpcBase;
 	CArrayCPPBases				macBases;
+	CArrayCPPVirtualBases		macVirtualBases;	//Every virtual base, direct or not, once, in the order a complete object makes them.
+	int							miOwnBytes;			//Its own part's size (without its virtual bases): what it takes as a non-virtual base.
 	CArrayCPPUsings				macUsings;
 	CArrayCPPFields				macFields;
 	CArrayCPPFunctions			mapcMembers;		//Its functions, in the order they were added.
@@ -128,10 +146,14 @@ public:
 	bool			IsComplete(void) { return meState == CPPCS_Complete; }
 	bool			IsBeingMade(void) { return (meState == CPPCS_ResolvingBases) || (meState == CPPCS_LayingOut); }
 	bool			HasBases(void) { return meState >= CPPCS_ResolvingBases; }
+	bool			HasVirtualBases(void) { return macVirtualBases.NumElements() > 0; }
+	SCPPVirtualBase*	GetVirtualBase(CCPPClass* pcBase);
+	int				GetVirtualBaseIndex(CCPPClass* pcBase);
+	bool			HasBase(CCPPClass* pcBase);
 
 	bool			IsInstanceNamed(CCPPSymbol* pcSymbol);
-	SCPPField*		FindField(int64 lliName, int* piOffset);
-	SCPPField*		FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset);
+	SCPPField*		FindField(int64 lliName, int* piOffset, CCPPClass** ppcVirtual = NULL);
+	SCPPField*		FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual = NULL);
 	CCPPSymbol*		FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass);
 	size			NumAggregateFields(void);
 	bool			NeedsConstructor(void);

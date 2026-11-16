@@ -440,11 +440,6 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	for (i = 0; i < pcClass->mpcSpecifier->macpBases.NumElements(); i++)
 	{
 		pcBaseSpecifier = (CCPPSyntaxBaseSpecifier*)pcClass->mpcSpecifier->macpBases.GetPtr(i);
-		if (pcBaseSpecifier->mbVirtual)
-		{
-			bResult = Error(pcBaseSpecifier, "Virtual inheritance is not supported by the compiler yet");
-			continue;
-		}
 		bResult &= pcBaseSpecifier->mbPack ? AddPackBases(pcClass, pcBaseSpecifier) : AddBase(pcClass, pcBaseSpecifier);
 	}
 	pcClass->mpcBase = (pcClass->macBases.NumElements() > 0) ? pcClass->macBases.Get(0)->pcClass : NULL;
@@ -474,6 +469,7 @@ bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecif
 	psBase = pcClass->macBases.Add();
 	psBase->pcClass = pcBaseClass;
 	psBase->iOffset = 0;
+	psBase->bVirtual = pcBaseSpecifier->mbVirtual;
 	psBase->eAccess = (pcBaseSpecifier->meAccess != CPPA_None) ? pcBaseSpecifier->meAccess : ((pcClass->mpcSpecifier->meKey == CT_class) ? CPPA_Private : CPPA_Public);
 	return bResult;
 }

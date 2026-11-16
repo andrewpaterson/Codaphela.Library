@@ -34,9 +34,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
 {
 	CArrayCPPVtableEntries	asEntries;
-	SCPPVtableEntry*			psEntry;
-	size						i;
-	CChars						szLabel;
+	CChars					szLabel;
 
 	if (pcClass->mcVtable.mbWritten)
 	{
@@ -65,27 +63,9 @@ void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
 	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
 	mcData.GetText()->AppendNewLine();
 
-	//The label is after the first part's header.
 	asEntries.Init();
 	pcClass->mcVtable.GetEntries(&asEntries);
-	for (i = 0; i < asEntries.NumElements(); i++)
-	{
-		psEntry = asEntries.Get(i);
-		if (psEntry->eKind == CPPVE_Header)
-		{
-			AppendVtableHeader(pcClass, psEntry->iVtablePointer);
-		}
-		else
-		{
-			AppendVtableEntry(psEntry->pcFunction, psEntry->iAdjust);
-		}
-		if (i == 0)
-		{
-			mcData.GetText()->Append(szLabel);
-			mcData.GetText()->Append(':');
-			mcData.GetText()->AppendNewLine();
-		}
-	}
+	AppendVtableParts(pcClass, &szLabel, &asEntries);
 	asEntries.Kill();
 	szLabel.Kill();
 
@@ -95,9 +75,244 @@ void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A vtable's words (CCPPVtable::GetEntries), with the label after the first
+// part's header.  The headers have pcClass's type info.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPPVtableEntries* pasEntries)
+{
+	SCPPVtableEntry*	psEntry;
+	size				i;
+	bool				bLabelled;
+
+	bLabelled = false;
+	for (i = 0; i < pasEntries->NumElements(); i++)
+	{
+		psEntry = pasEntries->Get(i);
+		if (psEntry->eKind == CPPVE_Offset)
+		{
+			mcData.GetText()->Append("\t\t.long ")->Append(psEntry->iAdjust);
+			mcData.GetText()->AppendNewLine();
+			continue;
+		}
+		if (psEntry->eKind == CPPVE_Header)
+		{
+			AppendVtableHeader(pcClass, psEntry->iVtablePointer);
+		}
+		else
+		{
+			AppendVtableEntry(psEntry->pcFunction, psEntry->iAdjust);
+		}
+		if (!bLabelled)
+		{
+			mcData.GetText()->Append(*pszLabel);
+			mcData.GetText()->Append(':');
+			mcData.GetText()->AppendNewLine();
+			bLabelled = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// _Class__4, the VTT of a class with virtual bases (CPP65_VTT_LABEL): the
+// class's vtable, then the entries of each base its constructors and
+// destructor make with a base version, the non-virtual bases' then the
+// virtual bases' (VTTIndex).  A base subobject's entries are its
+// construction vtable then its own non-virtual bases' (VTTEntries), which is
+// what the base version is passed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::EnsureVTT(CCPPClass* pcClass)
+{
+	CChars				szLabel;
+	CChars				szWords;
+	SCPPBase*			psBase;
+	SCPPVirtualBase*	psVirtual;
+	size				i;
+
+	szLabel.Init();
+	mcMangler.AppendVTTLabel(&szLabel, pcClass);
+	if (!Emit(&szLabel))
+	{
+		szLabel.Kill();
+		return;
+	}
+	EnsureVtable(pcClass);
+
+	//The construction vtables are written first, each in its own section.
+	szWords.Init();
+	szWords.Append("\t\t.long ");
+	mcMangler.AppendVtableLabel(&szWords, pcClass);
+	szWords.AppendNewLine();
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!psBase->bVirtual && psBase->pcClass->HasVirtualBases())
+		{
+			AppendVTTEntries(pcClass, psBase->pcClass, psBase->iOffset, &szWords);
+		}
+	}
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		psVirtual = pcClass->macVirtualBases.Get(i);
+		if (psVirtual->pcClass->HasVirtualBases())
+		{
+			AppendVTTEntries(pcClass, psVirtual->pcClass, psVirtual->iOffset, &szWords);
+		}
+	}
+
+	if (pcClass->IsUnnamed())
+	{
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
+	}
+	else
+	{
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+	}
+	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append(szLabel);
+	mcData.GetText()->Append(':');
+	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append(szWords);
+	szWords.Kill();
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The VTT entries (in pszWords) of the pcClass subobject at iOffset in a
+// pcComplete: its construction vtable, which is written, then its non-
+// virtual bases' entries.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords)
+{
+	CCPPVtable				cVtable;
+	CArrayCPPVtableEntries	asEntries;
+	CChars					szLabel;
+	SCPPBase*				psBase;
+	size					i;
+
+	szLabel.Init();
+	mcMangler.AppendConstructionVtableLabel(&szLabel, pcComplete, pcClass, iOffset);
+	pszWords->Append("\t\t.long ");
+	pszWords->Append(szLabel);
+	pszWords->AppendNewLine();
+	if (Emit(&szLabel))
+	{
+		if (pcComplete->IsUnnamed())
+		{
+			CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
+		}
+		else
+		{
+			CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
+			CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+		}
+		mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+		mcData.GetText()->AppendNewLine();
+		cVtable.Init();
+		cVtable.LayoutConstruction(pcClass, pcComplete, iOffset);
+		asEntries.Init();
+		cVtable.GetEntries(&asEntries);
+		AppendVtableParts(pcClass, &szLabel, &asEntries);
+		asEntries.Kill();
+		cVtable.Kill();
+		EnsureTypeInfo(pcClass);
+	}
+	szLabel.Kill();
+
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!psBase->bVirtual && psBase->pcClass->HasVirtualBases())
+		{
+			AppendVTTEntries(pcComplete, psBase->pcClass, iOffset + psBase->iOffset, pszWords);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many words of VTT a base version of a constructor or destructor of
+// pcClass is given: its construction vtable, then its non-virtual bases'.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPUnit::VTTEntries(CCPPClass* pcClass)
+{
+	SCPPBase*	psBase;
+	size		i;
+	size		uiEntries;
+
+	uiEntries = 1;
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!psBase->bVirtual && psBase->pcClass->HasVirtualBases())
+		{
+			uiEntries += VTTEntries(psBase->pcClass);
+		}
+	}
+	return uiEntries;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where in pcClass's VTT (in words) the entries for its base pcBase are, a
+// direct non-virtual base or a virtual base that has virtual bases of its
+// own; -1 if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPUnit::VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase)
+{
+	SCPPBase*			psBase;
+	SCPPVirtualBase*	psVirtual;
+	size				i;
+	size				uiIndex;
+
+	uiIndex = 1;
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!psBase->bVirtual && psBase->pcClass->HasVirtualBases())
+		{
+			if (psBase->pcClass == pcBase)
+			{
+				return (int)uiIndex;
+			}
+			uiIndex += VTTEntries(psBase->pcClass);
+		}
+	}
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		psVirtual = pcClass->macVirtualBases.Get(i);
+		if (psVirtual->pcClass->HasVirtualBases())
+		{
+			if (psVirtual->pcClass == pcBase)
+			{
+				return (int)uiIndex;
+			}
+			uiIndex += VTTEntries(psVirtual->pcClass);
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The two words before each part of a vtable, for dynamic_cast: how far the
 // object's start is from the vtable pointer using that part (iVtablePointer is
-// where that pointer is in the object), then the class's type info.
+// where that pointer is in the object), then the class's type info (a
+// construction vtable's is its subobject's class's, which typeid and
+// dynamic_cast give while it is made).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
@@ -154,6 +369,10 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	mcData.GetText()->Append(':');
 	mcData.GetText()->AppendNewLine();
 	AppendTypeInfoBases(pcClass, 0);
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		AppendTypeInfoBases(pcClass->macVirtualBases.Get(i)->pcClass, pcClass->macVirtualBases.Get(i)->iOffset);
+	}
 	mcData.GetText()->Append("\t\t.long 0");
 	mcData.GetText()->AppendNewLine();
 
@@ -166,7 +385,8 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type info entries for the class's subobject at iOffset and all its bases'.
+// The type info entries for the class's subobject at iOffset and its non-
+// virtual bases' (a virtual base's are the complete object's, once).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
@@ -183,7 +403,10 @@ void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
-		AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset);
+		if (!psBase->bVirtual)
+		{
+			AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset);
+		}
 	}
 }
 

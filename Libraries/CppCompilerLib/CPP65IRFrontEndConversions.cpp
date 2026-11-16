@@ -317,7 +317,7 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcUnit->CompleteClass(psFrom->psBase->pcClass, NULL) &&
 		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
 	{
-		psValue->sValue = BaseAddress(psValue->sValue, iOffset);
+		psValue->sValue = BaseAddress(psValue->sValue, psFrom->psBase->pcClass, psTo->psBase->pcClass, true);
 		psValue->psType = psTo;
 		return true;
 	}
@@ -432,6 +432,78 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, int iOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The address of the pcTo part of the pcFrom object at sAddress (with bNull
+// a null pointer stays null): a fixed offset further on, or through a
+// virtual base the offset the object's vtable part gives
+// (VirtualBaseAddress), then where pcTo is in that base.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo, bool bNull)
+{
+	SCPPVirtualBase*	psVirtual;
+	CIRBlock*			pcAdd;
+	CIRBlock*			pcEnd;
+	CIRBlock*			pcStart;
+	SIRReference		sNull;
+	SIRReference		sMoved;
+	int					iOffset;
+	int					iBelow;
+
+	if (!pcFrom || !pcTo || (pcFrom == pcTo) || !mpcUnit->CompleteClass(pcFrom, NULL) || !mpcUnit->IsDerived(pcFrom, pcTo, &iOffset))
+	{
+		return sAddress;
+	}
+	if (iOffset != CPP_VIRTUAL_PATH)
+	{
+		return (bNull && (iOffset != 0)) ? BaseAddress(sAddress, iOffset) : AddressAt(sAddress, iOffset);
+	}
+	psVirtual = mpcUnit->VirtualBaseOf(pcFrom, pcTo, &iBelow);
+	if (!psVirtual)
+	{
+		Unsupported(__FILE__, __LINE__);
+		return sAddress;
+	}
+	if (!bNull)
+	{
+		return AddressAt(VirtualBaseAddress(sAddress, pcFrom, psVirtual->pcClass), iBelow);
+	}
+	pcAdd = NewBlock();
+	pcEnd = NewBlock();
+	pcStart = mpcBlock;
+	sNull = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+	mpcBlock->Branch(sNull, pcEnd, pcAdd);
+	StartBlock(pcAdd);
+	sMoved = AddressAt(VirtualBaseAddress(sAddress, pcFrom, psVirtual->pcClass), iBelow);
+	pcAdd = mpcBlock;
+	JumpTo(pcEnd);
+	StartBlock(pcEnd);
+	return Phi(pcEnd, IRType(IRTK_Pointer), pcStart, sAddress, pcAdd, sMoved);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The virtual base pcBase of the pcClass object at sAddress: the distance
+// the object's vtable part for pcClass has for it
+// (CPP65_VTABLE_VIRTUAL_OFFSET).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::VirtualBaseAddress(SIRReference sAddress, CCPPClass* pcClass, CCPPClass* pcBase)
+{
+	SIRReference	sVtable;
+	SIRReference	sOffset;
+	SIRType			sEntry;
+
+	sEntry = IRIntegerType(CPP65_VTABLE_ENTRY_BYTES);
+	sVtable = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sAddress, pcClass->GetVtablePointerOffset()));
+	sOffset = mpcFunction->Load(mpcBlock, sEntry, AddressAt(sVtable, CPP65_VTABLE_VIRTUAL_OFFSET(pcClass->GetVirtualBaseIndex(pcBase))));
+	sOffset = ConvertIR(sOffset, sEntry, IRIntegerType(mcModule.GetPointerSize(0)), true);
+	return mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sAddress, sOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Conversions to and from pointers to members (an address or an offset, 4
 // bytes): an integer (0, null) is one as it is, one
 // is a bool when it isn't 0, a pointer to a field of a base is one to the
@@ -463,6 +535,11 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 	{
 		//Base to derived adds the base's offset, derived to base takes it off.  Otherwise (a cast between unrelated
 		//classes, say) it is the same value.
+		if ((BaseOffset(psTo->pcClass, psFrom->pcClass) == CPP_VIRTUAL_PATH) || (BaseOffset(psFrom->pcClass, psTo->pcClass) == CPP_VIRTUAL_PATH))
+		{
+			//A member of a virtual base has no fixed offset from the derived class.
+			return Unsupported(__FILE__, __LINE__);
+		}
 		iOffset = BaseOffset(psTo->pcClass, psFrom->pcClass) - BaseOffset(psFrom->pcClass, psTo->pcClass);
 		if ((iOffset != 0) && psFrom->psBase->IsFunction())
 		{

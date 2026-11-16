@@ -276,12 +276,26 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
          through a virtual base is that and then the non-virtual part below it (CCPP65IRFrontEnd::BaseAddress).
        - Constructors and destructors of a class with virtual bases are written twice: the complete one (its label as
          now, so vtables and calls that make whole objects are as they were) makes the virtual bases first and destroys
-         them last; the base one (label and B) takes a hidden pointer to a table (Itanium's VTT, cut down): a
-         construction vtable (the class's parts as the class has them, at the offsets the complete object puts them),
-         then the tables of its direct non-virtual bases that have virtual bases.  Each complete class writes, per
-         subobject that has virtual bases, its table (_C__4_<offset>) and construction vtable (_C__5_<offset>).  So
-         while a base is made or destroyed its virtual calls are its own and its virtual bases are where they are.
+         them last; the base one (label and __B) takes a hidden pointer after this to its VTT entries (Itanium's VTT, cut
+         down): its construction vtable (the class's parts as the class has them, but its virtual bases where the
+         complete object puts them, and its own overriders), then the entries of its direct non-virtual bases that have
+         virtual bases (CCPPUnit::VTTEntries).  A complete class's VTT (_C__4) is its vtable, then the entries of each
+         base its constructors and destructor make with a base version, non-virtual then virtual (CCPPUnit::VTTIndex);
+         the construction vtables are _C__5_<offset>_<Base>.  So while a base is made or destroyed its virtual calls,
+         typeid and dynamic_cast are its own and its virtual bases are where they are.
        - Classes without virtual bases are as they were, so nothing that compiles now changes.
+       (a) DONE 2026-11-16: 14 of 14 of the planned cases and 7 more (nested construction vtables, virtual calls in
+       destructors, typeid and dynamic_cast while constructing, delegating constructors, delete through a virtual base,
+       arrays), each checked with MSVC; 356 of 357 in all.  Found on the way and fixed: the assembler bound a label
+       before .section to the next section (HCP65 44a8531); a qualified field (d.B::a, B::a in a member) was looked up
+       by its last name only; delete through a base class's pointer freed that pointer, not the whole object (a
+       stage 7 case, DeleteThroughSecondaryBase).  MSVC differs from the standard for dynamic_cast<B*> of a virtual
+       base in B's constructor ([class.cdtor] 6), so no case asks it.  (b) came with it: virtual functions through
+       virtual bases (thunks __u<n> for an overrider after the part), dynamic_cast and typeid across them.
+       Found, for (c): copying a class whose base has a copy constructor of its own leaves the base's vtable in the
+       copy (CopyPlace stores the vtables before CopyParts calls the copy constructors), and the compiler's operator=
+       stores the static class's vtables, which is wrong when the object assigned to is a base subobject.  Neither
+       needs a virtual base.
        Order of the work, a commit each: (a) layout, vtable offsets, conversions and members through a virtual base,
        complete and base constructors and destructors, construction vtables; (b) virtual functions through virtual
        bases (thunks), dynamic_cast and typeid across them; (c) copying and assignment, member pointers; (d) the

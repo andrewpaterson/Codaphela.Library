@@ -431,7 +431,7 @@ bool CCPP65IRFrontEnd::ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject
 	}
 	if (pcFunction)
 	{
-		*psObject = AddressAt(*psObject, BaseOffset(pcObjectClass, pcFunction->mpcClass));
+		*psObject = BaseAddress(*psObject, pcObjectClass, pcFunction->mpcClass, false);
 	}
 	if (bVirtual && pcFunction && pcFunction->mbVirtual)
 	{
@@ -461,6 +461,7 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 	SIRReference		sObject;
 	bool				bThisCall;
 	SIRReference		sMade;
+	SIRReference		sVTT;
 	CArrayIRReferences	asPieces;		//Every argument's value, an object's in pieces.
 
 	if (pcFunction)
@@ -477,9 +478,12 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 		psReturn = psFunctionType->psBase;
 		bVariadic = psFunctionType->bVariadic;
 	}
-	//Where an object the call returns is made (msElide is the next call's, not the arguments').
+	//Where an object the call returns is made (msElide is the next call's, not the arguments'), and a base version's
+	//VTT entries (CallObject).
 	sMade = msElide;
 	msElide = IRNone();
+	sVTT = msVTTArgument;
+	msVTTArgument = IRNone();
 	if ((!IsSupportedType(psReturn) && !psReturn->IsClass()) || psReturn->IsArray() || (psReturn->IsClass() && (bVariadic || !mpcUnit->CompleteClass(psReturn->pcClass, NULL))))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -518,6 +522,10 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 	if (bThisCall)
 	{
 		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sObject);
+	}
+	if (!sVTT.IsNone())
+	{
+		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sVTT);
 	}
 	if (psReturn->IsClass())
 	{
@@ -931,8 +939,25 @@ bool CCPP65IRFrontEnd::CallObject(CCPPFunction* pcFunction, SIRReference sObject
 {
 	SIRReference	sSymbol;
 	SCPP65IRValue	sValue;
+	int				iIndex;
 
 	sSymbol = FunctionSymbol(pcFunction);
+	if (mpcBaseObject && (pcFunction->mpcClass == mpcBaseObject) && ((pcFunction->meKind == CPPFK_Constructor) || (pcFunction->meKind == CPPFK_Destructor)))
+	{
+		//A base subobject's: its base version, which leaves the virtual bases to the complete object's, given its VTT
+		//entries in the object's (or for a delegated constructor's base version, the same).
+		mpcBaseObject = NULL;
+		if (pcFunction->mpcClass->HasVirtualBases())
+		{
+			iIndex = (pcFunction->mpcClass == mpcCPPFunction->mpcClass) ? 0 : mpcUnit->VTTIndex(mpcCPPFunction->mpcClass, pcFunction->mpcClass);
+			if (iIndex < 0)
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
+			sSymbol = FunctionSymbol(pcFunction, true);
+			msVTTArgument = AddressAt(VTTOf(mpcCPPFunction->mpcClass), CPP65_VTABLE_ENTRY_BYTES * iIndex);
+		}
+	}
 	return Call(pcFunction, sSymbol, NULL, papcArguments ? papcArguments : &mapcNone, &sValue, NULL, false, pcObjectClass, bVirtual, sObject);
 }
 

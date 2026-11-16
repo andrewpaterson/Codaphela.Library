@@ -1660,6 +1660,25 @@ static const SConformanceCase gasConformanceStage7[] =
 		"struct S { int v; void* operator new(size_t n) { return Take(n); } void operator delete(void* p) { gDeleted++; } };\n"
 		"int main() { S* p = new S; p->v = 4; int r = p->v; delete p; return r + gDeleted; }\n"
 	},
+	{
+		"DeleteThroughSecondaryBase", 3,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"char gacArena[256];\n"
+		"size_t guiArena = 0;\n"
+		"void* gpLast = 0;\n"
+		"int gRight = 0;\n"
+		"void* operator new(size_t n) { gpLast = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return gpLast; }\n"
+		"void operator delete(void* p) noexcept { gRight += p == gpLast; }\n"
+		"void operator delete(void* p, size_t n) noexcept { gRight += p == gpLast; }\n"
+		"struct X { int x; virtual ~X() {} };\n"
+		"struct Y { int y; virtual ~Y() {} };\n"
+		"struct Z : X, Y { };\n"
+		"int main() { Y* p = new Z; delete p; X* q = new Z; delete q; Z* r = new Z; delete r; return gRight; }\n"
+	},
 };
 
 
@@ -1923,6 +1942,75 @@ static const SConformanceCase gasConformanceStage9[] =
 		"struct C : virtual B { int f() override { return 3; } };\n"
 		"struct D : virtual C, virtual A { int v; };\n"
 		"int main() { D d; d.v = 2; A* a = &d; B* b = &d; return a->f() * 10 + b->f() + d.v * 100; }\n"
+	},
+	{
+		"VirtualBaseNestedConstruction", 3034,
+		"struct V { int v; V() : v(10) {} virtual int id() { return 1; } };\n"
+		"struct X : virtual V { int x; X() : x(id() * 10 + v) {} int id() override { return 2; } };\n"
+		"struct B : X { int b; B() : b(id()) {} int id() override { return 3; } };\n"
+		"struct D : B { int id() override { return 4; } };\n"
+		"int main() { D d; return d.x * 100 + d.b * 10 + d.id(); }\n"
+	},
+	{
+		"VirtualBaseDestructorCalls", 4121,
+		"int g = 0;\n"
+		"struct A { virtual int f() { return 1; } virtual ~A() { g = g * 10 + f(); } };\n"
+		"struct B : virtual A { int f() override { return 2; } ~B() { g = g * 10 + f(); } };\n"
+		"struct C : virtual A { ~C() { g = g * 10 + f(); } };\n"
+		"struct D : B, C { int f() override { return 4; } ~D() { g = g * 10 + f(); } };\n"
+		"int main() { { D d; } return g; }\n"
+	},
+	{
+		"VirtualBaseTypeidInConstruction", 33,
+		"#ifdef _MSC_VER\n"
+		"#include <typeinfo>\n"
+		"#else\n"
+		"namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }\n"
+		"#endif\n"
+		"struct A { int a; virtual ~A() {} };\n"
+		"struct Z { int z; virtual ~Z() {} };\n"
+		"struct D;\n"
+		"struct B : virtual A { int t; B(); };\n"
+		"struct D : Z, B { int u; D() { A* a = this; u = (typeid(*this) == typeid(D)) + (dynamic_cast<D*>(a) == this) * 2; } };\n"
+		"B::B() { A* a = this; t = (typeid(*a) == typeid(B)) + (dynamic_cast<D*>(a) == 0) * 2; }\n"
+		"int main() { D d; return d.t * 10 + d.u; }\n"
+	},
+	{
+		"VirtualBaseDelegating", 6565,
+		"struct A { int a; A() : a(1) {} };\n"
+		"struct B : virtual A { int b; B(int x) : b(x) { a += x; } B() : B(5) {} };\n"
+		"struct D : B { D() : B() {} };\n"
+		"int main() { D d; B b; return d.a * 1000 + d.b * 100 + b.a * 10 + b.b; }\n"
+	},
+	{
+		"VirtualBaseDeleteThrough", 22333,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"char gacArena[512];\n"
+		"size_t guiArena = 0;\n"
+		"void* gpLast = 0;\n"
+		"int gRight = 0;\n"
+		"void* operator new(size_t n) { gpLast = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return gpLast; }\n"
+		"void operator delete(void* p) noexcept { gRight += p == gpLast; }\n"
+		"void operator delete(void* p, size_t n) noexcept { gRight += p == gpLast; }\n"
+		"int n = 0;\n"
+		"struct A { int a; virtual ~A() { n += 1; } };\n"
+		"struct B : virtual A { int b; ~B() { n += 10; } };\n"
+		"struct C : virtual A { int c; ~C() { n += 100; } };\n"
+		"struct D : B, C { int d; ~D() { n += 1000; } };\n"
+		"int main() { A* p = new B; delete p; C* q = new D; delete q; A* r = new D; delete r; return n * 10 + gRight; }\n"
+	},
+	{
+		"VirtualBaseArraysAndMembers", 5964,
+		"struct A { int a; A() : a(3) {} };\n"
+		"struct B : virtual A { int b; B() : b(a * 2) {} };\n"
+		"struct C : virtual A { int c; C() : c(a + 1) { a = 5; } };\n"
+		"struct D : B, C { };\n"
+		"struct E { int e; D ds[2]; E() : e(1) { ds[1].a = 9; } };\n"
+		"int main() { E x; D* p = &x.ds[0]; return x.ds[0].a * 1000 + x.ds[1].a * 100 + p->b * 10 + p->c; }\n"
 	},
 };
 

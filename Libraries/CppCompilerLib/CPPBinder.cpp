@@ -1259,13 +1259,16 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	CCPPClass*		pcClass;
 	CCPPClass*		pcEnumeratorClass;
 	CCPPClass*		pcMemberClass;
-	SCPPBinding*				psBinding;
+	CCPPClass*		pcLookup;
+	SCPPBinding*	psBinding;
 
 	pcBound->meWhat = CPPBN_Nothing;
 	pcBound->mpcVariable = NULL;
 	pcBound->mpcClass = NULL;
 	pcBound->mpsField = NULL;
 	pcBound->miOffset = 0;
+	pcBound->mpcQualifier = NULL;
+	pcBound->mpcVirtualBase = NULL;
 	pcBound->mpsCapture = NULL;
 	pcBound->mpcArgument = NULL;
 	pcSymbol = pcId->mpcName->mpcSymbol;
@@ -1354,15 +1357,21 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		return;
 	}
 
-	//A field of this; a name in a template that the parser could not resolve may be one too.
+	//A field of this, of the base a qualifier names (B::a) if it does; a name in a template that the parser could not
+	//resolve may be one too.
 	pcClass = mpcUnit->ThisClass();
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
 	{
-		pcBound->mpsField = pcClass->FindFieldSymbol(pcSymbol, &pcBound->miOffset);
+		pcLookup = pcId->mpcName->IsQualifiedByClass() ? mpcUnit->GetComponentClass(pcId->mpcName->GetQualifier(), NULL, pcId, pcClass) : NULL;
+		if (pcLookup && (pcLookup != pcClass) && mpcUnit->IsDerived(pcClass, pcLookup, NULL))
+		{
+			pcBound->mpcQualifier = pcLookup;
+		}
+		pcBound->mpsField = (pcBound->mpcQualifier ? pcBound->mpcQualifier : pcClass)->FindFieldSymbol(pcSymbol, &pcBound->miOffset, &pcBound->mpcVirtualBase);
 	}
 	else if (!pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
 	{
-		pcBound->mpsField = pcClass->FindField(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &pcBound->miOffset);
+		pcBound->mpsField = pcClass->FindField(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &pcBound->miOffset, &pcBound->mpcVirtualBase);
 	}
 	if (pcBound->mpsField)
 	{
@@ -1382,7 +1391,8 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound)
 {
-	int64	lliName;
+	int64		lliName;
+	CCPPClass*	pcLookup;
 
 	pcBound->meWhat = CPPBN_Nothing;
 	pcBound->mpcSymbol = NULL;
@@ -1390,12 +1400,24 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	pcBound->mpcClass = pcClass;
 	pcBound->mpsField = NULL;
 	pcBound->miOffset = 0;
+	pcBound->mpcQualifier = NULL;
+	pcBound->mpcVirtualBase = NULL;
 	if (!pcClass || !mpcUnit->CompleteClass(pcClass, pcNode))
 	{
 		return false;
 	}
 	lliName = mpcUnit->GetComponentName(pcName->GetLast());
-	pcBound->mpsField = pcClass->FindField(lliName, &pcBound->miOffset);
+	pcLookup = pcClass;
+	if (pcName->IsQualifiedByClass())
+	{
+		pcLookup = mpcUnit->QualifierClass(pcClass, pcName->GetQualifier(), pcNode);
+		if (!pcLookup)
+		{
+			return false;
+		}
+		pcBound->mpcQualifier = (pcLookup != pcClass) ? pcLookup : NULL;
+	}
+	pcBound->mpsField = pcLookup->FindField(lliName, &pcBound->miOffset, &pcBound->mpcVirtualBase);
 	if (pcBound->mpsField)
 	{
 		pcBound->meWhat = CPPBN_Field;

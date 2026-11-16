@@ -69,9 +69,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"FunctionTryBlock(C) ",
 		"FunctionTryBlock(C) "),
 	CONFORMANCE_GROUP(Stage8, "", ""),
-	CONFORMANCE_GROUP(Stage9,
-		"VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) ",
-		"VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) "),
+	CONFORMANCE_GROUP(Stage9, "", ""),
 	CONFORMANCE_GROUP(Stage10, "", ""),
 };
 
@@ -145,6 +143,11 @@ static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource,
 	bool				bBuilt;
 
 	pcBuilder->SetTarget(eTarget);
+	if (getenv("TEST_CPP_CONFORMANCE_LISTINGS"))
+	{
+		//Each unit's generated assembly, for looking at a case's code.
+		pcBuilder->SetListingDirectory(getenv("TEST_CPP_CONFORMANCE_LISTINGS"));
+	}
 	TestCPP65AddIncludeDirectories(pcBuilder);
 	bBuilt = pcBuilder->AddStartUp();
 	if (eTarget == CPPT_W65C816)
@@ -363,7 +366,8 @@ static void TestCPPConformanceExport(const char* szDirectory)
 // TEST_CPP_CONFORMANCE_TRY in the environment names a source file: it is
 // built and run on each target, what main returned or why it wasn't built
 // is written to stderr, and nothing else is tested.  For trying a program
-// out while the compiler is worked on.
+// out while the compiler is worked on; TEST_CPP_CONFORMANCE_LISTINGS names a
+// directory for each unit's generated assembly.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestCPPConformanceTry(const char* szFileName)

@@ -38,6 +38,8 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mpsType = NULL;
 	mpcBase = NULL;
 	macBases.Init();
+	macVirtualBases.Init();
+	miOwnBytes = 0;
 	macUsings.Init();
 	macFields.Init();
 	mapcMembers.Init();
@@ -71,6 +73,7 @@ void CCPPClass::Kill(void)
 	mapcMembers.Kill();
 	macFields.Kill();
 	macUsings.Kill();
+	macVirtualBases.Kill();
 	macBases.Kill();
 }
 
@@ -89,17 +92,80 @@ bool CCPPClass::IsInstanceNamed(CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The virtual base pcBase (direct or not) and where a complete object puts
+// it, or NULL if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPVirtualBase* CCPPClass::GetVirtualBase(CCPPClass* pcBase)
+{
+	size	i;
+
+	for (i = 0; i < macVirtualBases.NumElements(); i++)
+	{
+		if (macVirtualBases.Get(i)->pcClass == pcBase)
+		{
+			return macVirtualBases.Get(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Which of the class's virtual bases pcBase is (its offset's place in the
+// class's vtable part, CPP65_VTABLE_VIRTUAL_OFFSET), or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPClass::GetVirtualBaseIndex(CCPPClass* pcBase)
+{
+	size	i;
+
+	for (i = 0; i < macVirtualBases.NumElements(); i++)
+	{
+		if (macVirtualBases.Get(i)->pcClass == pcBase)
+		{
+			return (int)i;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcBase is a base of the class, direct or not.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::HasBase(CCPPClass* pcBase)
+{
+	size	i;
+
+	for (i = 0; i < macBases.NumElements(); i++)
+	{
+		if ((macBases.Get(i)->pcClass == pcBase) || macBases.Get(i)->pcClass->HasBase(pcBase))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A field of the class, of an anonymous union or struct in it, or of its bases.
 // *piOffset is set to its offset in this class.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset)
+SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset, CCPPClass** ppcVirtual)
 {
 	SCPPField*	psField;
 	SCPPField*	psMember;
 	SCPPBase*		psBase;
 	size			i;
 	int				iOffset;
+	CCPPClass*		pcVirtual;
 
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
@@ -122,12 +188,26 @@ SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset)
 	for (i = 0; i < macBases.NumElements(); i++)
 	{
 		psBase = macBases.Get(i);
-		psField = psBase->pcClass->FindField(lliName, &iOffset);
-		if (psField)
+		pcVirtual = NULL;
+		psField = psBase->pcClass->FindField(lliName, &iOffset, &pcVirtual);
+		if (!psField)
+		{
+			continue;
+		}
+		if (!pcVirtual && !psBase->bVirtual)
 		{
 			*piOffset = psBase->iOffset + iOffset;
 			return psField;
 		}
+
+		//Through a virtual base: where it is in the base, which the object says.
+		if (!ppcVirtual)
+		{
+			return NULL;
+		}
+		*ppcVirtual = pcVirtual ? pcVirtual : psBase->pcClass;
+		*piOffset = iOffset;
+		return psField;
 	}
 	return NULL;
 }
@@ -137,13 +217,14 @@ SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset)
+SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual)
 {
 	SCPPField*	psField;
 	SCPPField*	psMember;
 	SCPPBase*		psBase;
 	size			i;
 	int				iOffset;
+	CCPPClass*		pcVirtual;
 
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
@@ -166,12 +247,26 @@ SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset)
 	for (i = 0; i < macBases.NumElements(); i++)
 	{
 		psBase = macBases.Get(i);
-		psField = psBase->pcClass->FindFieldSymbol(pcSymbol, &iOffset);
-		if (psField)
+		pcVirtual = NULL;
+		psField = psBase->pcClass->FindFieldSymbol(pcSymbol, &iOffset, &pcVirtual);
+		if (!psField)
+		{
+			continue;
+		}
+		if (!pcVirtual && !psBase->bVirtual)
 		{
 			*piOffset = psBase->iOffset + iOffset;
 			return psField;
 		}
+
+		//Through a virtual base: where it is in the base, which the object says.
+		if (!ppcVirtual)
+		{
+			return NULL;
+		}
+		*ppcVirtual = pcVirtual ? pcVirtual : psBase->pcClass;
+		*piOffset = iOffset;
+		return psField;
 	}
 
 	//Names in templates are not always resolved to the instance's fields.

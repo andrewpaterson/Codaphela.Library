@@ -118,9 +118,9 @@ void CCPPClassLayout::Layout(int iClassAlign)
 {
 	size	i;
 
+	CollectVirtualBases();
 	PlaceBases();
 	PlaceVtablePointer();
-	mpcClass->mcVtable.LayoutSecondaries(mpcClass);
 	for (i = 0; i < mpcClass->macFields.NumElements(); i++)
 	{
 		PlaceField(mpcClass->macFields.Get(i));
@@ -131,8 +131,12 @@ void CCPPClassLayout::Layout(int iClassAlign)
 	}
 	miAlign = (iClassAlign > miAlign) ? iClassAlign : miAlign;
 	miBytes = (miBytes + miAlign - 1) & ~(miAlign - 1);
+	mpcClass->miOwnBytes = miBytes;
+	PlaceVirtualBases();
+	miBytes = (miBytes + miAlign - 1) & ~(miAlign - 1);
+	mpcClass->mcVtable.LayoutSecondaries(mpcClass);
 
-	mpcClass->mbEmpty = (mpcClass->macFields.NumElements() == 0) && !mpcClass->mcVtable.HasPointer();
+	mpcClass->mbEmpty = (mpcClass->macFields.NumElements() == 0) && !mpcClass->mcVtable.HasPointer() && !mpcClass->HasVirtualBases();
 	for (i = 0; i < mpcClass->macBases.NumElements(); i++)
 	{
 		mpcClass->mbEmpty &= mpcClass->macBases.Get(i)->pcClass->mbEmpty;
@@ -154,7 +158,8 @@ int CCPPClassLayout::GetBytes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bases in order.  An empty base takes no space.
+// The non-virtual bases in order, each its own part.  An empty base takes
+// no space.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPClassLayout::PlaceBases(void)
@@ -165,14 +170,88 @@ void CCPPClassLayout::PlaceBases(void)
 	for (i = 0; i < mpcClass->macBases.NumElements(); i++)
 	{
 		psBase = mpcClass->macBases.Get(i);
-		if (psBase->pcClass->mbEmpty)
+		if (psBase->pcClass->mbEmpty || psBase->bVirtual)
 		{
 			psBase->iOffset = 0;
 			continue;
 		}
 		Align(PackAlignment(psBase->pcClass->miAlign, miPack));
 		psBase->iOffset = miBytes;
-		miBytes += psBase->pcClass->mpsType->iBytes;
+		miBytes += psBase->pcClass->miOwnBytes;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's virtual bases, direct or not, each once: a base's own before
+// it, in the order its bases are written (a depth-first, left-to-right
+// walk).  The first non-virtual base's come first, in its own order, so
+// the class's vtable part, which that base shares, has the base's virtual
+// offsets where the base looks for them.  [class.base.init] 13
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClassLayout::CollectVirtualBases(void)
+{
+	SCPPBase*	psBase;
+	size		i;
+	size		j;
+
+	for (i = 0; i < mpcClass->macBases.NumElements(); i++)
+	{
+		psBase = mpcClass->macBases.Get(i);
+		for (j = 0; j < psBase->pcClass->macVirtualBases.NumElements(); j++)
+		{
+			AddVirtualBase(psBase->pcClass->macVirtualBases.Get(j)->pcClass);
+		}
+		if (psBase->bVirtual)
+		{
+			AddVirtualBase(psBase->pcClass);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClassLayout::AddVirtualBase(CCPPClass* pcBase)
+{
+	SCPPVirtualBase*	psVirtual;
+
+	if (!mpcClass->GetVirtualBase(pcBase))
+	{
+		psVirtual = mpcClass->macVirtualBases.Add();
+		psVirtual->pcClass = pcBase;
+		psVirtual->iOffset = 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The virtual bases after the class's own part, each its own part (an empty
+// one takes no space).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClassLayout::PlaceVirtualBases(void)
+{
+	SCPPVirtualBase*	psVirtual;
+	size				i;
+
+	for (i = 0; i < mpcClass->macVirtualBases.NumElements(); i++)
+	{
+		psVirtual = mpcClass->macVirtualBases.Get(i);
+		if (psVirtual->pcClass->mbEmpty)
+		{
+			psVirtual->iOffset = 0;
+			continue;
+		}
+		Align(PackAlignment(psVirtual->pcClass->miAlign, miPack));
+		miAlign = (psVirtual->pcClass->miAlign > miAlign) ? psVirtual->pcClass->miAlign : miAlign;
+		psVirtual->iOffset = miBytes;
+		miBytes += psVirtual->pcClass->miOwnBytes;
 	}
 }
 
@@ -180,8 +259,8 @@ void CCPPClassLayout::PlaceBases(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The class's own vtable's pointer is the first base's where that base is
-// at the object's start and has one; otherwise a class with virtual
-// functions gets one after its bases.
+// at the object's start (not a virtual base) and has one; otherwise a class
+// with virtual functions or virtual bases gets one after its bases.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPClassLayout::PlaceVtablePointer(void)
@@ -189,11 +268,11 @@ void CCPPClassLayout::PlaceVtablePointer(void)
 	CCPPVtable*	pcVtable;
 
 	pcVtable = &mpcClass->mcVtable;
-	if (mpcClass->mpcBase && mpcClass->mpcBase->mcVtable.HasPointer() && (mpcClass->macBases.Get(0)->iOffset == 0))
+	if (mpcClass->mpcBase && !mpcClass->macBases.Get(0)->bVirtual && mpcClass->mpcBase->mcVtable.HasPointer() && (mpcClass->macBases.Get(0)->iOffset == 0))
 	{
 		pcVtable->miPointerOffset = mpcClass->mpcBase->mcVtable.miPointerOffset;
 	}
-	else if (pcVtable->mapcFunctions.NumElements() > 0)
+	else if ((pcVtable->mapcFunctions.NumElements() > 0) || mpcClass->HasVirtualBases())
 	{
 		Align(PackAlignment(miPointerBytes, miPack));
 		pcVtable->miPointerOffset = miBytes;

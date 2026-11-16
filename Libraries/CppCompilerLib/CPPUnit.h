@@ -591,6 +591,11 @@ public:
 	void					AppendTokensText(int iFirstToken, int iLastToken, CChars* pszDest);
 	void					EnsureVtable(CCPPClass* pcClass);
 	void					EnsureTypeInfo(CCPPClass* pcClass);
+	void					AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPPVtableEntries* pasEntries);
+	void					EnsureVTT(CCPPClass* pcClass);
+	void					AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords);
+	size					VTTEntries(CCPPClass* pcClass);
+	int						VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase);
 	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset);
 	void					AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer);
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
@@ -604,6 +609,8 @@ public:
 	bool					IsConstPointer(CCPPSyntax* pcExpression);
 	bool					IsConstThis(void);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
+	SCPPVirtualBase*		VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow);
+	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);

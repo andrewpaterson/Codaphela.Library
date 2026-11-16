@@ -713,7 +713,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 		*psObject = sPlace.sAddress;
 		pcClass = sPlace.psType->pcClass;
 	}
-	*psObject = AddressAt(*psObject, BaseOffset(pcClass, (*ppsMember)->pcClass));
+	*psObject = BaseAddress(*psObject, pcClass, (*ppsMember)->pcClass, false);
 	return true;
 }
 
@@ -1017,12 +1017,12 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			//What a lambda captures is its closure's field (a reference's is what it refers to).
 			return !msClosure.IsNone() ? FieldAt(msClosure, cBound.mpsField, cBound.miOffset, psPlace) : Unsupported(__FILE__, __LINE__);
 		}
-		//A field of this, where there is one.
-		if ((cBound.meWhat != CPPBN_Field) || msThis.IsNone() || (pcId->mpcName->macpComponents.NumElements() != 1) || !mpcUnit->CompleteClass(cBound.mpcClass, NULL))
+		//A field of this (or of the base a qualifier names), where there is one.
+		if ((cBound.meWhat != CPPBN_Field) || msThis.IsNone() || !mpcUnit->CompleteClass(cBound.mpcClass, NULL))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		return FieldAt(msThis, cBound.mpsField, cBound.miOffset, psPlace);
+		return BoundFieldAt(msThis, &cBound, psPlace);
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression, psPlace);
@@ -1307,7 +1307,7 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!((cBound.meWhat == CPPBN_Field) ? FieldAt(sObject, cBound.mpsField, cBound.miOffset, psPlace) : VariablePlace(cBound.mpcVariable, psPlace)))
+	if (!((cBound.meWhat == CPPBN_Field) ? BoundFieldAt(sObject, &cBound, psPlace) : VariablePlace(cBound.mpcVariable, psPlace)))
 	{
 		return false;
 	}
@@ -1318,6 +1318,33 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 		psPlace->psType = mpcTypes->Volatile(psPlace->psType);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The field a name or object.name is bound to, in the object at sObject: in
+// it or the base its qualifier names (CCPPBoundName::mpcQualifier), or in
+// the virtual base of that the binder found it in (mpcVirtualBase), which is
+// where that class's vtable part says (not by a path from the object's
+// class, which another base of the same class may be on).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::BoundFieldAt(SIRReference sObject, CCPPBoundName* pcBound, SCPP65IRPlace* psPlace)
+{
+	CCPPClass*	pcClass;
+
+	pcClass = pcBound->mpcClass;
+	if (pcBound->mpcQualifier)
+	{
+		sObject = BaseAddress(sObject, pcClass, pcBound->mpcQualifier, false);
+		pcClass = pcBound->mpcQualifier;
+	}
+	if (pcBound->mpcVirtualBase)
+	{
+		sObject = VirtualBaseAddress(sObject, pcClass, pcBound->mpcVirtualBase);
+	}
+	return FieldAt(sObject, pcBound->mpsField, pcBound->miOffset, psPlace);
 }
 
 
@@ -1483,13 +1510,13 @@ bool CCPP65IRFrontEnd::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCP
 // The symbol of a function's label; the generator writes the function.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::FunctionSymbol(CCPPFunction* pcFunction)
+SIRReference CCPP65IRFrontEnd::FunctionSymbol(CCPPFunction* pcFunction, bool bBaseVersion)
 {
 	CChars			szLabel;
 	SIRReference	sSymbol;
 
 	szLabel.Init();
-	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction);
+	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, bBaseVersion);
 	if (mbConstants)
 	{
 		//A constant's call is run when the program is compiled: the function is only asked for there.

@@ -68,11 +68,13 @@ CCPPFunction* CCPPMangler::FirstOfName(int64 lliName)
 // _Class__0 and destructors _Class__1; the vtable is _Class__2.  A template
 // instance's class is Class__T and its arguments, mangled.  An overloaded member
 // has its parameters on the end, as a function that is not a member always does,
-// so adding an overload never moves another's label.  C++ names cannot contain __
+// so adding an overload never moves another's label.  The base version of a
+// constructor or destructor of a class with virtual bases (bBaseVersion) ends
+// __B.  C++ names cannot contain __
 // and cannot start with a digit, so none can clash.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction)
+void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction, bool bBaseVersion)
 {
 	CChars	szName;
 	size	i;
@@ -149,6 +151,10 @@ void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction)
 				psz->Append('z');
 			}
 		}
+	}
+	if (bBaseVersion)
+	{
+		psz->Append("__B");
 	}
 }
 
@@ -254,9 +260,37 @@ void CCPPMangler::AppendTypeInfoLabel(CChars* psz, CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// _Class__4, the class's VTT (CPP65_VTT_LABEL): the vtables its constructors
+// and destructor give their bases' base versions.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendVTTLabel(CChars* psz, CCPPClass* pcClass)
+{
+	AppendClassLabel(psz, pcClass, CPP65_VTT_LABEL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// _Complete__5_offset_Class, the construction vtable of the pcClass subobject
+// at iOffset in a pcComplete (CPP65_CONSTRUCTION_LABEL).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendConstructionVtableLabel(CChars* psz, CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset)
+{
+	AppendClassLabel(psz, pcComplete, CPP65_CONSTRUCTION_LABEL);
+	psz->Append('_');
+	psz->Append(iOffset);
+	psz->Append('_');
+	AppendClassName(psz, pcClass);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A vtable entry's label: R_Pure for a pure virtual function, else the
-// function's, or its thunk's (__t and the adjustment's negation) when this
-// is adjusted by iAdjust first.  AppendVtableEntry writes the thunk.
+// function's, or its thunk's when this is adjusted by iAdjust first: __t
+// and the adjustment's negation, or __u and the adjustment when it moves this
+// on.  AppendVtableEntry writes the thunk.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPMangler::AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust)
@@ -267,10 +301,16 @@ void CCPPMangler::AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, 
 		return;
 	}
 	AppendFunctionLabel(psz, pcFunction);
-	if (iAdjust != 0)
+	if (iAdjust < 0)
 	{
 		psz->Append("__t");
 		psz->Append(-iAdjust);
+	}
+	else if (iAdjust > 0)
+	{
+		//this moved on, to an overrider after the part (in a virtual base's part): __u and the adjustment.
+		psz->Append("__u");
+		psz->Append(iAdjust);
 	}
 }
 

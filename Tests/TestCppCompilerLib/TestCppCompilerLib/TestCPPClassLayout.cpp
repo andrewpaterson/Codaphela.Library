@@ -288,9 +288,11 @@ static void TestCPPClassLayoutBasesAndVtables(void)
 
 	TestCPPClassLayoutClass(&cDerived, &cTypes, false);
 	psBase = cDerived.macBases.Add();
+	psBase->bVirtual = false;
 	psBase->pcClass = &cEmpty;
 	psBase->iOffset = -1;
 	psBase = cDerived.macBases.Add();
+	psBase->bVirtual = false;
 	psBase->pcClass = &cBase;
 	psBase->iOffset = -1;
 	cDerived.mpcBase = &cEmpty;
@@ -322,6 +324,7 @@ static void TestCPPClassLayoutBasesAndVtables(void)
 	//The first base's pointer is shared.
 	TestCPPClassLayoutClass(&cSharing, &cTypes, false);
 	psBase = cSharing.macBases.Add();
+	psBase->bVirtual = false;
 	psBase->pcClass = &cPolymorphic;
 	psBase->iOffset = -1;
 	cSharing.mpcBase = &cPolymorphic;
@@ -336,9 +339,11 @@ static void TestCPPClassLayoutBasesAndVtables(void)
 	//The second polymorphic base's vtable is a secondary one, at the base's offset.
 	TestCPPClassLayoutClass(&cBoth, &cTypes, false);
 	psBase = cBoth.macBases.Add();
+	psBase->bVirtual = false;
 	psBase->pcClass = &cPolymorphic;
 	psBase->iOffset = -1;
 	psBase = cBoth.macBases.Add();
+	psBase->bVirtual = false;
 	psBase->pcClass = &cOther;
 	psBase->iOffset = -1;
 	cBoth.mpcBase = &cPolymorphic;

@@ -67,6 +67,11 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	msThis = IRNone();
 	msResult = IRNone();
 	msElide = IRNone();
+	msVTT = IRNone();
+	msVTTArgument = IRNone();
+	mbBaseVersion = false;
+	mbVersionFollows = false;
+	mpcBaseObject = NULL;
 	mpcValue = NULL;
 	mpcProfiledCaller = NULL;
 	mbProfiledCaller = false;
@@ -160,8 +165,7 @@ void CCPP65IRFrontEnd::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 {
-	CChars					szLabel;
-	bool					bResult;
+	bool	bResult;
 
 	muiAttempts++;
 	if (!mbConstants && (muiAttempts > mpcUnit->GetOptions()->muiFunctionLimit))
@@ -177,8 +181,35 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 		return false;
 	}
 
+	//A constructor or destructor of a class with virtual bases has a base version too, for a base subobject, which
+	//leaves the virtual bases alone.  The unit's context stays the function's until the last is written.
+	mbBaseVersion = false;
+	mbVersionFollows = pcFunction->mpcClass && ((pcFunction->meKind == CPPFK_Constructor) || (pcFunction->meKind == CPPFK_Destructor)) && pcFunction->mpcClass->HasVirtualBases();
+	bResult = WriteBody(pcFunction);
+	if (bResult && mbVersionFollows)
+	{
+		mbBaseVersion = true;
+		mbVersionFollows = false;
+		bResult = WriteBody(pcFunction);
+		mbBaseVersion = false;
+	}
+	mbVersionFollows = false;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the function's body, its base version if mbBaseVersion (Body).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
+{
+	CChars	szLabel;
+	bool	bResult;
+
 	szLabel.Init();
-	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction);
+	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
 	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0));
 
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function
@@ -196,7 +227,7 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 		//The vtables are this class's while its destructor runs; returns go to the end, which destroys the fields and
 		//bases.
 		mpcExit = NewBlock();
-		bResult = StoreVtables(msThis, pcFunction->mpcClass);
+		bResult = StoreVtables(msThis, pcFunction->mpcClass, mbBaseVersion);
 	}
 	if (pcFunction->mpcAddressOf)
 	{
@@ -247,6 +278,9 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mcAddresses.Init(true);
 	mcImplicitValues.Init(true);
 	mcAnonymousAddresses.Init(true);
+	mpcBaseObject = NULL;
+	msVTT = IRNone();
+	msVTTArgument = IRNone();
 	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
 	if (pcFunction)
 	{
@@ -389,7 +423,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		szCode.Kill();
 	}
 
-	if (bResult)
+	if (bResult && !mbVersionFollows)
 	{
 		//As the generator's EndFunction leaves it.
 		mpcUnit->GetContext()->EndFunction();
@@ -877,11 +911,15 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	CArrayTemplate<SIRReference>	asByAddress;	//Per C++ parameter: the IR parameter of an object passed by address.
 	int32					iFirst;
 
-	//A member function's this comes first (in X), then the address a function that returns an object makes it at
-	//(the first argument on the stack).
+	//A member function's this comes first (in X), then a base version's VTT entries or the address a function that
+	//returns an object makes it at (the first argument on the stack).
 	if (mpcFunction->muiAttributes & IRA_ThisCall)
 	{
 		msThis = mpcFunction->AddParameter(IRType(IRTK_Pointer));
+	}
+	if (mbBaseVersion)
+	{
+		msVTT = mpcFunction->AddParameter(IRType(IRTK_Pointer));
 	}
 	if (mpcCPPFunction->mpsReturn->IsClass())
 	{
@@ -1593,7 +1631,8 @@ bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, const char* szFile, int
 //////////////////////////////////////////////////////////////////////////
 //
 // How far into an object of pcDerived its base psBase is; 0 if psBase isn't
-// a base of it (or either is NULL).
+// a base of it (or either is NULL), CPP_VIRTUAL_PATH if it is through a
+// virtual base (BaseAddress finds it).
 //
 //////////////////////////////////////////////////////////////////////////
 int CCPP65IRFrontEnd::BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase)

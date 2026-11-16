@@ -25,7 +25,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //Lays a class out as MSVC does (BaseLib reads and writes its classes as raw bytes): the bases in order (an
 //empty base takes no space), the vtable pointer if the first base's isn't shared, then the fields, each
-//aligned to at most #pragma pack's bytes.  The class's bases must be complete, its fields collected and its
+//aligned to at most #pragma pack's bytes.  A virtual base is placed as the Itanium ABI places one: after the
+//class's own part, once, where a complete object of the class has it (a class as a non-virtual base takes only
+//its own part).  The class's bases must be complete, its fields collected and its
 //own vtable laid out (CCPPVtable::LayoutOwn).  It places things and reports nothing: what is wrong with a
 //member was said when the member was declared.
 class CCPPClassLayout
@@ -54,6 +56,9 @@ public:
 protected:
 	void		Align(int iAlign);
 	void		PlaceBases(void);
+	void		CollectVirtualBases(void);
+	void		AddVirtualBase(CCPPClass* pcBase);
+	void		PlaceVirtualBases(void);
 	void		PlaceVtablePointer(void);
 	void		PlaceField(SCPPField* psField);
 	void		PlaceBitField(SCPPField* psField);

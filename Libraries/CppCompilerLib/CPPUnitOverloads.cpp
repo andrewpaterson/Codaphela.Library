@@ -105,10 +105,63 @@ bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 		{
 			if (piOffset)
 			{
-				*piOffset = psDirect->iOffset + iOffset;
+				//Through a virtual base there is none that is fixed: where the base is depends on the complete object.
+				*piOffset = (psDirect->bVirtual || (iOffset == CPP_VIRTUAL_PATH)) ? CPP_VIRTUAL_PATH : (psDirect->iOffset + iOffset);
 			}
 			return true;
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The virtual base of pcClass (direct or not) that pcBase is, or that pcBase
+// is a non-virtual base of, with where pcBase is in it (*piBelow); NULL if
+// no virtual base of pcClass leads to pcBase.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPVirtualBase* CCPPUnit::VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow)
+{
+	SCPPVirtualBase*	psVirtual;
+	size				i;
+	int					iOffset;
+
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		psVirtual = pcClass->macVirtualBases.Get(i);
+		if (IsDerived(psVirtual->pcClass, pcBase, &iOffset) && (iOffset != CPP_VIRTUAL_PATH))
+		{
+			*piBelow = iOffset;
+			return psVirtual;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where pcBase is in a complete object of pcClass (which is laid out): its
+// fixed offset, or through a virtual base where pcClass puts that.  False if
+// pcBase isn't a base of pcClass.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+{
+	SCPPVirtualBase*	psVirtual;
+	int					iBelow;
+
+	if (!IsDerived(pcClass, pcBase, piOffset))
+	{
+		return false;
+	}
+	if (*piOffset != CPP_VIRTUAL_PATH)
+	{
+		return true;
+	}
+	psVirtual = VirtualBaseOf(pcClass, pcBase, &iBelow);
+	*piOffset = psVirtual ? (psVirtual->iOffset + iBelow) : 0;
+	return psVirtual != NULL;
 }

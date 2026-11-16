@@ -45,11 +45,13 @@ public:
 	void				Init(CCPPTokeniser* pcTokeniser, CArrayCPPClasses* papcClasses, CMapCPPFunctionsOfNames* pcFunctionsOfNames);
 	void				Kill(void);
 
-	void				AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction);
+	void				AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction, bool bBaseVersion = false);
 	void				AppendGlobalLabel(CChars* psz, CCPPVariable* pcVariable);
 	void				AppendClassLabel(CChars* psz, CCPPClass* pcClass, const char* szPart);
 	void				AppendVtableLabel(CChars* psz, CCPPClass* pcClass);
 	void				AppendTypeInfoLabel(CChars* psz, CCPPClass* pcClass);
+	void				AppendVTTLabel(CChars* psz, CCPPClass* pcClass);
+	void				AppendConstructionVtableLabel(CChars* psz, CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset);
 	void				AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust);
 	void				AppendClassName(CChars* psz, CCPPClass* pcClass);
 	void				AppendScopeNames(CChars* psz, CCPPScope* pcScope);

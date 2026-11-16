@@ -597,7 +597,7 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 	*piOffset = 0;
 	if (bClass && (psType->pcClass != psReference->psBase->pcClass))
 	{
-		IsDerived(psType->pcClass, psReference->psBase->pcClass, piOffset);
+		CompleteOffset(psType->pcClass, psReference->psBase->pcClass, piOffset);
 	}
 	pszBound->Append(pszLabel);
 	pszBound->Append("__Bound");

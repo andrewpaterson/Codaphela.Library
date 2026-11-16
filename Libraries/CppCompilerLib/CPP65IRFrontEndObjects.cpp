@@ -86,7 +86,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	}
 	if (bLvalue)
 	{
-		sTrue.sAddress = AddressAt(sTrue.sAddress, BaseOffset(psTrue->pcClass, pcClass));
+		sTrue.sAddress = BaseAddress(sTrue.sAddress, psTrue->pcClass, pcClass, false);
 	}
 	pcTrueEnd = mpcBlock;
 	JumpTo(pcEnd);
@@ -97,7 +97,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	}
 	if (bLvalue)
 	{
-		sFalse.sAddress = AddressAt(sFalse.sAddress, BaseOffset(psFalse->pcClass, pcClass));
+		sFalse.sAddress = BaseAddress(sFalse.sAddress, psFalse->pcClass, pcClass, false);
 	}
 	miConditional--;
 	JumpTo(pcEnd);
@@ -325,9 +325,9 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	CArraySyntax*					papcInitialisers;
 	CCPPSyntaxMemberInitializer*	pcMember;
 	CCPPSyntaxMemberInitializer*	pcFound;
-	CArraySyntax*					papcArguments;
-	SCPPField*					psField;
+	SCPPField*						psField;
 	SCPPBase*						psBase;
+	SCPPVirtualBase*				psVirtual;
 	SCPP65IRPlace					sPlace;
 	CCPPSyntax*						pcInitialiser;
 	CCPPClass*					pcNamed;
@@ -363,50 +363,28 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		}
 	}
 
-	//The bases, in order.
-	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
+	//The virtual bases, direct or not, in their order, made by the complete object's constructor (not a base version)
+	//from the member initialiser that names them, or by default.  [class.base.init] 10 and 13
+	for (ui = 0; !mbBaseVersion && (ui < pcClass->macVirtualBases.NumElements()); ui++)
 	{
-		psBase = pcClass->macBases.Get(ui);
-		pcFound = NULL;
-		for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
-		{
-			pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-			pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
-			if (pcNamed == psBase->pcClass)
-			{
-				pcFound = pcMember;
-			}
-		}
-		papcArguments = &mapcNone;
-		if (pcFound && pcFound->mpcInitializer)
-		{
-			if (pcFound->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer)
-			{
-				papcArguments = mpcUnit->ListElements(pcFound->mpcInitializer);
-			}
-			else if (pcFound->mpcInitializer->GetKind() == CPPS_InitializerList)
-			{
-				papcArguments = mpcUnit->ListElements(pcFound->mpcInitializer);
-			}
-		}
-		sPlace.sAddress = AddressAt(msThis, psBase->iOffset);
-		sPlace.psType = psBase->pcClass->mpsType;
-		sPlace.psBitField = NULL;
-		if (mpcCPPFunction->mpcInherited && (mpcCPPFunction->mpcInherited->mpcClass == psBase->pcClass))
-		{
-			//An inherited constructor (using Base::Base) passes its parameters to the base's.
-			if (!InheritedConstructorCall(&sPlace))
-			{
-				return false;
-			}
-		}
-		else if (!ConstructClass(&sPlace, psBase->pcClass, papcArguments))
+		psVirtual = pcClass->macVirtualBases.Get(ui);
+		if (!ConstructBase(papcInitialisers, psVirtual->pcClass, AddressAt(msThis, psVirtual->iOffset)))
 		{
 			return false;
 		}
 	}
 
-	if (!StoreVtables(msThis, pcClass))
+	//The non-virtual bases, in order.
+	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
+	{
+		psBase = pcClass->macBases.Get(ui);
+		if (!psBase->bVirtual && !ConstructBase(papcInitialisers, psBase->pcClass, AddressAt(msThis, psBase->iOffset)))
+		{
+			return false;
+		}
+	}
+
+	if (!StoreVtables(msThis, pcClass, mbBaseVersion))
 	{
 		return false;
 	}
@@ -453,6 +431,57 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A base of the class whose constructor is being written, at sAddress: from
+// the member initialiser that names it (with an inherited constructor's
+// parameters, for the base it inherits from), or by default.  One with
+// virtual bases is made by its base version (mpcBaseObject).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConstructBase(CArraySyntax* papcInitialisers, CCPPClass* pcBase, SIRReference sAddress)
+{
+	CCPPSyntaxMemberInitializer*	pcMember;
+	CCPPSyntaxMemberInitializer*	pcFound;
+	CArraySyntax*					papcArguments;
+	SCPP65IRPlace					sPlace;
+	CCPPClass*						pcNamed;
+	size							uiMember;
+	bool							bResult;
+
+	pcFound = NULL;
+	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
+	{
+		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
+		if (pcNamed == pcBase)
+		{
+			pcFound = pcMember;
+		}
+	}
+	papcArguments = &mapcNone;
+	if (pcFound && pcFound->mpcInitializer && ((pcFound->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer) || (pcFound->mpcInitializer->GetKind() == CPPS_InitializerList)))
+	{
+		papcArguments = mpcUnit->ListElements(pcFound->mpcInitializer);
+	}
+	sPlace.sAddress = sAddress;
+	sPlace.psType = pcBase->mpsType;
+	sPlace.psBitField = NULL;
+	mpcBaseObject = pcBase;
+	if (mpcCPPFunction->mpcInherited && (mpcCPPFunction->mpcInherited->mpcClass == pcBase))
+	{
+		//An inherited constructor (using Base::Base) passes its parameters to the base's.
+		bResult = InheritedConstructorCall(&sPlace);
+	}
+	else
+	{
+		bResult = ConstructClass(&sPlace, pcBase, papcArguments);
+	}
+	mpcBaseObject = NULL;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A delegating constructor's start: the constructor its member initialiser
 // pcMember chooses from its arguments (C(7)) makes the object at this.
 //
@@ -461,6 +490,7 @@ bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMember
 {
 	CArraySyntax*	papcArguments;
 	SCPP65IRPlace	sPlace;
+	bool			bResult;
 
 	papcArguments = &mapcNone;
 	if (pcMember->mpcInitializer)
@@ -476,22 +506,27 @@ bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMember
 	}
 	sPlace.sAddress = msThis;
 	sPlace.psType = pcClass->mpsType;
-	return ConstructClass(&sPlace, pcClass, papcArguments);
+	mpcBaseObject = mbBaseVersion ? pcClass : NULL;
+	bResult = ConstructClass(&sPlace, pcClass, papcArguments);
+	mpcBaseObject = NULL;
+	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The end of a destructor, after its body: the fields in reverse, then the
+// non-virtual bases in reverse, then (but in a base version) the virtual
 // bases in reverse.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestructorEnd(void)
 {
-	CCPPClass*	pcClass;
-	SCPPField*	psField;
-	SCPPBase*		psBase;
-	size			ui;
+	CCPPClass*			pcClass;
+	SCPPField*			psField;
+	SCPPBase*			psBase;
+	SCPPVirtualBase*	psVirtual;
+	size				ui;
 
 	pcClass = mpcCPPFunction->mpcClass;
 	for (ui = pcClass->macFields.NumElements(); ui > 0; ui--)
@@ -505,7 +540,15 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = pcClass->macBases.NumElements(); ui > 0; ui--)
 	{
 		psBase = pcClass->macBases.Get(ui - 1);
-		if (!Destroy(AddressAt(msThis, psBase->iOffset), psBase->pcClass->mpsType))
+		if (!psBase->bVirtual && !DestroyBase(AddressAt(msThis, psBase->iOffset), psBase->pcClass))
+		{
+			return false;
+		}
+	}
+	for (ui = mbBaseVersion ? 0 : pcClass->macVirtualBases.NumElements(); ui > 0; ui--)
+	{
+		psVirtual = pcClass->macVirtualBases.Get(ui - 1);
+		if (!DestroyBase(AddressAt(msThis, psVirtual->iOffset), psVirtual->pcClass))
 		{
 			return false;
 		}
@@ -516,19 +559,40 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A polymorphic class's vtable pointers in the object at sObject: each
-// part of its vtable (CCPPVtable::GetEntries) is pointed at by the
-// vtable pointer its header says.
+// Destroys a base subobject of the object whose destructor is being written,
+// with its destructor's base version if it has one (mpcBaseObject).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
+bool CCPP65IRFrontEnd::DestroyBase(SIRReference sAddress, CCPPClass* pcBase)
+{
+	bool	bResult;
+
+	mpcBaseObject = pcBase;
+	bResult = Destroy(sAddress, pcBase->mpsType);
+	mpcBaseObject = NULL;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A polymorphic class's vtable pointers in the object at sObject: each
+// part of its vtable (CCPPVtable::GetEntries) is pointed at by the
+// vtable pointer its header says.  bConstruction: the object is a base
+// subobject whose constructor's or destructor's base version is being
+// written, which stores the construction vtable its VTT entries give.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass, bool bConstruction)
 {
 	CArrayCPPVtableEntries	asEntries;
 	SCPPVtableEntry*			psEntry;
 	CChars						szLabel;
 	SIRReference				sLabel;
+	SIRReference				sPointer;
 	size						ui;
 	int							iWord;
+	bool						bLabelled;
 
 	if (!pcClass->IsPolymorphic())
 	{
@@ -538,32 +602,48 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	mpcUnit->EnsureVtable(pcClass);
-	szLabel.Init();
-	mpcUnit->GetMangler()->AppendVtableLabel(&szLabel, pcClass);
-	sLabel = mcModule.Symbol(szLabel.Text());
-	szLabel.Kill();
-	if (pcClass->IsUnnamed())
-	{
-		mcModule.SetLocal(sLabel.Index());
-	}
 	asEntries.Init();
 	pcClass->mcVtable.GetEntries(&asEntries);
-	DescribeVtable(&asEntries, pcClass, sLabel.Index());
+	if (bConstruction)
+	{
+		//A base version's: the construction vtable its VTT entries start with, of the same parts.
+		sLabel = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), msVTT);
+	}
+	else
+	{
+		mpcUnit->EnsureVtable(pcClass);
+		szLabel.Init();
+		mpcUnit->GetMangler()->AppendVtableLabel(&szLabel, pcClass);
+		sLabel = mcModule.Symbol(szLabel.Text());
+		szLabel.Kill();
+		if (pcClass->IsUnnamed())
+		{
+			mcModule.SetLocal(sLabel.Index());
+		}
+		DescribeVtable(&asEntries, pcClass, sLabel.Index());
+	}
 
-	//The words from the label: the first part's header is before it (its pointer only when the class has its own).
+	//The words from the label: the first part's offsets and header are before it (its pointer only when the class has
+	//its own, which a part in a virtual base is found through).  In a complete object every part is at a fixed place;
+	//in a base subobject one in a virtual base is where the object's first part says the base is.
 	if (pcClass->mcVtable.miPointerOffset != -1)
 	{
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sLabel, AddressAt(sObject, pcClass->mcVtable.miPointerOffset));
 	}
 	iWord = 0;
-	for (ui = 1; ui < asEntries.NumElements(); ui++)
+	bLabelled = false;
+	for (ui = 0; ui < asEntries.NumElements(); ui++)
 	{
 		psEntry = asEntries.Get(ui);
-		if (psEntry->eKind == CPPVE_Header)
+		if (!bLabelled)
+		{
+			bLabelled = psEntry->eKind == CPPVE_Header;
+		}
+		else if (psEntry->eKind == CPPVE_Header)
 		{
 			iWord += CPP65_VTABLE_HEADER_ENTRIES;
-			mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), AddressAt(sLabel, CPP65_VTABLE_ENTRY_BYTES * iWord), AddressAt(sObject, psEntry->iVtablePointer));
+			sPointer = (bConstruction && psEntry->pcVirtualBase) ? AddressAt(VirtualBaseAddress(sObject, pcClass, psEntry->pcVirtualBase), psEntry->iInVirtual) : AddressAt(sObject, psEntry->iVtablePointer);
+			mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), AddressAt(sLabel, CPP65_VTABLE_ENTRY_BYTES * iWord), sPointer);
 		}
 		else
 		{
@@ -574,6 +654,34 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass)
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The VTT entries of the class whose constructor or destructor is being
+// written: a base version's parameter, or the complete object's VTT
+// (CCPPUnit::EnsureVTT).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::VTTOf(CCPPClass* pcClass)
+{
+	CChars			szLabel;
+	SIRReference	sVTT;
+
+	if (mbBaseVersion)
+	{
+		return msVTT;
+	}
+	mpcUnit->EnsureVTT(pcClass);
+	szLabel.Init();
+	mpcUnit->GetMangler()->AppendVTTLabel(&szLabel, pcClass);
+	sVTT = mcModule.Symbol(szLabel.Text());
+	szLabel.Kill();
+	if (pcClass->IsUnnamed())
+	{
+		mcModule.SetLocal(sVTT.Index());
+	}
+	return sVTT;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -589,15 +697,28 @@ void CCPP65IRFrontEnd::DescribeVtable(CArrayCPPVtableEntries* pasEntries, CCPPCl
 	SCPPVtableEntry*	psEntry;
 	CChars				szLabel;
 	size				ui;
+	bool				bLabelled;
 
 	if (mcModule.FindConstantData(uiSymbol))
 	{
 		return;
 	}
 	pcVtable = mcModule.AddKnownData(mcModule.GetSymbolName(uiSymbol), CPP65_VTABLE_ENTRY_BYTES);
-	for (ui = 1; ui < pasEntries->NumElements(); ui++)
+	bLabelled = false;
+	for (ui = 0; ui < pasEntries->NumElements(); ui++)
 	{
 		psEntry = pasEntries->Get(ui);
+		if (!bLabelled)
+		{
+			//The first part's offsets and header are before the label.
+			bLabelled = psEntry->eKind == CPPVE_Header;
+			continue;
+		}
+		if (psEntry->eKind == CPPVE_Offset)
+		{
+			pcVtable->AddValue(IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), (uint64)(int64)psEntry->iAdjust);
+			continue;
+		}
 		szLabel.Init();
 		if (psEntry->eKind == CPPVE_Header)
 		{
@@ -1246,8 +1367,9 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 //
 // delete pointer: unless it is null, the object's destructor (virtual if
-// it is) then operator delete, the class's own if it has one.  delete[]
-// of objects with destructors is DeleteArray's.
+// it is) then operator delete, the class's own if it has one, of the whole
+// object when the destructor is virtual.  delete[] of objects with
+// destructors is DeleteArray's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
@@ -1260,6 +1382,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	bool			bCalled;
 	SCPP65Type*		psType;
 	SIRReference	sCondition;
+	SIRReference	sFree;
 	CIRBlock*		pcFree;
 	CIRBlock*		pcDone;
 
@@ -1294,6 +1417,13 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	}
 	else
 	{
+		//A virtual destructor destroys the whole object, which is what is freed: its start, from the vtable before the
+		//destructors change it (a base class's pointer isn't the start of a derived object).  [expr.delete] 3
+		sFree = sPointer.sValue;
+		if (psType->IsClass() && psType->pcClass->mpcDestructor && psType->pcClass->mpcDestructor->mbVirtual)
+		{
+			sFree = DynamicCast(sPointer.sValue, psType->pcClass, NULL);
+		}
 		if (psType->IsClass() && psType->pcClass->mpcDestructor && !CallObject(psType->pcClass->mpcDestructor, sPointer.sValue, psType->pcClass, NULL, true))
 		{
 			return false;
@@ -1305,7 +1435,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 			apcArguments.Init();
 			apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
 			sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
-			sAddress.sValue = sPointer.sValue;
+			sAddress.sValue = sFree;
 			bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
 			apcArguments.Kill();
 			if (!bCalled)
@@ -1315,7 +1445,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		}
 		else
 		{
-			CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sPointer.sValue);
+			CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree);
 		}
 	}
 	JumpTo(pcDone);
@@ -1735,6 +1865,11 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 	int				iCount;
 	int				iOffset;
 
+	if (pcClass->HasVirtualBases())
+	{
+		//Its virtual bases are copied once, by the complete object's (not supported yet).
+		return Unsupported(__FILE__, __LINE__);
+	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
@@ -1784,6 +1919,10 @@ bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 	size			ui;
 	int32			iIndex;
 
+	if (mpcCPPFunction->mpcInherited->mpcClass->HasVirtualBases())
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
 	//The IR parameters after this and the result's address.
 	iIndex = (msThis.IsNone() ? 0 : 1) + (msResult.IsNone() ? 0 : 1);
 	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), psBase->sAddress);
@@ -1898,6 +2037,11 @@ bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination
 	int			j;
 	int			iOffset;
 
+	if (pcClass->HasVirtualBases())
+	{
+		//Its virtual bases are copied once, by the complete object's (not supported yet).
+		return Unsupported(__FILE__, __LINE__);
+	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);

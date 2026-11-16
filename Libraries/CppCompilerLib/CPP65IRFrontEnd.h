@@ -37,6 +37,7 @@ class CIROptimiser;
 
 class CCPPUnit;
 class CCPPBoundCall;
+class CCPPBoundName;
 class CCPPBoundConversion;
 class CCPPFunction;
 class CCPPVariable;
@@ -159,10 +160,15 @@ protected:
 	CIRFunction*			mpcFunction;
 	CIRBlock*				mpcBlock;
 	CCPPFunction*			mpcCPPFunction;
+	bool					mbVersionFollows;	//Another version of the function being written follows it (Body): the unit's context stays the function's.
+	bool					mbBaseVersion;		//The base version of a constructor or destructor is being written: its class's virtual bases are left alone.
+	CCPPClass*				mpcBaseObject;		//The class whose base version the next constructor or destructor call is (a base subobject's), or NULL.
 	SIRReference			msThis;				//A member function's this, IRNone in others; in a lambda's body the enclosing object's, if it captures it.
 	SIRReference			msClosure;			//A lambda's operator(): the closure it is called on, IRNone in others.
 	SIRReference			msResult;			//Where a function that returns an object makes it, IRNone in others.
 	SIRReference			msElide;			//Where the next call that returns an object makes it, instead of a temporary.
+	SIRReference			msVTT;				//A base version's VTT entries (its hidden parameter after this), IRNone in others.
+	SIRReference			msVTTArgument;		//The VTT entries the next call (of a base version) is given, or IRNone.
 	CCPPSyntax*				mpcValue;			//The expression Value last started on (where a conversion's error is).
 	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its CCPPVariable.
 	CMapCPP65IRValues		mcImplicitValues;	//The values of the implicit arguments of the calls being written (CCPPUnit::ImplicitValue).
@@ -196,6 +202,7 @@ public:
 	void			SetStatistics(CCPPCompileStatistics* pcStatistics);
 
 	bool			Body(CCPPFunction* pcFunction);
+	bool			WriteBody(CCPPFunction* pcFunction);
 	CIRFunction*	ConstantFunction(CCPPFunction* pcFunction);
 	CIRFunction*	ConstantExpression(const char* szLabel, CCPPSyntax* pcExpression, SCPP65Type* psType);
 	CIRFunction*	ConstantInitialiser(const char* szLabel, SCPP65Type* psType, CCPPSyntax* pcInitialiser);
@@ -358,12 +365,15 @@ protected:
 	bool			VerifyIR(CIRFunction* pcFunction, const char* szFile, int iLine);
 	SIRReference	ConvertIR(SIRReference sValue, SIRType sFrom, SIRType sTo, bool bSigned);
 	SIRReference	BaseAddress(SIRReference sAddress, int iOffset);
+	SIRReference	BaseAddress(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo, bool bNull);
+	SIRReference	VirtualBaseAddress(SIRReference sAddress, CCPPClass* pcClass, CCPPClass* pcBase);
 	bool			ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRReference* psAddress);
 	bool			InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psResult, SCPP65IRValue* psValue);
 	bool			ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	SCPP65Type*		ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psType);
 	bool			MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65IRPlace* psPlace);
 	bool			FieldAt(SIRReference sObject, SCPPField* psField, int iOffset, SCPP65IRPlace* psPlace);
+	bool			BoundFieldAt(SIRReference sObject, CCPPBoundName* pcBound, SCPP65IRPlace* psPlace);
 	bool			DestructorCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPClass* pcClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue);
 	bool			OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue);
 	bool			BoundOperatorCall(CCPPBoundCall* pcBound, ECppTokens eOperator, SCPP65IRValue* psValue);
@@ -375,8 +385,11 @@ protected:
 	void			PrintFunction(CIRFunction* pcFunction, CChars* pszText, bool bSources);
 	bool			ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool			DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMemberInitializer* pcMember);
+	bool			ConstructBase(CArraySyntax* papcInitialisers, CCPPClass* pcBase, SIRReference sAddress);
 	bool			DestructorEnd(void);
-	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass);
+	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass, bool bConstruction = false);
+	SIRReference	VTTOf(CCPPClass* pcClass);
+	bool			DestroyBase(SIRReference sAddress, CCPPClass* pcBase);
 	void			DescribeVtable(CArrayTemplate<SCPPVtableEntry>* pasEntries, CCPPClass* pcClass, uint32 uiSymbol);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
 	bool			InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psElement, CArraySyntax* papcElements);
@@ -388,7 +401,7 @@ protected:
 	void			ClosePhi(CIRBlock* pcLoop, SIRReference sPhi, CIRBlock* pcLatch, SIRReference sNext);
 	SIRReference	BeginCountedLoop(SCPP65IRCountedLoop* psLoop, SIRType sType, SIRReference sStart, uint16 uiTest, SIRReference sLimit);
 	void			EndCountedLoop(SCPP65IRCountedLoop* psLoop, SIRReference sNext);
-	SIRReference	FunctionSymbol(CCPPFunction* pcFunction);
+	SIRReference	FunctionSymbol(CCPPFunction* pcFunction, bool bBaseVersion = false);
 	void			MarkFunctionSymbol(CCPPFunction* pcFunction, uint32 uiSymbol);
 	bool			FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			CallObject(CCPPFunction* pcFunction, SIRReference sObject, CCPPClass* pcObjectClass, CArraySyntax* papcArguments, bool bVirtual);
