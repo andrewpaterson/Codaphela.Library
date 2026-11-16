@@ -47,6 +47,9 @@ Open
   How the feedback is found in the rasteriser (it can note pages as it draws, rather than in a pass of its own).
   Baking in the background (ThreadLib's jobs) so a frame never waits.
   How a page's texels are compressed in the database, and on the GPU (BC1 or BC7 in Vulkan, or none at first).
+  What a page holds for each texel.  Materials give colour, height, shine, gloss and glow (ProceduralLib/TexturePlan.txt,
+  which is built first); colour alone is baked now, and a normal from the height, shine, gloss and glow are each more bytes
+  a texel in every page once a renderer reads them.
 
 
 Steps (an outline)

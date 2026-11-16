@@ -28,6 +28,65 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void SSolidSample::Init(void)
+{
+	sColour.x = 0.0f;
+	sColour.y = 0.0f;
+	sColour.z = 0.0f;
+	sColour.w = 1.0f;
+	fHeight = 0.0f;
+	fShine = 0.0f;
+	fGloss = 0.0f;
+	fGlow = 0.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SSolidSample::Init(ARGB32 uiColour)
+{
+	Init();
+	sColour.x = Get8BitRedColour(uiColour) / 255.0f;
+	sColour.y = Get8BitGreenColour(uiColour) / 255.0f;
+	sColour.z = Get8BitBlueColour(uiColour) / 255.0f;
+	sColour.w = Get8BitAlphaColour(uiColour) / 255.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint8 SolidSampleChannel(float32 fValue)
+{
+	if (!(fValue > 0.0f))
+	{
+		return 0;
+	}
+	if (fValue >= 1.0f)
+	{
+		return 255;
+	}
+	return (uint8)((fValue * 255.0f) + 0.5f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ARGB32 SSolidSample::Colour(void)
+{
+	return Set32BitColour(SolidSampleChannel(sColour.x), SolidSampleChannel(sColour.y), SolidSampleChannel(sColour.z), SolidSampleChannel(sColour.w));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CSolidTexture::Init(void)
 {
 	PreInit();
@@ -81,7 +140,7 @@ void CSolidTexture::Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CSolidTexture::Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth)
+void CSolidTexture::Sample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample)
 {
 	SFloat32Vec3	sOffset;
 	SFloat32Vec3	sPosition;
@@ -90,6 +149,20 @@ ARGB32 CSolidTexture::Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, f
 	sOffset = *psPosition - msOrigin;
 	sPosition.Init(Float32Vec3Dot(&sOffset, &masAxes[0]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[1]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[2]) / mfScale);
 	sNormal.Init(Float32Vec3Dot(psNormal, &masAxes[0]), Float32Vec3Dot(psNormal, &masAxes[1]), Float32Vec3Dot(psNormal, &masAxes[2]));
-	return TextureColour(&sPosition, &sNormal, fWidth / mfScale);
+	psSample->Init();
+	TextureSample(&sPosition, &sNormal, fWidth / mfScale, psSample);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ARGB32 CSolidTexture::Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth)
+{
+	SSolidSample	sSample;
+
+	Sample(psPosition, psNormal, fWidth, &sSample);
+	return sSample.Colour();
 }
 

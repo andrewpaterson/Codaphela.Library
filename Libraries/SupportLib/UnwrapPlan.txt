@@ -42,6 +42,8 @@ The user's decisions (2026-11-15)
     spheres of 16 by 8 and tori of 24 by 8 (half the faces), within its 4G instructions.
     ARAP is to be built (step 8).  Done, and the default.
     The textured scene's three hundredths allowance stays; FMA stays on.
+    Texture generators (ProceduralLib/TexturePlan.txt) come before steps 9 and 10.  A solid texture now gives a sample
+    (SSolidSample: colour, height, shine, gloss and glow), of which the bake reads the colour.
 
 What there is
 -------------
@@ -126,7 +128,8 @@ Bake (proposed)
 ---------------
 A material of 3D points: a CObject whose Colour(position, normal) gives an ARGB32, its scale in world units, so a bake doesn't
 care what makes the colour.  The first is a 3D checker, which is also the test of stretch: squares that stay square and the
-same size everywhere mean the unwrap is good.  Noise and real materials are another plan.
+same size everywhere mean the unwrap is good.  Noise and real materials are another plan
+(ProceduralLib/TexturePlan.txt).
 
 The baker draws each face's UV triangle into the layout's image at each mip level, each texel's 3D point and normal from its
 barycentric position, asks the material, then dilates the charts' edges into the gutters.

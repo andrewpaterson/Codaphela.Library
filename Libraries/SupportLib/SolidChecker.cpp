@@ -103,16 +103,19 @@ float32 CSolidChecker::Mix(SFloat32Vec3* psPosition, float32 fWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CSolidChecker::TextureColour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth)
+void CSolidChecker::TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample)
 {
-	float32	fMix;
-	float32	fKeep;
+	SSolidSample	sSecond;
+	float32			fMix;
+	float32			fKeep;
 
 	fMix = Mix(psPosition, fWidth);
 	fKeep = 1.0f - fMix;
-	return Set32BitColour((uint8)((Get8BitRedColour(muiColour1) * fKeep) + (Get8BitRedColour(muiColour2) * fMix) + 0.5f),
-						  (uint8)((Get8BitGreenColour(muiColour1) * fKeep) + (Get8BitGreenColour(muiColour2) * fMix) + 0.5f),
-						  (uint8)((Get8BitBlueColour(muiColour1) * fKeep) + (Get8BitBlueColour(muiColour2) * fMix) + 0.5f),
-						  (uint8)((Get8BitAlphaColour(muiColour1) * fKeep) + (Get8BitAlphaColour(muiColour2) * fMix) + 0.5f));
+	psSample->Init(muiColour1);
+	sSecond.Init(muiColour2);
+	psSample->sColour.x = (psSample->sColour.x * fKeep) + (sSecond.sColour.x * fMix);
+	psSample->sColour.y = (psSample->sColour.y * fKeep) + (sSecond.sColour.y * fMix);
+	psSample->sColour.z = (psSample->sColour.z * fKeep) + (sSecond.sColour.z * fMix);
+	psSample->sColour.w = (psSample->sColour.w * fKeep) + (sSecond.sColour.w * fMix);
 }
 

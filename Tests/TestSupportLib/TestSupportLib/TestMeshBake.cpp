@@ -84,6 +84,83 @@ void TestMeshBakeChecker(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A sample starts opaque black with no height, shine, gloss or glow; its
+// colour as an ARGB32 is clamped and rounded.  A texture's sample is its
+// own at the point in its own space: the checker's is its colour as
+// floats, a width across two cubes half of each, and nothing else.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeSample(void)
+{
+	Ptr<CSolidChecker>	pChecker;
+	SSolidSample		sSample;
+	SFloat32Vec3		sPoint;
+	SFloat32Vec3		sOrigin;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+
+	sSample.Init();
+	AssertFloat(0.0f, sSample.sColour.x, 5);
+	AssertFloat(0.0f, sSample.sColour.y, 5);
+	AssertFloat(0.0f, sSample.sColour.z, 5);
+	AssertFloat(1.0f, sSample.sColour.w, 5);
+	AssertFloat(0.0f, sSample.fHeight, 5);
+	AssertFloat(0.0f, sSample.fShine, 5);
+	AssertFloat(0.0f, sSample.fGloss, 5);
+	AssertFloat(0.0f, sSample.fGlow, 5);
+	AssertInt(Set32BitColour((uint8)0, (uint8)0, (uint8)0, (uint8)255), sSample.Colour());
+
+	sSample.Init(Set32BitColour((uint8)255, (uint8)51, (uint8)0, (uint8)102));
+	AssertFloat(1.0f, sSample.sColour.x, 5);
+	AssertFloat(0.2f, sSample.sColour.y, 5);
+	AssertFloat(0.0f, sSample.sColour.z, 5);
+	AssertFloat(0.4f, sSample.sColour.w, 5);
+	AssertInt(Set32BitColour((uint8)255, (uint8)51, (uint8)0, (uint8)102), sSample.Colour());
+
+	sSample.sColour.x = 1.5f;
+	sSample.sColour.y = -0.2f;
+	sSample.sColour.z = 0.5f;
+	sSample.sColour.w = 0.999f;
+	AssertInt(Set32BitColour((uint8)255, (uint8)0, (uint8)128, (uint8)255), sSample.Colour());
+
+	pChecker = OMalloc<CSolidChecker>(0.5f, Set32BitColour((uint8)0, (uint8)0, (uint8)0), Set32BitColour((uint8)255, (uint8)102, (uint8)51));
+	sSample.fHeight = 3.0f;
+	sSample.fShine = 3.0f;
+	sSample.fGloss = 3.0f;
+	sSample.fGlow = 3.0f;
+	sPoint.Init(0.75f, 0.25f, 0.25f);
+	pChecker->Sample(&sPoint, &sPoint, 0.0001f, &sSample);
+	AssertFloat(1.0f, sSample.sColour.x, 5);
+	AssertFloat(0.4f, sSample.sColour.y, 5);
+	AssertFloat(0.2f, sSample.sColour.z, 5);
+	AssertFloat(1.0f, sSample.sColour.w, 5);
+	AssertFloat(0.0f, sSample.fHeight, 5);
+	AssertFloat(0.0f, sSample.fShine, 5);
+	AssertFloat(0.0f, sSample.fGloss, 5);
+	AssertFloat(0.0f, sSample.fGlow, 5);
+
+	sPoint.Init(0.5f, 0.25f, 0.25f);
+	pChecker->Sample(&sPoint, &sPoint, 0.2f, &sSample);
+	AssertFloat(0.5f, sSample.sColour.x, 4);
+	AssertFloat(0.2f, sSample.sColour.y, 4);
+	AssertFloat(0.1f, sSample.sColour.z, 4);
+	AssertFloat(1.0f, sSample.sColour.w, 5);
+
+	//Placed twice the size from 0.1 each way, the world's (1.35, 0.6, 0.6) is its own (0.625, 0.25, 0.25): the second colour.
+	sOrigin.Init(0.1f, 0.1f, 0.1f);
+	sX.Init(1, 0, 0);
+	sY.Init(0, 1, 0);
+	pChecker->Place(&sOrigin, &sX, &sY, 2.0f);
+	sPoint.Init(1.35f, 0.6f, 0.6f);
+	pChecker->Sample(&sPoint, &sPoint, 0.0001f, &sSample);
+	AssertFloat(1.0f, sSample.sColour.x, 5);
+	AssertFloat(0.4f, sSample.sColour.y, 5);
+	AssertFloat(0.2f, sSample.sColour.z, 5);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A unit square at z = 0.25 whose UVs are the middle half of a 16 by 16
 // image, texels 4 to 11 each way: a texel there is the checker at its
 // centre's point on the square (x = (u - 0.25) * 2), averaged over its
@@ -271,6 +348,7 @@ void TestMeshBake(void)
 	DataIOInit();
 	ObjectsInit();
 	TestMeshBakeChecker();
+	TestMeshBakeSample();
 	TestMeshBakeSquare();
 	ObjectsFlush();
 	TestMeshBakeModifier();

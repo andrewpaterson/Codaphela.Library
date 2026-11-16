@@ -45,7 +45,7 @@ public:
 	float32	Mix(SFloat32Vec3* psPosition, float32 fWidth);  //How much of muiColour2, 0 to 1, at a point in its own space.
 
 protected:
-	ARGB32	TextureColour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth) override;
+	void	TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample) override;
 };
 
 
