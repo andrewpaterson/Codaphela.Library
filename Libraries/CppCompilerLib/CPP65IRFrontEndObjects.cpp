@@ -1461,21 +1461,16 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace)
 {
 	SCPP65IRValue	sValue;
-	CArraySyntax	apcArguments;
-	bool			bResult;
 
 	psType = psType->Unqualified();
 	if (psType->IsClass())
 	{
+		//Made as a variable is from its initialiser (const S& s = 3 and const S& s = {1, 2}).
 		if (!Temporary(psType, psPlace, true))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		apcArguments.Init();
-		apcArguments.Add(pcValue);
-		bResult = Construct(psPlace, &apcArguments, NULL);
-		apcArguments.Kill();
-		return bResult;
+		return Construct(psPlace, NULL, pcValue);
 	}
 	if (!IsSupportedType(psType))
 	{

@@ -377,6 +377,7 @@ public:
 	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
 	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
 	SCPP65Type*				FunctionType(CCPPFunction* pcFunction);
+	bool					IsDeclaredNoexcept(CCPPSyntax* pcSpecification, ECPPFunctionKind eKind, int64 lliName);
 	bool					IsAllocationFunction(int64 lliName);
 	bool					IsDefinedWhereDeclared(CCPPSyntaxName* pcName);
 	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
@@ -611,6 +612,7 @@ public:
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	bool					MayThrow(CCPPSyntax* pcExpression);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
 	CCPPSyntax*				ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType);

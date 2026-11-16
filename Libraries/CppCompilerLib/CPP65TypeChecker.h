@@ -45,6 +45,7 @@ protected:
 	SCPP65Type*			mpsResult;		//What the Visit function of the expression Result was asked for found.
 
 public:
+	bool			CanInitialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser);
 	void			VisitDefault(CCPPSyntax* pcNode) override;
 	void			VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNode) override;
 	void			VisitStringExpression(CCPPSyntaxStringExpression* pcNode) override;
@@ -64,6 +65,7 @@ public:
 	void			VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode) override;
 	void			VisitImplicitArgument(CCPPSyntaxImplicitArgument* pcNode) override;
 	void			VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode) override;
+	void			VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pcNode) override;
 	void			VisitNewExpression(CCPPSyntaxNewExpression* pcNode) override;
 	void			VisitDeleteExpression(CCPPSyntaxDeleteExpression* pcNode) override;
 

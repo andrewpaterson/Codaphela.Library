@@ -644,10 +644,10 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	}
 	for (i = 0; i < uiArguments; i++)
 	{
-		//An overloaded function's name has no type of its own (NULL): RankArguments matches it to a parameter
-		//that points to one of its overloads.
+		//An overloaded function's name and a list in braces have no type of their own (NULL): RankArguments
+		//matches the name to a parameter that points to one of its overloads, and the list to what it can make.
 		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
-		if (!apsArguments[i] && !mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)))
+		if (!apsArguments[i] && !mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)) && (papcArguments->GetPtr(i)->GetKind() != CPPS_InitializerList))
 		{
 			//Its errors.
 			mpcUnit->GetTypeChecker()->Value(papcArguments->GetPtr(i));
@@ -1123,6 +1123,15 @@ bool CCPPOverloads::RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArgu
 	}
 	for (i = 0; i < uiArguments; i++)
 	{
+		if (!apsArguments[i] && (papcArguments->GetPtr(i)->GetKind() == CPPS_InitializerList))
+		{
+			aiRanks[i] = (i < pcFunction->mapsParameters.NumElements()) ? ListRank(pcFunction->mapsParameters.GetPtr(i), papcArguments->GetPtr(i)) : CPPCR_None;
+			if (aiRanks[i] == CPPCR_None)
+			{
+				return false;
+			}
+			continue;
+		}
 		if (!apsArguments[i])
 		{
 			//An overloaded function's name (FindFunction) is an exact match for a pointer to one of its overloads.
@@ -1140,6 +1149,47 @@ bool CCPPOverloads::RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArgu
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How well a list in braces converts to a parameter ([over.ics.list]): to
+// a class (or a const reference to one), a user defined conversion if the
+// class can be made from it; to anything else, its one element's
+// conversion if that doesn't narrow, or an exact match for {}.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
+{
+	SCPP65Type*		psType;
+	SCPP65Type*		psElement;
+	CArraySyntax*	papcElements;
+
+	psType = psParameter;
+	if (psParameter->IsReference())
+	{
+		if (!psParameter->psBase->bConst && !psParameter->IsRvalueReference())
+		{
+			return CPPCR_None;
+		}
+		psType = psParameter->psBase;
+	}
+	if (!mpcUnit->GetTypeChecker()->CanInitialise(psType, pcList))
+	{
+		return CPPCR_None;
+	}
+	if (psType->IsClass())
+	{
+		return CPPCR_UserDefined;
+	}
+	papcElements = mpcUnit->ListElements(pcList);
+	if (papcElements->NumElements() == 0)
+	{
+		return CPPCR_Exact;
+	}
+	psElement = mpcUnit->TypeOf(papcElements->GetPtr(0));
+	return psElement ? ConversionRank(psType->Unqualified(), psElement, papcElements->GetPtr(0)) : CPPCR_None;
 }
 
 

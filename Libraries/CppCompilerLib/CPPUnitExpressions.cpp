@@ -185,6 +185,18 @@ bool CCPPUnit::IsFunctionName(CCPPSyntaxIdExpression* pcId)
 }
 
 
+//The children of an expression CCPPUnit::MayThrow asks about.
+class CCPPThrowFinder : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*	mpcUnit;
+	bool		mbThrows;
+
+	void	Init(CCPPUnit* pcUnit) { mpcUnit = pcUnit; mbThrows = false; }
+	void	Visit(CCPPSyntax* pcChild) override { mbThrows = mbThrows || mpcUnit->MayThrow(pcChild); }
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // f or &f (a function's name) when the value is for psTo, a pointer to a
@@ -224,6 +236,73 @@ CCPPSyntaxIdExpression* CCPPUnit::MemberFunctionNameFor(CCPPSyntax* pcExpression
 		return NULL;
 	}
 	return (CCPPSyntaxIdExpression*)pcOperand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression may throw ([expr.unary.noexcept] 3): it, or an
+// operand of it that is worked out, calls a function that may (one not
+// declared noexcept, or one called through a pointer), is a throw, or
+// allocates with an operator new that may.  A lambda's body isn't its
+// expression's, and the operands of sizeof, decltype and noexcept aren't
+// worked out.  The constructors and destructors of the temporaries it
+// makes aren't asked.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxUnaryExpression*	pcUnary;
+	CCPPSyntaxBinaryExpression*	pcBinary;
+	CCPPSyntaxNewExpression*	pcNew;
+	CCPPBoundCall				cBound;
+	CCPPThrowFinder				cFinder;
+	size						uiErrors;
+	bool						bThrows;
+
+	bThrows = false;
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_ThrowExpression:
+		bThrows = true;
+		break;
+	case CPPS_SizeofExpression:
+	case CPPS_TypeTraitExpression:
+	case CPPS_NoexceptExpression:
+	case CPPS_LambdaExpression:
+		EndQuiet();
+		return false;
+	case CPPS_CallExpression:
+		bThrows = !mcBinder.Bind((CCPPSyntaxCallExpression*)pcExpression, &cBound, false) || !cBound.mpcFunction || !cBound.mpcFunction->mbNoexcept;
+		break;
+	case CPPS_UnaryExpression:
+		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		bThrows = IsObject(pcUnary->mpcOperand) && mcBinder.BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false) && cBound.mpcFunction && !cBound.mpcFunction->mbNoexcept;
+		break;
+	case CPPS_BinaryExpression:
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		bThrows = (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight)) && mcBinder.BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false) && cBound.mpcFunction && !cBound.mpcFunction->mbNoexcept;
+		break;
+	case CPPS_NewExpression:
+		//Only new (address) Type allocates with nothing that throws.
+		pcNew = (CCPPSyntaxNewExpression*)pcExpression;
+		bThrows = !pcNew->mbPlacement;
+		break;
+	default:
+		break;
+	}
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	if (bThrows)
+	{
+		return true;
+	}
+
+	cFinder.Init(this);
+	pcExpression->VisitFields(&cFinder);
+	return cFinder.mbThrows;
 }
 
 
@@ -1421,6 +1500,10 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_TypeTraitExpression:
 		return TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, plliValue);
+
+	case CPPS_NoexceptExpression:
+		*plliValue = !MayThrow(((CCPPSyntaxNoexceptExpression*)pcExpression)->mpcOperand);
+		return true;
 
 	case CPPS_CallExpression:
 		return ConstexprCall((CCPPSyntaxCallExpression*)pcExpression, plliValue);

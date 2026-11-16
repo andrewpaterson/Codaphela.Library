@@ -1749,6 +1749,28 @@ static const SConformanceCase gasConformanceStage8[] =
 		"struct S { ~S() {} void h() noexcept {} };\n"
 		"int main() { S s; return noexcept(f()) + !noexcept(g()) * 2 + noexcept(1 + 2) * 4 + noexcept(s.h()) * 8; }\n"
 	},
+	{
+		"BracedListOverloads", 12130,
+		"struct S { int a; int b; };\n"
+		"struct P { int x; P(int a, int b) : x(a * b) {} };\n"
+		"int f(const S& s) { return s.a - s.b; }\n"
+		"int g(int x) { return 1; }\n"
+		"int g(S s) { return 2; }\n"
+		"int h(long x) { return 3; }\n"
+		"int h(const char* p) { return 4; }\n"
+		"int k(P p) { return p.x; }\n"
+		"int m(double d) { return (int)d; }\n"
+		"int main() { return (f({9, 4}) == 5) * 10000 + g({1, 2}) * 1000 + g({7}) * 100 + h({5}) * 10 + k({2, 3}) - 6 + m({}); }\n"
+	},
+	{
+		"NoexceptForms", 4095,
+		"int f() noexcept;\n"
+		"int g();\n"
+		"int k() throw();\n"
+		"int m() noexcept(false);\n"
+		"struct S { ~S() {} void h() noexcept {} void j() {} S operator+(const S&) const noexcept { return *this; } S operator-(const S&) const { return *this; } };\n"
+		"int main() { S s; int x = 0; return noexcept(f()) + !noexcept(g()) * 2 + noexcept(1 + 2) * 4 + noexcept(s.h()) * 8 + !noexcept(s.j()) * 16 + noexcept(k()) * 32 + !noexcept(m()) * 64 + noexcept(s + s) * 128 + !noexcept(s - s) * 256 + noexcept(x = 3) * 512 + !noexcept(f() + g()) * 1024 + !noexcept(new int) * 2048 + x * 4096; }\n"
+	},
 };
 
 

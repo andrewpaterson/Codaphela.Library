@@ -1421,6 +1421,31 @@ SCPP65Type* CCPPUnit::FunctionType(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a function declared with pcSpecification (NULL for none) doesn't
+// throw: noexcept, noexcept(true) and throw() say so, and a destructor and
+// operator delete without one don't.  [except.spec] 3 and 15
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsDeclaredNoexcept(CCPPSyntax* pcSpecification, ECPPFunctionKind eKind, int64 lliName)
+{
+	CCPPSyntaxExceptionSpecification*	pcExceptions;
+	int64								lliValue;
+
+	if (!pcSpecification || (pcSpecification->GetKind() != CPPS_ExceptionSpecification))
+	{
+		return (eKind == CPPFK_Destructor) || (lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true));
+	}
+	pcExceptions = (CCPPSyntaxExceptionSpecification*)pcSpecification;
+	if (!pcExceptions->mbNoexcept)
+	{
+		return pcExceptions->macpTypes.NumElements() == 0;
+	}
+	return !pcExceptions->mpcCondition || (Constant(pcExceptions->mpcCondition, &lliValue) && (lliValue != 0));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a function's name is operator new, new[], delete or delete[],
 // which as a class's members are static whether or not they are declared
 // so.  [class.free] 1
@@ -1857,6 +1882,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->mpcTemplate = pcTemplate;
 	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
+	pcFunction->mbNoexcept = IsDeclaredNoexcept(pcSuffix->mpcExceptionSpecification, eKind, lliName);
 	if (pszArguments)
 	{
 		pcFunction->mszArguments.Append(pszArguments);

@@ -43,14 +43,32 @@ bool CCPP65IRFrontEnd::Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psVal
 // An expression's value for psTo (NULL when it isn't known): a function's name
 // for a pointer to a function is the address of the overload of that type, and
 // an object is converted by its conversion function to psTo (never an explicit
-// one: a cast and a condition convert the value, with ConvertObject).
+// one: a cast and a condition convert the value, with ConvertObject), and a
+// list in braces is its one value or zero.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue)
 {
 	CCPPBoundConversion		cBound;
+	CArraySyntax*			papcElements;
 	bool					bAddress;
 
+	if ((pcExpression->GetKind() == CPPS_InitializerList) && !psTo->IsClass())
+	{
+		//{} is zero and {value} the value.  [dcl.init.list] 3
+		papcElements = mpcUnit->ListElements(pcExpression);
+		if (papcElements->NumElements() == 0)
+		{
+			psValue->sValue = mpcFunction->AddConstant(IRTypeOf(psTo), 0);
+			psValue->psType = psTo;
+			return true;
+		}
+		if (papcElements->NumElements() > 1)
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		return ValueFor(papcElements->GetPtr(0), psTo, psValue) && ConvertImplicit(psValue, psTo, papcElements->GetPtr(0));
+	}
 	if (!OverloadAddress(pcExpression, psTo, psValue, &bAddress))
 	{
 		return false;
@@ -164,6 +182,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_LiteralExpression:
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
+	case CPPS_NoexceptExpression:
 		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_StringExpression:
 		return StringLiteral(pcExpression, psValue);

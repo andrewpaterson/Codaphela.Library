@@ -112,6 +112,7 @@ public:
 	int						DeclarationToken(CCPPFunction* pcFunction);
 	bool					IsCandidate(CCPPCandidates* pcCandidates, CCPPFunction* pcFunction);
 	bool					RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
+	int						ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList);
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	CCPPFunction*			ChooseFunction(CCPPCandidates* pcCandidates, CArraySyntax* papcArguments, ECPPCalledObject eObject, bool* pbAmbiguous);

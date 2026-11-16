@@ -439,7 +439,9 @@ Supported
 - Expressions: all the integer operators, assignment and compound assignment, ++ and --,
   ?:, the comma operator, calls, [] (either way round), * and &, casts (C style,
   static_cast, reinterpret_cast, const_cast, int(x)), sizeof, type traits
-  (__is_trivially_constructible ...), enumerators, string literals, placement new.
+  (__is_trivially_constructible ...), enumerators, string literals, placement new,
+  noexcept(e) (a constant: false if e may call a function not declared noexcept or
+  throw(), throw, or allocate with new; destructors and operator delete are noexcept).
 - Constant expressions (array sizes, case labels, global initialisers, template
   arguments) include enumerators, const int variables, casts, sizeof and type traits.
 - Overloaded functions and operators, chosen by the number of arguments (default
@@ -451,7 +453,9 @@ Supported
   pointer, a pointer to bool), which beats a user defined conversion (a constructor
   of the parameter's class that takes the argument, as Ptr(CEmbeddedObject*) takes
   NULL, or the argument's conversion function to the parameter's type; explicit
-  ones are left out).  A reference matches its type.  T& and const T& are different
+  ones are left out).  A list in braces as an argument converts as what it makes: to
+  a class it can make, a user defined conversion; to anything else its one element's
+  conversion if that doesn't narrow, and {} exactly.  A reference matches its type.  T& and const T& are different
   overloads (each function records which reference parameters are const, as types
   do not; a free function's label has K before the parameter's), and so are a
   member function and its const version: an object made by the argument (a call

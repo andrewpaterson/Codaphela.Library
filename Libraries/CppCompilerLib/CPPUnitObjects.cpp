@@ -272,8 +272,9 @@ SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 // True if a reference gets a temporary holding the value, not the value's
 // address: a const reference or T&&, and a value that has no address or
 // is of another type (const long& of a char, const char* const& of an
-// array, const Class& of what a Class is made from).  An object of the
-// class, or of one derived from it, is referred to itself.  [dcl.init.ref]
+// array, const Class& of what a Class is made from, a list in braces).  An
+// object of the class, or of one derived from it, is referred to itself.
+// [dcl.init.ref]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
@@ -284,6 +285,11 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 	if (!(psReference->psBase->bConst || psReference->bRvalue))
 	{
 		return false;
+	}
+	if (pcArgument->GetKind() == CPPS_InitializerList)
+	{
+		//const S& s = {1, 2}: what the list makes.  [dcl.init.list] 3
+		return true;
 	}
 	if (psReference->psBase->IsClass())
 	{

@@ -82,8 +82,8 @@ SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression, SCPP65Type** ppsD
 // The type of an expression's value where a psTo is wanted (NULL when it isn't
 // known): a function's name for a pointer to a function is the overload of that
 // type (&Class::f for a pointer to a member function the member of that type),
-// and an object is converted by its conversion function to psTo (only an
-// explicit one when bExplicit).
+// an object is converted by its conversion function to psTo (only an
+// explicit one when bExplicit), and a list in braces is its one value or zero.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit)
@@ -92,6 +92,11 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	CCPPSyntaxIdExpression*		pcFunctionName;
 	SCPP65Type*					psMember;
 
+	if (pcExpression && (pcExpression->GetKind() == CPPS_InitializerList) && psTo && !psTo->IsClass())
+	{
+		//{} is zero and {value} the value, not narrowed.  [dcl.init.list] 3
+		return Construct(psTo, NULL, pcExpression, pcExpression) ? psTo : NULL;
+	}
 	pcFunctionName = mpcUnit->FunctionNameFor(pcExpression, psTo);
 	if (pcFunctionName)
 	{
@@ -335,6 +340,22 @@ void CCPP65TypeChecker::VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode
 void CCPP65TypeChecker::VisitImplicitArgument(CCPPSyntaxImplicitArgument* pcNode)
 {
 	mpsResult = pcNode->mpsType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// noexcept(expression): a bool, the expression checked but not worked out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pcNode)
+{
+	SCPP65Type*	psOperand;
+
+	mpcUnit->BeginUnevaluated();
+	psOperand = Value(pcNode->mpcOperand);
+	mpcUnit->EndUnevaluated();
+	mpsResult = psOperand ? &mpcTypes->msBool : NULL;
 }
 
 
@@ -2463,6 +2484,26 @@ bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 		return Error(pcSource, "The conversion could lose some of the value, which an initialiser in braces may not");
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a psType can be made from pcInitialiser (Construct), asked by
+// overload resolution: what is wrong isn't an error.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CanInitialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser)
+{
+	size	uiErrors;
+	bool	bResult;
+
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	mpcUnit->BeginTrial();
+	bResult = Construct(psType->Unqualified(), NULL, pcInitialiser, pcInitialiser);
+	mpcUnit->EndTrial();
+	mpcUnit->GetErrors()->Truncate(uiErrors);
+	return bResult;
 }
 
 
