@@ -431,7 +431,6 @@
     <ClCompile Include="NativeClipboard.cpp" />
     <ClCompile Include="NativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />
-    <ClCompile Include="NativeFactory.cpp" />
     <ClCompile Include="NativeWindowFactory.cpp" />
     <ClCompile Include="NativeSoundFactory.cpp" />
     <ClCompile Include="NativeSoundMixer.cpp" />

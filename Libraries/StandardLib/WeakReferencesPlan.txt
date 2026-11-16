@@ -136,7 +136,9 @@ Done later (2026-11-16): printing, PrintObject's " Weak:n" and Dump's weak froms
 Separately (not weak references), done 2026-11-16: the window factory is an object (CNativeWindowFactory : CObject) that
 CWindow, CCanvas and CClipboard hold by Nes Ptr, as Vulkan textures hold their renderer, which fixes the "native factory
 killed before ObjectsKill" order bug.  Apps OMalloc it after ObjectsInit and root it; tests hold it on the stack and let
-go of it.  Nothing calls its Kill.  Test: TestRefWindowFactoryOutlivesWindows.
+go of it.  Nothing calls its Kill.  Test: TestRefWindowFactoryOutlivesWindows.  The sound factory the same
+(CNativeSoundFactory : CObject, held by CSoundMixer with Nes; TestSoundMixerFactoryOutlivesMixers); CNativeFactory, the
+plain base both used to share, is gone (NativeFactory.h keeps NativeFactoryMalloc / NativeFactoryFree).
 
 
 Open

@@ -3,6 +3,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/NativeThread.h"
+#include "BaseLib/CountingAllocator.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Sound.h"
 #include "SupportLib/SoundCel.h"
@@ -146,15 +147,15 @@ Ptr<CSound> MakeTestMonoSound(uint32 uiSampleRate, lsize uiFrames, int16* paiSam
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerSilence(void)
 {
-	CTestSoundFactory		cSoundFactory;
+	Ptr<CTestSoundFactory>	pSoundFactory;
 	Ptr<CSoundMixer>		pMixer;
 	CTestNativeSoundMixer*	pcNative;
 	lsize					i;
 	bool					bSilent;
 
-	cSoundFactory.Init(&gcMemoryAllocator);
+	pSoundFactory = OMalloc<CTestSoundFactory>(&gcMemoryAllocator);
 	{
-		pMixer = OMalloc<CSoundMixer>(&cSoundFactory, (uint32)48000);
+		pMixer = OMalloc<CSoundMixer>(&pSoundFactory, (uint32)48000);
 		pcNative = (CTestNativeSoundMixer*)pMixer->GetNativeMixer();
 		AssertTrue(pMixer->IsOpen());
 		AssertInt(48000, pcNative->GetSampleRate());
@@ -182,7 +183,7 @@ void TestSoundMixerSilence(void)
 
 		pMixer = NULL;
 	}
-	cSoundFactory.Kill();
+	pSoundFactory = NULL;
 }
 
 
@@ -192,7 +193,7 @@ void TestSoundMixerSilence(void)
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerCelVoice(void)
 {
-	CTestSoundFactory		cSoundFactory;
+	Ptr<CTestSoundFactory>	pSoundFactory;
 	Ptr<CSoundMixer>		pMixer;
 	CTestNativeSoundMixer*	pcNative;
 	Ptr<CSoundCelVoice>		pVoice;
@@ -200,13 +201,13 @@ void TestSoundMixerCelVoice(void)
 	lsize					i;
 	bool					bSame;
 
-	cSoundFactory.Init(&gcMemoryAllocator);
+	pSoundFactory = OMalloc<CTestSoundFactory>(&gcMemoryAllocator);
 	{
 		for (i = 0; i < 1000; i++)
 		{
 			aiSamples[i] = 16384;
 		}
-		pMixer = OMalloc<CSoundMixer>(&cSoundFactory, (uint32)48000);
+		pMixer = OMalloc<CSoundMixer>(&pSoundFactory, (uint32)48000);
 		pcNative = (CTestNativeSoundMixer*)pMixer->GetNativeMixer();
 
 		pVoice = OMalloc<CSoundCelVoice>(MakeTestMonoSound(48000, 1000, aiSamples), (lsize)SOUND_CEL_NO_LOOP);
@@ -244,7 +245,7 @@ void TestSoundMixerCelVoice(void)
 		pVoice = NULL;
 		pMixer = NULL;
 	}
-	cSoundFactory.Kill();
+	pSoundFactory = NULL;
 }
 
 
@@ -254,7 +255,7 @@ void TestSoundMixerCelVoice(void)
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerLoopAndResample(void)
 {
-	CTestSoundFactory		cSoundFactory;
+	Ptr<CTestSoundFactory>	pSoundFactory;
 	Ptr<CSoundMixer>		pMixer;
 	CTestNativeSoundMixer*	pcNative;
 	Ptr<CSoundCelVoice>		pVoice;
@@ -263,9 +264,9 @@ void TestSoundMixerLoopAndResample(void)
 	int16					aiResampled[8] = { 0, 500, 1000, 1500, 2000, 2500, 3000, 1500 };
 	lsize					i;
 
-	cSoundFactory.Init(&gcMemoryAllocator);
+	pSoundFactory = OMalloc<CTestSoundFactory>(&gcMemoryAllocator);
 	{
-		pMixer = OMalloc<CSoundMixer>(&cSoundFactory, (uint32)48000);
+		pMixer = OMalloc<CSoundMixer>(&pSoundFactory, (uint32)48000);
 		pcNative = (CTestNativeSoundMixer*)pMixer->GetNativeMixer();
 
 		//Going back to frame 2 each time it gets to the end; split over two mixes.
@@ -295,7 +296,7 @@ void TestSoundMixerLoopAndResample(void)
 		pVoice = NULL;
 		pMixer = NULL;
 	}
-	cSoundFactory.Kill();
+	pSoundFactory = NULL;
 }
 
 
@@ -305,14 +306,14 @@ void TestSoundMixerLoopAndResample(void)
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerStreamVoice(void)
 {
-	CTestSoundFactory			cSoundFactory;
+	Ptr<CTestSoundFactory>		pSoundFactory;
 	Ptr<CSoundMixer>			pMixer;
 	CTestNativeSoundMixer*		pcNative;
 	Ptr<CTestSoundStreamVoice>	pVoice;
 
-	cSoundFactory.Init(&gcMemoryAllocator);
+	pSoundFactory = OMalloc<CTestSoundFactory>(&gcMemoryAllocator);
 	{
-		pMixer = OMalloc<CSoundMixer>(&cSoundFactory, (uint32)48000);
+		pMixer = OMalloc<CSoundMixer>(&pSoundFactory, (uint32)48000);
 		pcNative = (CTestNativeSoundMixer*)pMixer->GetNativeMixer();
 		pVoice = OMalloc<CTestSoundStreamVoice>((uint32)48000, (lsize)256);
 		pVoice->SetLatency(10, 20);  //480 and 960 frames.
@@ -355,7 +356,7 @@ void TestSoundMixerStreamVoice(void)
 		pVoice = NULL;
 		pMixer = NULL;
 	}
-	cSoundFactory.Kill();
+	pSoundFactory = NULL;
 }
 
 
@@ -387,7 +388,7 @@ static lsize NumTestFramesWritten(CSoundMixer* pcMixer)
 void TestSoundMixerWindow(void)
 {
 	Ptr<CWinRefWindowFactory>	pNativeFactory;
-	CTestSoundFactory			cSoundFactory;
+	Ptr<CTestSoundFactory>		pSoundFactory;
 	CFileUtil					cFileUtil;
 	char						szDirectory[] = "Output" _FS_ "SoundMixerWindow";
 
@@ -395,7 +396,7 @@ void TestSoundMixerWindow(void)
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory);
-	cSoundFactory.Init(&gcMemoryAllocator);
+	pSoundFactory = OMalloc<CTestSoundFactory>(&gcMemoryAllocator);
 	{
 		Ptr<CWindow>				pWindow;
 		Ptr<CTickTestRefWindow>		pTick;
@@ -404,7 +405,7 @@ void TestSoundMixerWindow(void)
 		lsize						uiWritten;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 2);
-		pWindow = OMalloc<CWindow>("Sound Window", &pNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Sound Window", &pNativeFactory, &pSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		AssertTrue(pWindow->GetSoundMixer().IsNotNull());
 		AssertInt(SOUND_MIXER_DEFAULT_SAMPLE_RATE, pWindow->GetSoundMixer()->GetSampleRate());
@@ -433,7 +434,7 @@ void TestSoundMixerWindow(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cSoundFactory.Kill();
+	pSoundFactory = NULL;
 	pNativeFactory = NULL;
 	cFileUtil.RemoveDir(szDirectory);
 }
@@ -475,7 +476,7 @@ static bool WaitSoundWindow(Ptr<CWindow> pWindow, size uiWait, int64 iMillisecon
 void TestSoundMixerWindowWaits(void)
 {
 	Ptr<CWaitTestRefWindowFactory>	pNativeFactory;
-	CTestSoundFactory				cSoundFactory;
+	Ptr<CTestSoundFactory>			pSoundFactory;
 	CFileUtil						cFileUtil;
 	char							szDirectory[] = "Output" _FS_ "SoundMixerWindowWaits";
 	int16							aiSamples[1000];
@@ -487,7 +488,7 @@ void TestSoundMixerWindowWaits(void)
 	sWaiting.uiBefore = 0;
 	sWaiting.uiAfter = 0;
 	pNativeFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, WaitSoundWindow, &sWaiting);
-	cSoundFactory.Init(&gcMemoryAllocator);
+	pSoundFactory = OMalloc<CTestSoundFactory>(&gcMemoryAllocator);
 	{
 		Ptr<CWindow>				pWindow;
 		Ptr<CCountingTick>			pTick;
@@ -499,7 +500,7 @@ void TestSoundMixerWindowWaits(void)
 			aiSamples[i] = 1000;
 		}
 		pTick = OMalloc<CCountingTick>(0, 0, -1);
-		pWindow = OMalloc<CWindow>("Sound Window", &pNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Sound Window", &pNativeFactory, &pSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 
 		//A looping voice never finishes.
@@ -516,9 +517,95 @@ void TestSoundMixerWindowWaits(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cSoundFactory.Kill();
+	pSoundFactory = NULL;
 	pNativeFactory = NULL;
 	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Records, when it's freed, how much of what it made (native mixers,
+// allocated from its counting mallocator) is still allocated.
+//
+//////////////////////////////////////////////////////////////////////////
+struct SSoundFactoryFreed
+{
+	bool	bFreed;
+	lsize	uiLeft;
+};
+
+
+class CFreeCheckedSoundFactory : public CTestSoundFactory
+{
+CONSTRUCTABLE(CFreeCheckedSoundFactory);
+protected:
+	CCountingAllocator*		mpcCounting;
+	SSoundFactoryFreed*		mpsFreed;
+
+public:
+	void Init(CCountingAllocator* pcCounting, SSoundFactoryFreed* psFreed)
+	{
+		PreInit();
+		CTestSoundFactory::Init(pcCounting);
+		mpcCounting = pcCounting;
+		mpsFreed = psFreed;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CTestSoundFactory::Class();
+		U_Pointer(mpcCounting);
+		U_Pointer(mpsFreed);
+	}
+
+	void Free(void) override
+	{
+		mpsFreed->bFreed = true;
+		mpsFreed->uiLeft = mpcCounting->AllocatedUserSize();
+		CTestSoundFactory::Free();
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The app lets go of its sound factory while a mixer it made is still
+// rooted.  The mixer holds the factory, so ObjectsKill frees the mixer
+// first and the factory after it, when no native mixer is left.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSoundMixerFactoryOutlivesMixers(void)
+{
+	CCountingAllocator	cCounting;
+	SSoundFactoryFreed	sFreed;
+
+	cCounting.Init(&gcMemoryAllocator);
+	sFreed.bFreed = false;
+	sFreed.uiLeft = 0;
+
+	ObjectsInit();
+	{
+		Ptr<CFreeCheckedSoundFactory>	pSoundFactory;
+		Ptr<CSoundMixer>				pMixer;
+
+		pSoundFactory = OMalloc<CFreeCheckedSoundFactory>(&cCounting, &sFreed);
+		pMixer = OMalloc<CSoundMixer>(&pSoundFactory, (uint32)48000);
+		ORoot()->Add(pMixer);
+		AssertTrue(cCounting.AllocatedUserSize() > 0);
+
+		pSoundFactory = NULL;
+		pMixer = NULL;
+		AssertFalse(sFreed.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+
+	AssertTrue(sFreed.bFreed);
+	AssertLSize(0, sFreed.uiLeft);
+	AssertLSize(0, cCounting.AllocatedUserSize());
+	cCounting.Kill();
 }
 
 
@@ -529,6 +616,9 @@ void TestSoundMixerWindowWaits(void)
 void TestSoundMixer(void)
 {
 	BeginTests();
+
+	TestSoundMixerFactoryOutlivesMixers();
+
 	ObjectsInit();
 
 	TestSoundMixerSilence();

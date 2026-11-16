@@ -557,9 +557,6 @@
     <ClCompile Include="Window.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
-    <ClCompile Include="NativeFactory.cpp">
-      <Filter>Source\Factory</Filter>
-    </ClCompile>
     <ClCompile Include="NativeWindowFactory.cpp">
       <Filter>Source\Factory</Filter>
     </ClCompile>

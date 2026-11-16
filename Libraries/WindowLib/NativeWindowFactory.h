@@ -45,7 +45,7 @@ protected:
 	CMallocator*	mpcMallocator;
 
 public:
-			void			Init(CMallocator* pcMallocator);  //Only from a factory's own Init, between its PreInit and PostInit.
+			void			Init(CMallocator* pcMallocator);  //Called by each factory's own Init.
 			void			Class(void) override;
 			void			Free(void) override;
 			bool			Save(CObjectWriter* pcFile) override;

@@ -27,7 +27,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindowFactory::Init(CMallocator* pcMallocator)
 {
+	PreInit();
 	mpcMallocator = pcMallocator;
+	PostInit();
 }
 
 

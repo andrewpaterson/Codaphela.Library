@@ -27,10 +27,8 @@ along with Codaphela PulseAudioLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPulseAudioSoundFactory : public CNativeSoundFactory
 {
 CONSTRUCTABLE(CPulseAudioSoundFactory);
+DESTRUCTABLE(CPulseAudioSoundFactory);
 public:
-	void				Init(CMallocator* pcMallocator);
-	void				Kill(void);
-
 	CNativeSoundMixer*	CreateNativeSoundMixer(CSoundMixer* pcMixer) override;
 };
 

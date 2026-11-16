@@ -20,20 +20,44 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __NATIVE_SOUND_FACTORY_H__
 #define __NATIVE_SOUND_FACTORY_H__
-#include "BaseLib/Constructable.h"
-#include "BaseLib/ConstructorCall.h"
+#include "StandardLib/Object.h"
 #include "NativeFactory.h"
 #include "NativeSoundMixer.h"
 
 
 //Makes the host's sound output.  It is separate from the native window factory so a window library doesn't depend on
-//a sound library: the application makes one of each and gives both to its window.
-class CNativeSoundFactory : public CNativeFactory
+//a sound library: the application makes one of each and gives both to its window.  Like the window factory it's an
+//object: CSoundMixer holds it (Nes), so it's freed after every mixer it made, whatever order the app shuts down in.
+//The app makes it with OMalloc after ObjectsInit and roots it (or a test holds it on the stack), and lets go of it
+//rather than killing it.  It isn't saved.
+class CNativeSoundFactory : public CObject
 {
 CONSTRUCTABLE(CNativeSoundFactory);
+protected:
+	CMallocator*	mpcMallocator;
+
 public:
+			void				Init(CMallocator* pcMallocator);
+			void				Class(void) override;
+			void				Free(void) override;
+			bool				Save(CObjectWriter* pcFile) override;
+			bool				Load(CObjectReader* pcFile) override;
+
 	virtual CNativeSoundMixer*	CreateNativeSoundMixer(CSoundMixer* pcMixer) =0;
 			bool				DestroyNativeSoundMixer(CNativeSoundMixer* pcNativeMixer);
+
+protected:
+	template<class Class>
+	Class* NativeMalloc(void)
+	{
+		return NativeFactoryMalloc<Class>(mpcMallocator);
+	}
+
+	template<class Class>
+	bool NativeFree(Class* pcInstance)
+	{
+		return NativeFactoryFree(mpcMallocator, pcInstance);
+	}
 };
 
 

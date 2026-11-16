@@ -49,6 +49,7 @@ void CSoundMixer::Init(CNativeSoundFactory* pcSoundFactory, uint32 uiSampleRate)
 	mbStop = false;
 	mbRunning = false;
 
+	mpFactory = pcSoundFactory;
 	mpcNativeMixer = pcSoundFactory->CreateNativeSoundMixer(this);
 	if (!mpcNativeMixer->Open(uiSampleRate))
 	{
@@ -66,6 +67,7 @@ void CSoundMixer::Init(CNativeSoundFactory* pcSoundFactory, uint32 uiSampleRate)
 void CSoundMixer::Class(void)
 {
 	U_Pointer(mpcNativeMixer);
+	Nes(M_Pointer(mpFactory));
 	M_Embedded(maVoices);
 	U_UInt32(muiSampleRate);
 	U_UInt32(muiLeadMs);
@@ -94,7 +96,7 @@ void CSoundMixer::Free(void)
 	if (mpcNativeMixer)
 	{
 		mpcNativeMixer->Close();
-		pcSoundFactory = mpcNativeMixer->GetFactory();
+		pcSoundFactory = mpcNativeMixer->GetFactory();  //Not mpFactory: a mixer that isn't in Objects can have let go of it before its Free.
 		pcSoundFactory->DestroyNativeSoundMixer(mpcNativeMixer);
 		mpcNativeMixer = NULL;
 	}

@@ -27,10 +27,8 @@ along with Codaphela WinWaveoutLib.  If not, see <http://www.gnu.org/licenses/>.
 class CWinWaveoutSoundFactory : public CNativeSoundFactory
 {
 CONSTRUCTABLE(CWinWaveoutSoundFactory);
+DESTRUCTABLE(CWinWaveoutSoundFactory);
 public:
-	void				Init(CMallocator* pcMallocator);
-	void				Kill(void);
-
 	CNativeSoundMixer*	CreateNativeSoundMixer(CSoundMixer* pcMixer) override;
 };
 

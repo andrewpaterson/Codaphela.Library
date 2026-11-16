@@ -55,6 +55,7 @@ CONSTRUCTABLE(CSoundMixer);
 DESTRUCTABLE(CSoundMixer);
 protected:
 	CNativeSoundMixer*		mpcNativeMixer;
+	Ptr<CNativeSoundFactory>	mpFactory;	//Made mpcNativeMixer.  Nes: freed after the mixer.
 	CArray<CSoundVoice>		maVoices;
 	uint32					muiSampleRate;
 	uint32					muiLeadMs;
