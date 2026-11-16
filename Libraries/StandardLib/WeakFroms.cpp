@@ -157,6 +157,7 @@ void CWeakFroms::Move(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo)
 	for (i = 0; i < pacFroms->NumElements(); i++)
 	{
 		psFrom = pacFroms->Get(i);
+		psFrom->pcHolder->RemapWeak(psFrom->uiSlot, pcTo);
 		Add(pcTo, psFrom->pcHolder, psFrom->uiSlot);
 	}
 	SafeKill(pacFroms);

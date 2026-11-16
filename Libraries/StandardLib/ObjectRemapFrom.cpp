@@ -133,6 +133,9 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 		pcNew->AddStackPointersForRemap(pcFirstStackPointer);
 	}
 
+	//Weak references follow the object, as its pointers do (WeakReferencesPlan.txt).
+	pcOldFroms->GetObjectsOrDefault()->MoveWeakFroms(pcOldFroms, pcNew);
+
 	pcOldFroms->PostRemapFroms();
 
 	return iCount;

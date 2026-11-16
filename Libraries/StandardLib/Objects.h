@@ -239,6 +239,7 @@ public:
 						void					AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 						bool					RemoveWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 						void					ClearWeakFroms(CBaseObject* pcObject);  //Each weak reference to it (and to those embedded in it) NULLed.
+						void					MoveWeakFroms(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo);  //pcFrom's weak references point at pcTo.
 						CWeakFroms*				GetWeakFroms(void);
 
 protected:

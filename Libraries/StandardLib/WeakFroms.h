@@ -27,12 +27,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CEmbeddedObject;
 
 
-//What holds weak references (WeakReferencesPlan.txt): told to let go of the one at uiSlot when its object is freed.  A
-//weak pointer has one slot (0), a weak collection one for each entry.
+//What holds weak references (WeakReferencesPlan.txt): told to let go of the one at uiSlot when its object is freed, and to
+//point it at another when its object is replaced (by a hollow when it's evicted, by the loaded object when that's loaded).
+//A weak pointer has one slot (0), a weak collection one for each entry.
 class CWeakHolder
 {
 public:
 	virtual void	ClearWeak(size uiSlot) =0;  //Its object is being freed: NULL it, and do nothing else.
+	virtual void	RemapWeak(size uiSlot, CEmbeddedObject* pcObject) =0;  //Its object is replaced by pcObject: point at it, and do nothing else.
 };
 
 
@@ -62,7 +64,7 @@ public:
 	void			Add(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 	bool			Remove(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 	void			Clear(CEmbeddedObject* pcObject);  //Each holder's ClearWeak, then the object has none.
-	void			Move(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo);  //Every weak from of pcFrom becomes pcTo's.
+	void			Move(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo);  //Every weak from of pcFrom becomes pcTo's, its holder pointed at pcTo.
 
 	size			NumWeakFroms(CEmbeddedObject* pcObject);
 	SWeakFrom*		GetWeakFrom(CEmbeddedObject* pcObject, size uiIndex);

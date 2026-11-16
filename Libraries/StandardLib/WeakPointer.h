@@ -39,6 +39,7 @@ public:
 						CWeakPointer();
 
 	void				ClearWeak(size uiSlot) override;
+	void				RemapWeak(size uiSlot, CEmbeddedObject* pcObject) override;
 
 	void				PointTo(CEmbeddedObject* pcObject);  //Off its old object's weak froms, onto the new one's.
 	void				Release(void);  //Off its object's weak froms, and NULL: its holder is being freed.

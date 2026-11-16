@@ -1,4 +1,8 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/Codabase.h"
+#include "BaseLib/CodabaseFactory.h"
+#include "BaseLib/SequenceFactory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
 #include "StandardLib/Objects.h"
@@ -6,6 +10,7 @@
 #include "StandardLib/WeakPointer.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
+#include "EmbeddedObjectTestClasses.h"
 
 
 //Holds one object strongly and one weakly, and says whether the weak one was NULL when it was freed.
@@ -252,6 +257,99 @@ void TestWeakPointerObjectsKill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A weak pointer to an object embedded in another is NULL when the
+// container is freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestWeakPointerEmbedded(void)
+{
+	Ptr<CTestWeakHolder>		pHolder;
+	Ptr<CEmbeddedContainer>		pContainer;
+
+	ObjectsInit();
+	pHolder = OMalloc<CTestWeakHolder>();
+	ORoot()->Add(pHolder);
+	pContainer = OMalloc<CEmbeddedContainer>();
+	pHolder->mwWeak = pContainer->GetTwo();
+	AssertTrue(pHolder->mwWeak.Object() == &pContainer->mcTwo);
+	AssertSize(1, gcObjects.GetWeakFroms()->NumWeakFroms(&pContainer->mcTwo));
+
+	pContainer = NULL;
+	AssertTrue(pHolder->mwWeak.IsNull());
+	AssertSize(0, gcObjects.GetWeakFroms()->NumObjects());
+
+	ORoot()->Remove(pHolder);
+	pHolder = NULL;
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A stored object evicted while strongly held is a hollow, and the weak
+// pointer follows it there; loaded again, to the loaded object.  An
+// evicted holder loads with its weak pointer NULL (weak pointers aren't
+// saved).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestWeakPointerHollow(void)
+{
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "WeakPointerHollow";
+	CCodabase*				pcDatabase;
+	CSequence*				pcSequence;
+	Ptr<CTestWeakHolder>	pHolder;
+	Ptr<CTestObject>		pObject;
+	CWeakFroms*				pcWeakFroms;
+
+	cFileUtil.RemoveDir(szDirectory);
+	AssertTrue(cFileUtil.TouchDir(szDirectory));
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.AddConstructor<CTestObject>();
+	gcObjects.AddConstructor<CTestWeakHolder>();
+	pcWeakFroms = gcObjects.GetWeakFroms();
+
+	pHolder = OMalloc<CTestWeakHolder>();
+	ORoot()->Add(pHolder);
+	pObject = OMalloc<CTestObject>();
+	pHolder->mpStrong = pObject;
+	pHolder->mwWeak = pObject;
+	ObjectsFlush();
+
+	pObject->Kill();
+	AssertTrue(pObject.IsHollow());
+	AssertTrue(pHolder->mwWeak.Object() == pObject.Object());
+	AssertSize(1, pcWeakFroms->NumWeakFroms(pObject.Object()));
+
+	AssertInt((int32)0x07070707, pObject->mi);
+	AssertFalse(pObject.IsHollow());
+	AssertTrue(pHolder->mwWeak.Object() == pObject.Object());
+	AssertTrue(pHolder->mwWeak.Get() == pObject);
+	AssertSize(1, pcWeakFroms->NumWeakFroms(pObject.Object()));
+	AssertSize(1, pcWeakFroms->NumObjects());
+
+	pHolder->Kill();
+	AssertTrue(pHolder.IsHollow());
+	AssertSize(0, pcWeakFroms->NumObjects());
+	AssertTrue(pHolder->mwWeak.IsNull());
+	AssertTrue(pHolder->mpStrong == pObject);
+
+	pHolder = NULL;
+	pObject = NULL;
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWeakPointer(void)
@@ -267,6 +365,8 @@ void TestWeakPointer(void)
 	TestWeakPointerReassign();
 	TestWeakPointerFreedTogether();
 	TestWeakPointerObjectsKill();
+	TestWeakPointerEmbedded();
+	TestWeakPointerHollow();
 
 	DataIOKill();
 	TypesKill();

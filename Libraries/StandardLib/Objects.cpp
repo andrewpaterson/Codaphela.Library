@@ -988,6 +988,20 @@ void CObjects::AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::MoveWeakFroms(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo)
+{
+	if (mcWeakFroms.NumWeakFroms(pcFrom) > 0)
+	{
+		mcWeakFroms.Move(pcFrom, pcTo);
+		pcTo->GetEmbeddingContainer()->SetFlag(OBJECT_FLAGS_WEAKLY_HELD, true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CObjects::RemoveWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot)
 {
 	return mcWeakFroms.Remove(pcObject, pcHolder, uiSlot);
