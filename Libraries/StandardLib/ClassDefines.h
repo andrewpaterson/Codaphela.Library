@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define M_Pointer(name)		Pointer(name.This(), #name)
+#define W_Pointer(name)		WeakPointer(name.This(), #name)  //A Weak<M>: not counted, cleared when its object is freed, not saved.
 #define M_Embedded(name)	Embedded(&name, #name);
 
 #define M_Int8(name)		Primitive(&name, #name)

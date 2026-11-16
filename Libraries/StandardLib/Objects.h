@@ -34,6 +34,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "FreeObjects.h"
 #include "DistCalculator.h"
 #include "ObjectsRemovalContext.h"
+#include "WeakFroms.h"
 
 
 #define ROOT_NAME					"GraphRoot"
@@ -82,6 +83,7 @@ protected:
 	
 	bool					mbValidateConsistency;
 	CObjectRemovalContext	mcRemovalContext;
+	CWeakFroms				mcWeakFroms;  //Every weakly held object's weak references (WeakReferencesPlan.txt).
 	uint32					muiWalkStamp;  //The base of the last walk started.  See WALK_STAMP_STEP.
 
 public:
@@ -202,6 +204,7 @@ protected:
 						void					RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveAllHeapFroms(CArrayBaseObjectPtr* papcObjectPts);
 						void					DoneKill(CArrayBaseObjectPtr* papcObjectPts);
+						void					ClearWeakFroms(CArrayBaseObjectPtr* papcObjectPts);
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
@@ -232,6 +235,11 @@ public:
 						CBaseObject*			AllocateReplacingNamed(const char* szClassName, const char* szObjectName);
 						CBaseObject*			GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded);
 						void					ReplaceWithHollow(CBaseObject* pcObject);
+
+						void					AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
+						bool					RemoveWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
+						void					ClearWeakFroms(CBaseObject* pcObject);  //Each weak reference to it (and to those embedded in it) NULLed.
+						CWeakFroms*				GetWeakFroms(void);
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi);

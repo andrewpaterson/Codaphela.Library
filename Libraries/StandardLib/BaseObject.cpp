@@ -383,6 +383,9 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 	}
 	else
 	{
+		//No Free() reaches this through a weak reference (WeakReferencesPlan.txt).
+		GetObjectsOrDefault()->ClearWeakFroms(this);
+
 		if (IsNesPointedTo())
 		{
 			//Objects that depend on this to be freed must be freed before this, as they are when this is allocated in Objects.
@@ -2018,6 +2021,21 @@ CPointerField* CBaseObject::Pointer(CPointer* pcPointer, const char* szFieldName
 		return NULL;
 	}
 	return mpcClass->Pointer(this, pcPointer, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CWeakPointerField* CBaseObject::WeakPointer(CWeakPointer* pcPointer, const char* szFieldName)
+{
+	if (mpcClass == NULL)
+	{
+		FailHasClassField(__METHOD__);
+		return NULL;
+	}
+	return mpcClass->WeakPointer(this, pcPointer, szFieldName);
 }
 
 

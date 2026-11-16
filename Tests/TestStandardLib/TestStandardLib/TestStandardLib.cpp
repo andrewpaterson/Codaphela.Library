@@ -58,6 +58,7 @@ void TestObjects(void);
 void TestObjectsEvictVsKill(void);
 void TestDehollowfication(void);
 void TestKill(void);
+void TestWeakPointer(void);
 void TestUsage(void);
 void TestArrayObject(void);
 void TestSetObject(void);
@@ -143,6 +144,7 @@ int __cdecl main(void)
 	TestIndexObject();
 	TestMapObject();
 	TestKill();
+	TestWeakPointer();
 	TestEmbedded();
 	TestEmbeddedObjectRemapTos();
 	TestEmbeddedStackPointers();

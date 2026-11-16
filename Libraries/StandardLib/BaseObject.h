@@ -49,6 +49,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //a walk stamp: checking an object starts walks of its own (CanFindRoot), which would restamp what was checked.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY			  0x80
 
+//Set when the object (or an object embedded in it) is weakly held (WeakReferencesPlan.txt): it may have weak froms in its
+//CObjects' CWeakFroms, which are cleared when it's freed.  It isn't cleared when the last weak reference lets go: a stale
+//flag costs a look in the map.
+#define OBJECT_FLAGS_WEAKLY_HELD				0x1000
+
 //Object initialisation life-cycle
 #define OBJECT_FLAGS_CALLED_CONSTRUCTOR			 0x100
 #define OBJECT_FLAGS_CALLED_ALLOCATE			 0x200
@@ -94,6 +99,8 @@ class CObjectReader;
 class CObjectWriter;
 class CObjects;
 class CObjectRemapFrom;
+class CWeakPointer;
+class CWeakPointerField;
 class CBaseObject : public CEmbeddedObject
 {
 template<class M>
@@ -285,6 +292,7 @@ protected:
 			void					Nes(CPointerField* pcField);
 
 			CPointerField*			Pointer(CPointer* pcPointer, const char* szFieldName);
+			CWeakPointerField*		WeakPointer(CWeakPointer* pcPointer, const char* szFieldName);
 			CEmbeddedObjectField*	Embedded(CBaseObject* pcObject, const char* szFieldName);
 
 			CPrimitiveField*		Primitive(Int8* pcPrimitive, const char* szFieldName);

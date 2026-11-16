@@ -345,6 +345,9 @@
     <ClCompile Include="UnknownObjectHolderTestClasses.cpp">
       <Filter>Source\Object\Object\Free</Filter>
     </ClCompile>
+    <ClCompile Include="TestWeakPointer.cpp">
+      <Filter>Source\Object\Object\Free</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ObjectTestClasses.h">

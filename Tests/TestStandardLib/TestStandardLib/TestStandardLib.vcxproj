@@ -310,6 +310,7 @@
     <ClCompile Include="TestSetType.cpp" />
     <ClCompile Include="TestSetUnknown.cpp" />
     <ClCompile Include="TestMapStringUnknown.cpp" />
+    <ClCompile Include="TestWeakPointer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CollectionObjectTestClasses.h" />

@@ -77,6 +77,7 @@ void CClass::Init(const char* szClassName, size uiSize, EPrimitiveType eType, CC
 	macFields.Init();
 
 	mapcPointers.Init();
+	mapcWeakPointers.Init();
 	mapcEmbeddedObjects.Init();
 	mapcPrimitives.Init();
 	mapcUnmanaged.Init();
@@ -96,6 +97,7 @@ void CClass::Kill(void)
 	mapcUnmanaged.Kill();
 	mapcPrimitives.Kill();
 	mapcEmbeddedObjects.Kill();
+	mapcWeakPointers.Kill();
 	mapcPointers.Kill();
 
 	uiFields = macFields.NumElements();
@@ -258,6 +260,25 @@ CPointerField* CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, const c
 	pcPointerField = NewField<CPointerField>(&mapcPointers, szFieldName);
 	pcPointerField->Init(iOffset, this, szFieldName);
 	return pcPointerField;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CWeakPointerField* CClass::WeakPointer(CBaseObject* pcThis, CWeakPointer* pcPointer, const char* szFieldName)
+{
+	CWeakPointerField*	pcWeakPointerField;
+	ptrdiff_t			iOffset;
+
+	if (!FieldOffset(pcThis, pcPointer, szFieldName, &iOffset))
+	{
+		return NULL;
+	}
+	pcWeakPointerField = NewField<CWeakPointerField>(&mapcWeakPointers, szFieldName);
+	pcWeakPointerField->Init(iOffset, this, szFieldName);
+	return pcWeakPointerField;
 }
 
 
@@ -588,6 +609,16 @@ CPrimitiveField* CClass::AddPrimitive(const char* szFieldName)
 CArrayVoidPtr* CClass::GetPointerFields(void)
 {
 	return &mapcPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayVoidPtr* CClass::GetWeakPointerFields(void)
+{
+	return &mapcWeakPointers;
 }
 
 

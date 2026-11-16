@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PointerObject.h"
 #include "Objects.h"
 #include "Object.h"
+#include "WeakPointer.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -178,6 +179,29 @@ CPointer* CObject::GetPointerField(size uiIndex)
 
 	pcField = (CPointerField*)mpcClass->GetPointerFields()->GetPtr(uiIndex);
 	return pcField->GetPointer(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CObject::NumWeakPointerFields(void)
+{
+	return mpcClass ? mpcClass->GetWeakPointerFields()->NumElements() : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CWeakPointer* CObject::GetWeakPointerField(size uiIndex)
+{
+	CWeakPointerField*	pcField;
+
+	pcField = (CWeakPointerField*)mpcClass->GetWeakPointerFields()->GetPtr(uiIndex);
+	return pcField->GetWeakPointer(this);
 }
 
 
@@ -441,6 +465,13 @@ bool CObject::ClearPointerTos(bool bFree)
 	size				uiNumPointers;
 	CPointer*			pcPointer;
 	bool				bResult;
+
+	//Weak pointers come off their objects' weak froms (one freed with this has cleared them already).
+	uiNumPointers = NumWeakPointerFields();
+	for (i = 0; i < uiNumPointers; i++)
+	{
+		GetWeakPointerField(i)->Release();
+	}
 
 	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)

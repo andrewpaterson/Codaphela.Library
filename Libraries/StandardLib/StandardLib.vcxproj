@@ -328,6 +328,9 @@
     <ClInclude Include="Inflater.h" />
     <ClInclude Include="Deflater.h" />
     <ClInclude Include="PrimitiveVoid.h" />
+    <ClInclude Include="WeakFroms.h" />
+    <ClInclude Include="WeakPointer.h" />
+    <ClInclude Include="WeakPointerField.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelDebugDescriptor.cpp" />
@@ -455,6 +458,9 @@
     <ClCompile Include="HuffmanEncoder.cpp" />
     <ClCompile Include="Inflater.cpp" />
     <ClCompile Include="Deflater.cpp" />
+    <ClCompile Include="WeakFroms.cpp" />
+    <ClCompile Include="WeakPointer.cpp" />
+    <ClCompile Include="WeakPointerField.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

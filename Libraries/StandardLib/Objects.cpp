@@ -162,6 +162,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mbInitialised = true;
 	mbValidateConsistency = true;
 	mcRemovalContext.Init();
+	mcWeakFroms.Init();
 }
 
 
@@ -177,6 +178,7 @@ void CObjects::Kill(void)
 	FreeAllInKillOrder(false);
 
 	mcRemovalContext.Kill();
+	mcWeakFroms.Kill();
 
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
@@ -931,6 +933,79 @@ void CObjects::FreeAllInKillOrder(bool bDeallocate)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The weak references to each object (and to each object embedded in it)
+// become NULL, before any Free() of the batch runs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ClearWeakFroms(CArrayBaseObjectPtr* papcObjectPts)
+{
+	size	i;
+	size	iNumElements;
+
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		ClearWeakFroms(*papcObjectPts->Get(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ClearWeakFroms(CBaseObject* pcObject)
+{
+	size	i;
+	size	uiNumEmbedded;
+
+	if ((pcObject->GetFlags() & OBJECT_FLAGS_WEAKLY_HELD) == 0)
+	{
+		return;
+	}
+	uiNumEmbedded = pcObject->NumEmbedded();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		mcWeakFroms.Clear(pcObject->GetEmbeddedObject(i));
+	}
+	pcObject->SetFlag(OBJECT_FLAGS_WEAKLY_HELD, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The flag is the embedding container's, so the free path finds it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot)
+{
+	mcWeakFroms.Add(pcObject, pcHolder, uiSlot);
+	pcObject->GetEmbeddingContainer()->SetFlag(OBJECT_FLAGS_WEAKLY_HELD, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::RemoveWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot)
+{
+	return mcWeakFroms.Remove(pcObject, pcHolder, uiSlot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CWeakFroms* CObjects::GetWeakFroms(void)
+{
+	return &mcWeakFroms;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DoneKill(CArrayBaseObjectPtr* papcObjectPts)
@@ -1084,6 +1159,7 @@ void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
 	//destruction callback is called before Free.
 	SaveStoredDirty(papcObjectPts);
 	DoneKill(papcObjectPts);
+	ClearWeakFroms(papcObjectPts);
 	FreeInternal(papcObjectPts);
 	RemoveAllPointerTos(papcObjectPts);
 	RemoveAllHeapFroms(papcObjectPts);

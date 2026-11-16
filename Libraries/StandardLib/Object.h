@@ -98,6 +98,8 @@ protected:
 	CBaseObject*		GetContained(size uiIndex);
 	size				NumPointerFields(void);
 	CPointer*			GetPointerField(size uiIndex);
+	size				NumWeakPointerFields(void);
+	CWeakPointer*		GetWeakPointerField(size uiIndex);
 	CBaseObject*		IterateDirectlyEmbedded(size* puiIndex);
 	void				ValidateEmbeddedConsistency(void) override;
 	void				EmbedPointerFields(void);

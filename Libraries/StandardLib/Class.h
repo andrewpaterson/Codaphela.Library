@@ -39,6 +39,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Character.h"
 #include "PrimitiveVoid.h"
 #include "PointerField.h"
+#include "WeakPointerField.h"
 #include "EmbeddedObjectField.h"
 #include "PrimitiveField.h"
 #include "UnmanagedField.h"
@@ -67,6 +68,7 @@ protected:
 	CLinkedListBlock	macFields;
 
 	CArrayVoidPtr		mapcPointers;
+	CArrayVoidPtr		mapcWeakPointers;
 	CArrayVoidPtr		mapcEmbeddedObjects;
 	CArrayVoidPtr		mapcPrimitives;
 	CArrayVoidPtr		mapcUnmanaged;
@@ -78,6 +80,7 @@ public:
 	void					Complete(void);
 
 	CPointerField*			Pointer(CBaseObject* pcThis, CPointer* pcPointer, const char* szFieldName);
+	CWeakPointerField*		WeakPointer(CBaseObject* pcThis, CWeakPointer* pcPointer, const char* szFieldName);
 	CPrimitiveField*		Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, const char* szFieldName);
 	CEmbeddedObjectField*	Embedded(CBaseObject* pcThis, CBaseObject* pcObject, const char* szFieldName);
 
@@ -100,6 +103,7 @@ public:
 	bool					HasNes(void);
 
 	CArrayVoidPtr*			GetPointerFields(void);
+	CArrayVoidPtr*			GetWeakPointerFields(void);
 	CArrayVoidPtr*			GetEmbeddedObjectFields(void);
 	CArrayVoidPtr*			GetPrimitiveFields(void);
 	CArrayVoidPtr*			GetUnmanagedFields(void);
