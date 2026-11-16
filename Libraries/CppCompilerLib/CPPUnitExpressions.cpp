@@ -1212,7 +1212,8 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		else
 		{
-			//sizeof an array variable is the array's size, not a pointer's.
+			//sizeof an array variable is the array's size, not a pointer's.  Its operand isn't evaluated.
+			BeginUnevaluated();
 			pcOperand = SkipParentheses(pcSizeof->mpcOperand);
 			psType = NULL;
 			if (pcOperand && (pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol)
@@ -1233,6 +1234,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			{
 				psType = TypeOf(pcOperand);
 			}
+			EndUnevaluated();
 		}
 		if (!psType || psType->IsVoid() || psType->IsFunction())
 		{

@@ -426,6 +426,23 @@ SCPP65Type* CCPPDeclarators::UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* p
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeclarators::DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
 {
+	SCPP65Type*		psType;
+
+	//The operand isn't evaluated.
+	mpcUnit->BeginUnevaluated();
+	psType = OperandType(pcOperand);
+	mpcUnit->EndUnevaluated();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What DecltypeType gives.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
+{
 	CCPPBoundName	cBound;
 	SCPP65Type*		psType;
 

@@ -67,7 +67,7 @@ void CCPPDeduction::Deduce(CArrayCPP65Types* papsArguments, CArraySyntax* papcAr
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 
-	pcSuffix = ((CCPPSyntaxFunctionDefinition*)mpcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
+	pcSuffix = mpcTemplate->FunctionDeclarator() ? mpcTemplate->FunctionDeclarator()->GetFunctionSuffix() : NULL;
 	DeduceParameters(pcSuffix, papsArguments, papcArguments);
 }
 

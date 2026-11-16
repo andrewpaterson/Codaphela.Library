@@ -137,6 +137,7 @@ void CCPPTemplate::Init(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcD
 	mlliName = -1;
 	mpcClassDeclaration = NULL;
 	mpcDeclarator = NULL;
+	mpcSpecifiers = NULL;
 	mbStatic = false;
 	mpcPrimary = this;
 	mpcPattern = NULL;
@@ -181,4 +182,36 @@ ECPPSyntax CCPPTemplate::DefinitionKind(void)
 bool CCPPTemplate::IsDeclaredClass(void)
 {
 	return mpcDefinition && (mpcDefinition->GetKind() == CPPS_ElaboratedTypeSpecifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template's declarator: its definition's, or for a member
+// template only declared in its class (template<class U> static char
+// t(int U::*);), its declaration's there.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxDeclarator* CCPPTemplate::FunctionDeclarator(void)
+{
+	if (mpcDefinition && (mpcDefinition->GetKind() == CPPS_FunctionDefinition))
+	{
+		return ((CCPPSyntaxFunctionDefinition*)mpcDefinition)->mpcDeclarator;
+	}
+	return mpcDeclarator;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template's specifiers, as FunctionDeclarator.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxDeclSpecifiers* CCPPTemplate::FunctionSpecifiers(void)
+{
+	if (mpcDefinition && (mpcDefinition->GetKind() == CPPS_FunctionDefinition))
+	{
+		return ((CCPPSyntaxFunctionDefinition*)mpcDefinition)->mpcSpecifiers;
+	}
+	return mpcSpecifiers;
 }

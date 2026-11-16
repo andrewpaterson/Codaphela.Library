@@ -253,6 +253,7 @@ protected:
 	CArraySyntax			mapcMemberSpecialisations;	//template<> R Class<Arguments>::f() { ... }, each given to its instance.
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
 	CCPPClass*				mpcInstanceStatics;	//The instance whose static members GlobalDeclaration is defining, or NULL.
+	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -460,6 +461,7 @@ public:
 	//CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
 	CCPPClass*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
+	CCPPClass*				MemberScopeClass(CCPPSymbol* pcSymbol);
 	CCPPClass*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
 	CCPPClass*			FindClass(int64 lliName, CCPPScope* pcLookup);
 	CCPPScope*				ComponentLookup(CCPPSyntaxNameComponent* pcComponent);
@@ -500,6 +502,9 @@ public:
 	CCPPSymbol*				FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks);
 	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
 	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
+	void					BeginUnevaluated(void) { miUnevaluated++; }
+	void					EndUnevaluated(void) { miUnevaluated--; }
+	bool					IsUnevaluated(void) { return miUnevaluated > 0; }
 	CArraySyntax*			ListElements(CCPPSyntax* pcList);
 	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
 	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);

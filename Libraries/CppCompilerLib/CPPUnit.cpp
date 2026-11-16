@@ -285,6 +285,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcMemberSpecialisations.Init();
 	mapcStaticMemberTemplates.Init();
 	mpcInstanceStatics = NULL;
+	miUnevaluated = 0;
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	mapcFailed.Init();

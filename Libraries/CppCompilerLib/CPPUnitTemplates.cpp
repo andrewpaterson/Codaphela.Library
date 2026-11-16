@@ -1409,6 +1409,8 @@ CCPPFunction* CCPPUnit::InstantiateFunction(CCPPTemplate* pcTemplate, CArraySynt
 CCPPFunction* CCPPUnit::InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxDeclarator*			pcDeclarator;
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
 	CCPPTemplate*					pcSpecialisation;
 	CCPPFunction*					pcFunction;
 	CCPPSyntaxFunctionSuffix*		pcInClass;
@@ -1440,9 +1442,12 @@ CCPPFunction* CCPPUnit::InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplat
 	{
 		pcBindings->mpcOuter = mcContext.GetBindings();
 	}
+	//A member template only declared has instances only declared.
+	pcDeclarator = pcDefinition ? pcDefinition->mpcDeclarator : pcTemplate->FunctionDeclarator();
+	pcSpecifiers = pcDefinition ? pcDefinition->mpcSpecifiers : pcTemplate->FunctionSpecifiers();
 	mcContext.EnterBindings(pcBindings);
 	mcContext.EnterNamespace(pcTemplate->mpcNamespace);
-	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcTemplate->mpcClass, false, pcTemplate, pszArguments);
+	pcFunction = DeclareFunction(pcSpecifiers, pcDeclarator, pcDefinition != NULL, pcTemplate->mpcClass, false, pcTemplate, pszArguments);
 	mcContext.LeaveNamespace();
 	mcContext.LeaveBindings();
 	if (!pcTemplate->mpcClass)
@@ -1457,7 +1462,7 @@ CCPPFunction* CCPPUnit::InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplat
 		pcFunction->mbStatic |= pcTemplate->mbStatic;
 
 		//A member template defined outside its class has its default arguments in the class.  [dcl.fct.default]
-		pcInClass = (pcTemplate->mpcDeclarator && (pcTemplate->mpcDeclarator != pcDefinition->mpcDeclarator)) ? pcTemplate->mpcDeclarator->GetFunctionSuffix() : NULL;
+		pcInClass = (pcTemplate->mpcDeclarator && (pcTemplate->mpcDeclarator != pcDeclarator)) ? pcTemplate->mpcDeclarator->GetFunctionSuffix() : NULL;
 		if (pcInClass && (pcInClass->macpParameters.NumElements() == pcFunction->mapcDefaults.NumElements()))
 		{
 			for (i = 0; i < pcInClass->macpParameters.NumElements(); i++)
@@ -1612,6 +1617,7 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 	pcTemplate->mpcClass = pcClass;
 	pcTemplate->mlliName = lliName;
 	pcTemplate->mpcDeclarator = pcDeclarator;
+	pcTemplate->mpcSpecifiers = pcSpecifiers;
 	pcTemplate->mbStatic = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_STATIC);
 	return true;
 }
@@ -1672,6 +1678,8 @@ ECPPRefQualifier CCPPUnit::RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix)
 // definition with its name and parameters (and its template parameters, which the
 // definition uses): the one whose parameters are written the same, as overloads
 // that differ only in their parameters' types are, or else the first with as many.
+// One with no definition stays only declared (its declarator and specifiers in the
+// class: CCPPTemplate::FunctionDeclarator), as SFINAE's test functions are.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode)
@@ -1731,7 +1739,8 @@ bool CCPPUnit::DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode
 
 	if (!pcFound)
 	{
-		return Error(pcNode, "The member template has not been defined");
+		//Only declared: its instances are declarations, which only a call needs defined (CCPP65TypeChecker::Call).
+		return true;
 	}
 	pcTemplate->mpcDeclaration = pcFound->mpcDeclaration;
 	pcTemplate->mpcDefinition = pcFound->mpcDefinition;

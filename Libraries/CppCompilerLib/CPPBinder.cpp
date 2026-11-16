@@ -181,6 +181,13 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	}
 	pcMember = mpcUnit->OuterFunction();
 
+	//In a class but not in its member functions (sizeof(test<T>(0)) in an enumerator), a member's name is its member.
+	if (pcName && !pcName->mbGlobal && !(pcMember && pcMember->mpcClass) && mpcUnit->MemberScopeClass(pcSymbol))
+	{
+		ResolveMember(pcCall, pcBound);
+		return;
+	}
+
 	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
@@ -477,9 +484,9 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 			pcClass = pcName->GetQualifier()->mpcSymbol ? mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee) : mpcUnit->QualifiersClass(pcName, pcCallee);
 			bVirtual = false;
 		}
-		else if (pcIn)
+		else
 		{
-			pcClass = pcIn->mpcClass;
+			pcClass = (pcIn && pcIn->mpcClass) ? pcIn->mpcClass : mpcUnit->MemberScopeClass(pcName->mpcSymbol);
 		}
 	}
 	pcBound->mpcName = pcName;

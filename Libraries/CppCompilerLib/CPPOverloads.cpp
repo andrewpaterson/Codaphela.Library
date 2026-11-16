@@ -1647,7 +1647,7 @@ bool CCPPOverloads::TemplateParameterTypes(CCPPTemplate* pcTemplate, CCPPTemplat
 	size						i;
 	bool						bResult;
 
-	pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
+	pcSuffix = pcTemplate->FunctionDeclarator() ? pcTemplate->FunctionDeclarator()->GetFunctionSuffix() : NULL;
 	if (!pcSuffix)
 	{
 		return false;
@@ -1692,7 +1692,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	CChars						szArguments;
 	CCPPTemplateArguments*		pcBindings;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
-	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psArgument;
 	SCPP65Type*					psParameter;
@@ -1738,7 +1738,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 			pcBindings->mpcOuter = mpcUnit->GetContext()->GetBindings();
 		}
 		mpcUnit->GetContext()->EnterBindings(pcBindings);
-		pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
+		pcSuffix = pcTemplate->FunctionDeclarator() ? pcTemplate->FunctionDeclarator()->GetFunctionSuffix() : NULL;
 		bPack = false;
 		for (i = 0; bTakes && !bPack && pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < apsArguments.NumElements()); i++)
 		{
@@ -1774,10 +1774,10 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 
 		//The function's type, what it returns too, must be one with these arguments, or it is passed over (SFINAE:
 		//typename EnableIf<B, int>::Type f(T) where B is false).  [temp.deduct] 8
-		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition;
-		if (bTakes && pcDefinition->mpcSpecifiers && pcDefinition->mpcSpecifiers->mpcType)
+		pcSpecifiers = pcTemplate->FunctionSpecifiers();
+		if (bTakes && pcSpecifiers && pcSpecifiers->mpcType)
 		{
-			bTakes = mpcUnit->GetDeclarators()->GetType(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, pcNode) != NULL;
+			bTakes = mpcUnit->GetDeclarators()->GetType(pcSpecifiers, pcTemplate->FunctionDeclarator(), pcNode) != NULL;
 		}
 		mpcUnit->GetContext()->LeaveBindings();
 		if (!pcTemplate->mpcClass)

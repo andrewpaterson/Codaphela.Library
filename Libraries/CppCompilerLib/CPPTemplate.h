@@ -111,7 +111,8 @@ public:
 	CCPPClass*						mpcClass;
 	int64							mlliName;
 	CCPPSyntaxTemplateDeclaration*	mpcClassDeclaration;
-	CCPPSyntaxDeclarator*			mpcDeclarator;	//A member template's declarator in its class.
+	CCPPSyntaxDeclarator*			mpcDeclarator;	//A member template's declarator in its class...
+	CCPPSyntaxDeclSpecifiers*		mpcSpecifiers;	//...and its specifiers there.
 	bool							mbStatic;
 	CCPPTemplate*					mpcPrimary;
 	CCPPSyntaxNameComponent*		mpcPattern;
@@ -127,6 +128,9 @@ public:
 
 	ECPPSyntax	DefinitionKind(void);
 	bool		IsDeclaredClass(void);
+
+	CCPPSyntaxDeclarator*		FunctionDeclarator(void);
+	CCPPSyntaxDeclSpecifiers*	FunctionSpecifiers(void);
 };
 
 

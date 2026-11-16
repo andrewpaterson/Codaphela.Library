@@ -67,6 +67,35 @@ CCPPClass* CCPPUnit::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class a member's symbol is declared in, where the member is named in
+// its class but not in a member function (sizeof(t(0)) in an enumerator):
+// for a class template, its instance in the bindings in use.  NULL if the
+// symbol isn't a member, or its class template's instance isn't in use.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::MemberScopeClass(CCPPSymbol* pcSymbol)
+{
+	CCPPScope*				pcScope;
+	CCPPTemplateArguments*	pcBindings;
+
+	pcScope = pcSymbol ? pcSymbol->mpcScope : NULL;
+	if (!pcScope || (pcScope->meKind != CPPSC_Class) || !pcScope->mpcOwner)
+	{
+		return NULL;
+	}
+	for (pcBindings = mcContext.GetBindings(); pcBindings; pcBindings = pcBindings->mpcOuter)
+	{
+		if (pcBindings->mpcClass && (pcBindings->mpcClass->mpcSymbol == pcScope->mpcOwner))
+		{
+			return pcBindings->mpcClass;
+		}
+	}
+	return GetTemplate(pcScope->mpcOwner) ? NULL : GetClass(pcScope->mpcOwner, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A class without a name (typedef struct { ... } SName;) is known by its definition.
 // One in a class template is a different class in each instance (its bindings).
 //
