@@ -1752,7 +1752,8 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		}
 		else if (psDeclared->bAlias)
 		{
-			psDeclared->pcScope->AddAlias(psDeclared->lliName, psDeclared->pcSymbol);
+			//A using-declaration's: the overloads it names are those declared before its declaration.
+			psDeclared->pcScope->AddAlias(psDeclared->lliName, psDeclared->pcSymbol, iFirstToken);
 		}
 		else
 		{

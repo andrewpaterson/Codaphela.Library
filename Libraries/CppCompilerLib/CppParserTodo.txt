@@ -234,6 +234,9 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
          - A using-declaration in a class gives the member the access of where it is written (UsingDeclarationAccess, 7.3.3/19).
          - extern "C" functions of one name declared in two namespaces are one function, so a call found through both is not
            ambiguous (ExternCSameFunction, 7.5/6).
+    The order from here (the user, 2026-11-16: "get to namespaces as soon as possible but still complete 7 to 10 in a reasonable
+    order"): stage 10 first, as name lookup is what the rest stands on (its two wrong lookups first); then the five stage 6 cases
+    left (dependent template names and member class templates lean on lookup); then 7, 8 and 9.
     Then, when all of the above is done, come back to the user for: exceptions (B2), and the language support headers (B-4) and how much of the library.
 
   Why this order: wrong code with no error first; rvalue references before what is built on them (moves, forwarding, the library's move and forward); auto before lambdas; constexpr before the templates that lean on it.  Stages 6, 7 and 9 depend on little and can move.

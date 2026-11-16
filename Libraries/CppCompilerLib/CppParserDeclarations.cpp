@@ -389,7 +389,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseUsing(CCPPSyntax* pcParent)
 		pcSymbol = pcUsing->mpcName->mpcSymbol;
 		if (pcSymbol)
 		{
-			mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol);
+			mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol, iFirstToken);
 		}
 	}
 	pcUsing->SetTokens(iFirstToken, PreviousToken());

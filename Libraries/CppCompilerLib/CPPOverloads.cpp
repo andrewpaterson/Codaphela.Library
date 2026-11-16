@@ -373,7 +373,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPSyntaxName*					pcName;
 	CCPPScope*						pcLookup;
-	CArrayScopes					apcNamespaces;
+	CCPPOverloadScopes				apcNamespaces;
 	size							uiErrors;
 	size							i;
 	bool							bDeclared;
@@ -399,7 +399,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	}
 	AddArgumentNamespaces(papcArguments, &apcNamespaces);
 	NormaliseNamespaces(&apcNamespaces);
-	if (apcNamespaces.Find(NULL) == ARRAY_ELEMENT_NOT_FOUND)
+	if (!apcNamespaces.Has(NULL))
 	{
 		apcNamespaces.Add(NULL);
 	}
@@ -416,7 +416,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 		}
 		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition;
 		pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
-		if (pcName && (pcName->macpComponents.NumElements() == 1) && (mpcUnit->GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Find(pcTemplate->mpcNamespace) != ARRAY_ELEMENT_NOT_FOUND))
+		if (pcName && (pcName->macpComponents.NumElements() == 1) && (mpcUnit->GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Has(pcTemplate->mpcNamespace)))
 		{
 			pcFunction = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
 		}
@@ -544,7 +544,7 @@ CCPPFunction* CCPPOverloads::ChooseFunction(CCPPCandidates* pcCandidates, CArray
 // none matches functions of the name; NULL without an error if there are none.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject, CArrayScopes* papcNamespaces)
+CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject, CCPPOverloadScopes* papcNamespaces)
 {
 	CCPPCandidates		cCandidates;
 	CCPPFunction*		pcFunction;
@@ -597,7 +597,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	uiLooked = 0;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if ((pcFunction->meKind != eKind) || pcFunction->mpcTemplate || !IsOverloadOf(pcClass, pcFunction, lliName) || (papcNamespaces && (papcNamespaces->Find(pcFunction->mpcNamespace) == ARRAY_ELEMENT_NOT_FOUND)))
+		if ((pcFunction->meKind != eKind) || pcFunction->mpcTemplate || !IsOverloadOf(pcClass, pcFunction, lliName) || (papcNamespaces && !papcNamespaces->Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction))))
 		{
 			continue;
 		}
@@ -655,10 +655,23 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The token a function is first declared at, as a using-declaration's
+// overloads are those declared before it (CCPPOverloadScopes::Takes), or -1
+// if it isn't in this unit's tree (an import's).
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPOverloads::DeclarationToken(CCPPFunction* pcFunction)
+{
+	return (pcFunction->mpcDeclarator && (pcFunction->mpcDeclarator->mpcTree == mpcUnit->GetTree())) ? pcFunction->mpcDeclarator->miFirstToken : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The namespaces as functions have them: NULL for the global one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::NormaliseNamespaces(CArrayScopes* papcNamespaces)
+void CCPPOverloads::NormaliseNamespaces(CCPPOverloadScopes* papcNamespaces)
 {
 	size	i;
 
@@ -675,7 +688,7 @@ void CCPPOverloads::NormaliseNamespaces(CArrayScopes* papcNamespaces)
 // (CCPPScope::GatherOverloadScopes).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArrayScopes* papcNamespaces)
+void CCPPOverloads::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CCPPOverloadScopes* papcNamespaces)
 {
 	if (pcName->mpcLookup)
 	{
@@ -693,12 +706,12 @@ void CCPPOverloads::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName,
 // Adds the namespace pcScope is in, if it isn't there already.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::AddNamespaceOf(CCPPScope* pcScope, CArrayScopes* papcNamespaces)
+void CCPPOverloads::AddNamespaceOf(CCPPScope* pcScope, CCPPOverloadScopes* papcNamespaces)
 {
 	CCPPScope*	pcNamespace;
 
 	pcNamespace = pcScope->GetEnclosingNamespace();
-	if (papcNamespaces->Find(pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)
+	if (!papcNamespaces->Has(pcNamespace))
 	{
 		papcNamespaces->Add(pcNamespace);
 	}
@@ -712,7 +725,7 @@ void CCPPOverloads::AddNamespaceOf(CCPPScope* pcScope, CArrayScopes* papcNamespa
 // or function type is made from.  [basic.lookup.argdep] 2
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::AddAssociatedNamespaces(SCPP65Type* psType, CArrayScopes* papcNamespaces, int iDepth)
+void CCPPOverloads::AddAssociatedNamespaces(SCPP65Type* psType, CCPPOverloadScopes* papcNamespaces, int iDepth)
 {
 	CCPPClass*	pcClass;
 	SCPPBinding*	psBinding;
@@ -776,7 +789,7 @@ void CCPPOverloads::AddAssociatedNamespaces(SCPP65Type* psType, CArrayScopes* pa
 // Adds the namespaces associated with the types of a call's arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::AddArgumentNamespaces(CArraySyntax* papcArguments, CArrayScopes* papcNamespaces)
+void CCPPOverloads::AddArgumentNamespaces(CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces)
 {
 	size	i;
 
@@ -797,7 +810,7 @@ void CCPPOverloads::AddArgumentNamespaces(CArraySyntax* papcArguments, CArraySco
 // [basic.lookup.argdep] 3
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPOverloads::GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CArrayScopes* papcNamespaces)
+void CCPPOverloads::GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces)
 {
 	GetOverloadNamespaces(pcName, lliName, papcNamespaces);
 	if (!pcName->mbGlobal && !pcName->GetQualifier())
@@ -814,7 +827,7 @@ void CCPPOverloads::GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CAr
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPOverloads::FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
-	CArrayScopes	apcNamespaces;
+	CCPPOverloadScopes	apcNamespaces;
 	CCPPFunction*	pcFunction;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindNamedFunction);
@@ -869,7 +882,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	CCPPFunction*	pcFunction;
 	CCPPFunction*	pcFound;
 	CCPPClass*	pcClass;
-	CArrayScopes	apcNamespaces;
+	CCPPOverloadScopes	apcNamespaces;
 	bool			bQualified;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindAddressedFunction);
@@ -904,7 +917,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	}
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate && (!pcName || (apcNamespaces.Find(pcFunction->mpcNamespace) != ARRAY_ELEMENT_NOT_FOUND)))
+		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate && (!pcName || apcNamespaces.Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction))))
 		{
 			if (psTarget && psTarget->Equals(mpcUnit->GetTypes()->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
 			{
@@ -1393,7 +1406,7 @@ void CCPPOverloads::GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size u
 CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CArraySyntax* papcExplicit)
 {
 	CArrayCPPTemplates	apcCandidates;
-	CArrayScopes			apcNamespaces;
+	CCPPOverloadScopes		apcNamespaces;
 	CCPPTemplate*			pcTemplate;
 	size					i;
 

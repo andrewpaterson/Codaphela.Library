@@ -106,10 +106,10 @@ void CCPPScope::Add(CCPPSymbol* pcSymbol)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPScope::AddAlias(int64 lliName, CCPPSymbol* pcSymbol)
+void CCPPScope::AddAlias(int64 lliName, CCPPSymbol* pcSymbol, int iBefore)
 {
-	//The name finds a symbol declared somewhere else, as a using-declaration does.  The symbol is not changed.  A
-	//header's lazy declarations of the name are parsed first.
+	//The name finds a symbol declared somewhere else, as a using-declaration does (its first token is iBefore, -1 for
+	//none).  The symbol is not changed.  A header's lazy declarations of the name are parsed first.
 	CCPPSymbol**			ppcExisting;
 	SCPPScopeUsedFunction*	psUsed;
 
@@ -119,12 +119,13 @@ void CCPPScope::AddAlias(int64 lliName, CCPPSymbol* pcSymbol)
 	{
 		mcSymbols.Put(lliName, &pcSymbol);
 	}
-	else if ((*ppcExisting != pcSymbol) && (*ppcExisting)->IsFunction() && pcSymbol->IsFunction() && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Namespace))
+	if (pcSymbol->IsFunction() && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Namespace) && (pcSymbol->mpcScope != this))
 	{
-		//Its functions are overloads of those the name already has.  [namespace.udecl]
+		//The namespace's functions declared so far are overloads of those the name has here.  [namespace.udecl] 11
 		psUsed = masUsedFunctions.Add();
 		psUsed->lliName = lliName;
 		psUsed->pcNamespace = pcSymbol->mpcScope;
+		psUsed->iBefore = iBefore;
 	}
 }
 
@@ -228,6 +229,12 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Unqualified name lookup: this scope and then the enclosing ones, each's
+// own names (FindDeclared), and at each namespace the names of what
+// using-directives nominate there (FindNominated): a using-directive's
+// names count as declared in the nearest namespace that encloses both it
+// and the namespace it nominates, so in B::g() { using namespace A; ... }
+// B's names hide A's.  [basic.lookup.unqual] [namespace.udir] 2
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPPScope::Find(int64 lliName)
@@ -235,10 +242,13 @@ CCPPSymbol* CCPPScope::Find(int64 lliName)
 	CCPPScope*	pcScope;
 	CCPPSymbol*	pcSymbol;
 
-	//Unqualified name lookup: this scope and then the enclosing ones.  [basic.lookup.unqual]
 	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
 	{
-		pcSymbol = pcScope->FindMember(lliName);
+		pcSymbol = pcScope->FindDeclared(lliName, 0);
+		if (!pcSymbol && (pcScope->meKind == CPPSC_Namespace))
+		{
+			pcSymbol = FindNominated(lliName, pcScope);
+		}
 		if (pcSymbol)
 		{
 			return pcSymbol;
@@ -250,6 +260,98 @@ CCPPSymbol* CCPPScope::Find(int64 lliName)
 			{
 				return pcSymbol;
 			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The scope's own names: declared here, in its base classes, or in the
+// anonymous unions in it (whose members are its own).  Not what
+// using-directives nominate.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth)
+{
+	CCPPSymbol*	pcSymbol;
+	CCPPScope*	pcUsing;
+	size		i;
+
+	if (iDepth > MAX_LOOKUP_DEPTH)
+	{
+		return NULL;
+	}
+	pcSymbol = FindHere(lliName);
+	for (i = 0; !pcSymbol && (i < mapcBases.NumElements()); i++)
+	{
+		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1);
+	}
+	for (i = 0; !pcSymbol && (i < mapcUsings.NumElements()); i++)
+	{
+		pcUsing = mapcUsings.GetPtr(i);
+		if (pcUsing->meKind != CPPSC_Namespace)
+		{
+			pcSymbol = pcUsing->FindDeclared(lliName, iDepth + 1);
+		}
+	}
+	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name in a namespace nominated where pcLevel is the nearest namespace
+// enclosing the using-directive and what it nominates: by a directive (or
+// as an unnamed or inline namespace) of this scope or of one it is in, up
+// to pcLevel.  [namespace.udir] 2
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel)
+{
+	CCPPScope*	pcScope;
+	CCPPScope*	pcUsing;
+	CCPPSymbol*	pcSymbol;
+	size		i;
+
+	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
+	{
+		for (i = 0; i < pcScope->mapcUsings.NumElements(); i++)
+		{
+			pcUsing = pcScope->mapcUsings.GetPtr(i);
+			if ((pcUsing->meKind == CPPSC_Namespace) && (pcScope->NominationLevel(pcUsing) == pcLevel))
+			{
+				pcSymbol = pcUsing->FindMember(lliName);
+				if (pcSymbol)
+				{
+					return pcSymbol;
+				}
+			}
+		}
+		if (pcScope == pcLevel)
+		{
+			break;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The nearest namespace that encloses both this scope and pcNominated.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPPScope::NominationLevel(CCPPScope* pcNominated)
+{
+	CCPPScope*	pcScope;
+
+	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
+	{
+		if ((pcScope->meKind == CPPSC_Namespace) && pcScope->Encloses(pcNominated))
+		{
+			return pcScope;
 		}
 	}
 	return NULL;
@@ -364,13 +466,13 @@ bool CCPPScope::Encloses(CCPPScope* pcScope)
 //////////////////////////////////////////////////////////////////////////
 //
 // If the name is a function declared in this scope, or named here by a using
-// declaration, adds the namespace its overloads are in.
+// declaration, adds the namespace its overloads are in: the scope's own, and
+// those of using-declarations limited to what they named (AddAlias).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPScope::AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces)
+bool CCPPScope::AddOverloadScope(int64 lliName, CCPPOverloadScopes* pcNamespaces)
 {
 	CCPPSymbol*				pcSymbol;
-	CCPPScope*				pcNamespace;
 	SCPPScopeUsedFunction*	psUsed;
 	size					ui;
 
@@ -378,17 +480,16 @@ bool CCPPScope::AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces)
 	{
 		if (pcSymbol->IsFunction())
 		{
-			pcNamespace = pcSymbol->mpcScope->GetEnclosingNamespace();
-			if (papcNamespaces->Find(pcNamespace) == ARRAY_ELEMENT_NOT_FOUND)
+			if ((pcSymbol->mpcScope == this) || (pcSymbol->mpcScope->meKind != CPPSC_Namespace))
 			{
-				papcNamespaces->Add(pcNamespace);
+				pcNamespaces->Add(pcSymbol->mpcScope->GetEnclosingNamespace());
 			}
 			for (ui = 0; ui < masUsedFunctions.NumElements(); ui++)
 			{
 				psUsed = masUsedFunctions.Get(ui);
-				if ((psUsed->lliName == lliName) && (papcNamespaces->Find(psUsed->pcNamespace) == ARRAY_ELEMENT_NOT_FOUND))
+				if (psUsed->lliName == lliName)
 				{
-					papcNamespaces->Add(psUsed->pcNamespace);
+					pcNamespaces->AddBefore(psUsed->pcNamespace, psUsed->iBefore);
 				}
 			}
 			return true;
@@ -429,7 +530,7 @@ void CCPPScope::AddNominated(CArrayScopes* papcNominated)
 // hidden by a name in the namespace that has the directive.  [namespace.udir] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CArrayScopes* papcNamespaces)
+bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CCPPOverloadScopes* pcNamespaces)
 {
 	CCPPScope*	pcScope;
 	CCPPScope*	pcNominated;
@@ -439,7 +540,7 @@ bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CA
 	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
 	{
 		pcScope->AddNominated(papcNominated);
-		bFound = pcScope->AddOverloadScope(lliName, papcNamespaces);
+		bFound = pcScope->AddOverloadScope(lliName, pcNamespaces);
 		if (pcScope->meKind == CPPSC_Namespace)
 		{
 			for (i = 0; i < papcNominated->NumElements(); i++)
@@ -447,7 +548,7 @@ bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CA
 				pcNominated = papcNominated->GetPtr(i);
 				if (pcScope->Encloses(pcNominated))
 				{
-					bFound |= pcNominated->AddOverloadScope(lliName, papcNamespaces);
+					bFound |= pcNominated->AddOverloadScope(lliName, pcNamespaces);
 				}
 			}
 		}
@@ -455,7 +556,7 @@ bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CA
 		{
 			return true;
 		}
-		if (pcScope->mpcQualifier && pcScope->mpcQualifier->GatherUnqualified(lliName, papcNominated, papcNamespaces))
+		if (pcScope->mpcQualifier && pcScope->mpcQualifier->GatherUnqualified(lliName, papcNominated, pcNamespaces))
 		{
 			return true;
 		}
@@ -471,7 +572,7 @@ bool CCPPScope::GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CA
 // of what its using directives nominate.  [namespace.qual] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPScope::GatherQualified(int64 lliName, CArrayScopes* papcNamespaces, int iDepth)
+bool CCPPScope::GatherQualified(int64 lliName, CCPPOverloadScopes* pcNamespaces, int iDepth)
 {
 	CCPPScope*	pcUsing;
 	size		i;
@@ -481,13 +582,13 @@ bool CCPPScope::GatherQualified(int64 lliName, CArrayScopes* papcNamespaces, int
 	{
 		return false;
 	}
-	bFound = AddOverloadScope(lliName, papcNamespaces);
+	bFound = AddOverloadScope(lliName, pcNamespaces);
 	for (i = 0; i < mapcUsings.NumElements(); i++)
 	{
 		pcUsing = mapcUsings.GetPtr(i);
 		if (pcUsing->mpcParent == this)
 		{
-			bFound |= pcUsing->GatherQualified(lliName, papcNamespaces, iDepth + 1);
+			bFound |= pcUsing->GatherQualified(lliName, pcNamespaces, iDepth + 1);
 		}
 	}
 	if (bFound)
@@ -496,7 +597,7 @@ bool CCPPScope::GatherQualified(int64 lliName, CArrayScopes* papcNamespaces, int
 	}
 	for (i = 0; i < mapcUsings.NumElements(); i++)
 	{
-		bFound |= mapcUsings.GetPtr(i)->GatherQualified(lliName, papcNamespaces, iDepth + 1);
+		bFound |= mapcUsings.GetPtr(i)->GatherQualified(lliName, pcNamespaces, iDepth + 1);
 	}
 	return bFound;
 }
@@ -508,17 +609,17 @@ bool CCPPScope::GatherQualified(int64 lliName, CArrayScopes* papcNamespaces, int
 // scope can choose between.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPScope::GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScopes* papcNamespaces)
+void CCPPScope::GatherOverloadScopes(int64 lliName, bool bQualified, CCPPOverloadScopes* pcNamespaces)
 {
 	CArrayScopes	apcNominated;
 
 	if (bQualified)
 	{
-		GatherQualified(lliName, papcNamespaces, 0);
+		GatherQualified(lliName, pcNamespaces, 0);
 		return;
 	}
 	apcNominated.Init();
-	GatherUnqualified(lliName, &apcNominated, papcNamespaces);
+	GatherUnqualified(lliName, &apcNominated, pcNamespaces);
 	apcNominated.Kill();
 }
 
@@ -529,18 +630,26 @@ void CCPPScope::GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScope
 // the way out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPScope::GatherEnclosingNamespaces(CArrayScopes* papcNamespaces)
+void CCPPScope::GatherEnclosingNamespaces(CCPPOverloadScopes* pcNamespaces)
 {
-	CCPPScope*	pcScope;
+	CArrayScopes	apcNominated;
+	CCPPScope*		pcScope;
+	size			i;
 
+	apcNominated.Init();
 	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
 	{
-		if ((pcScope->meKind == CPPSC_Namespace) && (papcNamespaces->Find(pcScope) == ARRAY_ELEMENT_NOT_FOUND))
+		if (pcScope->meKind == CPPSC_Namespace)
 		{
-			papcNamespaces->Add(pcScope);
+			pcNamespaces->Add(pcScope);
 		}
-		pcScope->AddNominated(papcNamespaces);
+		pcScope->AddNominated(&apcNominated);
 	}
+	for (i = 0; i < apcNominated.NumElements(); i++)
+	{
+		pcNamespaces->Add(apcNominated.GetPtr(i));
+	}
+	apcNominated.Kill();
 }
 
 
@@ -576,3 +685,152 @@ CCPPScope* CCPPScope::GetNamespace(void)
 	return (pcNamespace && pcNamespace->mpcParent) ? pcNamespace : NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloadScopes::Init(void)
+{
+	mapcScopes.Init();
+	maiBefore.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloadScopes::Kill(void)
+{
+	maiBefore.Kill();
+	mapcScopes.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// All of the scope's functions of the name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloadScopes::Add(CCPPScope* pcScope)
+{
+	size	i;
+
+	for (i = 0; i < mapcScopes.NumElements(); i++)
+	{
+		if (mapcScopes.GetPtr(i) == pcScope)
+		{
+			maiBefore.SetValue(i, -1);
+			return;
+		}
+	}
+	mapcScopes.Add(pcScope);
+	maiBefore.Add(-1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The scope's functions of the name declared before the token iBefore
+// (all of them for -1), unless more of them are already.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloadScopes::AddBefore(CCPPScope* pcScope, int iBefore)
+{
+	size	i;
+	int		iHas;
+
+	if (iBefore == -1)
+	{
+		Add(pcScope);
+		return;
+	}
+	for (i = 0; i < mapcScopes.NumElements(); i++)
+	{
+		if (mapcScopes.GetPtr(i) == pcScope)
+		{
+			iHas = maiBefore.GetValue(i);
+			if ((iHas != -1) && (iHas < iBefore))
+			{
+				maiBefore.SetValue(i, iBefore);
+			}
+			return;
+		}
+	}
+	mapcScopes.Add(pcScope);
+	maiBefore.Add(iBefore);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPOverloadScopes::NumElements(void)
+{
+	return mapcScopes.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPPOverloadScopes::GetPtr(size i)
+{
+	return mapcScopes.GetPtr(i);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The scope as another (its namespace, as functions have them), keeping
+// its limit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloadScopes::SetPtr(size i, CCPPScope* pcScope)
+{
+	mapcScopes.SetPtr(i, pcScope);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloadScopes::Has(CCPPScope* pcScope)
+{
+	return mapcScopes.Find(pcScope) != ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function of the name in pcNamespace, declared at the token
+// iToken (-1 if that isn't known), can be chosen.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloadScopes::Takes(CCPPScope* pcNamespace, int iToken)
+{
+	size	i;
+	int		iBefore;
+
+	for (i = 0; i < mapcScopes.NumElements(); i++)
+	{
+		if (mapcScopes.GetPtr(i) == pcNamespace)
+		{
+			iBefore = maiBefore.GetValue(i);
+			if ((iBefore == -1) || (iToken == -1) || (iToken < iBefore))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}

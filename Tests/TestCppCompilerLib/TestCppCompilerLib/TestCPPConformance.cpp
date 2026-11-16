@@ -77,8 +77,8 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) ",
 		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) "),
 	CONFORMANCE_GROUP(Stage10,
-		"DefinedInNonEnclosing(A) UnnamedAmbiguousWithGlobal(A) InlineADL(C) AliasRedefinedDifferent(A) UsingDeclarationOnlyEarlierOverloads(W) UsingDeclarationOfNamespace(A) UsingDeclarationConflicts(A) UsingDeclarationAccess(C) UsingDirectiveAmbiguityUsed(A) UsingDirectiveNearestEnclosing(W) QualifiedAmbiguous(A) ADLSuppressedByParentheses(A) ADLFunctionArgument(C) ExternCSameFunction(C) ",
-		"DefinedInNonEnclosing(A) UnnamedAmbiguousWithGlobal(A) InlineADL(C) AliasRedefinedDifferent(A) UsingDeclarationOnlyEarlierOverloads(W) UsingDeclarationOfNamespace(A) UsingDeclarationConflicts(A) UsingDeclarationAccess(C) UsingDirectiveAmbiguityUsed(A) UsingDirectiveNearestEnclosing(W) QualifiedAmbiguous(A) ADLSuppressedByParentheses(A) ADLFunctionArgument(C) ExternCSameFunction(C) "),
+		"DefinedInNonEnclosing(A) UnnamedAmbiguousWithGlobal(A) InlineADL(C) AliasRedefinedDifferent(A) UsingDeclarationOfNamespace(A) UsingDeclarationConflicts(A) UsingDeclarationAccess(C) UsingDirectiveAmbiguityUsed(A) QualifiedAmbiguous(A) ADLSuppressedByParentheses(A) ADLFunctionArgument(C) ExternCSameFunction(C) ",
+		"DefinedInNonEnclosing(A) UnnamedAmbiguousWithGlobal(A) InlineADL(C) AliasRedefinedDifferent(A) UsingDeclarationOfNamespace(A) UsingDeclarationConflicts(A) UsingDeclarationAccess(C) UsingDirectiveAmbiguityUsed(A) QualifiedAmbiguous(A) ADLSuppressedByParentheses(A) ADLFunctionArgument(C) ExternCSameFunction(C) "),
 };
 
 

@@ -171,7 +171,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 			pcSymbol->mpcMembers = pcClass->mpcScope;
 		}
 		//The injected class name.  [class] 2
-		pcClass->mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol);
+		pcClass->mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol, -1);
 	}
 	if (bTemplate || mpcScope->IsDependent())
 	{
@@ -505,7 +505,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 		pcEnumerator->mpcSymbol = pcEnumeratorSymbol;
 		if (pcEnumeratorSymbol && !pcEnum->mbScoped)
 		{
-			pcDeclarationScope->AddAlias(lliName, pcEnumeratorSymbol);
+			pcDeclarationScope->AddAlias(lliName, pcEnumeratorSymbol, -1);
 			if (mpapcRecorded && (pcDeclarationScope == mpcRecordScope))
 			{
 				mpapcRecorded->Add(&pcEnumeratorSymbol);

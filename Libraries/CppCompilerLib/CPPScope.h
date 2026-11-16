@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_SCOPE_H__
 #define __C_P_P_SCOPE_H__
+#include "BaseLib/ArrayInt.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "CPPSymbol.h"
@@ -41,15 +42,40 @@ typedef CArrayTemplatePtr<CCPPScope>		CArrayScopes;
 typedef CMapLongTemplate<CCPPSymbol*>		CMapSymbols;
 
 
-//using N::F; where the scope has an F too: lookup of the name here finds N's functions as well as its own.
+//using N::F;: lookup of the name here finds N's functions of the name declared before the using-declaration (its first
+//token, iBefore), as well as the scope's own.  [namespace.udecl] 11
 struct SCPPScopeUsedFunction
 {
 	int64		lliName;
 	CCPPScope*	pcNamespace;
+	int			iBefore;
 };
 
 
 typedef CArrayTemplate<SCPPScopeUsedFunction>	CArrayScopeUsedFunctions;
+
+
+//The namespaces whose functions of a name a call can choose between (CCPPScope::GatherOverloadScopes).  One whose
+//functions only a using-declaration brings has those declared before the declaration's first token (its limit, -1 for all
+//of a namespace's).  [namespace.udecl] 11
+class CCPPOverloadScopes
+{
+protected:
+	CArrayScopes	mapcScopes;
+	CArrayInt		maiBefore;
+
+public:
+	void		Init(void);
+	void		Kill(void);
+
+	void		Add(CCPPScope* pcScope);
+	void		AddBefore(CCPPScope* pcScope, int iBefore);
+	size		NumElements(void);
+	CCPPScope*	GetPtr(size i);
+	void		SetPtr(size i, CCPPScope* pcScope);
+	bool		Has(CCPPScope* pcScope);
+	bool		Takes(CCPPScope* pcNamespace, int iToken);
+};
 
 
 class CCPPScope
@@ -69,11 +95,14 @@ public:
 	void			Kill(void);
 
 	void			Add(CCPPSymbol* pcSymbol);
-	void			AddAlias(int64 lliName, CCPPSymbol* pcSymbol);
+	void			AddAlias(int64 lliName, CCPPSymbol* pcSymbol, int iBefore);
 	CCPPSymbol*		FindHere(int64 lliName);
 	void			LoadLazy(int64 lliName);
 	CCPPSymbol*		FindMember(int64 lliName);
 	CCPPSymbol*		Find(int64 lliName);
+	CCPPSymbol*		FindDeclared(int64 lliName, int iDepth);
+	CCPPSymbol*		FindNominated(int64 lliName, CCPPScope* pcLevel);
+	CCPPScope*		NominationLevel(CCPPScope* pcNominated);
 	CCPPScope*		GetDeclarationScope(void);
 	CCPPScope*		GetEnclosingNamespace(void);
 	CCPPScope*		GetNamespace(void);
@@ -82,15 +111,15 @@ public:
 	bool			IsInUnnamedNamespace(void);
 	bool			IsDependent(void);
 	bool			Encloses(CCPPScope* pcScope);
-	void			GatherOverloadScopes(int64 lliName, bool bQualified, CArrayScopes* papcNamespaces);
-	void			GatherEnclosingNamespaces(CArrayScopes* papcNamespaces);
+	void			GatherOverloadScopes(int64 lliName, bool bQualified, CCPPOverloadScopes* pcNamespaces);
+	void			GatherEnclosingNamespaces(CCPPOverloadScopes* pcNamespaces);
 
 protected:
 	CCPPSymbol*		FindMember(int64 lliName, int iDepth);
-	bool			AddOverloadScope(int64 lliName, CArrayScopes* papcNamespaces);
+	bool			AddOverloadScope(int64 lliName, CCPPOverloadScopes* pcNamespaces);
 	void			AddNominated(CArrayScopes* papcNominated);
-	bool			GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CArrayScopes* papcNamespaces);
-	bool			GatherQualified(int64 lliName, CArrayScopes* papcNamespaces, int iDepth);
+	bool			GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CCPPOverloadScopes* pcNamespaces);
+	bool			GatherQualified(int64 lliName, CCPPOverloadScopes* pcNamespaces, int iDepth);
 };
 
 
