@@ -44,7 +44,7 @@ static int MeshUVConformalFurthest(SFloat32Vec2* pasUVs, int iNumUVs, int iFrom)
 	for (i = 0; i < iNumUVs; i++)
 	{
 		sOffset = pasUVs[i] - pasUVs[iFrom];
-		fDistance = sOffset.SquareMagnitude();
+		fDistance = (float32)sOffset.SquareMagnitude();
 		if (fDistance > fFurthest)
 		{
 			fFurthest = fDistance;
