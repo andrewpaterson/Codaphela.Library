@@ -128,6 +128,7 @@ struct SCPP65IRCountedLoop
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
+typedef CMapLongTemplate<SCPP65IRValue>		CMapCPP65IRValues;
 typedef CArrayTemplate<SCPP65IRJump>		CArrayCPP65IRJumps;
 typedef CArrayTemplate<SCPP65IRCase>		CArrayCPP65IRCases;
 typedef CArrayTemplate<SCPP65IRLabel>		CArrayCPP65IRLabels;
@@ -164,6 +165,7 @@ protected:
 	SIRReference			msElide;			//Where the next call that returns an object makes it, instead of a temporary.
 	CCPPSyntax*				mpcValue;			//The expression Value last started on (where a conversion's error is).
 	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its CCPPVariable.
+	CMapCPP65IRValues		mcImplicitValues;	//The values of the implicit arguments of the calls being written (CCPPUnit::ImplicitValue).
 	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
@@ -385,6 +387,9 @@ protected:
 	bool			CallObject(CCPPFunction* pcFunction, SIRReference sObject, CCPPClass* pcObjectClass, CArraySyntax* papcArguments, bool bVirtual);
 	SIRReference	CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue);
 	bool			NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRValue* psValue);
+	bool			Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory);
+	bool			CallWithValue(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcImplicit, SCPP65IRValue* psImplicit, SCPP65IRValue* psResult);
+	bool			ValueInitialise(SCPP65IRPlace* psPlace);
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);
 	bool			DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);

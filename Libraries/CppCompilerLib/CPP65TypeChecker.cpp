@@ -325,9 +325,9 @@ void CCPP65TypeChecker::VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65TypeChecker::VisitImplicitZero(CCPPSyntaxImplicitZero* pcNode)
+void CCPP65TypeChecker::VisitImplicitArgument(CCPPSyntaxImplicitArgument* pcNode)
 {
-	mpsResult = &mpcTypes->msInt;
+	mpsResult = pcNode->mpsType;
 }
 
 
@@ -2277,41 +2277,48 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// new Type, new Type(...), new(address) Type and new Type[count]: a Type*.
+// new Type, new Type(...), new (placement...) Type and new Type[count]...:
+// a pointer to what it makes, from the allocation function the type and
+// the placement arguments choose (CCPPBinder::FindAllocation), given the
+// size, which returns a void*.  [expr.new]
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 {
 	SCPP65Type*		psType;
-	SCPP65Type*		psAddress;
+	SCPP65Type*		psResult;
+	CCPPFunction*	pcAllocation;
+	CArraySyntax	apcArguments;
+	bool			bFailed;
 
-	if (pcNew->mbPlacement && ((pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() != 0)))
-	{
-		Error(pcNew, "Only new(address) Type is supported for placement new by the compiler yet");
-		return NULL;
-	}
-	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
+	psType = mpcUnit->NewElementType(pcNew);
 	if (!psType || (psType->IsClass() && !mpcUnit->CompleteObjectClass(psType->pcClass, pcNew)))
 	{
 		return NULL;
 	}
+
+	apcArguments.Init();
+	mpcUnit->NewArguments(pcNew, &apcArguments);
+	pcAllocation = mpcUnit->GetBinder()->FindAllocation(psType, pcNew->macpArraySizes.NumElements() > 0, &apcArguments, pcNew, &bFailed);
+	psResult = pcAllocation ? Call(pcAllocation, &apcArguments, pcNew) : &mpcTypes->msVoid;
+	apcArguments.Kill();
+	if (bFailed)
+	{
+		Error(pcNew, "No operator new takes the placement arguments");
+		return NULL;
+	}
+	if (!psResult)
+	{
+		return NULL;
+	}
+	if (pcNew->mbPlacement && !pcAllocation && !Value(pcNew->macpPlacement.GetPtr(0)))
+	{
+		return NULL;
+	}
+
 	if (pcNew->macpArraySizes.NumElements() > 0)
 	{
 		return NewArray(pcNew, psType);
-	}
-
-	if (pcNew->mbPlacement)
-	{
-		psAddress = Value(pcNew->macpPlacement.GetPtr(0));
-		if (!psAddress)
-		{
-			return NULL;
-		}
-		if (!psAddress->IsPointer())
-		{
-			Error(pcNew, "Placement new needs an address");
-			return NULL;
-		}
 	}
 	if ((psType->IsClass() || pcNew->mpcInitializer) && !Construct(psType, NULL, pcNew->mpcInitializer, pcNew))
 	{
@@ -2323,26 +2330,43 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// new Type[count]: one dimension, its elements constructed by default.
+// new Type[count]...: its elements default initialised, value initialised
+// by (), or the first from a list in braces and the rest value
+// initialised.  [expr.new] 17
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType)
 {
-	if ((pcNew->macpArraySizes.NumElements() != 1) || (pcNew->mpcInitializer && (pcNew->mpcInitializer->GetKind() != CPPS_ParenthesisedInitializer)))
-	{
-		Error(pcNew, "Only new Type[count] (one dimension, no initialiser list) is supported by the compiler yet");
-		return NULL;
-	}
-	if (pcNew->mpcInitializer && psType->IsScalar())
-	{
-		Error(pcNew, "new Type[count]() is not supported by the compiler yet");
-		return NULL;
-	}
+	CArraySyntax*	papcElements;
+	SCPP65Type*		psElement;
+	size			i;
+
 	if (!Convert(Value(pcNew->macpArraySizes.GetPtr(0)), &mpcTypes->msUnsignedInt, pcNew))
 	{
 		return NULL;
 	}
-	if (psType->IsClass() && psType->pcClass->NeedsConstructor() && !Construct(psType, NULL, NULL, pcNew))
+	papcElements = pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL;
+	if (papcElements && (pcNew->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer) && (papcElements->NumElements() > 0))
+	{
+		Error(pcNew, "new Type[count](arguments) can only be ()");
+		return NULL;
+	}
+	if (psType->IsArray() && papcElements && (papcElements->NumElements() > 0))
+	{
+		Error(pcNew, "A new array of arrays with a list of initialisers is not supported by the compiler yet");
+		return NULL;
+	}
+	for (i = 0; papcElements && (i < papcElements->NumElements()); i++)
+	{
+		if (!Construct(psType, NULL, papcElements->GetPtr(i), pcNew))
+		{
+			return NULL;
+		}
+	}
+	for (psElement = psType; psElement->IsArray(); psElement = psElement->psBase)
+	{
+	}
+	if (psElement->IsClass() && psElement->pcClass->NeedsConstructor() && !Construct(psElement, NULL, NULL, pcNew))
 	{
 		return NULL;
 	}

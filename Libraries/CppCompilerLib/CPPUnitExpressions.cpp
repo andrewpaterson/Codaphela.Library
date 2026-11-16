@@ -230,6 +230,51 @@ bool CCPPUnit::IsAmbiguousName(CCPPSyntaxName* pcName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a new expression makes: its type-id's type, and for new
+// Type[count][N]... arrays of the inner bounds (constants).  NULL after an
+// error.  [expr.new] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::NewElementType(CCPPSyntaxNewExpression* pcNew)
+{
+	SCPP65Type*	psType;
+	int64		lliCount;
+	size		i;
+
+	psType = mcDeclarators.GetTypeIdType(pcNew->mpcType);
+	for (i = pcNew->macpArraySizes.NumElements(); psType && (i > 1); i--)
+	{
+		if (!Constant(pcNew->macpArraySizes.GetPtr(i - 1), &lliCount) || (lliCount <= 0))
+		{
+			ConstantError(pcNew->macpArraySizes.GetPtr(i - 1), "A new array's bounds after the first must be positive constants");
+			return NULL;
+		}
+		psType = mcTypes.Array(psType, (int)lliCount);
+	}
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new expression's allocation arguments: its size (NewSize), then its
+// placement arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments)
+{
+	size	i;
+
+	papcArguments->Add(NewSize(pcNew));
+	for (i = 0; i < pcNew->macpPlacement.NumElements(); i++)
+	{
+		papcArguments->Add(pcNew->macpPlacement.GetPtr(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The int 0 a postfix operator function is called with, made the first
 // time it is wanted (in no tree's nodes: it has no parent).
 //
@@ -238,9 +283,48 @@ CCPPSyntax* CCPPUnit::ImplicitZero(void)
 {
 	if (!mpcImplicitZero)
 	{
-		mpcImplicitZero = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitZero>(NULL);
+		mpcImplicitZero = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
+		mpcImplicitZero->mpsType = &mcTypes.msInt;
+		mpcImplicitZero->mbZero = true;
 	}
 	return mpcImplicitZero;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An argument the IR front end gives a value, pcFor's own (as a new
+// expression in a new expression's placement arguments mustn't change its
+// size's), of the type psType: the size a new expression's allocation
+// function is given, or the address delete gives a class's operator delete.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType)
+{
+	CCPPSyntaxImplicitArgument**	ppcValue;
+	CCPPSyntaxImplicitArgument*		pcValue;
+
+	ppcValue = mcImplicitValues.Get((int64)(size)pcFor);
+	if (ppcValue)
+	{
+		return *ppcValue;
+	}
+	pcValue = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
+	pcValue->mpsType = psType;
+	mcImplicitValues.Put((int64)(size)pcFor, &pcValue);
+	return pcValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size a new expression's allocation function is given: a size_t.
+// [expr.new] 9
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::NewSize(CCPPSyntaxNewExpression* pcNew)
+{
+	return ImplicitValue(pcNew, mcTypes.Size());
 }
 
 
@@ -1118,9 +1202,9 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	switch (pcExpression->GetKind())
 	{
-	case CPPS_ImplicitZero:
+	case CPPS_ImplicitArgument:
 		*plliValue = 0;
-		return true;
+		return ((CCPPSyntaxImplicitArgument*)pcExpression)->mbZero;
 
 	case CPPS_LiteralExpression:
 		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);

@@ -245,6 +245,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mauiStringLengths.ReInit();
 	muiFirstString = mpcUnit->GetData()->NumStrings();
 	mcAddresses.Init(true);
+	mcImplicitValues.Init(true);
 	mcAnonymousAddresses.Init(true);
 	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
 	if (pcFunction)
@@ -416,6 +417,7 @@ void CCPP65IRFrontEnd::EndWriting(void)
 		mcModule.RemoveFunction(mpcFunction);
 	}
 	mcAddresses.Kill();
+	mcImplicitValues.Kill();
 	mcAnonymousAddresses.Kill();
 	mpcFunction = NULL;
 	mpcBlock = NULL;

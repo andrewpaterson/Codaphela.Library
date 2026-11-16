@@ -254,7 +254,8 @@ protected:
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
 	CCPPVariable*			mpcDefining;		//The variable of a template's instance GlobalDeclaration is defining, or NULL.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
-	CCPPSyntax*				mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
+	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
+	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
@@ -375,6 +376,7 @@ public:
 
 	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
 	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
+	bool					IsAllocationFunction(int64 lliName);
 	bool					IsDefinedWhereDeclared(CCPPSyntaxName* pcName);
 	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn);
@@ -608,6 +610,10 @@ public:
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
+	CCPPSyntax*				ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType);
+	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
+	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
+	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);
 	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
 	bool					HasMember(CCPPClass* pcClass, int64 lliName);

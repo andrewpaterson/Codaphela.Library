@@ -26,7 +26,20 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxImplicitZero::PrettyPrint(CChars* pszDest, int iDepth)
+void CCPPSyntaxImplicitArgument::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
-	pszDest->Append('0');
+	CCPPSyntaxExpression::Init(pcTree, pcParent);
+	mpsType = NULL;
+	mbZero = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxImplicitArgument::PrettyPrint(CChars* pszDest, int iDepth)
+{
+	pszDest->Append(mbZero ? "0" : "sizeof");
 }

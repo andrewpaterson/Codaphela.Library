@@ -882,23 +882,19 @@ bool CCPP65IRFrontEnd::Destroy(SIRReference sAddress, SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// new Type, new Type(arguments) and new Type{arguments}: operator new's
-// memory (or new (address) Type's address), constructed.  new Type[count]
-// is NewArray's.
+// new Type, new Type(arguments), new Type{arguments} and new (placement...)
+// Type: the allocation function's memory (Allocate), constructed.  new
+// Type[count]... is NewArray's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psType;
 	SCPP65IRPlace	sPlace;
-	SCPP65IRValue	sAddress;
+	SCPP65IRValue	sBytes;
 
-	if (pcNew->mbPlacement && ((pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() > 0)))
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
-	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
-	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsArray() || psType->IsReference())
+	psType = mpcUnit->NewElementType(pcNew);
+	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsReference() || (psType->IsArray() && (pcNew->macpArraySizes.NumElements() == 0)))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -906,24 +902,14 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	{
 		return NewArray(pcNew, psType, psValue);
 	}
-	if (pcNew->mbPlacement)
+	sBytes.psType = mpcTypes->Integer(4, false);
+	sBytes.sValue = mpcFunction->AddInteger(IRType(IRTK_I32), psType->iBytes);
+	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress))
 	{
-		//new (address) Type: the object is made at the address.
-		if (!Value(pcNew->macpPlacement.GetPtr(0), &sAddress))
-		{
-			return false;
-		}
-		if (!sAddress.psType->IsPointer())
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		sPlace.sAddress = sAddress.sValue;
-	}
-	else
-	{
-		sPlace.sAddress = CallRuntime("opNew", IRType(IRTK_Pointer), IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), psType->iBytes));
+		return false;
 	}
 	sPlace.psType = psType;
+	sPlace.psBitField = NULL;
 	if ((psType->IsClass() || pcNew->mpcInitializer) && !Construct(&sPlace, NULL, pcNew->mpcInitializer))
 	{
 		return false;
@@ -936,30 +922,93 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 
 //////////////////////////////////////////////////////////////////////////
 //
-// new Type[count]: count elements from operator
-// new[], constructed by default first to last.  A class that needs
-// destroying has the count (32 bits) in front of the elements.
+// The memory a new expression makes its object in, psBytes long: from the
+// allocation function its type and placement arguments choose
+// (CCPPBinder::FindAllocation), the runtime's operator new or new[], or
+// new (address) Type's address.  [expr.new] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory)
+{
+	CArraySyntax	apcArguments;
+	CCPPFunction*	pcAllocation;
+	SCPP65IRValue	sResult;
+	bool			bArray;
+	bool			bFailed;
+	bool			bResult;
+
+	bArray = pcNew->macpArraySizes.NumElements() > 0;
+	apcArguments.Init();
+	mpcUnit->NewArguments(pcNew, &apcArguments);
+	pcAllocation = mpcUnit->GetBinder()->FindAllocation(psType, bArray, &apcArguments, pcNew, &bFailed);
+	bResult = !bFailed;
+	if (bResult && pcAllocation)
+	{
+		bResult = CallWithValue(pcAllocation, &apcArguments, apcArguments.GetPtr(0), psBytes, &sResult);
+		*psMemory = sResult.sValue;
+	}
+	else if (bResult && pcNew->mbPlacement)
+	{
+		//new (address) Type: the object is made at the address.
+		bResult = Value(pcNew->macpPlacement.GetPtr(0), &sResult) && (sResult.psType->IsPointer() || Unsupported(__FILE__, __LINE__));
+		*psMemory = sResult.sValue;
+	}
+	else if (bResult)
+	{
+		*psMemory = CallRuntime(bArray ? "opNewArray" : "opNew", IRType(IRTK_Pointer), IRTypeOf(psBytes->psType), psBytes->sValue);
+	}
+	apcArguments.Kill();
+	return bResult || Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls a function that isn't a member's object's with papcArguments, the
+// implicit one (pcImplicit, CCPPUnit::ImplicitValue) given the value
+// psImplicit.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CallWithValue(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcImplicit, SCPP65IRValue* psImplicit, SCPP65IRValue* psResult)
+{
+	bool	bResult;
+
+	mcImplicitValues.Put((int64)(size)pcImplicit, psImplicit);
+	bResult = Call(pcFunction, FunctionSymbol(pcFunction), NULL, papcArguments, psResult, NULL, false, NULL, false, IRNone());
+	mcImplicitValues.Remove((int64)(size)pcImplicit);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// new Type[count]...: count elements from the allocation function, a class
+// that needs destroying with the count (pointer size) in front of them.
+// Each is default initialised, or value initialised by (), or from a list
+// in braces the first of them and the rest value initialised.
+// [expr.new] 17
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue		sCount;
+	SCPP65IRValue		sBytes;
 	SCPP65IRPlace		sElement;
+	CArraySyntax*		papcElements;
+	SCPP65Type*			psElement;
 	SIRType				sSize;
-	SIRReference		sBytes;
 	SIRReference		sMemory;
 	SIRReference		sIndex;
 	SCPP65IRCountedLoop	sLoop;
+	size				uiFirst;
+	size				i;
 	bool				bCookie;
+	bool				bValue;
 
-	//Only new Type[count] and new Class[count]().
-	if ((pcNew->macpArraySizes.NumElements() != 1) || (pcNew->mpcInitializer &&
-		((pcNew->mpcInitializer->GetKind() != CPPS_ParenthesisedInitializer) || !psType->IsClass() ||
-		(((CCPPSyntaxParenthesisedInitializer*)pcNew->mpcInitializer)->macpElements.NumElements() != 0))))
+	for (psElement = psType; psElement->IsArray(); psElement = psElement->psBase)
 	{
-		return Unsupported(__FILE__, __LINE__);
 	}
-	if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, NULL))
+	if (psElement->IsClass() && !mpcUnit->CompleteClass(psElement->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -970,25 +1019,42 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	sSize = IRTypeOf(sCount.psType);
 	bCookie = psType->IsClass() && psType->pcClass->mpcDestructor;
 
-	sBytes = mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, psType->iBytes));
+	sBytes.psType = sCount.psType;
+	sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, psType->iBytes));
 	if (bCookie)
 	{
-		sBytes = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes, mpcFunction->AddInteger(sSize, mcModule.GetPointerSize(0)));
+		sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes.sValue, mpcFunction->AddInteger(sSize, mcModule.GetPointerSize(0)));
 	}
-	sMemory = CallRuntime("opNewArray", IRType(IRTK_Pointer), sSize, sBytes);
+	if (!Allocate(pcNew, psType, &sBytes, &sMemory))
+	{
+		return false;
+	}
 	if (bCookie)
 	{
 		mpcFunction->Store(mpcBlock, sSize, sCount.sValue, sMemory);
 		sMemory = AddressAt(sMemory, mcModule.GetPointerSize(0));
 	}
 
-	if (psType->IsClass() && psType->pcClass->NeedsConstructor())
+	//The elements a list in braces gives, then the rest.
+	papcElements = pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL;
+	bValue = pcNew->mpcInitializer != NULL;
+	uiFirst = papcElements ? papcElements->NumElements() : 0;
+	sElement.psType = psType;
+	sElement.psBitField = NULL;
+	for (i = 0; i < uiFirst; i++)
+	{
+		sElement.sAddress = AddressAt(sMemory, (int)(i * psType->iBytes));
+		if (psType->IsClass() ? !Construct(&sElement, NULL, papcElements->GetPtr(i)) : !LocalInitialiser(&sElement, papcElements->GetPtr(i), false))
+		{
+			return false;
+		}
+	}
+	if ((psType->IsClass() && psType->pcClass->NeedsConstructor()) || (bValue && !psType->IsClass()))
 	{
 		//loop: the index counts up to the count.
-		sIndex = BeginCountedLoop(&sLoop, sSize, mpcFunction->AddInteger(sSize, 0), IRO_ULt, sCount.sValue);
-		sElement.psType = psType;
+		sIndex = BeginCountedLoop(&sLoop, sSize, mpcFunction->AddInteger(sSize, uiFirst), IRO_ULt, sCount.sValue);
 		sElement.sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sMemory, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sIndex, mpcFunction->AddInteger(sSize, psType->iBytes)));
-		if (!Construct(&sElement, NULL, NULL))
+		if (psType->IsClass() ? !Construct(&sElement, NULL, NULL) : !ValueInitialise(&sElement))
 		{
 			return false;
 		}
@@ -996,6 +1062,46 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	}
 	psValue->sValue = sMemory;
 	psValue->psType = mpcTypes->Pointer(psType);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A scalar, or an array of them, value initialised: zero.  [dcl.init] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ValueInitialise(SCPP65IRPlace* psPlace)
+{
+	SCPP65IRPlace	sElement;
+	SCPP65IRValue	sZero;
+	int				i;
+
+	if (psPlace->psType->IsArray())
+	{
+		sElement.psType = psPlace->psType->psBase;
+		sElement.psBitField = NULL;
+		for (i = 0; i < psPlace->psType->iCount; i++)
+		{
+			sElement.sAddress = AddressAt(psPlace->sAddress, i * psPlace->psType->psBase->iBytes);
+			if (!ValueInitialise(&sElement))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	if (!psPlace->psType->IsScalar())
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	sZero.psType = &mpcTypes->msInt;
+	sZero.sValue = mpcFunction->AddInteger(IRTypeOf(&mpcTypes->msInt), 0);
+	if (!Convert(&sZero, psPlace->psType))
+	{
+		return false;
+	}
+	Store(psPlace, &sZero);
 	return true;
 }
 
@@ -1038,13 +1144,18 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 //
 // delete pointer: unless it is null, the object's destructor (virtual if
-// it is) then operator delete.  delete[] of objects with destructors is
-// DeleteArray's.
+// it is) then operator delete, the class's own if it has one.  delete[]
+// of objects with destructors is DeleteArray's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue	sPointer;
+	SCPP65IRValue	sAddress;
+	SCPP65IRValue	sResult;
+	CCPPFunction*	pcDeallocation;
+	CArraySyntax	apcArguments;
+	bool			bCalled;
 	SCPP65Type*		psType;
 	SIRReference	sCondition;
 	CIRBlock*		pcFree;
@@ -1085,7 +1196,25 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		{
 			return false;
 		}
-		CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sPointer.sValue);
+		pcDeallocation = psType->IsClass() ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
+		if (pcDeallocation)
+		{
+			//The class's own operator delete.  [expr.delete] 9
+			apcArguments.Init();
+			apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
+			sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
+			sAddress.sValue = sPointer.sValue;
+			bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
+			apcArguments.Kill();
+			if (!bCalled)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sPointer.sValue);
+		}
 	}
 	JumpTo(pcDone);
 	StartBlock(pcDone);

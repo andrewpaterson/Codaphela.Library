@@ -62,7 +62,7 @@ public:
 	void			VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* pcNode) override;
 	void			VisitConstructExpression(CCPPSyntaxConstructExpression* pcNode) override;
 	void			VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode) override;
-	void			VisitImplicitZero(CCPPSyntaxImplicitZero* pcNode) override;
+	void			VisitImplicitArgument(CCPPSyntaxImplicitArgument* pcNode) override;
 	void			VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode) override;
 	void			VisitNewExpression(CCPPSyntaxNewExpression* pcNode) override;
 	void			VisitDeleteExpression(CCPPSyntaxDeleteExpression* pcNode) override;

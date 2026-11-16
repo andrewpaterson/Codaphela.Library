@@ -288,6 +288,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcVariableInstances.Init();
 	miUnevaluated = 0;
 	mpcImplicitZero = NULL;
+	mcImplicitValues.Init(true);
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	mapcFailed.Init();
@@ -396,6 +397,7 @@ void CCPPUnit::Kill(void)
 	mapcMemberSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
 	mapcVariableInstances.Kill();
+	mcImplicitValues.Kill();
 	mapcConstantTypes.Kill();
 	mapcQueue.Kill();
 	mapcFailed.Kill();
@@ -1350,6 +1352,19 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a function's name is operator new, new[], delete or delete[],
+// which as a class's members are static whether or not they are declared
+// so.  [class.free] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsAllocationFunction(int64 lliName)
+{
+	return (lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)) || (lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a qualified name (A::f) is defined in a namespace that encloses
 // its declaration, as it must be: not namespace C { int A::f() { ... } }.
 // [namespace.memdef] 2
@@ -1765,7 +1780,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	apcDefaults.Kill();
 	apsParameters.Kill();
 	pcFunction->mbVariadic = pcSuffix->mbVariadic;
-	pcFunction->mbStatic = (uiFlags & CPPDS_STATIC) != 0;
+	pcFunction->mbStatic = ((uiFlags & CPPDS_STATIC) != 0) || (pcClass && IsAllocationFunction(lliName));
 	pcFunction->mbVirtual = (uiFlags & CPPDS_VIRTUAL) != 0;
 	pcFunction->mbPure = bPure;
 	pcFunction->mbInline = (uiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)) != 0;

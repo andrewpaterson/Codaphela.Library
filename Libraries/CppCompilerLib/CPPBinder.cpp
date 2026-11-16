@@ -772,6 +772,120 @@ CCPPFunction* CCPPBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 ll
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The allocation function new Type (or new Type[count], bArray) calls with
+// papcArguments, its size (CCPPUnit::NewSize) then its placement arguments:
+// the class's own operator new (or a base's), or one of the program's
+// global ones that the placement arguments choose.  NULL for the runtime's
+// operator new, or for new (address) Type with no operator new of the
+// program's that takes a pointer, the address itself; *pbFailed when no
+// operator new takes placement arguments.  [expr.new] 9
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool* pbFailed)
+{
+	CCPPFunction*	pcFunction;
+	CCPPClass*		pcClass;
+	int64			lliName;
+	size			uiErrors;
+
+	*pbFailed = false;
+	lliName = mpcUnit->GetOperatorName(CT_new, bArray);
+	pcClass = psType->IsClass() ? psType->pcClass : NULL;
+	if (pcClass && mpcUnit->HasMember(pcClass, lliName))
+	{
+		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, CPPCO_None);
+		*pbFailed = !pcFunction;
+		return pcFunction;
+	}
+	if (papcArguments->NumElements() == 1)
+	{
+		return NULL;
+	}
+
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	mpcUnit->BeginTrial();
+	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None);
+	mpcUnit->EndTrial();
+	mpcUnit->GetErrors()->Truncate(uiErrors);
+	if (pcFunction && IsReservedPlacement(pcFunction))
+	{
+		//operator new(size_t, void*) is the library's, which returns the address, whoever declares it.
+		pcFunction = NULL;
+	}
+	*pbFailed = !pcFunction && !IsBuiltinPlacement(papcArguments);
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a global operator new or new[] is the placement form the library
+// reserves, which takes a void* and returns it: a program's own declaration
+// of it (<new>'s, say) is the library's.  [new.delete.placement] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsReservedPlacement(CCPPFunction* pcFunction)
+{
+	SCPP65Type*	psAddress;
+
+	if (pcFunction->mpcClass || (pcFunction->mapsParameters.NumElements() != 2))
+	{
+		return false;
+	}
+	psAddress = pcFunction->mapsParameters.GetPtr(1)->Unqualified();
+	return psAddress->IsPointer() && psAddress->psBase->IsVoid();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// new (address) Type with nothing of the program's for it: the object is
+// made at the address.  [new.delete.placement] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsBuiltinPlacement(CArraySyntax* papcArguments)
+{
+	SCPP65Type*	psAddress;
+
+	if (papcArguments->NumElements() != 2)
+	{
+		return false;
+	}
+	psAddress = mpcUnit->TypeOf(papcArguments->GetPtr(1));
+	return psAddress && psAddress->WithoutReference()->IsPointer();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The deallocation function delete (or delete[], bArray) of an object of
+// pcClass calls: the class's own operator delete (or a base's) that takes
+// the pointer alone, or NULL for the runtime's.  [expr.delete] 9
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
+{
+	CCPPFunction*	pcFunction;
+	int64			lliName;
+
+	lliName = mpcUnit->GetOperatorName(CT_delete, bArray);
+	if (!pcClass || !mpcUnit->HasMember(pcClass, lliName))
+	{
+		return NULL;
+	}
+	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	{
+		if (pcFunction->mpcClass && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && (pcFunction->mapsParameters.NumElements() == 1))
+		{
+			return pcFunction;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class's operator-> for the object (NULL for an object an operator->
 // returned), or NULL.
 //

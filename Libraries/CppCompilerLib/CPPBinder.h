@@ -200,6 +200,10 @@ public:
 	//What isn't a call expression's: these choose a function and remember nothing.
 	CCPPFunction*	FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
 	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
+	CCPPFunction*	FindAllocation(SCPP65Type* psType, bool bArray, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool* pbFailed);
+	bool			IsBuiltinPlacement(CArraySyntax* papcArguments);
+	bool			IsReservedPlacement(CCPPFunction* pcFunction);
+	CCPPFunction*	FindDeallocation(CCPPClass* pcClass, bool bArray);
 	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 

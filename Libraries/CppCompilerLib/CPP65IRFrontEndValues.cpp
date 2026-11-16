@@ -122,10 +122,17 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 
 	switch (pcExpression->GetKind())
 	{
+	case CPPS_ImplicitArgument:
+		if (mcImplicitValues.Get((int64)(size)pcExpression))
+		{
+			//A value the call is given (CallWithValue).
+			*psValue = *mcImplicitValues.Get((int64)(size)pcExpression);
+			return true;
+		}
+		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_LiteralExpression:
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
-	case CPPS_ImplicitZero:
 		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_StringExpression:
 		return StringLiteral(pcExpression, psValue);
